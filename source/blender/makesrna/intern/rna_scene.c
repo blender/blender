@@ -1218,7 +1218,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "eye_separation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "eyeseparation");
 	RNA_def_property_range(prop, 0.01, 5.0);
-	RNA_def_property_ui_text(prop, "Eye Separation", "Set the distance between the eyes");
+	RNA_def_property_ui_text(prop, "Eye Separation", "Set the distance between the eyes - the camera focal length/30 should be fine");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 	
 	/* Dome */

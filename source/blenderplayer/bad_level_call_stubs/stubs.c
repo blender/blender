@@ -83,6 +83,7 @@ void WM_autosave_init(struct bContext *C){}
 void WM_jobs_stop_all(struct wmWindowManager *wm){}
 
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference){}
+void WM_main_add_notifier(unsigned int type, void *reference){}
 void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnamep){}
 void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone){}
 void object_test_constraints (struct Object *owner){}
@@ -110,10 +111,14 @@ struct wmKeyMap *WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *k
 struct wmKeyMap *WM_keymap_find(struct wmKeyConfig *keyconf, char *idname, int spaceid, int regionid){return (struct wmKeyMap *) NULL;}
 struct wmKeyMap *WM_keymap_add_item(struct wmKeyMap *keymap, char *idname, int type, int val, int modifier, int keymodifier){return (struct wmKeyMap *) NULL;}
 struct wmKeyMap *WM_keymap_copy_to_user(struct wmKeyMap *kemap){return (struct wmKeyMap *) NULL;} 
+struct wmKeyMap *WM_keymap_list_find(struct ListBase *lb, char *idname, int spaceid, int regionid){return (struct wmKeyMap *) NULL;}
 struct wmKeyConfig *WM_keyconfig_add(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
 void WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
 void WM_keymap_restore_to_default(struct wmKeyMap *keymap){}
+void WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
+void WM_keymap_properties_reset(struct wmKeyMapItem *kmi){}
 int WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap) {return 0;}
+int WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2){return 0;}
 
 
 /* rna editors */
@@ -127,6 +132,7 @@ void WM_event_add_fileselect(struct bContext *C, struct wmOperator *op){}
 void ED_node_texture_default(struct Tex *tx){}
 void ED_node_changed_update(struct bContext *C, struct bNode *node){}
 void ED_view3d_scene_layers_update(struct Main *bmain, struct Scene *scene){}
+int ED_view3d_scene_layer_set(int lay, const int *values){return 0;}
 int text_file_modified(struct Text *text){return 0;}
 void ED_node_shader_default(struct Material *ma){}
 void ED_screen_animation_timer_update(struct bContext *C, int redraws){}
@@ -159,6 +165,12 @@ void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *
 void ED_object_constraint_update(struct Object *ob){}
 struct bDeformGroup *ED_vgroup_add_name(struct Object *ob, char *name){return (struct bDeformGroup *) NULL;}
 void ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum, float weight, int assignmode){}
+void ED_sequencer_update_view(struct bContext *C, int view){}
+float ED_rollBoneToVector(struct EditBone *bone, float new_up_axis[3]){return 0.0f;}
+
+void EM_selectmode_set(struct EditMesh *em){}
+void make_editMesh(struct Scene *scene, struct Object *ob){}
+void load_editMesh(struct Scene *scene, struct Object *ob){}
 
 void uiItemR(struct uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, char *propname, int flag){}
 
@@ -184,6 +196,7 @@ void uiItemM(struct uiLayout *layout, struct bContext *C, char *name, int icon, 
 void uiItemS(struct uiLayout *layout){}
 void uiItemFullR(struct uiLayout *layout, char *name, int icon, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag){}
 void uiLayoutSetContextPointer(struct uiLayout *layout, char *name, struct PointerRNA *ptr){}
+char *uiLayoutIntrospect(struct uiLayout *layout){return (char *)NULL;}
 
 /* rna template */
 void uiTemplateAnyID(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, char *text){}
@@ -204,6 +217,7 @@ void uiTemplateOperatorSearch(struct uiLayout *layout){}
 void uiTemplateHeader3D(struct uiLayout *layout, struct bContext *C){}
 void uiTemplateTextureImage(struct uiLayout *layout, struct bContext *C, struct Tex *tex){}
 void uiTemplateImage(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *userptr, int compact){}
+void uiTemplateDopeSheetFilter(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr){}
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h){return (struct RenderResult *) NULL;}
@@ -224,6 +238,7 @@ int RE_engine_test_break(struct RenderEngine *engine){return 0;}
 struct wmOperatorType *WM_operatortype_find(const char *idname, int quiet){return (struct wmOperatorType *) NULL;}
 struct wmOperatorType *WM_operatortype_first(){return (struct wmOperatorType *) NULL;}
 struct wmOperatorType *WM_operatortype_exists(const char *idname){return (struct wmOperatorType *) NULL;}
+struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname){return (struct wmOperatorTypeMacro *) NULL;}
 int WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports){return 0;}
 int WM_operatortype_remove(const char *idname){return 0;}
 int WM_operator_poll(struct bContext *C, struct wmOperatorType *ot){return 0;}
@@ -235,6 +250,7 @@ void WM_operatortype_append_ptr(void (*opfunc)(struct wmOperatorType*, void*), v
 void WM_operatortype_append_macro_ptr(void (*opfunc)(struct wmOperatorType*, void*), void *userdata){}
 void WM_operator_bl_idname(char *to, const char *from){}
 void WM_operator_py_idname(char *to, const char *from){}
+void WM_operator_ui_popup(struct bContext *C, struct wmOperator *op, int width, int height){}
 short insert_keyframe (struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;}
 char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args){return NULL;}
 struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return NULL;}
