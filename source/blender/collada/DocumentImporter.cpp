@@ -624,6 +624,9 @@ private:
 		if (parent && totchild == 1) {
 			copy_v3_v3(parent->tail, bone->head);
 
+			// not setting BONE_CONNECTED because this would lock child bone location with respect to parent
+			// bone->flag |= BONE_CONNECTED;
+
 			// XXX increase this to prevent "very" small bones?
 			const float epsilon = 0.000001f;
 
@@ -2430,7 +2433,7 @@ public:
 
 			Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
 			if (!bone) {
-				fprintf(stderr, "cannot find bone \"%s\"", bone_name);
+				fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
 #ifdef ARMATURE_TEST
 				return NULL;
 #else
@@ -2773,9 +2776,14 @@ public:
 
 		// use bind matrix if available or calc "current" world mat
 		if (!armature_importer->get_joint_bind_mat(m, node)) {
-			float temp[4][4];
-			get_node_mat(temp, node, NULL, NULL);
-			mul_m4_m4m4(m, temp, par);
+			if (par) {
+				float temp[4][4];
+				get_node_mat(temp, node, NULL, NULL);
+				mul_m4_m4m4(m, temp, par);
+			}
+			else {
+				get_node_mat(m, node, NULL, NULL);
+			}
 		}
 
 		COLLADAFW::NodePointerArray& children = node->getChildNodes();
