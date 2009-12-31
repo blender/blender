@@ -1453,7 +1453,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_BAKE_SPACE_OBJECT, "OBJECT", 0, "Object", ""},
 		{R_BAKE_SPACE_TANGENT, "TANGENT", 0, "Tangent", ""},
 		{0, NULL, 0, NULL, NULL}};
-		
+
+	static EnumPropertyItem bake_qyad_split_items[] ={
+		{0, "AUTO", 0, "Automatic", "Split quads to give the least distortion while baking"},
+		{1, "FIXED", 0, "Fixed", "Split quads pradictably (0,1,2) (0,2,3)"},
+		{2, "FIXED_ALT", 0, "Fixed Alternate", "Split quads pradictably (1,2,3) (1,3,0)"},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem bake_aa_items[] ={
 		{5, "AA_5", 0, "5", ""},
 		{8, "AA_8", 0, "8", ""},
@@ -2148,12 +2154,16 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bake_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_mode");
 	RNA_def_property_enum_items(prop, bake_mode_items);
-	RNA_def_property_ui_text(prop, "Bake Mode", "");
+	RNA_def_property_ui_text(prop, "Bake Mode", "Choose shading information to bake into the image");
 	
 	prop= RNA_def_property(srna, "bake_normal_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_normal_space");
 	RNA_def_property_enum_items(prop, bake_normal_space_items);
 	RNA_def_property_ui_text(prop, "Normal Space", "Choose normal space for baking");
+	
+	prop= RNA_def_property(srna, "bake_quad_split", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, bake_qyad_split_items);
+	RNA_def_property_ui_text(prop, "Quad Split", "Choose the method used to split a quad into 2 triangles for baking");
 	
 	prop= RNA_def_property(srna, "bake_aa_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_osa");
@@ -2166,10 +2176,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "bake_normalized", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_NORMALIZE);
-	RNA_def_property_ui_text(prop, "Normalized", "");
-	//"Bake ambient occlusion normalized, without taking into acount material settings"
-	//"Normalized displacement value to fit the 'Dist' range"
-	// XXX: Need 1 tooltip here...
+	RNA_def_property_ui_text(prop, "Normalized", "With displacement normalize to the distance, with ambient occlusion normalize without using material settings.");
 	
 	prop= RNA_def_property(srna, "bake_clear", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_CLEAR);

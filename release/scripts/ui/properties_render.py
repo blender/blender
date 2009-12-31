@@ -560,27 +560,29 @@ class RENDER_PT_bake(RenderButtonsPanel):
 
         row = layout.row()
         row.operator("object.bake_image", icon='RENDER_STILL')
+        row = layout.row(align=True)
         row.prop(rd, "bake_type", text="")
+        if rd.bake_type == 'NORMALS':
+            row.prop(rd, "bake_normal_space", text="")
+        elif rd.bake_type in ('DISPLACEMENT', 'AO'):
+            row.prop(rd, "bake_normalized")
 
-        col = layout.column()
-        col.active = (rd.bake_type == 'NORMALS')
-        col.prop(rd, "bake_normal_space")
         # col.prop(rd, "bake_aa_mode")
         # col.prop(rd, "bake_enable_aa")
 
         col = layout.column()
         row = col.row(align=True)
         row.prop(rd, "bake_active")
-        row.prop(rd, "bake_normalized")
+        row.prop(rd, "bake_quad_split", text="Split")
 
         row = col.row(align=True)
-        row.prop(rd, "bake_clear")
-        row.prop(rd, "bake_margin")
-
-        row = col.row(align=True)
+        row.active = rd.bake_active
         row.prop(rd, "bake_distance")
         row.prop(rd, "bake_bias")
 
+        row = layout.row(align=True)
+        row.prop(rd, "bake_clear")
+        row.prop(rd, "bake_margin")
 
 bpy.types.register(RENDER_MT_presets)
 bpy.types.register(RENDER_PT_render)
