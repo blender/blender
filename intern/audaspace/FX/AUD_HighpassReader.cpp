@@ -29,6 +29,10 @@
 #include <cstring>
 #include <cmath>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 #define CC channels + channel
 
 AUD_HighpassReader::AUD_HighpassReader(AUD_IReader* reader, float frequency,
