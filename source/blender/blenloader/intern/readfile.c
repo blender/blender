@@ -10341,7 +10341,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			
 			/* if armature, copy settings for pose from armature data */
 			if (ob->pose && ob->data) {
-				bArmature *arm= (bArmature *)ob->data;
+				bArmature *arm= newlibadr(fd, lib, ob->data);
 				bAnimVizSettings *avs= &ob->pose->avs;
 				
 				/* ghosting settings ---------------- */
