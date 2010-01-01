@@ -218,7 +218,7 @@ static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[], flo
 	
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
 	if (gpd->sbuffer_sflag & GP_STROKE_3DSPACE) {
-		if(gpencil_project_check(p) && (view_autodist_simple(p->ar, mval, out, depth))) {
+		if(gpencil_project_check(p) && (view_autodist_simple(p->ar, mval, out, 0, depth))) {
 			/* projecting onto 3D-Geometry
 			 *	- nothing more needs to be done here, since view_autodist_simple() has already done it
 			 */
@@ -458,6 +458,8 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	bGPDspoint *pt;
 	tGPspoint *ptc;
 	int i, totelem;
+	/* since strokes are so fine, when using their depth we need a margin otherwise they might get missed */
+	int depth_margin = (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 4 : 0;
 	
 	/* get total number of points to allocate space for 
 	 *	- drawing straight-lines only requires the endpoints
@@ -525,7 +527,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 
 			for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size; i++, ptc++, pt++) {
 				mval[0]= ptc->x; mval[1]= ptc->y;
-				if(view_autodist_depth(p->ar, mval, depth_arr+i) == 0)
+				if(view_autodist_depth(p->ar, mval, depth_margin, depth_arr+i) == 0)
 					interp_depth= TRUE;
 				else
 					found_depth= TRUE;
@@ -537,6 +539,26 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 					depth_arr[i] = 0.9999f;
 			}
 			else if(interp_depth) {
+				if(p->gpd->flag & GP_DATA_DEPTH_STROKE_ENDPOINTS) {
+					/* remove all info between the valid endpoints */
+					int first_valid = 0;
+					int last_valid = 0;
+
+					for (i=0; i < gpd->sbuffer_size; i++)
+						if(depth_arr[i] != FLT_MAX)
+							break;
+					first_valid= i;
+
+					for (i=gpd->sbuffer_size-1; i >= 0; i--)
+						if(depth_arr[i] != FLT_MAX)
+							break;
+					last_valid= i;
+
+					/* invalidate non-endpoints, so only blend between first and last */
+					for (i=first_valid+1; i < last_valid; i++)
+						depth_arr[i]= FLT_MAX;
+				}
+
 				interp_sparse_array(depth_arr, gpd->sbuffer_size, FLT_MAX);
 			}
 		}

@@ -1474,7 +1474,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
 	/* ZBuffer depth vars */
 	bglMats mats;
-	float depth, depth_close= MAXFLOAT;
+	float depth, depth_close= FLT_MAX;
 	int had_depth = 0;
 	double cent[2],  p[3];
 	int xs, ys;
@@ -1531,7 +1531,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		double p_corner[3];
 
 		/* no depths to use, we cant do anything! */
-		if (depth_close==MAXFLOAT){
+		if (depth_close==FLT_MAX){
 			BKE_report(op->reports, RPT_ERROR, "Depth Too Large");
 			return OPERATOR_CANCELLED;
 		}
@@ -1559,7 +1559,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		new_dist = rv3d->dist;
 
 		/* convert the drawn rectangle into 3d space */
-		if (depth_close!=MAXFLOAT && gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2])) {
+		if (depth_close!=FLT_MAX && gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2])) {
 			new_ofs[0] = -p[0];
 			new_ofs[1] = -p[1];
 			new_ofs[2] = -p[2];
@@ -2197,22 +2197,66 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 /* ************************* below the line! *********************** */
 
 
+static float view_autodist_depth_margin(ARegion *ar, short *mval, int margin)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	float depth= FLT_MAX;
+
+	if(margin==0) {
+		if (mval[0] < 0) return 0;
+		if (mval[1] < 0) return 0;
+		if (mval[0] >= rv3d->depths->w) return 0;
+		if (mval[1] >= rv3d->depths->h) return 0;
+
+		/* Get Z Depths, needed for perspective, nice for ortho */
+		depth= rv3d->depths->depths[mval[1]*rv3d->depths->w+mval[0]];
+		if(depth >= rv3d->depths->depth_range[1] || depth <= rv3d->depths->depth_range[0]) {
+			depth= FLT_MAX;
+		}
+	}
+	else {
+		rcti rect;
+		float depth_close= FLT_MAX;
+		int xs, ys;
+
+		rect.xmax = mval[0] + margin;
+		rect.ymax = mval[1] + margin;
+
+		rect.xmin = mval[0] - margin;
+		rect.ymin = mval[1] - margin;
+
+		/* Constrain rect to depth bounds */
+		if (rect.xmin < 0) rect.xmin = 0;
+		if (rect.ymin < 0) rect.ymin = 0;
+		if (rect.xmax >= rv3d->depths->w) rect.xmax = rv3d->depths->w-1;
+		if (rect.ymax >= rv3d->depths->h) rect.ymax = rv3d->depths->h-1;
+
+		/* Find the closest Z pixel */
+		for (xs=rect.xmin; xs < rect.xmax; xs++) {
+			for (ys=rect.ymin; ys < rect.ymax; ys++) {
+				depth= rv3d->depths->depths[ys*rv3d->depths->w+xs];
+				if(depth < rv3d->depths->depth_range[1] && depth > rv3d->depths->depth_range[0]) {
+					if (depth_close > depth) {
+						depth_close = depth;
+					}
+				}
+			}
+		}
+
+		depth= depth_close;
+	}
+
+	return depth;
+}
+
 /* XXX todo Zooms in on a border drawn by the user */
 int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, short *mval, float mouse_worldloc[3] ) //, float *autodist )
 {
 	RegionView3D *rv3d= ar->regiondata;
 	bglMats mats; /* ZBuffer depth vars */
-	rcti rect;
-	float depth, depth_close= MAXFLOAT;
+	float depth_close= FLT_MAX;
 	int had_depth = 0;
 	double cent[2],  p[3];
-	int xs, ys;
-
-	rect.xmax = mval[0] + 4;
-	rect.ymax = mval[1] + 4;
-
-	rect.xmin = mval[0] - 4;
-	rect.ymin = mval[1] - 4;
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	bgl_get_mats(&mats);
@@ -2226,25 +2270,9 @@ int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, short *mval, float mou
 
 	view3d_update_depths(ar, v3d);
 
-	/* Constrain rect to depth bounds */
-	if (rect.xmin < 0) rect.xmin = 0;
-	if (rect.ymin < 0) rect.ymin = 0;
-	if (rect.xmax >= rv3d->depths->w) rect.xmax = rv3d->depths->w-1;
-	if (rect.ymax >= rv3d->depths->h) rect.ymax = rv3d->depths->h-1;
+	depth_close= view_autodist_depth_margin(ar, mval, 4);
 
-	/* Find the closest Z pixel */
-	for (xs=rect.xmin; xs < rect.xmax; xs++) {
-		for (ys=rect.ymin; ys < rect.ymax; ys++) {
-			depth= rv3d->depths->depths[ys*rv3d->depths->w+xs];
-			if(depth < rv3d->depths->depth_range[1] && depth > rv3d->depths->depth_range[0]) {
-				if (depth_close > depth) {
-					depth_close = depth;
-				}
-			}
-		}
-	}
-
-	if (depth_close==MAXFLOAT)
+	if (depth_close==FLT_MAX)
 		return 0;
 
 	if (had_depth==0) {
@@ -2289,23 +2317,17 @@ int view_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode) //, flo
 }
 
 // no 4x4 sampling, run view_autodist_init first
-int view_autodist_simple(ARegion *ar, short *mval, float mouse_worldloc[3], float *force_depth) //, float *autodist )
+int view_autodist_simple(ARegion *ar, short *mval, float mouse_worldloc[3], int margin, float *force_depth) //, float *autodist )
 {
-	RegionView3D *rv3d= ar->regiondata;
 	bglMats mats; /* ZBuffer depth vars, could cache? */
 	float depth;
 	double cent[2],  p[3];
-
-	if (mval[0] < 0) return 0;
-	if (mval[1] < 0) return 0;
-	if (mval[0] >= rv3d->depths->w) return 0;
-	if (mval[1] >= rv3d->depths->h) return 0;
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	if(force_depth)
 		depth= *force_depth;
 	else
-		depth= rv3d->depths->depths[mval[1]*rv3d->depths->w+mval[0]];
+		depth= view_autodist_depth_margin(ar, mval, margin);
 
 	if (depth==FLT_MAX)
 		return 0;
@@ -2323,24 +2345,9 @@ int view_autodist_simple(ARegion *ar, short *mval, float mouse_worldloc[3], floa
 	return 1;
 }
 
-int view_autodist_depth(struct ARegion *ar, short *mval, float *depth)
+int view_autodist_depth(struct ARegion *ar, short *mval, int margin, float *depth)
 {
-	RegionView3D *rv3d= ar->regiondata;
-	*depth= FLT_MAX;
-
-	if (mval[0] < 0) return 0;
-	if (mval[1] < 0) return 0;
-	if (mval[0] >= rv3d->depths->w) return 0;
-	if (mval[1] >= rv3d->depths->h) return 0;
-
-	/* Get Z Depths, needed for perspective, nice for ortho */
-	*depth= rv3d->depths->depths[mval[1]*rv3d->depths->w+mval[0]];
-
-	/* float error means we need to shave off some */
-
-	if(*depth >= 1.0) {
-		*depth= FLT_MAX;
-	}
+	*depth= view_autodist_depth_margin(ar, mval, margin);
 
 	return (*depth==FLT_MAX) ? 0:1;
 		return 0;

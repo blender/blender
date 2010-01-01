@@ -150,4 +150,6 @@ typedef struct bGPdata {
 #define GP_DATA_DEPTH_VIEW	(1<<5)
 #define GP_DATA_DEPTH_STROKE (1<<6)
 
+#define GP_DATA_DEPTH_STROKE_ENDPOINTS (1<<7)
+
 #endif /*  DNA_GPENCIL_TYPES_H */

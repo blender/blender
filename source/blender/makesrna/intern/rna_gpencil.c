@@ -243,6 +243,12 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, draw_mode_items);
 	RNA_def_property_ui_text(prop, "Draw Mode", "");
+
+	prop= RNA_def_property(srna, "use_stroke_endpoints", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_DEPTH_STROKE_ENDPOINTS);
+	RNA_def_property_ui_text(prop, "Only Endpoints", "When snapping the stroke to existing lines, only use the first and last parts of the line.");
+
+
 }
 
 /* --- */
