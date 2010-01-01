@@ -2284,6 +2284,14 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	shi.mat= vlr->mat;		/* current input material */
 	shi.thread= 0;
 	
+	/* TODO, assign these, displacement with new bumpmap is skipped without - campbell */
+#if 0
+	/* order is not known ? */
+	shi.v1= vlr->v1;
+	shi.v2= vlr->v2;
+	shi.v3= vlr->v3;
+#endif
+
 	/* Displace the verts, flag is set when done */
 	if (!vlr->v1->flag)
 		displace_render_vert(re, obr, &shi, vlr->v1,0,  scale, mat, imat);
