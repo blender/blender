@@ -558,32 +558,42 @@ class RENDER_PT_bake(RenderButtonsPanel):
         rd = context.scene.render_data
         wide_ui = context.region.width > narrowui
 
-        row = layout.row()
-        row.operator("object.bake_image", icon='RENDER_STILL')
-        row = layout.row(align=True)
-        row.prop(rd, "bake_type", text="")
+        layout.operator("object.bake_image", icon='RENDER_STILL')
+        
+        if wide_ui:
+            layout.prop(rd, "bake_type")
+        else:
+            layout.prop(rd, "bake_type", text="")
+        
         if rd.bake_type == 'NORMALS':
-            row.prop(rd, "bake_normal_space", text="")
+            if wide_ui:
+                layout.prop(rd, "bake_normal_space")
+            else:
+                layout.prop(rd, "bake_normal_space", text="")
         elif rd.bake_type in ('DISPLACEMENT', 'AO'):
-            row.prop(rd, "bake_normalized")
-
+            layout.prop(rd, "bake_normalized")
+        
         # col.prop(rd, "bake_aa_mode")
         # col.prop(rd, "bake_enable_aa")
+        
+        layout.separator()
+        
+        split = layout.split()
 
-        col = layout.column()
-        row = col.row(align=True)
-        row.prop(rd, "bake_active")
-        row.prop(rd, "bake_quad_split", text="Split")
+        col = split.column()
+        col.prop(rd, "bake_clear")
+        col.prop(rd, "bake_margin")
+        col.prop(rd, "bake_quad_split", text="Split")
+        
+        if wide_ui:
+            col = split.column()
+        col.prop(rd, "bake_active")
+        sub = col.column()
+        sub.active = rd.bake_active
+        sub.prop(rd, "bake_distance")
+        sub.prop(rd, "bake_bias")
 
-        row = col.row(align=True)
-        row.active = rd.bake_active
-        row.prop(rd, "bake_distance")
-        row.prop(rd, "bake_bias")
-
-        row = layout.row(align=True)
-        row.prop(rd, "bake_clear")
-        row.prop(rd, "bake_margin")
-
+        
 bpy.types.register(RENDER_MT_presets)
 bpy.types.register(RENDER_PT_render)
 bpy.types.register(RENDER_PT_layers)
