@@ -374,6 +374,25 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar)
 }
 
 
+#pragma mark defines for 10.6 api not documented in 10.5
+#ifndef MAC_OS_X_VERSION_10_6
+
+@interface NSEvent(SnowLeopardEvents)
+/* modifier keys currently down.  This returns the state of devices combined
+ with synthesized events at the moment, independent of which events
+ have been delivered via the event stream. */
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
++ (unsigned int)modifierFlags; //NSUInteger is defined only from 10.5
+#else
++ (NSUInteger)modifierFlags;
+#endif
+@end
+
+#endif
+
+
+#pragma mark Utility functions
+
 #define FIRSTFILEBUFLG 512
 static bool g_hasFirstFile = false;
 static char g_firstFileBuf[512];
@@ -883,11 +902,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 #else
 	//If build against an older SDK, check if running on 10.6 to use the correct function
 	if ([NSEvent respondsToSelector:@selector(modifierFlags)]) {
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
-		modifiers = (unsigned int)[NSEvent modifierFlags];
-#else
-		modifiers = (NSUInteger)[NSEvent modifierFlags];
-#endif
+		modifiers = [NSEvent modifierFlags];
 	}
 	else {
 		//TODO: need to find a better workaround for the missing cocoa "getModifierFlag" function in 10.4/10.5
