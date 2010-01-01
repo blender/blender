@@ -28,7 +28,8 @@
 
 #include <cmath>
 #include <cstring>
-#include <cstdio>
+
+#define CC channels + channel
 
 AUD_LinearResampleReader::AUD_LinearResampleReader(AUD_IReader* reader,
 												   AUD_Specs specs) :
@@ -77,7 +78,8 @@ AUD_Specs AUD_LinearResampleReader::getSpecs()
 
 void AUD_LinearResampleReader::read(int & length, sample_t* & buffer)
 {
-	int size = length * AUD_SAMPLE_SIZE(m_tspecs);
+	int samplesize = AUD_SAMPLE_SIZE(m_tspecs);
+	int size = length * samplesize;
 
 	if(m_buffer->getSize() < size)
 		m_buffer->resize(size);
@@ -102,36 +104,29 @@ void AUD_LinearResampleReader::read(int & length, sample_t* & buffer)
 		{
 			spos = (m_position + i) / m_factor - m_sposition;
 
-			if((floor(spos) < -2) || (ceil(spos) >= len))
-			{
-				fprintf(stderr, "FATAL ERROR: REPORT THIS TO neXyon!\n");
-//				exit(1);
-			}
-
 			if(floor(spos) < 0)
 			{
-				low = m_cache->getBuffer()[(int)(floor(spos) + 2) * channels
-										   + channel];
+				low = m_cache->getBuffer()[(int)(floor(spos) + 2) * CC];
 				if(ceil(spos) < 0)
-					high = m_cache->getBuffer()[(int)(ceil(spos) + 2)
-												* channels + channel];
+					high = m_cache->getBuffer()[(int)(ceil(spos) + 2) * CC];
 				else
-					high = buf[(int)ceil(spos) * channels + channel];
+					high = buf[(int)ceil(spos) * CC];
 			}
 			else
 			{
-					low = buf[(int)floor(spos) * channels + channel];
-					high = buf[(int)ceil(spos) * channels + channel];
+					low = buf[(int)floor(spos) * CC];
+					high = buf[(int)ceil(spos) * CC];
 			}
-			buffer[i * channels + channel] = low + (spos - floor(spos)) *
-												   (high - low);
+			buffer[i * CC] = low + (spos - floor(spos)) * (high - low);
 		}
 	}
 
 	if(len > 1)
-		memcpy(m_cache->getBuffer(), buf + (len - 2) * channels, 2 * channels);
+		memcpy(m_cache->getBuffer(),
+			   buf + (len - 2) * channels,
+			   2 * samplesize);
 	else if(len == 1)
-		memcpy(m_cache->getBuffer() + 1 * channels, buf, channels);
+		memcpy(m_cache->getBuffer() + 1 * channels, buf, samplesize);
 
 	m_sposition += len;
 	m_position += length;
