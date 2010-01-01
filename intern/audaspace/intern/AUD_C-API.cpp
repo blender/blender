@@ -39,6 +39,9 @@
 #include "AUD_LinearResampleFactory.h"
 #include "AUD_LowpassFactory.h"
 #include "AUD_HighpassFactory.h"
+#include "AUD_AccumulatorFactory.h"
+#include "AUD_SumFactory.h"
+#include "AUD_SquareFactory.h"
 #include "AUD_ChannelMapperFactory.h"
 #include "AUD_Buffer.h"
 #include "AUD_ReadDevice.h"
@@ -611,12 +614,14 @@ void AUD_closeReadDevice(AUD_Device* device)
 
 float* AUD_readSoundBuffer(const char* filename, float low, float high,
 						   float attack, float release, float threshold,
-						   int samplerate, int* length)
+						   int accumulate, int additive, int square,
+						   float sthreshold, int samplerate, int* length)
 {
 	AUD_Buffer buffer;
 	AUD_DeviceSpecs specs;
 	specs.channels = AUD_CHANNELS_MONO;
 	specs.rate = (AUD_SampleRate)samplerate;
+	AUD_Sound* sound;
 
 	AUD_FileFactory file(filename);
 	AUD_ChannelMapperFactory mapper(&file, specs);
@@ -624,8 +629,18 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 	AUD_HighpassFactory highpass(&lowpass, low);
 	AUD_EnvelopeFactory envelope(&highpass, attack, release, threshold, 0.1f);
 	AUD_LinearResampleFactory resampler(&envelope, specs);
+	sound = &resampler;
+	AUD_SquareFactory squaref(sound, sthreshold);
+	if(square)
+		sound = &squaref;
+	AUD_AccumulatorFactory accumulator(sound, additive);
+	AUD_SumFactory sum(sound);
+	if(accumulate)
+		sound = &accumulator;
+	else if(additive)
+		sound = &sum;
 
-	AUD_IReader* reader = resampler.createReader();
+	AUD_IReader* reader = sound->createReader();
 
 	if(reader == NULL)
 		return NULL;
