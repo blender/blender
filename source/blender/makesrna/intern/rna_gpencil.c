@@ -220,6 +220,12 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
+	static EnumPropertyItem draw_mode_items[] = {
+		{GP_DATA_VIEWALIGN, "CURSOR", 0, "Cursor", ""},
+		{0, "VIEW", 0, "View", ""}, /* weired, GP_DATA_VIEWALIGN is inverted */
+		{GP_DATA_VIEWALIGN|GP_DATA_VIEWDEPTH, "DEPTH", 0, "Depth", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "GreasePencil", "ID");
 	RNA_def_struct_sdna(srna, "bGPdata");
 	RNA_def_struct_ui_text(srna, "Grease Pencil", "Freehand annotation sketchbook.");
@@ -232,9 +238,10 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Layers", "Similar to layers in Photoshop.");
 	
 	/* Flags */
-	prop= RNA_def_property(srna, "view_space_draw", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_DATA_VIEWALIGN);
-	RNA_def_property_ui_text(prop, "Stick to View", "Newly drawn strokes get added in view space (i.e. sketches stick to data when view is manipulated).");
+	prop= RNA_def_property(srna, "draw_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, draw_mode_items);
+	RNA_def_property_ui_text(prop, "Draw Mode", "");
 }
 
 /* --- */

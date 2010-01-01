@@ -128,7 +128,8 @@ int view_autodist(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, s
 
 /* only draw so view_autodist_simple can be called many times after */
 int view_autodist_init(struct Scene *scene, struct ARegion *ar, struct View3D *v3d);
-int view_autodist_simple(struct ARegion *ar, short *mval, float mouse_worldloc[3]);
+int view_autodist_simple(struct ARegion *ar, short *mval, float mouse_worldloc[3], float *force_depth);
+int view_autodist_depth(struct ARegion *ar, short *mval, float *depth);
 
 /* select */
 #define MAXPICKBUF      10000

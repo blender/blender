@@ -146,5 +146,7 @@ typedef struct bGPdata {
 #define GP_DATA_EDITPAINT	(1<<3)
 	/* new strokes are added in viewport space */
 #define GP_DATA_VIEWALIGN	(1<<4)
+	/* Project into the screens Z values */
+#define GP_DATA_VIEWDEPTH	(1<<5)
 
 #endif /*  DNA_GPENCIL_TYPES_H */

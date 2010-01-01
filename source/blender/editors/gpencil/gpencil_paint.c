@@ -155,15 +155,7 @@ static int gpencil_draw_poll (bContext *C)
 static int gpencil_project_check (tGPsdata *p)
 {
 	bGPdata *gpd= p->gpd;
-	
-	if(	(gpd->sbuffer_sflag & GP_STROKE_3DSPACE) &&
-		(p->scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE) &&
-		(p->scene->toolsettings->snap_flag & SCE_SNAP_PROJECT) )
-	{
-		return 1;
-	}
-
-	return 0;
+	return ((gpd->sbuffer_sflag & GP_STROKE_3DSPACE) && (p->gpd->flag & GP_DATA_VIEWDEPTH)) ? 1:0;
 }
 
 /* ******************************************* */
@@ -220,13 +212,13 @@ static short gp_stroke_filtermval (tGPsdata *p, int mval[2], int pmval[2])
 
 /* convert screen-coordinates to buffer-coordinates */
 // XXX this method needs a total overhaul!
-static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
+static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[], float *depth)
 {
 	bGPdata *gpd= p->gpd;
 	
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
 	if (gpd->sbuffer_sflag & GP_STROKE_3DSPACE) {
-		if(gpencil_project_check(p) && (view_autodist_simple(p->ar, mval, out))) {
+		if(gpencil_project_check(p) && (view_autodist_simple(p->ar, mval, out, depth))) {
 			/* projecting onto 3D-Geometry
 			 *	- nothing more needs to be done here, since view_autodist_simple() has already done it
 			 */
@@ -501,7 +493,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 			ptc= gpd->sbuffer;
 			
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
-			gp_stroke_convertcoords(p, &ptc->x, &pt->x);
+			gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
 			
 			/* copy pressure */
 			pt->pressure= ptc->pressure;
@@ -514,23 +506,107 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 			ptc= ((tGPspoint *)gpd->sbuffer) + (gpd->sbuffer_size - 1);
 			
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
-			gp_stroke_convertcoords(p, &ptc->x, &pt->x);
+			gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
 			
 			/* copy pressure */
 			pt->pressure= ptc->pressure;
 		}
 	}
 	else {
+		float *depth_arr= NULL;
+
+		/* get an array of depths, far depths are blended */
+		if(gpencil_project_check(p)) {
+			short mval[2];
+			int interp_depth = 0;
+			int found_depth = 0;
+
+			depth_arr= MEM_mallocN(sizeof(float) * gpd->sbuffer_size, "depth_points");
+
+			for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size; i++, ptc++, pt++) {
+				mval[0]= ptc->x; mval[1]= ptc->y;
+				if(view_autodist_depth(p->ar, mval, depth_arr+i) == 0)
+					interp_depth= TRUE;
+				else
+					found_depth= TRUE;
+			}
+
+			if(found_depth==FALSE) {
+				/* eeh... not much we can do.. :/, ignore depth in this case, use the 3D cursor */
+				for (i=gpd->sbuffer_size-1; i >= 0; i--)
+					depth_arr[i] = 0.9999f;
+			}
+			else if(interp_depth) {
+				/* found invalid depths, interpolate */
+				float valid_last= FLT_MAX;
+				int valid_ofs= 0;
+
+				float *depth_arr_up= MEM_callocN(sizeof(float) * gpd->sbuffer_size, "depth_points_up");
+				float *depth_arr_down= MEM_callocN(sizeof(float) * gpd->sbuffer_size, "depth_points_down");
+
+				int *depth_tot_up= MEM_callocN(sizeof(int) * gpd->sbuffer_size, "depth_tot_up");
+				int *depth_tot_down= MEM_callocN(sizeof(int) * gpd->sbuffer_size, "depth_tot_down");
+
+				for (i=0; i < gpd->sbuffer_size; i++) {
+					if(depth_arr[i] == FLT_MAX) {
+						depth_arr_up[i]= valid_last;
+						depth_tot_up[i]= ++valid_ofs;
+					}
+					else {
+						valid_last= depth_arr[i];
+						valid_ofs= 0;
+					}
+				}
+
+				valid_last= FLT_MAX;
+				valid_ofs= 0;
+
+				for (i=gpd->sbuffer_size-1; i >= 0; i--) {
+					if(depth_arr[i] == FLT_MAX) {
+						depth_arr_down[i]= valid_last;
+						depth_tot_down[i]= ++valid_ofs;
+					}
+					else {
+						valid_last= depth_arr[i];
+						valid_ofs= 0;
+					}
+				}
+
+				/* now blend */
+				for (i=0; i < gpd->sbuffer_size; i++) {
+					if(depth_arr[i] == FLT_MAX) {
+						if(depth_arr_up[i] != FLT_MAX && depth_arr_down[i] != FLT_MAX) {
+							depth_arr[i]= ((depth_arr_up[i] * depth_tot_down[i]) +  (depth_arr_down[i] * depth_tot_up[i])) / (float)(depth_tot_down[i] + depth_tot_up[i]);
+						} else if (depth_arr_up[i] != FLT_MAX) {
+							depth_arr[i]= depth_arr_up[i];
+						} else if (depth_arr_down[i] != FLT_MAX) {
+							depth_arr[i]= depth_arr_down[i];
+						}
+					}
+				}
+
+				MEM_freeN(depth_arr_up);
+				MEM_freeN(depth_arr_down);
+
+				MEM_freeN(depth_tot_up);
+				MEM_freeN(depth_tot_down);
+			}
+		}
+
+
+		pt= gps->points;
+
 		/* convert all points (normal behaviour) */
-		for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size && ptc; i++, ptc++) {
+		for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size && ptc; i++, ptc++, pt++) {
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
-			gp_stroke_convertcoords(p, &ptc->x, &pt->x);
+			gp_stroke_convertcoords(p, &ptc->x, &pt->x, depth_arr ? depth_arr+i:NULL);
 			
 			/* copy pressure */
 			pt->pressure= ptc->pressure;
-			
-			pt++;
 		}
+
+		if(depth_arr)
+			MEM_freeN(depth_arr);
 	}
 	
 	/* add stroke to frame */

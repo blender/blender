@@ -229,7 +229,7 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 {
 	PointerRNA gpd_ptr;
 	bGPDlayer *gpl;
-	uiLayout *col;
+	uiLayout *col, *row;
 	
 	/* make new PointerRNA for Grease Pencil block */
 	RNA_id_pointer_create((ID *)gpd, &gpd_ptr);
@@ -259,7 +259,11 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 		uiItemL(col, "Drawing Settings:", 0);
 		
 		/* 'stick to view' option */
-		uiItemR(col, NULL, 0, &gpd_ptr, "view_space_draw", 0);
+		//uiItemR(col, NULL, 0, &gpd_ptr, "draw_mode", 0);
+		row= uiLayoutRow(layout, 1);
+		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "VIEW");
+		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "CURSOR");
+		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "DEPTH");
 }	
 
 
