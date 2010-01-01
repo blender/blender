@@ -868,7 +868,7 @@ bool AUD_OpenALDevice::seek(AUD_Handle* handle, float position)
 
 float AUD_OpenALDevice::getPosition(AUD_Handle* handle)
 {
-	float position = 0.0;
+	float position = 0.0f;
 
 	lock();
 
@@ -1283,7 +1283,7 @@ bool AUD_OpenALDevice::setSourceSetting(AUD_Handle* handle,
 			result = true;
 			break;
 		case AUD_3DSS_IS_RELATIVE:
-			alSourcei(source, AL_SOURCE_RELATIVE, value > 0.0);
+			alSourcei(source, AL_SOURCE_RELATIVE, value > 0.0f);
 			result = true;
 			break;
 		case AUD_3DSS_MAX_DISTANCE:
@@ -1341,7 +1341,7 @@ float AUD_OpenALDevice::getSourceSetting(AUD_Handle* handle,
 			{
 				ALint i;
 				alGetSourcei(source, AL_SOURCE_RELATIVE, &i);
-				result = i ? 1.0 : 0.0;
+				result = i ? 1.0f : 0.0f;
 				break;
 			}
 		case AUD_3DSS_MAX_DISTANCE:

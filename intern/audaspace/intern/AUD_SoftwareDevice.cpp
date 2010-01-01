@@ -51,7 +51,7 @@ void AUD_SoftwareDevice::create()
 	m_playingSounds = new std::list<AUD_SoftwareHandle*>(); AUD_NEW("list")
 	m_pausedSounds = new std::list<AUD_SoftwareHandle*>(); AUD_NEW("list")
 	m_playback = false;
-	m_volume = 1.0;
+	m_volume = 1.0f;
 	m_mixer = new AUD_Mixer(); AUD_NEW("mixer")
 	m_mixer->setSpecs(m_specs);
 
@@ -184,7 +184,7 @@ AUD_Handle* AUD_SoftwareDevice::play(AUD_IFactory* factory, bool keep)
 	AUD_SoftwareHandle* sound = new AUD_SoftwareHandle; AUD_NEW("handle")
 	sound->keep = keep;
 	sound->reader = reader;
-	sound->volume = 1.0;
+	sound->volume = 1.0f;
 
 	lock();
 	m_playingSounds->push_back(sound);
@@ -421,10 +421,10 @@ bool AUD_SoftwareDevice::setCapability(int capability, void *value)
 	case AUD_CAPS_VOLUME:
 		lock();
 		m_volume = *((float*)value);
-		if(m_volume > 1.0)
-			m_volume = 1.0;
-		else if(m_volume < 0.0)
-			m_volume = 0.0;
+		if(m_volume > 1.0f)
+			m_volume = 1.0f;
+		else if(m_volume < 0.0f)
+			m_volume = 0.0f;
 		unlock();
 		return true;
 	case AUD_CAPS_SOURCE_VOLUME:
@@ -435,10 +435,10 @@ bool AUD_SoftwareDevice::setCapability(int capability, void *value)
 			{
 				AUD_SoftwareHandle* handle = (AUD_SoftwareHandle*)caps->handle;
 				handle->volume = caps->value;
-				if(handle->volume > 1.0)
-					handle->volume = 1.0;
-				else if(handle->volume < 0.0)
-					handle->volume = 0.0;
+				if(handle->volume > 1.0f)
+					handle->volume = 1.0f;
+				else if(handle->volume < 0.0f)
+					handle->volume = 0.0f;
 				result = true;
 			}
 			unlock();

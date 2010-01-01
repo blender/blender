@@ -51,14 +51,14 @@ public:
 	 * \param frequency The cutoff frequency.
 	 * \param Q The Q factor.
 	 */
-	AUD_LowpassFactory(AUD_IFactory* factory, float frequency, float Q = 1.0);
+	AUD_LowpassFactory(AUD_IFactory* factory, float frequency, float Q = 1.0f);
 
 	/**
 	 * Creates a new lowpass factory.
 	 * \param frequency The cutoff frequency.
 	 * \param Q The Q factor.
 	 */
-	AUD_LowpassFactory(float frequency, float Q = 1.0);
+	AUD_LowpassFactory(float frequency, float Q = 1.0f);
 
 	virtual AUD_IReader* createReader();
 };

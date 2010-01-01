@@ -55,7 +55,7 @@ AUD_LowpassReader::AUD_LowpassReader(AUD_IReader* reader, float frequency,
 	m_position = 0;
 
 	// calculate coefficients
-	float w0 = 2.0 * M_PI * frequency / specs.rate;
+	float w0 = 2 * M_PI * frequency / specs.rate;
 	float alpha = sin(w0) / (2 * Q);
 	float norm = 1 + alpha;
 	m_coeff[0][0] = 0;

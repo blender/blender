@@ -49,7 +49,8 @@ AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_IReader* reader,
 		for(i=0; i < m_rch; i++)
 			sum += mapping[channels][i];
 		for(i=0; i < m_rch; i++)
-			m_mapping[channels][i] = sum > 0.0 ? mapping[channels][i]/sum : 0.0;
+			m_mapping[channels][i] = sum > 0.0f ?
+									 mapping[channels][i]/sum : 0.0f;
 	}
 
 	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")

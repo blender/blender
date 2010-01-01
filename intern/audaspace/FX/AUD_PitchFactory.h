@@ -45,7 +45,7 @@ public:
 	 * \param factory The input factory.
 	 * \param pitch The desired pitch.
 	 */
-	AUD_PitchFactory(AUD_IFactory* factory = 0, float pitch = 1.0);
+	AUD_PitchFactory(AUD_IFactory* factory = 0, float pitch = 1.0f);
 
 	/**
 	 * Creates a new pitch factory.

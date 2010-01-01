@@ -29,12 +29,12 @@
 #define AUD_U8_0		0x80
 #define AUD_S16_MAX		0x7FFF
 #define AUD_S16_MIN		0x8000
-#define AUD_S16_FLT		32768.0
+#define AUD_S16_FLT		32768.0f
 #define AUD_S32_MAX		0x7FFFFFFF
 #define AUD_S32_MIN		0x80000000
-#define AUD_S32_FLT		2147483648.0
-#define AUD_FLT_MAX		1.0
-#define AUD_FLT_MIN		-1.0
+#define AUD_S32_FLT		2147483648.0f
+#define AUD_FLT_MAX		1.0f
+#define AUD_FLT_MIN		-1.0f
 
 void AUD_convert_u8_s16(data_t* target, data_t* source, int length)
 {

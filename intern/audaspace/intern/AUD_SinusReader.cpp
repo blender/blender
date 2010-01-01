@@ -93,7 +93,7 @@ void AUD_SinusReader::read(int & length, sample_t* & buffer)
 	buffer = m_buffer->getBuffer();
 	for(int i = 0; i < length; i++)
 	{
-		buffer[i] = sin((m_position + i) * 2.0 * M_PI * m_frequency /
+		buffer[i] = sin((m_position + i) * 2.0f * M_PI * m_frequency /
 						(float)m_sampleRate);
 	}
 

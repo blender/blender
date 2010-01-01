@@ -108,7 +108,7 @@ void AUD_BandPassReader::read(int & length, sample_t* & buffer)
 
 			for(int i = 0; i < m_length / 2 + 1; i++)
 			{
-				frequency = i * specs.rate / (m_length / 2.0 + 1.0);
+				frequency = i * specs.rate / (m_length / 2.0f + 1.0f);
 				if((frequency < m_low) || (frequency > m_high))
 					complex[i][0] = complex[i][1] = 0.0;
 			}

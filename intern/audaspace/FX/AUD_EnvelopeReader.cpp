@@ -44,8 +44,8 @@ AUD_EnvelopeReader::AUD_EnvelopeReader(AUD_IReader* reader, float attack,
 	AUD_NEW("buffer")
 	memset(m_envelopes->getBuffer(), 0, samplesize);
 
-	m_bAttack = pow(arthreshold, 1.0/(specs.rate * attack));
-	m_bRelease = pow(arthreshold, 1.0/(specs.rate * release));
+	m_bAttack = pow(arthreshold, 1.0f/(specs.rate * attack));
+	m_bRelease = pow(arthreshold, 1.0f/(specs.rate * release));
 }
 
 AUD_EnvelopeReader::~AUD_EnvelopeReader()

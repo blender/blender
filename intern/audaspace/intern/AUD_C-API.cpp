@@ -182,7 +182,7 @@ AUD_SoundInfo AUD_getInfo(AUD_Sound* sound)
 	{
 		info.specs.channels = AUD_CHANNELS_INVALID;
 		info.specs.rate = AUD_RATE_INVALID;
-		info.length = 0.0;
+		info.length = 0.0f;
 	}
 
 	return info;
@@ -427,7 +427,7 @@ float AUD_get3DSetting(AUD_3DSetting setting)
 	catch(AUD_Exception)
 	{
 	}
-	return 0.0;
+	return 0.0f;
 }
 
 int AUD_update3DSource(AUD_Handle* handle, AUD_3DData* data)
@@ -483,7 +483,7 @@ float AUD_get3DSourceSetting(AUD_Handle* handle, AUD_3DSourceSetting setting)
 		{
 		}
 	}
-	return 0.0;
+	return 0.0f;
 }
 
 int AUD_setSoundVolume(AUD_Handle* handle, float volume)
