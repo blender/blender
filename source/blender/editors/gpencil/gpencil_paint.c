@@ -537,59 +537,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 					depth_arr[i] = 0.9999f;
 			}
 			else if(interp_depth) {
-				/* found invalid depths, interpolate */
-				float valid_last= FLT_MAX;
-				int valid_ofs= 0;
-
-				float *depth_arr_up= MEM_callocN(sizeof(float) * gpd->sbuffer_size, "depth_points_up");
-				float *depth_arr_down= MEM_callocN(sizeof(float) * gpd->sbuffer_size, "depth_points_down");
-
-				int *depth_tot_up= MEM_callocN(sizeof(int) * gpd->sbuffer_size, "depth_tot_up");
-				int *depth_tot_down= MEM_callocN(sizeof(int) * gpd->sbuffer_size, "depth_tot_down");
-
-				for (i=0; i < gpd->sbuffer_size; i++) {
-					if(depth_arr[i] == FLT_MAX) {
-						depth_arr_up[i]= valid_last;
-						depth_tot_up[i]= ++valid_ofs;
-					}
-					else {
-						valid_last= depth_arr[i];
-						valid_ofs= 0;
-					}
-				}
-
-				valid_last= FLT_MAX;
-				valid_ofs= 0;
-
-				for (i=gpd->sbuffer_size-1; i >= 0; i--) {
-					if(depth_arr[i] == FLT_MAX) {
-						depth_arr_down[i]= valid_last;
-						depth_tot_down[i]= ++valid_ofs;
-					}
-					else {
-						valid_last= depth_arr[i];
-						valid_ofs= 0;
-					}
-				}
-
-				/* now blend */
-				for (i=0; i < gpd->sbuffer_size; i++) {
-					if(depth_arr[i] == FLT_MAX) {
-						if(depth_arr_up[i] != FLT_MAX && depth_arr_down[i] != FLT_MAX) {
-							depth_arr[i]= ((depth_arr_up[i] * depth_tot_down[i]) +  (depth_arr_down[i] * depth_tot_up[i])) / (float)(depth_tot_down[i] + depth_tot_up[i]);
-						} else if (depth_arr_up[i] != FLT_MAX) {
-							depth_arr[i]= depth_arr_up[i];
-						} else if (depth_arr_down[i] != FLT_MAX) {
-							depth_arr[i]= depth_arr_down[i];
-						}
-					}
-				}
-
-				MEM_freeN(depth_arr_up);
-				MEM_freeN(depth_arr_down);
-
-				MEM_freeN(depth_tot_up);
-				MEM_freeN(depth_tot_down);
+				interp_sparse_array(depth_arr, gpd->sbuffer_size, FLT_MAX);
 			}
 		}
 

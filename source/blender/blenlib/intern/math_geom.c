@@ -32,6 +32,7 @@
 
 #include "BLI_math.h"
 #include "BLI_memarena.h"
+#include "MEM_guardedalloc.h"
 
 /********************************** Polygons *********************************/
 
@@ -1408,6 +1409,85 @@ void barycentric_transform(float pt_tar[3], float const pt_src[3],
 	madd_v3_v3v3fl(pt_tar, pt_tar, no_tar, (z_ofs_src / area_src) * area_tar);
 }
 
+/* given an array with some invalid values this function interpolates valid values
+ * replacing the invalid ones */
+int interp_sparse_array(float *array, int list_size, float skipval)
+{
+	int found_invalid = 0;
+	int found_valid = 0;
+	int i;
+
+	for (i=0; i < list_size; i++) {
+		if(array[i] == skipval)
+			found_invalid= 1;
+		else
+			found_valid= 1;
+	}
+
+	if(found_valid==0) {
+		return -1;
+	}
+	else if (found_invalid==0) {
+		return 0;
+	}
+	else {
+		/* found invalid depths, interpolate */
+		float valid_last= skipval;
+		int valid_ofs= 0;
+
+		float *array_up= MEM_callocN(sizeof(float) * list_size, "interp_sparse_array up");
+		float *array_down= MEM_callocN(sizeof(float) * list_size, "interp_sparse_array up");
+
+		int *ofs_tot_up= MEM_callocN(sizeof(int) * list_size, "interp_sparse_array tup");
+		int *ofs_tot_down= MEM_callocN(sizeof(int) * list_size, "interp_sparse_array tdown");
+
+		for (i=0; i < list_size; i++) {
+			if(array[i] == skipval) {
+				array_up[i]= valid_last;
+				ofs_tot_up[i]= ++valid_ofs;
+			}
+			else {
+				valid_last= array[i];
+				valid_ofs= 0;
+			}
+		}
+
+		valid_last= skipval;
+		valid_ofs= 0;
+
+		for (i=list_size-1; i >= 0; i--) {
+			if(array[i] == skipval) {
+				array_down[i]= valid_last;
+				ofs_tot_down[i]= ++valid_ofs;
+			}
+			else {
+				valid_last= array[i];
+				valid_ofs= 0;
+			}
+		}
+
+		/* now blend */
+		for (i=0; i < list_size; i++) {
+			if(array[i] == skipval) {
+				if(array_up[i] != skipval && array_down[i] != skipval) {
+					array[i]= ((array_up[i] * ofs_tot_down[i]) +  (array_down[i] * ofs_tot_up[i])) / (float)(ofs_tot_down[i] + ofs_tot_up[i]);
+				} else if (array_up[i] != skipval) {
+					array[i]= array_up[i];
+				} else if (array_down[i] != skipval) {
+					array[i]= array_down[i];
+				}
+			}
+		}
+
+		MEM_freeN(array_up);
+		MEM_freeN(array_down);
+
+		MEM_freeN(ofs_tot_up);
+		MEM_freeN(ofs_tot_down);
+	}
+
+	return 1;
+}
 
 /* Mean value weights - smooth interpolation weights for polygons with
  * more than 3 vertices */

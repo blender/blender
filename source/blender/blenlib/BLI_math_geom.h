@@ -121,6 +121,8 @@ void interp_weights_poly_v3(float w[], float v[][3], int n, float p[3]);
 void interp_cubic_v3(float x[3], float v[3],
 	float x1[3], float v1[3], float x2[3], float v2[3], float t);
 
+int interp_sparse_array(float *array, int list_size, float invalid);
+
 void barycentric_transform(float pt_tar[3], float const pt_src[3],
 	const float tri_tar_p1[3], const float tri_tar_p2[3], const float tri_tar_p3[3],
 	const float tri_src_p1[3], const float tri_src_p2[3], const float tri_src_p3[3]);
