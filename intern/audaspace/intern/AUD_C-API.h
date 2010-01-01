@@ -59,7 +59,7 @@ typedef struct
  * \param buffersize The buffersize for the device.
  * \return Whether the device has been initialized.
  */
-extern int AUD_init(AUD_DeviceType device, AUD_Specs specs, int buffersize);
+extern int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize);
 
 /**
  * Returns a integer list with available sound devices. The last one is always
@@ -304,7 +304,7 @@ extern int AUD_setSoundPitch(AUD_Handle* handle, float pitch);
  * \param specs The specification of the audio data.
  * \return A device handle.
  */
-extern AUD_Device* AUD_openReadDevice(AUD_Specs specs);
+extern AUD_Device* AUD_openReadDevice(AUD_DeviceSpecs specs);
 
 /**
  * Sets the main volume of a device.
@@ -342,13 +342,21 @@ extern int AUD_setDeviceSoundVolume(AUD_Device* device,
  *         played back currently, in that case the buffer is filled with
  *         silence.
  */
-extern int AUD_readDevice(AUD_Device* device, sample_t* buffer, int length);
+extern int AUD_readDevice(AUD_Device* device, data_t* buffer, int length);
 
 /**
  * Closes a read device.
  * \param device The read device.
  */
 extern void AUD_closeReadDevice(AUD_Device* device);
+
+/**
+ * Reads a sound file into a newly created float buffer.
+ * The sound is therefore bandpassed, rectified and resampled.
+ */
+extern float* AUD_readSoundBuffer(const char* filename, float low, float high,
+								  float attack, float release, float threshold,
+								  int samplerate, int* length);
 
 #ifdef __cplusplus
 }

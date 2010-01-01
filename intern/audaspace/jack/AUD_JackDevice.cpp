@@ -23,7 +23,7 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#include "AUD_FloatMixer.h"
+#include "AUD_Mixer.h"
 #include "AUD_JackDevice.h"
 #include "AUD_IReader.h"
 #include "AUD_Buffer.h"
@@ -38,7 +38,7 @@ int AUD_JackDevice::jack_mix(jack_nframes_t length, void *data)
 	unsigned int samplesize = AUD_SAMPLE_SIZE(device->m_specs);
 	if(device->m_buffer->getSize() < samplesize * length)
 		device->m_buffer->resize(samplesize * length);
-	device->mix(device->m_buffer->getBuffer(), length);
+	device->mix((data_t*)device->m_buffer->getBuffer(), length);
 
 	float* in = (float*) device->m_buffer->getBuffer();
 	float* out;
@@ -60,7 +60,7 @@ void AUD_JackDevice::jack_shutdown(void *data)
 	device->m_valid = false;
 }
 
-AUD_JackDevice::AUD_JackDevice(AUD_Specs specs)
+AUD_JackDevice::AUD_JackDevice(AUD_DeviceSpecs specs)
 {
 	if(specs.channels == AUD_CHANNELS_INVALID)
 		specs.channels = AUD_CHANNELS_STEREO;
@@ -122,9 +122,6 @@ AUD_JackDevice::AUD_JackDevice(AUD_Specs specs)
 
 		free(ports);
 	}
-
-	m_mixer = new AUD_FloatMixer(); AUD_NEW("mixer")
-	m_mixer->setSpecs(m_specs);
 
 	m_valid = true;
 

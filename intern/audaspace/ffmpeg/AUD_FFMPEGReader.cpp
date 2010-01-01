@@ -34,26 +34,6 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-// This function transforms a FFMPEG SampleFormat to our own sample format
-static inline AUD_SampleFormat FFMPEG_TO_AUD(SampleFormat fmt)
-{
-	switch(fmt)
-	{
-	case SAMPLE_FMT_U8:
-		return AUD_FORMAT_U8;
-	case SAMPLE_FMT_S16:
-		return AUD_FORMAT_S16;
-	case SAMPLE_FMT_S32:
-		return AUD_FORMAT_S32;
-	case SAMPLE_FMT_FLT:
-		return AUD_FORMAT_FLOAT32;
-	case SAMPLE_FMT_DBL:
-		return AUD_FORMAT_FLOAT64;
-	default:
-		return AUD_FORMAT_INVALID;
-	}
-}
-
 int AUD_FFMPEGReader::decode(AVPacket* packet, AUD_Buffer* buffer)
 {
 	// save packet parameters
@@ -78,11 +58,11 @@ int AUD_FFMPEGReader::decode(AVPacket* packet, AUD_Buffer* buffer)
 		// read samples from the packet
 		data_size = buf_size - buf_pos;
 		/*read_length = avcodec_decode_audio3(m_codecCtx,
-			(int16_t*)(buffer->getBuffer()+buf_pos),
+			(int16_t*)(((data_t*)buffer->getBuffer())+buf_pos),
 			&data_size,
 			packet);*/
 		read_length = avcodec_decode_audio2(m_codecCtx,
-			(int16_t*)(buffer->getBuffer()+buf_pos),
+			(int16_t*)(((data_t*)buffer->getBuffer())+buf_pos),
 			&data_size,
 			audio_pkg_data,
 			audio_pkg_size);
@@ -101,10 +81,78 @@ int AUD_FFMPEGReader::decode(AVPacket* packet, AUD_Buffer* buffer)
 	return buf_pos;
 }
 
-AUD_FFMPEGReader::AUD_FFMPEGReader(const char* filename)
+void AUD_FFMPEGReader::init()
 {
 	m_position = 0;
 	m_pkgbuf_left = 0;
+
+	if(av_find_stream_info(m_formatCtx)<0)
+		AUD_THROW(AUD_ERROR_FFMPEG);
+
+	// find audio stream and codec
+	m_stream = -1;
+
+	for(unsigned int i = 0; i < m_formatCtx->nb_streams; i++)
+		if((m_formatCtx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO)
+			&& (m_stream < 0))
+		{
+			m_stream=i;
+			break;
+		}
+	if(m_stream == -1)
+		AUD_THROW(AUD_ERROR_FFMPEG);
+
+	m_codecCtx = m_formatCtx->streams[m_stream]->codec;
+
+	// get a decoder and open it
+	AVCodec *aCodec = avcodec_find_decoder(m_codecCtx->codec_id);
+	if(!aCodec)
+		AUD_THROW(AUD_ERROR_FFMPEG);
+
+	if(avcodec_open(m_codecCtx, aCodec)<0)
+		AUD_THROW(AUD_ERROR_FFMPEG);
+
+	// XXX this prints file information to stdout:
+	//dump_format(m_formatCtx, 0, NULL, 0);
+
+	m_specs.channels = (AUD_Channels) m_codecCtx->channels;
+
+	switch(m_codecCtx->sample_fmt)
+	{
+	case SAMPLE_FMT_U8:
+		m_convert = AUD_convert_u8_float;
+		m_specs.format = AUD_FORMAT_U8;
+		break;
+	case SAMPLE_FMT_S16:
+		m_convert = AUD_convert_s16_float;
+		m_specs.format = AUD_FORMAT_S16;
+		break;
+	case SAMPLE_FMT_S32:
+		m_convert = AUD_convert_s32_float;
+		m_specs.format = AUD_FORMAT_S32;
+		break;
+	case SAMPLE_FMT_FLT:
+		m_convert = AUD_convert_copy<float>;
+		m_specs.format = AUD_FORMAT_FLOAT32;
+		break;
+	case SAMPLE_FMT_DBL:
+		m_convert = AUD_convert_double_float;
+		m_specs.format = AUD_FORMAT_FLOAT64;
+		break;
+	default:
+		AUD_THROW(AUD_ERROR_FILE);
+	}
+
+	m_specs.rate = (AUD_SampleRate) m_codecCtx->sample_rate;
+
+	// last but not least if there hasn't been any error, create the buffers
+	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
+	m_pkgbuf = new AUD_Buffer(AVCODEC_MAX_AUDIO_FRAME_SIZE<<1);
+	AUD_NEW("buffer")
+}
+
+AUD_FFMPEGReader::AUD_FFMPEGReader(const char* filename)
+{
 	m_byteiocontext = NULL;
 
 	// open file
@@ -113,66 +161,28 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(const char* filename)
 
 	try
 	{
-		if(av_find_stream_info(m_formatCtx)<0)
-			AUD_THROW(AUD_ERROR_FFMPEG);
-
-		// find audio stream and codec
-		m_stream = -1;
-
-		for(unsigned int i = 0; i < m_formatCtx->nb_streams; i++)
-			if((m_formatCtx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO)
-				&& (m_stream < 0))
-			{
-				m_stream=i;
-				break;
-			}
-		if(m_stream == -1)
-			AUD_THROW(AUD_ERROR_FFMPEG);
-
-		m_codecCtx = m_formatCtx->streams[m_stream]->codec;
-
-		// get a decoder and open it
-		AVCodec *aCodec = avcodec_find_decoder(m_codecCtx->codec_id);
-		if(!aCodec)
-			AUD_THROW(AUD_ERROR_FFMPEG);
-
-		if(avcodec_open(m_codecCtx, aCodec)<0)
-			AUD_THROW(AUD_ERROR_FFMPEG);
-
-		// XXX this prints file information to stdout:
-		//dump_format(m_formatCtx, 0, filename, 0);
-
-		m_specs.channels = (AUD_Channels) m_codecCtx->channels;
-		m_specs.format = FFMPEG_TO_AUD(m_codecCtx->sample_fmt);
-		m_specs.rate = (AUD_SampleRate) m_codecCtx->sample_rate;
+		init();
 	}
 	catch(AUD_Exception)
 	{
 		av_close_input_file(m_formatCtx);
 		throw;
 	}
-
-	// last but not least if there hasn't been any error, create the buffers
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
-	m_pkgbuf = new AUD_Buffer(AVCODEC_MAX_AUDIO_FRAME_SIZE<<1);
-	AUD_NEW("buffer")
 }
 
 AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer)
 {
-	m_position = 0;
-	m_pkgbuf_left = 0;
 	m_byteiocontext = (ByteIOContext*)av_mallocz(sizeof(ByteIOContext));
 	AUD_NEW("byteiocontext")
 	m_membuffer = buffer;
 
-	if(init_put_byte(m_byteiocontext, buffer.get()->getBuffer(), buffer.get()->getSize(), 0,
-					 NULL, NULL, NULL, NULL) != 0)
+	if(init_put_byte(m_byteiocontext, (data_t*)buffer.get()->getBuffer(),
+					 buffer.get()->getSize(), 0, NULL, NULL, NULL, NULL) != 0)
 		AUD_THROW(AUD_ERROR_FILE);
 
 	AVProbeData probe_data;
 	probe_data.filename = "";
-	probe_data.buf = buffer.get()->getBuffer();
+	probe_data.buf = (data_t*)buffer.get()->getBuffer();
 	probe_data.buf_size = buffer.get()->getSize();
 	AVInputFormat* fmt = av_probe_input_format(&probe_data, 1);
 
@@ -182,38 +192,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer)
 
 	try
 	{
-		if(av_find_stream_info(m_formatCtx)<0)
-			AUD_THROW(AUD_ERROR_FFMPEG);
-
-		// find audio stream and codec
-		m_stream = -1;
-
-		for(unsigned int i = 0; i < m_formatCtx->nb_streams; i++)
-			if((m_formatCtx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO)
-				&& (m_stream < 0))
-			{
-				m_stream=i;
-				break;
-			}
-		if(m_stream == -1)
-			AUD_THROW(AUD_ERROR_FFMPEG);
-
-		m_codecCtx = m_formatCtx->streams[m_stream]->codec;
-
-		// get a decoder and open it
-		AVCodec *aCodec = avcodec_find_decoder(m_codecCtx->codec_id);
-		if(!aCodec)
-			AUD_THROW(AUD_ERROR_FFMPEG);
-
-		if(avcodec_open(m_codecCtx, aCodec)<0)
-			AUD_THROW(AUD_ERROR_FFMPEG);
-
-		// XXX this prints stream information to stdout:
-		//dump_format(m_formatCtx, 0, NULL, 0);
-
-		m_specs.channels = (AUD_Channels) m_codecCtx->channels;
-		m_specs.format = FFMPEG_TO_AUD(m_codecCtx->sample_fmt);
-		m_specs.rate = (AUD_SampleRate) m_codecCtx->sample_rate;
+		init();
 	}
 	catch(AUD_Exception)
 	{
@@ -221,11 +200,6 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer)
 		av_free(m_byteiocontext); AUD_DELETE("byteiocontext")
 		throw;
 	}
-
-	// last but not least if there hasn't been any error, create the buffers
-	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
-	m_pkgbuf = new AUD_Buffer(AVCODEC_MAX_AUDIO_FRAME_SIZE<<1);
-	AUD_NEW("buffer")
 }
 
 AUD_FFMPEGReader::~AUD_FFMPEGReader()
@@ -316,7 +290,7 @@ int AUD_FFMPEGReader::getPosition()
 
 AUD_Specs AUD_FFMPEGReader::getSpecs()
 {
-	return m_specs;
+	return m_specs.specs;
 }
 
 AUD_ReaderType AUD_FFMPEGReader::getType()
@@ -336,11 +310,11 @@ void AUD_FFMPEGReader::read(int & length, sample_t* & buffer)
 	int data_size = 0;
 	int pkgbuf_pos;
 	int left = length;
-	int sample_size = AUD_SAMPLE_SIZE(m_specs);
+	int sample_size = AUD_DEVICE_SAMPLE_SIZE(m_specs);
 
 	// resize output buffer if necessary
-	if(m_buffer->getSize() < length*sample_size)
-		m_buffer->resize(length*sample_size);
+	if(m_buffer->getSize() < length * AUD_SAMPLE_SIZE(m_specs))
+		m_buffer->resize(length * AUD_SAMPLE_SIZE(m_specs));
 
 	buffer = m_buffer->getBuffer();
 	pkgbuf_pos = m_pkgbuf_left;
@@ -350,8 +324,9 @@ void AUD_FFMPEGReader::read(int & length, sample_t* & buffer)
 	if(pkgbuf_pos > 0)
 	{
 		data_size = AUD_MIN(pkgbuf_pos, left * sample_size);
-		memcpy(buffer, m_pkgbuf->getBuffer(), data_size);
-		buffer += data_size;
+		m_convert((data_t*) buffer, (data_t*) m_pkgbuf->getBuffer(),
+				  data_size / AUD_FORMAT_SIZE(m_specs.format));
+		buffer += data_size / AUD_FORMAT_SIZE(m_specs.format);
 		left -= data_size/sample_size;
 	}
 
@@ -366,8 +341,9 @@ void AUD_FFMPEGReader::read(int & length, sample_t* & buffer)
 
 			// copy to output buffer
 			data_size = AUD_MIN(pkgbuf_pos, left * sample_size);
-			memcpy(buffer, m_pkgbuf->getBuffer(), data_size);
-			buffer += data_size;
+			m_convert((data_t*) buffer, (data_t*) m_pkgbuf->getBuffer(),
+					  data_size / AUD_FORMAT_SIZE(m_specs.format));
+			buffer += data_size / AUD_FORMAT_SIZE(m_specs.format);
 			left -= data_size/sample_size;
 		}
 		av_free_packet(&packet);
@@ -376,7 +352,8 @@ void AUD_FFMPEGReader::read(int & length, sample_t* & buffer)
 	if(pkgbuf_pos > data_size)
 	{
 		m_pkgbuf_left = pkgbuf_pos-data_size;
-		memmove(m_pkgbuf->getBuffer(), m_pkgbuf->getBuffer()+data_size,
+		memmove(m_pkgbuf->getBuffer(),
+				((data_t*)m_pkgbuf->getBuffer())+data_size,
 				pkgbuf_pos-data_size);
 	}
 

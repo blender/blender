@@ -23,23 +23,29 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_SDLMIXERFACTORY
-#define AUD_SDLMIXERFACTORY
+#include "AUD_LowpassFactory.h"
+#include "AUD_LowpassReader.h"
 
-#include "AUD_MixerFactory.h"
+AUD_LowpassFactory::AUD_LowpassFactory(AUD_IFactory* factory, float frequency,
+									   float Q) :
+		AUD_EffectFactory(factory),
+		m_frequency(frequency),
+		m_Q(Q) {}
 
-/**
- * This factory creates a resampling reader that uses SDL's resampling
- * functionality which unfortunately is very very very limited.
- */
-class AUD_SDLMixerFactory : public AUD_MixerFactory
+AUD_LowpassFactory::AUD_LowpassFactory(float frequency, float Q) :
+		AUD_EffectFactory(0),
+		m_frequency(frequency),
+		m_Q(Q) {}
+
+AUD_IReader* AUD_LowpassFactory::createReader()
 {
-public:
-	AUD_SDLMixerFactory(AUD_IReader* reader, AUD_Specs specs);
-	AUD_SDLMixerFactory(AUD_IFactory* factory, AUD_Specs specs);
-	AUD_SDLMixerFactory(AUD_Specs specs);
+	AUD_IReader* reader = getReader();
 
-	virtual AUD_IReader* createReader();
-};
+	if(reader != 0)
+	{
+		reader = new AUD_LowpassReader(reader, m_frequency, m_Q);
+		AUD_NEW("reader")
+	}
 
-#endif //AUD_SDLMIXERFACTORY
+	return reader;
+}

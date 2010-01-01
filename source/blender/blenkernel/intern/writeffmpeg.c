@@ -832,7 +832,7 @@ int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, Repo
 	if(ffmpeg_multiplex_audio && audio_stream)
 	{
 		AVCodecContext* c = get_codec_from_stream(audio_stream);
-		AUD_Specs specs;
+		AUD_DeviceSpecs specs;
 		specs.channels = c->channels;
 		specs.format = AUD_FORMAT_S16;
 		specs.rate = rd->ffcodecdata.audio_mixrate;

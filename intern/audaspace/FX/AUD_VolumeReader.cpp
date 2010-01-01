@@ -32,35 +32,6 @@ AUD_VolumeReader::AUD_VolumeReader(AUD_IReader* reader, float volume) :
 		AUD_EffectReader(reader),
 		m_volume(volume)
 {
-	int bigendian = 1;
-	bigendian = (((char*)&bigendian)[0]) ? 0: 1; // 1 if Big Endian
-
-	switch(m_reader->getSpecs().format)
-	{
-	case AUD_FORMAT_S16:
-		m_adjust = AUD_volume_adjust<int16_t>;
-		break;
-	case AUD_FORMAT_S32:
-		m_adjust = AUD_volume_adjust<int32_t>;
-		break;
-	case AUD_FORMAT_FLOAT32:
-		m_adjust = AUD_volume_adjust<float>;
-		break;
-	case AUD_FORMAT_FLOAT64:
-		m_adjust = AUD_volume_adjust<double>;
-		break;
-	case AUD_FORMAT_U8:
-		m_adjust = AUD_volume_adjust_u8;
-		break;
-	case AUD_FORMAT_S24:
-		m_adjust = bigendian ? AUD_volume_adjust_s24_be :
-							   AUD_volume_adjust_s24_le;
-		break;
-	default:
-		delete m_reader;
-		AUD_THROW(AUD_ERROR_READER);
-	}
-
 	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
 }
 
@@ -93,5 +64,6 @@ void AUD_VolumeReader::read(int & length, sample_t* & buffer)
 
 	buffer = m_buffer->getBuffer();
 
-	m_adjust(buffer, buf, length * specs.channels, m_volume);
+	for(int i = 0; i < length * specs.channels; i++)
+		buffer[i] = buf[i] * m_volume;
 }

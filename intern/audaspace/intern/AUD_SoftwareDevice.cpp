@@ -25,7 +25,7 @@
 
 #include "AUD_SoftwareDevice.h"
 #include "AUD_IReader.h"
-#include "AUD_IMixer.h"
+#include "AUD_Mixer.h"
 #include "AUD_IFactory.h"
 #include "AUD_SourceCaps.h"
 
@@ -52,6 +52,8 @@ void AUD_SoftwareDevice::create()
 	m_pausedSounds = new std::list<AUD_SoftwareHandle*>(); AUD_NEW("list")
 	m_playback = false;
 	m_volume = 1.0;
+	m_mixer = new AUD_Mixer(); AUD_NEW("mixer")
+	m_mixer->setSpecs(m_specs);
 
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
@@ -90,7 +92,7 @@ void AUD_SoftwareDevice::destroy()
 	pthread_mutex_destroy(&m_mutex);
 }
 
-void AUD_SoftwareDevice::mix(sample_t* buffer, int length)
+void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 {
 	lock();
 
@@ -98,7 +100,7 @@ void AUD_SoftwareDevice::mix(sample_t* buffer, int length)
 		AUD_SoftwareHandle* sound;
 		int len;
 		sample_t* buf;
-		int sample_size = AUD_SAMPLE_SIZE(m_specs);
+		int sample_size = AUD_DEVICE_SAMPLE_SIZE(m_specs);
 		std::list<AUD_SoftwareHandle*> stopSounds;
 
 		// for all sounds
@@ -114,7 +116,7 @@ void AUD_SoftwareDevice::mix(sample_t* buffer, int length)
 			len = length;
 			sound->reader->read(len, buf);
 
-			m_mixer->add(buf, sound->reader->getSpecs(), len, sound->volume);
+			m_mixer->add(buf, len, sound->volume);
 
 			// in case the end of the sound is reached
 			if(len < length)
@@ -159,14 +161,7 @@ bool AUD_SoftwareDevice::isValid(AUD_Handle* handle)
 	return false;
 }
 
-void AUD_SoftwareDevice::setMixer(AUD_IMixer* mixer)
-{
-	delete m_mixer; AUD_DELETE("mixer")
-	m_mixer = mixer;
-	mixer->setSpecs(m_specs);
-}
-
-AUD_Specs AUD_SoftwareDevice::getSpecs()
+AUD_DeviceSpecs AUD_SoftwareDevice::getSpecs()
 {
 	return m_specs;
 }

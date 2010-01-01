@@ -56,7 +56,7 @@ private:
 	/**
 	 * The specification of the device.
 	 */
-	AUD_Specs m_specs;
+	AUD_DeviceSpecs m_specs;
 
 	/**
 	 * Whether the device has the AL_EXT_MCFORMATS extension.
@@ -64,8 +64,8 @@ private:
 	bool m_useMC;
 
 	/**
-	 * The converter factory for readers with wrong input format.
-	 */
+	* The converter factory for readers with wrong input format.
+	*/
 	AUD_ConverterFactory* m_converter;
 
 	/**
@@ -118,7 +118,7 @@ private:
 	/**
 	 * Gets the format according to the specs.
 	 * \param format The variable to put the format into.
-	 * \param specs The specs to read the format from.
+	 * \param specs The specs to read the channel count from.
 	 * \return Whether the format is valid or not.
 	 */
 	bool getFormat(ALenum &format, AUD_Specs specs);
@@ -132,7 +132,8 @@ public:
 	 * \note The buffersize will be multiplicated by three for this device.
 	 * \exception AUD_Exception Thrown if the audio device cannot be opened.
 	 */
-	AUD_OpenALDevice(AUD_Specs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
+	AUD_OpenALDevice(AUD_DeviceSpecs specs,
+					 int buffersize = AUD_DEFAULT_BUFFER_SIZE);
 
 	/**
 	 * Streaming thread main function.
@@ -141,7 +142,7 @@ public:
 
 	virtual ~AUD_OpenALDevice();
 
-	virtual AUD_Specs getSpecs();
+	virtual AUD_DeviceSpecs getSpecs();
 	virtual AUD_Handle* play(AUD_IFactory* factory, bool keep = false);
 	virtual bool pause(AUD_Handle* handle);
 	virtual bool resume(AUD_Handle* handle);

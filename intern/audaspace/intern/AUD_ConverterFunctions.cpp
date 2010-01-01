@@ -36,14 +36,14 @@
 #define AUD_FLT_MAX		1.0
 #define AUD_FLT_MIN		-1.0
 
-void AUD_convert_u8_s16(sample_t* target, sample_t* source, int length)
+void AUD_convert_u8_s16(data_t* target, data_t* source, int length)
 {
 	int16_t* t = (int16_t*) target;
 	for(int i = 0; i < length; i++)
 		t[i] = (((int16_t)source[i]) - AUD_U8_0) << 8;
 }
 
-void AUD_convert_u8_s24_be(sample_t* target, sample_t* source, int length)
+void AUD_convert_u8_s24_be(data_t* target, data_t* source, int length)
 {
 	for(int i = 0; i < length; i++)
 	{
@@ -53,7 +53,7 @@ void AUD_convert_u8_s24_be(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_u8_s24_le(sample_t* target, sample_t* source, int length)
+void AUD_convert_u8_s24_le(data_t* target, data_t* source, int length)
 {
 	for(int i = 0; i < length; i++)
 	{
@@ -63,35 +63,35 @@ void AUD_convert_u8_s24_le(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_u8_s32(sample_t* target, sample_t* source, int length)
+void AUD_convert_u8_s32(data_t* target, data_t* source, int length)
 {
 	int32_t* t = (int32_t*) target;
 	for(int i = 0; i < length; i++)
 		t[i] = (((int32_t)source[i]) - AUD_U8_0) << 24;
 }
 
-void AUD_convert_u8_float(sample_t* target, sample_t* source, int length)
+void AUD_convert_u8_float(data_t* target, data_t* source, int length)
 {
 	float* t = (float*) target;
 	for(int i = 0; i < length; i++)
 		t[i] = (((int32_t)source[i]) - AUD_U8_0) / ((float)AUD_U8_0);
 }
 
-void AUD_convert_u8_double(sample_t* target, sample_t* source, int length)
+void AUD_convert_u8_double(data_t* target, data_t* source, int length)
 {
 	double* t = (double*) target;
 	for(int i = 0; i < length; i++)
 		t[i] = (((int32_t)source[i]) - AUD_U8_0) / ((double)AUD_U8_0);
 }
 
-void AUD_convert_s16_u8(sample_t* target, sample_t* source, int length)
+void AUD_convert_s16_u8(data_t* target, data_t* source, int length)
 {
 	int16_t* s = (int16_t*) source;
 	for(int i = 0; i < length; i++)
 		target[i] = (unsigned char)((s[i] >> 8) + AUD_U8_0);
 }
 
-void AUD_convert_s16_s24_be(sample_t* target, sample_t* source, int length)
+void AUD_convert_s16_s24_be(data_t* target, data_t* source, int length)
 {
 	int16_t* s = (int16_t*) source;
 	for(int i = 0; i < length; i++)
@@ -102,7 +102,7 @@ void AUD_convert_s16_s24_be(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_s16_s24_le(sample_t* target, sample_t* source, int length)
+void AUD_convert_s16_s24_le(data_t* target, data_t* source, int length)
 {
 	int16_t* s = (int16_t*) source;
 	for(int i = 0; i < length; i++)
@@ -113,7 +113,7 @@ void AUD_convert_s16_s24_le(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_s16_s32(sample_t* target, sample_t* source, int length)
+void AUD_convert_s16_s32(data_t* target, data_t* source, int length)
 {
 	int16_t* s = (int16_t*) source;
 	int32_t* t = (int32_t*) target;
@@ -121,7 +121,7 @@ void AUD_convert_s16_s32(sample_t* target, sample_t* source, int length)
 		t[i] = ((int32_t)s[i]) << 16;
 }
 
-void AUD_convert_s16_float(sample_t* target, sample_t* source, int length)
+void AUD_convert_s16_float(data_t* target, data_t* source, int length)
 {
 	int16_t* s = (int16_t*) source;
 	float* t = (float*) target;
@@ -129,7 +129,7 @@ void AUD_convert_s16_float(sample_t* target, sample_t* source, int length)
 		t[i] = s[i] / AUD_S16_FLT;
 }
 
-void AUD_convert_s16_double(sample_t* target, sample_t* source, int length)
+void AUD_convert_s16_double(data_t* target, data_t* source, int length)
 {
 	int16_t* s = (int16_t*) source;
 	double* t = (double*) target;
@@ -137,52 +137,52 @@ void AUD_convert_s16_double(sample_t* target, sample_t* source, int length)
 		t[i] = s[i] / AUD_S16_FLT;
 }
 
-void AUD_convert_s24_u8_be(sample_t* target, sample_t* source, int length)
+void AUD_convert_s24_u8_be(data_t* target, data_t* source, int length)
 {
 	for(int i = 0; i < length; i++)
 		target[i] = source[i*3] ^ AUD_U8_0;
 }
 
-void AUD_convert_s24_u8_le(sample_t* target, sample_t* source, int length)
+void AUD_convert_s24_u8_le(data_t* target, data_t* source, int length)
 {
 	for(int i = 0; i < length; i++)
 		target[i] = source[i*3+2] ^ AUD_U8_0;
 }
 
-void AUD_convert_s24_s16_be(sample_t* target, sample_t* source, int length)
+void AUD_convert_s24_s16_be(data_t* target, data_t* source, int length)
 {
 	int16_t* t = (int16_t*) target;
 	for(int i = 0; i < length; i++)
 		t[i] = source[i*3] << 8 | source[i*3+1];
 }
 
-void AUD_convert_s24_s16_le(sample_t* target, sample_t* source, int length)
+void AUD_convert_s24_s16_le(data_t* target, data_t* source, int length)
 {
 	int16_t* t = (int16_t*) target;
 	for(int i = 0; i < length; i++)
 		t[i] = source[i*3+2] << 8 | source[i*3+1];
 }
 
-void AUD_convert_s24_s24(sample_t* target, sample_t* source, int length)
+void AUD_convert_s24_s24(data_t* target, data_t* source, int length)
 {
 	memcpy(target, source, length * 3);
 }
 
-void AUD_convert_s24_s32_be(sample_t* target, sample_t* source, int length)
+void AUD_convert_s24_s32_be(data_t* target, data_t* source, int length)
 {
 	int32_t* t = (int32_t*) target;
 	for(int i = 0; i < length; i++)
 		t[i] = source[i*3] << 24 | source[i*3+1] << 16 | source[i*3+2] << 8;
 }
 
-void AUD_convert_s24_s32_le(sample_t* target, sample_t* source, int length)
+void AUD_convert_s24_s32_le(data_t* target, data_t* source, int length)
 {
 	int32_t* t = (int32_t*) target;
 	for(int i = 0; i < length; i++)
 		t[i] = source[i*3+2] << 24 | source[i*3+1] << 16 | source[i*3] << 8;
 }
 
-void AUD_convert_s24_float_be(sample_t* target, sample_t* source, int length)
+void AUD_convert_s24_float_be(data_t* target, data_t* source, int length)
 {
 	float* t = (float*) target;
 	int32_t s;
@@ -193,7 +193,7 @@ void AUD_convert_s24_float_be(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_s24_float_le(sample_t* target, sample_t* source, int length)
+void AUD_convert_s24_float_le(data_t* target, data_t* source, int length)
 {
 	float* t = (float*) target;
 	int32_t s;
@@ -204,7 +204,7 @@ void AUD_convert_s24_float_le(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_s24_double_be(sample_t* target, sample_t* source, int length)
+void AUD_convert_s24_double_be(data_t* target, data_t* source, int length)
 {
 	double* t = (double*) target;
 	int32_t s;
@@ -215,7 +215,7 @@ void AUD_convert_s24_double_be(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_s24_double_le(sample_t* target, sample_t* source, int length)
+void AUD_convert_s24_double_le(data_t* target, data_t* source, int length)
 {
 	double* t = (double*) target;
 	int32_t s;
@@ -226,14 +226,14 @@ void AUD_convert_s24_double_le(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_s32_u8(sample_t* target, sample_t* source, int length)
+void AUD_convert_s32_u8(data_t* target, data_t* source, int length)
 {
 	int16_t* s = (int16_t*) source;
 	for(int i = 0; i < length; i++)
 		target[i] = (unsigned char)((s[i] >> 24) + AUD_U8_0);
 }
 
-void AUD_convert_s32_s16(sample_t* target, sample_t* source, int length)
+void AUD_convert_s32_s16(data_t* target, data_t* source, int length)
 {
 	int16_t* t = (int16_t*) target;
 	int32_t* s = (int32_t*) source;
@@ -241,7 +241,7 @@ void AUD_convert_s32_s16(sample_t* target, sample_t* source, int length)
 		t[i] = s[i] >> 16;
 }
 
-void AUD_convert_s32_s24_be(sample_t* target, sample_t* source, int length)
+void AUD_convert_s32_s24_be(data_t* target, data_t* source, int length)
 {
 	int32_t* s = (int32_t*) source;
 	for(int i = 0; i < length; i++)
@@ -252,7 +252,7 @@ void AUD_convert_s32_s24_be(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_s32_s24_le(sample_t* target, sample_t* source, int length)
+void AUD_convert_s32_s24_le(data_t* target, data_t* source, int length)
 {
 	int16_t* s = (int16_t*) source;
 	for(int i = 0; i < length; i++)
@@ -263,7 +263,7 @@ void AUD_convert_s32_s24_le(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_s32_float(sample_t* target, sample_t* source, int length)
+void AUD_convert_s32_float(data_t* target, data_t* source, int length)
 {
 	int32_t* s = (int32_t*) source;
 	float* t = (float*) target;
@@ -271,7 +271,7 @@ void AUD_convert_s32_float(sample_t* target, sample_t* source, int length)
 		t[i] = s[i] / AUD_S32_FLT;
 }
 
-void AUD_convert_s32_double(sample_t* target, sample_t* source, int length)
+void AUD_convert_s32_double(data_t* target, data_t* source, int length)
 {
 	int32_t* s = (int32_t*) source;
 	double* t = (double*) target;
@@ -279,7 +279,7 @@ void AUD_convert_s32_double(sample_t* target, sample_t* source, int length)
 		t[i] = s[i] / AUD_S32_FLT;
 }
 
-void AUD_convert_float_u8(sample_t* target, sample_t* source, int length)
+void AUD_convert_float_u8(data_t* target, data_t* source, int length)
 {
 	float* s = (float*) source;
 	float t;
@@ -295,7 +295,7 @@ void AUD_convert_float_u8(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_float_s16(sample_t* target, sample_t* source, int length)
+void AUD_convert_float_s16(data_t* target, data_t* source, int length)
 {
 	int16_t* t = (int16_t*) target;
 	float* s = (float*) source;
@@ -310,7 +310,7 @@ void AUD_convert_float_s16(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_float_s24_be(sample_t* target, sample_t* source, int length)
+void AUD_convert_float_s24_be(data_t* target, data_t* source, int length)
 {
 	int32_t t;
 	float* s = (float*) source;
@@ -328,7 +328,7 @@ void AUD_convert_float_s24_be(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_float_s24_le(sample_t* target, sample_t* source, int length)
+void AUD_convert_float_s24_le(data_t* target, data_t* source, int length)
 {
 	int32_t t;
 	float* s = (float*) source;
@@ -346,7 +346,7 @@ void AUD_convert_float_s24_le(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_float_s32(sample_t* target, sample_t* source, int length)
+void AUD_convert_float_s32(data_t* target, data_t* source, int length)
 {
 	int32_t* t = (int32_t*) target;
 	float* s = (float*) source;
@@ -361,7 +361,7 @@ void AUD_convert_float_s32(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_float_double(sample_t* target, sample_t* source, int length)
+void AUD_convert_float_double(data_t* target, data_t* source, int length)
 {
 	float* s = (float*) source;
 	double* t = (double*) target;
@@ -369,7 +369,7 @@ void AUD_convert_float_double(sample_t* target, sample_t* source, int length)
 		t[i] = s[i];
 }
 
-void AUD_convert_double_u8(sample_t* target, sample_t* source, int length)
+void AUD_convert_double_u8(data_t* target, data_t* source, int length)
 {
 	double* s = (double*) source;
 	double t;
@@ -385,7 +385,7 @@ void AUD_convert_double_u8(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_double_s16(sample_t* target, sample_t* source, int length)
+void AUD_convert_double_s16(data_t* target, data_t* source, int length)
 {
 	int16_t* t = (int16_t*) target;
 	double* s = (double*) source;
@@ -400,7 +400,7 @@ void AUD_convert_double_s16(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_double_s24_be(sample_t* target, sample_t* source, int length)
+void AUD_convert_double_s24_be(data_t* target, data_t* source, int length)
 {
 	int32_t t;
 	double* s = (double*) source;
@@ -418,7 +418,7 @@ void AUD_convert_double_s24_be(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_double_s24_le(sample_t* target, sample_t* source, int length)
+void AUD_convert_double_s24_le(data_t* target, data_t* source, int length)
 {
 	int32_t t;
 	double* s = (double*) source;
@@ -436,7 +436,7 @@ void AUD_convert_double_s24_le(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_double_s32(sample_t* target, sample_t* source, int length)
+void AUD_convert_double_s32(data_t* target, data_t* source, int length)
 {
 	int32_t* t = (int32_t*) target;
 	double* s = (double*) source;
@@ -451,92 +451,10 @@ void AUD_convert_double_s32(sample_t* target, sample_t* source, int length)
 	}
 }
 
-void AUD_convert_double_float(sample_t* target, sample_t* source, int length)
+void AUD_convert_double_float(data_t* target, data_t* source, int length)
 {
 	double* s = (double*) source;
 	float* t = (float*) target;
 	for(int i = 0; i < length; i++)
 		t[i] = s[i];
 }
-
-void AUD_volume_adjust_u8(sample_t* target, sample_t* source,
-						  int count, float volume)
-{
-	for(int i=0; i<count; i++)
-		target[i] = (unsigned char)((source[i]-0x0080) * volume + 0x80);
-}
-
-void AUD_volume_adjust_s24_le(sample_t* target, sample_t* source,
-							  int count, float volume)
-{
-	count *= 3;
-	int value;
-
-	for(int i=0; i<count; i+=3)
-	{
-		value = source[i+2] << 16 | source[i+1] << 8 | source[i];
-		value |= (((value & 0x800000) >> 23) * 255) << 24;
-		value *= volume;
-		target[i+2] = value >> 16;
-		target[i+1] = value >> 8;
-		target[i] = value;
-	}
-}
-
-void AUD_volume_adjust_s24_be(sample_t* target, sample_t* source,
-							  int count, float volume)
-{
-	count *= 3;
-	int value;
-
-	for(int i=0; i < count; i+=3)
-	{
-		value = source[i] << 16 | source[i+1] << 8 | source[i+2];
-		value |= (((value & 0x800000) >> 23) * 255) << 24;
-		value *= volume;
-		target[i] = value >> 16;
-		target[i+1] = value >> 8;
-		target[i+2] = value;
-	}
-}
-
-void AUD_rectify_u8(sample_t* target, sample_t* source, int count)
-{
-	for(int i=0; i<count; i++)
-		target[i] = source[i] < 0x80 ? 0x0100 - source[i] : source[i];
-}
-
-void AUD_rectify_s24_le(sample_t* target, sample_t* source, int count)
-{
-	count *= 3;
-	int value;
-
-	for(int i=0; i<count; i+=3)
-	{
-		value = source[i+2] << 16 | source[i+1] << 8 | source[i];
-		value |= (((value & 0x800000) >> 23) * 255) << 24;
-		if(value < 0)
-			value = -value;
-		target[i+2] = value >> 16;
-		target[i+1] = value >> 8;
-		target[i] = value;
-	}
-}
-
-void AUD_rectify_s24_be(sample_t* target, sample_t* source, int count)
-{
-	count *= 3;
-	int value;
-
-	for(int i=0; i < count; i+=3)
-	{
-		value = source[i] << 16 | source[i+1] << 8 | source[i+2];
-		value |= (((value & 0x800000) >> 23) * 255) << 24;
-		if(value < 0)
-			value = -value;
-		target[i] = value >> 16;
-		target[i+1] = value >> 8;
-		target[i+2] = value;
-	}
-}
-

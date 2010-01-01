@@ -36,6 +36,8 @@
 #include <config.h>
 #endif
 
+#include "AUD_C-API.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -988,6 +990,139 @@ void GRAPH_OT_bake (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	// todo: add props for start/end frames
+}
+
+/* ******************** Sound Bake F-Curve Operator *********************** */
+/* This operator bakes the given sound to the selected F-Curves */
+
+/* ------------------- */
+
+/* Custom data storage passed to the F-Sample-ing function,
+ * which provides the necessary info for baking the sound
+ */
+typedef struct tSoundBakeInfo {
+	float* samples;
+	int length;
+	int cfra;
+} tSoundBakeInfo;
+
+/* ------------------- */
+
+/* Sampling callback used to determine the value from the sound to
+ * save in the F-Curve at the specified frame
+ */
+static float fcurve_samplingcb_sound (FCurve *fcu, void *data, float evaltime)
+{
+	tSoundBakeInfo *sbi= (tSoundBakeInfo *)data;
+
+	int position = evaltime - sbi->cfra;
+	if((position < 0) || (position >= sbi->length))
+		return 0.0f;
+
+	return sbi->samples[position];
+}
+
+/* ------------------- */
+
+static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+
+	tSoundBakeInfo sbi;
+	Scene *scene= NULL;
+	int start, end;
+
+	char path[FILE_MAX];
+
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+
+	RNA_string_get(op->ptr, "path", path);
+
+	scene= ac.scene;	/* current scene */
+
+	/* store necessary data for the baking steps */
+	sbi.samples = AUD_readSoundBuffer(path,
+									  RNA_float_get(op->ptr, "low"),
+									  RNA_float_get(op->ptr, "high"),
+									  RNA_float_get(op->ptr, "attack"),
+									  RNA_float_get(op->ptr, "release"),
+									  RNA_float_get(op->ptr, "threshold"),
+									  FPS, &sbi.length);
+
+	if (sbi.samples == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
+		return OPERATOR_CANCELLED;
+	}
+
+	/* determine extents of the baking */
+	sbi.cfra = start = CFRA;
+	end = CFRA + sbi.length - 1;
+
+	/* filter anim channels */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+	/* loop through all selected F-Curves, replacing its data with the sound samples */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->key_data;
+
+		/* sample the sound */
+		fcurve_store_samples(fcu, &sbi, start, end, fcurve_samplingcb_sound);
+	}
+
+	/* free sample data */
+	free(sbi.samples);
+
+	/* admin and redraws */
+	BLI_freelistN(&anim_data);
+
+	/* validate keyframes after editing */
+	ANIM_editkeyframes_refresh(&ac);
+
+	/* set notifier that 'keyframes' have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+static int graphkeys_sound_bake_invoke (bContext *C, wmOperator *op, wmEvent *event)
+{
+	bAnimContext ac;
+
+	/* verify editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+
+	return WM_operator_filesel(C, op, event);
+}
+
+void GRAPH_OT_sound_bake (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bake Sound to F-Curves";
+	ot->idname= "GRAPH_OT_sound_bake";
+	ot->description= "Bakes a sound wave to selected F-Curves.";
+
+	/* api callbacks */
+	ot->invoke= graphkeys_sound_bake_invoke;
+	ot->exec= graphkeys_sound_bake_exec;
+	ot->poll= graphop_selected_fcurve_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL);
+	RNA_def_float(ot->srna, "low", 0.0f, 0.0, 100000.0, "Lowest frequency", "", 0.1, 1000.00);
+	RNA_def_float(ot->srna, "high", 100000.0, 0.0, 100000.0, "Highest frequency", "", 0.1, 1000.00);
+	RNA_def_float(ot->srna, "attack", 0.005, 0.0, 2.0, "Attack time", "", 0.01, 0.1);
+	RNA_def_float(ot->srna, "release", 0.2, 0.0, 5.0, "Release time", "", 0.01, 0.2);
+	RNA_def_float(ot->srna, "threshold", 0.0, 0.0, 1.0, "Threshold", "", 0.01, 0.1);
 }
 
 /* ******************** Sample Keyframes Operator *********************** */

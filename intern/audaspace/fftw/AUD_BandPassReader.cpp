@@ -77,7 +77,6 @@ void AUD_BandPassReader::read(int & length, sample_t* & buffer)
 			}
 
 			m_length = length;
-			printf("WINDOW: %d\n", m_length);
 
 			if(m_length * sizeof(double) > m_in->getSize())
 			{
@@ -95,16 +94,15 @@ void AUD_BandPassReader::read(int & length, sample_t* & buffer)
 											  FFTW_ESTIMATE);
 		}
 
-		float* source = (float*) buffer;
 		double* target = (double*) m_in->getBuffer();
-		float* target2 = (float*) m_buffer->getBuffer();
+		sample_t* target2 = m_buffer->getBuffer();
 		fftw_complex* complex = (fftw_complex*) m_out->getBuffer();
 		float frequency;
 
 		for(int channel = 0; channel < specs.channels; channel++)
 		{
 			for(int i = 0; i < m_length; i++)
-				target[i] = source[i * specs.channels + channel];
+				target[i] = buffer[i * specs.channels + channel];
 
 			fftw_execute(m_forward);
 

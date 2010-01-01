@@ -26,7 +26,7 @@
 #include "AUD_SinusReader.h"
 #include "AUD_Buffer.h"
 
-#include <math.h>
+#include <cmath>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -69,8 +69,7 @@ AUD_Specs AUD_SinusReader::getSpecs()
 {
 	AUD_Specs specs;
 	specs.rate = m_sampleRate;
-	specs.format = AUD_FORMAT_S16;
-	specs.channels = AUD_CHANNELS_STEREO;
+	specs.channels = AUD_CHANNELS_MONO;
 	return specs;
 }
 
@@ -87,18 +86,16 @@ bool AUD_SinusReader::notify(AUD_Message &message)
 void AUD_SinusReader::read(int & length, sample_t* & buffer)
 {
 	// resize if necessary
-	if(m_buffer->getSize() < length*4)
-		m_buffer->resize(length*4);
+	if(m_buffer->getSize() < length * sizeof(sample_t))
+		m_buffer->resize(length * sizeof(sample_t));
 
 	// fill with sine data
-	short* buf = (short*) m_buffer->getBuffer();
-	for(int i=0; i < length; i++)
+	buffer = m_buffer->getBuffer();
+	for(int i = 0; i < length; i++)
 	{
-		buf[i*2] = sin((m_position + i) * 2.0 * M_PI * m_frequency /
-					   (float)m_sampleRate) * 32700;
-		buf[i*2+1] = buf[i*2];
+		buffer[i] = sin((m_position + i) * 2.0 * M_PI * m_frequency /
+						(float)m_sampleRate);
 	}
 
-	buffer = (sample_t*)buf;
 	m_position += length;
 }

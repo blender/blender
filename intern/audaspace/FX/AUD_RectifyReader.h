@@ -27,7 +27,6 @@
 #define AUD_RECTIFYREADER
 
 #include "AUD_EffectReader.h"
-#include "AUD_ConverterFunctions.h"
 class AUD_Buffer;
 
 /**
@@ -40,11 +39,6 @@ private:
 	 * The playback buffer.
 	 */
 	AUD_Buffer *m_buffer;
-
-	/**
-	 * Rectifying function.
-	 */
-	AUD_rectify_f m_rectify;
 
 public:
 	/**

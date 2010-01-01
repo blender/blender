@@ -32,13 +32,7 @@ class AUD_Buffer;
 #include <samplerate.h>
 
 /**
- * This class mixes a sound source with help of the SDL library.
- * Unfortunately SDL is only capable of 8 and 16 bit audio, mono and stereo, as
- * well as resampling only 2^n sample rate relationships where n is a natural
- * number.
- * \warning Although SDL can only resample 2^n sample rate relationships, this
- *          class doesn't check for compliance, so in case of other factors,
- *          the behaviour is undefined.
+ * This resampling reader uses libsamplerate for resampling.
  */
 class AUD_SRCResampleReader : public AUD_EffectReader
 {

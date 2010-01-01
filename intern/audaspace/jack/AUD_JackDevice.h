@@ -81,7 +81,7 @@ public:
 	 * \param specs The wanted audio specification, where only the channel count is important.
 	 * \exception AUD_Exception Thrown if the audio device cannot be opened.
 	 */
-	AUD_JackDevice(AUD_Specs specs);
+	AUD_JackDevice(AUD_DeviceSpecs specs);
 
 	/**
 	 * Closes the Jack client.

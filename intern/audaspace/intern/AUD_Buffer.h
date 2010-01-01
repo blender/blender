@@ -39,7 +39,7 @@ private:
 	int m_size;
 
 	/// The pointer to the buffer memory.
-	sample_t* m_buffer;
+	data_t* m_buffer;
 
 public:
 	/**

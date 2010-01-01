@@ -23,43 +23,29 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#include "AUD_SDLMixerFactory.h"
-#include "AUD_SDLMixerReader.h"
+#include "AUD_HighpassFactory.h"
+#include "AUD_HighpassReader.h"
 
-#include <cstring>
+AUD_HighpassFactory::AUD_HighpassFactory(AUD_IFactory* factory, float frequency,
+										 float Q) :
+		AUD_EffectFactory(factory),
+		m_frequency(frequency),
+		m_Q(Q) {}
 
-AUD_SDLMixerFactory::AUD_SDLMixerFactory(AUD_IReader* reader, AUD_Specs specs) :
-		AUD_MixerFactory(reader, specs) {}
+AUD_HighpassFactory::AUD_HighpassFactory(float frequency, float Q) :
+		AUD_EffectFactory(0),
+		m_frequency(frequency),
+		m_Q(Q) {}
 
-AUD_SDLMixerFactory::AUD_SDLMixerFactory(AUD_IFactory* factory, AUD_Specs specs) :
-		AUD_MixerFactory(factory, specs) {}
-
-AUD_SDLMixerFactory::AUD_SDLMixerFactory(AUD_Specs specs) :
-		AUD_MixerFactory(specs) {}
-
-AUD_IReader* AUD_SDLMixerFactory::createReader()
+AUD_IReader* AUD_HighpassFactory::createReader()
 {
 	AUD_IReader* reader = getReader();
 
 	if(reader != 0)
 	{
-		AUD_Specs specs = reader->getSpecs();
-		if(memcmp(&m_specs, &specs, sizeof(AUD_Specs)) != 0)
-		{
-			try
-			{
-				reader = new AUD_SDLMixerReader(reader, m_specs);
-				AUD_NEW("reader")
-			}
-			catch(AUD_Exception e)
-			{
-				// return 0 in case SDL cannot mix the source
-				if(e.error != AUD_ERROR_SDL)
-					throw;
-				else
-					reader = NULL;
-			}
-		}
+		reader = new AUD_HighpassReader(reader, m_frequency, m_Q);
+		AUD_NEW("reader")
 	}
+
 	return reader;
 }

@@ -28,8 +28,10 @@
 
 /// The size of a format in bytes.
 #define AUD_FORMAT_SIZE(format) (format & 0x0F)
+/// The size of a sample in the specified device format in bytes.
+#define AUD_DEVICE_SAMPLE_SIZE(specs) (specs.channels * (specs.format & 0x0F))
 /// The size of a sample in the specified format in bytes.
-#define AUD_SAMPLE_SIZE(specs) (specs.channels * (specs.format & 0x0F))
+#define AUD_SAMPLE_SIZE(specs) (specs.channels * sizeof(sample_t))
 /// Throws a AUD_Exception with the provided error code.
 #define AUD_THROW(exception) { AUD_Exception e; e.error = exception; throw e; }
 
@@ -233,21 +235,41 @@ typedef enum
 	AUD_3DSS_CONE_OUTER_GAIN		/// Cone outer gain.
 } AUD_3DSourceSetting;
 
-/// Sample pointer type.
-typedef unsigned char sample_t;
+/// Sample type.(float samples)
+typedef float sample_t;
 
-/// Specification of a sound source or device.
+/// Sample data type (format samples)
+typedef unsigned char data_t;
+
+/// Specification of a sound source.
 typedef struct
 {
 	/// Sample rate in Hz.
 	AUD_SampleRate rate;
 
-	/// Sample format.
-	AUD_SampleFormat format;
-
 	/// Channel count.
 	AUD_Channels channels;
 } AUD_Specs;
+
+/// Specification of a sound device.
+typedef struct
+{
+	/// Sample format.
+	AUD_SampleFormat format;
+
+	union
+	{
+		struct
+		{
+			/// Sample rate in Hz.
+			AUD_SampleRate rate;
+
+			/// Channel count.
+			AUD_Channels channels;
+		};
+		AUD_Specs specs;
+	};
+} AUD_DeviceSpecs;
 
 /// Exception structure.
 typedef struct

@@ -3792,7 +3792,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	info = AUD_getInfo(sound->handle);
 
-	if (info.specs.format == AUD_FORMAT_INVALID) {
+	if (info.specs.channels == AUD_CHANNELS_INVALID) {
 		sound_delete(C, sound);
 		//if(op)
 		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");

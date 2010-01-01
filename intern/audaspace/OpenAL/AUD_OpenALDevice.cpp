@@ -25,7 +25,6 @@
 
 #include "AUD_OpenALDevice.h"
 #include "AUD_IReader.h"
-#include "AUD_IMixer.h"
 #include "AUD_ConverterFactory.h"
 #include "AUD_SourceCaps.h"
 
@@ -119,7 +118,7 @@ void AUD_OpenALDevice::updateStreams()
 	sample_t* buffer;
 
 	ALint info;
-	AUD_Specs specs;
+	AUD_DeviceSpecs specs = m_specs;
 
 	while(1)
 	{
@@ -145,7 +144,7 @@ void AUD_OpenALDevice::updateStreams()
 
 					if(info)
 					{
-						specs = sound->reader->getSpecs();
+						specs.specs = sound->reader->getSpecs();
 
 						// for all empty buffers
 						while(info--)
@@ -177,8 +176,8 @@ void AUD_OpenALDevice::updateStreams()
 								// fill with new data
 								alBufferData(sound->buffers[sound->current],
 											 sound->format,
-											 buffer,
-											 length * AUD_SAMPLE_SIZE(specs),
+											 buffer, length *
+											 AUD_DEVICE_SAMPLE_SIZE(specs),
 											 specs.rate);
 
 								if(alGetError() != AL_NO_ERROR)
@@ -264,7 +263,7 @@ bool AUD_OpenALDevice::isValid(AUD_Handle* handle)
 	return false;
 }
 
-AUD_OpenALDevice::AUD_OpenALDevice(AUD_Specs specs, int buffersize)
+AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 {
 	// cannot determine how many channels or which format OpenAL uses, but
 	// it at least is able to play 16 bit stereo audio
@@ -289,13 +288,16 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_Specs specs, int buffersize)
 
 	// check for specific formats and channel counts to be played back
 	if(alIsExtensionPresent("AL_EXT_FLOAT32") == AL_TRUE)
+	{
 		specs.format = AUD_FORMAT_FLOAT32;
+		m_converter = NULL;
+	}
+	else
+		m_converter = new AUD_ConverterFactory(specs); AUD_NEW("factory")
 
 	m_useMC = alIsExtensionPresent("AL_EXT_MCFORMATS") == AL_TRUE;
 
 	alGetError();
-
-	m_converter = new AUD_ConverterFactory(specs); AUD_NEW("factory")
 
 	m_specs = specs;
 	m_buffersize = buffersize;
@@ -378,12 +380,13 @@ AUD_OpenALDevice::~AUD_OpenALDevice()
 	alcDestroyContext(m_context);
 	alcCloseDevice(m_device);
 
-	delete m_converter; AUD_DELETE("factory")
+	if(m_converter)
+		delete m_converter; AUD_DELETE("factory")
 
 	pthread_mutex_destroy(&m_mutex);
 }
 
-AUD_Specs AUD_OpenALDevice::getSpecs()
+AUD_DeviceSpecs AUD_OpenALDevice::getSpecs()
 {
 	return m_specs;
 }
@@ -393,45 +396,8 @@ bool AUD_OpenALDevice::getFormat(ALenum &format, AUD_Specs specs)
 	bool valid = true;
 	format = 0;
 
-	switch(specs.format)
+	switch(m_specs.format)
 	{
-	case AUD_FORMAT_U8:
-		switch(specs.channels)
-		{
-		case AUD_CHANNELS_MONO:
-			format = AL_FORMAT_MONO8;
-			break;
-		case AUD_CHANNELS_STEREO:
-			format = AL_FORMAT_STEREO8;
-			break;
-		case AUD_CHANNELS_SURROUND4:
-			if(m_useMC)
-			{
-				format = alGetEnumValue("AL_FORMAT_QUAD8");
-				break;
-			}
-		case AUD_CHANNELS_SURROUND51:
-			if(m_useMC)
-			{
-				format = alGetEnumValue("AL_FORMAT_51CHN8");
-				break;
-			}
-		case AUD_CHANNELS_SURROUND61:
-			if(m_useMC)
-			{
-				format = alGetEnumValue("AL_FORMAT_61CHN8");
-				break;
-			}
-		case AUD_CHANNELS_SURROUND71:
-			if(m_useMC)
-			{
-				format = alGetEnumValue("AL_FORMAT_71CHN8");
-				break;
-			}
-		default:
-			valid = false;
-		}
-		break;
 	case AUD_FORMAT_S16:
 		switch(specs.channels)
 		{
@@ -591,23 +557,16 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 	if(reader == NULL)
 		AUD_THROW(AUD_ERROR_READER);
 
-	AUD_Specs specs;
-
-	specs = reader->getSpecs();
+	AUD_DeviceSpecs specs = m_specs;
+	specs.specs = reader->getSpecs();
 
 	// check format
-	bool valid = true;
+	bool valid = specs.channels != AUD_CHANNELS_INVALID;
 
-	if(specs.format == AUD_FORMAT_INVALID)
-		valid = false;
-	else if(specs.format == AUD_FORMAT_S24 ||
-			specs.format == AUD_FORMAT_S32 ||
-			specs.format == AUD_FORMAT_FLOAT32 ||
-			specs.format == AUD_FORMAT_FLOAT64)
+	if(m_converter)
 	{
 		m_converter->setReader(reader);
 		reader = m_converter->createReader();
-		specs = reader->getSpecs();
 	}
 
 	// create the handle
@@ -618,7 +577,7 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 	sound->isBuffered = false;
 	sound->data_end = false;
 
-	valid &= getFormat(sound->format, specs);
+	valid &= getFormat(sound->format, specs.specs);
 
 	if(!valid)
 	{
@@ -647,7 +606,8 @@ AUD_Handle* AUD_OpenALDevice::play(AUD_IFactory* factory, bool keep)
 				length = m_buffersize;
 				reader->read(length, buf);
 				alBufferData(sound->buffers[i], sound->format, buf,
-							 length * AUD_SAMPLE_SIZE(specs), specs.rate);
+							 length * AUD_DEVICE_SAMPLE_SIZE(specs),
+							 specs.rate);
 				if(alGetError() != AL_NO_ERROR)
 					AUD_THROW(AUD_ERROR_OPENAL);
 			}
@@ -875,14 +835,16 @@ bool AUD_OpenALDevice::seek(AUD_Handle* handle, float position)
 				{
 					sample_t* buf;
 					int length;
-					AUD_Specs specs = alhandle->reader->getSpecs();
+					AUD_DeviceSpecs specs = m_specs;
+					specs.specs = alhandle->reader->getSpecs();
 
 					for(int i = 0; i < AUD_OPENAL_CYCLE_BUFFERS; i++)
 					{
 						length = m_buffersize;
 						alhandle->reader->read(length, buf);
 						alBufferData(alhandle->buffers[i], alhandle->format,
-									 buf, length * AUD_SAMPLE_SIZE(specs),
+									 buf,
+									 length * AUD_DEVICE_SAMPLE_SIZE(specs),
 									 specs.rate);
 
 						if(alGetError() != AL_NO_ERROR)
@@ -1021,6 +983,7 @@ bool AUD_OpenALDevice::setCapability(int capability, void *value)
 			// load the factory into an OpenAL buffer
 			if(factory)
 			{
+				// check if the factory is already buffered
 				lock();
 				for(AUD_BFIterator i = m_bufferedFactories->begin();
 					i != m_bufferedFactories->end(); i++)
@@ -1040,32 +1003,25 @@ bool AUD_OpenALDevice::setCapability(int capability, void *value)
 				if(reader == NULL)
 					return false;
 
-				AUD_Specs specs;
-
-				specs = reader->getSpecs();
+				AUD_DeviceSpecs specs = m_specs;
+				specs.specs = reader->getSpecs();
 
 				// determine format
 				bool valid = reader->getType() == AUD_TYPE_BUFFER;
 
 				if(valid)
 				{
-					if(specs.format == AUD_FORMAT_INVALID)
-						valid = false;
-					else if(specs.format == AUD_FORMAT_S24 ||
-							specs.format == AUD_FORMAT_S32 ||
-							specs.format == AUD_FORMAT_FLOAT32 ||
-							specs.format == AUD_FORMAT_FLOAT64)
+					if(m_converter)
 					{
 						m_converter->setReader(reader);
 						reader = m_converter->createReader();
-						specs = reader->getSpecs();
 					}
 				}
 
 				ALenum format;
 
 				if(valid)
-					valid = getFormat(format, specs);
+					valid = getFormat(format, specs.specs);
 
 				if(!valid)
 				{
@@ -1094,7 +1050,7 @@ bool AUD_OpenALDevice::setCapability(int capability, void *value)
 
 						reader->read(length, buf);
 						alBufferData(bf->buffer, format, buf,
-									 length * AUD_SAMPLE_SIZE(specs),
+									 length * AUD_DEVICE_SAMPLE_SIZE(specs),
 									 specs.rate);
 						if(alGetError() != AL_NO_ERROR)
 							AUD_THROW(AUD_ERROR_OPENAL);

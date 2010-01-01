@@ -32,12 +32,6 @@ AUD_ChannelMapperReader::AUD_ChannelMapperReader(AUD_IReader* reader,
 {
 	m_specs = reader->getSpecs();
 
-	if(m_specs.format != AUD_FORMAT_FLOAT32)
-	{
-		delete m_reader; AUD_DELETE("reader")
-		AUD_THROW(AUD_ERROR_READER);
-	}
-
 	int channels = -1;
 	m_rch = m_specs.channels;
 	while(mapping[++channels] != 0);
@@ -89,9 +83,9 @@ void AUD_ChannelMapperReader::read(int & length, sample_t* & buffer)
 	if(m_buffer->getSize() < length * 4 * channels)
 		m_buffer->resize(length * 4 * channels);
 
-	float* in = (float*)buffer;
-	float* out = (float*)m_buffer->getBuffer();
-	float sum;
+	sample_t* in = buffer;
+	sample_t* out = m_buffer->getBuffer();
+	sample_t sum;
 
 	for(int i = 0; i < length; i++)
 	{

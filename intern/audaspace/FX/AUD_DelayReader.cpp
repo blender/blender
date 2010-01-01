@@ -77,31 +77,26 @@ void AUD_DelayReader::read(int & length, sample_t* & buffer)
 {
 	if(m_remdelay > 0)
 	{
-		int samplesize = AUD_SAMPLE_SIZE(m_reader->getSpecs());
+		AUD_Specs specs = m_reader->getSpecs();
+		int samplesize = AUD_SAMPLE_SIZE(specs);
 
-		if(m_buffer->getSize() < length*samplesize)
-			m_buffer->resize(length*samplesize);
+		if(m_buffer->getSize() < length * samplesize)
+			m_buffer->resize(length * samplesize);
 
 		if(length > m_remdelay)
 		{
-			if(getSpecs().format == AUD_FORMAT_U8)
-				memset(m_buffer->getBuffer(), 0x80, m_remdelay*samplesize);
-			else
-				memset(m_buffer->getBuffer(), 0, m_remdelay*samplesize);
+			memset(m_buffer->getBuffer(), 0, m_remdelay * samplesize);
 			int len = length - m_remdelay;
 			m_reader->read(len, buffer);
-			memcpy(m_buffer->getBuffer()+m_remdelay*samplesize,
-				   buffer, len*samplesize);
+			memcpy(m_buffer->getBuffer() + m_remdelay * specs.channels,
+				   buffer, len * samplesize);
 			if(len < length-m_remdelay)
 				length = m_remdelay + len;
 			m_remdelay = 0;
 		}
 		else
 		{
-			if(getSpecs().format == AUD_FORMAT_U8)
-				memset(m_buffer->getBuffer(), 0x80, length*samplesize);
-			else
-				memset(m_buffer->getBuffer(), 0, length*samplesize);
+			memset(m_buffer->getBuffer(), 0, length * samplesize);
 			m_remdelay -= length;
 		}
 		buffer = m_buffer->getBuffer();
