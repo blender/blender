@@ -1058,6 +1058,19 @@ static void write_animdata(WriteData *wd, AnimData *adt)
 	write_nladata(wd, &adt->nla_tracks);
 }
 
+static void write_motionpath(WriteData *wd, bMotionPath *mpath)
+{
+	/* sanity checks */
+	if (mpath == NULL)
+		return;
+	
+	/* firstly, just write the motionpath struct */
+	writestruct(wd, DATA, "bMotionPath", 1, mpath);
+	
+	/* now write the array of data */
+	writestruct(wd, DATA, "bMotionPathVert", mpath->length, mpath->points);
+}
+
 static void write_constraints(WriteData *wd, ListBase *conlist)
 {
 	bConstraint *con;
@@ -1119,6 +1132,8 @@ static void write_pose(WriteData *wd, bPose *pose)
 			IDP_WriteProperty(chan->prop, wd);
 		
 		write_constraints(wd, &chan->constraints);
+		
+		write_motionpath(wd, chan->mpath);
 		
 		/* prevent crashes with autosave, when a bone duplicated in editmode has not yet been assigned to its posechannel */
 		if (chan->bone) 
@@ -1252,6 +1267,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			write_pose(wd, ob->pose);
 			write_defgroups(wd, &ob->defbase);
 			write_constraints(wd, &ob->constraints);
+			write_motionpath(wd, ob->mpath);
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);

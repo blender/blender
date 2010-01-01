@@ -1981,6 +1981,19 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
 	adt->actstrip= NULL;
 }	
 
+/* ************ READ MOTION PATHS *************** */
+
+/* direct data for cache */
+static void direct_link_motionpath(FileData *fd, bMotionPath *mpath)
+{
+	/* sanity check */
+	if (mpath == NULL)
+		return;
+	
+	/* relink points cache */
+	mpath->points= newdataadr(fd, mpath->points);
+}
+
 /* ************ READ NODE TREE *************** */
 
 /* singe node tree (also used for material/scene trees), ntree is not NULL */
@@ -3763,6 +3776,10 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		if (pchan->prop)
 			IDP_DirectLinkProperty(pchan->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 		
+		pchan->mpath= newdataadr(fd, pchan->mpath);
+		if (pchan->mpath)
+			direct_link_motionpath(fd, pchan->mpath);
+		
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
 	}
@@ -3975,6 +3992,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 	
 	ob->pose= newdataadr(fd, ob->pose);
 	direct_link_pose(fd, ob->pose);
+	
+	ob->mpath= newdataadr(fd, ob->mpath);
+	if (ob->mpath)
+		direct_link_motionpath(fd, ob->mpath);
 
 	link_list(fd, &ob->defbase);
 // XXX depreceated - old animation system <<<
@@ -10306,9 +10327,63 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (1) {
 		Scene *sce;
+		Object *ob;
 		
+		/* game engine changes */
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
 			sce->gm.eyeseparation = 0.10;
+		}
+		
+		/* anim viz changes */
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			/* initialise object defaults */
+			animviz_settings_init(&ob->avs);
+			
+			/* if armature, copy settings for pose from armature data */
+			if (ob->pose && ob->data) {
+				bArmature *arm= (bArmature *)ob->data;
+				bAnimVizSettings *avs= &ob->pose->avs;
+				
+				/* ghosting settings ---------------- */
+					/* ranges */
+				avs->ghost_bc= avs->ghost_ac= arm->ghostep;
+				
+				avs->ghost_sf= arm->ghostsf;
+				avs->ghost_ef= arm->ghostef;
+					
+					/* type */
+				avs->ghost_type= arm->ghosttype;
+					
+					/* stepsize */
+				avs->ghost_step= arm->ghostsize;
+				
+				/* path settings --------------------- */
+					/* ranges */
+				avs->path_bc= arm->pathbc;
+				avs->path_ac= arm->pathac;
+				
+				avs->path_sf= arm->pathsf;
+				avs->path_ef= arm->pathef;
+				
+					/* flags */
+				if (arm->pathflag & ARM_PATH_FNUMS)
+					avs->path_viewflag |= MOTIONPATH_VIEW_FNUMS;
+				if (arm->pathflag & ARM_PATH_KFRAS)
+					avs->path_viewflag |= MOTIONPATH_VIEW_KFRAS;
+				if (arm->pathflag & ARM_PATH_KFNOS)
+					avs->path_viewflag |= MOTIONPATH_VIEW_KFNOS;
+					
+					/* bake flags */
+				if (arm->pathflag & ARM_PATH_HEADS)
+					avs->path_bakeflag |= MOTIONPATH_BAKE_HEADS;
+					
+					/* type */
+				if (arm->pathflag & ARM_PATH_ACFRA)
+					avs->path_type = MOTIONPATH_TYPE_ACFRA;
+				
+					/* stepsize */
+				avs->path_step= arm->pathsize;
+			}
 		}
 	}
 

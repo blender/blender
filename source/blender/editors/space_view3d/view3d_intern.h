@@ -43,6 +43,9 @@ struct wmWindowManager;
 struct EditMesh;
 struct ViewContext;
 struct ARegionType;
+struct bPoseChannel;
+struct bAnimVizSettings;
+struct bMotionPath;
 
 #define BL_NEAR_CLIP 0.001
 
@@ -83,6 +86,15 @@ void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
+
+/* drawanim.c */
+void draw_motion_paths_init(Scene *scene, View3D *v3d, struct ARegion *ar);
+void draw_motion_path_instance(Scene *scene, View3D *v3d, struct ARegion *ar, 
+			struct Object *ob, struct bPoseChannel *pchan, 
+			struct bAnimVizSettings *avs, struct bMotionPath *mpath);
+void draw_motion_paths_cleanup(Scene *scene, View3D *v3d, struct ARegion *ar);
+
+
 
 /* drawobject.c */
 void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, int flag);

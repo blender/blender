@@ -38,13 +38,29 @@ struct Object;
 struct PartEff;
 struct Scene;
 struct ListBase;
+struct bAnimVizSettings;
+struct bMotionPath;
 
 #include "DNA_object_types.h"
+
+/* ---------------------------------------------------- */
+/* Animation Visualisation */
+
+void animviz_settings_init(struct bAnimVizSettings *avs);
+
+void animviz_free_motionpath_cache(struct bMotionPath *mpath);
+void animviz_free_motionpath(struct bMotionPath *mpath);
+
+/* ---------------------------------------------------- */
+/* Curve Paths */
 
 void free_path(struct Path *path);
 void calc_curvepath(struct Object *ob);
 int interval_test(int min, int max, int p1, int cycl);
 int where_on_path(struct Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius);
+
+/* ---------------------------------------------------- */
+/* Dupli-Geometry */
 
 struct ListBase *object_duplilist(struct Scene *sce, struct Object *ob);
 void free_object_duplilist(struct ListBase *lb);

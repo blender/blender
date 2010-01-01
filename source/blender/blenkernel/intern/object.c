@@ -167,9 +167,9 @@ void object_free_particlesystems(Object *ob)
 {
 	while(ob->particlesystem.first){
 		ParticleSystem *psys = ob->particlesystem.first;
-
+		
 		BLI_remlink(&ob->particlesystem,psys);
-
+		
 		psys_free(ob,psys);
 	}
 }
@@ -194,9 +194,9 @@ void object_free_modifiers(Object *ob)
 {
 	while (ob->modifiers.first) {
 		ModifierData *md = ob->modifiers.first;
-
+		
 		BLI_remlink(&ob->modifiers, md);
-
+		
 		modifier_free(md);
 	}
 
@@ -283,6 +283,8 @@ void free_object(Object *ob)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose)
 		free_pose(ob->pose);
+	if(ob->mpath)
+		animviz_free_motionpath(ob->mpath);
 	free_properties(&ob->prop);
 	object_free_modifiers(ob);
 	
@@ -332,6 +334,7 @@ void unlink_object(Scene *scene, Object *ob)
 	unlink_actuators(&ob->actuators);
 	
 	/* check all objects: parents en bevels and fields, also from libraries */
+	// FIXME: need to check all animation blocks (drivers)
 	obt= G.main->object.first;
 	while(obt) {
 		if(obt->proxy==ob)
@@ -982,7 +985,7 @@ Object *add_only_object(int type, char *name)
 	ob->quat[0]= ob->dquat[0]= 1.0f;
 	/* rotation locks should be 4D for 4 component rotations by default... */
 	ob->protectflag = OB_LOCK_ROT4D;
-
+	
 	unit_m4(ob->constinv);
 	unit_m4(ob->parentinv);
 	unit_m4(ob->obmat);
@@ -1021,6 +1024,9 @@ Object *add_only_object(int type, char *name)
 	ob->fluidsimSettings = NULL;
 
 	ob->pc_ids.first = ob->pc_ids.last = NULL;
+	
+	/* Animation Visualisation defaults */
+	animviz_settings_init(&ob->avs);
 
 	return ob;
 }

@@ -35,12 +35,12 @@
 
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
+#include "DNA_action_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct bPose;	
+	
 struct Object;
 struct AnimData;
 struct Ipo;
@@ -114,6 +114,9 @@ typedef struct Object {
 	void *data;
 	
 	struct bGPdata *gpd;	/* Grease Pencil data */
+	
+	bAnimVizSettings avs;	/* settings for visualisation of object-transform animation */
+	bMotionPath *mpath;		/* motion path cache for this object */
 	
 	ListBase constraintChannels; // XXX depreceated... old animation system
 	ListBase effect;
