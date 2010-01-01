@@ -155,7 +155,7 @@ static int gpencil_draw_poll (bContext *C)
 static int gpencil_project_check (tGPsdata *p)
 {
 	bGPdata *gpd= p->gpd;
-	return ((gpd->sbuffer_sflag & GP_STROKE_3DSPACE) && (p->gpd->flag & GP_DATA_VIEWDEPTH)) ? 1:0;
+	return ((gpd->sbuffer_sflag & GP_STROKE_3DSPACE) && (p->gpd->flag & (GP_DATA_DEPTH_VIEW | GP_DATA_DEPTH_STROKE))) ? 1:0;
 }
 
 /* ******************************************* */
@@ -1165,7 +1165,7 @@ static void gpencil_draw_exit (bContext *C, wmOperator *op)
 		
 		/* need to restore the original projection settings before packing up */
 		view3d_operator_needs_opengl(C);
-		view_autodist_init(p->scene, p->ar, v3d);
+		view_autodist_init(p->scene, p->ar, v3d, (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 1:0);
 	}
 
 	gp_paint_cleanup(p);

@@ -223,7 +223,8 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	static EnumPropertyItem draw_mode_items[] = {
 		{GP_DATA_VIEWALIGN, "CURSOR", 0, "Cursor", ""},
 		{0, "VIEW", 0, "View", ""}, /* weired, GP_DATA_VIEWALIGN is inverted */
-		{GP_DATA_VIEWALIGN|GP_DATA_VIEWDEPTH, "DEPTH", 0, "Depth", ""},
+		{GP_DATA_VIEWALIGN|GP_DATA_DEPTH_VIEW, "SURFACE", 0, "Surface", ""},
+		{GP_DATA_VIEWALIGN|GP_DATA_DEPTH_STROKE, "STROKE", 0, "Stroke", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "GreasePencil", "ID");

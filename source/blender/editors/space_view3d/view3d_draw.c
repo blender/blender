@@ -1643,6 +1643,29 @@ void view3d_update_depths(ARegion *ar, View3D *v3d)
 	}
 }
 
+void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	Scene *sce;
+
+	setwinmatrixview3d(ar, v3d, NULL);	/* 0= no pick rect */
+	setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
+
+	mul_m4_m4m4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
+	invert_m4_m4(rv3d->persinv, rv3d->persmat);
+	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	wmLoadMatrix(rv3d->viewmat);
+
+	v3d->zbuf= TRUE;
+	glEnable(GL_DEPTH_TEST);
+
+	draw_gpencil_3dview_ext(scene, ar, 1);
+	return;
+}
+
 void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 {
 	RegionView3D *rv3d= ar->regiondata;

@@ -2265,12 +2265,19 @@ int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, short *mval, float mou
 	return 1;
 }
 
-int view_autodist_init(Scene *scene, ARegion *ar, View3D *v3d) //, float *autodist )
+int view_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode) //, float *autodist )
 {
 	RegionView3D *rv3d= ar->regiondata;
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
-	draw_depth(scene, ar, v3d, NULL);
+	switch(mode) {
+	case 0:
+		draw_depth(scene, ar, v3d, NULL);
+		break;
+	case 1:
+		draw_depth_gpencil(scene, ar, v3d);
+		break;
+	}
 
 	/* force updating */
 	if (rv3d->depths) {

@@ -254,16 +254,18 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 	}
 	
 	/* draw gpd drawing settings first ------------------------------------- */
-	col= uiLayoutColumn(layout, 0);
+	col= uiLayoutColumn(layout, 1);
 		/* label */
 		uiItemL(col, "Drawing Settings:", 0);
 		
 		/* 'stick to view' option */
 		//uiItemR(col, NULL, 0, &gpd_ptr, "draw_mode", 0);
-		row= uiLayoutRow(layout, 1);
+		row= uiLayoutRow(col, 1);
 		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "VIEW");
 		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "CURSOR");
-		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "DEPTH");
+		row= uiLayoutRow(col, 1);
+		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "SURFACE");
+		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "STROKE");
 }	
 
 

@@ -127,7 +127,7 @@ unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 int view_autodist(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, short *mval, float mouse_worldloc[3]);
 
 /* only draw so view_autodist_simple can be called many times after */
-int view_autodist_init(struct Scene *scene, struct ARegion *ar, struct View3D *v3d);
+int view_autodist_init(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, int mode);
 int view_autodist_simple(struct ARegion *ar, short *mval, float mouse_worldloc[3], float *force_depth);
 int view_autodist_depth(struct ARegion *ar, short *mval, float *depth);
 
