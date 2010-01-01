@@ -824,7 +824,7 @@ static void console_modal_select_apply(bContext *C, wmOperator *op, wmEvent *eve
 
 static void set_cursor_exit(bContext *C, wmOperator *op)
 {
-	SpaceConsole *sc= CTX_wm_space_console(C);
+//	SpaceConsole *sc= CTX_wm_space_console(C);
 	SetConsoleCursor *scu= op->customdata;
 
 	/*
@@ -840,7 +840,7 @@ static void set_cursor_exit(bContext *C, wmOperator *op)
 static int console_modal_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
-	ARegion *ar= CTX_wm_region(C);
+//	ARegion *ar= CTX_wm_region(C);
 	SetConsoleCursor *scu;
 
 	op->customdata= MEM_callocN(sizeof(SetConsoleCursor), "SetConsoleCursor");

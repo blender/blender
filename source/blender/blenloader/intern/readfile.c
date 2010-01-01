@@ -106,6 +106,7 @@
 #include "BLI_storage_types.h" // for relname flags
 
 #include "BKE_animsys.h"
+#include "BKE_anim.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_brush.h"

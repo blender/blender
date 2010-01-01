@@ -1646,7 +1646,6 @@ void view3d_update_depths(ARegion *ar, View3D *v3d)
 void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 {
 	RegionView3D *rv3d= ar->regiondata;
-	Scene *sce;
 
 	setwinmatrixview3d(ar, v3d, NULL);	/* 0= no pick rect */
 	setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */

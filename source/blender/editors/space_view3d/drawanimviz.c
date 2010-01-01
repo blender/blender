@@ -110,7 +110,7 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 	//RegionView3D *rv3d= ar->regiondata;
 	bMotionPathVert *mpv, *mpv_start;
 	int sfra, efra, len;
-	int i, stepsize;
+	int i, stepsize= avs->ghost_step;
 	
 	/* get frame ranges */
 	if (avs->path_type == MOTIONPATH_TYPE_ACFRA) {

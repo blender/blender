@@ -2331,11 +2331,13 @@ void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 }
 
+#if 0
 static EnumPropertyItem view_type_items[] = {
 		{SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
 		{SEQ_VIEW_PREVIEW,  "PREVIEW", ICON_SEQ_PREVIEW, "Image Preview", ""},
 		{SEQ_VIEW_SEQUENCE_PREVIEW,  "SEQUENCER_PREVIEW", ICON_SEQ_SEQUENCER, "Sequencer and Image Preview", ""},
 		{0, NULL, 0, NULL, NULL}};
+#endif
 
 /* view_all operator */
 static int sequencer_view_toggle_exec(bContext *C, wmOperator *op)
