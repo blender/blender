@@ -1129,12 +1129,33 @@ static PyObject *Matrix_getColSize( MatrixObject * self, void *type )
 	return PyLong_FromLong((long) self->colSize);
 }
 
+static PyObject *Matrix_getMedianScale( MatrixObject * self, void *type )
+{
+	float mat[3][3];
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	/*must be 3-4 cols, 3-4 rows, square matrix*/
+	if(self->colSize == 4 && self->rowSize == 4)
+		copy_m3_m4(mat, (float (*)[4])*self->matrix);
+	else if(self->colSize == 3 && self->rowSize == 3)
+		copy_m3_m3(mat, (float (*)[3])*self->matrix);
+	else {
+		PyErr_SetString(PyExc_AttributeError, "Matrix.median_scale: inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
+		return NULL;
+	}
+    
+	return PyFloat_FromDouble(mat3_to_scale(mat));
+}
+
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Matrix_getseters[] = {
-	{"rowSize", (getter)Matrix_getRowSize, (setter)NULL, "", NULL},
-	{"colSize", (getter)Matrix_getColSize, (setter)NULL, "", NULL},
+	{"row_size", (getter)Matrix_getRowSize, (setter)NULL, "", NULL},
+	{"col_size", (getter)Matrix_getColSize, (setter)NULL, "", NULL},
+    {"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, "", NULL},
 	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, "", NULL},
 	{"_owner",(getter)BaseMathObject_getOwner, (setter)NULL, "",
 	 NULL},
