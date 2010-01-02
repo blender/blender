@@ -1,5 +1,5 @@
 /**
- * $Id: drawanim.c 24637 2009-11-18 11:40:55Z campbellbarton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
