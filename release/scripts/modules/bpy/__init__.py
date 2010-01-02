@@ -27,6 +27,7 @@ context = _bpy.context
 
 # python modules
 from bpy import utils
+from bpy import app
 
 from bpy import ops as _ops_module
 
@@ -99,10 +100,5 @@ def _main():
     else:
         load_scripts()
 
-
-# constants
-version = _bpy._VERSION
-version_string = _bpy._VERSION_STR
-home = _bpy._HOME
 
 _main()

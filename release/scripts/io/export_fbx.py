@@ -651,7 +651,7 @@ def write(filename, batch_objects = None, \
 }''' % (curtime))
 
     file.write('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
-    file.write('\nCreator: "Blender3D version %s"' % bpy.version_string)
+    file.write('\nCreator: "Blender3D version %s"' % bpy.app.version_string)
 
 
     pose_items = [] # list of (fbxName, matrix) to write pose data for, easier to collect allong the way

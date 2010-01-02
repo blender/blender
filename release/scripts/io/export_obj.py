@@ -361,7 +361,7 @@ def write(filename, objects, scene,
     file = open(filename, "w")
 
     # Write Header
-    file.write('# Blender3D v%s OBJ File: %s\n' % (bpy.version_string, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
+    file.write('# Blender3D v%s OBJ File: %s\n' % (bpy.app.version_string, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
     file.write('# www.blender3d.org\n')
 
     # Tell the obj file what material file to use.
