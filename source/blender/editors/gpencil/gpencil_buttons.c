@@ -268,7 +268,7 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "STROKE");
 
 		row= uiLayoutRow(col, 0);
-		uiLayoutSetActive(row, (gpd->flag & GP_DATA_DEPTH_STROKE) ? 1:0);
+		uiLayoutSetActive(row, (gpd->flag & (GP_DATA_DEPTH_STROKE|GP_DATA_DEPTH_VIEW)) ? 1:0);
 		uiItemR(row, NULL, 0, &gpd_ptr, "use_stroke_endpoints", 0);
 }	
 
