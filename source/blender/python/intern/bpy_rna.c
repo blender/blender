@@ -53,6 +53,8 @@
 #include "../generic/Mathutils.h" /* so we can have mathutils callbacks */
 #include "../generic/IDProp.h" /* for IDprop lookups */
 
+static PyObject *prop_subscript_array_slice(PointerRNA *ptr, PropertyRNA *prop, int start, int stop, int length);
+
 /* bpyrna vector/euler/quat callbacks */
 static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
 
@@ -234,8 +236,15 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		}
 	}
 
-	if(ret==NULL)
-		ret = pyrna_prop_CreatePyObject(ptr, prop); /* TODO, convert to a python list */
+	if(ret==NULL) {
+		if(is_thick) {
+			/* this is an array we cant reference (since its not thin wrappable)
+			 * and cannot be coerced into a mathutils type, so return as a list */
+			ret = prop_subscript_array_slice(ptr, prop, 0, len, len);
+		} else {
+			ret = pyrna_prop_CreatePyObject(ptr, prop); /* owned by the Mathutils PyObject */
+		}
+	}
 
 #endif
 
@@ -999,7 +1008,7 @@ static PyObject *prop_subscript_collection_str(BPy_PropertyRNA *self, char *keyn
 }
 /* static PyObject *prop_subscript_array_str(BPy_PropertyRNA *self, char *keyname) */
 
-static PyObject *prop_subscript_collection_slice(BPy_PropertyRNA *self, int start, int stop)
+static PyObject *prop_subscript_collection_slice(PointerRNA *ptr, PropertyRNA *prop, int start, int stop, int length)
 {
 	PointerRNA newptr;
 	PyObject *list = PyList_New(stop - start);
@@ -1008,8 +1017,8 @@ static PyObject *prop_subscript_collection_slice(BPy_PropertyRNA *self, int star
 	start = MIN2(start,stop); /* values are clamped from  */
 
 	for(count = start; count < stop; count++) {
-		if(RNA_property_collection_lookup_int(&self->ptr, self->prop, count - start, &newptr)) {
-			PyList_SetItem(list, count - start, pyrna_struct_CreatePyObject(&newptr));
+		if(RNA_property_collection_lookup_int(ptr, prop, count - start, &newptr)) {
+			PyList_SET_ITEM(list, count - start, pyrna_struct_CreatePyObject(&newptr));
 		}
 		else {
 			Py_DECREF(list);
@@ -1021,16 +1030,72 @@ static PyObject *prop_subscript_collection_slice(BPy_PropertyRNA *self, int star
 
 	return list;
 }
-static PyObject *prop_subscript_array_slice(BPy_PropertyRNA *self, int start, int stop)
+
+/* TODO - dimensions
+ * note: could also use pyrna_prop_to_py_index(self, count) in a loop but its a lot slower
+ * since at the moment it reads (and even allocates) the entire array for each index.
+ */
+#define PYRNA_STACK_ARRAY 32
+static PyObject *prop_subscript_array_slice(PointerRNA *ptr, PropertyRNA *prop, int start, int stop, int length)
 {
 	PyObject *list = PyList_New(stop - start);
 	int count;
 
-	start = MIN2(start,stop); /* values are clamped from PySlice_GetIndicesEx */
+	switch (RNA_property_type(prop)) {
+		case PROP_FLOAT:
+		{
+			float values_stack[PYRNA_STACK_ARRAY];
+			float *values;
+			if(length > PYRNA_STACK_ARRAY)	{	values= PyMem_MALLOC(sizeof(float) * length); }
+			else							{	values= values_stack; }
+			RNA_property_float_get_array(ptr, prop, values);
+			
+			for(count=start; count<stop; count++)
+				PyList_SET_ITEM(list, count-start, PyFloat_FromDouble(values[count]));
 
-	for(count = start; count < stop; count++)
-		PyList_SetItem(list, count - start, pyrna_prop_to_py_index(self, count));
+			if(values != values_stack) {
+				PyMem_FREE(values);
+			}
+			break;
+		}
+		case PROP_BOOLEAN:
+		{
+			int values_stack[PYRNA_STACK_ARRAY];
+			int *values;
+			if(length > PYRNA_STACK_ARRAY)	{	values= PyMem_MALLOC(sizeof(int) * length); }
+			else							{	values= values_stack; }
 
+			RNA_property_boolean_get_array(ptr, prop, values);
+			for(count=start; count<stop; count++)
+				PyList_SET_ITEM(list, count-start, PyBool_FromLong(values[count]));
+
+			if(values != values_stack) {
+				PyMem_FREE(values);
+			}
+			break;
+		}
+		case PROP_INT:
+		{
+			int values_stack[PYRNA_STACK_ARRAY];
+			int *values;
+			if(length > PYRNA_STACK_ARRAY)	{	values= PyMem_MALLOC(sizeof(int) * length); }
+			else							{	values= values_stack; }
+
+			RNA_property_int_get_array(ptr, prop, values);
+			for(count=start; count<stop; count++)
+				PyList_SET_ITEM(list, count-start, PyLong_FromSsize_t(values[count]));
+
+			if(values != values_stack) {
+				PyMem_FREE(values);
+			}
+			break;
+		}
+		default:
+			/* probably will never happen */
+			PyErr_SetString(PyExc_TypeError, "not an array type");
+			Py_DECREF(list);
+			list= NULL;
+	}
 	return list;
 }
 
@@ -1057,7 +1122,7 @@ static PyObject *prop_subscript_collection(BPy_PropertyRNA *self, PyObject *key)
 			return PyList_New(0);
 		}
 		else if (step == 1) {
-			return prop_subscript_collection_slice(self, start, stop);
+			return prop_subscript_collection_slice(&self->ptr, self->prop, start, stop, len);
 		}
 		else {
 			PyErr_SetString(PyExc_TypeError, "slice steps not supported with rna");
@@ -1092,7 +1157,7 @@ static PyObject *prop_subscript_array(BPy_PropertyRNA *self, PyObject *key)
 			return PyList_New(0);
 		}
 		else if (step == 1) {
-			return prop_subscript_array_slice(self, start, stop);
+			return prop_subscript_array_slice(&self->ptr, self->prop, start, stop, len);
 		}
 		else {
 			PyErr_SetString(PyExc_TypeError, "slice steps not supported with rna");
@@ -1117,21 +1182,81 @@ static PyObject *pyrna_prop_subscript( BPy_PropertyRNA *self, PyObject *key )
 	return NULL;
 }
 
-static int prop_subscript_ass_array_slice(BPy_PropertyRNA *self, int begin, int end, PyObject *value)
+/* could call (pyrna_py_to_prop_index(self, i, value) in a loop but it is slow */
+static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, int start, int stop, int length, PyObject *value)
 {
 	int count;
-
-	/* values are clamped from */
-	begin = MIN2(begin,end);
-
-	for(count = begin; count < end; count++) {
-		if(pyrna_py_to_prop_index(self, count - begin, value) == -1) {
-			/* TODO - this is wrong since some values have been assigned... will need to fix that */
-			return -1; /* pyrna_struct_CreatePyObject should set the error */
-		}
+	void *values_alloc= NULL;
+	int ret= 0;
+	
+	/* TODO - fast list ? */
+	if(!PyList_Check(value)) {
+		PyErr_Format(PyExc_TypeError, "invalid slice assignment, exitected a list instead of %.200s instance.", Py_TYPE(value)->tp_name);
+		return -1;
 	}
 
-	return 0;
+	switch (RNA_property_type(prop)) {
+		case PROP_FLOAT:
+		{
+			float values_stack[PYRNA_STACK_ARRAY];
+			float *values;
+			if(length > PYRNA_STACK_ARRAY)	{	values= values_alloc= PyMem_MALLOC(sizeof(float) * length); }
+			else							{	values= values_stack; }
+			if(start != 0 || stop != length) /* partial assignment? - need to get the array */
+				RNA_property_float_get_array(ptr, prop, values);
+			
+			for(count=start; count<stop; count++)
+				values[count] = PyFloat_AsDouble(PyList_GET_ITEM(value, count-start));
+
+			if(PyErr_Occurred())	ret= -1;
+			else					RNA_property_float_set_array(ptr, prop, values);
+			break;
+		}
+		case PROP_BOOLEAN:
+		{
+			int values_stack[PYRNA_STACK_ARRAY];
+			int *values;
+			if(length > PYRNA_STACK_ARRAY)	{	values= values_alloc= PyMem_MALLOC(sizeof(int) * length); }
+			else							{	values= values_stack; }
+
+			if(start != 0 || stop != length) /* partial assignment? - need to get the array */
+				RNA_property_boolean_get_array(ptr, prop, values);
+	
+			for(count=start; count<stop; count++)
+				values[count] = PyLong_AsSsize_t(PyList_GET_ITEM(value, count-start));
+
+			if(PyErr_Occurred())	ret= -1;
+			else					RNA_property_boolean_set_array(ptr, prop, values);
+			break;
+		}
+		case PROP_INT:
+		{
+			int values_stack[PYRNA_STACK_ARRAY];
+			int *values;
+			if(length > PYRNA_STACK_ARRAY)	{	values= values_alloc= PyMem_MALLOC(sizeof(int) * length); }
+			else							{	values= values_stack; }
+
+			if(start != 0 || stop != length) /* partial assignment? - need to get the array */
+				RNA_property_int_get_array(ptr, prop, values);
+
+			for(count=start; count<stop; count++)
+				values[count] = PyLong_AsSsize_t(PyList_GET_ITEM(value, count-start));
+
+			if(PyErr_Occurred())	ret= -1;
+			else					RNA_property_int_set_array(ptr, prop, values);
+			break;
+		}
+		default:
+			PyErr_SetString(PyExc_TypeError, "not an array type");
+			ret= -1;
+	}
+	
+	if(values_alloc) {
+		PyMem_FREE(values_alloc);
+	}
+	
+	return ret;
+
 }
 
 static int prop_subscript_ass_array_int(BPy_PropertyRNA *self, int keynum, PyObject *value)
@@ -1180,7 +1305,7 @@ static int pyrna_prop_ass_subscript( BPy_PropertyRNA *self, PyObject *key, PyObj
 			return 0;
 		}
 		else if (step == 1) {
-			return prop_subscript_ass_array_slice(self, start, stop, value);
+			return prop_subscript_ass_array_slice(&self->ptr, self->prop, start, stop, len, value);
 		}
 		else {
 			PyErr_SetString(PyExc_TypeError, "slice steps not supported with rna");
@@ -2341,14 +2466,8 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 	PyObject *iter;
 	
 	if(RNA_property_array_check(&self->ptr, self->prop)) {
-		int len = pyrna_prop_array_length(self);
-		int i;
-		PyErr_Clear();
-		ret = PyList_New(len);
-		
-		for (i=0; i < len; i++) {
-			PyList_SET_ITEM(ret, i, pyrna_prop_to_py_index(self, i));
-		}
+		int len= pyrna_prop_array_length(self);
+		ret = prop_subscript_array_slice(&self->ptr, self->prop, 0, len, len);
 	}
 	else if ((ret = pyrna_prop_values(self))) {
 		/* do nothing */
