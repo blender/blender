@@ -2715,6 +2715,7 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 	ret_len= 0;
 
 	if(args_len + (kw ? PyDict_Size(kw):0) > parms_len) {
+		RNA_parameter_list_end(&iter);
 		PyErr_Format(PyExc_TypeError, "%.200s.%.200s(): takes at most %d arguments, got %d", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), parms_len, args_len);
 		err= -1;
 	}
@@ -2780,6 +2781,8 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 			break;
 		}
 	}
+	
+	RNA_parameter_list_end(&iter);
 
 
 	/* Check if we gave args that dont exist in the function
@@ -4194,6 +4197,7 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 
 			ret = PyObject_Call(item, args, NULL);
 
+			RNA_parameter_list_end(&iter);
 			Py_DECREF(item);
 			Py_DECREF(args);
 		}
@@ -4242,6 +4246,8 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 							break;
 					}
 				}
+
+				RNA_parameter_list_end(&iter);
 			}
 		}
 		Py_DECREF(ret);

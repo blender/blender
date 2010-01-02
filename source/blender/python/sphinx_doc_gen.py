@@ -115,8 +115,8 @@ def rna2sphinx(BASEPATH):
         #if not struct.identifier.startswith("Sc") and not struct.identifier.startswith("I"):
         #    return
 
-        if not struct.identifier == "Object":
-            return
+        #if not struct.identifier == "Object":
+        #    return
 
         filepath = os.path.join(BASEPATH, "bpy.types.%s.rst" % struct.identifier)
         file = open(filepath, "w")
