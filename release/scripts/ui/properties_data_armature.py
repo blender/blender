@@ -89,6 +89,7 @@ class DATA_PT_display(DataButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
+        ob = context.object
         arm = context.armature
         wide_ui = context.region.width > narrowui
 
@@ -108,6 +109,7 @@ class DATA_PT_display(DataButtonsPanel):
             col = split.column()
         col.prop(arm, "draw_group_colors", text="Colors")
         col.prop(arm, "delay_deform", text="Delay Refresh")
+        col.prop(ob, "x_ray", text="X-Ray (Object)")
 
 
 class DATA_PT_bone_groups(DataButtonsPanel):

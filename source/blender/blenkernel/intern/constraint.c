@@ -1690,8 +1690,8 @@ static void sizelike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	if (VALID_CONS_TARGET(ct)) {
 		float obsize[3], size[3];
 		
-		mat4_to_size( size,ct->matrix);
-		mat4_to_size( obsize,cob->matrix);
+		mat4_to_size(size, ct->matrix);
+		mat4_to_size(obsize, cob->matrix);
 		
 		if ((data->flag & SIZELIKE_X) && (obsize[0] != 0)) {
 			if (data->flag & SIZELIKE_OFFSET) {
@@ -1735,6 +1735,58 @@ static bConstraintTypeInfo CTI_SIZELIKE = {
 	sizelike_evaluate /* evaluate */
 };
 
+/* ----------- Copy Transforms ------------- */
+
+static int translike_get_tars (bConstraint *con, ListBase *list)
+{
+	if (con && list) {
+		bTransLikeConstraint *data= con->data;
+		bConstraintTarget *ct;
+		
+		/* standard target-getting macro for single-target constraints */
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
+	}
+	
+	return 0;
+}
+
+static void translike_flush_tars (bConstraint *con, ListBase *list, short nocopy)
+{
+	if (con && list) {
+		bTransLikeConstraint *data= con->data;
+		bConstraintTarget *ct= list->first;
+		
+		/* the following macro is used for all standard single-target constraints */
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+	}
+}
+
+static void translike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+{
+	bConstraintTarget *ct= targets->first;
+	
+	if (VALID_CONS_TARGET(ct)) {
+		/* just copy the entire transform matrix of the target */
+		copy_m4_m4(cob->matrix, ct->matrix);
+	}
+}
+
+static bConstraintTypeInfo CTI_TRANSLIKE = {
+	CONSTRAINT_TYPE_TRANSLIKE, /* type */
+	sizeof(bTransLikeConstraint), /* size */
+	"Copy Transforms", /* name */
+	"bTransLikeConstraint", /* struct name */
+	NULL, /* free data */
+	NULL, /* relink data */
+	NULL, /* copy data */
+	NULL, /* new data */
+	translike_get_tars, /* get constraint targets */
+	translike_flush_tars, /* flush constraint targets */
+	default_get_tarmat, /* get target matrix */
+	translike_evaluate /* evaluate */
+};
 
 /* ----------- Python Constraint -------------- */
 
@@ -3565,6 +3617,7 @@ static void constraints_init_typeinfo () {
 	constraintsTypeInfo[20]= &CTI_SHRINKWRAP;		/* Shrinkwrap Constraint */
 	constraintsTypeInfo[21]= &CTI_DAMPTRACK;		/* Damped TrackTo Constraint */
 	constraintsTypeInfo[22]= &CTI_SPLINEIK;			/* Spline IK Constraint */
+	constraintsTypeInfo[23]= &CTI_TRANSLIKE;		/* Copy Transforms Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only

@@ -460,6 +460,12 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         layout.prop(con, "use_offset")
 
         self.space_template(layout, con, wide_ui)
+		
+    def COPY_TRANSFORMS(self, context, layout, con, wide_ui):
+        self.target_template(layout, con, wide_ui)
+
+        self.space_template(layout, con, wide_ui)
+		
 
     #def SCRIPT(self, context, layout, con):
 
