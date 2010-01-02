@@ -119,7 +119,7 @@ def ik(obj, bone_definition, base_names, options):
     ik_chain.thigh_e.parent = mt.hips_e
 
     ik_chain.foot_e.parent = None
-    ik_chain.rename("foot", ik_chain.foot + "_ik")
+    ik_chain.rename("foot", get_base_name(ik_chain.foot) + "_ik" + get_side_name(ik_chain.foot))
 
     # keep the foot_ik as the parent
     ik_chain.toe_e.connected = False
@@ -130,14 +130,14 @@ def ik(obj, bone_definition, base_names, options):
     # children of ik_foot
     ik = bone_class_instance(obj, ["foot", "foot_roll", "foot_roll_01", "foot_roll_02", "knee_target", "foot_target"])
 
-    ik.knee_target = add_pole_target_bone(obj, mt_chain.shin, "knee_target") #XXX - pick a better name
+    ik.knee_target = add_pole_target_bone(obj, mt_chain.shin, "knee_target" + get_side_name(base_names[mt_chain.foot])) #XXX - pick a better name
     ik.update()
     ik.knee_target_e.parent = mt.hips_e
 
     # foot roll is an interesting one!
     # plot a vector from the toe bones head, bactwards to the length of the foot
     # then align it with the foot but reverse direction.
-    ik.foot_roll_e = copy_bone_simple(arm, mt_chain.toe, base_names[mt_chain.foot] + "_roll")
+    ik.foot_roll_e = copy_bone_simple(arm, mt_chain.toe, get_base_name(base_names[mt_chain.foot]) + "_roll" + get_side_name(base_names[mt_chain.foot]))
     ik.foot_roll = ik.foot_roll_e.name
     ik.foot_roll_e.parent = ik_chain.foot_e
     ik.foot_roll_e.translate(- (mt_chain.toe_e.vector.normalize() * mt_chain.foot_e.length))
@@ -174,19 +174,19 @@ def ik(obj, bone_definition, base_names, options):
     ik_chain.update()
 
     # simple constraining of orig bones
-    con = mt_chain.thigh_p.constraints.new('COPY_ROTATION')
+    con = mt_chain.thigh_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = ik_chain.thigh
 
-    con = mt_chain.shin_p.constraints.new('COPY_ROTATION')
+    con = mt_chain.shin_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = ik_chain.shin
 
-    con = mt_chain.foot_p.constraints.new('COPY_ROTATION')
+    con = mt_chain.foot_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = ik.foot_roll_02
 
-    con = mt_chain.toe_p.constraints.new('COPY_ROTATION')
+    con = mt_chain.toe_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = ik_chain.toe
 

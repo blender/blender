@@ -98,6 +98,30 @@ def metarig_definition(obj, orig_bone_name):
     return [palm_parent.name] + bone_definition
 
 
+def deform(obj, definitions, base_names, options):
+    for org_bone_name in definitions[1:]:
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        # Create deform bone.
+        bone = copy_bone_simple(obj.data, org_bone_name, "DEF-%s" % base_names[org_bone_name], parent=True)
+        
+        # Store name before leaving edit mode
+        bone_name = bone.name
+        
+        # Leave edit mode
+        bpy.ops.object.mode_set(mode='OBJECT')
+        
+        # Get the pose bone
+        bone = obj.pose.bones[bone_name]
+        
+        # Constrain to the original bone
+        # XXX. Todo, is this needed if the bone is connected to its parent?
+        con = bone.constraints.new('COPY_TRANSFORMS')
+        con.name = "copy_loc"
+        con.target = obj
+        con.subtarget = org_bone_name
+
+
 def main(obj, bone_definition, base_names, options):
     arm = obj.data
 
@@ -117,6 +141,8 @@ def main(obj, bone_definition, base_names, options):
     offset = (pinky_ebone.head - ring_ebone.head)
 
     control_ebone.translate(offset)
+    
+    deform(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')
 

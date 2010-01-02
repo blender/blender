@@ -26,6 +26,12 @@ from rna_prop_ui import rna_idprop_ui_prop_get
 SPECIAL_TYPES = "root",
 LAYER_TYPES = "main", "extra", "ik", "fk"
 
+ORG_LAYERS = [n==31 for n in range(0,32)]
+MCH_LAYERS = [n==30 for n in range(0,32)]
+DEF_LAYERS = [n==29 for n in range(0,32)] 
+
+
+
 
 class RigifyError(Exception):
     """Exception raised for errors in the metarig.
@@ -341,10 +347,14 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     layer_second_last[30] = True
 
     for bone_name, bone in arm.bones.items():
+        bone.deform = False  # Non DEF bones shouldn't deform
         if bone_name.startswith(prefix):
-            bone.layer = layer_last
-        elif bone_name.startswith("MCH"): # XXX fixme
-            bone.layer = layer_second_last
+            bone.layer = ORG_LAYERS
+        elif bone_name.startswith("MCH-"): # XXX fixme
+            bone.layer = MCH_LAYERS
+        elif bone_name.startswith("DEF-"): # XXX fixme
+            bone.layer = DEF_LAYERS
+            bone.deform = True
 
         layer_tot[:] = [max(lay) for lay in zip(layer_tot, bone.layer)]
 

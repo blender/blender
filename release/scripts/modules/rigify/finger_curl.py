@@ -86,6 +86,68 @@ def metarig_definition(obj, orig_bone_name):
     return bone_definition
 
 
+def deform(obj, definitions, base_names, options):
+    """ Creates the deform rig.
+    """
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    # Create base digit bones: two bones, each half of the base digit.
+    f1a = copy_bone_simple(obj.data, definitions[0], "DEF-%s.01" % base_names[definitions[0]], parent=True)
+    f1b = copy_bone_simple(obj.data, definitions[0], "DEF-%s.02" % base_names[definitions[0]], parent=True)
+    f1a.connected = False
+    f1b.connected = False
+    f1b.parent = f1a
+    center = f1a.center
+    f1a.tail = center
+    f1b.head = center
+    
+    # Create the other deform bones.
+    f2 = copy_bone_simple(obj.data, definitions[1], "DEF-%s" % base_names[definitions[1]], parent=True)
+    f3 = copy_bone_simple(obj.data, definitions[2], "DEF-%s" % base_names[definitions[2]], parent=True)
+    
+    # Store names before leaving edit mode
+    f1a_name = f1a.name
+    f1b_name = f1b.name
+    f2_name = f2.name
+    f3_name = f3.name
+    
+    # Leave edit mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # Get the pose bones
+    f1a = obj.pose.bones[f1a_name]
+    f1b = obj.pose.bones[f1b_name]
+    f2 = obj.pose.bones[f2_name]
+    f3 = obj.pose.bones[f3_name]
+    
+    # Constrain the base digit's bones
+    con = f1a.constraints.new('DAMPED_TRACK')
+    con.name = "trackto"
+    con.target = obj
+    con.subtarget = definitions[1]
+    
+    con = f1a.constraints.new('COPY_SCALE')
+    con.name = "copy_scale"
+    con.target = obj
+    con.subtarget = definitions[0]
+    
+    con = f1b.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[0]
+    
+    # Constrain the other digit's bones
+    con = f2.constraints.new('COPY_TRANSFORMS')
+    con.name = "copy_transforms"
+    con.target = obj
+    con.subtarget = definitions[1]
+    
+    con = f3.constraints.new('COPY_TRANSFORMS')
+    con.name = "copy_transforms"
+    con.target = obj
+    con.subtarget = definitions[2]
+
+
 def main(obj, bone_definition, base_names, options):
     # *** EDITMODE
 
@@ -139,6 +201,7 @@ def main(obj, bone_definition, base_names, options):
 
     del control_ebone
 
+    deform(obj, bone_definition, base_names, options)
 
     # *** POSEMODE
     bpy.ops.object.mode_set(mode='OBJECT')

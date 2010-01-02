@@ -61,19 +61,8 @@ def deform(obj, definitions, base_names, options):
     bone = obj.pose.bones[bone_name]
     
     # Constrain to the original bone
-    # XXX. Todo, is this needed if the bone is connected to its parent?
-    con = bone.constraints.new('COPY_LOCATION')
+    con = bone.constraints.new('COPY_TRANSFORMS')
     con.name = "copy_loc"
-    con.target = obj
-    con.subtarget = definitions[0]
-    
-    con = bone.constraints.new('COPY_ROTATION')
-    con.name = "copy_rot"
-    con.target = obj
-    con.subtarget = definitions[0]
-    
-    con = bone.constraints.new('COPY_SCALE')
-    con.name = "copy_scale"
     con.target = obj
     con.subtarget = definitions[0]
     
@@ -94,18 +83,10 @@ def main(obj, bone_definition, base_names, options):
     cp.update()
     mt.update()
 
-    if not cp.cpy_b.connected:
-        con = mt.cpy_p.constraints.new('COPY_LOCATION')
-        con.target = obj
-        con.subtarget = cp.cpy
-
-    con = mt.cpy_p.constraints.new('COPY_ROTATION')
+    con = mt.cpy_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = cp.cpy
 
-    con = mt.cpy_p.constraints.new('COPY_SCALE')
-    con.target = obj
-    con.subtarget = cp.cpy
 
     # Rotation mode and axis locks
     cp.cpy_p.rotation_mode = mt.cpy_p.rotation_mode

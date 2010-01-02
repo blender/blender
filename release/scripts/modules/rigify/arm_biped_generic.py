@@ -306,6 +306,12 @@ def deform(obj, definitions, base_names, options):
     farm1.tail = center
     farm2.head = center
     
+    # Create twist bone
+    twist = copy_bone_simple(obj.data, definitions[2], "MCH-arm_twist")
+    twist.connected = False
+    twist.parent = obj.data.edit_bones[definitions[3]]
+    twist.length /= 2
+    
     # Create hand bone
     hand = copy_bone_simple(obj.data, definitions[3], "DEF-%s" % base_names[definitions[3]], parent=True)
     
@@ -314,6 +320,7 @@ def deform(obj, definitions, base_names, options):
     uarm2_name = uarm2.name
     farm1_name = farm1.name
     farm2_name = farm2.name
+    twist_name = twist.name
     hand_name = hand.name
     
     # Leave edit mode
@@ -324,6 +331,7 @@ def deform(obj, definitions, base_names, options):
     uarm2 = obj.pose.bones[uarm2_name]
     farm1 = obj.pose.bones[farm1_name]
     farm2 = obj.pose.bones[farm2_name]
+    twist = obj.pose.bones[twist_name]
     hand = obj.pose.bones[hand_name]
     
     # Upper arm constraints
@@ -346,7 +354,7 @@ def deform(obj, definitions, base_names, options):
     con = farm2.constraints.new('COPY_ROTATION')
     con.name = "copy_rot"
     con.target = obj
-    con.subtarget = definitions[3]
+    con.subtarget = twist.name
     
     con = farm2.constraints.new('DAMPED_TRACK')
     con.name = "trackto"

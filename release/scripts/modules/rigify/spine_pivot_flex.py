@@ -122,6 +122,30 @@ def fk(*args):
     main(*args)
 
 
+def deform(obj, definitions, base_names, options):
+    for org_bone_name in definitions[2:]:
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        # Create deform bone.
+        bone = copy_bone_simple(obj.data, org_bone_name, "DEF-%s" % base_names[org_bone_name], parent=True)
+        
+        # Store name before leaving edit mode
+        bone_name = bone.name
+        
+        # Leave edit mode
+        bpy.ops.object.mode_set(mode='OBJECT')
+        
+        # Get the pose bone
+        bone = obj.pose.bones[bone_name]
+        
+        # Constrain to the original bone
+        # XXX. Todo, is this needed if the bone is connected to its parent?
+        con = bone.constraints.new('COPY_TRANSFORMS')
+        con.name = "copy_loc"
+        con.target = obj
+        con.subtarget = org_bone_name
+
+
 def main(obj, bone_definition, base_names, options):
     from Mathutils import Vector, RotationMatrix
     from math import radians, pi
@@ -269,6 +293,7 @@ def main(obj, bone_definition, base_names, options):
         spine_e.roll += pi # 180d roll
         del spine_e
 
+    deform(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')
 

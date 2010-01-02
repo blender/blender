@@ -271,8 +271,7 @@ def ik(obj, bone_definition, base_names, options):
 
     bpy.ops.object.mode_set(mode='EDIT')
 
-    #return ((None, ik_chain.thigh, ik_chain.shin, ik_chain.foot, ik_chain.toe, None), (ik.foot, ik.knee_target)) # Cessen ???
-    return (None, ik_chain.thigh, ik_chain.shin, ik_chain.foot, ik_chain.toe, None)
+    return (None, ik_chain.thigh, ik_chain.shin, ik_chain.foot, ik_chain.toe, None, ik.foot)
 
 
 def fk(obj, bone_definition, base_names, options):
@@ -364,7 +363,7 @@ def fk(obj, bone_definition, base_names, options):
     bpy.ops.object.mode_set(mode='EDIT')
 
     # dont blend the hips or heel
-    return None, fk_chain.thigh, fk_chain.shin, fk_chain.foot, fk_chain.toe, None
+    return (None, fk_chain.thigh, fk_chain.shin, fk_chain.foot, fk_chain.toe, None, None)
 
 
 def deform(obj, definitions, base_names, options):
@@ -462,7 +461,7 @@ def deform(obj, definitions, base_names, options):
     con.subtarget = definitions[4]
     
     bpy.ops.object.mode_set(mode='EDIT')
-    return (uleg1_name, uleg2_name, lleg1_name, lleg2_name, foot_name, toe_name)
+    return (uleg1_name, uleg2_name, lleg1_name, lleg2_name, foot_name, toe_name, None)
 
 
 def main(obj, bone_definition, base_names, options):
@@ -471,5 +470,5 @@ def main(obj, bone_definition, base_names, options):
     deform(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    #blend_bone_list(obj, bone_definition, bones_fk, bones_ik[0], target_bone=bones_ik[1][0], target_prop="ik", blend_default=0.0) # Cessen ???
-    blend_bone_list(obj, bone_definition, bones_fk, bones_ik, target_prop="ik", blend_default=0.0)
+    blend_bone_list(obj, bone_definition + [None], bones_fk, bones_ik, target_bone=bones_ik[6], target_prop="ik", blend_default=0.0)
+    
