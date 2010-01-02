@@ -2564,11 +2564,13 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 	PointerRNA funcptr;
 	ParameterList parms;
 	ParameterIterator iter;
-	PropertyRNA *pret, *parm;
+	PropertyRNA *parm;
 	PyObject *ret, *item;
-	int i, args_len, parms_len, flag, err= 0, kw_tot= 0, kw_arg;
+	int i, args_len, parms_len, ret_len, flag, err= 0, kw_tot= 0, kw_arg;
 	const char *parm_id;
-	void *retdata= NULL;
+
+	PropertyRNA *pret_single= NULL;
+	void *retdata_single= NULL;
 
 	/* Should never happen but it does in rare cases */
 	if(self_ptr==NULL) {
@@ -2586,12 +2588,12 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 	 * the same ID as the functions. */
 	RNA_pointer_create(self_ptr->id.data, &RNA_Function, self_func, &funcptr);
 
-	pret= RNA_function_return(self_func);
 	args_len= PyTuple_GET_SIZE(args);
 
 	RNA_parameter_list_create(&parms, self_ptr, self_func);
 	RNA_parameter_list_begin(&parms, &iter);
-	parms_len = RNA_parameter_list_size(&parms);
+	parms_len= RNA_parameter_list_size(&parms);
+	ret_len= 0;
 
 	if(args_len + (kw ? PyDict_Size(kw):0) > parms_len) {
 		PyErr_Format(PyExc_TypeError, "%.200s.%.200s(): takes at most %d arguments, got %d", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), parms_len, args_len);
@@ -2601,14 +2603,20 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 	/* parse function parameters */
 	for (i= 0; iter.valid && err==0; RNA_parameter_list_next(&iter)) {
 		parm= iter.parm;
+		flag= RNA_property_flag(parm);
 
-		if (parm==pret) {
-			retdata= iter.data;
+		/* only useful for single argument returns, we'll need another list loop for multiple */
+		if (flag & PROP_RETURN) {
+			ret_len++;
+			if (pret_single==NULL) {
+				pret_single= parm;
+				retdata_single= iter.data;
+			}
+
 			continue;
 		}
 
 		parm_id= RNA_property_identifier(parm);
-		flag= RNA_property_flag(parm);
 		item= NULL;
 
 		if ((i < args_len) && (flag & PROP_REQUIRED)) {
@@ -2740,8 +2748,25 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 
 		/* return value */
 		if(err==0) {
-			if(pret) {
-				ret= pyrna_param_to_py(&funcptr, pret, retdata);
+			if (ret_len > 0) {
+				if (ret_len > 1) {
+					ret= PyTuple_New(ret_len);
+					i= 0; /* arg index */
+
+					RNA_parameter_list_begin(&parms, &iter);
+
+					for(; iter.valid; RNA_parameter_list_next(&iter)) {
+						parm= iter.parm;
+						flag= RNA_property_flag(parm);
+
+						if (flag & PROP_RETURN)
+							PyTuple_SET_ITEM(ret, i++, pyrna_param_to_py(&funcptr, parm, iter.data));
+					}
+
+					RNA_parameter_list_end(&iter);
+				}
+				else
+					ret= pyrna_param_to_py(&funcptr, pret_single, retdata_single);
 
 				/* possible there is an error in conversion */
 				if(ret==NULL)
@@ -3980,15 +4005,18 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 
 extern void BPY_update_modules( void ); //XXX temp solution
 
+/* TODO - multiple return values like with rna functions */
 static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
 {
 	PyObject *args;
 	PyObject *ret= NULL, *py_class, *py_class_instance, *item, *parmitem;
-	PropertyRNA *pret= NULL, *parm;
+	PropertyRNA *parm;
 	ParameterIterator iter;
 	PointerRNA funcptr;
-	void *retdata= NULL;
-	int err= 0, i, flag;
+	int err= 0, i, flag, ret_len=0;
+
+	PropertyRNA *pret_single= NULL;
+	void *retdata_single= NULL;
 
 	PyGILState_STATE gilstate;
 
@@ -4014,10 +4042,9 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 
 	if (py_class_instance) { /* Initializing the class worked, now run its invoke function */
 		item= PyObject_GetAttrString(py_class, RNA_function_identifier(func));
-		flag= RNA_function_flag(func);
+//		flag= RNA_function_flag(func);
 
 		if(item) {
-			pret= RNA_function_return(func);
 			RNA_pointer_create(NULL, &RNA_Function, func, &funcptr);
 
 			args = PyTuple_New(rna_function_arg_count(func)); /* first arg is included in 'item' */
@@ -4028,9 +4055,16 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 			/* parse function parameters */
 			for (i= 1; iter.valid; RNA_parameter_list_next(&iter)) {
 				parm= iter.parm;
+				flag= RNA_property_flag(parm);
 
-				if (parm==pret) {
-					retdata= iter.data;
+				/* only useful for single argument returns, we'll need another list loop for multiple */
+				if (flag & PROP_RETURN) {
+					ret_len++;
+					if (pret_single==NULL) {
+						pret_single= parm;
+						retdata_single= iter.data;
+					}
+
 					continue;
 				}
 
@@ -4060,8 +4094,37 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 		err= -1;
 	}
 	else {
-		if(retdata)
-			err= pyrna_py_to_prop(&funcptr, pret, retdata, ret, "calling class function:");
+		if(ret_len==1) {
+			err= pyrna_py_to_prop(&funcptr, pret_single, retdata_single, ret, "calling class function:");
+		}
+		else if (ret_len > 1) {
+
+			if(PyTuple_Check(ret)==0) {
+				PyErr_Format(PyExc_RuntimeError, "expected class %.200s, function %.200s to return a tuple of size %d.", RNA_struct_identifier(ptr->type), RNA_function_identifier(func), ret_len);
+				err= -1;
+			}
+			else if (PyTuple_GET_SIZE(ret) != ret_len) {
+				PyErr_Format(PyExc_RuntimeError, "class %.200s, function %.200s to returned %d items, expected %d.", RNA_struct_identifier(ptr->type), RNA_function_identifier(func), PyTuple_GET_SIZE(ret), ret_len);
+				err= -1;
+			}
+			else {
+
+				RNA_parameter_list_begin(parms, &iter);
+
+				/* parse function parameters */
+				for (i= 0; iter.valid; RNA_parameter_list_next(&iter)) {
+					parm= iter.parm;
+					flag= RNA_property_flag(parm);
+
+					/* only useful for single argument returns, we'll need another list loop for multiple */
+					if (flag & PROP_RETURN) {
+						err= pyrna_py_to_prop(&funcptr, parm, iter.data, PyTuple_GET_ITEM(ret, i++), "calling class function:");
+						if(err)
+							break;
+					}
+				}
+			}
+		}
 		Py_DECREF(ret);
 	}
 

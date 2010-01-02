@@ -854,7 +854,6 @@ char *RNA_pointer_as_string(PointerRNA *ptr);
 /* Function */
 
 const char *RNA_function_identifier(FunctionRNA *func);
-PropertyRNA *RNA_function_return(FunctionRNA *func);
 const char *RNA_function_ui_description(FunctionRNA *func);
 int RNA_function_flag(FunctionRNA *func);
 int RNA_function_defined(FunctionRNA *func);

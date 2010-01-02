@@ -118,8 +118,9 @@ struct FunctionRNA {
 	/* callback to execute the function */
 	CallFunc call;
 
-	/* parameter for the return value */
-	PropertyRNA *ret;
+	/* parameter for the return value
+	 * note: this is only the C return value, rna functions can have multiple return values */
+	PropertyRNA *c_ret;
 };
 
 struct PropertyRNA {

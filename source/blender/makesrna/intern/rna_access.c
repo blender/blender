@@ -3464,11 +3464,6 @@ const char *RNA_function_identifier(FunctionRNA *func)
 	return func->identifier;
 }
 
-PropertyRNA *RNA_function_return(FunctionRNA *func)
-{
-	return func->ret;
-}
-
 const char *RNA_function_ui_description(FunctionRNA *func)
 {
 	return func->description;
@@ -3929,7 +3924,7 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 
 	tid= RNA_struct_identifier(ptr->type);
 	fid= RNA_function_identifier(func);
-	pret= RNA_function_return(func);
+	pret= func->c_ret;
 	flen= strlen(format);
 
 	RNA_parameter_list_create(&parms, ptr, func);
@@ -3937,14 +3932,17 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 
 	for(i= 0, ofs= 0; iter.valid; RNA_parameter_list_next(&iter), i++) {
 		parm= iter.parm;
+		flag= RNA_property_flag(parm);
 
 		if(parm==pret) {
 			retdata= iter.data;
 			continue;
 		}
+		else if (flag & PROP_RETURN) {
+			continue;
+		}
 
 		pid= RNA_property_identifier(parm);
-		flag= RNA_property_flag(parm);
 
 		if (ofs>=flen || format[ofs]=='N') {
 			if (flag & PROP_REQUIRED) {

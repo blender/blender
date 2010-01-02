@@ -2417,9 +2417,16 @@ FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, C
 	return func;
 }
 
+/* C return value only!, multiple rna returns can be done with RNA_def_function_return_mark */
 void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret)
 {
-	func->ret= ret;
+	func->c_ret= ret;
+
+	RNA_def_function_return_mark(func, ret);
+}
+
+void RNA_def_function_return_mark(FunctionRNA *func, PropertyRNA *ret)
+{
 	ret->flag|=PROP_RETURN;
 }
 
