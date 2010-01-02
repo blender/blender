@@ -49,6 +49,7 @@
 #include "BKE_object.h"
 #include "BKE_mesh.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_bvhutils.h"
 
 #include "BKE_customdata.h"
 #include "BKE_anim.h"
@@ -365,6 +366,45 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 }
 */
 
+void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], float ray_end[3], float r_location[3], float r_normal[3], int *index)
+{
+	BVHTreeFromMesh treeData;
+	
+	if(ob->derivedFinal==NULL) {
+		BKE_reportf(reports, RPT_ERROR, "object \"%s\" has no mesh data to be used for ray casting.", ob->id.name+2);
+		return;
+	}
+
+	/* no need to managing allocation or freeing of the BVH data. this is generated and freed as needed */
+	bvhtree_from_mesh_faces(&treeData, ob->derivedFinal, 0.0f, 4, 6);
+
+	if(treeData.tree==NULL) {
+		BKE_reportf(reports, RPT_ERROR, "object \"%s\" could not create internal data for ray casting.", ob->id.name+2);
+		return;
+	}
+	else {
+		BVHTreeRayHit hit;
+		float ray_nor[3], dist;
+		sub_v3_v3v3(ray_nor, ray_end, ray_start);
+
+		dist= hit.dist = normalize_v3(ray_nor);
+		hit.index = -1;
+		
+		if(BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit, treeData.raycast_callback, &treeData) != -1) {
+			if(hit.dist<=dist) {
+				copy_v3_v3(r_location, hit.co);
+				copy_v3_v3(r_normal, hit.no);
+				*index= hit.index;
+				return;
+			}
+		}
+	}
+
+	zero_v3(r_location);
+	zero_v3(r_normal);
+	*index= -1;
+}
+
 #else
 
 void RNA_api_object(StructRNA *srna)
@@ -438,6 +478,29 @@ void RNA_api_object(StructRNA *srna)
 	parm= RNA_def_pointer(func, "key", "ShapeKey", "", "New shape keyblock.");
 	RNA_def_function_return(func, parm);
 
+	/* Ray Cast */
+	func= RNA_def_function(srna, "ray_cast", "rna_Object_ray_cast");
+	RNA_def_function_ui_description(func, "Cast a ray onto in object space.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	
+	/* ray start and end */
+	parm= RNA_def_float_vector(func, "start", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_float_vector(func, "end", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	/* return location and normal */
+	parm= RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "The hit location of this ray cast", -1e4, 1e4);
+	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_function_return_mark(func, parm);
+	parm= RNA_def_float_vector(func, "normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal", "The face normal at the ray cast hit location", -1e4, 1e4);
+	RNA_def_property_flag(parm, PROP_THICK_WRAP);
+	RNA_def_function_return_mark(func, parm);
+	
+	parm= RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when no intersection is found.", 0, 0);
+	RNA_def_function_return_mark(func, parm);
+
+	
 	/* DAG */
 	func= RNA_def_function(srna, "make_display_list", "rna_Object_make_display_list");
 	RNA_def_function_ui_description(func, "Update object's display data."); /* XXX describe better */
