@@ -30,6 +30,7 @@
 #ifdef WITH_QUICKTIME
 
 #if defined(_WIN32) || defined(__APPLE__)
+#ifndef USE_QTKIT
 
 #include "IMB_anim.h"
 #include "BLO_sys_types.h"
@@ -771,6 +772,7 @@ bail:
 	return ibuf;
 }
 
+#endif /* USE_QTKIT */
 #endif /* _WIN32 || __APPLE__ */
 
 #endif /* WITH_QUICKTIME */

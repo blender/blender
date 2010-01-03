@@ -24,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): GSR
+# Contributor(s): GSR, Stefan Gartner
 #
 # ***** END GPL LICENSE BLOCK *****
 #
@@ -70,21 +70,48 @@ DBG_CCFLAGS += -g
 # OS dependent parts ---------------------------------------------------
 
 ifeq ($(OS),darwin)
-    CC  ?= gcc
+    CC ?= gcc
     CCC ?= g++
-    ifeq ($(CPU),powerpc)
-        CFLAGS  += -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5 -funsigned-char -fno-strict-aliasing -Wno-long-double
-        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing -Wno-long-double
+    ifeq ($(MACOSX_DEPLOYMENT_TARGET), 10.4)
+        CC = gcc-4.0
+        CCC = g++-4.0
     else
-        CFLAGS  += -pipe -fPIC -ffast-math -march=pentium-m -funsigned-char -fno-strict-aliasing
-        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing
+        ifeq ($(MACOSX_DEPLOYMENT_TARGET), 10.5)
+            CC  = gcc-4.2
+            CCC = g++-4.2
+        endif
     endif
-#   REL_CFLAGS  += -O
-#   REL_CCFLAGS += -O2
-    CPPFLAGS    += -D_THREAD_SAFE
+    ifeq ($(CPU),powerpc)
+        CFLAGS  += -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5 -funsigned-char -fno-strict-aliasing
+        CCFLAGS += -pipe -fPIC  -funsigned-char -fno-strict-aliasing
+    else
+        CFLAGS  += -pipe -fPIC -ffast-math -funsigned-char
+        CCFLAGS += -pipe -fPIC -funsigned-char
+    endif
+
+
+    CFLAGS += -arch $(MACOSX_ARCHITECTURE) #-isysroot $(MACOSX_SDK) -mmacosx-version-min=$(MACOSX_MIN_VERS)
+    CCFLAGS += -arch $(MACOSX_ARCHITECTURE) #-isysroot $(MACOSX_SDK) -mmacosx-version-min=$(MACOSX_MIN_VERS)
+
+    ifeq ($(MACOSX_ARCHITECTURE), $(findstring $(MACOSX_ARCHITECTURE), "i386 x86_64"))
+        REL_CFLAGS += -O2 -ftree-vectorize -msse -msse2 -msse3
+        REL_CCFLAGS += -O2 -ftree-vectorize -msse -msse2 -msse3
+    endif
+
+    ifeq ($(MACOSX_ARCHITECTURE), x86_64)
+        REL_CFLAGS += -mssse3
+        REL_CCFLAGS += -mssse3
+    endif
+    
+    CPPFLAGS += -D_THREAD_SAFE -fpascal-strings
+
     ifeq ($(WITH_COCOA), true)
         CPPFLAGS += -DGHOST_COCOA
     endif
+    ifeq ($(USE_QTKIT), true)
+        CPPFLAGS += -DUSE_QTKIT
+    endif
+
     NAN_DEPEND  = true
     OPENGL_HEADERS = /System/Library/Frameworks/OpenGL.framework
     AR = ar
@@ -324,6 +351,21 @@ $(DIR)/$(DEBUG_DIR)%.o: %.mm
 	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
     endif
 
+$(DIR)/$(DEBUG_DIR)%.o: %.m
+    ifdef NAN_DEPEND
+	@set -e; $(CC) -M $(CPPFLAGS) $< 2>/dev/null \
+		| sed 's@\($*\)\.o[ :]*@$(DIR)/$(DEBUG_DIR)\1.o : @g' \
+		> $(DIR)/$(DEBUG_DIR)$*.d; \
+		[ -s $(DIR)/$(DEBUG_DIR)$*.d ] || $(RM) $(DIR)/$(DEBUG_DIR)$*.d
+    endif
+    ifdef NAN_QUIET
+	@echo " -- $< -- "
+	@$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+    else
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
+    endif
+
+
 $(DIR)/$(DEBUG_DIR)%.res: %.rc
 ifeq ($(FREE_WINDOWS),true)
 	windres $< -O coff -o $@
@@ -349,18 +391,20 @@ CCSRCS ?= $(wildcard *.cpp)
 JSRCS  ?= $(wildcard *.java)
 
 ifdef NAN_DEPEND
--include $(CSRCS:%.c=$(DIR)/$(DEBUG_DIR)%.d) $(CCSRCS:%.cpp=$(DIR)/$(DEBUG_DIR)%.d) $(OCSRCS:$.mm=$(DIR)/$(DEBUG_DIR)%.d)
+-include $(CSRCS:%.c=$(DIR)/$(DEBUG_DIR)%.d) $(CCSRCS:%.cpp=$(DIR)/$(DEBUG_DIR)%.d) $(OCCSRCS:$.mm=$(DIR)/$(DEBUG_DIR)%.d) $(OCSRCS:$.m=$(DIR)/$(DEBUG_DIR)%.d)
 endif
 
 OBJS_AR := $(OBJS)
 OBJS_AR += $(CSRCS:%.c=%.o)
 OBJS_AR += $(CCSRCS:%.cpp=%.o)
-OBJS_AR += $(OCSRCS:%.mm=%.o)
+OBJS_AR += $(OCCSRCS:%.mm=%.o)
+OBJS_AR += $(OCSRCS:%.m=%.o)
 OBJS_AR += $(WINRC:%.rc=%.res)
 
 OBJS += $(CSRCS:%.c=$(DIR)/$(DEBUG_DIR)%.o)
 OBJS += $(CCSRCS:%.cpp=$(DIR)/$(DEBUG_DIR)%.o)
-OBJS += $(OCSRCS:%.mm=$(DIR)/$(DEBUG_DIR)%.o)
+OBJS += $(OCCSRCS:%.mm=$(DIR)/$(DEBUG_DIR)%.o)
+OBJS += $(OCSRCS:%.m=$(DIR)/$(DEBUG_DIR)%.o)
 OBJS += $(WINRC:%.rc=$(DIR)/$(DEBUG_DIR)%.res)
 
 JCLASS += $(JSRCS:%.java=$(DIR)/$(DEBUG_DIR)%.class)

@@ -30,6 +30,7 @@
 
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined(__APPLE__)
+#ifndef USE_QTKIT
 
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
@@ -886,6 +887,7 @@ void SCENE_OT_render_data_set_quicktime_codec(wmOperatorType *ot)
     ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+#endif /* USE_QTKIT */
 #endif /* _WIN32 || __APPLE__ */
 #endif /* WITH_QUICKTIME */
 

@@ -104,6 +104,10 @@ ifeq ($(OS),windows)
 	endif
 endif
 
+ifeq ($(OS), darwin)
+    LDFLAGS += -arch $(MACOSX_ARCHITECTURE) #-isysroot $(MACOSX_SDK) -mmacosx-version-min=$(MACOSX_MIN_VERS)
+endif
+
 clean::
 	@$(RM) $(DIR)/makesrna* $(DIR)/rna*
 	@$(RM) $(DIR)/debug/makesrna* $(DIR)/debug/rna*

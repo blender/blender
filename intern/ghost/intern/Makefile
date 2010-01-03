@@ -42,7 +42,7 @@ CCSRCS += GHOST_NDOFManager.cpp
 
 ifeq ($(OS),$(findstring $(OS), "darwin"))
     ifeq ($(WITH_COCOA), true)
-        OCSRCS += $(wildcard *Cocoa.mm)
+        OCCSRCS += $(wildcard *Cocoa.mm)
         CPPFLAGS += -DGHOST_COCOA
         ifeq ($(WITH_QUICKTIME), true)
             CPPFLAGS += -DWITH_QUICKTIME
