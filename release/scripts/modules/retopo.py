@@ -21,7 +21,7 @@
 import bpy
 
 EPS_SPLINE_DIV = 15.0 # remove doubles is ~15th the length of the spline
-
+ANGLE_JOIN_LIMIT = 25.0 # limit for joining splines into 1.
 
 def get_hub(co, _hubs, EPS_SPLINE):
 
@@ -124,7 +124,9 @@ class Spline(object):
     def __init__(self, points):
         self.points = points
         self.hubs = []
-
+        self.calc_length()
+    
+    def calc_length(self):
         # calc length
         f = 0.0
         co_prev = self.points[0]
@@ -215,8 +217,105 @@ def xsect_spline(sp_a, sp_b, _hubs):
         pt_a_prev = pt_a
 
 
+def connect_splines(splines):
+    HASH_PREC = 8
+    from Mathutils import AngleBetweenVecs
+    from math import radians
+    ANG_LIMIT = radians(ANGLE_JOIN_LIMIT)
+    def sort_pair(a, b):
+        if a < b:
+            return a, b
+        else:
+            return b, a
+    
+    def test_join(p1a, p1b, p2a, p2b, length_average):
+        # compare length between tips
+        if (p1a - p2a).length > (length_average / EPS_SPLINE_DIV):
+            return False
+        
+        v1 = p1a - p1b
+        v2 = p2b - p2a
+        
+        if AngleBetweenVecs(v1, v2) > ANG_LIMIT:
+            return False
+
+        # print("joining!")
+        return True
+    
+    # lazy, hash the points that have been compared.
+    comparisons = set()
+    
+    do_join = True
+    while do_join:
+        do_join = False
+        for i, s1 in enumerate(splines):
+            key1a = s1.points[0].toTuple(HASH_PREC)
+            key1b = s1.points[-1].toTuple(HASH_PREC)
+            
+            for j, s2 in enumerate(splines):
+                if s1 is s2:
+                    continue
+
+                length_average = (s1.length + s2.length) / 2.0
+
+                key2a = s2.points[0].toTuple(HASH_PREC)
+                key2b = s2.points[-1].toTuple(HASH_PREC)
+                
+                # there are 4 ways this may be joined
+                key_pair = sort_pair(key1a, key2a)
+                if key_pair not in comparisons:
+                    comparisons.add(key_pair)                
+                    if test_join(s1.points[0], s1.points[1], s2.points[0], s2.points[1], length_average) or \
+                            test_join(s1.points[1], s1.points[2], s2.points[1], s2.points[2], length_average):
+                        s1.points[:0] = reversed(s2.points)
+                        s1.calc_length()
+                        del splines[j]
+                        do_join = True
+                        break
+                
+                key_pair = sort_pair(key1a, key2b)
+                if key_pair not in comparisons:
+                    comparisons.add(key_pair)
+                    if test_join(s1.points[0], s1.points[1], s2.points[-1], s2.points[-2], length_average) or \
+                            test_join(s1.points[1], s1.points[2], s2.points[-2], s2.points[-3], length_average):
+                        s1.points[:0] = s2.points
+                        s1.calc_length()
+                        del splines[j]
+                        do_join = True
+                        break
+                
+                key_pair = sort_pair(key1b, key2b)
+                if key_pair not in comparisons:
+                    comparisons.add(key_pair)
+                    if test_join(s1.points[-1], s1.points[-2], s2.points[-1], s2.points[-2], length_average) or \
+                            test_join(s1.points[-2], s1.points[-3], s2.points[-2], s2.points[-3], length_average):
+                        s1.points += list(reversed(s2.points))
+                        s1.calc_length()
+                        del splines[j]
+                        do_join = True
+                        break
+                
+                key_pair = sort_pair(key1a, key2a)
+                if key_pair not in comparisons:
+                    comparisons.add(key_pair)
+                    if test_join(s1.points[-1], s1.points[-2], s2.points[0], s2.points[1], length_average) or \
+                            test_join(s1.points[-2], s1.points[-3], s2.points[1], s2.points[2], length_average):
+                        s1.points += s2.points
+                        s1.calc_length()
+                        del splines[j]
+                        do_join = True
+                        break
+
+            if do_join:
+                break
+
+
 def calculate(gp):
     splines = get_splines(gp)
+    
+    # spline endpoints may be co-linear, join these into single splines
+    connect_splines(splines)
+
     _hubs = {}
 
     for i, sp in enumerate(splines):
