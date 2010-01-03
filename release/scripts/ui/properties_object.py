@@ -149,10 +149,10 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
         if wide_ui:
             split = layout.split()
-            split.operator_menu_enum("object.group_add", "group", text="Add to Group")
+            split.operator_menu_enum("object.group_add", "group")
             split.label()
         else:
-            layout.operator_menu_enum("object.group_add", "group", text="Add to Group")
+            layout.operator_menu_enum("object.group_add", "group")
 
         for group in bpy.data.groups:
             if ob.name in group.objects:
