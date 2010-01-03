@@ -9251,7 +9251,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Solidify);
 		mti->type = eModifierTypeType_Constructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
-				//| eModifierTypeFlag_SupportsMapping
+				| eModifierTypeFlag_SupportsMapping
 				| eModifierTypeFlag_SupportsEditmode
 				| eModifierTypeFlag_EnableInEditmode;
 		mti->initData = solidifyModifier_initData;
