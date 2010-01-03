@@ -506,7 +506,6 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 						mul_m4_v3(mat, bezt->vec[1]);
 						mul_m4_v3(mat, bezt->vec[2]);
 						bezt->radius *= scale;
-						bezt++;
 					}
 				}
 				else {
