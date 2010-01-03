@@ -6866,7 +6866,10 @@ static void particleSystemModifier_freeData(ModifierData *md)
 		psmd->dm=0;
 	}
 
-	psmd->psys->flag |= PSYS_DELETE;
+	/* ED_object_modifier_remove may have freed this first before calling
+	 * modifier_free (which calls this function) */
+	if(psmd->psys)
+		psmd->psys->flag |= PSYS_DELETE;
 }
 static void particleSystemModifier_copyData(ModifierData *md, ModifierData *target)
 {
