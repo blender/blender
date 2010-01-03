@@ -118,14 +118,104 @@ class Hub(object):
         return faces
 
 
+class BBox(object):
+    __slots__ = "xmin", "ymin", "zmin", "xmax", "ymax", "zmax"
+
+    def __init__(self):
+        self.xmin = self.ymin = self.zmin = 100000000.0
+        self.xmax = self.ymax = self.zmax = -100000000.0
+    
+    @property
+    def xdim(self):
+        return self.xmax - self.xmin
+
+    @property
+    def ydim(self):
+        return self.ymax - self.ymin
+
+    @property
+    def zdim(self):
+        return self.zmax - self.zmin
+
+    def calc(self, points):
+        xmin = ymin = zmin = 100000000.0
+        xmax = ymax = zmax = -100000000.0
+        
+        for pt in points:
+            x, y, z = pt
+            if x < xmin:
+                xmin = x
+            if y < ymin:
+                ymin = y
+            if z < zmin:
+                zmin = z
+
+            if x > xmax:
+                xmax = x
+            if y > ymax:
+                ymax = y
+            if z > zmax:
+                zmax = z
+
+        self.xmin, self.ymin, self.zmin = xmin, ymin, zmin
+        self.xmax, self.ymax, self.zmax = xmax, ymax, zmax
+
+    def xsect(self, other, margin=0.0):
+        if margin == 0.0:
+            if self.xmax < other.xmin:
+                return False
+            if self.ymax < other.ymin:
+                return False
+            if self.zmax < other.zmin:
+                return False
+
+            if self.xmin > other.xmax:
+                return False
+            if self.ymin > other.ymax:
+                return False
+            if self.zmin > other.zmax:
+                return False
+
+        else:
+            xmargin = ((self.xdim + other.xdim) / 2.0) * margin
+            ymargin = ((self.ydim + other.ydim) / 2.0) * margin
+            zmargin = ((self.zdim + other.zdim) / 2.0) * margin
+
+            if self.xmax < other.xmin - xmargin:
+                return False
+            if self.ymax < other.ymin - ymargin:
+                return False
+            if self.zmax < other.zmin - zmargin:
+                return False
+
+            if self.xmin > other.xmax + xmargin:
+                return False
+            if self.ymin > other.ymax + ymargin:
+                return False
+            if self.zmin > other.zmax + zmargin:
+                return False
+        return True
+
+    def __iadd__(self, other):
+        self.xmin = min(self.xmin, other.xmin)
+        self.ymin = min(self.ymin, other.ymin)
+        self.zmin = min(self.zmin, other.zmin)
+        
+        self.xmax = max(self.xmax, other.xmax)
+        self.ymax = max(self.ymax, other.ymax)
+        self.zmax = max(self.zmax, other.zmax)
+        return self
+
 class Spline(object):
-    __slots__ = "points", "hubs", "length"
+    __slots__ = "points", "hubs", "length", "bb"
 
     def __init__(self, points):
         self.points = points
         self.hubs = []
         self.calc_length()
-    
+        self.bb = BBox()
+        self.bb.calc(points)
+
     def calc_length(self):
         # calc length
         f = 0.0
@@ -268,6 +358,7 @@ def connect_splines(splines):
                     if test_join(s1.points[0], s1.points[1], s2.points[0], s2.points[1], length_average) or \
                             test_join(s1.points[1], s1.points[2], s2.points[1], s2.points[2], length_average):
                         s1.points[:0] = reversed(s2.points)
+                        s1.bb += s2.bb
                         s1.calc_length()
                         del splines[j]
                         do_join = True
@@ -279,6 +370,7 @@ def connect_splines(splines):
                     if test_join(s1.points[0], s1.points[1], s2.points[-1], s2.points[-2], length_average) or \
                             test_join(s1.points[1], s1.points[2], s2.points[-2], s2.points[-3], length_average):
                         s1.points[:0] = s2.points
+                        s1.bb += s2.bb
                         s1.calc_length()
                         del splines[j]
                         do_join = True
@@ -290,6 +382,7 @@ def connect_splines(splines):
                     if test_join(s1.points[-1], s1.points[-2], s2.points[-1], s2.points[-2], length_average) or \
                             test_join(s1.points[-2], s1.points[-3], s2.points[-2], s2.points[-3], length_average):
                         s1.points += list(reversed(s2.points))
+                        s1.bb += s2.bb
                         s1.calc_length()
                         del splines[j]
                         do_join = True
@@ -301,6 +394,7 @@ def connect_splines(splines):
                     if test_join(s1.points[-1], s1.points[-2], s2.points[0], s2.points[1], length_average) or \
                             test_join(s1.points[-2], s1.points[-3], s2.points[1], s2.points[2], length_average):
                         s1.points += s2.points
+                        s1.bb += s2.bb
                         s1.calc_length()
                         del splines[j]
                         do_join = True
@@ -323,7 +417,8 @@ def calculate(gp):
             if j <= i:
                 continue
 
-            xsect_spline(sp, sp_other, _hubs)
+            if sp.bb.xsect(sp_other.bb, margin=0.1):
+                xsect_spline(sp, sp_other, _hubs)
 
     for sp in splines:
         sp.link()
