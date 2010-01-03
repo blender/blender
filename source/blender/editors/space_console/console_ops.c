@@ -859,5 +859,5 @@ void CONSOLE_OT_select_set(wmOperatorType *ot)
 	ot->invoke= console_modal_select_invoke;
 	ot->modal= console_modal_select;
 	ot->cancel= console_modal_select_cancel;
-	ot->poll= console_poll;
+	ot->poll= console_edit_poll;
 }
