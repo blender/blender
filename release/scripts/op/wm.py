@@ -204,25 +204,26 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
     reverse = rna_reverse_prop
 
     def execute(self, context):
-
-        value = context_path_validate(context, self.properties.path)
+        path = self.properties.path
+        value = context_path_validate(context, path)
         if value is Ellipsis:
             return {'PASS_THROUGH'}
 
-        self.properties.value = value
         if self.properties.reverse:
-            self.properties.value -= 1
+            value -= 1
         else:
-            self.properties.value += 1
-        execute_context_assign(self, context)
+            value += 1
 
-        if self.properties.value != eval("context.%s" % self.properties.path):
+        exec("context.%s=value" % path)
+
+        if value != eval("context.%s" % path):
             # relies on rna clamping int's out of the range
             if self.properties.reverse:
-                self.properties.value = (1 << 32)
+                value = (1 << 32)
             else:
-                self.properties.value = - (1 << 32)
-            execute_context_assign(self, context)
+                value = - (1 << 32)
+
+            exec("context.%s=value" % path)
 
         return {'FINISHED'}
 
