@@ -10324,6 +10324,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce;
 		Object *ob;
 		Brush *brush;
+		Material *ma;
 		
 		/* game engine changes */
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
@@ -10386,6 +10387,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (brush= main->brush.first; brush; brush= brush->id.next) {
 			default_mtex(&brush->mtex);
 		}
+
+		for (ma= main->mat.first; ma; ma= ma->id.next) {
+			if (ma->vol.ms_spread < 0.0001f) {
+				ma->vol.ms_spread = 0.2f;
+				ma->vol.ms_diff = 1.f;
+				ma->vol.ms_intensity = 1.f;	
+			}
+		}
+		
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

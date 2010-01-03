@@ -21,7 +21,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Matt Ebb.
+ * Contributor(s): Matt Ebb, Ra˙l Fern·ndez Hern·ndez (Farsthary).
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -134,9 +134,10 @@ static float get_avg_surrounds(float *cache, int *res, int xx, int yy, int zz)
 					for (x=-1; x <= 1; x++) {
 						x_ = xx+x;
 						if (x_ >= 0 && x_ <= res[0]-1) {
-						
-							if (cache[ V_I(x_, y_, z_, res) ] > 0.0f) {
-								tot += cache[ V_I(x_, y_, z_, res) ];
+							const int i= V_I(x_, y_, z_, res);
+							
+							if (cache[i] > 0.0f) {
+								tot += cache[i];
 								added++;
 							}
 							
@@ -164,12 +165,14 @@ static void lightcache_filter(VolumePrecache *vp)
 		for (y=0; y < vp->res[1]; y++) {
 			for (x=0; x < vp->res[0]; x++) {
 				/* trigger for outside mesh */
-				if (vp->data_r[ V_I(x, y, z, vp->res) ] < -0.f)
-					vp->data_r[ V_I(x, y, z, vp->res) ] = get_avg_surrounds(vp->data_r, vp->res, x, y, z);
-				if (vp->data_g[ V_I(x, y, z, vp->res) ] < -0.f)
-					vp->data_g[ V_I(x, y, z, vp->res) ] = get_avg_surrounds(vp->data_g, vp->res, x, y, z);
-				if (vp->data_b[ V_I(x, y, z, vp->res) ] < -0.f)
-					vp->data_b[ V_I(x, y, z, vp->res) ] = get_avg_surrounds(vp->data_b, vp->res, x, y, z);
+				const int i= V_I(x, y, z, vp->res);
+				
+				if (vp->data_r[i] < -0.f)
+					vp->data_r[i] = get_avg_surrounds(vp->data_r, vp->res, x, y, z);
+				if (vp->data_g[i] < -0.f)
+					vp->data_g[i] = get_avg_surrounds(vp->data_g, vp->res, x, y, z);
+				if (vp->data_b[i] < -0.f)
+					vp->data_b[i] = get_avg_surrounds(vp->data_b, vp->res, x, y, z);
 			}
 		}
 	}
@@ -194,12 +197,13 @@ static void lightcache_filter2(VolumePrecache *vp)
 		for (y=0; y < vp->res[1]; y++) {
 			for (x=0; x < vp->res[0]; x++) {
 				/* trigger for outside mesh */
-				if (vp->data_r[ V_I(x, y, z, vp->res) ] < -0.f)
-					new_r[ V_I(x, y, z, vp->res) ] = get_avg_surrounds(vp->data_r, vp->res, x, y, z);
-				if (vp->data_g[ V_I(x, y, z, vp->res) ] < -0.f)
-					new_g[ V_I(x, y, z, vp->res) ] = get_avg_surrounds(vp->data_g, vp->res, x, y, z);
-				if (vp->data_b[ V_I(x, y, z, vp->res) ] < -0.f)
-					new_b[ V_I(x, y, z, vp->res) ] = get_avg_surrounds(vp->data_b, vp->res, x, y, z);
+				const int i= V_I(x, y, z, vp->res);
+				if (vp->data_r[i] < -0.f)
+					new_r[i] = get_avg_surrounds(vp->data_r, vp->res, x, y, z);
+				if (vp->data_g[i] < -0.f)
+					new_g[i] = get_avg_surrounds(vp->data_g, vp->res, x, y, z);
+				if (vp->data_b[i] < -0.f)
+					new_b[i] = get_avg_surrounds(vp->data_b, vp->res, x, y, z);
 			}
 		}
 	}
@@ -216,9 +220,21 @@ static void lightcache_filter2(VolumePrecache *vp)
 
 static inline int ms_I(int x, int y, int z, int *n) //has a pad of 1 voxel surrounding the core for boundary simulation
 { 
-	return z*(n[1]+2)*(n[0]+2) + y*(n[0]+2) + x;
+	/* different ordering to light cache */
+	return x*(n[1]+2)*(n[2]+2) + y*(n[2]+2) + z; 	
 }
 
+static inline int v_I_pad(int x, int y, int z, int *n) //has a pad of 1 voxel surrounding the core for boundary simulation
+{ 
+	/* same ordering to light cache, with padding */
+	return z*(n[1]+2)*(n[0]+2) + y*(n[0]+2) + x;  	
+}
+
+static inline int lc_to_ms_I(int x, int y, int z, int *n)
+{ 
+	/* converting light cache index to multiple scattering index */
+	return (x-1)*(n[1]*n[2]) + (y-1)*(n[2]) + z-1;
+}
 
 /* *** multiple scattering approximation *** */
 
@@ -232,9 +248,11 @@ static float total_ss_energy(VolumePrecache *vp)
 	for (z=0; z < res[2]; z++) {
 		for (y=0; y < res[1]; y++) {
 			for (x=0; x < res[0]; x++) {
-				if (vp->data_r[ V_I(x, y, z, res) ] > 0.f) energy += vp->data_r[ V_I(x, y, z, res) ];
-				if (vp->data_g[ V_I(x, y, z, res) ] > 0.f) energy += vp->data_g[ V_I(x, y, z, res) ];
-				if (vp->data_b[ V_I(x, y, z, res) ] > 0.f) energy += vp->data_b[ V_I(x, y, z, res) ];
+				const int i=V_I(x, y, z, res);
+			
+				if (vp->data_r[i] > 0.f) energy += vp->data_r[i];
+				if (vp->data_g[i] > 0.f) energy += vp->data_g[i];
+				if (vp->data_b[i] > 0.f) energy += vp->data_b[i];
 			}
 		}
 	}
@@ -244,14 +262,14 @@ static float total_ss_energy(VolumePrecache *vp)
 
 static float total_ms_energy(float *sr, float *sg, float *sb, int *res)
 {
-	int x, y, z, i;
+	int x, y, z;
 	float energy=0.f;
 	
 	for (z=1;z<=res[2];z++) {
 		for (y=1;y<=res[1];y++) {
 			for (x=1;x<=res[0];x++) {
-			
-				i = ms_I(x,y,z,res);
+				const int i = ms_I(x,y,z,res);
+				
 				if (sr[i] > 0.f) energy += sr[i];
 				if (sg[i] > 0.f) energy += sg[i];
 				if (sb[i] > 0.f) energy += sb[i];
@@ -262,7 +280,7 @@ static float total_ms_energy(float *sr, float *sg, float *sb, int *res)
 	return energy;
 }
 
-static void ms_diffuse(int b, float* x0, float* x, float diff, int *n)
+static void ms_diffuse(float *x0, float *x, float diff, int *n) //n is the unpadded resolution
 {
 	int i, j, k, l;
 	const float dt = VOL_MS_TIMESTEP;
@@ -276,10 +294,9 @@ static void ms_diffuse(int b, float* x0, float* x, float diff, int *n)
 			{
 				for (i=1; i<=n[0]; i++)
 				{
-					x[ms_I(i,j,k,n)] = (x0[ms_I(i,j,k,n)] + a*(
-						 x[ms_I(i-1,j,k,n)]+x[ms_I(i+1,j,k,n)]+
-						 x[ms_I(i,j-1,k,n)]+x[ms_I(i,j+1,k,n)]+
-						 x[ms_I(i,j,k-1,n)]+x[ms_I(i,j,k+1,n)]))/(1+6*a);
+				   x[v_I_pad(i,j,k,n)] = (x0[v_I_pad(i,j,k,n)]) + a*(	x0[v_I_pad(i-1,j,k,n)]+ x0[v_I_pad(i+1,j,k,n)]+ x0[v_I_pad(i,j-1,k,n)]+
+																		x0[v_I_pad(i,j+1,k,n)]+ x0[v_I_pad(i,j,k-1,n)]+x0[v_I_pad(i,j,k+1,n)]
+																		) / (1+6*a);
 				}
 			}
 		}
@@ -289,7 +306,7 @@ static void ms_diffuse(int b, float* x0, float* x, float diff, int *n)
 void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Material *ma)
 {
 	const float diff = ma->vol.ms_diff * 0.001f; 	/* compensate for scaling for a nicer UI range */
-	const float simframes = ma->vol.ms_steps;
+	const int simframes = (int)(ma->vol.ms_spread * (float)MAX3(vp->res[0], vp->res[1], vp->res[2]));
 	const int shade_type = ma->vol.shade_type;
 	float fac = ma->vol.ms_intensity;
 	
@@ -299,7 +316,6 @@ void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Material *ma)
 	double time, lasttime= PIL_check_seconds_timer();
 	float total;
 	float c=1.0f;
-	int i;
 	float origf;	/* factor for blending in original light cache */
 	float energy_ss, energy_ms;
 
@@ -324,22 +340,22 @@ void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Material *ma)
 			{
 				for (x=1; x<=n[0]; x++)
 				{
-					i = V_I((x-1), (y-1), (z-1), n);
+					const int i = lc_to_ms_I(x, y ,z, n);	//lc index					
+					const int j = ms_I(x, y, z, n);			//ms index
+					
 					time= PIL_check_seconds_timer();
-					c++;
-										
-					if (vp->data_r[i] > 0.f)
-						sr[ms_I(x,y,z,n)] += vp->data_r[i];
-					if (vp->data_g[i] > 0.f)
-						sg[ms_I(x,y,z,n)] += vp->data_g[i];
-					if (vp->data_b[i] > 0.f)
-						sb[ms_I(x,y,z,n)] += vp->data_b[i];
+					c++;										
+					if (vp->data_r[i] > 0.0f)
+						sr[j] += vp->data_r[i];
+					if (vp->data_g[i] > 0.0f)
+						sg[j] += vp->data_g[i];
+					if (vp->data_b[i] > 0.0f)
+						sb[j] += vp->data_b[i];
 					
 					/* Displays progress every second */
 					if(time-lasttime>1.0f) {
 						char str[64];
-						sprintf(str, "Simulating multiple scattering: %d%%", (int)
-								(100.0f * (c / total)));
+						sprintf(str, "Simulating multiple scattering: %d%%", (int)(100.0f * (c / total)));
 						re->i.infostr= str;
 						re->stats_draw(re->sdh, &re->i);
 						re->i.infostr= NULL;
@@ -348,14 +364,14 @@ void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Material *ma)
 				}
 			}
 		}
-		SWAP(float *, sr, sr0);
-		SWAP(float *, sg, sg0);
-		SWAP(float *, sb, sb0);
-
+		SWAP(float *,sr,sr0);
+		SWAP(float *,sg,sg0);
+		SWAP(float *,sb,sb0);
+               
 		/* main diffusion simulation */
-		ms_diffuse(0, sr0, sr, diff, n);
-		ms_diffuse(0, sg0, sg, diff, n);
-		ms_diffuse(0, sb0, sb, diff, n);
+		ms_diffuse(sr0, sr, diff, n);
+		ms_diffuse(sg0, sg, diff, n);
+		ms_diffuse(sb0, sb, diff, n);
 		
 		if (re->test_break(re->tbh)) break;
 	}
@@ -379,10 +395,12 @@ void multiple_scattering_diffusion(Render *re, VolumePrecache *vp, Material *ma)
 		{
 			for (x=1;x<=n[0];x++)
 			{
-				int index=(x-1)*n[1]*n[2] + (y-1)*n[2] + z-1;
-				vp->data_r[index] = origf * vp->data_r[index] + fac * sr[ms_I(x,y,z,n)];
-				vp->data_g[index] = origf * vp->data_g[index] + fac * sg[ms_I(x,y,z,n)];
-				vp->data_b[index] = origf * vp->data_b[index] + fac * sb[ms_I(x,y,z,n)];
+				const int i = lc_to_ms_I(x, y ,z, n);	//lc index					
+				const int j = ms_I(x, y, z, n);			//ms index
+				
+				vp->data_r[i] = origf * vp->data_r[i] + fac * sr[j];
+				vp->data_g[i] = origf * vp->data_g[i] + fac * sg[j];
+				vp->data_b[i] = origf * vp->data_b[i] + fac * sb[j];
 			}
 		}
 	}
@@ -426,7 +444,7 @@ static void *vol_precache_part(void *data)
 	ShadeInput *shi = pa->shi;
 	float scatter_col[3] = {0.f, 0.f, 0.f};
 	float co[3];
-	int x, y, z;
+	int x, y, z, i;
 	const int res[3]= {pa->res[0], pa->res[1], pa->res[2]};
 
 	for (z= pa->minz; z < pa->maxz; z++) {
@@ -437,12 +455,14 @@ static void *vol_precache_part(void *data)
 			
 			for (x=pa->minx; x < pa->maxx; x++) {
 				co[0] = pa->bbmin[0] + (pa->voxel[0] * (x + 0.5f));
+							
+				i= V_I(x, y, z, res);
 				
 				// don't bother if the point is not inside the volume mesh
 				if (!point_inside_obi(tree, obi, co)) {
-					obi->volume_precache->data_r[ V_I(x, y, z, res) ] = -1.0f;
-					obi->volume_precache->data_g[ V_I(x, y, z, res) ] = -1.0f;
-					obi->volume_precache->data_b[ V_I(x, y, z, res) ] = -1.0f;
+					obi->volume_precache->data_r[i] = -1.0f;
+					obi->volume_precache->data_g[i] = -1.0f;
+					obi->volume_precache->data_b[i] = -1.0f;
 					continue;
 				}
 				
@@ -450,9 +470,9 @@ static void *vol_precache_part(void *data)
 				normalize_v3(shi->view);
 				vol_get_scattering(shi, scatter_col, co);
 			
-				obi->volume_precache->data_r[ V_I(x, y, z, res) ] = scatter_col[0];
-				obi->volume_precache->data_g[ V_I(x, y, z, res) ] = scatter_col[1];
-				obi->volume_precache->data_b[ V_I(x, y, z, res) ] = scatter_col[2];
+				obi->volume_precache->data_r[i] = scatter_col[0];
+				obi->volume_precache->data_g[i] = scatter_col[1];
+				obi->volume_precache->data_b[i] = scatter_col[2];
 			}
 		}
 	}
@@ -684,12 +704,13 @@ void vol_precache_objectinstance_threads(Render *re, ObjectInstanceRen *obi, Mat
 		//tree= NULL;
 	}
 	
-	lightcache_filter(obi->volume_precache);
-	
 	if (ELEM(ma->vol.shade_type, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SHADEDPLUSMULTIPLE))
 	{
-		multiple_scattering_diffusion(re, vp, ma);
+		/* this should be before the filtering */
+		multiple_scattering_diffusion(re, obi->volume_precache, ma);
 	}
+		
+	lightcache_filter(obi->volume_precache);
 }
 
 static int using_lightcache(Material *ma)
@@ -741,7 +762,7 @@ int point_inside_volume_objectinstance(Render *re, ObjectInstanceRen *obi, float
 	RayObject *tree;
 	int inside=0;
 	
-	tree = makeraytree_object(re, obi); //create_raytree_obi(obi, obi->obr->boundbox[0], obi->obr->boundbox[1]);
+	tree = makeraytree_object(re, obi);
 	if (!tree) return 0;
 	
 	inside = point_inside_obi(tree, obi, co);
