@@ -957,8 +957,12 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Recent", 0);
-	for(recent = G.recent_files.first, i=0; (i<6) && (recent); recent = recent->next, i++)
-		uiItemStringO(col, BLI_last_slash(recent->filename)+1, ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
+	for(recent = G.recent_files.first, i=0; (i<6) && (recent); recent = recent->next, i++) {
+		char *display_name= BLI_last_slash(recent->filename);
+		if(display_name)	display_name++; /* skip the slash */
+		else				display_name= recent->filename;
+		uiItemStringO(col, display_name, ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
+	}
 
 	uiItemS(col);
 
