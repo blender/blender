@@ -1836,9 +1836,8 @@ static EnumPropertyItem prop_view_orbit_items[] = {
 
 static int vieworbit_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	float phi, si, q1[4];
+	float phi, si, q1[4], new_quat[4];
 	int orbitdir;
 
 	orbitdir = RNA_enum_get(op->ptr, "type");
@@ -1854,10 +1853,10 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				q1[0]= (float)cos(phi);
 				q1[1]= q1[2]= 0.0;
 				q1[3]= si;
-				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+				mul_qt_qtqt(new_quat, rv3d->viewquat, q1);
 				rv3d->view= 0;
 			}
-			if(orbitdir == V3D_VIEW_STEPDOWN || orbitdir == V3D_VIEW_STEPUP) {
+			else if(orbitdir == V3D_VIEW_STEPDOWN || orbitdir == V3D_VIEW_STEPUP) {
 				/* horizontal axis */
 				VECCOPY(q1+1, rv3d->viewinv[0]);
 
@@ -1869,10 +1868,11 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				q1[1]*= si;
 				q1[2]*= si;
 				q1[3]*= si;
-				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+				mul_qt_qtqt(new_quat, rv3d->viewquat, q1);
 				rv3d->view= 0;
 			}
-			ED_region_tag_redraw(ar);
+
+			smooth_view(C, NULL, NULL, NULL, new_quat, NULL, NULL);
 		}
 	}
 
