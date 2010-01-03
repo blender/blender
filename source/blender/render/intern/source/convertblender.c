@@ -3630,7 +3630,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	}
 
 	/* set flag for spothalo en initvars */
-	if(la->type==LA_SPOT && (la->mode & LA_HALO)) {
+	if(la->type==LA_SPOT && (la->mode & LA_HALO) && (la->buftype != LA_SHADBUF_DEEP)) {
 		if(la->haint>0.0) {
 			re->flag |= R_LAMPHALO;
 
