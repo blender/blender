@@ -87,8 +87,9 @@ typedef struct PartDeflect {
 	float pdef_perm;	/* Chance of particle passing through mesh      */
 	float pdef_frict;	/* Friction factor for particle deflection		*/
 	float pdef_rfrict;	/* Random element of friction for deflection	*/
+	float pdef_stickness;/* surface particle stickness					*/
 
-	float absorption, pad;	/* used for forces */
+	float absorption;	/* used for forces */
 	
 	/* softbody collisions */
 	float pdef_sbdamp;	/* Damping factor for softbody deflection       */

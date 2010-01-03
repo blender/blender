@@ -2895,7 +2895,9 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 				}
 				else {
 					VECCOPY(pa->state.co, col.co2);
-					VECCOPY(pa->state.vel, vel);
+					/* Stickness to surface */
+					normalize_v3(nor_vec);
+					VECADDFAC(pa->state.vel, vel, nor_vec, -pd->pdef_stickness);
 				}
 			}
 			deflections++;

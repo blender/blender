@@ -810,6 +810,12 @@ static void rna_def_collision(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PDEFLE_KILL_PART);
 	RNA_def_property_ui_text(prop, "Kill Particles", "Kill collided particles");
 	RNA_def_property_update(prop, 0, "rna_CollisionSettings_update");
+
+	prop= RNA_def_property(srna, "stickness", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "pdef_stickness");
+	RNA_def_property_range(prop, 0.0f, 10.0f);
+	RNA_def_property_ui_text(prop, "Stickness", "Amount of stickness to surface collision");
+	RNA_def_property_update(prop, 0, "rna_CollisionSettings_update");
 	
 	/* Soft Body and Cloth Interaction */
 	
