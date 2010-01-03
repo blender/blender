@@ -624,6 +624,29 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             #row.prop(brush, "jitter", slider=True)
             #row.prop(brush, "use_jitter_pressure", toggle=True, text="")
 
+
+class VIEW3D_PT_tools_brush_texture(PaintPanel):
+    bl_label = "Texture"
+    bl_default_closed = True
+
+    def poll(self, context):
+        settings = self.paint_settings(context)
+        return (settings and settings.brush and (context.sculpt_object or
+                             context.texture_paint_object))
+
+    def draw(self, context):
+        layout = self.layout
+
+        settings = self.paint_settings(context)
+        brush = settings.brush
+        tex_slot = brush.texture_slot
+        
+        col = layout.column()
+        
+        col.template_ID_preview(brush, "texture", new="texture.new", rows=2, cols=4)
+        
+        col.row().prop(tex_slot, "map_mode", expand=True)
+        
 class VIEW3D_PT_tools_brush_tool(PaintPanel):
     bl_label = "Tool"
     bl_default_closed = True
@@ -975,6 +998,7 @@ bpy.types.register(VIEW3D_PT_tools_latticeedit)
 bpy.types.register(VIEW3D_PT_tools_posemode)
 bpy.types.register(VIEW3D_PT_tools_posemode_options)
 bpy.types.register(VIEW3D_PT_tools_brush)
+bpy.types.register(VIEW3D_PT_tools_brush_texture)
 bpy.types.register(VIEW3D_PT_tools_brush_tool)
 bpy.types.register(VIEW3D_PT_tools_brush_stroke)
 bpy.types.register(VIEW3D_PT_tools_brush_curve)

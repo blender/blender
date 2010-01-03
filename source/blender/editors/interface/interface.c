@@ -3171,9 +3171,10 @@ uiBut *uiDefHotKeyevtButS(uiBlock *block, int retval, char *str, short x1, short
 
 
 /* arg is pointer to string/name, use uiButSetSearchFunc() below to make this work */
-uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, char *tip)
+/* here a1 and a2, if set, control thumbnail preview rows/cols */
+uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, float a1, float a2, char *tip)
 {
-	uiBut *but= ui_def_but(block, SEARCH_MENU, retval, "", x1, y1, x2, y2, arg, 0.0, maxlen, 0.0, 0.0, tip);
+	uiBut *but= ui_def_but(block, SEARCH_MENU, retval, "", x1, y1, x2, y2, arg, 0.0, maxlen, a1, a2, tip);
 	
 	but->icon= (BIFIconID) icon;
 	but->flag|= UI_HAS_ICON;

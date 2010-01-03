@@ -126,11 +126,12 @@ typedef struct uiLayout uiLayout;
 #define UI_TEXT_LEFT	64
 #define UI_ICON_LEFT	128
 #define UI_ICON_SUBMENU	256
+#define UI_ICON_PREVIEW	512
 	/* control for button type block */
-#define UI_MAKE_TOP		512
-#define UI_MAKE_DOWN	1024
-#define UI_MAKE_LEFT	2048
-#define UI_MAKE_RIGHT	4096
+#define UI_MAKE_TOP		1024
+#define UI_MAKE_DOWN	2048
+#define UI_MAKE_LEFT	4096
+#define UI_MAKE_RIGHT	8192
 
 	/* button align flag, for drawing groups together */
 #define UI_BUT_ALIGN		(15<<14)
@@ -427,6 +428,7 @@ struct PointerRNA *uiButGetOperatorPtrRNA(uiBut *but);
 #define UI_ID_FAKE_USER		256
 #define UI_ID_PIN			512
 #define UI_ID_BROWSE_RENDER	1024
+#define UI_ID_PREVIEWS		2048
 #define UI_ID_FULL			(UI_ID_RENAME|UI_ID_BROWSE|UI_ID_ADD_NEW|UI_ID_OPEN|UI_ID_ALONE|UI_ID_DELETE|UI_ID_LOCAL)
 
 typedef void (*uiIDPoinFuncFP)(struct bContext *C, char *str, struct ID **idpp);
@@ -451,7 +453,7 @@ uiBut *uiDefIconTextBlockBut(uiBlock *block, uiBlockCreateFunc func, void *arg, 
 uiBut *uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *spoin, char *tip);
 uiBut *uiDefHotKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *keypoin, short *modkeypoin, char *tip);
 
-uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, char *tip);
+uiBut *uiDefSearchBut(uiBlock *block, void *arg, int retval, int icon, int maxlen, short x1, short y1, short x2, short y2, float a1, float a2, char *tip);
 
 void uiBlockPickerButtons(struct uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval);
 void uiBlockColorbandButtons(struct uiBlock *block, struct ColorBand *coba, struct rctf *butr, int event);
@@ -641,6 +643,8 @@ void uiTemplateHeader(uiLayout *layout, struct bContext *C, int menus);
 void uiTemplateDopeSheetFilter(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
 void uiTemplateID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
 	char *newop, char *openop, char *unlinkop);
+void uiTemplateIDPreview(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname,
+	char *newop, char *openop, char *unlinkop, int rows, int cols);
 void uiTemplateAnyID(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, 
 	char *proptypename, char *text);
 void uiTemplatePathBuilder(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, 

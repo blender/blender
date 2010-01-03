@@ -2890,7 +2890,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	
 	ps->is_airbrush = (ps->brush->flag & BRUSH_AIRBRUSH) ? 1 : 0;
 	
-	ps->is_texbrush = (ps->brush->mtex[ps->brush->texact] && ps->brush->mtex[ps->brush->texact]->tex) ? 1 : 0;
+	ps->is_texbrush = (ps->brush->mtex.tex) ? 1 : 0;
 
 	
 	/* calculate vert screen coords

@@ -122,6 +122,7 @@ typedef struct TemplateID {
 	PropertyRNA *prop;
 
 	ListBase *idlb;
+	int prv_rows, prv_cols;
 } TemplateID;
 
 /* Search browse menu, assign  */
@@ -150,7 +151,7 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 	/* ID listbase */
 	for(id= lb->first; id; id= id->next) {
 		if(BLI_strcasestr(id->name+2, str)) {
-			iconid= ui_id_icon_get((bContext*)C, id);
+			iconid= ui_id_icon_get((bContext*)C, id, 0);
 
 			if(!uiSearchItemAdd(items, id->name+2, id, iconid))
 				break;
@@ -180,11 +181,26 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
 	
-	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
-	
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, "");
-	uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
+	/* preview thumbnails */
+	if (template.prv_rows > 0 && template.prv_cols > 0) {
+		int w = 96 * template.prv_cols;
+		int h = 96 * template.prv_rows + 20;
+		
+		/* fake button, it holds space for search items */
+		uiDefBut(block, LABEL, 0, "", 10, 15, w, h, NULL, 0, 0, 0, 0, NULL);
+		
+		but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, w, 19, template.prv_rows, template.prv_cols, "");
+		uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
+	}
+	/* list view */
+	else {
+		/* fake button, it holds space for search items */
+		uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+		
+		but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, 0, 0, "");
+		uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
+	}
+		
 	
 	uiBoundsBlock(block, 6);
 	uiBlockSetDirection(block, UI_DOWN);	
@@ -293,9 +309,10 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 	}
 }
 
-static void template_ID(bContext *C, uiBlock *block, TemplateID *template, StructRNA *type, int flag, char *newop, char *openop, char *unlinkop)
+static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, int flag, char *newop, char *openop, char *unlinkop)
 {
 	uiBut *but;
+	uiBlock *block;
 	PointerRNA idptr;
 	ListBase *lb;
 	ID *id, *idfrom;
@@ -305,11 +322,27 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 	idfrom= template->ptr.id.data;
 	lb= template->idlb;
 
+	block= uiLayoutGetBlock(layout);
 	uiBlockBeginAlign(block);
 
 	if(idptr.type)
 		type= idptr.type;
 
+	if(flag & UI_ID_PREVIEWS) {
+
+		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, "Browse ID data");
+		if(type) {
+			but->icon= RNA_struct_ui_icon(type);
+			if (id) but->icon = ui_id_icon_get(C, id, 1);
+			uiButSetFlag(but, UI_HAS_ICON|UI_ICON_PREVIEW);
+		}
+		if((idfrom && idfrom->lib))
+			uiButSetFlag(but, UI_BUT_DISABLED);
+		
+		
+		uiLayoutRow(layout, 1);
+	} else 
+		
 	if(flag & UI_ID_BROWSE) {
 		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y, "Browse ID data");
 		if(type) {
@@ -412,10 +445,9 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 	uiBlockEndAlign(block);
 }
 
-void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
+static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, int previews, int prv_rows, int prv_cols)
 {
 	TemplateID *template;
-	uiBlock *block;
 	PropertyRNA *prop;
 	StructRNA *type;
 	int flag;
@@ -430,14 +462,18 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 	template= MEM_callocN(sizeof(TemplateID), "TemplateID");
 	template->ptr= *ptr;
 	template->prop= prop;
-
+	template->prv_rows = prv_rows;
+	template->prv_cols = prv_cols;
+	
 	flag= UI_ID_BROWSE|UI_ID_RENAME|UI_ID_DELETE;
 
 	if(newop)
 		flag |= UI_ID_ADD_NEW;
 	if(openop)
 		flag |= UI_ID_OPEN;
-
+	if(previews)
+		flag |= UI_ID_PREVIEWS;
+	
 	type= RNA_property_pointer_type(ptr, prop);
 	template->idlb= wich_libbase(CTX_data_main(C), RNA_type_to_ID_code(type));
 	
@@ -446,11 +482,21 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 	 */
 	if(template->idlb) {
 		uiLayoutRow(layout, 1);
-		block= uiLayoutGetBlock(layout);
-		template_ID(C, block, template, type, flag, newop, openop, unlinkop);
+		template_ID(C, layout, template, type, flag, newop, openop, unlinkop);
 	}
 
 	MEM_freeN(template);
+	
+}
+
+void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
+{
+	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, 0, 0, 0);
+}
+
+void uiTemplateIDPreview(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, int rows, int cols)
+{
+	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, 1, rows, cols);
 }
 
 /************************ ID Chooser Template ***************************/
@@ -1944,7 +1990,7 @@ static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon)
 
 	/* get icon from ID */
 	if(id) {
-		icon= ui_id_icon_get(C, id);
+		icon= ui_id_icon_get(C, id, 1);
 
 		if(icon)
 			return icon;
@@ -2245,7 +2291,7 @@ void uiTemplateOperatorSearch(uiLayout *layout)
 	block= uiLayoutGetBlock(layout);
 	uiBlockSetCurLayout(block, layout);
 
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X*6, UI_UNIT_Y, "");
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X*6, UI_UNIT_Y, 0, 0, "");
 	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
 }
 

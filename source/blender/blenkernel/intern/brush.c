@@ -100,19 +100,11 @@ Brush *add_brush(const char *name)
 Brush *copy_brush(Brush *brush)
 {
 	Brush *brushn;
-	MTex *mtex;
-	int a;
 	
 	brushn= copy_libblock(brush);
 
-	for(a=0; a<MAX_MTEX; a++) {
-		mtex= brush->mtex[a];
-		if(mtex) {
-			brushn->mtex[a]= MEM_dupallocN(mtex);
-			if(mtex->tex) id_us_plus((ID*)mtex->tex);
-		}
-	}
-
+	if(brush->mtex.tex) id_us_plus((ID*)brush->mtex.tex);
+	
 	brushn->curve= curvemapping_copy(brush->curve);
 
 	/* enable fake user by default */
@@ -127,17 +119,8 @@ Brush *copy_brush(Brush *brush)
 /* not brush itself */
 void free_brush(Brush *brush)
 {
-	MTex *mtex;
-	int a;
-
-	for(a=0; a<MAX_MTEX; a++) {
-		mtex= brush->mtex[a];
-		if(mtex) {
-			if(mtex->tex) mtex->tex->id.us--;
-			MEM_freeN(mtex);
-		}
-	}
-
+	if(brush->mtex.tex) brush->mtex.tex->id.us--;
+	
 	curvemapping_free(brush->curve);
 }
 
@@ -295,8 +278,8 @@ void brush_curve_preset(Brush *b, BrushCurvePreset preset)
 
 static MTex *brush_active_texture(Brush *brush)
 {
-	if(brush && brush->texact >= 0)
-		return brush->mtex[brush->texact];
+	if(brush)
+		return &brush->mtex;
 	return NULL;
 }
 
@@ -304,8 +287,7 @@ int brush_texture_set_nr(Brush *brush, int nr)
 {
 	ID *idtest, *id=NULL;
 
-	if(brush->mtex[brush->texact])
-		id= (ID *)brush->mtex[brush->texact]->tex;
+	id= (ID *)brush->mtex.tex;
 
 	idtest= (ID*)BLI_findlink(&G.main->tex, nr-1);
 	if(idtest==0) { /* new tex */
@@ -316,13 +298,7 @@ int brush_texture_set_nr(Brush *brush, int nr)
 	if(idtest!=id) {
 		brush_texture_delete(brush);
 
-		if(brush->mtex[brush->texact]==NULL) {
-			brush->mtex[brush->texact]= add_mtex();
-			brush->mtex[brush->texact]->r = 1.0f;
-			brush->mtex[brush->texact]->g = 1.0f;
-			brush->mtex[brush->texact]->b = 1.0f;
-		}
-		brush->mtex[brush->texact]->tex= (Tex*)idtest;
+		brush->mtex.tex= (Tex*)idtest;
 		id_us_plus(idtest);
 
 		return 1;
@@ -333,16 +309,10 @@ int brush_texture_set_nr(Brush *brush, int nr)
 
 int brush_texture_delete(Brush *brush)
 {
-	if(brush->mtex[brush->texact]) {
-		if(brush->mtex[brush->texact]->tex)
-			brush->mtex[brush->texact]->tex->id.us--;
-		MEM_freeN(brush->mtex[brush->texact]);
-		brush->mtex[brush->texact]= NULL;
+	if(brush->mtex.tex)
+		brush->mtex.tex->id.us--;
 
-		return 1;
-	}
-
-	return 0;
+	return 1;
 }
 
 int brush_clone_image_set_nr(Brush *brush, int nr)
@@ -383,7 +353,7 @@ void brush_check_exists(Brush **brush, const char *name)
 /* Brush Sampling */
 void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 {
-	MTex *mtex= brush->mtex[brush->texact];
+	MTex *mtex= &brush->mtex;
 
 	if (mtex && mtex->tex) {
 		float co[3], tin, tr, tg, tb, ta;
@@ -741,7 +711,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 {
 	Brush *brush= painter->brush;
 	BrushPainterCache *cache= &painter->cache;
-	MTex *mtex= brush->mtex[brush->texact];
+	MTex *mtex= &brush->mtex;
 	int size;
 	short flt;
 
@@ -976,7 +946,7 @@ float brush_curve_strength(Brush *br, float p, const float len)
 unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 {
 	unsigned int *texcache = NULL;
-	MTex *mtex = br->mtex[br->texact];
+	MTex *mtex = &br->mtex;
 	TexResult texres;
 	int hasrgb, ix, iy;
 	int side = half_side * 2;

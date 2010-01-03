@@ -1532,22 +1532,13 @@ static void direct_link_curvemapping(FileData *fd, CurveMapping *cumap)
 static void lib_link_brush(FileData *fd, Main *main)
 {
 	Brush *brush;
-	MTex *mtex;
-	int a;
 	
 	/* only link ID pointers */
 	for(brush= main->brush.first; brush; brush= brush->id.next) {
 		if(brush->id.flag & LIB_NEEDLINK) {
 			brush->id.flag -= LIB_NEEDLINK;
 
-			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
-			
-			for(a=0; a<MAX_MTEX; a++) {
-				mtex= brush->mtex[a];
-				if(mtex)
-					mtex->tex= newlibadr_us(fd, brush->id.lib, mtex->tex);
-			}
-
+			brush->mtex.tex= newlibadr_us(fd, brush->id.lib, brush->mtex.tex);
 			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
 		}
 	}
@@ -1556,10 +1547,6 @@ static void lib_link_brush(FileData *fd, Main *main)
 static void direct_link_brush(FileData *fd, Brush *brush)
 {
 	/* brush itself has been read */
-	int a;
-
-	for(a=0; a<MAX_MTEX; a++)
-		brush->mtex[a]= newdataadr(fd, brush->mtex[a]);
 
 	/* fallof curve */
 	brush->curve= newdataadr(fd, brush->curve);
@@ -10336,6 +10323,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if (1) {
 		Scene *sce;
 		Object *ob;
+		Brush *brush;
 		
 		/* game engine changes */
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
@@ -10392,6 +10380,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					/* stepsize */
 				avs->path_step= arm->pathsize;
 			}
+		}
+		
+		/* brush texture changes */
+		for (brush= main->brush.first; brush; brush= brush->id.next) {
+			default_mtex(&brush->mtex);
 		}
 	}
 
@@ -10891,11 +10884,7 @@ static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
 
 static void expand_brush(FileData *fd, Main *mainvar, Brush *brush)
 {
-	int a;
-
-	for(a=0; a<MAX_MTEX; a++)
-		if(brush->mtex[a])
-			expand_doit(fd, mainvar, brush->mtex[a]->tex);
+	expand_doit(fd, mainvar, brush->mtex.tex);
 	expand_doit(fd, mainvar, brush->clone.image);
 }
 

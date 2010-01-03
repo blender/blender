@@ -614,11 +614,8 @@ static float get_texcache_pixel_bilinear(const SculptSession *ss, float u, float
 /* Return a multiplier for brush strength on a particular vertex. */
 static float tex_strength(SculptSession *ss, Brush *br, float *point, const float len)
 {
-	MTex *tex = NULL;
+	MTex *tex = &br->mtex;
 	float avg= 1;
-
-	if(br->texact >= 0)
-		tex = br->mtex[br->texact];
 
 	if(!tex) {
 		avg= 1;

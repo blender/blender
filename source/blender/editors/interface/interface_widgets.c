@@ -695,6 +695,27 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 /* *********************** text/icon ************************************** */
 
+#define PREVIEW_PAD	4
+
+static void widget_draw_preview(BIFIconID icon, float aspect, float alpha, rcti *rect)
+{
+	int w, h, x, y, size;
+	
+	/* only display previews for actual preview images .. ? */
+	if (icon < BIFICONID_LAST)
+		return;
+	
+	w = rect->xmax - rect->xmin;
+	h = rect->ymax - rect->ymin;
+	size = MIN2(w, h);
+	size -= PREVIEW_PAD*2;	/* padding */
+	
+	x = rect->xmin + w/2 - size/2;
+	y = rect->ymin + h/2 - size/2;
+	
+	UI_icon_draw_preview_aspect_size(x, y, icon, aspect, size);
+}
+
 
 /* icons have been standardized... and this call draws in untransformed coordinates */
 #define ICON_HEIGHT		16.0f
@@ -703,6 +724,11 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 {
 	int xs=0, ys=0;
 	float aspect, height;
+	
+	if (but->flag & UI_ICON_PREVIEW) {
+		widget_draw_preview(icon, but->block->aspect, alpha, rect);
+		return;
+	}
 	
 	/* this icon doesn't need draw... */
 	if(icon==ICON_BLANK1 && (but->flag & UI_ICON_SUBMENU)==0) return;
@@ -2692,3 +2718,25 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, 
 	}
 }
 
+void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state)
+{
+	rcti trect = *rect;
+	
+	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_ITEM);
+	
+	wt->state(wt, state);
+	wt->draw(&wt->wcol, rect, 0, 0);
+	
+	widget_draw_preview(iconid, 1.f, 1.f, rect);
+	
+	if (state == UI_ACTIVE)
+		glColor3ubv((unsigned char*)wt->wcol.text);
+	else
+		glColor3ubv((unsigned char*)wt->wcol.text_sel);
+	
+	trect.xmin += 0;
+	trect.xmax = trect.xmin + BLF_width(name) + 10;
+	trect.ymin += 10;
+	trect.ymax = trect.ymin + BLF_height(name);
+	uiStyleFontDraw(fstyle, &trect, name);
+}

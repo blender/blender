@@ -87,13 +87,15 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
+        space = context.space_data
         tex = context.texture
         wide_ui = context.region.width > narrowui
         idblock = context_tex_datablock(context)
+        tex_collection = space.pin_id == None and type(idblock) != bpy.types.Brush
 
-        space = context.space_data
+        
 
-        if idblock:
+        if tex_collection:
             row = layout.row()
 
             row.template_list(idblock, "textures", idblock, "active_texture_index", rows=2)
@@ -101,24 +103,31 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
             col = row.column(align=True)
             col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
             col.operator("texture.slot_move", text="", icon='TRIA_DOWN').type = 'DOWN'
-
-
+        
         if wide_ui:
             split = layout.split(percentage=0.65)
-            if idblock:
-                split.template_ID(idblock, "active_texture", new="texture.new")
-            elif tex:
-                split.template_ID(space, "pin_id")
+            col = split.column()
         else:
-            layout.template_ID(idblock, "active_texture", new="texture.new")
-
+            col = layout.column()
+            
+        if tex_collection:
+            col.template_ID(idblock, "active_texture", new="texture.new")
+        elif idblock:
+            col.template_ID(idblock, "texture", new="texture.new")
+        
+        if space.pin_id:
+            col.template_ID(space, "pin_id")
+        
+        if wide_ui:
+            col = split.column()
+        
         if (not space.pin_id) and (
             context.sculpt_object or
             context.vertex_paint_object or
             context.weight_paint_object or
             context.texture_paint_object):
 
-            split.prop(space, "brush_texture", text="Brush", toggle=True)
+            col.prop(space, "brush_texture", text="Brush", toggle=True)
 
         if tex:
             layout.prop(tex, "use_nodes")
@@ -268,6 +277,10 @@ class TEXTURE_PT_influence(TextureSlotPanel):
     bl_label = "Influence"
 
     def poll(self, context):
+        idblock = context_tex_datablock(context)
+        if type(idblock) == bpy.types.Brush:
+            return False
+    
         return context.texture_slot
 
     def draw(self, context):
