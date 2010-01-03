@@ -636,6 +636,10 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_TEXTURE:
+			/* for brush textures */
+			ED_region_tag_redraw(ar);
+			break;
 		case NC_BRUSH:
 			if(wmn->action==NA_EDITED)
 				ED_region_tag_redraw(ar);

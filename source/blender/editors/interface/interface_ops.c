@@ -140,7 +140,7 @@ void UI_OT_reset_default_button(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Reset to Default Value";
 	ot->idname= "UI_OT_reset_default_button";
-	ot->description= "Copy the RNA data path for this property to the clipboard.";
+	ot->description= "Reset this property's value to its default value";
 
 	/* callbacks */
 	ot->poll= reset_default_button_poll;
