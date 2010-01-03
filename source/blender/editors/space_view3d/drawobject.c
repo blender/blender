@@ -798,25 +798,28 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 	curcol[3]= 0.6;
 	glColor4fv(curcol);
 	
-	if(ob->id.us>1) {
-		if (ob==OBACT || (ob->flag & SELECT)) glColor4ub(0x88, 0xFF, 0xFF, 155);
-		else glColor4ub(0x77, 0xCC, 0xCC, 155);
-	}
-	
-	/* Inner Circle */
-	VECCOPY(vec, ob->obmat[3]);
-	glEnable(GL_BLEND);
-	drawcircball(GL_LINE_LOOP, vec, lampsize, imat);
-	glDisable(GL_BLEND);
-	drawcircball(GL_POLYGON, vec, lampsize, imat);
-	
-	/* restore */
-	if(ob->id.us>1)
-		glColor4fv(curcol);
+	if(lampsize > 0.0f) {
+
+		if(ob->id.us>1) {
+			if (ob==OBACT || (ob->flag & SELECT)) glColor4ub(0x88, 0xFF, 0xFF, 155);
+			else glColor4ub(0x77, 0xCC, 0xCC, 155);
+		}
 		
-	/* Outer circle */
-	circrad = 3.0f*lampsize;
-	drawcircball(GL_LINE_LOOP, vec, circrad, imat);
+		/* Inner Circle */
+		VECCOPY(vec, ob->obmat[3]);
+		glEnable(GL_BLEND);
+		drawcircball(GL_LINE_LOOP, vec, lampsize, imat);
+		glDisable(GL_BLEND);
+		drawcircball(GL_POLYGON, vec, lampsize, imat);
+		
+		/* restore */
+		if(ob->id.us>1)
+			glColor4fv(curcol);
+			
+		/* Outer circle */
+		circrad = 3.0f*lampsize;
+		drawcircball(GL_LINE_LOOP, vec, circrad, imat);
+	}
 	
 	setlinestyle(3);
 
@@ -6154,7 +6157,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			} 
 			else if((flag & DRAW_CONSTCOLOR)==0) {
 				/* we don't draw centers for duplicators and sets */
-				drawcentercircle(v3d, rv3d, ob->obmat[3], do_draw_center, ob->id.lib || ob->id.us>1);
+				if(U.obcenter_dia > 0) {
+                    /* check > 0 otherwise grease pencil can draw into the circle select which is annoying. */
+                    drawcentercircle(v3d, rv3d, ob->obmat[3], do_draw_center, ob->id.lib || ob->id.us>1);
+				}
 			}
 		}
 	}

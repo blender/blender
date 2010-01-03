@@ -1645,6 +1645,7 @@ void view3d_update_depths(ARegion *ar, View3D *v3d)
 
 void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 {
+	short zbuf= v3d->zbuf;
 	RegionView3D *rv3d= ar->regiondata;
 
 	setwinmatrixview3d(ar, v3d, NULL);	/* 0= no pick rect */
@@ -1662,7 +1663,9 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	glEnable(GL_DEPTH_TEST);
 
 	draw_gpencil_3dview_ext(scene, ar, 1);
-	return;
+	
+	v3d->zbuf= zbuf;
+
 }
 
 void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
@@ -1670,17 +1673,16 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	RegionView3D *rv3d= ar->regiondata;
 	Base *base;
 	Scene *sce;
-	short zbuf, flag;
-	float glalphaclip;
+	short zbuf= v3d->zbuf;
+	short flag= v3d->flag;
+	float glalphaclip= U.glalphaclip;
+	int obcenter_dia= U.obcenter_dia;
 	/* temp set drawtype to solid */
 	
 	/* Setting these temporarily is not nice */
-	zbuf = v3d->zbuf;
-	flag = v3d->flag;
-	glalphaclip = U.glalphaclip;
-	
-	U.glalphaclip = 0.5; /* not that nice but means we wont zoom into billboards */
 	v3d->flag &= ~V3D_SELECT_OUTLINE;
+	U.glalphaclip = 0.5; /* not that nice but means we wont zoom into billboards */
+	U.obcenter_dia= 0;
 	
 	setwinmatrixview3d(ar, v3d, NULL);	/* 0= no pick rect */
 	setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
@@ -1764,6 +1766,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	v3d->zbuf = zbuf;
 	U.glalphaclip = glalphaclip;
 	v3d->flag = flag;
+	U.obcenter_dia= obcenter_dia;
 }
 
 typedef struct View3DShadow {
