@@ -760,7 +760,7 @@ void sort_faces(Scene *scene, View3D *v3d)
 
 #define MOC_RES			8
 #define MOC_NODE_RES	8
-#define MOC_THRESH		0.0002f
+#define MOC_THRESH		0.00002f
 
 typedef struct MocNode {
 	struct MocNode *next;
