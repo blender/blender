@@ -193,6 +193,7 @@ static int wm_macro_end(wmOperator *op, int retval)
 	if (retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED)) {
 		if (op->customdata) {
 			MEM_freeN(op->customdata);
+			op->customdata = NULL;
 		}
 	}
 
