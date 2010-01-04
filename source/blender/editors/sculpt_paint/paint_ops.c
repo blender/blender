@@ -176,6 +176,21 @@ static void ed_keymap_paint_brush_switch(wmKeyMap *keymap, const char *path)
 	RNA_int_set(kmi->ptr, "value", 9);
 }
 
+static void ed_keymap_paint_brush_size(wmKeyMap *keymap, const char *path)
+{
+	wmKeyMapItem *kmi;
+	
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", LEFTBRACKETKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", -20);
+	RNA_boolean_set(kmi->ptr, "relative", 1);
+	
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", 20);
+	RNA_boolean_set(kmi->ptr, "relative", 1);
+}	
+
 void ED_keymap_paint(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
@@ -205,8 +220,8 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_int_set(kmi->ptr, "level", -1);
 	RNA_boolean_set(kmi->ptr, "relative", 1);
 
-	/* toggles */
 	ed_keymap_paint_brush_switch(keymap, "tool_settings.sculpt.active_brush_index");
+	ed_keymap_paint_brush_size(keymap, "tool_settings.sculpt.brush.size");
 	
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", AKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.use_anchor");
@@ -259,6 +274,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 			"PAINT_OT_vertex_color_set",KKEY, KM_PRESS, KM_SHIFT, 0);
 
 	ed_keymap_paint_brush_switch(keymap, "tool_settings.vertex_paint.active_brush_index");
+	ed_keymap_paint_brush_size(keymap, "tool_settings.vertex_paint.brush.size");
 
 	/* Weight Paint mode */
 	keymap= WM_keymap_find(keyconf, "Weight Paint", 0, 0);
@@ -273,6 +289,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 			"PAINT_OT_weight_set", KKEY, KM_PRESS, KM_SHIFT, 0);
 
 	ed_keymap_paint_brush_switch(keymap, "tool_settings.weight_paint.active_brush_index");
+	ed_keymap_paint_brush_size(keymap, "tool_settings.weight_paint.brush.size");
 
 	/* Image/Texture Paint mode */
 	keymap= WM_keymap_find(keyconf, "Image Paint", 0, 0);
@@ -286,6 +303,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "PAINT_OT_clone_cursor_set", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 
 	ed_keymap_paint_brush_switch(keymap, "tool_settings.image_paint.active_brush_index");
+	ed_keymap_paint_brush_size(keymap, "tool_settings.image_paint.brush.size");
 
 	/* face-mask mode */
 	keymap= WM_keymap_find(keyconf, "Face Mask", 0, 0);
