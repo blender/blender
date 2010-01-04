@@ -57,6 +57,10 @@ struct SmokeModifierData;
 
 void GPU_state_init(void);
 
+/* Debugging */
+
+void GPU_state_print(void);
+
 /* Material drawing
  * - first the state is initialized by a particular object and
  *   it's materials
