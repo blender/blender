@@ -140,6 +140,8 @@ Mathutils_Callback mathutils_rna_matrix_cb = {
 	(BaseMathSetIndexFunc)	NULL
 };
 
+#define PROP_ALL_VECTOR_SUBTYPES PROP_TRANSLATION: case PROP_DIRECTION: case PROP_VELOCITY: case PROP_ACCELERATION: case PROP_XYZ: case PROP_XYZ|PROP_UNIT_LENGTH
+
 PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 {
 	PyObject *ret= NULL;
@@ -148,28 +150,24 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 	int subtype, totdim;
 	int len;
 	int is_thick;
+	int flag= RNA_property_flag(prop);
 
 	/* disallow dynamic sized arrays to be wrapped since the size could change
 	 * to a size mathutils does not support */
-	if ((RNA_property_type(prop) != PROP_FLOAT) || (RNA_property_flag(prop) & PROP_DYNAMIC))
+	if ((RNA_property_type(prop) != PROP_FLOAT) || (flag & PROP_DYNAMIC))
 		return NULL;
 
 	len= RNA_property_array_length(ptr, prop);
 	subtype= RNA_property_subtype(prop);
 	totdim= RNA_property_array_dimension(ptr, prop, NULL);
-	is_thick = (RNA_property_flag(prop) & PROP_THICK_WRAP);
+	is_thick = (flag & PROP_THICK_WRAP);
 
 	if (totdim == 1 || (totdim == 2 && subtype == PROP_MATRIX)) {
 		if(!is_thick)
 			ret = pyrna_prop_CreatePyObject(ptr, prop); /* owned by the Mathutils PyObject */
 
 		switch(RNA_property_subtype(prop)) {
-		case PROP_TRANSLATION:
-		case PROP_DIRECTION:
-		case PROP_VELOCITY:
-		case PROP_ACCELERATION:
-		case PROP_XYZ:
-		case PROP_XYZ|PROP_UNIT_LENGTH:
+		case PROP_ALL_VECTOR_SUBTYPES:
 			if(len>=2 && len <= 4) {
 				if(is_thick) {
 					ret= newVectorObject(NULL, len, Py_NEW, NULL);
@@ -2573,22 +2571,41 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 		int len = RNA_property_array_length(ptr, prop);
 
 		/* resolve the array from a new pytype */
-		ret = PyTuple_New(len);
 
 		/* kazanbas: TODO make multidim sequences here */
 
 		switch (type) {
 		case PROP_BOOLEAN:
+			ret = PyTuple_New(len);
 			for(a=0; a<len; a++)
 				PyTuple_SET_ITEM(ret, a, PyBool_FromLong( ((int*)data)[a] ));
 			break;
 		case PROP_INT:
+			ret = PyTuple_New(len);
 			for(a=0; a<len; a++)
 				PyTuple_SET_ITEM(ret, a, PyLong_FromSsize_t( (Py_ssize_t)((int*)data)[a] ));
 			break;
 		case PROP_FLOAT:
-			for(a=0; a<len; a++)
-				PyTuple_SET_ITEM(ret, a, PyFloat_FromDouble( ((float*)data)[a] ));
+			switch(RNA_property_subtype(prop)) {
+				case PROP_ALL_VECTOR_SUBTYPES:
+					ret= newVectorObject(data, len, Py_NEW, NULL);
+					break;
+				case PROP_MATRIX:
+					if(len==16) {
+						ret= newMatrixObject(data, 4, 4, Py_NEW, NULL);
+						break;
+					}
+					else if (len==9) {
+						ret= newMatrixObject(data, 3, 3, Py_NEW, NULL);
+						break;
+					}
+					/* pass through */
+				default:
+					ret = PyTuple_New(len);
+					for(a=0; a<len; a++)
+						PyTuple_SET_ITEM(ret, a, PyFloat_FromDouble( ((float*)data)[a] ));
+
+			}
 			break;
 		default:
 			PyErr_Format(PyExc_TypeError, "RNA Error: unknown array type \"%d\" (pyrna_param_to_py)", type);
