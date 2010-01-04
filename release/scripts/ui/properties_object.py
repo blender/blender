@@ -154,6 +154,8 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
         else:
             layout.operator_menu_enum("object.group_add", "group")
 
+        index = 0
+        value = str(tuple(context.scene.cursor_location))
         for group in bpy.data.groups:
             if ob.name in group.objects:
                 col = layout.column(align=True)
@@ -172,6 +174,11 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
                 if wide_ui:
                     col = split.column()
                 col.prop(group, "dupli_offset", text="")
+                
+                prop = col.operator("wm.context_set_value", text="From Cursor")
+                prop.path = "object.group_users[%d].dupli_offset" % index
+                prop.value = value
+                index += 1
 
 
 class OBJECT_PT_display(ObjectButtonsPanel):

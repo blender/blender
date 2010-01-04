@@ -75,19 +75,17 @@ void rna_Mesh_update_draw(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
 {
 	MVert *mvert= (MVert*)ptr->data;
-
-	value[0]= mvert->no[0]/32767.0f;
-	value[1]= mvert->no[1]/32767.0f;
-	value[2]= mvert->no[2]/32767.0f;
+	normal_short_to_float_v3(value, mvert->no);
 }
 
-static void rna_MeshVertex_normal_set(PointerRNA *ptr, float *value)
+static void rna_MeshVertex_normal_set(PointerRNA *ptr, const float *value)
 {
 	MVert *mvert= (MVert*)ptr->data;
+	float no[3];
 
-	mvert->no[0] = (short) (value[0] * 32767.0f);
-	mvert->no[1] = (short) (value[1] * 32767.0f);
-	mvert->no[2] = (short) (value[2] * 32767.0f);
+	copy_v3_v3(no, value);
+	normalize_v3(no);
+	normal_float_to_short_v3(mvert->no, no);
 }
 
 static float rna_MeshVertex_bevel_weight_get(PointerRNA *ptr)

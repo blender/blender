@@ -46,6 +46,19 @@ class Object(bpy_types.ID):
         import bpy
         return [child for child in bpy.data.objects if child.parent == self]
 
+    @property
+    def group_users(self):
+        """The groups this object is in"""
+        import bpy
+        name = self.name
+        return [group for group in bpy.data.groups if name in group.objects]
+
+    @property
+    def scene_users(self):
+        """The scenes this object is in"""
+        import bpy
+        name = self.name
+        return [scene for scene in bpy.data.scenes if name in scene.objects]
 
 class _GenericBone:
     """
