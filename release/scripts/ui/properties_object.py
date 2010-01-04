@@ -242,20 +242,20 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
             col.prop(ob, "dupli_frames_on", text="On")
             col.prop(ob, "dupli_frames_off", text="Off")
 
-            layout.prop(ob, "dupli_frames_no_speed", text="No Speed")
+            layout.prop(ob, "use_dupli_frames_speed", text="Speed")
 
         elif ob.dupli_type == 'VERTS':
-            layout.prop(ob, "dupli_verts_rotation", text="Rotation")
+            layout.prop(ob, "use_dupli_verts_rotation", text="Rotation")
 
         elif ob.dupli_type == 'FACES':
             split = layout.split()
 
             col = split.column()
-            col.prop(ob, "dupli_faces_scale", text="Scale")
+            col.prop(ob, "use_dupli_faces_scale", text="Scale")
 
             if wide_ui:
                 col = split.column()
-            col.prop(ob, "dupli_faces_inherit_scale", text="Inherit Scale")
+            col.prop(ob, "dupli_faces_scale", text="Inherit Scale")
 
         elif ob.dupli_type == 'GROUP':
             if wide_ui:
