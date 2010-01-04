@@ -914,6 +914,8 @@ static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node)
 		if(sculpt_brush_test(&test, vd.co)) {
 			float fade = tex_strength(ss, brush, vd.co, test.dist)*bstrength;
 			float avg[3], val[3];
+
+			CLAMP(fade, 0.0f, 1.0f);
 			
 			neighbor_average(ss, avg, vd.vert_indices[vd.i]);
 			val[0] = vd.co[0]+(avg[0]-vd.co[0])*fade;
@@ -990,6 +992,8 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 					if(y == 0 || y == gridsize - 1)
 						mul_v3_fl(avg, 2.0f);
 
+					CLAMP(fade, 0.0f, 1.0f);
+
 					val[0] = co[0]+(avg[0]-co[0])*fade;
 					val[1] = co[1]+(avg[1]-co[1])*fade;
 					val[2] = co[2]+(avg[2]-co[2])*fade;
@@ -1013,15 +1017,15 @@ static void do_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int
 		for(n=0; n<totnode; n++) {
 			sculpt_undo_push_node(ss, nodes[n]);
 
-			if(ss->fmap)
-				do_mesh_smooth_brush(sd, ss, nodes[n]);
-			else
+			if(ss->multires)
 				do_multires_smooth_brush(sd, ss, nodes[n]);
+			else if(ss->fmap)
+				do_mesh_smooth_brush(sd, ss, nodes[n]);
 
 			BLI_pbvh_node_mark_update(nodes[n]);
 		}
 
-		if(!ss->fmap)
+		if(ss->multires)
 			multires_stitch_grids(ss->ob);
 	}
 }
@@ -1544,7 +1548,7 @@ void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
 	}
 
 	ss->tree = dm->getPBVH(ob, dm);
-	ss->fmap = (need_fmap && dm->getFaceMap)? dm->getFaceMap(dm): NULL;
+	ss->fmap = (need_fmap && dm->getFaceMap)? dm->getFaceMap(ob, dm): NULL;
 }
 
 static int sculpt_mode_poll(bContext *C)
@@ -1743,7 +1747,7 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 	if(cache->first_time)
 		cache->initial_radius = unproject_brush_radius(ss->ob, cache->vc, cache->true_location, brush->size);
 
-	if(brush->flag & BRUSH_SIZE_PRESSURE) {
+	if(brush->flag & BRUSH_SIZE_PRESSURE && brush->sculpt_tool != SCULPT_TOOL_GRAB) {
 		cache->pixel_radius *= cache->pressure;
 		cache->radius = cache->initial_radius * cache->pressure;
 	}
@@ -1797,8 +1801,12 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 
 static void sculpt_stroke_modifiers_check(bContext *C, SculptSession *ss)
 {
-	if(sculpt_modifiers_active(ss->ob))
-		sculpt_update_mesh_elements(CTX_data_scene(C), ss->ob, 0); // XXX brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+	if(sculpt_modifiers_active(ss->ob)) {
+		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+		Brush *brush = paint_brush(&sd->paint);
+
+		sculpt_update_mesh_elements(CTX_data_scene(C), ss->ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+	}
 }
 
 typedef struct {

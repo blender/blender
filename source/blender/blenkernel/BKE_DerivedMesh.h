@@ -202,7 +202,7 @@ struct DerivedMesh {
 
 	/* Get a map of vertices to faces
 	 */
-	struct ListBase *(*getFaceMap)(DerivedMesh *dm);
+	struct ListBase *(*getFaceMap)(struct Object *ob, DerivedMesh *dm);
 
 	/* Get the BVH used for paint modes
 	 */

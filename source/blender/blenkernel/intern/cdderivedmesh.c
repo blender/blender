@@ -177,13 +177,15 @@ static void cdDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
 	no_r[2] = no[2]/32767.f;
 }
 
-static ListBase *cdDM_getFaceMap(DerivedMesh *dm)
+static ListBase *cdDM_getFaceMap(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 
-	if(!cddm->fmap) {
-		create_vert_face_map(&cddm->fmap, &cddm->fmap_mem, cddm->mface,
-				     dm->getNumVerts(dm), dm->getNumFaces(dm));
+	if(!cddm->fmap && ob->type == OB_MESH) {
+		Mesh *me= ob->data;
+
+		create_vert_face_map(&cddm->fmap, &cddm->fmap_mem, me->mface,
+				     me->totvert, me->totface);
 	}
 
 	return cddm->fmap;

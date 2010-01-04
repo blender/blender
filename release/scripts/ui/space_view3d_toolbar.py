@@ -542,9 +542,10 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
             row = col.row(align=True)
             row.prop(brush, "size", slider=True)
-            row.prop(brush, "use_size_pressure", toggle=True, text="")
 
             if brush.sculpt_tool != 'GRAB':
+                row.prop(brush, "use_size_pressure", toggle=True, text="")
+
                 row = col.row(align=True)
                 row.prop(brush, "strength", slider=True)
                 row.prop(brush, "use_strength_pressure", text="")
