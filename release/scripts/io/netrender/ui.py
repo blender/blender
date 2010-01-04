@@ -303,7 +303,7 @@ NetRenderSettings.BoolProperty( attr="server_broadcast",
                 description="broadcast server address on local network",
                 default = True)
 
-default_path = os.environ.get("TEMP", None)
+default_path = os.environ.get("TEMP")
 
 if not default_path:
     if os.name == 'nt':

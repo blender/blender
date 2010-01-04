@@ -760,7 +760,7 @@ class RenderMasterServer(http.server.HTTPServer):
         self.slaves_map.pop(slave.id)
 
     def getSlave(self, slave_id):
-        return self.slaves_map.get(slave_id, None)
+        return self.slaves_map.get(slave_id)
 
     def getSeenSlave(self, slave_id):
         slave = self.getSlave(slave_id)
@@ -842,7 +842,7 @@ class RenderMasterServer(http.server.HTTPServer):
         job.save()
 
     def getJobID(self, id):
-        return self.jobs_map.get(id, None)
+        return self.jobs_map.get(id)
 
     def __iter__(self):
         for job in self.jobs:
