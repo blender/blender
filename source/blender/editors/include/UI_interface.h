@@ -653,7 +653,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);
 void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
-void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, char *propname, int type, int levels);
+void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, char *propname, int type, int levels, int brush);
 void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, char *propname,
 		      PointerRNA *used_ptr, char *used_propname, int active_layer);

@@ -1553,7 +1553,7 @@ static void direct_link_brush(FileData *fd, Brush *brush)
 	if(brush->curve)
 		direct_link_curvemapping(fd, brush->curve);
 	else
-		brush_curve_preset(brush, BRUSH_PRESET_SHARP);
+		brush_curve_preset(brush, CURVE_PRESET_SHARP);
 }
 
 static void direct_link_script(FileData *fd, Script *script)

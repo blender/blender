@@ -196,7 +196,7 @@ static void node_buts_time(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	}
 #endif
 
-	uiTemplateCurveMapping(layout, ptr, "curve", 's', 0);
+	uiTemplateCurveMapping(layout, ptr, "curve", 's', 0, 0);
 
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, "Sta", 0, ptr, "start", 0);
@@ -210,7 +210,7 @@ static void node_buts_colorramp(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 static void node_buts_curvevec(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiTemplateCurveMapping(layout, ptr, "mapping", 'v', 0);
+	uiTemplateCurveMapping(layout, ptr, "mapping", 'v', 0, 0);
 }
 
 static float *_sample_col= NULL;	// bad bad, 2.5 will do better?
@@ -231,7 +231,7 @@ static void node_buts_curvecol(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	else 
 		cumap->flag &= ~CUMA_DRAW_SAMPLE;
 
-	uiTemplateCurveMapping(layout, ptr, "mapping", 'c', 0);
+	uiTemplateCurveMapping(layout, ptr, "mapping", 'c', 0, 0);
 }
 
 static void node_buts_normal(uiLayout *layout, bContext *C, PointerRNA *ptr)

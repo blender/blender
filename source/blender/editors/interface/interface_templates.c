@@ -33,6 +33,7 @@
 
 #include "BLI_string.h"
 
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_icons.h"
 #include "BKE_global.h"
@@ -1652,8 +1653,8 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 	CurveMap *cuma= cumap->cm+cumap->cur;
 
 	switch(event) {
-		case 0:
-			curvemap_reset(cuma, &cumap->clipr);
+		case 0: /* reset */
+			curvemap_reset(cuma, &cumap->clipr, CURVE_PRESET_LINE);
 			curvemapping_changed(cumap, 0);
 			break;
 		case 1:
@@ -1673,6 +1674,10 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 			break;
 		case 5: /* extend extrapolate */
 			cuma->flag |= CUMA_EXTEND_EXTRAPOLATE;
+			curvemapping_changed(cumap, 0);
+			break;
+		case 6: /* reset smooth */
+			curvemap_reset(cuma, &cumap->clipr, CURVE_PRESET_SMOOTH);
 			curvemapping_changed(cumap, 0);
 			break;
 	}
@@ -1701,6 +1706,26 @@ static uiBlock *curvemap_tools_func(bContext *C, struct ARegion *ar, void *cumap
 	return block;
 }
 
+static uiBlock *curvemap_brush_tools_func(bContext *C, struct ARegion *ar, void *cumap_v)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiBeginBlock(C, ar, "curvemap_tools_func", UI_EMBOSS);
+	uiBlockSetButmFunc(block, curvemap_tools_dofunc, cumap_v);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset View",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Curve",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+
+	uiEndBlock(C, block);
+	return block;
+}
+
 static void curvemap_buttons_redraw(bContext *C, void *arg1, void *arg2)
 {
 	ED_region_tag_redraw(CTX_wm_region(C));
@@ -1712,7 +1737,7 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 	int a;
 	
 	for(a=0; a<CM_TOT; a++)
-		curvemap_reset(cumap->cm+a, &cumap->clipr);
+		curvemap_reset(cumap->cm+a, &cumap->clipr, CURVE_PRESET_LINE);
 	
 	cumap->black[0]=cumap->black[1]=cumap->black[2]= 0.0f;
 	cumap->white[0]=cumap->white[1]=cumap->white[2]= 1.0f;
@@ -1724,7 +1749,7 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 }
 
 /* still unsure how this call evolves... we use labeltype for defining what curve-channels to show */
-static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labeltype, int levels, RNAUpdateCb *cb)
+static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labeltype, int levels, int brush, RNAUpdateCb *cb)
 {
 	CurveMapping *cumap= ptr->data;
 	uiLayout *row, *sub, *split;
@@ -1792,7 +1817,11 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	bt= uiDefIconBut(block, BUT, 0, ICON_ZOOMOUT, 0, 0, dx, 14, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom out");
 	uiButSetFunc(bt, curvemap_buttons_zoom_out, cumap, NULL);
 
-	bt= uiDefIconBlockBut(block, curvemap_tools_func, cumap, 0, ICON_MODIFIER, 0, 0, dx, 18, "Tools");
+	if(brush)
+		bt= uiDefIconBlockBut(block, curvemap_brush_tools_func, cumap, 0, ICON_MODIFIER, 0, 0, dx, 18, "Tools");
+	else
+		bt= uiDefIconBlockBut(block, curvemap_tools_func, cumap, 0, ICON_MODIFIER, 0, 0, dx, 18, "Tools");
+
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 	if(cumap->flag & CUMA_DO_CLIP) icon= ICON_CLIPUV_HLT; else icon= ICON_CLIPUV_DEHLT;
@@ -1825,7 +1854,7 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	uiBlockSetNFunc(block, NULL, NULL, NULL);
 }
 
-void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, char *propname, int type, int levels)
+void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, char *propname, int type, int levels, int brush)
 {
 	RNAUpdateCb *cb;
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
@@ -1842,7 +1871,7 @@ void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, char *propname, i
 	cb->ptr= *ptr;
 	cb->prop= prop;
 
-	curvemap_buttons_layout(layout, &cptr, type, levels, cb);
+	curvemap_buttons_layout(layout, &cptr, type, levels, brush, cb);
 
 	MEM_freeN(cb);
 }

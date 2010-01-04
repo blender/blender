@@ -36,6 +36,7 @@ struct Brush;
 struct ImBuf;
 struct Scene;
 struct wmOperator;
+enum CurveMappingPreset;
 
 /* datablock functions */
 struct Brush *add_brush(const char *name);
@@ -54,12 +55,7 @@ int brush_clone_image_set_nr(struct Brush *brush, int nr);
 int brush_clone_image_delete(struct Brush *brush);
 
 /* brush curve */
-typedef enum {
-	BRUSH_PRESET_SHARP,
-	BRUSH_PRESET_SMOOTH,
-	BRUSH_PRESET_MAX
-} BrushCurvePreset;
-void brush_curve_preset(struct Brush *b, BrushCurvePreset preset);
+void brush_curve_preset(struct Brush *b, enum CurveMappingPreset preset);
 float brush_curve_strength_clamp(struct Brush *br, float p, const float len);
 float brush_curve_strength(struct Brush *br, float p, const float len); /* used for sculpt */
 

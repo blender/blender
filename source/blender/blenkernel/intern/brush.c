@@ -88,7 +88,7 @@ Brush *add_brush(const char *name)
 	brush->sculpt_tool = SCULPT_TOOL_DRAW;
 	brush->flag |= BRUSH_SPACE;
 
-	brush_curve_preset(brush, BRUSH_PRESET_SMOOTH);
+	brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
 
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;
@@ -225,7 +225,7 @@ void brush_toggled_fake_user(Brush *brush)
 	}
 }
 
-void brush_curve_preset(Brush *b, BrushCurvePreset preset)
+void brush_curve_preset(Brush *b, CurveMappingPreset preset)
 {
 	CurveMap *cm = NULL;
 
@@ -233,46 +233,9 @@ void brush_curve_preset(Brush *b, BrushCurvePreset preset)
 		b->curve = curvemapping_add(1, 0, 0, 1, 1);
 
 	cm = b->curve->cm;
-
-	if(cm->curve)
-		MEM_freeN(cm->curve);
-
-	if(preset == BRUSH_PRESET_SHARP)
-		cm->totpoint= 3;
-	if(preset == BRUSH_PRESET_SMOOTH)
-		cm->totpoint= 4;
-	if(preset == BRUSH_PRESET_MAX)
-		cm->totpoint= 2;
-
-
-	cm->curve= MEM_callocN(cm->totpoint*sizeof(CurveMapPoint), "curve points");
 	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 
-	if(preset == BRUSH_PRESET_SHARP) {
-		cm->curve[0].x= 0;
-		cm->curve[0].y= 1;
-		cm->curve[1].x= 0.33;
-		cm->curve[1].y= 0.33;
-		cm->curve[2].x= 1;
-		cm->curve[2].y= 0;
-	}
-	else if(preset == BRUSH_PRESET_SMOOTH) {
-		cm->curve[0].x= 0;
-		cm->curve[0].y= 1;
-		cm->curve[1].x= 0.25;
-		cm->curve[1].y= 0.92;
-		cm->curve[2].x= 0.75;
-		cm->curve[2].y= 0.08;
-		cm->curve[3].x= 1;
-		cm->curve[3].y= 0;
-	}
-	else if(preset == BRUSH_PRESET_MAX) {
-		cm->curve[0].x= 0;
-		cm->curve[0].y= 1;
-		cm->curve[1].x= 1;
-		cm->curve[1].y= 1;
-	}
-
+	curvemap_reset(cm, &b->curve->clipr, preset);
 	curvemapping_changed(b->curve, 0);
 }
 

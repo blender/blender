@@ -733,7 +733,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        layout.template_curve_mapping(brush, "curve")
+        layout.template_curve_mapping(brush, "curve", brush=True)
         layout.operator_menu_enum("brush.curve_preset", property="shape")
 
 

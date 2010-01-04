@@ -320,6 +320,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_rna_common(func);
 	RNA_def_enum(func, "type", curve_type_items, 0, "Type", "Type of curves to display.");
 	RNA_def_boolean(func, "levels", 0, "", "Show black/white levels.");
+	RNA_def_boolean(func, "brush", 0, "", "Show brush options.");
 
 	func= RNA_def_function(srna, "template_color_ramp", "uiTemplateColorRamp");
 	api_ui_item_rna_common(func);
