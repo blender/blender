@@ -1181,15 +1181,25 @@ static PyObject *pyrna_prop_subscript( BPy_PropertyRNA *self, PyObject *key )
 }
 
 /* could call (pyrna_py_to_prop_index(self, i, value) in a loop but it is slow */
-static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, int start, int stop, int length, PyObject *value)
+static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, int start, int stop, int length, PyObject *value_orig)
 {
+	PyObject *value;
 	int count;
 	void *values_alloc= NULL;
 	int ret= 0;
-	
-	/* TODO - fast list ? */
-	if(!PyList_Check(value)) {
-		PyErr_Format(PyExc_TypeError, "invalid slice assignment, exitected a list instead of %.200s instance.", Py_TYPE(value)->tp_name);
+
+	if(value_orig == NULL) {
+		PyErr_SetString(PyExc_TypeError, "invalid slice assignment, deleting with list types is not supported by StructRNA.");
+		return -1;
+	}
+
+	if(!(value=PySequence_Fast(value_orig, "invalid slice assignment, type is not a sequence"))) {
+		return -1;
+	}
+
+	if(PySequence_Fast_GET_SIZE(value) != stop-start) {
+		Py_DECREF(value);
+		PyErr_SetString(PyExc_TypeError, "invalid slice assignment, resizing StructRNA arrays isn't supported.");
 		return -1;
 	}
 
@@ -1204,7 +1214,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, in
 				RNA_property_float_get_array(ptr, prop, values);
 			
 			for(count=start; count<stop; count++)
-				values[count] = PyFloat_AsDouble(PyList_GET_ITEM(value, count-start));
+				values[count] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, count-start));
 
 			if(PyErr_Occurred())	ret= -1;
 			else					RNA_property_float_set_array(ptr, prop, values);
@@ -1221,7 +1231,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, in
 				RNA_property_boolean_get_array(ptr, prop, values);
 	
 			for(count=start; count<stop; count++)
-				values[count] = PyLong_AsSsize_t(PyList_GET_ITEM(value, count-start));
+				values[count] = PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, count-start));
 
 			if(PyErr_Occurred())	ret= -1;
 			else					RNA_property_boolean_set_array(ptr, prop, values);
@@ -1238,7 +1248,7 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, in
 				RNA_property_int_get_array(ptr, prop, values);
 
 			for(count=start; count<stop; count++)
-				values[count] = PyLong_AsSsize_t(PyList_GET_ITEM(value, count-start));
+				values[count] = PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, count-start));
 
 			if(PyErr_Occurred())	ret= -1;
 			else					RNA_property_int_set_array(ptr, prop, values);
@@ -1248,6 +1258,8 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, in
 			PyErr_SetString(PyExc_TypeError, "not an array type");
 			ret= -1;
 	}
+
+	Py_DECREF(value);
 	
 	if(values_alloc) {
 		PyMem_FREE(values_alloc);
