@@ -1424,6 +1424,8 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	else if(obedit==NULL && (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
 		return PE_border_select(C, &rect, selecting, extend);
 	}
+	else if(obedit==NULL && (obact && obact->mode & OB_MODE_SCULPT))
+		return OPERATOR_CANCELLED;
 	
 	if(obedit) {
 		if(obedit->type==OB_MESH) {
@@ -1689,6 +1691,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			retval = mouse_mball(C, event->mval, extend);
 			
 	}
+	else if(obact && obact->mode & OB_MODE_SCULPT)
+		return OPERATOR_CANCELLED;
 	else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT)
 		return PE_mouse_particles(C, event->mval, extend);
 	else if(obact && paint_facesel_test(obact))
@@ -2011,6 +2015,9 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		}
 		else
 			return PE_circle_select(C, selecting, mval, (float)radius);
+	}
+	else if(obact && obact->mode & OB_MODE_SCULPT) {
+		return OPERATOR_CANCELLED;
 	}
 	else {
 		Base *base;
