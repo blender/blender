@@ -1183,6 +1183,7 @@ enum {
 	MAKE_LINKS_MATERIALS,
 	MAKE_LINKS_ANIMDATA,
 	MAKE_LINKS_DUPLIGROUP,
+	MAKE_LINKS_MODIFIERS
 };
 
 static int make_links_data_exec(bContext *C, wmOperator *op)
@@ -1235,6 +1236,10 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 					obt->transflag |= OB_DUPLIGROUP;
 				}
 				break;
+			case MAKE_LINKS_MODIFIERS:
+				object_link_modifiers(obt, ob);
+				obt->recalc |= OB_RECALC;
+				break;
 			}
 		}
 	}
@@ -1274,6 +1279,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 		{MAKE_LINKS_MATERIALS,	"MATERIAL", 0, "Materials", ""},
 		{MAKE_LINKS_ANIMDATA,	"ANIMATION", 0, "Animation Data", ""},
 		{MAKE_LINKS_DUPLIGROUP,	"DUPLIGROUP", 0, "DupliGroup", ""},
+		{MAKE_LINKS_MODIFIERS,	"MODIFIERS", 0, "Modifiers", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	PropertyRNA *prop;

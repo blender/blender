@@ -207,6 +207,27 @@ void object_free_modifiers(Object *ob)
 	object_free_softbody(ob);
 }
 
+void object_link_modifiers(struct Object *ob, struct Object *from)
+{
+	ModifierData *md;
+	object_free_modifiers(ob);
+
+	for (md=from->modifiers.first; md; md=md->next) {
+		ModifierData *nmd = NULL;
+
+		if(ELEM4(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance, eModifierType_Collision)) continue;
+
+		nmd = modifier_new(md->type);
+		modifier_copyData(md, nmd);
+		BLI_addtail(&ob->modifiers, nmd);
+	}
+
+	copy_object_particlesystems(from, ob);
+	copy_object_softbody(from, ob);
+
+	// TODO: smoke?, cloth?
+}
+
 /* here we will collect all local displist stuff */
 /* also (ab)used in depsgraph */
 void object_free_display(Object *ob)
