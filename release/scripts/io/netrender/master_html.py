@@ -181,11 +181,11 @@ def get(handler):
                         link(job.name, "/html/job" + job.id),
                         job.category if job.category else "<i>None</i>",
                         str(job.chunks) +
-                        """<button title="increase priority" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);">+</button>""" % (job.id, job.chunks + 1) +
-                        """<button title="decrease priority" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);" %s>-</button>""" % (job.id, job.chunks - 1, "disabled=True" if job.chunks == 1 else ""),
+                        """<button title="increase chunks size" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);">+</button>""" % (job.id, job.chunks + 1) +
+                        """<button title="decrease chunks size" onclick="request('/edit_%s', &quot;{'chunks': %i}&quot;);" %s>-</button>""" % (job.id, job.chunks - 1, "disabled=True" if job.chunks == 1 else ""),
                         str(job.priority) +
-                        """<button title="increase chunks size" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);">+</button>""" % (job.id, job.priority + 1) +
-                        """<button title="decrease chunks size" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);" %s>-</button>""" % (job.id, job.priority - 1, "disabled=True" if job.priority == 1 else ""),
+                        """<button title="increase priority" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);">+</button>""" % (job.id, job.priority + 1) +
+                        """<button title="decrease priority" onclick="request('/edit_%s', &quot;{'priority': %i}&quot;);" %s>-</button>""" % (job.id, job.priority - 1, "disabled=True" if job.priority == 1 else ""),
                         "%0.1f%%" % (job.usage * 100),
                         "%is" % int(time.time() - job.last_dispatched),
                         job.statusText(),
