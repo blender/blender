@@ -336,12 +336,12 @@ def fk(obj, bone_definition, base_names, options):
 
     fcurve = con.driver_add("influence", 0)
     driver = fcurve.driver
-    tar = driver.targets.new()
+    var = driver.variables.new()
     driver.type = 'AVERAGE'
-    tar.name = "var"
-    tar.id_type = 'OBJECT'
-    tar.id = obj
-    tar.data_path = hinge_driver_path
+    var.name = "var"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = hinge_driver_path
 
     mod = fcurve.modifiers[0]
     mod.poly_order = 1

@@ -1699,10 +1699,19 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 		/* driver data */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
 			
-			for (dtar= driver->targets.first; dtar; dtar= dtar->next)
-				dtar->id= newlibadr(fd, id->lib, dtar->id); 
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				DRIVER_TARGETS_LOOPER(dvar)
+				{	
+					/* only relink if still used */
+					if (tarIndex < dvar->num_targets)
+						dtar->id= newlibadr(fd, id->lib, dtar->id); 
+					else
+						dtar->id= NULL;
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
 		}
 		
 		/* modifiers */
@@ -1770,12 +1779,21 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		fcu->driver= newdataadr(fd, fcu->driver);
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
 			
-			/* relink targets and their paths */
-			link_list(fd, &driver->targets);
-			for (dtar= driver->targets.first; dtar; dtar= dtar->next)
-				dtar->rna_path= newdataadr(fd, dtar->rna_path);
+			/* relink variables, targets and their paths */
+			link_list(fd, &driver->variables);
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				DRIVER_TARGETS_LOOPER(dvar)
+				{
+					/* only relink the targets being used */
+					if (tarIndex < dvar->num_targets)
+						dtar->rna_path= newdataadr(fd, dtar->rna_path);
+					else
+						dtar->rna_path= NULL;
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
 		}
 		
 		/* modifiers */
@@ -10764,10 +10782,16 @@ static void expand_fcurves(FileData *fd, Main *mainvar, ListBase *list)
 		/* Driver targets if there is a driver */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
 			
-			for (dtar= driver->targets.first; dtar; dtar= dtar->next)
-				expand_doit(fd, mainvar, dtar->id);
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				DRIVER_TARGETS_LOOPER(dvar) 
+				{
+					// TODO: only expand those that are going to get used?
+					expand_doit(fd, mainvar, dtar->id);
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
 		}
 		
 		/* F-Curve Modifiers */

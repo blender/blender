@@ -238,12 +238,12 @@ def main(obj, bone_definition, base_names, options):
 
     fcurve = con.driver_add("influence", 0)
     driver = fcurve.driver
-    tar = driver.targets.new()
+    var = driver.variables.new()
     driver.type = 'AVERAGE'
-    tar.name = "var"
-    tar.id_type = 'OBJECT'
-    tar.id = obj
-    tar.data_path = hinge_driver_path
+    var.name = "var"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = hinge_driver_path
 
     #mod = fcurve_driver.modifiers.new('GENERATOR')
     mod = fcurve.modifiers[0]
@@ -262,11 +262,11 @@ def main(obj, bone_definition, base_names, options):
     fcurve.modifiers.remove(0) # grr dont need a modifier
 
     for i in range(len(neck_chain)):
-        tar = driver.targets.new()
-        tar.name = target_names[i]
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = head_driver_path + ('["bend_%.2d"]' % (i + 1))
+        var = driver.variables.new()
+        var.name = target_names[i]
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = head_driver_path + ('["bend_%.2d"]' % (i + 1))
 
 
     for i, attr in enumerate(ex_chain.attr_names):
@@ -302,17 +302,17 @@ def main(obj, bone_definition, base_names, options):
 
 
         # add target
-        tar = driver.targets.new()
-        tar.name = "bend_tot"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = head_driver_path + ('["bend_tot"]')
+        var = driver.variables.new()
+        var.name = "bend_tot"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = head_driver_path + ('["bend_tot"]')
 
-        tar = driver.targets.new()
-        tar.name = "bend"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = head_driver_path + ('["%s"]' % prop_name)
+        var = driver.variables.new()
+        var.name = "bend"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = head_driver_path + ('["%s"]' % prop_name)
 
 
         # finally constrain the original bone to this one

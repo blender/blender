@@ -1500,13 +1500,18 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		
 		for (fcu= ob->adt->drivers.first; fcu; fcu= fcu->next) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
 			
-			for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
-				if ((Object *)dtar->id == target)
-					dtar->id= (ID *)ob;
-				else
-					id_lib_extern((ID *)dtar->id);
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				/* all drivers */
+				DRIVER_TARGETS_LOOPER(dvar) 
+				{
+					if ((Object *)dtar->id == target)
+						dtar->id= (ID *)ob;
+					else
+						id_lib_extern((ID *)dtar->id);
+				}
+				DRIVER_TARGETS_LOOPER_END
 			}
 		}
 	}

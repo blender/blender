@@ -969,7 +969,6 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 {
 	ChannelDriver *cdriver;
-	DriverTarget *dtar=NULL, *dtar2=NULL;
 	
 	/* allocate memory for new driver */
 	cdriver= MEM_callocN(sizeof(ChannelDriver), "ChannelDriver");
@@ -981,7 +980,10 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 		cdriver->type = DRIVER_TYPE_PYTHON;
 		strcpy(cdriver->expression, idriver->name); // XXX is this safe? 
 	}
+#if 0 // XXX needs changes for the new system
 	else {
+		DriverTarget *dtar=NULL, *dtar2=NULL;
+		
 		/* what to store depends on the 'blocktype' (ID_OB or ID_PO - object or posechannel) */
 		if (idriver->blocktype == ID_AR) {
 			/* ID_PO */
@@ -1058,6 +1060,7 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 			dtar->rna_path= get_rna_access(ID_OB, idriver->adrcode, NULL, NULL, &dtar->array_index);
 		}
 	}
+#endif // XXX fixme
 	
 	/* return the new one */
 	return cdriver;
@@ -1288,8 +1291,9 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 				 *	- need to go from degrees to radians...
 				 * 	- there's only really 1 target to worry about 
 				 */
-				if (fcu->driver && fcu->driver->targets.first) {
-					DriverTarget *dtar= fcu->driver->targets.first;
+				if (fcu->driver && fcu->driver->variables.first) {
+					DriverVar *dvar= fcu->driver->variables.first;
+					DriverTarget *dtar= &dvar->targets[0];
 					
 					/* since drivers could only be for objects, we should just check for 'rotation' being 
 					 * in the name of the path given

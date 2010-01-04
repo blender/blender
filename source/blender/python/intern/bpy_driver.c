@@ -147,7 +147,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	PyObject *retval= NULL;
 	PyGILState_STATE gilstate;
 
-	DriverTarget *dtar;
+	DriverVar *dvar;
 	float result = 0.0f; /* default return */
 	char *expr = NULL;
 	short targets_ok= 1;
@@ -174,24 +174,24 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 
 	/* add target values to a dict that will be used as '__locals__' dict */
 	driver_vars = PyDict_New(); // XXX do we need to decref this?
-	for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
+	for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
 		PyObject *driver_arg = NULL;
 		float tval = 0.0f;
-
+		
 		/* try to get variable value */
-		tval= driver_get_target_value(driver, dtar);
+		tval= driver_get_variable_value(driver, dvar);
 		driver_arg= PyFloat_FromDouble((double)tval);
-
+		
 		/* try to add to dictionary */
-		if (PyDict_SetItemString(driver_vars, dtar->name, driver_arg)) {
+		if (PyDict_SetItemString(driver_vars, dvar->name, driver_arg)) {
 			/* this target failed - bad name */
 			if (targets_ok) {
 				/* first one - print some extra info for easier identification */
 				fprintf(stderr, "\nBPY_pydriver_eval() - Error while evaluating PyDriver:\n");
 				targets_ok= 0;
 			}
-
-			fprintf(stderr, "\tBPY_pydriver_eval() - couldn't add variable '%s' to namespace \n", dtar->name);
+			
+			fprintf(stderr, "\tBPY_pydriver_eval() - couldn't add variable '%s' to namespace \n", dvar->name);
 			// BPy_errors_to_report(NULL); // TODO - reports
 			PyErr_Print();
 			PyErr_Clear();
@@ -202,12 +202,14 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	/* execute expression to get a value */
 	retval = PyRun_String(expr, Py_eval_input, bpy_pydriver_Dict, driver_vars);
 #else
-	if(driver->flag & DRIVER_FLAG_RECOMPILE || driver->expr_comp==NULL) {
+	/* compile the expression first if it hasn't been compiled or needs to be rebuilt */
+	if((driver->flag & DRIVER_FLAG_RECOMPILE) || (driver->expr_comp==NULL)) {
 		Py_XDECREF(driver->expr_comp);
 		driver->expr_comp= Py_CompileString(expr, "<bpy driver>", Py_eval_input);
 		driver->flag &= ~DRIVER_FLAG_RECOMPILE;
 	}
-	if(driver->expr_comp)
+	/* evaluate the compiled expression */
+	if (driver->expr_comp)
 		retval= PyEval_EvalCode(driver->expr_comp, bpy_pydriver_Dict, driver_vars);
 #endif
 

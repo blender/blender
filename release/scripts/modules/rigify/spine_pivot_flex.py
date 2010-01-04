@@ -341,12 +341,12 @@ def main(obj, bone_definition, base_names, options):
     # add driver
     fcurve = con.driver_add("influence", 0)
     driver = fcurve.driver
-    tar = driver.targets.new()
+    var = driver.variables.new()
     driver.type = 'AVERAGE'
-    tar.name = "var"
-    tar.id_type = 'OBJECT'
-    tar.id = obj
-    tar.data_path = ex.ribcage_copy_p.path_to_id() + '["hinge"]'
+    var.name = "var"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = ex.ribcage_copy_p.path_to_id() + '["hinge"]'
 
     mod = fcurve.modifiers[0]
     mod.poly_order = 1
@@ -426,11 +426,11 @@ def main(obj, bone_definition, base_names, options):
     fcurve.modifiers.remove(0) # grr dont need a modifier
 
     for i in range(spine_chain_len - 1):
-        tar = driver.targets.new()
-        tar.name = target_names[i]
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = rib_driver_path + ('["bend_%.2d"]' % (i + 1))
+        var = driver.variables.new()
+        var.name = target_names[i]
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = rib_driver_path + ('["bend_%.2d"]' % (i + 1))
 
     for i in range(1, spine_chain_len):
 
@@ -461,17 +461,17 @@ def main(obj, bone_definition, base_names, options):
 
 
         # add target
-        tar = driver.targets.new()
-        tar.name = "bend_tot"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = rib_driver_path + ('["bend_tot"]')
+        var = driver.variables.new()
+        var.name = "bend_tot"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = rib_driver_path + ('["bend_tot"]')
 
-        tar = driver.targets.new()
-        tar.name = "bend"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = rib_driver_path + ('["%s"]' % prop_name)
+        var = driver.variables.new()
+        var.name = "bend"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = rib_driver_path + ('["%s"]' % prop_name)
 
 
 
@@ -509,12 +509,12 @@ def main(obj, bone_definition, base_names, options):
 
         fcurve = con.driver_add("influence", 0)
         driver = fcurve.driver
-        tar = driver.targets.new()
+        var = driver.variables.new()
         driver.type = 'AVERAGE'
-        tar.name = "var"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = rib_driver_path + '["pivot_slide"]'
+        var.name = "var"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = rib_driver_path + '["pivot_slide"]'
 
         mod = fcurve.modifiers[0]
         mod.poly_order = 1

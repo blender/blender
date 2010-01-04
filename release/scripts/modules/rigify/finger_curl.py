@@ -251,18 +251,18 @@ def main(obj, bone_definition, base_names, options):
         driver = fcurve_driver.driver
 
         # scale target
-        tar = driver.targets.new()
-        tar.name = "scale"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = controller_path + '.scale[1]'
+        var = driver.variables.new()
+        var.name = "scale"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = controller_path + '.scale[1]'
 
         # bend target
-        tar = driver.targets.new()
-        tar.name = "br"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = controller_path + '["bend_ratio"]'
+        var = driver.variables.new()
+        var.name = "br"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = controller_path + '["bend_ratio"]'
 
         # XXX - todo, any number
         if i == 0:

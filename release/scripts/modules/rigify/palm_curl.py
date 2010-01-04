@@ -169,22 +169,22 @@ def main(obj, bone_definition, base_names, options):
     driver = driver_fcurves[0].driver
     driver.type = 'AVERAGE'
 
-    tar = driver.targets.new()
-    tar.name = "x"
-    tar.id_type = 'OBJECT'
-    tar.id = obj
-    tar.data_path = controller_path + ".rotation_euler[0]"
+    var = driver.variables.new()
+    var.name = "x"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = controller_path + ".rotation_euler[0]"
 
 
     # *****
     driver = driver_fcurves[1].driver
     driver.expression = "-x/4.0"
 
-    tar = driver.targets.new()
-    tar.name = "x"
-    tar.id_type = 'OBJECT'
-    tar.id = obj
-    tar.data_path = controller_path + ".rotation_euler[0]"
+    var = driver.variables.new()
+    var.name = "x"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = controller_path + ".rotation_euler[0]"
 
 
     # *****
@@ -194,17 +194,17 @@ def main(obj, bone_definition, base_names, options):
     for fcurve in driver_fcurves:
         fcurve.modifiers.remove(0) # grr dont need a modifier
 
-    tar = driver.targets.new()
-    tar.name = "x"
-    tar.id_type = 'OBJECT'
-    tar.id = obj
-    tar.data_path = controller_path + ".rotation_euler[0]"
+    var = driver.variables.new()
+    var.name = "x"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = controller_path + ".rotation_euler[0]"
 
-    tar = driver.targets.new()
-    tar.name = "s"
-    tar.id_type = 'OBJECT'
-    tar.id = obj
-    tar.data_path = controller_path + '["spread"]'
+    var = driver.variables.new()
+    var.name = "s"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = controller_path + '["spread"]'
 
 
     for i, child_name in enumerate(children):

@@ -68,6 +68,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_effect.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_key.h"
@@ -316,28 +317,38 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 	
 	for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
 		ChannelDriver *driver= fcu->driver;
-		DriverTarget *dtar;
+		DriverVar *dvar;
 		
-		/* loop over targets, adding relationships as appropriate */
-		for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
-			if (dtar->id) {
-				if (GS(dtar->id->name)==ID_OB) {
-					Object *ob= (Object *)dtar->id;
-					
-					/* normal channel-drives-channel */
-					node1 = dag_get_node(dag, dtar->id);
-					
-					/* check if bone... */
-					if ((ob->type==OB_ARMATURE) && dtar->rna_path && strstr(dtar->rna_path, "pose.bones["))
-						dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
-					/* check if ob data */
-					else if (dtar->rna_path && strstr(dtar->rna_path, "data."))
-						dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
-					/* normal */
-					else
-						dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Driver");
+		/* loop over variables to get the target relationships */
+		for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+			/* only used targets */
+			DRIVER_TARGETS_USED_LOOPER(dvar) 
+			{
+				if (dtar->id) {
+					// FIXME: other data types need to be added here so that they can work!
+					if (GS(dtar->id->name)==ID_OB) {
+						Object *ob= (Object *)dtar->id;
+						
+						/* normal channel-drives-channel */
+						node1 = dag_get_node(dag, dtar->id);
+						
+						/* check if bone... */
+						if ((ob->type==OB_ARMATURE) && 
+							( ((dtar->rna_path) && strstr(dtar->rna_path, "pose.bones[")) || 
+							  ((dtar->flag & DTAR_FLAG_STRUCT_REF) && (dtar->pchan_name[0])) )) 
+						{
+							dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+						}
+						/* check if ob data */
+						else if (dtar->rna_path && strstr(dtar->rna_path, "data."))
+							dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+						/* normal */
+						else
+							dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Driver");
+					}
 				}
 			}
+			DRIVER_TARGETS_LOOPER_END
 		}
 	}
 }

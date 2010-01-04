@@ -138,11 +138,11 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
     driver_path = prop_pbone.path_to_id() + ('["%s"]' % target_prop)
 
     def blend_target(driver):
-        tar = driver.targets.new()
-        tar.name = target_bone
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = driver_path
+        var = driver.variables.new()
+        var.name = target_bone
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = driver_path
 
     def blend_location(new_pbone, from_bone_name, to_bone_name):
         con = new_pbone.constraints.new('COPY_LOCATION')

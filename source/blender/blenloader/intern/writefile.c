@@ -932,22 +932,27 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 		/* driver data */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
 			
 			/* don't save compiled python bytecode */
 			void *expr_comp= driver->expr_comp;
 			driver->expr_comp= NULL;
-
+			
 			writestruct(wd, DATA, "ChannelDriver", 1, driver);
 			
 			driver->expr_comp= expr_comp; /* restore */
-
-			/* targets */
-			for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
-				writestruct(wd, DATA, "DriverTarget", 1, dtar);
+			
+			
+			/* variables */
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				writestruct(wd, DATA, "DriverVar", 1, dvar);
 				
-				if (dtar->rna_path)
-					writedata(wd, DATA, strlen(dtar->rna_path)+1, dtar->rna_path);
+				DRIVER_TARGETS_USED_LOOPER(dvar)
+				{
+					if (dtar->rna_path)
+						writedata(wd, DATA, strlen(dtar->rna_path)+1, dtar->rna_path);
+				}
+				DRIVER_TARGETS_LOOPER_END
 			}
 		}
 		

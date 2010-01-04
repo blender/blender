@@ -41,6 +41,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
@@ -48,6 +49,7 @@
 
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
+#include "BKE_action.h"
 
 #include "BKE_curve.h" 
 #include "BKE_global.h"
@@ -735,108 +737,31 @@ short test_time_fcurve (FCurve *fcu)
 
 /* ***************************** Drivers ********************************* */
 
-/* Driver API --------------------------------- */
+/* Driver Variables --------------------------- */
 
-/* This frees the driver target itself */
-void driver_free_target (ChannelDriver *driver, DriverTarget *dtar)
-{
-	/* sanity checks */
-	if (dtar == NULL)
-		return;
-		
-	/* free target vars */
-	if (dtar->rna_path)
-		MEM_freeN(dtar->rna_path);
+/* TypeInfo for Driver Variables (dvti) */
+typedef struct DriverVarTypeInfo {
+	/* evaluation callback */
+	float (*get_value)(ChannelDriver *driver, DriverVar *dvar);
 	
-	/* remove the target from the driver */
-	if (driver)
-		BLI_freelinkN(&driver->targets, dtar);
-	else
-		MEM_freeN(dtar);
-}
+	/* allocation of target slots */
+	int num_targets; 						/* number of target slots required */
+	char *target_names[MAX_DRIVER_TARGETS];	/* UI names that should be given to the slots */
+	int target_flags[MAX_DRIVER_TARGETS];	/* flags defining the requirements for each slot */
+} DriverVarTypeInfo;
 
-/* Add a new driver target variable */
-DriverTarget *driver_add_new_target (ChannelDriver *driver)
-{
-	DriverTarget *dtar;
+/* Macro to begin definitions */
+#define BEGIN_DVAR_TYPEDEF(type) \
+	{
 	
-	/* sanity checks */
-	if (driver == NULL)
-		return NULL;
-		
-	/* make a new target */
-	dtar= MEM_callocN(sizeof(DriverTarget), "DriverTarget");
-	BLI_addtail(&driver->targets, dtar);
-	
-	/* make the default ID-type ID_OB, since most driver targets refer to objects */
-	dtar->idtype= ID_OB;
-	
-	/* give the target a 'unique' name */
-	strcpy(dtar->name, "var");
-	BLI_uniquename(&driver->targets, dtar, "var", '_', offsetof(DriverTarget, name), 64);
-	
-	/* return the target */
-	return dtar;
-}
-
-/* This frees the driver itself */
-void fcurve_free_driver(FCurve *fcu)
-{
-	ChannelDriver *driver;
-	DriverTarget *dtar, *dtarn;
-	
-	/* sanity checks */
-	if ELEM(NULL, fcu, fcu->driver)
-		return;
-	driver= fcu->driver;
-	
-	/* free driver targets */
-	for (dtar= driver->targets.first; dtar; dtar= dtarn) {
-		dtarn= dtar->next;
-		driver_free_target(driver, dtar);
+/* Macro to end definitions */
+#define END_DVAR_TYPEDEF \
 	}
 
-#ifndef DISABLE_PYTHON
-	if(driver->expr_comp)
-		BPY_DECREF(driver->expr_comp);
-#endif
-
-	/* free driver itself, then set F-Curve's point to this to NULL (as the curve may still be used) */
-	MEM_freeN(driver);
-	fcu->driver= NULL;
-}
-
-/* This makes a copy of the given driver */
-ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
-{
-	ChannelDriver *ndriver;
-	DriverTarget *dtar;
-	
-	/* sanity checks */
-	if (driver == NULL)
-		return NULL;
-		
-	/* copy all data */
-	ndriver= MEM_dupallocN(driver);
-	
-	/* copy targets */
-	ndriver->targets.first= ndriver->targets.last= NULL;
-	BLI_duplicatelist(&ndriver->targets, &driver->targets);
-	
-	for (dtar= ndriver->targets.first; dtar; dtar= dtar->next) {
-		/* make a copy of target's rna path if available */
-		if (dtar->rna_path)
-			dtar->rna_path = MEM_dupallocN(dtar->rna_path);
-	}
-	
-	/* return the new driver */
-	return ndriver;
-}
-
-/* Driver Evaluation -------------------------- */
+/* ......... */
 
 /* Helper function to obtain a value using RNA from the specified source (for evaluating drivers) */
-float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
+static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
@@ -853,22 +778,18 @@ float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 	RNA_id_pointer_create(dtar->id, &id_ptr);
 	id= dtar->id;
 	path= dtar->rna_path;
-	index= dtar->array_index;
 	
 	/* error check for missing pointer... */
+	// TODO: tag the specific target too as having issues
 	if (id == NULL) {
-		printf("Error: driver doesn't have any valid target to use \n");
-		if (G.f & G_DEBUG) printf("\tpath = %s [%d] \n", path, index);
+		printf("Error: driver has an invalid target to use \n");
+		if (G.f & G_DEBUG) printf("\tpath = %s\n", path);
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
 	}
 	
 	/* get property to read from, and get value as appropriate */
 	if (RNA_path_resolve_full(&id_ptr, path, &ptr, &prop, &index)) {
-		/* for now, if there is no valid index, fall back to the array-index specified separately */
-		if (index == -1)
-			index= dtar->array_index;
-		
 		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
 				if (RNA_property_array_length(&ptr, prop))
@@ -906,39 +827,326 @@ float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 	return value;
 }
 
-/* Get two PoseChannels from the targets of the given Driver */
-static void driver_get_target_pchans2 (ChannelDriver *driver, bPoseChannel **pchan1, bPoseChannel **pchan2)
+/* Helper function to obtain a pointer to a Pose Channel (for evaluating drivers) */
+static bPoseChannel *dtar_get_pchan_ptr (ChannelDriver *driver, DriverTarget *dtar)
 {
-	DriverTarget *dtar;
-	short i = 0;
-	
-	/* before doing anything */
-	*pchan1= NULL;
-	*pchan2= NULL;
-	
-	/* only take the first two targets */
-	for (dtar= driver->targets.first; (dtar) && (i < 2); dtar=dtar->next, i++) {
-		PointerRNA id_ptr, ptr;
-		PropertyRNA *prop;
+	/* sanity check */
+	if ELEM(NULL, driver, dtar)
+		return NULL;
 		
-		/* get RNA-pointer for the ID-block given in target */
-		if (dtar->id)
-			RNA_id_pointer_create(dtar->id, &id_ptr);
-		else
-			continue;
+	/* check if the ID here is a valid object */
+	if ((dtar->id) && GS(dtar->id->name)) {
+		Object *ob= (Object *)dtar->id;
 		
-		/* resolve path so that we have pointer to the right posechannel */
-		if (RNA_path_resolve(&id_ptr, dtar->rna_path, &ptr, &prop)) {
-			/* is pointer valid (i.e. pointing to an actual posechannel */
-			if ((ptr.type == &RNA_PoseBone) && (ptr.data)) {
-				/* first or second target? */
-				if (i)
-					*pchan1= ptr.data;
-				else
-					*pchan2= ptr.data;
-			}
+		/* get pose, and subsequently, posechannel */
+		return get_pose_channel(ob->pose, dtar->pchan_name);
+	}
+	else {
+		/* cannot find a posechannel this way */
+		return NULL;
+	}
+}
+
+/* ......... */
+
+/* evaluate 'single prop' driver variable */
+static float dvar_eval_singleProp (ChannelDriver *driver, DriverVar *dvar)
+{
+	/* just evaluate the first target slot */
+	return dtar_get_prop_val(driver, &dvar->targets[0]);
+}
+
+/* evaluate 'rotation difference' driver variable */
+static float dvar_eval_rotDiff (ChannelDriver *driver, DriverVar *dvar)
+{
+	bPoseChannel *pchan, *pchan2;
+	float q1[4], q2[4], quat[4], angle;
+	
+	/* get pose channels, and check if we've got two */
+	pchan= dtar_get_pchan_ptr(driver, &dvar->targets[0]);
+	pchan2= dtar_get_pchan_ptr(driver, &dvar->targets[1]);
+	
+	if (ELEM(NULL, pchan, pchan2)) {
+		/* disable this driver, since it doesn't work correctly... */
+		driver->flag |= DRIVER_FLAG_INVALID;
+		
+		/* check what the error was */
+		if ((pchan == NULL) && (pchan2 == NULL))
+			printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid \n");
+		else if (pchan == NULL)
+			printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel \n");
+		else if (pchan2 == NULL)
+			printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel \n");
+			
+		/* stop here... */
+		return 0.0f;
+	}			
+	
+	/* use the final posed locations */
+	mat4_to_quat(q1, pchan->pose_mat);
+	mat4_to_quat(q2, pchan2->pose_mat);
+	
+	invert_qt(q1);
+	mul_qt_qtqt(quat, q1, q2);
+	angle = 2.0f * (saacos(quat[0]));
+	angle= ABS(angle);
+	
+	return (angle > M_PI) ? (float)((2.0f * M_PI) - angle) : (float)(angle);
+}
+
+/* evaluate 'location difference' driver variable */
+// TODO: this needs to take into account space conversions...
+static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
+{
+	float loc1[3] = {0.0f,0.0f,0.0f};
+	float loc2[3] = {0.0f,0.0f,0.0f};
+	
+	/* get two location values */
+	// NOTE: for now, these are all just worldspace
+	DRIVER_TARGETS_USED_LOOPER(dvar)
+	{
+		/* get pointer to loc values to store in */
+		Object *ob= (Object *)dtar->id;
+		bPoseChannel *pchan;
+		float tmp_loc[3];
+		
+		/* check if this target has valid data */
+		if ((ob == NULL) || (GS(dtar->id->name) != ID_OB)) {
+			/* invalid target, so will not have enough targets */
+			driver->flag |= DRIVER_FLAG_INVALID;
+			return 0.0f;
+		}
+		
+		/* try to get posechannel */
+		pchan= get_pose_channel(ob->pose, dtar->pchan_name);
+		
+		/* check if object or bone */
+		if (pchan) {
+			/* bone - need to convert to worldspace */
+			VECCOPY(tmp_loc, pchan->pose_head);
+			mul_m4_v3(ob->obmat, tmp_loc);
+		}
+		else {
+			/* object, already in worldspace */
+			VECCOPY(tmp_loc, ob->obmat[3]); 
+		}
+		
+		/* copy the location to the right place */
+		if (tarIndex) {
+			VECCOPY(loc2, tmp_loc);
+		}
+		else {
+			VECCOPY(loc1, tmp_loc);
 		}
 	}
+	DRIVER_TARGETS_LOOPER_END
+	
+	
+	/* if we're still here, there should now be two targets to use,
+	 * so just take the length of the vector between these points 
+	 */
+	return len_v3v3(loc1, loc2);
+}
+
+/* ......... */
+
+/* Table of Driver Varaiable Type Info Data */
+DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
+	BEGIN_DVAR_TYPEDEF(DVAR_TYPE_SINGLE_PROP)
+		dvar_eval_singleProp, /* eval callback */
+		1, /* number of targets used */
+		{"Property"}, /* UI names for targets */
+		{0} /* flags */
+	END_DVAR_TYPEDEF,
+	
+	BEGIN_DVAR_TYPEDEF(DVAR_TYPE_ROT_DIFF)
+		dvar_eval_rotDiff, /* eval callback */
+		2, /* number of targets used */
+		{"Bone 1", "Bone 2"}, /* UI names for targets */
+		{DTAR_FLAG_STRUCT_REF|DTAR_FLAG_ID_OB_ONLY, DTAR_FLAG_STRUCT_REF|DTAR_FLAG_ID_OB_ONLY} /* flags */
+	END_DVAR_TYPEDEF,
+	
+	BEGIN_DVAR_TYPEDEF(DVAR_TYPE_LOC_DIFF)
+		dvar_eval_locDiff, /* eval callback */
+		2, /* number of targets used */
+		{"Object/Bone 1", "Object/Bone 2"}, /* UI names for targets */
+		{DTAR_FLAG_STRUCT_REF|DTAR_FLAG_ID_OB_ONLY, DTAR_FLAG_STRUCT_REF|DTAR_FLAG_ID_OB_ONLY} /* flags */
+	END_DVAR_TYPEDEF
+};
+
+/* Get driver variable typeinfo */
+DriverVarTypeInfo *get_dvar_typeinfo (int type)
+{
+	/* check if valid type */
+	if ((type >= 0) && (type < MAX_DVAR_TYPES))
+		return &dvar_types[type];
+	else
+		return NULL;
+}
+
+/* Driver API --------------------------------- */
+
+/* This frees the driver variable itself */
+void driver_free_variable (ChannelDriver *driver, DriverVar *dvar)
+{
+	/* sanity checks */
+	if (dvar == NULL)
+		return;
+		
+	/* free target vars 
+	 *	- need to go over all of them, not just up to the ones that are used
+	 *	  currently, since there may be some lingering RNA paths from 
+	 * 	  previous users needing freeing
+	 */
+	DRIVER_TARGETS_LOOPER(dvar) 
+	{
+		/* free RNA path if applicable */
+		if (dtar->rna_path)
+			MEM_freeN(dtar->rna_path);
+	}
+	DRIVER_TARGETS_LOOPER_END
+	
+	/* remove the variable from the driver */
+	if (driver)
+		BLI_freelinkN(&driver->variables, dvar);
+	else
+		MEM_freeN(dvar);
+}
+
+/* Change the type of driver variable */
+void driver_change_variable_type (DriverVar *dvar, int type)
+{
+	DriverVarTypeInfo *dvti= get_dvar_typeinfo(type);
+	
+	/* sanity check */
+	if (ELEM(NULL, dvar, dvti))
+		return;
+		
+	/* set the new settings */
+	dvar->type= type;
+	dvar->num_targets= dvti->num_targets;
+	
+	/* make changes to the targets based on the defines for these types 
+	 * NOTE: only need to make sure the ones we're using here are valid...
+	 */
+	DRIVER_TARGETS_USED_LOOPER(dvar)
+	{
+		int flags = dvti->target_flags[tarIndex];
+		
+		/* store the flags */
+		dtar->flag = flags;
+		
+		/* object ID types only, or idtype not yet initialised*/
+		if ((flags & DTAR_FLAG_ID_OB_ONLY) || (dtar->idtype == 0))
+			dtar->idtype= ID_OB;
+	}
+	DRIVER_TARGETS_LOOPER_END
+}
+
+/* Add a new driver variable */
+DriverVar *driver_add_new_variable (ChannelDriver *driver)
+{
+	DriverVar *dvar;
+	
+	/* sanity checks */
+	if (driver == NULL)
+		return NULL;
+		
+	/* make a new variable */
+	dvar= MEM_callocN(sizeof(DriverVar), "DriverVar");
+	BLI_addtail(&driver->variables, dvar);
+	
+	/* give the variable a 'unique' name */
+	strcpy(dvar->name, "var");
+	BLI_uniquename(&driver->variables, dvar, "var", '_', offsetof(DriverVar, name), 64);
+	
+	/* set the default type to 'single prop' */
+	driver_change_variable_type(dvar, DVAR_TYPE_SINGLE_PROP);
+	
+	/* return the target */
+	return dvar;
+}
+
+/* This frees the driver itself */
+void fcurve_free_driver(FCurve *fcu)
+{
+	ChannelDriver *driver;
+	DriverVar *dvar, *dvarn;
+	
+	/* sanity checks */
+	if ELEM(NULL, fcu, fcu->driver)
+		return;
+	driver= fcu->driver;
+	
+	/* free driver targets */
+	for (dvar= driver->variables.first; dvar; dvar= dvarn) {
+		dvarn= dvar->next;
+		driver_free_variable(driver, dvar);
+	}
+
+#ifndef DISABLE_PYTHON
+	/* free compiled driver expression */
+	if (driver->expr_comp)
+		BPY_DECREF(driver->expr_comp);
+#endif
+
+	/* free driver itself, then set F-Curve's point to this to NULL (as the curve may still be used) */
+	MEM_freeN(driver);
+	fcu->driver= NULL;
+}
+
+/* This makes a copy of the given driver */
+ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
+{
+	ChannelDriver *ndriver;
+	DriverVar *dvar;
+	
+	/* sanity checks */
+	if (driver == NULL)
+		return NULL;
+		
+	/* copy all data */
+	ndriver= MEM_dupallocN(driver);
+	
+	/* copy variables */
+	ndriver->variables.first= ndriver->variables.last= NULL;
+	BLI_duplicatelist(&ndriver->variables, &driver->variables);
+	
+	for (dvar= ndriver->variables.first; dvar; dvar= dvar->next) {	
+		/* need to go over all targets so that we don't leave any dangling paths */
+		DRIVER_TARGETS_LOOPER(dvar) 
+		{	
+			/* make a copy of target's rna path if available */
+			if (dtar->rna_path)
+				dtar->rna_path = MEM_dupallocN(dtar->rna_path);
+		}
+		DRIVER_TARGETS_LOOPER_END
+	}
+	
+	/* return the new driver */
+	return ndriver;
+}
+
+/* Driver Evaluation -------------------------- */
+
+/* Evaluate a Driver Variable to get a value that contributes to the final */
+float driver_get_variable_value (ChannelDriver *driver, DriverVar *dvar)
+{
+	DriverVarTypeInfo *dvti;
+	
+	/* sanity check */
+	if (ELEM(NULL, driver, dvar))
+		return 0.0f;
+	
+	/* call the relevant callbacks to get the variable value 
+	 * using the variable type info
+	 */
+	dvti= get_dvar_typeinfo(dvar->type);
+	
+	if (dvti && dvti->get_value)
+		return dvti->get_value(driver, dvar);
+	else
+		return 0.0f;
 }
 
 /* Evaluate an Channel-Driver to get a 'time' value to use instead of "evaltime"
@@ -947,22 +1155,21 @@ static void driver_get_target_pchans2 (ChannelDriver *driver, bPoseChannel **pch
  */
 static float evaluate_driver (ChannelDriver *driver, float evaltime)
 {
-	DriverTarget *dtar;
+	DriverVar *dvar;
 	
 	/* check if driver can be evaluated */
 	if (driver->flag & DRIVER_FLAG_INVALID)
 		return 0.0f;
 	
-	// TODO: the flags for individual targets need to be used too for more fine-grained support...
 	switch (driver->type) {
 		case DRIVER_TYPE_AVERAGE: /* average values of driver targets */
 		case DRIVER_TYPE_SUM: /* sum values of driver targets */
 		{
-			/* check how many targets there are first (i.e. just one?) */
-			if (driver->targets.first == driver->targets.last) {
+			/* check how many variables there are first (i.e. just one?) */
+			if (driver->variables.first == driver->variables.last) {
 				/* just one target, so just use that */
-				dtar= driver->targets.first;
-				return driver_get_target_value(driver, dtar);
+				dvar= driver->variables.first;
+				return driver_get_variable_value(driver, dvar);
 			}
 			else {
 				/* more than one target, so average the values of the targets */
@@ -970,12 +1177,12 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 				float value = 0.0f;
 				
 				/* loop through targets, adding (hopefully we don't get any overflow!) */
-				for (dtar= driver->targets.first; dtar; dtar=dtar->next) {
-					value += driver_get_target_value(driver, dtar);
+				for (dvar= driver->variables.first; dvar; dvar=dvar->next) {
+					value += driver_get_variable_value(driver, dvar);
 					tot++;
 				}
 				
-				/* return the average of these */
+				/* perform operations on the total if appropriate */
 				if (driver->type == DRIVER_TYPE_AVERAGE)
 					return (value / (float)tot);
 				else
@@ -984,6 +1191,39 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			}
 		}
 			break;
+			
+		case DRIVER_TYPE_MIN: /* smallest value */
+		case DRIVER_TYPE_MAX: /* largest value */
+		{
+			float value = 0.0f;
+			
+			/* loop through the variables, getting the values and comparing them to existing ones */
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				/* get value */
+				float tmp_val= driver_get_variable_value(driver, dvar);
+				
+				/* store this value if appropriate */
+				if (dvar->prev) {
+					/* check if greater/smaller than the baseline */
+					if (driver->type == DRIVER_TYPE_MAX) {
+						/* max? */
+						if (tmp_val > value) 
+							value= tmp_val;
+					}
+					else {
+						/* min? */
+						if (tmp_val < value) 
+							value= tmp_val;
+					}
+				}
+				else {
+					/* first item - make this the baseline for comparisons */
+					value= tmp_val;
+				}
+			}
+		}
+			break;
+			
 		case DRIVER_TYPE_PYTHON: /* expression */
 		{
 #ifndef DISABLE_PYTHON
@@ -999,43 +1239,6 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			 */
 			return BPY_pydriver_eval(driver);
 #endif /* DISABLE_PYTHON*/
-		}
-			break;
-
-		
-		case DRIVER_TYPE_ROTDIFF: /* difference of rotations of 2 bones (should ideally be in same armature) */
-		{
-			bPoseChannel *pchan, *pchan2;
-			float q1[4], q2[4], quat[4], angle;
-			
-			/* get pose channels, and check if we've got two */
-			driver_get_target_pchans2(driver, &pchan, &pchan2);
-			if (ELEM(NULL, pchan, pchan2)) {
-				/* disable this driver, since it doesn't work correctly... */
-				driver->flag |= DRIVER_FLAG_INVALID;
-				
-				/* check what the error was */
-				if ((pchan == NULL) && (pchan2 == NULL))
-					printf("Driver Evaluation Error: Rotational difference failed - first 2 targets invalid \n");
-				else if (pchan == NULL)
-					printf("Driver Evaluation Error: Rotational difference failed - first target not valid PoseChannel \n");
-				else if (pchan2 == NULL)
-					printf("Driver Evaluation Error: Rotational difference failed - second target not valid PoseChannel \n");
-					
-				/* stop here... */
-				return 0.0f;
-			}			
-			
-			/* use the final posed locations */
-			mat4_to_quat(q1, pchan->pose_mat);
-			mat4_to_quat(q2, pchan2->pose_mat);
-			
-			invert_qt(q1);
-			mul_qt_qtqt(quat, q1, q2);
-			angle = 2.0f * (saacos(quat[0]));
-			angle= ABS(angle);
-			
-			return (angle > M_PI) ? (float)((2.0f * M_PI) - angle) : (float)(angle);
 		}
 			break;
 		

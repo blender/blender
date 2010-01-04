@@ -254,11 +254,11 @@ def fk(obj, definitions, base_names, options):
         driver = driver_fcurve.driver
         driver.type = 'AVERAGE'
 
-        tar = driver.targets.new()
-        tar.name = "hinge"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = controller_path + '["hinge"]'
+        var = driver.variables.new()
+        var.name = "hinge"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = controller_path + '["hinge"]'
 
         mod = driver_fcurve.modifiers[0]
         mod.poly_order = 1

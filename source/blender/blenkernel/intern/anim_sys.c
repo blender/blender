@@ -319,16 +319,32 @@ static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, 
 	/* we need to check every curve... */
 	for (fcu= curves->first; fcu; fcu= fcu->next) {
 		/* firstly, handle the F-Curve's own path */
-		fcu->rna_path= rna_path_rename_fix(owner_id, prefix, oldName, newName, fcu->rna_path);
+		if (fcu->rna_path)
+			fcu->rna_path= rna_path_rename_fix(owner_id, prefix, oldName, newName, fcu->rna_path);
 		
 		/* driver? */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
 			
-			/* driver targets */
-			for (dtar= driver->targets.first; dtar; dtar=dtar->next) {
-				dtar->rna_path= rna_path_rename_fix(dtar->id, prefix, oldName, newName, dtar->rna_path);
+			/* driver variables */
+			for (dvar= driver->variables.first; dvar; dvar=dvar->next) {
+				/* all targets (even unused ones) */
+				// XXX maybe we only need to modify the used ones, since the others can be manually fixed anyways
+				DRIVER_TARGETS_LOOPER(dvar) 
+				{
+					/* rename RNA path */
+					if (dtar->rna_path)
+						dtar->rna_path= rna_path_rename_fix(dtar->id, prefix, oldName, newName, dtar->rna_path);
+					
+					/* also fix the bone-name (if applicable) */
+					if ( ((dtar->id) && (GS(dtar->id->name) == ID_OB)) &&
+						 (dtar->pchan_name[0]) && (strcmp(oldName, dtar->pchan_name)==0) )
+					{
+						BLI_strncpy(dtar->pchan_name, newName, sizeof(dtar->pchan_name));
+					}
+				}
+				DRIVER_TARGETS_LOOPER_END
 			}
 		}
 	}

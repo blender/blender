@@ -264,18 +264,18 @@ static void driver_add_var_cb (bContext *C, void *driver_v, void *dummy_v)
 {
 	ChannelDriver *driver= (ChannelDriver *)driver_v;
 	
-	/* add a new var */
-	driver_add_new_target(driver);
+	/* add a new variable */
+	driver_add_new_variable(driver);
 }
 
 /* callback to remove target variable from active driver */
-static void driver_delete_var_cb (bContext *C, void *driver_v, void *dtar_v)
+static void driver_delete_var_cb (bContext *C, void *driver_v, void *dvar_v)
 {
 	ChannelDriver *driver= (ChannelDriver *)driver_v;
-	DriverTarget *dtar= (DriverTarget *)dtar_v;
+	DriverVar *dvar= (DriverVar *)dvar_v;
 	
-	/* remove the active target */
-	driver_free_target(driver, dtar);
+	/* remove the active variable */
+	driver_free_variable(driver, dvar);
 }
 
 /* callback to reset the driver's flags */
@@ -301,13 +301,115 @@ static int graph_panel_drivers_poll(const bContext *C, PanelType *pt)
 }
 
 
+/* settings for 'single property' driver variable type */
+static void graph_panel_driverVar__singleProp(const bContext *C, uiLayout *layout, ID *id, DriverVar *dvar)
+{
+	DriverTarget *dtar= &dvar->targets[0];
+	PointerRNA dtar_ptr;
+	uiLayout *row, *col;
+	uiBlock *block;
+	
+	/* initialise RNA pointer to the target */
+	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
+	
+	/* Target ID */
+	row= uiLayoutRow(layout, 0);
+		uiTemplateAnyID(row, (bContext *)C, &dtar_ptr, "id", "id_type", "Value:");
+	
+	/* Target Property */
+	// TODO: make this less technical...
+	if (dtar->id) {
+		PointerRNA root_ptr;
+		
+		/* get pointer for resolving the property selected */
+		RNA_id_pointer_create(dtar->id, &root_ptr);
+		
+		col= uiLayoutColumn(layout, 1);
+		block= uiLayoutGetBlock(col);
+			/* rna path */
+			uiTemplatePathBuilder(col, (bContext *)C, &dtar_ptr, "data_path", &root_ptr, "Path");
+	}
+}
+
+/* settings for 'rotation difference' driver variable type */
+static void graph_panel_driverVar__rotDiff(const bContext *C, uiLayout *layout, ID *id, DriverVar *dvar)
+{
+	DriverTarget *dtar= &dvar->targets[0];
+	DriverTarget *dtar2= &dvar->targets[1];
+	Object *ob1 = (Object *)dtar->id;
+	Object *ob2 = (Object *)dtar2->id;
+	PointerRNA dtar_ptr, dtar2_ptr;
+	uiLayout *col;
+	
+	/* initialise RNA pointer to the target */
+	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
+	RNA_pointer_create(id, &RNA_DriverTarget, dtar2, &dtar2_ptr); 
+	
+	/* Bone 1 */
+	col= uiLayoutColumn(layout, 1);
+		uiTemplateAnyID(col, (bContext *)C, &dtar_ptr, "id", "id_type", "Bone 1:");
+		
+		if (dtar->id && ob1->pose) {
+			PointerRNA tar_ptr;
+			
+			RNA_pointer_create(dtar2->id, &RNA_Pose, ob1->pose, &tar_ptr);
+			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar_ptr, "bone_target", &tar_ptr, "bones");
+		}
+	
+	col= uiLayoutColumn(layout, 1);
+		uiTemplateAnyID(col, (bContext *)C, &dtar2_ptr, "id", "id_type", "Bone 2:");
+		
+		if (dtar2->id && ob2->pose) {
+			PointerRNA tar_ptr;
+			
+			RNA_pointer_create(dtar2->id, &RNA_Pose, ob2->pose, &tar_ptr);
+			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar2_ptr, "bone_target", &tar_ptr, "bones");
+		}
+}
+
+/* settings for 'rotation difference' driver variable type */
+static void graph_panel_driverVar__locDiff(const bContext *C, uiLayout *layout, ID *id, DriverVar *dvar)
+{
+	DriverTarget *dtar= &dvar->targets[0];
+	DriverTarget *dtar2= &dvar->targets[1];
+	Object *ob1 = (Object *)dtar->id;
+	Object *ob2 = (Object *)dtar2->id;
+	PointerRNA dtar_ptr, dtar2_ptr;
+	uiLayout *col;
+	
+	/* initialise RNA pointer to the target */
+	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
+	RNA_pointer_create(id, &RNA_DriverTarget, dtar2, &dtar2_ptr); 
+	
+	/* Bone 1 */
+	col= uiLayoutColumn(layout, 1);
+		uiTemplateAnyID(col, (bContext *)C, &dtar_ptr, "id", "id_type", "Ob/Bone 1:");
+		
+		if (dtar->id && ob1->pose) {
+			PointerRNA tar_ptr;
+			
+			RNA_pointer_create(dtar2->id, &RNA_Pose, ob1->pose, &tar_ptr);
+			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar_ptr, "bone_target", &tar_ptr, "bones");
+		}
+	
+	col= uiLayoutColumn(layout, 1);
+		uiTemplateAnyID(col, (bContext *)C, &dtar2_ptr, "id", "id_type", "Ob/Bone 2:");
+		
+		if (dtar2->id && ob2->pose) {
+			PointerRNA tar_ptr;
+			
+			RNA_pointer_create(dtar2->id, &RNA_Pose, ob2->pose, &tar_ptr);
+			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar2_ptr, "bone_target", &tar_ptr, "bones");
+		}
+}
+
 /* driver settings for active F-Curve (only for 'Drivers' mode) */
 static void graph_panel_drivers(const bContext *C, Panel *pa)
 {
 	bAnimListElem *ale;
 	FCurve *fcu;
 	ChannelDriver *driver;
-	DriverTarget *dtar;
+	DriverVar *dvar;
 	
 	PointerRNA driver_ptr;
 	uiLayout *col;
@@ -354,56 +456,54 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 				uiItemL(col, "ERROR: invalid target channel(s)", ICON_ERROR);
 		}
 	
-	/* add driver target variables */
+	/* add driver variables */
 	col= uiLayoutColumn(pa->layout, 0);
 	block= uiLayoutGetBlock(col);
-		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Add Target", 0, 0, 10*UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "Add a new target variable for this Driver");
+		but= uiDefBut(block, BUT, B_IPO_DEPCHANGE, "Add Variable", 0, 0, 10*UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "Add a new target variable for this Driver");
 		uiButSetFunc(but, driver_add_var_cb, driver, NULL);
 	
 	/* loop over targets, drawing them */
-	for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
-		PointerRNA dtar_ptr;
+	for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+		PointerRNA dvar_ptr;
 		uiLayout *box, *row;
 		
-		/* panel holding the buttons */
-		box= uiLayoutBox(pa->layout);
+		/* sub-layout column for this variable's settings */
+		col= uiLayoutColumn(pa->layout, 1);
 		
-		/* first row context info for driver */
-		RNA_pointer_create(ale->id, &RNA_DriverTarget, dtar, &dtar_ptr);
-		
-		row= uiLayoutRow(box, 0);
-		block= uiLayoutGetBlock(row);
-			/* variable name */
-			uiItemR(row, "", 0, &dtar_ptr, "name", 0);
+		/* header panel */
+		box= uiLayoutBox(col);
+			/* first row context info for driver */
+			RNA_pointer_create(ale->id, &RNA_DriverVariable, dvar, &dvar_ptr);
 			
-			/* remove button */
-			but= uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable.");
-			uiButSetFunc(but, driver_delete_var_cb, driver, dtar);
-		
-		
-		/* Target ID */
-		row= uiLayoutRow(box, 0);
-			uiTemplateAnyID(row, (bContext *)C, &dtar_ptr, "id", "id_type", "Value:");
-		
-		/* Target Property */
-		// TODO: make this less technical...
-		if (dtar->id) {
-			PointerRNA root_ptr;
-			
-			/* get pointer for resolving the property selected */
-			RNA_id_pointer_create(dtar->id, &root_ptr);
-			
-			col= uiLayoutColumn(box, 1);
-			block= uiLayoutGetBlock(col);
-				/* rna path */
-				uiTemplatePathBuilder(col, (bContext *)C, &dtar_ptr, "data_path", &root_ptr, "Path");
+			row= uiLayoutRow(box, 0);
+			block= uiLayoutGetBlock(row);
+				/* variable name */
+				uiItemR(row, "", 0, &dvar_ptr, "name", 0);
 				
-				/* array index */
-				// TODO: this needs selector which limits it to ok values
-				// NOTE: for for now, the array index box still gets shown when non-zero (i.e. for tweaking rigs as necessary)
-				if (dtar->array_index)
-					uiItemR(col, "Index", 0, &dtar_ptr, "array_index", 0);
-		}
+				/* remove button */
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+					but= uiDefIconBut(block, BUT, B_IPO_DEPCHANGE, ICON_X, 290, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0.0, 0.0, 0.0, 0.0, "Delete target variable.");
+					uiButSetFunc(but, driver_delete_var_cb, driver, dvar);
+				uiBlockSetEmboss(block, UI_EMBOSS);
+			
+			/* variable type */
+			row= uiLayoutRow(box, 0);
+				uiItemR(row, "", 0, &dvar_ptr, "type", 0);
+				
+		/* variable type settings */
+		box= uiLayoutBox(col);
+			/* controls to draw depends on the type of variable */
+			switch (dvar->type) {
+				case DVAR_TYPE_SINGLE_PROP:	/* single property */
+					graph_panel_driverVar__singleProp(C, box, ale->id, dvar);
+					break;
+				case DVAR_TYPE_ROT_DIFF: /* rotational difference */
+					graph_panel_driverVar__rotDiff(C, box, ale->id, dvar);
+					break;
+				case DVAR_TYPE_LOC_DIFF: /* location difference */
+					graph_panel_driverVar__locDiff(C, box, ale->id, dvar);
+					break;
+			}
 	}
 	
 	/* cleanup */

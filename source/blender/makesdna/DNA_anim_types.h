@@ -232,26 +232,72 @@ typedef enum eFMod_Noise_Modifications {
 
 /* Drivers -------------------------------------- */
 
-/* Driver Target 
+/* Driver Target (dtar)
  *
- * A 'variable' for use as a target of the driver/expression.
+ * Defines how to access a dependency needed for a driver variable.
+ */
+typedef struct DriverTarget {
+	ID 	*id;				/* ID-block which owns the target */
+	
+	char *rna_path;			/* target channel to use as driver value */
+	char pchan_name[32];	/* name of the posebone to use (for certain types of variable only) */
+	
+	int idtype;				/* type of ID-block that this target can use */
+	int flag;				/* flags for the validity of the target (NOTE: these get reset everytime the types change) */
+} DriverTarget;
+
+/* Driver Target flags */
+typedef enum eDriverTarget_Flag {
+		/* used for targets that use the pchan_name instead of RNA path 
+		 * (i.e. rotation difference) 
+		 */
+	DTAR_FLAG_STRUCT_REF	= (1<<0),
+		/* idtype can only be 'Object' */
+	DTAR_FLAG_ID_OB_ONLY	= (1<<1),
+} eDriverTarget_Flag;
+
+/* --- */
+
+/* maximum number of driver targets per variable */
+// FIXME: make this get used below (for DriverVariable defines) if DNA supports preprocessor stuff..
+#define MAX_DRIVER_TARGETS 	8
+
+
+/* Driver Variable (dvar)
+ *
+ * A 'variable' for use as an input for the driver evaluation.
  * Defines a way of accessing some channel to use, that can be
  * referred to in the expression as a variable, thus simplifying
  * expressions and also Depsgraph building.
  */
-typedef struct DriverTarget {
-	struct DriverTarget *next, *prev;
+typedef struct DriverVar {
+	struct DriverVar *next, *prev;
 	
-	ID 	*id;			/* ID-block which owns the target */
-	char *rna_path;		/* target channel to use as driver value */
-	int array_index;	/* if applicable, the index of the RNA-array item to use as driver */
+	char name[64];				/* name of the variable to use in py-expression (must be valid python identifier) */
 	
-	int idtype;			/* type of ID-block that this target can use */
-	int flags;			/* flags for the validity of the target */
-	int pad;
+	DriverTarget targets[8];	/* MAX_DRIVER_TARGETS - targets available for use for this type of variable */	
+	int num_targets;			/* number of targets used by this variable */
 	
-	char name[64];		/* name of the variable */
-} DriverTarget;
+	int type;					/* type of driver target (eDriverTarget_Types) */		
+} DriverVar;
+
+/* Driver Variable Types */
+typedef enum eDriverVar_Types {
+		/* single RNA property */
+	DVAR_TYPE_SINGLE_PROP	= 0,
+		/* rotation difference (between 2 bones) */
+	DVAR_TYPE_ROT_DIFF,
+		/* distance between objects/bones */
+	DVAR_TYPE_LOC_DIFF,
+	
+	/* maximum number of variable types 
+	 * NOTE: this must always be th last item in this list,
+	 * 		so add new types above this line
+	 */
+	MAX_DVAR_TYPES
+} eDriverVar_Types;
+
+/* --- */
 
 /* Channel Driver (i.e. Drivers / Expressions) (driver)
  *
@@ -265,7 +311,7 @@ typedef struct DriverTarget {
  * evaluated in. This order is set by the Depsgraph's sorting stuff. 
  */
 typedef struct ChannelDriver {
-	ListBase targets;	/* targets for this driver (i.e. list of DriverTarget) */
+	ListBase variables;	/* targets for this driver (i.e. list of DriverVar) */
 	
 	/* python expression to execute (may call functions defined in an accessory file) 
 	 * which relates the target 'variables' in some way to yield a single usable value
@@ -287,10 +333,12 @@ typedef enum eDriver_Types {
 	DRIVER_TYPE_AVERAGE	= 0,
 		/* python expression/function relates targets */
 	DRIVER_TYPE_PYTHON,
-		/* rotational difference (must use rotation channels only) */
-	DRIVER_TYPE_ROTDIFF,
 		/* sum of all values */
 	DRIVER_TYPE_SUM,
+		/* smallest value */
+	DRIVER_TYPE_MIN,
+		/* largest value */
+	DRIVER_TYPE_MAX,
 } eDriver_Types;
 
 /* driver flags */
@@ -301,7 +349,7 @@ typedef enum eDriver_Flags {
 	DRIVER_FLAG_RECALC		= (1<<1),
 		/* driver does replace value, but overrides (for layering of animation over driver) */
 		// TODO: this needs to be implemented at some stage or left out...
-	DRIVER_FLAG_LAYERING	= (1<<2),
+	//DRIVER_FLAG_LAYERING	= (1<<2),
 		/* use when the expression needs to be recompiled */
 	DRIVER_FLAG_RECOMPILE	= (1<<3), 
 } eDriver_Flags;

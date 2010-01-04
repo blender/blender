@@ -116,10 +116,12 @@ static void rna_DriverTarget_update_data(Main *bmain, Scene *scene, PointerRNA *
 	AnimData *adt= BKE_animdata_from_id(ptr->id.data);
 
 	/* find the driver this belongs to and update it */
-	for(fcu=adt->drivers.first; fcu; fcu=fcu->next) {
+	for (fcu=adt->drivers.first; fcu; fcu=fcu->next) {
 		driver= fcu->driver;
-
-		if(driver && BLI_findindex(&driver->targets, ptr->data) != -1) {
+		
+		if (driver) {
+			// FIXME: need to be able to search targets for required one...
+			//BLI_findindex(&driver->targets, ptr->data) != -1) 
 			RNA_pointer_create(ptr->id.data, &RNA_Driver, driver, &driverptr);
 			rna_ChannelDriver_update_data(bmain, scene, &driverptr);
 			return;
@@ -185,6 +187,14 @@ static void rna_DriverTarget_RnaPath_set(PointerRNA *ptr, const char *value)
 		dtar->rna_path= NULL;
 }
 
+static void rna_DriverVariable_type_set(PointerRNA *ptr, int value)
+{
+	DriverVar *dvar= (DriverVar *)ptr->data;
+	
+	/* call the API function for this */
+	driver_change_variable_type(dvar, value);
+}
+
 /* ****************************** */
 
 static void rna_FCurve_RnaPath_get(PointerRNA *ptr, char *value)
@@ -220,15 +230,16 @@ static void rna_FCurve_RnaPath_set(PointerRNA *ptr, const char *value)
 		fcu->rna_path= NULL;
 }
 
-DriverTarget *rna_Driver_new_target(ChannelDriver *driver)
-{
-	return driver_add_new_target(driver);
-}
-
-void rna_Driver_remove_target(ChannelDriver *driver, DriverTarget *dtar)
+DriverVar *rna_Driver_new_variable(ChannelDriver *driver)
 {
 	/* call the API function for this */
-	driver_free_target(driver, dtar);
+	return driver_add_new_variable(driver);
+}
+
+void rna_Driver_remove_variable(ChannelDriver *driver, DriverVar *dvar)
+{
+	/* call the API function for this */
+	driver_free_variable(driver, dvar);
 }
 
 
@@ -677,13 +688,7 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "DriverTarget", NULL);
-	RNA_def_struct_ui_text(srna, "Driver Target", "Variable from some source/target for driver relationship.");
-	
-	/* Variable Name */
-	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_ui_text(prop, "Name", "Name to use in scripted expressions/functions. (No spaces or dots are allowed. Also, must not start with a symbol or digit)");
-	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
+	RNA_def_struct_ui_text(srna, "Driver Target", "Source of input values for driver variables.");
 	
 	/* Target Properties - ID-block to Drive */
 	prop= RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
@@ -698,6 +703,7 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "idtype");
 	RNA_def_property_enum_items(prop, id_type_items);
 	RNA_def_property_enum_default(prop, ID_OB);
+	// XXX need to add an 'editable func' for this, in the case where certain flags are set already...
 	RNA_def_property_enum_funcs(prop, NULL, "rna_DriverTarget_id_type_set", NULL);
 	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used.");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
@@ -708,41 +714,78 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Data Path", "RNA Path (from Object) to property used");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
-	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
-	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific property used (if applicable)");
+	prop= RNA_def_property(srna, "bone_target", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "pchan_name");
+	RNA_def_property_ui_text(prop, "Bone Name", "Name of PoseBone to use as target.");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 }
 
+static void rna_def_drivervar(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem prop_type_items[] = {
+		{DVAR_TYPE_SINGLE_PROP, "SINGLE_PROP", 0, "Single Property", "Use the value from some RNA property (Default)"},
+		{DVAR_TYPE_ROT_DIFF, "ROTATION_DIFF", 0, "Rotational Difference", "Use the angle between two bones"},
+		{DVAR_TYPE_LOC_DIFF, "LOC_DIFF", 0, "Distance", "Distance between two bones or "},
+		{0, NULL, 0, NULL, NULL}};
+		
+	
+	srna= RNA_def_struct(brna, "DriverVariable", NULL);
+	RNA_def_struct_sdna(srna, "DriverVar");
+	RNA_def_struct_ui_text(srna, "Driver Variable", "Variable from some source/target for driver relationship.");
+	
+	/* Variable Name */
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_ui_text(prop, "Name", "Name to use in scripted expressions/functions. (No spaces or dots are allowed. Also, must not start with a symbol or digit)");
+	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data"); // XXX
+	
+	/* Enums */
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_DriverVariable_type_set", NULL);
+	RNA_def_property_ui_text(prop, "Type", "Driver variable type.");
+	RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX
+	
+	/* Targets */
+	// TODO: for nicer api, only expose the relevant props via subclassing, instead of exposing the collection of targets
+	prop= RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "targets", "num_targets");
+	RNA_def_property_struct_type(prop, "DriverTarget");
+	RNA_def_property_ui_text(prop, "Targets", "Sources of input data for evaluating this variable.");
+}
 
-/* channeldriver.targets.* */
-static void rna_def_channeldriver_targets(BlenderRNA *brna, PropertyRNA *cprop)
+
+/* channeldriver.variables.* */
+static void rna_def_channeldriver_variables(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 //	PropertyRNA *prop;
-
+	
 	FunctionRNA *func;
 	PropertyRNA *parm;
-
-	RNA_def_property_srna(cprop, "ChannelDriverTargets");
-	srna= RNA_def_struct(brna, "ChannelDriverTargets", NULL);
+	
+	RNA_def_property_srna(cprop, "ChannelDriverVariables");
+	srna= RNA_def_struct(brna, "ChannelDriverVariables", NULL);
 	RNA_def_struct_sdna(srna, "ChannelDriver");
-	RNA_def_struct_ui_text(srna, "ChannelDriver Targets", "Collection of channel driver Targets.");
-
-
-	/* add target */
-	func= RNA_def_function(srna, "new", "rna_Driver_new_target");
-	RNA_def_function_ui_description(func, "Add a new target for the driver.");
+	RNA_def_struct_ui_text(srna, "ChannelDriver Variables", "Collection of channel driver Variables.");
+	
+	
+	/* add variable */
+	func= RNA_def_function(srna, "new", "rna_Driver_new_variable");
+	RNA_def_function_ui_description(func, "Add a new variable for the driver.");
 		/* return type */
-	parm= RNA_def_pointer(func, "target", "DriverTarget", "", "Newly created Driver Target.");
+	parm= RNA_def_pointer(func, "var", "DriverVariable", "", "Newly created Driver Variable.");
 		RNA_def_function_return(func, parm);
 
-	/* remove target */
-	func= RNA_def_function(srna, "remove", "rna_Driver_remove_target");
-		RNA_def_function_ui_description(func, "Remove an existing target from the driver.");
-		/* target to remove*/
-	parm= RNA_def_pointer(func, "target", "DriverTarget", "", "Target to remove from the driver.");
+	/* remove variable */
+	func= RNA_def_function(srna, "remove", "rna_Driver_remove_variable");
+		RNA_def_function_ui_description(func, "Remove an existing variable from the driver.");
+		/* target to remove */
+	parm= RNA_def_pointer(func, "var", "DriverVariable", "", "Variable to remove from the driver.");
 		RNA_def_property_flag(parm, PROP_REQUIRED);
-
 }
 
 static void rna_def_channeldriver(BlenderRNA *brna)
@@ -754,7 +797,8 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 		{DRIVER_TYPE_AVERAGE, "AVERAGE", 0, "Averaged Value", ""},
 		{DRIVER_TYPE_SUM, "SUM", 0, "Sum Values", ""},
 		{DRIVER_TYPE_PYTHON, "SCRIPTED", 0, "Scripted Expression", ""},
-		{DRIVER_TYPE_ROTDIFF, "ROTDIFF", 0, "Rotational Difference", ""},
+		{DRIVER_TYPE_MIN, "MIN", 0, "Minimum Value", ""},
+		{DRIVER_TYPE_MAX, "MAX", 0, "Maximum Value", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Driver", NULL);
@@ -764,7 +808,7 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Type", "Driver types.");
+	RNA_def_property_ui_text(prop, "Type", "Driver type.");
 	RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data");
 
 	/* String values */
@@ -773,11 +817,11 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_expr");
 
 	/* Collections */
-	prop= RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "targets", NULL);
-	RNA_def_property_struct_type(prop, "DriverTarget");
-	RNA_def_property_ui_text(prop, "Target Variables", "Properties acting as targets for this driver.");
-	rna_def_channeldriver_targets(brna, prop);
+	prop= RNA_def_property(srna, "variables", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "variables", NULL);
+	RNA_def_property_struct_type(prop, "DriverVariable");
+	RNA_def_property_ui_text(prop, "Variables", "Properties acting as inputs for this driver.");
+	rna_def_channeldriver_variables(brna, prop);
 	
 	/* Functions */
 	RNA_api_drivers(srna);
@@ -933,6 +977,7 @@ void RNA_def_fcurve(BlenderRNA *brna)
 	rna_def_fpoint(brna);
 	
 	rna_def_drivertarget(brna);
+	rna_def_drivervar(brna);
 	rna_def_channeldriver(brna);
 	
 	rna_def_fmodifier(brna);
