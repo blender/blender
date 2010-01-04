@@ -96,15 +96,18 @@ def clientScan(report = None):
 
         return ("", 8000) # return default values
 
-def clientConnection(address, port, report = None):
+def clientConnection(address, port, report = None, scan = True):
     if address == "[default]":
 #            calling operator from python is fucked, scene isn't in context
 #			if bpy:
 #				bpy.ops.render.netclientscan()
 #			else:
-            address, port = clientScan()
-            if address == "":
-                return None
+        if not scan:
+            return None
+        
+        address, port = clientScan()
+        if address == "":
+            return None
 
     try:
         conn = http.client.HTTPConnection(address, port)

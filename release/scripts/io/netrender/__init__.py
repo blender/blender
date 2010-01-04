@@ -32,3 +32,6 @@ jobs = []
 slaves = []
 blacklist = []
 
+init_file = ""
+init_data = True
+init_address = True
