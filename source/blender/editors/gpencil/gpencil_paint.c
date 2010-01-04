@@ -538,7 +538,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 				for (i=gpd->sbuffer_size-1; i >= 0; i--)
 					depth_arr[i] = 0.9999f;
 			}
-			else if(interp_depth) {
+			else {
 				if(p->gpd->flag & GP_DATA_DEPTH_STROKE_ENDPOINTS) {
 					/* remove all info between the valid endpoints */
 					int first_valid = 0;
@@ -557,9 +557,13 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 					/* invalidate non-endpoints, so only blend between first and last */
 					for (i=first_valid+1; i < last_valid; i++)
 						depth_arr[i]= FLT_MAX;
+
+					interp_depth= TRUE;
 				}
 
-				interp_sparse_array(depth_arr, gpd->sbuffer_size, FLT_MAX);
+				if(interp_depth) {
+					interp_sparse_array(depth_arr, gpd->sbuffer_size, FLT_MAX);
+				}
 			}
 		}
 
