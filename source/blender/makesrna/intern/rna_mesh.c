@@ -1358,6 +1358,12 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_MeshTextureFace_uv_get", "rna_MeshTextureFace_uv_set", NULL);
 	RNA_def_property_ui_text(prop, "UV", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
+	prop= RNA_def_property(srna, "uv_raw", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_multi_array(prop, 2, uv_dim);
+	RNA_def_property_float_sdna(prop, NULL, "uv");
+	RNA_def_property_ui_text(prop, "UV", "Fixed size UV coordinates array");
+
 }
 
 static void rna_def_msticky(BlenderRNA *brna)

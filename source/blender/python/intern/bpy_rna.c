@@ -2237,7 +2237,7 @@ static void foreach_attr_type(	BPy_PropertyRNA *self, char *attr,
 									RawPropertyType *raw_type, int *attr_tot, int *attr_signed )
 {
 	PropertyRNA *prop;
-	*raw_type= -1;
+	*raw_type= PROP_RAW_UNSET;
 	*attr_tot= 0;
 	*attr_signed= FALSE;
 
@@ -2263,7 +2263,8 @@ static int foreach_parse_args(
 	int target_tot;
 #endif
 
-	*size= *raw_type= *attr_tot= *attr_signed= FALSE;
+	*size= *attr_tot= *attr_signed= FALSE;
+	*raw_type= PROP_RAW_UNSET;
 
 	if(!PyArg_ParseTuple(args, "sO", attr, seq) || (!PySequence_Check(*seq) && PyObject_CheckBuffer(*seq))) {
 		PyErr_SetString( PyExc_TypeError, "foreach_get(attr, sequence) expects a string and a sequence" );
@@ -2296,6 +2297,10 @@ static int foreach_parse_args(
 #endif
 	}
 
+	if (*size == 0) {
+		PyErr_SetString( PyExc_AttributeError, "attribute does not support foreach method" );
+		return -1;
+	}
 	return 0;
 }
 

@@ -1779,7 +1779,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 	fprintf(f, "\t%s%s, %d, %s, %s,\n", (prop->flag & PROP_CONTEXT_UPDATE)? "(UpdateFunc)": "", rna_function_string(prop->update), prop->noteflag, rna_function_string(prop->editable), rna_function_string(prop->itemeditable));
 
 	if(prop->flag & PROP_RAW_ACCESS) rna_set_raw_offset(f, srna, prop);
-	else fprintf(f, "\t0, 0");
+	else fprintf(f, "\t0, -1");
 
 	/* our own type - collections/arrays only */
 	if(prop->srna) fprintf(f, ", &RNA_%s", (char*)prop->srna);

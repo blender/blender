@@ -249,7 +249,7 @@ static int rna_ensure_property_array_length(PointerRNA *ptr, PropertyRNA *prop)
 {
 	if(prop->magic == RNA_MAGIC) {
 		int arraylen[RNA_MAX_ARRAY_DIMENSION];
-		return (prop->getlength)? prop->getlength(ptr, arraylen): prop->totarraylength;
+		return (prop->getlength && ptr->data)? prop->getlength(ptr, arraylen): prop->totarraylength;
 	}
 	else {
 		IDProperty *idprop= (IDProperty*)prop;
@@ -2266,8 +2266,9 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 
 		/* try to access as raw array */
 		if(RNA_property_collection_raw_array(ptr, prop, itemprop, &out)) {
-			if(in.len != itemlen*out.len) {
-				BKE_reportf(reports, RPT_ERROR, "Array length mismatch (expected %d, got %d).", out.len*itemlen, in.len);
+			int arraylen = (itemlen == 0) ? 1 : itemlen;
+			if(in.len != arraylen*out.len) {
+				BKE_reportf(reports, RPT_ERROR, "Array length mismatch (expected %d, got %d).", out.len*arraylen, in.len);
 				return 0;
 			}
 			
@@ -2277,8 +2278,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 				void *outp= out.array;
 				int a, size;
 
-				itemlen= (itemlen == 0)? 1: itemlen;
-				size= RNA_raw_type_sizeof(out.type) * itemlen;
+				size= RNA_raw_type_sizeof(out.type) * arraylen;
 
 				for(a=0; a<out.len; a++) {
 					if(set) memcpy(outp, inp, size);
@@ -2300,6 +2300,12 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 		void *tmparray= NULL;
 		int tmplen= 0;
 		int err= 0, j, a= 0;
+		int needconv = 1;
+
+		if (((itemtype == PROP_BOOLEAN || itemtype == PROP_INT) && in.type == PROP_RAW_INT) ||
+			(itemtype == PROP_FLOAT && in.type == PROP_RAW_FLOAT))
+			/* avoid creating temporary buffer if the data type match */
+			needconv = 0;
 
 		/* no item property pointer, can still be id property, or
 		 * property of a type derived from the collection pointer type */
@@ -2387,7 +2393,7 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 						}
 						a++;
 					}
-					else {
+					else if (needconv == 1) {
 						/* allocate temporary array if needed */
 						if(tmparray && tmplen != itemlen) {
 							MEM_freeN(tmparray);
@@ -2448,6 +2454,50 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 							}
 						}
 					}
+					else {
+						if(set) {
+							switch(itemtype) {
+								case PROP_BOOLEAN: {
+									RNA_property_boolean_set_array(&itemptr, iprop, &((int*)in.array)[a]);
+									a += itemlen;
+									break;
+								}
+								case PROP_INT: {
+									RNA_property_int_set_array(&itemptr, iprop, &((int*)in.array)[a]);
+									a += itemlen;
+									break;
+								}
+								case PROP_FLOAT: {
+									RNA_property_float_set_array(&itemptr, iprop, &((float*)in.array)[a]);
+									a += itemlen;
+									break;
+								}
+								default:
+									break;
+							}
+						}
+						else {
+							switch(itemtype) {
+								case PROP_BOOLEAN: {
+									RNA_property_boolean_get_array(&itemptr, iprop, &((int*)in.array)[a]);
+									a += itemlen;
+									break;
+								}
+								case PROP_INT: {
+									RNA_property_int_get_array(&itemptr, iprop, &((int*)in.array)[a]);
+									a += itemlen;
+									break;
+								}
+								case PROP_FLOAT: {
+									RNA_property_float_get_array(&itemptr, iprop, &((float*)in.array)[a]);
+									a += itemlen;
+									break;
+								}
+								default:
+									break;
+							}
+						}
+					}
 				}
 			}
 		}
@@ -2462,6 +2512,21 @@ static int rna_raw_access(ReportList *reports, PointerRNA *ptr, PropertyRNA *pro
 
 RawPropertyType RNA_property_raw_type(PropertyRNA *prop)
 {
+	if (prop->rawtype == PROP_RAW_UNSET) {
+		/* this property has no raw access, yet we try to provide a raw type to help building the array */
+		switch (prop->type) {
+		case PROP_BOOLEAN:
+			return PROP_RAW_INT;
+		case PROP_INT:
+			return PROP_RAW_INT;
+		case PROP_FLOAT:
+			return PROP_RAW_FLOAT;
+		case PROP_ENUM:
+			return PROP_RAW_INT;
+		default:
+			break;
+		}
+	}
 	return prop->rawtype;
 }
 

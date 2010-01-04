@@ -931,6 +931,8 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 	prop->subtype= subtype;
 	prop->name= identifier;
 	prop->description= "";
+	/* a priori not raw editable */
+	prop->rawtype = -1;
 
 	if(type != PROP_COLLECTION && type != PROP_POINTER) {
 		prop->flag= PROP_EDITABLE;
