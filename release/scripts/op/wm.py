@@ -42,6 +42,8 @@ rna_path_prop = StringProperty(name="Context Attributes",
 rna_reverse_prop = BoolProperty(name="Reverse",
         description="Cycle backwards", default=False)
 
+rna_relative_prop = BoolProperty(name="Relative",
+        description="Apply relative to the current value (delta)", default=False)
 
 def context_path_validate(context, path):
     import sys
@@ -61,15 +63,12 @@ def context_path_validate(context, path):
 def execute_context_assign(self, context):
     if context_path_validate(context, self.properties.path) is Ellipsis:
         return {'PASS_THROUGH'}
-    
-    try:
-        if self.properties.relative:
-            exec("context.%s+=self.properties.value" % self.properties.path)
-            return {'FINISHED'}
-    except AttributeError:
-        pass    # no relative property exists
-        
-    exec("context.%s=self.properties.value" % self.properties.path)
+
+    if getattr(self.properties, "relative", False):
+        exec("context.%s+=self.properties.value" % self.properties.path)
+    else:
+        exec("context.%s=self.properties.value" % self.properties.path)
+
     return {'FINISHED'}
 
 
@@ -94,8 +93,7 @@ class WM_OT_context_set_int(bpy.types.Operator): # same as enum
 
     path = rna_path_prop
     value = IntProperty(name="Value", description="Assign value", default=0)
-    relative = BoolProperty(name="Relative", 
-        description="Apply the value as a relative difference", default=False)
+    relative = rna_relative_prop
 
     execute = execute_context_assign
 
@@ -108,8 +106,7 @@ class WM_OT_context_set_float(bpy.types.Operator): # same as enum
 
     path = rna_path_prop
     value = FloatProperty(name="Value", description="Assignment value", default=0.0)
-    relative = BoolProperty(name="Relative", 
-        description="Apply the value as a relative difference", default=False)
+    relative = rna_relative_prop
 
     execute = execute_context_assign
 
