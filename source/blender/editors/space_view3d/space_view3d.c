@@ -488,6 +488,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			/* all group ops for now */
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_BRUSH:
+			if(wmn->action == NA_EDITED)
+				ED_region_tag_redraw(ar);
+			break;			
 		case NC_MATERIAL:
 			switch(wmn->data) {
 				case ND_SHADING_DRAW:
