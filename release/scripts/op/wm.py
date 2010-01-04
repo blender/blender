@@ -61,10 +61,15 @@ def context_path_validate(context, path):
 def execute_context_assign(self, context):
     if context_path_validate(context, self.properties.path) is Ellipsis:
         return {'PASS_THROUGH'}
-    if self.properties.relative:
-        exec("context.%s+=self.properties.value" % self.properties.path)
-    else:
-        exec("context.%s=self.properties.value" % self.properties.path)
+    
+    try:
+        if self.properties.relative:
+            exec("context.%s+=self.properties.value" % self.properties.path)
+            return {'FINISHED'}
+    except AttributeError:
+        pass    # no relative property exists
+        
+    exec("context.%s=self.properties.value" % self.properties.path)
     return {'FINISHED'}
 
 
