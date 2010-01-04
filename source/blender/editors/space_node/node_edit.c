@@ -1353,7 +1353,33 @@ static int node_socket_hilights(SpaceNode *snode, int in_out)
 
 /* ****************** Add *********************** */
 
-void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag)
+static bNodeSocket *get_next_outputsocket(bNodeSocket *sock, bNodeSocket **sockfrom, int totsock)
+{
+	int a;
+	
+	/* first try to find a sockets with matching name */
+	for (a=0; a<totsock; a++) {
+		if(sockfrom[a]) {
+			if(sock->type==sockfrom[a]->type) {
+				if (strcmp(sockfrom[a]->name, sock->name)==0)
+					return sockfrom[a];
+			}
+		}
+	}
+	
+	/* otherwise settle for the first available socket of the right type */
+	for (a=0; a<totsock; a++) {
+		if(sockfrom[a]) {
+			if(sock->type==sockfrom[a]->type) {
+				return sockfrom[a];
+			}
+		}
+	}
+	
+	return NULL;
+}
+
+void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag, int replace)
 {
 	bNodeSocket *sock, *sockfrom[8];
 	bNode *node, *nodefrom[8];
@@ -1361,14 +1387,14 @@ void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag)
 
 	if(node_to==NULL || node_to->inputs.first==NULL)
 		return;
-	
-	/* no inputs for node allowed (code it) */
 
-	/* connect first 1 socket type now */
-	for(sock= node_to->inputs.first; sock; sock= sock->next)
+	/* connect first 1 socket type or first available socket now */
+	for(sock= node_to->inputs.first; sock; sock= sock->next) {
+		if (!replace && nodeCountSocketLinks(snode->edittree, sock))
+			continue;
 		if(socktype<sock->type)
 			socktype= sock->type;
-
+	}
 	
 	/* find potential sockets, max 8 should work */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
@@ -1389,17 +1415,27 @@ void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag)
 
 	/* now just get matching socket types and create links */
 	for(sock= node_to->inputs.first; sock; sock= sock->next) {
-		int a;
+		bNodeSocket *sock_from;
+		bNode *node_from;
 		
-		for(a=0; a<totsock; a++) {
-			if(sockfrom[a]) {
-				if(sock->type==sockfrom[a]->type && sock->type==socktype) {
-					nodeAddLink(snode->edittree, nodefrom[a], sockfrom[a], node_to, sock);
-					sockfrom[a]= NULL;
-					break;
-				}
-			}
+		if (sock->type != socktype)
+			continue;
+		
+		/* find a potential output socket and associated node */
+		sock_from = get_next_outputsocket(sock, sockfrom, totsock);
+		if (!sock_from)
+			continue;
+		nodeFindNode(snode->edittree, sock_from, &node_from, NULL);
+		
+		/* then connect up the links */
+		if (replace) {
+			nodeRemSocketLinks(snode->edittree, sock);
+			nodeAddLink(snode->edittree, node_from, sock_from, node_to, sock);
+		} else {
+			if (nodeCountSocketLinks(snode->edittree, sock)==0)
+				nodeAddLink(snode->edittree, node_from, sock_from, node_to, sock);
 		}
+		sock_from = NULL;
 	}
 	
 	ntreeSolveOrder(snode->edittree);
@@ -1749,11 +1785,33 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 	bNodeLink *link;
 	bNodeSocket *outsock= snode->edittree->selout;
 	bNodeSocket *insock= snode->edittree->selin;
+	int replace = RNA_boolean_get(op->ptr, "replace");
 	
 	if (!insock || !outsock) {
-		BKE_report(op->reports, RPT_ERROR, "No input or output socket(s) selected");
-		return OPERATOR_CANCELLED;
+		bNode *node;
+		
+		/* no socket selection, join nodes themselves, guessing connections */
+		tonode = nodeGetActive(snode->edittree);
+		
+		if (!tonode) {
+			BKE_report(op->reports, RPT_ERROR, "No active node");
+			return OPERATOR_CANCELLED;	
+		}
+		
+		/* store selection in temp test flag */
+		for(node= snode->edittree->nodes.first; node; node= node->next) {
+			if(node->flag & NODE_SELECT) node->flag |= NODE_TEST;
+			else node->flag &= ~NODE_TEST;
+		}
+		
+		snode_autoconnect(snode, tonode, NODE_TEST, replace);
+		node_tree_verify_groups(snode->nodetree);
+		snode_handle_recalc(C, snode);
+		
+		return OPERATOR_FINISHED;
 	}
+	
+	
 	if (nodeFindLink(snode->edittree, outsock, insock)) {
 		BKE_report(op->reports, RPT_ERROR, "There is already a link between these sockets");
 		return OPERATOR_CANCELLED;
@@ -1789,6 +1847,8 @@ void NODE_OT_link_make(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "replace", 0, "Replace", "Replace socket connections with the new links");
 }
 
 /* ********************** Cut Link operator ***************** */

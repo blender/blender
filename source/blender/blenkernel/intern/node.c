@@ -1063,6 +1063,18 @@ void nodeRemLink(bNodeTree *ntree, bNodeLink *link)
 	MEM_freeN(link);
 }
 
+void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
+{
+	bNodeLink *link, *next;
+	
+	for(link= ntree->links.first; link; link= next) {
+		next= link->next;
+		if(link->fromsock==sock || link->tosock==sock) {
+			nodeRemLink(ntree, link);
+		}
+	}
+}
+
 
 bNodeTree *ntreeAddTree(int type)
 {

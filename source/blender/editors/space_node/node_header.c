@@ -79,7 +79,7 @@ static void do_node_add(bContext *C, void *arg, int event)
 	node= node_add_node(snode, CTX_data_scene(C), event, snode->mx, snode->my);
 	
 	/* uses test flag */
-	snode_autoconnect(snode, node, NODE_TEST);
+	snode_autoconnect(snode, node, NODE_TEST, 0);
 		
 	snode_handle_recalc(C, snode);
 }
