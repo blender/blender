@@ -385,6 +385,15 @@ void Properties_Proportional(struct wmOperatorType *ot)
 	RNA_def_float(ot->srna, "proportional_size", 1, 0, FLT_MAX, "Proportional Size", "", 0, 100);
 }
 
+void Properties_Axis(struct wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	prop= RNA_def_property(ot->srna, "axis", PROP_FLOAT, PROP_DIRECTION);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Axis", "The axis around which the transformation occurs.");
+}
+
 void Properties_Snapping(struct wmOperatorType *ot, short fullsnap, short align)
 {
 	RNA_def_boolean(ot->srna, "snap", 0, "Use Snapping Options", "");
@@ -503,6 +512,8 @@ void TRANSFORM_OT_rotate(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_areaactive;
 
 	RNA_def_float_rotation(ot->srna, "value", 1, NULL, -FLT_MAX, FLT_MAX, "Angle", "", -M_PI*2, M_PI*2);
+
+	Properties_Axis(ot);
 
 	Properties_Proportional(ot);
 
@@ -756,6 +767,8 @@ void TRANSFORM_OT_transform(struct wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "mode", transform_mode_types, 0, "Mode", "");
 
 	RNA_def_float_vector(ot->srna, "value", 4, NULL, -FLT_MAX, FLT_MAX, "Values", "", -FLT_MAX, FLT_MAX);
+
+	Properties_Axis(ot);
 
 	Properties_Proportional(ot);
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");

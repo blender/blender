@@ -1384,6 +1384,11 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		RNA_float_set(op->ptr, "proportional_size", t->prop_size);
 	}
 
+	if (RNA_struct_find_property(op->ptr, "axis"))
+	{
+		RNA_float_set_array(op->ptr, "axis", t->axis);
+	}
+
 	if (RNA_struct_find_property(op->ptr, "mirror"))
 	{
 		RNA_boolean_set(op->ptr, "mirror", t->flag & T_MIRROR);
@@ -1575,6 +1580,13 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		QUATCOPY(t->values, values);
 		QUATCOPY(t->auto_values, values);
 		t->flag |= T_AUTOVALUES;
+	}
+
+	/* Transformation axis from operator */
+	if (RNA_struct_find_property(op->ptr, "axis") && RNA_property_is_set(op->ptr, "axis"))
+	{
+		RNA_float_get_array(op->ptr, "axis", t->axis);
+		normalize_v3(t->axis);
 	}
 
 	/* Constraint init from operator */
@@ -2662,6 +2674,10 @@ void initRotation(TransInfo *t)
 	
 	if (t->flag & T_2D_EDIT)
 		t->flag |= T_NO_CONSTRAINT;
+
+	VECCOPY(t->axis, t->viewinv[2]);
+	mul_v3_fl(t->axis, -1.0f);
+	normalize_v3(t->axis);
 }
 
 static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short around) {
@@ -2906,12 +2922,7 @@ int Rotation(TransInfo *t, short mval[2])
 	
 	float final;
 	
-	float axis[3];
 	float mat[3][3];
-	
-	VECCOPY(axis, t->viewinv[2]);
-	mul_v3_fl(axis, -1.0f);
-	normalize_v3(axis);
 	
 	final = t->values[0];
 	
@@ -2920,7 +2931,7 @@ int Rotation(TransInfo *t, short mval[2])
 	snapGrid(t, &final);
 	
 	if (t->con.applyRot) {
-		t->con.applyRot(t, NULL, axis, &final);
+		t->con.applyRot(t, NULL, t->axis, &final);
 	}
 	
 	applySnapping(t, &final);
@@ -2947,13 +2958,13 @@ int Rotation(TransInfo *t, short mval[2])
 		sprintf(str, "Rot: %.2f%s %s", 180.0*final/M_PI, t->con.text, t->proptext);
 	}
 	
-	vec_rot_to_mat3( mat,axis, final);
+	vec_rot_to_mat3( mat, t->axis, final);
 	
 	// TRANSFORM_FIX_ME
 //	t->values[0] = final;		// used in manipulator
 //	copy_m3_m3(t->mat, mat);	// used in manipulator
 	
-	applyRotation(t, final, axis);
+	applyRotation(t, final, t->axis);
 	
 	recalcData(t);
 	
@@ -3085,9 +3096,11 @@ void initTranslation(TransInfo *t)
 	if(t->spacetype == SPACE_VIEW3D) {
 		RegionView3D *rv3d = t->ar->regiondata;
 
-		t->snap[0] = 0.0f;
-		t->snap[1] = rv3d->gridview * 1.0f;
-		t->snap[2] = t->snap[1] * 0.1f;
+		if (rv3d) {
+			t->snap[0] = 0.0f;
+			t->snap[1] = rv3d->gridview * 1.0f;
+			t->snap[2] = t->snap[1] * 0.1f;
+		}
 	}
 	else if(t->spacetype == SPACE_IMAGE) {
 		t->snap[0] = 0.0f;
