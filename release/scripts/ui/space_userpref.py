@@ -1475,11 +1475,11 @@ class USERPREF_PT_input(bpy.types.Panel):
         filter = kc.filter.lower()
 
         for km in kc.keymaps:
+            km = km.active()
+
             filtered_items = [kmi for kmi in km.items if filter in kmi.name.lower()]
 
             if len(filtered_items) != 0:
-                km = km.active()
-
                 layout.set_context_pointer("keymap", km)
                 col = layout.column()
 
