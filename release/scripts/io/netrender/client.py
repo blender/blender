@@ -276,6 +276,6 @@ def compatible(module):
         except:	pass
     del module
 
-compatible("properties_render")
+#compatible("properties_render")
 compatible("properties_world")
 compatible("properties_material")

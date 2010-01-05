@@ -97,29 +97,32 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 
         scene = context.scene
         netsettings = scene.network_render
-
-        layout.active = True
-
-        split = layout.split()
-
-        col = split.column()
-
-        if netsettings.mode in ("RENDER_MASTER", "RENDER_SLAVE"):
-            col.operator("screen.render", text="Start", icon='PLAY').animation = True
-            
+        
         verify_address(netsettings)
 
-        col.prop(netsettings, "mode")
-        col.prop(netsettings, "path")
-        col.prop(netsettings, "server_address")
-        col.prop(netsettings, "server_port")
+        layout.prop(netsettings, "mode", expand=True)
+
+        if netsettings.mode in ("RENDER_MASTER", "RENDER_SLAVE"):
+            layout.operator("render.netclientstart", icon='PLAY')
+
+        layout.prop(netsettings, "path")
+        
+        split = layout.split(percentage=0.7)
+        
+        col = split.column()
+        col.label(text="Server Adress:")
+        col.prop(netsettings, "server_address", text="")
+            
+        col = split.column()
+        col.label(text="Port:")
+        col.prop(netsettings, "server_port", text="")
 
         if netsettings.mode == "RENDER_MASTER":
-            col.prop(netsettings, "server_broadcast")
+            layout.prop(netsettings, "server_broadcast", text="Broadcast")
         else:
-            col.operator("render.netclientscan", icon='FILE_REFRESH', text="")
+            layout.operator("render.netclientscan", icon='FILE_REFRESH', text="")
 
-        col.operator("render.netclientweb", icon='QUESTION')
+        layout.operator("render.netclientweb", icon='QUESTION')
 
 @rnaType
 class RENDER_PT_network_job(RenderButtonsPanel):
@@ -137,22 +140,27 @@ class RENDER_PT_network_job(RenderButtonsPanel):
         scene = context.scene
         netsettings = scene.network_render
 
-        layout.active = True
-
-        split = layout.split()
-
-        col = split.column()
-
         verify_address(netsettings)
         
         if netsettings.server_address != "[default]":
-            col.operator("render.netclientanim", icon='RENDER_ANIMATION')
-            col.operator("render.netclientsend", icon='FILE_BLEND')
+            layout.operator("render.netclientanim", icon='RENDER_ANIMATION')
+            layout.operator("render.netclientsend", icon='FILE_BLEND')
             if netsettings.job_id:
-                col.operator("screen.render", text="Get Results", icon='RENDER_ANIMATION').animation = True
-        col.prop(netsettings, "job_name")
-        col.prop(netsettings, "job_category")
-        row = col.row()
+                row = layout.row()
+                row.operator("screen.render", text="Get Image", icon='RENDER_STILL')
+                row.operator("screen.render", text="Get Animation", icon='RENDER_ANIMATION').animation = True
+                
+        split = layout.split(percentage=0.3)
+        
+        col = split.column()
+        col.label(text="Name:")
+        col.label(text="Category:")
+        
+        col = split.column()
+        col.prop(netsettings, "job_name", text="")
+        col.prop(netsettings, "job_category", text="")
+        
+        row = layout.row()
         row.prop(netsettings, "priority")
         row.prop(netsettings, "chunks")
 
