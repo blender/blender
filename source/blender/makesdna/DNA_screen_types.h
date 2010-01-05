@@ -170,9 +170,10 @@ typedef struct ARegion {
 #define WIN_EQUAL		3
 
 /* area->flag */
-#define HEADER_NO_PULLDOWN	1
-#define AREA_FLAG_DRAWJOINTO 2
-#define AREA_FLAG_DRAWJOINFROM 4
+#define HEADER_NO_PULLDOWN		1
+#define AREA_FLAG_DRAWJOINTO	2
+#define AREA_FLAG_DRAWJOINFROM	4
+#define AREA_TEMP_INFO			8
 
 /* If you change EDGEWIDTH, also do the global arrat edcol[]  */
 #define EDGEWIDTH	1
@@ -211,13 +212,16 @@ typedef struct ARegion {
 #define SCREEN_HANDLER_VERSE	3
 
 /* regiontype, first two are the default set */
-#define RGN_TYPE_WINDOW		0
-#define RGN_TYPE_HEADER		1
-#define RGN_TYPE_CHANNELS	2
-#define RGN_TYPE_TEMPORARY	3
-#define RGN_TYPE_UI			4
-#define RGN_TYPE_TOOLS		5
-#define RGN_TYPE_TOOL_PROPS	6
+enum {
+	RGN_TYPE_WINDOW = 0,
+	RGN_TYPE_HEADER,
+	RGN_TYPE_CHANNELS,
+	RGN_TYPE_TEMPORARY,
+	RGN_TYPE_UI,
+	RGN_TYPE_TOOLS,
+	RGN_TYPE_TOOL_PROPS,
+	RGN_TYPE_PREVIEW
+};
 
 /* region alignment */
 #define RGN_ALIGN_NONE		0

@@ -125,7 +125,12 @@ static StructRNA *rna_RenderEngine_register(const bContext *C, ReportList *repor
 	/* validate the python class */
 	if(validate(&dummyptr, data, have_function) != 0)
 		return NULL;
-	
+
+	if(strlen(identifier) >= sizeof(dummyet.idname)) {
+		BKE_reportf(reports, RPT_ERROR, "registering render engine class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummyet.idname));
+		return NULL;
+	}
+
 	/* check if we have registered this engine type before, and remove it */
 	for(et=R_engines.first; et; et=et->next) {
 		if(strcmp(et->idname, dummyet.idname) == 0) {

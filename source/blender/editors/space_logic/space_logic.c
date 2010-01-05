@@ -188,7 +188,7 @@ void logic_operatortypes(void)
 
 void logic_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap= WM_keymap_find(keyconf, "Logic Generic", SPACE_LOGIC, 0);
+	wmKeyMap *keymap= WM_keymap_find(keyconf, "Logic Editor", SPACE_LOGIC, 0);
 	
 	WM_keymap_add_item(keymap, "LOGIC_OT_properties", NKEY, KM_PRESS, 0, 0);
 }
@@ -217,6 +217,10 @@ static void logic_listener(ARegion *ar, wmNotifier *wmn)
 				break;
 		case NC_OBJECT:
 			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -239,7 +243,7 @@ static void logic_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymaps */
-	keymap= WM_keymap_find(wm->defaultconf, "Logic Generic", SPACE_LOGIC, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Logic Editor", SPACE_LOGIC, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -280,7 +284,7 @@ static void logic_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Logic Generic", SPACE_LOGIC, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Logic Editor", SPACE_LOGIC, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -328,6 +332,7 @@ void ED_spacetype_logic(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_LOGIC;
+	strncpy(st->name, "Logic", BKE_ST_MAXNAME);
 	
 	st->new= logic_new;
 	st->free= logic_free;

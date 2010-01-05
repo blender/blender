@@ -361,6 +361,10 @@ void psys_check_group_weights(ParticleSettings *part)
 		BLI_freelistN(&part->dupliweights);
 	}
 }
+int psys_uses_gravity(ParticleSimulationData *sim)
+{
+	return sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY && sim->psys->part && sim->psys->part->effector_weights->global_gravity != 0.0f;
+}
 /************************************************/
 /*			Freeing stuff						*/
 /************************************************/
@@ -790,7 +794,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	totface= dm->getNumFaces(dm);
 	totorigface= me->totface;
 
-	if(totface == 0 || totorigface == 0 || origindex == NULL)
+	if(totface == 0 || totorigface == 0)
 		return tot;
 
 	facearea= MEM_callocN(sizeof(float)*totorigface, "SimplifyFaceArea");
@@ -807,14 +811,14 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 	/* compute number of children per original face */
 	for(a=0; a<tot; a++) {
-		b= origindex[ctx->index[a]];
+		b= (origindex)? origindex[ctx->index[a]]: ctx->index[a];
 		if(b != -1)
 			elems[b].totchild++;
 	}
 
 	/* compute areas and centers of original faces */
 	for(mf=mface, a=0; a<totface; a++, mf++) {
-		b= origindex[a];
+		b= (origindex)? origindex[a]: a;
 
 		if(b != -1) {
 			VECCOPY(co1, mvert[mf->v1].co);
@@ -910,7 +914,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 	skipped= 0;
 	for(a=0, newtot=0; a<tot; a++) {
-		b= origindex[ctx->index[a]];
+		b= (origindex)? origindex[ctx->index[a]]: ctx->index[a];
 		if(b != -1) {
 			if(elems[b].curchild++ < ceil(elems[b].lambda*elems[b].totchild)) {
 				ctx->index[newtot]= ctx->index[a];
@@ -943,7 +947,7 @@ int psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float 
 	if(!data->dosimplify)
 		return 0;
 	
-	b= data->origindex[cpa->num];
+	b= (data->origindex)? data->origindex[cpa->num]: cpa->num;
 	if(b == -1)
 		return 0;
 
@@ -2332,6 +2336,7 @@ static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float c
 	ctx->totparent= totparent;
 	ctx->parent_pass= 0;
 	ctx->cfra= cfra;
+	ctx->editupdate= editupdate;
 
 	psys->lattice = psys_get_lattice(&ctx->sim);
 
@@ -2443,7 +2448,7 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 			mul_m4_v3(ob->obmat,cpa_1st);
 		}
 
-		pa = psys->particles + cpa->parent;
+		pa = psys->particles + cpa->pa[0];
 
 		psys_mat_hair_to_global(ob, ctx->sim.psmd->dm, psys->part->from, pa, hairmat);
 
@@ -2614,6 +2619,9 @@ static void psys_thread_create_path(ParticleThread *thread, struct ChildParticle
 			if(ctx->ma && (part->draw & PART_DRAW_MAT_COL))
 				get_strand_normal(ctx->ma, ornor, cur_length, (state-1)->vel);
 		}
+
+		if(k == ctx->steps)
+			VECSUB(state->vel,state->co,(state-1)->co);
 
 		/* check if path needs to be cut before actual end of data points */
 		if(k){
@@ -4065,7 +4073,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	else{
 		if(cpa){
 			ParticleKey *key1;
-			float t = (cfra - pa->time + pa->loop * pa->lifetime) / pa->lifetime;
+			float t = (cfra - pa->time) / pa->lifetime;
 
 			key1=&pa->state;
 			offset_child(cpa, key1, state, part->childflat, part->childrad);

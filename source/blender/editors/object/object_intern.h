@@ -53,7 +53,7 @@ void OBJECT_OT_visual_transform_apply(struct wmOperatorType *ot);
 void OBJECT_OT_location_apply(struct wmOperatorType *ot);
 void OBJECT_OT_scale_apply(struct wmOperatorType *ot);
 void OBJECT_OT_rotation_apply(struct wmOperatorType *ot);
-void OBJECT_OT_center_set(struct wmOperatorType *ot);
+void OBJECT_OT_origin_set(struct wmOperatorType *ot);
 
 /* object_relations.c */
 void OBJECT_OT_parent_set(struct wmOperatorType *ot);
@@ -81,7 +81,7 @@ void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
 
 /* object_select.c */
-void OBJECT_OT_select_all_toggle(struct wmOperatorType *ot);
+void OBJECT_OT_select_all(struct wmOperatorType *ot);
 void OBJECT_OT_select_inverse(struct wmOperatorType *ot);
 void OBJECT_OT_select_random(struct wmOperatorType *ot);
 void OBJECT_OT_select_by_type(struct wmOperatorType *ot);
@@ -124,7 +124,7 @@ void make_editLatt(Object *obedit);
 void load_editLatt(Object *obedit);
 void remake_editLatt(Object *obedit);
 
-void LATTICE_OT_select_all_toggle(struct wmOperatorType *ot);
+void LATTICE_OT_select_all(struct wmOperatorType *ot);
 void LATTICE_OT_make_regular(struct wmOperatorType *ot);
 
 /* object_group.c */
@@ -142,7 +142,10 @@ void OBJECT_OT_modifier_apply(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_convert(struct wmOperatorType *ot);
 void OBJECT_OT_modifier_copy(struct wmOperatorType *ot);
 void OBJECT_OT_multires_subdivide(struct wmOperatorType *ot);
+void OBJECT_OT_multires_reshape(struct wmOperatorType *ot);
 void OBJECT_OT_multires_higher_levels_delete(struct wmOperatorType *ot);
+void OBJECT_OT_multires_save_external(struct wmOperatorType *ot);
+void OBJECT_OT_multires_pack_external(struct wmOperatorType *ot);
 void OBJECT_OT_meshdeform_bind(struct wmOperatorType *ot);
 void OBJECT_OT_explode_refresh(struct wmOperatorType *ot);
 
@@ -198,6 +201,9 @@ void OBJECT_OT_shape_key_move(struct wmOperatorType *ot);
 /* object_group.c */
 void OBJECT_OT_group_add(struct wmOperatorType *ot);
 void OBJECT_OT_group_remove(struct wmOperatorType *ot);
+
+/* object_bake.c */
+void OBJECT_OT_bake_image(wmOperatorType *ot);
 
 #endif /* ED_OBJECT_INTERN_H */
 

@@ -79,11 +79,14 @@ void ED_object_toggle_modes(struct bContext *C, int mode);
 void ED_object_exit_editmode(struct bContext *C, int flag);
 void ED_object_enter_editmode(struct bContext *C, int flag);
 
-void ED_object_base_init_from_view(struct bContext *C, struct Base *base, int view_align);
+void ED_object_location_from_view(struct bContext *C, float *loc);
+void ED_object_rotation_from_view(struct bContext *C, float *rot);
+void ED_object_base_init_transform(struct bContext *C, struct Base *base, float *loc, float *rot);
+
 void ED_object_add_generic_props(struct wmOperatorType *ot, int do_editmode);
 int ED_object_add_generic_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-void ED_object_add_generic_get_opts(struct wmOperator *op, int *view_align, int *enter_editmode);
-struct Object *ED_object_add_type(struct bContext *C, int type, int view_align, int enter_editmode);
+void ED_object_add_generic_get_opts(struct wmOperator *op, float *loc, float *rot, int *enter_editmode);
+struct Object *ED_object_add_type(struct bContext *C, int type, float *loc, float *rot, int enter_editmode);
 
 void ED_object_single_users(struct Scene *scene, int full);
 
@@ -107,13 +110,9 @@ void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *
 int  mouse_lattice(struct bContext *C, short mval[2], int extend);
 void undo_push_lattice(struct bContext *C, char *name);
 
-/* object_shapekey.c */
-void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);
-void mesh_to_key(struct Mesh *me, struct KeyBlock *kb);
-void key_to_latt(struct KeyBlock *kb, struct Lattice *lt);
-void latt_to_key(struct Lattice *lt, struct KeyBlock *kb);
-void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb);
-void curve_to_key(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
+/* object_lattice.c */
+
+void ED_setflagsLatt(struct Object *obedit, int flag);
 
 /* object_modifier.c */
 enum {

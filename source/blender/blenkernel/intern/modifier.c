@@ -187,7 +187,7 @@ static DerivedMesh *get_original_dm(Scene *scene, Object *ob, float (*vertexCos)
 
 /***/
 
-static int noneModifier_isDisabled(ModifierData *md)
+static int noneModifier_isDisabled(ModifierData *md, int userRenderParams)
 {
 	return 1;
 }
@@ -222,7 +222,7 @@ static CustomDataMask curveModifier_requiredDataMask(Object *ob, ModifierData *m
 	return dataMask;
 }
 
-static int curveModifier_isDisabled(ModifierData *md)
+static int curveModifier_isDisabled(ModifierData *md, int userRenderParams)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
 
@@ -298,7 +298,7 @@ static CustomDataMask latticeModifier_requiredDataMask(Object *ob, ModifierData 
 	return dataMask;
 }
 
-static int latticeModifier_isDisabled(ModifierData *md)
+static int latticeModifier_isDisabled(ModifierData *md, int userRenderParams)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
@@ -402,6 +402,13 @@ static void subsurfModifier_freeData(ModifierData *md)
 	}
 }
 
+static int subsurfModifier_isDisabled(ModifierData *md, int useRenderParams)
+{
+	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+
+	return (useRenderParams)? (smd->renderLevels == 0): (smd->levels == 0);
+}
+
 static DerivedMesh *subsurfModifier_applyModifier(
 		ModifierData *md, Object *ob, DerivedMesh *derivedData,
   int useRenderParams, int isFinalCalc)
@@ -410,8 +417,13 @@ static DerivedMesh *subsurfModifier_applyModifier(
 	DerivedMesh *result;
 
 	result = subsurf_make_derived_from_derived(derivedData, smd,
-			useRenderParams, NULL,
-   isFinalCalc, 0);
+			useRenderParams, NULL, isFinalCalc, 0);
+	
+	if(useRenderParams || !isFinalCalc) {
+		DerivedMesh *cddm= CDDM_copy(result);
+		result->release(result);
+		result= cddm;
+	}
 
 	return result;
 }
@@ -3524,7 +3536,7 @@ static void displaceModifier_foreachIDLink(ModifierData *md, Object *ob,
 	displaceModifier_foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
-static int displaceModifier_isDisabled(ModifierData *md)
+static int displaceModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
 
@@ -4268,7 +4280,7 @@ static void smoothModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tsmd->defgrp_name, smd->defgrp_name, 32);
 }
 
-static int smoothModifier_isDisabled(ModifierData *md)
+static int smoothModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	SmoothModifierData *smd = (SmoothModifierData*) md;
 	short flag;
@@ -4498,7 +4510,7 @@ static void castModifier_copyData(ModifierData *md, ModifierData *target)
 	strncpy(tcmd->defgrp_name, cmd->defgrp_name, 32);
 }
 
-static int castModifier_isDisabled(ModifierData *md)
+static int castModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	CastModifierData *cmd = (CastModifierData*) md;
 	short flag;
@@ -5487,7 +5499,7 @@ static CustomDataMask armatureModifier_requiredDataMask(Object *ob, ModifierData
 	return dataMask;
 }
 
-static int armatureModifier_isDisabled(ModifierData *md)
+static int armatureModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 
@@ -5610,7 +5622,7 @@ static void hookModifier_freeData(ModifierData *md)
 	if (hmd->indexar) MEM_freeN(hmd->indexar);
 }
 
-static int hookModifier_isDisabled(ModifierData *md)
+static int hookModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	HookModifierData *hmd = (HookModifierData*) md;
 
@@ -5682,7 +5694,7 @@ static void hookModifier_deformVerts(
 				/* if DerivedMesh is present and has original index data,
 				* use it
 				*/
-				if(dm && dm->getVertData(dm, 0, CD_ORIGINDEX)) {
+				if(dm && dm->getVertDataArray(dm, CD_ORIGINDEX)) {
 					int j;
 					int orig_index;
 					for(j = 0; j < numVerts; ++j) {
@@ -5793,6 +5805,463 @@ static void softbodyModifier_deformVerts(
 static int softbodyModifier_dependsOnTime(ModifierData *md)
 {
 	return 1;
+}
+
+/* Solidify */
+
+
+typedef struct EdgeFaceRef {
+	int f1; /* init as -1 */
+	int f2;
+} EdgeFaceRef;
+
+static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
+{
+	int i, numVerts, numEdges, numFaces;
+	MFace *mface, *mf;
+	MVert *mvert, *mv;
+
+	float (*face_nors)[3];
+	float *f_no;
+	int calc_face_nors= 0;
+
+	numVerts = dm->getNumVerts(dm);
+	numEdges = dm->getNumEdges(dm);
+	numFaces = dm->getNumFaces(dm);
+	mface = dm->getFaceArray(dm);
+	mvert = dm->getVertArray(dm);
+
+	/* we don't want to overwrite any referenced layers */
+
+	/*
+	Dosnt work here!
+	mv = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT);
+	cddm->mvert = mv;
+	*/
+
+	face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
+	if(!face_nors) {
+		calc_face_nors = 1;
+		face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_CALLOC, NULL, numFaces);
+	}
+
+	mv = mvert;
+	mf = mface;
+
+	{
+		EdgeHash *edge_hash = BLI_edgehash_new();
+		EdgeHashIterator *edge_iter;
+		int edge_ref_count = 0;
+		int ed_v1, ed_v2; /* use when getting the key */
+		EdgeFaceRef *edge_ref_array = MEM_callocN(numEdges * sizeof(EdgeFaceRef), "Edge Connectivity");
+		EdgeFaceRef *edge_ref;
+		float edge_normal[3];
+
+		/* This function adds an edge hash if its not there, and adds the face index */
+#define NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(EDV1, EDV2); \
+				edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, EDV1, EDV2); \
+				if (!edge_ref) { \
+					edge_ref = &edge_ref_array[edge_ref_count]; edge_ref_count++; \
+					edge_ref->f1=i; \
+					edge_ref->f2=-1; \
+					BLI_edgehash_insert(edge_hash, EDV1, EDV2, edge_ref); \
+				} else { \
+					edge_ref->f2=i; \
+				}
+
+		for(i = 0; i < numFaces; i++, mf++) {
+			f_no = face_nors[i];
+
+			if(mf->v4) {
+				if(calc_face_nors)
+					normal_quad_v3(f_no, mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co, mv[mf->v4].co);
+
+				NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(mf->v1, mf->v2);
+				NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(mf->v2, mf->v3);
+				NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(mf->v3, mf->v4);
+				NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(mf->v4, mf->v1);
+			} else {
+				if(calc_face_nors)
+					normal_tri_v3(f_no, mv[mf->v1].co, mv[mf->v2].co, mv[mf->v3].co);
+
+				NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(mf->v1, mf->v2);
+				NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(mf->v2, mf->v3);
+				NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(mf->v3, mf->v1);
+			}
+		}
+
+		for(edge_iter = BLI_edgehashIterator_new(edge_hash); !BLI_edgehashIterator_isDone(edge_iter); BLI_edgehashIterator_step(edge_iter)) {
+			/* Get the edge vert indicies, and edge value (the face indicies that use it)*/
+			BLI_edgehashIterator_getKey(edge_iter, (int*)&ed_v1, (int*)&ed_v2);
+			edge_ref = BLI_edgehashIterator_getValue(edge_iter);
+
+			if (edge_ref->f2 != -1) {
+				/* We have 2 faces using this edge, calculate the edges normal
+				 * using the angle between the 2 faces as a weighting */
+				add_v3_v3v3(edge_normal, face_nors[edge_ref->f1], face_nors[edge_ref->f2]);
+				normalize_v3(edge_normal);
+				mul_v3_fl(edge_normal, angle_normalized_v3v3(face_nors[edge_ref->f1], face_nors[edge_ref->f2]));
+			} else {
+				/* only one face attached to that edge */
+				/* an edge without another attached- the weight on this is
+				 * undefined, M_PI/2 is 90d in radians and that seems good enough */
+				VECCOPY(edge_normal, face_nors[edge_ref->f1])
+				mul_v3_fl(edge_normal, M_PI/2);
+			}
+			add_v3_v3(temp_nors[ed_v1], edge_normal);
+			add_v3_v3(temp_nors[ed_v2], edge_normal);
+		}
+		BLI_edgehashIterator_free(edge_iter);
+		BLI_edgehash_free(edge_hash, NULL);
+		MEM_freeN(edge_ref_array);
+	}
+
+	/* normalize vertex normals and assign */
+	for(i = 0; i < numVerts; i++, mv++) {
+		if(normalize_v3(temp_nors[i]) == 0.0f) {
+			normal_short_to_float_v3(temp_nors[i], mv->no);
+		}
+	}
+}
+ 
+static void solidifyModifier_initData(ModifierData *md)
+{
+	SolidifyModifierData *smd = (SolidifyModifierData*) md;
+	smd->offset = 0.01f;
+	smd->flag = MOD_SOLIDIFY_EVEN | MOD_SOLIDIFY_RIM | MOD_SOLIDIFY_NORMAL_CALC;
+}
+ 
+static void solidifyModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	SolidifyModifierData *smd = (SolidifyModifierData*) md;
+	SolidifyModifierData *tsmd = (SolidifyModifierData*) target;
+	tsmd->offset = smd->offset;
+	tsmd->crease_inner = smd->crease_inner;
+	tsmd->crease_outer = smd->crease_outer;
+	tsmd->crease_rim = smd->crease_rim;
+	strcpy(tsmd->vgroup, smd->vgroup);
+}
+
+static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
+						   Object *ob, 
+						   DerivedMesh *dm,
+						   int useRenderParams,
+						   int isFinalCalc)
+{
+	int i;
+	DerivedMesh *result;
+	SolidifyModifierData *smd = (SolidifyModifierData*) md;
+
+	MFace *mf, *mface, *orig_mface;
+	MEdge *ed, *medge, *orig_medge;
+	MVert *mv, *mvert, *orig_mvert;
+
+	int numVerts = dm->getNumVerts(dm);
+	int numEdges = dm->getNumEdges(dm);
+	int numFaces = dm->getNumFaces(dm);
+
+	/* use for edges */
+	int *new_vert_arr= NULL;
+	int newFaces = 0;
+
+	int *new_edge_arr= NULL;
+	int newEdges = 0;
+
+	int *edge_users= NULL;
+	char *edge_order= NULL;
+
+	float (*vert_nors)[3]= NULL;
+
+	orig_mface = dm->getFaceArray(dm);
+	orig_medge = dm->getEdgeArray(dm);
+	orig_mvert = dm->getVertArray(dm);
+
+	if(smd->flag & MOD_SOLIDIFY_RIM) {
+		EdgeHash *edgehash = BLI_edgehash_new();
+		EdgeHashIterator *ehi;
+		int v1, v2;
+		int eidx;
+
+		for(i=0, mv=orig_mvert; i<numVerts; i++, mv++) {
+			mv->flag &= ~ME_VERT_TMP_TAG;
+		}
+
+		for(i=0, ed=orig_medge; i<numEdges; i++, ed++) {
+			BLI_edgehash_insert(edgehash, ed->v1, ed->v2, SET_INT_IN_POINTER(i));
+		}
+
+#define INVALID_UNUSED -1
+#define INVALID_PAIR -2
+
+#define ADD_EDGE_USER(_v1, _v2, edge_ord) \
+		eidx= GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, _v1, _v2)); \
+		if(edge_users[eidx] == INVALID_UNUSED) { \
+			edge_users[eidx]= (_v1 < _v2) ? i:(i+numFaces); \
+			edge_order[eidx]= edge_ord; \
+		} else { \
+			edge_users[eidx]= INVALID_PAIR; \
+		} \
+
+
+		edge_users= MEM_mallocN(sizeof(int) * numEdges, "solid_mod edges");
+		edge_order= MEM_mallocN(sizeof(char) * numEdges, "solid_mod eorder");
+		memset(edge_users, INVALID_UNUSED, sizeof(int) * numEdges);
+
+		for(i=0, mf=orig_mface; i<numFaces; i++, mf++) {
+			if(mf->v4) {
+				ADD_EDGE_USER(mf->v1, mf->v2, 0);
+				ADD_EDGE_USER(mf->v2, mf->v3, 1);
+				ADD_EDGE_USER(mf->v3, mf->v4, 2);
+				ADD_EDGE_USER(mf->v4, mf->v1, 3);
+			}
+			else {
+				ADD_EDGE_USER(mf->v1, mf->v2, 0);
+				ADD_EDGE_USER(mf->v2, mf->v3, 1);
+				ADD_EDGE_USER(mf->v3, mf->v1, 2);
+			}
+		}
+
+#undef ADD_EDGE_USER
+#undef INVALID_UNUSED
+#undef INVALID_PAIR
+
+
+		new_edge_arr= MEM_callocN(sizeof(int) * numEdges, "solid_mod arr");
+
+		ehi= BLI_edgehashIterator_new(edgehash);
+		for(; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
+			int eidx= GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
+			if(edge_users[eidx] >= 0) {
+				BLI_edgehashIterator_getKey(ehi, &v1, &v2);
+				orig_mvert[v1].flag |= ME_VERT_TMP_TAG;
+				orig_mvert[v2].flag |= ME_VERT_TMP_TAG;
+				new_edge_arr[newFaces]= eidx;
+				newFaces++;
+			}
+		}
+		BLI_edgehashIterator_free(ehi);
+
+
+
+		new_vert_arr= MEM_callocN(sizeof(int) * numVerts, "solid_mod new_varr");
+		for(i=0, mv=orig_mvert; i<numVerts; i++, mv++) {
+			if(mv->flag & ME_VERT_TMP_TAG) {
+				new_vert_arr[newEdges] = i;
+				newEdges++;
+
+				mv->flag &= ~ME_VERT_TMP_TAG;
+			}
+		}
+
+		BLI_edgehash_free(edgehash, NULL);
+	}
+
+	if(smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
+		vert_nors= MEM_callocN(sizeof(float) * numVerts * 3, "mod_solid_vno_hq");
+		dm_calc_normal(dm, vert_nors);
+	}
+
+	result = CDDM_from_template(dm, numVerts * 2, (numEdges * 2) + newEdges, (numFaces * 2) + newFaces);
+
+	mface = result->getFaceArray(result);
+	medge = result->getEdgeArray(result);
+	mvert = result->getVertArray(result);
+
+	DM_copy_face_data(dm, result, 0, 0, numFaces);
+	DM_copy_face_data(dm, result, 0, numFaces, numFaces);
+
+	DM_copy_edge_data(dm, result, 0, 0, numEdges);
+	DM_copy_edge_data(dm, result, 0, numEdges, numEdges);
+
+	DM_copy_vert_data(dm, result, 0, 0, numVerts);
+	DM_copy_vert_data(dm, result, 0, numVerts, numVerts);
+
+	{
+		static int corner_indices[4] = {2, 1, 0, 3};
+		int is_quad;
+
+		for(i=0, mf=mface+numFaces; i<numFaces; i++, mf++) {
+			mf->v1 += numVerts;
+			mf->v2 += numVerts;
+			mf->v3 += numVerts;
+			if(mf->v4)
+				mf->v4 += numVerts;
+
+			/* Flip face normal */
+			{
+				is_quad = mf->v4;
+				SWAP(int, mf->v1, mf->v3);
+				DM_swap_face_data(result, i+numFaces, corner_indices);
+				test_index_face(mf, &result->faceData, numFaces, is_quad ? 4:3);
+			}
+		}
+	}
+
+	for(i=0, ed=medge+numEdges; i<numEdges; i++, ed++) {
+		ed->v1 += numVerts;
+		ed->v2 += numVerts;
+	}
+
+	if((smd->flag & MOD_SOLIDIFY_EVEN) == 0) {
+		/* no even thickness, very simple */
+		float scalar_short = smd->offset / 32767.0f;
+
+		if(smd->offset < 0.0f)	mv= mvert+numVerts;
+		else					mv= mvert;
+
+		for(i=0; i<numVerts; i++, mv++) {
+			mv->co[0] += mv->no[0] * scalar_short;
+			mv->co[1] += mv->no[1] * scalar_short;
+			mv->co[2] += mv->no[2] * scalar_short;
+		}
+	}
+	else {
+		/* make a face normal layer if not present */
+		float (*face_nors)[3];
+		int face_nors_calc= 0;
+
+		/* same as EM_solidify() in editmesh_lib.c */
+		float *vert_angles= MEM_callocN(sizeof(float) * numVerts * 2, "mod_solid_pair"); /* 2 in 1 */
+		float *vert_accum= vert_angles + numVerts;
+		float face_angles[4];
+		int i, j, vidx;
+
+		face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
+		if(!face_nors) {
+			face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_CALLOC, NULL, dm->numFaceData);
+			face_nors_calc= 1;
+		}
+
+		if(vert_nors==NULL) {
+			vert_nors= MEM_mallocN(sizeof(float) * numVerts * 3, "mod_solid_vno");
+			for(i=0, mv=mvert; i<numVerts; i++, mv++) {
+				normal_short_to_float_v3(vert_nors[i], mv->no);
+			}
+		}
+
+		for(i=0, mf=mface; i<numFaces; i++, mf++) {
+
+			/* just added, calc the normal */
+			if(face_nors_calc) {
+				if(mf->v4)
+					normal_quad_v3(face_nors[i], mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co, mvert[mf->v4].co);
+				else
+					normal_tri_v3(face_nors[i] , mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co);
+			}
+
+			if(mf->v4) {
+				angle_quad_v3(face_angles, mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co, mvert[mf->v4].co);
+				j= 3;
+			}
+			else {
+				angle_tri_v3(face_angles, mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co);
+				j= 2;
+			}
+
+			for(; j>=0; j--) {
+				vidx = *(&mf->v1 + j);
+				vert_accum[vidx] += face_angles[j];
+				vert_angles[vidx]+= shell_angle_to_dist(angle_normalized_v3v3(vert_nors[vidx], face_nors[i])) * face_angles[j];
+			}
+		}
+
+		if(smd->offset < 0.0f)	mv= mvert+numVerts;
+		else					mv= mvert;
+
+		for(i=0; i<numVerts; i++, mv++) {
+			if(vert_accum[i]) { /* zero if unselected */
+				madd_v3_v3fl(mv->co, vert_nors[i], smd->offset * (vert_angles[i] / vert_accum[i]));
+			}
+		}
+
+		MEM_freeN(vert_angles);
+	}
+
+	if(vert_nors)
+		MEM_freeN(vert_nors);
+
+	if(smd->flag & MOD_SOLIDIFY_RIM) {
+
+		static int edge_indices[4][4] = {
+				{1, 0, 0, 1},
+				{2, 1, 1, 2},
+				{3, 2, 2, 3},
+				{0, 3, 3, 0}};
+
+		/* add faces & edges */
+		ed= medge + (numEdges * 2);
+		for(i=0; i<newEdges; i++, ed++) {
+			ed->v1= new_vert_arr[i];
+			ed->v2= new_vert_arr[i] + numVerts;
+			ed->flag |= ME_EDGEDRAW;
+
+			if(smd->crease_rim)
+				ed->crease= smd->crease_rim * 255.0f;
+		}
+
+		/* faces */
+		mf= mface + (numFaces * 2);
+		for(i=0; i<newFaces; i++, mf++) {
+			int eidx= new_edge_arr[i];
+			int fidx= edge_users[eidx];
+			int flip;
+
+			if(fidx >= numFaces) {
+				fidx -= numFaces;
+				flip= 1;
+			}
+			else {
+				flip= 0;
+			}
+
+			ed= medge + eidx;
+
+			/* copy most of the face settings */
+			DM_copy_face_data(dm, result, fidx, (numFaces * 2) + i, 1);
+
+			if(flip) {
+				DM_swap_face_data(result, (numFaces * 2) + i, edge_indices[edge_order[eidx]]);
+
+				mf->v1= ed->v1;
+				mf->v2= ed->v2;
+				mf->v3= ed->v2 + numVerts;
+				mf->v4= ed->v1 + numVerts;
+			}
+			else {
+				DM_swap_face_data(result, (numFaces * 2) + i, edge_indices[edge_order[eidx]]);
+
+				mf->v1= ed->v2;
+				mf->v2= ed->v1;
+				mf->v3= ed->v1 + numVerts;
+				mf->v4= ed->v2 + numVerts;
+
+
+			}
+
+			if(smd->crease_outer > 0.0f)
+				ed->crease= smd->crease_outer * 255.0f;
+
+			if(smd->crease_inner > 0.0f) {
+				ed= medge + (numEdges + eidx);
+				ed->crease= smd->crease_inner * 255.0f;
+			}
+		}
+
+		MEM_freeN(new_vert_arr);
+		MEM_freeN(new_edge_arr);
+		MEM_freeN(edge_users);
+		MEM_freeN(edge_order);
+	}
+
+	return result;
+}
+
+static DerivedMesh *solidifyModifier_applyModifierEM(ModifierData *md,
+						     Object *ob,
+						     EditMesh *editData,
+						     DerivedMesh *derivedData)
+{
+	return solidifyModifier_applyModifier(md, ob, derivedData, 0, 1);
 }
 
 /* Smoke */
@@ -6308,7 +6777,7 @@ static void booleanModifier_copyData(ModifierData *md, ModifierData *target)
 	tbmd->operation = bmd->operation;
 }
 
-static int booleanModifier_isDisabled(ModifierData *md)
+static int booleanModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
 
@@ -6397,7 +6866,10 @@ static void particleSystemModifier_freeData(ModifierData *md)
 		psmd->dm=0;
 	}
 
-	psmd->psys->flag |= PSYS_DELETE;
+	/* ED_object_modifier_remove may have freed this first before calling
+	 * modifier_free (which calls this function) */
+	if(psmd->psys)
+		psmd->psys->flag |= PSYS_DELETE;
 }
 static void particleSystemModifier_copyData(ModifierData *md, ModifierData *target)
 {
@@ -6558,6 +7030,7 @@ static void particleInstanceModifier_copyData(ModifierData *md, ModifierData *ta
 	tpimd->ob = pimd->ob;
 	tpimd->psys = pimd->psys;
 	tpimd->flag = pimd->flag;
+	tpimd->axis = pimd->axis;
 	tpimd->position = pimd->position;
 	tpimd->random_position = pimd->random_position;
 }
@@ -7757,7 +8230,7 @@ static CustomDataMask meshdeformModifier_requiredDataMask(Object *ob, ModifierDa
 	return dataMask;
 }
 
-static int meshdeformModifier_isDisabled(ModifierData *md)
+static int meshdeformModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 
@@ -8047,15 +8520,10 @@ static void multiresModifier_initData(ModifierData *md)
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)md;
 
-	mmd->lvl = mmd->totlvl = 1;
-}
-
-static void multiresModifier_freeData(ModifierData *md)
-{
-	MultiresModifierData *mmd = (MultiresModifierData*)md;
-
-	if(mmd->undo_verts)
-		MEM_freeN(mmd->undo_verts);
+	mmd->lvl = 0;
+	mmd->sculptlvl = 0;
+	mmd->renderlvl = 0;
+	mmd->totlvl = 0;
 }
 
 static void multiresModifier_copyData(ModifierData *md, ModifierData *target)
@@ -8063,37 +8531,35 @@ static void multiresModifier_copyData(ModifierData *md, ModifierData *target)
 	MultiresModifierData *mmd = (MultiresModifierData*) md;
 	MultiresModifierData *tmmd = (MultiresModifierData*) target;
 
-	tmmd->totlvl = mmd->totlvl;
 	tmmd->lvl = mmd->lvl;
+	tmmd->sculptlvl = mmd->sculptlvl;
+	tmmd->renderlvl = mmd->renderlvl;
+	tmmd->totlvl = mmd->totlvl;
 }
 
 static DerivedMesh *multiresModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 						   int useRenderParams, int isFinalCalc)
 {
 	MultiresModifierData *mmd = (MultiresModifierData*)md;
-	DerivedMesh *final;
+	DerivedMesh *result;
 
-	/* TODO: for now just skip a level1 mesh */
-	if(mmd->lvl == 1)
+	result = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams, isFinalCalc);
+
+	if(result == dm)
 		return dm;
 
-	final = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams, isFinalCalc);
-	if(mmd->undo_signal && mmd->undo_verts && mmd->undo_verts_tot == final->getNumVerts(final)) {
-		int i;
-		MVert *dst = CDDM_get_verts(final);
-		for(i = 0; i < mmd->undo_verts_tot; ++i) {
-			copy_v3_v3(dst[i].co, mmd->undo_verts[i].co);
-		}
-		CDDM_calc_normals(final);
-
-		MultiresDM_mark_as_modified(final);
-
-		MEM_freeN(mmd->undo_verts);
-		mmd->undo_signal = 0;
-		mmd->undo_verts = NULL;
+	if(useRenderParams || !isFinalCalc) {
+		DerivedMesh *cddm= CDDM_copy(result);
+		result->release(result);
+		result= cddm;
+	}
+	else if(ob->mode & OB_MODE_SCULPT) {
+		/* would be created on the fly too, just nicer this
+		   way on first stroke after e.g. switching levels */
+		result->getPBVH(ob, result);
 	}
 
-	return final;
+	return result;
 }
 
 /* Shrinkwrap */
@@ -8142,7 +8608,7 @@ static CustomDataMask shrinkwrapModifier_requiredDataMask(Object *ob, ModifierDa
 	return dataMask;
 }
 
-static int shrinkwrapModifier_isDisabled(ModifierData *md)
+static int shrinkwrapModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData*) md;
 	return !smd->target;
@@ -8438,6 +8904,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->initData = subsurfModifier_initData;
 		mti->copyData = subsurfModifier_copyData;
 		mti->freeData = subsurfModifier_freeData;
+		mti->isDisabled = subsurfModifier_isDisabled;
 		mti->applyModifier = subsurfModifier_applyModifier;
 		mti->applyModifierEM = subsurfModifier_applyModifierEM;
 
@@ -8770,7 +9237,6 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->type = eModifierTypeType_Constructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_RequiresOriginalData;
 		mti->initData = multiresModifier_initData;
-		mti->freeData = multiresModifier_freeData;
 		mti->copyData = multiresModifier_copyData;
 		mti->applyModifier = multiresModifier_applyModifier;
 
@@ -8782,6 +9248,16 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->deformVertsEM = shapekeyModifier_deformVertsEM;
 		mti->deformMatricesEM = shapekeyModifier_deformMatricesEM;
 
+		mti = INIT_TYPE(Solidify);
+		mti->type = eModifierTypeType_Constructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_SupportsMapping
+				| eModifierTypeFlag_SupportsEditmode
+				| eModifierTypeFlag_EnableInEditmode;
+		mti->initData = solidifyModifier_initData;
+		mti->copyData = solidifyModifier_copyData;
+		mti->applyModifier = solidifyModifier_applyModifier;
+		mti->applyModifierEM = solidifyModifier_applyModifierEM;
 		typeArrInit = 0;
 #undef INIT_TYPE
 	}
@@ -8920,7 +9396,7 @@ int modifier_couldBeCage(ModifierData *md)
 
 	return (	(md->mode & eModifierMode_Realtime) &&
 			(md->mode & eModifierMode_Editmode) &&
-			(!mti->isDisabled || !mti->isDisabled(md)) &&
+			(!mti->isDisabled || !mti->isDisabled(md, 0)) &&
 			modifier_supportsMapping(md));	
 }
 
@@ -8963,7 +9439,7 @@ int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r, int virtual
 
 		if (!(md->mode & eModifierMode_Realtime)) continue;
 		if (!(md->mode & eModifierMode_Editmode)) continue;
-		if (mti->isDisabled && mti->isDisabled(md)) continue;
+		if (mti->isDisabled && mti->isDisabled(md, 0)) continue;
 		if (!(mti->flags & eModifierTypeFlag_SupportsEditmode)) continue;
 		if (md->mode & eModifierMode_DisableTemporary) continue;
 
@@ -9005,7 +9481,7 @@ int modifier_isEnabled(ModifierData *md, int required_mode)
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 	if((md->mode & required_mode) != required_mode) return 0;
-	if(mti->isDisabled && mti->isDisabled(md)) return 0;
+	if(mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return 0;
 	if(md->mode & eModifierMode_DisableTemporary) return 0;
 	if(required_mode & eModifierMode_Editmode)
 		if(!(mti->flags & eModifierTypeFlag_SupportsEditmode)) return 0;
@@ -9151,15 +9627,15 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 }
 
 /* Takes an object and returns its first selected lattice, else just its
-* armature
-* This should work for multiple armatures per object
+* lattice
+* This should work for multiple lattics per object
 */
 Object *modifiers_isDeformedByLattice(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	LatticeModifierData *lmd= NULL;
 	
-	/* return the first selected armature, this lets us use multiple armatures
+	/* return the first selected lattice, this lets us use multiple lattices
 	*/
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Lattice) {
@@ -9192,13 +9668,9 @@ int modifiers_usesArmature(Object *ob, bArmature *arm)
 	return 0;
 }
 
-int modifier_isDeformer(ModifierData *md)
+int modifier_isCorrectableDeformed(ModifierData *md)
 {
 	if (md->type==eModifierType_Armature)
-		return 1;
-	if (md->type==eModifierType_Curve)
-		return 1;
-	if (md->type==eModifierType_Lattice)
 		return 1;
 	if (md->type==eModifierType_ShapeKey)
 		return 1;
@@ -9206,14 +9678,14 @@ int modifier_isDeformer(ModifierData *md)
 	return 0;
 }
 
-int modifiers_isDeformed(Scene *scene, Object *ob)
+int modifiers_isCorrectableDeformed(Scene *scene, Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md=md->next) {
 		if(ob->mode==OB_MODE_EDIT && (md->mode & eModifierMode_Editmode)==0);
 		else 
-			if(modifier_isDeformer(md))
+			if(modifier_isCorrectableDeformed(md))
 				return 1;
 	}
 	return 0;

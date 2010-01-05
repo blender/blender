@@ -354,7 +354,7 @@ void renderspothalo(ShadeInput *shi, float *col, float alpha)
 		lar= go->lampren;
 		if(lar==NULL) continue;
 		
-		if(lar->type==LA_SPOT && (lar->mode & LA_HALO) && lar->haint>0) {
+		if(lar->type==LA_SPOT && (lar->mode & LA_HALO) && (lar->buftype != LA_SHADBUF_DEEP) && lar->haint>0) {
 			
 			if(lar->mode & LA_LAYER) 
 				if(shi->vlr && (lar->lay & shi->obi->lay)==0) 
@@ -1041,6 +1041,7 @@ void ambient_occlusion_to_diffuse(ShadeInput *shi, float *diff)
 			}
 			
 			VECMUL(diff, f);
+			madd_v3_v3fl(diff, shi->indirect, R.wrld.ao_indirect_energy*shi->amb);
 		}
 		else
 			diff[0]= diff[1]= diff[2]= 0.0f;

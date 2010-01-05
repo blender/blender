@@ -48,9 +48,9 @@
 #include "DNA_object_types.h"
 // #include "GPU_draw.h"
 
-static void rna_userdef_update(bContext *C, PointerRNA *ptr)
+static void rna_userdef_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
+	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
 #if 0
@@ -132,14 +132,13 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesSystem, ptr->data);
 }
 
-static void rna_UserDef_audio_update(bContext *C, PointerRNA *ptr)
+static void rna_UserDef_audio_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	sound_init(C);
+	sound_init();
 }
 
-static void rna_UserDef_weight_color_update(bContext *C, PointerRNA *ptr)
+static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Main *bmain= CTX_data_main(C);
 	Object *ob;
 
 	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight):NULL);
@@ -149,22 +148,25 @@ static void rna_UserDef_weight_color_update(bContext *C, PointerRNA *ptr)
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 
-	rna_userdef_update(C, ptr);
+	rna_userdef_update(bmain, scene, ptr);
 }
 
 // XXX - todo, this is not accessible from here and it only works when the userprefs are in the same window.
 // extern int GPU_default_lights(void);
-static void rna_UserDef_viewport_lights_update(bContext *C, PointerRNA *ptr)
+static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	// GPU_default_lights();
-	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
-	rna_userdef_update(C, ptr);
+	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	rna_userdef_update(bmain, scene, ptr);
 }
 
-static void rna_userdef_autosave_update(bContext *C, PointerRNA *ptr)
+static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	WM_autosave_init(C);
-	rna_userdef_update(C, ptr);
+	wmWindowManager *wm= bmain->wm.first;
+
+	if(wm)
+		WM_autosave_init(wm);
+	rna_userdef_update(bmain, scene, ptr);
 }
 
 #else
@@ -1729,7 +1731,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "rotate_around_selection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ORBIT_SELECTION);
-	RNA_def_property_ui_text(prop, "Rotate Around Selection", "Use selection as the orbiting center.");
+	RNA_def_property_ui_text(prop, "Rotate Around Selection", "Use selection as the pivot point.");
 
 	/* select with */
 	
@@ -1804,10 +1806,10 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_range(prop, 4, 40);
 	RNA_def_property_ui_text(prop, "Manipulator Hotspot", "Hotspot in pixels for clicking widget handles.");
 
-	prop= RNA_def_property(srna, "object_center_size", PROP_INT, PROP_NONE);
+	prop= RNA_def_property(srna, "object_origin_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "obcenter_dia");
 	RNA_def_property_range(prop, 4, 10);
-	RNA_def_property_ui_text(prop, "Object Center Size", "Diameter in Pixels for Object/Lamp center display.");
+	RNA_def_property_ui_text(prop, "Object Origin Size", "Diameter in Pixels for Object/Lamp origin display.");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 
@@ -1916,7 +1918,11 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_visual_keying", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_AUTOMATKEY);
 	RNA_def_property_ui_text(prop, "Visual Keying", "Use Visual keying automatically for constrained objects.");
-
+	
+	prop= RNA_def_property(srna, "insertkey_xyz_to_rgb", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_XYZ2RGB);
+	RNA_def_property_ui_text(prop, "New F-Curve Colors - XYZ to RGB", "Color for newly added transformation F-Curves (Location, Rotation, Scale) and also Color is based on the transform axis.");
+	
 	prop= RNA_def_property(srna, "new_interpolation_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, new_interpolation_types);
 	RNA_def_property_enum_sdna(prop, NULL, "ipo_new");
@@ -1981,9 +1987,9 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_TEX);
 	RNA_def_property_ui_text(prop, "Duplicate Texture", "Causes texture data to be duplicated with the object.");
 	
-	prop= RNA_def_property(srna, "duplicate_ipo", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "duplicate_fcurve", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_IPO);
-	RNA_def_property_ui_text(prop, "Duplicate Ipo", "Causes ipo data to be duplicated with the object.");
+	RNA_def_property_ui_text(prop, "Duplicate F-Curve", "Causes F-curve data to be duplicated with the object.");
 
 	prop= RNA_def_property(srna, "duplicate_action", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_ACT);
@@ -2336,6 +2342,11 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 200);
 	RNA_def_property_ui_text(prop, "NDof Rotation Speed", "The overall rotation speed of an NDOF device, as percent of standard.");
 	
+	prop= RNA_def_property(srna, "double_click_time", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "dbl_click_time");
+	RNA_def_property_range(prop, 1, 1000);
+	RNA_def_property_ui_text(prop, "Double Click Timeout", "The time (in ms) for a double click.");
+
 	prop= RNA_def_property(srna, "emulate_3_button_mouse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_TWOBUTTONMOUSE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_userdef_emulate_set");
@@ -2350,6 +2361,15 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 {
 	PropertyRNA *prop;
 	StructRNA *srna;
+	
+	static EnumPropertyItem anim_player_presets[] = {
+		//{0, "INTERNAL", 0, "Internal", "Built-in animation player"},	// doesn't work yet!
+		{1, "BLENDER24", 0, "Blender 2.4", "Blender command line animation playback - path to Blender 2.4"},
+		{2, "DJV", 0, "Djv", "Open source frame player: http://djv.sourceforge.net"},
+		{3, "FRAMECYCLER", 0, "FrameCycler", "Frame player from IRIDAS"},
+		{4, "RV", 0, "rv", "Frame player from Tweak Software"},
+		{50, "CUSTOM", 0, "Custom", "Custom animation player executable path"},
+		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "UserPreferencesFilePaths", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
@@ -2407,7 +2427,17 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "temporary_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "tempdir");
 	RNA_def_property_ui_text(prop, "Temporary Directory", "The directory for storing temporary save files.");
+	
+	prop= RNA_def_property(srna, "animation_player", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "anim_player");
+	RNA_def_property_ui_text(prop, "Animation Player", "Path to a custom animation/frame sequence player.");
 
+	prop= RNA_def_property(srna, "animation_player_preset", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "anim_player_preset");
+	RNA_def_property_enum_items(prop, anim_player_presets);
+	RNA_def_property_ui_text(prop, "Animation Player Preset", "Preset configs for external animation players");
+	RNA_def_property_enum_default(prop, 1);		/* set default to blender 2.4 player until an internal one is back */
+	
 	/* Autosave  */
 
 	prop= RNA_def_property(srna, "save_version", PROP_INT, PROP_NONE);

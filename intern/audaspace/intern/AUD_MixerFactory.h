@@ -47,7 +47,7 @@ protected:
 	/**
 	 * The target specification for resampling.
 	 */
-	AUD_Specs m_specs;
+	AUD_DeviceSpecs m_specs;
 
 	/**
 	 * Returns the reader created out of the factory or taken from m_reader.
@@ -63,20 +63,20 @@ public:
 	 * \param reader The reader to mix.
 	 * \param specs The target specification.
 	 */
-	AUD_MixerFactory(AUD_IReader* reader, AUD_Specs specs);
+	AUD_MixerFactory(AUD_IReader* reader, AUD_DeviceSpecs specs);
 
 	/**
 	 * Creates a new factory.
 	 * \param factory The factory to create the readers to mix out of.
 	 * \param specs The target specification.
 	 */
-	AUD_MixerFactory(AUD_IFactory* factory, AUD_Specs specs);
+	AUD_MixerFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
 
 	/**
 	 * Creates a new factory.
 	 * \param specs The target specification.
 	 */
-	AUD_MixerFactory(AUD_Specs specs);
+	AUD_MixerFactory(AUD_DeviceSpecs specs);
 
 	/**
 	 * Destroys the resampling factory.
@@ -86,13 +86,13 @@ public:
 	/**
 	 * Returns the target specification for resampling.
 	 */
-	AUD_Specs getSpecs();
+	AUD_DeviceSpecs getSpecs();
 
 	/**
 	 * Sets the target specification for resampling.
 	 * \param specs The specification.
 	 */
-	void setSpecs(AUD_Specs specs);
+	void setSpecs(AUD_DeviceSpecs specs);
 
 	/**
 	 * Sets the reader for resampling.

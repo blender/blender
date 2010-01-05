@@ -160,7 +160,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_pointcache.h"
 #include "BKE_report.h"
 #include "BKE_screen.h" // for waitcursor
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_sound.h" /* ... and for samples */
 #include "BKE_utildefines.h" // for defines
 #include "BKE_modifier.h"
@@ -474,6 +474,8 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 	bNodeLink *link;
 	
 	/* for link_list() speed, we write per list */
+	
+	if(ntree->adt) write_animdata(wd, ntree->adt);
 	
 	for(node= ntree->nodes.first; node; node= node->next)
 		writestruct(wd, DATA, "bNode", 1, node);
@@ -930,16 +932,27 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 		/* driver data */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
+			
+			/* don't save compiled python bytecode */
+			void *expr_comp= driver->expr_comp;
+			driver->expr_comp= NULL;
 			
 			writestruct(wd, DATA, "ChannelDriver", 1, driver);
 			
-			/* targets */
-			for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
-				writestruct(wd, DATA, "DriverTarget", 1, dtar);
+			driver->expr_comp= expr_comp; /* restore */
+			
+			
+			/* variables */
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				writestruct(wd, DATA, "DriverVar", 1, dvar);
 				
-				if (dtar->rna_path)
-					writedata(wd, DATA, strlen(dtar->rna_path)+1, dtar->rna_path);
+				DRIVER_TARGETS_USED_LOOPER(dvar)
+				{
+					if (dtar->rna_path)
+						writedata(wd, DATA, strlen(dtar->rna_path)+1, dtar->rna_path);
+				}
+				DRIVER_TARGETS_LOOPER_END
 			}
 		}
 		
@@ -1050,6 +1063,19 @@ static void write_animdata(WriteData *wd, AnimData *adt)
 	write_nladata(wd, &adt->nla_tracks);
 }
 
+static void write_motionpath(WriteData *wd, bMotionPath *mpath)
+{
+	/* sanity checks */
+	if (mpath == NULL)
+		return;
+	
+	/* firstly, just write the motionpath struct */
+	writestruct(wd, DATA, "bMotionPath", 1, mpath);
+	
+	/* now write the array of data */
+	writestruct(wd, DATA, "bMotionPathVert", mpath->length, mpath->points);
+}
+
 static void write_constraints(WriteData *wd, ListBase *conlist)
 {
 	bConstraint *con;
@@ -1111,6 +1137,8 @@ static void write_pose(WriteData *wd, bPose *pose)
 			IDP_WriteProperty(chan->prop, wd);
 		
 		write_constraints(wd, &chan->constraints);
+		
+		write_motionpath(wd, chan->mpath);
 		
 		/* prevent crashes with autosave, when a bone duplicated in editmode has not yet been assigned to its posechannel */
 		if (chan->bone) 
@@ -1214,12 +1242,6 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			writestruct(wd, DATA, "MDefInfluence", mmd->totinfluence, mmd->dyninfluences);
 			writedata(wd, DATA, sizeof(int)*mmd->totvert, mmd->dynverts);
 		}
-		else if (md->type==eModifierType_Multires) {
-			MultiresModifierData *mmd = (MultiresModifierData*) md;
-
-			if(mmd->undo_verts)
-				writestruct(wd, DATA, "MVert", mmd->undo_verts_tot, mmd->undo_verts);
-		}
 	}
 }
 
@@ -1250,6 +1272,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			write_pose(wd, ob->pose);
 			write_defgroups(wd, &ob->defbase);
 			write_constraints(wd, &ob->constraints);
+			write_motionpath(wd, ob->mpath);
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
@@ -1440,22 +1463,28 @@ static void write_dverts(WriteData *wd, int count, MDeformVert *dvlist)
 	}
 }
 
-static void write_mdisps(WriteData *wd, int count, MDisps *mdlist)
+static void write_mdisps(WriteData *wd, int count, MDisps *mdlist, int external)
 {
 	if(mdlist) {
 		int i;
 		
 		writestruct(wd, DATA, "MDisps", count, mdlist);
-		for(i = 0; i < count; ++i) {
-			if(mdlist[i].disps)
-				writedata(wd, DATA, sizeof(float)*3*mdlist[i].totdisp, mdlist[i].disps);
+		if(!external) {
+			for(i = 0; i < count; ++i) {
+				if(mdlist[i].disps)
+					writedata(wd, DATA, sizeof(float)*3*mdlist[i].totdisp, mdlist[i].disps);
+			}
 		}
 	}
 }
 
-static void write_customdata(WriteData *wd, int count, CustomData *data, int partial_type, int partial_count)
+static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data, int partial_type, int partial_count)
 {
 	int i;
+
+	/* write external customdata (not for undo) */
+	if(data->external && !wd->current)
+		CustomData_external_write(data, id, CD_MASK_MESH, count, 0);
 
 	writestruct(wd, DATA, "CustomDataLayer", data->maxlayer, data->layers);
 
@@ -1469,7 +1498,7 @@ static void write_customdata(WriteData *wd, int count, CustomData *data, int par
 			write_dverts(wd, count, layer->data);
 		}
 		else if (layer->type == CD_MDISPS) {
-			write_mdisps(wd, count, layer->data);
+			write_mdisps(wd, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
 		}
 		else {
 			CustomData_file_write_info(layer->type, &structname, &structnum);
@@ -1486,6 +1515,9 @@ static void write_customdata(WriteData *wd, int count, CustomData *data, int par
 				printf("error: this CustomDataLayer must not be written to file\n");
 		}
 	}
+
+	if(data->external)
+		writestruct(wd, DATA, "CustomDataExternal", 1, data->external);
 }
 
 static void write_meshs(WriteData *wd, ListBase *idbase)
@@ -1504,16 +1536,16 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 			writedata(wd, DATA, sizeof(void *)*mesh->totcol, mesh->mat);
 
 			if(mesh->pv) {
-				write_customdata(wd, mesh->pv->totvert, &mesh->vdata, -1, 0);
-				write_customdata(wd, mesh->pv->totedge, &mesh->edata,
+				write_customdata(wd, &mesh->id, mesh->pv->totvert, &mesh->vdata, -1, 0);
+				write_customdata(wd, &mesh->id, mesh->pv->totedge, &mesh->edata,
 					CD_MEDGE, mesh->totedge);
-				write_customdata(wd, mesh->pv->totface, &mesh->fdata,
+				write_customdata(wd, &mesh->id, mesh->pv->totface, &mesh->fdata,
 					CD_MFACE, mesh->totface);
 			}
 			else {
-				write_customdata(wd, mesh->totvert, &mesh->vdata, -1, 0);
-				write_customdata(wd, mesh->totedge, &mesh->edata, -1, 0);
-				write_customdata(wd, mesh->totface, &mesh->fdata, -1, 0);
+				write_customdata(wd, &mesh->id, mesh->totvert, &mesh->vdata, -1, 0);
+				write_customdata(wd, &mesh->id, mesh->totedge, &mesh->edata, -1, 0);
+				write_customdata(wd, &mesh->id, mesh->totface, &mesh->fdata, -1, 0);
 			}
 
 			/* PMV data */
@@ -2290,16 +2322,12 @@ static void write_nodetrees(WriteData *wd, ListBase *idbase)
 static void write_brushes(WriteData *wd, ListBase *idbase)
 {
 	Brush *brush;
-	int a;
 	
 	for(brush=idbase->first; brush; brush= brush->id.next) {
 		if(brush->id.us>0 || wd->current) {
 			writestruct(wd, ID_BR, "Brush", 1, brush);
 			if (brush->id.properties) IDP_WriteProperty(brush->id.properties, wd);
-			for(a=0; a<MAX_MTEX; a++)
-				if(brush->mtex[a])
-					writestruct(wd, DATA, "MTex", 1, brush->mtex[a]);
-
+			
 			if(brush->curve)
 				write_curvemapping(wd, brush->curve);
 		}

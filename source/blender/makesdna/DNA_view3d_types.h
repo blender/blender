@@ -89,7 +89,9 @@ typedef struct RegionView3D {
 	float camdx, camdy;				/* camera view offsets, 1.0 = viewplane moves entire width/height */
 	float pixsize;
 	float ofs[3];
-	short camzoom, viewbut, pad[2];
+	short camzoom, viewbut;
+	short twdrawflag;
+	short pad;
 	
 	short rflag, viewlock;
 	short persp;
@@ -114,8 +116,12 @@ typedef struct RegionView3D {
 	/* last view */
 	float lviewquat[4];
 	short lpersp, lview;
-	int pad3;
+	float gridview;
 	
+	float twangle[3];
+
+	float padf;
+
 } RegionView3D;
 
 /* 3D ViewPort Struct */
@@ -151,8 +157,10 @@ typedef struct View3D {
 	
 	short pivot_last; /* pivot_last is for rotating around the last edited element */
 	
-	float lens, grid, gridview, padf, near, far;
-	float ofs[3];			/* XXX depricated */
+	float lens, grid;
+	float gridview; /* XXX deprecated, now in RegionView3D */
+	float padf, near, far;
+	float ofs[3];			/* XXX deprecated */
 	float cursor[3];
 
 	short gridlines, pad4;
@@ -162,7 +170,8 @@ typedef struct View3D {
 	short keyflags;		/* flags for display of keyframes */
 	
 	/* transform widget info */
-	short twtype, twmode, twflag, twdrawflag;
+	short twtype, twmode, twflag;
+	short twdrawflag; /* XXX deprecated */
 	
 	/* customdata flags from modes */
 	unsigned int customdata_mask;
@@ -190,7 +199,7 @@ typedef struct View3D {
 #define V3D_DISPIMAGE		1
 #define V3D_DISPBGPIC		2
 #define V3D_HIDE_HELPLINES	4
-#define V3D_NEEDBACKBUFDRAW	8
+#define V3D_INVALID_BACKBUF	8
 #define V3D_EDITMODE		16
 #define V3D_VERTEXPAINT		32
 #define V3D_FACESELECT		64
@@ -211,6 +220,7 @@ typedef struct View3D {
 /* RegionView3d->rflag */
 #define RV3D_FLYMODE				2
 #define RV3D_CLIPPING				4
+#define RV3D_NAVIGATING				8
 
 /* RegionView3d->viewlock */
 #define RV3D_LOCKED			1

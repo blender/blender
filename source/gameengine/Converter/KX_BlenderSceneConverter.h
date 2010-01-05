@@ -156,17 +156,17 @@ public:
 		printf("BGE STATS!\n");
 
 		printf("\nAssets...\n");
-		printf("\t m_worldinfos: %d\n", m_worldinfos.size());
-		printf("\t m_polymaterials: %d\n", m_polymaterials.size());
-		printf("\t m_meshobjects: %d\n", m_meshobjects.size());
-		printf("\t m_materials: %d\n", m_materials.size());
+		printf("\t m_worldinfos: %d\n", (int)m_worldinfos.size());
+		printf("\t m_polymaterials: %d\n", (int)m_polymaterials.size());
+		printf("\t m_meshobjects: %d\n", (int)m_meshobjects.size());
+		printf("\t m_materials: %d\n", (int)m_materials.size());
 
 		printf("\nMappings...\n");
-		printf("\t m_map_blender_to_gameobject: %d\n", m_map_blender_to_gameobject.size());
-		printf("\t m_map_mesh_to_gamemesh: %d\n", m_map_mesh_to_gamemesh.size());
-		printf("\t m_map_blender_to_gameactuator: %d\n", m_map_blender_to_gameactuator.size());
-		printf("\t m_map_blender_to_gamecontroller: %d\n", m_map_blender_to_gamecontroller.size());
-		printf("\t m_map_blender_to_gameAdtList: %d\n", m_map_blender_to_gameAdtList.size());
+		printf("\t m_map_blender_to_gameobject: %d\n", (int)m_map_blender_to_gameobject.size());
+		printf("\t m_map_mesh_to_gamemesh: %d\n", (int)m_map_mesh_to_gamemesh.size());
+		printf("\t m_map_blender_to_gameactuator: %d\n", (int)m_map_blender_to_gameactuator.size());
+		printf("\t m_map_blender_to_gamecontroller: %d\n", (int)m_map_blender_to_gamecontroller.size());
+		printf("\t m_map_blender_to_gameAdtList: %d\n", (int)m_map_blender_to_gameAdtList.size());
 
 #ifdef WITH_CXX_GUARDEDALLOC
 		MEM_printmemlist_pydict();

@@ -1002,7 +1002,7 @@ void lattice_calc_modifiers(Scene *scene, Object *ob)
 		
 		if (!(md->mode&eModifierMode_Realtime)) continue;
 		if (editmode && !(md->mode&eModifierMode_Editmode)) continue;
-		if (mti->isDisabled && mti->isDisabled(md)) continue;
+		if (mti->isDisabled && mti->isDisabled(md, 0)) continue;
 		if (mti->type!=eModifierTypeType_OnlyDeform) continue;
 
 		if (!vertexCos) vertexCos = lattice_getVertexCos(ob, &numVerts);

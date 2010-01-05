@@ -79,6 +79,4 @@ void ANIM_OT_driver_button_remove(struct wmOperatorType *ot);
 void ANIM_OT_copy_driver_button(struct wmOperatorType *ot);
 void ANIM_OT_paste_driver_button(struct wmOperatorType *ot);
 
-void ANIM_OT_copy_clipboard_button(struct wmOperatorType *ot);
-
 #endif // ANIM_INTERN_H

@@ -1707,11 +1707,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			totface= psmd->dm->getNumFaces(psmd->dm);
 			origindex= psmd->dm->getFaceDataArray(psmd->dm, CD_ORIGINDEX);
-			if(origindex) {
-				for(a=0; a<totface; a++)
-					strandbuf->totbound= MAX2(strandbuf->totbound, origindex[a]);
-				strandbuf->totbound++;
-			}
+			for(a=0; a<totface; a++)
+				strandbuf->totbound= MAX2(strandbuf->totbound, (origindex)? origindex[a]: a);
+
 			strandbuf->totbound++;
 			strandbuf->bound= MEM_callocN(sizeof(StrandBound)*strandbuf->totbound, "StrandBound");
 			sbound= strandbuf->bound;
@@ -1852,8 +1850,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			dosimplify = psys_render_simplify_params(psys, cpa, simplify);
 
 			if(strandbuf) {
-				if(origindex[cpa->num]+1 > sbound - strandbuf->bound) {
-					sbound= strandbuf->bound + origindex[cpa->num]+1;
+				int orignum= (origindex)? origindex[cpa->num]: cpa->num;
+
+				if(orignum > sbound - strandbuf->bound) {
+					sbound= strandbuf->bound + orignum;
 					sbound->start= sbound->end= obr->totstrand;
 				}
 			}
@@ -2284,6 +2284,14 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	shi.mat= vlr->mat;		/* current input material */
 	shi.thread= 0;
 	
+	/* TODO, assign these, displacement with new bumpmap is skipped without - campbell */
+#if 0
+	/* order is not known ? */
+	shi.v1= vlr->v1;
+	shi.v2= vlr->v2;
+	shi.v3= vlr->v3;
+#endif
+
 	/* Displace the verts, flag is set when done */
 	if (!vlr->v1->flag)
 		displace_render_vert(re, obr, &shi, vlr->v1,0,  scale, mat, imat);
@@ -3622,7 +3630,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	}
 
 	/* set flag for spothalo en initvars */
-	if(la->type==LA_SPOT && (la->mode & LA_HALO)) {
+	if(la->type==LA_SPOT && (la->mode & LA_HALO) && (la->buftype != LA_SHADBUF_DEEP)) {
 		if(la->haint>0.0) {
 			re->flag |= R_LAMPHALO;
 
@@ -4501,7 +4509,7 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 		return 0;
 	
 	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */
-	if (ob!=find_basis_mball(re->scene, ob))
+	if (ob->type == OB_MBALL && ob!=find_basis_mball(re->scene, ob))
 		return 0;
 	
 	if(nolamps && (ob->type==OB_LAMP))
@@ -4848,8 +4856,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	
 	/* still bad... doing all */
 	init_render_textures(re);
-	if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(amb, &re->wrld.ambr);
-	else VECCOPY(amb, &re->wrld.ambr);
+	VECCOPY(amb, &re->wrld.ambr);
 	init_render_materials(re->r.mode, amb);
 	set_node_shader_lamp_loop(shade_material_loop);
 
@@ -5201,7 +5208,7 @@ static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *
 	float mat[4][4], winmat[4][4];
 	float imat[4][4];
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(fsob, eModifierType_Fluidsim);
-	FluidsimSettings *fss = fluidmd->fss;
+	FluidsimSettings *fss;
 	float *velarray = NULL;
 	
 	/* only one step needed */
@@ -5538,8 +5545,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	/* still bad... doing all */
 	init_render_textures(re);
 	
-	if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(amb, &re->wrld.ambr);
-	else VECCOPY(amb, &re->wrld.ambr);
+	VECCOPY(amb, &re->wrld.ambr);
 	init_render_materials(re->r.mode, amb);
 	
 	set_node_shader_lamp_loop(shade_material_loop);

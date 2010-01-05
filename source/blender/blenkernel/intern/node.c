@@ -767,6 +767,17 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 	}
 	
 }
+/* finds a node based on its name */
+bNode *nodeFindNodebyName(bNodeTree *ntree, const char *name)
+{
+	bNode *node=NULL;
+	
+	for(node= ntree->nodes.first; node; node= node->next) {
+		if (strcmp(name, node->name) == 0)
+			break;
+	}
+	return node;
+}
 
 /* finds a node based on given socket */
 int nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **nodep, int *sockindex)
@@ -1050,6 +1061,18 @@ void nodeRemLink(bNodeTree *ntree, bNodeLink *link)
 	if(link->tosock)
 		link->tosock->link= NULL;
 	MEM_freeN(link);
+}
+
+void nodeRemSocketLinks(bNodeTree *ntree, bNodeSocket *sock)
+{
+	bNodeLink *link, *next;
+	
+	for(link= ntree->links.first; link; link= next) {
+		next= link->next;
+		if(link->fromsock==sock || link->tosock==sock) {
+			nodeRemLink(ntree, link);
+		}
+	}
 }
 
 

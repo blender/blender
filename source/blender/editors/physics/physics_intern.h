@@ -36,7 +36,7 @@
 struct wmOperatorType;
 
 /* particle_edit.c */
-void PARTICLE_OT_select_all_toggle(struct wmOperatorType *ot);
+void PARTICLE_OT_select_all(struct wmOperatorType *ot);
 void PARTICLE_OT_select_first(struct wmOperatorType *ot);
 void PARTICLE_OT_select_last(struct wmOperatorType *ot);
 void PARTICLE_OT_select_linked(struct wmOperatorType *ot);
@@ -56,8 +56,6 @@ void PARTICLE_OT_mirror(struct wmOperatorType *ot);
 void PARTICLE_OT_brush_set(struct wmOperatorType *ot);
 void PARTICLE_OT_brush_edit(struct wmOperatorType *ot);
 void PARTICLE_OT_brush_radial_control(struct wmOperatorType *ot);
-
-void PARTICLE_OT_specials_menu(struct wmOperatorType *ot);
 
 void PARTICLE_OT_particle_edit_toggle(struct wmOperatorType *ot);
 void PARTICLE_OT_edited_clear(struct wmOperatorType *ot);

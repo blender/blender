@@ -55,6 +55,7 @@ static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args 
 static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args );
 static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * args );
 static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args );
+static PyObject *M_Geometry_BarycentricTransform( PyObject * self, PyObject * args );
 
 
 /*-------------------------DOC STRINGS ---------------------------*/
@@ -75,6 +76,7 @@ struct PyMethodDef M_Geometry_methods[] = {
 	{"PointInQuad2D", ( PyCFunction ) M_Geometry_PointInQuad2D, METH_VARARGS, M_Geometry_PointInQuad2D_doc},
 	{"BoxPack2D", ( PyCFunction ) M_Geometry_BoxPack2D, METH_O, M_Geometry_BoxPack2D_doc},
 	{"BezierInterp", ( PyCFunction ) M_Geometry_BezierInterp, METH_VARARGS, M_Geometry_BezierInterp_doc},
+	{"BarycentricTransform", ( PyCFunction ) M_Geometry_BarycentricTransform, METH_VARARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -533,4 +535,37 @@ static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args )
 	}
 	MEM_freeN(coord_array);
 	return list;
+}
+
+static PyObject *M_Geometry_BarycentricTransform(PyObject * self, PyObject * args)
+{
+	VectorObject *vec_pt;
+	VectorObject *vec_t1_tar, *vec_t2_tar, *vec_t3_tar;
+	VectorObject *vec_t1_src, *vec_t2_src, *vec_t3_src;
+	float vec[3];
+
+	if( !PyArg_ParseTuple ( args, "O!O!O!O!O!O!O!",
+	  &vector_Type, &vec_pt,
+	  &vector_Type, &vec_t1_src,
+	  &vector_Type, &vec_t2_src,
+	  &vector_Type, &vec_t3_src,
+	  &vector_Type, &vec_t1_tar,
+	  &vector_Type, &vec_t2_tar,
+	  &vector_Type, &vec_t3_tar) || (	vec_pt->size != 3 ||
+										vec_t1_src->size != 3 ||
+										vec_t2_src->size != 3 ||
+										vec_t3_src->size != 3 ||
+										vec_t1_tar->size != 3 ||
+										vec_t2_tar->size != 3 ||
+										vec_t3_tar->size != 3)
+	) {
+		PyErr_SetString( PyExc_TypeError, "expected 7, 3D vector types\n" );
+		return NULL;
+	}
+
+	barycentric_transform(vec, vec_pt->vec,
+			vec_t1_tar->vec, vec_t2_tar->vec, vec_t3_tar->vec,
+			vec_t1_src->vec, vec_t2_src->vec, vec_t3_src->vec);
+
+	return newVectorObject(vec, 3, Py_NEW, NULL);
 }

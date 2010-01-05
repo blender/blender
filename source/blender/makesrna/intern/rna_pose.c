@@ -58,14 +58,16 @@
 
 #include "MEM_guardedalloc.h"
 
-static void rna_Pose_update(bContext *C, PointerRNA *ptr)
+#include "RNA_access.h"
+
+static void rna_Pose_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	// XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
 }
 
-static void rna_Pose_IK_update(bContext *C, PointerRNA *ptr)
+static void rna_Pose_IK_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	// XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 	Object *ob= ptr->id.data;
@@ -142,11 +144,10 @@ static void rna_Pose_ik_solver_set(struct PointerRNA *ptr, int value)
 	}
 }
 
-static void rna_Pose_ik_solver_update(bContext *C, PointerRNA *ptr)
+static void rna_Pose_ik_solver_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
 	bPose *pose = ptr->data;
-	Scene *scene = CTX_data_scene(C);
 
 	pose->flag |= POSE_RECALC;	// checks & sorts pose channels
 	DAG_scene_sort(scene);
@@ -242,7 +243,7 @@ static StructRNA *rna_Pose_ikparam_typef(PointerRNA *ptr)
 	}
 }
 
-static void rna_Itasc_update(bContext *C, PointerRNA *ptr)
+static void rna_Itasc_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob = ptr->id.data;
 	bItasc *itasc = ptr->data;
@@ -267,13 +268,13 @@ static void rna_Itasc_update(bContext *C, PointerRNA *ptr)
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 }
 
-static void rna_Itasc_update_rebuild(bContext *C, PointerRNA *ptr)
+static void rna_Itasc_update_rebuild(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= ptr->id.data;
 	bPose *pose = ob->pose;
 
 	pose->flag |= POSE_RECALC;	// checks & sorts pose channels
-	rna_Itasc_update(C, ptr);
+	rna_Itasc_update(bmain, scene, ptr);
 }
 
 static PointerRNA rna_PoseChannel_bone_group_get(PointerRNA *ptr)
@@ -431,7 +432,7 @@ static void rna_PoseChannel_active_constraint_set(PointerRNA *ptr, PointerRNA va
 
 static bConstraint *rna_PoseChannel_constraints_new(bPoseChannel *pchan, bContext *C, int type)
 {
-	//WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
+	//WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT|NA_ADDED, object);
 	// TODO, pass object also
 	// TODO, new pose bones don't have updated draw flags
 	return add_pose_constraint(NULL, pchan, NULL, type);
@@ -441,7 +442,7 @@ static int rna_PoseChannel_constraints_remove(bPoseChannel *pchan, bContext *C, 
 {
 	// TODO
 	//ED_object_constraint_set_active(object, NULL);
-	//WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, object);
+	//WM_main_add_notifier(NC_OBJECT|ND_CONSTRAINT, object);
 	return remove_constraint_index(&pchan->constraints, index);
 }
 
@@ -508,6 +509,16 @@ static int rna_PoseChannel_rotation_4d_editable(PointerRNA *ptr, int index)
 	}
 		
 	return PROP_EDITABLE;
+}
+
+/* not essential, but much faster then the default lookup function */
+PointerRNA rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key)
+{
+	PointerRNA rptr;
+	bPose *pose= (bPose*)ptr->data;
+	bPoseChannel *pchan= BLI_findstring(&pose->chanbase, key, offsetof(bPoseChannel, name));
+	RNA_pointer_create(ptr->id.data, &RNA_PoseBone, pchan, &rptr);
+	return rptr;
 }
 
 #else
@@ -639,6 +650,9 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 		{ROT_MODE_ZYX, "ZYX", 0, "ZYX Euler", "ZYX Rotation Order. Prone to Gimbal Lock"},
 		{ROT_MODE_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle", "Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector."},
 		{0, NULL, 0, NULL, NULL}};
+		
+	static float default_quat[4] = {1,0,0,0};	/* default quaternion values */
+	static float default_axisAngle[4] = {0,0,1,0};	/* default axis-angle rotation values */
 	
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -666,7 +680,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "selectflag", BONE_SELECTED);
 	RNA_def_property_ui_text(prop, "Selected", "");
 
-	/* Baked Bone Path cache data s*/
+	/* Baked Bone Path cache data */
 	prop= RNA_def_property(srna, "path_start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "pathsf");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -712,6 +726,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_4d_editable");
+	RNA_def_property_float_array_default(prop, default_quat);
 	RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in Quaternions.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 	
@@ -722,6 +737,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_array(prop, 4); // TODO: maybe we'll need to define the 'default value' getter too...
 	RNA_def_property_float_funcs(prop, "rna_PoseChannel_rotation_axis_angle_get", "rna_PoseChannel_rotation_axis_angle_set", NULL);
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_4d_editable");
+	RNA_def_property_float_array_default(prop, default_axisAngle);
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
 	
@@ -894,6 +910,13 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Custom Object", "Object that defines custom draw type for this bone.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
+	
+	prop= RNA_def_property(srna, "custom_shape_transform", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "custom_tx");
+	RNA_def_property_struct_type(prop, "PoseBone");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Custom Shape Transform", "Bone that defines the display transform of this custom shape.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
 	/* bone groups */
@@ -1073,7 +1096,7 @@ static void rna_def_pose(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "chanbase", NULL);
 	RNA_def_property_struct_type(prop, "PoseBone");
 	RNA_def_property_ui_text(prop, "Pose Bones", "Individual pose bones for the armature.");
-
+	RNA_def_property_collection_funcs(prop, 0, 0, 0, 0, 0, 0, "rna_PoseBones_lookup_string"); /* can be removed, only for fast lookup */
 	/* bone groups */
 	prop= RNA_def_property(srna, "bone_groups", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "agroups", NULL);

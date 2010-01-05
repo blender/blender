@@ -369,9 +369,6 @@ void CONSOLE_OT_move(wmOperatorType *ot)
 	ot->exec= move_exec;
 	ot->poll= console_edit_poll;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-
 	/* properties */
 	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to.");
 }
@@ -414,9 +411,6 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 	ot->exec= insert_exec;
 	ot->invoke= insert_invoke;
 	ot->poll= console_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");
@@ -482,9 +476,6 @@ void CONSOLE_OT_delete(wmOperatorType *ot)
 	ot->exec= delete_exec;
 	ot->poll= console_edit_poll;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-
 	/* properties */
 	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete.");
 }
@@ -525,9 +516,6 @@ void CONSOLE_OT_clear(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= clear_exec;
 	ot->poll= console_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "scrollback", 1, "Scrollback", "Clear the scrollback history");
@@ -587,9 +575,6 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= history_cycle_exec;
 	ot->poll= console_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "reverse", 0, "Reverse", "reverse cycle history");
@@ -635,9 +620,6 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= history_append_exec;
 	ot->poll= console_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 	
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");	
@@ -683,9 +665,6 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= scrollback_append_exec;
 	ot->poll= console_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 	
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");	
@@ -696,6 +675,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 static int copy_exec(bContext *C, wmOperator *op)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
+	int buf_len;
 
 	DynStr *buf_dyn= BLI_dynstr_new();
 	char *buf_str;
@@ -708,8 +688,16 @@ static int copy_exec(bContext *C, wmOperator *op)
 	}
 
 	buf_str= BLI_dynstr_get_cstring(buf_dyn);
+	buf_len= BLI_dynstr_get_len(buf_dyn);
 	BLI_dynstr_free(buf_dyn);
 
+	/* hack for selection */
+#if 0
+	if(sc->sel_start != sc->sel_end) {
+		buf_str[buf_len - sc->sel_start]= '\0';
+		WM_clipboard_text_set(buf_str+(buf_len - sc->sel_end), 0);
+	}
+#endif
 	WM_clipboard_text_set(buf_str, 0);
 
 	MEM_freeN(buf_str);
@@ -726,9 +714,6 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
 	/* api callbacks */
 	ot->poll= console_edit_poll;
 	ot->exec= copy_exec;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 
 	/* properties */
 }
@@ -762,43 +747,117 @@ void CONSOLE_OT_paste(wmOperatorType *ot)
 	ot->poll= console_edit_poll;
 	ot->exec= paste_exec;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-
 	/* properties */
 }
 
-static int zoom_exec(bContext *C, wmOperator *op)
+typedef struct SetConsoleCursor {
+	int sel_old[2];
+	int sel_init;
+} SetConsoleCursor;
+
+static void set_cursor_to_pos(SpaceConsole *sc, ARegion *ar, SetConsoleCursor *scu, int mval[2], int sel)
+{
+	int pos;
+	pos= console_char_pick(sc, ar, NULL, mval);
+
+	if(scu->sel_init == INT_MAX) {
+		scu->sel_init= pos;
+		sc->sel_start = sc->sel_end = pos;
+		return;
+	}
+
+	if (pos < scu->sel_init) {
+		sc->sel_start = pos;
+		sc->sel_end = scu->sel_init;
+	}
+	else if (pos > sc->sel_start) {
+		sc->sel_start = scu->sel_init;
+		sc->sel_end = pos;
+	}
+	else {
+		sc->sel_start = sc->sel_end = pos;
+	}
+}
+
+static void console_modal_select_apply(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
-	
-	int delta= RNA_int_get(op->ptr, "delta");
-	
-	sc->lheight += delta;
-	CLAMP(sc->lheight, 8, 32);
-	
+	ARegion *ar= CTX_wm_region(C);
+	SetConsoleCursor *scu= op->customdata;
+	int mval[2] = {event->mval[0], event->mval[1]};
+
+	set_cursor_to_pos(sc, ar, scu, mval, TRUE);
 	ED_area_tag_redraw(CTX_wm_area(C));
-	
+}
+
+static void set_cursor_exit(bContext *C, wmOperator *op)
+{
+//	SpaceConsole *sc= CTX_wm_space_console(C);
+	SetConsoleCursor *scu= op->customdata;
+
+	/*
+	if(txt_has_sel(text)) {
+		buffer = txt_sel_to_buf(text);
+		WM_clipboard_text_set(buffer, 1);
+		MEM_freeN(buffer);
+	}*/
+
+	MEM_freeN(scu);
+}
+
+static int console_modal_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	SpaceConsole *sc= CTX_wm_space_console(C);
+//	ARegion *ar= CTX_wm_region(C);
+	SetConsoleCursor *scu;
+
+	op->customdata= MEM_callocN(sizeof(SetConsoleCursor), "SetConsoleCursor");
+	scu= op->customdata;
+
+	scu->sel_old[0]= sc->sel_start;
+	scu->sel_old[1]= sc->sel_end;
+
+	scu->sel_init = INT_MAX;
+
+	WM_event_add_modal_handler(C, op);
+
+	console_modal_select_apply(C, op, event);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int console_modal_select(bContext *C, wmOperator *op, wmEvent *event)
+{
+	switch(event->type) {
+		case LEFTMOUSE:
+		case MIDDLEMOUSE:
+		case RIGHTMOUSE:
+			set_cursor_exit(C, op);
+			return OPERATOR_FINISHED;
+		case MOUSEMOVE:
+			console_modal_select_apply(C, op, event);
+			break;
+	}
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int console_modal_select_cancel(bContext *C, wmOperator *op)
+{
+	set_cursor_exit(C, op);
 	return OPERATOR_FINISHED;
 }
 
-
-void CONSOLE_OT_zoom(wmOperatorType *ot)
+void CONSOLE_OT_select_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Console Zoom";
-    /*optionals - 
-      "Zoom view font." */
-    ot->description= "Zoom screen area.";
-	ot->idname= "CONSOLE_OT_zoom";
-	
-	/* api callbacks */
-	ot->exec= zoom_exec;
-	ot->poll= console_poll;
+	ot->name= "Set Selection";
+	ot->idname= "CONSOLE_OT_select_set";
+	ot->description= "Set the console selection.";
 
-	/* flags */
-	/* ot->flag= OPTYPE_REGISTER; */ /* super annoying */
-	
-	/* properties */
-	RNA_def_int(ot->srna, "delta", 0, 0, INT_MAX, "Delta", "Scale the view font.", 0, 1000);
+	/* api callbacks */
+	ot->invoke= console_modal_select_invoke;
+	ot->modal= console_modal_select;
+	ot->cancel= console_modal_select_cancel;
+	ot->poll= console_edit_poll;
 }

@@ -133,11 +133,9 @@ static int add_default_keyingset_exec (bContext *C, wmOperator *op)
 	 */
 	flag |= KEYINGSET_ABSOLUTE;
 	
-	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) 
-		keyingflag |= INSERTKEY_MATRIX;
-	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) 
-		keyingflag |= INSERTKEY_NEEDED;
-		
+	/* 2nd arg is 0 to indicate that we don't want to include autokeying mode related settings */
+	keyingflag = ANIM_get_keyframing_flags(scene, 0);
+	
 	/* call the API func, and set the active keyingset index */
 	BKE_keyingset_add(&scene->keyingsets, NULL, flag, keyingflag);
 	
@@ -326,6 +324,8 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 			keyingflag |= INSERTKEY_MATRIX;
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) 
 			keyingflag |= INSERTKEY_NEEDED;
+		if (IS_AUTOKEY_FLAG(XYZ2RGB)) 
+			keyingflag |= INSERTKEY_XYZ2RGB;
 			
 		/* call the API func, and set the active keyingset index */
 		ks= BKE_keyingset_add(&scene->keyingsets, "ButtonKeyingSet", flag, keyingflag);
@@ -1305,9 +1305,7 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 		kflag= ks->keyingflag;
 		
 		/* suppliment with info from the context */
-		if (IS_AUTOKEY_FLAG(AUTOMATKEY)) kflag |= INSERTKEY_MATRIX;
-		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) kflag |= INSERTKEY_NEEDED;
-		if (IS_AUTOKEY_MODE(scene, EDITKEYS)) kflag |= INSERTKEY_REPLACE;
+		kflag |= ANIM_get_keyframing_flags(scene, 1);
 	}
 	else if (mode == MODIFYKEY_MODE_DELETE)
 		kflag= 0;
@@ -1354,9 +1352,9 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 			for (; i < arraylen; i++) {
 				/* action to take depends on mode */
 				if (mode == MODIFYKEY_MODE_INSERT)
-					success+= insert_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
+					success += insert_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
 				else if (mode == MODIFYKEY_MODE_DELETE)
-					success+= delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
+					success += delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
 			}
 			
 			/* set recalc-flags */

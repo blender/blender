@@ -32,10 +32,16 @@
 extern "C" {
 #endif
 
-#define BLI_CS_SMPTE	0
-#define BLI_CS_REC709	1
-#define BLI_CS_CIE		2
+/* primaries */
+#define BLI_XYZ_SMPTE	0
+#define BLI_XYZ_REC709_SRGB	1
+#define BLI_XYZ_CIE		2
 
+/* built-in profiles */
+#define BLI_PR_NONE		0
+#define BLI_PR_SRGB		1
+#define BLI_PR_REC709	2
+	
 /******************* Conversion to RGB ********************/
 
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b);
@@ -53,6 +59,16 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv);
 unsigned int rgb_to_cpack(float r, float g, float b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 
+/***************** Profile Transformations ********************/
+
+void gamma_correct(float *c, float gamma);
+float rec709_to_linearrgb(float c);
+float linearrgb_to_rec709(float c);
+float srgb_to_linearrgb(float c);
+float linearrgb_to_srgb(float c);
+void srgb_to_linearrgb_v3_v3(float *col_to, float *col_from);
+void linearrgb_to_srgb_v3_v3(float *col_to, float *col_from);
+	
 /************************** Other *************************/
 
 int constrain_rgb(float *r, float *g, float *b);

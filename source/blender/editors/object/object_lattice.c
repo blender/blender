@@ -38,6 +38,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "RNA_access.h"
+
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_key.h"
@@ -154,7 +156,7 @@ void load_editLatt(Object *obedit)
 
 /************************** Operators *************************/
 
-static void setflagsLatt(Object *obedit, int flag)
+void ED_setflagsLatt(Object *obedit, int flag)
 {
 	Lattice *lt= obedit->data;
 	BPoint *bp;
@@ -172,49 +174,71 @@ static void setflagsLatt(Object *obedit, int flag)
 	}
 }
 
-int de_select_all_exec(bContext *C, wmOperator *op)
+int select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	Lattice *lt= obedit->data;
 	BPoint *bp;
-	int a, deselect= 0;
-	
-	bp= lt->editlatt->def;
-	a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
-	
-	while(a--) {
-		if(bp->hide==0) {
-			if(bp->f1) {
-				deselect= 1;
-				break;
+	int a;
+	int action = RNA_enum_get(op->ptr, "action");
+
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+
+		bp= lt->editlatt->def;
+		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+
+		while(a--) {
+			if(bp->hide==0) {
+				if(bp->f1) {
+					action = SEL_DESELECT;
+					break;
+				}
 			}
+			bp++;
 		}
-		bp++;
 	}
 
-	if(deselect)
-		setflagsLatt(obedit, 0);
-	else
-		setflagsLatt(obedit, 1);
-	
+	switch (action) {
+	case SEL_SELECT:
+		ED_setflagsLatt(obedit, 1);
+		break;
+	case SEL_DESELECT:
+		ED_setflagsLatt(obedit, 0);
+		break;
+	case SEL_INVERT:
+		bp= lt->editlatt->def;
+		a= lt->editlatt->pntsu*lt->editlatt->pntsv*lt->editlatt->pntsw;
+
+		while(a--) {
+			if(bp->hide==0) {
+				bp->f1 ^= 1;
+			}
+			bp++;
+		}
+		break;
+	}
+
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
 
-void LATTICE_OT_select_all_toggle(wmOperatorType *ot)
+void LATTICE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-    ot->description= "Toggle (de)select all UVW control points.";
-	ot->idname= "LATTICE_OT_select_all_toggle";
+    ot->description= "Change selection of all UVW control points.";
+	ot->idname= "LATTICE_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= de_select_all_exec;
+	ot->exec= select_all_exec;
 	ot->poll= ED_operator_editlattice;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }
 
 int make_regular_poll(bContext *C)
@@ -308,7 +332,7 @@ int mouse_lattice(bContext *C, short mval[2], int extend)
 
 	if(bp) {
 		if(extend==0) {
-			setflagsLatt(vc.obedit, 0);
+			ED_setflagsLatt(vc.obedit, 0);
 			bp->f1 |= SELECT;
 		}
 		else

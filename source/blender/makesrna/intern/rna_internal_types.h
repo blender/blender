@@ -38,6 +38,8 @@ struct CollectionPropertyIterator;
 struct bContext;
 struct IDProperty;
 struct GHash;
+struct Main;
+struct Scene;
 
 #ifdef UNIT_TEST
 #define RNA_MAX_ARRAY_LENGTH 64
@@ -53,7 +55,8 @@ struct GHash;
 
 /* Function Callbacks */
 
-typedef void (*UpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
+typedef void (*UpdateFunc)(struct Main *main, struct Scene *scene, struct PointerRNA *ptr);
+typedef void (*ContextUpdateFunc)(struct bContext *C, struct PointerRNA *ptr);
 typedef int (*EditableFunc)(struct PointerRNA *ptr);
 typedef int (*ItemEditableFunc)(struct PointerRNA *ptr, int index);
 typedef struct IDProperty* (*IDPropertiesFunc)(struct PointerRNA *ptr, int create);
@@ -115,8 +118,9 @@ struct FunctionRNA {
 	/* callback to execute the function */
 	CallFunc call;
 
-	/* parameter for the return value */
-	PropertyRNA *ret;
+	/* parameter for the return value
+	 * note: this is only the C return value, rna functions can have multiple return values */
+	PropertyRNA *c_ret;
 };
 
 struct PropertyRNA {

@@ -49,6 +49,7 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
+#include "BLI_edgehash.h"
 
 #include "BKE_customdata.h"
 #include "BKE_context.h"
@@ -527,7 +528,7 @@ void EM_deselect_flush(EditMesh *em)
 /* flush selection to edges & faces */
 
 /*  this only based on coherent selected vertices, for example when adding new
-    objects. call clear_flag_all() before you select vertices to be sure it ends OK!
+	objects. call clear_flag_all() before you select vertices to be sure it ends OK!
 	
 */
 
@@ -1142,7 +1143,7 @@ short extrudeflag_verts_indiv(EditMesh *em, short flag, float *nor)
 
 /* this is actually a recode of extrudeflag(), using proper edge/face select */
 /* hurms, doesnt use 'flag' yet, but its not called by primitive making stuff anyway */
-static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *nor)
+static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *nor, int all)
 {
 	/* all select edges/faces: extrude */
 	/* old select is cleared, in new ones it is set */
@@ -1255,11 +1256,13 @@ static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *n
 	set_edge_directions_f2(em, 2);
 	
 	/* step 1.5: if *one* selected face has edge with unselected face; remove old selected faces */
-	for(efa= em->faces.last; efa; efa= efa->prev) {
-		if(efa->f & SELECT) {
-			if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1 || (efa->e4 && efa->e4->f1)) {
-				del_old= 1;
-				break;
+	if(all == 0) {
+		for(efa= em->faces.last; efa; efa= efa->prev) {
+			if(efa->f & SELECT) {
+				if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1 || (efa->e4 && efa->e4->f1)) {
+					del_old= 1;
+					break;
+				}
 			}
 		}
 	}
@@ -1397,7 +1400,7 @@ static short extrudeflag_edge(Object *obedit, EditMesh *em, short flag, float *n
 	return 'n'; // normal constraint 
 }
 
-short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
+short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int all)
 {
 	/* all verts/edges/faces with (f & 'flag'): extrude */
 	/* from old verts, 'flag' is cleared, in new ones it is set */
@@ -1568,7 +1571,7 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
 	*/
 	
 	 /* find if we delete old faces */
-	if(is_face_sel) {
+	if(is_face_sel && all==0) {
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if( (eed->f2==1 || eed->f2==2) ) {
 				if(eed->f1==2) {
@@ -1684,12 +1687,12 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
 }
 
 /* generic extrude */
-short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor)
+short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor, int all)
 {
 	if(em->selectmode & SCE_SELECT_VERTEX)
-		return extrudeflag_vert(obedit, em, flag, nor);
+		return extrudeflag_vert(obedit, em, flag, nor, all);
 	else 
-		return extrudeflag_edge(obedit, em, flag, nor);
+		return extrudeflag_edge(obedit, em, flag, nor, all);
 		
 }
 
@@ -2287,3 +2290,390 @@ int EM_view3d_poll(bContext *C)
 		return 1;
 	return 0;
 }
+
+/* higher quality normals */
+
+/* NormalCalc */
+/* NormalCalc modifier: calculates higher quality normals
+*/
+
+/* each edge uses this to  */
+typedef struct EdgeFaceRef {
+	int f1; /* init as -1 */
+	int f2;
+} EdgeFaceRef;
+
+void EM_make_hq_normals(EditMesh *em)
+{
+	EditFace *efa;
+	EditVert *eve;
+	int i;
+
+	EdgeHash *edge_hash = BLI_edgehash_new();
+	EdgeHashIterator *edge_iter;
+	int edge_ref_count = 0;
+	int ed_v1, ed_v2; /* use when getting the key */
+	EdgeFaceRef *edge_ref_array = MEM_callocN(em->totedge * sizeof(EdgeFaceRef), "Edge Connectivity");
+	EdgeFaceRef *edge_ref;
+	float edge_normal[3];
+
+	EM_init_index_arrays(em, 1, 1, 1);
+
+	for(eve= em->verts.first, i=0; eve; eve= eve->next, i++) {
+		zero_v3(eve->no);
+		eve->tmp.l= i;
+	}
+
+	/* This function adds an edge hash if its not there, and adds the face index */
+#define NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(EDV1, EDV2); \
+			edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, EDV1, EDV2); \
+			if (!edge_ref) { \
+				edge_ref = &edge_ref_array[edge_ref_count]; edge_ref_count++; \
+				edge_ref->f1=i; \
+				edge_ref->f2=-1; \
+				BLI_edgehash_insert(edge_hash, EDV1, EDV2, edge_ref); \
+			} else { \
+				edge_ref->f2=i; \
+			}
+
+
+	efa= em->faces.first;
+	for(i = 0; i < em->totface; i++, efa= efa->next) {
+		if(efa->v4) {
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v1->tmp.l, efa->v2->tmp.l);
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v2->tmp.l, efa->v3->tmp.l);
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v3->tmp.l, efa->v4->tmp.l);
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v4->tmp.l, efa->v1->tmp.l);
+		} else {
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v1->tmp.l, efa->v2->tmp.l);
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v2->tmp.l, efa->v3->tmp.l);
+			NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(efa->v3->tmp.l, efa->v1->tmp.l);
+		}
+	}
+
+#undef NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE
+
+
+	for(edge_iter = BLI_edgehashIterator_new(edge_hash); !BLI_edgehashIterator_isDone(edge_iter); BLI_edgehashIterator_step(edge_iter)) {
+		/* Get the edge vert indicies, and edge value (the face indicies that use it)*/
+		BLI_edgehashIterator_getKey(edge_iter, (int*)&ed_v1, (int*)&ed_v2);
+		edge_ref = BLI_edgehashIterator_getValue(edge_iter);
+
+		if (edge_ref->f2 != -1) {
+			EditFace *ef1= EM_get_face_for_index(edge_ref->f1), *ef2= EM_get_face_for_index(edge_ref->f2);
+			float angle= angle_normalized_v3v3(ef1->n, ef2->n);
+			if(angle > 0.0f) {
+				/* We have 2 faces using this edge, calculate the edges normal
+				 * using the angle between the 2 faces as a weighting */
+				add_v3_v3v3(edge_normal, ef1->n, ef2->n);
+				normalize_v3(edge_normal);
+				mul_v3_fl(edge_normal, angle);
+			}
+			else {
+				/* cant do anything useful here!
+				   Set the face index for a vert incase it gets a zero normal */
+				EM_get_vert_for_index(ed_v1)->tmp.l=
+				EM_get_vert_for_index(ed_v2)->tmp.l= -(edge_ref->f1 + 1);
+				continue;
+			}
+		} else {
+			/* only one face attached to that edge */
+			/* an edge without another attached- the weight on this is
+			 * undefined, M_PI/2 is 90d in radians and that seems good enough */
+			VECCOPY(edge_normal, EM_get_face_for_index(edge_ref->f1)->n)
+			mul_v3_fl(edge_normal, M_PI/2);
+		}
+		add_v3_v3(EM_get_vert_for_index(ed_v1)->no, edge_normal );
+		add_v3_v3(EM_get_vert_for_index(ed_v2)->no, edge_normal );
+
+
+	}
+	BLI_edgehashIterator_free(edge_iter);
+	BLI_edgehash_free(edge_hash, NULL);
+	MEM_freeN(edge_ref_array);
+
+	/* normalize vertex normals and assign */
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(normalize_v3(eve->no) == 0.0f && eve->tmp.l < 0) {
+			/* exceptional case, totally flat */
+			efa= EM_get_face_for_index(-(eve->tmp.l) - 1);
+			VECCOPY(eve->no, efa->n);
+		}	
+	}
+
+	EM_free_index_arrays();
+}
+
+void EM_solidify(EditMesh *em, float dist)
+{
+	EditFace *efa;
+	EditVert *eve;
+	float *vert_angles= MEM_callocN(sizeof(float) * em->totvert * 2, "EM_solidify"); /* 2 in 1 */
+	float *vert_accum= vert_angles + em->totvert;
+	float face_angles[4];
+	int i, j;
+
+	for(eve= em->verts.first, i=0; eve; eve= eve->next, i++) {
+		eve->tmp.l= i;
+	}
+
+	efa= em->faces.first;
+	for(i = 0; i < em->totface; i++, efa= efa->next) {
+
+		if(!(efa->f & SELECT))
+			continue;
+
+		if(efa->v4) {
+			angle_quad_v3(face_angles, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+			j= 3;
+		}
+		else {
+			angle_tri_v3(face_angles, efa->v1->co, efa->v2->co, efa->v3->co);
+			j= 2;
+		}
+
+		for(; j>=0; j--) {
+			eve= *(&efa->v1 + j);
+			vert_accum[eve->tmp.l] += face_angles[j];
+			vert_angles[eve->tmp.l]+= shell_angle_to_dist(angle_normalized_v3v3(eve->no, efa->n)) * face_angles[j];
+		}
+	}
+
+	for(eve= em->verts.first, i=0; eve; eve= eve->next, i++) {
+		if(vert_accum[i]) { /* zero if unselected */
+			madd_v3_v3fl(eve->co, eve->no, dist * vert_angles[i] / vert_accum[i]);
+		}
+	}
+
+	MEM_freeN(vert_angles);
+}
+
+/* not that optimal!, should be nicer with bmesh */
+static void tag_face_edges(EditFace *efa)
+{
+	if(efa->v4)
+		efa->e1->tmp.l= efa->e2->tmp.l= efa->e3->tmp.l= efa->e4->tmp.l= 1;
+	else
+		efa->e1->tmp.l= efa->e2->tmp.l= efa->e3->tmp.l= 1;
+}
+static int tag_face_edges_test(EditFace *efa)
+{
+	if(efa->v4)
+		return (efa->e1->tmp.l || efa->e2->tmp.l || efa->e3->tmp.l || efa->e4->tmp.l) ? 1:0;
+	else
+		return (efa->e1->tmp.l || efa->e2->tmp.l || efa->e3->tmp.l) ? 1:0;
+}
+
+void em_deselect_nth_face(EditMesh *em, int nth, EditFace *efa_act)
+{
+	EditFace *efa;
+	EditEdge *eed;
+	int ok= 1;
+
+	if(efa_act==NULL) {
+		return;
+	}
+
+	/* to detect loose edges, we put f2 flag on 1 */
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		eed->tmp.l= 0;
+	}
+
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		efa->tmp.l = 0;
+	}
+
+	efa_act->tmp.l = 1;
+
+	while(ok) {
+		ok = 0;
+
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->tmp.l==1) { /* initialize */
+				tag_face_edges(efa);
+			}
+
+			if(efa->tmp.l)
+				efa->tmp.l++;
+		}
+
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->tmp.l==0 && tag_face_edges_test(efa)) {
+				efa->tmp.l= 1;
+				ok = 1; /* keep looping */
+			}
+		}
+	}
+
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->tmp.l > 0 && efa->tmp.l % nth) {
+			EM_select_face(efa, 0);
+		}
+	}
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->f & SELECT) {
+			EM_select_face(efa, 1);
+		}
+	}
+
+	EM_nvertices_selected(em);
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
+}
+
+/* not that optimal!, should be nicer with bmesh */
+static void tag_edge_verts(EditEdge *eed)
+{
+	eed->v1->tmp.l= eed->v2->tmp.l= 1;
+}
+static int tag_edge_verts_test(EditEdge *eed)
+{
+	return (eed->v1->tmp.l || eed->v2->tmp.l) ? 1:0;
+}
+
+void em_deselect_nth_edge(EditMesh *em, int nth, EditEdge *eed_act)
+{
+	EditEdge *eed;
+	EditVert *eve;
+	int ok= 1;
+
+	if(eed_act==NULL) {
+		return;
+	}
+
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		eve->tmp.l= 0;
+	}
+
+	for (eed= em->edges.first; eed; eed= eed->next) {
+		eed->tmp.l = 0;
+	}
+
+	eed_act->tmp.l = 1;
+
+	while(ok) {
+		ok = 0;
+
+		for (eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->tmp.l==1) { /* initialize */
+				tag_edge_verts(eed);
+			}
+
+			if(eed->tmp.l)
+				eed->tmp.l++;
+		}
+
+		for (eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->tmp.l==0 && tag_edge_verts_test(eed)) {
+				eed->tmp.l= 1;
+				ok = 1; /* keep looping */
+			}
+		}
+	}
+
+	for (eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->tmp.l > 0 && eed->tmp.l % nth) {
+			EM_select_edge(eed, 0);
+		}
+	}
+	for (eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->f & SELECT) {
+			EM_select_edge(eed, 1);
+		}
+	}
+
+	{
+		/* grr, should be a function */
+		EditFace *efa;
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->v4) {
+				if(efa->e1->f & efa->e2->f & efa->e3->f & efa->e4->f & SELECT );
+				else efa->f &= ~SELECT;
+			}
+			else {
+				if(efa->e1->f & efa->e2->f & efa->e3->f & SELECT );
+				else efa->f &= ~SELECT;
+			}
+		}
+	}
+
+	EM_nvertices_selected(em);
+	EM_nedges_selected(em);
+	EM_nfaces_selected(em);
+}
+
+void em_deselect_nth_vert(EditMesh *em, int nth, EditVert *eve_act)
+{
+	EditVert *eve;
+	EditEdge *eed;
+	int ok= 1;
+
+	if(eve_act==NULL) {
+		return;
+	}
+
+	for (eve= em->verts.first; eve; eve= eve->next) {
+		eve->tmp.l = 0;
+	}
+
+	eve_act->tmp.l = 1;
+
+	while(ok) {
+		ok = 0;
+
+		for (eve= em->verts.first; eve; eve= eve->next) {
+			if(eve->tmp.l)
+				eve->tmp.l++;
+		}
+
+		for (eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->v1->tmp.l==2 && eed->v2->tmp.l==0) { /* initialize */
+				eed->v2->tmp.l= 1;
+				ok = 1; /* keep looping */
+			}
+			else if(eed->v2->tmp.l==2 && eed->v1->tmp.l==0) { /* initialize */
+				eed->v1->tmp.l= 1;
+				ok = 1; /* keep looping */
+			}
+		}
+	}
+
+	for (eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->tmp.l > 0 && eve->tmp.l % nth) {
+			eve->f &= ~SELECT;
+		}
+	}
+
+	EM_deselect_flush(em);
+
+	EM_nvertices_selected(em);
+	// EM_nedges_selected(em); // flush does these
+	// EM_nfaces_selected(em); // flush does these
+}
+
+int EM_deselect_nth(EditMesh *em, int nth)
+{
+	EditSelection *ese;
+	ese = ((EditSelection*)em->selected.last);
+	if(ese) {
+		if(ese->type == EDITVERT) {
+			em_deselect_nth_vert(em, nth, (EditVert*)ese->data);
+			return 1;
+		}
+
+		if(ese->type == EDITEDGE) {
+			em_deselect_nth_edge(em, nth, (EditEdge*)ese->data);
+			return 1;
+		}
+	}
+	else {
+		EditFace *efa_act = EM_get_actFace(em, 0);
+		if(efa_act) {
+			em_deselect_nth_face(em, nth, efa_act);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+

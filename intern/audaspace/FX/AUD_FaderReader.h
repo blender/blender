@@ -27,7 +27,6 @@
 #define AUD_FADERREADER
 
 #include "AUD_EffectReader.h"
-#include "AUD_ConverterFunctions.h"
 class AUD_Buffer;
 
 /**
@@ -57,11 +56,6 @@ private:
 	 * The fading length.
 	 */
 	float m_length;
-
-	/**
-	 * Volume adjustment function.
-	 */
-	AUD_volume_adjust_f m_adjust;
 
 public:
 	/**

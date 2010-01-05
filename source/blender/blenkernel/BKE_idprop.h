@@ -82,6 +82,11 @@ void IDP_UnlinkID(struct IDProperty *prop);
 
 /*-------- Group Functions -------*/
 
+/*
+ replaces all properties with the same name in a destination group from a source group.
+*/
+void IDP_ReplaceGroupInGroup(struct IDProperty *dest, struct IDProperty *src);
+
 /*checks if a property with the same name as prop exists, and if so replaces it.
   Use this to preserve order!*/
 void IDP_ReplaceInGroup(struct IDProperty *group, struct IDProperty *prop);

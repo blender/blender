@@ -256,7 +256,7 @@ PyAttributeDef PyObjectPlus::Attributes[] = {
 
 PyObject* PyObjectPlus::pyattr_get_invalid(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
-	return PyBool_FromLong(self_v ? 1:0);
+	return PyBool_FromLong(self_v ? 0:1);
 }
 
 /* note, this is called as a python 'getset, where the PyAttributeDef is the closure */
@@ -421,18 +421,18 @@ PyObject *PyObjectPlus::py_get_attrdef(PyObject *self_py, const PyAttributeDef *
 #ifdef USE_MATHUTILS
 					return newMatrixObject(val, attrdef->m_imin, attrdef->m_imax, Py_WRAP, NULL);
 #else
-					PyObject* rowlist = PyList_New(attrdef->m_imin);
+					PyObject* collist = PyList_New(attrdef->m_imin);
 					for (unsigned int i=0; i<attrdef->m_imin; i++)
 					{
-						PyObject* collist = PyList_New(attrdef->m_imax);
+						PyObject* col = PyList_New(attrdef->m_imax);
 						for (unsigned int j=0; j<attrdef->m_imax; j++)
 						{
-							PyList_SET_ITEM(collist,j,PyFloat_FromDouble(val[j]));
+							PyList_SET_ITEM(col,j,PyFloat_FromDouble(val[j]));
 						}
-						PyList_SET_ITEM(rowlist,i,collist);
+						PyList_SET_ITEM(collist,i,col);
 						val += attrdef->m_imax;
 					}
-					return rowlist;
+					return collist;
 #endif
 				}
 			}

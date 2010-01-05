@@ -528,16 +528,16 @@ static void init_internal_icons()
 		}
 	}
 
-	def_internal_vicon(VICON_VIEW3D, vicon_view3d_draw);
-	def_internal_vicon(VICON_EDIT, vicon_edit_draw);
-	def_internal_vicon(VICON_EDITMODE_DEHLT, vicon_editmode_dehlt_draw);
-	def_internal_vicon(VICON_EDITMODE_HLT, vicon_editmode_hlt_draw);
-	def_internal_vicon(VICON_DISCLOSURE_TRI_RIGHT, vicon_disclosure_tri_right_draw);
-	def_internal_vicon(VICON_DISCLOSURE_TRI_DOWN, vicon_disclosure_tri_down_draw);
-	def_internal_vicon(VICON_MOVE_UP, vicon_move_up_draw);
-	def_internal_vicon(VICON_MOVE_DOWN, vicon_move_down_draw);
-	def_internal_vicon(VICON_X, vicon_x_draw);
-	def_internal_vicon(VICON_SMALL_TRI_RIGHT, vicon_small_tri_right_draw);
+	def_internal_vicon(VICO_VIEW3D_VEC, vicon_view3d_draw);
+	def_internal_vicon(VICO_EDIT_VEC, vicon_edit_draw);
+	def_internal_vicon(VICO_EDITMODE_DEHLT, vicon_editmode_dehlt_draw);
+	def_internal_vicon(VICO_EDITMODE_HLT, vicon_editmode_hlt_draw);
+	def_internal_vicon(VICO_DISCLOSURE_TRI_RIGHT_VEC, vicon_disclosure_tri_right_draw);
+	def_internal_vicon(VICO_DISCLOSURE_TRI_DOWN_VEC, vicon_disclosure_tri_down_draw);
+	def_internal_vicon(VICO_MOVE_UP_VEC, vicon_move_up_draw);
+	def_internal_vicon(VICO_MOVE_DOWN_VEC, vicon_move_down_draw);
+	def_internal_vicon(VICO_X_VEC, vicon_x_draw);
+	def_internal_vicon(VICO_SMALL_TRI_RIGHT_VEC, vicon_small_tri_right_draw);
 
 	IMB_freeImBuf(bbuf);
 }
@@ -940,7 +940,7 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	}
 }
 
-void ui_id_icon_render(bContext *C, ID *id)
+void ui_id_icon_render(bContext *C, ID *id, int preview)
 {
 	PreviewImage *pi = BKE_previewimg_get(id); 
 		
@@ -948,13 +948,17 @@ void ui_id_icon_render(bContext *C, ID *id)
 		if ((pi->changed[0] ||!pi->rect[0])) /* changed only ever set by dynamic icons */
 		{
 			/* create the preview rect if necessary */				
-			icon_set_image(C, id, pi, 0);
+			
+			icon_set_image(C, id, pi, 0);		/* icon size */
+			if (preview)
+				icon_set_image(C, id, pi, 1);	/* preview size */
+			
 			pi->changed[0] = 0;
 		}
 	}
 }
 
-int ui_id_icon_get(bContext *C, ID *id)
+int ui_id_icon_get(bContext *C, ID *id, int preview)
 {
 	int iconid= 0;
 	
@@ -968,7 +972,7 @@ int ui_id_icon_get(bContext *C, ID *id)
 		case ID_LA: /* fall through */
 			iconid= BKE_icon_getid(id);
 			/* checks if not exists, or changed */
-			ui_id_icon_render(C, id);
+			ui_id_icon_render(C, id, preview);
 			break;
 		default:
 			break;
@@ -1004,8 +1008,18 @@ void UI_icon_draw_size(float x, float y, int size, int icon_id, float alpha)
 	icon_draw_size(x, y, icon_id, 1.0f, alpha, NULL, 0, size, 1);
 }
 
-void UI_icon_draw_preview(float x, float y, int icon_id, int nocreate)
+void UI_icon_draw_preview(float x, float y, int icon_id)
 {
-	icon_draw_mipmap(x, y, icon_id, 1.0f, 1.0f, PREVIEW_MIPMAP_LARGE, nocreate);
+	icon_draw_mipmap(x, y, icon_id, 1.0f, 1.0f, PREVIEW_MIPMAP_LARGE, 0);
+}
+
+void UI_icon_draw_preview_aspect(float x, float y, int icon_id, float aspect)
+{
+	icon_draw_mipmap(x, y, icon_id, aspect, 1.0f, PREVIEW_MIPMAP_LARGE, 0);
+}
+
+void UI_icon_draw_preview_aspect_size(float x, float y, int icon_id, float aspect, int size)
+{
+	icon_draw_size(x, y, icon_id, aspect, 1.0f, NULL, PREVIEW_MIPMAP_LARGE, size, 0);
 }
 

@@ -136,7 +136,7 @@ typedef struct Lamp {
 #define LA_SQUARE		128
 #define LA_TEXTURE		256
 #define LA_OSATEX		512
-#define LA_DEEP_SHADOW	1024
+/* #define LA_DEEP_SHADOW	1024 */ /* not used anywhere */
 #define LA_NO_DIFF		2048
 #define LA_NO_SPEC		4096
 #define LA_SHAD_RAY		8192

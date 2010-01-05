@@ -30,6 +30,7 @@
 #define WM_WINDOW_H
 
 struct bScreen;
+struct wmOperator;
 
 /* *************** internal api ************** */
 void		wm_ghost_init			(bContext *C);
@@ -50,17 +51,20 @@ void		wm_window_raise			(wmWindow *win);
 void		wm_window_lower			(wmWindow *win);
 void		wm_window_set_size		(wmWindow *win, int width, int height);
 void		wm_window_get_size		(wmWindow *win, int *width_r, int *height_r);
+void		wm_window_get_size_ghost	(wmWindow *win, int *width_r, int *height_r);
 void		wm_window_get_position	(wmWindow *win, int *posx_r, int *posy_r);
 void		wm_window_set_title		(wmWindow *win, char *title);
 void		wm_window_swap_buffers	(wmWindow *win);
+
+void		wm_get_cursor_position	(wmWindow *win, int *x, int *y);
 
 wmWindow	*wm_window_copy			(bContext *C, wmWindow *winorig);
 
 void		wm_window_testbreak		(void);
 
 /* *************** window operators ************** */
-int			wm_window_duplicate_op	(bContext *C, wmOperator *op);
-int			wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op);
+int			wm_window_duplicate_op	(bContext *C, struct wmOperator *op);
+int			wm_window_fullscreen_toggle_op(bContext *C, struct wmOperator *op);
 
 #endif /* WM_WINDOW_H */
 

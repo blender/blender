@@ -26,9 +26,9 @@
 #include "AUD_SRCResampleReader.h"
 #include "AUD_Buffer.h"
 
-#include <math.h>
+#include <cmath>
 #include <cstring>
-#include <stdio.h>
+#include <cstdio>
 
 static long src_callback(void *cb_data, float **data)
 {
@@ -41,15 +41,8 @@ AUD_SRCResampleReader::AUD_SRCResampleReader(AUD_IReader* reader,
 {
 	m_sspecs = reader->getSpecs();
 
-	if(m_sspecs.format != AUD_FORMAT_FLOAT32)
-	{
-		delete m_reader; AUD_DELETE("reader")
-		AUD_THROW(AUD_ERROR_READER);
-	}
-
 	m_tspecs = specs;
 	m_tspecs.channels = m_sspecs.channels;
-	m_tspecs.format = m_sspecs.format;
 	m_factor = (double)m_tspecs.rate / (double)m_sspecs.rate;
 
 	int error;
@@ -71,9 +64,9 @@ AUD_SRCResampleReader::AUD_SRCResampleReader(AUD_IReader* reader,
 
 AUD_SRCResampleReader::~AUD_SRCResampleReader()
 {
-	delete m_buffer; AUD_DELETE("buffer")
-
 	src_delete(m_src);
+
+	delete m_buffer; AUD_DELETE("buffer")
 }
 
 long AUD_SRCResampleReader::doCallback(float** data)
@@ -83,7 +76,7 @@ long AUD_SRCResampleReader::doCallback(float** data)
 
 	m_reader->read(length, buffer);
 
-	*data = (float*)buffer;
+	*data = buffer;
 	return length;
 }
 
@@ -110,10 +103,12 @@ AUD_Specs AUD_SRCResampleReader::getSpecs()
 
 void AUD_SRCResampleReader::read(int & length, sample_t* & buffer)
 {
-	if(m_buffer->getSize() < length * m_tspecs.channels * 4)
-		m_buffer->resize(length * m_tspecs.channels * 4);
+	int size = length * AUD_SAMPLE_SIZE(m_tspecs);
+
+	if(m_buffer->getSize() < size)
+		m_buffer->resize(size);
 
 	buffer = m_buffer->getBuffer();
 
-	length = src_callback_read(m_src, m_factor, length, (float*)buffer);
+	length = src_callback_read(m_src, m_factor, length, buffer);
 }

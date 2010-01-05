@@ -353,6 +353,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\intern\GHOST_DropTargetWin32.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\intern\GHOST_Event.h"
 					>
 				</File>
@@ -487,6 +491,10 @@
 			</File>
 			<File
 				RelativePath="..\..\intern\GHOST_DisplayManagerWin32.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\GHOST_DropTargetWin32.cpp"
 				>
 			</File>
 			<File

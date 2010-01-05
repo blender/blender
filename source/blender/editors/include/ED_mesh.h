@@ -126,6 +126,7 @@ void		EM_select_face_fgon(struct EditMesh *em, struct EditFace *efa, int val);
 void		EM_select_swap(struct EditMesh *em);
 void		EM_toggle_select_all(struct EditMesh *em);
 void		EM_select_all(struct EditMesh *em);
+void		EM_deselect_all(struct EditMesh *em);
 void		EM_selectmode_flush(struct EditMesh *em);
 void		EM_deselect_flush(struct EditMesh *em);
 void		EM_selectmode_set(struct EditMesh *em);
@@ -145,6 +146,11 @@ void              EM_free_uv_vert_map(struct UvVertMap *vmap);
 
 void		EM_add_data_layer(struct EditMesh *em, struct CustomData *data, int type);
 void		EM_free_data_layer(struct EditMesh *em, struct CustomData *data, int type);
+
+void		EM_make_hq_normals(struct EditMesh *em);
+void		EM_solidify(struct EditMesh *em, float dist);
+
+int			EM_deselect_nth(struct EditMesh *em, int nth);
 
 /* editmesh_mods.c */
 extern unsigned int em_vertoffs, em_solidoffs, em_wireoffs;
@@ -168,8 +174,8 @@ void		EM_automerge(struct Scene *scene, struct Object *obedit, int update);
 /* editface.c */
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
 int face_select(struct bContext *C, struct Object *ob, short mval[2], int extend);
-void face_borderselect(struct bContext *C, struct Object *ob, struct rcti *rect, int select);
-void deselectall_tface(struct Object *ob);
+void face_borderselect(struct bContext *C, struct Object *ob, struct rcti *rect, int select, int extend);
+void selectall_tface(struct Object *ob, int action);
 void select_linked_tfaces(struct bContext *C, struct Object *ob, short mval[2], int mode);
 
 /* object_vgroup.c */

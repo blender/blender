@@ -16,8 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 import bpy
 import os
+
 
 class AddPresetBase(bpy.types.Operator):
     '''Base preset class, only for subclassing
@@ -27,7 +30,7 @@ class AddPresetBase(bpy.types.Operator):
     bl_idname = "render.preset_add"
     bl_label = "Add Render Preset"
 
-    name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen= 64, default= "")
+    name = bpy.props.StringProperty(name="Name", description="Name of the preset, used to make the path name", maxlen=64, default="")
 
     def _as_filename(self, name): # could reuse for other presets
         for char in " !@#$%^&*(){}:\";'[]<>,./?":
@@ -37,7 +40,7 @@ class AddPresetBase(bpy.types.Operator):
     def execute(self, context):
 
         if not self.properties.name:
-            return ('FINISHED',)
+            return {'FINISHED'}
 
         filename = self._as_filename(self.properties.name) + ".py"
 
@@ -50,12 +53,15 @@ class AddPresetBase(bpy.types.Operator):
 
         file_preset.close()
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
+        #crashes, TODO - fix
+        #return wm.invoke_props_popup(self, event)
+
         wm.invoke_props_popup(self, event)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
 
 class AddPresetRender(AddPresetBase):
@@ -101,6 +107,7 @@ class AddPresetSSS(AddPresetBase):
 
     preset_subdir = "sss"
 
+
 class AddPresetCloth(AddPresetBase):
     '''Add a Cloth Preset.'''
     bl_idname = "cloth.preset_add"
@@ -118,7 +125,6 @@ class AddPresetCloth(AddPresetBase):
 
     preset_subdir = "cloth"
 
-bpy.ops.add(AddPresetRender)
-bpy.ops.add(AddPresetSSS)
-bpy.ops.add(AddPresetCloth)
-
+bpy.types.register(AddPresetRender)
+bpy.types.register(AddPresetSSS)
+bpy.types.register(AddPresetCloth)

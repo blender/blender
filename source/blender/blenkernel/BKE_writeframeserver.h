@@ -33,12 +33,13 @@ extern "C" {
 #endif
 
 struct RenderData;	
+struct ReportList;
 struct Scene;
 
-extern void start_frameserver(struct Scene *scene, struct RenderData *rd, int rectx, int recty);
+extern int start_frameserver(struct Scene *scene, struct RenderData *rd, int rectx, int recty, struct ReportList *reports);
 extern void end_frameserver(void);
-extern void append_frameserver(struct RenderData *rd, int frame, int *pixels, int rectx, int recty);
-extern int frameserver_loop(struct RenderData *rd);
+extern int append_frameserver(struct RenderData *rd, int frame, int *pixels, int rectx, int recty, struct ReportList *reports);
+extern int frameserver_loop(struct RenderData *rd, struct ReportList *reports);
 
 #ifdef __cplusplus
 }

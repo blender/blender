@@ -28,7 +28,7 @@
 
 #include "AUD_IDevice.h"
 struct AUD_SoftwareHandle;
-class AUD_IMixer;
+class AUD_Mixer;
 
 #include <list>
 #include <pthread.h>
@@ -47,12 +47,12 @@ protected:
 	/**
 	 * The specification of the device.
 	 */
-	AUD_Specs m_specs;
+	AUD_DeviceSpecs m_specs;
 
 	/**
-	 * The mixer. Will be deleted by the destroy function.
+	 * The mixer.
 	 */
-	AUD_IMixer* m_mixer;
+	AUD_Mixer* m_mixer;
 
 	/**
 	 * Initializes member variables.
@@ -69,7 +69,7 @@ protected:
 	 * \param buffer The target buffer.
 	 * \param length The length in samples to be filled.
 	 */
-	void mix(sample_t* buffer, int length);
+	void mix(data_t* buffer, int length);
 
 	/**
 	 * This function tells the device, to start or pause playback.
@@ -111,13 +111,7 @@ private:
 	bool isValid(AUD_Handle* handle);
 
 public:
-	/**
-	 * Sets a new mixer.
-	 * \param mixer The new mixer.
-	 */
-	void setMixer(AUD_IMixer* mixer);
-
-	virtual AUD_Specs getSpecs();
+	virtual AUD_DeviceSpecs getSpecs();
 	virtual AUD_Handle* play(AUD_IFactory* factory, bool keep = false);
 	virtual bool pause(AUD_Handle* handle);
 	virtual bool resume(AUD_Handle* handle);

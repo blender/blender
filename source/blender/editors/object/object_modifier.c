@@ -44,6 +44,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_path_util.h"
 
 #include "BKE_action.h"
 #include "BKE_curve.h"
@@ -164,6 +165,7 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
 
 		BLI_remlink(&ob->particlesystem, psmd->psys);
 		psys_free(ob, psmd->psys);
+		psmd->psys= NULL;
 	}
 	else if(md->type == eModifierType_Softbody) {
 		if(ob->soft) {
@@ -185,7 +187,13 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
         DAG_scene_sort(scene);
 	}
 	else if(md->type == eModifierType_Smoke) {
-		ob->dt = OB_SHADED;
+		ob->dt = OB_TEXTURE;
+	}
+	else if(md->type == eModifierType_Multires) {
+		Mesh *me= ob->data;
+
+		CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
+		CustomData_free_layer_active(&me->fdata, CD_MDISPS, me->totface);
 	}
 
 	BLI_remlink(&ob->modifiers, md);
@@ -363,11 +371,11 @@ static int modifier_apply_shape(ReportList *reports, Scene *scene, Object *ob, M
 			key->type= KEY_RELATIVE;
 			/* if that was the first key block added, then it was the basis.
 			 * Initialise it with the mesh, and add another for the modifier */
-			kb= add_keyblock(scene, key);
+			kb= add_keyblock(key, NULL);
 			mesh_to_key(me, kb);
 		}
 
-		kb= add_keyblock(scene, key);
+		kb= add_keyblock(key, md->name);
 		DM_to_meshkey(dm, me, kb);
 		
 		dm->release(dm);
@@ -414,7 +422,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		
 		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tesselated/bevel vertices");
 		
-		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md))) {
+		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md, 0))) {
 			BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
 			return 0;
 		}
@@ -542,7 +550,7 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
 	ot->exec= modifier_add_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -574,7 +582,6 @@ void OBJECT_OT_modifier_remove(wmOperatorType *ot)
 	ot->name= "Remove Modifier";
 	ot->description= "Remove a modifier from the active object.";
 	ot->idname= "OBJECT_OT_modifier_remove";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_remove_exec;
 	ot->poll= modifier_poll;
@@ -605,7 +612,6 @@ void OBJECT_OT_modifier_move_up(wmOperatorType *ot)
 	ot->name= "Move Up Modifier";
 	ot->description= "Move modifier up in the stack.";
 	ot->idname= "OBJECT_OT_modifier_move_up";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_move_up_exec;
 	ot->poll= modifier_poll;
@@ -636,7 +642,6 @@ void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
 	ot->name= "Move Down Modifier";
 	ot->description= "Move modifier down in the stack.";
 	ot->idname= "OBJECT_OT_modifier_move_down";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_move_down_exec;
 	ot->poll= modifier_poll;
@@ -674,7 +679,6 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 	ot->name= "Apply Modifier";
 	ot->description= "Apply modifier and remove from the stack.";
 	ot->idname= "OBJECT_OT_modifier_apply";
-	ot->poll= ED_operator_object_active;
 
 	//ot->invoke= WM_menu_invoke;
 	ot->exec= modifier_apply_exec;
@@ -709,7 +713,6 @@ void OBJECT_OT_modifier_convert(wmOperatorType *ot)
 	ot->name= "Convert Modifier";
 	ot->description= "Convert particles to a mesh object.";
 	ot->idname= "OBJECT_OT_modifier_convert";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_convert_exec;
 	ot->poll= modifier_poll;
@@ -740,7 +743,6 @@ void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 	ot->name= "Copy Modifier";
 	ot->description= "Duplicate modifier at the same position in the stack.";
 	ot->idname= "OBJECT_OT_modifier_copy";
-	ot->poll= ED_operator_object_active;
 
 	ot->exec= modifier_copy_exec;
 	ot->poll= modifier_poll;
@@ -750,6 +752,13 @@ void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 }
 
 /************* multires delete higher levels operator ****************/
+
+static int multires_poll(bContext *C)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	ID *id= ptr.id.data;
+	return (ptr.data && id && !id->lib);
+}
 
 static int multires_higher_levels_delete_exec(bContext *C, wmOperator *op)
 {
@@ -769,8 +778,8 @@ void OBJECT_OT_multires_higher_levels_delete(wmOperatorType *ot)
 {
 	ot->name= "Delete Higher Levels";
 	ot->idname= "OBJECT_OT_multires_higher_levels_delete";
-	ot->poll= ED_operator_object_active;
 
+	ot->poll= multires_poll;
 	ot->exec= multires_higher_levels_delete_exec;
 	
 	/* flags */
@@ -785,17 +794,12 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 	Object *ob= ptr.id.data;
 	MultiresModifierData *mmd= ptr.data;
 
-	multiresModifier_subdivide(mmd, ob, 1, 0, mmd->simple);
+	multiresModifier_subdivide(mmd, ob, 0, mmd->simple);
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
-}
-
-static int multires_subdivide_poll(bContext *C)
-{
-	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
-	ID *id= ptr.id.data;
-	return (ptr.data && id && !id->lib);
 }
 
 void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
@@ -804,8 +808,144 @@ void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
 	ot->description= "Add a new level of subdivision.";
 	ot->idname= "OBJECT_OT_multires_subdivide";
 
+	ot->poll= multires_poll;
 	ot->exec= multires_subdivide_exec;
-	ot->poll= multires_subdivide_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/****************** multires reshape operator *********************/
+
+static int multires_reshape_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	Object *ob= ptr.id.data, *secondob= NULL;
+	MultiresModifierData *mmd= ptr.data;
+
+	CTX_DATA_BEGIN(C, Object*, selob, selected_editable_objects) {
+		if(selob->type == OB_MESH && selob != ob) {
+			secondob= selob;
+			break;
+		}
+	}
+	CTX_DATA_END;
+
+	if(!secondob) {
+		BKE_report(op->reports, RPT_ERROR, "Second selected mesh object require to copy shape from.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	if(!multiresModifier_reshape(mmd, ob, secondob)) {
+		BKE_report(op->reports, RPT_ERROR, "Objects do not have the same number of vertices.");
+		return OPERATOR_CANCELLED;
+	}
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_multires_reshape(wmOperatorType *ot)
+{
+	ot->name= "Multires Reshape";
+	ot->description= "Copy vertex coordinates from other object.";
+	ot->idname= "OBJECT_OT_multires_reshape";
+
+	ot->poll= multires_poll;
+	ot->exec= multires_reshape_exec;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/****************** multires save external operator *********************/
+
+static int multires_save_external_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	Object *ob= ptr.id.data;
+	Mesh *me= (ob)? ob->data: op->customdata;
+	char path[FILE_MAX];
+
+	if(CustomData_external_test(&me->fdata, CD_MDISPS))
+		return OPERATOR_CANCELLED;
+	
+	RNA_string_get(op->ptr, "path", path);
+	if(G.save_over)
+		BLI_makestringcode(G.sce, path); /* make relative */
+
+	CustomData_external_add(&me->fdata, &me->id, CD_MDISPS, me->totface, path);
+	CustomData_external_write(&me->fdata, &me->id, CD_MASK_MESH, me->totface, 0);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int multires_save_external_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	Object *ob= ptr.id.data;
+	Mesh *me= ob->data;
+	char path[FILE_MAX];
+
+	if(CustomData_external_test(&me->fdata, CD_MDISPS))
+		return OPERATOR_CANCELLED;
+
+	if(RNA_property_is_set(op->ptr, "path"))
+		return multires_save_external_exec(C, op);
+	
+	op->customdata= me;
+
+	BLI_snprintf(path, sizeof(path), "//%s.btx", me->id.name+2);
+	RNA_string_set(op->ptr, "path", path);
+	
+	WM_event_add_fileselect(C, op);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void OBJECT_OT_multires_save_external(wmOperatorType *ot)
+{
+	ot->name= "Multires Save External";
+	ot->description= "Save displacements to an external file.";
+	ot->idname= "OBJECT_OT_multires_save_external";
+
+	ot->poll= multires_poll;
+	ot->exec= multires_save_external_exec;
+	ot->invoke= multires_save_external_invoke;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_filesel(ot, FOLDERFILE|BTXFILE, FILE_SPECIAL);
+}
+
+/****************** multires pack operator *********************/
+
+static int multires_pack_external_exec(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
+	Object *ob= ptr.id.data;
+	Mesh *me= ob->data;
+
+	if(!CustomData_external_test(&me->fdata, CD_MDISPS))
+		return OPERATOR_CANCELLED;
+
+	// XXX don't remove..
+	CustomData_external_remove(&me->fdata, &me->id, CD_MDISPS, me->totface);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_multires_pack_external(wmOperatorType *ot)
+{
+	ot->name= "Multires Pack External";
+	ot->description= "Pack displacements from an external file.";
+	ot->idname= "OBJECT_OT_multires_pack_external";
+
+	ot->poll= multires_poll;
+	ot->exec= multires_pack_external_exec;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

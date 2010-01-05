@@ -316,6 +316,14 @@ void PE_hide_keys_time(Scene *scene, PTCacheEdit *edit, float cfra)
 	}
 }
 
+static int pe_x_mirror(Object *ob)
+{
+	if(ob->type == OB_MESH)
+		return (((Mesh*)ob->data)->editflag & ME_EDIT_MIRROR_X);
+	
+	return 0;
+}
+
 /****************** common struct passed to callbacks ******************/
 
 typedef struct PEData {
@@ -362,7 +370,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 	PE_set_data(C, data);
 
 	view3d_set_viewcontext(C, &data->vc);
-	view3d_get_transformation(&data->vc, data->ob, &data->mats);
+	view3d_get_transformation(data->vc.ar, data->vc.rv3d, data->ob, &data->mats);
 
 	if((data->vc.v3d->drawtype>OB_WIRE) && (data->vc.v3d->flag & V3D_ZBUF_SELECT))
 		view3d_validate_backbuf(&data->vc);
@@ -373,7 +381,6 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 static int key_test_depth(PEData *data, float co[3])
 {
 	View3D *v3d= data->vc.v3d;
-	RegionView3D *rv3d= data->vc.rv3d;
 	double ux, uy, uz;
 	float depth;
 	short wco[3], x,y;
@@ -393,26 +400,16 @@ static int key_test_depth(PEData *data, float co[3])
 	x=wco[0];
 	y=wco[1];
 
-	// XXX verify ..
+	x+= (short)data->vc.ar->winrct.xmin;
+	y+= (short)data->vc.ar->winrct.ymin;
 
-	if(rv3d->depths && x<rv3d->depths->w && y<rv3d->depths->h) {
-		/* the 0.0001 is an experimental threshold to make selecting keys right next to a surface work better */
-		if((float)uz - 0.0001 > rv3d->depths->depths[y*rv3d->depths->w+x])
-			return 0;
-		else
-			return 1;
-	}
-	else {
-		x+= (short)data->vc.ar->winrct.xmin;
-		y+= (short)data->vc.ar->winrct.ymin;
+	view3d_validate_backbuf(&data->vc);
+	glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
 
-		glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth);
-
-		if((float)uz - 0.0001 > depth)
-			return 0;
-		else
-			return 1;
-	}
+	if((float)uz - 0.0001 > depth)
+		return 0;
+	else
+		return 1;
 }
 
 static int key_inside_circle(PEData *data, float rad, float co[3], float *distance)
@@ -1174,8 +1171,11 @@ static void update_velocities(Object *ob, PTCacheEdit *edit)
 		}
 	}
 }
+
 void PE_update_object(Scene *scene, Object *ob, int useflag)
 {
+	/* use this to do partial particle updates, not usable when adding or
+	   removing, then a full redo is necessary and calling this may crash */
 	ParticleEditSettings *pset= PE_settings(scene);
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	POINT_P;
@@ -1193,7 +1193,7 @@ void PE_update_object(Scene *scene, Object *ob, int useflag)
 	pe_iterate_lengths(scene, edit);
 	pe_deflect_emitter(scene, ob, edit);
 	PE_apply_lengths(scene, edit);
-	if(pset->flag & PE_X_MIRROR)
+	if(pe_x_mirror(ob))
 		PE_apply_mirror(ob,edit->psys);
 	if(edit->psys)
 		update_world_cos(ob, edit);
@@ -1261,29 +1261,51 @@ static void toggle_key_select(PEData *data, int point_index, int key_index)
 
 /************************ de select all operator ************************/
 
-static int de_select_all_exec(bContext *C, wmOperator *op)
+static int select_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	PTCacheEdit *edit= PE_get_current(scene, ob);
 	POINT_P; KEY_K;
-	int sel= 0;
-	
-	LOOP_VISIBLE_POINTS {
-		LOOP_SELECTED_KEYS {
-			sel= 1;
-			key->flag &= ~PEK_SELECT;
-			point->flag |= PEP_EDIT_RECALC;
+	int action = RNA_enum_get(op->ptr, "action");
+
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		LOOP_VISIBLE_POINTS {
+			LOOP_SELECTED_KEYS {
+				action = SEL_DESELECT;
+				break;
+			}
+
+			if (action == SEL_DESELECT)
+				break;
 		}
 	}
 
-	if(sel==0) {
-		LOOP_VISIBLE_POINTS {
-			LOOP_KEYS {
-				if(!(key->flag & PEK_SELECT)) {
+	LOOP_VISIBLE_POINTS {
+		LOOP_VISIBLE_KEYS {
+			switch (action) {
+			case SEL_SELECT:
+				if ((key->flag & PEK_SELECT) == 0) {
 					key->flag |= PEK_SELECT;
 					point->flag |= PEP_EDIT_RECALC;
 				}
+				break;
+			case SEL_DESELECT:
+				if (key->flag & PEK_SELECT) {
+					key->flag &= ~PEK_SELECT;
+					point->flag |= PEP_EDIT_RECALC;
+				}
+				break;
+			case SEL_INVERT:
+				if ((key->flag & PEK_SELECT) == 0) {
+					key->flag |= PEK_SELECT;
+					point->flag |= PEP_EDIT_RECALC;
+				} else {
+					key->flag &= ~PEK_SELECT;
+					point->flag |= PEP_EDIT_RECALC;
+				}
+				break;
 			}
 		}
 	}
@@ -1294,18 +1316,20 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_select_all_toggle(wmOperatorType *ot)
+void PARTICLE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Select or Deselect All";
-	ot->idname= "PARTICLE_OT_select_all_toggle";
+	ot->name= "Selection of all particles";
+	ot->idname= "PARTICLE_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= de_select_all_exec;
+	ot->exec= select_all_exec;
 	ot->poll= PE_poll;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }
 
 /************************ pick select operator ************************/
@@ -1472,7 +1496,7 @@ void PARTICLE_OT_select_linked(wmOperatorType *ot)
 
 /************************ border select operator ************************/
 
-int PE_border_select(bContext *C, rcti *rect, int select)
+int PE_border_select(bContext *C, rcti *rect, int select, int extend)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
@@ -1481,6 +1505,17 @@ int PE_border_select(bContext *C, rcti *rect, int select)
 
 	if(!PE_start_edit(edit))
 		return OPERATOR_CANCELLED;
+
+	if (extend == 0 && select) {
+		POINT_P; KEY_K;
+
+		LOOP_VISIBLE_POINTS {
+			LOOP_SELECTED_KEYS {
+				key->flag &= ~PEK_SELECT;
+				point->flag |= PEP_EDIT_RECALC;
+			}
+		}
+	}
 
 	PE_set_view3d_data(C, &data);
 	data.rect= rect;
@@ -1970,7 +2005,7 @@ static void rekey_particle_to_time(Scene *scene, Object *ob, int pa_index, float
 
 /************************* utilities **************************/
 
-static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psys)
+static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psys, int mirror)
 {
 	PTCacheEdit *edit = psys->edit;
 	ParticleEditSettings *pset= PE_settings(scene);
@@ -1980,7 +2015,7 @@ static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psy
 	ParticleSystemModifierData *psmd;
 	int i, totpart, new_totpart= psys->totpart, removed= 0;
 
-	if(pset->flag & PE_X_MIRROR) {
+	if(mirror) {
 		/* mirror tags */
 		psmd= psys_get_modifier(ob, psys);
 		totpart= psys->totpart;
@@ -2029,6 +2064,12 @@ static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psy
 			edit->mirror_cache= NULL;
 		}
 
+		if(psys->child) {
+			MEM_freeN(psys->child);
+			psys->child= NULL;
+			psys->totchild=0;
+		}
+
 		edit->totpoint= psys->totpart= new_totpart;
 	}
 
@@ -2045,7 +2086,7 @@ static void remove_tagged_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 	ParticleSystemModifierData *psmd;
 	short new_totkey;
 
-	if(pset->flag & PE_X_MIRROR) {
+	if(pe_x_mirror(ob)) {
 		/* mirror key tags */
 		psmd= psys_get_modifier(ob, psys);
 
@@ -2066,7 +2107,7 @@ static void remove_tagged_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 		if(new_totkey < 2)
 			point->flag |= PEP_TAG;
 	}
-	remove_tagged_particles(scene, ob, psys);
+	remove_tagged_particles(scene, ob, psys, pe_x_mirror(ob));
 
 	LOOP_POINTS {
 		pa = psys->particles + p;
@@ -2237,7 +2278,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	KDTreeNearest nearest[10];
 	POINT_P;
 	float mat[4][4], co[3], threshold= RNA_float_get(op->ptr, "threshold");
-	int n, totn, removed, flag, totremoved;
+	int n, totn, removed, totremoved;
 
 	if(psys->flag & PSYS_GLOBAL_HAIR)
 		return OPERATOR_CANCELLED;
@@ -2283,10 +2324,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 		BLI_kdtree_free(tree);
 
 		/* remove tagged particles - don't do mirror here! */
-		flag= pset->flag;
-		pset->flag &= ~PE_X_MIRROR;
-		remove_tagged_particles(scene, ob, psys);
-		pset->flag= flag;
+		remove_tagged_particles(scene, ob, psys, 0);
 		totremoved += removed;
 	} while(removed);
 
@@ -2295,7 +2333,6 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 
 	BKE_reportf(op->reports, RPT_INFO, "Remove %d double particles.", totremoved);
 
-	PE_update_object(scene, ob, 0);
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
 
@@ -2468,11 +2505,10 @@ static int delete_exec(bContext *C, wmOperator *op)
 	}
 	else if(type == DEL_PARTICLE) {
 		foreach_selected_point(&data, set_delete_particle);
-		remove_tagged_particles(data.scene, data.ob, data.edit->psys);
+		remove_tagged_particles(data.scene, data.ob, data.edit->psys, pe_x_mirror(data.ob));
 		recalc_lengths(data.edit);
 	}
 
-	PE_update_object(data.scene, data.ob, 0);
 	DAG_id_flush_update(&data.ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, data.ob);
 
@@ -2572,9 +2608,11 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 		newpa= psys->particles + totpart;
 		newpoint= edit->points + totpart;
 
-		LOOP_VISIBLE_POINTS {
+		for(p=0, point=edit->points; p<totpart; p++, point++) {
 			pa = psys->particles + p;
 
+			if(point->flag & PEP_HIDE)
+				continue;
 			if(!(point->flag & PEP_TAG) || mirrorfaces[pa->num*2] == -1)
 				continue;
 
@@ -3066,7 +3104,7 @@ static int brush_add(PEData *data, short number)
 			initialize_particle(&sim, pa,i);
 			reset_particle(&sim, pa, 0.0, 1.0);
 			point->flag |= PEP_EDIT_RECALC;
-			if(pset->flag & PE_X_MIRROR)
+			if(pe_x_mirror(ob))
 				point->flag |= PEP_TAG; /* signal for duplicate */
 			
 			framestep= pa->lifetime/(float)(pset->totaddkey-1);
@@ -3273,7 +3311,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 					else
 						foreach_point(&data, brush_cut);
 
-					removed= remove_tagged_particles(scene, ob, edit->psys);
+					removed= remove_tagged_particles(scene, ob, edit->psys, pe_x_mirror(ob));
 					if(pset->flag & PE_KEEP_LENGTHS)
 						recalc_lengths(edit);
 				}
@@ -3372,7 +3410,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 			recalc_lengths(edit);
 
 		if(ELEM(pset->brushtype, PE_BRUSH_ADD, PE_BRUSH_CUT) && (added || removed)) {
-			if(pset->brushtype == PE_BRUSH_ADD && (pset->flag & PE_X_MIRROR))
+			if(pset->brushtype == PE_BRUSH_ADD && pe_x_mirror(ob))
 				PE_mirror_x(scene, ob, 1);
 
 			update_world_cos(ob,edit);
@@ -3698,7 +3736,6 @@ void PE_undo_step(Scene *scene, int step)
 		}
 	}
 
-	PE_update_object(scene, OBACT, 0);
 	DAG_id_flush_update(&OBACT->id, OB_RECALC_DATA);
 }
 
@@ -3773,15 +3810,15 @@ int PE_minmax(Scene *scene, float *min, float *max)
 {
 	Object *ob= OBACT;
 	PTCacheEdit *edit= PE_get_current(scene, ob);
-	ParticleSystem *psys = edit->psys;
+	ParticleSystem *psys;
 	ParticleSystemModifierData *psmd = NULL;
 	POINT_P; KEY_K;
 	float co[3], mat[4][4];
 	int ok= 0;
 
 	if(!edit) return ok;
-	
-	if(psys)
+
+	if((psys = edit->psys))
 		psmd= psys_get_modifier(ob, psys);
 	else
 		unit_m4(mat);
@@ -3983,6 +4020,7 @@ static int clear_edited_exec(bContext *C, wmOperator *op)
 			psys->flag &= ~PSYS_EDITED;
 
 			psys_reset(psys, PSYS_RESET_DEPSGRAPH);
+			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		}
 	}
@@ -4002,41 +4040,5 @@ void PARTICLE_OT_edited_clear(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-/*********************** specials menu **************************/
-
-static int specials_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Scene *scene= CTX_data_scene(C);
-	ParticleEditSettings *pset=PE_settings(scene);
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	pup= uiPupMenuBegin(C, "Specials", 0);
-	layout= uiPupMenuLayout(pup);
-
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_rekey");
-	if(pset->selectmode & SCE_SELECT_POINT) {
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_subdivide");
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_first");
-		uiItemO(layout, NULL, 0, "PARTICLE_OT_select_last");
-	}
-	uiItemO(layout, NULL, 0, "PARTICLE_OT_remove_doubles");
-
-	uiPupMenuEnd(C, pup);
-
-	return OPERATOR_CANCELLED;
-}
-
-void PARTICLE_OT_specials_menu(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Specials Menu";
-	ot->idname= "PARTICLE_OT_specials_menu";
-	
-	/* api callbacks */
-	ot->invoke= specials_menu_invoke;
-	ot->poll= PE_hair_poll;
 }
 

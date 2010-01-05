@@ -65,8 +65,10 @@
 
 #include "BLI_ghash.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_effect.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_key.h"
@@ -315,28 +317,38 @@ static void dag_add_driver_relation(AnimData *adt, DagForest *dag, DagNode *node
 	
 	for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
 		ChannelDriver *driver= fcu->driver;
-		DriverTarget *dtar;
+		DriverVar *dvar;
 		
-		/* loop over targets, adding relationships as appropriate */
-		for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
-			if (dtar->id) {
-				if (GS(dtar->id->name)==ID_OB) {
-					Object *ob= (Object *)dtar->id;
-					
-					/* normal channel-drives-channel */
-					node1 = dag_get_node(dag, dtar->id);
-					
-					/* check if bone... */
-					if ((ob->type==OB_ARMATURE) && dtar->rna_path && strstr(dtar->rna_path, "pose.bones["))
-						dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
-					/* check if ob data */
-					else if (dtar->rna_path && strstr(dtar->rna_path, "data."))
-						dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
-					/* normal */
-					else
-						dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Driver");
+		/* loop over variables to get the target relationships */
+		for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+			/* only used targets */
+			DRIVER_TARGETS_USED_LOOPER(dvar) 
+			{
+				if (dtar->id) {
+					// FIXME: other data types need to be added here so that they can work!
+					if (GS(dtar->id->name)==ID_OB) {
+						Object *ob= (Object *)dtar->id;
+						
+						/* normal channel-drives-channel */
+						node1 = dag_get_node(dag, dtar->id);
+						
+						/* check if bone... */
+						if ((ob->type==OB_ARMATURE) && 
+							( ((dtar->rna_path) && strstr(dtar->rna_path, "pose.bones[")) || 
+							  ((dtar->flag & DTAR_FLAG_STRUCT_REF) && (dtar->pchan_name[0])) )) 
+						{
+							dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+						}
+						/* check if ob data */
+						else if (dtar->rna_path && strstr(dtar->rna_path, "data."))
+							dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB, "Driver");
+						/* normal */
+						else
+							dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB, "Driver");
+					}
 				}
 			}
+			DRIVER_TARGETS_LOOPER_END
 		}
 	}
 }
@@ -490,22 +502,6 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		/* inverted relation, so addtoroot shouldn't be set to zero */
 	}
 	
-
-	if (ob->type==OB_CAMERA) {
-		Camera *cam = (Camera *)ob->data;
-		if (cam->adt)
-			dag_add_driver_relation(cam->adt, dag, node, 1);
-		if (cam->dof_ob) {
-			node2 = dag_get_node(dag, cam->dof_ob);
-			dag_add_relation(dag,node2,node,DAG_RL_OB_OB, "Camera DoF");
-		}
-	}
-	if (ob->type==OB_LAMP) {
-		Lamp *la = (Lamp *)ob->data;
-		if (la->adt)
-			dag_add_driver_relation(la->adt, dag, node, 1);
-	}
-	
 	if (ob->transflag & OB_DUPLI) {
 		if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
 			GroupObject *go;
@@ -520,38 +516,67 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 	}
     
 	/* softbody collision  */
-	if((ob->type==OB_MESH) || (ob->type==OB_CURVE) || (ob->type==OB_LATTICE))
+	if ((ob->type==OB_MESH) || (ob->type==OB_CURVE) || (ob->type==OB_LATTICE)) {
 		if(modifiers_isSoftbodyEnabled(ob) || modifiers_isClothEnabled(ob) || ob->particlesystem.first)
 			dag_add_collision_field_relation(dag, scene, ob, node); /* TODO: use effectorweight->group */
-		
-	if (ob->type==OB_MBALL) {
-		Object *mom= find_basis_mball(scene, ob);
-		if(mom!=ob) {
-			node2 = dag_get_node(dag, mom);
-			dag_add_relation(dag,node,node2,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Metaball");  // mom depends on children!
-		}
-	}
-	else if (ob->type==OB_CURVE) {
-		Curve *cu= ob->data;
-		if(cu->bevobj) {
-			node2 = dag_get_node(dag, cu->bevobj);
-			dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Curve Bevel");
-		}
-		if(cu->taperobj) {
-			node2 = dag_get_node(dag, cu->taperobj);
-			dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Curve Taper");
-		}
-		if (cu->adt)
-			dag_add_driver_relation(cu->adt, dag, node, 1);
-	}
-	else if(ob->type==OB_FONT) {
-		Curve *cu= ob->data;
-		if(cu->textoncurve) {
-			node2 = dag_get_node(dag, cu->textoncurve);
-			dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Texture On Curve");
-		}
 	}
 	
+	/* object data drivers */
+	if (ob->data) {
+		AnimData *adt= BKE_animdata_from_id((ID *)ob->data);
+		if (adt)
+			dag_add_driver_relation(adt, dag, node, 1);
+	}
+	
+	/* object type/data relationships */
+	switch (ob->type) {
+		case OB_CAMERA:
+		{
+			Camera *cam = (Camera *)ob->data;
+			
+			if (cam->dof_ob) {
+				node2 = dag_get_node(dag, cam->dof_ob);
+				dag_add_relation(dag,node2,node,DAG_RL_OB_OB, "Camera DoF");
+			}
+		}
+			break;
+		case OB_MBALL: 
+		{
+			Object *mom= find_basis_mball(scene, ob);
+			
+			if(mom!=ob) {
+				node2 = dag_get_node(dag, mom);
+				dag_add_relation(dag,node,node2,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Metaball");  // mom depends on children!
+			}
+		}
+			break;
+		case OB_CURVE:
+		{
+			Curve *cu= ob->data;
+			
+			if(cu->bevobj) {
+				node2 = dag_get_node(dag, cu->bevobj);
+				dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Curve Bevel");
+			}
+			if(cu->taperobj) {
+				node2 = dag_get_node(dag, cu->taperobj);
+				dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Curve Taper");
+			}
+		}
+			break;
+		case OB_FONT: 
+		{
+			Curve *cu= ob->data;
+			
+			if(cu->textoncurve) {
+				node2 = dag_get_node(dag, cu->textoncurve);
+				dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Texture On Curve");
+			}
+		}
+			break;
+	}
+	
+	/* particles */
 	psys= ob->particlesystem.first;
 	if(psys) {
 		GroupObject *go;
@@ -623,6 +648,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		}
 	}
 	
+	/* object constraints */
 	for (con = ob->constraints.first; con; con=con->next) {
 		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 		ListBase targets = {NULL, NULL};
@@ -2027,6 +2053,7 @@ static void dag_object_time_update_flags(Object *ob)
 	if((ob->pose) && (ob->pose->flag & POSE_CONSTRAINTS_TIMEDEPEND)) ob->recalc |= OB_RECALC_DATA;
 	
 	{
+		AnimData *adt= BKE_animdata_from_id((ID *)ob->data);
 		Mesh *me;
 		Curve *cu;
 		Lattice *lt;
@@ -2067,6 +2094,11 @@ static void dag_object_time_update_flags(Object *ob)
 			case OB_MBALL:
 				if(ob->transflag & OB_DUPLI) ob->recalc |= OB_RECALC_DATA;
 				break;
+		}
+		
+		if(animdata_use_time(adt)) {
+			ob->recalc |= OB_RECALC_DATA;
+			adt->recalc |= ADT_RECALC_ANIM;
 		}
 
 		if(ob->particlesystem.first) {
@@ -2155,7 +2187,7 @@ static void dag_current_scene_layers(Main *bmain, Scene **sce, unsigned int *lay
 		for(win=wm->windows.first; win; win=win->next) {
 			if(win->screen) {
 				if(!*sce) *sce= win->screen->scene;
-				*lay |= BKE_screen_visible_layers(win->screen);
+				*lay |= BKE_screen_visible_layers(win->screen, win->screen->scene);
 			}
 		}
 	}

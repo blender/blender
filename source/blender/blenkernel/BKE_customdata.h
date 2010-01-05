@@ -32,6 +32,7 @@
 #ifndef BKE_CUSTOMDATA_H
 #define BKE_CUSTOMDATA_H
 
+struct ID;
 struct CustomData;
 struct CustomDataLayer;
 typedef unsigned int CustomDataMask;
@@ -197,11 +198,11 @@ int CustomData_get_named_layer_index(const struct CustomData *data, int type, ch
 int CustomData_get_active_layer_index(const struct CustomData *data, int type);
 int CustomData_get_render_layer_index(const struct CustomData *data, int type);
 int CustomData_get_clone_layer_index(const struct CustomData *data, int type);
-int CustomData_get_mask_layer_index(const struct CustomData *data, int type);
+int CustomData_get_stencil_layer_index(const struct CustomData *data, int type);
 int CustomData_get_active_layer(const struct CustomData *data, int type);
 int CustomData_get_render_layer(const struct CustomData *data, int type);
 int CustomData_get_clone_layer(const struct CustomData *data, int type);
-int CustomData_get_mask_layer(const struct CustomData *data, int type);
+int CustomData_get_stencil_layer(const struct CustomData *data, int type);
 
 /* copies the data from source to the data element at index in the first
  * layer of type
@@ -230,13 +231,13 @@ void *CustomData_set_layer_n(const struct CustomData *data, int type, int n, voi
 void CustomData_set_layer_active(struct CustomData *data, int type, int n);
 void CustomData_set_layer_render(struct CustomData *data, int type, int n);
 void CustomData_set_layer_clone(struct CustomData *data, int type, int n);
-void CustomData_set_layer_mask(struct CustomData *data, int type, int n);
+void CustomData_set_layer_stencil(struct CustomData *data, int type, int n);
 
 /* same as above but works with an index from CustomData_get_layer_index */
 void CustomData_set_layer_active_index(struct CustomData *data, int type, int n);
 void CustomData_set_layer_render_index(struct CustomData *data, int type, int n);
 void CustomData_set_layer_clone_index(struct CustomData *data, int type, int n);
-void CustomData_set_layer_mask_index(struct CustomData *data, int type, int n);
+void CustomData_set_layer_stencil_index(struct CustomData *data, int type, int n);
 
 /* adds flag to the layer flags */
 void CustomData_set_layer_flag(struct CustomData *data, int type, int flag);
@@ -278,4 +279,19 @@ int CustomData_verify_versions(struct CustomData *data, int index);
 void CustomData_to_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata);
 void CustomData_from_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata, int total);
 void CustomData_bmesh_init_pool(struct CustomData *data, int allocsize);
+
+/* External file storage */
+
+void CustomData_external_add(struct CustomData *data,
+	struct ID *id, int type, int totelem, const char *filename);
+void CustomData_external_remove(struct CustomData *data,
+	struct ID *id, int type, int totelem);
+int CustomData_external_test(struct CustomData *data, int type);
+
+void CustomData_external_write(struct CustomData *data,
+	struct ID *id, CustomDataMask mask, int totelem, int free);
+void CustomData_external_read(struct CustomData *data,
+	struct ID *id, CustomDataMask mask, int totelem);
+
 #endif
+

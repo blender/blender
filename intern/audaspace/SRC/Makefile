@@ -35,7 +35,7 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
-CPPFLAGS += -I$(LCGDIR)/samplerate/include/
+CPPFLAGS += -I$(NAN_SAMPLERATE)/include
 CPPFLAGS += -I../ffmpeg
 CPPFLAGS += -I../FX
 CPPFLAGS += -I../SDL

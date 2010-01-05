@@ -46,11 +46,9 @@
 #include "BKE_idprop.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
-#include "BKE_pointcache.h"
 
 #include "ED_fileselect.h"
 #include "ED_info.h"
@@ -61,6 +59,8 @@
 #include "RNA_access.h"
 
 #include "UI_interface.h"
+
+#include "PIL_time.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -178,21 +178,25 @@ void wm_event_do_notifiers(bContext *C)
 				if(note->category==NC_SCREEN) {
 					if(note->data==ND_SCREENBROWSE) {
 						ED_screen_set(C, note->reference);	// XXX hrms, think this over!
-						printf("screen set %p\n", note->reference);
+						if(G.f & G_DEBUG)
+							printf("screen set %p\n", note->reference);
 					}
 					else if(note->data==ND_SCREENDELETE) {
 						ED_screen_delete(C, note->reference);	// XXX hrms, think this over!
-						printf("screen delete %p\n", note->reference);
+						if(G.f & G_DEBUG)
+							printf("screen delete %p\n", note->reference);
 					}
 				}
 				else if(note->category==NC_SCENE) {
 					if(note->data==ND_SCENEBROWSE) {
 						ED_screen_set_scene(C, note->reference);	// XXX hrms, think this over!
-						printf("scene set %p\n", note->reference);
+						if(G.f & G_DEBUG)
+							printf("scene set %p\n", note->reference);
 					}
 					if(note->data==ND_SCENEDELETE) {
 						ED_screen_delete_scene(C, note->reference);	// XXX hrms, think this over!
-						printf("scene delete %p\n", note->reference);
+						if(G.f & G_DEBUG)
+							printf("scene delete %p\n", note->reference);
 					}
 					else if(note->data==ND_FRAME)
 						do_anim= 1;
@@ -246,9 +250,7 @@ void wm_event_do_notifiers(bContext *C)
 	
 	/* cached: editor refresh callbacks now, they get context */
 	for(win= wm->windows.first; win; win= win->next) {
-		Scene *sce, *scene= win->screen->scene;
 		ScrArea *sa;
-		Base *base;
 		
 		CTX_wm_window_set(C, win);
 		for(sa= win->screen->areabase.first; sa; sa= sa->next) {
@@ -258,23 +260,12 @@ void wm_event_do_notifiers(bContext *C)
 			}
 		}
 		
-		if(G.rendering==0) { // XXX make lock in future, or separated derivedmesh users in scene
-			
-			/* update all objects, drivers, matrices, displists, etc. Flags set by depgraph or manual, 
-				no layer check here, gets correct flushed */
-			/* sets first, we allow per definition current scene to have dependencies on sets */
-			if(scene->set) {
-				for(SETLOOPER(scene->set, base))
-					object_handle_update(scene, base->object);
-			}
-			
-			for(base= scene->base.first; base; base= base->next) {
-				object_handle_update(scene, base->object);
-			}
-
-			BKE_ptcache_quick_cache_all(scene);
-		}		
+		/* XXX make lock in future, or separated derivedmesh users in scene */
+		if(!G.rendering)
+			/* depsgraph & animation: update tagged datablocks */
+			scene_update_tagged(win->screen->scene);
 	}
+
 	CTX_wm_window_set(C, NULL);
 }
 
@@ -314,7 +305,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 	if(op->type->exec)
 		retval= op->type->exec(C, op);
 	
-	if(!(retval & OPERATOR_RUNNING_MODAL))
+	if(retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
 		if(op->reports->list.first)
 			uiPupMenuReports(C, op->reports);
 	
@@ -325,7 +316,13 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 			ED_undo_push_op(C, op);
 		
 		if(repeat==0) {
-			if((op->type->flag & OPTYPE_REGISTER) || (G.f & G_DEBUG))
+			if(G.f & G_DEBUG) {
+				char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+				BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+				MEM_freeN(buf);
+			}
+
+			if((op->type->flag & OPTYPE_REGISTER))
 				wm_operator_register(C, op);
 			else
 				WM_operator_free(op);
@@ -382,20 +379,26 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 	if(ot->macro.first) {
 		static wmOperator *motherop= NULL;
 		wmOperatorTypeMacro *otmacro;
+		int root = 0;
 		
 		/* ensure all ops are in execution order in 1 list */
-		if(motherop==NULL) 
-			motherop= op;
+		if(motherop==NULL) {
+			motherop = op;
+			root = 1;
+		}
 		
 		for(otmacro= ot->macro.first; otmacro; otmacro= otmacro->next) {
 			wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
 			wmOperator *opm= wm_operator_create(wm, otm, otmacro->ptr, NULL);
 			
+			IDP_ReplaceGroupInGroup(opm->properties, motherop->properties);
+
 			BLI_addtail(&motherop->macro, opm);
 			opm->opm= motherop; /* pointer to mom, for modal() */
 		}
 		
-		motherop= NULL;
+		if (root)
+			motherop= NULL;
 	}
 	
 	return op;
@@ -440,11 +443,11 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 
 		/* Note, if the report is given as an argument then assume the caller will deal with displaying them
 		 * currently python only uses this */
-		if(!(retval & OPERATOR_RUNNING_MODAL) && reports==NULL) {
+		if((retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED)) && reports==NULL)
 			if(op->reports->list.first) /* only show the report if the report list was not given in the function */
 				uiPupMenuReports(C, op->reports);
 		
-		if (retval & OPERATOR_FINISHED) /* todo - this may conflict with the other wm_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
+		if (retval & OPERATOR_FINISHED) { /* todo - this may conflict with the other wm_operator_print, if theres ever 2 prints for 1 action will may need to add modal check here */
 			if(G.f & G_DEBUG)
 				wm_operator_print(op);
 		}
@@ -455,7 +458,13 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 			if(ot->flag & OPTYPE_UNDO)
 				ED_undo_push_op(C, op);
 			
-			if((ot->flag & OPTYPE_REGISTER) || (G.f & G_DEBUG))
+			if(G.f & G_DEBUG) {
+				char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+				BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+				MEM_freeN(buf);
+			}
+			
+			if((ot->flag & OPTYPE_REGISTER))
 				wm_operator_register(C, op);
 			else
 				WM_operator_free(op);
@@ -714,7 +723,7 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 }
 
 /* do userdef mappings */
-static int wm_userdef_event_map(int kmitype)
+int WM_userdef_event_map(int kmitype)
 {
 	switch(kmitype) {
 		case SELECTMOUSE:
@@ -759,7 +768,7 @@ static int wm_userdef_event_map(int kmitype)
 
 static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 {
-	int kmitype= wm_userdef_event_map(kmi->type);
+	int kmitype= WM_userdef_event_map(kmi->type);
 
 	if(kmi->flag & KMI_INACTIVE) return 0;
 
@@ -833,7 +842,7 @@ static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 static int wm_event_always_pass(wmEvent *event)
 {
 	/* some events we always pass on, to ensure proper communication */
-	return ELEM4(event->type, TIMER, TIMER0, TIMER1, TIMER2);
+	return ISTIMER(event->type) || (event->type == WINDEACTIVATE);
 }
 
 /* operator exists */
@@ -889,7 +898,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				CTX_wm_region_set(C, NULL);
 			}
 
-			if(!(retval & OPERATOR_RUNNING_MODAL))
+			if(retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
 				if(op->reports->list.first)
 					uiPupMenuReports(C, op->reports);
 
@@ -904,7 +913,13 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 				if(ot->flag & OPTYPE_UNDO)
 					ED_undo_push_op(C, op);
 				
-				if((ot->flag & OPTYPE_REGISTER) || (G.f & G_DEBUG))
+				if(G.f & G_DEBUG) {
+					char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+					BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+					MEM_freeN(buf);
+				}
+				
+				if((ot->flag & OPTYPE_REGISTER))
 					wm_operator_register(C, op);
 				else
 					WM_operator_free(op);
@@ -1002,13 +1017,24 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 		case EVT_FILESELECT_OPEN: 
 		case EVT_FILESELECT_FULL_OPEN: 
 			{	
+				ScrArea *sa;
+				
+				/* sa can be null when window A is active, but mouse is over window B */
+				/* in this case, open file select in original window A */
+				if (handler->op_area == NULL) {
+					bScreen *screen = CTX_wm_screen(C);
+					sa = (ScrArea *)screen->areabase.first;
+				} else
+					sa = handler->op_area;
+					
 				if(event->val==EVT_FILESELECT_OPEN)
-					ED_area_newspace(C, handler->op_area, SPACE_FILE);
+					ED_area_newspace(C, sa, SPACE_FILE);
 				else
-					ED_screen_full_newspace(C, handler->op_area, SPACE_FILE);
+					ED_screen_full_newspace(C, sa, SPACE_FILE);	/* sets context */
 				
 				/* settings for filebrowser, sfile is not operator owner but sends events */
-				sfile= (SpaceFile*)CTX_wm_space_data(C);
+				sa = CTX_wm_area(C);
+				sfile= (SpaceFile*)sa->spacedata.first;
 				sfile->op= handler->op;
 
 				ED_fileselect_set_params(sfile);
@@ -1025,9 +1051,9 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				char *path= RNA_string_get_alloc(handler->op->ptr, "path", NULL, 0);
 				
 				if(screen != handler->filescreen)
-					ED_screen_full_prevspace(C);
+					ED_screen_full_prevspace(C, CTX_wm_area(C));
 				else
-					ED_area_prevspace(C);
+					ED_area_prevspace(C, CTX_wm_area(C));
 				
 				/* remlink now, for load file case */
 				BLI_remlink(handlers, handler);
@@ -1098,6 +1124,11 @@ static int handler_boundbox_test(wmEventHandler *handler, wmEvent *event)
 	return 1;
 }
 
+static int wm_action_not_handled(int action)
+{
+	return action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL);
+}
+
 static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
@@ -1159,19 +1190,28 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 		
 		/* fileread case */
 		if(CTX_wm_window(C)==NULL)
-			break;
+			return action;
 	}
 
 	/* test for CLICK event */
-	if (event->val == KM_RELEASE && (action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL))) {
+	if (wm_action_not_handled(action) && event->val == KM_RELEASE) {
 		wmWindow *win = CTX_wm_window(C);
 
-		if (win && win->last_type == event->type && win->last_val == KM_PRESS) {
-			event->val = KM_CLICK;
-			action |= wm_handlers_do(C, event, handlers);
+		if (win && win->eventstate->prevtype == event->type && win->eventstate->prevval == KM_PRESS) {
+			/* test for double click first */
+			if ((PIL_check_seconds_timer() - win->eventstate->prevclicktime) * 1000 < U.dbl_click_time) {
+				event->val = KM_DBL_CLICK;
+				action |= wm_handlers_do(C, event, handlers);
+			}
+
+			if (wm_action_not_handled(action)) {
+				event->val = KM_CLICK;
+				action |= wm_handlers_do(C, event, handlers);
+			}
+
 
 			/* revert value if not handled */
-			if ((action & WM_HANDLER_BREAK) == 0) {
+			if (wm_action_not_handled(action)) {
 				event->val = KM_RELEASE;
 			}
 		}
@@ -1358,14 +1398,29 @@ void wm_event_do_handlers(bContext *C)
 			}
 			
 			/* store last event for this window */
-			/* mousemove event don't overwrite last type */
-			if (event->type != MOUSEMOVE) {
-				if (action == WM_HANDLER_CONTINUE || action == (WM_HANDLER_BREAK|WM_HANDLER_MODAL)) {
-					win->last_type = event->type;
-					win->last_val = event->val;
-				} else {
-					win->last_type = -1;
-					win->last_val = 0;
+			/* mousemove and timer events don't overwrite last type */
+			if (event->type != MOUSEMOVE && !ISTIMER(event->type)) {
+				if (wm_action_not_handled(action)) {
+					if (win->eventstate->prevtype == event->type) {
+						/* set click time on first click (press -> release) */
+						if (win->eventstate->prevval == KM_PRESS && event->val == KM_RELEASE) {
+							win->eventstate->prevclicktime = PIL_check_seconds_timer();
+						}
+					} else {
+						/* reset click time if event type not the same */
+						win->eventstate->prevclicktime = 0;
+					}
+
+					win->eventstate->prevval = event->val;
+					win->eventstate->prevtype = event->type;
+				} else if (event->val == KM_CLICK) { /* keep click for double click later */
+					win->eventstate->prevtype = event->type;
+					win->eventstate->prevval = event->val;
+					win->eventstate->prevclicktime = PIL_check_seconds_timer();
+				} else { /* reset if not */
+					win->eventstate->prevtype = -1;
+					win->eventstate->prevval = 0;
+					win->eventstate->prevclicktime = 0;
 				}
 			}
 
@@ -1808,5 +1863,13 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 		case GHOST_kEventUnknown:
 		case GHOST_kNumEventTypes:
 			break;
+
+		case GHOST_kEventWindowDeactivate: {
+			event.type= WINDEACTIVATE;
+			wm_event_add(win, &event);
+
+			break;
+		}
+
 	}
 }

@@ -44,6 +44,8 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
+#include "RNA_access.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -693,6 +695,27 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 /* *********************** text/icon ************************************** */
 
+#define PREVIEW_PAD	4
+
+static void widget_draw_preview(BIFIconID icon, float aspect, float alpha, rcti *rect)
+{
+	int w, h, x, y, size;
+	
+	/* only display previews for actual preview images .. ? */
+	if (icon < BIFICONID_LAST)
+		return;
+	
+	w = rect->xmax - rect->xmin;
+	h = rect->ymax - rect->ymin;
+	size = MIN2(w, h);
+	size -= PREVIEW_PAD*2;	/* padding */
+	
+	x = rect->xmin + w/2 - size/2;
+	y = rect->ymin + h/2 - size/2;
+	
+	UI_icon_draw_preview_aspect_size(x, y, icon, aspect, size);
+}
+
 
 /* icons have been standardized... and this call draws in untransformed coordinates */
 #define ICON_HEIGHT		16.0f
@@ -701,6 +724,11 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 {
 	int xs=0, ys=0;
 	float aspect, height;
+	
+	if (but->flag & UI_ICON_PREVIEW) {
+		widget_draw_preview(icon, but->block->aspect, alpha, rect);
+		return;
+	}
 	
 	/* this icon doesn't need draw... */
 	if(icon==ICON_BLANK1 && (but->flag & UI_ICON_SUBMENU)==0) return;
@@ -1693,6 +1721,17 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	uiWidgetBase wtb;
 	float rad= 0.5f*(rect->xmax - rect->xmin);
 	float x, y;
+	float v = but->hsv[2];
+	int color_profile = but->block->color_profile;
+	
+	if (but->rnaprop) {
+		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
+			color_profile = BLI_PR_NONE;
+		}
+	}
+
+	if (color_profile)
+		v = linearrgb_to_srgb(v);
 	
 	widget_init(&wtb);
 	
@@ -1709,8 +1748,8 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	widgetbase_draw(&wtb, &wcol_tmp);
 
 	/* cursor */
-	x= rect->xmin + 0.5f*(rect->xmax-rect->xmin);
-	y= rect->ymin + but->hsv[2]*(rect->ymax-rect->ymin);
+	x= rect->xmin + 0.5f * (rect->xmax-rect->xmin);
+	y= rect->ymin + v * (rect->ymax-rect->ymin);
 	CLAMP(y, rect->ymin+3.0, rect->ymax-3.0);
 	
 	ui_hsv_cursor(x, y);
@@ -2005,6 +2044,12 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 {
 	uiWidgetBase wtb;
 	float col[4];
+	int color_profile = but->block->color_profile;
+	
+	if (but->rnaprop) {
+		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+			color_profile = BLI_PR_NONE;
+	}
 	
 	widget_init(&wtb);
 	
@@ -2012,6 +2057,10 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
 		
 	ui_get_but_vectorf(but, col);
+	
+	if (color_profile)
+		linearrgb_to_srgb_v3_v3(col, col);
+	
 	wcol->inner[0]= FTOCHAR(col[0]);
 	wcol->inner[1]= FTOCHAR(col[1]);
 	wcol->inner[2]= FTOCHAR(col[2]);
@@ -2669,3 +2718,25 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, 
 	}
 }
 
+void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state)
+{
+	rcti trect = *rect;
+	
+	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_ITEM);
+	
+	wt->state(wt, state);
+	wt->draw(&wt->wcol, rect, 0, 0);
+	
+	widget_draw_preview(iconid, 1.f, 1.f, rect);
+	
+	if (state == UI_ACTIVE)
+		glColor3ubv((unsigned char*)wt->wcol.text);
+	else
+		glColor3ubv((unsigned char*)wt->wcol.text_sel);
+	
+	trect.xmin += 0;
+	trect.xmax = trect.xmin + BLF_width(name) + 10;
+	trect.ymin += 10;
+	trect.ymax = trect.ymin + BLF_height(name);
+	uiStyleFontDraw(fstyle, &trect, name);
+}

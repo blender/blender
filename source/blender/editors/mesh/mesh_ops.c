@@ -68,7 +68,7 @@
 
 void ED_operatortypes_mesh(void)
 {
-	WM_operatortype_append(MESH_OT_select_all_toggle);
+	WM_operatortype_append(MESH_OT_select_all);
 	WM_operatortype_append(MESH_OT_select_more);
 	WM_operatortype_append(MESH_OT_select_less);
 	WM_operatortype_append(MESH_OT_select_inverse);
@@ -76,7 +76,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_select_linked);
 	WM_operatortype_append(MESH_OT_select_linked_pick);
 	WM_operatortype_append(MESH_OT_select_random);
-	WM_operatortype_append(MESH_OT_selection_type);
 	WM_operatortype_append(MESH_OT_hide);
 	WM_operatortype_append(MESH_OT_reveal);
 	WM_operatortype_append(MESH_OT_select_by_number_vertices);
@@ -151,6 +150,9 @@ void ED_operatortypes_mesh(void)
 	
 	WM_operatortype_append(MESH_OT_edgering_select);
 	WM_operatortype_append(MESH_OT_loopcut);
+
+	WM_operatortype_append(MESH_OT_solidify);
+	WM_operatortype_append(MESH_OT_select_nth);
 }
 
 int ED_operator_editmesh_face_select(bContext *C)
@@ -171,31 +173,31 @@ void ED_operatormacros_mesh(void)
 	wmOperatorTypeMacro *otmacro;
 	int constraint_axis[3] = {0, 0, 1};
 	
-	ot= WM_operatortype_append_macro("MESH_OT_loopcut_slide", "Loopcut and Slide", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("MESH_OT_loopcut_slide", "Loop Cut and Slide", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_loopcut");
-	WM_operatortype_macro_define(ot, "TFM_OT_edge_slide");
+	WM_operatortype_macro_define(ot, "TRANSFORM_OT_edge_slide");
 
 	ot= WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
-	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 
 	ot= WM_operatortype_append_macro("MESH_OT_rip_move", "Rip", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_rip");
-	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 
 	ot= WM_operatortype_append_macro("MESH_OT_extrude_move_along_normals", "Extrude Along Normals", OPTYPE_UNDO|OPTYPE_REGISTER);
 	ot->poll = ED_operator_editmesh_face_select; /* restrict extrude along normals to face select */
 	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
-	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_enum_set(otmacro->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
 	RNA_boolean_set_array(otmacro->ptr, "constraint_axis", constraint_axis);
 
-	ot= WM_operatortype_append_macro("MESH_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_move", "Extrude and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
-	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 }
 
@@ -205,7 +207,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 	
-	keymap= WM_keymap_find(keyconf, "EditMesh", 0, 0);
+	keymap= WM_keymap_find(keyconf, "Mesh", 0, 0);
 	keymap->poll= ED_operator_editmesh;
 	
 	WM_keymap_add_item(keymap, "MESH_OT_loopcut_slide", RKEY, KM_PRESS, KM_CTRL, 0);
@@ -222,7 +224,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "MESH_OT_select_shortest_path", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
 
-	WM_keymap_add_item(keymap, "MESH_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
@@ -238,7 +240,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	/* selection mode */
-	WM_keymap_add_item(keymap, "MESH_OT_selection_type", TABKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_selection_mode", TABKEY, KM_PRESS, KM_CTRL, 0);
 	
 	/* hide */
 	WM_keymap_add_item(keymap, "MESH_OT_hide", HKEY, KM_PRESS, 0, 0);
@@ -253,7 +255,6 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_extrude_move", EKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_spin", RKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_screw", NINEKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_fill", FKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_beauty_fill", FKEY, KM_PRESS, KM_ALT, 0);
@@ -261,19 +262,10 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_tris_convert_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_edge_flip", FKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 
-	WM_keymap_add_item(keymap, "MESH_OT_extrude_repeat", FOURKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_edge_rotate", FIVEKEY, KM_PRESS, KM_CTRL, 0);
-	
-	WM_keymap_add_item(keymap, "MESH_OT_loop_to_region",SIXKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_region_to_loop",SIXKEY, KM_PRESS, KM_ALT, 0);
-	
-	WM_keymap_add_item(keymap, "MESH_OT_uvs_rotate",SEVENKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_uvs_mirror",SEVENKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_colors_rotate",EIGHTKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_colors_mirror",EIGHTKEY, KM_PRESS, KM_ALT, 0);
-
 	WM_keymap_add_item(keymap, "MESH_OT_rip_move",VKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_merge", MKEY, KM_PRESS, KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "TRANSFORM_OT_shrink_fatten", SKEY, KM_PRESS, KM_ALT, 0);
 
 	/* add/remove */
 	WM_keymap_add_item(keymap, "MESH_OT_edge_face_add", FKEY, KM_PRESS, 0, 0);

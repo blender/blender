@@ -35,22 +35,22 @@ class FILEBROWSER_HT_header(bpy.types.Header):
         row.separator()
 
         row = layout.row(align=True)
-        row.operator("file.previous", text="", icon='ICON_BACK')
-        row.operator("file.next", text="", icon='ICON_FORWARD')
-        row.operator("file.parent", text="", icon='ICON_FILE_PARENT')
-        row.operator("file.refresh", text="", icon='ICON_FILE_REFRESH')
+        row.operator("file.previous", text="", icon='BACK')
+        row.operator("file.next", text="", icon='FORWARD')
+        row.operator("file.parent", text="", icon='FILE_PARENT')
+        row.operator("file.refresh", text="", icon='FILE_REFRESH')
 
         row = layout.row()
         row.separator()
 
         row = layout.row(align=True)
-        row.operator("file.directory_new", text="", icon='ICON_NEWFOLDER')
+        row.operator("file.directory_new", text="", icon='NEWFOLDER')
 
         layout.prop(params, "display", expand=True, text="")
         layout.prop(params, "sort", expand=True, text="")
 
         layout.prop(params, "hide_dot", text="Hide Invisible")
-        layout.prop(params, "do_filter", text="", icon='ICON_FILTER')
+        layout.prop(params, "do_filter", text="", icon='FILTER')
 
         row = layout.row(align=True)
         row.active = params.do_filter

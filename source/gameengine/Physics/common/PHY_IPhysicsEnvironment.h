@@ -52,6 +52,8 @@ struct PHY_RayCastResult
 	const RAS_MeshObject*	m_meshObject;	// !=NULL for mesh object (only for Bullet controllers) 
 	int						m_polygon;		// index of the polygon hit by the ray,
 											// only if m_meshObject != NULL
+	int                     m_hitUVOK;		// !=0 if UV coordinate in m_hitUV is valid
+	PHY__Vector2			m_hitUV;		// UV coordinates of hit point
 };
 
 /**
@@ -64,6 +66,7 @@ class PHY_IRayCastFilterCallback
 public:
 	PHY_IPhysicsController* m_ignoreController;
 	bool					m_faceNormal;
+	bool					m_faceUV;
 
 	virtual		~PHY_IRayCastFilterCallback()
 	{
@@ -76,9 +79,10 @@ public:
 
 	virtual void reportHit(PHY_RayCastResult* result) = 0;
 
-	PHY_IRayCastFilterCallback(PHY_IPhysicsController* ignoreController, bool faceNormal=false) 
+	PHY_IRayCastFilterCallback(PHY_IPhysicsController* ignoreController, bool faceNormal=false, bool faceUV=false) 
 		:m_ignoreController(ignoreController),
-		m_faceNormal(faceNormal)
+		m_faceNormal(faceNormal),
+		m_faceUV(faceUV)
 	{
 	}
 	

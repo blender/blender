@@ -29,16 +29,21 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stdio.h>
 #include <math.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_math.h"
 #include "BLI_rand.h"
+
 #include "DNA_listBase.h"
 
+#include "DNA_anim_types.h"
+#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
@@ -53,6 +58,7 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_anim.h"
+#include "BKE_animsys.h"
 #include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
@@ -60,7 +66,6 @@
 #include "BKE_font.h"
 #include "BKE_group.h"
 #include "BKE_global.h"
-#include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
@@ -73,17 +78,157 @@
 #include <config.h>
 #endif
 
+// XXX bad level call...
 #include "ED_mesh.h"
+
+/* --------------------- */
+/* forward declarations */
 
 static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4], int level, int animated);
 
+/* ******************************************************************** */
+/* Animation Visualisation */
+
+/* Initialise the default settings for animation visualisation */
+void animviz_settings_init(bAnimVizSettings *avs)
+{
+	/* sanity check */
+	if (avs == NULL)
+		return;
+		
+	/* ghosting settings */
+	avs->ghost_bc= avs->ghost_ac= 10;
+	
+	avs->ghost_sf= 1; // xxx - take from scene instead?
+	avs->ghost_ef= 250; // xxx - take from scene instead?
+	
+	avs->ghost_step= 1;
+	
+	
+	/* path settings */
+	avs->path_bc= avs->path_ac= 10;
+	
+	avs->path_sf= 1; // xxx - take from scene instead?
+	avs->path_ef= 250; // xxx - take from scene instead?
+	
+	avs->path_viewflag= (MOTIONPATH_VIEW_KFRAS|MOTIONPATH_VIEW_KFNOS);
+	
+	avs->path_step= 1;
+}
+
+/* ------------------- */
+
+/* Free the given motion path's cache */
+void animviz_free_motionpath_cache(bMotionPath *mpath) 
+{
+	/* sanity check */
+	if (mpath == NULL) 
+		return;
+		
+	/* free the path if necessary */
+	if (mpath->points)
+		MEM_freeN(mpath->points);
+	
+	/* reset the relevant parameters */
+	mpath->points= NULL;
+	mpath->length= 0;
+}
+
+/* Free the given motion path instance and its data 
+ * NOTE: this frees the motion path given!
+ */
+void animviz_free_motionpath(bMotionPath *mpath)
+{
+	/* sanity check */
+	if (mpath == NULL)
+		return;
+	
+	/* free the cache first */
+	animviz_free_motionpath_cache(mpath);
+	
+	/* now the instance itself */
+	MEM_freeN(mpath);
+}
+
+/* ------------------- */
+
+/* Setup motion paths for the given data 
+ *	- scene: current scene (for frame ranges, etc.)
+ *	- ob: object to add paths for (must be provided)
+ *	- pchan: posechannel to add paths for (optional; if not provided, object-paths are assumed)
+ */
+bMotionPath *animviz_verify_motionpaths(Scene *scene, Object *ob, bPoseChannel *pchan)
+{
+	bAnimVizSettings *avs;
+	bMotionPath *mpath, **dst;
+	
+	/* sanity checks */
+	if (ELEM(NULL, scene, ob))
+		return NULL;
+		
+	/* get destination data */
+	if (pchan) {
+		/* paths for posechannel - assume that posechannel belongs to the object */
+		avs= &ob->pose->avs;
+		dst= &pchan->mpath;
+	}
+	else {
+		/* paths for object */
+		avs= &ob->avs;
+		dst= &ob->mpath;
+	}
+	
+	/* if there is already a motionpath, just return that... */
+	// TODO: maybe we should validate the settings in this case
+	if (*dst != NULL)
+		return *dst;
+		
+	/* create a new motionpath, and assign it */
+	mpath= MEM_callocN(sizeof(bMotionPath), "bMotionPath");
+	*dst= mpath;
+	
+	/* set settings from the viz settings */
+	mpath->start_frame= avs->path_sf;
+	mpath->end_frame= avs->path_ef;
+	
+	mpath->length= mpath->end_frame - mpath->start_frame;
+	
+	if (avs->path_bakeflag & MOTIONPATH_BAKE_HEADS)
+		mpath->flag |= MOTIONPATH_FLAG_BHEAD;
+	
+	/* allocate a cache */
+	mpath->points= MEM_callocN(sizeof(bMotionPathVert)*mpath->length, "bMotionPathVerts");
+	
+	/* return it */
+	return mpath;
+}
+
+
+/* Perform baking of the given object's and/or its bones' transforms to motion paths 
+ *	- scene: current scene
+ *	- ob: object whose flagged motionpaths should get calculated
+ *	- recalc: whether we need to 
+ */
+void animviz_calc_motionpaths(Scene *scene, Object *ob)
+{
+
+}
+
+/* ******************************************************************** */
+/* Curve Paths - for curve deforms and/or curve following */
+
+/* free curve path data 
+ * NOTE: frees the path itself!
+ */
 void free_path(Path *path)
 {
 	if(path->data) MEM_freeN(path->data);
 	MEM_freeN(path);
 }
 
-
+/* calculate a curve-deform path for a curve 
+ * 	- only called from displist.c -> makeDispListCurveTypes
+ */
 void calc_curvepath(Object *ob)
 {
 	BevList *bl;
@@ -96,7 +241,6 @@ void calc_curvepath(Object *ob)
 	float fac, d=0, fac1, fac2;
 	int a, tot, cycl=0;
 	
-
 	/* in a path vertices are with equal differences: path->len = number of verts */
 	/* NOW WITH BEVELCURVE!!! */
 	
@@ -143,7 +287,7 @@ void calc_curvepath(Object *ob)
 	}
 	
 	path->totdist= *fp;
-
+	
 		/* the path verts  in path->data */
 		/* now also with TILT value */
 	pp= path->data = (PathPoint *)MEM_callocN(sizeof(PathPoint)*4*path->len, "pathdata"); // XXX - why *4? - in 2.4x each element was 4 and the size was 16, so better leave for now - Campbell
@@ -155,7 +299,7 @@ void calc_curvepath(Object *ob)
 	maxdist= dist+tot;
 	fac= 1.0f/((float)path->len-1.0f);
         fac = fac * path->totdist;
-
+	
 	for(a=0; a<path->len; a++) {
 		
 		d= ((float)a)*fac;
@@ -175,7 +319,7 @@ void calc_curvepath(Object *ob)
 		fac2= *(fp)-d;
 		fac1= fac2/fac1;
 		fac2= 1.0f-fac1;
-
+		
 		interp_v3_v3v3(pp->vec, bevp->vec, bevpn->vec, fac2);
 		pp->vec[3]= fac1*bevp->alfa + fac2*bevpn->alfa;
 		pp->radius= fac1*bevp->radius + fac2*bevpn->radius;
@@ -188,11 +332,12 @@ void calc_curvepath(Object *ob)
 	MEM_freeN(dist);
 }
 
+
+/* is this only used internally?*/
 int interval_test(int min, int max, int p1, int cycl)
 {
-	
 	if(cycl) {
-		if( p1 < min) 
+		if(p1 < min) 
 			p1=  ((p1 -min) % (max-min+1)) + max+1;
 		else if(p1 > max)
 			p1=  ((p1 -min) % (max-min+1)) + min;
@@ -204,8 +349,11 @@ int interval_test(int min, int max, int p1, int cycl)
 	return p1;
 }
 
-/* warning, *vec needs FOUR items! */
-/* ctime is normalized range <0-1> */
+
+/* calculate the deformation implied by the curve path at a given parametric position, and returns whether this operation succeeded 
+ * 	- *vec needs FOUR items!
+ *	- ctime is normalized range <0-1>
+ */
 int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, float *radius)	/* returns OK */
 {
 	Curve *cu;
@@ -305,7 +453,8 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir, float *quat, 
 	return 1;
 }
 
-/* ****************** DUPLICATOR ************** */
+/* ******************************************************************** */
+/* Dupli-Geometry */
 
 static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, int index, int type, int animated)
 {
@@ -407,7 +556,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, 
 	enable_cu_speed= 1;
 }
 
-struct vertexDupliData {
+typedef struct vertexDupliData {
 	ID *id; /* scene or group, for recursive loops */
 	int level;
 	int animated;
@@ -417,12 +566,14 @@ struct vertexDupliData {
 	Scene *scene;
 	Object *ob, *par;
 	float (*orco)[3];
-};
+} vertexDupliData;
+
+/* ------------- */
 
 static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
 	DupliObject *dob;
-	struct vertexDupliData *vdd= userData;
+	vertexDupliData *vdd= userData;
 	float vec[3], q2[4], mat[3][3], tmat[4][4], obmat[4][4];
 	
 	VECCOPY(vec, co);
@@ -466,7 +617,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	Mesh *me= par->data;
 	Base *base = NULL;
 	DerivedMesh *dm;
-	struct vertexDupliData vdd;
+	vertexDupliData vdd;
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject * go = NULL;
@@ -1070,7 +1221,8 @@ static void font_duplilist(ListBase *lb, Scene *scene, Object *par, int level, i
 	MEM_freeN(chartransdata);
 }
 
-/* ***************************** */
+/* ------------- */
+
 static void object_duplilist_recursive(ID *id, Scene *scene, Object *ob, ListBase *duplilist, float par_space_mat[][4], int level, int animated)
 {	
 	if((ob->transflag & OB_DUPLI)==0)

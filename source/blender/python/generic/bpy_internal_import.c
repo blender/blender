@@ -33,6 +33,8 @@
 #include "MEM_guardedalloc.h"
 #include "BKE_text.h" /* txt_to_buf */	
 #include "BKE_main.h"
+#include "BLI_listbase.h"
+#include <stddef.h>
 
 static Main *bpy_import_main= NULL;
 
@@ -74,8 +76,9 @@ PyObject *bpy_text_import( Text *text )
 		}
 	}
 
-	len= strlen(text->id.name+2) - 3;
+	len= strlen(text->id.name+2);
 	strncpy(modulename, text->id.name+2, len);
+	modulename[len - 3]= '\0'; /* remove .py */
 	return PyImport_ExecCodeModule(modulename, text->compiled);
 }
 
@@ -99,10 +102,7 @@ PyObject *bpy_text_import_name( char *name, int *found )
 	memcpy( txtname, name, namelen );
 	memcpy( &txtname[namelen], ".py", 4 );
 
-	for(text = maggie->text.first; text; text = text->id.next) {
-		if( !strcmp( txtname, text->id.name+2 ) )
-			break;
-	}
+	text= BLI_findstring(&maggie->text, txtname, offsetof(ID, name) + 2);
 
 	if( !text )
 		return NULL;
@@ -141,12 +141,7 @@ PyObject *bpy_text_reimport( PyObject *module, int *found )
 		return NULL;
 
 	/* look up the text object */
-	text = ( Text * ) & ( maggie->text.first );
-	while( text ) {
-		if( !strcmp( txtname, text->id.name+2 ) )
-			break;
-		text = text->id.next;
-	}
+	text= BLI_findstring(&maggie->text, txtname, offsetof(ID, name) + 2);
 
 	/* uh-oh.... didn't find it */
 	if( !text )

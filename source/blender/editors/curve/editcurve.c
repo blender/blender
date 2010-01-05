@@ -83,6 +83,9 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+void selectend_nurb(Object *obedit, short selfirst, short doswap, short selstatus);
+static void select_adjacent_cp(ListBase *editnurb, short next, short cont, short selstatus);
+
 /* still need to eradicate a few :( */
 #define callocstructN(x,y,name) (x*)MEM_callocN((y)* sizeof(x),name)
 
@@ -360,6 +363,64 @@ void free_editNurb(Object *obedit)
 		freeNurblist(cu->editnurb);
 		MEM_freeN(cu->editnurb);
 		cu->editnurb= NULL;
+	}
+}
+
+void CU_deselect_all(Object *obedit)
+{
+	ListBase *editnurb= curve_get_editcurve(obedit);
+
+	if (editnurb) {
+		selectend_nurb(obedit, FIRST, 0, DESELECT); /* set first control points as unselected */
+		select_adjacent_cp(editnurb, 1, 1, DESELECT); /* cascade selection */
+	}
+}
+
+void CU_select_all(Object *obedit)
+{
+	ListBase *editnurb= curve_get_editcurve(obedit);
+
+	if (editnurb) {
+		selectend_nurb(obedit, FIRST, 0, SELECT); /* set first control points as unselected */
+		select_adjacent_cp(editnurb, 1, 1, SELECT); /* cascade selection */
+	}
+}
+
+void CU_select_swap(Object *obedit)
+{
+	ListBase *editnurb= curve_get_editcurve(obedit);
+
+	if (editnurb) {
+		Curve *cu= obedit->data;
+		Nurb *nu;
+		BPoint *bp;
+		BezTriple *bezt;
+		int a;
+
+		for(nu= editnurb->first; nu; nu= nu->next) {
+			if(nu->type == CU_BEZIER) {
+				bezt= nu->bezt;
+				a= nu->pntsu;
+				while(a--) {
+					if(bezt->hide==0) {
+						bezt->f2 ^= SELECT; /* always do the center point */
+						if((cu->drawflag & CU_HIDE_HANDLES)==0) {
+							bezt->f1 ^= SELECT;
+							bezt->f3 ^= SELECT;
+						}
+					}
+					bezt++;
+				}
+			}
+			else {
+				bp= nu->bp;
+				a= nu->pntsu*nu->pntsv;
+				while(a--) {
+					swap_selection_bpoint(bp);
+					bp++;
+				}
+			}
+		}
 	}
 }
 
@@ -1580,26 +1641,36 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
-	
-	if(nurb_has_selected_cps(editnurb)) { /* deselect all */
-		selectend_nurb(obedit, FIRST, 0, DESELECT); /* set first control points as unselected */
-		select_adjacent_cp(editnurb, 1, 1, DESELECT); /* cascade selection */	
+	int action = RNA_enum_get(op->ptr, "action");
+
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		if(nurb_has_selected_cps(editnurb))
+			action = SEL_DESELECT;
 	}
-	else { /* select all */
-		selectend_nurb(obedit, FIRST, 0, SELECT); /* set first control points as selected */
-		select_adjacent_cp(editnurb, 1, 1, SELECT); /* cascade selection */
- 	}
+
+	switch (action) {
+		case SEL_SELECT:
+			CU_select_all(obedit);
+			break;
+		case SEL_DESELECT:
+			CU_deselect_all(obedit);
+			break;
+		case SEL_INVERT:
+			CU_select_swap(obedit);
+			break;
+	}
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
 
-void CURVE_OT_select_all_toggle(wmOperatorType *ot)
+void CURVE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-	ot->idname= "CURVE_OT_select_all_toggle";
+	ot->idname= "CURVE_OT_select_all";
 	
 	/* api callbacks */
 	ot->exec= de_select_all_exec;
@@ -1607,6 +1678,9 @@ void CURVE_OT_select_all_toggle(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	WM_operator_properties_select_all(ot);
 }
 
 /********************** hide operator *********************/
@@ -3465,7 +3539,7 @@ static int extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if(extrude_exec(C, op) == OPERATOR_FINISHED) {
 		RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-		WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+		WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 		return OPERATOR_FINISHED;
 	}
@@ -4220,7 +4294,7 @@ static int duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	duplicate_exec(C, op);
 
 	RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-	WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }
@@ -5211,42 +5285,3 @@ void undo_push_curve(bContext *C, char *name)
 {
 	undo_editmode_push(C, name, get_data, free_undoCurve, undoCurve_to_editCurve, editCurve_to_undoCurve, NULL);
 }
-
-/***************** XXX old cruft ********************/
-
-void default_curve_ipo(Scene *scene, Curve *cu)
-{
-#if 0 // XXX old animation system
-	IpoCurve *icu;
-	BezTriple *bezt;
-	
-	if(cu->ipo) return;
-	
-	cu->ipo= add_ipo(scene, "CurveIpo", ID_CU);
-	
-	icu= MEM_callocN(sizeof(IpoCurve), "ipocurve");
-			
-	icu->blocktype= ID_CU;
-	icu->adrcode= CU_SPEED;
-	icu->flag= IPO_VISIBLE|IPO_SELECT|IPO_AUTO_HORIZ;
-	set_icu_vars(icu);
-	
-	BLI_addtail( &(cu->ipo->curve), icu);
-	
-	icu->bezt= bezt= MEM_callocN(2*sizeof(BezTriple), "defaultipo");
-	icu->totvert= 2;
-	
-	bezt->hide= IPO_BEZ;
-	bezt->f1=bezt->f2= bezt->f3= SELECT;
-	bezt->h1= bezt->h2= HD_AUTO;
-	bezt++;
-	bezt->vec[1][0]= 100.0;
-	bezt->vec[1][1]= 1.0;
-	bezt->hide= IPO_BEZ;
-	bezt->f1=bezt->f2= bezt->f3= SELECT;
-	bezt->h1= bezt->h2= HD_AUTO;
-	
-	calchandles_ipocurve(icu);
-#endif // XXX old animation system
-}
-

@@ -23,7 +23,6 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#include "AUD_SDLMixer.h"
 #include "AUD_SDLDevice.h"
 #include "AUD_IReader.h"
 
@@ -31,10 +30,10 @@ void AUD_SDLDevice::SDL_mix(void *data, Uint8* buffer, int length)
 {
 	AUD_SDLDevice* device = (AUD_SDLDevice*)data;
 
-	device->mix((sample_t*)buffer, length/AUD_SAMPLE_SIZE(device->m_specs));
+	device->mix((data_t*)buffer,length/AUD_DEVICE_SAMPLE_SIZE(device->m_specs));
 }
 
-AUD_SDLDevice::AUD_SDLDevice(AUD_Specs specs, int buffersize)
+AUD_SDLDevice::AUD_SDLDevice(AUD_DeviceSpecs specs, int buffersize)
 {
 	if(specs.channels == AUD_CHANNELS_INVALID)
 		specs.channels = AUD_CHANNELS_STEREO;
@@ -68,9 +67,6 @@ AUD_SDLDevice::AUD_SDLDevice(AUD_Specs specs, int buffersize)
 		m_specs.format = AUD_FORMAT_S16;
 	else
 		AUD_THROW(AUD_ERROR_SDL);
-
-	m_mixer = new AUD_SDLMixer(); AUD_NEW("mixer")
-	m_mixer->setSpecs(m_specs);
 
 	create();
 }

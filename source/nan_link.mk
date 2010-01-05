@@ -54,11 +54,24 @@ ifeq ($(OS),darwin)
     LLIBS    += -lz -lstdc++
     ifdef USE_OSX10.4STUBS
        LLIBS    +=-lSystemStubs
-    endif 
-    LLIBS    += -framework Carbon -framework AGL -framework OpenGL
-    LLIBS    += -framework QuickTime -framework CoreAudio
-    LLIBS    += -framework AudioUnit -framework AudioToolbox
+    endif
+    ifeq ($(WITH_COCOA), true)
+        LLIBS += -framework Cocoa
+    endif
+    LLIBS += -framework Carbon -framework AGL -framework OpenGL
+    ifeq ($(WITH_QUICKTIME), true)
+        ifeq ($(USE_QTKIT), true)
+            LLIBS += -framework QTKit
+        else
+            LLIBS  += -framework QuickTime
+        endif
+    endif
+    LLIBS += -framework CoreAudio
+    LLIBS += -framework AudioUnit -framework AudioToolbox
     LDFLAGS += -L/System/Library/Frameworks/OpenGL.framework/Libraries
+    # useful for crosscompiling
+    LDFLAGS += -arch $(MACOSX_ARCHITECTURE) #-isysroot $(MACOSX_SDK) -mmacosx-version-min=$(MACOSX_MIN_VERS)
+    
     DBG_LDFLAGS += -L/System/Library/Frameworks/OpenGL.framework/Libraries
 endif
 
@@ -120,7 +133,7 @@ ifeq ($(OS),solaris)
         LLIBS += -L$(NAN_MESA)/lib
     endif
     
-    LLIBS += -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl 
+    LLIBS += $(NAN_ZLIB)/lib/libz.a -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl 
     DYNLDFLAGS = -shared $(LDFLAGS)
 endif
 

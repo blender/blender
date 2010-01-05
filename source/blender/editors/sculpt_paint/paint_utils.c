@@ -16,6 +16,7 @@
 #include "BLI_math.h"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
@@ -96,7 +97,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, Mesh *mesh, unsigned int faceind
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	int *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
 	MTFace *tface = dm->getFaceDataArray(dm, CD_MTFACE), *tf;
-	int numfaces = dm->getNumFaces(dm), a;
+	int numfaces = dm->getNumFaces(dm), a, findex;
 	float p[2], w[3], absw, minabsw;
 	MFace mf;
 	MVert mv[4];
@@ -106,7 +107,9 @@ void imapaint_pick_uv(Scene *scene, Object *ob, Mesh *mesh, unsigned int faceind
 
 	/* test all faces in the derivedmesh with the original index of the picked face */
 	for(a = 0; a < numfaces; a++) {
-		if(index[a] == faceindex) {
+		findex= (index)? index[a]: a;
+
+		if(findex == faceindex) {
 			dm->getFace(dm, a, &mf);
 
 			dm->getVert(dm, mf.v1, &mv[0]);
@@ -212,9 +215,9 @@ static int brush_curve_preset_poll(bContext *C)
 void BRUSH_OT_curve_preset(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_shape_items[] = {
-		{BRUSH_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
-		{BRUSH_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-		{BRUSH_PRESET_MAX, "MAX", 0, "Max", ""},
+		{CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
+		{CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+		{CURVE_PRESET_MAX, "MAX", 0, "Max", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	ot->name= "Preset";
@@ -226,7 +229,7 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "shape", prop_shape_items, BRUSH_PRESET_SHARP, "Mode", "");
+	RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
 }
 
 
@@ -273,22 +276,24 @@ void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 }
 
 
-static int face_deselect_all_exec(bContext *C, wmOperator *op)
+static int face_select_all_exec(bContext *C, wmOperator *op)
 {
-	deselectall_tface(CTX_data_active_object(C));
+	selectall_tface(CTX_data_active_object(C), RNA_enum_get(op->ptr, "action"));
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
 }
 
 
-void PAINT_OT_face_deselect_all(wmOperatorType *ot)
+void PAINT_OT_face_select_all(wmOperatorType *ot)
 {
-	ot->name= "Select Linked";
-    ot->description= "Select linked faces under the mouse.";
-	ot->idname= "PAINT_OT_face_deselect_all";
+	ot->name= "Face Selection";
+    ot->description= "Change selection for all faces.";
+	ot->idname= "PAINT_OT_face_select_all";
 
-	ot->exec= face_deselect_all_exec;
+	ot->exec= face_select_all_exec;
 	ot->poll= facemask_paint_poll;
 
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }

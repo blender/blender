@@ -526,6 +526,11 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 
 /******************* run script operator *********************/
 
+static int run_script_poll(bContext *C)
+{
+	return (CTX_data_edit_text(C) != NULL);
+}
+
 static int run_script_exec(bContext *C, wmOperator *op)
 {
 #ifdef DISABLE_PYTHON
@@ -534,12 +539,13 @@ static int run_script_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 #else
 	Text *text= CTX_data_edit_text(C);
+	SpaceText *st= CTX_wm_space_text(C);
 
 	if (BPY_run_python_script(C, NULL, text, op->reports))
 		return OPERATOR_FINISHED;
 	
 	/* Dont report error messages while live editing */
-	if(!CTX_wm_space_text(C)->live_edit)
+	if(!(st && st->live_edit))
 		BKE_report(op->reports, RPT_ERROR, "Python script fail, look in the console for now...");
 	
 	return OPERATOR_CANCELLED;
@@ -554,8 +560,8 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 	ot->description= "Run active script.";
 	
 	/* api callbacks */
+	ot->poll= run_script_poll;
 	ot->exec= run_script_exec;
-//	ot->poll= text_edit_poll; // dont do this since linked texts cant run
 }
 
 
@@ -735,9 +741,6 @@ void TEXT_OT_paste(wmOperatorType *ot)
 	ot->exec= paste_exec;
 	ot->poll= text_edit_poll;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-
 	/* properties */
 	RNA_def_boolean(ot->srna, "selection", 0, "Selection", "Paste text selected elsewhere rather than copied, X11 only.");
 }
@@ -806,9 +809,6 @@ void TEXT_OT_cut(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= cut_exec;
 	ot->poll= text_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /******************* indent operator *********************/
@@ -842,9 +842,6 @@ void TEXT_OT_indent(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= indent_exec;
 	ot->poll= text_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /******************* unindent operator *********************/
@@ -878,9 +875,6 @@ void TEXT_OT_unindent(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= unindent_exec;
 	ot->poll= text_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /******************* line break operator *********************/
@@ -919,9 +913,6 @@ void TEXT_OT_line_break(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= line_break_exec;
 	ot->poll= text_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /******************* comment operator *********************/
@@ -952,9 +943,6 @@ void TEXT_OT_comment(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= comment_exec;
 	ot->poll= text_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /******************* uncomment operator *********************/
@@ -986,9 +974,6 @@ void TEXT_OT_uncomment(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= uncomment_exec;
 	ot->poll= text_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /******************* convert whitespace operator *********************/
@@ -1129,9 +1114,6 @@ void TEXT_OT_convert_whitespace(wmOperatorType *ot)
 	ot->exec= convert_whitespace_exec;
 	ot->poll= text_edit_poll;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-
 	/* properties */
 	RNA_def_enum(ot->srna, "type", whitespace_type_items, TO_SPACES, "type", "Type of whitespace to convert to.");
 }
@@ -1159,9 +1141,6 @@ void TEXT_OT_select_all(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= select_all_exec;
 	ot->poll= text_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /******************* select line operator *********************/
@@ -1187,9 +1166,6 @@ void TEXT_OT_select_line(wmOperatorType *ot)
 	/* api clinebacks */
 	ot->exec= select_line_exec;
 	ot->poll= text_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /******************* previous marker operator *********************/
@@ -1225,9 +1201,6 @@ void TEXT_OT_previous_marker(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= previous_marker_exec;
 	ot->poll= text_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /******************* next marker operator *********************/
@@ -1263,9 +1236,6 @@ void TEXT_OT_next_marker(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= next_marker_exec;
 	ot->poll= text_edit_poll;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /******************* clear all markers operator *********************/
@@ -1291,9 +1261,6 @@ void TEXT_OT_markers_clear(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= clear_all_markers_exec;
 	ot->poll= text_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /************************ move operator ************************/
@@ -1576,9 +1543,6 @@ void TEXT_OT_move(wmOperatorType *ot)
 	ot->exec= move_exec;
 	ot->poll= text_edit_poll;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-
 	/* properties */
 	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to.");
 }
@@ -1602,9 +1566,6 @@ void TEXT_OT_move_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= move_select_exec;
 	ot->poll= text_space_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "type", move_type_items, LINE_BEGIN, "Type", "Where to move cursor to, to make a selection.");
@@ -1639,9 +1600,6 @@ void TEXT_OT_jump(wmOperatorType *ot)
 	ot->invoke=  WM_operator_props_popup;
 	ot->exec= jump_exec;
 	ot->poll= text_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 
 	/* properties */
 	RNA_def_int(ot->srna, "line", 1, 1, INT_MAX, "Line", "Line number to jump to.", 1, 10000);
@@ -1693,9 +1651,6 @@ void TEXT_OT_delete(wmOperatorType *ot)
 	ot->exec= delete_exec;
 	ot->poll= text_edit_poll;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
-
 	/* properties */
 	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete.");
 }
@@ -1721,9 +1676,6 @@ void TEXT_OT_overwrite_toggle(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= toggle_overwrite_exec;
 	ot->poll= text_space_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /******************* scroll operator **********************/
@@ -2208,9 +2160,6 @@ void TEXT_OT_cursor_set(wmOperatorType *ot)
 	ot->cancel= set_cursor_cancel;
 	ot->poll= text_region_edit_poll;
 
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_BLOCKING;
-
 	/* properties */
 	RNA_def_boolean(ot->srna, "select", 0, "Select", "Set selection end rather than cursor.");
 }
@@ -2331,9 +2280,6 @@ void TEXT_OT_insert(wmOperatorType *ot)
 	ot->exec= insert_exec;
 	ot->invoke= insert_invoke;
 	ot->poll= text_edit_poll;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 
 	/* properties */
 	RNA_def_string(ot->srna, "text", "", 0, "Text", "Text to insert at the cursor position.");

@@ -56,7 +56,7 @@ static void rna_Group_objects_link(Group *group, bContext *C, ReportList *report
 		return;
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, &object->id);
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, &object->id);
 }
 
 static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *reports, Object *object)
@@ -66,7 +66,7 @@ static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *repo
 		return;
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, &object->id);
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, &object->id);
 }
 
 #else
@@ -114,7 +114,7 @@ void RNA_def_group(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "dupli_ofs");
-	RNA_def_property_ui_text(prop, "Dupli Offset", "Offset from the center to use when instancing as DupliGroup.");
+	RNA_def_property_ui_text(prop, "Dupli Offset", "Offset from the origin to use when instancing as DupliGroup.");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
 
 	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_LAYER);

@@ -137,15 +137,16 @@ void AUD_DoubleReader::read(int & length, sample_t* & buffer)
 		m_reader1->read(len, buffer);
 		if(len < length)
 		{
-			int samplesize = AUD_SAMPLE_SIZE(m_reader1->getSpecs());
+			AUD_Specs specs = m_reader1->getSpecs();
+			int samplesize = AUD_SAMPLE_SIZE(specs);
 			if(m_buffer->getSize() < length * samplesize)
 				m_buffer->resize(length * samplesize);
-			memcpy(m_buffer->getBuffer(), buffer, len*samplesize);
+			memcpy(m_buffer->getBuffer(), buffer, len * samplesize);
 			len = length - len;
 			length -= len;
 			m_reader2->read(len, buffer);
-			memcpy(m_buffer->getBuffer() + length*samplesize,
-				   buffer, len*samplesize);
+			memcpy(m_buffer->getBuffer() + length * specs.channels, buffer,
+				   len * samplesize);
 			length += len;
 			buffer = m_buffer->getBuffer();
 			m_finished1 = true;

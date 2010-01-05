@@ -106,20 +106,21 @@ static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 	}
 }
 
-static void rna_Texture_update(bContext *C, PointerRNA *ptr)
+static void rna_Texture_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Tex *tex= ptr->id.data;
 
 	DAG_id_flush_update(&tex->id, 0);
-	WM_event_add_notifier(C, NC_TEXTURE, tex);
+	WM_main_add_notifier(NC_TEXTURE, tex);
 }
 
-static void rna_Texture_nodes_update(bContext *C, PointerRNA *ptr)
+/* Used for Texture Properties, used (also) for/in Nodes */
+static void rna_Texture_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Tex *tex= ptr->id.data;
 
 	DAG_id_flush_update(&tex->id, 0);
-	WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, tex);
+	WM_main_add_notifier(NC_TEXTURE|ND_NODES, tex);
 }
 
 static void rna_Texture_type_set(PointerRNA *ptr, int value)
@@ -139,7 +140,7 @@ static void rna_Texture_type_set(PointerRNA *ptr, int value)
 	tex->type = value;
 }
 
-void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
+void rna_TextureSlot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
@@ -147,16 +148,16 @@ void rna_TextureSlot_update(bContext *C, PointerRNA *ptr)
 
 	switch(GS(id->name)) {
 		case ID_MA: 
-			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, id);
+			WM_main_add_notifier(NC_MATERIAL|ND_SHADING, id);
 			break;
 		case ID_WO: 
-			WM_event_add_notifier(C, NC_WORLD, id);
+			WM_main_add_notifier(NC_WORLD, id);
 			break;
 		case ID_LA: 
-			WM_event_add_notifier(C, NC_LAMP|ND_LIGHTING, id);
+			WM_main_add_notifier(NC_LAMP|ND_LIGHTING, id);
 			break;
 		case ID_BR: 
-			WM_event_add_notifier(C, NC_BRUSH, id);
+			WM_main_add_notifier(NC_BRUSH, id);
 			break;
 	}
 }
@@ -784,25 +785,25 @@ static void rna_def_texture_clouds(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_range(prop, 0, 6, 0, 2);
 	RNA_def_property_ui_text(prop, "Noise Depth", "Sets the depth of the cloud calculation");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisetype");
 	RNA_def_property_enum_items(prop, prop_noise_type);
 	RNA_def_property_ui_text(prop, "Noise Type", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "stype", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_clouds_stype);
 	RNA_def_property_ui_text(prop, "Color", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 0.1);
@@ -851,25 +852,25 @@ static void rna_def_texture_wood(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "noise_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisetype");
 	RNA_def_property_enum_items(prop, prop_noise_type);
 	RNA_def_property_ui_text(prop, "Noise Type", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "stype", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_wood_stype);
 	RNA_def_property_ui_text(prop, "Pattern", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "noisebasis2", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
 	RNA_def_property_enum_items(prop, prop_wood_noisebasis2);
 	RNA_def_property_ui_text(prop, "Noise Basis 2", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 0.1);
@@ -925,25 +926,25 @@ static void rna_def_texture_marble(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "noisetype");
 	RNA_def_property_enum_items(prop, prop_noise_type);
 	RNA_def_property_ui_text(prop, "Noise Type", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "stype", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_marble_stype);
 	RNA_def_property_ui_text(prop, "Pattern", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 	
 	prop= RNA_def_property(srna, "noise_basis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "noisebasis2", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
 	RNA_def_property_enum_items(prop, prop_marble_noisebasis2);
 	RNA_def_property_ui_text(prop, "Noise Basis 2", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 0.1);
@@ -1005,13 +1006,13 @@ static void rna_def_texture_blend(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_blend_progression);
 	RNA_def_property_ui_text(prop, "Progression", "Sets the style of the color blending");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "flip_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_flip_axis_items);
 	RNA_def_property_ui_text(prop, "Flip Axis", "Flips the texture's X and Y axis");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 }
 
@@ -1500,13 +1501,13 @@ static void rna_def_texture_distorted_noise(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis2");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Basis", "Sets the noise basis used for turbulence");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "noise_distortion", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "noisebasis");
 	RNA_def_property_enum_items(prop, prop_noise_basis_items);
 	RNA_def_property_ui_text(prop, "Noise Distortion", "Sets the noise basis for the distortion");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Texture_nodes_update");
 
 	prop= RNA_def_property(srna, "nabla", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.001, 0.1);

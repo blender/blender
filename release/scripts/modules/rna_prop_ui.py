@@ -20,6 +20,7 @@
 
 import bpy
 
+
 def rna_idprop_ui_get(item, create=True):
     try:
         return item['_RNA_UI']
@@ -57,7 +58,7 @@ def rna_idprop_ui_prop_clear(item, prop):
         pass
 
 
-def draw(layout, context, context_member, use_edit = True):
+def draw(layout, context, context_member, use_edit=True):
 
     def assign_props(prop, val, key):
         prop.path = context_member
@@ -69,7 +70,7 @@ def draw(layout, context, context_member, use_edit = True):
             pass
 
     rna_item = eval("context." + context_member)
-    
+
     # poll should really get this...
     if not rna_item:
         return
@@ -119,7 +120,7 @@ def draw(layout, context, context_member, use_edit = True):
             prop = row.operator("wm.properties_edit", text="edit")
             assign_props(prop, val_draw, key)
 
-            prop = row.operator("wm.properties_remove", text="", icon='ICON_ZOOMOUT')
+            prop = row.operator("wm.properties_remove", text="", icon='ZOOMOUT')
             assign_props(prop, val_draw, key)
 
 
@@ -138,10 +139,11 @@ rna_property = StringProperty(name="Property Name",
 rna_min = FloatProperty(name="Min", default=0.0, precision=3)
 rna_max = FloatProperty(name="Max", default=1.0, precision=3)
 
+
 class WM_OT_properties_edit(bpy.types.Operator):
     '''Internal use (edit a property path)'''
     bl_idname = "wm.properties_edit"
-    bl_label = "Edit Property!"
+    bl_label = "Edit Property"
 
     path = rna_path
     property = rna_property
@@ -194,7 +196,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
 
         prop_ui['description'] = self.properties.description
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
 
@@ -206,34 +208,15 @@ class WM_OT_properties_edit(bpy.types.Operator):
         prop_ui = rna_idprop_ui_prop_get(item, self.properties.property, False) # dont create
         if prop_ui:
             self.properties.min = prop_ui.get("min", -1000000000)
-            self.properties.max = prop_ui.get("max",  1000000000)
-            self.properties.description = prop_ui.get("description",  "")
-
-        if 0:
-            _message= "PyConsole, press Ctrl+D to unlock the BGE"
-            import sys
-
-            # evaluate commands in current namespace
-            frame= sys._getframe()
-            namespace = frame.f_globals.copy()
-            namespace.update(frame.f_locals)
-
-            import code
-
-            # Autocomp in python, not as comprehensive as IPython
-            import rlcompleter
-
-            try: # ick, some pythons dont have this
-                import readline
-                readline.parse_and_bind("tab: complete")
-            except:
-                pass
-
-            code.interact(banner=_message, local=namespace)
+            self.properties.max = prop_ui.get("max", 1000000000)
+            self.properties.description = prop_ui.get("description", "")
 
         wm = context.manager
+        # This crashes, TODO - fix
+        #return wm.invoke_props_popup(self, event)
+
         wm.invoke_props_popup(self, event)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
 
 class WM_OT_properties_add(bpy.types.Operator):
@@ -252,14 +235,15 @@ class WM_OT_properties_add(bpy.types.Operator):
             i = 1
             while prop_new in names:
                 prop_new = prop + str(i)
-                i+=1
+                i += 1
 
             return prop_new
 
         property = unique_name(item.keys())
 
         item[property] = 1.0
-        return ('FINISHED',)
+        return {'FINISHED'}
+
 
 class WM_OT_properties_remove(bpy.types.Operator):
     '''Internal use (edit a property path)'''
@@ -272,5 +256,4 @@ class WM_OT_properties_remove(bpy.types.Operator):
     def execute(self, context):
         item = eval("context.%s" % self.properties.path)
         del item[self.properties.property]
-        return ('FINISHED',)
-
+        return {'FINISHED'}

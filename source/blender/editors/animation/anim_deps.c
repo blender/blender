@@ -27,22 +27,30 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 
 #include "BLI_blenlib.h"
 
+#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 #include "BKE_scene.h"
+#include "BKE_sequencer.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -55,103 +63,220 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* **************************** pose <-> action syncing ******************************** */
-/* Summary of what needs to be synced between poses and actions:
- *	1) Flags
- *		a) Visibility (only for pose to action) 
- *		b) Selection status (both ways)
- *	2) Group settings  (only for pose to action) - do we also need to make sure same groups exist?
- *	3) Grouping (only for pose to action for now)
- */
+/* **************************** depsgraph tagging ******************************** */
 
-
-/* Notifier from Action/Dopesheet (this may be extended to include other things such as Python...)
- * Channels in action changed, so update pose channels/groups to reflect changes.
- *
- * An object (usually 'active' Object) needs to be supplied, so that its Pose-Channels can be synced with
- * the channels in its active Action.
+/* tags the given anim list element for refreshes (if applicable)
+ * due to Animation Editor editing 
  */
-void ANIM_action_to_pose_sync (Object *ob)
+void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 {
-#if 0
-	AnimData *adt= ob->adt;
-	bAction *act= adt->act;
+	ID *id;
 	FCurve *fcu;
-	bPoseChannel *pchan;
-	
-	/* error checking */
-	if (ELEM3(NULL, ob, ob->adt, ob->pose) || (ob->type != OB_ARMATURE))
+	AnimData *adt;
+
+	id= ale->id;
+	if (!id)
 		return;
 	
-	/* 1b) loop through all Action-Channels (there should be fewer channels to search through here in general) */
-	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		/* find matching pose-channel */
-		pchan= get_pose_channel(ob->pose, achan->name);
+	/* tag AnimData for refresh so that other views will update in realtime with these changes */
+	adt= BKE_animdata_from_id(id);
+	if (adt)
+		adt->recalc |= ADT_RECALC_ANIM;
+
+	/* update data */
+	fcu= (ale->datatype == ALE_FCURVE)? ale->key_data: NULL;
 		
-		/* sync active and selected flags */
-		if (pchan && pchan->bone) {
-			/* selection */
-			if (achan->flag & ACHAN_SELECTED)
-				pchan->bone->flag |= BONE_SELECTED;
-			else
-				pchan->bone->flag &= ~BONE_SELECTED;
+	if (fcu && fcu->rna_path) {
+		/* if we have an fcurve, call the update for the property we
+		   are editing, this is then expected to do the proper redraws
+		   and depsgraph updates  */
+		PointerRNA id_ptr, ptr;
+		PropertyRNA *prop;
+		
+		RNA_id_pointer_create(id, &id_ptr);
 			
-			/* active */
-			if (achan->flag & ACHAN_HILIGHTED)
-				pchan->bone->flag |= BONE_ACTIVE;
-			else
-				pchan->bone->flag &= ~BONE_ACTIVE;
-		}
+		if(RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop))
+			RNA_property_update_main(G.main, scene, &ptr, prop);
 	}
-	
-	// TODO: add grouping changes too? For now, these tools aren't exposed to users in animation editors yet...
-#endif
-} 
- 
-/* Notifier from 3D-View/Outliner (this is likely to include other sources too...)
- * Pose channels/groups changed, so update action channels
- *
- * An object (usually 'active' Object) needs to be supplied, so that its Pose-Channels can be synced with
- * the channels in its active Action.
- */
-void ANIM_pose_to_action_sync (Object *ob, ScrArea *sa)
+	else {
+		/* in other case we do standard depsgaph update, ideally
+		   we'd be calling property update functions here too ... */
+		DAG_id_flush_update(id, OB_RECALC); // XXX or do we want something more restrictive?
+	}
+}
+
+/* tags the given ID block for refreshes (if applicable) due to 
+ * Animation Editor editing */
+void ANIM_id_update(Scene *scene, ID *id)
 {
-#if 0 // XXX old animation system
-	SpaceAction *saction= (SpaceAction *)sa->spacedata.first;
-	bArmature *arm= (bArmature *)ob->data;
-	bAction *act= (bAction *)ob->action;
-	bActionChannel *achan;
-	//bActionGroup *agrp, *bgrp;
-	bPoseChannel *pchan;
+	if (id) {
+		AnimData *adt= BKE_animdata_from_id(id);
+		
+		/* tag AnimData for refresh so that other views will update in realtime with these changes */
+		if (adt)
+			adt->recalc |= ADT_RECALC_ANIM;
+			
+		/* set recalc flags */
+		DAG_id_flush_update(id, OB_RECALC); // XXX or do we want something more restrictive?
+	}
+}
+
+/* **************************** animation data <-> data syncing ******************************** */
+/* This code here is used to synchronise the 
+ *	- selection (to find selected data easier)
+ *	- ... (insert other relevant items here later) 
+ * status in relevant Blender data with the status stored in animation channels.
+ *
+ * This should be called in the refresh() callbacks for various editors in 
+ * response to appropriate notifiers.
+ */
+
+/* perform syncing updates for Action Groups */
+static void animchan_sync_group (bAnimContext *ac, bAnimListElem *ale)
+{
+	bActionGroup *agrp= (bActionGroup *)ale->data;
+	ID *owner_id= ale->id;
 	
-	/* error checking */
-	if ((ob == NULL) || (ob->type != OB_ARMATURE) || ELEM3(NULL, arm, act, ob->pose))
+	/* major priority is selection status
+	 * so we need both a group and an owner
+	 */
+	if (ELEM(NULL, agrp, owner_id))
 		return;
 		
-	/* 1) loop through all Action-Channels (there should be fewer channels to search through here in general) */
-	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		/* find matching pose-channel */
-		pchan= get_pose_channel(ob->pose, achan->name);
+	/* for standard Objects, check if group is the name of some bone */
+	if (GS(owner_id->name) == ID_OB) {
+		Object *ob= (Object *)owner_id;
 		
-		/* sync selection and visibility settings */
-		if (pchan && pchan->bone) {
-			/* visibility - if layer is hidden, or if bone itself is hidden */
-			if (!(saction->flag & SACTION_NOHIDE) && !(saction->pin)) {
-				if (!(pchan->bone->layer & arm->layer) || (pchan->bone->flag & BONE_HIDDEN_P))
-					achan->flag |= ACHAN_HIDDEN;
+		/* check if there are bones, and whether the name matches any 
+		 * NOTE: this feature will only really work if groups by default contain the F-Curves for a single bone
+		 */
+		if (ob->pose) {
+			bPoseChannel *pchan= get_pose_channel(ob->pose, agrp->name);
+			
+			/* if one matches, sync the selection status */
+			if (pchan) {
+				if (pchan->bone->flag & BONE_SELECTED)
+					agrp->flag |= AGRP_SELECTED;
 				else
-					achan->flag &= ~ACHAN_HIDDEN;
+					agrp->flag &= ~AGRP_SELECTED;
 			}
-				
-			/* selection */
-			if (pchan->bone->flag & BONE_SELECTED)
-				achan->flag |= ACHAN_SELECTED;
-			else
-				achan->flag &= ~ACHAN_SELECTED;
+		}
+	}
+}
+ 
+/* perform syncing updates for F-Curves */
+static void animchan_sync_fcurve (bAnimContext *ac, bAnimListElem *ale)
+{
+	FCurve *fcu= (FCurve *)ale->data;
+	ID *owner_id= ale->id;
+	
+	/* major priority is selection status, so refer to the checks done in anim_filter.c 
+	 * skip_fcurve_selected_data() for reference about what's going on here...
+	 */
+	if (ELEM3(NULL, fcu, fcu->rna_path, owner_id))
+		return;
+		
+	if (GS(owner_id->name) == ID_OB) {
+		Object *ob= (Object *)owner_id;
+		
+		/* only affect if F-Curve involves pose.bones */
+		if ((fcu->rna_path) && strstr(fcu->rna_path, "pose.bones")) {
+			bPoseChannel *pchan;
+			char *bone_name;
+			
+			/* get bone-name, and check if this bone is selected */
+			bone_name= BLI_getQuotedStr(fcu->rna_path, "pose.bones[");
+			pchan= get_pose_channel(ob->pose, bone_name);
+			if (bone_name) MEM_freeN(bone_name);
+			
+			/* F-Curve selection depends on whether the bone is selected */
+			if ((pchan) && (pchan->bone)) {
+				if (pchan->bone->flag & BONE_SELECTED)
+					fcu->flag |= FCURVE_SELECTED;
+				else
+					fcu->flag &= ~FCURVE_SELECTED;
+			}
+		}
+	}
+	else if (GS(owner_id->name) == ID_SCE) {
+		Scene *scene = (Scene *)owner_id;
+		
+		/* only affect if F-Curve involves sequence_editor.sequences */
+		if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
+			Editing *ed= seq_give_editing(scene, FALSE);
+			Sequence *seq;
+			char *seq_name;
+			
+			/* get strip name, and check if this strip is selected */
+			seq_name= BLI_getQuotedStr(fcu->rna_path, "sequences_all[");
+			seq = get_seq_by_name(ed->seqbasep, seq_name, FALSE);
+			if (seq_name) MEM_freeN(seq_name);
+			
+			/* can only add this F-Curve if it is selected */
+			if (seq) {
+				if (seq->flag & SELECT)
+					fcu->flag |= FCURVE_SELECTED;
+				else
+					fcu->flag &= ~FCURVE_SELECTED;
+			}
+		}
+	}
+	else if (GS(owner_id->name) == ID_NT) {
+		bNodeTree *ntree = (bNodeTree *)owner_id;
+		
+		/* check for selected nodes */
+		if ((fcu->rna_path) && strstr(fcu->rna_path, "nodes")) {
+			bNode *node;
+			char *node_name;
+			
+			/* get strip name, and check if this strip is selected */
+			node_name= BLI_getQuotedStr(fcu->rna_path, "nodes[");
+			node = nodeFindNodebyName(ntree, node_name);
+			if (node_name) MEM_freeN(node_name);
+			
+			/* can only add this F-Curve if it is selected */
+			if (node) {
+				if (node->flag & NODE_SELECT)
+					fcu->flag |= FCURVE_SELECTED;
+				else
+					fcu->flag &= ~FCURVE_SELECTED;
+			}
+		}
+	}
+}
+
+/* ---------------- */
+ 
+/* Main call to be exported to animation editors */
+void ANIM_sync_animchannels_to_data (const bContext *C)
+{
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* get animation context info for filtering the channels */
+	// TODO: check on whether we need to set the area specially instead, since active area might not be ok?
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return;
+	
+	/* filter data */
+		/* NOTE: we want all channels, since we want to be able to set selection status on some of them even when collapsed */
+	filter= ANIMFILTER_CHANNELS;
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* flush settings as appropriate depending on the types of the channels */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		switch (ale->type) {
+			case ANIMTYPE_GROUP:
+				animchan_sync_group(&ac, ale);
+				break;
+			
+			case ANIMTYPE_FCURVE:
+				animchan_sync_fcurve(&ac, ale);
+				break;
 		}
 	}
 	
-	// XXX step 2 needs to be coded still... currently missing action/bone group API to do any more work here...	
-	// XXX step 3 needs to be coded still... it's a messy case to deal with (we'll use the temp indices for this?)
-#endif // XXX old animation system
+	BLI_freelistN(&anim_data);
 }

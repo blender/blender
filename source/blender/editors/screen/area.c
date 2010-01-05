@@ -1089,30 +1089,11 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 	}
 }
 
-void ED_area_prevspace(bContext *C)
+void ED_area_prevspace(bContext *C, ScrArea *sa)
 {
-	SpaceLink *sl= CTX_wm_space_data(C);
-	ScrArea *sa= CTX_wm_area(C);
-
-	/* cleanup */
-#if 0 // XXX needs to be space type specific
-	if(sfile->spacetype==SPACE_FILE) {
-		if(sfile->pupmenu) {
-			MEM_freeN(sfile->pupmenu);
-			sfile->pupmenu= NULL;
-		}
-	}
-#endif
+	SpaceLink *sl = (sa) ? sa->spacedata.first : CTX_wm_space_data(C);
 
 	if(sl->next) {
-
-#if 0 // XXX check whether this is still needed
-		if (sfile->spacetype == SPACE_SCRIPT) {
-			SpaceScript *sc = (SpaceScript *)sfile;
-			if (sc->script) sc->script->flags &=~SCRIPT_FILESEL;
-		}
-#endif
-
 		/* workaround for case of double prevspace, render window
 		   with a file browser on top of it */
 		if(sl->next->spacetype == SPACE_FILE && sl->next->next)
@@ -1126,10 +1107,10 @@ void ED_area_prevspace(bContext *C)
 	ED_area_tag_redraw(sa);
 }
 
-static char *windowtype_pup(void)
+static char *editortype_pup(void)
 {
 	return(
-		   "Window type:%t"
+		   "Editor type:%t"
 		   "|3D View %x1"
 
 		   "|%l"
@@ -1179,9 +1160,9 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 	int xco= 8;
 	
 	but= uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
-						   windowtype_pup(), xco, yco, XIC+10, YIC, 
+						   editortype_pup(), xco, yco, XIC+10, YIC, 
 						   &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
-						   "Displays Current Window Type. "
+						   "Displays Current Editor Type. "
 						   "Click for menu of available types.");
 	uiButSetFunc(but, spacefunc, NULL, NULL);
 	
@@ -1193,7 +1174,8 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	ScrArea *sa= CTX_wm_area(C);
 	int xco= 8;
 	
-	xco= ED_area_header_switchbutton(C, block, yco);
+	if (!sa->full)
+		xco= ED_area_header_switchbutton(C, block, yco);
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
@@ -1343,6 +1325,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		/* only allow scrolling in vertical direction */
 		v2d->keepofs |= V2D_LOCKOFS_X|V2D_KEEPOFS_Y;
 		v2d->keepofs &= ~(V2D_LOCKOFS_Y|V2D_KEEPOFS_X);
+		v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
+		v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)
@@ -1357,6 +1341,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_LOCKOFS_Y|V2D_KEEPOFS_X|V2D_KEEPOFS_Y);
 		//v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
 		//v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
+		v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
+		v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_HIDE;
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)

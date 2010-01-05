@@ -84,8 +84,11 @@ typedef enum PropertyUnit {
 	PROP_UNIT_ACCELERATION = (8<<16)	/* m/(s^2) */
 } PropertyUnit;
 
-#define RNA_SUBTYPE_UNIT(subtype) (subtype & 0x00FF0000)
-#define RNA_SUBTYPE_UNIT_VALUE(subtype) (subtype>>16)
+#define RNA_SUBTYPE_UNIT(subtype) ((subtype) & 0x00FF0000)
+#define RNA_SUBTYPE_VALUE(subtype) ((subtype) & ~0x00FF0000)
+#define RNA_SUBTYPE_UNIT_VALUE(subtype) ((subtype)>>16)
+
+#define RNA_ENUM_BITFLAG_SIZE 32
 
 /* also update rna_property_subtypename when you change this */
 typedef enum PropertySubType {
@@ -115,7 +118,7 @@ typedef enum PropertySubType {
 	PROP_QUATERNION = 27,
 	PROP_AXISANGLE = 28,
 	PROP_XYZ = 29,
-	PROP_RGB = 30,
+	PROP_COLOR_GAMMA = 30,
 
 	/* booleans */
 	PROP_LAYER = 40,
@@ -161,6 +164,21 @@ typedef enum PropertyFlag {
 	PROP_ID_SELF_CHECK = 1<<20,
 	PROP_NEVER_NULL = 1<<18,
 
+	/* flag contains multiple enums.
+	 * note: not to be confused with prop->enumbitflags
+	 * this exposes the flag as multiple options in python and the UI.
+	 *
+	 * note: these can't be animated so use with care.
+	  */
+	PROP_ENUM_FLAG = 1<<21,
+
+	/* need context for update function */
+	PROP_CONTEXT_UPDATE = 1<<22,
+
+	/* Use for arrays or for any data that should not have a referene kept
+	 * most common case is functions that return arrays where the array */
+	PROP_THICK_WRAP = 1<<23,
+
 	/* internal flags */
 	PROP_BUILTIN = 1<<7,
 	PROP_EXPORT = 1<<8,
@@ -192,6 +210,7 @@ typedef struct CollectionPointerLink {
 } CollectionPointerLink;
 
 typedef enum RawPropertyType {
+	PROP_RAW_UNSET=-1,
 	PROP_RAW_INT, // XXX - abused for types that are not set, eg. MFace.verts, needs fixing.
 	PROP_RAW_SHORT,
 	PROP_RAW_CHAR,

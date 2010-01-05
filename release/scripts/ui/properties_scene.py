@@ -33,7 +33,7 @@ class SceneButtonsPanel(bpy.types.Panel):
 
 class SCENE_PT_scene(SceneButtonsPanel):
     bl_label = "Scene"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -50,7 +50,7 @@ class SCENE_PT_scene(SceneButtonsPanel):
 
 class SCENE_PT_unit(SceneButtonsPanel):
     bl_label = "Units"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -85,8 +85,8 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
         col.template_list(scene, "keying_sets", scene, "active_keying_set_index", rows=2)
 
         col = row.column(align=True)
-        col.operator("anim.keying_set_add", icon='ICON_ZOOMIN', text="")
-        col.operator("anim.keying_set_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("anim.keying_set_add", icon='ZOOMIN', text="")
+        col.operator("anim.keying_set_remove", icon='ZOOMOUT', text="")
 
         ks = scene.active_keying_set
         if ks:
@@ -101,6 +101,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
             col.label(text="Keyframing Settings:")
             col.prop(ks, "insertkey_needed", text="Needed")
             col.prop(ks, "insertkey_visual", text="Visual")
+            col.prop(ks, "insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel):
@@ -125,15 +126,15 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
         col.template_list(ks, "paths", ks, "active_path_index", rows=2)
 
         col = row.column(align=True)
-        col.operator("anim.keying_set_path_add", icon='ICON_ZOOMIN', text="")
-        col.operator("anim.keying_set_path_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("anim.keying_set_path_add", icon='ZOOMIN', text="")
+        col.operator("anim.keying_set_path_remove", icon='ZOOMOUT', text="")
 
         ksp = ks.active_path
         if ksp:
             col = layout.column()
             col.label(text="Target:")
             col.template_any_ID(ksp, "id", "id_type")
-            col.template_path_builder(ksp, "rna_path", ksp.id)
+            col.template_path_builder(ksp, "data_path", ksp.id)
 
 
             row = layout.row()
@@ -154,7 +155,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
 
 class SCENE_PT_physics(SceneButtonsPanel):
     bl_label = "Gravity"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         self.layout.prop(context.scene, "use_gravity", text="")

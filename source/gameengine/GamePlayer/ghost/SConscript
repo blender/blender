@@ -40,7 +40,7 @@ incs = ['.',
         '#source/blender/gpu',
         '#extern/glew/include']
 
-defs = []
+defs = [ 'GLEW_STATIC' ]
 
 if env['WITH_BF_PYTHON']:
 	incs += Split(env['BF_PYTHON_INC'])

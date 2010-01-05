@@ -525,7 +525,7 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 		if(!PyMatTo(pymat, mat))
 			return NULL;
 		
-		mat.setValue((const float *)matrix);
+		mat.getValue((float*)matrix);
 		
 		BL_ArmatureObject *obj = (BL_ArmatureObject*)GetParent();
 		

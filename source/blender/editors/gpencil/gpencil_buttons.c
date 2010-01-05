@@ -187,7 +187,7 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 		
 		/* new backdrop ----------------------------------- */
 		box= uiLayoutBox(layout);
-		split= uiLayoutSplit(box, 0.5f);
+		split= uiLayoutSplit(box, 0.5f, 0);
 		
 		
 		/* draw settings ---------------------------------- */
@@ -229,7 +229,7 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 {
 	PointerRNA gpd_ptr;
 	bGPDlayer *gpl;
-	uiLayout *col;
+	uiLayout *col, *row;
 	
 	/* make new PointerRNA for Grease Pencil block */
 	RNA_id_pointer_create((ID *)gpd, &gpd_ptr);
@@ -254,12 +254,22 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 	}
 	
 	/* draw gpd drawing settings first ------------------------------------- */
-	col= uiLayoutColumn(layout, 0);
+	col= uiLayoutColumn(layout, 1);
 		/* label */
 		uiItemL(col, "Drawing Settings:", 0);
 		
 		/* 'stick to view' option */
-		uiItemR(col, NULL, 0, &gpd_ptr, "view_space_draw", 0);
+		//uiItemR(col, NULL, 0, &gpd_ptr, "draw_mode", 0);
+		row= uiLayoutRow(col, 1);
+		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "VIEW");
+		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "CURSOR");
+		row= uiLayoutRow(col, 1);
+		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "SURFACE");
+		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "STROKE");
+
+		row= uiLayoutRow(col, 0);
+		uiLayoutSetActive(row, (gpd->flag & (GP_DATA_DEPTH_STROKE|GP_DATA_DEPTH_VIEW)) ? 1:0);
+		uiItemR(row, NULL, 0, &gpd_ptr, "use_stroke_endpoints", 0);
 }	
 
 

@@ -109,7 +109,7 @@ EnumPropertyItem part_hair_ren_as_items[] = {
 #include "BLI_listbase.h"
 
 /* property update functions */
-static void particle_recalc(bContext *C, PointerRNA *ptr, short flag)
+static void particle_recalc(Main *bmain, Scene *scene, PointerRNA *ptr, short flag)
 {
 	if(ptr->type==&RNA_ParticleSystem) {
 		ParticleSystem *psys = (ParticleSystem*)ptr->data;
@@ -121,43 +121,41 @@ static void particle_recalc(bContext *C, PointerRNA *ptr, short flag)
 	else
 		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|flag);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
 }
-static void rna_Particle_redo(bContext *C, PointerRNA *ptr)
+static void rna_Particle_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	particle_recalc(C, ptr, PSYS_RECALC_REDO);
-}
-
-static void rna_Particle_redo_dependency(bContext *C, PointerRNA *ptr)
-{
-	DAG_scene_sort(CTX_data_scene(C));
-	rna_Particle_redo(C, ptr);
+	particle_recalc(bmain, scene, ptr, PSYS_RECALC_REDO);
 }
 
-static void rna_Particle_reset(bContext *C, PointerRNA *ptr)
+static void rna_Particle_redo_dependency(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	particle_recalc(C, ptr, PSYS_RECALC_RESET);
+	DAG_scene_sort(scene);
+	rna_Particle_redo(bmain, scene, ptr);
 }
 
-static void rna_Particle_change_type(bContext *C, PointerRNA *ptr)
+static void rna_Particle_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	particle_recalc(C, ptr, PSYS_RECALC_RESET|PSYS_RECALC_TYPE);
+	particle_recalc(bmain, scene, ptr, PSYS_RECALC_RESET);
 }
 
-static void rna_Particle_change_physics(bContext *C, PointerRNA *ptr)
+static void rna_Particle_change_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	particle_recalc(C, ptr, PSYS_RECALC_RESET|PSYS_RECALC_PHYS);
+	particle_recalc(bmain, scene, ptr, PSYS_RECALC_RESET|PSYS_RECALC_TYPE);
 }
 
-static void rna_Particle_redo_child(bContext *C, PointerRNA *ptr)
+static void rna_Particle_change_physics(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	particle_recalc(C, ptr, PSYS_RECALC_CHILD);
+	particle_recalc(bmain, scene, ptr, PSYS_RECALC_RESET|PSYS_RECALC_PHYS);
 }
 
-static void rna_Particle_target_reset(bContext *C, PointerRNA *ptr)
+static void rna_Particle_redo_child(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
+	particle_recalc(bmain, scene, ptr, PSYS_RECALC_CHILD);
+}
 
+static void rna_Particle_target_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
 	if(ptr->type==&RNA_ParticleTarget) {
 		ParticleTarget *pt = (ParticleTarget*)ptr->data;
 		Object *ob = (Object*)ptr->id.data;
@@ -187,10 +185,10 @@ static void rna_Particle_target_reset(bContext *C, PointerRNA *ptr)
 		DAG_scene_sort(scene);
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
 }
 
-static void rna_Particle_target_redo(bContext *C, PointerRNA *ptr)
+static void rna_Particle_target_redo(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if(ptr->type==&RNA_ParticleTarget) {
 		Object *ob = (Object*)ptr->id.data;
@@ -199,13 +197,12 @@ static void rna_Particle_target_redo(bContext *C, PointerRNA *ptr)
 		psys->recalc = PSYS_RECALC_REDO;
 
 		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
+		WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
 	}
 }
 
-static void rna_Particle_hair_dynamics(bContext *C, PointerRNA *ptr)
+static void rna_Particle_hair_dynamics(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	/* Scene *scene = CTX_data_scene(C); */
 	ParticleSystem *psys = (ParticleSystem*)ptr->data;
 	
 	if(psys && !psys->clmd) {
@@ -213,10 +210,10 @@ static void rna_Particle_hair_dynamics(bContext *C, PointerRNA *ptr)
 		psys->clmd->sim_parms->goalspring = 0.0f;
 		psys->clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_GOAL|CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS;
 		psys->clmd->coll_parms->flags &= ~CLOTH_COLLSETTINGS_FLAG_SELF;
-		rna_Particle_redo(C, ptr);
+		rna_Particle_redo(bmain, scene, ptr);
 	}
 	else
-		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
+		WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
 }
 static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
 {
@@ -241,7 +238,7 @@ static void rna_particle_settings_set(PointerRNA *ptr, PointerRNA value)
 		psys_check_boid_data(psys);
 	}
 }
-static void rna_Particle_abspathtime_update(bContext *C, PointerRNA *ptr)
+static void rna_Particle_abspathtime_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ParticleSettings *settings = (ParticleSettings*)ptr->data;
 	float delta = settings->end + settings->lifetime - settings->sta;
@@ -253,7 +250,7 @@ static void rna_Particle_abspathtime_update(bContext *C, PointerRNA *ptr)
 		settings->path_start = (settings->path_start - settings->sta)/delta;
 		settings->path_end = (settings->path_end - settings->sta)/delta;
 	}
-	rna_Particle_redo(C, ptr);
+	rna_Particle_redo(bmain, scene, ptr);
 }
 static void rna_PartSettings_start_set(struct PointerRNA *ptr, float value)
 {
@@ -817,11 +814,6 @@ static void rna_def_particle(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, alive_items);
 	RNA_def_property_ui_text(prop, "Alive State", "");
 
-	prop= RNA_def_property(srna, "loop", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	//TODO: bounds
-	RNA_def_property_ui_text(prop, "Loop", "How may times the particle life has looped");
-
 //	short rt2;
 }
 
@@ -979,12 +971,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_REACT_MULTIPLE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
 	RNA_def_property_ui_text(prop, "Multi React", "React multiple times.");
-	RNA_def_property_update(prop, 0, "rna_Particle_reset");
-
-	prop= RNA_def_property(srna, "loop", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_LOOP);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
-	RNA_def_property_ui_text(prop, "Loop", "Loop particle lives.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	/* TODO: used somewhere? */
@@ -1907,6 +1893,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "Particle system name.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_MODIFIER|NA_RENAME, NULL);
 	RNA_def_struct_name_property(srna, prop);
 
 	/* access to particle settings is redirected through functions */

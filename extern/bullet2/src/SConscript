@@ -42,4 +42,4 @@ env.BlenderLib ( libname = 'extern_bullet2collision_dispatch', sources=collision
 env.BlenderLib ( libname = 'extern_bullet2collision_gimpact', sources=collision_gimpact_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,138], compileflags=cflags )
 env.BlenderLib ( libname = 'extern_bullet2collision_shapes', sources=collision_shapes_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,138], compileflags=cflags )
 env.BlenderLib ( libname = 'extern_bullet2collision_narrowphase', sources=collision_narrowphase_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,138], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2softbody', sources=softbody_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[18,135], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2softbody', sources=softbody_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[30,135], compileflags=cflags )

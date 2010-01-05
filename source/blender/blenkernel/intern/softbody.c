@@ -3608,7 +3608,7 @@ static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts, 
 	if(sb){
 		BodyPoint *bp= sb->bpoint;
 		int a;
-		if(sb->solverflags & SBSO_MONITOR ||sb->solverflags & SBSO_ESTIMATEIPO){SB_estimate_transform(ob,sb->lcom,sb->lrot,sb->lscale);}
+		if(sb->solverflags & SBSO_ESTIMATEIPO){SB_estimate_transform(ob,sb->lcom,sb->lrot,sb->lscale);}
 		/* inverse matrix is not uptodate... */
 		invert_m4_m4(ob->imat, ob->obmat);
 
@@ -3836,9 +3836,19 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 	free_scratch(sb); /* clear if any */
 	sb_new_scratch(sb); /* make a new */
 	sb->scratch->needstobuildcollider=1; 
+	zero_v3(sb->lcom);
+	unit_m3(sb->lrot);
+	unit_m3(sb->lscale);
+
+
 
 	/* copy some info to scratch */
-	if (1) reference_to_scratch(ob); /* wa only need that if we want to reconstruct IPO */
+			/* we only need that if we want to reconstruct IPO */
+	if(1) {
+		reference_to_scratch(ob);
+		SB_estimate_transform(ob,NULL,NULL,NULL);
+		SB_estimate_transform(ob,NULL,NULL,NULL);
+	}
 	switch(ob->type) {
 	case OB_MESH:
 		if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);

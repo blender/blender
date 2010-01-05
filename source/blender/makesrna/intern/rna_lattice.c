@@ -87,17 +87,16 @@ static void rna_Lattice_points_begin(CollectionPropertyIterator *iter, PointerRN
 		rna_iterator_array_begin(iter, NULL, 0, 0, 0, NULL);
 }
 
-static void rna_Lattice_update_data(bContext *C, PointerRNA *ptr)
+static void rna_Lattice_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
 
 	DAG_id_flush_update(id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, id);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, id);
 }
 
-static void rna_Lattice_update_size(bContext *C, PointerRNA *ptr)
+static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Main *bmain= CTX_data_main(C);
 	Lattice *lt= ptr->id.data;
 	Object *ob;
 	int newu, newv, neww;
@@ -124,7 +123,7 @@ static void rna_Lattice_update_size(bContext *C, PointerRNA *ptr)
 			resizelattice(lt->editlatt, newu, newv, neww, NULL);
 	}
 
-	rna_Lattice_update_data(C, ptr);
+	rna_Lattice_update_data(bmain, scene, ptr);
 }
 
 static void rna_Lattice_outside_set(PointerRNA *ptr, int value)

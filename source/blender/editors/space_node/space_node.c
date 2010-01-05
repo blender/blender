@@ -182,6 +182,8 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_MATERIAL:
 			if(wmn->data==ND_SHADING)
 				ED_area_tag_refresh(sa);
+			else if(wmn->data==ND_SHADING_DRAW)
+				ED_area_tag_refresh(sa);
 			break;
 		case NC_TEXTURE:
 			if(wmn->data==ND_NODES)
@@ -269,7 +271,7 @@ static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap= WM_keymap_find(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "Node", SPACE_NODE, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Node Editor", SPACE_NODE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -312,6 +314,10 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 		case NC_NODE:
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -345,6 +351,7 @@ void ED_spacetype_node(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_NODE;
+	strncpy(st->name, "Node", BKE_ST_MAXNAME);
 	
 	st->new= node_new;
 	st->free= node_free;

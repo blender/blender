@@ -30,10 +30,17 @@
 
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined(__APPLE__)
+#ifndef USE_QTKIT
 
 #include "DNA_scene_types.h"
+#include "DNA_windowmanager_types.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
+#include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 
 #include "BLI_blenlib.h"
@@ -71,12 +78,13 @@
 #define	kTrackStart		0
 #define	kMediaStart		0
 
-static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, int recty);
-static void QT_DoAddVideoSamplesToMedia (int frame, int *pixels, int rectx, int recty);
+static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, int recty, struct ReportList *reports);
+static void QT_DoAddVideoSamplesToMedia (int frame, int *pixels, int rectx, int recty, struct ReportList *reports);
 static void QT_EndAddVideoSamplesToMedia (void);
-static void QT_CreateMyVideoTrack (int rectx, int recty);
-static void QT_EndCreateMyVideoTrack (void);
-static void check_renderbutton_framerate(struct RenderData *rd);
+static void QT_CreateMyVideoTrack (int rectx, int recty, struct ReportList *reports);
+static void QT_EndCreateMyVideoTrack (struct ReportList *reports);
+static void check_renderbutton_framerate(struct RenderData *rd, struct ReportList *reports);
+static int get_qtcodec_settings(struct RenderData *rd, struct ReportList *reports);
 
 typedef struct QuicktimeExport {
 
@@ -113,14 +121,67 @@ static struct QuicktimeComponentData *qtdata;
 
 static int	sframe;
 
+/* RNA functions */
 
-static void CheckError(OSErr err, char *msg)
-{
-	if(err != noErr) printf("%s: %d\n", msg, err);
+static QuicktimeCodecTypeDesc qtCodecList[] = {
+	{kRawCodecType, 1, "Uncompressed"},
+	{kJPEGCodecType, 2, "JPEG"},
+	{kMotionJPEGACodecType, 3, "M-JPEG A"},
+	{kMotionJPEGBCodecType, 4, "M-JPEG B"},
+	{kDVCPALCodecType, 5, "DV PAL"},
+	{kDVCNTSCCodecType, 6, "DV/DVCPRO NTSC"},
+	{kDVCPROHD720pCodecType, 7, "DVCPRO HD 720p"},
+	{kDVCPROHD1080i50CodecType, 8, "DVCPRO HD 1080i50"},
+	{kDVCPROHD1080i60CodecType, 9, "DVCPRO HD 1080i60"},
+	{kMPEG4VisualCodecType, 10, "MPEG4"},
+	{kH263CodecType, 11, "H.263"},
+	{kH264CodecType, 12, "H.264"},
+	{0,0,NULL}};
+
+static int qtCodecCount = 12;
+
+int quicktime_get_num_codecs() {
+	return qtCodecCount;
+}
+
+QuicktimeCodecTypeDesc* quicktime_get_codecType_desc(int indexValue) {
+	if ((indexValue>=0) && (indexValue < qtCodecCount))
+		return &qtCodecList[indexValue];
+	else
+		return NULL;
+}
+
+int quicktime_rnatmpvalue_from_codectype(int codecType) {
+	int i;
+	for (i=0;i<qtCodecCount;i++) {
+		if (qtCodecList[i].codecType == codecType)
+			return qtCodecList[i].rnatmpvalue;
+	}
+	
+	return 0;
+}
+
+int quicktime_codecType_from_rnatmpvalue(int rnatmpvalue) {
+	int i;
+	for (i=0;i<qtCodecCount;i++) {
+		if (qtCodecList[i].rnatmpvalue == rnatmpvalue)
+			return qtCodecList[i].codecType;
+	}
+	
+	return 0;	
 }
 
 
-static OSErr QT_SaveCodecSettingsToScene(RenderData *rd)
+
+static void CheckError(OSErr err, char *msg, ReportList *reports)
+{
+	if(err != noErr) {
+		BKE_reportf(reports, RPT_ERROR, "%s: %d", msg, err);
+	}
+}
+
+
+static OSErr QT_SaveCodecSettingsToScene(RenderData *rd, ReportList *reports)
 {	
 	QTAtomContainer		myContainer = NULL;
 	ComponentResult		myErr = noErr;
@@ -128,10 +189,9 @@ static OSErr QT_SaveCodecSettingsToScene(RenderData *rd)
 	long				mySize = 0;
 
 	CodecInfo			ci;
-	char str[255];
 
 	QuicktimeCodecData *qcd = rd->qtcodecdata;
-
+	
 	// check if current scene already has qtcodec settings, and clear them
 	if (qcd) {
 		free_qtcodecdata(qcd);
@@ -147,7 +207,7 @@ static OSErr QT_SaveCodecSettingsToScene(RenderData *rd)
 	// retreive codecdata from quicktime in a atomcontainer
 	myErr = SCGetSettingsAsAtomContainer(qtdata->theComponent,  &myContainer);
 	if (myErr != noErr) {
-		printf("Quicktime: SCGetSettingsAsAtomContainer failed\n"); 
+		BKE_reportf(reports, RPT_ERROR, "Quicktime: SCGetSettingsAsAtomContainer failed\n"); 
 		goto bail;
 	}
 
@@ -166,7 +226,7 @@ static OSErr QT_SaveCodecSettingsToScene(RenderData *rd)
 
 		GetCodecInfo (&ci, qtdata->gSpatialSettings.codecType, 0);
 	} else {
-		printf("Quicktime: QT_SaveCodecSettingsToScene failed\n"); 
+		BKE_reportf(reports, RPT_ERROR, "Quicktime: QT_SaveCodecSettingsToScene failed\n"); 
 	}
 
 	QTUnlockContainer(myContainer);
@@ -179,12 +239,10 @@ bail:
 }
 
 
-static OSErr QT_GetCodecSettingsFromScene(RenderData *rd)
+static OSErr QT_GetCodecSettingsFromScene(RenderData *rd, ReportList *reports)
 {	
 	Handle				myHandle = NULL;
 	ComponentResult		myErr = noErr;
-//	CodecInfo ci;
-//	char str[255];
 
 	QuicktimeCodecData *qcd = rd->qtcodecdata;
 
@@ -198,7 +256,7 @@ static OSErr QT_GetCodecSettingsFromScene(RenderData *rd)
 	if(qcd->cdParms && qcd->cdSize) {
 		myErr = SCSetSettingsFromAtomContainer((GraphicsExportComponent)qtdata->theComponent, (QTAtomContainer)myHandle);
 		if (myErr != noErr) {
-			printf("Quicktime: SCSetSettingsFromAtomContainer failed\n"); 
+			BKE_reportf(reports, RPT_ERROR, "Quicktime: SCSetSettingsFromAtomContainer failed\n"); 
 			goto bail;
 		}
 
@@ -207,11 +265,24 @@ static OSErr QT_GetCodecSettingsFromScene(RenderData *rd)
 		SCGetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
 		SCGetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
 
-//		GetCodecInfo (&ci, qtdata->gSpatialSettings.codecType, 0);
-//		CopyPascalStringToC(ci.typeName, str);
-//		printf("restored Codec: %s\n", str);
+
+		//Fill the render QuicktimeCodecSettigns struct
+		rd->qtcodecsettings.codecTemporalQuality = (qtdata->gTemporalSettings.temporalQuality * 100) / codecLosslessQuality;
+		//Do not override scene frame rate (qtdata->gTemporalSettings.framerate)
+		rd->qtcodecsettings.keyFrameRate = qtdata->gTemporalSettings.keyFrameRate;
+		
+		rd->qtcodecsettings.codecType = qtdata->gSpatialSettings.codecType;
+		rd->qtcodecsettings.codec = (int)qtdata->gSpatialSettings.codec;
+		rd->qtcodecsettings.colorDepth = qtdata->gSpatialSettings.depth;
+		rd->qtcodecsettings.codecSpatialQuality = (qtdata->gSpatialSettings.spatialQuality * 100) / codecLosslessQuality;
+		
+		rd->qtcodecsettings.bitRate = qtdata->aDataRateSetting.dataRate;
+		rd->qtcodecsettings.minSpatialQuality = (qtdata->aDataRateSetting.minSpatialQuality * 100) / codecLosslessQuality;
+		rd->qtcodecsettings.minTemporalQuality = (qtdata->aDataRateSetting.minTemporalQuality * 100) / codecLosslessQuality;
+		//Frame duration is already known (qtdata->aDataRateSetting.frameDuration)
+		
 	} else {
-		printf("Quicktime: QT_GetCodecSettingsFromScene failed\n"); 
+		BKE_reportf(reports, RPT_ERROR, "Quicktime: QT_GetCodecSettingsFromScene failed\n"); 
 	}
 bail:
 	if (myHandle != NULL)
@@ -249,7 +320,7 @@ static OSErr QT_AddUserDataTextToMovie (Movie theMovie, char *theText, OSType th
 }
 
 
-static void QT_CreateMyVideoTrack(int rectx, int recty)
+static void QT_CreateMyVideoTrack(int rectx, int recty, ReportList *reports)
 {
 	OSErr err = noErr;
 	Rect trackFrame;
@@ -264,7 +335,7 @@ static void QT_CreateMyVideoTrack(int rectx, int recty)
 							FixRatio(trackFrame.right,1),
 							FixRatio(trackFrame.bottom,1), 
 							0);
-	CheckError( GetMoviesError(), "NewMovieTrack error" );
+	CheckError( GetMoviesError(), "NewMovieTrack error", reports );
 
 //	SetIdentityMatrix(&myMatrix);
 //	ScaleMatrix(&myMatrix, fixed1, Long2Fix(-1), 0, 0);
@@ -276,34 +347,34 @@ static void QT_CreateMyVideoTrack(int rectx, int recty)
 							qtdata->kVideoTimeScale,
 							nil,
 							0);
-	CheckError( GetMoviesError(), "NewTrackMedia error" );
+	CheckError( GetMoviesError(), "NewTrackMedia error", reports );
 
 	err = BeginMediaEdits (qtexport->theMedia);
-	CheckError( err, "BeginMediaEdits error" );
+	CheckError( err, "BeginMediaEdits error", reports );
 
-	QT_StartAddVideoSamplesToMedia (&trackFrame, rectx, recty);
+	QT_StartAddVideoSamplesToMedia (&trackFrame, rectx, recty, reports);
 } 
 
 
-static void QT_EndCreateMyVideoTrack(void)
+static void QT_EndCreateMyVideoTrack(ReportList *reports)
 {
 	OSErr err = noErr;
 
 	QT_EndAddVideoSamplesToMedia ();
 
 	err = EndMediaEdits (qtexport->theMedia);
-	CheckError( err, "EndMediaEdits error" );
+	CheckError( err, "EndMediaEdits error", reports );
 
 	err = InsertMediaIntoTrack (qtexport->theTrack,
 								kTrackStart,/* track start time */
 								kMediaStart,/* media start time */
 								GetMediaDuration (qtexport->theMedia),
 								fixed1);
-	CheckError( err, "InsertMediaIntoTrack error" );
+	CheckError( err, "InsertMediaIntoTrack error", reports );
 } 
 
 
-static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, int recty)
+static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, int recty, ReportList *reports)
 {
 	SCTemporalSettings gTemporalSettings;
 	OSErr err = noErr;
@@ -317,7 +388,7 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, i
 							NULL, NULL, 0,
 							(Ptr)qtexport->ibuf->rect,
 							rectx * 4 );
-	CheckError (err, "NewGWorldFromPtr error");
+	CheckError (err, "NewGWorldFromPtr error", reports);
 
 	qtexport->thePixMap = GetGWorldPixMap(qtexport->theGWorld);
 	LockPixels(qtexport->thePixMap);
@@ -330,7 +401,7 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, i
 	gTemporalSettings = qtdata->gTemporalSettings;
 	if(qtdata->gSpatialSettings.codecType == kH264CodecType) {
 		if(gTemporalSettings.temporalQuality != codecMinQuality) {
-			fprintf(stderr, "Only minimum quality compression supported for QuickTime H.264.\n");
+			BKE_reportf(reports, RPT_WARNING, "Only minimum quality compression supported for QuickTime H.264.\n");
 			gTemporalSettings.temporalQuality = codecMinQuality;
 		}
 	}
@@ -340,11 +411,11 @@ static void QT_StartAddVideoSamplesToMedia (const Rect *trackFrame, int rectx, i
 	SCSetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
 
 	err = SCCompressSequenceBegin(qtdata->theComponent, qtexport->thePixMap, NULL, &qtexport->anImageDescription); 
-	CheckError (err, "SCCompressSequenceBegin error" );
+	CheckError (err, "SCCompressSequenceBegin error", reports );
 }
 
 
-static void QT_DoAddVideoSamplesToMedia (int frame, int *pixels, int rectx, int recty)
+static void QT_DoAddVideoSamplesToMedia (int frame, int *pixels, int rectx, int recty, ReportList *reports)
 {
 	OSErr	err = noErr;
 	Rect	imageRect;
@@ -386,7 +457,7 @@ static void QT_DoAddVideoSamplesToMedia (int frame, int *pixels, int rectx, int 
 		&compressedData,
 		&dataSize,
 		&syncFlag);
-	CheckError(err, "SCCompressSequenceFrame error");
+	CheckError(err, "SCCompressSequenceFrame error", reports);
 
 	err = AddMediaSample(qtexport->theMedia,
 		compressedData,
@@ -397,9 +468,7 @@ static void QT_DoAddVideoSamplesToMedia (int frame, int *pixels, int rectx, int 
 		1,
 		syncFlag,
 		NULL);
-	CheckError(err, "AddMediaSample error");
-
-	printf ("added frame %3d (frame %3d in movie): ", frame, frame-sframe);
+	CheckError(err, "AddMediaSample error", reports);
 }
 
 
@@ -436,7 +505,7 @@ void makeqtstring (RenderData *rd, char *string) {
 }
 
 
-void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty) {
+int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, ReportList *reports) {
 	OSErr err = noErr;
 
 	char name[2048];
@@ -448,6 +517,7 @@ void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty) 
 #else
 	char	*qtname;
 #endif
+	int success= 1;
 
 	if(qtexport == NULL) qtexport = MEM_callocN(sizeof(QuicktimeExport), "QuicktimeExport");
 
@@ -459,66 +529,71 @@ void start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty) 
 	qtdata = MEM_callocN(sizeof(QuicktimeComponentData), "QuicktimeCodecDataExt");
 
 	if(rd->qtcodecdata == NULL || rd->qtcodecdata->cdParms == NULL) {
-		get_qtcodec_settings(rd);
+		get_qtcodec_settings(rd, reports);
 	} else {
 		qtdata->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
 
-		QT_GetCodecSettingsFromScene(rd);
-		check_renderbutton_framerate(rd);
+		QT_GetCodecSettingsFromScene(rd, reports);
+		check_renderbutton_framerate(rd, reports);
 	}
 	
-	if (G.afbreek != 1) {
-		sframe = (rd->sfra);
+	sframe = (rd->sfra);
 
-		makeqtstring(rd, name);
+	makeqtstring(rd, name);
 
 #ifdef __APPLE__
-		sprintf(theFullPath, "%s", name);
+	EnterMoviesOnThread(0);
+	sprintf(theFullPath, "%s", name);
 
-		/* hack: create an empty file to make FSPathMakeRef() happy */
-		myFile = open(theFullPath, O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRUSR|S_IWUSR);
-		if (myFile < 0) {
-			printf("error while creating file!\n");
-			/* do something? */
-		}
-		close(myFile);
-		err = FSPathMakeRef((const UInt8 *)theFullPath, &myRef, 0);
-		CheckError(err, "FsPathMakeRef error");
-		err = FSGetCatalogInfo(&myRef, kFSCatInfoNone, NULL, NULL, &qtexport->theSpec, NULL);
-		CheckError(err, "FsGetCatalogInfoRef error");
+	/* hack: create an empty file to make FSPathMakeRef() happy */
+	myFile = open(theFullPath, O_CREAT|O_TRUNC, S_IRUSR|S_IWUSR|S_IRUSR|S_IWUSR);
+	if (myFile < 0) {
+		BKE_reportf(reports, RPT_ERROR, "error while creating movie file!\n");
+		/* do something? */
+	}
+	close(myFile);
+	err = FSPathMakeRef((const UInt8 *)theFullPath, &myRef, 0);
+	CheckError(err, "FsPathMakeRef error", reports);
+	err = FSGetCatalogInfo(&myRef, kFSCatInfoNone, NULL, NULL, &qtexport->theSpec, NULL);
+	CheckError(err, "FsGetCatalogInfoRef error", reports);
 #endif
 #ifdef _WIN32
-		qtname = get_valid_qtname(name);
-		sprintf(theFullPath, "%s", qtname);
-		strcpy(name, qtname);
-		MEM_freeN(qtname);
-		
-		CopyCStringToPascal(theFullPath, qtexport->qtfilename);
-		err = FSMakeFSSpec(0, 0L, qtexport->qtfilename, &qtexport->theSpec);
+	qtname = get_valid_qtname(name);
+	sprintf(theFullPath, "%s", qtname);
+	strcpy(name, qtname);
+	MEM_freeN(qtname);
+	
+	CopyCStringToPascal(theFullPath, qtexport->qtfilename);
+	err = FSMakeFSSpec(0, 0L, qtexport->qtfilename, &qtexport->theSpec);
 #endif
 
-		err = CreateMovieFile (&qtexport->theSpec, 
-							kMyCreatorType,
-							smCurrentScript, 
-							createMovieFileDeleteCurFile | createMovieFileDontCreateResFile,
-							&qtexport->resRefNum, 
-							&qtexport->theMovie );
-		CheckError(err, "CreateMovieFile error");
+	err = CreateMovieFile (&qtexport->theSpec, 
+						kMyCreatorType,
+						smCurrentScript, 
+						createMovieFileDeleteCurFile | createMovieFileDontCreateResFile,
+						&qtexport->resRefNum, 
+						&qtexport->theMovie );
+	CheckError(err, "CreateMovieFile error", reports);
 
-		if(err != noErr) {
-			G.afbreek = 1;
-// XXX			error("Unable to create Quicktime movie: %s", name);
-		} else {
-			printf("Created QuickTime movie: %s\n", name);
+	if(err != noErr) {
+		BKE_reportf(reports, RPT_ERROR, "Unable to create Quicktime movie: %s", name);
+		success= 0;
+#ifdef __APPLE__
+		ExitMoviesOnThread();
+#endif
+	} else {
+		//printf("Created QuickTime movie: %s\n", name);
 
-			QT_CreateMyVideoTrack(rectx, recty);
-		}
+		QT_CreateMyVideoTrack(rectx, recty, reports);
 	}
+
+	return success;
 }
 
 
-void append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty) {
-	QT_DoAddVideoSamplesToMedia(frame, pixels, rectx, recty);
+int append_qt(struct RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports) {
+	QT_DoAddVideoSamplesToMedia(frame, pixels, rectx, recty, reports);
+	return 1;
 }
 
 
@@ -527,24 +602,26 @@ void end_qt(void) {
 	short resId = movieInDataForkResID;
 
 	if(qtexport->theMovie) {
-		QT_EndCreateMyVideoTrack();
+		QT_EndCreateMyVideoTrack(NULL);
 
 		err = AddMovieResource (qtexport->theMovie, qtexport->resRefNum, &resId, qtexport->qtfilename);
-		CheckError(err, "AddMovieResource error");
+		CheckError(err, "AddMovieResource error", NULL);
 
 		err = QT_AddUserDataTextToMovie(qtexport->theMovie, "Made with Blender", kUserDataTextInformation);
-		CheckError(err, "AddUserDataTextToMovie error");
+		CheckError(err, "AddUserDataTextToMovie error", NULL);
 
 		err = UpdateMovieResource(qtexport->theMovie, qtexport->resRefNum, resId, qtexport->qtfilename);
-		CheckError(err, "UpdateMovieResource error");
+		CheckError(err, "UpdateMovieResource error", NULL);
 
 		if(qtexport->resRefNum) CloseMovieFile(qtexport->resRefNum);
 
 		DisposeMovie(qtexport->theMovie);
 
-		printf("Finished QuickTime movie.\n");
+		//printf("Finished QuickTime movie.\n");
 	}
 
+	ExitMoviesOnThread();
+	
 	if(qtexport) {
 		MEM_freeN(qtexport);
 		qtexport = NULL;
@@ -561,13 +638,13 @@ void free_qtcomponentdata(void) {
 }
 
 
-static void check_renderbutton_framerate(RenderData *rd) 
+static void check_renderbutton_framerate(RenderData *rd, ReportList *reports) 
 {
 	// to keep float framerates consistent between the codec dialog and frs/sec button.
 	OSErr	err;	
 
 	err = SCGetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
-	CheckError(err, "SCGetInfo fr error");
+	CheckError(err, "SCGetInfo fr error", reports);
 
 	if( (rd->frs_sec == 24 || rd->frs_sec == 30 || rd->frs_sec == 60) &&
 		(qtdata->gTemporalSettings.frameRate == 1571553 ||
@@ -576,11 +653,11 @@ static void check_renderbutton_framerate(RenderData *rd)
 	else {
 		if (rd->frs_sec_base > 0)
 			qtdata->gTemporalSettings.frameRate = 
-			(rd->frs_sec << 16) / rd->frs_sec_base ;
+			((float)(rd->frs_sec << 16) / rd->frs_sec_base) ;
 	}
 	
 	err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
-	CheckError( err, "SCSetInfo error" );
+	CheckError( err, "SCSetInfo error", reports );
 
 	if(qtdata->gTemporalSettings.frameRate == 1571553) {			// 23.98 fps
 		qtdata->kVideoTimeScale = 24000;
@@ -600,21 +677,24 @@ static void check_renderbutton_framerate(RenderData *rd)
 void quicktime_verify_image_type(RenderData *rd)
 {
 	if (rd->imtype == R_QUICKTIME) {
-		if ((rd->qtcodecsettings.codecType<= 0) ||
+		if ((rd->qtcodecsettings.codecType== 0) ||
 			(rd->qtcodecsettings.codecSpatialQuality <0) ||
 			(rd->qtcodecsettings.codecSpatialQuality > 100)) {
 			
-			rd->qtcodecsettings.codecType = QT_CODECTYPE_JPEG;
+			rd->qtcodecsettings.codecType = kJPEGCodecType;
+			rd->qtcodecsettings.codec = (int)anyCodec;
 			rd->qtcodecsettings.codecSpatialQuality = (codecHighQuality*100)/codecLosslessQuality;
+			rd->qtcodecsettings.codecTemporalQuality = (codecHighQuality*100)/codecLosslessQuality;
+			rd->qtcodecsettings.keyFrameRate = 25;
+			rd->qtcodecsettings.bitRate = 5000000; //5 Mbps
 		}
 	}
 }
 
-int get_qtcodec_settings(RenderData *rd) 
+int get_qtcodec_settings(RenderData *rd, ReportList *reports) 
 {
-	OSErr	err = noErr;
-
-	// erase any existing codecsetting
+	OSErr err = noErr;
+		// erase any existing codecsetting
 	if(qtdata) {
 		if(qtdata->theComponent) CloseComponent(qtdata->theComponent);
 		free_qtcomponentdata();
@@ -624,46 +704,114 @@ int get_qtcodec_settings(RenderData *rd)
 	qtdata = MEM_callocN(sizeof(QuicktimeComponentData), "QuicktimeComponentData");
 	qtdata->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
 
-	// get previous selected codecsetting, if any 
+	// get previous selected codecsetting, from qtatom or detailed settings
 	if(rd->qtcodecdata && rd->qtcodecdata->cdParms) {
-		QT_GetCodecSettingsFromScene(rd);
-		check_renderbutton_framerate(rd);
+		QT_GetCodecSettingsFromScene(rd, reports);
 	} else {
-		// configure the standard image compression dialog box
-		// set some default settings: codec=jpeg, quality = max
-		qtdata->gSpatialSettings.codecType = kJPEGCodecType;
-		qtdata->gSpatialSettings.codec = anyCodec;         
-		qtdata->gSpatialSettings.spatialQuality = codecHighQuality;
-		qtdata->gTemporalSettings.temporalQuality = codecHighQuality;
-		qtdata->gTemporalSettings.keyFrameRate = 25;   
-		qtdata->aDataRateSetting.dataRate = 5 * 1024 * 1024;          
+		SCGetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
+		SCGetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
+		SCGetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
 
+		qtdata->gSpatialSettings.codecType = rd->qtcodecsettings.codecType;
+		qtdata->gSpatialSettings.codec = (CodecComponent)rd->qtcodecsettings.codec;      
+		qtdata->gSpatialSettings.spatialQuality = (rd->qtcodecsettings.codecSpatialQuality * codecLosslessQuality) /100;
+		qtdata->gTemporalSettings.temporalQuality = (rd->qtcodecsettings.codecTemporalQuality * codecLosslessQuality) /100;
+		qtdata->gTemporalSettings.keyFrameRate = rd->qtcodecsettings.keyFrameRate;   
+		qtdata->aDataRateSetting.dataRate = rd->qtcodecsettings.bitRate;
+		qtdata->gSpatialSettings.depth = rd->qtcodecsettings.colorDepth;
+		qtdata->aDataRateSetting.minSpatialQuality = (rd->qtcodecsettings.minSpatialQuality * codecLosslessQuality) / 100;
+		qtdata->aDataRateSetting.minTemporalQuality = (rd->qtcodecsettings.minTemporalQuality * codecLosslessQuality) / 100;
+		
+		qtdata->aDataRateSetting.frameDuration = rd->frs_sec;
+		SetMovieTimeScale(qtexport->theMovie, rd->frs_sec_base*1000);
+		
+		
 		err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
-		CheckError(err, "SCSetInfo1 error");
+		CheckError(err, "SCSetInfo1 error", reports);
 		err = SCSetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
-		CheckError(err, "SCSetInfo2 error");
+		CheckError(err, "SCSetInfo2 error", reports);
 		err = SCSetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
-		CheckError(err, "SCSetInfo3 error");
+		CheckError(err, "SCSetInfo3 error", reports);
 	}
 
-	check_renderbutton_framerate(rd);
+	check_renderbutton_framerate(rd, reports);
+	
+	return err;
+}
 
-	/* Remove this dialog box pop up as this function is called from the render thread
-	 Anyway, all config should be done inside blender ui before starting render.
-	// put up the dialog box - it needs to be called from the main thread
+static int request_qtcodec_settings(bContext *C, wmOperator *op)
+{
+	OSErr	err = noErr;
+	Scene *scene = CTX_data_scene(C);
+	RenderData *rd = &scene->r;
+
+	// erase any existing codecsetting
+	if(qtdata) {
+		if(qtdata->theComponent) CloseComponent(qtdata->theComponent);
+		free_qtcomponentdata();
+	}
+	
+	// allocate new
+	qtdata = MEM_callocN(sizeof(QuicktimeComponentData), "QuicktimeComponentData");
+	qtdata->theComponent = OpenDefaultComponent(StandardCompressionType, StandardCompressionSubType);
+	
+	// get previous selected codecsetting, from qtatom or detailed settings
+	if(rd->qtcodecdata && rd->qtcodecdata->cdParms) {
+		QT_GetCodecSettingsFromScene(rd, op->reports);
+	} else {
+		SCGetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
+		SCGetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
+		SCGetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
+		
+		qtdata->gSpatialSettings.codecType = rd->qtcodecsettings.codecType;
+		qtdata->gSpatialSettings.codec = (CodecComponent)rd->qtcodecsettings.codec;      
+		qtdata->gSpatialSettings.spatialQuality = (rd->qtcodecsettings.codecSpatialQuality * codecLosslessQuality) /100;
+		qtdata->gTemporalSettings.temporalQuality = (rd->qtcodecsettings.codecTemporalQuality * codecLosslessQuality) /100;
+		qtdata->gTemporalSettings.keyFrameRate = rd->qtcodecsettings.keyFrameRate;
+		qtdata->gTemporalSettings.frameRate = ((float)(rd->frs_sec << 16) / rd->frs_sec_base);
+		qtdata->aDataRateSetting.dataRate = rd->qtcodecsettings.bitRate;
+		qtdata->gSpatialSettings.depth = rd->qtcodecsettings.colorDepth;
+		qtdata->aDataRateSetting.minSpatialQuality = (rd->qtcodecsettings.minSpatialQuality * codecLosslessQuality) / 100;
+		qtdata->aDataRateSetting.minTemporalQuality = (rd->qtcodecsettings.minTemporalQuality * codecLosslessQuality) / 100;
+		
+		qtdata->aDataRateSetting.frameDuration = rd->frs_sec;		
+		
+		err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
+		CheckError(err, "SCSetInfo1 error", op->reports);
+		err = SCSetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
+		CheckError(err, "SCSetInfo2 error", op->reports);
+		err = SCSetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
+		CheckError(err, "SCSetInfo3 error", op->reports);
+	}
+		// put up the dialog box - it needs to be called from the main thread
 	err = SCRequestSequenceSettings(qtdata->theComponent);
  
 	if (err == scUserCancelled) {
-		G.afbreek = 1;
-		return 0;
+		return OPERATOR_FINISHED;
 	}
 
-	// get user selected data
-	SCGetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
+		// update runtime codecsettings for use with the codec dialog
+	SCGetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);
 	SCGetInfo(qtdata->theComponent, scSpatialSettingsType,	&qtdata->gSpatialSettings);
-	SCGetInfo(qtdata->theComponent, scDataRateSettingsType,	&qtdata->aDataRateSetting);*/
-
-	QT_SaveCodecSettingsToScene(rd);
+	SCGetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
+	
+	
+		//Fill the render QuicktimeCodecSettings struct
+	rd->qtcodecsettings.codecTemporalQuality = (qtdata->gTemporalSettings.temporalQuality * 100) / codecLosslessQuality;
+		//Do not override scene frame rate (qtdata->gTemporalSettings.framerate)
+	rd->qtcodecsettings.keyFrameRate = qtdata->gTemporalSettings.keyFrameRate;
+	
+	rd->qtcodecsettings.codecType = qtdata->gSpatialSettings.codecType;
+	rd->qtcodecsettings.codec = (int)qtdata->gSpatialSettings.codec;
+	rd->qtcodecsettings.colorDepth = qtdata->gSpatialSettings.depth;
+	rd->qtcodecsettings.codecSpatialQuality = (qtdata->gSpatialSettings.spatialQuality * 100) / codecLosslessQuality;
+	
+	rd->qtcodecsettings.bitRate = qtdata->aDataRateSetting.dataRate;
+	rd->qtcodecsettings.minSpatialQuality = (qtdata->aDataRateSetting.minSpatialQuality * 100) / codecLosslessQuality;
+	rd->qtcodecsettings.minTemporalQuality = (qtdata->aDataRateSetting.minTemporalQuality * 100) / codecLosslessQuality;
+		//Frame duration is already known (qtdata->aDataRateSetting.frameDuration)
+	
+	QT_SaveCodecSettingsToScene(rd, op->reports);
 
 	// framerate jugglin'
 	if(qtdata->gTemporalSettings.frameRate == 1571553) {			// 23.98 fps
@@ -692,17 +840,54 @@ int get_qtcodec_settings(RenderData *rd)
 
 		if ((qtdata->gTemporalSettings.frameRate & 0xffff) == 0) {
 			rd->frs_sec = fps / 65536;
-			rd->frs_sec_base = 1;
+			rd->frs_sec_base = 1.0;
 		} else {
 			/* we do our very best... */
-			rd->frs_sec = (fps * 10000 / 65536);
-			rd->frs_sec_base = 10000;
+			rd->frs_sec = fps  / 65536;
+			rd->frs_sec_base = 1.0;
 		}
 	}
 
-	return 1;
+	return OPERATOR_FINISHED;
 }
 
+static int ED_operator_setqtcodec(bContext *C)
+{
+	return G.have_quicktime != FALSE;
+}
+
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+//Need to set up a Cocoa NSAutoReleasePool to avoid memory leak
+//And it must be done in an objC file, so use a GHOST_SystemCocoa.mm function for that
+extern int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op);
+
+int fromcocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
+{
+	return request_qtcodec_settings(C, op);
+}
+#endif
+
+
+void SCENE_OT_render_data_set_quicktime_codec(wmOperatorType *ot)
+{
+	/* identifiers */
+    ot->name= "Change codec";
+    ot->description= "Change Quicktime codec Settings";
+    ot->idname= "SCENE_OT_render_data_set_quicktime_codec";
+	
+    /* api callbacks */
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+	ot->exec = cocoa_request_qtcodec_settings;
+#else
+    ot->exec= request_qtcodec_settings;
+#endif
+    ot->poll= ED_operator_setqtcodec;
+	
+    /* flags */
+    ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+#endif /* USE_QTKIT */
 #endif /* _WIN32 || __APPLE__ */
 #endif /* WITH_QUICKTIME */
 

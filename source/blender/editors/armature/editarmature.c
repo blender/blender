@@ -1139,7 +1139,7 @@ static int separate_armature_exec (bContext *C, wmOperator *op)
 void ARMATURE_OT_separate (wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Separate Armature";
+	ot->name= "Separate Bones";
 	ot->idname= "ARMATURE_OT_separate";
 	ot->description= "Isolate selected bones into a separate armature.";
 	
@@ -2026,7 +2026,7 @@ float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3])
 
 
 /* Set roll value for given bone -> Z-Axis Point up (original method) */
-void auto_align_ebone_zaxisup(Scene *scene, View3D *v3d, EditBone *ebone)
+static void auto_align_ebone_zaxisup(Scene *scene, View3D *v3d, EditBone *ebone)
 {
 	float	delta[3], curmat[3][3];
 	float	xaxis[3]={1.0f, 0.0f, 0.0f}, yaxis[3], zaxis[3]={0.0f, 0.0f, 1.0f};
@@ -2054,16 +2054,13 @@ void auto_align_ebone_zaxisup(Scene *scene, View3D *v3d, EditBone *ebone)
 	mat3_to_vec_roll(diffmat, delta, &ebone->roll);
 }
 
-/* Set roll value for given bone -> Z-Axis point towards cursor */
-void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
+void auto_align_ebone_topoint(EditBone *ebone, float *cursor)
 {
-	Object *obedit= scene->obedit; // XXX get from context
-	float  	*cursor= give_cursor(scene, v3d);
 	float	delta[3], curmat[3][3];
 	float	mat[4][4], tmat[4][4], imat[4][4];
 	float 	rmat[4][4], rot[3];
 	float	vec[3];
-	
+
 	/* find the current bone matrix as a 4x4 matrix (in Armature Space) */
 	sub_v3_v3v3(delta, ebone->tail, ebone->head);
 	vec_roll_to_mat3(delta, ebone->roll, curmat);
@@ -2071,8 +2068,7 @@ void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
 	VECCOPY(mat[3], ebone->head);
 	
 	/* multiply bone-matrix by object matrix (so that bone-matrix is in WorldSpace) */
-	mul_m4_m4m4(tmat, mat, obedit->obmat);
-	invert_m4_m4(imat, tmat);
+	invert_m4_m4(imat, mat);
 	
 	/* find position of cursor relative to bone */
 	mul_v3_m4v3(vec, imat, cursor);
@@ -2093,6 +2089,18 @@ void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
 	}
 }
 
+static void auto_align_ebone_tocursor(Scene *scene, View3D *v3d, EditBone *ebone)
+{
+	float cursor_local[3];
+	float  	*cursor= give_cursor(scene, v3d);
+	float imat[3][3];
+
+	copy_m3_m4(imat, scene->obedit->obmat);
+	invert_m3(imat);
+	copy_v3_v3(cursor_local, cursor);
+	mul_m3_v3(imat, cursor_local);
+	auto_align_ebone_topoint(ebone, cursor_local);
+}
 
 static EnumPropertyItem prop_calc_roll_types[] = {
 	{0, "GLOBALUP", 0, "Z-Axis Up", ""},
@@ -3573,7 +3581,7 @@ void ARMATURE_OT_subdivide_multi(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* Properties */
-	RNA_def_int(ot->srna, "number_cuts", 2, 1, 10, "Number of Cuts", "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "number_cuts", 2, 1, INT_MAX, "Number of Cuts", "", 1, 10);
 }
 
 
@@ -3631,7 +3639,7 @@ void ARMATURE_OT_subdivs(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 	
 	/* this is temp, the ops are different, but they are called from subdivs, so all the possible props should be here as well*/
-	RNA_def_int(ot->srna, "number_cuts", 2, 1, 10, "Number of Cuts", "", 1, INT_MAX); 
+	RNA_def_int(ot->srna, "number_cuts", 2, 1, INT_MAX, "Number of Cuts", "", 1, 10); 
 }
 
 /* ----------- */
@@ -3993,25 +4001,38 @@ void ARMATURE_OT_select_inverse(wmOperatorType *ot)
 }
 static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 {
-	int	sel=1;
+	int action = RNA_enum_get(op->ptr, "action");
 
-	/*	Determine if there are any selected bones
-	And therefore whether we are selecting or deselecting */
-	if (CTX_DATA_COUNT(C, selected_bones) > 0)	sel=0;
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		/*	Determine if there are any selected bones
+		And therefore whether we are selecting or deselecting */
+		if (CTX_DATA_COUNT(C, selected_bones) > 0)
+			action = SEL_DESELECT;
+	}
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, EditBone *, ebone, visible_bones) {
 		/* ignore bone if selection can't change */
 		if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
-			if (sel==1) {
-				/* select bone */
+			switch (action) {
+			case SEL_SELECT:
 				ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 				if(ebone->parent)
 					ebone->parent->flag |= (BONE_TIPSEL);
-			}
-			else {
-				/* deselect bone */
+				break;
+			case SEL_DESELECT:
 				ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				break;
+			case SEL_INVERT:
+				if (ebone->flag & BONE_SELECTED) {
+					ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+				} else {
+					ebone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+					if(ebone->parent)
+						ebone->parent->flag |= (BONE_TIPSEL);
+				}
+				break;
 			}
 		}
 	}
@@ -4022,12 +4043,12 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_select_all_toggle(wmOperatorType *ot)
+void ARMATURE_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "deselect all editbone";
-	ot->idname= "ARMATURE_OT_select_all_toggle";
+	ot->idname= "ARMATURE_OT_select_all";
 	
 	/* api callbacks */
 	ot->exec= armature_de_select_all_exec;
@@ -4036,6 +4057,7 @@ void ARMATURE_OT_select_all_toggle(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
+	WM_operator_properties_select_all(ot);
 }
 
 /* ********************* select hierarchy operator ************** */
@@ -5077,20 +5099,35 @@ void POSE_OT_select_inverse(wmOperatorType *ot)
 }
 static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 {
-	int	sel=1;
+	int action = RNA_enum_get(op->ptr, "action");
 
-	/* Determine if there are any selected bones and therefore whether we are selecting or deselecting */
-	// NOTE: we have to check for > 1 not > 0, since there is almost always an active bone that can't be cleared...
-	if (CTX_DATA_COUNT(C, selected_pose_bones) > 1)	sel=0;
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		/* Determine if there are any selected bones and therefore whether we are selecting or deselecting */
+		// NOTE: we have to check for > 1 not > 0, since there is almost always an active bone that can't be cleared...
+		if (CTX_DATA_COUNT(C, selected_pose_bones) > 1)
+			action = SEL_DESELECT;
+	}
 	
 	/*	Set the flags */
 	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) {
 		/* select pchan only if selectable, but deselect works always */
-		if (sel==0) {
+		switch (action) {
+		case SEL_SELECT:
+			if ((pchan->bone->flag & BONE_UNSELECTABLE)==0)
+				pchan->bone->flag |= BONE_SELECTED;
+			break;
+		case SEL_DESELECT:
 			pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			break;
+		case SEL_INVERT:
+			if (pchan->bone->flag & BONE_SELECTED) {
+				pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+			} else if ((pchan->bone->flag & BONE_UNSELECTABLE)==0) {
+					pchan->bone->flag |= BONE_SELECTED;
+			}
+			break;
 		}
-		else if ((pchan->bone->flag & BONE_UNSELECTABLE)==0)
-			pchan->bone->flag |= BONE_SELECTED;
 	}
 	CTX_DATA_END;
 
@@ -5099,12 +5136,12 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_select_all_toggle(wmOperatorType *ot)
+void POSE_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "deselect all bones";
-	ot->idname= "POSE_OT_select_all_toggle";
+	ot->idname= "POSE_OT_select_all";
 	
 	/* api callbacks */
 	ot->exec= pose_de_select_all_exec;
@@ -5113,6 +5150,7 @@ void POSE_OT_select_all_toggle(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
+	WM_operator_properties_select_all(ot);
 }
 
 static int pose_select_parent_exec(bContext *C, wmOperator *op)
@@ -5747,7 +5785,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	}
 	
 	dst = add_object(scene, OB_ARMATURE);
-	ED_object_base_init_from_view(NULL, scene->basact); 	// XXX NULL is C
+	ED_object_base_init_transform(NULL, scene->basact, NULL, NULL); 	// XXX NULL is C, loc, rot
 	obedit= scene->basact->object;
 	
 	/* Copy orientation from source */

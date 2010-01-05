@@ -60,6 +60,7 @@ extern EnumPropertyItem nla_mode_blend_items[];
 
 extern EnumPropertyItem event_value_items[];
 extern EnumPropertyItem event_type_items[];
+extern EnumPropertyItem operator_return_items[];
 
 extern EnumPropertyItem brush_sculpt_tool_items[];
 
@@ -70,6 +71,8 @@ extern EnumPropertyItem object_type_items[];
 extern EnumPropertyItem space_type_items[];
 
 extern EnumPropertyItem keymap_propvalue_items[];
+
+extern EnumPropertyItem wm_report_items[];
 
 struct bContext;
 struct PointerRNA;

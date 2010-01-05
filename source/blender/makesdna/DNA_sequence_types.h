@@ -183,8 +183,8 @@ typedef struct MetaStack {
 } MetaStack;
 
 typedef struct Editing {
-	ListBase *seqbasep;
-	ListBase seqbase;
+	ListBase *seqbasep; /* pointer to the current list of seq's being edited (can be within a meta strip) */
+	ListBase seqbase;	/* pointer to the top-most seq's */
 	ListBase metastack;
 	
 	/* Context vars, used to be static */
@@ -211,16 +211,17 @@ typedef struct GlowVars {
 typedef struct TransformVars {
 	float ScalexIni;
 	float ScaleyIni;
-	float ScalexFin;
-	float ScaleyFin;
+	float ScalexFin; /* deprecated - old transform strip */
+	float ScaleyFin; /* deprecated - old transform strip */
 	float xIni;
-	float xFin;
+	float xFin; /* deprecated - old transform strip */
 	float yIni;
-	float yFin;
+	float yFin; /* deprecated - old transform strip */
 	float rotIni;
-	float rotFin;
+	float rotFin; /* deprecated - old transform strip */
 	int percent;
 	int interpolation;
+	int uniform_scale; /* preserve aspect/ratio when scaling */
 } TransformVars;
 
 typedef struct SolidColorVars {
@@ -268,6 +269,7 @@ typedef struct SpeedControlVars {
 #define SEQ_USE_COLOR_BALANCE                  262144
 #define SEQ_USE_PROXY_CUSTOM_DIR               524288
 #define SEQ_USE_PROXY_CUSTOM_FILE             2097152
+#define SEQ_USE_EFFECT_DEFAULT_FADE           4194304
 
 /* deprecated, dont use a flag anymore*/
 /*#define SEQ_ACTIVE                            1048576*/

@@ -153,7 +153,7 @@ typedef struct ShadeInput
 	float dxstrand, dystrand;
 	
 	/* AO is a pre-process now */
-	float ao[3];
+	float ao[3], indirect[3];
 	
 	int xs, ys;				/* pixel to be rendered */
 	int mask;				/* subsample mask */
@@ -197,7 +197,7 @@ struct Image;
 struct Object;
 
 void RE_shade_external(struct Render *re, struct ShadeInput *shi, struct ShadeResult *shr);
-int RE_bake_shade_all_selected(struct Render *re, int type, struct Object *actob);
+int RE_bake_shade_all_selected(struct Render *re, int type, struct Object *actob, short *do_update);
 struct Image *RE_bake_shade_get_image(void);
 
 #endif /* RE_SHADER_EXT_H */

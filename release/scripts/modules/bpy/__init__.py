@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 # internal blender C module
 import _bpy
 from _bpy import types, props
@@ -25,51 +27,69 @@ context = _bpy.context
 
 # python modules
 from bpy import utils
+from bpy import app
 
 from bpy import ops as _ops_module
 
 # fake operator module
 ops = _ops_module.ops_fake_module
 
+import sys
+DEBUG = ("-d" in sys.argv)
+
+
 def load_scripts(reload_scripts=False):
     import os
-    import sys
     import traceback
+    import time
+
+
+    t_main = time.time()
 
     def test_import(module_name):
         try:
-            return __import__(module_name)
+            t = time.time()
+            ret = __import__(module_name)
+            if DEBUG:
+                print("time %s %.4f" % (module_name, time.time() - t))
+            return ret
         except:
             traceback.print_exc()
             return None
 
+
     for base_path in utils.script_paths():
         for path_subdir in ("ui", "op", "io"):
             path = os.path.join(base_path, path_subdir)
-            sys.path.insert(0, path)
-            for f in sorted(os.listdir(path)):
-                if f.endswith(".py"):
-                    # python module
-                    mod = test_import(f[0:-3])
-                elif "." not in f:
-                    # python package
-                    mod = test_import(f)
-                else:
-                    mod = None
+            if os.path.isdir(path):
+                sys.path.insert(0, path)
+                for f in sorted(os.listdir(path)):
+                    if f.endswith(".py"):
+                        # python module
+                        mod = test_import(f[0:-3])
+                    elif "." not in f:
+                        # python package
+                        mod = test_import(f)
+                    else:
+                        mod = None
 
-                if reload_scripts and mod:
-                    print("Reloading:", mod)
-                    reload(mod)
+                    if reload_scripts and mod:
+                        print("Reloading:", mod)
+                        reload(mod)
+
+    if DEBUG:
+        print("Time %.4f" % (time.time() - t_main))
+
 
 def _main():
 
     # a bit nasty but this prevents help() and input() from locking blender
     # Ideally we could have some way for the console to replace sys.stdin but
     # python would lock blender while waiting for a return value, not easy :|
-    import sys
     sys.stdin = None
 
-    if "-d" in sys.argv and False: # Enable this to measure startup speed
+    # if "-d" in sys.argv: # Enable this to measure startup speed
+    if 0:
         import cProfile
         cProfile.run('import bpy; bpy.load_scripts()', 'blender.prof')
 
@@ -80,6 +100,5 @@ def _main():
     else:
         load_scripts()
 
+
 _main()
-
-

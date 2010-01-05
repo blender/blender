@@ -29,20 +29,20 @@
 #include <cstring>
 
 AUD_ChannelMapperFactory::AUD_ChannelMapperFactory(AUD_IReader* reader,
-										   AUD_Specs specs) :
+												   AUD_DeviceSpecs specs) :
 		AUD_MixerFactory(reader, specs)
 {
 	memset(m_mapping, 0, sizeof(m_mapping));
 }
 
 AUD_ChannelMapperFactory::AUD_ChannelMapperFactory(AUD_IFactory* factory,
-										   AUD_Specs specs) :
+												   AUD_DeviceSpecs specs) :
 		AUD_MixerFactory(factory, specs)
 {
 	memset(m_mapping, 0, sizeof(m_mapping));
 }
 
-AUD_ChannelMapperFactory::AUD_ChannelMapperFactory(AUD_Specs specs) :
+AUD_ChannelMapperFactory::AUD_ChannelMapperFactory(AUD_DeviceSpecs specs) :
 		AUD_MixerFactory(specs)
 {
 	memset(m_mapping, 0, sizeof(m_mapping));

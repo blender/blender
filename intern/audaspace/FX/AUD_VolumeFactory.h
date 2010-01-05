@@ -47,7 +47,7 @@ public:
 	 * \param factory The input factory.
 	 * \param volume The desired volume.
 	 */
-	AUD_VolumeFactory(AUD_IFactory* factory = 0, float volume = 1.0);
+	AUD_VolumeFactory(AUD_IFactory* factory = 0, float volume = 1.0f);
 
 	/**
 	 * Creates a new volume factory.

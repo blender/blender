@@ -80,7 +80,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 		case PROP_INT:
 		case PROP_FLOAT:
 			if(arraylen && index == -1) {
-				if(RNA_property_subtype(prop) == PROP_COLOR)
+				if(ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA))
 					but= uiDefButR(block, COL, 0, name, x1, y1, x2, y2, ptr, propname, 0, 0, 0, -1, -1, NULL);
 			}
 			else if(RNA_property_subtype(prop) == PROP_PERCENTAGE || RNA_property_subtype(prop) == PROP_FACTOR)
@@ -151,7 +151,7 @@ void uiDefAutoButsRNA(const bContext *C, uiLayout *layout, PointerRNA *ptr, int 
 			uiItemL(col, name, 0);
 		}
 		else if(columns == 2) {
-			split = uiLayoutSplit(layout, 0.5f);
+			split = uiLayoutSplit(layout, 0.5f, 0);
 
 			uiItemL(uiLayoutColumn(split, 0), name, 0);
 			col= uiLayoutColumn(split, 0);

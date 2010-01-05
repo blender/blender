@@ -235,7 +235,7 @@ static void draw_fcurve_handle_control (float x, float y, float xscale, float ys
 }
 
 /* helper func - draw handle vertices only for an F-Curve (if it is not protected) */
-static void draw_fcurve_vertices_handles (FCurve *fcu, View2D *v2d, short sel)
+static void draw_fcurve_vertices_handles (SpaceIpo *sipo, FCurve *fcu, View2D *v2d, short sel)
 {
 	BezTriple *bezt= fcu->bezt;
 	BezTriple *prevbezt = NULL;
@@ -255,19 +255,24 @@ static void draw_fcurve_vertices_handles (FCurve *fcu, View2D *v2d, short sel)
 	glEnable(GL_BLEND);
 	
 	for (i=0; i < fcu->totvert; i++, prevbezt=bezt, bezt++) {
-		/* Draw the editmode handels for a bezier curve (others don't have handles) 
+		/* Draw the editmode handles for a bezier curve (others don't have handles) 
 		 * if their selection status matches the selection status we're drawing for
 		 *	- first handle only if previous beztriple was bezier-mode
 		 *	- second handle only if current beztriple is bezier-mode
+		 *
+		 * Also, need to take into account whether the keyframe was selected
+		 * if a Graph Editor option to only show handles of selected keys is on.
 		 */
-		if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) {
-			if ((bezt->f1 & SELECT) == sel)/* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax)*/
-				draw_fcurve_handle_control(bezt->vec[0][0], bezt->vec[0][1], xscale, yscale, hsize);
-		}
-		
-		if (bezt->ipo==BEZT_IPO_BEZ) {
-			if ((bezt->f3 & SELECT) == sel)/* && v2d->cur.xmin < bezt->vec[2][0] < v2d->cur.xmax)*/
-				draw_fcurve_handle_control(bezt->vec[2][0], bezt->vec[2][1], xscale, yscale, hsize);
+		if ( !(sipo->flag & SIPO_SELVHANDLESONLY) || BEZSELECTED(bezt) ) {
+			if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) {
+				if ((bezt->f1 & SELECT) == sel)/* && v2d->cur.xmin < bezt->vec[0][0] < v2d->cur.xmax)*/
+					draw_fcurve_handle_control(bezt->vec[0][0], bezt->vec[0][1], xscale, yscale, hsize);
+			}
+			
+			if (bezt->ipo==BEZT_IPO_BEZ) {
+				if ((bezt->f3 & SELECT) == sel)/* && v2d->cur.xmin < bezt->vec[2][0] < v2d->cur.xmax)*/
+					draw_fcurve_handle_control(bezt->vec[2][0], bezt->vec[2][1], xscale, yscale, hsize);
+			}
 		}
 	}
 	
@@ -313,10 +318,10 @@ void draw_fcurve_vertices (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 		(sipo->flag & SIPO_NOHANDLES)==0 && (fcu->totvert > 1)) 
 	{
 		set_fcurve_vertex_color(sipo, fcu, 0);
-		draw_fcurve_vertices_handles(fcu, v2d, 0);
+		draw_fcurve_vertices_handles(sipo, fcu, v2d, 0);
 		
 		set_fcurve_vertex_color(sipo, fcu, 1);
-		draw_fcurve_vertices_handles(fcu, v2d, 1);
+		draw_fcurve_vertices_handles(sipo, fcu, v2d, 1);
 	}
 		
 	/* draw keyframes over the handles */
@@ -347,13 +352,28 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	 */
 	glBegin(GL_LINES);
 	
-	/* slightly hacky, but we want to draw unselected points before selected ones */
+	/* slightly hacky, but we want to draw unselected points before selected ones 
+	 * so that selected points are clearly visible
+	 */
 	for (sel= 0; sel < 2; sel++) {
 		BezTriple *bezt=fcu->bezt, *prevbezt=NULL;
 		unsigned int *col= (sel)? (nurbcol+4) : (nurbcol);
 		float *fp;
 		
+		/* if only selected keyframes have handles shown, skip the first round */
+		if ((sel == 0) && (sipo->flag & SIPO_SELVHANDLESONLY))
+			continue;
+		
 		for (b= 0; b < fcu->totvert; b++, prevbezt=bezt, bezt++) {
+			/* if only selected keyframes can get their handles shown, 
+			 * check that keyframe is selected
+			 */
+			if (sipo->flag & SIPO_SELVHANDLESONLY) {
+				if (BEZSELECTED(bezt) == 0)
+					continue;
+			}
+			
+			/* draw handle with appropriate set of colors if selection is ok */
 			if ((bezt->f2 & SELECT)==sel) {
 				fp= bezt->vec[0];
 				

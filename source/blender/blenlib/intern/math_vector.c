@@ -34,7 +34,7 @@
 
 //******************************* Interpolation *******************************/
 
-void interp_v2_v2v2(float *target, float *a, float *b, float t)
+void interp_v2_v2v2(float *target, const float *a, const float *b, const float t)
 {
 	float s = 1.0f-t;
 
@@ -44,13 +44,13 @@ void interp_v2_v2v2(float *target, float *a, float *b, float t)
 
 /* weight 3 2D vectors,
  * 'w' must be unit length but is not a vector, just 3 weights */
-void interp_v2_v2v2v2(float p[2], float v1[2], float v2[2], float v3[2], float w[3])
+void interp_v2_v2v2v2(float p[2], const float v1[2], const float v2[2], const float v3[2], const float w[3])
 {
 	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
 	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
 }
 
-void interp_v3_v3v3(float *target, float *a, float *b, float t)
+void interp_v3_v3v3(float target[3], const float a[3], const float b[3], const float t)
 {
 	float s = 1.0f-t;
 
@@ -61,7 +61,7 @@ void interp_v3_v3v3(float *target, float *a, float *b, float t)
 
 /* weight 3 vectors,
  * 'w' must be unit length but is not a vector, just 3 weights */
-void interp_v3_v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float w[3])
+void interp_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3])
 {
 	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2];
 	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2];
@@ -70,7 +70,7 @@ void interp_v3_v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float w
 
 /* weight 3 vectors,
  * 'w' must be unit length but is not a vector, just 3 weights */
-void interp_v3_v3v3v3v3(float p[3], float v1[3], float v2[3], float v3[3], float v4[3], float w[4])
+void interp_v3_v3v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3], const float w[4])
 {
 	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2] + v4[0]*w[3];
 	p[1] = v1[1]*w[0] + v2[1]*w[1] + v3[1]*w[2] + v4[1]*w[3];
@@ -145,6 +145,19 @@ float angle_v3v3v3(float *v1, float *v2, float *v3)
 	return angle_normalized_v3v3(vec1, vec2);
 }
 
+/* Return the shortest angle in radians between the 2 vectors */
+float angle_v3v3(float *v1, float *v2)
+{
+	float vec1[3], vec2[3];
+
+	copy_v3_v3(vec1, v1);
+	copy_v3_v3(vec2, v2);
+	normalize_v3(vec1);
+	normalize_v3(vec2);
+
+	return angle_normalized_v3v3(vec1, vec2);
+}
+
 float angle_v2v2v2(float *v1, float *v2, float *v3)
 {
 	float vec1[2], vec2[2];
@@ -164,17 +177,21 @@ float angle_v2v2v2(float *v1, float *v2, float *v3)
 /* Return the shortest angle in radians between the 2 vectors */
 float angle_v2v2(float *v1, float *v2)
 {
-	float vec1[3], vec2[3];
+	float vec1[2], vec2[2];
 
-	copy_v3_v3(vec1, v1);
-	copy_v3_v3(vec2, v2);
-	normalize_v3(vec1);
-	normalize_v3(vec2);
+	vec1[0] = v1[0];
+	vec1[1] = v1[1];
 
-	return angle_normalized_v3v3(vec1, vec2);
+	vec2[0] = v2[0];
+	vec2[1] = v2[1];
+
+	normalize_v2(vec1);
+	normalize_v2(vec2);
+
+	return angle_normalized_v2v2(vec1, vec2);
 }
 
-float angle_normalized_v3v3(float *v1, float *v2)
+float angle_normalized_v3v3(const float v1[3], const float v2[3])
 {
 	/* this is the same as acos(dot_v3v3(v1, v2)), but more accurate */
 	if (dot_v3v3(v1, v2) < 0.0f) {
@@ -203,6 +220,44 @@ float angle_normalized_v2v2(float *v1, float *v2)
 	}
 	else
 		return 2.0f*(float)saasin(len_v2v2(v2, v1)/2.0f);
+}
+
+void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const float v3[3])
+{
+	float ed1[3], ed2[3], ed3[3];
+
+	sub_v3_v3v3(ed1, v3, v1);
+	sub_v3_v3v3(ed2, v1, v2);
+	sub_v3_v3v3(ed3, v2, v3);
+
+	normalize_v3(ed1);
+	normalize_v3(ed2);
+	normalize_v3(ed3);
+
+	angles[0]= M_PI - angle_normalized_v3v3(ed1, ed2);
+	angles[1]= M_PI - angle_normalized_v3v3(ed2, ed3);
+	// face_angles[2] = M_PI - angle_normalized_v3v3(ed3, ed1);
+	angles[2]= M_PI - (angles[0] + angles[1]);
+}
+
+void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3])
+{
+	float ed1[3], ed2[3], ed3[3], ed4[3];
+
+	sub_v3_v3v3(ed1, v4, v1);
+	sub_v3_v3v3(ed2, v1, v2);
+	sub_v3_v3v3(ed3, v2, v3);
+	sub_v3_v3v3(ed4, v3, v4);
+
+	normalize_v3(ed1);
+	normalize_v3(ed2);
+	normalize_v3(ed3);
+	normalize_v3(ed4);
+
+	angles[0]= M_PI - angle_normalized_v3v3(ed1, ed2);
+	angles[1]= M_PI - angle_normalized_v3v3(ed2, ed3);
+	angles[2]= M_PI - angle_normalized_v3v3(ed3, ed4);
+	angles[3]= M_PI - angle_normalized_v3v3(ed4, ed1);
 }
 
 /********************************* Geometry **********************************/

@@ -1122,7 +1122,7 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 		/* verify if active weight group is also active bone */
 		par= modifiers_isDeformedByArmature(ob);
 		if(par && (par->mode & OB_MODE_POSE)) {
-			bArmature *arm= ob->data;
+			bArmature *arm= par->data;
 
 			if(arm->act_bone)
 				ED_vgroup_select_by_name(ob, arm->act_bone->name);
@@ -1300,15 +1300,18 @@ static char *wpaint_make_validmap(Mesh *me, Object *ob)
 		if (md->type == eModifierType_Armature) 
 		{
 			amd = (ArmatureModifierData*) md;
-			pose = amd->object->pose;
-			
-			for (chan=pose->chanbase.first; chan; chan=chan->next) {
-				if (chan->bone->flag & BONE_NO_DEFORM)
-					continue;
 
-				if (BLI_ghash_haskey(gh, chan->name)) {
-					BLI_ghash_remove(gh, chan->name, NULL, NULL);
-					BLI_ghash_insert(gh, chan->name, SET_INT_IN_POINTER(1));
+			if(amd->object && amd->object->pose) {
+				pose = amd->object->pose;
+				
+				for (chan=pose->chanbase.first; chan; chan=chan->next) {
+					if (chan->bone->flag & BONE_NO_DEFORM)
+						continue;
+
+					if (BLI_ghash_haskey(gh, chan->name)) {
+						BLI_ghash_remove(gh, chan->name, NULL, NULL);
+						BLI_ghash_insert(gh, chan->name, SET_INT_IN_POINTER(1));
+					}
 				}
 			}
 		}
@@ -1435,22 +1438,35 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	VPaint *wp= ts->wpaint;
 	Brush *brush = paint_brush(&wp->paint);
 	struct WPaintData *wpd= paint_stroke_mode_data(stroke);
-	ViewContext *vc= &wpd->vc;
-	Object *ob= vc->obact;
-	Mesh *me= ob->data;
+	ViewContext *vc;
+	Object *ob;
+	Mesh *me;
 	float mat[4][4];
 	float paintweight= ts->vgroup_weight;
-	int *indexar= wpd->indexar;
+	int *indexar;
 	int totindex, index, totw, flip;
 	float alpha;
 	float mval[2], pressure;
-
+	
+	/* cannot paint if there is no stroke data */
+	if (wpd == NULL) {
+		// XXX: force a redraw here, since even though we can't paint, 
+		// at least view won't freeze until stroke ends
+		ED_region_tag_redraw(CTX_wm_region(C));
+		return;
+	}
+		
+	vc= &wpd->vc;
+	ob= vc->obact;
+	me= ob->data;
+	indexar= wpd->indexar;
+	
 	view3d_operator_needs_opengl(C);
-			
+		
 	/* load projection matrix */
 	wmMultMatrix(ob->obmat);
 	wmGetSingleMatrix(mat);
-	wmLoadMatrix(wpd->vc.rv3d->viewmat);
+	wmLoadMatrix(vc->rv3d->viewmat);
 
 	flip = RNA_boolean_get(itemptr, "flip");
 	pressure = RNA_float_get(itemptr, "pressure");
@@ -1595,13 +1611,17 @@ static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 	Object *ob= CTX_data_active_object(C);
 	struct WPaintData *wpd= paint_stroke_mode_data(stroke);
 	
-	if(wpd->vertexcosnos)
-		MEM_freeN(wpd->vertexcosnos);
-	MEM_freeN(wpd->indexar);
+	if(wpd) {
+		if(wpd->vertexcosnos)
+			MEM_freeN(wpd->vertexcosnos);
+		MEM_freeN(wpd->indexar);
+		
+		if (wpd->vgroup_validmap)
+			MEM_freeN(wpd->vgroup_validmap);
+		
+		MEM_freeN(wpd);
+	}
 	
-	if (wpd->vgroup_validmap)
-		MEM_freeN(wpd->vgroup_validmap);
-
 	/* frees prev buffer */
 	copy_wpaint_prev(ts->wpaint, NULL, 0);
 	
@@ -1620,16 +1640,14 @@ static void wpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 		}
 	}
 	
-	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
-	
-	MEM_freeN(wpd);
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);	
 }
 
 
 static int wpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	
-	op->customdata = paint_stroke_new(C, wpaint_stroke_test_start,
+	op->customdata = paint_stroke_new(C, NULL, wpaint_stroke_test_start,
 					  wpaint_stroke_update_step,
 					  wpaint_stroke_done);
 	
@@ -1931,7 +1949,7 @@ static void vpaint_stroke_done(bContext *C, struct PaintStroke *stroke)
 static int vpaint_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	
-	op->customdata = paint_stroke_new(C, vpaint_stroke_test_start,
+	op->customdata = paint_stroke_new(C, NULL, vpaint_stroke_test_start,
 					  vpaint_stroke_update_step,
 					  vpaint_stroke_done);
 	

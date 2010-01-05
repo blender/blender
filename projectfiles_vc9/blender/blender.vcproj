@@ -221,44 +221,44 @@
 				RelativePath="..\..\source\icons\winblenderfile.ico"
 				>
 			</File>
-			<Filter
-				Name="Source Files"
-				Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
-				>
-				<File
-					RelativePath="..\..\source\creator\buildinfo.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\source\creator\creator.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\source\icons\winblender.rc"
-					>
-					<FileConfiguration
-						Name="Blender Release|Win32"
-						>
-						<Tool
-							Name="VCResourceCompilerTool"
-							AdditionalIncludeDirectories="\blenderdev\blender.test2\source\icons;$(NoInherit)"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Blender Debug|Win32"
-						>
-						<Tool
-							Name="VCResourceCompilerTool"
-							AdditionalIncludeDirectories="\blenderdev\blender.test2\source\icons;$(NoInherit)"
-						/>
-					</FileConfiguration>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+		</Filter>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+			>
+			<File
+				RelativePath="..\..\source\creator\buildinfo.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\creator\creator.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\icons\winblender.rc"
+				>
+				<FileConfiguration
+					Name="Blender Release|Win32"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						AdditionalIncludeDirectories="\blenderdev\blender.test2\source\icons;$(NoInherit)"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Blender Debug|Win32"
+					>
+					<Tool
+						Name="VCResourceCompilerTool"
+						AdditionalIncludeDirectories="\blenderdev\blender.test2\source\icons;$(NoInherit)"
+					/>
+				</FileConfiguration>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

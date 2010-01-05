@@ -227,6 +227,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
 			if (pchan->path) {
 				/* if the pathsf and pathef aren't initialised, abort! */
+				// XXX can now have negative frames, so this check needs improvement
 				if (ELEM(0, pchan->pathsf, pchan->pathef))	
 					return;
 				

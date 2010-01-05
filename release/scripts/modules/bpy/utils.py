@@ -16,8 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 import bpy
 import os
+
 
 def expandpath(path):
     if path.startswith("//"):
@@ -42,37 +45,74 @@ _unclean_chars = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, \
 
 _unclean_chars = ''.join([chr(i) for i in _unclean_chars])
 
+
 def clean_name(name, replace="_"):
     '''
     All characters besides A-Z/a-z, 0-9 are replaced with "_"
     or the replace argumet if defined.
     '''
     for ch in _unclean_chars:
-        name = name.replace(ch,  replace)
+        name = name.replace(ch, replace)
     return name
+
+
+def display_name(name):
+    '''
+    Only capitalize all lowercase names, mixed case use them as is.
+    should work with filenames and module names.
+    '''
+    name_base = os.path.splitext(name)[0]
+
+    # string replacements
+    name_base = name_base.replace("_colon_", ":")
+
+    name_base = name_base.replace("_", " ")
+
+    if name_base.lower() == name_base:
+        return ' '.join([w[0].upper() + w[1:] for w in name_base.split()])
+    else:
+        return name_base
 
 
 # base scripts
 _scripts = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)
 _scripts = (os.path.normpath(_scripts), )
 
+
 def script_paths(*args):
+    scripts = list(_scripts)
+
+    # add user scripts dir
+    user_script_path = bpy.context.user_preferences.filepaths.python_scripts_directory
+
+    if not user_script_path:
+        # XXX - WIN32 needs checking, perhaps better call a blender internal function.
+        user_script_path = os.path.join(os.path.expanduser("~"), ".blender", "scripts")
+
+    user_script_path = os.path.normpath(user_script_path)
+
+    if user_script_path not in scripts and os.path.isdir(user_script_path):
+        scripts.append(user_script_path)
+
     if not args:
-        return _scripts
+        return scripts
 
     subdir = os.path.join(*args)
     script_paths = []
-    for path in _scripts:
-        script_paths.append(os.path.join(path, subdir))
+    for path in scripts:
+        path_subdir = os.path.join(path, subdir)
+        if os.path.isdir(path_subdir):
+            script_paths.append(path_subdir)
 
     return script_paths
 
 
-_presets = os.path.join(_scripts[0], "presets") # FIXME - multiple paths 
+_presets = os.path.join(_scripts[0], "presets") # FIXME - multiple paths
+
 
 def preset_paths(subdir):
-	'''
-	Returns a list of paths for a spesific preset.
-	'''
-	
-	return (os.path.join(_presets, subdir), )
+    '''
+    Returns a list of paths for a spesific preset.
+    '''
+
+    return (os.path.join(_presets, subdir), )

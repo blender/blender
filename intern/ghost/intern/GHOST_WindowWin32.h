@@ -47,6 +47,9 @@
 #define PACKETMODE	PK_BUTTONS
 #include <pktdef.h>
 
+class GHOST_SystemWin32;
+class GHOST_DropTargetWin32;
+
 // typedefs for WinTab functions to allow dynamic loading
 typedef UINT (API * GHOST_WIN32_WTInfo) ( UINT, UINT, LPVOID );
 typedef HCTX (API * GHOST_WIN32_WTOpen) (HWND, LPLOGCONTEXTA, BOOL);
@@ -74,6 +77,7 @@ public:
 	 * @param stereoVisual	Stereo visual for quad buffered stereo.
 	 */
 	GHOST_WindowWin32(
+		GHOST_SystemWin32 * system,
 		const STR_String& title,
 		GHOST_TInt32 left,
 		GHOST_TInt32 top,
@@ -95,6 +99,12 @@ public:
 	 * @return The validity of the window.
 	 */
 	virtual	bool getValid() const;
+
+	/**
+	 * Access to the handle of the window.
+	 * @return The handle of the window.
+	 */
+	virtual HWND getHWND() const;
 
 	/**
 	 * Sets the title displayed in the title bar.
@@ -251,6 +261,13 @@ protected:
 	virtual GHOST_TSuccess setWindowCursorVisibility(bool visible);
 	
 	/**
+	 * Sets the cursor grab on the window using native window system calls.
+	 * Using registerMouseClickEvent.
+	 * @param mode	GHOST_TGrabCursorMode.
+	 */
+	virtual GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode);
+	
+	/**
 	 * Sets the cursor shape on the window using
 	 * native window system calls.
 	 */
@@ -273,6 +290,10 @@ protected:
 		int bg_color
 	);
 	
+	/** Pointer to system */
+	GHOST_SystemWin32 * m_system;
+	/** Pointer to COM IDropTarget implementor */
+	GHOST_DropTargetWin32 * m_dropTarget;
 	/** Window handle. */
 	HWND m_hWnd;
 	/** Device context handle. */

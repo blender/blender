@@ -36,7 +36,6 @@ extern "C" {
 #include "DNA_listBase.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_sound_types.h"
 
 /* ************************************************ */
 /* F-Curve DataTypes */
@@ -74,7 +73,6 @@ typedef enum eFModifier_Types {
 	FMODIFIER_TYPE_FILTER,		/* unimplemented - for applying: fft, high/low pass filters, etc. */
 	FMODIFIER_TYPE_PYTHON,	
 	FMODIFIER_TYPE_LIMITS,
-	FMODIFIER_TYPE_SOUND,
 	
 	/* NOTE: all new modifiers must be added above this line */
 	FMODIFIER_NUM_TYPES
@@ -232,47 +230,94 @@ typedef enum eFMod_Noise_Modifications {
 	FCM_NOISE_MODIF_MULTIPLY,		/* Multiply the curve by noise */
 } eFMod_Noise_Modifications;
 
-/* sound modifier data */
-typedef struct FMod_Sound {
-	float strength;
-	float delay;
-
-	short modification;
-	short pad[3];
-
-	bSound *sound;
-} FMod_Sound;
-
-/* modification modes */
-typedef enum eFMod_Sound_Modifications {
-	FCM_SOUND_MODIF_REPLACE = 0,	/* Modify existing curve, matching it's shape */
-	FCM_SOUND_MODIF_ADD,			/* Add amplitude to the curve */
-	FCM_SOUND_MODIF_SUBTRACT,		/* Subtract amplitude from the curve */
-	FCM_SOUND_MODIF_MULTIPLY,		/* Multiply the curve by amplitude */
-} eFMod_Sound_Modifications;
-
 /* Drivers -------------------------------------- */
 
-/* Driver Target 
+/* Driver Target (dtar)
  *
- * A 'variable' for use as a target of the driver/expression.
+ * Defines how to access a dependency needed for a driver variable.
+ */
+typedef struct DriverTarget {
+	ID 	*id;				/* ID-block which owns the target */
+	
+	char *rna_path;			/* RNA path defining the setting to use (for DVAR_TYPE_SINGLE_PROP) */
+	
+	char pchan_name[32];	/* name of the posebone to use (for vars where DTAR_FLAG_STRUCT_REF is used) */
+	short transChan;		/* transform channel index (for DVAR_TYPE_TRANSFORM_CHAN)*/
+	
+	short flag;				/* flags for the validity of the target (NOTE: these get reset everytime the types change) */
+	int idtype;				/* type of ID-block that this target can use */
+} DriverTarget;
+
+/* Driver Target flags */
+typedef enum eDriverTarget_Flag {
+		/* used for targets that use the pchan_name instead of RNA path 
+		 * (i.e. rotation difference) 
+		 */
+	DTAR_FLAG_STRUCT_REF	= (1<<0),
+		/* idtype can only be 'Object' */
+	DTAR_FLAG_ID_OB_ONLY	= (1<<1),
+		/* toggles localspace (where transforms are manually obtained) */
+	DTAR_FLAG_LOCALSPACE	= (1<<2),
+} eDriverTarget_Flag;
+
+/* Transform Channels for Driver Targets */
+typedef enum eDriverTarget_TransformChannels {
+	DTAR_TRANSCHAN_LOCX = 0,
+	DTAR_TRANSCHAN_LOCY,
+	DTAR_TRANSCHAN_LOCZ,
+	DTAR_TRANSCHAN_ROTX,
+	DTAR_TRANSCHAN_ROTY,
+	DTAR_TRANSCHAN_ROTZ,
+	DTAR_TRANSCHAN_SCALEX,
+	DTAR_TRANSCHAN_SCALEY,
+	DTAR_TRANSCHAN_SCALEZ,
+	
+	MAX_DTAR_TRANSCHAN_TYPES
+} eDriverTarget_TransformChannels;
+
+/* --- */
+
+/* maximum number of driver targets per variable */
+#define MAX_DRIVER_TARGETS 	8
+
+
+/* Driver Variable (dvar)
+ *
+ * A 'variable' for use as an input for the driver evaluation.
  * Defines a way of accessing some channel to use, that can be
  * referred to in the expression as a variable, thus simplifying
  * expressions and also Depsgraph building.
  */
-typedef struct DriverTarget {
-	struct DriverTarget *next, *prev;
+typedef struct DriverVar {
+	struct DriverVar *next, *prev;
 	
-	ID 	*id;			/* ID-block which owns the target */
-	char *rna_path;		/* target channel to use as driver value */
-	int array_index;	/* if applicable, the index of the RNA-array item to use as driver */
+	char name[64];				/* name of the variable to use in py-expression (must be valid python identifier) */
 	
-	int idtype;			/* type of ID-block that this target can use */
-	int flags;			/* flags for the validity of the target */
-	int pad;
+	DriverTarget targets[8];	/* MAX_DRIVER_TARGETS, target slots */	
+	int num_targets;			/* number of targets actually used by this variable */
 	
-	char name[64];		/* name of the variable */
-} DriverTarget;
+	int type;					/* type of driver target (eDriverTarget_Types) */		
+} DriverVar;
+
+/* Driver Variable Types */
+typedef enum eDriverVar_Types {
+		/* single RNA property */
+	DVAR_TYPE_SINGLE_PROP	= 0,
+		/* rotation difference (between 2 bones) */
+	DVAR_TYPE_ROT_DIFF,
+		/* distance between objects/bones */
+	DVAR_TYPE_LOC_DIFF,
+		/* 'final' transform for object/bones */
+	DVAR_TYPE_TRANSFORM_CHAN,
+	
+	/* maximum number of variable types 
+	 * NOTE: this must always be th last item in this list,
+	 * 		so add new types above this line
+	 */
+	MAX_DVAR_TYPES
+} eDriverVar_Types;
+
+/* --- */
 
 /* Channel Driver (i.e. Drivers / Expressions) (driver)
  *
@@ -286,12 +331,13 @@ typedef struct DriverTarget {
  * evaluated in. This order is set by the Depsgraph's sorting stuff. 
  */
 typedef struct ChannelDriver {
-	ListBase targets;	/* targets for this driver (i.e. list of DriverTarget) */
+	ListBase variables;	/* targets for this driver (i.e. list of DriverVar) */
 	
 	/* python expression to execute (may call functions defined in an accessory file) 
 	 * which relates the target 'variables' in some way to yield a single usable value
 	 */
-	char expression[256]; 
+	char expression[256];	/* expression to compile for evaluation */
+	void *expr_comp; 		/* PyObject - compiled expression, dont save this */
 	
 	float curval;		/* result of previous evaluation, for subtraction from result under certain circumstances */
 	float influence;	/* influence of driver on result */ // XXX to be implemented... this is like the constraint influence setting
@@ -307,8 +353,12 @@ typedef enum eDriver_Types {
 	DRIVER_TYPE_AVERAGE	= 0,
 		/* python expression/function relates targets */
 	DRIVER_TYPE_PYTHON,
-		/* rotational difference (must use rotation channels only) */
-	DRIVER_TYPE_ROTDIFF,
+		/* sum of all values */
+	DRIVER_TYPE_SUM,
+		/* smallest value */
+	DRIVER_TYPE_MIN,
+		/* largest value */
+	DRIVER_TYPE_MAX,
 } eDriver_Types;
 
 /* driver flags */
@@ -319,7 +369,9 @@ typedef enum eDriver_Flags {
 	DRIVER_FLAG_RECALC		= (1<<1),
 		/* driver does replace value, but overrides (for layering of animation over driver) */
 		// TODO: this needs to be implemented at some stage or left out...
-	DRIVER_FLAG_LAYERING	= (1<<2),
+	//DRIVER_FLAG_LAYERING	= (1<<2),
+		/* use when the expression needs to be recompiled */
+	DRIVER_FLAG_RECOMPILE	= (1<<3), 
 } eDriver_Flags;
 
 /* F-Curves -------------------------------------- */
@@ -362,7 +414,7 @@ typedef struct FCurve {
 	char *rna_path;			/* RNA-path to resolve data-access */
 	
 		/* curve coloring (for editor) */
-	int color_mode;			/* coloring method to use */
+	int color_mode;			/* coloring method to use (eFCurve_Coloring) */
 	float color[3];			/* the last-color this curve took */
 } FCurve;
 
@@ -654,6 +706,7 @@ typedef enum eKSP_TemplateTypes {
 	KSP_TEMPLATE_PCHAN 			= (1<<1),	/* #pch - selected posechannel */
 	KSP_TEMPLATE_CONSTRAINT 	= (1<<2),	/* #con - active only */
 	KSP_TEMPLATE_NODE		 	= (1<<3),	/* #nod - selected node */
+	KSP_TEMPLATE_MODIFIER		= (1<<4),	/* #mod - active only */
 	
 	KSP_TEMPLATE_ROT		= (1<<16),	/* modify rotation paths based on rotation mode of Object or Pose Channel */
 } eKSP_TemplateTypes;
@@ -698,6 +751,7 @@ typedef enum eInsertKeyFlags {
 	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */
 	INSERTKEY_FASTR		= (1<<3),	/* don't realloc mem (or increase count, as array has already been set out) */
 	INSERTKEY_REPLACE 	= (1<<4),	/* only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
+	INSERTKEY_XYZ2RGB	= (1<<5),	/* transform F-Curves should have XYZ->RGB color mode */
 } eInsertKeyFlags;
 
 /* ************************************************ */

@@ -26,6 +26,7 @@
 #ifndef AUD_FFMPEGREADER
 #define AUD_FFMPEGREADER
 
+#include "AUD_ConverterFunctions.h"
 #include "AUD_IReader.h"
 #include "AUD_Reference.h"
 class AUD_Buffer;
@@ -59,7 +60,7 @@ private:
 	/**
 	 * The specification of the audio data.
 	 */
-	AUD_Specs m_specs;
+	AUD_DeviceSpecs m_specs;
 
 	/**
 	 * The buffer for package reading.
@@ -92,6 +93,11 @@ private:
 	int m_stream;
 
 	/**
+	 * Converter function.
+	 */
+	AUD_convert_f m_convert;
+
+	/**
 	 * The memory file to read from, only saved to keep the buffer alive.
 	 */
 	AUD_Reference<AUD_Buffer> m_membuffer;
@@ -103,6 +109,11 @@ private:
 	 * \return The count of read bytes.
 	 */
 	int decode(AVPacket* packet, AUD_Buffer* buffer);
+
+	/**
+	 * Initializes the object.
+	 */
+	void init();
 
 public:
 	/**

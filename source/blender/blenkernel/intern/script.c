@@ -52,13 +52,3 @@
  * since we have to force clearing all Python related data before freeing
  * Blender's library. Still testing, will decide later (Willian). */
 
-//XXX 
-#if 0
-void free_script (Script *script)
-{
-	if (!script) return;
-#ifndef DISABLE_PYTHON
-	BPY_clear_script(script);
-#endif
-}
-#endif

@@ -41,6 +41,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_meta_types.h"
@@ -254,6 +255,8 @@ static short ob_keys_bezier_loop(BeztEditData *bed, Object *ob, BeztEditFunc bez
 		}
 			break;
 		case OB_CURVE: /* ------- Curve ---------- */
+		case OB_SURF: /* ------- Nurbs Surface ---------- */
+		case OB_FONT: /* ------- Text Curve ---------- */
 		{
 			Curve *cu= (Curve *)ob->data;
 			
@@ -279,6 +282,16 @@ static short ob_keys_bezier_loop(BeztEditData *bed, Object *ob, BeztEditFunc bez
 			
 			if ((arm->adt) && !(filterflag & ADS_FILTER_NOARM)) {
 				if (adt_keys_bezier_loop(bed, arm->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
+					return 1;
+			}
+		}
+			break;
+		case OB_MESH: /* ------- Mesh ---------- */
+		{
+			Mesh *me= (Mesh *)ob->data;
+			
+			if ((me->adt) && !(filterflag & ADS_FILTER_NOMESH)) {
+				if (adt_keys_bezier_loop(bed, me->adt, bezt_ok, bezt_cb, fcu_cb, filterflag))
 					return 1;
 			}
 		}
@@ -442,11 +455,11 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	filter= ANIMFILTER_CURVESONLY; 
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
-	/* loop over ipo-curves that are likely to have been edited, and check them */
+	/* loop over F-Curves that are likely to have been edited, and check them */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= ale->key_data;
 		
-		/* make sure keyframes in F-curve are all in order, and handles are in valid positions */
+		/* make sure keyframes in F-Curve are all in order, and handles are in valid positions */
 		sort_time_fcurve(fcu);
 		testhandles_fcurve(fcu);
 	}
@@ -557,6 +570,22 @@ short bezt_to_cfraelem(BeztEditData *bed, BezTriple *bezt)
 	}
 	
 	return 0;
+}
+
+/* used to remap times from one range to another
+ * requires:  bed->data = BeztEditCD_Remap	
+ */
+void bezt_remap_times(BeztEditData *bed, BezTriple *bezt)
+{
+	BeztEditCD_Remap *rmap= (BeztEditCD_Remap*)bed->data;
+	const float scale = (rmap->newMax - rmap->newMin) / (rmap->oldMax - rmap->oldMin);
+	
+	/* perform transform on all three handles unless indicated otherwise */
+	// TODO: need to include some checks for that
+	
+	bezt->vec[0][0]= scale*(bezt->vec[0][0] - rmap->oldMin) + rmap->newMin;
+	bezt->vec[1][0]= scale*(bezt->vec[1][0] - rmap->oldMin) + rmap->newMin;
+	bezt->vec[2][0]= scale*(bezt->vec[2][0] - rmap->oldMin) + rmap->newMin;
 }
 
 /* ******************************************* */
@@ -907,7 +936,6 @@ static short select_bezier_invert(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
-// NULL
 BeztEditFunc ANIM_editkeyframes_select(short selectmode)
 {
 	switch (selectmode) {

@@ -31,6 +31,12 @@
 LIBNAME = blenderqt
 DIR = $(OCGDIR)/blender/$(LIBNAME)
 
+ifeq ($(OS), $(findstring $(OS), "darwin"))
+    ifeq ($(USE_QTKIT),true)
+        OCSRCS += $(wildcard *.m)
+    endif
+endif
+
 include nan_compile.mk
 
 CFLAGS += $(LEVEL1_C_WARNINGS)
@@ -52,6 +58,5 @@ CPPFLAGS += -I..
 # stuff needed by quicktime_[import|export].c
 CPPFLAGS += -I../../blenloader -I../../imbuf/intern -I../../imbuf 
 CPPFLAGS += -I../../blenlib -I../../makesdna -I../../editors/include -I../../avi 
-CPPFLAGS += -I../../blenkernel -I../../render/extern/include
-
+CPPFLAGS += -I../../blenkernel -I../../render/extern/include -I../../windowmanager -I../../makesrna
 

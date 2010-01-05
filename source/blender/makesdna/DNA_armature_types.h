@@ -92,11 +92,14 @@ typedef struct bArmature {
 	int			pad;
 	
 	int			layer, layer_protected;		/* for buttons to work, both variables in this order together */
+	
+// XXX depreceated... old animaton system (armature only viz) ---
 	short		ghostep, ghostsize;		/* number of frames to ghosts to show, and step between them  */
 	short		ghosttype, pathsize;		/* ghost drawing options and number of frames between points of path */
 	int			ghostsf, ghostef;		/* start and end frames of ghost-drawing range */
 	int 		pathsf, pathef;			/* start and end frames of path-calculation range for all bones */
 	int			pathbc, pathac;			/* number of frames before/after current frame of path-calculation for all bones  */
+// XXX end of depreceated code ---------------------------------- 
 } bArmature;
 
 /* armature->flag */
@@ -136,6 +139,7 @@ typedef enum eArmature_DeformFlag {
 } eArmature_DeformFlag;
 
 /* armature->pathflag */
+// XXX depreceated... old animation system (armature only viz)
 typedef enum eArmature_PathFlag {
 	ARM_PATH_FNUMS		= (1<<0),
 	ARM_PATH_KFRAS		= (1<<1),
@@ -145,6 +149,7 @@ typedef enum eArmature_PathFlag {
 } eArmature_PathFlag;
 
 /* armature->ghosttype */
+// XXX depreceated... old animation system (armature only viz)
 typedef enum eArmature_GhostType {
 	ARM_GHOST_CUR = 0,
 	ARM_GHOST_RANGE,

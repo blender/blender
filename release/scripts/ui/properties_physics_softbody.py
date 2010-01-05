@@ -264,6 +264,7 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel):
 
         layout.label(text="Diagnostics:")
         layout.prop(softbody, "diagnose")
+        layout.prop(softbody, "estimate_matrix")
 
 
 class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel):

@@ -86,6 +86,7 @@
 #include "ED_image.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_view3d.h"
 
 #include "WM_api.h"
@@ -112,8 +113,6 @@
 #define IMAPAINT_TILE_BITS			6
 #define IMAPAINT_TILE_SIZE			(1 << IMAPAINT_TILE_BITS)
 #define IMAPAINT_TILE_NUMBER(size)	(((size)+IMAPAINT_TILE_SIZE-1) >> IMAPAINT_TILE_BITS)
-
-#define MAXUNDONAME	64
 
 static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, short texpaint);
 
@@ -204,7 +203,7 @@ typedef struct ProjPaintImage {
 	Image *ima;
 	ImBuf *ibuf;
 	ImagePaintPartialRedraw *partRedrawRect;
-	struct UndoTile **undoRect; /* only used to build undo tiles after painting */
+	void **undoRect; /* only used to build undo tiles after painting */
 	int touch;
 } ProjPaintImage;
 
@@ -229,7 +228,7 @@ typedef struct ProjPaintState {
 	MFace 		   *dm_mface;
 	MTFace 		   *dm_mtface;
 	MTFace 		   *dm_mtface_clone;	/* other UV layer, use for cloning between layers */
-	MTFace 		   *dm_mtface_mask;
+	MTFace 		   *dm_mtface_stencil;
 	
 	/* projection painting only */
 	MemArena *arena_mt[BLENDER_MAX_THREADS];/* for multithreading, the first item is sometimes used for non threaded cases too */
@@ -258,8 +257,8 @@ typedef struct ProjPaintState {
 	
 	/* options for projection painting */
 	int do_layer_clone;
-	int do_layer_mask;
-	int do_layer_mask_inv;
+	int do_layer_stencil;
+	int do_layer_stencil_inv;
 	
 	short do_occlude;			/* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short do_backfacecull;	/* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
@@ -332,32 +331,20 @@ typedef struct ProjPixelClone {
 
 /* Finish projection painting structs */
 
+typedef struct UndoImageTile {
+	struct UndoImageTile *next, *prev;
 
-typedef struct UndoTile {
-	struct UndoTile *next, *prev;
-	ID id;
+	char idname[MAX_ID_NAME];	/* name instead of pointer*/
+
 	void *rect;
 	int x, y;
-} UndoTile;
+} UndoImageTile;
 
-typedef struct UndoElem {
-	struct UndoElem *next, *prev;
-	char name[MAXUNDONAME];
-	uintptr_t undosize;
-
-	ImBuf *ibuf;
-	ListBase tiles;
-} UndoElem;
-
-static ListBase undobase = {NULL, NULL};
-static UndoElem *curundo = NULL;
 static ImagePaintPartialRedraw imapaintpartial = {0, 0, 0, 0, 0};
 
 /* UNDO */
 
-/* internal functions */
-
-static void undo_copy_tile(UndoTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, int restore)
+static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, int restore)
 {
 	/* copy or swap contents of tile->rect and region in ibuf->rect */
 	IMB_rectcpy(tmpibuf, ibuf, 0, 0, tile->x*IMAPAINT_TILE_SIZE,
@@ -374,49 +361,52 @@ static void undo_copy_tile(UndoTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, int rest
 			tile->y*IMAPAINT_TILE_SIZE, 0, 0, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE);
 }
 
-static UndoTile *undo_init_tile(ID *id, ImBuf *ibuf, ImBuf **tmpibuf, int x_tile, int y_tile)
+static void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int x_tile, int y_tile)
 {
-	UndoTile *tile;
+	ListBase *lb= undo_paint_push_get_list(UNDO_PAINT_IMAGE);
+	UndoImageTile *tile;
 	int allocsize;
+
+	for(tile=lb->first; tile; tile=tile->next)
+		if(tile->x == x_tile && tile->y == y_tile && strcmp(tile->idname, ima->id.name)==0)
+			return tile->rect;
 	
 	if (*tmpibuf==NULL)
 		*tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat|IB_rect, 0);
 	
-	tile= MEM_callocN(sizeof(UndoTile), "ImaUndoTile");
-	tile->id= *id;
+	tile= MEM_callocN(sizeof(UndoImageTile), "UndoImageTile");
+	strcpy(tile->idname, ima->id.name);
 	tile->x= x_tile;
 	tile->y= y_tile;
 
 	allocsize= IMAPAINT_TILE_SIZE*IMAPAINT_TILE_SIZE*4;
 	allocsize *= (ibuf->rect_float)? sizeof(float): sizeof(char);
-	tile->rect= MEM_mapallocN(allocsize, "ImaUndoRect");
+	tile->rect= MEM_mapallocN(allocsize, "UndeImageTile.rect");
 
 	undo_copy_tile(tile, *tmpibuf, ibuf, 0);
-	curundo->undosize += allocsize;
+	undo_paint_push_count_alloc(UNDO_PAINT_IMAGE, allocsize);
 
-	BLI_addtail(&curundo->tiles, tile);
+	BLI_addtail(lb, tile);
 	
-	return tile;
+	return tile->rect;
 }
 
-static void undo_restore(UndoElem *undo)
+static void image_undo_restore(bContext *C, ListBase *lb)
 {
+	Main *bmain= CTX_data_main(C);
 	Image *ima = NULL;
 	ImBuf *ibuf, *tmpibuf;
-	UndoTile *tile;
-
-	if(!undo)
-		return;
+	UndoImageTile *tile;
 
 	tmpibuf= IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32,
 	                        IB_rectfloat|IB_rect, 0);
 	
-	for(tile=undo->tiles.first; tile; tile=tile->next) {
+	for(tile=lb->first; tile; tile=tile->next) {
 		/* find image based on name, pointer becomes invalid with global undo */
-		if(ima && strcmp(tile->id.name, ima->id.name)==0);
+		if(ima && strcmp(tile->idname, ima->id.name)==0);
 		else {
-			for(ima=G.main->image.first; ima; ima=ima->id.next)
-				if(strcmp(tile->id.name, ima->id.name)==0)
+			for(ima=bmain->image.first; ima; ima=ima->id.next)
+				if(strcmp(tile->idname, ima->id.name)==0)
 					break;
 		}
 
@@ -435,117 +425,12 @@ static void undo_restore(UndoElem *undo)
 	IMB_freeImBuf(tmpibuf);
 }
 
-static void undo_free(UndoElem *undo)
+static void image_undo_free(ListBase *lb)
 {
-	UndoTile *tile;
+	UndoImageTile *tile;
 
-	for(tile=undo->tiles.first; tile; tile=tile->next)
+	for(tile=lb->first; tile; tile=tile->next)
 		MEM_freeN(tile->rect);
-	BLI_freelistN(&undo->tiles);
-}
-
-static void undo_imagepaint_push_begin(char *name)
-{
-	UndoElem *uel;
-	int nr;
-	
-	/* Undo push is split up in begin and end, the reason is that as painting
-	 * happens more tiles are added to the list, and at the very end we know
-	 * how much memory the undo used to remove old undo elements */
-
-	/* remove all undos after (also when curundo==NULL) */
-	while(undobase.last != curundo) {
-		uel= undobase.last;
-		undo_free(uel);
-		BLI_freelinkN(&undobase, uel);
-	}
-	
-	/* make new */
-	curundo= uel= MEM_callocN(sizeof(UndoElem), "undo file");
-	BLI_addtail(&undobase, uel);
-
-	/* name can be a dynamic string */
-	strncpy(uel->name, name, MAXUNDONAME-1);
-	
-	/* limit amount to the maximum amount*/
-	nr= 0;
-	uel= undobase.last;
-	while(uel) {
-		nr++;
-		if(nr==U.undosteps) break;
-		uel= uel->prev;
-	}
-	if(uel) {
-		while(undobase.first!=uel) {
-			UndoElem *first= undobase.first;
-			undo_free(first);
-			BLI_freelinkN(&undobase, first);
-		}
-	}
-}
-
-static void undo_imagepaint_push_end()
-{
-	UndoElem *uel;
-	uintptr_t totmem, maxmem;
-
-	if(U.undomemory != 0) {
-		/* limit to maximum memory (afterwards, we can't know in advance) */
-		totmem= 0;
-		maxmem= ((uintptr_t)U.undomemory)*1024*1024;
-
-		uel= undobase.last;
-		while(uel) {
-			totmem+= uel->undosize;
-			if(totmem>maxmem) break;
-			uel= uel->prev;
-		}
-
-		if(uel) {
-			while(undobase.first!=uel) {
-				UndoElem *first= undobase.first;
-				undo_free(first);
-				BLI_freelinkN(&undobase, first);
-			}
-		}
-	}
-}
-
-void undo_imagepaint_step(int step)
-{
-	UndoElem *undo;
-
-	if(step==1) {
-		if(curundo==NULL);
-		else {
-			if(G.f & G_DEBUG) printf("undo %s\n", curundo->name);
-			undo_restore(curundo);
-			curundo= curundo->prev;
-		}
-	}
-	else if(step==-1) {
-		if((curundo!=NULL && curundo->next==NULL) || undobase.first==NULL);
-		else {
-			undo= (curundo && curundo->next)? curundo->next: undobase.first;
-			undo_restore(undo);
-			curundo= undo;
-			if(G.f & G_DEBUG) printf("redo %s\n", undo->name);
-		}
-	}
-}
-
-void undo_imagepaint_clear(void)
-{
-	UndoElem *uel;
-	
-	uel= undobase.first;
-	while(uel) {
-		undo_free(uel);
-		uel= uel->next;
-	}
-
-	BLI_freelistN(&undobase);
-	curundo= NULL;
 }
 
 /* fast projection bucket array lookup, use the safe version for bound checking  */
@@ -579,40 +464,14 @@ static int project_bucket_offset_safe(const ProjPaintState *ps, const float proj
 
 #define SIDE_OF_LINE(pa, pb, pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
 
-static float AreaSignedF2Dfl(float *v1, float *v2, float *v3)
-{
-   return (float)(0.5f*((v1[0]-v2[0])*(v2[1]-v3[1]) +
-(v1[1]-v2[1])*(v3[0]-v2[0])));
-}
-
-static void BarycentricWeights2f(float pt[2], float v1[2], float v2[2], float v3[2], float w[3])
-{
-   float wtot_inv, wtot;
-
-   w[0] = AreaSignedF2Dfl(v2, v3, pt);
-   w[1] = AreaSignedF2Dfl(v3, v1, pt);
-   w[2] = AreaSignedF2Dfl(v1, v2, pt);
-   wtot = w[0]+w[1]+w[2];
-
-   if (wtot != 0.0f) {
-       wtot_inv = 1.0f/wtot;
-
-       w[0] = w[0]*wtot_inv;
-       w[1] = w[1]*wtot_inv;
-       w[2] = w[2]*wtot_inv;
-   }
-   else /* dummy values for zero area face */
-       w[0] = w[1] = w[2] = 1.0f/3.0f;
-}
-
 /* still use 2D X,Y space but this works for verts transformed by a perspective matrix, using their 4th component as a weight */
-static void BarycentricWeightsPersp2f(float pt[2], float v1[4], float v2[4], float v3[4], float w[3])
+static void barycentric_weights_v2_persp(float v1[4], float v2[4], float v3[4], float co[2], float w[3])
 {
    float wtot_inv, wtot;
 
-   w[0] = AreaSignedF2Dfl(v2, v3, pt) / v1[3];
-   w[1] = AreaSignedF2Dfl(v3, v1, pt) / v2[3];
-   w[2] = AreaSignedF2Dfl(v1, v2, pt) / v3[3];
+   w[0] = area_tri_signed_v2(v2, v3, co) / v1[3];
+   w[1] = area_tri_signed_v2(v3, v1, co) / v2[3];
+   w[2] = area_tri_signed_v2(v1, v2, co) / v3[3];
    wtot = w[0]+w[1]+w[2];
 
    if (wtot != 0.0f) {
@@ -628,13 +487,13 @@ static void BarycentricWeightsPersp2f(float pt[2], float v1[4], float v2[4], flo
 
 static float VecZDepthOrtho(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
 {
-	BarycentricWeights2f(pt, v1, v2, v3, w);
+	barycentric_weights_v2(v1, v2, v3, pt, w);
 	return (v1[2]*w[0]) + (v2[2]*w[1]) + (v3[2]*w[2]);
 }
 
 static float VecZDepthPersp(float pt[2], float v1[3], float v2[3], float v3[3], float w[3])
 {
-	BarycentricWeightsPersp2f(pt, v1, v2, v3, w);
+	barycentric_weights_v2_persp(v1, v2, v3, pt, w);
 	return (v1[2]*w[0]) + (v2[2]*w[1]) + (v3[2]*w[2]);
 }
 
@@ -853,8 +712,8 @@ static int project_paint_occlude_ptv_clip(
 		return ret;
 
 	if (ret==1) { /* weights not calculated */
-		if (ps->is_ortho)	BarycentricWeights2f(pt, v1, v2, v3, w);
-		else				BarycentricWeightsPersp2f(pt, v1, v2, v3, w);
+		if (ps->is_ortho)	barycentric_weights_v2(v1, v2, v3, pt, w);
+		else				barycentric_weights_v2_persp(v1, v2, v3, pt, w);
 	}
 
 	/* Test if we're in the clipped area, */
@@ -1302,7 +1161,7 @@ static void screen_px_from_ortho(
 		float pixelScreenCo[4],
 		float w[3])
 {
-	BarycentricWeights2f(uv, uv1co, uv2co, uv3co, w);
+	barycentric_weights_v2(uv1co, uv2co, uv3co, uv, w);
 	interp_v3_v3v3v3(pixelScreenCo, v1co, v2co, v3co, w);
 }
 
@@ -1317,7 +1176,7 @@ static void screen_px_from_persp(
 {
 
 	float wtot_inv, wtot;
-	BarycentricWeights2f(uv, uv1co, uv2co, uv3co, w);
+	barycentric_weights_v2(uv1co, uv2co, uv3co, uv, w);
 	
 	/* re-weight from the 4th coord of each screen vert */
 	w[0] *= v1co[3];
@@ -1380,10 +1239,10 @@ float project_paint_uvpixel_mask(
 	float mask;
 	
 	/* Image Mask */
-	if (ps->do_layer_mask) {
+	if (ps->do_layer_stencil) {
 		/* another UV layers image is masking this one's */
 		ImBuf *ibuf_other;
-		const MTFace *tf_other = ps->dm_mtface_mask + face_index;
+		const MTFace *tf_other = ps->dm_mtface_stencil + face_index;
 		
 		if (tf_other->tpage && (ibuf_other = BKE_image_get_ibuf(tf_other->tpage, NULL))) {
 			/* BKE_image_get_ibuf - TODO - this may be slow */
@@ -1399,7 +1258,7 @@ float project_paint_uvpixel_mask(
 				mask = ((rgba_ub[0]+rgba_ub[1]+rgba_ub[2])/(256*3.0f)) * (rgba_ub[3]/256.0f);
 			}
 			
-			if (!ps->do_layer_mask_inv) /* matching the gimps layer mask black/white rules, white==full opacity */
+			if (!ps->do_layer_stencil_inv) /* matching the gimps layer mask black/white rules, white==full opacity */
 				mask = (1.0f - mask);
 
 			if (mask == 0.0f) {
@@ -1889,26 +1748,26 @@ static void rect_to_uvspace_ortho(
 	/* get the UV space bounding box */
 	uv[0] = bucket_bounds->xmax;
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmax; // set above
 	uv[1] = bucket_bounds->ymax;
-	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds->xmin;
 	//uv[1] = bucket_bounds->ymax; // set above
-	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmin; // set above
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeights2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
 }
 
-/* same as above but use BarycentricWeightsPersp2f */
+/* same as above but use barycentric_weights_v2_persp */
 static void rect_to_uvspace_persp(
 		rctf *bucket_bounds,
 		float *v1coSS, float *v2coSS, float *v3coSS,
@@ -1923,22 +1782,22 @@ static void rect_to_uvspace_persp(
 	/* get the UV space bounding box */
 	uv[0] = bucket_bounds->xmax;
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2_persp(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?3:0], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmax; // set above
 	uv[1] = bucket_bounds->ymax;
-	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2_persp(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?2:1], uv1co, uv2co, uv3co, w);
 
 	uv[0] = bucket_bounds->xmin;
 	//uv[1] = bucket_bounds->ymax; // set above
-	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2_persp(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?1:2], uv1co, uv2co, uv3co, w);
 
 	//uv[0] = bucket_bounds->xmin; // set above
 	uv[1] = bucket_bounds->ymin;
-	BarycentricWeightsPersp2f(uv, v1coSS, v2coSS, v3coSS, w);
+	barycentric_weights_v2_persp(v1coSS, v2coSS, v3coSS, uv, w);
 	interp_v2_v2v2v2(bucket_bounds_uv[flip?0:3], uv1co, uv2co, uv3co, w);
 }
 
@@ -2182,13 +2041,13 @@ static void project_bucket_clip_face(
 		
 		if (is_ortho) {
 			for(i=0; i<(*tot); i++) {
-				BarycentricWeights2f(isectVCosSS[i], v1coSS, v2coSS, v3coSS, w);
+				barycentric_weights_v2(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
 				interp_v2_v2v2v2(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
 			}
 		}
 		else {
 			for(i=0; i<(*tot); i++) {
-				BarycentricWeightsPersp2f(isectVCosSS[i], v1coSS, v2coSS, v3coSS, w);
+				barycentric_weights_v2_persp(v1coSS, v2coSS, v3coSS, isectVCosSS[i], w);
 				interp_v2_v2v2v2(bucket_bounds_uv[i], uv1co, uv2co, uv3co, w);
 			}
 		}
@@ -2636,10 +2495,10 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 #if 0
 												/* This is not QUITE correct since UV is not inside the UV's but good enough for seams */
 												if (side) {
-													BarycentricWeights2f(uv, tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], w);
+													barycentric_weights_v2(tf_uv_pxoffset[0], tf_uv_pxoffset[2], tf_uv_pxoffset[3], uv, w);
 												}
 												else {
-													BarycentricWeights2f(uv, tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], w);
+													barycentric_weights_v2(tf_uv_pxoffset[0], tf_uv_pxoffset[1], tf_uv_pxoffset[2], uv, w);
 												}
 #endif
 #if 1
@@ -2978,15 +2837,15 @@ static void project_paint_begin(ProjPaintState *ps)
 		}
 	}
 	
-	if (ps->do_layer_mask) {
-		//int layer_num = CustomData_get_mask_layer(&ps->dm->faceData, CD_MTFACE);
-		int layer_num = CustomData_get_mask_layer(&((Mesh *)ps->ob->data)->fdata, CD_MTFACE);
+	if (ps->do_layer_stencil) {
+		//int layer_num = CustomData_get_stencil_layer(&ps->dm->faceData, CD_MTFACE);
+		int layer_num = CustomData_get_stencil_layer(&((Mesh *)ps->ob->data)->fdata, CD_MTFACE);
 		if (layer_num != -1)
-			ps->dm_mtface_mask = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
+			ps->dm_mtface_stencil = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
 		
-		if (ps->dm_mtface_mask==NULL || ps->dm_mtface_mask==ps->dm_mtface) {
-			ps->do_layer_mask = 0;
-			ps->dm_mtface_mask = NULL;
+		if (ps->dm_mtface_stencil==NULL || ps->dm_mtface_stencil==ps->dm_mtface) {
+			ps->do_layer_stencil = 0;
+			ps->dm_mtface_stencil = NULL;
 		}
 	}
 	
@@ -3031,7 +2890,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	
 	ps->is_airbrush = (ps->brush->flag & BRUSH_AIRBRUSH) ? 1 : 0;
 	
-	ps->is_texbrush = (ps->brush->mtex[ps->brush->texact] && ps->brush->mtex[ps->brush->texact]->tex) ? 1 : 0;
+	ps->is_texbrush = (ps->brush->mtex.tex) ? 1 : 0;
 
 	
 	/* calculate vert screen coords
@@ -3315,7 +3174,7 @@ static void project_paint_end(ProjPaintState *ps)
 		ProjPixel *projPixel;
 		ImBuf *tmpibuf = NULL, *tmpibuf_float = NULL;
 		LinkNode *pixel_node;
-		UndoTile *tile;
+		void *tilerect;
 		MemArena *arena = ps->arena_mt[0]; /* threaded arena re-used for non threaded case */
 				
 		int bucket_tot = (ps->buckets_x * ps->buckets_y); /* we could get an X/Y but easier to loop through all possible buckets */
@@ -3331,8 +3190,8 @@ static void project_paint_end(ProjPaintState *ps)
 		int last_tile_width=0;
 		
 		for(a=0, last_projIma=ps->projImages; a < ps->image_tot; a++, last_projIma++) {
-			int size = sizeof(UndoTile **) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->y);
-			last_projIma->undoRect = (UndoTile **) BLI_memarena_alloc(arena, size);
+			int size = sizeof(void **) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->x) * IMAPAINT_TILE_NUMBER(last_projIma->ibuf->y);
+			last_projIma->undoRect = (void **) BLI_memarena_alloc(arena, size);
 			memset(last_projIma->undoRect, 0, size);
 			last_projIma->ibuf->userflags |= IB_BITMAPDIRTY;
 		}
@@ -3372,21 +3231,21 @@ static void project_paint_end(ProjPaintState *ps)
 					
 					if (last_projIma->undoRect[tile_index]==NULL) {
 						/* add the undo tile from the modified image, then write the original colors back into it */
-						tile = last_projIma->undoRect[tile_index] = undo_init_tile(&last_projIma->ima->id, last_projIma->ibuf, is_float ? (&tmpibuf_float):(&tmpibuf) , x_tile, y_tile);
+						tilerect = last_projIma->undoRect[tile_index] = image_undo_push_tile(last_projIma->ima, last_projIma->ibuf, is_float ? (&tmpibuf_float):(&tmpibuf) , x_tile, y_tile);
 					}
 					else {
-						tile = last_projIma->undoRect[tile_index];
+						tilerect = last_projIma->undoRect[tile_index];
 					}
 					
 					/* This is a BIT ODD, but overwrite the undo tiles image info with this pixels original color
 					 * because allocating the tiles allong the way slows down painting */
 					
 					if (is_float) {
-						float *rgba_fp = (float *)tile->rect + (((projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE)) * 4;
+						float *rgba_fp = (float *)tilerect + (((projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE)) * 4;
 						QUATCOPY(rgba_fp, projPixel->origColor.f);
 					}
 					else {
-						((unsigned int *)tile->rect)[ (projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE ] = projPixel->origColor.uint;
+						((unsigned int *)tilerect)[ (projPixel->x_px - x_round) + (projPixel->y_px - y_round) * IMAPAINT_TILE_SIZE ] = projPixel->origColor.uint;
 					}
 				}
 			}
@@ -3957,7 +3816,6 @@ static void imapaint_clear_partial_redraw()
 static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int h)
 {
 	ImBuf *tmpibuf = NULL;
-	UndoTile *tile;
 	int srcx= 0, srcy= 0, origx;
 
 	IMB_rectclip(ibuf, NULL, &x, &y, &srcx, &srcy, &w, &h);
@@ -3984,17 +3842,9 @@ static void imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, 
 	origx = (x >> IMAPAINT_TILE_BITS);
 	y = (y >> IMAPAINT_TILE_BITS);
 	
-	for (; y <= h; y++) {
-		for (x=origx; x <= w; x++) {
-			for(tile=curundo->tiles.first; tile; tile=tile->next)
-				if(tile->x == x && tile->y == y && strcmp(tile->id.name, ima->id.name)==0)
-					break;
-
-			if(!tile) {
-				undo_init_tile(&ima->id, ibuf, &tmpibuf, x, y);
-			}
-		}
-	}
+	for (; y <= h; y++)
+		for (x=origx; x <= w; x++)
+			image_undo_push_tile(ima, ibuf, &tmpibuf, x, y);
 
 	ibuf->userflags |= IB_BITMAPDIRTY;
 	
@@ -4562,8 +4412,8 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		if (pop->ps.tool == PAINT_TOOL_CLONE)
 			pop->ps.do_layer_clone = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE);
 		
-		pop->ps.do_layer_mask = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_MASK) ? 1 : 0;
-		pop->ps.do_layer_mask_inv = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_MASK_INV) ? 1 : 0;
+		pop->ps.do_layer_stencil = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL) ? 1 : 0;
+		pop->ps.do_layer_stencil_inv = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) ? 1 : 0;
 		
 		
 #ifndef PROJ_DEBUG_NOSEAMBLEED
@@ -4592,7 +4442,8 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	}
 	
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
-	undo_imagepaint_push_begin("Image Paint");
+	undo_paint_push_begin(UNDO_PAINT_IMAGE, "Image Paint",
+		image_undo_restore, image_undo_free);
 
 	/* create painter */
 	pop->painter= brush_painter_new(pop->s.brush);
@@ -4656,7 +4507,7 @@ static void paint_exit(bContext *C, wmOperator *op)
 	}
 	
 	paint_redraw(C, &pop->s, 1);
-	undo_imagepaint_push_end();
+	undo_paint_push_end(UNDO_PAINT_IMAGE);
 	
 	if(pop->s.warnmultifile)
 		BKE_reportf(op->reports, RPT_WARNING, "Image requires 4 color channels to paint: %s", pop->s.warnmultifile);
@@ -5255,3 +5106,4 @@ int facemask_paint_poll(bContext *C)
 {
 	return paint_facesel_test(CTX_data_active_object(C));
 }
+

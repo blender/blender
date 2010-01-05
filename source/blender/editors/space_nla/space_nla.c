@@ -264,7 +264,7 @@ static void nla_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "NLA Data", SPACE_NLA, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "NLA Editor", SPACE_NLA, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 	keymap= WM_keymap_find(wm->defaultconf, "NLA Generic", SPACE_NLA, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
@@ -331,29 +331,12 @@ static void nla_main_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void nla_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	ED_region_header_init(ar);
 }
 
 static void nla_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	nla_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_header(C, ar);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -439,6 +422,10 @@ static void nla_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
 		default:
 			if(wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
@@ -468,6 +455,11 @@ static void nla_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
+
 		default:
 			if(wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
@@ -515,6 +507,7 @@ void ED_spacetype_nla(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_NLA;
+	strncpy(st->name, "NLA", BKE_ST_MAXNAME);
 	
 	st->new= nla_new;
 	st->free= nla_free;

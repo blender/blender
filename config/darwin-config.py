@@ -40,19 +40,28 @@ if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
 # Can be customized
 
 if MACOSX_ARCHITECTURE == 'ppc':
-	MAC_MIN_VERS = '10.3'
-	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
-	LCGDIR = '#../lib/darwin-6.1-powerpc'
-	CC = 'gcc-3.3'
-	CXX = 'g++-3.3'
+# ppc release are now made for 10.4
+#	MAC_MIN_VERS = '10.3'
+#	MACOSX_SDK='/Developer/SDKs/MacOSX10.3.9.sdk'
+#	LCGDIR = '#../lib/darwin-6.1-powerpc'
+#	CC = 'gcc-3.3'
+#	CXX = 'g++-3.3'
+	MAC_MIN_VERS = '10.4'
+	MACOSX_DEPLOYMENT_TARGET = '10.4'
+	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
+	LCGDIR = '#../lib/darwin-8.0.0-powerpc'
+	CC = 'gcc-4.0'
+	CXX = 'g++-4.0'
 elif MACOSX_ARCHITECTURE == 'i386':
 	MAC_MIN_VERS = '10.4'
+	MACOSX_DEPLOYMENT_TARGET = '10.4'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.4u.sdk'
 	LCGDIR = '#../lib/darwin-8.x.i386'
 	CC = 'gcc-4.0'
 	CXX = 'g++-4.0'
 else :
 	MAC_MIN_VERS = '10.5'
+	MACOSX_DEPLOYMENT_TARGET = '10.5'
 	MACOSX_SDK='/Developer/SDKs/MacOSX10.5.sdk'
 	LCGDIR = '#../lib/darwin-9.x.universal'
 	CC = 'gcc-4.2'
@@ -147,7 +156,7 @@ BF_JACK_INC = '${BF_JACK}/include/jack'
 BF_JACK_LIB = 'jack'
 BF_JACK_LIBPATH = '${BF_JACK}/lib'
 
-WITH_BF_SNDFILE = False
+WITH_BF_SNDFILE = True
 BF_SNDFILE = LIBDIR + '/sndfile'
 BF_SNDFILE_INC = '${BF_SNDFILE}/include'
 BF_SNDFILE_LIB = 'sndfile'
@@ -205,7 +214,7 @@ BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
 
-WITH_BF_FFTW3 = False
+WITH_BF_FFTW3 = True
 BF_FFTW3 = LIBDIR + '/fftw3'
 BF_FFTW3_INC = '${BF_FFTW3}/include'
 BF_FFTW3_LIB = 'libfftw3'
@@ -249,7 +258,7 @@ BF_OPENGL_LIBPATH = '/System/Library/Frameworks/OpenGL.framework/Libraries'
 BF_OPENGL_LINKFLAGS = ['-framework', 'OpenGL']
 
 #OpenCollada flags
-WITH_BF_COLLADA = True
+WITH_BF_COLLADA = False
 BF_COLLADA = '#source/blender/collada'
 BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
@@ -263,6 +272,14 @@ BF_PCRE_LIBPATH = '${BF_PCRE}/lib'
 #BF_EXPAT = '/usr'
 #BF_EXPAT_LIB = 'expat'
 #BF_EXPAT_LIBPATH = '/usr/lib'
+
+#Ray trace optimization
+WITH_BF_RAYOPTIMIZATION = False
+if MACOSX_ARCHITECTURE == 'i386':
+    BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse']
+elif MACOSX_ARCHITECTURE == 'x86_64':
+    BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse','-msse2']
+    
 
 #############################################################################
 ###################  various compile settings and flags    ##################
@@ -303,8 +320,8 @@ if MAC_MIN_VERS == '10.3':
 	LLIBS.append('crt3.o')
 	
 if USE_SDK==True:
-	SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS]	
-	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-syslibroot '+MACOSX_SDK]+PLATFORM_LINKFLAGS
+	SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS,'-arch',MACOSX_ARCHITECTURE]	
+	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-syslibroot '+MACOSX_SDK,'-arch',MACOSX_ARCHITECTURE]+PLATFORM_LINKFLAGS
 	CCFLAGS=SDK_FLAGS+CCFLAGS
 	CXXFLAGS=SDK_FLAGS+CXXFLAGS
 	

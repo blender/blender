@@ -40,6 +40,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_global.h"
+#include "BKE_report.h"
 #include "BKE_utildefines.h"
 #include "BKE_writeavi.h"
 #include "AVI_avi.h"
@@ -127,7 +128,7 @@ void makeavistring (RenderData *rd, char *string)
 	}
 }
 
-void start_avi(struct Scene *scene, RenderData *rd, int rectx, int recty)
+int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportList *reports)
 {
 	int x, y;
 	char name[256];
@@ -153,10 +154,10 @@ void start_avi(struct Scene *scene, RenderData *rd, int rectx, int recty)
 	else format = AVI_FORMAT_MJPEG;
 
 	if (AVI_open_compress (name, avi, 1, format) != AVI_ERROR_NONE) {
-		printf("cannot open or start AVI movie file");
+		BKE_report(reports, RPT_ERROR, "Cannot open or start AVI movie file.");
 		MEM_freeN (avi);
 		avi = NULL;
-		return;
+		return 0;
 	}
 			
 	AVI_set_compress_option (avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_WIDTH, &x);
@@ -170,18 +171,17 @@ void start_avi(struct Scene *scene, RenderData *rd, int rectx, int recty)
 /* 	avi->odd_fields= (rd->mode & R_ODDFIELD)?1:0; */
 	
 	printf("Created avi: %s\n", name);
+	return 1;
 }
 
-void append_avi(RenderData *rd, int frame, int *pixels, int rectx, int recty)
+int append_avi(RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports)
 {
 	unsigned int *rt1, *rt2, *rectot;
 	int x, y;
 	char *cp, rt;
 	
-	if (avi == NULL) {
-		G.afbreek = 1;
-		return;
-	}
+	if (avi == NULL)
+		return 0;
 
 	/* note that libavi free's the buffer... stupid interface - zr */
 	rectot= MEM_mallocN(rectx*recty*sizeof(int), "rectot");
@@ -205,6 +205,8 @@ void append_avi(RenderData *rd, int frame, int *pixels, int rectx, int recty)
 	
 	AVI_write_frame (avi, (frame-sframe), AVI_FORMAT_RGB32, rectot, rectx*recty*4);
 //	printf ("added frame %3d (frame %3d in avi): ", frame, frame-sframe);
+
+	return 1;
 }
 
 void end_avi(void)
@@ -215,3 +217,4 @@ void end_avi(void)
 	MEM_freeN (avi);
 	avi= NULL;
 }
+

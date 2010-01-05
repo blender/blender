@@ -54,7 +54,7 @@ void seq_reset_imageofs(struct SpaceSeq *sseq);
 
 /* sequencer_edit.c */
 struct View2D;
-int check_single_seq(struct Sequence *seq);
+int seq_single_check(struct Sequence *seq);
 int seq_tx_get_final_left(struct Sequence *seq, int metaclip);
 int seq_tx_get_final_right(struct Sequence *seq, int metaclip);
 void seq_rectf(struct Sequence *seq, struct rctf *rectf);
@@ -91,12 +91,18 @@ void SEQUENCER_OT_meta_separate(struct wmOperatorType *ot);
 void SEQUENCER_OT_snap(struct wmOperatorType *ot);
 void SEQUENCER_OT_previous_edit(struct wmOperatorType *ot);
 void SEQUENCER_OT_next_edit(struct wmOperatorType *ot);
-void SEQUENCER_OT_swap_right(struct wmOperatorType *ot);
-void SEQUENCER_OT_swap_left(struct wmOperatorType *ot);
+void SEQUENCER_OT_swap(struct wmOperatorType *ot);
 void SEQUENCER_OT_rendersize(struct wmOperatorType *ot);
 
+void SEQUENCER_OT_view_toggle(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_all(struct wmOperatorType *ot);
 void SEQUENCER_OT_view_selected(struct wmOperatorType *ot);
+
+void SEQUENCER_OT_copy(struct wmOperatorType *ot);
+void SEQUENCER_OT_paste(struct wmOperatorType *ot);
+
+/* preview specific operators */
+void SEQUENCER_OT_view_all_preview(struct wmOperatorType *ot);
 
 /* sequencer_select.c */
 void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot);

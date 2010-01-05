@@ -340,7 +340,7 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	keymap= WM_keymap_find(wm->defaultconf, "Sculpt", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "EditMesh", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Mesh", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	
 	keymap= WM_keymap_find(wm->defaultconf, "Curve", 0, 0);
@@ -359,7 +359,7 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* armature sketching needs to take over mouse */
-	keymap= WM_keymap_find(wm->defaultconf, "Armature_Sketch", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Armature Sketch", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	keymap= WM_keymap_find(wm->defaultconf, "Particle", 0, 0);
@@ -376,10 +376,10 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
 	/* own keymap, last so modes can override it */
-	keymap= WM_keymap_find(wm->defaultconf, "View3D Generic", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap= WM_keymap_find(wm->defaultconf, "View3D", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "3D View", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -452,12 +452,13 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 				case ND_LAYER:
-					ED_region_tag_redraw(ar);
-					break;
+				case ND_RENDER_OPTIONS:
 				case ND_MODE:
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			if (wmn->action == NA_EDITED)
+				ED_region_tag_redraw(ar);
 			break;
 		case NC_OBJECT:
 			switch(wmn->data) {
@@ -487,6 +488,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			/* all group ops for now */
 			ED_region_tag_redraw(ar);
 			break;
+		case NC_BRUSH:
+			if(wmn->action == NA_EDITED)
+				ED_region_tag_redraw(ar);
+			break;			
 		case NC_MATERIAL:
 			switch(wmn->data) {
 				case ND_SHADING_DRAW:
@@ -518,7 +523,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
-			if(wmn->data == ND_ID_RENAME)
+			if(wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -540,7 +545,7 @@ static void view3d_main_area_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "View3D Generic", SPACE_VIEW3D, 0);
+	wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
 	
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
@@ -581,7 +586,7 @@ static void view3d_buttons_area_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 	
-	keymap= WM_keymap_find(wm->defaultconf, "View3D Generic", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -635,6 +640,10 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_TEXTURE:
+			/* for brush textures */
+			ED_region_tag_redraw(ar);
+			break;
 		case NC_BRUSH:
 			if(wmn->action==NA_EDITED)
 				ED_region_tag_redraw(ar);
@@ -644,7 +653,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_ID:
-			if(wmn->data == ND_ID_RENAME)
+			if(wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -657,7 +666,7 @@ static void view3d_tools_area_init(wmWindowManager *wm, ARegion *ar)
 	
 	ED_region_panels_init(wm, ar);
 
-	keymap= WM_keymap_find(wm->defaultconf, "View3D Generic", SPACE_VIEW3D, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "3D View Generic", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -775,6 +784,7 @@ void ED_spacetype_view3d(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_VIEW3D;
+	strncpy(st->name, "View3D", BKE_ST_MAXNAME);
 	
 	st->new= view3d_new;
 	st->free= view3d_free;

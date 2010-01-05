@@ -37,12 +37,13 @@ extern "C" {
 void cent_tri_v3(float r[3], float a[3], float b[3], float c[3]);
 void cent_quad_v3(float r[3], float a[3], float b[3], float c[3], float d[3]);
 
-float normal_tri_v3(float r[3], float a[3], float b[3], float c[3]);
-float normal_quad_v3(float r[3], float a[3], float b[3], float c[3], float d[3]);
+float normal_tri_v3(float r[3], const float a[3], const float b[3], const float c[3]);
+float normal_quad_v3(float r[3], const float a[3], const float b[3], const float c[3], const float d[3]);
 
-float area_tri_v2(float a[2], float b[2], float c[2]);
-float area_tri_v3(float a[3], float b[3], float c[3]);
-float area_quad_v3(float a[3], float b[3], float c[3], float d[3]);
+float area_tri_v2(const float a[2], const float b[2], const float c[2]);
+float area_tri_signed_v2(const float v1[2], const float v2[2], const float v3[2]);
+float area_tri_v3(const float a[3], const float b[3], const float c[3]);
+float area_quad_v3(const float a[3], const float b[3], const float c[3], const float d[3]);
 float area_poly_v3(int nr, float verts[][3], float normal[3]);
 
 /********************************* Distance **********************************/
@@ -85,6 +86,8 @@ int isect_ray_tri_v3(float p1[3], float d[3],
 	float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
 int isect_ray_tri_threshold_v3(float p1[3], float d[3],
 	float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float threshold);
+int isect_ray_tri_epsilon_v3(float p1[3], float d[3],
+	float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float epsilon);
 
 /* point in polygon */
 int isect_point_tri_v2(float p[2], float a[2], float b[2], float c[2]);
@@ -108,6 +111,8 @@ int isect_axial_line_tri_v3(int axis, float co1[3], float co2[3],
 
 int isect_aabb_aabb_v3(float min1[3], float max1[3], float min2[3], float max2[3]);
 
+int clip_line_plane(float clipco[3], float plane[4], float co[3]);
+
 /****************************** Interpolation ********************************/
 
 /* tri or quad, d can be NULL */
@@ -117,6 +122,15 @@ void interp_weights_poly_v3(float w[], float v[][3], int n, float p[3]);
 
 void interp_cubic_v3(float x[3], float v[3],
 	float x1[3], float v1[3], float x2[3], float v2[3], float t);
+
+int interp_sparse_array(float *array, int list_size, float invalid);
+
+void barycentric_transform(float pt_tar[3], float const pt_src[3],
+	const float tri_tar_p1[3], const float tri_tar_p2[3], const float tri_tar_p3[3],
+	const float tri_src_p1[3], const float tri_src_p2[3], const float tri_src_p3[3]);
+
+void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3[2],
+	const float co[2], float w[3]);
 
 /***************************** View & Projection *****************************/
 

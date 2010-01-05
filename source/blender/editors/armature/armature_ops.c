@@ -77,7 +77,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_parent_set);
 	WM_operatortype_append(ARMATURE_OT_parent_clear);
 	
-	WM_operatortype_append(ARMATURE_OT_select_all_toggle);
+	WM_operatortype_append(ARMATURE_OT_select_all);
 	WM_operatortype_append(ARMATURE_OT_select_inverse);
 	WM_operatortype_append(ARMATURE_OT_select_hierarchy);
 	WM_operatortype_append(ARMATURE_OT_select_linked);
@@ -120,7 +120,7 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_copy);
 	WM_operatortype_append(POSE_OT_paste);
 	
-	WM_operatortype_append(POSE_OT_select_all_toggle);
+	WM_operatortype_append(POSE_OT_select_all);
 	WM_operatortype_append(POSE_OT_select_inverse);
 
 	WM_operatortype_append(POSE_OT_select_parent);
@@ -162,15 +162,15 @@ void ED_operatormacros_armature(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	
-	ot= WM_operatortype_append_macro("ARMATURE_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("ARMATURE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "ARMATURE_OT_duplicate");
-	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 
 	ot= WM_operatortype_append_macro("ARMATURE_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
 	otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
 	RNA_enum_set(otmacro->ptr, "forked", 0);
-	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	
 	// XXX would it be nicer to just be able to have standard extrude_move, but set the forked property separate?
@@ -178,7 +178,7 @@ void ED_operatormacros_armature(void)
 	ot= WM_operatortype_append_macro("ARMATURE_OT_extrude_forked", "Extrude Forked", OPTYPE_UNDO|OPTYPE_REGISTER);
 	otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
 	RNA_enum_set(otmacro->ptr, "forked", 1);
-	otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 }
 
@@ -219,7 +219,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ARMATURE_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
 	
-	WM_keymap_add_item(keymap, "ARMATURE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ARMATURE_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ARMATURE_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	
 	kmi= WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", LEFTBRACKETKEY, KM_PRESS, 0, 0);
@@ -261,10 +261,10 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 		/* special transforms: */
 		/* 	1) envelope/b-bone size */
-	kmi= WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
+	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
 		RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
 		/* 	2) set roll */
-	kmi= WM_keymap_add_item(keymap, "TFM_OT_transform", RKEY, KM_PRESS, KM_CTRL, 0);
+	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", RKEY, KM_PRESS, KM_CTRL, 0);
 		RNA_enum_set(kmi->ptr, "mode", TFM_BONE_ROLL);
 		
 		/* menus */
@@ -295,7 +295,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	kmi= WM_keymap_add_item(keymap, "POSE_OT_paste", VKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "flipped", 1);
 	
-	WM_keymap_add_item(keymap, "POSE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "POSE_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "POSE_OT_select_parent", PKEY, KM_PRESS, KM_SHIFT, 0);
@@ -335,7 +335,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	
 		/* special transforms: */
 		/* 	1) envelope/b-bone size */
-	kmi= WM_keymap_add_item(keymap, "TFM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
+	kmi= WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0);
 		RNA_enum_set(kmi->ptr, "mode", TFM_BONESIZE);
 	
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith

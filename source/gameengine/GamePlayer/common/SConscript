@@ -58,7 +58,7 @@ incs = ['.',
 #                    'unix/GPU_System.cpp']
 #   gp_common_env.Append ( CPPPATH = ['unix'])
 
-defs = []
+defs = [ 'GLEW_STATIC' ]
 
 if env['WITH_BF_PYTHON']:
 	incs += Split(env['BF_PYTHON_INC'])

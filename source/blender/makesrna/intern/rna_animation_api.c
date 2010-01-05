@@ -76,7 +76,7 @@ void RNA_api_keyingset(StructRNA *srna)
 	parm= RNA_def_pointer(func, "target_id", "ID", "Target ID", "ID-Datablock for the destination."); 
 		RNA_def_property_flag(parm, PROP_REQUIRED);
 		/* rna-path */
-	parm= RNA_def_string(func, "rna_path", "", 256, "RNA-Path", "RNA-Path to destination property."); // xxx hopefully this is long enough
+	parm= RNA_def_string(func, "data_path", "", 256, "Data-Path", "RNA-Path to destination property."); // xxx hopefully this is long enough
 		RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm=RNA_def_int(func, "array_index", 0, 0, INT_MAX, "Array Index", "If applicable, the index ", 0, INT_MAX);
 		/* flags */

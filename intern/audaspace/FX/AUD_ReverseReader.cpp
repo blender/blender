@@ -65,7 +65,7 @@ int AUD_ReverseReader::getPosition()
 void AUD_ReverseReader::read(int & length, sample_t* & buffer)
 {
 	// first correct the length
-	if(m_position+length > m_length)
+	if(m_position + length > m_length)
 		length = m_length-m_position;
 
 	if(length <= 0)
@@ -74,7 +74,8 @@ void AUD_ReverseReader::read(int & length, sample_t* & buffer)
 		return;
 	}
 
-	int samplesize = AUD_SAMPLE_SIZE(getSpecs());
+	AUD_Specs specs = getSpecs();
+	int samplesize = AUD_SAMPLE_SIZE(specs);
 
 	// resize buffer if needed
 	if(m_buffer->getSize() < length * samplesize)
@@ -86,23 +87,20 @@ void AUD_ReverseReader::read(int & length, sample_t* & buffer)
 	int len = length;
 
 	// read from reader
-	m_reader->seek(m_length-m_position-len);
+	m_reader->seek(m_length - m_position - len);
 	m_reader->read(len, buf);
 
 	// set null if reader didn't give enough data
 	if(len < length)
 	{
-		if(getSpecs().format == AUD_FORMAT_U8)
-			memset(buffer, 0x80, (length-len)*samplesize);
-		else
-			memset(buffer, 0, (length-len)*samplesize);
-		buffer += length-len;
+		memset(buffer, 0, (length - len) * samplesize);
+		buffer += (length - len) * specs.channels;
 	}
 
 	// copy the samples reverted
 	for(int i = 0; i < len; i++)
-		memcpy(buffer + i * samplesize,
-			   buf + (len - 1 - i) * samplesize,
+		memcpy(buffer + i * specs.channels,
+			   buf + (len - 1 - i) * specs.channels,
 			   samplesize);
 
 	m_position += length;

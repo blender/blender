@@ -1736,7 +1736,7 @@ static int set_active_group_exec(bContext *C, wmOperator *op)
 	ob->actdef= nr+1;
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob);
 
 	return OPERATOR_FINISHED;
 }

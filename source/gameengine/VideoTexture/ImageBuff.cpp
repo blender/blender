@@ -30,14 +30,34 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include "ImageBase.h"
 #include "FilterSource.h"
 
+// use ImBuf API for image manipulation
+extern "C" {
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
+};
 
 // default filter
 FilterRGB24 defFilter;
+
+// forward declaration;
+extern PyTypeObject ImageBuffType;
+
+ImageBuff::~ImageBuff (void)
+{
+	if (m_imbuf)
+		IMB_freeImBuf(m_imbuf);
+}
 
 
 // load image from buffer
 void ImageBuff::load (unsigned char * img, short width, short height)
 {
+	// loading a new buffer implies to reset the imbuf if any, because the size may change
+	if (m_imbuf)
+	{
+		IMB_freeImBuf(m_imbuf);
+		m_imbuf = NULL;
+	}
 	// initialize image buffer
 	init(width, height);
 	// original size
@@ -53,6 +73,52 @@ void ImageBuff::load (unsigned char * img, short width, short height)
 	m_avail = true;
 }
 
+// img must point to a array of RGBA data of size width*height
+void ImageBuff::plot (unsigned char * img, short width, short height, short x, short y, short mode)
+{
+	struct ImBuf* tmpbuf;
+
+	if (m_size[0] == 0 || m_size[1] == 0 || width <= 0 || height <= 0)
+		return;
+
+	if (!m_imbuf) {
+		// allocate most basic imbuf, we will assign the rect buffer on the fly
+		m_imbuf = IMB_allocImBuf(m_size[0], m_size[1], 0, 0, 0);
+	}
+
+	tmpbuf = IMB_allocImBuf(width, height, 0, 0, 0);
+
+	// assign temporarily our buffer to the ImBuf buffer, we use the same format
+	tmpbuf->rect = (unsigned int*)img;
+	m_imbuf->rect = m_image;
+	IMB_rectblend(m_imbuf, tmpbuf, x, y, 0, 0, width, height, (IMB_BlendMode)mode);
+	// remove so that MB_freeImBuf will free our buffer
+	m_imbuf->rect = NULL;
+	tmpbuf->rect = NULL;
+	IMB_freeImBuf(tmpbuf);
+}
+
+void ImageBuff::plot (ImageBuff* img, short x, short y, short mode)
+{
+	if (m_size[0] == 0 || m_size[1] == 0 || img->m_size[0] == 0 || img->m_size[1] == 0)
+		return;
+
+	if (!m_imbuf) {
+		// allocate most basic imbuf, we will assign the rect buffer on the fly
+		m_imbuf = IMB_allocImBuf(m_size[0], m_size[1], 0, 0, 0);
+	}
+	if (!img->m_imbuf) {
+		// allocate most basic imbuf, we will assign the rect buffer on the fly
+		img->m_imbuf = IMB_allocImBuf(img->m_size[0], img->m_size[1], 0, 0, 0);
+	}
+	// assign temporarily our buffer to the ImBuf buffer, we use the same format
+	img->m_imbuf->rect = img->m_image;
+	m_imbuf->rect = m_image;
+	IMB_rectblend(m_imbuf, img->m_imbuf, x, y, 0, 0, img->m_imbuf->x, img->m_imbuf->y, (IMB_BlendMode)mode);
+	// remove so that MB_freeImBuf will free our buffer
+	m_imbuf->rect = NULL;
+	img->m_imbuf->rect = NULL;
+}
 
 
 // cast Image pointer to ImageBuff
@@ -62,16 +128,47 @@ inline ImageBuff * getImageBuff (PyImage * self)
 
 // python methods
 
+static bool testPyBuffer(Py_buffer* buffer, int width, int height, unsigned int pixsize)
+{
+	if (buffer->itemsize != 1)
+	{
+		PyErr_SetString(PyExc_ValueError, "Buffer must be an array of bytes");
+		return false;
+	} 
+	if (buffer->len != width*height*pixsize)
+	{
+		PyErr_SetString(PyExc_ValueError, "Buffer hasn't correct size");
+		return false;
+	} 
+	// multi dimension are ok as long as there is no hole in the memory
+	Py_ssize_t size = buffer->itemsize;
+	for (int i=buffer->ndim-1; i>=0 ; i--)
+	{
+		if (buffer->suboffsets != NULL && buffer->suboffsets[i] >= 0)
+		{
+			PyErr_SetString(PyExc_ValueError, "Buffer must be of one block");
+			return false;
+		}
+		if (buffer->strides != NULL && buffer->strides[i] != size)
+		{
+			PyErr_SetString(PyExc_ValueError, "Buffer must be of one block");
+			return false;
+		}
+		if (i > 0)
+			size *= buffer->shape[i];
+	}
+	return true;
+}
+
 // load image
 static PyObject * load (PyImage * self, PyObject * args)
 {
 	// parameters: string image buffer, its size, width, height
-	unsigned char * buff;
-	unsigned int buffSize;
+	Py_buffer buffer;
 	short width;
 	short height;
 	// parse parameters
-	if (!PyArg_ParseTuple(args, "s#hh:load", &buff, &buffSize, &width, &height))
+	if (!PyArg_ParseTuple(args, "s*hh:load", &buffer, &width, &height))
 	{
 		// report error
 		return NULL;
@@ -80,31 +177,61 @@ static PyObject * load (PyImage * self, PyObject * args)
 	else
 	{
 		// calc proper buffer size
-		unsigned int propSize = width * height;
+		unsigned int pixSize;
 		// use pixel size from filter
 		if (self->m_image->getFilter() != NULL)
-			propSize *= self->m_image->getFilter()->m_filter->firstPixelSize();
+			pixSize = self->m_image->getFilter()->m_filter->firstPixelSize();
 		else
-			propSize *= defFilter.firstPixelSize();
+			pixSize = defFilter.firstPixelSize();
 		// check if buffer size is correct
-		if (propSize != buffSize)
+		if (testPyBuffer(&buffer, width, height, pixSize))
 		{
-			// if not, report error
-			PyErr_SetString(PyExc_TypeError, "Buffer hasn't correct size");
-			return NULL;
-		}
-		else
 			// if correct, load image
-			getImageBuff(self)->load(buff, width, height);
+			getImageBuff(self)->load((unsigned char*)buffer.buf, width, height);
+		}
+		PyBuffer_Release(&buffer);
 	}
 	Py_RETURN_NONE;	
 }
 
+static PyObject * plot (PyImage * self, PyObject * args)
+{
+	PyImage * other;
+	Py_buffer buffer;
+	//unsigned char * buff;
+	//unsigned int buffSize;
+	short width;
+	short height;
+	short x, y;
+	short mode = IMB_BLEND_COPY;
+
+	if (PyArg_ParseTuple(args, "s*hhhh|h:plot", &buffer, &width, &height, &x, &y, &mode))
+	{
+		// correct decoding, verify that buffer size is correct
+		// we need a continous memory buffer
+		if (testPyBuffer(&buffer, width, height, 4))
+		{
+			getImageBuff(self)->plot((unsigned char*)buffer.buf, width, height, x, y, mode);
+		}
+		PyBuffer_Release(&buffer);
+		Py_RETURN_NONE;	
+	}
+	PyErr_Clear();
+	// try the other format
+	if (!PyArg_ParseTuple(args, "O!hh|h:plot", &ImageBuffType, &other, &x, &y, &mode))
+	{
+		PyErr_SetString(PyExc_TypeError, "Expecting ImageBuff or string,width,height as first arguments, postion x, y and mode and last arguments");
+		return NULL;
+	}
+	getImageBuff(self)->plot(getImageBuff(other), x, y, mode);
+	Py_RETURN_NONE;
+}
 
 // methods structure
 static PyMethodDef imageBuffMethods[] =
 { 
 	{"load", (PyCFunction)load, METH_VARARGS, "Load image from buffer"},
+	{"plot", (PyCFunction)plot, METH_VARARGS, "update image buffer"},
 	{NULL}
 };
 // attributes structure

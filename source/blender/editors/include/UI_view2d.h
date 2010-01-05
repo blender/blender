@@ -195,7 +195,7 @@ void UI_view2d_text_cache_rectf(struct View2D *v2d, struct rctf *rect, char *str
 void UI_view2d_text_cache_draw(struct ARegion *ar);
 
 /* operators */
-void ui_view2d_operatortypes(void);
+void UI_view2d_operatortypes(void);
 void UI_view2d_keymap(struct wmKeyConfig *keyconf);
 
 #endif /* UI_VIEW2D_H */

@@ -69,6 +69,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_library.h"
@@ -79,7 +80,7 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_utildefines.h"
 
 #include "ED_armature.h"
@@ -913,18 +914,25 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			TreeElement *ted= outliner_add_element(soops, &te->subtree, adt, te, TSE_DRIVER_BASE, 0);
 			ID *lastadded= NULL;
 			FCurve *fcu;
-			DriverTarget *dtar;
 			
 			ted->name= "Drivers";
 		
 			for (fcu= adt->drivers.first; fcu; fcu= fcu->next) {
-				if (fcu->driver && fcu->driver->targets.first)  {
-					for (dtar= fcu->driver->targets.first; dtar; dtar= dtar->next) {
-						if (lastadded != dtar->id) {
-							// XXX this lastadded check is rather lame, and also fails quite badly...
-							outliner_add_element(soops, &ted->subtree, dtar->id, ted, TSE_LINKED_OB, 0);
-							lastadded= dtar->id;
+				if (fcu->driver && fcu->driver->variables.first)  {
+					ChannelDriver *driver= fcu->driver;
+					DriverVar *dvar;
+					
+					for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+						/* loop over all targets used here */
+						DRIVER_TARGETS_USED_LOOPER(dvar) 
+						{
+							if (lastadded != dtar->id) {
+								// XXX this lastadded check is rather lame, and also fails quite badly...
+								outliner_add_element(soops, &ted->subtree, dtar->id, ted, TSE_LINKED_OB, 0);
+								lastadded= dtar->id;
+							}
 						}
+						DRIVER_TARGETS_LOOPER_END
 					}
 				}
 			}
@@ -4747,7 +4755,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				case ID_SCE:
 					WM_event_add_notifier(C, NC_SCENE, NULL); break;
 				default:
-					WM_event_add_notifier(C, NC_ID|ND_ID_RENAME, NULL); break;
+					WM_event_add_notifier(C, NC_ID|NA_RENAME, NULL); break;
 			}					
 			/* Check the library target exists */
 			if (te->idcode == ID_LI) {
@@ -5029,7 +5037,7 @@ static uiBlock *operator_search_menu(bContext *C, ARegion *ar, void *arg_kmi)
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
 	
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, "");
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, 0, 0, "");
 	uiButSetSearchFunc(but, operator_search_cb, arg_kmi, operator_call_cb, ot);
 	
 	uiBoundsBlock(block, 6);

@@ -57,7 +57,7 @@ void PE_update_object(struct Scene *scene, struct Object *ob, int useflag);
 
 /* selection tools */
 int PE_mouse_particles(struct bContext *C, short *mval, int extend);
-int PE_border_select(struct bContext *C, struct rcti *rect, int select);
+int PE_border_select(struct bContext *C, struct rcti *rect, int select, int extend);
 int PE_circle_select(struct bContext *C, int selecting, short *mval, float rad);
 int PE_lasso_select(struct bContext *C, short mcords[][2], short moves, short select);
 

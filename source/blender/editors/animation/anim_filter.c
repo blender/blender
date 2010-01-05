@@ -68,6 +68,7 @@
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_space_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
@@ -85,6 +86,8 @@
 #include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
+#include "BKE_node.h"
+#include "BKE_sequencer.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -613,6 +616,19 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->adt= BKE_animdata_from_id(data);
 			}
 				break;
+			case ANIMTYPE_DSMESH:
+			{
+				Mesh *me= (Mesh *)data;
+				AnimData *adt= me->adt;
+				
+				ale->flag= FILTER_MESH_OBJD(me);
+				
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
+			}
+				break;
 			case ANIMTYPE_DSSKEY:
 			{
 				Key *key= (Key *)data;
@@ -754,6 +770,66 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
  
 /* ----------------------------------------- */
 
+static int skip_fcurve_selected_data(FCurve *fcu, ID *owner_id)
+{
+	if (GS(owner_id->name) == ID_OB) {
+		Object *ob= (Object *)owner_id;
+		
+		/* only consider if F-Curve involves pose.bones */
+		if ((fcu->rna_path) && strstr(fcu->rna_path, "pose.bones")) {
+			bPoseChannel *pchan;
+			char *bone_name;
+			
+			/* get bone-name, and check if this bone is selected */
+			bone_name= BLI_getQuotedStr(fcu->rna_path, "pose.bones[");
+			pchan= get_pose_channel(ob->pose, bone_name);
+			if (bone_name) MEM_freeN(bone_name);
+			
+			/* can only add this F-Curve if it is selected */
+			if ((pchan) && (pchan->bone) && (pchan->bone->flag & BONE_SELECTED)==0)
+				return 1;
+		}
+	}
+	else if (GS(owner_id->name) == ID_SCE) {
+		Scene *scene = (Scene *)owner_id;
+		
+		/* only consider if F-Curve involves sequence_editor.sequences */
+		if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
+			Editing *ed= seq_give_editing(scene, FALSE);
+			Sequence *seq;
+			char *seq_name;
+			
+			/* get strip name, and check if this strip is selected */
+			seq_name= BLI_getQuotedStr(fcu->rna_path, "sequences_all[");
+			seq = get_seq_by_name(ed->seqbasep, seq_name, FALSE);
+			if (seq_name) MEM_freeN(seq_name);
+			
+			/* can only add this F-Curve if it is selected */
+			if (seq==NULL || (seq->flag & SELECT)==0)
+				return 1;
+		}
+	}
+	else if (GS(owner_id->name) == ID_NT) {
+		bNodeTree *ntree = (bNodeTree *)owner_id;
+		
+		/* check for selected  nodes */
+		if ((fcu->rna_path) && strstr(fcu->rna_path, "nodes")) {
+			bNode *node;
+			char *node_name;
+			
+			/* get strip name, and check if this strip is selected */
+			node_name= BLI_getQuotedStr(fcu->rna_path, "nodes[");
+			node = nodeFindNodebyName(ntree, node_name);
+			if (node_name) MEM_freeN(node_name);
+			
+			/* can only add this F-Curve if it is selected */
+			if ((node) && (node->flag & NODE_SELECT)==0)
+				return 1;
+		}
+	}
+	return 0;
+}
+
 /* find the next F-Curve that is usable for inclusion */
 static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
 {
@@ -771,27 +847,11 @@ static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bAct
 		 *	  carefully checking the entire path
 		 *	- this will also affect things like Drivers, and also works for Bone Constraints
 		 */
-		if ( ((ads) && (ads->filterflag & ADS_FILTER_ONLYSEL)) && 
-			 ((owner_id) && (GS(owner_id->name) == ID_OB)) ) 
-		{
-			Object *ob= (Object *)owner_id;
-			
-			/* only consider if F-Curve involves pose.bones */
-			if ((fcu->rna_path) && strstr(fcu->rna_path, "bones")) {
-				bPoseChannel *pchan;
-				char *bone_name;
-				
-				/* get bone-name, and check if this bone is selected */
-				bone_name= BLI_getQuotedStr(fcu->rna_path, "bones[");
-				pchan= get_pose_channel(ob->pose, bone_name);
-				if (bone_name) MEM_freeN(bone_name);
-				
-				/* can only add this F-Curve if it is selected */
-				if ((pchan) && (pchan->bone) && (pchan->bone->flag & BONE_SELECTED)==0)
-					continue;
-			}
+		if ( ((ads) && (ads->filterflag & ADS_FILTER_ONLYSEL)) && (owner_id) ) {
+			if (skip_fcurve_selected_data(fcu, owner_id))
+				continue;
 		}
-		
+				
 		/* only include if visible (Graph Editor check, not channels check) */
 		if (!(filter_mode & ANIMFILTER_CURVEVISIBLE) || (fcu->flag & FCURVE_VISIBLE)) {
 			/* only work with this channel and its subchannels if it is editable */
@@ -859,10 +919,16 @@ static int animdata_filter_action (ListBase *anim_data, bDopeSheet *ads, bAction
 		/* get the first F-Curve in this group we can start to use, 
 		 * and if there isn't any F-Curve to start from, then don't 
 		 * this group at all...
+		 *
+		 * exceptions for when we might not care whether there's anything inside this group or not
+		 *	- if we're interested in channels and their selections, in which case group channel should get considered too
+		 *	  even if all its sub channels are hidden...
 		 */
 		first_fcu = animdata_filter_fcurve_next(ads, agrp->channels.first, agrp, filter_mode, owner_id);
 		
-		if (first_fcu) {
+		if ( (filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) ||
+			 (first_fcu) ) 
+		{
 			/* add this group as a channel first */
 			if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
 				/* check if filtering by selection */
@@ -1270,6 +1336,8 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 		}
 			break;
 		case OB_CURVE: /* ------- Curve ---------- */
+		case OB_SURF: /* ------- Nurbs Surface ---------- */
+		case OB_FONT: /* ------- Text Curve ---------- */
 		{
 			Curve *cu= (Curve *)ob->data;
 			
@@ -1291,6 +1359,14 @@ static int animdata_filter_dopesheet_obdata (ListBase *anim_data, bDopeSheet *ad
 			
 			type= ANIMTYPE_DSARM;
 			expanded= FILTER_ARM_OBJD(arm);
+		}
+			break;
+		case OB_MESH: /* ------- Mesh ---------- */
+		{
+			Mesh *me= (Mesh *)ob->data;
+			
+			type= ANIMTYPE_DSMESH;
+			expanded= FILTER_MESH_OBJD(me);
 		}
 			break;
 	}
@@ -1487,6 +1563,8 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 		}
 			break;
 		case OB_CURVE: /* ------- Curve ---------- */
+		case OB_SURF: /* ------- Nurbs Surface ---------- */
+		case OB_FONT: /* ------- Text Curve ---------- */
 		{
 			Curve *cu= (Curve *)ob->data;
 			
@@ -1518,6 +1596,19 @@ static int animdata_filter_dopesheet_ob (ListBase *anim_data, bDopeSheet *ads, B
 			
 			if ((ads->filterflag & ADS_FILTER_NOARM) == 0) {
 				ANIMDATA_FILTER_CASES(arm,
+					{ /* AnimData blocks - do nothing... */ },
+					obdata_ok= 1;,
+					obdata_ok= 1;,
+					obdata_ok= 1;)
+			}
+		}
+			break;
+		case OB_MESH: /* ------- Mesh ---------- */
+		{
+			Mesh *me= (Mesh *)ob->data;
+			
+			if ((ads->filterflag & ADS_FILTER_NOMESH) == 0) {
+				ANIMDATA_FILTER_CASES(me,
 					{ /* AnimData blocks - do nothing... */ },
 					obdata_ok= 1;,
 					obdata_ok= 1;,
@@ -1806,7 +1897,7 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 			/* additionally, dopesheet filtering also affects what objects to consider */
 			if (ads->filterflag) {
 				/* check selection and object type filters */
-				if ( (ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) || (base == sce->basact)) )  {
+				if ( (ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) /*|| (base == sce->basact)*/) )  {
 					/* only selected should be shown */
 					continue;
 				}
@@ -1909,6 +2000,8 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 					}
 						break;
 					case OB_CURVE: /* ------- Curve ---------- */
+					case OB_SURF: /* ------- Nurbs Surface ---------- */
+					case OB_FONT: /* ------- Text Curve ---------- */
 					{
 						Curve *cu= (Curve *)ob->data;
 						dataOk= 0;
@@ -1957,6 +2050,23 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 							dataOk= !(ads->filterflag & ADS_FILTER_NOARM);, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOARM);, 
 							dataOk= !(ads->filterflag & ADS_FILTER_NOARM);)
+					}
+						break;
+					case OB_MESH: /* ------- Mesh ---------- */
+					{
+						Mesh *me= (Mesh *)ob->data;
+						dataOk= 0;
+						ANIMDATA_FILTER_CASES(me, 
+							if ((ads->filterflag & ADS_FILTER_NOMESH)==0) {
+								/* for the special AnimData blocks only case, we only need to add
+								 * the block if it is valid... then other cases just get skipped (hence ok=0)
+								 */
+								ANIMDATA_ADD_ANIMDATA(me);
+								dataOk=0;
+							},
+							dataOk= !(ads->filterflag & ADS_FILTER_NOMESH);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOMESH);, 
+							dataOk= !(ads->filterflag & ADS_FILTER_NOMESH);)
 					}
 						break;
 					default: /* --- other --- */
@@ -2029,7 +2139,9 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 						dataOk= ANIMDATA_HAS_KEYS(la);	
 					}
 						break;
-					case OB_CURVE: /* -------- Curve ---------- */
+					case OB_CURVE: /* ------- Curve ---------- */
+					case OB_SURF: /* ------- Nurbs Surface ---------- */
+					case OB_FONT: /* ------- Text Curve ---------- */
 					{
 						Curve *cu= (Curve *)ob->data;
 						dataOk= ANIMDATA_HAS_KEYS(cu);	
@@ -2045,6 +2157,12 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 					{
 						bArmature *arm= (bArmature *)ob->data;
 						dataOk= ANIMDATA_HAS_KEYS(arm);	
+					}
+						break;
+					case OB_MESH: /* -------- Mesh ---------- */
+					{
+						Mesh *me= (Mesh *)ob->data;
+						dataOk= ANIMDATA_HAS_KEYS(me);	
 					}
 						break;
 					default: /* --- other --- */

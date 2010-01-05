@@ -1988,6 +1988,8 @@ typedef struct BakeShade {
 	char *rect_mask; /* bake pixel mask */
 
 	float dxco[3], dyco[3];
+
+	short *do_update;
 } BakeShade;
 
 /* bake uses a char mask to know what has been baked */
@@ -2252,9 +2254,7 @@ static int bake_check_intersect(Isect *is, int ob, RayFace *face)
 
 static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, float *dir, float sign, float *hitco, float *dist)
 {
-	//TODO
-	assert( 0 );
-#if 0
+	//TODO, validate against blender 2.4x, results may have changed.
 	float maxdist;
 	int hit;
 
@@ -2264,15 +2264,20 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 	else
 		maxdist= FLT_MAX + R.r.bake_biasdist;
 	
-	//TODO normalized direction?
-	VECADDFAC(isect->start, start, dir, -R.r.bake_biasdist);
-	isect->dir[0] = dir[0]*sign;
-	isect->dir[1] = dir[1]*sign;
-	isect->dir[2] = dir[2]*sign;
+	/* 'dir' is always normalized */
+	VECADDFAC(isect->start, start, dir, -R.r.bake_biasdist);					
+
+	isect->vec[0] = dir[0]*maxdist*sign;
+	isect->vec[1] = dir[1]*maxdist*sign;
+	isect->vec[2] = dir[2]*maxdist*sign;
+
 	isect->labda = maxdist;
 
+	/* TODO, 2.4x had this...
+	hit = RE_ray_tree_intersect_check(R.raytree, isect, bake_check_intersect);
+	...the active object may NOT be ignored in some cases.
+	*/
 	hit = RE_rayobject_raycast(raytree, isect);
-	//TODO bake_check_intersect
 	if(hit) {
 		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
 		hitco[1] = isect->start[1] + isect->labda*isect->vec[1];
@@ -2282,8 +2287,6 @@ static int bake_intersect_tree(RayObject* raytree, Isect* isect, float *start, f
 	}
 
 	return hit;
-#endif
-	return 0;
 }
 
 static void bake_set_vlr_dxyco(BakeShade *bs, float *uv1, float *uv2, float *uv3)
@@ -2587,6 +2590,11 @@ static void *do_bake_thread(void *bs_v)
 		/* fast threadsafe break test */
 		if(R.test_break(R.tbh))
 			break;
+
+		/* access is not threadsafe but since its just true/false probably ok
+		 * only used for interactive baking */
+		if(bs->do_update)
+			*bs->do_update= TRUE;
 	}
 	bs->ready= 1;
 	
@@ -2596,7 +2604,7 @@ static void *do_bake_thread(void *bs_v)
 /* using object selection tags, the faces with UV maps get baked */
 /* render should have been setup */
 /* returns 0 if nothing was handled */
-int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
+int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_update)
 {
 	BakeShade handles[BLENDER_MAX_THREADS];
 	ListBase threads;
@@ -2645,6 +2653,8 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 		handles[a].zspan= MEM_callocN(sizeof(ZSpan), "zspan for bake");
 		
 		handles[a].usemask = usemask;
+
+		handles[a].do_update = do_update; /* use to tell the view to update */
 		
 		BLI_insert_thread(&threads, &handles[a]);
 	}

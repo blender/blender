@@ -19,6 +19,91 @@
 # <pep8 compliant>
 import bpy
 
+KM_HIERARCHY = [
+                    ('Window', 'EMPTY', 'WINDOW', []), # file save, window change, exit
+                    ('Screen', 'EMPTY', 'WINDOW', [    # full screen, undo, screenshot
+                        ('Screen Editing', 'EMPTY', 'WINDOW', []),    # resizing, action corners
+                        ]),
+
+                    ('View2D', 'EMPTY', 'WINDOW', []),    # view 2d navigation (per region)
+                    ('View2D Buttons List', 'EMPTY', 'WINDOW', []), # view 2d with buttons navigation
+                    ('Header', 'EMPTY', 'WINDOW', []),    # header stuff (per region)
+                    ('Grease Pencil', 'EMPTY', 'WINDOW', []), # grease pencil stuff (per region)
+
+                    ('3D View', 'VIEW_3D', 'WINDOW', [ # view 3d navigation and generic stuff (select, transform)
+                        ('Object Mode', 'EMPTY', 'WINDOW', []),
+                        ('Mesh', 'EMPTY', 'WINDOW', []),
+                        ('Curve', 'EMPTY', 'WINDOW', []),
+                        ('Armature', 'EMPTY', 'WINDOW', []),
+                        ('Metaball', 'EMPTY', 'WINDOW', []),
+                        ('Lattice', 'EMPTY', 'WINDOW', []),
+                        ('Font', 'EMPTY', 'WINDOW', []),
+
+                        ('Pose', 'EMPTY', 'WINDOW', []),
+
+                        ('Vertex Paint', 'EMPTY', 'WINDOW', []),
+                        ('Weight Paint', 'EMPTY', 'WINDOW', []),
+                        ('Face Mask', 'EMPTY', 'WINDOW', []),
+                        ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
+                        ('Sculpt', 'EMPTY', 'WINDOW', []),
+
+                        ('Armature Sketch', 'EMPTY', 'WINDOW', []),
+                        ('Particle', 'EMPTY', 'WINDOW', []),
+
+                        ('Object Non-modal', 'EMPTY', 'WINDOW', []), # mode change
+
+                        ('3D View Generic', 'VIEW_3D', 'WINDOW', [])    # toolbar and properties
+                        ]),
+
+                    ('Frames', 'EMPTY', 'WINDOW', []),    # frame navigation (per region)
+                    ('Markers', 'EMPTY', 'WINDOW', []),    # markers (per region)
+                    ('Animation', 'EMPTY', 'WINDOW', []),    # frame change on click, preview range (per region)
+                    ('Animation Channels', 'EMPTY', 'WINDOW', []),
+                    ('Graph Editor', 'GRAPH_EDITOR', 'WINDOW', [
+                        ('Graph Editor Generic', 'GRAPH_EDITOR', 'WINDOW', [])
+                        ]),
+                    ('Dopesheet', 'DOPESHEET_EDITOR', 'WINDOW', []),
+                    ('NLA Editor', 'NLA_EDITOR', 'WINDOW', [
+                        ('NLA Channels', 'NLA_EDITOR', 'WINDOW', []),
+                        ('NLA Generic', 'NLA_EDITOR', 'WINDOW', [])
+                        ]),
+
+                    ('Image', 'IMAGE_EDITOR', 'WINDOW', [
+                        ('UV Editor', 'EMPTY', 'WINDOW', []), # image (reverse order, UVEdit before Image
+                        ('Image Paint', 'EMPTY', 'WINDOW', []), # image and view3d
+                        ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [])
+                        ]),
+
+                    ('Timeline', 'TIMELINE', 'WINDOW', []),
+                    ('Outliner', 'OUTLINER', 'WINDOW', []),
+
+                    ('Node Editor', 'NODE_EDITOR', 'WINDOW', [
+                        ('Node Generic', 'NODE_EDITOR', 'WINDOW', [])
+                        ]),
+                    ('Sequencer', 'SEQUENCE_EDITOR', 'WINDOW', []),
+                    ('Logic Editor', 'LOGIC_EDITOR', 'WINDOW', []),
+
+                    ('File Browser', 'FILE_BROWSER', 'WINDOW', [
+                        ('File Browser Main', 'FILE_BROWSER', 'WINDOW', []),
+                        ('File Browser Buttons', 'FILE_BROWSER', 'WINDOW', [])
+                        ]),
+
+                    ('Property Editor', 'PROPERTIES', 'WINDOW', []), # align context menu
+
+                    ('Script', 'SCRIPTS_WINDOW', 'WINDOW', []),
+                    ('Text', 'TEXT_EDITOR', 'WINDOW', []),
+                    ('Console', 'CONSOLE', 'WINDOW', []),
+
+                    ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
+                    ('Gesture Border', 'EMPTY', 'WINDOW', []),
+                    ('Standard Modal Map', 'EMPTY', 'WINDOW', []),
+                    ('Transform Modal Map', 'EMPTY', 'WINDOW', []),
+                    ('View3D Fly Modal', 'EMPTY', 'WINDOW', []),
+                    ('View3D Rotate Modal', 'EMPTY', 'WINDOW', []),
+                    ('View3D Move Modal', 'EMPTY', 'WINDOW', []),
+                    ('View3D Zoom Modal', 'EMPTY', 'WINDOW', []),
+                ]
+
 
 class USERPREF_HT_header(bpy.types.Header):
     bl_space_type = 'USER_PREFERENCES'
@@ -35,13 +120,6 @@ class USERPREF_HT_header(bpy.types.Header):
         if userpref.active_section == 'INPUT':
             layout.operator_context = 'INVOKE_DEFAULT'
             layout.operator("wm.keyconfig_export", "Export Key Configuration...").path = "keymap.py"
-
-
-class USERPREF_MT_view(bpy.types.Menu):
-    bl_label = "View"
-
-    def draw(self, context):
-        pass # layout = self.layout
 
 
 class USERPREF_PT_tabs(bpy.types.Panel):
@@ -74,74 +152,73 @@ class USERPREF_PT_interface(bpy.types.Panel):
         userpref = context.user_preferences
         view = userpref.view
 
-        split = layout.split()
-
-        col = split.column()
-        sub = col.split(percentage=0.85)
-
-        sub1 = sub.column()
-        sub1.label(text="Display:")
-        sub1.prop(view, "tooltips")
-        sub1.prop(view, "display_object_info", text="Object Info")
-        sub1.prop(view, "use_large_cursors")
-        sub1.prop(view, "show_view_name", text="View Name")
-        sub1.prop(view, "show_playback_fps", text="Playback FPS")
-        sub1.prop(view, "global_scene")
-        sub1.prop(view, "pin_floating_panels")
-        sub1.prop(view, "object_center_size")
-        sub1.separator()
-        sub1.separator()
-        sub1.separator()
-        sub1.prop(view, "show_mini_axis", text="Display Mini Axis")
-        sub2 = sub1.column()
-        sub2.enabled = view.show_mini_axis
-        sub2.prop(view, "mini_axis_size", text="Size")
-        sub2.prop(view, "mini_axis_brightness", text="Brightness")
-
-        col = split.column()
-        sub = col.split(percentage=0.85)
-
-        sub1 = sub.column()
-        sub1.label(text="View Manipulation:")
-        sub1.prop(view, "auto_depth")
-        sub1.prop(view, "global_pivot")
-        sub1.prop(view, "zoom_to_mouse")
-        sub1.prop(view, "rotate_around_selection")
-        sub1.separator()
+        row = layout.row()
 
 
-        sub1.prop(view, "auto_perspective")
-        sub1.prop(view, "smooth_view")
-        sub1.prop(view, "rotation_angle")
+        col = row.column()
+        col.label(text="Display:")
+        col.prop(view, "tooltips")
+        col.prop(view, "display_object_info", text="Object Info")
+        col.prop(view, "use_large_cursors")
+        col.prop(view, "show_view_name", text="View Name")
+        col.prop(view, "show_playback_fps", text="Playback FPS")
+        col.prop(view, "global_scene")
+        col.prop(view, "pin_floating_panels")
+        col.prop(view, "object_origin_size")
 
-        col = split.column()
-        sub = col.split(percentage=0.85)
-        sub1 = sub.column()
+        col.separator()
+        col.separator()
+        col.separator()
 
-#Toolbox doesn't exist yet
-#       sub1.label(text="Toolbox:")
-#       sub1.prop(view, "use_column_layout")
-#       sub1.label(text="Open Toolbox Delay:")
-#       sub1.prop(view, "open_left_mouse_delay", text="Hold LMB")
-#       sub1.prop(view, "open_right_mouse_delay", text="Hold RMB")
+        col.prop(view, "show_mini_axis", text="Display Mini Axis")
+        sub = col.column()
+        sub.enabled = view.show_mini_axis
+        sub.prop(view, "mini_axis_size", text="Size")
+        sub.prop(view, "mini_axis_brightness", text="Brightness")
 
-        #manipulator
-        sub1.prop(view, "use_manipulator")
-        sub2 = sub1.column()
-        sub2.enabled = view.use_manipulator
-        sub2.prop(view, "manipulator_size", text="Size")
-        sub2.prop(view, "manipulator_handle_size", text="Handle Size")
-        sub2.prop(view, "manipulator_hotspot", text="Hotspot")
 
-        sub1.separator()
-        sub1.separator()
-        sub1.separator()
+        row.separator()
+        row.separator()
 
-        sub1.label(text="Menus:")
-        sub1.prop(view, "open_mouse_over")
-        sub1.label(text="Menu Open Delay:")
-        sub1.prop(view, "open_toplevel_delay", text="Top Level")
-        sub1.prop(view, "open_sublevel_delay", text="Sub Level")
+        col = row.column()
+        col.label(text="View Manipulation:")
+        col.prop(view, "auto_depth")
+        col.prop(view, "global_pivot")
+        col.prop(view, "zoom_to_mouse")
+        col.prop(view, "rotate_around_selection")
+
+        col.separator()
+
+        col.prop(view, "auto_perspective")
+        col.prop(view, "smooth_view")
+        col.prop(view, "rotation_angle")
+
+        row.separator()
+        row.separator()
+
+        col = row.column()
+        #Toolbox doesn't exist yet
+        #col.label(text="Toolbox:")
+        #col.prop(view, "use_column_layout")
+        #col.label(text="Open Toolbox Delay:")
+        #col.prop(view, "open_left_mouse_delay", text="Hold LMB")
+        #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
+        col.prop(view, "use_manipulator")
+        sub = col.column()
+        sub.enabled = view.use_manipulator
+        sub.prop(view, "manipulator_size", text="Size")
+        sub.prop(view, "manipulator_handle_size", text="Handle Size")
+        sub.prop(view, "manipulator_hotspot", text="Hotspot")
+
+        col.separator()
+        col.separator()
+        col.separator()
+
+        col.label(text="Menus:")
+        col.prop(view, "open_mouse_over")
+        col.label(text="Menu Open Delay:")
+        col.prop(view, "open_toplevel_delay", text="Top Level")
+        col.prop(view, "open_sublevel_delay", text="Sub Level")
 
 
 class USERPREF_PT_edit(bpy.types.Panel):
@@ -160,93 +237,104 @@ class USERPREF_PT_edit(bpy.types.Panel):
         userpref = context.user_preferences
         edit = userpref.edit
 
-        split = layout.split()
 
-        col = split.column()
-        sub = col.split(percentage=0.85)
+        row = layout.row()
 
-        sub1 = sub.column()
-        sub1.label(text="Link Materials To:")
-        sub1.row().prop(edit, "material_link", expand=True)
-        sub1.separator()
-        sub1.separator()
-        sub1.separator()
-        sub1.label(text="New Objects:")
-        sub1.prop(edit, "enter_edit_mode")
-        sub1.label(text="Align To:")
-        sub1.row().prop(edit, "object_align", expand=True)
-        sub1.separator()
-        sub1.separator()
-        sub1.separator()
 
-        sub1.label(text="Undo:")
-        sub1.prop(edit, "global_undo")
-        sub1.prop(edit, "undo_steps", text="Steps")
-        sub1.prop(edit, "undo_memory_limit", text="Memory Limit")
+        col = row.column()
+        col.label(text="Link Materials To:")
+        col.row().prop(edit, "material_link", expand=True)
 
-        col = split.column()
-        sub = col.split(percentage=0.85)
+        col.separator()
+        col.separator()
+        col.separator()
 
-        sub1 = sub.column()
-        sub1.label(text="Snap:")
-        sub1.prop(edit, "snap_translate", text="Translate")
-        sub1.prop(edit, "snap_rotate", text="Rotate")
-        sub1.prop(edit, "snap_scale", text="Scale")
-        sub1.separator()
-        sub1.separator()
-        sub1.separator()
-        sub1.label(text="Grease Pencil:")
-        sub1.prop(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
-        sub1.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
-        # sub1.prop(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
-        sub1.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
-        sub1.prop(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
+        col.label(text="New Objects:")
+        col.prop(edit, "enter_edit_mode")
+        col.label(text="Align To:")
+        col.row().prop(edit, "object_align", expand=True)
 
-        col = split.column()
-        sub = col.split(percentage=0.85)
+        col.separator()
+        col.separator()
+        col.separator()
 
-        sub1 = sub.column()
-        sub1.label(text="Keyframing:")
-        sub1.prop(edit, "use_visual_keying")
-        sub1.prop(edit, "keyframe_insert_needed", text="Only Insert Needed")
-        sub1.separator()
-        sub1.label(text="New F-Curve Defaults:")
-        sub1.prop(edit, "new_interpolation_type", text="Interpolation")
-        sub1.separator()
-        sub1.prop(edit, "auto_keying_enable", text="Auto Keyframing:")
-        sub2 = sub1.column()
-        sub2.active = edit.auto_keying_enable
-        sub2.prop(edit, "auto_keyframe_insert_keyingset", text="Only Insert for Keying Set")
-        sub2.prop(edit, "auto_keyframe_insert_available", text="Only Insert Available")
+        col.label(text="Undo:")
+        col.prop(edit, "global_undo")
+        col.prop(edit, "undo_steps", text="Steps")
+        col.prop(edit, "undo_memory_limit", text="Memory Limit")
 
-        sub1.separator()
-        sub1.separator()
-        sub1.separator()
 
-        sub1.label(text="Transform:")
-        sub1.prop(edit, "drag_immediately")
+        row.separator()
+        row.separator()
 
-        sub1.separator()
-        sub1.separator()
-        sub1.separator()
 
-        col = split.column()
-        sub = col.split(percentage=0.85)
+        col = row.column()
+        col.label(text="Snap:")
+        col.prop(edit, "snap_translate", text="Translate")
+        col.prop(edit, "snap_rotate", text="Rotate")
+        col.prop(edit, "snap_scale", text="Scale")
+        col.separator()
+        col.separator()
+        col.separator()
+        col.label(text="Grease Pencil:")
+        col.prop(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
+        col.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
+        #col.prop(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
+        col.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
+        col.prop(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
 
-        sub1 = sub.column()
-        sub1.label(text="Duplicate Data:")
-        sub1.prop(edit, "duplicate_mesh", text="Mesh")
-        sub1.prop(edit, "duplicate_surface", text="Surface")
-        sub1.prop(edit, "duplicate_curve", text="Curve")
-        sub1.prop(edit, "duplicate_text", text="Text")
-        sub1.prop(edit, "duplicate_metaball", text="Metaball")
-        sub1.prop(edit, "duplicate_armature", text="Armature")
-        sub1.prop(edit, "duplicate_lamp", text="Lamp")
-        sub1.prop(edit, "duplicate_material", text="Material")
-        sub1.prop(edit, "duplicate_texture", text="Texture")
-        sub1.prop(edit, "duplicate_ipo", text="F-Curve")
-        sub1.prop(edit, "duplicate_action", text="Action")
-        sub1.prop(edit, "duplicate_particle", text="Particle")
+
+        row.separator()
+        row.separator()
+
+
+        col = row.column()
+        col.label(text="Keyframing:")
+        col.prop(edit, "use_visual_keying")
+        col.prop(edit, "keyframe_insert_needed", text="Only Insert Needed")
+
+        col.separator()
+
+        col.label(text="New F-Curve Defaults:")
+        col.prop(edit, "new_interpolation_type", text="Interpolation")
+        col.prop(edit, "insertkey_xyz_to_rgb", text="XYZ to RGB")
+
+        col.separator()
+
+        col.prop(edit, "auto_keying_enable", text="Auto Keyframing:")
+
+        sub = col.column()
+
+        sub.active = edit.auto_keying_enable
+        sub.prop(edit, "auto_keyframe_insert_keyingset", text="Only Insert for Keying Set")
+        sub.prop(edit, "auto_keyframe_insert_available", text="Only Insert Available")
+
+        col.separator()
+        col.separator()
+        col.separator()
+
+        col.label(text="Transform:")
+        col.prop(edit, "drag_immediately")
+
+
+        row.separator()
+        row.separator()
+
+
+        col = row.column()
+        col.label(text="Duplicate Data:")
+        col.prop(edit, "duplicate_mesh", text="Mesh")
+        col.prop(edit, "duplicate_surface", text="Surface")
+        col.prop(edit, "duplicate_curve", text="Curve")
+        col.prop(edit, "duplicate_text", text="Text")
+        col.prop(edit, "duplicate_metaball", text="Metaball")
+        col.prop(edit, "duplicate_armature", text="Armature")
+        col.prop(edit, "duplicate_lamp", text="Lamp")
+        col.prop(edit, "duplicate_material", text="Material")
+        col.prop(edit, "duplicate_texture", text="Texture")
+        col.prop(edit, "duplicate_fcurve", text="F-Curve")
+        col.prop(edit, "duplicate_action", text="Action")
+        col.prop(edit, "duplicate_particle", text="Particle")
 
 
 class USERPREF_PT_system(bpy.types.Panel):
@@ -270,106 +358,157 @@ class USERPREF_PT_system(bpy.types.Panel):
 
         split = layout.split()
 
-        col = split.column()
-        sub = col.split(percentage=0.9)
+        column = split.column()
+        colsplit = column.split(percentage=0.85)
 
-        sub1 = sub.column()
-        sub1.label(text="General:")
-        sub1.prop(system, "dpi")
-        sub1.prop(system, "frame_server_port")
-        sub1.prop(system, "scrollback", text="Console Scrollback")
-        sub1.prop(system, "auto_run_python_scripts")
+        col = colsplit.column()
+        col.label(text="General:")
+        col.prop(system, "dpi")
+        col.prop(system, "frame_server_port")
+        col.prop(system, "scrollback", text="Console Scrollback")
+        col.prop(system, "auto_run_python_scripts")
 
-        sub1.separator()
-        sub1.separator()
-        sub1.separator()
+        col.separator()
+        col.separator()
+        col.separator()
 
-        sub1.label(text="Sound:")
-        sub1.row().prop(system, "audio_device", expand=True)
-        sub2 = sub1.column()
-        sub2.active = system.audio_device != 'NONE'
-        sub2.prop(system, "enable_all_codecs")
-        sub2.prop(system, "game_sound")
-        sub2.prop(system, "audio_channels", text="Channels")
-        sub2.prop(system, "audio_mixing_buffer", text="Mixing Buffer")
-        sub2.prop(system, "audio_sample_rate", text="Sample Rate")
-        sub2.prop(system, "audio_sample_format", text="Sample Format")
-
-        col = split.column()
-        sub = col.split(percentage=0.9)
-
-        sub1 = sub .column()
-        sub1.label(text="Weight Colors:")
-        sub1.prop(system, "use_weight_color_range", text="Use Custom Range")
-        sub2 = sub1.column()
-        sub2.active = system.use_weight_color_range
-        sub2.template_color_ramp(system, "weight_color_range", expand=True)
-
-        sub1.separator()
-        sub1.separator()
-        sub1.separator()
-
-        sub1.prop(system, "language")
-        sub1.label(text="Translate:")
-        sub1.prop(system, "translate_tooltips", text="Tooltips")
-        sub1.prop(system, "translate_buttons", text="Labels")
-        sub1.prop(system, "translate_toolbox", text="Toolbox")
-
-        sub1.separator()
-
-        sub1.prop(system, "use_textured_fonts")
-
-        col = split.column()
-        sub = col.split(percentage=0.9)
-
-        sub1 = sub.column()
-
-        sub1.label(text="Solid OpenGL lights:")
-
-        sub2 = sub1.split()
-
-        col = sub2.column()
-        col.prop(lamp0, "enabled")
+        col.label(text="Sound:")
+        col.row().prop(system, "audio_device", expand=True)
         sub = col.column()
-        sub.active = lamp0.enabled
-        sub.prop(lamp0, "diffuse_color")
-        sub.prop(lamp0, "specular_color")
-        sub.prop(lamp0, "direction")
+        sub.active = system.audio_device != 'NONE'
+        #sub.prop(system, "enable_all_codecs")
+        sub.prop(system, "game_sound")
+        sub.prop(system, "audio_channels", text="Channels")
+        sub.prop(system, "audio_mixing_buffer", text="Mixing Buffer")
+        sub.prop(system, "audio_sample_rate", text="Sample Rate")
+        sub.prop(system, "audio_sample_format", text="Sample Format")
 
-        col = sub2.column()
-        col.prop(lamp1, "enabled")
+        col.separator()
+        col.separator()
+        col.separator()
+
+
+
+        #column = split.column()
+        #colsplit = column.split(percentage=0.85)
+
+        # No translation in 2.5 yet
+        #col.prop(system, "language")
+        #col.label(text="Translate:")
+        #col.prop(system, "translate_tooltips", text="Tooltips")
+        #col.prop(system, "translate_buttons", text="Labels")
+        #col.prop(system, "translate_toolbox", text="Toolbox")
+
+        #col.separator()
+
+        #col.prop(system, "use_textured_fonts")
+
+        column = split.column()
+        colsplit = column.split(percentage=0.85)
+
+        col = colsplit.column()
+        col.label(text="OpenGL:")
+        col.prop(system, "clip_alpha", slider=True)
+        col.prop(system, "use_mipmaps")
+        col.prop(system, "use_vbos")
+        col.label(text="Window Draw Method:")
+        col.row().prop(system, "window_draw_method", expand=True)
+        col.label(text="Textures:")
+        col.prop(system, "gl_texture_limit", text="Limit Size")
+        col.prop(system, "texture_time_out", text="Time Out")
+        col.prop(system, "texture_collection_rate", text="Collection Rate")
+
+        col.separator()
+        col.separator()
+        col.separator()
+
+        col.label(text="Sequencer:")
+        col.prop(system, "prefetch_frames")
+        col.prop(system, "memory_cache_limit")
+
+        column = split.column()
+
+        column.label(text="Solid OpenGL lights:")
+
+        split = column.split(percentage=0.1)
+        split.label()
+        split.label(text="Colors:")
+        split.label(text="Direction:")
+
+
+        split = column.split(percentage=0.1)
+
+        if lamp0.enabled == True:
+            split.prop(lamp0, "enabled", text="", icon='OUTLINER_OB_LAMP')
+        else:
+            split.prop(lamp0, "enabled", text="", icon='LAMP_DATA')
+
+        col = split.column()
+        col.active = lamp0.enabled
+        row = col.row()
+        row.label(text="Diffuse:")
+        row.prop(lamp0, "diffuse_color", text="")
+        row = col.row()
+        row.label(text="Specular:")
+        row.prop(lamp0, "specular_color", text="")
+
+        col = split.column()
+        col.active = lamp0.enabled
+        col.prop(lamp0, "direction", text="")
+
+
+        split = column.split(percentage=0.1)
+
+        if lamp1.enabled == True:
+            split.prop(lamp1, "enabled", text="", icon='OUTLINER_OB_LAMP')
+        else:
+            split.prop(lamp1, "enabled", text="", icon='LAMP_DATA')
+
+        col = split.column()
+        col.active = lamp1.enabled
+        row = col.row()
+        row.label(text="Diffuse:")
+        row.prop(lamp1, "diffuse_color", text="")
+        row = col.row()
+        row.label(text="Specular:")
+        row.prop(lamp1, "specular_color", text="")
+
+        col = split.column()
+        col.active = lamp1.enabled
+        col.prop(lamp1, "direction", text="")
+
+
+        split = column.split(percentage=0.1)
+
+        if lamp2.enabled == True:
+            split.prop(lamp2, "enabled", text="", icon='OUTLINER_OB_LAMP')
+        else:
+            split.prop(lamp2, "enabled", text="", icon='LAMP_DATA')
+
+        col = split.column()
+        col.active = lamp2.enabled
+        row = col.row()
+        row.label(text="Diffuse:")
+        row.prop(lamp2, "diffuse_color", text="")
+        row = col.row()
+        row.label(text="Specular:")
+        row.prop(lamp2, "specular_color", text="")
+
+        col = split.column()
+        col.active = lamp2.enabled
+        col.prop(lamp2, "direction", text="")
+
+
+        column.separator()
+        column.separator()
+        column.separator()
+
+        col = column.column()
+
+        col.prop(system, "use_weight_color_range", text="Custom Weight Paint Range")
         sub = col.column()
-        sub.active = lamp1.enabled
-        sub.prop(lamp1, "diffuse_color")
-        sub.prop(lamp1, "specular_color")
-        sub.prop(lamp1, "direction")
-
-        col = sub2.column()
-        col.prop(lamp2, "enabled")
-        sub = col.column()
-        sub.active = lamp2.enabled
-        sub.prop(lamp2, "diffuse_color")
-        sub.prop(lamp2, "specular_color")
-        sub.prop(lamp2, "direction")
-
-        sub1.label(text="OpenGL:")
-        sub1.prop(system, "clip_alpha", slider=True)
-        sub1.prop(system, "use_mipmaps")
-        sub1.prop(system, "use_vbos")
-        sub1.label(text="Window Draw Method:")
-        sub1.row().prop(system, "window_draw_method", expand=True)
-        sub1.label(text="Textures:")
-        sub1.prop(system, "gl_texture_limit", text="Limit Size")
-        sub1.prop(system, "texture_time_out", text="Time Out")
-        sub1.prop(system, "texture_collection_rate", text="Collection Rate")
-
-        sub1.separator()
-        sub1.separator()
-        sub1.separator()
-
-        sub1.label(text="Sequencer:")
-        sub1.prop(system, "prefetch_frames")
-        sub1.prop(system, "memory_cache_limit")
+        sub.active = system.use_weight_color_range
+        sub.template_color_ramp(system, "weight_color_range", expand=True)
 
 
 class USERPREF_PT_theme(bpy.types.Panel):
@@ -380,14 +519,12 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
     def poll(self, context):
         userpref = context.user_preferences
-
         return (userpref.active_section == 'THEMES')
 
     def draw(self, context):
         layout = self.layout
 
         theme = context.user_preferences.themes[0]
-
 
         split = layout.split(percentage=0.33)
         split.prop(theme, "active_theme", text="")
@@ -413,7 +550,6 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "editmesh_active", slider=True)
 
             col = split.column()
-
             col.prop(v3d, "object_selected")
             col.prop(v3d, "object_active")
             col.prop(v3d, "object_grouped")
@@ -426,327 +562,326 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "normal")
             col.prop(v3d, "bone_solid")
             col.prop(v3d, "bone_pose")
+            #col.prop(v3d, "edge") Doesn't seem to work
 
-#           col.prop(v3d, "edge") Doesn't seem to work
         elif theme.active_theme == 'USER_INTERFACE':
-
             ui = theme.user_interface.wcol_regular
-
             layout.label(text="Regular:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
+
             layout.separator()
 
             ui = theme.user_interface.wcol_tool
             layout.label(text="Tool:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_radio
             layout.label(text="Radio Buttons:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_text
             layout.label(text="Text:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_option
             layout.label(text="Option:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_toggle
             layout.label(text="Toggle:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_num
             layout.label(text="Number Field:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_numslider
             layout.label(text="Value Slider:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_box
             layout.label(text="Box:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_menu
             layout.label(text="Menu:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_pulldown
             layout.label(text="Pulldown:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_menu_back
             layout.label(text="Menu Back:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_menu_item
             layout.label(text="Menu Item:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_scroll
             layout.label(text="Scroll Bar:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_list_item
             layout.label(text="List Item:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "outline")
-            sub1.prop(ui, "item", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "inner", slider=True)
-            sub1.prop(ui, "inner_sel", slider=True)
-            sub1 = sub.column()
-            sub1.prop(ui, "text")
-            sub1.prop(ui, "text_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "shaded")
-            sub2 = sub1.column(align=True)
-            sub2.active = ui.shaded
-            sub2.prop(ui, "shadetop")
-            sub2.prop(ui, "shadedown")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "outline")
+            sub.prop(ui, "item", slider=True)
+            sub = row.column()
+            sub.prop(ui, "inner", slider=True)
+            sub.prop(ui, "inner_sel", slider=True)
+            sub = row.column()
+            sub.prop(ui, "text")
+            sub.prop(ui, "text_sel")
+            sub = row.column()
+            sub.prop(ui, "shaded")
+            subsub = sub.column(align=True)
+            subsub.active = ui.shaded
+            subsub.prop(ui, "shadetop")
+            subsub.prop(ui, "shadedown")
 
             ui = theme.user_interface.wcol_state
             layout.label(text="State:")
 
-            sub = layout.row()
-            sub1 = sub.column()
-            sub1.prop(ui, "inner_anim")
-            sub1.prop(ui, "inner_anim_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "inner_driven")
-            sub1.prop(ui, "inner_driven_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "inner_key")
-            sub1.prop(ui, "inner_key_sel")
-            sub1 = sub.column()
-            sub1.prop(ui, "blend")
+            row = layout.row()
+            sub = row.column()
+            sub.prop(ui, "inner_anim")
+            sub.prop(ui, "inner_anim_sel")
+            sub = row.column()
+            sub.prop(ui, "inner_driven")
+            sub.prop(ui, "inner_driven_sel")
+            sub = row.column()
+            sub.prop(ui, "inner_key")
+            sub.prop(ui, "inner_key_sel")
+            sub = row.column()
+            sub.prop(ui, "blend")
 
             ui = theme.user_interface
             layout.separator()
@@ -966,7 +1101,6 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(node, "button_title")
             col.prop(node, "button_text")
 
-
             col = split.column()
             col.prop(node, "text")
             col.prop(node, "text_hi")
@@ -1063,56 +1197,57 @@ class USERPREF_PT_file(bpy.types.Panel):
         userpref = context.user_preferences
         paths = userpref.filepaths
 
-        split = layout.split(percentage=0.6)
+        split = layout.split(percentage=0.7)
 
         col = split.column()
         col.label(text="File Paths:")
-        sub = col.split(percentage=0.3)
 
+        colsplit = col.split(percentage=0.95)
+        col1 = colsplit.split(percentage=0.3)
+
+        sub = col1.column()
         sub.label(text="Fonts:")
-        sub.prop(paths, "fonts_directory", text="")
-        sub = col.split(percentage=0.3)
         sub.label(text="Textures:")
-        sub.prop(paths, "textures_directory", text="")
-        sub = col.split(percentage=0.3)
         sub.label(text="Texture Plugins:")
-        sub.prop(paths, "texture_plugin_directory", text="")
-        sub = col.split(percentage=0.3)
         sub.label(text="Sequence Plugins:")
-        sub.prop(paths, "sequence_plugin_directory", text="")
-        sub = col.split(percentage=0.3)
         sub.label(text="Render Output:")
-        sub.prop(paths, "render_output_directory", text="")
-        sub = col.split(percentage=0.3)
         sub.label(text="Scripts:")
-        sub.prop(paths, "python_scripts_directory", text="")
-        sub = col.split(percentage=0.3)
         sub.label(text="Sounds:")
-        sub.prop(paths, "sounds_directory", text="")
-        sub = col.split(percentage=0.3)
         sub.label(text="Temp:")
+        sub.label(text="Animation Player:")
+
+        sub = col1.column()
+        sub.prop(paths, "fonts_directory", text="")
+        sub.prop(paths, "textures_directory", text="")
+        sub.prop(paths, "texture_plugin_directory", text="")
+        sub.prop(paths, "sequence_plugin_directory", text="")
+        sub.prop(paths, "render_output_directory", text="")
+        sub.prop(paths, "python_scripts_directory", text="")
+        sub.prop(paths, "sounds_directory", text="")
         sub.prop(paths, "temporary_directory", text="")
+        subsplit = sub.split(percentage=0.3)
+        subsplit.prop(paths, "animation_player_preset", text="")
+        subsplit.prop(paths, "animation_player", text="")
 
         col = split.column()
-        sub = col.split(percentage=0.2)
-        sub.column() # sub1, unused
-        sub2 = sub.column()
-        sub2.label(text="Save & Load:")
-        sub2.prop(paths, "use_relative_paths")
-        sub2.prop(paths, "compress_file")
-        sub2.prop(paths, "load_ui")
-        sub2.prop(paths, "filter_file_extensions")
-        sub2.prop(paths, "hide_dot_files_datablocks")
-        sub2.separator()
-        sub2.separator()
-        sub2.label(text="Auto Save:")
-        sub2.prop(paths, "save_version")
-        sub2.prop(paths, "recent_files")
-        sub2.prop(paths, "save_preview_images")
-        sub2.prop(paths, "auto_save_temporary_files")
-        sub3 = sub2.column()
-        sub3.enabled = paths.auto_save_temporary_files
-        sub3.prop(paths, "auto_save_time", text="Timer (mins)")
+        col.label(text="Save & Load:")
+        col.prop(paths, "use_relative_paths")
+        col.prop(paths, "compress_file")
+        col.prop(paths, "load_ui")
+        col.prop(paths, "filter_file_extensions")
+        col.prop(paths, "hide_dot_files_datablocks")
+
+        col.separator()
+        col.separator()
+
+        col.label(text="Auto Save:")
+        col.prop(paths, "save_version")
+        col.prop(paths, "recent_files")
+        col.prop(paths, "save_preview_images")
+        col.prop(paths, "auto_save_temporary_files")
+        sub = col.column()
+        sub.enabled = paths.auto_save_temporary_files
+        sub.prop(paths, "auto_save_time", text="Timer (mins)")
 
 
 class USERPREF_PT_input(bpy.types.Panel):
@@ -1125,26 +1260,170 @@ class USERPREF_PT_input(bpy.types.Panel):
         userpref = context.user_preferences
         return (userpref.active_section == 'INPUT')
 
-    def draw(self, context):
-        layout = self.layout
+    def draw_entry(self, kc, entry, col, level=0):
+        idname, spaceid, regionid, children = entry
 
-        userpref = context.user_preferences
-        wm = context.manager
-        #input = userpref.input
-        #input = userpref
-        inputs = userpref.inputs
+        km = kc.find_keymap(idname, space_type=spaceid, region_type=regionid)
 
-        split = layout.split(percentage=0.25)
+        if km:
+            self.draw_km(kc, km, children, col, level)
 
-        # General settings
+    def indented_layout(self, layout, level):
+        indentpx = 16
+        if level == 0:
+            level = 0.0001   # Tweak so that a percentage of 0 won't split by half
+        indent = level * indentpx / bpy.context.region.width
+
+        split = layout.split(percentage=indent)
+        col = split.column()
+        col = split.column()
+        return col
+
+    def draw_km(self, kc, km, children, layout, level):
+        km = km.active()
+
+        layout.set_context_pointer("keymap", km)
+
+        col = self.indented_layout(layout, level)
+
+        row = col.row()
+        row.prop(km, "children_expanded", text="", no_bg=True)
+        row.label(text=km.name)
+
+        row.label()
+        row.label()
+
+        if km.user_defined:
+            row.operator("wm.keymap_restore", text="Restore")
+        else:
+            row.operator("wm.keymap_edit", text="Edit")
+
+        if km.children_expanded:
+            if children:
+                # Put the Parent key map's entries in a 'global' sub-category
+                # equal in hierarchy to the other children categories
+                subcol = self.indented_layout(col, level + 1)
+                subrow = subcol.row()
+                subrow.prop(km, "items_expanded", text="", no_bg=True)
+                subrow.label(text="%s (Global)" % km.name)
+            else:
+                km.items_expanded = True
+
+            # Key Map items
+            if km.items_expanded:
+                for kmi in km.items:
+                    self.draw_kmi(kc, km, kmi, col, level + 1)
+
+                # "Add New" at end of keymap item list
+                col = self.indented_layout(col, level + 1)
+                subcol = col.split(percentage=0.2).column()
+                subcol.active = km.user_defined
+                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+
+            col.separator()
+
+            # Child key maps
+            if children:
+                subcol = col.column()
+                row = subcol.row()
+
+                for entry in children:
+                    self.draw_entry(kc, entry, col, level + 1)
+
+    def draw_kmi(self, kc, km, kmi, layout, level):
+        layout.set_context_pointer("keyitem", kmi)
+
+        col = self.indented_layout(layout, level)
+
+        col.enabled = km.user_defined
+
+        if km.user_defined:
+            col = col.column(align=True)
+            box = col.box()
+        else:
+            box = col.column()
+
+        split = box.split(percentage=0.4)
+
+        # header bar
         row = split.row()
+        row.prop(kmi, "expanded", text="", no_bg=True)
+        row.prop(kmi, "active", text="", no_bg=True)
+
+        if km.modal:
+            row.prop(kmi, "propvalue", text="")
+        else:
+            row.label(text=kmi.name)
+
+        row = split.row()
+        row.prop(kmi, "map_type", text="")
+        if kmi.map_type == 'KEYBOARD':
+            row.prop(kmi, "type", text="", full_event=True)
+        elif kmi.map_type == 'MOUSE':
+            row.prop(kmi, "type", text="", full_event=True)
+        elif kmi.map_type == 'TWEAK':
+            subrow = row.row()
+            subrow.prop(kmi, "type", text="")
+            subrow.prop(kmi, "value", text="")
+        elif kmi.map_type == 'TIMER':
+            row.prop(kmi, "type", text="")
+        else:
+            row.label()
+
+        row.operator("wm.keyitem_restore", text="", icon='BACK')
+        row.operator("wm.keyitem_remove", text="", icon='X')
+
+        # Expanded, additional event settings
+        if kmi.expanded:
+            box = col.box()
+
+            if kmi.map_type not in ('TEXTINPUT', 'TIMER'):
+                split = box.split(percentage=0.4)
+                sub = split.row()
+
+                if km.modal:
+                    sub.prop(kmi, "propvalue", text="")
+                else:
+                    sub.prop(kmi, "idname", text="")
+
+                sub = split.column()
+                subrow = sub.row(align=True)
+
+                if kmi.map_type == 'KEYBOARD':
+                    subrow.prop(kmi, "type", text="", event=True)
+                    subrow.prop(kmi, "value", text="")
+                elif kmi.map_type == 'MOUSE':
+                    subrow.prop(kmi, "type", text="")
+                    subrow.prop(kmi, "value", text="")
+
+                subrow = sub.row()
+                subrow.scale_x = 0.75
+                subrow.prop(kmi, "any")
+                subrow.prop(kmi, "shift")
+                subrow.prop(kmi, "ctrl")
+                subrow.prop(kmi, "alt")
+                subrow.prop(kmi, "oskey", text="Cmd")
+                subrow.prop(kmi, "key_modifier", text="", event=True)
+
+            # Operator properties
+            props = kmi.properties
+            if props is not None:
+                box.separator()
+                flow = box.column_flow(columns=2)
+                for pname in dir(props):
+                    if not props.is_property_hidden(pname):
+                        flow.prop(props, pname)
+
+            # Modal key maps attached to this operator
+            if not km.modal:
+                kmm = kc.find_keymap_modal(kmi.idname)
+                if kmm:
+                    self.draw_km(kc, kmm, None, layout, level + 1)
+
+    def draw_input_prefs(self, inputs, layout):
+        # General settings
+        row = layout.row()
         col = row.column()
-
-        sub = col.column()
-        sub.label(text="Configuration:")
-        sub.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="")
-
-        col.separator()
 
         sub = col.column()
         sub.label(text="Mouse:")
@@ -1155,6 +1434,10 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         sub.label(text="Select With:")
         sub.row().prop(inputs, "select_mouse", expand=True)
+
+        sub = col.column()
+        sub.label(text="Double Click:")
+        sub.prop(inputs, "double_click_time", text="Speed")
 
         sub.separator()
 
@@ -1188,113 +1471,77 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         row.separator()
 
+    def draw_filtered(self, kc, layout):
+        filter = kc.filter.lower()
+
+        for km in kc.keymaps:
+            km = km.active()
+
+            filtered_items = [kmi for kmi in km.items if filter in kmi.name.lower()]
+
+            if len(filtered_items) != 0:
+                layout.set_context_pointer("keymap", km)
+                col = layout.column()
+
+                row = col.row()
+                row.label(text=km.name, icon="DOT")
+
+                row.label()
+                row.label()
+
+                if km.user_defined:
+                    row.operator("wm.keymap_restore", text="Restore")
+                else:
+                    row.operator("wm.keymap_edit", text="Edit")
+
+                for kmi in filtered_items:
+                    self.draw_kmi(kc, km, kmi, col, 1)
+
+                # "Add New" at end of keymap item list
+                col = self.indented_layout(layout, 1)
+                subcol = col.split(percentage=0.2).column()
+                subcol.active = km.user_defined
+                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+
+    def draw_hierarchy(self, defkc, layout):
+        for entry in KM_HIERARCHY:
+            self.draw_entry(defkc, entry, layout)
+
+    def draw(self, context):
+        layout = self.layout
+
+        userpref = context.user_preferences
+        wm = context.manager
+
+        inputs = userpref.inputs
+
+        split = layout.split(percentage=0.25)
+
+        # Input settings
+        self.draw_input_prefs(inputs, split)
+
         # Keymap Settings
         col = split.column()
-
         # kc = wm.active_keyconfig
-        defkc = wm.default_keyconfig
-        km = wm.active_keymap
+        kc = wm.default_keyconfig
 
-        subsplit = col.split()
-        subsplit.prop_object(wm, "active_keymap", defkc, "keymaps", text="Map:")
-        if km.user_defined:
-            row = subsplit.row()
-            row.operator("WM_OT_keymap_restore", text="Restore")
-            row.operator("WM_OT_keymap_restore", text="Restore All").all = True
-        else:
-            row = subsplit.row()
-            row.operator("WM_OT_keymap_edit", text="Edit")
-            row.label()
+        sub = col.column()
+
+        subsplit = sub.split()
+        subcol = subsplit.column()
+        subcol.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="Configuration:")
+
+        subcol = subsplit.column()
+        subcol.prop(kc, "filter", icon="VIEWZOOM")
 
         col.separator()
 
-        for kmi in km.items:
-            subcol = col.column()
-            subcol.set_context_pointer("keyitem", kmi)
-
-            row = subcol.row()
-
-            if kmi.expanded:
-                row.prop(kmi, "expanded", text="", icon='ICON_TRIA_DOWN')
-            else:
-                row.prop(kmi, "expanded", text="", icon='ICON_TRIA_RIGHT')
-
-            itemrow = row.row()
-            itemrow.enabled = km.user_defined
-            if kmi.active:
-                itemrow.prop(kmi, "active", text="", icon='ICON_CHECKBOX_HLT')
-            else:
-                itemrow.prop(kmi, "active", text="", icon='ICON_CHECKBOX_DEHLT')
-
-            itemcol = itemrow.column()
-            itemcol.active = kmi.active
-            row = itemcol.row()
-
-            if km.modal:
-                row.prop(kmi, "propvalue", text="")
-            else:
-                row.prop(kmi, "idname", text="")
-
-            sub = row.row()
-            sub.scale_x = 0.6
-            sub.prop(kmi, "map_type", text="")
-
-            sub = row.row(align=True)
-            if kmi.map_type == 'KEYBOARD':
-                sub.prop(kmi, "type", text="", full_event=True)
-            elif kmi.map_type == 'MOUSE':
-                sub.prop(kmi, "type", text="", full_event=True)
-            elif kmi.map_type == 'TWEAK':
-                sub.scale_x = 0.5
-                sub.prop(kmi, "type", text="")
-                sub.prop(kmi, "value", text="")
-            elif kmi.map_type == 'TIMER':
-                sub.prop(kmi, "type", text="")
-            else:
-                sub.label()
-
-            if kmi.expanded:
-                if kmi.map_type not in ('TEXTINPUT', 'TIMER'):
-                    sub = itemcol.row(align=True)
-
-                    if kmi.map_type == 'KEYBOARD':
-                        sub.prop(kmi, "type", text="", event=True)
-                        sub.prop(kmi, "value", text="")
-                    elif kmi.map_type == 'MOUSE':
-                        sub.prop(kmi, "type", text="")
-                        sub.prop(kmi, "value", text="")
-                    else:
-                        sub.label()
-                        sub.label()
-
-                    subrow = sub.row()
-                    subrow.scale_x = 0.75
-                    subrow.prop(kmi, "any")
-                    subrow.prop(kmi, "shift")
-                    subrow.prop(kmi, "ctrl")
-                    subrow.prop(kmi, "alt")
-                    subrow.prop(kmi, "oskey", text="Cmd")
-                    sub.prop(kmi, "key_modifier", text="", event=True)
-
-                flow = itemcol.column_flow(columns=2)
-                props = kmi.properties
-
-                if props is not None:
-                    for pname in dir(props):
-                        if not props.is_property_hidden(pname):
-                            flow.prop(props, pname)
-
-                itemcol.separator()
-
-            itemrow.operator("wm.keyitem_remove", text="", icon='ICON_ZOOMOUT')
-
-        itemrow = col.row()
-        itemrow.label()
-        itemrow.operator("wm.keyitem_add", text="", icon='ICON_ZOOMIN')
-        itemrow.enabled = km.user_defined
+        if kc.filter != "":
+            self.draw_filtered(kc, col)
+        else:
+            self.draw_hierarchy(kc, col)
 
 bpy.types.register(USERPREF_HT_header)
-bpy.types.register(USERPREF_MT_view)
 bpy.types.register(USERPREF_PT_tabs)
 bpy.types.register(USERPREF_PT_interface)
 bpy.types.register(USERPREF_PT_theme)
@@ -1306,39 +1553,142 @@ bpy.types.register(USERPREF_PT_input)
 from bpy.props import *
 
 
+class WM_OT_keyconfig_test(bpy.types.Operator):
+    "Test keyconfig for conflicts."
+    bl_idname = "wm.keyconfig_test"
+    bl_label = "Test Key Configuration for Conflicts"
+
+    def testEntry(self, kc, entry, src=None, parent=None):
+        result = False
+
+        def kmistr(kmi):
+            if km.modal:
+                s = ["kmi = km.add_modal_item(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value)]
+            else:
+                s = ["kmi = km.add_item(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value)]
+
+            if kmi.any:
+                s.append(", any=True")
+            else:
+                if kmi.shift:
+                    s.append(", shift=True")
+                if kmi.ctrl:
+                    s.append(", ctrl=True")
+                if kmi.alt:
+                    s.append(", alt=True")
+                if kmi.oskey:
+                    s.append(", oskey=True")
+            if kmi.key_modifier and kmi.key_modifier != 'NONE':
+                s.append(", key_modifier=\'%s\'" % kmi.key_modifier)
+
+            s.append(")\n")
+
+            props = kmi.properties
+
+            if props is not None:
+                for pname in dir(props):
+                    if props.is_property_set(pname) and not props.is_property_hidden(pname):
+                        value = eval("props.%s" % pname)
+                        value = _string_value(value)
+                        if value != "":
+                            s.append("kmi.properties.%s = %s\n" % (pname, value))
+
+            return "".join(s).strip()
+
+        idname, spaceid, regionid, children = entry
+
+        km = kc.find_keymap(idname, space_type=spaceid, region_type=regionid)
+
+        if km:
+            km = km.active()
+
+            if src:
+                for item in km.items:
+                    if src.compare(item):
+                        print("===========")
+                        print(parent.name)
+                        print(kmistr(src))
+                        print(km.name)
+                        print(kmistr(item))
+                        result = True
+
+                for child in children:
+                    if self.testEntry(kc, child, src, parent):
+                        result = True
+            else:
+                for i in range(len(km.items)):
+                    src = km.items[i]
+
+                    for child in children:
+                        if self.testEntry(kc, child, src, km):
+                            result = True
+
+                    for j in range(len(km.items) - i - 1):
+                        item = km.items[j + i + 1]
+                        if src.compare(item):
+                            print("===========")
+                            print(km.name)
+                            print(kmistr(src))
+                            print(kmistr(item))
+                            result = True
+
+                for child in children:
+                    if self.testEntry(kc, child):
+                        result = True
+
+        return result
+
+    def testConfig(self, kc):
+        result = False
+        for entry in KM_HIERARCHY:
+            if self.testEntry(kc, entry):
+                result = True
+        return result
+
+    def execute(self, context):
+        wm = context.manager
+        kc = wm.default_keyconfig
+
+        if self.testConfig(kc):
+            print("CONFLICT")
+
+        return {'FINISHED'}
+
+
+def _string_value(value):
+    result = ""
+    if isinstance(value, str):
+        if value != "":
+            result = "\'%s\'" % value
+    elif isinstance(value, bool):
+        if value:
+            result = "True"
+        else:
+            result = "False"
+    elif isinstance(value, float):
+        result = "%.10f" % value
+    elif isinstance(value, int):
+        result = "%d" % value
+    elif getattr(value, '__len__', False):
+        if len(value):
+            result = "["
+            for i in range(0, len(value)):
+                result += _string_value(value[i])
+                if i != len(value)-1:
+                    result += ", "
+            result += "]"
+    else:
+        print("Export key configuration: can't write ", value)
+
+    return result
+
+
 class WM_OT_keyconfig_export(bpy.types.Operator):
     "Export key configuration to a python script."
     bl_idname = "wm.keyconfig_export"
     bl_label = "Export Key Configuration..."
 
     path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
-
-    def _string_value(self, value):
-        result = ""
-        if isinstance(value, str):
-            if value != "":
-                result = "\'%s\'" % value
-        elif isinstance(value, bool):
-            if value:
-                result = "True"
-            else:
-                result = "False"
-        elif isinstance(value, float):
-            result = "%.10f" % value
-        elif isinstance(value, int):
-            result = "%d" % value
-        elif getattr(value, '__len__', False):
-            if len(value):
-                result = "["
-                for i in range(0, len(value)):
-                    result += self._string_value(value[i])
-                    if i != len(value)-1:
-                        result += ", "
-                result += "]"
-        else:
-            print("Export key configuration: can't write ", value)
-
-        return result
 
     def execute(self, context):
         if not self.properties.path:
@@ -1386,7 +1736,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
                     for pname in dir(props):
                         if props.is_property_set(pname) and not props.is_property_hidden(pname):
                             value = eval("props.%s" % pname)
-                            value = self._string_value(value)
+                            value = _string_value(value)
                             if value != "":
                                 f.write("kmi.properties.%s = %s\n" % (pname, value))
 
@@ -1394,12 +1744,12 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 
         f.close()
 
-        return ('FINISHED',)
+        return {'FINISHED'}
 
     def invoke(self, context, event):
         wm = context.manager
         wm.add_fileselect(self)
-        return ('RUNNING_MODAL',)
+        return {'RUNNING_MODAL'}
 
 
 class WM_OT_keymap_edit(bpy.types.Operator):
@@ -1409,15 +1759,15 @@ class WM_OT_keymap_edit(bpy.types.Operator):
 
     def execute(self, context):
         wm = context.manager
-        km = wm.active_keymap
+        km = context.keymap
         km.copy_to_user()
-        return ('FINISHED',)
+        return {'FINISHED'}
 
 
 class WM_OT_keymap_restore(bpy.types.Operator):
-    "Restore key map"
+    "Restore key map(s)."
     bl_idname = "wm.keymap_restore"
-    bl_label = "Restore Key Map"
+    bl_label = "Restore Key Map(s)"
 
     all = BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default.")
 
@@ -1428,10 +1778,30 @@ class WM_OT_keymap_restore(bpy.types.Operator):
             for km in wm.default_keyconfig.keymaps:
                 km.restore_to_default()
         else:
-            km = wm.active_keymap
+            km = context.keymap
             km.restore_to_default()
 
-        return ('FINISHED',)
+        return {'FINISHED'}
+
+
+class WM_OT_keyitem_restore(bpy.types.Operator):
+    "Restore key map item."
+    bl_idname = "wm.keyitem_restore"
+    bl_label = "Restore Key Map Item"
+
+    def poll(self, context):
+        kmi = context.keyitem
+        km = context.keymap
+        return km and kmi and kmi.id != 0
+
+    def execute(self, context):
+        wm = context.manager
+        kmi = context.keyitem
+        km = context.keymap
+
+        km.restore_item_to_default(kmi)
+
+        return {'FINISHED'}
 
 
 class WM_OT_keyitem_add(bpy.types.Operator):
@@ -1441,12 +1811,21 @@ class WM_OT_keyitem_add(bpy.types.Operator):
 
     def execute(self, context):
         wm = context.manager
-        km = wm.active_keymap
+        km = context.keymap
+        kc = wm.default_keyconfig
+
         if km.modal:
             km.add_modal_item("", 'A', 'PRESS') # kmi
         else:
-            km.add_item("", 'A', 'PRESS') # kmi
-        return ('FINISHED',)
+            km.add_item("none", 'A', 'PRESS') # kmi
+
+        # clear filter and expand keymap so we can see the newly added item
+        if kc.filter != '':
+            kc.filter = ''
+            km.items_expanded = True
+            km.children_expanded = True
+
+        return {'FINISHED'}
 
 
 class WM_OT_keyitem_remove(bpy.types.Operator):
@@ -1457,12 +1836,14 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
     def execute(self, context):
         wm = context.manager
         kmi = context.keyitem
-        km = wm.active_keymap
+        km = context.keymap
         km.remove_item(kmi)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
-bpy.ops.add(WM_OT_keyconfig_export)
-bpy.ops.add(WM_OT_keymap_edit)
-bpy.ops.add(WM_OT_keymap_restore)
-bpy.ops.add(WM_OT_keyitem_add)
-bpy.ops.add(WM_OT_keyitem_remove)
+bpy.types.register(WM_OT_keyconfig_export)
+bpy.types.register(WM_OT_keyconfig_test)
+bpy.types.register(WM_OT_keymap_edit)
+bpy.types.register(WM_OT_keymap_restore)
+bpy.types.register(WM_OT_keyitem_add)
+bpy.types.register(WM_OT_keyitem_remove)
+bpy.types.register(WM_OT_keyitem_restore)

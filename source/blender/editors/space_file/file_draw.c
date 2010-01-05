@@ -310,6 +310,8 @@ static int get_file_icon(struct direntry *file)
 		return ICON_FILE_SOUND;
 	else if (file->flags & FTFONTFILE) 
 		return ICON_FILE_FONT;
+	else if (file->flags & BTXFILE) 
+		return ICON_FILE_BLANK;
 	else
 		return ICON_FILE_BLANK;
 }

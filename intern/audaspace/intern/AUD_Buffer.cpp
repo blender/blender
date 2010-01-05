@@ -27,14 +27,14 @@
 #include "AUD_Space.h"
 
 #include <cstring>
-#include <stdlib.h>
+#include <cstdlib>
 
 #define AUD_ALIGN(a) (a + 16 - ((long)a & 15))
 
 AUD_Buffer::AUD_Buffer(int size)
 {
 	m_size = size;
-	m_buffer = (sample_t*) malloc(size+16); AUD_NEW("buffer")
+	m_buffer = (data_t*) malloc(size+16); AUD_NEW("buffer")
 }
 
 AUD_Buffer::~AUD_Buffer()
@@ -44,7 +44,7 @@ AUD_Buffer::~AUD_Buffer()
 
 sample_t* AUD_Buffer::getBuffer()
 {
-	return AUD_ALIGN(m_buffer);
+	return (sample_t*) AUD_ALIGN(m_buffer);
 }
 
 int AUD_Buffer::getSize()
@@ -54,7 +54,7 @@ int AUD_Buffer::getSize()
 
 void AUD_Buffer::resize(int size, bool keep)
 {
-	sample_t* buffer = (sample_t*) malloc(size+16); AUD_NEW("buffer")
+	data_t* buffer = (data_t*) malloc(size+16); AUD_NEW("buffer")
 
 	// copy old data over if wanted
 	if(keep)

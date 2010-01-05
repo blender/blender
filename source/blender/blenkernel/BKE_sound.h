@@ -41,6 +41,8 @@ void sound_init();
 
 void sound_exit();
 
+void sound_disable();
+
 struct bSound* sound_new_file(struct Main *main, char* filename);
 
 // XXX unused currently
@@ -71,7 +73,7 @@ void sound_update_playing(struct bContext *C);
 void sound_scrub(struct bContext *C);
 
 #ifdef AUD_CAPI
-AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int end, float volume);
+AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, int end, float volume);
 #endif
 
 void sound_stop_all(struct bContext *C);

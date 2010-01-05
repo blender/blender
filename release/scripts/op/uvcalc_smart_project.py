@@ -20,13 +20,14 @@
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
+# <pep8 compliant>
 
 #from Blender import Object, Draw, Window, sys, Mesh, Geometry
 from Mathutils import Matrix, Vector, RotationMatrix
 import time
 import Geometry
 import bpy
-from math import cos, degrees, radians
+from math import cos, radians
 
 DEG_TO_RAD = 0.017453292519943295 # pi/180.0
 SMALL_NUM = 0.000000001
@@ -1108,6 +1109,8 @@ def main(context, island_margin, projection_limit):
 """
 
 from bpy.props import *
+
+
 class SmartProject(bpy.types.Operator):
     '''This script projection unwraps the selected faces of a mesh. it operates on all selected mesh objects, and can be used unwrap selected faces, or all faces.'''
     bl_idname = "uv.smart_project"
@@ -1129,18 +1132,15 @@ class SmartProject(bpy.types.Operator):
 
     def execute(self, context):
         main(context, self.properties.island_margin, self.properties.angle_limit)
-        return ('FINISHED',)
+        return {'FINISHED'}
 
-bpy.ops.add(SmartProject)
+bpy.types.register(SmartProject)
 
 # Add to a menu
-import dynamic_menu
-
 menu_func = (lambda self, context: self.layout.operator(SmartProject.bl_idname,
                                         text="Smart Project"))
 
-menu_item = dynamic_menu.add(bpy.types.VIEW3D_MT_uv_map, menu_func)
+bpy.types.VIEW3D_MT_uv_map.append(menu_func)
 
 if __name__ == '__main__':
     bpy.ops.uv.smart_project()
-

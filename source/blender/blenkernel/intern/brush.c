@@ -40,6 +40,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "WM_types.h"
+
 #include "RNA_access.h"
 
 #include "BLI_math.h"
@@ -55,6 +57,8 @@
 #include "BKE_paint.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+
+
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -75,15 +79,16 @@ Brush *add_brush(const char *name)
 	brush->rgb[2]= 1.0f;
 	brush->alpha= 0.2f;
 	brush->size= 25;
-	brush->spacing= 10.0f;
+	brush->spacing= 7.5f;
 	brush->smooth_stroke_radius= 75;
 	brush->smooth_stroke_factor= 0.9;
 	brush->rate= 0.1f;
 	brush->jitter= 0.0f;
 	brush->clone.alpha= 0.5;
 	brush->sculpt_tool = SCULPT_TOOL_DRAW;
+	brush->flag |= BRUSH_SPACE;
 
-	brush_curve_preset(brush, BRUSH_PRESET_SMOOTH);
+	brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
 
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;
@@ -95,19 +100,11 @@ Brush *add_brush(const char *name)
 Brush *copy_brush(Brush *brush)
 {
 	Brush *brushn;
-	MTex *mtex;
-	int a;
 	
 	brushn= copy_libblock(brush);
 
-	for(a=0; a<MAX_MTEX; a++) {
-		mtex= brush->mtex[a];
-		if(mtex) {
-			brushn->mtex[a]= MEM_dupallocN(mtex);
-			if(mtex->tex) id_us_plus((ID*)mtex->tex);
-		}
-	}
-
+	if(brush->mtex.tex) id_us_plus((ID*)brush->mtex.tex);
+	
 	brushn->curve= curvemapping_copy(brush->curve);
 
 	/* enable fake user by default */
@@ -122,17 +119,8 @@ Brush *copy_brush(Brush *brush)
 /* not brush itself */
 void free_brush(Brush *brush)
 {
-	MTex *mtex;
-	int a;
-
-	for(a=0; a<MAX_MTEX; a++) {
-		mtex= brush->mtex[a];
-		if(mtex) {
-			if(mtex->tex) mtex->tex->id.us--;
-			MEM_freeN(mtex);
-		}
-	}
-
+	if(brush->mtex.tex) brush->mtex.tex->id.us--;
+	
 	curvemapping_free(brush->curve);
 }
 
@@ -237,7 +225,7 @@ void brush_toggled_fake_user(Brush *brush)
 	}
 }
 
-void brush_curve_preset(Brush *b, BrushCurvePreset preset)
+void brush_curve_preset(Brush *b, CurveMappingPreset preset)
 {
 	CurveMap *cm = NULL;
 
@@ -245,53 +233,16 @@ void brush_curve_preset(Brush *b, BrushCurvePreset preset)
 		b->curve = curvemapping_add(1, 0, 0, 1, 1);
 
 	cm = b->curve->cm;
-
-	if(cm->curve)
-		MEM_freeN(cm->curve);
-
-	if(preset == BRUSH_PRESET_SHARP)
-		cm->totpoint= 3;
-	if(preset == BRUSH_PRESET_SMOOTH)
-		cm->totpoint= 4;
-	if(preset == BRUSH_PRESET_MAX)
-		cm->totpoint= 2;
-
-
-	cm->curve= MEM_callocN(cm->totpoint*sizeof(CurveMapPoint), "curve points");
 	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 
-	if(preset == BRUSH_PRESET_SHARP) {
-		cm->curve[0].x= 0;
-		cm->curve[0].y= 1;
-		cm->curve[1].x= 0.33;
-		cm->curve[1].y= 0.33;
-		cm->curve[2].x= 1;
-		cm->curve[2].y= 0;
-	}
-	else if(preset == BRUSH_PRESET_SMOOTH) {
-		cm->curve[0].x= 0;
-		cm->curve[0].y= 1;
-		cm->curve[1].x= 0.25;
-		cm->curve[1].y= 0.92;
-		cm->curve[2].x= 0.75;
-		cm->curve[2].y= 0.08;
-		cm->curve[3].x= 1;
-		cm->curve[3].y= 0;
-	}
-	else if(preset == BRUSH_PRESET_MAX) {
-		cm->curve[0].x= 0;
-		cm->curve[0].y= 1;
-		cm->curve[1].x= 1;
-		cm->curve[1].y= 1;
-	}
-
+	curvemap_reset(cm, &b->curve->clipr, preset);
 	curvemapping_changed(b->curve, 0);
 }
 
 static MTex *brush_active_texture(Brush *brush)
 {
-	if(brush && brush->texact >= 0)
-		return brush->mtex[brush->texact];
+	if(brush)
+		return &brush->mtex;
 	return NULL;
 }
 
@@ -299,8 +250,7 @@ int brush_texture_set_nr(Brush *brush, int nr)
 {
 	ID *idtest, *id=NULL;
 
-	if(brush->mtex[brush->texact])
-		id= (ID *)brush->mtex[brush->texact]->tex;
+	id= (ID *)brush->mtex.tex;
 
 	idtest= (ID*)BLI_findlink(&G.main->tex, nr-1);
 	if(idtest==0) { /* new tex */
@@ -311,13 +261,7 @@ int brush_texture_set_nr(Brush *brush, int nr)
 	if(idtest!=id) {
 		brush_texture_delete(brush);
 
-		if(brush->mtex[brush->texact]==NULL) {
-			brush->mtex[brush->texact]= add_mtex();
-			brush->mtex[brush->texact]->r = 1.0f;
-			brush->mtex[brush->texact]->g = 1.0f;
-			brush->mtex[brush->texact]->b = 1.0f;
-		}
-		brush->mtex[brush->texact]->tex= (Tex*)idtest;
+		brush->mtex.tex= (Tex*)idtest;
 		id_us_plus(idtest);
 
 		return 1;
@@ -328,16 +272,10 @@ int brush_texture_set_nr(Brush *brush, int nr)
 
 int brush_texture_delete(Brush *brush)
 {
-	if(brush->mtex[brush->texact]) {
-		if(brush->mtex[brush->texact]->tex)
-			brush->mtex[brush->texact]->tex->id.us--;
-		MEM_freeN(brush->mtex[brush->texact]);
-		brush->mtex[brush->texact]= NULL;
+	if(brush->mtex.tex)
+		brush->mtex.tex->id.us--;
 
-		return 1;
-	}
-
-	return 0;
+	return 1;
 }
 
 int brush_clone_image_set_nr(Brush *brush, int nr)
@@ -378,7 +316,7 @@ void brush_check_exists(Brush **brush, const char *name)
 /* Brush Sampling */
 void brush_sample_tex(Brush *brush, float *xy, float *rgba)
 {
-	MTex *mtex= brush->mtex[brush->texact];
+	MTex *mtex= &brush->mtex;
 
 	if (mtex && mtex->tex) {
 		float co[3], tin, tr, tg, tb, ta;
@@ -736,7 +674,7 @@ static void brush_painter_refresh_cache(BrushPainter *painter, float *pos)
 {
 	Brush *brush= painter->brush;
 	BrushPainterCache *cache= &painter->cache;
-	MTex *mtex= brush->mtex[brush->texact];
+	MTex *mtex= &brush->mtex;
 	int size;
 	short flt;
 
@@ -971,7 +909,7 @@ float brush_curve_strength(Brush *br, float p, const float len)
 unsigned int *brush_gen_texture_cache(Brush *br, int half_side)
 {
 	unsigned int *texcache = NULL;
-	MTex *mtex = br->mtex[br->texact];
+	MTex *mtex = &br->mtex;
 	TexResult texres;
 	int hasrgb, ix, iy;
 	int side = half_side * 2;

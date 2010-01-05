@@ -149,9 +149,8 @@ static void rna_Matte_t2_set(PointerRNA *ptr, float value)
 	chroma->t2 = value;
 }
 
-static void node_update(bContext *C, bNodeTree *ntree, bNode *node)
+static void node_update(Main *bmain, Scene *scene, bNodeTree *ntree, bNode *node)
 {
-	Main *bmain= CTX_data_main(C);
 	Material *ma;
 	Tex *tex;
 	Scene *sce;
@@ -170,15 +169,15 @@ static void node_update(bContext *C, bNodeTree *ntree, bNode *node)
 			ED_node_changed_update(&sce->id, node);
 }
 
-static void rna_Node_update(bContext *C, PointerRNA *ptr)
+static void rna_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
 	bNode *node= (bNode*)ptr->data;
 
-	node_update(C, ntree, node);
+	node_update(bmain, scene, ntree, node);
 }
 
-static void rna_Node_update_name(bContext *C, PointerRNA *ptr)
+static void rna_Node_update_name(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
 	bNode *node= (bNode*)ptr->data;
@@ -193,12 +192,12 @@ static void rna_Node_update_name(bContext *C, PointerRNA *ptr)
 	/* fix all the animation data which may link to this */
 	BKE_all_animdata_fix_paths_rename("nodes", oldname, node->name);
 	
-	node_update(C, ntree, node);
+	node_update(bmain, scene, ntree, node);
 }
 
 /* this should be done at display time! if no custom names are set */
 #if 0
-static void rna_Node_update_username(bContext *C, PointerRNA *ptr)
+static void rna_Node_update_username(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNode *node= (bNode*)ptr->data;
 	const char *name;
@@ -241,18 +240,18 @@ static void rna_Node_update_username(bContext *C, PointerRNA *ptr)
 		}
 	}
 
-	rna_Node_update(C, ptr);
+	rna_Node_update(bmain, scene, ptr);
 }
 #endif
 
-static void rna_NodeSocket_update(bContext *C, PointerRNA *ptr)
+static void rna_NodeSocket_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
 	bNodeSocket *sock= (bNodeSocket*)ptr->data;
 	bNode *node;
 	
 	if (nodeFindNode(ntree, sock, &node, NULL))
-		node_update(C, ntree, node);
+		node_update(bmain, scene, ntree, node);
 }
 
 static void rna_NodeSocket_defvalue_range(PointerRNA *ptr, float *min, float *max)
@@ -263,16 +262,16 @@ static void rna_NodeSocket_defvalue_range(PointerRNA *ptr, float *min, float *ma
 	*max = sock->ns.max;
 }
 
-static void rna_Node_mapping_update(bContext *C, PointerRNA *ptr)
+static void rna_Node_mapping_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNode *node= (bNode*)ptr->data;
 
 	init_mapping((TexMapping *)node->storage);
 	
-	rna_Node_update(C, ptr);
+	rna_Node_update(bmain, scene, ptr);
 }
 
-static void rna_Node_image_layer_update(bContext *C, PointerRNA *ptr)
+static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	bNode *node= (bNode*)ptr->data;
 	Image *ima = (Image *)node->id;
@@ -281,7 +280,7 @@ static void rna_Node_image_layer_update(bContext *C, PointerRNA *ptr)
 	BKE_image_multilayer_index(ima->rr, iuser);
 	BKE_image_signal(ima, iuser, IMA_SIGNAL_SRC_CHANGE);
 	
-	rna_Node_update(C, ptr);
+	rna_Node_update(bmain, scene, ptr);
 }
 
 static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)

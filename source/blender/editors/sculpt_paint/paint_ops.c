@@ -137,7 +137,7 @@ void ED_operatortypes_paint(void)
 	/* face-select */
 	WM_operatortype_append(PAINT_OT_face_select_linked);
 	WM_operatortype_append(PAINT_OT_face_select_linked_pick);
-	WM_operatortype_append(PAINT_OT_face_deselect_all);
+	WM_operatortype_append(PAINT_OT_face_select_all);
 }
 
 static void ed_keymap_paint_brush_switch(wmKeyMap *keymap, const char *path)
@@ -173,12 +173,29 @@ static void ed_keymap_paint_brush_switch(wmKeyMap *keymap, const char *path)
 	RNA_int_set(kmi->ptr, "value", 8);
 	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", ZEROKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "path", path);
-	RNA_int_set(kmi->ptr, "value", 10);
+	RNA_int_set(kmi->ptr, "value", 9);
 }
+
+static void ed_keymap_paint_brush_size(wmKeyMap *keymap, const char *path)
+{
+	wmKeyMapItem *kmi;
+	
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", LEFTBRACKETKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", -20);
+	RNA_boolean_set(kmi->ptr, "relative", 1);
+	
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", path);
+	RNA_int_set(kmi->ptr, "value", 20);
+	RNA_boolean_set(kmi->ptr, "relative", 1);
+}	
 
 void ED_keymap_paint(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
+	wmKeyMapItem *kmi;
+	int i;
 	
 	/* Sculpt mode */
 	keymap= WM_keymap_find(keyconf, "Sculpt", 0, 0);
@@ -191,7 +208,58 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 
+	for(i=0; i<=5; i++)
+		RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY+i, KM_PRESS, KM_CTRL, 0)->ptr, "level", i);
+
+	/* multires switch */
+	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", PAGEUPKEY, KM_PRESS, 0, 0);
+	RNA_int_set(kmi->ptr, "level", 1);
+	RNA_boolean_set(kmi->ptr, "relative", 1);
+
+	kmi= WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", PAGEDOWNKEY, KM_PRESS, 0, 0);
+	RNA_int_set(kmi->ptr, "level", -1);
+	RNA_boolean_set(kmi->ptr, "relative", 1);
+
 	ed_keymap_paint_brush_switch(keymap, "tool_settings.sculpt.active_brush_index");
+	ed_keymap_paint_brush_size(keymap, "tool_settings.sculpt.brush.size");
+	
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", AKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.use_anchor");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.use_smooth_stroke");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", RKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.use_rake");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", AKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.brush.use_airbrush");
+
+	/* brush switching */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", DKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.active_brush_name");
+	RNA_string_set(kmi->ptr, "value", "Draw");
+	
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", SKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.active_brush_name");
+	RNA_string_set(kmi->ptr, "value", "Smooth");
+	
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.active_brush_name");
+	RNA_string_set(kmi->ptr, "value", "Pinch");
+	
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", GKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.active_brush_name");
+	RNA_string_set(kmi->ptr, "value", "Grab");
+	
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", LKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.active_brush_name");
+	RNA_string_set(kmi->ptr, "value", "Layer");
+	
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", TKEY, KM_PRESS, KM_SHIFT, 0); // was just T in 2.4x
+	RNA_string_set(kmi->ptr, "path", "tool_settings.sculpt.active_brush_name");
+	RNA_string_set(kmi->ptr, "value", "Flatten");
+	
 
 	/* Vertex Paint mode */
 	keymap= WM_keymap_find(keyconf, "Vertex Paint", 0, 0);
@@ -206,6 +274,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 			"PAINT_OT_vertex_color_set",KKEY, KM_PRESS, KM_SHIFT, 0);
 
 	ed_keymap_paint_brush_switch(keymap, "tool_settings.vertex_paint.active_brush_index");
+	ed_keymap_paint_brush_size(keymap, "tool_settings.vertex_paint.brush.size");
 
 	/* Weight Paint mode */
 	keymap= WM_keymap_find(keyconf, "Weight Paint", 0, 0);
@@ -220,6 +289,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 			"PAINT_OT_weight_set", KKEY, KM_PRESS, KM_SHIFT, 0);
 
 	ed_keymap_paint_brush_switch(keymap, "tool_settings.weight_paint.active_brush_index");
+	ed_keymap_paint_brush_size(keymap, "tool_settings.weight_paint.brush.size");
 
 	/* Image/Texture Paint mode */
 	keymap= WM_keymap_find(keyconf, "Image Paint", 0, 0);
@@ -233,12 +303,13 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "PAINT_OT_clone_cursor_set", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 
 	ed_keymap_paint_brush_switch(keymap, "tool_settings.image_paint.active_brush_index");
+	ed_keymap_paint_brush_size(keymap, "tool_settings.image_paint.brush.size");
 
 	/* face-mask mode */
 	keymap= WM_keymap_find(keyconf, "Face Mask", 0, 0);
 	keymap->poll= facemask_paint_poll;
 
-	WM_keymap_add_item(keymap, "PAINT_OT_face_deselect_all", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PAINT_OT_face_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked_pick", LKEY, KM_PRESS, 0, 0);
 

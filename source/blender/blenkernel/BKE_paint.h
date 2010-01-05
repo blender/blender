@@ -34,6 +34,7 @@ struct MultireModifierData;
 struct MVert;
 struct Object;
 struct Paint;
+struct PBVH;
 struct Scene;
 struct StrokeCache;
 
@@ -68,25 +69,24 @@ typedef struct SculptSession {
 	struct MFace *mface;
 	int totvert, totface;
 	float *face_normals;
-
+	struct PBVH *tree;
 	struct Object *ob;
 	struct KeyBlock *kb, *refkb;
 	
 	/* Mesh connectivity */
 	struct ListBase *fmap;
-	struct IndexNode *fmap_mem;
-	int fmap_size;
 
 	/* Used temporarily per-stroke */
 	float *vertexcosnos;
-	ListBase damaged_rects;
-	ListBase damaged_verts;
+
+	/* Partial redraw */
+	int partial_redraw;
 	
 	/* Used to cache the render of the active texture */
 	unsigned int texcache_side, *texcache, texcache_actual;
 
 	/* Layer brush persistence between strokes */
- 	float (*mesh_co_orig)[3]; /* Copy of the mesh vertices' locations */
+ 	float (*layer_co)[3]; /* Copy of the mesh vertices' locations */
 	float *layer_disps; /* Displacements for each vertex */
 
 	struct SculptStroke *stroke;

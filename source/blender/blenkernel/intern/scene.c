@@ -29,6 +29,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -77,8 +78,9 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
 
@@ -247,7 +249,12 @@ void free_scene(Scene *sce)
 	/* do not free objects! */
 	
 	if(sce->gpd) {
+#if 0   // removed since this can be invalid memory when freeing everything
+        // since the grease pencil data is free'd before the scene.
+        // since grease pencil data is not (yet?), shared between objects
+        // its probably safe not to do this, some save and reload will free this.
 		sce->gpd->id.us--;
+#endif
 		sce->gpd= NULL;
 	}
 
@@ -348,7 +355,7 @@ Scene *add_scene(char *name)
 	sce->r.bake_normal_space= R_BAKE_SPACE_TANGENT;
 
 	sce->r.scemode= R_DOCOMP|R_DOSEQ|R_EXTENSION;
-	sce->r.stamp= R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_SCENE|R_STAMP_CAMERA;
+	sce->r.stamp= R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_SCENE|R_STAMP_CAMERA|R_STAMP_RENDERTIME;
 	
 	sce->r.threads= 1;
 
@@ -443,6 +450,8 @@ Scene *add_scene(char *name)
 	/* game data */
 	sce->gm.stereoflag = STEREO_NOSTEREO;
 	sce->gm.stereomode = STEREO_ANAGLYPH;
+	sce->gm.eyeseparation = 0.10;
+
 	sce->gm.dome.angle = 180;
 	sce->gm.dome.mode = DOME_FISHEYE;
 	sce->gm.dome.res = 4;
@@ -696,6 +705,47 @@ Object *scene_find_camera(Scene *sc)
 	return NULL;
 }
 
+#ifdef DURIAN_CAMERA_SWITCH
+Object *scene_find_camera_switch(Scene *scene)
+{
+	TimeMarker *m;
+	int cfra = scene->r.cfra;
+	int frame = -(MAXFRAME + 1);
+	Object *camera= NULL;
+
+	for (m= scene->markers.first; m; m= m->next) {
+		if(m->camera && (m->frame <= cfra) && (m->frame > frame)) {
+			camera= m->camera;
+			frame= m->frame;
+
+			if(frame == cfra)
+				break;
+
+		}
+	}
+	return camera;
+}
+#endif
+
+static char *get_cfra_marker_name(Scene *scene)
+{
+	ListBase *markers= &scene->markers;
+	TimeMarker *m1, *m2;
+
+	/* search through markers for match */
+	for (m1=markers->first, m2=markers->last; m1 && m2; m1=m1->next, m2=m2->prev) {
+		if (m1->frame==CFRA)
+			return m1->name;
+
+		if (m1 == m2)
+			break;
+
+		if (m2->frame==CFRA)
+			return m2->name;
+	}
+
+	return NULL;
+}
 
 Base *scene_add_base(Scene *sce, Object *ob)
 {
@@ -772,7 +822,7 @@ float frame_to_float (Scene *scene, int cfra)		/* see also bsystem_time in objec
 	return ctime;
 }
 
-static void scene_update(Scene *sce, unsigned int lay)
+static void scene_update_newframe(Scene *sce, unsigned int lay)
 {
 	Base *base;
 	Object *ob;
@@ -804,6 +854,40 @@ static void scene_update(Scene *sce, unsigned int lay)
 	}
 }
 
+/* this is called in main loop, doing tagged updates before redraw */
+void scene_update_tagged(Scene *scene)
+{
+	Scene *sce;
+	Base *base;
+	float ctime = frame_to_float(scene, scene->r.cfra); 
+
+	/* update all objects: drivers, matrices, displists, etc. flags set
+	   by depgraph or manual, no layer check here, gets correct flushed */
+
+	/* sets first, we allow per definition current scene to have
+	   dependencies on sets, but not the other way around. */
+	if(scene->set) {
+		for(SETLOOPER(scene->set, base))
+			object_handle_update(scene, base->object);
+	}
+	
+	for(base= scene->base.first; base; base= base->next) {
+		object_handle_update(scene, base->object);
+	}
+
+	/* recalc scene animation data here (for sequencer) */
+	{
+		AnimData *adt= BKE_animdata_from_id(&scene->id);
+
+		if(adt && (adt->recalc & ADT_RECALC_ANIM))
+			BKE_animsys_evaluate_animdata(&scene->id, adt, ctime, 0);
+	}
+
+	BKE_ptcache_quick_cache_all(scene);
+
+	/* in the future this should handle updates for all datablocks, not
+	   only objects and scenes. - brecht */
+}
 
 /* applies changes right away, does all sets too */
 void scene_update_for_newframe(Scene *sce, unsigned int lay)
@@ -815,19 +899,20 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 	
 	/* sets first, we allow per definition current scene to have dependencies on sets */
 	for(sce= sce->set; sce; sce= sce->set)
-		scene_update(sce, lay);
+		scene_update_newframe(sce, lay);
 
-	scene_update(scene, lay);
+	scene_update_newframe(scene, lay);
 }
 
 /* return default layer, also used to patch old files */
 void scene_add_render_layer(Scene *sce)
 {
 	SceneRenderLayer *srl;
-	int tot= 1 + BLI_countlist(&sce->r.layers);
+//	int tot= 1 + BLI_countlist(&sce->r.layers);
 	
 	srl= MEM_callocN(sizeof(SceneRenderLayer), "new render layer");
-	sprintf(srl->name, "%d RenderLayer", tot);
+	sprintf(srl->name, "RenderLayer");
+	BLI_uniquename(&sce->r.layers, srl, "RenderLayer", '.', offsetof(SceneRenderLayer, name), 32);
 	BLI_addtail(&sce->r.layers, srl);
 
 	/* note, this is also in render, pipeline.c, to make layer when scenedata doesnt have it */

@@ -167,9 +167,9 @@ bool CcdPhysicsController::CreateSoftbody()
 
 	//disable soft body until first sneak preview is ready
 	if (!m_cci.m_bSoft || !m_cci.m_collisionShape ||
-		(shapeType != CONVEX_HULL_SHAPE_PROXYTYPE)&&
+		((shapeType != CONVEX_HULL_SHAPE_PROXYTYPE)&&
 		(shapeType != TRIANGLE_MESH_SHAPE_PROXYTYPE) &&
-		(shapeType != SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE))
+		(shapeType != SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE)))
 	{
 		return false;
 	}
@@ -214,6 +214,7 @@ bool CcdPhysicsController::CreateSoftbody()
 		}
 	} else
 	{
+		int numtris = 0;
 		if (m_cci.m_collisionShape->getShapeType() ==SCALED_TRIANGLE_MESH_SHAPE_PROXYTYPE)
 		{
 			btScaledBvhTriangleMeshShape* scaledtrimeshshape = (btScaledBvhTriangleMeshShape*) m_cci.m_collisionShape;
@@ -228,11 +229,10 @@ bool CcdPhysicsController::CreateSoftbody()
 				int vertexstride;
 				unsigned char* indexbase;
 				int indexstride;
-				int numtris;
 				PHY_ScalarType indexType;
 				trimeshshape->getMeshInterface()->getLockedVertexIndexBase(&vertexBase,numverts,vertexType,vertexstride,&indexbase,indexstride,numtris,indexType);
 				
-				psb = btSoftBodyHelpers::CreateFromTriMesh(worldInfo,(const btScalar*)vertexBase,(const int*)indexbase,numtris);
+				psb = btSoftBodyHelpers::CreateFromTriMesh(worldInfo,(const btScalar*)vertexBase,(const int*)indexbase,numtris,false);
 			}
 		} else
 		{
@@ -246,14 +246,21 @@ bool CcdPhysicsController::CreateSoftbody()
 				int vertexstride;
 				unsigned char* indexbase;
 				int indexstride;
-				int numtris;
 				PHY_ScalarType indexType;
 				trimeshshape->getMeshInterface()->getLockedVertexIndexBase(&vertexBase,numverts,vertexType,vertexstride,&indexbase,indexstride,numtris,indexType);
 				
-				psb = btSoftBodyHelpers::CreateFromTriMesh(worldInfo,(const btScalar*)vertexBase,(const int*)indexbase,numtris);
+				psb = btSoftBodyHelpers::CreateFromTriMesh(worldInfo,(const btScalar*)vertexBase,(const int*)indexbase,numtris,false);
 			}
 		}
-
+		// store face tag so that we can find our original face when doing ray casting
+		btSoftBody::Face* ft;
+		int i;
+		for (i=0, ft=&psb->m_faces[0]; i<numtris; ++i, ++ft)
+		{
+			// Hack!! use m_tag to store the face number, normally it is a pointer
+			// add 1 to make sure it is never 0
+			ft->m_tag = (void*)((uintptr_t)(i+1));
+		}
 	}
 	if (m_cci.m_margin > 0.f)
 	{
@@ -1402,6 +1409,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 		m_vertexArray.clear();
 		m_polygonIndexArray.clear();
 		m_triFaceArray.clear();
+		m_triFaceUVcoArray.clear();
 		return false;
 	}
 
@@ -1415,6 +1423,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 	numpolys = dm->getNumFaces(dm);
 	numverts = dm->getNumVerts(dm);
 	int* index = (int*)dm->getFaceDataArray(dm, CD_ORIGINDEX);
+	MTFace *tface = (MTFace *)dm->getFaceDataArray(dm, CD_MTFACE);
 
 	m_shapeType = (polytope) ? PHY_SHAPE_POLYTOPE : PHY_SHAPE_MESH;
 
@@ -1428,7 +1437,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 		for (int p2=0; p2<numpolys; p2++)
 		{
 			MFace* mf = &mface[p2];
-			RAS_Polygon* poly = meshobj->GetPolygon(index[p2]);
+			RAS_Polygon* poly = meshobj->GetPolygon((index)? index[p2]: p2);
 
 			// only add polygons that have the collision flag set
 			if (poly->IsCollider())
@@ -1447,7 +1456,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 		for (int p2=0; p2<numpolys; p2++)
 		{
 			MFace* mf = &mface[p2];
-			RAS_Polygon* poly= meshobj->GetPolygon(index[p2]);
+			RAS_Polygon* poly= meshobj->GetPolygon((index)? index[p2]: p2);
 
 			// only add polygons that have the collisionflag set
 			if (poly->IsCollider())
@@ -1495,7 +1504,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 		for (int p2=0; p2<numpolys; p2++)
 		{
 			MFace* mf = &mface[p2];
-			RAS_Polygon* poly= meshobj->GetPolygon(index[p2]);
+			RAS_Polygon* poly= meshobj->GetPolygon((index)? index[p2]: p2);
 
 			// only add polygons that have the collision flag set
 			if (poly->IsCollider())
@@ -1515,15 +1524,24 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 		m_vertexArray.resize(tot_bt_verts*3);
 		m_polygonIndexArray.resize(tot_bt_tris);
 		m_triFaceArray.resize(tot_bt_tris*3);
-
 		btScalar *bt= &m_vertexArray[0];
 		int *poly_index_pt= &m_polygonIndexArray[0];
 		int *tri_pt= &m_triFaceArray[0];
 
+		UVco *uv_pt = NULL;
+		if (tface)
+		{
+			m_triFaceUVcoArray.resize(tot_bt_tris*3);
+			uv_pt = &m_triFaceUVcoArray[0];
+		} 
+		else 
+			m_triFaceUVcoArray.clear();
+
 		for (int p2=0; p2<numpolys; p2++)
 		{
 			MFace* mf = &mface[p2];
-			RAS_Polygon* poly= meshobj->GetPolygon(index[p2]);
+			MTFace* tf = (tface) ? &tface[p2] : NULL;
+			RAS_Polygon* poly= meshobj->GetPolygon((index)? index[p2]: p2);
 
 			// only add polygons that have the collisionflag set
 			if (poly->IsCollider())
@@ -1537,9 +1555,19 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 				tri_pt[1]= vert_remap_array[mf->v2];
 				tri_pt[2]= vert_remap_array[mf->v3];
 				tri_pt= tri_pt+3;
+				if (tf)
+				{
+					uv_pt[0].uv[0] = tf->uv[0][0];
+					uv_pt[0].uv[1] = tf->uv[0][1];
+					uv_pt[1].uv[0] = tf->uv[1][0];
+					uv_pt[1].uv[1] = tf->uv[1][1];
+					uv_pt[2].uv[0] = tf->uv[2][0];
+					uv_pt[2].uv[1] = tf->uv[2][1];
+					uv_pt += 3;
+				}
 
 				// m_polygonIndexArray
-				*poly_index_pt= index[p2];
+				*poly_index_pt= (index)? index[p2]: p2;
 				poly_index_pt++;
 
 				// the vertex location
@@ -1570,9 +1598,19 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 					tri_pt[1]= vert_remap_array[mf->v3];
 					tri_pt[2]= vert_remap_array[mf->v4];
 					tri_pt= tri_pt+3;
+					if (tf)
+					{
+						uv_pt[0].uv[0] = tf->uv[0][0];
+						uv_pt[0].uv[1] = tf->uv[0][1];
+						uv_pt[1].uv[0] = tf->uv[2][0];
+						uv_pt[1].uv[1] = tf->uv[2][1];
+						uv_pt[2].uv[0] = tf->uv[3][0];
+						uv_pt[2].uv[1] = tf->uv[3][1];
+						uv_pt += 3;
+					}
 
 					// m_polygonIndexArray
-					*poly_index_pt= index[p2];
+					*poly_index_pt= (index)? index[p2]: p2;
 					poly_index_pt++;
 
 					// the vertex location
@@ -1728,21 +1766,26 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 			m_triFaceArray.resize(tot_bt_tris*3);
 			int *tri_pt= &m_triFaceArray[0];
 
+			m_triFaceUVcoArray.resize(tot_bt_tris*3);
+			UVco *uv_pt= &m_triFaceUVcoArray[0];
+
 			m_polygonIndexArray.resize(tot_bt_tris);
 			int *poly_index_pt= &m_polygonIndexArray[0];
-
 
 			for(mf= mface, tf= tface, i=0; i < numpolys; mf++, tf++, i++)
 			{
 				if(tf->mode & TF_DYNAMIC)
 				{
+					int origi = (index)? index[i]: i;
+
 					if(mf->v4) {
 						fv_pt= quad_verts;
-						*poly_index_pt++ = *poly_index_pt++ = index[i];
+						*poly_index_pt++ = origi;
+						*poly_index_pt++ = origi;
 						flen= 4;
 					} else {
 						fv_pt= tri_verts;
-						*poly_index_pt++ = index[i];
+						*poly_index_pt++ = origi;
 						flen= 3;
 					}
 
@@ -1760,6 +1803,9 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 							vert_tag_array[v_orig]= false;
 						}
 						*tri_pt++ = vert_remap_array[v_orig];
+						uv_pt->uv[0] = tf->uv[*fv_pt][0];
+						uv_pt->uv[1] = tf->uv[*fv_pt][1];
+						uv_pt++;
 					}
 				}
 			}
@@ -1782,18 +1828,23 @@ bool CcdShapeConstructionInfo::UpdateMesh(class KX_GameObject* gameobj, class RA
 			m_polygonIndexArray.resize(tot_bt_tris);
 			int *poly_index_pt= &m_polygonIndexArray[0];
 
+			m_triFaceUVcoArray.clear();
+
 			for(mv= mvert, i=0; i < numverts; mv++, i++) {
 				*bt++ = mv->co[0]; *bt++ = mv->co[1]; *bt++ = mv->co[2];
 			}
 
 			for(mf= mface, i=0; i < numpolys; mf++, i++) {
+				int origi = (index)? index[i]: i;
+
 				if(mf->v4) {
 					fv_pt= quad_verts;
-					*poly_index_pt++ = *poly_index_pt++ = index[i];
+					*poly_index_pt++ = origi;
+					*poly_index_pt++ = origi;
 				}
 				else {
 					fv_pt= tri_verts;
-					*poly_index_pt++ = index[i];
+					*poly_index_pt++ = origi;
 				}
 
 				for(; *fv_pt > -1; fv_pt++)

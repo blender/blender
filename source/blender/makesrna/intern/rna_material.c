@@ -64,20 +64,20 @@ static EnumPropertyItem prop_texture_coordinates_items[] = {
 
 #include "ED_node.h"
 
-static void rna_Material_update(bContext *C, PointerRNA *ptr)
+static void rna_Material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
 	DAG_id_flush_update(&ma->id, 0);
-	WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, ma);
+	WM_main_add_notifier(NC_MATERIAL|ND_SHADING, ma);
 }
 
-static void rna_Material_draw_update(bContext *C, PointerRNA *ptr)
+static void rna_Material_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Material *ma= ptr->id.data;
 
 	DAG_id_flush_update(&ma->id, 0);
-	WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, ma);
+	WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ma);
 }
 
 static PointerRNA rna_Material_mirror_get(PointerRNA *ptr)
@@ -1023,10 +1023,11 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Diffusion", "Diffusion factor, the strength of the blurring effect");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "ms_spread", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ms_steps");
-	RNA_def_property_range(prop, 0, 1024);
-	RNA_def_property_ui_text(prop, "Spread", "Simulation steps, the effective distance over which the light is diffused");
+	prop= RNA_def_property(srna, "ms_spread", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ms_spread");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 1, 3);
+	RNA_def_property_ui_text(prop, "Spread", "Proportional distance over which the light is diffused");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "ms_intensity", PROP_FLOAT, PROP_NONE);
@@ -1239,7 +1240,7 @@ static void rna_def_material_sss(BlenderRNA *brna)
 	RNA_def_struct_nested(brna, srna, "Material");
 	RNA_def_struct_ui_text(srna, "Material Subsurface Scattering", "Diffuse subsurface scattering settings for a Material datablock.");
 
-	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_RGB|PROP_UNIT_LENGTH);
+	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_COLOR|PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "sss_radius");
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001, 10000, 1, 3);

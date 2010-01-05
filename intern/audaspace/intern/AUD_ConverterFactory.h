@@ -35,9 +35,9 @@
 class AUD_ConverterFactory : public AUD_MixerFactory
 {
 public:
-	AUD_ConverterFactory(AUD_IReader* reader, AUD_Specs specs);
-	AUD_ConverterFactory(AUD_IFactory* factory, AUD_Specs specs);
-	AUD_ConverterFactory(AUD_Specs specs);
+	AUD_ConverterFactory(AUD_IReader* reader, AUD_DeviceSpecs specs);
+	AUD_ConverterFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
+	AUD_ConverterFactory(AUD_DeviceSpecs specs);
 
 	virtual AUD_IReader* createReader();
 };

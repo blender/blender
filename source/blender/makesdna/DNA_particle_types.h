@@ -109,10 +109,9 @@ typedef struct ParticleData {
 
 	float size;				/* size and multiplier so that we can update size when ever */
 
+	int hair_index;
 	short flag;
 	short alive;			/* the life state of a particle */
-	short loop;				/* how many times particle life has looped */
-	short hair_index;
 } ParticleData;
 
 typedef struct ParticleSettings {
@@ -261,7 +260,7 @@ typedef struct ParticleSystem{				/* note, make sure all (runtime) are NULL's in
 #define PART_REACT_STA_END	1
 #define PART_REACT_MULTIPLE	2
 
-#define PART_LOOP			4
+//#define PART_LOOP			4	/* not used anymore */
 		/* for dopesheet */
 #define PART_DS_EXPAND		8
 

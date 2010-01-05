@@ -660,7 +660,7 @@ void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 
 	if(nr<1) return;
 
-	if(nr==1)  transmode= extrudeflag(obedit, em, SELECT, nor);
+	if(nr==1)  transmode= extrudeflag(obedit, em, SELECT, nor, 0);
 	else if(nr==4) transmode= extrudeflag_verts_indiv(em, SELECT, nor);
 	else if(nr==3) transmode= extrudeflag_edges_indiv(em, SELECT, nor);
 	else transmode= extrudeflag_face_indiv(em, SELECT, nor);
@@ -816,7 +816,7 @@ static int extrude_repeat_mesh(bContext *C, wmOperator *op)
 	mul_m3_v3(tmat, dvec);
 
 	for(a=0; a<steps; a++) {
-		extrudeflag(obedit, em, SELECT, nor);
+		extrudeflag(obedit, em, SELECT, nor, 0);
 		translateflag(em, SELECT, dvec);
 	}
 
@@ -898,7 +898,7 @@ static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float 
 			adduplicateflag(em, 1);
 
 	for(a=0; a<steps; a++) {
-		if(dupli==0) ok= extrudeflag(obedit, em, SELECT, nor);
+		if(dupli==0) ok= extrudeflag(obedit, em, SELECT, nor, 0);
 		else adduplicateflag(em, SELECT);
 
 		if(ok==0)
@@ -4985,7 +4985,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 //	RNA_enum_set(op->ptr, "proportional", 0);
 //	RNA_boolean_set(op->ptr, "mirror", 0);
-//	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+//	WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }
@@ -6711,9 +6711,9 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_int(ot->srna, "number_cuts", 1, 1, 10, "Number of Cuts", "", 1, INT_MAX);
+	RNA_def_int(ot->srna, "number_cuts", 1, 1, INT_MAX, "Number of Cuts", "", 1, 10);
 	RNA_def_float(ot->srna, "fractal", 0.0, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor.", 0.0f, 1000.0f);
-	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, 1000.0f, "Smoothness", "Smoothness factor.", 0.0f, FLT_MAX);
+	RNA_def_float(ot->srna, "smoothness", 0.0f, 0.0f, FLT_MAX, "Smoothness", "Smoothness factor.", 0.0f, 1000.0f);
 }
 
 /********************** Fill Operators *************************/
@@ -7192,7 +7192,7 @@ static int select_axis_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
-	int axis= RNA_int_get(op->ptr, "axis");
+	int axis= RNA_enum_get(op->ptr, "axis");
 	int mode= RNA_enum_get(op->ptr, "mode"); /* -1==aligned, 0==neg, 1==pos*/
 
 	EditSelection *ese = em->selected.last;
@@ -7243,6 +7243,12 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 		{1,  "NEGATIVE", 0, "Negative Axis", ""},
 		{-1, "ALIGNED",  0, "Aligned Axis", ""},
 		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem axis_items[] = {
+		{0, "X_AXIS", 0, "X Axis", ""},
+		{1, "Y_AXIS", 0, "Y Axis", ""},
+		{2, "Z_AXIS", 0, "Z Axis", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
 	ot->name= "Select Axis";
@@ -7258,6 +7264,6 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "mode", axis_mode_items, 0, "Axis Mode", "Axis side to use when selecting");
-	RNA_def_int(ot->srna, "axis", 0, 0, 2, "Axis", "Select the axis to compare each vertex on", 0, 2);
+	RNA_def_enum(ot->srna, "axis", axis_items, 0, "Axis", "Select the axis to compare each vertex on");
 }
 

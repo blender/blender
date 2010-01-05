@@ -175,7 +175,9 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 	int empty= 1, flag;
 
 	if(op->type->ui) {
-		op->type->ui((bContext*)C, op, pa->layout);
+		op->layout= pa->layout;
+		op->type->ui((bContext*)C, op);
+		op->layout= NULL;
 	}
 	else {
 		RNA_STRUCT_BEGIN(op->ptr, prop) {

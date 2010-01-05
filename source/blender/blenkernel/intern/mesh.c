@@ -41,6 +41,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h"
+#include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_material_types.h"
@@ -51,6 +52,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_ipo_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
@@ -143,7 +145,12 @@ void free_mesh(Mesh *me)
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
 	CustomData_free(&me->fdata, me->totface);
-
+	
+	if(me->adt) {
+		BKE_free_animdata(&me->id);
+		me->adt= NULL;
+	}
+	
 	if(me->mat) MEM_freeN(me->mat);
 	
 	if(me->bb) MEM_freeN(me->bb);

@@ -31,6 +31,7 @@
 #define DNA_BRUSH_TYPES_H
 
 #include "DNA_ID.h"
+#include "DNA_texture_types.h"
 
 #ifndef MAX_MTEX
 #define MAX_MTEX	18
@@ -50,9 +51,8 @@ typedef struct Brush {
 	ID id;
 
 	struct BrushClone clone;
-
 	struct CurveMapping *curve;	/* falloff curve */
-	struct MTex *mtex[18];		/* MAX_MTEX */
+	struct MTex mtex;
 	
 	short flag, blend;			/* general purpose flag, blend mode */
 	int size;					/* brush diameter */
@@ -65,10 +65,8 @@ typedef struct Brush {
 	float rgb[3];				/* color */
 	float alpha;				/* opacity */
 
-	short texact;				/* active texture */
 	char sculpt_tool;			/* active tool */
-	
-	char pad[1];
+	char pad2[3];
 } Brush;
 
 /* Brush.flag */
@@ -79,12 +77,13 @@ typedef struct Brush {
 #define BRUSH_JITTER_PRESSURE	16 /* was BRUSH_RAD_PRESSURE */
 #define BRUSH_SPACING_PRESSURE	32
 #define BRUSH_FIXED_TEX			64
-#define BRUSH_RAKE		128
-#define BRUSH_ANCHORED		256
-#define BRUSH_DIR_IN		512
-#define BRUSH_SPACE		1024
-#define BRUSH_SMOOTH_STROKE	2048
-#define BRUSH_PERSISTENT	4096
+#define BRUSH_RAKE				128
+#define BRUSH_ANCHORED			256
+#define BRUSH_DIR_IN			512
+#define BRUSH_SPACE				1024
+#define BRUSH_SMOOTH_STROKE		2048
+#define BRUSH_PERSISTENT		4096
+#define BRUSH_ACCUMULATE		8192
 
 /* Brush.sculpt_tool */
 #define SCULPT_TOOL_DRAW    1

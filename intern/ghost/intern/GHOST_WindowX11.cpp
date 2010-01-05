@@ -1226,10 +1226,7 @@ GHOST_WindowX11::
 	if(m_xtablet.EraserDevice)
 		XCloseDevice(m_display, m_xtablet.EraserDevice);
 	
-	if (m_context) {
-		if (m_context == s_firstContext) {
-			s_firstContext = NULL;
-		}
+	if (m_context != s_firstContext) {
 		glXDestroyContext(m_display, m_context);
 	}
 	

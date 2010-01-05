@@ -144,6 +144,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSPART,
 	ANIMTYPE_DSMBALL,
 	ANIMTYPE_DSARM,
+	ANIMTYPE_DSMESH,
 	
 	ANIMTYPE_SHAPEKEY,
 	
@@ -219,6 +220,7 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_PART_OBJD(part) ((part->flag & PART_DS_EXPAND))
 #define FILTER_MBALL_OBJD(mb) ((mb->flag2 & MB_DS_EXPAND))
 #define FILTER_ARM_OBJD(arm) ((arm->flag & ARM_DS_EXPAND))
+#define FILTER_MESH_OBJD(me) ((me->flag & ME_DS_EXPAND))
 	/* 'Sub-object/Action' channels (flags stored in Action) */
 #define SEL_ACTC(actc) ((actc->flag & ACT_SELECTED))
 #define EXPANDED_ACTC(actc) ((actc->flag & ACT_COLLAPSED)==0)
@@ -377,11 +379,26 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting, short mode);
 
 
+/* Flush visibility (for Graph Editor) changes up/down hierarchy for changes in the given setting 
+ *	- anim_data: list of the all the anim channels that can be chosen
+ *		-> filtered using ANIMFILTER_CHANNELS only, since if we took VISIBLE too,
+ *	 	  then the channels under closed expanders get ignored...
+ *	- ale_setting: the anim channel (not in the anim_data list directly, though occuring there)
+ *		with the new state of the setting that we want flushed up/down the hierarchy 
+ *	- vizOn: whether the visibility setting has been enabled or disabled 
+ */
+void ANIM_visibility_flush_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, short vizOn);
+
+
 /* Deselect all animation channels */
 void ANIM_deselect_anim_channels(void *data, short datatype, short test, short sel);
 
 /* Set the 'active' channel of type channel_type, in the given action */
 void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type);
+
+
+/* Delete the F-Curve from the given AnimData block (if possible), as appropriate according to animation context */
+void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, struct AnimData *adt, struct FCurve *fcu);
 
 /* ************************************************ */
 /* DRAWING API */
@@ -409,16 +426,11 @@ void ANIM_draw_cfra(const struct bContext *C, struct View2D *v2d, short flag);
 /* main call to draw preview range curtains */
 void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 
-/* ------------- Preview Range Drawing -------------- */
-
-/* standard header buttons for Animation Editors */
-short ANIM_headerUI_standard_buttons(const struct bContext *C, struct bDopeSheet *ads, struct uiBlock *block, short xco, short yco);
-
 /* ************************************************* */
 /* F-MODIFIER TOOLS */
 
 /* draw a given F-Modifier for some layout/UI-Block */
-void ANIM_uiTemplate_fmodifier_draw(const struct bContext *C, struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
+void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */
@@ -430,7 +442,7 @@ void ANIM_uiTemplate_fmodifier_draw(const struct bContext *C, struct uiLayout *l
 int getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
 
 /* Automatically determine a color for the nth F-Curve */
-void ipo_rainbow(int cur, int tot, float *out);
+void getcolor_fcurve_rainbow(int cur, int tot, float *out);
 
 /* ------------- NLA-Mapping ----------------------- */
 /* anim_draw.c */
@@ -481,9 +493,11 @@ void ED_nla_postop_refresh(bAnimContext *ac);
 
 /* --------- anim_deps.c, animation updates -------- */
 
-/* pose <-> action syncing */
-void ANIM_action_to_pose_sync(struct Object *ob);
-void ANIM_pose_to_action_sync(struct Object *ob, struct ScrArea *sa);
+void ANIM_id_update(struct Scene *scene, struct ID *id);
+void ANIM_list_elem_update(struct Scene *scene, bAnimListElem *ale);
+
+/* data -> channels syncing */
+void ANIM_sync_animchannels_to_data(const struct bContext *C);
 
 /* ************************************************* */
 /* OPERATORS */

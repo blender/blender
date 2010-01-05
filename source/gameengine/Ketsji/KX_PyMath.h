@@ -56,7 +56,7 @@ inline unsigned int Size(const MT_Tuple3&)                { return 3; }
 inline unsigned int Size(const MT_Tuple4&)                { return 4; }
 
 /**
- *  Converts the given python matrix to an MT class.
+ *  Converts the given python matrix (column-major) to an MT class (row-major).
  */
 template<class T>
 bool PyMatTo(PyObject* pymat, T& mat)
@@ -65,30 +65,30 @@ bool PyMatTo(PyObject* pymat, T& mat)
 	mat.setIdentity();
 	if (PySequence_Check(pymat))
 	{
-		unsigned int rows = PySequence_Size(pymat);
-		if (rows != Size(mat))
+		unsigned int cols = PySequence_Size(pymat);
+		if (cols != Size(mat))
 			return false;
 			
-		for (unsigned int y = 0; noerror && y < Size(mat); y++)
+		for (unsigned int x = 0; noerror && x < cols; x++)
 		{
-			PyObject *pyrow = PySequence_GetItem(pymat, y); /* new ref */
-			if (!PyErr_Occurred() && PySequence_Check(pyrow))
+			PyObject *pycol = PySequence_GetItem(pymat, x); /* new ref */
+			if (!PyErr_Occurred() && PySequence_Check(pycol))
 			{
-				unsigned int cols = PySequence_Size(pyrow);
-				if (cols != Size(mat))
+				unsigned int rows = PySequence_Size(pycol);
+				if (rows != Size(mat))
 					noerror = false;
 				else
 				{
-					for( unsigned int x = 0; x < Size(mat); x++)
+					for( unsigned int y = 0; y < rows; y++)
 					{
-						PyObject *item = PySequence_GetItem(pyrow, x); /* new ref */
+						PyObject *item = PySequence_GetItem(pycol, y); /* new ref */
 						mat[y][x] = PyFloat_AsDouble(item);
 						Py_DECREF(item);
 					}
 				}
 			} else 
 				noerror = false;
-			Py_DECREF(pyrow);
+			Py_DECREF(pycol);
 		}
 	} else 
 		noerror = false;

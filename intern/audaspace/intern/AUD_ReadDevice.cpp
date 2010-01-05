@@ -23,17 +23,17 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#include "AUD_FloatMixer.h"
+#include "AUD_Mixer.h"
 #include "AUD_ReadDevice.h"
 #include "AUD_IReader.h"
 
 #include <cstring>
 
-AUD_ReadDevice::AUD_ReadDevice(AUD_Specs specs)
+AUD_ReadDevice::AUD_ReadDevice(AUD_DeviceSpecs specs)
 {
 	m_specs = specs;
 
-	m_mixer = new AUD_FloatMixer(); AUD_NEW("mixer")
+	m_mixer = new AUD_Mixer(); AUD_NEW("mixer")
 	m_mixer->setSpecs(m_specs);
 
 	m_playing = false;
@@ -46,15 +46,15 @@ AUD_ReadDevice::~AUD_ReadDevice()
 	destroy();
 }
 
-bool AUD_ReadDevice::read(sample_t* buffer, int length)
+bool AUD_ReadDevice::read(data_t* buffer, int length)
 {
 	if(m_playing)
 		mix(buffer, length);
 	else
 		if(m_specs.format == AUD_FORMAT_U8)
-			memset(buffer, 0x80, length * AUD_SAMPLE_SIZE(m_specs));
+			memset(buffer, 0x80, length * AUD_DEVICE_SAMPLE_SIZE(m_specs));
 		else
-			memset(buffer, 0, length * AUD_SAMPLE_SIZE(m_specs));
+			memset(buffer, 0, length * AUD_DEVICE_SAMPLE_SIZE(m_specs));
 	return m_playing;
 }
 

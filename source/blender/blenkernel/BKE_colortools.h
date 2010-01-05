@@ -34,11 +34,12 @@ struct CurveMap;
 struct ImBuf;
 struct rctf;
 
-void 				gamma_correct_rec709(float *c, float gamma);
-void				gamma_correct(float *c, float gamma);
-float				srgb_to_linearrgb(float c);
-float				linearrgb_to_srgb(float c);
-void				color_manage_linearize(float *col_to, float *col_from);
+typedef enum CurveMappingPreset {
+	CURVE_PRESET_LINE,
+	CURVE_PRESET_SHARP,
+	CURVE_PRESET_SMOOTH,
+	CURVE_PRESET_MAX
+} CurveMappingPreset;
 
 void				floatbuf_to_srgb_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w);
 void				floatbuf_to_byte(float *rectf, unsigned char *rectc, int x1, int x2, int y1, int y2, int w);
@@ -50,7 +51,7 @@ void				curvemapping_set_black_white(struct CurveMapping *cumap, float *black, f
 
 void				curvemap_remove(struct CurveMap *cuma, int flag);
 void				curvemap_insert(struct CurveMap *cuma, float x, float y);
-void				curvemap_reset(struct CurveMap *cuma, struct rctf *clipr);
+void				curvemap_reset(struct CurveMap *cuma, struct rctf *clipr, CurveMappingPreset preset);
 void				curvemap_sethandle(struct CurveMap *cuma, int type);
 
 void				curvemapping_changed(struct CurveMapping *cumap, int rem_doubles);

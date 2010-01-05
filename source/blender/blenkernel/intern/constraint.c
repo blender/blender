@@ -440,15 +440,14 @@ static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, f
 	/* only continue if there's a valid DerivedMesh */
 	if (dm) {
 		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-		int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
 		int numVerts = dm->getNumVerts(dm);
 		int i, j, count = 0;
 		float co[3], nor[3];
 		
-		/* check that dvert and index are valid pointers (just in case) */
-		if (dvert && index) {
+		/* check that dvert is a valid pointers (just in case) */
+		if (dvert) {
 			/* get the average of all verts with that are in the vertex-group */
-			for (i = 0; i < numVerts; i++, index++) {	
+			for (i = 0; i < numVerts; i++) {	
 				for (j = 0; j < dvert[i].totweight; j++) {
 					/* does this vertex belong to nominated vertex group? */
 					if (dvert[i].dw[j].def_nr == dgroup) {
@@ -1192,17 +1191,17 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			if ((data->followflag & FOLLOWPATH_STATIC) == 0) { 
 				/* animated position along curve depending on time */
 				if (cob->scene)
-					curvetime= bsystem_time(cob->scene, ct->tar, ctime, 0.0) - data->offset;
+					curvetime= bsystem_time(cob->scene, ct->tar, cu->ctime, 0.0) - data->offset;
 				else	
-					curvetime= ctime - data->offset;
+					curvetime= cu->ctime - data->offset;
 				
 				/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
 				 * but this will only work if it actually is animated... 
 				 *
-				 * we firstly calculate the modulus of cu->ctime/cu->pathlen to clamp ctime within the 0.0 to 1.0 times pathlen
-				 * range, then divide this (the modulus) by pathlen to get a value between 0.0 and 1.0
+				 * we divide the curvetime calculated in the previous step by the length of the path, to get a time
+				 * factor, which then gets clamped to lie within 0.0 - 1.0 range
 				 */
-				curvetime= fmod(cu->ctime, cu->pathlen) / cu->pathlen;
+				curvetime /= cu->pathlen;
 				CLAMP(curvetime, 0.0, 1.0);
 			}
 			else {
@@ -1212,7 +1211,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			
 			if ( where_on_path(ct->tar, curvetime, vec, dir, NULL, &radius) ) {
 				if (data->followflag & FOLLOWPATH_FOLLOW) {
-					vec_to_quat( quat,dir, (short) data->trackflag, (short) data->upflag);
+					vec_to_quat(quat, dir, (short)data->trackflag, (short)data->upflag);
 					
 					normalize_v3(dir);
 					q[0]= (float)cos(0.5*vec[3]);
@@ -1222,7 +1221,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 					q[3]= -x1*dir[2];
 					mul_qt_qtqt(quat, q, quat);
 					
-					quat_to_mat4( totmat,quat);
+					quat_to_mat4(totmat, quat);
 				}
 				
 				if (data->followflag & FOLLOWPATH_RADIUS) {
@@ -1252,12 +1251,12 @@ static void followpath_evaluate (bConstraint *con, bConstraintOb *cob, ListBase 
 		float size[3];
 		bFollowPathConstraint *data= con->data;
 		
-		/* get Object local transform (loc/rot/size) to determine transformation from path */
-		//object_to_mat4(ob, obmat);
-		copy_m4_m4(obmat, cob->matrix); // FIXME!!!
+		/* get Object transform (loc/rot/size) to determine transformation from path */
+		// TODO: this used to be local at one point, but is probably more useful as-is
+		copy_m4_m4(obmat, cob->matrix);
 		
 		/* get scaling of object before applying constraint */
-		mat4_to_size( size,cob->matrix);
+		mat4_to_size(size, cob->matrix);
 		
 		/* apply targetmat - containing location on path, and rotation */
 		mul_serie_m4(cob->matrix, ct->matrix, obmat, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -1691,8 +1690,8 @@ static void sizelike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	if (VALID_CONS_TARGET(ct)) {
 		float obsize[3], size[3];
 		
-		mat4_to_size( size,ct->matrix);
-		mat4_to_size( obsize,cob->matrix);
+		mat4_to_size(size, ct->matrix);
+		mat4_to_size(obsize, cob->matrix);
 		
 		if ((data->flag & SIZELIKE_X) && (obsize[0] != 0)) {
 			if (data->flag & SIZELIKE_OFFSET) {
@@ -1736,6 +1735,58 @@ static bConstraintTypeInfo CTI_SIZELIKE = {
 	sizelike_evaluate /* evaluate */
 };
 
+/* ----------- Copy Transforms ------------- */
+
+static int translike_get_tars (bConstraint *con, ListBase *list)
+{
+	if (con && list) {
+		bTransLikeConstraint *data= con->data;
+		bConstraintTarget *ct;
+		
+		/* standard target-getting macro for single-target constraints */
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		
+		return 1;
+	}
+	
+	return 0;
+}
+
+static void translike_flush_tars (bConstraint *con, ListBase *list, short nocopy)
+{
+	if (con && list) {
+		bTransLikeConstraint *data= con->data;
+		bConstraintTarget *ct= list->first;
+		
+		/* the following macro is used for all standard single-target constraints */
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+	}
+}
+
+static void translike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
+{
+	bConstraintTarget *ct= targets->first;
+	
+	if (VALID_CONS_TARGET(ct)) {
+		/* just copy the entire transform matrix of the target */
+		copy_m4_m4(cob->matrix, ct->matrix);
+	}
+}
+
+static bConstraintTypeInfo CTI_TRANSLIKE = {
+	CONSTRAINT_TYPE_TRANSLIKE, /* type */
+	sizeof(bTransLikeConstraint), /* size */
+	"Copy Transforms", /* name */
+	"bTransLikeConstraint", /* struct name */
+	NULL, /* free data */
+	NULL, /* relink data */
+	NULL, /* copy data */
+	NULL, /* new data */
+	translike_get_tars, /* get constraint targets */
+	translike_flush_tars, /* flush constraint targets */
+	default_get_tarmat, /* get target matrix */
+	translike_evaluate /* evaluate */
+};
 
 /* ----------- Python Constraint -------------- */
 
@@ -3566,6 +3617,7 @@ static void constraints_init_typeinfo () {
 	constraintsTypeInfo[20]= &CTI_SHRINKWRAP;		/* Shrinkwrap Constraint */
 	constraintsTypeInfo[21]= &CTI_DAMPTRACK;		/* Damped TrackTo Constraint */
 	constraintsTypeInfo[22]= &CTI_SPLINEIK;			/* Spline IK Constraint */
+	constraintsTypeInfo[23]= &CTI_TRANSLIKE;		/* Copy Transforms Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only

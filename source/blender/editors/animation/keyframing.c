@@ -80,6 +80,40 @@
 
 #include "anim_intern.h"
 
+/* ************************************************** */
+/* Keyframing Setting Wrangling */
+
+/* Get the active settings for keyframing settings from context (specifically the given scene) */
+short ANIM_get_keyframing_flags (Scene *scene, short incl_mode)
+{
+	short flag = 0;
+	
+	/* standard flags */
+	{
+		/* visual keying */
+		if (IS_AUTOKEY_FLAG(AUTOMATKEY)) 
+			flag |= INSERTKEY_MATRIX;
+		
+		/* only needed */
+		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) 
+			flag |= INSERTKEY_NEEDED;
+		
+		/* default F-Curve color mode - RGB from XYZ indicies */
+		if (IS_AUTOKEY_FLAG(XYZ2RGB)) 
+			flag |= INSERTKEY_XYZ2RGB;
+	}
+		
+	/* only if including settings from the autokeying mode... */
+	if (incl_mode) 
+	{ 
+		/* keyframing mode - only replace existing keyframes */
+		if (IS_AUTOKEY_MODE(scene, EDITKEYS)) 
+			flag |= INSERTKEY_REPLACE;
+	}
+		
+	return flag;
+}
+
 /* ******************************************* */
 /* Animation Data Validation */
 
@@ -274,6 +308,7 @@ int insert_vert_fcurve (FCurve *fcu, float x, float y, short flag)
 	beztr.ipo= U.ipo_new; /* use default interpolation mode here... */
 	beztr.f1= beztr.f2= beztr.f3= SELECT;
 	beztr.h1= beztr.h2= HD_AUTO; // XXX what about when we replace an old one?
+	//BEZKEYTYPE(&beztr)= scene->keytype; /* default keyframe type */
 	
 	/* add temp beztriple to keyframes */
 	a= insert_bezt_fcurve(fcu, &beztr, flag);
@@ -809,13 +844,18 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 		return 0;
 	}
 	
-	/* get F-Curve - if no action is provided, keyframe to the default one attached to this ID-block */
+	/* if no action is provided, keyframe to the default one attached to this ID-block */
 	if (act == NULL) {
 		AnimData *adt= BKE_animdata_from_id(id);
 		
 		/* get action to add F-Curve+keyframe to */
 		act= verify_adt_action(id, 1);
 		
+		if(act==NULL) {
+			printf("Insert Key: Could not insert keyframe, as this type does not support animation data (ID = %s, Path = %s)\n", id->name, rna_path);
+			return 0;
+		}
+
 		/* apply NLA-mapping to frame to use (if applicable) */
 		cfra= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 	}
@@ -837,12 +877,23 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	/* key entire array convenience method */
 	if (array_index == -1) { 
 		array_index= 0;
-		array_index_max= RNA_property_array_length(&ptr, prop) + 1;
+		array_index_max= RNA_property_array_length(&ptr, prop);
 	}
 	
 	/* will only loop once unless the array index was -1 */
 	for (; array_index < array_index_max; array_index++) {
+		/* make sure the F-Curve exists */
 		fcu= verify_fcurve(act, group, rna_path, array_index, 1);
+		
+		/* set color mode if the F-Curve is new (i.e. without any keyframes) */
+		if ((fcu->totvert == 0) && (flag & INSERTKEY_XYZ2RGB)) {
+			/* for Loc/Rot/Scale and also Color F-Curves, the color of the F-Curve in the Graph Editor,
+			 * is determined by the array index for the F-Curve
+			 */
+			if (ELEM4(RNA_property_subtype(prop), PROP_TRANSLATION, PROP_XYZ, PROP_EULER, PROP_COLOR)) {
+				fcu->color_mode= FCURVE_COLOR_AUTO_RGB;
+			}
+		}
 		
 		/* insert keyframe */
 		ret += insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
@@ -863,6 +914,7 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
  */
 short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {
+	AnimData *adt= BKE_animdata_from_id(id);
 	FCurve *fcu = NULL;
 	
 	/* get F-Curve
@@ -871,7 +923,6 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	 */
 	if (act == NULL) {
 		/* if no action is provided, use the default one attached to this ID-block */
-		AnimData *adt= BKE_animdata_from_id(id);
 		act= adt->action;
 		
 		/* apply NLA-mapping to frame to use (if applicable) */
@@ -913,11 +964,9 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 			/* delete the key at the index (will sanity check + do recalc afterwards) */
 			delete_fcurve_key(fcu, i, 1);
 			
-			/* Only delete curve too if there are no points (we don't need to check for drivers, as they're kept separate) */
-			if (fcu->totvert == 0) {
-				BLI_remlink(&act->curves, fcu);
-				free_fcurve(fcu);
-			}
+			/* Only delete curve too if it won't be doing anything anymore */
+			if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
+				ANIM_fcurve_delete_from_animdata(NULL, adt, fcu);
 			
 			/* return success */
 			return 1;
@@ -1316,12 +1365,7 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 	short flag = 0;
 	
 	/* flags for inserting keyframes */
-	if (IS_AUTOKEY_FLAG(AUTOMATKEY))
-		flag |= INSERTKEY_MATRIX;
-	if (IS_AUTOKEY_FLAG(INSERTNEEDED))
-		flag |= INSERTKEY_NEEDED;
-	if (IS_AUTOKEY_MODE(scene, EDITKEYS))
-		flag |= INSERTKEY_REPLACE;
+	flag = ANIM_get_keyframing_flags(scene, 1);
 	
 	/* try to insert keyframe using property retrieved from UI */
 	memset(&ptr, 0, sizeof(PointerRNA));

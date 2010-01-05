@@ -23,6 +23,9 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
+#include <cstdlib>
+#include <cstring>
+
 #include "AUD_NULLDevice.h"
 #include "AUD_I3DDevice.h"
 #include "AUD_FileFactory.h"
@@ -31,13 +34,22 @@
 #include "AUD_LimiterFactory.h"
 #include "AUD_PingPongFactory.h"
 #include "AUD_LoopFactory.h"
+#include "AUD_RectifyFactory.h"
+#include "AUD_EnvelopeFactory.h"
+#include "AUD_LinearResampleFactory.h"
+#include "AUD_LowpassFactory.h"
+#include "AUD_HighpassFactory.h"
+#include "AUD_AccumulatorFactory.h"
+#include "AUD_SumFactory.h"
+#include "AUD_SquareFactory.h"
+#include "AUD_ChannelMapperFactory.h"
+#include "AUD_Buffer.h"
 #include "AUD_ReadDevice.h"
 #include "AUD_SourceCaps.h"
 #include "AUD_IReader.h"
 
 #ifdef WITH_SDL
 #include "AUD_SDLDevice.h"
-#include "AUD_FloatMixer.h"
 #endif
 
 #ifdef WITH_OPENAL
@@ -54,7 +66,7 @@ extern "C" {
 }
 #endif
 
-#include <assert.h>
+#include <cassert>
 
 typedef AUD_IFactory AUD_Sound;
 typedef AUD_ReadDevice AUD_Device;
@@ -70,7 +82,7 @@ static AUD_IDevice* AUD_device = NULL;
 static int AUD_available_devices[4];
 static AUD_I3DDevice* AUD_3ddevice = NULL;
 
-int AUD_init(AUD_DeviceType device, AUD_Specs specs, int buffersize)
+int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 {
 #ifdef WITH_FFMPEG
 	av_register_all();
@@ -89,12 +101,8 @@ int AUD_init(AUD_DeviceType device, AUD_Specs specs, int buffersize)
 			break;
 #ifdef WITH_SDL
 		case AUD_SDL_DEVICE:
-			{
-				dev = new AUD_SDLDevice(specs, buffersize);
-				AUD_FloatMixer* mixer = new AUD_FloatMixer();
-				((AUD_SDLDevice*)dev)->setMixer(mixer);
-				break;
-			}
+			dev = new AUD_SDLDevice(specs, buffersize);
+			break;
 #endif
 #ifdef WITH_OPENAL
 		case AUD_OPENAL_DEVICE:
@@ -176,9 +184,8 @@ AUD_SoundInfo AUD_getInfo(AUD_Sound* sound)
 	else
 	{
 		info.specs.channels = AUD_CHANNELS_INVALID;
-		info.specs.format = AUD_FORMAT_INVALID;
 		info.specs.rate = AUD_RATE_INVALID;
-		info.length = 0.0;
+		info.length = 0.0f;
 	}
 
 	return info;
@@ -283,6 +290,20 @@ int AUD_stopLoop(AUD_Handle* handle)
 		}
 	}
 	return false;
+}
+
+AUD_Sound* AUD_rectifySound(AUD_Sound* sound)
+{
+	assert(sound);
+
+	try
+	{
+		return new AUD_RectifyFactory(sound);
+	}
+	catch(AUD_Exception)
+	{
+		return NULL;
+	}
 }
 
 void AUD_unload(AUD_Sound* sound)
@@ -409,7 +430,7 @@ float AUD_get3DSetting(AUD_3DSetting setting)
 	catch(AUD_Exception)
 	{
 	}
-	return 0.0;
+	return 0.0f;
 }
 
 int AUD_update3DSource(AUD_Handle* handle, AUD_3DData* data)
@@ -465,7 +486,7 @@ float AUD_get3DSourceSetting(AUD_Handle* handle, AUD_3DSourceSetting setting)
 		{
 		}
 	}
-	return 0.0;
+	return 0.0f;
 }
 
 int AUD_setSoundVolume(AUD_Handle* handle, float volume)
@@ -504,7 +525,7 @@ int AUD_setSoundPitch(AUD_Handle* handle, float pitch)
 	return false;
 }
 
-AUD_Device* AUD_openReadDevice(AUD_Specs specs)
+AUD_Device* AUD_openReadDevice(AUD_DeviceSpecs specs)
 {
 	try
 	{
@@ -563,7 +584,7 @@ int AUD_setDeviceSoundVolume(AUD_Device* device, AUD_Handle* handle,
 	return false;
 }
 
-int AUD_readDevice(AUD_Device* device, sample_t* buffer, int length)
+int AUD_readDevice(AUD_Device* device, data_t* buffer, int length)
 {
 	assert(device);
 	assert(buffer);
@@ -589,4 +610,56 @@ void AUD_closeReadDevice(AUD_Device* device)
 	catch(AUD_Exception)
 	{
 	}
+}
+
+float* AUD_readSoundBuffer(const char* filename, float low, float high,
+						   float attack, float release, float threshold,
+						   int accumulate, int additive, int square,
+						   float sthreshold, int samplerate, int* length)
+{
+	AUD_Buffer buffer;
+	AUD_DeviceSpecs specs;
+	specs.channels = AUD_CHANNELS_MONO;
+	specs.rate = (AUD_SampleRate)samplerate;
+	AUD_Sound* sound;
+
+	AUD_FileFactory file(filename);
+	AUD_ChannelMapperFactory mapper(&file, specs);
+	AUD_LowpassFactory lowpass(&mapper, high);
+	AUD_HighpassFactory highpass(&lowpass, low);
+	AUD_EnvelopeFactory envelope(&highpass, attack, release, threshold, 0.1f);
+	AUD_LinearResampleFactory resampler(&envelope, specs);
+	sound = &resampler;
+	AUD_SquareFactory squaref(sound, sthreshold);
+	if(square)
+		sound = &squaref;
+	AUD_AccumulatorFactory accumulator(sound, additive);
+	AUD_SumFactory sum(sound);
+	if(accumulate)
+		sound = &accumulator;
+	else if(additive)
+		sound = &sum;
+
+	AUD_IReader* reader = sound->createReader();
+
+	if(reader == NULL)
+		return NULL;
+
+	int len;
+	int position = 0;
+	sample_t* readbuffer;
+	do
+	{
+		len = samplerate;
+		buffer.resize((position + len) * sizeof(float), true);
+		reader->read(len, readbuffer);
+		memcpy(buffer.getBuffer() + position, readbuffer, len * sizeof(float));
+		position += len;
+	} while(len != 0);
+	delete reader;
+
+	float* result = (float*)malloc(position * sizeof(float));
+	memcpy(result, buffer.getBuffer(), position * sizeof(float));
+	*length = position;
+	return result;
 }

@@ -59,9 +59,10 @@ endif
 ifeq ($(WITH_SNDFILE),true)
 	CPPFLAGS += -DWITH_SNDFILE
 	CPPFLAGS += -I../sndfile
+	CPPFLAGS += -I$(NAN_SNDFILE)/include
 endif
 
-CPPFLAGS += -I$(LCGDIR)/samplerate/include/
+CPPFLAGS += -I$(NAN_SAMPLERATE)/include/
 CPPFLAGS += -I../ffmpeg
 CPPFLAGS += -I../FX
 CPPFLAGS += -I../SDL

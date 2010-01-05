@@ -53,6 +53,7 @@
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
 #include "BKE_packedFile.h"
+#include "BKE_sequencer.h" /* free seq clipboard */
 
 #include "BLI_blenlib.h"
 
@@ -160,7 +161,7 @@ void WM_init_splash(bContext *C)
 	wmWindow *prevwin= CTX_wm_window(C);
 	
 	if(wm->windows.first) {
-		CTX_wm_window_set(C, wm->windows.first); 
+		CTX_wm_window_set(C, wm->windows.first);
 		WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL);
 		CTX_wm_window_set(C, prevwin);
 	}
@@ -234,6 +235,8 @@ void WM_exit(bContext *C)
 
 	if(C && CTX_wm_manager(C))
 		wm_free_reports(C);			/* before free_blender! - since the ListBases get freed there */
+
+	seq_free_clipboard(); /* sequencer.c */
 		
 	free_blender();				/* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();

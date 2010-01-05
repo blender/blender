@@ -30,8 +30,8 @@ def point_cache_ui(self, context, cache, enabled, particles, smoke):
     row = layout.row()
     row.template_list(cache, "point_cache_list", cache, "active_point_cache_index", rows=2)
     col = row.column(align=True)
-    col.operator("ptcache.add", icon='ICON_ZOOMIN', text="")
-    col.operator("ptcache.remove", icon='ICON_ZOOMOUT', text="")
+    col.operator("ptcache.add", icon='ZOOMIN', text="")
+    col.operator("ptcache.remove", icon='ZOOMOUT', text="")
 
     row = layout.row()
     row.label(text="File Name:")
@@ -150,6 +150,7 @@ def basic_force_field_settings_ui(self, context, field):
         col.prop(field, "flow")
     elif field.type == 'HARMONIC':
         col.prop(field, "harmonic_damping", text="Damping")
+        col.prop(field, "rest_length")
     elif field.type == 'VORTEX' and field.shape != 'POINT':
         col.prop(field, "inflow")
     elif field.type == 'DRAG':
@@ -163,6 +164,8 @@ def basic_force_field_settings_ui(self, context, field):
     col.prop(field, "seed")
     if field.type == 'TURBULENCE':
         col.prop(field, "global_coordinates", text="Global")
+    elif field.type == 'HARMONIC':
+        col.prop(field, "multiple_springs")
 
     split = layout.split()
 

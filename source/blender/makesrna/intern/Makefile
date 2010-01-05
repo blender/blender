@@ -75,7 +75,7 @@ ifeq ($(WITH_OPENJPEG), true)
 endif
 
 ifeq ($(WITH_QUICKTIME), true)
-	CPPFLAGS += -DWITH_QUICKTIME
+    CPPFLAGS += -DWITH_QUICKTIME -I../../quicktime
 endif
 
 ifeq ($(WITH_SDL),true)
@@ -102,6 +102,10 @@ ifeq ($(OS),windows)
 	else
 		LDFLAGS += -mwindows -mno-cygwin
 	endif
+endif
+
+ifeq ($(OS), darwin)
+    LDFLAGS += -arch $(MACOSX_ARCHITECTURE) #-isysroot $(MACOSX_SDK) -mmacosx-version-min=$(MACOSX_MIN_VERS)
 endif
 
 clean::

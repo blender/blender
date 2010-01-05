@@ -2081,6 +2081,11 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 		EM_selectmode_flush(em);
 //			if (EM_texFaceCheck())
 		
+		/* sets as active, useful for other tools */
+		if(select && em->selectmode & SCE_SELECT_EDGE) {
+			EM_store_selection(em, eed, EDITEDGE);
+		}
+
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit->data);
 	}
 }
@@ -3372,12 +3377,31 @@ void EM_select_all(EditMesh *em)
 	EM_set_flag_all(em, SELECT);
 }
 
-static int toggle_select_all_exec(bContext *C, wmOperator *op)
+void EM_deselect_all(EditMesh *em)
+{
+	EM_clear_flag_all(em, SELECT);
+}
+
+static int select_all_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	int action = RNA_enum_get(op->ptr, "action");
 	
-	EM_toggle_select_all(em);
+	switch (action) {
+	case SEL_TOGGLE:
+		EM_toggle_select_all(em);
+		break;
+	case SEL_SELECT:
+		EM_select_all(em);
+		break;
+	case SEL_DESELECT:
+		EM_deselect_all(em);
+		break;
+	case SEL_INVERT:
+		EM_select_swap(em);
+		break;
+	}
 	
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);	
 	BKE_mesh_end_editmesh(obedit->data, em);
@@ -3385,19 +3409,21 @@ static int toggle_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_select_all_toggle(wmOperatorType *ot)
+void MESH_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect All";
-	ot->description= "(de)select all vertices, edges or faces.";
-	ot->idname= "MESH_OT_select_all_toggle";
+	ot->description= "Change selection of all vertices, edges or faces.";
+	ot->idname= "MESH_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= toggle_select_all_exec;
+	ot->exec= select_all_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }
 
 /* ******************** **************** */
@@ -3561,14 +3587,11 @@ void MESH_OT_select_less(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static void selectrandom_mesh(EditMesh *em, float perc) /* randomly selects a user-set % of vertices/edges/faces */
+static void selectrandom_mesh(EditMesh *em, float randfac) /* randomly selects a user-set % of vertices/edges/faces */
 {
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
-	float randfac= perc;
-	/* Get the percentage of vertices to randomly select as 'randfac' */
-// XXX	if(button(&randfac,0, 100,"Percentage:")==0) return;
 
 	BLI_srand( BLI_rand() ); /* random seed */
 	
@@ -3608,7 +3631,10 @@ static int mesh_select_random_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
-	selectrandom_mesh(em, RNA_float_get(op->ptr,"percent"));
+	if(!RNA_boolean_get(op->ptr, "extend"))
+		EM_deselect_all(em);
+	
+	selectrandom_mesh(em, RNA_float_get(op->ptr, "percent")/100.0f);
 		
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	
@@ -3625,14 +3651,14 @@ void MESH_OT_select_random(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= mesh_select_random_exec;
-	ot->invoke= WM_operator_props_popup;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float_percentage(ot->srna, "percent", 50.0f, 0.0f, 100.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
 
 void EM_select_by_material(EditMesh *em, int index) 
@@ -3661,57 +3687,6 @@ void EM_deselect_by_material(EditMesh *em, int index)
 	EM_selectmode_flush(em);
 }
 
-static void mesh_selection_type(ToolSettings *ts, EditMesh *em, int val)
-{
-	if(val>0) {
-		//if(ctrl) EM_convertsel(em, em->selectmode, SCE_SELECT_EDGE);
-		//if((ctrl)) EM_convertsel(em, em->selectmode, SCE_SELECT_FACE);
-
-		em->selectmode= val;
-		EM_selectmode_set(em);
-		
-		/* note, em stores selectmode to be able to pass it on everywhere without scene,
-		   this is only until all select modes and toolsettings are settled more */
-		ts->selectmode= em->selectmode;
-//		if (EM_texFaceCheck())
-	}
-}
-
-static int mesh_selection_type_exec(bContext *C, wmOperator *op)
-{		
-	ToolSettings *ts= CTX_data_tool_settings(C);
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-
-	mesh_selection_type(ts, em, RNA_enum_get(op->ptr,"type"));
-
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-	WM_event_add_notifier(C, NC_SCENE|ND_MODE, NULL); /* header redraw */
-	
-	BKE_mesh_end_editmesh(obedit->data, em);
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_selection_type(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Selection Mode";
-	ot->description= "Set the selection mode type.";
-	ot->idname= "MESH_OT_selection_type";
-	
-	/* api callbacks */
-	ot->invoke= WM_menu_invoke;
-	ot->exec= mesh_selection_type_exec;
-	
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_enum(ot->srna, "type", mesh_select_mode_items, 0, "Type", "Set the mesh selection type");
-	
-}
 /* ************************* SEAMS AND EDGES **************** */
 
 static int editmesh_mark_seam(bContext *C, wmOperator *op)
@@ -4519,5 +4494,87 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
+static int solidify_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	float nor[3] = {0,0,1};
+
+	float thickness= RNA_float_get(op->ptr, "thickness");
+
+	extrudeflag(obedit, em, SELECT, nor, 1);
+	EM_make_hq_normals(em);
+	EM_solidify(em, thickness);
+
+
+	/* update vertex normals too */
+	recalc_editnormals(em);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void MESH_OT_solidify(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	/* identifiers */
+	ot->name= "Solidify";
+	ot->description= "Create a solid skin by extruding, compensating for sharp angles.";
+	ot->idname= "MESH_OT_solidify";
+
+	/* api callbacks */
+	ot->exec= solidify_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	prop= RNA_def_float(ot->srna, "thickness", 0.01f, -FLT_MAX, FLT_MAX, "thickness", "", -10.0f, 10.0f);
+	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
+}
+
+static int mesh_select_nth_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	int nth = RNA_int_get(op->ptr, "nth");
+
+	if(EM_deselect_nth(em, nth) == 0) {
+		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face.");
+		return OPERATOR_CANCELLED;
+	}
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+
+void MESH_OT_select_nth(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Nth";
+	ot->description= "";
+	ot->idname= "MESH_OT_select_nth";
+
+	/* api callbacks */
+	ot->exec= mesh_select_nth_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "nth", 2, 2, 100, "Nth Selection", "", 1, INT_MAX);
 }
 

@@ -142,8 +142,11 @@ static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOper
 	}
 	
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-	if(op->type->ui)
-		op->type->ui((bContext*)C, op, pa->layout);
+	if(op->type->ui) {
+		op->layout= pa->layout;
+		op->type->ui((bContext*)C, op);
+		op->layout= NULL;
+	}
 	else
 		uiDefAutoButsRNA(C, pa->layout, &ptr, 1);
 }
@@ -236,7 +239,7 @@ static uiBlock *tool_search_menu(bContext *C, ARegion *ar, void *arg_listbase)
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
 	
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, OP_MAX_TYPENAME, 10, 0, 150, 19, "");
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, OP_MAX_TYPENAME, 10, 0, 150, 19, 0, 0, "");
 	uiButSetSearchFunc(but, operator_search_cb, arg_listbase, operator_call_cb, NULL);
 	
 	uiBoundsBlock(block, 6);

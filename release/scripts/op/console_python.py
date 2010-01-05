@@ -22,10 +22,12 @@ import bpy
 
 language_id = 'python'
 
+
 def add_scrollback(text, text_type):
     for l in text.split('\n'):
         bpy.ops.console.scrollback_append(text=l.replace('\t', '    '),
             type=text_type)
+
 
 def get_console(console_id):
     '''
@@ -70,16 +72,17 @@ def get_console(console_id):
 PROMPT = '>>> '
 PROMPT_MULTI = '... '
 
+
 def execute(context):
     sc = context.space_data
 
     try:
         line = sc.history[-1].line
     except:
-        return ('CANCELLED',)
+        return {'CANCELLED'}
 
     if sc.console_type != 'PYTHON':
-        return ('CANCELLED',)
+        return {'CANCELLED'}
 
     console, stdout, stderr = get_console(hash(context.region))
 
@@ -133,7 +136,7 @@ def execute(context):
     if output_err:
         add_scrollback(output_err, 'ERROR')
 
-    return ('FINISHED',)
+    return {'FINISHED'}
 
 
 def autocomplete(context):
@@ -147,10 +150,10 @@ def autocomplete(context):
     line = current_line.line
 
     if not console:
-        return ('CANCELLED',)
+        return {'CANCELLED'}
 
     if sc.console_type != 'PYTHON':
-        return ('CANCELLED',)
+        return {'CANCELLED'}
 
     # This function isnt aware of the text editor or being an operator
     # just does the autocomp then copy its results back
@@ -169,7 +172,7 @@ def autocomplete(context):
 
     context.area.tag_redraw()
 
-    return ('FINISHED',)
+    return {'FINISHED'}
 
 
 def banner(context):
@@ -192,4 +195,4 @@ def banner(context):
     console = get_console(hash(context.region))[0]
     console.locals["C"] = bpy.context
 
-    return ('FINISHED',)
+    return {'FINISHED'}

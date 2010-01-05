@@ -404,8 +404,7 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 		/* send updates */
 		DAG_ids_flush_update(0);
 		
-		/* for now, only send ND_KEYS for KeyingSets */
-		WM_event_add_notifier(C, ND_KEYS, NULL); // XXX
+		WM_event_add_notifier(C, NC_ANIMATION|ND_FCURVES_ORDER, NULL); // XXX
 	}
 	
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
@@ -468,8 +467,7 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 		/* send updates */
 		DAG_ids_flush_update(0);
 		
-		/* for now, only send ND_KEYS for KeyingSets */
-		WM_event_add_notifier(C, ND_KEYS, NULL);  // XXX
+		WM_event_add_notifier(C, NC_ANIMATION|ND_FCURVES_ORDER, NULL);  // XXX
 	}
 	
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
@@ -579,49 +577,6 @@ void ANIM_OT_paste_driver_button (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-
-/* Copy to Clipboard Button Operator ------------------------ */
-
-static int copy_clipboard_button_exec(bContext *C, wmOperator *op)
-{
-	PointerRNA ptr;
-	PropertyRNA *prop= NULL;
-	char *path;
-	short success= 0;
-	int index;
-
-	/* try to create driver using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
-	uiAnimContextProperty(C, &ptr, &prop, &index);
-
-	if (ptr.data && prop) {
-		path= RNA_path_from_ID_to_property(&ptr, prop);
-		
-		if (path) {
-			WM_clipboard_text_set(path, FALSE);
-			MEM_freeN(path);
-		}
-	}
-
-	/* since we're just copying, we don't really need to do anything else...*/
-	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
-}
-
-void ANIM_OT_copy_clipboard_button(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Copy Data Path";
-	ot->idname= "ANIM_OT_copy_clipboard_button";
-	ot->description= "Copy the RNA data path for this property to the clipboard.";
-
-	/* callbacks */
-	ot->exec= copy_clipboard_button_exec;
-	//op->poll= ??? // TODO: need to have some valid property before this can be done
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /* ************************************************** */

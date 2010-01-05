@@ -81,6 +81,7 @@
 #include "ED_datafiles.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_util.h"
 
 #include "GHOST_C-api.h"
@@ -285,8 +286,8 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 	else if(retval==1)
 		BKE_write_undo(C, "Import file");
 	else if(retval == -1) {
-		if(reports && reports->list.first == NULL)
-			BKE_report(reports, RPT_ERROR, "Cannot read file.");
+		if(reports)
+			BKE_reportf(reports, RPT_ERROR, "Can't read file \"%s\".", name);
 	}
 }
 
@@ -497,6 +498,7 @@ void WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports
 	}
 	
 	ED_object_exit_editmode(C, EM_DO_UNDO);
+	ED_sculpt_force_update(C);
 
 	do_history(di, reports);
 	
@@ -569,9 +571,8 @@ void wm_autosave_location(char *filename)
 	BLI_make_file_string("/", filename, U.tempdir, pidstr);
 }
 
-void WM_autosave_init(bContext *C)
+void WM_autosave_init(wmWindowManager *wm)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
 	wm_autosave_timer_ended(wm);
 
 	if(U.flag & USER_AUTOSAVE)

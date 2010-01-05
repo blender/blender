@@ -151,6 +151,7 @@ typedef struct PTCacheBaker {
 	int (*break_test)(void *data);
 	void *break_data;
 	void (*progressbar)(void *data, int num);
+	void (*progressend)(void *data);
 	void *progresscontext;
 } PTCacheBaker;
 
