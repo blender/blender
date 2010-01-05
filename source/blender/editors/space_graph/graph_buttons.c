@@ -430,7 +430,7 @@ static void graph_panel_driverVar__transChan(const bContext *C, uiLayout *layout
 		}
 		
 		row= uiLayoutRow(layout, 1);
-			uiItemR(row, NULL, 0, &dtar_ptr, "transform_type", 0);
+			uiItemR(row, "", 0, &dtar_ptr, "transform_type", 0);
 			uiItemR(row, NULL, 0, &dtar_ptr, "use_local_space_transforms", 0);
 }
 
