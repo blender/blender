@@ -386,6 +386,31 @@ IDProperty *IDP_CopyGroup(IDProperty *prop)
 }
 
 /*
+ replaces all properties with the same name in a destination group from a source group.
+*/
+void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
+{
+	IDProperty *loop, *prop;
+	for (prop=src->data.group.first; prop; prop=prop->next) {
+		IDProperty *copy = IDP_CopyProperty(prop);
+
+		for (loop=dest->data.group.first; loop; loop=loop->next) {
+			if (BSTR_EQ(loop->name, prop->name)) {
+				if (loop->next) BLI_insertlinkbefore(&dest->data.group, loop->next, copy);
+				else BLI_addtail(&dest->data.group, copy);
+
+				BLI_remlink(&dest->data.group, loop);
+				IDP_FreeProperty(loop);
+				MEM_freeN(loop);
+				break;
+			}
+		}
+
+		dest->len++;
+		BLI_addtail(&dest->data.group, copy);
+	}
+}
+/*
  replaces a property with the same name in a group, or adds 
  it if the propery doesn't exist.
 */
