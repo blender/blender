@@ -526,6 +526,11 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 
 /******************* run script operator *********************/
 
+static int run_script_poll(bContext *C)
+{
+	return (CTX_data_edit_text(C) != NULL);
+}
+
 static int run_script_exec(bContext *C, wmOperator *op)
 {
 #ifdef DISABLE_PYTHON
@@ -534,12 +539,13 @@ static int run_script_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 #else
 	Text *text= CTX_data_edit_text(C);
+	SpaceText *st= CTX_wm_space_text(C);
 
 	if (BPY_run_python_script(C, NULL, text, op->reports))
 		return OPERATOR_FINISHED;
 	
 	/* Dont report error messages while live editing */
-	if(!CTX_wm_space_text(C)->live_edit)
+	if(!(st && st->live_edit))
 		BKE_report(op->reports, RPT_ERROR, "Python script fail, look in the console for now...");
 	
 	return OPERATOR_CANCELLED;
@@ -554,8 +560,8 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 	ot->description= "Run active script.";
 	
 	/* api callbacks */
+	ot->poll= run_script_poll;
 	ot->exec= run_script_exec;
-//	ot->poll= text_edit_poll; // dont do this since linked texts cant run
 }
 
 
