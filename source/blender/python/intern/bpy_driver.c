@@ -26,6 +26,8 @@
 
 #include "DNA_anim_types.h"
 
+#include "BLI_listbase.h"
+
 #include "BPY_extern.h"
 #include "BKE_fcurve.h"
 
@@ -145,12 +147,15 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 {
 	PyObject *driver_vars=NULL;
 	PyObject *retval= NULL;
+	PyObject *expr_vars; /* speed up by pre-hashing string & avoids re-converting unicode strings for every execution */
+	PyObject *expr_code;
 	PyGILState_STATE gilstate;
 
 	DriverVar *dvar;
 	float result = 0.0f; /* default return */
 	char *expr = NULL;
 	short targets_ok= 1;
+	int i;
 
 	/* sanity checks - should driver be executed? */
 	if ((driver == NULL) /*|| (G.f & G_DOSCRIPTLINKS)==0*/)
@@ -172,9 +177,32 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		}
 	}
 
+	/* compile the expression first if it hasn't been compiled or needs to be rebuilt */
+	if((driver->flag & DRIVER_FLAG_RECOMPILE) || (driver->expr_comp==NULL)) {
+		Py_XDECREF(driver->expr_comp);
+		driver->expr_comp= PyTuple_New(2);
+
+		expr_code= Py_CompileString(expr, "<bpy driver>", Py_eval_input);
+		PyTuple_SET_ITEM(((PyObject *)driver->expr_comp), 0, expr_code);
+
+		/* intern the arg names so creating the namespace for every run is faster */
+		expr_vars= PyTuple_New(BLI_countlist(&driver->variables));
+		PyTuple_SET_ITEM(((PyObject *)driver->expr_comp), 1, expr_vars);
+
+		for (dvar= driver->variables.first, i=0; dvar; dvar= dvar->next) {
+			PyTuple_SET_ITEM(expr_vars, i++, PyUnicode_InternFromString(dvar->name));
+		}
+
+		driver->flag &= ~DRIVER_FLAG_RECOMPILE;
+	}
+	else {
+		expr_code= PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 0);
+		expr_vars= PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 1);
+	}
+
 	/* add target values to a dict that will be used as '__locals__' dict */
 	driver_vars = PyDict_New(); // XXX do we need to decref this?
-	for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+	for (dvar= driver->variables.first, i=0; dvar; dvar= dvar->next) {
 		PyObject *driver_arg = NULL;
 		float tval = 0.0f;
 		
@@ -183,7 +211,8 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		driver_arg= PyFloat_FromDouble((double)tval);
 		
 		/* try to add to dictionary */
-		if (PyDict_SetItemString(driver_vars, dvar->name, driver_arg)) {
+		/* if (PyDict_SetItemString(driver_vars, dvar->name, driver_arg)) { */
+		if (PyDict_SetItem(driver_vars, PyTuple_GET_ITEM(expr_vars, i++), driver_arg)) { /* use string interning for faster namespace creation */
 			/* this target failed - bad name */
 			if (targets_ok) {
 				/* first one - print some extra info for easier identification */
@@ -198,19 +227,13 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		}
 	}
 
-#if 0 // slow
+#if 0 // slow, with this can avoid all Py_CompileString above.
 	/* execute expression to get a value */
 	retval = PyRun_String(expr, Py_eval_input, bpy_pydriver_Dict, driver_vars);
 #else
-	/* compile the expression first if it hasn't been compiled or needs to be rebuilt */
-	if((driver->flag & DRIVER_FLAG_RECOMPILE) || (driver->expr_comp==NULL)) {
-		Py_XDECREF(driver->expr_comp);
-		driver->expr_comp= Py_CompileString(expr, "<bpy driver>", Py_eval_input);
-		driver->flag &= ~DRIVER_FLAG_RECOMPILE;
-	}
 	/* evaluate the compiled expression */
-	if (driver->expr_comp)
-		retval= PyEval_EvalCode(driver->expr_comp, bpy_pydriver_Dict, driver_vars);
+	if (expr_code)
+		retval= PyEval_EvalCode((PyCodeObject *)expr_code, bpy_pydriver_Dict, driver_vars);
 #endif
 
 	/* decref the driver vars first...  */
