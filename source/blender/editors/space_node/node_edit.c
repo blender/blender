@@ -1353,25 +1353,96 @@ static int node_socket_hilights(SpaceNode *snode, int in_out)
 
 /* ****************** Add *********************** */
 
-static bNodeSocket *get_next_outputsocket(bNodeSocket *sock, bNodeSocket **sockfrom, int totsock)
+
+typedef struct bNodeListItem {
+	struct bNodeListItem *next, *prev;
+	struct bNode *node;	
+} bNodeListItem;
+
+int sort_nodes_locx(void *a, void *b)
 {
-	int a;
+	bNodeListItem *nli1 = (bNodeListItem *)a;
+	bNodeListItem *nli2 = (bNodeListItem *)b;
+	bNode *node1 = nli1->node;
+	bNode *node2 = nli2->node;
 	
-	/* first try to find a sockets with matching name */
-	for (a=0; a<totsock; a++) {
-		if(sockfrom[a]) {
-			if(sock->type==sockfrom[a]->type) {
-				if (strcmp(sockfrom[a]->name, sock->name)==0)
-					return sockfrom[a];
-			}
+	if (node1->locx > node2->locx)
+		return 1;
+	else 
+		return 0;
+}
+
+static int socket_is_available(bNodeTree *ntree, bNodeSocket *sock, int allow_used)
+{
+	if (sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))
+		return 0;
+	
+	if (!allow_used) {
+		if (nodeCountSocketLinks(ntree, sock) > 0)
+			return 0;
+	}
+	return 1;
+}
+
+static bNodeSocket *best_socket_output(bNodeTree *ntree, bNode *node, bNodeSocket *sock_target, int allow_multiple)
+{
+	bNodeSocket *sock;
+	
+	/* first try to find a socket with a matching name */
+	for (sock=node->outputs.first; sock; sock=sock->next) {
+
+		if (!socket_is_available(ntree, sock, allow_multiple))
+			continue;
+
+		/* check for same types */
+		if (sock->type == sock_target->type) {
+			if (strcmp(sock->name, sock_target->name)==0)
+				return sock;
 		}
 	}
 	
 	/* otherwise settle for the first available socket of the right type */
-	for (a=0; a<totsock; a++) {
-		if(sockfrom[a]) {
-			if(sock->type==sockfrom[a]->type) {
-				return sockfrom[a];
+	for (sock=node->outputs.first; sock; sock=sock->next) {
+
+		if (!socket_is_available(ntree, sock, allow_multiple))
+			continue;
+		
+		/* check for same types */
+		if (sock->type == sock_target->type) {
+			return sock;
+		}
+	}
+	
+	return NULL;
+}
+
+/* this is a bit complicated, but designed to prioritise finding 
+ * sockets of higher types, such as image, first */
+static bNodeSocket *best_socket_input(bNodeTree *ntree, bNode *node, int num, int replace)
+{
+	bNodeSocket *sock;
+	int socktype, maxtype=0;
+	int a;
+	
+	for (sock=node->inputs.first; sock; sock=sock->next) {
+		maxtype = MAX2(sock->type, maxtype);
+	}
+	
+	/* find sockets of higher 'types' first (i.e. image) */
+	for (socktype=maxtype; socktype >= 0; socktype--) {
+		for (sock=node->inputs.first; sock; sock=sock->next) {
+			
+			if (!socket_is_available(ntree, sock, replace)) {
+				a++;
+				continue;
+			}
+				
+			if (sock->type == socktype) {
+				/* increment to make sure we don't keep finding 
+				 * the same socket on every attempt running this function */
+				a++;
+				if (a > num)
+					return sock;
 			}
 		}
 	}
@@ -1379,68 +1450,57 @@ static bNodeSocket *get_next_outputsocket(bNodeSocket *sock, bNodeSocket **sockf
 	return NULL;
 }
 
-void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag, int replace)
+void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 {
-	bNodeSocket *sock, *sockfrom[8];
-	bNode *node, *nodefrom[8];
-	int totsock= 0, socktype=0;
-
-	if(node_to==NULL || node_to->inputs.first==NULL)
-		return;
-
-	/* connect first 1 socket type or first available socket now */
-	for(sock= node_to->inputs.first; sock; sock= sock->next) {
-		if (!replace && nodeCountSocketLinks(snode->edittree, sock))
-			continue;
-		if(socktype<sock->type)
-			socktype= sock->type;
+	ListBase *nodelist = MEM_callocN(sizeof(ListBase), "items_list");
+	bNodeListItem *nli;
+	bNode *node;
+	int i;
+	
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & NODE_SELECT) {
+			nli = MEM_mallocN(sizeof(bNodeListItem), "temporary node list item");
+			nli->node = node;
+			BLI_addtail(nodelist, nli);
+		}
 	}
 	
-	/* find potential sockets, max 8 should work */
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if((node->flag & flag) && node!=node_to) {
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
-					sockfrom[totsock]= sock;
-					nodefrom[totsock]= node;
-					totsock++;
-					if(totsock>7)
-						break;
-				}
-			}
-		}
-		if(totsock>7)
+	/* sort nodes left to right */
+	BLI_sortlist(nodelist, sort_nodes_locx);
+	
+	for (nli=nodelist->first; nli; nli=nli->next) {
+		bNode *node_fr, *node_to;
+		bNodeSocket *sock_fr, *sock_to;
+		
+		if (nli->next == NULL) break;
+		
+		node_fr = nli->node;
+		node_to = nli->next->node;
+		
+		/* check over input sockets first */
+		for (i=0; i<BLI_countlist(&node_to->inputs); i++) {
+			
+			/* find the best guess input socket */
+			sock_to = best_socket_input(snode->edittree, node_to, i, replace);
+			if (!sock_to) continue;
+			
+			/* check for an appropriate output socket to connect from */
+			sock_fr = best_socket_output(snode->edittree, node_fr, sock_to, allow_multiple);
+			if (!sock_fr) continue;
+			
+			/* then we can connect */
+			if (replace)
+				nodeRemSocketLinks(snode->edittree, sock_to);
+			nodeAddLink(snode->edittree, node_fr, sock_fr, node_to, sock_to);
 			break;
-	}
-
-	/* now just get matching socket types and create links */
-	for(sock= node_to->inputs.first; sock; sock= sock->next) {
-		bNodeSocket *sock_from;
-		bNode *node_from;
-		
-		if (sock->type != socktype)
-			continue;
-		
-		/* find a potential output socket and associated node */
-		sock_from = get_next_outputsocket(sock, sockfrom, totsock);
-		if (!sock_from)
-			continue;
-		nodeFindNode(snode->edittree, sock_from, &node_from, NULL);
-		
-		/* then connect up the links */
-		if (replace) {
-			nodeRemSocketLinks(snode->edittree, sock);
-			nodeAddLink(snode->edittree, node_from, sock_from, node_to, sock);
-		} else {
-			if (nodeCountSocketLinks(snode->edittree, sock)==0)
-				nodeAddLink(snode->edittree, node_from, sock_from, node_to, sock);
 		}
-		sock_from = NULL;
 	}
 	
 	ntreeSolveOrder(snode->edittree);
+	
+	BLI_freelistN(nodelist);
+	MEM_freeN(nodelist);
 }
-
 
 /* can be called from menus too, but they should do own undopush and redraws */
 bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy)
@@ -1781,53 +1841,10 @@ void NODE_OT_link(wmOperatorType *ot)
 static int node_make_link_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
-	bNode *fromnode, *tonode;
-	bNodeLink *link;
-	bNodeSocket *outsock= snode->edittree->selout;
-	bNodeSocket *insock= snode->edittree->selin;
 	int replace = RNA_boolean_get(op->ptr, "replace");
-	
-	if (!insock || !outsock) {
-		bNode *node;
-		
-		/* no socket selection, join nodes themselves, guessing connections */
-		tonode = nodeGetActive(snode->edittree);
-		
-		if (!tonode) {
-			BKE_report(op->reports, RPT_ERROR, "No active node");
-			return OPERATOR_CANCELLED;	
-		}
-		
-		/* store selection in temp test flag */
-		for(node= snode->edittree->nodes.first; node; node= node->next) {
-			if(node->flag & NODE_SELECT) node->flag |= NODE_TEST;
-			else node->flag &= ~NODE_TEST;
-		}
-		
-		snode_autoconnect(snode, tonode, NODE_TEST, replace);
-		node_tree_verify_groups(snode->nodetree);
-		snode_handle_recalc(C, snode);
-		
-		return OPERATOR_FINISHED;
-	}
-	
-	
-	if (nodeFindLink(snode->edittree, outsock, insock)) {
-		BKE_report(op->reports, RPT_ERROR, "There is already a link between these sockets");
-		return OPERATOR_CANCELLED;
-	}
 
-	if (nodeFindNode(snode->edittree, outsock, &fromnode, NULL) &&
-		nodeFindNode(snode->edittree, insock, &tonode, NULL)) 
-	{
-		link= nodeAddLink(snode->edittree, fromnode, outsock, tonode, insock);
-		NodeTagChanged(snode->edittree, tonode);
-		node_remove_extra_links(snode, insock, link);
-	}
-	else 
-		return OPERATOR_CANCELLED;
+	snode_autoconnect(snode, 0, replace);
 
-	ntreeSolveOrder(snode->edittree);
 	node_tree_verify_groups(snode->nodetree);
 	snode_handle_recalc(C, snode);
 	
