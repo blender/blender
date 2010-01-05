@@ -1246,6 +1246,55 @@ int isect_point_tri_prism_v3(float p[3], float v1[3], float v2[3], float v3[3])
 	return 1;
 }
 
+int clip_line_plane(float p1[3], float p2[3], float plane[4])
+{
+	float dp[3], n[3], div, t, pc[3];
+
+	copy_v3_v3(n, plane);
+	sub_v3_v3v3(dp, p2, p1);
+	div= dot_v3v3(dp, n);
+
+	if(div == 0.0f) /* parallel */
+		return 1;
+
+	t= -(dot_v3v3(p1, n) + plane[3])/div;
+
+	if(div > 0.0f) {
+		/* behind plane, completely clipped */
+		if(t >= 1.0f) {
+			zero_v3(p1);
+			zero_v3(p2);
+			return 0;
+		}
+
+		/* intersect plane */
+		if(t > 0.0f) {
+			madd_v3_v3v3fl(pc, p1, dp, t);
+			copy_v3_v3(p1, pc);
+			return 1;
+		}
+
+		return 1;
+	}
+	else {
+		/* behind plane, completely clipped */
+		if(t <= 0.0f) {
+			zero_v3(p1);
+			zero_v3(p2);
+			return 0;
+		}
+
+		/* intersect plane */
+		if(t < 1.0f) {
+			madd_v3_v3v3fl(pc, p1, dp, t);
+			copy_v3_v3(p2, pc);
+			return 1;
+		}
+
+		return 1;
+	}
+}
+
 /****************************** Interpolation ********************************/
 
 static float tri_signed_area(float *v1, float *v2, float *v3, int i, int j)

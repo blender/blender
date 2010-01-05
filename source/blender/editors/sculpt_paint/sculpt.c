@@ -1841,7 +1841,7 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	ViewContext *vc = paint_stroke_view_context(stroke);
 	SculptSession *ss= vc->obact->sculpt;
 	StrokeCache *cache= ss->cache;
-	float ray_start[3], ray_normal[3];
+	float ray_start[3], ray_end[3], ray_normal[3], dist;
 	float obimat[4][4];
 	float mval[2] = {mouse[0] - vc->ar->winrct.xmin,
 			 mouse[1] - vc->ar->winrct.ymin};
@@ -1849,7 +1849,9 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 
 	sculpt_stroke_modifiers_check(C, ss);
 
-	viewray(vc->ar, vc->v3d, mval, ray_start, ray_normal);
+	viewline(vc->ar, vc->v3d, mval, ray_start, ray_end);
+	sub_v3_v3v3(ray_normal, ray_end, ray_start);
+	dist= normalize_v3(ray_normal);
 
 	invert_m4_m4(obimat, ss->ob->obmat);
 	mul_m4_v3(obimat, ray_start);
@@ -1859,7 +1861,7 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	srd.ss = vc->obact->sculpt;
 	srd.ray_start = ray_start;
 	srd.ray_normal = ray_normal;
-	srd.dist = FLT_MAX;
+	srd.dist = dist;
 	srd.hit = 0;
 	srd.original = (cache)? cache->original: 0;
 	BLI_pbvh_raycast(ss->tree, sculpt_raycast_cb, &srd,

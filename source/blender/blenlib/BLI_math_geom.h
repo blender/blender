@@ -111,6 +111,8 @@ int isect_axial_line_tri_v3(int axis, float co1[3], float co2[3],
 
 int isect_aabb_aabb_v3(float min1[3], float max1[3], float min2[3], float max2[3]);
 
+int clip_line_plane(float clipco[3], float plane[4], float co[3]);
+
 /****************************** Interpolation ********************************/
 
 /* tri or quad, d can be NULL */

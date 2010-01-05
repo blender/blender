@@ -694,6 +694,11 @@ void BLI_pbvh_search_gather(PBVH *bvh,
 
 	pbvh_iter_end(&iter);
 
+	if(tot == 0 && array) {
+		MEM_freeN(array);
+		array= NULL;
+	}
+
 	*r_array= array;
 	*r_tot= tot;
 }

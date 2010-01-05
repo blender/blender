@@ -536,6 +536,7 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float vec[4];
+	int a;
 	
 	if(rv3d->persp != RV3D_ORTHO){
 		vec[0]= 2.0f * mval[0] / ar->winx - 1;
@@ -564,6 +565,11 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 		VECADDFAC(ray_start, vec, rv3d->viewinv[2],  1000.0f);
 		VECADDFAC(ray_end, vec, rv3d->viewinv[2], -1000.0f);
 	}
+
+	/* clipping */
+	if(rv3d->rflag & RV3D_CLIPPING)
+		for(a=0; a<4; a++)
+			clip_line_plane(ray_start, ray_end, rv3d->clip[a]);
 }
 
 /* create intersection ray in view Z direction at mouse coordinates */
