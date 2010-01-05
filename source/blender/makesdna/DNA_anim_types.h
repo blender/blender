@@ -293,7 +293,7 @@ typedef struct DriverVar {
 	
 	char name[64];				/* name of the variable to use in py-expression (must be valid python identifier) */
 	
-	DriverTarget targets[MAX_DRIVER_TARGETS];	/* target slots */	
+	DriverTarget targets[8];	/* MAX_DRIVER_TARGETS, target slots */	
 	int num_targets;			/* number of targets actually used by this variable */
 	
 	int type;					/* type of driver target (eDriverTarget_Types) */		
