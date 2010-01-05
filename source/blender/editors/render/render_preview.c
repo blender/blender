@@ -1094,22 +1094,6 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 	}
 }
 
-static int preview_notifier_id(ShaderPreview *sp)
-{
-	switch (GS(sp->id)) {
-		case ID_MA:
-			return NC_MATERIAL;
-		case ID_TE:
-			return NC_TEXTURE;
-		case ID_WO:
-			return NC_WORLD;
-		case ID_LA:
-			return NC_LAMP;
-	}
-
-	return 0;
-}
-
 /* use same function for icon & shader, so the job manager
    does not run two of them at the same time. */
 
@@ -1144,7 +1128,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);
-	WM_jobs_timer(steve, 0.1, preview_notifier_id(sp), preview_notifier_id(sp));
+	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
 	WM_jobs_callbacks(steve, common_preview_startjob, NULL, NULL);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
@@ -1170,7 +1154,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	
 	/* setup job */
 	WM_jobs_customdata(steve, sp, shader_preview_free);
-	WM_jobs_timer(steve, 0.1, preview_notifier_id(sp), preview_notifier_id(sp));
+	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
 	WM_jobs_callbacks(steve, common_preview_startjob, NULL, shader_preview_updatejob);
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
