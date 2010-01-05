@@ -182,7 +182,7 @@ typedef struct wmOperatorTypeMacro {
 	struct wmOperatorTypeMacro *next, *prev;
 
 	/* operator id */
-	char idname[OP_MAX_TYPENAME];
+	char idname[64];
 	/* rna pointer to access properties, like keymap */
 	struct IDProperty *properties;	/* operator properties, assigned to ptr->data and can be written to a file */
 	struct PointerRNA *ptr;
@@ -194,7 +194,7 @@ typedef struct wmKeyMapItem {
 	struct wmKeyMapItem *next, *prev;
 	
 	/* operator */
-	char idname[OP_MAX_TYPENAME];	/* used to retrieve operator type pointer */
+	char idname[64];	/* used to retrieve operator type pointer */
 	IDProperty *properties;			/* operator properties, assigned to ptr->data and can be written to a file */
 	
 	/* modal */
@@ -267,7 +267,7 @@ typedef struct wmOperator {
 	struct wmOperator *next, *prev;
 
 	/* saved */
-	char idname[OP_MAX_TYPENAME];/* used to retrieve type pointer */
+	char idname[64];/* used to retrieve type pointer */
 	IDProperty *properties;		/* saved, user-settable properties */
 
 	/* runtime */
