@@ -1480,8 +1480,23 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	bPose *pose= ob->pose, *frompose= from->pose;
 	bPoseChannel *pchan, *pchanp, pchanw;
 	bConstraint *con;
+	int error = 0;
 	
 	if (frompose==NULL) return;
+
+	/* in some cases when rigs change, we cant synchronize
+	 * to avoid crashing check for possible errors here */
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone->layer & layer_protected) {
+			if(get_pose_channel(frompose, pchan->name) == NULL) {
+				printf("failed to sync proxy armature because '%s' is missing pose channel '%s'\n", from->id.name, pchan->name);
+				error = 1;
+			}
+		}
+	}
+
+	if(error)
+		return;
 	
 	/* exception, armature local layer should be proxied too */
 	if (pose->proxy_layer)
