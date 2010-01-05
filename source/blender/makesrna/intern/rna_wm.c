@@ -881,6 +881,11 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
+	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->description");
+	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_flag(prop, PROP_REGISTER);
+
 	prop= RNA_def_property(srna, "bl_register", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_REGISTER);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);

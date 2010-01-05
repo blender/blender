@@ -4119,31 +4119,26 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 		item = PyObject_GetAttrString(py_class, identifier);
 
 		if (item==NULL) {
-
 			/* Sneaky workaround to use the class name as the bl_idname */
-			if(strcmp(identifier, "bl_idname") == 0) {
-				item= PyObject_GetAttrString(py_class, "__name__");
 
-				if(item) {
-					Py_DECREF(item); /* no need to keep a ref, the class owns it */
+#define		BPY_REPLACEMENT_STRING(rna_attr, py_attr) \
+			if(strcmp(identifier, rna_attr) == 0) { \
+				item= PyObject_GetAttrString(py_class, py_attr); \
+				if(item && item != Py_None) { \
+					if(pyrna_py_to_prop(dummyptr, prop, NULL, item, "validating class error:") != 0) { \
+						Py_DECREF(item); \
+						return -1; \
+					} \
+				} \
+				Py_XDECREF(item); \
+			} \
 
-					if(pyrna_py_to_prop(dummyptr, prop, NULL, item, "validating class error:") != 0)
-						return -1;
-				}
-			}
 
-#if 0
-			if(strcmp(identifier, "bl_label") == 0) {
-				item= PyObject_GetAttrString(py_class, "__doc__");
+			BPY_REPLACEMENT_STRING("bl_idname", "__name__");
+			BPY_REPLACEMENT_STRING("bl_description", "__doc__");
 
-				if(item) {
-					Py_DECREF(item); /* no need to keep a ref, the class owns it */
+#undef		BPY_REPLACEMENT_STRING
 
-					if(pyrna_py_to_prop(dummyptr, prop, NULL, item, "validating class error:") != 0)
-						return -1;
-				}
-			}
-#endif
 			if (item == NULL && (((flag & PROP_REGISTER_OPTIONAL) != PROP_REGISTER_OPTIONAL))) {
 				PyErr_Format( PyExc_AttributeError, "expected %.200s, %.200s class to have an \"%.200s\" attribute", class_type, py_class_name, identifier);
 				return -1;
