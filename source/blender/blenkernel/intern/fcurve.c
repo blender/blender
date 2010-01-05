@@ -54,6 +54,7 @@
 #include "BKE_curve.h" 
 #include "BKE_global.h"
 #include "BKE_idprop.h"
+#include "BKE_object.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -922,13 +923,27 @@ static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
 		
 		/* check if object or bone */
 		if (pchan) {
-			/* bone - need to convert to worldspace */
-			VECCOPY(tmp_loc, pchan->pose_head);
-			mul_m4_v3(ob->obmat, tmp_loc);
+			/* bone */
+			if ((dtar->flag & DTAR_FLAG_LOCALSPACE) == 0) {
+				/* convert to worldspace */
+				VECCOPY(tmp_loc, pchan->pose_head);
+				mul_m4_v3(ob->obmat, tmp_loc);
+			}
+			else {
+				/* local (use transform values directly) */
+				VECCOPY(tmp_loc, pchan->loc);
+			}
 		}
 		else {
-			/* object, already in worldspace */
-			VECCOPY(tmp_loc, ob->obmat[3]); 
+			/* object */
+			if ((dtar->flag & DTAR_FLAG_LOCALSPACE) == 0) {
+				/* worldspace */
+				VECCOPY(tmp_loc, ob->obmat[3]); 
+			}
+			else {
+				/* local (use transform values directly) */
+				VECCOPY(tmp_loc, ob->loc);
+			}
 		}
 		
 		/* copy the location to the right place */
@@ -946,6 +961,70 @@ static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
 	 * so just take the length of the vector between these points 
 	 */
 	return len_v3v3(loc1, loc2);
+}
+
+/* evaluate 'transform channel' driver variable */
+static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
+{
+	DriverTarget *dtar= &dvar->targets[0];
+	Object *ob= (Object *)dtar->id;
+	bPoseChannel *pchan;
+	float mat[4][4];
+	short rotOrder = 0;
+	
+	/* check if this target has valid data */
+	if ((ob == NULL) || (GS(dtar->id->name) != ID_OB)) {
+		/* invalid target, so will not have enough targets */
+		driver->flag |= DRIVER_FLAG_INVALID;
+		return 0.0f;
+	}
+	
+	/* try to get posechannel */
+	pchan= get_pose_channel(ob->pose, dtar->pchan_name);
+	
+	/* check if object or bone, and get transform matrix accordingly */
+	if (pchan) {
+		/* bone */
+		rotOrder= (pchan->rotmode > 0) ? pchan->rotmode : ROT_MODE_EUL;
+		
+		if (dtar->flag & DTAR_FLAG_LOCALSPACE)
+			copy_m4_m4(mat, pchan->chan_mat);
+		else
+			mul_m4_m4m4(mat, pchan->pose_mat, ob->obmat);
+	}
+	else {
+		/* object */
+		rotOrder= (ob->rotmode > 0) ? ob->rotmode : ROT_MODE_EUL;
+		
+		if (dtar->flag & DTAR_FLAG_LOCALSPACE)
+			object_to_mat4(ob, mat);
+		else
+			copy_m4_m4(mat, ob->obmat);
+	}
+	
+	/* check which transform */
+	if (dtar->transChan >= MAX_DTAR_TRANSCHAN_TYPES) {
+		/* not valid channel */
+		return 0.0f;
+	}
+	else if (dtar->transChan >= DTAR_TRANSCHAN_SCALEX) {
+		/* extract scale, and choose the right axis */
+		float scale[3];
+		
+		mat4_to_size(scale, mat);
+		return scale[dtar->transChan - DTAR_TRANSCHAN_SCALEX];
+	}
+	else if (dtar->transChan >= DTAR_TRANSCHAN_ROTX) {
+		/* extract euler rotation, and choose the right axis */
+		float eul[3];
+		
+		mat4_to_eulO(eul, rotOrder, mat);
+		return eul[dtar->transChan - DTAR_TRANSCHAN_ROTX];
+	}
+	else {
+		/* extract location and choose right axis */
+		return mat[3][dtar->transChan];
+	}
 }
 
 /* ......... */
@@ -971,7 +1050,14 @@ DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
 		2, /* number of targets used */
 		{"Object/Bone 1", "Object/Bone 2"}, /* UI names for targets */
 		{DTAR_FLAG_STRUCT_REF|DTAR_FLAG_ID_OB_ONLY, DTAR_FLAG_STRUCT_REF|DTAR_FLAG_ID_OB_ONLY} /* flags */
-	END_DVAR_TYPEDEF
+	END_DVAR_TYPEDEF,
+	
+	BEGIN_DVAR_TYPEDEF(DVAR_TYPE_TRANSFORM_CHAN)
+		dvar_eval_transChan, /* eval callback */
+		1, /* number of targets used */
+		{"Object/Bone"}, /* UI names for targets */
+		{DTAR_FLAG_STRUCT_REF|DTAR_FLAG_ID_OB_ONLY} /* flags */
+	END_DVAR_TYPEDEF,
 };
 
 /* Get driver variable typeinfo */

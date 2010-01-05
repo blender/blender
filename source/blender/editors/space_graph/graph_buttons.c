@@ -352,7 +352,7 @@ static void graph_panel_driverVar__rotDiff(const bContext *C, uiLayout *layout, 
 		if (dtar->id && ob1->pose) {
 			PointerRNA tar_ptr;
 			
-			RNA_pointer_create(dtar2->id, &RNA_Pose, ob1->pose, &tar_ptr);
+			RNA_pointer_create(dtar->id, &RNA_Pose, ob1->pose, &tar_ptr);
 			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar_ptr, "bone_target", &tar_ptr, "bones");
 		}
 	
@@ -367,7 +367,7 @@ static void graph_panel_driverVar__rotDiff(const bContext *C, uiLayout *layout, 
 		}
 }
 
-/* settings for 'rotation difference' driver variable type */
+/* settings for 'location difference' driver variable type */
 static void graph_panel_driverVar__locDiff(const bContext *C, uiLayout *layout, ID *id, DriverVar *dvar)
 {
 	DriverTarget *dtar= &dvar->targets[0];
@@ -388,9 +388,11 @@ static void graph_panel_driverVar__locDiff(const bContext *C, uiLayout *layout, 
 		if (dtar->id && ob1->pose) {
 			PointerRNA tar_ptr;
 			
-			RNA_pointer_create(dtar2->id, &RNA_Pose, ob1->pose, &tar_ptr);
+			RNA_pointer_create(dtar->id, &RNA_Pose, ob1->pose, &tar_ptr);
 			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar_ptr, "bone_target", &tar_ptr, "bones");
 		}
+		
+		uiItemR(col, NULL, 0, &dtar_ptr, "use_local_space_transforms", 0);
 	
 	col= uiLayoutColumn(layout, 1);
 		uiTemplateAnyID(col, (bContext *)C, &dtar2_ptr, "id", "id_type", "Ob/Bone 2:");
@@ -401,6 +403,35 @@ static void graph_panel_driverVar__locDiff(const bContext *C, uiLayout *layout, 
 			RNA_pointer_create(dtar2->id, &RNA_Pose, ob2->pose, &tar_ptr);
 			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar2_ptr, "bone_target", &tar_ptr, "bones");
 		}
+		
+		uiItemR(col, NULL, 0, &dtar2_ptr, "use_local_space_transforms", 0);
+}
+
+/* settings for 'transform channel' driver variable type */
+static void graph_panel_driverVar__transChan(const bContext *C, uiLayout *layout, ID *id, DriverVar *dvar)
+{
+	DriverTarget *dtar= &dvar->targets[0];
+	Object *ob = (Object *)dtar->id;
+	PointerRNA dtar_ptr;
+	uiLayout *col, *row;
+	
+	/* initialise RNA pointer to the target */
+	RNA_pointer_create(id, &RNA_DriverTarget, dtar, &dtar_ptr); 
+	
+	/* properties */
+	col= uiLayoutColumn(layout, 1);
+		uiTemplateAnyID(col, (bContext *)C, &dtar_ptr, "id", "id_type", "Ob/Bone:");
+		
+		if (dtar->id && ob->pose) {
+			PointerRNA tar_ptr;
+			
+			RNA_pointer_create(dtar->id, &RNA_Pose, ob->pose, &tar_ptr);
+			uiItemPointerR(col, "", ICON_BONE_DATA, &dtar_ptr, "bone_target", &tar_ptr, "bones");
+		}
+		
+		row= uiLayoutRow(layout, 1);
+			uiItemR(row, NULL, 0, &dtar_ptr, "transform_type", 0);
+			uiItemR(row, NULL, 0, &dtar_ptr, "use_local_space_transforms", 0);
 }
 
 /* driver settings for active F-Curve (only for 'Drivers' mode) */
@@ -502,6 +533,9 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 					break;
 				case DVAR_TYPE_LOC_DIFF: /* location difference */
 					graph_panel_driverVar__locDiff(C, box, ale->id, dvar);
+					break;
+				case DVAR_TYPE_TRANSFORM_CHAN: /* transform channel */
+					graph_panel_driverVar__transChan(C, box, ale->id, dvar);
 					break;
 			}
 	}

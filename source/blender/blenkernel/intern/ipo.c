@@ -295,10 +295,7 @@ static char *pchan_adrcodes_to_paths (int adrcode, int *array_index)
 			*array_index= 1; return "rotation_euler";
 		case AC_EUL_Z:
 			*array_index= 2; return "rotation_euler";
-			
-		case -1: /* special case for euler-rotations used by old drivers */
-			*array_index= 0; return "rotation_euler";
-			
+		
 		case AC_LOC_X:
 			*array_index= 0; return "location";
 		case AC_LOC_Y:
@@ -944,14 +941,17 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 		strcpy(buf, ""); /* empty string */
 	BLI_dynstr_append(path, buf);
 	
-	/* append property to path (only if applicable) */
-	if (blocktype > 0) {
-		/* need to add dot before property if there was anything precceding this */
-		if (buf[0])
-			BLI_dynstr_append(path, ".");
-		
-		/* now write name of property */
-		BLI_dynstr_append(path, propname);
+	/* need to add dot before property if there was anything precceding this */
+	if (buf[0])
+		BLI_dynstr_append(path, ".");
+	
+	/* now write name of property */
+	BLI_dynstr_append(path, propname);
+	
+	/* if there was no array index pointer provided, add it to the path */
+	if (array_index == NULL) {
+		sprintf(buf, "[\"%d\"]", dummy_index);
+		BLI_dynstr_append(path, buf);
 	}
 	
 	/* convert to normal MEM_malloc'd string */
@@ -965,6 +965,36 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 /* *************************************************** */
 /* Conversion Utilities */
 
+/* Convert adrcodes to driver target transform channel types */
+static short adrcode_to_dtar_transchan (short adrcode)
+{
+	switch (adrcode) {
+		case OB_LOC_X:	
+			return DTAR_TRANSCHAN_LOCX;
+		case OB_LOC_Y:
+			return DTAR_TRANSCHAN_LOCY;
+		case OB_LOC_Z:
+			return DTAR_TRANSCHAN_LOCZ;
+		
+		case OB_ROT_X:	
+			return DTAR_TRANSCHAN_ROTX;
+		case OB_ROT_Y:
+			return DTAR_TRANSCHAN_ROTY;
+		case OB_ROT_Z:
+			return DTAR_TRANSCHAN_ROTZ;
+		
+		case OB_SIZE_X:	
+			return DTAR_TRANSCHAN_SCALEX;
+		case OB_SIZE_Y:
+			return DTAR_TRANSCHAN_SCALEX;
+		case OB_SIZE_Z:
+			return DTAR_TRANSCHAN_SCALEX;
+			
+		default:
+			return 0;
+	}
+}
+
 /* Convert IpoDriver to ChannelDriver - will free the old data (i.e. the old driver) */
 static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 {
@@ -976,91 +1006,61 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 	/* if 'pydriver', just copy data across */
 	if (idriver->type == IPO_DRIVER_TYPE_PYTHON) {
 		/* PyDriver only requires the expression to be copied */
-		// TODO: but the expression will be useless...
+		// FIXME: expression will be useless due to API changes, but at least not totally lost
 		cdriver->type = DRIVER_TYPE_PYTHON;
-		strcpy(cdriver->expression, idriver->name); // XXX is this safe? 
+		if (idriver->name[0])
+			BLI_strncpy(cdriver->expression, idriver->name, sizeof(cdriver->expression));
 	}
-#if 0 // XXX needs changes for the new system
 	else {
-		DriverTarget *dtar=NULL, *dtar2=NULL;
+		DriverVar *dvar = NULL;
+		DriverTarget *dtar = NULL;
 		
-		/* what to store depends on the 'blocktype' (ID_OB or ID_PO - object or posechannel) */
-		if (idriver->blocktype == ID_AR) {
-			/* ID_PO */
+		/* this should be ok for all types here... */
+		cdriver->type= DRIVER_TYPE_AVERAGE;
+		
+		/* what to store depends on the 'blocktype' - object or posechannel */
+		if (idriver->blocktype == ID_AR) { /* PoseChannel */
 			if (idriver->adrcode == OB_ROT_DIFF) {
-				/* Rotational Difference is a special type of driver now... */
-				cdriver->type= DRIVER_TYPE_ROTDIFF;
+				/* Rotational Difference requires a special type of variable */
+				dvar= driver_add_new_variable(cdriver);
+				driver_change_variable_type(dvar, DVAR_TYPE_ROT_DIFF);
 				
-				/* make 2 driver targets */
-				dtar= driver_add_new_target(cdriver);
-				dtar2= driver_add_new_target(cdriver);
+					/* first bone target */
+				dtar= &dvar->targets[0];
+				dtar->id= (ID *)idriver->ob;
+				if (idriver->name[0])
+					BLI_strncpy(dtar->pchan_name, idriver->name, 32);
 				
-				/* driver must use bones from same armature... */
-				dtar->id= dtar2->id= (ID *)idriver->ob;
-				
-				/* paths for the two targets get the pointers to the relevant Pose-Channels 
-				 *	- return pointers to Pose-Channels not rotation channels, as calculation code is picky
-				 *	- old bone names were stored in same var, in idriver->name
-				 *
-				 *	- we use several hacks here - blocktype == -1 specifies that no property needs to be found, and
-				 *	  providing a name for 'actname' will automatically imply Pose-Channel with name 'actname'
-				 */
-				dtar->rna_path= get_rna_access(-1, -1, idriver->name, NULL, NULL);
-				dtar2->rna_path= get_rna_access(-1, -1, idriver->name+DRIVER_NAME_OFFS, NULL, NULL);
+					/* second bone target (name was stored in same var as the first one) */
+				dtar= &dvar->targets[1];
+				dtar->id= (ID *)idriver->ob;
+				if (idriver->name[0]) // xxx... for safety
+					BLI_strncpy(dtar->pchan_name, idriver->name+DRIVER_NAME_OFFS, 32);
 			}
 			else {
-				/* 'standard' driver */
-				cdriver->type= DRIVER_TYPE_AVERAGE;
+				/* only a single variable, of type 'transform channel' */
+				dvar= driver_add_new_variable(cdriver);
+				driver_change_variable_type(dvar, DVAR_TYPE_TRANSFORM_CHAN);
 				
-				/* make 1 driver target */
-				dtar= driver_add_new_target(cdriver);
+				/* only requires a single target */
+				dtar= &dvar->targets[0];
 				dtar->id= (ID *)idriver->ob;
-				
-				switch (idriver->adrcode) {
-					case OB_LOC_X:	/* x,y,z location are quite straightforward */
-						dtar->rna_path= get_rna_access(ID_PO, AC_LOC_X, idriver->name, NULL, &dtar->array_index);
-						break;
-					case OB_LOC_Y:
-						dtar->rna_path= get_rna_access(ID_PO, AC_LOC_Y, idriver->name, NULL, &dtar->array_index);
-						break;
-					case OB_LOC_Z:
-						dtar->rna_path= get_rna_access(ID_PO, AC_LOC_Z, idriver->name, NULL, &dtar->array_index);
-						break;
-						
-					case OB_SIZE_X:	/* x,y,z scaling are also quite straightforward */
-						dtar->rna_path= get_rna_access(ID_PO, AC_SIZE_X, idriver->name, NULL, &dtar->array_index);
-						break;
-					case OB_SIZE_Y:
-						dtar->rna_path= get_rna_access(ID_PO, AC_SIZE_Y, idriver->name, NULL, &dtar->array_index);
-						break;
-					case OB_SIZE_Z:
-						dtar->rna_path= get_rna_access(ID_PO, AC_SIZE_Z, idriver->name, NULL, &dtar->array_index);
-						break;	
-						
-					case OB_ROT_X:	/* rotation - we need to be careful with this... */	
-					case OB_ROT_Y:
-					case OB_ROT_Z:
-					{
-						/* -1 here, not rotation code, since old system didn't have eulers */
-						dtar->rna_path= get_rna_access(ID_PO, -1, idriver->name, NULL, NULL);
-						dtar->array_index= idriver->adrcode - OB_ROT_X;
-					}
-						break;
-				}
+				if (idriver->name[0])
+					BLI_strncpy(dtar->pchan_name, idriver->name, 32);
+				dtar->transChan= adrcode_to_dtar_transchan(idriver->adrcode);
 			}
 		}
-		else {
-			/* ID_OB */
-			cdriver->type= DRIVER_TYPE_AVERAGE;
+		else { /* Object */
+			/* only a single variable, of type 'transform channel' */
+			dvar= driver_add_new_variable(cdriver);
+			driver_change_variable_type(dvar, DVAR_TYPE_TRANSFORM_CHAN);
 			
-			/* make 1 driver target */
-			dtar= driver_add_new_target(cdriver);
-			
+				/* only requires single target */
+			dtar= &dvar->targets[0];
 			dtar->id= (ID *)idriver->ob;
-			dtar->rna_path= get_rna_access(ID_OB, idriver->adrcode, NULL, NULL, &dtar->array_index);
+			dtar->transChan= adrcode_to_dtar_transchan(idriver->adrcode);
 		}
 	}
-#endif // XXX fixme
 	
 	/* return the new one */
 	return cdriver;
@@ -1295,11 +1295,7 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 					DriverVar *dvar= fcu->driver->variables.first;
 					DriverTarget *dtar= &dvar->targets[0];
 					
-					/* since drivers could only be for objects, we should just check for 'rotation' being 
-					 * in the name of the path given
-					 *	- WARNING: this will break if we encounter a bone or object explictly named in that way...
-					 */
-					if ((dtar && dtar->rna_path) && strstr(dtar->rna_path, "rotation")) {
+					if (ELEM3(dtar->transChan, DTAR_TRANSCHAN_ROTX, DTAR_TRANSCHAN_ROTY, DTAR_TRANSCHAN_ROTZ)) {
 						const float fac= (float)M_PI / 180.0f;
 						
 						dst->vec[0][0] *= fac;

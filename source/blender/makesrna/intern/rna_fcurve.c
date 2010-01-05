@@ -687,6 +687,18 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
+	static EnumPropertyItem prop_trans_chan_items[] = {
+		{DTAR_TRANSCHAN_LOCX, "LOC_X", 0, "X Location", ""},
+		{DTAR_TRANSCHAN_LOCY, "LOC_Y", 0, "Y Location", ""},
+		{DTAR_TRANSCHAN_LOCZ, "LOC_Z", 0, "Z Location", ""},
+		{DTAR_TRANSCHAN_ROTX, "ROT_X", 0, "X Rotation", ""},
+		{DTAR_TRANSCHAN_ROTY, "ROT_Y", 0, "Y Rotation", ""},
+		{DTAR_TRANSCHAN_ROTZ, "ROT_Z", 0, "Z Rotation", ""},
+		{DTAR_TRANSCHAN_SCALEX, "SCALE_X", 0, "X Scale", ""},
+		{DTAR_TRANSCHAN_SCALEY, "SCALE_Y", 0, "Y Scale", ""},
+		{DTAR_TRANSCHAN_SCALEZ, "SCALE_Z", 0, "Z Scale", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
 	srna= RNA_def_struct(brna, "DriverTarget", NULL);
 	RNA_def_struct_ui_text(srna, "Driver Target", "Source of input values for driver variables.");
 	
@@ -711,12 +723,23 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	/* Target Properties - Property to Drive */
 	prop= RNA_def_property(srna, "data_path", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_DriverTarget_RnaPath_get", "rna_DriverTarget_RnaPath_length", "rna_DriverTarget_RnaPath_set");
-	RNA_def_property_ui_text(prop, "Data Path", "RNA Path (from Object) to property used");
+	RNA_def_property_ui_text(prop, "Data Path", "RNA Path (from ID-block) to property used.");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
 	prop= RNA_def_property(srna, "bone_target", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "pchan_name");
 	RNA_def_property_ui_text(prop, "Bone Name", "Name of PoseBone to use as target.");
+	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
+	
+	prop= RNA_def_property(srna, "transform_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "transChan");
+	RNA_def_property_enum_items(prop, prop_trans_chan_items);
+	RNA_def_property_ui_text(prop, "Type", "Driver variable type.");
+	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
+	
+	prop= RNA_def_property(srna, "use_local_space_transforms", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", DTAR_FLAG_LOCALSPACE);
+	RNA_def_property_ui_text(prop, "Local Space", "Use transforms in Local Space (as opposed to the worldspace default).");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 }
 
@@ -728,7 +751,8 @@ static void rna_def_drivervar(BlenderRNA *brna)
 	static EnumPropertyItem prop_type_items[] = {
 		{DVAR_TYPE_SINGLE_PROP, "SINGLE_PROP", 0, "Single Property", "Use the value from some RNA property (Default)"},
 		{DVAR_TYPE_ROT_DIFF, "ROTATION_DIFF", 0, "Rotational Difference", "Use the angle between two bones"},
-		{DVAR_TYPE_LOC_DIFF, "LOC_DIFF", 0, "Distance", "Distance between two bones or "},
+		{DVAR_TYPE_LOC_DIFF, "LOC_DIFF", 0, "Distance", "Distance between two bones or objects"},
+		{DVAR_TYPE_TRANSFORM_CHAN, "TRANSFORMS", 0, "Transform Channel", "Final transformation value of object or bone"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	

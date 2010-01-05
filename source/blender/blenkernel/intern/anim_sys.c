@@ -329,20 +329,20 @@ static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, 
 			
 			/* driver variables */
 			for (dvar= driver->variables.first; dvar; dvar=dvar->next) {
-				/* all targets (even unused ones) */
-				// XXX maybe we only need to modify the used ones, since the others can be manually fixed anyways
-				DRIVER_TARGETS_LOOPER(dvar) 
+				/* only change the used targets, since the others will need fixing manually anyway */
+				DRIVER_TARGETS_USED_LOOPER(dvar) 
 				{
 					/* rename RNA path */
 					if (dtar->rna_path)
 						dtar->rna_path= rna_path_rename_fix(dtar->id, prefix, oldName, newName, dtar->rna_path);
 					
 					/* also fix the bone-name (if applicable) */
-					if ( ((dtar->id) && (GS(dtar->id->name) == ID_OB)) &&
-						 (dtar->pchan_name[0]) && (strcmp(oldName, dtar->pchan_name)==0) )
-					{
-						BLI_strncpy(dtar->pchan_name, newName, sizeof(dtar->pchan_name));
-					}
+					// XXX this has been disabled because the old/new names have padding which means this check will fail
+					//if ( ((dtar->id) && (GS(dtar->id->name) == ID_OB)) &&
+					//	 (dtar->pchan_name[0]) && (strcmp(oldName, dtar->pchan_name)==0) )
+					//{
+					//	BLI_strncpy(dtar->pchan_name, newName, sizeof(dtar->pchan_name));
+					//}
 				}
 				DRIVER_TARGETS_LOOPER_END
 			}

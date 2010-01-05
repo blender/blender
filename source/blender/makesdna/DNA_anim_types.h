@@ -239,11 +239,13 @@ typedef enum eFMod_Noise_Modifications {
 typedef struct DriverTarget {
 	ID 	*id;				/* ID-block which owns the target */
 	
-	char *rna_path;			/* target channel to use as driver value */
-	char pchan_name[32];	/* name of the posebone to use (for certain types of variable only) */
+	char *rna_path;			/* RNA path defining the setting to use (for DVAR_TYPE_SINGLE_PROP) */
 	
+	char pchan_name[32];	/* name of the posebone to use (for vars where DTAR_FLAG_STRUCT_REF is used) */
+	short transChan;		/* transform channel index (for DVAR_TYPE_TRANSFORM_CHAN)*/
+	
+	short flag;				/* flags for the validity of the target (NOTE: these get reset everytime the types change) */
 	int idtype;				/* type of ID-block that this target can use */
-	int flag;				/* flags for the validity of the target (NOTE: these get reset everytime the types change) */
 } DriverTarget;
 
 /* Driver Target flags */
@@ -254,12 +256,28 @@ typedef enum eDriverTarget_Flag {
 	DTAR_FLAG_STRUCT_REF	= (1<<0),
 		/* idtype can only be 'Object' */
 	DTAR_FLAG_ID_OB_ONLY	= (1<<1),
+		/* toggles localspace (where transforms are manually obtained) */
+	DTAR_FLAG_LOCALSPACE	= (1<<2),
 } eDriverTarget_Flag;
+
+/* Transform Channels for Driver Targets */
+typedef enum eDriverTarget_TransformChannels {
+	DTAR_TRANSCHAN_LOCX = 0,
+	DTAR_TRANSCHAN_LOCY,
+	DTAR_TRANSCHAN_LOCZ,
+	DTAR_TRANSCHAN_ROTX,
+	DTAR_TRANSCHAN_ROTY,
+	DTAR_TRANSCHAN_ROTZ,
+	DTAR_TRANSCHAN_SCALEX,
+	DTAR_TRANSCHAN_SCALEY,
+	DTAR_TRANSCHAN_SCALEZ,
+	
+	MAX_DTAR_TRANSCHAN_TYPES
+} eDriverTarget_TransformChannels;
 
 /* --- */
 
 /* maximum number of driver targets per variable */
-// FIXME: make this get used below (for DriverVariable defines) if DNA supports preprocessor stuff..
 #define MAX_DRIVER_TARGETS 	8
 
 
@@ -275,8 +293,8 @@ typedef struct DriverVar {
 	
 	char name[64];				/* name of the variable to use in py-expression (must be valid python identifier) */
 	
-	DriverTarget targets[8];	/* MAX_DRIVER_TARGETS - targets available for use for this type of variable */	
-	int num_targets;			/* number of targets used by this variable */
+	DriverTarget targets[MAX_DRIVER_TARGETS];	/* target slots */	
+	int num_targets;			/* number of targets actually used by this variable */
 	
 	int type;					/* type of driver target (eDriverTarget_Types) */		
 } DriverVar;
@@ -289,6 +307,8 @@ typedef enum eDriverVar_Types {
 	DVAR_TYPE_ROT_DIFF,
 		/* distance between objects/bones */
 	DVAR_TYPE_LOC_DIFF,
+		/* 'final' transform for object/bones */
+	DVAR_TYPE_TRANSFORM_CHAN,
 	
 	/* maximum number of variable types 
 	 * NOTE: this must always be th last item in this list,
