@@ -2241,6 +2241,7 @@ static void foreach_attr_type(	BPy_PropertyRNA *self, char *attr,
 	*attr_tot= 0;
 	*attr_signed= FALSE;
 
+	/* note: this is fail with zero length lists, so dont let this get caled in that case */
 	RNA_PROP_BEGIN(&self->ptr, itemptr, self->prop) {
 		prop = RNA_struct_find_property(&itemptr, attr);
 		*raw_type= RNA_property_raw_type(prop);
@@ -2297,7 +2298,9 @@ static int foreach_parse_args(
 #endif
 	}
 
-	if (*size == 0) {
+	/* check 'attr_tot' otherwise we dont know if any values were set
+	 * this isnt ideal because it means running on an empty list may fail silently when its not compatible. */
+	if (*size == 0 && *attr_tot != 0) {
 		PyErr_SetString( PyExc_AttributeError, "attribute does not support foreach method" );
 		return -1;
 	}
