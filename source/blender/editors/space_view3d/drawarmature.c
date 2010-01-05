@@ -1622,8 +1622,14 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 			
 			if ( (bone) && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)) ) {
 				if (bone->layer & arm->layer) {
+					int use_custom = (pchan->custom) && !(arm->flag & ARM_NO_CUSTOM);
 					glPushMatrix();
-					glMultMatrixf(pchan->pose_mat);
+
+					if(use_custom && pchan->custom_tx) {
+						glMultMatrixf(pchan->custom_tx->pose_mat);
+					} else {
+						glMultMatrixf(pchan->pose_mat);
+					}
 					
 					/* catch exception for bone with hidden parent */
 					flag= bone->flag;
@@ -1637,7 +1643,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					/* set color-set to use */
 					set_pchan_colorset(ob, pchan);
 					
-					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
+					if (use_custom) {
 						/* if drawwire, don't try to draw in solid */
 						if (pchan->bone->flag & BONE_DRAWWIRE) 
 							draw_wire= 1;
@@ -1687,7 +1693,12 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					if (pchan->custom) {
 						if ((dt < OB_SOLID) || (bone->flag & BONE_DRAWWIRE)) {
 							glPushMatrix();
-							glMultMatrixf(pchan->pose_mat);
+
+							if(pchan->custom_tx) {
+								glMultMatrixf(pchan->custom_tx->pose_mat);
+							} else {
+								glMultMatrixf(pchan->pose_mat);
+							}
 							
 							/* prepare colors */
 							if (arm->flag & ARM_POSEMODE)	

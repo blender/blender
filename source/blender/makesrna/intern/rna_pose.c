@@ -912,6 +912,13 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Custom Object", "Object that defines custom draw type for this bone.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
+	prop= RNA_def_property(srna, "custom_shape_transform", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "custom_tx");
+	RNA_def_property_struct_type(prop, "PoseBone");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Custom Shape Transform", "Bone that defines the display transform of this custom shape.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
+	
 	/* bone groups */
 	prop= RNA_def_property(srna, "bone_group_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "agrp_index");

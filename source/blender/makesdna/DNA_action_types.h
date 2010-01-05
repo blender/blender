@@ -213,6 +213,7 @@ typedef struct bPoseChannel {
 	float		*path;				/* totpath x 3 x float */		// XXX depreceated... old animation system (armature only viz)
 	bMotionPath *mpath;				/* motion path cache for this bone */
 	struct Object *custom;			/* draws custom object instead of default bone shape */
+	struct bPoseChannel *custom_tx;	/* odd feature, display with another bones transform. needed in rare cases for advanced rigs, since the alternative is highly complicated - campbell */
 } bPoseChannel;
 
 

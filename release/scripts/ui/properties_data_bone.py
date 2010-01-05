@@ -223,8 +223,11 @@ class BONE_PT_display(BoneButtonsPanel):
 
             if wide_ui:
                 col = split.column()
+
             col.label(text="Custom Shape:")
             col.prop(pchan, "custom_shape", text="")
+            if pchan.custom_shape:
+                col.prop_object(pchan, "custom_shape_transform", ob.pose, "bones", text="")
 
 
 class BONE_PT_inverse_kinematics(BoneButtonsPanel):

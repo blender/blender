@@ -1106,6 +1106,8 @@ static int preview_notifier_id(ShaderPreview *sp)
 		case ID_LA:
 			return NC_LAMP;
 	}
+
+	return 0;
 }
 
 /* use same function for icon & shader, so the job manager
