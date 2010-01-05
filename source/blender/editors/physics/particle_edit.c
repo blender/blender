@@ -316,6 +316,14 @@ void PE_hide_keys_time(Scene *scene, PTCacheEdit *edit, float cfra)
 	}
 }
 
+static int pe_x_mirror(Object *ob)
+{
+	if(ob->type == OB_MESH)
+		return (((Mesh*)ob->data)->editflag & ME_EDIT_MIRROR_X);
+	
+	return 0;
+}
+
 /****************** common struct passed to callbacks ******************/
 
 typedef struct PEData {
@@ -1185,7 +1193,7 @@ void PE_update_object(Scene *scene, Object *ob, int useflag)
 	pe_iterate_lengths(scene, edit);
 	pe_deflect_emitter(scene, ob, edit);
 	PE_apply_lengths(scene, edit);
-	if(pset->flag & PE_X_MIRROR)
+	if(pe_x_mirror(ob))
 		PE_apply_mirror(ob,edit->psys);
 	if(edit->psys)
 		update_world_cos(ob, edit);
@@ -1997,7 +2005,7 @@ static void rekey_particle_to_time(Scene *scene, Object *ob, int pa_index, float
 
 /************************* utilities **************************/
 
-static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psys)
+static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psys, int mirror)
 {
 	PTCacheEdit *edit = psys->edit;
 	ParticleEditSettings *pset= PE_settings(scene);
@@ -2007,7 +2015,7 @@ static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psy
 	ParticleSystemModifierData *psmd;
 	int i, totpart, new_totpart= psys->totpart, removed= 0;
 
-	if(pset->flag & PE_X_MIRROR) {
+	if(mirror) {
 		/* mirror tags */
 		psmd= psys_get_modifier(ob, psys);
 		totpart= psys->totpart;
@@ -2078,7 +2086,7 @@ static void remove_tagged_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 	ParticleSystemModifierData *psmd;
 	short new_totkey;
 
-	if(pset->flag & PE_X_MIRROR) {
+	if(pe_x_mirror(ob)) {
 		/* mirror key tags */
 		psmd= psys_get_modifier(ob, psys);
 
@@ -2099,7 +2107,7 @@ static void remove_tagged_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 		if(new_totkey < 2)
 			point->flag |= PEP_TAG;
 	}
-	remove_tagged_particles(scene, ob, psys);
+	remove_tagged_particles(scene, ob, psys, pe_x_mirror(ob));
 
 	LOOP_POINTS {
 		pa = psys->particles + p;
@@ -2270,7 +2278,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 	KDTreeNearest nearest[10];
 	POINT_P;
 	float mat[4][4], co[3], threshold= RNA_float_get(op->ptr, "threshold");
-	int n, totn, removed, flag, totremoved;
+	int n, totn, removed, totremoved;
 
 	if(psys->flag & PSYS_GLOBAL_HAIR)
 		return OPERATOR_CANCELLED;
@@ -2316,10 +2324,7 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 		BLI_kdtree_free(tree);
 
 		/* remove tagged particles - don't do mirror here! */
-		flag= pset->flag;
-		pset->flag &= ~PE_X_MIRROR;
-		remove_tagged_particles(scene, ob, psys);
-		pset->flag= flag;
+		remove_tagged_particles(scene, ob, psys, 0);
 		totremoved += removed;
 	} while(removed);
 
@@ -2500,7 +2505,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 	}
 	else if(type == DEL_PARTICLE) {
 		foreach_selected_point(&data, set_delete_particle);
-		remove_tagged_particles(data.scene, data.ob, data.edit->psys);
+		remove_tagged_particles(data.scene, data.ob, data.edit->psys, pe_x_mirror(data.ob));
 		recalc_lengths(data.edit);
 	}
 
@@ -2603,9 +2608,11 @@ static void PE_mirror_x(Scene *scene, Object *ob, int tagged)
 		newpa= psys->particles + totpart;
 		newpoint= edit->points + totpart;
 
-		LOOP_VISIBLE_POINTS {
+		for(p=0, point=edit->points; p<totpart; p++, point++) {
 			pa = psys->particles + p;
 
+			if(point->flag & PEP_HIDE)
+				continue;
 			if(!(point->flag & PEP_TAG) || mirrorfaces[pa->num*2] == -1)
 				continue;
 
@@ -3097,7 +3104,7 @@ static int brush_add(PEData *data, short number)
 			initialize_particle(&sim, pa,i);
 			reset_particle(&sim, pa, 0.0, 1.0);
 			point->flag |= PEP_EDIT_RECALC;
-			if(pset->flag & PE_X_MIRROR)
+			if(pe_x_mirror(ob))
 				point->flag |= PEP_TAG; /* signal for duplicate */
 			
 			framestep= pa->lifetime/(float)(pset->totaddkey-1);
@@ -3304,7 +3311,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 					else
 						foreach_point(&data, brush_cut);
 
-					removed= remove_tagged_particles(scene, ob, edit->psys);
+					removed= remove_tagged_particles(scene, ob, edit->psys, pe_x_mirror(ob));
 					if(pset->flag & PE_KEEP_LENGTHS)
 						recalc_lengths(edit);
 				}
@@ -3403,7 +3410,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 			recalc_lengths(edit);
 
 		if(ELEM(pset->brushtype, PE_BRUSH_ADD, PE_BRUSH_CUT) && (added || removed)) {
-			if(pset->brushtype == PE_BRUSH_ADD && (pset->flag & PE_X_MIRROR))
+			if(pset->brushtype == PE_BRUSH_ADD && pe_x_mirror(ob))
 				PE_mirror_x(scene, ob, 1);
 
 			update_world_cos(ob,edit);

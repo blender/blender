@@ -972,6 +972,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
         if not pe.hair:
             col.label(text="Correct:")
             col.prop(pe, "auto_velocity", text="Velocity")
+        col.prop(ob.data, "use_mirror_x")
 
         col = layout.column(align=True)
         col.active = pe.editable
@@ -983,7 +984,6 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
         sub = col.row()
         sub.active = pe.fade_time
         sub.prop(pe, "fade_frames", slider=True)
-
 
 bpy.types.register(VIEW3D_PT_tools_weightpaint)
 bpy.types.register(VIEW3D_PT_tools_objectmode)
