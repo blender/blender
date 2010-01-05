@@ -2262,9 +2262,9 @@ static int header_toolbox_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* file browser should be fullscreen all the time, but other regions can be maximised/restored... */
 	if (sa->spacetype != SPACE_FILE) {
 		if (sa->full) 
-			uiItemO(layout, "Tile Window", 0, "SCREEN_OT_screen_full_area");
+			uiItemO(layout, "Tile Area", 0, "SCREEN_OT_screen_full_area");
 		else
-			uiItemO(layout, "Maximize Window", 0, "SCREEN_OT_screen_full_area");
+			uiItemO(layout, "Maximize Area", 0, "SCREEN_OT_screen_full_area");
 	}
 	
 	uiPupMenuEnd(C, pup);

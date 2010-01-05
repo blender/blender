@@ -1481,37 +1481,37 @@ static void rna_def_space_time(BlenderRNA *brna)
 	/* Define Anim Playback Areas */
 	prop= RNA_def_property(srna, "play_top_left", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_REGION);
-	RNA_def_property_ui_text(prop, "Top-Left 3D Window", "");
+	RNA_def_property_ui_text(prop, "Top-Left 3D Editor", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
 	
 	prop= RNA_def_property(srna, "play_all_3d", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_3D_WIN);
-	RNA_def_property_ui_text(prop, "All 3D Windows", "");
+	RNA_def_property_ui_text(prop, "All 3D View Editors", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
 	
 	prop= RNA_def_property(srna, "play_anim", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_ANIM_WIN);
-	RNA_def_property_ui_text(prop, "Animation Windows", "");
+	RNA_def_property_ui_text(prop, "Animation Editors", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
 	
 	prop= RNA_def_property(srna, "play_buttons", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_BUTS_WIN);
-	RNA_def_property_ui_text(prop, "Properties Windows", "");
+	RNA_def_property_ui_text(prop, "Property Editors", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
 	
 	prop= RNA_def_property(srna, "play_image", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_ALL_IMAGE_WIN);
-	RNA_def_property_ui_text(prop, "Image Windows", "");
+	RNA_def_property_ui_text(prop, "Image Editors", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
 	
 	prop= RNA_def_property(srna, "play_sequencer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_SEQ);
-	RNA_def_property_ui_text(prop, "Sequencer Windows", "");
+	RNA_def_property_ui_text(prop, "Sequencer Editors", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
 	
 	prop= RNA_def_property(srna, "play_nodes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "redraws", TIME_NODES);
-	RNA_def_property_ui_text(prop, "Node Windows", "");
+	RNA_def_property_ui_text(prop, "Node Editors", "");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_TIME, "rna_SpaceTime_redraw_update");
 	
 	/* Other options */	
