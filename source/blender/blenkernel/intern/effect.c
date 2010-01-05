@@ -128,7 +128,6 @@ PartDeflect *object_add_collision_fields(int type)
 	pd->seed = ((unsigned int)(ceil(PIL_check_seconds_timer()))+1) % 128;
 	pd->f_strength = 1.0f;
 	pd->f_damp = 1.0f;
-	pd->f_size = 1.0f;
 
 	/* set sensible defaults based on type */
 	switch(type) {
@@ -138,6 +137,9 @@ PartDeflect *object_add_collision_fields(int type)
 		case PFIELD_WIND:
 			pd->shape = PFIELD_SHAPE_PLANE;
 			pd->f_flow = 1.0f; /* realistic wind behavior */
+			break;
+		case PFIELD_TEXTURE:
+			pd->f_size = 1.0f;
 			break;
 	}
 	pd->flag = PFIELD_DO_LOCATION|PFIELD_DO_ROTATION;
@@ -693,6 +695,10 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		sub_v3_v3v3(efd->vec_to_point, point->loc, efd->loc);
 		efd->distance = len_v3(efd->vec_to_point);
 
+		/* rest length for harmonic effector, will have to see later if this could be extended to other effectors */
+		if(eff->pd->forcefield == PFIELD_HARMONIC && eff->pd->f_size)
+			mul_v3_fl(efd->vec_to_point, (efd->distance-eff->pd->f_size)/efd->distance);
+
 		if(eff->flag & PE_USE_NORMAL_DATA) {
 			VECCOPY(efd->vec_to_point2, efd->vec_to_point);
 			VECCOPY(efd->nor2, efd->nor);
@@ -735,7 +741,7 @@ static void get_effector_tot(EffectorCache *eff, EffectorData *efd, EffectedPoin
 			*/
 			efd->charge = eff->pd->f_strength;
 		}
-		else if(eff->pd->forcefield == PFIELD_HARMONIC) {
+		else if(eff->pd->forcefield == PFIELD_HARMONIC && (eff->pd->flag & PFIELD_MULTIPLE_SPRINGS)==0) {
 			/* every particle is mapped to only one harmonic effector particle */
 			*p= point->index % eff->psys->totpart;
 			*tot= *p + 1;

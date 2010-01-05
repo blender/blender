@@ -229,14 +229,6 @@ void free_sculptsession(SculptSession **ssp)
 {
 	if(ssp && *ssp) {
 		SculptSession *ss = *ssp;
-		if(ss->projverts)
-			MEM_freeN(ss->projverts);
-
-		if(ss->fmap)
-			MEM_freeN(ss->fmap);
-
-		if(ss->fmap_mem)
-			MEM_freeN(ss->fmap_mem);
 
 		if(ss->texcache)
 			MEM_freeN(ss->texcache);
@@ -244,8 +236,8 @@ void free_sculptsession(SculptSession **ssp)
 		if(ss->layer_disps)
 			MEM_freeN(ss->layer_disps);
 
-		if(ss->mesh_co_orig)
-			MEM_freeN(ss->mesh_co_orig);
+		if(ss->layer_co)
+			MEM_freeN(ss->layer_co);
 
 		MEM_freeN(ss);
 
@@ -563,6 +555,17 @@ void unlink_object(Scene *scene, Object *ob)
 		if(sce->id.lib==NULL) {
 			if(sce->camera==ob) sce->camera= NULL;
 			if(sce->toolsettings->skgen_template==ob) sce->toolsettings->skgen_template = NULL;
+
+#ifdef DURIAN_CAMERA_SWITCH
+			{
+				TimeMarker *m;
+
+				for (m= sce->markers.first; m; m= m->next) {
+					if(m->camera==ob)
+						m->camera= NULL;
+				}
+			}
+#endif
 		}
 		sce= sce->id.next;
 	}
@@ -742,12 +745,12 @@ float dof_camera(Object *ob)
 	if (cam->dof_ob) {	
 		/* too simple, better to return the distance on the view axis only
 		 * return len_v3v3(ob->obmat[3], cam->dof_ob->obmat[3]); */
-		float mat[4][4], obmat[4][4];
+		float mat[4][4], imat[4][4], obmat[4][4];
 		
 		copy_m4_m4(obmat, ob->obmat);
 		normalize_m4(obmat);
-		invert_m4_m4(ob->imat, obmat);
-		mul_m4_m4m4(mat, cam->dof_ob->obmat, ob->imat);
+		invert_m4_m4(imat, obmat);
+		mul_m4_m4m4(mat, cam->dof_ob->obmat, imat);
 		return (float)fabs(mat[3][2]);
 	}
 	return cam->YF_dofdist;
@@ -796,7 +799,7 @@ void *add_lamp(char *name)
 	la->sun_intensity = 1.0f;
 	la->skyblendtype= MA_RAMP_ADD;
 	la->skyblendfac= 1.0f;
-	la->sky_colorspace= BLI_CS_CIE;
+	la->sky_colorspace= BLI_XYZ_CIE;
 	la->sky_exposure= 1.0f;
 	
 	curvemapping_initialize(la->curfalloff);
@@ -963,24 +966,27 @@ Object *add_only_object(int type, char *name)
 
 	/* default object vars */
 	ob->type= type;
-	/* ob->transflag= OB_QUAT; */
-
-#if 0 /* not used yet */
-	unit_qt(ob->quat);
-	unit_qt(ob->dquat);
-#endif 
-
+	
 	ob->col[0]= ob->col[1]= ob->col[2]= 1.0;
 	ob->col[3]= 1.0;
-
-	ob->loc[0]= ob->loc[1]= ob->loc[2]= 0.0;
-	ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
+	
 	ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
+	
+	/* objects should default to having Euler XYZ rotations, 
+	 * but rotations default to quaternions 
+	 */
+	ob->rotmode= ROT_MODE_EUL;
+	/* axis-angle must not have a 0,0,0 axis, so set y-axis as default... */
+	ob->rotAxis[1]= ob->drotAxis[1]= 1.0f;
+	/* quaternions should be 1,0,0,0 by default.... */
+	ob->quat[0]= ob->dquat[0]= 1.0f;
+	/* rotation locks should be 4D for 4 component rotations by default... */
+	ob->protectflag = OB_LOCK_ROT4D;
 
 	unit_m4(ob->constinv);
 	unit_m4(ob->parentinv);
 	unit_m4(ob->obmat);
-	ob->dt= OB_SHADED;
+	ob->dt= OB_TEXTURE;
 	ob->empty_drawtype= OB_ARROWS;
 	ob->empty_drawsize= 1.0;
 
@@ -992,11 +998,6 @@ Object *add_only_object(int type, char *name)
 		ob->trackflag= OB_POSY;
 		ob->upflag= OB_POSZ;
 	}
-	
-#if 0 // XXX old animation system
-	ob->ipoflag = OB_OFFS_OB+OB_OFFS_PARENT;
-	ob->ipowin= ID_OB;	/* the ipowin shown */
-#endif // XXX old animation system
 	
 	ob->dupon= 1; ob->dupoff= 0;
 	ob->dupsta= 1; ob->dupend= 100;
@@ -1039,13 +1040,6 @@ Object *add_object(struct Scene *scene, int type)
 
 	ob->lay= scene->lay;
 	
-	/* objects should default to having Euler XYZ rotations, 
-	 * but rotations default to quaternions 
-	 */
-	ob->rotmode= ROT_MODE_EUL;
-	/* axis-angle must not have a 0,0,0 axis, so set y-axis as default... */
-	ob->rotAxis[1]= ob->drotAxis[1]= 1.0f;
-
 	base= scene_add_base(scene, ob);
 	scene_select_base(scene, base);
 	ob->recalc |= OB_RECALC;
@@ -1625,6 +1619,32 @@ void object_rot_to_mat3(Object *ob, float mat[][3])
 	mul_m3_m3m3(mat, dmat, rmat);
 }
 
+void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
+{
+	if (ob->rotmode == ROT_MODE_QUAT)
+		mat3_to_quat(ob->quat, mat);
+	else if (ob->rotmode == ROT_MODE_AXISANGLE)
+		mat3_to_axis_angle(ob->rotAxis, &ob->rotAngle, mat);
+	else {
+		if(use_compat) {
+			float eul[3];
+			VECCOPY(eul, ob->rot);
+			mat3_to_compatible_eulO(ob->rot, eul, ob->rotmode, mat);
+		}
+		else
+			mat3_to_eulO(ob->rot, ob->rotmode, mat);
+	}
+}
+
+void object_apply_mat4(Object *ob, float mat[][4])
+{
+	float mat3[3][3];
+	VECCOPY(ob->loc, mat[3]);
+	mat4_to_size(ob->size, mat);
+	copy_m3_m4(mat3, mat);
+	object_mat3_to_rot(ob, mat3, 0);
+}
+
 void object_to_mat3(Object *ob, float mat[][3])	/* no parent */
 {
 	float smat[3][3];
@@ -1682,10 +1702,10 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 		/* ctime is now a proper var setting of Curve which gets set by Animato like any other var that's animated,
 		 * but this will only work if it actually is animated... 
 		 *
-		 * we firstly calculate the modulus of cu->ctime/cu->pathlen to clamp ctime within the 0.0 to 1.0 times pathlen
-		 * range, then divide this (the modulus) by pathlen to get a value between 0.0 and 1.0
+		 * we divide the curvetime calculated in the previous step by the length of the path, to get a time
+		 * factor, which then gets clamped to lie within 0.0 - 1.0 range
 		 */
-		ctime= fmod(cu->ctime, cu->pathlen) / cu->pathlen;
+		ctime= cu->ctime / cu->pathlen;
 		CLAMP(ctime, 0.0, 1.0);
 	}
 	else {
@@ -1787,13 +1807,15 @@ static void give_parvert(Object *par, int nr, float *vec)
 			DerivedMesh *dm = par->derivedFinal;
 			
 			if(dm) {
-				int i, count = 0, numVerts = dm->getNumVerts(dm);
+				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
 				int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
 				float co[3];
 
 				/* get the average of all verts with (original index == nr) */
-				for(i = 0; i < numVerts; ++i, ++index) {
-					if(*index == nr) {
+				for(i = 0; i < numVerts; ++i) {
+					vindex= (index)? *index: i;
+
+					if(vindex == nr) {
 						dm->getVertCo(dm, i, co);
 						add_v3_v3v3(vec, vec, co);
 						count++;
@@ -2365,6 +2387,9 @@ void object_handle_update(Scene *scene, Object *ob)
 		}
 		
 		if(ob->recalc & OB_RECALC_DATA) {
+			ID *data_id= (ID *)ob->data;
+			AnimData *adt= BKE_animdata_from_id(data_id);
+			float ctime= (float)scene->r.cfra; // XXX this is bad...
 			
 			if (G.f & G_DEBUG)
 				printf("recalcdata %s\n", ob->id.name+2);
@@ -2386,10 +2411,6 @@ void object_handle_update(Scene *scene, Object *ob)
 				makeDispListCurveTypes(scene, ob, 0);
 			}
 			else if(ELEM(ob->type, OB_CAMERA, OB_LAMP)) {
-				ID *data_id= (ID *)ob->data;
-				AnimData *adt= BKE_animdata_from_id(data_id);
-				float ctime= (float)scene->r.cfra; // XXX this is bad...
-				
 				/* evaluate drivers */
 				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
 			}
@@ -2401,6 +2422,9 @@ void object_handle_update(Scene *scene, Object *ob)
 				// XXX this won't screw up the pose set already...
 				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
 					armature_rebuild_pose(ob, ob->data);
+				
+				/* evaluate drivers */
+				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
 				
 				if(ob->id.lib && ob->proxy_from) {
 					copy_pose_result(ob->pose, ob->proxy_from->pose);

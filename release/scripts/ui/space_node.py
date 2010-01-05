@@ -73,7 +73,7 @@ class NODE_MT_view(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("node.properties", icon='ICON_MENU_PANEL')
+        layout.operator("node.properties", icon='MENU_PANEL')
         layout.separator()
 
         layout.operator("view2d.zoom_in")
@@ -82,6 +82,10 @@ class NODE_MT_view(bpy.types.Menu):
         layout.separator()
 
         layout.operator("node.view_all")
+
+        layout.separator()
+
+        layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
 
 
@@ -105,9 +109,9 @@ class NODE_MT_node(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("tfm.translate")
-        layout.operator("tfm.rotate")
-        layout.operator("tfm.resize")
+        layout.operator("transform.translate")
+        layout.operator("transform.rotate")
+        layout.operator("transform.resize")
 
         layout.separator()
 

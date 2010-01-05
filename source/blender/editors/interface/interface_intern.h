@@ -199,7 +199,8 @@ struct uiBut {
 
 	BIFIconID icon;
 	short but_align;	/* aligning buttons, horiz/vertical */
-	short lock, win;
+	short lock;
+	short modifier_key;
 	short iconadd, dt;
 
 	/* IDPOIN data */
@@ -303,6 +304,8 @@ struct uiBlock {
 
 	int active;					// to keep blocks while drawing and free them afterwards
 	int puphash;				// popup menu hash for memory
+	
+	int color_profile;				// color profile for correcting linear colors for display
 
 	void *evil_C;				// XXX hack for dynamic operator enums
 };

@@ -4050,7 +4050,7 @@ static void dxf_read(Scene *scene, char *filename)
 	
 						ob->type= OB_MESH;
 	
-						ob->dt= OB_SHADED;
+						ob->dt= OB_TEXTURE;
 
 						ob->trackflag= OB_POSY;
 						ob->upflag= OB_POSZ;

@@ -85,6 +85,8 @@ int isect_ray_tri_v3(float p1[3], float d[3],
 	float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
 int isect_ray_tri_threshold_v3(float p1[3], float d[3],
 	float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float threshold);
+int isect_ray_tri_epsilon_v3(float p1[3], float d[3],
+	float v0[3], float v1[3], float v2[3], float *lambda, float *uv, float epsilon);
 
 /* point in polygon */
 int isect_point_tri_v2(float p[2], float a[2], float b[2], float c[2]);
@@ -147,6 +149,12 @@ void sum_or_add_vertex_tangent(void *arena, VertexTangent **vtang,
 	float *tang, float *uv);
 void tangent_from_uv(float *uv1, float *uv2, float *uv3,
 	float *co1, float *co2, float *co3, float *n, float *tang);
+
+/********************************* vector clouds******************************/
+
+
+void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,float (*rpos)[3], float *rweight,
+							float lloc[3],float rloc[3],float lrot[3][3],float lscale[3][3]);
 
 #ifdef __cplusplus
 }

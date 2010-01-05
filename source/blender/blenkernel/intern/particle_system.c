@@ -170,6 +170,12 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 	PARTICLE_P;
 	int totpart, totsaved = 0;
 
+	if(psys->edit && psys->free_edit) {
+		psys->free_edit(psys->edit);
+		psys->edit = NULL;
+		psys->free_edit = NULL;
+	}
+
 	if(new_totpart<0) {
 		if(part->distr==PART_DISTR_GRID  && part->from != PART_FROM_VERT) {
 			totpart= part->grid_res;
@@ -287,12 +293,12 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 		if(psys->part->from == PART_FROM_VERT) {
 			totdmelem= dm->getNumVerts(dm);
 			totelem= me->totvert;
-			origindex= DM_get_vert_data_layer(dm, CD_ORIGINDEX);
+			origindex= dm->getVertDataArray(dm, CD_ORIGINDEX);
 		}
 		else { /* FROM_FACE/FROM_VOLUME */
 			totdmelem= dm->getNumTessFaces(dm);
 			totelem= me->totface;
-			origindex= DM_get_face_data_layer(dm, CD_ORIGINDEX);
+			origindex= dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 		}
 	
 		nodedmelem= MEM_callocN(sizeof(LinkNode)*totdmelem, "psys node elems");
@@ -389,7 +395,7 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 				pa->fuv[1]=min[1]+(float)j*d;
 				pa->fuv[2]=min[2]+(float)k*d;
 				pa->flag |= PARS_UNEXIST;
-				pa->loop=0; /* abused in volume calculation */
+				pa->hair_index=0; /* abused in volume calculation */
 			}
 		}
 	}
@@ -451,7 +457,7 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 							if(from==PART_FROM_FACE)
 								(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
 							else /* store number of intersections */
-								(pa+(int)(lambda*size[a])*a0mul)->loop++;
+								(pa+(int)(lambda*size[a])*a0mul)->hair_index++;
 						}
 						
 						if(mface->v4){
@@ -461,20 +467,20 @@ static void distribute_particles_in_grid(DerivedMesh *dm, ParticleSystem *psys)
 								if(from==PART_FROM_FACE)
 									(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
 								else
-									(pa+(int)(lambda*size[a])*a0mul)->loop++;
+									(pa+(int)(lambda*size[a])*a0mul)->hair_index++;
 							}
 						}
 					}
 
 					if(from==PART_FROM_VOLUME){
-						int in=pa->loop%2;
-						if(in) pa->loop++;
+						int in=pa->hair_index%2;
+						if(in) pa->hair_index++;
 						for(i=0; i<size[0]; i++){
-							if(in || (pa+i*a0mul)->loop%2)
+							if(in || (pa+i*a0mul)->hair_index%2)
 								(pa+i*a0mul)->flag &= ~PARS_UNEXIST;
 							/* odd intersections == in->out / out->in */
 							/* even intersections -> in stays same */
-							in=(in + (pa+i*a0mul)->loop) % 2;
+							in=(in + (pa+i*a0mul)->hair_index) % 2;
 						}
 					}
 				}
@@ -948,7 +954,8 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 	if(totpart==0)
 		return 0;
 
-	if (!finaldm->deformedOnly && !CustomData_has_layer( &finaldm->faceData, CD_ORIGINDEX ) ) {
+	if (!finaldm->deformedOnly && !finaldm->getTessFaceDataArray(finaldm, CD_ORIGINDEX)) {
+		printf("Can't create particles with the current modifier stack, disable destructive modifiers\n");
 // XXX		error("Can't paint with the current modifier stack, disable destructive modifiers");
 		return 0;
 	}
@@ -1583,7 +1590,7 @@ void initialize_particle(ParticleSimulationData *sim, ParticleData *pa, int p)
 			pa->flag &= ~PARS_UNEXIST;
 	}
 
-	pa->loop=0;
+	pa->hair_index=0;
 	/* we can't reset to -1 anymore since we've figured out correct index in distribute_particles */
 	/* usage other than straight after distribute has to handle this index by itself - jahka*/
 	//pa->num_dmcache = DMCACHE_NOTFOUND; /* assume we dont have a derived mesh face */
@@ -2267,12 +2274,13 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 	EffectedPoint epoint;
 	ParticleKey states[5], tkey;
 	float timestep = psys_get_timestep(sim);
-	float force[3],impulse[3],dx[4][3],dv[4][3];
+	float force[3],impulse[3],dx[4][3],dv[4][3],oldpos[3];
 	float dtime=dfra*timestep, time, pa_mass=part->mass, fac, fra=sim->psys->cfra;
 	int i, steps=1;
 	
 	/* maintain angular velocity */
 	VECCOPY(pa->state.ave,pa->prev_state.ave);
+	VECCOPY(oldpos,pa->state.co);
 
 	if(part->flag & PART_SIZEMASS)
 		pa_mass*=pa->size;
@@ -2286,6 +2294,9 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 			break;
 		case PART_INT_RK4:
 			steps=4;
+			break;
+		case PART_INT_VERLET:
+			steps=1;
 			break;
 	}
 
@@ -2391,6 +2402,13 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 						VECADDFAC(pa->state.vel,pa->state.vel,dv[2],1.0f/3.0f);
 						VECADDFAC(pa->state.vel,pa->state.vel,dv[3],1.0f/6.0f);
 				}
+				break;
+			case PART_INT_VERLET:   /* Verlet integration */
+				VECADDFAC(pa->state.vel,pa->state.vel,force,dtime);
+				VECADDFAC(pa->state.co,pa->state.co,pa->state.vel,dtime);
+
+				VECSUB(pa->state.vel,pa->state.co,oldpos);
+				mul_v3_fl(pa->state.vel,1.0f/dtime);
 				break;
 		}
 	}
@@ -2914,6 +2932,8 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra)
 					psys_find_parents(sim);
 			}
 		}
+		else
+			psys_free_children(psys);
 	}
 
 	if((part->type==PART_HAIR || psys->flag&PSYS_KEYED || psys->pointcache->flag & PTCACHE_BAKED)==0)
@@ -3201,14 +3221,6 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 				pa->size *= 1.0f - part->randsize * PSYS_FRAND(p + 1);
 
 			reset_particle(sim, pa, dtime, cfra);
-
-			if(cfra > pa->time && part->flag & PART_LOOP && part->type!=PART_HAIR){
-				pa->loop = (short)((cfra-pa->time)/pa->lifetime);
-				pa->alive = PARS_UNBORN;
-			}
-			else{
-				pa->loop = 0;
-			}
 		}
 
 		if(vg_size)
@@ -3262,7 +3274,7 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			//if(psys->reactevents.first && ELEM(pa->alive,PARS_DEAD,PARS_KILLED)==0)
 			//	react_to_events(psys,p);
 
-			birthtime = pa->time + pa->loop * pa->lifetime;
+			birthtime = pa->time;
 			dietime = birthtime + pa->lifetime;
 
 			pa_dfra = dfra;
@@ -3321,15 +3333,8 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 				if(pa->alive == PARS_DYING){
 					//push_reaction(ob,psys,p,PART_EVENT_DEATH,&pa->state);
 
-					if(part->flag & PART_LOOP && part->type!=PART_HAIR){
-						pa->loop++;
-						reset_particle(sim, pa, 0.0, cfra);
-						pa->alive=PARS_ALIVE;
-					}
-					else{
-						pa->alive=PARS_DEAD;
-						pa->state.time=pa->dietime;
-					}
+					pa->alive=PARS_DEAD;
+					pa->state.time=pa->dietime;
 				}
 				else
 					pa->state.time=cfra;
@@ -3380,13 +3385,8 @@ static void cached_step(ParticleSimulationData *sim, float cfra)
 
 		psys->lattice= psys_get_lattice(sim);
 
-		if(part->flag & PART_LOOP && part->type!=PART_HAIR)
-			pa->loop = (short)((cfra - pa->time) / pa->lifetime);
-		else
-			pa->loop = 0;
-
-		birthtime = pa->time + pa->loop * pa->lifetime;
-		dietime = birthtime + (1 + pa->loop) * (pa->dietime - pa->time);
+		birthtime = pa->time;
+		dietime = pa->dietime;
 
 		/* update alive status and push events */
 		if(pa->time > cfra) {

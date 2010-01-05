@@ -45,6 +45,7 @@
 #include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_utildefines.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -158,7 +159,7 @@ static void action_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Action_Keys", SPACE_ACTION, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Dopesheet", SPACE_ACTION, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -221,7 +222,7 @@ static void action_channel_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_LIST, ar->winx, ar->winy);
 	
 	/* own keymap */
-	keymap= WM_keymap_find(wm->defaultconf, "Animation_Channels", 0, 0);
+	keymap= WM_keymap_find(wm->defaultconf, "Animation Channels", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 
@@ -259,29 +260,12 @@ static void action_channel_area_draw(const bContext *C, ARegion *ar)
 /* add handlers, stuff you only do once or on area/region changes */
 static void action_header_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->winx, ar->winy);
+	ED_region_header_init(ar);
 }
 
 static void action_header_area_draw(const bContext *C, ARegion *ar)
 {
-	float col[3];
-	
-	/* clear */
-	if(ED_screen_area_active(C))
-		UI_GetThemeColor3fv(TH_HEADER, col);
-	else
-		UI_GetThemeColor3fv(TH_HEADERDESEL, col);
-	
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	/* set view2d view matrix for scrolling (without scrollers) */
-	UI_view2d_view_ortho(C, &ar->v2d);
-	
-	action_header_buttons(C, ar);
-	
-	/* restore view matrix? */
-	UI_view2d_view_restore(C);
+	ED_region_header(C, ar);
 }
 
 static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
@@ -306,7 +290,15 @@ static void action_channel_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_KEYS:
 					ED_region_tag_redraw(ar);
 					break;
+				case ND_MODIFIER:
+					if(wmn->action == NA_RENAME)
+						ED_region_tag_redraw(ar);
+					break;
 			}
+			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
 			break;
 		default:
 			if(wmn->data==ND_KEYS)
@@ -348,6 +340,11 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
+				
 		default:
 			if(wmn->data==ND_KEYS)
 				ED_region_tag_redraw(ar);
@@ -357,28 +354,42 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 /* editor level listener */
 static void action_listener(ScrArea *sa, wmNotifier *wmn)
 {
+	SpaceAction *saction= (SpaceAction *)sa->spacedata.first;
+	
 	/* context changes */
 	switch (wmn->category) {
 		case NC_ANIMATION:
-			ED_area_tag_refresh(sa);
+			/* for selection changes of animation data, we can just redraw... otherwise autocolor might need to be done again */
+			if (ELEM(wmn->data, ND_KEYFRAME_SELECT, ND_ANIMCHAN_SELECT))
+				ED_area_tag_redraw(sa);
+			else
+				ED_area_tag_refresh(sa);
 			break;
 		case NC_SCENE:
-			/*switch (wmn->data) {
-				case ND_OB_ACTIVE:
+			switch (wmn->data) {	
+				case ND_OB_ACTIVE:	/* selection changed, so force refresh to flush (needs flag set to do syncing) */
 				case ND_OB_SELECT:
+					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
-			}*/
-			ED_area_tag_refresh(sa);
+					
+				default: /* just redrawing the view will do */
+					ED_area_tag_redraw(sa);
+					break;
+			}
 			break;
 		case NC_OBJECT:
-			/*switch (wmn->data) {
-				case ND_BONE_SELECT:
+			switch (wmn->data) {
+				case ND_BONE_SELECT:	/* selection changed, so force refresh to flush (needs flag set to do syncing) */
 				case ND_BONE_ACTIVE:
+					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
-			}*/
-			ED_area_tag_refresh(sa);
+					
+				default: /* just redrawing the view will do */
+					ED_area_tag_redraw(sa);
+					break;
+			}
 			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_DOPESHEET)
@@ -389,24 +400,14 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 
 static void action_refresh(const bContext *C, ScrArea *sa)
 {
-	SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
+	SpaceAction *saction= CTX_wm_space_action(C);
 	
-	/* updates to data needed depends on Action Editor mode... */
-	switch (saction->mode) {
-		case SACTCONT_DOPESHEET: /* DopeSheet - for now, just all armatures... */
-		{
-			
-		}
-			break;
-		
-		case SACTCONT_ACTION: /* Action Editor - just active object will do */
-		{
-			Object *ob= CTX_data_active_object(C);
-			
-			/* sync changes to bones to the corresponding action channels */
-			ANIM_pose_to_action_sync(ob, sa);
-		}
-			break; 
+	/* update the state of the animchannels in response to changes from the data they represent 
+	 * NOTE: the temp flag is used to indicate when this needs to be done, and will be cleared once handled
+	 */
+	if (saction->flag & SACTION_TEMP_NEEDCHANSYNC) {
+		ANIM_sync_animchannels_to_data(C);
+		saction->flag &= ~SACTION_TEMP_NEEDCHANSYNC;
 	}
 	
 	/* region updates? */
@@ -420,6 +421,7 @@ void ED_spacetype_action(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_ACTION;
+	strncpy(st->name, "Action", BKE_ST_MAXNAME);
 	
 	st->new= action_new;
 	st->free= action_free;
@@ -444,7 +446,7 @@ void ED_spacetype_action(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype action region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	
 	art->init= action_header_area_init;
 	art->draw= action_header_area_draw;

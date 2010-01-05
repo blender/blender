@@ -42,7 +42,7 @@ class RenderButtonsPanel(bpy.types.Panel):
 
 class RENDER_PT_render(RenderButtonsPanel):
     bl_label = "Render"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -53,11 +53,11 @@ class RENDER_PT_render(RenderButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.operator("screen.render", text="Image", icon='ICON_RENDER_STILL')
+        col.operator("screen.render", text="Image", icon='RENDER_STILL')
 
         if wide_ui:
             col = split.column()
-        col.operator("screen.render", text="Animation", icon='ICON_RENDER_ANIMATION').animation = True
+        col.operator("screen.render", text="Animation", icon='RENDER_ANIMATION').animation = True
 
         layout.prop(rd, "display_mode", text="Display")
 
@@ -65,7 +65,7 @@ class RENDER_PT_render(RenderButtonsPanel):
 class RENDER_PT_layers(RenderButtonsPanel):
     bl_label = "Layers"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -78,8 +78,8 @@ class RENDER_PT_layers(RenderButtonsPanel):
         row.template_list(rd, "layers", rd, "active_layer_index", rows=2)
 
         col = row.column(align=True)
-        col.operator("scene.render_layer_add", icon='ICON_ZOOMIN', text="")
-        col.operator("scene.render_layer_remove", icon='ICON_ZOOMOUT', text="")
+        col.operator("scene.render_layer_add", icon='ZOOMIN', text="")
+        col.operator("scene.render_layer_remove", icon='ZOOMOUT', text="")
 
         rl = rd.layers[rd.active_layer_index]
 
@@ -145,24 +145,24 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.prop(rl, "pass_diffuse")
         row = col.row()
         row.prop(rl, "pass_specular")
-        row.prop(rl, "pass_specular_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_specular_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_shadow")
-        row.prop(rl, "pass_shadow_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_shadow_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_ao")
-        row.prop(rl, "pass_ao_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_ao_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_reflection")
-        row.prop(rl, "pass_reflection_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_reflection_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_refraction")
-        row.prop(rl, "pass_refraction_exclude", text="", icon='ICON_X')
+        row.prop(rl, "pass_refraction_exclude", text="", icon='X')
 
 
 class RENDER_PT_shading(RenderButtonsPanel):
     bl_label = "Shading"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -188,7 +188,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
 class RENDER_PT_performance(RenderButtonsPanel):
     bl_label = "Performance"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -232,7 +232,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
 class RENDER_PT_post_processing(RenderButtonsPanel):
     bl_label = "Post Processing"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -275,7 +275,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
 
 class RENDER_PT_output(RenderButtonsPanel):
     bl_label = "Output"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -344,36 +344,21 @@ class RENDER_PT_output(RenderButtonsPanel):
             split = layout.split()
             split.prop(rd, "tiff_bit")
 
+        elif rd.file_format == 'QUICKTIME_CARBON':
+            split = layout.split()
+            split.operator("scene.render_data_set_quicktime_codec")
 
-class RENDER_PT_QTencoding(RenderButtonsPanel):
-    bl_label = "Encoding"
-    bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
-
-    def poll(self, context):
-        rd = context.scene.render_data
-        return rd.file_format in ('QUICKTIME_QTKIT') # QUICKTIME will be added later
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render_data
-        wide_ui = context.region.width > narrowui
-
-        split = layout.split()
-
-        split.prop(rd, "quicktime_codec_type")
-
-        split = layout.split()
-
-        if rd.file_format == 'QUICKTIME_QTKIT':
-            split.prop(rd, "quicktime_codec_spatial_quality", text="Quality", slider=True)
+        elif rd.file_format == 'QUICKTIME_QTKIT':
+            split = layout.split()
+            col = split.column()
+            col.prop(rd, "quicktime_codec_type")
+            col.prop(rd, "quicktime_codec_spatial_quality", text="Quality")
 
 
 class RENDER_PT_encoding(RenderButtonsPanel):
     bl_label = "Encoding"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
         rd = context.scene.render_data
@@ -421,12 +406,15 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col.prop(rd, "ffmpeg_muxrate", text="Rate")
         col.prop(rd, "ffmpeg_packetsize", text="Packet Size")
 
-        row = layout.row()
-        row.label(text="Audio:")
-        row = layout.row()
-        row.prop(rd, "ffmpeg_audio_codec", text="Codec")
+        # Audio:
+        layout.prop(rd, "ffmpeg_multiplex_audio", text="Audio")
 
-        split = layout.split()
+        sub = layout.column()
+        sub.active = rd.ffmpeg_multiplex_audio
+        sub.prop(rd, "ffmpeg_audio_codec", text="Codec")
+        sub.separator()
+
+        split = sub.split()
 
         col = split.column()
         col.prop(rd, "ffmpeg_audio_bitrate")
@@ -434,13 +422,12 @@ class RENDER_PT_encoding(RenderButtonsPanel):
 
         if wide_ui:
             col = split.column()
-        col.prop(rd, "ffmpeg_multiplex_audio")
         col.prop(rd, "ffmpeg_audio_volume", slider=True)
 
 
 class RENDER_PT_antialiasing(RenderButtonsPanel):
     bl_label = "Anti-Aliasing"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         rd = context.scene.render_data
@@ -463,12 +450,12 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
         if wide_ui:
             col = split.column()
         col.prop(rd, "pixel_filter", text="")
-        col.prop(rd, "filter_size", text="Size", slider=True)
+        col.prop(rd, "filter_size", text="Size")
 
 
 class RENDER_PT_dimensions(RenderButtonsPanel):
     bl_label = "Dimensions"
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -476,7 +463,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         scene = context.scene
         rd = scene.render_data
         wide_ui = context.region.width > narrowui
-        
+
         row = layout.row().split()
         sub = row.row(align=True).split(percentage=0.75)
         sub.menu("RENDER_MT_presets", text="Presets")
@@ -511,13 +498,13 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
 
         sub.label(text="Frame Rate:")
         sub.prop(rd, "fps")
-        sub.prop(rd, "fps_base", text="/")  
+        sub.prop(rd, "fps_base", text="/")
 
 
 class RENDER_PT_stamp(RenderButtonsPanel):
     bl_label = "Stamp"
     bl_default_closed = True
-    COMPAT_ENGINES = set(['BLENDER_RENDER'])
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
         rd = context.scene.render_data
@@ -543,7 +530,7 @@ class RENDER_PT_stamp(RenderButtonsPanel):
         col.prop(rd, "stamp_camera", text="Camera")
         col.prop(rd, "stamp_filename", text="Filename")
         col.prop(rd, "stamp_marker", text="Marker")
-        col.prop(rd, "stamp_sequence_strip", text="Seq. Strip")
+        col.prop(rd, "stamp_sequencer_strip", text="Seq. Strip")
 
         if wide_ui:
             col = split.column()
@@ -568,7 +555,6 @@ bpy.types.register(RENDER_PT_dimensions)
 bpy.types.register(RENDER_PT_antialiasing)
 bpy.types.register(RENDER_PT_shading)
 bpy.types.register(RENDER_PT_output)
-bpy.types.register(RENDER_PT_QTencoding)
 bpy.types.register(RENDER_PT_encoding)
 bpy.types.register(RENDER_PT_performance)
 bpy.types.register(RENDER_PT_post_processing)

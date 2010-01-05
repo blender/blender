@@ -83,7 +83,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_sound.h"
 
 #include "BLI_editVert.h"
@@ -93,6 +93,8 @@
 #include "BLO_writefile.h" 
 
 #include "BKE_utildefines.h" // O_BINARY FALSE
+
+#include "WM_api.h" // XXXXX BAD, very BAD dependency (bad level call) - remove asap, elubie
 
 Global G;
 UserDef U;

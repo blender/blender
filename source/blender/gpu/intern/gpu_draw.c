@@ -34,6 +34,8 @@
 
 #include "GL/glew.h"
 
+#include "BLI_math.h"
+
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -856,6 +858,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPUMaterial *gpumat;
 	GPUBlendMode blendmode;
 	int a;
+	int gamma = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	
 	/* initialize state */
 	memset(&GMS, 0, sizeof(GMS));
@@ -930,6 +933,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 				GMS.matbuf[a][0][0]= ma->r;
 				GMS.matbuf[a][0][1]= ma->g;
 				GMS.matbuf[a][0][2]= ma->b;
+				if(gamma) linearrgb_to_srgb_v3_v3(&GMS.matbuf[a][0][0], &GMS.matbuf[a][0][0]);
 			} else {
 				GMS.matbuf[a][0][0]= (ma->ref+ma->emit)*ma->r;
 				GMS.matbuf[a][0][1]= (ma->ref+ma->emit)*ma->g;
@@ -939,6 +943,11 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 				GMS.matbuf[a][1][1]= ma->spec*ma->specg;
 				GMS.matbuf[a][1][2]= ma->spec*ma->specb;
 				GMS.matbuf[a][1][3]= 1.0;
+				
+				if(gamma) {
+					linearrgb_to_srgb_v3_v3(&GMS.matbuf[a][0][0], &GMS.matbuf[a][0][0]);
+					linearrgb_to_srgb_v3_v3(&GMS.matbuf[a][1][0], &GMS.matbuf[a][1][0]);
+				}
 			}
 
 			blendmode = (ma->alpha == 1.0f)? GPU_BLEND_SOLID: GPU_BLEND_ALPHA;
@@ -1267,9 +1276,11 @@ void GPU_state_init(void)
 	glDisable(GL_TEXTURE_1D);
 	glDisable(GL_TEXTURE_2D);
 
-	/* default on, disable/enable should be local per function */
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
+	/* default disabled, enable should be local per function */
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_NORMAL_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	
 	glPixelTransferi(GL_MAP_COLOR, GL_FALSE);
 	glPixelTransferi(GL_RED_SCALE, 1);

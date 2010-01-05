@@ -38,6 +38,8 @@ struct wmEventHandler;
 struct wmGesture;
 struct wmJob;
 struct wmNotifier;
+struct wmOperatorType;
+struct wmOperator;
 struct rcti;
 struct PointerRNA;
 struct EnumPropertyItem;
@@ -74,7 +76,7 @@ int			WM_write_homefile	(struct bContext *C, struct wmOperator *op);
 void		WM_read_file		(struct bContext *C, char *name, struct ReportList *reports);
 void		WM_write_file		(struct bContext *C, char *target, int fileflags, struct ReportList *reports);
 void		WM_read_autosavefile(struct bContext *C);
-void		WM_autosave_init	(struct bContext *C);
+void		WM_autosave_init	(struct wmWindowManager *wm);
 
 			/* mouse cursors */
 void		WM_cursor_set		(struct wmWindow *win, int curs);
@@ -104,14 +106,24 @@ wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap, char *idname, int type
 								 int val, int modifier, int keymodifier);
 wmKeyMapItem *WM_keymap_add_menu(struct wmKeyMap *keymap, char *idname, int type,
 								 int val, int modifier, int keymodifier);
+
 void         WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
 char		 *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len);
 
+wmKeyMap	*WM_keymap_list_find(ListBase *lb, char *idname, int spaceid, int regionid);
 wmKeyMap	*WM_keymap_find(struct wmKeyConfig *keyconf, char *idname, int spaceid, int regionid);
+wmKeyMap	*WM_keymap_find_all(const struct bContext *C, char *idname, int spaceid, int regionid);
 wmKeyMap	*WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap);
+wmKeyMap	*WM_keymap_guess_opname(const struct bContext *C, char *opname);
 int			 WM_keymap_user_init(struct wmWindowManager *wm, struct wmKeyMap *keymap);
 wmKeyMap	*WM_keymap_copy_to_user(struct wmKeyMap *keymap);
 void		WM_keymap_restore_to_default(struct wmKeyMap *keymap);
+void		WM_keymap_properties_reset(struct wmKeyMapItem *kmi);
+void		WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
+
+wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id);
+int			WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2);
+int			WM_userdef_event_map(int kmitype);
 
 wmKeyMap	*WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, struct EnumPropertyItem *items);
 wmKeyMap	*WM_modalkeymap_get(struct wmKeyConfig *keyconf, char *idname);
@@ -119,8 +131,8 @@ wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, in
 void		WM_modalkeymap_assign(struct wmKeyMap *km, char *opname);
 
 const char	*WM_key_event_string(short type);
+int			WM_key_event_operator_id(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, struct wmKeyMap **keymap_r);
 char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);
-void		WM_key_event_operator_change(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, short key, short modifier);
 
 			/* handlers */
 
@@ -167,6 +179,7 @@ int			WM_operator_winactive	(struct bContext *C);
 			/* invoke callback, exec + redo popup */
 int			WM_operator_props_popup	(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int			WM_operator_redo_popup	(struct bContext *C, struct wmOperator *op);
+void		WM_operator_ui_popup	(struct bContext *C, struct wmOperator *op, int width, int height);
 
 int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, char *message);
 
@@ -174,15 +187,16 @@ int			WM_operator_confirm_message(struct bContext *C, struct wmOperator *op, cha
 void		WM_operator_free		(struct wmOperator *op);
 void		WM_operator_stack_clear(struct bContext *C);
 
-wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
-wmOperatorType *WM_operatortype_exists(const char *idname);
-wmOperatorType *WM_operatortype_first(void);
-void		WM_operatortype_append	(void (*opfunc)(wmOperatorType*));
-void		WM_operatortype_append_ptr	(void (*opfunc)(wmOperatorType*, void *), void *userdata);
+struct wmOperatorType *WM_operatortype_find(const char *idnamem, int quiet);
+struct wmOperatorType *WM_operatortype_exists(const char *idname);
+struct wmOperatorType *WM_operatortype_first(void);
+void		WM_operatortype_append	(void (*opfunc)(struct wmOperatorType*));
+void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
+void		WM_operatortype_append_macro_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
 int			WM_operatortype_remove(const char *idname);
 
-wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag);
-wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname);
+struct wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag);
+struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname);
 
 
 int			WM_operator_poll		(struct bContext *C, struct wmOperatorType *ot);
@@ -193,9 +207,17 @@ int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int con
 
 void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
+void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type);
-void		WM_operator_properties_gesture_border(wmOperatorType *ot, int extend);
+void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int extend);
+void		WM_operator_properties_select_all(struct wmOperatorType *ot);
+
+/* MOVE THIS SOMEWHERE ELSE */
+#define	SEL_TOGGLE		0
+#define	SEL_SELECT		1
+#define SEL_DESELECT	2
+#define SEL_INVERT		3
 
 		/* operator as a python command (resultuing string must be free'd) */
 char		*WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args);
@@ -251,6 +273,7 @@ void		wmPopMatrix			(void);		/* one level only */
 void		wmFrustum			(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho				(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho2			(float x1, float x2, float y1, float y2);
+void		wmOrthoPixelSpace	(void);
 
 			/* utilities */
 void		WM_set_framebuffer_index_color(int index);

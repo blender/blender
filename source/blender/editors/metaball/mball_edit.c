@@ -189,49 +189,63 @@ MetaElem *add_metaball_primitive(bContext *C, int type, int newname)
 /***************************** Select/Deselect operator *****************************/
 
 /* Select or deselect all MetaElements */
-static int select_deselect_all_metaelems_exec(bContext *C, wmOperator *op)
+static int select_all_exec(bContext *C, wmOperator *op)
 {
 	//Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mb = (MetaBall*)obedit->data;
 	MetaElem *ml;
-	int any_sel= 0;
-	
-	/* Is any metaelem selected? */
+	int action = RNA_enum_get(op->ptr, "action");
+
 	ml= mb->editelems->first;
 	if(ml) {
-		while(ml) {
-			if(ml->flag & SELECT) break;
-			ml= ml->next;
+		if (action == SEL_TOGGLE) {
+			action = SEL_SELECT;
+			while(ml) {
+				if(ml->flag & SELECT) {
+					action = SEL_DESELECT;
+					break;
+				}
+				ml= ml->next;
+			}
 		}
-		if(ml) any_sel= 1;
 
 		ml= mb->editelems->first;
 		while(ml) {
-			if(any_sel) ml->flag &= ~SELECT;
-			else ml->flag |= SELECT;
+			switch (action) {
+			case SEL_SELECT:
+				ml->flag |= SELECT;
+				break;
+			case SEL_DESELECT:
+				ml->flag &= ~SELECT;
+				break;
+			case SEL_INVERT:
+				ml->flag ^= SELECT;
+				break;
+			}
 			ml= ml->next;
 		}
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, mb);
-		//DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	}
 
 	return OPERATOR_FINISHED;
 }
 
-void MBALL_OT_select_deselect_all_metaelems(wmOperatorType *ot)
+void MBALL_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect All";
-    ot->description= "(de)select all metaelements.";
-	ot->idname= "MBALL_OT_select_deselect_all_metaelems";
+    ot->description= "Change selection of all meta elements.";
+	ot->idname= "MBALL_OT_select_all";
 
 	/* callback functions */
-	ot->exec= select_deselect_all_metaelems_exec;
+	ot->exec= select_all_exec;
 	ot->poll= ED_operator_editmball;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;	
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }
 
 /***************************** Select inverse operator *****************************/
@@ -356,7 +370,7 @@ static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	if (retv == OPERATOR_FINISHED) {
 		RNA_int_set(op->ptr, "mode", TFM_TRANSLATION);
-		WM_operator_name_call(C, "TFM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
+		WM_operator_name_call(C, "TRANSFORM_OT_transform", WM_OP_INVOKE_REGION_WIN, op->ptr);
 	}
 	
 	return retv;
@@ -517,7 +531,7 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 
 /* Select MetaElement with mouse click (user can select radius circle or
  * stiffness circle) */
-void mouse_mball(bContext *C, short mval[2], int extend)
+int mouse_mball(bContext *C, short mval[2], int extend)
 {
 	static MetaElem *startelem=NULL;
 	Object *obedit= CTX_data_edit_object(C);
@@ -588,8 +602,12 @@ void mouse_mball(bContext *C, short mval[2], int extend)
 			mb->lastelem= act;
 			
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, mb);
+
+			return 1;
 		}
 	}
+
+	return 0;
 }
 
 

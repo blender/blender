@@ -44,6 +44,8 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
+#include "RNA_access.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -1693,6 +1695,17 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	uiWidgetBase wtb;
 	float rad= 0.5f*(rect->xmax - rect->xmin);
 	float x, y;
+	float v = but->hsv[2];
+	int color_profile = but->block->color_profile;
+	
+	if (but->rnaprop) {
+		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
+			color_profile = BLI_PR_NONE;
+		}
+	}
+
+	if (color_profile)
+		v = linearrgb_to_srgb(v);
 	
 	widget_init(&wtb);
 	
@@ -1709,8 +1722,8 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	widgetbase_draw(&wtb, &wcol_tmp);
 
 	/* cursor */
-	x= rect->xmin + 0.5f*(rect->xmax-rect->xmin);
-	y= rect->ymin + but->hsv[2]*(rect->ymax-rect->ymin);
+	x= rect->xmin + 0.5f * (rect->xmax-rect->xmin);
+	y= rect->ymin + v * (rect->ymax-rect->ymin);
 	CLAMP(y, rect->ymin+3.0, rect->ymax-3.0);
 	
 	ui_hsv_cursor(x, y);
@@ -2005,6 +2018,12 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 {
 	uiWidgetBase wtb;
 	float col[4];
+	int color_profile = but->block->color_profile;
+	
+	if (but->rnaprop) {
+		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+			color_profile = BLI_PR_NONE;
+	}
 	
 	widget_init(&wtb);
 	
@@ -2012,6 +2031,10 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	round_box_edges(&wtb, roundboxalign, rect, 5.0f);
 		
 	ui_get_but_vectorf(but, col);
+	
+	if (color_profile)
+		linearrgb_to_srgb_v3_v3(col, col);
+	
 	wcol->inner[0]= FTOCHAR(col[0]);
 	wcol->inner[1]= FTOCHAR(col[1]);
 	wcol->inner[2]= FTOCHAR(col[2]);

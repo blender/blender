@@ -71,7 +71,7 @@ typedef struct PartDeflect {
 	float f_flow;		/* How much force is converted into "air flow", i.e.	*/
 						/* force used as the velocity of surrounding medium.	*/
 
-	float f_size;
+	float f_size;		/* Noise size for noise effector, restlength for harmonic effector */
 
 	/* fall-off */
 	float f_power;		/* The power law - real gravitation is 2 (square)	*/
@@ -320,6 +320,7 @@ typedef struct SoftBody {
 #define PFIELD_TEX_OBJECT		64
 #define PFIELD_GLOBAL_CO		64			/* used for turbulence */
 #define PFIELD_TEX_2D			128
+#define PFIELD_MULTIPLE_SPRINGS	128			/* used for harmonic force */
 #define PFIELD_USEMIN			256
 #define PFIELD_USEMAXR			512
 #define PFIELD_USEMINR			1024

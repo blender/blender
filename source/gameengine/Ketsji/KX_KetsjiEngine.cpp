@@ -1310,9 +1310,6 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	scene->RunDrawingCallbacks(scene->GetPreDrawCB());
 
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
-
-	// Run any post-drawing python callbacks
-	scene->RunDrawingCallbacks(scene->GetPostDrawCB());
 	
 	if (scene->GetPhysicsEnvironment())
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
@@ -1321,6 +1318,9 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 
 	//it's running once for every scene (i.e. overlay scenes have  it running twice). That's not the ideal.
 	PostRenderFrame();
+
+	// Run any post-drawing python callbacks
+	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
 }
 
 void KX_KetsjiEngine::PostRenderFrame()

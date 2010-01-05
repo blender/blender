@@ -93,8 +93,10 @@ void disable_speed_curve(int val);
 float bsystem_time(struct Scene *scene, struct Object *ob, float cfra, float ofs);
 void object_scale_to_mat3(struct Object *ob, float mat[][3]);
 void object_rot_to_mat3(struct Object *ob, float mat[][3]);
+void object_mat3_to_rot(struct Object *ob, float mat[][3], int use_compat);
 void object_to_mat3(struct Object *ob, float mat[][3]);
 void object_to_mat4(struct Object *ob, float mat[][4]);
+void object_apply_mat4(struct Object *ob, float mat[][4]);
 
 void set_no_parent_ipo(int val);
 

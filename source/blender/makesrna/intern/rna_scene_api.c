@@ -44,16 +44,17 @@
 #include "BKE_depsgraph.h"
 
 #include "ED_object.h"
+#include "ED_anim_api.h"
 
 #include "WM_api.h"
 
-static void rna_Scene_set_frame(Scene *sce, bContext *C, int frame)
+static void rna_Scene_set_frame(Scene *scene, bContext *C, int frame)
 {
-	sce->r.cfra= frame;
-	CLAMP(sce->r.cfra, MINAFRAME, MAXFRAME);
-	scene_update_for_newframe(sce, (1<<20) - 1);
+	scene->r.cfra= frame;
+	CLAMP(scene->r.cfra, MINAFRAME, MAXFRAME);
+	scene_update_for_newframe(scene, (1<<20) - 1);
 
-	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, sce);
+	WM_main_add_notifier(NC_SCENE|ND_FRAME, scene);
 }
 
 static KeyingSet *rna_Scene_add_keying_set(Scene *sce, ReportList *reports, 

@@ -40,6 +40,8 @@
 
 #include <string.h>
 #include "GHOST_WindowWin32.h"
+#include "GHOST_SystemWin32.h"
+#include "GHOST_DropTargetWin32.h"
 #include <GL/gl.h>
 #include <math.h>
 
@@ -95,6 +97,7 @@ static PIXELFORMATDESCRIPTOR sPreferredFormat = {
 };
 
 GHOST_WindowWin32::GHOST_WindowWin32(
+	GHOST_SystemWin32 * system,
 	const STR_String& title,
 	GHOST_TInt32 left,
 	GHOST_TInt32 top,
@@ -106,6 +109,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 :
 	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone,
 	stereoVisual),
+	m_system(system),
 	m_hDC(0),
 	m_hGlRc(0),
 	m_hasMouseCaptured(false),
@@ -167,6 +171,9 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 			0);							// pointer to window-creation data
 	}
 	if (m_hWnd) {
+		// Register this window as a droptarget. Requires m_hWnd to be valid.
+		// Note that OleInitialize(0) has to be called prior to this. Done in GHOST_SystemWin32.
+		m_dropTarget = new GHOST_DropTargetWin32(this, m_system);
 		// Store a pointer to this class in the window structure
 		::SetWindowLongPtr(m_hWnd, GWL_USERDATA, (LONG_PTR)this);
 
@@ -275,6 +282,7 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 		m_hDC = 0;
 	}
 	if (m_hWnd) {
+		m_dropTarget->Release(); // frees itself.
 		::DestroyWindow(m_hWnd);
 		m_hWnd = 0;
 	}
@@ -285,6 +293,10 @@ bool GHOST_WindowWin32::getValid() const
 	return m_hWnd != 0;
 }
 
+HWND GHOST_WindowWin32::getHWND() const
+{
+	return m_hWnd;
+}
 
 void GHOST_WindowWin32::setTitle(const STR_String& title)
 {
@@ -663,6 +675,41 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorVisibility(bool visible)
 	return GHOST_kSuccess;
 }
 
+GHOST_TSuccess GHOST_WindowWin32::setWindowCursorGrab(GHOST_TGrabCursorMode mode)
+{
+	if(mode != GHOST_kGrabDisable) {
+		if(mode != GHOST_kGrabNormal) {
+			m_system->getCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
+			setCursorGrabAccum(0, 0);
+
+			if(mode == GHOST_kGrabHide)
+				setWindowCursorVisibility(false);
+		}
+		registerMouseClickEvent(true);
+	}
+	else {
+		if (m_cursorGrab==GHOST_kGrabHide) {
+			m_system->setCursorPosition(m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
+			setWindowCursorVisibility(true);
+		}
+		if(m_cursorGrab != GHOST_kGrabNormal) {
+			/* use to generate a mouse move event, otherwise the last event
+			 * blender gets can be outside the screen causing menus not to show
+			 * properly unless the user moves the mouse */
+			 GHOST_TInt32 pos[2];
+			 m_system->getCursorPosition(pos[0], pos[1]);
+			 m_system->setCursorPosition(pos[0], pos[1]);
+		}
+
+		/* Almost works without but important otherwise the mouse GHOST location can be incorrect on exit */
+		setCursorGrabAccum(0, 0);
+		m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1; /* disable */
+		registerMouseClickEvent(false);
+	}
+	
+	return GHOST_kSuccess;
+}
+
 GHOST_TSuccess GHOST_WindowWin32::setWindowCursorShape(GHOST_TStandardCursor cursorShape)
 {
 	if (m_customCursor) {
@@ -676,6 +723,7 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorShape(GHOST_TStandardCursor cur
 
 	return GHOST_kSuccess;
 }
+
 void GHOST_WindowWin32::processWin32TabletInitEvent()
 {
 	if (m_wintab) {

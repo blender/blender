@@ -21,8 +21,9 @@
 # for slightly faster access
 from _bpy import ops as ops_module
 
-op_add = ops_module.add
+# op_add = ops_module.add
 op_remove = ops_module.remove
+op_add_macro = ops_module.add_macro
 op_dir = ops_module.dir
 op_call = ops_module.call
 op_as_string = ops_module.as_string
@@ -58,6 +59,9 @@ class bpy_ops(object):
 
     def add(self, pyop):
         op_add(pyop)
+
+    def add_macro(self, pyop):
+        op_add_macro(pyop)
 
     def remove(self, pyop):
         op_remove(pyop)
@@ -129,7 +133,6 @@ class bpy_ops_submodule_op(object):
     '''
 
     __keys__ = ('module', 'func')
-
 
     def _get_doc(self):
         return op_as_string(self.idname())

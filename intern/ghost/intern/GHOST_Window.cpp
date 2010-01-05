@@ -109,6 +109,8 @@ GHOST_TSuccess GHOST_Window::setCursorGrab(GHOST_TGrabCursorMode mode, GHOST_Rec
 			m_cursorGrabBounds.m_l= m_cursorGrabBounds.m_r= -1;
 		else if (bounds) {
 			m_cursorGrabBounds= *bounds;
+		} else { /* if bounds not defined, use window */
+			getClientBounds(m_cursorGrabBounds);
 		}
 		m_cursorGrab = mode;
 		return GHOST_kSuccess;

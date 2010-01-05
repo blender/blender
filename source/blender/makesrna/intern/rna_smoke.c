@@ -49,33 +49,33 @@
 
 #include "ED_object.h"
 
-static void rna_Smoke_update(bContext *C, PointerRNA *ptr)
+static void rna_Smoke_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA);
 }
 
-static void rna_Smoke_dependency_update(bContext *C, PointerRNA *ptr)
+static void rna_Smoke_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	rna_Smoke_update(C, ptr);
-    DAG_scene_sort(CTX_data_scene(C));
+	rna_Smoke_update(bmain, scene, ptr);
+    DAG_scene_sort(scene);
 }
 
-static void rna_Smoke_reset(bContext *C, PointerRNA *ptr)
+static void rna_Smoke_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SmokeDomainSettings *settings = (SmokeDomainSettings*)ptr->data;
 
 	smokeModifier_reset(settings->smd);
 
-	rna_Smoke_update(C, ptr);
+	rna_Smoke_update(bmain, scene, ptr);
 }
 
-static void rna_Smoke_reset_dependancy(bContext *C, PointerRNA *ptr)
+static void rna_Smoke_reset_dependancy(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SmokeDomainSettings *settings = (SmokeDomainSettings*)ptr->data;
 
 	smokeModifier_reset(settings->smd);
 
-	rna_Smoke_dependency_update(C, ptr);
+	rna_Smoke_dependency_update(bmain, scene, ptr);
 }
 
 static char *rna_SmokeDomainSettings_path(PointerRNA *ptr)

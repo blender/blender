@@ -468,8 +468,8 @@ void ui_draw_but_IMAGE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	extern char datatoc_splash_png[];
 	extern int datatoc_splash_png_size;
 	ImBuf *ibuf;
-	GLint scissor[4];
-	int w, h;
+	//GLint scissor[4];
+	//int w, h;
 	
 	/* hardcoded to splash, loading and freeing every draw, eek! */
 	ibuf= IMB_ibImageFromMemory((int *)datatoc_splash_png, datatoc_splash_png_size, IB_rect);
@@ -698,7 +698,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	float x1, y1, sizex, sizey;
 	float dx, v3[2], v1[2], v2[2], v1a[2], v2a[2];
 	int a;
-	float pos, colf[4];
+	float pos, colf[4]= {0,0,0,0}; /* initialize incase the colorband isnt valid */
 		
 	coba= (ColorBand *)(but->editcoba? but->editcoba: but->poin);
 	if(coba==NULL) return;
@@ -736,6 +736,8 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	for( a = 1; a < sizex; a++ ) {
 		pos = ((float)a) / (sizex-1);
 		do_colorband( coba, pos, colf );
+		if (but->block->color_profile != BLI_PR_NONE)
+			linearrgb_to_srgb_v3_v3(colf, colf);
 		
 		v1[0]=v2[0]= x1 + a;
 		

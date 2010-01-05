@@ -37,8 +37,9 @@ CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
-CPPFLAGS += -I$(NAN_STRING)/include    
+CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_MOTO)/include
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../kernel/gen_system
 CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I../SceneGraph
@@ -48,7 +49,7 @@ CPPFLAGS += -I../Expressions
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
 ifeq ($(OS),darwin)
-	CPPFLAGS += -fpascal-strings
+    CPPFLAGS += -fpascal-strings
 endif
 
 ###############

@@ -34,6 +34,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -41,6 +42,9 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
+
+#include "GHOST_C-api.h"
 
 #include "ED_screen.h"
 
@@ -72,13 +76,25 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 
 		if(screen->subwinactive == ar->swinid) {
 			for(pc= wm->paintcursors.first; pc; pc= pc->next) {
-				if(pc->poll(C)) {
+				if(pc->poll == NULL || pc->poll(C)) {
 					ARegion *ar= CTX_wm_region(C);
-					pc->draw(C, win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin, pc->customdata);
+					if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
+						int x = 0, y = 0;
+						wm_get_cursor_position(win, &x, &y);
+						pc->draw(C, x - ar->winrct.xmin, y - ar->winrct.ymin, pc->customdata);
+					} else {
+						pc->draw(C, win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin, pc->customdata);
+					}
 				}
 			}
 		}
 	}
+}
+
+static void wm_area_mark_invalid_backbuf(ScrArea *sa)
+{
+	if(sa->spacetype == SPACE_VIEW3D)
+		((View3D*)sa->spacedata.first)->flag |= V3D_INVALID_BACKBUF;
 }
 
 /********************** draw all **************************/
@@ -104,6 +120,7 @@ static void wm_method_draw_full(bContext *C, wmWindow *win)
 			}
 		}
 		
+		wm_area_mark_invalid_backbuf(sa);
 		CTX_wm_area_set(C, NULL);
 	}
 
@@ -221,6 +238,7 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win)
 			}
 		}
 		
+		wm_area_mark_invalid_backbuf(sa);
 		CTX_wm_area_set(C, NULL);
 	}
 
@@ -544,6 +562,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 			}
 		}
 		
+		wm_area_mark_invalid_backbuf(sa);
 		CTX_wm_area_set(C, NULL);
 	}
 
@@ -566,7 +585,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		}
 	}
 
-	if(win->screen->do_draw_gesture)
+	if(screen->do_draw_gesture)
 		wm_gesture_draw(win);
 
 	if(wm->paintcursors.first) {

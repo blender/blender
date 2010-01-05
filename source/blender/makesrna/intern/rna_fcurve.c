@@ -34,7 +34,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_sound_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -50,7 +49,6 @@ EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},
 	{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},
 	{FMODIFIER_TYPE_LIMITS, "LIMITS", 0, "Limits", ""},
-	{FMODIFIER_TYPE_SOUND, "SOUND", 0, "Sound", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -78,8 +76,6 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 			return &RNA_FModifierPython;
 		case FMODIFIER_TYPE_LIMITS:
 			return &RNA_FModifierLimits;
-		case FMODIFIER_TYPE_SOUND:
-			return &RNA_FModifierSound;
 		default:
 			return &RNA_UnknownType;
 	}
@@ -89,16 +85,46 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 
 #include "BKE_fcurve.h"
 #include "BKE_depsgraph.h"
+#include "BKE_animsys.h"
 
-static void rna_ChannelDriver_update_data(bContext *C, PointerRNA *ptr)
+static void rna_ChannelDriver_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id= ptr->id.data;
+	ChannelDriver *driver= ptr->data;
+
+	driver->flag &= ~DRIVER_FLAG_INVALID;
 	
 	// TODO: this really needs an update guard...
-	DAG_scene_sort(CTX_data_scene(C));
-	DAG_id_flush_update(id, OB_RECALC_DATA);
+	DAG_scene_sort(scene);
+	DAG_id_flush_update(id, OB_RECALC_OB|OB_RECALC_DATA);
 	
-	WM_event_add_notifier(C, NC_SCENE, id);
+	WM_main_add_notifier(NC_SCENE|ND_FRAME, scene);
+}
+
+static void rna_ChannelDriver_update_expr(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	ChannelDriver *driver= ptr->data;
+	driver->flag |= DRIVER_FLAG_RECOMPILE;
+	rna_ChannelDriver_update_data(bmain, scene, ptr);
+}
+
+static void rna_DriverTarget_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	PointerRNA driverptr;
+	ChannelDriver *driver;
+	FCurve *fcu;
+	AnimData *adt= BKE_animdata_from_id(ptr->id.data);
+
+	/* find the driver this belongs to and update it */
+	for(fcu=adt->drivers.first; fcu; fcu=fcu->next) {
+		driver= fcu->driver;
+
+		if(driver && BLI_findindex(&driver->targets, ptr->data) != -1) {
+			RNA_pointer_create(ptr->id.data, &RNA_Driver, driver, &driverptr);
+			rna_ChannelDriver_update_data(bmain, scene, &driverptr);
+			return;
+		}
+	}
 }
 
 /* ----------- */
@@ -229,6 +255,57 @@ static int rna_FCurve_modifiers_remove(FCurve *fcu, bContext *C, int index)
 	return remove_fmodifier_index(&fcu->modifiers, index);
 }
 
+static void rna_FModifier_active_set(PointerRNA *ptr, int value)
+{
+	FModifier *fm= (FModifier*)ptr->data;
+
+	/* don't toggle, always switch on */
+	fm->flag |= FMODIFIER_FLAG_ACTIVE;
+}
+
+static void rna_FModifier_active_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	FModifier *fm, *fmo= (FModifier*)ptr->data;
+
+	/* clear active state of other FModifiers in this list */
+	for (fm=fmo->prev; fm; fm=fm->prev)
+	{
+		fm->flag &= ~FMODIFIER_FLAG_ACTIVE;
+	}
+	for (fm=fmo->next; fm; fm=fm->next)
+	{
+		fm->flag &= ~FMODIFIER_FLAG_ACTIVE;
+	}
+	
+}
+
+static int rna_FModifierGenerator_coefficients_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+{
+	FModifier *fcm= (FModifier*)ptr->data;
+	FMod_Generator *gen= fcm->data;
+
+	if(gen)
+		length[0]= gen->arraysize;
+	else
+		length[0]= 100; /* for raw_access, untested */
+
+	return length[0];
+}
+
+static void rna_FModifierGenerator_coefficients_get(PointerRNA *ptr, float *values)
+{
+	FModifier *fcm= (FModifier*)ptr->data;
+	FMod_Generator *gen= fcm->data;
+	memcpy(values, gen->coefficients, gen->arraysize * sizeof(float));
+}
+
+static void rna_FModifierGenerator_coefficients_set(PointerRNA *ptr, const float *values)
+{
+	FModifier *fcm= (FModifier*)ptr->data;
+	FMod_Generator *gen= fcm->data;
+	memcpy(gen->coefficients, values, gen->arraysize * sizeof(float));
+}
+
 #else
 
 static void rna_def_fmodifier_generator(BlenderRNA *brna)
@@ -265,10 +342,12 @@ static void rna_def_fmodifier_generator(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	/* coefficients array */
-		// FIXME: this is quite difficult to try to wrap
-	//prop= RNA_def_property(srna, "coefficients", PROP_COLLECTION, PROP_NONE);
-	//RNA_def_property_collection_funcs(prop, "rna_FModifierGenerator_coefficients_begin", "rna_FModifierGenerator_coefficients_next", "rna_FModifierGenerator_coefficients_end", "rna_iterator_array_get", "rna_FModifierGenerator_coefficients_length", 0, 0, 0, 0);
-	//RNA_def_property_ui_text(prop, "Coefficients", "Coefficients for 'x' (starting from lowest power of x^0).");
+	prop= RNA_def_property(srna, "coefficients", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_array(prop, 32);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_FModifierGenerator_coefficients_get_length");
+	RNA_def_property_float_funcs(prop, "rna_FModifierGenerator_coefficients_get", "rna_FModifierGenerator_coefficients_set", NULL);
+	RNA_def_property_ui_text(prop, "Coefficients", "Coefficients for 'x' (starting from lowest power of x^0).");
 }
 
 /* --------- */
@@ -539,46 +618,6 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
 
 /* --------- */
 
-static void rna_def_fmodifier_sound(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	static EnumPropertyItem prop_modification_items[] = {
-		{FCM_SOUND_MODIF_REPLACE, "REPLACE", 0, "Replace", ""},
-		{FCM_SOUND_MODIF_ADD, "ADD", 0, "Add", ""},
-		{FCM_SOUND_MODIF_SUBTRACT, "SUBTRACT", 0, "Subtract", ""},
-		{FCM_SOUND_MODIF_MULTIPLY, "MULTIPLY", 0, "Multiply", ""},
-		{0, NULL, 0, NULL, NULL}};
-
-	srna= RNA_def_struct(brna, "FModifierSound", "FModifier");
-	RNA_def_struct_ui_text(srna, "Sound F-Modifier", "Modifies an F-Curve based on the amplitudes in a sound.");
-	RNA_def_struct_sdna_from(srna, "FMod_Sound", "data");
-
-	prop= RNA_def_property(srna, "modification", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, prop_modification_items);
-	RNA_def_property_ui_text(prop, "Modification", "Method of modifying the existing F-Curve.");
-	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
-
-	prop= RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "strength");
-	RNA_def_property_ui_text(prop, "Strength", "Amplitude of the sound - the amount that it modifies the underlying curve");
-	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
-
-	prop= RNA_def_property(srna, "delay", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "delay");
-	RNA_def_property_ui_text(prop, "delay", "The delay before the sound curve modification should start");
-	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
-
-	prop= RNA_def_property(srna, "sound", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Sound");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Sound", "Sound datablock used by this modifier.");
-
-}
-
-/* --------- */
-
 static void rna_def_fmodifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -606,12 +645,13 @@ static void rna_def_fmodifier(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_EXPANDED);
 	RNA_def_property_ui_text(prop, "Expanded", "F-Curve Modifier's panel is expanded in UI.");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 	
 	prop= RNA_def_property(srna, "muted", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_MUTED);
 	RNA_def_property_ui_text(prop, "Muted", "F-Curve Modifier will not be evaluated.");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+	RNA_def_property_ui_icon(prop, ICON_MUTE_IPO_OFF, 1);
 	
 		// XXX this is really an internal flag, but it may be useful for some tools to be able to access this...
 	prop= RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
@@ -624,7 +664,9 @@ static void rna_def_fmodifier(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FMODIFIER_FLAG_ACTIVE);
 	RNA_def_property_ui_text(prop, "Active", "F-Curve Modifier is the one being edited ");
-	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, NULL);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_FModifier_active_set");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_PROP, "rna_FModifier_active_update");
+	RNA_def_property_ui_icon(prop, ICON_RADIOBUT_OFF, 1);
 }	
 
 /* *********************** */
@@ -641,7 +683,7 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_ui_text(prop, "Name", "Name to use in scripted expressions/functions. (No spaces or dots are allowed. Also, must not start with a symbol or digit)");
-	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
+	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
 	/* Target Properties - ID-block to Drive */
 	prop= RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
@@ -649,8 +691,8 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_editable_func(prop, "rna_DriverTarget_id_editable");
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, "rna_DriverTarget_id_typef");
-	RNA_def_property_ui_text(prop, "ID", "ID-block that the specific property used can be found from");
-	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
+	RNA_def_property_ui_text(prop, "ID", "ID-block that the specific property used can be found from (id_type property must be set first)");
+	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
 	prop= RNA_def_property(srna, "id_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "idtype");
@@ -658,17 +700,17 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_enum_default(prop, ID_OB);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_DriverTarget_id_type_set", NULL);
 	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used.");
-	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
+	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
 	/* Target Properties - Property to Drive */
-	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "data_path", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_DriverTarget_RnaPath_get", "rna_DriverTarget_RnaPath_length", "rna_DriverTarget_RnaPath_set");
-	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path (from Object) to property used");
-	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
+	RNA_def_property_ui_text(prop, "Data Path", "RNA Path (from Object) to property used");
+	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific property used (if applicable)");
-	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
+	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 }
 
 
@@ -710,6 +752,7 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	
 	static EnumPropertyItem prop_type_items[] = {
 		{DRIVER_TYPE_AVERAGE, "AVERAGE", 0, "Averaged Value", ""},
+		{DRIVER_TYPE_SUM, "SUM", 0, "Sum Values", ""},
 		{DRIVER_TYPE_PYTHON, "SCRIPTED", 0, "Scripted Expression", ""},
 		{DRIVER_TYPE_ROTDIFF, "ROTDIFF", 0, "Rotational Difference", ""},
 		{0, NULL, 0, NULL, NULL}};
@@ -727,7 +770,7 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	/* String values */
 	prop= RNA_def_property(srna, "expression", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Expression", "Expression to use for Scripted Expression.");
-	//RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_data"); // XXX disabled for now, until we can turn off auto updates
+	RNA_def_property_update(prop, 0, "rna_ChannelDriver_update_expr");
 
 	/* Collections */
 	prop= RNA_def_property(srna, "targets", PROP_COLLECTION, PROP_NONE);
@@ -763,10 +806,9 @@ static void rna_def_fpoint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
 }
 
-/* channeldriver.targets.* */
 static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 {
-	/* add target */
+	/* add modifiers */
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -776,7 +818,7 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "FCurveModifiers");
 	srna= RNA_def_struct(brna, "FCurveModifiers", NULL);
 	RNA_def_struct_sdna(srna, "FCurve");
-	RNA_def_struct_ui_text(srna, "FCurve Modifiers", "Collection of fcurve modifiers.");
+	RNA_def_struct_ui_text(srna, "F-Curve Modifiers", "Collection of F-Curve Modifiers.");
 
 
 	/* Collection active property */
@@ -784,8 +826,7 @@ static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_struct_type(prop, "FModifier");
 	RNA_def_property_pointer_funcs(prop, "rna_FCurve_active_modifier_get", "rna_FCurve_active_modifier_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Active fcurve modifier", "Active fcurve modifier.");
-
+	RNA_def_property_ui_text(prop, "Active F-Curve Modifier", "Active F-Curve Modifier.");
 
 	/* Constraint collection */
 	func= RNA_def_function(srna, "new", "rna_FCurve_modifiers_new");
@@ -833,28 +874,38 @@ static void rna_def_fcurve(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "extend");
 	RNA_def_property_enum_items(prop, prop_mode_extend_items);
 	RNA_def_property_ui_text(prop, "Extrapolation", "");
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);	// XXX need an update callback for this so that animation gets evaluated
 
 	/* Pointers */
 	prop= RNA_def_property(srna, "driver", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Driver", "Channel Driver (only set for Driver F-Curves)");
 	
+	prop= RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "grp");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX this is not editable for now, since editing this will easily break the visible hierarchy
+	RNA_def_property_ui_text(prop, "Group", "Action Group that this F-Curve belongs to.");
+	
 	/* Path + Array Index */
-	prop= RNA_def_property(srna, "rna_path", PROP_STRING, PROP_NONE);
+	prop= RNA_def_property(srna, "data_path", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_FCurve_RnaPath_get", "rna_FCurve_RnaPath_length", "rna_FCurve_RnaPath_set");
-	RNA_def_property_ui_text(prop, "RNA Path", "RNA Path to property affected by F-Curve.");
+	RNA_def_property_ui_text(prop, "Data Path", "RNA Path to property affected by F-Curve.");
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);	// XXX need an update callback for this to that animation gets evaluated
 	
 	prop= RNA_def_property(srna, "array_index", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "RNA Array Index", "Index to the specific property affected by F-Curve if applicable.");
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);	// XXX need an update callback for this so that animation gets evaluated
 	
 	/* Color */
 	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_mode_color_items);
 	RNA_def_property_ui_text(prop, "Color Mode", "Method used to determine color of F-Curve in Graph Editor.");
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);	
 	
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Color", "Color of the F-Curve in the Graph Editor.");
+	RNA_def_property_update(prop, NC_ANIMATION, NULL);	
 	
 	/* Collections */
 	prop= RNA_def_property(srna, "sampled_points", PROP_COLLECTION, PROP_NONE);
@@ -864,7 +915,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "keyframe_points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bezt", "totvert");
-	RNA_def_property_struct_type(prop, "BezierCurvePoint");
+	RNA_def_property_struct_type(prop, "BezierSplinePoint");
 	RNA_def_property_ui_text(prop, "Keyframes", "User-editable keyframes");
 	
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
@@ -894,7 +945,6 @@ void RNA_def_fcurve(BlenderRNA *brna)
 	rna_def_fmodifier_python(brna);
 	rna_def_fmodifier_limits(brna);
 	rna_def_fmodifier_noise(brna);
-	rna_def_fmodifier_sound(brna);
 }
 
 

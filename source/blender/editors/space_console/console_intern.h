@@ -51,28 +51,28 @@ ConsoleLine *console_history_verify(const struct bContext *C);
 int console_report_mask(SpaceConsole *sc);
 
 
-void CONSOLE_OT_move(wmOperatorType *ot);
-void CONSOLE_OT_delete(wmOperatorType *ot);
-void CONSOLE_OT_insert(wmOperatorType *ot);
+void CONSOLE_OT_move(struct wmOperatorType *ot);
+void CONSOLE_OT_delete(struct wmOperatorType *ot);
+void CONSOLE_OT_insert(struct wmOperatorType *ot);
 
-void CONSOLE_OT_history_append(wmOperatorType *ot);
-void CONSOLE_OT_scrollback_append(wmOperatorType *ot);
+void CONSOLE_OT_history_append(struct wmOperatorType *ot);
+void CONSOLE_OT_scrollback_append(struct wmOperatorType *ot);
 
-void CONSOLE_OT_clear(wmOperatorType *ot);
-void CONSOLE_OT_history_cycle(wmOperatorType *ot);
-void CONSOLE_OT_copy(wmOperatorType *ot);
-void CONSOLE_OT_paste(wmOperatorType *ot);
-void CONSOLE_OT_zoom(wmOperatorType *ot);
+void CONSOLE_OT_clear(struct wmOperatorType *ot);
+void CONSOLE_OT_history_cycle(struct wmOperatorType *ot);
+void CONSOLE_OT_copy(struct wmOperatorType *ot);
+void CONSOLE_OT_paste(struct wmOperatorType *ot);
+void CONSOLE_OT_zoom(struct wmOperatorType *ot);
 
 
 /* console_report.c */
-void CONSOLE_OT_select_pick(wmOperatorType *ot); /* report selection */
-void CONSOLE_OT_select_all_toggle(wmOperatorType *ot);
-void CONSOLE_OT_select_border(wmOperatorType *ot);
+void CONSOLE_OT_select_pick(struct wmOperatorType *ot); /* report selection */
+void CONSOLE_OT_select_all_toggle(struct wmOperatorType *ot);
+void CONSOLE_OT_select_border(struct wmOperatorType *ot);
 
-void CONSOLE_OT_report_replay(wmOperatorType *ot);
-void CONSOLE_OT_report_delete(wmOperatorType *ot);
-void CONSOLE_OT_report_copy(wmOperatorType *ot);
+void CONSOLE_OT_report_replay(struct wmOperatorType *ot);
+void CONSOLE_OT_report_delete(struct wmOperatorType *ot);
+void CONSOLE_OT_report_copy(struct wmOperatorType *ot);
 
 
 

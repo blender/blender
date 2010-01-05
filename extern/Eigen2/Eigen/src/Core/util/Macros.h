@@ -39,7 +39,7 @@
 // 16 byte alignment is only useful for vectorization. Since it affects the ABI, we need to enable 16 byte alignment on all
 // platforms where vectorization might be enabled. In theory we could always enable alignment, but it can be a cause of problems
 // on some platforms, so we just disable it in certain common platform (compiler+architecture combinations) to avoid these problems.
-#if defined(__GNUC__) && !(defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || defined(__ia64__))
+#if defined(__GNUC__) && !(defined(__i386__) || defined(__x86_64__) || defined(__powerpc__) || defined(__ia64__) || defined(__ppc__))
 #define EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT 1
 #else
 #define EIGEN_GCC_AND_ARCH_DOESNT_WANT_ALIGNMENT 0

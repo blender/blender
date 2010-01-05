@@ -21,7 +21,7 @@ extern "C"
 {
 #include "BKE_DerivedMesh.h"
 #include "BKE_fcurve.h"
-#include "BLI_util.h"
+#include "BLI_path_util.h"
 #include "BLI_fileops.h"
 #include "ED_keyframing.h"
 }
@@ -673,7 +673,7 @@ protected:
 			copy_m4_m4(local, mat);
 		}
 
-		TransformBase::decompose(local, loc, rot, size);
+		TransformBase::decompose(local, loc, rot, NULL, size);
 		
 		/*
 		// this code used to create a single <rotate> representing object rotation

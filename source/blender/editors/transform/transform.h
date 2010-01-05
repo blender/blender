@@ -32,6 +32,8 @@
 
 #include "ED_transform.h"
 
+#include "DNA_listBase.h"
+
 #include "BLI_editVert.h"
 #include "BKE_tessmesh.h"
 
@@ -52,6 +54,8 @@ struct BezTriple;
 struct wmOperatorType;
 struct wmOperator;
 struct wmWindowManager;
+struct wmKeyMap;
+struct wmKeyConfig;
 struct bContext;
 struct wmEvent;
 struct wmTimer;
@@ -83,17 +87,25 @@ typedef struct NumInput {
 		Negative	: number is negative
 */
 
+typedef struct TransSnapPoint {
+	struct TransSnapPoint *next,*prev;
+	float co[3];
+} TransSnapPoint;
+
 typedef struct TransSnap {
-	short	modePoint;
-	short	modeTarget;
 	short	mode;
+	short	target;
+	short	modePoint;
+	short	modeSelect;
 	short	align;
 	short	project;
+	short	peel;
 	short  	status;
 	float	snapPoint[3]; /* snapping from this point */
 	float	snapTarget[3]; /* to this point */
 	float	snapNormal[3];
 	float	snapTangent[3];
+	ListBase points;
 	float	dist; // Distance from snapPoint to snapTarget
 	double	last;
 	void  (*applySnap)(struct TransInfo *, float *);
@@ -103,6 +115,7 @@ typedef struct TransSnap {
 } TransSnap;
 
 typedef struct TransCon {
+	short orientation;	 /**/
     char  text[50];      /* Description of the Constraint for header_print                            */
     float mtx[3][3];     /* Matrix of the Constraint space                                            */
     float imtx[3][3];    /* Inverse Matrix of the Constraint space                                    */
@@ -302,9 +315,10 @@ typedef struct TransInfo {
 	void  	  (*customFree)(struct TransInfo *); /* if a special free function is needed */
 
 	/*************** NEW STUFF *********************/
-	short		launch_event; /* event type used to launch transform */
+	short		launch_event; 	/* event type used to launch transform */
 
 	short		current_orientation;
+	short		twtype;			/* backup from view3d, to restore on end */
 
 	short		prop_mode;
 	
@@ -322,6 +336,7 @@ typedef struct TransInfo {
     struct Object   *obedit;
     void		*draw_handle_view;
     void		*draw_handle_pixel;
+    void		*draw_handle_cursor;
 } TransInfo;
 
 
@@ -382,8 +397,9 @@ typedef struct TransInfo {
 /* TransInfo->modifiers */
 #define	MOD_CONSTRAINT_SELECT	0x01
 #define	MOD_PRECISION			0x02
-#define	MOD_SNAP_GEARS			0x04
-#define	MOD_CONSTRAINT_PLANE	0x08
+#define	MOD_SNAP				0x04
+#define	MOD_SNAP_INVERT			0x08
+#define	MOD_CONSTRAINT_PLANE	0x10
 
 
 /* ******************************************************************************** */
@@ -423,27 +439,16 @@ typedef struct TransInfo {
 #define TD_MIRROR_EDGE	 	(1 << 16) 	/* For editmode mirror, clamp to x = 0 */
 
 /* transsnap->status */
-#define SNAP_ON			1
-#define SNAP_FORCED		2
-#define TARGET_INIT		4
-#define POINT_INIT		8
+#define SNAP_FORCED		1
+#define TARGET_INIT		2
+#define POINT_INIT		4
+#define MULTI_POINTS	8
 
-/* transsnap->modePoint */
-#define SNAP_GRID			0
-#define SNAP_GEO			1
-
-/* transsnap->modeTarget */
-#define SNAP_CLOSEST		0
-#define SNAP_CENTER			1
-#define SNAP_MEDIAN			2
-#define SNAP_ACTIVE			3
-
-
-void TFM_OT_transform(struct wmOperatorType *ot);
+void TRANSFORM_OT_transform(struct wmOperatorType *ot);
 
 int initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event, int mode);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
-void transformEvent(TransInfo *t, struct wmEvent *event);
+int  transformEvent(TransInfo *t, struct wmEvent *event);
 void transformApply(struct bContext *C, TransInfo *t);
 int  transformEnd(struct bContext *C, TransInfo *t);
 
@@ -530,9 +535,12 @@ int Mirror(TransInfo *t, short mval[2]);
 void initAlign(TransInfo *t);
 int Align(TransInfo *t, short mval[2]);
 
+void initSeqSlide(TransInfo *t);
+int SeqSlide(TransInfo *t, short mval[2]);
+
 void drawPropCircle(const struct bContext *C, TransInfo *t);
 
-void transform_modal_keymap(struct wmKeyConfig *keyconf);
+struct wmKeyMap *transform_modal_keymap(struct wmKeyConfig *keyconf);
 
 
 /*********************** transform_conversions.c ********** */
@@ -548,7 +556,7 @@ void flushTransNodes(TransInfo *t);
 void flushTransSeq(TransInfo *t);
 
 /*********************** exported from transform_manipulator.c ********** */
-void gimbal_axis(struct Object *ob, float gmat[][3]);
+int gimbal_axis(struct Object *ob, float gmat[][3]); /* return 0 when no gimbal for selection */
 int calc_manipulator_stats(const struct bContext *C);
 float get_drawsize(struct ARegion *ar, float *co);
 
@@ -556,15 +564,15 @@ float get_drawsize(struct ARegion *ar, float *co);
 void createTransData(struct bContext *C, TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
 void add_tdi_poin(float *poin, float *old, float delta);
-void special_aftertrans_update(TransInfo *t);
+void special_aftertrans_update(struct bContext *C, TransInfo *t);
 
 void transform_autoik_update(TransInfo *t, short mode);
 
 int count_set_pose_transflags(int *out_mode, short around, struct Object *ob);
 
 /* auto-keying stuff used by special_aftertrans_update */
-void autokeyframe_ob_cb_func(struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode);
-void autokeyframe_pose_cb_func(struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode, short targetless_ik);
+void autokeyframe_ob_cb_func(struct bContext *C, struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode);
+void autokeyframe_pose_cb_func(struct bContext *C, struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode, short targetless_ik);
 
 /*********************** Constraints *****************************/
 
@@ -602,6 +610,9 @@ typedef enum {
 void snapGrid(TransInfo *t, float *val);
 void snapGridAction(TransInfo *t, float *val, GearsType action);
 
+int activeSnap(TransInfo *t);
+int validSnap(TransInfo *t);
+
 void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void applyProject(TransInfo *t);
 void applySnapping(TransInfo *t, float *vec);
@@ -610,6 +621,10 @@ int  handleSnapping(TransInfo *t, struct wmEvent *event);
 void drawSnapping(const struct bContext *C, TransInfo *t);
 int usingSnappingNormal(TransInfo *t);
 int validSnappingNormal(TransInfo *t);
+
+void getSnapPoint(TransInfo *t, float vec[3]);
+void addSnapPoint(TransInfo *t);
+void removeSnapPoint(TransInfo *t);
 
 /********************** Mouse Input ******************************/
 
@@ -637,7 +652,7 @@ void setCustomPoints(TransInfo *t, MouseInput *mi, short start[2], short end[2])
 /*********************** Generics ********************************/
 
 int initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, struct wmEvent *event);
-void postTrans (TransInfo *t);
+void postTrans (struct bContext *C, TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 
 void drawLine(TransInfo *t, float *center, float *dir, char axis, short options);

@@ -76,7 +76,7 @@ ifeq ($(WITH_OPENJPEG), true)
 endif
 
 ifeq ($(WITH_QUICKTIME), true)
-	CPPFLAGS += -DWITH_QUICKTIME
+    CPPFLAGS += -DWITH_QUICKTIME -I../../quicktime
 endif
 
 ifeq ($(WITH_SDL),true)

@@ -60,10 +60,10 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	if (!PyArg_ParseTuple(args, "sO|O!i:_bpy.ops.call", &opname, &context_dict, &PyDict_Type, &kw, &context))
 		return NULL;
 
-	ot= WM_operatortype_find(opname, TRUE);
+	ot= WM_operatortype_exists(opname);
 
 	if (ot == NULL) {
-		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator \"%s\"could not be found", opname);
+		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator \"%s\" could not be found", opname);
 		return NULL;
 	}
 	
@@ -76,7 +76,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	Py_XINCREF(context_dict); /* so we done loose it */
 
 	if(WM_operator_poll((bContext*)C, ot) == FALSE) {
-		PyErr_SetString( PyExc_SystemError, "_bpy.ops.call: operator poll() function failed, context is incorrect");
+		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator %.200s.poll() function failed, context is incorrect", opname);
 		error_val= -1;
 	}
 	else {
@@ -230,7 +230,9 @@ static PyObject *pyop_getrna(PyObject *self, PyObject *value)
 	//RNA_pointer_create(NULL, &RNA_Struct, ot->srna, &ptr);
 
 	/* XXX - should call WM_operator_properties_free */
-	WM_operator_properties_create(&ptr, ot->idname);
+	WM_operator_properties_create_ptr(&ptr, ot);
+
+	
 	pyrna= (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 	pyrna->freeptr= TRUE;
 	return (PyObject *)pyrna;
@@ -242,7 +244,9 @@ PyObject *BPY_operator_module( void )
 	static PyMethodDef pyop_as_string_meth ={"as_string", (PyCFunction) pyop_as_string, METH_VARARGS, NULL};
 	static PyMethodDef pyop_dir_meth =		{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL};
 	static PyMethodDef pyop_getrna_meth =	{"get_rna", (PyCFunction) pyop_getrna, METH_O, NULL};
-	static PyMethodDef pyop_add_meth =		{"add", (PyCFunction) PYOP_wrap_add, METH_O, NULL};
+//	static PyMethodDef pyop_add_meth =		{"add", (PyCFunction) PYOP_wrap_add, METH_O, NULL};
+	static PyMethodDef pyop_add_macro_meth ={"add_macro", (PyCFunction) PYOP_wrap_add_macro, METH_O, NULL};
+	static PyMethodDef pyop_macro_def_meth ={"macro_define", (PyCFunction) PYOP_wrap_macro_define, METH_VARARGS, NULL};
 	static PyMethodDef pyop_remove_meth =	{"remove", (PyCFunction) PYOP_wrap_remove, METH_O, NULL};
 
 	PyObject *submodule = PyModule_New("_bpy.ops");
@@ -252,7 +256,9 @@ PyObject *BPY_operator_module( void )
 	PyModule_AddObject( submodule, "as_string",PyCFunction_New(&pyop_as_string_meth,NULL) );
 	PyModule_AddObject( submodule, "dir",		PyCFunction_New(&pyop_dir_meth,		NULL) );
 	PyModule_AddObject( submodule, "get_rna",	PyCFunction_New(&pyop_getrna_meth,	NULL) );
-	PyModule_AddObject( submodule, "add",		PyCFunction_New(&pyop_add_meth,		NULL) );
+//	PyModule_AddObject( submodule, "add",		PyCFunction_New(&pyop_add_meth,		NULL) );
+	PyModule_AddObject( submodule, "add_macro",	PyCFunction_New(&pyop_add_macro_meth,		NULL) );
+	PyModule_AddObject( submodule, "macro_define",PyCFunction_New(&pyop_macro_def_meth,		NULL) );
 	PyModule_AddObject( submodule, "remove",	PyCFunction_New(&pyop_remove_meth,	NULL) );
 
 	return submodule;

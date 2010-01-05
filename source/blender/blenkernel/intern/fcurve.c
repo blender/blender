@@ -167,53 +167,42 @@ void copy_fcurves (ListBase *dst, ListBase *src)
 	}
 }
 
-/* ---------------------- Relink --------------------------- */
-
-#if 0
-/* uses id->newid to match pointers with other copied data 
- * 	- called after single-user or other such
- */
-			if (icu->driver)
-				ID_NEW(icu->driver->ob);
-#endif
-
 /* --------------------- Finding -------------------------- */
 
+/* high level function to get an fcurve from C without having the rna */
 FCurve *id_data_find_fcurve(ID *id, void *data, StructRNA *type, char *prop_name, int index)
 {
 	/* anim vars */
-	AnimData *adt;
+	AnimData *adt= BKE_animdata_from_id(id);
 	FCurve *fcu= NULL;
 
 	/* rna vars */
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	char *path;
-
-	adt= BKE_animdata_from_id(id);
-
+	
 	/* only use the current action ??? */
-	if(adt==NULL || adt->action==NULL)
+	if (ELEM(NULL, adt, adt->action))
 		return NULL;
-
+	
 	RNA_pointer_create(id, type, data, &ptr);
 	prop = RNA_struct_find_property(&ptr, prop_name);
-
-	if(prop) {
+	
+	if (prop) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
-
-		if(path) {
+			
+		if (path) {
 			/* animation takes priority over drivers */
-			if(adt->action && adt->action->curves.first)
+			if ((adt->action) && (adt->action->curves.first))
 				fcu= list_find_fcurve(&adt->action->curves, path, index);
-
+			
 			/* if not animated, check if driven */
 #if 0
-			if(!fcu && (adt->drivers.first)) {
+			if ((fcu == NULL) && (adt->drivers.first)) {
 				fcu= list_find_fcurve(&adt->drivers, path, but->rnaindex);
 			}
 #endif
-
+			
 			MEM_freeN(path);
 		}
 	}
@@ -244,6 +233,54 @@ FCurve *list_find_fcurve (ListBase *list, const char rna_path[], const int array
 	/* return */
 	return NULL;
 }
+
+/* Get list of LinkData's containing pointers to the F-Curves which control the types of data indicated 
+ * Lists...
+ *	- dst: list of LinkData's matching the criteria returned. 
+ *	  List must be freed after use, and is assumed to be empty when passed.
+ *	- src: list of F-Curves to search through
+ * Filters...
+ * 	- dataPrefix: i.e. 'pose.bones[' or 'nodes['
+ *	- dataName: name of entity within "" immediately following the prefix
+ */
+int list_find_data_fcurves (ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName)
+{
+	FCurve *fcu;
+	int matches = 0;
+	
+	/* sanity checks */
+	if (ELEM4(NULL, dst, src, dataPrefix, dataName))
+		return 0;
+	else if ((dataPrefix[0] == 0) || (dataName[0] == 0))
+		return 0;
+	
+	/* search each F-Curve one by one */
+	for (fcu= src->first; fcu; fcu= fcu->next) {
+		/* check if quoted string matches the path */
+		if ((fcu->rna_path) && strstr(fcu->rna_path, dataPrefix)) {
+			char *quotedName= BLI_getQuotedStr(fcu->rna_path, dataPrefix);
+			
+			if (quotedName) {
+				/* check if the quoted name matches the required name */
+				if (strcmp(quotedName, dataName) == 0) {
+					LinkData *ld= MEM_callocN(sizeof(LinkData), "list_find_data_fcurves");
+					
+					ld->data= fcu;
+					BLI_addtail(dst, ld);
+					
+					matches++;
+				}
+				
+				/* always free the quoted string, since it needs freeing */
+				MEM_freeN(quotedName);
+			}
+		}
+	}
+	
+	/* return the number of matches */
+	return matches;
+}
+
 
 /* threshold for binary-searching keyframes - threshold here should be good enough for now, but should become userpref */
 #define BEZT_BINARYSEARCH_THRESH 	0.00001f
@@ -731,6 +768,9 @@ DriverTarget *driver_add_new_target (ChannelDriver *driver)
 	dtar= MEM_callocN(sizeof(DriverTarget), "DriverTarget");
 	BLI_addtail(&driver->targets, dtar);
 	
+	/* make the default ID-type ID_OB, since most driver targets refer to objects */
+	dtar->idtype= ID_OB;
+	
 	/* give the target a 'unique' name */
 	strcpy(dtar->name, "var");
 	BLI_uniquename(&driver->targets, dtar, "var", '_', offsetof(DriverTarget, name), 64);
@@ -755,7 +795,12 @@ void fcurve_free_driver(FCurve *fcu)
 		dtarn= dtar->next;
 		driver_free_target(driver, dtar);
 	}
-	
+
+#ifndef DISABLE_PYTHON
+	if(driver->expr_comp)
+		BPY_DECREF(driver->expr_comp);
+#endif
+
 	/* free driver itself, then set F-Curve's point to this to NULL (as the curve may still be used) */
 	MEM_freeN(driver);
 	fcu->driver= NULL;
@@ -819,7 +864,11 @@ float driver_get_target_value (ChannelDriver *driver, DriverTarget *dtar)
 	}
 	
 	/* get property to read from, and get value as appropriate */
-	if (RNA_path_resolve(&id_ptr, path, &ptr, &prop)) {
+	if (RNA_path_resolve_full(&id_ptr, path, &ptr, &prop, &index)) {
+		/* for now, if there is no valid index, fall back to the array-index specified separately */
+		if (index == -1)
+			index= dtar->array_index;
+		
 		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
 				if (RNA_property_array_length(&ptr, prop))
@@ -907,6 +956,7 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 	// TODO: the flags for individual targets need to be used too for more fine-grained support...
 	switch (driver->type) {
 		case DRIVER_TYPE_AVERAGE: /* average values of driver targets */
+		case DRIVER_TYPE_SUM: /* sum values of driver targets */
 		{
 			/* check how many targets there are first (i.e. just one?) */
 			if (driver->targets.first == driver->targets.last) {
@@ -921,16 +971,19 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 				
 				/* loop through targets, adding (hopefully we don't get any overflow!) */
 				for (dtar= driver->targets.first; dtar; dtar=dtar->next) {
-					value += driver_get_target_value(driver, dtar); 
+					value += driver_get_target_value(driver, dtar);
 					tot++;
 				}
 				
 				/* return the average of these */
-				return (value / (float)tot);
+				if (driver->type == DRIVER_TYPE_AVERAGE)
+					return (value / (float)tot);
+				else
+					return value;
+				
 			}
 		}
 			break;
-		
 		case DRIVER_TYPE_PYTHON: /* expression */
 		{
 #ifndef DISABLE_PYTHON

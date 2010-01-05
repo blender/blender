@@ -133,6 +133,10 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_TRANSFORM:
 					ED_region_tag_redraw(ar);
 					break;
+				case ND_MODIFIER:
+					if(wmn->action == NA_RENAME)
+						ED_region_tag_redraw(ar);
+					break;
 			}
 		case NC_GROUP:
 			/* all actions now, todo: check outliner view mode? */
@@ -147,6 +151,10 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data == ND_SPACE_OUTLINER)
 				ED_region_tag_redraw(ar);
 				break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 	
 }
@@ -277,7 +285,7 @@ void ED_spacetype_outliner(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	
 	art->init= outliner_header_area_init;
 	art->draw= outliner_header_area_draw;

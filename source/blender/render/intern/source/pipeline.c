@@ -48,8 +48,9 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"	/* <------ should be replaced once with generic movie module */
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_pointcache.h"
+#include "BKE_animsys.h"	/* <------ should this be here?, needed for sequencer update */
 
 #include "MEM_guardedalloc.h"
 
@@ -1065,12 +1066,25 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
 		int tot= rres.rectx*rres.recty;
 		char *cp= (char *)rect;
 		
-		for(;tot>0; tot--, cp+=4, fp+=4) {
-			cp[0] = FTOCHAR(fp[0]);
-			cp[1] = FTOCHAR(fp[1]);
-			cp[2] = FTOCHAR(fp[2]);
-			cp[3] = FTOCHAR(fp[3]);
+		if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+			/* Finally convert back to sRGB rendered image */ 
+			for(;tot>0; tot--, cp+=4, fp+=4) {
+				cp[0] = FTOCHAR(linearrgb_to_srgb(fp[0]));
+				cp[1] = FTOCHAR(linearrgb_to_srgb(fp[1]));
+				cp[2] = FTOCHAR(linearrgb_to_srgb(fp[2]));
+				cp[3] = FTOCHAR(fp[3]);
+			}
 		}
+		else {
+			/* Color management is off : no conversion necessary */
+			for(;tot>0; tot--, cp+=4, fp+=4) {
+				cp[0] = FTOCHAR(fp[0]);
+				cp[1] = FTOCHAR(fp[1]);
+				cp[2] = FTOCHAR(fp[2]);
+				cp[3] = FTOCHAR(fp[3]);
+			}
+		}
+
 	}
 	else
 		/* else fill with black */
@@ -2426,6 +2440,11 @@ static void do_render_seq(Render * re)
 	RenderResult *rr = re->result;
 	int cfra = re->r.cfra;
 
+	if(recurs_depth==0) {
+		/* otherwise sequencer animation isnt updated */
+		BKE_animsys_evaluate_all_animation(G.main, (float)cfra); // XXX, was frame_to_float(re->scene, cfra)
+	}
+
 	recurs_depth++;
 
 	ibuf= give_ibuf_seq(re->scene, rr->rectx, rr->recty, cfra, 0, 100.0);
@@ -2485,6 +2504,12 @@ static void do_render_seq(Render * re)
 /* main loop: doing sequence + fields + blur + 3d render + compositing */
 static void do_render_all_options(Render *re)
 {
+#ifdef DURIAN_CAMERA_SWITCH
+	Object *camera= scene_find_camera_switch(re->scene);
+	if(camera)
+		re->scene->camera= camera;
+#endif
+
 	re->i.starttime= PIL_check_seconds_timer();
 
 	/* ensure no images are in memory from previous animated sequences */
@@ -2727,10 +2752,11 @@ void RE_BlenderFrame(Render *re, Scene *scene, int frame)
 	re->result_ok= 1;
 }
 
-static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
+static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports)
 {
 	char name[FILE_MAX];
 	RenderResult rres;
+	int ok= 1;
 	
 	RE_AcquireResultImage(re, &rres);
 
@@ -2743,7 +2769,7 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 			dofree = 1;
 		}
 		RE_ResultGet32(re, (unsigned int *)rres.rect32);
-		mh->append_movie(&re->r, scene->r.cfra, rres.rect32, rres.rectx, rres.recty);
+		ok= mh->append_movie(&re->r, scene->r.cfra, rres.rect32, rres.rectx, rres.recty, reports);
 		if(dofree) {
 			MEM_freeN(rres.rect32);
 		}
@@ -2760,7 +2786,6 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 		}
 		else {
 			ImBuf *ibuf= IMB_allocImBuf(rres.rectx, rres.recty, scene->r.planes, 0, 0);
-			int ok;
 			
 			/* if not exists, BKE_write_ibuf makes one */
 			ibuf->rect= (unsigned int *)rres.rect32;    
@@ -2777,7 +2802,6 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 			
 			if(ok==0) {
 				printf("Render error: cannot save %s\n", name);
-				G.afbreek=1;
 			}
 			else printf("Saved: %s", name);
 			
@@ -2801,10 +2825,12 @@ static void do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh)
 	BLI_timestr(re->i.lastframetime, name);
 	printf(" Time: %s\n", name);
 	fflush(stdout); /* needed for renderd !! (not anymore... (ton)) */
+
+	return ok;
 }
 
 /* saves images to disk */
-void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
+void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra, ReportList *reports)
 {
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
 	unsigned int lay;
@@ -2821,18 +2847,20 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 	re->result_ok= 0;
 	
 	if(BKE_imtype_is_movie(scene->r.imtype))
-		mh->start_movie(scene, &re->r, re->rectx, re->recty);
-	
+		if(!mh->start_movie(scene, &re->r, re->rectx, re->recty, reports))
+			G.afbreek= 1;
+
 	if (mh->get_next_frame) {
 		while (!(G.afbreek == 1)) {
-			int nf = mh->get_next_frame(&re->r);
+			int nf = mh->get_next_frame(&re->r, reports);
 			if (nf >= 0 && nf >= scene->r.sfra && nf <= scene->r.efra) {
 				scene->r.cfra = re->r.cfra = nf;
 				
 				do_render_all_options(re);
 
 				if(re->test_break(re->tbh) == 0) {
-					do_write_image_or_movie(re, scene, mh);
+					if(!do_write_image_or_movie(re, scene, mh, reports))
+						G.afbreek= 1;
 				}
 			} else {
 				if(re->test_break(re->tbh))
@@ -2882,8 +2910,11 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra)
 			
 			do_render_all_options(re);
 			
-			if(re->test_break(re->tbh) == 0)
-				do_write_image_or_movie(re, scene, mh);
+			if(re->test_break(re->tbh) == 0) {
+				if(!G.afbreek)
+					if(!do_write_image_or_movie(re, scene, mh, reports))
+						G.afbreek= 1;
+			}
 			else
 				G.afbreek= 1;
 		

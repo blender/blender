@@ -268,8 +268,8 @@ void BMEdit_UpdateLinkedCustomData(BMEditMesh *em)
 		act = CustomData_get_clone_layer(&bm->pdata, CD_MTEXPOLY);
 		CustomData_set_layer_clone(&bm->ldata, CD_MLOOPUV, act);
 
-		act = CustomData_get_mask_layer(&bm->pdata, CD_MTEXPOLY);
-		CustomData_set_layer_mask(&bm->ldata, CD_MLOOPUV, act);
+		act = CustomData_get_stencil_layer(&bm->pdata, CD_MTEXPOLY);
+		CustomData_set_layer_stencil(&bm->ldata, CD_MLOOPUV, act);
 	}
 }
 

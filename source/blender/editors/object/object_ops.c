@@ -71,7 +71,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_location_apply);
 	WM_operatortype_append(OBJECT_OT_scale_apply);
 	WM_operatortype_append(OBJECT_OT_rotation_apply);
-	WM_operatortype_append(OBJECT_OT_center_set);
+	WM_operatortype_append(OBJECT_OT_origin_set);
 	
 	WM_operatortype_append(OBJECT_OT_mode_set);
 	WM_operatortype_append(OBJECT_OT_editmode_toggle);
@@ -98,7 +98,7 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_select_inverse);
 	WM_operatortype_append(OBJECT_OT_select_random);
-	WM_operatortype_append(OBJECT_OT_select_all_toggle);
+	WM_operatortype_append(OBJECT_OT_select_all);
 	WM_operatortype_append(OBJECT_OT_select_by_type);
 	WM_operatortype_append(OBJECT_OT_select_by_layer);
 	WM_operatortype_append(OBJECT_OT_select_linked);
@@ -124,6 +124,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_duplicates_make_real);
 	WM_operatortype_append(OBJECT_OT_duplicate);
 	WM_operatortype_append(OBJECT_OT_join);
+	WM_operatortype_append(OBJECT_OT_join_shapes);
 	WM_operatortype_append(OBJECT_OT_convert);
 
 	WM_operatortype_append(OBJECT_OT_modifier_add);
@@ -134,7 +135,10 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_modifier_convert);
 	WM_operatortype_append(OBJECT_OT_modifier_copy);
 	WM_operatortype_append(OBJECT_OT_multires_subdivide);
+	WM_operatortype_append(OBJECT_OT_multires_reshape);
 	WM_operatortype_append(OBJECT_OT_multires_higher_levels_delete);
+	WM_operatortype_append(OBJECT_OT_multires_save_external);
+	WM_operatortype_append(OBJECT_OT_multires_pack_external);
 	WM_operatortype_append(OBJECT_OT_meshdeform_bind);
 	WM_operatortype_append(OBJECT_OT_explode_refresh);
 	
@@ -179,7 +183,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_shape_key_mirror);
 	WM_operatortype_append(OBJECT_OT_shape_key_move);
 
-	WM_operatortype_append(LATTICE_OT_select_all_toggle);
+	WM_operatortype_append(LATTICE_OT_select_all);
 	WM_operatortype_append(LATTICE_OT_make_regular);
 
 	WM_operatortype_append(OBJECT_OT_group_add);
@@ -202,7 +206,7 @@ void ED_operatormacros_object(void)
 	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
-		otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
 	}
 
@@ -211,7 +215,7 @@ void ED_operatormacros_object(void)
 	if(ot) {
 		otmacro= WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		RNA_boolean_set(otmacro->ptr, "linked", 1);
-		otmacro= WM_operatortype_macro_define(ot, "TFM_OT_translate");
+		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
 	}
 }
@@ -226,6 +230,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
+	int i;
 	
 	/* Objects, Regardless of Mode -------------------------------------------------- */
 	keymap= WM_keymap_find(keyconf, "Object Non-modal", 0, 0);
@@ -243,14 +248,11 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 		RNA_enum_set(kmi->ptr, "mode", OB_MODE_VERTEX_PAINT);
 		RNA_boolean_set(kmi->ptr, "toggle", 1);
 	
-	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", VKEY, KM_PRESS, 0, 0);
-		RNA_enum_set(kmi->ptr, "mode", OB_MODE_VERTEX_PAINT);
-		RNA_boolean_set(kmi->ptr, "toggle", 1);
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_mode_set", TABKEY, KM_PRESS, KM_CTRL, 0);
 		RNA_enum_set(kmi->ptr, "mode", OB_MODE_WEIGHT_PAINT);
 		RNA_boolean_set(kmi->ptr, "toggle", 1);
 	
-	WM_keymap_add_item(keymap, "OBJECT_OT_center_set", CKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_origin_set", CKEY, KM_PRESS, KM_ALT|KM_SHIFT|KM_CTRL, 0);
 
 	/* Object Mode ---------------------------------------------------------------- */
 	/* Note: this keymap gets disabled in non-objectmode,  */
@@ -260,7 +262,9 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	/* object mode supports PET now */
 	ED_object_generic_keymap(keyconf, keymap, TRUE);
 
-	WM_keymap_add_item(keymap, "OBJECT_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_game_start", PKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "OBJECT_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_linked", LKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
@@ -305,19 +309,24 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OBJECT_OT_make_local", LKEY, KM_PRESS, 0, 0);
 
 	// XXX this should probably be in screen instead... here for testing purposes in the meantime... - Aligorith
-	WM_keymap_verify_item(keymap, "ANIM_OT_insert_keyframe_menu", IKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ANIM_OT_delete_keyframe_v3d", IKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_insert_menu", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_delete_v3d", IKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_verify_item(keymap, "GROUP_OT_create", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove", GKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 
+	for(i=0; i<=5; i++) {
+		kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY+i, KM_PRESS, KM_CTRL, 0);
+		RNA_int_set(kmi->ptr, "level", i);
+	}
+
 	/* Lattice -------------------------------------------------------------------- */
 	keymap= WM_keymap_find(keyconf, "Lattice", 0, 0);
 	keymap->poll= ED_operator_editlattice;
 
-	WM_keymap_add_item(keymap, "LATTICE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "LATTICE_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	
 		/* menus */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
@@ -327,27 +336,23 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 
 void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet)
 {
-	wmKeyMapItem *km;
-
-	/* snap */
-	km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "scene.tool_settings.snap");
+	wmKeyMapItem *kmi;
 
 	/* used by mesh, curve & lattice only */
 	if(do_pet) {
 		/* context ops */
-		km = WM_keymap_add_item(keymap, "WM_OT_context_cycle_enum", OKEY, KM_PRESS, KM_SHIFT, 0);
-		RNA_string_set(km->ptr, "path", "scene.tool_settings.proportional_editing_falloff");
+		kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_enum", OKEY, KM_PRESS, KM_SHIFT, 0);
+		RNA_string_set(kmi->ptr, "path", "tool_settings.proportional_editing_falloff");
 
-		km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, 0, 0);
-		RNA_string_set(km->ptr, "path", "scene.tool_settings.proportional_editing");
-		RNA_string_set(km->ptr, "value_1", "DISABLED");
-		RNA_string_set(km->ptr, "value_2", "ENABLED");
+		kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, 0, 0);
+		RNA_string_set(kmi->ptr, "path", "tool_settings.proportional_editing");
+		RNA_string_set(kmi->ptr, "value_1", "DISABLED");
+		RNA_string_set(kmi->ptr, "value_2", "ENABLED");
 
-		km = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, KM_ALT, 0);
-		RNA_string_set(km->ptr, "path", "scene.tool_settings.proportional_editing");
-		RNA_string_set(km->ptr, "value_1", "DISABLED");
-		RNA_string_set(km->ptr, "value_2", "CONNECTED");
+		kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle_enum", OKEY, KM_PRESS, KM_ALT, 0);
+		RNA_string_set(kmi->ptr, "path", "tool_settings.proportional_editing");
+		RNA_string_set(kmi->ptr, "value_1", "DISABLED");
+		RNA_string_set(kmi->ptr, "value_2", "CONNECTED");
 	}
 }
 

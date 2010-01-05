@@ -117,14 +117,12 @@ bool	KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode,short val)
 	
 	// convert event
 	KX_EnumInputs kxevent = this->ToNative(incode);
+	int previousTable = 1-m_currentTable;
 
 	// only process it, if it's a key
-	if (kxevent > KX_BEGINMOUSE && kxevent < KX_ENDMOUSE)
+	if (kxevent > KX_BEGINMOUSE && kxevent < KX_ENDMOUSEBUTTONS)
 	{
-		int previousTable = 1-m_currentTable;
-
-
-		if (val > 0)
+		if (val == KM_PRESS)
 		{
 			m_eventStatusTables[m_currentTable][kxevent].m_eventval = val ; //???
 
@@ -139,14 +137,7 @@ bool	KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode,short val)
 				}
 			case SCA_InputEvent::KX_JUSTRELEASED:
 				{
-					if ( kxevent > KX_BEGINMOUSEBUTTONS && kxevent < KX_ENDMOUSEBUTTONS)
-					{
-						m_eventStatusTables[m_currentTable][kxevent].m_status = SCA_InputEvent::KX_JUSTACTIVATED;
-					} else
-					{
-						m_eventStatusTables[m_currentTable][kxevent].m_status = SCA_InputEvent::KX_ACTIVE;
-						
-					}
+					m_eventStatusTables[m_currentTable][kxevent].m_status = SCA_InputEvent::KX_JUSTACTIVATED;
 					break;
 				}
 			default:
@@ -155,7 +146,7 @@ bool	KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode,short val)
 				}
 			}
 			
-		} else
+		} else if (val == KM_RELEASE)
 		{
 			// blender eventval == 0
 			switch (m_eventStatusTables[previousTable][kxevent].m_status)
@@ -173,5 +164,32 @@ bool	KX_BlenderMouseDevice::ConvertBlenderEvent(unsigned short incode,short val)
 			}
 		}
 	}
+
+	if (kxevent > KX_ENDMOUSEBUTTONS && kxevent < KX_ENDMOUSE)
+	{
+		m_eventStatusTables[m_currentTable][kxevent].m_eventval = val ; //remember mouse position
+
+		switch (m_eventStatusTables[previousTable][kxevent].m_status)
+		{
+			
+		case SCA_InputEvent::KX_ACTIVE:
+		case SCA_InputEvent::KX_JUSTACTIVATED:
+			{
+				m_eventStatusTables[m_currentTable][kxevent].m_status = SCA_InputEvent::KX_ACTIVE;
+				break;
+			}
+		case SCA_InputEvent::KX_JUSTRELEASED:
+			{
+				m_eventStatusTables[m_currentTable][kxevent].m_status = SCA_InputEvent::KX_ACTIVE;
+				break;
+			}
+		default:
+			{
+				m_eventStatusTables[m_currentTable][kxevent].m_status = SCA_InputEvent::KX_JUSTACTIVATED;
+			}
+		}
+	}
+
+
 	return result;
 }

@@ -286,16 +286,15 @@ static char *rna_ShapeKey_path(PointerRNA *ptr)
 	return BLI_sprintfN("keys[\"%s\"]", ((KeyBlock*)ptr->data)->name);
 }
 
-static void rna_Key_update_data(bContext *C, PointerRNA *ptr)
+static void rna_Key_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Main *bmain= CTX_data_main(C);
 	Key *key= ptr->id.data;
 	Object *ob;
 
 	for(ob=bmain->object.first; ob; ob= ob->id.next) {
 		if(ob_get_key(ob) == key) {
 			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-			WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+			WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 		}
 	}
 }

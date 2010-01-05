@@ -101,7 +101,8 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_sound();
 	ED_operatortypes_render();
 	
-	ui_view2d_operatortypes();
+	UI_view2d_operatortypes();
+	UI_buttons_operatortypes();
 	
 	spacetypes = BKE_spacetypes_list();
 	for(type=spacetypes->first; type; type=type->next)

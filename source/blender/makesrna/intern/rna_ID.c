@@ -31,6 +31,8 @@
 
 #include "DNA_ID.h"
 
+#include "WM_types.h"
+
 #include "rna_internal.h"
 
 /* enum of ID-block types 
@@ -203,6 +205,15 @@ StructRNA *rna_IDPropertyGroup_register(const bContext *C, ReportList *reports, 
 	if(validate(&dummyptr, data, NULL) != 0)
 		return NULL;
 
+	/* note: it looks like there is no length limit on the srna id since its
+	 * just a char pointer, but take care here, also be careful that python
+	 * owns the string pointer which it could potentually free while blender
+	 * is running. */
+	if(strlen(identifier) >= sizeof(((IDProperty *)NULL)->name)) {
+		BKE_reportf(reports, RPT_ERROR, "registering id property class: '%s' is too long, maximum length is %d.", identifier, sizeof(((IDProperty *)NULL)->name));
+		return NULL;
+	}
+
 	return RNA_def_struct(&BLENDER_RNA, identifier, "IDPropertyGroup");  // XXX
 }
 
@@ -221,6 +232,40 @@ ID *rna_ID_copy(ID *id)
 	}
 	
 	return NULL;
+}
+
+static int rna_IDPropertyGroup_name_length(PointerRNA *ptr)
+{
+	IDProperty *group=(IDProperty*)ptr->id.data;
+	IDProperty *idprop;
+	idprop= IDP_GetPropertyFromGroup(group, "name");
+
+	if(idprop && idprop->type == IDP_STRING)
+		return strlen(idprop->data.pointer);
+	else
+		return 0;
+}
+
+static void rna_IDPropertyGroup_name_get(PointerRNA *ptr, char *str)
+{
+	IDProperty *group=(IDProperty*)ptr->id.data;
+	IDProperty *idprop;
+	idprop= IDP_GetPropertyFromGroup(group, "name");
+
+	if(idprop && idprop->type == IDP_STRING)
+		strcpy(str, idprop->data.pointer);
+	else
+		str[0]= '\0';
+}
+
+void rna_IDPropertyGroup_name_set(PointerRNA *ptr, const char *value)
+{
+	IDProperty *group=(IDProperty*)ptr->id.data;
+	IDProperty *idprop;
+	IDPropertyTemplate val = {0};
+	val.str= (char *)value;
+	idprop = IDP_New(IDP_STRING, val, "name");
+	IDP_ReplaceInGroup(group, idprop);
 }
 
 #else
@@ -273,6 +318,15 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 	RNA_def_property_struct_type(prop, "IDPropertyGroup");
 
+	// never tested, maybe its useful to have this?
+#if 0
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Name", "Unique name used in the code and scripting.");
+	RNA_def_struct_name_property(srna, prop);
+#endif
+
 	/* IDP_ID -- not implemented yet in id properties */
 
 	/* ID property groups > level 0, since level 0 group is merged
@@ -283,6 +337,16 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	RNA_def_struct_idproperties_func(srna, "rna_IDPropertyGroup_idproperties");
 	RNA_def_struct_register_funcs(srna, "rna_IDPropertyGroup_register", "rna_IDPropertyGroup_unregister");
 	RNA_def_struct_refine_func(srna, "rna_IDPropertyGroup_refine");
+
+	/* important so python types can have their name used in list views
+	 * however this isnt prefect because it overrides how python would set the name
+	 * when we only really want this so RNA_def_struct_name_property() is set to something useful */
+	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
+	//RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Name", "Unique name used in the code and scripting.");
+	RNA_def_property_string_funcs(prop, "rna_IDPropertyGroup_name_get", "rna_IDPropertyGroup_name_length", "rna_IDPropertyGroup_name_set");
+	RNA_def_struct_name_property(srna, prop);
 }
 
 static void rna_def_ID(BlenderRNA *brna)
@@ -301,6 +365,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Unique datablock ID name.");
 	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
 	RNA_def_property_string_maxlength(prop, sizeof(((ID*)NULL)->name)-2);
+	RNA_def_property_update(prop, NC_ID|NA_RENAME, NULL);
 	RNA_def_struct_name_property(srna, prop);
 
 	prop= RNA_def_property(srna, "users", PROP_INT, PROP_UNSIGNED);

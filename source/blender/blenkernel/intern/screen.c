@@ -318,21 +318,20 @@ void free_screen(bScreen *sc)
 }
 
 /* for depsgraph */
-unsigned int BKE_screen_visible_layers(bScreen *screen)
+unsigned int BKE_screen_visible_layers(bScreen *screen, Scene *scene)
 {
 	ScrArea *sa;
 	unsigned int layer= 0;
 
-	if(!screen)
-		return layer;
-
-	/* get all used view3d layers */
-	for(sa= screen->areabase.first; sa; sa= sa->next)
-		if(sa->spacetype==SPACE_VIEW3D)
-			layer |= ((View3D *)sa->spacedata.first)->lay;
+	if(screen) {
+		/* get all used view3d layers */
+		for(sa= screen->areabase.first; sa; sa= sa->next)
+			if(sa->spacetype==SPACE_VIEW3D)
+				layer |= ((View3D *)sa->spacedata.first)->lay;
+	}
 
 	if(!layer)
-		return screen->scene->lay;
+		return scene->lay;
 
 	return layer;
 }

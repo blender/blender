@@ -34,7 +34,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
         show_uvedit = sima.show_uvedit
 
-        layout.operator("image.properties", icon='ICON_MENU_PANEL')
+        layout.operator("image.properties", icon='MENU_PANEL')
 
         layout.separator()
 
@@ -61,6 +61,10 @@ class IMAGE_MT_view(bpy.types.Menu):
             layout.operator("image.view_selected")
 
         layout.operator("image.view_all")
+
+        layout.separator()
+
+        layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
 
 
@@ -75,7 +79,7 @@ class IMAGE_MT_select(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("uv.select_all_toggle")
+        layout.operator("uv.select_all")
         layout.operator("uv.select_inverse")
         layout.operator("uv.unlink_selection")
 
@@ -146,9 +150,26 @@ class IMAGE_MT_uvs_transform(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("tfm.translate")
-        layout.operator("tfm.rotate")
-        layout.operator("tfm.resize")
+        layout.operator("transform.translate")
+        layout.operator("transform.rotate")
+        layout.operator("transform.resize")
+
+
+class IMAGE_MT_uvs_snap(bpy.types.Menu):
+    bl_label = "Snap"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'EXEC_REGION_WIN'
+
+        layout.operator("uv.snap_selection", text="Selected to Pixels").target = 'PIXELS'
+        layout.operator("uv.snap_selection", text="Selected to Cursor").target = 'CURSOR'
+        layout.operator("uv.snap_selection", text="Selected to Adjacent Unselected").target = 'ADJACENT_UNSELECTED'
+
+        layout.separator()
+
+        layout.operator("uv.snap_cursor", text="Cursor to Pixels").target = 'PIXELS'
+        layout.operator("uv.snap_cursor", text="Cursor to Selection").target = 'SELECTION'
 
 
 class IMAGE_MT_uvs_mirror(bpy.types.Menu):
@@ -158,8 +179,8 @@ class IMAGE_MT_uvs_mirror(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'EXEC_REGION_WIN'
 
-        layout.operator("tfm.mirror", text="X Axis").constraint_axis[0] = True
-        layout.operator("tfm.mirror", text="Y Axis").constraint_axis[1] = True
+        layout.operator("transform.mirror", text="X Axis").constraint_axis[0] = True
+        layout.operator("transform.mirror", text="Y Axis").constraint_axis[1] = True
 
 
 class IMAGE_MT_uvs_weldalign(bpy.types.Menu):
@@ -203,6 +224,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
         layout.menu("IMAGE_MT_uvs_transform")
         layout.menu("IMAGE_MT_uvs_mirror")
+        layout.menu("IMAGE_MT_uvs_snap")
         layout.menu("IMAGE_MT_uvs_weldalign")
 
         layout.separator()
@@ -265,9 +287,13 @@ class IMAGE_HT_header(bpy.types.Header):
                 layout.prop(uvedit, "sticky_selection_mode", text="", icon_only=True)
 
             row = layout.row(align=True)
+            row.prop(settings, "proportional_editing", text="", icon_only=True)
+            if settings.proportional_editing != 'DISABLED':
+                row.prop(settings, "proportional_editing_falloff", text="", icon_only=True)
+
+            row = layout.row(align=True)
             row.prop(settings, "snap", text="")
-            if settings.snap:
-                row.prop(settings, "snap_mode", text="")
+            row.prop(settings, "snap_element", text="", icon_only=True)
 
             # mesh = context.edit_object.data
             # row.prop_object(mesh, "active_uv_layer", mesh, "uv_textures")
@@ -285,12 +311,12 @@ class IMAGE_HT_header(bpy.types.Header):
 
             row = layout.row(align=True)
             if ima.type == 'COMPOSITE':
-                row.operator("image.record_composite", icon='ICON_REC')
+                row.operator("image.record_composite", icon='REC')
             if ima.type == 'COMPOSITE' and ima.source in ('MOVIE', 'SEQUENCE'):
-                row.operator("image.play_composite", icon='ICON_PLAY')
+                row.operator("image.play_composite", icon='PLAY')
 
         if show_uvedit or sima.image_painting:
-            layout.prop(sima, "update_automatically", text="")
+            layout.prop(sima, "update_automatically", text="", icon_only=True, icon='LOCKED')
 
 
 class IMAGE_PT_image_properties(bpy.types.Panel):
@@ -520,6 +546,7 @@ bpy.types.register(IMAGE_MT_select)
 bpy.types.register(IMAGE_MT_image)
 bpy.types.register(IMAGE_MT_uvs_showhide)
 bpy.types.register(IMAGE_MT_uvs_transform)
+bpy.types.register(IMAGE_MT_uvs_snap)
 bpy.types.register(IMAGE_MT_uvs_mirror)
 bpy.types.register(IMAGE_MT_uvs_weldalign)
 bpy.types.register(IMAGE_MT_uvs)

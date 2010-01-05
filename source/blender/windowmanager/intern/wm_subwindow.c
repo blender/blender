@@ -405,6 +405,16 @@ void wmOrtho2(float x1, float x2, float y1, float y2)
 	wmOrtho(x1, x2, y1, y2, -100, 100);
 }
 
+void wmOrthoPixelSpace(void)
+{
+	if(_curswin) {
+		int width, height;
+
+		wm_subwindow_getsize(_curwindow, _curswin->swinid, &width, &height);
+		wmOrtho2(-0.375, (float)width-0.375, -0.375, (float)height-0.375);
+		wmLoadIdentity();
+	}
+}
 
 /* *************************** Framebuffer color depth, for selection codes ********************** */
 

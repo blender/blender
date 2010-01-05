@@ -229,9 +229,6 @@ static void node_composit_exec_bilateralblur(void *data, bNode *node, bNodeStack
 		SWAP(CompBuf, *source, *new);
 	}
 
-	if(node->exec & NODE_BREAK)
-		free_compbuf(source);
-
 	if(img != in[0]->data)
 		free_compbuf(img);
 

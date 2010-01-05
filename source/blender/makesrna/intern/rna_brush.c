@@ -76,10 +76,10 @@ static void rna_Brush_active_texture_set(PointerRNA *ptr, PointerRNA value)
 	set_current_brush_texture(br, value.data);
 }
 
-static void rna_Brush_update(bContext *C, PointerRNA *ptr)
+static void rna_Brush_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Brush *br= (Brush*)ptr->data;
-	WM_event_add_notifier(C, NC_BRUSH|NA_EDITED, br);
+	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
 }
 
 static float rna_BrushTextureSlot_angle_get(PointerRNA *ptr)
@@ -203,7 +203,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rate", "Number of paints per second for Airbrush.");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
-	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
+	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "rgb");
 	RNA_def_property_ui_text(prop, "Color", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
@@ -272,6 +272,11 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "use_persistent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_PERSISTENT);
 	RNA_def_property_ui_text(prop, "Persistent", "Sculpts on a persistent layer of the mesh.");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+
+	prop= RNA_def_property(srna, "use_accumulate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_ACCUMULATE);
+	RNA_def_property_ui_text(prop, "Accumulate", "Accumulate stroke dabs on top of each other.");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 	
 	/* not exposed in the interface yet

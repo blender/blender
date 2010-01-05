@@ -31,6 +31,7 @@
 #include "AUD_LimiterFactory.h"
 #include "AUD_PingPongFactory.h"
 #include "AUD_LoopFactory.h"
+#include "AUD_RectifyFactory.h"
 #include "AUD_ReadDevice.h"
 #include "AUD_SourceCaps.h"
 #include "AUD_IReader.h"
@@ -283,6 +284,20 @@ int AUD_stopLoop(AUD_Handle* handle)
 		}
 	}
 	return false;
+}
+
+AUD_Sound* AUD_rectifySound(AUD_Sound* sound)
+{
+	assert(sound);
+
+	try
+	{
+		return new AUD_RectifyFactory(sound);
+	}
+	catch(AUD_Exception)
+	{
+		return NULL;
+	}
 }
 
 void AUD_unload(AUD_Sound* sound)

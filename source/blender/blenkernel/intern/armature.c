@@ -38,6 +38,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_cellalloc.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
@@ -50,6 +51,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_anim.h"
@@ -128,6 +130,12 @@ void free_armature(bArmature *arm)
 			freeSketch(arm->sketch);
 			arm->sketch = NULL;
 		}
+		
+		/* free animation data */
+		if (arm->adt) {
+			BKE_free_animdata(&arm->id);
+			arm->adt= NULL;
+		}
 	}
 }
 
@@ -176,6 +184,9 @@ static void	copy_bonechildren (Bone* newBone, Bone* oldBone, Bone* actBone, Bone
 	
 	if(oldBone == actBone)
 		*newActBone= newBone;
+
+	if(oldBone->prop)
+		newBone->prop= IDP_CopyProperty(oldBone->prop);
 
 	/*	Copy this bone's list*/
 	BLI_duplicatelist(&newBone->childbase, &oldBone->childbase);
@@ -1502,6 +1513,10 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			pchanw.child= pchan->child;
 			pchanw.path= NULL;
 			
+			/* this is freed so copy a copy, else undo crashes */
+			if(pchanw.prop)
+				pchanw.prop= IDP_CopyProperty(pchanw.prop);
+
 			/* constraints - proxy constraints are flushed... local ones are added after 
 			 *	1. extract constraints not from proxy (CONSTRAINT_PROXY_LOCAL) from pchan's constraints
 			 *	2. copy proxy-pchan's constraints on-to new
@@ -2221,34 +2236,43 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 			
 			/* the rotation of the parent restposition */
 			copy_m4_m4(tmat, parbone->arm_mat);
-			
-			/* the location of actual parent transform */
-			VECCOPY(tmat[3], offs_bone[3]);
-			offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
-			mul_m4_v3(parchan->pose_mat, tmat[3]);
-			
 			mul_serie_m4(pchan->pose_mat, tmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 		}
 		else if(bone->flag & BONE_NO_SCALE) {
 			float orthmat[4][4];
 			
-			/* get the official transform, but we only use the vector from it (optimize...) */
-			mul_serie_m4(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
-			VECCOPY(vec, pchan->pose_mat[3]);
-			
-			/* do this again, but with an ortho-parent matrix */
+			/* do transform, with an ortho-parent matrix */
 			copy_m4_m4(orthmat, parchan->pose_mat);
 			normalize_m4(orthmat);
 			mul_serie_m4(pchan->pose_mat, orthmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
-			
-			/* copy correct transform */
-			VECCOPY(pchan->pose_mat[3], vec);
 		}
-		else 
+		else
 			mul_serie_m4(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
+		
+		/* in these cases we need to compute location separately */
+		if(bone->flag & (BONE_HINGE|BONE_NO_SCALE|BONE_NO_LOCAL_LOCATION)) {
+			float bone_loc[3], chan_loc[3];
+
+			mul_v3_m4v3(bone_loc, parchan->pose_mat, offs_bone[3]);
+			copy_v3_v3(chan_loc, pchan->chan_mat[3]);
+
+			/* no local location is not transformed by bone matrix */
+			if(!(bone->flag & BONE_NO_LOCAL_LOCATION))
+				mul_mat3_m4_v3(offs_bone, chan_loc);
+
+			/* for hinge we use armature instead of pose mat */
+			if(bone->flag & BONE_HINGE) mul_mat3_m4_v3(parbone->arm_mat, chan_loc);
+			else mul_mat3_m4_v3(parchan->pose_mat, chan_loc);
+
+			add_v3_v3v3(pchan->pose_mat[3], bone_loc, chan_loc);
+		}
 	}
 	else {
 		mul_m4_m4m4(pchan->pose_mat, pchan->chan_mat, bone->arm_mat);
+
+		/* optional location without arm_mat rotation */
+		if(bone->flag & BONE_NO_LOCAL_LOCATION)
+			add_v3_v3v3(pchan->pose_mat[3], bone->arm_mat[3], pchan->chan_mat[3]);
 		
 		/* only rootbones get the cyclic offset (unless user doesn't want that) */
 		if ((bone->flag & BONE_NO_CYCLICOFFSET) == 0)

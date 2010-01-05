@@ -70,9 +70,9 @@ private:
 	struct fronttoback;
 
 protected:
+	vector<int>						m_cacheWeightIndex;
 	list<RAS_MeshMaterial>			m_materials;
 	Mesh*							m_mesh;
-	bool							m_bDeformed;
 
 public:
 	// for now, meshes need to be in a certain layer (to avoid sorting on lights in realtime)
@@ -80,7 +80,8 @@ public:
 	virtual ~RAS_MeshObject();
 
 
-	bool				IsDeformed() { return (m_bDeformed && m_mesh); }
+	// for shape keys, 
+	void CheckWeightCache(struct Object* obj);
 	
 	/* materials */
 	int					NumMaterials();
@@ -132,13 +133,6 @@ public:
 	
 	/* buckets */
 	virtual void		AddMeshUser(void *clientobj, SG_QList *head, RAS_Deformer* deformer);
-	virtual void		UpdateBuckets(
-							void* clientobj,
-							double* oglmatrix,
-							bool useObjectColor,
-							const MT_Vector4& rgbavec,
-							bool visible,
-							bool culled);
 
 	void				RemoveFromBuckets(void *clientobj);
 	void				EndConversion() {

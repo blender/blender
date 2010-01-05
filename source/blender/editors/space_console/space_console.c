@@ -326,18 +326,19 @@ static void console_main_area_listener(ScrArea *sa, wmNotifier *wmn)
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_console(void)
 {
-	SpaceType *sc= MEM_callocN(sizeof(SpaceType), "spacetype console");
+	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype console");
 	ARegionType *art;
 	
-	sc->spaceid= SPACE_CONSOLE;
+	st->spaceid= SPACE_CONSOLE;
+	strncpy(st->name, "Console", BKE_ST_MAXNAME);
 	
-	sc->new= console_new;
-	sc->free= console_free;
-	sc->init= console_init;
-	sc->duplicate= console_duplicate;
-	sc->operatortypes= console_operatortypes;
-	sc->keymap= console_keymap;
-	sc->listener= console_main_area_listener;
+	st->new= console_new;
+	st->free= console_free;
+	st->init= console_init;
+	st->duplicate= console_duplicate;
+	st->operatortypes= console_operatortypes;
+	st->keymap= console_keymap;
+	st->listener= console_main_area_listener;
 	
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype console region");
@@ -350,19 +351,19 @@ void ED_spacetype_console(void)
 	
 	
 
-	BLI_addhead(&sc->regiontypes, art);
+	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype console region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
 	
 	art->init= console_header_area_init;
 	art->draw= console_header_area_draw;
 	
-	BLI_addhead(&sc->regiontypes, art);
+	BLI_addhead(&st->regiontypes, art);
 
 
-	BKE_spacetype_register(sc);
+	BKE_spacetype_register(st);
 }

@@ -106,7 +106,6 @@ def clientSendJob(conn, scene, anim = False):
 	
 	job_name = netsettings.job_name
 	path, name = os.path.split(filename)
-	path += os.sep
 	if job_name == "[default]":
 		job_name = name
 	
@@ -127,7 +126,7 @@ def clientSendJob(conn, scene, anim = False):
 	# FLUID + POINT CACHE
 	###########################
 	root, ext = os.path.splitext(name)
-	default_path = path + "blendcache_" + root + os.sep # need an API call for that
+	default_path = path + os.sep + "blendcache_" + root + os.sep # need an API call for that
 
 	for object in bpy.data.objects:
 		for modifier in object.modifiers:
@@ -147,9 +146,10 @@ def clientSendJob(conn, scene, anim = False):
 		for psys in object.particle_systems:
 			addPointCache(job, object, psys.point_cache, default_path)
 	
-	# print(job.files)
+	#print(job.files)
 	
 	job.name = job_name
+	job.category = netsettings.job_category
 	
 	for slave in netrender.blacklist:
 		job.blacklist.append(slave.id)
@@ -165,18 +165,18 @@ def clientSendJob(conn, scene, anim = False):
 	
 	# if not ACCEPTED (but not processed), send files
 	if response.status == http.client.ACCEPTED:
-		for filepath, start, end in job.files:
-			f = open(filepath, "rb")
-			conn.request("PUT", "/file", f, headers={"job-id": job_id, "job-file": filepath})
+		for rfile in job.files:
+			f = open(rfile.filepath, "rb")
+			conn.request("PUT", fileURL(job_id, rfile.index), f)
 			f.close()
 			response = conn.getresponse()
 	
-	# server will reply with NOT_FOUD until all files are found
+	# server will reply with ACCEPTED until all files are found
 	
 	return job_id
 
 def requestResult(conn, job_id, frame):
-	conn.request("GET", "/render", headers={"job-id": job_id, "job-frame":str(frame)})
+	conn.request("GET", renderURL(job_id, frame))
 
 @rnaType
 class NetworkRenderEngine(bpy.types.RenderEngine):
@@ -215,6 +215,8 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			
 			self.update_stats("", "Network render exporting")
 			
+			new_job = False
+			
 			job_id = netsettings.job_id
 			
 			# reading back result
@@ -225,14 +227,25 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 			response = conn.getresponse()
 			
 			if response.status == http.client.NO_CONTENT:
+				new_job = True
 				netsettings.job_id = clientSendJob(conn, scene)
+				job_id = netsettings.job_id 
+				
 				requestResult(conn, job_id, scene.current_frame)
+				response = conn.getresponse()
 			
 			while response.status == http.client.ACCEPTED and not self.test_break():
 				time.sleep(1)
 				requestResult(conn, job_id, scene.current_frame)
 				response = conn.getresponse()
 	
+			# cancel new jobs (animate on network) on break
+			if self.test_break() and new_job:
+				conn.request("POST", cancelURL(job_id))
+				response = conn.getresponse()
+				print( response.status, response.reason )
+				netsettings.job_id = 0
+				
 			if response.status != http.client.OK:
 				conn.close()
 				return

@@ -38,7 +38,9 @@ extern EnumPropertyItem object_mode_items[];
 
 extern EnumPropertyItem proportional_falloff_items[];
 extern EnumPropertyItem proportional_editing_items[];
-extern EnumPropertyItem snap_mode_items[];
+extern EnumPropertyItem snap_target_items[];
+extern EnumPropertyItem snap_element_items[];
+extern EnumPropertyItem mesh_select_mode_items[];
 extern EnumPropertyItem space_type_items[];
 extern EnumPropertyItem region_type_items[];
 extern EnumPropertyItem modifier_type_items[];
@@ -58,6 +60,7 @@ extern EnumPropertyItem nla_mode_blend_items[];
 
 extern EnumPropertyItem event_value_items[];
 extern EnumPropertyItem event_type_items[];
+extern EnumPropertyItem operator_return_items[];
 
 extern EnumPropertyItem brush_sculpt_tool_items[];
 
@@ -68,6 +71,8 @@ extern EnumPropertyItem object_type_items[];
 extern EnumPropertyItem space_type_items[];
 
 extern EnumPropertyItem keymap_propvalue_items[];
+
+extern EnumPropertyItem wm_report_items[];
 
 struct bContext;
 struct PointerRNA;

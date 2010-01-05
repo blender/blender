@@ -828,27 +828,38 @@ static void ed_default_handlers(wmWindowManager *wm, ListBase *handlers, int fla
 	
 	// XXX it would be good to have boundbox checks for some of these...
 	if(flag & ED_KEYMAP_UI) {
+		/* user interface widgets */
 		UI_add_region_handlers(handlers);
 	}
 	if(flag & ED_KEYMAP_VIEW2D) {
+		/* 2d-viewport handling+manipulation */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "View2D", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_MARKERS) {
+		/* time-markers */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Markers", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 		// XXX need boundbox check urgently!!!
 	}
 	if(flag & ED_KEYMAP_ANIMATION) {
+		/* frame changing and timeline operators (for time spaces) */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Animation", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_FRAMES) {
+		/* frame changing/jumping (for all spaces) */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Frames", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if(flag & ED_KEYMAP_GPENCIL) {
+		/* grease pencil */
 		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Grease Pencil", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap);
+	}
+	if(flag & ED_KEYMAP_HEADER) {
+		/* standard keymap for headers regions */
+		wmKeyMap *keymap= WM_keymap_find(wm->defaultconf, "Header", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 }
@@ -1078,30 +1089,11 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 	}
 }
 
-void ED_area_prevspace(bContext *C)
+void ED_area_prevspace(bContext *C, ScrArea *sa)
 {
-	SpaceLink *sl= CTX_wm_space_data(C);
-	ScrArea *sa= CTX_wm_area(C);
-
-	/* cleanup */
-#if 0 // XXX needs to be space type specific
-	if(sfile->spacetype==SPACE_FILE) {
-		if(sfile->pupmenu) {
-			MEM_freeN(sfile->pupmenu);
-			sfile->pupmenu= NULL;
-		}
-	}
-#endif
+	SpaceLink *sl = (sa) ? sa->spacedata.first : CTX_wm_space_data(C);
 
 	if(sl->next) {
-
-#if 0 // XXX check whether this is still needed
-		if (sfile->spacetype == SPACE_SCRIPT) {
-			SpaceScript *sc = (SpaceScript *)sfile;
-			if (sc->script) sc->script->flags &=~SCRIPT_FILESEL;
-		}
-#endif
-
 		/* workaround for case of double prevspace, render window
 		   with a file browser on top of it */
 		if(sl->next->spacetype == SPACE_FILE && sl->next->next)
@@ -1182,7 +1174,8 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 	ScrArea *sa= CTX_wm_area(C);
 	int xco= 8;
 	
-	xco= ED_area_header_switchbutton(C, block, yco);
+	if (!sa->full)
+		xco= ED_area_header_switchbutton(C, block, yco);
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
@@ -1332,6 +1325,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		/* only allow scrolling in vertical direction */
 		v2d->keepofs |= V2D_LOCKOFS_X|V2D_KEEPOFS_Y;
 		v2d->keepofs &= ~(V2D_LOCKOFS_Y|V2D_KEEPOFS_X);
+		v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
+		v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)
@@ -1346,6 +1341,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 		v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_LOCKOFS_Y|V2D_KEEPOFS_X|V2D_KEEPOFS_Y);
 		//v2d->keepofs |= V2D_LOCKOFS_Y|V2D_KEEPOFS_X;
 		//v2d->keepofs &= ~(V2D_LOCKOFS_X|V2D_KEEPOFS_Y);
+		v2d->scroll |= V2D_SCROLL_VERTICAL_HIDE;
+		v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_HIDE;
 		
 		// don't jump back when panels close or hide
 		if(!newcontext)

@@ -320,7 +320,11 @@ static void ui_centered_bounds_block(const bContext *C, uiBlock *block)
 	int startx, starty;
 	int width, height;
 	
-	wm_window_get_size(window, &xmax, &ymax);
+	/* note: this is used for the splash where window bounds event has not been
+	 * updated by ghost, get the window bounds from ghost directly */
+
+	// wm_window_get_size(window, &xmax, &ymax);
+	wm_window_get_size_ghost(window, &xmax, &ymax);
 	
 	ui_bounds_block(block);
 	
@@ -1786,14 +1790,17 @@ uiBlock *uiBeginBlock(const bContext *C, ARegion *region, const char *name, shor
 {
 	uiBlock *block;
 	wmWindow *window;
+	Scene *scn;
 	int getsizex, getsizey;
 
 	window= CTX_wm_window(C);
+	scn = CTX_data_scene(C);
 
 	block= MEM_callocN(sizeof(uiBlock), "uiBlock");
 	block->active= 1;
 	block->dt= dt;
 	block->evil_C= (void*)C; // XXX
+	if (scn) block->color_profile= (scn->r.color_mgt_flag & R_COLOR_MANAGEMENT);
 	BLI_strncpy(block->name, name, sizeof(block->name));
 
 	if(region)
@@ -1960,7 +1967,7 @@ void ui_check_but(uiBut *but)
 				sprintf(but->drawstr, "%s%.2f", but->str, value);
 			}
 		}
-		else strcpy(but->drawstr, but->str);
+		else strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		
 		break;
 
@@ -1978,7 +1985,7 @@ void ui_check_but(uiBut *but)
 		break;
 	
 	case KEYEVT:
-		strcpy(but->drawstr, but->str);
+		strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		if (but->flag & UI_SELECT) {
 			strcat(but->drawstr, "Press a key");
 		} else {
@@ -1988,48 +1995,43 @@ void ui_check_but(uiBut *but)
 		
 	case HOTKEYEVT:
 		if (but->flag & UI_SELECT) {
-			short *sp= (short *)but->func_arg3;
+			strncpy(but->drawstr, "", UI_MAX_DRAW_STR);
 			
-			if(but->flag & UI_BUT_IMMEDIATE)
-				strcpy(but->drawstr, but->str);
-			else
-				strcpy(but->drawstr, "");
-			
-			if(*sp) {
+			if(but->modifier_key) {
 				char *str= but->drawstr;
 				
-				if(*sp & KM_SHIFT)
+				if(but->modifier_key & KM_SHIFT)
 					str= strcat(str, "Shift ");
-				if(*sp & KM_CTRL)
+				if(but->modifier_key & KM_CTRL)
 					str= strcat(str, "Ctrl ");
-				if(*sp & KM_ALT)
+				if(but->modifier_key & KM_ALT)
 					str= strcat(str, "Alt ");
-				if(*sp & KM_OSKEY)
+				if(but->modifier_key & KM_OSKEY)
 					str= strcat(str, "Cmd ");
 			}
 			else
 				strcat(but->drawstr, "Press a key  ");
 		}
 		else
-			strcpy(but->drawstr, but->str);
+			strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 
 		break;
 		
 	case BUT_TOGDUAL:
 		/* trying to get the dual-icon to left of text... not very nice */
 		if(but->str[0]) {
-			strcpy(but->drawstr, "  ");
-			strcpy(but->drawstr+2, but->str);
+			strncpy(but->drawstr, "  ", UI_MAX_DRAW_STR);
+			strncpy(but->drawstr+2, but->str, UI_MAX_DRAW_STR-2);
 		}
 		break;
 	default:
-		strcpy(but->drawstr, but->str);
+		strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		
 	}
 
 	/* if we are doing text editing, this will override the drawstr */
 	if(but->editstr)
-		strcpy(but->drawstr, but->editstr);
+		strncpy(but->drawstr, but->editstr, UI_MAX_DRAW_STR);
 	
 	/* text clipping moved to widget drawing code itself */
 }
@@ -2235,6 +2237,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	but->bit= type & BIT;
 	but->bitnr= type & 31;
 	but->icon = 0;
+	but->iconadd=0;
 
 	but->retval= retval;
 	if( strlen(str)>=UI_MAX_NAME_STR-1 ) {
@@ -2290,6 +2293,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	if(ELEM(but->type, HSVCUBE, HSVCIRCLE)) { /* hsv buttons temp storage */
 		float rgb[3];
 		ui_get_but_vectorf(but, rgb);
+
 		rgb_to_hsv(rgb[0], rgb[1], rgb[2], but->hsv, but->hsv+1, but->hsv+2);
 	}
 
@@ -2963,7 +2967,7 @@ PointerRNA *uiButGetOperatorPtrRNA(uiBut *but)
 {
 	if(but->optype && !but->opptr) {
 		but->opptr= MEM_callocN(sizeof(PointerRNA), "uiButOpPtr");
-		WM_operator_properties_create(but->opptr, but->optype->idname);
+		WM_operator_properties_create_ptr(but->opptr, but->optype);
 	}
 
 	return but->opptr;
@@ -3160,7 +3164,7 @@ uiBut *uiDefKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1
 uiBut *uiDefHotKeyevtButS(uiBlock *block, int retval, char *str, short x1, short y1, short x2, short y2, short *keypoin, short *modkeypoin, char *tip)
 {
 	uiBut *but= ui_def_but(block, HOTKEYEVT|SHO, retval, str, x1, y1, x2, y2, keypoin, 0.0, 0.0, 0.0, 0.0, tip);
-	but->func_arg3= modkeypoin; /* XXX hrmf, abuse! */
+	but->modifier_key= *modkeypoin;
 	ui_check_but(but);
 	return but;
 }

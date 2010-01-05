@@ -353,6 +353,27 @@ wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag)
 	return ot;
 }
 
+void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType*, void*), void *userdata)
+{
+	wmOperatorType *ot;
+
+	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
+	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
+
+	ot->exec= wm_macro_exec;
+	ot->invoke= wm_macro_invoke;
+	ot->modal= wm_macro_modal;
+	ot->cancel= wm_macro_cancel;
+	ot->poll= NULL;
+
+	opfunc(ot, userdata);
+
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:"(undocumented operator)");
+	RNA_def_struct_identifier(ot->srna, ot->idname);
+
+	BLI_addtail(&global_ops, ot);
+}
+
 wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname)
 {
 	wmOperatorTypeMacro *otmacro= MEM_callocN(sizeof(wmOperatorTypeMacro), "wmOperatorTypeMacro");
@@ -465,8 +486,11 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	PointerRNA opptr_default;
 	PropertyRNA *prop_default;
 	char *buf_default;
-	if(!all_args) {
-		WM_operator_properties_create(&opptr_default, ot->idname);
+	if(all_args==0 || opptr==NULL) {
+		WM_operator_properties_create_ptr(&opptr_default, ot);
+
+		if(opptr==NULL)
+			opptr = &opptr_default;
 	}
 
 
@@ -510,7 +534,7 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	}
 	RNA_PROP_END;
 
-	if(all_args==0)
+	if(all_args==0 || opptr==&opptr_default )
 		WM_operator_properties_free(&opptr_default);
 
 	BLI_dynstr_append(dynstr, ")");
@@ -520,12 +544,17 @@ char *WM_operator_pystring(bContext *C, wmOperatorType *ot, PointerRNA *opptr, i
 	return cstring;
 }
 
+void WM_operator_properties_create_ptr(PointerRNA *ptr, wmOperatorType *ot)
+{
+	RNA_pointer_create(NULL, ot->srna, NULL, ptr);
+}
+
 void WM_operator_properties_create(PointerRNA *ptr, const char *opstring)
 {
 	wmOperatorType *ot= WM_operatortype_find(opstring, 0);
 
 	if(ot)
-		RNA_pointer_create(NULL, ot->srna, NULL, ptr);
+		WM_operator_properties_create_ptr(ptr, ot);
 	else
 		RNA_pointer_create(NULL, &RNA_OperatorProperties, NULL, ptr);
 }
@@ -586,10 +615,13 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else if (RNA_property_type(prop) != PROP_ENUM) {
 		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
 	}
+	else if (RNA_property_is_set(op->ptr, RNA_property_identifier(prop))) {
+		return op->type->exec(C, op);
+	}
 	else {
 		pup= uiPupMenuBegin(C, op->type->name, 0);
 		layout= uiPupMenuLayout(pup);
-		uiItemsEnumO(layout, op->type->idname, (char*)RNA_property_identifier(prop));
+		uiItemsFullEnumO(layout, op->type->idname, (char*)RNA_property_identifier(prop), op->ptr->data, WM_OP_EXEC_REGION_WIN, 0);
 		uiPupMenuEnd(C, pup);
 	}
 
@@ -601,10 +633,16 @@ int WM_operator_confirm_message(bContext *C, wmOperator *op, char *message)
 {
 	uiPopupMenu *pup;
 	uiLayout *layout;
+	IDProperty *properties= op->ptr->data;
+
+	if(properties && properties->len)
+		properties= IDP_CopyProperty(op->ptr->data);
+	else
+		properties= NULL;
 
 	pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
 	layout= uiPupMenuLayout(pup);
-	uiItemO(layout, message, 0, op->type->idname);
+	uiItemFullO(layout, message, 0, op->type->idname, properties, WM_OP_EXEC_REGION_WIN, 0);
 	uiPupMenuEnd(C, pup);
 	
 	return OPERATOR_CANCELLED;
@@ -651,6 +689,8 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop= RNA_def_boolean(ot->srna, "filter_text", (filter & TEXTFILE), "Filter text files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop= RNA_def_boolean(ot->srna, "filter_btx", (filter & BTXFILE), "Filter btx files", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop= RNA_def_boolean(ot->srna, "filter_folder", (filter & FOLDERFILE), "Filter folders", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
@@ -658,6 +698,18 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 		"File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file.",
 		FILE_LOADLIB, FILE_SPECIAL);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
+}
+
+void WM_operator_properties_select_all(wmOperatorType *ot) {
+	static EnumPropertyItem select_all_actions[] = {
+			{SEL_TOGGLE, "TOGGLE", 0, "Toggle", "Toggle selection for all elements"},
+			{SEL_SELECT, "SELECT", 0, "Select", "Select all elements"},
+			{SEL_DESELECT, "DESELECT", 0, "Deselect", "Deselect all elements"},
+			{SEL_INVERT, "INVERT", 0, "Invert", "Invert selection of all elements"},
+			{0, NULL, 0, NULL, NULL}
+	};
+
+	RNA_def_enum(ot->srna, "action", select_all_actions, SEL_TOGGLE, "Action", "Selection action to execute");
 }
 
 void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
@@ -669,7 +721,7 @@ void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
 	if(extend)
-		RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
+		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first.");
 }
 
 
@@ -722,10 +774,48 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, width, 20, style);
 	uiItemL(layout, op->type->name, 0);
 
-	if(op->type->ui)
-		op->type->ui((bContext*)C, &ptr, layout);
+	if(op->type->ui) {
+		op->layout= layout;
+		op->type->ui((bContext*)C, op);
+		op->layout= NULL;
+	}
 	else
 		uiDefAutoButsRNA(C, layout, &ptr, columns);
+
+	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiEndBlock(C, block);
+
+	return block;
+}
+
+
+static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
+{
+	struct { wmOperator *op; int width; int height; } * data = userData;
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *op= data->op;
+	PointerRNA ptr;
+	uiBlock *block;
+	uiLayout *layout;
+	uiStyle *style= U.uistyles.first;
+
+	block= uiBeginBlock(C, ar, "opui_popup", UI_EMBOSS);
+	uiBlockClearFlag(block, UI_BLOCK_LOOP);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
+
+	if(!op->properties) {
+		IDPropertyTemplate val = {0};
+		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	}
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, style);
+
+	if(op->type->ui) {
+		op->layout= layout;
+		op->type->ui((bContext*)C, op);
+		op->layout= NULL;
+	}
 
 	uiPopupBoundsBlock(block, 4.0f, 0, 0);
 	uiEndBlock(C, block);
@@ -744,6 +834,15 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 		uiPupBlock(C, wm_block_create_redo, op);
 
 	return retval;
+}
+
+void WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
+{
+	struct { wmOperator *op; int width; int height; } data;
+	data.op = op;
+	data.width = width;
+	data.height = height;
+	uiPupBlock(C, wm_operator_create_ui, &data);
 }
 
 int WM_operator_redo_popup(bContext *C, wmOperator *op)
@@ -769,8 +868,11 @@ static uiBlock *wm_block_create_menu(bContext *C, ARegion *ar, void *arg_op)
 	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 300, 20, style);
 	uiItemL(layout, op->type->name, 0);
 
-	if(op->type->ui)
-		op->type->ui(C, op->ptr, layout);
+	if(op->type->ui) {
+		op->layout= layout;
+		op->type->ui(C, op);
+		op->layout= NULL;
+	}
 	else
 		uiDefAutoButsRNA(C, layout, op->ptr, 2);
 	
@@ -840,13 +942,14 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	
-	split = uiLayoutSplit(layout, 0);
+	split = uiLayoutSplit(layout, 0, 0);
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Links", 0);
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_release_logs");
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_manual");
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_blender_website");
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_user_community");
+	uiItemO(col, NULL, ICON_URL, "HELP_OT_python_api");
 	uiItemS(col);
 	
 	col = uiLayoutColumn(split, 0);
@@ -1125,7 +1228,9 @@ static EnumPropertyItem *open_recentfile_splash_itemf(bContext *C, PointerRNA *p
 		tmp.value= i+1;
 		tmp.icon= ICON_FILE_BLEND;
 		tmp.identifier= recent->filename;
-		tmp.name= BLI_last_slash(recent->filename)+1;
+		tmp.name= BLI_last_slash(recent->filename);
+		if(tmp.name) tmp.name += 1;
+		else tmp.name = recent->filename;
 		RNA_enum_item_add(&item, &totitem, &tmp);
 	}
 	
@@ -1532,6 +1637,10 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	char name[FILE_MAX];
 
+	/* cancel if no active window */
+	if (CTX_wm_window(C) == NULL)
+		return OPERATOR_CANCELLED;
+
 	save_set_compress(op);
 	
 	BLI_strncpy(name, G.sce, FILE_MAX);
@@ -1554,7 +1663,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	
 	ot->invoke= wm_save_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
-	ot->poll= WM_operator_winactive;
+	ot->poll= NULL;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
@@ -1932,7 +2041,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case GESTURE_MODAL_CANCEL:
 		case GESTURE_MODAL_CONFIRM:
 			wm_gesture_end(C, op);
-			return OPERATOR_CANCELLED;
+			return OPERATOR_FINISHED; /* use finish or we dont get an undo */
 		}
 	}
 //	// Allow view navigation???
@@ -2034,7 +2143,7 @@ void wm_tweakevent_test(bContext *C, wmEvent *event, int action)
 		}
 	}
 	else {
-		if(action==WM_HANDLER_BREAK) {
+		if(action & WM_HANDLER_BREAK) {
 			WM_gesture_end(C, win->tweak);
 			win->tweak= NULL;
 		}
@@ -2289,7 +2398,7 @@ int WM_radial_control_modal(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if(event->ctrl) {
 			if(mode == WM_RADIALCONTROL_STRENGTH)
-				new_value = ((int)(new_value * 100) / 10*10) / 100.0f;
+				new_value = ((int)ceil(new_value * 10.f) * 10.0f) / 100.f;
 			else
 				new_value = ((int)new_value + 5) / 10*10;
 		}
@@ -2456,8 +2565,10 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 				CTX_wm_area_set(C, sa);
 
 				for(ar_iter= sa->regionbase.first; ar_iter; ar_iter= ar_iter->next) {
-					CTX_wm_region_set(C, ar_iter);
-					ED_region_do_draw(C, ar_iter);
+					if(ar_iter->swinid) {
+						CTX_wm_region_set(C, ar_iter);
+						ED_region_do_draw(C, ar_iter);
+					}
 				}
 			}
 
@@ -2553,9 +2664,13 @@ void wm_operatortype_free(void)
 {
 	wmOperatorType *ot;
 	
-	for(ot= global_ops.first; ot; ot= ot->next)
+	for(ot= global_ops.first; ot; ot= ot->next) {
 		if(ot->macro.first)
 			wm_operatortype_free_macro(ot);
+
+		if(ot->ext.srna) /* python operator, allocs own string */
+			MEM_freeN(ot->idname);
+	}
 	
 	BLI_freelistN(&global_ops);
 }
@@ -2654,12 +2769,12 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	{GESTURE_MODAL_BORDER_BEGIN,	"BEGIN", 0, "Begin", ""},
 	{0, NULL, 0, NULL, NULL}};
 
-	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "View3D Gesture Border");
+	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Gesture Border");
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if(keymap) return;
 
-	keymap= WM_modalkeymap_add(keyconf, "View3D Gesture Border", modal_items);
+	keymap= WM_modalkeymap_add(keyconf, "Gesture Border", modal_items);
 
 	/* items for modal map */
 	WM_modalkeymap_add_item(keymap, ESCKEY,    KM_PRESS, KM_ANY, 0, GESTURE_MODAL_CANCEL);
@@ -2677,7 +2792,7 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 #endif
 
 	/* assign map to operators */
-	WM_modalkeymap_assign(keymap, "ACT_OT_select_border");
+	WM_modalkeymap_assign(keymap, "ACTION_OT_select_border");
 	WM_modalkeymap_assign(keymap, "ANIM_OT_channels_select_border");
 	WM_modalkeymap_assign(keymap, "ANIM_OT_previewrange_set");
 	WM_modalkeymap_assign(keymap, "CONSOLE_OT_select_border");
@@ -2689,17 +2804,18 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 //	WM_modalkeymap_assign(keymap, "SCREEN_OT_border_select"); // template
 	WM_modalkeymap_assign(keymap, "SEQUENCER_OT_select_border");
 	WM_modalkeymap_assign(keymap, "UV_OT_select_border");
+	WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_border");
-	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
+	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border"); // XXX TODO: zoom border should perhaps map rightmouse to zoom out instead of in+cancel
 }
 
 /* default keymap for windows and screens, only call once per WM */
 void wm_window_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Window", 0, 0);
-	wmKeyMapItem *km;
+	wmKeyMapItem *kmi;
 	
 	/* note, this doesn't replace existing keymap items */
 	WM_keymap_verify_item(keymap, "WM_OT_window_duplicate", WKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
@@ -2717,8 +2833,8 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", OKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_open_mainfile", F1KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "WM_OT_link_append", OKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
-	km= WM_keymap_add_item(keymap, "WM_OT_link_append", F1KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(km->ptr, "link", FALSE);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_link_append", F1KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "link", FALSE);
 
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", SKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "WM_OT_save_mainfile", WKEY, KM_PRESS, KM_CTRL, 0);
@@ -2731,59 +2847,54 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	/* debug/testing */
 	WM_keymap_verify_item(keymap, "WM_OT_redraw_timer", TKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "WM_OT_splash", F1KEY, KM_PRESS, KM_ALT|KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
 	
 	/* Space switching */
 
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F2KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was DXF export */
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "LOGIC_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F2KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was DXF export */
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "LOGIC_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F3KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "NODE_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F3KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "NODE_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F4KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was data browser */
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "CONSOLE");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F4KEY, KM_PRESS, KM_SHIFT, 0); /* new in 2.5x, was data browser */
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "CONSOLE");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F5KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "VIEW_3D");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F5KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "VIEW_3D");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F6KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "GRAPH_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F6KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "GRAPH_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F7KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "PROPERTIES");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F7KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "PROPERTIES");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F8KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "SEQUENCE_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F8KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "SEQUENCE_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "OUTLINER");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "OUTLINER");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F9KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "OUTLINER");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F10KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "IMAGE_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F10KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "IMAGE_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F11KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "TEXT_EDITOR");
 
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F11KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "TEXT_EDITOR");
-
-	km = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F12KEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(km->ptr, "path", "area.type");
-	RNA_string_set(km->ptr, "value", "DOPESHEET_EDITOR");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F12KEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "path", "area.type");
+	RNA_string_set(kmi->ptr, "value", "DOPESHEET_EDITOR");
 
 	gesture_circle_modal_keymap(keyconf);
 	gesture_border_modal_keymap(keyconf);

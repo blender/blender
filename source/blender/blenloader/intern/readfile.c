@@ -140,9 +140,10 @@
 #include "BKE_report.h"
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_softbody.h"	// sbNew()
 #include "BKE_bullet.h"		// bsbNew()
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_idprop.h"
@@ -1695,12 +1696,6 @@ static void lib_link_fmodifiers(FileData *fd, ID *id, ListBase *list)
 				data->script = newlibadr(fd, id->lib, data->script);
 			}
 				break;
-			case FMODIFIER_TYPE_SOUND:
-			{
-				FMod_Sound *data= (FMod_Sound *)fcm->data;
-				data->sound = newlibadr(fd, id->lib, data->sound);
-			}
-				break;
 		}
 	}
 }
@@ -1708,6 +1703,9 @@ static void lib_link_fmodifiers(FileData *fd, ID *id, ListBase *list)
 static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list) 
 {
 	FCurve *fcu;
+	
+	if (list == NULL)
+		return;
 	
 	/* relink ID-block references... */
 	for (fcu= list->first; fcu; fcu= fcu->next) {
@@ -1854,6 +1852,9 @@ static void lib_link_nladata_strips(FileData *fd, ID *id, ListBase *list)
 	for (strip= list->first; strip; strip= strip->next) {
 		/* check strip's children */
 		lib_link_nladata_strips(fd, id, &strip->strips);
+		
+		/* check strip's F-Curves */
+		lib_link_fcurves(fd, id, &strip->fcurves);
 		
 		/* reassign the counted-reference to action */
 		strip->act = newlibadr_us(fd, id->lib, strip->act);
@@ -2392,7 +2393,9 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 	link_list(fd, &arm->bonebase);
 	arm->edbo= NULL;
 	arm->sketch = NULL;
+	
 	arm->adt= newdataadr(fd, arm->adt);
+	direct_link_animdata(fd, arm->adt);
 	
 	bone=arm->bonebase.first;
 	while (bone) {
@@ -3073,6 +3076,12 @@ static void direct_link_pointcache_list(FileData *fd, ListBase *ptcaches, PointC
 	}
 }
 
+void lib_link_partdeflect(FileData *fd, ID *id, PartDeflect *pd)
+{
+	if(pd && pd->tex)
+		pd->tex=newlibadr_us(fd, id->lib, pd->tex);
+}
+
 static void lib_link_particlesettings(FileData *fd, Main *main)
 {
 	ParticleSettings *part;
@@ -3088,6 +3097,9 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
 			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
 			part->bb_ob = newlibadr(fd, part->id.lib, part->bb_ob);
+
+			lib_link_partdeflect(fd, &part->id, part->pd);
+			lib_link_partdeflect(fd, &part->id, part->pd2);
 
 			if(part->effector_weights)
 				part->effector_weights->group = newlibadr(fd, part->id.lib, part->effector_weights->group);
@@ -3125,15 +3137,22 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 	}
 }
 
+static void direct_link_partdeflect(PartDeflect *pd)
+{
+	if(pd) pd->rng=NULL;
+}
+
 static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 {
 	part->adt= newdataadr(fd, part->adt);
 	part->pd= newdataadr(fd, part->pd);
 	part->pd2= newdataadr(fd, part->pd2);
 
-	if(part->effector_weights)
-		part->effector_weights = newdataadr(fd, part->effector_weights);
-	else
+	direct_link_partdeflect(part->pd);
+	direct_link_partdeflect(part->pd2);
+
+	part->effector_weights = newdataadr(fd, part->effector_weights);
+	if(!part->effector_weights)
 		part->effector_weights = BKE_add_effector_weights(part->eff_group);
 
 	link_list(fd, &part->dupliweights);
@@ -3361,14 +3380,14 @@ static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 	}
 }
 
-static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps)
+static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int external)
 {
 	if(mdisps) {
 		int i;
 
 		for(i = 0; i < count; ++i) {
 			mdisps[i].disps = newdataadr(fd, mdisps[i].disps);
-			if(!mdisps[i].disps)
+			if(!external && !mdisps[i].disps)
 				mdisps[i].totdisp = 0;
 		}
 	}       
@@ -3381,14 +3400,18 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 	int i = 0;
 
 	data->layers= newdataadr(fd, data->layers);
+	data->external= newdataadr(fd, data->external);
 
 	while (i < data->totlayer) {
 		CustomDataLayer *layer = &data->layers[i];
 
+		if(layer->flag & CD_FLAG_EXTERNAL)
+			layer->flag &= ~CD_FLAG_IN_MEMORY;
+
 		if (CustomData_verify_versions(data, i)) {
 			layer->data = newdataadr(fd, layer->data);
 			if(layer->type == CD_MDISPS)
-				direct_link_mdisps(fd, count, layer->data);
+				direct_link_mdisps(fd, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
 			i++;
 		}
 	}
@@ -3881,8 +3904,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			
 			/* texture field */
 			if(ob->pd)
-				if(ob->pd->tex)
-					ob->pd->tex=newlibadr_us(fd, ob->id.lib, ob->pd->tex);
+				lib_link_partdeflect(fd, &ob->id, ob->pd);
 
 			if(ob->soft)
 				ob->soft->effector_weights->group = newlibadr(fd, ob->id.lib, ob->soft->effector_weights->group);
@@ -3969,9 +3991,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				clmd->sim_parms->reset = 0;
 			}
 
-			if(clmd->sim_parms->effector_weights)
-				clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
-			else
+			clmd->sim_parms->effector_weights = newdataadr(fd, clmd->sim_parms->effector_weights);
+			if(!clmd->sim_parms->effector_weights)
 				clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
 			
 		}
@@ -3998,9 +4019,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain->tex_shadow = NULL;
 				smd->domain->tex_wt = NULL;
 
-				if(smd->domain->effector_weights)
-					smd->domain->effector_weights = newdataadr(fd, smd->domain->effector_weights);
-				else
+				smd->domain->effector_weights = newdataadr(fd, smd->domain->effector_weights);
+				if(!smd->domain->effector_weights)
 					smd->domain->effector_weights = BKE_add_effector_weights(NULL);
 
 				direct_link_pointcache_list(fd, &(smd->domain->ptcaches[0]), &(smd->domain->point_cache[0]));
@@ -4108,12 +4128,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 						SWITCH_INT(mmd->dynverts[a])
 			}
 		}
-		else if (md->type==eModifierType_Multires) {
-			MultiresModifierData *mmd = (MultiresModifierData*) md;
-			
-			mmd->undo_verts = newdataadr(fd, mmd->undo_verts);
-			mmd->undo_signal = !!mmd->undo_verts;
-		}
 	}
 }
 
@@ -4205,8 +4219,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	}
 
 	ob->pd= newdataadr(fd, ob->pd);
-	if(ob->pd)
-		ob->pd->rng=NULL;
+	direct_link_partdeflect(ob->pd);
 	ob->soft= newdataadr(fd, ob->soft);
 	if(ob->soft) {
 		SoftBody *sb= ob->soft;		
@@ -4224,9 +4237,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 			}
 		}
 
-		if(sb->effector_weights)
-			sb->effector_weights = newdataadr(fd, sb->effector_weights);
-		else
+		sb->effector_weights = newdataadr(fd, sb->effector_weights);
+		if(!sb->effector_weights)
 			sb->effector_weights = BKE_add_effector_weights(NULL);
 
 		direct_link_pointcache_list(fd, &sb->ptcaches, &sb->pointcache);
@@ -4350,6 +4362,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 	Base *base, *next;
 	Sequence *seq;
 	SceneRenderLayer *srl;
+	TimeMarker *marker;
 	
 	sce= main->scene.first;
 	while(sce) {
@@ -4392,6 +4405,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 				if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
 				if(seq->sound) {
+					seq->sound_handle= NULL;
 					if(seq->type == SEQ_HD_SOUND)
 						seq->type = SEQ_SOUND;
 					else
@@ -4404,6 +4418,17 @@ static void lib_link_scene(FileData *fd, Main *main)
 				seq->anim= 0;
 			}
 			SEQ_END
+
+#ifdef DURIAN_CAMERA_SWITCH
+			for(marker= sce->markers.first; marker; marker= marker->next) {
+				if(marker->camera) {
+					marker->camera= newlibadr(fd, sce->id.lib, marker->camera);
+				}
+			}
+#endif
+
+			if(sce->ed)
+				seq_update_muting(sce->ed);
 			
 			if(sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
@@ -4438,10 +4463,13 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 
 static void direct_link_paint(FileData *fd, Paint **paint)
 {
-	(*paint)= newdataadr(fd, (*paint));
-	if(*paint) {
-		(*paint)->paint_cursor= NULL;
-		(*paint)->brushes= newdataadr(fd, (*paint)->brushes);
+	Paint *p;
+
+	p= (*paint)= newdataadr(fd, (*paint));
+	if(p) {
+		p->paint_cursor= NULL;
+		p->brushes= newdataadr(fd, p->brushes);
+		test_pointer_array(fd, (void**)&p->brushes);
 	}
 }
 
@@ -4478,6 +4506,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		direct_link_paint(fd, (Paint**)&sce->toolsettings->wpaint);
 
 		sce->toolsettings->imapaint.paint.brushes= newdataadr(fd, sce->toolsettings->imapaint.paint.brushes);
+		test_pointer_array(fd, (void**)&sce->toolsettings->imapaint.paint.brushes);
 
 		sce->toolsettings->imapaint.paintcursor= NULL;
 		sce->toolsettings->particle.paintcursor= NULL;
@@ -4620,7 +4649,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	link_list(fd, &(sce->markers));
 	link_list(fd, &(sce->transform_spaces));
 	link_list(fd, &(sce->r.layers));
-	
+
 	sce->nodetree= newdataadr(fd, sce->nodetree);
 	if(sce->nodetree)
 		direct_link_nodetree(fd, sce->nodetree);
@@ -5219,6 +5248,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			if (sl->spacetype==SPACE_VIEW3D) {
 				View3D *v3d= (View3D*) sl;
 				v3d->bgpic= newdataadr(fd, v3d->bgpic);
+				v3d->flag |= V3D_INVALID_BACKBUF;
 				if(v3d->bgpic)
 					v3d->bgpic->iuser.ok= 1;
 				if(v3d->gpd) {
@@ -6113,7 +6143,8 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 {
 	ARegion *ar;
-	
+	ARegion *ar_main;
+
 	if(sl) {
 		/* first channels for ipo action nla... */
 		switch(sl->spacetype) {
@@ -6172,12 +6203,24 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->regiontype= RGN_TYPE_UI;
 				ar->alignment= RGN_ALIGN_TOP;
 				break;
+			case SPACE_SEQ:
+				ar_main = (ARegion*)lb->first;
+				for (; ar_main; ar_main = ar_main->next) {
+					if (ar_main->regiontype == RGN_TYPE_WINDOW)
+						break;
+				}
+				ar= MEM_callocN(sizeof(ARegion), "preview area for sequencer");
+				BLI_insertlinkbefore(lb, ar_main, ar);
+				ar->regiontype= RGN_TYPE_PREVIEW;
+				ar->alignment= RGN_ALIGN_TOP;
+				ar->flag |= RGN_FLAG_HIDDEN;
+				break;
 			case SPACE_VIEW3D:
 				/* toolbar */
 				ar= MEM_callocN(sizeof(ARegion), "toolbar for view3d");
 				
 				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_UI;
+				ar->regiontype= RGN_TYPE_TOOLS;
 				ar->alignment= RGN_ALIGN_LEFT;
 				ar->flag = RGN_FLAG_HIDDEN;
 				
@@ -6185,7 +6228,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar= MEM_callocN(sizeof(ARegion), "tool properties for view3d");
 				
 				BLI_addtail(lb, ar);
-				ar->regiontype= RGN_TYPE_UI;
+				ar->regiontype= RGN_TYPE_TOOL_PROPS;
 				ar->alignment= RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
 				ar->flag = RGN_FLAG_HIDDEN;
 				
@@ -9802,7 +9845,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		ToolSettings *ts;
 		//PTCacheID *pid;
 		//ListBase pidlist;
-		int i, a;
+		int a;
 
 		for(ob = main->object.first; ob; ob = ob->id.next) {
 			//BKE_ptcache_ids_from_object(&pidlist, ob);
@@ -9819,58 +9862,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				void *olddata = ob->data;
 				ob->data = me;
 
-				if(me && me->id.lib==NULL && me->mr) { /* XXX - library meshes crash on loading most yoFrankie levels, the multires pointer gets invalid -  Campbell */
-					MultiresLevel *lvl;
-					ModifierData *md;
-					MultiresModifierData *mmd;
-					DerivedMesh *dm, *orig;
-
-					/* Load original level into the mesh */
-					lvl = me->mr->levels.first;
-					CustomData_free_layers(&me->vdata, CD_MVERT, lvl->totvert);
-					CustomData_free_layers(&me->edata, CD_MEDGE, lvl->totedge);
-					CustomData_free_layers(&me->fdata, CD_MFACE, lvl->totface);
-					me->totvert = lvl->totvert;
-					me->totedge = lvl->totedge;
-					me->totface = lvl->totface;
-					me->mvert = CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
-					me->medge = CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, me->totedge);
-					me->mface = CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
-					memcpy(me->mvert, me->mr->verts, sizeof(MVert) * me->totvert);
-					for(i = 0; i < me->totedge; ++i) {
-						me->medge[i].v1 = lvl->edges[i].v[0];
-						me->medge[i].v2 = lvl->edges[i].v[1];
-					}
-					for(i = 0; i < me->totface; ++i) {
-						me->mface[i].v1 = lvl->faces[i].v[0];
-						me->mface[i].v2 = lvl->faces[i].v[1];
-						me->mface[i].v3 = lvl->faces[i].v[2];
-						me->mface[i].v4 = lvl->faces[i].v[3];
-					}
-
-					/* Add a multires modifier to the object */
-					md = ob->modifiers.first;
-					while(md && modifierType_getInfo(md->type)->type == eModifierTypeType_OnlyDeform)
-						md = md->next;                          
-					mmd = (MultiresModifierData*)modifier_new(eModifierType_Multires);
-					BLI_insertlinkbefore(&ob->modifiers, md, mmd);
-
-					multiresModifier_subdivide(mmd, ob, me->mr->level_count - 1, 1, 0);
-
-					mmd->lvl = mmd->totlvl;
-					orig = CDDM_from_mesh(me, NULL);
-					dm = multires_dm_create_from_derived(mmd, 0, orig, ob, 0, 0);
-                                       
-					multires_load_old(dm, me->mr);
-
-					MultiresDM_mark_as_modified(dm);
-					dm->release(dm);
-					orig->release(orig);
-
-					/* Remove the old multires */
-					multires_free(me->mr);
-					me->mr = NULL;
-				}
+				if(me && me->id.lib==NULL && me->mr) /* XXX - library meshes crash on loading most yoFrankie levels, the multires pointer gets invalid -  Campbell */
+					multires_load_old(ob, me);
 
 				ob->data = olddata;
 			}
@@ -10234,7 +10227,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put 2.50 compatibility code here until next subversion bump */
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 8))
 	{
 		{
 			Scene *sce= main->scene.first;
@@ -10270,7 +10263,225 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ntree= ntree->id.next;
 			}
 		}
+		{
+			Object *ob=main->object.first;
+			while (ob) {
+				/* shaded mode disabled for now */
+				if (ob->dt == OB_SHADED) ob->dt = OB_TEXTURE;
+				ob=ob->id.next;
+			}
+		}
+		
+		{
+			bScreen *screen;
+			ScrArea *sa;
+			SpaceLink *sl;
+			
+			for(screen= main->screen.first; screen; screen= screen->id.next) {
+				for(sa= screen->areabase.first; sa; sa= sa->next) {
+					for(sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							if (v3d->drawtype == OB_SHADED) v3d->drawtype = OB_SOLID;
+						}
+					}
+				}
+			}
+		}
+		
+		/* only convert old 2.50 files with color management */
+		if (main->versionfile == 250) {
+			Scene *sce=main->scene.first;
+			Material *ma=main->mat.first;
+			World *wo=main->world.first;
+			int convert=0;
+			
+			/* convert to new color management system:
+			 while previously colors were stored as srgb, 
+			 now they are stored as linear internally, 
+			 with screen gamma correction in certain places in the UI. */
+
+			/* don't know what scene is active, so we'll convert if any scene has it enabled... */
+			while (sce) {
+				if(sce->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+					convert=1;
+				sce=sce->id.next;
+			}
+			
+			if (convert) {
+				while(ma) {
+					srgb_to_linearrgb_v3_v3(&ma->r, &ma->r);
+					srgb_to_linearrgb_v3_v3(&ma->specr, &ma->specr);
+					srgb_to_linearrgb_v3_v3(&ma->mirr, &ma->mirr);
+					srgb_to_linearrgb_v3_v3(ma->sss_col, ma->sss_col);
+					ma=ma->id.next;
+				}
+				
+				while(wo) {
+					srgb_to_linearrgb_v3_v3(&wo->ambr, &wo->ambr);
+					srgb_to_linearrgb_v3_v3(&wo->horr, &wo->horr);
+					srgb_to_linearrgb_v3_v3(&wo->zenr, &wo->zenr);
+					wo=wo->id.next;
+				}
+			}
+		}
+		/* clear hanging 'temp' screens from older 2.5 files*/
+		if (main->versionfile == 250) {
+			bScreen *screen, *nextscreen;
+			wmWindowManager *wm;
+			wmWindow *win, *nextwin;
+
+			for(screen= main->screen.first; screen; screen= nextscreen) {
+				nextscreen= screen->id.next;
+
+				if (screen->full == SCREENTEMP) {
+					/* remove corresponding windows */
+					for(wm= main->wm.first; wm; wm=wm->id.next) {
+						for(win= wm->windows.first; win; win=nextwin) {
+							nextwin= win->next;
+
+							if(newlibadr(fd, wm->id.lib, win->screen) == screen)
+								BLI_freelinkN(&wm->windows, win);
+						}
+					}
+
+					/* remove screen itself */
+					free_libblock(&main->screen, screen);
+				}
+			}
+		}
 	}
+	
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 9))
+	{
+		Scene *sce;
+		Mesh *me;
+		Object *ob;
+
+		for(sce=main->scene.first; sce; sce=sce->id.next)
+			if(!sce->toolsettings->particle.selectmode)
+				sce->toolsettings->particle.selectmode= SCE_SELECT_PATH;
+
+		if (main->versionfile == 250 && main->subversionfile > 1) {
+			for(me=main->mesh.first; me; me=me->id.next)
+				multires_load_old_250(me);
+
+			for(ob=main->object.first; ob; ob=ob->id.next) {
+				MultiresModifierData *mmd = (MultiresModifierData *)modifiers_findByType(ob, eModifierType_Multires);
+
+				if(mmd) {
+					mmd->totlvl--;
+					mmd->lvl--;
+					mmd->sculptlvl= mmd->lvl;
+					mmd->renderlvl= mmd->lvl;
+				}
+			}
+		}
+	}
+
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 10))
+	{
+		Object *ob;
+
+		/* properly initialise hair clothsim data on old files */
+		for(ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for(md= ob->modifiers.first; md; md= md->next) {
+				if (md->type == eModifierType_Cloth) {
+					ClothModifierData *clmd = (ClothModifierData *)md;
+					if (clmd->sim_parms->velocity_smooth < 0.01f)
+						clmd->sim_parms->velocity_smooth = 0.f;
+				}
+			}
+		}
+	}
+
+	/* fix bad area setup in subversion 10 */
+	if (main->versionfile == 250 && main->subversionfile == 10)
+	{
+		/* fix for new view type in sequencer */
+		bScreen *screen;
+		ScrArea *sa;
+		SpaceLink *sl;
+
+
+		/* remove all preview window in wrong spaces */
+		for(screen= main->screen.first; screen; screen= screen->id.next) {
+			for(sa= screen->areabase.first; sa; sa= sa->next) {
+				for(sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype!=SPACE_SEQ) {
+						ARegion *ar;
+						ListBase *regionbase;
+
+						if (sl == sa->spacedata.first) {
+							regionbase = &sa->regionbase;
+						} else {
+							regionbase = &sl->regionbase;
+						}
+
+
+						for( ar = regionbase->first; ar; ar = ar->next) {
+							if (ar->regiontype == RGN_TYPE_PREVIEW)
+								break;
+						}
+
+						if (ar) {
+							SpaceType *st= BKE_spacetype_from_id(SPACE_SEQ);
+							BKE_area_region_free(st, ar);
+							BLI_freelinkN(regionbase, ar);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 11))
+	{
+		{
+			/* fix for new view type in sequencer */
+			bScreen *screen;
+			ScrArea *sa;
+			SpaceLink *sl;
+
+
+			for(screen= main->screen.first; screen; screen= screen->id.next) {
+				for(sa= screen->areabase.first; sa; sa= sa->next) {
+					for(sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_SEQ) {
+							ARegion *ar;
+							ARegion *ar_main;
+							ListBase *regionbase;
+							SpaceSeq *sseq = (SpaceSeq *)sl;
+
+							if (sl == sa->spacedata.first) {
+								regionbase = &sa->regionbase;
+							} else {
+								regionbase = &sl->regionbase;
+							}
+
+							if (sseq->view == 0) sseq->view = SEQ_VIEW_SEQUENCE;
+							if (sseq->mainb == 0) sseq->mainb = SEQ_DRAW_IMG_IMBUF;
+
+							ar_main = (ARegion*)regionbase->first;
+							for (; ar_main; ar_main = ar_main->next) {
+								if (ar_main->regiontype == RGN_TYPE_WINDOW)
+									break;
+							}
+							ar= MEM_callocN(sizeof(ARegion), "preview area for sequencer");
+							BLI_insertlinkbefore(regionbase, ar_main, ar);
+							ar->regiontype= RGN_TYPE_PREVIEW;
+							ar->alignment= RGN_ALIGN_TOP;
+							ar->flag |= RGN_FLAG_HIDDEN;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* put 2.50 compatibility code here until next subversion bump */
+
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
@@ -10624,13 +10835,6 @@ static void expand_fmodifiers(FileData *fd, Main *mainvar, ListBase *list)
 				expand_doit(fd, mainvar, data->script);
 			}
 				break;
-			case FMODIFIER_TYPE_SOUND:
-			{
-				FMod_Sound *data= (FMod_Sound *)fcm->data;
-
-				expand_doit(fd, mainvar, data->sound);
-			}
-				break;
 		}
 	}
 }
@@ -10689,6 +10893,9 @@ static void expand_animdata_nlastrips(FileData *fd, Main *mainvar, ListBase *lis
 	for (strip= list->first; strip; strip= strip->next) {
 		/* check child strips */
 		expand_animdata_nlastrips(fd, mainvar, &strip->strips);
+		
+		/* check F-Curves */
+		expand_fcurves(fd, mainvar, &strip->fcurves);
 		
 		/* check F-Modifiers */
 		expand_fmodifiers(fd, mainvar, &strip->modifiers);
@@ -11302,6 +11509,28 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 		
 	if(sce->gpd)
 		expand_doit(fd, mainvar, sce->gpd);
+
+	if(sce->ed) {
+		Sequence *seq;
+
+		SEQ_BEGIN(sce->ed, seq) {
+			if(seq->scene) expand_doit(fd, mainvar, seq->scene);
+			if(seq->sound) expand_doit(fd, mainvar, seq->sound);
+		}
+		SEQ_END
+	}
+
+#ifdef DURIAN_CAMERA_SWITCH
+	{
+		TimeMarker *marker;
+
+		for(marker= sce->markers.first; marker; marker= marker->next) {
+			if(marker->camera) {
+				expand_doit(fd, mainvar, marker->camera);
+			}
+		}
+	}
+#endif
 }
 
 static void expand_camera(FileData *fd, Main *mainvar, Camera *ca)

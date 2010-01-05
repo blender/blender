@@ -1124,7 +1124,14 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	/* mark it available for use for other windows */
 	screen->winid= 0;
 	
+	/* before deleting the temp screen or we get invalid access */
 	CTX_wm_window_set(C, prevwin);
+	
+	/* if temp screen, delete it */
+	if(screen->full == SCREENTEMP) {
+		Main *bmain= CTX_data_main(C);
+		free_libblock(&bmain->screen, screen);
+	}
 }
 
 /* *********************************** */
@@ -1306,7 +1313,13 @@ void ED_screen_delete(bContext *C, bScreen *sc)
 	wmWindow *win= CTX_wm_window(C);
 	bScreen *newsc;
 	int delete= 1;
-
+	
+	/* don't allow deleting temp fullscreens for now */
+	if (sc->full == SCREENFULL) {
+		return;
+	}
+	
+		
 	/* screen can only be in use by one window at a time, so as
 	   long as we are able to find a screen that is unused, we
 	   can safely assume ours is not in use anywhere an delete it */
@@ -1456,7 +1469,7 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 				// default. So use the old headertype instead
 			
 			area_copy_data(old, sa, 1);	/*  1 = swap spacelist */
-			
+			if (sa->flag & AREA_TEMP_INFO) sa->flag &= ~AREA_TEMP_INFO;
 			old->full= NULL;
 			
 			/* animtimer back */
@@ -1471,16 +1484,19 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 	}
 	else {
 		ScrArea *newa;
+		char newname[20];
 		
 		oldscreen= win->screen;
 
-		/* is there only 1 area? */
+		/* nothing wrong with having only 1 area, as far as I can see...
+		// is there only 1 area?
 		if(oldscreen->areabase.first==oldscreen->areabase.last)
 			return NULL;
+		*/
 		
 		oldscreen->full = SCREENFULL;
-		
-		sc= ED_screen_add(win, oldscreen->scene, "temp");
+		BLI_snprintf(newname, sizeof(newname), "%s-%s", oldscreen->id.name+2, "temp");
+		sc= ED_screen_add(win, oldscreen->scene, newname);
 		sc->full = SCREENFULL; // XXX
 		
 		/* timer */
@@ -1490,7 +1506,7 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 		/* returns the top small area */
 		newa= area_split(win, sc, (ScrArea *)sc->areabase.first, 'h', 0.99f);
 		ED_area_newspace(C, newa, SPACE_INFO);
-
+		
 		/* use random area when we have no active one, e.g. when the
 		   mouse is outside of the window and we open a file browser */
 		if(!sa)
@@ -1499,11 +1515,12 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 		/* copy area */
 		newa= newa->prev;
 		area_copy_data(newa, sa, 1);	/* 1 = swap spacelist */
+		sa->flag |= AREA_TEMP_INFO;
 
 		sa->full= oldscreen;
 		newa->full= oldscreen;
 		newa->next->full= oldscreen; // XXX
-
+		
 		ED_screen_set(C, sc);
 	}
 
@@ -1518,27 +1535,69 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 int ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
 {
 	wmWindow *win= CTX_wm_window(C);
+	bScreen *screen= CTX_wm_screen(C);
 	ScrArea *newsa= NULL;
 
-	if(!sa || sa->full==0)
+	if(!sa || sa->full==0) {
 		newsa= ed_screen_fullarea(C, win, sa);
-	if(!newsa)
-		newsa= sa;
-
+	}
+	
+	if(!newsa) {
+		if (sa->full) {
+			/* if this has been called from the temporary info header generated in
+			 * temp fullscreen layouts, find the correct fullscreen area to change
+			 * to create a new space inside */
+			for (newsa = screen->areabase.first; newsa; newsa=newsa->next) {
+				if (!(sa->flag & AREA_TEMP_INFO))
+					break;
+			}
+		} else
+			newsa= sa;
+	}
+	
 	ED_area_newspace(C, newsa, type);
 	
 	return 1;
 }
 
-void ED_screen_full_prevspace(bContext *C)
+void ED_screen_full_prevspace(bContext *C, ScrArea *sa)
 {
 	wmWindow *win= CTX_wm_window(C);
-	ScrArea *sa= CTX_wm_area(C);
-	
-	ED_area_prevspace(C);
+
+	ED_area_prevspace(C, sa);
 	
 	if(sa->full)
 		ed_screen_fullarea(C, win, sa);
+}
+
+/* restore a screen / area back to default operation, after temp fullscreen modes */
+void ED_screen_full_restore(bContext *C, ScrArea *sa)
+{
+	wmWindow *win= CTX_wm_window(C);
+	SpaceLink *sl = sa->spacedata.first;
+	
+	/* if fullscreen area has a secondary space (such as as file browser or fullscreen render 
+	 * overlaid on top of a existing setup) then return to the previous space */
+	
+	if (sl->next) {
+		/* specific checks for space types */
+		if (sl->spacetype == SPACE_IMAGE) {
+			SpaceImage *sima= sa->spacedata.first;
+			if (sima->flag & SI_PREVSPACE)
+				sima->flag &= ~SI_PREVSPACE;
+			if (sima->flag & SI_FULLWINDOW) {
+				sima->flag &= ~SI_FULLWINDOW;
+				ED_screen_full_prevspace(C, sa);
+			}
+		} else if (sl->spacetype == SPACE_FILE) {
+			ED_screen_full_prevspace(C, sa);
+		} else
+			ed_screen_fullarea(C, win, sa);
+	}
+	/* otherwise just tile the area again */
+	else {
+		ed_screen_fullarea(C, win, sa);
+	}
 }
 
 /* redraws: uses defines from stime->redraws 
@@ -1556,10 +1615,11 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
 	screen->animtimer= NULL;
 	
 	if(enable) {
-		struct ScreenAnimData *sad= MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData");
+		ScreenAnimData *sad= MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData");
 		
 		screen->animtimer= WM_event_add_timer(wm, win, TIMER0, (1.0/FPS));
 		sad->ar= CTX_wm_region(C);
+		sad->sfra = scene->r.cfra;
 		sad->redraws= redraws;
 		sad->flag |= (enable < 0)? ANIMPLAY_FLAG_REVERSE: 0;
 		sad->flag |= (sync == 0)? ANIMPLAY_FLAG_NO_SYNC: (sync == 1)? ANIMPLAY_FLAG_SYNC: 0;
@@ -1594,10 +1654,8 @@ static ARegion *time_top_left_3dwindow(bScreen *screen)
 	return aret;
 }
 
-void ED_screen_animation_timer_update(bContext *C, int redraws)
+void ED_screen_animation_timer_update(bScreen *screen, int redraws)
 {
-	bScreen *screen= CTX_wm_screen(C);
-	
 	if(screen && screen->animtimer) {
 		wmTimer *wt= screen->animtimer;
 		ScreenAnimData *sad= wt->customdata;
@@ -1613,13 +1671,42 @@ void ED_screen_animation_timer_update(bContext *C, int redraws)
 void ED_update_for_newframe(const bContext *C, int mute)
 {
 	bScreen *screen= CTX_wm_screen(C);
-	Scene *scene= screen->scene;
+	Scene *scene= CTX_data_scene(C);
 	
+#ifdef DURIAN_CAMERA_SWITCH
+	void *camera= scene_find_camera_switch(scene);
+	if(camera && scene->camera != camera) {
+
+		if(camera && scene->camera && (camera != scene->camera)) {
+			bScreen *sc;
+			/* are there cameras in the views that are not in the scene? */
+			for(sc= CTX_data_main(C)->screen.first; sc; sc= sc->id.next) {
+				ScrArea *sa= sc->areabase.first;
+				while(sa) {
+					SpaceLink *sl= sa->spacedata.first;
+					while(sl) {
+						if(sl->spacetype==SPACE_VIEW3D) {
+							View3D *v3d= (View3D*) sl;
+							if (v3d->scenelock) {
+								v3d->camera= camera;
+							}
+						}
+						sl= sl->next;
+					}
+					sa= sa->next;
+				}
+			}
+		}
+
+		scene->camera= camera;
+	}
+#endif
+
 	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
 	/* this function applies the changes too */
 	/* XXX future: do all windows */
-	scene_update_for_newframe(scene, BKE_screen_visible_layers(screen)); /* BKE_scene.h */
+	scene_update_for_newframe(scene, BKE_screen_visible_layers(screen, scene)); /* BKE_scene.h */
 	
 	//if ( (CFRA>1) && (!mute) && (scene->r.audio.flag & AUDIO_SCRUB)) 
 	//	audiostream_scrub( CFRA );

@@ -2587,14 +2587,14 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 					v3= vlr->v3;
 					v4= vlr->v4;
 
-					c1= zbuf_part_project(cache, v1->index, winmat, bounds, v1->co, ho1);
-					c2= zbuf_part_project(cache, v2->index, winmat, bounds, v2->co, ho2);
-					c3= zbuf_part_project(cache, v3->index, winmat, bounds, v3->co, ho3);
+					c1= zbuf_part_project(cache, v1->index, obwinmat, bounds, v1->co, ho1);
+					c2= zbuf_part_project(cache, v2->index, obwinmat, bounds, v2->co, ho2);
+					c3= zbuf_part_project(cache, v3->index, obwinmat, bounds, v3->co, ho3);
 
 					/* partclipping doesn't need viewplane clipping */
 					partclip= c1 & c2 & c3;
 					if(v4) {
-						c4= zbuf_part_project(cache, v4->index, winmat, bounds, v4->co, ho4);
+						c4= zbuf_part_project(cache, v4->index, obwinmat, bounds, v4->co, ho4);
 						partclip &= c4;
 					}
 

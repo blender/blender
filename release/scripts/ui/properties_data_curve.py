@@ -128,6 +128,13 @@ class DATA_PT_shape_curve(DataButtonsPanel):
 class DATA_PT_geometry_curve(DataButtonsPanel):
     bl_label = "Geometry"
 
+    def poll(self, context):
+        obj = context.object
+        if obj and obj.type == 'SURFACE':
+            return False
+
+        return context.curve
+
     def draw(self, context):
         layout = self.layout
 

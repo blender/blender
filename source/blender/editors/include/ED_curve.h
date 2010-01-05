@@ -43,6 +43,11 @@ void	ED_operatortypes_curve(void);
 void	ED_keymap_curve	(struct wmKeyConfig *keyconf);
 
 /* editcurve.c */
+void CU_deselect_all(struct Object *obedit);
+void CU_select_all(struct Object *obedit);
+void CU_select_swap(struct Object *obedit);
+
+
 void	undo_push_curve	(struct bContext *C, char *name);
 ListBase *curve_get_editcurve(struct Object *ob);
 
@@ -50,7 +55,7 @@ void	load_editNurb	(struct Object *obedit);
 void	make_editNurb	(struct Object *obedit);
 void	free_editNurb	(struct Object *obedit);
 
-void	mouse_nurb		(struct bContext *C, short mval[2], int extend);
+int 	mouse_nurb		(struct bContext *C, short mval[2], int extend);
 
 struct Nurb *add_nurbs_primitive(struct bContext *C, int type, int newname);
 

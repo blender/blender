@@ -54,20 +54,19 @@ def slave_Info():
 
 def testCancel(conn, job_id, frame_number):
 		conn.request("HEAD", "/status", headers={"job-id":job_id, "job-frame": str(frame_number)})
-		response = conn.getresponse()
-		
+
 		# cancelled if job isn't found anymore
-		if response.status == http.client.NO_CONTENT:
+		if conn.getresponse().status == http.client.NO_CONTENT:
 			return True
 		else:
 			return False
 
-def testFile(conn, job_id, slave_id, JOB_PREFIX, file_path, main_path = None):
+def testFile(conn, job_id, slave_id, file_index, JOB_PREFIX, file_path, main_path = None):
 	job_full_path = prefixPath(JOB_PREFIX, file_path, main_path)
 	
 	if not os.path.exists(job_full_path):
 		temp_path = JOB_PREFIX + "slave.temp.blend"
-		conn.request("GET", "/file", headers={"job-id": job_id, "slave-id":slave_id, "job-file":file_path})
+		conn.request("GET", fileURL(job_id, file_index), headers={"slave-id":slave_id})
 		response = conn.getresponse()
 		
 		if response.status != http.client.OK:
@@ -85,7 +84,6 @@ def testFile(conn, job_id, slave_id, JOB_PREFIX, file_path, main_path = None):
 		os.renames(temp_path, job_full_path)
 		
 	return job_full_path
-
 
 def render_slave(engine, netsettings):
 	timeout = 1
@@ -120,21 +118,21 @@ def render_slave(engine, netsettings):
 				
 				
 				if job.type == netrender.model.JOB_BLENDER:
-					job_path = job.files[0][0] # data in files have format (path, start, end)
+					job_path = job.files[0].filepath # path of main file
 					main_path, main_file = os.path.split(job_path)
 					
-					job_full_path = testFile(conn, job.id, slave_id, JOB_PREFIX, job_path)
+					job_full_path = testFile(conn, job.id, slave_id, 0, JOB_PREFIX, job_path)
 					print("Fullpath", job_full_path)
 					print("File:", main_file, "and %i other files" % (len(job.files) - 1,))
-					engine.update_stats("", "Render File", main_file, "for job", job.id)
+					engine.update_stats("", "Render File "+ main_file+ " for job "+ job.id)
 					
-					for file_path, start, end in job.files[1:]:
-						print("\t", file_path)
-						testFile(conn, job.id, slave_id, JOB_PREFIX, file_path, main_path)
+					for rfile in job.files[1:]:
+						print("\t", rfile.filepath)
+						testFile(conn, job.id, slave_id, rfile.index, JOB_PREFIX, rfile.filepath, main_path)
 
 				# announce log to master
-				logfile = netrender.model.LogFile(job.id, [frame.number for frame in job.frames])
-				conn.request("POST", "/log", bytes(repr(logfile.serialize()), encoding='utf8'), headers={"slave-id":slave_id})
+				logfile = netrender.model.LogFile(job.id, slave_id, [frame.number for frame in job.frames])
+				conn.request("POST", "/log", bytes(repr(logfile.serialize()), encoding='utf8'))
 				response = conn.getresponse()
 				
 				
@@ -151,7 +149,7 @@ def render_slave(engine, netsettings):
 						frame_args += ["-f", str(frame.number)]
 					
 					val = SetErrorMode()
-					process = subprocess.Popen([BLENDER_PATH, "-b", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+					process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 					RestoreErrorMode(val)
 				elif job.type == netrender.model.JOB_PROCESS:
 					command = job.frames[0].command
@@ -159,7 +157,7 @@ def render_slave(engine, netsettings):
 					process = subprocess.Popen(command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 					RestoreErrorMode(val)
 				
-				headers = {"job-id":job.id, "slave-id":slave_id}
+				headers = {"slave-id":slave_id}
 				
 				cancelled = False
 				stdout = bytes()
@@ -173,8 +171,7 @@ def render_slave(engine, netsettings):
 						# update logs if needed
 						if stdout:
 							# (only need to update on one frame, they are linked
-							headers["job-frame"] = str(first_frame)
-							conn.request("PUT", "/log", stdout, headers=headers)
+							conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
 							response = conn.getresponse()
 							
 							stdout = bytes()
@@ -203,11 +200,12 @@ def render_slave(engine, netsettings):
 				# flush the rest of the logs
 				if stdout:
 					# (only need to update on one frame, they are linked
-					headers["job-frame"] = str(first_frame)
-					conn.request("PUT", "/log", stdout, headers=headers)
-					response = conn.getresponse()
+					conn.request("PUT", logURL(job.id, first_frame), stdout, headers=headers)
+					if conn.getresponse().status == http.client.NO_CONTENT:
+						continue
 				
 				headers = {"job-id":job.id, "slave-id":slave_id, "job-time":str(avg_t)}
+				
 				
 				if status == 0: # non zero status is error
 					headers["job-result"] = str(DONE)
@@ -219,17 +217,20 @@ def render_slave(engine, netsettings):
 							f = open(JOB_PREFIX + "%06d" % frame.number + ".exr", 'rb')
 							conn.request("PUT", "/render", f, headers=headers)
 							f.close()
-							response = conn.getresponse()
+							if conn.getresponse().status == http.client.NO_CONTENT:
+								continue
 						elif job.type == netrender.model.JOB_PROCESS:
 							conn.request("PUT", "/render", headers=headers)
-							response = conn.getresponse()
+							if conn.getresponse().status == http.client.NO_CONTENT:
+								continue
 				else:
 					headers["job-result"] = str(ERROR)
 					for frame in job.frames:
 						headers["job-frame"] = str(frame.number)
 						# send error result back to server
 						conn.request("PUT", "/render", headers=headers)
-						response = conn.getresponse()
+						if conn.getresponse().status == http.client.NO_CONTENT:
+							continue
 			else:
 				if timeout < MAX_TIMEOUT:
 					timeout += INCREMENT_TIMEOUT

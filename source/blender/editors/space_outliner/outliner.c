@@ -79,7 +79,7 @@
 #include "BKE_report.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_utildefines.h"
 
 #include "ED_armature.h"
@@ -4747,7 +4747,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				case ID_SCE:
 					WM_event_add_notifier(C, NC_SCENE, NULL); break;
 				default:
-					WM_event_add_notifier(C, NC_MATERIAL, NULL); break;
+					WM_event_add_notifier(C, NC_ID|NA_RENAME, NULL); break;
 			}					
 			/* Check the library target exists */
 			if (te->idcode == ID_LI) {

@@ -283,8 +283,12 @@ sgstrf (superlu_options_t *options, SuperMatrix *A,
 	     * -------------------------------------- */
 	    /* Determine the union of the row structure of the snode */
 	    if ( (*info = ssnode_dfs(jcol, kcol, asub, xa_begin, xa_end,
-				    xprune, marker, &Glu)) != 0 )
+				    xprune, marker, &Glu)) != 0 ) {
+		if ( iperm_r_allocated ) SUPERLU_FREE (iperm_r);
+		SUPERLU_FREE (iperm_c);
+		SUPERLU_FREE (relax_end);
 		return;
+	    }
 
             nextu    = xusub[jcol];
 	    nextlu   = xlusup[jcol];
@@ -293,8 +297,12 @@ sgstrf (superlu_options_t *options, SuperMatrix *A,
 	    new_next = nextlu + (xlsub[fsupc+1]-xlsub[fsupc])*(kcol-jcol+1);
 	    nzlumax = Glu.nzlumax;
 	    while ( new_next > nzlumax ) {
-		if ( (*info = sLUMemXpand(jcol, nextlu, LUSUP, &nzlumax, &Glu)) )
-		    return;
+		if ( (*info = sLUMemXpand(jcol, nextlu, LUSUP, &nzlumax, &Glu)) ) {
+			if ( iperm_r_allocated ) SUPERLU_FREE (iperm_r);
+			SUPERLU_FREE (iperm_c);
+			SUPERLU_FREE (relax_end);
+			return;
+		}
 	    }
     
 	    for (icol = jcol; icol<= kcol; icol++) {
@@ -350,17 +358,31 @@ sgstrf (superlu_options_t *options, SuperMatrix *A,
 
 	    	if ((*info = scolumn_dfs(m, jj, perm_r, &nseg, &panel_lsub[k],
 					segrep, &repfnz[k], xprune, marker,
-					parent, xplore, &Glu)) != 0) return;
+					parent, xplore, &Glu)) != 0) {
+			if ( iperm_r_allocated ) SUPERLU_FREE (iperm_r);
+			SUPERLU_FREE (iperm_c);
+			SUPERLU_FREE (relax_end);
+			return;
+		}
 
 	      	/* Numeric updates */
 	    	if ((*info = scolumn_bmod(jj, (nseg - nseg1), &dense[k],
 					 tempv, &segrep[nseg1], &repfnz[k],
-					 jcol, &Glu, stat)) != 0) return;
+					 jcol, &Glu, stat)) != 0) {
+			if ( iperm_r_allocated ) SUPERLU_FREE (iperm_r);
+			SUPERLU_FREE (iperm_c);
+			SUPERLU_FREE (relax_end);
+			return;
+		}
 		
 	        /* Copy the U-segments to ucol[*] */
 		if ((*info = scopy_to_ucol(jj, nseg, segrep, &repfnz[k],
-					  perm_r, &dense[k], &Glu)) != 0)
-		    return;
+					  perm_r, &dense[k], &Glu)) != 0) {
+			if ( iperm_r_allocated ) SUPERLU_FREE (iperm_r);
+			SUPERLU_FREE (iperm_c);
+			SUPERLU_FREE (relax_end);
+			return;
+		}
 
 	    	if ( (*info = spivotL(jj, diag_pivot_thresh, &usepr, perm_r,
 				      iperm_r, iperm_c, &pivrow, &Glu, stat)) )
@@ -429,5 +451,4 @@ sgstrf (superlu_options_t *options, SuperMatrix *A,
     if ( iperm_r_allocated ) SUPERLU_FREE (iperm_r);
     SUPERLU_FREE (iperm_c);
     SUPERLU_FREE (relax_end);
-
 }

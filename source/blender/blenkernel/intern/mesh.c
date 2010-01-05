@@ -141,9 +141,9 @@ void mesh_update_linked_customdata(Mesh *me)
 		CustomData_set_layer_clone(&me->ldata, CD_MLOOPUV, act);
 		CustomData_set_layer_clone(&me->fdata, CD_MTFACE, act);
 
-		act = CustomData_get_mask_layer(&me->pdata, CD_MTEXPOLY);
-		CustomData_set_layer_mask(&me->ldata, CD_MLOOPUV, act);
-		CustomData_set_layer_mask(&me->fdata, CD_MTFACE, act);
+		act = CustomData_get_stencil_layer(&me->pdata, CD_MTEXPOLY);
+		CustomData_set_layer_stencil(&me->ldata, CD_MLOOPUV, act);
+		CustomData_set_layer_stencil(&me->fdata, CD_MTFACE, act);
 	}
 
 	if (CustomData_has_layer(&me->ldata, CD_MLOOPCOL)) {
@@ -156,8 +156,8 @@ void mesh_update_linked_customdata(Mesh *me)
 		act = CustomData_get_clone_layer(&me->ldata, CD_MLOOPCOL);
 		CustomData_set_layer_clone(&me->fdata, CD_MCOL, act);
 
-		act = CustomData_get_mask_layer(&me->ldata, CD_MLOOPCOL);
-		CustomData_set_layer_mask(&me->fdata, CD_MCOL, act);
+		act = CustomData_get_stencil_layer(&me->ldata, CD_MLOOPCOL);
+		CustomData_set_layer_stencil(&me->fdata, CD_MCOL, act);
 	}
 }
 
@@ -1604,7 +1604,8 @@ static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata,
 int mesh_recalcTesselation(CustomData *fdata, 
                            CustomData *ldata, CustomData *pdata,
                            MVert *mvert, int totface, int totloop, 
-                           int totpoly, int use_poly_origindex)
+                           int totpoly, int use_poly_origindex, 
+			   int use_face_origindex)
 {
 	MPoly *mp, *mpoly;
 	MLoop *ml, *mloop;
@@ -1659,7 +1660,7 @@ int mesh_recalcTesselation(CustomData *fdata,
 			mf[k].v3 = f->v3->keyindex;
 			mf[k].mat_nr = mp->mat_nr;
 			mf[k].flag = mp->flag;
-			origIndex[k] = f->v1->tmp.l;
+			origIndex[k] = use_face_origindex ? k : f->v1->tmp.l;
 
 			k++;
 		}

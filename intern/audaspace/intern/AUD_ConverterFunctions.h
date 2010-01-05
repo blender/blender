@@ -46,6 +46,8 @@ typedef void (*AUD_convert_f)(sample_t* target, sample_t* source, int length);
 typedef void (*AUD_volume_adjust_f)(sample_t* target, sample_t* source,
 									int count, float volume);
 
+typedef void (*AUD_rectify_f)(sample_t* target, sample_t* source, int count);
+
 template <class T>
 void AUD_convert_copy(sample_t* target, sample_t* source, int length)
 {
@@ -152,5 +154,20 @@ void AUD_volume_adjust_s24_le(sample_t* target, sample_t* source,
 
 void AUD_volume_adjust_s24_be(sample_t* target, sample_t* source,
 							  int count, float volume);
+
+template <class T>
+void AUD_rectify(sample_t* target, sample_t* source, int count)
+{
+	T* t = (T*)target;
+	T* s = (T*)source;
+	for(int i=0; i < count; i++)
+		t[i] = s[i] < 0 ? -s[i] : s[i];
+}
+
+void AUD_rectify_u8(sample_t* target, sample_t* source, int count);
+
+void AUD_rectify_s24_le(sample_t* target, sample_t* source, int count);
+
+void AUD_rectify_s24_be(sample_t* target, sample_t* source, int count);
 
 #endif //AUD_CONVERTERFUNCTIONS

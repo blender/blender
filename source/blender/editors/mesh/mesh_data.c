@@ -73,10 +73,10 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 {
 	Mesh *me = ob->data;
 	CustomData *data= (me->edit_btmesh)? &me->edit_btmesh->bm->pdata: &me->pdata;
-	void *actlayerdata, *rndlayerdata, *clonelayerdata, *masklayerdata, *layerdata=layer->data;
+	void *actlayerdata, *rndlayerdata, *clonelayerdata, *stencillayerdata, *layerdata=layer->data;
 	int type= layer->type;
 	int index= CustomData_get_layer_index(data, type);
-	int i, actindex, rndindex, cloneindex, maskindex, tot = me->totpoly;
+	int i, actindex, rndindex, cloneindex, stencilindex, tot = me->totpoly;
 	
 	if (layer->type == CD_MLOOPCOL) {
 		data = (me->edit_btmesh)? &me->edit_btmesh->bm->ldata: &me->ldata;
@@ -93,7 +93,7 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	actlayerdata = data->layers[CustomData_get_active_layer_index(data, type)].data;
 	rndlayerdata = data->layers[CustomData_get_render_layer_index(data, type)].data;
 	clonelayerdata = data->layers[CustomData_get_clone_layer_index(data, type)].data;
-	masklayerdata = data->layers[CustomData_get_mask_layer_index(data, type)].data;
+	stencillayerdata = data->layers[CustomData_get_stencil_layer_index(data, type)].data;
 	CustomData_set_layer_active(data, type, layer - &data->layers[index]);
 
 	if(me->edit_btmesh) {
@@ -150,18 +150,18 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 		CustomData_set_layer_clone(data, type, cloneindex);
 	}
 	
-	if (masklayerdata != layerdata) {
+	if (stencillayerdata != layerdata) {
 		/* find index */
-		maskindex = CustomData_get_layer_index(data, type);
-		for (i=maskindex; i<data->totlayer; i++) {
-			if (data->layers[i].data == masklayerdata) {
-				maskindex = i - maskindex;
+		stencilindex = CustomData_get_layer_index(data, type);
+		for (i=stencilindex; i<data->totlayer; i++) {
+			if (data->layers[i].data == stencillayerdata) {
+				stencilindex = i - stencilindex;
 				break;
 			}
 		}
 		
 		/* set index */
-		CustomData_set_layer_mask(data, type, maskindex);
+		CustomData_set_layer_stencil(data, type, stencilindex);
 	}
 }
 
@@ -682,7 +682,8 @@ void ED_mesh_material_add(Mesh *me, Material *ma)
 
 	me->mat = mat;
 	me->mat[me->totcol++] = ma;
-	ma->id.us++;
+	if(ma)
+		ma->id.us++;
 
 	test_object_materials((ID*)me);
 }

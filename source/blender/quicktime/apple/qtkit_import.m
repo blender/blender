@@ -137,7 +137,7 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 	uchar *toIBuf = NULL;
 	int x, y, to_i, from_i;
 	NSSize bitmapSize;
-	NSBitmapImageRep *blBitmapFormatImageRGB,*blBitmapFormatImageRGBA,*bitmapImage;
+	NSBitmapImageRep *blBitmapFormatImageRGB,*blBitmapFormatImageRGBA,*bitmapImage=nil;
 	NSEnumerator *enumerator;
 	NSImageRep *representation;
 	
@@ -150,12 +150,13 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 	
 	/*Get the bitmap of the image*/
 	enumerator = [[sourceImage representations] objectEnumerator];
-	while (representation = [enumerator nextObject]) {
+	while ((representation = [enumerator nextObject])) {
         if ([representation isKindOfClass:[NSBitmapImageRep class]]) {
             bitmapImage = (NSBitmapImageRep *)representation;
 			break;
         }
     }
+	if (bitmapImage == nil) return NULL;
 
 	if (([bitmapImage bitsPerPixel] == 32) && (([bitmapImage bitmapFormat] & 0x5) == 0)
 		&& ![bitmapImage isPlanar]) {

@@ -50,10 +50,8 @@ static int rna_Meta_texspace_editable(PointerRNA *ptr)
 	return (mb->texflag & AUTOSPACE)? 0: PROP_EDITABLE;
 }
 
-static void rna_MetaBall_update_data(bContext *C, PointerRNA *ptr)
+static void rna_MetaBall_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Main *bmain= CTX_data_main(C);
-	Scene *scene= CTX_data_scene(C);
 	MetaBall *mb= ptr->id.data;
 	Object *ob;
 
@@ -62,10 +60,8 @@ static void rna_MetaBall_update_data(bContext *C, PointerRNA *ptr)
 			copy_mball_properties(scene, ob);
 
 	DAG_id_flush_update(&mb->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, mb);
 }
-
-
 
 #else
 

@@ -32,6 +32,8 @@
 
 /* This little block needed for linking to Blender... */
 #include <stdio.h>
+#include <setjmp.h>
+
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"
@@ -41,6 +43,7 @@
 #include "IMB_imginfo.h"
 #include "IMB_jpeg.h"
 #include "jpeglib.h" 
+#include "jerror.h"
 
 /* the types are from the jpeg lib */
 static void jpeg_error (j_common_ptr cinfo);
@@ -66,7 +69,6 @@ type 3 is unsupported as of jul 05 2000 Frank.
  * 4. jmax - no scaling in the components
  */
 
-static int jpeg_failed = FALSE;
 static int jpeg_default_quality;
 static int ibuf_ftype;
 
@@ -76,15 +78,30 @@ int imb_is_a_jpeg(unsigned char *mem) {
 	return 0;
 }
 
+//----------------------------------------------------------
+//	JPG ERROR HANDLING
+//----------------------------------------------------------
+
+typedef struct my_error_mgr {
+  struct jpeg_error_mgr pub;	/* "public" fields */
+
+  jmp_buf setjmp_buffer;	/* for return to caller */
+} my_error_mgr;
+
+typedef my_error_mgr * my_error_ptr;
+
 static void jpeg_error (j_common_ptr cinfo)
 {
+	my_error_ptr err = (my_error_ptr)cinfo->err;
+
 	/* Always display the message */
 	(*cinfo->err->output_message) (cinfo);
 
 	/* Let the memory manager delete any temp files before we die */
 	jpeg_destroy(cinfo);
 
-	jpeg_failed = TRUE;
+	/* return control to the setjmp point */
+	longjmp(err->setjmp_buffer, 1);
 }
 
 //----------------------------------------------------------
@@ -255,7 +272,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 		x = cinfo->image_width;
 		y = cinfo->image_height;
 		depth = cinfo->num_components;
-		
+
 		if (cinfo->jpeg_color_space == JCS_YCCK) cinfo->out_color_space = JCS_CMYK;
 
 		jpeg_start_decompress(cinfo);
@@ -407,14 +424,24 @@ next_stamp_marker:
 ImBuf * imb_ibJpegImageFromFilename (const char * filename, int flags)
 {
 	struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
-	struct jpeg_error_mgr jerr;
+	struct my_error_mgr jerr;
 	FILE * infile;
 	ImBuf * ibuf;
 	
 	if ((infile = fopen(filename, "rb")) == NULL) return 0;
 
-	cinfo->err = jpeg_std_error(&jerr);
-	jerr.error_exit = jpeg_error;
+	cinfo->err = jpeg_std_error(&jerr.pub);
+	jerr.pub.error_exit = jpeg_error;
+
+	/* Establish the setjmp return context for my_error_exit to use. */
+	if (setjmp(jerr.setjmp_buffer)) {
+		/* If we get here, the JPEG code has signaled an error.
+		 * We need to clean up the JPEG object, close the input file, and return.
+		 */
+		jpeg_destroy_decompress(cinfo);
+		fclose(infile);
+		return NULL;
+	}
 
 	jpeg_create_decompress(cinfo);
 	jpeg_stdio_src(cinfo, infile);
@@ -428,11 +455,20 @@ ImBuf * imb_ibJpegImageFromFilename (const char * filename, int flags)
 ImBuf * imb_ibJpegImageFromMemory (unsigned char * buffer, int size, int flags)
 {
 	struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
-	struct jpeg_error_mgr jerr;
+	struct my_error_mgr jerr;
 	ImBuf * ibuf;
 	
-	cinfo->err = jpeg_std_error(&jerr);
-	jerr.error_exit = jpeg_error;
+	cinfo->err = jpeg_std_error(&jerr.pub);
+	jerr.pub.error_exit = jpeg_error;
+
+	/* Establish the setjmp return context for my_error_exit to use. */
+	if (setjmp(jerr.setjmp_buffer)) {
+		/* If we get here, the JPEG code has signaled an error.
+		 * We need to clean up the JPEG object, close the input file, and return.
+		 */
+		jpeg_destroy_decompress(cinfo);
+		return NULL;
+	}
 
 	jpeg_create_decompress(cinfo);
 	memory_source(cinfo, buffer, size);
@@ -521,11 +557,9 @@ next_stamp_info:
 		}
 
 		jpeg_write_scanlines(cinfo, row_pointer, 1);
-
-		if (jpeg_failed) break;
 	}
 
-	if (jpeg_failed == FALSE) jpeg_finish_compress(cinfo);
+	jpeg_finish_compress(cinfo);
 	free(row_pointer[0]);
 }
 
@@ -577,13 +611,24 @@ static int save_stdjpeg(char * name, struct ImBuf * ibuf)
 {
 	FILE * outfile;
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
-	struct jpeg_error_mgr jerr;
+	struct my_error_mgr jerr;
 
 	if ((outfile = fopen(name, "wb")) == NULL) return 0;
 	jpeg_default_quality = 75;
 
-	cinfo->err = jpeg_std_error(&jerr);
-	jerr.error_exit = jpeg_error;
+	cinfo->err = jpeg_std_error(&jerr.pub);
+	jerr.pub.error_exit = jpeg_error;
+
+	/* Establish the setjmp return context for jpeg_error to use. */
+	if (setjmp(jerr.setjmp_buffer)) {
+		/* If we get here, the JPEG code has signaled an error.
+		 * We need to clean up the JPEG object, close the input file, and return.
+		 */
+		jpeg_destroy_compress(cinfo);
+		fclose(outfile);
+		remove(name);
+		return 0;
+	}
 
 	init_jpeg(outfile, cinfo, ibuf);
 
@@ -592,10 +637,6 @@ static int save_stdjpeg(char * name, struct ImBuf * ibuf)
 	fclose(outfile);
 	jpeg_destroy_compress(cinfo);
 
-	if (jpeg_failed) {
-		remove(name);
-		return 0;
-	}
 	return 1;
 }
 
@@ -604,13 +645,24 @@ static int save_vidjpeg(char * name, struct ImBuf * ibuf)
 {
 	FILE * outfile;
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
-	struct jpeg_error_mgr jerr;
+	struct my_error_mgr jerr;
 
 	if ((outfile = fopen(name, "wb")) == NULL) return 0;
 	jpeg_default_quality = 90;
 
-	cinfo->err = jpeg_std_error(&jerr);
-	jerr.error_exit = jpeg_error;
+	cinfo->err = jpeg_std_error(&jerr.pub);
+	jerr.pub.error_exit = jpeg_error;
+
+	/* Establish the setjmp return context for jpeg_error to use. */
+	if (setjmp(jerr.setjmp_buffer)) {
+		/* If we get here, the JPEG code has signaled an error.
+		 * We need to clean up the JPEG object, close the input file, and return.
+		 */
+		jpeg_destroy_compress(cinfo);
+		fclose(outfile);
+		remove(name);
+		return 0;
+	}
 
 	init_jpeg(outfile, cinfo, ibuf);
 
@@ -625,10 +677,6 @@ static int save_vidjpeg(char * name, struct ImBuf * ibuf)
 	fclose(outfile);
 	jpeg_destroy_compress(cinfo);
 
-	if (jpeg_failed) {
-		remove(name);
-		return 0;
-	}
 	return 1;
 }
 
@@ -667,13 +715,24 @@ static int save_maxjpeg(char * name, struct ImBuf * ibuf)
 {
 	FILE * outfile;
 	struct jpeg_compress_struct _cinfo, *cinfo = &_cinfo;
-	struct jpeg_error_mgr jerr;
+	struct my_error_mgr jerr;
 
 	if ((outfile = fopen(name, "wb")) == NULL) return 0;
 	jpeg_default_quality = 100;
 
-	cinfo->err = jpeg_std_error(&jerr);
-	jerr.error_exit = jpeg_error;
+	cinfo->err = jpeg_std_error(&jerr.pub);
+	jerr.pub.error_exit = jpeg_error;
+
+	/* Establish the setjmp return context for jpeg_error to use. */
+	if (setjmp(jerr.setjmp_buffer)) {
+		/* If we get here, the JPEG code has signaled an error.
+		 * We need to clean up the JPEG object, close the input file, and return.
+		 */
+		jpeg_destroy_compress(cinfo);
+		fclose(outfile);
+		remove(name);
+		return 0;
+	}
 
 	init_jpeg(outfile, cinfo, ibuf);
 
@@ -688,10 +747,6 @@ static int save_maxjpeg(char * name, struct ImBuf * ibuf)
 	fclose(outfile);
 	jpeg_destroy_compress(cinfo);
 
-	if (jpeg_failed) {
-		remove(name);
-		return 0;
-	}
 	return 1;
 }
 

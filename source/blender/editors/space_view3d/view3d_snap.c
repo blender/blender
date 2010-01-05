@@ -571,7 +571,8 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	ED_anim_dag_flush_update(C);
+
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -694,7 +695,8 @@ static int snap_sel_to_curs(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	ED_anim_dag_flush_update(C);
+
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -1081,7 +1083,7 @@ static int snap_selected_to_center(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	
-	ED_anim_dag_flush_update(C);
+	DAG_ids_flush_update(0);
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -1131,42 +1133,3 @@ int minmax_verts(Object *obedit, float *min, float *max)
 	
 	return 1;
 }
-
-/* ************************************************* */
-
-static int snap_menu_invoke(bContext *C, wmOperator *unused, wmEvent *event)
-{
-	uiPopupMenu *pup= uiPupMenuBegin(C, "Snap", 0);
-	uiLayout *layout= uiPupMenuLayout(pup);
-	
-	uiItemO(layout, "Selected to Grid", 0, "VIEW3D_OT_snap_selected_to_grid");
-	uiItemO(layout, "Selected to Cursor", 0, "VIEW3D_OT_snap_selected_to_cursor");
-	uiItemO(layout, "Selected to Center", 0, "VIEW3D_OT_snap_selected_to_center");
-	uiItemS(layout);
-	uiItemO(layout, "Cursor to Selected", 0, "VIEW3D_OT_snap_cursor_to_selected");
-	uiItemO(layout, "Cursor to Grid", 0, "VIEW3D_OT_snap_cursor_to_grid");
-	uiItemO(layout, "Cursor to Active", 0, "VIEW3D_OT_snap_cursor_to_active");
-	
-	uiPupMenuEnd(C, pup);
-	
-	/* this operator is only for a menu, not used further */
-	return OPERATOR_CANCELLED;
-}
-
-/* only used as menu */
-void VIEW3D_OT_snap_menu(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Snap Menu";
-	ot->idname= "VIEW3D_OT_snap_menu";
-	
-	/* api callbacks */
-	ot->invoke= snap_menu_invoke;
-	
-	ot->poll= ED_operator_view3d_active;
-	
-	/* flags */
-	ot->flag= 0;
-}
-
-

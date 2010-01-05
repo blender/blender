@@ -920,7 +920,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		mul_mat3_m4_v3(mat, vec);
 		
 		for(a=0;a<seg-1;a++) {
-			extrudeflag_vert(obedit, em, 2, nor);	// nor unused
+			extrudeflag_vert(obedit, em, 2, nor, 0);	// nor unused
 			translateflag(em, 2, vec);
 		}
 		break;
@@ -955,7 +955,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 		quat_to_mat3( cmat,q);
 		
 		for(a=0; a<seg; a++) {
-			extrudeflag_vert(obedit, em, 2, nor); // nor unused
+			extrudeflag_vert(obedit, em, 2, nor, 0); // nor unused
 			rotateflag(em, 2, v1->co, cmat);
 		}
 

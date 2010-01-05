@@ -53,6 +53,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
@@ -132,11 +133,9 @@ static int add_default_keyingset_exec (bContext *C, wmOperator *op)
 	 */
 	flag |= KEYINGSET_ABSOLUTE;
 	
-	if (IS_AUTOKEY_FLAG(AUTOMATKEY)) 
-		keyingflag |= INSERTKEY_MATRIX;
-	if (IS_AUTOKEY_FLAG(INSERTNEEDED)) 
-		keyingflag |= INSERTKEY_NEEDED;
-		
+	/* 2nd arg is 0 to indicate that we don't want to include autokeying mode related settings */
+	keyingflag = ANIM_get_keyframing_flags(scene, 0);
+	
 	/* call the API func, and set the active keyingset index */
 	BKE_keyingset_add(&scene->keyingsets, NULL, flag, keyingflag);
 	
@@ -325,6 +324,8 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 			keyingflag |= INSERTKEY_MATRIX;
 		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) 
 			keyingflag |= INSERTKEY_NEEDED;
+		if (IS_AUTOKEY_FLAG(XYZ2RGB)) 
+			keyingflag |= INSERTKEY_XYZ2RGB;
 			
 		/* call the API func, and set the active keyingset index */
 		ks= BKE_keyingset_add(&scene->keyingsets, "ButtonKeyingSet", flag, keyingflag);
@@ -366,7 +367,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
@@ -375,11 +376,11 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_add_keyingset_button (wmOperatorType *ot)
+void ANIM_OT_keyingset_button_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add to Keying Set";
-	ot->idname= "ANIM_OT_add_keyingset_button";
+	ot->idname= "ANIM_OT_keyingset_button_add";
 	
 	/* callbacks */
 	ot->exec= add_keyingset_button_exec; 
@@ -444,7 +445,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, NC_SCENE|ND_KEYINGSET, NULL);
@@ -453,11 +454,11 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_remove_keyingset_button (wmOperatorType *ot)
+void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove from Keying Set";
-	ot->idname= "ANIM_OT_remove_keyingset_button";
+	ot->idname= "ANIM_OT_keyingset_button_remove";
 	
 	/* callbacks */
 	ot->exec= remove_keyingset_button_exec; 
@@ -1219,7 +1220,7 @@ static short modifykey_get_context_v3d_data (bContext *C, ListBase *dsources, Ke
 		//}
 #endif
 		
-		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pchans)
+		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
 		{
 			/* add a new keying-source */
 			cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
@@ -1304,9 +1305,7 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 		kflag= ks->keyingflag;
 		
 		/* suppliment with info from the context */
-		if (IS_AUTOKEY_FLAG(AUTOMATKEY)) kflag |= INSERTKEY_MATRIX;
-		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) kflag |= INSERTKEY_NEEDED;
-		if (IS_AUTOKEY_MODE(scene, EDITKEYS)) kflag |= INSERTKEY_REPLACE;
+		kflag |= ANIM_get_keyframing_flags(scene, 1);
 	}
 	else if (mode == MODIFYKEY_MODE_DELETE)
 		kflag= 0;
@@ -1353,9 +1352,9 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 			for (; i < arraylen; i++) {
 				/* action to take depends on mode */
 				if (mode == MODIFYKEY_MODE_INSERT)
-					success+= insert_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
+					success += insert_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
 				else if (mode == MODIFYKEY_MODE_DELETE)
-					success+= delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
+					success += delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
 			}
 			
 			/* set recalc-flags */

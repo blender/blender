@@ -1430,7 +1430,7 @@ static const char *rna_property_subtypename(PropertyType type)
 		case PROP_VELOCITY: return "PROP_VELOCITY";
 		case PROP_ACCELERATION: return "PROP_ACCELERATION";
 		case PROP_XYZ: return "PROP_XYZ";
-		case PROP_RGB: return "PROP_RGB";
+		case PROP_COLOR_GAMMA: return "PROP_COLOR_GAMMA";
 		case PROP_LAYER: return "PROP_LAYER";
 		case PROP_LAYER_MEMBER: return "PROP_LAYER_MEMBER";
 		default: {
@@ -1763,7 +1763,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
 	rna_print_c_string(f, prop->description); fprintf(f, ",\n\t");
 	fprintf(f, "%d,\n", prop->icon);
 	fprintf(f, "\t%s, %s|%s, %s, %d, {%d, %d, %d}, %d,\n", rna_property_typename(prop->type), rna_property_subtypename(prop->subtype), rna_property_subtype_unit(prop->subtype), rna_function_string(prop->getlength), prop->arraydimension, prop->arraylength[0], prop->arraylength[1], prop->arraylength[2], prop->totarraylength);
-	fprintf(f, "\t%s, %d, %s,\n", rna_function_string(prop->update), prop->noteflag, rna_function_string(prop->editable));
+	fprintf(f, "\t%s%s, %d, %s, %s,\n", (prop->flag & PROP_CONTEXT_UPDATE)? "(UpdateFunc)": "", rna_function_string(prop->update), prop->noteflag, rna_function_string(prop->editable), rna_function_string(prop->itemeditable));
 
 	if(prop->flag & PROP_RAW_ACCESS) rna_set_raw_offset(f, srna, prop);
 	else fprintf(f, "\t0, 0");
@@ -1984,7 +1984,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_action.c", "rna_action_api.c", RNA_def_action},
 	{"rna_animation.c", "rna_animation_api.c", RNA_def_animation},
 	{"rna_actuator.c", NULL, RNA_def_actuator},
-	{"rna_armature.c", NULL, RNA_def_armature},
+	{"rna_armature.c", "rna_armature_api.c", RNA_def_armature},
 	{"rna_boid.c", NULL, RNA_def_boid},
 	{"rna_brush.c", NULL, RNA_def_brush},
 	{"rna_camera.c", NULL, RNA_def_camera},
@@ -2020,7 +2020,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_screen.c", NULL, RNA_def_screen},
 	{"rna_sculpt_paint.c", NULL, RNA_def_sculpt_paint},
 	{"rna_sensor.c", NULL, RNA_def_sensor},
-	{"rna_sequence.c", NULL, RNA_def_sequence},
+	{"rna_sequencer.c", NULL, RNA_def_sequencer},
 	{"rna_smoke.c", NULL, RNA_def_smoke},
 	{"rna_space.c", NULL, RNA_def_space},
 	{"rna_test.c", NULL, RNA_def_test},
@@ -2050,11 +2050,13 @@ static void rna_generate(BlenderRNA *brna, FILE *f, char *filename, char *api_fi
 	fprintf(f, "#include <stddef.h>\n\n");
 
 	fprintf(f, "#include \"DNA_ID.h\"\n");
+	fprintf(f, "#include \"DNA_scene_types.h\"\n");
 
 	fprintf(f, "#include \"BLI_blenlib.h\"\n\n");
 
 	fprintf(f, "#include \"BKE_context.h\"\n");
 	fprintf(f, "#include \"BKE_library.h\"\n");
+	fprintf(f, "#include \"BKE_main.h\"\n");
 	fprintf(f, "#include \"BKE_report.h\"\n");
 	fprintf(f, "#include \"BKE_utildefines.h\"\n\n");
 

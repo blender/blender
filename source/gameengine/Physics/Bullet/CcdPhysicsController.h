@@ -52,12 +52,16 @@ class btCollisionShape;
 #define CCD_BSB_COL_VF_SS	16 /* Vertex/Face based soft vs soft */
 
 
-
 // Shape contructor
 // It contains all the information needed to create a simple bullet shape at runtime
 class CcdShapeConstructionInfo
 {
 public:
+	struct UVco 
+	{
+		float uv[2];
+	};
+	
 	static CcdShapeConstructionInfo* FindMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope, bool gimpact);
 
 	CcdShapeConstructionInfo() :
@@ -71,6 +75,7 @@ public:
 		m_meshObject(NULL),
 		m_unscaledShape(NULL),
 		m_useGimpact(false),
+		m_forceReInstance(false),
 		m_weldingThreshold1(0.f),
 		m_shapeProxy(NULL)
 	{
@@ -102,7 +107,7 @@ public:
 
 	btTriangleMeshShape* GetMeshShape(void)
 	{
-		return m_unscaledShape;
+		return (m_unscaledShape);
 	}
 	CcdShapeConstructionInfo* GetChildShape(int i)
 	{
@@ -172,6 +177,9 @@ public:
 	
 	std::vector<int>		m_triFaceArray;	// Contains an array of triplets of face indicies
 											// quads turn into 2 tris
+
+	std::vector<UVco>		m_triFaceUVcoArray;	// Contains an array of pair of UV coordinate for each vertex of faces
+												// quads turn into 2 tris
 
 	void	setVertexWeldingThreshold1(float threshold)
 	{
@@ -372,6 +380,7 @@ protected:
 	void GetWorldOrientation(btMatrix3x3& mat);
 
 	void CreateRigidbody();
+	bool CreateSoftbody();
 
 	bool Register()	{ 
 		return (m_registerCount++ == 0) ? true : false;

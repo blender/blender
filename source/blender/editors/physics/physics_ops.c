@@ -43,7 +43,7 @@
 
 static void operatortypes_particle(void)
 {
-	WM_operatortype_append(PARTICLE_OT_select_all_toggle);
+	WM_operatortype_append(PARTICLE_OT_select_all);
 	WM_operatortype_append(PARTICLE_OT_select_first);
 	WM_operatortype_append(PARTICLE_OT_select_last);
 	WM_operatortype_append(PARTICLE_OT_select_linked);
@@ -64,8 +64,6 @@ static void operatortypes_particle(void)
 	WM_operatortype_append(PARTICLE_OT_brush_edit);
 	WM_operatortype_append(PARTICLE_OT_brush_radial_control);
 
-	WM_operatortype_append(PARTICLE_OT_specials_menu);
-
 	WM_operatortype_append(PARTICLE_OT_particle_edit_toggle);
 	WM_operatortype_append(PARTICLE_OT_edited_clear);
 
@@ -75,7 +73,7 @@ static void operatortypes_particle(void)
 
 	WM_operatortype_append(PARTICLE_OT_new);
 	WM_operatortype_append(PARTICLE_OT_new_target);
-	WM_operatortype_append(PARTICLE_OT_remove_target);
+	WM_operatortype_append(PARTICLE_OT_target_remove);
 	WM_operatortype_append(PARTICLE_OT_target_move_up);
 	WM_operatortype_append(PARTICLE_OT_target_move_down);
 	WM_operatortype_append(PARTICLE_OT_connect_hair);
@@ -94,7 +92,7 @@ static void keymap_particle(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "Particle", 0, 0);
 	keymap->poll= PE_poll;
 	
-	WM_keymap_add_item(keymap, "PARTICLE_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "PARTICLE_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "PARTICLE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
@@ -113,7 +111,7 @@ static void keymap_particle(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PARTICLE_OT_brush_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
 
-	WM_keymap_add_item(keymap, "PARTICLE_OT_specials_menu", WKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_particle_specials", WKEY, KM_PRESS, 0, 0);
 
 	ED_object_generic_keymap(keyconf, keymap, 1);
 }
@@ -149,7 +147,7 @@ static void operatortypes_pointcache(void)
 	WM_operatortype_append(PTCACHE_OT_bake);
 	WM_operatortype_append(PTCACHE_OT_free_bake);
 	WM_operatortype_append(PTCACHE_OT_bake_from_cache);
-	WM_operatortype_append(PTCACHE_OT_add_new);
+	WM_operatortype_append(PTCACHE_OT_add);
 	WM_operatortype_append(PTCACHE_OT_remove);
 }
 

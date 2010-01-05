@@ -36,7 +36,6 @@ extern "C" {
 #include "DNA_listBase.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_sound_types.h"
 
 /* ************************************************ */
 /* F-Curve DataTypes */
@@ -74,7 +73,6 @@ typedef enum eFModifier_Types {
 	FMODIFIER_TYPE_FILTER,		/* unimplemented - for applying: fft, high/low pass filters, etc. */
 	FMODIFIER_TYPE_PYTHON,	
 	FMODIFIER_TYPE_LIMITS,
-	FMODIFIER_TYPE_SOUND,
 	
 	/* NOTE: all new modifiers must be added above this line */
 	FMODIFIER_NUM_TYPES
@@ -232,25 +230,6 @@ typedef enum eFMod_Noise_Modifications {
 	FCM_NOISE_MODIF_MULTIPLY,		/* Multiply the curve by noise */
 } eFMod_Noise_Modifications;
 
-/* sound modifier data */
-typedef struct FMod_Sound {
-	float strength;
-	float delay;
-
-	short modification;
-	short pad[3];
-
-	bSound *sound;
-} FMod_Sound;
-
-/* modification modes */
-typedef enum eFMod_Sound_Modifications {
-	FCM_SOUND_MODIF_REPLACE = 0,	/* Modify existing curve, matching it's shape */
-	FCM_SOUND_MODIF_ADD,			/* Add amplitude to the curve */
-	FCM_SOUND_MODIF_SUBTRACT,		/* Subtract amplitude from the curve */
-	FCM_SOUND_MODIF_MULTIPLY,		/* Multiply the curve by amplitude */
-} eFMod_Sound_Modifications;
-
 /* Drivers -------------------------------------- */
 
 /* Driver Target 
@@ -291,7 +270,8 @@ typedef struct ChannelDriver {
 	/* python expression to execute (may call functions defined in an accessory file) 
 	 * which relates the target 'variables' in some way to yield a single usable value
 	 */
-	char expression[256]; 
+	char expression[256];	/* expression to compile for evaluation */
+	void *expr_comp; 		/* PyObject - compiled expression, dont save this */
 	
 	float curval;		/* result of previous evaluation, for subtraction from result under certain circumstances */
 	float influence;	/* influence of driver on result */ // XXX to be implemented... this is like the constraint influence setting
@@ -309,6 +289,8 @@ typedef enum eDriver_Types {
 	DRIVER_TYPE_PYTHON,
 		/* rotational difference (must use rotation channels only) */
 	DRIVER_TYPE_ROTDIFF,
+		/* sum of all values */
+	DRIVER_TYPE_SUM,
 } eDriver_Types;
 
 /* driver flags */
@@ -320,6 +302,8 @@ typedef enum eDriver_Flags {
 		/* driver does replace value, but overrides (for layering of animation over driver) */
 		// TODO: this needs to be implemented at some stage or left out...
 	DRIVER_FLAG_LAYERING	= (1<<2),
+		/* use when the expression needs to be recompiled */
+	DRIVER_FLAG_RECOMPILE	= (1<<3), 
 } eDriver_Flags;
 
 /* F-Curves -------------------------------------- */
@@ -362,7 +346,7 @@ typedef struct FCurve {
 	char *rna_path;			/* RNA-path to resolve data-access */
 	
 		/* curve coloring (for editor) */
-	int color_mode;			/* coloring method to use */
+	int color_mode;			/* coloring method to use (eFCurve_Coloring) */
 	float color[3];			/* the last-color this curve took */
 } FCurve;
 
@@ -654,6 +638,7 @@ typedef enum eKSP_TemplateTypes {
 	KSP_TEMPLATE_PCHAN 			= (1<<1),	/* #pch - selected posechannel */
 	KSP_TEMPLATE_CONSTRAINT 	= (1<<2),	/* #con - active only */
 	KSP_TEMPLATE_NODE		 	= (1<<3),	/* #nod - selected node */
+	KSP_TEMPLATE_MODIFIER		= (1<<4),	/* #mod - active only */
 	
 	KSP_TEMPLATE_ROT		= (1<<16),	/* modify rotation paths based on rotation mode of Object or Pose Channel */
 } eKSP_TemplateTypes;
@@ -698,6 +683,7 @@ typedef enum eInsertKeyFlags {
 	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */
 	INSERTKEY_FASTR		= (1<<3),	/* don't realloc mem (or increase count, as array has already been set out) */
 	INSERTKEY_REPLACE 	= (1<<4),	/* only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
+	INSERTKEY_XYZ2RGB	= (1<<5),	/* transform F-Curves should have XYZ->RGB color mode */
 } eInsertKeyFlags;
 
 /* ************************************************ */

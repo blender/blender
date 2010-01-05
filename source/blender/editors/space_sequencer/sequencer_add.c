@@ -60,7 +60,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_plugin_types.h"
-#include "BKE_sequence.h"
+#include "BKE_sequencer.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
 #include "BKE_report.h"
@@ -73,6 +73,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 /* for menu/popup icons etc etc*/
 #include "UI_interface.h"
@@ -150,7 +151,7 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 	seq_load->channel=		RNA_int_get(op->ptr, "channel");
 	seq_load->len=			1; // images only!
 
-	RNA_string_get(op->ptr, "name", seq_load->name);
+	RNA_string_get(op->ptr, "name", seq_load->name+2);
 
 	RNA_string_get(op->ptr, "path", seq_load->path); /* full path, file is set by the caller */
 
@@ -174,8 +175,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	Editing *ed= seq_give_editing(scene, TRUE);
 	
 	Scene *sce_seq;
-	char sce_name[MAX_ID_NAME-2];
-	
+
 	Sequence *seq;	/* generic strip vars */
 	Strip *strip;
 	StripElem *se;
@@ -185,12 +185,10 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	start_frame= RNA_int_get(op->ptr, "start_frame");
 	channel= RNA_int_get(op->ptr, "channel");
 	
-	RNA_string_get(op->ptr, "scene", sce_name);
-
-	sce_seq= (Scene *)find_id("SC", sce_name);
+	sce_seq= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "type"));
 	
 	if (sce_seq==NULL) {
-		BKE_reportf(op->reports, RPT_ERROR, "Scene \"%s\" not found", sce_name);
+		BKE_report(op->reports, RPT_ERROR, "Scene not found");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -206,8 +204,10 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	
 	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 	
-	
-	RNA_string_get(op->ptr, "name", seq->name);
+	if(RNA_property_is_set(op->ptr, "name"))
+		RNA_string_get(op->ptr, "name", seq->name+2);
+	else
+		strcpy(seq->name+2, sce_seq->id.name+2);
 	
 	calc_sequence_disp(seq);
 	sort_seq(scene);
@@ -218,7 +218,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -227,16 +227,15 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 static int sequencer_add_scene_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	sequencer_generic_invoke_xy__internal(C, op, event, 0);
-	
-	/* scene can be left default */
-	RNA_string_set(op->ptr, "scene", "Scene"); // XXX should popup a menu but ton says 2.5 will have some better feature for this
-
 	return sequencer_add_scene_strip_exec(C, op);
+	// needs a menu
+	// return WM_menu_invoke(C, op, event);
 }
 
 
 void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 {
+	PropertyRNA *prop;
 	
 	/* identifiers */
 	ot->name= "Add Scene Strip";
@@ -253,7 +252,8 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
-	RNA_def_string(ot->srna, "scene", "", MAX_ID_NAME-2, "Scene Name", "Scene name to add as a strip");
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+	RNA_def_enum_funcs(prop, RNA_scene_itemf);
 }
 
 static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoadFunc seq_load_func)
@@ -297,8 +297,9 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	}
 
 	sort_seq(scene);
+	seq_update_muting(ed);
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -425,7 +426,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	/* last active name */
 	strncpy(ed->act_imagedir, strip->dir, FILE_MAXDIR-1);
 	
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -498,6 +499,11 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
 	seq->type= type;
 
+	if(RNA_property_is_set(op->ptr, "name"))
+		RNA_string_get(op->ptr, "name", seq->name+2);
+	else
+		strcpy(seq->name+2, give_seqname(seq));
+
 	seqUniqueName(ed->seqbasep, seq);
 
 	sh = get_sequence_effect(seq);
@@ -512,6 +518,8 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		seq->len= 1;
 		seq_tx_set_final_right(seq, end_frame);
 	}
+
+	seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
 
 	calc_sequence(seq);
 	
@@ -540,7 +548,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		RNA_float_get_array(op->ptr, "color", colvars->col);
 	}
 
-	if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq);
+	if(seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
 
 	update_changed_seq_and_deps(scene, seq, 1, 1); /* runs calc_sequence */
 
@@ -555,7 +563,8 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 		seq->flag |= SELECT;
 	}
 
-	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+
 	return OPERATOR_FINISHED;
 }
 

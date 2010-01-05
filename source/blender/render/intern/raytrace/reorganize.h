@@ -32,8 +32,16 @@
 #include <vector>
 #include <queue>
 
+#ifdef _WIN32
+#define INFINITY FLT_MAX // in mingw math.h: (1.0F/0.0F). This generates compile error, though.
+#endif
+
 extern int tot_pushup;
 extern int tot_pushdown;
+
+#if !defined(INFINITY) && defined(HUGE_VAL)
+#define INFINITY HUGE_VAL
+#endif
 
 template<class Node>
 bool node_fits_inside(Node *a, Node *b)

@@ -959,7 +959,8 @@ StrandSurface *cache_strand_surface(Render *re, ObjectRen *obr, DerivedMesh *dm,
 		mesh->totvert= totvert;
 		mesh->totface= totface;
 		mesh->face= MEM_callocN(sizeof(int)*4*mesh->totface, "StrandSurfFaces");
-		mesh->col= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfCol");
+		mesh->ao= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfAO");
+		mesh->indirect= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfIndirect");
 		BLI_addtail(&re->strandsurface, mesh);
 	}
 
@@ -997,7 +998,8 @@ void free_strand_surface(Render *re)
 		if(mesh->co) MEM_freeN(mesh->co);
 		if(mesh->prevco) MEM_freeN(mesh->prevco);
 		if(mesh->nextco) MEM_freeN(mesh->nextco);
-		if(mesh->col) MEM_freeN(mesh->col);
+		if(mesh->ao) MEM_freeN(mesh->ao);
+		if(mesh->indirect) MEM_freeN(mesh->indirect);
 		if(mesh->face) MEM_freeN(mesh->face);
 	}
 

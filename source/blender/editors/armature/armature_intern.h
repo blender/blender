@@ -45,7 +45,7 @@ void ARMATURE_OT_subdivide_multi(struct wmOperatorType *ot);
 void ARMATURE_OT_parent_set(struct wmOperatorType *ot);
 void ARMATURE_OT_parent_clear(struct wmOperatorType *ot);
 
-void ARMATURE_OT_select_all_toggle(struct wmOperatorType *ot);
+void ARMATURE_OT_select_all(struct wmOperatorType *ot);
 void ARMATURE_OT_select_inverse(struct wmOperatorType *ot);
 void ARMATURE_OT_select_hierarchy(struct wmOperatorType *ot);
 void ARMATURE_OT_select_linked(struct wmOperatorType *ot);
@@ -80,7 +80,7 @@ void POSE_OT_scale_clear(struct wmOperatorType *ot);
 void POSE_OT_copy(struct wmOperatorType *ot);
 void POSE_OT_paste(struct wmOperatorType *ot);
 
-void POSE_OT_select_all_toggle(struct wmOperatorType *ot);
+void POSE_OT_select_all(struct wmOperatorType *ot);
 void POSE_OT_select_inverse(struct wmOperatorType *ot);
 void POSE_OT_select_parent(struct wmOperatorType *ot);
 void POSE_OT_select_hierarchy(struct wmOperatorType *ot);
@@ -137,7 +137,6 @@ struct EditBone;
 struct ListBase;
 
 EditBone *make_boneList(struct ListBase *edbo, struct ListBase *bones, struct EditBone *parent, struct Bone *actBone);
-struct EditBone *addEditBone(struct bArmature *arm, char *name);
 void BIF_sk_selectStroke(struct bContext *C, short mval[2], short extend);
 
 /* duplicate method */

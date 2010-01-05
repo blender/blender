@@ -134,7 +134,7 @@ extern "C" {
 //	void BPY_scripts_clear_pyobjects( void );
 //
 //	void error_pyscript( void );
-//	void BPY_DECREF(void *pyob_ptr);	/* Py_DECREF() */
+	void BPY_DECREF(void *pyob_ptr);	/* Py_DECREF() */
 	void BPY_set_context(struct bContext *C);
 /* void BPY_Err_Handle(struct Text *text); */
 /* int BPY_spacetext_is_pywin(struct SpaceText *st); */

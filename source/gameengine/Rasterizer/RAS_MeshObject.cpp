@@ -25,6 +25,12 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+#include "MEM_guardedalloc.h"
+
+#include "DNA_object_types.h"
+#include "DNA_key_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "RAS_MeshObject.h"
 #include "RAS_IRasterizer.h"
@@ -93,14 +99,34 @@ STR_String RAS_MeshObject::s_emptyname = "";
 RAS_MeshObject::RAS_MeshObject(Mesh* mesh)
 	: m_bModified(true),
 	m_bMeshModified(true),
-	m_mesh(mesh),
-	m_bDeformed(false)
+	m_mesh(mesh)
 {
+	if (m_mesh && m_mesh->key)
+	{
+		KeyBlock *kb;
+		int count=0;
+		// initialize weight cache for shape objects
+		// count how many keys in this mesh
+		for(kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next)
+			count++;
+		m_cacheWeightIndex.resize(count,-1);
+	}
 }
 
 RAS_MeshObject::~RAS_MeshObject()
 {
 	vector<RAS_Polygon*>::iterator it;
+
+	if (m_mesh && m_mesh->key) 
+	{
+		KeyBlock *kb;
+		// remove the weight cache to avoid memory leak 
+		for(kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next) {
+			if(kb->weights) 
+				MEM_freeN(kb->weights);
+			kb->weights= NULL;
+		}
+	}
 
 	for(it=m_Polygons.begin(); it!=m_Polygons.end(); it++)
 		delete (*it);
@@ -430,39 +456,6 @@ void RAS_MeshObject::AddMeshUser(void *clientobj, SG_QList *head, RAS_Deformer* 
 	}
 }
 
-void RAS_MeshObject::UpdateBuckets(void* clientobj,
-							   double* oglmatrix,
-							   bool useObjectColor,
-							   const MT_Vector4& rgbavec,
-							   bool visible,
-							   bool culled)
-{
-	list<RAS_MeshMaterial>::iterator it;
-	
-	for(it = m_materials.begin();it!=m_materials.end();++it) {
-		RAS_MeshSlot **msp = it->m_slots[clientobj];
-
-		if(!msp)
-			continue;
-
-		RAS_MeshSlot *ms = *msp;
-
-		ms->m_mesh = this;
-		ms->m_OpenGLMatrix = oglmatrix;
-		ms->m_bObjectColor = useObjectColor;
-		ms->m_RGBAcolor = rgbavec;
-		ms->m_bVisible = visible;
-		ms->m_bCulled = culled || !visible;
-		if (!ms->m_bCulled)
-			ms->m_bucket->ActivateMesh(ms);
-
-		/* split if necessary */
-#ifdef USE_SPLIT
-		ms->Split();
-#endif
-	}
-}
-
 void RAS_MeshObject::RemoveFromBuckets(void *clientobj)
 {
 	list<RAS_MeshMaterial>::iterator it;
@@ -559,4 +552,65 @@ void RAS_MeshObject::SchedulePolygons(int drawingmode)
 		m_bMeshModified = true;
 	} 
 }
+
+static int get_def_index(Object* ob, const char* vgroup)
+{
+	bDeformGroup *curdef;
+	int index = 0;
+
+	for (curdef = (bDeformGroup*)ob->defbase.first; curdef; curdef=(bDeformGroup*)curdef->next, index++)
+		if (!strcmp(curdef->name, vgroup))
+			return index;
+
+	return -1;
+}
+
+void RAS_MeshObject::CheckWeightCache(Object* obj)
+{
+	KeyBlock *kb;
+	int kbindex, defindex;
+	MDeformVert *dvert= NULL;
+	int totvert, i, j;
+	float *weights;
+
+	if (!m_mesh->key)
+		return;
+
+	for(kbindex=0, kb= (KeyBlock*)m_mesh->key->block.first; kb; kb= (KeyBlock*)kb->next, kbindex++)
+	{
+		// first check the cases where the weight must be cleared
+		if (kb->vgroup[0] == 0 ||
+			m_mesh->dvert == NULL ||
+			(defindex = get_def_index(obj, kb->vgroup)) == -1) {
+			if (kb->weights) {
+				MEM_freeN(kb->weights);
+				kb->weights = NULL;
+			}
+			m_cacheWeightIndex[kbindex] = -1;
+		} else if (m_cacheWeightIndex[kbindex] != defindex) {
+			// a weight array is required but the cache is not matching
+			if (kb->weights) {
+				MEM_freeN(kb->weights);
+				kb->weights = NULL;
+			}
+
+			dvert= m_mesh->dvert;
+			totvert= m_mesh->totvert;
+		
+			weights= (float*)MEM_callocN(totvert*sizeof(float), "weights");
+		
+			for (i=0; i < totvert; i++, dvert++) {
+				for(j=0; j<dvert->totweight; j++) {
+					if (dvert->dw[j].def_nr == defindex) {
+						weights[i]= dvert->dw[j].weight;
+						break;
+					}
+				}
+			}
+			kb->weights = weights;
+			m_cacheWeightIndex[kbindex] = defindex;
+		}
+	}
+}
+
 

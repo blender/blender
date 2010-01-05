@@ -183,60 +183,67 @@ static int test_rotmode_euler(short rotmode)
 	return (ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT)) ? 0:1;
 }
 
-void gimbal_axis(Object *ob, float gmat[][3])
+int gimbal_axis(Object *ob, float gmat[][3])
 {
-	if(ob->mode & OB_MODE_POSE)
-	{
-		bPoseChannel *pchan= get_active_posechannel(ob);
+	if (ob) {
+		if(ob->mode & OB_MODE_POSE)
+		{
+			bPoseChannel *pchan= get_active_posechannel(ob);
 
-		if(pchan && test_rotmode_euler(pchan->rotmode)) {
-			float mat[3][3], tmat[3][3], obmat[3][3];
+			if(pchan && test_rotmode_euler(pchan->rotmode)) {
+				float mat[3][3], tmat[3][3], obmat[3][3];
 
-			eulO_to_gimbal_axis(mat, pchan->eul, pchan->rotmode);
+				eulO_to_gimbal_axis(mat, pchan->eul, pchan->rotmode);
 
-			/* apply bone transformation */
-			mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
-			
-			if (pchan->parent)
-			{
-				float parent_mat[3][3];
+				/* apply bone transformation */
+				mul_m3_m3m3(tmat, pchan->bone->bone_mat, mat);
 
-				copy_m3_m4(parent_mat, pchan->parent->pose_mat);
-				mul_m3_m3m3(mat, parent_mat, tmat);
+				if (pchan->parent)
+				{
+					float parent_mat[3][3];
 
-				/* needed if object transformation isn't identity */
-				copy_m3_m4(obmat, ob->obmat);
-				mul_m3_m3m3(gmat, obmat, mat);
+					copy_m3_m4(parent_mat, pchan->parent->pose_mat);
+					mul_m3_m3m3(mat, parent_mat, tmat);
+
+					/* needed if object transformation isn't identity */
+					copy_m3_m4(obmat, ob->obmat);
+					mul_m3_m3m3(gmat, obmat, mat);
+				}
+				else
+				{
+					/* needed if object transformation isn't identity */
+					copy_m3_m4(obmat, ob->obmat);
+					mul_m3_m3m3(gmat, obmat, tmat);
+				}
+
+				normalize_m3(gmat);
+				return 1;
 			}
-			else
-			{
-				/* needed if object transformation isn't identity */
-				copy_m3_m4(obmat, ob->obmat);
-				mul_m3_m3m3(gmat, obmat, tmat);
-			}
-
-			normalize_m3(gmat);
 		}
-	}
-	else {
-		if(test_rotmode_euler(ob->rotmode)) {
-			
-			
-			if (ob->parent)
-			{
-				float parent_mat[3][3], amat[3][3];
+		else {
+			if(test_rotmode_euler(ob->rotmode)) {
+
 				
-				eulO_to_gimbal_axis(amat, ob->rot, ob->rotmode);
-				copy_m3_m4(parent_mat, ob->parent->obmat);
-				normalize_m3(parent_mat);
-				mul_m3_m3m3(gmat, parent_mat, amat);
-			}
-			else
-			{
-				eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
+				if (ob->parent)
+				{
+					float parent_mat[3][3], amat[3][3];
+
+					eulO_to_gimbal_axis(amat, ob->rot, ob->rotmode);
+					copy_m3_m4(parent_mat, ob->parent->obmat);
+					normalize_m3(parent_mat);
+					mul_m3_m3m3(gmat, parent_mat, amat);
+					return 1;
+				}
+				else
+				{
+					eulO_to_gimbal_axis(gmat, ob->rot, ob->rotmode);
+					return 1;
+				}
 			}
 		}
 	}
+
+	return 0;
 }
 
 
@@ -484,11 +491,12 @@ int calc_manipulator_stats(const bContext *C)
 		case V3D_MANIP_GIMBAL:
 		{
 				float mat[3][3];
-			unit_m3(mat);
-			gimbal_axis(ob, mat);
-			copy_m4_m3(rv3d->twmat, mat);
-						break;
-						}
+			if (gimbal_axis(ob, mat)) {
+				copy_m4_m3(rv3d->twmat, mat);
+				break;
+			}
+			/* if not gimbal, fall through to normal */
+		}
 		case V3D_MANIP_NORMAL:
 			if(obedit || ob->mode & OB_MODE_POSE) {
 				float mat[3][3];
@@ -1738,7 +1746,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 				break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-			WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_DEFAULT, op->ptr);
+			WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_DEFAULT, op->ptr);
 		}
 		else if (drawflags & MAN_SCALE_C) {
 			switch(drawflags) {
@@ -1768,10 +1776,10 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 				break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-			WM_operator_name_call(C, "TFM_OT_resize", WM_OP_INVOKE_DEFAULT, op->ptr);
+			WM_operator_name_call(C, "TRANSFORM_OT_resize", WM_OP_INVOKE_DEFAULT, op->ptr);
 		}
 		else if (drawflags == MAN_ROT_T) { /* trackball need special case, init is different */
-			WM_operator_name_call(C, "TFM_OT_trackball", WM_OP_INVOKE_DEFAULT, op->ptr);
+			WM_operator_name_call(C, "TRANSFORM_OT_trackball", WM_OP_INVOKE_DEFAULT, op->ptr);
 		}
 		else if (drawflags & MAN_ROT_C) {
 			switch(drawflags) {
@@ -1786,7 +1794,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 				break;
 			}
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
-			WM_operator_name_call(C, "TFM_OT_rotate", WM_OP_INVOKE_DEFAULT, op->ptr);
+			WM_operator_name_call(C, "TRANSFORM_OT_rotate", WM_OP_INVOKE_DEFAULT, op->ptr);
 		}
 	}
 	/* after transform, restore drawflags */

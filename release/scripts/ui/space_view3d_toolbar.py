@@ -37,9 +37,9 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.label(text="Object:")
@@ -57,8 +57,8 @@ class VIEW3D_PT_tools_objectmode(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Keyframes:")
-        col.operator("anim.insert_keyframe_menu", text="Insert")
-        col.operator("anim.delete_keyframe_v3d", text="Remove")
+        col.operator("anim.keyframe_insert_menu", text="Insert")
+        col.operator("anim.keyframe_delete_v3d", text="Remove")
 
         col = layout.column(align=True)
         col.label(text="Repeat:")
@@ -84,15 +84,15 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
-        col.operator("tfm.shrink_fatten", text="Along Normal")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
+        col.operator("transform.shrink_fatten", text="Along Normal")
 
 
         col = layout.column(align=True)
         col.label(text="Deform:")
-        col.operator("tfm.edge_slide")
+        col.operator("transform.edge_slide")
         col.operator("mesh.rip_move")
         col.operator("mesh.vertices_smooth")
 
@@ -101,8 +101,8 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
         col.label(text="Add:")
         col.operator("mesh.extrude_move")
         col.operator("mesh.subdivide")
-        col.operator("mesh.loopcut")
-        col.operator("mesh.duplicate_move")
+        col.operator("mesh.loopcut_slide")
+        col.operator("mesh.duplicate_move", text="Duplicate")
         col.operator("mesh.spin")
         col.operator("mesh.screw")
 
@@ -168,13 +168,13 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
-        
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
+
         col = layout.column(align=True)
-        col.operator("tfm.transform").mode = 'TILT'
-        col.operator("tfm.transform").mode = 'CURVE_SHRINKFATTEN'
+        col.operator("transform.transform", text="Tilt").mode = 'TILT'
+        col.operator("transform.transform", text="Shrink/Fatten").mode = 'CURVE_SHRINKFATTEN'
 
         col = layout.column(align=True)
         col.label(text="Curve:")
@@ -188,9 +188,9 @@ class VIEW3D_PT_tools_curveedit(View3DPanel):
         col.label(text="Handles:")
         row = col.row()
         row.operator("curve.handle_type_set", text="Auto").type = 'AUTOMATIC'
-        row.operator("curve.handle_type_set").type = 'VECTOR'
+        row.operator("curve.handle_type_set", text="Vector").type = 'VECTOR'
         row = col.row()
-        row.operator("curve.handle_type_set").type = 'ALIGN'
+        row.operator("curve.handle_type_set", text="Align").type = 'ALIGN'
         row.operator("curve.handle_type_set", text="Free").type = 'FREE_ALIGN'
 
         col = layout.column(align=True)
@@ -222,9 +222,9 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.label(text="Curve:")
@@ -273,9 +273,9 @@ class VIEW3D_PT_tools_textedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Style:")
-        col.operator("font.style_toggle").style = 'BOLD'
-        col.operator("font.style_toggle").style = 'ITALIC'
-        col.operator("font.style_toggle").style = 'UNDERLINE'
+        col.operator("font.style_toggle", text="Bold").style = 'BOLD'
+        col.operator("font.style_toggle", text="Italic").style = 'ITALIC'
+        col.operator("font.style_toggle", text="Underline").style = 'UNDERLINE'
 
         col = layout.column(align=True)
         col.label(text="Repeat:")
@@ -295,9 +295,9 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.label(text="Bones:")
@@ -347,9 +347,9 @@ class VIEW3D_PT_tools_mballedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.label(text="Repeat:")
@@ -375,9 +375,9 @@ class VIEW3D_PT_tools_latticeedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.operator("lattice.make_regular")
@@ -407,9 +407,9 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Transform:")
-        col.operator("tfm.translate")
-        col.operator("tfm.rotate")
-        col.operator("tfm.resize", text="Scale")
+        col.operator("transform.translate")
+        col.operator("transform.rotate")
+        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.label(text="In-Between:")
@@ -430,8 +430,8 @@ class VIEW3D_PT_tools_posemode(View3DPanel):
         col = layout.column(align=True)
         col.label(text="Keyframes:")
 
-        col.operator("anim.insert_keyframe_menu", text="Insert")
-        col.operator("anim.delete_keyframe_v3d", text="Remove")
+        col.operator("anim.keyframe_insert_menu", text="Insert")
+        col.operator("anim.keyframe_delete_v3d", text="Remove")
 
         col = layout.column(align=True)
         col.label(text="Repeat:")
@@ -552,6 +552,9 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
                 if brush.sculpt_tool in ('DRAW', 'PINCH', 'INFLATE', 'LAYER', 'CLAY'):
                     col.row().prop(brush, "direction", expand=True)
+
+                if brush.sculpt_tool in ('DRAW', 'INFLATE', 'LAYER'):
+                    col.prop(brush, "use_accumulate")
 
                 if brush.sculpt_tool == 'LAYER':
                     col.prop(brush, "use_persistent")
@@ -687,7 +690,7 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
     bl_label = "Options"
 
     def poll(self, context):
-        return context.sculpt_object
+        return (context.sculpt_object and context.tool_settings.sculpt)
 
     def draw(self, context):
         layout = self.layout
@@ -695,8 +698,8 @@ class VIEW3D_PT_sculpt_options(PaintPanel):
         sculpt = context.tool_settings.sculpt
 
         col = layout.column()
-        col.prop(sculpt, "partial_redraw", text="Partial Refresh")
         col.prop(sculpt, "show_brush")
+        col.prop(sculpt, "fast_navigate")
 
         split = self.layout.split()
 
@@ -823,23 +826,50 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         col.active = (ipaint.use_normal_falloff and use_projection)
         col.prop(ipaint, "normal_angle", text="")
 
-        split = layout.split(percentage=0.7)
+        col = layout.column(align=False)
+        row = col.row()
+        row.active = (use_projection)
+        row.prop(ipaint, "use_stencil_layer", text="Stencil")
 
-        col = split.column(align=False)
-        col.active = (use_projection)
-        col.prop(ipaint, "use_stencil_layer")
-
-        col = split.column(align=False)
-        col.active = (use_projection and ipaint.use_stencil_layer)
-        col.prop(ipaint, "invert_stencil", text="Inv")
+        row2 = row.row(align=False)
+        row2.active = (use_projection and ipaint.use_stencil_layer)
+        row2.menu("VIEW3D_MT_tools_projectpaint_stencil", text=context.active_object.data.uv_texture_stencil.name)
+        row2.prop(ipaint, "invert_stencil", text="", icon='IMAGE_ALPHA')
 
         col = layout.column()
         sub = col.column()
-        sub.active = (settings.tool == 'CLONE')
-        sub.prop(ipaint, "use_clone_layer")
+        row = sub.row()
+        row.active = (settings.tool == 'CLONE')
+        
+        row.prop(ipaint, "use_clone_layer", text="Clone")
+        row.menu("VIEW3D_MT_tools_projectpaint_clone", text=context.active_object.data.uv_texture_clone.name)
 
         sub = col.column()
         sub.prop(ipaint, "seam_bleed")
+
+    class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):
+        bl_label = "Clone Layer"
+
+        def draw(self, context):
+            layout = self.layout
+            for i, tex in enumerate(context.active_object.data.uv_textures):
+                prop = layout.operator("wm.context_set_int", text=tex.name)
+                prop.path = "active_object.data.uv_texture_clone_index"
+                prop.value = i
+
+
+    class VIEW3D_MT_tools_projectpaint_stencil(bpy.types.Menu):
+        bl_label = "Mask Layer"
+
+        def draw(self, context):
+            layout = self.layout
+            for i, tex in enumerate(context.active_object.data.uv_textures):
+                prop = layout.operator("wm.context_set_int", text=tex.name)
+                prop.path = "active_object.data.uv_texture_stencil_index"
+                prop.value = i
+
+    bpy.types.register(VIEW3D_MT_tools_projectpaint_clone)
+    bpy.types.register(VIEW3D_MT_tools_projectpaint_stencil)
 
 
 class VIEW3D_PT_tools_particlemode(View3DPanel):

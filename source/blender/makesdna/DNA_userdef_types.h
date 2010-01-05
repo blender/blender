@@ -289,9 +289,12 @@ typedef struct UserDef {
 	char plugseqdir[160];
 	char pythondir[160];
 	char sounddir[160];
-	/* yafray: temporary xml export directory */
-	char yfexportdir[160];
-	short versions, pad;
+	char anim_player[240];	// FILE_MAX length
+	int anim_player_preset;
+	int pad;
+	
+	short versions;
+	short dbl_click_time;
 	
 	int gameflags;
 	int wheellinescroll;
@@ -417,7 +420,9 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_SHOW_FPS			(1 << 21)
 #define USER_MMB_PASTE			(1 << 22)
 #define USER_MENUFIXEDORDER		(1 << 23)
-#define USER_CONTINUOUS_MOUSE		(1 << 24)
+#define USER_CONTINUOUS_MOUSE	(1 << 24)
+#define USER_ZOOM_INVERT		(1 << 25)
+#define USER_ZOOM_DOLLY_HORIZ	(1 << 26)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */
@@ -431,6 +436,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define		AUTOKEY_FLAG_INSERTAVAIL	(1<<0)
 #define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
+#define		AUTOKEY_FLAG_XYZ2RGB		(1<<3)
 	/* U.autokey_flag (strictly autokeying only) */
 #define 	AUTOKEY_FLAG_ONLYKEYINGSET	(1<<6)
 	/* toolsettings->autokey_flag */

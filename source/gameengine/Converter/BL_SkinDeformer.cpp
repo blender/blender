@@ -35,7 +35,7 @@
 #include "GEN_Map.h"
 #include "STR_HashedString.h"
 #include "RAS_IPolygonMaterial.h"
-#include "BL_SkinMeshObject.h"
+#include "RAS_MeshObject.h"
 
 //#include "BL_ArmatureController.h"
 #include "DNA_armature_types.h"
@@ -59,7 +59,7 @@ extern "C"{
 
 BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
 								struct Object *bmeshobj, 
-								class BL_SkinMeshObject *mesh,
+								class RAS_MeshObject *mesh,
 								BL_ArmatureObject* arma)
 							:	//
 							BL_MeshDeformer(gameobj, bmeshobj, mesh),
@@ -77,7 +77,7 @@ BL_SkinDeformer::BL_SkinDeformer(
 	BL_DeformableGameObject *gameobj,
 	struct Object *bmeshobj_old,	// Blender object that owns the new mesh
 	struct Object *bmeshobj_new,	// Blender object that owns the original mesh
-	class BL_SkinMeshObject *mesh,
+	class RAS_MeshObject *mesh,
 	bool release_object,
 	bool recalc_normal,
 	BL_ArmatureObject* arma)	:	

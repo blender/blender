@@ -705,10 +705,10 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 
 	/* We assume the worst case: 1 character per line (is freed at end anyway) */
 
-	linedata= MEM_mallocN(sizeof(float)*(slen+2),"buildtext2");
-	linedata2= MEM_mallocN(sizeof(float)*(slen+2),"buildtext3");
-	linedata3= MEM_callocN(sizeof(float)*(slen+2),"buildtext4");	
-	linedata4= MEM_callocN(sizeof(float)*(slen+2),"buildtext5");		
+	linedata= MEM_mallocN(sizeof(float)*(slen*2 + 1),"buildtext2");
+	linedata2= MEM_mallocN(sizeof(float)*(slen*2 + 1),"buildtext3");
+	linedata3= MEM_callocN(sizeof(float)*(slen*2 + 1),"buildtext4");	
+	linedata4= MEM_callocN(sizeof(float)*(slen*2 + 1),"buildtext5");		
 	
 	linedist= cu->linedist;
 	

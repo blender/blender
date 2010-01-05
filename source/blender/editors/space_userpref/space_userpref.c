@@ -153,6 +153,7 @@ void ED_spacetype_userpref(void)
 	ARegionType *art;
 	
 	st->spaceid= SPACE_USERPREF;
+	strncpy(st->name, "Userpref", BKE_ST_MAXNAME);
 	
 	st->new= userpref_new;
 	st->free= userpref_free;
@@ -175,7 +176,7 @@ void ED_spacetype_userpref(void)
 	art= MEM_callocN(sizeof(ARegionType), "spacetype userpref region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->minsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
 	art->listener= userpref_header_listener;
 	art->init= userpref_header_area_init;
 	art->draw= userpref_header_area_draw;

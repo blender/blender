@@ -240,15 +240,19 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
 	
 	/* vertical line - dotted */
-	// NOTE: currently only used for sequencer 
+	// NOTE: currently only used for sequencer
+#ifdef DURIAN_CAMERA_SWITCH
+	if (marker->camera || flag & DRAW_MARKERS_LINES) {
+#else
 	if (flag & DRAW_MARKERS_LINES) {
+#endif
 		setlinestyle(3);
 		
 		if (marker->flag & SELECT)
 			glColor4ub(255, 255, 255, 96);
 		else
 			glColor4ub(0, 0, 0, 96);
-		
+
 		glBegin(GL_LINES);
 			glVertex2f((xpos*xscale)+0.5f, 12.0f);
 			glVertex2f((xpos*xscale)+0.5f, 34.0f*yscale); /* a bit lazy but we know it cant be greater then 34 strips high */
@@ -672,6 +676,10 @@ static void ed_marker_duplicate_apply(bContext *C, wmOperator *op)
 			newmarker->frame= marker->frame;
 			BLI_strncpy(newmarker->name, marker->name, sizeof(marker->name));
 			
+#ifdef DURIAN_CAMERA_SWITCH
+			newmarker->camera= marker->camera;
+#endif
+
 			/* new marker is added to the begining of list */
 			BLI_addhead(markers, newmarker);
 		}
@@ -878,27 +886,37 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 {
 	ListBase *markers= context_get_markers(C);
 	TimeMarker *marker;
-	int select= RNA_int_get(op->ptr, "select_type");
+	int action = RNA_enum_get(op->ptr, "action");
 
 	if(markers == NULL)
 		return OPERATOR_CANCELLED;
-	
-	if(RNA_boolean_get(op->ptr, "select_swap")) {
+
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
 		for(marker= markers->first; marker; marker= marker->next) {
-			if(marker->flag & SELECT)
+			if(marker->flag & SELECT) {
+				action = SEL_DESELECT;
 				break;
+			}
 		}
-		if(marker)
-			select= 0;
-		else
-			select= 1;
 	}
 	
 	for(marker= markers->first; marker; marker= marker->next) {
-		if(select)
+		switch (action) {
+		case SEL_SELECT:
 			marker->flag |= SELECT;
-		else
+			break;
+		case SEL_DESELECT:
 			marker->flag &= ~SELECT;
+			break;
+		case SEL_INVERT:
+			if (marker->flag & SELECT) {
+				marker->flag &= ~SELECT;
+			} else {
+				marker->flag |= SELECT;
+			}
+			break;
+		}
 	}
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
@@ -906,31 +924,22 @@ static int ed_marker_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int ed_marker_select_all_invoke(bContext *C, wmOperator *op, wmEvent *evt)
-{
-	RNA_boolean_set(op->ptr, "select_swap", 1);
-	
-	return ed_marker_select_all_exec(C, op);
-}
-
-static void MARKER_OT_select_all_toggle(wmOperatorType *ot)
+static void MARKER_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "(De)select all markers";
-	ot->description= "(de)select all time markers.";
-	ot->idname= "MARKER_OT_select_all_toggle";
+	ot->description= "Change selection of all time markers.";
+	ot->idname= "MARKER_OT_select_all";
 	
 	/* api callbacks */
 	ot->exec= ed_marker_select_all_exec;
-	ot->invoke= ed_marker_select_all_invoke;
 	ot->poll= ED_operator_areaactive;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* rna */
-	RNA_def_boolean(ot->srna, "select_swap", 0, "Select Swap", "");
-	RNA_def_int(ot->srna, "select_type", 0, INT_MIN, INT_MAX, "Select Type", "", INT_MIN, INT_MAX);
+	WM_operator_properties_select_all(ot);
 }
 
 /* ******************************* remove marker ***************** */
@@ -977,6 +986,48 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 	
 }
 
+#ifdef DURIAN_CAMERA_SWITCH
+/* ******************************* camera bind marker ***************** */
+
+/* remove selected TimeMarkers */
+static int ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ListBase *markers= context_get_markers(C);
+	TimeMarker *marker;
+	short changed= 0;
+
+	if(markers == NULL)
+		return OPERATOR_CANCELLED;
+
+	for(marker= markers->first; marker; marker= marker->next) {
+		if(marker->flag & SELECT) {
+			marker->camera= scene->camera;
+		}
+	}
+
+	if (changed)
+		WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+static void MARKER_OT_camera_bind(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Bind Camera to Markers";
+	ot->description= "Bind the active camera to selected markers(s).";
+	ot->idname= "MARKER_OT_camera_bind";
+
+	/* api callbacks */
+	ot->exec= ed_marker_camera_bind_exec;
+	ot->poll= ED_operator_areaactive;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+#endif
+
 /* ************************** registration **********************************/
 
 /* called in screen_ops.c:ED_operatortypes_screen() */
@@ -987,8 +1038,11 @@ void ED_operatortypes_marker(void)
 	WM_operatortype_append(MARKER_OT_duplicate);
 	WM_operatortype_append(MARKER_OT_select);
 	WM_operatortype_append(MARKER_OT_select_border);
-	WM_operatortype_append(MARKER_OT_select_all_toggle);
+	WM_operatortype_append(MARKER_OT_select_all);
 	WM_operatortype_append(MARKER_OT_delete);
+#ifdef DURIAN_CAMERA_SWITCH
+	WM_operatortype_append(MARKER_OT_camera_bind);
+#endif
 }
 
 /* called in screen_ops.c:ED_keymap_screen() */
@@ -1002,10 +1056,12 @@ void ED_marker_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_border", BKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "MARKER_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_delete", DELKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MARKER_OT_move", GKEY, KM_PRESS, 0, 0);
-	
+#ifdef DURIAN_CAMERA_SWITCH
+	WM_keymap_add_item(keymap, "MARKER_OT_camera_bind", BKEY, KM_PRESS, KM_CTRL, 0);
+#endif
 }

@@ -126,7 +126,7 @@
 
 void setTransformViewMatrices(TransInfo *t)
 {
-	if(t->spacetype==SPACE_VIEW3D && t->ar->regiontype == RGN_TYPE_WINDOW) {
+	if(t->spacetype==SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW) {
 		RegionView3D *rv3d = t->ar->regiondata;
 
 		copy_m4_m4(t->viewmat, rv3d->viewmat);
@@ -450,69 +450,29 @@ static void view_editmove(unsigned short event)
 #endif
 }
 
-#if 0
-static char *transform_to_undostr(TransInfo *t)
-{
-	switch (t->mode) {
-		case TFM_TRANSLATION:
-			return "Translate";
-		case TFM_ROTATION:
-			return "Rotate";
-		case TFM_RESIZE:
-			return "Scale";
-		case TFM_TOSPHERE:
-			return "To Sphere";
-		case TFM_SHEAR:
-			return "Shear";
-		case TFM_WARP:
-			return "Warp";
-		case TFM_SHRINKFATTEN:
-			return "Shrink/Fatten";
-		case TFM_TILT:
-			return "Tilt";
-		case TFM_TRACKBALL:
-			return "Trackball";
-		case TFM_PUSHPULL:
-			return "Push/Pull";
-		case TFM_BEVEL:
-			return "Bevel";
-		case TFM_BWEIGHT:
-			return "Bevel Weight";
-		case TFM_CREASE:
-			return "Crease";
-		case TFM_BONESIZE:
-			return "Bone Width";
-		case TFM_BONE_ENVELOPE:
-			return "Bone Envelope";
-		case TFM_TIME_TRANSLATE:
-			return "Translate Anim. Data";
-		case TFM_TIME_SCALE:
-			return "Scale Anim. Data";
-		case TFM_TIME_SLIDE:
-			return "Time Slide";
-		case TFM_BAKE_TIME:
-			return "Key Time";
-		case TFM_MIRROR:
-			return "Mirror";
-	}
-	return "Transform";
-}
-#endif
-
 /* ************************************************* */
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
-#define TFM_MODAL_CANCEL			1
-#define TFM_MODAL_CONFIRM			2
-#define TFM_MODAL_TRANSLATE			3
-#define TFM_MODAL_ROTATE			4
-#define TFM_MODAL_RESIZE			5
-#define TFM_MODAL_SNAP_GEARS		6
-#define TFM_MODAL_SNAP_GEARS_OFF	7
-#define TFM_MODAL_SNAP_GEARS_TOGGLE	8
+#define TFM_MODAL_CANCEL		1
+#define TFM_MODAL_CONFIRM		2
+#define TFM_MODAL_TRANSLATE		3
+#define TFM_MODAL_ROTATE		4
+#define TFM_MODAL_RESIZE		5
+#define TFM_MODAL_SNAP_INV_ON	6
+#define TFM_MODAL_SNAP_INV_OFF	7
+#define TFM_MODAL_SNAP_TOGGLE	8
+#define TFM_MODAL_AXIS_X		9
+#define TFM_MODAL_AXIS_Y		10
+#define TFM_MODAL_AXIS_Z		11
+#define TFM_MODAL_PLANE_X		12
+#define TFM_MODAL_PLANE_Y		13
+#define TFM_MODAL_PLANE_Z		14
+#define TFM_MODAL_CONS_OFF		15
+#define TFM_MODAL_ADD_SNAP		16
+#define TFM_MODAL_REMOVE_SNAP	17
 
 /* called in transform_ops.c, on each regeneration of keymaps */
-void transform_modal_keymap(wmKeyConfig *keyconf)
+wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
 	{TFM_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
@@ -520,15 +480,24 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
 	{TFM_MODAL_ROTATE, "ROTATE", 0, "Rotate", ""},
 	{TFM_MODAL_RESIZE, "RESIZE", 0, "Resize", ""},
-	{TFM_MODAL_SNAP_GEARS, "SNAP_GEARS", 0, "Snap On", ""},
-	{TFM_MODAL_SNAP_GEARS_OFF, "SNAP_GEARS_OFF", 0, "Snap Off", ""},
-	{TFM_MODAL_SNAP_GEARS_TOGGLE, "SNAP_GEARS_TOGGLE", 0, "Snap Toggle", ""},
+	{TFM_MODAL_SNAP_INV_ON, "SNAP_INV_ON", 0, "Invert Snap On", ""},
+	{TFM_MODAL_SNAP_INV_OFF, "SNAP_INV_OFF", 0, "Invert Snap Off", ""},
+	{TFM_MODAL_SNAP_TOGGLE, "SNAP_TOGGLE", 0, "Snap Toggle", ""},
+	{TFM_MODAL_AXIS_X, "AXIS_X", 0, "Orientation X axis", ""},
+	{TFM_MODAL_AXIS_Y, "AXIS_Y", 0, "Orientation Y axis", ""},
+	{TFM_MODAL_AXIS_Z, "AXIS_Z", 0, "Orientation Z axis", ""},
+	{TFM_MODAL_PLANE_X, "PLANE_X", 0, "Orientation X plane", ""},
+	{TFM_MODAL_PLANE_Y, "PLANE_Y", 0, "Orientation Y plane", ""},
+	{TFM_MODAL_PLANE_Z, "PLANE_Z", 0, "Orientation Z plane", ""},
+	{TFM_MODAL_CONS_OFF, "CONS_OFF", 0, "Remove Constraints", ""},
+	{TFM_MODAL_ADD_SNAP, "ADD_SNAP", 0, "Add Snap Point", ""},
+	{TFM_MODAL_REMOVE_SNAP, "REMOVE_SNAP", 0, "Remove Last Snap Point", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
 	
 	/* this function is called for each spacetype, only needs to add map once */
-	if(keymap) return;
+	if(keymap) return NULL;
 	
 	keymap= WM_modalkeymap_add(keyconf, "Transform Modal Map", modal_items);
 	
@@ -542,28 +511,23 @@ void transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, RKEY, KM_PRESS, 0, 0, TFM_MODAL_ROTATE);
 	WM_modalkeymap_add_item(keymap, SKEY, KM_PRESS, 0, 0, TFM_MODAL_RESIZE);
 	
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_GEARS_TOGGLE);
+	WM_modalkeymap_add_item(keymap, TABKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_SNAP_TOGGLE);
+
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, TFM_MODAL_SNAP_INV_ON);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, TFM_MODAL_SNAP_INV_OFF);
 	
-	/* assign map to operators */
-	WM_modalkeymap_assign(keymap, "TFM_OT_transform");
-	WM_modalkeymap_assign(keymap, "TFM_OT_translate");
-	WM_modalkeymap_assign(keymap, "TFM_OT_rotate");
-	WM_modalkeymap_assign(keymap, "TFM_OT_tosphere");
-	WM_modalkeymap_assign(keymap, "TFM_OT_resize");
-	WM_modalkeymap_assign(keymap, "TFM_OT_shear");
-	WM_modalkeymap_assign(keymap, "TFM_OT_warp");
-	WM_modalkeymap_assign(keymap, "TFM_OT_shrink_fatten");
-	WM_modalkeymap_assign(keymap, "TFM_OT_tilt");
-	WM_modalkeymap_assign(keymap, "TFM_OT_trackball");
-	WM_modalkeymap_assign(keymap, "TFM_OT_mirror");
-	WM_modalkeymap_assign(keymap, "TFM_OT_edge_slide");
+	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, 0, 0, TFM_MODAL_ADD_SNAP);
+	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, KM_ALT, 0, TFM_MODAL_REMOVE_SNAP);
+
+	return keymap;
 }
 
 
-void transformEvent(TransInfo *t, wmEvent *event)
+int transformEvent(TransInfo *t, wmEvent *event)
 {
 	float mati[3][3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
 	char cmode = constraintModeToChar(t);
+	int handled = 1;
 
 	t->redraw |= handleMouseInput(t, &t->mouse, event);
 
@@ -629,17 +593,110 @@ void transformEvent(TransInfo *t, wmEvent *event)
 				}
 				break;
 				
-			case TFM_MODAL_SNAP_GEARS:
-				t->modifiers |= MOD_SNAP_GEARS;
+			case TFM_MODAL_SNAP_INV_ON:
+				t->modifiers |= MOD_SNAP_INVERT;
 				t->redraw = 1;
 				break;
-			case TFM_MODAL_SNAP_GEARS_OFF:
-				t->modifiers &= ~MOD_SNAP_GEARS;
+			case TFM_MODAL_SNAP_INV_OFF:
+				t->modifiers &= ~MOD_SNAP_INVERT;
 				t->redraw = 1;
 				break;
-			case TFM_MODAL_SNAP_GEARS_TOGGLE:
-				t->modifiers ^= MOD_SNAP_GEARS;
+			case TFM_MODAL_SNAP_TOGGLE:
+				t->modifiers ^= MOD_SNAP;
 				t->redraw = 1;
+				break;
+			case TFM_MODAL_AXIS_X:
+				if ((t->flag & T_NO_CONSTRAINT)==0) {
+					if (cmode == 'X') {
+						stopConstraint(t);
+					}
+					else {
+						if (t->flag & T_2D_EDIT) {
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), "along X");
+						}
+						else {
+							setUserConstraint(t, t->current_orientation, (CON_AXIS0), "along %s X");
+						}
+					}
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_AXIS_Y:
+				if ((t->flag & T_NO_CONSTRAINT)==0) {
+					if (cmode == 'Y') {
+						stopConstraint(t);
+					}
+					else {
+						if (t->flag & T_2D_EDIT) {
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), "along Y");
+						}
+						else {
+							setUserConstraint(t, t->current_orientation, (CON_AXIS1), "along %s Y");
+						}
+					}
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_AXIS_Z:
+				if ((t->flag & (T_NO_CONSTRAINT|T_2D_EDIT))== 0) {
+					if (cmode == 'Z') {
+						stopConstraint(t);
+					}
+					else {
+						setUserConstraint(t, t->current_orientation, (CON_AXIS2), "along %s Z");
+					}
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_PLANE_X:
+				if ((t->flag & (T_NO_CONSTRAINT|T_2D_EDIT))== 0) {
+					if (cmode == 'X') {
+						stopConstraint(t);
+					}
+					else {
+						setUserConstraint(t, t->current_orientation, (CON_AXIS1|CON_AXIS2), "locking %s X");
+					}
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_PLANE_Y:
+				if ((t->flag & (T_NO_CONSTRAINT|T_2D_EDIT))== 0) {
+					if (cmode == 'Y') {
+						stopConstraint(t);
+					}
+					else {
+						setUserConstraint(t, t->current_orientation, (CON_AXIS0|CON_AXIS2), "locking %s Y");
+					}
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_PLANE_Z:
+				if ((t->flag & (T_NO_CONSTRAINT|T_2D_EDIT))== 0) {
+					if (cmode == 'Z') {
+						stopConstraint(t);
+					}
+					else {
+						setUserConstraint(t, t->current_orientation, (CON_AXIS0|CON_AXIS1), "locking %s Z");
+					}
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_CONS_OFF:
+				if ((t->flag & T_NO_CONSTRAINT)==0) {
+					stopConstraint(t);
+					t->redraw = 1;
+				}
+				break;
+			case TFM_MODAL_ADD_SNAP:
+				addSnapPoint(t);
+				t->redraw = 1;
+				break;
+			case TFM_MODAL_REMOVE_SNAP:
+				removeSnapPoint(t);
+				t->redraw = 1;
+				break;
+			default:
+				handled = 0;
 				break;
 		}
 	}
@@ -763,32 +820,28 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case XKEY:
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
-				if (cmode == 'X') {
-					if (t->flag & T_2D_EDIT) {
+				if (t->flag & T_2D_EDIT) {
+					if (cmode == 'X') {
 						stopConstraint(t);
+					} else {
+						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), "along X");
 					}
-					else {
-						if (t->con.mode & CON_USER) {
+				} else {
+					if (cmode == 'X') {
+						if (t->con.orientation != V3D_MANIP_GLOBAL) {
 							stopConstraint(t);
-						}
-						else {
+						} else {
 							short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
 							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
 								setUserConstraint(t, orientation, (CON_AXIS0), "along %s X");
 							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 								setUserConstraint(t, orientation, (CON_AXIS1|CON_AXIS2), "locking %s X");
 						}
-					}
-				}
-				else {
-					if (t->flag & T_2D_EDIT) {
-						setConstraint(t, mati, (CON_AXIS0), "along X axis");
-					}
-					else {
+					} else {
 						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-							setConstraint(t, mati, (CON_AXIS0), "along global X");
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), "along %s X");
 						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-							setConstraint(t, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1|CON_AXIS2), "locking %s X");
 					}
 				}
 				t->redraw = 1;
@@ -796,56 +849,50 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case YKEY:
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
-				if (cmode == 'Y') {
-					if (t->flag & T_2D_EDIT) {
+				if (t->flag & T_2D_EDIT) {
+					if (cmode == 'Y') {
 						stopConstraint(t);
+					} else {
+						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), "along Y");
 					}
-					else {
-						if (t->con.mode & CON_USER) {
+				} else {
+					if (cmode == 'Y') {
+						if (t->con.orientation != V3D_MANIP_GLOBAL) {
 							stopConstraint(t);
-						}
-						else {
+						} else {
 							short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
 							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
 								setUserConstraint(t, orientation, (CON_AXIS1), "along %s Y");
 							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 								setUserConstraint(t, orientation, (CON_AXIS0|CON_AXIS2), "locking %s Y");
 						}
-					}
-				}
-				else {
-					if (t->flag & T_2D_EDIT) {
-						setConstraint(t, mati, (CON_AXIS1), "along Y axis");
-					}
-					else {
+					} else {
 						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-							setConstraint(t, mati, (CON_AXIS1), "along global Y");
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), "along %s Y");
 						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-							setConstraint(t, mati, (CON_AXIS0|CON_AXIS2), "locking global Y");
+							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0|CON_AXIS2), "locking %s Y");
 					}
 				}
 				t->redraw = 1;
 			}
 			break;
 		case ZKEY:
-			if ((t->flag & T_NO_CONSTRAINT)==0) {
+			if ((t->flag & (T_NO_CONSTRAINT|T_2D_EDIT))==0) {
 				if (cmode == 'Z') {
-					if (t->con.mode & CON_USER) {
+					if (t->con.orientation != V3D_MANIP_GLOBAL) {
 						stopConstraint(t);
-					}
-					else {
+					} else {
 						short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
 						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
 							setUserConstraint(t, orientation, (CON_AXIS2), "along %s Z");
-						else if ((t->modifiers & MOD_CONSTRAINT_PLANE) && ((t->flag & T_2D_EDIT)==0))
+						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 							setUserConstraint(t, orientation, (CON_AXIS0|CON_AXIS1), "locking %s Z");
 					}
-				}
-				else if ((t->flag & T_2D_EDIT)==0) {
+				} else {
 					if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-						setConstraint(t, mati, (CON_AXIS2), "along global Z");
+						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS2), "along %s Z");
 					else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-						setConstraint(t, mati, (CON_AXIS0|CON_AXIS1), "locking global Z");
+						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0|CON_AXIS1), "locking %s Z");
 				}
 				t->redraw = 1;
 			}
@@ -898,6 +945,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 //		case NDOFMOTION:
 //            viewmoveNDOF(1);
   //         break;
+		default:
+			handled = 0;
+			break;
 		}
 
 		// Numerical input events
@@ -935,7 +985,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 			case NDOF_REFRESH:
 				t->redraw = 1;
 				break;
-
+			default:
+				handled = 0;
+				break;
 		}
 
 		// Snapping events
@@ -964,6 +1016,9 @@ void transformEvent(TransInfo *t, wmEvent *event)
 ////			if (t->options & CTX_TWEAK)
 //				t->state = TRANS_CONFIRM;
 //			break;
+		default:
+			handled = 0;
+			break;
 		}
 
 		/* confirm transform if launch key is released after mouse move */
@@ -977,9 +1032,14 @@ void transformEvent(TransInfo *t, wmEvent *event)
 	// Per transform event, if present
 	if (t->handleEvent)
 		t->redraw |= t->handleEvent(t, event);
+
+	if (handled || t->redraw)
+		return 0;
+	else
+		return OPERATOR_PASS_THROUGH;
 }
 
-int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float *vec)
+int calculateTransformCenter(bContext *C, int centerMode, float *vec)
 {
 	TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
 	int success = 1;
@@ -990,9 +1050,9 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 
 	t->mode = TFM_DUMMY;
 
-	initTransInfo(C, t, NULL, event);					// internal data, mouse, vectors
+	initTransInfo(C, t, NULL, NULL);	// internal data, mouse, vectors
 
-	createTransData(C, t);			// make TransData structs from selection
+	createTransData(C, t);				// make TransData structs from selection
 
 	t->around = centerMode; 			// override userdefined mode
 
@@ -1010,9 +1070,9 @@ int calculateTransformCenter(bContext *C, wmEvent *event, int centerMode, float 
 
 
 	/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
-	special_aftertrans_update(t);
+	special_aftertrans_update(C, t);
 
-	postTrans(t);
+	postTrans(C, t);
 
 	MEM_freeN(t);
 
@@ -1103,11 +1163,14 @@ static void drawArc(float size, float angle_start, float angle_end, int segments
 	glEnd();
 }
 
-void drawHelpline(const struct bContext *C, TransInfo *t)
+static void drawHelpline(bContext *C, int x, int y, void *customdata)
 {
+	TransInfo *t = (TransInfo*)customdata;
+
 	if (t->helpline != HLP_NONE && !(t->flag & T_USES_MANIPULATOR))
 	{
 		float vecrot[3], cent[2];
+		int mval[2] = {x, y};
 
 		VECCOPY(vecrot, t->center);
 		if(t->flag & T_EDIT) {
@@ -1134,7 +1197,7 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 				glVertex2fv(cent);
 				glEnd();
 
-				glTranslatef(t->mval[0], t->mval[1], 0);
+				glTranslatef(mval[0], mval[1], 0);
 				glRotatef(-180 / M_PI * atan2f(cent[0] - t->mval[0], cent[1] - t->mval[1]), 0, 0, 1);
 
 				setlinestyle(0);
@@ -1146,7 +1209,7 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 			case HLP_HARROW:
 				UI_ThemeColor(TH_WIRE);
 
-				glTranslatef(t->mval[0], t->mval[1], 0);
+				glTranslatef(mval[0], mval[1], 0);
 
 				glLineWidth(3.0);
 				drawArrow(RIGHT, 5, 10, 5);
@@ -1156,7 +1219,7 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 			case HLP_VARROW:
 				UI_ThemeColor(TH_WIRE);
 
-				glTranslatef(t->mval[0], t->mval[1], 0);
+				glTranslatef(mval[0], mval[1], 0);
 
 				glLineWidth(3.0);
 				glBegin(GL_LINES);
@@ -1179,7 +1242,7 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 					glVertex2fv(cent);
 					glEnd();
 
-					glTranslatef(cent[0], cent[1], 0);
+					glTranslatef(cent[0] - t->mval[0] + mval[0], cent[1] - t->mval[1] + mval[1], 0);
 
 					setlinestyle(0);
 					glLineWidth(3.0);
@@ -1208,7 +1271,7 @@ void drawHelpline(const struct bContext *C, TransInfo *t)
 					char col[3], col2[3];
 					UI_GetThemeColor3ubv(TH_GRID, col);
 
-					glTranslatef(t->mval[0], t->mval[1], 0);
+					glTranslatef(mval[0], mval[1], 0);
 
 					glLineWidth(3.0);
 
@@ -1243,9 +1306,9 @@ void drawTransformView(const struct bContext *C, struct ARegion *ar, void *arg)
 
 void drawTransformPixel(const struct bContext *C, struct ARegion *ar, void *arg)
 {
-	TransInfo *t = arg;
-
-	drawHelpline(C, t);
+//	TransInfo *t = arg;
+//
+//	drawHelpline(C, t->mval[0], t->mval[1], t);
 }
 
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
@@ -1280,28 +1343,30 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 
 	// If modal, save settings back in scene if not set as operator argument
-	if (t->flag & T_MODAL)
-	{
+	if (t->flag & T_MODAL) {
+
 		/* save settings if not set in operator */
-		if (RNA_struct_find_property(op->ptr, "proportional") && !RNA_property_is_set(op->ptr, "proportional"))
-		{
+		if (RNA_struct_find_property(op->ptr, "proportional") && !RNA_property_is_set(op->ptr, "proportional")) {
 			ts->proportional = proportional;
 		}
 
-		if (RNA_struct_find_property(op->ptr, "proportional_size") && !RNA_property_is_set(op->ptr, "proportional_size"))
-		{
+		if (RNA_struct_find_property(op->ptr, "proportional_size") && !RNA_property_is_set(op->ptr, "proportional_size")) {
 			ts->proportional_size = t->prop_size;
 		}
 			
-		if (RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && !RNA_property_is_set(op->ptr, "proportional_editing_falloff"))
-		{
+		if (RNA_struct_find_property(op->ptr, "proportional_editing_falloff") && !RNA_property_is_set(op->ptr, "proportional_editing_falloff")) {
 			ts->prop_mode = t->prop_mode;
 		}
 		
-		if(t->spacetype == SPACE_VIEW3D)
-		{
-			if (RNA_struct_find_property(op->ptr, "constraint_orientation") && !RNA_property_is_set(op->ptr, "constraint_orientation"))
-			{
+		/* do we check for parameter? */
+		if (t->modifiers & MOD_SNAP) {
+			ts->snap_flag |= SCE_SNAP;
+		} else {
+			ts->snap_flag &= ~SCE_SNAP;
+		}
+
+		if(t->spacetype == SPACE_VIEW3D) {
+			if (RNA_struct_find_property(op->ptr, "constraint_orientation") && !RNA_property_is_set(op->ptr, "constraint_orientation")) {
 				View3D *v3d = t->view;
 	
 				v3d->twmode = t->current_orientation;
@@ -1323,7 +1388,14 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
 	if (RNA_struct_find_property(op->ptr, "constraint_axis"))
 	{
-		RNA_enum_set(op->ptr, "constraint_orientation", t->current_orientation);
+		/* constraint orientation can be global, event if user selects something else
+		 * so use the orientation in the constraint if set
+		 * */
+		if (t->con.mode & CON_APPLY) {
+			RNA_enum_set(op->ptr, "constraint_orientation", t->con.orientation);
+		} else {
+			RNA_enum_set(op->ptr, "constraint_orientation", t->current_orientation);
+		}
 
 		if (t->con.mode & CON_APPLY)
 		{
@@ -1367,12 +1439,13 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		initTransformOrientation(C, t);
 
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
-		t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
+		//t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
+		t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), NULL, drawHelpline, t);
 	}
 	else if(t->spacetype == SPACE_IMAGE) {
 		unit_m3(t->spacemtx);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
-		t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
+		//t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
 	}
 	else
 		unit_m3(t->spacemtx);
@@ -1380,7 +1453,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	createTransData(C, t);			// make TransData structs from selection
 
 	if (t->total == 0) {
-		postTrans(t);
+		postTrans(C, t);
 		return 0;
 	}
 
@@ -1486,6 +1559,9 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	case TFM_ALIGN:
 		initAlign(t);
 		break;
+	case TFM_SEQ_SLIDE:
+		initSeqSlide(t);
+		break;
 	}
 
 	/* overwrite initial values if operator supplied a non-null vector */
@@ -1573,10 +1649,10 @@ int transformEnd(bContext *C, TransInfo *t)
 		}
 
 		/* aftertrans does insert keyframes, and clears base flags, doesnt read transdata */
-		special_aftertrans_update(t);
+		special_aftertrans_update(C, t);
 
 		/* free data */
-		postTrans(t);
+		postTrans(C, t);
 
 		/* send events out for redraws */
 		viewRedrawPost(t);
@@ -3156,11 +3232,11 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 /* uses t->vec to store actual translation in */
 int Translation(TransInfo *t, short mval[2])
 {
-	float tvec[3];
 	char str[250];
 
 	if (t->con.mode & CON_APPLY) {
 		float pvec[3] = {0.0f, 0.0f, 0.0f};
+		float tvec[3];
 		applySnapping(t, t->values);
 		t->con.applyVec(t, NULL, t->values, tvec, pvec);
 		VECCOPY(t->values, tvec);
@@ -5171,6 +5247,90 @@ int Align(TransInfo *t, short mval[2])
 	return 1;
 }
 
+/* ************************** SEQ SLIDE *************************** */
+
+void initSeqSlide(TransInfo *t)
+{
+	t->transform = SeqSlide;
+
+	initMouseInputMode(t, &t->mouse, INPUT_VECTOR);
+
+	t->idx_max = 1;
+	t->num.flag = 0;
+	t->num.idx_max = t->idx_max;
+
+	t->ndof.axis = 1|2;
+
+	t->snap[0] = 0.0f;
+	t->snap[1] = floor(t->scene->r.frs_sec / t->scene->r.frs_sec_base);
+	t->snap[2] = 10.0f;
+}
+
+static void headerSeqSlide(TransInfo *t, float val[2], char *str)
+{
+	char tvec[60];
+
+	if (hasNumInput(&t->num)) {
+		outputNumInput(&(t->num), tvec);
+	}
+	else {
+		sprintf(&tvec[0], "%.0f, %.0f", val[0], val[1]);
+	}
+
+	sprintf(str, "Sequence Slide: %s%s", &tvec[0], t->con.text);
+}
+
+static void applySeqSlide(TransInfo *t, float val[2]) {
+	TransData *td = t->data;
+	int i;
+
+	for(i = 0 ; i < t->total; i++, td++) {
+		float tvec[2];
+
+		if (td->flag & TD_NOACTION)
+			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
+
+		copy_v2_v2(tvec, val);
+
+		mul_v2_fl(tvec, td->factor);
+
+		td->loc[0] = td->iloc[0] + tvec[0];
+		td->loc[1] = td->iloc[1] + tvec[1];
+	}
+}
+
+int SeqSlide(TransInfo *t, short mval[2])
+{
+	char str[200];
+
+	if (t->con.mode & CON_APPLY) {
+		float pvec[3] = {0.0f, 0.0f, 0.0f};
+		float tvec[3];
+		t->con.applyVec(t, NULL, t->values, tvec, pvec);
+		VECCOPY(t->values, tvec);
+	}
+	else {
+		applyNDofInput(&t->ndof, t->values);
+		snapGrid(t, t->values);
+		applyNumInput(&t->num, t->values);
+	}
+
+	t->values[0] = floor(t->values[0] + 0.5);
+	t->values[1] = floor(t->values[1] + 0.5);
+
+	headerSeqSlide(t, t->values, str);
+	applySeqSlide(t, t->values);
+
+	recalcData(t);
+
+	ED_area_headerprint(t->sa, str);
+
+	return 1;
+}
+
 /* ************************** ANIM EDITORS - TRANSFORM TOOLS *************************** */
 
 /* ---------------- Special Helpers for Various Settings ------------- */
@@ -5372,7 +5532,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 		AnimData *adt= (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 
 		/* check if any need to apply nla-mapping */
-		if (adt) {
+		if (adt && t->spacetype != SPACE_SEQ) {
 			deltax = t->values[0];
 
 			if (autosnap == SACTSNAP_STEP) {

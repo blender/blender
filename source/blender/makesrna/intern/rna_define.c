@@ -1732,6 +1732,16 @@ void RNA_def_property_editable_func(PropertyRNA *prop, const char *editable)
 	if(editable) prop->editable= (EditableFunc)editable;
 }
 
+void RNA_def_property_editable_array_func(PropertyRNA *prop, const char *editable)
+{
+	if(!DefRNA.preprocess) {
+		fprintf(stderr, "RNA_def_property_editable_array_func: only during preprocessing.\n");
+		return;
+	}
+
+	if(editable) prop->itemeditable= (ItemEditableFunc)editable;
+}
+
 void RNA_def_property_update(PropertyRNA *prop, int noteflag, const char *func)
 {
 	if(!DefRNA.preprocess) {

@@ -63,10 +63,13 @@ struct BMesh *BKE_mesh_to_bmesh(struct Mesh *me, struct Object *ob);
 
   use_poly_origindex sets whether or not the tesselation faces' origindex
   layer should point to original poly indices or real poly indices.
+
+  use_face_origindex sets the tesselation faces' origindex layer
+  to point to the tesselation faces themselves, not the polys.
  */
 int mesh_recalcTesselation(struct CustomData *fdata, struct CustomData *ldata, 
 	struct CustomData *pdata, struct MVert *mvert, int totface, 
-	int totloop, int totpoly, int use_poly_origindex);
+	int totloop, int totpoly, int use_poly_origindex, int use_face_origindex);
 
 /*calculates a face normal.*/
 void mesh_calc_poly_normal(struct MPoly *mpoly, struct MLoop *loopstart, 

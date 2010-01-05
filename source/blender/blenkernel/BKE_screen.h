@@ -41,6 +41,7 @@ struct Header;
 struct Menu;
 struct ScrArea;
 struct SpaceType;
+struct Scene;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
@@ -54,7 +55,7 @@ struct uiMenuItem;
    ED_spacetypes_init() in editors/area/spacetypes.c   */
 /* an editor in Blender is a combined ScrArea + SpaceType + SpaceData */
 
-#define BKE_ST_MAXNAME	32
+#define BKE_ST_MAXNAME	64
 
 typedef struct SpaceType {
 	struct SpaceType *next, *prev;
@@ -233,7 +234,7 @@ void	BKE_screen_area_free(struct ScrArea *sa);
 
 /* screen */
 void free_screen(struct bScreen *sc); 
-unsigned int BKE_screen_visible_layers(struct bScreen *screen);
+unsigned int BKE_screen_visible_layers(struct bScreen *screen, struct Scene *scene);
 
 #endif
 

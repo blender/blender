@@ -213,7 +213,7 @@ void WM_check(bContext *C)
 		/* case: fileread */
 		if((wm->initialized & WM_INIT_WINDOW) == 0) {
 			WM_keymap_init(C);
-			WM_autosave_init(C);
+			WM_autosave_init(wm);
 		}
 
 		/* case: no open windows at all, for old file reads */

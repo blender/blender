@@ -690,7 +690,7 @@ static int mesh_extrude_region_invoke(bContext *C, wmOperator *op, wmEvent *even
 		RNA_enum_set(op->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
 		RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 	}
-	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }
@@ -749,7 +749,7 @@ static int mesh_extrude_verts_invoke(bContext *C, wmOperator *op, wmEvent *event
 		RNA_enum_set(op->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
 		RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 	}
-	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }
@@ -808,7 +808,7 @@ static int mesh_extrude_edges_invoke(bContext *C, wmOperator *op, wmEvent *event
 		RNA_enum_set(op->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
 		RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 	}*/
-	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+	WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 
 	return OPERATOR_FINISHED;
 }
@@ -864,13 +864,13 @@ static int mesh_extrude_faces_invoke(bContext *C, wmOperator *op, wmEvent *event
 	RNA_boolean_set(op->ptr, "mirror", 0);
 	
 	if (tmode == 's') {
-		WM_operator_name_call(C, "TFM_OT_shrink_fatten", WM_OP_INVOKE_REGION_WIN, op->ptr);
+		WM_operator_name_call(C, "TRANSFORM_OT_shrink_fatten", WM_OP_INVOKE_REGION_WIN, op->ptr);
 	} else {
 		if (tmode == 'n') {
 			RNA_enum_set(op->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
 			RNA_boolean_set_array(op->ptr, "constraint_axis", constraint_axis);
 		}
-		WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+		WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 	}
 	return OPERATOR_FINISHED;
 }
@@ -1028,11 +1028,11 @@ static int toggle_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_select_all_toggle(wmOperatorType *ot)
+void MESH_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect All";
-	ot->idname= "MESH_OT_select_all_toggle";
+	ot->idname= "MESH_OT_select_all";
 	ot->description= "(de)select all vertices, edges or faces.";
 	
 	/* api callbacks */
@@ -3348,7 +3348,7 @@ static int mesh_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 //	RNA_enum_set(op->ptr, "proportional", 0);
 //	RNA_boolean_set(op->ptr, "mirror", 0);
-//	WM_operator_name_call(C, "TFM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
+//	WM_operator_name_call(C, "TRANSFORM_OT_translate", WM_OP_INVOKE_REGION_WIN, op->ptr);
 #endif
 }
 
@@ -3608,3 +3608,48 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "axis", 0, 0, 2, "Axis", "Select the axis to compare each vertex on", 0, 2);
 }
 
+static int solidify_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	float nor[3] = {0,0,1};
+
+	float thickness= RNA_float_get(op->ptr, "thickness");
+
+	extrudeflag(obedit, em, SELECT, nor, 1);
+	EM_make_hq_normals(em);
+	EM_solidify(em, thickness);
+
+
+	/* update vertex normals too */
+	recalc_editnormals(em);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+#endif
+}
+
+
+void MESH_OT_solidify(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	/* identifiers */
+	ot->name= "Solidify";
+	ot->description= "Create a solid skin by extruding, compensating for sharp angles.";
+	ot->idname= "MESH_OT_solidify";
+
+	/* api callbacks */
+	ot->exec= solidify_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	prop= RNA_def_float(ot->srna, "thickness", 0.01f, -FLT_MAX, FLT_MAX, "thickness", "", -10.0f, 10.0f);
+	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
+}

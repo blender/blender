@@ -96,7 +96,7 @@ void imapaint_pick_uv(Scene *scene, Object *ob, Mesh *mesh, unsigned int faceind
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, CD_MASK_BAREMESH);
 	int *index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 	MTFace *tface = dm->getTessFaceDataArray(dm, CD_MTFACE), *tf;
-	int numfaces = dm->getNumTessFaces(dm), a;
+	int numfaces = dm->getNumTessFaces(dm), a, findex;
 	float p[2], w[3], absw, minabsw;
 	MFace mf;
 	MVert mv[4];
@@ -106,7 +106,9 @@ void imapaint_pick_uv(Scene *scene, Object *ob, Mesh *mesh, unsigned int faceind
 
 	/* test all faces in the derivedmesh with the original index of the picked face */
 	for(a = 0; a < numfaces; a++) {
-		if(index[a] == faceindex) {
+		findex= (index)? index[a]: a;
+
+		if(findex == faceindex) {
 			dm->getTessFace(dm, a, &mf);
 
 			dm->getVert(dm, mf.v1, &mv[0]);
@@ -273,22 +275,24 @@ void PAINT_OT_face_select_linked_pick(wmOperatorType *ot)
 }
 
 
-static int face_deselect_all_exec(bContext *C, wmOperator *op)
+static int face_select_all_exec(bContext *C, wmOperator *op)
 {
-	deselectall_tface(CTX_data_active_object(C));
+	selectall_tface(CTX_data_active_object(C), RNA_enum_get(op->ptr, "action"));
 	ED_region_tag_redraw(CTX_wm_region(C));
 	return OPERATOR_FINISHED;
 }
 
 
-void PAINT_OT_face_deselect_all(wmOperatorType *ot)
+void PAINT_OT_face_select_all(wmOperatorType *ot)
 {
-	ot->name= "Select Linked";
-    ot->description= "Select linked faces under the mouse.";
-	ot->idname= "PAINT_OT_face_deselect_all";
+	ot->name= "Face Selection";
+    ot->description= "Change selection for all faces.";
+	ot->idname= "PAINT_OT_face_select_all";
 
-	ot->exec= face_deselect_all_exec;
+	ot->exec= face_select_all_exec;
 	ot->poll= facemask_paint_poll;
 
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	WM_operator_properties_select_all(ot);
 }

@@ -1707,11 +1707,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			totface= psmd->dm->getNumTessFaces(psmd->dm);
 			origindex= psmd->dm->getTessFaceDataArray(psmd->dm, CD_ORIGINDEX);
-			if(origindex) {
-				for(a=0; a<totface; a++)
-					strandbuf->totbound= MAX2(strandbuf->totbound, origindex[a]);
-				strandbuf->totbound++;
-			}
+			for(a=0; a<totface; a++)
+				strandbuf->totbound= MAX2(strandbuf->totbound, (origindex)? origindex[a]: a);
+
 			strandbuf->totbound++;
 			strandbuf->bound= MEM_callocN(sizeof(StrandBound)*strandbuf->totbound, "StrandBound");
 			sbound= strandbuf->bound;
@@ -1852,8 +1850,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			dosimplify = psys_render_simplify_params(psys, cpa, simplify);
 
 			if(strandbuf) {
-				if(origindex[cpa->num]+1 > sbound - strandbuf->bound) {
-					sbound= strandbuf->bound + origindex[cpa->num]+1;
+				int orignum= (origindex)? origindex[cpa->num]: cpa->num;
+
+				if(orignum > sbound - strandbuf->bound) {
+					sbound= strandbuf->bound + orignum;
 					sbound->start= sbound->end= obr->totstrand;
 				}
 			}
@@ -4492,12 +4492,16 @@ void RE_Database_Free(Render *re)
 	}
 }
 
-static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object *actob)
+static int allow_render_object(Render *re, Object *ob, int nolamps, int onlyselected, Object *actob)
 {
 	/* override not showing object when duplis are used with particles */
 	if(ob->transflag & OB_DUPLIPARTS)
 		; /* let particle system(s) handle showing vs. not showing */
 	else if((ob->transflag & OB_DUPLI) && !(ob->transflag & OB_DUPLIFRAMES))
+		return 0;
+	
+	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */
+	if (ob->type == OB_MBALL && ob!=find_basis_mball(re->scene, ob))
 		return 0;
 	
 	if(nolamps && (ob->type==OB_LAMP))
@@ -4605,7 +4609,7 @@ static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, in
 
 		if(ob->flag & OB_DONE) {
 			if(ob->transflag & OB_RENDER_DUPLI) {
-				if(allow_render_object(ob, nolamps, onlyselected, actob)) {
+				if(allow_render_object(re, ob, nolamps, onlyselected, actob)) {
 					init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
 					ob->transflag &= ~OB_RENDER_DUPLI;
 
@@ -4659,7 +4663,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 			/* OB_RENDER_DUPLI means instances for it were already created, now
 			 * it still needs to create the ObjectRen containing the data */
 			if(ob->transflag & OB_RENDER_DUPLI) {
-				if(allow_render_object(ob, nolamps, onlyselected, actob)) {
+				if(allow_render_object(re, ob, nolamps, onlyselected, actob)) {
 					init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
 					ob->transflag &= ~OB_RENDER_DUPLI;
 				}
@@ -4693,7 +4697,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 					if(obd->type==OB_MBALL)
 						continue;
 
-					if(!allow_render_object(obd, nolamps, onlyselected, actob))
+					if(!allow_render_object(re, obd, nolamps, onlyselected, actob))
 						continue;
 
 					if(allow_render_dupli_instance(re, dob, obd)) {
@@ -4763,10 +4767,10 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 				}
 				free_object_duplilist(lb);
 
-				if(allow_render_object(ob, nolamps, onlyselected, actob))
+				if(allow_render_object(re, ob, nolamps, onlyselected, actob))
 					init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
 			}
-			else if(allow_render_object(ob, nolamps, onlyselected, actob))
+			else if(allow_render_object(re, ob, nolamps, onlyselected, actob))
 				init_render_object(re, ob, NULL, 0, timeoffset, vectorlay);
 		}
 
@@ -4844,8 +4848,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	
 	/* still bad... doing all */
 	init_render_textures(re);
-	if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(amb, &re->wrld.ambr);
-	else VECCOPY(amb, &re->wrld.ambr);
+	VECCOPY(amb, &re->wrld.ambr);
 	init_render_materials(re->r.mode, amb);
 	set_node_shader_lamp_loop(shade_material_loop);
 
@@ -5534,8 +5537,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	/* still bad... doing all */
 	init_render_textures(re);
 	
-	if (re->r.color_mgt_flag & R_COLOR_MANAGEMENT) color_manage_linearize(amb, &re->wrld.ambr);
-	else VECCOPY(amb, &re->wrld.ambr);
+	VECCOPY(amb, &re->wrld.ambr);
 	init_render_materials(re->r.mode, amb);
 	
 	set_node_shader_lamp_loop(shade_material_loop);

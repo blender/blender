@@ -80,6 +80,7 @@ editmesh_mods.c, UI level access, no geometry changes
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -1697,6 +1698,8 @@ void MESH_OT_bmesh_test(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= bmesh_test_exec;
 	ot->poll= ED_operator_editmesh;
+
+	WM_operator_properties_select_all(ot);
 }
 
 /* ******************** **************** */
@@ -1800,14 +1803,12 @@ void EM_select_less(EditMesh *em)
 	}
 }
 
-static void selectrandom_mesh(EditMesh *em, float perc) /* randomly selects a user-set % of vertices/edges/faces */
+static void selectrandom_mesh(EditMesh *em, float randfac) /* randomly selects a user-set % of vertices/edges/faces */
 {
+#if 0
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
-	float randfac= perc;
-	/* Get the percentage of vertices to randomly select as 'randfac' */
-// XXX	if(button(&randfac,0, 100,"Percentage:")==0) return;
 
 	BLI_srand( BLI_rand() ); /* random seed */
 	
@@ -1840,18 +1841,24 @@ static void selectrandom_mesh(EditMesh *em, float perc) /* randomly selects a us
 		EM_selectmode_flush(em);
 	}
 //	if (EM_texFaceCheck())
+#endif
 }
 
 static int mesh_select_random_exec(bContext *C, wmOperator *op)
 {
+#if 0
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
 	
-	selectrandom_mesh(em, RNA_float_get(op->ptr,"percent"));
+	if(!RNA_boolean_get(op->ptr, "extend"))
+		EM_deselect_all(em);
+	
+	selectrandom_mesh(em, RNA_float_get(op->ptr, "percent")/100.0f);
 		
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
+#endif
 	return OPERATOR_FINISHED;	
 }
 
@@ -1864,14 +1871,14 @@ void MESH_OT_select_random(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= mesh_select_random_exec;
-	ot->invoke= WM_operator_props_popup;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float_percentage(ot->srna, "percent", 50.0f, 0.0f, 100.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
 
 void EM_select_by_material(EditMesh *em, int index) 

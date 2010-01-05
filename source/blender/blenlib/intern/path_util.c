@@ -1,9 +1,5 @@
-/* util.c
- *
- * various string, file, list operations.
- *
- *
- * $Id$
+/**
+ *  $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,7 +25,8 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
- * 
+ *
+ * various string, file, list operations.
  */
 
 #include <stdio.h>
@@ -45,12 +42,13 @@
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_dynamiclist.h"
+#include "BLI_fileops.h"
+#include "BLI_path_util.h"
+#include "BLI_string.h"
 #include "BLI_storage.h"
 #include "BLI_storage_types.h"
-#include "BLI_dynamiclist.h"
 
-#include "BLI_util.h"
 #include "BKE_utildefines.h"
 
 
@@ -223,7 +221,7 @@ void BLI_newname(char *name, int add)
  *	defname: the name that should be used by default if none is specified already
  *	delim: the character which acts as a delimeter between parts of the name
  */
-void BLI_uniquename(ListBase *list, void *vlink, char defname[], char delim, short name_offs, short len)
+void BLI_uniquename(ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short len)
 {
 	Link *link;
 	char tempname[128];

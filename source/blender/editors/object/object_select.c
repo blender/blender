@@ -571,6 +571,7 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 	if (extend == 0) {
 		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 			ED_base_object_select(base, BA_DESELECT);
+			changed = 1;
 		}
 		CTX_DATA_END;
 	}
@@ -581,17 +582,17 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	if(nr==1)		changed = select_grouped_children(C, ob, 1);
-	else if(nr==2)	changed = select_grouped_children(C, ob, 0);
-	else if(nr==3)	changed = select_grouped_parent(C);
-	else if(nr==4)	changed = select_grouped_siblings(C, ob);
-	else if(nr==5)	changed = select_grouped_type(C, ob);
-	else if(nr==6)	changed = select_grouped_layer(C, ob);
-	else if(nr==7)	changed = select_grouped_group(C, ob);
-	else if(nr==8)	changed = select_grouped_object_hooks(C, ob);
-	else if(nr==9)	changed = select_grouped_index_object(C, ob);
-	else if(nr==10)	changed = select_grouped_color(C, ob);
-	else if(nr==11)	changed = select_grouped_gameprops(C, ob);
+	if(nr==1)		changed |= select_grouped_children(C, ob, 1);
+	else if(nr==2)	changed |= select_grouped_children(C, ob, 0);
+	else if(nr==3)	changed |= select_grouped_parent(C);
+	else if(nr==4)	changed |= select_grouped_siblings(C, ob);
+	else if(nr==5)	changed |= select_grouped_type(C, ob);
+	else if(nr==6)	changed |= select_grouped_layer(C, ob);
+	else if(nr==7)	changed |= select_grouped_group(C, ob);
+	else if(nr==8)	changed |= select_grouped_object_hooks(C, ob);
+	else if(nr==9)	changed |= select_grouped_index_object(C, ob);
+	else if(nr==10)	changed |= select_grouped_color(C, ob);
+	else if(nr==11)	changed |= select_grouped_gameprops(C, ob);
 	
 	if (changed) {
 		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
@@ -707,49 +708,64 @@ void OBJECT_OT_select_inverse(wmOperatorType *ot)
 
 /**************************** (De)select All ****************************/
 
-static int object_select_de_select_all_exec(bContext *C, wmOperator *op)
+static int object_select_all_exec(bContext *C, wmOperator *op)
 {
+	int action = RNA_enum_get(op->ptr, "action");
 	
-	int a=0, ok=0; 
-	
+	/* passthrough if no objects are visible */
+	if (CTX_DATA_COUNT(C, visible_bases) == 0) return OPERATOR_PASS_THROUGH;
+
+	if (action == SEL_TOGGLE) {
+		action = SEL_SELECT;
+		CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
+			if (base->flag & SELECT) {
+				action = SEL_DESELECT;
+				break;
+			}
+		}
+		CTX_DATA_END;
+	}
+
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if (base->flag & SELECT) {
-			ok= a= 1;
+		switch (action) {
+		case SEL_SELECT:
+			ED_base_object_select(base, BA_SELECT);
+			break;
+		case SEL_DESELECT:
+			ED_base_object_select(base, BA_DESELECT);
+			break;
+		case SEL_INVERT:
+			if (base->flag & SELECT) {
+				ED_base_object_select(base, BA_DESELECT);
+			} else {
+				ED_base_object_select(base, BA_SELECT);
+			}
 			break;
 		}
-		else ok=1;
 	}
 	CTX_DATA_END;
 	
-	if (!ok) return OPERATOR_PASS_THROUGH;
-	
-	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
-		if (a) ED_base_object_select(base, BA_DESELECT);
-		else ED_base_object_select(base, BA_SELECT);
-	}
-	CTX_DATA_END;
-	
-	/* undo? */
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_select_all_toggle(wmOperatorType *ot)
+void OBJECT_OT_select_all(wmOperatorType *ot)
 {
 	
 	/* identifiers */
 	ot->name= "deselect all";
-	ot->description = "(de)select all visible objects in scene.";
-	ot->idname= "OBJECT_OT_select_all_toggle";
+	ot->description = "Change selection of all visible objects in scene.";
+	ot->idname= "OBJECT_OT_select_all";
 	
 	/* api callbacks */
-	ot->exec= object_select_de_select_all_exec;
+	ot->exec= object_select_all_exec;
 	ot->poll= ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
+
+	WM_operator_properties_select_all(ot);
 }
 
 /**************************** Select Mirror ****************************/
@@ -981,11 +997,11 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	percent = RNA_float_get(op->ptr, "percent");
+	percent = RNA_float_get(op->ptr, "percent")/100.0f;
 		
 	CTX_DATA_BEGIN(C, Base*, base, visible_bases) {
 		if (BLI_frand() < percent) {
-				ED_base_object_select(base, BA_SELECT);
+			ED_base_object_select(base, BA_SELECT);
 		}
 	}
 	CTX_DATA_END;
@@ -998,7 +1014,7 @@ static int object_select_random_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Random select";
+	ot->name= "Select Random";
 	ot->description = "Set select on random visible objects.";
 	ot->idname= "OBJECT_OT_select_random";
 	
@@ -1011,8 +1027,8 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
-	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "percentage of objects to randomly select", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of objects to select randomly", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
 
 

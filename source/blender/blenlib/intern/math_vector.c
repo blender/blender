@@ -145,6 +145,19 @@ float angle_v3v3v3(float *v1, float *v2, float *v3)
 	return angle_normalized_v3v3(vec1, vec2);
 }
 
+/* Return the shortest angle in radians between the 2 vectors */
+float angle_v3v3(float *v1, float *v2)
+{
+	float vec1[3], vec2[3];
+
+	copy_v3_v3(vec1, v1);
+	copy_v3_v3(vec2, v2);
+	normalize_v3(vec1);
+	normalize_v3(vec2);
+
+	return angle_normalized_v3v3(vec1, vec2);
+}
+
 float angle_v2v2v2(float *v1, float *v2, float *v3)
 {
 	float vec1[2], vec2[2];
@@ -164,14 +177,18 @@ float angle_v2v2v2(float *v1, float *v2, float *v3)
 /* Return the shortest angle in radians between the 2 vectors */
 float angle_v2v2(float *v1, float *v2)
 {
-	float vec1[3], vec2[3];
+	float vec1[2], vec2[2];
 
-	copy_v3_v3(vec1, v1);
-	copy_v3_v3(vec2, v2);
-	normalize_v3(vec1);
-	normalize_v3(vec2);
+	vec1[0] = v1[0];
+	vec1[1] = v1[1];
 
-	return angle_normalized_v3v3(vec1, vec2);
+	vec2[0] = v2[0];
+	vec2[1] = v2[1];
+
+	normalize_v2(vec1);
+	normalize_v2(vec2);
+
+	return angle_normalized_v2v2(vec1, vec2);
 }
 
 float angle_normalized_v3v3(float *v1, float *v2)
@@ -203,6 +220,44 @@ float angle_normalized_v2v2(float *v1, float *v2)
 	}
 	else
 		return 2.0f*(float)saasin(len_v2v2(v2, v1)/2.0f);
+}
+
+void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const float v3[3])
+{
+	float ed1[3], ed2[3], ed3[3];
+
+	sub_v3_v3v3(ed1, v3, v1);
+	sub_v3_v3v3(ed2, v1, v2);
+	sub_v3_v3v3(ed3, v2, v3);
+
+	normalize_v3(ed1);
+	normalize_v3(ed2);
+	normalize_v3(ed3);
+
+	angles[0]= M_PI - angle_normalized_v3v3(ed1, ed2);
+	angles[1]= M_PI - angle_normalized_v3v3(ed2, ed3);
+	// face_angles[2] = M_PI - angle_normalized_v3v3(ed3, ed1);
+	angles[2]= M_PI - (angles[0] + angles[1]);
+}
+
+void angle_quad_v3(float angles[4], const float v1[3], const float v2[3], const float v3[3], const float v4[3])
+{
+	float ed1[3], ed2[3], ed3[3], ed4[3];
+
+	sub_v3_v3v3(ed1, v4, v1);
+	sub_v3_v3v3(ed2, v1, v2);
+	sub_v3_v3v3(ed3, v2, v3);
+	sub_v3_v3v3(ed4, v3, v4);
+
+	normalize_v3(ed1);
+	normalize_v3(ed2);
+	normalize_v3(ed3);
+	normalize_v3(ed4);
+
+	angles[0]= M_PI - angle_normalized_v3v3(ed1, ed2);
+	angles[1]= M_PI - angle_normalized_v3v3(ed2, ed3);
+	angles[2]= M_PI - angle_normalized_v3v3(ed3, ed4);
+	angles[3]= M_PI - angle_normalized_v3v3(ed4, ed1);
 }
 
 /********************************* Geometry **********************************/
@@ -290,20 +345,6 @@ void print_v3(char *str, float v[3])
 void print_v4(char *str, float v[4])
 {
 	printf("%s: %.3f %.3f %.3f %.3f\n", str, v[0], v[1], v[2], v[3]);
-}
-
-void normal_short_to_float_v3(float *out, short *in)
-{
-	out[0] = in[0]*(1.0f/32767.0f);
-	out[1] = in[1]*(1.0f/32767.0f);
-	out[2] = in[2]*(1.0f/32767.0f);
-}
-
-void normal_float_to_short_v3(short *out, float *in)
-{
-	out[0] = (short)(in[0]*32767.0f);
-	out[1] = (short)(in[1]*32767.0f);
-	out[2] = (short)(in[2]*32767.0f);
 }
 
 void minmax_v3_v3v3(float *min, float *max, float *vec)

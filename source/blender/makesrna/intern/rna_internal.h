@@ -75,6 +75,9 @@ typedef struct PropertyDefRNA {
 	int dnalengthfixed;
 
 	int booleanbit, booleannegative;
+
+	/* not to be confused with PROP_ENUM_FLAG
+	 * this only allows one of the flags to be set at a time, clearing all others */
 	int enumbitflags;
 } PropertyDefRNA;
 
@@ -154,7 +157,7 @@ void RNA_def_scene(struct BlenderRNA *brna);
 void RNA_def_screen(struct BlenderRNA *brna);
 void RNA_def_sculpt_paint(struct BlenderRNA *brna);
 void RNA_def_sensor(struct BlenderRNA *brna);
-void RNA_def_sequence(struct BlenderRNA *brna);
+void RNA_def_sequencer(struct BlenderRNA *brna);
 void RNA_def_smoke(struct BlenderRNA *brna);
 void RNA_def_space(struct BlenderRNA *brna);
 void RNA_def_test(struct BlenderRNA *brna);
@@ -194,21 +197,24 @@ void rna_object_vgroup_name_set(struct PointerRNA *ptr, const char *value, char 
 void rna_object_uvlayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 void rna_object_vcollayer_name_set(struct PointerRNA *ptr, const char *value, char *result, int maxlen);
 
-void rna_Object_update(struct bContext *C, struct PointerRNA *ptr);
-void rna_Object_update_data(struct bContext *C, struct PointerRNA *ptr);
-void rna_Mesh_update_draw(struct bContext *C, struct PointerRNA *ptr);
-void rna_TextureSlot_update(struct bContext *C, struct PointerRNA *ptr);
+void rna_Object_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+void rna_Object_update_data(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+void rna_Mesh_update_draw(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
+void rna_TextureSlot_update(struct Main *bmain, struct Scene *scene, struct PointerRNA *ptr);
 
 char *rna_TextureSlot_path(struct PointerRNA *ptr);
 
 /* API functions */
 
 void RNA_api_action(StructRNA *srna);
+void RNA_api_armature_edit_bone(StructRNA *srna);
 void RNA_api_drivers(StructRNA *srna);
 void RNA_api_image(struct StructRNA *srna);
+void RNA_api_operator(struct StructRNA *srna);
 void RNA_api_keyconfig(struct StructRNA *srna);
 void RNA_api_keyingset(struct StructRNA *srna);
 void RNA_api_keymap(struct StructRNA *srna);
+void RNA_api_keymapitem(struct StructRNA *srna);
 void RNA_api_main(struct StructRNA *srna);
 void RNA_api_material(StructRNA *srna);
 void RNA_api_mesh(struct StructRNA *srna);

@@ -37,9 +37,9 @@
 #include "BKE_sound.h"
 #include "BKE_context.h"
 
-static void rna_Sound_filename_update(bContext *C, PointerRNA *ptr)
+static void rna_Sound_filename_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	sound_load(CTX_data_main(C), (bSound*)ptr->data);
+	sound_load(bmain, (bSound*)ptr->data);
 }
 
 static int rna_Sound_caching_get(PointerRNA *ptr)

@@ -36,7 +36,7 @@
 #include "GEN_Map.h"
 #include "STR_HashedString.h"
 #include "RAS_IPolygonMaterial.h"
-#include "BL_SkinMeshObject.h"
+#include "RAS_MeshObject.h"
 #include "PHY_IGraphicController.h"
 
 //#include "BL_ArmatureController.h"

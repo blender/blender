@@ -48,6 +48,7 @@ static PyObject *Vector_Negate( VectorObject * self );
 static PyObject *Vector_Resize2D( VectorObject * self );
 static PyObject *Vector_Resize3D( VectorObject * self );
 static PyObject *Vector_Resize4D( VectorObject * self );
+static PyObject *Vector_ToTuple( VectorObject * self, PyObject *value );
 static PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args );
 static PyObject *Vector_Reflect( VectorObject *self, VectorObject *value );
 static PyObject *Vector_Cross( VectorObject * self, VectorObject * value );
@@ -61,6 +62,7 @@ static struct PyMethodDef Vector_methods[] = {
 	{"resize2D", (PyCFunction) Vector_Resize2D, METH_NOARGS, NULL},
 	{"resize3D", (PyCFunction) Vector_Resize3D, METH_NOARGS, NULL},
 	{"resize4D", (PyCFunction) Vector_Resize4D, METH_NOARGS, NULL},
+	{"toTuple", (PyCFunction) Vector_ToTuple, METH_O, NULL},
 	{"toTrackQuat", ( PyCFunction ) Vector_ToTrackQuat, METH_VARARGS, NULL},
 	{"reflect", ( PyCFunction ) Vector_Reflect, METH_O, NULL},
 	{"cross", ( PyCFunction ) Vector_Cross, METH_O, NULL},
@@ -236,6 +238,33 @@ static PyObject *Vector_Resize4D(VectorObject * self)
 	Py_INCREF(self);
 	return (PyObject*)self;
 }
+
+/*----------------------------Vector.resize4D() ------------------
+  resize the vector to x,y,z,w */
+static PyObject *Vector_ToTuple(VectorObject * self, PyObject *value)
+{
+	int ndigits= PyLong_AsSsize_t(value);
+	int x;
+
+	PyObject *ret;
+
+	if(ndigits > 22 || ndigits < 0) { /* accounts for non ints */
+		PyErr_SetString(PyExc_TypeError, "vector.key(ndigits): ndigits must be between 0 and 21");
+		return NULL;
+	}
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	ret= PyTuple_New(self->size);
+
+	for(x = 0; x < self->size; x++) {
+		PyTuple_SET_ITEM(ret, x, PyFloat_FromDouble(double_round((double)self->vec[x], ndigits)));
+	}
+
+	return ret;
+}
+
 /*----------------------------Vector.toTrackQuat(track, up) ----------------------
   extract a quaternion from the vector and the track and up axis */
 static PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
@@ -626,36 +655,30 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 static PyObject *Vector_iadd(PyObject * v1, PyObject * v2)
 {
 	int i;
-
 	VectorObject *vec1 = NULL, *vec2 = NULL;
+
+	if (!VectorObject_Check(v1) || !VectorObject_Check(v2)) {
+		PyErr_SetString(PyExc_AttributeError, "Vector addition: arguments not valid for this operation....\n");
+		return NULL;
+	}
+	vec1 = (VectorObject*)v1;
+	vec2 = (VectorObject*)v2;
 	
-	if VectorObject_Check(v1)
-		vec1= (VectorObject *)v1;
-	
-	if VectorObject_Check(v2)
-		vec2= (VectorObject *)v2;
-	
-	/* make sure v1 is always the vector */
-	if (vec1 && vec2 ) {
-		
-		if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
-			return NULL;
-		
-		/*VECTOR + VECTOR*/
-		if(vec1->size != vec2->size) {
-			PyErr_SetString(PyExc_AttributeError, "Vector addition: vectors must have the same dimensions for this operation\n");
-			return NULL;
-		}
-		for(i = 0; i < vec1->size; i++) {
-			vec1->vec[i] +=	vec2->vec[i];
-		}
-		Py_INCREF( v1 );
-		return v1;
+	if(vec1->size != vec2->size) {
+		PyErr_SetString(PyExc_AttributeError, "Vector addition: vectors must have the same dimensions for this operation\n");
+		return NULL;
 	}
 	
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2))
+		return NULL;
+
+	for(i = 0; i < vec1->size; i++) {
+		vec1->vec[i] = vec1->vec[i] + vec2->vec[i];
+	}
+
 	BaseMath_WriteCallback(vec1);
-	PyErr_SetString(PyExc_AttributeError, "Vector addition: arguments not valid for this operation....\n");
-	return NULL;
+	Py_INCREF( v1 );
+	return v1;
 }
 
 /*------------------------obj - obj------------------------------

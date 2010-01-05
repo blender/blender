@@ -158,7 +158,12 @@ void copy_fcurves(ListBase *dst, ListBase *src);
 struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_index);
 
 /* high level function to get an fcurve from C without having the rna */
-struct FCurve *id_data_find_fcurve(ID* id, void *data, struct StructRNA *type, char *prop_name, int index);
+struct FCurve *id_data_find_fcurve(ID *id, void *data, struct StructRNA *type, char *prop_name, int index);
+
+/* Get list of LinkData's containing pointers to the F-Curves which control the types of data indicated 
+ *	e.g.  numMatches = list_find_data_fcurves(matches, &act->curves, "pose.bones[", "MyFancyBone");
+ */
+int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName);
 
 /* Binary search algorithm for finding where to 'insert' BezTriple with given frame number.
  * Returns the index to insert at (data already at that index will be offset if replace is 0)

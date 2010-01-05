@@ -1023,10 +1023,12 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 	MLoopUV *luv;
 	UvVertMap *vmap;
 	UvMapVert *vlist, *iterv, *startv;
-	int a, i, nverts, j, stacksize= 0, *stack;
+	int a, i, nverts, stacksize= 0, *stack;
 	char *flag;
 
+	EDBM_init_index_arrays(em, 0, 0, 1); /* we can use this too */
 	vmap= EDBM_make_uv_vert_map(em, 1, 1, limit);
+
 	if(vmap == NULL)
 		return;
 
@@ -1069,6 +1071,8 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 	}
 
 	while(stacksize > 0) {
+		int j;
+
 		stacksize--;
 		a= stack[stacksize];
 		
@@ -1124,7 +1128,7 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 			}
 		}
 	}
-	else if(extend && hit) {
+	else {
 		a = 0;
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -1170,6 +1174,7 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 	MEM_freeN(stack);
 	MEM_freeN(flag);
 	EDBM_free_uv_vert_map(vmap);
+	EM_free_index_arrays();
 }
 
 /* ******************** align operator **************** */
@@ -1531,7 +1536,7 @@ void UV_OT_select_inverse(wmOperatorType *ot)
 
 /* ******************** (de)select all operator **************** */
 
-static int de_select_all_exec(bContext *C, wmOperator *op)
+static int select_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene;
 	ToolSettings *ts;
@@ -1543,6 +1548,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	Image *ima;
 	MTexPoly *tf;
 	MLoopUV *luv;
+	int action = RNA_enum_get(op->ptr, "action");
 	int sel = 1;
 	
 	scene= CTX_data_scene(C);
@@ -1552,21 +1558,38 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	ima= CTX_data_edit_image(C);
 	
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
-		EDBM_toggle_select_all(((Mesh*)obedit->data)->edit_btmesh);
+
+		switch (action) {
+		case SEL_TOGGLE:
+			EDBM_toggle_select_all(((Mesh*)obedit->data)->edit_btmesh);
+			break;
+		case SEL_SELECT:
+			EDBM_set_flag_all(em, BM_SELECT);
+			break;
+		case SEL_DESELECT:
+			EDBM_clear_flag_all(em, BM_SELECT);
+			break;
+		case SEL_INVERT:
+			EDBM_select_swap(em);
+			break;
+		}
 	}
 	else {
-		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+		if (action == SEL_TOGGLE) {
+			action = SEL_SELECT;
+			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+				tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+	
+				if(!uvedit_face_visible(scene, ima, efa, tf))
+					continue;
 
-			if(!uvedit_face_visible(scene, ima, efa, tf))
-				continue;
+				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
-			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
-				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-
-				if (luv->flag & MLOOPUV_VERTSEL) {
-					sel= 0;
-					break;
+					if (luv->flag & MLOOPUV_VERTSEL) {
+						action = SEL_DESELECT;
+						break;
+					}
 				}
 			}
 		}
@@ -1579,10 +1602,23 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 				continue;
 
 			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
+				char select_flag;
+
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
-				if (sel) luv->flag |= MLOOPUV_VERTSEL;
-				else luv->flag &= ~MLOOPUV_VERTSEL;
+				select_flag = luv->flag & MLOOPUV_VERTSEL;
+
+				switch (action) {
+				case SEL_SELECT:
+					luv->flag |= MLOOPUV_VERTSEL;
+					break;
+				case SEL_DESELECT:
+					luv->flag &= MLOOPUV_VERTSEL;
+					break;
+				case SEL_INVERT:
+					luv->flag ^= MLOOPUV_VERTSEL;
+					break;
+				}
 			}
 		}
 	}
@@ -1592,17 +1628,19 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void UV_OT_select_all_toggle(wmOperatorType *ot)
+void UV_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-	ot->description= "(de)select all UV vertices.";
-	ot->idname= "UV_OT_select_all_toggle";
+	ot->description= "Change selection of all UV vertices.";
+	ot->idname= "UV_OT_select_all";
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* api callbacks */
-	ot->exec= de_select_all_exec;
+	ot->exec= select_all_exec;
 	ot->poll= ED_operator_uvedit;
+
+	WM_operator_properties_select_all(ot);
 }
 
 /* ******************** mouse select operator **************** */
@@ -2005,7 +2043,7 @@ void UV_OT_select_loop(wmOperatorType *ot)
 
 /* ******************** linked select operator **************** */
 
-static int select_linked_exec(bContext *C, wmOperator *op)
+static int select_linked_internal(bContext *C, wmOperator *op, wmEvent *event, int pick)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Scene *scene= CTX_data_scene(C);
@@ -2016,6 +2054,8 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	float limit[2];
 	int extend;
 
+	NearestHit hit, *hit_p= NULL;
+
 	if(ts->uv_flag & UV_SYNC_SELECTION) {
 		BKE_report(op->reports, RPT_ERROR, "Can't select linked when sync selection is enabled.");
 		return OPERATOR_CANCELLED;
@@ -2023,12 +2063,41 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 
 	extend= RNA_boolean_get(op->ptr, "extend");
 	uvedit_pixel_to_float(sima, limit, 0.05f);
-	select_linked(scene, ima, em, limit, NULL, extend);
+
+	if(pick) {
+		float co[2];
+
+		if(event) {
+			/* invoke */
+			ARegion *ar= CTX_wm_region(C);
+			int x, y;
+
+			x= event->x - ar->winrct.xmin;
+			y= event->y - ar->winrct.ymin;
+
+			UI_view2d_region_to_view(&ar->v2d, x, y, &co[0], &co[1]);
+			RNA_float_set_array(op->ptr, "location", co);
+		}
+		else {
+			/* exec */
+			RNA_float_get_array(op->ptr, "location", co);
+		}
+
+		find_nearest_uv_vert(scene, ima, em, co, NULL, &hit);
+		hit_p= &hit;
+	}
+
+	select_linked(scene, ima, em, limit, hit_p, extend);
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
+}
+
+static int select_linked_exec(bContext *C, wmOperator *op)
+{
+	return select_linked_internal(C, op, NULL, 0);
 }
 
 void UV_OT_select_linked(wmOperatorType *ot)
@@ -2046,6 +2115,37 @@ void UV_OT_select_linked(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
 		"Extend", "Extend selection rather than clearing the existing selection.");
+}
+
+static int select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return select_linked_internal(C, op, event, 1);
+}
+
+static int select_linked_pick_exec(bContext *C, wmOperator *op)
+{
+	return select_linked_internal(C, op, NULL, 1);
+}
+
+void UV_OT_select_linked_pick(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Linked Pick";
+	ot->description= "Select all UV vertices linked under the mouse.";
+	ot->idname= "UV_OT_select_linked_pick";
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* api callbacks */
+	ot->invoke= select_linked_pick_invoke;
+	ot->exec= select_linked_pick_exec;
+	ot->poll= ED_operator_uvedit;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "extend", 0,
+		"Extend", "Extend selection rather than clearing the existing selection.");
+
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
+		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds.", -100.0f, 100.0f);
 }
 
 /* ******************** unlink selection operator **************** */
@@ -3100,11 +3200,12 @@ void UV_OT_tile_set(wmOperatorType *ot)
 
 void ED_operatortypes_uvedit(void)
 {
-	WM_operatortype_append(UV_OT_select_all_toggle);
+	WM_operatortype_append(UV_OT_select_all);
 	WM_operatortype_append(UV_OT_select_inverse);
 	WM_operatortype_append(UV_OT_select);
 	WM_operatortype_append(UV_OT_select_loop);
 	WM_operatortype_append(UV_OT_select_linked);
+	WM_operatortype_append(UV_OT_select_linked_pick);
 	WM_operatortype_append(UV_OT_unlink_selection);
 	WM_operatortype_append(UV_OT_select_pinned);
 	WM_operatortype_append(UV_OT_select_border);
@@ -3139,7 +3240,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
 	
-	keymap= WM_keymap_find(keyconf, "UVEdit", 0, 0);
+	keymap= WM_keymap_find(keyconf, "UV Editor", 0, 0);
 	keymap->poll= ED_operator_uvedit;
 	
 	/* pick selection */
@@ -3155,8 +3256,12 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 
 	/* selection manipulation */
 	WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "UV_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "extend", TRUE);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", TRUE);
+
 	WM_keymap_add_item(keymap, "UV_OT_unlink_selection", LKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "UV_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_pinned", PKEY, KM_PRESS, KM_SHIFT, 0);
 
@@ -3179,6 +3284,9 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	/* cursor */
 	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "UV_OT_tile_set", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
+	
+	/* menus */
+	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 
 	ED_object_generic_keymap(keyconf, keymap, TRUE);
 

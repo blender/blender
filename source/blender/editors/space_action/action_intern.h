@@ -53,10 +53,10 @@ void action_header_buttons(const struct bContext *C, struct ARegion *ar);
 /* ***************************************** */
 /* action_select.c */
 
-void ACT_OT_select_all_toggle(struct wmOperatorType *ot);
-void ACT_OT_select_border(struct wmOperatorType *ot);
-void ACT_OT_select_column(struct wmOperatorType *ot);
-void ACT_OT_clickselect(struct wmOperatorType *ot);
+void ACTION_OT_select_all_toggle(struct wmOperatorType *ot);
+void ACTION_OT_select_border(struct wmOperatorType *ot);
+void ACTION_OT_select_column(struct wmOperatorType *ot);
+void ACTION_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
 enum {
@@ -77,29 +77,29 @@ enum {
 /* ***************************************** */
 /* action_edit.c */
 
-void ACT_OT_previewrange_set(struct wmOperatorType *ot);
-void ACT_OT_view_all(struct wmOperatorType *ot);
+void ACTION_OT_previewrange_set(struct wmOperatorType *ot);
+void ACTION_OT_view_all(struct wmOperatorType *ot);
 
-void ACT_OT_copy(struct wmOperatorType *ot);
-void ACT_OT_paste(struct wmOperatorType *ot);
+void ACTION_OT_copy(struct wmOperatorType *ot);
+void ACTION_OT_paste(struct wmOperatorType *ot);
 
-void ACT_OT_insert_keyframe(struct wmOperatorType *ot);
-void ACT_OT_duplicate(struct wmOperatorType *ot);
-void ACT_OT_delete(struct wmOperatorType *ot);
-void ACT_OT_clean(struct wmOperatorType *ot);
-void ACT_OT_sample(struct wmOperatorType *ot);
+void ACT_OT_keyframe_insert(struct wmOperatorType *ot);
+void ACTION_OT_duplicate(struct wmOperatorType *ot);
+void ACTION_OT_delete(struct wmOperatorType *ot);
+void ACTION_OT_clean(struct wmOperatorType *ot);
+void ACTION_OT_sample(struct wmOperatorType *ot);
 
-void ACT_OT_keyframe_type(struct wmOperatorType *ot);
-void ACT_OT_handle_type(struct wmOperatorType *ot);
-void ACT_OT_interpolation_type(struct wmOperatorType *ot);
-void ACT_OT_extrapolation_type(struct wmOperatorType *ot);
+void ACTION_OT_keyframe_type(struct wmOperatorType *ot);
+void ACTION_OT_handle_type(struct wmOperatorType *ot);
+void ACTION_OT_interpolation_type(struct wmOperatorType *ot);
+void ACTION_OT_extrapolation_type(struct wmOperatorType *ot);
 
-void ACT_OT_frame_jump(struct wmOperatorType *ot);
+void ACTION_OT_frame_jump(struct wmOperatorType *ot);
 
-void ACT_OT_snap(struct wmOperatorType *ot);
-void ACT_OT_mirror(struct wmOperatorType *ot);
+void ACTION_OT_snap(struct wmOperatorType *ot);
+void ACTION_OT_mirror(struct wmOperatorType *ot);
 
-void ACT_OT_new(struct wmOperatorType *ot);
+void ACTION_OT_new(struct wmOperatorType *ot);
 
 /* defines for snap keyframes 
  * NOTE: keep in sync with eEditKeyframes_Snap (in ED_keyframes_edit.h)

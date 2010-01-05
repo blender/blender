@@ -97,9 +97,9 @@ EnumPropertyItem empty_vortex_shape_items[] = {
 
 #include "ED_object.h"
 
-static void rna_Cache_change(bContext *C, PointerRNA *ptr)
+static void rna_Cache_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Object *ob = CTX_data_active_object(C);
+	Object *ob = (Object*)ptr->id.data;
 	PointCache *cache = (PointCache*)ptr->data;
 	PTCacheID *pid = NULL;
 	ListBase pidlist;
@@ -124,9 +124,9 @@ static void rna_Cache_change(bContext *C, PointerRNA *ptr)
 	BLI_freelistN(&pidlist);
 }
 
-static void rna_Cache_toggle_disk_cache(bContext *C, PointerRNA *ptr)
+static void rna_Cache_toggle_disk_cache(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Object *ob = CTX_data_active_object(C);
+	Object *ob = (Object*)ptr->id.data;
 	PointCache *cache = (PointCache*)ptr->data;
 	PTCacheID *pid = NULL;
 	ListBase pidlist;
@@ -147,9 +147,9 @@ static void rna_Cache_toggle_disk_cache(bContext *C, PointerRNA *ptr)
 	BLI_freelistN(&pidlist);
 }
 
-static void rna_Cache_idname_change(bContext *C, PointerRNA *ptr)
+static void rna_Cache_idname_change(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Object *ob = CTX_data_active_object(C);
+	Object *ob = (Object*)ptr->id.data;
 	PointCache *cache = (PointCache*)ptr->data;
 	PTCacheID *pid = NULL, *pid2= NULL;
 	ListBase pidlist;
@@ -440,7 +440,7 @@ static int particle_id_check(PointerRNA *ptr)
 	return (GS(id->name) == ID_PA);
 }
 
-static void rna_FieldSettings_update(bContext *C, PointerRNA *ptr)
+static void rna_FieldSettings_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if(particle_id_check(ptr)) {
 		ParticleSettings *part = (ParticleSettings*)ptr->id.data;
@@ -456,7 +456,7 @@ static void rna_FieldSettings_update(bContext *C, PointerRNA *ptr)
 		}
 
 		DAG_id_flush_update(&part->id, OB_RECALC|PSYS_RECALC_RESET);
-		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+		WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
 
 	}
 	else {
@@ -468,14 +468,12 @@ static void rna_FieldSettings_update(bContext *C, PointerRNA *ptr)
 		}
 
 		DAG_id_flush_update(&ob->id, OB_RECALC_OB);
-		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+		WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
 	}
 }
 
-static void rna_FieldSettings_shape_update(bContext *C, PointerRNA *ptr)
+static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *scene= CTX_data_scene(C);
-
 	if(!particle_id_check(ptr)) {
 		Object *ob= (Object*)ptr->id.data;
 		PartDeflect *pd= ob->pd;
@@ -485,21 +483,19 @@ static void rna_FieldSettings_shape_update(bContext *C, PointerRNA *ptr)
 		if(!md) {
 			if(pd && (pd->shape == PFIELD_SHAPE_SURFACE) && ELEM(pd->forcefield,PFIELD_GUIDE,PFIELD_TEXTURE)==0)
 				if(ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE))
-					ED_object_modifier_add(NULL, scene, ob, eModifierType_Surface);
+					ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Surface);
 		}
 		else {
 			if(!pd || pd->shape != PFIELD_SHAPE_SURFACE)
 				ED_object_modifier_remove(NULL, scene, ob, md);
 		}
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+		WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
 	}
 }
 
-static void rna_FieldSettings_dependency_update(bContext *C, PointerRNA *ptr)
+static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *scene= CTX_data_scene(C);
-
 	if(particle_id_check(ptr)) {
 		DAG_id_flush_update((ID*)ptr->id.data, OB_RECALC|PSYS_RECALC_RESET);
 	}
@@ -513,7 +509,7 @@ static void rna_FieldSettings_dependency_update(bContext *C, PointerRNA *ptr)
 			do_curvebuts(B_CU3D);  // all curves too
 		}*/
 
-		rna_FieldSettings_shape_update(C, ptr);
+		rna_FieldSettings_shape_update(bmain, scene, ptr);
 
 		DAG_scene_sort(scene);
 
@@ -522,7 +518,7 @@ static void rna_FieldSettings_dependency_update(bContext *C, PointerRNA *ptr)
 		else
 			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 
-		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+		WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
 	}
 }
 
@@ -550,22 +546,20 @@ static char *rna_FieldSettings_path(PointerRNA *ptr)
 	return NULL;
 }
 
-static void rna_EffectorWeight_update(bContext *C, PointerRNA *ptr)
+static void rna_EffectorWeight_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_id_flush_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
 }
 
-static void rna_EffectorWeight_dependency_update(bContext *C, PointerRNA *ptr)
+static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *scene= CTX_data_scene(C);
-
 	DAG_scene_sort(scene);
 
 	DAG_id_flush_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
 }
 
 static char *rna_EffectorWeight_path(PointerRNA *ptr)
@@ -612,35 +606,34 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 	return NULL;
 }
 
-static void rna_CollisionSettings_dependency_update(bContext *C, PointerRNA *ptr)
+static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= (Object*)ptr->id.data;
 	ModifierData *md= modifiers_findByType(ob, eModifierType_Collision);
 
 	/* add/remove modifier as needed */
 	if(ob->pd->deflect && !md)
-		ED_object_modifier_add(NULL, scene, ob, eModifierType_Collision);
+		ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Collision);
 	else if(!ob->pd->deflect && md)
 		ED_object_modifier_remove(NULL, scene, ob, md);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
 }
 
-static void rna_CollisionSettings_update(bContext *C, PointerRNA *ptr)
+static void rna_CollisionSettings_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 
 	DAG_id_flush_update(&ob->id, OB_RECALC);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
 }
 
-static void rna_softbody_update(bContext *C, PointerRNA *ptr)
+static void rna_softbody_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob= (Object*)ptr->id.data;
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
 }
 
 
@@ -984,18 +977,18 @@ static void rna_def_field(BlenderRNA *brna)
 	
 	static EnumPropertyItem field_type_items[] = {
 		{0, "NONE", 0, "None", ""},
-		{PFIELD_FORCE, "FORCE", 0, "Force", ""},
-		{PFIELD_WIND, "WIND", 0, "Wind", ""},
-		{PFIELD_VORTEX, "VORTEX", 0, "Vortex", ""},
-		{PFIELD_MAGNET, "MAGNET", 0, "Magnetic", ""},
-		{PFIELD_HARMONIC, "HARMONIC", 0, "Harmonic", ""},
-		{PFIELD_CHARGE, "CHARGE", 0, "Charge", ""},
-		{PFIELD_LENNARDJ, "LENNARDJ", 0, "Lennard-Jones", ""},
-		{PFIELD_TEXTURE, "TEXTURE", 0, "Texture", ""},
-		{PFIELD_GUIDE, "GUIDE", 0, "Curve Guide", ""},
-		{PFIELD_BOID, "BOID", 0, "Boid", ""},
-		{PFIELD_TURBULENCE, "TURBULENCE", 0, "Turbulence", ""},
-		{PFIELD_DRAG, "DRAG", 0, "Drag", ""},
+		{PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, "Force", ""},
+		{PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", ""},
+		{PFIELD_VORTEX, "VORTEX", ICON_FORCE_VORTEX, "Vortex", ""},
+		{PFIELD_MAGNET, "MAGNET", ICON_FORCE_MAGNETIC, "Magnetic", ""},
+		{PFIELD_HARMONIC, "HARMONIC", ICON_FORCE_HARMONIC, "Harmonic", ""},
+		{PFIELD_CHARGE, "CHARGE", ICON_FORCE_CHARGE, "Charge", ""},
+		{PFIELD_LENNARDJ, "LENNARDJ", ICON_FORCE_LENNARDJONES, "Lennard-Jones", ""},
+		{PFIELD_TEXTURE, "TEXTURE", ICON_FORCE_TEXTURE, "Texture", ""},
+		{PFIELD_GUIDE, "GUIDE", ICON_FORCE_CURVE, "Curve Guide", ""},
+		{PFIELD_BOID, "BOID", ICON_FORCE_BOID, "Boid", ""},
+		{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", ""},
+		{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem falloff_items[] = {
@@ -1116,6 +1109,12 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Size", "Size of the noise");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "rest_length", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "f_size");
+	RNA_def_property_range(prop, 0.0f, 1000.0f);
+	RNA_def_property_ui_text(prop, "Rest Length", "Rest length of the harmonic force");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	prop= RNA_def_property(srna, "falloff_power", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "f_power");
@@ -1227,6 +1226,11 @@ static void rna_def_field(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "do_absorption", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_VISIBILITY);
 	RNA_def_property_ui_text(prop, "Absorption", "Force gets absorbed by collision objects");
+	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
+
+	prop= RNA_def_property(srna, "multiple_springs", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_MULTIPLE_SPRINGS);
+	RNA_def_property_ui_text(prop, "Multiple Springs", "Every point is effected by multiple springs");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 	
 	/* Pointer */

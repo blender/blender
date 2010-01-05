@@ -31,6 +31,8 @@
 /* return value of handler-operator call */
 #define WM_HANDLER_CONTINUE	0
 #define WM_HANDLER_BREAK	1
+#define WM_HANDLER_HANDLED	2
+#define WM_HANDLER_MODAL	4 /* MODAL|BREAK means unhandled */
 
 struct ScrArea;
 struct ARegion;

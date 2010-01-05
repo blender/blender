@@ -1225,7 +1225,7 @@ static ModifierData *curve_get_tesselate_point(Object *ob, int forRender, int ed
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if ((md->mode & required_mode) != required_mode) continue;
-		if (mti->isDisabled && mti->isDisabled(md)) continue;
+		if (mti->isDisabled && mti->isDisabled(md, forRender)) continue;
 
 		if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 			preTesselatePoint  = md;
@@ -1275,7 +1275,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 			md->scene= scene;
 			
 			if ((md->mode & required_mode) != required_mode) continue;
-			if (mti->isDisabled && mti->isDisabled(md)) continue;
+			if (mti->isDisabled && mti->isDisabled(md, forRender)) continue;
 			if (mti->type!=eModifierTypeType_OnlyDeform) continue;
 
 			if (!deformedVerts) {
@@ -1330,7 +1330,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 		md->scene= scene;
 		
 		if ((md->mode & required_mode) != required_mode) continue;
-		if (mti->isDisabled && mti->isDisabled(md)) continue;
+		if (mti->isDisabled && mti->isDisabled(md, forRender)) continue;
 		if (mti->type!=eModifierTypeType_OnlyDeform && mti->type!=eModifierTypeType_DeformOrConstruct) continue;
 
 		/* need to put all verts in 1 block for curve deform */

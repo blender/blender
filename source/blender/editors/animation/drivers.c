@@ -53,6 +53,7 @@
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_constraint.h"
+#include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
 #include "BKE_context.h"
@@ -171,43 +172,46 @@ short ANIM_add_driver (ID *id, const char rna_path[], int array_index, short fla
 	
 	/* will only loop once unless the array index was -1 */
 	for (; array_index < array_index_max; array_index++) {
-	/* create F-Curve with Driver */
-	fcu= verify_driver_fcurve(id, rna_path, array_index, 1);
+		/* create F-Curve with Driver */
+		fcu= verify_driver_fcurve(id, rna_path, array_index, 1);
 		
-	if (fcu && fcu->driver) {
-		fcu->driver->type= type;
-		
-		/* fill in current value for python */
-		if (type == DRIVER_TYPE_PYTHON) {
-			PropertyType proptype= RNA_property_type(prop);
-			int array= RNA_property_array_length(&ptr, prop);
-			char *expression= fcu->driver->expression;
-			int val, maxlen= sizeof(fcu->driver->expression);
-			float fval;
+		if (fcu && fcu->driver) {
+			ChannelDriver *driver= fcu->driver;
 			
-			if (proptype == PROP_BOOLEAN) {
-				if (!array) val= RNA_property_boolean_get(&ptr, prop);
-				else val= RNA_property_boolean_get_index(&ptr, prop, array_index);
+			/* set the type of the driver */
+			driver->type= type;
+			
+			/* fill in current value for python */
+			if (type == DRIVER_TYPE_PYTHON) {
+				PropertyType proptype= RNA_property_type(prop);
+				int array= RNA_property_array_length(&ptr, prop);
+				char *expression= driver->expression;
+				int val, maxlen= sizeof(driver->expression);
+				float fval;
 				
-				BLI_strncpy(expression, (val)? "True": "False", maxlen);
-			}
-			else if (proptype == PROP_INT) {
-				if (!array) val= RNA_property_int_get(&ptr, prop);
-				else val= RNA_property_int_get_index(&ptr, prop, array_index);
-				
-				BLI_snprintf(expression, maxlen, "%d", val);
-			}
-			else if (proptype == PROP_FLOAT) {
-				if (!array) fval= RNA_property_float_get(&ptr, prop);
-				else fval= RNA_property_float_get_index(&ptr, prop, array_index);
-				
-				BLI_snprintf(expression, maxlen, "%.3f", fval);
+				if (proptype == PROP_BOOLEAN) {
+					if (!array) val= RNA_property_boolean_get(&ptr, prop);
+					else val= RNA_property_boolean_get_index(&ptr, prop, array_index);
+					
+					BLI_strncpy(expression, (val)? "True": "False", maxlen);
+				}
+				else if (proptype == PROP_INT) {
+					if (!array) val= RNA_property_int_get(&ptr, prop);
+					else val= RNA_property_int_get_index(&ptr, prop, array_index);
+					
+					BLI_snprintf(expression, maxlen, "%d", val);
+				}
+				else if (proptype == PROP_FLOAT) {
+					if (!array) fval= RNA_property_float_get(&ptr, prop);
+					else fval= RNA_property_float_get_index(&ptr, prop, array_index);
+					
+					BLI_snprintf(expression, maxlen, "%.3f", fval);
+				}
 			}
 		}
 		
 		/* set the done status */
 		done += (fcu != NULL);
-	}
 	}
 	
 	/* done */
@@ -391,14 +395,14 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 		
 		if (path) {			
 			success+= ANIM_add_driver(ptr.id.data, path, index, 0, DRIVER_TYPE_PYTHON);
-				
+			
 			MEM_freeN(path);
 		}
 	}
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, ND_KEYS, NULL); // XXX
@@ -407,11 +411,11 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_add_driver_button (wmOperatorType *ot)
+void ANIM_OT_driver_button_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Driver";
-	ot->idname= "ANIM_OT_add_driver_button";
+	ot->idname= "ANIM_OT_driver_button_add";
 	ot->description= "Add driver(s) for the property(s) connected represented by the highlighted button.";
 	
 	/* callbacks */
@@ -462,7 +466,7 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 	
 	if (success) {
 		/* send updates */
-		ED_anim_dag_flush_update(C);	
+		DAG_ids_flush_update(0);
 		
 		/* for now, only send ND_KEYS for KeyingSets */
 		WM_event_add_notifier(C, ND_KEYS, NULL);  // XXX
@@ -471,11 +475,11 @@ static int remove_driver_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_remove_driver_button (wmOperatorType *ot)
+void ANIM_OT_driver_button_remove (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Driver";
-	ot->idname= "ANIM_OT_remove_driver_button";
+	ot->idname= "ANIM_OT_driver_button_remove";
 	ot->description= "Remove the driver(s) for the property(s) connected represented by the highlighted button.";
 	
 	/* callbacks */
@@ -575,49 +579,6 @@ void ANIM_OT_paste_driver_button (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-
-/* Copy to Clipboard Button Operator ------------------------ */
-
-static int copy_clipboard_button_exec(bContext *C, wmOperator *op)
-{
-	PointerRNA ptr;
-	PropertyRNA *prop= NULL;
-	char *path;
-	short success= 0;
-	int index;
-
-	/* try to create driver using property retrieved from UI */
-	memset(&ptr, 0, sizeof(PointerRNA));
-	uiAnimContextProperty(C, &ptr, &prop, &index);
-
-	if (ptr.data && prop) {
-		path= RNA_path_from_ID_to_property(&ptr, prop);
-		
-		if (path) {
-			WM_clipboard_text_set(path, FALSE);
-			MEM_freeN(path);
-		}
-	}
-
-	/* since we're just copying, we don't really need to do anything else...*/
-	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
-}
-
-void ANIM_OT_copy_clipboard_button(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Copy Data Path";
-	ot->idname= "ANIM_OT_copy_clipboard_button";
-	ot->description= "Copy the RNA data path for this property to the clipboard.";
-
-	/* callbacks */
-	ot->exec= copy_clipboard_button_exec;
-	//op->poll= ??? // TODO: need to have some valid property before this can be done
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER;
 }
 
 /* ************************************************** */

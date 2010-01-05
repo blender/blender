@@ -109,6 +109,7 @@
 #include "RNA_access.h"
 
 #include "WM_types.h"
+#include "WM_api.h"
 
 #include "UI_resources.h"
 
@@ -274,23 +275,6 @@ static void editbmesh_apply_to_mirror(TransInfo *t)
 	}
 }
 
-/* tags the given ID block for refreshes (if applicable) due to 
- * Animation Editor editing
- */
-static void animedit_refresh_id_tags (Scene *scene, ID *id)
-{
-	if (id) {
-		AnimData *adt= BKE_animdata_from_id(id);
-		
-		/* tag AnimData for refresh so that other views will update in realtime with these changes */
-		if (adt)
-			adt->recalc |= ADT_RECALC_ANIM;
-			
-		/* set recalc flags */
-		DAG_id_flush_update(id, OB_RECALC); // XXX or do we want something more restrictive?
-	}
-}
-
 /* for the realtime animation recording feature, handle overlapping data */
 static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 {
@@ -379,7 +363,7 @@ void recalcData(TransInfo *t)
 		/* just tag these animdata-blocks to recalc, assuming that some data there changed */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			/* set refresh tags for objects using this animation */
-			animedit_refresh_id_tags(t->scene, ale->id);
+			ANIM_list_elem_update(t->scene, ale);
 		}
 		
 		/* now free temp channels */
@@ -427,7 +411,7 @@ void recalcData(TransInfo *t)
 				calchandles_fcurve(fcu);
 				
 			/* set refresh tags for objects using this animation */
-			animedit_refresh_id_tags(t->scene, ale->id);
+			ANIM_list_elem_update(t->scene, ale);
 		}
 		
 		/* do resort and other updates? */
@@ -458,7 +442,7 @@ void recalcData(TransInfo *t)
 				continue;
 			
 			/* set refresh tags for objects using this animation */
-			animedit_refresh_id_tags(t->scene, tdn->id);
+			ANIM_id_update(t->scene, tdn->id);
 			
 			/* if cancelling transform, just write the values without validating, then move on */
 			if (t->state == TRANS_CANCEL) {
@@ -765,7 +749,7 @@ void recalcData(TransInfo *t)
 				int targetless_ik= (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
 				
 				animrecord_check_state(t->scene, &ob->id, t->animtimer);
-				autokeyframe_pose_cb_func(t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
+				autokeyframe_pose_cb_func(NULL, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
 			}
 			
 			/* old optimize trick... this enforces to bypass the depgraph */
@@ -801,15 +785,15 @@ void recalcData(TransInfo *t)
 				if (td->flag & TD_SKIP)
 					continue;
 				
-					/* if animtimer is running, and the object already has animation data,
-					 * check if the auto-record feature means that we should record 'samples'
-					 * (i.e. uneditable animation values)
-					 */
-					// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-					if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-						animrecord_check_state(t->scene, &ob->id, t->animtimer);
-						autokeyframe_ob_cb_func(t->scene, (View3D *)t->view, ob, t->mode);
-					}
+				/* if animtimer is running, and the object already has animation data,
+				 * check if the auto-record feature means that we should record 'samples'
+				 * (i.e. uneditable animation values)
+				 */
+				// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+				if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+					animrecord_check_state(t->scene, &ob->id, t->animtimer);
+					autokeyframe_ob_cb_func(NULL, t->scene, (View3D *)t->view, ob, t->mode);
+				}
 				
 				/* proxy exception */
 				if(ob->proxy)
@@ -933,6 +917,11 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 
 	unit_m3(t->mat);
 
+	/* if there's an event, we're modal */
+	if (event) {
+		t->flag |= T_MODAL;
+	}
+
 	t->spacetype = sa->spacetype;
 	if(t->spacetype == SPACE_VIEW3D)
 	{
@@ -940,6 +929,12 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 
 		t->view = v3d;
 		t->animtimer= CTX_wm_screen(C)->animtimer;
+
+		/* turn manipulator off during transform */
+		if (t->flag & T_MODAL) {
+			t->twtype = v3d->twtype;
+			v3d->twtype = 0;
+		}
 
 		if(v3d->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
 		t->around = v3d->around;
@@ -1014,11 +1009,15 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	}
 	else
 	{
-			if ((t->options & CTX_NO_PET) == 0 && (ts->proportional != PROP_EDIT_OFF)) {
-			t->flag |= T_PROP_EDIT;
+			/* use settings from scene only if modal */
+			if (t->flag & T_MODAL)
+			{
+				if ((t->options & CTX_NO_PET) == 0 && (ts->proportional != PROP_EDIT_OFF)) {
+					t->flag |= T_PROP_EDIT;
 
-				if(ts->proportional == PROP_EDIT_CONNECTED)
-					t->flag |= T_PROP_CONNECTED;
+					if(ts->proportional == PROP_EDIT_CONNECTED)
+						t->flag |= T_PROP_CONNECTED;
+				}
 		}
 	}
 
@@ -1061,7 +1060,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
-void postTrans (TransInfo *t)
+void postTrans (bContext *C, TransInfo *t)
 {
 	TransData *td;
 
@@ -1069,7 +1068,8 @@ void postTrans (TransInfo *t)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_view);
 	if (t->draw_handle_pixel)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_pixel);
-	
+	if (t->draw_handle_cursor)
+		WM_paint_cursor_end(CTX_wm_manager(C), t->draw_handle_cursor);
 
 	if (t->customFree) {
 		/* Can take over freeing t->data and data2d etc... */
@@ -1090,6 +1090,8 @@ void postTrans (TransInfo *t)
 		}
 		MEM_freeN(t->data);
 	}
+
+	BLI_freelistN(&t->tsnap.points);
 
 	if (t->ext) MEM_freeN(t->ext);
 	if (t->data2d) {
@@ -1358,7 +1360,7 @@ void calculateCenter(TransInfo *t)
 	/* for panning from cameraview */
 	if(t->flag & T_OBJECT)
 	{
-		if(t->spacetype==SPACE_VIEW3D && t->ar->regiontype == RGN_TYPE_WINDOW)
+		if(t->spacetype==SPACE_VIEW3D && t->ar && t->ar->regiontype == RGN_TYPE_WINDOW)
 		{
 			View3D *v3d = t->view;
 			Scene *scene = t->scene;

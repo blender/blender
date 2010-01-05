@@ -151,6 +151,9 @@ struct BMVert   *editmesh_get_x_mirror_vert(struct Object *ob, struct BMEditMesh
 int			mesh_get_x_mirror_vert(struct Object *ob, int index);
 int			*mesh_get_x_mirror_faces(struct Object *ob, struct BMEditMesh *em);
 
+int			join_mesh_exec(struct bContext *C, struct wmOperator *op);
+int			join_mesh_shapes_exec(struct bContext *C, struct wmOperator *op);
+
 /* mesh_ops.c */
 void		ED_operatortypes_mesh(void);
 void		ED_operatormacros_mesh(void);
@@ -193,6 +196,7 @@ void		EM_select_face_fgon(struct EditMesh *em, struct EditFace *efa, int val);
 void		EM_select_swap(struct EditMesh *em);
 void		EM_toggle_select_all(struct EditMesh *em);
 void		EM_select_all(struct EditMesh *em);
+void		EM_deselect_all(struct EditMesh *em);
 void		EM_selectmode_flush(struct EditMesh *em);
 void		EM_deselect_flush(struct EditMesh *em);
 void		EM_selectmode_set(struct EditMesh *em);
@@ -210,11 +214,16 @@ struct UvVertMap *EM_make_uv_vert_map(struct EditMesh *em, int selected, int do_
 struct UvMapVert *EM_get_uv_map_vert(struct UvVertMap *vmap, unsigned int v);
 void              EM_free_uv_vert_map(struct UvVertMap *vmap);
 
+void		EM_make_hq_normals(struct EditMesh *em);
+void		EM_solidify(struct EditMesh *em, float dist);
+
+int			EM_deselect_nth(struct EditMesh *em, int nth);
+
 /* editmesh_mods.c */
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
 void		EM_cache_x_mirror_vert(struct Object *ob, struct EditMesh *em);
-void		mouse_mesh(struct bContext *C, short mval[2], short extend);
+int			mouse_mesh(struct bContext *C, short mval[2], short extend);
 int			EM_check_backbuf(unsigned int index);
 int			EM_mask_init_backbuf_border(struct ViewContext *vc, short mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax);
 void		EM_free_backbuf(void);
@@ -229,8 +238,8 @@ void		EM_automerge(struct Scene *scene, struct Object *obedit, int update);
 /* editface.c */
 struct MTFace	*EM_get_active_mtface(struct EditMesh *em, struct EditFace **act_efa, struct MCol **mcol, int sloppy);
 int face_select(struct bContext *C, struct Object *ob, short mval[2], int extend);
-void face_borderselect(struct bContext *C, struct Object *ob, struct rcti *rect, int select);
-void deselectall_tface(struct Object *ob);
+void face_borderselect(struct bContext *C, struct Object *ob, struct rcti *rect, int select, int extend);
+void selectall_tface(struct Object *ob, int action);
 void select_linked_tfaces(struct bContext *C, struct Object *ob, short mval[2], int mode);
 
 /* object_vgroup.c */

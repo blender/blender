@@ -27,22 +27,23 @@
 #ifndef ED_ARMATURE_H
 #define ED_ARMATURE_H
 
-struct bContext;
-struct Scene;
-struct Object;
-struct Base;
-struct Bone;
 struct bArmature;
+struct Base;
+struct bContext;
+struct Bone;
 struct bPoseChannel;
-struct wmOperator;
-struct wmKeyConfig;
+struct DerivedMesh;
+struct IDProperty;
 struct ListBase;
+struct MeshDeformModifierData;
+struct Object;
+struct RegionView3D;
+struct Scene;
+struct SK_Sketch;
 struct View3D;
 struct ViewContext;
-struct RegionView3D;
-struct SK_Sketch;
-struct IDProperty;
-struct MeshDeformModifierData;
+struct wmKeyConfig;
+struct wmOperator;
 
 typedef struct EditBone
 {
@@ -65,17 +66,16 @@ typedef struct EditBone
 							their parents.	Therefore any rotations specified during the
 							animation are automatically relative to the bones' rest positions*/
 	int		flag;
-
-	int		parNr;		/* Used for retrieving values from the menu system */
+	int		layer;
 	
 	float dist, weight;
 	float xwidth, length, zwidth;	/* put them in order! transform uses this as scale */
 	float ease1, ease2;
 	float rad_head, rad_tail;
-	short layer, segments;
 	
 	float oldlength;				/* for envelope scaling */
-
+	
+	short segments;
 } EditBone;
 
 #define	BONESEL_ROOT	0x10000000
@@ -107,7 +107,7 @@ void ED_armature_deselectall(struct Object *obedit, int toggle, int doundo);
 
 int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, 
 							short hits, short extend);
-void mouse_armature(struct bContext *C, short mval[2], int extend);
+int mouse_armature(struct bContext *C, short mval[2], int extend);
 int join_armature_exec(struct bContext *C, struct wmOperator *op);
 struct Bone *get_indexed_bone (struct Object *ob, int index);
 float ED_rollBoneToVector(EditBone *bone, float new_up_axis[3]);
@@ -116,7 +116,8 @@ void ED_armature_sync_selection(struct ListBase *edbo);
 void ED_armature_validate_active(struct bArmature *arm);
 
 void add_primitive_bone(struct Scene *scene, struct View3D *v3d, struct RegionView3D *rv3d);
-EditBone *addEditBone(struct bArmature *arm, char *name); /* used by COLLADA importer */
+struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name);
+void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *exBone);
 
 void transform_armature_mirror_update(struct Object *obedit);
 void clear_armature(struct Scene *scene, struct Object *ob, char mode);
@@ -165,7 +166,8 @@ void BDR_drawSketch(const struct bContext *vc);
 int BDR_drawSketchNames(struct ViewContext *vc);
 
 /* meshlaplacian.c */
-void harmonic_coordinates_bind(struct Scene *scene, struct MeshDeformModifierData *mmd,
+void mesh_deform_bind(struct Scene *scene, struct DerivedMesh *dm,
+	struct MeshDeformModifierData *mmd,
 	float *vertexcos, int totvert, float cagemat[][4]);
 
 #endif /* ED_ARMATURE_H */

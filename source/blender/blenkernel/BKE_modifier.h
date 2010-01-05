@@ -229,7 +229,7 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional (assumes never disabled if not present).
 	 */
-	int (*isDisabled)(struct ModifierData *md);
+	int (*isDisabled)(struct ModifierData *md, int userRenderParams);
 
 	/* Add the appropriate relations to the DEP graph depending on the
 	 * modifier data. 
@@ -281,7 +281,7 @@ void          modifier_copyData(struct ModifierData *md, struct ModifierData *ta
 int           modifier_dependsOnTime(struct ModifierData *md);
 int           modifier_supportsMapping(struct ModifierData *md);
 int           modifier_couldBeCage(struct ModifierData *md);
-int           modifier_isDeformer(struct ModifierData *md);
+int           modifier_isCorrectableDeformed(struct ModifierData *md);
 int			  modifier_sameTopology(ModifierData *md);
 int           modifier_isEnabled(struct ModifierData *md, int required_mode);
 void          modifier_setError(struct ModifierData *md, char *format, ...);
@@ -304,7 +304,7 @@ int           modifiers_isParticleEnabled(struct Object *ob);
 struct Object *modifiers_isDeformedByArmature(struct Object *ob);
 struct Object *modifiers_isDeformedByLattice(struct Object *ob);
 int           modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
-int           modifiers_isDeformed(struct Scene *scene, struct Object *ob);
+int           modifiers_isCorrectableDeformed(struct Scene *scene, struct Object *ob);
 void          modifier_freeTemporaryData(struct ModifierData *md);
 
 int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md);

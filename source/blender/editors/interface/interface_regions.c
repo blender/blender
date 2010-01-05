@@ -1377,7 +1377,7 @@ static void ui_block_func_MENUSTR(bContext *C, uiLayout *layout, void *arg_str)
 	}
 
 	/* create items */
-	split= uiLayoutSplit(layout, 0);
+	split= uiLayoutSplit(layout, 0, 0);
 
 	for(a=0, b=0; a<md->nitems; a++, b++) {
 		if(block->flag & UI_BLOCK_NO_FLIP)
@@ -1902,8 +1902,15 @@ static void uiBlockPickerNew(uiBlock *block, float *col, float *hsv, float *old,
 	static short colormode= 0;	/* temp? 0=rgb, 1=hsv, 2=hex */
 	uiBut *bt;
 	int width;
+	static char tip[50];
 	
 	VECCOPY(old, col);	// old color stored there, for palette_cb to work
+	
+	/* existence of profile means storage is in linear colour space, with display correction */
+	if (block->color_profile == BLI_PR_NONE)
+		sprintf(tip, "Value in Display Color Space");
+	else
+		sprintf(tip, "Value in Linear RGB Color Space");
 	
 	/* HS circle */
 	bt= uiDefButF(block, HSVCIRCLE, retval, "",	0, 0,SPICK1,SPICK1, col, 0.0, 0.0, 0, 0, "");
@@ -1930,11 +1937,11 @@ static void uiBlockPickerNew(uiBlock *block, float *col, float *hsv, float *old,
 	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(col[0]*255.0), (unsigned int)(col[1]*255.0), (unsigned int)(col[2]*255.0));	
 
 	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUMSLI, 0, "R ",	0, -60, width, 19, col, 0.0, 1.0, 10, 3, "");
+	bt= uiDefButF(block, NUMSLI, 0, "R ",	0, -60, width, 19, col, 0.0, 1.0, 10, 3, tip);
 	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, 0, "G ",	0, -80, width, 19, col+1, 0.0, 1.0, 10, 3, "");
+	bt= uiDefButF(block, NUMSLI, 0, "G ",	0, -80, width, 19, col+1, 0.0, 1.0, 10, 3, tip);
 	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, 0, "B ",	0, -100, width, 19, col+2, 0.0, 1.0, 10, 3, "");
+	bt= uiDefButF(block, NUMSLI, 0, "B ",	0, -100, width, 19, col+2, 0.0, 1.0, 10, 3, tip);
 	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
 	uiBlockEndAlign(block);
 
@@ -1999,6 +2006,13 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	static char hexcol[128];
 	
 	block= uiBeginBlock(C, handle->region, "colorpicker", UI_EMBOSS);
+	
+	/* XXX ideally the colour picker buttons would reference the rna property itself */
+	if (but->rnaprop) {
+		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
+			block->color_profile = BLI_PR_NONE;
+		}
+	}
 	
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
@@ -2274,6 +2288,7 @@ uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut 
 		/* menu is created from a string */
 		pup->menu_func= ui_block_func_MENUSTR;
 		pup->menu_arg= str;
+		// XXX pup->block->flag |= UI_BLOCK_NO_FLIP;
 	}
 	else {
 		/* menu is created from a callback */

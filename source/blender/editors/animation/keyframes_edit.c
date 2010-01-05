@@ -382,7 +382,7 @@ short ANIM_animchannel_keys_bezier_loop(BeztEditData *bed, bAnimListElem *ale, B
 		case ALE_GROUP: /* action group */
 			return agrp_keys_bezier_loop(bed, (bActionGroup *)ale->data, bezt_ok, bezt_cb, fcu_cb);
 		case ALE_ACT: /* action */
-			return act_keys_bezier_loop(bed, (bAction *)ale->data, bezt_ok, bezt_cb, fcu_cb);
+			return act_keys_bezier_loop(bed, (bAction *)ale->key_data, bezt_ok, bezt_cb, fcu_cb);
 			
 		case ALE_OB: /* object */
 			return ob_keys_bezier_loop(bed, (Object *)ale->key_data, bezt_ok, bezt_cb, fcu_cb, filterflag);
@@ -557,6 +557,22 @@ short bezt_to_cfraelem(BeztEditData *bed, BezTriple *bezt)
 	}
 	
 	return 0;
+}
+
+/* used to remap times from one range to another
+ * requires:  bed->data = BeztEditCD_Remap	
+ */
+void bezt_remap_times(BeztEditData *bed, BezTriple *bezt)
+{
+	BeztEditCD_Remap *rmap= (BeztEditCD_Remap*)bed->data;
+	const float scale = (rmap->newMax - rmap->newMin) / (rmap->oldMax - rmap->oldMin);
+	
+	/* perform transform on all three handles unless indicated otherwise */
+	// TODO: need to include some checks for that
+	
+	bezt->vec[0][0]= scale*(bezt->vec[0][0] - rmap->oldMin) + rmap->newMin;
+	bezt->vec[1][0]= scale*(bezt->vec[1][0] - rmap->oldMin) + rmap->newMin;
+	bezt->vec[2][0]= scale*(bezt->vec[2][0] - rmap->oldMin) + rmap->newMin;
 }
 
 /* ******************************************* */

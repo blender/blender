@@ -1538,7 +1538,7 @@ void sk_convertStroke(bContext *C, SK_Stroke *stk)
 
 				if (bone == NULL)
 				{
-					bone = addEditBone(arm, "Bone");
+					bone = ED_armature_edit_bone_add(arm, "Bone");
 
 					VECCOPY(bone->head, head->p);
 					VECCOPY(bone->tail, pt->p);

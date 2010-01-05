@@ -72,7 +72,7 @@ EnumPropertyItem boidruleset_type_items[] ={
 #include "BKE_depsgraph.h"
 #include "BKE_particle.h"
 
-static void rna_Boids_reset(bContext *C, PointerRNA *ptr)
+static void rna_Boids_reset(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if(ptr->type==&RNA_ParticleSystem) {
 		ParticleSystem *psys = (ParticleSystem*)ptr->data;
@@ -84,12 +84,10 @@ static void rna_Boids_reset(bContext *C, PointerRNA *ptr)
 	else
 		DAG_id_flush_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
 }
-static void rna_Boids_reset_deps(bContext *C, PointerRNA *ptr)
+static void rna_Boids_reset_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Scene *scene = CTX_data_scene(C);
-
 	if(ptr->type==&RNA_ParticleSystem) {
 		ParticleSystem *psys = (ParticleSystem*)ptr->data;
 		
@@ -102,7 +100,7 @@ static void rna_Boids_reset_deps(bContext *C, PointerRNA *ptr)
 
 	DAG_scene_sort(scene);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, NULL);
+	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE_DATA, NULL);
 }
 
 static StructRNA* rna_BoidRule_refine(struct PointerRNA *ptr)

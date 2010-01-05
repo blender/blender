@@ -544,7 +544,7 @@ void OBJECT_OT_posemode_toggle(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= posemode_exec;
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flag */
 	ot->flag= OPTYPE_REGISTER;
@@ -1053,7 +1053,7 @@ void flip_subdivison(Scene *scene, View3D *v3d, int level)
 		}
 	}
 	
-	ED_anim_dag_flush_update(C);	
+	DAG_ids_flush_update(0);
 }
  
 static void copymenu_properties(Scene *scene, View3D *v3d, Object *ob)
@@ -1540,8 +1540,7 @@ void copy_attr(Scene *scene, View3D *v3d, short event)
 	if(do_scene_sort)
 		DAG_scene_sort(scene);
 
-	ED_anim_dag_flush_update(C);	
-
+	DAG_ids_flush_update(0);
 }
 
 void copy_attr_menu(Scene *scene, View3D *v3d)
@@ -1643,6 +1642,7 @@ void OBJECT_OT_shade_flat(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shade_flat";
 	
 	/* api callbacks */
+	ot->poll= ED_operator_object_active_editable;
 	ot->exec= shade_smooth_exec;
 
 	/* flags */
@@ -1656,8 +1656,9 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_shade_smooth";
 	
 	/* api callbacks */
+	ot->poll= ED_operator_object_active_editable;
 	ot->exec= shade_smooth_exec;
-
+	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
@@ -1724,85 +1725,6 @@ void image_aspect(Scene *scene, View3D *v3d)
 	}
 	
 }
-
-void set_ob_ipoflags(Scene *scene, View3D *v3d)
-{
-#if 0 // XXX old animation system
-	Base *base;
-	int set= 1;
-	
-	if (!v3d) {
-		error("Can't do this! Open a 3D window");
-		return;
-	}
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			if(base->object->ipoflag & OB_DRAWKEY) {
-				set= 0;
-				break;
-			}
-		}
-	}
-	
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			if(set) {
-				base->object->ipoflag |= OB_DRAWKEY;
-				if(base->object->ipo) base->object->ipo->showkey= 1;
-			}
-			else {
-				base->object->ipoflag &= ~OB_DRAWKEY;
-				if(base->object->ipo) base->object->ipo->showkey= 0;
-			}
-		}
-	}
-#endif // XXX old animation system
-}
-
-
-void select_select_keys(Scene *scene, View3D *v3d)
-{
-#if 0 // XXX old animation system
-	Base *base;
-	IpoCurve *icu;
-	BezTriple *bezt;
-	int a;
-	
-	if (!v3d) {
-		error("Can't do this! Open a 3D window");
-		return;
-	}
-	
-	if(scene->id.lib) return;
-
-	if(okee("Show and select all keys")==0) return;
-
-	for(base= FIRSTBASE; base; base= base->next) {
-		if(TESTBASELIB(v3d, base)) {
-			if(base->object->ipo) {
-				base->object->ipoflag |= OB_DRAWKEY;
-				base->object->ipo->showkey= 1;
-				icu= base->object->ipo->curve.first;
-				while(icu) {
-					a= icu->totvert;
-					bezt= icu->bezt;
-					while(a--) {
-						bezt->f1 |= SELECT;
-						bezt->f2 |= SELECT;
-						bezt->f3 |= SELECT;
-						bezt++;
-					}
-					icu= icu->next;
-				}
-			}
-		}
-	}
-
-
-#endif  // XXX old animation system
-}
-
 
 int vergbaseco(const void *a1, const void *a2)
 {
@@ -2032,7 +1954,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= object_mode_set_exec;
 	
-	ot->poll= ED_operator_object_active;
+	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2087,6 +2009,7 @@ void OBJECT_OT_game_property_new(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= game_property_new;
+	ot->poll= ED_operator_object_active_editable;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2123,6 +2046,7 @@ void OBJECT_OT_game_property_remove(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec= game_property_remove;
+	ot->poll= ED_operator_object_active_editable;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

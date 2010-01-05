@@ -109,11 +109,13 @@ struct	btSoftBodyHelpers
 	static	btSoftBody*		CreateFromTriMesh(	btSoftBodyWorldInfo& worldInfo,
 		const btScalar*	vertices,
 		const int* triangles,
-		int ntriangles);
+		int ntriangles,
+ 		bool randomizeConstraints = true);
 	/* Create from convex-hull												*/ 
 	static	btSoftBody*		CreateFromConvexHull(	btSoftBodyWorldInfo& worldInfo,
 		const btVector3* vertices,
-		int nvertices);
+		int nvertices,
+ 		bool randomizeConstraints = true);
 };
 
 #endif //SOFT_BODY_HELPERS_H
