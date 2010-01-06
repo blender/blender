@@ -310,6 +310,9 @@ class ShapeTransfer(bpy.types.Operator):
     def execute(self, context):
         C = bpy.context
         ob_act = C.active_object
+        if ob_act.active_shape_key is None:
+            self.report({'ERROR'}, "Active object has no shape key")
+            return {'CANCELLED'}
         objects = [ob for ob in C.selected_editable_objects if ob != ob_act]
         return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)
 
