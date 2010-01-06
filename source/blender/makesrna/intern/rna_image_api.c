@@ -63,6 +63,24 @@ static char *rna_Image_get_export_path(Image *image, char *dest_dir, int rel)
 	return path;
 }
 
+static void rna_Image_save(Image *image, bContext *C, ReportList *reports, char *path)
+{
+	ImBuf *ibuf;
+	Scene *scene = CTX_data_scene(C);
+
+	if (scene) {
+		ibuf = BKE_image_get_ibuf(image, NULL);
+
+		if (BKE_write_ibuf(NULL, ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality)) {
+
+		} else {
+			BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
+		}
+	} else {
+		BKE_reportf(reports, RPT_ERROR, "Scene not in context, couldn't get save parameters");
+	}
+}
+
 char *rna_Image_get_abs_filename(Image *image, bContext *C)
 {
 	char *filename= MEM_callocN(FILE_MAX, "Image.get_abs_filename()");
@@ -95,6 +113,12 @@ void RNA_api_image(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm= RNA_def_string_file_path(func, "abs_filename", NULL, 0, "", "Image/movie absolute filename.");
 	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "save", "rna_Image_save");
+	RNA_def_function_ui_description(func, "Save image to a specific path.");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	parm= RNA_def_string(func, "path", "", 0, "", "Save path.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 #endif
