@@ -197,7 +197,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
         address = "" if netsettings.server_address == "[default]" else netsettings.server_address
 
-        master.runMaster((address, netsettings.server_port), netsettings.server_broadcast, netsettings.path, self.update_stats, self.test_break)
+        master.runMaster((address, netsettings.server_port), netsettings.master_broadcast, netsettings.master_clear, netsettings.path, self.update_stats, self.test_break)
 
 
     def render_slave(self, scene):

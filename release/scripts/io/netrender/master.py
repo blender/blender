@@ -105,6 +105,17 @@ class MRenderJob(netrender.model.RenderJob):
                 break
         else:
             self.status = JOB_FINISHED
+            
+    def pause(self, status = None):
+        if self.status not in {JOB_PAUSED, JOB_QUEUED}:
+            return 
+        
+        if status == None:
+            self.status = JOB_PAUSED if self.status == JOB_QUEUED else JOB_QUEUED
+        elif status:
+            self.status = JOB_QUEUED
+        else:
+            self.status = JOB_PAUSED
 
     def start(self):
         self.status = JOB_QUEUED
@@ -166,6 +177,7 @@ render_pattern = re.compile("/render_([a-zA-Z0-9]+)_([0-9]+).exr")
 log_pattern = re.compile("/log_([a-zA-Z0-9]+)_([0-9]+).log")
 reset_pattern = re.compile("/reset(all|)_([a-zA-Z0-9]+)_([0-9]+)")
 cancel_pattern = re.compile("/cancel_([a-zA-Z0-9]+)")
+pause_pattern = re.compile("/pause_([a-zA-Z0-9]+)")
 edit_pattern = re.compile("/edit_([a-zA-Z0-9]+)")
 
 class RenderHandler(http.server.BaseHTTPRequestHandler):
@@ -483,13 +495,21 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             match = cancel_pattern.match(self.path)
 
             if match:
+                length = int(self.headers['content-length'])
+                
+                if length > 0:
+                    info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+                    clear = info_map.get("clear", False)
+                else:
+                    clear = False
+                
                 job_id = match.groups()[0]
 
                 job = self.server.getJobID(job_id)
 
                 if job:
                     self.server.stats("", "Cancelling job")
-                    self.server.removeJob(job)
+                    self.server.removeJob(job, clear)
                     self.send_head()
                 else:
                     # no such job id
@@ -497,12 +517,46 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             else:
                 # invalid url
                 self.send_head(http.client.NO_CONTENT)
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.path.startswith("/pause"):
+            match = pause_pattern.match(self.path)
 
+            if match:
+                length = int(self.headers['content-length'])
+                
+                if length > 0:
+                    info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+                    status = info_map.get("status", None)
+                else:
+                    status = None
+                
+                job_id = match.groups()[0]
+
+                job = self.server.getJobID(job_id)
+
+                if job:
+                    self.server.stats("", "Pausing job")
+                    job.pause(status)
+                    self.send_head()
+                else:
+                    # no such job id
+                    self.send_head(http.client.NO_CONTENT)
+            else:
+                # invalid url
+                self.send_head(http.client.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/clear":
             # cancel all jobs
+            length = int(self.headers['content-length'])
+            
+            if length > 0:
+                info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+                clear = info_map.get("clear", False)
+            else:
+                clear = False
+
             self.server.stats("", "Clearing jobs")
-            self.server.clear()
+            self.server.clear(clear)
 
             self.send_head()
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -798,11 +852,11 @@ class RenderMasterServer(http.server.HTTPServer):
                     slave.job.usage += slave_usage
 
 
-    def clear(self):
+    def clear(self, clear_files = False):
         removed = self.jobs[:]
 
         for job in removed:
-            self.removeJob(job)
+            self.removeJob(job, clear_files)
 
     def balance(self):
         self.balancer.balance(self.jobs)
@@ -821,10 +875,13 @@ class RenderMasterServer(http.server.HTTPServer):
     def countSlaves(self):
         return len(self.slaves)
 
-    def removeJob(self, job):
+    def removeJob(self, job, clear_files = False):
         self.jobs.remove(job)
         self.jobs_map.pop(job.id)
-
+        
+        if clear_files:
+            shutil.rmtree(job.save_path)
+        
         for slave in self.slaves:
             if slave.job == job:
                 slave.job = None
@@ -856,7 +913,10 @@ class RenderMasterServer(http.server.HTTPServer):
 
         return None, None
 
-def runMaster(address, broadcast, path, update_stats, test_break):
+def clearMaster(path):
+    shutil.rmtree(path)
+
+def runMaster(address, broadcast, clear, path, update_stats, test_break):
         httpd = RenderMasterServer(address, RenderHandler, path)
         httpd.timeout = 1
         httpd.stats = update_stats
@@ -881,3 +941,5 @@ def runMaster(address, broadcast, path, update_stats, test_break):
                         start_time = time.time()
 
         httpd.server_close()
+        if clear:
+            clearMaster(path)

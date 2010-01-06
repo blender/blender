@@ -11,6 +11,28 @@ function edit(id, info)
 	request("/edit_" + id, info)
 }
 
+function clear_jobs()
+{
+	var r=confirm("Also delete files on master?");
+	
+	if (r==true) {
+		request('/clear', "{'clear':True}");
+	} else {
+		request('/clear', "{'clear':False}");
+	}
+}
+
+function cancel_job(id)
+{
+	var r=confirm("Also delete files on master?");
+	
+	if (r==true) {
+		request('/cancel_' + id, "{'clear':True}");
+	} else {
+		request('/cancel_' + id, "{'clear':False}");
+	}
+}
+
 function balance_edit(id, old_value)
 {
 	var new_value = prompt("New limit", old_value);

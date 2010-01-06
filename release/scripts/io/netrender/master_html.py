@@ -104,7 +104,7 @@ def get(handler):
 
         output("<h2>Master</h2>")
 
-        output("""<button title="remove all jobs" onclick="request('/clear', null);">CLEAR JOB LIST</button>""")
+        output("""<button title="remove all jobs" onclick="clear_jobs();">CLEAR JOB LIST</button>""")
 
         startTable(caption = "Rules", class_style = "rules")
 
@@ -175,7 +175,8 @@ def get(handler):
         for job in handler.server.jobs:
             results = job.framesStatus()
             rowTable(
-                        """<button title="cancel job" onclick="request('/cancel_%s', null);">X</button>""" % job.id +
+                        """<button title="cancel job" onclick="cancel_job('%s');">X</button>""" % job.id +
+                        """<button title="pause job" onclick="request('/pause_%s', null);">P</button>""" % job.id +
                         """<button title="reset all frames" onclick="request('/resetall_%s_0', null);">R</button>""" % job.id,
                         job.id,
                         link(job.name, "/html/job" + job.id),

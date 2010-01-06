@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import sys, os, platform
+import sys, os, platform, shutil
 import http, http.client, http.server, urllib
 import subprocess, time
 
@@ -44,6 +44,9 @@ else:
 
     def RestoreErrorMode(val):
         pass
+
+def clearSlave(path):
+    shutil.rmtree(path)
 
 def slave_Info():
     sysname, nodename, release, version, machine, processor = platform.uname()
@@ -103,7 +106,6 @@ def render_slave(engine, netsettings):
             os.mkdir(NODE_PREFIX)
 
         while not engine.test_break():
-
             conn.request("GET", "/job", headers={"slave-id":slave_id})
             response = conn.getresponse()
 
@@ -162,7 +164,7 @@ def render_slave(engine, netsettings):
                 cancelled = False
                 stdout = bytes()
                 run_t = time.time()
-                while process.poll() == None and not cancelled:
+                while not cancelled and process.poll() == None:
                     stdout += process.stdout.read(32)
                     current_t = time.time()
                     cancelled = engine.test_break()
@@ -238,10 +240,12 @@ def render_slave(engine, netsettings):
                 for i in range(timeout):
                     time.sleep(1)
                     if engine.test_break():
-                        conn.close()
-                        return
+                        break
 
         conn.close()
+        
+        if netsettings.slave_clear:
+            clearSlave(NODE_PREFIX)
 
 if __name__ == "__main__":
     pass

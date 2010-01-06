@@ -117,13 +117,48 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
         col.label(text="Port:")
         col.prop(netsettings, "server_port", text="")
 
-        if netsettings.mode == "RENDER_MASTER":
-            layout.prop(netsettings, "server_broadcast", text="Broadcast")
-        else:
+        if netsettings.mode != "RENDER_MASTER":
             layout.operator("render.netclientscan", icon='FILE_REFRESH', text="")
 
         layout.operator("render.netclientweb", icon='QUESTION')
 
+@rnaType
+class RENDER_PT_network_slave_settings(RenderButtonsPanel):
+    bl_label = "Slave Settings"
+    COMPAT_ENGINES = {'NET_RENDER'}
+
+    def poll(self, context):
+        scene = context.scene
+        return (super().poll(context)
+                and scene.network_render.mode == "RENDER_SLAVE")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        netsettings = scene.network_render
+
+        layout.prop(netsettings, "slave_clear")
+        
+@rnaType
+class RENDER_PT_network_master_settings(RenderButtonsPanel):
+    bl_label = "Master Settings"
+    COMPAT_ENGINES = {'NET_RENDER'}
+
+    def poll(self, context):
+        scene = context.scene
+        return (super().poll(context)
+                and scene.network_render.mode == "RENDER_MASTER")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        netsettings = scene.network_render
+
+        layout.prop(netsettings, "master_broadcast")
+        layout.prop(netsettings, "master_clear")
+        
 @rnaType
 class RENDER_PT_network_job(RenderButtonsPanel):
     bl_label = "Job Settings"
@@ -306,10 +341,20 @@ NetRenderSettings.IntProperty( attr="server_port",
                 min=1,
                 max=65535)
 
-NetRenderSettings.BoolProperty( attr="server_broadcast",
-                name="Broadcast server address",
-                description="broadcast server address on local network",
+NetRenderSettings.BoolProperty( attr="master_broadcast",
+                name="Broadcast",
+                description="broadcast master server address on local network",
                 default = True)
+
+NetRenderSettings.BoolProperty( attr="slave_clear",
+                name="Clear on exit",
+                description="delete downloaded files on exit",
+                default = True)
+
+NetRenderSettings.BoolProperty( attr="master_clear",
+                name="Clear on exit",
+                description="delete saved files on exit",
+                default = False)
 
 default_path = os.environ.get("TEMP")
 
