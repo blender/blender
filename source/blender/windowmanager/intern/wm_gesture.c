@@ -209,6 +209,9 @@ static void wm_gesture_draw_circle(wmWindow *win, wmGesture *gt)
 	
 }
 
+#ifndef WIN32
+/* Disabled for now, causing problems on Windows.. */
+
 /* more than 64 intersections will just leak.. not much and not a likely scenario */
 typedef struct TessData { int num; short *intersections[64]; } TessData;
 
@@ -237,10 +240,14 @@ static void free_tess_data(GLUtesselator *tess, TessData *td)
 	gluDeleteTess(tess);
 }
 
+#endif
+
 static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt)
 {
 	short *lasso= (short *)gt->customdata;
 	int i;
+
+#ifndef WIN32
 	TessData *data=MEM_callocN(sizeof(TessData), "tesselation data");
 	GLUtesselator *tess = gluNewTess();
 	
@@ -263,6 +270,8 @@ static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt)
 	glDisable(GL_BLEND);
 	
 	free_tess_data(tess, data);
+
+#endif	
 	
 	glEnable(GL_LINE_STIPPLE);
 	glColor3ub(96, 96, 96);
