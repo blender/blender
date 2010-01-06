@@ -197,17 +197,12 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             sub = row.row(align=True)
             subsub = sub.row(align=True)
             subsub.active = enable_edit_value
-            if ob.shape_key_lock:
-                subsub.prop(ob, "shape_key_lock", icon='PINNED', text="")
-            else:
-                subsub.prop(ob, "shape_key_lock", icon='UNPINNED', text="")
-            if kb.mute:
-                subsub.prop(kb, "mute", icon='MUTE_IPO_ON', text="")
-            else:
-                subsub.prop(kb, "mute", icon='MUTE_IPO_OFF', text="")
+            subsub.prop(ob, "shape_key_lock", icon='PINNED' if ob.shape_key_lock else 'UNPINNED', text="")
+            subsub.prop(kb, "mute", icon='MUTE_IPO_ON' if kb.mute else 'MUTE_IPO_OFF', text="")
             sub.prop(ob, "shape_key_edit_mode", text="")
 
             sub = row.row(align=True)
+            sub.operator("object.shape_key_transfer", icon='COPY_ID', text="") # icon is not ideal
             sub.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT', text="")
             sub.operator("object.shape_key_clear", icon='X', text="")
 
