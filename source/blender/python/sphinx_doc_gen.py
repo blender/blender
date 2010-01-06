@@ -23,10 +23,10 @@ Usage,
 run this script from blenders root path once you have compiled blender
     ./blender.bin -b -P /b/source/blender/python/sphinx_doc_gen.py
 
-This will generate python files in "./source/blender/python/doc/bpy/sphinx-in"
+This will generate python files in "./source/blender/python/doc/sphinx-in"
 Generate html docs  by running...
     
-    sphinx-build source/blender/python/doc/bpy/sphinx-in source/blender/python/doc/bpy/sphinx-out
+    sphinx-build source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out
 '''
 
 # if you dont have graphvis installed ommit the --graph arg.
@@ -274,9 +274,9 @@ if __name__ == '__main__':
         print("\nError, this script must run from inside blender2.5")
         print(script_help_msg)
     else:
-        # os.system("rm source/blender/python/doc/bpy/sphinx-in/*.rst")
-        # os.system("rm -rf source/blender/python/doc/bpy/sphinx-out/*")
-        rna2sphinx('source/blender/python/doc/bpy/sphinx-in')
+        # os.system("rm source/blender/python/doc/sphinx-in/*.rst")
+        # os.system("rm -rf source/blender/python/doc/sphinx-out/*")
+        rna2sphinx('source/blender/python/doc/sphinx-in')
 
     import sys
     sys.exit()
