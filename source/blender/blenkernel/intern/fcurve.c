@@ -1097,6 +1097,12 @@ void driver_free_variable (ChannelDriver *driver, DriverVar *dvar)
 		BLI_freelinkN(&driver->variables, dvar);
 	else
 		MEM_freeN(dvar);
+
+#ifndef DISABLE_PYTHON
+	/* since driver variables are cached, the expression needs re-compiling too */
+	if(driver->type==DRIVER_TYPE_PYTHON)
+		driver->flag |= DRIVER_FLAG_RENAMEVAR;
+#endif
 }
 
 /* Change the type of driver variable */
@@ -1149,6 +1155,12 @@ DriverVar *driver_add_new_variable (ChannelDriver *driver)
 	/* set the default type to 'single prop' */
 	driver_change_variable_type(dvar, DVAR_TYPE_SINGLE_PROP);
 	
+#ifndef DISABLE_PYTHON
+	/* since driver variables are cached, the expression needs re-compiling too */
+	if(driver->type==DRIVER_TYPE_PYTHON)
+		driver->flag |= DRIVER_FLAG_RENAMEVAR;
+#endif
+
 	/* return the target */
 	return dvar;
 }

@@ -371,7 +371,9 @@ typedef enum eDriver_Flags {
 		// TODO: this needs to be implemented at some stage or left out...
 	//DRIVER_FLAG_LAYERING	= (1<<2),
 		/* use when the expression needs to be recompiled */
-	DRIVER_FLAG_RECOMPILE	= (1<<3), 
+	DRIVER_FLAG_RECOMPILE	= (1<<3),
+		/* the names are cached so they dont need have python unicode versions created each time */
+	DRIVER_FLAG_RENAMEVAR	= (1<<4),
 } eDriver_Flags;
 
 /* F-Curves -------------------------------------- */

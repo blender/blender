@@ -129,6 +129,15 @@ static void rna_DriverTarget_update_data(Main *bmain, Scene *scene, PointerRNA *
 	}
 }
 
+static void rna_DriverTarget_update_name(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	ChannelDriver *driver= ptr->data;
+	rna_DriverTarget_update_data(bmain, scene, ptr);
+
+	driver->flag |= DRIVER_FLAG_RENAMEVAR;
+
+}
+
 /* ----------- */
 
 static StructRNA *rna_DriverTarget_id_typef(PointerRNA *ptr)
@@ -764,7 +773,7 @@ static void rna_def_drivervar(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_ui_text(prop, "Name", "Name to use in scripted expressions/functions. (No spaces or dots are allowed. Also, must not start with a symbol or digit)");
-	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data"); // XXX
+	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_name"); // XXX
 	
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
