@@ -26,6 +26,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <stddef.h>
 
 #include <GL/glew.h>
 
