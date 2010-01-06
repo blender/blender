@@ -80,7 +80,8 @@ public:
 		GHOST_TUns32 height,
 		GHOST_TWindowState state,
 		GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
-		const bool stereoVisual = false
+		const bool stereoVisual = false,
+		const GHOST_TUns16 numOfAASamples = 0
 	);
 
 	/**

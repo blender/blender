@@ -312,7 +312,8 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 								 win->posx, posy, win->sizex, win->sizey, 
 								 inital_state, 
 								 GHOST_kDrawingContextTypeOpenGL,
-								 0 /* no stereo */);
+								 0 /* no stereo */,
+								 4 /* 4x AA */);
 	
 	if (ghostwin) {
 		

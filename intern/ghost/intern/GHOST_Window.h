@@ -75,14 +75,15 @@ public:
 	 * Constructor.
 	 * Creates a new window and opens it.
 	 * To check if the window was created properly, use the getValid() method.
-	 * @param title		The text shown in the title bar of the window.
-	 * @param left		The coordinate of the left edge of the window.
-	 * @param top		The coordinate of the top edge of the window.
-	 * @param width		The width the window.
-	 * @param heigh		The height the window.
-	 * @param state		The state the window is initially opened with.
-	 * @param type		The type of drawing context installed in this window.
-	 * @param stereoVisual	Stereo visual for quad buffered stereo.
+	 * @param title				The text shown in the title bar of the window.
+	 * @param left				The coordinate of the left edge of the window.
+	 * @param top				The coordinate of the top edge of the window.
+	 * @param width				The width the window.
+	 * @param heigh				The height the window.
+	 * @param state				The state the window is initially opened with.
+	 * @param type				The type of drawing context installed in this window.
+	 * @param stereoVisual		Stereo visual for quad buffered stereo.
+	 * @param numOfAASamples	Number of samples used for AA (zero if no AA)
 	 */
 	GHOST_Window(
 		const STR_String& title, 
@@ -92,7 +93,8 @@ public:
 		GHOST_TUns32 height,
 		GHOST_TWindowState state,
 		GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
-		const bool stereoVisual = false);
+		const bool stereoVisual = false,
+		const GHOST_TUns16 numOfAASamples = 0);
 
 	/**
 	 * @section Interface inherited from GHOST_IWindow left for derived class
@@ -319,6 +321,9 @@ protected:
 	 *  the graphics h/w
 	 */
 	bool m_stereoVisual;
+	
+	/** Number of samples used in anti-aliasing, set to 0 if no AA **/
+	GHOST_TUns16 m_numOfAASamples;
     
     /** Full-screen width */
     GHOST_TUns32 m_fullScreenWidth;

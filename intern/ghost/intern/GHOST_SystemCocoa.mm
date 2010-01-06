@@ -657,6 +657,7 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
 	bool stereoVisual,
+	const GHOST_TUns16 numOfAASamples,
 	const GHOST_TEmbedderWindowID parentWindow
 )
 {
@@ -672,7 +673,7 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 	left = left > contentRect.origin.x ? left : contentRect.origin.x;
 	top = top > contentRect.origin.y ? top : contentRect.origin.y;
 	
-	window = new GHOST_WindowCocoa (this, title, left, top, width, height, state, type);
+	window = new GHOST_WindowCocoa (this, title, left, top, width, height, state, type, stereoVisual, numOfAASamples);
 
     if (window) {
         if (window->getValid()) {

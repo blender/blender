@@ -228,6 +228,8 @@ getMainDisplayDimensions(
 	 * @param	height	The height the window.
 	 * @param	state	The state of the window when opened.
 	 * @param	type	The type of drawing context installed in this window.
+	 * @param	stereoVisual	Stereo visual for quad buffered stereo.
+	 * @param	numOfAASamples	Number of samples used for AA (zero if no AA)
 	 * @param	parentWindow 	Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
@@ -242,6 +244,7 @@ createWindow(
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
 	bool stereoVisual,
+	const GHOST_TUns16 numOfAASamples,
 	const GHOST_TEmbedderWindowID parentWindow
 ){
 	GHOST_WindowX11 * window = 0;

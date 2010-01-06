@@ -153,9 +153,10 @@ GHOST_WindowX11(
 	GHOST_TWindowState state,
 	const GHOST_TEmbedderWindowID parentWindow,
 	GHOST_TDrawingContextType type,
-	const bool stereoVisual
+	const bool stereoVisual,
+	const GHOST_TUns16 numOfAASamples
 ) :
-	GHOST_Window(title,left,top,width,height,state,type,stereoVisual),
+	GHOST_Window(title,left,top,width,height,state,type,stereoVisual,numOfAASamples),
 	m_context(NULL),
 	m_display(display),
 	m_system (system),

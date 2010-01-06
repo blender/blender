@@ -190,7 +190,7 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 	const STR_String& title, 
 	GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
 	GHOST_TWindowState state, GHOST_TDrawingContextType type,
-	bool stereoVisual, const GHOST_TEmbedderWindowID parentWindow )
+	bool stereoVisual, const GHOST_TUns16 numOfAASamples, const GHOST_TEmbedderWindowID parentWindow )
 {
 	GHOST_Window* window = 0;
 	window = new GHOST_WindowWin32 (this, title, left, top, width, height, state, type, stereoVisual);
