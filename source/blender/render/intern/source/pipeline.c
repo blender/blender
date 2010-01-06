@@ -130,8 +130,8 @@ static void result_nothing(void *unused, RenderResult *rr) {}
 static void result_rcti_nothing(void *unused, RenderResult *rr, volatile struct rcti *rect) {}
 static void stats_nothing(void *unused, RenderStats *rs) {}
 static void int_nothing(void *unused, int val) {}
-static int void_nothing(void *unused) {return 0;}
 static void print_error(void *unused, char *str) {printf("ERROR: %s\n", str);}
+static int default_break(void *unused) {return G.afbreek == 1;}
 
 int RE_RenderInProgress(Render *re)
 {
@@ -1119,7 +1119,7 @@ Render *RE_NewRender(const char *name)
 	re->display_clear= result_nothing;
 	re->display_draw= result_rcti_nothing;
 	re->timecursor= int_nothing;
-	re->test_break= void_nothing;
+	re->test_break= default_break;
 	re->error= print_error;
 	if(G.background)
 		re->stats_draw= stats_background;
