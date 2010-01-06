@@ -19,6 +19,7 @@
 import sys, os
 import http, http.client, http.server, urllib, socket
 import subprocess, shutil, time, hashlib
+import select # for select.error
 
 from netrender.utils import *
 import netrender.model
@@ -928,7 +929,10 @@ def runMaster(address, broadcast, clear, path, update_stats, test_break):
         start_time = time.time()
 
         while not test_break():
-            httpd.handle_request()
+            try:
+                httpd.handle_request()
+            except select.error:
+                pass
 
             if time.time() - start_time >= 10: # need constant here
                 httpd.timeoutSlaves()
