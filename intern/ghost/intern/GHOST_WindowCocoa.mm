@@ -877,6 +877,9 @@ GHOST_TSuccess GHOST_WindowCocoa::activateDrawingContext()
 		if (m_openGLContext != nil) {
 			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			[m_openGLContext makeCurrentContext];
+			
+			// Disable AA by default
+			if (m_numOfAASamples > 0) glDisable(GL_MULTISAMPLE_ARB);
 			[pool drain];
 			return GHOST_kSuccess;
 		}
