@@ -398,14 +398,7 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 
 bool GHOST_WindowCocoa::getValid() const
 {
-    bool valid;
-    if (!m_fullScreen) {
-        valid = (m_window != 0); //&& ::IsValidWindowPtr(m_windowRef);
-    }
-    else {
-        valid = true;
-    }
-    return valid;
+	return (m_window != 0);
 }
 
 
