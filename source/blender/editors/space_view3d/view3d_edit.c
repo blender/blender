@@ -445,7 +445,9 @@ enum {
 #define VIEW_MODAL_CONFIRM				1 /* used for all view operations */
 #define VIEWROT_MODAL_AXIS_SNAP_ENABLE	2
 #define VIEWROT_MODAL_AXIS_SNAP_DISABLE	3
-
+#define VIEWROT_MODAL_SWITCH_ZOOM		4
+#define VIEWROT_MODAL_SWITCH_MOVE		5
+#define VIEWROT_MODAL_SWITCH_ROTATE		6
 
 /* called in transform_ops.c, on each regeneration of keymaps  */
 void viewrotate_modal_keymap(wmKeyConfig *keyconf)
@@ -455,6 +457,9 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 
 	{VIEWROT_MODAL_AXIS_SNAP_ENABLE,	"AXIS_SNAP_ENABLE", 0, "Enable Axis Snap", ""},
 	{VIEWROT_MODAL_AXIS_SNAP_DISABLE,	"AXIS_SNAP_DISABLE", 0, "Enable Axis Snap", ""},
+		
+	{VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, "Switch to Zoom"},
+	{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
 
 	{0, NULL, 0, NULL, NULL}};
 
@@ -469,9 +474,13 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_ENABLE);
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_DISABLE);
+	WM_modalkeymap_add_item(keymap, LEFTALTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_ENABLE);
+	WM_modalkeymap_add_item(keymap, LEFTALTKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_DISABLE);
 
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
+	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
+	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_rotate");
 
@@ -633,6 +642,14 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 				vod->axis_snap= FALSE;
 				event_code= VIEW_APPLY;
 				break;
+			case VIEWROT_MODAL_SWITCH_ZOOM:
+				WM_operator_name_call(C, "VIEW3D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_MOVE:
+				WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL);
+				event_code= VIEW_CONFIRM;
+				break;
 		}
 	}
 	else if(event->type==vod->origkey && event->val==KM_RELEASE) {
@@ -736,6 +753,10 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
+	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
+	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_move");
 }
@@ -782,6 +803,14 @@ static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 	else if(event->type==EVT_MODAL_MAP) {
 		switch (event->val) {
 			case VIEW_MODAL_CONFIRM:
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_ZOOM:
+				WM_operator_name_call(C, "VIEW3D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_ROTATE:
+				WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, NULL);
 				event_code= VIEW_CONFIRM;
 				break;
 		}
@@ -854,6 +883,10 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
+	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
+	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom");
 }
@@ -993,6 +1026,14 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	else if(event->type==EVT_MODAL_MAP) {
 		switch (event->val) {
 			case VIEW_MODAL_CONFIRM:
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_MOVE:
+				WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL);
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_ROTATE:
+				WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, NULL);
 				event_code= VIEW_CONFIRM;
 				break;
 		}
