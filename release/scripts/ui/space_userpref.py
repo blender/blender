@@ -183,9 +183,9 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col = row.column()
         col.label(text="View Manipulation:")
         col.prop(view, "auto_depth")
-        col.prop(view, "global_pivot")
         col.prop(view, "zoom_to_mouse")
         col.prop(view, "rotate_around_selection")
+        col.prop(view, "global_pivot")
 
         col.separator()
 

@@ -20,7 +20,7 @@
 
 import bpy
 from rigify import RigifyError
-from rigify_utils import bone_class_instance, copy_bone_simple, add_pole_target_bone
+from rigify_utils import bone_class_instance, copy_bone_simple, add_pole_target_bone, get_base_name, get_side_name
 from Mathutils import Vector
 
 METARIG_NAMES = "hips", "thigh", "shin", "foot", "toe"
