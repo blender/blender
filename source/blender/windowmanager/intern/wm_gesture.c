@@ -149,8 +149,18 @@ static void wm_gesture_draw_rect(wmWindow *win, wmGesture *gt)
 {
 	rcti *rect= (rcti *)gt->customdata;
 	
+	glEnable(GL_BLEND);
+	glColor4f(1.0, 1.0, 1.0, 0.05);
+	glBegin(GL_QUADS);
+	glVertex2s(rect->xmax, rect->ymin);
+	glVertex2s(rect->xmax, rect->ymax);
+	glVertex2s(rect->xmin, rect->ymax);
+	glVertex2s(rect->xmin, rect->ymin);
+	glEnd();
+	glDisable(GL_BLEND);
+	
 	glEnable(GL_LINE_STIPPLE);
-	glColor3ub(0, 0, 0);
+	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xCCCC);
 	sdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	glColor3ub(255, 255, 255);
@@ -164,7 +174,7 @@ static void wm_gesture_draw_line(wmWindow *win, wmGesture *gt)
 	rcti *rect= (rcti *)gt->customdata;
 	
 	glEnable(GL_LINE_STIPPLE);
-	glColor3ub(0, 0, 0);
+	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xAAAA);
 	sdrawline(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	glColor3ub(255, 255, 255);
@@ -181,8 +191,13 @@ static void wm_gesture_draw_circle(wmWindow *win, wmGesture *gt)
 
 	glTranslatef((float)rect->xmin, (float)rect->ymin, 0.0f);
 
+	glEnable(GL_BLEND);
+	glColor4f(1.0, 1.0, 1.0, 0.05);
+	glutil_draw_filled_arc(0.0, M_PI*2.0, rect->xmax, 40);
+	glDisable(GL_BLEND);
+	
 	glEnable(GL_LINE_STIPPLE);
-	glColor3ub(0, 0, 0);
+	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xAAAA);
 	glutil_draw_lined_arc(0.0, M_PI*2.0, rect->xmax, 40);
 	glColor3ub(255, 255, 255);
@@ -194,15 +209,66 @@ static void wm_gesture_draw_circle(wmWindow *win, wmGesture *gt)
 	
 }
 
+/* more than 64 intersections will just leak.. not much and not a likely scenario */
+typedef struct TessData { int num; short *intersections[64]; } TessData;
+
+static void combine_cb(GLdouble coords[3], GLdouble *vertex_data[4], GLfloat weight[4], void **dataOut, void *data)
+{
+	short *vertex;
+	TessData *td = (TessData *)data;
+	vertex = (short *)malloc(2*sizeof(short));
+	vertex[0] = (short)coords[0];
+	vertex[1] = (short)coords[1];
+	*dataOut = vertex;
+
+	if (td->num < 64) {
+		td->intersections[td->num++] = vertex;
+	}
+}
+
+static void free_tess_data(GLUtesselator *tess, TessData *td)
+{
+	int i;
+	for (i=0; i<td->num; i++) {
+		free(td->intersections[i]);
+	}
+	MEM_freeN(td);
+	td = NULL;
+	gluDeleteTess(tess);
+}
+
 static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt)
 {
 	short *lasso= (short *)gt->customdata;
 	int i;
+	TessData *data=MEM_callocN(sizeof(TessData), "tesselation data");
+	GLUtesselator *tess = gluNewTess();
+	
+	/* use GLU tesselator to draw a filled lasso shape */
+	gluTessCallback(tess, GLU_TESS_BEGIN, glBegin);
+	gluTessCallback(tess, GLU_TESS_VERTEX, glVertex2sv);
+	gluTessCallback(tess, GLU_TESS_END, glEnd);
+	gluTessCallback(tess, GLU_TESS_COMBINE_DATA, combine_cb);
+					
+	glEnable(GL_BLEND);
+	glColor4f(1.0, 1.0, 1.0, 0.05);
+	gluTessBeginPolygon (tess, data);
+	gluTessBeginContour (tess);
+	for (i=0; i<gt->points; i++, lasso+=2) {
+		GLdouble d_lasso[2] = {(GLdouble)lasso[0], (GLdouble)lasso[1]};
+		gluTessVertex (tess, d_lasso, lasso);
+	}
+	gluTessEndContour (tess);
+	gluTessEndPolygon (tess);
+	glDisable(GL_BLEND);
+	
+	free_tess_data(tess, data);
 	
 	glEnable(GL_LINE_STIPPLE);
-	glColor3ub(0, 0, 0);
+	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xAAAA);
 	glBegin(GL_LINE_STRIP);
+	lasso= (short *)gt->customdata;
 	for(i=0; i<gt->points; i++, lasso+=2)
 		glVertex2sv(lasso);
 	if(gt->type==WM_GESTURE_LASSO)
@@ -228,7 +294,7 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 	rcti *rect= (rcti *)gt->customdata;
 	
 	glEnable(GL_LINE_STIPPLE);
-	glColor3ub(0, 0, 0);
+	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xCCCC);
 	sdrawline(rect->xmin - win->sizex, rect->ymin, rect->xmin + win->sizex, rect->ymin);
 	sdrawline(rect->xmin, rect->ymin - win->sizey, rect->xmin, rect->ymin + win->sizey);
