@@ -2812,7 +2812,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	if(RNA_boolean_get(op->ptr, "animation"))
 		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
 	else
-		RE_BlenderFrame(re, scene, scene->r.cfra);
+		RE_BlenderFrame(re, scene, NULL, scene->r.cfra);
 	
 	// no redraw needed, we leave state as we entered it
 	ED_update_for_newframe(C, 1);
@@ -2826,6 +2826,7 @@ typedef struct RenderJob {
 	Scene *scene;
 	Render *re;
 	wmWindow *win;
+	SceneRenderLayer *srl;
 	int anim;
 	Image *image;
 	ImageUser iuser;
@@ -3038,7 +3039,7 @@ static void render_startjob(void *rjv, short *stop, short *do_update)
 	if(rj->anim)
 		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
 	else
-		RE_BlenderFrame(rj->re, rj->scene, rj->scene->r.cfra);
+		RE_BlenderFrame(rj->re, rj->scene, rj->srl, rj->scene->r.cfra);
 }
 
 /* called by render, check job 'stop' value or the global */
@@ -3074,6 +3075,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	/* new render clears all callbacks */
 	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *srl=NULL;
 	Render *re;
 	wmJob *steve;
 	RenderJob *rj;
@@ -3102,10 +3104,29 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* ensure at least 1 area shows result */
 	screen_set_image_output(C, event->x, event->y);
 	
+	/* single layer re-render */
+	if(RNA_property_is_set(op->ptr, "layer")) {
+		SceneRenderLayer *rl;
+		Scene *scn;
+		char scene_name[19], rl_name[RE_MAXNAME];
+		
+		RNA_string_get(op->ptr, "layer", rl_name);
+		RNA_string_get(op->ptr, "scene", scene_name);
+		
+		scn = (Scene *)BLI_findstring(&CTX_data_main(C)->scene, scene_name, offsetof(ID, name) + 2);
+		rl = (SceneRenderLayer *)BLI_findstring(&scene->r.layers, rl_name, offsetof(SceneRenderLayer, name));
+		
+		if (scn && rl) {
+			scene = scn;
+			srl = rl;
+		}
+	}
+	
 	/* job custom data */
 	rj= MEM_callocN(sizeof(RenderJob), "render job");
 	rj->scene= scene;
 	rj->win= CTX_wm_window(C);
+	rj->srl = srl;
 	rj->anim= RNA_boolean_get(op->ptr, "animation");
 	rj->iuser.scene= scene;
 	rj->iuser.ok= 1;
@@ -3167,6 +3188,8 @@ static void SCREEN_OT_render(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "");
+	RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, "Render Layer", "Single render layer to re-render");
+	RNA_def_string(ot->srna, "scene", "", 19, "Scene", "Re-render single layer in this scene");
 }
 
 /* ****************************** opengl render *************************** */
@@ -3289,7 +3312,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	
 	/* create render and render result */
 	oglrender->re= RE_NewRender(scene->id.name);
-	RE_InitState(oglrender->re, NULL, &scene->r, sizex, sizey, NULL);
+	RE_InitState(oglrender->re, NULL, &scene->r, NULL, sizex, sizey, NULL);
 	
 	rr= RE_AcquireResultWrite(oglrender->re);
 	if(rr->rectf==NULL)

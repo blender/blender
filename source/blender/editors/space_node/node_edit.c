@@ -345,49 +345,6 @@ bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 
 #if 0
 
-/* node has to be of type 'render layers' */
-/* is a bit clumsy copying renderdata here... scene nodes use render size of current render */
-static void composite_node_render(SpaceNode *snode, bNode *node)
-{
-	RenderData rd;
-	Scene *scene= NULL;
-	int scemode, actlay;
-	
-	/* the button press won't show up otherwise, button hilites disabled */
-	force_draw(0);
-	
-	if(node->id && node->id!=(ID *)G.scene) {
-		scene= G.scene;
-		set_scene_bg((Scene *)node->id);
-		rd= G.scene->r;
-		G.scene->r.xsch= scene->r.xsch;
-		G.scene->r.ysch= scene->r.ysch;
-		G.scene->r.size= scene->r.size;
-		G.scene->r.mode &= ~(R_BORDER|R_DOCOMP);
-		G.scene->r.mode |= scene->r.mode & R_BORDER;
-		G.scene->r.border= scene->r.border;
-		G.scene->r.cfra= scene->r.cfra;
-	}
-	
-	scemode= G.scene->r.scemode;
-	actlay= G.scene->r.actlay;
-
-	G.scene->r.scemode |= R_SINGLE_LAYER|R_COMP_RERENDER;
-	G.scene->r.actlay= node->custom1;
-	
-	BIF_do_render(0);
-	
-	G.scene->r.scemode= scemode;
-	G.scene->r.actlay= actlay;
-
-	node->custom2= 0;
-	
-	if(scene) {
-		G.scene->r= rd;
-		set_scene_bg(scene);
-	}
-}
-
 static void composit_node_event(SpaceNode *snode, short event)
 {
 	

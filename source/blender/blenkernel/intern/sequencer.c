@@ -2094,7 +2094,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			doseq= scene->r.scemode & R_DOSEQ;
 			scene->r.scemode &= ~R_DOSEQ;
 			
-			RE_BlenderFrame(re, sce,
+			RE_BlenderFrame(re, sce, NULL,
 					seq->sfra+se->nr+seq->anim_startofs);
 			
 			if(rendering)

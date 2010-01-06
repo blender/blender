@@ -545,16 +545,33 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node= ptr->data;
-	uiLayout *col;
-
+	uiLayout *col, *row;
+	PointerRNA op_ptr;
+	PointerRNA scn_ptr;
+	PropertyRNA *prop;
+	const char *layer_name;
+	char scene_name[19];
+	
 	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL);
 	
 	if(!node->id) return;
 
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, "", 0, ptr, "layer", 0);
+	row = uiLayoutRow(col, 0);
+	uiItemR(row, "", 0, ptr, "layer", 0);
 	
-	/* XXX Missing 're-render this layer' button - needs completely new implementation */
+	prop = RNA_struct_find_property(ptr, "layer");
+	if (!(RNA_property_enum_identifier(C, ptr, prop, RNA_property_enum_get(ptr, prop), &layer_name)))
+		return;
+	
+	scn_ptr = RNA_pointer_get(ptr, "scene");
+	RNA_string_get(&scn_ptr, "name", scene_name);
+	
+	WM_operator_properties_create(&op_ptr, "SCREEN_OT_render");
+	RNA_string_set(&op_ptr, "layer", layer_name);
+	RNA_string_set(&op_ptr, "scene", scene_name);
+	uiItemFullO(row, "", ICON_RENDER_STILL, "SCREEN_OT_render", op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
+
 }
 
 
