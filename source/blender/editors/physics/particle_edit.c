@@ -588,25 +588,34 @@ static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected
 	unit_m4(mat);
 
 	LOOP_VISIBLE_POINTS {
-		if(edit->psys && !(edit->psys->flag & PSYS_GLOBAL_HAIR)) {
-			psys_mat_hair_to_global(data->ob, psmd->dm, psys->part->from, psys->particles + p, mat);
-			invert_m4_m4(imat,mat);
-		}
-
 		if(pset->selectmode==SCE_SELECT_END) {
 			/* only do end keys */
 			key= point->keys + point->totkey-1;
 
-			if(selected==0 || key->flag & PEK_SELECT)
-				if(key_inside_circle(data, data->rad, KEY_WCO, &data->dist))
+			if(selected==0 || key->flag & PEK_SELECT) {
+				if(key_inside_circle(data, data->rad, KEY_WCO, &data->dist)) {
+					if(edit->psys && !(edit->psys->flag & PSYS_GLOBAL_HAIR)) {
+						psys_mat_hair_to_global(data->ob, psmd->dm, psys->part->from, psys->particles + p, mat);
+						invert_m4_m4(imat,mat);
+					}
+
 					func(data, mat, imat, p, point->totkey-1, key);
+				}
+			}
 		}
 		else {
 			/* do all keys */
 			LOOP_VISIBLE_KEYS {
-				if(selected==0 || key->flag & PEK_SELECT)
-					if(key_inside_circle(data, data->rad, KEY_WCO, &data->dist))
+				if(selected==0 || key->flag & PEK_SELECT) {
+					if(key_inside_circle(data, data->rad, KEY_WCO, &data->dist)) {
+						if(edit->psys && !(edit->psys->flag & PSYS_GLOBAL_HAIR)) {
+							psys_mat_hair_to_global(data->ob, psmd->dm, psys->part->from, psys->particles + p, mat);
+							invert_m4_m4(imat,mat);
+						}
+
 						func(data, mat, imat, p, k, key);
+					}
+				}
 			}
 		}
 	}
@@ -2008,7 +2017,6 @@ static void rekey_particle_to_time(Scene *scene, Object *ob, int pa_index, float
 static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psys, int mirror)
 {
 	PTCacheEdit *edit = psys->edit;
-	ParticleEditSettings *pset= PE_settings(scene);
 	ParticleData *pa, *npa=0, *new_pars=0;
 	POINT_P;
 	PTCacheEditPoint *npoint=0, *new_points=0;
@@ -2079,7 +2087,6 @@ static int remove_tagged_particles(Scene *scene, Object *ob, ParticleSystem *psy
 static void remove_tagged_keys(Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	PTCacheEdit *edit= psys->edit;
-	ParticleEditSettings *pset= PE_settings(scene);
 	ParticleData *pa;
 	HairKey *hkey, *nhkey, *new_hkeys=0;
 	POINT_P; KEY_K;
@@ -2270,7 +2277,6 @@ static int remove_doubles_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
-	ParticleEditSettings *pset=PE_settings(scene);
 	PTCacheEdit *edit= PE_get_current(scene, ob);
 	ParticleSystem *psys = edit->psys;
 	ParticleSystemModifierData *psmd;
