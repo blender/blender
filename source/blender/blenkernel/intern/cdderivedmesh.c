@@ -1406,7 +1406,7 @@ DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces)
 	CDDerivedMesh *cddm = cdDM_create("CDDM_new dm");
 	DerivedMesh *dm = &cddm->dm;
 
-	DM_init(dm, numVerts, numEdges, numFaces);
+	DM_init(dm, DM_TYPE_CDDM, numVerts, numEdges, numFaces);
 
 	CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, numVerts);
 	CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
@@ -1432,7 +1432,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 
 	/* this does a referenced copy, with an exception for fluidsim */
 
-	DM_init(dm, mesh->totvert, mesh->totedge, mesh->totface);
+	DM_init(dm, DM_TYPE_CDDM, mesh->totvert, mesh->totedge, mesh->totface);
 
 	dm->deformedOnly = 1;
 
@@ -1565,7 +1565,7 @@ DerivedMesh *CDDM_copy(DerivedMesh *source)
 	source->getFaceDataArray(source, CD_ORIGINDEX);
 
 	/* this initializes dm, and copies all non mvert/medge/mface layers */
-	DM_from_template(dm, source, numVerts, numEdges, numFaces);
+	DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges, numFaces);
 	dm->deformedOnly = source->deformedOnly;
 
 	CustomData_copy_data(&source->vertData, &dm->vertData, 0, 0, numVerts);
@@ -1591,7 +1591,7 @@ DerivedMesh *CDDM_from_template(DerivedMesh *source,
 	DerivedMesh *dm = &cddm->dm;
 
 	/* this does a copy of all non mvert/medge/mface layers */
-	DM_from_template(dm, source, numVerts, numEdges, numFaces);
+	DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges, numFaces);
 
 	/* now add mvert/medge/mface layers */
 	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_CALLOC, NULL, numVerts);

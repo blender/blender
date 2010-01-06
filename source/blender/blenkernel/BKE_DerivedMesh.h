@@ -78,6 +78,12 @@ typedef struct DMGridAdjacency {
 	int rotation[4];
 } DMGridAdjacency;
 
+typedef enum DerivedMeshType {
+	DM_TYPE_CDDM,
+	DM_TYPE_EDITMESH,
+	DM_TYPE_CCGDM
+} DerivedMeshType;
+
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
 	/* Private DerivedMesh data, only for internal DerivedMesh use */
@@ -87,6 +93,7 @@ struct DerivedMesh {
 	int deformedOnly; /* set by modifier stack if only deformed from original */
 	BVHCache bvhCache;
 	struct GPUDrawObject *drawObject;
+	DerivedMeshType type;
 
 	/* Misc. Queries */
 
@@ -329,12 +336,14 @@ void DM_init_funcs(DerivedMesh *dm);
  * of vertices, edges and faces (doesn't allocate memory for them, just
  * sets up the custom data layers)
  */
-void DM_init(DerivedMesh *dm, int numVerts, int numEdges, int numFaces);
+void DM_init(DerivedMesh *dm, DerivedMeshType type,
+             int numVerts, int numEdges, int numFaces);
 
 /* utility function to initialise a DerivedMesh for the desired number
  * of vertices, edges and faces, with a layer setup copied from source
  */
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
+                      DerivedMeshType type,
                       int numVerts, int numEdges, int numFaces);
 
 /* utility function to release a DerivedMesh's layers

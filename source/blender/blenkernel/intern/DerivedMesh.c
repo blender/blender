@@ -184,9 +184,10 @@ void DM_init_funcs(DerivedMesh *dm)
 	bvhcache_init(&dm->bvhCache);
 }
 
-void DM_init(DerivedMesh *dm,
+void DM_init(DerivedMesh *dm, DerivedMeshType type,
              int numVerts, int numEdges, int numFaces)
 {
+	dm->type = type;
 	dm->numVertData = numVerts;
 	dm->numEdgeData = numEdges;
 	dm->numFaceData = numFaces;
@@ -196,7 +197,7 @@ void DM_init(DerivedMesh *dm,
 	dm->needsFree = 1;
 }
 
-void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
+void DM_from_template(DerivedMesh *dm, DerivedMesh *source, DerivedMeshType type,
                       int numVerts, int numEdges, int numFaces)
 {
 	CustomData_copy(&source->vertData, &dm->vertData, CD_MASK_DERIVEDMESH,
@@ -206,6 +207,7 @@ void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
 	CustomData_copy(&source->faceData, &dm->faceData, CD_MASK_DERIVEDMESH,
 	                CD_CALLOC, numFaces);
 
+	dm->type = type;
 	dm->numVertData = numVerts;
 	dm->numEdgeData = numEdges;
 	dm->numFaceData = numFaces;
@@ -336,16 +338,25 @@ void *DM_get_face_data(DerivedMesh *dm, int index, int type)
 
 void *DM_get_vert_data_layer(DerivedMesh *dm, int type)
 {
+	if(type == CD_MVERT)
+		return dm->getVertArray(dm);
+
 	return CustomData_get_layer(&dm->vertData, type);
 }
 
 void *DM_get_edge_data_layer(DerivedMesh *dm, int type)
 {
+	if(type == CD_MEDGE)
+		return dm->getEdgeArray(dm);
+
 	return CustomData_get_layer(&dm->edgeData, type);
 }
 
 void *DM_get_face_data_layer(DerivedMesh *dm, int type)
 {
+	if(type == CD_MFACE)
+		return dm->getFaceArray(dm);
+
 	return CustomData_get_layer(&dm->faceData, type);
 }
 
@@ -1450,7 +1461,7 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 {
 	EditMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "emdm");
 
-	DM_init(&emdm->dm, BLI_countlist(&em->verts),
+	DM_init(&emdm->dm, DM_TYPE_EDITMESH, BLI_countlist(&em->verts),
 	                 BLI_countlist(&em->edges), BLI_countlist(&em->faces));
 
 	emdm->dm.getMinMax = emDM_getMinMax;

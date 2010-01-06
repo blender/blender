@@ -144,12 +144,15 @@ static int is_last_displist(Object *ob)
 	return 0;
 }
 
-static DerivedMesh *get_original_dm(Scene *scene, Object *ob, float (*vertexCos)[3], int orco)
+/* returns a derived mesh if dm == NULL, for deforming modifiers that need it */
+static DerivedMesh *get_dm(Scene *scene, Object *ob, EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], int orco)
 {
-	DerivedMesh *dm= NULL;
+	if(dm)
+		return dm;
 
 	if(ob->type==OB_MESH) {
-		dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
+		if(em) dm= CDDM_from_editmesh(em, ob->data);
+		else dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
 
 		if(vertexCos) {
 			CDDM_apply_vert_coords(dm, vertexCos);
@@ -182,6 +185,26 @@ static DerivedMesh *get_original_dm(Scene *scene, Object *ob, float (*vertexCos)
 		}
 	}
 
+	return dm;
+}
+
+/* returns a cdderivedmesh if dm == NULL or is another type of derivedmesh */
+static DerivedMesh *get_cddm(Scene *scene, Object *ob, EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3])
+{
+	if(dm && dm->type == DM_TYPE_CDDM)
+		return dm;
+
+	if(!dm) {
+		dm= get_dm(scene, ob, em, dm, vertexCos, 0);
+	}
+	else {
+		dm= CDDM_copy(dm);
+		CDDM_apply_vert_coords(dm, vertexCos);
+	}
+
+	if(dm)
+		CDDM_calc_normals(dm);
+	
 	return dm;
 }
 
@@ -3770,37 +3793,26 @@ static void displaceModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
       float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm;
-
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
-	else return;
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	DerivedMesh *dm= get_cddm(md->scene, ob, NULL, derivedData, vertexCos);
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
 			     vertexCos, numVerts);
 
-	dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static void displaceModifier_deformVertsEM(
 					   ModifierData *md, Object *ob, EditMesh *editData,
 	DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm;
-
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_editmesh(editData, ob->data);
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	DerivedMesh *dm= get_cddm(md->scene, ob, editData, derivedData, vertexCos);
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
 			     vertexCos, numVerts);
 
-	dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 /* UVProject */
@@ -4447,36 +4459,26 @@ static void smoothModifier_deformVerts(
 				       ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	   float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm;
-
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_mesh(ob->data, ob);
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	DerivedMesh *dm= get_dm(md->scene, ob, NULL, derivedData, NULL, 0);
 
 	smoothModifier_do((SmoothModifierData *)md, ob, dm,
 			   vertexCos, numVerts);
 
-	dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static void smoothModifier_deformVertsEM(
 					 ModifierData *md, Object *ob, EditMesh *editData,
       DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm;
-
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_editmesh(editData, ob->data);
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	DerivedMesh *dm= get_dm(md->scene, ob, editData, derivedData, NULL, 0);
 
 	smoothModifier_do((SmoothModifierData *)md, ob, dm,
 			   vertexCos, numVerts);
 
-	dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 /* Cast */
@@ -5027,11 +5029,8 @@ static void castModifier_deformVerts(
 				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm = derivedData;
+	DerivedMesh *dm = get_dm(md->scene, ob, NULL, derivedData, NULL, 0);
 	CastModifierData *cmd = (CastModifierData *)md;
-
-	if (!dm && ob->type == OB_MESH)
-		dm = CDDM_from_mesh(ob->data, ob);
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
 		castModifier_cuboid_do(cmd, ob, dm, vertexCos, numVerts);
@@ -5039,18 +5038,16 @@ static void castModifier_deformVerts(
 		castModifier_sphere_do(cmd, ob, dm, vertexCos, numVerts);
 	}
 
-	if (!derivedData && dm) dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static void castModifier_deformVertsEM(
 				       ModifierData *md, Object *ob, EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = derivedData;
+	DerivedMesh *dm = get_dm(md->scene, ob, editData, derivedData, NULL, 0);
 	CastModifierData *cmd = (CastModifierData *)md;
-
-	if (!dm && ob->type == OB_MESH)
-		dm = CDDM_from_editmesh(editData, ob->data);
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
 		castModifier_cuboid_do(cmd, ob, dm, vertexCos, numVerts);
@@ -5058,7 +5055,8 @@ static void castModifier_deformVertsEM(
 		castModifier_sphere_do(cmd, ob, dm, vertexCos, numVerts);
 	}
 
-	if (!derivedData && dm) dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 /* Wave */
@@ -5429,45 +5427,36 @@ static void waveModifier_deformVerts(
 				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm;
+	DerivedMesh *dm= derivedData;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
-	if(!wmd->texture && !wmd->defgrp_name[0] && !(wmd->flag & MOD_WAVE_NORM))
-		dm = derivedData;
-	else if(derivedData) dm = derivedData;
-	else if(ob->type == OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
-	else return;
-
-	if(wmd->flag & MOD_WAVE_NORM) {
-		CDDM_apply_vert_coords(dm, vertexCos);
-		CDDM_calc_normals(dm);
-	}
+	if(wmd->flag & MOD_WAVE_NORM)
+		dm= get_cddm(md->scene, ob, NULL, dm, vertexCos);
+	else if(wmd->texture || wmd->defgrp_name[0])
+		dm= get_dm(md->scene, ob, NULL, dm, NULL, 0);
 
 	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
 
-	if(dm != derivedData) dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static void waveModifier_deformVertsEM(
 				       ModifierData *md, Object *ob, EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm;
+	DerivedMesh *dm= derivedData;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
-	if(!wmd->texture && !wmd->defgrp_name[0] && !(wmd->flag & MOD_WAVE_NORM))
-		dm = derivedData;
-	else if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_editmesh(editData, ob->data);
-
-	if(wmd->flag & MOD_WAVE_NORM) {
-		CDDM_apply_vert_coords(dm, vertexCos);
-		CDDM_calc_normals(dm);
-	}
+	if(wmd->flag & MOD_WAVE_NORM)
+		dm= get_cddm(md->scene, ob, editData, dm, vertexCos);
+	else if(wmd->texture || wmd->defgrp_name[0])
+		dm= get_dm(md->scene, ob, editData, dm, NULL, 0);
 
 	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
 
-	if(dm != derivedData) dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 /* Armature */
@@ -6289,18 +6278,12 @@ static void smokeModifier_deformVerts(
       float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	SmokeModifierData *smd = (SmokeModifierData*) md;
-	DerivedMesh *dm = NULL;
-
-	if(derivedData) dm = derivedData;
-	else if(ob->type == OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
-	else return;
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	DerivedMesh *dm = dm= get_cddm(md->scene, ob, NULL, derivedData, vertexCos);
 
 	smokeModifier_do(smd, md->scene, ob, dm, useRenderParams, isFinalCalc);
 
-	if(dm != derivedData) dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static int smokeModifier_dependsOnTime(ModifierData *md)
@@ -6701,7 +6684,7 @@ static void surfaceModifier_deformVerts(
 
 	/* if possible use/create DerivedMesh */
 	if(derivedData) surmd->dm = CDDM_copy(derivedData);
-	else surmd->dm = get_original_dm(md->scene, ob, NULL, 0);
+	else surmd->dm = get_dm(md->scene, ob, NULL, NULL, NULL, 0);
 	
 	if(!ob->pd)
 	{
@@ -6944,7 +6927,7 @@ static void particleSystemModifier_deformVerts(
 		return;
 
 	if(dm==0) {
-		dm= get_original_dm(md->scene, ob, vertexCos, 1);
+		dm= get_dm(md->scene, ob, NULL, NULL, vertexCos, 1);
 
 		if(!dm)
 			return;
@@ -8345,7 +8328,7 @@ static void meshdeformModifier_do(
 	/* if we don't have one computed, use derivedmesh from data
 	 * without any modifiers */
 	if(!cagedm) {
-		cagedm= get_original_dm(md->scene, mmd->object, NULL, 0);
+		cagedm= get_dm(md->scene, mmd->object, NULL, NULL, NULL, 0);
 		if(cagedm)
 			cagedm->needsFree= 1;
 	}
@@ -8481,14 +8464,10 @@ static void meshdeformModifier_deformVerts(
 					   ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm;
+	DerivedMesh *dm= get_dm(md->scene, ob, NULL, derivedData, NULL, 0);;
 
-	if (!derivedData) {
-		dm= get_original_dm(md->scene, ob, NULL, 0);
-		if (dm == NULL) return;
-	}
-	else dm= derivedData;
-
+	if(!dm)
+		return;
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
@@ -8625,52 +8604,31 @@ static void shrinkwrapModifier_foreachObjectLink(ModifierData *md, Object *ob, O
 
 static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm = NULL;
+	DerivedMesh *dm = derivedData;
 	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(ob, md);
 
-	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	/* ensure we get a CDDM with applied vertex coords */
 	if(dataMask)
-	{
-		if(derivedData) dm = CDDM_copy(derivedData);
-		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
-		else if(ob->type==OB_LATTICE) dm = NULL;
-		else return;
-
-		if(dm != NULL && (dataMask & (1<<CD_MVERT)))
-		{
-			CDDM_apply_vert_coords(dm, vertexCos);
-			CDDM_calc_normals(dm);
-		}
-	}
+		dm= get_cddm(md->scene, ob, NULL, dm, vertexCos);
 
 	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, md->scene, ob, dm, vertexCos, numVerts);
 
-	if(dm)
+	if(dm != derivedData)
 		dm->release(dm);
 }
 
 static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = NULL;
+	DerivedMesh *dm = derivedData;
 	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(ob, md);
 
+	/* ensure we get a CDDM with applied vertex coords */
 	if(dataMask)
-	{
-		if(derivedData) dm = CDDM_copy(derivedData);
-		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
-		else if(ob->type==OB_LATTICE) dm = NULL;
-		else return;
-
-		if(dm != NULL && (dataMask & (1<<CD_MVERT)))
-		{
-			CDDM_apply_vert_coords(dm, vertexCos);
-			CDDM_calc_normals(dm);
-		}
-	}
+		dm= get_cddm(md->scene, ob, editData, dm, vertexCos);
 
 	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, md->scene, ob, dm, vertexCos, numVerts);
 
-	if(dm)
+	if(dm != derivedData)
 		dm->release(dm);
 }
 
@@ -8739,54 +8697,33 @@ static void simpledeformModifier_updateDepgraph(ModifierData *md, DagForest *for
 
 static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm = NULL;
+	DerivedMesh *dm = derivedData;
 	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(ob, md);
 
-	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	/* we implement requiredDataMask but thats not really usefull since
+	   mesh_calc_modifiers pass a NULL derivedData */
 	if(dataMask)
-	{
-		if(derivedData) dm = CDDM_copy(derivedData);
-		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
-		else if(ob->type==OB_LATTICE) dm = NULL;
-		else return;
-
-		if(dm != NULL && (dataMask & CD_MVERT))
-		{
-			CDDM_apply_vert_coords(dm, vertexCos);
-			CDDM_calc_normals(dm);
-		}
-	}
+		dm= get_dm(md->scene, ob, NULL, dm, NULL, 0);
 
 	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
 
-	if(dm)
+	if(dm != derivedData)
 		dm->release(dm);
-
 }
 
 static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = NULL;
+	DerivedMesh *dm = derivedData;
 	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(ob, md);
 
-	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	/* we implement requiredDataMask but thats not really usefull since
+	   mesh_calc_modifiers pass a NULL derivedData */
 	if(dataMask)
-	{
-		if(derivedData) dm = CDDM_copy(derivedData);
-		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
-		else if(ob->type==OB_LATTICE) dm = NULL;
-		else return;
-
-		if(dm != NULL && (dataMask & CD_MVERT))
-		{
-			CDDM_apply_vert_coords(dm, vertexCos);
-			CDDM_calc_normals(dm);
-		}
-	}
+		dm= get_dm(md->scene, ob, editData, dm, NULL, 0);
 
 	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
 
-	if(dm)
+	if(dm != derivedData)
 		dm->release(dm);
 }
 
