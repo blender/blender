@@ -930,7 +930,7 @@ static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
 		return PointerRNA_NULL;
 	
 	kb= BLI_findlink(&key->block, ob->shapenr-1);
-	RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &keyptr);
+	RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
 	return keyptr;
 }
 

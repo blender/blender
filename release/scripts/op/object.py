@@ -176,11 +176,12 @@ class ShapeTransfer(bpy.types.Operator):
         def me_cos(verts):
             return [v.co.copy() for v in verts]
 
-        def ob_add_shape(ob):
+        def ob_add_shape(ob, name):
             me = ob.data
-            ob.add_shape_key(from_mix=False)
+            key = ob.add_shape_key(from_mix=False)
             if len(me.shape_keys.keys) == 1:
-                ob.add_shape_key(from_mix=False) # we need a rest
+                key = ob.add_shape_key(from_mix=False) # we need a rest
+            key.name = name
             ob.active_shape_key_index = len(me.shape_keys.keys) - 1
             ob.shape_key_lock = True
 
@@ -191,6 +192,7 @@ class ShapeTransfer(bpy.types.Operator):
             use_clamp = False
 
         me = ob_act.data
+        orig_key_name = ob_act.active_shape_key.name
 
         orig_shape_coords = me_cos(ob_act.active_shape_key.data)
 
@@ -206,7 +208,7 @@ class ShapeTransfer(bpy.types.Operator):
             target_normals = me_nos(me_other.verts)
             target_coords = me_cos(me_other.verts)
 
-            ob_add_shape(ob_other)
+            ob_add_shape(ob_other, orig_key_name)
 
             # editing the final coords, only list that stores wrapped coords
             target_shape_coords = [v.co for v in ob_other.active_shape_key.data]
