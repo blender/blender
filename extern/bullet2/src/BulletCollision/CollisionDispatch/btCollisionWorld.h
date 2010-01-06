@@ -354,7 +354,7 @@ public:
 
 	/// rayTest performs a raycast on all objects in the btCollisionWorld, and calls the resultCallback
 	/// This allows for several queries: first hit, all hits, any hit, dependent on the value returned by the callback.
-	void	rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback) const; 
+	virtual void rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback) const; 
 
 	// convexTest performs a swept convex cast on all objects in the btCollisionWorld, and calls the resultCallback
 	// This allows for several queries: first hit, all hits, any hit, dependent on the value return by the callback.
