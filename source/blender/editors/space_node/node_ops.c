@@ -109,6 +109,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 		RNA_boolean_set(kmi->ptr, "extend", 1);
 	kmi= WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
 		RNA_boolean_set(kmi->ptr, "extend", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "NODE_OT_select_border", EVT_TWEAK_S, KM_ANY, 0, 0)->ptr, "tweak", 1);
 	
 	/* each of these falls through if not handled... */
 	WM_keymap_add_item(keymap, "NODE_OT_link", LEFTMOUSE, KM_PRESS, 0, 0);

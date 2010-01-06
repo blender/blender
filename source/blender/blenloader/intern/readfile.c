@@ -2129,23 +2129,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		link->fromsock= newdataadr(fd, link->fromsock);
 		link->tosock= newdataadr(fd, link->tosock);
 	}
-	
-	/* set selin and selout */
-	for(node= ntree->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next) {
-			if(sock->flag & SOCK_SEL) {
-				ntree->selin= sock;
-				break;
-			}
-		}
-		for(sock= node->outputs.first; sock; sock= sock->next) {
-			if(sock->flag & SOCK_SEL) {
-				ntree->selout= sock;
-				break;
-			}
-		}
-	}
-	
+		
 	/* type verification is in lib-link */
 }
 

@@ -222,116 +222,6 @@ void snode_handle_recalc(bContext *C, SpaceNode *snode)
 		WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, snode->id);
 }
 
-#if 0
-static int image_detect_file_sequence(int *start_p, int *frames_p, char *str)
-{
-	SpaceFile *sfile;
-	char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX], filename[FILE_MAX];
-	int a, frame, totframe, found, minframe;
-	unsigned short numlen;
-
-	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
-	if(sfile==NULL || sfile->filelist==NULL)
-		return 0;
-
-	/* find first frame */
-	found= 0;
-	minframe= 0;
-
-	for(a=0; a<sfile->totfile; a++) {
-		if(sfile->filelist[a].flags & ACTIVE) {
-			BLI_strncpy(name, sfile->filelist[a].relname, sizeof(name));
-			frame= BLI_stringdec(name, head, tail, &numlen);
-
-			if(!found || frame < minframe) {
-				BLI_strncpy(filename, name, sizeof(name));
-				minframe= frame;
-				found= 1;
-			}
-		}
-	}
-
-	/* not one frame found */
-	if(!found)
-		return 0;
-
-	/* counter number of following frames */
-	found= 1;
-	totframe= 0;
-
-	for(frame=minframe; found; frame++) {
-		found= 0;
-		BLI_strncpy(name, filename, sizeof(name));
-		BLI_stringenc(name, head, tail, numlen, frame);
-
-		for(a=0; a<sfile->totfile; a++) {
-			if(sfile->filelist[a].flags & ACTIVE) {
-				if(strcmp(sfile->filelist[a].relname, name) == 0) {
-					found= 1;
-					totframe++;
-					break;
-				}
-			}
-		}
-	}
-
-	if(totframe > 1) {
-		BLI_strncpy(str, sfile->dir, sizeof(name));
-		strcat(str, filename);
-
-		*start_p= minframe;
-		*frames_p= totframe;
-		return 1;
-	}
-
-	return 0;
-}
-
-static void load_node_image(char *str)	/* called from fileselect */
-{
-	SpaceNode *snode= curarea->spacedata.first;
-	bNode *node= nodeGetActive(snode->edittree);
-	Image *ima= NULL;
-	ImageUser *iuser= node->storage;
-	char filename[FILE_MAX];
-	int start=0, frames=0, sequence;
-
-	sequence= image_detect_file_sequence(&start, &frames, filename);
-	if(sequence)
-		str= filename;
-	
-	ima= BKE_add_image_file(str);
-	if(ima) {
-		if(node->id)
-			node->id->us--;
-		
-		node->id= &ima->id;
-		id_us_plus(node->id);
-
-		BLI_strncpy(node->name, node->id->name+2, 21);
-
-		if(sequence) {
-			ima->source= IMA_SRC_SEQUENCE;
-			iuser->frames= frames;
-			iuser->offset= start-1;
-		}
-				   
-		BKE_image_signal(ima, node->storage, IMA_SIGNAL_RELOAD);
-		
-		NodeTagChanged(snode->edittree, node);
-		// XXX snode_handle_recalc(C, snode);
-	}
-}
-
-static void set_node_imagepath(char *str)	/* called from fileselect */
-{
-	SpaceNode *snode= curarea->spacedata.first;
-	bNode *node= nodeGetActive(snode->edittree);
-	BLI_strncpy(((NodeImageFile *)node->storage)->name, str, sizeof( ((NodeImageFile *)node->storage)->name ));
-}
-
-#endif /* 0 */
-
 bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 {
 	bNode *gnode;
@@ -343,93 +233,6 @@ bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 	return gnode;
 }
 
-#if 0
-
-static void composit_node_event(SpaceNode *snode, short event)
-{
-	
-	switch(event) {
-		case B_REDR:
-			// allqueue(REDRAWNODE, 1);
-			break;
-		case B_NODE_SETIMAGE:
-		{
-			bNode *node= nodeGetActive(snode->edittree);
-			char name[FILE_MAXDIR+FILE_MAXFILE];
-			
-			strcpy(name, ((NodeImageFile *)node->storage)->name);
-			if (G.qual & LR_CTRLKEY) {
-				activate_imageselect(FILE_SPECIAL, "SELECT OUTPUT DIR", name, set_node_imagepath);
-			} else {
-				activate_fileselect(FILE_SPECIAL, "SELECT OUTPUT DIR", name, set_node_imagepath);
-			}
-			break;
-		}
-		case B_NODE_TREE_EXEC:
-			// XXX			snode_handle_recalc(snode);
-			break;		
-		default:
-			/* B_NODE_EXEC */
-		{
-			bNode *node= BLI_findlink(&snode->edittree->nodes, event-B_NODE_EXEC);
-			if(node) {
-				NodeTagChanged(snode->edittree, node);
-				/* don't use NodeTagIDChanged, it gives far too many recomposites for image, scene layers, ... */
-				
-				/* not the best implementation of the world... but we need it to work now :) */
-				if(node->type==CMP_NODE_R_LAYERS && node->custom2) {
-					/* add event for this window (after render curarea can be changed) */
-					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
-					
-					composite_node_render(snode, node);
-					// XXX			snode_handle_recalc(snode);
-					
-					/* add another event, a render can go fullscreen and open new window */
-					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
-				}
-				else {
-					node= node_tree_get_editgroup(snode->nodetree);
-					if(node)
-						NodeTagIDChanged(snode->nodetree, node->id);
-					
-					// XXX			snode_handle_recalc(snode);
-				}
-			}
-		}			
-	}
-}
-
-static void texture_node_event(SpaceNode *snode, short event)
-{
-	switch(event) {
-		case B_REDR:
-			// allqueue(REDRAWNODE, 1);
-			break;
-		case B_NODE_LOADIMAGE:
-		{
-			bNode *node= nodeGetActive(snode->edittree);
-			char name[FILE_MAXDIR+FILE_MAXFILE];
-			
-			if(node->id)
-				strcpy(name, ((Image *)node->id)->name);
-			else strcpy(name, U.textudir);
-			if (G.qual & LR_CTRLKEY) {
-				activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
-			} else {
-				activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
-			}
-			break;
-		}
-		default:
-			/* B_NODE_EXEC */
-			ntreeTexCheckCyclics( snode->nodetree );
-			// XXX			snode_handle_recalc(snode);
-			// allqueue(REDRAWNODE, 1);
-			break;
-	}
-}
-
-#endif /* 0  */
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
 void ED_node_shader_default(Material *ma)
@@ -620,29 +423,6 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 		node_tree_from_ID(snode->id, &snode->nodetree, &snode->edittree, NULL);
 }
 
-#if 0
-/* on activate image viewer, check if we show it */
-static void node_active_image(Image *ima)
-{
-	ScrArea *sa;
-	SpaceImage *sima= NULL;
-	
-	/* find an imagewindow showing render result */
-	for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_IMAGE) {
-			sima= sa->spacedata.first;
-			if(sima->image && sima->image->source!=IMA_SRC_VIEWER)
-				break;
-		}
-	}
-	if(sa && sima) {
-		sima->image= ima;
-		scrarea_queue_winredraw(sa);
-		scrarea_queue_headredraw(sa);
-	}
-}
-#endif /* 0 */
-
 void node_set_active(SpaceNode *snode, bNode *node)
 {
 	nodeSetActive(snode->edittree, node);
@@ -692,18 +472,9 @@ void node_set_active(SpaceNode *snode, bNode *node)
 				/* addnode() doesnt link this yet... */
 				node->id= (ID *)BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 			}
-			else if(node->type==CMP_NODE_IMAGE) {
-				// XXX
-#if 0
-				if(node->id)
-					node_active_image((Image *)node->id);
-#endif
-			}
 			else if(node->type==CMP_NODE_R_LAYERS) {
 				if(node->id==NULL || node->id==(ID *)scene) {
 					scene->r.actlay= node->custom1;
-					// XXX
-					// allqueue(REDRAWBUTSSCENE, 0);
 				}
 			}
 		}
@@ -765,13 +536,6 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 		snode->edittree= snode->nodetree;
 	
 	ntreeSolveOrder(snode->nodetree);
-	
-	/* finally send out events for new active node */
-	if(snode->treetype==NTREE_SHADER) {
-		// allqueue(REDRAWBUTSSHADING, 0);
-		
-		// XXX BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
-	}
 }
 
 static int node_group_edit_exec(bContext *C, wmOperator *op)
@@ -1096,30 +860,7 @@ void NODE_OT_resize(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING;
 }
 
-
-#if 0
-
 /* ********************** select ******************** */
-
-/* used in buttons to check context, also checks for edited groups */
-bNode *editnode_get_active_idnode(bNodeTree *ntree, short id_code)
-{
-	return nodeGetActiveID(ntree, id_code);
-}
-
-/* used in buttons to check context, also checks for edited groups */
-Material *editnode_get_active_material(Material *ma)
-{
-	if(ma && ma->use_nodes && ma->nodetree) {
-		bNode *node= editnode_get_active_idnode(ma->nodetree, ID_MA);
-		if(node)
-			return (Material *)node->id;
-		else
-			return NULL;
-	}
-	return ma;
-}
-#endif /* 0 */
 
 
 /* no undo here! */
@@ -1172,8 +913,6 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 			link->fromnode= tonode;
 			link->fromsock= tonode->outputs.first;
 			NodeTagChanged(snode->edittree, node);
-			
-// XXX			snode_handle_recalc(snode);
 		}
 	}
 }
@@ -1558,24 +1297,6 @@ typedef struct NodeLinkDrag
 	bNodeLink *link;
 	int in_out;
 } NodeLinkDrag;
-
-/*static*/ void reset_sel_socket(SpaceNode *snode, int in_out)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(in_out & SOCK_IN) {
-			for(sock= node->inputs.first; sock; sock= sock->next)
-				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
-		}
-		if(in_out & SOCK_OUT) {
-			for(sock= node->outputs.first; sock; sock= sock->next)
-				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
-		}
-	}
-}
-
 
 static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeLink *link)
 {
@@ -2125,18 +1846,10 @@ static int node_delete_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node, *next;
-	bNodeSocket *sock;
 	
 	for(node= snode->edittree->nodes.first; node; node= next) {
 		next= node->next;
 		if(node->flag & SELECT) {
-			/* set selin and selout NULL if the sockets belong to a node to be deleted */
-			for(sock= node->inputs.first; sock; sock= sock->next)
-				if(snode->edittree->selin == sock) snode->edittree->selin= NULL;
-			
-			for(sock= node->outputs.first; sock; sock= sock->next)
-				if(snode->edittree->selout == sock) snode->edittree->selout= NULL;
-				
 			/* check id user here, nodeFreeNode is called for free dbase too */
 			if(node->id)
 				node->id->us--;

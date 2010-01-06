@@ -55,7 +55,21 @@
 #include "UI_view2d.h"
  
 #include "node_intern.h"
- 
+
+/* ****** helpers ****** */
+
+static bNode *node_under_mouse(bNodeTree *ntree, int mx, int my)
+{
+	bNode *node;
+	
+	for(next_node(ntree); (node=next_node(NULL));) {
+		/* node body (header and scale are in other operators) */
+		if (BLI_in_rctf(&node->totr, mx, my))
+			return node;
+	}
+	return NULL;
+}
+
 /* ****** Click Select ****** */
  
 static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, short extend)
@@ -70,11 +84,7 @@ static bNode *node_mouse_select(SpaceNode *snode, ARegion *ar, short *mval, shor
 	UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &mx, &my);
 	
 	/* find the closest visible node */
-	for(next_node(snode->edittree); (node=next_node(NULL));) {
-		/* node body (header and scale are in other operators) */
-		if (BLI_in_rctf(&node->totr, mx, my))
-			break;
-	}
+	node = node_under_mouse(snode->edittree, mx, my);
 	
 	if (node) {
 		if (extend == 0) {
@@ -177,9 +187,6 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 	UI_view2d_region_to_view(&ar->v2d, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
 	
-	if (snode->edittree == NULL) // XXX should this be in poll()? - campbell
-		return OPERATOR_FINISHED;
-
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(BLI_isect_rctf(&rectf, &node->totr, NULL)) {
 			if(gesture_mode==GESTURE_MODAL_SELECT)
@@ -194,6 +201,34 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static int node_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int tweak = RNA_boolean_get(op->ptr, "tweak");
+	
+	if (tweak) {
+		/* prevent initiating the border select if the mouse is over a node */
+		/* this allows border select on empty space, but drag-translate on nodes */
+		SpaceNode *snode= CTX_wm_space_node(C);
+		ARegion *ar= CTX_wm_region(C);
+		short mval[2];
+		float mx, my;
+		
+		mval[0]= event->x - ar->winrct.xmin;
+		mval[1]= event->y - ar->winrct.ymin;
+		
+		/* get mouse coordinates in view2d space */
+		mx= (float)mval[0];
+		my= (float)mval[1];
+		
+		UI_view2d_region_to_view(&ar->v2d, mval[0], mval[1], &mx, &my);
+		
+		if (node_under_mouse(snode->edittree, mx, my))
+			return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
+	}
+	
+	return WM_border_select_invoke(C, op, event);
+}
+
 void NODE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -201,7 +236,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	ot->idname= "NODE_OT_select_border";
 	
 	/* api callbacks */
-	ot->invoke= WM_border_select_invoke;
+	ot->invoke= node_border_select_invoke;
 	ot->exec= node_borderselect_exec;
 	ot->modal= WM_border_select_modal;
 	
@@ -212,6 +247,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	
 	/* rna */
 	WM_operator_properties_gesture_border(ot, FALSE);
+	RNA_def_boolean(ot->srna, "tweak", 0, "Tweak", "Only activate when mouse is not over a node - useful for tweak gesture");
 }
 
 /* ****** Select/Deselect All ****** */

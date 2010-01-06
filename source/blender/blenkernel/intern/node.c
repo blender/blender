@@ -531,20 +531,6 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 			node->locx-= 0.5f*(min[0]+max[0]);
 			node->locy-= 0.5f*(min[1]+max[1]);
 
-			/* set selin and selout of the nodetree */
-			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(sock->flag & SOCK_SEL) {
-					ngroup->selin= sock;
-					break;
-				}
-			}
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(sock->flag & SOCK_SEL) {
-					ngroup->selout= sock;
-					break;
-				}
-			}
-
 			/* set socket own_index to zero since it can still have a value
 			 * from being in a group before, otherwise it doesn't get a unique
 			 * index in group_verify_own_indices */
@@ -1133,28 +1119,6 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 			if(internal_select) {
 				node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
 				nnode->flag |= NODE_SELECT;
-			}
-
-			/* deselect original sockets */
-			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
-			}
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
-			}
-			
-			/* set tree selin and selout to new sockets */
-			for(sock= nnode->inputs.first; sock; sock= sock->next) {
-				if(sock->flag & SOCK_SEL) {
-					ntree->selin= sock;
-					break;
-				}
-			}
-			for(sock= nnode->outputs.first; sock; sock= sock->next) {
-				if(sock->flag & SOCK_SEL) {
-					ntree->selout= sock;
-					break;
-				}
 			}
 		}
 		if(node==last) break;
