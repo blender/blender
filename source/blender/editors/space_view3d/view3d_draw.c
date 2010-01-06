@@ -1953,8 +1953,16 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	G.f |= G_RENDER_OGL;
 	GPU_free_images();
 
-	/* set background color */
-	glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
+	/* set background color, fallback on the view background color */
+	if(scene->world) {
+		glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
+	}
+	else {
+		float col[3];
+		UI_GetThemeColor3fv(TH_BACK, col);
+		glClearColor(col[0], col[1], col[2], 0.0); 	
+	}
+
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 	/* setup view matrices */
