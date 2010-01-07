@@ -37,6 +37,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_editVert.h"	/* lasso tessellation */
+#include "BLI_scanfill.h"	/* lasso tessellation */
 
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
@@ -209,69 +211,47 @@ static void wm_gesture_draw_circle(wmWindow *win, wmGesture *gt)
 	
 }
 
-#ifndef WIN32
-/* Disabled for now, causing problems on Windows.. */
-
-/* more than 64 intersections will just leak.. not much and not a likely scenario */
-typedef struct TessData { int num; short *intersections[64]; } TessData;
-
-static void combine_cb(GLdouble coords[3], GLdouble *vertex_data[4], GLfloat weight[4], void **dataOut, void *data)
+static void draw_filled_lasso(wmGesture *gt)
 {
-	short *vertex;
-	TessData *td = (TessData *)data;
-	vertex = (short *)malloc(2*sizeof(short));
-	vertex[0] = (short)coords[0];
-	vertex[1] = (short)coords[1];
-	*dataOut = vertex;
-
-	if (td->num < 64) {
-		td->intersections[td->num++] = vertex;
-	}
-}
-
-static void free_tess_data(GLUtesselator *tess, TessData *td)
-{
+	EditVert *v, *lastv=NULL, *firstv=NULL;
+	EditEdge *e;
+	EditFace *efa;
+	short *lasso= (short *)gt->customdata;
 	int i;
-	for (i=0; i<td->num; i++) {
-		free(td->intersections[i]);
+	
+	for (i=0; i<gt->points; i++, lasso+=2) {
+		float co[3] = {(float)lasso[0], (float)lasso[1], 0.f};
+		
+		v = BLI_addfillvert(co);
+		if (lastv)
+			e = BLI_addfilledge(lastv, v);
+		lastv = v;
+        if (firstv==NULL) firstv = v;
 	}
-	MEM_freeN(td);
-	td = NULL;
-	gluDeleteTess(tess);
+	
+	BLI_addfilledge(firstv, v);
+	BLI_edgefill(0, 0);
+	
+	glEnable(GL_BLEND);
+	glColor4f(1.0, 1.0, 1.0, 0.05);
+	glBegin(GL_TRIANGLES);
+	for (efa = fillfacebase.first; efa; efa=efa->next) {
+		glVertex2f(efa->v1->co[0], efa->v1->co[1]);
+		glVertex2f(efa->v2->co[0], efa->v2->co[1]);
+		glVertex2f(efa->v3->co[0], efa->v3->co[1]);
+	}
+	glEnd();
+	glDisable(GL_BLEND);
+	
+	BLI_end_edgefill();
 }
-
-#endif
 
 static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt)
 {
 	short *lasso= (short *)gt->customdata;
 	int i;
 
-#ifndef WIN32
-	TessData *data=MEM_callocN(sizeof(TessData), "tesselation data");
-	GLUtesselator *tess = gluNewTess();
-	
-	/* use GLU tesselator to draw a filled lasso shape */
-	gluTessCallback(tess, GLU_TESS_BEGIN, glBegin);
-	gluTessCallback(tess, GLU_TESS_VERTEX, glVertex2sv);
-	gluTessCallback(tess, GLU_TESS_END, glEnd);
-	gluTessCallback(tess, GLU_TESS_COMBINE_DATA, combine_cb);
-					
-	glEnable(GL_BLEND);
-	glColor4f(1.0, 1.0, 1.0, 0.05);
-	gluTessBeginPolygon (tess, data);
-	gluTessBeginContour (tess);
-	for (i=0; i<gt->points; i++, lasso+=2) {
-		GLdouble d_lasso[2] = {(GLdouble)lasso[0], (GLdouble)lasso[1]};
-		gluTessVertex (tess, d_lasso, lasso);
-	}
-	gluTessEndContour (tess);
-	gluTessEndPolygon (tess);
-	glDisable(GL_BLEND);
-	
-	free_tess_data(tess, data);
-
-#endif	
+	draw_filled_lasso(gt);
 	
 	glEnable(GL_LINE_STIPPLE);
 	glColor3ub(96, 96, 96);
