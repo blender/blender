@@ -351,6 +351,12 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			if(wmn->action == NA_RENAME)
 				ED_area_tag_redraw(sa);
 			break;
+		case NC_ANIMATION:
+			switch(wmn->data) {
+				case ND_KEYFRAME_EDIT:
+					ED_area_tag_redraw(sa);
+					break;
+			}
 	}
 
 	if(wmn->data == ND_KEYS)
