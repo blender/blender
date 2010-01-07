@@ -182,8 +182,11 @@ GHOST_WindowX11(
 	attributes[i++] = GLX_BLUE_SIZE;  attributes[i++] = 1;
 	attributes[i++] = GLX_GREEN_SIZE; attributes[i++] = 1;
 	attributes[i++] = GLX_DEPTH_SIZE; attributes[i++] = 1;
+	/* GLX 1.4+, multi-sample */
+	attributes[i++] = GLX_SAMPLE_BUFFERS; attributes[i++] = 1;
+	attributes[i++] = GLX_SAMPLES; attributes[i++] = m_numOfAASamples;
 	attributes[i] = None;
-	
+
 	m_visual = glXChooseVisual(m_display, DefaultScreen(m_display), attributes);
 
 	if (m_visual == NULL) {
