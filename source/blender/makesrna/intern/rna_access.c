@@ -2021,7 +2021,7 @@ int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 			if(key+1 < len) {
 				/* move element to be removed to the back */
 				memcpy(&tmp, &array[key], sizeof(IDProperty));
-				memmove(array+key, array+key+1, sizeof(IDProperty)*(len-key+1));
+				memmove(array+key, array+key+1, sizeof(IDProperty)*(len-(key+1)));
 				memcpy(&array[len-1], &tmp, sizeof(IDProperty));
 			}
 
