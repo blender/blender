@@ -10339,33 +10339,37 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			/* initialise object defaults */
 			animviz_settings_init(&ob->avs);
 			
-			/* if armature, copy settings for pose from armature data */
+			/* if armature, copy settings for pose from armature data 
+			 * performing initialisation where appropriate 
+			 */
 			if (ob->pose && ob->data) {
 				bArmature *arm= newlibadr(fd, lib, ob->data);
 				if(arm) { /* XXX - why does this fail in some cases? */
 					bAnimVizSettings *avs= &ob->pose->avs;
-
+					
 					/* ghosting settings ---------------- */
 						/* ranges */
 					avs->ghost_bc= avs->ghost_ac= arm->ghostep;
-
+					
 					avs->ghost_sf= arm->ghostsf;
 					avs->ghost_ef= arm->ghostef;
-
+					
 						/* type */
 					avs->ghost_type= arm->ghosttype;
-
+					
 						/* stepsize */
 					avs->ghost_step= arm->ghostsize;
-
+					if (avs->ghost_step == 0)
+						avs->ghost_step= 1;
+					
 					/* path settings --------------------- */
 						/* ranges */
 					avs->path_bc= arm->pathbc;
 					avs->path_ac= arm->pathac;
-
+					
 					avs->path_sf= arm->pathsf;
 					avs->path_ef= arm->pathef;
-
+					
 						/* flags */
 					if (arm->pathflag & ARM_PATH_FNUMS)
 						avs->path_viewflag |= MOTIONPATH_VIEW_FNUMS;
@@ -10373,17 +10377,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						avs->path_viewflag |= MOTIONPATH_VIEW_KFRAS;
 					if (arm->pathflag & ARM_PATH_KFNOS)
 						avs->path_viewflag |= MOTIONPATH_VIEW_KFNOS;
-
+					
 						/* bake flags */
 					if (arm->pathflag & ARM_PATH_HEADS)
 						avs->path_bakeflag |= MOTIONPATH_BAKE_HEADS;
-
+					
 						/* type */
 					if (arm->pathflag & ARM_PATH_ACFRA)
 						avs->path_type = MOTIONPATH_TYPE_ACFRA;
-
+					
 						/* stepsize */
 					avs->path_step= arm->pathsize;
+					if (avs->path_step == 0)
+						avs->path_step= 1;
 				}
 			}
 		}

@@ -1351,7 +1351,7 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL); // XXX need to be able to flush channel types
 	
 	/* display */
 	prop= RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);

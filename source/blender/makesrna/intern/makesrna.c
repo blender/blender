@@ -1996,6 +1996,7 @@ RNAProcessItem PROCESS_ITEMS[]= {
 	{"rna_texture.c", NULL, RNA_def_texture},
 	{"rna_action.c", "rna_action_api.c", RNA_def_action},
 	{"rna_animation.c", "rna_animation_api.c", RNA_def_animation},
+	{"rna_animviz.c", NULL, RNA_def_animviz},
 	{"rna_actuator.c", NULL, RNA_def_actuator},
 	{"rna_armature.c", "rna_armature_api.c", RNA_def_armature},
 	{"rna_boid.c", NULL, RNA_def_boid},

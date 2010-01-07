@@ -1559,7 +1559,7 @@ static void rna_def_object(BlenderRNA *brna)
 		 * having a single one is better for Keyframing and other property-management situations...
 		 */
 	prop= RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
-	RNA_def_property_array(prop, 4); // TODO: maybe we'll need to define the 'default value' getter too...
+	RNA_def_property_array(prop, 4);
 	RNA_def_property_float_funcs(prop, "rna_Object_rotation_axis_angle_get", "rna_Object_rotation_axis_angle_set", NULL);
 	RNA_def_property_editable_array_func(prop, "rna_Object_rotation_4d_editable");
 	RNA_def_property_float_array_default(prop, default_axisAngle);
@@ -1770,6 +1770,9 @@ static void rna_def_object(BlenderRNA *brna)
 
 	/* anim */
 	rna_def_animdata_common(srna);
+	
+	rna_def_animviz_common(srna);
+	rna_def_motionpath_common(srna);
 	
 	/* duplicates */
 	prop= RNA_def_property(srna, "track_override_parent", PROP_BOOLEAN, PROP_NONE);

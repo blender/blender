@@ -693,6 +693,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bone Paths Calculation End Frame", "End frame of range of frames to use for Bone Path calculations.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
+	rna_def_motionpath_common(srna);
+	
 	/* Relationships to other bones */
 	prop= RNA_def_property(srna, "bone", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -1115,7 +1117,8 @@ static void rna_def_pose(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_Pose_active_bone_group_index_get", "rna_Pose_active_bone_group_index_set", "rna_Pose_active_bone_group_index_range");
 	RNA_def_property_ui_text(prop, "Active Bone Group Index", "Active index in bone groups array.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
-
+	
+	/* ik solvers */
 	prop= RNA_def_property(srna, "ik_solver", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "iksolver");
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Pose_ik_solver_set", NULL);
@@ -1128,7 +1131,10 @@ static void rna_def_pose(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_Pose_ikparam_get", NULL, "rna_Pose_ikparam_typef");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "IK Param", "Parameters for IK solver.");
-
+	
+	/* animviz */
+	rna_def_animviz_common(srna);
+	
 	/* RNA_api_pose(srna); */
 }
 

@@ -44,6 +44,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
@@ -72,6 +73,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #ifdef HAVE_CONFIG_H
@@ -178,14 +180,21 @@ bMotionPath *animviz_verify_motionpaths(Scene *scene, Object *ob, bPoseChannel *
 		dst= &ob->mpath;
 	}
 	
-	/* if there is already a motionpath, just return that... */
-	// TODO: maybe we should validate the settings in this case
-	if (*dst != NULL)
-		return *dst;
+	/* if there is already a motionpath, just return that,
+	 * but provided it's settings are ok 
+	 */
+	if (*dst != NULL) {
+		mpath= *dst;
 		
-	/* create a new motionpath, and assign it */
-	mpath= MEM_callocN(sizeof(bMotionPath), "bMotionPath");
-	*dst= mpath;
+		/* if range is not invalid, and/or length is set ok, just return */
+		if ((mpath->start_frame != mpath->end_frame) && (mpath->length > 0))
+			return mpath;
+	}
+	else {
+		/* create a new motionpath, and assign it */
+		mpath= MEM_callocN(sizeof(bMotionPath), "bMotionPath");
+		*dst= mpath;
+	}
 	
 	/* set settings from the viz settings */
 	mpath->start_frame= avs->path_sf;
@@ -203,15 +212,151 @@ bMotionPath *animviz_verify_motionpaths(Scene *scene, Object *ob, bPoseChannel *
 	return mpath;
 }
 
+/* ------------------- */
+
+/* Motion path needing to be baked (mpt) */
+typedef struct MPathTarget {
+	struct MPathTarget *next, *prev;
+	
+	bMotionPath *mpath;			/* motion path in question */
+	
+	Object *ob;					/* source object */
+	bPoseChannel *pchan;		/* source posechannel (if applicable) */
+} MPathTarget;
+
+/* ........ */
+
+/* get list of motion paths to be baked (assumes the list is ready to be used) */
+static void motionpaths_get_bake_targets(Object *ob, ListBase *targets)
+{
+	MPathTarget *mpt;
+	
+	/* object itself first */
+	if ((ob->avs.recalc & ANIMVIZ_RECALC_PATHS) && (ob->mpath)) {
+		/* new target for object */
+		mpt= MEM_callocN(sizeof(MPathTarget), "MPathTarget Ob");
+		BLI_addtail(targets, mpt);
+		
+		mpt->mpath= ob->mpath;
+		mpt->ob= ob;
+	}
+	
+	/* bones */
+	if ((ob->pose) && (ob->pose->avs.recalc & ANIMVIZ_RECALC_PATHS)) {
+		bArmature *arm= ob->data;
+		bPoseChannel *pchan;
+		
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if ((pchan->bone) && (arm->layer & pchan->bone->layer) && (pchan->mpath)) {
+				/* new target for bone */
+				mpt= MEM_callocN(sizeof(MPathTarget), "MPathTarget PoseBone");
+				BLI_addtail(targets, mpt);
+				
+				mpt->mpath= pchan->mpath;
+				mpt->ob= ob;
+				mpt->pchan= pchan;
+			}
+		}
+	}
+}
+
+/* perform baking for the targets on the current frame */
+static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
+{
+	MPathTarget *mpt;
+	
+	/* for each target, check if it can be baked on the current frame */
+	for (mpt= targets->first; mpt; mpt= mpt->next) {	
+		bMotionPath *mpath= mpt->mpath;
+		bMotionPathVert *mpv;
+		
+		/* current frame must be within the range the cache works for */
+		if (IN_RANGE(CFRA, mpath->start_frame, mpath->end_frame) == 0)
+			continue;
+		
+		/* get the relevant cache vert to write to */
+		mpv= mpath->points + (CFRA - mpath->start_frame);
+		
+		/* pose-channel or object path baking? */
+		if (mpt->pchan) {
+			/* heads or tails */
+			if (mpath->flag & MOTIONPATH_FLAG_BHEAD) {
+				VECCOPY(mpv->co, mpt->pchan->pose_head);
+			}
+			else {
+				VECCOPY(mpv->co, mpt->pchan->pose_tail);
+			}
+			
+			/* result must be in worldspace */
+			mul_m4_v3(mpt->ob->obmat, mpv->co);
+		}
+		else {
+			/* worldspace object location */
+			VECCOPY(mpv->co, mpt->ob->obmat[3]);
+		}
+	}
+}
+
+/* ........ */
 
 /* Perform baking of the given object's and/or its bones' transforms to motion paths 
  *	- scene: current scene
  *	- ob: object whose flagged motionpaths should get calculated
  *	- recalc: whether we need to 
  */
+// TODO: include reports pointer?
 void animviz_calc_motionpaths(Scene *scene, Object *ob)
 {
-
+	ListBase targets = {NULL, NULL};
+	MPathTarget *mpt;
+	int sfra, efra;
+	int cfra;
+	
+	/* sanity checks */
+	if (ob == NULL)
+		return;
+		
+	/* get motion paths to affect */
+	motionpaths_get_bake_targets(ob, &targets);
+	
+	if (targets.first == NULL) 
+		return;
+	
+	/* set frame values */
+	cfra = CFRA;
+	sfra = efra = cfra;
+	
+	for (mpt= targets.first; mpt; mpt= mpt->next) {
+		/* try to increase area to do (only as much as needed) */
+		sfra= MIN2(sfra, mpt->mpath->start_frame);
+		efra= MAX2(efra, mpt->mpath->end_frame);
+	}
+	if (efra <= sfra) return;
+	
+	/* calculate path over requested range */
+	for (CFRA=sfra; CFRA<=efra; CFRA++) {
+		/* do all updates 
+		 *	- if this is too slow, resort to using a more efficient way 
+		 * 	  that doesn't force complete update, but for now, this is the
+		 *	  most accurate way!
+		 */
+		scene_update_for_newframe(scene, ob->lay); // XXX is the layer flag too restrictive?
+		
+		/* perform baking for targets */
+		motionpaths_calc_bake_targets(scene, &targets);
+	}
+	
+	/* reset original environment */
+	CFRA= cfra;
+	scene_update_for_newframe(scene, ob->lay); // XXX is the layer flag too restrictive?
+	
+		// TODO: make an API call for this too?
+	ob->avs.recalc &= ~ANIMVIZ_RECALC_PATHS;
+	if (ob->pose)
+		ob->pose->avs.recalc &= ~ANIMVIZ_RECALC_PATHS;
+	
+	/* free temp data */
+	BLI_freelistN(&targets);
 }
 
 /* ******************************************************************** */

@@ -1734,9 +1734,16 @@ static float fcurve_eval_samples (FCurve *fcu, FPoint *fpts, float evaltime)
 		cvalue= lastfpt->vec[1];
 	}
 	else {
+		float t= (float)abs(evaltime - (int)evaltime);
+		
 		/* find the one on the right frame (assume that these are spaced on 1-frame intervals) */
 		fpt= prevfpt + (int)(evaltime - prevfpt->vec[0]);
-		cvalue= fpt->vec[1];
+		
+		/* if not exactly on the frame, perform linear interpolation with the next one */
+		if (t != 0.0f) 
+			cvalue= interpf(fpt->vec[1], (fpt+1)->vec[1], t);
+		else
+			cvalue= fpt->vec[1];
 	}
 	
 	/* return value */
