@@ -148,8 +148,8 @@ def fileURL(job_id, file_index):
 def logURL(job_id, frame_number):
     return "/log_%s_%i.log" % (job_id, frame_number)
 
-def renderURL(job_id, frame_number):
-    return "/render_%s_%i.exr" % (job_id, frame_number)
+def renderURL(job_id, frame_number, exr = True):
+    return "/render_%s_%i.%s" % (job_id, frame_number, "exr" if exr else "jpg")
 
 def cancelURL(job_id):
     return "/cancel_%s" % (job_id)

@@ -174,7 +174,7 @@ class MRenderFrame(netrender.model.RenderFrame):
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 file_pattern = re.compile("/file_([a-zA-Z0-9]+)_([0-9]+)")
-render_pattern = re.compile("/render_([a-zA-Z0-9]+)_([0-9]+).exr")
+render_pattern = re.compile("/render_([a-zA-Z0-9]+)_([0-9]+).(exr|jpg)")
 log_pattern = re.compile("/log_([a-zA-Z0-9]+)_([0-9]+).log")
 reset_pattern = re.compile("/reset(all|)_([a-zA-Z0-9]+)_([0-9]+)")
 cancel_pattern = re.compile("/cancel_([a-zA-Z0-9]+)")
@@ -230,6 +230,8 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             if match:
                 job_id = match.groups()[0]
                 frame_number = int(match.groups()[1])
+                
+                exr = match.groups()[2] == "exr"
 
                 job = self.server.getJobID(job_id)
 
@@ -241,9 +243,25 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             self.send_head(http.client.ACCEPTED)
                         elif frame.status == DONE:
                             self.server.stats("", "Sending result to client")
-                            f = open(job.save_path + "%04d" % frame_number + ".exr", 'rb')
+                            
+                            if exr:
+                                f = open(job.save_path + "%04d" % frame_number + ".exr", 'rb')
+                                self.send_head(content = "image/x-exr")
+                            else:
+                                filename = job.save_path + "%04d" % frame_number + ".jpg"
+                                
+                                if not os.path.exists(filename):
+                                    import bpy
+                                    sce = bpy.data.scenes[0]
+                                    sce.render_data.file_format = "JPEG"
+                                    sce.render_data.quality = 90
+                                    bpy.ops.image.open(path = job.save_path + "%04d" % frame_number + ".exr")
+                                    img = bpy.data.images["%04d" % frame_number + ".exr"]
+                                    img.save(filename)
+                                
+                                f = open(filename, 'rb')
+                                self.send_head(content = "image/jpeg")
 
-                            self.send_head()
 
                             shutil.copyfileobj(f, self.wfile)
 

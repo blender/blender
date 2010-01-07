@@ -161,7 +161,7 @@ class MinimumTimeBetweenDispatchPriority(PriorityRule):
 
 class ExcludeQueuedEmptyJob(ExclusionRule):
     def __str__(self):
-        return "Exclude non queued and empty jobs"
+        return "Exclude non queued or empty jobs"
 
     def test(self, job):
         return job.status != JOB_QUEUED or job.countFrames(status = QUEUED) == 0

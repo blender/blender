@@ -166,7 +166,7 @@ def get(handler):
                         "done",
                         "dispatched",
                         "error",
-                        "first",
+                        "priority",
                         "exception"
                     )
 
@@ -195,7 +195,8 @@ def get(handler):
                         results[DISPATCHED],
                         str(results[ERROR]) +
                         """<button title="reset error frames" onclick="request('/reset_%s_0', null);" %s>R</button>""" % (job.id, "disabled=True" if not results[ERROR] else ""),
-                        handler.server.balancer.applyPriorities(job), handler.server.balancer.applyExceptions(job)
+                        "yes" if handler.server.balancer.applyPriorities(job) else "no",
+                        "yes" if handler.server.balancer.applyExceptions(job) else "no"
                     )
 
         endTable()
@@ -261,7 +262,15 @@ def get(handler):
             headerTable("no", "status", "render time", "slave", "log", "result")
 
             for frame in job.frames:
-                rowTable(frame.number, frame.statusText(), "%.1fs" % frame.time, frame.slave.name if frame.slave else "&nbsp;", link("view log", logURL(job_id, frame.number)) if frame.log_path else "&nbsp;", link("view result", renderURL(job_id, frame.number)) if frame.status == DONE else "&nbsp;")
+                rowTable(
+                         frame.number,
+                         frame.statusText(),
+                         "%.1fs" % frame.time,
+                         frame.slave.name if frame.slave else "&nbsp;",
+                         link("view log", logURL(job_id, frame.number)) if frame.log_path else "&nbsp;",
+                         link("view result", renderURL(job_id, frame.number))  + " [" +
+                         link("jpeg", renderURL(job_id, frame.number, exr = False)) + "]" if frame.status == DONE else "&nbsp;"
+                         )
 
             endTable()
         else:
