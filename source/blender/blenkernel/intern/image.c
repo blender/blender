@@ -1397,7 +1397,7 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	
 	BLI_make_existing_file(name);
 
-	if(scene->r.stamp & R_STAMP_ALL)
+	if(scene && scene->r.stamp & R_STAMP_ALL)
 		BKE_stamp_info(scene, ibuf);
 	
 	ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
