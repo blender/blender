@@ -159,6 +159,7 @@ void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int ver
 void ED_mesh_material_add(struct Mesh *me, struct Material *ma){}
 void ED_mesh_transform(struct Mesh *me, float *mat){}
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C){}
+int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
 int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
 void ED_object_apply_obmat(struct Object *ob){}
 void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob){}
@@ -206,6 +207,7 @@ void uiTemplateID(struct uiLayout *layout, struct bContext *C, struct PointerRNA
 struct uiLayout *uiTemplateModifier(struct uiLayout *layout, struct PointerRNA *ptr){return (struct uiLayout *) NULL;}
 struct uiLayout *uiTemplateConstraint(struct uiLayout *layout, struct PointerRNA *ptr){return (struct uiLayout *) NULL;}
 void uiTemplatePreview(struct uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot){}
+void uiTemplateIDPreview(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, int rows, int cols){}
 void uiTemplateCurveMapping(struct uiLayout *layout, struct CurveMapping *cumap, int type, int compact){}
 void uiTemplateColorRamp(struct uiLayout *layout, struct ColorBand *coba, int expand){}
 void uiTemplateLayers(struct uiLayout *layout, struct PointerRNA *ptr, char *propname){}
