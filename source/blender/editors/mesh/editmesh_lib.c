@@ -1516,7 +1516,7 @@ static short extrudeflag_edge_old(Object *obedit, EditMesh *em, short flag, floa
 	return 'n'; // normal constraint 
 }
 
-short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
+short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int all)
 {
 	/* all verts/edges/faces with (f & 'flag'): extrude */
 	/* from old verts, 'flag' is cleared, in new ones it is set */
@@ -1803,7 +1803,7 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor)
 }
 
 /* generic extrude */
-short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor)
+short extrudeflag(Object *obedit, EditMesh *em, short flag, float *nor, int all)
 {
 	if(em->selectmode & SCE_SELECT_VERTEX) {
 		EditEdge *eed;

@@ -1167,7 +1167,7 @@ static void mouse_mesh_loop(bContext *C, short mval[2], short extend, short ring
 		
 		/* sets as active, useful for other tools */
 		if(select && em->selectmode & SCE_SELECT_EDGE) {
-			EDBM_store_selection(em, eed, BM_EDGE);
+			EDBM_store_selection(em, eed);
 		}
 
 		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, vc.obedit);
