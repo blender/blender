@@ -2765,7 +2765,12 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 		}
 	}
 	else if(data->state == BUTTON_STATE_NUM_EDITING) {
-		if(event->type == MOUSEMOVE) {
+		if(event->type == ESCKEY) {
+			data->cancel= 1;
+			data->escapecancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		else if(event->type == MOUSEMOVE) {
 			if(mx!=data->draglastx || my!=data->draglasty) {
 				if(ui_numedit_but_HSVCUBE(but, data, mx, my))
 					ui_numedit_apply(C, block, but, data);
@@ -2828,8 +2833,13 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 		}
 	}
 	else if(data->state == BUTTON_STATE_NUM_EDITING) {
+		if(event->type == ESCKEY) {
+			data->cancel= 1;
+			data->escapecancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
 		/* XXX hardcoded keymap check.... */
-		if(event->type == WHEELDOWNMOUSE) {
+		else if(event->type == WHEELDOWNMOUSE) {
 			but->hsv[2]= CLAMPIS(but->hsv[2]-0.05f, 0.0f, 1.0f);
 			ui_set_but_hsv(but);	// converts to rgb
 			ui_numedit_apply(C, block, but, data);
@@ -2845,9 +2855,9 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 					ui_numedit_apply(C, block, but, data);
 			}
 		}
-		else if(event->type==LEFTMOUSE && event->val!=KM_PRESS)
+		else if(event->type==LEFTMOUSE && event->val!=KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
-		
+		}
 		return WM_UI_HANDLER_BREAK;
 	}
 	
