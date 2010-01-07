@@ -409,7 +409,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 		}
 	}
 	else {
-		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA))
+		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand)
 			uiDefAutoButR(block, ptr, prop, -1, "", 0, 0, 0, w, UI_UNIT_Y);
 
 		if(!ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) || expand) {

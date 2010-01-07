@@ -40,6 +40,7 @@
 #include "DNA_view2d_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math_color.h"
 
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
@@ -58,6 +59,178 @@
 #include "UI_resources.h"
 
 /* ********************************************************** */
+
+typedef struct Eyedropper {
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	int index;
+} Eyedropper;
+
+static int eyedropper_init(bContext *C, wmOperator *op)
+{
+	Eyedropper *eye;
+	
+	op->customdata= eye= MEM_callocN(sizeof(Eyedropper), "Eyedropper");
+	
+	uiAnimContextProperty(C, &eye->ptr, &eye->prop, &eye->index);
+	
+	return (eye->ptr.data && eye->prop && RNA_property_editable(&eye->ptr, eye->prop));
+}
+ 
+static void eyedropper_exit(bContext *C, wmOperator *op)
+{
+	WM_cursor_restore(CTX_wm_window(C));
+	
+	if(op->customdata)
+		MEM_freeN(op->customdata);
+	op->customdata= NULL;
+}
+
+static int eyedropper_cancel(bContext *C, wmOperator *op)
+{
+	eyedropper_exit(C, op);
+	return OPERATOR_CANCELLED;
+}
+
+static void eyedropper_sample(Eyedropper *eye, short mx, short my)
+{
+	float col[3];
+		
+	glReadBuffer(GL_FRONT);
+	glReadPixels(mx, my, 1, 1, GL_RGBA, GL_FLOAT, col);
+	glReadBuffer(GL_BACK);
+	
+	if(RNA_property_type(eye->prop) == PROP_FLOAT) {
+
+		if (RNA_property_array_length(&eye->ptr, eye->prop) < 3) return;
+
+		/* convert from screen (srgb) space to linear rgb space */
+		if (RNA_property_subtype(eye->prop) == PROP_COLOR)
+			srgb_to_linearrgb_v3_v3(col, col);
+		
+		RNA_property_float_set_array(&eye->ptr, eye->prop, col);
+	}
+}
+
+static void eyedropper_notify(bContext *C, wmOperator *op)
+{
+	Eyedropper *eye = (Eyedropper *)op->customdata;
+	ID *id;
+	
+	id= eye->ptr.id.data;
+	
+	if (!id) return;
+	
+	switch (GS(id->name)) {
+		case ID_OB:
+			WM_event_add_notifier(C, NC_OBJECT, NULL);
+			break;
+		case ID_MA:
+			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, NULL);
+			break;
+		case ID_TE:
+			WM_event_add_notifier(C, NC_TEXTURE, NULL);
+			break;
+		case ID_LA:
+			WM_event_add_notifier(C, NC_LAMP, NULL);
+			break;
+		case ID_WO:
+			WM_event_add_notifier(C, NC_WORLD, NULL);
+			break;
+		case ID_SCE:
+			WM_event_add_notifier(C, NC_SCENE, NULL);
+			break;
+		case ID_BR:
+			WM_event_add_notifier(C, NC_BRUSH, NULL);
+			break;
+		case ID_NT:
+			WM_event_add_notifier(C, NC_NODE, NULL);
+			break;
+	}
+}
+
+/* main modal status check */
+static int eyedropper_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Eyedropper *eye = (Eyedropper *)op->customdata;
+	
+	switch(event->type) {
+		case ESCKEY:
+		case RIGHTMOUSE:
+			return eyedropper_cancel(C, op);
+		case LEFTMOUSE:
+			if(event->val==KM_RELEASE) {
+				eyedropper_sample(eye, event->x, event->y);
+				eyedropper_notify(C, op);
+				eyedropper_exit(C, op);
+				return OPERATOR_FINISHED;
+			}
+			break;
+	}
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+/* Modal Operator init */
+static int eyedropper_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	/* init */
+	if (eyedropper_init(C, op)) {
+		WM_cursor_modal(CTX_wm_window(C), BC_EYEDROPPER_CURSOR);
+
+		/* add temp handler */
+		WM_event_add_modal_handler(C, op);
+		
+		return OPERATOR_RUNNING_MODAL;
+	} else {
+		eyedropper_exit(C, op);
+		return OPERATOR_CANCELLED;
+	}
+}
+
+/* Repeat operator */
+static int eyedropper_exec (bContext *C, wmOperator *op)
+{
+	/* init */
+	if (eyedropper_init(C, op)) {
+		
+		/* do something */
+		
+		/* cleanup */
+		eyedropper_exit(C, op);
+		
+		return OPERATOR_FINISHED;
+	} else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+static int eyedropper_poll(bContext *C)
+{
+	if (!CTX_wm_window(C)) return 0;
+	else return 1;
+}
+
+void UI_OT_eyedropper(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Eyedropper";
+	ot->idname= "UI_OT_eyedropper";
+	ot->description= "Sample a color from the Blender Window to store in a property";
+	
+	/* api callbacks */
+	ot->invoke= eyedropper_invoke;
+	ot->modal= eyedropper_modal;
+	ot->cancel= eyedropper_cancel;
+	ot->exec= eyedropper_exec;
+	ot->poll= eyedropper_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_BLOCKING;
+	
+	/* properties */
+}
+
 
 /* Copy Data Path Operator ------------------------ */
 
@@ -248,6 +421,7 @@ void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 
 void UI_buttons_operatortypes(void)
 {
+	WM_operatortype_append(UI_OT_eyedropper);
 	WM_operatortype_append(UI_OT_copy_data_path_button);
 	WM_operatortype_append(UI_OT_reset_default_button);
 	WM_operatortype_append(UI_OT_copy_to_selected_button);

@@ -402,11 +402,7 @@ static void ui_apply_but_BUTM(bContext *C, uiBut *but, uiHandleButtonData *data)
 
 static void ui_apply_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
-	if(but->type == COL) {
-		if(but->a1 != -1) // this is not a color picker (weak!)
-			ui_set_but_vectorf(but, data->vec);
-	}
-	else if(ELEM3(but->type, MENU, ICONROW, ICONTEXTROW))
+	if(ELEM3(but->type, MENU, ICONROW, ICONTEXTROW))
 		ui_set_but_val(but, data->value);
 
 	ui_check_but(but);
@@ -2586,6 +2582,7 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 					but->hsv[2]= CLAMPIS(but->hsv[2]+0.05f, 0.0f, 1.0f);
 				
 				hsv_to_rgb(but->hsv[0], but->hsv[1], but->hsv[2], data->vec, data->vec+1, data->vec+2);
+				ui_set_but_vectorf(but, data->vec);
 				
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				ui_apply_button(C, but->block, but, data, 1);
@@ -2694,6 +2691,7 @@ static int ui_do_but_NORMAL(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 
 static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, int my)
 {
+	float rgb[3], hsv[3];
 	float x, y;
 	int changed= 1;
 	int color_profile = but->block->color_profile;
@@ -2702,6 +2700,9 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
 			color_profile = BLI_PR_NONE;
 	}
+	
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 		
 	/* relative position within box */
 	x= ((float)mx-but->x1)/(but->x2-but->x1);
@@ -2710,31 +2711,29 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 	CLAMP(y, 0.0, 1.0);
 	
 	if(but->a1==0) {
-		but->hsv[0]= x; 
-		but->hsv[2]= y; 
+		hsv[0]= x; 
+		hsv[2]= y; 
 	}
 	else if(but->a1==1) {
-		but->hsv[0]= x; 				
-		but->hsv[1]= y; 				
+		hsv[0]= x; 				
+		hsv[1]= y; 				
 	}
 	else if(but->a1==2) {
-		but->hsv[2]= x; 
-		but->hsv[1]= y; 
+		hsv[2]= x; 
+		hsv[1]= y; 
 	}
 	else if(but->a1==3) {
-		but->hsv[0]= x; 
+		hsv[0]= x; 
 	}
 	else {
 		/* vertical 'value' strip */
-		but->hsv[2]= y; 
+		hsv[2]= y; 
 		if (color_profile)
-			but->hsv[2] = srgb_to_linearrgb(but->hsv[2]);
+			hsv[2] = srgb_to_linearrgb(hsv[2]);
 	}
 
-	ui_set_but_hsv(but);	// converts to rgb
-	
-	// update button values and strings
-	ui_update_block_buts_hsv(but->block, but->hsv);
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
+	ui_set_but_vectorf(but, rgb);
 
 	data->draglastx= mx;
 	data->draglasty= my;
@@ -2785,16 +2784,18 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 {
 	rcti rect;
 	int changed= 1;
-
+	float rgb[3], hsv[3];
+	
 	rect.xmin= but->x1; rect.xmax= but->x2;
 	rect.ymin= but->y1; rect.ymax= but->y2;
 	
-	ui_hsvcircle_vals_from_pos(but->hsv, but->hsv+1, &rect, (float)mx, (float)my);
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
-	ui_set_but_hsv(but);	// converts to rgb
+	ui_hsvcircle_vals_from_pos(hsv, hsv+1, &rect, (float)mx, (float)my);
 	
-	// update button values and strings
-	// XXX ui_update_block_buts_hsv(but->block, but->hsv);
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
+	ui_set_but_vectorf(but, rgb);
 	
 	data->draglastx= mx;
 	data->draglasty= my;

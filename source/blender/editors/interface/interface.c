@@ -1116,7 +1116,6 @@ void ui_get_but_vectorf(uiBut *but, float *vec)
 
 	if(but->editvec) {
 		VECCOPY(vec, but->editvec);
-		return;
 	}
 
 	if(but->rnaprop) {
@@ -1152,7 +1151,6 @@ void ui_set_but_vectorf(uiBut *but, float *vec)
 
 	if(but->editvec) {
 		VECCOPY(but->editvec, vec);
-		return;
 	}
 
 	if(but->rnaprop) {

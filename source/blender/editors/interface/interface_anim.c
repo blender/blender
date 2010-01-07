@@ -168,7 +168,7 @@ void uiAnimContextProperty(const bContext *C, struct PointerRNA *ptr, struct Pro
 	if(ar) {
 		for(block=ar->uiblocks.first; block; block=block->next) {
 			for(but=block->buttons.first; but; but= but->next) {
-				if(but->active && but->rnapoin.id.data) {
+				if((but->active || but->flag & UI_BUT_LAST_ACTIVE) && but->rnapoin.id.data) {
 					*ptr= but->rnapoin;
 					*prop= but->rnaprop;
 					*index= but->rnaindex;

@@ -571,6 +571,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
         elif context.texture_paint_object and brush:
             col = layout.column()
+            col.template_color_wheel(brush, "color", value_slider=True)
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)
@@ -610,6 +611,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
         elif context.vertex_paint_object and brush:
             col = layout.column()
+            col.template_color_wheel(brush, "color", value_slider=True)
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)

@@ -1538,12 +1538,12 @@ void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float
 	*valrad= atan2(mx, my)/(2.0f*M_PI) + 0.5f;
 }
 
-void ui_draw_but_HSVCIRCLE(uiBut *but, rcti *rect)
+void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 {
 	/* gouraud triangle fan */
 	float radstep, ang= 0.0f;
 	float centx, centy, radius;
-	float hsv[3], col[3], colcent[3];
+	float rgb[3], hsv[3], hsvo[3], col[3], colcent[3];
 	int a, tot= 32;
 	
 	radstep= 2.0f*M_PI/(float)tot;
@@ -1556,9 +1556,11 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, rcti *rect)
 		radius= (float)(rect->xmax - rect->xmin)/2; 
 	
 	/* color */
-	VECCOPY(hsv, but->hsv);
-	hsv[0]= hsv[1]= 0.0f;
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], colcent, colcent+1, colcent+2);
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	copy_v3_v3(hsvo, hsv);
+	
+	hsv_to_rgb(0.f, 0.f, hsv[2], colcent, colcent+1, colcent+2);
 	
 	glShadeModel(GL_SMOOTH);
 
@@ -1584,15 +1586,15 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, rcti *rect)
 	glTranslatef(centx, centy, 0.0f);
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH );
-	glColor3f(0.0f, 0.0f, 0.0f);
+	glColor3ubv((unsigned char*)wcol->outline);
 	glutil_draw_lined_arc(0.0f, M_PI*2.0, radius, tot);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH );
 	glPopMatrix();
 
 	/* cursor */
-	ang= 2.0f*M_PI*but->hsv[0] + 0.5f*M_PI;
-	radius= but->hsv[1]*radius;
+	ang= 2.0f*M_PI*hsvo[0] + 0.5f*M_PI;
+	radius= hsvo[1]*radius;
 	ui_hsv_cursor(centx + cos(-ang)*radius, centy + sin(-ang)*radius);
 	
 }
@@ -1603,14 +1605,13 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, rcti *rect)
 static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 {
 	int a;
-	float h,s,v;
+	float rgb[3], h,s,v;
 	float dx, dy, sx1, sx2, sy, x=0.0f, y=0.0f;
 	float col0[4][3];	// left half, rect bottom to top
 	float col1[4][3];	// right half, rect bottom to top
 	
-	h= but->hsv[0];
-	s= but->hsv[1];
-	v= but->hsv[2];
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], &h, &s, &v);
 	
 	/* draw series of gouraud rects */
 	glShadeModel(GL_SMOOTH);
@@ -1721,7 +1722,7 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	uiWidgetBase wtb;
 	float rad= 0.5f*(rect->xmax - rect->xmin);
 	float x, y;
-	float v = but->hsv[2];
+	float rgb[3], hsv[3], v;
 	int color_profile = but->block->color_profile;
 	
 	if (but->rnaprop) {
@@ -1730,6 +1731,10 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 		}
 	}
 
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	v = hsv[2];
+	
 	if (color_profile)
 		v = linearrgb_to_srgb(v);
 	
@@ -2591,7 +2596,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 				
 			case HSVCIRCLE:
-				ui_draw_but_HSVCIRCLE(but, rect);
+				ui_draw_but_HSVCIRCLE(but, &tui->wcol_regular, rect);
 				break;
 				
 			case BUT_COLORBAND:

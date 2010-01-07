@@ -475,6 +475,7 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
         if brush:
             col = layout.column()
+            col.template_color_wheel(brush, "color", value_slider=True)
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)

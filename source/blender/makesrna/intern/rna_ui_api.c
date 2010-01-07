@@ -335,6 +335,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_int(func, "active_layer", 0, 0, INT_MAX, "Active Layer", "", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	
+	func= RNA_def_function(srna, "template_color_wheel", "uiTemplateColorWheel");
+	api_ui_item_rna_common(func);
+	RNA_def_boolean(func, "value_slider", 0, "", "Display the value slider to the right of the color wheel");
+	
 	func= RNA_def_function(srna, "template_triColorSet", "uiTemplateTriColorSet");
 	api_ui_item_rna_common(func);
 

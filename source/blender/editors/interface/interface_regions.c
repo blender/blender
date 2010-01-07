@@ -1535,15 +1535,6 @@ static void ui_warp_pointer(short x, short y)
 #define DPICK	6.0
 #define BPICK	24.0
 
-#define UI_PALETTE_TOT 16
-/* note; in tot+1 the old color is stored */
-static float palette[UI_PALETTE_TOT+1][3]= {
-{0.93, 0.83, 0.81}, {0.88, 0.89, 0.73}, {0.69, 0.81, 0.57}, {0.51, 0.76, 0.64}, 
-{0.37, 0.56, 0.61}, {0.33, 0.29, 0.55}, {0.46, 0.21, 0.51}, {0.40, 0.12, 0.18}, 
-{1.0, 1.0, 1.0}, {0.85, 0.85, 0.85}, {0.7, 0.7, 0.7}, {0.56, 0.56, 0.56}, 
-{0.42, 0.42, 0.42}, {0.28, 0.28, 0.28}, {0.14, 0.14, 0.14}, {0.0, 0.0, 0.0}
-};  
-
 /* for picker, while editing hsv */
 void ui_set_but_hsv(uiBut *but)
 {
@@ -1553,50 +1544,37 @@ void ui_set_but_hsv(uiBut *but)
 	ui_set_but_vectorf(but, col);
 }
 
-static void update_picker_hex(uiBlock *block, float *rgb)
-{
-	uiBut *bt;
-	char col[16];
-	
-	sprintf(col, "%02X%02X%02X", (unsigned int)(rgb[0]*255.0), (unsigned int)(rgb[1]*255.0), (unsigned int)(rgb[2]*255.0));
-	
-	// this updates button strings, is hackish... but button pointers are on stack of caller function
-
-	for(bt= block->buttons.first; bt; bt= bt->next) {
-		if(strcmp(bt->str, "Hex: ")==0)
-			strcpy(bt->poin, col);
-
-		ui_check_but(bt);
-	}
-}
-
 /* also used by small picker, be careful with name checks below... */
-void ui_update_block_buts_hsv(uiBlock *block, float *hsv)
+void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 {
 	uiBut *bt;
-	float r, g, b;
-	float rgb[3];
+	float hsv[3];
+	
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
 	// this updates button strings, is hackish... but button pointers are on stack of caller function
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], &r, &g, &b);
-	
-	rgb[0] = r; rgb[1] = g; rgb[2] = b;
-	update_picker_hex(block, rgb);
-
 	for(bt= block->buttons.first; bt; bt= bt->next) {
-		if(ELEM(bt->type, HSVCUBE, HSVCIRCLE)) {
-			VECCOPY(bt->hsv, hsv);
-			ui_set_but_hsv(bt);
+		if (bt->rnaprop) {
+			
+			ui_set_but_vectorf(bt, rgb);
+			
+		}
+		else if(strcmp(bt->str, "Hex: ")==0) {
+			char col[16];
+			
+			sprintf(col, "%02X%02X%02X", (unsigned int)(rgb[0]*255.0), (unsigned int)(rgb[1]*255.0), (unsigned int)(rgb[2]*255.0));
+			
+			strcpy(bt->poin, col);
 		}
 		else if(bt->str[1]==' ') {
 			if(bt->str[0]=='R') {
-				ui_set_but_val(bt, r);
+				ui_set_but_val(bt, rgb[0]);
 			}
 			else if(bt->str[0]=='G') {
-				ui_set_but_val(bt, g);
+				ui_set_but_val(bt, rgb[1]);
 			}
 			else if(bt->str[0]=='B') {
-				ui_set_but_val(bt, b);
+				ui_set_but_val(bt, rgb[2]);
 			}
 			else if(bt->str[0]=='H') {
 				ui_set_but_val(bt, hsv[0]);
@@ -1613,314 +1591,65 @@ void ui_update_block_buts_hsv(uiBlock *block, float *hsv)
 	}
 }
 
-static void ui_update_block_buts_hex(uiBlock *block, char *hexcol)
+static void do_picker_rna_cb(bContext *C, void *bt1, void *unused)
 {
-	uiBut *bt;
-	float r=0, g=0, b=0;
-	float h, s, v;
+	uiBut *but= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but->block->handle;
+	PropertyRNA *prop = but->rnaprop;
+	PointerRNA ptr = but->rnapoin;
+	float rgb[3];
 	
-	
-	// this updates button strings, is hackish... but button pointers are on stack of caller function
-	hex_to_rgb(hexcol, &r, &g, &b);
-	rgb_to_hsv(r, g, b, &h, &s, &v);
-
-	for(bt= block->buttons.first; bt; bt= bt->next) {
-		if(bt->type==HSVCUBE) {
-			bt->hsv[0] = h;
-			bt->hsv[1] = s;			
-			bt->hsv[2] = v;
-			ui_set_but_hsv(bt);
-		}
-		else if(bt->str[1]==' ') {
-			if(bt->str[0]=='R') {
-				ui_set_but_val(bt, r);
-			}
-			else if(bt->str[0]=='G') {
-				ui_set_but_val(bt, g);
-			}
-			else if(bt->str[0]=='B') {
-				ui_set_but_val(bt, b);
-			}
-			else if(bt->str[0]=='H') {
-				ui_set_but_val(bt, h);
-			}
-			else if(bt->str[0]=='S') {
-				ui_set_but_val(bt, s);
-			}
-			else if(bt->str[0]=='V') {
-				ui_set_but_val(bt, v);
-			}
-		}
-
-		ui_check_but(bt);
-	}
-}
-
-/* bt1 is palette but, col1 is original color */
-/* callback to copy from/to palette */
-static void do_palette_cb(bContext *C, void *bt1, void *col1)
-{
-	wmWindow *win= CTX_wm_window(C);
-	uiBut *but1= (uiBut *)bt1;
-	uiPopupBlockHandle *popup= but1->block->handle;
-	float *col= (float *)col1;
-	float *fp, hsv[3];
-	
-	fp= (float *)but1->poin;
-	
-	if(win->eventstate->ctrl) {
-		VECCOPY(fp, col);
-	}
-	else {
-		VECCOPY(col, fp);
+	if (&ptr && prop) {
+		RNA_property_float_get_array(&ptr, prop, rgb);
+		ui_update_block_buts_rgb(but->block, rgb);
 	}
 	
-	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
-	ui_update_block_buts_hsv(but1->block, hsv);
-	update_picker_hex(but1->block, col);
-
 	if(popup)
 		popup->menuretval= UI_RETURN_UPDATE;
 }
 
-static void do_hsv_cb(bContext *C, void *bt1, void *unused)
+static void do_hsv_rna_cb(bContext *C, void *bt1, void *hsv_arg)
 {
-	uiBut *but1= (uiBut *)bt1;
-	uiPopupBlockHandle *popup= but1->block->handle;
-
-	if(popup)
-		popup->menuretval= UI_RETURN_UPDATE;
-}
-
-/* bt1 is num but, hsv1 is pointer to original color in hsv space*/
-/* callback to handle changes in num-buts in picker */
-static void do_palette1_cb(bContext *C, void *bt1, void *hsv1)
-{
-	uiBut *but1= (uiBut *)bt1;
-	uiPopupBlockHandle *popup= but1->block->handle;
-	float *hsv= (float *)hsv1;
-	float *fp= NULL;
+	uiBut *but= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but->block->handle;
+	float *hsv = (float *)hsv_arg;
+	float rgb[3];
 	
-	if(but1->str[1]==' ') {
-		if(but1->str[0]=='R') fp= (float *)but1->poin;
-		else if(but1->str[0]=='G') fp= ((float *)but1->poin)-1;
-		else if(but1->str[0]=='B') fp= ((float *)but1->poin)-2;
-	}
-	if(fp) {
-		rgb_to_hsv(fp[0], fp[1], fp[2], hsv, hsv+1, hsv+2);
-	} 
-	ui_update_block_buts_hsv(but1->block, hsv);
-
-	if(popup)
-		popup->menuretval= UI_RETURN_UPDATE;
-}
-
-/* bt1 is num but, col1 is pointer to original color */
-/* callback to handle changes in num-buts in picker */
-static void do_palette2_cb(bContext *C, void *bt1, void *col1)
-{
-	uiBut *but1= (uiBut *)bt1;
-	uiPopupBlockHandle *popup= but1->block->handle;
-	float *rgb= (float *)col1;
-	float *fp= NULL;
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
 	
-	if(but1->str[1]==' ') {
-		if(but1->str[0]=='H') fp= (float *)but1->poin;
-		else if(but1->str[0]=='S') fp= ((float *)but1->poin)-1;
-		else if(but1->str[0]=='V') fp= ((float *)but1->poin)-2;
-	}
-	if(fp) {
-		hsv_to_rgb(fp[0], fp[1], fp[2], rgb, rgb+1, rgb+2);
-	} 
-	ui_update_block_buts_hsv(but1->block, fp);
-
+	ui_update_block_buts_rgb(but->block, rgb);
+	
 	if(popup)
 		popup->menuretval= UI_RETURN_UPDATE;
 }
 
-static void do_palette_hex_cb(bContext *C, void *bt1, void *hexcl)
+static void do_hex_rna_cb(bContext *C, void *bt1, void *hexcl)
 {
-	uiBut *but1= (uiBut *)bt1;
-	uiPopupBlockHandle *popup= but1->block->handle;
+	uiBut *but= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but->block->handle;
 	char *hexcol= (char *)hexcl;
+	float rgb[3];
 	
-	ui_update_block_buts_hex(but1->block, hexcol);	
-
-	if(popup)
-		popup->menuretval= UI_RETURN_UPDATE;
-}
-
-/* used for both 3d view and image window */
-static void do_palette_sample_cb(bContext *C, void *bt1, void *col1)	/* frontbuf */
-{
-	/* XXX 2.50 this should become an operator? */
-#if 0
-	uiBut *but1= (uiBut *)bt1;
-	uiBut *but;
-	float tempcol[4];
-	int x=0, y=0;
-	short mval[2];
-	float hsv[3];
-	short capturing;
-	int oldcursor;
-	Window *win;
-	unsigned short dev;
+	hex_to_rgb(hexcol, rgb, rgb+1, rgb+2);
 	
-	oldcursor=get_cursor();
-	win=winlay_get_active_window();
-	
-	while (get_mbut() & L_MOUSE) UI_wait_for_statechange();
-	
-	SetBlenderCursor(BC_EYEDROPPER_CURSOR);
-	
-	/* loop and wait for a mouse click */
-	capturing = TRUE;
-	while(capturing) {
-		char ascii;
-		short val;
-		
-		dev = extern_qread_ext(&val, &ascii);
-		
-		if(dev==INPUTCHANGE) break;
-		if(get_mbut() & R_MOUSE) break;
-		else if(get_mbut() & L_MOUSE) {
-			uiGetMouse(mywinget(), mval);
-			x= mval[0]; y= mval[1];
-			
-			capturing = FALSE;
-			break;
-		}
-		else if(dev==ESCKEY) break;
-	}
-	window_set_cursor(win, oldcursor);
-	
-	if(capturing) return;
-	
-	if(x<0 || y<0) return;
-	
-	/* if we've got a glick, use OpenGL to sample the color under the mouse pointer */
-	glReadBuffer(GL_FRONT);
-	glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, tempcol);
-	glReadBuffer(GL_BACK);
-	
-	/* and send that color back to the picker */
-	rgb_to_hsv(tempcol[0], tempcol[1], tempcol[2], hsv, hsv+1, hsv+2);
-	ui_update_block_buts_hsv(but1->block, hsv);
-	update_picker_hex(but1->block, tempcol);
-	
-	for (but= but1->block->buttons.first; but; but= but->next) {
-		ui_check_but(but);
-		ui_draw_but(but);
-	}
-	
-	but= but1->block->buttons.first;
-	ui_block_flush_back(but->block);
-#endif
-}
-
-/* color picker, Gimp version. mode: 'f' = floating panel, 'p' =  popup */
-/* col = read/write to, hsv/old/hexcol = memory for temporal use */
-void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval)
-{
-	uiBut *bt;
-	float h, offs;
-	int a;
-
-	VECCOPY(old, col);	// old color stored there, for palette_cb to work
-	
-	// the cube intersection
-	bt= uiDefButF(block, HSVCUBE, retval, "",	0,DPICK+BPICK,FPICK,FPICK, col, 0.0, 0.0, 2, 0, "");
-	uiButSetFunc(bt, do_hsv_cb, bt, NULL);
-
-	bt= uiDefButF(block, HSVCUBE, retval, "",	0,0,FPICK,BPICK, col, 0.0, 0.0, 3, 0, "");
-	uiButSetFunc(bt, do_hsv_cb, bt, NULL);
-
-	// palette
-	
-	bt=uiDefButF(block, COL, retval, "",		FPICK+DPICK, 0, BPICK,BPICK, old, 0.0, 0.0, -1, 0, "Old color, click to restore");
-	uiButSetFunc(bt, do_palette_cb, bt, col);
-	uiDefButF(block, COL, retval, "",		FPICK+DPICK, BPICK+DPICK, BPICK,60-BPICK-DPICK, col, 0.0, 0.0, -1, 0, "Active color");
-
-	h= (DPICK+BPICK+FPICK-64)/(UI_PALETTE_TOT/2.0);
-	uiBlockBeginAlign(block);
-	for(a= -1+UI_PALETTE_TOT/2; a>=0; a--) {
-		bt= uiDefButF(block, COL, retval, "",	FPICK+DPICK, 65.0+(float)a*h, BPICK/2, h, palette[a+UI_PALETTE_TOT/2], 0.0, 0.0, -1, 0, "Click to choose, hold CTRL to store in palette");
-		uiButSetFunc(bt, do_palette_cb, bt, col);
-		bt= uiDefButF(block, COL, retval, "",	FPICK+DPICK+BPICK/2, 65.0+(float)a*h, BPICK/2, h, palette[a], 0.0, 0.0, -1, 0, "Click to choose, hold CTRL to store in palette");		
-		uiButSetFunc(bt, do_palette_cb, bt, col);
-	}
-	uiBlockEndAlign(block);
-	
-	// buttons
-	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
-	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(col[0]*255.0), (unsigned int)(col[1]*255.0), (unsigned int)(col[2]*255.0));	
-
-	offs= FPICK+2*DPICK+BPICK;
-
-	/* note; made this a TOG now, with NULL pointer. Is because BUT now gets handled with a afterfunc */
-	bt= uiDefIconTextBut(block, TOG, UI_RETURN_OK, ICON_EYEDROPPER, "Sample", offs+55, 170, 85, 20, NULL, 0, 0, 0, 0, "Sample the color underneath the following mouse click (ESC or RMB to cancel)");
-	uiButSetFunc(bt, do_palette_sample_cb, bt, col);
-	uiButSetFlag(bt, UI_TEXT_LEFT);
-	
-	bt= uiDefBut(block, TEX, retval, "Hex: ", offs, 140, 140, 20, hexcol, 0, 8, 0, 0, "Hex triplet for color (#RRGGBB)");
-	uiButSetFunc(bt, do_palette_hex_cb, bt, hexcol);
-
-	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUMSLI, retval, "R ",	offs, 110, 140,20, col, 0.0, 1.0, 10, 3, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, retval, "G ",	offs, 90, 140,20, col+1, 0.0, 1.0, 10, 3, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, retval, "B ",	offs, 70, 140,20, col+2, 0.0, 1.0, 10, 3, "");
-	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	
-	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUMSLI, retval, "H ",	offs, 40, 140,20, hsv, 0.0, 1.0, 10, 3, "");
-	uiButSetFunc(bt, do_palette2_cb, bt, col);
-	bt= uiDefButF(block, NUMSLI, retval, "S ",	offs, 20, 140,20, hsv+1, 0.0, 1.0, 10, 3, "");
-	uiButSetFunc(bt, do_palette2_cb, bt, col);
-	bt= uiDefButF(block, NUMSLI, retval, "V ",	offs, 0, 140,20, hsv+2, 0.0, 1.0, 10, 3, "");
-	uiButSetFunc(bt, do_palette2_cb, bt, col);
-	uiBlockEndAlign(block);
-}
-
-/* bt1 is num but, hsv1 is pointer to original color in hsv space*/
-/* callback to handle changes */
-static void do_picker_small_cb(bContext *C, void *bt1, void *hsv1)
-{
-	uiBut *but1= (uiBut *)bt1;
-	uiPopupBlockHandle *popup= but1->block->handle;
-	float *hsv= (float *)hsv1;
-	float *fp= NULL;
-	
-	fp= (float *)but1->poin;
-	rgb_to_hsv(fp[0], fp[1], fp[2], hsv, hsv+1, hsv+2);
-
-	ui_update_block_buts_hsv(but1->block, hsv);
+	ui_update_block_buts_rgb(but->block, rgb);
 	
 	if(popup)
 		popup->menuretval= UI_RETURN_UPDATE;
+}
+
+static void close_popup_cb(bContext *C, void *bt1, void *arg)
+{
+	uiBut *but= (uiBut *)bt1;
+	uiPopupBlockHandle *popup= but->block->handle;
+	
+	if(popup)
+		popup->menuretval= UI_RETURN_OK;
 }
 
 /* picker sizes S hsize, F full size, D spacer, B button/pallette height  */
 #define SPICK1	150.0
 #define DPICK1	6.0
-
-/* only the color, a HS circle and V slider */
-static void uiBlockPickerSmall(uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval)
-{
-	uiBut *bt;
-	
-	VECCOPY(old, col);	// old color stored there, for palette_cb to work
-	
-	/* HS circle */
-	bt= uiDefButF(block, HSVCIRCLE, retval, "",	0, 0,SPICK1,SPICK1, col, 0.0, 0.0, 0, 0, "");
-	uiButSetFunc(bt, do_picker_small_cb, bt, hsv);
-
-	/* value */
-	bt= uiDefButF(block, HSVCUBE, retval, "",	SPICK1+DPICK1,0,14,SPICK1, col, 0.0, 0.0, 4, 0, "");
-	uiButSetFunc(bt, do_picker_small_cb, bt, hsv);
-}
-
 
 static void picker_new_hide_reveal(uiBlock *block, short colormode)
 {
@@ -1950,20 +1679,22 @@ static void do_picker_new_mode_cb(bContext *C, void *bt1, void *colv)
 {
 	uiBut *bt= bt1;
 	short colormode= ui_get_but_val(bt);
-
 	picker_new_hide_reveal(bt->block, colormode);
 }
 
-
 /* a HS circle, V slider, rgb/hsv/hex sliders */
-static void uiBlockPickerNew(uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval)
+static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyRNA *prop)
 {
 	static short colormode= 0;	/* temp? 0=rgb, 1=hsv, 2=hex */
 	uiBut *bt;
-	int width;
+	int width, butwidth;
 	static char tip[50];
+	static float hsv[3];
+	static char hexcol[128];
+	const char *propname = RNA_property_identifier(prop);
 	
-	VECCOPY(old, col);	// old color stored there, for palette_cb to work
+	width= (SPICK1+DPICK1+14);
+	butwidth = width - UI_UNIT_X - 10;
 	
 	/* existence of profile means storage is in linear colour space, with display correction */
 	if (block->color_profile == BLI_PR_NONE)
@@ -1971,50 +1702,56 @@ static void uiBlockPickerNew(uiBlock *block, float *col, float *hsv, float *old,
 	else
 		sprintf(tip, "Value in Linear RGB Color Space");
 	
+	RNA_property_float_get_array(ptr, prop, rgb);
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	
 	/* HS circle */
-	bt= uiDefButF(block, HSVCIRCLE, retval, "",	0, 0,SPICK1,SPICK1, col, 0.0, 0.0, 0, 0, "");
-	uiButSetFunc(bt, do_picker_small_cb, bt, hsv);
+	bt= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, SPICK1, SPICK1, ptr, propname, -1, 0.0, 0.0, 0, 0, "");
+	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	bt= uiDefButF(block, HSVCUBE, retval, "",	SPICK1+DPICK1,0,14,SPICK1, col, 0.0, 0.0, 4, 0, "");
-	uiButSetFunc(bt, do_picker_small_cb, bt, hsv);
+	uiDefButR(block, HSVCUBE, 0, "", SPICK1+DPICK1,0,14,SPICK1, ptr, propname, -1, 0.0, 0.0, 4, 0, "");
+	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* mode */
-	width= (SPICK1+DPICK1+14)/3;
 	uiBlockBeginAlign(block);
-	bt= uiDefButS(block, ROW, retval, "RGB",	0, -30, width, 19, &colormode, 0.0, 0.0, 0, 0, "");
-	uiButSetFunc(bt, do_picker_new_mode_cb, bt, col);
-	bt= uiDefButS(block, ROW, retval, "HSV",	width, -30, width, 19, &colormode, 0.0, 1.0, 0, 0, "");
+	bt= uiDefButS(block, ROW, 0, "RGB",	0, -30, width/3, UI_UNIT_Y, &colormode, 0.0, 0.0, 0, 0, "");
+	uiButSetFunc(bt, do_picker_new_mode_cb, bt, rgb);
+	bt= uiDefButS(block, ROW, 0, "HSV",	width/3, -30, width/3, UI_UNIT_Y, &colormode, 0.0, 1.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, hsv);
-	bt= uiDefButS(block, ROW, retval, "Hex",	2*width, -30, width, 19, &colormode, 0.0, 2.0, 0, 0, "");
+	bt= uiDefButS(block, ROW, 0, "Hex",	2*width/3, -30, width/3, UI_UNIT_Y, &colormode, 0.0, 2.0, 0, 0, "");
 	uiButSetFunc(bt, do_picker_new_mode_cb, bt, hexcol);
 	uiBlockEndAlign(block);
+
+	bt= uiDefIconButO(block, BUT, "UI_OT_eyedropper", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, butwidth+10, -60, UI_UNIT_X, UI_UNIT_Y, NULL);
+	uiButSetFunc(bt, close_popup_cb, bt, NULL);
 	
-	/* sliders or hex */
-	width= (SPICK1+DPICK1+14);
-	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
-	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(col[0]*255.0), (unsigned int)(col[1]*255.0), (unsigned int)(col[2]*255.0));	
-
+	/* RGB values */
 	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUMSLI, 0, "R ",	0, -60, width, 19, col, 0.0, 1.0, 10, 3, tip);
-	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, 0, "G ",	0, -80, width, 19, col+1, 0.0, 1.0, 10, 3, tip);
-	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUMSLI, 0, "B ",	0, -100, width, 19, col+2, 0.0, 1.0, 10, 3, tip);
-	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	uiBlockEndAlign(block);
-
+	bt= uiDefButR(block, NUMSLI, 0, "R ",	0, -60, butwidth, UI_UNIT_Y, ptr, propname, 0, 0.0, 0.0, 0, 0, "");
+	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	bt= uiDefButR(block, NUMSLI, 0, "G ",	0, -80, butwidth, UI_UNIT_Y, ptr, propname, 1, 0.0, 0.0, 0, 0, "");
+	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	bt= uiDefButR(block, NUMSLI, 0, "B ",	0, -100, butwidth, UI_UNIT_Y, ptr, propname, 2, 0.0, 0.0, 0, 0, "");
+	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	// could use uiItemFullR(col, "", 0, ptr, prop, -1, 0, UI_ITEM_R_EXPAND|UI_ITEM_R_SLIDER);
+	// but need to use uiButSetFunc for updating other fake buttons
+	
+	/* HSV values */
 	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUMSLI, 0, "H ",	0, -60, width, 19, hsv, 0.0, 1.0, 10, 3, "");
-	uiButSetFunc(bt, do_palette2_cb, bt, col);
-	bt= uiDefButF(block, NUMSLI, 0, "S ",	0, -80, width, 19, hsv+1, 0.0, 1.0, 10, 3, "");
-	uiButSetFunc(bt, do_palette2_cb, bt, col);
-	bt= uiDefButF(block, NUMSLI, 0, "V ",	0, -100, width, 19, hsv+2, 0.0, 1.0, 10, 3, "");
-	uiButSetFunc(bt, do_palette2_cb, bt, col);
+	bt= uiDefButF(block, NUMSLI, 0, "H ",	0, -60, butwidth, UI_UNIT_Y, hsv, 0.0, 1.0, 10, 3, "");
+	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
+	bt= uiDefButF(block, NUMSLI, 0, "S ",	0, -80, butwidth, UI_UNIT_Y, hsv+1, 0.0, 1.0, 10, 3, "");
+	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
+	bt= uiDefButF(block, NUMSLI, 0, "V ",	0, -100, butwidth, UI_UNIT_Y, hsv+2, 0.0, 1.0, 10, 3, "");
+	uiButSetFunc(bt, do_hsv_rna_cb, bt, hsv);
 	uiBlockEndAlign(block);
+	
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(rgb[0]*255.0), (unsigned int)(rgb[1]*255.0), (unsigned int)(rgb[2]*255.0));	
 
-	bt= uiDefBut(block, TEX, 0, "Hex: ", 0, -80, width, 19, hexcol, 0, 8, 0, 0, "Hex triplet for color (#RRGGBB)");
-	uiButSetFunc(bt, do_palette_hex_cb, bt, hexcol);
+	bt= uiDefBut(block, TEX, 0, "Hex: ", 0, -60, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, "Hex triplet for color (#RRGGBB)");
+	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
 
 	picker_new_hide_reveal(block, colormode);
 }
@@ -2045,7 +1782,7 @@ static int ui_picker_small_wheel(const bContext *C, uiBlock *block, wmEvent *eve
 
 				ui_set_but_vectorf(but, col);
 				
-				ui_update_block_buts_hsv(block, but->hsv);
+				ui_update_block_buts_rgb(block, col);
 				if(popup)
 					popup->menuretval= UI_RETURN_UPDATE;
 				
@@ -2058,15 +1795,11 @@ static int ui_picker_small_wheel(const bContext *C, uiBlock *block, wmEvent *eve
 
 uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_but)
 {
-	wmWindow *win= CTX_wm_window(C); // XXX temp, needs to become keymap to detect type?
 	uiBut *but= arg_but;
 	uiBlock *block;
-	static float hsvcol[3], oldcol[3];
-	static char hexcol[128];
 	
 	block= uiBeginBlock(C, handle->region, "colorpicker", UI_EMBOSS);
 	
-	/* XXX ideally the colour picker buttons would reference the rna property itself */
 	if (but->rnaprop) {
 		if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
 			block->color_profile = BLI_PR_NONE;
@@ -2076,116 +1809,18 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
 	VECCOPY(handle->retvec, but->editvec);
-	if(win->eventstate->shift) {
-		uiBlockPickerButtons(block, handle->retvec, hsvcol, oldcol, hexcol, 'p', 0);
-		block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
-		uiBoundsBlock(block, 3);
-	}
-	else if(win->eventstate->alt) {
-		uiBlockPickerSmall(block, handle->retvec, hsvcol, oldcol, hexcol, 'p', 0);
-		block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_OUT_1;
-		uiBoundsBlock(block, 10);
-		
-		block->block_event_func= ui_picker_small_wheel;
-	}
-	else {
-		uiBlockPickerNew(block, handle->retvec, hsvcol, oldcol, hexcol, 'p', 0);
-		block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
-		uiBoundsBlock(block, 10);
-		
-		block->block_event_func= ui_picker_small_wheel;
-	}
+
+	uiBlockPicker(block, handle->retvec, &but->rnapoin, but->rnaprop);
+	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_KEEP_OPEN;
+	uiBoundsBlock(block, 10);
 	
+	block->block_event_func= ui_picker_small_wheel;
 	
 	/* and lets go */
 	block->direction= UI_TOP;
 	
 	return block;
 }
-
-/* ******************** Color band *************** */
-
-static int vergcband(const void *a1, const void *a2)
-{
-	const CBData *x1=a1, *x2=a2;
-	
-	if( x1->pos > x2->pos ) return 1;
-	else if( x1->pos < x2->pos) return -1;
-	return 0;
-}
-
-static void colorband_pos_cb(bContext *C, void *coba_v, void *unused_v)
-{
-	ColorBand *coba= coba_v;
-	int a;
-	
-	if(coba->tot<2) return;
-	
-	for(a=0; a<coba->tot; a++) coba->data[a].cur= a;
-	qsort(coba->data, coba->tot, sizeof(CBData), vergcband);
-	for(a=0; a<coba->tot; a++) {
-		if(coba->data[a].cur==coba->cur) {
-			/* if(coba->cur!=a) addqueue(curarea->win, REDRAW, 0); */	/* button cur */
-			coba->cur= a;
-			break;
-		}
-	}
-}
-
-static void colorband_add_cb(bContext *C, void *coba_v, void *unused_v)
-{
-	ColorBand *coba= coba_v;
-	
-	if(coba->tot < MAXCOLORBAND-1) coba->tot++;
-	coba->cur= coba->tot-1;
-	
-	colorband_pos_cb(C, coba, NULL);
-//	BIF_undo_push("Add colorband");
-	
-}
-
-static void colorband_del_cb(bContext *C, void *coba_v, void *unused_v)
-{
-	ColorBand *coba= coba_v;
-	int a;
-	
-	if(coba->tot<2) return;
-	
-	for(a=coba->cur; a<coba->tot; a++) {
-		coba->data[a]= coba->data[a+1];
-	}
-	if(coba->cur) coba->cur--;
-	coba->tot--;
-	
-//	BIF_undo_push("Delete colorband");
-//	BIF_preview_changed(ID_TE);
-}
-
-void uiBlockColorbandButtons(uiBlock *block, ColorBand *coba, rctf *butr, int event)
-{
-	CBData *cbd;
-	uiBut *bt;
-	float unit= (butr->xmax-butr->xmin)/14.0f;
-	float xs= butr->xmin;
-	
-	cbd= coba->data + coba->cur;
-	
-	uiBlockBeginAlign(block);
-	uiDefButF(block, COL, event,		"",			xs,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, 0, "");
-	uiDefButF(block, NUM, event,		"A:",		xs+2.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "");
-	bt= uiDefBut(block, BUT, event,	"Add",		xs+6.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Adds a new color position to the colorband");
-	uiButSetFunc(bt, colorband_add_cb, coba, NULL);
-	bt= uiDefBut(block, BUT, event,	"Del",		xs+8.0f*unit, butr->ymin+20.0f, 2.0f*unit, 20,	NULL, 0, 0, 0, 0, "Deletes the active position");
-	uiButSetFunc(bt, colorband_del_cb, coba, NULL);
-	
-	uiDefButS(block, MENU, event,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
-			  xs + 10.0f*unit, butr->ymin+20.0f, unit*4.0f, 20,		&coba->ipotype, 0.0, 0.0, 0, 0, "Sets interpolation type");
-	
-	uiDefBut(block, BUT_COLORBAND, event, "",		xs, butr->ymin, butr->xmax-butr->xmin, 20.0f, coba, 0, 0, 0, 0, "");
-	uiBlockEndAlign(block);
-	
-}
-
 
 /************************ Popup Menu Memory ****************************/
 
