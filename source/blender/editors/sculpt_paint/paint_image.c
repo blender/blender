@@ -1001,8 +1001,7 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 	float puv[4][2]; /* pixelspace uv's */
 	float no1[2], no2[2], no3[2], no4[2]; /* normals */
 	float dir1[2], dir2[2], dir3[2], dir4[2];
-	float ibuf_x_inv = 1.0f / (float)ibuf_x; 
-	float ibuf_y_inv = 1.0f / (float)ibuf_y; 
+	float ibuf_inv[2] = {1.0f / (float)ibuf_x, 1.0f / (float)ibuf_y};
 	
 	/* make UV's in pixel space so we can */
 	puv[0][0] = orig_uv[0][0] * ibuf_x;
@@ -1035,17 +1034,20 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		sub_v2_v2v2(dir3, puv[0], puv[2]);
 		normalize_v2(dir3);
 	}
-	
+
+	/* TODO - angle_normalized_v2v2(...) * (M_PI/180.0f)
+	 * This is incorrect. Its already given radians but without it wont work.
+	 * need to look into a fix - campbell */
 	if (is_quad) {
-		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir4, dir1));
-		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2));
-		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3));
-		a4 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir4));
+		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir4, dir1) * (M_PI/180.0f));
+		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2) * (M_PI/180.0f));
+		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3) * (M_PI/180.0f));
+		a4 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir4) * (M_PI/180.0f));
 	}
 	else {
-		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir1));
-		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2));
-		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3));
+		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir1) * (M_PI/180.0f));
+		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2) * (M_PI/180.0f));
+		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3) * (M_PI/180.0f));
 	}
 	
 	if (is_quad) {
@@ -1065,17 +1067,10 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		add_v2_v2v2(outset_uv[1], puv[1], no2);
 		add_v2_v2v2(outset_uv[2], puv[2], no3);
 		add_v2_v2v2(outset_uv[3], puv[3], no4);
-		outset_uv[0][0] *= ibuf_x_inv;
-		outset_uv[0][1] *= ibuf_y_inv;
-		
-		outset_uv[1][0] *= ibuf_x_inv;
-		outset_uv[1][1] *= ibuf_y_inv;
-		
-		outset_uv[2][0] *= ibuf_x_inv;
-		outset_uv[2][1] *= ibuf_y_inv;
-		
-		outset_uv[3][0] *= ibuf_x_inv;
-		outset_uv[3][1] *= ibuf_y_inv;
+		mul_v2_v2(outset_uv[0], ibuf_inv);
+		mul_v2_v2(outset_uv[1], ibuf_inv);
+		mul_v2_v2(outset_uv[2], ibuf_inv);
+		mul_v2_v2(outset_uv[3], ibuf_inv);
 	}
 	else {
 		sub_v2_v2v2(no1, dir3, dir1);
@@ -1090,14 +1085,10 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		add_v2_v2v2(outset_uv[0], puv[0], no1);
 		add_v2_v2v2(outset_uv[1], puv[1], no2);
 		add_v2_v2v2(outset_uv[2], puv[2], no3);
-		outset_uv[0][0] *= ibuf_x_inv;
-		outset_uv[0][1] *= ibuf_y_inv;
-		
-		outset_uv[1][0] *= ibuf_x_inv;
-		outset_uv[1][1] *= ibuf_y_inv;
-		
-		outset_uv[2][0] *= ibuf_x_inv;
-		outset_uv[2][1] *= ibuf_y_inv;
+
+		mul_v2_v2(outset_uv[0], ibuf_inv);
+		mul_v2_v2(outset_uv[1], ibuf_inv);
+		mul_v2_v2(outset_uv[2], ibuf_inv);
 	}
 }
 

@@ -72,11 +72,13 @@ MINLINE void sub_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void mul_v2_fl(float r[2], float f);
 MINLINE void mul_v3_fl(float r[3], float f);
 MINLINE void mul_v3_v3fl(float r[3], float a[3], float f);
+MINLINE void mul_v2_v2(float r[2], const float a[2]);
 MINLINE void mul_v3_v3(float r[3], float a[3]);
 MINLINE void mul_v3_v3v3(float r[3], float a[3], float b[3]);
 
 MINLINE void madd_v3_v3fl(float r[3], float a[3], float f);
 MINLINE void madd_v3_v3v3(float r[3], float a[3], float b[3]);
+MINLINE void madd_v2_v2v2fl(float r[2], const float a[2], const float b[2], const float f);
 MINLINE void madd_v3_v3v3fl(float r[3], float a[3], float b[3], float f);
 MINLINE void madd_v3_v3v3v3(float r[3], float a[3], float b[3], float c[3]);
 
