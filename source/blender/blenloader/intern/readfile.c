@@ -11619,19 +11619,34 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 }
 
 /* when *lib set, it also does objects that were in the appended group */
-static void give_base_to_groups(Main *mainvar, Scene *sce)
+static void give_base_to_groups(Main *mainvar, Scene *scene, Library *lib, int flag)
 {
 	Group *group;
-	Object *ob;
 
 	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
 	for(group= mainvar->group.first; group; group= group->id.next) {
-		if((group->id.flag & LIB_APPEND_TAG)==0) {
-			ob= add_object(sce, OB_EMPTY);
+		if(	((flag & FILE_LINK)    && (group->id.lib == lib) && (group->id.flag & LIB_INDIRECT)==0) || /* linking, directly */
+			((flag & FILE_LINK)==0 && (group->id.flag & LIB_APPEND_TAG)==0) /* appending */
+		) {
+			Base *base;
+
+			/* add_object(...) messes with the selection */
+			Object *ob= add_only_object(OB_EMPTY, group->id.name+2);
+			ob->type= OB_EMPTY;
+			ob->lay= scene->lay;
+
+			/* assign the base */
+			base= scene_add_base(scene, ob);
+			base->flag |= SELECT;
+			base->object->flag= base->flag;
+			ob->recalc |= OB_RECALC;
+			scene->basact= base;
+
+			/* assign the group */
 			ob->dup_group= group;
 			ob->transflag |= OB_DUPLIGROUP;
-			rename_id(&ob->id, group->id.name);
-			VECCOPY(ob->loc, sce->cursor);
+			rename_id(&ob->id, group->id.name+2);
+			VECCOPY(ob->loc, scene->cursor);
 		}
 	}
 }
@@ -11839,7 +11854,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 			}
 
 			if (flag & FILE_GROUP_INSTANCE) {
-				give_base_to_groups(mainvar, scene);
+				give_base_to_groups(mainvar, scene, mainl->curlib, flag);
 			}
 		} else {
 			give_base_to_objects(mainvar, scene, NULL, 0);
