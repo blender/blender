@@ -166,6 +166,7 @@ static void node_buts_rgb(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
 	
 	col = uiLayoutColumn(layout, 0);
+	uiTemplateColorWheel(col, &sockptr, "default_value", 1);
 	uiItemR(col, "", 0, &sockptr, "default_value", 0);
 }
 

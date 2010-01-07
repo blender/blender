@@ -54,7 +54,7 @@ bNodeType sh_node_rgb= {
 	/* *next,*prev */	NULL, NULL,
 	/* type code   */	SH_NODE_RGB,
 	/* name        */	"RGB",
-	/* width+range */	100, 60, 140,
+	/* width+range */	140, 80, 140,
 	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS,
 	/* input sock  */	NULL,
 	/* output sock */	sh_node_rgb_out,

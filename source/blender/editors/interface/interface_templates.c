@@ -1868,14 +1868,16 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	uiBlock *block= uiLayoutGetBlock(layout);
-	uiLayout *row;
+	uiLayout *col, *row;
+	uiBut *but;
 	
 	if (!prop) {
 		printf("uiTemplateColorWheel: property not found: %s\n", propname);
 		return;
 	}
 	
-	row= uiLayoutRow(layout, 1);
+	col = uiLayoutColumn(layout, 0);
+	row= uiLayoutRow(col, 1);
 	
 	uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 0, 0, "");
 	
@@ -1884,6 +1886,13 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int
 	if (value_slider)
 		uiDefButR(block, HSVCUBE, 0, "", WHEEL_SIZE+6, 0, 14, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 4, 0, "");
 
+	/* maybe a switch for this?
+	row= uiLayoutRow(col, 0);
+	if(ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA) && RNA_property_array_length(ptr, prop) == 4) {
+		but= uiDefAutoButR(block, ptr, prop, 3, "A:", 0, 0, 0, WHEEL_SIZE+20, UI_UNIT_Y);
+	}
+	*/
+	
 }
 
 
