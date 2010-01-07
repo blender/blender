@@ -11618,6 +11618,23 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 	}
 }
 
+/* when *lib set, it also does objects that were in the appended group */
+static void give_base_to_groups(Main *mainvar, Scene *sce)
+{
+	Group *group;
+	Object *ob;
+
+	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
+	for(group= mainvar->group.first; group; group= group->id.next) {
+		if((group->id.flag & LIB_APPEND_TAG)==0) {
+			ob= add_object(sce, OB_EMPTY);
+			ob->dup_group= group;
+			ob->transflag |= OB_DUPLIGROUP;
+			rename_id(&ob->id, group->id.name);
+			VECCOPY(ob->loc, sce->cursor);
+		}
+	}
+}
 
 static void append_named_part(const bContext *C, Main *mainl, FileData *fd, char *name, int idcode, short flag)
 {
@@ -11819,7 +11836,11 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 				give_base_to_objects(mainvar, scene, NULL, 0);
 			} else {
 				give_base_to_objects(mainvar, scene, mainl->curlib, 1);
-			}	
+			}
+
+			if (flag & FILE_GROUP_INSTANCE) {
+				give_base_to_groups(mainvar, scene);
+			}
 		} else {
 			give_base_to_objects(mainvar, scene, NULL, 0);
 		}

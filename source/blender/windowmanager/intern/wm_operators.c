@@ -1224,7 +1224,7 @@ static short wm_link_append_flag(wmOperator *op)
 	if(RNA_boolean_get(op->ptr, "active_layer")) flag |= FILE_ACTIVELAY;
 	if(RNA_boolean_get(op->ptr, "relative_paths")) flag |= FILE_STRINGCODE;
 	if(RNA_boolean_get(op->ptr, "link")) flag |= FILE_LINK;
-
+	if(RNA_boolean_get(op->ptr, "instance_groups")) flag |= FILE_GROUP_INSTANCE;
 	return flag;
 }
 
@@ -1356,6 +1356,7 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending.");
 	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects.");
 	RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer.");
+	RNA_def_boolean(ot->srna, "instance_groups", 1, "Instance Groups", "Create instances for each group as a DupliGroup.");
 	RNA_def_boolean(ot->srna, "relative_paths", 1, "Relative Paths", "Store the library path as a relative path to current .blend file.");
 
 	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
