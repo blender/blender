@@ -97,7 +97,7 @@ static void eyedropper_sample(Eyedropper *eye, short mx, short my)
 	float col[3];
 		
 	glReadBuffer(GL_FRONT);
-	glReadPixels(mx, my, 1, 1, GL_RGBA, GL_FLOAT, col);
+	glReadPixels(mx, my, 1, 1, GL_RGB, GL_FLOAT, col);
 	glReadBuffer(GL_BACK);
 	
 	if(RNA_property_type(eye->prop) == PROP_FLOAT) {
