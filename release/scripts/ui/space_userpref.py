@@ -411,6 +411,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.prop(system, "clip_alpha", slider=True)
         col.prop(system, "use_mipmaps")
         col.prop(system, "use_vbos")
+        col.prop(system, "use_antialiasing")
         col.label(text="Window Draw Method:")
         col.row().prop(system, "window_draw_method", expand=True)
         col.label(text="Textures:")

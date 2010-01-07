@@ -2040,6 +2040,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Object *obact = OBACT;
 	char *grid_unit= NULL;
 	
+	/* enables anti-aliasing for 3D view drawing */
+	if (!(U.gameflags & USER_DISABLE_AA))
+		glEnable(GL_MULTISAMPLE_ARB);
+	
 	/* from now on all object derived meshes check this */
 	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
 	
@@ -2222,6 +2226,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* XXX here was the blockhandlers for floating panels */
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
+	
+	/* Disable back anti-aliasing */
+	if (!(U.gameflags & USER_DISABLE_AA))
+		glDisable(GL_MULTISAMPLE_ARB);
 }
 
 

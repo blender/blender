@@ -468,6 +468,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_DISABLE_SOUND		2
 #define USER_DISABLE_MIPMAP		4
 #define USER_DISABLE_VBO		8
+#define USER_DISABLE_AA			16
 
 /* wm draw method */
 #define USER_DRAW_TRIPLE		0
