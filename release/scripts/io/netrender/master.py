@@ -964,4 +964,4 @@ def runMaster(address, broadcast, clear, path, update_stats, test_break):
 
         httpd.server_close()
         if clear:
-            clearMaster(path)
+            clearMaster(httpd.path)
