@@ -69,10 +69,16 @@ static void rna_Image_save(Image *image, bContext *C, ReportList *reports, char 
 	Scene *scene = CTX_data_scene(C);
 
 	if (scene) {
-		ibuf = BKE_image_get_ibuf(image, NULL);
+		ImageUser iuser;
+		void *lock;
+
+		iuser.scene = scene;
+		iuser.ok = 1;
+
+		ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
 		if (BKE_write_ibuf(NULL, ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality)) {
-
+			/* save successful */
 		} else {
 			BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
 		}
