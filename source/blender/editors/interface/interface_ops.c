@@ -92,7 +92,7 @@ static int eyedropper_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static void eyedropper_sample(Eyedropper *eye, short mx, short my)
+static void eyedropper_sample(bContext *C, Eyedropper *eye, short mx, short my)
 {
 	float col[3];
 		
@@ -109,43 +109,8 @@ static void eyedropper_sample(Eyedropper *eye, short mx, short my)
 			srgb_to_linearrgb_v3_v3(col, col);
 		
 		RNA_property_float_set_array(&eye->ptr, eye->prop, col);
-	}
-}
-
-static void eyedropper_notify(bContext *C, wmOperator *op)
-{
-	Eyedropper *eye = (Eyedropper *)op->customdata;
-	ID *id;
-	
-	id= eye->ptr.id.data;
-	
-	if (!id) return;
-	
-	switch (GS(id->name)) {
-		case ID_OB:
-			WM_event_add_notifier(C, NC_OBJECT, NULL);
-			break;
-		case ID_MA:
-			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, NULL);
-			break;
-		case ID_TE:
-			WM_event_add_notifier(C, NC_TEXTURE, NULL);
-			break;
-		case ID_LA:
-			WM_event_add_notifier(C, NC_LAMP, NULL);
-			break;
-		case ID_WO:
-			WM_event_add_notifier(C, NC_WORLD, NULL);
-			break;
-		case ID_SCE:
-			WM_event_add_notifier(C, NC_SCENE, NULL);
-			break;
-		case ID_BR:
-			WM_event_add_notifier(C, NC_BRUSH, NULL);
-			break;
-		case ID_NT:
-			WM_event_add_notifier(C, NC_NODE, NULL);
-			break;
+		
+		RNA_property_update(C, &eye->ptr, eye->prop);
 	}
 }
 
@@ -160,8 +125,7 @@ static int eyedropper_modal(bContext *C, wmOperator *op, wmEvent *event)
 			return eyedropper_cancel(C, op);
 		case LEFTMOUSE:
 			if(event->val==KM_RELEASE) {
-				eyedropper_sample(eye, event->x, event->y);
-				eyedropper_notify(C, op);
+				eyedropper_sample(C, eye, event->x, event->y);
 				eyedropper_exit(C, op);
 				return OPERATOR_FINISHED;
 			}
