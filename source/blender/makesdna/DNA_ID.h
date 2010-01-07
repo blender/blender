@@ -212,8 +212,8 @@ typedef struct PreviewImage {
 #define LIB_FAKEUSER	512
 /* free test flag */
 #define LIB_DOIT		1024
-/*  */
-#define LIB_APPEND_TAG	2048 
+/* tag existing data before linking so we know what is new */
+#define LIB_PRE_EXISTING	2048
 
 #ifdef __cplusplus
 }

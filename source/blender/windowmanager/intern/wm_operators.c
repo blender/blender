@@ -1240,9 +1240,6 @@ static void wm_link_make_library_local(Main *main, const char *libname)
 	/* make local */
 	if(lib) {
 		all_local(lib, 1);
-		/* important we unset, otherwise these object wont
-		 * link into other scenes from this blend file */
-		flag_all_listbases_ids(LIB_APPEND_TAG, 0);
 	}
 }
 
@@ -1300,9 +1297,11 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	
 	flag = wm_link_append_flag(op);
 
-	/* tag everything, all untagged data can be made local */
-	if((flag & FILE_LINK)==0)
-		flag_all_listbases_ids(LIB_APPEND_TAG, 1);
+	/* tag everything, all untagged data can be made local
+	 * its also generally useful to know what is new
+	 *
+	 * take extra care flag_all_listbases_ids(LIB_LINK_TAG, 0) is called after! */
+	flag_all_listbases_ids(LIB_PRE_EXISTING, 1);
 
 	/* here appending/linking starts */
 	mainl = BLO_library_append_begin(C, &bh, libname);
@@ -1324,6 +1323,10 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* append, rather than linking */
 	if((flag & FILE_LINK)==0)
 		wm_link_make_library_local(bmain, libname);
+
+	/* important we unset, otherwise these object wont
+	 * link into other scenes from this blend file */
+	flag_all_listbases_ids(LIB_PRE_EXISTING, 0);
 
 	/* recreate dependency graph to include new objects */
 	DAG_scene_sort(scene);

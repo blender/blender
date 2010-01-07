@@ -11591,8 +11591,8 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 				if we are appending, but this object wasnt just added allong with a group,
 				then this is alredy used indirectly in the scene somewhere else and we didnt just append it.
 				
-				(ob->id.flag & LIB_APPEND_TAG)==0 means that this is a newly appended object - Campbell */
-			if (is_group_append==0 || (ob->id.flag & LIB_APPEND_TAG)==0) {
+				(ob->id.flag & LIB_PRE_EXISTING)==0 means that this is a newly appended object - Campbell */
+			if (is_group_append==0 || (ob->id.flag & LIB_PRE_EXISTING)==0) {
 				
 				int do_it= 0;
 				
@@ -11619,15 +11619,13 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 }
 
 /* when *lib set, it also does objects that were in the appended group */
-static void give_base_to_groups(Main *mainvar, Scene *scene, Library *lib, int flag)
+static void give_base_to_groups(Main *mainvar, Scene *scene)
 {
 	Group *group;
 
 	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
 	for(group= mainvar->group.first; group; group= group->id.next) {
-		if(	((flag & FILE_LINK)    && (group->id.lib == lib) && (group->id.flag & LIB_INDIRECT)==0) || /* linking, directly */
-			((flag & FILE_LINK)==0 && (group->id.flag & LIB_APPEND_TAG)==0) /* appending */
-		) {
+		if(((group->id.flag & LIB_INDIRECT)==0 && (group->id.flag & LIB_PRE_EXISTING)==0)) {
 			Base *base;
 
 			/* add_object(...) messes with the selection */
@@ -11854,7 +11852,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 			}
 
 			if (flag & FILE_GROUP_INSTANCE) {
-				give_base_to_groups(mainvar, scene, mainl->curlib, flag);
+				give_base_to_groups(mainvar, scene);
 			}
 		} else {
 			give_base_to_objects(mainvar, scene, NULL, 0);
