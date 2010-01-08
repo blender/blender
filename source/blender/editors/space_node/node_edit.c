@@ -1188,6 +1188,7 @@ void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
 			if (replace)
 				nodeRemSocketLinks(snode->edittree, sock_to);
 			nodeAddLink(snode->edittree, node_fr, sock_fr, node_to, sock_to);
+			NodeTagChanged(snode->edittree, node_to);
 			break;
 		}
 	}
