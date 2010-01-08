@@ -1535,10 +1535,10 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	fileflags= G.fileflags;
 
 	/* set compression flag */
-	if(RNA_boolean_get(op->ptr, "compress"))
-		fileflags |= G_FILE_COMPRESS;
-	else
-		fileflags &= ~G_FILE_COMPRESS;
+	if(RNA_boolean_get(op->ptr, "compress"))		fileflags |=  G_FILE_COMPRESS;
+	else											fileflags &= ~G_FILE_COMPRESS;
+	if(RNA_boolean_get(op->ptr, "relative_remap"))	fileflags |=  G_FILE_RELATIVE_REMAP;
+	else											fileflags &= ~G_FILE_RELATIVE_REMAP;
 
 	WM_write_file(C, path, fileflags, op->reports);
 	
@@ -1559,6 +1559,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
+	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory.");
 }
 
 /* *************** save file directly ******** */
@@ -1597,6 +1598,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
+	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory.");
 }
 
 

@@ -145,6 +145,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "MEM_guardedalloc.h" // MEM_freeN
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
+#include "BLI_bpath.h"
 
 #include "BKE_action.h"
 #include "BKE_blender.h"
@@ -2458,8 +2459,27 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 		return 0;
 	}
 
+	if(write_flags & G_FILE_RELATIVE_REMAP) {
+		char dir1[FILE_MAXDIR+FILE_MAXFILE];
+		char dir2[FILE_MAXDIR+FILE_MAXFILE];
+		BLI_split_dirfile_basic(dir, dir1, NULL);
+		BLI_split_dirfile_basic(mainvar->name, dir2, NULL);
+
+		/* just incase there is some subtle difference */
+		BLI_cleanup_dir(dir1);
+		BLI_cleanup_dir(dir2);
+
+		if(strcmp(dir1, dir2)==0)
+			write_flags &= ~G_FILE_RELATIVE_REMAP;
+		else
+			makeFilesAbsolute(G.sce, reports);
+	}
+
 	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B25.blend");
 	write_user_block= BLI_streq(dir, userfilename);
+
+	if(write_flags & G_FILE_RELATIVE_REMAP)
+		makeFilesRelative(dir, NULL); /* note, making relative to something OTHER then G.sce */
 
 	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags);
 	close(file);

@@ -47,11 +47,13 @@ struct BPathIterator {
 	void (*setpath_callback)(struct BPathIterator *, char *);
 	void (*getpath_callback)(struct BPathIterator *, char *);
 	
+	char*	base_path; /* base path, the directry the blend file is in - normally G.sce */
+
 	/* only for seq data */
 	struct BPathIteratorSeqData seqdata;
 };
 
-void			BLI_bpathIterator_init				(struct BPathIterator *bpi);
+void			BLI_bpathIterator_init				(struct BPathIterator *bpi, char *base_path);
 void			BLI_bpathIterator_free				(struct BPathIterator *bpi);
 char*			BLI_bpathIterator_getLib			(struct BPathIterator *bpi);
 char*			BLI_bpathIterator_getName			(struct BPathIterator *bpi);
@@ -66,7 +68,7 @@ void			BLI_bpathIterator_setPath			(struct BPathIterator *bpi, char *path);
 /* high level funcs */
 
 /* creates a text file with missing files if there are any */
-void checkMissingFiles(char *txtname );
-void makeFilesRelative(char *txtname, int *tot, int *changed, int *failed, int *linked);
-void makeFilesAbsolute(char *txtname, int *tot, int *changed, int *failed, int *linked);
-void findMissingFiles(char *str);
+void checkMissingFiles(char *basepath, ReportList *reports);
+void makeFilesRelative(char *basepath, ReportList *reports);
+void makeFilesAbsolute(char *basepath, ReportList *reports);
+void findMissingFiles(char *basepath, char *str);

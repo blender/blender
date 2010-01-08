@@ -196,21 +196,12 @@ void FILE_OT_unpack_all(wmOperatorType *ot)
 
 static int make_paths_relative_exec(bContext *C, wmOperator *op)
 {
-	char txtname[24]; /* text block name */
-	int tot, changed, failed, linked;
-
 	if(!G.relbase_valid) {
 		BKE_report(op->reports, RPT_WARNING, "Can't set relative paths with an unsaved blend file.");
 		return OPERATOR_CANCELLED;
 	}
 
-	txtname[0] = '\0';
-	makeFilesRelative(txtname, &tot, &changed, &failed, &linked);
-
-	if(failed)
-		BKE_reportf(op->reports, RPT_ERROR, "Total files %i|Changed %i|Failed %i, See Text \"%s\"|Linked %i", tot, changed, failed, txtname, linked); 
-	else
-		BKE_reportf(op->reports, RPT_INFO, "Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
+	makeFilesRelative(G.sce, op->reports);
 
 	return OPERATOR_FINISHED;
 }
@@ -232,22 +223,12 @@ void FILE_OT_make_paths_relative(wmOperatorType *ot)
 
 static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 {
-	char txtname[24]; /* text block name */
-	int tot, changed, failed, linked;
-
 	if(!G.relbase_valid) {
 		BKE_report(op->reports, RPT_WARNING, "Can't set absolute paths with an unsaved blend file.");
 		return OPERATOR_CANCELLED;
 	}
 
-	txtname[0] = '\0';
-	makeFilesAbsolute(txtname, &tot, &changed, &failed, &linked);
-
-	if(failed)
-		BKE_reportf(op->reports, RPT_ERROR, "Total files %i|Changed %i|Failed %i, See Text \"%s\"|Linked %i", tot, changed, failed, txtname, linked); 
-	else
-		BKE_reportf(op->reports, RPT_INFO, "Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
-
+	makeFilesAbsolute(G.sce, op->reports);
 	return OPERATOR_FINISHED;
 }
 
@@ -273,12 +254,7 @@ static int report_missing_files_exec(bContext *C, wmOperator *op)
 	txtname[0] = '\0';
 	
 	/* run the missing file check */
-	checkMissingFiles(txtname);
-	
-	if(txtname[0] == '\0')
-		BKE_report(op->reports, RPT_INFO, "No external files missing.");
-	else
-		BKE_reportf(op->reports, RPT_ERROR, "Missing files listed in Text \"%s\"", txtname);
+	checkMissingFiles(G.sce, op->reports);
 	
 	return OPERATOR_FINISHED;
 }
@@ -303,7 +279,7 @@ static int find_missing_files_exec(bContext *C, wmOperator *op)
 	char *path;
 	
 	path= RNA_string_get_alloc(op->ptr, "path", NULL, 0);
-	findMissingFiles(path);
+	findMissingFiles(path, G.sce);
 	MEM_freeN(path);
 
 	return OPERATOR_FINISHED;
