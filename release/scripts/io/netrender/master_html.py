@@ -37,8 +37,11 @@ def get(handler):
         output("<link rel='stylesheet' href='/html/netrender.css' type='text/css'>")
 
 
-    def link(text, url):
-        return "<a href='%s'>%s</a>" % (url, text)
+    def link(text, url, script=""):
+        return "<a href='%s' %s>%s</a>" % (url, script, text)
+
+    def tag(name, text, attr=""):
+        return "<%s %s>%s</%s>" % (name, attr, text, name)
 
     def startTable(border=1, class_style = None, caption = None):
         output("<table border='%i'" % border)
@@ -259,7 +262,7 @@ def get(handler):
             output("<h2>Frames</h2>")
 
             startTable()
-            headerTable("no", "status", "render time", "slave", "log", "result")
+            headerTable("no", "status", "render time", "slave", "log", "result", "")
 
             for frame in job.frames:
                 rowTable(
@@ -269,7 +272,8 @@ def get(handler):
                          frame.slave.name if frame.slave else "&nbsp;",
                          link("view log", logURL(job_id, frame.number)) if frame.log_path else "&nbsp;",
                          link("view result", renderURL(job_id, frame.number))  + " [" +
-                         link("jpeg", renderURL(job_id, frame.number, exr = False)) + "]" if frame.status == DONE else "&nbsp;"
+                         tag("span", "show", attr="class='thumb' onclick='showThumb(%s, %i)'" % (job.id, frame.number)) + "]" if frame.status == DONE else "&nbsp;",
+                         "<img name='thumb%i' title='hide thumbnails' src='' class='thumb' onclick='showThumb(%s, %i)'>" % (frame.number, job.id, frame.number)
                          )
 
             endTable()

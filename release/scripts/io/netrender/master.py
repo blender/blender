@@ -258,6 +258,12 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                                     bpy.ops.image.open(path = job.save_path + "%04d" % frame_number + ".exr")
                                     img = bpy.data.images["%04d" % frame_number + ".exr"]
                                     img.save(filename)
+                                    
+                                    try:
+                                        process = subprocess.Popen(["convert", filename, "-resize", "300x300", filename])
+                                        process.wait()                                        
+                                    except:
+                                        pass
                                 
                                 f = open(filename, 'rb')
                                 self.send_head(content = "image/jpeg")
