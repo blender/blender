@@ -77,9 +77,11 @@ static void rna_Image_save(Image *image, bContext *C, ReportList *reports, char 
 
 		ibuf = BKE_image_acquire_ibuf(image, &iuser, &lock);
 
-		if (BKE_write_ibuf(NULL, ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality)) {
-			/* save successful */
-		} else {
+		if (ibuf == NULL) {
+			BKE_reportf(reports, RPT_ERROR, "Couldn't acquire buffer from image");
+		}
+
+		if (!BKE_write_ibuf(NULL, ibuf, path, scene->r.imtype, scene->r.subimtype, scene->r.quality)) {
 			BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
 		}
 	} else {
