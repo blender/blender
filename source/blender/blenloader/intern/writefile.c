@@ -2466,13 +2466,14 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 		BLI_split_dirfile_basic(mainvar->name, dir2, NULL);
 
 		/* just incase there is some subtle difference */
-		BLI_cleanup_dir(dir1);
-		BLI_cleanup_dir(dir2);
+		BLI_cleanup_dir(mainvar->name, dir1);
+		BLI_cleanup_dir(mainvar->name, dir2);
 
 		if(strcmp(dir1, dir2)==0)
 			write_flags &= ~G_FILE_RELATIVE_REMAP;
 		else
-			makeFilesAbsolute(G.sce, reports);
+			makeFilesAbsolute(G.sce, NULL);
+
 	}
 
 	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B25.blend");
