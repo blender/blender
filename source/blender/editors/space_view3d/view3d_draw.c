@@ -1044,14 +1044,6 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	UI_ThemeColor(TH_WIRE);
 	glRectf(x1, y1, x2, y2);
 	
-	/* camera name - draw in highlighted text color */
-	if (ca && (ca->flag & CAM_SHOWNAME)) {
-		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(x1, y1-15, 0.0f, v3d->camera->id.name+2);
-		UI_ThemeColor(TH_WIRE);
-	}
-	
-	
 	/* border */
 	if(scene->r.mode & R_BORDER) {
 		
@@ -1086,6 +1078,12 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	setlinestyle(0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	
+	/* camera name - draw in highlighted text color */
+	if (ca && (ca->flag & CAM_SHOWNAME)) {
+		UI_ThemeColor(TH_TEXT_HI);
+		BLF_draw_default(x1, y1-15, 0.0f, v3d->camera->id.name+2);
+		UI_ThemeColor(TH_WIRE);
+	}
 }
 
 /* *********************** backdraw for selection *************** */
