@@ -42,6 +42,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLF_api.h"
+
 #include "PIL_time.h"
 
 #include "BLI_blenlib.h"
@@ -932,13 +934,44 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiLayout *layout, *split, *col;
 	uiStyle *style= U.uistyles.first;
 	struct RecentFile *recent;
-	int i;
+	int i, ver_width, rev_width;
+	char *version_str = NULL;
+	char *revision_str = NULL;
+	
+#ifdef NAN_BUILDINFO
+	char version_buf[128];
+	char revision_buf[128];
+	extern char * build_rev;
+	char *cp;
+	
+	version_str = &version_buf[0];
+	revision_str = &revision_buf[0];
+	
+	sprintf(version_str, "%d.%02d.%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
+	sprintf(revision_str, "r%s", build_rev);
+	
+	/* here on my system I get ugly double quotes around the revision number.
+	 * if so, clip it off: */
+	cp = strchr(revision_str, '"');
+	if (cp) {
+		memmove(cp, cp+1, strlen(cp+1));
+		cp = strchr(revision_str, '"');
+		if (cp)
+			*cp = 0;
+	}
+	
+	ver_width = BLF_width(version_str);
+	rev_width = BLF_width(revision_str)-7;
+#endif NAN_BUILDINFO
 	
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
 	
 	but= uiDefBut(block, BUT_IMAGE, 0, "", 0, 10, 501, 282, NULL, 0.0, 0.0, 0, 0, "");
 	uiButSetFunc(but, wm_block_splash_close, block, NULL);
+	
+	uiDefBut(block, LABEL, 0, version_str, 500-ver_width, 282-24, ver_width, 20, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, revision_str, 500-rev_width, 282-36, rev_width, 20, NULL, 0, 0, 0, 0, NULL);
 	
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	
