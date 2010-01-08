@@ -2486,14 +2486,7 @@ static int flyApply(FlyInfo *fly)
 			if (rv3d->persp==RV3D_CAMOB) {
 				rv3d->persp= RV3D_PERSP; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
 				setviewmatrixview3d(scene, v3d, rv3d);
-
 				setcameratoview3d(v3d, rv3d, v3d->camera);
-
-				{	//XXX - some reason setcameratoview3d doesnt copy, shouldnt not be needed!
-					VECCOPY(v3d->camera->loc, rv3d->ofs);
-					negate_v3(v3d->camera->loc);
-				}
-
 				rv3d->persp= RV3D_CAMOB;
 #if 0 //XXX2.5
 				/* record the motion */
