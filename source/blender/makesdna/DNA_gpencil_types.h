@@ -113,6 +113,8 @@ typedef struct bGPDlayer {
 #define GP_LAYER_ONIONSKIN	(1<<4)
 	/* for editing in Action Editor */
 #define GP_LAYER_SELECT		(1<<5)
+	/* current frame for layer can't be changed */
+#define GP_LAYER_FRAMELOCK	(1<<6)
 
 
 /* Grease-Pencil Annotations - 'DataBlock' */

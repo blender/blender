@@ -199,6 +199,10 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_LOCKED);
 	RNA_def_property_ui_text(prop, "Locked", "Layer is protected from further editing and/or frame changes.");
 	
+	prop= RNA_def_property(srna, "frame_lock", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_FRAMELOCK);
+	RNA_def_property_ui_text(prop, "Frame Locked", "Current frame displayed by layer cannot be changed.");
+	
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_ACTIVE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_GPencilLayer_active_set");

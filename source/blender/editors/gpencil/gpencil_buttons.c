@@ -119,13 +119,13 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 	box= uiLayoutBox(layout);
 	
 	row= uiLayoutRow(box, 0);
+	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
 	block= uiLayoutGetBlock(row); // err...
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	
 	/* left-align ............................... */
-	subrow= uiLayoutRow(row, 1);
-	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_LEFT);
+	subrow= uiLayoutRow(row, 0);
 	
 	/* active */
 	icon= (gpl->flag & GP_LAYER_ACTIVE) ? ICON_RADIOBUT_ON : ICON_RADIOBUT_OFF;
@@ -168,6 +168,11 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 		/* visibility button */
 		uiItemR(subrow, "", ICON_RESTRICT_VIEW_OFF, &ptr, "hide", 0); 
 		
+		/* frame locking */
+		// TODO: this needs its own icons...
+		icon= (gpl->flag & GP_LAYER_FRAMELOCK) ? ICON_RENDER_STILL : ICON_RENDER_ANIMATION;
+		uiItemR(subrow, "", icon, &ptr, "frame_lock", 0); 
+		
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		
 		/* name */
@@ -188,7 +193,6 @@ static void gp_drawui_layer (uiLayout *layout, bGPdata *gpd, bGPDlayer *gpl)
 		/* new backdrop ----------------------------------- */
 		box= uiLayoutBox(layout);
 		split= uiLayoutSplit(box, 0.5f, 0);
-		
 		
 		/* draw settings ---------------------------------- */
 		/* left column ..................... */
@@ -259,14 +263,13 @@ static void draw_gpencil_panel (bContext *C, uiLayout *layout, bGPdata *gpd, Poi
 		uiItemL(col, "Drawing Settings:", 0);
 		
 		/* 'stick to view' option */
-		//uiItemR(col, NULL, 0, &gpd_ptr, "draw_mode", 0);
 		row= uiLayoutRow(col, 1);
 		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "VIEW");
 		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "CURSOR");
 		row= uiLayoutRow(col, 1);
 		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "SURFACE");
 		uiItemEnumR_string(row, NULL, 0, &gpd_ptr, "draw_mode", "STROKE");
-
+		
 		row= uiLayoutRow(col, 0);
 		uiLayoutSetActive(row, (gpd->flag & (GP_DATA_DEPTH_STROKE|GP_DATA_DEPTH_VIEW)) ? 1:0);
 		uiItemR(row, NULL, 0, &gpd_ptr, "use_stroke_endpoints", 0);
