@@ -63,10 +63,13 @@ static char *rna_Image_get_export_path(Image *image, char *dest_dir, int rel)
 	return path;
 }
 
-static void rna_Image_save(Image *image, bContext *C, ReportList *reports, char *path)
+static void rna_Image_save(Image *image, bContext *C, ReportList *reports, char *path, Scene *scene)
 {
 	ImBuf *ibuf;
-	Scene *scene = CTX_data_scene(C);
+
+	if (scene == NULL) {
+		scene = CTX_data_scene(C);
+	}
 
 	if (scene) {
 		ImageUser iuser;
@@ -127,6 +130,7 @@ void RNA_api_image(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_string(func, "path", "", 0, "", "Save path.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene to take image parameters from.");
 }
 
 #endif
