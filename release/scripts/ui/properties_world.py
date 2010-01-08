@@ -71,6 +71,7 @@ class WORLD_PT_context_world(WorldButtonsPanel):
 
 
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel):
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
     _context_path = "world"
 
 
