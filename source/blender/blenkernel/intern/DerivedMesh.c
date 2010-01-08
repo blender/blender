@@ -523,56 +523,14 @@ static void emDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *us
 		}
 		glEnd();
 	} else {
-		GPUBuffer *buffer = NULL;
-		float *varray;
-
-		if(GPU_buffer_legacy(dm)==FALSE)
-			buffer = GPU_buffer_alloc( sizeof(float)*3*2*emdm->em->totedge, 0 );
-
-		if( buffer != 0 && (varray = GPU_buffer_lock_stream( buffer )) ) {
-			int prevdraw = 0;
-			int numedges = 0;
-			int draw = 0;
-			int datatype[] = { GPU_BUFFER_INTER_V3F, GPU_BUFFER_INTER_END };
-			GPU_buffer_unlock( buffer );
-			GPU_interleaved_setup( buffer, datatype );
-			varray = GPU_buffer_lock_stream( buffer );
-			for(i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next) {
-				if(!setDrawOptions || setDrawOptions(userData, i)) {
-					draw = 1;
-				} else {
-					draw = 0;
-				}
-				if( prevdraw != draw && prevdraw != 0 && numedges > 0) {
-					GPU_buffer_unlock( buffer );
-					glDrawArrays(GL_LINES,0,numedges*2);
-					varray = GPU_buffer_lock_stream( buffer );
-					numedges = 0;
-				}
-				if( draw != 0 ) {
-					VECCOPY(&varray[numedges*6],eed->v1->co);
-					VECCOPY(&varray[numedges*6+3],eed->v2->co);
-					numedges++;
-				}
-				prevdraw = draw;
+		glBegin(GL_LINES);
+		for(i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next) {
+			if(!setDrawOptions || setDrawOptions(userData, i)) {
+				glVertex3fv(eed->v1->co);
+				glVertex3fv(eed->v2->co);
 			}
-			GPU_buffer_unlock( buffer );
-			if( prevdraw != 0 && numedges > 0) {
-				glDrawArrays(GL_LINES,0,numedges*2);
-			}
-			GPU_buffer_unbind();
-		} else {
-			glBegin(GL_LINES);
-			for(i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next) {
-				if(!setDrawOptions || setDrawOptions(userData, i)) {
-					glVertex3fv(eed->v1->co);
-					glVertex3fv(eed->v2->co);
-				}
-			}
-			glEnd();
 		}
-		if( buffer != 0 )
-			GPU_buffer_free( buffer, 0 );
+		glEnd();
 	}
 }
 static void emDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
@@ -733,135 +691,41 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			}
 		}
 	} else {
-		GPUBuffer *buffer = 0;
-		float *varray;
-		if( setDrawOptions == 0 ) {
-			/* 3 floats for position, 3 for normal and times two because the faces may actually be quads instead of triangles */
-			buffer = GPU_buffer_alloc( sizeof(float)*6*emdm->em->totface*3*2, 0 );
-		}
-		if( buffer != 0 && (varray = GPU_buffer_lock_stream( buffer )) ) {
-			int prevdraw = 0;
-			int numfaces = 0;
-			int datatype[] = { GPU_BUFFER_INTER_V3F, GPU_BUFFER_INTER_N3F, GPU_BUFFER_INTER_END };
-			GPU_buffer_unlock( buffer );
-			GPU_interleaved_setup( buffer, datatype );
-			glShadeModel(GL_SMOOTH);
-			varray = GPU_buffer_lock_stream( buffer );
-			for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
-				int drawSmooth = (efa->flag & ME_SMOOTH);
-				draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
-				if( prevdraw != draw && prevdraw != 0 && numfaces > 0) {
-					if( prevdraw==2 ) {
-						glEnable(GL_POLYGON_STIPPLE);
-		  				glPolygonStipple(stipple_quarttone);
-					}
-					GPU_buffer_unlock( buffer );
-					glDrawArrays(GL_TRIANGLES,0,numfaces*3);
-					if( prevdraw==2 ) {
-						glDisable(GL_POLYGON_STIPPLE);
-					}
-					varray = GPU_buffer_lock_stream( buffer );
-					numfaces = 0;
-				}
-				if( draw != 0 ) {
-					if(!drawSmooth) {
-						VECCOPY(&varray[numfaces*18],efa->v1->co);
-						VECCOPY(&varray[numfaces*18+3],efa->n);
-
-						VECCOPY(&varray[numfaces*18+6],efa->v2->co);
-						VECCOPY(&varray[numfaces*18+9],efa->n);
-
-						VECCOPY(&varray[numfaces*18+12],efa->v3->co);
-						VECCOPY(&varray[numfaces*18+15],efa->n);
-						numfaces++;
-						if( efa->v4 ) {
-							VECCOPY(&varray[numfaces*18],efa->v3->co);
-							VECCOPY(&varray[numfaces*18+3],efa->n);
-
-							VECCOPY(&varray[numfaces*18+6],efa->v4->co);
-							VECCOPY(&varray[numfaces*18+9],efa->n);
-
-							VECCOPY(&varray[numfaces*18+12],efa->v1->co);
-							VECCOPY(&varray[numfaces*18+15],efa->n);
-							numfaces++;
-						}
-					}
-					else {
-						VECCOPY(&varray[numfaces*18],efa->v1->co);
-						VECCOPY(&varray[numfaces*18+3],efa->v1->no);
-
-						VECCOPY(&varray[numfaces*18+6],efa->v2->co);
-						VECCOPY(&varray[numfaces*18+9],efa->v2->no);
-
-						VECCOPY(&varray[numfaces*18+12],efa->v3->co);
-						VECCOPY(&varray[numfaces*18+15],efa->v3->no);
-						numfaces++;
-						if( efa->v4 ) {
-							VECCOPY(&varray[numfaces*18],efa->v3->co);
-							VECCOPY(&varray[numfaces*18+3],efa->v3->no);
-
-							VECCOPY(&varray[numfaces*18+6],efa->v4->co);
-							VECCOPY(&varray[numfaces*18+9],efa->v4->no);
-
-							VECCOPY(&varray[numfaces*18+12],efa->v1->co);
-							VECCOPY(&varray[numfaces*18+15],efa->v1->no);
-							numfaces++;
-						}
-					}
-				}
-				prevdraw = draw;
-			}
-			GPU_buffer_unlock( buffer );
-			if( prevdraw != 0 && numfaces > 0) {
-				if( prevdraw==2 ) {
+		for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
+			int drawSmooth = (efa->flag & ME_SMOOTH);
+			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
+			if(draw) {
+				if (draw==2) { /* enabled with stipple */
 					glEnable(GL_POLYGON_STIPPLE);
-	  				glPolygonStipple(stipple_quarttone);
+					glPolygonStipple(stipple_quarttone);
 				}
-				glDrawArrays(GL_TRIANGLES,0,numfaces*3);
-				if( prevdraw==2 ) {
-					glDisable(GL_POLYGON_STIPPLE);
-				}
-			}
-			GPU_buffer_unbind();
-		} else {
-			for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
-				int drawSmooth = (efa->flag & ME_SMOOTH);
-				draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
-				if(draw) {
-					if (draw==2) { /* enabled with stipple */
-		  				glEnable(GL_POLYGON_STIPPLE);
-		  				glPolygonStipple(stipple_quarttone);
-					}
-					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 
-					glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-					if (!drawSmooth) {
-						glNormal3fv(efa->n);
-						glVertex3fv(efa->v1->co);
-						glVertex3fv(efa->v2->co);
-						glVertex3fv(efa->v3->co);
-						if(efa->v4) glVertex3fv(efa->v4->co);
-					} else {
-						glNormal3fv(efa->v1->no);
-						glVertex3fv(efa->v1->co);
-						glNormal3fv(efa->v2->no);
-						glVertex3fv(efa->v2->co);
-						glNormal3fv(efa->v3->no);
-						glVertex3fv(efa->v3->co);
-						if(efa->v4) {
-							glNormal3fv(efa->v4->no);
-							glVertex3fv(efa->v4->co);
-						}
+				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+				if (!drawSmooth) {
+					glNormal3fv(efa->n);
+					glVertex3fv(efa->v1->co);
+					glVertex3fv(efa->v2->co);
+					glVertex3fv(efa->v3->co);
+					if(efa->v4) glVertex3fv(efa->v4->co);
+				} else {
+					glNormal3fv(efa->v1->no);
+					glVertex3fv(efa->v1->co);
+					glNormal3fv(efa->v2->no);
+					glVertex3fv(efa->v2->co);
+					glNormal3fv(efa->v3->no);
+					glVertex3fv(efa->v3->co);
+					if(efa->v4) {
+						glNormal3fv(efa->v4->no);
+						glVertex3fv(efa->v4->co);
 					}
-					glEnd();
-					
-					if (draw==2)
-						glDisable(GL_POLYGON_STIPPLE);
 				}
+				glEnd();
+				
+				if (draw==2)
+					glDisable(GL_POLYGON_STIPPLE);
 			}
 		}
-		if( buffer != 0 )
-			GPU_buffer_free( buffer, 0 );
 	}
 }
 
