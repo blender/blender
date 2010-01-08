@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -46,6 +47,10 @@ class SCENE_PT_scene(SceneButtonsPanel):
         else:
             layout.prop(scene, "camera", text="")
             layout.prop(scene, "set", text="")
+
+
+class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel):
+    _context_path = "scene"
 
 
 class SCENE_PT_unit(SceneButtonsPanel):
@@ -178,3 +183,6 @@ bpy.types.register(SCENE_PT_unit)
 bpy.types.register(SCENE_PT_keying_sets)
 bpy.types.register(SCENE_PT_keying_set_paths)
 bpy.types.register(SCENE_PT_physics)
+
+bpy.types.register(SCENE_PT_custom_props)
+

@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -40,6 +41,10 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
         row = layout.row()
         row.label(text="", icon='OBJECT_DATA')
         row.prop(ob, "name", text="")
+
+
+class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel):
+    _context_path = "object"
 
 
 class OBJECT_PT_transform(ObjectButtonsPanel):
@@ -300,16 +305,6 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.active = (ob.parent is not None)
 
 
-class OBJECT_PT_properties(ObjectButtonsPanel):
-    bl_label = "Properties"
-    bl_default_closed = True
-
-    def draw(self, context):
-        import rna_prop_ui
-        # reload(rna_prop_ui)
-
-        rna_prop_ui.draw(self.layout, context, "object")
-
 bpy.types.register(OBJECT_PT_context_object)
 bpy.types.register(OBJECT_PT_transform)
 bpy.types.register(OBJECT_PT_transform_locks)
@@ -318,4 +313,5 @@ bpy.types.register(OBJECT_PT_groups)
 bpy.types.register(OBJECT_PT_display)
 bpy.types.register(OBJECT_PT_duplication)
 bpy.types.register(OBJECT_PT_animation)
-bpy.types.register(OBJECT_PT_properties)
+
+bpy.types.register(OBJECT_PT_custom_props)

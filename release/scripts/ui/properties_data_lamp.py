@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -63,6 +64,10 @@ class DATA_PT_context_lamp(DataButtonsPanel):
                 layout.template_ID(ob, "data")
             elif lamp:
                 layout.template_ID(space, "pin_id")
+
+
+class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel):
+    _context_path = "object.data"
 
 
 class DATA_PT_lamp(DataButtonsPanel):
@@ -374,6 +379,7 @@ class DATA_PT_falloff_curve(DataButtonsPanel):
 
         self.layout.template_curve_mapping(lamp, "falloff_curve")
 
+
 bpy.types.register(DATA_PT_context_lamp)
 bpy.types.register(DATA_PT_preview)
 bpy.types.register(DATA_PT_lamp)
@@ -382,3 +388,5 @@ bpy.types.register(DATA_PT_area)
 bpy.types.register(DATA_PT_spot)
 bpy.types.register(DATA_PT_shadow)
 bpy.types.register(DATA_PT_sunsky)
+
+bpy.types.register(DATA_PT_custom_props_lamp)

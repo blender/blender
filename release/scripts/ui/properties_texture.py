@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -147,6 +148,13 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
                     split.prop(tex, "type", text="")
                 else:
                     layout.prop(tex, "type", text="")
+
+
+class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel):
+    _context_path = "texture"
+
+    def poll(self, context): # use alternate poll since NONE texture type is ok
+        return context.texture
 
 
 class TEXTURE_PT_colors(TextureButtonsPanel):
@@ -976,3 +984,5 @@ bpy.types.register(TEXTURE_PT_pointdensity_turbulence)
 bpy.types.register(TEXTURE_PT_colors)
 bpy.types.register(TEXTURE_PT_mapping)
 bpy.types.register(TEXTURE_PT_influence)
+
+bpy.types.register(TEXTURE_PT_custom_props)

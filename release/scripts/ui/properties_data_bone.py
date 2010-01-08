@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -45,6 +46,17 @@ class BONE_PT_context_bone(BoneButtonsPanel):
         row = layout.row()
         row.label(text="", icon='BONE_DATA')
         row.prop(bone, "name", text="")
+
+
+class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel):
+
+    @property
+    def _context_path(self):
+        obj = bpy.context.object
+        if obj and obj.mode == 'POSE':
+            return "active_pose_bone"
+        else:
+            return "active_bone"
 
 
 class BONE_PT_transform(BoneButtonsPanel):
@@ -376,21 +388,6 @@ class BONE_PT_deform(BoneButtonsPanel):
         col.prop(bone, "cyclic_offset")
 
 
-class BONE_PT_properties(BoneButtonsPanel):
-    bl_label = "Properties"
-    bl_default_closed = True
-
-    def draw(self, context):
-        import rna_prop_ui
-        # reload(rna_prop_ui)
-        obj = context.object
-        if obj and obj.mode == 'POSE':
-            item = "active_pose_bone"
-        else:
-            item = "active_bone"
-
-        rna_prop_ui.draw(self.layout, context, item)
-
 bpy.types.register(BONE_PT_context_bone)
 bpy.types.register(BONE_PT_transform)
 bpy.types.register(BONE_PT_transform_locks)
@@ -398,4 +395,5 @@ bpy.types.register(BONE_PT_relations)
 bpy.types.register(BONE_PT_display)
 bpy.types.register(BONE_PT_inverse_kinematics)
 bpy.types.register(BONE_PT_deform)
-bpy.types.register(BONE_PT_properties)
+
+bpy.types.register(BONE_PT_custom_props)

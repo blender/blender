@@ -124,6 +124,18 @@ def draw(layout, context, context_member, use_edit=True):
             assign_props(prop, val_draw, key)
 
 
+class PropertyPanel(bpy.types.Panel):
+    """
+    The subclass should have its own poll function 
+    and the variable '_context_path' MUST be set.
+    """
+    bl_label = "Custom Properties"
+    bl_default_closed = True
+
+    def draw(self, context):
+        draw(self.layout, context, self._context_path)
+
+
 from bpy.props import *
 
 
@@ -257,3 +269,4 @@ class WM_OT_properties_remove(bpy.types.Operator):
         item = eval("context.%s" % self.properties.path)
         del item[self.properties.property]
         return {'FINISHED'}
+

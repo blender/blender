@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -56,6 +57,10 @@ class DATA_PT_context_mesh(DataButtonsPanel):
                 layout.template_ID(ob, "data")
             elif mesh:
                 layout.template_ID(space, "pin_id")
+
+
+class DATA_PT_custom_props_mesh(DataButtonsPanel, PropertyPanel):
+    _context_path = "object.data"
 
 
 class DATA_PT_normals(DataButtonsPanel):
@@ -292,3 +297,6 @@ bpy.types.register(DATA_PT_vertex_groups)
 bpy.types.register(DATA_PT_shape_keys)
 bpy.types.register(DATA_PT_uv_texture)
 bpy.types.register(DATA_PT_vertex_colors)
+
+bpy.types.register(DATA_PT_custom_props_mesh)
+

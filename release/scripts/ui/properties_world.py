@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -67,6 +68,10 @@ class WORLD_PT_context_world(WorldButtonsPanel):
                 split.template_ID(space, "pin_id")
         else:
             layout.template_ID(scene, "world", new="world.new")
+
+
+class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel):
+    _context_path = "world"
 
 
 class WORLD_PT_world(WorldButtonsPanel):
@@ -232,3 +237,5 @@ bpy.types.register(WORLD_PT_world)
 bpy.types.register(WORLD_PT_ambient_occlusion)
 bpy.types.register(WORLD_PT_mist)
 bpy.types.register(WORLD_PT_stars)
+
+bpy.types.register(WORLD_PT_custom_props)
