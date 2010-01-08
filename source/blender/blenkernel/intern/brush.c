@@ -225,7 +225,7 @@ void brush_toggled_fake_user(Brush *brush)
 	}
 }
 
-void brush_curve_preset(Brush *b, CurveMappingPreset preset)
+void brush_curve_preset(Brush *b, /*CurveMappingPreset*/int preset)
 {
 	CurveMap *cm = NULL;
 
