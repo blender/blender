@@ -1096,16 +1096,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	struct Base *base = scene->basact;
 	rcti winrct;
 
-/*for 2.43 release, don't use glext and just define the constant.
-  this to avoid possibly breaking platforms before release.*/
-#ifndef GL_MULTISAMPLE_ARB
-	#define GL_MULTISAMPLE_ARB	0x809D
-#endif
-
-#ifdef GL_MULTISAMPLE_ARB
-	int m;
-#endif
-
 	if(base && (base->object->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT) ||
 		     paint_facesel_test(base->object)));
 	else if((base && (base->object->mode & OB_MODE_TEXTURE_PAINT)) &&
@@ -1125,16 +1115,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 //			return;
 //		}
 //	}
-
-	/* Disable FSAA for backbuffer selection.  
-	
-	Only works if GL_MULTISAMPLE_ARB is defined by the header
-	file, which is should be for every OS that supports FSAA.*/
-
-#ifdef GL_MULTISAMPLE_ARB
-	m = glIsEnabled(GL_MULTISAMPLE_ARB);
-	if (m) glDisable(GL_MULTISAMPLE_ARB);
-#endif
 
 	if(v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
 	
@@ -1171,10 +1151,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
-
-#ifdef GL_MULTISAMPLE_ARB
-	if (m) glEnable(GL_MULTISAMPLE_ARB);
-#endif
 
 	/* it is important to end a view in a transform compatible with buttons */
 //	persp(PERSP_WIN);  // set ortho
@@ -2040,10 +2016,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	Object *obact = OBACT;
 	char *grid_unit= NULL;
 	
-	/* enables anti-aliasing for 3D view drawing */
-	if (!(U.gameflags & USER_DISABLE_AA))
-		glEnable(GL_MULTISAMPLE_ARB);
-	
 	/* from now on all object derived meshes check this */
 	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
 	
@@ -2069,6 +2041,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	else
 		v3d->zbuf= FALSE;
+
+	/* enables anti-aliasing for 3D view drawing */
+	if (!(U.gameflags & USER_DISABLE_AA))
+		glEnable(GL_MULTISAMPLE_ARB);
 	
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	rv3d->gridview= v3d->grid;
@@ -2176,6 +2152,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	BIF_draw_manipulator(C);
 	
+	/* Disable back anti-aliasing */
+	if (!(U.gameflags & USER_DISABLE_AA))
+		glDisable(GL_MULTISAMPLE_ARB);
+
 	if(v3d->zbuf) {
 		v3d->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);
@@ -2226,10 +2206,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* XXX here was the blockhandlers for floating panels */
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
-	
-	/* Disable back anti-aliasing */
-	if (!(U.gameflags & USER_DISABLE_AA))
-		glDisable(GL_MULTISAMPLE_ARB);
 }
 
 

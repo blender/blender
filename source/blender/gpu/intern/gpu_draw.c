@@ -1313,6 +1313,8 @@ void GPU_state_init(void)
 	glFrontFace(GL_CCW);
 	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
+
+	glDisable(GL_MULTISAMPLE_ARB);
 }
 
 /* debugging aid */
