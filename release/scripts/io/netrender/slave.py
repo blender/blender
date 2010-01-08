@@ -88,7 +88,7 @@ def testFile(conn, job_id, slave_id, file_index, JOB_PREFIX, file_path, main_pat
 
     return job_full_path
 
-def render_slave(engine, netsettings):
+def render_slave(engine, netsettings, threads):
     timeout = 1
 
     engine.update_stats("", "Network render node initiation")
@@ -151,7 +151,7 @@ def render_slave(engine, netsettings):
                         frame_args += ["-f", str(frame.number)]
 
                     val = SetErrorMode()
-                    process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-t", str(threads), "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     RestoreErrorMode(val)
                 elif job.type == netrender.model.JOB_PROCESS:
                     command = job.frames[0].command
@@ -165,7 +165,7 @@ def render_slave(engine, netsettings):
                 stdout = bytes()
                 run_t = time.time()
                 while not cancelled and process.poll() == None:
-                    stdout += process.stdout.read(32)
+                    stdout += process.stdout.read(1024)
                     current_t = time.time()
                     cancelled = engine.test_break()
                     if current_t - run_t > CANCEL_POLL_SPEED:

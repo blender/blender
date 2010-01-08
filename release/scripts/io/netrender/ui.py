@@ -136,10 +136,15 @@ class RENDER_PT_network_slave_settings(RenderButtonsPanel):
         layout = self.layout
 
         scene = context.scene
+        rd = scene.render_data
         netsettings = scene.network_render
 
         layout.prop(netsettings, "slave_clear")
-        
+        layout.label(text="Threads:")
+        layout.prop(rd, "threads_mode", expand=True)
+        sub = layout.column()
+        sub.enabled = rd.threads_mode == 'THREADS_FIXED'
+        sub.prop(rd, "threads")        
 @rnaType
 class RENDER_PT_network_master_settings(RenderButtonsPanel):
     bl_label = "Master Settings"

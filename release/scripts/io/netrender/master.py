@@ -257,7 +257,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                                     sce.render_data.quality = 90
                                     bpy.ops.image.open(path = job.save_path + "%04d" % frame_number + ".exr")
                                     img = bpy.data.images["%04d" % frame_number + ".exr"]
-                                    img.save(filename)
+                                    img.save(filename, scene = sce)
                                     
                                     try:
                                         process = subprocess.Popen(["convert", filename, "-resize", "300x300", filename])

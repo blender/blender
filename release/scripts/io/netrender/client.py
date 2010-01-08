@@ -201,7 +201,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
 
     def render_slave(self, scene):
-        slave.render_slave(self, scene.network_render)
+        slave.render_slave(self, scene.network_render, scene.render_data.threads)
 
     def render_client(self, scene):
         netsettings = scene.network_render
