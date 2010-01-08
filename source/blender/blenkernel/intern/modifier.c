@@ -4340,7 +4340,7 @@ static void smoothModifier_do(
 	fac = smd->fac;
 	facm = 1 - fac;
 
-	medges = CDDM_get_edges(dm);
+	medges = dm->getEdgeArray(dm);
 	numDMEdges = dm->getNumEdges(dm);
 
 	defgrp_index = -1;
