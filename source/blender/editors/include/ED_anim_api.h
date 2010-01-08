@@ -327,13 +327,14 @@ typedef enum eAnimChannel_Settings {
 /* Drawing, mouse handling, and flag setting behaviour... */
 typedef struct bAnimChannelType {
 	/* drawing */
+		/* get RGB color that is used to draw the majority of the backdrop */
+	void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float *color);
 		/* draw backdrop strip for channel */
 	void (*draw_backdrop)(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
 		/* get depth of indention (relative to the depth channel is nested at) */
 	short (*get_indent_level)(bAnimContext *ac, bAnimListElem *ale);
 		/* get offset in pixels for the start of the channel (in addition to the indent depth) */
 	short (*get_offset)(bAnimContext *ac, bAnimListElem *ale);
-	
 	
 	/* get name (for channel lists) */
 	void (*name)(bAnimListElem *ale, char *name);

@@ -120,6 +120,13 @@ extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, flo
 
 /* Draw Backdrop ---------------------------------- */
 
+/* get backdrop color for top-level widgets (Scene and Object only) */
+static void acf_generic_root_color(bAnimContext *ac, bAnimListElem *ale, float *color)
+{
+	/* darker blue for top-level widgets */
+	UI_GetThemeColor3fv(TH_DOPESHEET_CHANNELOB, color);
+}
+
 /* backdrop for top-level widgets (Scene and Object only) */
 static void acf_generic_root_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
@@ -127,13 +134,23 @@ static void acf_generic_root_backdrop(bAnimContext *ac, bAnimListElem *ale, floa
 	View2D *v2d= &ac->ar->v2d;
 	short expanded= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_EXPAND) != 0;
 	short offset= (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
+	float color[3];
 	
-	/* darker blue for top-level widgets */
-	UI_ThemeColor(TH_DOPESHEET_CHANNELOB);
+	/* set backdrop drawing color */
+	acf->get_backdrop_color(ac, ale, color);
+	glColor3fv(color);
 	
 	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
 	uiSetRoundBox((expanded)? (1):(1|8));
 	gl_round_box(GL_POLYGON, offset,  yminc, v2d->cur.xmax+EXTRA_SCROLL_PAD, ymaxc, 8);
+}
+
+
+/* get backdrop color for data expanders under top-level Scene/Object */
+static void acf_generic_dataexpand_color(bAnimContext *ac, bAnimListElem *ale, float *color)
+{
+	/* lighter color than top-level widget */
+	UI_GetThemeColor3fv(TH_DOPESHEET_CHANNELSUBOB, color);
 }
 
 /* backdrop for data expanders under top-level Scene/Object */
@@ -142,23 +159,23 @@ static void acf_generic_dataexpand_backdrop(bAnimContext *ac, bAnimListElem *ale
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	View2D *v2d= &ac->ar->v2d;
 	short offset= (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
+	float color[3];
 	
-	/* lighter color than top-level widget */
-	UI_ThemeColor(TH_DOPESHEET_CHANNELSUBOB);
+	/* set backdrop drawing color */
+	acf->get_backdrop_color(ac, ale, color);
+	glColor3fv(color);
 	
 	/* no rounded corner - just rectangular box */
 	glRectf(offset, yminc, 	v2d->cur.xmax+EXTRA_SCROLL_PAD, ymaxc);
 }
 
-/* backdrop for generic channels */
-static void acf_generic_channel_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
+/* get backdrop color for generic channels */
+static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, float *color)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
-	View2D *v2d= &ac->ar->v2d;
 	SpaceAction *saction = NULL;
 	bActionGroup *grp = NULL;
 	short indent= (acf->get_indent_level) ? acf->get_indent_level(ac, ale) : 0;
-	short offset= (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
 	
 	/* get context info needed... */
 	if ((ac->sa) && (ac->sa->spacetype == SPACE_ACTION))
@@ -188,10 +205,27 @@ static void acf_generic_channel_backdrop(bAnimContext *ac, bAnimListElem *ale, f
 			VECCOPY(cp, grp->cs.active);
 		}
 		
-		glColor3ub(cp[0], cp[1], cp[2]);
+		/* copy the colors over, transforming from bytes to floats */
+		rgb_byte_to_float(cp, color);
 	}
-	else // FIXME: what happens when the indention is 1 greater than what it should be (due to grouping)?
-		UI_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
+	else {
+		// FIXME: what happens when the indention is 1 greater than what it should be (due to grouping)?
+		int colOfs= 20 - 20*indent;
+		UI_GetThemeColorShade3fv(TH_HEADER, colOfs, color);
+	}
+}
+
+/* backdrop for generic channels */
+static void acf_generic_channel_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
+{
+	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
+	View2D *v2d= &ac->ar->v2d;
+	short offset= (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
+	float color[3];
+	
+	/* set backdrop drawing color */
+	acf->get_backdrop_color(ac, ale, color);
+	glColor3fv(color);
 	
 	/* no rounded corners - just rectangular box */
 	glRectf(offset, yminc, 	v2d->cur.xmax+EXTRA_SCROLL_PAD, ymaxc);
@@ -348,13 +382,23 @@ static short acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListEle
 
 /* Animation Summary ----------------------------------- */
 
+/* get backdrop color for summary widget */
+static void acf_summary_color(bAnimContext *ac, bAnimListElem *ale, float *color)
+{
+	// FIXME: hardcoded color - same as the 'action' line in NLA
+	glColor3f(0.8f, 0.2f, 0.0f);	// reddish color 
+}
+
 /* backdrop for summary widget */
 static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
+	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	View2D *v2d= &ac->ar->v2d;
+	float color[3];
 	
-	// FIXME: hardcoded color - same as the 'action' line in NLA
-	glColor3f(0.8f, 0.2f, 0.0f);	// reddish color 
+	/* set backdrop drawing color */
+	acf->get_backdrop_color(ac, ale, color);
+	glColor3fv(color);
 	
 	/* rounded corners on LHS only 
 	 *	- top and bottom 
@@ -424,6 +468,7 @@ static void *acf_summary_setting_ptr(bAnimListElem *ale, int setting, short *typ
 /* all animation summary (DopeSheet only) type define */
 static bAnimChannelType ACF_SUMMARY = 
 {
+	acf_summary_color,					/* backdrop color */
 	acf_summary_backdrop,				/* backdrop */
 	acf_generic_indention_0,			/* indent level */
 	NULL,								/* offset */
@@ -522,6 +567,7 @@ static void *acf_scene_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* scene type define */
 static bAnimChannelType ACF_SCENE = 
 {
+	acf_generic_root_color,			/* backdrop color */
 	acf_generic_root_backdrop,		/* backdrop */
 	acf_generic_indention_0,		/* indent level */
 	NULL,							/* offset */
@@ -641,6 +687,7 @@ static void *acf_object_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* object type define */
 static bAnimChannelType ACF_OBJECT = 
 {
+	acf_generic_root_color,			/* backdrop color */
 	acf_generic_root_backdrop,		/* backdrop */
 	acf_generic_indention_0,		/* indent level */
 	NULL,							/* offset */
@@ -655,6 +702,16 @@ static bAnimChannelType ACF_OBJECT =
 
 /* Group ------------------------------------------- */
 
+/* get backdrop color for group widget */
+static void acf_group_color(bAnimContext *ac, bAnimListElem *ale, float *color)
+{
+	/* highlight only for action group channels */
+	if (ale->flag & AGRP_ACTIVE)
+		UI_GetThemeColorShade3fv(TH_GROUP_ACTIVE, 10, color);
+	else
+		UI_GetThemeColorShade3fv(TH_GROUP, 20, color);
+}
+
 /* backdrop for group widget */
 static void acf_group_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
@@ -662,12 +719,11 @@ static void acf_group_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc
 	View2D *v2d= &ac->ar->v2d;
 	short expanded= ANIM_channel_setting_get(ac, ale, ACHANNEL_SETTING_EXPAND) != 0;
 	short offset= (acf->get_offset) ? acf->get_offset(ac, ale) : 0;
+	float color[3];
 	
-	/* only for action group channels */
-	if (ale->flag & AGRP_ACTIVE)
-		UI_ThemeColorShade(TH_GROUP_ACTIVE, 10);
-	else
-		UI_ThemeColorShade(TH_GROUP, 20);
+	/* set backdrop drawing color */
+	acf->get_backdrop_color(ac, ale, color);
+	glColor3fv(color);
 	
 	/* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
 	uiSetRoundBox((expanded)? (1):(1|8));
@@ -738,6 +794,7 @@ static void *acf_group_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* group type define */
 static bAnimChannelType ACF_GROUP = 
 {
+	acf_group_color,				/* backdrop color */
 	acf_group_backdrop,				/* backdrop */
 	acf_generic_indention_0,		/* indent level */
 	acf_generic_group_offset,		/* offset */
@@ -821,6 +878,7 @@ static void *acf_fcurve_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* fcurve type define */
 static bAnimChannelType ACF_FCURVE = 
 {
+	acf_generic_channel_color,		/* backdrop color */
 	acf_generic_channel_backdrop,	/* backdrop */
 	acf_generic_indention_flexible,	/* indent level */		// xxx rename this to f-curves only?
 	acf_generic_group_offset,		/* offset */
@@ -902,6 +960,7 @@ static void *acf_fillactd_setting_ptr(bAnimListElem *ale, int setting, short *ty
 /* object action expander type define */
 static bAnimChannelType ACF_FILLACTD = 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -977,6 +1036,7 @@ static void *acf_filldrivers_setting_ptr(bAnimListElem *ale, int setting, short 
 /* drivers expander type define */
 static bAnimChannelType ACF_FILLDRIVERS = 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -1020,6 +1080,7 @@ static int acf_fillmatd_setting_flag(int setting, short *neg)
 /* materials expander type define */
 static bAnimChannelType ACF_FILLMATD= 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -1063,6 +1124,7 @@ static int acf_fillpartd_setting_flag(int setting, short *neg)
 /* particles expander type define */
 static bAnimChannelType ACF_FILLPARTD= 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -1142,6 +1204,7 @@ static void *acf_dsmat_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* material expander type define */
 static bAnimChannelType ACF_DSMAT= 
 {
+	acf_generic_channel_color,		/* backdrop color */
 	acf_generic_channel_backdrop,	/* backdrop */
 	acf_generic_indention_0,		/* indent level */
 	acf_dsmat_offset,				/* offset */
@@ -1215,6 +1278,7 @@ static void *acf_dslam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* lamp expander type define */
 static bAnimChannelType ACF_DSLAM= 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -1288,6 +1352,7 @@ static void *acf_dscam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* camera expander type define */
 static bAnimChannelType ACF_DSCAM= 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -1371,6 +1436,7 @@ static void *acf_dscur_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* curve expander type define */
 static bAnimChannelType ACF_DSCUR= 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -1444,6 +1510,7 @@ static void *acf_dsskey_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* shapekey expander type define */
 static bAnimChannelType ACF_DSSKEY= 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -1517,6 +1584,7 @@ static void *acf_dswor_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* world expander type define */
 static bAnimChannelType ACF_DSWOR= 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -1590,6 +1658,7 @@ static void *acf_dspart_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* particle expander type define */
 static bAnimChannelType ACF_DSPART= 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -1663,6 +1732,7 @@ static void *acf_dsmball_setting_ptr(bAnimListElem *ale, int setting, short *typ
 /* metaball expander type define */
 static bAnimChannelType ACF_DSMBALL= 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -1736,6 +1806,7 @@ static void *acf_dsarm_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* metaball expander type define */
 static bAnimChannelType ACF_DSARM= 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -1809,6 +1880,7 @@ static void *acf_dsntree_setting_ptr(bAnimListElem *ale, int setting, short *typ
 /* node tree expander type define */
 static bAnimChannelType ACF_DSNTREE= 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */		// XXX this only works for compositing
 	acf_generic_basic_offset,		/* offset */
@@ -1882,6 +1954,7 @@ static void *acf_dsmesh_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* node tree expander type define */
 static bAnimChannelType ACF_DSMESH= 
 {
+	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */		// XXX this only works for compositing
 	acf_generic_basic_offset,		/* offset */
@@ -1969,6 +2042,7 @@ static void *acf_shapekey_setting_ptr(bAnimListElem *ale, int setting, short *ty
 /* shapekey expander type define */
 static bAnimChannelType ACF_SHAPEKEY= 
 {
+	acf_generic_channel_color,		/* backdrop color */
 	acf_generic_channel_backdrop,	/* backdrop */
 	acf_generic_indention_0,		/* indent level */
 	acf_generic_basic_offset,		/* offset */
@@ -2314,6 +2388,7 @@ void ANIM_channel_setting_set (bAnimContext *ac, bAnimListElem *ale, int setting
 void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
+	View2D *v2d= &ac->ar->v2d;
 	short selected, offset;
 	float y, ymid, ytext;
 	
@@ -2410,6 +2485,66 @@ void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float
 		
 		offset += 3;
 		UI_DrawString(offset, ytext, name);
+	}
+	
+	/* step 6) draw backdrops behidn mute+protection toggles + (sliders) ....................... */
+	/* reset offset - now goes from RHS of panel */
+	offset = 0;
+	
+	// TODO: when drawing sliders, make those draw instead of these toggles if not enough space
+	
+	if (v2d) {
+		short draw_sliders = 0;
+		float color[3];
+		
+		/* get and set backdrop color */
+		acf->get_backdrop_color(ac, ale, color);
+		glColor3fv(color);
+		
+		/* check if we need to show the sliders */
+		if ((ac->sa) && ELEM(ac->spacetype, SPACE_ACTION, SPACE_IPO)) {
+			switch (ac->spacetype) {
+				case SPACE_ACTION:
+				{
+					SpaceAction *saction= (SpaceAction *)ac->sa->spacedata.first;
+					draw_sliders= (saction->flag & SACTION_SLIDERS);
+				}
+					break;
+				case SPACE_IPO:
+				{
+					SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
+					draw_sliders= (sipo->flag & SIPO_SLIDERS);
+				}
+					break;
+			}
+		}
+		
+		/* check if there's enough space for the toggles if the sliders are drawn too */
+		if ( !(draw_sliders) || ((v2d->mask.xmax-v2d->mask.xmin) > ACHANNEL_BUTTON_WIDTH/2) ) {
+			/* protect... */
+			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT))
+				offset += ICON_WIDTH;
+			/* mute... */
+			if (acf->has_setting(ac, ale, ACHANNEL_SETTING_MUTE))
+				offset += ICON_WIDTH;
+		}
+		
+		/* draw slider
+		 *	- even if we can draw sliders for this view, we must also check that the channel-type supports them
+		 *	  (only only F-Curves really can support them for now)
+		 *	- slider should start before the toggles (if they're visible) to keep a clean line down the side
+		 */
+		if ((draw_sliders) && ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_SHAPEKEY)) {
+			/* adjust offset */
+			offset += SLIDER_WIDTH;
+		}
+		
+		
+		/* finally draw a backdrop rect behind these 
+		 *	- starts from the point where the first toggle/slider starts, 
+		 *	- ends past the space that might be reserved for a scroller
+		 */
+		glRectf(v2d->cur.xmax-(float)offset, yminc, v2d->cur.xmax+EXTRA_SCROLL_PAD, ymaxc);
 	}
 }
 

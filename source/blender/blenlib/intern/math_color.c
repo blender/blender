@@ -274,6 +274,26 @@ void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
 	*b /= 255.0f;
 }
 
+void rgb_byte_to_float(char *in, float *out)
+{
+	out[0]= ((float)in[0]) / 255.0f;
+	out[1]= ((float)in[1]) / 255.0f;
+	out[2]= ((float)in[2]) / 255.0f;
+}
+
+void rgb_float_to_byte(float *in, char *out)
+{
+	int r, g, b;
+	
+	r= (int)(in[0] * 255.0);
+	g= (int)(in[1] * 255.0); 
+	b= (int)(in[2] * 255.0); 
+	
+	out[0]= (char)((r <= 0)? 0 : (r >= 255)? 255 : r);
+	out[1]= (char)((g <= 0)? 0 : (g >= 255)? 255 : g);
+	out[2]= (char)((b <= 0)? 0 : (b >= 255)? 255 : b);
+}
+
 /* ********************************* color transforms ********************************* */
 
 
