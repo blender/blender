@@ -63,6 +63,7 @@ struct Scene;
 extern int start_ffmpeg(struct Scene *scene, struct RenderData *rd, int rectx, int recty, struct ReportList *reports);
 extern void end_ffmpeg(void);
 extern int append_ffmpeg(struct RenderData *rd, int frame, int *pixels, int rectx, int recty, struct ReportList *reports);
+void filepath_ffmpeg(char* string, struct RenderData* rd);
 
 extern void ffmpeg_set_preset(struct RenderData *rd, int preset);
 extern void ffmpeg_verify_image_type(struct RenderData *rd);

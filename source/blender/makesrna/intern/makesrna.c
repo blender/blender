@@ -1238,9 +1238,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 			ptrstr= "*";
 		else if(dparm->prop==func->c_ret)
 			ptrstr= ((dparm->prop->type == PROP_POINTER) && !(dparm->prop->flag & PROP_RNAPTR))? "*": "";
-		else if ((dparm->prop->flag & PROP_RETURN))
-			ptrstr= ((dparm->prop->type == PROP_POINTER) && !(dparm->prop->flag & PROP_RNAPTR))? "**": "*";
-		else
+		else if ((dparm->prop->flag & PROP_RETURN)) {
+			if ((dparm->prop->flag & PROP_THICK_WRAP) && (dparm->prop->type == PROP_STRING))
+				ptrstr= "";
+			else
+				ptrstr= ((dparm->prop->type == PROP_POINTER) && !(dparm->prop->flag & PROP_RNAPTR))? "**": "*";
+		} else
 			ptrstr= (dparm->prop->type == PROP_POINTER)? "*": "";
 
 		fprintf(f, "\t%s%s %s%s;\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, dparm->prop->identifier);
@@ -1276,8 +1279,12 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 			else
 				fprintf(f, "\t%s= %s((%s%s**)_data);\n", dparm->prop->identifier, ptrstr, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
 		}
-		else
-			fprintf(f, "\t%s= %s((%s%s*)_data);\n", dparm->prop->identifier, ptrstr, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
+		else {
+			if ((dparm->prop->flag & PROP_THICK_WRAP) && (dparm->prop->type == PROP_STRING))
+				fprintf(f, "\t%s= %s((%s%s)_data);\n", dparm->prop->identifier, ptrstr, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
+			else
+				fprintf(f, "\t%s= %s((%s%s*)_data);\n", dparm->prop->identifier, ptrstr, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
+		}
 
 		if(dparm->next)
 			fprintf(f, "\t_data+= %d;\n", rna_parameter_size(dparm->prop));
@@ -1614,7 +1621,9 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 		if(!first) fprintf(f, ", ");
 		first= 0;
 
-		if((dparm->prop->flag & PROP_RETURN))
+		if((dparm->prop->type == PROP_STRING && dparm->prop->flag & PROP_THICK_WRAP))
+			ptrstr= "";
+		else if(dparm->prop->flag & PROP_RETURN)
 			ptrstr= "*";
 		else
 			ptrstr= "";

@@ -101,6 +101,7 @@ EnumPropertyItem snap_element_items[] = {
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_depsgraph.h"
+#include "BKE_image.h"
 #include "BKE_mesh.h"
 
 #include "BLI_threads.h"
@@ -357,6 +358,21 @@ static void rna_SceneRenderData_file_format_set(PointerRNA *ptr, int value)
 #ifdef WITH_QUICKTIME
 	quicktime_verify_image_type(rd);
 #endif
+}
+
+static int rna_SceneRender_file_ext_length(PointerRNA *ptr)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	char ext[8];
+
+	BKE_add_image_extension(ext, rd->imtype);
+	return strlen(ext);
+}
+
+static void rna_SceneRender_file_ext_get(PointerRNA *ptr, char *str)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	BKE_add_image_extension(str, rd->imtype);
 }
 
 void rna_SceneRenderData_jpeg2k_preset_update(RenderData *rd)
@@ -2100,7 +2116,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Color Management", "Use color profiles and gamma corrected imaging pipeline");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_MATERIAL|ND_SHADING, NULL);
 	
-	prop= RNA_def_property(srna, "file_extensions", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_file_extension", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_EXTENSION);
 	RNA_def_property_ui_text(prop, "File Extensions", "Add the file format extensions to the rendered file name (eg: filename + .jpg)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
@@ -2111,7 +2127,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, "rna_SceneRenderData_file_format_set", NULL);
 	RNA_def_property_ui_text(prop, "File Format", "File format to save the rendered images as.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
+
+	prop= RNA_def_property(srna, "file_extension", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_SceneRender_file_ext_get", "rna_SceneRender_file_ext_length", NULL);
+	RNA_def_property_ui_text(prop, "Extension", "The file extension used for saving renders.");
+	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	prop= RNA_def_property(srna, "free_image_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FREE_IMAGE);
 	RNA_def_property_ui_text(prop, "Free Image Textures", "Free all image texture from memory after render, to save memory before compositing.");
@@ -2317,6 +2339,9 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_SceneRenderData_use_game_engine_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Use Game Engine", "Current rendering engine is a game engine.");
+
+	/* Scene API */
+	RNA_api_scene_render(srna);
 }
 
 

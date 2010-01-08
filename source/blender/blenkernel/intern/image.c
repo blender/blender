@@ -883,7 +883,7 @@ int BKE_imtype_is_movie(int imtype)
 	return 0;
 }
 
-void BKE_add_image_extension(Scene *scene, char *string, int imtype)
+void BKE_add_image_extension(char *string, int imtype)
 {
 	char *extension="";
 	
@@ -1409,7 +1409,7 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 }
 
 
-void BKE_makepicstring(struct Scene *scene, char *string, char *base, int frame, int imtype)
+void BKE_makepicstring(char *string, char *base, int frame, int imtype, int use_ext)
 {
 	if (string==NULL) return;
 
@@ -1422,8 +1422,8 @@ void BKE_makepicstring(struct Scene *scene, char *string, char *base, int frame,
 	BLI_convertstringcode(string, G.sce);
 	BLI_convertstringframe(string, frame);
 
-	if(scene->r.scemode & R_EXTENSION) 
-		BKE_add_image_extension(scene, string, imtype);
+	if(use_ext)
+		BKE_add_image_extension(string, imtype);
 		
 }
 

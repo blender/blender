@@ -3413,7 +3413,7 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *even
 				printf("Append frame %d", scene->r.cfra);
 		}
 		else {
-			BKE_makepicstring(scene, name, scene->r.pic, scene->r.cfra, scene->r.imtype);
+			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION);
 			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 			
 			if(ok==0) printf("write error: cannot save %s\n", name);

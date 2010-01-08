@@ -29,39 +29,6 @@ import subprocess
 import os
 import platform
 
-# from BKE_add_image_extension()
-img_format_exts = {
-    'IRIS': '.rgb',
-    'RADHDR': '.hdr',
-    'PNG': 'png',
-    'TARGA': 'tga',
-    'RAWTARGA': 'tga',
-    'BMP': 'bmp',
-    'TIFF': 'tif',
-    'OPENEXR': 'exr',
-    'MULTILAYER': 'exr',
-    'CINEON': 'cin',
-    'DPX': 'dpx',
-    'JPEG': 'jpg',
-    'JPEG2000': 'jp2',
-    'QUICKTIME_QTKIT': 'mov',
-    'QUICKTIME_CARBON': 'mov',
-    'AVIRAW': 'avi',
-    'AVIJPEG': 'avi',
-    'AVICODEC': 'avi',
-    'XVID': 'avi',
-    'THEORA': 'ogg',
-    }
-
-movie_formats = ('QUICKTIME_QTKIT',
-                'QUICKTIME_CARBONTKIT',
-                'AVIRAW',
-                'AVIJPEG',
-                'AVICODEC',
-                'XVID',
-                'THEORA')
-
-
 def guess_player_path(preset):
     if preset == 'BLENDER24':
         player_path = 'blender'
@@ -112,16 +79,13 @@ class PlayRenderedAnim(bpy.types.Operator):
         if player_path == '':
             player_path = guess_player_path(preset)
 
-        # doesn't support ### frame notation yet
-        if rd.file_format in movie_formats:
-            file = "%s%04d_%04d" % (file_path, sce.start_frame, sce.end_frame)
-        elif preset in ('BLENDER24', 'DJV', 'CUSTOM'):
-            file = "%s%04d" % (file_path, sce.start_frame)
-        elif preset in ('FRAMECYCLER', 'RV'):
-            file = "%s#" % file_path
-
-        if rd.file_extensions:
-            file += '.' + img_format_exts[rd.file_format]
+        if preset in ('FRAMECYCLER', 'RV'):
+            # replace the number with '#'
+            file_a, file_b = rd.frame_path(frame=0), rd.frame_path(frame=1)
+            file = ''.join([(c if file_b[i] == c else "#") for i, c in enumerate(file_a)])
+        else:
+            # works for movies and images
+            file = rd.frame_path(frame=sce.start_frame)
 
         cmd = [player_path]
         # extra options, fps controls etc.

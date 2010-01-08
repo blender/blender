@@ -785,8 +785,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 		BLI_convertstringframe(name, scene->r.cfra);
 		
 		if(scene->r.scemode & R_EXTENSION)  {
-			BKE_add_image_extension(scene, name, sima->imtypenr);
-			BKE_add_image_extension(scene, name, sima->imtypenr);
+			BKE_add_image_extension(name, sima->imtypenr);
 		}
 		
 		/* enforce user setting for RGB or RGBA, but skip BW */

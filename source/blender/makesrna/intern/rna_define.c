@@ -2470,7 +2470,12 @@ int rna_parameter_size(PropertyRNA *parm)
 			case PROP_FLOAT:
 				return sizeof(float);
 			case PROP_STRING:
-				return sizeof(char *);
+				/* return  valyes dont store a pointer to the original */
+				if(parm->flag & PROP_THICK_WRAP) {
+					StringPropertyRNA *sparm= (StringPropertyRNA*)parm;
+					return sizeof(char) * sparm->maxlength;
+				} else
+					return sizeof(char *);
 			case PROP_POINTER: {
 #ifdef RNA_RUNTIME
 				if(parm->flag & PROP_RNAPTR)

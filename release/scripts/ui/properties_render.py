@@ -292,7 +292,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 
         if wide_ui:
             col = split.column()
-        col.prop(rd, "file_extensions")
+        col.prop(rd, "use_file_extension")
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
 

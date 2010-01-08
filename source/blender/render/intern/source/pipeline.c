@@ -2777,7 +2777,7 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 		printf("Append frame %d", scene->r.cfra);
 	} 
 	else {
-		BKE_makepicstring(scene, name, scene->r.pic, scene->r.cfra, scene->r.imtype);
+		BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION);
 		
 		if(re->r.imtype==R_MULTILAYER) {
 			if(re->result) {
@@ -2810,7 +2810,7 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 			if(ok && scene->r.imtype==R_OPENEXR && (scene->r.subimtype & R_PREVIEW_JPG)) {
 				if(BLI_testextensie(name, ".exr")) 
 					name[strlen(name)-4]= 0;
-				BKE_add_image_extension(scene, name, R_JPEG90);
+				BKE_add_image_extension(name, R_JPEG90);
 				ibuf->depth= 24; 
 				BKE_write_ibuf(scene, ibuf, name, R_JPEG90, scene->r.subimtype, scene->r.quality);
 				printf("\nSaved: %s", name);
@@ -2895,7 +2895,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra, Repo
 			/* Touch/NoOverwrite options are only valid for image's */
 			if(BKE_imtype_is_movie(scene->r.imtype) == 0) {
 				if(scene->r.mode & (R_NO_OVERWRITE | R_TOUCH))
-					BKE_makepicstring(scene, name, scene->r.pic, scene->r.cfra, scene->r.imtype);
+					BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION);
 
 				if(scene->r.mode & R_NO_OVERWRITE && BLI_exist(name)) {
 					printf("skipping existing frame \"%s\"\n", name);

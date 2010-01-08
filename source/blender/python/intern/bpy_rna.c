@@ -2325,6 +2325,8 @@ static int foreach_compat_buffer(RawPropertyType raw_type, int attr_signed, cons
 		return (f=='f') ? 1:0;
 	case PROP_RAW_DOUBLE:
 		return (f=='d') ? 1:0;
+	case PROP_RAW_UNSET:
+		return 0;
 	}
 
 	return 0;
@@ -2389,6 +2391,9 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 				case PROP_RAW_DOUBLE:
 					((double *)array)[i]= (double)PyFloat_AsDouble(item);
 					break;
+				case PROP_RAW_UNSET:
+					/* should never happen */
+					break;
 				}
 
 				Py_DECREF(item);
@@ -2439,6 +2444,9 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
 					break;
 				case PROP_RAW_DOUBLE:
 					item= PyFloat_FromDouble(  (double) ((double *)array)[i]  );
+					break;
+				case PROP_RAW_UNSET:
+					/* should never happen */
 					break;
 				}
 
@@ -2584,7 +2592,7 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 {
 	PyObject *ret;
 	int type = RNA_property_type(prop);
-
+	int flag = RNA_property_flag(prop);
 	int a;
 
 	if(RNA_property_array_check(ptr, prop)) {
@@ -2647,7 +2655,10 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 			break;
 		case PROP_STRING:
 		{
-			ret = PyUnicode_FromString( *(char**)data );
+			if(flag & PROP_THICK_WRAP)
+				ret = PyUnicode_FromString( (char*)data );
+			else
+				ret = PyUnicode_FromString( *(char**)data );
 			break;
 		}
 		case PROP_ENUM:
@@ -2659,7 +2670,6 @@ PyObject *pyrna_param_to_py(PointerRNA *ptr, PropertyRNA *prop, void *data)
 		{
 			PointerRNA newptr;
 			StructRNA *type= RNA_property_pointer_type(ptr, prop);
-			int flag = RNA_property_flag(prop);
 
 			if(flag & PROP_RNAPTR) {
 				/* in this case we get the full ptr */

@@ -36,12 +36,15 @@
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "BKE_utildefines.h"
 
 #ifdef RNA_RUNTIME
 
 #include "BKE_animsys.h"
 #include "BKE_scene.h"
+#include "BKE_image.h"
 #include "BKE_depsgraph.h"
+#include "BKE_writeavi.h"
 
 #include "ED_object.h"
 #include "ED_anim_api.h"
@@ -84,6 +87,14 @@ static KeyingSet *rna_Scene_add_keying_set(Scene *sce, ReportList *reports,
 	}
 }
 
+static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name)
+{
+	if(BKE_imtype_is_movie(rd->imtype))
+		BKE_makeanimstring(name, rd);
+	else
+		BKE_makepicstring(name, rd->pic, (frame==INT_MIN) ? rd->cfra : frame, rd->imtype, rd->scemode & R_EXTENSION);
+}
+
 #else
 
 void RNA_api_scene(StructRNA *srna)
@@ -111,6 +122,19 @@ void RNA_api_scene(StructRNA *srna)
 	/* keying flags */
 	RNA_def_boolean(func, "insertkey_needed", 0, "Insert Keyframes - Only Needed", "Only insert keyframes where they're needed in the relevant F-Curves.");
 	RNA_def_boolean(func, "insertkey_visual", 0, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'.");
+}
+
+void RNA_api_scene_render(StructRNA *srna)
+{
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	func= RNA_def_function(srna, "frame_path", "rna_SceneRender_get_frame_path");
+	RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately.");
+	parm= RNA_def_int(func, "frame", INT_MIN, INT_MIN, INT_MAX, "", "Frame number to use, if unset the current frame will be used.", MINAFRAME, MAXFRAME);
+	parm= RNA_def_string(func, "name", "", FILE_MAX, "File Name", "the resulting filename from the scenes render settings.");
+	RNA_def_property_flag(parm, PROP_THICK_WRAP); /* needed for string return value */
+	RNA_def_function_return_mark(func, parm);
 }
 
 #endif

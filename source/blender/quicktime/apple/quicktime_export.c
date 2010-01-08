@@ -488,7 +488,7 @@ static void QT_EndAddVideoSamplesToMedia (void)
 } 
 
 
-void makeqtstring (RenderData *rd, char *string) {
+void filepath_qt(char *string, RenderData *rd) {
 	char txt[64];
 
 	if (string==0) return;
@@ -539,7 +539,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 	
 	sframe = (rd->sfra);
 
-	makeqtstring(rd, name);
+	filepath_qt(name, rd);
 
 #ifdef __APPLE__
 	EnterMoviesOnThread(0);
