@@ -1,5 +1,5 @@
 /**
- * $Id: rna_animation.c 25359 2009-12-14 12:09:20Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
