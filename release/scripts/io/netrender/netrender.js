@@ -101,7 +101,7 @@ function showThumb(job, frame)
 function toggleThumb(job, frame)
 {
 	img = document.images["thumb" + frame];
-	url = "/render_" + job + "_" + frame + ".jpg"
+	url = "/thumb_" + job + "_" + frame + ".jpg"
 
 	if (img.style.display == "block") {
 		img.style.display = "none";

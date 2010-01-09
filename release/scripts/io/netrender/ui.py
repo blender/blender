@@ -140,6 +140,7 @@ class RENDER_PT_network_slave_settings(RenderButtonsPanel):
         netsettings = scene.network_render
 
         layout.prop(netsettings, "slave_clear")
+        layout.prop(netsettings, "slave_thumb")
         layout.label(text="Threads:")
         layout.prop(rd, "threads_mode", expand=True)
         sub = layout.column()
@@ -355,6 +356,11 @@ NetRenderSettings.BoolProperty( attr="slave_clear",
                 name="Clear on exit",
                 description="delete downloaded files on exit",
                 default = True)
+
+NetRenderSettings.BoolProperty( attr="slave_thumb",
+                name="Generate thumbnails",
+                description="Generate thumbnails on slaves instead of master",
+                default = False)
 
 NetRenderSettings.BoolProperty( attr="master_clear",
                 name="Clear on exit",

@@ -174,7 +174,8 @@ class MRenderFrame(netrender.model.RenderFrame):
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 file_pattern = re.compile("/file_([a-zA-Z0-9]+)_([0-9]+)")
-render_pattern = re.compile("/render_([a-zA-Z0-9]+)_([0-9]+).(exr|jpg)")
+render_pattern = re.compile("/render_([a-zA-Z0-9]+)_([0-9]+).exr")
+thumb_pattern = re.compile("/thumb_([a-zA-Z0-9]+)_([0-9]+).jpg")
 log_pattern = re.compile("/log_([a-zA-Z0-9]+)_([0-9]+).log")
 reset_pattern = re.compile("/reset(all|)_([a-zA-Z0-9]+)_([0-9]+)")
 cancel_pattern = re.compile("/cancel_([a-zA-Z0-9]+)")
@@ -231,8 +232,6 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                 job_id = match.groups()[0]
                 frame_number = int(match.groups()[1])
                 
-                exr = match.groups()[2] == "exr"
-
                 job = self.server.getJobID(job_id)
 
                 if job:
@@ -244,34 +243,52 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         elif frame.status == DONE:
                             self.server.stats("", "Sending result to client")
                             
-                            if exr:
-                                f = open(job.save_path + "%04d" % frame_number + ".exr", 'rb')
-                                self.send_head(content = "image/x-exr")
-                            else:
-                                filename = job.save_path + "%04d" % frame_number + ".jpg"
-                                
-                                if not os.path.exists(filename):
-                                    import bpy
-                                    sce = bpy.data.scenes[0]
-                                    sce.render_data.file_format = "JPEG"
-                                    sce.render_data.quality = 90
-                                    bpy.ops.image.open(path = job.save_path + "%04d" % frame_number + ".exr")
-                                    img = bpy.data.images["%04d" % frame_number + ".exr"]
-                                    img.save(filename, scene = sce)
-                                    
-                                    try:
-                                        process = subprocess.Popen(["convert", filename, "-resize", "300x300", filename])
-                                        process.wait()                                        
-                                    except:
-                                        pass
-                                
-                                f = open(filename, 'rb')
-                                self.send_head(content = "image/jpeg")
-
-
+                            filename = job.save_path + "%04d" % frame_number + ".exr"
+                            
+                            f = open(filename, 'rb')
+                            self.send_head(content = "image/x-exr")
                             shutil.copyfileobj(f, self.wfile)
-
                             f.close()
+                        elif frame.status == ERROR:
+                            self.send_head(http.client.PARTIAL_CONTENT)
+                    else:
+                        # no such frame
+                        self.send_head(http.client.NO_CONTENT)
+                else:
+                    # no such job id
+                    self.send_head(http.client.NO_CONTENT)
+            else:
+                # invalid url
+                self.send_head(http.client.NO_CONTENT)
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.path.startswith("/thumb"):
+            match = thumb_pattern.match(self.path)
+
+            if match:
+                job_id = match.groups()[0]
+                frame_number = int(match.groups()[1])
+
+                job = self.server.getJobID(job_id)
+
+                if job:
+                    frame = job[frame_number]
+
+                    if frame:
+                        if frame.status in (QUEUED, DISPATCHED):
+                            self.send_head(http.client.ACCEPTED)
+                        elif frame.status == DONE:
+                            filename = job.save_path + "%04d" % frame_number + ".exr"
+                            
+                            thumbname = thumbnail(filename)
+
+                            if thumbname:
+                                f = open(thumbname, 'rb')
+                                self.send_head(content = "image/jpeg")
+                                shutil.copyfileobj(f, self.wfile)
+                                f.close()
+                            else: # thumbnail couldn't be generated
+                                self.send_head(http.client.PARTIAL_CONTENT)
+                                return
                         elif frame.status == ERROR:
                             self.send_head(http.client.PARTIAL_CONTENT)
                     else:
@@ -749,14 +766,50 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                                 if not slave.id in job.blacklist:
                                     job.blacklist.append(slave.id)
 
-                        self.server.stats("", "Receiving result")
-
                         slave.finishedFrame(job_frame)
 
                         frame.status = job_result
                         frame.time = job_time
 
                         job.testFinished()
+
+                        self.send_head()
+                    else: # frame not found
+                        self.send_head(http.client.NO_CONTENT)
+                else: # job not found
+                    self.send_head(http.client.NO_CONTENT)
+            else: # invalid slave id
+                self.send_head(http.client.NO_CONTENT)
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.path == "/thumb":
+            self.server.stats("", "Receiving thumbnail result")
+
+            # need some message content here or the slave doesn't like it
+            self.wfile.write(bytes("foo", encoding='utf8'))
+
+            slave_id = self.headers['slave-id']
+
+            slave = self.server.getSeenSlave(slave_id)
+
+            if slave: # only if slave id is valid
+                job_id = self.headers['job-id']
+
+                job = self.server.getJobID(job_id)
+
+                if job:
+                    job_frame = int(self.headers['job-frame'])
+
+                    frame = job[job_frame]
+
+                    if frame:
+                        if job.type == netrender.model.JOB_BLENDER:
+                            length = int(self.headers['content-length'])
+                            buf = self.rfile.read(length)
+                            f = open(job.save_path + "%04d" % job_frame + ".jpg", 'wb')
+                            f.write(buf)
+                            f.close()
+
+                            del buf
 
                         self.send_head()
                     else: # frame not found

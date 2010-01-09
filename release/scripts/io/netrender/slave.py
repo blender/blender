@@ -213,14 +213,26 @@ def render_slave(engine, netsettings, threads):
                     headers["job-result"] = str(DONE)
                     for frame in job.frames:
                         headers["job-frame"] = str(frame.number)
-
                         if job.type == netrender.model.JOB_BLENDER:
                             # send image back to server
-                            f = open(JOB_PREFIX + "%06d" % frame.number + ".exr", 'rb')
+
+                            filename = JOB_PREFIX + "%06d" % frame.number + ".exr"
+                            
+                            # thumbnail first
+                            if netsettings.slave_thumb:
+                                thumbname = thumbnail(filename)
+                                
+                                f = open(thumbname, 'rb')
+                                conn.request("PUT", "/thumb", f, headers=headers)
+                                f.close()
+                                conn.getresponse()
+
+                            f = open(filename, 'rb')
                             conn.request("PUT", "/render", f, headers=headers)
                             f.close()
                             if conn.getresponse().status == http.client.NO_CONTENT:
                                 continue
+                            
                         elif job.type == netrender.model.JOB_PROCESS:
                             conn.request("PUT", "/render", headers=headers)
                             if conn.getresponse().status == http.client.NO_CONTENT:
