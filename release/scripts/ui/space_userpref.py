@@ -19,7 +19,7 @@
 # <pep8 compliant>
 import bpy
 
-# UI Color Settings, extra function to reduce code. 
+# General UI Theme Settings (User Interface)
 def ui_items_general(self, context):
     layout = self.layout
     
@@ -39,6 +39,27 @@ def ui_items_general(self, context):
     subsub.active = context.shaded
     subsub.prop(context, "shadetop")
     subsub.prop(context, "shadedown")
+    
+def opengl_lamp_buttons(column, lamp):
+    split = column.split(percentage=0.1)
+
+    if lamp.enabled == True:
+        split.prop(lamp, "enabled", text="", icon='OUTLINER_OB_LAMP')
+    else:
+        split.prop(lamp, "enabled", text="", icon='LAMP_DATA')
+
+    col = split.column()
+    col.active = lamp.enabled
+    row = col.row()
+    row.label(text="Diffuse:")
+    row.prop(lamp, "diffuse_color", text="")
+    row = col.row()
+    row.label(text="Specular:")
+    row.prop(lamp, "specular_color", text="")
+
+    col = split.column()
+    col.active = lamp.enabled
+    col.prop(lamp, "direction", text="")
 
 KM_HIERARCHY = [
                     ('Window', 'EMPTY', 'WINDOW', []), # file save, window change, exit
@@ -175,7 +196,6 @@ class USERPREF_PT_interface(bpy.types.Panel):
 
         row = layout.row()
 
-
         col = row.column()
         col.label(text="Display:")
         col.prop(view, "tooltips")
@@ -196,7 +216,6 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub.enabled = view.show_mini_axis
         sub.prop(view, "mini_axis_size", text="Size")
         sub.prop(view, "mini_axis_brightness", text="Brightness")
-
 
         row.separator()
         row.separator()
@@ -258,13 +277,11 @@ class USERPREF_PT_edit(bpy.types.Panel):
         userpref = context.user_preferences
         edit = userpref.edit
 
-
         row = layout.row()
-
 
         col = row.column()
         col.label(text="Link Materials To:")
-        col.row().prop(edit, "material_link", expand=True)
+        col.prop(edit, "material_link", text="")
 
         col.separator()
         col.separator()
@@ -273,7 +290,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.label(text="New Objects:")
         col.prop(edit, "enter_edit_mode")
         col.label(text="Align To:")
-        col.row().prop(edit, "object_align", expand=True)
+        col.prop(edit, "object_align", text="")
 
         col.separator()
         col.separator()
@@ -284,10 +301,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.prop(edit, "undo_steps", text="Steps")
         col.prop(edit, "undo_memory_limit", text="Memory Limit")
 
-
         row.separator()
         row.separator()
-
 
         col = row.column()
         col.label(text="Snap:")
@@ -304,10 +319,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
         col.prop(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
 
-
         row.separator()
         row.separator()
-
 
         col = row.column()
         col.label(text="Keyframing:")
@@ -337,10 +350,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.label(text="Transform:")
         col.prop(edit, "drag_immediately")
 
-
         row.separator()
         row.separator()
-
 
         col = row.column()
         col.label(text="Duplicate Data:")
@@ -373,12 +384,11 @@ class USERPREF_PT_system(bpy.types.Panel):
 
         userpref = context.user_preferences
         system = userpref.system
-        lamp0 = system.solid_lights[0]
-        lamp1 = system.solid_lights[1]
-        lamp2 = system.solid_lights[2]
 
         split = layout.split()
 
+
+        # 1. Column
         column = split.column()
         colsplit = column.split(percentage=0.85)
 
@@ -408,8 +418,6 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.separator()
         col.separator()
 
-
-
         #column = split.column()
         #colsplit = column.split(percentage=0.85)
 
@@ -423,7 +431,9 @@ class USERPREF_PT_system(bpy.types.Panel):
         #col.separator()
 
         #col.prop(system, "use_textured_fonts")
+        
 
+        # 2. Column
         column = split.column()
         colsplit = column.split(percentage=0.85)
 
@@ -448,7 +458,9 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.label(text="Sequencer:")
         col.prop(system, "prefetch_frames")
         col.prop(system, "memory_cache_limit")
+        
 
+        # 3. Column
         column = split.column()
 
         column.label(text="Solid OpenGL lights:")
@@ -457,83 +469,29 @@ class USERPREF_PT_system(bpy.types.Panel):
         split.label()
         split.label(text="Colors:")
         split.label(text="Direction:")
-
-
-        split = column.split(percentage=0.1)
-
-        if lamp0.enabled == True:
-            split.prop(lamp0, "enabled", text="", icon='OUTLINER_OB_LAMP')
-        else:
-            split.prop(lamp0, "enabled", text="", icon='LAMP_DATA')
-
-        col = split.column()
-        col.active = lamp0.enabled
-        row = col.row()
-        row.label(text="Diffuse:")
-        row.prop(lamp0, "diffuse_color", text="")
-        row = col.row()
-        row.label(text="Specular:")
-        row.prop(lamp0, "specular_color", text="")
-
-        col = split.column()
-        col.active = lamp0.enabled
-        col.prop(lamp0, "direction", text="")
-
-
-        split = column.split(percentage=0.1)
-
-        if lamp1.enabled == True:
-            split.prop(lamp1, "enabled", text="", icon='OUTLINER_OB_LAMP')
-        else:
-            split.prop(lamp1, "enabled", text="", icon='LAMP_DATA')
-
-        col = split.column()
-        col.active = lamp1.enabled
-        row = col.row()
-        row.label(text="Diffuse:")
-        row.prop(lamp1, "diffuse_color", text="")
-        row = col.row()
-        row.label(text="Specular:")
-        row.prop(lamp1, "specular_color", text="")
-
-        col = split.column()
-        col.active = lamp1.enabled
-        col.prop(lamp1, "direction", text="")
-
-
-        split = column.split(percentage=0.1)
-
-        if lamp2.enabled == True:
-            split.prop(lamp2, "enabled", text="", icon='OUTLINER_OB_LAMP')
-        else:
-            split.prop(lamp2, "enabled", text="", icon='LAMP_DATA')
-
-        col = split.column()
-        col.active = lamp2.enabled
-        row = col.row()
-        row.label(text="Diffuse:")
-        row.prop(lamp2, "diffuse_color", text="")
-        row = col.row()
-        row.label(text="Specular:")
-        row.prop(lamp2, "specular_color", text="")
-
-        col = split.column()
-        col.active = lamp2.enabled
-        col.prop(lamp2, "direction", text="")
-
-
-        column.separator()
-        column.separator()
-        column.separator()
-
-        col = column.column()
         
-        col.prop(system, "color_picker_type")
+        lamp = system.solid_lights[0]
+        opengl_lamp_buttons(column, lamp)
         
+        lamp = system.solid_lights[1]
+        opengl_lamp_buttons(column, lamp)
+        
+        lamp = system.solid_lights[2]
+        opengl_lamp_buttons(column, lamp)
+
+        column.separator()
+        column.separator()
         column.separator()
         
-        col.prop(system, "use_weight_color_range", text="Custom Weight Paint Range")
-        sub = col.column()
+        column.label(text="Color Picker Type:")
+        column.row().prop(system, "color_picker_type", text="")
+        
+        column.separator()
+        column.separator()
+        column.separator()
+        
+        column.prop(system, "use_weight_color_range", text="Custom Weight Paint Range")
+        sub = column.column()
         sub.active = system.use_weight_color_range
         sub.template_color_ramp(system, "weight_color_range", expand=True)
 
