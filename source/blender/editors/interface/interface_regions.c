@@ -1647,10 +1647,6 @@ static void close_popup_cb(bContext *C, void *bt1, void *arg)
 		popup->menuretval= UI_RETURN_OK;
 }
 
-/* picker sizes S hsize, F full size, D spacer, B button/pallette height  */
-#define SPICK1	150.0
-#define DPICK1	6.0
-
 static void picker_new_hide_reveal(uiBlock *block, short colormode)
 {
 	uiBut *bt;
@@ -1682,6 +1678,46 @@ static void do_picker_new_mode_cb(bContext *C, void *bt1, void *colv)
 	picker_new_hide_reveal(bt->block, colormode);
 }
 
+/* picker sizes S hsize, F full size, D spacer, B button/pallette height  */
+#define SPICK1	150.0
+#define DPICK1	6.0
+
+#define PICKER_H	150
+#define PICKER_W	150
+#define PICKER_SPACE	6
+#define PICKER_BAR		14
+
+#define PICKER_TOTAL_W	(PICKER_W+PICKER_SPACE+PICKER_BAR)
+
+static void circle_picker(uiBlock *block, PointerRNA *ptr, const char *propname)
+{
+	uiBut *bt;
+	
+	/* HS circle */
+	bt= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, PICKER_H, PICKER_W, ptr, propname, -1, 0.0, 0.0, 0, 0, "");
+	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	
+	/* value */
+	uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, -1, 0.0, 0.0, 9, 0, "");
+	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+}
+
+
+static void square_picker(uiBlock *block, PointerRNA *ptr, const char *propname, int type)
+{
+	uiBut *bt;
+	int bartype = type + 3;
+	
+	/* HS square */
+	bt= uiDefButR(block, HSVCUBE, 0, "",	0, PICKER_BAR+PICKER_SPACE, PICKER_TOTAL_W, PICKER_H, ptr, propname, -1, 0.0, 0.0, type, 0, "");
+	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+	
+	/* value */
+	uiDefButR(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, propname, -1, 0.0, 0.0, bartype, 0, "");
+	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+}
+
+
 /* a HS circle, V slider, rgb/hsv/hex sliders */
 static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyRNA *prop)
 {
@@ -1693,7 +1729,7 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	static char hexcol[128];
 	const char *propname = RNA_property_identifier(prop);
 	
-	width= (SPICK1+DPICK1+14);
+	width= PICKER_TOTAL_W;
 	butwidth = width - UI_UNIT_X - 10;
 	
 	/* existence of profile means storage is in linear colour space, with display correction */
@@ -1704,14 +1740,21 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	
 	RNA_property_float_get_array(ptr, prop, rgb);
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
-	
-	/* HS circle */
-	bt= uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, SPICK1, SPICK1, ptr, propname, -1, 0.0, 0.0, 0, 0, "");
-	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
-	
-	/* value */
-	uiDefButR(block, HSVCUBE, 0, "", SPICK1+DPICK1,0,14,SPICK1, ptr, propname, -1, 0.0, 0.0, 4, 0, "");
-	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
+
+	switch (U.color_picker_type) {
+		case USER_CP_CIRCLE:
+			circle_picker(block, ptr, propname);
+			break;
+		case USER_CP_SQUARE_SV:
+			square_picker(block, ptr, propname, 0);
+			break;
+		case USER_CP_SQUARE_HS:
+			square_picker(block, ptr, propname, 1);
+			break;
+		case USER_CP_SQUARE_HV:
+			square_picker(block, ptr, propname, 2);
+			break;
+	}
 	
 	/* mode */
 	uiBlockBeginAlign(block);

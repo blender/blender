@@ -2711,21 +2711,27 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 	CLAMP(y, 0.0, 1.0);
 	
 	if(but->a1==0) {
-		hsv[0]= x; 
-		hsv[2]= y; 
+		hsv[2]= x; 
+		hsv[1]= y; 
 	}
 	else if(but->a1==1) {
 		hsv[0]= x; 				
-		hsv[1]= y; 				
+		hsv[2]= y; 				
 	}
 	else if(but->a1==2) {
-		hsv[2]= x; 
+		hsv[0]= x; 
 		hsv[1]= y; 
 	}
 	else if(but->a1==3) {
 		hsv[0]= x; 
 	}
-	else {
+	else if(but->a1==4) {
+		hsv[1]= x; 
+	}
+	else if(but->a1==5) {
+		hsv[2]= x; 
+	}
+	else if (but->a1==9){
 		/* vertical 'value' strip */
 		hsv[2]= y; 
 		if (color_profile)
@@ -3791,7 +3797,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		retval= ui_do_but_BUT(C, but, data, event);
 		break;
 	case COL:
-		if(but->a1 == -1)  // signal to prevent calling up color picker
+		if(but->a1 == 9)  // signal to prevent calling up color picker
 			retval= ui_do_but_EXIT(C, but, data, event);
 		else
 			retval= ui_do_but_BLOCK(C, but, data, event);

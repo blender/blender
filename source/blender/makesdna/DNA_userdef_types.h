@@ -337,6 +337,8 @@ typedef struct UserDef {
 	short glreslimit;
 	short ndof_pan, ndof_rotate;
 	short curssize, ipo_new;
+	short color_picker_type;
+	short pad2[3];
 
 	char versemaster[160];
 	char verseuser[160];
@@ -480,6 +482,12 @@ extern UserDef U; /* from blenkernel blender.c */
 /* gp_settings (Grease Pencil Settings) */
 #define GP_PAINT_DOSMOOTH		(1<<0)
 #define GP_PAINT_DOSIMPLIFY		(1<<1)
+
+/* color picker types */
+#define USER_CP_CIRCLE		0
+#define USER_CP_SQUARE_SV	1
+#define USER_CP_SQUARE_HS	2
+#define USER_CP_SQUARE_HV	3
 
 /* theme drawtypes */
 #define TH_MINIMAL  	0

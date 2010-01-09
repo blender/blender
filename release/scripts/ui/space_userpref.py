@@ -506,7 +506,11 @@ class USERPREF_PT_system(bpy.types.Panel):
         column.separator()
 
         col = column.column()
-
+        
+        col.prop(system, "color_picker_type")
+        
+        column.separator()
+        
         col.prop(system, "use_weight_color_range", text="Custom Weight Paint Range")
         sub = col.column()
         sub.active = system.use_weight_color_range

@@ -1811,8 +1811,6 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_range(prop, 4, 10);
 	RNA_def_property_ui_text(prop, "Object Origin Size", "Diameter in Pixels for Object/Lamp origin display.");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-
 }
 
 static void rna_def_userdef_edit(BlenderRNA *brna)
@@ -1840,7 +1838,6 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 		{0, "WORLD", 0, "World", "Align newly added objects facing the 3D View direction"},
 		{USER_ADD_VIEWALIGNED, "VIEW", 0, "View", "Align newly added objects to the world coordinates"},
 		{0, NULL, 0, NULL, NULL}};
-
 
 	srna= RNA_def_struct(brna, "UserPreferencesEdit", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
@@ -1927,7 +1924,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, new_interpolation_types);
 	RNA_def_property_enum_sdna(prop, NULL, "ipo_new");
 	RNA_def_property_ui_text(prop, "New Interpolation Type", "");
-
+	
 	prop= RNA_def_property(srna, "grease_pencil_manhattan_distance", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gp_manhattendist");
 	RNA_def_property_range(prop, 0, 100);
@@ -2075,7 +2072,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{USER_DRAW_OVERLAP, "OVERLAP", 0, "Overlap", "Redraw all overlapping regions, minimal memory usage but more redraws."},
 		{USER_DRAW_FULL, "FULL", 0, "Full", "Do a full redraw each time, slow, only use for reference or when all else fails."},
 		{0, NULL, 0, NULL, NULL}};
-		
+	
+	static EnumPropertyItem color_picker_types[] = {
+		{USER_CP_CIRCLE, "CIRCLE", 0, "Circle", "A circular Hue/Saturation color wheel, with Value slider"},
+		{USER_CP_SQUARE_SV, "SQUARE_SV", 0, "Square (SV + H)", "A square showing Saturation/Value, with Hue slider"},
+		{USER_CP_SQUARE_HS, "SQUARE_HS", 0, "Square (HS + V)", "A square showing Hue/Saturation, with Value slider"},
+		{USER_CP_SQUARE_HV, "SQUARE_HV", 0, "Square (HV + S)", "A square showing Hue/Value, with Saturation slider"},
+		{0, NULL, 0, NULL, NULL}};
+	
 		/* hardcoded here, could become dynamic somehow */
 	static EnumPropertyItem language_items[] = {
 		{0, "ENGLISH", 0, "English", ""},
@@ -2172,6 +2176,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Weight Color Range", "Color range used for weight visualization in weight painting mode.");
 	RNA_def_property_update(prop, 0, "rna_UserDef_weight_color_update");
 
+	prop= RNA_def_property(srna, "color_picker_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, color_picker_types);
+	RNA_def_property_enum_sdna(prop, NULL, "color_picker_type");
+	RNA_def_property_ui_text(prop, "Color Picker Type", "Different styles of displaying the color picker widget");
+	
 	prop= RNA_def_property(srna, "enable_all_codecs", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ALLWINCODECS);
 	RNA_def_property_ui_text(prop, "Enable All Codecs", "Enables automatic saving of preview images in the .blend file (Windows only).");

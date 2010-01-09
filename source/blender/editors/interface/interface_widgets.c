@@ -1616,34 +1616,52 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 	/* draw series of gouraud rects */
 	glShadeModel(GL_SMOOTH);
 	
-	if(but->a1==0) {	// H and V vary
-		hsv_to_rgb(0.0, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-		hsv_to_rgb(0.0, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
-		hsv_to_rgb(0.0, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
-		hsv_to_rgb(0.0, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		x= h; y= v;
-	}
-	else if(but->a1==1) {	// H and S vary
-		hsv_to_rgb(0.0, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
-		hsv_to_rgb(0.0, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
-		hsv_to_rgb(0.0, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
-		hsv_to_rgb(0.0, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		x= h; y= s;
-	}
-	else if(but->a1==2) {	// S and V vary
+	
+	if(but->a1==0) {	// S and V vary
 		hsv_to_rgb(h, 0.0, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 		hsv_to_rgb(h, 0.333, 0.0, &col1[1][0], &col1[1][1], &col1[1][2]);
 		hsv_to_rgb(h, 0.666, 0.0, &col1[2][0], &col1[2][1], &col1[2][2]);
 		hsv_to_rgb(h, 1.0, 0.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		x= v; y= s;
 	}
-	else if(but->a1==3) {		// only hue slider
+	else if(but->a1==1) {	// H and V vary
+		hsv_to_rgb(0.0, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+		hsv_to_rgb(0.0, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
+		hsv_to_rgb(0.0, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
+		hsv_to_rgb(0.0, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		x= h; y= v;
+	}
+	else if(but->a1==2) {	// H and S vary
+		hsv_to_rgb(0.0, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
+		hsv_to_rgb(0.0, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
+		hsv_to_rgb(0.0, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
+		hsv_to_rgb(0.0, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		x= h; y= s;
+	}
+	else if(but->a1==3) {	// only H
 		hsv_to_rgb(0.0, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 		VECCOPY(col1[1], col1[0]);
 		VECCOPY(col1[2], col1[0]);
 		VECCOPY(col1[3], col1[0]);
 		x= h; y= 0.5;
 	}
+	else if(but->a1==4) {	// only S
+		hsv_to_rgb(1.0, 0.0, 1.0,   &col1[1][0], &col1[1][1], &col1[1][2]);
+		VECCOPY(col1[0], col1[1]);
+		VECCOPY(col1[2], col1[1]);
+		VECCOPY(col1[3], col1[1]);
+		x= s; y= 0.5;
+	}
+	else if(but->a1==5) {	// only V
+		hsv_to_rgb(1.0, 1.0, 0.0,   &col1[2][0], &col1[2][1], &col1[2][2]);
+		VECCOPY(col1[0], col1[2]);
+		VECCOPY(col1[1], col1[2]);
+		VECCOPY(col1[3], col1[2]);
+		x= v; y= 0.5;
+	}
+	
+	
+	/* old below */
 	
 	for(dx=0.0; dx<1.0; dx+= 0.05) {
 		// previous color
@@ -1653,29 +1671,41 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 		VECCOPY(col0[3], col1[3]);
 		
 		// new color
-		if(but->a1==0) {	// H and V vary
+		if(but->a1==0) {	// S and V vary
+			hsv_to_rgb(h, 0.0, dx,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			hsv_to_rgb(h, 0.333, dx, &col1[1][0], &col1[1][1], &col1[1][2]);
+			hsv_to_rgb(h, 0.666, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		}
+		else if(but->a1==1) {	// H and V vary
 			hsv_to_rgb(dx, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 			hsv_to_rgb(dx, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
 			hsv_to_rgb(dx, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
 			hsv_to_rgb(dx, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		}
-		else if(but->a1==1) {	// H and S vary
+		else if(but->a1==2) {	// H and S vary
 			hsv_to_rgb(dx, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
 			hsv_to_rgb(dx, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
 			hsv_to_rgb(dx, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
 			hsv_to_rgb(dx, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		}
-		else if(but->a1==2) {	// S and V vary
-			hsv_to_rgb(h, 0.0, dx,   &col1[0][0], &col1[0][1], &col1[0][2]);
-			hsv_to_rgb(h, 0.333, dx, &col1[1][0], &col1[1][1], &col1[1][2]);
-			hsv_to_rgb(h, 0.666, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
-			hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		}
 		else if(but->a1==3) {	// only H
 			hsv_to_rgb(dx, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 			VECCOPY(col1[1], col1[0]);
 			VECCOPY(col1[2], col1[0]);
 			VECCOPY(col1[3], col1[0]);
+		}
+		else if(but->a1==4) {	// only S
+			hsv_to_rgb(h, dx, 1.0,   &col1[1][0], &col1[1][1], &col1[1][2]);
+			VECCOPY(col1[0], col1[1]);
+			VECCOPY(col1[2], col1[1]);
+			VECCOPY(col1[3], col1[1]);
+		}
+		else if(but->a1==5) {	// only V
+			hsv_to_rgb(h, 1.0, dx,   &col1[2][0], &col1[2][1], &col1[2][2]);
+			VECCOPY(col1[0], col1[2]);
+			VECCOPY(col1[1], col1[2]);
+			VECCOPY(col1[3], col1[2]);
 		}
 		
 		// rect
@@ -2589,7 +2619,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 				
 			case HSVCUBE:
-				if(but->a1==4) // vertical V slider, uses new widget draw now
+				if(but->a1==9) // vertical V slider, uses new widget draw now
 					ui_draw_but_HSV_v(but, rect);
 				else  // other HSV pickers...
 					ui_draw_but_HSVCUBE(but, rect);
