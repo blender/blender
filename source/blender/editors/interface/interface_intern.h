@@ -377,7 +377,7 @@ struct uiPopupBlockHandle {
 	int butretval;
 	int menuretval;
 	float retvalue;
-	float retvec[3];
+	float retvec[4];
 };
 
 uiBlock *ui_block_func_COL(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);

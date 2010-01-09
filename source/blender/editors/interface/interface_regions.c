@@ -1597,7 +1597,7 @@ static void do_picker_rna_cb(bContext *C, void *bt1, void *unused)
 	uiPopupBlockHandle *popup= but->block->handle;
 	PropertyRNA *prop = but->rnaprop;
 	PointerRNA ptr = but->rnapoin;
-	float rgb[3];
+	float rgb[4];
 	
 	if (&ptr && prop) {
 		RNA_property_float_get_array(&ptr, prop, rgb);
