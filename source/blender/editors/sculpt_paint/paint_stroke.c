@@ -237,6 +237,11 @@ PaintStroke *paint_stroke_new(bContext *C,
 	return stroke;
 }
 
+void paint_stroke_free(PaintStroke *stroke)
+{
+	MEM_freeN(stroke);
+}
+
 int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PaintStroke *stroke = op->customdata;

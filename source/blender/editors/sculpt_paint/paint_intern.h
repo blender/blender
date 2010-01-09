@@ -52,6 +52,8 @@ typedef void (*StrokeDone)(struct bContext *C, struct PaintStroke *stroke);
 struct PaintStroke *paint_stroke_new(struct bContext *C,
 				     StrokeGetLocation get_location, StrokeTestStart test_start,
 				     StrokeUpdateStep update_step, StrokeDone done);
+void paint_stroke_free(struct PaintStroke *stroke);
+
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int paint_stroke_exec(struct bContext *C, struct wmOperator *op);
 struct ViewContext *paint_stroke_view_context(struct PaintStroke *stroke);
