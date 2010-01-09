@@ -20,10 +20,8 @@
 import bpy
 
 # General UI Theme Settings (User Interface)
-def ui_items_general(self, context):
-    layout = self.layout
-    
-    row = layout.row()
+def ui_items_general(col, context):
+    row = col.row()
     sub = row.column()
     sub.prop(context, "outline")
     sub.prop(context, "item", slider=True)
@@ -39,6 +37,8 @@ def ui_items_general(self, context):
     subsub.active = context.shaded
     subsub.prop(context, "shadetop")
     subsub.prop(context, "shadedown")
+    
+    col.separator()
     
 def opengl_lamp_buttons(column, lamp):
     split = column.split(percentage=0.1)
@@ -511,14 +511,100 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
         theme = context.user_preferences.themes[0]
 
-        split = layout.split(percentage=0.33)
-        split.prop(theme, "active_theme", text="")
+        split_themes = layout.split(percentage=0.2)
+        split_themes.prop(theme, "theme_area", expand=True)
 
-        layout.separator()
+        split = split_themes.split()
+        
+        if theme.theme_area == 'USER_INTERFACE':
+            col = split.column()
 
-        split = layout.split()
+            ui = theme.user_interface.wcol_regular
+            col.label(text="Regular:")
+            ui_items_general(col, ui)
 
-        if theme.active_theme == 'VIEW_3D':
+            ui = theme.user_interface.wcol_tool
+            col.label(text="Tool:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_radio
+            col.label(text="Radio Buttons:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_text
+            col.label(text="Text:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_option
+            col.label(text="Option:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_toggle
+            col.label(text="Toggle:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_num
+            col.label(text="Number Field:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_numslider
+            col.label(text="Value Slider:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_box
+            col.label(text="Box:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_menu
+            col.label(text="Menu:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_pulldown
+            col.label(text="Pulldown:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_menu_back
+            col.label(text="Menu Back:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_menu_item
+            col.label(text="Menu Item:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_scroll
+            col.label(text="Scroll Bar:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_list_item
+            col.label(text="List Item:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_state
+            col.label(text="State:")
+
+            row = col.row()
+            sub = row.column()
+            sub.prop(ui, "inner_anim")
+            sub.prop(ui, "inner_anim_sel")
+            sub = row.column()
+            sub.prop(ui, "inner_driven")
+            sub.prop(ui, "inner_driven_sel")
+            sub = row.column()
+            sub.prop(ui, "inner_key")
+            sub.prop(ui, "inner_key_sel")
+            sub = row.column()
+            sub.prop(ui, "blend")
+
+            ui = theme.user_interface
+            col.separator()
+            col.separator()
+            col.prop(ui, "icon_file")
+
+            layout.separator()
+            layout.separator()
+
+
+        elif theme.theme_area == 'VIEW_3D':
             v3d = theme.view_3d
 
             col = split.column()
@@ -549,124 +635,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "bone_pose")
             #col.prop(v3d, "edge") Doesn't seem to work
 
-        elif theme.active_theme == 'USER_INTERFACE':
-            context = theme.user_interface.wcol_regular
-            layout.label(text="Regular:")
-            ui_items_general(self, context)
-
-            layout.separator()
-
-            context = theme.user_interface.wcol_tool
-            layout.label(text="Tool:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            context = theme.user_interface.wcol_radio
-            layout.label(text="Radio Buttons:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            context = theme.user_interface.wcol_text
-            layout.label(text="Text:")
-            ui_items_general(self, context)
-
-            layout.separator()
-
-            context = theme.user_interface.wcol_option
-            layout.label(text="Option:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            context = theme.user_interface.wcol_toggle
-            layout.label(text="Toggle:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            context = theme.user_interface.wcol_num
-            layout.label(text="Number Field:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            context = theme.user_interface.wcol_numslider
-            layout.label(text="Value Slider:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            context = theme.user_interface.wcol_box
-            layout.label(text="Box:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            context = theme.user_interface.wcol_menu
-            layout.label(text="Menu:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            context = theme.user_interface.wcol_pulldown
-            layout.label(text="Pulldown:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            context = theme.user_interface.wcol_menu_back
-            layout.label(text="Menu Back:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            context = theme.user_interface.wcol_menu_item
-            layout.label(text="Menu Item:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            context = theme.user_interface.wcol_scroll
-            layout.label(text="Scroll Bar:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            context = theme.user_interface.wcol_list_item
-            layout.label(text="List Item:")
-            ui_items_general(self, context)
-            
-            layout.separator()
-
-            ui = theme.user_interface.wcol_state
-            layout.label(text="State:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "inner_anim")
-            sub.prop(ui, "inner_anim_sel")
-            sub = row.column()
-            sub.prop(ui, "inner_driven")
-            sub.prop(ui, "inner_driven_sel")
-            sub = row.column()
-            sub.prop(ui, "inner_key")
-            sub.prop(ui, "inner_key_sel")
-            sub = row.column()
-            sub.prop(ui, "blend")
-
-            ui = theme.user_interface
-            layout.separator()
-
-            sub = layout.row()
-            sub.prop(ui, "icon_file")
-
-            layout.separator()
-            layout.separator()
-
-
-        elif theme.active_theme == 'GRAPH_EDITOR':
+        elif theme.theme_area == 'GRAPH_EDITOR':
             graph = theme.graph_editor
 
             col = split.column()
@@ -694,7 +663,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.separator()
             col.prop(graph, "handle_vertex_size")
 
-        elif theme.active_theme == 'FILE_BROWSER':
+        elif theme.theme_area == 'FILE_BROWSER':
             file_browse = theme.file_browser
 
             col = split.column()
@@ -714,7 +683,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(file_browse, "active_file")
             col.prop(file_browse, "active_file_text")
 
-        elif theme.active_theme == 'NLA_EDITOR':
+        elif theme.theme_area == 'NLA_EDITOR':
             nla = theme.nla_editor
 
             col = split.column()
@@ -737,7 +706,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(nla, "strips_selected")
             col.prop(nla, "current_frame")
 
-        elif theme.active_theme == 'DOPESHEET_EDITOR':
+        elif theme.theme_area == 'DOPESHEET_EDITOR':
             dope = theme.dopesheet_editor
 
             col = split.column()
@@ -762,7 +731,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(dope, "dopesheet_channel")
             col.prop(dope, "dopesheet_subchannel")
 
-        elif theme.active_theme == 'IMAGE_EDITOR':
+        elif theme.theme_area == 'IMAGE_EDITOR':
             image = theme.image_editor
 
             col = split.column()
@@ -779,7 +748,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(image, "editmesh_active", slider=True)
 
-        elif theme.active_theme == 'SEQUENCE_EDITOR':
+        elif theme.theme_area == 'SEQUENCE_EDITOR':
             seq = theme.sequence_editor
 
             col = split.column()
@@ -808,7 +777,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(seq, "keyframe")
             col.prop(seq, "draw_action")
 
-        elif theme.active_theme == 'PROPERTIES':
+        elif theme.theme_area == 'PROPERTIES':
             prop = theme.properties
 
             col = split.column()
@@ -823,7 +792,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(prop, "header")
 
-        elif theme.active_theme == 'TEXT_EDITOR':
+        elif theme.theme_area == 'TEXT_EDITOR':
             text = theme.text_editor
 
             col = split.column()
@@ -849,7 +818,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(text, "syntax_string")
             col.prop(text, "syntax_numbers")
 
-        elif theme.active_theme == 'TIMELINE':
+        elif theme.theme_area == 'TIMELINE':
             time = theme.timeline
 
             col = split.column()
@@ -865,7 +834,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(time, "current_frame")
 
-        elif theme.active_theme == 'NODE_EDITOR':
+        elif theme.theme_area == 'NODE_EDITOR':
             node = theme.node_editor
 
             col = split.column()
@@ -891,7 +860,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(node, "operator_node")
             col.prop(node, "group_node")
 
-        elif theme.active_theme == 'LOGIC_EDITOR':
+        elif theme.theme_area == 'LOGIC_EDITOR':
             logic = theme.logic_editor
 
             col = split.column()
@@ -909,7 +878,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(logic, "panel")
 
-        elif theme.active_theme == 'OUTLINER':
+        elif theme.theme_area == 'OUTLINER':
             out = theme.outliner
 
             col = split.column()
@@ -924,7 +893,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(out, "header")
 
-        elif theme.active_theme == 'INFO':
+        elif theme.theme_area == 'INFO':
             info = theme.info
 
             col = split.column()
@@ -938,7 +907,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             col = split.column()
 
-        elif theme.active_theme == 'USER_PREFERENCES':
+        elif theme.theme_area == 'USER_PREFERENCES':
             prefs = theme.user_preferences
 
             col = split.column()

@@ -1434,7 +1434,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem active_theme_group[] = {
+	static EnumPropertyItem active_theme_area[] = {
 		{0, "USER_INTERFACE", ICON_UI, "User Interface", ""},
 		{1, "VIEW_3D", ICON_VIEW3D, "3D View", ""},
 		{2, "TIMELINE", ICON_TIME, "Timeline", ""},
@@ -1462,10 +1462,10 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Name of the theme.");
 	RNA_def_struct_name_property(srna, prop);
 
-	prop= RNA_def_property(srna, "active_theme", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "active_theme_group");
-	RNA_def_property_enum_items(prop, active_theme_group);
-	RNA_def_property_ui_text(prop, "Active Theme", "");
+	prop= RNA_def_property(srna, "theme_area", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "active_theme_area");
+	RNA_def_property_enum_items(prop, active_theme_area);
+	RNA_def_property_ui_text(prop, "Active Theme Area", "");
 
 	prop= RNA_def_property(srna, "user_interface", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
