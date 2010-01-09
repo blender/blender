@@ -19,6 +19,27 @@
 # <pep8 compliant>
 import bpy
 
+# UI Color Settings, extra function to reduce code. 
+def ui_items_general(self, context):
+    layout = self.layout
+    
+    row = layout.row()
+    sub = row.column()
+    sub.prop(context, "outline")
+    sub.prop(context, "item", slider=True)
+    sub = row.column()
+    sub.prop(context, "inner", slider=True)
+    sub.prop(context, "inner_sel", slider=True)
+    sub = row.column()
+    sub.prop(context, "text")
+    sub.prop(context, "text_sel")
+    sub = row.column()
+    sub.prop(context, "shaded")
+    subsub = sub.column(align=True)
+    subsub.active = context.shaded
+    subsub.prop(context, "shadetop")
+    subsub.prop(context, "shadedown")
+
 KM_HIERARCHY = [
                     ('Window', 'EMPTY', 'WINDOW', []), # file save, window change, exit
                     ('Screen', 'EMPTY', 'WINDOW', [    # full screen, undo, screenshot
@@ -571,307 +592,95 @@ class USERPREF_PT_theme(bpy.types.Panel):
             #col.prop(v3d, "edge") Doesn't seem to work
 
         elif theme.active_theme == 'USER_INTERFACE':
-            ui = theme.user_interface.wcol_regular
+            context = theme.user_interface.wcol_regular
             layout.label(text="Regular:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
+            ui_items_general(self, context)
 
             layout.separator()
 
-            ui = theme.user_interface.wcol_tool
+            context = theme.user_interface.wcol_tool
             layout.label(text="Tool:")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_radio
+            context = theme.user_interface.wcol_radio
             layout.label(text="Radio Buttons:")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_text
+            context = theme.user_interface.wcol_text
             layout.label(text="Text:")
+            ui_items_general(self, context)
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
+            layout.separator()
 
-            ui = theme.user_interface.wcol_option
+            context = theme.user_interface.wcol_option
             layout.label(text="Option:")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_toggle
+            context = theme.user_interface.wcol_toggle
             layout.label(text="Toggle:")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_num
+            context = theme.user_interface.wcol_num
             layout.label(text="Number Field:")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_numslider
+            context = theme.user_interface.wcol_numslider
             layout.label(text="Value Slider:")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_box
+            context = theme.user_interface.wcol_box
             layout.label(text="Box:")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_menu
+            context = theme.user_interface.wcol_menu
             layout.label(text="Menu:")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_pulldown
+            context = theme.user_interface.wcol_pulldown
             layout.label(text="Pulldown:")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_menu_back
+            context = theme.user_interface.wcol_menu_back
             layout.label(text="Menu Back:")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_menu_item
+            context = theme.user_interface.wcol_menu_item
             layout.label(text="Menu Item:")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_scroll
+            context = theme.user_interface.wcol_scroll
             layout.label(text="Scroll Bar:")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_list_item
+            context = theme.user_interface.wcol_list_item
             layout.label(text="List Item:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
+            ui_items_general(self, context)
+            
+            layout.separator()
 
             ui = theme.user_interface.wcol_state
             layout.label(text="State:")
