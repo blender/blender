@@ -1,3 +1,4 @@
+
 /**
  * $Id$
  *
@@ -2003,6 +2004,16 @@ static PyObject *pyrna_prop_getattro( BPy_PropertyRNA *self, PyObject *pyname )
 					return ret;
 				}
 			}
+		}
+	}
+	else {
+		/* annoying exception, maybe we need to have different types for this... */
+		if((strcmp(name, "__getitem__")==0 || strcmp(name, "__setitem__")==0) &&
+				(RNA_property_type(self->prop) != PROP_COLLECTION) &&
+				RNA_property_array_check(&self->ptr, self->prop)==0
+		) {
+			PyErr_SetString(PyExc_AttributeError, "PropertyRNA - no __getitem__ support for this type");
+			return NULL;
 		}
 	}
 

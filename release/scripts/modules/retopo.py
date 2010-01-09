@@ -318,7 +318,22 @@ def connect_splines(splines):
         else:
             return b, a
     
-    def test_join(p1a, p1b, p2a, p2b, length_average):
+    #def test_join(p1a, p1b, p2a, p2b, length_average):
+    def test_join(s1, s2, dir1, dir2, length_average):
+        if dir1 is False:
+            p1a = s1.points[0]
+            p1b = s1.points[1]
+        else:
+            p1a = s1.points[-1]
+            p1b = s1.points[-2]
+
+        if dir2 is False:
+            p2a = s2.points[0]
+            p2b = s2.points[1]
+        else:
+            p2a = s2.points[-1]
+            p2b = s2.points[-2]
+        
         # compare length between tips
         if (p1a - p2a).length > (length_average / EPS_SPLINE_DIV):
             return False
@@ -346,7 +361,7 @@ def connect_splines(splines):
                 if s1 is s2:
                     continue
 
-                length_average = (s1.length + s2.length) / 2.0
+                length_average = min(s1.length, s2.length)
 
                 key2a = s2.points[0].toTuple(HASH_PREC)
                 key2b = s2.points[-1].toTuple(HASH_PREC)
@@ -355,8 +370,7 @@ def connect_splines(splines):
                 key_pair = sort_pair(key1a, key2a)
                 if key_pair not in comparisons:
                     comparisons.add(key_pair)                
-                    if test_join(s1.points[0], s1.points[1], s2.points[0], s2.points[1], length_average) or \
-                            test_join(s1.points[1], s1.points[2], s2.points[1], s2.points[2], length_average):
+                    if test_join(s1, s2, False, False, length_average):
                         s1.points[:0] = reversed(s2.points)
                         s1.bb += s2.bb
                         s1.calc_length()
@@ -367,8 +381,7 @@ def connect_splines(splines):
                 key_pair = sort_pair(key1a, key2b)
                 if key_pair not in comparisons:
                     comparisons.add(key_pair)
-                    if test_join(s1.points[0], s1.points[1], s2.points[-1], s2.points[-2], length_average) or \
-                            test_join(s1.points[1], s1.points[2], s2.points[-2], s2.points[-3], length_average):
+                    if test_join(s1, s2, False, True, length_average):
                         s1.points[:0] = s2.points
                         s1.bb += s2.bb
                         s1.calc_length()
@@ -379,8 +392,7 @@ def connect_splines(splines):
                 key_pair = sort_pair(key1b, key2b)
                 if key_pair not in comparisons:
                     comparisons.add(key_pair)
-                    if test_join(s1.points[-1], s1.points[-2], s2.points[-1], s2.points[-2], length_average) or \
-                            test_join(s1.points[-2], s1.points[-3], s2.points[-2], s2.points[-3], length_average):
+                    if test_join(s1, s2, True, True, length_average):
                         s1.points += list(reversed(s2.points))
                         s1.bb += s2.bb
                         s1.calc_length()
@@ -388,11 +400,10 @@ def connect_splines(splines):
                         do_join = True
                         break
                 
-                key_pair = sort_pair(key1a, key2a)
+                key_pair = sort_pair(key1b, key2a)
                 if key_pair not in comparisons:
                     comparisons.add(key_pair)
-                    if test_join(s1.points[-1], s1.points[-2], s2.points[0], s2.points[1], length_average) or \
-                            test_join(s1.points[-2], s1.points[-3], s2.points[1], s2.points[2], length_average):
+                    if test_join(s1, s2, True, False, length_average):
                         s1.points += s2.points
                         s1.bb += s2.bb
                         s1.calc_length()
@@ -457,12 +468,12 @@ def calculate(gp):
     # remove double faces
     faces = dict([(tuple(sorted(f)), f) for f in faces]).values()
 
-    mesh = bpy.data.add_mesh("Retopo")
+    mesh = bpy.data.meshes.new("Retopo")
     mesh.from_pydata(verts, [], faces)
 
     scene = bpy.context.scene
     mesh.update()
-    obj_new = bpy.data.add_object('MESH', "Torus")
+    obj_new = bpy.data.objects.new("Torus", 'MESH')
     obj_new.data = mesh
     scene.objects.link(obj_new)
 

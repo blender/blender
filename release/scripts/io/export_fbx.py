@@ -2989,7 +2989,7 @@ Takes:  {''')
 
     # Clear mesh data Only when writing with modifiers applied
     for me in meshes_to_clear:
-        bpy.data.remove_mesh(me)
+        bpy.data.meshes.remove(me)
 # 		me.verts = None
 
     # --------------------------- Footer
@@ -3391,8 +3391,7 @@ class ExportFBX(bpy.types.Operator):
 
 
     def poll(self, context):
-        print("Poll")
-        return context.active_object != None
+        return context.active_object
 
     def execute(self, context):
         if not self.properties.path:

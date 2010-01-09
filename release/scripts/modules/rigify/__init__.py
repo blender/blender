@@ -380,8 +380,8 @@ def generate_test(context, metarig_type="", GENERATE_FINAL=True):
     scene = context.scene
 
     def create_empty_armature(name):
-        obj_new = bpy.data.add_object('ARMATURE', name)
-        armature = bpy.data.add_armature(name)
+        obj_new = bpy.data.objects.new(name, 'ARMATURE')
+        armature = bpy.data.armatures.new(name)
         obj_new.data = armature
         scene.objects.link(obj_new)
         scene.objects.active = obj_new

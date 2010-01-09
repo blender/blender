@@ -60,10 +60,7 @@ class NLA_MT_view(bpy.types.Menu):
         layout.separator()
         layout.prop(st, "show_cframe_indicator")
 
-        if st.show_seconds:
-            layout.operator("anim.time_toggle", text="Show Frames")
-        else:
-            layout.operator("anim.time_toggle", text="Show Seconds")
+        layout.operator("anim.time_toggle", text="Show Frames" if st.show_seconds else "Show Seconds")
 
         layout.prop(st, "show_strip_curves")
 

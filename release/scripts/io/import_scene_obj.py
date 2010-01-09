@@ -712,8 +712,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
     for name, index in list(material_mapping.items()):
         materials[index]= unique_materials[name]
 
-    me= bpy.data.add_mesh(dataname)
-# 	me= bpy.data.meshes.new(dataname)
+    me= bpy.data.meshes.new(dataname)
 
     # make sure the list isnt too big
     for material in materials[0:16]:
@@ -864,7 +863,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
     me.update()
 # 	me.calcNormals()
 
-    ob= bpy.data.add_object("MESH", "Mesh")
+    ob= bpy.data.objects.new("Mesh", 'MESH')
     ob.data= me
     scn.objects.link(ob)
 # 	ob= scn.objects.new(me)

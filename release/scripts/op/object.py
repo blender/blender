@@ -145,6 +145,7 @@ class Retopo(bpy.types.Operator):
 
     def execute(self, context):
         import retopo
+        reload(retopo)
         retopo.main()
         return {'FINISHED'}
 

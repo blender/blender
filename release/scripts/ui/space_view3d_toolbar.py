@@ -803,8 +803,7 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
         col.prop(wpaint, "normals")
         col.prop(wpaint, "spray")
 
-        data = context.weight_paint_object.data
-        if type(data) == bpy.types.Mesh:
+        if context.weight_paint_object.type == 'MESH':
             col.prop(data, "use_mirror_x")
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless

@@ -254,7 +254,7 @@ def write(filename, scene, ob, \
     print("writing", filename, "done")
 
     if EXPORT_APPLY_MODIFIERS:
-        bpy.data.remove_mesh(mesh)
+        bpy.data.meshes.remove(mesh)
 
     # XXX
     """

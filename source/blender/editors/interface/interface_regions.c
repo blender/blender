@@ -1599,7 +1599,7 @@ static void do_picker_rna_cb(bContext *C, void *bt1, void *unused)
 	PointerRNA ptr = but->rnapoin;
 	float rgb[4];
 	
-	if (&ptr && prop) {
+	if (prop) {
 		RNA_property_float_get_array(&ptr, prop, rgb);
 		ui_update_block_buts_rgb(but->block, rgb);
 	}

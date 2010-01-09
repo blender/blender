@@ -126,21 +126,28 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base*)internal->link)->object);
 }
 
-static void rna_Scene_link_object(Scene *sce, ReportList *reports, Object *ob)
+static void rna_Scene_link_object(Scene *scene, ReportList *reports, Object *ob)
 {
-	Base *base= object_in_scene(ob, sce);
-	if (base) {
-		BKE_report(reports, RPT_ERROR, "Object is already in this scene.");
+	Base *base;
+
+	if (ob->type != OB_EMPTY && ob->data==NULL) {
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not an Empty type and has no Object Data set.");
 		return;
 	}
-	base= scene_add_base(sce, ob);
+
+	if (object_in_scene(ob, scene)) {
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is already in scene \"%s\".", ob->id.name+2, scene->id.name+2);
+		return;
+	}
+
+	base= scene_add_base(scene, ob);
 	ob->id.us++;
 
 	/* this is similar to what object_add_type and add_object do */
-	ob->lay= base->lay= sce->lay;
+	ob->lay= base->lay= scene->lay;
 	ob->recalc |= OB_RECALC;
 
-	DAG_scene_sort(sce);
+	DAG_scene_sort(scene);
 }
 
 static void rna_Scene_unlink_object(Scene *sce, ReportList *reports, Object *ob)
