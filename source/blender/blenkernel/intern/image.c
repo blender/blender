@@ -725,6 +725,17 @@ void BKE_image_print_memlist(void)
 	}
 }
 
+/* frees all ibufs used by any image datablocks */
+void BKE_image_free_image_ibufs(void)
+{
+	Image *ima;
+	
+	for(ima= G.main->image.first; ima; ima= ima->id.next) {
+		image_free_buffers(ima);
+	}
+	
+}
+
 void BKE_image_free_all_textures(void)
 {
 	Tex *tex;
@@ -1898,6 +1909,7 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 			ibuf->rect_float= rpass->rect;
 			ibuf->flags |= IB_rectfloat;
 			ibuf->channels= rpass->channels;
+			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 			image_assign_ibuf(ima, ibuf, iuser?iuser->multi_index:IMA_NO_INDEX, 0);
 		}

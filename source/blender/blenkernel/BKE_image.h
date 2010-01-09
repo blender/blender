@@ -143,6 +143,9 @@ struct RenderPass *BKE_image_multilayer_index(struct RenderResult *rr, struct Im
 struct RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, struct Image *ima);
 void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
 
+/* frees all ibufs used by any image datablocks */
+void	BKE_image_free_image_ibufs(void);
+	
 /* goes over all textures that use images */
 void	BKE_image_free_all_textures(void);
 

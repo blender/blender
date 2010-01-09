@@ -101,6 +101,7 @@ struct ImBuf *imb_load_dds(unsigned char *mem, int size, int flags)
 	if (ibuf == 0) return(0); /* memory allocation failed */
 
 	ibuf->ftype = DDS;
+	ibuf->profile = IB_PROFILE_SRGB;
 
 	if ((flags & IB_test) == 0) {
 		if (!imb_addrectImBuf(ibuf)) return(ibuf);

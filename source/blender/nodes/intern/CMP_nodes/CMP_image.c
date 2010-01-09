@@ -64,27 +64,19 @@ static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *i
 	ibuf= BKE_image_get_ibuf(ima, iuser);
 	if(ibuf==NULL)
 		return NULL;
-	
-	if (rd->color_mgt_flag & R_COLOR_MANAGEMENT) {
-		if (ibuf->profile == IB_PROFILE_NONE) {
-			/* if float buffer already exists = already linear */
-			/* else ... */
-			if (ibuf->rect_float == NULL) {
-				imb_freerectfloatImBuf(ibuf);
-				ibuf->profile = IB_PROFILE_SRGB;
-				IMB_float_from_rect(ibuf);
-			} else {
-				ibuf->profile = IB_PROFILE_LINEAR_RGB;
-			}
+
+	if (!(rd->color_mgt_flag & R_COLOR_MANAGEMENT)) {
+		int profile = IB_PROFILE_NONE;
+		
+		/* temporarily set profile to none to not disturb actual */
+		SWAP(int, ibuf->profile, profile);
+		
+		if (ibuf->rect_float != NULL) {
+			imb_freerectfloatImBuf(ibuf);
 		}
-	} else {
-		if (ibuf->profile == IB_PROFILE_SRGB) {
-			if (ibuf->rect_float != NULL) {
-				imb_freerectfloatImBuf(ibuf);
-			}
-			ibuf->profile = IB_PROFILE_NONE;
-			IMB_float_from_rect(ibuf);
-		}
+		IMB_float_from_rect(ibuf);
+		
+		SWAP(int, ibuf->profile, profile);
 	}
 	
 	if (ibuf->rect_float == NULL) {

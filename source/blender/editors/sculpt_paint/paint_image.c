@@ -4081,10 +4081,17 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 
 		s->clonecanvas= ibuf;
 
+		/* temporarily add float rect for cloning */
 		if(s->canvas->rect_float && !s->clonecanvas->rect_float) {
-			/* temporarily add float rect for cloning */
+			int profile = IB_PROFILE_NONE;
+			
+			/* Don't want to color manage, but don't disturb existing profiles */
+			SWAP(int, s->clonecanvas->profile, profile);
+
 			IMB_float_from_rect(s->clonecanvas);
 			s->clonefreefloat= 1;
+			
+			SWAP(int, s->clonecanvas->profile, profile);
 		}
 		else if(!s->canvas->rect_float && !s->clonecanvas->rect)
 			IMB_rect_from_float(s->clonecanvas);

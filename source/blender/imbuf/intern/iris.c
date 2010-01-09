@@ -494,6 +494,7 @@ struct ImBuf *imb_loadiris(unsigned char *mem, int flags)
 	}
 
 	ibuf->ftype = IMAGIC;
+	ibuf->profile = IB_PROFILE_SRGB;
 	if (flags & IB_ttob) IMB_flipy(ibuf);
 	
 	test_endian_zbuf(ibuf);

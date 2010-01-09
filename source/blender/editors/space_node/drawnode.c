@@ -1269,7 +1269,7 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 			
 			if(!ibuf->rect) {
 				if(color_manage)
-					ibuf->profile= IB_PROFILE_SRGB;
+					ibuf->profile = IB_PROFILE_LINEAR_RGB;
 				else
 					ibuf->profile = IB_PROFILE_NONE;
 				IMB_rect_from_float(ibuf);
