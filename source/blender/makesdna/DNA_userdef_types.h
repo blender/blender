@@ -467,7 +467,8 @@ extern UserDef U; /* from blenkernel blender.c */
 
 /* gameflags */
 #define USER_DEPRECATED_FLAG	1
-#define USER_DISABLE_SOUND		2
+// #define USER_DISABLE_SOUND		2 deprecated, don't use without checking for
+// backwards compatibilty in do_versions!
 #define USER_DISABLE_MIPMAP		4
 #define USER_DISABLE_VBO		8
 #define USER_DISABLE_AA			16

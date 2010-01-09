@@ -408,7 +408,6 @@ class USERPREF_PT_system(bpy.types.Panel):
         sub = col.column()
         sub.active = system.audio_device != 'NONE'
         #sub.prop(system, "enable_all_codecs")
-        sub.prop(system, "game_sound")
         sub.prop(system, "audio_channels", text="Channels")
         sub.prop(system, "audio_mixing_buffer", text="Mixing Buffer")
         sub.prop(system, "audio_sample_rate", text="Sample Rate")
