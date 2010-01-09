@@ -961,7 +961,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	}
 	
 	ver_width = BLF_width(version_str);
-	rev_width = BLF_width(revision_str)-7;
+	rev_width = BLF_width(revision_str);
 #endif NAN_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
