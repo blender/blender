@@ -32,4 +32,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
 if env['WITH_GHOST_COCOA']:
 	sources.remove('intern/wm_apple.c')
 
+if env['BF_BUILDINFO']:
+	defs.append('NAN_BUILDINFO')
+
 env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defs, libtype=['core'], priority=[5] )
