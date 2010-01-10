@@ -124,12 +124,19 @@ void view3d_get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2
 	}
 }
 
+/*
+ * ob == NULL if you want global matrices
+ * */
 void view3d_get_transformation(ARegion *ar, RegionView3D *rv3d, Object *ob, bglMats *mats)
 {
 	float cpy[4][4];
 	int i, j;
 
-	mul_m4_m4m4(cpy, ob->obmat, rv3d->viewmat);
+	if (ob) {
+		mul_m4_m4m4(cpy, ob->obmat, rv3d->viewmat);
+	} else {
+		copy_m4_m4(cpy, rv3d->viewmat);
+	}
 
 	for(i = 0; i < 4; ++i) {
 		for(j = 0; j < 4; ++j) {
