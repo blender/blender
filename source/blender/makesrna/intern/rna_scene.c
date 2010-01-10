@@ -2241,7 +2241,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "stamp_time", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_TIME);
-	RNA_def_property_ui_text(prop, "Stamp Time", "Include the current time in image metadata");
+	RNA_def_property_ui_text(prop, "Stamp Time", "Include the render frame as HH:MM:SS.FF in image metadata");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "stamp_date", PROP_BOOLEAN, PROP_NONE);
