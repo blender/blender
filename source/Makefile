@@ -211,6 +211,11 @@ ifeq ($(WITH_BINRELOC), true)
     COMLIB += $(OCGDIR)/extern/binreloc/$(DEBUG_DIR)libbinreloc.a
 endif
 
+ifeq ($(WITH_OPENCOLLADA), true)
+    COMLIB += $(OCGDIR)/blender/bf_collada/$(DEBUG_DIR)/libbf_collada.a
+    COMLIB += $(BF_PCRE_LIBS)
+endif
+
 ifeq ($(OS), windows)
     ifeq ($(FREE_WINDOWS), true)
         COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a

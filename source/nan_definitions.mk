@@ -150,8 +150,17 @@ ifndef CONFIG_GUESS
     export NAN_FFMPEGCFLAGS = $(shell pkg-config --cflags libavcodec libavdevice libavformat libswscale libavutil)
   endif
 
-    # Compare recreated .mo files with committed ones
-    export BF_VERIFY_MO_FILES ?= true
+  ifeq ($(WITH_OPENCOLLADA), true)
+    export BF_OPENCOLLADA ?= $(LCGDIR)/opencollada
+    export BF_OPENCOLLADA_INC ?= $(BF_OPENCOLLADA)/include
+    export BF_OPENCOLLADA_LIBS ?= $(BF_OPENCOLLADA)/lib/libOpenCOLLADASaxFrameworkLoader.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADAFramework.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADABaseUtils.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADAStreamWriter.a $(BF_OPENCOLLADA)/lib/libMathMLSolver.a $(BF_OPENCOLLADA)/lib/libGeneratedSaxParser.a $(BF_OPENCOLLADA)/lib/libUTF.a -lxml2
+    export BF_PCRE ?= $(LCGDIR)/pcre
+    export BF_PCRE_LIBS ?= $(NAN_PCRE)/lib/libpcre.a
+  endif
+
+
+  # Compare recreated .mo files with committed ones
+  export BF_VERIFY_MO_FILES ?= true
 
   # Platform Dependent settings go below:
   ifeq ($(OS),darwin)
@@ -264,6 +273,8 @@ ifndef CONFIG_GUESS
         export WITH_COCOA = true
         export USE_QTKIT = true
     endif
+
+    export NAN_PCRE = $(LCGDIR)/opencollada
 
   else
   ifeq ($(OS),freebsd)

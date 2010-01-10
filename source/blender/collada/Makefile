@@ -1,5 +1,5 @@
 #
-# $Id$
+# $Id:
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -17,10 +17,8 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+# The Original Code is Copyright (C) 2008 Blender Foundation.
 # All rights reserved.
-#
-# The Original Code is: all of this file.
 #
 # Contributor(s): none yet.
 #
@@ -28,29 +26,17 @@
 #
 #
 
-include nan_definitions.mk
+LIBNAME = bf_collada
+DIR = $(OCGDIR)/blender/bf_collada
 
-DIRS = windowmanager editors blenloader readblenfile
-DIRS += avi imbuf render blenlib blenkernel blenpluginapi
-DIRS += makesdna makesrna
-DIRS += python nodes gpu
-DIRS += blenfont ikplugin
+include nan_compile.mk
 
-ifeq ($(WITH_QUICKTIME), true)
-    DIRS += quicktime
-endif
+CCFLAGS += $(LEVEL_1_C_WARNINGS)
 
-ifeq ($(WITH_OPENJPEG), true)
-    CFLAGS += -DWITH_OPENJPEG -I../../../../extern/libopenjpeg
-endif
-
-ifeq ($(WITH_OPENCOLLADA), true)
-    DIRS += collada
-endif
-
-
-DIR = $(OCGDIR)/blender
-SOURCEDIR = source/blender
-TESTDIRS = deflate streamglue
-
-include nan_subdirs.mk
+CPPFLAGS += -I../makesdna -I../blenlib -I../blenkernel -I../editors/include
+CPPFLAGS += -I../windowmanager -I../makesrna
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I$(BF_OPENCOLLADA)/include/COLLADABaseUtils
+CPPFLAGS += -I$(BF_OPENCOLLADA)/include/COLLADAFrameWork
+CPPFLAGS += -I$(BF_OPENCOLLADA)/include/COLLADAStreamWriter
+CPPFLAGS += -I$(BF_OPENCOLLADA)/include/COLLADASaxFrameworkLoader

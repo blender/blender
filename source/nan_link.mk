@@ -187,4 +187,8 @@ ifeq ($(WITH_FFTW3),true)
     LLIBS += $(BF_FFTW3_LIBS)
 endif
 
+ifeq ($(WITH_OPENCOLLADA),true)
+    LLIBS += $(BF_OPENCOLLADA_LIBS)
+endif
+
 LLIBS += $(NAN_PYTHON_LIB)
