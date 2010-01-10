@@ -55,9 +55,14 @@ protected:
 protected:
 	Render* _re;
 	SceneRenderLayer* _srl;
-  NodeGroup* _Scene;
-  unsigned _numFacesRead;
-  real _minEdgeSize;
+	NodeGroup* _Scene;
+	unsigned _numFacesRead;
+	real _minEdgeSize;
+	float _viewplane_left;
+	float _viewplane_right;
+	float _viewplane_bottom;
+	float _viewplane_top;
+	float _z_near, _z_far;
 };
 
 #endif // BLENDER_FILE_LOADER_H

@@ -21,8 +21,20 @@ NodeGroup* BlenderFileLoader::Load()
 
 	cout << "\n===  Importing triangular meshes into Blender  ===" << endl;
 
-  // creation of the scene root node
-  _Scene = new NodeGroup;
+	// creation of the scene root node
+	_Scene = new NodeGroup;
+
+	_viewplane_left=   _re->viewplane.xmin;
+	_viewplane_right=  _re->viewplane.xmax;
+	_viewplane_bottom= _re->viewplane.ymin;
+	_viewplane_top=    _re->viewplane.ymax;
+	_z_near= _re->clipsta;
+	_z_far=  _re->clipend;
+#if 0
+	cout << "frustrum: l " << _viewplane_left << " r " << _viewplane_right
+		<< " b " << _viewplane_bottom << " t " << _viewplane_top
+		<< " n " << _z_near << " f " << _z_far << endl;
+#endif
 
 	int id = 0;
 	for(obi= (ObjectInstanceRen *) _re->instancetable.first; obi; obi=obi->next) {
@@ -37,8 +49,8 @@ NodeGroup* BlenderFileLoader::Load()
 			cout << "  Sorry, only vlak-based shapes are supported." << endl;
 	}
 
-  //Returns the built scene.
-  return _Scene;
+	//Returns the built scene.
+	return _Scene;
 }
 
 void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)

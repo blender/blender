@@ -19,6 +19,7 @@ extern "C" {
 
 #include "BKE_main.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BPY_extern.h"
 
 #include "renderpipeline.h"
@@ -106,6 +107,9 @@ extern "C" {
 		for( int i = 0; i < 4; i++ )
 		   for( int j = 0; j < 4; j++ )
 			freestyle_proj[i][j] = re->winmat[i][j];
+
+		//print_m4("mv", freestyle_mv);
+		//print_m4("proj", freestyle_proj);
 	}
 
 	

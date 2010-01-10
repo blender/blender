@@ -946,13 +946,19 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
     real tb = (*i)->tB;
 
     if((ta < -epsilon) || (ta > 1+epsilon))
-        cerr << "Warning: intersection out of range for edge " << fA->vertexA()->getId() << " - " << fA->vertexB()->getId() << endl;
+        cerr << "Warning: 2D intersection out of range for edge " << fA->vertexA()->getId() << " - " << fA->vertexB()->getId() << endl;
     
     if((tb < -epsilon) || (tb > 1+epsilon))
-        cerr << "Warning: intersection out of range for edge " << fB->vertexA()->getId() << " - " << fB->vertexB()->getId() << endl;
+        cerr << "Warning: 2D intersection out of range for edge " << fB->vertexA()->getId() << " - " << fB->vertexB()->getId() << endl;
     
     real Ta = SilhouetteGeomEngine::ImageToWorldParameter(fA, ta);
     real Tb = SilhouetteGeomEngine::ImageToWorldParameter(fB, tb);
+
+    if((Ta < -epsilon) || (Ta > 1+epsilon))
+        cerr << "Warning: 3D intersection out of range for edge " << fA->vertexA()->getId() << " - " << fA->vertexB()->getId() << endl;
+    
+    if((Tb < -epsilon) || (Tb > 1+epsilon))
+        cerr << "Warning: 3D intersection out of range for edge " << fB->vertexA()->getId() << " - " << fB->vertexB()->getId() << endl;
 
     TVertex * tvertex = ioViewMap->CreateTVertex(Vec3r(A1 + Ta*(A2-A1)), Vec3r(a1 + ta*(a2-a1)), fA, 
                                                  Vec3r(B1 + Tb*(B2-B1)), Vec3r(b1 + tb*(b2-b1)), fB, id);

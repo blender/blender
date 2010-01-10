@@ -155,6 +155,7 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
 	
   // we need to compute for each parameter t the corresponding 
   // parameter T which gives the intersection in 3D.
+#if 0
   //currentEdge = (*fe);
   Vec3r A = (fe)->vertexA()->point3D();
   Vec3r B = (fe)->vertexB()->point3D();
@@ -175,6 +176,46 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
   
   real T;
   T = (Ic[2]*Ac[1] - Ic[1]*Ac[2])/(Ic[1]*(Bc[2]-Ac[2])-Ic[2]*(Bc[1]-Ac[1]));
+#else
+	// suffix w for world, i for image
+	Vec3r Aw = (fe)->vertexA()->point3D();
+	Vec3r Bw = (fe)->vertexB()->point3D();
+	Vec3r Ai = (fe)->vertexA()->point2D();
+	Vec3r Bi = (fe)->vertexB()->point2D();
+	Vec3r Ii = Ai + t * (Bi - Ai); // the intersection point in 2D
+	Vec3r Pw, Pi;
+	real T_sta = 0.0;
+	real T_end = 1.0;
+	real T;
+	real delta_x, delta_y, dist, dist_threshold = 1e-6;
+	int i, max_iters = 100;
+	for (i = 0; i < max_iters; i++) {
+        T = T_sta + 0.5 * (T_end - T_sta);
+        Pw = Aw + T * (Bw - Aw);
+		GeomUtils::fromWorldToImage(Pw, Pi, _transform, _viewport);
+		delta_x = Ii[0] - Pi[0];
+		delta_y = Ii[1] - Pi[1];
+        dist = sqrt(delta_x * delta_x + delta_y * delta_y);
+        if (dist < dist_threshold)
+            break;
+		if (Ai[0] < Bi[0]) {
+            if (Pi[0] < Ii[0])
+                T_sta = T;
+            else
+                T_end = T;
+		} else {
+            if (Pi[0] > Ii[0])
+                T_sta = T;
+            else
+                T_end = T;
+		}
+	}
+#if 0
+	printf("SilhouetteGeomEngine::ImageToWorldParameter(): #iters = %d, dist = %e\n", i, dist);
+#endif
+	if (i == max_iters)
+		printf("SilhouetteGeomEngine::ImageToWorldParameter(): reached to max_iters (dist = %e)\n", dist);
+#endif
   
   return T;
 }
