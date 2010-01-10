@@ -323,6 +323,16 @@ typedef struct ExtensionRNA {
 	void (*free)(void *data);
 } ExtensionRNA;
 
+/* fake struct definitions, needed otherwise collections end up owning the C
+ * structs like 'Object' when defined first */
+#define MainCameras Main
+#define MainScenes Main
+#define MainArmatures Main
+#define MainMaterials Main
+#define MainMeshes Main
+#define MainLamps Main
+#define MainObjects Main
+
 #ifdef __cplusplus
 }
 #endif
