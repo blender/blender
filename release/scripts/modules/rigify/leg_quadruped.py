@@ -63,7 +63,7 @@ def metarig_template():
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones['thigh']
-    pbone['type'] = 'leg_quadruped_generic'
+    pbone['type'] = 'leg_quadruped'
 
 
 def metarig_definition(obj, orig_bone_name):
