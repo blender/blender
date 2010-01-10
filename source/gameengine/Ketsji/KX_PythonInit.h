@@ -52,6 +52,8 @@ void		exitGamePlayerPythonScripting();
 PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level, struct Main *maggie);
 void		exitGamePythonScripting();
 
+void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *blenderdata, PyObject *pyGlobalDict, PyObject **gameLogic, PyObject **gameLogic_keys, int argc, char** argv);
+
 void		setGamePythonPath(char *path);
 void		resetGamePythonPath();
 void		pathGamePythonConfig( char *path );

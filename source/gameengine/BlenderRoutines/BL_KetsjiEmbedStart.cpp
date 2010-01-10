@@ -391,22 +391,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 
 #ifndef DISABLE_PYTHON
 			// some python things
-			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
-			ketsjiengine->SetPyNamespace(dictionaryobject);
-			initRasterizer(rasterizer, canvas);
-			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
-			PyDict_SetItemString(PyModule_GetDict(gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
-			PyObject *gameLogic_keys = PyDict_Keys(PyModule_GetDict(gameLogic));
-			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module.
-			
-			initGameKeys();
-			initPythonConstraintBinding();
-			initMathutils();
-			initGeometry();
-			initBGL();
-#ifdef WITH_FFMPEG
-			initVideoTexture();
-#endif
+			PyObject *gameLogic, *gameLogic_keys;
+			setupGamePython(ketsjiengine, startscene, blenderdata, pyGlobalDict, &gameLogic, &gameLogic_keys, 0, NULL);
 #endif // DISABLE_PYTHON
 
 			//initialize Dome Settings
@@ -622,6 +608,7 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 	// Acquire Python's GIL (global interpreter lock)
 	// so we can safely run Python code and API calls
 	PyGILState_STATE gilstate = PyGILState_Ensure();
+	PyObject *pyGlobalDict = PyDict_New(); /* python utility storage, spans blend file loading */
 #endif
 
 	bgl::InitExtensions(true);
@@ -722,19 +709,8 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 
 #ifndef DISABLE_PYTHON
 			// some python things
-			PyObject* dictionaryobject = initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
-			ketsjiengine->SetPyNamespace(dictionaryobject);
-			initRasterizer(rasterizer, canvas);
-			PyObject *gameLogic = initGameLogic(ketsjiengine, startscene);
-			PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
-			initGameKeys();
-			initPythonConstraintBinding();
-			initMathutils();
-			initGeometry();
-			initBGL();
-#ifdef WITH_FFMPEG
-			initVideoTexture();
-#endif
+			PyObject *gameLogic, *gameLogic_keys;
+			setupGamePython(ketsjiengine, startscene, blenderdata, pyGlobalDict, &gameLogic, &gameLogic_keys, 0, NULL);
 #endif // DISABLE_PYTHON
 
 			if (sceneconverter)
@@ -820,6 +796,8 @@ extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
 	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
 
 #ifndef DISABLE_PYTHON
+	Py_DECREF(pyGlobalDict);
+
 	// Release Python's GIL
 	PyGILState_Release(gilstate);
 #endif
