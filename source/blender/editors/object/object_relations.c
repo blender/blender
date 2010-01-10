@@ -1219,14 +1219,8 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 				}
 				break;
 			case MAKE_LINKS_ANIMDATA:
-#if 0 // XXX old animation system
-					if(obt->ipo) obt->ipo->id.us--;
-					obt->ipo= ob->ipo;
-					if(obt->ipo) {
-						id_us_plus((ID *)obt->ipo);
-						do_ob_ipo(scene, obt);
-					}
-#endif // XXX old animation system
+				BKE_copy_animdata_id((ID *)obt, (ID *)ob);
+				BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data);
 				break;
 			case MAKE_LINKS_DUPLIGROUP:
 				if(ob->dup_group) ob->dup_group->id.us--;

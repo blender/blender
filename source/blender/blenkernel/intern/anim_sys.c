@@ -203,6 +203,26 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	return dadt;
 }
 
+int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from)
+{
+	AnimData *adt;
+
+	if((id_to && id_from) && (GS(id_to->name) != GS(id_from->name)))
+		return 0;
+
+	BKE_free_animdata(id_to);
+
+	adt = BKE_animdata_from_id(id_from);
+	if (adt) {
+		IdAdtTemplate *iat = (IdAdtTemplate *)id_to;
+		iat->adt= BKE_copy_animdata(adt);
+	}
+
+	return 1;
+}
+
+
+
 /* Make Local -------------------------------------------- */
 
 static void make_local_strips(ListBase *strips)
