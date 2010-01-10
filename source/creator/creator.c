@@ -493,13 +493,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		WM_init(C);
-
-#ifndef DISABLE_PYTHON
-		BPY_set_context(C); /* necessary evil */
-		BPY_start_python(argc, argv);
-		BPY_load_user_modules(C);
-#endif
+		WM_init(C, argc, argv);
 		
 		// XXX BRECHT SOLVE
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
@@ -539,13 +533,8 @@ int main(int argc, char **argv)
 			}
 		}
 
-		WM_init(C);
+		WM_init(C, argc, argv);
 
-#ifndef DISABLE_PYTHON
-		BPY_set_context(C); /* necessary evil */
-		BPY_start_python(argc, argv);
-		BPY_load_user_modules(C);
-#endif		
 		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
 	}
 #ifndef DISABLE_PYTHON

@@ -698,7 +698,12 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 void BPY_load_user_modules(bContext *C)
 {
 	PyGILState_STATE gilstate;
+	Main *bmain= CTX_data_main(C);
 	Text *text;
+
+	/* can happen on file load */
+	if(bmain==NULL)
+		return;
 
 	bpy_context_set(C, &gilstate);
 

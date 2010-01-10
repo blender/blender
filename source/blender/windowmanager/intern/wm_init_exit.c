@@ -106,9 +106,9 @@ static void wm_free_reports(bContext *C)
 
 
 /* only called once, for startup */
-void WM_init(bContext *C)
+void WM_init(bContext *C, int argc, char **argv)
 {
-	
+
 	if (!G.background) {
 		wm_ghost_init(C);	/* note: it assigns C to ghost! */
 		wm_init_cursor_data();
@@ -129,9 +129,18 @@ void WM_init(bContext *C)
 	
 	init_builtin_keyingsets(); /* editors/animation/keyframing.c */
 	
+	/* python needs initializing before loading the .B.blend
+	 * because it may contain PyDrivers. It also needs to be after
+	 * initializing space types and other internal data */
+#ifndef DISABLE_PYTHON
+	BPY_set_context(C); /* necessary evil */
+	BPY_start_python(argc, argv);
+	BPY_load_user_modules(C);
+#endif
+
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL);
-	
+
 	wm_init_reports(C); /* reports cant be initialized before the wm */
 
 	if (!G.background) {
