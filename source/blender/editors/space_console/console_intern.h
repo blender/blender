@@ -63,7 +63,6 @@ void CONSOLE_OT_clear(struct wmOperatorType *ot);
 void CONSOLE_OT_history_cycle(struct wmOperatorType *ot);
 void CONSOLE_OT_copy(struct wmOperatorType *ot);
 void CONSOLE_OT_paste(struct wmOperatorType *ot);
-void CONSOLE_OT_zoom(struct wmOperatorType *ot);
 void CONSOLE_OT_select_set(struct wmOperatorType *ot);
 
 

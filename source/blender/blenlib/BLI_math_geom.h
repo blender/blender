@@ -111,6 +111,8 @@ int isect_axial_line_tri_v3(int axis, float co1[3], float co2[3],
 
 int isect_aabb_aabb_v3(float min1[3], float max1[3], float min2[3], float max2[3]);
 
+int clip_line_plane(float clipco[3], float plane[4], float co[3]);
+
 /****************************** Interpolation ********************************/
 
 /* tri or quad, d can be NULL */
@@ -120,6 +122,8 @@ void interp_weights_poly_v3(float w[], float v[][3], int n, float p[3]);
 
 void interp_cubic_v3(float x[3], float v[3],
 	float x1[3], float v1[3], float x2[3], float v2[3], float t);
+
+int interp_sparse_array(float *array, int list_size, float invalid);
 
 void barycentric_transform(float pt_tar[3], float const pt_src[3],
 	const float tri_tar_p1[3], const float tri_tar_p2[3], const float tri_tar_p3[3],

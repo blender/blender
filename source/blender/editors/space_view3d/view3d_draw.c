@@ -1044,14 +1044,6 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	UI_ThemeColor(TH_WIRE);
 	glRectf(x1, y1, x2, y2);
 	
-	/* camera name - draw in highlighted text color */
-	if (ca && (ca->flag & CAM_SHOWNAME)) {
-		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(x1, y1-15, 0.0f, v3d->camera->id.name+2);
-		UI_ThemeColor(TH_WIRE);
-	}
-	
-	
 	/* border */
 	if(scene->r.mode & R_BORDER) {
 		
@@ -1086,6 +1078,12 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	setlinestyle(0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	
+	/* camera name - draw in highlighted text color */
+	if (ca && (ca->flag & CAM_SHOWNAME)) {
+		UI_ThemeColor(TH_TEXT_HI);
+		BLF_draw_default(x1, y1-15, 0.0f, v3d->camera->id.name+2);
+		UI_ThemeColor(TH_WIRE);
+	}
 }
 
 /* *********************** backdraw for selection *************** */
@@ -1095,16 +1093,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	RegionView3D *rv3d= ar->regiondata;
 	struct Base *base = scene->basact;
 	rcti winrct;
-
-/*for 2.43 release, don't use glext and just define the constant.
-  this to avoid possibly breaking platforms before release.*/
-#ifndef GL_MULTISAMPLE_ARB
-	#define GL_MULTISAMPLE_ARB	0x809D
-#endif
-
-#ifdef GL_MULTISAMPLE_ARB
-	int m;
-#endif
 
 	if(base && (base->object->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT) ||
 		     paint_facesel_test(base->object)));
@@ -1125,16 +1113,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 //			return;
 //		}
 //	}
-
-	/* Disable FSAA for backbuffer selection.  
-	
-	Only works if GL_MULTISAMPLE_ARB is defined by the header
-	file, which is should be for every OS that supports FSAA.*/
-
-#ifdef GL_MULTISAMPLE_ARB
-	m = glIsEnabled(GL_MULTISAMPLE_ARB);
-	if (m) glDisable(GL_MULTISAMPLE_ARB);
-#endif
 
 	if(v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
 	
@@ -1171,10 +1149,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
-
-#ifdef GL_MULTISAMPLE_ARB
-	if (m) glEnable(GL_MULTISAMPLE_ARB);
-#endif
 
 	/* it is important to end a view in a transform compatible with buttons */
 //	persp(PERSP_WIN);  // set ortho
@@ -1643,22 +1617,46 @@ void view3d_update_depths(ARegion *ar, View3D *v3d)
 	}
 }
 
+void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
+{
+	short zbuf= v3d->zbuf;
+	RegionView3D *rv3d= ar->regiondata;
+
+	setwinmatrixview3d(ar, v3d, NULL);	/* 0= no pick rect */
+	setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
+
+	mul_m4_m4m4(rv3d->persmat, rv3d->viewmat, rv3d->winmat);
+	invert_m4_m4(rv3d->persinv, rv3d->persmat);
+	invert_m4_m4(rv3d->viewinv, rv3d->viewmat);
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	wmLoadMatrix(rv3d->viewmat);
+
+	v3d->zbuf= TRUE;
+	glEnable(GL_DEPTH_TEST);
+
+	draw_gpencil_3dview_ext(scene, ar, 1);
+	
+	v3d->zbuf= zbuf;
+
+}
+
 void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 {
 	RegionView3D *rv3d= ar->regiondata;
 	Base *base;
 	Scene *sce;
-	short zbuf, flag;
-	float glalphaclip;
+	short zbuf= v3d->zbuf;
+	short flag= v3d->flag;
+	float glalphaclip= U.glalphaclip;
+	int obcenter_dia= U.obcenter_dia;
 	/* temp set drawtype to solid */
 	
 	/* Setting these temporarily is not nice */
-	zbuf = v3d->zbuf;
-	flag = v3d->flag;
-	glalphaclip = U.glalphaclip;
-	
-	U.glalphaclip = 0.5; /* not that nice but means we wont zoom into billboards */
 	v3d->flag &= ~V3D_SELECT_OUTLINE;
+	U.glalphaclip = 0.5; /* not that nice but means we wont zoom into billboards */
+	U.obcenter_dia= 0;
 	
 	setwinmatrixview3d(ar, v3d, NULL);	/* 0= no pick rect */
 	setviewmatrixview3d(scene, v3d, rv3d);	/* note: calls where_is_object for camera... */
@@ -1742,6 +1740,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	v3d->zbuf = zbuf;
 	U.glalphaclip = glalphaclip;
 	v3d->flag = flag;
+	U.obcenter_dia= obcenter_dia;
 }
 
 typedef struct View3DShadow {
@@ -1928,8 +1927,16 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	G.f |= G_RENDER_OGL;
 	GPU_free_images();
 
-	/* set background color */
-	glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
+	/* set background color, fallback on the view background color */
+	if(scene->world) {
+		glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
+	}
+	else {
+		float col[3];
+		UI_GetThemeColor3fv(TH_BACK, col);
+		glClearColor(col[0], col[1], col[2], 0.0); 	
+	}
+
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 	/* setup view matrices */
@@ -2032,6 +2039,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	else
 		v3d->zbuf= FALSE;
+
+	/* enables anti-aliasing for 3D view drawing */
+	if (!(U.gameflags & USER_DISABLE_AA))
+		glEnable(GL_MULTISAMPLE_ARB);
 	
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	rv3d->gridview= v3d->grid;
@@ -2139,6 +2150,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	BIF_draw_manipulator(C);
 	
+	/* Disable back anti-aliasing */
+	if (!(U.gameflags & USER_DISABLE_AA))
+		glDisable(GL_MULTISAMPLE_ARB);
+
 	if(v3d->zbuf) {
 		v3d->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);

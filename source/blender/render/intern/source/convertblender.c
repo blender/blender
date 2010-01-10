@@ -2284,6 +2284,14 @@ static void displace_render_face(Render *re, ObjectRen *obr, VlakRen *vlr, float
 	shi.mat= vlr->mat;		/* current input material */
 	shi.thread= 0;
 	
+	/* TODO, assign these, displacement with new bumpmap is skipped without - campbell */
+#if 0
+	/* order is not known ? */
+	shi.v1= vlr->v1;
+	shi.v2= vlr->v2;
+	shi.v3= vlr->v3;
+#endif
+
 	/* Displace the verts, flag is set when done */
 	if (!vlr->v1->flag)
 		displace_render_vert(re, obr, &shi, vlr->v1,0,  scale, mat, imat);
@@ -3622,7 +3630,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	}
 
 	/* set flag for spothalo en initvars */
-	if(la->type==LA_SPOT && (la->mode & LA_HALO)) {
+	if(la->type==LA_SPOT && (la->mode & LA_HALO) && (la->buftype != LA_SHADBUF_DEEP)) {
 		if(la->haint>0.0) {
 			re->flag |= R_LAMPHALO;
 
@@ -5597,7 +5605,7 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 	}
 	
 	re= RE_NewRender("_make sticky_");
-	RE_InitState(re, NULL, &scene->r, scene->r.xsch, scene->r.ysch, NULL);
+	RE_InitState(re, NULL, &scene->r, NULL, scene->r.xsch, scene->r.ysch, NULL);
 	
 	/* use renderdata and camera to set viewplane */
 	RE_SetCamera(re, scene->camera);

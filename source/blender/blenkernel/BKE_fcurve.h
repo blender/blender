@@ -31,6 +31,7 @@
 struct FCurve;
 struct FModifier;
 struct ChannelDriver;
+struct DriverVar;
 struct DriverTarget;
 
 struct BezTriple;
@@ -40,7 +41,6 @@ struct StructRNA;
 
 /* ************** Keyframe Tools ***************** */
 
-// XXX this stuff is defined in BKE_ipo.h too, so maybe skip for now?
 typedef struct CfraElem {
 	struct CfraElem *next, *prev;
 	float cfra;
@@ -51,13 +51,39 @@ void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
 
 /* ************** F-Curve Drivers ***************** */
 
+/* With these iterators for convenience, the variables "tarIndex" and "dtar" can be 
+ * accessed directly from the code using them, but it is not recommended that their
+ * values be changed to point at other slots...
+ */
+
+/* convenience looper over ALL driver targets for a given variable (even the unused ones) */
+#define DRIVER_TARGETS_LOOPER(dvar) \
+	{ \
+		DriverTarget *dtar= &dvar->targets[0]; \
+		int tarIndex= 0; \
+		for (; tarIndex < MAX_DRIVER_TARGETS; tarIndex++, dtar++)
+		 
+/* convenience looper over USED driver targets only */
+#define DRIVER_TARGETS_USED_LOOPER(dvar) \
+	{ \
+		DriverTarget *dtar= &dvar->targets[0]; \
+		int tarIndex= 0; \
+		for (; tarIndex < dvar->num_targets; tarIndex++, dtar++)
+		
+/* tidy up for driver targets loopers */
+#define DRIVER_TARGETS_LOOPER_END \
+	}
+
+/* ---------------------- */
+
 void fcurve_free_driver(struct FCurve *fcu);
 struct ChannelDriver *fcurve_copy_driver(struct ChannelDriver *driver);
 
-void driver_free_target(struct ChannelDriver *driver, struct DriverTarget *dtar);
-struct DriverTarget *driver_add_new_target(struct ChannelDriver *driver);
+void driver_free_variable(struct ChannelDriver *driver, struct DriverVar *dvar);
+void driver_change_variable_type(struct DriverVar *dvar, int type);
+struct DriverVar *driver_add_new_variable(struct ChannelDriver *driver);
 
-float driver_get_target_value(struct ChannelDriver *driver, struct DriverTarget *dtar);
+float driver_get_variable_value (struct ChannelDriver *driver, struct DriverVar *dvar);
 
 /* ************** F-Curve Modifiers *************** */
 

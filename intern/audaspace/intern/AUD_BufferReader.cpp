@@ -79,11 +79,11 @@ void AUD_BufferReader::read(int & length, sample_t* & buffer)
 {
 	int sample_size = AUD_SAMPLE_SIZE(m_specs);
 
-	buffer = m_buffer.get()->getBuffer()+m_position*sample_size;
+	buffer = m_buffer.get()->getBuffer() + m_position * m_specs.channels;
 
 	// in case the end of the buffer is reached
-	if(m_buffer.get()->getSize() < (m_position+length)*sample_size)
-		length = m_buffer.get()->getSize()/sample_size-m_position;
+	if(m_buffer.get()->getSize() < (m_position + length) * sample_size)
+		length = m_buffer.get()->getSize() / sample_size - m_position;
 
 	if(length < 0)
 		length = 0;

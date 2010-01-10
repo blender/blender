@@ -569,6 +569,7 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int mem_size, int flags)
 
 	if (ibuf == 0) return(0);
 	ibuf->ftype = TGA;
+	ibuf->profile = IB_PROFILE_SRGB;
 	ibuf->xorig = tga.xorig;
 	ibuf->yorig = tga.yorig;
 	mem = mem + 18 + tga.numid;

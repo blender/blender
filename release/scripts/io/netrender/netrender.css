@@ -60,7 +60,6 @@ button {
 	cursor: pointer;
 }
 
-
 .cache {
 	display: none;
 }
@@ -72,4 +71,14 @@ button {
 .rules {
 	width: 60em;
 	text-align: left;
+}
+
+img.thumb {
+	display: none;
+	cursor: pointer;
+}
+
+span.thumb {
+	text-decoration: underline;
+	cursor: pointer;
 }

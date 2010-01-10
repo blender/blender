@@ -315,6 +315,8 @@ typedef struct TransInfo {
 
 	float		values[4];
 	float		auto_values[4];
+	float		axis[3];
+
 	void		*view;
 	struct ScrArea	*sa;
 	struct ARegion	*ar;

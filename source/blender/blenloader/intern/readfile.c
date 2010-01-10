@@ -106,6 +106,7 @@
 #include "BLI_storage_types.h" // for relname flags
 
 #include "BKE_animsys.h"
+#include "BKE_anim.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_brush.h"
@@ -1531,22 +1532,13 @@ static void direct_link_curvemapping(FileData *fd, CurveMapping *cumap)
 static void lib_link_brush(FileData *fd, Main *main)
 {
 	Brush *brush;
-	MTex *mtex;
-	int a;
 	
 	/* only link ID pointers */
 	for(brush= main->brush.first; brush; brush= brush->id.next) {
 		if(brush->id.flag & LIB_NEEDLINK) {
 			brush->id.flag -= LIB_NEEDLINK;
 
-			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
-			
-			for(a=0; a<MAX_MTEX; a++) {
-				mtex= brush->mtex[a];
-				if(mtex)
-					mtex->tex= newlibadr_us(fd, brush->id.lib, mtex->tex);
-			}
-
+			brush->mtex.tex= newlibadr_us(fd, brush->id.lib, brush->mtex.tex);
 			brush->clone.image= newlibadr_us(fd, brush->id.lib, brush->clone.image);
 		}
 	}
@@ -1555,17 +1547,13 @@ static void lib_link_brush(FileData *fd, Main *main)
 static void direct_link_brush(FileData *fd, Brush *brush)
 {
 	/* brush itself has been read */
-	int a;
-
-	for(a=0; a<MAX_MTEX; a++)
-		brush->mtex[a]= newdataadr(fd, brush->mtex[a]);
 
 	/* fallof curve */
 	brush->curve= newdataadr(fd, brush->curve);
 	if(brush->curve)
 		direct_link_curvemapping(fd, brush->curve);
 	else
-		brush_curve_preset(brush, BRUSH_PRESET_SHARP);
+		brush_curve_preset(brush, CURVE_PRESET_SHARP);
 }
 
 static void direct_link_script(FileData *fd, Script *script)
@@ -1711,10 +1699,19 @@ static void lib_link_fcurves(FileData *fd, ID *id, ListBase *list)
 		/* driver data */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
 			
-			for (dtar= driver->targets.first; dtar; dtar= dtar->next)
-				dtar->id= newlibadr(fd, id->lib, dtar->id); 
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				DRIVER_TARGETS_LOOPER(dvar)
+				{	
+					/* only relink if still used */
+					if (tarIndex < dvar->num_targets)
+						dtar->id= newlibadr(fd, id->lib, dtar->id); 
+					else
+						dtar->id= NULL;
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
 		}
 		
 		/* modifiers */
@@ -1782,12 +1779,21 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		fcu->driver= newdataadr(fd, fcu->driver);
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
 			
-			/* relink targets and their paths */
-			link_list(fd, &driver->targets);
-			for (dtar= driver->targets.first; dtar; dtar= dtar->next)
-				dtar->rna_path= newdataadr(fd, dtar->rna_path);
+			/* relink variables, targets and their paths */
+			link_list(fd, &driver->variables);
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				DRIVER_TARGETS_LOOPER(dvar)
+				{
+					/* only relink the targets being used */
+					if (tarIndex < dvar->num_targets)
+						dtar->rna_path= newdataadr(fd, dtar->rna_path);
+					else
+						dtar->rna_path= NULL;
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
 		}
 		
 		/* modifiers */
@@ -1981,6 +1987,19 @@ static void direct_link_animdata(FileData *fd, AnimData *adt)
 	adt->actstrip= NULL;
 }	
 
+/* ************ READ MOTION PATHS *************** */
+
+/* direct data for cache */
+static void direct_link_motionpath(FileData *fd, bMotionPath *mpath)
+{
+	/* sanity check */
+	if (mpath == NULL)
+		return;
+	
+	/* relink points cache */
+	mpath->points= newdataadr(fd, mpath->points);
+}
+
 /* ************ READ NODE TREE *************** */
 
 /* singe node tree (also used for material/scene trees), ntree is not NULL */
@@ -2110,23 +2129,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		link->fromsock= newdataadr(fd, link->fromsock);
 		link->tosock= newdataadr(fd, link->tosock);
 	}
-	
-	/* set selin and selout */
-	for(node= ntree->nodes.first; node; node= node->next) {
-		for(sock= node->inputs.first; sock; sock= sock->next) {
-			if(sock->flag & SOCK_SEL) {
-				ntree->selin= sock;
-				break;
-			}
-		}
-		for(sock= node->outputs.first; sock; sock= sock->next) {
-			if(sock->flag & SOCK_SEL) {
-				ntree->selout= sock;
-				break;
-			}
-		}
-	}
-	
+		
 	/* type verification is in lib-link */
 }
 
@@ -2285,6 +2288,13 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 			{
 				bSplineIKConstraint *data;
 				data= ((bSplineIKConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			}
+			break;
+		case CONSTRAINT_TYPE_TRANSLIKE:
+			{
+				bTransLikeConstraint *data;
+				data= ((bTransLikeConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			}
 			break;
@@ -3756,12 +3766,17 @@ static void direct_link_pose(FileData *fd, bPose *pose)
 		pchan->bone= NULL;
 		pchan->parent= newdataadr(fd, pchan->parent);
 		pchan->child= newdataadr(fd, pchan->child);
+		pchan->custom_tx= newdataadr(fd, pchan->custom_tx);
 		
 		direct_link_constraints(fd, &pchan->constraints);
 		
 		pchan->prop = newdataadr(fd, pchan->prop);
 		if (pchan->prop)
 			IDP_DirectLinkProperty(pchan->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		
+		pchan->mpath= newdataadr(fd, pchan->mpath);
+		if (pchan->mpath)
+			direct_link_motionpath(fd, pchan->mpath);
 		
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
@@ -3975,6 +3990,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 	
 	ob->pose= newdataadr(fd, ob->pose);
 	direct_link_pose(fd, ob->pose);
+	
+	ob->mpath= newdataadr(fd, ob->mpath);
+	if (ob->mpath)
+		direct_link_motionpath(fd, ob->mpath);
 
 	link_list(fd, &ob->defbase);
 // XXX depreceated - old animation system <<<
@@ -4165,7 +4184,7 @@ static void composite_patch(bNodeTree *ntree, Scene *scene)
 	bNode *node;
 	
 	for(node= ntree->nodes.first; node; node= node->next)
-		if(node->id==NULL && ELEM3(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS))
+		if(node->id==NULL && ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE))
 			node->id= &scene->id;
 }
 
@@ -10311,10 +10330,88 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (1) {
 		Scene *sce;
+		Object *ob;
+		Brush *brush;
+		Material *ma;
 		
+		/* game engine changes */
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
 			sce->gm.eyeseparation = 0.10;
 		}
+		
+		/* anim viz changes */
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			/* initialise object defaults */
+			animviz_settings_init(&ob->avs);
+			
+			/* if armature, copy settings for pose from armature data 
+			 * performing initialisation where appropriate 
+			 */
+			if (ob->pose && ob->data) {
+				bArmature *arm= newlibadr(fd, lib, ob->data);
+				if(arm) { /* XXX - why does this fail in some cases? */
+					bAnimVizSettings *avs= &ob->pose->avs;
+					
+					/* ghosting settings ---------------- */
+						/* ranges */
+					avs->ghost_bc= avs->ghost_ac= arm->ghostep;
+					
+					avs->ghost_sf= arm->ghostsf;
+					avs->ghost_ef= arm->ghostef;
+					
+						/* type */
+					avs->ghost_type= arm->ghosttype;
+					
+						/* stepsize */
+					avs->ghost_step= arm->ghostsize;
+					if (avs->ghost_step == 0)
+						avs->ghost_step= 1;
+					
+					/* path settings --------------------- */
+						/* ranges */
+					avs->path_bc= arm->pathbc;
+					avs->path_ac= arm->pathac;
+					
+					avs->path_sf= arm->pathsf;
+					avs->path_ef= arm->pathef;
+					
+						/* flags */
+					if (arm->pathflag & ARM_PATH_FNUMS)
+						avs->path_viewflag |= MOTIONPATH_VIEW_FNUMS;
+					if (arm->pathflag & ARM_PATH_KFRAS)
+						avs->path_viewflag |= MOTIONPATH_VIEW_KFRAS;
+					if (arm->pathflag & ARM_PATH_KFNOS)
+						avs->path_viewflag |= MOTIONPATH_VIEW_KFNOS;
+					
+						/* bake flags */
+					if (arm->pathflag & ARM_PATH_HEADS)
+						avs->path_bakeflag |= MOTIONPATH_BAKE_HEADS;
+					
+						/* type */
+					if (arm->pathflag & ARM_PATH_ACFRA)
+						avs->path_type = MOTIONPATH_TYPE_ACFRA;
+					
+						/* stepsize */
+					avs->path_step= arm->pathsize;
+					if (avs->path_step == 0)
+						avs->path_step= 1;
+				}
+			}
+		}
+		
+		/* brush texture changes */
+		for (brush= main->brush.first; brush; brush= brush->id.next) {
+			default_mtex(&brush->mtex);
+		}
+
+		for (ma= main->mat.first; ma; ma= ma->id.next) {
+			if (ma->vol.ms_spread < 0.0001f) {
+				ma->vol.ms_spread = 0.2f;
+				ma->vol.ms_diff = 1.f;
+				ma->vol.ms_intensity = 1.f;	
+			}
+		}
+		
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -10681,10 +10778,16 @@ static void expand_fcurves(FileData *fd, Main *mainvar, ListBase *list)
 		/* Driver targets if there is a driver */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
 			
-			for (dtar= driver->targets.first; dtar; dtar= dtar->next)
-				expand_doit(fd, mainvar, dtar->id);
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				DRIVER_TARGETS_LOOPER(dvar) 
+				{
+					// TODO: only expand those that are going to get used?
+					expand_doit(fd, mainvar, dtar->id);
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
 		}
 		
 		/* F-Curve Modifiers */
@@ -10813,11 +10916,7 @@ static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
 
 static void expand_brush(FileData *fd, Main *mainvar, Brush *brush)
 {
-	int a;
-
-	for(a=0; a<MAX_MTEX; a++)
-		if(brush->mtex[a])
-			expand_doit(fd, mainvar, brush->mtex[a]->tex);
+	expand_doit(fd, mainvar, brush->mtex.tex);
 	expand_doit(fd, mainvar, brush->clone.image);
 }
 
@@ -11080,6 +11179,12 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 		case CONSTRAINT_TYPE_SPLINEIK:
 			{
 				bSplineIKConstraint *data = (bSplineIKConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+			}
+			break;
+		case CONSTRAINT_TYPE_TRANSLIKE:
+			{
+				bTransLikeConstraint *data = (bTransLikeConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
 			}
 			break;
@@ -11497,8 +11602,8 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 				if we are appending, but this object wasnt just added allong with a group,
 				then this is alredy used indirectly in the scene somewhere else and we didnt just append it.
 				
-				(ob->id.flag & LIB_APPEND_TAG)==0 means that this is a newly appended object - Campbell */
-			if (is_group_append==0 || (ob->id.flag & LIB_APPEND_TAG)==0) {
+				(ob->id.flag & LIB_PRE_EXISTING)==0 means that this is a newly appended object - Campbell */
+			if (is_group_append==0 || (ob->id.flag & LIB_PRE_EXISTING)==0) {
 				
 				int do_it= 0;
 				
@@ -11524,6 +11629,36 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, int is
 	}
 }
 
+/* when *lib set, it also does objects that were in the appended group */
+static void give_base_to_groups(Main *mainvar, Scene *scene)
+{
+	Group *group;
+
+	/* give all objects which are LIB_INDIRECT a base, or for a group when *lib has been set */
+	for(group= mainvar->group.first; group; group= group->id.next) {
+		if(((group->id.flag & LIB_INDIRECT)==0 && (group->id.flag & LIB_PRE_EXISTING)==0)) {
+			Base *base;
+
+			/* add_object(...) messes with the selection */
+			Object *ob= add_only_object(OB_EMPTY, group->id.name+2);
+			ob->type= OB_EMPTY;
+			ob->lay= scene->lay;
+
+			/* assign the base */
+			base= scene_add_base(scene, ob);
+			base->flag |= SELECT;
+			base->object->flag= base->flag;
+			ob->recalc |= OB_RECALC;
+			scene->basact= base;
+
+			/* assign the group */
+			ob->dup_group= group;
+			ob->transflag |= OB_DUPLIGROUP;
+			rename_id(&ob->id, group->id.name+2);
+			VECCOPY(ob->loc, scene->cursor);
+		}
+	}
+}
 
 static void append_named_part(const bContext *C, Main *mainl, FileData *fd, char *name, int idcode, short flag)
 {
@@ -11725,7 +11860,11 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 				give_base_to_objects(mainvar, scene, NULL, 0);
 			} else {
 				give_base_to_objects(mainvar, scene, mainl->curlib, 1);
-			}	
+			}
+
+			if (flag & FILE_GROUP_INSTANCE) {
+				give_base_to_groups(mainvar, scene);
+			}
 		} else {
 			give_base_to_objects(mainvar, scene, NULL, 0);
 		}

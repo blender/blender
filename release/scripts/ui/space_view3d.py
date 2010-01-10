@@ -1217,7 +1217,8 @@ class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("TRANSFORM_OT_edge_slide", text="Edge Slide")
+        layout.operator("TRANSFORM_OT_edge_slide")
+        layout.operator("TRANSFORM_OT_edge_crease")
         layout.operator("mesh.loop_multi_select", text="Edge Loop")
 
         # uiItemO(layout, "Loopcut", 0, "mesh.loop_cut"); // CutEdgeloop(em, 1);

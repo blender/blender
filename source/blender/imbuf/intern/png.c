@@ -368,6 +368,7 @@ struct ImBuf *imb_loadpng(unsigned char *mem, int size, int flags)
 
 	if (ibuf) {
 		ibuf->ftype = PNG;
+		ibuf->profile = IB_PROFILE_SRGB;
 	} else {
 		printf("Couldn't allocate memory for PNG image\n");
 	}

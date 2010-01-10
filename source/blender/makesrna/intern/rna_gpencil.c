@@ -199,6 +199,10 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_LOCKED);
 	RNA_def_property_ui_text(prop, "Locked", "Layer is protected from further editing and/or frame changes.");
 	
+	prop= RNA_def_property(srna, "frame_lock", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_FRAMELOCK);
+	RNA_def_property_ui_text(prop, "Frame Locked", "Current frame displayed by layer cannot be changed.");
+	
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_ACTIVE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_GPencilLayer_active_set");
@@ -220,6 +224,13 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
+	static EnumPropertyItem draw_mode_items[] = {
+		{GP_DATA_VIEWALIGN, "CURSOR", 0, "Cursor", ""},
+		{0, "VIEW", 0, "View", ""}, /* weired, GP_DATA_VIEWALIGN is inverted */
+		{GP_DATA_VIEWALIGN|GP_DATA_DEPTH_VIEW, "SURFACE", 0, "Surface", ""},
+		{GP_DATA_VIEWALIGN|GP_DATA_DEPTH_STROKE, "STROKE", 0, "Stroke", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "GreasePencil", "ID");
 	RNA_def_struct_sdna(srna, "bGPdata");
 	RNA_def_struct_ui_text(srna, "Grease Pencil", "Freehand annotation sketchbook.");
@@ -232,9 +243,16 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Layers", "Similar to layers in Photoshop.");
 	
 	/* Flags */
-	prop= RNA_def_property(srna, "view_space_draw", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_DATA_VIEWALIGN);
-	RNA_def_property_ui_text(prop, "Stick to View", "Newly drawn strokes get added in view space (i.e. sketches stick to data when view is manipulated).");
+	prop= RNA_def_property(srna, "draw_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, draw_mode_items);
+	RNA_def_property_ui_text(prop, "Draw Mode", "");
+
+	prop= RNA_def_property(srna, "use_stroke_endpoints", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_DEPTH_STROKE_ENDPOINTS);
+	RNA_def_property_ui_text(prop, "Only Endpoints", "When snapping the stroke to existing lines, only use the first and last parts of the line.");
+
+
 }
 
 /* --- */

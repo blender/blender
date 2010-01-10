@@ -175,12 +175,14 @@ void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
 }
 
 
+/* assume converting from linear float to sRGB byte */
 void IMB_rect_from_float(struct ImBuf *ibuf)
 {
 	/* quick method to convert floatbuf to byte */
 	float *tof = (float *)ibuf->rect_float;
-	float dither= ibuf->dither;
-	float srgb[3];
+	int do_dither = ibuf->dither != 0.f;
+	float dither= ibuf->dither / 255.0;
+	float srgb[4];
 	int i, channels= ibuf->channels;
 	short profile= ibuf->profile;
 	unsigned char *to = (unsigned char *) ibuf->rect;
@@ -195,7 +197,7 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 		for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof++)
 			to[1]= to[2]= to[3]= to[0] = FTOCHAR(tof[0]);
 	}
-	else if (profile == IB_PROFILE_SRGB) {
+	else if (profile == IB_PROFILE_LINEAR_RGB) {
 		if(channels == 3) {
 			for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=3) {
 				srgb[0]= linearrgb_to_srgb(tof[0]);
@@ -209,10 +211,26 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 			}
 		}
 		else if (channels == 4) {
-			floatbuf_to_srgb_byte(tof, to, 0, ibuf->x, 0, ibuf->y, ibuf->x);
+			if (dither != 0.f) {
+				for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=4) {
+					const float d = (BLI_frand()-0.5)*dither;
+					
+					srgb[0]= d + linearrgb_to_srgb(tof[0]);
+					srgb[1]= d + linearrgb_to_srgb(tof[1]);
+					srgb[2]= d + linearrgb_to_srgb(tof[2]);
+					srgb[3]= d + tof[3]; 
+					
+					to[0] = FTOCHAR(srgb[0]);
+					to[1] = FTOCHAR(srgb[1]);
+					to[2] = FTOCHAR(srgb[2]);
+					to[3] = FTOCHAR(srgb[3]);
+				}
+			} else {
+				floatbuf_to_srgb_byte(tof, to, 0, ibuf->x, 0, ibuf->y, ibuf->x);
+			}
 		}
 	}
-	else if(ELEM(profile, IB_PROFILE_NONE, IB_PROFILE_LINEAR_RGB) && dither==0.0f) {
+	else if(ELEM(profile, IB_PROFILE_NONE, IB_PROFILE_SRGB)) {
 		if(channels==3) {
 			for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=3) {
 				to[0] = FTOCHAR(tof[0]);
@@ -222,30 +240,24 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 			}
 		}
 		else {
-			for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=4) {
-				to[0] = FTOCHAR(tof[0]);
-				to[1] = FTOCHAR(tof[1]);
-				to[2] = FTOCHAR(tof[2]);
-				to[3] = FTOCHAR(tof[3]);
+			if (dither != 0.f) {
+				float col[3];		
+				for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=4) {
+					const float d = (BLI_frand()-0.5)*dither;
+					const float col[4] = {d+tof[0], d+tof[1], d+tof[2], d+tof[3]};
+					to[0] = FTOCHAR(col[0]);
+					to[1] = FTOCHAR(col[1]);
+					to[2] = FTOCHAR(col[2]);
+					to[3] = FTOCHAR(col[3]);
+				}
+			} else {
+				for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=4) {
+					to[0] = FTOCHAR(tof[0]);
+					to[1] = FTOCHAR(tof[1]);
+					to[2] = FTOCHAR(tof[2]);
+					to[3] = FTOCHAR(tof[3]);
+				}
 			}
-		}
-	}
-	else {
-		float dither_value, col;
-		dither= dither/255.0f;
-		for (i = ibuf->x * ibuf->y; i > 0; i--) {
-			dither_value = (BLI_frand()-0.5)*dither; 
-			col= tof[0] + dither_value;
-			to[0] = FTOCHAR(col);
-			col= tof[1] + dither_value;
-			to[1] = FTOCHAR(col);
-			col= tof[2] + dither_value;
-			to[2] = FTOCHAR(col);
-			col= tof[3] + dither_value;
-			to[3] = FTOCHAR(col);
-
-			to += 4; 
-			tof += 4;
 		}
 	}
 }
@@ -263,8 +275,11 @@ void IMB_float_from_rect(struct ImBuf *ibuf)
 		tof = ibuf->rect_float;
 	}
 	
-	if (ibuf->profile == IB_PROFILE_SRGB) {
-		/* convert from srgb to linear rgb */
+	/* Float bufs should be stored linear */
+
+	if (ibuf->profile != IB_PROFILE_NONE) {
+		/* if the image has been given a profile then we're working 
+		 * with color management in mind, so convert it to linear space */
 		
 		for (i = ibuf->x * ibuf->y; i > 0; i--) 
 		{

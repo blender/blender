@@ -37,7 +37,7 @@ private:
 	/**
 	 * The specs of the device.
 	 */
-	AUD_Specs m_specs;
+	AUD_DeviceSpecs m_specs;
 
 public:
 	/**
@@ -45,7 +45,7 @@ public:
 	 */
 	AUD_NULLDevice();
 
-	virtual AUD_Specs getSpecs();
+	virtual AUD_DeviceSpecs getSpecs();
 	virtual AUD_Handle* play(AUD_IFactory* factory, bool keep = false);
 	virtual bool pause(AUD_Handle* handle);
 	virtual bool resume(AUD_Handle* handle);

@@ -56,6 +56,10 @@ ifeq ($(OS),windows)
 	endif
 endif
 
+ifeq ($(OS), darwin)
+    LDFLAGS += -arch $(MACOSX_ARCHITECTURE) #-isysroot $(MACOSX_SDK) -mmacosx-version-min=$(MACOSX_MIN_VERS)
+endif
+
 clean::
 	@$(RM) $(DIR)/makesdna* $(DIR)/DNA.c
 	@$(RM) $(DIR)/debug/makesdna* $(DIR)/debug/DNA.c

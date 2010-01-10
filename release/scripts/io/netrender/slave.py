@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import sys, os, platform
+import sys, os, platform, shutil
 import http, http.client, http.server, urllib
 import subprocess, time
 
@@ -44,6 +44,9 @@ else:
 
     def RestoreErrorMode(val):
         pass
+
+def clearSlave(path):
+    shutil.rmtree(path)
 
 def slave_Info():
     sysname, nodename, release, version, machine, processor = platform.uname()
@@ -85,7 +88,7 @@ def testFile(conn, job_id, slave_id, file_index, JOB_PREFIX, file_path, main_pat
 
     return job_full_path
 
-def render_slave(engine, netsettings):
+def render_slave(engine, netsettings, threads):
     timeout = 1
 
     engine.update_stats("", "Network render node initiation")
@@ -103,7 +106,6 @@ def render_slave(engine, netsettings):
             os.mkdir(NODE_PREFIX)
 
         while not engine.test_break():
-
             conn.request("GET", "/job", headers={"slave-id":slave_id})
             response = conn.getresponse()
 
@@ -149,7 +151,7 @@ def render_slave(engine, netsettings):
                         frame_args += ["-f", str(frame.number)]
 
                     val = SetErrorMode()
-                    process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                    process = subprocess.Popen([BLENDER_PATH, "-b", "-noaudio", job_full_path, "-t", str(threads), "-o", JOB_PREFIX + "######", "-E", "BLENDER_RENDER", "-F", "MULTILAYER"] + frame_args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                     RestoreErrorMode(val)
                 elif job.type == netrender.model.JOB_PROCESS:
                     command = job.frames[0].command
@@ -162,8 +164,8 @@ def render_slave(engine, netsettings):
                 cancelled = False
                 stdout = bytes()
                 run_t = time.time()
-                while process.poll() == None and not cancelled:
-                    stdout += process.stdout.read(32)
+                while not cancelled and process.poll() == None:
+                    stdout += process.stdout.read(1024)
                     current_t = time.time()
                     cancelled = engine.test_break()
                     if current_t - run_t > CANCEL_POLL_SPEED:
@@ -211,14 +213,26 @@ def render_slave(engine, netsettings):
                     headers["job-result"] = str(DONE)
                     for frame in job.frames:
                         headers["job-frame"] = str(frame.number)
-
                         if job.type == netrender.model.JOB_BLENDER:
                             # send image back to server
-                            f = open(JOB_PREFIX + "%06d" % frame.number + ".exr", 'rb')
+
+                            filename = JOB_PREFIX + "%06d" % frame.number + ".exr"
+                            
+                            # thumbnail first
+                            if netsettings.slave_thumb:
+                                thumbname = thumbnail(filename)
+                                
+                                f = open(thumbname, 'rb')
+                                conn.request("PUT", "/thumb", f, headers=headers)
+                                f.close()
+                                conn.getresponse()
+
+                            f = open(filename, 'rb')
                             conn.request("PUT", "/render", f, headers=headers)
                             f.close()
                             if conn.getresponse().status == http.client.NO_CONTENT:
                                 continue
+                            
                         elif job.type == netrender.model.JOB_PROCESS:
                             conn.request("PUT", "/render", headers=headers)
                             if conn.getresponse().status == http.client.NO_CONTENT:
@@ -238,10 +252,12 @@ def render_slave(engine, netsettings):
                 for i in range(timeout):
                     time.sleep(1)
                     if engine.test_break():
-                        conn.close()
-                        return
+                        break
 
         conn.close()
+        
+        if netsettings.slave_clear:
+            clearSlave(NODE_PREFIX)
 
 if __name__ == "__main__":
     pass

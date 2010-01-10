@@ -47,7 +47,7 @@ public:
 	 * Creates a new read device.
 	 * \param specs The wanted audio specification.
 	 */
-	AUD_ReadDevice(AUD_Specs specs);
+	AUD_ReadDevice(AUD_DeviceSpecs specs);
 
 	/**
 	 * Closes the device.
@@ -62,7 +62,7 @@ public:
 	 *         played back currently, in that case the buffer is filled with
 	 *         silence.
 	 */
-	bool read(sample_t* buffer, int length);
+	bool read(data_t* buffer, int length);
 };
 
 #endif //AUD_READDEVICE

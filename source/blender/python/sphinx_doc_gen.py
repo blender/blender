@@ -23,10 +23,10 @@ Usage,
 run this script from blenders root path once you have compiled blender
     ./blender.bin -b -P /b/source/blender/python/sphinx_doc_gen.py
 
-This will generate python files in "./source/blender/python/doc/bpy/sphinx-in"
+This will generate python files in "./source/blender/python/doc/sphinx-in"
 Generate html docs  by running...
     
-    sphinx-build source/blender/python/doc/bpy/sphinx-in source/blender/python/doc/bpy/sphinx-out
+    sphinx-build source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out
 '''
 
 # if you dont have graphvis installed ommit the --graph arg.
@@ -115,7 +115,7 @@ def rna2sphinx(BASEPATH):
         #if not struct.identifier.startswith("Sc") and not struct.identifier.startswith("I"):
         #    return
 
-        #if not struct.identifier.startswith("Bone"):
+        #if not struct.identifier == "Object":
         #    return
 
         filepath = os.path.join(BASEPATH, "bpy.types.%s.rst" % struct.identifier)
@@ -182,8 +182,17 @@ def rna2sphinx(BASEPATH):
             for prop in func.args:
                 write_param("      ", fw, prop)
 
-            if func.return_value:
-                write_param("      ", fw, func.return_value, is_return=True)
+            if len(func.return_values) == 1:
+                write_param("      ", fw, func.return_values[0], is_return=True)
+            else: # multiple return values
+                fw("         :return (%s):\n" % ", ".join([prop.identifier for prop in func.return_values]))
+                for prop in func.return_values:
+                    type_descr = prop.get_type_description(as_arg=True, class_fmt=":class:`%s`")
+                    descr = prop.description
+                    if not descr:
+                        descr = prop.name
+                    fw("            `%s`, %s, %s\n\n" % (prop.identifier, descr, type_descr))
+
             fw("\n")
 
 
@@ -265,9 +274,9 @@ if __name__ == '__main__':
         print("\nError, this script must run from inside blender2.5")
         print(script_help_msg)
     else:
-        # os.system("rm source/blender/python/doc/bpy/sphinx-in/*.rst")
-        # os.system("rm -rf source/blender/python/doc/bpy/sphinx-out/*")
-        rna2sphinx('source/blender/python/doc/bpy/sphinx-in')
+        # os.system("rm source/blender/python/doc/sphinx-in/*.rst")
+        # os.system("rm -rf source/blender/python/doc/sphinx-out/*")
+        rna2sphinx('source/blender/python/doc/sphinx-in')
 
     import sys
     sys.exit()

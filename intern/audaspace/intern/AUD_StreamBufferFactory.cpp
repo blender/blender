@@ -61,9 +61,9 @@ AUD_StreamBufferFactory::AUD_StreamBufferFactory(AUD_IFactory* factory)
 		// read more
 		length = size-index;
 		reader->read(length, buffer);
-		memcpy(m_buffer.get()->getBuffer()+index*sample_size,
+		memcpy(m_buffer.get()->getBuffer() + index * m_specs.channels,
 			   buffer,
-			   length*sample_size);
+			   length * sample_size);
 		size += AUD_BUFFER_RESIZE_BYTES / sample_size;
 		index += length;
 	}

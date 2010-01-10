@@ -750,38 +750,6 @@ void CONSOLE_OT_paste(wmOperatorType *ot)
 	/* properties */
 }
 
-static int zoom_exec(bContext *C, wmOperator *op)
-{
-	SpaceConsole *sc= CTX_wm_space_console(C);
-	
-	int delta= RNA_int_get(op->ptr, "delta");
-	
-	sc->lheight += delta;
-	CLAMP(sc->lheight, 8, 32);
-	
-	ED_area_tag_redraw(CTX_wm_area(C));
-	
-	return OPERATOR_FINISHED;
-}
-
-
-void CONSOLE_OT_zoom(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Console Zoom";
-    /*optionals - 
-      "Zoom view font." */
-    ot->description= "Zoom screen area.";
-	ot->idname= "CONSOLE_OT_zoom";
-	
-	/* api callbacks */
-	ot->exec= zoom_exec;
-	ot->poll= console_poll;
-	
-	/* properties */
-	RNA_def_int(ot->srna, "delta", 0, 0, INT_MAX, "Delta", "Scale the view font.", 0, 1000);
-}
-
 typedef struct SetConsoleCursor {
 	int sel_old[2];
 	int sel_init;
@@ -824,7 +792,7 @@ static void console_modal_select_apply(bContext *C, wmOperator *op, wmEvent *eve
 
 static void set_cursor_exit(bContext *C, wmOperator *op)
 {
-	SpaceConsole *sc= CTX_wm_space_console(C);
+//	SpaceConsole *sc= CTX_wm_space_console(C);
 	SetConsoleCursor *scu= op->customdata;
 
 	/*
@@ -840,7 +808,7 @@ static void set_cursor_exit(bContext *C, wmOperator *op)
 static int console_modal_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceConsole *sc= CTX_wm_space_console(C);
-	ARegion *ar= CTX_wm_region(C);
+//	ARegion *ar= CTX_wm_region(C);
 	SetConsoleCursor *scu;
 
 	op->customdata= MEM_callocN(sizeof(SetConsoleCursor), "SetConsoleCursor");
@@ -891,5 +859,5 @@ void CONSOLE_OT_select_set(wmOperatorType *ot)
 	ot->invoke= console_modal_select_invoke;
 	ot->modal= console_modal_select;
 	ot->cancel= console_modal_select_cancel;
-	ot->poll= console_poll;
+	ot->poll= console_edit_poll;
 }

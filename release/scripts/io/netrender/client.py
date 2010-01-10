@@ -197,11 +197,11 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
         address = "" if netsettings.server_address == "[default]" else netsettings.server_address
 
-        master.runMaster((address, netsettings.server_port), netsettings.server_broadcast, netsettings.path, self.update_stats, self.test_break)
+        master.runMaster((address, netsettings.server_port), netsettings.master_broadcast, netsettings.master_clear, netsettings.path, self.update_stats, self.test_break)
 
 
     def render_slave(self, scene):
-        slave.render_slave(self, scene.network_render)
+        slave.render_slave(self, scene.network_render, scene.render_data.threads)
 
     def render_client(self, scene):
         netsettings = scene.network_render
@@ -276,6 +276,6 @@ def compatible(module):
         except:	pass
     del module
 
-compatible("properties_render")
+#compatible("properties_render")
 compatible("properties_world")
 compatible("properties_material")

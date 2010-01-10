@@ -302,6 +302,8 @@ static BVHNode *bvh_medianof3(BVHNode **a, int lo, int mid, int hi, int axis) //
 			return a[mid];
 	}
 }
+
+#if 0
 /*
 * Quicksort algorithm modified for Introsort
 */
@@ -332,7 +334,7 @@ static void sort(BVHNode **a0, int begin, int end, int axis)
 		bvh_insertionsort(a, begin, end, axis);
 	}
 }
-#if 0
+
 static void sort_along_axis(BVHTree *tree, int start, int end, int axis)
 {
 	sort(tree->nodes, start, end, axis);

@@ -387,6 +387,7 @@ struct ImBuf *imb_loadanim(int *iffmem, int flags)
 	if (ibuf==0) return (0);
 
 	ibuf->ftype = (Anim | adat.type);
+	ibuf->profile = IB_PROFILE_SRGB;
 	ibuf->xorig = adat.xorig;
 	ibuf->yorig = adat.yorig;
 	ibuf->flags = flags;

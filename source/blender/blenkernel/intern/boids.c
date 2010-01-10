@@ -557,8 +557,8 @@ static int rule_average_speed(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 		add_v3_v3v3(bbd->wanted_co, bbd->wanted_co, vec);
 
 		/* leveling */
-		if(asbr->level > 0.0f) {
-			project_v3_v3v3(vec, bbd->wanted_co, bbd->sim->psys->part->acc);
+		if(asbr->level > 0.0f && psys_uses_gravity(bbd->sim)) {
+			project_v3_v3v3(vec, bbd->wanted_co, bbd->sim->scene->physics_settings.gravity);
 			mul_v3_fl(vec, asbr->level);
 			sub_v3_v3v3(bbd->wanted_co, bbd->wanted_co, vec);
 		}
@@ -574,8 +574,8 @@ static int rule_average_speed(BoidRule *rule, BoidBrainData *bbd, BoidValues *va
 		}
 		
 		/* leveling */
-		if(asbr->level > 0.0f) {
-			project_v3_v3v3(vec, bbd->wanted_co, bbd->sim->psys->part->acc);
+		if(asbr->level > 0.0f && psys_uses_gravity(bbd->sim)) {
+			project_v3_v3v3(vec, bbd->wanted_co, bbd->sim->scene->physics_settings.gravity);
 			mul_v3_fl(vec, asbr->level);
 			sub_v3_v3v3(bbd->wanted_co, bbd->wanted_co, vec);
 		}
@@ -1002,8 +1002,8 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 				if(dot_v2v2(cvel, dir) > 0.95f / mul || len <= state->rule_fuzziness) {
 					/* try to reach goal at highest point of the parabolic path */
 					cur_v = len_v2(pa->prev_state.vel);
-					z_v = sasqrt(-2.0f * bbd->part->acc[2] * bbd->wanted_co[2]);
-					ground_v = len_v2(bbd->wanted_co)*sasqrt(-0.5f * bbd->part->acc[2] / bbd->wanted_co[2]);
+					z_v = sasqrt(-2.0f * bbd->sim->scene->physics_settings.gravity[2] * bbd->wanted_co[2]);
+					ground_v = len_v2(bbd->wanted_co)*sasqrt(-0.5f * bbd->sim->scene->physics_settings.gravity[2] / bbd->wanted_co[2]);
 
 					len = sasqrt((ground_v-cur_v)*(ground_v-cur_v) + z_v*z_v);
 
@@ -1061,12 +1061,12 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		pa_mass*=pa->size;
 
 	/* if boids can't fly they fall to the ground */
-	if((boids->options & BOID_ALLOW_FLIGHT)==0 && ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing)==0 && bbd->part->acc[2] != 0.0f)
+	if((boids->options & BOID_ALLOW_FLIGHT)==0 && ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing)==0 && psys_uses_gravity(bbd->sim))
 		bpa->data.mode = eBoidMode_Falling;
 
 	if(bpa->data.mode == eBoidMode_Falling) {
 		/* Falling boids are only effected by gravity. */
-		acc[2] = bbd->part->acc[2];
+		acc[2] = bbd->sim->scene->physics_settings.gravity[2];
 	}
 	else {
 		/* figure out acceleration */
@@ -1221,7 +1221,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	switch(bpa->data.mode) {
 		case eBoidMode_InAir:
 		{
-			float grav[3] = {0.0f, 0.0f, bbd->part->acc[2] < 0.0f ? -1.0f : 0.0f};
+			float grav[3] = {0.0f, 0.0f, bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f};
 
 			/* don't take forward acceleration into account (better banking) */
 			if(dot_v3v3(bpa->data.acc, pa->state.vel) > 0.0f) {
@@ -1253,7 +1253,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 		}
 		case eBoidMode_Falling:
 		{
-			float grav[3] = {0.0f, 0.0f, bbd->part->acc[2] < 0.0f ? -1.0f : 0.0f};
+			float grav[3] = {0.0f, 0.0f, bbd->sim->scene->physics_settings.gravity[2] < 0.0f ? -1.0f : 0.0f};
 
 			/* gather apparent gravity */
 			VECADDFAC(bpa->gravity, bpa->gravity, grav, dtime);

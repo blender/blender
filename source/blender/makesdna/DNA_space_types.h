@@ -657,6 +657,7 @@ enum FileSortTypeE {
 #define FILE_SYNCPOSE		128
 #define FILE_FILTER			256
 #define FILE_BOOKMARKS		512
+#define FILE_GROUP_INSTANCE	1024
 
 /* files in filesel list: 2=ACTIVE  */
 #define EDITING				1

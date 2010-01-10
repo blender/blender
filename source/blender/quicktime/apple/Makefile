@@ -31,6 +31,12 @@
 LIBNAME = blenderqt
 DIR = $(OCGDIR)/blender/$(LIBNAME)
 
+ifeq ($(OS), $(findstring $(OS), "darwin"))
+    ifeq ($(USE_QTKIT),true)
+        OCSRCS += $(wildcard *.m)
+    endif
+endif
+
 include nan_compile.mk
 
 CFLAGS += $(LEVEL1_C_WARNINGS)

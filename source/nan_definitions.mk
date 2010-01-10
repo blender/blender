@@ -24,7 +24,7 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): GSR
+# Contributor(s): GSR, Stefan Gartner
 #
 # ***** END GPL LICENSE BLOCK *****
 #
@@ -108,7 +108,11 @@ ifndef CONFIG_GUESS
       export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libavdevice.a
     else
       export NAN_FFMPEG ?= $(LCGDIR)/ffmpeg
-      export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a
+      ifeq ($(OS), darwin)
+        export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a $(NAN_FFMPEG)/lib/libmp3lame.a $(NAN_FFMPEG)/lib/libx264.a $(NAN_FFMPEG)/lib/libxvidcore.a
+      else
+        export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a
+      endif
     endif
     export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include -I$(NANBLENDERHOME)/extern/ffmpeg
 
@@ -146,14 +150,53 @@ ifndef CONFIG_GUESS
     export NAN_FFMPEGCFLAGS = $(shell pkg-config --cflags libavcodec libavdevice libavformat libswscale libavutil)
   endif
 
-    # Compare recreated .mo files with committed ones
-    export BF_VERIFY_MO_FILES ?= true
+  ifeq ($(WITH_OPENCOLLADA), true)
+    export BF_OPENCOLLADA ?= $(LCGDIR)/opencollada
+    export BF_OPENCOLLADA_INC ?= $(BF_OPENCOLLADA)/include
+    export BF_OPENCOLLADA_LIBS ?= $(BF_OPENCOLLADA)/lib/libOpenCOLLADASaxFrameworkLoader.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADAFramework.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADABaseUtils.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADAStreamWriter.a $(BF_OPENCOLLADA)/lib/libMathMLSolver.a $(BF_OPENCOLLADA)/lib/libGeneratedSaxParser.a $(BF_OPENCOLLADA)/lib/libUTF.a -lxml2
+    export BF_PCRE ?= $(LCGDIR)/pcre
+    export BF_PCRE_LIBS ?= $(NAN_PCRE)/lib/libpcre.a
+  endif
+
+
+  # Compare recreated .mo files with committed ones
+  export BF_VERIFY_MO_FILES ?= true
 
   # Platform Dependent settings go below:
   ifeq ($(OS),darwin)
 
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
+
+    # set target arch & os version
+    # architecture defaults to host arch, can be ppc, ppc64, i386, x86_64
+    ifeq ($(CPU),powerpc)
+        export MACOSX_ARCHITECTURE ?= ppc
+    else
+        export MACOSX_ARCHITECTURE ?= i386
+    endif
+    # target os version defaults to 10.4 for ppc & i386 (32 bit), 10.5 for ppc64, x86_64
+    ifeq (64,$(findstring 64, $(MACOSX_ARCHITECTURE)))
+        export MACOSX_MIN_VERS ?= 10.5
+        export MACOSX_DEPLOYMENT_TARGET ?= 10.5
+        export MACOSX_SDK ?= /Developer/SDKs/MacOSX10.5.sdk
+    else
+        export MACOSX_MIN_VERS ?= 10.4
+        export MACOSX_DEPLOYMENT_TARGET ?= 10.4
+        export MACOSX_SDK ?= /Developer/SDKs/MacOSX10.4u.sdk
+    endif
+
+    # useful for crosscompiling
+    ifeq ($(MACOSX_ARCHITECTURE),$(findstring $(MACOSX_ARCHITECTURE), "ppc ppc64"))
+        export CPU = powerpc
+        export LCGDIR = $(NAN_LIBDIR)/$(OS)-$(OS_VERSION)-$(CPU)
+        export OCGDIR = $(NAN_OBJDIR)/$(OS)-$(OS_VERSION)-$(CPU)
+    endif
+    ifeq ($(MACOSX_ARCHITECTURE),$(findstring $(MACOSX_ARCHITECTURE),"i386 x86_64"))
+        export CPU = i386
+        export LCGDIR = $(NAN_LIBDIR)/$(OS)-$(OS_VERSION)-$(CPU)
+        export OCGDIR = $(NAN_OBJDIR)/$(OS)-$(OS_VERSION)-$(CPU)
+    endif
 
     export NAN_PYTHON_VERSION = 3.1
 
@@ -199,9 +242,9 @@ ifndef CONFIG_GUESS
 
     export NAN_NO_KETSJI=false
 
-    ifeq ($(CPU), i386)
-      export WITH_OPENAL=false
-    endif
+    #ifeq ($(CPU), i386)
+    #  export WITH_OPENAL=false
+    #endif
 
     # Location of MOZILLA/Netscape header files...
     export NAN_MOZILLA_INC ?= $(LCGDIR)/mozilla/include
@@ -221,6 +264,17 @@ ifndef CONFIG_GUESS
 
     export NAN_SAMPLERATE ?= $(LCGDIR)/samplerate
     export NAN_SAMPLERATE_LIBS ?= $(NAN_SAMPLERATE)/lib/libsamplerate.a 
+
+    # enable building with Cocoa
+    export WITH_COCOA ?= true
+    export USE_QTKIT ?= false
+    # use cocoa and qtkit for 64bit builds
+    ifeq (64, $(findstring 64, $(MACOSX_ARCHITECTURE)))
+        export WITH_COCOA = true
+        export USE_QTKIT = true
+    endif
+
+    export NAN_PCRE = $(LCGDIR)/opencollada
 
   else
   ifeq ($(OS),freebsd)

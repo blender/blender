@@ -919,6 +919,11 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->flag |= T_MODAL;
 	}
 
+	/* Crease needs edge flag */
+	if (t->mode == TFM_CREASE) {
+		t->options |= CTX_EDGE;
+	}
+
 	t->spacetype = sa->spacetype;
 	if(t->spacetype == SPACE_VIEW3D)
 	{

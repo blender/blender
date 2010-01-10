@@ -236,16 +236,54 @@ void curvemap_insert(CurveMap *cuma, float x, float y)
 	cuma->curve= cmp;
 }
 
-void curvemap_reset(CurveMap *cuma, rctf *clipr)
+void curvemap_reset(CurveMap *cuma, rctf *clipr, CurveMappingPreset preset)
 {
-	cuma->totpoint= 2;
-	
-	cuma->curve[0].x= clipr->xmin;
-	cuma->curve[0].y= clipr->ymin;
-	cuma->curve[0].flag= 0;
-	cuma->curve[1].x= clipr->xmax;
-	cuma->curve[1].y= clipr->ymax;
-	cuma->curve[1].flag= 0;
+	if(cuma->curve)
+		MEM_freeN(cuma->curve);
+
+	switch(preset) {
+		case CURVE_PRESET_LINE: cuma->totpoint= 2; break;
+		case CURVE_PRESET_SHARP: cuma->totpoint= 3; break;
+		case CURVE_PRESET_SMOOTH: cuma->totpoint= 4; break;
+		case CURVE_PRESET_MAX: cuma->totpoint= 2; break;
+	}
+
+	cuma->curve= MEM_callocN(cuma->totpoint*sizeof(CurveMapPoint), "curve points");
+
+	switch(preset) {
+		case CURVE_PRESET_LINE:
+			cuma->curve[0].x= clipr->xmin;
+			cuma->curve[0].y= clipr->ymin;
+			cuma->curve[0].flag= 0;
+			cuma->curve[1].x= clipr->xmax;
+			cuma->curve[1].y= clipr->ymax;
+			cuma->curve[1].flag= 0;
+			break;
+		case CURVE_PRESET_SHARP:
+			cuma->curve[0].x= 0;
+			cuma->curve[0].y= 1;
+			cuma->curve[1].x= 0.33;
+			cuma->curve[1].y= 0.33;
+			cuma->curve[2].x= 1;
+			cuma->curve[2].y= 0;
+			break;
+		case CURVE_PRESET_SMOOTH:
+			cuma->curve[0].x= 0;
+			cuma->curve[0].y= 1;
+			cuma->curve[1].x= 0.25;
+			cuma->curve[1].y= 0.92;
+			cuma->curve[2].x= 0.75;
+			cuma->curve[2].y= 0.08;
+			cuma->curve[3].x= 1;
+			cuma->curve[3].y= 0;
+			break;
+		case CURVE_PRESET_MAX:
+			cuma->curve[0].x= 0;
+			cuma->curve[0].y= 1;
+			cuma->curve[1].x= 1;
+			cuma->curve[1].y= 1;
+			break;
+	}
 	
 	if(cuma->table) {
 		MEM_freeN(cuma->table);
@@ -725,10 +763,16 @@ void colorcorrection_do_ibuf(ImBuf *ibuf, const char *profile)
 	}
 }
 
-
+/* only used for image editor curves */
 void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 {
+	ImBuf *tmpbuf;
 	int pixel;
+	char *tmpcbuf;
+	float *pix_in;
+	float col[3];
+	int stride= 4;
+	float *pix_out;
 	
 	if(ibuf==NULL)
 		return;
@@ -737,34 +781,44 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	else if(ibuf->rect==NULL)
 		imb_addrectImBuf(ibuf);
 	
+	if (!ibuf->rect || !ibuf->rect_float)
+		return;
+	
+	/* work on a temp buffer, so can color manage afterwards.
+	 * No worse off memory wise than comp nodes */
+	tmpbuf = IMB_dupImBuf(ibuf);
+	
 	curvemapping_premultiply(cumap, 0);
 	
-	if(ibuf->rect_float && ibuf->rect) {
-		float *pixf= ibuf->rect_float;
-		float col[3];
-		int stride= 4;
-		char *pixc= (char *)ibuf->rect;
-		
-		if(ibuf->channels)
-			stride= ibuf->channels;
-		
-		for(pixel= ibuf->x*ibuf->y; pixel>0; pixel--, pixf+=stride, pixc+=4) {
-			if(stride<3) {
-				col[0]= curvemap_evaluateF(cumap->cm, *pixf);
-				pixc[1]= pixc[2]= pixc[3]= pixc[0]= FTOCHAR(col[0]);
-			}
-			else {
-				curvemapping_evaluate_premulRGBF(cumap, col, pixf);
-				pixc[0]= FTOCHAR(col[0]);
-				pixc[1]= FTOCHAR(col[1]);
-				pixc[2]= FTOCHAR(col[2]);
-				if(stride>3)
-					pixc[3]= FTOCHAR(pixf[3]);
-				else
-					pixc[3]= 255;
-			}
+	pix_in= ibuf->rect_float;
+	pix_out= tmpbuf->rect_float;
+//	pixc= (char *)ibuf->rect;
+	
+	if(ibuf->channels)
+		stride= ibuf->channels;
+	
+	for(pixel= ibuf->x*ibuf->y; pixel>0; pixel--, pix_in+=stride, pix_out+=4) {
+		if(stride<3) {
+			col[0]= curvemap_evaluateF(cumap->cm, *pix_in);
+			
+			pix_out[1]= pix_out[2]= pix_out[3]= pix_out[0]= col[0];
+		}
+		else {
+			curvemapping_evaluate_premulRGBF(cumap, col, pix_in);
+			pix_out[0]= col[0];
+			pix_out[1]= col[1];
+			pix_out[2]= col[2];
+			if(stride>3)
+				pix_out[3]= pix_in[3];
+			else
+				pix_out[3]= 1.f;
 		}
 	}
+	
+	IMB_rect_from_float(tmpbuf);
+	SWAP(char *, tmpbuf->rect, ibuf->rect);
+	IMB_freeImBuf(tmpbuf);
+	
 	
 	curvemapping_premultiply(cumap, 1);
 }

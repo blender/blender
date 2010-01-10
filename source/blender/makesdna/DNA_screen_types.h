@@ -212,14 +212,16 @@ typedef struct ARegion {
 #define SCREEN_HANDLER_VERSE	3
 
 /* regiontype, first two are the default set */
-#define RGN_TYPE_WINDOW		0
-#define RGN_TYPE_HEADER		1
-#define RGN_TYPE_CHANNELS	2
-#define RGN_TYPE_TEMPORARY	3
-#define RGN_TYPE_UI			4
-#define RGN_TYPE_TOOLS		5
-#define RGN_TYPE_TOOL_PROPS	6
-#define RGN_TYPE_PREVIEW	7
+enum {
+	RGN_TYPE_WINDOW = 0,
+	RGN_TYPE_HEADER,
+	RGN_TYPE_CHANNELS,
+	RGN_TYPE_TEMPORARY,
+	RGN_TYPE_UI,
+	RGN_TYPE_TOOLS,
+	RGN_TYPE_TOOL_PROPS,
+	RGN_TYPE_PREVIEW
+};
 
 /* region alignment */
 #define RGN_ALIGN_NONE		0

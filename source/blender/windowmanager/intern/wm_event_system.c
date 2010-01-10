@@ -391,6 +391,8 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 			wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
 			wmOperator *opm= wm_operator_create(wm, otm, otmacro->ptr, NULL);
 			
+			IDP_ReplaceGroupInGroup(opm->properties, motherop->properties);
+
 			BLI_addtail(&motherop->macro, opm);
 			opm->opm= motherop; /* pointer to mom, for modal() */
 		}

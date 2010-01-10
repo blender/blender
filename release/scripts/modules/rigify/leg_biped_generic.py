@@ -271,7 +271,7 @@ def ik(obj, bone_definition, base_names, options):
 
     bpy.ops.object.mode_set(mode='EDIT')
 
-    return None, ik_chain.thigh, ik_chain.shin, ik_chain.foot, ik_chain.toe, None
+    return (None, ik_chain.thigh, ik_chain.shin, ik_chain.foot, ik_chain.toe, None, ik.foot)
 
 
 def fk(obj, bone_definition, base_names, options):
@@ -336,12 +336,12 @@ def fk(obj, bone_definition, base_names, options):
 
     fcurve = con.driver_add("influence", 0)
     driver = fcurve.driver
-    tar = driver.targets.new()
+    var = driver.variables.new()
     driver.type = 'AVERAGE'
-    tar.name = "var"
-    tar.id_type = 'OBJECT'
-    tar.id = obj
-    tar.data_path = hinge_driver_path
+    var.name = "var"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = hinge_driver_path
 
     mod = fcurve.modifiers[0]
     mod.poly_order = 1
@@ -363,12 +363,112 @@ def fk(obj, bone_definition, base_names, options):
     bpy.ops.object.mode_set(mode='EDIT')
 
     # dont blend the hips or heel
-    return None, fk_chain.thigh, fk_chain.shin, fk_chain.foot, fk_chain.toe, None
+    return (None, fk_chain.thigh, fk_chain.shin, fk_chain.foot, fk_chain.toe, None, None)
+
+
+def deform(obj, definitions, base_names, options):
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    # Create upper leg bones: two bones, each half of the upper leg.
+    uleg1 = copy_bone_simple(obj.data, definitions[1], "DEF-%s.01" % base_names[definitions[1]], parent=True)
+    uleg2 = copy_bone_simple(obj.data, definitions[1], "DEF-%s.02" % base_names[definitions[1]], parent=True)
+    uleg1.connected = False
+    uleg2.connected = False
+    uleg2.parent = uleg1
+    center = uleg1.center
+    uleg1.tail = center
+    uleg2.head = center
+    
+    # Create lower leg bones: two bones, each half of the lower leg.
+    lleg1 = copy_bone_simple(obj.data, definitions[2], "DEF-%s.01" % base_names[definitions[2]], parent=True)
+    lleg2 = copy_bone_simple(obj.data, definitions[2], "DEF-%s.02" % base_names[definitions[2]], parent=True)
+    lleg1.connected = False
+    lleg2.connected = False
+    lleg2.parent = lleg1
+    center = lleg1.center
+    lleg1.tail = center
+    lleg2.head = center
+    
+    # Create a bone for the second lower leg deform bone to twist with
+    twist = copy_bone_simple(obj.data, lleg2.name, "MCH-leg_twist")
+    twist.length /= 4
+    twist.connected = False
+    twist.parent = obj.data.edit_bones[definitions[3]]
+    
+    # Create foot bone
+    foot = copy_bone_simple(obj.data, definitions[3], "DEF-%s" % base_names[definitions[3]], parent=True)
+    
+    # Create toe bone
+    toe = copy_bone_simple(obj.data, definitions[4], "DEF-%s" % base_names[definitions[4]], parent=True)
+    
+    # Store names before leaving edit mode
+    uleg1_name = uleg1.name
+    uleg2_name = uleg2.name
+    lleg1_name = lleg1.name
+    lleg2_name = lleg2.name
+    twist_name = twist.name
+    foot_name = foot.name
+    toe_name = toe.name
+    
+    # Leave edit mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # Get the pose bones
+    uleg1 = obj.pose.bones[uleg1_name]
+    uleg2 = obj.pose.bones[uleg2_name]
+    lleg1 = obj.pose.bones[lleg1_name]
+    lleg2 = obj.pose.bones[lleg2_name]
+    foot = obj.pose.bones[foot_name]
+    toe = obj.pose.bones[toe_name]
+    
+    # Upper leg constraints
+    con = uleg1.constraints.new('DAMPED_TRACK')
+    con.name = "trackto"
+    con.target = obj
+    con.subtarget = definitions[2]
+    
+    con = uleg2.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[1]
+    
+    # Lower leg constraints
+    con = lleg1.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[2]
+    
+    con = lleg2.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = twist_name
+    
+    con = lleg2.constraints.new('DAMPED_TRACK')
+    con.name = "trackto"
+    con.target = obj
+    con.subtarget = definitions[3]
+    
+    # Foot constraint
+    con = foot.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[3]
+    
+    # Toe constraint
+    con = toe.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[4]
+    
+    bpy.ops.object.mode_set(mode='EDIT')
+    return (uleg1_name, uleg2_name, lleg1_name, lleg2_name, foot_name, toe_name, None)
 
 
 def main(obj, bone_definition, base_names, options):
     bones_fk = fk(obj, bone_definition, base_names, options)
     bones_ik = ik(obj, bone_definition, base_names, options)
+    deform(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    blend_bone_list(obj, bone_definition, bones_fk, bones_ik, target_bone=bones_ik[1], blend_default=0.0)
+    blend_bone_list(obj, bone_definition + [None], bones_fk, bones_ik, target_bone=bones_ik[6], target_prop="ik", blend_default=0.0)
+    

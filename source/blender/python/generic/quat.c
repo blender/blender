@@ -739,7 +739,7 @@ static PyGetSetDef Quaternion_getseters[] = {
 	 (getter)BaseMathObject_getWrapped, (setter)NULL,
 	 "True when this wraps blenders internal data",
 	 NULL},
-	{"__owner__",
+	{"_owner",
 	 (getter)BaseMathObject_getOwner, (setter)NULL,
 	 "Read only owner for vectors that depend on another object",
 	 NULL},

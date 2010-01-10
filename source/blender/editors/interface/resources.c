@@ -782,6 +782,26 @@ void UI_GetThemeColor3fv(int colorid, float *col)
 	col[2]= ((float)cp[2])/255.0;
 }
 
+// get the color, range 0.0-1.0, complete with shading offset
+void UI_GetThemeColorShade3fv(int colorid, int offset, float *col)
+{
+	int r, g, b;
+	char *cp;
+	
+	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	
+	r= offset + (int) cp[0];
+	CLAMP(r, 0, 255);
+	g= offset + (int) cp[1];
+	CLAMP(g, 0, 255);
+	b= offset + (int) cp[2];
+	CLAMP(b, 0, 255);
+	
+	col[0]= ((float)r)/255.0;
+	col[1]= ((float)g)/255.0;
+	col[2]= ((float)b)/255.0;
+}
+
 // get the color, in char pointer
 void UI_GetThemeColor3ubv(int colorid, char *col)
 {

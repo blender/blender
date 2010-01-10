@@ -1072,6 +1072,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\object\object_bake.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\object\object_constraint.c"
 				>
 			</File>

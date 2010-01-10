@@ -254,11 +254,11 @@ def fk(obj, definitions, base_names, options):
         driver = driver_fcurve.driver
         driver.type = 'AVERAGE'
 
-        tar = driver.targets.new()
-        tar.name = "hinge"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = controller_path + '["hinge"]'
+        var = driver.variables.new()
+        var.name = "hinge"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = controller_path + '["hinge"]'
 
         mod = driver_fcurve.modifiers[0]
         mod.poly_order = 1
@@ -283,9 +283,99 @@ def fk(obj, definitions, base_names, options):
     return None, fk_chain.arm, fk_chain.forearm, fk_chain.hand
 
 
+def deform(obj, definitions, base_names, options):
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    # Create upper arm bones: two bones, each half of the upper arm.
+    uarm1 = copy_bone_simple(obj.data, definitions[1], "DEF-%s.01" % base_names[definitions[1]], parent=True)
+    uarm2 = copy_bone_simple(obj.data, definitions[1], "DEF-%s.02" % base_names[definitions[1]], parent=True)
+    uarm1.connected = False
+    uarm2.connected = False
+    uarm2.parent = uarm1
+    center = uarm1.center
+    uarm1.tail = center
+    uarm2.head = center
+    
+    # Create forearm bones: two bones, each half of the forearm.
+    farm1 = copy_bone_simple(obj.data, definitions[2], "DEF-%s.01" % base_names[definitions[2]], parent=True)
+    farm2 = copy_bone_simple(obj.data, definitions[2], "DEF-%s.02" % base_names[definitions[2]], parent=True)
+    farm1.connected = False
+    farm2.connected = False
+    farm2.parent = farm1
+    center = farm1.center
+    farm1.tail = center
+    farm2.head = center
+    
+    # Create twist bone
+    twist = copy_bone_simple(obj.data, definitions[2], "MCH-arm_twist")
+    twist.connected = False
+    twist.parent = obj.data.edit_bones[definitions[3]]
+    twist.length /= 2
+    
+    # Create hand bone
+    hand = copy_bone_simple(obj.data, definitions[3], "DEF-%s" % base_names[definitions[3]], parent=True)
+    
+    # Store names before leaving edit mode
+    uarm1_name = uarm1.name
+    uarm2_name = uarm2.name
+    farm1_name = farm1.name
+    farm2_name = farm2.name
+    twist_name = twist.name
+    hand_name = hand.name
+    
+    # Leave edit mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # Get the pose bones
+    uarm1 = obj.pose.bones[uarm1_name]
+    uarm2 = obj.pose.bones[uarm2_name]
+    farm1 = obj.pose.bones[farm1_name]
+    farm2 = obj.pose.bones[farm2_name]
+    twist = obj.pose.bones[twist_name]
+    hand = obj.pose.bones[hand_name]
+    
+    # Upper arm constraints
+    con = uarm1.constraints.new('DAMPED_TRACK')
+    con.name = "trackto"
+    con.target = obj
+    con.subtarget = definitions[2]
+    
+    con = uarm2.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[1]
+    
+    # Forearm constraints
+    con = farm1.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[2]
+    
+    con = farm2.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = twist.name
+    
+    con = farm2.constraints.new('DAMPED_TRACK')
+    con.name = "trackto"
+    con.target = obj
+    con.subtarget = definitions[3]
+    
+    # Hand constraint
+    con = hand.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[3]
+    
+    bpy.ops.object.mode_set(mode='EDIT')
+    return (uarm1_name, uarm2_name, farm1_name, farm2_name, hand_name)
+
+
 def main(obj, bone_definition, base_names, options):
     bones_fk = fk(obj, bone_definition, base_names, options)
     bones_ik = ik(obj, bone_definition, base_names, options)
+    bones_deform = deform(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    blend_bone_list(obj, bone_definition, bones_fk, bones_ik, target_bone=bones_fk[1], blend_default=1.0)
+    blend_bone_list(obj, bone_definition, bones_fk, bones_ik, target_bone=bones_ik[3], target_prop="ik", blend_default=0.0)
+    

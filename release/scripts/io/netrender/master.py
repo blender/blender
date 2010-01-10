@@ -19,6 +19,7 @@
 import sys, os
 import http, http.client, http.server, urllib, socket
 import subprocess, shutil, time, hashlib
+import select # for select.error
 
 from netrender.utils import *
 import netrender.model
@@ -105,6 +106,17 @@ class MRenderJob(netrender.model.RenderJob):
                 break
         else:
             self.status = JOB_FINISHED
+            
+    def pause(self, status = None):
+        if self.status not in {JOB_PAUSED, JOB_QUEUED}:
+            return 
+        
+        if status == None:
+            self.status = JOB_PAUSED if self.status == JOB_QUEUED else JOB_QUEUED
+        elif status:
+            self.status = JOB_QUEUED
+        else:
+            self.status = JOB_PAUSED
 
     def start(self):
         self.status = JOB_QUEUED
@@ -163,9 +175,11 @@ class MRenderFrame(netrender.model.RenderFrame):
 # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 file_pattern = re.compile("/file_([a-zA-Z0-9]+)_([0-9]+)")
 render_pattern = re.compile("/render_([a-zA-Z0-9]+)_([0-9]+).exr")
+thumb_pattern = re.compile("/thumb_([a-zA-Z0-9]+)_([0-9]+).jpg")
 log_pattern = re.compile("/log_([a-zA-Z0-9]+)_([0-9]+).log")
 reset_pattern = re.compile("/reset(all|)_([a-zA-Z0-9]+)_([0-9]+)")
 cancel_pattern = re.compile("/cancel_([a-zA-Z0-9]+)")
+pause_pattern = re.compile("/pause_([a-zA-Z0-9]+)")
 edit_pattern = re.compile("/edit_([a-zA-Z0-9]+)")
 
 class RenderHandler(http.server.BaseHTTPRequestHandler):
@@ -217,7 +231,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             if match:
                 job_id = match.groups()[0]
                 frame_number = int(match.groups()[1])
-
+                
                 job = self.server.getJobID(job_id)
 
                 if job:
@@ -228,13 +242,53 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             self.send_head(http.client.ACCEPTED)
                         elif frame.status == DONE:
                             self.server.stats("", "Sending result to client")
-                            f = open(job.save_path + "%04d" % frame_number + ".exr", 'rb')
-
-                            self.send_head()
-
+                            
+                            filename = job.save_path + "%04d" % frame_number + ".exr"
+                            
+                            f = open(filename, 'rb')
+                            self.send_head(content = "image/x-exr")
                             shutil.copyfileobj(f, self.wfile)
-
                             f.close()
+                        elif frame.status == ERROR:
+                            self.send_head(http.client.PARTIAL_CONTENT)
+                    else:
+                        # no such frame
+                        self.send_head(http.client.NO_CONTENT)
+                else:
+                    # no such job id
+                    self.send_head(http.client.NO_CONTENT)
+            else:
+                # invalid url
+                self.send_head(http.client.NO_CONTENT)
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.path.startswith("/thumb"):
+            match = thumb_pattern.match(self.path)
+
+            if match:
+                job_id = match.groups()[0]
+                frame_number = int(match.groups()[1])
+
+                job = self.server.getJobID(job_id)
+
+                if job:
+                    frame = job[frame_number]
+
+                    if frame:
+                        if frame.status in (QUEUED, DISPATCHED):
+                            self.send_head(http.client.ACCEPTED)
+                        elif frame.status == DONE:
+                            filename = job.save_path + "%04d" % frame_number + ".exr"
+                            
+                            thumbname = thumbnail(filename)
+
+                            if thumbname:
+                                f = open(thumbname, 'rb')
+                                self.send_head(content = "image/jpeg")
+                                shutil.copyfileobj(f, self.wfile)
+                                f.close()
+                            else: # thumbnail couldn't be generated
+                                self.send_head(http.client.PARTIAL_CONTENT)
+                                return
                         elif frame.status == ERROR:
                             self.send_head(http.client.PARTIAL_CONTENT)
                     else:
@@ -456,17 +510,48 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                 # invalid url
                 self.send_head(http.client.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.path == "/balance_limit":
+            length = int(self.headers['content-length'])
+            info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+            for rule_id, limit in info_map.items():
+                try:
+                    rule = self.server.balancer.ruleByID(rule_id)
+                    if rule:
+                        rule.setLimit(limit)
+                except:
+                    pass # invalid type
+                        
+            self.send_head()
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.path == "/balance_enable":
+            length = int(self.headers['content-length'])
+            info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+            for rule_id, enabled in info_map.items():
+                rule = self.server.balancer.ruleByID(rule_id)
+                if rule:
+                    rule.enabled = enabled
+                        
+            self.send_head()
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path.startswith("/cancel"):
             match = cancel_pattern.match(self.path)
 
             if match:
+                length = int(self.headers['content-length'])
+                
+                if length > 0:
+                    info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+                    clear = info_map.get("clear", False)
+                else:
+                    clear = False
+                
                 job_id = match.groups()[0]
 
                 job = self.server.getJobID(job_id)
 
                 if job:
                     self.server.stats("", "Cancelling job")
-                    self.server.removeJob(job)
+                    self.server.removeJob(job, clear)
                     self.send_head()
                 else:
                     # no such job id
@@ -474,12 +559,46 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             else:
                 # invalid url
                 self.send_head(http.client.NO_CONTENT)
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.path.startswith("/pause"):
+            match = pause_pattern.match(self.path)
 
+            if match:
+                length = int(self.headers['content-length'])
+                
+                if length > 0:
+                    info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+                    status = info_map.get("status", None)
+                else:
+                    status = None
+                
+                job_id = match.groups()[0]
+
+                job = self.server.getJobID(job_id)
+
+                if job:
+                    self.server.stats("", "Pausing job")
+                    job.pause(status)
+                    self.send_head()
+                else:
+                    # no such job id
+                    self.send_head(http.client.NO_CONTENT)
+            else:
+                # invalid url
+                self.send_head(http.client.NO_CONTENT)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/clear":
             # cancel all jobs
+            length = int(self.headers['content-length'])
+            
+            if length > 0:
+                info_map = eval(str(self.rfile.read(length), encoding='utf8'))
+                clear = info_map.get("clear", False)
+            else:
+                clear = False
+
             self.server.stats("", "Clearing jobs")
-            self.server.clear()
+            self.server.clear(clear)
 
             self.send_head()
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -647,14 +766,50 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                                 if not slave.id in job.blacklist:
                                     job.blacklist.append(slave.id)
 
-                        self.server.stats("", "Receiving result")
-
                         slave.finishedFrame(job_frame)
 
                         frame.status = job_result
                         frame.time = job_time
 
                         job.testFinished()
+
+                        self.send_head()
+                    else: # frame not found
+                        self.send_head(http.client.NO_CONTENT)
+                else: # job not found
+                    self.send_head(http.client.NO_CONTENT)
+            else: # invalid slave id
+                self.send_head(http.client.NO_CONTENT)
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+        elif self.path == "/thumb":
+            self.server.stats("", "Receiving thumbnail result")
+
+            # need some message content here or the slave doesn't like it
+            self.wfile.write(bytes("foo", encoding='utf8'))
+
+            slave_id = self.headers['slave-id']
+
+            slave = self.server.getSeenSlave(slave_id)
+
+            if slave: # only if slave id is valid
+                job_id = self.headers['job-id']
+
+                job = self.server.getJobID(job_id)
+
+                if job:
+                    job_frame = int(self.headers['job-frame'])
+
+                    frame = job[job_frame]
+
+                    if frame:
+                        if job.type == netrender.model.JOB_BLENDER:
+                            length = int(self.headers['content-length'])
+                            buf = self.rfile.read(length)
+                            f = open(job.save_path + "%04d" % job_frame + ".jpg", 'wb')
+                            f.write(buf)
+                            f.close()
+
+                            del buf
 
                         self.send_head()
                     else: # frame not found
@@ -737,7 +892,7 @@ class RenderMasterServer(http.server.HTTPServer):
         self.slaves_map.pop(slave.id)
 
     def getSlave(self, slave_id):
-        return self.slaves_map.get(slave_id, None)
+        return self.slaves_map.get(slave_id)
 
     def getSeenSlave(self, slave_id):
         slave = self.getSlave(slave_id)
@@ -775,11 +930,11 @@ class RenderMasterServer(http.server.HTTPServer):
                     slave.job.usage += slave_usage
 
 
-    def clear(self):
+    def clear(self, clear_files = False):
         removed = self.jobs[:]
 
         for job in removed:
-            self.removeJob(job)
+            self.removeJob(job, clear_files)
 
     def balance(self):
         self.balancer.balance(self.jobs)
@@ -798,10 +953,13 @@ class RenderMasterServer(http.server.HTTPServer):
     def countSlaves(self):
         return len(self.slaves)
 
-    def removeJob(self, job):
+    def removeJob(self, job, clear_files = False):
         self.jobs.remove(job)
         self.jobs_map.pop(job.id)
-
+        
+        if clear_files:
+            shutil.rmtree(job.save_path)
+        
         for slave in self.slaves:
             if slave.job == job:
                 slave.job = None
@@ -819,7 +977,7 @@ class RenderMasterServer(http.server.HTTPServer):
         job.save()
 
     def getJobID(self, id):
-        return self.jobs_map.get(id, None)
+        return self.jobs_map.get(id)
 
     def __iter__(self):
         for job in self.jobs:
@@ -833,7 +991,10 @@ class RenderMasterServer(http.server.HTTPServer):
 
         return None, None
 
-def runMaster(address, broadcast, path, update_stats, test_break):
+def clearMaster(path):
+    shutil.rmtree(path)
+
+def runMaster(address, broadcast, clear, path, update_stats, test_break):
         httpd = RenderMasterServer(address, RenderHandler, path)
         httpd.timeout = 1
         httpd.stats = update_stats
@@ -845,7 +1006,10 @@ def runMaster(address, broadcast, path, update_stats, test_break):
         start_time = time.time()
 
         while not test_break():
-            httpd.handle_request()
+            try:
+                httpd.handle_request()
+            except select.error:
+                pass
 
             if time.time() - start_time >= 10: # need constant here
                 httpd.timeoutSlaves()
@@ -858,3 +1022,5 @@ def runMaster(address, broadcast, path, update_stats, test_break):
                         start_time = time.time()
 
         httpd.server_close()
+        if clear:
+            clearMaster(httpd.path)

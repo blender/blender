@@ -75,7 +75,6 @@
 #endif
 
 extern void do_init_ffmpeg();
-static void makeffmpegstring(RenderData* rd, char* string);
 
 static int ffmpeg_type = 0;
 static int ffmpeg_codec = CODEC_ID_MPEG4;
@@ -638,7 +637,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	do_init_ffmpeg();
 
 	/* Determine the correct filename */
-	makeffmpegstring(rd, name);
+	filepath_ffmpeg(name, rd);
 	fprintf(stderr, "Starting output to %s(ffmpeg)...\n"
 		"  Using type=%d, codec=%d, audio_codec=%d,\n"
 		"  video_bitrate=%d, audio_bitrate=%d,\n"
@@ -772,7 +771,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
    ********************************************************************** */
 
 /* Get the output filename-- similar to the other output formats */
-static void makeffmpegstring(RenderData* rd, char* string) {
+void filepath_ffmpeg(char* string, RenderData* rd) {
 
 	// XXX quick define, solve!
 #define FILE_MAXDIR 256
@@ -832,7 +831,7 @@ int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, Repo
 	if(ffmpeg_multiplex_audio && audio_stream)
 	{
 		AVCodecContext* c = get_codec_from_stream(audio_stream);
-		AUD_Specs specs;
+		AUD_DeviceSpecs specs;
 		specs.channels = c->channels;
 		specs.format = AUD_FORMAT_S16;
 		specs.rate = rd->ffcodecdata.audio_mixrate;

@@ -53,7 +53,7 @@ public:
 	/**
 	 * Returns the specification of the device.
 	 */
-	virtual AUD_Specs getSpecs()=0;
+	virtual AUD_DeviceSpecs getSpecs()=0;
 
 	/**
 	 * Plays a sound source.

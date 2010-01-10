@@ -931,6 +931,8 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 	prop->subtype= subtype;
 	prop->name= identifier;
 	prop->description= "";
+	/* a priori not raw editable */
+	prop->rawtype = -1;
 
 	if(type != PROP_COLLECTION && type != PROP_POINTER) {
 		prop->flag= PROP_EDITABLE;
@@ -2417,9 +2419,16 @@ FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, C
 	return func;
 }
 
+/* C return value only!, multiple rna returns can be done with RNA_def_function_return_mark */
 void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret)
 {
-	func->ret= ret;
+	func->c_ret= ret;
+
+	RNA_def_function_return_mark(func, ret);
+}
+
+void RNA_def_function_return_mark(FunctionRNA *func, PropertyRNA *ret)
+{
 	ret->flag|=PROP_RETURN;
 }
 
@@ -2461,7 +2470,12 @@ int rna_parameter_size(PropertyRNA *parm)
 			case PROP_FLOAT:
 				return sizeof(float);
 			case PROP_STRING:
-				return sizeof(char *);
+				/* return  valyes dont store a pointer to the original */
+				if(parm->flag & PROP_THICK_WRAP) {
+					StringPropertyRNA *sparm= (StringPropertyRNA*)parm;
+					return sizeof(char) * sparm->maxlength;
+				} else
+					return sizeof(char *);
 			case PROP_POINTER: {
 #ifdef RNA_RUNTIME
 				if(parm->flag & PROP_RNAPTR)

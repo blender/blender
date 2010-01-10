@@ -1,3 +1,5 @@
+# -*- mode: gnumakefile; tab-width: 8; indent-tabs-mode: t; -*-
+# vim: tabstop=8
 #
 # $Id$
 #
@@ -37,6 +39,8 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
+CPPFLAGS += -I$(NAN_AUDASPACE)/include
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 # not very neat....
 CPPFLAGS += -I../../windowmanager
@@ -47,8 +51,6 @@ CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../makesrna
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../python
-CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
-# own include 
-
-CPPFLAGS += -I../include 
+# own include
+CPPFLAGS += -I../include

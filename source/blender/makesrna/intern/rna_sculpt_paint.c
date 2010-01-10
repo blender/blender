@@ -454,10 +454,6 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Particles", "Draw actual particles.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "mirror_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_X_MIRROR);
-	RNA_def_property_ui_text(prop, "X-Axis Mirror", "Mirror operations over the X axis while editing.");
-
 	prop= RNA_def_property(srna, "add_interpolate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_INTERPOLATE_ADDED);
 	RNA_def_property_ui_text(prop, "Interpolate", "Interpolate new particles from the existing ones.");

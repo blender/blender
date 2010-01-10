@@ -725,6 +725,17 @@ void BKE_image_print_memlist(void)
 	}
 }
 
+/* frees all ibufs used by any image datablocks */
+void BKE_image_free_image_ibufs(void)
+{
+	Image *ima;
+	
+	for(ima= G.main->image.first; ima; ima= ima->id.next) {
+		image_free_buffers(ima);
+	}
+	
+}
+
 void BKE_image_free_all_textures(void)
 {
 	Tex *tex;
@@ -883,7 +894,7 @@ int BKE_imtype_is_movie(int imtype)
 	return 0;
 }
 
-void BKE_add_image_extension(Scene *scene, char *string, int imtype)
+void BKE_add_image_extension(char *string, int imtype)
 {
 	char *extension="";
 	
@@ -1397,7 +1408,7 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	
 	BLI_make_existing_file(name);
 
-	if(scene->r.stamp & R_STAMP_ALL)
+	if(scene && scene->r.stamp & R_STAMP_ALL)
 		BKE_stamp_info(scene, ibuf);
 	
 	ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
@@ -1409,7 +1420,7 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 }
 
 
-void BKE_makepicstring(struct Scene *scene, char *string, char *base, int frame, int imtype)
+void BKE_makepicstring(char *string, char *base, int frame, int imtype, int use_ext)
 {
 	if (string==NULL) return;
 
@@ -1422,8 +1433,8 @@ void BKE_makepicstring(struct Scene *scene, char *string, char *base, int frame,
 	BLI_convertstringcode(string, G.sce);
 	BLI_convertstringframe(string, frame);
 
-	if(scene->r.scemode & R_EXTENSION) 
-		BKE_add_image_extension(scene, string, imtype);
+	if(use_ext)
+		BKE_add_image_extension(string, imtype);
 		
 }
 
@@ -1898,6 +1909,7 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 			ibuf->rect_float= rpass->rect;
 			ibuf->flags |= IB_rectfloat;
 			ibuf->channels= rpass->channels;
+			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 			image_assign_ibuf(ima, ibuf, iuser?iuser->multi_index:IMA_NO_INDEX, 0);
 		}

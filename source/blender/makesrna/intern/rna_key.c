@@ -283,7 +283,13 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
 
 static char *rna_ShapeKey_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("keys[\"%s\"]", ((KeyBlock*)ptr->data)->name);
+	KeyBlock *kb= (KeyBlock *)ptr->data;
+	ID *id= ptr->id.data;
+	
+	if ((id) && (GS(id->name) != ID_KE))
+		return BLI_sprintfN("shape_keys.keys[\"%s\"]", kb->name);
+	else
+		return BLI_sprintfN("keys[\"%s\"]", kb->name);
 }
 
 static void rna_Key_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)

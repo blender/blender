@@ -207,7 +207,6 @@ void console_operatortypes(void)
 	WM_operatortype_append(CONSOLE_OT_history_cycle);
 	WM_operatortype_append(CONSOLE_OT_copy);
 	WM_operatortype_append(CONSOLE_OT_paste);
-	WM_operatortype_append(CONSOLE_OT_zoom);
 	WM_operatortype_append(CONSOLE_OT_select_set);
 
 	/* console_report.c */
@@ -223,6 +222,7 @@ void console_operatortypes(void)
 void console_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Console", SPACE_CONSOLE, 0);
+	wmKeyMapItem *kmi;
 	
 #ifdef __APPLE__
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", LEFTARROWKEY, KM_PRESS, KM_OSKEY, 0)->ptr, "type", LINE_BEGIN);
@@ -235,13 +235,22 @@ void console_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", HOMEKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_BEGIN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);
 	
-	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_zoom", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_zoom", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "path", "space_data.font_size");
+	RNA_boolean_set(kmi->ptr, "reverse", 0);
 	
-	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_zoom", PADPLUSKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
-	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_zoom", PADMINUS, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "path", "space_data.font_size");
+	RNA_boolean_set(kmi->ptr, "reverse", 1);
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "path", "space_data.font_size");
+	RNA_boolean_set(kmi->ptr, "reverse", 0);
 	
-	
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_int", PADMINUS, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "path", "space_data.font_size");
+	RNA_boolean_set(kmi->ptr, "reverse", 1);
+
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_CHAR);
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_move", RIGHTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", NEXT_CHAR);
 	

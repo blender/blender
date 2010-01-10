@@ -565,7 +565,10 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		else
 			m_rasterizer = new RAS_OpenGLRasterizer(m_canvas);
 
+		/* Stereo parameters - Eye Separation from the UI - stereomode from the command-line/UI */
 		m_rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) stereoMode);
+		m_rasterizer->SetEyeSeparation(m_startScene->gm.eyeseparation);
+		
 		if (!m_rasterizer)
 			goto initFailed;
 						

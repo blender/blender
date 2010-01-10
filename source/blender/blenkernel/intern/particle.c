@@ -361,6 +361,10 @@ void psys_check_group_weights(ParticleSettings *part)
 		BLI_freelistN(&part->dupliweights);
 	}
 }
+int psys_uses_gravity(ParticleSimulationData *sim)
+{
+	return sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY && sim->psys->part && sim->psys->part->effector_weights->global_gravity != 0.0f;
+}
 /************************************************/
 /*			Freeing stuff						*/
 /************************************************/

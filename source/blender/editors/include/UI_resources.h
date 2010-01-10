@@ -236,6 +236,8 @@ int 	UI_GetThemeValue(int colorid);
 
 // get three color values, scaled to 0.0-1.0 range
 void 	UI_GetThemeColor3fv(int colorid, float *col);
+// get the color, range 0.0-1.0, complete with shading offset
+void 	UI_GetThemeColorShade3fv(int colorid, int offset, float *col);
 
 // get the 3 or 4 byte values
 void 	UI_GetThemeColor3ubv(int colorid, char *col);

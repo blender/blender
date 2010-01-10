@@ -326,7 +326,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 
         if wide_ui:
             col = split.column()
-        col.prop(rd, "file_extensions")
+        col.prop(rd, "use_file_extension")
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
 
@@ -592,30 +592,42 @@ class RENDER_PT_bake(RenderButtonsPanel):
         rd = context.scene.render_data
         wide_ui = context.region.width > narrowui
 
-        row = layout.row()
-        row.operator("object.bake_image", icon='RENDER_STILL')
-        row.prop(rd, "bake_type", text="")
-
-        col = layout.column()
-        col.active = (rd.bake_type == 'NORMALS')
-        col.prop(rd, "bake_normal_space")
+        layout.operator("object.bake_image", icon='RENDER_STILL')
+        
+        if wide_ui:
+            layout.prop(rd, "bake_type")
+        else:
+            layout.prop(rd, "bake_type", text="")
+        
+        if rd.bake_type == 'NORMALS':
+            if wide_ui:
+                layout.prop(rd, "bake_normal_space")
+            else:
+                layout.prop(rd, "bake_normal_space", text="")
+        elif rd.bake_type in ('DISPLACEMENT', 'AO'):
+            layout.prop(rd, "bake_normalized")
+        
         # col.prop(rd, "bake_aa_mode")
         # col.prop(rd, "bake_enable_aa")
+        
+        layout.separator()
+        
+        split = layout.split()
 
-        col = layout.column()
-        row = col.row(align=True)
-        row.prop(rd, "bake_active")
-        row.prop(rd, "bake_normalized")
+        col = split.column()
+        col.prop(rd, "bake_clear")
+        col.prop(rd, "bake_margin")
+        col.prop(rd, "bake_quad_split", text="Split")
+        
+        if wide_ui:
+            col = split.column()
+        col.prop(rd, "bake_active")
+        sub = col.column()
+        sub.active = rd.bake_active
+        sub.prop(rd, "bake_distance")
+        sub.prop(rd, "bake_bias")
 
-        row = col.row(align=True)
-        row.prop(rd, "bake_clear")
-        row.prop(rd, "bake_margin")
-
-        row = col.row(align=True)
-        row.prop(rd, "bake_distance")
-        row.prop(rd, "bake_bias")
-
-
+        
 bpy.types.register(RENDER_MT_presets)
 bpy.types.register(RENDER_PT_render)
 bpy.types.register(RENDER_PT_layers)

@@ -3800,8 +3800,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 
 /* **************** NORMALS ************** */
 
-/* XXX value of select is messed up, it means two things */
-void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning */
+void EM_recalc_normal_direction(EditMesh *em, int inside, int select)	/* makes faces righthand turning */
 {
 	EditEdge *eed, *ed1, *ed2, *ed3, *ed4;
 	EditFace *efa, *startvl;
@@ -3893,16 +3892,12 @@ void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning *
 			cent_tri_v3(cent, startvl->v1->co, startvl->v2->co, startvl->v3->co);
 		}
 		/* first normal is oriented this way or the other */
-		if(select) {
-			if(select==2) {
-				if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] > 0.0) flipface(em, startvl);
-			}
-			else {
-				if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] < 0.0) flipface(em, startvl);
-			}
+		if(inside) {
+			if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] > 0.0) flipface(em, startvl);
 		}
-		else if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] < 0.0) flipface(em, startvl);
-
+		else {
+			if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] < 0.0) flipface(em, startvl);
+		}
 
 		eed= startvl->e1;
 		if(eed->v1==startvl->v1) eed->f2= 1; 
@@ -4012,7 +4007,7 @@ void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning *
 }
 
 
-static int righthandfaces_exec(bContext *C, wmOperator *op)
+static int normals_make_consistent_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
@@ -4020,7 +4015,7 @@ static int righthandfaces_exec(bContext *C, wmOperator *op)
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	
 	// XXX  need other args
-	righthandfaces(em, RNA_boolean_get(op->ptr, "inside"));
+	EM_recalc_normal_direction(em, RNA_boolean_get(op->ptr, "inside"), 1);
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
 
@@ -4038,7 +4033,7 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 	ot->idname= "MESH_OT_normals_make_consistent";
 	
 	/* api callbacks */
-	ot->exec= righthandfaces_exec;
+	ot->exec= normals_make_consistent_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */

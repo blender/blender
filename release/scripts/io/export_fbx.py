@@ -651,7 +651,7 @@ def write(filename, batch_objects = None, \
 }''' % (curtime))
 
     file.write('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
-    file.write('\nCreator: "Blender3D version %s"' % bpy.version_string)
+    file.write('\nCreator: "Blender3D version %s"' % bpy.app.version_string)
 
 
     pose_items = [] # list of (fbxName, matrix) to write pose data for, easier to collect allong the way
@@ -2989,7 +2989,7 @@ Takes:  {''')
 
     # Clear mesh data Only when writing with modifiers applied
     for me in meshes_to_clear:
-        bpy.data.remove_mesh(me)
+        bpy.data.meshes.remove(me)
 # 		me.verts = None
 
     # --------------------------- Footer
@@ -3391,8 +3391,7 @@ class ExportFBX(bpy.types.Operator):
 
 
     def poll(self, context):
-        print("Poll")
-        return context.active_object != None
+        return context.active_object
 
     def execute(self, context):
         if not self.properties.path:

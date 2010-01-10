@@ -44,7 +44,7 @@ private:
 	/**
 	 * The target specification.
 	 */
-	AUD_Specs m_specs;
+	AUD_DeviceSpecs m_specs;
 
 	/**
 	 * Converter function.
@@ -58,7 +58,7 @@ public:
 	 * \param specs The target specification.
 	 * \exception AUD_Exception Thrown if the reader is NULL.
 	 */
-	AUD_ConverterReader(AUD_IReader* reader, AUD_Specs specs);
+	AUD_ConverterReader(AUD_IReader* reader, AUD_DeviceSpecs specs);
 	/**
 	 * Destroys the reader.
 	 */

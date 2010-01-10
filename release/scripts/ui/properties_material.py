@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -123,6 +124,11 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
                 layout.prop(mat, "type", expand=True)
             else:
                 layout.prop(mat, "type", text="")
+
+
+class MATERIAL_PT_custom_props(MaterialButtonsPanel, PropertyPanel):
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    _context_path = "material"
 
 
 class MATERIAL_PT_shading(MaterialButtonsPanel):
@@ -880,3 +886,5 @@ bpy.types.register(MATERIAL_PT_volume_shading)
 bpy.types.register(MATERIAL_PT_volume_lighting)
 bpy.types.register(MATERIAL_PT_volume_transp)
 bpy.types.register(MATERIAL_PT_volume_integration)
+
+bpy.types.register(MATERIAL_PT_custom_props)

@@ -394,14 +394,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\intern\AUD_FloatMixer.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\intern\AUD_FloatMixer.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\intern\AUD_I3DDevice.h"
 				>
 			</File>
@@ -414,11 +406,31 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\intern\AUD_IMixer.h"
+				RelativePath="..\..\intern\AUD_IReader.h"
 				>
 			</File>
 			<File
-				RelativePath="..\..\intern\AUD_IReader.h"
+				RelativePath="..\..\intern\AUD_LinearResampleFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_LinearResampleFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_LinearResampleReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_LinearResampleReader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_Mixer.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_Mixer.h"
 				>
 			</File>
 			<File
@@ -518,6 +530,38 @@
 			Name="FX"
 			>
 			<File
+				RelativePath="..\..\FX\AUD_AccumulatorFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_AccumulatorFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_AccumulatorReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_AccumulatorReader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_ButterworthFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_ButterworthFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_ButterworthReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_ButterworthReader.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\FX\AUD_DelayFactory.cpp"
 				>
 			</File>
@@ -558,6 +602,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\FX\AUD_EnvelopeFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_EnvelopeFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_EnvelopeReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_EnvelopeReader.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\FX\AUD_FaderFactory.cpp"
 				>
 			</File>
@@ -571,6 +631,22 @@
 			</File>
 			<File
 				RelativePath="..\..\FX\AUD_FaderReader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_HighpassFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_HighpassFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_HighpassReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_HighpassReader.h"
 				>
 			</File>
 			<File
@@ -603,6 +679,22 @@
 			</File>
 			<File
 				RelativePath="..\..\FX\AUD_LoopReader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_LowpassFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_LowpassFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_LowpassReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_LowpassReader.h"
 				>
 			</File>
 			<File
@@ -662,6 +754,38 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\FX\AUD_SquareFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_SquareFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_SquareReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_SquareReader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_SumFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_SumFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_SumReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\FX\AUD_SumReader.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\FX\AUD_VolumeFactory.cpp"
 				>
 			</File>
@@ -699,30 +823,6 @@
 			</File>
 			<File
 				RelativePath="..\..\SDL\AUD_SDLDevice.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\SDL\AUD_SDLMixer.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\SDL\AUD_SDLMixer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\SDL\AUD_SDLMixerFactory.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\SDL\AUD_SDLMixerFactory.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\SDL\AUD_SDLMixerReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\..\SDL\AUD_SDLMixerReader.h"
 				>
 			</File>
 		</Filter>

@@ -34,7 +34,7 @@ AUD_NULLDevice::AUD_NULLDevice()
 	m_specs.rate = AUD_RATE_INVALID;
 }
 
-AUD_Specs AUD_NULLDevice::getSpecs()
+AUD_DeviceSpecs AUD_NULLDevice::getSpecs()
 {
 	return m_specs;
 }

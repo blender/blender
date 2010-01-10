@@ -252,18 +252,21 @@ class InfoFunctionRNA:
         self.description = rna_func.description.strip()
 
         self.args = []
-        self.return_value = None
+        self.return_values = ()
 
     def build(self):
         rna_func = self.bl_func
         parent_id = rna_func
+        self.return_values = []
 
         for rna_prop in rna_func.parameters.values():
             prop = GetInfoPropertyRNA(rna_prop, parent_id)
             if rna_prop.use_return:
-                self.return_value = prop
+                self.return_values.append(prop)
             else:
                 self.args.append(prop)
+
+        self.return_values = tuple(self.return_values)
 
     def __repr__(self):
         txt = ''
@@ -566,8 +569,8 @@ def BuildRNAInfo():
             func.build()
             for prop in func.args:
                 prop.build()
-            if func.return_value:
-                func.return_value.build()
+            for prop in func.return_values:
+                prop.build()
 
     # now for operators
     op_mods = dir(bpy.ops)

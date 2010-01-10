@@ -69,7 +69,7 @@ typedef struct VolumeSettings {
 	float stepsize;
 	float ms_diff;
 	float ms_intensity;
-	int ms_steps;
+	float ms_spread;
 } VolumeSettings;
 
 typedef struct Material {

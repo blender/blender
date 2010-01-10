@@ -2332,7 +2332,7 @@ static void apply_particle_forces(ParticleSimulationData *sim, int p, float dfra
 		mul_v3_fl(force,1.0f/pa_mass);
 
 		/* add global acceleration (gravitation) */
-		if(sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY
+		if(psys_uses_gravity(sim)
 			/* normal gravity is too strong for hair so it's disabled by default */
 			&& (part->type != PART_HAIR || part->effector_weights->flag & EFF_WEIGHT_DO_HAIR)) {
 			float gravity[3];
@@ -2895,7 +2895,9 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 				}
 				else {
 					VECCOPY(pa->state.co, col.co2);
-					VECCOPY(pa->state.vel, vel);
+					/* Stickness to surface */
+					normalize_v3(nor_vec);
+					VECADDFAC(pa->state.vel, vel, nor_vec, -pd->pdef_stickness);
 				}
 			}
 			deflections++;

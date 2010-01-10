@@ -712,8 +712,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
     for name, index in list(material_mapping.items()):
         materials[index]= unique_materials[name]
 
-    me= bpy.data.add_mesh(dataname)
-# 	me= bpy.data.meshes.new(dataname)
+    me= bpy.data.meshes.new(dataname)
 
     # make sure the list isnt too big
     for material in materials[0:16]:
@@ -864,7 +863,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
     me.update()
 # 	me.calcNormals()
 
-    ob= bpy.data.add_object("MESH", "Mesh")
+    ob= bpy.data.objects.new("Mesh", 'MESH')
     ob.data= me
     scn.objects.link(ob)
 # 	ob= scn.objects.new(me)
@@ -886,12 +885,12 @@ def create_nurbs(scn, context_nurbs, vert_loc, new_objects):
     Add nurbs object to blender, only support one type at the moment
     '''
     deg = context_nurbs.get('deg', (3,))
-    curv_range = context_nurbs.get('curv_range', None)
+    curv_range = context_nurbs.get('curv_range')
     curv_idx = context_nurbs.get('curv_idx', [])
     parm_u = context_nurbs.get('parm_u', [])
     parm_v = context_nurbs.get('parm_v', [])
     name = context_nurbs.get('name', 'ObjNurb')
-    cstype = context_nurbs.get('cstype', None)
+    cstype = context_nurbs.get('cstype')
 
     if cstype == None:
         print('\tWarning, cstype not found')

@@ -43,6 +43,8 @@ extern "C"
 #include "ED_armature.h"
 #include "ED_mesh.h" // ED_vgroup_vert_add, ...
 #include "ED_anim_api.h"
+#include "ED_object.h"
+
 #include "WM_types.h"
 #include "WM_api.h"
 
@@ -82,6 +84,7 @@ extern "C"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_modifier_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -497,19 +500,23 @@ private:
 		void link_armature(bContext *C, Object *ob, std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& joint_by_uid,
 						   TransformReader *tm)
 		{
+			Object workob;
+			Scene *scene = CTX_data_scene(C);
+
+			ModifierData *md = ED_object_modifier_add(NULL, scene, ob, NULL, eModifierType_Armature);
+			((ArmatureModifierData *)md)->object = ob_arm;
+
 			tm->decompose(bind_shape_matrix, ob->loc, ob->rot, NULL, ob->size);
 
 			ob->parent = ob_arm;
-			ob->partype = PARSKEL;
+			ob->partype = PAROBJECT;
+
+			what_does_parent(scene, ob, &workob);
+			invert_m4_m4(ob->parentinv, workob.obmat);
+
 			ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 
 			((bArmature*)ob_arm->data)->deformflag = ARM_DEF_VGROUP;
-
-			// we need armature matrix here... where do we get it from I wonder...
-			// root node/joint? or node with <instance_controller>?
-			float parmat[4][4];
-			unit_m4(parmat);
-			invert_m4_m4(ob->parentinv, parmat);
 
 			// create all vertex groups
 			std::vector<JointData>::iterator it;
@@ -551,7 +558,7 @@ private:
 				}
 			}
 
-			DAG_scene_sort(CTX_data_scene(C));
+			DAG_scene_sort(scene);
 			DAG_ids_flush_update(0);
 			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 		}
@@ -623,6 +630,9 @@ private:
 		// set parent tail
 		if (parent && totchild == 1) {
 			copy_v3_v3(parent->tail, bone->head);
+
+			// not setting BONE_CONNECTED because this would lock child bone location with respect to parent
+			// bone->flag |= BONE_CONNECTED;
 
 			// XXX increase this to prevent "very" small bones?
 			const float epsilon = 0.000001f;
@@ -2430,7 +2440,7 @@ public:
 
 			Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
 			if (!bone) {
-				fprintf(stderr, "cannot find bone \"%s\"", bone_name);
+				fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
 #ifdef ARMATURE_TEST
 				return NULL;
 #else
@@ -2773,9 +2783,14 @@ public:
 
 		// use bind matrix if available or calc "current" world mat
 		if (!armature_importer->get_joint_bind_mat(m, node)) {
-			float temp[4][4];
-			get_node_mat(temp, node, NULL, NULL);
-			mul_m4_m4m4(m, temp, par);
+			if (par) {
+				float temp[4][4];
+				get_node_mat(temp, node, NULL, NULL);
+				mul_m4_m4m4(m, temp, par);
+			}
+			else {
+				get_node_mat(m, node, NULL, NULL);
+			}
 		}
 
 		COLLADAFW::NodePointerArray& children = node->getChildNodes();

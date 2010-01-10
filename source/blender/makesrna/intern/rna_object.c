@@ -930,7 +930,7 @@ static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
 		return PointerRNA_NULL;
 	
 	kb= BLI_findlink(&key->block, ob->shapenr-1);
-	RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &keyptr);
+	RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
 	return keyptr;
 }
 
@@ -1559,7 +1559,7 @@ static void rna_def_object(BlenderRNA *brna)
 		 * having a single one is better for Keyframing and other property-management situations...
 		 */
 	prop= RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
-	RNA_def_property_array(prop, 4); // TODO: maybe we'll need to define the 'default value' getter too...
+	RNA_def_property_array(prop, 4);
 	RNA_def_property_float_funcs(prop, "rna_Object_rotation_axis_angle_get", "rna_Object_rotation_axis_angle_set", NULL);
 	RNA_def_property_editable_array_func(prop, "rna_Object_rotation_4d_editable");
 	RNA_def_property_float_array_default(prop, default_axisAngle);
@@ -1771,6 +1771,9 @@ static void rna_def_object(BlenderRNA *brna)
 	/* anim */
 	rna_def_animdata_common(srna);
 	
+	rna_def_animviz_common(srna);
+	rna_def_motionpath_common(srna);
+	
 	/* duplicates */
 	prop= RNA_def_property(srna, "track_override_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_POWERTRACK);
@@ -1788,18 +1791,18 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dupli Type", "If not None, object duplication method to use.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
 
-	prop= RNA_def_property(srna, "dupli_frames_no_speed", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLINOSPEED);
-	RNA_def_property_ui_text(prop, "Dupli Frames No Speed", "Set dupliframes to still, regardless of frame.");
+	prop= RNA_def_property(srna, "use_dupli_frames_speed", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "transflag", OB_DUPLINOSPEED);
+	RNA_def_property_ui_text(prop, "Dupli Frames Speed", "Set dupliframes to use the frame."); // TODO, better descriptio!
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
-	prop= RNA_def_property(srna, "dupli_verts_rotation", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_dupli_verts_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIROT);
 	RNA_def_property_ui_text(prop, "Dupli Verts Rotation", "Rotate dupli according to vertex normal.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "dupli_faces_inherit_scale", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIROT);
+	prop= RNA_def_property(srna, "use_dupli_faces_scale", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIFACES_SCALE);
 	RNA_def_property_ui_text(prop, "Dupli Faces Inherit Scale", "Scale dupli based on face size.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 

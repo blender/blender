@@ -260,7 +260,7 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_boolean(ot->srna, "from_mix", 0, "From Mix", "Create the new shape key from the existing mix of keys.");
+	RNA_def_boolean(ot->srna, "from_mix", 1, "From Mix", "Create the new shape key from the existing mix of keys.");
 }
 
 static int shape_key_remove_exec(bContext *C, wmOperator *op)

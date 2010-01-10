@@ -75,10 +75,17 @@ void rna_Mesh_update_draw(Main *bmain, Scene *scene, PointerRNA *ptr)
 static void rna_MeshVertex_normal_get(PointerRNA *ptr, float *value)
 {
 	MVert *mvert= (MVert*)ptr->data;
+	normal_short_to_float_v3(value, mvert->no);
+}
 
-	value[0]= mvert->no[0]/32767.0f;
-	value[1]= mvert->no[1]/32767.0f;
-	value[2]= mvert->no[2]/32767.0f;
+static void rna_MeshVertex_normal_set(PointerRNA *ptr, const float *value)
+{
+	MVert *mvert= (MVert*)ptr->data;
+	float no[3];
+
+	copy_v3_v3(no, value);
+	normalize_v3(no);
+	normal_float_to_short_v3(mvert->no, no);
 }
 
 static float rna_MeshVertex_bevel_weight_get(PointerRNA *ptr)
@@ -1027,9 +1034,8 @@ static void rna_def_mvert(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "normal", PROP_FLOAT, PROP_DIRECTION);
 	RNA_def_property_float_sdna(prop, NULL, "no");
-	RNA_def_property_float_funcs(prop, "rna_MeshVertex_normal_get", NULL, NULL);
+	RNA_def_property_float_funcs(prop, "rna_MeshVertex_normal_get", "rna_MeshVertex_normal_set", NULL);
 	RNA_def_property_ui_text(prop, "Normal", "Vertex Normal");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
@@ -1352,6 +1358,12 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_MeshTextureFace_uv_get", "rna_MeshTextureFace_uv_set", NULL);
 	RNA_def_property_ui_text(prop, "UV", "");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
+	prop= RNA_def_property(srna, "uv_raw", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_multi_array(prop, 2, uv_dim);
+	RNA_def_property_float_sdna(prop, NULL, "uv");
+	RNA_def_property_ui_text(prop, "UV", "Fixed size UV coordinates array");
+
 }
 
 static void rna_def_msticky(BlenderRNA *brna)

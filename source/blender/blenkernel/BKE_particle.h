@@ -203,6 +203,7 @@ int psys_check_enabled(struct Object *ob, struct ParticleSystem *psys);
 int psys_check_edited(struct ParticleSystem *psys);
 
 void psys_check_group_weights(struct ParticleSettings *part);
+int psys_uses_gravity(struct ParticleSimulationData *sim);
 
 /* free */
 void psys_free_settings(struct ParticleSettings *part);

@@ -1434,7 +1434,7 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	static EnumPropertyItem active_theme_group[] = {
+	static EnumPropertyItem active_theme_area[] = {
 		{0, "USER_INTERFACE", ICON_UI, "User Interface", ""},
 		{1, "VIEW_3D", ICON_VIEW3D, "3D View", ""},
 		{2, "TIMELINE", ICON_TIME, "Timeline", ""},
@@ -1462,10 +1462,10 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Name of the theme.");
 	RNA_def_struct_name_property(srna, prop);
 
-	prop= RNA_def_property(srna, "active_theme", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "active_theme_group");
-	RNA_def_property_enum_items(prop, active_theme_group);
-	RNA_def_property_ui_text(prop, "Active Theme", "");
+	prop= RNA_def_property(srna, "theme_area", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "active_theme_area");
+	RNA_def_property_enum_items(prop, active_theme_area);
+	RNA_def_property_ui_text(prop, "Active Theme Area", "");
 
 	prop= RNA_def_property(srna, "user_interface", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -1811,8 +1811,6 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_range(prop, 4, 10);
 	RNA_def_property_ui_text(prop, "Object Origin Size", "Diameter in Pixels for Object/Lamp origin display.");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-
 }
 
 static void rna_def_userdef_edit(BlenderRNA *brna)
@@ -1840,7 +1838,6 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 		{0, "WORLD", 0, "World", "Align newly added objects facing the 3D View direction"},
 		{USER_ADD_VIEWALIGNED, "VIEW", 0, "View", "Align newly added objects to the world coordinates"},
 		{0, NULL, 0, NULL, NULL}};
-
 
 	srna= RNA_def_struct(brna, "UserPreferencesEdit", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
@@ -1927,7 +1924,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, new_interpolation_types);
 	RNA_def_property_enum_sdna(prop, NULL, "ipo_new");
 	RNA_def_property_ui_text(prop, "New Interpolation Type", "");
-
+	
 	prop= RNA_def_property(srna, "grease_pencil_manhattan_distance", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gp_manhattendist");
 	RNA_def_property_range(prop, 0, 100);
@@ -2075,7 +2072,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{USER_DRAW_OVERLAP, "OVERLAP", 0, "Overlap", "Redraw all overlapping regions, minimal memory usage but more redraws."},
 		{USER_DRAW_FULL, "FULL", 0, "Full", "Do a full redraw each time, slow, only use for reference or when all else fails."},
 		{0, NULL, 0, NULL, NULL}};
-		
+	
+	static EnumPropertyItem color_picker_types[] = {
+		{USER_CP_CIRCLE, "CIRCLE", 0, "Circle", "A circular Hue/Saturation color wheel, with Value slider"},
+		{USER_CP_SQUARE_SV, "SQUARE_SV", 0, "Square (SV + H)", "A square showing Saturation/Value, with Hue slider"},
+		{USER_CP_SQUARE_HS, "SQUARE_HS", 0, "Square (HS + V)", "A square showing Hue/Saturation, with Value slider"},
+		{USER_CP_SQUARE_HV, "SQUARE_HV", 0, "Square (HV + S)", "A square showing Hue/Value, with Saturation slider"},
+		{0, NULL, 0, NULL, NULL}};
+	
 		/* hardcoded here, could become dynamic somehow */
 	static EnumPropertyItem language_items[] = {
 		{0, "ENGLISH", 0, "English", ""},
@@ -2172,6 +2176,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Weight Color Range", "Color range used for weight visualization in weight painting mode.");
 	RNA_def_property_update(prop, 0, "rna_UserDef_weight_color_update");
 
+	prop= RNA_def_property(srna, "color_picker_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, color_picker_types);
+	RNA_def_property_enum_sdna(prop, NULL, "color_picker_type");
+	RNA_def_property_ui_text(prop, "Color Picker Type", "Different styles of displaying the color picker widget");
+	
 	prop= RNA_def_property(srna, "enable_all_codecs", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ALLWINCODECS);
 	RNA_def_property_ui_text(prop, "Enable All Codecs", "Enables automatic saving of preview images in the .blend file (Windows only).");
@@ -2195,10 +2204,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 32727);
 	RNA_def_property_ui_text(prop, "Frame Server Port", "Frameserver Port for Framserver-Rendering.");
 
-	prop= RNA_def_property(srna, "game_sound", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_SOUND);
-	RNA_def_property_ui_text(prop, "Game Sound", "Enables sounds to be played in games.");
-
 	prop= RNA_def_property(srna, "clip_alpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "glalphaclip");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -2212,6 +2217,10 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_VBO);
 	RNA_def_property_ui_text(prop, "VBOs", "Use Vertex Buffer Objects (or Vertex Arrays, if unsupported) for viewport rendering.");
 
+	prop= RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_AA);
+	RNA_def_property_ui_text(prop, "Anti-aliasing", "Use anti-aliasing for the 3D view (may impact redraw performance)");
+	
 	prop= RNA_def_property(srna, "gl_texture_limit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "glreslimit");
 	RNA_def_property_enum_items(prop, gl_texture_clamp_items);

@@ -67,7 +67,7 @@ static void do_buttons_buttons(bContext *C, void *arg, int event)
 {
 	SpaceButs *sbuts= CTX_wm_space_buts(C);
 
-	if(!sbuts) /* window type switch */
+	if(!sbuts) /* editor type switch */
 		return;
 
 	switch(event) {

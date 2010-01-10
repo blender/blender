@@ -200,6 +200,20 @@ typedef struct bLocateLikeConstraint {
 	char		subtarget[32];
 } bLocateLikeConstraint;
 
+/* Copy Scale Constraint */
+typedef struct bSizeLikeConstraint {
+	Object		*tar;
+	int			flag;
+	int			reserved1;
+	char		subtarget[32];
+} bSizeLikeConstraint;
+
+/* Copy Transform Constraint */
+typedef struct bTransLikeConstraint {
+	Object 		*tar;
+	char 		subtarget[32];
+} bTransLikeConstraint;
+
 /* Floor Constraint */
 typedef struct bMinMaxConstraint {
 	Object		*tar;
@@ -210,14 +224,6 @@ typedef struct bMinMaxConstraint {
 	float		cache[3];
 	char		subtarget[32];
 } bMinMaxConstraint;
-
-/* Copy Scale Constraint */
-typedef struct bSizeLikeConstraint {
-	Object		*tar;
-	int			flag;
-	int			reserved1;
-	char		subtarget[32];
-} bSizeLikeConstraint;
 
 /* Action Constraint */
 typedef struct bActionConstraint {
@@ -401,6 +407,7 @@ typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_SHRINKWRAP,			/* shrinkwrap (loc/rot) constraint */
 	CONSTRAINT_TYPE_DAMPTRACK,			/* New Tracking constraint that minimises twisting */
 	CONSTRAINT_TYPE_SPLINEIK,			/* Spline-IK - Align 'n' bones to a curve */
+	CONSTRAINT_TYPE_TRANSLIKE,			/* Copy transform matrix */
 	
 	/* NOTE: no constraints are allowed to be added after this */
 	NUM_CONSTRAINT_TYPES

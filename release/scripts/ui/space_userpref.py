@@ -19,6 +19,48 @@
 # <pep8 compliant>
 import bpy
 
+# General UI Theme Settings (User Interface)
+def ui_items_general(col, context):
+    row = col.row()
+    sub = row.column()
+    sub.prop(context, "outline")
+    sub.prop(context, "item", slider=True)
+    sub = row.column()
+    sub.prop(context, "inner", slider=True)
+    sub.prop(context, "inner_sel", slider=True)
+    sub = row.column()
+    sub.prop(context, "text")
+    sub.prop(context, "text_sel")
+    sub = row.column()
+    sub.prop(context, "shaded")
+    subsub = sub.column(align=True)
+    subsub.active = context.shaded
+    subsub.prop(context, "shadetop")
+    subsub.prop(context, "shadedown")
+    
+    col.separator()
+    
+def opengl_lamp_buttons(column, lamp):
+    split = column.split(percentage=0.1)
+
+    if lamp.enabled == True:
+        split.prop(lamp, "enabled", text="", icon='OUTLINER_OB_LAMP')
+    else:
+        split.prop(lamp, "enabled", text="", icon='LAMP_DATA')
+
+    col = split.column()
+    col.active = lamp.enabled
+    row = col.row()
+    row.label(text="Diffuse:")
+    row.prop(lamp, "diffuse_color", text="")
+    row = col.row()
+    row.label(text="Specular:")
+    row.prop(lamp, "specular_color", text="")
+
+    col = split.column()
+    col.active = lamp.enabled
+    col.prop(lamp, "direction", text="")
+
 KM_HIERARCHY = [
                     ('Window', 'EMPTY', 'WINDOW', []), # file save, window change, exit
                     ('Screen', 'EMPTY', 'WINDOW', [    # full screen, undo, screenshot
@@ -154,7 +196,6 @@ class USERPREF_PT_interface(bpy.types.Panel):
 
         row = layout.row()
 
-
         col = row.column()
         col.label(text="Display:")
         col.prop(view, "tooltips")
@@ -176,16 +217,15 @@ class USERPREF_PT_interface(bpy.types.Panel):
         sub.prop(view, "mini_axis_size", text="Size")
         sub.prop(view, "mini_axis_brightness", text="Brightness")
 
-
         row.separator()
         row.separator()
 
         col = row.column()
         col.label(text="View Manipulation:")
         col.prop(view, "auto_depth")
-        col.prop(view, "global_pivot")
         col.prop(view, "zoom_to_mouse")
         col.prop(view, "rotate_around_selection")
+        col.prop(view, "global_pivot")
 
         col.separator()
 
@@ -237,13 +277,11 @@ class USERPREF_PT_edit(bpy.types.Panel):
         userpref = context.user_preferences
         edit = userpref.edit
 
-
         row = layout.row()
-
 
         col = row.column()
         col.label(text="Link Materials To:")
-        col.row().prop(edit, "material_link", expand=True)
+        col.prop(edit, "material_link", text="")
 
         col.separator()
         col.separator()
@@ -252,7 +290,7 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.label(text="New Objects:")
         col.prop(edit, "enter_edit_mode")
         col.label(text="Align To:")
-        col.row().prop(edit, "object_align", expand=True)
+        col.prop(edit, "object_align", text="")
 
         col.separator()
         col.separator()
@@ -263,10 +301,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.prop(edit, "undo_steps", text="Steps")
         col.prop(edit, "undo_memory_limit", text="Memory Limit")
 
-
         row.separator()
         row.separator()
-
 
         col = row.column()
         col.label(text="Snap:")
@@ -283,10 +319,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
         col.prop(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
 
-
         row.separator()
         row.separator()
-
 
         col = row.column()
         col.label(text="Keyframing:")
@@ -316,10 +350,8 @@ class USERPREF_PT_edit(bpy.types.Panel):
         col.label(text="Transform:")
         col.prop(edit, "drag_immediately")
 
-
         row.separator()
         row.separator()
-
 
         col = row.column()
         col.label(text="Duplicate Data:")
@@ -352,12 +384,11 @@ class USERPREF_PT_system(bpy.types.Panel):
 
         userpref = context.user_preferences
         system = userpref.system
-        lamp0 = system.solid_lights[0]
-        lamp1 = system.solid_lights[1]
-        lamp2 = system.solid_lights[2]
 
         split = layout.split()
 
+
+        # 1. Column
         column = split.column()
         colsplit = column.split(percentage=0.85)
 
@@ -377,7 +408,6 @@ class USERPREF_PT_system(bpy.types.Panel):
         sub = col.column()
         sub.active = system.audio_device != 'NONE'
         #sub.prop(system, "enable_all_codecs")
-        sub.prop(system, "game_sound")
         sub.prop(system, "audio_channels", text="Channels")
         sub.prop(system, "audio_mixing_buffer", text="Mixing Buffer")
         sub.prop(system, "audio_sample_rate", text="Sample Rate")
@@ -386,8 +416,6 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.separator()
         col.separator()
         col.separator()
-
-
 
         #column = split.column()
         #colsplit = column.split(percentage=0.85)
@@ -402,7 +430,9 @@ class USERPREF_PT_system(bpy.types.Panel):
         #col.separator()
 
         #col.prop(system, "use_textured_fonts")
+        
 
+        # 2. Column
         column = split.column()
         colsplit = column.split(percentage=0.85)
 
@@ -411,6 +441,8 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.prop(system, "clip_alpha", slider=True)
         col.prop(system, "use_mipmaps")
         col.prop(system, "use_vbos")
+        #Anti-aliasing is disabled as it breaks broder/lasso select
+        #col.prop(system, "use_antialiasing")
         col.label(text="Window Draw Method:")
         col.row().prop(system, "window_draw_method", expand=True)
         col.label(text="Textures:")
@@ -425,7 +457,9 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.label(text="Sequencer:")
         col.prop(system, "prefetch_frames")
         col.prop(system, "memory_cache_limit")
+        
 
+        # 3. Column
         column = split.column()
 
         column.label(text="Solid OpenGL lights:")
@@ -434,79 +468,29 @@ class USERPREF_PT_system(bpy.types.Panel):
         split.label()
         split.label(text="Colors:")
         split.label(text="Direction:")
-
-
-        split = column.split(percentage=0.1)
-
-        if lamp0.enabled == True:
-            split.prop(lamp0, "enabled", text="", icon='OUTLINER_OB_LAMP')
-        else:
-            split.prop(lamp0, "enabled", text="", icon='LAMP_DATA')
-
-        col = split.column()
-        col.active = lamp0.enabled
-        row = col.row()
-        row.label(text="Diffuse:")
-        row.prop(lamp0, "diffuse_color", text="")
-        row = col.row()
-        row.label(text="Specular:")
-        row.prop(lamp0, "specular_color", text="")
-
-        col = split.column()
-        col.active = lamp0.enabled
-        col.prop(lamp0, "direction", text="")
-
-
-        split = column.split(percentage=0.1)
-
-        if lamp1.enabled == True:
-            split.prop(lamp1, "enabled", text="", icon='OUTLINER_OB_LAMP')
-        else:
-            split.prop(lamp1, "enabled", text="", icon='LAMP_DATA')
-
-        col = split.column()
-        col.active = lamp1.enabled
-        row = col.row()
-        row.label(text="Diffuse:")
-        row.prop(lamp1, "diffuse_color", text="")
-        row = col.row()
-        row.label(text="Specular:")
-        row.prop(lamp1, "specular_color", text="")
-
-        col = split.column()
-        col.active = lamp1.enabled
-        col.prop(lamp1, "direction", text="")
-
-
-        split = column.split(percentage=0.1)
-
-        if lamp2.enabled == True:
-            split.prop(lamp2, "enabled", text="", icon='OUTLINER_OB_LAMP')
-        else:
-            split.prop(lamp2, "enabled", text="", icon='LAMP_DATA')
-
-        col = split.column()
-        col.active = lamp2.enabled
-        row = col.row()
-        row.label(text="Diffuse:")
-        row.prop(lamp2, "diffuse_color", text="")
-        row = col.row()
-        row.label(text="Specular:")
-        row.prop(lamp2, "specular_color", text="")
-
-        col = split.column()
-        col.active = lamp2.enabled
-        col.prop(lamp2, "direction", text="")
-
+        
+        lamp = system.solid_lights[0]
+        opengl_lamp_buttons(column, lamp)
+        
+        lamp = system.solid_lights[1]
+        opengl_lamp_buttons(column, lamp)
+        
+        lamp = system.solid_lights[2]
+        opengl_lamp_buttons(column, lamp)
 
         column.separator()
         column.separator()
         column.separator()
-
-        col = column.column()
-
-        col.prop(system, "use_weight_color_range", text="Custom Weight Paint Range")
-        sub = col.column()
+        
+        column.label(text="Color Picker Type:")
+        column.row().prop(system, "color_picker_type", text="")
+        
+        column.separator()
+        column.separator()
+        column.separator()
+        
+        column.prop(system, "use_weight_color_range", text="Custom Weight Paint Range")
+        sub = column.column()
         sub.active = system.use_weight_color_range
         sub.template_color_ramp(system, "weight_color_range", expand=True)
 
@@ -526,14 +510,100 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
         theme = context.user_preferences.themes[0]
 
-        split = layout.split(percentage=0.33)
-        split.prop(theme, "active_theme", text="")
+        split_themes = layout.split(percentage=0.2)
+        split_themes.prop(theme, "theme_area", expand=True)
 
-        layout.separator()
+        split = split_themes.split()
+        
+        if theme.theme_area == 'USER_INTERFACE':
+            col = split.column()
 
-        split = layout.split()
+            ui = theme.user_interface.wcol_regular
+            col.label(text="Regular:")
+            ui_items_general(col, ui)
 
-        if theme.active_theme == 'VIEW_3D':
+            ui = theme.user_interface.wcol_tool
+            col.label(text="Tool:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_radio
+            col.label(text="Radio Buttons:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_text
+            col.label(text="Text:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_option
+            col.label(text="Option:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_toggle
+            col.label(text="Toggle:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_num
+            col.label(text="Number Field:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_numslider
+            col.label(text="Value Slider:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_box
+            col.label(text="Box:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_menu
+            col.label(text="Menu:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_pulldown
+            col.label(text="Pulldown:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_menu_back
+            col.label(text="Menu Back:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_menu_item
+            col.label(text="Menu Item:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_scroll
+            col.label(text="Scroll Bar:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_list_item
+            col.label(text="List Item:")
+            ui_items_general(col, ui)
+
+            ui = theme.user_interface.wcol_state
+            col.label(text="State:")
+
+            row = col.row()
+            sub = row.column()
+            sub.prop(ui, "inner_anim")
+            sub.prop(ui, "inner_anim_sel")
+            sub = row.column()
+            sub.prop(ui, "inner_driven")
+            sub.prop(ui, "inner_driven_sel")
+            sub = row.column()
+            sub.prop(ui, "inner_key")
+            sub.prop(ui, "inner_key_sel")
+            sub = row.column()
+            sub.prop(ui, "blend")
+
+            ui = theme.user_interface
+            col.separator()
+            col.separator()
+            col.prop(ui, "icon_file")
+
+            layout.separator()
+            layout.separator()
+
+
+        elif theme.theme_area == 'VIEW_3D':
             v3d = theme.view_3d
 
             col = split.column()
@@ -564,336 +634,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "bone_pose")
             #col.prop(v3d, "edge") Doesn't seem to work
 
-        elif theme.active_theme == 'USER_INTERFACE':
-            ui = theme.user_interface.wcol_regular
-            layout.label(text="Regular:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            layout.separator()
-
-            ui = theme.user_interface.wcol_tool
-            layout.label(text="Tool:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_radio
-            layout.label(text="Radio Buttons:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_text
-            layout.label(text="Text:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_option
-            layout.label(text="Option:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_toggle
-            layout.label(text="Toggle:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_num
-            layout.label(text="Number Field:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_numslider
-            layout.label(text="Value Slider:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_box
-            layout.label(text="Box:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_menu
-            layout.label(text="Menu:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_pulldown
-            layout.label(text="Pulldown:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_menu_back
-            layout.label(text="Menu Back:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_menu_item
-            layout.label(text="Menu Item:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_scroll
-            layout.label(text="Scroll Bar:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_list_item
-            layout.label(text="List Item:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "outline")
-            sub.prop(ui, "item", slider=True)
-            sub = row.column()
-            sub.prop(ui, "inner", slider=True)
-            sub.prop(ui, "inner_sel", slider=True)
-            sub = row.column()
-            sub.prop(ui, "text")
-            sub.prop(ui, "text_sel")
-            sub = row.column()
-            sub.prop(ui, "shaded")
-            subsub = sub.column(align=True)
-            subsub.active = ui.shaded
-            subsub.prop(ui, "shadetop")
-            subsub.prop(ui, "shadedown")
-
-            ui = theme.user_interface.wcol_state
-            layout.label(text="State:")
-
-            row = layout.row()
-            sub = row.column()
-            sub.prop(ui, "inner_anim")
-            sub.prop(ui, "inner_anim_sel")
-            sub = row.column()
-            sub.prop(ui, "inner_driven")
-            sub.prop(ui, "inner_driven_sel")
-            sub = row.column()
-            sub.prop(ui, "inner_key")
-            sub.prop(ui, "inner_key_sel")
-            sub = row.column()
-            sub.prop(ui, "blend")
-
-            ui = theme.user_interface
-            layout.separator()
-
-            sub = layout.row()
-            sub.prop(ui, "icon_file")
-
-            layout.separator()
-            layout.separator()
-
-
-        elif theme.active_theme == 'GRAPH_EDITOR':
+        elif theme.theme_area == 'GRAPH_EDITOR':
             graph = theme.graph_editor
 
             col = split.column()
@@ -921,7 +662,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.separator()
             col.prop(graph, "handle_vertex_size")
 
-        elif theme.active_theme == 'FILE_BROWSER':
+        elif theme.theme_area == 'FILE_BROWSER':
             file_browse = theme.file_browser
 
             col = split.column()
@@ -941,7 +682,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(file_browse, "active_file")
             col.prop(file_browse, "active_file_text")
 
-        elif theme.active_theme == 'NLA_EDITOR':
+        elif theme.theme_area == 'NLA_EDITOR':
             nla = theme.nla_editor
 
             col = split.column()
@@ -964,7 +705,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(nla, "strips_selected")
             col.prop(nla, "current_frame")
 
-        elif theme.active_theme == 'DOPESHEET_EDITOR':
+        elif theme.theme_area == 'DOPESHEET_EDITOR':
             dope = theme.dopesheet_editor
 
             col = split.column()
@@ -989,7 +730,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(dope, "dopesheet_channel")
             col.prop(dope, "dopesheet_subchannel")
 
-        elif theme.active_theme == 'IMAGE_EDITOR':
+        elif theme.theme_area == 'IMAGE_EDITOR':
             image = theme.image_editor
 
             col = split.column()
@@ -1006,7 +747,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(image, "editmesh_active", slider=True)
 
-        elif theme.active_theme == 'SEQUENCE_EDITOR':
+        elif theme.theme_area == 'SEQUENCE_EDITOR':
             seq = theme.sequence_editor
 
             col = split.column()
@@ -1035,7 +776,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(seq, "keyframe")
             col.prop(seq, "draw_action")
 
-        elif theme.active_theme == 'PROPERTIES':
+        elif theme.theme_area == 'PROPERTIES':
             prop = theme.properties
 
             col = split.column()
@@ -1050,7 +791,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(prop, "header")
 
-        elif theme.active_theme == 'TEXT_EDITOR':
+        elif theme.theme_area == 'TEXT_EDITOR':
             text = theme.text_editor
 
             col = split.column()
@@ -1076,7 +817,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(text, "syntax_string")
             col.prop(text, "syntax_numbers")
 
-        elif theme.active_theme == 'TIMELINE':
+        elif theme.theme_area == 'TIMELINE':
             time = theme.timeline
 
             col = split.column()
@@ -1092,7 +833,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(time, "current_frame")
 
-        elif theme.active_theme == 'NODE_EDITOR':
+        elif theme.theme_area == 'NODE_EDITOR':
             node = theme.node_editor
 
             col = split.column()
@@ -1118,7 +859,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(node, "operator_node")
             col.prop(node, "group_node")
 
-        elif theme.active_theme == 'LOGIC_EDITOR':
+        elif theme.theme_area == 'LOGIC_EDITOR':
             logic = theme.logic_editor
 
             col = split.column()
@@ -1136,7 +877,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(logic, "panel")
 
-        elif theme.active_theme == 'OUTLINER':
+        elif theme.theme_area == 'OUTLINER':
             out = theme.outliner
 
             col = split.column()
@@ -1151,7 +892,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(out, "header")
 
-        elif theme.active_theme == 'INFO':
+        elif theme.theme_area == 'INFO':
             info = theme.info
 
             col = split.column()
@@ -1165,7 +906,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             col = split.column()
 
-        elif theme.active_theme == 'USER_PREFERENCES':
+        elif theme.theme_area == 'USER_PREFERENCES':
             prefs = theme.user_preferences
 
             col = split.column()
@@ -1475,11 +1216,11 @@ class USERPREF_PT_input(bpy.types.Panel):
         filter = kc.filter.lower()
 
         for km in kc.keymaps:
+            km = km.active()
+
             filtered_items = [kmi for kmi in km.items if filter in kmi.name.lower()]
 
             if len(filtered_items) != 0:
-                km = km.active()
-
                 layout.set_context_pointer("keymap", km)
                 col = layout.column()
 

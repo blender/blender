@@ -59,9 +59,19 @@ ifeq ($(OS),darwin)
         LLIBS += -framework Cocoa
     endif
     LLIBS += -framework Carbon -framework AGL -framework OpenGL
-    LLIBS    += -framework QuickTime -framework CoreAudio
-    LLIBS    += -framework AudioUnit -framework AudioToolbox
+    ifeq ($(WITH_QUICKTIME), true)
+        ifeq ($(USE_QTKIT), true)
+            LLIBS += -framework QTKit
+        else
+            LLIBS  += -framework QuickTime
+        endif
+    endif
+    LLIBS += -framework CoreAudio
+    LLIBS += -framework AudioUnit -framework AudioToolbox
     LDFLAGS += -L/System/Library/Frameworks/OpenGL.framework/Libraries
+    # useful for crosscompiling
+    LDFLAGS += -arch $(MACOSX_ARCHITECTURE) #-isysroot $(MACOSX_SDK) -mmacosx-version-min=$(MACOSX_MIN_VERS)
+    
     DBG_LDFLAGS += -L/System/Library/Frameworks/OpenGL.framework/Libraries
 endif
 
@@ -175,6 +185,10 @@ endif
 
 ifeq ($(WITH_FFTW3),true)
     LLIBS += $(BF_FFTW3_LIBS)
+endif
+
+ifeq ($(WITH_OPENCOLLADA),true)
+    LLIBS += $(BF_OPENCOLLADA_LIBS)
 endif
 
 LLIBS += $(NAN_PYTHON_LIB)

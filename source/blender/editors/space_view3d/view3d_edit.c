@@ -445,7 +445,9 @@ enum {
 #define VIEW_MODAL_CONFIRM				1 /* used for all view operations */
 #define VIEWROT_MODAL_AXIS_SNAP_ENABLE	2
 #define VIEWROT_MODAL_AXIS_SNAP_DISABLE	3
-
+#define VIEWROT_MODAL_SWITCH_ZOOM		4
+#define VIEWROT_MODAL_SWITCH_MOVE		5
+#define VIEWROT_MODAL_SWITCH_ROTATE		6
 
 /* called in transform_ops.c, on each regeneration of keymaps  */
 void viewrotate_modal_keymap(wmKeyConfig *keyconf)
@@ -454,7 +456,10 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Cancel", ""},
 
 	{VIEWROT_MODAL_AXIS_SNAP_ENABLE,	"AXIS_SNAP_ENABLE", 0, "Enable Axis Snap", ""},
-	{VIEWROT_MODAL_AXIS_SNAP_DISABLE,	"AXIS_SNAP_DISABLE", 0, "Enable Axis Snap", ""},
+	{VIEWROT_MODAL_AXIS_SNAP_DISABLE,	"AXIS_SNAP_DISABLE", 0, "Disable Axis Snap", ""},
+		
+	{VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, "Switch to Zoom"},
+	{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
 
 	{0, NULL, 0, NULL, NULL}};
 
@@ -469,9 +474,13 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_ENABLE);
-	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_DISABLE);
+	WM_modalkeymap_add_item(keymap, LEFTALTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_ENABLE);
+	WM_modalkeymap_add_item(keymap, LEFTALTKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_AXIS_SNAP_DISABLE);
 
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
+	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
+	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_rotate");
 
@@ -633,6 +642,14 @@ static int viewrotate_modal(bContext *C, wmOperator *op, wmEvent *event)
 				vod->axis_snap= FALSE;
 				event_code= VIEW_APPLY;
 				break;
+			case VIEWROT_MODAL_SWITCH_ZOOM:
+				WM_operator_name_call(C, "VIEW3D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_MOVE:
+				WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL);
+				event_code= VIEW_CONFIRM;
+				break;
 		}
 	}
 	else if(event->type==vod->origkey && event->val==KM_RELEASE) {
@@ -680,6 +697,20 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static int ED_operator_view3d_rotate(bContext *C)
+{
+	if (!ED_operator_view3d_active(C)) {
+		return 0;
+	} else {
+		RegionView3D *rv3d= CTX_wm_region_view3d(C);
+		/* rv3d is null in menus, but it's ok when the menu is clicked on */
+		/* XXX of course, this doesn't work with quadview
+		 * Maybe having exec return PASSTHROUGH would be better than polling here
+		 * Poll functions are full of problems anyway.
+		 * */
+		return rv3d == NULL || rv3d->viewlock == 0;
+	}
+}
 
 void VIEW3D_OT_rotate(wmOperatorType *ot)
 {
@@ -722,6 +753,10 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ZOOM);
+	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
+	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_move");
 }
@@ -768,6 +803,14 @@ static int viewmove_modal(bContext *C, wmOperator *op, wmEvent *event)
 	else if(event->type==EVT_MODAL_MAP) {
 		switch (event->val) {
 			case VIEW_MODAL_CONFIRM:
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_ZOOM:
+				WM_operator_name_call(C, "VIEW3D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_ROTATE:
+				WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, NULL);
 				event_code= VIEW_CONFIRM;
 				break;
 		}
@@ -840,6 +883,10 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, VIEW_MODAL_CONFIRM);
 
+	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
+	WM_modalkeymap_add_item(keymap, LEFTCTRLKEY, KM_RELEASE, KM_ANY, 0, VIEWROT_MODAL_SWITCH_ROTATE);
+	WM_modalkeymap_add_item(keymap, LEFTSHIFTKEY, KM_PRESS, KM_ANY, 0, VIEWROT_MODAL_SWITCH_MOVE);
+	
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom");
 }
@@ -979,6 +1026,14 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	else if(event->type==EVT_MODAL_MAP) {
 		switch (event->val) {
 			case VIEW_MODAL_CONFIRM:
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_MOVE:
+				WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL);
+				event_code= VIEW_CONFIRM;
+				break;
+			case VIEWROT_MODAL_SWITCH_ROTATE:
+				WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, NULL);
 				event_code= VIEW_CONFIRM;
 				break;
 		}
@@ -1460,7 +1515,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
 	/* ZBuffer depth vars */
 	bglMats mats;
-	float depth, depth_close= MAXFLOAT;
+	float depth, depth_close= FLT_MAX;
 	int had_depth = 0;
 	double cent[2],  p[3];
 	int xs, ys;
@@ -1517,7 +1572,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		double p_corner[3];
 
 		/* no depths to use, we cant do anything! */
-		if (depth_close==MAXFLOAT){
+		if (depth_close==FLT_MAX){
 			BKE_report(op->reports, RPT_ERROR, "Depth Too Large");
 			return OPERATOR_CANCELLED;
 		}
@@ -1545,7 +1600,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 		new_dist = rv3d->dist;
 
 		/* convert the drawn rectangle into 3d space */
-		if (depth_close!=MAXFLOAT && gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2])) {
+		if (depth_close!=FLT_MAX && gluUnProject(cent[0], cent[1], depth_close, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2])) {
 			new_ofs[0] = -p[0];
 			new_ofs[1] = -p[1];
 			new_ofs[2] = -p[2];
@@ -1822,9 +1877,8 @@ static EnumPropertyItem prop_view_orbit_items[] = {
 
 static int vieworbit_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar= CTX_wm_region(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	float phi, si, q1[4];
+	float phi, si, q1[4], new_quat[4];
 	int orbitdir;
 
 	orbitdir = RNA_enum_get(op->ptr, "type");
@@ -1840,10 +1894,10 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				q1[0]= (float)cos(phi);
 				q1[1]= q1[2]= 0.0;
 				q1[3]= si;
-				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+				mul_qt_qtqt(new_quat, rv3d->viewquat, q1);
 				rv3d->view= 0;
 			}
-			if(orbitdir == V3D_VIEW_STEPDOWN || orbitdir == V3D_VIEW_STEPUP) {
+			else if(orbitdir == V3D_VIEW_STEPDOWN || orbitdir == V3D_VIEW_STEPUP) {
 				/* horizontal axis */
 				VECCOPY(q1+1, rv3d->viewinv[0]);
 
@@ -1855,10 +1909,11 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				q1[1]*= si;
 				q1[2]*= si;
 				q1[3]*= si;
-				mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
+				mul_qt_qtqt(new_quat, rv3d->viewquat, q1);
 				rv3d->view= 0;
 			}
-			ED_region_tag_redraw(ar);
+
+			smooth_view(C, NULL, NULL, NULL, new_quat, NULL, NULL);
 		}
 	}
 
@@ -2183,22 +2238,66 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 /* ************************* below the line! *********************** */
 
 
+static float view_autodist_depth_margin(ARegion *ar, short *mval, int margin)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	float depth= FLT_MAX;
+
+	if(margin==0) {
+		if (mval[0] < 0) return 0;
+		if (mval[1] < 0) return 0;
+		if (mval[0] >= rv3d->depths->w) return 0;
+		if (mval[1] >= rv3d->depths->h) return 0;
+
+		/* Get Z Depths, needed for perspective, nice for ortho */
+		depth= rv3d->depths->depths[mval[1]*rv3d->depths->w+mval[0]];
+		if(depth >= rv3d->depths->depth_range[1] || depth <= rv3d->depths->depth_range[0]) {
+			depth= FLT_MAX;
+		}
+	}
+	else {
+		rcti rect;
+		float depth_close= FLT_MAX;
+		int xs, ys;
+
+		rect.xmax = mval[0] + margin;
+		rect.ymax = mval[1] + margin;
+
+		rect.xmin = mval[0] - margin;
+		rect.ymin = mval[1] - margin;
+
+		/* Constrain rect to depth bounds */
+		if (rect.xmin < 0) rect.xmin = 0;
+		if (rect.ymin < 0) rect.ymin = 0;
+		if (rect.xmax >= rv3d->depths->w) rect.xmax = rv3d->depths->w-1;
+		if (rect.ymax >= rv3d->depths->h) rect.ymax = rv3d->depths->h-1;
+
+		/* Find the closest Z pixel */
+		for (xs=rect.xmin; xs < rect.xmax; xs++) {
+			for (ys=rect.ymin; ys < rect.ymax; ys++) {
+				depth= rv3d->depths->depths[ys*rv3d->depths->w+xs];
+				if(depth < rv3d->depths->depth_range[1] && depth > rv3d->depths->depth_range[0]) {
+					if (depth_close > depth) {
+						depth_close = depth;
+					}
+				}
+			}
+		}
+
+		depth= depth_close;
+	}
+
+	return depth;
+}
+
 /* XXX todo Zooms in on a border drawn by the user */
 int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, short *mval, float mouse_worldloc[3] ) //, float *autodist )
 {
 	RegionView3D *rv3d= ar->regiondata;
 	bglMats mats; /* ZBuffer depth vars */
-	rcti rect;
-	float depth, depth_close= MAXFLOAT;
+	float depth_close= FLT_MAX;
 	int had_depth = 0;
 	double cent[2],  p[3];
-	int xs, ys;
-
-	rect.xmax = mval[0] + 4;
-	rect.ymax = mval[1] + 4;
-
-	rect.xmin = mval[0] - 4;
-	rect.ymin = mval[1] - 4;
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
 	bgl_get_mats(&mats);
@@ -2212,25 +2311,9 @@ int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, short *mval, float mou
 
 	view3d_update_depths(ar, v3d);
 
-	/* Constrain rect to depth bounds */
-	if (rect.xmin < 0) rect.xmin = 0;
-	if (rect.ymin < 0) rect.ymin = 0;
-	if (rect.xmax >= rv3d->depths->w) rect.xmax = rv3d->depths->w-1;
-	if (rect.ymax >= rv3d->depths->h) rect.ymax = rv3d->depths->h-1;
+	depth_close= view_autodist_depth_margin(ar, mval, 4);
 
-	/* Find the closest Z pixel */
-	for (xs=rect.xmin; xs < rect.xmax; xs++) {
-		for (ys=rect.ymin; ys < rect.ymax; ys++) {
-			depth= rv3d->depths->depths[ys*rv3d->depths->w+xs];
-			if(depth < rv3d->depths->depth_range[1] && depth > rv3d->depths->depth_range[0]) {
-				if (depth_close > depth) {
-					depth_close = depth;
-				}
-			}
-		}
-	}
-
-	if (depth_close==MAXFLOAT)
+	if (depth_close==FLT_MAX)
 		return 0;
 
 	if (had_depth==0) {
@@ -2251,12 +2334,19 @@ int view_autodist(Scene *scene, ARegion *ar, View3D *v3d, short *mval, float mou
 	return 1;
 }
 
-int view_autodist_init(Scene *scene, ARegion *ar, View3D *v3d) //, float *autodist )
+int view_autodist_init(Scene *scene, ARegion *ar, View3D *v3d, int mode) //, float *autodist )
 {
 	RegionView3D *rv3d= ar->regiondata;
 
 	/* Get Z Depths, needed for perspective, nice for ortho */
-	draw_depth(scene, ar, v3d, NULL);
+	switch(mode) {
+	case 0:
+		draw_depth(scene, ar, v3d, NULL);
+		break;
+	case 1:
+		draw_depth_gpencil(scene, ar, v3d);
+		break;
+	}
 
 	/* force updating */
 	if (rv3d->depths) {
@@ -2268,28 +2358,25 @@ int view_autodist_init(Scene *scene, ARegion *ar, View3D *v3d) //, float *autodi
 }
 
 // no 4x4 sampling, run view_autodist_init first
-int view_autodist_simple(ARegion *ar, short *mval, float mouse_worldloc[3] ) //, float *autodist )
+int view_autodist_simple(ARegion *ar, short *mval, float mouse_worldloc[3], int margin, float *force_depth) //, float *autodist )
 {
-	RegionView3D *rv3d= ar->regiondata;
 	bglMats mats; /* ZBuffer depth vars, could cache? */
 	float depth;
 	double cent[2],  p[3];
 
-	if (mval[0] < 0) return 0;
-	if (mval[1] < 0) return 0;
-	if (mval[0] >= rv3d->depths->w) return 0;
-	if (mval[1] >= rv3d->depths->h) return 0;
-
 	/* Get Z Depths, needed for perspective, nice for ortho */
-	bgl_get_mats(&mats);
-	depth= rv3d->depths->depths[mval[1]*rv3d->depths->w+mval[0]];
+	if(force_depth)
+		depth= *force_depth;
+	else
+		depth= view_autodist_depth_margin(ar, mval, margin);
 
-	if (depth==MAXFLOAT)
+	if (depth==FLT_MAX)
 		return 0;
 
 	cent[0] = (double)mval[0];
 	cent[1] = (double)mval[1];
 
+	bgl_get_mats(&mats);
 	if (!gluUnProject(cent[0], cent[1], depth, mats.modelview, mats.projection, (GLint *)mats.viewport, &p[0], &p[1], &p[2]))
 		return 0;
 
@@ -2297,6 +2384,14 @@ int view_autodist_simple(ARegion *ar, short *mval, float mouse_worldloc[3] ) //,
 	mouse_worldloc[1] = (float)p[1];
 	mouse_worldloc[2] = (float)p[2];
 	return 1;
+}
+
+int view_autodist_depth(struct ARegion *ar, short *mval, int margin, float *depth)
+{
+	*depth= view_autodist_depth_margin(ar, mval, margin);
+
+	return (*depth==FLT_MAX) ? 0:1;
+		return 0;
 }
 
 /* ********************* NDOF ************************ */

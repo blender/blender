@@ -717,7 +717,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 		rdata.layers.first= rdata.layers.last= NULL;
 		rdata.renderer= R_INTERN;
 		 
-		RE_InitState(re, NULL, &rdata, sa->winx, sa->winy, &ri->disprect);
+		RE_InitState(re, NULL, &rdata, NULL, sa->winx, sa->winy, &ri->disprect);
 	
 		if(orth)
 			RE_SetOrtho(re, &viewplane, clipsta, clipend);
@@ -923,7 +923,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	else sizex= sp->sizex;
 
 	/* allocates or re-uses render result */
-	RE_InitState(re, NULL, &sce->r, sizex, sp->sizey, NULL);
+	RE_InitState(re, NULL, &sce->r, NULL, sizex, sp->sizey, NULL);
 
 	/* callbacs are cleared on GetRender() */
 	if(sp->pr_method==PR_BUTS_RENDER) {

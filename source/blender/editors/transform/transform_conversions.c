@@ -332,7 +332,7 @@ static void createTransTexspace(bContext *C, TransInfo *t)
 /* ********************* edge (for crease) ***** */
 
 static void createTransEdge(bContext *C, TransInfo *t) {
-#if 0	// TRANSFORM_FIX_ME
+	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 	TransData *td = NULL;
 	EditEdge *eed;
 	float mtx[3][3], smtx[3][3];
@@ -390,7 +390,6 @@ static void createTransEdge(bContext *C, TransInfo *t) {
 			td++;
 		}
 	}
-#endif
 }
 
 /* ********************* pose mode ************* */
@@ -5148,11 +5147,11 @@ void createTransData(bContext *C, TransInfo *t)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
 
-	if (t->options == CTX_TEXTURE) {
+	if (t->options & CTX_TEXTURE) {
 		t->flag |= T_TEXTURE;
 		createTransTexspace(C, t);
 	}
-	else if (t->options == CTX_EDGE) {
+	else if (t->options & CTX_EDGE) {
 		t->ext = NULL;
 		t->flag |= T_EDIT;
 		createTransEdge(C, t);

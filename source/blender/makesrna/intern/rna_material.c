@@ -1023,10 +1023,11 @@ static void rna_def_material_volume(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Diffusion", "Diffusion factor, the strength of the blurring effect");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "ms_spread", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ms_steps");
-	RNA_def_property_range(prop, 0, 1024);
-	RNA_def_property_ui_text(prop, "Spread", "Simulation steps, the effective distance over which the light is diffused");
+	prop= RNA_def_property(srna, "ms_spread", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ms_spread");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 1, 3);
+	RNA_def_property_ui_text(prop, "Spread", "Proportional distance over which the light is diffused");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "ms_intensity", PROP_FLOAT, PROP_NONE);

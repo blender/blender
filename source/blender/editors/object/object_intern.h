@@ -79,7 +79,6 @@ void OBJECT_OT_restrictview_clear(struct wmOperatorType *ot);
 void OBJECT_OT_proxy_make(struct wmOperatorType *ot);
 void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
-void OBJECT_OT_bake_image(struct wmOperatorType *ot);
 
 /* object_select.c */
 void OBJECT_OT_select_all(struct wmOperatorType *ot);
@@ -202,6 +201,9 @@ void OBJECT_OT_shape_key_move(struct wmOperatorType *ot);
 /* object_group.c */
 void OBJECT_OT_group_add(struct wmOperatorType *ot);
 void OBJECT_OT_group_remove(struct wmOperatorType *ot);
+
+/* object_bake.c */
+void OBJECT_OT_bake_image(wmOperatorType *ot);
 
 #endif /* ED_OBJECT_INTERN_H */
 

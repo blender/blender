@@ -222,116 +222,6 @@ void snode_handle_recalc(bContext *C, SpaceNode *snode)
 		WM_event_add_notifier(C, NC_TEXTURE|ND_NODES, snode->id);
 }
 
-#if 0
-static int image_detect_file_sequence(int *start_p, int *frames_p, char *str)
-{
-	SpaceFile *sfile;
-	char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX], filename[FILE_MAX];
-	int a, frame, totframe, found, minframe;
-	unsigned short numlen;
-
-	sfile= scrarea_find_space_of_type(curarea, SPACE_FILE);
-	if(sfile==NULL || sfile->filelist==NULL)
-		return 0;
-
-	/* find first frame */
-	found= 0;
-	minframe= 0;
-
-	for(a=0; a<sfile->totfile; a++) {
-		if(sfile->filelist[a].flags & ACTIVE) {
-			BLI_strncpy(name, sfile->filelist[a].relname, sizeof(name));
-			frame= BLI_stringdec(name, head, tail, &numlen);
-
-			if(!found || frame < minframe) {
-				BLI_strncpy(filename, name, sizeof(name));
-				minframe= frame;
-				found= 1;
-			}
-		}
-	}
-
-	/* not one frame found */
-	if(!found)
-		return 0;
-
-	/* counter number of following frames */
-	found= 1;
-	totframe= 0;
-
-	for(frame=minframe; found; frame++) {
-		found= 0;
-		BLI_strncpy(name, filename, sizeof(name));
-		BLI_stringenc(name, head, tail, numlen, frame);
-
-		for(a=0; a<sfile->totfile; a++) {
-			if(sfile->filelist[a].flags & ACTIVE) {
-				if(strcmp(sfile->filelist[a].relname, name) == 0) {
-					found= 1;
-					totframe++;
-					break;
-				}
-			}
-		}
-	}
-
-	if(totframe > 1) {
-		BLI_strncpy(str, sfile->dir, sizeof(name));
-		strcat(str, filename);
-
-		*start_p= minframe;
-		*frames_p= totframe;
-		return 1;
-	}
-
-	return 0;
-}
-
-static void load_node_image(char *str)	/* called from fileselect */
-{
-	SpaceNode *snode= curarea->spacedata.first;
-	bNode *node= nodeGetActive(snode->edittree);
-	Image *ima= NULL;
-	ImageUser *iuser= node->storage;
-	char filename[FILE_MAX];
-	int start=0, frames=0, sequence;
-
-	sequence= image_detect_file_sequence(&start, &frames, filename);
-	if(sequence)
-		str= filename;
-	
-	ima= BKE_add_image_file(str);
-	if(ima) {
-		if(node->id)
-			node->id->us--;
-		
-		node->id= &ima->id;
-		id_us_plus(node->id);
-
-		BLI_strncpy(node->name, node->id->name+2, 21);
-
-		if(sequence) {
-			ima->source= IMA_SRC_SEQUENCE;
-			iuser->frames= frames;
-			iuser->offset= start-1;
-		}
-				   
-		BKE_image_signal(ima, node->storage, IMA_SIGNAL_RELOAD);
-		
-		NodeTagChanged(snode->edittree, node);
-		// XXX snode_handle_recalc(C, snode);
-	}
-}
-
-static void set_node_imagepath(char *str)	/* called from fileselect */
-{
-	SpaceNode *snode= curarea->spacedata.first;
-	bNode *node= nodeGetActive(snode->edittree);
-	BLI_strncpy(((NodeImageFile *)node->storage)->name, str, sizeof( ((NodeImageFile *)node->storage)->name ));
-}
-
-#endif /* 0 */
-
 bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 {
 	bNode *gnode;
@@ -343,136 +233,6 @@ bNode *node_tree_get_editgroup(bNodeTree *nodetree)
 	return gnode;
 }
 
-#if 0
-
-/* node has to be of type 'render layers' */
-/* is a bit clumsy copying renderdata here... scene nodes use render size of current render */
-static void composite_node_render(SpaceNode *snode, bNode *node)
-{
-	RenderData rd;
-	Scene *scene= NULL;
-	int scemode, actlay;
-	
-	/* the button press won't show up otherwise, button hilites disabled */
-	force_draw(0);
-	
-	if(node->id && node->id!=(ID *)G.scene) {
-		scene= G.scene;
-		set_scene_bg((Scene *)node->id);
-		rd= G.scene->r;
-		G.scene->r.xsch= scene->r.xsch;
-		G.scene->r.ysch= scene->r.ysch;
-		G.scene->r.size= scene->r.size;
-		G.scene->r.mode &= ~(R_BORDER|R_DOCOMP);
-		G.scene->r.mode |= scene->r.mode & R_BORDER;
-		G.scene->r.border= scene->r.border;
-		G.scene->r.cfra= scene->r.cfra;
-	}
-	
-	scemode= G.scene->r.scemode;
-	actlay= G.scene->r.actlay;
-
-	G.scene->r.scemode |= R_SINGLE_LAYER|R_COMP_RERENDER;
-	G.scene->r.actlay= node->custom1;
-	
-	BIF_do_render(0);
-	
-	G.scene->r.scemode= scemode;
-	G.scene->r.actlay= actlay;
-
-	node->custom2= 0;
-	
-	if(scene) {
-		G.scene->r= rd;
-		set_scene_bg(scene);
-	}
-}
-
-static void composit_node_event(SpaceNode *snode, short event)
-{
-	
-	switch(event) {
-		case B_REDR:
-			// allqueue(REDRAWNODE, 1);
-			break;
-		case B_NODE_SETIMAGE:
-		{
-			bNode *node= nodeGetActive(snode->edittree);
-			char name[FILE_MAXDIR+FILE_MAXFILE];
-			
-			strcpy(name, ((NodeImageFile *)node->storage)->name);
-			if (G.qual & LR_CTRLKEY) {
-				activate_imageselect(FILE_SPECIAL, "SELECT OUTPUT DIR", name, set_node_imagepath);
-			} else {
-				activate_fileselect(FILE_SPECIAL, "SELECT OUTPUT DIR", name, set_node_imagepath);
-			}
-			break;
-		}
-		case B_NODE_TREE_EXEC:
-			// XXX			snode_handle_recalc(snode);
-			break;		
-		default:
-			/* B_NODE_EXEC */
-		{
-			bNode *node= BLI_findlink(&snode->edittree->nodes, event-B_NODE_EXEC);
-			if(node) {
-				NodeTagChanged(snode->edittree, node);
-				/* don't use NodeTagIDChanged, it gives far too many recomposites for image, scene layers, ... */
-				
-				/* not the best implementation of the world... but we need it to work now :) */
-				if(node->type==CMP_NODE_R_LAYERS && node->custom2) {
-					/* add event for this window (after render curarea can be changed) */
-					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
-					
-					composite_node_render(snode, node);
-					// XXX			snode_handle_recalc(snode);
-					
-					/* add another event, a render can go fullscreen and open new window */
-					addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
-				}
-				else {
-					node= node_tree_get_editgroup(snode->nodetree);
-					if(node)
-						NodeTagIDChanged(snode->nodetree, node->id);
-					
-					// XXX			snode_handle_recalc(snode);
-				}
-			}
-		}			
-	}
-}
-
-static void texture_node_event(SpaceNode *snode, short event)
-{
-	switch(event) {
-		case B_REDR:
-			// allqueue(REDRAWNODE, 1);
-			break;
-		case B_NODE_LOADIMAGE:
-		{
-			bNode *node= nodeGetActive(snode->edittree);
-			char name[FILE_MAXDIR+FILE_MAXFILE];
-			
-			if(node->id)
-				strcpy(name, ((Image *)node->id)->name);
-			else strcpy(name, U.textudir);
-			if (G.qual & LR_CTRLKEY) {
-				activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
-			} else {
-				activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
-			}
-			break;
-		}
-		default:
-			/* B_NODE_EXEC */
-			ntreeTexCheckCyclics( snode->nodetree );
-			// XXX			snode_handle_recalc(snode);
-			// allqueue(REDRAWNODE, 1);
-			break;
-	}
-}
-
-#endif /* 0  */
 /* assumes nothing being done in ntree yet, sets the default in/out node */
 /* called from shading buttons or header */
 void ED_node_shader_default(Material *ma)
@@ -663,29 +423,6 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 		node_tree_from_ID(snode->id, &snode->nodetree, &snode->edittree, NULL);
 }
 
-#if 0
-/* on activate image viewer, check if we show it */
-static void node_active_image(Image *ima)
-{
-	ScrArea *sa;
-	SpaceImage *sima= NULL;
-	
-	/* find an imagewindow showing render result */
-	for(sa=G.curscreen->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_IMAGE) {
-			sima= sa->spacedata.first;
-			if(sima->image && sima->image->source!=IMA_SRC_VIEWER)
-				break;
-		}
-	}
-	if(sa && sima) {
-		sima->image= ima;
-		scrarea_queue_winredraw(sa);
-		scrarea_queue_headredraw(sa);
-	}
-}
-#endif /* 0 */
-
 void node_set_active(SpaceNode *snode, bNode *node)
 {
 	nodeSetActive(snode->edittree, node);
@@ -735,18 +472,9 @@ void node_set_active(SpaceNode *snode, bNode *node)
 				/* addnode() doesnt link this yet... */
 				node->id= (ID *)BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 			}
-			else if(node->type==CMP_NODE_IMAGE) {
-				// XXX
-#if 0
-				if(node->id)
-					node_active_image((Image *)node->id);
-#endif
-			}
 			else if(node->type==CMP_NODE_R_LAYERS) {
 				if(node->id==NULL || node->id==(ID *)scene) {
 					scene->r.actlay= node->custom1;
-					// XXX
-					// allqueue(REDRAWBUTSSCENE, 0);
 				}
 			}
 		}
@@ -808,13 +536,6 @@ void snode_make_group_editable(SpaceNode *snode, bNode *gnode)
 		snode->edittree= snode->nodetree;
 	
 	ntreeSolveOrder(snode->nodetree);
-	
-	/* finally send out events for new active node */
-	if(snode->treetype==NTREE_SHADER) {
-		// allqueue(REDRAWBUTSSHADING, 0);
-		
-		// XXX BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
-	}
 }
 
 static int node_group_edit_exec(bContext *C, wmOperator *op)
@@ -1139,30 +860,7 @@ void NODE_OT_resize(wmOperatorType *ot)
 	ot->flag= OPTYPE_BLOCKING;
 }
 
-
-#if 0
-
 /* ********************** select ******************** */
-
-/* used in buttons to check context, also checks for edited groups */
-bNode *editnode_get_active_idnode(bNodeTree *ntree, short id_code)
-{
-	return nodeGetActiveID(ntree, id_code);
-}
-
-/* used in buttons to check context, also checks for edited groups */
-Material *editnode_get_active_material(Material *ma)
-{
-	if(ma && ma->use_nodes && ma->nodetree) {
-		bNode *node= editnode_get_active_idnode(ma->nodetree, ID_MA);
-		if(node)
-			return (Material *)node->id;
-		else
-			return NULL;
-	}
-	return ma;
-}
-#endif /* 0 */
 
 
 /* no undo here! */
@@ -1215,8 +913,6 @@ static void node_link_viewer(SpaceNode *snode, bNode *tonode)
 			link->fromnode= tonode;
 			link->fromsock= tonode->outputs.first;
 			NodeTagChanged(snode->edittree, node);
-			
-// XXX			snode_handle_recalc(snode);
 		}
 	}
 }
@@ -1353,58 +1049,155 @@ static int node_socket_hilights(SpaceNode *snode, int in_out)
 
 /* ****************** Add *********************** */
 
-void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag)
+
+typedef struct bNodeListItem {
+	struct bNodeListItem *next, *prev;
+	struct bNode *node;	
+} bNodeListItem;
+
+int sort_nodes_locx(void *a, void *b)
 {
-	bNodeSocket *sock, *sockfrom[8];
-	bNode *node, *nodefrom[8];
-	int totsock= 0, socktype=0;
-
-	if(node_to==NULL || node_to->inputs.first==NULL)
-		return;
+	bNodeListItem *nli1 = (bNodeListItem *)a;
+	bNodeListItem *nli2 = (bNodeListItem *)b;
+	bNode *node1 = nli1->node;
+	bNode *node2 = nli2->node;
 	
-	/* no inputs for node allowed (code it) */
+	if (node1->locx > node2->locx)
+		return 1;
+	else 
+		return 0;
+}
 
-	/* connect first 1 socket type now */
-	for(sock= node_to->inputs.first; sock; sock= sock->next)
-		if(socktype<sock->type)
-			socktype= sock->type;
-
+static int socket_is_available(bNodeTree *ntree, bNodeSocket *sock, int allow_used)
+{
+	if (sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))
+		return 0;
 	
-	/* find potential sockets, max 8 should work */
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if((node->flag & flag) && node!=node_to) {
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
-					sockfrom[totsock]= sock;
-					nodefrom[totsock]= node;
-					totsock++;
-					if(totsock>7)
-						break;
-				}
+	if (!allow_used) {
+		if (nodeCountSocketLinks(ntree, sock) > 0)
+			return 0;
+	}
+	return 1;
+}
+
+static bNodeSocket *best_socket_output(bNodeTree *ntree, bNode *node, bNodeSocket *sock_target, int allow_multiple)
+{
+	bNodeSocket *sock;
+	
+	/* first try to find a socket with a matching name */
+	for (sock=node->outputs.first; sock; sock=sock->next) {
+
+		if (!socket_is_available(ntree, sock, allow_multiple))
+			continue;
+
+		/* check for same types */
+		if (sock->type == sock_target->type) {
+			if (strcmp(sock->name, sock_target->name)==0)
+				return sock;
+		}
+	}
+	
+	/* otherwise settle for the first available socket of the right type */
+	for (sock=node->outputs.first; sock; sock=sock->next) {
+
+		if (!socket_is_available(ntree, sock, allow_multiple))
+			continue;
+		
+		/* check for same types */
+		if (sock->type == sock_target->type) {
+			return sock;
+		}
+	}
+	
+	return NULL;
+}
+
+/* this is a bit complicated, but designed to prioritise finding 
+ * sockets of higher types, such as image, first */
+static bNodeSocket *best_socket_input(bNodeTree *ntree, bNode *node, int num, int replace)
+{
+	bNodeSocket *sock;
+	int socktype, maxtype=0;
+	int a;
+	
+	for (sock=node->inputs.first; sock; sock=sock->next) {
+		maxtype = MAX2(sock->type, maxtype);
+	}
+	
+	/* find sockets of higher 'types' first (i.e. image) */
+	for (socktype=maxtype; socktype >= 0; socktype--) {
+		for (sock=node->inputs.first; sock; sock=sock->next) {
+			
+			if (!socket_is_available(ntree, sock, replace)) {
+				a++;
+				continue;
+			}
+				
+			if (sock->type == socktype) {
+				/* increment to make sure we don't keep finding 
+				 * the same socket on every attempt running this function */
+				a++;
+				if (a > num)
+					return sock;
 			}
 		}
-		if(totsock>7)
-			break;
 	}
+	
+	return NULL;
+}
 
-	/* now just get matching socket types and create links */
-	for(sock= node_to->inputs.first; sock; sock= sock->next) {
-		int a;
+void snode_autoconnect(SpaceNode *snode, int allow_multiple, int replace)
+{
+	ListBase *nodelist = MEM_callocN(sizeof(ListBase), "items_list");
+	bNodeListItem *nli;
+	bNode *node;
+	int i;
+	
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & NODE_SELECT) {
+			nli = MEM_mallocN(sizeof(bNodeListItem), "temporary node list item");
+			nli->node = node;
+			BLI_addtail(nodelist, nli);
+		}
+	}
+	
+	/* sort nodes left to right */
+	BLI_sortlist(nodelist, sort_nodes_locx);
+	
+	for (nli=nodelist->first; nli; nli=nli->next) {
+		bNode *node_fr, *node_to;
+		bNodeSocket *sock_fr, *sock_to;
 		
-		for(a=0; a<totsock; a++) {
-			if(sockfrom[a]) {
-				if(sock->type==sockfrom[a]->type && sock->type==socktype) {
-					nodeAddLink(snode->edittree, nodefrom[a], sockfrom[a], node_to, sock);
-					sockfrom[a]= NULL;
-					break;
-				}
-			}
+		if (nli->next == NULL) break;
+		
+		node_fr = nli->node;
+		node_to = nli->next->node;
+		
+		/* check over input sockets first */
+		for (i=0; i<BLI_countlist(&node_to->inputs); i++) {
+			
+			/* find the best guess input socket */
+			sock_to = best_socket_input(snode->edittree, node_to, i, replace);
+			if (!sock_to) continue;
+			
+			/* check for an appropriate output socket to connect from */
+			sock_fr = best_socket_output(snode->edittree, node_fr, sock_to, allow_multiple);
+			if (!sock_fr) continue;
+			
+			/* then we can connect */
+			if (replace)
+				nodeRemSocketLinks(snode->edittree, sock_to);
+			nodeAddLink(snode->edittree, node_fr, sock_fr, node_to, sock_to);
+			NodeTagChanged(snode->edittree, node_to);
+			break;
 		}
 	}
 	
 	ntreeSolveOrder(snode->edittree);
+	
+	BLI_freelistN(nodelist);
+	MEM_freeN(nodelist);
 }
-
 
 /* can be called from menus too, but they should do own undopush and redraws */
 bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy)
@@ -1505,24 +1298,6 @@ typedef struct NodeLinkDrag
 	bNodeLink *link;
 	int in_out;
 } NodeLinkDrag;
-
-/*static*/ void reset_sel_socket(SpaceNode *snode, int in_out)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	
-	for(node= snode->edittree->nodes.first; node; node= node->next) {
-		if(in_out & SOCK_IN) {
-			for(sock= node->inputs.first; sock; sock= sock->next)
-				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
-		}
-		if(in_out & SOCK_OUT) {
-			for(sock= node->outputs.first; sock; sock= sock->next)
-				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
-		}
-	}
-}
-
 
 static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeLink *link)
 {
@@ -1745,31 +1520,10 @@ void NODE_OT_link(wmOperatorType *ot)
 static int node_make_link_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
-	bNode *fromnode, *tonode;
-	bNodeLink *link;
-	bNodeSocket *outsock= snode->edittree->selout;
-	bNodeSocket *insock= snode->edittree->selin;
-	
-	if (!insock || !outsock) {
-		BKE_report(op->reports, RPT_ERROR, "No input or output socket(s) selected");
-		return OPERATOR_CANCELLED;
-	}
-	if (nodeFindLink(snode->edittree, outsock, insock)) {
-		BKE_report(op->reports, RPT_ERROR, "There is already a link between these sockets");
-		return OPERATOR_CANCELLED;
-	}
+	int replace = RNA_boolean_get(op->ptr, "replace");
 
-	if (nodeFindNode(snode->edittree, outsock, &fromnode, NULL) &&
-		nodeFindNode(snode->edittree, insock, &tonode, NULL)) 
-	{
-		link= nodeAddLink(snode->edittree, fromnode, outsock, tonode, insock);
-		NodeTagChanged(snode->edittree, tonode);
-		node_remove_extra_links(snode, insock, link);
-	}
-	else 
-		return OPERATOR_CANCELLED;
+	snode_autoconnect(snode, 0, replace);
 
-	ntreeSolveOrder(snode->edittree);
 	node_tree_verify_groups(snode->nodetree);
 	snode_handle_recalc(C, snode);
 	
@@ -1789,6 +1543,8 @@ void NODE_OT_link_make(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "replace", 0, "Replace", "Replace socket connections with the new links");
 }
 
 /* ********************** Cut Link operator ***************** */
@@ -2091,18 +1847,10 @@ static int node_delete_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNode *node, *next;
-	bNodeSocket *sock;
 	
 	for(node= snode->edittree->nodes.first; node; node= next) {
 		next= node->next;
 		if(node->flag & SELECT) {
-			/* set selin and selout NULL if the sockets belong to a node to be deleted */
-			for(sock= node->inputs.first; sock; sock= sock->next)
-				if(snode->edittree->selin == sock) snode->edittree->selin= NULL;
-			
-			for(sock= node->outputs.first; sock; sock= sock->next)
-				if(snode->edittree->selout == sock) snode->edittree->selout= NULL;
-				
 			/* check id user here, nodeFreeNode is called for free dbase too */
 			if(node->id)
 				node->id->us--;

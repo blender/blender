@@ -287,8 +287,9 @@ void OBJECT_OT_group_add(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Add Group";
+	ot->name= "Add to Group";
 	ot->idname= "OBJECT_OT_group_add";
+	ot->description = "Add an object to an existing group, or create new.";
 	
 	/* api callbacks */
 	ot->exec= group_add_exec;

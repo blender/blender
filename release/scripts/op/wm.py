@@ -42,6 +42,8 @@ rna_path_prop = StringProperty(name="Context Attributes",
 rna_reverse_prop = BoolProperty(name="Reverse",
         description="Cycle backwards", default=False)
 
+rna_relative_prop = BoolProperty(name="Relative",
+        description="Apply relative to the current value (delta)", default=False)
 
 def context_path_validate(context, path):
     import sys
@@ -61,7 +63,12 @@ def context_path_validate(context, path):
 def execute_context_assign(self, context):
     if context_path_validate(context, self.properties.path) is Ellipsis:
         return {'PASS_THROUGH'}
-    exec("context.%s=self.properties.value" % self.properties.path)
+
+    if getattr(self.properties, "relative", False):
+        exec("context.%s+=self.properties.value" % self.properties.path)
+    else:
+        exec("context.%s=self.properties.value" % self.properties.path)
+
     return {'FINISHED'}
 
 
@@ -86,6 +93,7 @@ class WM_OT_context_set_int(bpy.types.Operator): # same as enum
 
     path = rna_path_prop
     value = IntProperty(name="Value", description="Assign value", default=0)
+    relative = rna_relative_prop
 
     execute = execute_context_assign
 
@@ -97,8 +105,8 @@ class WM_OT_context_set_float(bpy.types.Operator): # same as enum
     bl_undo = True
 
     path = rna_path_prop
-    value = FloatProperty(name="Value",
-            description="Assignment value", default=0.0)
+    value = FloatProperty(name="Value", description="Assignment value", default=0.0)
+    relative = rna_relative_prop
 
     execute = execute_context_assign
 
@@ -204,25 +212,26 @@ class WM_OT_context_cycle_int(bpy.types.Operator):
     reverse = rna_reverse_prop
 
     def execute(self, context):
-
-        value = context_path_validate(context, self.properties.path)
+        path = self.properties.path
+        value = context_path_validate(context, path)
         if value is Ellipsis:
             return {'PASS_THROUGH'}
 
-        self.properties.value = value
         if self.properties.reverse:
-            self.properties.value -= 1
+            value -= 1
         else:
-            self.properties.value += 1
-        execute_context_assign(self, context)
+            value += 1
 
-        if self.properties.value != eval("context.%s" % self.properties.path):
+        exec("context.%s=value" % path)
+
+        if value != eval("context.%s" % path):
             # relies on rna clamping int's out of the range
             if self.properties.reverse:
-                self.properties.value = (1 << 32)
+                value = (1 << 32)
             else:
-                self.properties.value = - (1 << 32)
-            execute_context_assign(self, context)
+                value = - (1 << 32)
+
+            exec("context.%s=value" % path)
 
         return {'FINISHED'}
 

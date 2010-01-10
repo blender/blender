@@ -172,7 +172,7 @@ void MESH_OT_select_nth(struct wmOperatorType *ot);
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
 extern void EM_automerge(Scene *scene, Object *obedit, int update);
 void editmesh_select_by_material(EditMesh *em, int index);
-void righthandfaces(EditMesh *em, int select);	/* makes faces righthand turning */
+void EM_recalc_normal_direction(EditMesh *em, int inside, int select);	/* makes faces righthand turning */
 void EM_select_more(EditMesh *em);
 void selectconnected_mesh_all(EditMesh *em);
 void faceloop_select(EditMesh *em, EditEdge *startedge, int select);

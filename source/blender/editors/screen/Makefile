@@ -60,3 +60,8 @@ ifeq ($(WITH_OPENEXR), true)
     CPPFLAGS += -DWITH_OPENEXR
 endif
 
+ifeq ($(OS), darwin)
+    ifeq ($(WITH_BF_OPENMP), true)
+        CPPFLAGS += -DPARALLEL=1
+    endif
+endif

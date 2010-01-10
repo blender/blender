@@ -184,6 +184,9 @@ void init_material(Material *ma)
 	ma->vol.shade_type = MA_VOL_SHADE_SHADED;
 	ma->vol.shadeflag |= MA_VOL_PRECACHESHADING;
 	ma->vol.precache_resolution = 50;
+	ma->vol.ms_spread = 0.2f;
+	ma->vol.ms_diff = 1.f;
+	ma->vol.ms_intensity = 1.f;
 	
 	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RAYBIAS|MA_TANGENT_STR|MA_ZTRANSP;
 

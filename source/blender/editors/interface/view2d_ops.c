@@ -236,6 +236,18 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case LEFTMOUSE:
+			/* switch to zoom */
+			if (event->val==KM_PRESS) {
+				/* calculate overall delta mouse-movement for redo */
+				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
+				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
+				
+				view_pan_exit(C, op);
+				WM_cursor_restore(CTX_wm_window(C));
+				
+				WM_operator_name_call(C, "VIEW2D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
+				return OPERATOR_FINISHED;
+			}
 		case MIDDLEMOUSE:
 		case ESCKEY:
 			if (event->val==KM_RELEASE) {

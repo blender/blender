@@ -126,7 +126,7 @@ static void image_verify_buffer_float(SpaceImage *sima, Image *ima, ImBuf *ibuf,
 			else {
 				if (color_manage) {
 						if (ima && ima->source == IMA_SRC_VIEWER)
-							ibuf->profile = IB_PROFILE_SRGB;
+							ibuf->profile = IB_PROFILE_LINEAR_RGB;
 				} else {
 					ibuf->profile = IB_PROFILE_NONE;
 				}

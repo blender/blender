@@ -268,6 +268,6 @@ Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
 	
 	Render* freestyle_render = RE_NewRender(freestyle_scene->id.name);
 	
-	RE_BlenderFrame( freestyle_render, freestyle_scene, 1);
+	RE_BlenderFrame( freestyle_render, freestyle_scene, NULL, 1);
 	return freestyle_render;
 }

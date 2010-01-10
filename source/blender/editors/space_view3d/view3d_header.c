@@ -173,6 +173,7 @@ static int layers_exec(bContext *C, wmOperator *op)
 	ScrArea *sa= CTX_wm_area(C);
 	View3D *v3d= sa->spacedata.first;
 	int nr= RNA_int_get(op->ptr, "nr");
+	int toggle= RNA_boolean_get(op->ptr, "toggle");
 	
 	if(nr < 0)
 		return OPERATOR_CANCELLED;
@@ -188,9 +189,12 @@ static int layers_exec(bContext *C, wmOperator *op)
 	else {
 		nr--;
 
-		if(RNA_boolean_get(op->ptr, "extend"))
-			v3d->lay |= (1<<nr);
-		else
+		if(RNA_boolean_get(op->ptr, "extend")) {
+			if(toggle && v3d->lay & (1<<nr) && (v3d->lay & ~(1<<nr)))
+				v3d->lay &= ~(1<<nr);
+			else
+				v3d->lay |= (1<<nr);
+		} else
 			v3d->lay = (1<<nr);
 		
 		/* set active layer, ensure to always have one */
@@ -238,6 +242,11 @@ static int layers_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_FINISHED;
 }
 
+int layers_poll(bContext *C)
+{
+	return (ED_operator_view3d_active(C) && CTX_wm_view3d(C)->localvd==NULL);
+}
+
 void VIEW3D_OT_layers(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -248,13 +257,14 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke= layers_invoke;
 	ot->exec= layers_exec;
-	ot->poll= ED_operator_view3d_active;
+	ot->poll= layers_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_int(ot->srna, "nr", 1, 0, 20, "Number", "The layer number to set, zero for all layers", 0, 20);
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Add this layer to the current view layers");
+	RNA_def_boolean(ot->srna, "toggle", 1, "Toggle", "Toggle the layer");
 }
 
 static char *view3d_modeselect_pup(Scene *scene)

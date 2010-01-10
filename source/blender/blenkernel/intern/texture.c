@@ -703,11 +703,9 @@ void make_local_texture(Tex *tex)
 	}
 	br= G.main->brush.first;
 	while(br) {
-		for(a=0; a<MAX_MTEX; a++) {
-			if(br->mtex[a] && br->mtex[a]->tex==tex) {
-				if(br->id.lib) lib= 1;
-				else local= 1;
-			}
+		if(br->mtex.tex==tex) {
+			if(br->id.lib) lib= 1;
+			else local= 1;
 		}
 		br= br->id.next;
 	}
@@ -762,13 +760,11 @@ void make_local_texture(Tex *tex)
 		}
 		br= G.main->brush.first;
 		while(br) {
-			for(a=0; a<MAX_MTEX; a++) {
-				if(br->mtex[a] && br->mtex[a]->tex==tex) {
-					if(br->id.lib==0) {
-						br->mtex[a]->tex= texn;
-						texn->id.us++;
-						tex->id.us--;
-					}
+			if(br->mtex.tex==tex) {
+				if(br->id.lib==0) {
+					br->mtex.tex= texn;
+					texn->id.us++;
+					tex->id.us--;
 				}
 			}
 			br= br->id.next;
@@ -904,10 +900,6 @@ int give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
 		*mtex_ar=		((Lamp *)id)->mtex;
 		if(act) *act=	(((Lamp *)id)->texact);
 		break;
-	case ID_BR:
-		*mtex_ar=		((Brush *)id)->mtex;
-		if(act) *act=	(((Brush *)id)->texact);
-		break;
 	default:
 		*mtex_ar = NULL;
 		if(act) *act=	0;
@@ -931,9 +923,6 @@ void set_active_mtex(ID *id, short act)
 		break;
 	case ID_LA:
 		((Lamp *)id)->texact= act;
-		break;
-	case ID_BR:
-		((Brush *)id)->texact= act;
 		break;
 	}
 }
@@ -1016,34 +1005,17 @@ void set_current_world_texture(World *wo, Tex *newtex)
 
 Tex *give_current_brush_texture(Brush *br)
 {
-	MTex *mtex= NULL;
-	Tex *tex= NULL;
-
-	if(br) {
-		mtex= br->mtex[(int)(br->texact)];
-		if(mtex) tex= mtex->tex;
-	}
-
-	return tex;
+	return br->mtex.tex;
 }
 
 void set_current_brush_texture(Brush *br, Tex *newtex)
 {
-	int act= br->texact;
-
-	if(br->mtex[act] && br->mtex[act]->tex)
-		id_us_min(&br->mtex[act]->tex->id);
+	if(br->mtex.tex)
+		id_us_min(&br->mtex.tex->id);
 
 	if(newtex) {
-		if(!br->mtex[act])
-			br->mtex[act]= add_mtex();
-		
-		br->mtex[act]->tex= newtex;
+		br->mtex.tex= newtex;
 		id_us_plus(&newtex->id);
-	}
-	else if(br->mtex[act]) {
-		MEM_freeN(br->mtex[act]);
-		br->mtex[act]= NULL;
 	}
 }
 

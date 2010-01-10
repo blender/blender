@@ -63,16 +63,8 @@ AUD_IReader* AUD_BandPassFactory::createReader()
 
 	if(reader != 0)
 	{
-		if(reader->getSpecs().format == AUD_FORMAT_FLOAT32)
-		{
-			reader = new AUD_BandPassReader(reader, m_low, m_high);
-			AUD_NEW("reader")
-		}
-		else
-		{
-			delete reader; AUD_DELETE("reader")
-			return 0;
-		}
+		reader = new AUD_BandPassReader(reader, m_low, m_high);
+		AUD_NEW("reader")
 	}
 
 	return reader;

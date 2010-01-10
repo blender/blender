@@ -32,6 +32,7 @@
 
 #include "BLI_math.h"
 #include "BLI_memarena.h"
+#include "MEM_guardedalloc.h"
 
 /********************************** Polygons *********************************/
 
@@ -1245,6 +1246,55 @@ int isect_point_tri_prism_v3(float p[3], float v1[3], float v2[3], float v3[3])
 	return 1;
 }
 
+int clip_line_plane(float p1[3], float p2[3], float plane[4])
+{
+	float dp[3], n[3], div, t, pc[3];
+
+	copy_v3_v3(n, plane);
+	sub_v3_v3v3(dp, p2, p1);
+	div= dot_v3v3(dp, n);
+
+	if(div == 0.0f) /* parallel */
+		return 1;
+
+	t= -(dot_v3v3(p1, n) + plane[3])/div;
+
+	if(div > 0.0f) {
+		/* behind plane, completely clipped */
+		if(t >= 1.0f) {
+			zero_v3(p1);
+			zero_v3(p2);
+			return 0;
+		}
+
+		/* intersect plane */
+		if(t > 0.0f) {
+			madd_v3_v3v3fl(pc, p1, dp, t);
+			copy_v3_v3(p1, pc);
+			return 1;
+		}
+
+		return 1;
+	}
+	else {
+		/* behind plane, completely clipped */
+		if(t <= 0.0f) {
+			zero_v3(p1);
+			zero_v3(p2);
+			return 0;
+		}
+
+		/* intersect plane */
+		if(t < 1.0f) {
+			madd_v3_v3v3fl(pc, p1, dp, t);
+			copy_v3_v3(p2, pc);
+			return 1;
+		}
+
+		return 1;
+	}
+}
+
 /****************************** Interpolation ********************************/
 
 static float tri_signed_area(float *v1, float *v2, float *v3, int i, int j)
@@ -1408,6 +1458,85 @@ void barycentric_transform(float pt_tar[3], float const pt_src[3],
 	madd_v3_v3v3fl(pt_tar, pt_tar, no_tar, (z_ofs_src / area_src) * area_tar);
 }
 
+/* given an array with some invalid values this function interpolates valid values
+ * replacing the invalid ones */
+int interp_sparse_array(float *array, int list_size, float skipval)
+{
+	int found_invalid = 0;
+	int found_valid = 0;
+	int i;
+
+	for (i=0; i < list_size; i++) {
+		if(array[i] == skipval)
+			found_invalid= 1;
+		else
+			found_valid= 1;
+	}
+
+	if(found_valid==0) {
+		return -1;
+	}
+	else if (found_invalid==0) {
+		return 0;
+	}
+	else {
+		/* found invalid depths, interpolate */
+		float valid_last= skipval;
+		int valid_ofs= 0;
+
+		float *array_up= MEM_callocN(sizeof(float) * list_size, "interp_sparse_array up");
+		float *array_down= MEM_callocN(sizeof(float) * list_size, "interp_sparse_array up");
+
+		int *ofs_tot_up= MEM_callocN(sizeof(int) * list_size, "interp_sparse_array tup");
+		int *ofs_tot_down= MEM_callocN(sizeof(int) * list_size, "interp_sparse_array tdown");
+
+		for (i=0; i < list_size; i++) {
+			if(array[i] == skipval) {
+				array_up[i]= valid_last;
+				ofs_tot_up[i]= ++valid_ofs;
+			}
+			else {
+				valid_last= array[i];
+				valid_ofs= 0;
+			}
+		}
+
+		valid_last= skipval;
+		valid_ofs= 0;
+
+		for (i=list_size-1; i >= 0; i--) {
+			if(array[i] == skipval) {
+				array_down[i]= valid_last;
+				ofs_tot_down[i]= ++valid_ofs;
+			}
+			else {
+				valid_last= array[i];
+				valid_ofs= 0;
+			}
+		}
+
+		/* now blend */
+		for (i=0; i < list_size; i++) {
+			if(array[i] == skipval) {
+				if(array_up[i] != skipval && array_down[i] != skipval) {
+					array[i]= ((array_up[i] * ofs_tot_down[i]) +  (array_down[i] * ofs_tot_up[i])) / (float)(ofs_tot_down[i] + ofs_tot_up[i]);
+				} else if (array_up[i] != skipval) {
+					array[i]= array_up[i];
+				} else if (array_down[i] != skipval) {
+					array[i]= array_down[i];
+				}
+			}
+		}
+
+		MEM_freeN(array_up);
+		MEM_freeN(array_down);
+
+		MEM_freeN(ofs_tot_up);
+		MEM_freeN(ofs_tot_down);
+	}
+
+	return 1;
+}
 
 /* Mean value weights - smooth interpolation weights for polygons with
  * more than 3 vertices */

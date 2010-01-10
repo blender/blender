@@ -42,6 +42,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLF_api.h"
+
 #include "PIL_time.h"
 
 #include "BLI_blenlib.h"
@@ -193,6 +195,7 @@ static int wm_macro_end(wmOperator *op, int retval)
 	if (retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED)) {
 		if (op->customdata) {
 			MEM_freeN(op->customdata);
+			op->customdata = NULL;
 		}
 	}
 
@@ -360,6 +363,7 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType*, void*), vo
 	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype");
 	ot->srna= RNA_def_struct(&BLENDER_RNA, "", "OperatorProperties");
 
+	ot->flag= OPTYPE_MACRO;
 	ot->exec= wm_macro_exec;
 	ot->invoke= wm_macro_invoke;
 	ot->modal= wm_macro_modal;
@@ -930,13 +934,47 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiLayout *layout, *split, *col;
 	uiStyle *style= U.uistyles.first;
 	struct RecentFile *recent;
-	int i;
+	int i, ver_width, rev_width;
+	char *version_str = NULL;
+	char *revision_str = NULL;
 	
+#ifdef NAN_BUILDINFO
+	char version_buf[128];
+	char revision_buf[128];
+	extern char * build_rev;
+	char *cp;
+	
+	version_str = &version_buf[0];
+	revision_str = &revision_buf[0];
+	
+	sprintf(version_str, "%d.%02d.%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
+	sprintf(revision_str, "r%s", build_rev);
+	
+	/* here on my system I get ugly double quotes around the revision number.
+	 * if so, clip it off: */
+	cp = strchr(revision_str, '"');
+	if (cp) {
+		memmove(cp, cp+1, strlen(cp+1));
+		cp = strchr(revision_str, '"');
+		if (cp)
+			*cp = 0;
+	}
+	
+	ver_width = BLF_width(version_str);
+	rev_width = BLF_width(revision_str);
+#endif NAN_BUILDINFO
+
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
 	
 	but= uiDefBut(block, BUT_IMAGE, 0, "", 0, 10, 501, 282, NULL, 0.0, 0.0, 0, 0, "");
 	uiButSetFunc(but, wm_block_splash_close, block, NULL);
+	
+#ifdef NAN_BUILDINFO	
+	uiDefBut(block, LABEL, 0, version_str, 500-ver_width, 282-24, ver_width, 20, NULL, 0, 0, 0, 0, NULL);
+	uiDefBut(block, LABEL, 0, revision_str, 500-rev_width, 282-36, rev_width, 20, NULL, 0, 0, 0, 0, NULL);
+#endif NAN_BUILDINFO
+	
 	
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	
@@ -956,8 +994,12 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Recent", 0);
-	for(recent = G.recent_files.first, i=0; (i<6) && (recent); recent = recent->next, i++)
-		uiItemStringO(col, BLI_last_slash(recent->filename)+1, ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
+	for(recent = G.recent_files.first, i=0; (i<6) && (recent); recent = recent->next, i++) {
+		char *display_name= BLI_last_slash(recent->filename);
+		if(display_name)	display_name++; /* skip the slash */
+		else				display_name= recent->filename;
+		uiItemStringO(col, display_name, ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
+	}
 
 	uiItemS(col);
 
@@ -1032,7 +1074,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 	
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, "");
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, 0, 0, "");
 	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
 	
 	/* fake button, it holds space for search items */
@@ -1218,7 +1260,7 @@ static short wm_link_append_flag(wmOperator *op)
 	if(RNA_boolean_get(op->ptr, "active_layer")) flag |= FILE_ACTIVELAY;
 	if(RNA_boolean_get(op->ptr, "relative_paths")) flag |= FILE_STRINGCODE;
 	if(RNA_boolean_get(op->ptr, "link")) flag |= FILE_LINK;
-
+	if(RNA_boolean_get(op->ptr, "instance_groups")) flag |= FILE_GROUP_INSTANCE;
 	return flag;
 }
 
@@ -1234,9 +1276,6 @@ static void wm_link_make_library_local(Main *main, const char *libname)
 	/* make local */
 	if(lib) {
 		all_local(lib, 1);
-		/* important we unset, otherwise these object wont
-		 * link into other scenes from this blend file */
-		flag_all_listbases_ids(LIB_APPEND_TAG, 0);
 	}
 }
 
@@ -1294,9 +1333,11 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	
 	flag = wm_link_append_flag(op);
 
-	/* tag everything, all untagged data can be made local */
-	if((flag & FILE_LINK)==0)
-		flag_all_listbases_ids(LIB_APPEND_TAG, 1);
+	/* tag everything, all untagged data can be made local
+	 * its also generally useful to know what is new
+	 *
+	 * take extra care flag_all_listbases_ids(LIB_LINK_TAG, 0) is called after! */
+	flag_all_listbases_ids(LIB_PRE_EXISTING, 1);
 
 	/* here appending/linking starts */
 	mainl = BLO_library_append_begin(C, &bh, libname);
@@ -1318,6 +1359,10 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 	/* append, rather than linking */
 	if((flag & FILE_LINK)==0)
 		wm_link_make_library_local(bmain, libname);
+
+	/* important we unset, otherwise these object wont
+	 * link into other scenes from this blend file */
+	flag_all_listbases_ids(LIB_PRE_EXISTING, 0);
 
 	/* recreate dependency graph to include new objects */
 	DAG_scene_sort(scene);
@@ -1350,6 +1395,7 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending.");
 	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects.");
 	RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer.");
+	RNA_def_boolean(ot->srna, "instance_groups", 1, "Instance Groups", "Create instances for each group as a DupliGroup.");
 	RNA_def_boolean(ot->srna, "relative_paths", 1, "Relative Paths", "Store the library path as a relative path to current .blend file.");
 
 	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
@@ -1489,10 +1535,10 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	fileflags= G.fileflags;
 
 	/* set compression flag */
-	if(RNA_boolean_get(op->ptr, "compress"))
-		fileflags |= G_FILE_COMPRESS;
-	else
-		fileflags &= ~G_FILE_COMPRESS;
+	if(RNA_boolean_get(op->ptr, "compress"))		fileflags |=  G_FILE_COMPRESS;
+	else											fileflags &= ~G_FILE_COMPRESS;
+	if(RNA_boolean_get(op->ptr, "relative_remap"))	fileflags |=  G_FILE_RELATIVE_REMAP;
+	else											fileflags &= ~G_FILE_RELATIVE_REMAP;
 
 	WM_write_file(C, path, fileflags, op->reports);
 	
@@ -1513,6 +1559,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
+	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory.");
 }
 
 /* *************** save file directly ******** */
@@ -1551,6 +1598,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
+	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory.");
 }
 
 

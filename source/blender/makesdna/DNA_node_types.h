@@ -95,8 +95,6 @@ typedef struct bNodeSocket {
 #define SOCK_IN_USE				4
 		/* unavailable is for dynamic sockets */
 #define SOCK_UNAVAIL			8
-		/* flag for selection status */
-#define SOCK_SEL			16
 #
 #
 typedef struct bNodePreview {
@@ -185,10 +183,8 @@ typedef struct bNodeTree {
 	ListBase alltypes;				/* type definitions */
 	struct bNodeType *owntype;		/* for groups or dynamic trees, no read/write */
 
-	/* selected input/output socket */
-	bNodeSocket *selin;
-	bNodeSocket *selout;
-
+	int pad2[2];
+	
 	/* callbacks */
 	void (*timecursor)(void *, int nr);
 	void (*stats_draw)(void *, char *str);

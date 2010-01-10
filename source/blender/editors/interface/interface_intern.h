@@ -348,7 +348,6 @@ extern void ui_set_but_soft_range(uiBut *but, double value);
 extern void ui_check_but(uiBut *but);
 extern int  ui_is_but_float(uiBut *but);
 extern int  ui_is_but_unit(uiBut *but);
-extern void ui_update_block_buts_hsv(uiBlock *block, float *hsv);
 
 extern void ui_bounds_block(uiBlock *block);
 extern void ui_block_translate(uiBlock *block, int x, int y);
@@ -378,7 +377,7 @@ struct uiPopupBlockHandle {
 	int butretval;
 	int menuretval;
 	float retvalue;
-	float retvec[3];
+	float retvec[4];
 };
 
 uiBlock *ui_block_func_COL(struct bContext *C, uiPopupBlockHandle *handle, void *arg_but);
@@ -450,13 +449,14 @@ struct ThemeUI;
 void ui_widget_color_init(struct ThemeUI *tui);
 
 void ui_draw_menu_item(struct uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state);
+void ui_draw_preview_item(struct uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state);
 
 /* interface_style.c */
 void uiStyleInit(void);
 
 /* interface_icons.c */
-void ui_id_icon_render(struct bContext *C, struct ID *id);
-int ui_id_icon_get(struct bContext *C, struct ID *id);
+void ui_id_icon_render(struct bContext *C, struct ID *id, int preview);
+int ui_id_icon_get(struct bContext *C, struct ID *id, int preview);
 
 /* resources.c */
 void init_userdef_do_versions(void);

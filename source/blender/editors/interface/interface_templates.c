@@ -33,6 +33,7 @@
 
 #include "BLI_string.h"
 
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_icons.h"
 #include "BKE_global.h"
@@ -122,6 +123,7 @@ typedef struct TemplateID {
 	PropertyRNA *prop;
 
 	ListBase *idlb;
+	int prv_rows, prv_cols;
 } TemplateID;
 
 /* Search browse menu, assign  */
@@ -150,7 +152,7 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 	/* ID listbase */
 	for(id= lb->first; id; id= id->next) {
 		if(BLI_strcasestr(id->name+2, str)) {
-			iconid= ui_id_icon_get((bContext*)C, id);
+			iconid= ui_id_icon_get((bContext*)C, id, 0);
 
 			if(!uiSearchItemAdd(items, id->name+2, id, iconid))
 				break;
@@ -180,11 +182,26 @@ static uiBlock *id_search_menu(bContext *C, ARegion *ar, void *arg_litem)
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
 	
-	/* fake button, it holds space for search items */
-	uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
-	
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, "");
-	uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
+	/* preview thumbnails */
+	if (template.prv_rows > 0 && template.prv_cols > 0) {
+		int w = 96 * template.prv_cols;
+		int h = 96 * template.prv_rows + 20;
+		
+		/* fake button, it holds space for search items */
+		uiDefBut(block, LABEL, 0, "", 10, 15, w, h, NULL, 0, 0, 0, 0, NULL);
+		
+		but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, w, 19, template.prv_rows, template.prv_cols, "");
+		uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
+	}
+	/* list view */
+	else {
+		/* fake button, it holds space for search items */
+		uiDefBut(block, LABEL, 0, "", 10, 15, 150, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+		
+		but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 0, 150, 19, 0, 0, "");
+		uiButSetSearchFunc(but, id_search_cb, &template, id_search_call_cb, idptr.data);
+	}
+		
 	
 	uiBoundsBlock(block, 6);
 	uiBlockSetDirection(block, UI_DOWN);	
@@ -293,9 +310,10 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 	}
 }
 
-static void template_ID(bContext *C, uiBlock *block, TemplateID *template, StructRNA *type, int flag, char *newop, char *openop, char *unlinkop)
+static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, int flag, char *newop, char *openop, char *unlinkop)
 {
 	uiBut *but;
+	uiBlock *block;
 	PointerRNA idptr;
 	ListBase *lb;
 	ID *id, *idfrom;
@@ -305,11 +323,27 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 	idfrom= template->ptr.id.data;
 	lb= template->idlb;
 
+	block= uiLayoutGetBlock(layout);
 	uiBlockBeginAlign(block);
 
 	if(idptr.type)
 		type= idptr.type;
 
+	if(flag & UI_ID_PREVIEWS) {
+
+		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*6, UI_UNIT_Y*6, "Browse ID data");
+		if(type) {
+			but->icon= RNA_struct_ui_icon(type);
+			if (id) but->icon = ui_id_icon_get(C, id, 1);
+			uiButSetFlag(but, UI_HAS_ICON|UI_ICON_PREVIEW);
+		}
+		if((idfrom && idfrom->lib))
+			uiButSetFlag(but, UI_BUT_DISABLED);
+		
+		
+		uiLayoutRow(layout, 1);
+	} else 
+		
 	if(flag & UI_ID_BROWSE) {
 		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y, "Browse ID data");
 		if(type) {
@@ -412,10 +446,9 @@ static void template_ID(bContext *C, uiBlock *block, TemplateID *template, Struc
 	uiBlockEndAlign(block);
 }
 
-void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
+static void ui_template_id(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, int previews, int prv_rows, int prv_cols)
 {
 	TemplateID *template;
-	uiBlock *block;
 	PropertyRNA *prop;
 	StructRNA *type;
 	int flag;
@@ -430,14 +463,18 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 	template= MEM_callocN(sizeof(TemplateID), "TemplateID");
 	template->ptr= *ptr;
 	template->prop= prop;
-
+	template->prv_rows = prv_rows;
+	template->prv_cols = prv_cols;
+	
 	flag= UI_ID_BROWSE|UI_ID_RENAME|UI_ID_DELETE;
 
 	if(newop)
 		flag |= UI_ID_ADD_NEW;
 	if(openop)
 		flag |= UI_ID_OPEN;
-
+	if(previews)
+		flag |= UI_ID_PREVIEWS;
+	
 	type= RNA_property_pointer_type(ptr, prop);
 	template->idlb= wich_libbase(CTX_data_main(C), RNA_type_to_ID_code(type));
 	
@@ -446,11 +483,21 @@ void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname
 	 */
 	if(template->idlb) {
 		uiLayoutRow(layout, 1);
-		block= uiLayoutGetBlock(layout);
-		template_ID(C, block, template, type, flag, newop, openop, unlinkop);
+		template_ID(C, layout, template, type, flag, newop, openop, unlinkop);
 	}
 
 	MEM_freeN(template);
+	
+}
+
+void uiTemplateID(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop)
+{
+	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, 0, 0, 0);
+}
+
+void uiTemplateIDPreview(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, int rows, int cols)
+{
+	ui_template_id(layout, C, ptr, propname, newop, openop, unlinkop, 1, rows, cols);
 }
 
 /************************ ID Chooser Template ***************************/
@@ -1402,7 +1449,7 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 
 	if(coba->tot) {
 		CBData *cbd= coba->data + coba->cur;
-#if 1
+
 		/* better to use rna so we can animate them */
 		PointerRNA ptr;
 		RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
@@ -1410,15 +1457,6 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 		//uiItemR(layout, NULL, 0, &ptr, "position", 0);
 		bt= uiDefButF(block, NUM, 0, "Pos:",			0+xoffs,40+yoffs,100, 20, &cbd->pos, 0.0, 1.0, 10, 0, "The position of the active color stop");
 		uiButSetNFunc(bt, colorband_pos_cb, MEM_dupallocN(cb), coba);
-
-#else
-		bt= uiDefButF(block, NUM, 0, "Pos:",			0+xoffs,40+yoffs,100, 20, &cbd->pos, 0.0, 1.0, 10, 0, "The position of the active color stop");
-		uiButSetNFunc(bt, colorband_pos_cb, MEM_dupallocN(cb), coba);
-		bt= uiDefButF(block, COL, 0,		"",				110+xoffs,40+yoffs,80,20, &(cbd->r), 0, 0, 0, B_BANDCOL, "The color value for the active color stop");
-		uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
-		bt= uiDefButF(block, NUMSLI, 0,	"A ",			200+xoffs,40+yoffs,100,20, &cbd->a, 0.0, 1.0, 10, 0, "The alpha value of the active color stop");
-		uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
-#endif
 	}
 
 }
@@ -1437,16 +1475,9 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 
 	if(coba->tot) {
 		CBData *cbd= coba->data + coba->cur;
-#if 1
 		PointerRNA ptr;
 		RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
 		uiItemR(layout, "", 0, &ptr, "color", 0);
-#else
-		bt= uiDefButF(block, COL, 0,		"",			xs+4.0f*unit,butr->ymin+20.0f,2.0f*unit,20,				&(cbd->r), 0, 0, 0, B_BANDCOL, "The color value for the active color stop");
-		uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
-		bt= uiDefButF(block, NUMSLI, 0,		"A:",		xs+6.0f*unit,butr->ymin+20.0f,4.0f*unit,20,	&(cbd->a), 0.0f, 1.0f, 10, 2, "The alpha value of the active color stop");
-		uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
-#endif
 	}
 
 	bt= uiDefButS(block, MENU, 0,		"Interpolation %t|Ease %x1|Cardinal %x3|Linear %x0|B-Spline %x2|Constant %x4",
@@ -1606,8 +1637,8 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 	CurveMap *cuma= cumap->cm+cumap->cur;
 
 	switch(event) {
-		case 0:
-			curvemap_reset(cuma, &cumap->clipr);
+		case 0: /* reset */
+			curvemap_reset(cuma, &cumap->clipr, CURVE_PRESET_LINE);
 			curvemapping_changed(cumap, 0);
 			break;
 		case 1:
@@ -1627,6 +1658,10 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 			break;
 		case 5: /* extend extrapolate */
 			cuma->flag |= CUMA_EXTEND_EXTRAPOLATE;
+			curvemapping_changed(cumap, 0);
+			break;
+		case 6: /* reset smooth */
+			curvemap_reset(cuma, &cumap->clipr, CURVE_PRESET_SMOOTH);
 			curvemapping_changed(cumap, 0);
 			break;
 	}
@@ -1655,6 +1690,26 @@ static uiBlock *curvemap_tools_func(bContext *C, struct ARegion *ar, void *cumap
 	return block;
 }
 
+static uiBlock *curvemap_brush_tools_func(bContext *C, struct ARegion *ar, void *cumap_v)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiBeginBlock(C, ar, "curvemap_tools_func", UI_EMBOSS);
+	uiBlockSetButmFunc(block, curvemap_tools_dofunc, cumap_v);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset View",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Curve",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+
+	uiEndBlock(C, block);
+	return block;
+}
+
 static void curvemap_buttons_redraw(bContext *C, void *arg1, void *arg2)
 {
 	ED_region_tag_redraw(CTX_wm_region(C));
@@ -1666,7 +1721,7 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 	int a;
 	
 	for(a=0; a<CM_TOT; a++)
-		curvemap_reset(cumap->cm+a, &cumap->clipr);
+		curvemap_reset(cumap->cm+a, &cumap->clipr, CURVE_PRESET_LINE);
 	
 	cumap->black[0]=cumap->black[1]=cumap->black[2]= 0.0f;
 	cumap->white[0]=cumap->white[1]=cumap->white[2]= 1.0f;
@@ -1678,7 +1733,7 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 }
 
 /* still unsure how this call evolves... we use labeltype for defining what curve-channels to show */
-static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labeltype, int levels, RNAUpdateCb *cb)
+static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labeltype, int levels, int brush, RNAUpdateCb *cb)
 {
 	CurveMapping *cumap= ptr->data;
 	uiLayout *row, *sub, *split;
@@ -1746,7 +1801,11 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	bt= uiDefIconBut(block, BUT, 0, ICON_ZOOMOUT, 0, 0, dx, 14, NULL, 0.0, 0.0, 0.0, 0.0, "Zoom out");
 	uiButSetFunc(bt, curvemap_buttons_zoom_out, cumap, NULL);
 
-	bt= uiDefIconBlockBut(block, curvemap_tools_func, cumap, 0, ICON_MODIFIER, 0, 0, dx, 18, "Tools");
+	if(brush)
+		bt= uiDefIconBlockBut(block, curvemap_brush_tools_func, cumap, 0, ICON_MODIFIER, 0, 0, dx, 18, "Tools");
+	else
+		bt= uiDefIconBlockBut(block, curvemap_tools_func, cumap, 0, ICON_MODIFIER, 0, 0, dx, 18, "Tools");
+
 	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
 
 	if(cumap->flag & CUMA_DO_CLIP) icon= ICON_CLIPUV_HLT; else icon= ICON_CLIPUV_DEHLT;
@@ -1779,7 +1838,7 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	uiBlockSetNFunc(block, NULL, NULL, NULL);
 }
 
-void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, char *propname, int type, int levels)
+void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, char *propname, int type, int levels, int brush)
 {
 	RNAUpdateCb *cb;
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
@@ -1796,10 +1855,46 @@ void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, char *propname, i
 	cb->ptr= *ptr;
 	cb->prop= prop;
 
-	curvemap_buttons_layout(layout, &cptr, type, levels, cb);
+	curvemap_buttons_layout(layout, &cptr, type, levels, brush, cb);
 
 	MEM_freeN(cb);
 }
+
+/********************* ColorWheel Template ************************/
+
+#define WHEEL_SIZE	100
+
+void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int value_slider)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
+	uiBlock *block= uiLayoutGetBlock(layout);
+	uiLayout *col, *row;
+	uiBut *but;
+	
+	if (!prop) {
+		printf("uiTemplateColorWheel: property not found: %s\n", propname);
+		return;
+	}
+	
+	col = uiLayoutColumn(layout, 0);
+	row= uiLayoutRow(col, 1);
+	
+	uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 0, 0, "");
+	
+	uiItemS(row);
+	
+	if (value_slider)
+		uiDefButR(block, HSVCUBE, 0, "", WHEEL_SIZE+6, 0, 14, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 9, 0, "");
+
+	/* maybe a switch for this?
+	row= uiLayoutRow(col, 0);
+	if(ELEM(RNA_property_subtype(prop), PROP_COLOR, PROP_COLOR_GAMMA) && RNA_property_array_length(ptr, prop) == 4) {
+		but= uiDefAutoButR(block, ptr, prop, 3, "A:", 0, 0, 0, WHEEL_SIZE+20, UI_UNIT_Y);
+	}
+	*/
+	
+}
+
 
 /********************* TriColor (ThemeWireColorSet) Template ************************/
 
@@ -1944,7 +2039,7 @@ static int list_item_icon_get(bContext *C, PointerRNA *itemptr, int rnaicon)
 
 	/* get icon from ID */
 	if(id) {
-		icon= ui_id_icon_get(C, id);
+		icon= ui_id_icon_get(C, id, 1);
 
 		if(icon)
 			return icon;
@@ -1997,6 +2092,11 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiItemL(sub, name, icon);
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, ptr, "use_textures", i, 0, 0, 0, 0,  NULL);
+	}
+	else if(RNA_struct_is_a(itemptr->type, &RNA_SceneRenderLayer)) {
+		uiItemL(sub, name, icon);
+		uiBlockSetEmboss(block, UI_EMBOSS);
+		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "enabled", 0, 0, 0, 0, 0,  NULL);
 	}
 	else if(itemptr->type == &RNA_ShapeKey) {
 		ob= (Object*)activeptr->data;
@@ -2245,7 +2345,7 @@ void uiTemplateOperatorSearch(uiLayout *layout)
 	block= uiLayoutGetBlock(layout);
 	uiBlockSetCurLayout(block, layout);
 
-	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X*6, UI_UNIT_Y, "");
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, UI_UNIT_X*6, UI_UNIT_Y, 0, 0, "");
 	uiButSetSearchFunc(but, operator_search_cb, NULL, operator_call_cb, NULL);
 }
 

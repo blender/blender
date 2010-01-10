@@ -380,6 +380,7 @@ static void rna_def_ID(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "tag", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_DOIT);
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	RNA_def_property_ui_text(prop, "Tag", "Tools can use this to tag data, (initial state is undefined).");
 
 	prop= RNA_def_property(srna, "library", PROP_POINTER, PROP_NONE);

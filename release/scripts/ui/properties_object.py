@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -40,6 +41,10 @@ class OBJECT_PT_context_object(ObjectButtonsPanel):
         row = layout.row()
         row.label(text="", icon='OBJECT_DATA')
         row.prop(ob, "name", text="")
+
+
+class OBJECT_PT_custom_props(ObjectButtonsPanel, PropertyPanel):
+    _context_path = "object"
 
 
 class OBJECT_PT_transform(ObjectButtonsPanel):
@@ -149,11 +154,13 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
 
         if wide_ui:
             split = layout.split()
-            split.operator_menu_enum("object.group_add", "group", text="Add to Group")
+            split.operator_menu_enum("object.group_add", "group")
             split.label()
         else:
-            layout.operator_menu_enum("object.group_add", "group", text="Add to Group")
+            layout.operator_menu_enum("object.group_add", "group")
 
+        index = 0
+        value = str(tuple(context.scene.cursor_location))
         for group in bpy.data.groups:
             if ob.name in group.objects:
                 col = layout.column(align=True)
@@ -172,6 +179,11 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
                 if wide_ui:
                     col = split.column()
                 col.prop(group, "dupli_offset", text="")
+                
+                prop = col.operator("wm.context_set_value", text="From Cursor")
+                prop.path = "object.group_users[%d].dupli_offset" % index
+                prop.value = value
+                index += 1
 
 
 class OBJECT_PT_display(ObjectButtonsPanel):
@@ -235,20 +247,20 @@ class OBJECT_PT_duplication(ObjectButtonsPanel):
             col.prop(ob, "dupli_frames_on", text="On")
             col.prop(ob, "dupli_frames_off", text="Off")
 
-            layout.prop(ob, "dupli_frames_no_speed", text="No Speed")
+            layout.prop(ob, "use_dupli_frames_speed", text="Speed")
 
         elif ob.dupli_type == 'VERTS':
-            layout.prop(ob, "dupli_verts_rotation", text="Rotation")
+            layout.prop(ob, "use_dupli_verts_rotation", text="Rotation")
 
         elif ob.dupli_type == 'FACES':
             split = layout.split()
 
             col = split.column()
-            col.prop(ob, "dupli_faces_scale", text="Scale")
+            col.prop(ob, "use_dupli_faces_scale", text="Scale")
 
             if wide_ui:
                 col = split.column()
-            col.prop(ob, "dupli_faces_inherit_scale", text="Inherit Scale")
+            col.prop(ob, "dupli_faces_scale", text="Inherit Scale")
 
         elif ob.dupli_type == 'GROUP':
             if wide_ui:
@@ -293,16 +305,6 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.active = (ob.parent is not None)
 
 
-class OBJECT_PT_properties(ObjectButtonsPanel):
-    bl_label = "Properties"
-    bl_default_closed = True
-
-    def draw(self, context):
-        import rna_prop_ui
-        # reload(rna_prop_ui)
-
-        rna_prop_ui.draw(self.layout, context, "object")
-
 bpy.types.register(OBJECT_PT_context_object)
 bpy.types.register(OBJECT_PT_transform)
 bpy.types.register(OBJECT_PT_transform_locks)
@@ -311,4 +313,5 @@ bpy.types.register(OBJECT_PT_groups)
 bpy.types.register(OBJECT_PT_display)
 bpy.types.register(OBJECT_PT_duplication)
 bpy.types.register(OBJECT_PT_animation)
-bpy.types.register(OBJECT_PT_properties)
+
+bpy.types.register(OBJECT_PT_custom_props)

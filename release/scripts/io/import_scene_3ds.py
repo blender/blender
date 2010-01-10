@@ -410,8 +410,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             myVertMapping = dict( [ (ii, i) for i, ii in enumerate(vertsToUse) ] )
 
             tempName= '%s_%s' % (contextObName, matName) # matName may be None.
-            bmesh = bpy.data.add_mesh(tempName)
-# 			bmesh = bpy.data.meshes.new(tempName)
+            bmesh = bpy.data.meshes.new(tempName)
 
             if matName == None:
                 img = None
@@ -465,7 +464,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 # 								targetFace.image = img
 
             # bmesh.transform(contextMatrix)
-            ob = bpy.data.add_object("MESH", tempName)
+            ob = bpy.data.objects.new(tempName, 'MESH')
             ob.data = bmesh
             SCN.objects.link(ob)
 # 			ob = SCN_OBJECTS.new(bmesh, tempName)
@@ -766,8 +765,8 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             x,y,z = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += STRUCT_SIZE_3FLOAT
 
-            ob = bpy.data.add_object("LAMP", "Lamp")
-            ob.data = bpy.data.add_lamp("Lamp")
+            ob = bpy.data.objects.new("Lamp", 'LAMP')
+            ob.data = bpy.data.lamps.new("Lamp")
             SCN.objects.link(ob)
 
             contextLamp[1]= ob.data

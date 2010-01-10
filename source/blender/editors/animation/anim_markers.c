@@ -120,7 +120,7 @@ void ED_markers_get_minmax (ListBase *markers, short sel, float *first, float *l
 	int selcount = 0;
 	
 	/* sanity check */
-	printf("markers = %p -  %p, %p \n", markers, markers->first, markers->last);
+	//printf("markers = %p -  %p, %p \n", markers, markers->first, markers->last);
 	if (markers == NULL) {
 		*first = 0.0f;
 		*last = 0.0f;
@@ -240,9 +240,8 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
 	
 	/* vertical line - dotted */
-	// NOTE: currently only used for sequencer
 #ifdef DURIAN_CAMERA_SWITCH
-	if (marker->camera || flag & DRAW_MARKERS_LINES) {
+	if ((marker->camera) || (flag & DRAW_MARKERS_LINES)) {
 #else
 	if (flag & DRAW_MARKERS_LINES) {
 #endif
@@ -252,10 +251,10 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 			glColor4ub(255, 255, 255, 96);
 		else
 			glColor4ub(0, 0, 0, 96);
-
+		
 		glBegin(GL_LINES);
 			glVertex2f((xpos*xscale)+0.5f, 12.0f);
-			glVertex2f((xpos*xscale)+0.5f, 34.0f*yscale); /* a bit lazy but we know it cant be greater then 34 strips high */
+			glVertex2f((xpos*xscale)+0.5f, (v2d->cur.ymax+12.0f)*yscale);
 		glEnd();
 		
 		setlinestyle(0);
@@ -351,7 +350,7 @@ static int ed_marker_add(bContext *C, wmOperator *op)
 	marker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
 	marker->flag= SELECT;
 	marker->frame= frame;
-	sprintf(marker->name, "Frame %d", frame); // XXX - temp code only
+	sprintf(marker->name, "F_%02d", frame); // XXX - temp code only
 	BLI_addtail(markers, marker);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);

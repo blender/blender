@@ -153,9 +153,10 @@ GHOST_WindowX11(
 	GHOST_TWindowState state,
 	const GHOST_TEmbedderWindowID parentWindow,
 	GHOST_TDrawingContextType type,
-	const bool stereoVisual
+	const bool stereoVisual,
+	const GHOST_TUns16 numOfAASamples
 ) :
-	GHOST_Window(title,left,top,width,height,state,type,stereoVisual),
+	GHOST_Window(title,left,top,width,height,state,type,stereoVisual,numOfAASamples),
 	m_context(NULL),
 	m_display(display),
 	m_system (system),
@@ -170,8 +171,14 @@ GHOST_WindowX11(
 
 	int attributes[40], i = 0;
 	Atom atoms[2];
-	int natom;	
-	
+	int natom;
+	int glxVersionMajor, glxVersionMinor; // As in GLX major.minor
+
+	if (!glXQueryVersion(m_display, &glxVersionMajor, &glxVersionMinor)) {
+		printf("%s:%d: X11 glXQueryVersion() failed, verify working openGL system!\n", __FILE__, __LINE__);
+		return;
+	}
+
 	if(m_stereoVisual)
 		attributes[i++] = GLX_STEREO;
 
@@ -181,13 +188,18 @@ GHOST_WindowX11(
 	attributes[i++] = GLX_BLUE_SIZE;  attributes[i++] = 1;
 	attributes[i++] = GLX_GREEN_SIZE; attributes[i++] = 1;
 	attributes[i++] = GLX_DEPTH_SIZE; attributes[i++] = 1;
+	/* GLX 1.4+, multi-sample */
+	if(m_numOfAASamples && (glxVersionMajor >= 1) && (glxVersionMinor >= 4)) {
+		attributes[i++] = GLX_SAMPLE_BUFFERS; attributes[i++] = 1;
+		attributes[i++] = GLX_SAMPLES; attributes[i++] = m_numOfAASamples;
+	}
 	attributes[i] = None;
-	
+
 	m_visual = glXChooseVisual(m_display, DefaultScreen(m_display), attributes);
 
 	if (m_visual == NULL) {
 		// barf : no visual meeting these requirements could be found.
-		printf("%s:%d: X11 glxChooseVisual() failed for OpenGL, verify working openGL system!\n", __FILE__, __LINE__);
+		printf("%s:%d: X11 glXChooseVisual() failed, verify working openGL system!\n", __FILE__, __LINE__);
 		return;
 	}
 	
@@ -1226,10 +1238,7 @@ GHOST_WindowX11::
 	if(m_xtablet.EraserDevice)
 		XCloseDevice(m_display, m_xtablet.EraserDevice);
 	
-	if (m_context) {
-		if (m_context == s_firstContext) {
-			s_firstContext = NULL;
-		}
+	if (m_context != s_firstContext) {
 		glXDestroyContext(m_display, m_context);
 	}
 	

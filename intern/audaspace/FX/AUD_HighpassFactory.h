@@ -23,54 +23,44 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_SDLMIXER
-#define AUD_SDLMIXER
+#ifndef AUD_HIGHPASSFACTORY
+#define AUD_HIGHPASSFACTORY
 
-#include "AUD_IMixer.h"
-class AUD_SDLMixerFactory;
-#include <list>
-
-struct AUD_SDLMixerBuffer
-{
-	sample_t* buffer;
-	int length;
-	float volume;
-};
+#include "AUD_EffectFactory.h"
 
 /**
- * This class is able to mix audiosignals with the help of SDL.
+ * This factory creates a highpass filter reader.
  */
-class AUD_SDLMixer : public AUD_IMixer
+class AUD_HighpassFactory : public AUD_EffectFactory
 {
 private:
 	/**
-	 * The mixer factory that prepares all readers for superposition.
+	 * The attack value in seconds.
 	 */
-	AUD_SDLMixerFactory* m_factory;
+	float m_frequency;
 
 	/**
-	 * The list of buffers to superpose.
+	 * The Q factor.
 	 */
-	std::list<AUD_SDLMixerBuffer> m_buffers;
-
-	/**
-	 * The size of an output sample.
-	 */
-	int m_samplesize;
+	float m_Q;
 
 public:
 	/**
-	 * Creates the mixer.
+	 * Creates a new highpass factory.
+	 * \param factory The input factory.
+	 * \param frequency The cutoff frequency.
+	 * \param Q The Q factor.
 	 */
-	AUD_SDLMixer();
+	AUD_HighpassFactory(AUD_IFactory* factory, float frequency, float Q = 1.0f);
 
-	virtual ~AUD_SDLMixer();
+	/**
+	 * Creates a new highpass factory.
+	 * \param frequency The cutoff frequency.
+	 * \param Q The Q factor.
+	 */
+	AUD_HighpassFactory(float frequency, float Q = 1.0f);
 
-	virtual AUD_IReader* prepare(AUD_IReader* reader);
-	virtual void setSpecs(AUD_Specs specs);
-	virtual void add(sample_t* buffer, AUD_Specs specs, int length,
-					 float volume);
-	virtual void superpose(sample_t* buffer, int length, float volume);
+	virtual AUD_IReader* createReader();
 };
 
-#endif //AUD_SDLMIXER
+#endif //AUD_HIGHPASSFACTORY

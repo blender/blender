@@ -506,9 +506,7 @@ static void socket_circle_draw(bNodeSocket *sock, float size)
 	
 	/* choose color based on sock flags */
 	if(sock->flag & SELECT) {
-		if(sock->flag & SOCK_SEL) {
-			col[0]= 240; col[1]= 200; col[2]= 40;}
-		else if(sock->type==SOCK_VALUE) {
+		if(sock->type==SOCK_VALUE) {
 			col[0]= 200; col[1]= 200; col[2]= 200;}
 		else if(sock->type==SOCK_VECTOR) {
 			col[0]= 140; col[1]= 140; col[2]= 240;}
@@ -517,8 +515,6 @@ static void socket_circle_draw(bNodeSocket *sock, float size)
 		else {
 			col[0]= 140; col[1]= 240; col[2]= 140;}
 	}
-	else if(sock->flag & SOCK_SEL) {
-		col[0]= 200; col[1]= 160; col[2]= 0;}
 	else {
 		if(sock->type==-1) {
 			col[0]= 0; col[1]= 0; col[2]= 0;}

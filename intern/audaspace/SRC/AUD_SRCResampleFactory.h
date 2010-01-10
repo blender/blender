@@ -31,14 +31,13 @@
 /**
  * This factory creates a resampling reader that uses libsamplerate for
  * resampling.
- * \note The format of the input must be float.
  */
 class AUD_SRCResampleFactory : public AUD_ResampleFactory
 {
 public:
-	AUD_SRCResampleFactory(AUD_IReader* reader, AUD_Specs specs);
-	AUD_SRCResampleFactory(AUD_IFactory* factory, AUD_Specs specs);
-	AUD_SRCResampleFactory(AUD_Specs specs);
+	AUD_SRCResampleFactory(AUD_IReader* reader, AUD_DeviceSpecs specs);
+	AUD_SRCResampleFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
+	AUD_SRCResampleFactory(AUD_DeviceSpecs specs);
 
 	virtual AUD_IReader* createReader();
 };

@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -55,6 +56,10 @@ class DATA_PT_context_arm(DataButtonsPanel):
             layout.template_ID(ob, "data")
 
 
+class DATA_PT_custom_props_arm(DataButtonsPanel, PropertyPanel):
+    _context_path = "object.data"
+
+
 class DATA_PT_skeleton(DataButtonsPanel):
     bl_label = "Skeleton"
 
@@ -89,6 +94,7 @@ class DATA_PT_display(DataButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
+        ob = context.object
         arm = context.armature
         wide_ui = context.region.width > narrowui
 
@@ -108,6 +114,7 @@ class DATA_PT_display(DataButtonsPanel):
             col = split.column()
         col.prop(arm, "draw_group_colors", text="Colors")
         col.prop(arm, "delay_deform", text="Delay Refresh")
+        col.prop(ob, "x_ray", text="X-Ray (Object)")
 
 
 class DATA_PT_bone_groups(DataButtonsPanel):
@@ -290,6 +297,7 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel):
                 row.prop(itasc, "dampmax", text="Damp", slider=True)
                 row.prop(itasc, "dampeps", text="Eps", slider=True)
 
+
 bpy.types.register(DATA_PT_context_arm)
 bpy.types.register(DATA_PT_skeleton)
 bpy.types.register(DATA_PT_display)
@@ -297,3 +305,5 @@ bpy.types.register(DATA_PT_bone_groups)
 bpy.types.register(DATA_PT_paths)
 bpy.types.register(DATA_PT_ghost)
 bpy.types.register(DATA_PT_iksolver_itasc)
+
+bpy.types.register(DATA_PT_custom_props_arm)

@@ -347,6 +347,7 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 	ibuf = IMB_allocImBuf(width, height, 8*bytesperpixel, 0, 0);
 	if (ibuf) {
 		ibuf->ftype = TIF;
+		ibuf->profile = IB_PROFILE_SRGB;
 	} else {
 		fprintf(stderr, 
 			"imb_loadtiff: could not allocate memory for TIFF " \

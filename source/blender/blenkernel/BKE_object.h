@@ -62,6 +62,8 @@ void update_base_layer(struct Scene *scene, struct Object *ob);
 
 void free_object(struct Object *ob);
 void object_free_display(struct Object *ob);
+
+void object_link_modifiers(struct Object *ob, struct Object *from);
 void object_free_modifiers(struct Object *ob);
 
 void object_make_proxy(struct Object *ob, struct Object *target, struct Object *gob);

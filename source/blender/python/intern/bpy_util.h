@@ -36,16 +36,6 @@
 struct EnumPropertyItem;
 struct ReportList;
 
-/* for internal use only, so python can interchange a sequence of strings with flags */
-typedef struct BPY_flag_def {
-    const char	*name;
-    int			flag;
-} BPY_flag_def;
-
-
-PyObject *BPY_flag_to_list(BPY_flag_def *flagdef, int flag);
-int BPY_flag_from_seq(BPY_flag_def *flagdef, PyObject *seq, int *flag);
-
 void PyObSpit(char *name, PyObject *var);
 void PyLineSpit(void);
 void BPY_getFileAndNum(char **filename, int *lineno);

@@ -1265,7 +1265,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 	EM_select_flush(em); /* flushes vertex -> edge -> face selection */
 	
 	if(type!=PRIM_PLANE && type!=PRIM_MONKEY)
-		righthandfaces(em, 1);	/* otherwise monkey has eyes in wrong direction */
+		EM_recalc_normal_direction(em, 0, 0);	/* otherwise monkey has eyes in wrong direction */
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 }

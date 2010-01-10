@@ -155,15 +155,7 @@ static int gpencil_draw_poll (bContext *C)
 static int gpencil_project_check (tGPsdata *p)
 {
 	bGPdata *gpd= p->gpd;
-	
-	if(	(gpd->sbuffer_sflag & GP_STROKE_3DSPACE) &&
-		(p->scene->toolsettings->snap_mode==SCE_SNAP_MODE_FACE) &&
-		(p->scene->toolsettings->snap_flag & SCE_SNAP_PROJECT) )
-	{
-		return 1;
-	}
-
-	return 0;
+	return ((gpd->sbuffer_sflag & GP_STROKE_3DSPACE) && (p->gpd->flag & (GP_DATA_DEPTH_VIEW | GP_DATA_DEPTH_STROKE))) ? 1:0;
 }
 
 /* ******************************************* */
@@ -220,13 +212,13 @@ static short gp_stroke_filtermval (tGPsdata *p, int mval[2], int pmval[2])
 
 /* convert screen-coordinates to buffer-coordinates */
 // XXX this method needs a total overhaul!
-static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[])
+static void gp_stroke_convertcoords (tGPsdata *p, short mval[], float out[], float *depth)
 {
 	bGPdata *gpd= p->gpd;
 	
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
 	if (gpd->sbuffer_sflag & GP_STROKE_3DSPACE) {
-		if(gpencil_project_check(p) && (view_autodist_simple(p->ar, mval, out))) {
+		if(gpencil_project_check(p) && (view_autodist_simple(p->ar, mval, out, 0, depth))) {
 			/* projecting onto 3D-Geometry
 			 *	- nothing more needs to be done here, since view_autodist_simple() has already done it
 			 */
@@ -466,6 +458,8 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 	bGPDspoint *pt;
 	tGPspoint *ptc;
 	int i, totelem;
+	/* since strokes are so fine, when using their depth we need a margin otherwise they might get missed */
+	int depth_margin = (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 4 : 0;
 	
 	/* get total number of points to allocate space for 
 	 *	- drawing straight-lines only requires the endpoints
@@ -501,7 +495,7 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 			ptc= gpd->sbuffer;
 			
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
-			gp_stroke_convertcoords(p, &ptc->x, &pt->x);
+			gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
 			
 			/* copy pressure */
 			pt->pressure= ptc->pressure;
@@ -514,23 +508,79 @@ static void gp_stroke_newfrombuffer (tGPsdata *p)
 			ptc= ((tGPspoint *)gpd->sbuffer) + (gpd->sbuffer_size - 1);
 			
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
-			gp_stroke_convertcoords(p, &ptc->x, &pt->x);
+			gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
 			
 			/* copy pressure */
 			pt->pressure= ptc->pressure;
 		}
 	}
 	else {
+		float *depth_arr= NULL;
+
+		/* get an array of depths, far depths are blended */
+		if(gpencil_project_check(p)) {
+			short mval[2];
+			int interp_depth = 0;
+			int found_depth = 0;
+
+			depth_arr= MEM_mallocN(sizeof(float) * gpd->sbuffer_size, "depth_points");
+
+			for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size; i++, ptc++, pt++) {
+				mval[0]= ptc->x; mval[1]= ptc->y;
+				if(view_autodist_depth(p->ar, mval, depth_margin, depth_arr+i) == 0)
+					interp_depth= TRUE;
+				else
+					found_depth= TRUE;
+			}
+
+			if(found_depth==FALSE) {
+				/* eeh... not much we can do.. :/, ignore depth in this case, use the 3D cursor */
+				for (i=gpd->sbuffer_size-1; i >= 0; i--)
+					depth_arr[i] = 0.9999f;
+			}
+			else {
+				if(p->gpd->flag & GP_DATA_DEPTH_STROKE_ENDPOINTS) {
+					/* remove all info between the valid endpoints */
+					int first_valid = 0;
+					int last_valid = 0;
+
+					for (i=0; i < gpd->sbuffer_size; i++)
+						if(depth_arr[i] != FLT_MAX)
+							break;
+					first_valid= i;
+
+					for (i=gpd->sbuffer_size-1; i >= 0; i--)
+						if(depth_arr[i] != FLT_MAX)
+							break;
+					last_valid= i;
+
+					/* invalidate non-endpoints, so only blend between first and last */
+					for (i=first_valid+1; i < last_valid; i++)
+						depth_arr[i]= FLT_MAX;
+
+					interp_depth= TRUE;
+				}
+
+				if(interp_depth) {
+					interp_sparse_array(depth_arr, gpd->sbuffer_size, FLT_MAX);
+				}
+			}
+		}
+
+
+		pt= gps->points;
+
 		/* convert all points (normal behaviour) */
-		for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size && ptc; i++, ptc++) {
+		for (i=0, ptc=gpd->sbuffer; i < gpd->sbuffer_size && ptc; i++, ptc++, pt++) {
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
-			gp_stroke_convertcoords(p, &ptc->x, &pt->x);
+			gp_stroke_convertcoords(p, &ptc->x, &pt->x, depth_arr ? depth_arr+i:NULL);
 			
 			/* copy pressure */
 			pt->pressure= ptc->pressure;
-			
-			pt++;
 		}
+
+		if(depth_arr)
+			MEM_freeN(depth_arr);
 	}
 	
 	/* add stroke to frame */
@@ -1141,7 +1191,7 @@ static void gpencil_draw_exit (bContext *C, wmOperator *op)
 		
 		/* need to restore the original projection settings before packing up */
 		view3d_operator_needs_opengl(C);
-		view_autodist_init(p->scene, p->ar, v3d);
+		view_autodist_init(p->scene, p->ar, v3d, (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 1:0);
 	}
 
 	gp_paint_cleanup(p);

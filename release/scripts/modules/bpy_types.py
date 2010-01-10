@@ -46,6 +46,19 @@ class Object(bpy_types.ID):
         import bpy
         return [child for child in bpy.data.objects if child.parent == self]
 
+    @property
+    def group_users(self):
+        """The groups this object is in"""
+        import bpy
+        name = self.name
+        return [group for group in bpy.data.groups if name in group.objects]
+
+    @property
+    def scene_users(self):
+        """The scenes this object is in"""
+        import bpy
+        name = self.name
+        return [scene for scene in bpy.data.scenes if name in scene.objects]
 
 class _GenericBone:
     """
@@ -95,6 +108,11 @@ class _GenericBone:
             parent = parent.parent
 
         return parent_list
+
+    @property
+    def center(self):
+        """The midpoint between the head and the tail."""
+        return (self.head + self.tail) * 0.5
 
     @property
     def length(self):
@@ -193,6 +211,19 @@ class EditBone(StructRNA, _GenericBone):
         self.tail = self.head + vec
         self.roll = other.roll
 
+    def transform(self, matrix):
+        """
+        Transform the the bones head, tail, roll and envalope (when the matrix has a scale component).
+        Expects a 4x4 or 3x3 matrix.
+        """
+        from Mathutils import Vector
+        z_vec = self.matrix.rotationPart() * Vector(0.0, 0.0, 1.0)
+        self.tail = matrix * self.tail
+        self.head = matrix * self.head
+        scalar = matrix.median_scale
+        self.head_radius *= scalar
+        self.tail_radius *= scalar
+        self.align_roll(matrix * z_vec)
 
 def ord_ind(i1, i2):
     if i1 < i2:

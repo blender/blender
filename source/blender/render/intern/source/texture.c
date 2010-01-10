@@ -1737,7 +1737,8 @@ void do_material_tex(ShadeInput *shi)
 					// (should not be here, dudnu, dudnv, dvdnu & dvdnv should probably be part of ShadeInputUV struct,
 					//  nu/nv in ShadeInput and this calculation should then move to shadeinput.c, shade_input_set_shade_texco() func.)
 					// NOTE: test for shi->obr->ob here, since vlr/obr/obi can be 'fake' when called from fastshade(), another reason to move it..
-					if ((mtex->texflag & MTEX_NEW_BUMP) && shi->obr && shi->obr->ob) {
+					// NOTE: shi->v1 is NULL when called from displace_render_vert, assigning verts in this case is not trivial because the shi quad face side is not know.
+					if ((mtex->texflag & MTEX_NEW_BUMP) && shi->obr && shi->obr->ob && shi->v1) {
 						if(mtex->mapto & (MAP_NORM|MAP_DISPLACE|MAP_WARP)) {
 							MTFace* tf = RE_vlakren_get_tface(shi->obr, shi->vlr, i, NULL, 0);
 							int j1 = shi->i1, j2 = shi->i2, j3 = shi->i3;

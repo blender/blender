@@ -94,14 +94,14 @@
 
 #include "view3d_intern.h"	// own include
 
-
+// TODO: should return whether there is valid context to continue
 void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 {
 	memset(vc, 0, sizeof(ViewContext));
 	vc->ar= CTX_wm_region(C);
 	vc->scene= CTX_data_scene(C);
 	vc->v3d= CTX_wm_view3d(C);
-	vc->rv3d= vc->ar->regiondata;
+	vc->rv3d= CTX_wm_region_view3d(C);
 	vc->obact= CTX_data_active_object(C);
 	vc->obedit= CTX_data_edit_object(C); 
 }
@@ -1424,6 +1424,8 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	else if(obedit==NULL && (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
 		return PE_border_select(C, &rect, selecting, extend);
 	}
+	else if(obedit==NULL && (obact && obact->mode & OB_MODE_SCULPT))
+		return OPERATOR_CANCELLED;
 	
 	if(obedit) {
 		if(obedit->type==OB_MESH) {
@@ -1689,6 +1691,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			retval = mouse_mball(C, event->mval, extend);
 			
 	}
+	else if(obact && obact->mode & OB_MODE_SCULPT)
+		return OPERATOR_CANCELLED;
 	else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT)
 		return PE_mouse_particles(C, event->mval, extend);
 	else if(obact && paint_facesel_test(obact))
@@ -2011,6 +2015,9 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		}
 		else
 			return PE_circle_select(C, selecting, mval, (float)radius);
+	}
+	else if(obact && obact->mode & OB_MODE_SCULPT) {
+		return OPERATOR_CANCELLED;
 	}
 	else {
 		Base *base;

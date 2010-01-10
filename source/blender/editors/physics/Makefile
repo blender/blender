@@ -53,4 +53,10 @@ CPPFLAGS += -I../../render/extern/include
 
 # own include 
 
-CPPFLAGS += -I../include 
+CPPFLAGS += -I../include
+
+ifeq ($(OS), darwin)
+    ifeq ($(WITH_BF_OPENMP), true)
+      CPPFLAGS += -DPARALLEL=1
+    endif
+endif

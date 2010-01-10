@@ -165,6 +165,7 @@ int ED_object_modifier_remove(ReportList *reports, Scene *scene, Object *ob, Mod
 
 		BLI_remlink(&ob->particlesystem, psmd->psys);
 		psys_free(ob, psmd->psys);
+		psmd->psys= NULL;
 	}
 	else if(md->type == eModifierType_Softbody) {
 		if(ob->soft) {

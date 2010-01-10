@@ -290,7 +290,7 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
-		case NC_IMAGE:	
+		case NC_IMAGE:
 			ED_area_tag_redraw(sa);
 			break;
 		case NC_SPACE:	
