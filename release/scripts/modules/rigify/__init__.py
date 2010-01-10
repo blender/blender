@@ -28,8 +28,14 @@ LAYER_TYPES = "main", "extra", "ik", "fk"
 
 ORG_LAYERS = [n==31 for n in range(0,32)]
 MCH_LAYERS = [n==30 for n in range(0,32)]
-DEF_LAYERS = [n==29 for n in range(0,32)] 
+DEF_LAYERS = [n==29 for n in range(0,32)]
+ROOT_LAYERS = [n==28 for n in range(0,32)] 
 
+ORG_PREFIX = "ORG-"
+MCH_PREFIX = "MCH-"
+DEF_PREFIX = "DEF-"
+
+WGT_PREFIX = "WGT-"
 
 
 
@@ -79,11 +85,15 @@ def get_bone_type_options(pbone, type_name):
     options = {}
     bone_name = pbone.name
     for key, value in pbone.items():
-        key_pair = key.split(".")
+        key_pair = key.rsplit(".")
+        # get all bone properties
+        """"
         if key_pair[0] == type_name:
             if len(key_pair) != 2:
                 raise RigifyError("option error for bone '%s', property name was not a pair '%s'" % (bone_name, key_pair))
             options[key_pair[1]] = value
+        """
+        options[key] = value
 
     return options
 
@@ -174,18 +184,22 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
     arm = obj.data
 
-    # original name mapping
+    # prepend the ORG prefix to the bones, and create the base_names mapping
     base_names = {}
-
-    # add all new parentless children to this bone
-    root_bone = None
-
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in arm.edit_bones:
         bone_name = bone.name
-        if obj.pose.bones[bone_name].get("type", "") != "root":
-            bone.name = prefix + bone_name
-        base_names[bone.name] = bone_name # new -> old mapping
+        bone.name = ORG_PREFIX + bone_name
+        base_names[bone.name] = bone_name
+
+    # create root_bone
+    bpy.ops.object.mode_set(mode='EDIT')
+    edit_bone = obj.data.edit_bones.new("root")
+    root_bone = edit_bone.name
+    edit_bone.head = (0.0, 0.0, 0.0)
+    edit_bone.tail = (0.0, 1.0, 0.0)
+    edit_bone.roll = 0.0
+    edit_bone.layer = ROOT_LAYERS
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # key: bone name
@@ -217,12 +231,6 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
             del pbone["type"]
         else:
             bone_type_list = []
-
-        if bone_type_list == ["root"]: # special case!
-            if root_bone:
-                raise RigifyError("cant have more then 1 root bone, found '%s' and '%s' to have type==root" % (root_bone, bone_name))
-            root_bone = bone_name
-            bone_type_list[:] = []
 
         for bone_type in bone_type_list:
             type_name, submod, type_func = submodule_func_from_type(bone_type)
@@ -292,9 +300,11 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     # need a reverse lookup on bone_genesis so as to know immediately
     # where a bone comes from
     bone_genesis_reverse = {}
+    '''
     for bone_name, bone_children in bone_genesis.items():
         for bone_child_name in bone_children:
             bone_genesis_reverse[bone_child_name] = bone_name
+    '''
 
 
     if root_bone:
@@ -304,6 +314,9 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         root_ebone = arm.edit_bones[root_bone]
         for ebone in arm.edit_bones:
             bone_name = ebone.name
+            if ebone.parent is None:
+                ebone.parent = root_ebone
+            '''
             if ebone.parent is None and bone_name not in base_names:
                 # check for override
                 bone_creator = bone_genesis_reverse[bone_name]
@@ -317,6 +330,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
                 ebone.connected = False
                 ebone.parent = root_ebone_tmp
+            '''
 
         bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -348,18 +362,22 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
     for bone_name, bone in arm.bones.items():
         bone.deform = False  # Non DEF bones shouldn't deform
-        if bone_name.startswith(prefix):
+        if bone_name.startswith(ORG_PREFIX):
             bone.layer = ORG_LAYERS
-        elif bone_name.startswith("MCH-"): # XXX fixme
+        elif bone_name.startswith(MCH_PREFIX): # XXX fixme
             bone.layer = MCH_LAYERS
-        elif bone_name.startswith("DEF-"): # XXX fixme
+        elif bone_name.startswith(DEF_PREFIX): # XXX fixme
             bone.layer = DEF_LAYERS
             bone.deform = True
+        else:
+            # Assign bone appearance if there is a widget for it
+            obj.pose.bones[bone_name].custom_shape = context.scene.objects.get(WGT_PREFIX+bone_name)
 
         layer_tot[:] = [max(lay) for lay in zip(layer_tot, bone.layer)]
 
     # Only for demo'ing
-    arm.layer = layer_tot
+    layer_show = [a and not (b or c or d) for a,b,c,d in zip(layer_tot, ORG_LAYERS, MCH_LAYERS, DEF_LAYERS)]
+    arm.layer = layer_show
 
 
     # obj.restrict_view = True

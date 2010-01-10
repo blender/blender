@@ -20,7 +20,7 @@
 
 import bpy
 from rigify import RigifyError
-from rigify_utils import bone_class_instance, copy_bone_simple, add_pole_target_bone, get_base_name, get_side_name
+from rigify_utils import bone_class_instance, copy_bone_simple, add_pole_target_bone, get_side_name, get_base_name
 from Mathutils import Vector
 
 METARIG_NAMES = "hips", "thigh", "shin", "foot", "toe"
@@ -105,6 +105,7 @@ def metarig_definition(obj, orig_bone_name):
 
 def ik(obj, bone_definition, base_names, options):
     arm = obj.data
+    bpy.ops.object.mode_set(mode='EDIT')
 
     # setup the existing bones, use names from METARIG_NAMES
     mt = bone_class_instance(obj, ["hips"])
@@ -128,7 +129,7 @@ def ik(obj, bone_definition, base_names, options):
     ik_chain.foot_e.align_orientation(mt_chain.toe_e)
 
     # children of ik_foot
-    ik = bone_class_instance(obj, ["foot", "foot_roll", "foot_roll_01", "foot_roll_02", "knee_target", "foot_target"])
+    ik = bone_class_instance(obj, ["foot_roll", "foot_roll_01", "foot_roll_02", "knee_target", "foot_target"])
 
     ik.knee_target = add_pole_target_bone(obj, mt_chain.shin, "knee_target" + get_side_name(base_names[mt_chain.foot])) #XXX - pick a better name
     ik.update()
@@ -153,7 +154,7 @@ def ik(obj, bone_definition, base_names, options):
     ik.foot_roll_01_e.roll = ik.foot_roll_e.roll
 
     # ik_target, child of MCH-foot
-    ik.foot_target_e = copy_bone_simple(arm, mt_chain.foot, base_names[mt_chain.foot] + "_ik_target")
+    ik.foot_target_e = copy_bone_simple(arm, mt_chain.foot, "MCH-" + base_names[mt_chain.foot] + "_ik_target")
     ik.foot_target = ik.foot_target_e.name
     ik.foot_target_e.parent = ik.foot_roll_01_e
     ik.foot_target_e.align_orientation(ik_chain.foot_e)
@@ -213,8 +214,20 @@ def ik(obj, bone_definition, base_names, options):
     con.pole_target = obj
     con.pole_subtarget = ik.knee_target
 
+    ik.update()
+    ik_chain.update()
 
-    bpy.ops.object.mode_set(mode='EDIT')
+    # Set layers of the bones.
+    if "ik_layer" in options:
+        layer = [n==options["ik_layer"] for n in range(0,32)]
+    else:
+        layer = list(mt_chain.thigh_b.layer)
+    for attr in ik_chain.attr_names:
+        obj.data.bones[getattr(ik_chain, attr)].layer = layer
+    for attr in ik.attr_names:
+        obj.data.bones[getattr(ik, attr)].layer = layer
+    
+
 
     return None, ik_chain.thigh, ik_chain.shin, ik_chain.foot, ik_chain.toe
 

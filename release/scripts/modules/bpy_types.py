@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 from _bpy import types as bpy_types
+from Mathutils import Vector
 
 StructRNA = bpy_types.Struct.__bases__[0]
 # StructRNA = bpy_types.Struct
@@ -88,6 +89,24 @@ class _GenericBone:
             i += 1
 
         return 0
+    
+    @property
+    def x_axis(self):
+        """ Vector pointing down the x-axis of the bone.
+        """
+        return self.matrix.rotationPart() * Vector(1,0,0)
+    
+    @property
+    def y_axis(self):
+        """ Vector pointing down the x-axis of the bone.
+        """
+        return self.matrix.rotationPart() * Vector(0,1,0)
+    
+    @property
+    def z_axis(self):
+        """ Vector pointing down the x-axis of the bone.
+        """
+        return self.matrix.rotationPart() * Vector(0,0,1)
 
     @property
     def basename(self):

@@ -520,21 +520,31 @@ def main(obj, bone_definition, base_names, options):
         mod.poly_order = 1
         mod.coefficients[0] = - (i - 1)
         mod.coefficients[1] = spine_chain_len
+    
+    
+    # Set pelvis and ribcage controls to use the first and last bone in the
+    # spine respectively for their custom shape transform
+    ex.ribcage_copy_p.custom_shape_transform = obj.pose.bones[bone_definition[len(bone_definition)-1]]
+    ex.pelvis_copy_p.custom_shape_transform = obj.pose.bones[bone_definition[2]]
 
 
     # last step setup layers
-    layers = get_layer_dict(options)
-    lay = layers["extra"]
+    if "ex_layer" in options:
+        layer = [n==options["ex_layer"] for n in range(0,32)]
+    else:
+        layer = list(arm.bones[bone_definition[1]].layer)
     for attr in ex.attr_names:
-        getattr(ex, attr + "_b").layer = lay
+        getattr(ex, attr + "_b").layer = layer
     for attr in ex_chain.attr_names:
-        getattr(ex_chain, attr + "_b").layer = lay
-
-    lay = layers["main"]
+        getattr(ex_chain, attr + "_b").layer = layer
     for attr in df.attr_names:
-        getattr(df, attr + "_b").layer = lay
+        getattr(df, attr + "_b").layer = layer
     for attr in rv_chain.attr_names:
-        getattr(rv_chain, attr + "_b").layer = lay
+        getattr(rv_chain, attr + "_b").layer = layer
+        
+    layer = list(arm.bones[bone_definition[1]].layer)
+    arm.bones[ex.pelvis_copy].layer = layer
+    arm.bones[ex.ribcage_copy].layer = layer
 
     # no support for blending chains
     return None

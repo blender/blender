@@ -261,8 +261,7 @@ def main(obj, bone_definition, base_names, options):
 
 
     # last step setup layers
-    layers = get_layer_dict(options)
-    arm.bones[control_name].layer = layers["extra"]
+    arm.bones[control_name].layer = list(arm.bones[bone_definition[1]].layer)
 
 
     # no blending the result of this

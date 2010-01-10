@@ -155,7 +155,7 @@ def main(obj, bone_definition, base_names, options):
 
 
     # Copy the head bone and offset
-    ex.head_e = copy_bone_simple(arm, mt.head, "MCH_%s" % base_names[mt.head], parent=True)
+    ex.head_e = copy_bone_simple(arm, mt.head, "MCH-%s" % base_names[mt.head], parent=True)
     ex.head_e.connected = False
     ex.head = ex.head_e.name
     # offset
@@ -164,7 +164,7 @@ def main(obj, bone_definition, base_names, options):
     ex.head_e.tail.y += head_length / 2.0
 
     # Yes, use the body bone but call it a head hinge
-    ex.head_hinge_e = copy_bone_simple(arm, mt.body, "MCH_%s_hinge" % base_names[mt.head], parent=False)
+    ex.head_hinge_e = copy_bone_simple(arm, mt.body, "MCH-%s_hinge" % base_names[mt.head], parent=False)
     ex.head_hinge_e.connected = False
     ex.head_hinge = ex.head_hinge_e.name
     ex.head_hinge_e.head.y += head_length / 4.0
@@ -320,16 +320,27 @@ def main(obj, bone_definition, base_names, options):
         con = orig_neck_p.constraints.new('COPY_ROTATION')
         con.target = obj
         con.subtarget = neck_p.name
+    
+    
+    # Set the head control's custom shape to use the last
+    # org neck bone for its transform
+    ex.head_ctrl_p.custom_shape_transform = obj.pose.bones[bone_definition[len(bone_definition)-1]]
 
 
     # last step setup layers
-    layers = get_layer_dict(options)
-    lay = layers["extra"]
+    if "ex_layer" in options:
+        layer = [n==options["ex_layer"] for n in range(0,32)]
+    else:
+        layer = list(arm.bones[bone_definition[1]].layer)
     for attr in ex_chain.attr_names:
-        getattr(ex_chain, attr + "_b").layer = lay
+        getattr(ex_chain, attr + "_b").layer = layer
     for attr in ex.attr_names:
-        getattr(ex, attr + "_b").layer = lay
+        getattr(ex, attr + "_b").layer = layer
+    
+    layer = list(arm.bones[bone_definition[1]].layer)
+    ex.head_ctrl_b.layer = layer
 
 
     # no blending the result of this
     return None
+    

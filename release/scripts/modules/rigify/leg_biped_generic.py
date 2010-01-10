@@ -150,16 +150,15 @@ def ik(obj, bone_definition, base_names, options):
 
     # ik foot: no parents
     base_foot_name = get_base_name(base_names[mt_chain.foot])
-    ik.foot_e = copy_bone_simple(arm, mt_chain.foot, base_foot_name + "_ik" + get_side_name(base_names[mt_chain.foot]))
+    ik.foot_e = copy_bone_simple(arm, mt.heel, base_foot_name + "_ik" + get_side_name(base_names[mt_chain.foot]))
     ik.foot = ik.foot_e.name
-    ik.foot_e.tail.z = ik.foot_e.head.z
-    ik.foot_e.roll = 0.0
+    ik.foot_e.translate(mt_chain.foot_e.head - ik.foot_e.head)
     ik.foot_e.local_location = False
 
     # foot roll: heel pointing backwards, half length
     ik.foot_roll_e = copy_bone_simple(arm, mt.heel, base_foot_name + "_roll" + get_side_name(base_names[mt_chain.foot]))
     ik.foot_roll = ik.foot_roll_e.name
-    ik.foot_roll_e.tail = ik.foot_roll_e.head + ik.foot_roll_e.vector / 2.0
+    ik.foot_roll_e.tail = ik.foot_roll_e.head - ik.foot_roll_e.vector / 2.0
     ik.foot_roll_e.parent = ik.foot_e # heel is disconnected
 
     # heel pointing forwards to the toe base, parent of the following 2 bones
@@ -189,7 +188,7 @@ def ik(obj, bone_definition, base_names, options):
 
 
     # knee target is the heel moved up and forward on its local axis
-    ik.knee_target_e = copy_bone_simple(arm, mt.heel, "knee_target")
+    ik.knee_target_e = copy_bone_simple(arm, mt.heel, "knee_target" + get_side_name(mt.heel))
     ik.knee_target = ik.knee_target_e.name
     offset = ik.knee_target_e.tail - ik.knee_target_e.head
     offset.z = 0
@@ -262,12 +261,14 @@ def ik(obj, bone_definition, base_names, options):
 
 
     # last step setup layers
-    layers = get_layer_dict(options)
-    lay = layers["ik"]
+    if "ik_layer" in options:
+        layer = [n==options["ik_layer"] for n in range(0,32)]
+    else:
+        layer = list(mt_chain.thigh_b.layer)
     for attr in ik_chain.attr_names:
-        getattr(ik_chain, attr + "_b").layer = lay
+        getattr(ik_chain, attr + "_b").layer = layer
     for attr in ik.attr_names:
-        getattr(ik, attr + "_b").layer = lay
+        getattr(ik, attr + "_b").layer = layer
 
     bpy.ops.object.mode_set(mode='EDIT')
 
@@ -300,6 +301,17 @@ def fk(obj, bone_definition, base_names, options):
     ex.thigh_hinge = ex.thigh_hinge_e.name
 
     fk_chain = mt_chain.copy(base_names=base_names) # fk has no prefix!
+    fk_chain.foot_e.name = "MCH-" + fk_chain.foot
+    fk_chain.foot = fk_chain.foot_e.name
+    
+    # Set up fk foot control
+    foot_e = copy_bone_simple(arm, mt.heel, base_names[mt_chain.foot])
+    foot = foot_e.name
+    foot_e.translate(mt_chain.foot_e.head - foot_e.head)
+    foot_e.parent = fk_chain.shin_e
+    foot_e.connected = fk_chain.foot_e.connected
+    fk_chain.foot_e.connected = False
+    fk_chain.foot_e.parent = foot_e
 
     fk_chain.thigh_e.connected = False
     fk_chain.thigh_e.parent = ex.thigh_hinge_e
@@ -309,11 +321,12 @@ def fk(obj, bone_definition, base_names, options):
     ex.update()
     mt_chain.update()
     fk_chain.update()
+    foot_p = obj.pose.bones[foot]
 
     # Set rotation modes and axis locks
     fk_chain.shin_p.rotation_mode = 'XYZ'
     fk_chain.shin_p.lock_rotation = False, True, True
-    fk_chain.foot_p.rotation_mode = 'YXZ'
+    foot_p.rotation_mode = 'YXZ'
     fk_chain.toe_p.rotation_mode = 'YXZ'
     fk_chain.toe_p.lock_rotation = False, True, True
 
@@ -350,14 +363,15 @@ def fk(obj, bone_definition, base_names, options):
 
 
     # last step setup layers
-    layers = get_layer_dict(options)
-    lay = layers["fk"]
+    if "fk_layer" in options:
+        layer = [n==options["fk_layer"] for n in range(0,32)]
+    else:
+        layer = list(mt_chain.thigh_b.layer)
     for attr in fk_chain.attr_names:
-        getattr(fk_chain, attr + "_b").layer = lay
-
-    lay = layers["extra"]
+        getattr(fk_chain, attr + "_b").layer = layer
     for attr in ex.attr_names:
-        getattr(ex, attr + "_b").layer = lay
+        getattr(ex, attr + "_b").layer = layer
+    arm.bones[foot].layer = layer
 
 
     bpy.ops.object.mode_set(mode='EDIT')
