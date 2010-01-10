@@ -1581,7 +1581,7 @@ class KX_GameObject(SCA_IObject):
 	"""
 	def endObject():
 		"""
-		Delete this object, can be used inpace of the EndObject Actuator.
+		Delete this object, can be used in place of the EndObject Actuator.
 		The actual removal of the object from the scene is delayed.
 		"""	
 	def replaceMesh(mesh, useDisplayMesh=True, usePhysicsMesh=False):
@@ -1682,7 +1682,7 @@ class KX_GameObject(SCA_IObject):
 	def getAxisVect(vect):
 		"""
 		Returns the axis vector rotates by the objects worldspace orientation.
-		This is the equivalent if multiplying the vector by the orientation matrix.
+		This is the equivalent of multiplying the vector by the orientation matrix.
 		
 		@type vect: 3d vector.
 		@param vect: a vector to align the axis.
