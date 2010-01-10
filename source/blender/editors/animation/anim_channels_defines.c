@@ -2556,14 +2556,15 @@ static void achannel_setting_widget_cb(bContext *C, void *poin, void *poin2)
 	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
 }
 
-/* callback for visiblility-toggle widget settings - perform value flushing (Graph Editor only) */
-static void achannel_setting_visible_widget_cb(bContext *C, void *ale_npoin, void *dummy_poin)
+/* callback for widget settings that need flushing */
+static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void *setting_wrap)
 {
 	bAnimListElem *ale_setting= (bAnimListElem *)ale_npoin;
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
 	int filter;
-	short vizOn = 0;
+	int setting = GET_INT_FROM_POINTER(setting_wrap);
+	short on = 0;
 	
 	/* send notifiers before doing anything else... */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
@@ -2575,10 +2576,10 @@ static void achannel_setting_visible_widget_cb(bContext *C, void *ale_npoin, voi
 	/* verify that we have a channel to operate on, and that it has all we need */
 	if (ale_setting) {
 		/* check if the setting is on... */
-		vizOn= ANIM_channel_setting_get(&ac, ale_setting, ACHANNEL_SETTING_VISIBLE);
+		on= ANIM_channel_setting_get(&ac, ale_setting, setting);
 		
-		/* vizOn == -1 means setting not found... */
-		if (vizOn == -1)
+		/* on == -1 means setting not found... */
+		if (on == -1)
 			return;
 	}
 	else
@@ -2592,7 +2593,7 @@ static void achannel_setting_visible_widget_cb(bContext *C, void *ale_npoin, voi
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* call API method to flush the setting */
-	ANIM_visibility_flush_anim_channels(&ac, &anim_data, ale_setting, vizOn);
+	ANIM_flush_setting_anim_channels(&ac, &anim_data, ale_setting, setting, on);
 	
 	/* free temp data */
 	BLI_freelistN(&anim_data);
@@ -2770,11 +2771,19 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 		
 		/* set call to send relevant notifiers and/or perform type-specific updates */
 		if (but) {
-			/* 'visibility' toggles for Graph Editor need special flushing */
-			if (setting == ACHANNEL_SETTING_VISIBLE) 
-				uiButSetNFunc(but, achannel_setting_visible_widget_cb, MEM_dupallocN(ale), 0);
-			else
-				uiButSetFunc(but, achannel_setting_widget_cb, NULL, NULL);
+			switch (setting) {
+				/* settings needing flushing up/down hierarchy  */
+				case ACHANNEL_SETTING_VISIBLE: /* Graph Editor - 'visibility' toggles */
+				case ACHANNEL_SETTING_PROTECT: /* General - protection flags */
+				case ACHANNEL_SETTING_MUTE: /* General - muting flags */
+					uiButSetNFunc(but, achannel_setting_flush_widget_cb, MEM_dupallocN(ale), SET_INT_IN_POINTER(setting));
+					break;
+					
+				/* no flushing */
+				case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush, otherwise all would open/close at once */
+				default:
+					uiButSetFunc(but, achannel_setting_widget_cb, NULL, NULL);
+			}
 		}
 	}
 }

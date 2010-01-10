@@ -364,9 +364,10 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
  *	 	  then the channels under closed expanders get ignored...
  *	- ale_setting: the anim channel (not in the anim_data list directly, though occuring there)
  *		with the new state of the setting that we want flushed up/down the hierarchy 
- *	- vizOn: whether the visibility setting has been enabled or disabled 
+ *	- setting: type of setting to set
+ *	- on: whether the visibility setting has been enabled or disabled 
  */
-void ANIM_visibility_flush_anim_channels (bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, short vizOn)
+void ANIM_flush_setting_anim_channels (bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, int setting, short on)
 {
 	bAnimListElem *ale, *match=NULL;
 	int prevLevel=0, matchLevel=0;
@@ -394,13 +395,22 @@ void ANIM_visibility_flush_anim_channels (bAnimContext *ac, ListBase *anim_data,
 		 * 	 - we define the level as simply being the offset for the start of the channel
 		 */
 		matchLevel= (acf->get_offset)? acf->get_offset(ac, ale_setting) : 0;
+		prevLevel= matchLevel;
 	}
 	
 	/* flush up? 
-	 *	- only flush up if the current state is now enabled 
+	 *
+	 * For Visibility:
+	 *	- only flush up if the current state is now enabled (positive 'on' state is default) 
 	 *	  (otherwise, it's too much work to force the parents to be inactive too)
+	 *
+	 * For everything else:
+	 *	- only flush up if the current state is now disabled (negative 'off' state is default)
+	 *	  (otherwise, it's too much work to force the parents to be active too)
 	 */
-	if (vizOn) {
+	if ( ((setting == ACHANNEL_SETTING_VISIBLE) && on) ||
+		 ((setting != ACHANNEL_SETTING_VISIBLE) && on==0) )
+	{
 		/* go backwards in the list, until the highest-ranking element (by indention has been covered) */
 		for (ale= match->prev; ale; ale= ale->prev) {
 			bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
@@ -416,7 +426,7 @@ void ANIM_visibility_flush_anim_channels (bAnimContext *ac, ListBase *anim_data,
 			 * when toggling visibility of F-Curves, gets flushed), flush the new status...
 			 */
 			if (level < prevLevel)
-				ANIM_channel_setting_set(ac, ale, ACHANNEL_SETTING_VISIBLE, vizOn);
+				ANIM_channel_setting_set(ac, ale, setting, on);
 			/* however, if the level is 'greater than' (i.e. less important than the previous channel,
 			 * stop searching, since we've already reached the bottom of another hierarchy
 			 */
@@ -444,7 +454,7 @@ void ANIM_visibility_flush_anim_channels (bAnimContext *ac, ListBase *anim_data,
 			 * flush the new status...
 			 */
 			if (level > matchLevel)
-				ANIM_channel_setting_set(ac, ale, ACHANNEL_SETTING_VISIBLE, vizOn);
+				ANIM_channel_setting_set(ac, ale, setting, on);
 			/* however, if the level is 'less than or equal to' the channel that was changed,
 			 * (i.e. the current channel is as important if not more important than the changed channel)
 			 * then we should stop, since we've found the last one of the children we should flush
@@ -1054,7 +1064,7 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *op)
 		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, ACHANNEL_SETFLAG_ADD);
 		
 		/* now, also flush selection status up/down as appropriate */
-		ANIM_visibility_flush_anim_channels(&ac, &all_data, ale, 1);
+		ANIM_flush_setting_anim_channels(&ac, &all_data, ale, ACHANNEL_SETTING_VISIBLE, 1);
 	}
 	
 	BLI_freelistN(&anim_data);
@@ -1128,7 +1138,7 @@ static int animchannels_visibility_toggle_exec(bContext *C, wmOperator *op)
 		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, vis);
 		
 		/* now, also flush selection status up/down as appropriate */
-		ANIM_visibility_flush_anim_channels(&ac, &all_data, ale, (vis == ACHANNEL_SETFLAG_ADD));
+		ANIM_flush_setting_anim_channels(&ac, &all_data, ale, ACHANNEL_SETTING_VISIBLE, (vis == ACHANNEL_SETFLAG_ADD));
 	}
 	
 	/* cleanup */

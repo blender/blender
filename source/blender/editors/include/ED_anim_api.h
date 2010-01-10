@@ -386,9 +386,10 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting,
  *	 	  then the channels under closed expanders get ignored...
  *	- ale_setting: the anim channel (not in the anim_data list directly, though occuring there)
  *		with the new state of the setting that we want flushed up/down the hierarchy 
- *	- vizOn: whether the visibility setting has been enabled or disabled 
+ *	- setting: type of setting to set
+ *	- on: whether the visibility setting has been enabled or disabled 
  */
-void ANIM_visibility_flush_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, short vizOn);
+void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, int setting, short on);
 
 
 /* Deselect all animation channels */
