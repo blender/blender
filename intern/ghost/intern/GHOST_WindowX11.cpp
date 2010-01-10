@@ -169,7 +169,7 @@ GHOST_WindowX11(
 	// Set up the minimum atrributes that we require and see if
 	// X can find us a visual matching those requirements.
 
-	int attributes[40], i = 0;
+	int attributes[40], i = 0, i_pre_aa;
 	Atom atoms[2];
 	int natom;
 	int glxVersionMajor, glxVersionMinor; // As in GLX major.minor
@@ -188,6 +188,7 @@ GHOST_WindowX11(
 	attributes[i++] = GLX_BLUE_SIZE;  attributes[i++] = 1;
 	attributes[i++] = GLX_GREEN_SIZE; attributes[i++] = 1;
 	attributes[i++] = GLX_DEPTH_SIZE; attributes[i++] = 1;
+	i_pre_aa= i;
 	/* GLX 1.4+, multi-sample */
 	if(m_numOfAASamples && (glxVersionMajor >= 1) && (glxVersionMinor >= 4)) {
 		attributes[i++] = GLX_SAMPLE_BUFFERS; attributes[i++] = 1;
@@ -198,9 +199,17 @@ GHOST_WindowX11(
 	m_visual = glXChooseVisual(m_display, DefaultScreen(m_display), attributes);
 
 	if (m_visual == NULL) {
-		// barf : no visual meeting these requirements could be found.
-		printf("%s:%d: X11 glXChooseVisual() failed, verify working openGL system!\n", __FILE__, __LINE__);
-		return;
+		/* possibly the X Server does not support GLX_SAMPLE_BUFFERS */
+		attributes[i_pre_aa] = None;
+		m_visual = glXChooseVisual(m_display, DefaultScreen(m_display), attributes);
+
+		if (m_visual == NULL) {
+			// barf : no visual meeting these requirements could be found.
+			printf("%s:%d: X11 glXChooseVisual() failed, verify working openGL system!\n", __FILE__, __LINE__);
+			return;
+		} else {
+			printf("%s:%d: X11 glXChooseVisual() multi-sample failed, continue with multisample disabled\n", __FILE__, __LINE__);
+		}
 	}
 	
 	memset(&m_xtablet, 0, sizeof(m_xtablet));
