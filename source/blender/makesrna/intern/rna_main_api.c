@@ -212,7 +212,7 @@ void RNA_def_main_cameras(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainCameras");
 	srna= RNA_def_struct(brna, "MainCameras", NULL);
-	RNA_def_struct_sdna(srna, "Camera");
+//	RNA_def_struct_sdna(srna, "Camera");
 	RNA_def_struct_ui_text(srna, "Main Cameras", "Collection of cameras.");
 
 	func= RNA_def_function(srna, "new", "rna_Main_cameras_new");
@@ -239,7 +239,7 @@ void RNA_def_main_scenes(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainScenes");
 	srna= RNA_def_struct(brna, "MainScenes", NULL);
-	RNA_def_struct_sdna(srna, "Scene");
+//	RNA_def_struct_sdna(srna, "Scene");
 	RNA_def_struct_ui_text(srna, "Main Scenes", "Collection of scenes.");
 
 	func= RNA_def_function(srna, "new", "rna_Main_scenes_new");
@@ -267,7 +267,7 @@ void RNA_def_main_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainObjects");
 	srna= RNA_def_struct(brna, "MainObjects", NULL);
-	RNA_def_struct_sdna(srna, "Object");
+//	RNA_def_struct_sdna(srna, "Object");
 	RNA_def_struct_ui_text(srna, "Main Objects", "Collection of objects.");
 
 	func= RNA_def_function(srna, "new", "rna_Main_objects_new");
@@ -297,7 +297,7 @@ void RNA_def_main_materials(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainMaterials");
 	srna= RNA_def_struct(brna, "MainMaterials", NULL);
-	RNA_def_struct_sdna(srna, "Material");
+//	RNA_def_struct_sdna(srna, "Material");
 	RNA_def_struct_ui_text(srna, "Main Material", "Collection of materials.");
 
 	func= RNA_def_function(srna, "new", "rna_Main_materials_new");
@@ -327,7 +327,7 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainMeshes");
 	srna= RNA_def_struct(brna, "MainMeshes", NULL);
-	RNA_def_struct_sdna(srna, "Mesh");
+//	RNA_def_struct_sdna(srna, "Mesh");
 	RNA_def_struct_ui_text(srna, "Main Meshes", "Collection of meshes.");
 
 	func= RNA_def_function(srna, "new", "rna_Main_meshes_new");
@@ -353,7 +353,7 @@ void RNA_def_main_lamps(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainLamps");
 	srna= RNA_def_struct(brna, "MainLamps", NULL);
-	RNA_def_struct_sdna(srna, "Lamp");
+//	RNA_def_struct_sdna(srna, "Lamp");
 	RNA_def_struct_ui_text(srna, "Main Lamps", "Collection of lamps.");
 
 	func= RNA_def_function(srna, "new", "rna_Main_lamps_new");
@@ -435,7 +435,7 @@ void RNA_def_main_armatures(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainArmatures");
 	srna= RNA_def_struct(brna, "MainArmatures", NULL);
-	RNA_def_struct_sdna(srna, "Armature");
+//	RNA_def_struct_sdna(srna, "Armature");
 	RNA_def_struct_ui_text(srna, "Main Armatures", "Collection of armatures.");
 
 	func= RNA_def_function(srna, "new", "rna_Main_armatures_new");
