@@ -3652,7 +3652,7 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 	char str[32];
 	FCurve *fcu;
 
-	if(scene->adt==NULL || ofs==0)
+	if(scene->adt==NULL || ofs==0 || scene->adt->action==NULL)
 		return;
 
 	sprintf(str, "[\"%s\"]", seq->name+2);
