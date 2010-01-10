@@ -286,6 +286,7 @@ typedef struct wmGesture {
 	int type;		/* gesture type define */
 	int swinid;		/* initial subwindow id where it started */
 	int points;		/* optional, amount of points stored */
+	int size;		/* optional, maximum amount of points stored */
 	
 	void *customdata;
 	/* customdata for border is a recti */

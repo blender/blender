@@ -962,7 +962,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	
 	ver_width = BLF_width(version_str);
 	rev_width = BLF_width(revision_str);
-#endif NAN_BUILDINFO
+#endif //NAN_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
@@ -973,7 +973,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 #ifdef NAN_BUILDINFO	
 	uiDefBut(block, LABEL, 0, version_str, 500-ver_width, 282-24, ver_width, 20, NULL, 0, 0, 0, 0, NULL);
 	uiDefBut(block, LABEL, 0, revision_str, 500-rev_width, 282-36, rev_width, 20, NULL, 0, 0, 0, 0, NULL);
-#endif NAN_BUILDINFO
+#endif //NAN_BUILDINFO
 	
 	
 	uiBlockSetEmboss(block, UI_EMBOSSP);
@@ -2152,16 +2152,22 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 			wm_gesture_tag_redraw(C);
 			
 			wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
-			if(gesture->points < WM_LASSO_MAX_POINTS) {
+
+			if(gesture->points == gesture->size) {
+				short *old_lasso = gesture->customdata;
+				gesture->customdata= MEM_callocN(2*sizeof(short)*(gesture->size + WM_LASSO_MIN_POINTS), "lasso points");
+				memcpy(gesture->customdata, old_lasso, 2*sizeof(short)*gesture->size);
+				gesture->size = gesture->size + WM_LASSO_MIN_POINTS;
+				MEM_freeN(old_lasso);
+				printf("realloc\n");
+			}
+
+			{
 				short *lasso= gesture->customdata;
 				lasso += 2 * gesture->points;
 				lasso[0] = event->x - sx;
 				lasso[1] = event->y - sy;
 				gesture->points++;
-			}
-			else {
-				gesture_lasso_apply(C, op, event->type);
-				return OPERATOR_FINISHED;
 			}
 			break;
 			
