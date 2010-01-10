@@ -169,7 +169,7 @@ GHOST_WindowX11(
 	// Set up the minimum atrributes that we require and see if
 	// X can find us a visual matching those requirements.
 
-	int attributes[40], i = 0, i_pre_aa;
+	int attributes[40], i, samples;
 	Atom atoms[2];
 	int natom;
 	int glxVersionMajor, glxVersionMinor; // As in GLX major.minor
@@ -179,39 +179,44 @@ GHOST_WindowX11(
 		return;
 	}
 
-	if(m_stereoVisual)
-		attributes[i++] = GLX_STEREO;
+	/* Find the display with highest samples, starting at level requested */
+	for (samples = m_numOfAASamples; samples >= 0; samples--) {
+		i = 0; /* Reusing attributes array, so reset counter */
 
-	attributes[i++] = GLX_RGBA;
-	attributes[i++] = GLX_DOUBLEBUFFER;	
-	attributes[i++] = GLX_RED_SIZE;   attributes[i++] = 1;
-	attributes[i++] = GLX_BLUE_SIZE;  attributes[i++] = 1;
-	attributes[i++] = GLX_GREEN_SIZE; attributes[i++] = 1;
-	attributes[i++] = GLX_DEPTH_SIZE; attributes[i++] = 1;
-	i_pre_aa= i;
-	/* GLX 1.4+, multi-sample */
-	if(m_numOfAASamples && (glxVersionMajor >= 1) && (glxVersionMinor >= 4)) {
-		attributes[i++] = GLX_SAMPLE_BUFFERS; attributes[i++] = 1;
-		attributes[i++] = GLX_SAMPLES; attributes[i++] = m_numOfAASamples;
-	}
-	attributes[i] = None;
+		if(m_stereoVisual)
+			attributes[i++] = GLX_STEREO;
 
-	m_visual = glXChooseVisual(m_display, DefaultScreen(m_display), attributes);
+		attributes[i++] = GLX_RGBA;
+		attributes[i++] = GLX_DOUBLEBUFFER;
+		attributes[i++] = GLX_RED_SIZE;   attributes[i++] = 1;
+		attributes[i++] = GLX_BLUE_SIZE;  attributes[i++] = 1;
+		attributes[i++] = GLX_GREEN_SIZE; attributes[i++] = 1;
+		attributes[i++] = GLX_DEPTH_SIZE; attributes[i++] = 1;
+		/* GLX >= 1.4 required for multi-sample */
+		if(samples && (glxVersionMajor >= 1) && (glxVersionMinor >= 4)) {
+			attributes[i++] = GLX_SAMPLE_BUFFERS; attributes[i++] = 1;
+			attributes[i++] = GLX_SAMPLES; attributes[i++] = samples;
+		}
+		attributes[i] = None;
 
-	if (m_visual == NULL) {
-		/* possibly the X Server does not support GLX_SAMPLE_BUFFERS */
-		attributes[i_pre_aa] = None;
 		m_visual = glXChooseVisual(m_display, DefaultScreen(m_display), attributes);
 
+		/* Any sample level or even zero, which means oversampling disabled, is good
+		   but we need a valid visual to continue */
 		if (m_visual == NULL) {
-			// barf : no visual meeting these requirements could be found.
-			printf("%s:%d: X11 glXChooseVisual() failed, verify working openGL system!\n", __FILE__, __LINE__);
-			return;
+			if (samples == 0) {
+				/* All options exhausted, cannot continue */
+				printf("%s:%d: X11 glXChooseVisual() failed, verify working openGL system!\n", __FILE__, __LINE__);
+				return;
+			}
 		} else {
-			printf("%s:%d: X11 glXChooseVisual() multi-sample failed, continue with multisample disabled\n", __FILE__, __LINE__);
+			if (m_numOfAASamples && (m_numOfAASamples > samples)) {
+				printf("%s:%d: oversampling requested %i but using %i samples\n", __FILE__, __LINE__, m_numOfAASamples, samples);
+			}
+			break;
 		}
 	}
-	
+
 	memset(&m_xtablet, 0, sizeof(m_xtablet));
 
 	// Create a bunch of attributes needed to create an X window.
