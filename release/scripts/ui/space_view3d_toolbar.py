@@ -803,8 +803,9 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
         col.prop(wpaint, "normals")
         col.prop(wpaint, "spray")
 
-        if context.weight_paint_object.type == 'MESH':
-            col.prop(data, "use_mirror_x")
+        obj = context.weight_paint_object
+        if obj.type == 'MESH':
+            col.prop(obj.data, "use_mirror_x")
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
 #		col.label(text="Gamma:")
