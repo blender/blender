@@ -5917,7 +5917,7 @@ static void solidifyModifier_initData(ModifierData *md)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData*) md;
 	smd->offset = 0.01f;
-	smd->flag = MOD_SOLIDIFY_EVEN | MOD_SOLIDIFY_RIM | MOD_SOLIDIFY_NORMAL_CALC;
+	smd->flag = MOD_SOLIDIFY_RIM;
 }
  
 static void solidifyModifier_copyData(ModifierData *md, ModifierData *target)
