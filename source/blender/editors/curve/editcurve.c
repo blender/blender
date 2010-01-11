@@ -4146,35 +4146,35 @@ void CURVE_OT_select_less(wmOperatorType *ot)
 
 /********************** select random *********************/
 
-/* this function could be moved elsewhere as it can be reused in other parts of the source needing randomized list */
-/* returns list containing -1 in indices that have been left out of the list. otherwise index contains reference   */
-/* to next index. basically *list contains a linked list							   */
-static void generate_pickable_list(int *list, int size, int pickamount)
+static void selectrandom_curve(ListBase *editnurb, float randfac)
 {
-	int i, j, removable;
+	Nurb *nu;
+	BezTriple *bezt;
+	BPoint *bp;
+	int a;
 	
 	BLI_srand( BLI_rand() ); /* random seed */
-
-	/* generate list in form 0->1, 1->2, 2->3, ... i-2->i-1, i->0 */
-	for(i=0; i<size; i++) {
-		if(i == size-1) list[i]= 0;
-		else list[i]= i+1;
-	}
-
-	for(i=0; i<size-pickamount; i++) { 
-		removable= floor(BLI_frand()*(size-1)+0.5); /* with rounding. frand returns [0,1] */
-		
-		/* seek proper item as the one randomly selected might not be appropriate */
-		for(j=0; j<size; j++, removable++) {
-			if(list[removable] != -1) break;
-			if(removable == size-1) removable= -1;
+	
+	for(nu= editnurb->first; nu; nu= nu->next) {	
+		if(nu->type == CU_BEZIER) {
+			bezt= nu->bezt;
+			a= nu->pntsu;
+			while(a--) {
+				if (BLI_frand() < randfac)
+					select_beztriple(bezt, SELECT, 1, VISIBLE);
+				bezt++;
+			}
 		}
-				
-		/* pick unwanted item out of the list */
-		list[list[removable]]= -1; /* mark former last as invalid */
-
-		if(list[removable] == size-1) list[removable]= 0;
-		else list[removable]= list[removable]+1;
+		else {
+			bp= nu->bp;
+			a= nu->pntsu*nu->pntsv;
+			
+			while(a--) {
+				if (BLI_frand() < randfac)
+					select_bpoint(bp, SELECT, 1, VISIBLE); 
+				bp++;
+			}
+		}		
 	}
 }
 
@@ -4185,44 +4185,17 @@ static int select_random_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
-	float percent= RNA_float_get(op->ptr, "percent");
 	int amounttoselect, amountofcps, a, i, k= 0;
 	int *itemstobeselected;
+	float percent;
 
-	if(percent == 0.0f)
-		return OPERATOR_CANCELLED;
+	if(!RNA_boolean_get(op->ptr, "extend"))
+		CU_deselect_all(obedit);
 	
-	amountofcps= count_curveverts_without_handles(editnurb);
-	itemstobeselected= MEM_callocN(sizeof(int) * amountofcps, "selectitems");
-	amounttoselect= floor(percent * amountofcps + 0.5);
-	generate_pickable_list(itemstobeselected, amountofcps, amounttoselect);
+	selectrandom_curve(editnurb, RNA_float_get(op->ptr, "percent")/100.0f);
 	
-	/* select elements */
-	for(i=1, nu= editnurb->first; nu; nu= nu->next) {	
-		if(nu->type == CU_BEZIER) {
-			bezt= nu->bezt;
-			a= nu->pntsu;
-			while(a--) {
-				if(itemstobeselected[k] != -1) select_beztriple(bezt, SELECT, 1, VISIBLE);
-				k++;
-				bezt++;
-			}
-		}
-		else {
-			bp= nu->bp;
-			a= nu->pntsu*nu->pntsv;
-			while(a--) {
-				if(itemstobeselected[k] != -1) select_bpoint(bp, SELECT, 1, VISIBLE); 
-				k++;
-				bp++;
-			}
-		}		
-	}
-		
-	MEM_freeN(itemstobeselected);
-
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -4234,14 +4207,14 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_random_exec;
-	ot->invoke= WM_operator_props_popup;
 	ot->poll= ED_operator_editsurfcurve;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of vertices to select randomly.", 0.0001f, 1.0f);
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }
 
 /********************** select every nth *********************/
@@ -4268,7 +4241,6 @@ void CURVE_OT_select_every_nth(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_every_nth_exec;
-	ot->invoke= WM_operator_props_popup;
 	ot->poll= ED_operator_editsurfcurve;
 	
 	/* flags */
