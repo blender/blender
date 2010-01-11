@@ -298,6 +298,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 	int enter_editmode;
 	float loc[3], rot[3];
 	
+	object_add_generic_invoke_options(C, op);
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
 	if(type==PFIELD_GUIDE) {
@@ -356,6 +357,54 @@ void OBJECT_OT_effector_add(wmOperatorType *ot)
 
 	ED_object_add_generic_props(ot, TRUE);
 }
+
+/* ***************** Add Camera *************** */
+
+static int object_camera_add_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_view3d(C);
+	Scene *scene= CTX_data_scene(C);
+	Object *ob;
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	/* force view align for cameras */
+	RNA_boolean_set(op->ptr, "view_align", 1);
+	
+	object_add_generic_invoke_options(C, op);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+
+	ob= ED_object_add_type(C, OB_CAMERA, loc, rot, FALSE);
+	
+	if (v3d) {
+		if (v3d->camera == NULL)
+			v3d->camera = ob;
+		if (v3d->scenelock && scene->camera==NULL) {
+			scene->camera = ob;
+		}
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_camera_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Camera";
+	ot->description = "Add a camera object to the scene.";
+	ot->idname= "OBJECT_OT_camera_add";
+	
+	/* api callbacks */
+	ot->exec= object_camera_add_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+		
+	ED_object_add_generic_props(ot, TRUE);
+}
+
 
 /* ***************** add primitives *************** */
 
@@ -583,6 +632,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_metaball_types, 0, "Primitive", "");
 	ED_object_add_generic_props(ot, TRUE);
 }
+
 static int object_add_text_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);

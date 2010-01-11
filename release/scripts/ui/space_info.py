@@ -214,7 +214,7 @@ class INFO_MT_add(bpy.types.Menu):
         layout.operator("object.add", text="Empty", icon='OUTLINER_OB_EMPTY').type = 'EMPTY'
         layout.separator()
 
-        layout.operator("object.add", text="Camera", icon='OUTLINER_OB_CAMERA').type = 'CAMERA'
+        layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
         layout.operator_context = 'EXEC_SCREEN'
         layout.operator_menu_enum("object.lamp_add", "type", 'LAMP', text="Lamp", icon='OUTLINER_OB_LAMP')
         layout.separator()
