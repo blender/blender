@@ -960,8 +960,9 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 			*cp = 0;
 	}
 	
-	ver_width = BLF_width(version_str);
-	rev_width = BLF_width(revision_str);
+	BLF_size(style->widgetlabel.points, U.dpi);
+	ver_width = BLF_width(version_str)+5;
+	rev_width = BLF_width(revision_str)+5;
 #endif //NAN_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
@@ -990,7 +991,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_blender_website");
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_user_community");
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_python_api");
-	uiItemS(col);
+	uiItemL(col, "", 0);
 	
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Recent", 0);
@@ -1001,7 +1002,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 		uiItemStringO(col, display_name, ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
 	}
 
-	uiItemS(col);
+	uiItemL(col, "", 0);
 
 	uiCenteredBoundsBlock(block, 0.0f);
 	uiEndBlock(C, block);

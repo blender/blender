@@ -1791,6 +1791,23 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	
 }
 
+/* ************ separator, for menus etc ***************** */
+static void ui_draw_separator(uiBut *but, rcti *rect,  uiWidgetColors *wcol)
+{
+	int y = rect->ymin + (rect->ymax - rect->ymin)/2 - 1;
+	unsigned char col[3];
+	
+	col[0] = wcol->text[0];
+	col[1] = wcol->text[1];
+	col[2] = wcol->text[2];
+	col[3] = 7;
+	
+	glEnable(GL_BLEND);
+	glColor4ubv(col);
+	sdrawline(rect->xmin, y, rect->xmax, y);
+	glDisable(GL_BLEND);
+}
+
 /* ************ button callbacks, draw ***************** */
 
 static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
@@ -2508,6 +2525,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				widget_draw_text_icon(&style->widgetlabel, &tui->wcol_menu_back, but, rect);
 				break;
 			case SEPR:
+				ui_draw_separator(but, rect, &tui->wcol_menu_item);
 				break;
 				
 			default:
