@@ -332,6 +332,7 @@ typedef struct ExtensionRNA {
 #define MainMeshes Main
 #define MainLamps Main
 #define MainObjects Main
+#define MainTexts Main
 
 #ifdef __cplusplus
 }

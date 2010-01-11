@@ -384,12 +384,10 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
 
             op_strings.append('')
 
-        bpy.ops.text.new() # XXX - assumes new text is always at the end!
-        textblock = bpy.data.texts[-1]
+        textblock = bpy.data.texts.new("OperatorList.txt")
         textblock.write('# %d Operators\n\n' % tot)
         textblock.write('\n'.join(op_strings))
-        textblock.name = "OperatorList.txt"
-        print("See OperatorList.txt textblock")
+        self.report({'INFO'}, "See OperatorList.txt textblock")
         return {'FINISHED'}
 
 bpy.types.register(HELP_OT_manual)
