@@ -47,6 +47,8 @@
 #include "BKE_texture.h"
 #include "BKE_scene.h"
 #include "BKE_text.h"
+#include "BKE_action.h"
+#include "BKE_group.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -55,6 +57,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_text_types.h"
+#include "DNA_group_types.h"
 
 #include "ED_screen.h"
 
@@ -179,6 +182,19 @@ void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 	/* XXX python now has invalid pointer? */
 }
 
+Group *rna_Main_groups_new(Main *bmain, char* name)
+{
+	return add_group(name);
+}
+void rna_Main_groups_remove(Main *bmain, ReportList *reports, Group *group)
+{
+	free_group(group);
+	unlink_group(group);
+	group->id.us= 0;
+	free_libblock(&bmain->group, group);
+	/* XXX python now has invalid pointer? */
+}
+
 Text *rna_Main_texts_new(Main *bmain, char* name)
 {
 	return add_empty_text(name);
@@ -210,6 +226,23 @@ void rna_Main_armatures_remove(Main *bmain, ReportList *reports, bArmature *arm)
 		free_libblock(&bmain->armature, arm);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Armature \"%s\" must have zero users to be removed, found %d.", arm->id.name+2, arm->id.us);
+
+	/* XXX python now has invalid pointer? */
+}
+
+bAction *rna_Main_actions_new(Main *bmain, char* name)
+{
+	bAction *act= add_empty_action(name);
+	act->id.us--;
+	act->id.flag &= ~LIB_FAKEUSER;
+	return act;
+}
+void rna_Main_actions_remove(Main *bmain, ReportList *reports, bAction *act)
+{
+	if(act->id.us == 0)
+		free_libblock(&bmain->action, act);
+	else
+		BKE_reportf(reports, RPT_ERROR, "Action \"%s\" must have zero users to be removed, found %d.", act->id.name+2, act->id.us);
 
 	/* XXX python now has invalid pointer? */
 }
@@ -437,7 +470,27 @@ void RNA_def_main_worlds(BlenderRNA *brna, PropertyRNA *cprop)
 }
 void RNA_def_main_groups(BlenderRNA *brna, PropertyRNA *cprop)
 {
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "MainGroups");
+	srna= RNA_def_struct(brna, "MainGroups", NULL);
+	RNA_def_struct_ui_text(srna, "Main Groups", "Collection of groups.");
+
+	func= RNA_def_function(srna, "new", "rna_Main_groups_new");
+	RNA_def_function_ui_description(func, "Add a new group to the main database");
+	parm= RNA_def_string(func, "name", "Group", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "group", "Group", "", "New group datablock.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Main_groups_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a group from the current blendfile.");
+	parm= RNA_def_pointer(func, "group", "Group", "", "Group to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 void RNA_def_main_texts(BlenderRNA *brna, PropertyRNA *cprop)
 {
@@ -503,7 +556,27 @@ void RNA_def_main_armatures(BlenderRNA *brna, PropertyRNA *cprop)
 }
 void RNA_def_main_actions(BlenderRNA *brna, PropertyRNA *cprop)
 {
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "MainActions");
+	srna= RNA_def_struct(brna, "MainActions", NULL);
+	RNA_def_struct_ui_text(srna, "Main Actions", "Collection of actions.");
+
+	func= RNA_def_function(srna, "new", "rna_Main_actions_new");
+	RNA_def_function_ui_description(func, "Add a new action to the main database");
+	parm= RNA_def_string(func, "name", "Action", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "action", "Action", "", "New action datablock.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Main_actions_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a action from the current blendfile.");
+	parm= RNA_def_pointer(func, "action", "Action", "", "Action to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 void RNA_def_main_particles(BlenderRNA *brna, PropertyRNA *cprop)
 {
