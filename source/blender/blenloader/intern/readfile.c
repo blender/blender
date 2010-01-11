@@ -11947,10 +11947,12 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				FileData *fd= mainptr->curlib->filedata;
 
 				if(fd==NULL) {
-					ReportList reports;
 
+					/* printf and reports for now... its important users know this */
 					printf("read library: lib %s\n", mainptr->curlib->name);
-					fd= blo_openblenderfile(mainptr->curlib->filename, &reports);
+					BKE_reportf(basefd->reports, RPT_INFO, "read library: lib %s\n", mainptr->curlib->name);
+
+					fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
 
 					if (fd) {
 						fd->reports= basefd->reports;
@@ -11968,8 +11970,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					}
 					else mainptr->curlib->filedata= NULL;
 
-					if (fd==NULL)
+					if (fd==NULL) {
 						printf("ERROR: can't find lib %s \n", mainptr->curlib->filename);
+						BKE_reportf(basefd->reports, RPT_ERROR, "Can't find lib %s (CAREFUL, DON'T RE-SAVE\n", mainptr->curlib->filename);
+					}
 				}
 				if(fd) {
 					doit= 1;

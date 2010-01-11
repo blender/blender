@@ -1060,6 +1060,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				
 				wm_handler_op_context(C, handler);
 
+				/* needed for uiPupMenuReports */
+
 				if(event->val==EVT_FILESELECT_EXEC) {
 					/* a bit weak, might become arg for WM_event_fileselect? */
 					/* XXX also extension code in image-save doesnt work for this yet */
@@ -1074,6 +1076,21 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 							if(G.f & G_DEBUG)
 								wm_operator_print(handler->op);
 						
+						if(handler->op->reports->list.first) {
+
+							/* FIXME, temp setting window, this is really bad!
+							 * only have because lib linking errors need to be seen by users :(
+							 * it can be removed without breaking anything but then no linking errors - campbell */
+							wmWindow *win_prev= CTX_wm_window(C);
+							if(win_prev==NULL)
+								CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+
+							handler->op->reports->printlevel = RPT_WARNING;
+							uiPupMenuReports(C, handler->op->reports);
+
+							CTX_wm_window_set(C, win_prev);
+						}
+
 						WM_operator_free(handler->op);
 					}
 				}
