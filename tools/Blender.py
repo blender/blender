@@ -730,9 +730,10 @@ class BlenderEnvironment(SConsEnvironment):
 			 lenv.Append(LIBS = lenv['BF_QUICKTIME_LIB'])
 			 lenv.Append(LIBPATH = lenv['BF_QUICKTIME_LIBPATH'])
 		prog = lenv.Program(target=builddir+'bin/'+progname, source=sources)
+		
 		#needed for incremental linking
 		if lenv['OURPLATFORM'] == 'win32-vc': prog = lenv.Precious(prog)
-	
+		
 		if lenv['BF_DEBUG'] and lenv['OURPLATFORM']=='win32-vc' and lenv['BF_BSC']:
 			f = lenv.File(progname + '.bsc', builddir)
 			brs = lenv.Command(f, prog, [bsc])

@@ -45,7 +45,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-
+//bleh
 EnumPropertyItem object_mode_items[] = {
 	{OB_MODE_OBJECT, "OBJECT", ICON_OBJECT_DATAMODE, "Object", ""},
 	{OB_MODE_EDIT, "EDIT", ICON_EDITMODE_HLT, "Edit", ""},
