@@ -87,6 +87,9 @@ void ED_operatortypes_curve(void)
 
 	WM_operatortype_append(FONT_OT_change_character);
 	WM_operatortype_append(FONT_OT_change_spacing);
+	
+	WM_operatortype_append(FONT_OT_open);
+	WM_operatortype_append(FONT_OT_unlink);
 
 	WM_operatortype_append(CURVE_OT_hide);
 	WM_operatortype_append(CURVE_OT_reveal);

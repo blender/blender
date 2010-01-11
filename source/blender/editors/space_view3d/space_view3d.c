@@ -483,6 +483,11 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			switch(wmn->action) {
+				case NA_EDITED:
+					ED_region_tag_redraw(ar);
+					break;
+			}
 			break;
 		case NC_GROUP:
 			/* all group ops for now */

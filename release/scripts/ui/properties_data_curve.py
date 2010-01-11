@@ -282,10 +282,12 @@ class DATA_PT_font(DataButtonsPanel):
         char = context.curve.edit_format
         wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(text, "font")
-        else:
-            layout.prop(text, "font", text="")
+        layout.template_ID(text, "font", open="font.open", unlink="font.unlink")
+        
+        #if wide_ui:
+        #    layout.prop(text, "font")
+        #else:
+        #    layout.prop(text, "font", text="")
 
         split = layout.split()
 

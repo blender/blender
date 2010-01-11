@@ -43,7 +43,7 @@ void RNA_def_vfont(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "VectorFont", "ID");
 	RNA_def_struct_ui_text(srna, "Vector Font", "Vector font for Text objects.");
 	RNA_def_struct_sdna(srna, "VFont");
-	RNA_def_struct_ui_icon(srna, ICON_FONT_DATA);
+	RNA_def_struct_ui_icon(srna, ICON_FILE_FONT);
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
