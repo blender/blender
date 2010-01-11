@@ -65,7 +65,7 @@ class VIEW3D_HT_header(bpy.types.Header):
             row.prop(view, "occlude_geometry", text="")
 
         # Proportional editing
-        if obj and obj.mode in ('OBJECT', 'EDIT'):
+        if obj and obj.mode in ('OBJECT', 'EDIT', 'PARTICLE_EDIT'):
             row = layout.row(align=True)
             row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
             if toolsettings.proportional_editing != 'DISABLED':

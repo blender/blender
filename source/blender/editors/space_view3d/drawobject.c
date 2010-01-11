@@ -2489,15 +2489,28 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	if (draw_wire) {
-			/* If drawing wire and drawtype is not OB_WIRE then we are
-				* overlaying the wires.
-				*
-				* UPDATE bug #10290 - With this wire-only objects can draw
-				* behind other objects depending on their order in the scene. 2x if 0's below. undo'ing zr's commit: r4059
-				* 
-				* if draw wire is 1 then just drawing wire, no need for depth buffer stuff,
-				* otherwise this wire is to overlay solid mode faces so do some depth buffer tricks.
-				*/
+
+		/* When using wireframe object traw in particle edit mode
+		 * the mesh gets in the way of seeing the particles, fade the wire color
+		 * with the background. */
+		if(ob==OBACT && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
+			float col_wire[4], col_bg[4], col[3];
+
+			UI_GetThemeColor3fv(TH_BACK, col_bg);
+			glGetFloatv(GL_CURRENT_COLOR, col_wire);
+			interp_v3_v3v3(col, col_bg, col_wire, 0.15);
+			glColor3fv(col);
+		}
+
+		/* If drawing wire and drawtype is not OB_WIRE then we are
+		 * overlaying the wires.
+		 *
+		 * UPDATE bug #10290 - With this wire-only objects can draw
+		 * behind other objects depending on their order in the scene. 2x if 0's below. undo'ing zr's commit: r4059
+		 *
+		 * if draw wire is 1 then just drawing wire, no need for depth buffer stuff,
+		 * otherwise this wire is to overlay solid mode faces so do some depth buffer tricks.
+		 */
 		if (dt!=OB_WIRE && draw_wire==2) {
 			bglPolygonOffset(rv3d->dist, 1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
