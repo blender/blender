@@ -7869,7 +7869,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
   DerivedMesh *to_explode)
 {
 	DerivedMesh *explode, *dm=to_explode;
-	MFace *mf=0;
+	MFace *mf=0, *mface;
 	ParticleSettings *part=psmd->psys->part;
 	ParticleSimulationData sim = {scene, ob, psmd->psys, psmd};
 	ParticleData *pa=NULL, *pars=psmd->psys->particles;
@@ -7885,6 +7885,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 	totface= dm->getNumFaces(dm);
 	totvert= dm->getNumVerts(dm);
+	mface= dm->getFaceArray(dm);
 	totpart= psmd->psys->totpart;
 
 	timestep= psys_get_timestep(&sim);
@@ -7905,7 +7906,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 		else 
 			mindex = totvert+facepa[i];
 
-		mf=CDDM_get_face(dm,i);
+		mf= &mface[i];
 
 		/* set face vertices to exist in particle group */
 		BLI_edgehash_insert(vertpahash, mf->v1, mindex, NULL);
@@ -8012,8 +8013,6 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 		test_index_face(mf, &explode->faceData, i, (orig_v4 ? 4 : 3));
 	}
-
-	MEM_printmemlist_stats();
 
 	/* cleanup */
 	BLI_edgehash_free(vertpahash, NULL);
