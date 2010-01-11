@@ -5104,6 +5104,9 @@ static char *keymap_mouse_menu(void)
 	str += sprintf(str, formatstr, "Wheel Down", WHEELDOWNMOUSE);
 	str += sprintf(str, formatstr, "Wheel In", WHEELINMOUSE);
 	str += sprintf(str, formatstr, "Wheel Out", WHEELOUTMOUSE);
+	str += sprintf(str, formatstr, "Mouse/Trackpad Pan", MOUSEPAN);
+	str += sprintf(str, formatstr, "Mouse/Trackpad Zoom", MOUSEZOOM);
+	str += sprintf(str, formatstr, "Mouse/Trackpad Rotate", MOUSEROTATE);
 	
 	return string;
 }

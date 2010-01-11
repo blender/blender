@@ -214,8 +214,21 @@ static int view_pan_exec(bContext *C, wmOperator *op)
 
 static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	view_pan_init(C, op, event);
-	return OPERATOR_RUNNING_MODAL;
+	if (event->type == MOUSEPAN) {
+		SpaceImage *sima= CTX_wm_space_image(C);
+		float offset[2];
+		
+		offset[0]= (event->x - event->prevx)/sima->zoom;
+		offset[1]= (event->y - event->prevy)/sima->zoom;
+		RNA_float_set_array(op->ptr, "offset", offset);
+
+		view_pan_exec(C, op);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		view_pan_init(C, op, event);
+		return OPERATOR_RUNNING_MODAL;
+	}
 }
 
 static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -331,8 +344,22 @@ static int view_zoom_exec(bContext *C, wmOperator *op)
 
 static int view_zoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	view_zoom_init(C, op, event);
-	return OPERATOR_RUNNING_MODAL;
+	if (event->type == MOUSEZOOM) {
+		SpaceImage *sima= CTX_wm_space_image(C);
+		ARegion *ar= CTX_wm_region(C);
+		float factor;
+		
+		factor= 1.0 + (event->x-event->prevx+event->y-event->prevy)/300.0f;
+		RNA_float_set(op->ptr, "factor", factor);
+		sima_zoom_set(sima, ar, sima->zoom*factor);
+		ED_area_tag_redraw(CTX_wm_area(C));
+		
+		return OPERATOR_FINISHED;
+	}
+	else {
+		view_zoom_init(C, op, event);
+		return OPERATOR_RUNNING_MODAL;
+	}
 }
 
 static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)

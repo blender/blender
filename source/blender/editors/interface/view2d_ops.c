@@ -199,6 +199,16 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* set initial settings */
 	vpd->startx= vpd->lastx= event->x;
 	vpd->starty= vpd->lasty= event->y;
+
+	if (event->type == MOUSEPAN) {
+		RNA_int_set(op->ptr, "deltax", event->prevx - event->x);
+		RNA_int_set(op->ptr, "deltay", event->prevy - event->y);
+		
+		view_pan_apply(C, op);
+		view_pan_exit(C, op);
+		return OPERATOR_FINISHED;
+	}
+	
 	RNA_int_set(op->ptr, "deltax", 0);
 	RNA_int_set(op->ptr, "deltay", 0);
 	
@@ -788,6 +798,26 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	vzd= op->customdata;
 	v2d= vzd->v2d;
+	
+	if (event->type == MOUSEZOOM) {
+		float dx, dy, fac;
+		
+		vzd->lastx= event->prevx;
+		vzd->lasty= event->prevy;
+		
+		/* As we have only 1D information (magnify value), feed both axes
+		with magnify information that is stored in x axis */
+		fac= 0.01f * (event->x - event->prevx);
+		dx= fac * (v2d->cur.xmax - v2d->cur.xmin) / 10.0f;
+		dy= fac * (v2d->cur.ymax - v2d->cur.ymin) / 10.0f;
+
+		RNA_float_set(op->ptr, "deltax", dx);
+		RNA_float_set(op->ptr, "deltay", dy);
+		
+		view_zoomdrag_apply(C, op);
+		view_zoomdrag_exit(C, op);
+		return OPERATOR_FINISHED;
+	}	
 	
 	/* set initial settings */
 	vzd->lastx= event->x;
@@ -1467,6 +1497,8 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
 	
+	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MOUSEPAN, 0, 0, 0);
+	
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_right", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_left", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
 	
@@ -1489,6 +1521,7 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	
 	/* zoom - drag */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEZOOM, 0, 0, 0);
 	
 	/* borderzoom - drag */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_border", BKEY, KM_PRESS, KM_SHIFT, 0);
@@ -1499,9 +1532,11 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	/* Alternative keymap for buttons listview */
 	keymap= WM_keymap_find(keyconf, "View2D Buttons List", 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MOUSEPAN, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEZOOM, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_out", PADMINUS, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_in", PADPLUSKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_reset", HOMEKEY, KM_PRESS, 0, 0);

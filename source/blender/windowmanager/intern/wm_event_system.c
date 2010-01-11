@@ -1760,6 +1760,40 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			}
 			break;
 		}
+		case GHOST_kEventTrackpad: {
+			if (win->active) {
+				GHOST_TEventTrackpadData * pd = customdata;
+				switch (pd->subtype) {
+					case GHOST_kTrackpadEventMagnify:
+						event.type = MOUSEZOOM;
+						break;
+					case GHOST_kTrackpadEventRotate:
+						event.type = MOUSEROTATE;
+						break;
+					case GHOST_kTrackpadEventScroll:
+					default:
+						event.type= MOUSEPAN;
+						break;
+				}
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+				//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
+				event.x= evt->x = pd->x;
+				event.y = evt->y = pd->y;
+#else
+				int cx, cy;
+				GHOST_ScreenToClient(win->ghostwin, pd->x, pd->y, &cx, &cy);
+				event.x= evt->x= cx;
+				event.y= evt->y= (win->sizey-1) - cy;
+#endif
+				// Use prevx/prevy so we can calculate the delta later
+				event.prevx= event.x - pd->deltaX;
+				event.prevy= event.y - pd->deltaY;
+				
+				update_tablet_data(win, &event);
+				wm_event_add(win, &event);
+			}			
+			break;
+		}
 		/* mouse button */
 		case GHOST_kEventButtonDown:
 		case GHOST_kEventButtonUp: {

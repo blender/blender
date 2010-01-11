@@ -41,6 +41,7 @@
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventWheel.h"
 #include "GHOST_EventNDOF.h"
+#include "GHOST_EventTrackpad.h"
 #include "GHOST_EventDragnDrop.h"
 
 #include "GHOST_TimerManager.h"
@@ -376,6 +377,24 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar)
 
 #pragma mark defines for 10.6 api not documented in 10.5
 #ifndef MAC_OS_X_VERSION_10_6
+enum {
+	/* The following event types are available on some hardware on 10.5.2 and later */
+	NSEventTypeGesture          = 29,
+	NSEventTypeMagnify          = 30,
+	NSEventTypeSwipe            = 31,
+	NSEventTypeRotate           = 18,
+	NSEventTypeBeginGesture     = 19,
+	NSEventTypeEndGesture       = 20
+};
+
+@interface NSEvent(GestureEvents)
+/* This message is valid for events of type NSEventTypeMagnify, on 10.5.2 or later */
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+- (float)magnification;       // change in magnification.
+#else
+- (CGFloat)magnification;       // change in magnification.
+#endif
+@end 
 
 @interface NSEvent(SnowLeopardEvents)
 /* modifier keys currently down.  This returns the state of devices combined
@@ -596,7 +615,7 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 		}
 		
 		[NSApp finishLaunching];
-				
+		
 		[pool drain];
     }
     return success;
@@ -846,7 +865,9 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 				case NSScrollWheel:
 				case NSOtherMouseDown:
 				case NSOtherMouseUp:
-				case NSOtherMouseDragged:				
+				case NSOtherMouseDragged:
+				case NSEventTypeMagnify:
+				case NSEventTypeRotate:
 					handleMouseEvent(event);
 					break;
 					
@@ -855,11 +876,9 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 					handleTabletEvent(event,[event type]);
 					break;
 					
-					/* Trackpad features, will need OS X 10.6 for implementation
+					/* Trackpad features, fired only from OS X 10.5.2
 					 case NSEventTypeGesture:
-					 case NSEventTypeMagnify:
 					 case NSEventTypeSwipe:
-					 case NSEventTypeRotate:
 					 case NSEventTypeBeginGesture:
 					 case NSEventTypeEndGesture:
 					 break; */
@@ -1316,16 +1335,53 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			
 		case NSScrollWheel:
 			{
-				GHOST_TInt32 delta;
-				
-				double deltaF = [event deltaY];
-				if (deltaF == 0.0) break; //discard trackpad delta=0 events
-				
-				delta = deltaF > 0.0 ? 1 : -1;
-				pushEvent(new GHOST_EventWheel([event timestamp]*1000, window, delta));
+				/* Send Wheel event if sent from the mouse, trackpad event otherwise */
+				if ([event subtype] == NSMouseEventSubtype) {
+					GHOST_TInt32 delta;
+					
+					double deltaF = [event deltaY];
+					if (deltaF == 0.0) break; //discard trackpad delta=0 events
+					
+					delta = deltaF > 0.0 ? 1 : -1;
+					pushEvent(new GHOST_EventWheel([event timestamp]*1000, window, delta));
+				}
+				else {
+					NSPoint mousePos = [event locationInWindow];
+					double dx = [event deltaX];
+					double dy = -[event deltaY];
+					
+					const double deltaMax = 50.0;
+					
+					if ((dx == 0) && (dy == 0)) break;
+					
+					/* Quadratic acceleration */
+					dx = dx*(fabs(dx)+0.5);
+					if (dx<0.0) dx-=0.5; else dx+=0.5;
+					if (dx< -deltaMax) dx= -deltaMax; else if (dx>deltaMax) dx=deltaMax;
+					
+					dy = dy*(fabs(dy)+0.5);
+					if (dy<0.0) dy-=0.5; else dy+=0.5;
+					if (dy< -deltaMax) dy= -deltaMax; else if (dy>deltaMax) dy=deltaMax;
+
+					pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventScroll, mousePos.x, mousePos.y, dx, dy));
+				}
 			}
 			break;
 			
+		case NSEventTypeMagnify:
+			{
+				NSPoint mousePos = [event locationInWindow];
+				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventMagnify, mousePos.x, mousePos.y,
+												  [event magnification]*250.0 + 0.1, 0));
+			}
+			break;
+
+		case NSEventTypeRotate:
+			{
+				NSPoint mousePos = [event locationInWindow];
+				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventRotate, mousePos.x, mousePos.y,
+												  -[event rotation] * 5.0, 0));
+			}
 		default:
 			return GHOST_kFailure;
 			break;
