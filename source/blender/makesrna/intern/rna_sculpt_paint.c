@@ -36,7 +36,7 @@
 
 #include "WM_types.h"
 
-static EnumPropertyItem particle_edit_hair_brush_items[] = {
+EnumPropertyItem particle_edit_hair_brush_items[] = {
 	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush."},
 	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs."},
 	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth hairs."},

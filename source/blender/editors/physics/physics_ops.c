@@ -60,7 +60,6 @@ static void operatortypes_particle(void)
 	WM_operatortype_append(PARTICLE_OT_delete);
 	WM_operatortype_append(PARTICLE_OT_mirror);
 
-	WM_operatortype_append(PARTICLE_OT_brush_set);
 	WM_operatortype_append(PARTICLE_OT_brush_edit);
 	WM_operatortype_append(PARTICLE_OT_brush_radial_control);
 
