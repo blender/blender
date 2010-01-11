@@ -1797,10 +1797,12 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 				event.x= evt->x = pd->x;
 				event.y = evt->y = pd->y;
 #else
+                {
 				int cx, cy;
 				GHOST_ScreenToClient(win->ghostwin, pd->x, pd->y, &cx, &cy);
 				event.x= evt->x= cx;
 				event.y= evt->y= (win->sizey-1) - cy;
+                }
 #endif
 				// Use prevx/prevy so we can calculate the delta later
 				event.prevx= event.x - pd->deltaX;
