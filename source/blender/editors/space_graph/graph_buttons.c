@@ -147,7 +147,7 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA spaceptr, sceneptr;
-	uiLayout *col, *subcol;
+	uiLayout *col, *subcol, *row;
 	
 	/* get RNA pointers for use when creating the UI elements */
 	RNA_id_pointer_create(&scene->id, &sceneptr);
@@ -159,12 +159,16 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 		
 		subcol= uiLayoutColumn(col, 1);
 		uiLayoutSetActive(subcol, RNA_boolean_get(&spaceptr, "show_cursor")); 
-			uiItemR(subcol, "Cursor X", 0, &sceneptr, "current_frame", 0);
-			uiItemR(subcol, "Cursor Y", 0, &spaceptr, "cursor_value", 0);
-			
+			uiItemO(subcol, "Cursor from Selection", 0, "GRAPH_OT_frame_jump");
+		
 		subcol= uiLayoutColumn(col, 1);
 		uiLayoutSetActive(subcol, RNA_boolean_get(&spaceptr, "show_cursor")); 
-			uiItemO(subcol, "Cursor from Selection", 0, "GRAPH_OT_frame_jump");
+			row= uiLayoutSplit(subcol, 0.7, 1);
+				uiItemR(row, "Cursor X", 0, &sceneptr, "current_frame", 0);
+				uiItemEnumO(row, "To Keys", 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_CFRA);
+			row= uiLayoutSplit(subcol, 0.7, 1);
+				uiItemR(row, "Cursor Y", 0, &spaceptr, "cursor_value", 0);
+				uiItemEnumO(row, "To Keys", 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_VALUE);
 }
 
 /* ******************* active F-Curve ************** */

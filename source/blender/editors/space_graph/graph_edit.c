@@ -1686,7 +1686,7 @@ void GRAPH_OT_snap (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Snap Keys";
 	ot->idname= "GRAPH_OT_snap";
-	ot->description= "Snap selected keyframes to the times specified.";
+	ot->description= "Snap selected keyframes to the chosen times/values.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
