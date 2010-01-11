@@ -4236,6 +4236,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				
 				if(base->object==NULL) {
 					printf("LIB ERROR: base removed\n");
+					BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: Object lost from scene:'%s\'\n", sce->id.name+2);
 					BLI_remlink(&sce->base, base);
 					if(base==sce->basact) sce->basact= 0;
 					MEM_freeN(base);
@@ -11949,8 +11950,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				if(fd==NULL) {
 
 					/* printf and reports for now... its important users know this */
-					printf("read library: lib %s\n", mainptr->curlib->name);
-					BKE_reportf(basefd->reports, RPT_INFO, "read library: lib %s\n", mainptr->curlib->name);
+					printf("read library: %s\n", mainptr->curlib->name);
+					BKE_reportf(basefd->reports, RPT_INFO, "read library: '%s'\n", mainptr->curlib->name);
 
 					fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
 
@@ -11972,7 +11973,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 					if (fd==NULL) {
 						printf("ERROR: can't find lib %s \n", mainptr->curlib->filename);
-						BKE_reportf(basefd->reports, RPT_ERROR, "Can't find lib %s (CAREFUL, DON'T RE-SAVE\n", mainptr->curlib->filename);
+						BKE_reportf(basefd->reports, RPT_ERROR, "Can't find lib '%s'\n", mainptr->curlib->filename);
 					}
 				}
 				if(fd) {
@@ -11988,8 +11989,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								BLI_remlink(lbarray[a], id);
 
 								append_id_part(fd, mainptr, id, &realid);
-								if (!realid)
+								if (!realid) {
 									printf("LIB ERROR: can't find %s\n", id->name);
+									BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
+								}
 								
 								change_idid_adr(mainlist, basefd, id, realid);
 
@@ -12025,6 +12028,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					BLI_remlink(lbarray[a], id);
 
 					printf("LIB ERROR: can't find %s\n", id->name);
+					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);
