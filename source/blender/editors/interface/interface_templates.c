@@ -1869,7 +1869,6 @@ void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiLayout *col, *row;
-	uiBut *but;
 	
 	if (!prop) {
 		printf("uiTemplateColorWheel: property not found: %s\n", propname);

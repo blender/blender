@@ -102,6 +102,7 @@ int ED_space_image_show_render(struct SpaceImage *sima){return 0;}
 int ED_space_image_show_paint(struct SpaceImage *sima){return 0;}
 void ED_space_image_set(struct bContext *C, struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima){}
 struct ImBuf *ED_space_image_buffer(struct SpaceImage *sima){return (struct ImBuf *) NULL;}
+void	ED_screen_set_scene(struct bContext *C, struct Scene *scene){}
 
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob){return (struct PTCacheEdit *) NULL;}
 void PE_current_changed(struct Scene *scene, struct Object *ob){}

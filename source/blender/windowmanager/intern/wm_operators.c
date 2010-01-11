@@ -934,11 +934,12 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiLayout *layout, *split, *col;
 	uiStyle *style= U.uistyles.first;
 	struct RecentFile *recent;
-	int i, ver_width, rev_width;
+	int i;
+
+#ifdef NAN_BUILDINFO
+	int ver_width, rev_width;
 	char *version_str = NULL;
 	char *revision_str = NULL;
-	
-#ifdef NAN_BUILDINFO
 	char version_buf[128];
 	char revision_buf[128];
 	extern char * build_rev;

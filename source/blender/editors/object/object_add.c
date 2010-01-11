@@ -363,7 +363,6 @@ void OBJECT_OT_effector_add(wmOperatorType *ot)
 static int object_camera_add_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
 	int enter_editmode;

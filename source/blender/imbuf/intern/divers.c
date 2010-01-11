@@ -180,7 +180,7 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 {
 	/* quick method to convert floatbuf to byte */
 	float *tof = (float *)ibuf->rect_float;
-	int do_dither = ibuf->dither != 0.f;
+//	int do_dither = ibuf->dither != 0.f;
 	float dither= ibuf->dither / 255.0;
 	float srgb[4];
 	int i, channels= ibuf->channels;
@@ -241,7 +241,6 @@ void IMB_rect_from_float(struct ImBuf *ibuf)
 		}
 		else {
 			if (dither != 0.f) {
-				float col[3];		
 				for (i = ibuf->x * ibuf->y; i > 0; i--, to+=4, tof+=4) {
 					const float d = (BLI_frand()-0.5)*dither;
 					const float col[4] = {d+tof[0], d+tof[1], d+tof[2], d+tof[3]};
