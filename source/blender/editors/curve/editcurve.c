@@ -4182,12 +4182,6 @@ static int select_random_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	ListBase *editnurb= curve_get_editcurve(obedit);
-	Nurb *nu;
-	BezTriple *bezt;
-	BPoint *bp;
-	int amounttoselect, amountofcps, a, i, k= 0;
-	int *itemstobeselected;
-	float percent;
 
 	if(!RNA_boolean_get(op->ptr, "extend"))
 		CU_deselect_all(obedit);

@@ -251,6 +251,7 @@ void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_parent_set";
 	
 	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
 	ot->poll= vertex_parent_set_poll;
 	ot->exec= vertex_parent_set_exec;
 	
