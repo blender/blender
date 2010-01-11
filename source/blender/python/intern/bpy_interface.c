@@ -299,9 +299,20 @@ void BPY_start_python_path(void)
 			   \nThis may make python import function fail\n");
 #endif
 	
-#if 0
-	BLI_setenv("PYTHONHOME", py_path_bundle);
-	BLI_setenv("PYTHONPATH", py_path_bundle);
+#ifdef _WIN32
+	/* cmake/MSVC debug build crashes without this, why only
+	   in this case is unknown.. */
+	{
+		char *envpath = getenv("PYTHONPATH");
+
+		if(envpath && envpath[0]) {
+			char *newenvpath = BLI_sprintfN("%s;%s", py_path_bundle, envpath);
+			BLI_setenv("PYTHONPATH", newenvpath);
+			MEM_freeN(newenvpath);
+		}
+		else
+			BLI_setenv("PYTHONPATH", py_path_bundle);	
+	}
 #endif
 
 	{
