@@ -4819,9 +4819,16 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 							
 							if(but->type!=LABEL && but->type!=SEPR)
 								count++;
-
+							
+							/* exception for rna layer buts */
+							if(but->rnapoin.data && but->rnaprop) {
+								if (ELEM(RNA_property_subtype(but->rnaprop), PROP_LAYER, PROP_LAYER_MEMBER)) {
+									if (but->rnaindex== act-1)
+										doit=1;
+								}
+							}
 							/* exception for menus like layer buts, with button aligning they're not drawn in order */
-							if(but->type==TOGR) {
+							else if(but->type==TOGR) {
 								if(but->bitnr==act-1)
 									doit= 1;
 							}

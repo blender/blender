@@ -1339,7 +1339,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 		saferct= MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
 		saferct->safety= block->safety;
 		BLI_addhead(&block->saferct, saferct);
-		block->flag |= UI_BLOCK_POPUP;
+		block->flag |= UI_BLOCK_POPUP|UI_BLOCK_NUMSELECT;
 	}
 
 	/* the block and buttons were positioned in window space as in 2.4x, now
