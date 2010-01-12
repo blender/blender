@@ -90,7 +90,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_layers);
 	
 	WM_operatortype_append(VIEW3D_OT_properties);
-	WM_operatortype_append(VIEW3D_OT_toolbar);
+	WM_operatortype_append(VIEW3D_OT_toolshelf);
 	
 	WM_operatortype_append(VIEW3D_OT_snap_selected_to_grid);
 	WM_operatortype_append(VIEW3D_OT_snap_selected_to_cursor);
@@ -110,7 +110,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "3D View Generic", SPACE_VIEW3D, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_properties", NKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_toolbar", TKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_toolshelf", TKEY, KM_PRESS, 0, 0);
 	
 	/* only for region 3D window */
 	keymap= WM_keymap_find(keyconf, "3D View", SPACE_VIEW3D, 0);

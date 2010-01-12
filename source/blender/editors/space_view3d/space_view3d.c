@@ -221,8 +221,8 @@ static SpaceLink *view3d_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
-	/* toolbar */
-	ar= MEM_callocN(sizeof(ARegion), "toolbar for view3d");
+	/* tool shelf */
+	ar= MEM_callocN(sizeof(ARegion), "toolshelf for view3d");
 	
 	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype= RGN_TYPE_UI;
@@ -834,7 +834,7 @@ void ED_spacetype_view3d(void)
 	art->draw= view3d_tools_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 	
-	view3d_toolbar_register(art);
+	view3d_toolshelf_register(art);
 
 	/* regions: tool properties */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");

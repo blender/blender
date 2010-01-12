@@ -231,7 +231,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("view3d.properties", icon='MENU_PANEL')
-        layout.operator("view3d.toolbar", icon='MENU_PANEL')
+        layout.operator("view3d.toolshelf", icon='MENU_PANEL')
 
         layout.separator()
 
