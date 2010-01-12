@@ -586,8 +586,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 # 			print("read material")
 
             #print 'elif (new_chunk.ID == MATERIAL):'
-            contextMaterial = bpy.data.add_material('Material')
-# 			contextMaterial = bpy.data.materials.new('Material')
+            contextMaterial = bpy.data.materials.new('Material')
 
         elif (new_chunk.ID == MAT_NAME):
             #print 'elif (new_chunk.ID == MAT_NAME):'

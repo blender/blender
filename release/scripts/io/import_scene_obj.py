@@ -440,8 +440,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     #Create new materials
     for name in unique_materials: # .keys()
         if name != None:
-            unique_materials[name]= bpy.data.add_material(name)
-# 			unique_materials[name]= bpy.data.materials.new(name)
+            unique_materials[name]= bpy.data.materials.new(name)
             unique_material_images[name]= None, False # assign None to all material images to start with, add to later.
 
     unique_materials[None]= None
