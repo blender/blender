@@ -57,13 +57,13 @@
 #include <config.h>
 #endif
 
-void free_group_object(GroupObject *go)
+static void free_group_object(GroupObject *go)
 {
 	MEM_freeN(go);
 }
 
 
-void free_group(Group *group)
+void free_group_objects(Group *group)
 {
 	/* don't free group itself */
 	GroupObject *go;
@@ -130,7 +130,7 @@ void unlink_group(Group *group)
 	}
 	
 	/* group stays in library, but no members */
-	free_group(group);
+	free_group_objects(group);
 	group->id.us= 0;
 }
 

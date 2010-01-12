@@ -768,7 +768,7 @@ void free_libblock(ListBase *lb, void *idv)
 			sound_free((bSound*)id);
 			break;
 		case ID_GR:
-			free_group((Group *)id);
+			free_group_objects((Group *)id);
 			break;
 		case ID_AR:
 			free_armature((bArmature *)id);
