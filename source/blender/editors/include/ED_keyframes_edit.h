@@ -94,6 +94,7 @@ typedef struct BeztEditData {
 	ListBase list;				/* temp list for storing custom list of data to check */
 	struct Scene *scene;		/* pointer to current scene - many tools need access to cfra/etc.  */
 	void *data;					/* pointer to custom data - usually 'Object' but also 'rectf', but could be other types too */
+	void *data2;				/* pointer to more custom data */
 	float f1, f2;				/* storage of times/values as 'decimals' */
 	int i1, i2;					/* storage of times/values/flags as 'whole' numbers */
 } BeztEditData;

@@ -453,7 +453,7 @@ void getcolor_fcurve_rainbow(int cur, int tot, float *out);
 struct AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale);
 
 /* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve */
-void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt, struct FCurve *fcu, short restore, short only_keys);
+void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt, struct FCurve *fcu, short restore, short only_keys, ListBase *backup);
 
 /* ..... */
 

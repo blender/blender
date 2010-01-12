@@ -819,10 +819,11 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 		FCurve *fcu= (FCurve *)ale->key_data;
 		FModifier *fcm= find_active_fmodifier(&fcu->modifiers);
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
+		ListBase nlabackup;
 		
 		/* map keyframes for drawing if scaled F-Curve */
 		if (adt)
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 0, &nlabackup); 
 		
 		/* draw curve:
 		 *	- curve line may be result of one or more destructive modifiers or just the raw data,
@@ -908,7 +909,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 		
 		/* undo mapping of keyframes for drawing if scaled F-Curve */
 		if (adt)
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 0, &nlabackup); 
 	}
 	
 	/* free list of curves */

@@ -417,9 +417,11 @@ static void markers_selectkeys_between (bAnimContext *ac)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		if (adt) {	
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+			ListBase nlabackup;
+
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup);
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
 		}
 		else {
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
@@ -663,9 +665,11 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		if (adt) {
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+			ListBase nlabackup;
+
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup);
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
 		}
 		//else if (ale->type == ANIMTYPE_GPLAYER)
 		//	borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);

@@ -3014,9 +3014,11 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 
 		if (adt) {
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+			ListBase nlabackup;
+
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup);
 			posttrans_fcurve_clean(ale->key_data);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
 		}
 		else
 			posttrans_fcurve_clean(ale->key_data);
@@ -4230,7 +4232,6 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *track;
-	ListBase fakecons = {NULL, NULL};
 	float obmtx[3][3];
 	short constinv;
 	short skip_invert = 0;
@@ -4784,9 +4785,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				     ((cancelled == 0) || (duplicate)) )
 				{
 					if (adt) {
-						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
+						ListBase nlabackup;
+
+						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1, &nlabackup);
 						posttrans_fcurve_clean(fcu);
-						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
+						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1, &nlabackup);
 					}
 					else
 						posttrans_fcurve_clean(fcu);
@@ -4865,9 +4868,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				     ((cancelled == 0) || (duplicate)) )
 				{
 					if (adt) {
-						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
+						ListBase nlabackup;
+
+						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1, &nlabackup);
 						posttrans_fcurve_clean(fcu);
-						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
+						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1, &nlabackup);
 					}
 					else
 						posttrans_fcurve_clean(fcu);
