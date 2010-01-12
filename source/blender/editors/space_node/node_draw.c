@@ -161,6 +161,36 @@ static void node_scaling_widget(int color_id, float aspect, float xmin, float ym
 	fdrawline(xmin+dx, ymin+aspect, xmax, ymax-dy+aspect);
 }
 
+static void node_uiblocks_init(const bContext *C, bNodeTree *ntree)
+{
+	bNode *node;
+	char str[32];
+	
+	/* add node uiBlocks in reverse order - prevents events going to overlapping nodes */
+	
+	/* process selected nodes first so they're at the start of the uiblocks list */
+	for(node= ntree->nodes.last; node; node= node->prev) {
+		
+		if (node->flag & NODE_SELECT) {
+			/* ui block */
+			sprintf(str, "node buttons %p", node);
+			node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
+			uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
+		}
+	}
+	
+	/* then the rest */
+	for(node= ntree->nodes.last; node; node= node->prev) {
+		
+		if (!(node->flag & (NODE_GROUP_EDIT|NODE_SELECT))) {
+			/* ui block */
+			sprintf(str, "node buttons %p", node);
+			node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
+			uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
+		}
+	}
+}
+
 /* based on settings in node, sets drawing rect info. each redraw! */
 static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 {
@@ -169,7 +199,6 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 	bNodeSocket *nsock;
 	float dy= node->locy;
 	int buty;
-	char str[32];
 	
 	/* header */
 	dy-= NODE_DY;
@@ -237,11 +266,6 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 	/* XXX ugly hack, typeinfo for group is generated */
 	if(node->type == NODE_GROUP)
 		; // XXX node->typeinfo->uifunc= node_buts_group;
-
-	/* ui block */
-	sprintf(str, "node buttons %p", node);
-	node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
-	uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
 	
 	/* buttons rect? */
 	if((node->flag & NODE_OPTIONS) && node->typeinfo->uifunc) {
@@ -290,7 +314,6 @@ static void node_update_hidden(const bContext *C, bNode *node)
 	bNodeSocket *nsock;
 	float rad, drad, hiddenrad= HIDDEN_RAD;
 	int totin=0, totout=0, tot;
-	char str[32];
 	
 	/* calculate minimal radius */
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next)
@@ -331,11 +354,6 @@ static void node_update_hidden(const bContext *C, bNode *node)
 			rad+= drad;
 		}
 	}
-
-	/* ui block */
-	sprintf(str, "node buttons %p", node);
-	node->block= uiBeginBlock(C, CTX_wm_region(C), str, UI_EMBOSS);
-	uiBlockSetHandleFunc(node->block, do_node_internal_buttons, node);
 }
 
 static int node_get_colorid(bNode *node)
@@ -368,10 +386,14 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 	rctf *rect= &gnode->totr;
 	int counter;
 	
+	/* init ui blocks for sub-nodetrees */
+	node_uiblocks_init(C, ngroup);
+	
 	/* center them, is a bit of abuse of locx and locy though */
 	for(node= ngroup->nodes.first; node; node= node->next) {
 		node->locx+= gnode->locx;
 		node->locy+= gnode->locy;
+		
 		if(node->flag & NODE_HIDDEN)
 			node_update_hidden(C, node);
 		else
@@ -504,28 +526,20 @@ static void socket_circle_draw(bNodeSocket *sock, float size)
 {
 	int col[3];
 	
-	/* choose color based on sock flags */
-	if(sock->flag & SELECT) {
-		if(sock->type==SOCK_VALUE) {
-			col[0]= 200; col[1]= 200; col[2]= 200;}
-		else if(sock->type==SOCK_VECTOR) {
-			col[0]= 140; col[1]= 140; col[2]= 240;}
-		else if(sock->type==SOCK_RGBA) {
-			col[0]= 240; col[1]= 240; col[2]= 100;}
-		else {
-			col[0]= 140; col[1]= 240; col[2]= 140;}
+	if(sock->type==-1) {
+		col[0]= 0; col[1]= 0; col[2]= 0;
 	}
-	else {
-		if(sock->type==-1) {
-			col[0]= 0; col[1]= 0; col[2]= 0;}
-		else if(sock->type==SOCK_VALUE) {
-			col[0]= 160; col[1]= 160; col[2]= 160;}
-		else if(sock->type==SOCK_VECTOR) {
-			col[0]= 100; col[1]= 100; col[2]= 200;}
-		else if(sock->type==SOCK_RGBA) {
-			col[0]= 200; col[1]= 200; col[2]= 40;}
-		else { 
-			col[0]= 100; col[1]= 200; col[2]= 100;}
+	else if(sock->type==SOCK_VALUE) {
+		col[0]= 160; col[1]= 160; col[2]= 160;
+	}
+	else if(sock->type==SOCK_VECTOR) {
+		col[0]= 100; col[1]= 100; col[2]= 200;
+	}
+	else if(sock->type==SOCK_RGBA) {
+		col[0]= 200; col[1]= 200; col[2]= 40;
+	}
+	else { 
+		col[0]= 100; col[1]= 200; col[2]= 100;
 	}
 	
 	circle_draw(sock->locx, sock->locy, size, sock->type, col);
@@ -1078,6 +1092,8 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	
 	if(snode->nodetree) {
 		bNode *node;
+		
+		node_uiblocks_init(C, snode->nodetree);
 		
 		/* for now, we set drawing coordinates on each redraw */
 		for(node= snode->nodetree->nodes.first; node; node= node->next) {
