@@ -47,6 +47,10 @@ def load_scripts(reload_scripts=False):
     t_main = time.time()
 
     def test_import(module_name):
+        if "." in module_name:
+            print("Ignoring '%s', can't import files containing multiple periods." % module_name)
+            return None
+
         try:
             t = time.time()
             ret = __import__(module_name)
