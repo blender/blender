@@ -1086,8 +1086,6 @@ int RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 {
-	int flag;
-
 	prop= rna_ensure_property(prop);
 
 	if(!(prop->flag & PROP_ANIMATEABLE))
@@ -2209,6 +2207,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 		case PROP_RAW_INT: ((int*)raw.array)[a] = (int)var; break; \
 		case PROP_RAW_FLOAT: ((float*)raw.array)[a] = (float)var; break; \
 		case PROP_RAW_DOUBLE: ((double*)raw.array)[a] = (double)var; break; \
+		default: break; \
 	} \
 }
 
