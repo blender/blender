@@ -1428,6 +1428,7 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 {
 	
 	uiBut *bt;
+	uiLayout *row;
 
 	if(coba==NULL) return;
 
@@ -1453,10 +1454,9 @@ static void colorband_buttons_large(uiLayout *layout, uiBlock *block, ColorBand 
 		/* better to use rna so we can animate them */
 		PointerRNA ptr;
 		RNA_pointer_create(cb->ptr.id.data, &RNA_ColorRampElement, cbd, &ptr);
-		uiItemR(layout, NULL, 0, &ptr, "color", 0);
-		//uiItemR(layout, NULL, 0, &ptr, "position", 0);
-		bt= uiDefButF(block, NUM, 0, "Pos:",			0+xoffs,40+yoffs,100, 20, &cbd->pos, 0.0, 1.0, 10, 0, "The position of the active color stop");
-		uiButSetNFunc(bt, colorband_pos_cb, MEM_dupallocN(cb), coba);
+		row= uiLayoutRow(layout, 0);
+		uiItemR(row, "Pos", 0, &ptr, "position", 0);
+		uiItemR(row, "", 0, &ptr, "color", 0);
 	}
 
 }
@@ -1467,11 +1467,12 @@ static void colorband_buttons_small(uiLayout *layout, uiBlock *block, ColorBand 
 	float unit= (butr->xmax-butr->xmin)/14.0f;
 	float xs= butr->xmin;
 
-
+	uiBlockBeginAlign(block);
 	bt= uiDefBut(block, BUT, 0,	"Add",			xs,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Add a new color stop to the colorband");
 	uiButSetNFunc(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
 	bt= uiDefBut(block, BUT, 0,	"Delete",		xs+2.0f*unit,butr->ymin+20.0f,2.0f*unit,20,	NULL, 0, 0, 0, 0, "Delete the active position");
 	uiButSetNFunc(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
+	uiBlockEndAlign(block);
 
 	if(coba->tot) {
 		CBData *cbd= coba->data + coba->cur;
