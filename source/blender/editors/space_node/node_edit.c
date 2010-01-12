@@ -1239,7 +1239,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 		node_set_active(snode, node);
 		
 		if(snode->nodetree->type==NTREE_COMPOSIT) {
-			if(ELEM3(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS))
+			if(ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE))
 				node->id = &scene->id;
 			
 			ntreeCompositForceHidden(snode->edittree, scene);
