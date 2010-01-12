@@ -2844,6 +2844,8 @@ static void brush_puff(PEData *data, int point_index)
 	PTCacheEditPoint *point = edit->points + point_index;
 	KEY_K;
 	float mat[4][4], imat[4][4];
+	float obmat[4][4], obimat[4][4];
+
 	float lastco[3], rootco[3] = {0.0f, 0.0f, 0.0f}, co[3], nor[3], kco[3], dco[3], fac=0.0f, length=0.0f;
 
 	if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
@@ -2855,17 +2857,23 @@ static void brush_puff(PEData *data, int point_index)
 		unit_m4(imat);
 	}
 
+	copy_m4_m4(obmat, data->ob->obmat);
+	invert_m4_m4(obimat, obmat);
+
 	LOOP_KEYS {
 		if(k==0) {
 			/* find root coordinate and normal on emitter */
 			VECCOPY(co, key->co);
 			mul_m4_v3(mat, co);
+			mul_v3_m4v3(kco, obimat, co); /* use 'kco' as the object space version of worldspace 'co' */
 
-			point_index= BLI_kdtree_find_nearest(edit->emitter_field, co, NULL, NULL);
+			point_index= BLI_kdtree_find_nearest(edit->emitter_field, kco, NULL, NULL);
 			if(point_index == -1) return;
 
 			VECCOPY(rootco, co);
 			copy_v3_v3(nor, &edit->emitter_cosnos[point_index*6+3]);
+			mul_mat3_m4_v3(obmat, nor); /* normal into worldspace */
+
 			normalize_v3(nor);
 			length= 0.0f;
 
@@ -3913,7 +3921,8 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 	
 		/* mesh may have changed since last entering editmode.
 		 * note, this may have run before if the edit data was just created, so could avoid this and speed up a little */
-		recalc_emitter_field(ob, edit->psys);
+		if(edit)
+			recalc_emitter_field(ob, edit->psys);
 		
 		toggle_particle_cursor(C, 1);
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_PARTICLE, NULL);
