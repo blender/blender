@@ -88,6 +88,7 @@
 
 static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys);
 static void PTCacheUndo_clear(PTCacheEdit *edit);
+static void recalc_emitter_field(Object *ob, ParticleSystem *psys);
 
 #define KEY_K					PTCacheEditKey *key; int k
 #define POINT_P					PTCacheEditPoint *point; int p
@@ -265,8 +266,13 @@ static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 		}
 	}
 
-	if(edit)
+	if(edit) {
 		edit->pid = *pid;
+		
+		/* mesh may have changed since last entering editmode.
+		 * note, this may have run before if the edit data was just created, so could avoid this and speed up a little */
+		recalc_emitter_field(ob, edit->psys);
+	}
 
 	BLI_freelistN(&pidlist);
 
