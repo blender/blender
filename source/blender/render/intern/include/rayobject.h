@@ -181,7 +181,7 @@ int RE_rayobjectcontrol_test_break(RayObjectControl *c);
 #include <time.h>
 
 #define BENCH(a,name)	\
-	do {			\
+	{			\
 		double _t1, _t2;				\
 		struct timeval _tstart, _tend;	\
 		clock_t _clock_init = clock();	\
@@ -191,7 +191,7 @@ int RE_rayobjectcontrol_test_break(RayObjectControl *c);
 		_t1 = ( double ) _tstart.tv_sec + ( double ) _tstart.tv_usec/ ( 1000*1000 );	\
 		_t2 = ( double )   _tend.tv_sec + ( double )   _tend.tv_usec/ ( 1000*1000 );	\
 		printf("BENCH:%s: %fs (real) %fs (cpu)\n", #name, _t2-_t1, (float)(clock()-_clock_init)/CLOCKS_PER_SEC);\
-	} while(0)
+	}
 #else
 
 #define BENCH(a,name)	(a)

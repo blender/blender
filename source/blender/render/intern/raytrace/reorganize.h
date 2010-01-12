@@ -32,6 +32,8 @@
 #include <vector>
 #include <queue>
 
+#include "BKE_global.h"
+
 #ifdef _WIN32
 #define INFINITY FLT_MAX // in mingw math.h: (1.0F/0.0F). This generates compile error, though.
 #endif
@@ -515,7 +517,7 @@ struct VBVH_optimalPackSIMD
 			if(num == 0) { num++; first = true; }
 			
 			calc_costs(node);
-			if(first) printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize );
+			if((G.f & G_DEBUG) && first) printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize );
 			node->optimize();
 		}
 		return node;		

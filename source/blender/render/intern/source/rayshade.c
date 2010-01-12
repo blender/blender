@@ -435,7 +435,12 @@ void makeraytree(Render *re)
 	if(re->r.raytrace_structure == R_RAYSTRUCTURE_OCTREE)
 		re->r.raytrace_options &= ~( R_RAYTRACE_USE_INSTANCES | R_RAYTRACE_USE_LOCAL_COORDS);
 
-	BENCH(makeraytree_single(re), tree_build);
+	if(G.f & G_DEBUG) {
+		BENCH(makeraytree_single(re), tree_build);
+	}
+	else
+		makeraytree_single(re);
+
 	if(test_break(re))
 	{
 		freeraytree(re);
