@@ -1000,12 +1000,7 @@ static float interpolate_particle_value(float v1, float v2, float v3, float v4, 
 	
 	return value;
 }
-static void weighted_particle_vector(float *v1, float *v2, float *v3, float *v4, float *weights, float *vec)
-{
-	vec[0]= weights[0]*v1[0] + weights[1]*v2[0] + weights[2]*v3[0] + weights[3]*v4[0];
-	vec[1]= weights[0]*v1[1] + weights[1]*v2[1] + weights[2]*v3[1] + weights[3]*v4[1];
-	vec[2]= weights[0]*v1[2] + weights[1]*v2[2] + weights[2]*v3[2] + weights[3]*v4[2];
-}
+
 void psys_interpolate_particle(short type, ParticleKey keys[4], float dt, ParticleKey *result, int velocity)
 {
 	float t[4];
@@ -1016,19 +1011,19 @@ void psys_interpolate_particle(short type, ParticleKey keys[4], float dt, Partic
 	else {
 		key_curve_position_weights(dt, t, type);
 
-		weighted_particle_vector(keys[0].co, keys[1].co, keys[2].co, keys[3].co, t, result->co);
+		interp_v3_v3v3v3v3(result->co, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
 
 		if(velocity){
 			float temp[3];
 
 			if(dt>0.999f){
 				key_curve_position_weights(dt-0.001f, t, type);
-				weighted_particle_vector(keys[0].co, keys[1].co, keys[2].co, keys[3].co, t, temp);
+				interp_v3_v3v3v3v3(temp, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
 				VECSUB(result->vel, result->co, temp);
 			}
 			else{
 				key_curve_position_weights(dt+0.001f, t, type);
-				weighted_particle_vector(keys[0].co, keys[1].co, keys[2].co, keys[3].co, t, temp);
+				interp_v3_v3v3v3v3(temp, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
 				VECSUB(result->vel, temp, result->co);
 			}
 		}

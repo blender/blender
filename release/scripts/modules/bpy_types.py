@@ -299,7 +299,7 @@ class Mesh(bpy_types.ID):
     @property
     def edge_face_count(self):
         edge_face_count_dict = self.edge_face_count_dict
-        return [edge_face_count_dict.get(ed.key, 0) for ed in mesh.edges]
+        return [edge_face_count_dict.get(ed.key, 0) for ed in self.edges]
 
     def edge_loops(self, faces=None, seams=()):
         """
