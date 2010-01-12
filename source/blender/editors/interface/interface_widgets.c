@@ -904,19 +904,23 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	if(but->editstr && but->pos != -1) {
 		short t=0, pos=0, ch;
 		short selsta_tmp, selend_tmp, selsta_draw, selwidth_draw;
-		
+
 		if ((but->selend - but->selsta) > 0) {
 			/* text button selection */
 			selsta_tmp = but->selsta;
 			selend_tmp = but->selend;
 			
 			if(but->drawstr[0]!=0) {
-				ch= but->drawstr[selsta_tmp];
-				but->drawstr[selsta_tmp]= 0;
-				
-				selsta_draw = BLF_width(but->drawstr+but->ofs);
-				
-				but->drawstr[selsta_tmp]= ch;
+
+				if (but->selsta >= but->ofs) {
+					ch= but->drawstr[selsta_tmp];
+					but->drawstr[selsta_tmp]= 0;
+					
+					selsta_draw = BLF_width(but->drawstr+but->ofs);
+					
+					but->drawstr[selsta_tmp]= ch;
+				} else
+					selsta_draw = 0;
 				
 				ch= but->drawstr[selend_tmp];
 				but->drawstr[selend_tmp]= 0;
