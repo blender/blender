@@ -3856,7 +3856,9 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 		pind.cache = cached ? psys->pointcache : NULL;
 		pind.epoint = NULL;
 		pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
-		pind.dm = psys->hair_out_dm;
+		/* pind.dm disabled in editmode means we dont get effectors taken into
+		 * account when subdividing for instance */
+		pind.dm = psys_in_edit_mode(sim->scene, psys) ? NULL : psys->hair_out_dm;
 		init_particle_interpolation(sim->ob, psys, pa, &pind);
 		do_particle_interpolation(psys, p, pa, t, frs_sec, &pind, state);
 
