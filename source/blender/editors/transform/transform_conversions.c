@@ -2139,14 +2139,20 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	int count=0, countsel=0, a, totleft;
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
+	short selectmode = ts->selectmode;
 
 	if (t->flag & T_MIRROR)
 	{
 		mirror = 1;
 	}
 
+	/* edge slide forces edge select */
+	if (t->mode == TFM_EDGE_SLIDE) {
+		selectmode = SCE_SELECT_EDGE;
+	}
+
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
-	if(ts->selectmode & SCE_SELECT_VERTEX) {
+	if(selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->h==0 && (eve->f & SELECT))
 				eve->f1= SELECT;
@@ -2154,7 +2160,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				eve->f1= 0;
 		}
 	}
-	else if(ts->selectmode & SCE_SELECT_EDGE) {
+	else if(selectmode & SCE_SELECT_EDGE) {
 		EditEdge *eed;
 		for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
 		for(eed= em->edges.first; eed; eed= eed->next) {
