@@ -277,6 +277,9 @@ protected:
 	 * Needed because cocoa event delta cursor move takes setCursorPosition changes too.
 	 */
 	GHOST_TInt32 m_cursorDelta_x, m_cursorDelta_y;
+	
+	/** Multitouch trackpad availability */
+	bool m_hasMultiTouchTrackpad;
 };
 
 #endif // _GHOST_SYSTEM_COCOA_H_

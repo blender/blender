@@ -509,6 +509,11 @@ int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 
 GHOST_SystemCocoa::GHOST_SystemCocoa()
 {
+	int mib[2];
+	struct timeval boottime;
+	size_t len;
+	char *rstring = NULL;
+	
 	m_modifierMask =0;
 	m_pressedMouseButtons =0;
 	m_cursorDelta_x=0;
@@ -519,16 +524,28 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	m_displayManager->initialize();
 
 	//NSEvent timeStamp is given in system uptime, state start date is boot time
-	int mib[2];
-	struct timeval boottime;
-	size_t len;
-	
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_BOOTTIME;
 	len = sizeof(struct timeval);
 	
 	sysctl(mib, 2, &boottime, &len, NULL, 0);
 	m_start_time = ((boottime.tv_sec*1000)+(boottime.tv_usec/1000));
+	
+	//Detect multitouch trackpad
+	mib[0] = CTL_HW;
+	mib[1] = HW_MODEL;
+	sysctl( mib, 2, NULL, &len, NULL, 0 );
+	rstring = (char*)malloc( len );
+	sysctl( mib, 2, rstring, &len, NULL, 0 );
+	
+	//Hack on MacBook revision, as multitouch avail. function missing
+	if (strstr(rstring,"MacBookAir") ||
+		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-3]>='5') && (rstring[strlen(rstring)-3]<='9')))
+		m_hasMultiTouchTrackpad = true;
+	else m_hasMultiTouchTrackpad = false;
+	
+	free( rstring );
+	rstring = NULL;
 	
 	m_ignoreWindowSizedMessages = false;
 }
@@ -1336,7 +1353,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSScrollWheel:
 			{
 				/* Send Wheel event if sent from the mouse, trackpad event otherwise */
-				if ([event subtype] == NSMouseEventSubtype) {
+				if (!m_hasMultiTouchTrackpad || ([event subtype] == NSMouseEventSubtype)) {
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
