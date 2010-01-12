@@ -2846,7 +2846,15 @@ static void brush_puff(PEData *data, int point_index)
 	float mat[4][4], imat[4][4];
 	float obmat[4][4], obimat[4][4];
 
-	float lastco[3], rootco[3] = {0.0f, 0.0f, 0.0f}, co[3], nor[3], kco[3], dco[3], fac=0.0f, length=0.0f;
+	float lastco[3], rootco[3] = {0.0f, 0.0f, 0.0f}, co[3], nor[3], kco[3], dco[3], ofs[3] = {0.0f, 0.0f, 0.0f}, fac=0.0f, length=0.0f;
+	int puff_volume = 0;
+	int change= 0;
+
+	{
+		ParticleEditSettings *pset= PE_settings(data->scene);
+		ParticleBrushData *brush= &pset->brush[pset->brushtype];
+		puff_volume = brush->flag & PE_BRUSH_DATA_PUFF_VOLUME;
+	}
 
 	if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 		psys_mat_hair_to_global(data->ob, data->dm, psys->part->from, psys->particles + point_index, mat);
@@ -2883,24 +2891,62 @@ static void brush_puff(PEData *data, int point_index)
 				fac= -fac;
 		}
 		else {
-			/* compute position as if hair was standing up straight */
+			/* compute position as if hair was standing up straight.
+			 * */
 			VECCOPY(lastco, co);
 			VECCOPY(co, key->co);
 			mul_m4_v3(mat, co);
 			length += len_v3v3(lastco, co);
+			if((key->flag & PEK_SELECT) && !(key->flag & PEK_HIDE)) {
+				VECADDFAC(kco, rootco, nor, length);
 
-			VECADDFAC(kco, rootco, nor, length);
+				/* blend between the current and straight position */
+				VECSUB(dco, kco, co);
+				VECADDFAC(co, co, dco, fac);
 
-			/* blend between the current and straight position */
-			VECSUB(dco, kco, co);
-			VECADDFAC(co, co, dco, fac);
+				/* re-use dco to compare before and after translation and add to the offset  */
+				VECCOPY(dco, key->co);
 
-			VECCOPY(key->co, co);
-			mul_m4_v3(imat, key->co);
+				mul_v3_m4v3(key->co, imat, co);
+
+				if(puff_volume) {
+					/* accumulate the total distance moved to apply to unselected
+					 * keys that come after */
+					ofs[0] += key->co[0] - dco[0];
+					ofs[1] += key->co[1] - dco[1];
+					ofs[2] += key->co[2] - dco[2];
+				}
+				change = 1;
+			}
+			else {
+
+				if(puff_volume) {
+#if 0
+					/* this is simple but looks bad, adds annoying kinks */
+					add_v3_v3(key->co, ofs);
+#else
+					/* translate (not rotate) the rest of the hair if its not selected  */
+					if(ofs[0] || ofs[1] || ofs[2]) {
+						float c1[3], c2[3];
+						VECSUB(dco, lastco, co);
+						mul_m4_v3(imat, dco); /* into particle space */
+
+						/* move the point allong a vector perpendicular to the
+						 * hairs direction, reduces odd kinks, */
+						cross_v3_v3v3(c1, ofs, dco);
+						cross_v3_v3v3(c2, c1, dco);
+						normalize_v3(c2);
+						mul_v3_fl(c2, len_v3(ofs));
+						add_v3_v3(key->co, c2);
+					}
+#endif
+				}
+			}
 		}
 	}
 
-	point->flag |= PEP_EDIT_RECALC;
+	if(change)
+		point->flag |= PEP_EDIT_RECALC;
 }
 
 static void brush_smooth_get(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key)

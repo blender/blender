@@ -533,6 +533,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
                 layout.prop(brush, "length_mode", expand=True)
             elif settings.tool == 'PUFF':
                 layout.prop(brush, "puff_mode", expand=True)
+                layout.prop(brush, "use_puff_volume")
 
         # Sculpt Mode #
 
