@@ -323,7 +323,7 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 	}
 
 	/* try autokey */
-	ui_but_anim_autokey(but, scene, scene->r.cfra);
+	ui_but_anim_autokey(C, but, scene, scene->r.cfra);
 }
 
 static void ui_apply_but_funcs_after(bContext *C)

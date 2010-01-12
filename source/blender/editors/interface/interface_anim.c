@@ -133,7 +133,7 @@ int ui_but_anim_expression_set(uiBut *but, const char *str)
 	return 0;
 }
 
-void ui_but_anim_autokey(uiBut *but, Scene *scene, float cfra)
+void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 {
 	ID *id;
 	bAction *action;
@@ -151,6 +151,7 @@ void ui_but_anim_autokey(uiBut *but, Scene *scene, float cfra)
 			
 			fcu->flag &= ~FCURVE_SELECTED;
 			insert_keyframe(id, action, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+			WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 		}
 	}
 }
