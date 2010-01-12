@@ -1060,9 +1060,7 @@ int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 	
 	id= ptr->id.data;
 
-	/* with this, libdata is not animated by its own library fcurves, FIXME */
-//	return (flag & PROP_EDITABLE) && (!id || !id->lib || (flag & PROP_LIB_EXCEPTION));
-	return (flag & PROP_EDITABLE) ? 1:0;
+	return (flag & PROP_EDITABLE) && (!id || !id->lib || (prop->flag & PROP_LIB_EXCEPTION));
 }
 
 /* same as RNA_property_editable(), except this checks individual items in an array */
@@ -1072,18 +1070,18 @@ int RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 	int flag;
 
 	prop= rna_ensure_property(prop);
+
+	flag= prop->flag;
 	
-	/* if there is no function to do this for a given index, 
-	 * just resort to doing this on the whole array
-	 */
-	if (prop->itemeditable == NULL)
-		return RNA_property_editable(ptr, prop);
-		
-	flag= prop->itemeditable(ptr, index);
+	if(prop->editable)
+		flag &= prop->editable(ptr);
+
+	if (prop->itemeditable)
+		flag &= prop->itemeditable(ptr, index);
+
 	id= ptr->id.data;
-	/* with this, libdata is not animated by its own library fcurves, FIXME */
-//	return (flag & PROP_EDITABLE) && (!id || !id->lib || (flag & PROP_LIB_EXCEPTION));
-	return (flag & PROP_EDITABLE) ? 1:0;
+
+	return (flag & PROP_EDITABLE) && (!id || !id->lib || (prop->flag & PROP_LIB_EXCEPTION));
 }
 
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
@@ -1095,12 +1093,7 @@ int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 	if(!(prop->flag & PROP_ANIMATEABLE))
 		return 0;
 
-	if(prop->editable)
-		flag= prop->editable(ptr);
-	else
-		flag= prop->flag;
-
-	return (flag & PROP_EDITABLE);
+	return (prop->flag & PROP_EDITABLE);
 }
 
 int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
