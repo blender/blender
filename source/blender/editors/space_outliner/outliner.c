@@ -4838,6 +4838,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				break;
 			}
 		}
+		tselem->flag &= ~TSE_TEXTBUT;
 	}
 }
 
@@ -5278,8 +5279,9 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				else if(tselem->id && GS(tselem->id->name)==ID_LI) len = sizeof(((Library*) 0)->name);
 				else len= sizeof(((ID*) 0)->name)-2;
 				
+
 				dx= (int)UI_GetStringWidth(te->name);
-				if(dx<50) dx= 50;
+				if(dx<100) dx= 100;
 				
 				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "",  (short)te->xs+2*OL_X-4, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");
 				uiButSetRenameFunc(bt, namebutton_cb, tselem);
