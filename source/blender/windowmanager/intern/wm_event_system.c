@@ -1620,6 +1620,25 @@ void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHa
 	}
 }
 
+void WM_event_remove_area_handler(ListBase *handlers, void *area)
+{
+	wmEventHandler *handler, *nexthandler;
+
+	for(handler = handlers->first; handler; handler= nexthandler) {
+		nexthandler = handler->next;
+		if (handler->ui_area == area || handler->op_area == area) {
+			BLI_remlink(handlers, handler);
+			wm_event_free_handler(handler);
+		}
+	}
+}
+
+void WM_event_remove_handler(ListBase *handlers, wmEventHandler *handler)
+{
+	BLI_remlink(handlers, handler);
+	wm_event_free_handler(handler);
+}
+
 void WM_event_add_mousemove(bContext *C)
 {
 	wmWindow *window= CTX_wm_window(C);

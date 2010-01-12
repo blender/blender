@@ -1271,7 +1271,13 @@ void ED_screen_set(bContext *C, bScreen *sc)
 	
 	if (oldscreen != sc) {
 		wmTimer *wt= oldscreen->animtimer;
-		
+		ScrArea *sa;
+
+		/* remove handlers referencing areas in old screen */
+		for(sa = oldscreen->areabase.first; sa; sa = sa->next) {
+			WM_event_remove_area_handler(&win->modalhandlers, sa);
+		}
+
 		/* we put timer to sleep, so screen_exit has to think there's no timer */
 		oldscreen->animtimer= NULL;
 		if(wt)
