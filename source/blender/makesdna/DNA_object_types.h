@@ -334,6 +334,7 @@ extern Object workob;
 #define OB_DUPLIFACES_SCALE	1024
 #define OB_DUPLIPARTS		2048
 #define OB_RENDER_DUPLI		4096
+#define OB_NO_CONSTRAINTS	8096 /* runtime constraints disable */
 
 /* (short) ipoflag */
 	// XXX depreceated - old animation system crap

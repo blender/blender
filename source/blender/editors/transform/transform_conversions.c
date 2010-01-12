@@ -4256,18 +4256,13 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 		track= ob->track;
 		ob->track= NULL;
 		
-		if (constinv == 0) {
-			fakecons.first = ob->constraints.first;
-			fakecons.last = ob->constraints.last;
-			ob->constraints.first = ob->constraints.last = NULL;
-		}
+		if (constinv == 0)
+			ob->transflag |= OB_NO_CONSTRAINTS; /* where_is_object_time checks this */
 		
 		where_is_object(t->scene, ob);
 		
-		if (constinv == 0) {
-			ob->constraints.first = fakecons.first;
-			ob->constraints.last = fakecons.last;
-		}
+		if (constinv == 0)
+			ob->transflag &= ~OB_NO_CONSTRAINTS;
 		
 		ob->track= track;
 	}
