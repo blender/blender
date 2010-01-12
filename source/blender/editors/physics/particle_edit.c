@@ -194,7 +194,10 @@ ParticleEditSettings *PE_settings(Scene *scene)
 	return &scene->toolsettings->particle;
 }
 
-/* always gets atleast the first particlesystem even if PSYS_CURRENT flag is not set */
+/* always gets atleast the first particlesystem even if PSYS_CURRENT flag is not set
+ *
+ * note: this function runs on poll, therefor it can runs many times a second
+ * keep it fast! */
 static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 {
 	ParticleEditSettings *pset= PE_settings(scene);
@@ -266,13 +269,8 @@ static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 		}
 	}
 
-	if(edit) {
+	if(edit)
 		edit->pid = *pid;
-		
-		/* mesh may have changed since last entering editmode.
-		 * note, this may have run before if the edit data was just created, so could avoid this and speed up a little */
-		recalc_emitter_field(ob, edit->psys);
-	}
 
 	BLI_freelistN(&pidlist);
 
@@ -3909,8 +3907,14 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 
 	if(!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
+		PTCacheEdit *edit;
 		ob->mode |= OB_MODE_PARTICLE_EDIT;
-		PE_create_current(scene, ob);
+		edit= PE_create_current(scene, ob);
+	
+		/* mesh may have changed since last entering editmode.
+		 * note, this may have run before if the edit data was just created, so could avoid this and speed up a little */
+		recalc_emitter_field(ob, edit->psys);
+		
 		toggle_particle_cursor(C, 1);
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_PARTICLE, NULL);
 	}

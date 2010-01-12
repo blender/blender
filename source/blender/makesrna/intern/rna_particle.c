@@ -658,7 +658,8 @@ static void rna_def_particle_hair_key(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Time", "Relative time of key over hair length.");
 
 	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_UNSIGNED);
-	RNA_def_property_ui_text(prop, "Weight", "Weight for softbody simulation.");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_text(prop, "Weight", "Weight for cloth simulation.");
 }
 
 static void rna_def_particle_key(BlenderRNA *brna)
