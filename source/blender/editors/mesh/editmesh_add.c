@@ -1270,36 +1270,6 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 	BKE_mesh_end_editmesh(obedit->data, em);
 }
 
-
-/* uses context to figure out transform for primitive */
-/* returns standard diameter */
-static float new_primitive_matrix(bContext *C, float *loc, float *rot, float primmat[][4])
-{
-	Object *obedit= CTX_data_edit_object(C);
-	View3D *v3d =CTX_wm_view3d(C);
-	float mat[3][3], rmat[3][3], cmat[3][3], imat[3][3];
-	
-	unit_m4(primmat);
-
-	eul_to_mat3(rmat, rot);
-	invert_m3(rmat);
-	
-	/* inverse transform for initial rotation and object */
-	copy_m3_m4(mat, obedit->obmat);
-	mul_m3_m3m3(cmat, rmat, mat);
-	invert_m3_m3(imat, cmat);
-	copy_m4_m3(primmat, imat);
-
-	/* center */
-	VECCOPY(primmat[3], loc);
-	VECSUB(primmat[3], primmat[3], obedit->obmat[3]);
-	invert_m3_m3(imat, mat);
-	mul_m3_v3(imat, primmat[3]);
-	
-	if(v3d) return v3d->grid;
-	return 1.0f;
-}
-
 /* ********* add primitive operators ************* */
 
 static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmode,
@@ -1319,7 +1289,7 @@ static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmod
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 
-	dia *= new_primitive_matrix(C, loc, rot, mat);
+	dia *= ED_object_new_primitive_matrix(C, loc, rot, mat);
 
 	make_prim(obedit, type, mat, tot, seg, subdiv, dia, depth, ext, fill);
 

@@ -57,7 +57,7 @@ void	free_editNurb	(struct Object *obedit);
 
 int 	mouse_nurb		(struct bContext *C, short mval[2], int extend);
 
-struct Nurb *add_nurbs_primitive(struct bContext *C, int type, int newname);
+struct Nurb *add_nurbs_primitive(struct bContext *C, float mat[4][4], int type, int newname);
 
 int		isNurbsel		(struct Nurb *nu);;
 
