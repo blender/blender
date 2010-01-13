@@ -41,6 +41,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -48,6 +49,8 @@
 #include "BKE_global.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
+#include "BKE_main.h"
+#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -985,6 +988,56 @@ static void MARKER_OT_delete(wmOperatorType *ot)
 	
 }
 
+static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
+{
+	ListBase *markers= context_get_markers(C);
+	Scene *scene_to= BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "type"));
+	TimeMarker *marker, *marker_new;
+
+	if(scene_to==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Scene not found");
+		return OPERATOR_CANCELLED;
+	}
+
+	if(scene_to == CTX_data_scene(C)) {
+		BKE_report(op->reports, RPT_ERROR, "Can't link objects into the same scene");
+		return OPERATOR_CANCELLED;
+	}
+
+	/* copy markers */
+	for (marker= markers->first; marker; marker= marker->next) {
+		if(marker->flag & SELECT) {
+			marker_new= MEM_dupallocN(marker);
+			BLI_addtail(&scene_to->markers, marker_new);
+		}
+	}
+
+	/* one day multiple scenes will be visible, then we should have some update function for them */
+	return OPERATOR_FINISHED;
+}
+
+static void MARKER_OT_make_links_scene(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Make Links to Scene";
+	ot->description= "Link markers to another scene.";
+	ot->idname= "MARKER_OT_make_links_scene";
+
+	/* api callbacks */
+	ot->exec= ed_marker_make_links_scene_exec;
+	ot->poll= ED_operator_areaactive;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+	RNA_def_enum_funcs(prop, RNA_scene_itemf);
+
+}
+
 #ifdef DURIAN_CAMERA_SWITCH
 /* ******************************* camera bind marker ***************** */
 
@@ -1039,6 +1092,7 @@ void ED_operatortypes_marker(void)
 	WM_operatortype_append(MARKER_OT_select_border);
 	WM_operatortype_append(MARKER_OT_select_all);
 	WM_operatortype_append(MARKER_OT_delete);
+	WM_operatortype_append(MARKER_OT_make_links_scene);
 #ifdef DURIAN_CAMERA_SWITCH
 	WM_operatortype_append(MARKER_OT_camera_bind);
 #endif
