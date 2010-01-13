@@ -516,6 +516,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	
 	m_modifierMask =0;
 	m_pressedMouseButtons =0;
+	m_isGestureInProgress = false;
 	m_cursorDelta_x=0;
 	m_cursorDelta_y=0;
 	m_outsideLoopEventProcessed = false;
@@ -885,6 +886,8 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 				case NSOtherMouseDragged:
 				case NSEventTypeMagnify:
 				case NSEventTypeRotate:
+				case NSEventTypeBeginGesture:
+				case NSEventTypeEndGesture:
 					handleMouseEvent(event);
 					break;
 					
@@ -896,8 +899,6 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 					/* Trackpad features, fired only from OS X 10.5.2
 					 case NSEventTypeGesture:
 					 case NSEventTypeSwipe:
-					 case NSEventTypeBeginGesture:
-					 case NSEventTypeEndGesture:
 					 break; */
 					
 					/*Unused events
@@ -1352,8 +1353,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			
 		case NSScrollWheel:
 			{
-				/* Send Wheel event if sent from the mouse, trackpad event otherwise */
-				if (!m_hasMultiTouchTrackpad || ([event subtype] == NSMouseEventSubtype)) {
+				/* Send trackpad event if inside a trackpad gesture, send wheel event otherwise */
+				if (!m_hasMultiTouchTrackpad || !m_isGestureInProgress) {
 					GHOST_TInt32 delta;
 					
 					double deltaF = [event deltaY];
@@ -1399,6 +1400,12 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventRotate, mousePos.x, mousePos.y,
 												  -[event rotation] * 5.0, 0));
 			}
+		case NSEventTypeBeginGesture:
+			m_isGestureInProgress = true;
+			break;
+		case NSEventTypeEndGesture:
+			m_isGestureInProgress = false;
+			break;
 		default:
 			return GHOST_kFailure;
 			break;
