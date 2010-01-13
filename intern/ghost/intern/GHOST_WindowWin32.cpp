@@ -42,13 +42,20 @@
 #include "GHOST_WindowWin32.h"
 #include "GHOST_SystemWin32.h"
 #include "GHOST_DropTargetWin32.h"
-#include <GL/gl.h>
+
+// Need glew for some defines
+#include <GL/glew.h>
+#include <GL/wglew.h>
 #include <math.h>
 
 // MSVC6 still doesn't define M_PI
 #ifndef M_PI
 #define M_PI 3.1415926536
 #endif
+
+// Some more multisample defines
+#define WGL_SAMPLE_BUFERS_ARB	0x2041
+#define	WGL_SAMPLES_ARB			0x2042
 
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
@@ -106,7 +113,9 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
 	const bool stereoVisual,
-	const GHOST_TUns16 numOfAASamples)
+	const GHOST_TUns16 numOfAASamples,
+	GHOST_TSuccess msEnabled,
+	int msPixelFormat)
 :
 	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone,
 	stereoVisual,numOfAASamples),
@@ -119,7 +128,18 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_wintab(NULL),
 	m_tabletData(NULL),
 	m_tablet(0),
-	m_maxPressure(0)
+	m_maxPressure(0),
+	m_multisample(numOfAASamples),
+	m_multisampleEnabled(msEnabled),
+	m_msPixelFormat(msPixelFormat),
+	//For recreation
+	m_title(title),
+	m_left(left),
+	m_top(top),
+	m_width(width),
+	m_height(height),
+	m_stereo(stereoVisual),
+	m_nextWindow(NULL)
 {
 	if (state != GHOST_kWindowStateFullScreen) {
 		RECT rect;
@@ -195,10 +215,20 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 				nCmdShow = SW_SHOWNORMAL;
 				break;
 		}
-		setDrawingContextType(type);
-		::ShowWindow(m_hWnd, nCmdShow);
-		// Force an initial paint of the window
-		::UpdateWindow(m_hWnd);
+		GHOST_TSuccess success;
+		success = setDrawingContextType(type);
+
+		if (success)
+		{
+			::ShowWindow(m_hWnd, nCmdShow);
+			// Force an initial paint of the window
+			::UpdateWindow(m_hWnd);
+		}
+		else
+		{
+			//invalidate the window
+			m_hWnd = 0;
+		}
 	}
 
 	m_wintab = ::LoadLibrary("Wintab32.dll");
@@ -277,6 +307,8 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 		m_customCursor = NULL;
 	}
 
+	m_multisampleEnabled = GHOST_kFailure;
+	m_multisample = 0;
 	setDrawingContextType(GHOST_kDrawingContextTypeNone);
 	if (m_hDC) {
 		::ReleaseDC(m_hWnd, m_hDC);
@@ -287,6 +319,11 @@ GHOST_WindowWin32::~GHOST_WindowWin32()
 		::DestroyWindow(m_hWnd);
 		m_hWnd = 0;
 	}
+}
+
+GHOST_Window *GHOST_WindowWin32::getNextWindow()
+{
+	return m_nextWindow;
 }
 
 bool GHOST_WindowWin32::getValid() const
@@ -516,6 +553,69 @@ GHOST_TSuccess GHOST_WindowWin32::invalidate()
 	return success;
 }
 
+GHOST_TSuccess GHOST_WindowWin32::initMultisample(PIXELFORMATDESCRIPTOR pfd)
+{
+	int pixelFormat;
+	bool success;
+	UINT numFormats;
+	HDC hDC = GetDC(getHWND());
+	float fAttributes[] = {0, 0};
+
+	// The attributes to look for
+	int iAttributes[] = {
+		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+		WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+		WGL_COLOR_BITS_ARB, pfd.cColorBits,
+		WGL_DEPTH_BITS_ARB, pfd.cDepthBits,
+		WGL_STENCIL_BITS_ARB, pfd.cStencilBits,
+		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+		WGL_SAMPLE_BUFFERS_ARB, GL_TRUE,
+		WGL_SAMPLES_ARB, m_multisample,
+		0, 0
+	};
+
+	// Get the function
+	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");	
+
+	if (!wglChoosePixelFormatARB)
+	{
+		m_multisampleEnabled = GHOST_kFailure;
+		return GHOST_kFailure;
+	}
+
+	// See if the format is valid
+	success = wglChoosePixelFormatARB(hDC, iAttributes, fAttributes, 1, &pixelFormat, &numFormats);
+
+	if (success && numFormats >= 1)
+	{
+		m_multisampleEnabled = GHOST_kSuccess;
+		m_msPixelFormat = pixelFormat;
+		return GHOST_kSuccess;
+	}
+	else
+	{
+		// See if any formats are supported
+		while (!success && iAttributes[19] != 0)
+		{
+			iAttributes[19] /= 2;
+
+			success = wglChoosePixelFormatARB(m_hDC, iAttributes, fAttributes, 1, &pixelFormat, &numFormats);
+
+			if (success && numFormats >= 1)
+			{
+				m_multisampleEnabled = GHOST_kSuccess;
+				m_msPixelFormat = pixelFormat;
+				return GHOST_kSuccess;
+			}
+
+			success = GHOST_kFailure;
+		}
+	}
+
+	// No available pixel format...
+	return GHOST_kFailure;
+}
 
 GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextType type)
 {
@@ -523,36 +623,101 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 	switch (type) {
 	case GHOST_kDrawingContextTypeOpenGL:
 		{
-		if(m_stereoVisual)
-			sPreferredFormat.dwFlags |= PFD_STEREO;
-
-		// Attempt to match device context pixel format to the preferred format
-		int iPixelFormat = EnumPixelFormats(m_hDC);
-		if (iPixelFormat == 0) {
-			success = GHOST_kFailure;
-			break;
-		}
-		if (::SetPixelFormat(m_hDC, iPixelFormat, &sPreferredFormat) == FALSE) {
-			success = GHOST_kFailure;
-			break;
-		}
-		// For debugging only: retrieve the pixel format chosen
-		PIXELFORMATDESCRIPTOR preferredFormat;
-		::DescribePixelFormat(m_hDC, iPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &preferredFormat);
-		// Create the context
-		m_hGlRc = ::wglCreateContext(m_hDC);
-		if (m_hGlRc) {
-			if (s_firsthGLRc) {
-				wglShareLists(s_firsthGLRc, m_hGlRc);
-			} else {
-				s_firsthGLRc = m_hGlRc;
+		// If this window has multisample enabled, use the supplied format
+		if (m_multisampleEnabled)
+		{
+			if (SetPixelFormat(m_hDC, m_msPixelFormat, &sPreferredFormat)==FALSE)
+			{
+				success = GHOST_kFailure;
+				break;
 			}
 
-			success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+			// Create the context
+			m_hGlRc = ::wglCreateContext(m_hDC);
+			if (m_hGlRc) {
+				if (s_firsthGLRc) {
+					wglShareLists(s_firsthGLRc, m_hGlRc);
+				} else {
+					s_firsthGLRc = m_hGlRc;
+				}
+
+				success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+			}
+			else {
+				printf("Failed to get a context....\n");
+				success = GHOST_kFailure;
+			}
 		}
-		else {
-			success = GHOST_kFailure;
+		else
+		{
+			if(m_stereoVisual)
+				sPreferredFormat.dwFlags |= PFD_STEREO;
+
+			// Attempt to match device context pixel format to the preferred format
+			int iPixelFormat = EnumPixelFormats(m_hDC);
+			if (iPixelFormat == 0) {
+				success = GHOST_kFailure;
+				break;
+			}
+			if (::SetPixelFormat(m_hDC, iPixelFormat, &sPreferredFormat) == FALSE) {
+				success = GHOST_kFailure;
+				break;
+			}
+			// For debugging only: retrieve the pixel format chosen
+			PIXELFORMATDESCRIPTOR preferredFormat;
+			::DescribePixelFormat(m_hDC, iPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &preferredFormat);
+
+			// Create the context
+			m_hGlRc = ::wglCreateContext(m_hDC);
+			if (m_hGlRc) {
+				if (s_firsthGLRc) {
+					wglShareLists(s_firsthGLRc, m_hGlRc);
+				} else {
+					s_firsthGLRc = m_hGlRc;
+				}
+
+				success = ::wglMakeCurrent(m_hDC, m_hGlRc) == TRUE ? GHOST_kSuccess : GHOST_kFailure;
+			}
+			else {
+				printf("Failed to get a context....\n");
+				success = GHOST_kFailure;
+			}
+					
+			// Attempt to enable multisample
+			if (m_multisample && WGL_ARB_multisample && !m_multisampleEnabled)
+			{
+				success = initMultisample(preferredFormat);
+
+				if (success)
+				{
+
+					// Make sure we don't screw up the context
+					m_drawingContextType = GHOST_kDrawingContextTypeOpenGL;
+					removeDrawingContext();
+
+					// Create a new window
+					GHOST_TWindowState new_state = getState();
+
+					m_nextWindow = new GHOST_WindowWin32((GHOST_SystemWin32*)GHOST_ISystem::getSystem(),
+													m_title,
+													m_left,
+													m_top,
+													m_width,
+													m_height,
+													new_state,
+													type,
+													m_stereo,
+													m_multisample,
+													m_multisampleEnabled,
+													m_msPixelFormat);
+
+					// Return failure so we can trash this window.
+					success = GHOST_kFailure;
+					break;
+				}
+			}
 		}
+
 		}
 		break;
 
@@ -565,7 +730,6 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 	}
 	return success;
 }
-
 
 GHOST_TSuccess GHOST_WindowWin32::removeDrawingContext()
 {

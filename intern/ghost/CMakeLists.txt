@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC . ../string)
+SET(INC . ../string ../../extern/glew/include)
 
 FILE(GLOB SRC intern/*.cpp intern/*.mm)
 
