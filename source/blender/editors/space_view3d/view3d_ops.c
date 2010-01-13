@@ -70,7 +70,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_view_orbit);
 	WM_operatortype_append(VIEW3D_OT_view_pan);
 	WM_operatortype_append(VIEW3D_OT_view_persportho);
-	WM_operatortype_append(VIEW3D_OT_view_center);
+	WM_operatortype_append(VIEW3D_OT_view_selected);
 	WM_operatortype_append(VIEW3D_OT_view_center_cursor);
 	WM_operatortype_append(VIEW3D_OT_select);
 	WM_operatortype_append(VIEW3D_OT_select_border);
@@ -96,6 +96,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_snap_selected_to_cursor);
 	WM_operatortype_append(VIEW3D_OT_snap_selected_to_center);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_grid);
+	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_center);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_selected);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_active);
 		
@@ -126,7 +127,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_rotate", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_move", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_center", PADPERIOD, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_center_cursor", PADPERIOD, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_fly", FKEY, KM_PRESS, KM_SHIFT, 0);

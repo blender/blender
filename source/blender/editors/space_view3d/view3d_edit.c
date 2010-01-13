@@ -1286,7 +1286,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
 
-static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview without local!, was centerview() in 2.4x */
+static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview without local!, was centerview() in 2.4x */
 {
 	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -1403,16 +1403,16 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_view_center(wmOperatorType *ot)
+void VIEW3D_OT_view_selected(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "View Selected";
 	ot->description = "Move the view to the selection center.";
-	ot->idname= "VIEW3D_OT_view_center";
+	ot->idname= "VIEW3D_OT_view_selected";
 
 	/* api callbacks */
-	ot->exec= viewcenter_exec;
+	ot->exec= viewselected_exec;
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */

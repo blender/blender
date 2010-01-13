@@ -1084,6 +1084,44 @@ void VIEW3D_OT_snap_selected_to_center(wmOperatorType *ot)
 }
 
 
+/* **************************************************** */
+/*New Code - Snap Cursor to Center -*/
+static int snap_curs_to_center(bContext *C, wmOperator *op)
+{
+    Scene *scene= CTX_data_scene(C);
+    RegionView3D *rv3d= CTX_wm_region_data(C);
+    View3D *v3d= CTX_wm_view3d(C);
+    float *curs;
+    curs= give_cursor(scene, v3d);
+
+    curs[0]= 0.0;
+    curs[1]= 0.0;
+    curs[2]= 0.0;
+	
+    WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, scene);	// hrm
+	
+    return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Snap Cursor to Center";
+	ot->description= "Snap cursor to the Center";
+	ot->idname= "VIEW3D_OT_snap_cursor_to_center";
+	
+    /* api callbacks */ 
+    ot->exec= snap_curs_to_center;
+   	ot->poll= ED_operator_view3d_active;
+	
+    /* flags */
+   	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* **************************************************** */
+
+
 int minmax_verts(Object *obedit, float *min, float *max)
 {
 	TransVert *tv;
