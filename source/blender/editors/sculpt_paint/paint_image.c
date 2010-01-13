@@ -2840,7 +2840,17 @@ static void project_paint_begin(ProjPaintState *ps)
 		}
 	}
 	
-
+	/* when using subsurf or multires, mface arrays are thrown away, we need to keep a copy */
+	if(ps->dm->type != DM_TYPE_CDDM) {
+		ps->dm_mvert= MEM_dupallocN(ps->dm_mvert);
+		ps->dm_mface= MEM_dupallocN(ps->dm_mface);
+		/* looks like these are ok for now.*/
+		/*
+		ps->dm_mtface= MEM_dupallocN(ps->dm_mtface);
+		ps->dm_mtface_clone= MEM_dupallocN(ps->dm_mtface_clone);
+		ps->dm_mtface_stencil= MEM_dupallocN(ps->dm_mtface_stencil);
+		 */
+	}
 	
 	ps->viewDir[0] = 0.0f;
 	ps->viewDir[1] = 0.0f;
@@ -3266,6 +3276,18 @@ static void project_paint_end(ProjPaintState *ps)
 		BLI_memarena_free(ps->arena_mt[a]);
 	}
 	
+	/* copy for subsurf/multires, so throw away */
+	if(ps->dm->type != DM_TYPE_CDDM) {
+		if(ps->dm_mvert) MEM_freeN(ps->dm_mvert);
+		if(ps->dm_mface) MEM_freeN(ps->dm_mface);
+		/* looks like these dont need copying */
+		/*
+		if(ps->dm_mtface) MEM_freeN(ps->dm_mtface);
+		if(ps->dm_mtface_clone) MEM_freeN(ps->dm_mtface_clone);
+		if(ps->dm_mtface_stencil) MEM_freeN(ps->dm_mtface_stencil);
+		*/
+	}
+
 	if(ps->dm_release)
 		ps->dm->release(ps->dm);
 }
