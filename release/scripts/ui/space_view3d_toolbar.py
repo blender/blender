@@ -498,7 +498,15 @@ class VIEW3D_PT_tools_brush(PaintPanel):
         if not context.particle_edit_object:
             col = layout.split().column()
             row = col.row()
-            row.template_list(settings, "brushes", settings, "active_brush_index", rows=2)
+
+            if context.sculpt_object and brush:
+                defaulttools = 8
+            elif context.texture_paint_object and brush:
+                defaulttools = 4
+            else:
+                defaulttools = 2
+
+            row.template_list(settings, "brushes", settings, "active_brush_index", rows=2, maxrows=defaulttools)
 
             col.template_ID(settings, "brush", new="brush.add")
 
@@ -531,14 +539,13 @@ class VIEW3D_PT_tools_brush(PaintPanel):
         elif context.sculpt_object and brush:
             col = layout.column()
             col.separator()
-            col.prop(brush, "sculpt_tool", expand=True)
-            col.separator()
 
             row = col.row(align=True)
             row.prop(brush, "size", slider=True)
-            row.prop(brush, "use_size_pressure", toggle=True, text="")
 
             if brush.sculpt_tool != 'GRAB':
+                row.prop(brush, "use_size_pressure", toggle=True, text="")
+
                 row = col.row(align=True)
                 row.prop(brush, "strength", slider=True)
                 row.prop(brush, "use_strength_pressure", text="")
@@ -563,13 +570,8 @@ class VIEW3D_PT_tools_brush(PaintPanel):
         # Texture Paint Mode #
 
         elif context.texture_paint_object and brush:
-            col = layout.column(align=True)
-            col.prop_enum(settings, "tool", 'DRAW')
-            col.prop_enum(settings, "tool", 'SOFTEN')
-            col.prop_enum(settings, "tool", 'CLONE')
-            col.prop_enum(settings, "tool", 'SMEAR')
-
             col = layout.column()
+            col.template_color_wheel(brush, "color", value_slider=True)
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)
@@ -609,6 +611,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
 
         elif context.vertex_paint_object and brush:
             col = layout.column()
+            col.template_color_wheel(brush, "color", value_slider=True)
             col.prop(brush, "color", text="")
 
             row = col.row(align=True)
@@ -623,6 +626,56 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             #row = col.row(align=True)
             #row.prop(brush, "jitter", slider=True)
             #row.prop(brush, "use_jitter_pressure", toggle=True, text="")
+
+
+class VIEW3D_PT_tools_brush_texture(PaintPanel):
+    bl_label = "Texture"
+    bl_default_closed = True
+
+    def poll(self, context):
+        settings = self.paint_settings(context)
+        return (settings and settings.brush and (context.sculpt_object or
+                             context.texture_paint_object))
+
+    def draw(self, context):
+        layout = self.layout
+
+        settings = self.paint_settings(context)
+        brush = settings.brush
+        tex_slot = brush.texture_slot
+        
+        col = layout.column()
+        
+        col.template_ID_preview(brush, "texture", new="texture.new", rows=2, cols=4)
+        
+        col.row().prop(tex_slot, "map_mode", expand=True)
+        
+class VIEW3D_PT_tools_brush_tool(PaintPanel):
+    bl_label = "Tool"
+    bl_default_closed = True
+
+    def poll(self, context):
+        settings = self.paint_settings(context)
+        return (settings and settings.brush and (context.sculpt_object or
+                             context.texture_paint_object))
+
+    def draw(self, context):
+        layout = self.layout
+
+        settings = self.paint_settings(context)
+        brush = settings.brush
+        texture_paint = context.texture_paint_object
+        sculpt = context.sculpt_object
+
+        col = layout.column(align=True)
+
+        if context.sculpt_object:
+            col.prop(brush, "sculpt_tool", expand=True)
+        elif context.texture_paint_object:
+            col.prop_enum(settings, "tool", 'DRAW')
+            col.prop_enum(settings, "tool", 'SOFTEN')
+            col.prop_enum(settings, "tool", 'CLONE')
+            col.prop_enum(settings, "tool", 'SMEAR')
 
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel):
@@ -682,7 +735,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
         settings = self.paint_settings(context)
         brush = settings.brush
 
-        layout.template_curve_mapping(brush, "curve")
+        layout.template_curve_mapping(brush, "curve", brush=True)
         layout.operator_menu_enum("brush.curve_preset", property="shape")
 
 
@@ -750,9 +803,9 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
         col.prop(wpaint, "normals")
         col.prop(wpaint, "spray")
 
-        data = context.weight_paint_object.data
-        if type(data) == bpy.types.Mesh:
-            col.prop(data, "use_mirror_x")
+        obj = context.weight_paint_object
+        if obj.type == 'MESH':
+            col.prop(obj.data, "use_mirror_x")
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
 #		col.label(text="Gamma:")
@@ -840,7 +893,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         sub = col.column()
         row = sub.row()
         row.active = (settings.tool == 'CLONE')
-        
+
         row.prop(ipaint, "use_clone_layer", text="Clone")
         row.menu("VIEW3D_MT_tools_projectpaint_clone", text=context.active_object.data.uv_texture_clone.name)
 
@@ -856,7 +909,6 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
                 prop = layout.operator("wm.context_set_int", text=tex.name)
                 prop.path = "active_object.data.uv_texture_clone_index"
                 prop.value = i
-
 
     class VIEW3D_MT_tools_projectpaint_stencil(bpy.types.Menu):
         bl_label = "Mask Layer"
@@ -922,6 +974,7 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
         if not pe.hair:
             col.label(text="Correct:")
             col.prop(pe, "auto_velocity", text="Velocity")
+        col.prop(ob.data, "use_mirror_x")
 
         col = layout.column(align=True)
         col.active = pe.editable
@@ -933,7 +986,6 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
         sub = col.row()
         sub.active = pe.fade_time
         sub.prop(pe, "fade_frames", slider=True)
-
 
 bpy.types.register(VIEW3D_PT_tools_weightpaint)
 bpy.types.register(VIEW3D_PT_tools_objectmode)
@@ -949,6 +1001,8 @@ bpy.types.register(VIEW3D_PT_tools_latticeedit)
 bpy.types.register(VIEW3D_PT_tools_posemode)
 bpy.types.register(VIEW3D_PT_tools_posemode_options)
 bpy.types.register(VIEW3D_PT_tools_brush)
+bpy.types.register(VIEW3D_PT_tools_brush_texture)
+bpy.types.register(VIEW3D_PT_tools_brush_tool)
 bpy.types.register(VIEW3D_PT_tools_brush_stroke)
 bpy.types.register(VIEW3D_PT_tools_brush_curve)
 bpy.types.register(VIEW3D_PT_sculpt_options)

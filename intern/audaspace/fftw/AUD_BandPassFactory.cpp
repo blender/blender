@@ -23,23 +23,49 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#ifndef AUD_SDLMIXERFACTORY
-#define AUD_SDLMIXERFACTORY
+#include "AUD_BandPassFactory.h"
+#include "AUD_BandPassReader.h"
 
-#include "AUD_MixerFactory.h"
+AUD_BandPassFactory::AUD_BandPassFactory(AUD_IFactory* factory, float low,
+										 float high) :
+		AUD_EffectFactory(factory),
+		m_low(low),
+		m_high(high) {}
 
-/**
- * This factory creates a resampling reader that uses SDL's resampling
- * functionality which unfortunately is very very very limited.
- */
-class AUD_SDLMixerFactory : public AUD_MixerFactory
+AUD_BandPassFactory::AUD_BandPassFactory(float low, float high) :
+		AUD_EffectFactory(0),
+		m_low(low),
+		m_high(high) {}
+
+float AUD_BandPassFactory::getLow()
 {
-public:
-	AUD_SDLMixerFactory(AUD_IReader* reader, AUD_Specs specs);
-	AUD_SDLMixerFactory(AUD_IFactory* factory, AUD_Specs specs);
-	AUD_SDLMixerFactory(AUD_Specs specs);
+	return m_low;
+}
 
-	virtual AUD_IReader* createReader();
-};
+float AUD_BandPassFactory::getHigh()
+{
+	return m_high;
+}
 
-#endif //AUD_SDLMIXERFACTORY
+void AUD_BandPassFactory::setLow(float low)
+{
+	m_low = low;
+}
+
+void AUD_BandPassFactory::setHigh(float high)
+{
+	m_high = high;
+}
+
+AUD_IReader* AUD_BandPassFactory::createReader()
+{
+	AUD_IReader* reader = getReader();
+
+	if(reader != 0)
+	{
+		reader = new AUD_BandPassReader(reader, m_low, m_high);
+		AUD_NEW("reader")
+	}
+
+	return reader;
+}

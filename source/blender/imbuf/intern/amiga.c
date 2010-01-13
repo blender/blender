@@ -452,6 +452,7 @@ struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 	if (ibuf == 0) return (0);
 
 	ibuf->ftype = (ftype | AMI);
+	ibuf->profile = IB_PROFILE_SRGB;
 	
 	if (cmap){
 		ibuf->mincol = 0;

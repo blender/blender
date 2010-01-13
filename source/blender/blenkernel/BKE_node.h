@@ -174,6 +174,7 @@ struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node, int inte
 
 struct bNodeLink *nodeAddLink(struct bNodeTree *ntree, struct bNode *fromnode, struct bNodeSocket *fromsock, struct bNode *tonode, struct bNodeSocket *tosock);
 void			nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
+void			nodeRemSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
 
 struct bNode	*nodeFindNodebyName(struct bNodeTree *ntree, const char *name);
 int			nodeFindNode(struct bNodeTree *ntree, struct bNodeSocket *sock, struct bNode **nodep, int *sockindex);

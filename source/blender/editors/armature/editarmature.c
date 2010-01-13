@@ -5785,7 +5785,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	}
 	
 	dst = add_object(scene, OB_ARMATURE);
-	ED_object_base_init_from_view(NULL, scene->basact); 	// XXX NULL is C
+	ED_object_base_init_transform(NULL, scene->basact, NULL, NULL); 	// XXX NULL is C, loc, rot
 	obedit= scene->basact->object;
 	
 	/* Copy orientation from source */

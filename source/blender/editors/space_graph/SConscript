@@ -5,5 +5,6 @@ sources = env.Glob('*.c')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../makesrna ../../imbuf'
 incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
+incs += ' #/intern/audaspace/intern'
 
 env.BlenderLib ( 'bf_editors_space_graph', sources, Split(incs), [], libtype=['core'], priority=[50] )

@@ -98,11 +98,13 @@ EnumPropertyItem snap_element_items[] = {
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_depsgraph.h"
+#include "BKE_image.h"
 #include "BKE_mesh.h"
 
 #include "BLI_threads.h"
@@ -126,21 +128,28 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base*)internal->link)->object);
 }
 
-static void rna_Scene_link_object(Scene *sce, ReportList *reports, Object *ob)
+static void rna_Scene_link_object(Scene *scene, ReportList *reports, Object *ob)
 {
-	Base *base= object_in_scene(ob, sce);
-	if (base) {
-		BKE_report(reports, RPT_ERROR, "Object is already in this scene.");
+	Base *base;
+
+	if (ob->type != OB_EMPTY && ob->data==NULL) {
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not an Empty type and has no Object Data set.");
 		return;
 	}
-	base= scene_add_base(sce, ob);
+
+	if (object_in_scene(ob, scene)) {
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is already in scene \"%s\".", ob->id.name+2, scene->id.name+2);
+		return;
+	}
+
+	base= scene_add_base(scene, ob);
 	ob->id.us++;
 
 	/* this is similar to what object_add_type and add_object do */
-	ob->lay= base->lay= sce->lay;
+	ob->lay= base->lay= scene->lay;
 	ob->recalc |= OB_RECALC;
 
-	DAG_scene_sort(sce);
+	DAG_scene_sort(scene);
 }
 
 static void rna_Scene_unlink_object(Scene *sce, ReportList *reports, Object *ob)
@@ -361,6 +370,21 @@ static void rna_SceneRenderData_file_format_set(PointerRNA *ptr, int value)
 #endif
 }
 
+static int rna_SceneRender_file_ext_length(PointerRNA *ptr)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	char ext[8];
+
+	BKE_add_image_extension(ext, rd->imtype);
+	return strlen(ext);
+}
+
+static void rna_SceneRender_file_ext_get(PointerRNA *ptr, char *str)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	BKE_add_image_extension(str, rd->imtype);
+}
+
 void rna_SceneRenderData_jpeg2k_preset_update(RenderData *rd)
 {
 	rd->subimtype &= ~(R_JPEG2K_12BIT|R_JPEG2K_16BIT | R_JPEG2K_CINE_PRESET|R_JPEG2K_CINE_48FPS);
@@ -501,6 +525,12 @@ static int rna_SceneRenderData_engine_get(PointerRNA *ptr)
 			return a;
 	
 	return 0;
+}
+
+static void rna_SceneRenderData_color_management_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+{
+	/* reset all generated image block buffers to prevent out-of-date conversions */
+	BKE_image_free_image_ibufs();
 }
 
 static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
@@ -1217,6 +1247,12 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Stereo Mode", "Stereographic techniques");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
+	prop= RNA_def_property(srna, "eye_separation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "eyeseparation");
+	RNA_def_property_range(prop, 0.01, 5.0);
+	RNA_def_property_ui_text(prop, "Eye Separation", "Set the distance between the eyes - the camera focal length/30 should be fine");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+	
 	/* Dome */
 	prop= RNA_def_property(srna, "dome_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "dome.mode");
@@ -1449,7 +1485,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{R_BAKE_SPACE_OBJECT, "OBJECT", 0, "Object", ""},
 		{R_BAKE_SPACE_TANGENT, "TANGENT", 0, "Tangent", ""},
 		{0, NULL, 0, NULL, NULL}};
-		
+
+	static EnumPropertyItem bake_qyad_split_items[] ={
+		{0, "AUTO", 0, "Automatic", "Split quads to give the least distortion while baking"},
+		{1, "FIXED", 0, "Fixed", "Split quads pradictably (0,1,2) (0,2,3)"},
+		{2, "FIXED_ALT", 0, "Fixed Alternate", "Split quads pradictably (1,2,3) (1,3,0)"},
+		{0, NULL, 0, NULL, NULL}};
+
 	static EnumPropertyItem bake_aa_items[] ={
 		{5, "AA_5", 0, "5", ""},
 		{8, "AA_8", 0, "8", ""},
@@ -2088,9 +2130,9 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "color_management", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "color_mgt_flag", R_COLOR_MANAGEMENT);
 	RNA_def_property_ui_text(prop, "Color Management", "Use color profiles and gamma corrected imaging pipeline");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_MATERIAL|ND_SHADING, NULL);
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS|NC_MATERIAL|ND_SHADING, "rna_SceneRenderData_color_management_update");
 	
-	prop= RNA_def_property(srna, "file_extensions", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_file_extension", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_EXTENSION);
 	RNA_def_property_ui_text(prop, "File Extensions", "Add the file format extensions to the rendered file name (eg: filename + .jpg)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
@@ -2101,7 +2143,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, NULL, "rna_SceneRenderData_file_format_set", NULL);
 	RNA_def_property_ui_text(prop, "File Format", "File format to save the rendered images as.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	
+
+	prop= RNA_def_property(srna, "file_extension", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_SceneRender_file_ext_get", "rna_SceneRender_file_ext_length", NULL);
+	RNA_def_property_ui_text(prop, "Extension", "The file extension used for saving renders.");
+	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	prop= RNA_def_property(srna, "free_image_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FREE_IMAGE);
 	RNA_def_property_ui_text(prop, "Free Image Textures", "Free all image texture from memory after render, to save memory before compositing.");
@@ -2144,12 +2192,16 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "bake_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_mode");
 	RNA_def_property_enum_items(prop, bake_mode_items);
-	RNA_def_property_ui_text(prop, "Bake Mode", "");
+	RNA_def_property_ui_text(prop, "Bake Mode", "Choose shading information to bake into the image");
 	
 	prop= RNA_def_property(srna, "bake_normal_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_normal_space");
 	RNA_def_property_enum_items(prop, bake_normal_space_items);
 	RNA_def_property_ui_text(prop, "Normal Space", "Choose normal space for baking");
+	
+	prop= RNA_def_property(srna, "bake_quad_split", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, bake_qyad_split_items);
+	RNA_def_property_ui_text(prop, "Quad Split", "Choose the method used to split a quad into 2 triangles for baking");
 	
 	prop= RNA_def_property(srna, "bake_aa_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_osa");
@@ -2162,10 +2214,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "bake_normalized", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_NORMALIZE);
-	RNA_def_property_ui_text(prop, "Normalized", "");
-	//"Bake ambient occlusion normalized, without taking into acount material settings"
-	//"Normalized displacement value to fit the 'Dist' range"
-	// XXX: Need 1 tooltip here...
+	RNA_def_property_ui_text(prop, "Normalized", "With displacement normalize to the distance, with ambient occlusion normalize without using material settings.");
 	
 	prop= RNA_def_property(srna, "bake_clear", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_CLEAR);
@@ -2194,7 +2243,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "stamp_time", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_TIME);
-	RNA_def_property_ui_text(prop, "Stamp Time", "Include the current time in image metadata");
+	RNA_def_property_ui_text(prop, "Stamp Time", "Include the render frame as HH:MM:SS.FF in image metadata");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "stamp_date", PROP_BOOLEAN, PROP_NONE);
@@ -2306,6 +2355,9 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_SceneRenderData_use_game_engine_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Use Game Engine", "Current rendering engine is a game engine.");
+
+	/* Scene API */
+	RNA_api_scene_render(srna);
 }
 
 

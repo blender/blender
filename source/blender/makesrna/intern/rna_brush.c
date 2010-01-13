@@ -33,6 +33,7 @@
 #include "DNA_texture_types.h"
 
 #include "IMB_imbuf.h"
+#include "WM_types.h"
 
 EnumPropertyItem brush_sculpt_tool_items[] = {
 	{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
@@ -52,29 +53,6 @@ EnumPropertyItem brush_sculpt_tool_items[] = {
 #include "BKE_texture.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
-
-static void rna_Brush_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Brush *brush= (Brush*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)brush->mtex, sizeof(MTex*), MAX_MTEX, 0, NULL);
-}
-
-static PointerRNA rna_Brush_active_texture_get(PointerRNA *ptr)
-{
-	Brush *br= (Brush*)ptr->data;
-	Tex *tex;
-
-	tex= give_current_brush_texture(br);
-	return rna_pointer_inherit_refine(ptr, &RNA_Texture, tex);
-}
-
-static void rna_Brush_active_texture_set(PointerRNA *ptr, PointerRNA value)
-{
-	Brush *br= (Brush*)ptr->data;
-
-	set_current_brush_texture(br, value.data);
-}
 
 static void rna_Brush_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -291,8 +269,17 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	/* texture */
-	rna_def_mtex_common(srna, "rna_Brush_mtex_begin", "rna_Brush_active_texture_get",
-		"rna_Brush_active_texture_set", "BrushTextureSlot", "rna_Brush_update");
+	prop= RNA_def_property(srna, "texture_slot", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "BrushTextureSlot");
+	RNA_def_property_pointer_sdna(prop, NULL, "mtex");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Texture Slot", "");
+	
+	prop= RNA_def_property(srna, "texture", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "mtex.tex");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Texture", "");
+	RNA_def_property_update(prop, NC_TEXTURE, "rna_Brush_update");
 
 	/* clone tool */
 	prop= RNA_def_property(srna, "clone_image", PROP_POINTER, PROP_NONE);

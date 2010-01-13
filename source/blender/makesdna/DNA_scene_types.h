@@ -444,6 +444,7 @@ typedef struct GameData {
 	/* stereo/dome mode */
 	struct GameDome dome;
 	short stereoflag, stereomode, xsch, ysch; //xsch and ysch can be deleted !!!
+	float eyeseparation, pad1;
 } GameData;
 
 #define STEREO_NOSTEREO		1
@@ -1123,7 +1124,7 @@ typedef enum SculptFlags {
 #define PE_DEFLECT_EMITTER		4
 #define PE_INTERPOLATE_ADDED	8
 #define PE_DRAW_PART			16
-#define PE_X_MIRROR				64
+#define PE_X_MIRROR				64		/* deprecated */
 #define PE_FADE_TIME			128
 #define PE_AUTO_VELOCITY		256
 

@@ -127,7 +127,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->r.size= 100;
 	envre->r.yasp= envre->r.xasp= 1;
 	
-	RE_InitState(envre, NULL, &envre->r, cuberes, cuberes, NULL);
+	RE_InitState(envre, NULL, &envre->r, NULL, cuberes, cuberes, NULL);
 	envre->scene= re->scene;	/* unsure about this... */
 
 	/* view stuff in env render */

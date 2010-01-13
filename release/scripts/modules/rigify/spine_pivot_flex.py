@@ -90,6 +90,7 @@ def metarig_template():
     pbone = obj.pose.bones['rib_cage']
     pbone['type'] = 'spine_pivot_flex'
 
+
 def metarig_definition(obj, orig_bone_name):
     '''
     The bone given is the second in a chain.
@@ -119,6 +120,30 @@ def metarig_definition(obj, orig_bone_name):
 
 def fk(*args):
     main(*args)
+
+
+def deform(obj, definitions, base_names, options):
+    for org_bone_name in definitions[2:]:
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        # Create deform bone.
+        bone = copy_bone_simple(obj.data, org_bone_name, "DEF-%s" % base_names[org_bone_name], parent=True)
+        
+        # Store name before leaving edit mode
+        bone_name = bone.name
+        
+        # Leave edit mode
+        bpy.ops.object.mode_set(mode='OBJECT')
+        
+        # Get the pose bone
+        bone = obj.pose.bones[bone_name]
+        
+        # Constrain to the original bone
+        # XXX. Todo, is this needed if the bone is connected to its parent?
+        con = bone.constraints.new('COPY_TRANSFORMS')
+        con.name = "copy_loc"
+        con.target = obj
+        con.subtarget = org_bone_name
 
 
 def main(obj, bone_definition, base_names, options):
@@ -268,6 +293,7 @@ def main(obj, bone_definition, base_names, options):
         spine_e.roll += pi # 180d roll
         del spine_e
 
+    deform(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -315,12 +341,12 @@ def main(obj, bone_definition, base_names, options):
     # add driver
     fcurve = con.driver_add("influence", 0)
     driver = fcurve.driver
-    tar = driver.targets.new()
+    var = driver.variables.new()
     driver.type = 'AVERAGE'
-    tar.name = "var"
-    tar.id_type = 'OBJECT'
-    tar.id = obj
-    tar.data_path = ex.ribcage_copy_p.path_to_id() + '["hinge"]'
+    var.name = "var"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = ex.ribcage_copy_p.path_to_id() + '["hinge"]'
 
     mod = fcurve.modifiers[0]
     mod.poly_order = 1
@@ -400,11 +426,11 @@ def main(obj, bone_definition, base_names, options):
     fcurve.modifiers.remove(0) # grr dont need a modifier
 
     for i in range(spine_chain_len - 1):
-        tar = driver.targets.new()
-        tar.name = target_names[i]
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = rib_driver_path + ('["bend_%.2d"]' % (i + 1))
+        var = driver.variables.new()
+        var.name = target_names[i]
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = rib_driver_path + ('["bend_%.2d"]' % (i + 1))
 
     for i in range(1, spine_chain_len):
 
@@ -435,17 +461,17 @@ def main(obj, bone_definition, base_names, options):
 
 
         # add target
-        tar = driver.targets.new()
-        tar.name = "bend_tot"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = rib_driver_path + ('["bend_tot"]')
+        var = driver.variables.new()
+        var.name = "bend_tot"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = rib_driver_path + ('["bend_tot"]')
 
-        tar = driver.targets.new()
-        tar.name = "bend"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = rib_driver_path + ('["%s"]' % prop_name)
+        var = driver.variables.new()
+        var.name = "bend"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = rib_driver_path + ('["%s"]' % prop_name)
 
 
 
@@ -483,32 +509,42 @@ def main(obj, bone_definition, base_names, options):
 
         fcurve = con.driver_add("influence", 0)
         driver = fcurve.driver
-        tar = driver.targets.new()
+        var = driver.variables.new()
         driver.type = 'AVERAGE'
-        tar.name = "var"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = rib_driver_path + '["pivot_slide"]'
+        var.name = "var"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = rib_driver_path + '["pivot_slide"]'
 
         mod = fcurve.modifiers[0]
         mod.poly_order = 1
         mod.coefficients[0] = - (i - 1)
         mod.coefficients[1] = spine_chain_len
+    
+    
+    # Set pelvis and ribcage controls to use the first and last bone in the
+    # spine respectively for their custom shape transform
+    ex.ribcage_copy_p.custom_shape_transform = obj.pose.bones[bone_definition[len(bone_definition)-1]]
+    ex.pelvis_copy_p.custom_shape_transform = obj.pose.bones[bone_definition[2]]
 
 
     # last step setup layers
-    layers = get_layer_dict(options)
-    lay = layers["extra"]
+    if "ex_layer" in options:
+        layer = [n==options["ex_layer"] for n in range(0,32)]
+    else:
+        layer = list(arm.bones[bone_definition[1]].layer)
     for attr in ex.attr_names:
-        getattr(ex, attr + "_b").layer = lay
+        getattr(ex, attr + "_b").layer = layer
     for attr in ex_chain.attr_names:
-        getattr(ex_chain, attr + "_b").layer = lay
-
-    lay = layers["main"]
+        getattr(ex_chain, attr + "_b").layer = layer
     for attr in df.attr_names:
-        getattr(df, attr + "_b").layer = lay
+        getattr(df, attr + "_b").layer = layer
     for attr in rv_chain.attr_names:
-        getattr(rv_chain, attr + "_b").layer = lay
+        getattr(rv_chain, attr + "_b").layer = layer
+        
+    layer = list(arm.bones[bone_definition[1]].layer)
+    arm.bones[ex.pelvis_copy].layer = layer
+    arm.bones[ex.ribcage_copy].layer = layer
 
     # no support for blending chains
     return None

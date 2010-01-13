@@ -145,6 +145,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "MEM_guardedalloc.h" // MEM_freeN
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
+#include "BLI_bpath.h"
 
 #include "BKE_action.h"
 #include "BKE_blender.h"
@@ -932,22 +933,27 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 		/* driver data */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
 			
 			/* don't save compiled python bytecode */
 			void *expr_comp= driver->expr_comp;
 			driver->expr_comp= NULL;
-
+			
 			writestruct(wd, DATA, "ChannelDriver", 1, driver);
 			
 			driver->expr_comp= expr_comp; /* restore */
-
-			/* targets */
-			for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
-				writestruct(wd, DATA, "DriverTarget", 1, dtar);
+			
+			
+			/* variables */
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				writestruct(wd, DATA, "DriverVar", 1, dvar);
 				
-				if (dtar->rna_path)
-					writedata(wd, DATA, strlen(dtar->rna_path)+1, dtar->rna_path);
+				DRIVER_TARGETS_USED_LOOPER(dvar)
+				{
+					if (dtar->rna_path)
+						writedata(wd, DATA, strlen(dtar->rna_path)+1, dtar->rna_path);
+				}
+				DRIVER_TARGETS_LOOPER_END
 			}
 		}
 		
@@ -1058,6 +1064,19 @@ static void write_animdata(WriteData *wd, AnimData *adt)
 	write_nladata(wd, &adt->nla_tracks);
 }
 
+static void write_motionpath(WriteData *wd, bMotionPath *mpath)
+{
+	/* sanity checks */
+	if (mpath == NULL)
+		return;
+	
+	/* firstly, just write the motionpath struct */
+	writestruct(wd, DATA, "bMotionPath", 1, mpath);
+	
+	/* now write the array of data */
+	writestruct(wd, DATA, "bMotionPathVert", mpath->length, mpath->points);
+}
+
 static void write_constraints(WriteData *wd, ListBase *conlist)
 {
 	bConstraint *con;
@@ -1119,6 +1138,8 @@ static void write_pose(WriteData *wd, bPose *pose)
 			IDP_WriteProperty(chan->prop, wd);
 		
 		write_constraints(wd, &chan->constraints);
+		
+		write_motionpath(wd, chan->mpath);
 		
 		/* prevent crashes with autosave, when a bone duplicated in editmode has not yet been assigned to its posechannel */
 		if (chan->bone) 
@@ -1252,6 +1273,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			write_pose(wd, ob->pose);
 			write_defgroups(wd, &ob->defbase);
 			write_constraints(wd, &ob->constraints);
+			write_motionpath(wd, ob->mpath);
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
@@ -2303,16 +2325,12 @@ static void write_nodetrees(WriteData *wd, ListBase *idbase)
 static void write_brushes(WriteData *wd, ListBase *idbase)
 {
 	Brush *brush;
-	int a;
 	
 	for(brush=idbase->first; brush; brush= brush->id.next) {
 		if(brush->id.us>0 || wd->current) {
 			writestruct(wd, ID_BR, "Brush", 1, brush);
 			if (brush->id.properties) IDP_WriteProperty(brush->id.properties, wd);
-			for(a=0; a<MAX_MTEX; a++)
-				if(brush->mtex[a])
-					writestruct(wd, DATA, "MTex", 1, brush->mtex[a]);
-
+			
 			if(brush->curve)
 				write_curvemapping(wd, brush->curve);
 		}
@@ -2443,8 +2461,28 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 		return 0;
 	}
 
+	if(write_flags & G_FILE_RELATIVE_REMAP) {
+		char dir1[FILE_MAXDIR+FILE_MAXFILE];
+		char dir2[FILE_MAXDIR+FILE_MAXFILE];
+		BLI_split_dirfile_basic(dir, dir1, NULL);
+		BLI_split_dirfile_basic(mainvar->name, dir2, NULL);
+
+		/* just incase there is some subtle difference */
+		BLI_cleanup_dir(mainvar->name, dir1);
+		BLI_cleanup_dir(mainvar->name, dir2);
+
+		if(strcmp(dir1, dir2)==0)
+			write_flags &= ~G_FILE_RELATIVE_REMAP;
+		else
+			makeFilesAbsolute(G.sce, NULL);
+
+	}
+
 	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B25.blend");
 	write_user_block= BLI_streq(dir, userfilename);
+
+	if(write_flags & G_FILE_RELATIVE_REMAP)
+		makeFilesRelative(dir, NULL); /* note, making relative to something OTHER then G.sce */
 
 	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags);
 	close(file);

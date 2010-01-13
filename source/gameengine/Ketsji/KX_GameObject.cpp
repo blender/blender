@@ -2605,6 +2605,23 @@ static PyObject *none_tuple_4()
 	return ret;
 }
 
+static PyObject *none_tuple_5()
+{
+	PyObject *ret= PyTuple_New(5);
+	PyTuple_SET_ITEM(ret, 0, Py_None);
+	PyTuple_SET_ITEM(ret, 1, Py_None);
+	PyTuple_SET_ITEM(ret, 2, Py_None);
+	PyTuple_SET_ITEM(ret, 3, Py_None);
+	PyTuple_SET_ITEM(ret, 4, Py_None);
+	
+	Py_INCREF(Py_None);
+	Py_INCREF(Py_None);
+	Py_INCREF(Py_None);
+	Py_INCREF(Py_None);
+	Py_INCREF(Py_None);
+	return ret;
+}
+
 KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 				   "rayCast(to,from,dist,prop,face,xray,poly): cast a ray and return 3-tuple (object,hit,normal) or 4-tuple (object,hit,normal,polygon) or 4-tuple (object,hit,normal,polygon,hituv) of contact point with object within dist that matches prop.\n"
 				   " If no hit, return (None,None,None) or (None,None,None,None) or (None,None,None,None,None).\n"
@@ -2742,11 +2759,11 @@ KX_PYMETHODDEF_DOC(KX_GameObject, rayCast,
 		return returnValue;
 	}
 	// no hit
-	if (poly)
-		//return Py_BuildValue("OOOO", Py_None, Py_None, Py_None, Py_None);
+	if (poly == 2)
+		return none_tuple_5();
+	else if (poly)
 		return none_tuple_4();
 	else
-		//return Py_BuildValue("OOO", Py_None, Py_None, Py_None);
 		return none_tuple_3();
 }
 

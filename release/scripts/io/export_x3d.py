@@ -879,7 +879,7 @@ class x3d_class:
 
                     # free mesh created with create_mesh()
                     if me != ob.data:
-                        bpy.data.remove_mesh(me)
+                        bpy.data.meshes.remove(me)
 
                 elif objType == "LAMP":
                 # elif objType == "Lamp":

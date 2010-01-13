@@ -247,6 +247,7 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPH_OT_extrapolation_type);
 	WM_operatortype_append(GRAPH_OT_sample);
 	WM_operatortype_append(GRAPH_OT_bake);
+	WM_operatortype_append(GRAPH_OT_sound_bake);
 	WM_operatortype_append(GRAPH_OT_smooth);
 	WM_operatortype_append(GRAPH_OT_clean);
 	WM_operatortype_append(GRAPH_OT_delete);
@@ -351,6 +352,11 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 		/* F-Modifiers */
 	RNA_boolean_set(WM_keymap_add_item(keymap, "GRAPH_OT_fmodifier_add", MKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "only_active", 0);
 	
+	/* animation module */
+		/* channels list 
+		 * NOTE: these operators were originally for the channels list, but are added here too for convenience...
+		 */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_editable_toggle", TABKEY, KM_PRESS, 0, 0);
 	
 	/* transform system */
 	transform_keymap_for_space(keyconf, keymap, SPACE_IPO);

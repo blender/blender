@@ -292,7 +292,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 
         if wide_ui:
             col = split.column()
-        col.prop(rd, "file_extensions")
+        col.prop(rd, "use_file_extension")
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
 
@@ -547,8 +547,54 @@ class RENDER_PT_stamp(RenderButtonsPanel):
         sub.prop(rd, "stamp_note_text", text="")
 
 
-bpy.types.register(RENDER_MT_presets)
+class RENDER_PT_bake(RenderButtonsPanel):
+    bl_label = "Bake"
+    bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render_data
+        wide_ui = context.region.width > narrowui
+
+        layout.operator("object.bake_image", icon='RENDER_STILL')
+        
+        if wide_ui:
+            layout.prop(rd, "bake_type")
+        else:
+            layout.prop(rd, "bake_type", text="")
+        
+        if rd.bake_type == 'NORMALS':
+            if wide_ui:
+                layout.prop(rd, "bake_normal_space")
+            else:
+                layout.prop(rd, "bake_normal_space", text="")
+        elif rd.bake_type in ('DISPLACEMENT', 'AO'):
+            layout.prop(rd, "bake_normalized")
+        
+        # col.prop(rd, "bake_aa_mode")
+        # col.prop(rd, "bake_enable_aa")
+        
+        layout.separator()
+        
+        split = layout.split()
+
+        col = split.column()
+        col.prop(rd, "bake_clear")
+        col.prop(rd, "bake_margin")
+        col.prop(rd, "bake_quad_split", text="Split")
+        
+        if wide_ui:
+            col = split.column()
+        col.prop(rd, "bake_active")
+        sub = col.column()
+        sub.active = rd.bake_active
+        sub.prop(rd, "bake_distance")
+        sub.prop(rd, "bake_bias")
+
+        
+bpy.types.register(RENDER_MT_presets)
 bpy.types.register(RENDER_PT_render)
 bpy.types.register(RENDER_PT_layers)
 bpy.types.register(RENDER_PT_dimensions)
@@ -559,3 +605,4 @@ bpy.types.register(RENDER_PT_encoding)
 bpy.types.register(RENDER_PT_performance)
 bpy.types.register(RENDER_PT_post_processing)
 bpy.types.register(RENDER_PT_stamp)
+bpy.types.register(RENDER_PT_bake)

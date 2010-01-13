@@ -77,7 +77,8 @@ def validate_arguments(args, bc):
             'BF_VERSION',
             'BF_GHOST_DEBUG',
             'WITH_BF_RAYOPTIMIZATION',
-            'BF_RAYOPTIMIZATION_SSE_FLAGS'
+            'BF_RAYOPTIMIZATION_SSE_FLAGS',
+            'BF_NO_ELBEEM'
             ]
     
     # Have options here that scons expects to be lists

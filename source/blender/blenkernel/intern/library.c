@@ -38,6 +38,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -844,18 +845,8 @@ void free_main(Main *mainvar)
 
 ID *find_id(char *type, char *name)		/* type: "OB" or "MA" etc */
 {
-	ID *id;
-	ListBase *lb;
-	
-	lb= wich_libbase(G.main, GS(type));
-	
-	id= lb->first;
-	while(id) {
-		if(id->name[2]==name[0] && strcmp(id->name+2, name)==0 ) 
-			return id;
-		id= id->next;
-	}
-	return 0;
+	ListBase *lb= wich_libbase(G.main, GS(type));
+	return BLI_findstring(lb, name, offsetof(ID, name) + 2);
 }
 
 static void get_flags_for_id(ID *id, char *buf) 
@@ -1033,6 +1024,28 @@ static void sort_alpha_id(ListBase *lb, ID *id)
 	
 }
 
+/*
+ * Check to see if there is an ID with the same name as 'name'.
+ * Returns the ID if so, if not, returns NULL
+ */
+static ID *is_dupid(ListBase *lb, ID *id, char *name)
+{
+	ID *idtest=NULL;
+	
+	for( idtest = lb->first; idtest; idtest = idtest->next ) {
+		/* if idtest is not a lib */ 
+		if( id != idtest && idtest->lib == NULL ) {
+			/* do not test alphabetic! */
+			/* optimized */
+			if( idtest->name[2] == name[0] ) {
+				if(strcmp(name, idtest->name+2)==0) break;
+			}
+		}
+	}
+	
+	return idtest;
+}
+
 /* 
  * Check to see if an ID name is already used, and find a new one if so.
  * Return 1 if created a new name (returned in name).
@@ -1056,16 +1069,7 @@ int check_for_dupid(ListBase *lb, ID *id, char *name)
 	while (1) {
 
 		/* phase 1: id already exists? */
-		for( idtest = lb->first; idtest; idtest = idtest->next ) {
-				/* if idtest is not a lib */ 
-			if( id != idtest && idtest->lib == NULL ) {
-				/* do not test alphabetic! */
-				/* optimized */
-				if( idtest->name[2] == name[0] ) {
-					if(strcmp(name, idtest->name+2)==0) break;
-				}
-			}
-		}
+		idtest = is_dupid(lb, id, name);
 
 		/* if there is no double, done */
 		if( idtest == NULL ) return 0;
@@ -1104,18 +1108,30 @@ int check_for_dupid(ListBase *lb, ID *id, char *name)
 			}
 		}
 
-		/* if non-numbered name was not in use, reuse it */
-		if(nr==0) strcpy( name, left );
-		else {
-			if(nr > 999 && strlen(left) > 16) {
-				/* this would overflow name buffer */
-				left[16] = 0;
-				strcpy( name, left );
-				continue;
+		/* If the original name has no numeric suffix, 
+		 * rather than just chopping and adding numbers, 
+		 * shave off the end chars until we have a unique name */
+		if (nr==0) {
+			int len = strlen(name)-1;
+			idtest= is_dupid(lb, id, name);
+			
+			while (idtest && len> 1) {
+				name[len--] = '\0';
+				idtest= is_dupid(lb, id, name);
 			}
-			/* this format specifier is from hell... */
-			sprintf(name, "%s.%.3d", left, nr);
+			if (idtest == NULL) return 1;
+			/* otherwise just continue and use a number suffix */
 		}
+		
+		if(nr > 999 && strlen(left) > 16) {
+			/* this would overflow name buffer */
+			left[16] = 0;
+			strcpy( name, left );
+			continue;
+		}
+		/* this format specifier is from hell... */
+		sprintf(name, "%s.%.3d", left, nr);
+
 		return 1;
 	}
 }
@@ -1258,13 +1274,13 @@ void all_local(Library *lib, int untagged_only)
 			id->newid= NULL;
 			idn= id->next;		/* id is possibly being inserted again */
 			
-			/* The check on the second line (LIB_APPEND_TAG) is done so its
+			/* The check on the second line (LIB_PRE_EXISTING) is done so its
 			 * possible to tag data you dont want to be made local, used for
 			 * appending data, so any libdata alredy linked wont become local
 			 * (very nasty to discover all your links are lost after appending)  
 			 * */
 			if(id->flag & (LIB_EXTERN|LIB_INDIRECT|LIB_NEW) &&
-			  (untagged_only==0 || !(id->flag & LIB_APPEND_TAG)))
+			  (untagged_only==0 || !(id->flag & LIB_PRE_EXISTING)))
 			{
 				if(lib==NULL || id->lib==lib) {
 					id->flag &= ~(LIB_EXTERN|LIB_INDIRECT|LIB_NEW);
@@ -1311,11 +1327,7 @@ void test_idbutton(char *name)
 	if(lb==0) return;
 	
 	/* search for id */
-	idtest= lb->first;
-	while(idtest) {
-		if( strcmp(idtest->name+2, name)==0) break;
-		idtest= idtest->next;
-	}
+	idtest= BLI_findstring(lb, name, offsetof(ID, name) + 2);
 
 	if(idtest) if( new_id(lb, idtest, name)==0 ) sort_alpha_id(lb, idtest);
 }

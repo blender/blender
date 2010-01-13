@@ -71,11 +71,6 @@ private:
 	SNDFILE* m_sndfile;
 
 	/**
-	 * The reading function.
-	 */
-	sf_read_f m_read;
-
-	/**
 	 * The virtual IO structure for memory file reading.
 	 */
 	SF_VIRTUAL_IO m_vio;

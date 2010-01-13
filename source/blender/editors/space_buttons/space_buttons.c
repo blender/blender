@@ -292,6 +292,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 				case ND_CONSTRAINT:
 					buttons_area_redraw(sa, BCONTEXT_CONSTRAINT);
+					buttons_area_redraw(sa, BCONTEXT_BONE_CONSTRAINT);
 					break;
 				case ND_PARTICLE_DATA:
 					buttons_area_redraw(sa, BCONTEXT_PARTICLE);
@@ -321,6 +322,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_SHADING:
 				case ND_SHADING_DRAW:
+				case ND_NODES:
 					/* currently works by redraws... if preview is set, it (re)starts job */
 					sbuts->preview= 1;
 					break;
@@ -332,6 +334,10 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			break;
 		case NC_LAMP:
 			buttons_area_redraw(sa, BCONTEXT_DATA);
+			sbuts->preview= 1;
+			break;
+		case NC_BRUSH:
+			buttons_area_redraw(sa, BCONTEXT_TEXTURE);
 			sbuts->preview= 1;
 			break;
 		case NC_TEXTURE:
@@ -346,6 +352,12 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 			if(wmn->action == NA_RENAME)
 				ED_area_tag_redraw(sa);
 			break;
+		case NC_ANIMATION:
+			switch(wmn->data) {
+				case ND_KEYFRAME_EDIT:
+					ED_area_tag_redraw(sa);
+					break;
+			}
 	}
 
 	if(wmn->data == ND_KEYS)

@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -56,6 +57,10 @@ class DATA_PT_context_metaball(DataButtonsPanel):
                 layout.template_ID(ob, "data")
             elif mball:
                 layout.template_ID(space, "pin_id")
+
+
+class DATA_PT_custom_props_metaball(DataButtonsPanel, PropertyPanel):
+    _context_path = "object.data"
 
 
 class DATA_PT_metaball(DataButtonsPanel):
@@ -133,3 +138,7 @@ class DATA_PT_metaball_element(DataButtonsPanel):
 bpy.types.register(DATA_PT_context_metaball)
 bpy.types.register(DATA_PT_metaball)
 bpy.types.register(DATA_PT_metaball_element)
+
+bpy.types.register(DATA_PT_custom_props_metaball)
+
+

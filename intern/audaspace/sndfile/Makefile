@@ -35,6 +35,7 @@ include nan_compile.mk
 
 CCFLAGS += $(LEVEL_1_CPP_WARNINGS)
 
+CPPFLAGS += -I$(NAN_SNDFILE)/include
 CPPFLAGS += -I../intern
 CPPFLAGS += -I..
 CPPFLAGS += -I.

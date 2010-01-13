@@ -196,21 +196,12 @@ void FILE_OT_unpack_all(wmOperatorType *ot)
 
 static int make_paths_relative_exec(bContext *C, wmOperator *op)
 {
-	char txtname[24]; /* text block name */
-	int tot, changed, failed, linked;
-
 	if(!G.relbase_valid) {
 		BKE_report(op->reports, RPT_WARNING, "Can't set relative paths with an unsaved blend file.");
 		return OPERATOR_CANCELLED;
 	}
 
-	txtname[0] = '\0';
-	makeFilesRelative(txtname, &tot, &changed, &failed, &linked);
-
-	if(failed)
-		BKE_reportf(op->reports, RPT_ERROR, "Total files %i|Changed %i|Failed %i, See Text \"%s\"|Linked %i", tot, changed, failed, txtname, linked); 
-	else
-		BKE_reportf(op->reports, RPT_INFO, "Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
+	makeFilesRelative(G.sce, op->reports);
 
 	return OPERATOR_FINISHED;
 }
@@ -232,22 +223,12 @@ void FILE_OT_make_paths_relative(wmOperatorType *ot)
 
 static int make_paths_absolute_exec(bContext *C, wmOperator *op)
 {
-	char txtname[24]; /* text block name */
-	int tot, changed, failed, linked;
-
 	if(!G.relbase_valid) {
 		BKE_report(op->reports, RPT_WARNING, "Can't set absolute paths with an unsaved blend file.");
 		return OPERATOR_CANCELLED;
 	}
 
-	txtname[0] = '\0';
-	makeFilesAbsolute(txtname, &tot, &changed, &failed, &linked);
-
-	if(failed)
-		BKE_reportf(op->reports, RPT_ERROR, "Total files %i|Changed %i|Failed %i, See Text \"%s\"|Linked %i", tot, changed, failed, txtname, linked); 
-	else
-		BKE_reportf(op->reports, RPT_INFO, "Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
-
+	makeFilesAbsolute(G.sce, op->reports);
 	return OPERATOR_FINISHED;
 }
 
@@ -273,12 +254,7 @@ static int report_missing_files_exec(bContext *C, wmOperator *op)
 	txtname[0] = '\0';
 	
 	/* run the missing file check */
-	checkMissingFiles(txtname);
-	
-	if(txtname[0] == '\0')
-		BKE_report(op->reports, RPT_INFO, "No external files missing.");
-	else
-		BKE_reportf(op->reports, RPT_ERROR, "Missing files listed in Text \"%s\"", txtname);
+	checkMissingFiles(G.sce, op->reports);
 	
 	return OPERATOR_FINISHED;
 }
@@ -303,7 +279,7 @@ static int find_missing_files_exec(bContext *C, wmOperator *op)
 	char *path;
 	
 	path= RNA_string_get_alloc(op->ptr, "path", NULL, 0);
-	findMissingFiles(path);
+	findMissingFiles(path, G.sce);
 	MEM_freeN(path);
 
 	return OPERATOR_FINISHED;
@@ -332,66 +308,3 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 	/* properties */
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL);
 }
-
-#if 0
-static void info_filemenu(bContext *C, uiLayout *layout, void *arg_unused)
-{
-	
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_AREA);
-	uiItemO(layout, NULL, 0, "WM_OT_read_homefile"); 
-	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_AREA);
-	uiItemO(layout, NULL, 0, "WM_OT_open_mainfile"); 
-//	uiDefIconTextBlockBut(block, info_openrecentmenu, NULL, ICON_RIGHTARROW_THIN, "Open Recent",0, yco-=20, 120, 19, "");
-//	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Recover Last Session",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
-	
-	uiItemS(layout);
-	
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_AREA);
-	uiItemO(layout, NULL, 0, "WM_OT_save_mainfile"); 
-	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_AREA);
-	uiItemO(layout, NULL, 0, "WM_OT_save_as_mainfile"); 
-
-#if 0
-	if(U.flag & USER_FILECOMPRESS) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Compress File",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 35, "Enable file compression");
-	} else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Compress File",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 35, "Enable file compression");
-	}
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Rendered Image...|F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Screenshot Subwindow|Ctrl F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 24, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Screenshot All|Ctrl Shift F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
-#if GAMEBLENDER == 1
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Game As Runtime...",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
-#endif
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Default Settings|Ctrl U",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 31, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Load Factory Settings",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 32, "");
-	
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Append or Link|Shift F1",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Append or Link (Image Browser)|Ctrl F1",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-//	uiDefIconTextBlockBut(block, info_file_importmenu, NULL, ICON_RIGHTARROW_THIN, "Import", 0, yco-=20, menuwidth, 19, "");
-//	uiDefIconTextBlockBut(block, info_file_exportmenu, NULL, ICON_RIGHTARROW_THIN, "Export", 0, yco-=20, menuwidth, 19, "");
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBlockBut(block, info_externalfiles, NULL, ICON_RIGHTARROW_THIN, "External Data",0, yco-=20, 120, 19, "");
-	
-	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Quit Blender|Ctrl Q",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
-	uiBlockSetDirection(block, UI_DOWN);
-	uiTextBoundsBlock(block, 80);
-	
-	uiEndBlock(C, block);
-	return block;
-#endif
-}
-#endif
-

@@ -298,7 +298,6 @@ static int buttons_context_path_particle(ButsContextPath *path)
 static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 {
 	Scene *scene;
-	ToolSettings *ts;
 	Brush *br= NULL;
 	PointerRNA *ptr= &path->ptr[path->len-1];
 
@@ -309,7 +308,6 @@ static int buttons_context_path_brush(const bContext *C, ButsContextPath *path)
 	/* if we have a scene, use the toolsettings brushes */
 	else if(buttons_context_path_scene(path)) {
 		scene= path->ptr[path->len-1].data;
-		ts= scene->toolsettings;
 
 		if(scene)
 			br= paint_brush(paint_get_active(scene));
@@ -628,7 +626,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 			Brush *br= ptr->data;
 
 			if(br)
-				CTX_data_pointer_set(result, &br->id, &RNA_BrushTextureSlot, br->mtex[(int)br->texact]);
+				CTX_data_pointer_set(result, &br->id, &RNA_BrushTextureSlot, &br->mtex);
 		}
 
 		return 1;

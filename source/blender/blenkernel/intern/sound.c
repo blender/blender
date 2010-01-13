@@ -40,7 +40,7 @@ void sound_disable()
 
 void sound_init()
 {
-	AUD_Specs specs;
+	AUD_DeviceSpecs specs;
 	int device, buffersize;
 
 	device = U.audiodevice;
@@ -455,7 +455,7 @@ void sound_scrub(struct bContext *C)
 	}
 }
 
-AUD_Device* sound_mixdown(struct Scene *scene, AUD_Specs specs, int start, int end, float volume)
+AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, int end, float volume)
 {
 	AUD_Device* mixdown = AUD_openReadDevice(specs);
 	SoundHandle *handle;

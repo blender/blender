@@ -49,7 +49,7 @@ AUD_IReader* AUD_MixerFactory::getReader()
 }
 
 AUD_MixerFactory::AUD_MixerFactory(AUD_IReader* reader,
-											   AUD_Specs specs)
+								   AUD_DeviceSpecs specs)
 {
 	m_specs = specs;
 	m_reader = reader;
@@ -57,14 +57,14 @@ AUD_MixerFactory::AUD_MixerFactory(AUD_IReader* reader,
 }
 
 AUD_MixerFactory::AUD_MixerFactory(AUD_IFactory* factory,
-											   AUD_Specs specs)
+								   AUD_DeviceSpecs specs)
 {
 	m_specs = specs;
 	m_reader = 0;
 	m_factory = factory;
 }
 
-AUD_MixerFactory::AUD_MixerFactory(AUD_Specs specs)
+AUD_MixerFactory::AUD_MixerFactory(AUD_DeviceSpecs specs)
 {
 	m_specs = specs;
 	m_reader = 0;
@@ -79,12 +79,12 @@ AUD_MixerFactory::~AUD_MixerFactory()
 	}
 }
 
-AUD_Specs AUD_MixerFactory::getSpecs()
+AUD_DeviceSpecs AUD_MixerFactory::getSpecs()
 {
 	return m_specs;
 }
 
-void AUD_MixerFactory::setSpecs(AUD_Specs specs)
+void AUD_MixerFactory::setSpecs(AUD_DeviceSpecs specs)
 {
 	m_specs = specs;
 }

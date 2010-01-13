@@ -67,6 +67,7 @@ public:
 	 * @param parentWindow 	Parent (embedder) window
 	 * @param type		The type of drawing context installed in this window.
 	 * @param stereoVisual	Stereo visual for quad buffered stereo.
+	 * @param numOfAASamples	Number of samples used for AA (zero if no AA)
 	 */
 	GHOST_WindowX11(
 		GHOST_SystemX11 *system,
@@ -79,7 +80,8 @@ public:
 		GHOST_TWindowState state,
 		const GHOST_TEmbedderWindowID parentWindow,
 		GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
-		const bool stereoVisual = false
+		const bool stereoVisual = false,
+		const GHOST_TUns16 numOfAASamples = 0
 	);
 
 		bool 

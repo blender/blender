@@ -450,6 +450,8 @@ Scene *add_scene(char *name)
 	/* game data */
 	sce->gm.stereoflag = STEREO_NOSTEREO;
 	sce->gm.stereomode = STEREO_ANAGLYPH;
+	sce->gm.eyeseparation = 0.10;
+
 	sce->gm.dome.angle = 180;
 	sce->gm.dome.mode = DOME_FISHEYE;
 	sce->gm.dome.res = 4;

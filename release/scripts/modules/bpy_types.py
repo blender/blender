@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 from _bpy import types as bpy_types
+from Mathutils import Vector
 
 StructRNA = bpy_types.Struct.__bases__[0]
 # StructRNA = bpy_types.Struct
@@ -46,6 +47,19 @@ class Object(bpy_types.ID):
         import bpy
         return [child for child in bpy.data.objects if child.parent == self]
 
+    @property
+    def group_users(self):
+        """The groups this object is in"""
+        import bpy
+        name = self.name
+        return [group for group in bpy.data.groups if name in group.objects]
+
+    @property
+    def scene_users(self):
+        """The scenes this object is in"""
+        import bpy
+        name = self.name
+        return [scene for scene in bpy.data.scenes if name in scene.objects]
 
 class _GenericBone:
     """
@@ -75,6 +89,24 @@ class _GenericBone:
             i += 1
 
         return 0
+    
+    @property
+    def x_axis(self):
+        """ Vector pointing down the x-axis of the bone.
+        """
+        return self.matrix.rotationPart() * Vector(1,0,0)
+    
+    @property
+    def y_axis(self):
+        """ Vector pointing down the x-axis of the bone.
+        """
+        return self.matrix.rotationPart() * Vector(0,1,0)
+    
+    @property
+    def z_axis(self):
+        """ Vector pointing down the x-axis of the bone.
+        """
+        return self.matrix.rotationPart() * Vector(0,0,1)
 
     @property
     def basename(self):
@@ -95,6 +127,11 @@ class _GenericBone:
             parent = parent.parent
 
         return parent_list
+
+    @property
+    def center(self):
+        """The midpoint between the head and the tail."""
+        return (self.head + self.tail) * 0.5
 
     @property
     def length(self):
@@ -193,6 +230,19 @@ class EditBone(StructRNA, _GenericBone):
         self.tail = self.head + vec
         self.roll = other.roll
 
+    def transform(self, matrix):
+        """
+        Transform the the bones head, tail, roll and envalope (when the matrix has a scale component).
+        Expects a 4x4 or 3x3 matrix.
+        """
+        from Mathutils import Vector
+        z_vec = self.matrix.rotationPart() * Vector(0.0, 0.0, 1.0)
+        self.tail = matrix * self.tail
+        self.head = matrix * self.head
+        scalar = matrix.median_scale
+        self.head_radius *= scalar
+        self.tail_radius *= scalar
+        self.align_roll(matrix * z_vec)
 
 def ord_ind(i1, i2):
     if i1 < i2:
@@ -265,10 +315,10 @@ class Mesh(bpy_types.ID):
         optionaly, seams are edge keys that will be removed
         """
 
-        OTHER_INDEX = 2,3,0,1 # opposite face index
+        OTHER_INDEX = 2, 3, 0, 1 # opposite face index
 
         if faces is None:
-            faces= self.faces
+            faces = self.faces
 
         edges = {}
 
@@ -286,7 +336,7 @@ class Mesh(bpy_types.ID):
         edge_loops = []
 
         for edkey, ed_adj in edges.items():
-            if 0 <len(ed_adj) < 3: # 1 or 2
+            if 0 < len(ed_adj) < 3: # 1 or 2
                 # Seek the first edge
                 context_loop = [edkey, ed_adj[0]]
                 edge_loops.append(context_loop)
@@ -304,7 +354,7 @@ class Mesh(bpy_types.ID):
                     ed_adj = edges[context_loop[-1]]
                     if len(ed_adj) != 2:
 
-                        if other_dir and flipped==False: # the original edge had 2 other edges
+                        if other_dir and flipped == False: # the original edge had 2 other edges
                             flipped = True # only flip the list once
                             context_loop.reverse()
                             ed_adj[:] = []
@@ -319,7 +369,7 @@ class Mesh(bpy_types.ID):
                             break
 
                     i = ed_adj.index(context_loop[-2])
-                    context_loop.append( ed_adj[ not  i] )
+                    context_loop.append(ed_adj[not  i])
 
                     # Dont look at this again
                     ed_adj[:] = []
@@ -379,21 +429,22 @@ class Macro(StructRNA, metaclass=OrderedMeta):
 
 class Menu(StructRNA):
     __slots__ = ()
-    
+
     @classmethod
     def _dyn_menu_initialize(cls):
         draw_funcs = getattr(cls.draw, "_draw_funcs", None)
 
         if draw_funcs is None:
+
             def draw_ls(*args):
                 for func in draw_ls._draw_funcs:
                     func(*args)
-    
+
             draw_funcs = draw_ls._draw_funcs = [cls.draw]
             cls.draw = draw_ls
-        
+
         return draw_funcs
-    
+
     @classmethod
     def append(cls, draw_func):
         """Prepend an draw function to this menu, takes the same arguments as the menus draw function."""
@@ -436,4 +487,3 @@ class Menu(StructRNA):
         """
         import bpy
         self.path_menu(bpy.utils.preset_paths(self.preset_subdir), self.preset_operator)
-

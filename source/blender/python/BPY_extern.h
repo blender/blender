@@ -129,7 +129,6 @@ extern "C" {
 //	void BPY_spacescript_do_pywin_draw( struct SpaceScript *sc );
 //	void BPY_spacescript_do_pywin_event( struct SpaceScript *sc,
 //					     unsigned short event, short val, char ascii );
-//	void BPY_clear_script( struct Script *script );
 //	void BPY_free_finished_script( struct Script *script );
 //	void BPY_scripts_clear_pyobjects( void );
 //

@@ -23,6 +23,7 @@
  */
 
 #include <stdlib.h>
+#include <stddef.h>
 
 #include "RNA_define.h"
 #include "RNA_types.h"
@@ -37,9 +38,10 @@ EnumPropertyItem region_type_items[] = {
 	{RGN_TYPE_WINDOW, "WINDOW", 0, "Window", ""},
 	{RGN_TYPE_HEADER, "HEADER", 0, "Header", ""},
 	{RGN_TYPE_CHANNELS, "CHANNELS", 0, "Channels", ""},
-	{RGN_TYPE_TOOLS, "TOOLS", 0, "Tools", ""},
 	{RGN_TYPE_TEMPORARY, "TEMPORARY", 0, "Temporary", ""},
 	{RGN_TYPE_UI, "UI", 0, "UI", ""},
+	{RGN_TYPE_TOOLS, "TOOLS", 0, "Tools", ""},
+	{RGN_TYPE_TOOL_PROPS, "TOOL_PROPS", 0, "Tool Properties", ""},
 	{RGN_TYPE_PREVIEW, "PREVIEW", 0, "Preview", ""},
 	{0, NULL, 0, NULL, NULL}};
 
@@ -154,8 +156,9 @@ static void rna_def_region(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Region ID", "Unique ID for this region.");
 
-	prop= RNA_def_property(srna, "type", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "regiontype");
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "regiontype");
+	RNA_def_property_enum_items(prop, region_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Region Type", "Type of this region.");
 

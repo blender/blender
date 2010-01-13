@@ -1401,10 +1401,8 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 		if ((scrollers->hor_max - scrollers->hor_min) < V2D_SCROLLER_HANDLE_SIZE) {
 			scrollers->hor_max= scrollers->hor_min + V2D_SCROLLER_HANDLE_SIZE;
 
-			if(scrollers->hor_max > hor.xmax) {
-				scrollers->hor_max= hor.xmax;
-				scrollers->hor_min= MAX2(scrollers->hor_max - V2D_SCROLLER_HANDLE_SIZE, hor.xmin);
-			}
+			CLAMP(scrollers->hor_max, hor.xmin+V2D_SCROLLER_HANDLE_SIZE, hor.xmax);
+			CLAMP(scrollers->hor_min, hor.xmin, hor.xmax-V2D_SCROLLER_HANDLE_SIZE);
 		}
 		
 		/* check whether sliders can disappear */
@@ -1437,14 +1435,13 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 			scrollers->vert_min= scrollers->vert_max;
 		/* prevent sliders from being too small, and disappearing */
 		if ((scrollers->vert_max - scrollers->vert_min) < V2D_SCROLLER_HANDLE_SIZE) {
+			
 			scrollers->vert_max= scrollers->vert_min + V2D_SCROLLER_HANDLE_SIZE;
-
-			if(scrollers->vert_max > vert.ymax) {
-				scrollers->vert_max= vert.ymax;
-				scrollers->vert_min= MAX2(scrollers->vert_max - V2D_SCROLLER_HANDLE_SIZE, vert.ymin);
-			}
+			
+			CLAMP(scrollers->vert_max, vert.ymin+V2D_SCROLLER_HANDLE_SIZE, vert.ymax);
+			CLAMP(scrollers->vert_min, vert.ymin, vert.ymax-V2D_SCROLLER_HANDLE_SIZE);
 		}
-		
+
 		/* check whether sliders can disappear */
 		if(v2d->keeptot) {
 			if(fac1 <= 0.0f && fac2 >= 1.0f) 

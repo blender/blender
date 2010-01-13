@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -70,6 +71,10 @@ class DATA_PT_context_curve(DataButtonsPanel):
                 split.separator()
         else:
             layout.template_ID(ob, "data")
+
+
+class DATA_PT_custom_props_curve(DataButtonsPanel, PropertyPanel):
+    _context_path = "object.data"
 
 
 class DATA_PT_shape_curve(DataButtonsPanel):
@@ -277,10 +282,12 @@ class DATA_PT_font(DataButtonsPanel):
         char = context.curve.edit_format
         wide_ui = context.region.width > narrowui
 
-        if wide_ui:
-            layout.prop(text, "font")
-        else:
-            layout.prop(text, "font", text="")
+        layout.template_ID(text, "font", open="font.open", unlink="font.unlink")
+        
+        #if wide_ui:
+        #    layout.prop(text, "font")
+        #else:
+        #    layout.prop(text, "font", text="")
 
         split = layout.split()
 
@@ -377,6 +384,7 @@ class DATA_PT_textboxes(DataButtonsPanel):
             col.prop(box, "x", text="X")
             col.prop(box, "y", text="Y")
 
+
 bpy.types.register(DATA_PT_context_curve)
 bpy.types.register(DATA_PT_shape_curve)
 bpy.types.register(DATA_PT_geometry_curve)
@@ -385,3 +393,5 @@ bpy.types.register(DATA_PT_active_spline)
 bpy.types.register(DATA_PT_font)
 bpy.types.register(DATA_PT_paragraph)
 bpy.types.register(DATA_PT_textboxes)
+
+bpy.types.register(DATA_PT_custom_props_curve)

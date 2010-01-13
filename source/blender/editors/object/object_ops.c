@@ -117,6 +117,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_surface_add);
 	WM_operatortype_append(OBJECT_OT_armature_add);
 	WM_operatortype_append(OBJECT_OT_lamp_add);
+	WM_operatortype_append(OBJECT_OT_camera_add);
 	WM_operatortype_append(OBJECT_OT_add);
 	WM_operatortype_append(OBJECT_OT_effector_add);
 	WM_operatortype_append(OBJECT_OT_group_instance_add);
@@ -196,6 +197,8 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_hook_assign);
 	WM_operatortype_append(OBJECT_OT_hook_reset);
 	WM_operatortype_append(OBJECT_OT_hook_recenter);
+
+	WM_operatortype_append(OBJECT_OT_bake_image);
 }
 
 void ED_operatormacros_object(void)
@@ -327,6 +330,8 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	keymap->poll= ED_operator_editlattice;
 
 	WM_keymap_add_item(keymap, "LATTICE_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	
 		/* menus */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);

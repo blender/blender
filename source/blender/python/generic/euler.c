@@ -541,7 +541,7 @@ static PyGetSetDef Euler_getseters[] = {
 	{"z", (getter)Euler_getAxis, (setter)Euler_setAxis, "Euler Z axis", (void *)2},
 
 	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, "True when this wraps blenders internal data", NULL},
-	{"__owner__", (getter)BaseMathObject_getOwner, (setter)NULL, "Read only owner for vectors that depend on another object", NULL},
+	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, "Read only owner for vectors that depend on another object", NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 

@@ -101,7 +101,7 @@ class AddTorus(bpy.types.Operator):
                                     self.properties.major_segments,
                                     self.properties.minor_segments)
 
-        mesh = bpy.data.add_mesh("Torus")
+        mesh = bpy.data.meshes.new("Torus")
 
         mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
         mesh.verts.foreach_set("co", verts_loc)
@@ -114,7 +114,7 @@ class AddTorus(bpy.types.Operator):
             ob.selected = False
 
         mesh.update()
-        ob_new = bpy.data.add_object('MESH', "Torus")
+        ob_new = bpy.data.objects.new("Torus", 'MESH')
         ob_new.data = mesh
         scene.objects.link(ob_new)
         scene.objects.active = ob_new

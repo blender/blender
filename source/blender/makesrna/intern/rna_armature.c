@@ -647,6 +647,7 @@ static void rna_def_edit_bone(BlenderRNA *brna)
 	//RNA_def_property_float_sdna(prop, NULL, ""); // doesnt access any real data
 	RNA_def_property_array(prop, 16);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_THICK_WRAP); /* no reference to original data */
 	RNA_def_property_ui_text(prop, "Editbone Matrix", "Read-only matrix calculated from the roll (armature space).");
 	RNA_def_property_float_funcs(prop, "rna_EditBone_matrix_get", NULL, NULL); // TODO - this could be made writable also
 

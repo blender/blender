@@ -65,7 +65,7 @@ class VIEW3D_HT_header(bpy.types.Header):
             row.prop(view, "occlude_geometry", text="")
 
         # Proportional editing
-        if obj and obj.mode in ('OBJECT', 'EDIT'):
+        if obj and obj.mode in ('OBJECT', 'EDIT', 'PARTICLE_EDIT'):
             row = layout.row(align=True)
             row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
             if toolsettings.proportional_editing != 'DISABLED':
@@ -1146,17 +1146,16 @@ class VIEW3D_MT_edit_mesh_selection_mode(bpy.types.Menu):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
-        path = "tool_settings.edit_select_vertex;tool_settings.edit_select_edge;tool_settings.edit_select_face"
 
-        prop = layout.operator("wm.context_set_value", text="Vertex")
+        prop = layout.operator("wm.context_set_value", text="Vertex", icon='VERTEXSEL')
         prop.value = "(True, False, False)"
         prop.path = "tool_settings.mesh_selection_mode"
 
-        prop = layout.operator("wm.context_set_value", text="Edge")
+        prop = layout.operator("wm.context_set_value", text="Edge", icon='EDGESEL')
         prop.value = "(False, True, False)"
         prop.path = "tool_settings.mesh_selection_mode"
 
-        prop = layout.operator("wm.context_set_value", text="Face")
+        prop = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
         prop.value = "(False, False, True)"
         prop.path = "tool_settings.mesh_selection_mode"
 
@@ -1218,7 +1217,8 @@ class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("TRANSFORM_OT_edge_slide", text="Edge Slide")
+        layout.operator("TRANSFORM_OT_edge_slide")
+        layout.operator("TRANSFORM_OT_edge_crease")
         layout.operator("mesh.loop_multi_select", text="Edge Loop")
 
         # uiItemO(layout, "Loopcut", 0, "mesh.loop_cut"); // CutEdgeloop(em, 1);
@@ -1361,7 +1361,8 @@ class VIEW3D_MT_edit_curve_segments(bpy.types.Menu):
 
         layout.operator("curve.subdivide")
         layout.operator("curve.switch_direction")
-        
+
+
 class VIEW3D_MT_edit_curve_specials(bpy.types.Menu):
     bl_label = "Specials"
 
@@ -1374,6 +1375,7 @@ class VIEW3D_MT_edit_curve_specials(bpy.types.Menu):
         layout.operator("curve.radius_set")
         layout.operator("curve.smooth")
         layout.operator("curve.smooth_radius")
+
 
 class VIEW3D_MT_edit_curve_showhide(VIEW3D_MT_showhide):
     _operator_name = "curve"

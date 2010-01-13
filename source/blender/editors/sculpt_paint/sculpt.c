@@ -634,11 +634,8 @@ static float get_texcache_pixel_bilinear(const SculptSession *ss, float u, float
 /* Return a multiplier for brush strength on a particular vertex. */
 static float tex_strength(SculptSession *ss, Brush *br, float *point, const float len)
 {
-	MTex *tex = NULL;
+	MTex *tex = &br->mtex;
 	float avg= 1;
-
-	if(br->texact >= 0)
-		tex = br->mtex[br->texact];
 
 	if(!tex) {
 		avg= 1;
@@ -941,6 +938,8 @@ static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node)
 		if(sculpt_brush_test(&test, vd.co)) {
 			float fade = tex_strength(ss, brush, vd.co, test.dist)*bstrength;
 			float avg[3], val[3];
+
+			CLAMP(fade, 0.0f, 1.0f);
 			
 			neighbor_average(ss, avg, vd.vert_indices[vd.i]);
 			val[0] = vd.co[0]+(avg[0]-vd.co[0])*fade;
@@ -1017,6 +1016,8 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 					if(y == 0 || y == gridsize - 1)
 						mul_v3_fl(avg, 2.0f);
 
+					CLAMP(fade, 0.0f, 1.0f);
+
 					val[0] = co[0]+(avg[0]-co[0])*fade;
 					val[1] = co[1]+(avg[1]-co[1])*fade;
 					val[2] = co[2]+(avg[2]-co[2])*fade;
@@ -1040,15 +1041,15 @@ static void do_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode **nodes, int
 		for(n=0; n<totnode; n++) {
 			sculpt_undo_push_node(ss, nodes[n]);
 
-			if(ss->fmap)
-				do_mesh_smooth_brush(sd, ss, nodes[n]);
-			else
+			if(ss->multires)
 				do_multires_smooth_brush(sd, ss, nodes[n]);
+			else if(ss->fmap)
+				do_mesh_smooth_brush(sd, ss, nodes[n]);
 
 			BLI_pbvh_node_mark_update(nodes[n]);
 		}
 
-		if(!ss->fmap)
+		if(ss->multires)
 			multires_stitch_grids(ss->ob);
 	}
 }
@@ -1587,7 +1588,7 @@ void sculpt_update_mesh_elements(Scene *scene, Object *ob, int need_fmap)
 	}
 
 	ss->tree = dm->getPBVH(ob, dm);
-	ss->fmap = (need_fmap && dm->getFaceMap)? dm->getFaceMap(dm): NULL;
+	ss->fmap = (need_fmap && dm->getFaceMap)? dm->getFaceMap(ob, dm): NULL;
 }
 
 static int sculpt_mode_poll(bContext *C)
@@ -1791,7 +1792,7 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 	if(cache->first_time)
 		cache->initial_radius = unproject_brush_radius(ss->ob, cache->vc, cache->true_location, brush->size);
 
-	if(brush->flag & BRUSH_SIZE_PRESSURE) {
+	if(brush->flag & BRUSH_SIZE_PRESSURE && brush->sculpt_tool != SCULPT_TOOL_GRAB) {
 		cache->pixel_radius *= cache->pressure;
 		cache->radius = cache->initial_radius * cache->pressure;
 	}
@@ -1845,8 +1846,12 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 
 static void sculpt_stroke_modifiers_check(bContext *C, SculptSession *ss)
 {
-	if(sculpt_modifiers_active(ss->ob))
-		sculpt_update_mesh_elements(CTX_data_scene(C), ss->ob, 0); // XXX brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+	if(sculpt_modifiers_active(ss->ob)) {
+		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+		Brush *brush = paint_brush(&sd->paint);
+
+		sculpt_update_mesh_elements(CTX_data_scene(C), ss->ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+	}
 }
 
 typedef struct {
@@ -1881,7 +1886,7 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	ViewContext *vc = paint_stroke_view_context(stroke);
 	SculptSession *ss= vc->obact->sculpt;
 	StrokeCache *cache= ss->cache;
-	float ray_start[3], ray_normal[3];
+	float ray_start[3], ray_end[3], ray_normal[3], dist;
 	float obimat[4][4];
 	float mval[2] = {mouse[0] - vc->ar->winrct.xmin,
 			 mouse[1] - vc->ar->winrct.ymin};
@@ -1889,7 +1894,9 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 
 	sculpt_stroke_modifiers_check(C, ss);
 
-	viewray(vc->ar, vc->v3d, mval, ray_start, ray_normal);
+	viewline(vc->ar, vc->v3d, mval, ray_start, ray_end);
+	sub_v3_v3v3(ray_normal, ray_end, ray_start);
+	dist= normalize_v3(ray_normal);
 
 	invert_m4_m4(obimat, ss->ob->obmat);
 	mul_m4_v3(obimat, ray_start);
@@ -1899,7 +1906,7 @@ int sculpt_stroke_get_location(bContext *C, struct PaintStroke *stroke, float ou
 	srd.ss = vc->obact->sculpt;
 	srd.ray_start = ray_start;
 	srd.ray_normal = ray_normal;
-	srd.dist = FLT_MAX;
+	srd.dist = dist;
 	srd.hit = 0;
 	srd.original = (cache)? cache->original: 0;
 	BLI_pbvh_raycast(ss->tree, sculpt_raycast_cb, &srd,
@@ -2056,15 +2063,20 @@ static void sculpt_flush_update(bContext *C)
 	}
 }
 
-static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent *event)
+/* Returns whether the mouse/stylus is over the mesh (1)
+   or over the background (0) */
+static int over_mesh(bContext *C, struct wmOperator *op, float x, float y)
 {
-	float mouse[2] = {event->x, event->y}, location[3];
-	int over_mesh;
+	float mouse[2] = {x, y}, co[3];
 	
-	over_mesh = sculpt_stroke_get_location(C, op->customdata, location, mouse);
-	
+	return (int)sculpt_stroke_get_location(C, op->customdata, co, mouse);
+}
+
+static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
+				    wmEvent *event)
+{
 	/* Don't start the stroke until mouse goes over the mesh */
-	if(over_mesh) {
+	if(over_mesh(C, op, event->x, event->y)) {
 		Object *ob = CTX_data_active_object(C);
 		SculptSession *ss = ob->sculpt;
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -2122,14 +2134,27 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *stroke)
 
 static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	struct PaintStroke *stroke;
+	int ignore_background_click;
+
 	if(!sculpt_brush_stroke_init(C, op->reports))
 		return OPERATOR_CANCELLED;
 
-	op->customdata = paint_stroke_new(C, sculpt_stroke_get_location,
-					  sculpt_stroke_test_start,
-					  sculpt_stroke_update_step,
-					  sculpt_stroke_done);
+	stroke = paint_stroke_new(C, sculpt_stroke_get_location,
+				  sculpt_stroke_test_start,
+				  sculpt_stroke_update_step,
+				  sculpt_stroke_done);
 
+	op->customdata = stroke;
+
+	/* For tablet rotation */
+	ignore_background_click = RNA_boolean_get(op->ptr,
+						  "ignore_background_click"); 
+	if(ignore_background_click && !over_mesh(C, op, event->x, event->y)) {
+		paint_stroke_free(stroke);
+		return OPERATOR_PASS_THROUGH;
+	}
+	
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 
@@ -2190,6 +2215,10 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 	/* The initial 2D location of the mouse */
 	RNA_def_float_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
+
+	RNA_def_boolean(ot->srna, "ignore_background_click", 0,
+			"Ignore Background Click",
+			"Clicks on the background don't start the stroke");
 }
 
 /**** Reset the copy of the mesh that is being sculpted on (currently just for the layer brush) ****/

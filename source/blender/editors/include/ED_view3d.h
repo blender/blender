@@ -93,6 +93,8 @@ void project_int_noclip(struct ARegion *ar, float *vec, int *adr);
 void project_float(struct ARegion *ar, float *vec, float *adr);
 void project_float_noclip(struct ARegion *ar, float *vec, float *adr);
 
+void viewvector(struct RegionView3D *rv3d, float coord[3], float vec[3]);
+
 void viewline(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_start[3], float ray_end[3]);
 void viewray(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_start[3], float ray_normal[3]);
 
@@ -125,8 +127,9 @@ unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 int view_autodist(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, short *mval, float mouse_worldloc[3]);
 
 /* only draw so view_autodist_simple can be called many times after */
-int view_autodist_init(struct Scene *scene, struct ARegion *ar, struct View3D *v3d);
-int view_autodist_simple(struct ARegion *ar, short *mval, float mouse_worldloc[3]);
+int view_autodist_init(struct Scene *scene, struct ARegion *ar, struct View3D *v3d, int mode);
+int view_autodist_simple(struct ARegion *ar, short *mval, float mouse_worldloc[3], int margin, float *force_depth);
+int view_autodist_depth(struct ARegion *ar, short *mval, int margin, float *depth);
 
 /* select */
 #define MAXPICKBUF      10000

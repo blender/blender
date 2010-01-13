@@ -27,7 +27,6 @@
 #include "AUD_Buffer.h"
 
 #include <cstring>
-#include <stdio.h>
 
 AUD_LoopReader::AUD_LoopReader(AUD_IReader* reader, int loop) :
 		AUD_EffectReader(reader), m_loop(loop)
@@ -62,7 +61,8 @@ bool AUD_LoopReader::notify(AUD_Message &message)
 
 void AUD_LoopReader::read(int & length, sample_t* & buffer)
 {
-	int samplesize = AUD_SAMPLE_SIZE(m_reader->getSpecs());
+	AUD_Specs specs = m_reader->getSpecs();
+	int samplesize = AUD_SAMPLE_SIZE(specs);
 
 	int len = length;
 
@@ -72,10 +72,10 @@ void AUD_LoopReader::read(int & length, sample_t* & buffer)
 	{
 		int pos = 0;
 
-		if(m_buffer->getSize() < length*samplesize)
-			m_buffer->resize(length*samplesize);
+		if(m_buffer->getSize() < length * samplesize)
+			m_buffer->resize(length * samplesize);
 
-		memcpy(m_buffer->getBuffer() + pos * samplesize,
+		memcpy(m_buffer->getBuffer() + pos * specs.channels,
 			   buffer, len * samplesize);
 
 		pos += len;
@@ -93,7 +93,7 @@ void AUD_LoopReader::read(int & length, sample_t* & buffer)
 			if(!len)
 				break;
 
-			memcpy(m_buffer->getBuffer() + pos * samplesize,
+			memcpy(m_buffer->getBuffer() + pos * specs.channels,
 				   buffer, len * samplesize);
 
 			pos += len;

@@ -53,7 +53,6 @@ void PARTICLE_OT_remove_doubles(struct wmOperatorType *ot);
 void PARTICLE_OT_delete(struct wmOperatorType *ot);
 void PARTICLE_OT_mirror(struct wmOperatorType *ot);
 
-void PARTICLE_OT_brush_set(struct wmOperatorType *ot);
 void PARTICLE_OT_brush_edit(struct wmOperatorType *ot);
 void PARTICLE_OT_brush_radial_control(struct wmOperatorType *ot);
 

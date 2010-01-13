@@ -27,6 +27,7 @@ context = _bpy.context
 
 # python modules
 from bpy import utils
+from bpy import app
 
 from bpy import ops as _ops_module
 
@@ -85,7 +86,6 @@ def _main():
     # a bit nasty but this prevents help() and input() from locking blender
     # Ideally we could have some way for the console to replace sys.stdin but
     # python would lock blender while waiting for a return value, not easy :|
-    import sys
     sys.stdin = None
 
     # if "-d" in sys.argv: # Enable this to measure startup speed
@@ -99,5 +99,6 @@ def _main():
 
     else:
         load_scripts()
+
 
 _main()

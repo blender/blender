@@ -213,11 +213,12 @@ typedef struct wmNotifier {
 #define ND_NLA_SELECT		(75<<16)
 #define ND_NLA_EDIT			(76<<16)
 #define ND_NLA_ACTCHANGE	(77<<16)
+#define ND_FCURVES_ORDER	(78<<16)
 
 	/* NC_GEOM Geometry */
 	/* Mesh, Curve, MetaBall, Armature, .. */
-#define ND_SELECT			(80<<16)
-#define ND_DATA				(81<<16)
+#define ND_SELECT			(90<<16)
+#define ND_DATA				(91<<16)
 
 	/* NC_NODE Nodes */
 #define ND_NODE_SELECT			(1<<16)
@@ -285,6 +286,7 @@ typedef struct wmGesture {
 	int type;		/* gesture type define */
 	int swinid;		/* initial subwindow id where it started */
 	int points;		/* optional, amount of points stored */
+	int size;		/* optional, maximum amount of points stored */
 	
 	void *customdata;
 	/* customdata for border is a recti */

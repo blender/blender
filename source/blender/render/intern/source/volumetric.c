@@ -493,7 +493,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 	if (shi->mat->vol.shade_type == MA_VOL_SHADE_SHADOWED) {
 		mul_v3_fl(lacol, vol_get_shadow(shi, lar, co));
 	}
-	else if (shi->mat->vol.shade_type == MA_VOL_SHADE_SHADED)
+	else if (ELEM3(shi->mat->vol.shade_type, MA_VOL_SHADE_SHADED, MA_VOL_SHADE_MULTIPLE, MA_VOL_SHADE_SHADEDPLUSMULTIPLE))
 	{
 		Isect is;
 		

@@ -159,7 +159,7 @@ int BLI_gzip(char *from, char *to) {
 	
 	file = open(from,O_BINARY|O_RDONLY);
 	
-	if ( -1 == file ) 	return -2;
+	if (file < 0)	return -2;
 
 	while ( 1 )
 	{

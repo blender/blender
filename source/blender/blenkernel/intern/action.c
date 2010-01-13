@@ -379,24 +379,15 @@ bActionGroup *action_groups_find_named (bAction *act, const char name[])
 /* usually used within a loop, so we got a N^2 slowdown */
 bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
 {
-	bPoseChannel *chan;
-	
 	if (ELEM(NULL, pose, name) || (name[0] == 0))
 		return NULL;
 	
-	for (chan=pose->chanbase.first; chan; chan=chan->next) {
-		if (chan->name[0] == name[0]) {
-			if (!strcmp (chan->name, name))
-				return chan;
-		}
-	}
-
-	return NULL;
+	return BLI_findstring(&((bPose *)pose)->chanbase, name, offsetof(bPoseChannel, name));
 }
 
 /* Use with care, not on Armature poses but for temporal ones */
 /* (currently used for action constraints and in rebuild_pose) */
-bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
+bPoseChannel *verify_pose_channel(bPose *pose, const char *name)
 {
 	bPoseChannel *chan;
 	
@@ -464,10 +455,10 @@ const char *get_ikparam_name(bPose *pose)
 void copy_pose (bPose **dst, bPose *src, int copycon)
 {
 	bPose *outPose;
-	bPoseChannel	*pchan;
+	bPoseChannel *pchan;
 	ListBase listb;
 	
-	if (!src){
+	if (!src) {
 		*dst=NULL;
 		return;
 	}
@@ -491,7 +482,8 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 		if (copycon) {
 			copy_constraints(&listb, &pchan->constraints);  // copy_constraints NULLs listb
 			pchan->constraints= listb;
-			pchan->path= NULL;
+			pchan->path= NULL; // XXX remove this line when the new motionpaths are ready... (depreceated code)
+			pchan->mpath= NULL; /* motion paths should not get copied yet... */
 		}
 		
 		if(pchan->prop) {
@@ -500,7 +492,7 @@ void copy_pose (bPose **dst, bPose *src, int copycon)
 	}
 
 	/* for now, duplicate Bone Groups too when doing this */
-	if(copycon)
+	if (copycon)
 		BLI_duplicatelist(&outPose->agroups, &src->agroups);
 	
 	*dst=outPose;
@@ -541,12 +533,20 @@ void init_pose_ikparam(bPose *pose)
 
 void free_pose_channel(bPoseChannel *pchan)
 {
-	if (pchan->path)
+	// XXX this case here will need to be removed when the new motionpaths are ready
+	if (pchan->path) {
 		MEM_freeN(pchan->path);
-
+		pchan->path= NULL;
+	}
+	
+	if (pchan->mpath) {
+		animviz_free_motionpath(pchan->mpath);
+		pchan->mpath= NULL;
+	}
+	
 	free_constraints(&pchan->constraints);
-
-	if(pchan->prop) {
+	
+	if (pchan->prop) {
 		IDP_FreeProperty(pchan->prop);
 		MEM_freeN(pchan->prop);
 	}
@@ -559,7 +559,7 @@ void free_pose_channels(bPose *pose)
 	if (pose->chanbase.first) {
 		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next)
 			free_pose_channel(pchan);
-
+		
 		BLI_freelistN(&pose->chanbase);
 	}
 }
@@ -573,14 +573,14 @@ void free_pose(bPose *pose)
 		/* free pose-groups */
 		if (pose->agroups.first)
 			BLI_freelistN(&pose->agroups);
-
+		
 		/* free IK solver state */
 		BIK_clear_data(pose);
-
+		
 		/* free IK solver param */
 		if (pose->ikparam)
 			MEM_freeN(pose->ikparam);
-
+		
 		/* free pose */
 		MEM_freeN(pose);
 	}

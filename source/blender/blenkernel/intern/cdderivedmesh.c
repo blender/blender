@@ -189,13 +189,15 @@ static void cdDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
 	no_r[2] = no[2]/32767.f;
 }
 
-static ListBase *cdDM_getFaceMap(DerivedMesh *dm)
+static ListBase *cdDM_getFaceMap(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 
-	if(!cddm->fmap) {
-		create_vert_face_map(&cddm->fmap, &cddm->fmap_mem, cddm->mface,
-				     dm->getNumVerts(dm), dm->getNumFaces(dm));
+	if(!cddm->fmap && ob->type == OB_MESH) {
+		Mesh *me= ob->data;
+
+		create_vert_face_map(&cddm->fmap, &cddm->fmap_mem, me->mface,
+				     me->totvert, me->totface);
 	}
 
 	return cddm->fmap;
@@ -1457,7 +1459,7 @@ DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces, int numLoops, in
 	CDDerivedMesh *cddm = cdDM_create("CDDM_new dm");
 	DerivedMesh *dm = &cddm->dm;
 
-	DM_init(dm, numVerts, numEdges, numFaces, numLoops, numPolys);
+	DM_init(dm, DM_TYPE_CDDM, numVerts, numEdges, numFaces, numLoops, numPolys);
 
 	CustomData_add_layer(&dm->vertData, CD_ORIGINDEX, CD_CALLOC, NULL, numVerts);
 	CustomData_add_layer(&dm->edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
@@ -1488,7 +1490,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 
 	/* this does a referenced copy, with an exception for fluidsim */
 
-	DM_init(dm, mesh->totvert, mesh->totedge, mesh->totface,
+	DM_init(dm, DM_TYPE_CDDM, mesh->totvert, mesh->totedge, mesh->totface,
 	            mesh->totloop, mesh->totpoly);
 
 	dm->deformedOnly = 1;
@@ -1957,7 +1959,7 @@ DerivedMesh *CDDM_copy(DerivedMesh *source, int faces_from_tessfaces)
 	source->getTessFaceDataArray(source, CD_ORIGINDEX);
 
 	/* this initializes dm, and copies all non mvert/medge/mface layers */
-	DM_from_template(dm, source, numVerts, numEdges, numFaces,
+	DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges, numFaces,
 		numLoops, numPolys);
 	dm->deformedOnly = source->deformedOnly;
 
@@ -1993,7 +1995,7 @@ DerivedMesh *CDDM_from_template(DerivedMesh *source,
 	DerivedMesh *dm = &cddm->dm;
 
 	/* this does a copy of all non mvert/medge/mface layers */
-	DM_from_template(dm, source, numVerts, numEdges, numFaces, numLoops, numPolys);
+	DM_from_template(dm, source, DM_TYPE_CDDM, numVerts, numEdges, numFaces, numLoops, numPolys);
 
 	/* now add mvert/medge/mface layers */
 	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_CALLOC, NULL, numVerts);

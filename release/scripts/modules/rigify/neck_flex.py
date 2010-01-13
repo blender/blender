@@ -100,6 +100,30 @@ def metarig_definition(obj, orig_bone_name):
     return bone_definition
 
 
+def deform(obj, definitions, base_names, options):
+    for org_bone_name in definitions[2:]:
+        bpy.ops.object.mode_set(mode='EDIT')
+
+        # Create deform bone.
+        bone = copy_bone_simple(obj.data, org_bone_name, "DEF-%s" % base_names[org_bone_name], parent=True)
+        
+        # Store name before leaving edit mode
+        bone_name = bone.name
+        
+        # Leave edit mode
+        bpy.ops.object.mode_set(mode='OBJECT')
+        
+        # Get the pose bone
+        bone = obj.pose.bones[bone_name]
+        
+        # Constrain to the original bone
+        # XXX. Todo, is this needed if the bone is connected to its parent?
+        con = bone.constraints.new('COPY_TRANSFORMS')
+        con.name = "copy_loc"
+        con.target = obj
+        con.subtarget = org_bone_name
+
+
 def main(obj, bone_definition, base_names, options):
     from Mathutils import Vector
 
@@ -131,7 +155,7 @@ def main(obj, bone_definition, base_names, options):
 
 
     # Copy the head bone and offset
-    ex.head_e = copy_bone_simple(arm, mt.head, "MCH_%s" % base_names[mt.head], parent=True)
+    ex.head_e = copy_bone_simple(arm, mt.head, "MCH-%s" % base_names[mt.head], parent=True)
     ex.head_e.connected = False
     ex.head = ex.head_e.name
     # offset
@@ -140,7 +164,7 @@ def main(obj, bone_definition, base_names, options):
     ex.head_e.tail.y += head_length / 2.0
 
     # Yes, use the body bone but call it a head hinge
-    ex.head_hinge_e = copy_bone_simple(arm, mt.body, "MCH_%s_hinge" % base_names[mt.head], parent=False)
+    ex.head_hinge_e = copy_bone_simple(arm, mt.body, "MCH-%s_hinge" % base_names[mt.head], parent=False)
     ex.head_hinge_e.connected = False
     ex.head_hinge = ex.head_hinge_e.name
     ex.head_hinge_e.head.y += head_length / 4.0
@@ -180,6 +204,7 @@ def main(obj, bone_definition, base_names, options):
         else:
             neck_e_parent.parent = orig_parent
 
+    deform(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -213,12 +238,12 @@ def main(obj, bone_definition, base_names, options):
 
     fcurve = con.driver_add("influence", 0)
     driver = fcurve.driver
-    tar = driver.targets.new()
+    var = driver.variables.new()
     driver.type = 'AVERAGE'
-    tar.name = "var"
-    tar.id_type = 'OBJECT'
-    tar.id = obj
-    tar.data_path = hinge_driver_path
+    var.name = "var"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = hinge_driver_path
 
     #mod = fcurve_driver.modifiers.new('GENERATOR')
     mod = fcurve.modifiers[0]
@@ -237,11 +262,11 @@ def main(obj, bone_definition, base_names, options):
     fcurve.modifiers.remove(0) # grr dont need a modifier
 
     for i in range(len(neck_chain)):
-        tar = driver.targets.new()
-        tar.name = target_names[i]
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = head_driver_path + ('["bend_%.2d"]' % (i + 1))
+        var = driver.variables.new()
+        var.name = target_names[i]
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = head_driver_path + ('["bend_%.2d"]' % (i + 1))
 
 
     for i, attr in enumerate(ex_chain.attr_names):
@@ -277,17 +302,17 @@ def main(obj, bone_definition, base_names, options):
 
 
         # add target
-        tar = driver.targets.new()
-        tar.name = "bend_tot"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = head_driver_path + ('["bend_tot"]')
+        var = driver.variables.new()
+        var.name = "bend_tot"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = head_driver_path + ('["bend_tot"]')
 
-        tar = driver.targets.new()
-        tar.name = "bend"
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = head_driver_path + ('["%s"]' % prop_name)
+        var = driver.variables.new()
+        var.name = "bend"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = head_driver_path + ('["%s"]' % prop_name)
 
 
         # finally constrain the original bone to this one
@@ -295,16 +320,27 @@ def main(obj, bone_definition, base_names, options):
         con = orig_neck_p.constraints.new('COPY_ROTATION')
         con.target = obj
         con.subtarget = neck_p.name
+    
+    
+    # Set the head control's custom shape to use the last
+    # org neck bone for its transform
+    ex.head_ctrl_p.custom_shape_transform = obj.pose.bones[bone_definition[len(bone_definition)-1]]
 
 
     # last step setup layers
-    layers = get_layer_dict(options)
-    lay = layers["extra"]
+    if "ex_layer" in options:
+        layer = [n==options["ex_layer"] for n in range(0,32)]
+    else:
+        layer = list(arm.bones[bone_definition[1]].layer)
     for attr in ex_chain.attr_names:
-        getattr(ex_chain, attr + "_b").layer = lay
+        getattr(ex_chain, attr + "_b").layer = layer
     for attr in ex.attr_names:
-        getattr(ex, attr + "_b").layer = lay
+        getattr(ex, attr + "_b").layer = layer
+    
+    layer = list(arm.bones[bone_definition[1]].layer)
+    ex.head_ctrl_b.layer = layer
 
 
     # no blending the result of this
     return None
+    

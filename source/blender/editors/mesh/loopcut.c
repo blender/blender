@@ -106,21 +106,23 @@ static void ringsel_draw(const bContext *C, ARegion *ar, void *arg)
 	int i;
 	tringselOpData *lcd = arg;
 	
-	glDisable(GL_DEPTH_TEST);
+	if (lcd->totedge > 0) {
+		glDisable(GL_DEPTH_TEST);
 
-	glPushMatrix();
-	glMultMatrixf(lcd->ob->obmat);
+		glPushMatrix();
+		glMultMatrixf(lcd->ob->obmat);
 
-	glColor3ub(255, 0, 255);
-	glBegin(GL_LINES);
-	for (i=0; i<lcd->totedge; i++) {
-		glVertex3fv(lcd->edges[i][0]);
-		glVertex3fv(lcd->edges[i][1]);
+		glColor3ub(255, 0, 255);
+		glBegin(GL_LINES);
+		for (i=0; i<lcd->totedge; i++) {
+			glVertex3fv(lcd->edges[i][0]);
+			glVertex3fv(lcd->edges[i][1]);
+		}
+		glEnd();
+
+		glPopMatrix();
+		glEnable(GL_DEPTH_TEST);
 	}
-	glEnd();
-
-	glPopMatrix();
-	glEnable(GL_DEPTH_TEST);
 }
 
 /*given two opposite edges in a face, finds the ordering of their vertices so
@@ -267,8 +269,13 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 static void ringsel_find_edge(tringselOpData *lcd, const bContext *C, ARegion *ar, int cuts)
 {
-	if (lcd->eed)
+	if (lcd->eed) {
 		edgering_sel(lcd, cuts, 0);
+	} else {
+		MEM_freeN(lcd->edges);
+		lcd->edges = NULL;
+		lcd->totedge = 0;
+	}
 }
 
 static void ringsel_finish(bContext *C, wmOperator *op)

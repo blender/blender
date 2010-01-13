@@ -87,6 +87,7 @@ def copy_bone_simple(arm, from_bone, name, parent=False):
     ebone_new.head = ebone.head
     ebone_new.tail = ebone.tail
     ebone_new.roll = ebone.roll
+    ebone_new.layer = list(ebone.layer)
     return ebone_new
 
 
@@ -129,7 +130,7 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
         target_bone = apply_bones[-1] # default to the last bone
 
     prop_pbone = obj.pose.bones[target_bone]
-    if prop_pbone.get(target_bone, None) is None:
+    if prop_pbone.get(target_bone) is None:
         prop = rna_idprop_ui_prop_get(prop_pbone, target_prop, create=True)
         prop_pbone[target_prop] = blend_default
         prop["soft_min"] = 0.0
@@ -138,11 +139,11 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
     driver_path = prop_pbone.path_to_id() + ('["%s"]' % target_prop)
 
     def blend_target(driver):
-        tar = driver.targets.new()
-        tar.name = target_bone
-        tar.id_type = 'OBJECT'
-        tar.id = obj
-        tar.data_path = driver_path
+        var = driver.variables.new()
+        var.name = target_bone
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = driver_path
 
     def blend_location(new_pbone, from_bone_name, to_bone_name):
         con = new_pbone.constraints.new('COPY_LOCATION')
@@ -402,9 +403,9 @@ def _bone_class_instance_update(self):
     for member in self.attr_names:
         name = getattr(self, member, None)
         if name is not None:
-            setattr(self, member + "_b", bbones.get(name, None))
-            setattr(self, member + "_p", pbones.get(name, None))
-            setattr(self, member + "_e", ebones.get(name, None))
+            setattr(self, member + "_b", bbones.get(name))
+            setattr(self, member + "_p", pbones.get(name))
+            setattr(self, member + "_e", ebones.get(name))
 
 
 def _bone_class_instance_rename(self, attr, new_name):

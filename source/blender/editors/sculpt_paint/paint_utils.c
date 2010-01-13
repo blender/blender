@@ -16,6 +16,7 @@
 #include "BLI_math.h"
 
 #include "BKE_brush.h"
+#include "BKE_colortools.h"
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
@@ -214,9 +215,9 @@ static int brush_curve_preset_poll(bContext *C)
 void BRUSH_OT_curve_preset(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_shape_items[] = {
-		{BRUSH_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
-		{BRUSH_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-		{BRUSH_PRESET_MAX, "MAX", 0, "Max", ""},
+		{CURVE_PRESET_SHARP, "SHARP", 0, "Sharp", ""},
+		{CURVE_PRESET_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+		{CURVE_PRESET_MAX, "MAX", 0, "Max", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	ot->name= "Preset";
@@ -228,7 +229,7 @@ void BRUSH_OT_curve_preset(wmOperatorType *ot)
 
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	RNA_def_enum(ot->srna, "shape", prop_shape_items, BRUSH_PRESET_SHARP, "Mode", "");
+	RNA_def_enum(ot->srna, "shape", prop_shape_items, CURVE_PRESET_SMOOTH, "Mode", "");
 }
 
 

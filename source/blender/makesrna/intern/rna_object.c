@@ -932,7 +932,7 @@ static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
 		return PointerRNA_NULL;
 	
 	kb= BLI_findlink(&key->block, ob->shapenr-1);
-	RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &keyptr);
+	RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
 	return keyptr;
 }
 
@@ -1429,7 +1429,9 @@ static void rna_def_object(BlenderRNA *brna)
 		{ROT_MODE_ZYX, "ZYX", 0, "ZYX Euler", "ZYX Rotation Order. Prone to Gimbal Lock"},
 		{ROT_MODE_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle", "Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector."},
 		{0, NULL, 0, NULL, NULL}};
-
+	
+	static float default_quat[4] = {1,0,0,0};	/* default quaternion values */
+	static float default_axisAngle[4] = {0,0,1,0};	/* default axis-angle rotation values */
 	int matrix_dimsize[]= {4, 4};
 
 	srna= RNA_def_struct(brna, "Object", "ID");
@@ -1551,6 +1553,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
 	RNA_def_property_editable_array_func(prop, "rna_Object_rotation_4d_editable");
+	RNA_def_property_float_array_default(prop, default_quat);
 	RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in Quaternions.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
@@ -1558,9 +1561,10 @@ static void rna_def_object(BlenderRNA *brna)
 		 * having a single one is better for Keyframing and other property-management situations...
 		 */
 	prop= RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
-	RNA_def_property_array(prop, 4); // TODO: maybe we'll need to define the 'default value' getter too...
+	RNA_def_property_array(prop, 4);
 	RNA_def_property_float_funcs(prop, "rna_Object_rotation_axis_angle_get", "rna_Object_rotation_axis_angle_set", NULL);
 	RNA_def_property_editable_array_func(prop, "rna_Object_rotation_4d_editable");
+	RNA_def_property_float_array_default(prop, default_axisAngle);
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
@@ -1603,12 +1607,14 @@ static void rna_def_object(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "delta_rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "dquat");
+	RNA_def_property_float_array_default(prop, default_quat);
 	RNA_def_property_ui_text(prop, "Delta Rotation (Quaternion)", "Extra added rotation to the rotation of the object (when using Quaternion rotations).");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 	
 #if 0 // XXX not supported well yet...
 	prop= RNA_def_property(srna, "delta_rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "dquat"); // FIXME: this is not a single field any more! (drotAxis and drotAngle)
+	RNA_def_property_float_array_default(prop, default_axisAngle);
 	RNA_def_property_ui_text(prop, "Delta Rotation (Axis Angle)", "Extra added rotation to the rotation of the object (when using Axis-Angle rotations).");
 	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Object_update");
 #endif
@@ -1767,6 +1773,9 @@ static void rna_def_object(BlenderRNA *brna)
 	/* anim */
 	rna_def_animdata_common(srna);
 	
+	rna_def_animviz_common(srna);
+	rna_def_motionpath_common(srna);
+	
 	/* duplicates */
 	prop= RNA_def_property(srna, "track_override_parent", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_POWERTRACK);
@@ -1784,18 +1793,18 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dupli Type", "If not None, object duplication method to use.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_dependency_update");
 
-	prop= RNA_def_property(srna, "dupli_frames_no_speed", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLINOSPEED);
-	RNA_def_property_ui_text(prop, "Dupli Frames No Speed", "Set dupliframes to still, regardless of frame.");
+	prop= RNA_def_property(srna, "use_dupli_frames_speed", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "transflag", OB_DUPLINOSPEED);
+	RNA_def_property_ui_text(prop, "Dupli Frames Speed", "Set dupliframes to use the frame."); // TODO, better descriptio!
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 
-	prop= RNA_def_property(srna, "dupli_verts_rotation", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_dupli_verts_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIROT);
 	RNA_def_property_ui_text(prop, "Dupli Verts Rotation", "Rotate dupli according to vertex normal.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "dupli_faces_inherit_scale", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIROT);
+	prop= RNA_def_property(srna, "use_dupli_faces_scale", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "transflag", OB_DUPLIFACES_SCALE);
 	RNA_def_property_ui_text(prop, "Dupli Faces Inherit Scale", "Scale dupli based on face size.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_update");
 

@@ -1077,12 +1077,6 @@ static void def_cmp_render_layers(StructRNA *srna)
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_scene_layer_itemf");
 	RNA_def_property_ui_text(prop, "Layer", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	/* TODO: comments indicate this might be a hack */
-	prop = RNA_def_property(srna, "re_render", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "custom2", 1);
-	RNA_def_property_ui_text(prop, "Re-render", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
 static void def_cmp_output_file(StructRNA *srna)

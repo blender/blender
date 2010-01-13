@@ -77,16 +77,6 @@
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
 
-#include "RE_pipeline.h"
-#include "RE_shader_ext.h"
-
-#include "PIL_time.h"
-
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
-
-#include "GPU_draw.h"
-
 #include "BLO_sys_types.h" // for intptr_t support
 
 #include "ED_mesh.h"
@@ -100,8 +90,6 @@
 #include "mesh_intern.h"
 
 /* XXX */
-static void waitcursor(int val) {}
-static void error() {}
 static int pupmenu() {return 0;}
 /* XXX */
 
@@ -643,7 +631,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 		key->type= KEY_RELATIVE;
 
 		/* first key added, so it was the basis. initialise it with the existing mesh */
-		kb= add_keyblock(scene, key);
+		kb= add_keyblock(key, NULL);
 		mesh_to_key(me, kb);
 	}
 	
@@ -659,9 +647,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 				
 				if (!dm) continue;
 					
-				kb= add_keyblock(scene, key);
-				strcpy(kb->name, base->object->id.name+2);
-				BLI_uniquename(&key->block, kb, "Key", '.', offsetof(KeyBlock, name), 32);
+				kb= add_keyblock(key, base->object->id.name+2);
 				
 				DM_to_meshkey(dm, me, kb);
 				
@@ -829,7 +815,7 @@ void sort_faces(Scene *scene, View3D *v3d)
 
 #define MOC_RES			8
 #define MOC_NODE_RES	8
-#define MOC_THRESH		0.0002f
+#define MOC_THRESH		0.00002f
 
 typedef struct MocNode {
 	struct MocNode *next;
@@ -1193,191 +1179,3 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em)
 	
 	return mirrorfaces;
 }
-
-/* ****************** render BAKING ********************** */
-
-/* threaded break test */
-static int thread_break(void *unused)
-{
-	return G.afbreek;
-}
-
-static ScrArea *biggest_image_area(bScreen *screen)
-{
-	ScrArea *sa, *big= NULL;
-	int size, maxsize= 0;
-	
-	for(sa= screen->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype==SPACE_IMAGE) {
-			size= sa->winx*sa->winy;
-			if(sa->winx > 10 && sa->winy > 10 && size > maxsize) {
-				maxsize= size;
-				big= sa;
-			}
-		}
-	}
-	return big;
-}
-
-
-typedef struct BakeRender {
-	Render *re;
-	struct Object *actob;
-	int event, tot, ready;
-} BakeRender;
-
-static void *do_bake_render(void *bake_v)
-{
-	BakeRender *bkr= bake_v;
-	
-	bkr->tot= RE_bake_shade_all_selected(bkr->re, bkr->event, bkr->actob);
-	bkr->ready= 1;
-	
-	return NULL;
-}
-
-
-void objects_bake_render(Scene *scene, short event, char **error_msg)
-{
-	Object *actob= OBACT;
-	int active= scene->r.bake_flag & R_BAKE_TO_ACTIVE;
-	short prev_r_raytrace= 0, prev_wo_amb_occ= 0;
-	
-	if(event==0) event= scene->r.bake_mode;
-	
-	if(scene->r.renderer!=R_INTERN) {	 
-		*error_msg = "Bake only supported for Internal Renderer";
-		return;
-	}	 
-	
-	if(active && !actob) {
-		*error_msg = "No active object";
-		return;
-	}
-	
-	if(event>0) {
-		bScreen *screen= NULL; // XXX CTX
-		Render *re= RE_NewRender("_Bake View_");
-		ScrArea *area= biggest_image_area(screen);
-		ListBase threads;
-		BakeRender bkr;
-		int timer=0, tot; // XXX, sculptmode= G.f & G_SCULPTMODE;
-
-// XXX		if(sculptmode) set_sculptmode();
-		
-		if(event==1) event= RE_BAKE_ALL;
-		else if(event==2) event= RE_BAKE_AO;
-		else if(event==3) event= RE_BAKE_NORMALS;
-		else if(event==4) event= RE_BAKE_TEXTURE;
-		else if(event==5) event= RE_BAKE_DISPLACEMENT;
-		else event= RE_BAKE_SHADOW;
-
-		if(event==RE_BAKE_AO) {
-			if(scene->world==NULL) {
-				*error_msg = "No world set up";
-				return;
-			}
-
-			/* If raytracing or AO is disabled, switch it on temporarily for baking. */
-			prev_wo_amb_occ = (scene->world->mode & WO_AMB_OCC) != 0;
-			scene->world->mode |= WO_AMB_OCC;
-		}
-		if(event==RE_BAKE_AO || active) {
-			prev_r_raytrace = (scene->r.mode & R_RAYTRACE) != 0;
-			scene->r.mode |= R_RAYTRACE;
-		}
-		
-		waitcursor(1);
-		RE_test_break_cb(re, NULL, thread_break);
-		G.afbreek= 0;	/* blender_test_break uses this global */
-		
-		RE_Database_Baking(re, scene, event, (active)? actob: NULL);
-		
-		/* baking itself is threaded, cannot use test_break in threads. we also update optional imagewindow */
-	
-		BLI_init_threads(&threads, do_bake_render, 1);
-		bkr.re= re;
-		bkr.event= event;
-		bkr.ready= 0;
-		bkr.actob= (active)? actob: NULL;
-		BLI_insert_thread(&threads, &bkr);
-		
-		while(bkr.ready==0) {
-			PIL_sleep_ms(50);
-			if(bkr.ready)
-				break;
-			
-			if (!G.background) {
-				blender_test_break();
-				
-				timer++;
-				if(area && timer==20) {
-					Image *ima= RE_bake_shade_get_image();
-					if(ima) ((SpaceImage *)area->spacedata.first)->image= ima;
-// XX					scrarea_do_windraw(area);
-//					myswapbuffers();	
-					timer= 0;
-				}
-			}
-		}
-		BLI_end_threads(&threads);
-		tot= bkr.tot;
-		
-		RE_Database_Free(re);
-		waitcursor(0);
-		
-		if(tot==0) *error_msg = "No Images found to bake to";
-		else {
-			Image *ima;
-			/* force OpenGL reload and mipmap recalc */
-			for(ima= G.main->image.first; ima; ima= ima->id.next) {
-				if(ima->ok==IMA_OK_LOADED) {
-					ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-					if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
-						GPU_free_image(ima); 
-						imb_freemipmapImBuf(ibuf);
-					}
-				}
-			}
-		}
-		
-		/* restore raytrace and AO */
-		if(event==RE_BAKE_AO)
-			if(prev_wo_amb_occ == 0)
-				scene->world->mode &= ~WO_AMB_OCC;
-
-		if(event==RE_BAKE_AO || active)
-			if(prev_r_raytrace == 0)
-				scene->r.mode &= ~R_RAYTRACE;
-		
-// XXX		if(sculptmode) set_sculptmode();
-		
-	}
-}
-
-/* all selected meshes with UV maps are rendered for current scene visibility */
-static void objects_bake_render_ui(Scene *scene, short event)
-{
-	char *error_msg = NULL;
-//	int is_editmode = (obedit!=NULL);
-	
-	/* Deal with editmode, this is a bit clunky but since UV's are in editmode, users are likely to bake from their */
-// XXX	if (is_editmode) exit_editmode(0);
-	
-	objects_bake_render(scene, event, &error_msg);
-	
-// XXX	if (is_editmode) enter_editmode(0);
-	
-	if (error_msg)
-		error(error_msg);
-}
-
-void objects_bake_render_menu(Scene *scene)
-{
-	short event;
-	
-	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4|Displacement %x5|Shadow %x6");
-	if (event < 1) return;
-	objects_bake_render_ui(scene, event);
-}
-

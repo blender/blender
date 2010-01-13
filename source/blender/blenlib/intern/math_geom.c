@@ -32,6 +32,7 @@
 
 #include "BLI_math.h"
 #include "BLI_memarena.h"
+#include "MEM_guardedalloc.h"
 
 /********************************** Polygons *********************************/
 
@@ -49,7 +50,7 @@ void cent_quad_v3(float *cent, float *v1, float *v2, float *v3, float *v4)
 	cent[2]= 0.25f*(v1[2]+v2[2]+v3[2]+v4[2]);
 }
 
-float normal_tri_v3(float *n, float *v1, float *v2, float *v3)
+float normal_tri_v3(float n[3], const float v1[3], const float v2[3], const float v3[3])
 {
 	float n1[3],n2[3];
 
@@ -65,7 +66,7 @@ float normal_tri_v3(float *n, float *v1, float *v2, float *v3)
 	return normalize_v3(n);
 }
 
-float normal_quad_v3(float *n, float *v1, float *v2, float *v3, float *v4)
+float normal_quad_v3(float n[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3])
 {
 	/* real cross! */
 	float n1[3],n2[3];
@@ -85,13 +86,17 @@ float normal_quad_v3(float *n, float *v1, float *v2, float *v3, float *v4)
 	return normalize_v3(n);
 }
 
-float area_tri_v2(float *v1, float *v2, float *v3)
+float area_tri_v2(const float v1[2], const float v2[2], const float v3[2])
 {
-	return (float)(0.5*fabs((v1[0]-v2[0])*(v2[1]-v3[1]) + (v1[1]-v2[1])*(v3[0]-v2[0])));
+	return (float)(0.5f*fabs((v1[0]-v2[0])*(v2[1]-v3[1]) + (v1[1]-v2[1])*(v3[0]-v2[0])));
 }
 
+float area_tri_signed_v2(const float v1[2], const float v2[2], const float v3[2])
+{
+   return (float)(0.5f*((v1[0]-v2[0])*(v2[1]-v3[1]) + (v1[1]-v2[1])*(v3[0]-v2[0])));
+}
 
-float area_quad_v3(float *v1, float *v2, float *v3,  float *v4)  /* only convex Quadrilaterals */
+float area_quad_v3(const float v1[3], const float v2[3], const float v3[3], const float v4[3])  /* only convex Quadrilaterals */
 {
 	float len, vec1[3], vec2[3], n[3];
 
@@ -108,7 +113,7 @@ float area_quad_v3(float *v1, float *v2, float *v3,  float *v4)  /* only convex 
 	return (len/2.0f);
 }
 
-float area_tri_v3(float *v1, float *v2, float *v3)  /* Triangles */
+float area_tri_v3(const float v1[3], const float v2[3], const float v3[3])  /* Triangles */
 {
 	float len, vec1[3], vec2[3], n[3];
 
@@ -1241,6 +1246,55 @@ int isect_point_tri_prism_v3(float p[3], float v1[3], float v2[3], float v3[3])
 	return 1;
 }
 
+int clip_line_plane(float p1[3], float p2[3], float plane[4])
+{
+	float dp[3], n[3], div, t, pc[3];
+
+	copy_v3_v3(n, plane);
+	sub_v3_v3v3(dp, p2, p1);
+	div= dot_v3v3(dp, n);
+
+	if(div == 0.0f) /* parallel */
+		return 1;
+
+	t= -(dot_v3v3(p1, n) + plane[3])/div;
+
+	if(div > 0.0f) {
+		/* behind plane, completely clipped */
+		if(t >= 1.0f) {
+			zero_v3(p1);
+			zero_v3(p2);
+			return 0;
+		}
+
+		/* intersect plane */
+		if(t > 0.0f) {
+			madd_v3_v3v3fl(pc, p1, dp, t);
+			copy_v3_v3(p1, pc);
+			return 1;
+		}
+
+		return 1;
+	}
+	else {
+		/* behind plane, completely clipped */
+		if(t <= 0.0f) {
+			zero_v3(p1);
+			zero_v3(p2);
+			return 0;
+		}
+
+		/* intersect plane */
+		if(t < 1.0f) {
+			madd_v3_v3v3fl(pc, p1, dp, t);
+			copy_v3_v3(p2, pc);
+			return 1;
+		}
+
+		return 1;
+	}
+}
+
 /****************************** Interpolation ********************************/
 
 static float tri_signed_area(float *v1, float *v2, float *v3, int i, int j)
@@ -1332,6 +1386,156 @@ void interp_weights_face_v3(float *w,float *v1, float *v2, float *v3, float *v4,
 		else
 			barycentric_weights(v1, v2, v3, co, n, w);
 	}
+}
+
+/* used by projection painting
+ * note: using area_tri_signed_v2 means locations outside the triangle are correctly weighted */
+void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3])
+{
+   float wtot_inv, wtot;
+
+   w[0] = area_tri_signed_v2(v2, v3, co);
+   w[1] = area_tri_signed_v2(v3, v1, co);
+   w[2] = area_tri_signed_v2(v1, v2, co);
+   wtot = w[0]+w[1]+w[2];
+
+   if (wtot != 0.0f) {
+       wtot_inv = 1.0f/wtot;
+
+       w[0] = w[0]*wtot_inv;
+       w[1] = w[1]*wtot_inv;
+       w[2] = w[2]*wtot_inv;
+   }
+   else /* dummy values for zero area face */
+       w[0] = w[1] = w[2] = 1.0f/3.0f;
+}
+
+/* given 2 triangles in 3D space, and a point in relation to the first triangle.
+ * calculate the location of a point in relation to the second triangle.
+ * Useful for finding relative positions with geometry */
+void barycentric_transform(float pt_tar[3], float const pt_src[3],
+		const float tri_tar_p1[3], const float tri_tar_p2[3], const float tri_tar_p3[3],
+		const float tri_src_p1[3], const float tri_src_p2[3], const float tri_src_p3[3])
+{
+	/* this works by moving the source triangle so its normal is pointing on the Z
+	 * axis where its barycentric wights can be calculated in 2D and its Z offset can
+	 *  be re-applied. The weights are applied directly to the targets 3D points and the
+	 *  z-depth is used to scale the targets normal as an offset.
+	 * This saves transforming the target into its Z-Up orientation and back (which could also work) */
+	const float z_up[3] = {0, 0, 1};
+	float no_tar[3], no_src[3];
+	float quat_src[4];
+	float pt_src_xy[3];
+	float  tri_xy_src[3][3];
+	float w_src[3];
+	float area_tar, area_src;
+	float z_ofs_src;
+
+	normal_tri_v3(no_tar, tri_tar_p1, tri_tar_p2, tri_tar_p3);
+	normal_tri_v3(no_src, tri_src_p1, tri_src_p2, tri_src_p3);
+
+	rotation_between_vecs_to_quat(quat_src, no_src, z_up);
+	normalize_qt(quat_src);
+
+	copy_v3_v3(pt_src_xy, pt_src);
+	copy_v3_v3(tri_xy_src[0], tri_src_p1);
+	copy_v3_v3(tri_xy_src[1], tri_src_p2);
+	copy_v3_v3(tri_xy_src[2], tri_src_p3);
+
+	/* make the source tri xy space */
+	mul_qt_v3(quat_src, pt_src_xy);
+	mul_qt_v3(quat_src, tri_xy_src[0]);
+	mul_qt_v3(quat_src, tri_xy_src[1]);
+	mul_qt_v3(quat_src, tri_xy_src[2]);
+
+	barycentric_weights_v2(tri_xy_src[0], tri_xy_src[1], tri_xy_src[2], pt_src_xy, w_src);
+	interp_v3_v3v3v3(pt_tar, tri_tar_p1, tri_tar_p2, tri_tar_p3, w_src);
+
+	area_tar= sqrtf(area_tri_v3(tri_tar_p1, tri_tar_p2, tri_tar_p3));
+	area_src= sqrtf(area_tri_v2(tri_xy_src[0], tri_xy_src[1], tri_xy_src[2]));
+
+	z_ofs_src= pt_src_xy[2] - tri_xy_src[0][2];
+	madd_v3_v3v3fl(pt_tar, pt_tar, no_tar, (z_ofs_src / area_src) * area_tar);
+}
+
+/* given an array with some invalid values this function interpolates valid values
+ * replacing the invalid ones */
+int interp_sparse_array(float *array, int list_size, float skipval)
+{
+	int found_invalid = 0;
+	int found_valid = 0;
+	int i;
+
+	for (i=0; i < list_size; i++) {
+		if(array[i] == skipval)
+			found_invalid= 1;
+		else
+			found_valid= 1;
+	}
+
+	if(found_valid==0) {
+		return -1;
+	}
+	else if (found_invalid==0) {
+		return 0;
+	}
+	else {
+		/* found invalid depths, interpolate */
+		float valid_last= skipval;
+		int valid_ofs= 0;
+
+		float *array_up= MEM_callocN(sizeof(float) * list_size, "interp_sparse_array up");
+		float *array_down= MEM_callocN(sizeof(float) * list_size, "interp_sparse_array up");
+
+		int *ofs_tot_up= MEM_callocN(sizeof(int) * list_size, "interp_sparse_array tup");
+		int *ofs_tot_down= MEM_callocN(sizeof(int) * list_size, "interp_sparse_array tdown");
+
+		for (i=0; i < list_size; i++) {
+			if(array[i] == skipval) {
+				array_up[i]= valid_last;
+				ofs_tot_up[i]= ++valid_ofs;
+			}
+			else {
+				valid_last= array[i];
+				valid_ofs= 0;
+			}
+		}
+
+		valid_last= skipval;
+		valid_ofs= 0;
+
+		for (i=list_size-1; i >= 0; i--) {
+			if(array[i] == skipval) {
+				array_down[i]= valid_last;
+				ofs_tot_down[i]= ++valid_ofs;
+			}
+			else {
+				valid_last= array[i];
+				valid_ofs= 0;
+			}
+		}
+
+		/* now blend */
+		for (i=0; i < list_size; i++) {
+			if(array[i] == skipval) {
+				if(array_up[i] != skipval && array_down[i] != skipval) {
+					array[i]= ((array_up[i] * ofs_tot_down[i]) +  (array_down[i] * ofs_tot_up[i])) / (float)(ofs_tot_down[i] + ofs_tot_up[i]);
+				} else if (array_up[i] != skipval) {
+					array[i]= array_up[i];
+				} else if (array_down[i] != skipval) {
+					array[i]= array_down[i];
+				}
+			}
+		}
+
+		MEM_freeN(array_up);
+		MEM_freeN(array_down);
+
+		MEM_freeN(ofs_tot_up);
+		MEM_freeN(ofs_tot_down);
+	}
+
+	return 1;
 }
 
 /* Mean value weights - smooth interpolation weights for polygons with
@@ -1789,3 +1993,4 @@ void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,flo
 		}
 	}
 }
+

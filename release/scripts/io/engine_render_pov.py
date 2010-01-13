@@ -537,7 +537,7 @@ def write_pov(filename, scene=None, info_callback=None):
             writeMatrix(matrix)
             file.write('}\n')
 
-            bpy.data.remove_mesh(me)
+            bpy.data.meshes.remove(me)
 
     def exportWorld(world):
         if not world:

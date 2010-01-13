@@ -151,8 +151,7 @@ class DOPESHEET_MT_key(bpy.types.Menu):
         layout.operator_menu_enum("action.mirror", property="type", text="Mirror")
 
         layout.separator()
-        # Inconsistent naming? act/action
-        layout.operator("act.keyframe_insert")
+        layout.operator("action.keyframe_insert")
 
         layout.separator()
         layout.operator("action.duplicate")

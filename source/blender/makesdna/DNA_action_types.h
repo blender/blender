@@ -46,13 +46,23 @@ struct Object;
 /* Motion Paths ------------------------------------ */
 /* (used for Pose Channels and Objects) */
 
-/* Data point for motion path */
+/* Data point for motion path (mpv) */
 typedef struct bMotionPathVert {
 	float co[3];				/* coordinates of point in 3D-space */
 	int flag;					/* quick settings */
 } bMotionPathVert;
 
-/* Motion Path data cache - for elements providing transforms (i.e. Objects or PoseChannels) */
+/* bMotionPathVert->flag */
+typedef enum eMotionPathVert_Flag {
+		/* vert is selected */
+	MOTIONPATH_VERT_SEL		= (1<<0),
+} eMotionPathVert_Flag;
+
+/* ........ */
+
+/* Motion Path data cache (mpath)
+ * 	- for elements providing transforms (i.e. Objects or PoseChannels) 
+ */
 typedef struct bMotionPath {
 	bMotionPathVert *points;	/* path samples */
 	int	length;					/* the number of cached verts */
@@ -60,33 +70,97 @@ typedef struct bMotionPath {
 	int start_frame;			/* for drawing paths, the start frame number */
 	int	end_frame;				/* for drawing paths, the end frame number */
 	
-	int flag;					/* extra settings */
+	int flag;					/* baking settings - eMotionPath_Flag */ 
 } bMotionPath;
 
+/* bMotionPath->flag */
+typedef enum eMotionPath_Flag {
+		/* (for bones) path represents the head of the bone */
+	MOTIONPATH_FLAG_BHEAD		= (1<<0),
+		/* motion path is being edited */
+	MOTIONPATH_FLAG_EDIT		= (1<<1),
+} eMotionPath_Flag;
 
+/* Visualisation General --------------------------- */
+/* for Objects or Poses (but NOT PoseChannels) */
 
-/* Animation Visualisation Settings - for Objects or Armatures (not PoseChannels) */
+/* Animation Visualisation Settings (avs) */
 typedef struct bAnimVizSettings {
-	int pad;
-	int pathflag;				/* eMotionPath_Settings */
+	/* Onion-Skinning Settings ----------------- */
+	int	ghost_sf, ghost_ef;			/* start and end frames of ghost-drawing range (only used for GHOST_TYPE_RANGE) */
+	int ghost_bc, ghost_ac;			/* number of frames before/after current frame to show */
 	
-	int pathsf, pathef;			/* start and end frames of path-calculation range */
-	int	pathbc, pathac;			/* number of frames before/after current frame of path-calculation */
+	short ghost_type;				/* eOnionSkin_Types */
+	short ghost_step;				/* number of frames between each ghost shown (not for GHOST_TYPE_KEYS) */
+	
+	short ghost_flag;				/* eOnionSkin_Flag */
+	
+	/* General Settings ------------------------ */
+	short recalc;					/* eAnimViz_RecalcFlags */
+	
+	/* Motion Path Settings ------------------- */
+	short path_type;				/* eMotionPath_Types */
+	short path_step;				/* number of frames between points indicated on the paths */
+	
+	short path_viewflag;			/* eMotionPaths_ViewFlag */
+	short path_bakeflag;			/* eMotionPaths_BakeFlag */
+	
+	int path_sf, path_ef;			/* start and end frames of path-calculation range */
+	int	path_bc, path_ac;			/* number of frames before/after current frame to show */
 } bAnimVizSettings;
 
-/* bMotionPathSettings->flag */
-typedef enum eMotionPath_Settings {
+
+/* bAnimVizSettings->recalc */
+typedef enum eAnimViz_RecalcFlags {
+		/* motionpaths need recalculating */
+	ANIMVIZ_RECALC_PATHS	= (1<<0),
+} eAnimViz_RecalcFlags;
+
+
+/* bAnimVizSettings->ghost_type */
+typedef enum eOnionSkin_Types {
+		/* no ghosts at all */
+	GHOST_TYPE_NONE = 0,
+		/* around current frame */
+	GHOST_TYPE_ACFRA,
+		/* show ghosts within the specified frame range */
+	GHOST_TYPE_RANGE,
+		/* show ghosts on keyframes within the specified range only */
+	GHOST_TYPE_KEYS,
+} eOnionSkin_Types;
+
+/* bAnimVizSettings->ghost_flag */
+typedef enum eOnionSkin_Flag {
+		/* only show selected bones in ghosts */
+	GHOST_FLAG_ONLYSEL 	= (1<<0),
+} eOnionSkin_Flag;
+
+
+/* bAnimVizSettings->path_type */
+typedef enum eMotionPaths_Types {
+		/* show the paths along their entire ranges */
+	MOTIONPATH_TYPE_RANGE = 0,
+		/* only show the parts of the paths around the current frame */
+	MOTIONPATH_TYPE_ACFRA,
+} eMotionPath_Types;
+
+/* bAnimVizSettings->path_viewflag */
+typedef enum eMotionPaths_ViewFlag {
 		/* show frames on path */
-	MOTIONPATH_FLAG_FNUMS		= (1<<0),
+	MOTIONPATH_VIEW_FNUMS		= (1<<0),
 		/* show keyframes on path */
-	MOTIONPATH_FLAG_KFRAS		= (1<<1),
-		/* for bones - calculate head-points for curves instead of tips */
-	MOTIONPATH_FLAG_HEADS		= (1<<2),
-		/* show path around current frame */
-	MOTIONPATH_FLAG_ACFRA		= (1<<3),
+	MOTIONPATH_VIEW_KFRAS		= (1<<1),
 		/* show keyframe/frame numbers */
-	MOTIONPATH_FLAG_KFNOS		= (1<<4)
-} eMotionPath_Settings;
+	MOTIONPATH_VIEW_KFNOS		= (1<<2),
+} eMotionPath_ViewFlag;
+
+/* bAnimVizSettings->path_bakeflag */
+typedef enum eMotionPaths_BakeFlag {
+		/* motion paths directly associated with this block of settings needs updating */
+	MOTIONPATH_BAKE_NEEDS_RECALC	= (1<<0),
+		/* for bones - calculate head-points for curves instead of tips */
+	MOTIONPATH_BAKE_HEADS			= (1<<1),
+} eMotionPath_BakeFlag;
 
 /* ************************************************ */
 /* Poses */
@@ -113,9 +187,11 @@ typedef struct bPoseChannel {
 	short				protectflag; /* protect channels from being transformed */
 	short				agrp_index; /* index of action-group this bone belongs to (0 = default/no group) */
 	
+// XXX depreceated.... old animation system (armature only viz) ----
 	int				    pathlen;	/* for drawing paths, the amount of frames */
 	int 				pathsf;		/* for drawing paths, the start frame number */
 	int					pathef;		/* for drawing paths, the end frame number */
+// XXX end of depreceated code -------------------------------------
 	
 	struct Bone			*bone;		/* set on read file or rebuild pose */
 	struct bPoseChannel *parent;	/* set on read file or rebuild pose */
@@ -152,8 +228,10 @@ typedef struct bPoseChannel {
 	float		ikrotweight;		/* weight of joint rotation constraint */
 	float		iklinweight;		/* weight of joint stretch constraint */
 
-	float		*path;				/* totpath x 3 x float */
-	struct Object *custom;			/* draws custom object instead of this channel */
+	float		*path;				/* totpath x 3 x float */		// XXX depreceated... old animation system (armature only viz)
+	bMotionPath *mpath;				/* motion path cache for this bone */
+	struct Object *custom;			/* draws custom object instead of default bone shape */
+	struct bPoseChannel *custom_tx;	/* odd feature, display with another bones transform. needed in rare cases for advanced rigs, since the alternative is highly complicated - campbell */
 } bPoseChannel;
 
 
@@ -259,6 +337,8 @@ typedef struct bPose {
 	int	iksolver;				/* ik solver to use, see ePose_IKSolverType */
 	void *ikdata;				/* temporary IK data, depends on the IK solver. Not saved in file */
 	void *ikparam;				/* IK solver parameters, structure depends on iksolver */ 
+	
+	bAnimVizSettings avs;		/* settings for visualisation of bone animation */
 } bPose;
 
 
@@ -283,7 +363,7 @@ typedef enum ePose_Flags {
 /* IK Solvers ------------------------------------ */
 
 /* bPose->iksolver and bPose->ikparam->iksolver */
-typedef enum {
+typedef enum ePose_IKSolverType {
 	IKSOLVER_LEGACY = 0,
 	IKSOLVER_ITASC,
 } ePose_IKSolverType;
@@ -310,7 +390,7 @@ typedef struct bItasc {
 } bItasc;
 
 /* bItasc->flag */
-typedef enum {
+typedef enum eItasc_Flags {
 	ITASC_AUTO_STEP = (1<<0),
 	ITASC_INITIAL_REITERATION = (1<<1),
 	ITASC_REITERATION = (1<<2),
@@ -318,7 +398,7 @@ typedef enum {
 } eItasc_Flags;
 
 /* bItasc->solver */
-typedef enum {
+typedef enum eItasc_Solver {
 	ITASC_SOLVER_SDLS = 0,	/* selective damped least square, suitable for CopyPose constraint */
 	ITASC_SOLVER_DLS		/* damped least square with numerical filtering of damping */
 } eItasc_Solver;
@@ -425,7 +505,7 @@ typedef struct bDopeSheet {
 
 
 /* DopeSheet filter-flag */
-typedef enum DOPESHEET_FILTERFLAG {
+typedef enum eDopeSheet_FilterFlag {
 		/* general filtering */
 	ADS_FILTER_ONLYSEL			= (1<<0),	/* only include channels relating to selected data */
 	
@@ -437,6 +517,7 @@ typedef enum DOPESHEET_FILTERFLAG {
 	
 		/* datatype-based filtering */
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
+	ADS_FILTER_NOMESH			= (1<<7),
 	ADS_FILTER_NOCAM			= (1<<10),
 	ADS_FILTER_NOMAT			= (1<<11),
 	ADS_FILTER_NOLAM			= (1<<12),
@@ -449,16 +530,16 @@ typedef enum DOPESHEET_FILTERFLAG {
 	ADS_FILTER_NONTREE			= (1<<19),
 	
 		/* NLA-specific filters */
-	ADS_FILTER_NLA_NOACT		= (1<<20),	/* if the AnimData block has no NLA data, don't include to just show Action-line */
+	ADS_FILTER_NLA_NOACT		= (1<<25),	/* if the AnimData block has no NLA data, don't include to just show Action-line */
 	
 		/* combination filters (some only used at runtime) */
 	ADS_FILTER_NOOBDATA = (ADS_FILTER_NOCAM|ADS_FILTER_NOMAT|ADS_FILTER_NOLAM|ADS_FILTER_NOCUR|ADS_FILTER_NOPART|ADS_FILTER_NOARM),
-} DOPESHEET_FILTERFLAG;	
+} eDopeSheet_FilterFlag;	
 
 /* DopeSheet general flags */
-typedef enum DOPESHEET_FLAG {
+typedef enum eDopeSheet_Flag {
 	ADS_FLAG_SUMMARY_COLLAPSED	= (1<<0),	/* when summary is shown, it is collapsed, so all other channels get hidden */
-} DOPESHEET_FLAG;
+} eDopeSheet_Flag;
 
 
 
@@ -508,15 +589,14 @@ typedef enum eSAction_Flag {
 } eSAction_Flag;	
 
 /* SpaceAction Mode Settings */
-// XXX should this be used by other editors too?
 typedef enum eAnimEdit_Context {
-		/* action (default) */
+		/* action on the active object */
 	SACTCONT_ACTION	= 0,
-		/* editing of shapekey's IPO block */
+		/* list of all shapekeys on the active object, linked with their F-Curves */
 	SACTCONT_SHAPEKEY,
 		/* editing of gpencil data */
 	SACTCONT_GPENCIL,
-		/* dopesheet */
+		/* dopesheet (default) */
 	SACTCONT_DOPESHEET,
 } eAnimEdit_Context;
 

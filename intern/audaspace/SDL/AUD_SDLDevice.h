@@ -55,7 +55,8 @@ public:
 	 * \note The specification really used for opening the device may differ.
 	 * \exception AUD_Exception Thrown if the audio device cannot be opened.
 	 */
-	AUD_SDLDevice(AUD_Specs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
+	AUD_SDLDevice(AUD_DeviceSpecs specs,
+				  int buffersize = AUD_DEFAULT_BUFFER_SIZE);
 
 	/**
 	 * Closes the SDL audio device.

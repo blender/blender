@@ -95,14 +95,14 @@
 
 #include "view3d_intern.h"	// own include
 
-
+// TODO: should return whether there is valid context to continue
 void view3d_set_viewcontext(bContext *C, ViewContext *vc)
 {
 	memset(vc, 0, sizeof(ViewContext));
 	vc->ar= CTX_wm_region(C);
 	vc->scene= CTX_data_scene(C);
 	vc->v3d= CTX_wm_view3d(C);
-	vc->rv3d= vc->ar->regiondata;
+	vc->rv3d= CTX_wm_region_view3d(C);
 	vc->obact= CTX_data_active_object(C);
 	vc->obedit= CTX_data_edit_object(C); 
 }
@@ -125,12 +125,19 @@ void view3d_get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2
 	}
 }
 
+/*
+ * ob == NULL if you want global matrices
+ * */
 void view3d_get_transformation(ARegion *ar, RegionView3D *rv3d, Object *ob, bglMats *mats)
 {
 	float cpy[4][4];
 	int i, j;
 
-	mul_m4_m4m4(cpy, ob->obmat, rv3d->viewmat);
+	if (ob) {
+		mul_m4_m4m4(cpy, ob->obmat, rv3d->viewmat);
+	} else {
+		copy_m4_m4(cpy, rv3d->viewmat);
+	}
 
 	for(i = 0; i < 4; ++i) {
 		for(j = 0; j < 4; ++j) {
@@ -469,7 +476,8 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 
 	/* workaround: init mats first, EM_mask_init_backbuf_border can change
 	   view matrix to pixel space, breaking edge select with backbuf .. */
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	// XXX not needed anymore, check here if selection is broken
+	//ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
 	if(vc->scene->toolsettings->selectmode & SCE_SELECT_VERTEX) {
@@ -1370,7 +1378,10 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exte
 		EDBM_clear_flag_all(vc->em, BM_SELECT);
 	}
 
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	/* XXX Don't think we need this, it break selection of transformed objects.
+	 * Also, it's not done by Circle select and that works fine
+	 */
+	//ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	bbsel= EDBM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	if(vc->scene->toolsettings->selectmode & SCE_SELECT_VERTEX) {
@@ -1432,7 +1443,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 	extend = RNA_boolean_get(op->ptr, "extend");
-	
+
 	if(obedit==NULL && (paint_facesel_test(OBACT))) {
 		face_borderselect(C, obact, &rect, selecting, extend);
 		return OPERATOR_FINISHED;
@@ -1440,6 +1451,8 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	else if(obedit==NULL && (obact && obact->mode & OB_MODE_PARTICLE_EDIT)) {
 		return PE_border_select(C, &rect, selecting, extend);
 	}
+	else if(obedit==NULL && (obact && obact->mode & OB_MODE_SCULPT))
+		return OPERATOR_CANCELLED;
 	
 	if(obedit) {
 		if(obedit->type==OB_MESH) {
@@ -1709,6 +1722,8 @@ static int view3d_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			retval = mouse_mball(C, event->mval, extend);
 			
 	}
+	else if(obact && obact->mode & OB_MODE_SCULPT)
+		return OPERATOR_CANCELLED;
 	else if(obact && obact->mode & OB_MODE_PARTICLE_EDIT)
 		return PE_mouse_particles(C, event->mval, extend);
 	else if(obact && paint_facesel_test(obact))
@@ -2030,6 +2045,9 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		}
 		else
 			return PE_circle_select(C, selecting, mval, (float)radius);
+	}
+	else if(obact && obact->mode & OB_MODE_SCULPT) {
+		return OPERATOR_CANCELLED;
 	}
 	else {
 		Base *base;

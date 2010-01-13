@@ -74,6 +74,9 @@ void linearrgb_to_srgb_v3_v3(float *col_to, float *col_from);
 int constrain_rgb(float *r, float *g, float *b);
 void minmax_rgb(short c[3]);
 
+void rgb_byte_to_float(char *in, float *out);
+void rgb_float_to_byte(float *in, char *out);
+
 #ifdef __cplusplus
 }
 #endif

@@ -335,18 +335,20 @@ static void createTransTexspace(bContext *C, TransInfo *t)
 /* ********************* edge (for crease) ***** */
 
 static void createTransEdge(bContext *C, TransInfo *t) {
-#if 0	// TRANSFORM_FIX_ME
+	BMEditMesh *em = ((Mesh *)t->obedit->data)->edit_btmesh;
 	TransData *td = NULL;
-	EditEdge *eed;
+	BMEdge *eed;
+	BMIter iter;
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->h==0) {
-			if (eed->f & SELECT) countsel++;
-			if (propmode) count++;
-		}
+	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_TestHFlag(eed, BM_HIDDEN))
+			continue;
+
+		if (BM_TestHFlag(eed, BM_SELECT)) countsel++;
+		if (propmode) count++;
 	}
 
 	if (countsel == 0)
@@ -364,14 +366,14 @@ static void createTransEdge(bContext *C, TransInfo *t) {
 	copy_m3_m4(mtx, t->obedit->obmat);
 	invert_m3_m3(smtx, mtx);
 
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->h==0 && (eed->f & SELECT || propmode)) {
+	BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if(!BM_TestHFlag(eed, BM_HIDDEN) && (BM_TestHFlag(eed, BM_SELECT) || propmode)) { 
 			/* need to set center for center calculations */
 			add_v3_v3v3(td->center, eed->v1->co, eed->v2->co);
 			mul_v3_fl(td->center, 0.5f);
 
 			td->loc= NULL;
-			if (eed->f & SELECT)
+			if (BM_TestHFlag(eed, BM_SELECT))
 				td->flag= TD_SELECTED;
 			else
 				td->flag= 0;
@@ -393,7 +395,6 @@ static void createTransEdge(bContext *C, TransInfo *t) {
 			td++;
 		}
 	}
-#endif
 }
 
 /* ********************* pose mode ************* */
@@ -3400,13 +3401,13 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 	 */
 	
 	if (adt) {
-		td2d->loc[0] = BKE_nla_tweakedit_remap(adt, loc[0], NLATIME_CONVERT_UNMAP);
+		td2d->loc[0] = BKE_nla_tweakedit_remap(adt, loc[0], NLATIME_CONVERT_MAP);
 		td2d->loc[1] = loc[1];
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
 		td->loc = td2d->loc;
-		td->center[0] = BKE_nla_tweakedit_remap(adt, cent[0], NLATIME_CONVERT_UNMAP);
+		td->center[0] = BKE_nla_tweakedit_remap(adt, cent[0], NLATIME_CONVERT_MAP);
 		td->center[1] = cent[1];
 		td->center[2] = 0.0f;
 		
@@ -5222,11 +5223,11 @@ void createTransData(bContext *C, TransInfo *t)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
 
-	if (t->options == CTX_TEXTURE) {
+	if (t->options & CTX_TEXTURE) {
 		t->flag |= T_TEXTURE;
 		createTransTexspace(C, t);
 	}
-	else if (t->options == CTX_EDGE) {
+	else if (t->options & CTX_EDGE) {
 		t->ext = NULL;
 		t->flag |= T_EDIT;
 		createTransEdge(C, t);

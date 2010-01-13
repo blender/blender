@@ -175,6 +175,10 @@ typedef enum PropertyFlag {
 	/* need context for update function */
 	PROP_CONTEXT_UPDATE = 1<<22,
 
+	/* Use for arrays or for any data that should not have a referene kept
+	 * most common case is functions that return arrays where the array */
+	PROP_THICK_WRAP = 1<<23,
+
 	/* internal flags */
 	PROP_BUILTIN = 1<<7,
 	PROP_EXPORT = 1<<8,
@@ -206,6 +210,7 @@ typedef struct CollectionPointerLink {
 } CollectionPointerLink;
 
 typedef enum RawPropertyType {
+	PROP_RAW_UNSET=-1,
 	PROP_RAW_INT, // XXX - abused for types that are not set, eg. MFace.verts, needs fixing.
 	PROP_RAW_SHORT,
 	PROP_RAW_CHAR,
@@ -317,6 +322,17 @@ typedef struct ExtensionRNA {
 	int (*call)(PointerRNA *, FunctionRNA *, ParameterList *);
 	void (*free)(void *data);
 } ExtensionRNA;
+
+/* fake struct definitions, needed otherwise collections end up owning the C
+ * structs like 'Object' when defined first */
+#define MainCameras Main
+#define MainScenes Main
+#define MainArmatures Main
+#define MainMaterials Main
+#define MainMeshes Main
+#define MainLamps Main
+#define MainObjects Main
+#define MainTexts Main
 
 #ifdef __cplusplus
 }

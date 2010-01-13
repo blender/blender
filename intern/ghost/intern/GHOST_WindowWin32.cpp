@@ -105,10 +105,11 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
-	const bool stereoVisual)
+	const bool stereoVisual,
+	const GHOST_TUns16 numOfAASamples)
 :
 	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone,
-	stereoVisual),
+	stereoVisual,numOfAASamples),
 	m_system(system),
 	m_hDC(0),
 	m_hGlRc(0),

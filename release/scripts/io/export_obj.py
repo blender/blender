@@ -40,29 +40,6 @@ All objects that can be represented as a mesh (mesh, curve, metaball, surface, t
 will be exported as mesh data.
 """
 
-
-# --------------------------------------------------------------------------
-# OBJ Export v1.1 by Campbell Barton (AKA Ideasman)
-# --------------------------------------------------------------------------
-# ***** BEGIN GPL LICENSE BLOCK *****
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA	 02111-1307, USA.
-#
-# ***** END GPL LICENCE BLOCK *****
-# --------------------------------------------------------------------------
-
 # import math and other in functions that use them for the sake of fast Blender startup
 # import math
 import os
@@ -384,8 +361,7 @@ def write(filename, objects, scene,
     file = open(filename, "w")
 
     # Write Header
-    version = "2.5"
-    file.write('# Blender3D v%s OBJ File: %s\n' % (version, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
+    file.write('# Blender3D v%s OBJ File: %s\n' % (bpy.app.version_string, bpy.data.filename.split('/')[-1].split('\\')[-1] ))
     file.write('# www.blender3d.org\n')
 
     # Tell the obj file what material file to use.
@@ -471,7 +447,7 @@ def write(filename, objects, scene,
                         break
 
                 if has_quads:
-                    newob = bpy.data.add_object('MESH', 'temp_object')
+                    newob = bpy.data.objects.new('temp_object', 'MESH')
                     newob.data = me
                     # if we forget to set Object.data - crash
                     scene.objects.link(newob)
@@ -492,7 +468,7 @@ def write(filename, objects, scene,
             if not (len(face_index_pairs)+len(edges)+len(me.verts)): # Make sure there is somthing to write
 
                 # clean up
-                bpy.data.remove_mesh(me)
+                bpy.data.meshes.remove(me)
 
                 continue # dont bother with this mesh.
 
@@ -534,24 +510,12 @@ def write(filename, objects, scene,
                 # XXX update
                 tface = me.active_uv_texture.data
 
-                # exception only raised if Python 2.3 or lower...
-                try:
-                    face_index_pairs.sort(key = lambda a: (a[0].material_index, tface[a[1]].image, a[0].smooth))
-                except:
-                    face_index_pairs.sort(lambda a,b: cmp((a[0].material_index, tface[a[1]].image, a[0].smooth),
-                                                              (b[0].material_index, tface[b[1]].image, b[0].smooth)))
+                face_index_pairs.sort(key=lambda a: (a[0].material_index, tface[a[1]].image, a[0].smooth))
             elif len(materials) > 1:
-                try:
-                    face_index_pairs.sort(key = lambda a: (a[0].material_index, a[0].smooth))
-                except:
-                    face_index_pairs.sort(lambda a,b: cmp((a[0].material_index, a[0].smooth),
-                                                              (b[0].material_index, b[0].smooth)))
+                face_index_pairs.sort(key = lambda a: (a[0].material_index, a[0].smooth))
             else:
                 # no materials
-                try:
-                    face_index_pairs.sort(key = lambda a: a[0].smooth)
-                except:
-                    face_index_pairs.sort(lambda a,b: cmp(a[0].smooth, b[0].smooth))
+                face_index_pairs.sort(key = lambda a: a[0].smooth)
 #			if EXPORT_KEEP_VERT_ORDER:
 #				pass
 #			elif faceuv:
@@ -633,7 +597,8 @@ def write(filename, objects, scene,
             if EXPORT_NORMALS:
                 for f in faces:
                     if f.smooth:
-                        for v in f:
+                        for vIdx in f.verts:
+                            v = me.verts[vIdx]
                             noKey = veckey3d(v.normal)
                             if noKey not in globalNormals:
                                 globalNormals[noKey] = totno
@@ -803,7 +768,7 @@ def write(filename, objects, scene,
                 totuvco += uv_unique_count
 
             # clean up
-            bpy.data.remove_mesh(me)
+            bpy.data.meshes.remove(me)
 
         if ob_main.dupli_type != 'NONE':
             ob_main.free_dupli_list()

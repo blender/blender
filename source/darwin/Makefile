@@ -31,7 +31,9 @@ include nan_definitions.mk
 
 DIR = $(OCGDIR)/$(DEBUG_DIR)
 
-all:: 
+PYARCHIVE = python_$(MACOSX_ARCHITECTURE).zip
+
+all::
 	@# set up directory structure for the OSX aplication bundle
 	@echo "---> creating directory structure for $(APPLICATION)"
 	@rm -rf $(DIR)/bin/$(APPLICATION).app
@@ -51,7 +53,7 @@ ifeq ($(APPLICATION), blender)
 	@cp -R $(NANBLENDERHOME)/release/scripts $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/
 	@echo "---> copying python modules"
 	@mkdir $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python
-	@unzip -q $(LCGDIR)/release/python.zip -d $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python/	
+	@unzip -q $(LCGDIR)/release/$(PYARCHIVE) -d $(DIR)/bin/$(APPLICATION).app/Contents/MacOS/.blender/python/	
 endif
 	@echo "---> removing SVN directories and Mac hidden files from distribution"
 	@find $(DIR)/bin/$(APPLICATION).app -name CVS -prune -exec rm -rf {} \;

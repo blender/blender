@@ -41,9 +41,9 @@ private:
 	float **m_mapping[9];
 
 public:
-	AUD_ChannelMapperFactory(AUD_IReader* reader, AUD_Specs specs);
-	AUD_ChannelMapperFactory(AUD_IFactory* factory, AUD_Specs specs);
-	AUD_ChannelMapperFactory(AUD_Specs specs);
+	AUD_ChannelMapperFactory(AUD_IReader* reader, AUD_DeviceSpecs specs);
+	AUD_ChannelMapperFactory(AUD_IFactory* factory, AUD_DeviceSpecs specs);
+	AUD_ChannelMapperFactory(AUD_DeviceSpecs specs);
 
 	virtual ~AUD_ChannelMapperFactory();
 

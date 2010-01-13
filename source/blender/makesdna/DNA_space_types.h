@@ -510,6 +510,8 @@ typedef struct SpaceConsole {
 	char prompt[256];
 	char language[32]; /* multiple consoles are possible, not just python */
 	
+	int sel_start;
+	int sel_end;
 } SpaceConsole;
 
 typedef struct SpaceUserPref {
@@ -655,6 +657,7 @@ enum FileSortTypeE {
 #define FILE_SYNCPOSE		128
 #define FILE_FILTER			256
 #define FILE_BOOKMARKS		512
+#define FILE_GROUP_INSTANCE	1024
 
 /* files in filesel list: 2=ACTIVE  */
 #define EDITING				1

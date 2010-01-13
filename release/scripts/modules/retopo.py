@@ -21,7 +21,7 @@
 import bpy
 
 EPS_SPLINE_DIV = 15.0 # remove doubles is ~15th the length of the spline
-
+ANGLE_JOIN_LIMIT = 25.0 # limit for joining splines into 1.
 
 def get_hub(co, _hubs, EPS_SPLINE):
 
@@ -118,13 +118,105 @@ class Hub(object):
         return faces
 
 
+class BBox(object):
+    __slots__ = "xmin", "ymin", "zmin", "xmax", "ymax", "zmax"
+
+    def __init__(self):
+        self.xmin = self.ymin = self.zmin = 100000000.0
+        self.xmax = self.ymax = self.zmax = -100000000.0
+    
+    @property
+    def xdim(self):
+        return self.xmax - self.xmin
+
+    @property
+    def ydim(self):
+        return self.ymax - self.ymin
+
+    @property
+    def zdim(self):
+        return self.zmax - self.zmin
+
+    def calc(self, points):
+        xmin = ymin = zmin = 100000000.0
+        xmax = ymax = zmax = -100000000.0
+        
+        for pt in points:
+            x, y, z = pt
+            if x < xmin:
+                xmin = x
+            if y < ymin:
+                ymin = y
+            if z < zmin:
+                zmin = z
+
+            if x > xmax:
+                xmax = x
+            if y > ymax:
+                ymax = y
+            if z > zmax:
+                zmax = z
+
+        self.xmin, self.ymin, self.zmin = xmin, ymin, zmin
+        self.xmax, self.ymax, self.zmax = xmax, ymax, zmax
+
+    def xsect(self, other, margin=0.0):
+        if margin == 0.0:
+            if self.xmax < other.xmin:
+                return False
+            if self.ymax < other.ymin:
+                return False
+            if self.zmax < other.zmin:
+                return False
+
+            if self.xmin > other.xmax:
+                return False
+            if self.ymin > other.ymax:
+                return False
+            if self.zmin > other.zmax:
+                return False
+
+        else:
+            xmargin = ((self.xdim + other.xdim) / 2.0) * margin
+            ymargin = ((self.ydim + other.ydim) / 2.0) * margin
+            zmargin = ((self.zdim + other.zdim) / 2.0) * margin
+
+            if self.xmax < other.xmin - xmargin:
+                return False
+            if self.ymax < other.ymin - ymargin:
+                return False
+            if self.zmax < other.zmin - zmargin:
+                return False
+
+            if self.xmin > other.xmax + xmargin:
+                return False
+            if self.ymin > other.ymax + ymargin:
+                return False
+            if self.zmin > other.zmax + zmargin:
+                return False
+        return True
+
+    def __iadd__(self, other):
+        self.xmin = min(self.xmin, other.xmin)
+        self.ymin = min(self.ymin, other.ymin)
+        self.zmin = min(self.zmin, other.zmin)
+        
+        self.xmax = max(self.xmax, other.xmax)
+        self.ymax = max(self.ymax, other.ymax)
+        self.zmax = max(self.zmax, other.zmax)
+        return self
+
 class Spline(object):
-    __slots__ = "points", "hubs", "length"
+    __slots__ = "points", "hubs", "length", "bb"
 
     def __init__(self, points):
         self.points = points
         self.hubs = []
+        self.calc_length()
+        self.bb = BBox()
+        self.bb.calc(points)
 
+    def calc_length(self):
         # calc length
         f = 0.0
         co_prev = self.points[0]
@@ -215,8 +307,120 @@ def xsect_spline(sp_a, sp_b, _hubs):
         pt_a_prev = pt_a
 
 
+def connect_splines(splines):
+    HASH_PREC = 8
+    from Mathutils import AngleBetweenVecs
+    from math import radians
+    ANG_LIMIT = radians(ANGLE_JOIN_LIMIT)
+    def sort_pair(a, b):
+        if a < b:
+            return a, b
+        else:
+            return b, a
+    
+    #def test_join(p1a, p1b, p2a, p2b, length_average):
+    def test_join(s1, s2, dir1, dir2, length_average):
+        if dir1 is False:
+            p1a = s1.points[0]
+            p1b = s1.points[1]
+        else:
+            p1a = s1.points[-1]
+            p1b = s1.points[-2]
+
+        if dir2 is False:
+            p2a = s2.points[0]
+            p2b = s2.points[1]
+        else:
+            p2a = s2.points[-1]
+            p2b = s2.points[-2]
+        
+        # compare length between tips
+        if (p1a - p2a).length > (length_average / EPS_SPLINE_DIV):
+            return False
+        
+        v1 = p1a - p1b
+        v2 = p2b - p2a
+        
+        if AngleBetweenVecs(v1, v2) > ANG_LIMIT:
+            return False
+
+        # print("joining!")
+        return True
+    
+    # lazy, hash the points that have been compared.
+    comparisons = set()
+    
+    do_join = True
+    while do_join:
+        do_join = False
+        for i, s1 in enumerate(splines):
+            key1a = s1.points[0].toTuple(HASH_PREC)
+            key1b = s1.points[-1].toTuple(HASH_PREC)
+            
+            for j, s2 in enumerate(splines):
+                if s1 is s2:
+                    continue
+
+                length_average = min(s1.length, s2.length)
+
+                key2a = s2.points[0].toTuple(HASH_PREC)
+                key2b = s2.points[-1].toTuple(HASH_PREC)
+                
+                # there are 4 ways this may be joined
+                key_pair = sort_pair(key1a, key2a)
+                if key_pair not in comparisons:
+                    comparisons.add(key_pair)                
+                    if test_join(s1, s2, False, False, length_average):
+                        s1.points[:0] = reversed(s2.points)
+                        s1.bb += s2.bb
+                        s1.calc_length()
+                        del splines[j]
+                        do_join = True
+                        break
+                
+                key_pair = sort_pair(key1a, key2b)
+                if key_pair not in comparisons:
+                    comparisons.add(key_pair)
+                    if test_join(s1, s2, False, True, length_average):
+                        s1.points[:0] = s2.points
+                        s1.bb += s2.bb
+                        s1.calc_length()
+                        del splines[j]
+                        do_join = True
+                        break
+                
+                key_pair = sort_pair(key1b, key2b)
+                if key_pair not in comparisons:
+                    comparisons.add(key_pair)
+                    if test_join(s1, s2, True, True, length_average):
+                        s1.points += list(reversed(s2.points))
+                        s1.bb += s2.bb
+                        s1.calc_length()
+                        del splines[j]
+                        do_join = True
+                        break
+                
+                key_pair = sort_pair(key1b, key2a)
+                if key_pair not in comparisons:
+                    comparisons.add(key_pair)
+                    if test_join(s1, s2, True, False, length_average):
+                        s1.points += s2.points
+                        s1.bb += s2.bb
+                        s1.calc_length()
+                        del splines[j]
+                        do_join = True
+                        break
+
+            if do_join:
+                break
+
+
 def calculate(gp):
     splines = get_splines(gp)
+    
+    # spline endpoints may be co-linear, join these into single splines
+    connect_splines(splines)
+
     _hubs = {}
 
     for i, sp in enumerate(splines):
@@ -224,7 +428,8 @@ def calculate(gp):
             if j <= i:
                 continue
 
-            xsect_spline(sp, sp_other, _hubs)
+            if sp.bb.xsect(sp_other.bb, margin=0.1):
+                xsect_spline(sp, sp_other, _hubs)
 
     for sp in splines:
         sp.link()
@@ -263,12 +468,12 @@ def calculate(gp):
     # remove double faces
     faces = dict([(tuple(sorted(f)), f) for f in faces]).values()
 
-    mesh = bpy.data.add_mesh("Retopo")
+    mesh = bpy.data.meshes.new("Retopo")
     mesh.from_pydata(verts, [], faces)
 
     scene = bpy.context.scene
     mesh.update()
-    obj_new = bpy.data.add_object('MESH', "Torus")
+    obj_new = bpy.data.objects.new("Torus", 'MESH')
     obj_new.data = mesh
     scene.objects.link(obj_new)
 

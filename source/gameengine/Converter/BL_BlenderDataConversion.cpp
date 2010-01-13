@@ -1633,11 +1633,16 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 	lightobj.m_nodiffuse = (la->mode & LA_NO_DIFF) != 0;
 	lightobj.m_nospecular = (la->mode & LA_NO_SPEC) != 0;
 	
-	if (la->mode & LA_NEG)
-	{
-		lightobj.m_red = -lightobj.m_red;
-		lightobj.m_green = -lightobj.m_green;
-		lightobj.m_blue = -lightobj.m_blue;
+	bool glslmat = converter->GetGLSLMaterials();
+
+	// in GLSL NEGATIVE LAMP is handled inside the lamp update function
+	if(glslmat==0) {
+		if (la->mode & LA_NEG)
+		{
+			lightobj.m_red = -lightobj.m_red;
+			lightobj.m_green = -lightobj.m_green;
+			lightobj.m_blue = -lightobj.m_blue;
+		}
 	}
 		
 	if (la->type==LA_SUN) {
@@ -1649,7 +1654,7 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 	}
 
 	gamelight = new KX_LightObject(kxscene, KX_Scene::m_callbacks, rendertools,
-		lightobj, converter->GetGLSLMaterials());
+		lightobj, glslmat);
 
 	BL_ConvertLampIpos(la, gamelight, converter);
 	
@@ -1658,7 +1663,7 @@ static KX_LightObject *gamelight_from_blamp(Object *ob, Lamp *la, unsigned int l
 
 static KX_Camera *gamecamera_from_bcamera(Object *ob, KX_Scene *kxscene, KX_BlenderSceneConverter *converter) {
 	Camera* ca = static_cast<Camera*>(ob->data);
-	RAS_CameraData camdata(ca->lens, ca->ortho_scale, ca->clipsta, ca->clipend, ca->type == CAM_PERSP, dof_camera(ob));
+	RAS_CameraData camdata(ca->lens, ca->ortho_scale, ca->clipsta, ca->clipend, ca->type == CAM_PERSP, ca->YF_dofdist);
 	KX_Camera *gamecamera;
 	
 	gamecamera= new KX_Camera(kxscene, KX_Scene::m_callbacks, camdata);

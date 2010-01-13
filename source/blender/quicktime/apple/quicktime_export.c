@@ -30,6 +30,7 @@
 
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined(__APPLE__)
+#ifndef USE_QTKIT
 
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
@@ -487,7 +488,7 @@ static void QT_EndAddVideoSamplesToMedia (void)
 } 
 
 
-void makeqtstring (RenderData *rd, char *string) {
+void filepath_qt(char *string, RenderData *rd) {
 	char txt[64];
 
 	if (string==0) return;
@@ -538,7 +539,7 @@ int start_qt(struct Scene *scene, struct RenderData *rd, int rectx, int recty, R
 	
 	sframe = (rd->sfra);
 
-	makeqtstring(rd, name);
+	filepath_qt(name, rd);
 
 #ifdef __APPLE__
 	EnterMoviesOnThread(0);
@@ -886,6 +887,7 @@ void SCENE_OT_render_data_set_quicktime_codec(wmOperatorType *ot)
     ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+#endif /* USE_QTKIT */
 #endif /* _WIN32 || __APPLE__ */
 #endif /* WITH_QUICKTIME */
 

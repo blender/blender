@@ -695,6 +695,27 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 /* *********************** text/icon ************************************** */
 
+#define PREVIEW_PAD	4
+
+static void widget_draw_preview(BIFIconID icon, float aspect, float alpha, rcti *rect)
+{
+	int w, h, x, y, size;
+	
+	/* only display previews for actual preview images .. ? */
+	if (icon < BIFICONID_LAST)
+		return;
+	
+	w = rect->xmax - rect->xmin;
+	h = rect->ymax - rect->ymin;
+	size = MIN2(w, h);
+	size -= PREVIEW_PAD*2;	/* padding */
+	
+	x = rect->xmin + w/2 - size/2;
+	y = rect->ymin + h/2 - size/2;
+	
+	UI_icon_draw_preview_aspect_size(x, y, icon, aspect, size);
+}
+
 
 /* icons have been standardized... and this call draws in untransformed coordinates */
 #define ICON_HEIGHT		16.0f
@@ -703,6 +724,11 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 {
 	int xs=0, ys=0;
 	float aspect, height;
+	
+	if (but->flag & UI_ICON_PREVIEW) {
+		widget_draw_preview(icon, but->block->aspect, alpha, rect);
+		return;
+	}
 	
 	/* this icon doesn't need draw... */
 	if(icon==ICON_BLANK1 && (but->flag & UI_ICON_SUBMENU)==0) return;
@@ -1512,12 +1538,12 @@ void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect, float
 	*valrad= atan2(mx, my)/(2.0f*M_PI) + 0.5f;
 }
 
-void ui_draw_but_HSVCIRCLE(uiBut *but, rcti *rect)
+void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 {
 	/* gouraud triangle fan */
 	float radstep, ang= 0.0f;
 	float centx, centy, radius;
-	float hsv[3], col[3], colcent[3];
+	float rgb[3], hsv[3], hsvo[3], col[3], colcent[3];
 	int a, tot= 32;
 	
 	radstep= 2.0f*M_PI/(float)tot;
@@ -1530,9 +1556,11 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, rcti *rect)
 		radius= (float)(rect->xmax - rect->xmin)/2; 
 	
 	/* color */
-	VECCOPY(hsv, but->hsv);
-	hsv[0]= hsv[1]= 0.0f;
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], colcent, colcent+1, colcent+2);
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	copy_v3_v3(hsvo, hsv);
+	
+	hsv_to_rgb(0.f, 0.f, hsv[2], colcent, colcent+1, colcent+2);
 	
 	glShadeModel(GL_SMOOTH);
 
@@ -1558,15 +1586,15 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, rcti *rect)
 	glTranslatef(centx, centy, 0.0f);
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH );
-	glColor3f(0.0f, 0.0f, 0.0f);
+	glColor3ubv((unsigned char*)wcol->outline);
 	glutil_draw_lined_arc(0.0f, M_PI*2.0, radius, tot);
 	glDisable(GL_BLEND);
 	glDisable(GL_LINE_SMOOTH );
 	glPopMatrix();
 
 	/* cursor */
-	ang= 2.0f*M_PI*but->hsv[0] + 0.5f*M_PI;
-	radius= but->hsv[1]*radius;
+	ang= 2.0f*M_PI*hsvo[0] + 0.5f*M_PI;
+	radius= hsvo[1]*radius;
 	ui_hsv_cursor(centx + cos(-ang)*radius, centy + sin(-ang)*radius);
 	
 }
@@ -1577,46 +1605,63 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, rcti *rect)
 static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 {
 	int a;
-	float h,s,v;
+	float rgb[3], h,s,v;
 	float dx, dy, sx1, sx2, sy, x=0.0f, y=0.0f;
 	float col0[4][3];	// left half, rect bottom to top
 	float col1[4][3];	// right half, rect bottom to top
 	
-	h= but->hsv[0];
-	s= but->hsv[1];
-	v= but->hsv[2];
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], &h, &s, &v);
 	
 	/* draw series of gouraud rects */
 	glShadeModel(GL_SMOOTH);
 	
-	if(but->a1==0) {	// H and V vary
-		hsv_to_rgb(0.0, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-		hsv_to_rgb(0.0, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
-		hsv_to_rgb(0.0, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
-		hsv_to_rgb(0.0, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		x= h; y= v;
-	}
-	else if(but->a1==1) {	// H and S vary
-		hsv_to_rgb(0.0, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
-		hsv_to_rgb(0.0, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
-		hsv_to_rgb(0.0, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
-		hsv_to_rgb(0.0, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		x= h; y= s;
-	}
-	else if(but->a1==2) {	// S and V vary
+	
+	if(but->a1==0) {	// S and V vary
 		hsv_to_rgb(h, 0.0, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 		hsv_to_rgb(h, 0.333, 0.0, &col1[1][0], &col1[1][1], &col1[1][2]);
 		hsv_to_rgb(h, 0.666, 0.0, &col1[2][0], &col1[2][1], &col1[2][2]);
 		hsv_to_rgb(h, 1.0, 0.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		x= v; y= s;
 	}
-	else if(but->a1==3) {		// only hue slider
+	else if(but->a1==1) {	// H and V vary
+		hsv_to_rgb(0.0, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+		hsv_to_rgb(0.0, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
+		hsv_to_rgb(0.0, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
+		hsv_to_rgb(0.0, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		x= h; y= v;
+	}
+	else if(but->a1==2) {	// H and S vary
+		hsv_to_rgb(0.0, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
+		hsv_to_rgb(0.0, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
+		hsv_to_rgb(0.0, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
+		hsv_to_rgb(0.0, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		x= h; y= s;
+	}
+	else if(but->a1==3) {	// only H
 		hsv_to_rgb(0.0, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 		VECCOPY(col1[1], col1[0]);
 		VECCOPY(col1[2], col1[0]);
 		VECCOPY(col1[3], col1[0]);
 		x= h; y= 0.5;
 	}
+	else if(but->a1==4) {	// only S
+		hsv_to_rgb(1.0, 0.0, 1.0,   &col1[1][0], &col1[1][1], &col1[1][2]);
+		VECCOPY(col1[0], col1[1]);
+		VECCOPY(col1[2], col1[1]);
+		VECCOPY(col1[3], col1[1]);
+		x= s; y= 0.5;
+	}
+	else if(but->a1==5) {	// only V
+		hsv_to_rgb(1.0, 1.0, 0.0,   &col1[2][0], &col1[2][1], &col1[2][2]);
+		VECCOPY(col1[0], col1[2]);
+		VECCOPY(col1[1], col1[2]);
+		VECCOPY(col1[3], col1[2]);
+		x= v; y= 0.5;
+	}
+	
+	
+	/* old below */
 	
 	for(dx=0.0; dx<1.0; dx+= 0.05) {
 		// previous color
@@ -1626,29 +1671,41 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 		VECCOPY(col0[3], col1[3]);
 		
 		// new color
-		if(but->a1==0) {	// H and V vary
+		if(but->a1==0) {	// S and V vary
+			hsv_to_rgb(h, 0.0, dx,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			hsv_to_rgb(h, 0.333, dx, &col1[1][0], &col1[1][1], &col1[1][2]);
+			hsv_to_rgb(h, 0.666, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
+		}
+		else if(but->a1==1) {	// H and V vary
 			hsv_to_rgb(dx, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 			hsv_to_rgb(dx, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
 			hsv_to_rgb(dx, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
 			hsv_to_rgb(dx, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		}
-		else if(but->a1==1) {	// H and S vary
+		else if(but->a1==2) {	// H and S vary
 			hsv_to_rgb(dx, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
 			hsv_to_rgb(dx, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
 			hsv_to_rgb(dx, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
 			hsv_to_rgb(dx, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		}
-		else if(but->a1==2) {	// S and V vary
-			hsv_to_rgb(h, 0.0, dx,   &col1[0][0], &col1[0][1], &col1[0][2]);
-			hsv_to_rgb(h, 0.333, dx, &col1[1][0], &col1[1][1], &col1[1][2]);
-			hsv_to_rgb(h, 0.666, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
-			hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
 		}
 		else if(but->a1==3) {	// only H
 			hsv_to_rgb(dx, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
 			VECCOPY(col1[1], col1[0]);
 			VECCOPY(col1[2], col1[0]);
 			VECCOPY(col1[3], col1[0]);
+		}
+		else if(but->a1==4) {	// only S
+			hsv_to_rgb(h, dx, 1.0,   &col1[1][0], &col1[1][1], &col1[1][2]);
+			VECCOPY(col1[0], col1[1]);
+			VECCOPY(col1[2], col1[1]);
+			VECCOPY(col1[3], col1[1]);
+		}
+		else if(but->a1==5) {	// only V
+			hsv_to_rgb(h, 1.0, dx,   &col1[2][0], &col1[2][1], &col1[2][2]);
+			VECCOPY(col1[0], col1[2]);
+			VECCOPY(col1[1], col1[2]);
+			VECCOPY(col1[3], col1[2]);
 		}
 		
 		// rect
@@ -1695,7 +1752,7 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	uiWidgetBase wtb;
 	float rad= 0.5f*(rect->xmax - rect->xmin);
 	float x, y;
-	float v = but->hsv[2];
+	float rgb[3], hsv[3], v;
 	int color_profile = but->block->color_profile;
 	
 	if (but->rnaprop) {
@@ -1704,6 +1761,10 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 		}
 	}
 
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+	v = hsv[2];
+	
 	if (color_profile)
 		v = linearrgb_to_srgb(v);
 	
@@ -1728,6 +1789,23 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	
 	ui_hsv_cursor(x, y);
 	
+}
+
+/* ************ separator, for menus etc ***************** */
+static void ui_draw_separator(uiBut *but, rcti *rect,  uiWidgetColors *wcol)
+{
+	int y = rect->ymin + (rect->ymax - rect->ymin)/2 - 1;
+	unsigned char col[3];
+	
+	col[0] = wcol->text[0];
+	col[1] = wcol->text[1];
+	col[2] = wcol->text[2];
+	col[3] = 7;
+	
+	glEnable(GL_BLEND);
+	glColor4ubv(col);
+	sdrawline(rect->xmin, y, rect->xmax, y);
+	glDisable(GL_BLEND);
 }
 
 /* ************ button callbacks, draw ***************** */
@@ -2447,6 +2525,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				widget_draw_text_icon(&style->widgetlabel, &tui->wcol_menu_back, but, rect);
 				break;
 			case SEPR:
+				ui_draw_separator(but, rect, &tui->wcol_menu_item);
 				break;
 				
 			default:
@@ -2558,14 +2637,14 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 				
 			case HSVCUBE:
-				if(but->a1==4) // vertical V slider, uses new widget draw now
+				if(but->a1==9) // vertical V slider, uses new widget draw now
 					ui_draw_but_HSV_v(but, rect);
 				else  // other HSV pickers...
 					ui_draw_but_HSVCUBE(but, rect);
 				break;
 				
 			case HSVCIRCLE:
-				ui_draw_but_HSVCIRCLE(but, rect);
+				ui_draw_but_HSVCIRCLE(but, &tui->wcol_regular, rect);
 				break;
 				
 			case BUT_COLORBAND:
@@ -2692,3 +2771,25 @@ void ui_draw_menu_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, 
 	}
 }
 
+void ui_draw_preview_item(uiFontStyle *fstyle, rcti *rect, char *name, int iconid, int state)
+{
+	rcti trect = *rect;
+	
+	uiWidgetType *wt= widget_type(UI_WTYPE_MENU_ITEM);
+	
+	wt->state(wt, state);
+	wt->draw(&wt->wcol, rect, 0, 0);
+	
+	widget_draw_preview(iconid, 1.f, 1.f, rect);
+	
+	if (state == UI_ACTIVE)
+		glColor3ubv((unsigned char*)wt->wcol.text);
+	else
+		glColor3ubv((unsigned char*)wt->wcol.text_sel);
+	
+	trect.xmin += 0;
+	trect.xmax = trect.xmin + BLF_width(name) + 10;
+	trect.ymin += 10;
+	trect.ymax = trect.ymin + BLF_height(name);
+	uiStyleFontDraw(fstyle, &trect, name);
+}

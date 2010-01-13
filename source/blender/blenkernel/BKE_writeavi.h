@@ -40,19 +40,16 @@ struct RenderData;
 struct ReportList;
 struct Scene;
 
-int start_avi(struct Scene *scene, struct RenderData *rd, int rectx, int recty, struct ReportList *reports);
-void end_avi(void);
-int append_avi(struct RenderData *rd, int frame, int *pixels, int rectx, int recty, struct ReportList *reports);
-void makeavistring (struct RenderData *rd, char *string);
-
 typedef struct bMovieHandle {
 	int (*start_movie)(struct Scene *scene, struct RenderData *rd, int rectx, int recty, struct ReportList *reports);
 	int (*append_movie)(struct RenderData *rd, int frame, int *pixels, int rectx, int recty, struct ReportList *reports);
 	void (*end_movie)(void);
 	int (*get_next_frame)(struct RenderData *rd, struct ReportList *reports); /* optional */
+	void (*get_movie_path)(char *string, struct RenderData *rd); /* optional */
 } bMovieHandle;
 
 bMovieHandle *BKE_get_movie_handle(int imtype);
+void BKE_makeanimstring(char *string, struct RenderData *rd);
 
 #ifdef __cplusplus
 }

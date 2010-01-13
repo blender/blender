@@ -38,7 +38,7 @@ private:
 	/**
 	 * The loop count.
 	 */
-	float m_loop;
+	int m_loop;
 
 public:
 	/**

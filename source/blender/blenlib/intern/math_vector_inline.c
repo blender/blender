@@ -45,13 +45,13 @@ MINLINE void zero_v3(float r[3])
 	r[2]= 0.0f;
 }
 
-MINLINE void copy_v2_v2(float r[2], float a[2])
+MINLINE void copy_v2_v2(float r[2], const float a[2])
 {
 	r[0]= a[0];
 	r[1]= a[1];
 }
 
-MINLINE void copy_v3_v3(float r[3], float a[3])
+MINLINE void copy_v3_v3(float r[3], const float a[3])
 {
 	r[0]= a[0];
 	r[1]= a[1];
@@ -118,7 +118,7 @@ MINLINE void sub_v3_v3(float *r, float *a)
 	r[2] -= a[2];
 }
 
-MINLINE void sub_v3_v3v3(float *r, float *a, float *b)
+MINLINE void sub_v3_v3v3(float r[3], const float a[3], const float b[3])
 {
 	r[0]= a[0] - b[0];
 	r[1]= a[1] - b[1];
@@ -145,6 +145,12 @@ MINLINE void mul_v3_v3fl(float r[3], float a[3], float f)
 	r[2]= a[2]*f;
 }
 
+MINLINE void mul_v2_v2(float r[2], const float a[2])
+{
+	r[0] *= a[0];
+	r[1] *= a[1];
+}
+
 MINLINE void mul_v3_v3(float r[3], float a[3])
 {
 	r[0] *= a[0];
@@ -164,6 +170,12 @@ MINLINE void madd_v3_v3v3(float r[3], float a[3], float b[3])
 	r[0] += a[0]*b[0];
 	r[1] += a[1]*b[1];
 	r[2] += a[2]*b[2];
+}
+
+MINLINE void madd_v2_v2v2fl(float r[2], const float a[2], const float b[2], const float f)
+{
+	r[0] = a[0] + b[0]*f;
+	r[1] = a[1] + b[1]*f;
 }
 
 MINLINE void madd_v3_v3v3fl(float r[3], float a[3], float b[3], float f)
@@ -194,29 +206,29 @@ MINLINE void negate_v3(float r[3])
 	r[2]= -r[2];
 }
 
-MINLINE void negate_v3_v3(float r[3], float a[3])
+MINLINE void negate_v3_v3(float r[3], const float a[3])
 {
 	r[0]= -a[0];
 	r[1]= -a[1];
 	r[2]= -a[2];
 }
 
-MINLINE float dot_v2v2(float *a, float *b)
+MINLINE float dot_v2v2(const float a[2], const float b[2])
 {
 	return a[0]*b[0] + a[1]*b[1];
 }
 
-MINLINE float dot_v3v3(float a[3], float b[3])
+MINLINE float dot_v3v3(const float a[3], const float b[3])
 {
 	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
 }
 
-MINLINE float cross_v2v2(float a[2], float b[2])
+MINLINE float cross_v2v2(const float a[2], const float b[2])
 {
 	 return a[0]*b[1] - a[1]*b[0];
 }
 
-MINLINE void cross_v3_v3v3(float r[3], float a[3], float b[3])
+MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3])
 {
 	r[0]= a[1]*b[2] - a[2]*b[1];
 	r[1]= a[2]*b[0] - a[0]*b[2];
@@ -236,12 +248,12 @@ MINLINE void star_m3_v3(float mat[][3], float *vec)
 
 /*********************************** Length **********************************/
 
-MINLINE float len_v2(float *v)
+MINLINE float len_v2(const float v[2])
 {
 	return (float)sqrt(v[0]*v[0] + v[1]*v[1]);
 }
 
-MINLINE float len_v2v2(float *v1, float *v2)
+MINLINE float len_v2v2(const float v1[2], const float v2[2])
 {
 	float x, y;
 
@@ -250,12 +262,12 @@ MINLINE float len_v2v2(float *v1, float *v2)
 	return (float)sqrt(x*x+y*y);
 }
 
-MINLINE float len_v3(float a[3])
+MINLINE float len_v3(const float a[3])
 {
 	return sqrtf(dot_v3v3(a, a));
 }
 
-MINLINE float len_v3v3(float a[3], float b[3])
+MINLINE float len_v3v3(const float a[3], const float b[3])
 {
 	float d[3];
 

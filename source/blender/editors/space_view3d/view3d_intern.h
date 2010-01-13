@@ -43,6 +43,9 @@ struct wmWindowManager;
 struct EditMesh;
 struct ViewContext;
 struct ARegionType;
+struct bPoseChannel;
+struct bAnimVizSettings;
+struct bMotionPath;
 
 #define BL_NEAR_CLIP 0.001
 
@@ -84,6 +87,15 @@ void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
 
+/* drawanim.c */
+void draw_motion_paths_init(Scene *scene, View3D *v3d, struct ARegion *ar);
+void draw_motion_path_instance(Scene *scene, View3D *v3d, struct ARegion *ar, 
+			struct Object *ob, struct bPoseChannel *pchan, 
+			struct bAnimVizSettings *avs, struct bMotionPath *mpath);
+void draw_motion_paths_cleanup(Scene *scene, View3D *v3d, struct ARegion *ar);
+
+
+
 /* drawobject.c */
 void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, int flag);
 int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt);
@@ -104,6 +116,7 @@ void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *o
 /* view3d_draw.c */
 void view3d_main_area_draw(const struct bContext *C, struct ARegion *ar);
 void draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, int (* func)(void *));
+void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
 void view3d_clr_clipping(void);
 void view3d_set_clipping(RegionView3D *rv3d);
 void add_view3d_after(View3D *v3d, Base *base, int type, int flag);

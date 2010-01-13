@@ -72,7 +72,7 @@ static short id_has_animdata (ID *id)
 	switch (GS(id->name)) {
 			/* has AnimData */
 		case ID_OB:
-		case ID_MB: case ID_CU: case ID_AR:
+		case ID_ME: case ID_MB: case ID_CU: case ID_AR:
 		case ID_KE:
 		case ID_PA:
 		case ID_MA: case ID_TE: case ID_NT:
@@ -203,6 +203,26 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	return dadt;
 }
 
+int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from)
+{
+	AnimData *adt;
+
+	if((id_to && id_from) && (GS(id_to->name) != GS(id_from->name)))
+		return 0;
+
+	BKE_free_animdata(id_to);
+
+	adt = BKE_animdata_from_id(id_from);
+	if (adt) {
+		IdAdtTemplate *iat = (IdAdtTemplate *)id_to;
+		iat->adt= BKE_copy_animdata(adt);
+	}
+
+	return 1;
+}
+
+
+
 /* Make Local -------------------------------------------- */
 
 static void make_local_strips(ListBase *strips)
@@ -319,16 +339,32 @@ static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, 
 	/* we need to check every curve... */
 	for (fcu= curves->first; fcu; fcu= fcu->next) {
 		/* firstly, handle the F-Curve's own path */
-		fcu->rna_path= rna_path_rename_fix(owner_id, prefix, oldName, newName, fcu->rna_path);
+		if (fcu->rna_path)
+			fcu->rna_path= rna_path_rename_fix(owner_id, prefix, oldName, newName, fcu->rna_path);
 		
 		/* driver? */
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
 			
-			/* driver targets */
-			for (dtar= driver->targets.first; dtar; dtar=dtar->next) {
-				dtar->rna_path= rna_path_rename_fix(dtar->id, prefix, oldName, newName, dtar->rna_path);
+			/* driver variables */
+			for (dvar= driver->variables.first; dvar; dvar=dvar->next) {
+				/* only change the used targets, since the others will need fixing manually anyway */
+				DRIVER_TARGETS_USED_LOOPER(dvar) 
+				{
+					/* rename RNA path */
+					if (dtar->rna_path)
+						dtar->rna_path= rna_path_rename_fix(dtar->id, prefix, oldName, newName, dtar->rna_path);
+					
+					/* also fix the bone-name (if applicable) */
+					// XXX this has been disabled because the old/new names have padding which means this check will fail
+					//if ( ((dtar->id) && (GS(dtar->id->name) == ID_OB)) &&
+					//	 (dtar->pchan_name[0]) && (strcmp(oldName, dtar->pchan_name)==0) )
+					//{
+					//	BLI_strncpy(dtar->pchan_name, newName, sizeof(dtar->pchan_name));
+					//}
+				}
+				DRIVER_TARGETS_LOOPER_END
 			}
 		}
 	}
@@ -1774,7 +1810,7 @@ void BKE_animsys_evaluate_all_animation (Main *main, float ctime)
 	EVAL_ANIM_IDS(main->armature.first, ADT_RECALC_ANIM);
 	
 	/* meshes */
-	// TODO...
+	EVAL_ANIM_IDS(main->mesh.first, ADT_RECALC_ANIM);
 	
 	/* particles */
 	EVAL_ANIM_IDS(main->particle.first, ADT_RECALC_ANIM);

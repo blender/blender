@@ -1107,10 +1107,10 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 	ED_area_tag_redraw(sa);
 }
 
-static char *windowtype_pup(void)
+static char *editortype_pup(void)
 {
 	return(
-		   "Window type:%t"
+		   "Editor type:%t"
 		   "|3D View %x1"
 
 		   "|%l"
@@ -1160,9 +1160,9 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 	int xco= 8;
 	
 	but= uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
-						   windowtype_pup(), xco, yco, XIC+10, YIC, 
+						   editortype_pup(), xco, yco, XIC+10, YIC, 
 						   &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
-						   "Displays Current Window Type. "
+						   "Displays Current Editor Type. "
 						   "Click for menu of available types.");
 	uiButSetFunc(but, spacefunc, NULL, NULL);
 	

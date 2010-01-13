@@ -27,14 +27,14 @@
 #include "AUD_SRCResampleReader.h"
 
 AUD_SRCResampleFactory::AUD_SRCResampleFactory(AUD_IReader* reader,
-											   AUD_Specs specs) :
+											   AUD_DeviceSpecs specs) :
 		AUD_ResampleFactory(reader, specs) {}
 
 AUD_SRCResampleFactory::AUD_SRCResampleFactory(AUD_IFactory* factory,
-											   AUD_Specs specs) :
+											   AUD_DeviceSpecs specs) :
 		AUD_ResampleFactory(factory, specs) {}
 
-AUD_SRCResampleFactory::AUD_SRCResampleFactory(AUD_Specs specs) :
+AUD_SRCResampleFactory::AUD_SRCResampleFactory(AUD_DeviceSpecs specs) :
 		AUD_ResampleFactory(specs) {}
 
 AUD_IReader* AUD_SRCResampleFactory::createReader()
@@ -45,7 +45,7 @@ AUD_IReader* AUD_SRCResampleFactory::createReader()
 	{
 		if(reader->getSpecs().rate != m_specs.rate)
 		{
-			reader = new AUD_SRCResampleReader(reader, m_specs);
+			reader = new AUD_SRCResampleReader(reader, m_specs.specs);
 			AUD_NEW("reader")
 		}
 	}

@@ -76,7 +76,7 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator("wm.read_homefile", text="New", icon='NEW')
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
-        layout.operator_menu_enum("wm.open_recentfile", "file", text="Open Recent")
+        layout.menu("INFO_MT_file_open_recent")
         layout.operator("wm.recover_last_session")
         layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
 
@@ -112,6 +112,20 @@ class INFO_MT_file(bpy.types.Menu):
         layout.operator_context = 'EXEC_AREA'
         layout.operator("wm.exit_blender", text="Quit", icon='QUIT')
 
+
+class INFO_MT_file_open_recent(bpy.types.Menu):
+    bl_idname = "INFO_MT_file_open_recent"
+    bl_label = "Open Recent..."
+
+    def draw(self, context):
+        import os
+        layout = self.layout
+        layout.operator_context = 'EXEC_AREA'
+        file = open(os.path.join(bpy.app.home, ".Blog"), "rU")
+        for line in file:
+            line = line.rstrip()
+            layout.operator("wm.open_mainfile", text=line, icon='FILE_BLEND').path = line
+        file.close()
 
 class INFO_MT_file_import(bpy.types.Menu):
     bl_idname = "INFO_MT_file_import"
@@ -150,7 +164,7 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 
 class INFO_MT_mesh_add(bpy.types.Menu):
     bl_idname = "INFO_MT_mesh_add"
-    bl_label = "Mesh"
+    bl_label = "Add Mesh"
 
     def draw(self, context):
         layout = self.layout
@@ -200,7 +214,7 @@ class INFO_MT_add(bpy.types.Menu):
         layout.operator("object.add", text="Empty", icon='OUTLINER_OB_EMPTY').type = 'EMPTY'
         layout.separator()
 
-        layout.operator("object.add", text="Camera", icon='OUTLINER_OB_CAMERA').type = 'CAMERA'
+        layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
         layout.operator_context = 'EXEC_SCREEN'
         layout.operator_menu_enum("object.lamp_add", "type", 'LAMP', text="Lamp", icon='OUTLINER_OB_LAMP')
         layout.separator()
@@ -274,6 +288,7 @@ class INFO_MT_help(bpy.types.Menu):
 
 bpy.types.register(INFO_HT_header)
 bpy.types.register(INFO_MT_file)
+bpy.types.register(INFO_MT_file_open_recent)
 bpy.types.register(INFO_MT_file_import)
 bpy.types.register(INFO_MT_file_export)
 bpy.types.register(INFO_MT_file_external_data)
@@ -369,12 +384,10 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
 
             op_strings.append('')
 
-        bpy.ops.text.new() # XXX - assumes new text is always at the end!
-        textblock = bpy.data.texts[-1]
+        textblock = bpy.data.texts.new("OperatorList.txt")
         textblock.write('# %d Operators\n\n' % tot)
         textblock.write('\n'.join(op_strings))
-        textblock.name = "OperatorList.txt"
-        print("See OperatorList.txt textblock")
+        self.report({'INFO'}, "See OperatorList.txt textblock")
         return {'FINISHED'}
 
 bpy.types.register(HELP_OT_manual)

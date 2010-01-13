@@ -100,6 +100,7 @@ void OBJECT_OT_text_add(struct wmOperatorType *ot);
 void OBJECT_OT_armature_add(struct wmOperatorType *ot);
 void OBJECT_OT_lamp_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
+void OBJECT_OT_camera_add(struct wmOperatorType *ot);
 void OBJECT_OT_group_instance_add(struct wmOperatorType *ot);
 
 void OBJECT_OT_duplicates_make_real(struct wmOperatorType *ot);
@@ -201,6 +202,9 @@ void OBJECT_OT_shape_key_move(struct wmOperatorType *ot);
 /* object_group.c */
 void OBJECT_OT_group_add(struct wmOperatorType *ot);
 void OBJECT_OT_group_remove(struct wmOperatorType *ot);
+
+/* object_bake.c */
+void OBJECT_OT_bake_image(wmOperatorType *ot);
 
 #endif /* ED_OBJECT_INTERN_H */
 

@@ -1908,8 +1908,7 @@ void EM_deselect_by_material(EditMesh *em, int index)
 }
 
 /* **************** NORMALS ************** */
-/* XXX value of select is messed up, it means two things */
-void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning */
+void EM_recalc_normal_direction(EditMesh *em, int inside, int select)	/* makes faces righthand turning */
 {
 	EditEdge *eed, *ed1, *ed2, *ed3, *ed4;
 	EditFace *efa, *startvl;
@@ -2001,16 +2000,12 @@ void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning *
 			cent_tri_v3(cent, startvl->v1->co, startvl->v2->co, startvl->v3->co);
 		}
 		/* first normal is oriented this way or the other */
-		if(select) {
-			if(select==2) {
-				if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] > 0.0) flipface(em, startvl);
-			}
-			else {
-				if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] < 0.0) flipface(em, startvl);
-			}
+		if(inside) {
+			if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] > 0.0) flipface(em, startvl);
 		}
-		else if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] < 0.0) flipface(em, startvl);
-
+		else {
+			if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] < 0.0) flipface(em, startvl);
+		}
 
 		eed= startvl->e1;
 		if(eed->v1==startvl->v1) eed->f2= 1; 

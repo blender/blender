@@ -536,6 +536,7 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 {
 	RegionView3D *rv3d= ar->regiondata;
 	float vec[4];
+	int a;
 	
 	if(rv3d->persp != RV3D_ORTHO){
 		vec[0]= 2.0f * mval[0] / ar->winx - 1;
@@ -564,6 +565,11 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 		VECADDFAC(ray_start, vec, rv3d->viewinv[2],  1000.0f);
 		VECADDFAC(ray_end, vec, rv3d->viewinv[2], -1000.0f);
 	}
+
+	/* clipping */
+	if(rv3d->rflag & RV3D_CLIPPING)
+		for(a=0; a<4; a++)
+			clip_line_plane(ray_start, ray_end, rv3d->clip[a]);
 }
 
 /* create intersection ray in view Z direction at mouse coordinates */
@@ -576,6 +582,31 @@ void viewray(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float 
 	normalize_v3(ray_normal);
 }
 
+void viewvector(RegionView3D *rv3d, float coord[3], float vec[3])
+{
+	if (rv3d->persp != RV3D_ORTHO)
+	{
+		float p1[4], p2[4];
+
+		VECCOPY(p1, coord);
+		p1[3] = 1.0f;
+		VECCOPY(p2, p1);
+		p2[3] = 1.0f;
+		mul_m4_v4(rv3d->viewmat, p2);
+
+		p2[0] = 2.0f * p2[0];
+		p2[1] = 2.0f * p2[1];
+		p2[2] = 2.0f * p2[2];
+
+		mul_m4_v4(rv3d->viewinv, p2);
+
+		sub_v3_v3v3(vec, p1, p2);
+	}
+	else {
+		VECCOPY(vec, rv3d->viewinv[2]);
+	}
+	normalize_v3(vec);
+}
 
 void initgrabz(RegionView3D *rv3d, float x, float y, float z)
 {
@@ -1625,11 +1656,6 @@ void game_set_commmandline_options(GameData *gm)
 
 	if ( (syshandle = SYS_GetSystem()) ) {
 		/* User defined settings */
-		test= (U.gameflags & USER_DISABLE_SOUND);
-		/* if user already disabled audio at the command-line, don't re-enable it */
-		if (test)
-			SYS_WriteCommandLineInt(syshandle, "noaudio", test);
-
 		test= (U.gameflags & USER_DISABLE_MIPMAP);
 		GPU_set_mipmap(!test);
 		SYS_WriteCommandLineInt(syshandle, "nomipmap", test);
@@ -2455,14 +2481,7 @@ static int flyApply(FlyInfo *fly)
 			if (rv3d->persp==RV3D_CAMOB) {
 				rv3d->persp= RV3D_PERSP; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
 				setviewmatrixview3d(scene, v3d, rv3d);
-
 				setcameratoview3d(v3d, rv3d, v3d->camera);
-
-				{	//XXX - some reason setcameratoview3d doesnt copy, shouldnt not be needed!
-					VECCOPY(v3d->camera->loc, rv3d->ofs);
-					negate_v3(v3d->camera->loc);
-				}
-
 				rv3d->persp= RV3D_CAMOB;
 #if 0 //XXX2.5
 				/* record the motion */

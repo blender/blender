@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 from properties_physics_common import point_cache_ui
 from properties_physics_common import effector_weights_ui
@@ -47,7 +48,7 @@ class ParticleButtonsPanel(bpy.types.Panel):
         return particle_panel_poll(context)
 
 
-class PARTICLE_PT_particles(ParticleButtonsPanel):
+class PARTICLE_PT_context_particles(ParticleButtonsPanel):
     bl_label = ""
     bl_show_header = False
 
@@ -128,6 +129,10 @@ class PARTICLE_PT_particles(ParticleButtonsPanel):
                     split.enabled = particle_panel_enabled(context, psys)
                     split.prop(psys, "reactor_target_object")
                     split.prop(psys, "reactor_target_particle_system", text="Particle System")
+
+
+class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel):
+    _context_path = "particle_system.settings"
 
 
 class PARTICLE_PT_emission(ParticleButtonsPanel):
@@ -992,7 +997,7 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
         row.prop_object(psys, "vertex_group_field", ob, "vertex_groups", text="Field")
         row.prop(psys, "vertex_group_field_negate", text="")
 
-bpy.types.register(PARTICLE_PT_particles)
+bpy.types.register(PARTICLE_PT_context_particles)
 bpy.types.register(PARTICLE_PT_hair_dynamics)
 bpy.types.register(PARTICLE_PT_cache)
 bpy.types.register(PARTICLE_PT_emission)
@@ -1006,3 +1011,5 @@ bpy.types.register(PARTICLE_PT_children)
 bpy.types.register(PARTICLE_PT_field_weights)
 bpy.types.register(PARTICLE_PT_force_fields)
 bpy.types.register(PARTICLE_PT_vertexgroups)
+
+bpy.types.register(PARTICLE_PT_custom_props)

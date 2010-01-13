@@ -42,13 +42,39 @@ def metarig_template():
 
 
 def metarig_definition(obj, orig_bone_name):
-    return [orig_bone_name]
+    return (orig_bone_name,)
 
 
-def main(obj, bone_definition, base_names, options):
+def deform(obj, definitions, base_names, options):
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    # Create deform bone.
+    bone = copy_bone_simple(obj.data, definitions[0], "DEF-%s" % base_names[definitions[0]], parent=True)
+    
+    # Store name before leaving edit mode
+    bone_name = bone.name
+    
+    # Leave edit mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # Get the pose bone
+    bone = obj.pose.bones[bone_name]
+    
+    # Constrain to the original bone
+    con = bone.constraints.new('COPY_TRANSFORMS')
+    con.name = "copy_loc"
+    con.target = obj
+    con.subtarget = definitions[0]
+    
+    return (bone_name,)
+
+
+def control(obj, definitions, base_names, options):
+    bpy.ops.object.mode_set(mode='EDIT')
+    
     arm = obj.data
     mt = bone_class_instance(obj, METARIG_NAMES)
-    mt.cpy = bone_definition[0]
+    mt.cpy = definitions[0]
     mt.update()
     cp = bone_class_instance(obj, ["cpy"])
     cp.cpy_e = copy_bone_simple(arm, mt.cpy, base_names[mt.cpy], parent=True)
@@ -59,18 +85,10 @@ def main(obj, bone_definition, base_names, options):
     cp.update()
     mt.update()
 
-    if not cp.cpy_b.connected:
-        con = mt.cpy_p.constraints.new('COPY_LOCATION')
-        con.target = obj
-        con.subtarget = cp.cpy
-
-    con = mt.cpy_p.constraints.new('COPY_ROTATION')
+    con = mt.cpy_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = cp.cpy
 
-    con = mt.cpy_p.constraints.new('COPY_SCALE')
-    con.target = obj
-    con.subtarget = cp.cpy
 
     # Rotation mode and axis locks
     cp.cpy_p.rotation_mode = mt.cpy_p.rotation_mode
@@ -79,9 +97,18 @@ def main(obj, bone_definition, base_names, options):
     cp.cpy_p.lock_rotation = tuple(mt.cpy_p.lock_rotation)
     cp.cpy_p.lock_rotation_w = mt.cpy_p.lock_rotation_w
     cp.cpy_p.lock_scale = tuple(mt.cpy_p.lock_scale)
+    
+    # Layers
+    cp.cpy_b.layer = list(mt.cpy_b.layer)
+    
+    return (mt.cpy,)
 
-    # setup layers last
-    layers = get_layer_dict(options)
-    cp.cpy_b.layer = layers["main"]
 
-    return [mt.cpy]
+def main(obj, bone_definition, base_names, options):
+    # Create control bone
+    cpy = control(obj, bone_definition, base_names, options)[0]
+    # Create deform bone
+    deform(obj, bone_definition, base_names, options)
+
+    return (cpy,)
+

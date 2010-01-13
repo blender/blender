@@ -490,6 +490,10 @@ static int editmode_toggle_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
+	/* covers proxies too */
+	if(ob->data==NULL || ((ID *)ob->data)->lib)
+		return 0;
+
 	return ob && (ob->type == OB_MESH || ob->type == OB_ARMATURE ||
 		      ob->type == OB_FONT || ob->type == OB_MBALL ||
 		      ob->type == OB_LATTICE || ob->type == OB_SURF ||
@@ -1663,8 +1667,6 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-
-
 /* ********************** */
 
 void image_aspect(Scene *scene, View3D *v3d)
@@ -1879,16 +1881,18 @@ static int object_mode_set_compat(bContext *C, wmOperator *op, Object *ob)
 {
 	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
 
+	if(mode & OB_MODE_OBJECT)
+		return 1;
+
 	if(ob) {
 		switch(ob->type) {
 		case OB_EMPTY:
 		case OB_LAMP:
 		case OB_CAMERA:
-			if(mode & OB_MODE_OBJECT)
-				return 1;
 			return 0;
+
 		case OB_MESH:
-			if(mode & (	OB_MODE_OBJECT|OB_MODE_EDIT|OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_PARTICLE_EDIT))
+			if(mode & (OB_MODE_EDIT|OB_MODE_SCULPT|OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT|OB_MODE_PARTICLE_EDIT))
 				return 1;
 			return 0;
 		case OB_CURVE:

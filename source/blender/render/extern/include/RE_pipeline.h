@@ -46,6 +46,7 @@ struct RenderEngineType;
 struct RenderResult;
 struct ReportList;
 struct Scene;
+struct SceneRenderLayer;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is what is exposed of render to outside world */
@@ -169,7 +170,7 @@ struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name)
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype);
 
 /* obligatory initialize call, disprect is optional */
-void RE_InitState (struct Render *re, struct Render *source, struct RenderData *rd, int winx, int winy, rcti *disprect);
+void RE_InitState (struct Render *re, struct Render *source, struct RenderData *rd, struct SceneRenderLayer *srl, int winx, int winy, rcti *disprect);
 
 /* use this to change disprect of active render */
 void RE_SetDispRect (struct Render *re, rcti *disprect);
@@ -200,7 +201,7 @@ void RE_init_threadcount(Render *re);
 void RE_TileProcessor(struct Render *re, int firsttile, int threaded);
 
 /* only RE_NewRender() needed, main Blender render calls */
-void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame);
+void RE_BlenderFrame(struct Render *re, struct Scene *scene, struct SceneRenderLayer *srl, int frame);
 void RE_BlenderAnim(struct Render *re, struct Scene *scene, int sfra, int efra, int tfra, struct ReportList *reports);
 
 void RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);

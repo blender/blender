@@ -59,6 +59,7 @@
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 
+#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_text.h"
 #include "BKE_context.h"
@@ -220,6 +221,19 @@ static void bpy_init_modules( void )
 		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 	}
 
+	/* blender info that wont change at runtime, add into _bpy */
+	{
+		extern char bprogname[]; /* argv[0] from creator.c */
+
+		PyObject *mod_dict= PyModule_GetDict(mod);
+		char tmpstr[256];
+		PyModule_AddStringConstant(mod, "_HOME",  BLI_gethome());
+		PyDict_SetItemString(mod_dict, "_VERSION", Py_BuildValue("(iii)", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION));
+		sprintf(tmpstr, "%d.%02d (sub %d)", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
+		PyModule_AddStringConstant(mod, "_VERSION_STR",  tmpstr);
+		PyModule_AddStringConstant(mod, "_BINPATH",  bprogname);
+	}
+
 	/* add our own modules dir, this is a python package */
 	bpy_import_test("bpy");
 }
@@ -285,9 +299,20 @@ void BPY_start_python_path(void)
 			   \nThis may make python import function fail\n");
 #endif
 	
-#if 0
-	BLI_setenv("PYTHONHOME", py_path_bundle);
-	BLI_setenv("PYTHONPATH", py_path_bundle);
+#ifdef _WIN32
+	/* cmake/MSVC debug build crashes without this, why only
+	   in this case is unknown.. */
+	{
+		char *envpath = getenv("PYTHONPATH");
+
+		if(envpath && envpath[0]) {
+			char *newenvpath = BLI_sprintfN("%s;%s", py_path_bundle, envpath);
+			BLI_setenv("PYTHONPATH", newenvpath);
+			MEM_freeN(newenvpath);
+		}
+		else
+			BLI_setenv("PYTHONPATH", py_path_bundle);	
+	}
 #endif
 
 	{
@@ -687,7 +712,12 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 void BPY_load_user_modules(bContext *C)
 {
 	PyGILState_STATE gilstate;
+	Main *bmain= CTX_data_main(C);
 	Text *text;
+
+	/* can happen on file load */
+	if(bmain==NULL)
+		return;
 
 	bpy_context_set(C, &gilstate);
 

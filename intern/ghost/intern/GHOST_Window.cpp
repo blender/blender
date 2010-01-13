@@ -44,13 +44,15 @@ GHOST_Window::GHOST_Window(
 	GHOST_TInt32 /*left*/, GHOST_TInt32 /*top*/, GHOST_TUns32 width, GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
-	const bool stereoVisual)
+	const bool stereoVisual,
+	const GHOST_TUns16 numOfAASamples)
 :
 	m_drawingContextType(type),
 	m_cursorVisible(true),
 	m_cursorGrab(GHOST_kGrabDisable),
 	m_cursorShape(GHOST_kStandardCursorDefault),
-	m_stereoVisual(stereoVisual)
+	m_stereoVisual(stereoVisual),
+	m_numOfAASamples(numOfAASamples)
 {
 	m_isUnsavedChanges = false;
 	m_canAcceptDragOperation = false;

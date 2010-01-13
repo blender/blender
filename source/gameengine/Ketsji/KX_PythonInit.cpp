@@ -1926,6 +1926,41 @@ void exitGamePythonScripting()
 	PyObjectPlus::ClearDeprecationWarning();
 }
 
+/* similar to the above functions except it sets up the namespace
+ * and other more general things */
+void setupGamePython(KX_KetsjiEngine* ketsjiengine, KX_Scene* startscene, Main *blenderdata, PyObject * pyGlobalDict, PyObject **gameLogic, PyObject **gameLogic_keys, int argc, char** argv)
+{
+	PyObject* dictionaryobject;
+
+	if(argv) /* player only */
+		dictionaryobject= initGamePlayerPythonScripting("Ketsji", psl_Lowest, blenderdata, argc, argv);
+	else
+		dictionaryobject= initGamePythonScripting("Ketsji", psl_Lowest, blenderdata);
+
+	ketsjiengine->SetPyNamespace(dictionaryobject);
+	initRasterizer(ketsjiengine->GetRasterizer(), ketsjiengine->GetCanvas());
+	*gameLogic = initGameLogic(ketsjiengine, startscene);
+
+	/* is set in initGameLogic so only set here if we want it to persist between scenes */
+	if(pyGlobalDict)
+		PyDict_SetItemString(PyModule_GetDict(*gameLogic), "globalDict", pyGlobalDict); // Same as importing the module.
+
+	*gameLogic_keys = PyDict_Keys(PyModule_GetDict(*gameLogic));
+	PyDict_SetItemString(dictionaryobject, "GameLogic", *gameLogic); // Same as importing the module.
+
+	initGameKeys();
+	initPythonConstraintBinding();
+	initMathutils();
+	initGeometry();
+	initBGL();
+
+#ifdef WITH_FFMPEG
+	initVideoTexture();
+#endif
+
+	/* could be done a lot more nicely, but for now a quick way to get bge.* working */
+	PyRun_SimpleString("__import__('sys').modules['bge']=[mod for mod in (type(__builtins__)('bge'), ) if mod.__dict__.update({'logic':__import__('GameLogic'), 'render':__import__('Rasterizer'), 'keys':__import__('GameKeys'), 'constraints':__import__('PhysicsConstraints'), 'types':__import__('GameTypes')}) is None][0]");
+}
 
 static struct PyModuleDef Rasterizer_module_def = {
 	{}, /* m_base */

@@ -269,7 +269,7 @@ typedef struct bTheme {
 	ThemeWireColor tarm[20];
 	/*ThemeWireColor tobj[20];*/
 	
-	int active_theme_group, pad;
+	int active_theme_area, pad;
 	
 } bTheme;
 
@@ -340,6 +340,8 @@ typedef struct UserDef {
 	short glreslimit;
 	short ndof_pan, ndof_rotate;
 	short curssize, ipo_new;
+	short color_picker_type;
+	short pad2[3];
 
 	char versemaster[160];
 	char verseuser[160];
@@ -468,9 +470,11 @@ extern UserDef U; /* from blenkernel blender.c */
 
 /* gameflags */
 #define USER_DEPRECATED_FLAG	1
-#define USER_DISABLE_SOUND		2
+// #define USER_DISABLE_SOUND		2 deprecated, don't use without checking for
+// backwards compatibilty in do_versions!
 #define USER_DISABLE_MIPMAP		4
 #define USER_DISABLE_VBO		8
+#define USER_DISABLE_AA			16
 
 /* wm draw method */
 #define USER_DRAW_TRIPLE		0
@@ -482,6 +486,12 @@ extern UserDef U; /* from blenkernel blender.c */
 /* gp_settings (Grease Pencil Settings) */
 #define GP_PAINT_DOSMOOTH		(1<<0)
 #define GP_PAINT_DOSIMPLIFY		(1<<1)
+
+/* color picker types */
+#define USER_CP_CIRCLE		0
+#define USER_CP_SQUARE_SV	1
+#define USER_CP_SQUARE_HS	2
+#define USER_CP_SQUARE_HV	3
 
 /* theme drawtypes */
 #define TH_MINIMAL  	0

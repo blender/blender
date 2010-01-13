@@ -43,6 +43,7 @@ EnumPropertyItem constraint_type_items[] ={
 	{CONSTRAINT_TYPE_LOCLIKE, "COPY_LOCATION", ICON_CONSTRAINT_DATA, "Copy Location", ""},
 	{CONSTRAINT_TYPE_ROTLIKE, "COPY_ROTATION", ICON_CONSTRAINT_DATA, "Copy Rotation", ""},
 	{CONSTRAINT_TYPE_SIZELIKE, "COPY_SCALE", ICON_CONSTRAINT_DATA, "Copy Scale", ""},
+	{CONSTRAINT_TYPE_TRANSLIKE, "COPY_TRANSFORMS", ICON_CONSTRAINT_DATA, "Copy Transforms", ""},
 	{CONSTRAINT_TYPE_DISTLIMIT, "LIMIT_DISTANCE", ICON_CONSTRAINT_DATA, "Limit Distance", ""},
 	{CONSTRAINT_TYPE_LOCLIMIT, "LIMIT_LOCATION", ICON_CONSTRAINT_DATA, "Limit Location", ""},
 	{CONSTRAINT_TYPE_ROTLIMIT, "LIMIT_ROTATION", ICON_CONSTRAINT_DATA, "Limit Rotation", ""},
@@ -151,6 +152,8 @@ static StructRNA *rna_ConstraintType_refine(struct PointerRNA *ptr)
 			return &RNA_DampedTrackConstraint;
 		case CONSTRAINT_TYPE_SPLINEIK:
 			return &RNA_SplineIKConstraint;
+		case CONSTRAINT_TYPE_TRANSLIKE:
+			return &RNA_CopyTransformsConstraint;
 		default:
 			return &RNA_UnknownType;
 	}
@@ -647,62 +650,6 @@ static void rna_def_constraint_track_to(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
-static void rna_def_constraint_rotate_like(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna= RNA_def_struct(brna, "CopyRotationConstraint", "Constraint");
-	RNA_def_struct_ui_text(srna, "Copy Rotation Constraint", "Copies the rotation of the target.");
-	RNA_def_struct_sdna_from(srna, "bRotateLikeConstraint", "data");
-
-	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "tar");
-	RNA_def_property_ui_text(prop, "Target", "Target Object");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
-
-	prop= RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "subtarget");
-	RNA_def_property_ui_text(prop, "Sub-Target", "");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
-
-	prop= RNA_def_property(srna, "use_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_X);
-	RNA_def_property_ui_text(prop, "Copy X", "Copy the target's X rotation.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	prop= RNA_def_property(srna, "use_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_Y);
-	RNA_def_property_ui_text(prop, "Copy Y", "Copy the target's Y rotation.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	prop= RNA_def_property(srna, "use_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_Z);
-	RNA_def_property_ui_text(prop, "Copy Z", "Copy the target's Z rotation.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	prop= RNA_def_property(srna, "invert_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_X_INVERT);
-	RNA_def_property_ui_text(prop, "Invert X", "Invert the X rotation.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	prop= RNA_def_property(srna, "invert_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_Y_INVERT);
-	RNA_def_property_ui_text(prop, "Invert Y", "Invert the Y rotation.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	prop= RNA_def_property(srna, "invert_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_Z_INVERT);
-	RNA_def_property_ui_text(prop, "Invert Z", "Invert the Z rotation.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	prop= RNA_def_property(srna, "use_offset", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_OFFSET);
-	RNA_def_property_ui_text(prop, "Offset", "Add original rotation into copied rotation.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-}
-
 static void rna_def_constraint_locate_like(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -766,6 +713,130 @@ static void rna_def_constraint_locate_like(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
+static void rna_def_constraint_rotate_like(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "CopyRotationConstraint", "Constraint");
+	RNA_def_struct_ui_text(srna, "Copy Rotation Constraint", "Copies the rotation of the target.");
+	RNA_def_struct_sdna_from(srna, "bRotateLikeConstraint", "data");
+
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "tar");
+	RNA_def_property_ui_text(prop, "Target", "Target Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "subtarget");
+	RNA_def_property_ui_text(prop, "Sub-Target", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "use_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_X);
+	RNA_def_property_ui_text(prop, "Copy X", "Copy the target's X rotation.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop= RNA_def_property(srna, "use_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_Y);
+	RNA_def_property_ui_text(prop, "Copy Y", "Copy the target's Y rotation.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop= RNA_def_property(srna, "use_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_Z);
+	RNA_def_property_ui_text(prop, "Copy Z", "Copy the target's Z rotation.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop= RNA_def_property(srna, "invert_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_X_INVERT);
+	RNA_def_property_ui_text(prop, "Invert X", "Invert the X rotation.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop= RNA_def_property(srna, "invert_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_Y_INVERT);
+	RNA_def_property_ui_text(prop, "Invert Y", "Invert the Y rotation.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop= RNA_def_property(srna, "invert_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_Z_INVERT);
+	RNA_def_property_ui_text(prop, "Invert Z", "Invert the Z rotation.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop= RNA_def_property(srna, "use_offset", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", ROTLIKE_OFFSET);
+	RNA_def_property_ui_text(prop, "Offset", "Add original rotation into copied rotation.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+}
+
+static void rna_def_constraint_size_like(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "CopyScaleConstraint", "Constraint");
+	RNA_def_struct_ui_text(srna, "Copy Scale Constraint", "Copies the scale of the target.");
+	RNA_def_struct_sdna_from(srna, "bSizeLikeConstraint", "data");
+
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "tar");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Target", "Target Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "subtarget");
+	RNA_def_property_ui_text(prop, "Sub-Target", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "use_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_X);
+	RNA_def_property_ui_text(prop, "Copy X", "Copy the target's X scale.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop= RNA_def_property(srna, "use_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_Y);
+	RNA_def_property_ui_text(prop, "Copy Y", "Copy the target's Y scale.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop= RNA_def_property(srna, "use_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_Z);
+	RNA_def_property_ui_text(prop, "Copy Z", "Copy the target's Z scale.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop= RNA_def_property(srna, "use_offset", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_OFFSET);
+	RNA_def_property_ui_text(prop, "Offset", "Add original scale into copied scale.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+}
+
+static void rna_def_constraint_transform_like(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "CopyTransformsConstraint", "Constraint");
+	RNA_def_struct_ui_text(srna, "Copy Transforms Constraint", "Copies all the transforms of the target.");
+	RNA_def_struct_sdna_from(srna, "bTransLikeConstraint", "data");
+	
+	prop= RNA_def_property(srna, "head_tail", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, "bConstraint", "headtail");
+	RNA_def_property_ui_text(prop, "Head/Tail", "Target along length of bone: Head=0, Tail=1.");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "tar");
+	RNA_def_property_ui_text(prop, "Target", "Target Object");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop= RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "subtarget");
+	RNA_def_property_ui_text(prop, "Sub-Target", "");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
+}
+
 static void rna_def_constraint_minmax(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -814,48 +885,6 @@ static void rna_def_constraint_minmax(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_range(prop, 0.0, 100.f);
 	RNA_def_property_ui_text(prop, "Offset", "Offset of floor from object origin.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-}
-
-static void rna_def_constraint_size_like(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna= RNA_def_struct(brna, "CopyScaleConstraint", "Constraint");
-	RNA_def_struct_ui_text(srna, "Copy Scale Constraint", "Copies the scale of the target.");
-	RNA_def_struct_sdna_from(srna, "bSizeLikeConstraint", "data");
-
-	prop= RNA_def_property(srna, "target", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "tar");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Target", "Target Object");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
-
-	prop= RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "subtarget");
-	RNA_def_property_ui_text(prop, "Sub-Target", "");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
-
-	prop= RNA_def_property(srna, "use_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_X);
-	RNA_def_property_ui_text(prop, "Copy X", "Copy the target's X scale.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	prop= RNA_def_property(srna, "use_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_Y);
-	RNA_def_property_ui_text(prop, "Copy Y", "Copy the target's Y scale.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	prop= RNA_def_property(srna, "use_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_Z);
-	RNA_def_property_ui_text(prop, "Copy Z", "Copy the target's Z scale.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
-
-	prop= RNA_def_property(srna, "use_offset", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SIZELIKE_OFFSET);
-	RNA_def_property_ui_text(prop, "Offset", "Add original scale into copied scale.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 }
 
@@ -1869,6 +1898,7 @@ void RNA_def_constraint(BlenderRNA *brna)
 	rna_def_constraint_size_like(brna);
 	rna_def_constraint_locate_like(brna);
 	rna_def_constraint_rotate_like(brna);
+	rna_def_constraint_transform_like(brna);
 	rna_def_constraint_minmax(brna);
 	rna_def_constraint_track_to(brna);
 	rna_def_constraint_kinematic(brna);

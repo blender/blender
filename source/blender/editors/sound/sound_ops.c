@@ -81,7 +81,7 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	info = AUD_getInfo(sound->handle);
 
-	if (info.specs.format == AUD_FORMAT_INVALID) {
+	if (info.specs.channels == AUD_CHANNELS_INVALID) {
 		sound_delete(C, sound);
 		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return OPERATOR_CANCELLED;

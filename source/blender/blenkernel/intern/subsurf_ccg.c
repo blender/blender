@@ -2947,7 +2947,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	MFace *mface = NULL;
 	MPoly *mpoly = NULL;
 
-	DM_from_template(&cgdm->dm, dm, ccgSubSurf_getNumFinalVerts(ss),
+	DM_from_template(&cgdm->dm, dm, DM_TYPE_CCGDM,
+					 ccgSubSurf_getNumFinalVerts(ss),
 					 ccgSubSurf_getNumFinalEdges(ss),
 					 ccgSubSurf_getNumFinalFaces(ss),
 					 ccgSubSurf_getNumFinalFaces(ss)*4, 

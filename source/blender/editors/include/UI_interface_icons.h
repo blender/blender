@@ -55,7 +55,9 @@ int UI_icon_get_width(int icon_id);
 int UI_icon_get_height(int icon_id);
 
 void UI_icon_draw(float x, float y, int icon_id);
-void UI_icon_draw_preview(float x, float y, int icon_id, int nocreate);
+void UI_icon_draw_preview(float x, float y, int icon_id);
+void UI_icon_draw_preview_aspect(float x, float y, int icon_id, float aspect);
+void UI_icon_draw_preview_aspect_size(float x, float y, int icon_id, float aspect, int size);
 
 void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect, float alpha);
 void UI_icon_draw_aspect_color(float x, float y, int icon_id, float aspect, float *rgb);

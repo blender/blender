@@ -47,6 +47,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
+#include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_material_types.h"
@@ -167,9 +168,9 @@ void object_free_particlesystems(Object *ob)
 {
 	while(ob->particlesystem.first){
 		ParticleSystem *psys = ob->particlesystem.first;
-
+		
 		BLI_remlink(&ob->particlesystem,psys);
-
+		
 		psys_free(ob,psys);
 	}
 }
@@ -194,9 +195,9 @@ void object_free_modifiers(Object *ob)
 {
 	while (ob->modifiers.first) {
 		ModifierData *md = ob->modifiers.first;
-
+		
 		BLI_remlink(&ob->modifiers, md);
-
+		
 		modifier_free(md);
 	}
 
@@ -205,6 +206,27 @@ void object_free_modifiers(Object *ob)
 
 	/* same for softbody */
 	object_free_softbody(ob);
+}
+
+void object_link_modifiers(struct Object *ob, struct Object *from)
+{
+	ModifierData *md;
+	object_free_modifiers(ob);
+
+	for (md=from->modifiers.first; md; md=md->next) {
+		ModifierData *nmd = NULL;
+
+		if(ELEM4(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_ParticleInstance, eModifierType_Collision)) continue;
+
+		nmd = modifier_new(md->type);
+		modifier_copyData(md, nmd);
+		BLI_addtail(&ob->modifiers, nmd);
+	}
+
+	copy_object_particlesystems(from, ob);
+	copy_object_softbody(from, ob);
+
+	// TODO: smoke?, cloth?
 }
 
 /* here we will collect all local displist stuff */
@@ -283,6 +305,8 @@ void free_object(Object *ob)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose)
 		free_pose(ob->pose);
+	if(ob->mpath)
+		animviz_free_motionpath(ob->mpath);
 	free_properties(&ob->prop);
 	object_free_modifiers(ob);
 	
@@ -332,6 +356,7 @@ void unlink_object(Scene *scene, Object *ob)
 	unlink_actuators(&ob->actuators);
 	
 	/* check all objects: parents en bevels and fields, also from libraries */
+	// FIXME: need to check all animation blocks (drivers)
 	obt= G.main->object.first;
 	while(obt) {
 		if(obt->proxy==ob)
@@ -982,7 +1007,7 @@ Object *add_only_object(int type, char *name)
 	ob->quat[0]= ob->dquat[0]= 1.0f;
 	/* rotation locks should be 4D for 4 component rotations by default... */
 	ob->protectflag = OB_LOCK_ROT4D;
-
+	
 	unit_m4(ob->constinv);
 	unit_m4(ob->parentinv);
 	unit_m4(ob->obmat);
@@ -1021,6 +1046,9 @@ Object *add_only_object(int type, char *name)
 	ob->fluidsimSettings = NULL;
 
 	ob->pc_ids.first = ob->pc_ids.last = NULL;
+	
+	/* Animation Visualisation defaults */
+	animviz_settings_init(&ob->avs);
 
 	return ob;
 }
@@ -1473,13 +1501,18 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		
 		for (fcu= ob->adt->drivers.first; fcu; fcu= fcu->next) {
 			ChannelDriver *driver= fcu->driver;
-			DriverTarget *dtar;
+			DriverVar *dvar;
 			
-			for (dtar= driver->targets.first; dtar; dtar= dtar->next) {
-				if ((Object *)dtar->id == target)
-					dtar->id= (ID *)ob;
-				else
-					id_lib_extern((ID *)dtar->id);
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				/* all drivers */
+				DRIVER_TARGETS_LOOPER(dvar) 
+				{
+					if ((Object *)dtar->id == target)
+						dtar->id= (ID *)ob;
+					else
+						id_lib_extern((ID *)dtar->id);
+				}
+				DRIVER_TARGETS_LOOPER_END
 			}
 		}
 	}
@@ -2397,7 +2430,11 @@ void object_handle_update(Scene *scene, Object *ob)
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
 				BMEditMesh *em = ((Mesh*)ob->data)->edit_btmesh;
-
+				
+				/* evaluate drivers */
+				// XXX: should we push this to derivedmesh instead?
+				BKE_animsys_evaluate_animdata(data_id, adt, ctime, ADT_RECALC_DRIVERS);
+				
 				// here was vieweditdatamask? XXX
 				if(ob->mode & OB_MODE_EDIT) {
 					makeDerivedMesh(scene, ob, em, CD_MASK_BAREMESH);
@@ -2625,3 +2662,100 @@ void object_delete_ptcache(Object *ob, int index)
 	BLI_freelinkN(&ob->pc_ids, link);
 }
 #endif
+
+/* shape key utility function */
+
+/************************* Mesh ************************/
+static KeyBlock *insert_meshkey(Scene *scene, Object *ob, char *name, int from_mix)
+{
+	Mesh *me= ob->data;
+	Key *key= me->key;
+	KeyBlock *kb;
+	int newkey= 0;
+
+	if(key == NULL) {
+		key= me->key= add_key((ID *)me);
+		key->type= KEY_RELATIVE;
+		newkey= 1;
+	}
+
+	kb= add_keyblock(key, name);
+
+	if(newkey || from_mix==FALSE) {
+		/* create from mesh */
+		mesh_to_key(me, kb);
+	}
+	else {
+		/* copy from current values */
+		kb->data= do_ob_key(scene, ob);
+		kb->totelem= me->totvert;
+	}
+
+	return kb;
+}
+/************************* Lattice ************************/
+static KeyBlock *insert_lattkey(Scene *scene, Object *ob, char *name, int from_mix)
+{
+	Lattice *lt= ob->data;
+	Key *key= lt->key;
+	KeyBlock *kb;
+	int newkey= 0;
+
+	if(key==NULL) {
+		key= lt->key= add_key( (ID *)lt);
+		key->type= KEY_RELATIVE;
+		newkey= 1;
+	}
+
+	kb= add_keyblock(key, name);
+
+	if(newkey || from_mix==FALSE) {
+		/* create from lattice */
+		latt_to_key(lt, kb);
+	}
+	else {
+		/* copy from current values */
+		kb->totelem= lt->pntsu*lt->pntsv*lt->pntsw;
+		kb->data= do_ob_key(scene, ob);
+	}
+
+	return kb;
+}
+/************************* Curve ************************/
+static KeyBlock *insert_curvekey(Scene *scene, Object *ob, char *name, int from_mix)
+{
+	Curve *cu= ob->data;
+	Key *key= cu->key;
+	KeyBlock *kb;
+	ListBase *lb= (cu->editnurb)? cu->editnurb: &cu->nurb;
+	int newkey= 0;
+
+	if(key==NULL) {
+		key= cu->key= add_key( (ID *)cu);
+		key->type = KEY_RELATIVE;
+		newkey= 1;
+	}
+
+	kb= add_keyblock(key, name);
+
+	if(newkey || from_mix==FALSE) {
+		/* create from curve */
+		curve_to_key(cu, kb, lb);
+	}
+	else {
+		/* copy from current values */
+		kb->totelem= count_curveverts(lb);
+		kb->data= do_ob_key(scene, ob);
+	}
+
+	return kb;
+}
+
+KeyBlock *object_insert_shape_key(Scene *scene, Object *ob, char *name, int from_mix)
+{
+	if(ob->type==OB_MESH)					 return insert_meshkey(scene, ob, name, from_mix);
+	else if ELEM(ob->type, OB_CURVE, OB_SURF)return insert_curvekey(scene, ob, name, from_mix);
+	else if(ob->type==OB_LATTICE)			 return insert_lattkey(scene, ob, name, from_mix);
+	else									 return NULL;
+}
+

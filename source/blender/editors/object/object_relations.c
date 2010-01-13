@@ -251,6 +251,7 @@ void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_vertex_parent_set";
 	
 	/* api callbacks */
+	ot->invoke= WM_operator_confirm;
 	ot->poll= vertex_parent_set_poll;
 	ot->exec= vertex_parent_set_exec;
 	
@@ -1183,6 +1184,7 @@ enum {
 	MAKE_LINKS_MATERIALS,
 	MAKE_LINKS_ANIMDATA,
 	MAKE_LINKS_DUPLIGROUP,
+	MAKE_LINKS_MODIFIERS
 };
 
 static int make_links_data_exec(bContext *C, wmOperator *op)
@@ -1218,14 +1220,8 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						}
 				break;
 			case MAKE_LINKS_ANIMDATA:
-#if 0 // XXX old animation system
-					if(obt->ipo) obt->ipo->id.us--;
-					obt->ipo= ob->ipo;
-					if(obt->ipo) {
-						id_us_plus((ID *)obt->ipo);
-						do_ob_ipo(scene, obt);
-					}
-#endif // XXX old animation system
+				BKE_copy_animdata_id((ID *)obt, (ID *)ob);
+				BKE_copy_animdata_id((ID *)obt->data, (ID *)ob->data);
 				break;
 			case MAKE_LINKS_DUPLIGROUP:
 					if(ob->dup_group) ob->dup_group->id.us--;
@@ -1235,9 +1231,13 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
 						obt->transflag |= OB_DUPLIGROUP;
 					}
 				break;
-				}
-					}
-				}
+			case MAKE_LINKS_MODIFIERS:
+				object_link_modifiers(obt, ob);
+				obt->recalc |= OB_RECALC;
+				break;
+			}
+		}
+	}
 	CTX_DATA_END;
 
 	DAG_ids_flush_update(0);
@@ -1274,6 +1274,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 		{MAKE_LINKS_MATERIALS,	"MATERIAL", 0, "Materials", ""},
 		{MAKE_LINKS_ANIMDATA,	"ANIMATION", 0, "Animation Data", ""},
 		{MAKE_LINKS_DUPLIGROUP,	"DUPLIGROUP", 0, "DupliGroup", ""},
+		{MAKE_LINKS_MODIFIERS,	"MODIFIERS", 0, "Modifiers", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	PropertyRNA *prop;

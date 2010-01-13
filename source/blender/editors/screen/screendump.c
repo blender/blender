@@ -84,7 +84,7 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 		/* BKE_add_image_extension() checks for if extension was already set */
 		if(scene->r.scemode & R_EXTENSION) 
 			if(strlen(path)<FILE_MAXDIR+FILE_MAXFILE-5)
-				BKE_add_image_extension(scene, path, scene->r.imtype);
+				BKE_add_image_extension(path, scene->r.imtype);
 		
 		ibuf= IMB_allocImBuf(scd->dumpsx, scd->dumpsy, 24, 0, 0);
 		ibuf->rect= scd->dumprect;
@@ -258,7 +258,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 				char name[FILE_MAXDIR+FILE_MAXFILE];
 				int ok;
 				
-				BKE_makepicstring(sj->scene, name, rd.pic, cfra, rd.imtype);
+				BKE_makepicstring(name, rd.pic, cfra, rd.imtype, rd.scemode & R_EXTENSION);
 				
 				ibuf->rect= sj->dumprect;
 				ok= BKE_write_ibuf(sj->scene, ibuf, name, rd.imtype, rd.subimtype, rd.quality);

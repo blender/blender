@@ -73,7 +73,7 @@ static StructRNA *rna_Curve_refine(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->data;
 	short obtype= curve_type(cu);
-
+	
 	if(obtype == OB_FONT) return &RNA_TextCurve;
 	else if(obtype == OB_SURF) return &RNA_SurfaceCurve;
 	else return &RNA_Curve;
@@ -634,6 +634,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	prop= RNA_def_property(srna, "font", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vfont");
 	RNA_def_property_ui_text(prop, "Font", "");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop= RNA_def_property(srna, "edit_format", PROP_POINTER, PROP_NONE);

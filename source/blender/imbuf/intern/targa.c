@@ -296,7 +296,10 @@ short imb_savetarga(struct ImBuf * ibuf, char *name, int flags)
 
 	if (ibuf->cmap){
 		for (i = 0 ; i<ibuf->maxcol ; i++){
-			if (fwrite(((uchar *)(ibuf->cmap + i)) + 1,1,3,fildes) != 3) return (0);
+			if (fwrite(((uchar *)(ibuf->cmap + i)) + 1,1,3,fildes) != 3) {
+                fclose(fildes);
+                return (0);
+            }
 		}
 	}
 	
@@ -566,6 +569,7 @@ struct ImBuf *imb_loadtarga(unsigned char *mem, int mem_size, int flags)
 
 	if (ibuf == 0) return(0);
 	ibuf->ftype = TGA;
+	ibuf->profile = IB_PROFILE_SRGB;
 	ibuf->xorig = tga.xorig;
 	ibuf->yorig = tga.yorig;
 	mem = mem + 18 + tga.numid;

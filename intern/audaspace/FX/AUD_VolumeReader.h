@@ -27,7 +27,6 @@
 #define AUD_VOLUMEREADER
 
 #include "AUD_EffectReader.h"
-#include "AUD_ConverterFunctions.h"
 class AUD_Buffer;
 
 /**
@@ -45,11 +44,6 @@ private:
 	 * The volume level.
 	 */
 	float m_volume;
-
-	/**
-	 * Volume adjustment function.
-	 */
-	AUD_volume_adjust_f m_adjust;
 
 public:
 	/**

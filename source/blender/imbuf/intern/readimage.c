@@ -161,6 +161,7 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 		ibuf = imb_cocoaLoadImage((uchar *)mem, size, flags);
 		if(ibuf) {
 			ibuf->ftype = TIF;
+			ibuf->profile = IB_PROFILE_SRGB;
 			return ibuf;
 		}
 #else
@@ -279,7 +280,7 @@ struct ImBuf *IMB_loadiffname(const char *naam, int flags) {
 
 	file = open(naam, O_BINARY|O_RDONLY);
 
-	if (file == -1) return (0);
+	if (file < 0) return (0);
 
 	ibuf= IMB_loadifffile(file, flags);
 
@@ -304,7 +305,7 @@ struct ImBuf *IMB_testiffname(char *naam,int flags) {
 	flags |= IB_test;
 	file = open(naam,O_BINARY|O_RDONLY);
 
-	if (file<=0) return (0);
+	if (file < 0) return (0);
 
 	ibuf=IMB_loadifffile(file,flags);
 	if (ibuf) {

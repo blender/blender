@@ -388,28 +388,28 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 		}
 	}
 	else if(subtype == PROP_MATRIX) {
-		/* matrix layout */
+		int totdim, dim_size[3];	/* 3 == RNA_MAX_ARRAY_DIMENSION */
 		int row, col;
 
 		uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, 1));
 
-		len= ceil(sqrt(len));
+		totdim= RNA_property_array_dimension(ptr, prop, dim_size);
+		if (totdim != 2) return;	/* only 2D matrices supported in UI so far */
+		
+		w /= dim_size[0];
+		h /= dim_size[1];
 
-		h /= len;
-		w /= len;
-
-		// XXX test
 		for(a=0; a<len; a++) {
-			col= a%len;
-			row= a/len;
-
-			but= uiDefAutoButR(block, ptr, prop, a, "", 0, x + w*col, y+(row-a-1)*UI_UNIT_Y, w, UI_UNIT_Y);
+			col= a % dim_size[0];
+			row= a / dim_size[0];
+			
+			but= uiDefAutoButR(block, ptr, prop, a, "", 0, x + w*col, y+(dim_size[1]*UI_UNIT_Y)-(row*UI_UNIT_Y), w, UI_UNIT_Y);
 			if(slider && but->type==NUM)
 				but->type= NUMSLI;
 		}
 	}
 	else {
-		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA))
+		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand)
 			uiDefAutoButR(block, ptr, prop, -1, "", 0, 0, 0, w, UI_UNIT_Y);
 
 		if(!ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) || expand) {
@@ -911,7 +911,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 		name= (char*)RNA_property_ui_name(prop);
 	if(!icon)
 		icon= RNA_property_ui_icon(prop);
-
+	
 	if(ELEM4(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER))
 		name= ui_item_name_add_colon(name, namestr);
 	else if(type == PROP_BOOLEAN && len && index == RNA_NO_INDEX)
@@ -1115,7 +1115,7 @@ static void rna_search_cb(const struct bContext *C, void *arg_but, char *str, ui
 				continue;
 		
 		if(RNA_struct_is_ID(itemptr.type))
-			iconid= ui_id_icon_get((bContext*)C, itemptr.data);
+			iconid= ui_id_icon_get((bContext*)C, itemptr.data, 0);
 		
 		name= RNA_struct_name_get_alloc(&itemptr, NULL, 0);
 		

@@ -1578,8 +1578,8 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em, Object *ob,
 	
 	bmdm->tc = em;
 
-	DM_init((DerivedMesh*)bmdm, em->bm->totvert, em->bm->totedge, em->tottri,
-		 em->bm->totloop, em->bm->totface);
+	DM_init((DerivedMesh*)bmdm, DM_TYPE_EDITBMESH, em->bm->totvert, 
+		 em->bm->totedge, em->tottri, em->bm->totloop, em->bm->totface);
 	
 	for (i=0; i<bm->ldata.totlayer; i++) {
 		if (bm->ldata.layers[i].type == CD_MLOOPCOL) {

@@ -166,6 +166,7 @@ static void node_buts_rgb(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
 	
 	col = uiLayoutColumn(layout, 0);
+	uiTemplateColorWheel(col, &sockptr, "default_value", 1);
 	uiItemR(col, "", 0, &sockptr, "default_value", 0);
 }
 
@@ -196,7 +197,7 @@ static void node_buts_time(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	}
 #endif
 
-	uiTemplateCurveMapping(layout, ptr, "curve", 's', 0);
+	uiTemplateCurveMapping(layout, ptr, "curve", 's', 0, 0);
 
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, "Sta", 0, ptr, "start", 0);
@@ -210,7 +211,7 @@ static void node_buts_colorramp(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 static void node_buts_curvevec(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiTemplateCurveMapping(layout, ptr, "mapping", 'v', 0);
+	uiTemplateCurveMapping(layout, ptr, "mapping", 'v', 0, 0);
 }
 
 static float *_sample_col= NULL;	// bad bad, 2.5 will do better?
@@ -231,7 +232,7 @@ static void node_buts_curvecol(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	else 
 		cumap->flag &= ~CUMA_DRAW_SAMPLE;
 
-	uiTemplateCurveMapping(layout, ptr, "mapping", 'c', 0);
+	uiTemplateCurveMapping(layout, ptr, "mapping", 'c', 0, 0);
 }
 
 static void node_buts_normal(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -545,16 +546,33 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node= ptr->data;
-	uiLayout *col;
-
+	uiLayout *col, *row;
+	PointerRNA op_ptr;
+	PointerRNA scn_ptr;
+	PropertyRNA *prop;
+	const char *layer_name;
+	char scene_name[19];
+	
 	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL);
 	
 	if(!node->id) return;
 
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, "", 0, ptr, "layer", 0);
+	row = uiLayoutRow(col, 0);
+	uiItemR(row, "", 0, ptr, "layer", 0);
 	
-	/* XXX Missing 're-render this layer' button - needs completely new implementation */
+	prop = RNA_struct_find_property(ptr, "layer");
+	if (!(RNA_property_enum_identifier(C, ptr, prop, RNA_property_enum_get(ptr, prop), &layer_name)))
+		return;
+	
+	scn_ptr = RNA_pointer_get(ptr, "scene");
+	RNA_string_get(&scn_ptr, "name", scene_name);
+	
+	WM_operator_properties_create(&op_ptr, "SCREEN_OT_render");
+	RNA_string_set(&op_ptr, "layer", layer_name);
+	RNA_string_set(&op_ptr, "scene", scene_name);
+	uiItemFullO(row, "", ICON_RENDER_STILL, "SCREEN_OT_render", op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
+
 }
 
 
@@ -1228,47 +1246,6 @@ void ED_init_node_butfuncs(void)
 
 /* ************** Generic drawing ************** */
 
-#if 0
-void node_rename_but(char *s)
-{
-	uiBlock *block;
-	ListBase listb={0, 0};
-	int dy, x1, y1, sizex=80, sizey=30;
-	short pivot[2], mval[2], ret=0;
-	
-	getmouseco_sc(mval);
-
-	pivot[0]= CLAMPIS(mval[0], (sizex+10), G.curscreen->sizex-30);
-	pivot[1]= CLAMPIS(mval[1], (sizey/2)+10, G.curscreen->sizey-(sizey/2)-10);
-	
-	if (pivot[0]!=mval[0] || pivot[1]!=mval[1])
-		warp_pointer(pivot[0], pivot[1]);
-
-	mywinset(G.curscreen->mainwin);
-	
-	x1= pivot[0]-sizex+10;
-	y1= pivot[1]-sizey/2;
-	dy= sizey/2;
-	
-	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_ENTER_OK);
-	
-	/* buttons have 0 as return event, to prevent menu to close on hotkeys */
-	uiBlockBeginAlign(block);
-	
-	uiDefBut(block, TEX, B_NOP, "Name: ", (short)(x1),(short)(y1+dy), 150, 19, s, 0.0, 19.0, 0, 0, "Node user name");
-	
-	uiBlockEndAlign(block);
-
-	uiDefBut(block, BUT, 32767, "OK", (short)(x1+150), (short)(y1+dy), 29, 19, NULL, 0, 0, 0, 0, "");
-
-	uiBoundsBlock(block, 2);
-
-	ret= uiDoBlocks(&listb, 0, 0);
-}
-
-#endif
-
 void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 {
 	
@@ -1292,7 +1269,7 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 			
 			if(!ibuf->rect) {
 				if(color_manage)
-					ibuf->profile= IB_PROFILE_SRGB;
+					ibuf->profile = IB_PROFILE_LINEAR_RGB;
 				else
 					ibuf->profile = IB_PROFILE_NONE;
 				IMB_rect_from_float(ibuf);

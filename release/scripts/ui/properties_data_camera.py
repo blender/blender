@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -56,6 +57,10 @@ class DATA_PT_context_camera(DataButtonsPanel):
                 layout.template_ID(ob, "data")
             elif cam:
                 layout.template_ID(space, "pin_id")
+
+
+class DATA_PT_custom_props_camera(DataButtonsPanel, PropertyPanel):
+    _context_path = "object.data"
 
 
 class DATA_PT_camera(DataButtonsPanel):
@@ -140,6 +145,9 @@ class DATA_PT_camera_display(DataButtonsPanel):
         sub.active = cam.show_passepartout
         sub.prop(cam, "passepartout_alpha", text="Alpha", slider=True)
 
+
 bpy.types.register(DATA_PT_context_camera)
 bpy.types.register(DATA_PT_camera)
 bpy.types.register(DATA_PT_camera_display)
+
+bpy.types.register(DATA_PT_custom_props_camera)

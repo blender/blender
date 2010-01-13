@@ -1694,7 +1694,19 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 
 	if(seq->flag & SEQ_MAKE_FLOAT) {
 		if (!se->ibuf->rect_float) {
-			IMB_float_from_rect(se->ibuf);
+			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+				IMB_float_from_rect(se->ibuf);
+			} else {
+				int profile = IB_PROFILE_NONE;
+				
+				/* no color management:
+				 * don't disturb the existing profiles */
+				SWAP(int, se->ibuf->profile, profile);
+
+				IMB_float_from_rect(se->ibuf);
+				
+				SWAP(int, se->ibuf->profile, profile);
+			}
 		}
 		if (se->ibuf->rect) {
 			imb_freerectImBuf(se->ibuf);
@@ -2094,7 +2106,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			doseq= scene->r.scemode & R_DOSEQ;
 			scene->r.scemode &= ~R_DOSEQ;
 			
-			RE_BlenderFrame(re, sce,
+			RE_BlenderFrame(re, sce, NULL,
 					seq->sfra+se->nr+seq->anim_startofs);
 			
 			if(rendering)
@@ -3640,7 +3652,7 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 	char str[32];
 	FCurve *fcu;
 
-	if(scene->adt==NULL || ofs==0)
+	if(scene->adt==NULL || ofs==0 || scene->adt->action==NULL)
 		return;
 
 	sprintf(str, "[\"%s\"]", seq->name+2);
@@ -3792,7 +3804,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	info = AUD_getInfo(sound->handle);
 
-	if (info.specs.format == AUD_FORMAT_INVALID) {
+	if (info.specs.channels == AUD_CHANNELS_INVALID) {
 		sound_delete(C, sound);
 		//if(op)
 		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");

@@ -50,7 +50,7 @@ typedef struct wmJob wmJob;
 /* general API */
 void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
 
-void		WM_init				(struct bContext *C);
+void		WM_init				(struct bContext *C, int argc, char **argv);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 

@@ -28,31 +28,14 @@
 
 #include <cstring>
 
-// This function transforms a  SampleFormat to our own sample format
-static inline AUD_SampleFormat SNDFILE_TO_AUD(int fmt)
-{
-	switch(fmt & SF_FORMAT_SUBMASK)
-	{
-	// only read s16, s32 and double as they are
-	case SF_FORMAT_PCM_16:
-		return AUD_FORMAT_S16;
-	case SF_FORMAT_PCM_32:
-		return AUD_FORMAT_S32;
-	case SF_FORMAT_DOUBLE:
-		return AUD_FORMAT_FLOAT64;
-	// read all other formats as floats
-	default:
-		return AUD_FORMAT_FLOAT32;
-	}
-}
-
 sf_count_t AUD_SndFileReader::vio_get_filelen(void *user_data)
 {
 	AUD_SndFileReader* reader = (AUD_SndFileReader*)user_data;
 	return reader->m_membuffer.get()->getSize();
 }
 
-sf_count_t AUD_SndFileReader::vio_seek(sf_count_t offset, int whence, void *user_data)
+sf_count_t AUD_SndFileReader::vio_seek(sf_count_t offset, int whence,
+									   void *user_data)
 {
 	AUD_SndFileReader* reader = (AUD_SndFileReader*)user_data;
 
@@ -72,14 +55,16 @@ sf_count_t AUD_SndFileReader::vio_seek(sf_count_t offset, int whence, void *user
 	return reader->m_memoffset;
 }
 
-sf_count_t AUD_SndFileReader::vio_read(void *ptr, sf_count_t count, void *user_data)
+sf_count_t AUD_SndFileReader::vio_read(void *ptr, sf_count_t count,
+									   void *user_data)
 {
 	AUD_SndFileReader* reader = (AUD_SndFileReader*)user_data;
 
 	if(reader->m_memoffset + count > reader->m_membuffer.get()->getSize())
 		count = reader->m_membuffer.get()->getSize() - reader->m_memoffset;
 
-	memcpy(ptr, reader->m_membuffer.get()->getBuffer() + reader->m_memoffset, count);
+	memcpy(ptr, ((data_t*)reader->m_membuffer.get()->getBuffer()) +
+		   reader->m_memoffset, count);
 	reader->m_memoffset += count;
 
 	return count;
@@ -103,26 +88,10 @@ AUD_SndFileReader::AUD_SndFileReader(const char* filename)
 		AUD_THROW(AUD_ERROR_FILE);
 
 	m_specs.channels = (AUD_Channels) sfinfo.channels;
-	m_specs.format = SNDFILE_TO_AUD(sfinfo.format);
 	m_specs.rate = (AUD_SampleRate) sfinfo.samplerate;
 	m_length = sfinfo.frames;
 	m_seekable = sfinfo.seekable;
 	m_position = 0;
-
-	switch(m_specs.format)
-	{
-	case AUD_FORMAT_S16:
-		m_read = (sf_read_f) sf_readf_short;
-		break;
-	case AUD_FORMAT_S32:
-		m_read = (sf_read_f) sf_readf_int;
-		break;
-	case AUD_FORMAT_FLOAT64:
-		m_read = (sf_read_f) sf_readf_double;
-		break;
-	default:
-		m_read = (sf_read_f) sf_readf_float;
-	}
 
 	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
 }
@@ -147,26 +116,10 @@ AUD_SndFileReader::AUD_SndFileReader(AUD_Reference<AUD_Buffer> buffer)
 		AUD_THROW(AUD_ERROR_FILE);
 
 	m_specs.channels = (AUD_Channels) sfinfo.channels;
-	m_specs.format = SNDFILE_TO_AUD(sfinfo.format);
 	m_specs.rate = (AUD_SampleRate) sfinfo.samplerate;
 	m_length = sfinfo.frames;
 	m_seekable = sfinfo.seekable;
 	m_position = 0;
-
-	switch(m_specs.format)
-	{
-	case AUD_FORMAT_S16:
-		m_read = (sf_read_f) sf_readf_short;
-		break;
-	case AUD_FORMAT_S32:
-		m_read = (sf_read_f) sf_readf_int;
-		break;
-	case AUD_FORMAT_FLOAT64:
-		m_read = (sf_read_f) sf_readf_double;
-		break;
-	default:
-		m_read = (sf_read_f) sf_readf_float;
-	}
 
 	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
 }
@@ -227,7 +180,7 @@ void AUD_SndFileReader::read(int & length, sample_t* & buffer)
 
 	buffer = m_buffer->getBuffer();
 
-	length = m_read(m_sndfile, buffer, length);
+	length = sf_readf_float(m_sndfile, buffer, length);
 
 	m_position += length;
 }

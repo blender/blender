@@ -199,8 +199,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		// transform now requires awareness for select mode, so we tag the f1 flags in verts
 		tottrans= 0;
 		if(em->bm->selectmode & SCE_SELECT_VERTEX) {
-			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-			for (; eve; eve=BMIter_Step(&iter)) {
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 				if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT)) {
 					BMINDEX_SET(eve, 1);
 					tottrans++;
@@ -211,48 +210,41 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		else if(em->bm->selectmode & SCE_SELECT_EDGE) {
 			BMEdge *eed;
 
-			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-			for (; eve; eve=BMIter_Step(&iter))
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
 				BMINDEX_SET(eve, 0);
 
-			eed = BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL);
-			for (; eed; eed=BMIter_Step(&iter)) {
+			BM_ITER(eed, &iter, bm, BM_EDGES_OF_MESH, NULL) {
 				if(!BM_TestHFlag(eed, BM_HIDDEN) && BM_TestHFlag(eed, BM_SELECT))
-					BMINDEX_SET(eed->v1, 0), BMINDEX_SET(eed->v2, 0);
+					BMINDEX_SET(eed->v1, 1), BMINDEX_SET(eed->v2, 1);
 			}
-			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-			for (; eve; eve=BMIter_Step(&iter))
+
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
 				if(BMINDEX_GET(eve)) tottrans++;
 		}
 		else {
 			BMFace *efa;
 
-			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-			for (; eve; eve=BMIter_Step(&iter))
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
 				BMINDEX_SET(eve, 0);
 
-			efa = BMIter_New(&iter, bm, BM_FACES_OF_MESH, NULL);
-			for (; efa; efa=BMIter_Step(&iter)) {
+			BM_ITER(efa, &iter, bm, BM_FACES_OF_MESH, NULL) {
 				if(!BM_TestHFlag(efa, BM_HIDDEN) && BM_TestHFlag(efa, BM_SELECT)) {
 					BMIter liter;
 					BMLoop *l;
 					
-					l = BMIter_New(&liter, bm, BM_LOOPS_OF_FACE, efa);
-					for (; l; l=BMIter_Step(&iter)) {
+					BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, efa) {
 						BMINDEX_SET(l->v, 1);
 					}
 				}
 			}
 
-			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-			for (; eve; eve=BMIter_Step(&iter))
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL)
 				if(BMINDEX_GET(eve)) tottrans++;
 		}
 		
 		/* proportional edit exception... */
 		if((mode & 1) && tottrans) {
-			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-			for (; eve; eve=BMIter_Step(&iter)) {
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 				if(BMINDEX_GET(eve)) tottrans++;
 				if(!BM_TestHFlag(eve, BM_HIDDEN)) {
 					BMINDEX_SET(eve, BMINDEX_GET(eve)|2);
@@ -266,8 +258,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		if(tottrans) {
 			tv=transvmain= MEM_callocN(tottrans*sizeof(TransVert), "maketransverts");
 
-			eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
-			for (; eve; eve=BMIter_Step(&iter)) {
+			BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 				if(BMINDEX_GET(eve)) {
 					VECCOPY(tv->oldloc, eve->co);
 					tv->loc= eve->co;
@@ -283,7 +274,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 		bArmature *arm= obedit->data;
 		int totmalloc= BLI_countlist(arm->edbo);
 
-        totmalloc *= 2;  /* probably overkill but bones can have 2 trans verts each */
+		totmalloc *= 2;  /* probably overkill but bones can have 2 trans verts each */
 
 		tv=transvmain= MEM_callocN(totmalloc*sizeof(TransVert), "maketransverts armature");
 		
@@ -468,12 +459,12 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 	extern float originmat[3][3];	/* XXX object.c */
 	Object *obedit= CTX_data_edit_object(C);
 	Scene *scene= CTX_data_scene(C);
-	View3D *v3d= CTX_wm_view3d(C);
+	RegionView3D *rv3d= CTX_wm_region_data(C);
 	TransVert *tv;
 	float gridf, imat[3][3], bmat[3][3], vec[3];
 	int a;
 
-	gridf= v3d->gridview;
+	gridf= rv3d->gridview;
 
 	if(obedit) {
 		tottrans= 0;
@@ -491,9 +482,9 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 			VECCOPY(vec, tv->loc);
 			mul_m3_v3(bmat, vec);
 			add_v3_v3v3(vec, vec, obedit->obmat[3]);
-			vec[0]= v3d->gridview*floor(.5+ vec[0]/gridf);
-			vec[1]= v3d->gridview*floor(.5+ vec[1]/gridf);
-			vec[2]= v3d->gridview*floor(.5+ vec[2]/gridf);
+			vec[0]= gridf*floor(.5+ vec[0]/gridf);
+			vec[1]= gridf*floor(.5+ vec[1]/gridf);
+			vec[2]= gridf*floor(.5+ vec[2]/gridf);
 			sub_v3_v3v3(vec, vec, obedit->obmat[3]);
 			
 			mul_m3_v3(imat, vec);
@@ -546,9 +537,9 @@ static int snap_sel_to_grid(bContext *C, wmOperator *op)
 			else {
 				ob->recalc |= OB_RECALC_OB;
 				
-				vec[0]= -ob->obmat[3][0]+v3d->gridview*floor(.5+ ob->obmat[3][0]/gridf);
-				vec[1]= -ob->obmat[3][1]+v3d->gridview*floor(.5+ ob->obmat[3][1]/gridf);
-				vec[2]= -ob->obmat[3][2]+v3d->gridview*floor(.5+ ob->obmat[3][2]/gridf);
+				vec[0]= -ob->obmat[3][0]+gridf*floor(.5+ ob->obmat[3][0]/gridf);
+				vec[1]= -ob->obmat[3][1]+gridf*floor(.5+ ob->obmat[3][1]/gridf);
+				vec[2]= -ob->obmat[3][2]+gridf*floor(.5+ ob->obmat[3][2]/gridf);
 				
 				if(ob->parent) {
 					where_is_object(scene, ob);
@@ -722,15 +713,16 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 static int snap_curs_to_grid(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
+	RegionView3D *rv3d= CTX_wm_region_data(C);
 	View3D *v3d= CTX_wm_view3d(C);
 	float gridf, *curs;
 
-	gridf= v3d->gridview;
+	gridf= rv3d->gridview;
 	curs= give_cursor(scene, v3d);
 
-	curs[0]= v3d->gridview*floor(.5+curs[0]/gridf);
-	curs[1]= v3d->gridview*floor(.5+curs[1]/gridf);
-	curs[2]= v3d->gridview*floor(.5+curs[2]/gridf);
+	curs[0]= gridf*floor(.5+curs[0]/gridf);
+	curs[1]= gridf*floor(.5+curs[1]/gridf);
+	curs[2]= gridf*floor(.5+curs[2]/gridf);
 	
 	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, scene);	// hrm
 	

@@ -144,6 +144,7 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_DSPART,
 	ANIMTYPE_DSMBALL,
 	ANIMTYPE_DSARM,
+	ANIMTYPE_DSMESH,
 	
 	ANIMTYPE_SHAPEKEY,
 	
@@ -219,6 +220,7 @@ typedef enum eAnimFilter_Flags {
 #define FILTER_PART_OBJD(part) ((part->flag & PART_DS_EXPAND))
 #define FILTER_MBALL_OBJD(mb) ((mb->flag2 & MB_DS_EXPAND))
 #define FILTER_ARM_OBJD(arm) ((arm->flag & ARM_DS_EXPAND))
+#define FILTER_MESH_OBJD(me) ((me->flag & ME_DS_EXPAND))
 	/* 'Sub-object/Action' channels (flags stored in Action) */
 #define SEL_ACTC(actc) ((actc->flag & ACT_SELECTED))
 #define EXPANDED_ACTC(actc) ((actc->flag & ACT_COLLAPSED)==0)
@@ -325,13 +327,14 @@ typedef enum eAnimChannel_Settings {
 /* Drawing, mouse handling, and flag setting behaviour... */
 typedef struct bAnimChannelType {
 	/* drawing */
+		/* get RGB color that is used to draw the majority of the backdrop */
+	void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float *color);
 		/* draw backdrop strip for channel */
 	void (*draw_backdrop)(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
 		/* get depth of indention (relative to the depth channel is nested at) */
 	short (*get_indent_level)(bAnimContext *ac, bAnimListElem *ale);
 		/* get offset in pixels for the start of the channel (in addition to the indent depth) */
 	short (*get_offset)(bAnimContext *ac, bAnimListElem *ale);
-	
 	
 	/* get name (for channel lists) */
 	void (*name)(bAnimListElem *ale, char *name);
@@ -383,9 +386,10 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting,
  *	 	  then the channels under closed expanders get ignored...
  *	- ale_setting: the anim channel (not in the anim_data list directly, though occuring there)
  *		with the new state of the setting that we want flushed up/down the hierarchy 
- *	- vizOn: whether the visibility setting has been enabled or disabled 
+ *	- setting: type of setting to set
+ *	- on: whether the visibility setting has been enabled or disabled 
  */
-void ANIM_visibility_flush_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, short vizOn);
+void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, int setting, short on);
 
 
 /* Deselect all animation channels */

@@ -269,6 +269,15 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_string(func, "open", "", 0, "", "Operator identifier to open a file for creating a new ID block.");
 	RNA_def_string(func, "unlink", "", 0, "", "Operator identifier to unlink the ID block.");
 	
+	func= RNA_def_function(srna, "template_ID_preview", "uiTemplateIDPreview");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	api_ui_item_rna_common(func);
+	RNA_def_string(func, "new", "", 0, "", "Operator identifier to create a new ID block.");
+	RNA_def_string(func, "open", "", 0, "", "Operator identifier to open a file for creating a new ID block.");
+	RNA_def_string(func, "unlink", "", 0, "", "Operator identifier to unlink the ID block.");
+	RNA_def_int(func, "rows", 0, 0, INT_MAX, "Number of thumbnail preview rows to display", "", 0, INT_MAX);
+	RNA_def_int(func, "cols", 0, 0, INT_MAX, "Number of thumbnail preview columns to display", "", 0, INT_MAX);
+	
 	func= RNA_def_function(srna, "template_any_ID", "uiTemplateAnyID");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm= RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property.");
@@ -311,6 +320,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_rna_common(func);
 	RNA_def_enum(func, "type", curve_type_items, 0, "Type", "Type of curves to display.");
 	RNA_def_boolean(func, "levels", 0, "", "Show black/white levels.");
+	RNA_def_boolean(func, "brush", 0, "", "Show brush options.");
 
 	func= RNA_def_function(srna, "template_color_ramp", "uiTemplateColorRamp");
 	api_ui_item_rna_common(func);
@@ -324,6 +334,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "active_layer", 0, 0, INT_MAX, "Active Layer", "", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	
+	func= RNA_def_function(srna, "template_color_wheel", "uiTemplateColorWheel");
+	api_ui_item_rna_common(func);
+	RNA_def_boolean(func, "value_slider", 0, "", "Display the value slider to the right of the color wheel");
 	
 	func= RNA_def_function(srna, "template_triColorSet", "uiTemplateTriColorSet");
 	api_ui_item_rna_common(func);
@@ -353,6 +367,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "active_property", "", 0, "", "Identifier of property in data, for the active element.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_int(func, "rows", 5, 0, INT_MAX, "", "Number of rows to display.", 0, INT_MAX);
+	parm= RNA_def_int(func, "maxrows", 5, 0, INT_MAX, "", "Maximum number of rows to display.", 0, INT_MAX);
 	parm= RNA_def_enum(func, "type", list_type_items, 0, "Type", "Type of list to use.");
 
 	func= RNA_def_function(srna, "template_running_jobs", "uiTemplateRunningJobs");

@@ -382,55 +382,6 @@ Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, short mval[2])
 	return 0;
 }
 
-void update_seq_ipo_rect(Scene *scene, View2D *v2d, Sequence *seq)
-{
-	float start;
-	float end;
-
-	if (!seq || !seq->ipo) {
-		return;
-	}
-	start =  -5.0;
-	end   =  105.0;
-
-	
-	/* Adjust IPO window to sequence and 
-	   avoid annoying snap-back to startframe 
-	   when Lock Time is on */
-	if (0) { // XXX v2d->flag & V2D_VIEWLOCK) {
-		if ((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-			start = -5.0 + seq->startdisp;
-			end = 5.0 + seq->enddisp;
-		} else {
-			start = (float)scene->r.sfra - 0.1;
-			end = scene->r.efra;
-		}
-	}
-
-	seq->ipo->cur.xmin= start;
-	seq->ipo->cur.xmax= end;
-}
-
-void update_seq_icu_rects(Sequence * seq)
-{
-	IpoCurve *icu= NULL;
-	struct SeqEffectHandle sh;
-
-	if (!seq || !seq->ipo) {
-		return;
-	}
-
-	if(!(seq->type & SEQ_EFFECT)) {
-		return;
-	}
-
-	sh = get_sequence_effect(seq);
-
-	for(icu= seq->ipo->curve.first; icu; icu= icu->next) {
-		sh.store_icu_yrange(seq, icu->adrcode, &icu->ymin, &icu->ymax);
-	}
-}
-
 
 static int seq_is_parent(Sequence *par, Sequence *seq)
 {
@@ -2331,11 +2282,13 @@ void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 }
 
+#if 0
 static EnumPropertyItem view_type_items[] = {
 		{SEQ_VIEW_SEQUENCE, "SEQUENCER", ICON_SEQ_SEQUENCER, "Sequencer", ""},
 		{SEQ_VIEW_PREVIEW,  "PREVIEW", ICON_SEQ_PREVIEW, "Image Preview", ""},
 		{SEQ_VIEW_SEQUENCE_PREVIEW,  "SEQUENCER_PREVIEW", ICON_SEQ_SEQUENCER, "Sequencer and Image Preview", ""},
 		{0, NULL, 0, NULL, NULL}};
+#endif
 
 /* view_all operator */
 static int sequencer_view_toggle_exec(bContext *C, wmOperator *op)

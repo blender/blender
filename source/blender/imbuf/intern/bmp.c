@@ -175,6 +175,7 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, int size, int flags)
 
 	if (ibuf) {
 		ibuf->ftype = BMP;
+		ibuf->profile = IB_PROFILE_SRGB;
 	}
 	
 	return(ibuf);

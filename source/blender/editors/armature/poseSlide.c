@@ -417,7 +417,7 @@ static void pose_slide_apply_quat (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 	float cframe;
 	
 	/* get the path to use - this should be quaternion rotations only (needs care) */
-	path= BLI_sprintfN("%s.%s", pfl->pchan_path, "rotation");
+	path= BLI_sprintfN("%s.%s", pfl->pchan_path, "rotation_quaternion");
 	
 	/* get the current frame number */
 	cframe= (float)pso->cframe;
@@ -463,6 +463,19 @@ static void pose_slide_apply_quat (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 			/* just perform the interpol between quat_prev and quat_next using pso->percentage as a guide */
 			interp_qt_qtqt(pchan->quat, quat_prev, quat_next, pso->percentage);
 		}
+		else if (pso->mode == POSESLIDE_PUSH) {
+			float quat_diff[4], quat_orig[4];
+			
+			/* calculate the delta transform from the previous to the current */
+			// TODO: investigate ways to favour one transform more?
+			sub_qt_qtqt(quat_diff, pchan->quat, quat_prev);
+			
+			/* make a copy of the original rotation */
+			QUATCOPY(quat_orig, pchan->quat);
+			
+			/* increase the original by the delta transform, by an amount determined by percentage */
+			add_qt_qtqt(pchan->quat, quat_orig, quat_diff, pso->percentage);
+		}
 		else {
 			float quat_interp[4], quat_orig[4];
 			int iters= (int)ceil(10.0f*pso->percentage); // TODO: maybe a sensitivity ctrl on top of this is needed
@@ -475,11 +488,8 @@ static void pose_slide_apply_quat (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 				/* make a copy of the original rotation */
 				QUATCOPY(quat_orig, pchan->quat);
 				
-				/* tricky interpolations - mode-dependent blending between original and new */
-				if (pso->mode == POSESLIDE_RELAX) // xxx this was the original code, so should work fine
-					interp_qt_qtqt(pchan->quat, quat_orig, quat_interp, 1.0f/6.0f);
-				else // I'm just guessing here...
-					interp_qt_qtqt(pchan->quat, quat_orig, quat_interp, 6.0f/5.0f);
+				/* tricky interpolations - blending between original and new */
+				interp_qt_qtqt(pchan->quat, quat_orig, quat_interp, 1.0f/6.0f);
 			}
 		}
 	}
@@ -612,22 +622,15 @@ static int pose_slide_invoke_common (bContext *C, wmOperator *op, tPoseSlideOp *
 		/* cancel if no keyframes found... */
 	if (pso->keys.root) {
 		ActKeyColumn *ak;
+		float cframe= (float)pso->cframe;
 		
 		/* firstly, check if the current frame is a keyframe... */
-		ak= (ActKeyColumn *)BLI_dlrbTree_search_exact(&pso->keys, compare_ak_cfraPtr, &pso->cframe);
+		ak= (ActKeyColumn *)BLI_dlrbTree_search_exact(&pso->keys, compare_ak_cfraPtr, &cframe);
 		
 		if (ak == NULL) {
 			/* current frame is not a keyframe, so search */
-			ActKeyColumn *pk= (ActKeyColumn *)BLI_dlrbTree_search_prev(&pso->keys, compare_ak_cfraPtr, &pso->cframe);
-			ActKeyColumn *nk= (ActKeyColumn *)BLI_dlrbTree_search_next(&pso->keys, compare_ak_cfraPtr, &pso->cframe);
-			
-			/* check if we found good keyframes */
-			if ((pk == nk) && (pk != NULL)) {
-				if (pk->cfra < pso->cframe)
-					nk= nk->next;
-				else if (nk->cfra > pso->cframe)
-					pk= pk->prev;
-			}
+			ActKeyColumn *pk= (ActKeyColumn *)BLI_dlrbTree_search_prev(&pso->keys, compare_ak_cfraPtr, &cframe);
+			ActKeyColumn *nk= (ActKeyColumn *)BLI_dlrbTree_search_next(&pso->keys, compare_ak_cfraPtr, &cframe);
 			
 			/* new set the frames */
 				/* prev frame */

@@ -102,7 +102,7 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 	/* BKE_add_image_extension() checks for if extension was already set */
 	if(scene->r.scemode & R_EXTENSION) 
 		if(strlen(name)<FILE_MAXDIR+FILE_MAXFILE-5)
-			BKE_add_image_extension(scene, name, scene->r.imtype);
+			BKE_add_image_extension(name, scene->r.imtype);
 
 	strcpy(str, name);
 	BLI_convertstringcode(str, G.sce);

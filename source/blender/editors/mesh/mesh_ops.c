@@ -196,7 +196,6 @@ void ED_operatormacros_mesh(void)
 
 	RNA_enum_set(otm->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
 	RNA_boolean_set_array(otm->ptr, "constraint_axis", constraint_axis);*/
-
 }
 
 /* note mesh keymap also for other space? */
@@ -297,6 +296,8 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_fgon_clear", FKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, 0, KKEY);
+	
+	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* menus */
 	kmi= WM_keymap_add_item(keymap, "WM_OT_call_menu", WKEY, KM_PRESS, 0, 0);

@@ -110,6 +110,8 @@ public:
 	 * @param	height	The height the window.
 	 * @param	state	The state of the window when opened.
 	 * @param	type	The type of drawing context installed in this window.
+	 * @param	stereoVisual	Stereo visual for quad buffered stereo.
+	 * @param	numOfAASamples	Number of samples used for AA (zero if no AA)
 	 * @param	parentWindow 	Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
@@ -117,7 +119,9 @@ public:
 		const STR_String& title,
 		GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
 		GHOST_TWindowState state, GHOST_TDrawingContextType type,
-		const bool stereoVisual, const GHOST_TEmbedderWindowID parentWindow = 0 );
+		const bool stereoVisual = false,
+		const GHOST_TUns16 numOfAASamples = 0,
+		const GHOST_TEmbedderWindowID parentWindow = 0 );
 
 	/***************************************************************************************
 	 ** Event management functionality
