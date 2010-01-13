@@ -219,6 +219,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
         layout.operator("uv.average_islands_scale")
         layout.operator("uv.minimize_stretch")
         layout.operator("uv.stitch")
+        layout.operator("mesh.faces_miror_uv")
 
         layout.separator()
 

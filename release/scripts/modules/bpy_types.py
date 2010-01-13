@@ -388,10 +388,19 @@ class MeshEdge(StructRNA):
 
 class MeshFace(StructRNA):
     __slots__ = ()
+    @property
+    def center(self):
+        """The midpoint of the face."""
+        face_verts = self.verts[:]
+        mesh_verts = self.id_data.verts
+        if len(face_verts) == 3:
+            return (mesh_verts[face_verts[0]].co + mesh_verts[face_verts[1]].co + mesh_verts[face_verts[2]].co) / 3.0
+        else:
+            return (mesh_verts[face_verts[0]].co + mesh_verts[face_verts[1]].co + mesh_verts[face_verts[2]].co + mesh_verts[face_verts[3]].co) / 4.0
 
     @property
     def edge_keys(self):
-        verts = tuple(self.verts)
+        verts = self.verts[:]
         if len(verts) == 3:
             return ord_ind(verts[0], verts[1]), ord_ind(verts[1], verts[2]), ord_ind(verts[2], verts[0])
 

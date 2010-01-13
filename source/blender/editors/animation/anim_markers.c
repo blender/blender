@@ -1012,7 +1012,6 @@ static int ed_marker_make_links_scene_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	/* one day multiple scenes will be visible, then we should have some update function for them */
 	return OPERATOR_FINISHED;
 }
 
