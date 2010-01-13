@@ -3617,7 +3617,7 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 
 	/* UVs need special handling, since they come from faces */
 	if(texmapping == MOD_DISP_MAP_UV) {
-		if(dm->getFaceDataArray(dm, CD_MTFACE)) {
+		if(CustomData_has_layer(&dm->faceData, CD_MTFACE)) {
 			MFace *mface = dm->getFaceArray(dm);
 			MFace *mf;
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
@@ -3699,8 +3699,8 @@ static void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
 	* if the texture didn't give an RGB value, copy the intensity across
 	*/
 	if(result_type & TEX_RGB)
-		texres->tin = (0.35 * texres->tr + 0.45 * texres->tg
-				+ 0.2 * texres->tb);
+		texres->tin = (0.35f * texres->tr + 0.45f * texres->tg
+				+ 0.2f * texres->tb);
 	else
 		texres->tr = texres->tg = texres->tb = texres->tin;
 }
@@ -3924,7 +3924,8 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	if(num_projectors == 0) return dm;
 
 	/* make sure there are UV layers available */
-	if(!dm->getFaceDataArray(dm, CD_MTFACE)) return dm;
+
+	if(!CustomData_has_layer(&dm->faceData, CD_MTFACE)) return dm;
 
 	/* make sure we're using an existing layer */
 	validate_layer_name(&dm->faceData, CD_MTFACE, umd->uvlayer_name, uvname);
@@ -5185,7 +5186,7 @@ static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
 
 	/* UVs need special handling, since they come from faces */
 	if(texmapping == MOD_WAV_MAP_UV) {
-		if(dm->getFaceDataArray(dm, CD_MTFACE)) {
+		if(CustomData_has_layer(&dm->faceData, CD_MTFACE)) {
 			MFace *mface = dm->getFaceArray(dm);
 			MFace *mf;
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
