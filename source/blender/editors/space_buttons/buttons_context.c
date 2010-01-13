@@ -332,16 +332,17 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 	World *wo;
 	Tex *tex;
 	PointerRNA *ptr= &path->ptr[path->len-1];
+	int orig_len = path->len;
 
 	/* if we already have a (pinned) texture, we're done */
 	if(RNA_struct_is_a(ptr->type, &RNA_Texture)) {
 		return 1;
 	}
 	/* try brush */
-	else if((path->flag & SB_BRUSH_TEX) && buttons_context_path_brush(C, path)) {
+	if(buttons_context_path_brush(C, path)) {
 		br= path->ptr[path->len-1].data;
-
-		if(br) {
+		
+		if(br && (path->flag & SB_BRUSH_TEX)) {
 			tex= give_current_brush_texture(br);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
@@ -350,7 +351,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		}
 	}
 	/* try world */
-	else if((path->flag & SB_WORLD_TEX) && buttons_context_path_world(path)) {
+	if((path->flag & SB_WORLD_TEX) && buttons_context_path_world(path)) {
 		wo= path->ptr[path->len-1].data;
 
 		if(wo && GS(wo->id.name)==ID_WO) {
@@ -362,7 +363,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		}
 	}
 	/* try material */
-	else if(buttons_context_path_material(path)) {
+	if(buttons_context_path_material(path)) {
 		ma= path->ptr[path->len-1].data;
 
 		if(ma) {
@@ -374,12 +375,25 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		}
 	}
 	/* try lamp */
-	else if(buttons_context_path_data(path, OB_LAMP)) {
+	if(buttons_context_path_data(path, OB_LAMP)) {
 		la= path->ptr[path->len-1].data;
 
 		if(la) {
 			tex= give_current_lamp_texture(la);
 
+			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+			path->len++;
+			return 1;
+		}
+	}
+	/* try brushes again in case of no material, lamp, etc */
+	path->len = orig_len;
+	if(buttons_context_path_brush(C, path)) {
+		br= path->ptr[path->len-1].data;
+		
+		if(br) {
+			tex= give_current_brush_texture(br);
+			
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
 			path->len++;
 			return 1;
