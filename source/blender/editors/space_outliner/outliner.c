@@ -2494,8 +2494,11 @@ static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, T
 		
 		/* name and first icon */
 		if(mval[0]>te->xs && mval[0]<te->xend) {
-
-			if(ELEM10(tselem->type, TSE_ANIM_DATA, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
+			
+			/* can't rename rna datablocks entries */
+			if(ELEM3(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))
+			   ;
+			else if(ELEM10(tselem->type, TSE_ANIM_DATA, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
 					error("Cannot edit builtin name");
 			else if(ELEM3(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP))
 				error("Cannot edit sequence name");
