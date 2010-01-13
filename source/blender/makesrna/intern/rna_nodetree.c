@@ -553,7 +553,7 @@ static StructRNA* def_node(BlenderRNA *brna, int node_id)
 static EnumPropertyItem* alloc_node_type_items(int category)
 {
 	int i;
-	int count = 2;
+	int count = 3;
 	EnumPropertyItem *item, *items;
 	
 	for(i=0; i<MaxNodes; i++)
@@ -588,6 +588,8 @@ static EnumPropertyItem* alloc_node_type_items(int category)
 	item->description = "";
 	
 	item++;
+	
+	/* NOTE!, increase 'count' when adding items here */
 	
 	memset(item, 0, sizeof(EnumPropertyItem));
 	
