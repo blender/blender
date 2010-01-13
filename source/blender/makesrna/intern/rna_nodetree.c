@@ -577,6 +577,7 @@ static EnumPropertyItem* alloc_node_type_items(int category)
 	
 	item->value = NODE_DYNAMIC;
 	item->identifier = "SCRIPT";
+	item->icon = 0;
 	item->name = "Script";
 	item->description = "";
 	
@@ -584,6 +585,7 @@ static EnumPropertyItem* alloc_node_type_items(int category)
 	
 	item->value = NODE_GROUP;
 	item->identifier = "GROUP";
+	item->icon = 0;
 	item->name = "Group";
 	item->description = "";
 	

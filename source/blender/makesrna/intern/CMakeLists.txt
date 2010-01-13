@@ -99,6 +99,7 @@ TARGET_LINK_LIBRARIES(makesrna bf_dna)
 # Output rna_*_gen.c
 ADD_CUSTOM_COMMAND(
 	OUTPUT ${GENSRC}
+	# with crashes try add this after COMMEND: valgrind --leak-check=full --track-origins=yes 
 	COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesrna ${CMAKE_CURRENT_BINARY_DIR}/
 	DEPENDS makesrna
 )
