@@ -85,7 +85,7 @@ static char *rna_NlaStrip_path(PointerRNA *ptr)
 	return "";
 }
 
-static void rna_NlaStrip_transform_update(Main *bmain, PointerRNA *ptr)
+static void rna_NlaStrip_transform_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	NlaStrip *strip= (NlaStrip*)ptr->data;
 
