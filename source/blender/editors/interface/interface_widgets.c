@@ -1330,10 +1330,8 @@ static void widget_state(uiWidgetType *wt, int state)
 
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
 		
-		/* only flip shade if it's not "pushed in" already */
-		if(wt->wcol.shaded && wt->wcol.shadetop>wt->wcol.shadedown) {
-			SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
-		}
+		/* swap for selection - show depressed */
+		SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
 	}
 	else {
 		if(state & UI_BUT_ANIMATED_KEY)

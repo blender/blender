@@ -812,7 +812,7 @@ static void ui_is_but_sel(uiBut *but)
 			if(value == but->hardmax) push= 1;
 			break;
 		case COL:
-			push= 1;
+			push= 2;
 			break;
 		default:
 			push= 2;

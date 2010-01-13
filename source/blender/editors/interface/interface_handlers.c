@@ -948,7 +948,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		else {
 			if (sscanf(buf, "[%f, %f, %f]", &rgb[0], &rgb[1], &rgb[2]) == 3) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-				VECCOPY(data->vec, rgb);
+				ui_set_but_vectorf(but, rgb);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
 		}
