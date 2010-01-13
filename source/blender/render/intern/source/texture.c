@@ -1739,7 +1739,7 @@ void do_material_tex(ShadeInput *shi)
 					// NOTE: test for shi->obr->ob here, since vlr/obr/obi can be 'fake' when called from fastshade(), another reason to move it..
 					// NOTE: shi->v1 is NULL when called from displace_render_vert, assigning verts in this case is not trivial because the shi quad face side is not know.
 					if ((mtex->texflag & MTEX_NEW_BUMP) && shi->obr && shi->obr->ob && shi->v1) {
-						if(mtex->mapto & (MAP_NORM|MAP_DISPLACE|MAP_WARP)) {
+						if(mtex->mapto & (MAP_NORM|MAP_DISPLACE|MAP_WARP) && !((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP))) {
 							MTFace* tf = RE_vlakren_get_tface(shi->obr, shi->vlr, i, NULL, 0);
 							int j1 = shi->i1, j2 = shi->i2, j3 = shi->i3;
 
@@ -1832,7 +1832,7 @@ void do_material_tex(ShadeInput *shi)
 					nunvdone= 1;
 				}
 
-				if(texres.nor) {
+				if(texres.nor && !((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP))) {
 					TexResult ttexr = {0, 0, 0, 0, 0, texres.talpha, NULL};	// temp TexResult
 					float tco[3], texv[3], cd, ud, vd, du, dv, idu, idv;
 					const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
