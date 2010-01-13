@@ -30,19 +30,37 @@ class ExportUVLayout(bpy.types.Operator):
     bl_undo = True
     
     path = StringProperty(name="File Path", description="File path used for exporting the SVG file", maxlen=1024, default="")
+    only_selected = BoolProperty(name="Only Selected", description="Export Only the selected UVs", default=False)
     
     def poll(self, context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
+    
+    def _image_size(self, context, default_width=1024, default_height=1024):
+        # fallback if not in image context.
+        image_width, image_height = default_width, default_height
+
+        space_data = context.space_data
+        if type(space_data) == bpy.types.SpaceImageEditor:
+            image = space_data.image
+            if image:
+                width, height = tuple(context.space_data.image.size)
+                # incase no data is found.
+                if width and height:
+                    image_width, image_height = width, height
         
+        return image_width, image_height
+
     def execute(self, context):
         ob = context.active_object
         is_editmode = (ob.mode == 'EDIT')
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
-        mesh = ob.data
+        image_width, image_height = self._image_size(context)
 
+        mesh = ob.data
+        
         active_uv_layer = None
         for lay in mesh.uv_textures:
             if lay.active:
@@ -63,10 +81,10 @@ class ExportUVLayout(bpy.types.Operator):
         fw('<?xml version="1.0" standalone="no"?>\n')
         fw('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" \n')
         fw('  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n')
-        fw('<svg width="10cm" height="10cm" viewBox="0 0 1000 1000"\n')
+        fw('<svg width="%dpx" height="%dpx" viewBox="0px 0px %dpx %dpx"\n' % (image_width, image_height, image_width, image_height))
         fw('     xmlns="http://www.w3.org/2000/svg" version="1.1">\n')
         
-        fw('<desc>%s, %s, %s</desc>\n' % (bpy.data.filename, ob.name, mesh.name))
+        fw('<desc>%s, %s, %s (Blender %s)</desc>\n' % (bpy.data.filename, ob.name, mesh.name, bpy.app.version_string))
         
         # svg colors
         fill_settings = []
@@ -76,7 +94,13 @@ class ExportUVLayout(bpy.types.Operator):
             else:
                 fill_settings.append('fill="grey"')
         
+        only_selected = self.properties.only_selected
+        
         for i, uv in enumerate(active_uv_layer):
+            
+            if only_selected and False in uv.uv_selected:
+                continue
+
             if len(faces[i].verts) == 3:
                 uvs = uv.uv1, uv.uv2, uv.uv3
             else:
@@ -87,7 +111,7 @@ class ExportUVLayout(bpy.types.Operator):
             
             for j, uv in enumerate(uvs):
                 x, y = uv.x, 1.0 - uv.y
-                fw('%f.3f,%f.3f ' % (x * 1000.0, y * 1000.0))
+                fw('%f.3f,%f.3f ' % (x * image_width, y * image_height))
             fw('" />\n')
         fw('\n')
         fw('</svg>\n')
