@@ -1,0 +1,115 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# <pep8-80 compliant>
+
+import bpy
+from bpy.props import *
+
+class ExportUVLayout(bpy.types.Operator):
+    '''Export the Mesh as SVG.'''
+
+    bl_idname = "uv.export_layout"
+    bl_label = "Export UV Layout"
+    bl_register = True
+    bl_undo = True
+    
+    path = StringProperty(name="File Path", description="File path used for exporting the SVG file", maxlen=1024, default="")
+    
+    def poll(self, context):
+        ob = context.active_object
+        return (ob and ob.type == 'MESH')
+        
+    def execute(self, context):
+        ob = context.active_object
+        is_editmode = (ob.mode == 'EDIT')
+        if is_editmode:
+            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+        mesh = ob.data
+
+        active_uv_layer = None
+        for lay in mesh.uv_textures:
+            if lay.active:
+                active_uv_layer = lay.data
+                break
+
+        fuvs = [(uv.uv1, uv.uv2, uv.uv3, uv.uv4) for uv in active_uv_layer]
+        fuvs_cpy = [(uv[0].copy(), uv[1].copy(), uv[2].copy(), uv[3].copy()) for uv in fuvs]
+        
+        # as a list
+        faces = mesh.faces[:]
+        
+        fuvsel = [(False not in uv.uv_selected) for uv in active_uv_layer]
+        
+        file = open(self.properties.path, "w")
+        fw = file.write
+        
+        fw('<?xml version="1.0" standalone="no"?>\n')
+        fw('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" \n')
+        fw('  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n')
+        fw('<svg width="10cm" height="10cm" viewBox="0 0 1000 1000"\n')
+        fw('     xmlns="http://www.w3.org/2000/svg" version="1.1">\n')
+        
+        fw('<desc>%s, %s, %s</desc>\n' % (bpy.data.filename, ob.name, mesh.name))
+        
+        # svg colors
+        fill_settings = []
+        for mat in mesh.materials:
+            if mat:
+                fill_settings.append('fill="rgb(%d, %d, %d)"' % tuple(int(c*255) for c in mat.diffuse_color))
+            else:
+                fill_settings.append('fill="grey"')
+        
+        for i, uv in enumerate(active_uv_layer):
+            if len(faces[i].verts) == 3:
+                uvs = uv.uv1, uv.uv2, uv.uv3
+            else:
+                uvs = uv.uv1, uv.uv2, uv.uv3, uv.uv4
+
+            fw('<polygon %s fill-opacity="0.5" stroke="black" stroke-width="1" \n' % fill_settings[faces[i].material_index])
+            fw('  points="')
+            
+            for j, uv in enumerate(uvs):
+                x, y = uv.x, 1.0 - uv.y
+                fw('%f.3f,%f.3f ' % (x * 1000.0, y * 1000.0))
+            fw('" />\n')
+        fw('\n')
+        fw('</svg>\n')
+        
+        if is_editmode:
+            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.manager
+        wm.add_fileselect(self)
+        return {'RUNNING_MODAL'}
+
+# Register the operator
+bpy.types.register(ExportUVLayout)
+
+def menu_func(self, context):
+    default_path = bpy.data.filename.replace(".blend", ".svg")
+    self.layout.operator(ExportUVLayout.bl_idname).path = default_path
+
+bpy.types.IMAGE_MT_uvs.append(menu_func)
+
+#if __name__ == "__main__":
+#    bpy.ops.uv.export_layout(path="/home/ideasman42/foo.svg")
