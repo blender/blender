@@ -512,9 +512,9 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 	}
 	else if(az->edge=='b') {
 		az->x1= ar->winrct.xmin + AZONEPAD_ICON;
-		az->y1= ar->winrct.ymin - AZONEPAD_ICON;
+		az->y1= ar->winrct.ymin - 2*AZONEPAD_ICON;
 		az->x2= ar->winrct.xmin + 2*AZONEPAD_ICON;
-		az->y2= ar->winrct.ymin - 2*AZONEPAD_ICON;
+		az->y2= ar->winrct.ymin - AZONEPAD_ICON;
 	}
 	else if(az->edge=='l') {
 		az->x1= ar->winrct.xmin - 2*AZONEPAD_ICON;
