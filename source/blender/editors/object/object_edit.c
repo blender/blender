@@ -1881,7 +1881,7 @@ static int object_mode_set_compat(bContext *C, wmOperator *op, Object *ob)
 {
 	ObjectMode mode = RNA_enum_get(op->ptr, "mode");
 
-	if(mode & OB_MODE_OBJECT)
+	if(mode == OB_MODE_OBJECT)
 		return 1;
 
 	if(ob) {
