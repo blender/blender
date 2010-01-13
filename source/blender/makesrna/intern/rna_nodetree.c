@@ -63,6 +63,9 @@ static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 		
 		#undef DefNode
 		
+		case NODE_GROUP:
+			return &RNA_NodeGroup;
+			
 		default:
 			return &RNA_Node;
 	}
@@ -174,6 +177,16 @@ static void rna_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
 	bNode *node= (bNode*)ptr->data;
 
+	node_update(bmain, scene, ntree, node);
+}
+
+static void rna_NodeGroup_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
+	bNode *node= (bNode*)ptr->data;
+	
+	nodeVerifyGroup((bNodeTree *)node->id);
+	
 	node_update(bmain, scene, ntree, node);
 }
 
@@ -474,7 +487,7 @@ static EnumPropertyItem node_filter_items[] = {
 
 enum
 {
-	Category_NoCategory,
+	Category_GroupNode,
 	Category_ShaderNode,
 	Category_CompositorNode,
 	Category_TextureNode
@@ -521,6 +534,8 @@ static void init(void)
 	
 	#undef DefNode
 	#undef Str
+	
+	reg_node(NODE_GROUP, Category_GroupNode, "GROUP", "NodeGroup", "Node", "Group", "");
 }
 
 static StructRNA* def_node(BlenderRNA *brna, int node_id)
@@ -567,6 +582,13 @@ static EnumPropertyItem* alloc_node_type_items(int category)
 	
 	item++;
 	
+	item->value = NODE_GROUP;
+	item->identifier = "GROUP";
+	item->name = "Group";
+	item->description = "";
+	
+	item++;
+	
 	memset(item, 0, sizeof(EnumPropertyItem));
 	
 	return items;
@@ -574,6 +596,19 @@ static EnumPropertyItem* alloc_node_type_items(int category)
 
 
 /* -- Common nodes ---------------------------------------------------------- */
+
+static void def_group(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	prop = RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "NodeTree");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Node Tree", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeGroup_update");
+}
+
 
 static void def_math(StructRNA *srna)
 {
@@ -2106,13 +2141,15 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	rna_def_shader_node(brna);
 	rna_def_compositor_node(brna);
 	rna_def_texture_node(brna);
-	
+		
 	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 		define_specific_node(brna, ID, DefFunc);
 		
 	#include "rna_nodetree_types.h"
 	
 	#undef DefNode
+	
+	define_specific_node(brna, NODE_GROUP, def_group);
 }
 
 #endif

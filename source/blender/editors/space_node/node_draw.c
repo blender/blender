@@ -265,7 +265,7 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 
 	/* XXX ugly hack, typeinfo for group is generated */
 	if(node->type == NODE_GROUP)
-		; // XXX node->typeinfo->uifunc= node_buts_group;
+		node->typeinfo->uifunc= node_buts_group;
 	
 	/* buttons rect? */
 	if((node->flag & NODE_OPTIONS) && node->typeinfo->uifunc) {

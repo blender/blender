@@ -69,6 +69,8 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol);
 void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage);
 
+void node_buts_group(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
+
 /* node_edit.c */
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype);
 void snode_handle_recalc(bContext *C, SpaceNode *snode);
