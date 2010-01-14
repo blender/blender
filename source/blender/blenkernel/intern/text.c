@@ -2380,7 +2380,7 @@ int txt_add_char (Text *text, char add)
 	}
 	
 	/* insert spaces rather then tabs */
-	if (add == '\t') {
+	if (add == '\t' && text->flags & TXT_TABSTOSPACES) {
 		txt_convert_tab_to_spaces(text);
 		return 1;
 	}

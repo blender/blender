@@ -1800,7 +1800,7 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 static void ui_draw_separator(uiBut *but, rcti *rect,  uiWidgetColors *wcol)
 {
 	int y = rect->ymin + (rect->ymax - rect->ymin)/2 - 1;
-	unsigned char col[3];
+	unsigned char col[4];
 	
 	col[0] = wcol->text[0];
 	col[1] = wcol->text[1];
