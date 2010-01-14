@@ -656,6 +656,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.separator()
 
         layout.operator("object.join_shapes")
+        layout.operator("object.join_uvs")
         layout.operator("object.join")
 
         layout.separator()
