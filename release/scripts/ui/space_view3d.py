@@ -1796,6 +1796,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
             layout.active = view.display_background_image
             box = layout.box()
             if (bg.image):
+                box.template_ID(bg, "image", open="image.open")
                 box.template_image(bg, "image", bg.image_user, compact=True)
             else:
                 box.template_ID(bg, "image", open="image.open")
