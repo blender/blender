@@ -2360,44 +2360,70 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	else if(dt==OB_SOLID) {
-		Paint *p;
+		if(ob==OBACT && ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
+			/* weight paint in solid mode, special case. focus on making the weights clear
+			 * rather then the shading, this is also forced in wire view */
+			GPU_enable_material(0, NULL);
+			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1);
 
-		if((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
-			draw_mesh_object_outline(v3d, ob, dm);
+			bglPolygonOffset(rv3d->dist, 1.0);
+			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 
-		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED );
+			glEnable(GL_BLEND);
+			glColor4ub(196, 196, 196, 196);
+			glEnable(GL_LINE_STIPPLE);
+			glLineStipple(1, 0x8888);
 
-		glEnable(GL_LIGHTING);
-		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+			dm->drawEdges(dm, 1);
 
-		if(ob->sculpt && (p=paint_get_active(scene))) {
-			float planes[4][4];
-			float (*fpl)[4] = NULL;
-			int fast= (p->flags & PAINT_FAST_NAVIGATE) && (rv3d->rflag & RV3D_NAVIGATING);
+			bglPolygonOffset(rv3d->dist, 0.0);
+			glDepthMask(1);
+			glDisable(GL_LINE_STIPPLE);
 
-			if(ob->sculpt->partial_redraw) {
-				sculpt_get_redraw_planes(planes, ar, rv3d, ob);
-				fpl = planes;
-				ob->sculpt->partial_redraw = 0;
+			GPU_disable_material();
+
+
+		}
+		else {
+			Paint *p;
+
+			if((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
+				draw_mesh_object_outline(v3d, ob, dm);
+
+			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED );
+
+			glEnable(GL_LIGHTING);
+			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+
+			if(ob->sculpt && (p=paint_get_active(scene))) {
+				float planes[4][4];
+				float (*fpl)[4] = NULL;
+				int fast= (p->flags & PAINT_FAST_NAVIGATE) && (rv3d->rflag & RV3D_NAVIGATING);
+
+				if(ob->sculpt->partial_redraw) {
+					sculpt_get_redraw_planes(planes, ar, rv3d, ob);
+					fpl = planes;
+					ob->sculpt->partial_redraw = 0;
+				}
+
+				dm->drawFacesSolid(dm, fpl, fast, GPU_enable_material);
 			}
+			else
+				dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
 
-			dm->drawFacesSolid(dm, fpl, fast, GPU_enable_material);
+			GPU_disable_material();
+
+			glFrontFace(GL_CCW);
+			glDisable(GL_LIGHTING);
+
+			if(base->flag & SELECT) {
+				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+			} else {
+				UI_ThemeColor(TH_WIRE);
+			}
+			if(!ob->sculpt)
+				dm->drawLooseEdges(dm);
 		}
-		else
-			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
-
-		GPU_disable_material();
-
-		glFrontFace(GL_CCW);
-		glDisable(GL_LIGHTING);
-
-		if(base->flag & SELECT) {
-			UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
-		} else {
-			UI_ThemeColor(TH_WIRE);
-		}
-		if(!ob->sculpt)
-			dm->drawLooseEdges(dm);
 	}
 	else if(dt==OB_SHADED) {
 		int do_draw= 1;	/* to resolve all G.f settings below... */
@@ -5298,10 +5324,14 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 			if(ob->mode & OB_MODE_EDIT);
 			else {
-				if(dt<OB_SOLID)
+				if(dt<OB_SOLID) {
 					zbufoff= 1;
+					dt= OB_SOLID;
+				}
+				else {
+					dt= OB_SHADED;
+				}
 
-				dt= OB_SHADED;
 				glEnable(GL_DEPTH_TEST);
 			}
 		}
