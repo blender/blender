@@ -520,6 +520,7 @@ GHOST_SystemCocoa::GHOST_SystemCocoa()
 	m_cursorDelta_x=0;
 	m_cursorDelta_y=0;
 	m_outsideLoopEventProcessed = false;
+	m_needDelayedApplicationBecomeActiveEventProcessing = false;
 	m_displayManager = new GHOST_DisplayManagerCocoa ();
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemCocoa::GHOST_SystemCocoa(): m_displayManager==0\n");
 	m_displayManager->initialize();
@@ -919,6 +920,8 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 		} while (event!= nil);		
 	//} while (waitForEvent && !anyProcessed); Needed only for timer implementation
 	
+	if (m_needDelayedApplicationBecomeActiveEventProcessing) handleApplicationBecomeActiveEvent();
+	
 	if (m_outsideLoopEventProcessed) {
 		m_outsideLoopEventProcessed = false;
 		return true;
@@ -934,6 +937,12 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	//(that is when update events are sent to another application)
 	unsigned int modifiers;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
+	
+	if (!window) {
+		m_needDelayedApplicationBecomeActiveEventProcessing = true;
+		return GHOST_kFailure;
+	}
+	else m_needDelayedApplicationBecomeActiveEventProcessing = false;
 
 #ifdef MAC_OS_X_VERSION_10_6
 	modifiers = [NSEvent modifierFlags];
@@ -947,6 +956,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 		modifiers = 0;
 	}
 #endif
+	
+	/* Discard erroneous 10.6 modifiers values reported when switching back from spaces */
+	if ((modifiers & NSDeviceIndependentModifierFlagsMask) == 0xb00000) modifiers = 0;
 	
 	if ((modifiers & NSShiftKeyMask) != (m_modifierMask & NSShiftKeyMask)) {
 		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSShiftKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
@@ -963,6 +975,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	
 	m_modifierMask = modifiers;
 	
+	m_outsideLoopEventProcessed = true;
 	return GHOST_kSuccess;
 }
 
@@ -1430,7 +1443,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 	 * the window go away and we still get an HKey up. 
 	 */
 	if (!window) {
-		printf("\nW failure");
+		//printf("\nW failure");
 		return GHOST_kFailure;
 	}
 	

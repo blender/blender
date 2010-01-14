@@ -264,6 +264,9 @@ protected:
 	/** Event has been processed directly by Cocoa and has sent a ghost event to be dispatched */
 	bool m_outsideLoopEventProcessed;
 	
+	/** Raised window is not yet known by the window manager, so delay application become active event handling */
+	bool m_needDelayedApplicationBecomeActiveEventProcessing;
+	
 	/** Mouse buttons state */
 	GHOST_TUns32 m_pressedMouseButtons;
 	
