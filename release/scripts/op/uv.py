@@ -111,7 +111,7 @@ class ExportUVLayout(bpy.types.Operator):
             
             for j, uv in enumerate(uvs):
                 x, y = uv.x, 1.0 - uv.y
-                fw('%f.3f,%f.3f ' % (x * image_width, y * image_height))
+                fw('%.3f,%.3f ' % (x * image_width, y * image_height))
             fw('" />\n')
         fw('\n')
         fw('</svg>\n')
@@ -130,7 +130,7 @@ class ExportUVLayout(bpy.types.Operator):
 bpy.types.register(ExportUVLayout)
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", "_%s.svg" % bpy.utils.clean_name(getattr(context.object, "name", "none")))
+    default_path = bpy.data.filename.replace(".blend", ".svg")
     self.layout.operator(ExportUVLayout.bl_idname).path = default_path
 
 bpy.types.IMAGE_MT_uvs.append(menu_func)
