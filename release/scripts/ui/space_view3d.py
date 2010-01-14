@@ -200,7 +200,6 @@ class VIEW3D_MT_snap(bpy.types.Menu):
         layout.separator()
 
         layout.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected")
-        layout.operator("view3d.snap_cursor_to_center", text="Cursor to Center")
         layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid")
         layout.operator("view3d.snap_cursor_to_active", text="Cursor to Active")
 
@@ -1796,7 +1795,10 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
         if bg:
             layout.active = view.display_background_image
             box = layout.box()
-            box.template_image(bg, "image", bg.image_user, compact=True)
+            if (bg.image):
+                box.template_image(bg, "image", bg.image_user, compact=True)
+            else:
+                box.template_ID(bg, "image", open="image.open")
             
             col = layout.column()
             col.label(text="Display Settings")
