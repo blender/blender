@@ -1629,7 +1629,7 @@ void WM_event_remove_area_handler(ListBase *handlers, void *area)
 	for(handler = handlers->first; handler; handler= nexthandler) {
 		nexthandler = handler->next;
 		if (handler->type != WM_HANDLER_FILESELECT) {
-			if (handler->ui_area == area || handler->op_area == area) {
+			if (handler->ui_area == area) {
 				BLI_remlink(handlers, handler);
 				wm_event_free_handler(handler);
 			}
