@@ -214,7 +214,7 @@ void ED_operatormacros_object(void)
 	}
 
 	/* grr, should be able to pass options on... */
-	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move_linked", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move_linked", "Duplicate Linked", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		otmacro= WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		RNA_boolean_set(otmacro->ptr, "linked", 1);

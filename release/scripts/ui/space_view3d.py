@@ -639,7 +639,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.separator()
 
         layout.operator("object.duplicate_move")
-        layout.operator("object.duplicate", text="Duplicate Linked").linked = True
+        layout.operator("object.duplicate_move_linked")
         layout.operator("object.delete", text="Delete...")
         layout.operator("object.proxy_make", text="Make Proxy...")
         layout.menu("VIEW3D_MT_make_links", text="Make Links...")
