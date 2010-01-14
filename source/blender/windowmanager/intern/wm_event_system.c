@@ -768,47 +768,41 @@ int WM_userdef_event_map(int kmitype)
 	return kmitype;
 }
 
+static void wm_eventemulation(wmEvent *event)
+{
+	/* middlemouse emulation */
+	if(U.flag & USER_TWOBUTTONMOUSE) {
+		if(event->type == LEFTMOUSE && event->alt) {
+			event->type = MIDDLEMOUSE;
+			event->alt = 0;
+		}
+	}
+
+	/* numpad emulation */
+	if(U.flag & USER_NONUMPAD) {
+		switch(event->type) {
+			case ZEROKEY: event->type = PAD0; break;
+			case ONEKEY: event->type = PAD1; break;
+			case TWOKEY: event->type = PAD2; break;
+			case THREEKEY: event->type = PAD3; break;
+			case FOURKEY: event->type = PAD4; break;
+			case FIVEKEY: event->type = PAD5; break;
+			case SIXKEY: event->type = PAD6; break;
+			case SEVENKEY: event->type = PAD7; break;
+			case EIGHTKEY: event->type = PAD8; break;
+			case NINEKEY: event->type = PAD9; break;
+			case MINUSKEY: event->type = PADMINUS; break;
+			case EQUALKEY: event->type = PADPLUSKEY; break;
+			case BACKSLASHKEY: event->type = PADSLASHKEY; break;
+		}
+	}
+}
+
 static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 {
 	int kmitype= WM_userdef_event_map(kmi->type);
 
 	if(kmi->flag & KMI_INACTIVE) return 0;
-
-	/* exception for middlemouse emulation */
-	if((U.flag & USER_TWOBUTTONMOUSE) && (kmi->type == MIDDLEMOUSE)) {
-		if(winevent->type == LEFTMOUSE && winevent->alt) {
-			wmKeyMapItem tmp= *kmi;
-
-			tmp.type= winevent->type;
-			tmp.alt= winevent->alt;
-			if(wm_eventmatch(winevent, &tmp))
-				return 1;
-		}
-	}
-	/* exception for numpad emulation */
-	else if(U.flag & USER_NONUMPAD) {
-		wmKeyMapItem tmp= *kmi;
-
-		switch(kmi->type) {
-			case PAD0: tmp.type = ZEROKEY; break;
-			case PAD1: tmp.type = ONEKEY; break;
-			case PAD2: tmp.type = TWOKEY; break;
-			case PAD3: tmp.type = THREEKEY; break;
-			case PAD4: tmp.type = FOURKEY; break;
-			case PAD5: tmp.type = FIVEKEY; break;
-			case PAD6: tmp.type = SIXKEY; break;
-			case PAD7: tmp.type = SEVENKEY; break;
-			case PAD8: tmp.type = EIGHTKEY; break;
-			case PAD9: tmp.type = NINEKEY; break;
-			case PADMINUS: tmp.type = MINUSKEY; break;
-			case PADPLUSKEY: tmp.type = EQUALKEY; break;
-			case PADSLASHKEY: tmp.type = BACKSLASHKEY; break;
-		}
-
-		if(tmp.type != kmi->type)
-			if(wm_eventmatch(winevent, &tmp))
-				return 1;
-	}
 
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
@@ -1334,6 +1328,8 @@ void wm_event_do_handlers(bContext *C)
 		
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
+
+			wm_eventemulation(event);
 
 			CTX_wm_window_set(C, win);
 			
