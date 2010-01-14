@@ -1305,46 +1305,33 @@ void psys_interpolate_face(MVert *mvert, MFace *mface, MTFace *tface, float (*or
 	float tuv[4][2];
 	float *o1, *o2, *o3, *o4;
 
-	v1= (mvert+mface->v1)->co;
-	v2= (mvert+mface->v2)->co;
-	v3= (mvert+mface->v3)->co;
-	VECCOPY(n1,(mvert+mface->v1)->no);
-	VECCOPY(n2,(mvert+mface->v2)->no);
-	VECCOPY(n3,(mvert+mface->v3)->no);
-	normalize_v3(n1);
-	normalize_v3(n2);
-	normalize_v3(n3);
+	v1= mvert[mface->v1].co;
+	v2= mvert[mface->v2].co;
+	v3= mvert[mface->v3].co;
+
+	normal_short_to_float_v3(n1, mvert[mface->v1].no);
+	normal_short_to_float_v3(n2, mvert[mface->v2].no);
+	normal_short_to_float_v3(n3, mvert[mface->v3].no);
 
 	if(mface->v4) {
-		v4= (mvert+mface->v4)->co;
-		VECCOPY(n4,(mvert+mface->v4)->no);
-		normalize_v3(n4);
+		v4= mvert[mface->v4].co;
+		normal_short_to_float_v3(n4, mvert[mface->v4].no);
 		
-		vec[0]= w[0]*v1[0] + w[1]*v2[0] + w[2]*v3[0] + w[3]*v4[0];
-		vec[1]= w[0]*v1[1] + w[1]*v2[1] + w[2]*v3[1] + w[3]*v4[1];
-		vec[2]= w[0]*v1[2] + w[1]*v2[2] + w[2]*v3[2] + w[3]*v4[2];
+		interp_v3_v3v3v3v3(vec, v1, v2, v3, v4, w);
 
 		if(nor){
-			if(mface->flag & ME_SMOOTH){
-				nor[0]= w[0]*n1[0] + w[1]*n2[0] + w[2]*n3[0] + w[3]*n4[0];
-				nor[1]= w[0]*n1[1] + w[1]*n2[1] + w[2]*n3[1] + w[3]*n4[1];
-				nor[2]= w[0]*n1[2] + w[1]*n2[2] + w[2]*n3[2] + w[3]*n4[2];
-			}
+			if(mface->flag & ME_SMOOTH)
+				interp_v3_v3v3v3v3(nor, n1, n2, n3, n4, w);
 			else
 				normal_quad_v3(nor,v1,v2,v3,v4);
 		}
 	}
 	else {
-		vec[0]= w[0]*v1[0] + w[1]*v2[0] + w[2]*v3[0];
-		vec[1]= w[0]*v1[1] + w[1]*v2[1] + w[2]*v3[1];
-		vec[2]= w[0]*v1[2] + w[1]*v2[2] + w[2]*v3[2];
-		
+		interp_v3_v3v3v3(vec, v1, v2, v3, w);
+
 		if(nor){
-			if(mface->flag & ME_SMOOTH){
-				nor[0]= w[0]*n1[0] + w[1]*n2[0] + w[2]*n3[0];
-				nor[1]= w[0]*n1[1] + w[1]*n2[1] + w[2]*n3[1];
-				nor[2]= w[0]*n1[2] + w[1]*n2[2] + w[2]*n3[2];
-			}
+			if(mface->flag & ME_SMOOTH)
+				interp_v3_v3v3v3(nor, n1, n2, n3, w);
 			else
 				normal_tri_v3(nor,v1,v2,v3);
 		}
@@ -1405,17 +1392,14 @@ void psys_interpolate_face(MVert *mvert, MFace *mface, MTFace *tface, float (*or
 
 			if(mface->v4) {
 				o4= orcodata[mface->v4];
-				orco[0]= w[0]*o1[0] + w[1]*o2[0] + w[2]*o3[0] + w[3]*o4[0];
-				orco[1]= w[0]*o1[1] + w[1]*o2[1] + w[2]*o3[1] + w[3]*o4[1];
-				orco[2]= w[0]*o1[2] + w[1]*o2[2] + w[2]*o3[2] + w[3]*o4[2];
+
+				interp_v3_v3v3v3v3(orco, o1, o2, o3, o4, w);
 
 				if(ornor)
 					normal_quad_v3( ornor,o1, o2, o3, o4);
 			}
 			else {
-				orco[0]= w[0]*o1[0] + w[1]*o2[0] + w[2]*o3[0];
-				orco[1]= w[0]*o1[1] + w[1]*o2[1] + w[2]*o3[1];
-				orco[2]= w[0]*o1[2] + w[1]*o2[2] + w[2]*o3[2];
+				interp_v3_v3v3v3(orco, o1, o2, o3, w);
 
 				if(ornor)
 					normal_tri_v3( ornor,o1, o2, o3);
@@ -2842,7 +2826,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 			do_particle_interpolation(psys, p, pa, t, frs_sec, &pind, &result);
 
 			/* dynamic hair is in object space */
-			/* keyed and baked are allready in global space */
+			/* keyed and baked are already in global space */
 			if(hair_dm)
 				mul_m4_v3(sim->ob->obmat, result.co);
 			else if(!keyed && !baked && !(psys->flag & PSYS_GLOBAL_HAIR))
@@ -3058,7 +3042,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 				pind.hkey[1]++;
 			}
 
-			 /* non-hair points are allready in global space */
+			 /* non-hair points are already in global space */
 			if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 				mul_m4_v3(hairmat, result.co);
 
