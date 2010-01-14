@@ -3811,11 +3811,11 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glShadeModel(GL_SMOOTH);
 
 	if(pset->brushtype == PE_BRUSH_WEIGHT) {
 		glLineWidth(2.0f);
 		glDisable(GL_LIGHTING);
-		/* TODO, nice color blending */
 	}
 
 	cache=edit->pathcache;
@@ -3924,9 +3924,9 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
+	glShadeModel(GL_FLAT);
 	glEnable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
-
 	glPointSize(1.0);
 }
 //static void ob_draw_RE_motion(float com[3],float rotscale[3][3],float tw,float th)
