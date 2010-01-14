@@ -265,7 +265,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
         layout.separator()
 
         layout.operator("view3d.localview", text="View Global/Local")
-        layout.operator("view3d.view_center")
+        layout.operator("view3d.view_selected")
         layout.operator("view3d.view_all")
 
         layout.separator()
@@ -313,7 +313,7 @@ class VIEW3D_MT_view_align(bpy.types.Menu):
 
         layout.operator("view3d.view_all", text="Center Cursor and View All").center = True
         layout.operator("view3d.camera_to_view", text="Align Active Camera to View")
-        layout.operator("view3d.view_center")
+        layout.operator("view3d.view_selected")
         layout.operator("view3d.view_center_cursor")
 
 
