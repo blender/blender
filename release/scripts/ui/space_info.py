@@ -363,7 +363,7 @@ class HELP_OT_python_api(HelpOperator):
     '''Reference for operator and data Python API'''
     bl_idname = "help.python_api"
     bl_label = "Python API Reference"
-    _url = 'http://www.blender.org/documentation/250PythonDoc/'
+    _url = 'http://www.blender.org/documentation/250PythonDoc/contents.html'
 
 
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
