@@ -2923,9 +2923,13 @@ static void brush_puff(PEData *data, int point_index)
 #else
 					/* translate (not rotate) the rest of the hair if its not selected  */
 					if(ofs[0] || ofs[1] || ofs[2]) {
+#if 0					/* kindof works but looks worse then whats below */
+
+						/* Move the unselected point on a vector based on the
+						 * hair direction and the offset */
 						float c1[3], c2[3];
 						VECSUB(dco, lastco, co);
-						mul_m4_v3(imat, dco); /* into particle space */
+						mul_mat3_m4_v3(imat, dco); /* into particle space */
 
 						/* move the point allong a vector perpendicular to the
 						 * hairs direction, reduces odd kinks, */
@@ -2934,6 +2938,26 @@ static void brush_puff(PEData *data, int point_index)
 						normalize_v3(c2);
 						mul_v3_fl(c2, len_v3(ofs));
 						add_v3_v3(key->co, c2);
+#else
+						/* Move the unselected point on a vector based on the
+						 * the normal of the closest geometry */
+						float oco[3], onor[3];
+						VECCOPY(oco, key->co);
+						mul_m4_v3(mat, oco);
+						mul_v3_m4v3(kco, data->ob->imat, oco); /* use 'kco' as the object space version of worldspace 'co', ob->imat is set before calling */
+
+						point_index= BLI_kdtree_find_nearest(edit->emitter_field, kco, NULL, NULL);
+						if(point_index != -1) {
+							copy_v3_v3(onor, &edit->emitter_cosnos[point_index*6+3]);
+							mul_mat3_m4_v3(data->ob->obmat, onor); /* normal into worldspace */
+							mul_mat3_m4_v3(imat, onor); /* worldspace into particle space */
+							normalize_v3(onor);
+
+
+							mul_v3_fl(onor, len_v3(ofs));
+							add_v3_v3(key->co, onor);
+						}
+#endif
 					}
 #endif
 				}
