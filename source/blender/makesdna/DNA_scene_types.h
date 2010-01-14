@@ -1137,6 +1137,7 @@ typedef enum SculptFlags {
 #define PE_BRUSH_PUFF		3
 #define PE_BRUSH_ADD		4
 #define PE_BRUSH_SMOOTH		5
+#define PE_BRUSH_WEIGHT		6
 
 /* this must equal ParticleEditSettings.brush array size */
 #define PE_TOT_BRUSH		6

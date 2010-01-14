@@ -2983,12 +2983,21 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 
 	frs_sec = (psys || edit->pid.flag & PTCACHE_VEL_PER_SEC) ? 25.0f : 1.0f;
 
-	sel_col[0] = (float)edit->sel_col[0] / 255.0f;
-	sel_col[1] = (float)edit->sel_col[1] / 255.0f;
-	sel_col[2] = (float)edit->sel_col[2] / 255.0f;
-	nosel_col[0] = (float)edit->nosel_col[0] / 255.0f;
-	nosel_col[1] = (float)edit->nosel_col[1] / 255.0f;
-	nosel_col[2] = (float)edit->nosel_col[2] / 255.0f;
+	if(pset->brushtype == PE_BRUSH_WEIGHT){
+		/* use weight painting colors now... */
+#if 0
+		sel_col[0] = sel_col[1] = sel_col[2] = 1.0f;
+		nosel_col[0] = nosel_col[1] = nosel_col[2] = 0.0f;
+#endif
+	}
+	else{
+		sel_col[0] = (float)edit->sel_col[0] / 255.0f;
+		sel_col[1] = (float)edit->sel_col[1] / 255.0f;
+		sel_col[2] = (float)edit->sel_col[2] / 255.0f;
+		nosel_col[0] = (float)edit->nosel_col[0] / 255.0f;
+		nosel_col[1] = (float)edit->nosel_col[1] / 255.0f;
+		nosel_col[2] = (float)edit->nosel_col[2] / 255.0f;
+	}
 
 	/*---first main loop: create all actual particles' paths---*/
 	for(i=0; i<totpart; i++, pa+=pa?1:0, point++){
@@ -3002,6 +3011,14 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 		pind.epoint = point;
 		pind.bspline = psys ? (psys->part->flag & PART_HAIR_BSPLINE) : 0;
 		pind.dm = NULL;
+
+
+		/* should init_particle_interpolation set this ? */
+		if(pset->brushtype==PE_BRUSH_WEIGHT){
+			pind.hkey[0] = pa->hair;
+			pind.hkey[1] = pa->hair + 1;
+		}
+
 
 		memset(cache[i], 0, sizeof(*cache[i])*(steps+1));
 
@@ -3034,6 +3051,12 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 			result.time = -t;
 
 			do_particle_interpolation(psys, i, pa, t, frs_sec, &pind, &result);
+
+			/* should init_particle_interpolation set this ? */
+			if(pset->brushtype==PE_BRUSH_WEIGHT){
+				pind.hkey[0] = pind.hkey[1];
+				pind.hkey[1]++;
+			}
 
 			 /* non-hair points are allready in global space */
 			if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
@@ -3091,22 +3114,30 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 			ca->vel[1] = 1.0f;
 
 			/* selection coloring in edit mode */
-			if((ekey + (pind.ekey[0] - point->keys))->flag & PEK_SELECT){
-				if((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT){
-					VECCOPY(ca->col, sel_col);
-				}
-				else{
-					keytime = (t - (*pind.ekey[0]->time))/((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
-					interp_v3_v3v3(ca->col, sel_col, nosel_col, keytime);
-				}
+			if(pset->brushtype==PE_BRUSH_WEIGHT){
+				if(k==steps)
+					weight_to_rgb(pind.hkey[0]->weight, ca->col, ca->col+1, ca->col+2);
+				else
+					weight_to_rgb((1.0f - keytime) * pind.hkey[0]->weight + keytime * pind.hkey[1]->weight, ca->col, ca->col+1, ca->col+2);
 			}
-			else{
-				if((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT){
-					keytime = (t - (*pind.ekey[0]->time))/((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
-					interp_v3_v3v3(ca->col, nosel_col, sel_col, keytime);
+			else {
+				if((ekey + (pind.ekey[0] - point->keys))->flag & PEK_SELECT){
+					if((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT){
+						VECCOPY(ca->col, sel_col);
+					}
+					else{
+						keytime = (t - (*pind.ekey[0]->time))/((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
+						interp_v3_v3v3(ca->col, sel_col, nosel_col, keytime);
+					}
 				}
 				else{
-					VECCOPY(ca->col, nosel_col);
+					if((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT){
+						keytime = (t - (*pind.ekey[0]->time))/((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
+						interp_v3_v3v3(ca->col, nosel_col, sel_col, keytime);
+					}
+					else{
+						VECCOPY(ca->col, nosel_col);
+					}
 				}
 			}
 

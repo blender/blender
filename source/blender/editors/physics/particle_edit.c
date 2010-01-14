@@ -2844,7 +2844,6 @@ static void brush_puff(PEData *data, int point_index)
 	PTCacheEditPoint *point = edit->points + point_index;
 	KEY_K;
 	float mat[4][4], imat[4][4];
-	float obmat[4][4], obimat[4][4];
 
 	float lastco[3], rootco[3] = {0.0f, 0.0f, 0.0f}, co[3], nor[3], kco[3], dco[3], ofs[3] = {0.0f, 0.0f, 0.0f}, fac=0.0f, length=0.0f;
 	int puff_volume = 0;
@@ -2865,22 +2864,19 @@ static void brush_puff(PEData *data, int point_index)
 		unit_m4(imat);
 	}
 
-	copy_m4_m4(obmat, data->ob->obmat);
-	invert_m4_m4(obimat, obmat);
-
 	LOOP_KEYS {
 		if(k==0) {
 			/* find root coordinate and normal on emitter */
 			VECCOPY(co, key->co);
 			mul_m4_v3(mat, co);
-			mul_v3_m4v3(kco, obimat, co); /* use 'kco' as the object space version of worldspace 'co' */
+			mul_v3_m4v3(kco, data->ob->imat, co); /* use 'kco' as the object space version of worldspace 'co', ob->imat is set before calling */
 
 			point_index= BLI_kdtree_find_nearest(edit->emitter_field, kco, NULL, NULL);
 			if(point_index == -1) return;
 
 			VECCOPY(rootco, co);
 			copy_v3_v3(nor, &edit->emitter_cosnos[point_index*6+3]);
-			mul_mat3_m4_v3(obmat, nor); /* normal into worldspace */
+			mul_mat3_m4_v3(data->ob->obmat, nor); /* normal into worldspace */
 
 			normalize_v3(nor);
 			length= 0.0f;
@@ -2947,6 +2943,21 @@ static void brush_puff(PEData *data, int point_index)
 
 	if(change)
 		point->flag |= PEP_EDIT_RECALC;
+}
+
+
+static void brush_weight(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
+{
+	/* roots have full weight allways */
+	if(key_index) {
+		PTCacheEdit *edit = data->edit;
+		ParticleSystem *psys = edit->psys;
+
+		ParticleData *pa= psys->particles + point_index;
+		pa->hair[key_index].weight = data->weightfac;
+
+		(data->edit->points + point_index)->flag |= PEP_EDIT_RECALC;
+	}
 }
 
 static void brush_smooth_get(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
@@ -3392,6 +3403,23 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				if(data.tot) {
 					mul_v3_fl(data.vec, 1.0f / (float)data.tot);
 					foreach_mouse_hit_key(&data, brush_smooth_do, selected);
+				}
+
+				break;
+			}
+			case PE_BRUSH_WEIGHT:
+			{
+				PEData data;
+				PE_set_view3d_data(C, &data);
+
+				if(edit->psys) {
+					data.dm= psmd->dm;
+					data.mval= mval;
+					data.rad= (float)brush->size;
+
+					data.weightfac = (float)(brush->strength / 100.0f); /* note that this will never be zero */
+
+					foreach_mouse_hit_key(&data, brush_weight, selected);
 				}
 
 				break;

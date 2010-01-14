@@ -44,6 +44,7 @@ static EnumPropertyItem particle_edit_hair_brush_items[] = {
 	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", "Make hairs longer or shorter."},
 	{PE_BRUSH_PUFF, "PUFF", 0, "Puff", "Make hairs stand up."},
 	{PE_BRUSH_CUT, "CUT", 0, "Cut", "Cut hairs."},
+	{PE_BRUSH_WEIGHT, "WEIGHT", 0, "Weight", "Weight hair particles."},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME

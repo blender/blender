@@ -3812,6 +3812,12 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 
+	if(pset->brushtype == PE_BRUSH_WEIGHT) {
+		glLineWidth(2.0f);
+		glDisable(GL_LIGHTING);
+		/* TODO, nice color blending */
+	}
+
 	cache=edit->pathcache;
 	for(i=0; i<totpoint; i++){
 		path = cache[i];
