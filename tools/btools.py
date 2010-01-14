@@ -66,7 +66,7 @@ def validate_arguments(args, bc):
             'WITH_BF_OPENMP',
             'WITH_GHOST_COCOA',
             'USE_QTKIT',
-            'BF_FANCY', 'BF_QUIET',
+            'BF_FANCY', 'BF_QUIET', 'BF_LINE_OVERWRITE',
             'BF_X264_CONFIG',
             'BF_XVIDCORE_CONFIG',
             'WITH_BF_LCMS', 'BF_LCMS_LIB',
@@ -97,7 +97,7 @@ def validate_arguments(args, bc):
     
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
-            'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE',
+            'BF_BUILDDIR', 'BF_FANCY', 'BF_QUICK', 'BF_PROFILE', 'BF_LINE_OVERWRITE',
             'BF_BSC', 'BF_CONFIG',
             'BF_PRIORITYLIST', 'BF_BUILDINFO','CC', 'CXX', 'BF_QUICKDEBUG',
             'BF_LISTDEBUG', 'LCGDIR', 'BF_X264_CONFIG', 'BF_XVIDCORE_CONFIG',
@@ -403,6 +403,7 @@ def read_opts(cfg, args):
         (BoolVariable('WITHOUT_BF_PYTHON_INSTALL', 'dont install Python modules if true', False)),
         (BoolVariable('BF_FANCY', 'Enable fancy output if true', True)),
         (BoolVariable('BF_QUIET', 'Enable silent output if true', True)),
+        (BoolVariable('BF_LINE_OVERWRITE', 'Enable overwriting of compile line in BF_QUIET mode if true', False)),
         (BoolVariable('WITH_BF_BINRELOC', 'Enable relocatable binary (linux only)', False)),
         
         (BoolVariable('WITH_BF_LZO', 'Enable fast LZO pointcache compression', True)),

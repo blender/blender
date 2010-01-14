@@ -268,6 +268,12 @@ def buildinfo(lenv, build_type):
 
 ##### ACTION STUFF #############
 
+def my_print_cmd_line(self, s, target, source, env):
+	sys.stdout.write(' ' * 70 + '\r')
+	sys.stdout.flush()
+	sys.stdout.write(s + "\r")
+	sys.stdout.flush()
+
 def my_compile_print(target, source, env):
 	a = '%s' % (source[0])
 	d, f = os.path.split(a)
@@ -330,6 +336,8 @@ def set_quiet_output(env):
 	env['BUILDERS']['StaticLibrary'] = static_lib
 	env['BUILDERS']['Library'] = static_lib
 	env['BUILDERS']['Program'] = program
+	if env['BF_LINE_OVERWRITE']:
+		SCons.Action._ActionAction.print_cmd_line = my_print_cmd_line
 
 	
 class CompZipFile(zipfile.ZipFile):
