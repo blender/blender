@@ -106,7 +106,7 @@ class ExportUVLayout(bpy.types.Operator):
             else:
                 uvs = uv.uv1, uv.uv2, uv.uv3, uv.uv4
 
-            fw('<polygon %s fill-opacity="0.5" stroke="black" stroke-width="1" \n' % fill_settings[faces[i].material_index])
+            fw('<polygon %s fill-opacity="0.5" stroke="black" stroke-width="1px" \n' % fill_settings[faces[i].material_index])
             fw('  points="')
             
             for j, uv in enumerate(uvs):
@@ -130,7 +130,7 @@ class ExportUVLayout(bpy.types.Operator):
 bpy.types.register(ExportUVLayout)
 
 def menu_func(self, context):
-    default_path = bpy.data.filename.replace(".blend", ".svg")
+    default_path = bpy.data.filename.replace(".blend", "_%s.svg" % bpy.utils.clean_name(getattr(context.object, "name", "none")))
     self.layout.operator(ExportUVLayout.bl_idname).path = default_path
 
 bpy.types.IMAGE_MT_uvs.append(menu_func)
