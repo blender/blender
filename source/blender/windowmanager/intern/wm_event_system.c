@@ -187,7 +187,10 @@ void wm_event_do_notifiers(bContext *C)
 							printf("screen delete %p\n", note->reference);
 					}
 				}
-				else if(note->category==NC_SCENE) {
+			}
+
+			if(note->window==win || (note->window == NULL && (note->reference == NULL || note->reference == CTX_data_scene(C)))) {
+				if(note->category==NC_SCENE) {
 					if(note->data==ND_SCENEBROWSE) {
 						ED_screen_set_scene(C, note->reference);	// XXX hrms, think this over!
 						if(G.f & G_DEBUG)
