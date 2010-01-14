@@ -663,7 +663,8 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 	/* select keys on the side where most data occurs */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
-		
+
+#if 0	// This does not work even in simple cases I tested - campbell
 		if (adt) {
 			ListBase nlabackup;
 
@@ -674,6 +675,7 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 		//else if (ale->type == ANIMTYPE_GPLAYER)
 		//	borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);
 		else
+#endif
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 	}
 	
