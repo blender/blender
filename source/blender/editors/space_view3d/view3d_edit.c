@@ -2283,7 +2283,40 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 	RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
 }
 
+static int enable_manipulator_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	View3D *v3d = CTX_wm_view3d(C);
 
+	v3d->twtype=0;
+	
+	if (RNA_boolean_get(op->ptr, "translate"))
+		v3d->twtype |= V3D_MANIP_TRANSLATE;
+	if (RNA_boolean_get(op->ptr, "rotate"))
+		v3d->twtype |= V3D_MANIP_ROTATE;
+	if (RNA_boolean_get(op->ptr, "scale"))
+		v3d->twtype |= V3D_MANIP_SCALE;
+		
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Enable 3D Manipulator";
+	ot->description = "Enable the transform manipulator for use.";
+	ot->idname= "VIEW3D_OT_enable_manipulator";
+	
+	/* api callbacks */
+	ot->invoke= enable_manipulator_invoke;
+	ot->poll= ED_operator_view3d_active;
+	
+	/* rna later */
+	RNA_def_boolean(ot->srna, "translate", 0, "Translate", "Enable the translate manipulator");
+	RNA_def_boolean(ot->srna, "rotate", 0, "Rotate", "Enable the rotate manipulator");
+	RNA_def_boolean(ot->srna, "scale", 0, "Scale", "Enable the scale manipulator");
+}
 
 /* ************************* below the line! *********************** */
 

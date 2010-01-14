@@ -80,6 +80,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_render_border);
 	WM_operatortype_append(VIEW3D_OT_zoom_border);
 	WM_operatortype_append(VIEW3D_OT_manipulator);
+	WM_operatortype_append(VIEW3D_OT_enable_manipulator);
 	WM_operatortype_append(VIEW3D_OT_cursor3d);
 	WM_operatortype_append(VIEW3D_OT_select_lasso);
 	WM_operatortype_append(VIEW3D_OT_setcameratoview);
@@ -264,7 +265,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_object_as_camera", PAD0, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
-
+	
 	/* context ops */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "path", "space_data.pivot_point");
