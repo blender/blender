@@ -93,8 +93,23 @@ class AddTorus(bpy.types.Operator):
     minor_segments = IntProperty(name="Minor Segments",
             description="Number of segments for the minor ring of the torus",
             default=16, min=3, max=256)
+    use_abso = BoolProperty(name="Use Int+Ext Controls",
+            description="Use the Int / Ext controls for torus dimensions", default=False)
+    abso_major_rad = FloatProperty(name="Exterior Radius",
+            description="Total Exterior Radius of the torus",
+            default=1.0, min=0.01, max=100.0)
+    abso_minor_rad = FloatProperty(name="Inside Radius",
+            description="Total Interior Radius of the torus",
+            default=0.5, min=0.01, max=100.0)
 
     def execute(self, context):
+
+        #deleting between THESE lines makes it re-appear in blender
+        if self.properties.use_abso == True:
+            extra_helper = (self.properties.abso_major_rad - self.properties.abso_minor_rad) * 0.5
+            self.properties.major_radius = self.properties.abso_minor_rad + extra_helper
+            self.properties.minor_radius = extra_helper
+        #deleting between THESE lines makes it re-appear in blender
 
         verts_loc, faces = add_torus(self.properties.major_radius,
                                     self.properties.minor_radius,
