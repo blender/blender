@@ -517,7 +517,7 @@ void unique_editbone_name (ListBase *edbo, char *name, EditBone *bone)
 		/*	Strip off the suffix, if it's a number */
 		number= strlen(name);
 		if (number && isdigit(name[number-1])) {
-			dot= strrchr(name, '.');	// last occurrance
+			dot= strrchr(name, '.');	// last occurrence
 			if (dot)
 				*dot=0;
 		}
@@ -5318,7 +5318,7 @@ void unique_bone_name (bArmature *arm, char *name)
 		/*	Strip off the suffix, if it's a number */
 		number= strlen(name);
 		if(number && isdigit(name[number-1])) {
-			dot= strrchr(name, '.');	// last occurrance
+			dot= strrchr(name, '.');	// last occurrence
 			if (dot)
 				*dot=0;
 		}

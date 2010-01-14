@@ -26,7 +26,7 @@ def main(context):
 class UvOperator(bpy.types.Operator):
     ''''''
     bl_idname = "uv.simple_operator"
-    bl_label = "Simple Object Operator"
+    bl_label = "Simple UV Operator"
 
     def poll(self, context):
         obj = context.active_object

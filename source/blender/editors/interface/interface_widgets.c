@@ -1008,7 +1008,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		}
 		
 		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
-		and offset the text label to accomodate it */
+		and offset the text label to accommodate it */
 		
 		if (but->flag & UI_HAS_ICON) {
 			widget_draw_icon(but, but->icon+but->iconadd, 1.0f, rect);

@@ -1287,7 +1287,7 @@ static PyObject *Vector_getSwizzle(VectorObject * self, void *closure)
      the destination is effectively re-ordered as defined by the swizzle. At
      most min(len(source), len(dest)) values will be copied.
    - If the value is scalar, it is copied to all axes listed in the swizzle.
-   - If an axis appears more than once in the swizzle, the final occurrance is
+   - If an axis appears more than once in the swizzle, the final occurrence is
      the one that determines its value.
 
    Returns 0 on success and -1 on failure. On failure, the vector will be

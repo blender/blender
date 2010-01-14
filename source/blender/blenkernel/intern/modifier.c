@@ -1817,7 +1817,7 @@ static void vertgroup_flip_name (char *name, int strip_number)
 
 	/* We first check the case with a .### extension, let's find the last period */
 	if(isdigit(name[len-1])) {
-		index= strrchr(name, '.'); // last occurrance
+		index= strrchr(name, '.'); // last occurrence
 		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
 			if(strip_number==0) 
 				strcpy(number, index);

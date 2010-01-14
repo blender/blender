@@ -1480,7 +1480,7 @@ struct anim *openanim(char *name, int flags)
 */
 
 
-/* forces existance of 1 Image for renderout or nodes, returns Image */
+/* forces existence of 1 Image for renderout or nodes, returns Image */
 /* name is only for default, when making new one */
 Image *BKE_image_verify_viewer(int type, const char *name)
 {

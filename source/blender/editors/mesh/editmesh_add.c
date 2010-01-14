@@ -484,7 +484,7 @@ static int compareface_overlaps(EditFace *vl1, EditFace *vl2)
 	return 0;
 }
 
-/* checks for existance, and for tria overlapping inside quad */
+/* checks for existence, and for tria overlapping inside quad */
 static EditFace *exist_face_overlaps(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 {
 	EditFace *efa, efatest;

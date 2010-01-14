@@ -665,7 +665,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						case VK_CONTROL:
 						case VK_MENU:
 							if (!system->m_separateLeftRightInitialized) {
-								// Check whether this system supports seperate left and right keys
+								// Check whether this system supports separate left and right keys
 								switch (wParam) {
 									case VK_SHIFT:
 										system->m_separateLeftRight = 
