@@ -1795,18 +1795,20 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 
         if bg:
             layout.active = view.display_background_image
-
+            box = layout.box()
+            box.template_image(bg, "image", bg.image_user, compact=True)
+            
             col = layout.column()
-            col.template_ID(bg, "image", open="image.open")
+            col.label(text="Display Settings")
+            
+            col = layout.column()
             col.prop(bg, "size")
             col.prop(bg, "transparency", slider=True)
 
-
-            col = layout.column(align=True)
-            col.label(text="Offset:")
+            col = layout.column()
+            col.label(text="Offset")
             col.prop(bg, "offset_x", text="X")
             col.prop(bg, "offset_y", text="Y")
-
 
 class VIEW3D_PT_transform_orientations(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'

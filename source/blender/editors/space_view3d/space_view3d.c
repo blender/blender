@@ -48,6 +48,7 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_image.h"
 
 #include "ED_armature.h"
 #include "ED_space_api.h"
@@ -447,8 +448,8 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SCENE:
 			switch(wmn->data) {
-				case ND_TRANSFORM:
 				case ND_FRAME:
+				case ND_TRANSFORM:
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 				case ND_LAYER:
@@ -783,6 +784,20 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	return -1; /* found but not available */
 }
 
+/*area (not region) level listener*/
+void space_view3d_listener(struct ScrArea *area, struct wmNotifier *wmn)
+{
+	if (wmn->category == NC_SCENE && wmn->data == ND_FRAME) {
+		View3D *v3d = area->spacedata.first;
+	
+		if (v3d->bgpic && v3d->bgpic->ima) {
+			Scene *scene = wmn->reference;
+
+			BKE_image_user_calc_imanr(&v3d->bgpic->iuser, scene->r.cfra, 0);
+		}
+	}
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_view3d(void)
 {
@@ -795,6 +810,7 @@ void ED_spacetype_view3d(void)
 	st->new= view3d_new;
 	st->free= view3d_free;
 	st->init= view3d_init;
+	st->listener = space_view3d_listener;
 	st->duplicate= view3d_duplicate;
 	st->operatortypes= view3d_operatortypes;
 	st->keymap= view3d_keymap;
