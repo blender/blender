@@ -108,7 +108,7 @@ static int snap_type_exec(bContext *C, wmOperator *op)
 
 	ts->snap_mode = RNA_enum_get(op->ptr,"type");
 
-	WM_event_add_notifier(C, NC_SCENE|ND_MODE, NULL); /* header redraw */
+	WM_event_add_notifier(C, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	return OPERATOR_FINISHED;
 }
@@ -187,6 +187,7 @@ static int delete_orientation_exec(bContext *C, wmOperator *op)
 	BIF_removeTransformOrientationIndex(C, selected_index);
 	
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	WM_event_add_notifier(C, NC_SCENE|NA_EDITED, CTX_data_scene(C));
 
 	return OPERATOR_FINISHED;
 }
@@ -237,6 +238,7 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
 	BIF_createTransformOrientation(C, op->reports, name, use, overwrite);
 
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	WM_event_add_notifier(C, NC_SCENE|NA_EDITED, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
 }
@@ -863,7 +865,7 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			km = WM_keymap_add_item(keymap, "WM_OT_context_toggle", TABKEY, KM_PRESS, KM_SHIFT, 0);
 			RNA_string_set(km->ptr, "path", "tool_settings.snap");
 
-			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_snap_type", TABKEY, KM_PRESS, KM_SHIFT|KM_CLICK, 0);
+			km = WM_keymap_add_item(keymap, "TRANSFORM_OT_snap_type", TABKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 
 			break;
 		case SPACE_ACTION:
