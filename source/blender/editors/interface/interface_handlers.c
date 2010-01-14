@@ -1083,8 +1083,11 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	/* XXX solve generic */
 	if(but->type==NUM || but->type==NUMSLI)
 		startx += (int)(0.5f*(but->y2 - but->y1));
-	else if(but->type==TEX)
+	else if(ELEM(but->type, TEX, SEARCH_MENU)) {
 		startx += 5;
+		if (but->flag & UI_HAS_ICON)
+			startx += 16;
+	}
 	
 	/* XXX does not take zoom level into account */
 	while((BLF_width(origstr+but->ofs) + startx) > x) {

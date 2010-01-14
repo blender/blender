@@ -1360,7 +1360,7 @@ void ui_set_but_val(uiBut *but, double value)
 
 int ui_get_but_string_max_length(uiBut *but)
 {
-	if(but->type == TEX)
+	if(ELEM(but->type, TEX, SEARCH_MENU))
 		return but->hardmax;
 	else if(but->type == IDPOIN)
 		return sizeof(((ID*)NULL)->name)-2;

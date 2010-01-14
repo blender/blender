@@ -804,6 +804,8 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	int border= (but->flag & UI_BUT_ALIGN_RIGHT)? 8: 10;
 	int okwidth= rect->xmax-rect->xmin - border;
 	
+	if (but->flag & UI_HAS_ICON) okwidth -= 16;
+	
 	/* need to set this first */
 	uiStyleFontSet(fstyle);
 
@@ -984,7 +986,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	if (ELEM4(but->type, NUM, NUMABS, NUMSLI, SLI)) {
 		ui_text_label_rightclip(fstyle, but, rect);
 	}
-	else if (but->type == TEX) {	
+	else if (ELEM(but->type, TEX, SEARCH_MENU)) {	
 		ui_text_leftclip(fstyle, but, rect);
 	}
 	else but->ofs= 0;
@@ -1330,8 +1332,9 @@ static void widget_state(uiWidgetType *wt, int state)
 
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
 		
-		/* swap for selection - show depressed */
-		SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
+		if (!(state & UI_TEXTINPUT))
+			/* swap for selection - show depressed */
+			SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
 	}
 	else {
 		if(state & UI_BUT_ANIMATED_KEY)
