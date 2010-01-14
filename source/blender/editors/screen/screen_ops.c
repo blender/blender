@@ -3773,7 +3773,7 @@ static int scene_delete_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_SCENEDELETE, scene);
+	WM_event_add_notifier(C, NC_SCENE|NA_REMOVED, scene);
 	
 	return OPERATOR_FINISHED;
 }

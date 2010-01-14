@@ -106,7 +106,7 @@ typedef struct wmNotifier {
 	struct wmWindowManager *wm;
 	struct wmWindow *window;
 	
-	int swinid;
+	int swinid;			/* can't rely on this, notifiers can be added without context, swinid of 0 */
 	unsigned int category, data, subtype, action;
 	
 	void *reference;
@@ -171,7 +171,7 @@ typedef struct wmNotifier {
 #define ND_RENDER_RESULT	(10<<16)
 #define ND_COMPO_RESULT		(11<<16)
 #define ND_KEYINGSET		(12<<16)
-#define ND_SCENEDELETE		(13<<16)
+#define ND_TOOLSETTINGS		(13<<16)
 #define ND_LAYER			(14<<16)
 #define	ND_SEQUENCER_SELECT	(15<<16)
 

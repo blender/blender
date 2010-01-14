@@ -573,6 +573,7 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_SELECT:
 				case ND_MODE:
 				case ND_LAYER:
+				case ND_TOOLSETTINGS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
