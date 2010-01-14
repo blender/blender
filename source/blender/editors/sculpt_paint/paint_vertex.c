@@ -1700,8 +1700,6 @@ void PAINT_OT_weight_set(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first.");
 }
 
 /* ************ set / clear vertex paint mode ********** */
