@@ -339,10 +339,10 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		return 1;
 	}
 	/* try brush */
-	if(buttons_context_path_brush(C, path)) {
+	if((path->flag & SB_BRUSH_TEX) && buttons_context_path_brush(C, path)) {
 		br= path->ptr[path->len-1].data;
 		
-		if(br && (path->flag & SB_BRUSH_TEX)) {
+		if(br) {
 			tex= give_current_brush_texture(br);
 
 			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
