@@ -214,7 +214,7 @@ static void wm_gesture_draw_circle(wmWindow *win, wmGesture *gt)
 
 static void draw_filled_lasso(wmGesture *gt)
 {
-	EditVert *v, *lastv=NULL, *firstv=NULL;
+	EditVert *v=NULL, *lastv=NULL, *firstv=NULL;
 	EditEdge *e;
 	EditFace *efa;
 	short *lasso= (short *)gt->customdata;
@@ -230,21 +230,24 @@ static void draw_filled_lasso(wmGesture *gt)
         if (firstv==NULL) firstv = v;
 	}
 	
-	BLI_addfilledge(firstv, v);
-	BLI_edgefill(0, 0);
+	/* highly unlikely this will fail, but could crash if (gt->points == 0) */
+	if(firstv) {
+		BLI_addfilledge(firstv, v);
+		BLI_edgefill(0, 0);
 	
-	glEnable(GL_BLEND);
-	glColor4f(1.0, 1.0, 1.0, 0.05);
-	glBegin(GL_TRIANGLES);
-	for (efa = fillfacebase.first; efa; efa=efa->next) {
-		glVertex2f(efa->v1->co[0], efa->v1->co[1]);
-		glVertex2f(efa->v2->co[0], efa->v2->co[1]);
-		glVertex2f(efa->v3->co[0], efa->v3->co[1]);
+		glEnable(GL_BLEND);
+		glColor4f(1.0, 1.0, 1.0, 0.05);
+		glBegin(GL_TRIANGLES);
+		for (efa = fillfacebase.first; efa; efa=efa->next) {
+			glVertex2f(efa->v1->co[0], efa->v1->co[1]);
+			glVertex2f(efa->v2->co[0], efa->v2->co[1]);
+			glVertex2f(efa->v3->co[0], efa->v3->co[1]);
+		}
+		glEnd();
+		glDisable(GL_BLEND);
+	
+		BLI_end_edgefill();
 	}
-	glEnd();
-	glDisable(GL_BLEND);
-	
-	BLI_end_edgefill();
 }
 
 static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt)
