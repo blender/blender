@@ -44,6 +44,8 @@
 
 #include "WM_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #ifdef RNA_RUNTIME
 
 #include "ED_node.h"
@@ -550,17 +552,17 @@ static StructRNA* def_node(BlenderRNA *brna, int node_id)
 	return srna;
 }
 
-static EnumPropertyItem* alloc_node_type_items(int category)
+void alloc_node_type_items(EnumPropertyItem *items, int category)
 {
 	int i;
 	int count = 3;
-	EnumPropertyItem *item, *items;
+	EnumPropertyItem *item  = items;
 	
 	for(i=0; i<MaxNodes; i++)
 		if(nodes[i].defined && nodes[i].category == category)
 			count++;
 		
-	item = items = malloc(count * sizeof(EnumPropertyItem));
+	/*item = items = MEM_callocN(count * sizeof(EnumPropertyItem), "alloc_node_type_items");*/
 	
 	for(i=0; i<MaxNodes; i++) {
 		NodeInfo *node = nodes + i;
@@ -594,8 +596,6 @@ static EnumPropertyItem* alloc_node_type_items(int category)
 	/* NOTE!, increase 'count' when adding items here */
 	
 	memset(item, 0, sizeof(EnumPropertyItem));
-	
-	return items;
 }
 
 
@@ -1922,13 +1922,13 @@ static void def_tex_bricks(StructRNA *srna)
 
 /* -------------------------------------------------------------------------- */
 
+static EnumPropertyItem shader_node_type_items[MaxNodes];
 static void rna_def_shader_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	EnumPropertyItem *node_type_items;
 	
-	node_type_items = alloc_node_type_items(Category_ShaderNode);
+	alloc_node_type_items(shader_node_type_items, Category_ShaderNode);
 
 	srna = RNA_def_struct(brna, "ShaderNode", "Node");
 	RNA_def_struct_ui_text(srna, "Shader Node", "Material shader node.");
@@ -1936,17 +1936,17 @@ static void rna_def_shader_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, node_type_items);
+	RNA_def_property_enum_items(prop, shader_node_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 }
 
+static EnumPropertyItem compositor_node_type_items[MaxNodes];
 static void rna_def_compositor_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	EnumPropertyItem *node_type_items;
 	
-	node_type_items = alloc_node_type_items(Category_CompositorNode);
+	alloc_node_type_items(compositor_node_type_items, Category_CompositorNode);
 	
 	srna = RNA_def_struct(brna, "CompositorNode", "Node");
 	RNA_def_struct_ui_text(srna, "Compositor Node", "");
@@ -1954,17 +1954,17 @@ static void rna_def_compositor_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, node_type_items);
+	RNA_def_property_enum_items(prop, compositor_node_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 }
 
+static EnumPropertyItem texture_node_type_items[MaxNodes];
 static void rna_def_texture_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	EnumPropertyItem *node_type_items;
 	
-	node_type_items = alloc_node_type_items(Category_TextureNode);
+	alloc_node_type_items(texture_node_type_items, Category_TextureNode);
 	
 	srna = RNA_def_struct(brna, "TextureNode", "Node");
 	RNA_def_struct_ui_text(srna, "Texture Node", "");
@@ -1972,7 +1972,7 @@ static void rna_def_texture_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, node_type_items);
+	RNA_def_property_enum_items(prop, texture_node_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 }
 
