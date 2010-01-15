@@ -1486,6 +1486,11 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	return OPERATOR_FINISHED;
 }
 
+static int pose_select_linked_poll(bContext *C)
+{
+	return ( ED_operator_view3d_active(C) && ED_operator_posemode(C) );
+}
+
 void POSE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1495,7 +1500,7 @@ void POSE_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= NULL;
 	ot->invoke= pose_select_connected_invoke;
-	ot->poll= ED_operator_posemode;
+	ot->poll= select_linked_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1578,6 +1583,11 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
+}
+
+static int armature_select_linked_poll(bContext *C)
+{
+	return ( ED_operator_view3d_active(C) && ED_operator_editarmature(C) );
 }
 
 void ARMATURE_OT_select_linked(wmOperatorType *ot)
