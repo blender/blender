@@ -1260,7 +1260,7 @@ void ANIM_OT_channels_setting_enable (wmOperatorType *ot)
 		/* flag-setting mode */
 	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_ADD, "Mode", "");
 		/* setting to set */
-	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 void ANIM_OT_channels_setting_disable (wmOperatorType *ot)
@@ -1282,7 +1282,7 @@ void ANIM_OT_channels_setting_disable (wmOperatorType *ot)
 		/* flag-setting mode */
 	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_CLEAR, "Mode", "");
 		/* setting to set */
-	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 void ANIM_OT_channels_setting_toggle (wmOperatorType *ot)
@@ -1304,7 +1304,7 @@ void ANIM_OT_channels_setting_toggle (wmOperatorType *ot)
 		/* flag-setting mode */
 	RNA_def_enum(ot->srna, "mode", prop_animchannel_setflag_types, ACHANNEL_SETFLAG_TOGGLE, "Mode", "");
 		/* setting to set */
-	RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_animchannel_settings_types, 0, "Type", "");
 }
 
 // XXX currently, this is a separate operator, but perhaps we could in future specify in keymaps whether to call invoke or exec?

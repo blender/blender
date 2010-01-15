@@ -130,7 +130,7 @@ void TRANSFORM_OT_snap_type(wmOperatorType *ot)
 	ot->flag= OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "type", snap_element_items, 0, "Type", "Set the snap element type");
+	ot->prop= RNA_def_enum(ot->srna, "type", snap_element_items, 0, "Type", "Set the snap element type");
 
 }
 

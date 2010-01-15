@@ -4011,6 +4011,9 @@ int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 
 	order= PyDict_GetItemString(class_dict, "order");
 
+	if(order==NULL)
+		PyErr_Clear();
+
 	if(order && PyList_Check(order)) {
 		for(pos= 0; pos<PyList_GET_SIZE(order); pos++) {
 			key= PyList_GET_ITEM(order, pos);

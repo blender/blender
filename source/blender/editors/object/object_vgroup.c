@@ -1882,5 +1882,6 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "group", vgroup_items, 0, "Group", "Vertex group to set as active.");
 	RNA_def_enum_funcs(prop, vgroup_itemf);
+	ot->prop= prop;
 }
 

@@ -3319,7 +3319,7 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 	
 	ot->flag= 0;
 
-	RNA_def_enum(ot->srna, "type", prop_object_op_types, 0, "Object Operation", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_object_op_types, 0, "Object Operation", "");
 }
 
 /* **************************************** */
@@ -3377,7 +3377,7 @@ void OUTLINER_OT_group_operation(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_enum(ot->srna, "type", prop_group_op_types, 0, "Group Operation", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_group_op_types, 0, "Group Operation", "");
 }
 
 /* **************************************** */
@@ -3443,7 +3443,7 @@ void OUTLINER_OT_id_operation(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_enum(ot->srna, "type", prop_id_op_types, 0, "ID data Operation", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_id_op_types, 0, "ID data Operation", "");
 }
 
 /* **************************************** */
@@ -3514,7 +3514,7 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_enum(ot->srna, "type", prop_data_op_types, 0, "Data Operation", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_data_op_types, 0, "Data Operation", "");
 }
 
 

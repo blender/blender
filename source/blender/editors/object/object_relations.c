@@ -286,7 +286,6 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 		
 		/* create operator menu item with relevant properties filled in */
 		props_ptr= uiItemFullO(layout, op->type->name, 0, op->idname, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
-		RNA_string_set(&props_ptr, "object", ob->id.name+2);
 		
 		/* present the menu and be done... */
 		uiPupMenuEnd(C, pup);
@@ -337,8 +336,7 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 		/* depsgraph flushes are needed for the new data */
 		DAG_scene_sort(scene);
 		DAG_id_flush_update(&newob->id, OB_RECALC);
-		
-		WM_event_add_notifier(C, NC_OBJECT, NULL);
+		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, newob);
 	}
 	else {
 		BKE_report(op->reports, RPT_ERROR, "No object to make proxy for");
@@ -358,7 +356,7 @@ static EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *ptr, 
 	GroupObject *go;
 
 	if(!ob || !ob->dup_group)
-		return &DummyRNA_NULL_items;
+		return DummyRNA_NULL_items;
 
 	memset(&item_tmp, 0, sizeof(item_tmp));
 
@@ -396,6 +394,7 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 	RNA_def_string(ot->srna, "object", "", 19, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for.");
 	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "Group object"); /* XXX, relies on hard coded ID at the moment */
 	RNA_def_enum_funcs(prop, proxy_group_object_itemf);
+	ot->prop= prop;
 }
 
 /********************** Clear Parent Operator ******************* */
@@ -452,7 +451,7 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
 }
 
 /* ******************** Make Parent Operator *********************** */
@@ -893,7 +892,7 @@ void OBJECT_OT_track_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_clear_track_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_clear_track_types, 0, "Type", "");
 }
 
 /************************** Make Track Operator *****************************/
@@ -986,7 +985,7 @@ void OBJECT_OT_track_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_make_track_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_make_track_types, 0, "Type", "");
 }
 
 /************************** Move to Layer Operator *****************************/
@@ -1768,7 +1767,7 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
 static int make_single_user_exec(bContext *C, wmOperator *op)
@@ -1819,7 +1818,7 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 
 	RNA_def_boolean(ot->srna, "object", 0, "Object", "Make single user objects");
 	RNA_def_boolean(ot->srna, "obdata", 0, "Object Data", "Make single user object data");

@@ -558,6 +558,7 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", modifier_type_items, eModifierType_Subsurf, "Type", "");
 	RNA_def_enum_funcs(prop, modifier_add_itemf);
+	ot->prop= prop;
 }
 
 /************************ remove modifier operator *********************/

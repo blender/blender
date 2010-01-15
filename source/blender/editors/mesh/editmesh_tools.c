@@ -5881,6 +5881,7 @@ void MESH_OT_merge(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use.");
 	RNA_def_enum_funcs(prop, merge_type_itemf);
+	ot->prop= prop;
 	RNA_def_boolean(ot->srna, "uvs", 0, "UVs", "Move UVs according to merge.");
 }
 
@@ -6082,7 +6083,7 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, PATH_SELECT_EDGE_LENGTH, "Type", "Method to compute distance.");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, PATH_SELECT_EDGE_LENGTH, "Type", "Method to compute distance.");
 }
 
 /********************** Region/Loop Operators *************************/

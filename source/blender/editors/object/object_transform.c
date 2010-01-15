@@ -1040,6 +1040,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
+
 }
 

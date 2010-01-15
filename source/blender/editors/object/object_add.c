@@ -384,7 +384,7 @@ void OBJECT_OT_effector_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", field_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", field_type_items, 0, "Type", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
@@ -806,7 +806,7 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
 
 	ED_object_add_generic_props(ot, FALSE);
 }
@@ -1360,7 +1360,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to.");
+	ot->prop= RNA_def_enum(ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to.");
 	RNA_def_boolean(ot->srna, "keep_original", 0, "Keep Original", "Keep original objects instead of replacing them.");
 }
 

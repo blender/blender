@@ -78,16 +78,16 @@ static void console_line_color(unsigned char *fg, int type)
 {
 	switch(type) {
 	case CONSOLE_LINE_OUTPUT:
-		UI_GetThemeColor3ubv(TH_CONSOLE_OUTPUT, fg);
+		UI_GetThemeColor3ubv(TH_CONSOLE_OUTPUT, (char *)fg);
 		break;
 	case CONSOLE_LINE_INPUT:
-		UI_GetThemeColor3ubv(TH_CONSOLE_INPUT, fg);
+		UI_GetThemeColor3ubv(TH_CONSOLE_INPUT, (char *)fg);
 		break;
 	case CONSOLE_LINE_INFO:
-		UI_GetThemeColor3ubv(TH_CONSOLE_INFO, fg);
+		UI_GetThemeColor3ubv(TH_CONSOLE_INFO, (char *)fg);
 		break;
 	case CONSOLE_LINE_ERROR:
-		UI_GetThemeColor3ubv(TH_CONSOLE_ERROR, fg);
+		UI_GetThemeColor3ubv(TH_CONSOLE_ERROR, (char *)fg);
 		break;
 	}
 }

@@ -2581,7 +2581,7 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, CU_POLY, "Type", "Spline type");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, CU_POLY, "Type", "Spline type");
 }
 
 /***************** set handle type operator *******************/

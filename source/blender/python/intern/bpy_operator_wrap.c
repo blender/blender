@@ -65,6 +65,16 @@ void operator_wrapper(wmOperatorType *ot, void *userdata)
 	ot->srna= srna; /* restore */
 
 	operator_properties_init(ot);
+
+	{	/* XXX - not nice, set the first enum as searchable, should have a way for python to set */
+		PointerRNA ptr;
+		PropertyRNA *prop;
+
+		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+		prop = RNA_struct_find_property(&ptr, "type");
+		if(prop)
+			ot->prop= prop;
+	}
 }
 
 void macro_wrapper(wmOperatorType *ot, void *userdata)

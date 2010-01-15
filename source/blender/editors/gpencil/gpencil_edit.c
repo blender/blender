@@ -594,7 +594,7 @@ void GPENCIL_OT_convert (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_gpencil_convertmodes, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_gpencil_convertmodes, 0, "Type", "");
 }
 
 /* ************************************************ */

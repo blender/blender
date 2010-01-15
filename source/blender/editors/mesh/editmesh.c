@@ -1504,7 +1504,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_separate_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_separate_types, 0, "Type", "");
 }
 
 

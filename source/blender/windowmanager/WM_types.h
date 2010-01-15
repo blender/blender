@@ -390,6 +390,10 @@ typedef struct wmOperatorType {
 	/* rna for properties */
 	struct StructRNA *srna;
 
+	/* rna property to use for generic invoke functions.
+	 * menus, enum search... etc */
+	PropertyRNA *prop;
+
 	/* struct wmOperatorTypeMacro */
 	ListBase macro;
 

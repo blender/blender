@@ -157,7 +157,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
-	RNA_def_enum(ot->srna, "type", object_type_items, 1, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", object_type_items, 1, "Type", "");
 }
 
 /*********************** Selection by Links *********************/
@@ -318,7 +318,7 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
-	RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_linked_types, 0, "Type", "");
 }
 
 /*********************** Selected Grouped ********************/
@@ -619,7 +619,7 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
-	RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
 }
 
 /************************* Select by Layer **********************/

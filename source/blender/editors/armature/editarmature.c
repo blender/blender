@@ -1384,7 +1384,7 @@ void ARMATURE_OT_flags_set (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_bone_setting_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_bone_setting_types, 0, "Type", "");
 	RNA_def_enum(ot->srna, "mode", prop_bone_setting_modes, 0, "Mode", "");
 }
 
@@ -1404,7 +1404,7 @@ void POSE_OT_flags_set (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_bone_setting_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_bone_setting_types, 0, "Type", "");
 	RNA_def_enum(ot->srna, "mode", prop_bone_setting_modes, 0, "Mode", "");
 }
 
@@ -2164,7 +2164,7 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
 }
 
 /* **************** undo for armatures ************** */
@@ -3200,7 +3200,7 @@ void ARMATURE_OT_merge (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", merge_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", merge_types, 0, "Type", "");
 }
 
 /* ************** END Add/Remove stuff in editmode ************ */
@@ -3973,7 +3973,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
 }
 
 /* ****************  Selections  ******************/
@@ -5559,7 +5559,7 @@ void ARMATURE_OT_autoside_names (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* settings */
-	RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with.");
+	ot->prop= RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with.");
 }
 
 

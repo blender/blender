@@ -597,27 +597,15 @@ void WM_operator_properties_free(PointerRNA *ptr)
 /* invoke callback, uses enum property named "type" */
 int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	PropertyRNA *prop;
+	PropertyRNA *prop= op->type->prop;
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	prop= RNA_struct_find_property(op->ptr, "type");
-
-	if(!prop) {
-		RNA_STRUCT_BEGIN(op->ptr, findprop) {
-			if(RNA_property_type(findprop) == PROP_ENUM) {
-				prop= findprop;
-				break;
-			}
-		}
-		RNA_STRUCT_END;
-	}
-
 	if(prop==NULL) {
-		printf("WM_menu_invoke: %s has no \"type\" enum property\n", op->type->idname);
+		printf("WM_menu_invoke: %s has no enum property set\n", op->type->idname);
 	}
 	else if (RNA_property_type(prop) != PROP_ENUM) {
-		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
+		printf("WM_menu_invoke: %s \"%s\" is not an enum property\n", op->type->idname, RNA_property_identifier(prop));
 	}
 	else if (RNA_property_is_set(op->ptr, RNA_property_identifier(prop))) {
 		return op->type->exec(C, op);
@@ -633,45 +621,47 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 
-/* ENUM Search popup */
+/* generic enum search invoke popup */
 static void operator_enum_search_cb(const struct bContext *C, void *arg_ot, char *str, uiSearchItems *items)
 {
 	wmOperatorType *ot = (wmOperatorType *)arg_ot;
-	PointerRNA ptr;
-	PropertyRNA *prop;
+	PropertyRNA *prop= ot->prop;
 
-	/* enum */
-	EnumPropertyItem *item, *item_array;
-	int free, found;
-
-	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
-	prop = RNA_struct_find_property(&ptr, "type"); // XXX, SHOULD NOT USE HARD CODED VALUE
-
-	RNA_property_enum_items((bContext *)C, &ptr, prop, &item_array, NULL, &free);
-
-	for(item= item_array; item->identifier; item++) {
-		/* note: need to give the intex rather then the dientifier because the enum can be freed */
-		if(BLI_strcasestr(item->name, str))
-			if(0==uiSearchItemAdd(items, item->name, SET_INT_IN_POINTER(item->value), 0))
-				break;
+	if(prop==NULL) {
+		printf("WM_enum_search_invoke: %s has no enum property set\n", ot->idname);
 	}
+	else if (RNA_property_type(prop) != PROP_ENUM) {
+		printf("WM_enum_search_invoke: %s \"%s\" is not an enum property\n", ot->idname, RNA_property_identifier(prop));
+	}
+	else {
+		PointerRNA ptr;
 
-	found= (item->identifier != NULL); /* could be alloc'd, assign before free */
+		EnumPropertyItem *item, *item_array;
+		int free;
 
-	if(free)
-		MEM_freeN(item_array);
+		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+		RNA_property_enum_items((bContext *)C, &ptr, prop, &item_array, NULL, &free);
 
+		for(item= item_array; item->identifier; item++) {
+			/* note: need to give the intex rather then the dientifier because the enum can be freed */
+			if(BLI_strcasestr(item->name, str))
+				if(0==uiSearchItemAdd(items, item->name, SET_INT_IN_POINTER(item->value), 0))
+					break;
+		}
+
+		if(free)
+			MEM_freeN(item_array);
+	}
 }
 
 static void operator_enum_call_cb(struct bContext *C, void *arg1, void *arg2)
 {
 	wmOperatorType *ot= arg1;
-	int enum_value= GET_INT_FROM_POINTER(arg2);
 
 	if(ot) {
 		PointerRNA props_ptr;
 		WM_operator_properties_create_ptr(&props_ptr, ot);
-		RNA_enum_set(&props_ptr, "type", enum_value); // XXX, SHOULD NOT USE HARD CODED VALUE
+		RNA_property_enum_set(&props_ptr, ot->prop, GET_INT_FROM_POINTER(arg2));
 		WM_operator_name_call(C, ot->idname, WM_OP_EXEC_DEFAULT, &props_ptr);
 		WM_operator_properties_free(&props_ptr);
 	}
@@ -684,12 +674,14 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
 	wmWindow *win= CTX_wm_window(C);
 	uiBlock *block;
 	uiBut *but;
+	wmOperator *op= (wmOperator *)arg_op;
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
 
+	//uiDefBut(block, LABEL, 0, op->type->name, 10, 10, 180, 19, NULL, 0.0, 0.0, 0, 0, ""); // ok, this isnt so easy...
 	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, 0, 0, "");
-	uiButSetSearchFunc(but, operator_enum_search_cb, ((wmOperator *)arg_op)->type, operator_enum_call_cb, NULL);
+	uiButSetSearchFunc(but, operator_enum_search_cb, op->type, operator_enum_call_cb, NULL);
 
 	/* fake button, it holds space for search items */
 	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 180, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);

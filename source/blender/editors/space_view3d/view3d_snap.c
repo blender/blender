@@ -1089,7 +1089,6 @@ void VIEW3D_OT_snap_selected_to_center(wmOperatorType *ot)
 static int snap_curs_to_center(bContext *C, wmOperator *op)
 {
     Scene *scene= CTX_data_scene(C);
-    RegionView3D *rv3d= CTX_wm_region_data(C);
     View3D *v3d= CTX_wm_view3d(C);
     float *curs;
     curs= give_cursor(scene, v3d);
