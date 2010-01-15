@@ -88,7 +88,7 @@ class ExportUVLayout(bpy.types.Operator):
         
         # svg colors
         fill_settings = []
-        for mat in mesh.materials:
+        for mat in mesh.materials if mesh.materials else [None]:
             if mat:
                 fill_settings.append('fill="rgb(%d, %d, %d)"' % tuple(int(c*255) for c in mat.diffuse_color))
             else:
