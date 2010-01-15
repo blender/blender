@@ -102,20 +102,24 @@ class SubdivisionSet(bpy.types.Operator):
         def set_object_subd(obj):
             for mod in obj.modifiers:
                 if mod.type == 'MULTIRES':
-                    if level <= mod.total_levels:
-                        if obj.mode == 'SCULPT':
-                            if relative:
-                                mod.sculpt_levels += level
-                            else:
+                    if not relative:
+                        if level <= mod.total_levels:
+                            if obj.mode == 'SCULPT':
                                 if mod.sculpt_levels != level:
                                     mod.sculpt_levels = level
-                        elif obj.mode == 'OBJECT':
-                            if relative:
-                                mod.levels += level
-                            else:
+                            elif obj.mode == 'OBJECT':
                                 if mod.levels != level:
-                                    mod.levels = level
-                    return
+                                    mod.levels = level                          
+                        return
+                    else:
+                        if obj.mode == 'SCULPT':
+                            if mod.sculpt_levels+level <= mod.total_levels:
+                                mod.sculpt_levels += level
+                        elif obj.mode == 'OBJECT':
+                            if mod.levels+level <= mod.total_levels:
+                                mod.levels += level
+                        return
+                
                 elif mod.type == 'SUBSURF':
                     if relative:
                         mod.levels += level
