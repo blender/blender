@@ -120,7 +120,7 @@ void EM_cache_x_mirror_vert(struct Object *ob, struct EditMesh *em)
 	}
 }
 
-void EM_select_mirrored(Object *obedit, EditMesh *em, int extend)
+static void EM_select_mirrored(Object *obedit, EditMesh *em, int extend)
 {
 
 	EditVert *eve;

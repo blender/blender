@@ -50,6 +50,7 @@ void PARTICLE_OT_reveal(struct wmOperatorType *ot);
 void PARTICLE_OT_rekey(struct wmOperatorType *ot);
 void PARTICLE_OT_subdivide(struct wmOperatorType *ot);
 void PARTICLE_OT_remove_doubles(struct wmOperatorType *ot);
+void PARTICLE_OT_weight_set(struct wmOperatorType *ot);
 void PARTICLE_OT_delete(struct wmOperatorType *ot);
 void PARTICLE_OT_mirror(struct wmOperatorType *ot);
 

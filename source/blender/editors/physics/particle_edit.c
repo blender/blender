@@ -2366,6 +2366,52 @@ void PARTICLE_OT_remove_doubles(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "threshold", 0.0002f, 0.0f, FLT_MAX, "Threshold", "Threshold distance withing which particles are removed", 0.00001f, 0.1f);
 }
 
+
+static int weight_set_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ParticleEditSettings *pset= PE_settings(scene);
+	Object *ob= CTX_data_active_object(C);
+	PTCacheEdit *edit= PE_get_current(scene, ob);
+	ParticleSystem *psys = edit->psys;
+	POINT_P;
+	KEY_K;
+	HairKey *hkey;
+	float weight;
+	ParticleBrushData *brush= &pset->brush[pset->brushtype];
+	edit= psys->edit;
+
+	weight= (float)(brush->strength / 100.0f);
+
+	LOOP_SELECTED_POINTS {
+		ParticleData *pa= psys->particles + p;
+
+		LOOP_SELECTED_KEYS {
+			hkey= pa->hair + k;
+			hkey->weight= weight;
+		}
+	}
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_weight_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Weight Set";
+	ot->idname= "PARTICLE_OT_weight_set";
+
+	/* api callbacks */
+	ot->exec= weight_set_exec;
+	ot->poll= PE_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /************************ cursor drawing *******************************/
 
 static void brush_drawcursor(bContext *C, int x, int y, void *customdata)

@@ -44,11 +44,16 @@ void copy_defgroups (struct ListBase *lb1, struct ListBase *lb2);
 struct bDeformGroup *copy_defgroup (struct bDeformGroup *ingroup);
 struct bDeformGroup *get_named_vertexgroup (Object *ob, char *name);
 int get_defgroup_num (struct Object *ob, struct bDeformGroup *dg);
+int *get_defgroup_flip_map(struct Object *ob);
 int get_named_vertexgroup_num (Object *ob, const char *name);
 void unique_vertexgroup_name (struct bDeformGroup *dg, struct Object *ob);
+void flip_vertexgroup_name (char *name_r, const char *name, int strip_number);
 
 float deformvert_get_weight(const struct MDeformVert *dvert, int group_num);
 float vertexgroup_get_vertex_weight(const struct MDeformVert *dvert, int index, int group_num);
+
+void copy_defvert (struct MDeformVert *dvert_r, const struct MDeformVert *dvert);
+void flip_defvert (struct MDeformVert *dvert, int *flip_map);
 
 #endif
 

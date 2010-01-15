@@ -187,6 +187,7 @@ void OBJECT_OT_vertex_group_levels(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_invert(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_blend(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_clean(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_set_active(struct wmOperatorType *ot);
 
 void OBJECT_OT_game_property_new(struct wmOperatorType *ot);

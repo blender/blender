@@ -186,6 +186,8 @@ class VIEW3D_MT_mirror(bpy.types.Menu):
             props.constraint_axis = (False, False, True)
             props.constraint_orientation = 'LOCAL'
 
+            layout.operator("object.vertex_group_mirror")
+
 
 class VIEW3D_MT_snap(bpy.types.Menu):
     bl_label = "Snap"
@@ -898,6 +900,7 @@ class VIEW3D_MT_particle(bpy.types.Menu):
             layout.operator("particle.subdivide")
 
         layout.operator("particle.rekey")
+        layout.operator("particle.weight_set")
 
         layout.separator()
 
