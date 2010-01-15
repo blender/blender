@@ -632,6 +632,88 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return OPERATOR_CANCELLED;
 }
 
+
+/* ENUM Search popup */
+static void operator_enum_search_cb(const struct bContext *C, void *arg_ot, char *str, uiSearchItems *items)
+{
+	wmOperatorType *ot = (wmOperatorType *)arg_ot;
+	PointerRNA ptr;
+	PropertyRNA *prop;
+
+	/* enum */
+	EnumPropertyItem *item, *item_array;
+	int free, found;
+
+	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+	prop = RNA_struct_find_property(&ptr, "type"); // XXX, SHOULD NOT USE HARD CODED VALUE
+
+	RNA_property_enum_items((bContext *)C, &ptr, prop, &item_array, NULL, &free);
+
+	for(item= item_array; item->identifier; item++) {
+		/* note: need to give the intex rather then the dientifier because the enum can be freed */
+		if(BLI_strcasestr(item->name, str))
+			if(0==uiSearchItemAdd(items, item->name, SET_INT_IN_POINTER(item->value), 0))
+				break;
+	}
+
+	found= (item->identifier != NULL); /* could be alloc'd, assign before free */
+
+	if(free)
+		MEM_freeN(item_array);
+
+}
+
+static void operator_enum_call_cb(struct bContext *C, void *arg1, void *arg2)
+{
+	wmOperatorType *ot= arg1;
+	int enum_value= GET_INT_FROM_POINTER(arg2);
+
+	if(ot) {
+		PointerRNA props_ptr;
+		WM_operator_properties_create_ptr(&props_ptr, ot);
+		RNA_enum_set(&props_ptr, "type", enum_value); // XXX, SHOULD NOT USE HARD CODED VALUE
+		WM_operator_name_call(C, ot->idname, WM_OP_EXEC_DEFAULT, &props_ptr);
+		WM_operator_properties_free(&props_ptr);
+	}
+}
+
+static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
+{
+	static char search[256]= "";
+	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
+	uiBlock *block;
+	uiBut *but;
+
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
+
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, 0, 0, "");
+	uiButSetSearchFunc(but, operator_enum_search_cb, ((wmOperator *)arg_op)->type, operator_enum_call_cb, NULL);
+
+	/* fake button, it holds space for search items */
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 180, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+
+	uiPopupBoundsBlock(block, 6.0f, 0, -20); /* move it downwards, mouse over button */
+	uiEndBlock(C, block);
+
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	wm_event_add(win, &event);
+
+	return block;
+}
+
+
+int WM_enum_search_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiPupBlock(C, wm_enum_search_menu, op);
+	return OPERATOR_CANCELLED;
+}
+
 /* Can't be used as an invoke directly, needs message arg (can be NULL) */
 int WM_operator_confirm_message(bContext *C, wmOperator *op, char *message)
 {

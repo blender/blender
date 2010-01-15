@@ -261,39 +261,6 @@ void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 
 /********************** Make Proxy Operator *************************/
 
-/* present menu listing the possible objects within the group to proxify */
-static void proxy_group_objects_menu (bContext *C, wmOperator *op, Object *ob, Group *group)
-{
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	GroupObject *go;
-	int len=0;
-	
-	/* check if there are any objects within the group to assign for */
-	for (go= group->gobject.first; go; go= go->next) {
-		if (go->ob) len++;
-	}
-	if (len==0) return;
-	
-	/* now create the menu to draw */
-	pup= uiPupMenuBegin(C, "Make Proxy For:", 0);
-	layout= uiPupMenuLayout(pup);
-	
-	for (go= group->gobject.first; go; go= go->next) {
-		if (go->ob) {
-			PointerRNA props_ptr;
-			
-			/* create operator menu item with relevant properties filled in */
-			props_ptr= uiItemFullO(layout, go->ob->id.name+2, 0, op->idname, NULL, WM_OP_EXEC_REGION_WIN, UI_ITEM_O_RETURN_PROPS);
-			RNA_string_set(&props_ptr, "object", go->ob->id.name+2);
-			RNA_string_set(&props_ptr, "group_object", go->ob->id.name+2);
-		}
-	}
-	
-	/* display the menu, and be done */
-	uiPupMenuEnd(C, pup);
-}
-
 /* set the object to proxify */
 static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
@@ -307,7 +274,10 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	/* Get object to work on - use a menu if we need to... */
 	if (ob->dup_group && ob->dup_group->id.lib) {
 		/* gives menu with list of objects in group */
-		proxy_group_objects_menu(C, op, ob, ob->dup_group);
+		//proxy_group_objects_menu(C, op, ob, ob->dup_group);
+		WM_enum_search_invoke(C, op, evt);
+		return OPERATOR_CANCELLED;
+
 	}
 	else if (ob->id.lib) {
 		uiPopupMenu *pup= uiPupMenuBegin(C, "OK?", ICON_QUESTION);
@@ -332,39 +302,10 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int make_proxy_exec (bContext *C, wmOperator *op)
 {
-	Object *ob=NULL, *gob=NULL;
+	Object *ob, *gob= CTX_data_active_object(C);
+	GroupObject *go= BLI_findlink(&gob->dup_group->gobject, RNA_enum_get(op->ptr, "type"));
 	Scene *scene= CTX_data_scene(C);
-	char ob_name[21], gob_name[21];
-	
-	/* get object and group object
-	 *	- firstly names
-	 *	- then pointers from context 
-	 */
-	RNA_string_get(op->ptr, "object", ob_name);
-	RNA_string_get(op->ptr, "group_object", gob_name);
-	
-	if (gob_name[0]) {
-		Group *group;
-		GroupObject *go;
-		
-		/* active object is group object... */
-		// FIXME: we should get the nominated name instead
-		gob= CTX_data_active_object(C);
-		group= gob->dup_group;
-		
-		/* find the object to affect */
-		for (go= group->gobject.first; go; go= go->next) {
-			if ((go->ob) && strcmp(go->ob->id.name+2, gob_name)==0) {
-				ob= go->ob;
-				break;
-			}
-		}
-	}
-	else {
-		/* just use the active object for now */
-		// FIXME: we should get the nominated name instead
-		ob= CTX_data_active_object(C);
-	}
+	ob= go->ob;
 	
 	if (ob) {
 		Object *newob;
@@ -407,8 +348,37 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+/* Generic itemf's for operators that take library args */
+static EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	EnumPropertyItem *item= NULL, item_tmp;
+	int totitem= 0;
+	int i= 0;
+	Object *ob= CTX_data_active_object(C);
+	GroupObject *go;
+
+	if(!ob || !ob->dup_group)
+		return &DummyRNA_NULL_items;
+
+	memset(&item_tmp, 0, sizeof(item_tmp));
+
+	/* find the object to affect */
+	for (go= ob->dup_group->gobject.first; go; go= go->next) {
+		item_tmp.identifier= item_tmp.name= go->ob->id.name+2;
+		item_tmp.value= i++;
+		RNA_enum_item_add(&item, &totitem, &item_tmp);
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*free= 1;
+
+	return item;
+}
+
 void OBJECT_OT_proxy_make (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Make Proxy";
 	ot->idname= "OBJECT_OT_proxy_make";
@@ -424,7 +394,8 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_string(ot->srna, "object", "", 19, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for.");
-	RNA_def_string(ot->srna, "group_object", "", 19, "Group Object", "Name of group instancer (if applicable).");
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "Group object"); /* XXX, relies on hard coded ID at the moment */
+	RNA_def_enum_funcs(prop, proxy_group_object_itemf);
 }
 
 /********************** Clear Parent Operator ******************* */
