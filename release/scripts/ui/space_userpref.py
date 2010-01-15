@@ -920,6 +920,19 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             col = split.column()
             col.prop(prefs, "header_text")
+            
+        elif theme.theme_area == 'CONSOLE':
+            prefs = theme.console
+             
+            col = split.column()
+            col.prop(prefs, "header")
+            
+            col = split.column()
+            col.prop(prefs, "line_output")
+            col.prop(prefs, "line_input")
+            col.prop(prefs, "line_info")
+            col.prop(prefs, "line_error")
+            
 
 
 class USERPREF_PT_file(bpy.types.Panel):

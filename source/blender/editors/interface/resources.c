@@ -154,6 +154,9 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case SPACE_USERPREF:
 				ts= &btheme->tuserpref;
 				break;
+			case SPACE_CONSOLE:
+				ts= &btheme->tconsole;
+				break;
 			case SPACE_TIME:
 				ts= &btheme->ttime;
 				break;
@@ -340,6 +343,15 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case TH_SEQ_META:
 				cp= ts->meta; break;
 				
+			case TH_CONSOLE_OUTPUT:
+				cp= ts->console_output; break;
+			case TH_CONSOLE_INPUT:
+				cp= ts-> console_input; break;
+			case TH_CONSOLE_INFO:
+				cp= ts->console_info; break;
+			case TH_CONSOLE_ERROR:
+				cp= ts->console_error; break;
+
 			case TH_HANDLE_VERTEX:
 				cp= ts->handle_vertex;
 				break;
@@ -407,6 +419,7 @@ static void ui_theme_init_new(bTheme *btheme)
 	ui_theme_init_new_do(&btheme->tnode);
 	ui_theme_init_new_do(&btheme->tlogic);
 	ui_theme_init_new_do(&btheme->tuserpref);
+	ui_theme_init_new_do(&btheme->tconsole);
 	
 }
 
@@ -594,6 +607,14 @@ void ui_theme_init_userdef(void)
 	/* space user preferences */
 	btheme->tuserpref= btheme->tv3d;
 	SETCOLF(btheme->tuserpref.back, 0.45, 0.45, 0.45, 1.0);
+	
+	/* space console */
+	btheme->tconsole= btheme->tv3d;
+	SETCOL(btheme->tconsole.console_output, 96, 128, 255, 255);
+	SETCOL(btheme->tconsole.console_input, 255, 255, 255, 255);
+	SETCOL(btheme->tconsole.console_info, 0, 170, 0, 255);
+	SETCOL(btheme->tconsole.console_error, 220, 96, 96, 255);
+	
 
 	/* space sound */
 	btheme->tsnd= btheme->tv3d;
