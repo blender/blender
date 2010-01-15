@@ -1772,6 +1772,18 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "VoxelData");
 	RNA_def_property_ui_text(prop, "Voxel Data", "The voxel data associated with this texture");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ima");
+	RNA_def_property_struct_type(prop, "Image");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Image", "");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
+	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_texture(BlenderRNA *brna)
