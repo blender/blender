@@ -23,24 +23,38 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-
 #include "bpy_operator_wrap.h"
-#include "BLI_listbase.h"
 #include "BKE_context.h"
-#include "BKE_report.h"
-#include "DNA_windowmanager_types.h"
-#include "MEM_guardedalloc.h"
 #include "WM_api.h"
 #include "WM_types.h"
-#include "UI_interface.h"
-#include "ED_screen.h"
 
 #include "RNA_define.h"
 
 #include "bpy_rna.h"
 #include "bpy_util.h"
 
-#include "../generic/bpy_internal_import.h" // our own imports
+static void operator_properties_init(wmOperatorType *ot)
+{
+	PyObject *py_class = ot->ext.data;
+	PyObject *item= ((PyTypeObject*)py_class)->tp_dict; /* getattr(..., "__dict__") returns a proxy */
+
+	RNA_struct_blender_type_set(ot->ext.srna, ot);
+
+	if(item) {
+		/* only call this so pyrna_deferred_register_props gives a useful error
+		 * WM_operatortype_append_ptr will call RNA_def_struct_identifier
+		 * later */
+		RNA_def_struct_identifier(ot->srna, ot->idname);
+
+		if(pyrna_deferred_register_props(ot->srna, item) != 0) {
+			PyErr_Print(); /* failed to register operator props */
+			PyErr_Clear();
+		}
+	}
+	else {
+		PyErr_Clear();
+	}
+}
 
 void operator_wrapper(wmOperatorType *ot, void *userdata)
 {
@@ -50,33 +64,7 @@ void operator_wrapper(wmOperatorType *ot, void *userdata)
 	*ot= *((wmOperatorType *)userdata);
 	ot->srna= srna; /* restore */
 
-	RNA_struct_blender_type_set(ot->ext.srna, ot);
-
-
-	/* Can't use this because it returns a dict proxy
-	 *
-	 * item= PyObject_GetAttrString(py_class, "__dict__");
-	 */
-	{
-		PyObject *py_class = ot->ext.data;
-		PyObject *item= ((PyTypeObject*)py_class)->tp_dict;
-		if(item) {
-			/* only call this so pyrna_deferred_register_props gives a useful error
-			 * WM_operatortype_append_ptr will call RNA_def_struct_identifier
-			 * later */
-			RNA_def_struct_identifier(ot->srna, ot->idname);
-
-			if(pyrna_deferred_register_props(ot->srna, item)!=0) {
-				/* failed to register operator props */
-				PyErr_Print();
-				PyErr_Clear();
-
-			}
-		}
-		else {
-			PyErr_Clear();
-		}
-	}
+	operator_properties_init(ot);
 }
 
 void macro_wrapper(wmOperatorType *ot, void *userdata)
@@ -92,33 +80,7 @@ void macro_wrapper(wmOperatorType *ot, void *userdata)
 	ot->ui = data->ui;
 	ot->ext = data->ext;
 
-	RNA_struct_blender_type_set(ot->ext.srna, ot);
-
-
-	/* Can't use this because it returns a dict proxy
-	 *
-	 * item= PyObject_GetAttrString(py_class, "__dict__");
-	 */
-	{
-		PyObject *py_class = ot->ext.data;
-		PyObject *item= ((PyTypeObject*)py_class)->tp_dict;
-		if(item) {
-			/* only call this so pyrna_deferred_register_props gives a useful error
-			 * WM_operatortype_append_ptr will call RNA_def_struct_identifier
-			 * later */
-			RNA_def_struct_identifier(ot->srna, ot->idname);
-
-			if(pyrna_deferred_register_props(ot->srna, item)!=0) {
-				/* failed to register operator props */
-				PyErr_Print();
-				PyErr_Clear();
-
-			}
-		}
-		else {
-			PyErr_Clear();
-		}
-	}
+	operator_properties_init(ot);
 }
 
 PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args)
