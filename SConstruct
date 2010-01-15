@@ -500,7 +500,7 @@ if  env['OURPLATFORM']!='darwin':
 					else:						dir = os.path.join(env['BF_INSTALLDIR'], '.blender')				
 					dir += os.sep + os.path.basename(scriptpath) + dp[len(scriptpath):]
 					
-					source=[os.path.join(dp, f) for f in df]
+					source=[os.path.join(dp, f) for f in df if f[-3:]!='pyc']
 					scriptinstall.append(env.Install(dir=dir,source=source))
 
 #-- icons
