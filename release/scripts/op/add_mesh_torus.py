@@ -82,10 +82,10 @@ class AddTorus(bpy.types.Operator):
     bl_undo = True
 
     major_radius = FloatProperty(name="Major Radius",
-            description="Number of segments for the main ring of the torus",
+            description="Radius from center of torus to center of it's cross section",
             default=1.0, min=0.01, max=100.0)
     minor_radius = FloatProperty(name="Minor Radius",
-            description="Number of segments for the minor ring of the torus",
+            description="Radius of the torus' cross section",
             default=0.25, min=0.01, max=100.0)
     major_segments = IntProperty(name="Major Segments",
             description="Number of segments for the main ring of the torus",
@@ -104,12 +104,10 @@ class AddTorus(bpy.types.Operator):
 
     def execute(self, context):
 
-        #deleting between THESE lines makes it re-appear in blender
         if self.properties.use_abso == True:
             extra_helper = (self.properties.abso_major_rad - self.properties.abso_minor_rad) * 0.5
             self.properties.major_radius = self.properties.abso_minor_rad + extra_helper
             self.properties.minor_radius = extra_helper
-        #deleting between THESE lines makes it re-appear in blender
 
         verts_loc, faces = add_torus(self.properties.major_radius,
                                     self.properties.minor_radius,
