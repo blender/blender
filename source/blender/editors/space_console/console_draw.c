@@ -79,19 +79,15 @@ static void console_line_color(unsigned char *fg, int type)
 	switch(type) {
 	case CONSOLE_LINE_OUTPUT:
 		UI_GetThemeColor3ubv(TH_CONSOLE_OUTPUT, fg);
-		fg[0], fg[1], fg[2];
 		break;
 	case CONSOLE_LINE_INPUT:
 		UI_GetThemeColor3ubv(TH_CONSOLE_INPUT, fg);
-		fg[0], fg[1], fg[2];
 		break;
 	case CONSOLE_LINE_INFO:
 		UI_GetThemeColor3ubv(TH_CONSOLE_INFO, fg);
-		fg[0], fg[1], fg[2];
 		break;
 	case CONSOLE_LINE_ERROR:
 		UI_GetThemeColor3ubv(TH_CONSOLE_ERROR, fg);
-		fg[0], fg[1], fg[2];
 		break;
 	}
 }
