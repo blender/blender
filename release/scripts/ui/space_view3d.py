@@ -200,6 +200,7 @@ class VIEW3D_MT_snap(bpy.types.Menu):
         layout.separator()
 
         layout.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected")
+        layout.operator("view3d.snap_cursor_to_center", text="Cursor to Center")
         layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid")
         layout.operator("view3d.snap_cursor_to_active", text="Cursor to Active")
 
