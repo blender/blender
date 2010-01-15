@@ -394,11 +394,9 @@ static void markers_selectkeys_between (bAnimContext *ac)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		if (adt) {	
-			ListBase nlabackup;
-
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else {
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
@@ -591,11 +589,10 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 		/* try to progressively get closer to the right point... */
 		if (fcu->bezt) {
 			BezTriple *bezt1=fcu->bezt, *prevbezt=NULL;
-			ListBase nlabackup;
 			
 			/* apply NLA mapping to all the keyframes */
 			if (adt)
-				ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup);
+				ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			
 			for (i=0; i < fcu->totvert; i++, prevbezt=bezt1, bezt1++) {
 				/* convert beztriple points to screen-space */
@@ -653,7 +650,7 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 			
 			/* un-apply NLA mapping from all the keyframes */
 			if (adt)
-				ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
+				ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 	}
 	
@@ -800,11 +797,9 @@ static void graphkeys_mselect_leftright (bAnimContext *ac, short leftright, shor
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		if (adt) {
-			ListBase nlabackup;
-
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);

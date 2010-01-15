@@ -1134,11 +1134,9 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *op)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 		if (adt) {
-			ListBase nlabackup;
-
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
@@ -1216,11 +1214,9 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		if (adt) {
-			ListBase nlabackup;
-
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);
@@ -1335,11 +1331,9 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		if (adt) {
-			ListBase nlabackup;
-
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ACTTYPE_GPLAYER)
 		//	snap_gplayer_frames(ale->data, mode);

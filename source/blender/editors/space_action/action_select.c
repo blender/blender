@@ -416,12 +416,10 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (adt) {	
-			ListBase nlabackup;
-
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup);
+		if (adt) {
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else {
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
@@ -663,19 +661,15 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 	/* select keys on the side where most data occurs */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
-
-#if 0	// This does not work even in simple cases I tested - campbell
+		
 		if (adt) {
-			ListBase nlabackup;
-
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		//else if (ale->type == ANIMTYPE_GPLAYER)
 		//	borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);
 		else
-#endif
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 	}
 	

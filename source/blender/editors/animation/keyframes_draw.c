@@ -850,13 +850,12 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, DLRBT_Tree 
 {
 	DLRBT_Tree *beztTree = NULL;
 	BezTriple *bezt;
-	ListBase nlabackup;
 	int v;
 	
 	if (fcu && fcu->totvert && fcu->bezt) {
 		/* apply NLA-mapping (if applicable) */
 		if (adt)	
-			ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
 		
 		/* if getting long keyframes too, grab the BezTriples in a BST for 
 		 * accelerated searching...
@@ -893,7 +892,7 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, DLRBT_Tree 
 		
 		/* unapply NLA-mapping if applicable */
 		if (adt)
-			ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
 	}
 }
 

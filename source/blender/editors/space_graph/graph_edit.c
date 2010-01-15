@@ -1557,11 +1557,9 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 		
 		if (adt) {
-			ListBase nlabackup;
-
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1); 
 		}
 		else
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
@@ -1647,11 +1645,9 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		if (adt) {
-			ListBase nlabackup;
-
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
@@ -1766,11 +1762,9 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		if (adt) {
-			ListBase nlabackup;
-
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup); 
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);

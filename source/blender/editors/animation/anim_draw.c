@@ -260,14 +260,17 @@ typedef struct NlaMappingApplyBackup {
 /* helper function for ANIM_nla_mapping_apply_fcurve() -> "restore", i.e. mapping points back to action-time */
 static short bezt_nlamapping_restore(BeztEditData *bed, BezTriple *bezt)
 {
-	ListBase *lb= (ListBase*)bed->data2;
-	NlaMappingApplyBackup *backup= lb->first;
-
-	/* restore beztriple from backup list. this used to use NLATIME_CONVERT_UNMAP,
-	   but this was not the inverse of NLATIME_CONVERT_MAP and it's not clear how
-	   that is even possible due to repeats - brecht. */
-	*bezt= backup->bezt;
-	BLI_freelinkN(lb, backup);
+	/* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
+	AnimData *adt= (AnimData *)bed->data;
+	short only_keys= (short)bed->i1;
+	
+	/* adjust BezTriple handles only if allowed to */
+	if (only_keys == 0) {
+		bezt->vec[0][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[0][0], NLATIME_CONVERT_UNMAP);
+		bezt->vec[2][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[2][0], NLATIME_CONVERT_UNMAP);
+	}
+	
+	bezt->vec[1][0]= BKE_nla_tweakedit_remap(adt, bezt->vec[1][0], NLATIME_CONVERT_UNMAP);
 	
 	return 0;
 }
@@ -277,14 +280,7 @@ static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
 {
 	/* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
 	AnimData *adt= (AnimData*)bed->data;
-	ListBase *lb= (ListBase*)bed->data2;
-	NlaMappingApplyBackup *backup;
 	short only_keys= (short)bed->i1;
-
-	/* backup for restore later */
-	backup= MEM_callocN(sizeof(NlaMappingApplyBackup), "NlaMappingApplyBackup");
-	backup->bezt= *bezt;
-	BLI_addtail(lb, backup);
 	
 	/* adjust BezTriple handles only if allowed to */
 	if (only_keys == 0) {
@@ -302,7 +298,7 @@ static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
  *	- restore = whether to map points back to non-mapped time 
  * 	- only_keys = whether to only adjust the location of the center point of beztriples
  */
-void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, short only_keys, ListBase *backup)
+void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, short only_keys)
 {
 	BeztEditData bed;
 	BeztEditFunc map_cb;
@@ -313,11 +309,7 @@ void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, s
 	 */
 	memset(&bed, 0, sizeof(BeztEditData));
 	bed.data= (void *)adt;
-	bed.data2= (void *)backup;
 	bed.i1= (int)only_keys;
-
-	if(!restore)
-		backup->first= backup->last= NULL;
 	
 	/* get editing callback */
 	if (restore)

@@ -3014,11 +3014,9 @@ static void posttrans_action_clean (bAnimContext *ac, bAction *act)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 
 		if (adt) {
-			ListBase nlabackup;
-
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			posttrans_fcurve_clean(ale->key_data);
-			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1, &nlabackup);
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else
 			posttrans_fcurve_clean(ale->key_data);
@@ -4785,11 +4783,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				     ((cancelled == 0) || (duplicate)) )
 				{
 					if (adt) {
-						ListBase nlabackup;
-
-						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1, &nlabackup);
+						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
 						posttrans_fcurve_clean(fcu);
-						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1, &nlabackup);
+						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
 					}
 					else
 						posttrans_fcurve_clean(fcu);
@@ -4868,11 +4864,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				     ((cancelled == 0) || (duplicate)) )
 				{
 					if (adt) {
-						ListBase nlabackup;
-
-						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1, &nlabackup);
+						ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
 						posttrans_fcurve_clean(fcu);
-						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1, &nlabackup);
+						ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
 					}
 					else
 						posttrans_fcurve_clean(fcu);
