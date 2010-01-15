@@ -198,15 +198,23 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 }
 
 static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
-	float norm[3], vec[3], factor;
+	float norm[3], vec[3], factor, angle;
 
 	if(in[0]==0.0f && in[1]==0.0f && in[2]==0.0f)
 		return;
 
+	print_v3("viewinv[2]", t->viewinv[2]);
+
+	angle = fabs(angle_v3v3(axis, t->viewinv[2]));
+	if (angle > M_PI / 2) {
+		angle = M_PI - angle;
+	}
+	angle = 180.0f * angle / M_PI;
+
 	/* For when view is parallel to constraint... will cause NaNs otherwise
 	   So we take vertical motion in 3D space and apply it to the
 	   constraint axis. Nice for camera grab + MMB */
-	if(1.0f - fabs(dot_v3v3(axis, t->viewinv[2])) < 0.000001f) {
+	if(angle < 5.0f) {
 		project_v3_v3v3(vec, in, t->viewinv[1]);
 		factor = dot_v3v3(t->viewinv[1], vec) * 2.0f;
 		/* since camera distance is quite relative, use quadratic relationship. holding shift can compensate */
