@@ -1500,7 +1500,7 @@ void POSE_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= NULL;
 	ot->invoke= pose_select_connected_invoke;
-	ot->poll= select_linked_poll;
+	ot->poll= pose_select_linked_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1599,7 +1599,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= NULL;
 	ot->invoke= armature_select_linked_invoke;
-	ot->poll= ED_operator_editarmature;
+	ot->poll= armature_select_linked_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

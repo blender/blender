@@ -781,6 +781,16 @@ static void wm_eventemulation(wmEvent *event)
 		}
 	}
 
+#ifdef __APPLE__
+	/* rightmouse emulation */
+	if(U.flag & USER_TWOBUTTONMOUSE) {
+		if(event->type == LEFTMOUSE && event->oskey) {
+			event->type = RIGHTMOUSE;
+			event->oskey = 0;
+		}
+	}
+#endif
+
 	/* numpad emulation */
 	if(U.flag & USER_NONUMPAD) {
 		switch(event->type) {
