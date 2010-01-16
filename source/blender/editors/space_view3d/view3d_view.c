@@ -1199,6 +1199,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	ARegion *ar= vc->ar;
 	rctf rect;
 	short code, hits;
+	char dt, dtx;
 	
 	G.f |= G_PICKSEL;
 	
@@ -1269,8 +1270,16 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 							tbase.object= dob->ob;
 							copy_m4_m4(dob->ob->obmat, dob->mat);
 							
+							/* extra service: draw the duplicator in drawtype of parent */
+							/* MIN2 for the drawtype to allow bounding box objects in groups for lods */
+							dt= tbase.object->dt;	tbase.object->dt= MIN2(tbase.object->dt, base->object->dt);
+							dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
+
 							draw_object(scene, ar, v3d, &tbase, DRAW_PICKING|DRAW_CONSTCOLOR);
 							
+							tbase.object->dt= dt;
+							tbase.object->dtx= dtx;
+
 							copy_m4_m4(dob->ob->obmat, dob->omat);
 						}
 						free_object_duplilist(lb);
