@@ -150,6 +150,13 @@ int txt_get_undostate(void)
 	return undoing;
 }
 
+static void init_undo_text(Text *text)
+{
+	text->undo_pos= -1;
+	text->undo_len= TXT_INIT_UNDO;
+	text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
+}
+
 void free_text(Text *text)
 {
 	TextLine *tmp;
@@ -180,10 +187,8 @@ Text *add_empty_text(char *name)
 	
 	ta->name= NULL;
 
-	ta->undo_pos= -1;
-	ta->undo_len= TXT_INIT_UNDO;
-	ta->undo_buf= MEM_mallocN(ta->undo_len, "undo buf");
-		
+    init_undo_text(ta);
+
 	ta->nlines=1;
 	ta->flags= TXT_ISDIRTY | TXT_ISMEM;
 
@@ -259,9 +264,7 @@ int reopen_text(Text *text)
 
 	/* clear undo buffer */
 	MEM_freeN(text->undo_buf);
-	text->undo_pos= -1;
-	text->undo_len= TXT_INIT_UNDO;
-	text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
+	init_undo_text(text);
 	
 	fseek(fp, 0L, SEEK_END);
 	len= ftell(fp);
@@ -359,9 +362,7 @@ Text *add_text(char *file, const char *relpath)
 	ta->name= MEM_mallocN(strlen(file)+1, "text_name");
 	strcpy(ta->name, file);
 
-	ta->undo_pos= -1;
-	ta->undo_len= TXT_INIT_UNDO;
-	ta->undo_buf= MEM_mallocN(ta->undo_len, "undo buf");
+	init_undo_text(ta);
 	
 	buffer= MEM_mallocN(len, "text_buffer");
 	// under windows fread can return less then len bytes because
@@ -457,6 +458,8 @@ Text *copy_text(Text *ta)
 
 	tan->curl= tan->sell= tan->lines.first;
 	tan->curc= tan->selc= 0;
+
+	init_undo_text(tan);
 
 	return tan;
 }
@@ -1399,9 +1402,7 @@ static int max_undo_test(Text *text, int x)
 		if(text->undo_len*2 > TXT_MAX_UNDO) {
 			/* XXX error("Undo limit reached, buffer cleared\n"); */
 			MEM_freeN(text->undo_buf);
-			text->undo_len= TXT_INIT_UNDO;
-			text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
-			text->undo_pos=-1;
+			init_undo_text(text);
 			return 0;
 		} else {
 			void *tmp= text->undo_buf;
