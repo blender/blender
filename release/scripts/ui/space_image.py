@@ -30,7 +30,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
         sima = context.space_data
         # uv = sima.uv_editor
-        settings = context.tool_settings
+        toolsettings = context.tool_settings
 
         show_uvedit = sima.show_uvedit
 
@@ -40,7 +40,7 @@ class IMAGE_MT_view(bpy.types.Menu):
 
         layout.prop(sima, "update_automatically")
         if show_uvedit:
-            layout.prop(settings, "uv_local_view") # Numpad /
+            layout.prop(toolsettings, "uv_local_view") # Numpad /
 
         layout.separator()
 
@@ -201,7 +201,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
         sima = context.space_data
         uv = sima.uv_editor
-        settings = context.tool_settings
+        toolsettings = context.tool_settings
 
         layout.prop(uv, "snap_to_pixels")
         layout.prop(uv, "constrain_to_image_bounds")
@@ -230,8 +230,8 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(settings, "proportional_editing")
-        layout.prop_menu_enum(settings, "proportional_editing_falloff")
+        layout.prop_menu_enum(toolsettings, "proportional_editing")
+        layout.prop_menu_enum(toolsettings, "proportional_editing_falloff")
 
         layout.separator()
 
@@ -247,7 +247,7 @@ class IMAGE_HT_header(bpy.types.Header):
         sima = context.space_data
         ima = sima.image
         iuser = sima.image_user
-        settings = context.tool_settings
+        toolsettings = context.tool_settings
 
         # show_render = sima.show_render
         # show_paint = sima.show_paint
@@ -279,22 +279,25 @@ class IMAGE_HT_header(bpy.types.Header):
             uvedit = sima.uv_editor
 
             layout.prop(uvedit, "pivot", text="", icon_only=True)
-            layout.prop(settings, "uv_sync_selection", text="")
+            layout.prop(toolsettings, "uv_sync_selection", text="")
 
-            if settings.uv_sync_selection:
-                layout.prop(settings, "mesh_selection_mode", text="", expand=True)
+            if toolsettings.uv_sync_selection:
+                row = layout.row(align=True)
+                row.prop(toolsettings, "mesh_selection_mode", text="", index=0, icon='VERTEXSEL')
+                row.prop(toolsettings, "mesh_selection_mode", text="", index=1, icon='EDGESEL')
+                row.prop(toolsettings, "mesh_selection_mode", text="", index=2, icon='FACESEL')
             else:
-                layout.prop(settings, "uv_selection_mode", text="", expand=True)
+                layout.prop(toolsettings, "uv_selection_mode", text="", expand=True)
                 layout.prop(uvedit, "sticky_selection_mode", text="", icon_only=True)
 
             row = layout.row(align=True)
-            row.prop(settings, "proportional_editing", text="", icon_only=True)
-            if settings.proportional_editing != 'DISABLED':
-                row.prop(settings, "proportional_editing_falloff", text="", icon_only=True)
+            row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
+            if toolsettings.proportional_editing != 'DISABLED':
+                row.prop(toolsettings, "proportional_editing_falloff", text="", icon_only=True)
 
             row = layout.row(align=True)
-            row.prop(settings, "snap", text="")
-            row.prop(settings, "snap_element", text="", icon_only=True)
+            row.prop(toolsettings, "snap", text="")
+            row.prop(toolsettings, "snap_element", text="", icon_only=True)
 
             # mesh = context.edit_object.data
             # row.prop_object(mesh, "active_uv_layer", mesh, "uv_textures")
@@ -455,24 +458,24 @@ class IMAGE_PT_paint(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        settings = context.tool_settings.image_paint
-        brush = settings.brush
+        toolsettings = context.tool_settings.image_paint
+        brush = toolsettings.brush
         wide_ui = context.region.width > narrowui
 
         col = layout.split().column()
         row = col.row()
-        row.template_list(settings, "brushes", settings, "active_brush_index", rows=2)
+        row.template_list(toolsettings, "brushes", toolsettings, "active_brush_index", rows=2)
 
-        col.template_ID(settings, "brush", new="brush.add")
+        col.template_ID(toolsettings, "brush", new="brush.add")
 
         if wide_ui:
             sub = layout.row(align=True)
         else:
             sub = layout.column(align=True)
-        sub.prop_enum(settings, "tool", 'DRAW')
-        sub.prop_enum(settings, "tool", 'SOFTEN')
-        sub.prop_enum(settings, "tool", 'CLONE')
-        sub.prop_enum(settings, "tool", 'SMEAR')
+        sub.prop_enum(toolsettings, "tool", 'DRAW')
+        sub.prop_enum(toolsettings, "tool", 'SOFTEN')
+        sub.prop_enum(toolsettings, "tool", 'CLONE')
+        sub.prop_enum(toolsettings, "tool", 'SMEAR')
 
         if brush:
             col = layout.column()
@@ -502,14 +505,14 @@ class IMAGE_PT_paint_stroke(bpy.types.Panel):
 
     def poll(self, context):
         sima = context.space_data
-        settings = context.tool_settings.image_paint
-        return sima.show_paint and settings.brush
+        toolsettings = context.tool_settings.image_paint
+        return sima.show_paint and toolsettings.brush
 
     def draw(self, context):
         layout = self.layout
 
-        settings = context.tool_settings.image_paint
-        brush = settings.brush
+        toolsettings = context.tool_settings.image_paint
+        brush = toolsettings.brush
 
         layout.prop(brush, "use_airbrush")
         col = layout.column()
@@ -531,14 +534,14 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
 
     def poll(self, context):
         sima = context.space_data
-        settings = context.tool_settings.image_paint
-        return sima.show_paint and settings.brush
+        toolsettings = context.tool_settings.image_paint
+        return sima.show_paint and toolsettings.brush
 
     def draw(self, context):
         layout = self.layout
 
-        settings = context.tool_settings.image_paint
-        brush = settings.brush
+        toolsettings = context.tool_settings.image_paint
+        brush = toolsettings.brush
 
         layout.template_curve_mapping(brush, "curve")
         layout.operator_menu_enum("brush.curve_preset", property="shape")

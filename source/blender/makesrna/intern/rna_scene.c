@@ -606,13 +606,15 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value
 	ToolSettings *ts = (ToolSettings*)ptr->data;
 	int flag = (value[0] ? SCE_SELECT_VERTEX:0) | (value[1] ? SCE_SELECT_EDGE:0) | (value[2] ? SCE_SELECT_FACE:0);
 
-	ts->selectmode = flag;
+	if(flag) {
+		ts->selectmode = flag;
 
-	if(scene->basact) {
-		Mesh *me= get_mesh(scene->basact->object);
-		if(me && me->edit_mesh && me->edit_mesh->selectmode != flag) {
-			me->edit_mesh->selectmode= flag;
-			EM_selectmode_set(me->edit_mesh);
+		if(scene->basact) {
+			Mesh *me= get_mesh(scene->basact->object);
+			if(me && me->edit_mesh && me->edit_mesh->selectmode != flag) {
+				me->edit_mesh->selectmode= flag;
+				EM_selectmode_set(me->edit_mesh);
+			}
 		}
 	}
 }

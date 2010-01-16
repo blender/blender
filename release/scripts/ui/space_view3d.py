@@ -30,7 +30,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         mode_string = context.mode
         edit_object = context.edit_object
         obj = context.active_object
-        toolsettings = context.scene.tool_settings
+        toolsettings = context.tool_settings
 
         row = layout.row()
         row.template_header()
@@ -55,6 +55,12 @@ class VIEW3D_HT_header(bpy.types.Header):
                 sub.menu("VIEW3D_MT_object")
 
         row.template_header_3D()
+
+        if obj and obj.mode == 'EDIT' and obj.type == 'MESH':
+            row_sub = row.row(align=True)
+            row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=0, icon='VERTEXSEL')
+            row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=1, icon='EDGESEL')
+            row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=2, icon='FACESEL')
 
         # Particle edit
         if obj and obj.mode == 'PARTICLE_EDIT':
