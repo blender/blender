@@ -811,6 +811,11 @@ void KX_GameObject::SetObjectColor(const MT_Vector4& rgbavec)
 	m_objectColor = rgbavec;
 }
 
+const MT_Vector4& KX_GameObject::GetObjectColor()
+{
+	return m_objectColor;
+}
+
 void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 {
 	MT_Matrix3x3 orimat;
@@ -1238,6 +1243,7 @@ void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)
 #define MATHUTILS_VEC_CB_SCALE_LOCAL 3
 #define MATHUTILS_VEC_CB_SCALE_GLOBAL 4
 #define MATHUTILS_VEC_CB_INERTIA_LOCAL 5
+#define MATHUTILS_VEC_CB_OBJECT_COLOR 6
 
 static int mathutils_kxgameob_vector_cb_index= -1; /* index for our callbacks */
 
@@ -1273,6 +1279,9 @@ static int mathutils_kxgameob_vector_get(PyObject *self_v, int subtype, float *v
 			if(!self->GetPhysicsController()) return 0;
 			self->GetPhysicsController()->GetLocalInertia().getValue(vec_from);
 			break;
+		case MATHUTILS_VEC_CB_OBJECT_COLOR:
+			self->GetObjectColor().getValue(vec_from);
+			break;
 	}
 	
 	return 1;
@@ -1301,6 +1310,9 @@ static int mathutils_kxgameob_vector_set(PyObject *self_v, int subtype, float *v
 			break;
 		case MATHUTILS_VEC_CB_INERTIA_LOCAL:
 			/* read only */
+			break;
+		case MATHUTILS_VEC_CB_OBJECT_COLOR:
+			self->SetObjectColor(MT_Vector4(vec_to));
 			break;
 	}
 	
@@ -1475,6 +1487,7 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("children",	KX_GameObject, pyattr_get_children),
 	KX_PYATTRIBUTE_RO_FUNCTION("childrenRecursive",	KX_GameObject, pyattr_get_children_recursive),
 	KX_PYATTRIBUTE_RO_FUNCTION("attrDict",	KX_GameObject, pyattr_get_attrDict),
+	KX_PYATTRIBUTE_RW_FUNCTION("obcolor", KX_GameObject, pyattr_get_obcolor, pyattr_set_obcolor),
 	
 	/* Experemental, dont rely on these yet */
 	KX_PYATTRIBUTE_RO_FUNCTION("sensors",		KX_GameObject, pyattr_get_sensors),
@@ -2033,7 +2046,28 @@ PyObject* KX_GameObject::pyattr_get_meshes(void *self_v, const KX_PYATTRIBUTE_DE
 	return meshes;
 }
 
-/* experemental! */
+PyObject* KX_GameObject::pyattr_get_obcolor(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+#ifdef USE_MATHUTILS
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 4, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_OBJECT_COLOR);
+#else
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return PyObjectFrom(self->GetObjectColor());
+#endif
+}
+
+int KX_GameObject::pyattr_set_obcolor(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	MT_Vector4 obcolor;
+	if (!PyVecTo(value, obcolor))
+		return PY_SET_ATTR_FAIL;
+
+	self->SetObjectColor(obcolor);
+	return PY_SET_ATTR_SUCCESS;
+}
+
+/* These are experimental! */
 PyObject* KX_GameObject::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	return KX_PythonSeq_CreatePyObject((static_cast<KX_GameObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_SENSORS);
@@ -2048,6 +2082,7 @@ PyObject* KX_GameObject::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE
 {
 	return KX_PythonSeq_CreatePyObject((static_cast<KX_GameObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_ACTUATORS);
 }
+/* End experimental */
 
 PyObject* KX_GameObject::pyattr_get_children(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
