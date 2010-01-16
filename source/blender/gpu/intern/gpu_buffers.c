@@ -772,6 +772,7 @@ GPUBuffer *GPU_buffer_setup( DerivedMesh *dm, GPUDrawObject *object, int size, G
 				DEBUG_VBO( "Failed to map buffer to client address space\n" ); 
 				GPU_buffer_free( buffer, globalPool );
 				GPU_buffer_pool_delete_last( globalPool );
+				buffer= NULL;
 				if( globalPool->size > 0 ) {
 					GPU_buffer_pool_delete_last( globalPool );
 					buffer = GPU_buffer_alloc( size, globalPool );
