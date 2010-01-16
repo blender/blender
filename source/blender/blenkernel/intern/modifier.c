@@ -1813,7 +1813,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	int maxVerts = dm->getNumVerts(dm);
 	int maxEdges = dm->getNumEdges(dm);
 	int maxFaces = dm->getNumFaces(dm);
-	int *flip_map;
+	int *flip_map= NULL;
 	int do_vgroup_mirr= (mmd->flag & MOD_MIR_VGROUP);
 	int (*indexMap)[2];
 	float mtx[4][4], imtx[4][4];
