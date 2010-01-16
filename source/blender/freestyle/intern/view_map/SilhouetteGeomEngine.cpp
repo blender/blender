@@ -177,9 +177,19 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
   real T;
   T = (Ic[2]*Ac[1] - Ic[1]*Ac[2])/(Ic[1]*(Bc[2]-Ac[2])-Ic[2]*(Bc[1]-Ac[1]));
 #else
-	// suffix w for world, i for image
+#if 1 /* iterative method */
+
+	// suffix w for world, c for camera, i for image
 	Vec3r Aw = (fe)->vertexA()->point3D();
 	Vec3r Bw = (fe)->vertexB()->point3D();
+	Vec3r Ac, Bc;
+	GeomUtils::fromWorldToCamera(Aw, Ac, _modelViewMatrix);
+	GeomUtils::fromWorldToCamera(Bw, Bc, _modelViewMatrix);
+	if (fabs(Bc[0] - Ac[0]) < 1e-12 && fabs(Bc[1] - Ac[1]) < 1e-12) {
+		cout << "Warning: FEdge " << (fe)->vertexA()->getId() << " - " << (fe)->vertexB()->getId()
+		     << "is perpendicular to the near/far clipping plane." << endl;
+		return t;
+	}
 	Vec3r Ai = (fe)->vertexA()->point2D();
 	Vec3r Bi = (fe)->vertexB()->point2D();
 	Vec3r Ii = Ai + t * (Bi - Ai); // the intersection point in 2D
@@ -215,9 +225,48 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
 #endif
 	if (i == max_iters)
 		printf("SilhouetteGeomEngine::ImageToWorldParameter(): reached to max_iters (dist = %e)\n", dist);
+
+#else /* direct method */
+
+	// suffix w for world, c for camera, r for retina, i for image
+	Vec3r Aw = (fe)->vertexA()->point3D();
+	Vec3r Bw = (fe)->vertexB()->point3D();
+	Vec3r Ai = (fe)->vertexA()->point2D();
+	Vec3r Bi = (fe)->vertexB()->point2D();
+	Vec3r Ii = Ai + t * (Bi - Ai); // the intersection point in the 2D image space
+	Vec3r Ac, Bc;
+	GeomUtils::fromWorldToCamera(Aw, Ac, _modelViewMatrix);
+	GeomUtils::fromWorldToCamera(Bw, Bc, _modelViewMatrix);
+	Vec3r Ir;
+	GeomUtils::fromImageToRetina(Ii, Ir, _viewport);
+
+	real alpha, beta;
+	if (fabs(Bc[0] - Ac[0]) > 1e-12) {
+		alpha = (Bc[2] - Ac[2]) / (Bc[0] - Ac[0]);
+		beta = Ac[2] - alpha * Ac[0];
+	} else if (fabs(Bc[1] - Ac[1]) > 1e-12) {
+		alpha = (Bc[2] - Ac[2]) / (Bc[1] - Ac[1]);
+		beta = Ac[2] - alpha * Ac[1];
+	} else {
+		cout << "Warning: FEdge " << (fe)->vertexA()->getId() << " - " << (fe)->vertexB()->getId()
+		     << "is perpendicular to the near/far clipping plane." << endl;
+		return t;
+	}
+	real m11 = _projectionMatrix[0][0];
+	real m13 = _projectionMatrix[0][2];
+	real m22 = _projectionMatrix[1][1];
+	real m23 = _projectionMatrix[1][2];
+	Vec3r Ic;
+	Ic[0] = -beta * (Ir[0] + m13) / (alpha * (Ir[0] + m13) + m11);
+	Ic[1] = -(Ir[1] + m23) * (alpha * Ic[0] + beta) / m22;
+	Ic[2] = alpha * (Ic[0] - Ac[0]) + Ac[2];      
+
+	real T = (Ic[0] - Ac[0]) / (Bc[0] - Ac[0]);
+
+#endif
 #endif
   
-  return T;
+	return T;
 }
 
 Vec3r SilhouetteGeomEngine::WorldToImage(const Vec3r& M)
