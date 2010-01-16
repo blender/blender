@@ -2859,7 +2859,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 {
 	static const EnumPropertyItem type_items[]= {
 		{3, "TRIANGLES", 0, "Triangles", NULL},
-		{4, "QUADS", 0, "Triangles", NULL},
+		{4, "QUADS", 0, "Quads", NULL},
 		{5, "OTHER", 0, "Other", NULL},
 		{0, NULL, 0, NULL, NULL}};
 
@@ -2870,13 +2870,14 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_by_number_vertices_exec;
+	ot->invoke= WM_menu_invoke;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select.");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select.");
 }
 
 
