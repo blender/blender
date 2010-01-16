@@ -10691,7 +10691,8 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 
 				if(id==NULL) {
 					read_libblock(fd, ptr, bhead, LIB_READ+LIB_INDIRECT, NULL);
-					if(G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
+					// commented because this can print way too much
+					// if(G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
 					
 					/* for outliner dependency only */
 					ptr->curlib->parent= mainvar->curlib;
@@ -10706,7 +10707,8 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					/*oldnewmap_insert(fd->libmap, bhead->old, id, 1);*/
 					
 					change_idid_adr_fd(fd, bhead->old, id);
-					if(G.f & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
+					// commented because this can print way too much
+					// if(G.f & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
 				}
 				
 				MEM_freeN(lib);
