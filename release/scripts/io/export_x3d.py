@@ -616,7 +616,8 @@ class x3d_class:
 
         for face in mesh.active_uv_texture.data:
         # for face in mesh.faces:
-            uvs = face.uv
+            # workaround, since tface.uv iteration is wrong atm
+            uvs = [face.uv1, face.uv2, face.uv3, face.uv4][:len(face.uv)]
             # uvs = [face.uv1, face.uv2, face.uv3, face.uv4] if face.verts[3] else [face.uv1, face.uv2, face.uv3]
 
             for uv in uvs:
@@ -625,6 +626,7 @@ class x3d_class:
                 texCoordList.append(uv)
                 j=j+1
             texIndexList.append(-1)
+			
         if self.writingtexture == 0:
             self.file.write("\n\t\t\ttexCoordIndex=\"")
             texIndxStr=""
