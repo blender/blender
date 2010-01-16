@@ -145,9 +145,10 @@ static void rna_Operator_report(wmOperator *op, int type, char *msg)
 }
 
 /* since event isnt needed... */
-static int rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
+static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
 {
 	WM_enum_search_invoke(C, op, NULL);
+	
 }
 
 #else
@@ -194,7 +195,7 @@ void RNA_api_wm(StructRNA *srna)
 
 	/* invoke enum */
 	func= RNA_def_function(srna, "invoke_search_popup", "rna_Operator_enum_search_invoke");
-	rna_generic_op_invoke(func, 0, 1);
+	rna_generic_op_invoke(func, 0, 0);
 
 	/* invoke functions, for use with python */
 	func= RNA_def_function(srna, "invoke_popup", "WM_operator_ui_popup");

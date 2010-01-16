@@ -1813,9 +1813,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	int maxVerts = dm->getNumVerts(dm);
 	int maxEdges = dm->getNumEdges(dm);
 	int maxFaces = dm->getNumFaces(dm);
-	int vector_size=0, j, a, b;
-	bDeformGroup *def, *defb;
-	bDeformGroup **vector_def = NULL;
+	int *flip_map;
+	int do_vgroup_mirr= (mmd->flag & MOD_MIR_VGROUP);
 	int (*indexMap)[2];
 	float mtx[4][4], imtx[4][4];
 
@@ -1826,18 +1825,10 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, maxFaces * 2);
 
 
-	if (mmd->flag & MOD_MIR_VGROUP) {
-		/* calculate the number of deformedGroups */
-		for(vector_size = 0, def = ob->defbase.first; def;
-		    def = def->next, vector_size++);
-
-		/* load the deformedGroups for fast access */
-		vector_def =
-		    (bDeformGroup **)MEM_mallocN(sizeof(bDeformGroup*) * vector_size,
-		                                 "group_index");
-		for(a = 0, def = ob->defbase.first; def; def = def->next, a++) {
-			vector_def[a] = def;
-		}
+	if (do_vgroup_mirr) {
+		flip_map= get_defgroup_flip_map(ob);
+		if(flip_map == NULL)
+			do_vgroup_mirr= 0;
 	}
 
 	if (mmd->mirror_ob) {
@@ -1884,7 +1875,6 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			mv->flag |= ME_VERT_MERGED;
 		} else {
 			MVert *mv2 = CDDM_get_vert(result, numVerts);
-			MDeformVert *dvert = NULL;
 			
 			DM_copy_vert_data(dm, result, i, numVerts, 1);
 			*mv2 = *mv;
@@ -1895,35 +1885,13 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			}
 			copy_v3_v3(mv2->co, co);
 			
-			if (mmd->flag & MOD_MIR_VGROUP){
-				dvert = DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
-				
-				if (dvert)
-				{
-					for(j = 0; j < dvert[0].totweight; ++j)
-					{
-						char tmpname[32];
-						
-						if(dvert->dw[j].def_nr < 0 ||
-						   dvert->dw[j].def_nr >= vector_size)
-							continue;
-						
-						def = vector_def[dvert->dw[j].def_nr];
-						flip_vertexgroup_name(tmpname, def->name, 0);
-						
-						for(b = 0, defb = ob->defbase.first; defb;
-						    defb = defb->next, b++)
-						{
-							if(!strcmp(defb->name, tmpname))
-							{
-								dvert->dw[j].def_nr = b;
-								break;
-							}
-						}
-					}
+			if (do_vgroup_mirr) {
+				MDeformVert *dvert= DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
+				if(dvert) {
+					flip_defvert(dvert, flip_map);
 				}
 			}
-			
+
 			numVerts++;
 		}
 	}
@@ -2008,7 +1976,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		}
 	}
 
-	if (vector_def) MEM_freeN(vector_def);
+	if (flip_map) MEM_freeN(flip_map);
 
 	MEM_freeN(indexMap);
 

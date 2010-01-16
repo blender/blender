@@ -279,12 +279,12 @@ static int console_edit_poll(bContext *C)
 
 	return 1;
 }
-
+#if 0
 static int console_poll(bContext *C)
 {
 	return (CTX_wm_space_console(C) != NULL);
 }
-
+#endif
 
 /* static funcs for text editing */
 
