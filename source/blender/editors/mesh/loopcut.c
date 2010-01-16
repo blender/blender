@@ -332,16 +332,23 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	tringselOpData *lcd;
 	EditEdge *edge;
 	int dist = 75;
-
+	
 	view3d_operator_needs_opengl(C);
 
 	if (!ringsel_init(C, op, 0))
 		return OPERATOR_CANCELLED;
 	
+	lcd = op->customdata;
+	
+	if (lcd->em->selectmode == SCE_SELECT_FACE) {
+		ringsel_exit(C, op);
+		WM_operator_name_call(C, "MESH_OT_loop_select", WM_OP_INVOKE_REGION_WIN, NULL);
+		return OPERATOR_CANCELLED;
+	}
+	
 	/* add a modal handler for this operator - handles loop selection */
 	WM_event_add_modal_handler(C, op);
 
-	lcd = op->customdata;
 	lcd->vc.mval[0] = evt->mval[0];
 	lcd->vc.mval[1] = evt->mval[1];
 	
