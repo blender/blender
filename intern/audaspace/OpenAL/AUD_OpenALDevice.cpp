@@ -270,7 +270,23 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 	specs.channels = AUD_CHANNELS_STEREO;
 	specs.format = AUD_FORMAT_S16;
 
-	m_device = alcOpenDevice(NULL);
+#if 0
+	if(alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE)
+	{
+		ALCchar* devices = const_cast<ALCchar*>(alcGetString(NULL, ALC_DEVICE_SPECIFIER));
+		printf("OpenAL devices (standard is: %s):\n", alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER));
+
+		while(*devices)
+		{
+			printf("%s\n", devices);
+			devices += strlen(devices) + 1;
+		}
+	}
+#endif
+
+	m_device = alcOpenDevice("ALSA Software");
+	if(m_device == NULL)
+		m_device = alcOpenDevice(NULL);
 
 	if(!m_device)
 		AUD_THROW(AUD_ERROR_OPENAL);
