@@ -1436,6 +1436,8 @@ static short draw_sensorbuttons(Object *ob, bSensor *sens, uiBlock *block, short
 			
 			/* Line 2: type selection. The number are a bit mangled to get
 			* proper compatibility with older .blend files. */
+			/* Any sensor type default is 0 but the ms enum starts in 1.
+			 * Therefore the mosue sensor is initialized to 1 in sca.c */
 			str= "Type %t|Left button %x1|Middle button %x2|"
 				"Right button %x4|Wheel Up %x5|Wheel Down %x6|Movement %x8|Mouse over %x16|Mouse over any%x32"; 
 			uiDefButS(block, MENU, B_REDR, str, xco+10, yco-44, (width*0.8f)-20, 19,

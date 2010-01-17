@@ -139,7 +139,7 @@ void init_sensor(bSensor *sens)
 		break;
 	case SENS_MOUSE:
 		ms=sens->data= MEM_callocN(sizeof(bMouseSensor), "mousesens");
-		//XXX ms->type= LEFTMOUSE;
+		ms->type= 1; // LEFTMOUSE workaround because Mouse Sensor types enum starts in 1
 		break;
 	case SENS_COLLISION:
 		sens->data= MEM_callocN(sizeof(bCollisionSensor), "colsens");
