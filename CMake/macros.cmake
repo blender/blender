@@ -140,7 +140,7 @@ MACRO(SETUP_LIBLINKS
         TARGET_LINK_LIBRARIES(${target} debug ${loop_var}_d)
         TARGET_LINK_LIBRARIES(${target} optimized ${loop_var})
       ENDFOREACH(loop_var)
-    ELSEIF(WIN32)
+    ELSE(WIN32)
       TARGET_LINK_LIBRARIES(${target} ${OPENEXR_LIB})
     ENDIF(WIN32)
   ENDIF(WITH_OPENEXR)
