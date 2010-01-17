@@ -79,7 +79,7 @@ OPTION(WITH_LZMA          "Enable best LZMA compression, used for pointcache" ON
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation" OFF)
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
-OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	OFF)
+OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	ON)
 
 # Unix defaults to OpenMP On
 IF (UNIX)
@@ -414,7 +414,23 @@ IF(WIN32)
 	SET(OPENCOLLADA ${LIBDIR}/opencollada)
 	SET(OPENCOLLADA_INC ${OPENCOLLADA}/include)
 	SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-	SET(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2 )
+	SET(OPENCOLLADA_LIB 
+		debug OpenCOLLADASaxFrameworkLoader_d 
+		debug OpenCOLLADAFramework_d 
+		debug OpenCOLLADABaseUtils_d 
+		debug OpenCOLLADAStreamWriter_d 
+		debug MathMLSolver_d 
+		debug GeneratedSaxParser_d 
+		debug UTF_d 
+		debug xml2_d 
+		optimized OpenCOLLADASaxFrameworkLoader 
+		optimized OpenCOLLADAFramework 
+		optimized OpenCOLLADABaseUtils 
+		optimized OpenCOLLADAStreamWriter 
+		optimized MathMLSolver 
+		optimized GeneratedSaxParser 
+		optimized UTF 
+		optimized xml2 )
 	#pcre is bundled with openCollada
 	#SET(PCRE ${LIBDIR}/pcre)
 	#SET(PCRE_LIBPATH ${PCRE}/lib)
