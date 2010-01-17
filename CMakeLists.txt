@@ -414,23 +414,7 @@ IF(WIN32)
 	SET(OPENCOLLADA ${LIBDIR}/opencollada)
 	SET(OPENCOLLADA_INC ${OPENCOLLADA}/include)
 	SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-	SET(OPENCOLLADA_LIB 
-		debug OpenCOLLADASaxFrameworkLoader_d 
-		debug OpenCOLLADAFramework_d 
-		debug OpenCOLLADABaseUtils_d 
-		debug OpenCOLLADAStreamWriter_d 
-		debug MathMLSolver_d 
-		debug GeneratedSaxParser_d 
-		debug UTF_d 
-		debug xml2_d 
-		optimized OpenCOLLADASaxFrameworkLoader 
-		optimized OpenCOLLADAFramework 
-		optimized OpenCOLLADABaseUtils 
-		optimized OpenCOLLADAStreamWriter 
-		optimized MathMLSolver 
-		optimized GeneratedSaxParser 
-		optimized UTF 
-		optimized xml2 )
+	SET(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2 )
 	#pcre is bundled with openCollada
 	#SET(PCRE ${LIBDIR}/pcre)
 	#SET(PCRE_LIBPATH ${PCRE}/lib)
