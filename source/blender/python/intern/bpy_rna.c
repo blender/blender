@@ -1713,6 +1713,13 @@ static PyObject *pyrna_struct_path_to_id(BPy_StructRNA *self, PyObject *args)
 	return ret;
 }
 
+static PyObject *pyrna_struct_recast_type(BPy_StructRNA *self, PyObject *args)
+{
+	PointerRNA r_ptr;
+	RNA_pointer_recast(&self->ptr, &r_ptr);
+	return pyrna_struct_CreatePyObject(&r_ptr);
+}
+
 static PyObject *pyrna_prop_path_to_id(BPy_PropertyRNA *self)
 {
 	char *path;
@@ -2537,6 +2544,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, NULL},
 	{"path_resolve", (PyCFunction)pyrna_struct_path_resolve, METH_O, NULL},
 	{"path_to_id", (PyCFunction)pyrna_struct_path_to_id, METH_VARARGS, NULL},
+	{"recast_type", (PyCFunction)pyrna_struct_recast_type, METH_NOARGS, NULL},
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };

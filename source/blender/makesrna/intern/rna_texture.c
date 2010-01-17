@@ -51,6 +51,25 @@ static EnumPropertyItem texture_filter_items[] = {
 	{TXF_SAT, "SAT", 0, "SAT (4x mem)", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem texture_type_items[] = {
+	{0, "NONE", 0, "None", ""},
+	{TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", ""},
+	{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", ""},
+	{TEX_DISTNOISE, "DISTORTED_NOISE", ICON_TEXTURE, "Distorted Noise", ""},
+	{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA, "Environment Map", ""},
+	{TEX_IMAGE, "IMAGE", ICON_IMAGE_DATA, "Image or Movie", ""},
+	{TEX_MAGIC, "MAGIC", ICON_TEXTURE, "Magic", ""},
+	{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", ""},
+	{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", ""},
+	{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise", ""},
+	{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""},
+	{TEX_POINTDENSITY, "POINT_DENSITY", ICON_TEXTURE, "Point Density", ""},
+	{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", ""},
+	{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", ""},
+	{TEX_VOXELDATA, "VOXEL_DATA", ICON_TEXTURE, "Voxel Data", ""},
+	{TEX_WOOD, "WOOD", ICON_TEXTURE, "Wood", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "MEM_guardedalloc.h"
@@ -1791,25 +1810,6 @@ static void rna_def_texture(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
-		{0, "NONE", 0, "None", ""},
-		{TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", ""},
-		{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", ""},
-		{TEX_DISTNOISE, "DISTORTED_NOISE", ICON_TEXTURE, "Distorted Noise", ""},
-		{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA, "Environment Map", ""},
-		{TEX_IMAGE, "IMAGE", ICON_IMAGE_DATA, "Image or Movie", ""},
-		{TEX_MAGIC, "MAGIC", ICON_TEXTURE, "Magic", ""},
-		{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", ""},
-		{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", ""},
-		{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise", ""},
-		{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""},
-		{TEX_POINTDENSITY, "POINT_DENSITY", ICON_TEXTURE, "Point Density", ""},
-		{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", ""},
-		{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", ""},
-		{TEX_VOXELDATA, "VOXEL_DATA", ICON_TEXTURE, "Voxel Data", ""},
-		{TEX_WOOD, "WOOD", ICON_TEXTURE, "Wood", ""},
-		{0, NULL, 0, NULL, NULL}};
-
 	srna= RNA_def_struct(brna, "Texture", "ID");
 	RNA_def_struct_sdna(srna, "Tex");
 	RNA_def_struct_ui_text(srna, "Texture", "Texture datablock used by materials, lamps, worlds and brushes.");
@@ -1819,7 +1819,7 @@ static void rna_def_texture(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	//RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_enum_items(prop, texture_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Texture_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");

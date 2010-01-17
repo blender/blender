@@ -507,8 +507,9 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
         return [float(col)/255 for col in struct.unpack('<3B', temp_data)] # data [0,1,2] == rgb
 
     def read_texture(new_chunk, temp_chunk, name, mapto):
-        new_texture = bpy.data.add_texture('Diffuse')
+        new_texture = bpy.data.textures.new('Diffuse')
         new_texture.type = 'IMAGE'
+        new_texture = new_texture.recast_type()
 
         img = None
         while (new_chunk.bytes_read < new_chunk.length):

@@ -57,6 +57,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_text_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_group_types.h"
 
 #include "ED_screen.h"
@@ -65,8 +66,6 @@ Tex *rna_Main_add_texture(Main *bmain, char *name)
 {
 	return add_texture(name);
 }
-
-/* TODO: remove texture? */
 
 Image *rna_Main_add_image(Main *bmain, char *filename)
 {
@@ -79,10 +78,10 @@ Camera *rna_Main_cameras_new(Main *bmain, char* name)
 }
 void rna_Main_cameras_remove(Main *bmain, ReportList *reports, struct Camera *camera)
 {
-	if(camera->id.us == 0)
+	if(ID_REAL_USERS(camera) == 0)
 		free_libblock(&bmain->camera, camera);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Camera \"%s\" must have zero users to be removed, found %d.", camera->id.name+2, camera->id.us);
+		BKE_reportf(reports, RPT_ERROR, "Camera \"%s\" must have zero users to be removed, found %d.", camera->id.name+2, ID_REAL_USERS(camera));
 
 	/* XXX python now has invalid pointer? */
 }
@@ -130,10 +129,10 @@ void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *ob
 	  # don't do this since ob is already freed!
 	  bpy.data.remove_object(ob)
 	*/
-	if(object->id.us == 0)
+	if(ID_REAL_USERS(object) == 0)
 		free_libblock(&bmain->object, object);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" must have zero users to be removed, found %d.", object->id.name+2, object->id.us);
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" must have zero users to be removed, found %d.", object->id.name+2, ID_REAL_USERS(object));
 }
 
 struct Material *rna_Main_materials_new(Main *bmain, char* name)
@@ -142,10 +141,10 @@ struct Material *rna_Main_materials_new(Main *bmain, char* name)
 }
 void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct Material *material)
 {
-	if(material->id.us == 0)
+	if(ID_REAL_USERS(material) == 0)
 		free_libblock(&bmain->mat, material);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Material \"%s\" must have zero users to be removed, found %d.", material->id.name+2, material->id.us);
+		BKE_reportf(reports, RPT_ERROR, "Material \"%s\" must have zero users to be removed, found %d.", material->id.name+2, ID_REAL_USERS(material));
 
 	/* XXX python now has invalid pointer? */
 }
@@ -158,10 +157,10 @@ Mesh *rna_Main_meshes_new(Main *bmain, char* name)
 }
 void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 {
-	if(mesh->id.us == 0)
+	if(ID_REAL_USERS(mesh) == 0)
 		free_libblock(&bmain->mesh, mesh);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Mesh \"%s\" must have zero users to be removed, found %d.", mesh->id.name+2, mesh->id.us);
+		BKE_reportf(reports, RPT_ERROR, "Mesh \"%s\" must have zero users to be removed, found %d.", mesh->id.name+2, ID_REAL_USERS(mesh));
 
 	/* XXX python now has invalid pointer? */
 }
@@ -174,12 +173,26 @@ Lamp *rna_Main_lamps_new(Main *bmain, char* name)
 }
 void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 {
-	if(lamp->id.us == 0)
+	if(ID_REAL_USERS(lamp) == 0)
 		free_libblock(&bmain->lamp, lamp);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Lamp \"%s\" must have zero users to be removed, found %d.", lamp->id.name+2, lamp->id.us);
+		BKE_reportf(reports, RPT_ERROR, "Lamp \"%s\" must have zero users to be removed, found %d.", lamp->id.name+2, ID_REAL_USERS(lamp));
 
 	/* XXX python now has invalid pointer? */
+}
+
+Tex *rna_Main_textures_new(Main *bmain, char* name)
+{
+	Tex *tex= add_texture(name);
+	tex->id.us--;
+	return tex;
+}
+void rna_Main_textures_remove(Main *bmain, ReportList *reports, struct Tex *tex)
+{
+	if(ID_REAL_USERS(tex) == 0)
+		free_libblock(&bmain->tex, tex);
+	else
+		BKE_reportf(reports, RPT_ERROR, "Texture \"%s\" must have zero users to be removed, found %d.", tex->id.name+2, ID_REAL_USERS(tex));
 }
 
 Group *rna_Main_groups_new(Main *bmain, char* name)
@@ -221,10 +234,10 @@ bArmature *rna_Main_armatures_new(Main *bmain, char* name)
 }
 void rna_Main_armatures_remove(Main *bmain, ReportList *reports, bArmature *arm)
 {
-	if(arm->id.us == 0)
+	if(ID_REAL_USERS(arm) == 0)
 		free_libblock(&bmain->armature, arm);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Armature \"%s\" must have zero users to be removed, found %d.", arm->id.name+2, arm->id.us);
+		BKE_reportf(reports, RPT_ERROR, "Armature \"%s\" must have zero users to be removed, found %d.", arm->id.name+2, ID_REAL_USERS(arm));
 
 	/* XXX python now has invalid pointer? */
 }
@@ -238,10 +251,10 @@ bAction *rna_Main_actions_new(Main *bmain, char* name)
 }
 void rna_Main_actions_remove(Main *bmain, ReportList *reports, bAction *act)
 {
-	if(act->id.us == 0)
+	if(ID_REAL_USERS(act) == 0)
 		free_libblock(&bmain->action, act);
 	else
-		BKE_reportf(reports, RPT_ERROR, "Action \"%s\" must have zero users to be removed, found %d.", act->id.name+2, act->id.us);
+		BKE_reportf(reports, RPT_ERROR, "Action \"%s\" must have zero users to be removed, found %d.", act->id.name+2, ID_REAL_USERS(act));
 
 	/* XXX python now has invalid pointer? */
 }
@@ -252,12 +265,6 @@ void RNA_api_main(StructRNA *srna)
 {
 	FunctionRNA *func;
 	PropertyRNA *parm;
-
-	func= RNA_def_function(srna, "add_texture", "rna_Main_add_texture");
-	RNA_def_function_ui_description(func, "Add a new texture.");
-	parm= RNA_def_string(func, "name", "Tex", 0, "", "New name for the datablock."); /* optional */
-	parm= RNA_def_pointer(func, "texture", "Texture", "", "New texture.");
-	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "add_image", "rna_Main_add_image");
 	RNA_def_function_ui_description(func, "Add a new image.");
@@ -457,7 +464,27 @@ void RNA_def_main_vfonts(BlenderRNA *brna, PropertyRNA *cprop)
 }
 void RNA_def_main_textures(BlenderRNA *brna, PropertyRNA *cprop)
 {
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "MainTextures");
+	srna= RNA_def_struct(brna, "MainTextures", NULL);
+	RNA_def_struct_ui_text(srna, "Main Textures", "Collection of groups.");
+
+	func= RNA_def_function(srna, "new", "rna_Main_textures_new");
+	RNA_def_function_ui_description(func, "Add a new texture to the main database");
+	parm= RNA_def_string(func, "name", "Texture", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "texture", "Texture", "", "New texture datablock.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Main_textures_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove a texture from the current blendfile.");
+	parm= RNA_def_pointer(func, "texture", "Texture", "", "Texture to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 void RNA_def_main_brushes(BlenderRNA *brna, PropertyRNA *cprop)
 {

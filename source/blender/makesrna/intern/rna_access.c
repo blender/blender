@@ -191,6 +191,30 @@ PointerRNA rna_pointer_inherit_refine(PointerRNA *ptr, StructRNA *type, void *da
 	return result;
 }
 
+/**/
+void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr)
+{
+#if 0 // works but this case if covered by more general code below.
+	if(RNA_struct_is_ID(ptr->type)) {
+		/* simple case */
+		RNA_id_pointer_create(ptr->id.data, r_ptr);
+	}
+	else
+#endif
+	{
+		StructRNA *base;
+		PointerRNA t_ptr;
+		*r_ptr= *ptr; /* initialize as the same incase cant recast */
+
+		for(base=ptr->type->base; base; base=base->base) {
+			t_ptr= rna_pointer_inherit_refine(ptr, base, ptr->data);
+			if(t_ptr.type && t_ptr.type != ptr->type) {
+				*r_ptr= t_ptr;
+			}
+		}
+	}
+}
+
 /* ID Properties */
 
 /* return a UI local ID prop definition for this prop */
