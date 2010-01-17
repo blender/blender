@@ -481,7 +481,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         context_material.specular_hardness = int((float(line_split[1])*0.51))
 # 						context_material.setHardness( int((float(line_split[1])*0.51)) )
                     elif line_lower.startswith('ni'): # Refraction index
-                        context_material.ior = max(1, min(float(line_split[1]), 3))
+                        context_material.raytrace_transparency.ior = max(1, min(float(line_split[1]), 3))
 # 						context_material.setIOR( max(1, min(float(line_split[1]), 3))) # Between 1 and 3
                     elif line_lower.startswith('d') or line_lower.startswith('tr'):
                         context_material.alpha = float(line_split[1])
