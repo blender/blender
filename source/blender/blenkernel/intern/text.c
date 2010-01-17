@@ -2461,13 +2461,18 @@ void indent(Text *text)
 {
 	int len, num;
 	char *tmp;
-	/* char *addtab = "\t";
-	int tablen = 1; */
+
+	char *add = "\t";
+	int indentlen = 1;
+	
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
 	int spaceslen = TXT_TABSIZE;
-	/* hardcoded: use spaces: */
-	char *add = tab_to_spaces;
-	int indentlen = spaceslen; 
+
+	/* insert spaces rather then tabs */
+	if (text->flags & TXT_TABSTOSPACES){
+		add = tab_to_spaces;
+		indentlen = spaceslen;
+	}
 	
 	if (!text) return;
 	if (!text->curl) return;
@@ -2518,11 +2523,17 @@ void indent(Text *text)
 void unindent(Text *text)
 {
 	int num = 0;
-	/* char *rmtab = "\t"; */
-	char *remove = tab_to_spaces;
-	/* int indenttab = 1; */
-	int indentspaces = TXT_TABSIZE;
-	int indent = indentspaces;
+	char *remove = "\t";
+	int indent = 1;
+	
+	/* hardcoded: TXT_TABSIZE = 4 spaces: */
+	int spaceslen = TXT_TABSIZE;
+
+	/* insert spaces rather then tabs */
+	if (text->flags & TXT_TABSTOSPACES){
+		remove = tab_to_spaces;
+		indent = spaceslen;
+	}
 
 	if (!text) return;
 	if (!text->curl) return;
