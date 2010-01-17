@@ -389,6 +389,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\intern\GHOST_EventTrackpad.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\intern\GHOST_EventWheel.h"
 					>
 				</File>
