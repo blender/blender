@@ -1050,10 +1050,10 @@ int make_structDNA(char *baseDirectory, FILE *file)
 
 /* ************************* END MAKE DNA ********************** */
 
-static void make_bad_file(char *file)
+static void make_bad_file(char *file, int line)
 {
 	FILE *fp= fopen(file, "w");
-	fprintf(fp, "ERROR! Cannot make correct DNA.c file, STUPID!\n");
+	fprintf(fp, "#error \"Error! can't make correct DNA.c file from %s:%d, STUPID!\"\n", __FILE__, line);
 	fclose(fp);
 }
 
@@ -1087,7 +1087,7 @@ int main(int argc, char ** argv)
 			if (make_structDNA(baseDirectory, file)) {
 				// error
 				fclose(file);
-				make_bad_file(argv[1]);
+				make_bad_file(argv[1], __LINE__);
 				return_status = 1;
 			} else {
 				fprintf(file, "};\n");
