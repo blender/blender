@@ -285,7 +285,7 @@ void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
 
 /* finds the best possible flipped name. For renaming; check for unique names afterwards */
 /* if strip_number: removes number extensions */
-void flip_vertexgroup_name (char *name_r, const char *name, int strip_number)
+void flip_vertexgroup_name (char *name, const char *from_name, int strip_number)
 {
 	int     len;
 	char    prefix[sizeof((bDeformGroup *)NULL)->name]={""};   /* The part before the facing */
@@ -294,8 +294,10 @@ void flip_vertexgroup_name (char *name_r, const char *name, int strip_number)
 	char    number[sizeof((bDeformGroup *)NULL)->name]={""};   /* The number extension string */
 	char    *index=NULL;
 
-	len= strlen(name);
+	len= strlen(from_name);
 	if(len<3) return; // we don't do names like .R or .L
+
+	strcpy(name, from_name);
 
 	/* We first check the case with a .### extension, let's find the last period */
 	if(isdigit(name[len-1])) {
@@ -392,7 +394,7 @@ void flip_vertexgroup_name (char *name_r, const char *name, int strip_number)
 
 #undef IS_SEPARATOR
 
-	sprintf (name_r, "%s%s%s%s", prefix, replace, suffix, number);
+	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
 
