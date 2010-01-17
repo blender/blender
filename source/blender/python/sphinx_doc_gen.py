@@ -29,10 +29,6 @@ Generate html docs  by running...
     sphinx-build source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out
 '''
 
-# if you dont have graphvis installed ommit the --graph arg.
-
-# GLOBALS['BASEDIR'] = './source/blender/python/doc'
-
 import os
 import inspect
 import bpy
@@ -108,8 +104,8 @@ def rna2sphinx(BASEPATH):
 
         type_descr = prop.get_type_description(as_arg=True, class_fmt=":class:`%s`")
         if prop.name or prop.description:
-            fw(ident + "   :%s %s: %s\n" % (id_name, prop.identifier, ", ".join([val for val in (prop.name, prop.description) if val])))
-        fw(ident + "   :%s %s: %s\n" % (id_type, prop.identifier, type_descr))
+            fw(ident + ":%s %s: %s\n" % (id_name, prop.identifier, ", ".join([val for val in (prop.name, prop.description) if val])))
+        fw(ident + ":%s %s: %s\n" % (id_type, prop.identifier, type_descr))
 
     def write_struct(struct):
         #if not struct.identifier.startswith("Sc") and not struct.identifier.startswith("I"):
@@ -160,7 +156,7 @@ def rna2sphinx(BASEPATH):
             fw("   .. attribute:: %s\n\n" % prop.identifier)
             if prop.description:
                 fw("      %s\n\n" % prop.description)
-            type_descr = prop.get_type_description(as_arg=False, class_fmt=":class:`%s`")
+            type_descr = prop.get_type_description(class_fmt=":class:`%s`")
             fw("      *type* %s\n\n" % type_descr)
         
         # python attributes
@@ -184,14 +180,14 @@ def rna2sphinx(BASEPATH):
 
             if len(func.return_values) == 1:
                 write_param("      ", fw, func.return_values[0], is_return=True)
-            else: # multiple return values
-                fw("         :return (%s):\n" % ", ".join([prop.identifier for prop in func.return_values]))
+            elif func.return_values: # multiple return values
+                fw("      :return (%s):\n" % ", ".join([prop.identifier for prop in func.return_values]))
                 for prop in func.return_values:
-                    type_descr = prop.get_type_description(as_arg=True, class_fmt=":class:`%s`")
+                    type_descr = prop.get_type_description(as_ret=True, class_fmt=":class:`%s`")
                     descr = prop.description
                     if not descr:
                         descr = prop.name
-                    fw("            `%s`, %s, %s\n\n" % (prop.identifier, descr, type_descr))
+                    fw("         `%s`, %s, %s\n\n" % (prop.identifier, descr, type_descr))
 
             fw("\n")
 
@@ -257,7 +253,7 @@ def rna2sphinx(BASEPATH):
             if op.description:
                 fw("   %s\n\n" % op.description)
             for prop in op.args:
-                write_param("      ", fw, prop)
+                write_param("   ", fw, prop)
             if op.args:
                 fw("\n")
 
