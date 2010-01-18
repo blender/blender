@@ -196,7 +196,7 @@ typedef struct Object {
     
 	float bbsize[3];
 	short index;			/* custom index, for renderpasses */
-	unsigned short actdef;	/* current deformation group */
+	unsigned short actdef;	/* current deformation group, note: index starts at 1 */
 	float col[4];			/* object color, adjusted via IPO's only */
 	/**
 	 * Settings for game objects
