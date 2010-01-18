@@ -436,11 +436,11 @@ class Macro(StructRNA, metaclass=OrderedMeta):
         return ops.macro_define(self, opname)
 
 
-class Menu(StructRNA):
+class _GenericUI:
     __slots__ = ()
 
     @classmethod
-    def _dyn_menu_initialize(cls):
+    def _dyn_ui_initialize(cls):
         draw_funcs = getattr(cls.draw, "_draw_funcs", None)
 
         if draw_funcs is None:
@@ -457,14 +457,26 @@ class Menu(StructRNA):
     @classmethod
     def append(cls, draw_func):
         """Prepend an draw function to this menu, takes the same arguments as the menus draw function."""
-        draw_funcs = cls._dyn_menu_initialize()
+        draw_funcs = cls._dyn_ui_initialize()
         draw_funcs.append(draw_func)
 
     @classmethod
     def prepend(cls, draw_func):
         """Prepend a draw function to this menu, takes the same arguments as the menus draw function."""
-        draw_funcs = cls._dyn_menu_initialize()
-        draw_funcs.insert(0, draw_func)
+        draw_funcs = cls._dyn_ui_initialize()
+        draw_funcs.insert(0, draw_func)    
+
+
+class Panel(StructRNA, _GenericUI):
+    __slots__ = ()
+
+
+class Header(StructRNA, _GenericUI):
+    __slots__ = ()
+
+
+class Menu(StructRNA, _GenericUI):
+    __slots__ = ()
 
     def path_menu(self, searchpaths, operator):
         layout = self.layout
