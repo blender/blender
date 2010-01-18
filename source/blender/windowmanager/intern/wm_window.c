@@ -704,6 +704,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 						wm_window_make_drawable(C, win);
 						wm_draw_window_clear(win);
 						WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+						WM_event_add_notifier(C, NC_WINDOW|NA_EDITED, NULL);
 					}
 				}
 				break;
