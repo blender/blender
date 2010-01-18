@@ -187,7 +187,7 @@ static void rna_NlaStrip_repeat_set(PointerRNA *ptr, float value)
 	NlaStrip *data= (NlaStrip*)ptr->data;
 	float actlen, mapping;
 	
-	/* set scale value */
+	/* set repeat value */
 	CLAMP(value, 0.01f, 1000.0f); /* NOTE: these need to be synced with the values in the property definition in rna_def_nlastrip() */
 	data->repeat= value;
 	
