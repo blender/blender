@@ -149,123 +149,107 @@ void SilhouetteGeomEngine::ProjectSilhouette(SVertex* ioVertex)
 
 real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
 {
-	
 	if( _isOrthographicProjection )
 		return t;
-	
-  // we need to compute for each parameter t the corresponding 
-  // parameter T which gives the intersection in 3D.
-#if 0
-  //currentEdge = (*fe);
-  Vec3r A = (fe)->vertexA()->point3D();
-  Vec3r B = (fe)->vertexB()->point3D();
-  Vec3r Ai = (fe)->vertexA()->point2D();
-  Vec3r Bi = (fe)->vertexB()->point2D();
-  Vec3r AB = Vec3r((B-A)); // the edge
-  Vec3r ABi(Bi-Ai);
-  Vec3r Ac, Bc;
-  GeomUtils::fromWorldToCamera(A, Ac, _modelViewMatrix);
-  GeomUtils::fromWorldToCamera(B, Bc, _modelViewMatrix);
-      
-  Vec3r Ii = Vec3r((Ai+t*ABi)); // I image
-  // let us compute the 3D point corresponding to the 2D intersection point
-  // and lying on the edge:
-  Vec3r Ir, Ic;
-  GeomUtils::fromImageToRetina(Ii, Ir, _viewport);
-  GeomUtils::fromRetinaToCamera(Ir, Ic, -_Focal, _projectionMatrix);
-  
-  real T;
-  T = (Ic[2]*Ac[1] - Ic[1]*Ac[2])/(Ic[1]*(Bc[2]-Ac[2])-Ic[2]*(Bc[1]-Ac[1]));
-#else
-#if 1 /* iterative method */
 
-	// suffix w for world, c for camera, i for image
-	Vec3r Aw = (fe)->vertexA()->point3D();
-	Vec3r Bw = (fe)->vertexB()->point3D();
-	Vec3r Ac, Bc;
-	GeomUtils::fromWorldToCamera(Aw, Ac, _modelViewMatrix);
-	GeomUtils::fromWorldToCamera(Bw, Bc, _modelViewMatrix);
-	if (fabs(Bc[0] - Ac[0]) < 1e-12 && fabs(Bc[1] - Ac[1]) < 1e-12) {
-		cout << "Warning: FEdge " << (fe)->vertexA()->getId() << " - " << (fe)->vertexB()->getId()
-		     << "is perpendicular to the near/far clipping plane." << endl;
-		return t;
-	}
-	Vec3r Ai = (fe)->vertexA()->point2D();
-	Vec3r Bi = (fe)->vertexB()->point2D();
-	Vec3r Ii = Ai + t * (Bi - Ai); // the intersection point in 2D
-	Vec3r Pw, Pi;
-	real T_sta = 0.0;
-	real T_end = 1.0;
+	// we need to compute for each parameter t the corresponding 
+	// parameter T which gives the intersection in 3D.
 	real T;
-	real delta_x, delta_y, dist, dist_threshold = 1e-6;
-	int i, max_iters = 100;
-	for (i = 0; i < max_iters; i++) {
-        T = T_sta + 0.5 * (T_end - T_sta);
-        Pw = Aw + T * (Bw - Aw);
-		GeomUtils::fromWorldToImage(Pw, Pi, _transform, _viewport);
-		delta_x = Ii[0] - Pi[0];
-		delta_y = Ii[1] - Pi[1];
-        dist = sqrt(delta_x * delta_x + delta_y * delta_y);
-        if (dist < dist_threshold)
-            break;
-		if (Ai[0] < Bi[0]) {
-            if (Pi[0] < Ii[0])
-                T_sta = T;
-            else
-                T_end = T;
-		} else {
-            if (Pi[0] > Ii[0])
-                T_sta = T;
-            else
-                T_end = T;
-		}
-	}
-#if 0
-	printf("SilhouetteGeomEngine::ImageToWorldParameter(): #iters = %d, dist = %e\n", i, dist);
-#endif
-	if (i == max_iters)
-		printf("SilhouetteGeomEngine::ImageToWorldParameter(): reached to max_iters (dist = %e)\n", dist);
-
-#else /* direct method */
 
 	// suffix w for world, c for camera, r for retina, i for image
 	Vec3r Aw = (fe)->vertexA()->point3D();
 	Vec3r Bw = (fe)->vertexB()->point3D();
-	Vec3r Ai = (fe)->vertexA()->point2D();
-	Vec3r Bi = (fe)->vertexB()->point2D();
-	Vec3r Ii = Ai + t * (Bi - Ai); // the intersection point in the 2D image space
 	Vec3r Ac, Bc;
 	GeomUtils::fromWorldToCamera(Aw, Ac, _modelViewMatrix);
 	GeomUtils::fromWorldToCamera(Bw, Bc, _modelViewMatrix);
-	Vec3r Ir;
+	Vec3r ABc = Bc - Ac;
+#if 0
+	cout << "Ac " << Ac << endl;
+	cout << "Bc " << Bc << endl;
+	cout << "ABc " << ABc << endl;
+#endif
+	Vec3r Ai = (fe)->vertexA()->point2D();
+	Vec3r Bi = (fe)->vertexB()->point2D();
+	Vec3r Ii = Ai + t * (Bi - Ai); // the intersection point in the 2D image space
+	Vec3r Ir, Ic;
 	GeomUtils::fromImageToRetina(Ii, Ir, _viewport);
 
-	real alpha, beta;
-	if (fabs(Bc[0] - Ac[0]) > 1e-12) {
-		alpha = (Bc[2] - Ac[2]) / (Bc[0] - Ac[0]);
-		beta = Ac[2] - alpha * Ac[0];
-	} else if (fabs(Bc[1] - Ac[1]) > 1e-12) {
-		alpha = (Bc[2] - Ac[2]) / (Bc[1] - Ac[1]);
-		beta = Ac[2] - alpha * Ac[1];
-	} else {
-		cout << "Warning: FEdge " << (fe)->vertexA()->getId() << " - " << (fe)->vertexB()->getId()
-		     << "is perpendicular to the near/far clipping plane." << endl;
-		return t;
-	}
+	real alpha, beta, denom;
 	real m11 = _projectionMatrix[0][0];
 	real m13 = _projectionMatrix[0][2];
 	real m22 = _projectionMatrix[1][1];
 	real m23 = _projectionMatrix[1][2];
-	Vec3r Ic;
-	Ic[0] = -beta * (Ir[0] + m13) / (alpha * (Ir[0] + m13) + m11);
-	Ic[1] = -(Ir[1] + m23) * (alpha * Ic[0] + beta) / m22;
-	Ic[2] = alpha * (Ic[0] - Ac[0]) + Ac[2];      
 
-	real T = (Ic[0] - Ac[0]) / (Bc[0] - Ac[0]);
+	if (fabs(ABc[0]) > 1e-6) {
 
+		alpha = ABc[2] / ABc[0];
+		beta = Ac[2] - alpha * Ac[0];
+		denom = alpha * (Ir[0] + m13) + m11;
+		if (fabs(denom) < 1e-6)
+			goto iter;
+		Ic[0] = -beta * (Ir[0] + m13) / denom;
+//		Ic[1] = -(Ir[1] + m23) * (alpha * Ic[0] + beta) / m22;
+//		Ic[2] = alpha * (Ic[0] - Ac[0]) + Ac[2];
+		T = (Ic[0] - Ac[0]) / ABc[0];
+
+	} else if (fabs(ABc[1]) > 1e-6) {
+
+		alpha = ABc[2] / ABc[1];
+		beta = Ac[2] - alpha * Ac[1];
+		denom = alpha * (Ir[1] + m23) + m22;
+		if (fabs(denom) < 1e-6)
+			goto iter;
+		Ic[1] = -beta * (Ir[1] + m23) / denom;
+//		Ic[0] = -(Ir[0] + m13) * (alpha * Ic[1] + beta) / m11;
+//		Ic[2] = alpha * (Ic[0] - Ac[0]) + Ac[2];
+		T = (Ic[1] - Ac[1]) / ABc[1];
+
+	} else {
+
+iter:	bool x_coords, less_than;
+		if (fabs(Bi[0] - Ai[0]) > 1e-6) {
+			x_coords = true;
+			less_than = Ai[0] < Bi[0];
+		} else {
+			x_coords = false;
+			less_than = Ai[1] < Bi[1];
+		}
+		Vec3r Pc, Pr, Pi;
+		real T_sta = 0.0;
+		real T_end = 1.0;
+		real delta_x, delta_y, dist, dist_threshold = 1e-6;
+		int i, max_iters = 100;
+		for (i = 0; i < max_iters; i++) {
+			T = T_sta + 0.5 * (T_end - T_sta);
+			Pc = Ac + T * ABc;
+			GeomUtils::fromCameraToRetina(Pc, Pr, _projectionMatrix);
+			GeomUtils::fromRetinaToImage(Pr, Pi, _viewport);
+			delta_x = Ii[0] - Pi[0];
+			delta_y = Ii[1] - Pi[1];
+			dist = sqrt(delta_x * delta_x + delta_y * delta_y);
+			if (dist < dist_threshold)
+				break;
+			if (x_coords) {
+				if (less_than) {
+					if (Pi[0] < Ii[0]) { T_sta = T; } else { T_end = T; }
+				} else {
+					if (Pi[0] > Ii[0]) { T_sta = T; } else { T_end = T; }
+				}
+			} else {
+				if (less_than) {
+					if (Pi[1] < Ii[1]) { T_sta = T; } else { T_end = T; }
+				} else {
+					if (Pi[1] > Ii[1]) { T_sta = T; } else { T_end = T; }
+				}
+			}
+		}
+#if 0
+		printf("SilhouetteGeomEngine::ImageToWorldParameter(): #iters = %d, dist = %e\n", i, dist);
 #endif
-#endif
-  
+		if (i == max_iters)
+			printf("SilhouetteGeomEngine::ImageToWorldParameter(): reached to max_iters (dist = %e)\n", dist);
+	}
+
 	return T;
 }
 
