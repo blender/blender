@@ -298,7 +298,7 @@ public:
       if(S->CommonVertex(*currentS, CP))
         continue; // the two edges have a common vertex->no need to check
       
-      if(GeomUtils::intersect2dSeg2dSegParametric(v0, v1, v2, v3, t, u))
+	  if(GeomUtils::intersect2dSeg2dSegParametric(v0, v1, v2, v3, t, u) == GeomUtils::DO_INTERSECT)
       {
         // create the intersection
         Intersection<Segment<T,Point> > * inter = new Intersection<Segment<T,Point> >(S,t,currentS,u);
