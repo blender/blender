@@ -20,7 +20,7 @@
 #
 # ***** END LGPL LICENSE BLOCK *****
 
-SET(INC . intern FX SRC ${PTHREADS_INC} ${LIBSAMPLERATE_INC})
+SET(INC . intern FX SRC ${PTHREADS_INC} ${LIBSAMPLERATE_INC} ${OPENAL_INCLUDE_DIR})
 
 FILE(GLOB SRC intern/*.cpp intern/*.h FX/*.cpp SRC/*.cpp)
 
