@@ -201,7 +201,7 @@ real SilhouetteGeomEngine::ImageToWorldParameter(FEdge *fe, real t)
 			goto iter;
 		Ic[1] = -beta * (Ir[1] + m23) / denom;
 //		Ic[0] = -(Ir[0] + m13) * (alpha * Ic[1] + beta) / m11;
-//		Ic[2] = alpha * (Ic[0] - Ac[0]) + Ac[2];
+//		Ic[2] = alpha * (Ic[1] - Ac[1]) + Ac[2];
 		T = (Ic[1] - Ac[1]) / ABc[1];
 
 	} else {
