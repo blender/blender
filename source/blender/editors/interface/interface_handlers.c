@@ -4079,6 +4079,8 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 		ui_textedit_begin(C, but, data);
 	else if(data->state == BUTTON_STATE_TEXT_EDITING && state != BUTTON_STATE_TEXT_SELECTING)
 		ui_textedit_end(C, but, data);
+	else if(data->state == BUTTON_STATE_TEXT_SELECTING && state != BUTTON_STATE_TEXT_EDITING)
+		ui_textedit_end(C, but, data);
 	
 	/* number editing */
 	if(state == BUTTON_STATE_NUM_EDITING) {
