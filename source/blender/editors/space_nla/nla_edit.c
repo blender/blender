@@ -1484,7 +1484,7 @@ void NLA_OT_snap (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_nlaedit_snap_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_nlaedit_snap_types, 0, "Type", "");
 }
 
 /* *********************************************** */

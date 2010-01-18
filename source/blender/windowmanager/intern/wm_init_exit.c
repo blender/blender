@@ -106,9 +106,9 @@ static void wm_free_reports(bContext *C)
 
 
 /* only called once, for startup */
-void WM_init(bContext *C)
+void WM_init(bContext *C, int argc, char **argv)
 {
-	
+
 	if (!G.background) {
 		wm_ghost_init(C);	/* note: it assigns C to ghost! */
 		wm_init_cursor_data();
@@ -131,7 +131,21 @@ void WM_init(bContext *C)
 	
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL);
-	
+
+	/* note: there is a bug where python needs initializing before loading the
+	 * .B25.blend because it may contain PyDrivers. It also needs to be after
+	 * initializing space types and other internal data.
+	 *
+	 * However cant redo this at the moment. Solution is to load python
+	 * before WM_read_homefile() or make py-drivers check if python is running.
+	 * Will try fix when the crash can be repeated. - campbell. */
+
+#ifndef DISABLE_PYTHON
+	BPY_set_context(C); /* necessary evil */
+	BPY_start_python(argc, argv);
+	BPY_load_user_modules(C);
+#endif
+
 	wm_init_reports(C); /* reports cant be initialized before the wm */
 
 	if (!G.background) {

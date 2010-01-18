@@ -131,6 +131,12 @@ MINLINE void mul_v2_fl(float *v1, float f)
 	v1[1]*= f;
 }
 
+MINLINE void mul_v2_v2fl(float r[2], const float a[2], float f)
+{
+	r[0]= a[0]*f;
+	r[1]= a[1]*f;
+}
+
 MINLINE void mul_v3_fl(float r[3], float f)
 {
 	r[0] *= f;
@@ -138,7 +144,7 @@ MINLINE void mul_v3_fl(float r[3], float f)
 	r[2] *= f;
 }
 
-MINLINE void mul_v3_v3fl(float r[3], float a[3], float f)
+MINLINE void mul_v3_v3fl(float r[3], const float a[3], float f)
 {
 	r[0]= a[0]*f;
 	r[1]= a[1]*f;
@@ -275,36 +281,47 @@ MINLINE float len_v3v3(const float a[3], const float b[3])
 	return len_v3(d);
 }
 
-MINLINE float normalize_v2(float n[2])
+MINLINE float normalize_v2_v2(float r[2], const float a[2])
 {
-	float d= dot_v2v2(n, n);
+	float d= dot_v2v2(a, a);
 
 	if(d > 1.0e-35f) {
 		d= sqrtf(d);
-		mul_v2_fl(n, 1.0f/d);
+		mul_v2_v2fl(r, a, 1.0f/d);
 	} else {
-		zero_v2(n);
+		zero_v2(r);
 		d= 0.0f;
 	}
+
 	return d;
 }
 
-MINLINE float normalize_v3(float n[3])
+MINLINE float normalize_v2(float n[2])
 {
-	float d= dot_v3v3(n, n);
+	return normalize_v2_v2(n, n);
+}
+
+MINLINE float normalize_v3_v3(float r[3], const float a[3])
+{
+	float d= dot_v3v3(a, a);
 
 	/* a larger value causes normalize errors in a
 	   scaled down models with camera xtreme close */
 	if(d > 1.0e-35f) {
 		d= sqrtf(d);
-		mul_v3_fl(n, 1.0f/d);
+		mul_v3_v3fl(r, a, 1.0f/d);
 	}
 	else {
-		zero_v3(n);
+		zero_v3(r);
 		d= 0.0f;
 	}
 
 	return d;
+}
+
+MINLINE float normalize_v3(float n[3])
+{
+	return normalize_v3_v3(n, n);
 }
 
 MINLINE void normal_short_to_float_v3(float *out, short *in)

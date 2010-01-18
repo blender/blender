@@ -63,7 +63,7 @@ IF(WITH_DDS)
 ENDIF(WITH_DDS)
 
 IF(WITH_QUICKTIME)
-	INCLUDE_DIRECTORIES(../../quicktime)
+	SET(INC ${INC} ../../quicktime)
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
@@ -99,6 +99,7 @@ TARGET_LINK_LIBRARIES(makesrna bf_dna)
 # Output rna_*_gen.c
 ADD_CUSTOM_COMMAND(
 	OUTPUT ${GENSRC}
+	# with crashes try add this after COMMAND: valgrind --leak-check=full --track-origins=yes 
 	COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesrna ${CMAKE_CURRENT_BINARY_DIR}/
 	DEPENDS makesrna
 )

@@ -39,7 +39,6 @@
 #include "stdarg.h"
 #include "math.h"
 #include "float.h"
-#include "ctype.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -1801,118 +1800,6 @@ static void mirrorModifier_updateDepgraph(ModifierData *md, DagForest *forest, S
 	}
 }
 
-/* finds the best possible flipped name. For renaming; check for unique names afterwards */
-/* if strip_number: removes number extensions */
-static void vertgroup_flip_name (char *name, int strip_number)
-{
-	int     len;
-	char    prefix[128]={""};   /* The part before the facing */
-	char    suffix[128]={""};   /* The part after the facing */
-	char    replace[128]={""};  /* The replacement string */
-	char    number[128]={""};   /* The number extension string */
-	char    *index=NULL;
-
-	len= strlen(name);
-	if(len<3) return; // we don't do names like .R or .L
-
-	/* We first check the case with a .### extension, let's find the last period */
-	if(isdigit(name[len-1])) {
-		index= strrchr(name, '.'); // last occurrance
-		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
-			if(strip_number==0) 
-				strcpy(number, index);
-			*index= 0;
-			len= strlen(name);
-		}
-	}
-
-	strcpy (prefix, name);
-
-#define IS_SEPARATOR(a) ((a)=='.' || (a)==' ' || (a)=='-' || (a)=='_')
-
-	/* first case; separator . - _ with extensions r R l L  */
-	if( IS_SEPARATOR(name[len-2]) ) {
-		switch(name[len-1]) {
-			case 'l':
-				prefix[len-1]= 0;
-				strcpy(replace, "r");
-				break;
-			case 'r':
-				prefix[len-1]= 0;
-				strcpy(replace, "l");
-				break;
-			case 'L':
-				prefix[len-1]= 0;
-				strcpy(replace, "R");
-				break;
-			case 'R':
-				prefix[len-1]= 0;
-				strcpy(replace, "L");
-				break;
-		}
-	}
-	/* case; beginning with r R l L , with separator after it */
-	else if( IS_SEPARATOR(name[1]) ) {
-		switch(name[0]) {
-			case 'l':
-				strcpy(replace, "r");
-				strcpy(suffix, name+1);
-				prefix[0]= 0;
-				break;
-			case 'r':
-				strcpy(replace, "l");
-				strcpy(suffix, name+1);
-				prefix[0]= 0;
-				break;
-			case 'L':
-				strcpy(replace, "R");
-				strcpy(suffix, name+1);
-				prefix[0]= 0;
-				break;
-			case 'R':
-				strcpy(replace, "L");
-				strcpy(suffix, name+1);
-				prefix[0]= 0;
-				break;
-		}
-	}
-	else if(len > 5) {
-		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
-		index = BLI_strcasestr(prefix, "right");
-		if (index==prefix || index==prefix+len-5) {
-			if(index[0]=='r') 
-				strcpy (replace, "left");
-			else {
-				if(index[1]=='I') 
-					strcpy (replace, "LEFT");
-				else
-					strcpy (replace, "Left");
-			}
-			*index= 0;
-			strcpy (suffix, index+5);
-		}
-		else {
-			index = BLI_strcasestr(prefix, "left");
-			if (index==prefix || index==prefix+len-4) {
-				if(index[0]=='l') 
-					strcpy (replace, "right");
-				else {
-					if(index[1]=='E') 
-						strcpy (replace, "RIGHT");
-					else
-						strcpy (replace, "Right");
-				}
-				*index= 0;
-				strcpy (suffix, index+4);
-			}
-		}
-	}
-
-#undef IS_SEPARATOR
-
-	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
-}
-
 static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		Object *ob,
 		DerivedMesh *dm,
@@ -1926,9 +1813,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	int maxVerts = dm->getNumVerts(dm);
 	int maxEdges = dm->getNumEdges(dm);
 	int maxFaces = dm->getNumFaces(dm);
-	int vector_size=0, j, a, b;
-	bDeformGroup *def, *defb;
-	bDeformGroup **vector_def = NULL;
+	int *flip_map= NULL;
+	int do_vgroup_mirr= (mmd->flag & MOD_MIR_VGROUP);
 	int (*indexMap)[2];
 	float mtx[4][4], imtx[4][4];
 
@@ -1939,18 +1825,10 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, maxFaces * 2);
 
 
-	if (mmd->flag & MOD_MIR_VGROUP) {
-		/* calculate the number of deformedGroups */
-		for(vector_size = 0, def = ob->defbase.first; def;
-		    def = def->next, vector_size++);
-
-		/* load the deformedGroups for fast access */
-		vector_def =
-		    (bDeformGroup **)MEM_mallocN(sizeof(bDeformGroup*) * vector_size,
-		                                 "group_index");
-		for(a = 0, def = ob->defbase.first; def; def = def->next, a++) {
-			vector_def[a] = def;
-		}
+	if (do_vgroup_mirr) {
+		flip_map= get_defgroup_flip_map(ob);
+		if(flip_map == NULL)
+			do_vgroup_mirr= 0;
 	}
 
 	if (mmd->mirror_ob) {
@@ -1997,7 +1875,6 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			mv->flag |= ME_VERT_MERGED;
 		} else {
 			MVert *mv2 = CDDM_get_vert(result, numVerts);
-			MDeformVert *dvert = NULL;
 			
 			DM_copy_vert_data(dm, result, i, numVerts, 1);
 			*mv2 = *mv;
@@ -2008,36 +1885,13 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			}
 			copy_v3_v3(mv2->co, co);
 			
-			if (mmd->flag & MOD_MIR_VGROUP){
-				dvert = DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
-				
-				if (dvert)
-				{
-					for(j = 0; j < dvert[0].totweight; ++j)
-					{
-						char tmpname[32];
-						
-						if(dvert->dw[j].def_nr < 0 ||
-						   dvert->dw[j].def_nr >= vector_size)
-							continue;
-						
-						def = vector_def[dvert->dw[j].def_nr];
-						strcpy(tmpname, def->name);
-						vertgroup_flip_name(tmpname,0);
-						
-						for(b = 0, defb = ob->defbase.first; defb;
-						    defb = defb->next, b++)
-						{
-							if(!strcmp(defb->name, tmpname))
-							{
-								dvert->dw[j].def_nr = b;
-								break;
-							}
-						}
-					}
+			if (do_vgroup_mirr) {
+				MDeformVert *dvert= DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
+				if(dvert) {
+					flip_defvert(dvert, flip_map);
 				}
 			}
-			
+
 			numVerts++;
 		}
 	}
@@ -2122,7 +1976,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		}
 	}
 
-	if (vector_def) MEM_freeN(vector_def);
+	if (flip_map) MEM_freeN(flip_map);
 
 	MEM_freeN(indexMap);
 
@@ -3617,7 +3471,7 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 
 	/* UVs need special handling, since they come from faces */
 	if(texmapping == MOD_DISP_MAP_UV) {
-		if(dm->getFaceDataArray(dm, CD_MTFACE)) {
+		if(CustomData_has_layer(&dm->faceData, CD_MTFACE)) {
 			MFace *mface = dm->getFaceArray(dm);
 			MFace *mf;
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
@@ -3699,8 +3553,8 @@ static void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
 	* if the texture didn't give an RGB value, copy the intensity across
 	*/
 	if(result_type & TEX_RGB)
-		texres->tin = (0.35 * texres->tr + 0.45 * texres->tg
-				+ 0.2 * texres->tb);
+		texres->tin = (0.35f * texres->tr + 0.45f * texres->tg
+				+ 0.2f * texres->tb);
 	else
 		texres->tr = texres->tg = texres->tb = texres->tin;
 }
@@ -3924,7 +3778,8 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	if(num_projectors == 0) return dm;
 
 	/* make sure there are UV layers available */
-	if(!dm->getFaceDataArray(dm, CD_MTFACE)) return dm;
+
+	if(!CustomData_has_layer(&dm->faceData, CD_MTFACE)) return dm;
 
 	/* make sure we're using an existing layer */
 	validate_layer_name(&dm->faceData, CD_MTFACE, umd->uvlayer_name, uvname);
@@ -5185,7 +5040,7 @@ static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
 
 	/* UVs need special handling, since they come from faces */
 	if(texmapping == MOD_WAV_MAP_UV) {
-		if(dm->getFaceDataArray(dm, CD_MTFACE)) {
+		if(CustomData_has_layer(&dm->faceData, CD_MTFACE)) {
 			MFace *mface = dm->getFaceArray(dm);
 			MFace *mf;
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
@@ -5917,7 +5772,7 @@ static void solidifyModifier_initData(ModifierData *md)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData*) md;
 	smd->offset = 0.01f;
-	smd->flag = MOD_SOLIDIFY_EVEN | MOD_SOLIDIFY_RIM | MOD_SOLIDIFY_NORMAL_CALC;
+	smd->flag = MOD_SOLIDIFY_RIM;
 }
  
 static void solidifyModifier_copyData(ModifierData *md, ModifierData *target)
@@ -7869,7 +7724,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
   DerivedMesh *to_explode)
 {
 	DerivedMesh *explode, *dm=to_explode;
-	MFace *mf=0;
+	MFace *mf=0, *mface;
 	ParticleSettings *part=psmd->psys->part;
 	ParticleSimulationData sim = {scene, ob, psmd->psys, psmd};
 	ParticleData *pa=NULL, *pars=psmd->psys->particles;
@@ -7885,6 +7740,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 	totface= dm->getNumFaces(dm);
 	totvert= dm->getNumVerts(dm);
+	mface= dm->getFaceArray(dm);
 	totpart= psmd->psys->totpart;
 
 	timestep= psys_get_timestep(&sim);
@@ -7905,7 +7761,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 		else 
 			mindex = totvert+facepa[i];
 
-		mf=CDDM_get_face(dm,i);
+		mf= &mface[i];
 
 		/* set face vertices to exist in particle group */
 		BLI_edgehash_insert(vertpahash, mf->v1, mindex, NULL);
@@ -8012,8 +7868,6 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 		test_index_face(mf, &explode->faceData, i, (orig_v4 ? 4 : 3));
 	}
-
-	MEM_printmemlist_stats();
 
 	/* cleanup */
 	BLI_edgehash_free(vertpahash, NULL);

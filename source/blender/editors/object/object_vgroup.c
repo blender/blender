@@ -464,7 +464,7 @@ void ED_vgroup_select_by_name(Object *ob, char *name)
 		}
 	}
 
-	ob->actdef=0;	// this signals on painting to create a new one, if a bone in posemode is selected */
+	ob->actdef= 0;	// this signals on painting to create a new one, if a bone in posemode is selected */
 }
 
 /********************** Operator Implementations *********************/
@@ -903,6 +903,68 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 	}
 }
 
+static void vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
+{
+	EditVert *eve, *eve_mirr;
+	MDeformVert *dvert, *dvert_mirr;
+	int	*flip_map;
+
+	if(mirror_weights==0 && flip_vgroups==0)
+		return;
+
+	/* only the active group */
+	if(ob->type == OB_MESH) {
+		Mesh *me= ob->data;
+		EditMesh *em = BKE_mesh_get_editmesh(me);
+
+		EM_cache_x_mirror_vert(ob, em);
+
+		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))
+			return;
+
+		flip_map= get_defgroup_flip_map(ob);
+
+		/* Go through the list of editverts and assign them */
+		for(eve=em->verts.first; eve; eve=eve->next){
+			if((eve_mirr=eve->tmp.v)) {
+				if(eve_mirr->f & SELECT || eve->f & SELECT) {
+					dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+					dvert_mirr= CustomData_em_get(&em->vdata, eve_mirr->data, CD_MDEFORMVERT);
+					if(dvert && dvert_mirr) {
+						if(eve_mirr->f & SELECT && eve->f & SELECT) {
+							/* swap */
+							if(mirror_weights)
+								SWAP(MDeformVert, *dvert, *dvert_mirr);
+							if(flip_vgroups) {
+								flip_defvert(dvert, flip_map);
+								flip_defvert(dvert_mirr, flip_map);
+							}
+						}
+						else {
+							/* dvert should always be the target */
+							if(eve_mirr->f & SELECT) {
+								SWAP(MDeformVert *, dvert, dvert_mirr);
+							}
+
+							if(mirror_weights)
+								copy_defvert(dvert, dvert_mirr);
+							if(flip_vgroups) {
+								flip_defvert(dvert, flip_map);
+							}
+						}
+					}
+				}
+
+				eve->tmp.v= eve_mirr->tmp.v= NULL;
+			}
+		}
+
+		MEM_freeN(flip_map);
+
+		BKE_mesh_end_editmesh(me, em);
+	}
+}
+
 static void vgroup_delete_update_users(Object *ob, int id)
 {
 	ExplodeModifierData *emd;
@@ -1026,7 +1088,7 @@ static void vgroup_active_remove_verts(Object *ob, int allverts)
 		for(eve=em->verts.first; eve; eve=eve->next){
 			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 		
-			if(dvert && dvert->dw && ((eve->f & 1) || allverts)){
+			if(dvert && dvert->dw && ((eve->f & SELECT) || allverts)){
 				for(i=0; i<dvert->totweight; i++){
 					/* Find group */
 					eg = BLI_findlink(&ob->defbase, dvert->dw[i].def_nr);
@@ -1208,7 +1270,7 @@ static void vgroup_assign_verts(Object *ob, float weight)
 		for(eve=em->verts.first; eve; eve=eve->next){
 			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 
-			if(dvert && (eve->f & 1)){
+			if(dvert && (eve->f & SELECT)){
 				done=0;
 				/* See if this vert already has a reference to this group */
 				/*		If so: Change its weight */
@@ -1684,6 +1746,40 @@ void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 }
 
 
+static int vertex_group_mirror_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+
+	vgroup_mirror(ob, RNA_boolean_get(op->ptr,"mirror_weights"), RNA_boolean_get(op->ptr,"flip_group_names"));
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Mirror Vertex Group";
+	ot->idname= "OBJECT_OT_vertex_group_mirror";
+	ot->description= "Mirror weights, and flip vertex group names, copying when only one side is selected.";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll_edit;
+	ot->exec= vertex_group_mirror_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "mirror_weights", TRUE, "Mirror Weights", "Mirror weights.");
+	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Groups", "Flip vertex group names while mirroring.");
+
+}
+
+
 static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -1786,5 +1882,6 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "group", vgroup_items, 0, "Group", "Vertex group to set as active.");
 	RNA_def_enum_funcs(prop, vgroup_itemf);
+	ot->prop= prop;
 }
 

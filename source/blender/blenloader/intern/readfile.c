@@ -4236,6 +4236,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				
 				if(base->object==NULL) {
 					printf("LIB ERROR: base removed\n");
+					BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: Object lost from scene:'%s\'\n", sce->id.name+2);
 					BLI_remlink(&sce->base, base);
 					if(base==sce->basact) sce->basact= 0;
 					MEM_freeN(base);
@@ -10695,7 +10696,8 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 
 				if(id==NULL) {
 					read_libblock(fd, ptr, bhead, LIB_READ+LIB_INDIRECT, NULL);
-					if(G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
+					// commented because this can print way too much
+					// if(G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
 					
 					/* for outliner dependency only */
 					ptr->curlib->parent= mainvar->curlib;
@@ -10710,7 +10712,8 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					/*oldnewmap_insert(fd->libmap, bhead->old, id, 1);*/
 					
 					change_idid_adr_fd(fd, bhead->old, id);
-					if(G.f & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
+					// commented because this can print way too much
+					// if(G.f & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
 				}
 				
 				MEM_freeN(lib);
@@ -11952,10 +11955,12 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				FileData *fd= mainptr->curlib->filedata;
 
 				if(fd==NULL) {
-					ReportList reports;
 
-					printf("read library: lib %s\n", mainptr->curlib->name);
-					fd= blo_openblenderfile(mainptr->curlib->filename, &reports);
+					/* printf and reports for now... its important users know this */
+					printf("read library: %s\n", mainptr->curlib->name);
+					BKE_reportf(basefd->reports, RPT_INFO, "read library: '%s'\n", mainptr->curlib->name);
+
+					fd= blo_openblenderfile(mainptr->curlib->filename, basefd->reports);
 
 					if (fd) {
 						fd->reports= basefd->reports;
@@ -11973,8 +11978,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					}
 					else mainptr->curlib->filedata= NULL;
 
-					if (fd==NULL)
+					if (fd==NULL) {
 						printf("ERROR: can't find lib %s \n", mainptr->curlib->filename);
+						BKE_reportf(basefd->reports, RPT_ERROR, "Can't find lib '%s'\n", mainptr->curlib->filename);
+					}
 				}
 				if(fd) {
 					doit= 1;
@@ -11989,8 +11996,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								BLI_remlink(lbarray[a], id);
 
 								append_id_part(fd, mainptr, id, &realid);
-								if (!realid)
+								if (!realid) {
 									printf("LIB ERROR: can't find %s\n", id->name);
+									BKE_reportf(fd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
+								}
 								
 								change_idid_adr(mainlist, basefd, id, realid);
 
@@ -12026,6 +12035,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					BLI_remlink(lbarray[a], id);
 
 					printf("LIB ERROR: can't find %s\n", id->name);
+					BKE_reportf(basefd->reports, RPT_ERROR, "LIB ERROR: %s:'%s' missing from '%s'\n", BLO_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filename);
 					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);

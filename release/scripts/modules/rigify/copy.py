@@ -69,10 +69,12 @@ def deform(obj, definitions, base_names, options):
     return (bone_name,)
 
 
-def main(obj, bone_definition, base_names, options):
+def control(obj, definitions, base_names, options):
+    bpy.ops.object.mode_set(mode='EDIT')
+    
     arm = obj.data
     mt = bone_class_instance(obj, METARIG_NAMES)
-    mt.cpy = bone_definition[0]
+    mt.cpy = definitions[0]
     mt.update()
     cp = bone_class_instance(obj, ["cpy"])
     cp.cpy_e = copy_bone_simple(arm, mt.cpy, base_names[mt.cpy], parent=True)
@@ -96,12 +98,17 @@ def main(obj, bone_definition, base_names, options):
     cp.cpy_p.lock_rotation_w = mt.cpy_p.lock_rotation_w
     cp.cpy_p.lock_scale = tuple(mt.cpy_p.lock_scale)
     
-    # Create deform bone
-    deform_bone = deform(obj, bone_definition, base_names, options)[0]
-
-    # setup layers last
-    layers = get_layer_dict(options)
-    cp.cpy_b.layer = layers["main"]
-
+    # Layers
+    cp.cpy_b.layer = list(mt.cpy_b.layer)
+    
     return (mt.cpy,)
+
+
+def main(obj, bone_definition, base_names, options):
+    # Create control bone
+    cpy = control(obj, bone_definition, base_names, options)[0]
+    # Create deform bone
+    deform(obj, bone_definition, base_names, options)
+
+    return (cpy,)
 

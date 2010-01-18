@@ -274,7 +274,7 @@ void bone_flip_name (char *name, int strip_number)
 
 	/* We first check the case with a .### extension, let's find the last period */
 	if(isdigit(name[len-1])) {
-		index= strrchr(name, '.');	// last occurrance
+		index= strrchr(name, '.');	// last occurrence
 		if (index && isdigit(index[1]) ) {		// doesnt handle case bone.1abc2 correct..., whatever!
 			if(strip_number==0) 
 				strcpy(number, index);
@@ -1515,9 +1515,10 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	pose->active_group= frompose->active_group;
 	
 	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		pchanp= get_pose_channel(frompose, pchan->name);
+
 		if (pchan->bone->layer & layer_protected) {
 			ListBase proxylocal_constraints = {NULL, NULL};
-			pchanp= get_pose_channel(frompose, pchan->name);
 			
 			/* copy posechannel to temp, but restore important pointers */
 			pchanw= *pchanp;
@@ -1564,6 +1565,10 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			
 			/* the final copy */
 			*pchan= pchanw;
+		}
+		else {
+			/* always copy custom shape */
+			pchan->custom= pchanp->custom;
 		}
 	}
 }

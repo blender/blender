@@ -264,6 +264,9 @@ protected:
 	/** Event has been processed directly by Cocoa and has sent a ghost event to be dispatched */
 	bool m_outsideLoopEventProcessed;
 	
+	/** Raised window is not yet known by the window manager, so delay application become active event handling */
+	bool m_needDelayedApplicationBecomeActiveEventProcessing;
+	
 	/** Mouse buttons state */
 	GHOST_TUns32 m_pressedMouseButtons;
 	
@@ -277,6 +280,12 @@ protected:
 	 * Needed because cocoa event delta cursor move takes setCursorPosition changes too.
 	 */
 	GHOST_TInt32 m_cursorDelta_x, m_cursorDelta_y;
+	
+	/** Multitouch trackpad availability */
+	bool m_hasMultiTouchTrackpad;
+	
+	/** Multitouch gesture in progress, useful to distinguish trackpad from mouse scroll events */
+	bool m_isGestureInProgress;
 };
 
 #endif // _GHOST_SYSTEM_COCOA_H_

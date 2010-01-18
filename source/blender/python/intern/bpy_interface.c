@@ -302,9 +302,20 @@ void BPY_start_python_path(void)
 			   \nThis may make python import function fail\n");
 #endif
 	
-#if 0
-	BLI_setenv("PYTHONHOME", py_path_bundle);
-	BLI_setenv("PYTHONPATH", py_path_bundle);
+#ifdef _WIN32
+	/* cmake/MSVC debug build crashes without this, why only
+	   in this case is unknown.. */
+	{
+		char *envpath = getenv("PYTHONPATH");
+
+		if(envpath && envpath[0]) {
+			char *newenvpath = BLI_sprintfN("%s;%s", py_path_bundle, envpath);
+			BLI_setenv("PYTHONPATH", newenvpath);
+			MEM_freeN(newenvpath);
+		}
+		else
+			BLI_setenv("PYTHONPATH", py_path_bundle);	
+	}
 #endif
 
 	{
@@ -701,7 +712,12 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 void BPY_load_user_modules(bContext *C)
 {
 	PyGILState_STATE gilstate;
+	Main *bmain= CTX_data_main(C);
 	Text *text;
+
+	/* can happen on file load */
+	if(bmain==NULL)
+		return;
 
 	bpy_context_set(C, &gilstate);
 

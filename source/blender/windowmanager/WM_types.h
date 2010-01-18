@@ -106,7 +106,7 @@ typedef struct wmNotifier {
 	struct wmWindowManager *wm;
 	struct wmWindow *window;
 	
-	int swinid;
+	int swinid;			/* can't rely on this, notifiers can be added without context, swinid of 0 */
 	unsigned int category, data, subtype, action;
 	
 	void *reference;
@@ -171,7 +171,7 @@ typedef struct wmNotifier {
 #define ND_RENDER_RESULT	(10<<16)
 #define ND_COMPO_RESULT		(11<<16)
 #define ND_KEYINGSET		(12<<16)
-#define ND_SCENEDELETE		(13<<16)
+#define ND_TOOLSETTINGS		(13<<16)
 #define ND_LAYER			(14<<16)
 #define	ND_SEQUENCER_SELECT	(15<<16)
 
@@ -286,6 +286,7 @@ typedef struct wmGesture {
 	int type;		/* gesture type define */
 	int swinid;		/* initial subwindow id where it started */
 	int points;		/* optional, amount of points stored */
+	int size;		/* optional, maximum amount of points stored */
 	
 	void *customdata;
 	/* customdata for border is a recti */
@@ -388,6 +389,10 @@ typedef struct wmOperatorType {
 
 	/* rna for properties */
 	struct StructRNA *srna;
+
+	/* rna property to use for generic invoke functions.
+	 * menus, enum search... etc */
+	PropertyRNA *prop;
 
 	/* struct wmOperatorTypeMacro */
 	ListBase macro;

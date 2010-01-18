@@ -102,20 +102,24 @@ class SubdivisionSet(bpy.types.Operator):
         def set_object_subd(obj):
             for mod in obj.modifiers:
                 if mod.type == 'MULTIRES':
-                    if level <= mod.total_levels:
-                        if obj.mode == 'SCULPT':
-                            if relative:
-                                mod.sculpt_levels += level
-                            else:
+                    if not relative:
+                        if level <= mod.total_levels:
+                            if obj.mode == 'SCULPT':
                                 if mod.sculpt_levels != level:
                                     mod.sculpt_levels = level
-                        elif obj.mode == 'OBJECT':
-                            if relative:
-                                mod.levels += level
-                            else:
+                            elif obj.mode == 'OBJECT':
                                 if mod.levels != level:
-                                    mod.levels = level
-                    return
+                                    mod.levels = level                          
+                        return
+                    else:
+                        if obj.mode == 'SCULPT':
+                            if mod.sculpt_levels+level <= mod.total_levels:
+                                mod.sculpt_levels += level
+                        elif obj.mode == 'OBJECT':
+                            if mod.levels+level <= mod.total_levels:
+                                mod.levels += level
+                        return
+                
                 elif mod.type == 'SUBSURF':
                     if relative:
                         mod.levels += level
@@ -320,7 +324,66 @@ class ShapeTransfer(bpy.types.Operator):
         return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)
 
 
+class JoinUVs(bpy.types.Operator):
+    '''Copy UV Layout to objects with matching geometry'''
+    bl_idname = "object.join_uvs"
+    bl_label = "Join as UVs"
+
+    def poll(self, context):
+        obj = context.active_object
+        return (obj and obj.type == 'MESH')
+
+    def _main(self, context):
+        import array
+        obj = context.active_object
+        mesh = obj.data
+
+        is_editmode = (obj.mode == 'EDIT')
+        if is_editmode:
+            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+        len_faces = len(mesh.faces)
+        
+        uv_array = array.array('f', [0.0] * 8) * len_faces # seems to be the fastest way to create an array
+        mesh.active_uv_texture.data.foreach_get("uv_raw", uv_array)
+
+        objects = context.selected_editable_objects[:]
+        
+        for obj_other in objects:
+            if obj_other.type == 'MESH':
+                obj_other.data.tag = False
+
+        for obj_other in objects:
+            if obj_other != obj and obj_other.type == 'MESH':
+                mesh_other = obj_other.data
+                if mesh_other != mesh:
+                    if mesh_other.tag == False:
+                        mesh_other.tag = True
+                        
+                        if len(mesh_other.faces) != len_faces:
+                            self.report({'WARNING'}, "Object: %s, Mesh: '%s' has %d faces, expected %d\n" % (obj_other.name, mesh_other.name, len(mesh_other.faces), len_faces))
+                        else:
+                            uv_other = mesh_other.active_uv_texture
+                            if not uv_other:
+                                mesh_other.uv_texture_add() # should return the texture it adds
+                                uv_other = mesh_other.active_uv_texture
+                            
+                            # finally do the copy
+                            uv_other.data.foreach_set("uv_raw", uv_array)
+
+        if is_editmode:
+            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+
+    def execute(self, context):
+        self._main(context)
+        return {'FINISHED'}
+
+if __name__ == "__main__":
+    bpy.ops.uv.simple_operator()
+
+
 bpy.types.register(SelectPattern)
 bpy.types.register(SubdivisionSet)
 bpy.types.register(Retopo)
 bpy.types.register(ShapeTransfer)
+bpy.types.register(JoinUVs)

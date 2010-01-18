@@ -93,6 +93,18 @@ void rna_ID_name_set(PointerRNA *ptr, const char *value)
 	test_idbutton(id->name+2);
 }
 
+static int rna_ID_name_editable(PointerRNA *ptr)
+{
+	ID *id= (ID*)ptr->data;
+	
+	if (GS(id->name) == ID_VF) {
+		if (strcmp(id->name+2, "<builtin>")==0)
+			return 0;
+	}
+	
+	return 1;
+}
+
 short RNA_type_to_ID_code(StructRNA *type)
 {
 	if(RNA_struct_is_a(type, &RNA_Action)) return ID_AC;
@@ -365,6 +377,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Name", "Unique datablock ID name.");
 	RNA_def_property_string_funcs(prop, "rna_ID_name_get", "rna_ID_name_length", "rna_ID_name_set");
 	RNA_def_property_string_maxlength(prop, sizeof(((ID*)NULL)->name)-2);
+	RNA_def_property_editable_func(prop, "rna_ID_name_editable");
 	RNA_def_property_update(prop, NC_ID|NA_RENAME, NULL);
 	RNA_def_struct_name_property(srna, prop);
 

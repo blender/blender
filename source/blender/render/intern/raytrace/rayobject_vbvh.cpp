@@ -37,6 +37,7 @@ int tot_hints    = 0;
 #include "RE_raytrace.h"
 #include "BLI_memarena.h"
 #include "MEM_guardedalloc.h"
+#include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BLI_math.h"
 
@@ -145,10 +146,13 @@ void bfree(VBVHTree *tree)
 {
 	if(tot_pushup + tot_pushdown + tot_hints + tot_moves)
 	{
-		printf("tot pushups: %d\n", tot_pushup);
-		printf("tot pushdowns: %d\n", tot_pushdown);
-		printf("tot moves: %d\n", tot_moves);
-		printf("tot hints created: %d\n", tot_hints);
+		if(G.f & G_DEBUG) {
+			printf("tot pushups: %d\n", tot_pushup);
+			printf("tot pushdowns: %d\n", tot_pushdown);
+			printf("tot moves: %d\n", tot_moves);
+			printf("tot hints created: %d\n", tot_hints);
+		}
+
 		tot_pushup = 0;
 		tot_pushdown = 0;
 		tot_hints = 0;

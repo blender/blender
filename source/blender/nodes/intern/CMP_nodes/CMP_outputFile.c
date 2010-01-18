@@ -62,7 +62,7 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 				}
 			}
 			
-			BKE_makepicstring(string, nif->name, rd->cfra, nif->imtype, ((Scene *)node->id)->r.scemode & R_EXTENSION);
+			BKE_makepicstring(string, nif->name, rd->cfra, nif->imtype, (rd->scemode & R_EXTENSION));
 			
 			if(0 == BKE_write_ibuf((Scene *)node->id, ibuf, string, nif->imtype, nif->subimtype, nif->imtype==R_OPENEXR?nif->codec:nif->quality))
 				printf("Cannot save Node File Output to %s\n", string);

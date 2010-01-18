@@ -1125,7 +1125,13 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	screen->winid= 0;
 	
 	/* before deleting the temp screen or we get invalid access */
-	CTX_wm_window_set(C, prevwin);
+	if (prevwin->screen->full != SCREENTEMP) {
+		/* use previous window if possible */
+		CTX_wm_window_set(C, prevwin);
+	} else {
+		/* none otherwise */
+		CTX_wm_window_set(C, NULL);
+	}
 	
 	/* if temp screen, delete it */
 	if(screen->full == SCREENTEMP) {
@@ -1271,7 +1277,13 @@ void ED_screen_set(bContext *C, bScreen *sc)
 	
 	if (oldscreen != sc) {
 		wmTimer *wt= oldscreen->animtimer;
-		
+		ScrArea *sa;
+
+		/* remove handlers referencing areas in old screen */
+		for(sa = oldscreen->areabase.first; sa; sa = sa->next) {
+			WM_event_remove_area_handler(&win->modalhandlers, sa);
+		}
+
 		/* we put timer to sleep, so screen_exit has to think there's no timer */
 		oldscreen->animtimer= NULL;
 		if(wt)

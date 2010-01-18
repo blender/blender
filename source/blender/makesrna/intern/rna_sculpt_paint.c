@@ -44,6 +44,7 @@ static EnumPropertyItem particle_edit_hair_brush_items[] = {
 	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", "Make hairs longer or shorter."},
 	{PE_BRUSH_PUFF, "PUFF", 0, "Puff", "Make hairs stand up."},
 	{PE_BRUSH_CUT, "CUT", 0, "Cut", "Cut hairs."},
+	{PE_BRUSH_WEIGHT, "WEIGHT", 0, "Weight", "Weight hair particles."},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -526,6 +527,10 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "invert");
 	RNA_def_property_enum_items(prop, puff_mode);
 	RNA_def_property_ui_text(prop, "Puff Mode", "");
+
+	prop= RNA_def_property(srna, "use_puff_volume", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_BRUSH_DATA_PUFF_VOLUME);
+	RNA_def_property_ui_text(prop, "Puff Volume", "Apply puff to unselected end-points, (helps maintain hair volume when puffing root)");
 
 	prop= RNA_def_property(srna, "length_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "invert");

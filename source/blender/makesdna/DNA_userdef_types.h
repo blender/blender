@@ -201,6 +201,8 @@ typedef struct ThemeSpace {
 	char cframe[4];
 	char ds_channel[4], ds_subchannel[4]; // dopesheet
 	
+	char console_output[4], console_input[4], console_info[4], console_error[4]; // Console 
+	
 	char vertex_size, facedot_size;
 	char bpad[2]; 
 
@@ -261,6 +263,7 @@ typedef struct bTheme {
 	ThemeSpace tnode;
 	ThemeSpace tlogic;
 	ThemeSpace tuserpref;	
+	ThemeSpace tconsole;
 	
 	/* 20 sets of bone colors for this theme */
 	ThemeWireColor tarm[20];

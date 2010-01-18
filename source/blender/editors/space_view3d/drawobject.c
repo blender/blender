@@ -2039,7 +2039,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				/* Vec 1 */
 				sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v4, v1, v2)));
 				interp_v3_v3v3(fvec, efa->cent, efa->v1->co, 0.8f);
-				view3d_cached_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
+				view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
@@ -2360,44 +2360,70 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	else if(dt==OB_SOLID) {
-		Paint *p;
+		if(ob==OBACT && ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
+			/* weight paint in solid mode, special case. focus on making the weights clear
+			 * rather then the shading, this is also forced in wire view */
+			GPU_enable_material(0, NULL);
+			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1);
 
-		if((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
-			draw_mesh_object_outline(v3d, ob, dm);
+			bglPolygonOffset(rv3d->dist, 1.0);
+			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 
-		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED );
+			glEnable(GL_BLEND);
+			glColor4ub(196, 196, 196, 196);
+			glEnable(GL_LINE_STIPPLE);
+			glLineStipple(1, 0x8888);
 
-		glEnable(GL_LIGHTING);
-		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+			dm->drawEdges(dm, 1);
 
-		if(ob->sculpt && (p=paint_get_active(scene))) {
-			float planes[4][4];
-			float (*fpl)[4] = NULL;
-			int fast= (p->flags & PAINT_FAST_NAVIGATE) && (rv3d->rflag & RV3D_NAVIGATING);
+			bglPolygonOffset(rv3d->dist, 0.0);
+			glDepthMask(1);
+			glDisable(GL_LINE_STIPPLE);
 
-			if(ob->sculpt->partial_redraw) {
-				sculpt_get_redraw_planes(planes, ar, rv3d, ob);
-				fpl = planes;
-				ob->sculpt->partial_redraw = 0;
+			GPU_disable_material();
+
+
+		}
+		else {
+			Paint *p;
+
+			if((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
+				draw_mesh_object_outline(v3d, ob, dm);
+
+			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED );
+
+			glEnable(GL_LIGHTING);
+			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+
+			if(ob->sculpt && (p=paint_get_active(scene))) {
+				float planes[4][4];
+				float (*fpl)[4] = NULL;
+				int fast= (p->flags & PAINT_FAST_NAVIGATE) && (rv3d->rflag & RV3D_NAVIGATING);
+
+				if(ob->sculpt->partial_redraw) {
+					sculpt_get_redraw_planes(planes, ar, rv3d, ob);
+					fpl = planes;
+					ob->sculpt->partial_redraw = 0;
+				}
+
+				dm->drawFacesSolid(dm, fpl, fast, GPU_enable_material);
 			}
+			else
+				dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
 
-			dm->drawFacesSolid(dm, fpl, fast, GPU_enable_material);
+			GPU_disable_material();
+
+			glFrontFace(GL_CCW);
+			glDisable(GL_LIGHTING);
+
+			if(base->flag & SELECT) {
+				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+			} else {
+				UI_ThemeColor(TH_WIRE);
+			}
+			if(!ob->sculpt)
+				dm->drawLooseEdges(dm);
 		}
-		else
-			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
-
-		GPU_disable_material();
-
-		glFrontFace(GL_CCW);
-		glDisable(GL_LIGHTING);
-
-		if(base->flag & SELECT) {
-			UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
-		} else {
-			UI_ThemeColor(TH_WIRE);
-		}
-		if(!ob->sculpt)
-			dm->drawLooseEdges(dm);
 	}
 	else if(dt==OB_SHADED) {
 		int do_draw= 1;	/* to resolve all G.f settings below... */
@@ -2489,15 +2515,28 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	if (draw_wire) {
-			/* If drawing wire and drawtype is not OB_WIRE then we are
-				* overlaying the wires.
-				*
-				* UPDATE bug #10290 - With this wire-only objects can draw
-				* behind other objects depending on their order in the scene. 2x if 0's below. undo'ing zr's commit: r4059
-				* 
-				* if draw wire is 1 then just drawing wire, no need for depth buffer stuff,
-				* otherwise this wire is to overlay solid mode faces so do some depth buffer tricks.
-				*/
+
+		/* When using wireframe object traw in particle edit mode
+		 * the mesh gets in the way of seeing the particles, fade the wire color
+		 * with the background. */
+		if(ob==OBACT && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
+			float col_wire[4], col_bg[4], col[3];
+
+			UI_GetThemeColor3fv(TH_BACK, col_bg);
+			glGetFloatv(GL_CURRENT_COLOR, col_wire);
+			interp_v3_v3v3(col, col_bg, col_wire, 0.15);
+			glColor3fv(col);
+		}
+
+		/* If drawing wire and drawtype is not OB_WIRE then we are
+		 * overlaying the wires.
+		 *
+		 * UPDATE bug #10290 - With this wire-only objects can draw
+		 * behind other objects depending on their order in the scene. 2x if 0's below. undo'ing zr's commit: r4059
+		 *
+		 * if draw wire is 1 then just drawing wire, no need for depth buffer stuff,
+		 * otherwise this wire is to overlay solid mode faces so do some depth buffer tricks.
+		 */
 		if (dt!=OB_WIRE && draw_wire==2) {
 			bglPolygonOffset(rv3d->dist, 1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
@@ -3798,6 +3837,12 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glShadeModel(GL_SMOOTH);
+
+	if(pset->brushtype == PE_BRUSH_WEIGHT) {
+		glLineWidth(2.0f);
+		glDisable(GL_LIGHTING);
+	}
 
 	cache=edit->pathcache;
 	for(i=0; i<totpoint; i++){
@@ -3905,9 +3950,9 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
+	glShadeModel(GL_FLAT);
 	glEnable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
-
 	glPointSize(1.0);
 }
 //static void ob_draw_RE_motion(float com[3],float rotscale[3][3],float tw,float th)
@@ -5279,10 +5324,14 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 			if(ob->mode & OB_MODE_EDIT);
 			else {
-				if(dt<OB_SOLID)
+				if(dt<OB_SOLID) {
 					zbufoff= 1;
+					dt= OB_SOLID;
+				}
+				else {
+					dt= OB_SHADED;
+				}
 
-				dt= OB_SHADED;
 				glEnable(GL_DEPTH_TEST);
 			}
 		}

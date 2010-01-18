@@ -367,8 +367,9 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     #==================================================================================#
     def load_material_image(blender_material, context_material_name, imagepath, type):
 
-        texture= bpy.data.add_texture(type)
+        texture= bpy.data.textures.new(type)
         texture.type= 'IMAGE'
+        texture = texture.recast_type() # Workaround for limitation in rna api.
 # 		texture= bpy.data.textures.new(type)
 # 		texture.setType('Image')
 
@@ -440,8 +441,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     #Create new materials
     for name in unique_materials: # .keys()
         if name != None:
-            unique_materials[name]= bpy.data.add_material(name)
-# 			unique_materials[name]= bpy.data.materials.new(name)
+            unique_materials[name]= bpy.data.materials.new(name)
             unique_material_images[name]= None, False # assign None to all material images to start with, add to later.
 
     unique_materials[None]= None
@@ -482,7 +482,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         context_material.specular_hardness = int((float(line_split[1])*0.51))
 # 						context_material.setHardness( int((float(line_split[1])*0.51)) )
                     elif line_lower.startswith('ni'): # Refraction index
-                        context_material.ior = max(1, min(float(line_split[1]), 3))
+                        context_material.raytrace_transparency.ior = max(1, min(float(line_split[1]), 3))
 # 						context_material.setIOR( max(1, min(float(line_split[1]), 3))) # Between 1 and 3
                     elif line_lower.startswith('d') or line_lower.startswith('tr'):
                         context_material.alpha = float(line_split[1])

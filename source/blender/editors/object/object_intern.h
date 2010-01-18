@@ -100,6 +100,7 @@ void OBJECT_OT_text_add(struct wmOperatorType *ot);
 void OBJECT_OT_armature_add(struct wmOperatorType *ot);
 void OBJECT_OT_lamp_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
+void OBJECT_OT_camera_add(struct wmOperatorType *ot);
 void OBJECT_OT_group_instance_add(struct wmOperatorType *ot);
 
 void OBJECT_OT_duplicates_make_real(struct wmOperatorType *ot);
@@ -186,6 +187,7 @@ void OBJECT_OT_vertex_group_levels(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_invert(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_blend(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_clean(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_set_active(struct wmOperatorType *ot);
 
 void OBJECT_OT_game_property_new(struct wmOperatorType *ot);

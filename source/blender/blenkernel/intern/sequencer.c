@@ -1066,17 +1066,19 @@ static TStripElem *give_tstripelem(Sequence *seq, int cfra)
 
 StripElem *give_stripelem(Sequence *seq, int cfra)
 {
-	StripElem *se;
-	int nr;
+	StripElem *se= seq->strip->stripdata;
 
-	se = seq->strip->stripdata;
-	nr = give_stripelem_index(seq, cfra);
+	if(seq->type == SEQ_MOVIE) {
+		/* use the first */
+	}
+	else {
+		int nr = give_stripelem_index(seq, cfra);
 
-	if (nr == -1) return 0;
-	if (se == 0) return 0;
-
-	se += nr + seq->anim_startofs; 
+		if (nr == -1) return 0;
+		if (se == 0) return 0;
 	
+		se += nr + seq->anim_startofs;
+	}
 	return se;
 }
 
@@ -3652,7 +3654,7 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 	char str[32];
 	FCurve *fcu;
 
-	if(scene->adt==NULL || ofs==0)
+	if(scene->adt==NULL || ofs==0 || scene->adt->action==NULL)
 		return;
 
 	sprintf(str, "[\"%s\"]", seq->name+2);

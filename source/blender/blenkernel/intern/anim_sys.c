@@ -203,6 +203,26 @@ AnimData *BKE_copy_animdata (AnimData *adt)
 	return dadt;
 }
 
+int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from)
+{
+	AnimData *adt;
+
+	if((id_to && id_from) && (GS(id_to->name) != GS(id_from->name)))
+		return 0;
+
+	BKE_free_animdata(id_to);
+
+	adt = BKE_animdata_from_id(id_from);
+	if (adt) {
+		IdAdtTemplate *iat = (IdAdtTemplate *)id_to;
+		iat->adt= BKE_copy_animdata(adt);
+	}
+
+	return 1;
+}
+
+
+
 /* Make Local -------------------------------------------- */
 
 static void make_local_strips(ListBase *strips)
@@ -713,26 +733,20 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 			switch (RNA_property_type(prop)) 
 			{
 				case PROP_BOOLEAN:
-					if (RNA_property_array_length(&new_ptr, prop)) {
-						if (RNA_property_editable_index(&new_ptr, prop, array_index))
-							RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
-					}
+					if (RNA_property_array_length(&new_ptr, prop))
+						RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_boolean_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_INT:
-					if (RNA_property_array_length(&new_ptr, prop)){
-						if (RNA_property_editable_index(&new_ptr, prop, array_index))
-							RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
-					}
+					if (RNA_property_array_length(&new_ptr, prop))
+						RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_int_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_FLOAT:
-					if (RNA_property_array_length(&new_ptr, prop)) {
-						if (RNA_property_editable_index(&new_ptr, prop, array_index))
-							RNA_property_float_set_index(&new_ptr, prop, array_index, value);
-					}
+					if (RNA_property_array_length(&new_ptr, prop))
+						RNA_property_float_set_index(&new_ptr, prop, array_index, value);
 					else
 						RNA_property_float_set(&new_ptr, prop, value);
 					break;
@@ -1456,26 +1470,20 @@ void nladata_flush_channels (ListBase *channels)
 		switch (RNA_property_type(prop)) 
 		{
 			case PROP_BOOLEAN:
-				if (RNA_property_array_length(ptr, prop)) {
-					if (RNA_property_editable_index(ptr, prop, array_index))
-						RNA_property_boolean_set_index(ptr, prop, array_index, (int)value);
-				}
+				if (RNA_property_array_length(ptr, prop))
+					RNA_property_boolean_set_index(ptr, prop, array_index, (int)value);
 				else
 					RNA_property_boolean_set(ptr, prop, (int)value);
 				break;
 			case PROP_INT:
-				if (RNA_property_array_length(ptr, prop)) {
-					if (RNA_property_editable_index(ptr, prop, array_index))
-						RNA_property_int_set_index(ptr, prop, array_index, (int)value);
-				}
+				if (RNA_property_array_length(ptr, prop))
+					RNA_property_int_set_index(ptr, prop, array_index, (int)value);
 				else
 					RNA_property_int_set(ptr, prop, (int)value);
 				break;
 			case PROP_FLOAT:
-				if (RNA_property_array_length(ptr, prop)) {
-					if (RNA_property_editable_index(ptr, prop, array_index))
-						RNA_property_float_set_index(ptr, prop, array_index, value);
-				}
+				if (RNA_property_array_length(ptr, prop))
+					RNA_property_float_set_index(ptr, prop, array_index, value);
 				else
 					RNA_property_float_set(ptr, prop, value);
 				break;

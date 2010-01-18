@@ -209,6 +209,8 @@ def main(obj, bone_definition, base_names, options):
 
     orig_pbone = obj.pose.bones[bone_definition[0]]
     control_pbone = obj.pose.bones[control_bone_name]
+    control_bbone = arm.bones[control_bone_name]
+    control_pbone.rotation_mode = obj.pose.bones[bone_definition[0]].rotation_mode
 
 
     # only allow Y scale
@@ -279,13 +281,15 @@ def main(obj, bone_definition, base_names, options):
 
 
     # last step setup layers
-    layers = get_layer_dict(options)
-    lay = layers["extra"]
+    if "ex_layer" in options:
+        layer = [n==options["ex_layer"] for n in range(0,32)]
+    else:
+        layer = list(arm.bones[bone_definition[0]].layer)
     for child_bone_name, driver_bone_name in driver_bone_pairs:
-        arm.bones[driver_bone_name].layer = lay
-
-    lay = layers["main"]
-    arm.bones[control_bone_name].layer = lay
+        arm.bones[driver_bone_name].layer = layer
+    
+    layer = list(arm.bones[bone_definition[0]].layer)
+    control_bbone.layer = layer
 
     # no blending the result of this
     return None

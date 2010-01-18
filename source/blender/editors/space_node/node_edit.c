@@ -964,10 +964,10 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 	/* check if we click in a socket */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		
-		rect.xmin = snode->mx - NODE_SOCKSIZE+3;
-		rect.ymin = snode->my - NODE_SOCKSIZE+3;
-		rect.xmax = rect.xmin + 2*NODE_SOCKSIZE+6;
-		rect.ymax = rect.ymin + 2*NODE_SOCKSIZE+6;
+		rect.xmin = snode->mx - (NODE_SOCKSIZE+4);
+		rect.ymin = snode->my - (NODE_SOCKSIZE+4);
+		rect.xmax = snode->mx + (NODE_SOCKSIZE+4);
+		rect.ymax = snode->my + (NODE_SOCKSIZE+4);
 		
 		if (!(node->flag & NODE_HIDDEN)) {
 			/* extra padding inside and out - allow dragging on the text areas too */
@@ -1239,7 +1239,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 		node_set_active(snode, node);
 		
 		if(snode->nodetree->type==NTREE_COMPOSIT) {
-			if(ELEM3(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS))
+			if(ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE))
 				node->id = &scene->id;
 			
 			ntreeCompositForceHidden(snode->edittree, scene);

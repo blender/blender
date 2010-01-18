@@ -191,6 +191,30 @@ PointerRNA rna_pointer_inherit_refine(PointerRNA *ptr, StructRNA *type, void *da
 	return result;
 }
 
+/**/
+void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr)
+{
+#if 0 // works but this case if covered by more general code below.
+	if(RNA_struct_is_ID(ptr->type)) {
+		/* simple case */
+		RNA_id_pointer_create(ptr->id.data, r_ptr);
+	}
+	else
+#endif
+	{
+		StructRNA *base;
+		PointerRNA t_ptr;
+		*r_ptr= *ptr; /* initialize as the same incase cant recast */
+
+		for(base=ptr->type->base; base; base=base->base) {
+			t_ptr= rna_pointer_inherit_refine(ptr, base, ptr->data);
+			if(t_ptr.type && t_ptr.type != ptr->type) {
+				*r_ptr= t_ptr;
+			}
+		}
+	}
+}
+
 /* ID Properties */
 
 /* return a UI local ID prop definition for this prop */
@@ -1060,7 +1084,7 @@ int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 	
 	id= ptr->id.data;
 
-	return (flag & PROP_EDITABLE) && (!id || !id->lib || (flag & PROP_LIB_EXCEPTION));
+	return (flag & PROP_EDITABLE) && (!id || !id->lib || (prop->flag & PROP_LIB_EXCEPTION));
 }
 
 /* same as RNA_property_editable(), except this checks individual items in an array */
@@ -1070,34 +1094,28 @@ int RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 	int flag;
 
 	prop= rna_ensure_property(prop);
+
+	flag= prop->flag;
 	
-	/* if there is no function to do this for a given index, 
-	 * just resort to doing this on the whole array
-	 */
-	if (prop->itemeditable == NULL)
-		return RNA_property_editable(ptr, prop);
-		
-	flag= prop->itemeditable(ptr, index);
+	if(prop->editable)
+		flag &= prop->editable(ptr);
+
+	if (prop->itemeditable)
+		flag &= prop->itemeditable(ptr, index);
+
 	id= ptr->id.data;
-	
-	return (flag & PROP_EDITABLE) && (!id || !id->lib || (flag & PROP_LIB_EXCEPTION));
+
+	return (flag & PROP_EDITABLE) && (!id || !id->lib || (prop->flag & PROP_LIB_EXCEPTION));
 }
 
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 {
-	int flag;
-
 	prop= rna_ensure_property(prop);
 
 	if(!(prop->flag & PROP_ANIMATEABLE))
 		return 0;
 
-	if(prop->editable)
-		flag= prop->editable(ptr);
-	else
-		flag= prop->flag;
-
-	return (flag & PROP_EDITABLE);
+	return (prop->flag & PROP_EDITABLE);
 }
 
 int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
@@ -2213,6 +2231,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 		case PROP_RAW_INT: ((int*)raw.array)[a] = (int)var; break; \
 		case PROP_RAW_FLOAT: ((float*)raw.array)[a] = (float)var; break; \
 		case PROP_RAW_DOUBLE: ((double*)raw.array)[a] = (double)var; break; \
+		default: break; \
 	} \
 }
 

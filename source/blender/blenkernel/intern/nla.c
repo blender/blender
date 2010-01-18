@@ -369,14 +369,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 			return strip->end - scale*(cframe - strip->actstart);
 		}
 		else if (mode == NLATIME_CONVERT_UNMAP) {
-			int repeatsNum = (int)((cframe - strip->start) / (actlength * scale));
-			
-			/* this method doesn't clip the values to lie within the action range only 
-			 *	- the '(repeatsNum * actlength * scale)' compensates for the fmod(...)
-			 *	- the fmod(...) works in the same way as for eval 
-			 */
-			return strip->actend - (repeatsNum * actlength * scale) 
-					- (fmod(cframe - strip->start, actlength*scale) / scale);
+			return strip->actend - (strip->end - cframe) / scale;	
 		}
 		else /* if (mode == NLATIME_CONVERT_EVAL) */{
 			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {
@@ -399,14 +392,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 			return strip->start + scale*(cframe - strip->actstart);
 		}
 		else if (mode == NLATIME_CONVERT_UNMAP) {
-			int repeatsNum = (int)((cframe - strip->start) / (actlength * scale));
-			
-			/* this method doesn't clip the values to lie within the action range only 
-			 *	- the '(repeatsNum * actlength * scale)' compensates for the fmod(...)
-			 *	- the fmod(...) works in the same way as for eval 
-			 */
-			return strip->actstart + (repeatsNum * actlength * scale) 
-					+ (fmod(cframe - strip->start, actlength*scale) / scale);
+			return strip->actstart + (cframe - strip->start) / scale;
 		}
 		else /* if (mode == NLATIME_CONVERT_EVAL) */{
 			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {

@@ -863,7 +863,9 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 			file->flags |= BLENDERFILE;
 		} else if(BLI_testextensie(file->relname, ".py")) {
 				file->flags |= PYSCRIPTFILE;
-		} else if(BLI_testextensie(file->relname, ".txt")) {
+		} else if(BLI_testextensie(file->relname, ".txt")
+					|| BLI_testextensie(file->relname, ".glsl")
+					|| BLI_testextensie(file->relname, ".data")) {
 				file->flags |= TEXTFILE;
 		} else if( BLI_testextensie(file->relname, ".ttf")
 					|| BLI_testextensie(file->relname, ".ttc")

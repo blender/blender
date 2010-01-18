@@ -30,7 +30,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         mode_string = context.mode
         edit_object = context.edit_object
         obj = context.active_object
-        toolsettings = context.scene.tool_settings
+        toolsettings = context.tool_settings
 
         row = layout.row()
         row.template_header()
@@ -56,6 +56,12 @@ class VIEW3D_HT_header(bpy.types.Header):
 
         row.template_header_3D()
 
+        if obj and obj.mode == 'EDIT' and obj.type == 'MESH':
+            row_sub = row.row(align=True)
+            row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=0, icon='VERTEXSEL')
+            row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=1, icon='EDGESEL')
+            row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=2, icon='FACESEL')
+
         # Particle edit
         if obj and obj.mode == 'PARTICLE_EDIT':
             row.prop(toolsettings.particle_edit, "selection_mode", text="", expand=True, toggle=True)
@@ -65,7 +71,7 @@ class VIEW3D_HT_header(bpy.types.Header):
             row.prop(view, "occlude_geometry", text="")
 
         # Proportional editing
-        if obj and obj.mode in ('OBJECT', 'EDIT'):
+        if obj and obj.mode in ('OBJECT', 'EDIT', 'PARTICLE_EDIT'):
             row = layout.row(align=True)
             row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
             if toolsettings.proportional_editing != 'DISABLED':
@@ -186,6 +192,8 @@ class VIEW3D_MT_mirror(bpy.types.Menu):
             props.constraint_axis = (False, False, True)
             props.constraint_orientation = 'LOCAL'
 
+            layout.operator("object.vertex_group_mirror")
+
 
 class VIEW3D_MT_snap(bpy.types.Menu):
     bl_label = "Snap"
@@ -200,6 +208,7 @@ class VIEW3D_MT_snap(bpy.types.Menu):
         layout.separator()
 
         layout.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected")
+        layout.operator("view3d.snap_cursor_to_center", text="Cursor to Center")
         layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid")
         layout.operator("view3d.snap_cursor_to_active", text="Cursor to Active")
 
@@ -231,7 +240,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("view3d.properties", icon='MENU_PANEL')
-        layout.operator("view3d.toolbar", icon='MENU_PANEL')
+        layout.operator("view3d.toolshelf", icon='MENU_PANEL')
 
         layout.separator()
 
@@ -265,7 +274,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
         layout.separator()
 
         layout.operator("view3d.localview", text="View Global/Local")
-        layout.operator("view3d.view_center")
+        layout.operator("view3d.view_selected")
         layout.operator("view3d.view_all")
 
         layout.separator()
@@ -313,7 +322,7 @@ class VIEW3D_MT_view_align(bpy.types.Menu):
 
         layout.operator("view3d.view_all", text="Center Cursor and View All").center = True
         layout.operator("view3d.camera_to_view", text="Align Active Camera to View")
-        layout.operator("view3d.view_center")
+        layout.operator("view3d.view_selected")
         layout.operator("view3d.view_center_cursor")
 
 
@@ -639,7 +648,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.separator()
 
         layout.operator("object.duplicate_move")
-        layout.operator("object.duplicate", text="Duplicate Linked").linked = True
+        layout.operator("object.duplicate_move_linked")
         layout.operator("object.delete", text="Delete...")
         layout.operator("object.proxy_make", text="Make Proxy...")
         layout.menu("VIEW3D_MT_make_links", text="Make Links...")
@@ -656,6 +665,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.separator()
 
         layout.operator("object.join_shapes")
+        layout.operator("object.join_uvs")
         layout.operator("object.join")
 
         layout.separator()
@@ -777,7 +787,7 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
         layout = self.layout
 
         layout.operator_menu_enum("object.make_links_scene", "type", text="Objects to Scene...")
-
+        layout.operator_menu_enum("marker.make_links_scene", "type", text="Markers to Scene...")
         layout.operator_enums("object.make_links_data", property="type") # inline
 
 
@@ -896,6 +906,7 @@ class VIEW3D_MT_particle(bpy.types.Menu):
             layout.operator("particle.subdivide")
 
         layout.operator("particle.rekey")
+        layout.operator("particle.weight_set")
 
         layout.separator()
 
@@ -1794,18 +1805,24 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
 
         if bg:
             layout.active = view.display_background_image
-
+            box = layout.box()
+            if (bg.image):
+                box.template_ID(bg, "image", open="image.open")
+                box.template_image(bg, "image", bg.image_user, compact=True)
+            else:
+                box.template_ID(bg, "image", open="image.open")
+            
             col = layout.column()
-            col.template_ID(bg, "image", open="image.open")
+            col.label(text="Display Settings")
+            
+            col = layout.column()
             col.prop(bg, "size")
             col.prop(bg, "transparency", slider=True)
 
-
-            col = layout.column(align=True)
-            col.label(text="Offset:")
+            col = layout.column()
+            col.label(text="Offset")
             col.prop(bg, "offset_x", text="X")
             col.prop(bg, "offset_y", text="Y")
-
 
 class VIEW3D_PT_transform_orientations(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'

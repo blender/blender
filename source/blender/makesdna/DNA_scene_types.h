@@ -526,6 +526,7 @@ typedef struct ImagePaintSettings {
 typedef struct ParticleBrushData {
 	short size, strength;	/* common settings */
 	short step, invert;		/* for specific brushes only */
+	int flag, pad;
 } ParticleBrushData;
 
 typedef struct ParticleEditSettings {
@@ -1147,9 +1148,13 @@ typedef enum SculptFlags {
 #define PE_BRUSH_PUFF		3
 #define PE_BRUSH_ADD		4
 #define PE_BRUSH_SMOOTH		5
+#define PE_BRUSH_WEIGHT		6
 
 /* this must equal ParticleEditSettings.brush array size */
 #define PE_TOT_BRUSH		6
+
+/* ParticleBrushData->flag */
+#define PE_BRUSH_DATA_PUFF_VOLUME 1
 
 /* tooksettings->particle edittype */
 #define PE_TYPE_PARTICLES	0

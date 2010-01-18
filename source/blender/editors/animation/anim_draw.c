@@ -252,6 +252,11 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 
 /* ------------------- */
 
+typedef struct NlaMappingApplyBackup {
+	struct NlaMappingBackup *next, *prev;
+	BezTriple bezt;
+} NlaMappingApplyBackup;
+
 /* helper function for ANIM_nla_mapping_apply_fcurve() -> "restore", i.e. mapping points back to action-time */
 static short bezt_nlamapping_restore(BeztEditData *bed, BezTriple *bezt)
 {
@@ -274,7 +279,7 @@ static short bezt_nlamapping_restore(BeztEditData *bed, BezTriple *bezt)
 static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
 {
 	/* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
-	AnimData *adt= (AnimData *)bed->data;
+	AnimData *adt= (AnimData*)bed->data;
 	short only_keys= (short)bed->i1;
 	
 	/* adjust BezTriple handles only if allowed to */
@@ -287,7 +292,6 @@ static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
 	
 	return 0;
 }
-
 
 
 /* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve 

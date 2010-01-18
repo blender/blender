@@ -97,15 +97,11 @@ void load_editMball(Object *obedit)
 }
 
 /* Add metaelem primitive to metaball object (which is in edit mode) */
-MetaElem *add_metaball_primitive(bContext *C, int type, int newname)
+MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int newname)
 {
-	Scene *scene= CTX_data_scene(C);
-	View3D *v3d= CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	Object *obedit= CTX_data_edit_object(C);
 	MetaBall *mball = (MetaBall*)obedit->data;
 	MetaElem *ml;
-	float *curs, mat[3][3], cent[3], imat[3][3], cmat[3][3];
 
 	if(!obedit) return NULL;
 
@@ -116,36 +112,11 @@ MetaElem *add_metaball_primitive(bContext *C, int type, int newname)
 		ml= ml->next;
 	}
 
-	copy_m3_m4(mat, obedit->obmat);
-	if(v3d) {
-		curs= give_cursor(scene, v3d);
-		VECCOPY(cent, curs);
-	}
-	else
-		cent[0]= cent[1]= cent[2]= 0.0f;
-	
-	cent[0]-= obedit->obmat[3][0];
-	cent[1]-= obedit->obmat[3][1];
-	cent[2]-= obedit->obmat[3][2];
-
-	if (rv3d) {
-		if (!(newname) || U.flag & USER_ADD_VIEWALIGNED)
-			copy_m3_m4(imat, rv3d->viewmat);
-		else
-			unit_m3(imat);
-		mul_m3_v3(imat, cent);
-		mul_m3_m3m3(cmat, imat, mat);
-		invert_m3_m3(imat,cmat);
-		mul_m3_v3(imat, cent);
-	}
-	else
-		unit_m3(imat);
-
 	ml= MEM_callocN(sizeof(MetaElem), "metaelem");
 
-	ml->x= cent[0];
-	ml->y= cent[1];
-	ml->z= cent[2];
+	ml->x= mat[3][0];
+	ml->y= mat[3][1];
+	ml->z= mat[3][2];
 	ml->quat[0]= 1.0;
 	ml->quat[1]= 0.0;
 	ml->quat[2]= 0.0;

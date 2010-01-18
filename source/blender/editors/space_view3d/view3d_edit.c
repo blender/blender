@@ -554,7 +554,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 		invert_m3_m3(m_inv,m);
 
 		/* Determine the direction of the x vector (for rotating up and down) */
-		/* This can likely be compuated directly from the quaternion. */
+		/* This can likely be computed directly from the quaternion. */
 		mul_m3_v3(m_inv,xvec);
 
 		/* Perform the up/down rotation */
@@ -690,11 +690,30 @@ static int viewrotate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			vod->rv3d->persp= RV3D_PERSP;
 		ED_region_tag_redraw(vod->ar);
 	}
+	
+	if (event->type == MOUSEPAN) {
+		viewrotate_apply(vod, event->prevx, event->prevy);
+		request_depth_update(CTX_wm_region_view3d(C));
+		
+		viewops_data_free(C, op);
+		
+		return OPERATOR_FINISHED;
+	}
+	else if (event->type == MOUSEROTATE) {
+		/* MOUSEROTATE performs orbital rotation, so y axis delta is set to 0 */
+		viewrotate_apply(vod, event->prevx, event->y);
+		request_depth_update(CTX_wm_region_view3d(C));
+		
+		viewops_data_free(C, op);
+		
+		return OPERATOR_FINISHED;
+	}
+	else {		
+		/* add temp handler */
+		WM_event_add_modal_handler(C, op);
 
-	/* add temp handler */
-	WM_event_add_modal_handler(C, op);
-
-	return OPERATOR_RUNNING_MODAL;
+		return OPERATOR_RUNNING_MODAL;
+	}
 }
 
 static int ED_operator_view3d_rotate(bContext *C)
@@ -838,12 +857,22 @@ static int viewmove_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* makes op->customdata */
 	viewops_data_create(C, op, event);
 
-	/* add temp handler */
-	WM_event_add_modal_handler(C, op);
+	if (event->type == MOUSEPAN) {
+		ViewOpsData *vod= op->customdata;
+		viewmove_apply(vod, event->prevx, event->prevy);
+		request_depth_update(CTX_wm_region_view3d(C));
+		
+		viewops_data_free(C, op);		
+		
+		return OPERATOR_FINISHED;
+	}
+	else {
+		/* add temp handler */
+		WM_event_add_modal_handler(C, op);
 
-	return OPERATOR_RUNNING_MODAL;
+		return OPERATOR_RUNNING_MODAL;
+	}
 }
-
 
 void VIEW3D_OT_move(wmOperatorType *ot)
 {
@@ -940,11 +969,11 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 }
 
 
-static void viewzoom_apply(ViewOpsData *vod, int x, int y)
+static void viewzoom_apply(ViewOpsData *vod, int x, int y, short viewzoom)
 {
 	float zfac=1.0;
 
-	if(U.viewzoom==USER_ZOOM_CONT) {
+	if(viewzoom==USER_ZOOM_CONT) {
 		double time= PIL_check_seconds_timer();
 		float time_step= (float)(time - vod->timer_lastdraw);
 
@@ -952,7 +981,7 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 		zfac = 1.0f + (((float)(vod->origx - x + vod->origy - y)/20.0) * time_step);
 		vod->timer_lastdraw= time;
 	}
-	else if(U.viewzoom==USER_ZOOM_SCALE) {
+	else if(viewzoom==USER_ZOOM_SCALE) {
 		int ctr[2], len1, len2;
 		// method which zooms based on how far you move the mouse
 
@@ -986,7 +1015,7 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y)
 		view_zoom_mouseloc(vod->ar, zfac, vod->oldx, vod->oldy);
 
 
-	if ((U.uiflag & USER_ORBIT_ZBUF) && (U.viewzoom==USER_ZOOM_CONT) && (vod->rv3d->persp==RV3D_PERSP)) {
+	if ((U.uiflag & USER_ORBIT_ZBUF) && (viewzoom==USER_ZOOM_CONT) && (vod->rv3d->persp==RV3D_PERSP)) {
 		float upvec[3], mat[3][3];
 
 		/* Secret apricot feature, translate the view when in continues mode */
@@ -1043,7 +1072,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(event_code==VIEW_APPLY) {
-		viewzoom_apply(vod, event->x, event->y);
+		viewzoom_apply(vod, event->x, event->y, U.viewzoom);
 	}
 	else if (event_code==VIEW_CONFIRM) {
 		request_depth_update(CTX_wm_region_view3d(C));
@@ -1114,13 +1143,34 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		vod= op->customdata;
 
-		vod->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-		vod->timer_lastdraw= PIL_check_seconds_timer();
+		if (event->type == MOUSEZOOM) {
+			if (U.uiflag & USER_ZOOM_INVERT) /* Bypass Zoom invert flag */
+				SWAP(int, event->x, event->prevx);
 
-		/* add temp handler */
-		WM_event_add_modal_handler(C, op);
+			if (U.uiflag & USER_ZOOM_DOLLY_HORIZ) {
+				vod->origx = vod->oldx = event->x;
+				viewzoom_apply(vod, event->prevx, event->prevy, USER_ZOOM_DOLLY);
+			}
+			else {
+				
+				/* Set y move = x move as MOUSEZOOM uses only x axis to pass magnification value */
+				vod->origy = vod->oldy = event->x;
+				viewzoom_apply(vod, event->x, event->prevx, USER_ZOOM_DOLLY);
+			}
+			request_depth_update(CTX_wm_region_view3d(C));
+			
+			viewops_data_free(C, op);
+			return OPERATOR_FINISHED;
+		}
+		else {
+			vod->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+			vod->timer_lastdraw= PIL_check_seconds_timer();
 
-		return OPERATOR_RUNNING_MODAL;
+			/* add temp handler */
+			WM_event_add_modal_handler(C, op);
+
+			return OPERATOR_RUNNING_MODAL;
+		}
 	}
 	return OPERATOR_FINISHED;
 }
@@ -1236,7 +1286,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
 
-static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview without local!, was centerview() in 2.4x */
+static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview without local!, was centerview() in 2.4x */
 {
 	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -1353,16 +1403,16 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_view_center(wmOperatorType *ot)
+void VIEW3D_OT_view_selected(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "View Selected";
 	ot->description = "Move the view to the selection center.";
-	ot->idname= "VIEW3D_OT_view_center";
+	ot->idname= "VIEW3D_OT_view_selected";
 
 	/* api callbacks */
-	ot->exec= viewcenter_exec;
+	ot->exec= viewselected_exec;
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
@@ -2075,7 +2125,7 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 	view3d_operator_needs_opengl(C);
 
 	view3d_set_viewcontext(C, &vc);
-	view3d_get_transformation(vc.ar, vc.rv3d, vc.obact, &mats);
+	view3d_get_transformation(vc.ar, vc.rv3d, NULL, &mats); /* NULL because we don't want it in object space */
 	view3d_calculate_clipping(rv3d->clipbb, rv3d->clip, &mats, &rect);
 
 	return OPERATOR_FINISHED;
@@ -2233,7 +2283,40 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 	RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
 }
 
+static int enable_manipulator_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	View3D *v3d = CTX_wm_view3d(C);
 
+	v3d->twtype=0;
+	
+	if (RNA_boolean_get(op->ptr, "translate"))
+		v3d->twtype |= V3D_MANIP_TRANSLATE;
+	if (RNA_boolean_get(op->ptr, "rotate"))
+		v3d->twtype |= V3D_MANIP_ROTATE;
+	if (RNA_boolean_get(op->ptr, "scale"))
+		v3d->twtype |= V3D_MANIP_SCALE;
+		
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Enable 3D Manipulator";
+	ot->description = "Enable the transform manipulator for use.";
+	ot->idname= "VIEW3D_OT_enable_manipulator";
+	
+	/* api callbacks */
+	ot->invoke= enable_manipulator_invoke;
+	ot->poll= ED_operator_view3d_active;
+	
+	/* rna later */
+	RNA_def_boolean(ot->srna, "translate", 0, "Translate", "Enable the translate manipulator");
+	RNA_def_boolean(ot->srna, "rotate", 0, "Rotate", "Enable the rotate manipulator");
+	RNA_def_boolean(ot->srna, "scale", 0, "Scale", "Enable the scale manipulator");
+}
 
 /* ************************* below the line! *********************** */
 

@@ -500,7 +500,7 @@ if  env['OURPLATFORM']!='darwin':
 					else:						dir = os.path.join(env['BF_INSTALLDIR'], '.blender')				
 					dir += os.sep + os.path.basename(scriptpath) + dp[len(scriptpath):]
 					
-					source=[os.path.join(dp, f) for f in df]
+					source=[os.path.join(dp, f) for f in df if f[-3:]!='pyc']
 					scriptinstall.append(env.Install(dir=dir,source=source))
 
 #-- icons
@@ -611,7 +611,11 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc'):
 						'${LCGDIR}/ffmpeg/lib/avformat-52.dll',
 						'${LCGDIR}/ffmpeg/lib/avdevice-52.dll',
 						'${LCGDIR}/ffmpeg/lib/avutil-50.dll',
-						'${LCGDIR}/ffmpeg/lib/swscale-0.dll']
+						'${LCGDIR}/ffmpeg/lib/swscale-0.dll',
+						'${LCGDIR}/ffmpeg/lib/libfaac-0.dll',
+						'${LCGDIR}/ffmpeg/lib/libfaad-2.dll',
+						'${LCGDIR}/ffmpeg/lib/libmp3lame-0.dll',
+						'${LCGDIR}/ffmpeg/lib/libx264-67.dll']
 	if env['WITH_BF_JACK']:
 		dllsources += ['${LCGDIR}/jack/lib/libjack.dll']
 	windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)

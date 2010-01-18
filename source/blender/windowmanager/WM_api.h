@@ -50,7 +50,7 @@ typedef struct wmJob wmJob;
 /* general API */
 void		WM_setprefsize		(int stax, int stay, int sizx, int sizy);
 
-void		WM_init				(struct bContext *C);
+void		WM_init				(struct bContext *C, int argc, char **argv);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
@@ -150,6 +150,7 @@ struct wmEventHandler *WM_event_add_ui_handler(const struct bContext *C, ListBas
 void		WM_event_remove_ui_handler(ListBase *handlers,
 			int (*func)(struct bContext *C, struct wmEvent *event, void *userdata),
 			void (*remove)(struct bContext *C, void *userdata), void *userdata);
+void		WM_event_remove_area_handler(struct ListBase *handlers, void *area);
 
 struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
 void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
@@ -170,6 +171,7 @@ void		WM_event_timer_sleep(struct wmWindowManager *wm, struct wmWindow *win, str
 		/* operator api, default callbacks */
 			/* invoke callback, uses enum property named "type" */
 int			WM_menu_invoke			(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
+int			WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 			/* invoke callback, confirm menu + exec */
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 		/* invoke callback, file selector "path" unset + exec */

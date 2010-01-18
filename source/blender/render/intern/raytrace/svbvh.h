@@ -33,6 +33,7 @@
 
 #include "bvh.h"
 #include "BLI_memarena.h"
+#include "BKE_global.h"
 #include <stdio.h>
 #include <algorithm>
 
@@ -142,10 +143,12 @@ struct Reorganize_SVBVH
 	
 	~Reorganize_SVBVH()
 	{
-		printf("%f childs per node\n", childs_per_node / nodes);
-		printf("%d childs BB are useless\n", useless_bb);
-		for(int i=0; i<16; i++)
-			printf("%i childs per node: %d/%d = %f\n", i, nodes_with_childs[i], nodes,  nodes_with_childs[i]/float(nodes));
+		if(G.f & G_DEBUG) {
+			printf("%f childs per node\n", childs_per_node / nodes);
+			printf("%d childs BB are useless\n", useless_bb);
+			for(int i=0; i<16; i++)
+				printf("%i childs per node: %d/%d = %f\n", i, nodes_with_childs[i], nodes,  nodes_with_childs[i]/float(nodes));
+		}
 	}
 	
 	SVBVHNode *create_node(int nchilds)

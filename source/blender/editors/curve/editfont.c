@@ -54,6 +54,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -69,6 +70,8 @@
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_util.h"
+
+#include "UI_interface.h"
 
 #include "curve_intern.h"
 
@@ -1538,6 +1541,169 @@ void FONT_OT_case_toggle(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* **************** Open Font ************** */
+
+static void open_init(bContext *C, wmOperator *op)
+{
+	PropertyPointerRNA *pprop;
+	
+	op->customdata= pprop= MEM_callocN(sizeof(PropertyPointerRNA), "OpenPropertyPointerRNA");
+	uiIDContextProperty(C, &pprop->ptr, &pprop->prop);
+}
+
+static int open_cancel(bContext *C, wmOperator *op)
+{
+	MEM_freeN(op->customdata);
+	op->customdata= NULL;
+	return OPERATOR_CANCELLED;
+}
+
+static int open_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = CTX_data_active_object(C);
+	Curve *cu;
+	VFont *font;
+	PropertyPointerRNA *pprop;
+	PointerRNA idptr;
+	char str[FILE_MAX];
+	
+	RNA_string_get(op->ptr, "path", str);
+
+	font = load_vfont(str);
+	
+	if(!font) {
+		if(op->customdata) MEM_freeN(op->customdata);
+		return OPERATOR_CANCELLED;
+	}
+	
+	if(!op->customdata)
+		open_init(C, op);
+	
+	/* hook into UI */
+	pprop= op->customdata;
+	
+	if(pprop->prop) {
+		/* when creating new ID blocks, use is already 1, but RNA
+		 * pointer se also increases user, so this compensates it */
+		font->id.us--;
+		
+		RNA_id_pointer_create(&font->id, &idptr);
+		RNA_property_pointer_set(&pprop->ptr, pprop->prop, idptr);
+		RNA_property_update(C, &pprop->ptr, pprop->prop);
+	} else if(ob && ob->type == OB_FONT) {
+		cu = ob->data;
+		id_us_min(&cu->vfont->id);
+		cu->vfont = font;
+	}
+	
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA|NA_EDITED, ob->data);
+	
+	MEM_freeN(op->customdata);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Object *ob = CTX_data_active_object(C);
+	Curve *cu;
+	VFont *font=NULL;
+	char *path;
+	if (ob && ob->type == OB_FONT) {
+		cu = ob->data;
+		font = cu->vfont;
+	}
+	path = (font && font->name)? font->name: U.fontdir;
+	 
+	if(RNA_property_is_set(op->ptr, "path"))
+		return open_exec(C, op);
+	
+	open_init(C, op);
+	
+	RNA_string_set(op->ptr, "path", path);
+	WM_event_add_fileselect(C, op); 
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void FONT_OT_open(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Open";
+	ot->idname= "FONT_OT_open";
+	
+	/* api callbacks */
+	ot->exec= open_exec;
+	ot->invoke= open_invoke;
+	ot->cancel= open_cancel;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	WM_operator_properties_filesel(ot, FOLDERFILE|FTFONTFILE, FILE_SPECIAL);
+}
+
+/******************* delete operator *********************/
+static int font_unlink_poll(bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+	Curve *cu;
+	
+	if (!ED_operator_object_active_editable(C) ) return 0;
+	if (ob->type != OB_FONT) return 0;
+	
+	cu = ob->data;
+	if (cu && strcmp(cu->vfont->name, "<builtin>")==0) return 0;
+	return 1;
+}
+
+static int font_unlink_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = CTX_data_active_object(C);
+	Curve *cu;
+	VFont *font, *builtin_font;
+		
+	cu = ob->data;
+	font = cu->vfont;
+	
+	if (!font) {
+		BKE_report(op->reports, RPT_ERROR, "No font datablock available to unlink.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	if (strcmp(font->name, "<builtin>")==0) {
+		BKE_report(op->reports, RPT_WARNING, "Can't unlink the default builtin font.");
+		return OPERATOR_FINISHED;
+	}
+
+	/* revert back to builtin font */
+	builtin_font = get_builtin_font();
+
+	cu->vfont = builtin_font;
+	id_us_plus(&cu->vfont->id);
+	id_us_min(&font->id);
+	
+	DAG_id_flush_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA|NA_EDITED, ob->data);
+	
+	return OPERATOR_FINISHED;
+}
+
+void FONT_OT_unlink(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Unlink";
+	ot->idname= "FONT_OT_unlink";
+	ot->description= "Unlink active font data block.";
+	
+	/* api callbacks */
+	ot->exec= font_unlink_exec;
+	ot->poll= font_unlink_poll;
+}
+
+
 /* **************** undo for font object ************** */
 
 static void undoFont_to_editFont(void *strv, void *ecu)
@@ -1595,4 +1761,3 @@ void undo_push_font(bContext *C, char *name)
 {
 	undo_editmode_push(C, name, get_undoFont, free_undoFont, undoFont_to_editFont, editFont_to_undoFont, NULL);
 }
-

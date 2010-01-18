@@ -1339,7 +1339,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 		saferct= MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
 		saferct->safety= block->safety;
 		BLI_addhead(&block->saferct, saferct);
-		block->flag |= UI_BLOCK_POPUP;
+		block->flag |= UI_BLOCK_POPUP|UI_BLOCK_NUMSELECT;
 	}
 
 	/* the block and buttons were positioned in window space as in 2.4x, now
@@ -1698,7 +1698,7 @@ static void circle_picker(uiBlock *block, PointerRNA *ptr, const char *propname)
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, -1, 0.0, 0.0, 9, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, -1, 0.0, 0.0, 9, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
@@ -1713,7 +1713,7 @@ static void square_picker(uiBlock *block, PointerRNA *ptr, const char *propname,
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	uiDefButR(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, propname, -1, 0.0, 0.0, bartype, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, propname, -1, 0.0, 0.0, bartype, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
@@ -2229,7 +2229,9 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	ds= BLI_dynstr_new();
 
 	for(report=reports->list.first; report; report=report->next) {
-		if(report->type >= RPT_ERROR)
+		if(report->type <= reports->printlevel)
+			; /* pass */
+		else if(report->type >= RPT_ERROR)
 			BLI_dynstr_appendf(ds, "Error %%i%d%%t|%s", ICON_ERROR, report->message);
 		else if(report->type >= RPT_WARNING)
 			BLI_dynstr_appendf(ds, "Warning %%i%d%%t|%s", ICON_ERROR, report->message);

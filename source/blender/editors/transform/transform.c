@@ -5451,9 +5451,9 @@ void initTimeScale(TransInfo *t)
 {
 	t->mode = TFM_TIME_SCALE;
 	t->transform = TimeScale;
-
-	initMouseInputMode(t, &t->mouse, INPUT_NONE);
-	t->helpline = HLP_SPRING; /* set manually because we don't use a predefined input */
+	
+	// TODO: the scaling ratios obtained here aren't rapid enough 
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING_FLIP);
 
 	t->flag |= T_NULL_ONE;
 	t->num.flag |= NUM_NULL_ONE;
@@ -5521,19 +5521,8 @@ static void applyTimeScale(TransInfo *t) {
 
 int TimeScale(TransInfo *t, short mval[2])
 {
-	float cval, sval;
-	float deltax, startx;
-	float width= 0.0f;
 	char str[200];
-
-	sval= t->imval[0];
-	cval= mval[0];
-
-	/* calculate scaling factor */
-	startx= sval-(width/2+(t->ar->winx)/2);
-	deltax= cval-(width/2+(t->ar->winx)/2);
-	t->values[0] = deltax / startx;
-
+	
 	/* handle numeric-input stuff */
 	t->vec[0] = t->values[0];
 	applyNumInput(&t->num, &t->vec[0]);

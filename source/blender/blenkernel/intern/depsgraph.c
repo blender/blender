@@ -809,7 +809,7 @@ DagNode * dag_find_node (DagForest *forest,void * fob)
 
 static int ugly_hack_sorry= 1;	// prevent type check
 
-/* no checking of existance, use dag_find_node first or dag_get_node */
+/* no checking of existence, use dag_find_node first or dag_get_node */
 DagNode * dag_add_node (DagForest *forest, void * fob)
 {
 	DagNode *node;

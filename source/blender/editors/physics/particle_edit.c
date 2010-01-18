@@ -88,6 +88,7 @@
 
 static void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys);
 static void PTCacheUndo_clear(PTCacheEdit *edit);
+static void recalc_emitter_field(Object *ob, ParticleSystem *psys);
 
 #define KEY_K					PTCacheEditKey *key; int k
 #define POINT_P					PTCacheEditPoint *point; int p
@@ -193,7 +194,10 @@ ParticleEditSettings *PE_settings(Scene *scene)
 	return &scene->toolsettings->particle;
 }
 
-/* always gets atleast the first particlesystem even if PSYS_CURRENT flag is not set */
+/* always gets atleast the first particlesystem even if PSYS_CURRENT flag is not set
+ *
+ * note: this function runs on poll, therefor it can runs many times a second
+ * keep it fast! */
 static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 {
 	ParticleEditSettings *pset= PE_settings(scene);
@@ -2362,6 +2366,52 @@ void PARTICLE_OT_remove_doubles(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "threshold", 0.0002f, 0.0f, FLT_MAX, "Threshold", "Threshold distance withing which particles are removed", 0.00001f, 0.1f);
 }
 
+
+static int weight_set_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	ParticleEditSettings *pset= PE_settings(scene);
+	Object *ob= CTX_data_active_object(C);
+	PTCacheEdit *edit= PE_get_current(scene, ob);
+	ParticleSystem *psys = edit->psys;
+	POINT_P;
+	KEY_K;
+	HairKey *hkey;
+	float weight;
+	ParticleBrushData *brush= &pset->brush[pset->brushtype];
+	edit= psys->edit;
+
+	weight= (float)(brush->strength / 100.0f);
+
+	LOOP_SELECTED_POINTS {
+		ParticleData *pa= psys->particles + p;
+
+		LOOP_SELECTED_KEYS {
+			hkey= pa->hair + k;
+			hkey->weight= weight;
+		}
+	}
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE_DATA, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void PARTICLE_OT_weight_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Weight Set";
+	ot->idname= "PARTICLE_OT_weight_set";
+
+	/* api callbacks */
+	ot->exec= weight_set_exec;
+	ot->poll= PE_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /************************ cursor drawing *******************************/
 
 static void brush_drawcursor(bContext *C, int x, int y, void *customdata)
@@ -2536,7 +2586,7 @@ void PARTICLE_OT_delete(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_PARTICLE, "Type", "Delete a full particle or only keys.");
+	ot->prop= RNA_def_enum(ot->srna, "type", delete_type_items, DEL_PARTICLE, "Type", "Delete a full particle or only keys.");
 }
 
 /*************************** mirror operator **************************/
@@ -2695,79 +2745,6 @@ void PARTICLE_OT_mirror(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/*********************** set brush operator **********************/
-
-static EnumPropertyItem brush_type_items[]= {
-	{PE_BRUSH_NONE, "NONE", 0, "None", ""},
-	{PE_BRUSH_COMB, "COMB", 0, "Comb", ""},
-	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-	{PE_BRUSH_ADD, "ADD", 0, "Add", ""},
-	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", ""},
-	{PE_BRUSH_PUFF, "PUFF", 0, "Puff", ""},
-	{PE_BRUSH_CUT, "CUT", 0, "Cut", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static int set_brush_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	ParticleEditSettings *pset= PE_settings(scene);
-
-	pset->brushtype= RNA_enum_get(op->ptr, "type");
-
-	return OPERATOR_FINISHED;
-}
-
-void PARTICLE_OT_brush_set(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Set Brush";
-	ot->idname= "PARTICLE_OT_brush_set";
-	
-	/* api callbacks */
-	ot->exec= set_brush_exec;
-	ot->invoke= WM_menu_invoke;
-	ot->poll= PE_poll;
-
-	/* properties */
-	RNA_def_enum(ot->srna, "type", brush_type_items, PE_BRUSH_NONE, "Type", "Brush type to select for editing.");
-}
-
-
-/*********************** set mode operator **********************/
-
-static EnumPropertyItem edit_type_items[]= {
-	{PE_TYPE_PARTICLES, "PARTICLES", 0, "Particles", ""},
-	{PE_TYPE_SOFTBODY, "SOFTBODY", 0, "Soft body", ""},
-	{PE_TYPE_CLOTH, "CLOTH", 0, "Cloth", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static int set_edit_mode_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene= CTX_data_scene(C);
-	ParticleEditSettings *pset= PE_settings(scene);
-
-	pset->edittype= RNA_enum_get(op->ptr, "type");
-
-	return OPERATOR_FINISHED;
-}
-
-void PARTICLE_OT_edit_type_set(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Set Edit Type";
-	ot->idname= "PARTICLE_OT_edit_type_set";
-	
-	/* api callbacks */
-	ot->exec= set_edit_mode_exec;
-	ot->invoke= WM_menu_invoke;
-	ot->poll= PE_poll;
-
-	/* properties */
-	RNA_def_enum(ot->srna, "type", edit_type_items, PE_TYPE_PARTICLES, "Type", "Edit type to select for editing.");
-}
-
 /************************* brush edit callbacks ********************/
 
 static void brush_comb(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
@@ -2913,7 +2890,16 @@ static void brush_puff(PEData *data, int point_index)
 	PTCacheEditPoint *point = edit->points + point_index;
 	KEY_K;
 	float mat[4][4], imat[4][4];
-	float lastco[3], rootco[3] = {0.0f, 0.0f, 0.0f}, co[3], nor[3], kco[3], dco[3], fac=0.0f, length=0.0f;
+
+	float lastco[3], rootco[3] = {0.0f, 0.0f, 0.0f}, co[3], nor[3], kco[3], dco[3], ofs[3] = {0.0f, 0.0f, 0.0f}, fac=0.0f, length=0.0f;
+	int puff_volume = 0;
+	int change= 0;
+
+	{
+		ParticleEditSettings *pset= PE_settings(data->scene);
+		ParticleBrushData *brush= &pset->brush[pset->brushtype];
+		puff_volume = brush->flag & PE_BRUSH_DATA_PUFF_VOLUME;
+	}
 
 	if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 		psys_mat_hair_to_global(data->ob, data->dm, psys->part->from, psys->particles + point_index, mat);
@@ -2929,12 +2915,15 @@ static void brush_puff(PEData *data, int point_index)
 			/* find root coordinate and normal on emitter */
 			VECCOPY(co, key->co);
 			mul_m4_v3(mat, co);
+			mul_v3_m4v3(kco, data->ob->imat, co); /* use 'kco' as the object space version of worldspace 'co', ob->imat is set before calling */
 
-			point_index= BLI_kdtree_find_nearest(edit->emitter_field, co, NULL, NULL);
+			point_index= BLI_kdtree_find_nearest(edit->emitter_field, kco, NULL, NULL);
 			if(point_index == -1) return;
 
 			VECCOPY(rootco, co);
 			copy_v3_v3(nor, &edit->emitter_cosnos[point_index*6+3]);
+			mul_mat3_m4_v3(data->ob->obmat, nor); /* normal into worldspace */
+
 			normalize_v3(nor);
 			length= 0.0f;
 
@@ -2944,24 +2933,101 @@ static void brush_puff(PEData *data, int point_index)
 				fac= -fac;
 		}
 		else {
-			/* compute position as if hair was standing up straight */
+			/* compute position as if hair was standing up straight.
+			 * */
 			VECCOPY(lastco, co);
 			VECCOPY(co, key->co);
 			mul_m4_v3(mat, co);
 			length += len_v3v3(lastco, co);
+			if((key->flag & PEK_SELECT) && !(key->flag & PEK_HIDE)) {
+				VECADDFAC(kco, rootco, nor, length);
 
-			VECADDFAC(kco, rootco, nor, length);
+				/* blend between the current and straight position */
+				VECSUB(dco, kco, co);
+				VECADDFAC(co, co, dco, fac);
 
-			/* blend between the current and straight position */
-			VECSUB(dco, kco, co);
-			VECADDFAC(co, co, dco, fac);
+				/* re-use dco to compare before and after translation and add to the offset  */
+				VECCOPY(dco, key->co);
 
-			VECCOPY(key->co, co);
-			mul_m4_v3(imat, key->co);
+				mul_v3_m4v3(key->co, imat, co);
+
+				if(puff_volume) {
+					/* accumulate the total distance moved to apply to unselected
+					 * keys that come after */
+					ofs[0] += key->co[0] - dco[0];
+					ofs[1] += key->co[1] - dco[1];
+					ofs[2] += key->co[2] - dco[2];
+				}
+				change = 1;
+			}
+			else {
+
+				if(puff_volume) {
+#if 0
+					/* this is simple but looks bad, adds annoying kinks */
+					add_v3_v3(key->co, ofs);
+#else
+					/* translate (not rotate) the rest of the hair if its not selected  */
+					if(ofs[0] || ofs[1] || ofs[2]) {
+#if 0					/* kindof works but looks worse then whats below */
+
+						/* Move the unselected point on a vector based on the
+						 * hair direction and the offset */
+						float c1[3], c2[3];
+						VECSUB(dco, lastco, co);
+						mul_mat3_m4_v3(imat, dco); /* into particle space */
+
+						/* move the point allong a vector perpendicular to the
+						 * hairs direction, reduces odd kinks, */
+						cross_v3_v3v3(c1, ofs, dco);
+						cross_v3_v3v3(c2, c1, dco);
+						normalize_v3(c2);
+						mul_v3_fl(c2, len_v3(ofs));
+						add_v3_v3(key->co, c2);
+#else
+						/* Move the unselected point on a vector based on the
+						 * the normal of the closest geometry */
+						float oco[3], onor[3];
+						VECCOPY(oco, key->co);
+						mul_m4_v3(mat, oco);
+						mul_v3_m4v3(kco, data->ob->imat, oco); /* use 'kco' as the object space version of worldspace 'co', ob->imat is set before calling */
+
+						point_index= BLI_kdtree_find_nearest(edit->emitter_field, kco, NULL, NULL);
+						if(point_index != -1) {
+							copy_v3_v3(onor, &edit->emitter_cosnos[point_index*6+3]);
+							mul_mat3_m4_v3(data->ob->obmat, onor); /* normal into worldspace */
+							mul_mat3_m4_v3(imat, onor); /* worldspace into particle space */
+							normalize_v3(onor);
+
+
+							mul_v3_fl(onor, len_v3(ofs));
+							add_v3_v3(key->co, onor);
+						}
+#endif
+					}
+#endif
+				}
+			}
 		}
 	}
 
-	point->flag |= PEP_EDIT_RECALC;
+	if(change)
+		point->flag |= PEP_EDIT_RECALC;
+}
+
+
+static void brush_weight(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
+{
+	/* roots have full weight allways */
+	if(key_index) {
+		PTCacheEdit *edit = data->edit;
+		ParticleSystem *psys = edit->psys;
+
+		ParticleData *pa= psys->particles + point_index;
+		pa->hair[key_index].weight = data->weightfac;
+
+		(data->edit->points + point_index)->flag |= PEP_EDIT_RECALC;
+	}
 }
 
 static void brush_smooth_get(PEData *data, float mat[][4], float imat[][4], int point_index, int key_index, PTCacheEditKey *key)
@@ -3407,6 +3473,23 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				if(data.tot) {
 					mul_v3_fl(data.vec, 1.0f / (float)data.tot);
 					foreach_mouse_hit_key(&data, brush_smooth_do, selected);
+				}
+
+				break;
+			}
+			case PE_BRUSH_WEIGHT:
+			{
+				PEData data;
+				PE_set_view3d_data(C, &data);
+
+				if(edit->psys) {
+					data.dm= psmd->dm;
+					data.mval= mval;
+					data.rad= (float)brush->size;
+
+					data.weightfac = (float)(brush->strength / 100.0f); /* note that this will never be zero */
+
+					foreach_mouse_hit_key(&data, brush_weight, selected);
 				}
 
 				break;
@@ -3976,8 +4059,15 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 
 	if(!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
+		PTCacheEdit *edit;
 		ob->mode |= OB_MODE_PARTICLE_EDIT;
-		PE_create_current(scene, ob);
+		edit= PE_create_current(scene, ob);
+	
+		/* mesh may have changed since last entering editmode.
+		 * note, this may have run before if the edit data was just created, so could avoid this and speed up a little */
+		if(edit)
+			recalc_emitter_field(ob, edit->psys);
+		
 		toggle_particle_cursor(C, 1);
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_PARTICLE, NULL);
 	}

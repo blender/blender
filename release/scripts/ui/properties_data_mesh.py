@@ -207,8 +207,8 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             sub = row.row(align=True)
             subsub = sub.row(align=True)
             subsub.active = enable_edit_value
-            subsub.prop(ob, "shape_key_lock", icon='PINNED' if ob.shape_key_lock else 'UNPINNED', text="")
-            subsub.prop(kb, "mute", icon='MUTE_IPO_ON' if kb.mute else 'MUTE_IPO_OFF', text="")
+            subsub.prop(ob, "shape_key_lock", text="")
+            subsub.prop(kb, "mute", text="")
             sub.prop(ob, "shape_key_edit_mode", text="")
 
             sub = row.row(align=True)

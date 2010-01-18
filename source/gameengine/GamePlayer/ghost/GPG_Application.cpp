@@ -679,21 +679,11 @@ bool GPG_Application::startEngine(void)
 			startscenename,
 			m_startScene);
 		
-		
-		// some python things
-		PyObject* dictionaryobject = initGamePlayerPythonScripting("Ketsji", psl_Lowest, m_maggie, m_argc, m_argv);
-		m_ketsjiengine->SetPyNamespace(dictionaryobject);
-		initRasterizer(m_rasterizer, m_canvas);
-		PyObject *gameLogic = initGameLogic(m_ketsjiengine, startscene);
-		PyDict_SetItemString(dictionaryobject, "GameLogic", gameLogic); // Same as importing the module
-		initGameKeys();
-		initPythonConstraintBinding();
-		initMathutils();
-		initGeometry();
-		initBGL();
-#ifdef WITH_FFMPEG
-        initVideoTexture();
-#endif
+#ifndef DISABLE_PYTHON
+			// some python things
+			PyObject *gameLogic, *gameLogic_keys;
+			setupGamePython(m_ketsjiengine, startscene, m_maggie, NULL, &gameLogic, &gameLogic_keys, m_argc, m_argv);
+#endif // DISABLE_PYTHON
 
 		//initialize Dome Settings
 		if(m_startScene->gm.stereoflag == STEREO_DOME)

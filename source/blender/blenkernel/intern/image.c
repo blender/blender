@@ -1449,7 +1449,10 @@ struct anim *openanim(char *name, int flags)
 
 	ibuf = IMB_anim_absolute(anim, 0);
 	if (ibuf == NULL) {
-		printf("not an anim; %s\n", name);
+		if(BLI_exists(name))
+			printf("not an anim: %s\n", name);
+		else
+			printf("anim file doesn't exist: %s\n", name);
 		IMB_free_anim(anim);
 		return(0);
 	}
@@ -1480,7 +1483,7 @@ struct anim *openanim(char *name, int flags)
 */
 
 
-/* forces existance of 1 Image for renderout or nodes, returns Image */
+/* forces existence of 1 Image for renderout or nodes, returns Image */
 /* name is only for default, when making new one */
 Image *BKE_image_verify_viewer(int type, const char *name)
 {

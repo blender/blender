@@ -57,9 +57,6 @@ KX_Camera::KX_Camera(void* sgReplicationInfo,
 	m_name = "cam";
 	m_projection_matrix.setIdentity();
 	m_modelview_matrix.setIdentity();
-	CValue* val = new CIntValue(1);
-	SetProperty("camera",val);
-	val->Release();
 }
 
 

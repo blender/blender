@@ -499,6 +499,10 @@ static int editmode_toggle_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
 
+	/* covers proxies too */
+	if(ob->data==NULL || ((ID *)ob->data)->lib)
+		return 0;
+
 	return ob && (ob->type == OB_MESH || ob->type == OB_ARMATURE ||
 		      ob->type == OB_FONT || ob->type == OB_MBALL ||
 		      ob->type == OB_LATTICE || ob->type == OB_SURF ||

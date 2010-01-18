@@ -1447,7 +1447,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 		}
 	}
 
-	/* don't read old cache if allready simulated past cached frame */
+	/* don't read old cache if already simulated past cached frame */
 	if(!pm && !pf && cfra1 && cfra1 <= pid->cache->simframe)
 		error = 1;
 	if(cfra1 && cfra1==cfra2)

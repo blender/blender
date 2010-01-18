@@ -124,12 +124,19 @@ void view3d_get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2
 	}
 }
 
+/*
+ * ob == NULL if you want global matrices
+ * */
 void view3d_get_transformation(ARegion *ar, RegionView3D *rv3d, Object *ob, bglMats *mats)
 {
 	float cpy[4][4];
 	int i, j;
 
-	mul_m4_m4m4(cpy, ob->obmat, rv3d->viewmat);
+	if (ob) {
+		mul_m4_m4m4(cpy, ob->obmat, rv3d->viewmat);
+	} else {
+		copy_m4_m4(cpy, rv3d->viewmat);
+	}
 
 	for(i = 0; i < 4; ++i) {
 		for(j = 0; j < 4; ++j) {
@@ -463,7 +470,8 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 
 	/* workaround: init mats first, EM_mask_init_backbuf_border can change
 	   view matrix to pixel space, breaking edge select with backbuf .. */
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	// XXX not needed anymore, check here if selection is broken
+	//ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
@@ -1354,7 +1362,10 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exte
 		EM_deselect_all(vc->em);
 	}
 
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	/* XXX Don't think we need this, it break selection of transformed objects.
+	 * Also, it's not done by Circle select and that works fine
+	 */
+	//ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
@@ -1416,7 +1427,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 	extend = RNA_boolean_get(op->ptr, "extend");
-	
+
 	if(obedit==NULL && (paint_facesel_test(OBACT))) {
 		face_borderselect(C, obact, &rect, selecting, extend);
 		return OPERATOR_FINISHED;

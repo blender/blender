@@ -33,7 +33,7 @@ struct wmKeyConfig;
 void ED_operatortypes_metaball(void);
 void ED_keymap_metaball(struct wmKeyConfig *keyconf);
 
-struct MetaElem *add_metaball_primitive(struct bContext *C, int type, int newname);
+struct MetaElem *add_metaball_primitive(struct bContext *C, float mat[4][4], int type, int newname);
 
 int mouse_mball(struct bContext *C, short mval[2], int extend);
 

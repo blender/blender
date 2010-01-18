@@ -859,11 +859,9 @@ private:
 		return ob_arm;
 	}
 
-	std::string get_joint_sid(Bone *bone)
+	std::string get_joint_sid(Bone *bone, Object *ob_arm)
 	{
-		char name[100];
-		BLI_strncpy(name, bone->name, sizeof(name));
-		return translate_id(name);
+		return get_joint_id(bone, ob_arm);
 	}
 
 	// parent_mat is armature-space
@@ -871,7 +869,7 @@ private:
 	{
 		std::string node_id = get_joint_id(bone, ob_arm);
 		std::string node_name = std::string(bone->name);
-		std::string node_sid = get_joint_sid(bone);
+		std::string node_sid = get_joint_sid(bone, ob_arm);
 
 		COLLADASW::Node node(mSW);
 
@@ -1017,7 +1015,7 @@ private:
 		for (def = (bDeformGroup*)defbase->first; def; def = def->next) {
 			Bone *bone = get_bone_from_defgroup(ob_arm, def);
 			if (bone)
-				source.appendValues(get_joint_sid(bone));
+				source.appendValues(get_joint_sid(bone, ob_arm));
 		}
 
 		source.finish();
@@ -1376,7 +1374,6 @@ public:
 		}
 	}
 };
-
 
 class EffectsExporter: COLLADASW::LibraryEffects
 {
@@ -1786,19 +1783,16 @@ protected:
 		const char *axis_names[] = {"X", "Y", "Z"};
 		const char *axis_name = NULL;
 		char anim_id[200];
-		char anim_name[200];
 		
 		if (fcu->array_index < 3)
 			axis_name = axis_names[fcu->array_index];
 
-		BLI_snprintf(anim_id, sizeof(anim_id), "%s.%s.%s", (char*)translate_id(ob_name).c_str(),
+		BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
 					 fcu->rna_path, axis_names[fcu->array_index]);
-		BLI_snprintf(anim_name, sizeof(anim_name), "%s.%s.%s", 
-					 (char*)ob_name.c_str(), fcu->rna_path, axis_names[fcu->array_index]);
 
 		// check rna_path is one of: rotation, scale, location
 
-		openAnimation(anim_id, anim_name);
+		openAnimation(anim_id, COLLADABU::Utils::EMPTY_STRING);
 
 		// create input source
 		std::string input_id = create_source_from_fcurve(Sampler::INPUT, fcu, anim_id, axis_name);
@@ -1957,7 +1951,6 @@ protected:
 		const char *axis_names[] = {"X", "Y", "Z"};
 		const char *axis_name = NULL;
 		char anim_id[200];
-		char anim_name[200];
 		bool is_rot = tm_type == 0;
 		
 		if (!fra.size())
@@ -1972,14 +1965,10 @@ protected:
 		
 		std::string transform_sid = get_transform_sid(NULL, tm_type, axis_name);
 		
-		BLI_snprintf(anim_id, sizeof(anim_id), "%s.%s.%s", (char*)translate_id(ob_name).c_str(),
+		BLI_snprintf(anim_id, sizeof(anim_id), "%s_%s_%s", (char*)translate_id(ob_name).c_str(),
 					 (char*)translate_id(bone_name).c_str(), (char*)transform_sid.c_str());
-		BLI_snprintf(anim_name, sizeof(anim_name), "%s.%s.%s",
-					 (char*)ob_name.c_str(), (char*)bone_name.c_str(), (char*)transform_sid.c_str());
 
-		// TODO check rna_path is one of: rotation, scale, location
-
-		openAnimation(anim_id, anim_name);
+		openAnimation(anim_id, COLLADABU::Utils::EMPTY_STRING);
 
 		// create input source
 		std::string input_id = create_source_from_vector(Sampler::INPUT, fra, is_rot, anim_id, axis_name);
@@ -2244,13 +2233,13 @@ protected:
 			char *name = extract_transform_name(rna_path);
 
 			if (strstr(name, "rotation"))
-				return std::string("rotation") + axis_name;
+				return std::string("rotation") + std::string(axis_name) + ".ANGLE";
 			else if (!strcmp(name, "location") || !strcmp(name, "scale"))
 				return std::string(name);
 		}
 		else {
 			if (tm_type == 0)
-				return std::string("rotation") + axis_name;
+				return std::string("rotation") + std::string(axis_name) + ".ANGLE";
 			else
 				return tm_type == 1 ? "scale" : "location";
 		}

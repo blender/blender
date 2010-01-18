@@ -187,19 +187,24 @@ void wm_event_do_notifiers(bContext *C)
 							printf("screen delete %p\n", note->reference);
 					}
 				}
-				else if(note->category==NC_SCENE) {
+			}
+
+			if(note->window==win || (note->window == NULL && (note->reference == NULL || note->reference == CTX_data_scene(C)))) {
+				if(note->category==NC_SCENE) {
 					if(note->data==ND_SCENEBROWSE) {
 						ED_screen_set_scene(C, note->reference);	// XXX hrms, think this over!
 						if(G.f & G_DEBUG)
 							printf("scene set %p\n", note->reference);
 					}
-					if(note->data==ND_SCENEDELETE) {
+					else if(note->data==ND_FRAME)
+						do_anim= 1;
+					
+					if(note->action == NA_REMOVED) {
 						ED_screen_delete_scene(C, note->reference);	// XXX hrms, think this over!
 						if(G.f & G_DEBUG)
 							printf("scene delete %p\n", note->reference);
 					}
-					else if(note->data==ND_FRAME)
-						do_anim= 1;
+						
 				}
 			}
 			if(ELEM4(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_SCENE)) {
@@ -766,47 +771,51 @@ int WM_userdef_event_map(int kmitype)
 	return kmitype;
 }
 
+static void wm_eventemulation(wmEvent *event)
+{
+	/* middlemouse emulation */
+	if(U.flag & USER_TWOBUTTONMOUSE) {
+		if(event->type == LEFTMOUSE && event->alt) {
+			event->type = MIDDLEMOUSE;
+			event->alt = 0;
+		}
+	}
+
+#ifdef __APPLE__
+	/* rightmouse emulation */
+	if(U.flag & USER_TWOBUTTONMOUSE) {
+		if(event->type == LEFTMOUSE && event->oskey) {
+			event->type = RIGHTMOUSE;
+			event->oskey = 0;
+		}
+	}
+#endif
+
+	/* numpad emulation */
+	if(U.flag & USER_NONUMPAD) {
+		switch(event->type) {
+			case ZEROKEY: event->type = PAD0; break;
+			case ONEKEY: event->type = PAD1; break;
+			case TWOKEY: event->type = PAD2; break;
+			case THREEKEY: event->type = PAD3; break;
+			case FOURKEY: event->type = PAD4; break;
+			case FIVEKEY: event->type = PAD5; break;
+			case SIXKEY: event->type = PAD6; break;
+			case SEVENKEY: event->type = PAD7; break;
+			case EIGHTKEY: event->type = PAD8; break;
+			case NINEKEY: event->type = PAD9; break;
+			case MINUSKEY: event->type = PADMINUS; break;
+			case EQUALKEY: event->type = PADPLUSKEY; break;
+			case BACKSLASHKEY: event->type = PADSLASHKEY; break;
+		}
+	}
+}
+
 static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 {
 	int kmitype= WM_userdef_event_map(kmi->type);
 
 	if(kmi->flag & KMI_INACTIVE) return 0;
-
-	/* exception for middlemouse emulation */
-	if((U.flag & USER_TWOBUTTONMOUSE) && (kmi->type == MIDDLEMOUSE)) {
-		if(winevent->type == LEFTMOUSE && winevent->alt) {
-			wmKeyMapItem tmp= *kmi;
-
-			tmp.type= winevent->type;
-			tmp.alt= winevent->alt;
-			if(wm_eventmatch(winevent, &tmp))
-				return 1;
-		}
-	}
-	/* exception for numpad emulation */
-	else if(U.flag & USER_NONUMPAD) {
-		wmKeyMapItem tmp= *kmi;
-
-		switch(kmi->type) {
-			case PAD0: tmp.type = ZEROKEY; break;
-			case PAD1: tmp.type = ONEKEY; break;
-			case PAD2: tmp.type = TWOKEY; break;
-			case PAD3: tmp.type = THREEKEY; break;
-			case PAD4: tmp.type = FOURKEY; break;
-			case PAD5: tmp.type = FIVEKEY; break;
-			case PAD6: tmp.type = SIXKEY; break;
-			case PAD7: tmp.type = SEVENKEY; break;
-			case PAD8: tmp.type = EIGHTKEY; break;
-			case PAD9: tmp.type = NINEKEY; break;
-			case PADMINUS: tmp.type = MINUSKEY; break;
-			case PADPLUSKEY: tmp.type = EQUALKEY; break;
-			case PADSLASHKEY: tmp.type = BACKSLASHKEY; break;
-		}
-
-		if(tmp.type != kmi->type)
-			if(wm_eventmatch(winevent, &tmp))
-				return 1;
-	}
 
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
@@ -1060,6 +1069,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				
 				wm_handler_op_context(C, handler);
 
+				/* needed for uiPupMenuReports */
+
 				if(event->val==EVT_FILESELECT_EXEC) {
 					/* a bit weak, might become arg for WM_event_fileselect? */
 					/* XXX also extension code in image-save doesnt work for this yet */
@@ -1074,6 +1085,21 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 							if(G.f & G_DEBUG)
 								wm_operator_print(handler->op);
 						
+						if(handler->op->reports->list.first) {
+
+							/* FIXME, temp setting window, this is really bad!
+							 * only have because lib linking errors need to be seen by users :(
+							 * it can be removed without breaking anything but then no linking errors - campbell */
+							wmWindow *win_prev= CTX_wm_window(C);
+							if(win_prev==NULL)
+								CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+
+							handler->op->reports->printlevel = RPT_WARNING;
+							uiPupMenuReports(C, handler->op->reports);
+
+							CTX_wm_window_set(C, win_prev);
+						}
+
 						WM_operator_free(handler->op);
 					}
 				}
@@ -1315,6 +1341,8 @@ void wm_event_do_handlers(bContext *C)
 		
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
+
+			wm_eventemulation(event);
 
 			CTX_wm_window_set(C, win);
 			
@@ -1603,6 +1631,27 @@ void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHa
 	}
 }
 
+void WM_event_remove_area_handler(ListBase *handlers, void *area)
+{
+	wmEventHandler *handler, *nexthandler;
+
+	for(handler = handlers->first; handler; handler= nexthandler) {
+		nexthandler = handler->next;
+		if (handler->type != WM_HANDLER_FILESELECT) {
+			if (handler->ui_area == area) {
+				BLI_remlink(handlers, handler);
+				wm_event_free_handler(handler);
+			}
+		}
+	}
+}
+
+void WM_event_remove_handler(ListBase *handlers, wmEventHandler *handler)
+{
+	BLI_remlink(handlers, handler);
+	wm_event_free_handler(handler);
+}
+
 void WM_event_add_mousemove(bContext *C)
 {
 	wmWindow *window= CTX_wm_window(C);
@@ -1758,6 +1807,42 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);
 			}
+			break;
+		}
+		case GHOST_kEventTrackpad: {
+			if (win->active) {
+				GHOST_TEventTrackpadData * pd = customdata;
+				switch (pd->subtype) {
+					case GHOST_kTrackpadEventMagnify:
+						event.type = MOUSEZOOM;
+						break;
+					case GHOST_kTrackpadEventRotate:
+						event.type = MOUSEROTATE;
+						break;
+					case GHOST_kTrackpadEventScroll:
+					default:
+						event.type= MOUSEPAN;
+						break;
+				}
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+				//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
+				event.x= evt->x = pd->x;
+				event.y = evt->y = pd->y;
+#else
+                {
+				int cx, cy;
+				GHOST_ScreenToClient(win->ghostwin, pd->x, pd->y, &cx, &cy);
+				event.x= evt->x= cx;
+				event.y= evt->y= (win->sizey-1) - cy;
+                }
+#endif
+				// Use prevx/prevy so we can calculate the delta later
+				event.prevx= event.x - pd->deltaX;
+				event.prevy= event.y - pd->deltaY;
+				
+				update_tablet_data(win, &event);
+				wm_event_add(win, &event);
+			}			
 			break;
 		}
 		/* mouse button */

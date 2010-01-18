@@ -85,6 +85,12 @@ static char *rna_NlaStrip_path(PointerRNA *ptr)
 	return "";
 }
 
+static void rna_NlaStrip_transform_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	NlaStrip *strip= (NlaStrip*)ptr->data;
+
+	BKE_nlameta_flush_transforms(strip);
+}
 
 static void rna_NlaStrip_start_frame_set(PointerRNA *ptr, float value)
 {
@@ -181,7 +187,7 @@ static void rna_NlaStrip_repeat_set(PointerRNA *ptr, float value)
 	NlaStrip *data= (NlaStrip*)ptr->data;
 	float actlen, mapping;
 	
-	/* set scale value */
+	/* set repeat value */
 	CLAMP(value, 0.01f, 1000.0f); /* NOTE: these need to be synced with the values in the property definition in rna_def_nlastrip() */
 	data->repeat= value;
 	
@@ -326,11 +332,13 @@ static void rna_def_nlastrip(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "start");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
+	RNA_def_property_update(prop, 0, "rna_NlaStrip_transform_update");
 	
 	prop= RNA_def_property(srna, "end_frame", PROP_FLOAT, PROP_TIME);
 	RNA_def_property_float_sdna(prop, NULL, "end");
 	RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "End Frame", "");
+	RNA_def_property_update(prop, 0, "rna_NlaStrip_transform_update");
 	
 	/* Blending */
 	prop= RNA_def_property(srna, "blend_in", PROP_FLOAT, PROP_NONE);

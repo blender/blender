@@ -120,7 +120,7 @@ void EM_cache_x_mirror_vert(struct Object *ob, struct EditMesh *em)
 	}
 }
 
-void EM_select_mirrored(Object *obedit, EditMesh *em, int extend)
+static void EM_select_mirrored(Object *obedit, EditMesh *em, int extend)
 {
 
 	EditVert *eve;
@@ -1304,6 +1304,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", prop_similar_types, SIMVERT_NORMAL, "Type", "");
 	RNA_def_enum_funcs(prop, select_similar_type_itemf);
+	ot->prop= prop;
 }
 
 /* ******************************************* */
@@ -2111,7 +2112,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= mesh_select_loop_invoke;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_editmesh_view3d;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2213,7 +2214,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= mesh_shortest_path_select_invoke;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_editmesh_view3d;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2521,7 +2522,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= select_linked_pick_invoke;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_editmesh_view3d;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2858,7 +2859,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 {
 	static const EnumPropertyItem type_items[]= {
 		{3, "TRIANGLES", 0, "Triangles", NULL},
-		{4, "QUADS", 0, "Triangles", NULL},
+		{4, "QUADS", 0, "Quads", NULL},
 		{5, "OTHER", 0, "Other", NULL},
 		{0, NULL, 0, NULL, NULL}};
 
@@ -2869,13 +2870,14 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_by_number_vertices_exec;
+	ot->invoke= WM_menu_invoke;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select.");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select.");
 }
 
 

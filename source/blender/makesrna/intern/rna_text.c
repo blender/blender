@@ -198,6 +198,10 @@ static void rna_def_text(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_ISSCRIPT);
 	RNA_def_property_ui_text(prop, "Register", "Register this text as a module on loading.");
 
+	prop= RNA_def_property(srna, "tabs_as_spaces", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", TXT_TABSTOSPACES);
+	RNA_def_property_ui_text(prop, "Tabs as Spaces", "Automatically converts all new tabs into spaces.");
+
 	prop= RNA_def_property(srna, "lines", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "TextLine");
 	RNA_def_property_ui_text(prop, "Lines", "Lines of text.");

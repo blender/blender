@@ -906,6 +906,44 @@ static void rna_def_userdef_theme_space_userpref(BlenderRNA *brna)
 	rna_def_userdef_theme_spaces_main(srna, SPACE_USERPREF);
 }
 
+static void rna_def_userdef_theme_space_console(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	/* space_console */
+
+	srna= RNA_def_struct(brna, "ThemeConsole", NULL);
+	RNA_def_struct_sdna(srna, "ThemeSpace");
+	RNA_def_struct_ui_text(srna, "Theme Console", "Theme settings for the Console.");
+	
+	rna_def_userdef_theme_spaces_main(srna, SPACE_CONSOLE);
+	
+	prop= RNA_def_property(srna, "line_output", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "console_output");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Line Output", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop= RNA_def_property(srna, "line_input", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "console_input");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Line Input", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop= RNA_def_property(srna, "line_info", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "console_info");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Line Info", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop= RNA_def_property(srna, "line_error", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "console_error");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Line Error", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+}
+
 static void rna_def_userdef_theme_space_info(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1562,6 +1600,12 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "tuserpref");
 	RNA_def_property_struct_type(prop, "ThemeUserPreferences");
 	RNA_def_property_ui_text(prop, "User Preferences", "");
+	
+	prop= RNA_def_property(srna, "console", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "tconsole");
+	RNA_def_property_struct_type(prop, "ThemeConsole");
+	RNA_def_property_ui_text(prop, "Console", "");
 
 	prop= RNA_def_property(srna, "bone_color_sets", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -1590,6 +1634,7 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
 	rna_def_userdef_theme_space_outliner(brna);
 	rna_def_userdef_theme_space_info(brna);
 	rna_def_userdef_theme_space_userpref(brna);
+	rna_def_userdef_theme_space_console(brna);
 	rna_def_userdef_theme_space_sound(brna);
 	rna_def_userdef_theme_space_logic(brna);
 	rna_def_userdef_theme_colorset(brna);

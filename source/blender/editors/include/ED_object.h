@@ -82,6 +82,7 @@ void ED_object_enter_editmode(struct bContext *C, int flag);
 void ED_object_location_from_view(struct bContext *C, float *loc);
 void ED_object_rotation_from_view(struct bContext *C, float *rot);
 void ED_object_base_init_transform(struct bContext *C, struct Base *base, float *loc, float *rot);
+float ED_object_new_primitive_matrix(struct bContext *C, float *loc, float *rot, float primmat[][4]);
 
 void ED_object_add_generic_props(struct wmOperatorType *ot, int do_editmode);
 int ED_object_add_generic_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);

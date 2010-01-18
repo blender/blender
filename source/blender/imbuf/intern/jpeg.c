@@ -64,7 +64,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 
 type 3 is unsupported as of jul 05 2000 Frank.
 
- * 3. jstr - as 2, but written in 2 seperate fields
+ * 3. jstr - as 2, but written in 2 separate fields
 
  * 4. jmax - no scaling in the components
  */

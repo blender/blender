@@ -2494,8 +2494,11 @@ static int do_outliner_item_rename(bContext *C, ARegion *ar, SpaceOops *soops, T
 		
 		/* name and first icon */
 		if(mval[0]>te->xs && mval[0]<te->xend) {
-
-			if(ELEM10(tselem->type, TSE_ANIM_DATA, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
+			
+			/* can't rename rna datablocks entries */
+			if(ELEM3(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))
+			   ;
+			else if(ELEM10(tselem->type, TSE_ANIM_DATA, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
 					error("Cannot edit builtin name");
 			else if(ELEM3(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP))
 				error("Cannot edit sequence name");
@@ -3316,7 +3319,7 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 	
 	ot->flag= 0;
 
-	RNA_def_enum(ot->srna, "type", prop_object_op_types, 0, "Object Operation", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_object_op_types, 0, "Object Operation", "");
 }
 
 /* **************************************** */
@@ -3374,7 +3377,7 @@ void OUTLINER_OT_group_operation(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_enum(ot->srna, "type", prop_group_op_types, 0, "Group Operation", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_group_op_types, 0, "Group Operation", "");
 }
 
 /* **************************************** */
@@ -3440,7 +3443,7 @@ void OUTLINER_OT_id_operation(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_enum(ot->srna, "type", prop_id_op_types, 0, "ID data Operation", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_id_op_types, 0, "ID data Operation", "");
 }
 
 /* **************************************** */
@@ -3511,7 +3514,7 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	RNA_def_enum(ot->srna, "type", prop_data_op_types, 0, "Data Operation", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_data_op_types, 0, "Data Operation", "");
 }
 
 
@@ -4838,6 +4841,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				break;
 			}
 		}
+		tselem->flag &= ~TSE_TEXTBUT;
 	}
 }
 
@@ -5104,6 +5108,9 @@ static char *keymap_mouse_menu(void)
 	str += sprintf(str, formatstr, "Wheel Down", WHEELDOWNMOUSE);
 	str += sprintf(str, formatstr, "Wheel In", WHEELINMOUSE);
 	str += sprintf(str, formatstr, "Wheel Out", WHEELOUTMOUSE);
+	str += sprintf(str, formatstr, "Mouse/Trackpad Pan", MOUSEPAN);
+	str += sprintf(str, formatstr, "Mouse/Trackpad Zoom", MOUSEZOOM);
+	str += sprintf(str, formatstr, "Mouse/Trackpad Rotate", MOUSEROTATE);
 	
 	return string;
 }
@@ -5275,8 +5282,9 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 				else if(tselem->id && GS(tselem->id->name)==ID_LI) len = sizeof(((Library*) 0)->name);
 				else len= sizeof(((ID*) 0)->name)-2;
 				
+
 				dx= (int)UI_GetStringWidth(te->name);
-				if(dx<50) dx= 50;
+				if(dx<100) dx= 100;
 				
 				bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "",  (short)te->xs+2*OL_X-4, (short)te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");
 				uiButSetRenameFunc(bt, namebutton_cb, tselem);

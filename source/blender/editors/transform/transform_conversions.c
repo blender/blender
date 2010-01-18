@@ -714,7 +714,7 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 	for(pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
 		if(bone->layer & arm->layer) {
-			if(bone->flag & BONE_SELECTED)
+			if((bone->flag & BONE_SELECTED) && !(ob->proxy && pchan->bone->layer & arm->layer_protected))
 				bone->flag |= BONE_TRANSFORM;
 			else
 				bone->flag &= ~BONE_TRANSFORM;
@@ -2139,14 +2139,20 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	int count=0, countsel=0, a, totleft;
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
+	short selectmode = ts->selectmode;
 
 	if (t->flag & T_MIRROR)
 	{
 		mirror = 1;
 	}
 
+	/* edge slide forces edge select */
+	if (t->mode == TFM_EDGE_SLIDE) {
+		selectmode = SCE_SELECT_EDGE;
+	}
+
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
-	if(ts->selectmode & SCE_SELECT_VERTEX) {
+	if(selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->h==0 && (eve->f & SELECT))
 				eve->f1= SELECT;
@@ -2154,7 +2160,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				eve->f1= 0;
 		}
 	}
-	else if(ts->selectmode & SCE_SELECT_EDGE) {
+	else if(selectmode & SCE_SELECT_EDGE) {
 		EditEdge *eed;
 		for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
 		for(eed= em->edges.first; eed; eed= eed->next) {
@@ -4224,7 +4230,6 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *track;
-	ListBase fakecons = {NULL, NULL};
 	float obmtx[3][3];
 	short constinv;
 	short skip_invert = 0;
@@ -4250,18 +4255,13 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 		track= ob->track;
 		ob->track= NULL;
 		
-		if (constinv == 0) {
-			fakecons.first = ob->constraints.first;
-			fakecons.last = ob->constraints.last;
-			ob->constraints.first = ob->constraints.last = NULL;
-		}
+		if (constinv == 0)
+			ob->transflag |= OB_NO_CONSTRAINTS; /* where_is_object_time checks this */
 		
 		where_is_object(t->scene, ob);
 		
-		if (constinv == 0) {
-			ob->constraints.first = fakecons.first;
-			ob->constraints.last = fakecons.last;
-		}
+		if (constinv == 0)
+			ob->transflag &= ~OB_NO_CONSTRAINTS;
 		
 		ob->track= track;
 	}

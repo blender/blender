@@ -103,21 +103,23 @@ static void ringsel_draw(const bContext *C, ARegion *ar, void *arg)
 	int i;
 	tringselOpData *lcd = arg;
 	
-	glDisable(GL_DEPTH_TEST);
+	if (lcd->totedge > 0) {
+		glDisable(GL_DEPTH_TEST);
 
-	glPushMatrix();
-	glMultMatrixf(lcd->ob->obmat);
+		glPushMatrix();
+		glMultMatrixf(lcd->ob->obmat);
 
-	glColor3ub(255, 0, 255);
-	glBegin(GL_LINES);
-	for (i=0; i<lcd->totedge; i++) {
-		glVertex3fv(lcd->edges[i][0]);
-		glVertex3fv(lcd->edges[i][1]);
+		glColor3ub(255, 0, 255);
+		glBegin(GL_LINES);
+		for (i=0; i<lcd->totedge; i++) {
+			glVertex3fv(lcd->edges[i][0]);
+			glVertex3fv(lcd->edges[i][1]);
+		}
+		glEnd();
+
+		glPopMatrix();
+		glEnable(GL_DEPTH_TEST);
 	}
-	glEnd();
-
-	glPopMatrix();
-	glEnable(GL_DEPTH_TEST);
 }
 
 static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
@@ -252,8 +254,13 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 static void ringsel_find_edge(tringselOpData *lcd, const bContext *C, ARegion *ar, int cuts)
 {
-	if (lcd->eed)
+	if (lcd->eed) {
 		edgering_sel(lcd, cuts, 0);
+	} else {
+		MEM_freeN(lcd->edges);
+		lcd->edges = NULL;
+		lcd->totedge = 0;
+	}
 }
 
 static void ringsel_finish(bContext *C, wmOperator *op)
@@ -325,16 +332,23 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	tringselOpData *lcd;
 	EditEdge *edge;
 	int dist = 75;
-
+	
 	view3d_operator_needs_opengl(C);
 
 	if (!ringsel_init(C, op, 0))
 		return OPERATOR_CANCELLED;
 	
+	lcd = op->customdata;
+	
+	if (lcd->em->selectmode == SCE_SELECT_FACE) {
+		ringsel_exit(C, op);
+		WM_operator_name_call(C, "MESH_OT_loop_select", WM_OP_INVOKE_REGION_WIN, NULL);
+		return OPERATOR_CANCELLED;
+	}
+	
 	/* add a modal handler for this operator - handles loop selection */
 	WM_event_add_modal_handler(C, op);
 
-	lcd = op->customdata;
 	lcd->vc.mval[0] = evt->mval[0];
 	lcd->vc.mval[1] = evt->mval[1];
 	

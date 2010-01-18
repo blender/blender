@@ -44,6 +44,82 @@
 #endif
 #endif
 
+/* Replace if different */
+#define TMP_EXT ".tmp"
+
+static int replace_if_different(char *tmpfile)
+{
+
+#define REN_IF_DIFF \
+	if(rename(tmpfile, orgfile) != 0) { \
+		fprintf(stderr, "%s:%d, rename error: \"%s\" -> \"%s\"", __FILE__, __LINE__, tmpfile, orgfile); \
+		return -1; \
+	} \
+	remove(tmpfile); \
+	return 1; \
+
+
+	FILE *fp_new, *fp_org;
+	int len_new, len_org;
+	char *arr_new, *arr_org;
+	int cmp;
+
+	char orgfile[4096];
+
+	strcpy(orgfile, tmpfile);
+	orgfile[strlen(orgfile) - strlen(TMP_EXT)] = '\0'; /* strip '.tmp' */
+
+	fp_org= fopen(orgfile, "rb");
+
+	if(fp_org==NULL) {
+		REN_IF_DIFF;
+	}
+
+	fp_new= fopen(tmpfile, "rb");
+
+	if(fp_new==NULL) {
+		/* shouldn't happen, just to be safe */
+		fprintf(stderr, "%s:%d, open error: \"%s\"", __FILE__, __LINE__, tmpfile);
+		return -1;
+	}
+
+	fseek(fp_new, 0L, SEEK_END); len_new = ftell(fp_new); fseek(fp_new, 0L, SEEK_SET);
+	fseek(fp_org, 0L, SEEK_END); len_org = ftell(fp_org); fseek(fp_org, 0L, SEEK_SET);
+
+
+	if(len_new != len_org) {
+		fclose(fp_new);
+		fclose(fp_org);
+		REN_IF_DIFF;
+	}
+
+	/* now compare the files... */
+	arr_new= MEM_mallocN(sizeof(char)*len_new, "rna_cmp_file_new");
+	arr_org= MEM_mallocN(sizeof(char)*len_org, "rna_cmp_file_org");
+
+	fread(arr_new, sizeof(char), len_new, fp_new);
+	fread(arr_org, sizeof(char), len_org, fp_org);
+
+	fclose(fp_new);
+	fclose(fp_org);
+
+	cmp= memcmp(arr_new, arr_org, len_new);
+
+	MEM_freeN(arr_new);
+	MEM_freeN(arr_org);
+
+	if(cmp) {
+		REN_IF_DIFF;
+	}
+	else {
+		return 0;
+	}
+
+#undef REN_IF_DIFF
+}
+
+
+
 /* Sorting */
 
 static int cmp_struct(const void *a, const void *b)
@@ -2340,10 +2416,10 @@ static void rna_generate_header_cpp(BlenderRNA *brna, FILE *f)
 	fprintf(f, "}\n\n#endif /* __RNA_BLENDER_CPP_H__ */\n\n");
 }
 
-static void make_bad_file(char *file)
+static void make_bad_file(char *file, int line)
 {
 	FILE *fp= fopen(file, "w");
-	fprintf(fp, "ERROR! Cannot make correct RNA file, STUPID!\n");
+	fprintf(fp, "#error \"Error! can't make correct RNA file from %s:%d, STUPID!\"\n", __FILE__, line);
 	fclose(fp);
 }
 
@@ -2373,12 +2449,12 @@ static int rna_preprocess(char *outfile)
 
 	/* create RNA_blender_cpp.h */
 	strcpy(deffile, outfile);
-	strcat(deffile, "RNA_blender_cpp.h");
+	strcat(deffile, "RNA_blender_cpp.h" TMP_EXT);
 
 	status= (DefRNA.error != 0);
 
 	if(status) {
-		make_bad_file(deffile);
+		make_bad_file(deffile, __LINE__);
 	}
 	else {
 		file = fopen(deffile, "w");
@@ -2390,10 +2466,11 @@ static int rna_preprocess(char *outfile)
 		else {
 			rna_generate_header_cpp(brna, file);
 			fclose(file);
-
 			status= (DefRNA.error != 0);
 		}
 	}
+
+	replace_if_different(deffile);
 
 	rna_sort(brna);
 
@@ -2402,10 +2479,10 @@ static int rna_preprocess(char *outfile)
 		strcpy(deffile, outfile);
 		strcat(deffile, PROCESS_ITEMS[i].filename);
 		deffile[strlen(deffile)-2] = '\0';
-		strcat(deffile, "_gen.c");
+		strcat(deffile, "_gen.c" TMP_EXT);
 
 		if(status) {
-			make_bad_file(deffile);
+			make_bad_file(deffile, __LINE__);
 		}
 		else {
 			file = fopen(deffile, "w");
@@ -2417,18 +2494,19 @@ static int rna_preprocess(char *outfile)
 			else {
 				rna_generate(brna, file, PROCESS_ITEMS[i].filename, PROCESS_ITEMS[i].api_filename);
 				fclose(file);
-
 				status= (DefRNA.error != 0);
 			}
 		}
+
+		replace_if_different(deffile);
 	}
 
 	/* create RNA_blender.h */
 	strcpy(deffile, outfile);
-	strcat(deffile, "RNA_blender.h");
+	strcat(deffile, "RNA_blender.h" TMP_EXT);
 
 	if(status) {
-		make_bad_file(deffile);
+		make_bad_file(deffile, __LINE__);
 	}
 	else {
 		file = fopen(deffile, "w");
@@ -2440,10 +2518,11 @@ static int rna_preprocess(char *outfile)
 		else {
 			rna_generate_header(brna, file);
 			fclose(file);
-
 			status= (DefRNA.error != 0);
 		}
 	}
+
+	replace_if_different(deffile);
 
 	/* free RNA */
 	RNA_define_free(brna);

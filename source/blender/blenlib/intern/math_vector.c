@@ -69,7 +69,7 @@ void interp_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const fl
 }
 
 /* weight 3 vectors,
- * 'w' must be unit length but is not a vector, just 3 weights */
+ * 'w' must be unit length but is not a vector, just 4 weights */
 void interp_v3_v3v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3], const float w[4])
 {
 	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2] + v4[0]*w[3];

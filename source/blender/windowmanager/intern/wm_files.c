@@ -109,11 +109,13 @@ static void writeBlog(void);
 static void wm_window_match_init(bContext *C, ListBase *wmlist)
 {
 	wmWindowManager *wm= G.main->wm.first;
-	wmWindow *win;
+	wmWindow *win, *active_win;
 	
 	*wmlist= G.main->wm;
 	G.main->wm.first= G.main->wm.last= NULL;
 	
+	active_win = CTX_wm_window(C);
+
 	/* first wrap up running stuff */
 	/* code copied from wm_init_exit.c */
 	for(wm= wmlist->first; wm; wm= wm->id.next) {
@@ -129,6 +131,9 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 		}
 	}
 	
+	/* reset active window */
+	CTX_wm_window_set(C, active_win);
+
 	ED_editors_exit(C);
 	
 return;	

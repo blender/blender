@@ -323,7 +323,7 @@ static void ui_apply_autokey_undo(bContext *C, uiBut *but)
 	}
 
 	/* try autokey */
-	ui_but_anim_autokey(but, scene, scene->r.cfra);
+	ui_but_anim_autokey(C, but, scene, scene->r.cfra);
 }
 
 static void ui_apply_but_funcs_after(bContext *C)
@@ -948,7 +948,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 		else {
 			if (sscanf(buf, "[%f, %f, %f]", &rgb[0], &rgb[1], &rgb[2]) == 3) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-				VECCOPY(data->vec, rgb);
+				ui_set_but_vectorf(but, rgb);
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
 		}
@@ -1083,8 +1083,11 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	/* XXX solve generic */
 	if(but->type==NUM || but->type==NUMSLI)
 		startx += (int)(0.5f*(but->y2 - but->y1));
-	else if(but->type==TEX)
+	else if(ELEM(but->type, TEX, SEARCH_MENU)) {
 		startx += 5;
+		if (but->flag & UI_HAS_ICON)
+			startx += 16;
+	}
 	
 	/* XXX does not take zoom level into account */
 	while((BLF_width(origstr+but->ofs) + startx) > x) {
@@ -4076,6 +4079,8 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 		ui_textedit_begin(C, but, data);
 	else if(data->state == BUTTON_STATE_TEXT_EDITING && state != BUTTON_STATE_TEXT_SELECTING)
 		ui_textedit_end(C, but, data);
+	else if(data->state == BUTTON_STATE_TEXT_SELECTING && state != BUTTON_STATE_TEXT_EDITING)
+		ui_textedit_end(C, but, data);
 	
 	/* number editing */
 	if(state == BUTTON_STATE_NUM_EDITING) {
@@ -4819,9 +4824,16 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 							
 							if(but->type!=LABEL && but->type!=SEPR)
 								count++;
-
+							
+							/* exception for rna layer buts */
+							if(but->rnapoin.data && but->rnaprop) {
+								if (ELEM(RNA_property_subtype(but->rnaprop), PROP_LAYER, PROP_LAYER_MEMBER)) {
+									if (but->rnaindex== act-1)
+										doit=1;
+								}
+							}
 							/* exception for menus like layer buts, with button aligning they're not drawn in order */
-							if(but->type==TOGR) {
+							else if(but->type==TOGR) {
 								if(but->bitnr==act-1)
 									doit= 1;
 							}

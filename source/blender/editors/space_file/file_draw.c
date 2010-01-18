@@ -133,7 +133,6 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 void file_draw_buttons(const bContext *C, ARegion *ar)
 {
 	/* Button layout. */
-	const int min_x      = 10;
 	const int max_x      = ar->winx - 10;
 	const int line1_y    = IMASEL_BUTTONS_HEIGHT/2 + IMASEL_BUTTONS_MARGIN*2;
 	const int line2_y    = IMASEL_BUTTONS_MARGIN;
@@ -148,6 +147,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	char  name[20];
 	int loadbutton;
 	int fnumbuttons;
+	int min_x       = 10;
 	int available_w = max_x - min_x;
 	int line1_w     = available_w;
 	int line2_w     = available_w;
@@ -156,11 +156,20 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	uiBlock*          block;
 	SpaceFile*        sfile  = CTX_wm_space_file(C);
 	FileSelectParams* params = ED_fileselect_get_params(sfile);
+	ARegion*		  artmp;
 	
 	/* Initialize UI block. */
 	sprintf(name, "win %p", ar);
 	block = uiBeginBlock(C, ar, name, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_file_buttons, NULL);
+
+	/* exception to make space for collapsed region icon */
+	for (artmp=CTX_wm_area(C)->regionbase.first; artmp; artmp=artmp->next) {
+		if (artmp->regiontype == RGN_TYPE_CHANNELS && artmp->flag & RGN_FLAG_HIDDEN) {
+			min_x += 16;
+			available_w -= 16;
+		}
+	}
 	
 	/* Is there enough space for the execute / cancel buttons? */
 	loadbutton = UI_GetStringWidth(sfile->params->title) + btn_margin;

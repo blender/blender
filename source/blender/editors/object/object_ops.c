@@ -117,6 +117,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_surface_add);
 	WM_operatortype_append(OBJECT_OT_armature_add);
 	WM_operatortype_append(OBJECT_OT_lamp_add);
+	WM_operatortype_append(OBJECT_OT_camera_add);
 	WM_operatortype_append(OBJECT_OT_add);
 	WM_operatortype_append(OBJECT_OT_effector_add);
 	WM_operatortype_append(OBJECT_OT_group_instance_add);
@@ -172,6 +173,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_levels);
 	WM_operatortype_append(OBJECT_OT_vertex_group_blend);
 	WM_operatortype_append(OBJECT_OT_vertex_group_clean);
+	WM_operatortype_append(OBJECT_OT_vertex_group_mirror);
 	WM_operatortype_append(OBJECT_OT_vertex_group_set_active);
 
 	WM_operatortype_append(OBJECT_OT_game_property_new);
@@ -213,7 +215,7 @@ void ED_operatormacros_object(void)
 	}
 
 	/* grr, should be able to pass options on... */
-	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move_linked", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot= WM_operatortype_append_macro("OBJECT_OT_duplicate_move_linked", "Duplicate Linked", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if(ot) {
 		otmacro= WM_operatortype_macro_define(ot, "OBJECT_OT_duplicate");
 		RNA_boolean_set(otmacro->ptr, "linked", 1);
@@ -329,6 +331,8 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	keymap->poll= ED_operator_editlattice;
 
 	WM_keymap_add_item(keymap, "LATTICE_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	
+	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	
 		/* menus */
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);

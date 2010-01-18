@@ -398,7 +398,11 @@ VFont *load_vfont(char *name)
 		if (vfd) {
 			vfont = alloc_libblock(&G.main->vfont, ID_VF, filename);
 			vfont->data = vfd;
-			
+
+			/* if there's a font name, use it for the ID name */
+			if (strcmp(vfd->name, "")!=0) {
+				BLI_strncpy(vfont->id.name+2, vfd->name, 21);
+			}
 			BLI_strncpy(vfont->name, name, sizeof(vfont->name));
 
 			// if autopack is on store the packedfile in de font structure

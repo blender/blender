@@ -1493,7 +1493,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	ListBase *lb;
 	DupliObject *dob;
 	Base tbase;
-	BoundBox *bb= NULL;
+	BoundBox bb; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist=0;
 	short transflag, use_displist= -1;	/* -1 is initialize */
 	char dt, dtx;
@@ -1535,7 +1535,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 					/* disable boundbox check for list creation */
 					object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
 					/* need this for next part of code */
-					bb= object_get_boundbox(dob->ob);
+					bb= *object_get_boundbox(dob->ob);
 					
 					unit_m4(dob->ob->obmat);	/* obmat gets restored */
 					
@@ -1550,7 +1550,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			}
 			if(use_displist) {
 				wmMultMatrix(dob->mat);
-				if(boundbox_clip(rv3d, dob->mat, bb))
+				if(boundbox_clip(rv3d, dob->mat, &bb))
 					glCallList(displist);
 				wmLoadMatrix(rv3d->viewmat);
 			}

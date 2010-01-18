@@ -70,7 +70,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_view_orbit);
 	WM_operatortype_append(VIEW3D_OT_view_pan);
 	WM_operatortype_append(VIEW3D_OT_view_persportho);
-	WM_operatortype_append(VIEW3D_OT_view_center);
+	WM_operatortype_append(VIEW3D_OT_view_selected);
 	WM_operatortype_append(VIEW3D_OT_view_center_cursor);
 	WM_operatortype_append(VIEW3D_OT_select);
 	WM_operatortype_append(VIEW3D_OT_select_border);
@@ -80,6 +80,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_render_border);
 	WM_operatortype_append(VIEW3D_OT_zoom_border);
 	WM_operatortype_append(VIEW3D_OT_manipulator);
+	WM_operatortype_append(VIEW3D_OT_enable_manipulator);
 	WM_operatortype_append(VIEW3D_OT_cursor3d);
 	WM_operatortype_append(VIEW3D_OT_select_lasso);
 	WM_operatortype_append(VIEW3D_OT_setcameratoview);
@@ -90,12 +91,13 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_layers);
 	
 	WM_operatortype_append(VIEW3D_OT_properties);
-	WM_operatortype_append(VIEW3D_OT_toolbar);
+	WM_operatortype_append(VIEW3D_OT_toolshelf);
 	
 	WM_operatortype_append(VIEW3D_OT_snap_selected_to_grid);
 	WM_operatortype_append(VIEW3D_OT_snap_selected_to_cursor);
 	WM_operatortype_append(VIEW3D_OT_snap_selected_to_center);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_grid);
+	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_center);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_selected);
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_active);
 		
@@ -110,7 +112,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	keymap= WM_keymap_find(keyconf, "3D View Generic", SPACE_VIEW3D, 0);
 	
 	WM_keymap_add_item(keymap, "VIEW3D_OT_properties", NKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_toolbar", TKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_toolshelf", TKEY, KM_PRESS, 0, 0);
 	
 	/* only for region 3D window */
 	keymap= WM_keymap_find(keyconf, "3D View", SPACE_VIEW3D, 0);
@@ -126,15 +128,27 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_rotate", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_move", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_center", PADPERIOD, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_view_center_cursor", PADPERIOD, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_fly", FKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_verify_item(keymap, "VIEW3D_OT_smoothview", TIMER1, KM_ANY, KM_ANY, 0);
 	
+	WM_keymap_add_item(keymap, "VIEW3D_OT_rotate", MOUSEPAN, 0, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_rotate", MOUSEROTATE, 0, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_move", MOUSEPAN, 0, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", MOUSEZOOM, 0, 0, 0);
+	
+	/*numpad +/-*/
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", PADPLUSKEY, KM_PRESS, 0, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", PADMINUS, KM_PRESS, 0, 0)->ptr, "delta", -1);
+
+	/*ctrl +/-*/
+	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", EQUALKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", 1);
+	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", MINUSKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
+	
+	/*wheel mouse forward/back*/
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", WHEELINMOUSE, KM_PRESS, 0, 0)->ptr, "delta", 1);
 	RNA_int_set(WM_keymap_add_item(keymap, "VIEW3D_OT_zoom", WHEELOUTMOUSE, KM_PRESS, 0, 0)->ptr, "delta", -1);
 
@@ -251,7 +265,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_object_as_camera", PAD0, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
-
+	
 	/* context ops */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "path", "space_data.pivot_point");

@@ -606,13 +606,15 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value
 	ToolSettings *ts = (ToolSettings*)ptr->data;
 	int flag = (value[0] ? SCE_SELECT_VERTEX:0) | (value[1] ? SCE_SELECT_EDGE:0) | (value[2] ? SCE_SELECT_FACE:0);
 
-	ts->selectmode = flag;
+	if(flag) {
+		ts->selectmode = flag;
 
-	if(scene->basact) {
-		Mesh *me= get_mesh(scene->basact->object);
-		if(me && me->edit_mesh && me->edit_mesh->selectmode != flag) {
-			me->edit_mesh->selectmode= flag;
-			EM_selectmode_set(me->edit_mesh);
+		if(scene->basact) {
+			Mesh *me= get_mesh(scene->basact->object);
+			if(me && me->edit_mesh && me->edit_mesh->selectmode != flag) {
+				me->edit_mesh->selectmode= flag;
+				EM_selectmode_set(me->edit_mesh);
+			}
 		}
 	}
 }
@@ -628,7 +630,7 @@ static void rna_Scene_editmesh_select_mode_update(Main *bmain, Scene *scene, Poi
 	}
 
 	WM_main_add_notifier(NC_GEOM|ND_SELECT, me);
-	WM_main_add_notifier(NC_SCENE|ND_MODE, NULL); /* header redraw */
+	WM_main_add_notifier(NC_SCENE|ND_TOOLSETTINGS, NULL);
 }
 
 #else
@@ -717,13 +719,13 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "proportional");
 	RNA_def_property_enum_items(prop, proportional_editing_items);
 	RNA_def_property_ui_text(prop, "Proportional Editing", "Proportional editing mode.");
-	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
+	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "proportional_editing_falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "prop_mode");
 	RNA_def_property_enum_items(prop, proportional_falloff_items);
 	RNA_def_property_ui_text(prop, "Proportional Editing Falloff", "Falloff type for proportional editing mode.");
-	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
+	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "normal_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "normalsize");
@@ -740,37 +742,37 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP);
 	RNA_def_property_ui_text(prop, "Snap", "Snap during transform.");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_OFF, 1);
-	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
+	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_align_rotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_ROTATE);
 	RNA_def_property_ui_text(prop, "Snap Align Rotation", "Align rotation with the snapping target.");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_NORMAL, 0);
-	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
+	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_element", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "snap_mode");
 	RNA_def_property_enum_items(prop, snap_element_items);
 	RNA_def_property_ui_text(prop, "Snap Element", "Type of element to snap to.");
-	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
+	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_target", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "snap_target");
 	RNA_def_property_enum_items(prop, snap_target_items);
 	RNA_def_property_ui_text(prop, "Snap Target", "Which part to snap onto the target.");
-	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
+	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	prop= RNA_def_property(srna, "snap_peel_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PEEL_OBJECT);
 	RNA_def_property_ui_text(prop, "Snap Peel Object", "Consider objects as whole when finding volume center.");
 	RNA_def_property_ui_icon(prop, ICON_SNAP_PEEL_OBJECT, 0);
-	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
+	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 	
 	prop= RNA_def_property(srna, "snap_project", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT);
 	RNA_def_property_ui_text(prop, "Project Individual Elements", "DOC_BROKEN");
 	RNA_def_property_ui_icon(prop, ICON_RETOPO, 0);
-	RNA_def_property_update(prop, NC_SCENE|ND_MODE, NULL); /* header redraw */
+	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
 	/* Auto Keying */
 	prop= RNA_def_property(srna, "enable_auto_key", PROP_BOOLEAN, PROP_NONE);

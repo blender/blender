@@ -478,7 +478,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		}
 	}
 	
-	// unused in the moment, calculated seperately in implicit.c
+	// unused in the moment, calculated separately in implicit.c
 	clmd->sim_parms->dt = clmd->sim_parms->timescale / clmd->sim_parms->stepsPerFrame;
 
 	/* handle continuous simulation with the play button */

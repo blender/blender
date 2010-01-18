@@ -318,6 +318,7 @@ extern StructRNA RNA_NearSensor;
 extern StructRNA RNA_NlaStrip;
 extern StructRNA RNA_NlaTrack;
 extern StructRNA RNA_Node;
+extern StructRNA RNA_NodeGroup;
 extern StructRNA RNA_NodeSocket;
 extern StructRNA RNA_NodeTree;
 extern StructRNA RNA_NoiseTexture;
@@ -492,6 +493,7 @@ extern StructRNA RNA_TextureSlot;
 extern StructRNA RNA_Theme;
 extern StructRNA RNA_ThemeAudioWindow;
 extern StructRNA RNA_ThemeBoneColorSet;
+extern StructRNA RNA_ThemeConsole;
 extern StructRNA RNA_ThemeDopeSheet;
 extern StructRNA RNA_ThemeFileBrowser;
 extern StructRNA RNA_ThemeFontStyle;
@@ -568,6 +570,7 @@ void RNA_id_pointer_create(struct ID *id, PointerRNA *r_ptr);
 void RNA_pointer_create(struct ID *id, StructRNA *type, void *data, PointerRNA *r_ptr);
 
 void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
+void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr);
 
 extern PointerRNA PointerRNA_NULL;
 

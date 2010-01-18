@@ -1367,6 +1367,9 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 	vert.ymin+=4;
 	vert.ymax-=4;
 	
+	CLAMP(vert.ymin, vert.ymin, vert.ymax-V2D_SCROLLER_HANDLE_SIZE);
+	CLAMP(hor.xmin, hor.xmin, hor.xmax-V2D_SCROLLER_HANDLE_SIZE);
+	
 	/* store in scrollers, used for drawing */
 	scrollers->vert= vert;
 	scrollers->hor= hor;
@@ -1597,8 +1600,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			
 			state= (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE)?UI_SCROLL_PRESSED:0;
 			
-			// TODO: disable this for button regions... 
-			if (!(v2d->keepzoom & V2D_LOCKZOOM_X))
+			if (!(v2d->keepzoom & V2D_LOCKZOOM_X) && (slider.xmax - slider.xmin > V2D_SCROLLER_HANDLE_SIZE))
 				state |= UI_SCROLL_ARROWS;
 				
 			uiWidgetScrollDraw(&wcol, &hor, &slider, state);
@@ -1695,8 +1697,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			
 			state= (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE)?UI_SCROLL_PRESSED:0;
 			
-			// TODO: disable this for button regions...
-			if (!(v2d->keepzoom & V2D_LOCKZOOM_Y)) 
+			if (!(v2d->keepzoom & V2D_LOCKZOOM_Y) && (slider.ymax - slider.ymin > V2D_SCROLLER_HANDLE_SIZE))
 				state |= UI_SCROLL_ARROWS;
 				
 			uiWidgetScrollDraw(&wcol, &vert, &slider, state);

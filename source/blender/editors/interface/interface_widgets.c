@@ -804,6 +804,8 @@ static void ui_text_leftclip(uiFontStyle *fstyle, uiBut *but, rcti *rect)
 	int border= (but->flag & UI_BUT_ALIGN_RIGHT)? 8: 10;
 	int okwidth= rect->xmax-rect->xmin - border;
 	
+	if (but->flag & UI_HAS_ICON) okwidth -= 16;
+	
 	/* need to set this first */
 	uiStyleFontSet(fstyle);
 
@@ -904,19 +906,23 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	if(but->editstr && but->pos != -1) {
 		short t=0, pos=0, ch;
 		short selsta_tmp, selend_tmp, selsta_draw, selwidth_draw;
-		
+
 		if ((but->selend - but->selsta) > 0) {
 			/* text button selection */
 			selsta_tmp = but->selsta;
 			selend_tmp = but->selend;
 			
 			if(but->drawstr[0]!=0) {
-				ch= but->drawstr[selsta_tmp];
-				but->drawstr[selsta_tmp]= 0;
-				
-				selsta_draw = BLF_width(but->drawstr+but->ofs);
-				
-				but->drawstr[selsta_tmp]= ch;
+
+				if (but->selsta >= but->ofs) {
+					ch= but->drawstr[selsta_tmp];
+					but->drawstr[selsta_tmp]= 0;
+					
+					selsta_draw = BLF_width(but->drawstr+but->ofs);
+					
+					but->drawstr[selsta_tmp]= ch;
+				} else
+					selsta_draw = 0;
 				
 				ch= but->drawstr[selend_tmp];
 				but->drawstr[selend_tmp]= 0;
@@ -980,7 +986,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	if (ELEM4(but->type, NUM, NUMABS, NUMSLI, SLI)) {
 		ui_text_label_rightclip(fstyle, but, rect);
 	}
-	else if (but->type == TEX) {	
+	else if (ELEM(but->type, TEX, SEARCH_MENU)) {	
 		ui_text_leftclip(fstyle, but, rect);
 	}
 	else but->ofs= 0;
@@ -1002,7 +1008,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		}
 		
 		/* If there's an icon too (made with uiDefIconTextBut) then draw the icon
-		and offset the text label to accomodate it */
+		and offset the text label to accommodate it */
 		
 		if (but->flag & UI_HAS_ICON) {
 			widget_draw_icon(but, but->icon+but->iconadd, 1.0f, rect);
@@ -1326,10 +1332,9 @@ static void widget_state(uiWidgetType *wt, int state)
 
 		VECCOPY(wt->wcol.text, wt->wcol.text_sel);
 		
-		/* only flip shade if it's not "pushed in" already */
-		if(wt->wcol.shaded && wt->wcol.shadetop>wt->wcol.shadedown) {
+		if (!(state & UI_TEXTINPUT))
+			/* swap for selection - show depressed */
 			SWAP(short, wt->wcol.shadetop, wt->wcol.shadedown);
-		}
 	}
 	else {
 		if(state & UI_BUT_ANIMATED_KEY)
@@ -1789,6 +1794,23 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	
 	ui_hsv_cursor(x, y);
 	
+}
+
+/* ************ separator, for menus etc ***************** */
+static void ui_draw_separator(uiBut *but, rcti *rect,  uiWidgetColors *wcol)
+{
+	int y = rect->ymin + (rect->ymax - rect->ymin)/2 - 1;
+	unsigned char col[4];
+	
+	col[0] = wcol->text[0];
+	col[1] = wcol->text[1];
+	col[2] = wcol->text[2];
+	col[3] = 7;
+	
+	glEnable(GL_BLEND);
+	glColor4ubv(col);
+	sdrawline(rect->xmin, y, rect->xmax, y);
+	glDisable(GL_BLEND);
 }
 
 /* ************ button callbacks, draw ***************** */
@@ -2508,6 +2530,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				widget_draw_text_icon(&style->widgetlabel, &tui->wcol_menu_back, but, rect);
 				break;
 			case SEPR:
+				ui_draw_separator(but, rect, &tui->wcol_menu_item);
 				break;
 				
 			default:

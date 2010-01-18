@@ -2374,6 +2374,7 @@ void RE_MergeFullSample(Render *re, Scene *sce, bNodeTree *ntree)
 static void do_render_composite_fields_blur_3d(Render *re)
 {
 	bNodeTree *ntree= re->scene->nodetree;
+	int update_newframe=0;
 	
 	/* INIT seeding, compositor can use random texture */
 	BLI_srandom(re->r.cfra);
@@ -2383,6 +2384,9 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		ntreeFreeCache(ntree);
 		
 		do_render_fields_blur_3d(re);
+	} else {
+		/* scene render process already updates animsys */
+		update_newframe = 1;
 	}
 	
 	/* swap render result */
@@ -2411,10 +2415,14 @@ static void do_render_composite_fields_blur_3d(Render *re)
 					R.sdh= re->sdh;
 					R.stats_draw= re->stats_draw;
 					
+					if (update_newframe)
+						scene_update_for_newframe(re->scene, re->scene->lay);
+					
 					if(re->r.scemode & R_FULL_SAMPLE) 
 						do_merge_fullsample(re, ntree);
-					else
+					else {
 						ntreeCompositExecTree(ntree, &re->r, G.background==0);
+					}
 					
 					ntree->stats_draw= NULL;
 					ntree->test_break= NULL;
@@ -2803,9 +2811,9 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 			
 			/* float factor for random dither, imbuf takes care of it */
 			ibuf->dither= scene->r.dither_intensity;
-			/* gamma correct to sRGB color space */
+			/* prepare to gamma correct to sRGB color space */
 			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-				ibuf->profile = IB_PROFILE_SRGB;
+				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 			

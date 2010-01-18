@@ -48,6 +48,7 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_image.h"
 
 #include "ED_armature.h"
 #include "ED_space_api.h"
@@ -221,8 +222,8 @@ static SpaceLink *view3d_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
-	/* toolbar */
-	ar= MEM_callocN(sizeof(ARegion), "toolbar for view3d");
+	/* tool shelf */
+	ar= MEM_callocN(sizeof(ARegion), "toolshelf for view3d");
 	
 	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype= RGN_TYPE_UI;
@@ -447,8 +448,8 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SCENE:
 			switch(wmn->data) {
-				case ND_TRANSFORM:
 				case ND_FRAME:
+				case ND_TRANSFORM:
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 				case ND_LAYER:
@@ -480,6 +481,11 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_DATA:
 				case ND_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			switch(wmn->action) {
+				case NA_EDITED:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -568,6 +574,7 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_SELECT:
 				case ND_MODE:
 				case ND_LAYER:
+				case ND_TOOLSETTINGS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -777,6 +784,20 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	return -1; /* found but not available */
 }
 
+/*area (not region) level listener*/
+void space_view3d_listener(struct ScrArea *area, struct wmNotifier *wmn)
+{
+	if (wmn->category == NC_SCENE && wmn->data == ND_FRAME) {
+		View3D *v3d = area->spacedata.first;
+	
+		if (v3d->bgpic && v3d->bgpic->ima) {
+			Scene *scene = wmn->reference;
+
+			BKE_image_user_calc_imanr(&v3d->bgpic->iuser, scene->r.cfra, 0);
+		}
+	}
+}
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_view3d(void)
 {
@@ -789,6 +810,7 @@ void ED_spacetype_view3d(void)
 	st->new= view3d_new;
 	st->free= view3d_free;
 	st->init= view3d_init;
+	st->listener = space_view3d_listener;
 	st->duplicate= view3d_duplicate;
 	st->operatortypes= view3d_operatortypes;
 	st->keymap= view3d_keymap;
@@ -829,7 +851,7 @@ void ED_spacetype_view3d(void)
 	art->draw= view3d_tools_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 	
-	view3d_toolbar_register(art);
+	view3d_toolshelf_register(art);
 
 	/* regions: tool properties */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");

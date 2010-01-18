@@ -83,7 +83,7 @@ public :
 	DestroyEdges(
 	);
 
-	// return a new seperate copy of the 
+	// return a new separate copy of the 
 	// mesh allocated on the heap.
 
 		BSP_CSGMesh *

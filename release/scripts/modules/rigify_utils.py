@@ -87,6 +87,7 @@ def copy_bone_simple(arm, from_bone, name, parent=False):
     ebone_new.head = ebone.head
     ebone_new.tail = ebone.tail
     ebone_new.roll = ebone.roll
+    ebone_new.layer = list(ebone.layer)
     return ebone_new
 
 

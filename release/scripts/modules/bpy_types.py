@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 from _bpy import types as bpy_types
+from Mathutils import Vector
 
 StructRNA = bpy_types.Struct.__bases__[0]
 # StructRNA = bpy_types.Struct
@@ -88,6 +89,24 @@ class _GenericBone:
             i += 1
 
         return 0
+    
+    @property
+    def x_axis(self):
+        """ Vector pointing down the x-axis of the bone.
+        """
+        return self.matrix.rotationPart() * Vector(1,0,0)
+    
+    @property
+    def y_axis(self):
+        """ Vector pointing down the x-axis of the bone.
+        """
+        return self.matrix.rotationPart() * Vector(0,1,0)
+    
+    @property
+    def z_axis(self):
+        """ Vector pointing down the x-axis of the bone.
+        """
+        return self.matrix.rotationPart() * Vector(0,0,1)
 
     @property
     def basename(self):
@@ -280,7 +299,7 @@ class Mesh(bpy_types.ID):
     @property
     def edge_face_count(self):
         edge_face_count_dict = self.edge_face_count_dict
-        return [edge_face_count_dict.get(ed.key, 0) for ed in mesh.edges]
+        return [edge_face_count_dict.get(ed.key, 0) for ed in self.edges]
 
     def edge_loops(self, faces=None, seams=()):
         """
@@ -369,10 +388,19 @@ class MeshEdge(StructRNA):
 
 class MeshFace(StructRNA):
     __slots__ = ()
+    @property
+    def center(self):
+        """The midpoint of the face."""
+        face_verts = self.verts[:]
+        mesh_verts = self.id_data.verts
+        if len(face_verts) == 3:
+            return (mesh_verts[face_verts[0]].co + mesh_verts[face_verts[1]].co + mesh_verts[face_verts[2]].co) / 3.0
+        else:
+            return (mesh_verts[face_verts[0]].co + mesh_verts[face_verts[1]].co + mesh_verts[face_verts[2]].co + mesh_verts[face_verts[3]].co) / 4.0
 
     @property
     def edge_keys(self):
-        verts = tuple(self.verts)
+        verts = self.verts[:]
         if len(verts) == 3:
             return ord_ind(verts[0], verts[1]), ord_ind(verts[1], verts[2]), ord_ind(verts[2], verts[0])
 
@@ -408,11 +436,11 @@ class Macro(StructRNA, metaclass=OrderedMeta):
         return ops.macro_define(self, opname)
 
 
-class Menu(StructRNA):
+class _GenericUI:
     __slots__ = ()
 
     @classmethod
-    def _dyn_menu_initialize(cls):
+    def _dyn_ui_initialize(cls):
         draw_funcs = getattr(cls.draw, "_draw_funcs", None)
 
         if draw_funcs is None:
@@ -429,14 +457,26 @@ class Menu(StructRNA):
     @classmethod
     def append(cls, draw_func):
         """Prepend an draw function to this menu, takes the same arguments as the menus draw function."""
-        draw_funcs = cls._dyn_menu_initialize()
+        draw_funcs = cls._dyn_ui_initialize()
         draw_funcs.append(draw_func)
 
     @classmethod
     def prepend(cls, draw_func):
         """Prepend a draw function to this menu, takes the same arguments as the menus draw function."""
-        draw_funcs = cls._dyn_menu_initialize()
-        draw_funcs.insert(0, draw_func)
+        draw_funcs = cls._dyn_ui_initialize()
+        draw_funcs.insert(0, draw_func)    
+
+
+class Panel(StructRNA, _GenericUI):
+    __slots__ = ()
+
+
+class Header(StructRNA, _GenericUI):
+    __slots__ = ()
+
+
+class Menu(StructRNA, _GenericUI):
+    __slots__ = ()
 
     def path_menu(self, searchpaths, operator):
         layout = self.layout

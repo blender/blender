@@ -62,6 +62,7 @@
 #include "BKE_main.h" /* so we can access G.main->*.first */
 #include "BKE_sequencer.h"
 #include "BKE_utildefines.h"
+#include "BKE_report.h"
 
 //XXX #include "BIF_screen.h" /* only for wait cursor */
 //
@@ -448,8 +449,8 @@ static void bpath_as_report(struct BPathIterator *bpi, const char *message, Repo
 	BLI_bpathIterator_getPathExpanded(bpi, path_expanded);
 
 	if(reports) {
-		if (name)	BKE_reportf("%s \"%s\", \"%s\": %s", prefix, name, path_expanded, message);
-		else		BKE_reportf("%s \"%s\": %s", prefix, path_expanded, message);
+		if (name)	BKE_reportf(reports, RPT_INFO, "%s \"%s\", \"%s\": %s", prefix, name, path_expanded, message);
+		else		BKE_reportf(reports, RPT_INFO, "%s \"%s\": %s", prefix, path_expanded, message);
 	}
 
 }

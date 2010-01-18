@@ -513,7 +513,7 @@ void ACTION_OT_keyframe_insert (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_actkeys_insertkey_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_insertkey_types, 0, "Type", "");
 }
 
 /* ******************** Duplicate Keyframes Operator ************************* */
@@ -872,7 +872,7 @@ void ACTION_OT_extrapolation_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_actkeys_expo_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_expo_types, 0, "Type", "");
 }
 
 /* ******************** Set Interpolation-Type Operator *********************** */
@@ -943,7 +943,7 @@ void ACTION_OT_interpolation_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
 }
 
 /* ******************** Set Handle-Type Operator *********************** */
@@ -1032,7 +1032,7 @@ void ACTION_OT_handle_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", beztriple_handle_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", beztriple_handle_type_items, 0, "Type", "");
 }
 
 /* ******************** Set Keyframe-Type Operator *********************** */
@@ -1103,7 +1103,7 @@ void ACTION_OT_keyframe_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", beztriple_keyframe_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", beztriple_keyframe_type_items, 0, "Type", "");
 }
 
 /* ************************************************************************** */
@@ -1133,7 +1133,6 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *op)
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
-		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
@@ -1269,7 +1268,7 @@ void ACTION_OT_snap (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_actkeys_snap_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_snap_types, 0, "Type", "");
 }
 
 /* ******************** Mirror Keyframes Operator *********************** */
@@ -1386,7 +1385,7 @@ void ACTION_OT_mirror (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_actkeys_mirror_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_mirror_types, 0, "Type", "");
 }
 
 /* ************************************************************************** */

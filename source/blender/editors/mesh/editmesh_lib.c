@@ -1975,7 +1975,7 @@ int compareface(EditFace *vl1, EditFace *vl2)
 	return 0;
 }
 
-/* checks for existance, not tria overlapping inside quad */
+/* checks for existence, not tria overlapping inside quad */
 EditFace *exist_face(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 {
 	EditFace *efa, efatest;

@@ -214,7 +214,7 @@ class INFO_MT_add(bpy.types.Menu):
         layout.operator("object.add", text="Empty", icon='OUTLINER_OB_EMPTY').type = 'EMPTY'
         layout.separator()
 
-        layout.operator("object.add", text="Camera", icon='OUTLINER_OB_CAMERA').type = 'CAMERA'
+        layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
         layout.operator_context = 'EXEC_SCREEN'
         layout.operator_menu_enum("object.lamp_add", "type", 'LAMP', text="Lamp", icon='OUTLINER_OB_LAMP')
         layout.separator()
@@ -363,7 +363,7 @@ class HELP_OT_python_api(HelpOperator):
     '''Reference for operator and data Python API'''
     bl_idname = "help.python_api"
     bl_label = "Python API Reference"
-    _url = 'http://www.blender.org/documentation/250PythonDoc/'
+    _url = 'http://www.blender.org/documentation/250PythonDoc/contents.html'
 
 
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
@@ -384,12 +384,10 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
 
             op_strings.append('')
 
-        bpy.ops.text.new() # XXX - assumes new text is always at the end!
-        textblock = bpy.data.texts[-1]
+        textblock = bpy.data.texts.new("OperatorList.txt")
         textblock.write('# %d Operators\n\n' % tot)
         textblock.write('\n'.join(op_strings))
-        textblock.name = "OperatorList.txt"
-        print("See OperatorList.txt textblock")
+        self.report({'INFO'}, "See OperatorList.txt textblock")
         return {'FINISHED'}
 
 bpy.types.register(HELP_OT_manual)

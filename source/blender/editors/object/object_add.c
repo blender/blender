@@ -143,6 +143,35 @@ void ED_object_base_init_transform(bContext *C, Base *base, float *loc, float *r
 	where_is_object(scene, ob);
 }
 
+/* uses context to figure out transform for primitive */
+/* returns standard diameter */
+float ED_object_new_primitive_matrix(bContext *C, float *loc, float *rot, float primmat[][4])
+{
+	Object *obedit= CTX_data_edit_object(C);
+	View3D *v3d =CTX_wm_view3d(C);
+	float mat[3][3], rmat[3][3], cmat[3][3], imat[3][3];
+	
+	unit_m4(primmat);
+	
+	eul_to_mat3(rmat, rot);
+	invert_m3(rmat);
+	
+	/* inverse transform for initial rotation and object */
+	copy_m3_m4(mat, obedit->obmat);
+	mul_m3_m3m3(cmat, rmat, mat);
+	invert_m3_m3(imat, cmat);
+	copy_m4_m3(primmat, imat);
+	
+	/* center */
+	VECCOPY(primmat[3], loc);
+	VECSUB(primmat[3], primmat[3], obedit->obmat[3]);
+	invert_m3_m3(imat, mat);
+	mul_m3_v3(imat, primmat[3]);
+	
+	if(v3d) return v3d->grid;
+	return 1.0f;
+}
+
 /********************* Add Object Operator ********************/
 
 void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menus, only non-editmode stuff */
@@ -297,7 +326,9 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 	Object *ob;
 	int enter_editmode;
 	float loc[3], rot[3];
+	float mat[4][4];
 	
+	object_add_generic_invoke_options(C, op);
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
 	if(type==PFIELD_GUIDE) {
@@ -306,7 +337,8 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 
 		((Curve*)ob->data)->flag |= CU_PATH|CU_3D;
 		ED_object_enter_editmode(C, 0);
-		BLI_addtail(curve_get_editcurve(ob), add_nurbs_primitive(C, CU_NURBS|CU_PRIM_PATH, 1));
+		ED_object_new_primitive_matrix(C, loc, rot, mat);
+		BLI_addtail(curve_get_editcurve(ob), add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_PATH, 1));
 
 		if(!enter_editmode)
 			ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
@@ -352,10 +384,57 @@ void OBJECT_OT_effector_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", field_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", field_type_items, 0, "Type", "");
 
 	ED_object_add_generic_props(ot, TRUE);
 }
+
+/* ***************** Add Camera *************** */
+
+static int object_camera_add_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	Scene *scene= CTX_data_scene(C);
+	Object *ob;
+	int enter_editmode;
+	float loc[3], rot[3];
+	
+	/* force view align for cameras */
+	RNA_boolean_set(op->ptr, "view_align", 1);
+	
+	object_add_generic_invoke_options(C, op);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+
+	ob= ED_object_add_type(C, OB_CAMERA, loc, rot, FALSE);
+	
+	if (v3d) {
+		if (v3d->camera == NULL)
+			v3d->camera = ob;
+		if (v3d->scenelock && scene->camera==NULL) {
+			scene->camera = ob;
+		}
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_camera_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Camera";
+	ot->description = "Add a camera object to the scene.";
+	ot->idname= "OBJECT_OT_camera_add";
+	
+	/* api callbacks */
+	ot->exec= object_camera_add_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+		
+	ED_object_add_generic_props(ot, TRUE);
+}
+
 
 /* ***************** add primitives *************** */
 
@@ -376,6 +455,7 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	int newob= 0, type= RNA_enum_get(op->ptr, "type");
 	int enter_editmode;
 	float loc[3], rot[3];
+	float mat[4][4];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
@@ -389,7 +469,9 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	nu= add_nurbs_primitive(C, type, newob);
+	ED_object_new_primitive_matrix(C, loc, rot, mat);
+	
+	nu= add_nurbs_primitive(C, mat, type, newob);
 	editnurb= curve_get_editcurve(obedit);
 	BLI_addtail(editnurb, nu);
 	
@@ -461,6 +543,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	int newob= 0;
 	int enter_editmode;
 	float loc[3], rot[3];
+	float mat[4][4];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
@@ -471,7 +554,9 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	nu= add_nurbs_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
+	ED_object_new_primitive_matrix(C, loc, rot, mat);
+	
+	nu= add_nurbs_primitive(C, mat, RNA_enum_get(op->ptr, "type"), newob);
 	editnurb= curve_get_editcurve(obedit);
 	BLI_addtail(editnurb, nu);
 	
@@ -522,6 +607,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	int newob= 0;
 	int enter_editmode;
 	float loc[3], rot[3];
+	float mat[4][4];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
@@ -532,7 +618,9 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
-	elem= (MetaElem*)add_metaball_primitive(C, RNA_enum_get(op->ptr, "type"), newob);
+	ED_object_new_primitive_matrix(C, loc, rot, mat);
+	
+	elem= (MetaElem*)add_metaball_primitive(C, mat, RNA_enum_get(op->ptr, "type"), newob);
 	mball= (MetaBall*)obedit->data;
 	BLI_addtail(mball->editelems, elem);
 	
@@ -583,6 +671,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_metaball_types, 0, "Primitive", "");
 	ED_object_add_generic_props(ot, TRUE);
 }
+
 static int object_add_text_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
@@ -683,6 +772,7 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	int enter_editmode;
 	float loc[3], rot[3];
 	
+	object_add_generic_invoke_options(C, op);
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
 
 	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE);
@@ -716,7 +806,7 @@ void OBJECT_OT_lamp_add(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", lamp_type_items, 0, "Type", "");
 
 	ED_object_add_generic_props(ot, FALSE);
 }
@@ -1270,7 +1360,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to.");
+	ot->prop= RNA_def_enum(ot->srna, "target", convert_target_items, OB_MESH, "Target", "Type of object to convert to.");
 	RNA_def_boolean(ot->srna, "keep_original", 0, "Keep Original", "Keep original objects instead of replacing them.");
 }
 

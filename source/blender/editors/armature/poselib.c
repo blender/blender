@@ -519,7 +519,8 @@ void POSELIB_OT_pose_remove (wmOperatorType *ot)
 	
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "pose", prop_poses_dummy_types, 0, "Pose", "The pose to remove");
-		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
+	RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
+	ot->prop= prop;
 }
 
 static int poselib_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)

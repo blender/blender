@@ -283,7 +283,7 @@ static int fwritecolrs(FILE* file, int width, int channels, unsigned char* ibufs
 	putc(2, file);
 	putc((unsigned char)(width >> 8), file);
 	putc((unsigned char)(width & 255), file);
-	/* put components seperately */
+	/* put components separately */
 	for (i=0;i<4;i++) {
 		for (j=0;j<width;j+=cnt) {	/* find next run */
 			for (beg=j;beg<width;beg+=cnt) {

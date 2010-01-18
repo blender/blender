@@ -151,6 +151,7 @@ typedef enum {
 	GHOST_kEventButtonDown,		/// Mouse button event
 	GHOST_kEventButtonUp,		/// Mouse button event
 	GHOST_kEventWheel,			/// Mouse wheel event
+	GHOST_kEventTrackpad,		/// Trackpad event
 
 	GHOST_kEventNDOFMotion,		/// N degree of freedom device motion event
 	GHOST_kEventNDOFButton,		/// N degree of freedom device button event
@@ -372,6 +373,28 @@ typedef struct {
 	/** Displacement of a mouse wheel. */
 	GHOST_TInt32 z;	
 } GHOST_TEventWheelData;
+
+typedef enum {
+	GHOST_kTrackpadEventUnknown =0,
+	GHOST_kTrackpadEventScroll,
+	GHOST_kTrackpadEventRotate,
+	GHOST_kTrackpadEventSwipe, /* Reserved, not used for now */
+	GHOST_kTrackpadEventMagnify
+} GHOST_TTrackpadEventSubTypes;
+	
+
+typedef struct {
+	/** The event subtype */
+	GHOST_TTrackpadEventSubTypes subtype;
+	/** The x-location of the trackpad event */
+	GHOST_TInt32 x;
+	/** The y-location of the trackpad event */
+	GHOST_TInt32 y;
+	/** The x-delta or value of the trackpad event */
+	GHOST_TInt32 deltaX;
+	/** The y-delta (currently only for scroll subtype) of the trackpad event */
+	GHOST_TInt32 deltaY;
+} GHOST_TEventTrackpadData;
 
 
 typedef enum {

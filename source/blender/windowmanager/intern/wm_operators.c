@@ -597,27 +597,15 @@ void WM_operator_properties_free(PointerRNA *ptr)
 /* invoke callback, uses enum property named "type" */
 int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	PropertyRNA *prop;
+	PropertyRNA *prop= op->type->prop;
 	uiPopupMenu *pup;
 	uiLayout *layout;
 
-	prop= RNA_struct_find_property(op->ptr, "type");
-
-	if(!prop) {
-		RNA_STRUCT_BEGIN(op->ptr, findprop) {
-			if(RNA_property_type(findprop) == PROP_ENUM) {
-				prop= findprop;
-				break;
-			}
-		}
-		RNA_STRUCT_END;
-	}
-
 	if(prop==NULL) {
-		printf("WM_menu_invoke: %s has no \"type\" enum property\n", op->type->idname);
+		printf("WM_menu_invoke: %s has no enum property set\n", op->type->idname);
 	}
 	else if (RNA_property_type(prop) != PROP_ENUM) {
-		printf("WM_menu_invoke: %s \"type\" is not an enum property\n", op->type->idname);
+		printf("WM_menu_invoke: %s \"%s\" is not an enum property\n", op->type->idname, RNA_property_identifier(prop));
 	}
 	else if (RNA_property_is_set(op->ptr, RNA_property_identifier(prop))) {
 		return op->type->exec(C, op);
@@ -629,6 +617,92 @@ int WM_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		uiPupMenuEnd(C, pup);
 	}
 
+	return OPERATOR_CANCELLED;
+}
+
+
+/* generic enum search invoke popup */
+static void operator_enum_search_cb(const struct bContext *C, void *arg_ot, char *str, uiSearchItems *items)
+{
+	wmOperatorType *ot = (wmOperatorType *)arg_ot;
+	PropertyRNA *prop= ot->prop;
+
+	if(prop==NULL) {
+		printf("WM_enum_search_invoke: %s has no enum property set\n", ot->idname);
+	}
+	else if (RNA_property_type(prop) != PROP_ENUM) {
+		printf("WM_enum_search_invoke: %s \"%s\" is not an enum property\n", ot->idname, RNA_property_identifier(prop));
+	}
+	else {
+		PointerRNA ptr;
+
+		EnumPropertyItem *item, *item_array;
+		int free;
+
+		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+		RNA_property_enum_items((bContext *)C, &ptr, prop, &item_array, NULL, &free);
+
+		for(item= item_array; item->identifier; item++) {
+			/* note: need to give the intex rather then the dientifier because the enum can be freed */
+			if(BLI_strcasestr(item->name, str))
+				if(0==uiSearchItemAdd(items, item->name, SET_INT_IN_POINTER(item->value), 0))
+					break;
+		}
+
+		if(free)
+			MEM_freeN(item_array);
+	}
+}
+
+static void operator_enum_call_cb(struct bContext *C, void *arg1, void *arg2)
+{
+	wmOperatorType *ot= arg1;
+
+	if(ot) {
+		PointerRNA props_ptr;
+		WM_operator_properties_create_ptr(&props_ptr, ot);
+		RNA_property_enum_set(&props_ptr, ot->prop, GET_INT_FROM_POINTER(arg2));
+		WM_operator_name_call(C, ot->idname, WM_OP_EXEC_DEFAULT, &props_ptr);
+		WM_operator_properties_free(&props_ptr);
+	}
+}
+
+static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg_op)
+{
+	static char search[256]= "";
+	wmEvent event;
+	wmWindow *win= CTX_wm_window(C);
+	uiBlock *block;
+	uiBut *but;
+	wmOperator *op= (wmOperator *)arg_op;
+
+	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
+
+	//uiDefBut(block, LABEL, 0, op->type->name, 10, 10, 180, 19, NULL, 0.0, 0.0, 0, 0, ""); // ok, this isnt so easy...
+	but= uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, 256, 10, 10, 180, 19, 0, 0, "");
+	uiButSetSearchFunc(but, operator_enum_search_cb, op->type, operator_enum_call_cb, NULL);
+
+	/* fake button, it holds space for search items */
+	uiDefBut(block, LABEL, 0, "", 10, 10 - uiSearchBoxhHeight(), 180, uiSearchBoxhHeight(), NULL, 0, 0, 0, 0, NULL);
+
+	uiPopupBoundsBlock(block, 6.0f, 0, -20); /* move it downwards, mouse over button */
+	uiEndBlock(C, block);
+
+	event= *(win->eventstate);	/* XXX huh huh? make api call */
+	event.type= EVT_BUT_OPEN;
+	event.val= KM_PRESS;
+	event.customdata= but;
+	event.customdatafree= FALSE;
+	wm_event_add(win, &event);
+
+	return block;
+}
+
+
+int WM_enum_search_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	uiPupBlock(C, wm_enum_search_menu, op);
 	return OPERATOR_CANCELLED;
 }
 
@@ -934,11 +1008,12 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiLayout *layout, *split, *col;
 	uiStyle *style= U.uistyles.first;
 	struct RecentFile *recent;
-	int i, ver_width, rev_width;
+	int i;
+
+#ifdef NAN_BUILDINFO
+	int ver_width, rev_width;
 	char *version_str = NULL;
 	char *revision_str = NULL;
-	
-#ifdef NAN_BUILDINFO
 	char version_buf[128];
 	char revision_buf[128];
 	extern char * build_rev;
@@ -960,9 +1035,10 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 			*cp = 0;
 	}
 	
-	ver_width = BLF_width(version_str);
-	rev_width = BLF_width(revision_str);
-#endif NAN_BUILDINFO
+	BLF_size(style->widgetlabel.points, U.dpi);
+	ver_width = BLF_width(version_str)+5;
+	rev_width = BLF_width(revision_str)+5;
+#endif //NAN_BUILDINFO
 
 	block= uiBeginBlock(C, ar, "_popup", UI_EMBOSS);
 	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1);
@@ -973,7 +1049,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 #ifdef NAN_BUILDINFO	
 	uiDefBut(block, LABEL, 0, version_str, 500-ver_width, 282-24, ver_width, 20, NULL, 0, 0, 0, 0, NULL);
 	uiDefBut(block, LABEL, 0, revision_str, 500-rev_width, 282-36, rev_width, 20, NULL, 0, 0, 0, 0, NULL);
-#endif NAN_BUILDINFO
+#endif //NAN_BUILDINFO
 	
 	
 	uiBlockSetEmboss(block, UI_EMBOSSP);
@@ -990,7 +1066,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_blender_website");
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_user_community");
 	uiItemO(col, NULL, ICON_URL, "HELP_OT_python_api");
-	uiItemS(col);
+	uiItemL(col, "", 0);
 	
 	col = uiLayoutColumn(split, 0);
 	uiItemL(col, "Recent", 0);
@@ -1001,7 +1077,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 		uiItemStringO(col, display_name, ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
 	}
 
-	uiItemS(col);
+	uiItemL(col, "", 0);
 
 	uiCenteredBoundsBlock(block, 0.0f);
 	uiEndBlock(C, block);
@@ -2152,16 +2228,22 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, wmEvent *event)
 			wm_gesture_tag_redraw(C);
 			
 			wm_subwindow_getorigin(CTX_wm_window(C), gesture->swinid, &sx, &sy);
-			if(gesture->points < WM_LASSO_MAX_POINTS) {
+
+			if(gesture->points == gesture->size) {
+				short *old_lasso = gesture->customdata;
+				gesture->customdata= MEM_callocN(2*sizeof(short)*(gesture->size + WM_LASSO_MIN_POINTS), "lasso points");
+				memcpy(gesture->customdata, old_lasso, 2*sizeof(short)*gesture->size);
+				gesture->size = gesture->size + WM_LASSO_MIN_POINTS;
+				MEM_freeN(old_lasso);
+				printf("realloc\n");
+			}
+
+			{
 				short *lasso= gesture->customdata;
 				lasso += 2 * gesture->points;
 				lasso[0] = event->x - sx;
 				lasso[1] = event->y - sy;
 				gesture->points++;
-			}
-			else {
-				gesture_lasso_apply(C, op, event->type);
-				return OPERATOR_FINISHED;
 			}
 			break;
 			

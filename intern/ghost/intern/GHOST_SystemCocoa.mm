@@ -41,6 +41,7 @@
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventWheel.h"
 #include "GHOST_EventNDOF.h"
+#include "GHOST_EventTrackpad.h"
 #include "GHOST_EventDragnDrop.h"
 
 #include "GHOST_TimerManager.h"
@@ -376,6 +377,24 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar)
 
 #pragma mark defines for 10.6 api not documented in 10.5
 #ifndef MAC_OS_X_VERSION_10_6
+enum {
+	/* The following event types are available on some hardware on 10.5.2 and later */
+	NSEventTypeGesture          = 29,
+	NSEventTypeMagnify          = 30,
+	NSEventTypeSwipe            = 31,
+	NSEventTypeRotate           = 18,
+	NSEventTypeBeginGesture     = 19,
+	NSEventTypeEndGesture       = 20
+};
+
+@interface NSEvent(GestureEvents)
+/* This message is valid for events of type NSEventTypeMagnify, on 10.5.2 or later */
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+- (float)magnification;       // change in magnification.
+#else
+- (CGFloat)magnification;       // change in magnification.
+#endif
+@end 
 
 @interface NSEvent(SnowLeopardEvents)
 /* modifier keys currently down.  This returns the state of devices combined
@@ -490,26 +509,45 @@ int cocoa_request_qtcodec_settings(bContext *C, wmOperator *op)
 
 GHOST_SystemCocoa::GHOST_SystemCocoa()
 {
+	int mib[2];
+	struct timeval boottime;
+	size_t len;
+	char *rstring = NULL;
+	
 	m_modifierMask =0;
 	m_pressedMouseButtons =0;
+	m_isGestureInProgress = false;
 	m_cursorDelta_x=0;
 	m_cursorDelta_y=0;
 	m_outsideLoopEventProcessed = false;
+	m_needDelayedApplicationBecomeActiveEventProcessing = false;
 	m_displayManager = new GHOST_DisplayManagerCocoa ();
 	GHOST_ASSERT(m_displayManager, "GHOST_SystemCocoa::GHOST_SystemCocoa(): m_displayManager==0\n");
 	m_displayManager->initialize();
 
 	//NSEvent timeStamp is given in system uptime, state start date is boot time
-	int mib[2];
-	struct timeval boottime;
-	size_t len;
-	
 	mib[0] = CTL_KERN;
 	mib[1] = KERN_BOOTTIME;
 	len = sizeof(struct timeval);
 	
 	sysctl(mib, 2, &boottime, &len, NULL, 0);
 	m_start_time = ((boottime.tv_sec*1000)+(boottime.tv_usec/1000));
+	
+	//Detect multitouch trackpad
+	mib[0] = CTL_HW;
+	mib[1] = HW_MODEL;
+	sysctl( mib, 2, NULL, &len, NULL, 0 );
+	rstring = (char*)malloc( len );
+	sysctl( mib, 2, rstring, &len, NULL, 0 );
+	
+	//Hack on MacBook revision, as multitouch avail. function missing
+	if (strstr(rstring,"MacBookAir") ||
+		(strstr(rstring,"MacBook") && (rstring[strlen(rstring)-3]>='5') && (rstring[strlen(rstring)-3]<='9')))
+		m_hasMultiTouchTrackpad = true;
+	else m_hasMultiTouchTrackpad = false;
+	
+	free( rstring );
+	rstring = NULL;
 	
 	m_ignoreWindowSizedMessages = false;
 }
@@ -596,7 +634,7 @@ GHOST_TSuccess GHOST_SystemCocoa::init()
 		}
 		
 		[NSApp finishLaunching];
-				
+		
 		[pool drain];
     }
     return success;
@@ -846,7 +884,11 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 				case NSScrollWheel:
 				case NSOtherMouseDown:
 				case NSOtherMouseUp:
-				case NSOtherMouseDragged:				
+				case NSOtherMouseDragged:
+				case NSEventTypeMagnify:
+				case NSEventTypeRotate:
+				case NSEventTypeBeginGesture:
+				case NSEventTypeEndGesture:
 					handleMouseEvent(event);
 					break;
 					
@@ -855,13 +897,9 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 					handleTabletEvent(event,[event type]);
 					break;
 					
-					/* Trackpad features, will need OS X 10.6 for implementation
+					/* Trackpad features, fired only from OS X 10.5.2
 					 case NSEventTypeGesture:
-					 case NSEventTypeMagnify:
 					 case NSEventTypeSwipe:
-					 case NSEventTypeRotate:
-					 case NSEventTypeBeginGesture:
-					 case NSEventTypeEndGesture:
 					 break; */
 					
 					/*Unused events
@@ -882,6 +920,8 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 		} while (event!= nil);		
 	//} while (waitForEvent && !anyProcessed); Needed only for timer implementation
 	
+	if (m_needDelayedApplicationBecomeActiveEventProcessing) handleApplicationBecomeActiveEvent();
+	
 	if (m_outsideLoopEventProcessed) {
 		m_outsideLoopEventProcessed = false;
 		return true;
@@ -897,6 +937,12 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	//(that is when update events are sent to another application)
 	unsigned int modifiers;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
+	
+	if (!window) {
+		m_needDelayedApplicationBecomeActiveEventProcessing = true;
+		return GHOST_kFailure;
+	}
+	else m_needDelayedApplicationBecomeActiveEventProcessing = false;
 
 #ifdef MAC_OS_X_VERSION_10_6
 	modifiers = [NSEvent modifierFlags];
@@ -910,6 +956,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 		modifiers = 0;
 	}
 #endif
+	
+	/* Discard erroneous 10.6 modifiers values reported when switching back from spaces */
+	if ((modifiers & NSDeviceIndependentModifierFlagsMask) == 0xb00000) modifiers = 0;
 	
 	if ((modifiers & NSShiftKeyMask) != (m_modifierMask & NSShiftKeyMask)) {
 		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSShiftKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
@@ -926,6 +975,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	
 	m_modifierMask = modifiers;
 	
+	m_outsideLoopEventProcessed = true;
 	return GHOST_kSuccess;
 }
 
@@ -1316,16 +1366,59 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			
 		case NSScrollWheel:
 			{
-				GHOST_TInt32 delta;
-				
-				double deltaF = [event deltaY];
-				if (deltaF == 0.0) break; //discard trackpad delta=0 events
-				
-				delta = deltaF > 0.0 ? 1 : -1;
-				pushEvent(new GHOST_EventWheel([event timestamp]*1000, window, delta));
+				/* Send trackpad event if inside a trackpad gesture, send wheel event otherwise */
+				if (!m_hasMultiTouchTrackpad || !m_isGestureInProgress) {
+					GHOST_TInt32 delta;
+					
+					double deltaF = [event deltaY];
+					if (deltaF == 0.0) break; //discard trackpad delta=0 events
+					
+					delta = deltaF > 0.0 ? 1 : -1;
+					pushEvent(new GHOST_EventWheel([event timestamp]*1000, window, delta));
+				}
+				else {
+					NSPoint mousePos = [event locationInWindow];
+					double dx = [event deltaX];
+					double dy = -[event deltaY];
+					
+					const double deltaMax = 50.0;
+					
+					if ((dx == 0) && (dy == 0)) break;
+					
+					/* Quadratic acceleration */
+					dx = dx*(fabs(dx)+0.5);
+					if (dx<0.0) dx-=0.5; else dx+=0.5;
+					if (dx< -deltaMax) dx= -deltaMax; else if (dx>deltaMax) dx=deltaMax;
+					
+					dy = dy*(fabs(dy)+0.5);
+					if (dy<0.0) dy-=0.5; else dy+=0.5;
+					if (dy< -deltaMax) dy= -deltaMax; else if (dy>deltaMax) dy=deltaMax;
+
+					pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventScroll, mousePos.x, mousePos.y, dx, dy));
+				}
 			}
 			break;
 			
+		case NSEventTypeMagnify:
+			{
+				NSPoint mousePos = [event locationInWindow];
+				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventMagnify, mousePos.x, mousePos.y,
+												  [event magnification]*250.0 + 0.1, 0));
+			}
+			break;
+
+		case NSEventTypeRotate:
+			{
+				NSPoint mousePos = [event locationInWindow];
+				pushEvent(new GHOST_EventTrackpad([event timestamp]*1000, window, GHOST_kTrackpadEventRotate, mousePos.x, mousePos.y,
+												  -[event rotation] * 5.0, 0));
+			}
+		case NSEventTypeBeginGesture:
+			m_isGestureInProgress = true;
+			break;
+		case NSEventTypeEndGesture:
+			m_isGestureInProgress = false;
+			break;
 		default:
 			return GHOST_kFailure;
 			break;
@@ -1350,7 +1443,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 	 * the window go away and we still get an HKey up. 
 	 */
 	if (!window) {
-		printf("\nW failure");
+		//printf("\nW failure");
 		return GHOST_kFailure;
 	}
 	

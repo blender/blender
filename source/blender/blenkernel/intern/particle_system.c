@@ -3071,10 +3071,8 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 					dvert->dw = MEM_callocN (sizeof(MDeformWeight), "deformWeight");
 					dvert->totweight = 1;
 				}
-
-				/* no special reason for the 0.5 */
-				/* just seems like a nice value from experiments */
-				dvert->dw->weight = k ? 0.5f : 1.0f;
+				/* roots should be 1.0, the rest can be anything from 0.0 to 1.0 */
+				dvert->dw->weight = key->weight;
 				dvert++;
 			}
 		}
