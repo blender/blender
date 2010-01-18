@@ -46,7 +46,11 @@ def load_scripts(reload_scripts=False):
 
     t_main = time.time()
 
+    loaded_modules = set()
+
     def test_import(module_name):
+        if module_name in loaded_modules:
+            return None
         if "." in module_name:
             print("Ignoring '%s', can't import files containing multiple periods." % module_name)
             return None
@@ -61,12 +65,25 @@ def load_scripts(reload_scripts=False):
             traceback.print_exc()
             return None
 
+    if reload_scripts:
+        # reload modules that may not be directly included
+        for type_class_name in dir(types):
+            type_class = getattr(types, type_class_name)
+            module_name = getattr(type_class, "__module__", "")
+
+            if module_name and module_name != "bpy.types": # hard coded for C types
+               loaded_modules.add(module_name)
+
+        for module_name in loaded_modules:
+            print("Reloading:", module_name)
+            reload(sys.modules[module_name])
 
     for base_path in utils.script_paths():
         for path_subdir in ("ui", "op", "io"):
             path = os.path.join(base_path, path_subdir)
             if os.path.isdir(path):
-                sys.path.insert(0, path)
+                if path not in sys.path: # reloading would add twice
+                    sys.path.insert(0, path)
                 for f in sorted(os.listdir(path)):
                     if f.endswith(".py"):
                         # python module
