@@ -1449,7 +1449,10 @@ struct anim *openanim(char *name, int flags)
 
 	ibuf = IMB_anim_absolute(anim, 0);
 	if (ibuf == NULL) {
-		printf("not an anim; %s\n", name);
+		if(BLI_exists(name))
+			printf("not an anim: %s\n", name);
+		else
+			printf("anim file doesn't exist: %s\n", name);
 		IMB_free_anim(anim);
 		return(0);
 	}
