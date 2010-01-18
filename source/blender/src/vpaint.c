@@ -1125,16 +1125,17 @@ void weight_paint(void)
 	if(ob->actdef<=0) {
 		Object *modob;
 		if((modob = modifiers_isDeformedByArmature(ob))) {
+			bArmature *arm= modob->data;
 			bPoseChannel *pchan;
 			for(pchan= modob->pose->chanbase.first; pchan; pchan= pchan->next)
-				if(pchan->bone->flag & SELECT)
+				if((pchan->bone->flag & SELECT) && (pchan->bone->layer & arm->layer))
 					break;
 			if(pchan) {
 				bDeformGroup *dg= get_named_vertexgroup(ob, pchan->name);
 				if(dg==NULL)
 					dg= add_defgroup_name(ob, pchan->name);	/* sets actdef */
 				else
-					ob->actdef= get_defgroup_num(ob, dg);
+					ob->actdef= 1 + get_defgroup_num(ob, dg);
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
 		}
