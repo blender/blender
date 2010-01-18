@@ -464,7 +464,7 @@ void ED_vgroup_select_by_name(Object *ob, char *name)
 		}
 	}
 
-	ob->actdef= 1;	// this signals on painting to create a new one, if a bone in posemode is selected */
+	ob->actdef= 0;	// this signals on painting to create a new one, if a bone in posemode is selected */
 }
 
 /********************** Operator Implementations *********************/

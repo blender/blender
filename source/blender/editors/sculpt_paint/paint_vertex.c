@@ -66,6 +66,7 @@
 #include "RNA_define.h"
 
 #include "BKE_armature.h"
+#include "BKE_action.h"
 #include "BKE_brush.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cloth.h"
@@ -1380,22 +1381,23 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 	if(ob->actdef<=0) {
 		Object *modob;
 		if((modob = modifiers_isDeformedByArmature(ob))) {
-			bPoseChannel *pchan;
-			for(pchan= modob->pose->chanbase.first; pchan; pchan= pchan->next)
-				if(pchan->bone->flag & SELECT)
-					break;
-			if(pchan) {
-				bDeformGroup *dg= get_named_vertexgroup(ob, pchan->name);
-				if(dg==NULL)
-					dg= ED_vgroup_add_name(ob, pchan->name);	/* sets actdef */
-				else
-					ob->actdef= get_defgroup_num(ob, dg);
+			Bone *actbone= ((bArmature *)modob->data)->act_bone;
+			if(actbone) {
+				bPoseChannel *pchan= get_pose_channel(modob->pose, actbone->name);
+
+				if(pchan) {
+					bDeformGroup *dg= get_named_vertexgroup(ob, pchan->name);
+					if(dg==NULL)
+						dg= ED_vgroup_add_name(ob, pchan->name);	/* sets actdef */
+					else
+						ob->actdef= 1 + get_defgroup_num(ob, dg);
+				}
 			}
 		}
 	}
 	if(ob->defbase.first==NULL) {
 		ED_vgroup_add(ob);
-	}	
+	}
 	
 	//	if(ob->lay & v3d->lay); else error("Active object is not in this layer");
 	

@@ -166,6 +166,8 @@ int get_defgroup_num (Object *ob, bDeformGroup *dg)
 	 * (this number is stored in the deform
 	 * weights of the deform verts to link them
 	 * to this deform group).
+	 *
+	 * note: this is zero based, ob->actdef starts at 1.
 	 */
 
 	bDeformGroup *eg;
