@@ -1066,17 +1066,19 @@ static TStripElem *give_tstripelem(Sequence *seq, int cfra)
 
 StripElem *give_stripelem(Sequence *seq, int cfra)
 {
-	StripElem *se;
-	int nr;
+	StripElem *se= seq->strip->stripdata;
 
-	se = seq->strip->stripdata;
-	nr = give_stripelem_index(seq, cfra);
+	if(seq->type == SEQ_MOVIE) {
+		/* use the first */
+	}
+	else {
+		int nr = give_stripelem_index(seq, cfra);
 
-	if (nr == -1) return 0;
-	if (se == 0) return 0;
-
-	se += nr + seq->anim_startofs; 
+		if (nr == -1) return 0;
+		if (se == 0) return 0;
 	
+		se += nr + seq->anim_startofs;
+	}
 	return se;
 }
 
