@@ -98,14 +98,18 @@ def rna2sphinx(BASEPATH):
         if is_return:
             id_name = "return"
             id_type = "rtype"
+            kwargs = {"as_ret": True, "class_fmt": ":class:`%s`"}
+            identifier = ""
         else:
             id_name = "arg"
             id_type = "type"
+            kwargs = {"as_arg": True, "class_fmt": ":class:`%s`"}
+            identifier = " %s" % prop.identifier
 
-        type_descr = prop.get_type_description(as_arg=True, class_fmt=":class:`%s`")
+        type_descr = prop.get_type_description(**kwargs)
         if prop.name or prop.description:
-            fw(ident + ":%s %s: %s\n" % (id_name, prop.identifier, ", ".join([val for val in (prop.name, prop.description) if val])))
-        fw(ident + ":%s %s: %s\n" % (id_type, prop.identifier, type_descr))
+            fw(ident + ":%s%s: %s\n" % (id_name, identifier, ", ".join([val for val in (prop.name, prop.description) if val])))
+        fw(ident + ":%s%s: %s\n" % (id_type, identifier, type_descr))
 
     def write_struct(struct):
         #if not struct.identifier.startswith("Sc") and not struct.identifier.startswith("I"):
