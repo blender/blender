@@ -217,7 +217,7 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 
 		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
-	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
+	else if(ELEM3(t->spacetype, SPACE_IPO, SPACE_NLA, SPACE_ACTION)) {
 		int out[2] = {0, 0};
 
 		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1);
@@ -5449,10 +5449,20 @@ int TimeSlide(TransInfo *t, short mval[2])
 
 void initTimeScale(TransInfo *t)
 {
+	int center[2];
+
 	t->mode = TFM_TIME_SCALE;
 	t->transform = TimeScale;
-	
-	// TODO: the scaling ratios obtained here aren't rapid enough 
+
+	/* recalculate center2d to use CFRA and mouse Y, since that's
+	 * what is used in time scale */
+	t->center[0] = t->scene->r.cfra;
+	projectIntView(t, t->center, center);
+	center[1] = t->imval[1];
+
+	/* force a reinit with the center2d used here */
+	initMouseInput(t, &t->mouse, center, t->imval);
+
 	initMouseInputMode(t, &t->mouse, INPUT_SPRING_FLIP);
 
 	t->flag |= T_NULL_ONE;
