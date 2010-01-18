@@ -52,7 +52,7 @@ static int replace_if_different(char *tmpfile)
 
 #define REN_IF_DIFF \
 	if(rename(tmpfile, orgfile) != 0) { \
-		fprintf(stderr, "%s:%d, rename error: \"%s\" -> \"%s\"", __FILE__, __LINE__, tmpfile, orgfile); \
+		fprintf(stderr, "%s:%d, rename error: \"%s\" -> \"%s\"\n", __FILE__, __LINE__, tmpfile, orgfile); \
 		return -1; \
 	} \
 	remove(tmpfile); \
@@ -79,7 +79,7 @@ static int replace_if_different(char *tmpfile)
 
 	if(fp_new==NULL) {
 		/* shouldn't happen, just to be safe */
-		fprintf(stderr, "%s:%d, open error: \"%s\"", __FILE__, __LINE__, tmpfile);
+		fprintf(stderr, "%s:%d, open error: \"%s\"\n", __FILE__, __LINE__, tmpfile);
 		return -1;
 	}
 
