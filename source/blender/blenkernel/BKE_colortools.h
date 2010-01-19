@@ -35,6 +35,16 @@ struct Histogram;
 struct ImBuf;
 struct rctf;
 
+#if defined _WIN32
+#   define DO_INLINE __inline
+#elif defined (__sgi)
+#   define DO_INLINE
+#elif defined (__sun) || defined (__sun__)
+#   define DO_INLINE
+#else
+#   define DO_INLINE static inline
+#endif
+
 typedef enum CurveMappingPreset {
 	CURVE_PRESET_LINE,
 	CURVE_PRESET_SHARP,

@@ -880,7 +880,7 @@ void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
 
 /* ***************** Histogram **************** */
 
-static inline int get_bin_float(float f)
+DO_INLINE int get_bin_float(float f)
 {
 	CLAMP(f, 0.0, 1.0);
 	
