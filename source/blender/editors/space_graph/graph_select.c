@@ -239,37 +239,36 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
-
+		
+		/* apply NLA mapping to all the keyframes, since it's easier than trying to
+		 * guess when a callback might use something different
+		 */
 		if (adt)
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
-
-		/* set horizontal range (if applicable) */
+		
+		/* set horizontal range (if applicable) 
+		 * NOTE: these values are only used for x-range and y-range but not region 
+		 * 		(which uses bed.data, i.e. rectf)
+		 */
 		if (mode != BEZT_OK_VALUERANGE) {
-			/* if channel is mapped in NLA, apply correction */
-			if (adt) {
-				bed.f1= BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
-				bed.f2= BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
-			}
-			else {
-				bed.f1= rectf.xmin;
-				bed.f2= rectf.xmax;
-			}
+			bed.f1= rectf.xmin;
+			bed.f2= rectf.xmax;
 		}
 		else {
 			bed.f1= rectf.ymin;
 			bed.f2= rectf.ymax;
 		}
 		
-		/* select keyframes that are in the appropriate places */
-		ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
-		
-		/* select the curve too 
-		 * NOTE: this should really only happen if the curve got touched...
-		 */
-		if (selectmode == SELECT_ADD) {
-			fcu->flag |= FCURVE_SELECTED;
+		/* firstly, check if any keyframes will be hit by this */
+		if (ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, ok_cb, NULL)) {
+			/* select keyframes that are in the appropriate places */
+			ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
+			
+			/* select the curve too now that curve will be touched */
+			if (selectmode == SELECT_ADD)
+				fcu->flag |= FCURVE_SELECTED;
 		}
-
+		
 		/* un-apply NLA mapping from all the keyframes */
 		if (adt)
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
