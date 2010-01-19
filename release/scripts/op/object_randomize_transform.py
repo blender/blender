@@ -121,9 +121,9 @@ class RandomizeLocRotSize(bpy.types.Operator):
         from math import radians
         seed = self.properties.random_seed
 
-        loc = self.properties.loc if self.properties.use_loc else None
-        rot = self.properties.rot if self.properties.use_rot else None
-        scale = [radians(val) for val in self.properties.scale] if self.properties.use_scale else None
+        loc = None if not self.properties.use_loc else self.properties.loc
+        rot = None if not self.properties.use_rot else self.properties.rot * radians(1.0)
+        scale = None if not self.properties.use_scale else self.properties.scale
 
         scale_even = self.properties.scale_even
         scale_min = self.properties.scale_min
