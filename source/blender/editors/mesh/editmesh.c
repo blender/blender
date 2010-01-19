@@ -753,7 +753,7 @@ void make_editMesh(Scene *scene, Object *ob)
 	KeyBlock *actkey;
 	EditMesh *em;
 	EditVert *eve, **evlist, *eve1, *eve2, *eve3, *eve4;
-	EditFace *efa;
+	EditFace *efa, *efa_last_sel= NULL;
 	EditEdge *eed;
 	EditSelection *ese;
 	float *co, (*keyco)[3]= NULL;
@@ -886,12 +886,18 @@ void make_editMesh(Scene *scene, Object *ob)
 						if(paint_facesel_test(ob)) {
 							EM_select_face(efa, 1); /* flush down */
 						}
+
+						efa_last_sel= efa;
 					}
 				}
 			}
 		}
 	}
 	
+	if(EM_get_actFace(em, 0) && efa_last_sel) {
+		EM_set_actFace(em, efa_last_sel);
+	}
+
 	if(eekadoodle)
 		error("This Mesh has old style edgecodes, please put it in the bugtracker!");
 	
