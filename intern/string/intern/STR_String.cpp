@@ -39,7 +39,11 @@
 #include <stdlib.h> 
 #include <ctype.h>
 #include <string.h>
+
+#ifndef WIN32
 #include <strings.h>
+#endif
+
 #include "STR_String.h"
 
 /*-------------------------------------------------------------------------------------------------
