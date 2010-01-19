@@ -592,7 +592,7 @@ static void set_frames_cb(bContext *C, void *ima_v, void *iuser_v)
 	
 	if(ima->anim) {
 		iuser->frames = IMB_anim_get_duration(ima->anim);
-		BKE_image_user_calc_imanr(iuser, scene->r.cfra, 0);
+		BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
 	}
 }
 

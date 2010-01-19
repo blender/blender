@@ -1317,9 +1317,12 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	if(bgpic==NULL) return;
 	
 	ima= bgpic->ima;
-	
-	if(ima)
+
+	if(ima) {
+		/* notifier can also call this however screen_ops.c */
+		BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
 		ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
+	}
 	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL) ) 
 		return;
 	if(ibuf->channels!=4)

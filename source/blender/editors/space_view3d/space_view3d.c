@@ -785,6 +785,7 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 }
 
 /*area (not region) level listener*/
+#if 0 // removed since BKE_image_user_calc_frame is now called in draw_bgpic because screen_ops doesnt call the notifier.
 void space_view3d_listener(struct ScrArea *area, struct wmNotifier *wmn)
 {
 	if (wmn->category == NC_SCENE && wmn->data == ND_FRAME) {
@@ -793,10 +794,11 @@ void space_view3d_listener(struct ScrArea *area, struct wmNotifier *wmn)
 		if (v3d->bgpic && v3d->bgpic->ima) {
 			Scene *scene = wmn->reference;
 
-			BKE_image_user_calc_imanr(&v3d->bgpic->iuser, scene->r.cfra, 0);
+			BKE_image_user_calc_frame(&v3d->bgpic->iuser, scene->r.cfra, 0);
 		}
 	}
 }
+#endif
 
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_view3d(void)
@@ -810,7 +812,7 @@ void ED_spacetype_view3d(void)
 	st->new= view3d_new;
 	st->free= view3d_free;
 	st->init= view3d_init;
-	st->listener = space_view3d_listener;
+//	st->listener = space_view3d_listener;
 	st->duplicate= view3d_duplicate;
 	st->operatortypes= view3d_operatortypes;
 	st->keymap= view3d_keymap;
