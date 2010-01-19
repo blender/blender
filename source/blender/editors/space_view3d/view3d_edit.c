@@ -1117,6 +1117,8 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 
 	request_depth_update(CTX_wm_region_view3d(C));
 	ED_region_tag_redraw(CTX_wm_region(C));
+	
+	viewops_data_free(C, op);
 
 	return OPERATOR_FINISHED;
 }
@@ -1133,6 +1135,8 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(delta) {
+		/* makes op->customdata */
+		viewops_data_create(C, op, event);
 		viewzoom_exec(C, op);
 	}
 	else {
