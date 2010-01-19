@@ -50,6 +50,7 @@ void logic_header_buttons(const struct bContext *C, struct ARegion *ar);
 /* logic_buttons.c */
 void logic_buttons_register(struct ARegionType *art);
 void LOGIC_OT_properties(struct wmOperatorType *ot);
+void LOGIC_OT_links_cut(struct wmOperatorType *ot);
 
 /* logic_window.c */
 void logic_buttons(struct bContext *C, struct ARegion *ar);

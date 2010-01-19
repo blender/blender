@@ -1840,8 +1840,8 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	rect->xmax -= textofs;
 }
 
-
-static int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
+//static int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
+int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
 {
 	float dist, vec[4][2];
 

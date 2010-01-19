@@ -942,7 +942,42 @@ void uiBlockClearButLock(uiBlock *block)
 
 /* *************************************************************** */
 
+void ui_delete_linkline(uiLinkLine *line, uiBut *but)
+{
+	uiLink *link;
+	int a, b;
+	
+	BLI_remlink(&but->link->lines, line);
 
+	link= line->from->link;
+
+	/* are there more pointers allowed? */
+	if(link->ppoin) {
+		
+		if(*(link->totlink)==1) {
+			*(link->totlink)= 0;
+			MEM_freeN(*(link->ppoin));
+			*(link->ppoin)= NULL;
+		}
+		else {
+			b= 0;
+			for(a=0; a< (*(link->totlink)); a++) {
+				
+				if( (*(link->ppoin))[a] != line->to->poin ) {
+					(*(link->ppoin))[b]= (*(link->ppoin))[a];
+					b++;
+				}
+			}	
+			(*(link->totlink))--;
+		}
+	}
+	else {
+		*(link->poin)= NULL;
+	}
+
+	MEM_freeN(line);
+	//REDRAW
+}
 /* XXX 2.50 no links supported yet */
 #if 0
 static void ui_delete_active_linkline(uiBlock *block)

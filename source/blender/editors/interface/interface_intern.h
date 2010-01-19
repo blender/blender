@@ -318,6 +318,8 @@ typedef struct uiSafetyRct {
 
 /* interface.c */
 
+extern void ui_delete_linkline(uiLinkLine *line, uiBut *but);
+
 extern int ui_translate_buttons(void);
 extern int ui_translate_menus(void);
 extern int ui_translate_tooltips(void);
@@ -441,6 +443,7 @@ extern int ui_button_is_active(struct ARegion *ar);
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 void ui_draw_search_back(struct uiStyle *style, uiBlock *block, rcti *rect);
+int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol);
 void ui_draw_link_bezier(rcti *rect);
 
 extern void ui_draw_but(const struct bContext *C, ARegion *ar, struct uiStyle *style, uiBut *but, rcti *rect);
