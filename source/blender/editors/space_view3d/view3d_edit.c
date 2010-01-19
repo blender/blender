@@ -2071,7 +2071,82 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
+/* ******************** add background image operator **************** */
 
+static int add_background_image_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d= CTX_wm_view3d(C);
+
+	BGpic *bgpic= MEM_callocN(sizeof(BGpic), "Background Image");
+	bgpic->size= 5.0;
+	bgpic->blend= 0.5;
+	bgpic->iuser.fie_ima= 2;
+	bgpic->iuser.ok= 1;
+	bgpic->view= 0; /* 0 for all */
+
+	BLI_addtail(&v3d->bgpicbase, bgpic);
+
+	//ED_region_tag_redraw(v3d);
+
+	return OPERATOR_FINISHED;
+}
+
+static int add_background_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return add_background_image_exec(C, op);
+}
+
+void VIEW3D_OT_add_background_image(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Add Background Image";
+	ot->description= "Add a new background image.";
+	ot->idname = "VIEW3D_OT_add_background_image";
+
+	/* api callbacks */
+	ot->invoke = add_background_image_invoke;
+	ot->exec   = add_background_image_exec;
+	ot->poll   = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag   = 0;
+}
+
+/* ***** remove image operator ******* */
+static int remove_background_image_exec(bContext *C, wmOperator *op)
+{
+	BGpic *bgpic_rem = CTX_data_pointer_get_type(C, "bgpic", &RNA_BackgroundImage).data;
+	View3D *vd = CTX_wm_view3d(C);
+	int index = RNA_int_get(op->ptr, "index");
+
+	bgpic_rem = BLI_findlink(&vd->bgpicbase, index);
+	if(bgpic_rem) {
+		BLI_remlink(&vd->bgpicbase, bgpic_rem);
+		if(bgpic_rem->ima) bgpic_rem->ima->id.us--;
+		MEM_freeN(bgpic_rem);
+	}
+
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, vd);
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_remove_background_image(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Remove Background Image";
+	ot->description= "Remove a background image from the 3D view";
+	ot->idname = "VIEW3D_OT_remove_background_image";
+
+	/* api callbacks */
+	ot->exec   = remove_background_image_exec;
+	ot->poll   = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag   = 0;
+
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Background image index to remove ", 0, INT_MAX);
+}
 /* ********************* set clipping operator ****************** */
 
 static void calc_clipping_plane(float clip[6][4], BoundBox *clipbb)

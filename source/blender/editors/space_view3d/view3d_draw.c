@@ -1312,109 +1312,113 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	ImBuf *ibuf= NULL;
 	float vec[4], fac, asp, zoomx, zoomy;
 	float x1, y1, x2, y2, cx, cy;
-	
-	bgpic= v3d->bgpic;
-	if(bgpic==NULL) return;
-	
-	ima= bgpic->ima;
 
-	if(ima) {
-		/* notifier can also call this however screen_ops.c */
-		BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
-		ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
-	}
-	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL) ) 
-		return;
-	if(ibuf->channels!=4)
-		return;
-	if(ibuf->rect==NULL)
-		IMB_rect_from_float(ibuf);
-	
-	if(rv3d->persp==2) {
-		rctf vb;
-		
-		calc_viewborder(scene, ar, v3d, &vb);
-		
-		x1= vb.xmin;
-		y1= vb.ymin;
-		x2= vb.xmax;
-		y2= vb.ymax;
-	}
-	else {
-		float sco[2];
-		
-		/* calc window coord */
-		initgrabz(rv3d, 0.0, 0.0, 0.0);
-		window_to_3d_delta(ar, vec, 1, 0);
-		fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
-		fac= 1.0/fac;
-		
-		asp= ( (float)ibuf->y)/(float)ibuf->x;
-		
-		vec[0] = vec[1] = vec[2] = 0.0;
-		view3d_project_float(ar, vec, sco, rv3d->persmat);
-		cx = sco[0];
-		cy = sco[1];
-		
-		x1=  cx+ fac*(bgpic->xof-bgpic->size);
-		y1=  cy+ asp*fac*(bgpic->yof-bgpic->size);
-		x2=  cx+ fac*(bgpic->xof+bgpic->size);
-		y2=  cy+ asp*fac*(bgpic->yof+bgpic->size);
-	}
-	
-	/* complete clip? */
-	
-	if(x2 < 0 ) return;
-	if(y2 < 0 ) return;
-	if(x1 > ar->winx ) return;
-	if(y1 > ar->winy ) return;
-	
-	zoomx= (x2-x1)/ibuf->x;
-	zoomy= (y2-y1)/ibuf->y;
-	
-	/* for some reason; zoomlevels down refuses to use GL_ALPHA_SCALE */
-	if(zoomx < 1.0f || zoomy < 1.0f) {
-		float tzoom= MIN2(zoomx, zoomy);
-		int mip= 0;
-		
-		if(ibuf->mipmap[0]==NULL)
-			IMB_makemipmap(ibuf, 0, 0);
-		
-		while(tzoom < 1.0f && mip<8 && ibuf->mipmap[mip]) {
-			tzoom*= 2.0f;
-			zoomx*= 2.0f;
-			zoomy*= 2.0f;
-			mip++;
+
+	for ( bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next ) {
+
+		if(	(bgpic->view == 0) || /* zero for any */
+			(bgpic->view & (1<<rv3d->view)) || /* check agaist flags */
+			(rv3d->persp==RV3D_CAMOB && bgpic->view == (1<<RV3D_VIEW_CAMERA))
+		) {
+			ima= bgpic->ima;
+			if(ima==NULL)
+				continue;
+			BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
+			ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
+			if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL) )
+				continue;
+			if(ibuf->channels!=4)
+				continue;
+			if(ibuf->rect==NULL)
+				IMB_rect_from_float(ibuf);
+
+			if(rv3d->persp==RV3D_CAMOB) {
+				rctf vb;
+
+				calc_viewborder(scene, ar, v3d, &vb);
+
+				x1= vb.xmin;
+				y1= vb.ymin;
+				x2= vb.xmax;
+				y2= vb.ymax;
+			}
+			else {
+				float sco[2];
+
+				/* calc window coord */
+				initgrabz(rv3d, 0.0, 0.0, 0.0);
+				window_to_3d_delta(ar, vec, 1, 0);
+				fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
+				fac= 1.0/fac;
+
+				asp= ( (float)ibuf->y)/(float)ibuf->x;
+
+				vec[0] = vec[1] = vec[2] = 0.0;
+				view3d_project_float(ar, vec, sco, rv3d->persmat);
+				cx = sco[0];
+				cy = sco[1];
+
+				x1=  cx+ fac*(bgpic->xof-bgpic->size);
+				y1=  cy+ asp*fac*(bgpic->yof-bgpic->size);
+				x2=  cx+ fac*(bgpic->xof+bgpic->size);
+				y2=  cy+ asp*fac*(bgpic->yof+bgpic->size);
+			}
+
+			/* complete clip? */
+
+			if(x2 < 0 ) continue;
+			if(y2 < 0 ) continue;
+			if(x1 > ar->winx ) continue;
+			if(y1 > ar->winy ) continue;
+
+			zoomx= (x2-x1)/ibuf->x;
+			zoomy= (y2-y1)/ibuf->y;
+
+			/* for some reason; zoomlevels down refuses to use GL_ALPHA_SCALE */
+			if(zoomx < 1.0f || zoomy < 1.0f) {
+				float tzoom= MIN2(zoomx, zoomy);
+				int mip= 0;
+
+				if(ibuf->mipmap[0]==NULL)
+					IMB_makemipmap(ibuf, 0, 0);
+
+				while(tzoom < 1.0f && mip<8 && ibuf->mipmap[mip]) {
+					tzoom*= 2.0f;
+					zoomx*= 2.0f;
+					zoomy*= 2.0f;
+					mip++;
+				}
+				if(mip>0)
+					ibuf= ibuf->mipmap[mip-1];
+			}
+
+			if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+			glDepthMask(0);
+
+			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+
+			/* need to use wm push/pop matrix because ED_region_pixelspace
+		   uses the wm functions too, otherwise gets out of sync */
+			wmPushMatrix();
+			ED_region_pixelspace(ar);
+
+			glEnable(GL_BLEND);
+
+			glPixelZoom(zoomx, zoomy);
+			glColor4f(1.0, 1.0, 1.0, 1.0-bgpic->blend);
+			glaDrawPixelsTex(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+
+			glPixelZoom(1.0, 1.0);
+			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
+
+			wmPopMatrix();
+
+			glDisable(GL_BLEND);
+
+			glDepthMask(1);
+			if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 		}
-		if(mip>0)
-			ibuf= ibuf->mipmap[mip-1];
 	}
-	
-	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
-	glDepthMask(0);
-	
-	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
-	
-	/* need to use wm push/pop matrix because ED_region_pixelspace
-	   uses the wm functions too, otherwise gets out of sync */
-	wmPushMatrix();
-	ED_region_pixelspace(ar);
-	
-	glEnable(GL_BLEND);
-	
-	glPixelZoom(zoomx, zoomy);
-	glColor4f(1.0, 1.0, 1.0, 1.0-bgpic->blend);
-	glaDrawPixelsTex(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
-	
-	glPixelZoom(1.0, 1.0);
-	glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
-	
-	wmPopMatrix();
-	
-	glDisable(GL_BLEND);
-
-	glDepthMask(1);
-	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 }
 
 /* ****************** View3d afterdraw *************** */
@@ -2059,7 +2063,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 								  star_stuff_term_func);
 				}
 			}
-			if(v3d->flag & V3D_DISPBGPIC) draw_bgpic(scene, ar, v3d);
+			if(v3d->flag & V3D_DISPBGPICS) draw_bgpic(scene, ar, v3d);
 		}
 	}
 	else {
@@ -2071,7 +2075,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		glMatrixMode(GL_MODELVIEW);
 		wmLoadMatrix(rv3d->viewmat);
 		
-		if(v3d->flag & V3D_DISPBGPIC) {
+		if(v3d->flag & V3D_DISPBGPICS) {
 			draw_bgpic(scene, ar, v3d);
 		}
 	}

@@ -2035,8 +2035,10 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D *) sl;
+					BGpic *bgpic;
 					writestruct(wd, DATA, "View3D", 1, v3d);
-					if(v3d->bgpic) writestruct(wd, DATA, "BGpic", 1, v3d->bgpic);
+					for (bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next)
+					writestruct(wd, DATA, "BGpic", 1, bgpic);
 					if(v3d->localvd) writestruct(wd, DATA, "View3D", 1, v3d->localvd);
 				}
 				else if(sl->spacetype==SPACE_IPO) {
