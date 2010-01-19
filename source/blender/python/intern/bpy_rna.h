@@ -70,7 +70,6 @@ PyObject *BPY_rna_module( void );
 void	  BPY_update_rna_module( void );
 /*PyObject *BPY_rna_doc( void );*/
 PyObject *BPY_rna_types( void );
-PyObject *BPY_rna_props( void );
 
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr );
 PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop );
@@ -79,15 +78,6 @@ PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop );
 int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *value, const char *error_prefix);
 int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const char *error_prefix);
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
-
-/* functions for setting up new props - experemental */
-PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw);
 
 /* function for registering types */
 PyObject *pyrna_basetype_register(PyObject *self, PyObject *args);
