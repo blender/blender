@@ -109,7 +109,7 @@ static int time_set_efra_exec (bContext *C, wmOperator *op)
 	if (PSFRA > frame) frame= PSFRA;
 		
 	/* if Preview Range is defined, set the 'end' frame for that */
-	if (scene->r.pefra)
+	if (scene->r.psfra) /* start frame 0 is used to check if the preview is used at all */
 		scene->r.pefra= frame;
 	else
 		scene->r.efra= frame;
