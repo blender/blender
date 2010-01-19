@@ -75,6 +75,21 @@
 
 #include "image_intern.h"
 
+
+static void image_histogram_tag_refresh(ScrArea *sa)
+{
+	SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
+	ARegion *ar;
+	
+	/* only while histogram is visible */
+	for (ar=sa->regionbase.first; ar; ar=ar->next) {
+		if (ar->regiontype == RGN_TYPE_PREVIEW && ar->flag & RGN_FLAG_HIDDEN)
+			return;
+	}
+	
+	sima->hist.ok=0;
+}
+
 /* ******************** manage regions ********************* */
 
 ARegion *image_has_buttons_region(ScrArea *sa)
@@ -127,6 +142,8 @@ ARegion *image_has_scope_region(ScrArea *sa)
 	arnew->alignment= RGN_ALIGN_RIGHT;
 	
 	arnew->flag = RGN_FLAG_HIDDEN;
+	
+	image_histogram_tag_refresh(sa);
 	
 	return arnew;
 }
@@ -313,12 +330,6 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 
 		BKE_mesh_end_editmesh(obedit->data, em);
 	}
-}
-
-static void image_histogram_tag_refresh(ScrArea *sa)
-{
-	SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
-	sima->hist.ok=0;
 }
 
 static void image_listener(ScrArea *sa, wmNotifier *wmn)
