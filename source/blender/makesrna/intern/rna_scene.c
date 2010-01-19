@@ -227,28 +227,21 @@ static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
 	data->r.efra= value;
 }
 
-static int rna_Scene_use_preview_range_get(PointerRNA *ptr)
-{
-	Scene *data= (Scene*)ptr->data;
-	
-	/* this is simply overloaded to assume that preview-range 
-	 * start frame cannot be less than 1 when on,
-	 * so psfra=0 means 'off'
-	 */
-	return (data->r.psfra != 0);
-}
-
 static void rna_Scene_use_preview_range_set(PointerRNA *ptr, int value)
 {
 	Scene *data= (Scene*)ptr->data;
 	
-	/* if enable, copy range from render-range, otherwise just clear */
 	if (value) {
-		data->r.psfra= data->r.sfra;
-		data->r.pefra= data->r.efra;
+		/* copy range from scene if not set before */
+		if ((data->r.psfra == data->r.pefra) && (data->r.psfra == 0)) {
+			data->r.psfra= data->r.sfra;
+			data->r.pefra= data->r.efra;
+		}
+		
+		data->r.flag |= SCER_PRV_RANGE;
 	}
 	else
-		data->r.psfra= 0;
+		data->r.flag &= ~SCER_PRV_RANGE;
 }
 
 
@@ -257,14 +250,14 @@ static void rna_Scene_preview_range_start_frame_set(PointerRNA *ptr, int value)
 	Scene *data= (Scene*)ptr->data;
 	
 	/* check if enabled already */
-	if (data->r.psfra == 0) {
+	if ((data->r.flag & SCER_PRV_RANGE) == 0) {
 		/* set end of preview range to end frame, then clamp as per normal */
 		// TODO: or just refuse to set instead?
 		data->r.pefra= data->r.efra;
 	}
 	
 	/* now set normally */
-	CLAMP(value, 1, data->r.pefra);
+	CLAMP(value, MINAFRAME, data->r.pefra);
 	data->r.psfra= value;
 }
 
@@ -273,7 +266,7 @@ static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
 	Scene *data= (Scene*)ptr->data;
 	
 	/* check if enabled already */
-	if (data->r.psfra == 0) {
+	if ((data->r.flag & SCER_PRV_RANGE) == 0) {
 		/* set start of preview range to start frame, then clamp as per normal */
 		// TODO: or just refuse to set instead?
 		data->r.psfra= data->r.sfra; 
@@ -2522,9 +2515,10 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	/* Preview Range (frame-range for UI playback) */
-	prop=RNA_def_property(srna, "use_preview_range", PROP_BOOLEAN, PROP_NONE); /* use_preview_range is not really a separate setting in SDNA */
+	prop=RNA_def_property(srna, "use_preview_range", PROP_BOOLEAN, PROP_NONE); 
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_Scene_use_preview_range_get", "rna_Scene_use_preview_range_set");
+	RNA_def_property_boolean_sdna(prop, NULL, "r.flag", SCER_PRV_RANGE);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_use_preview_range_set");
 	RNA_def_property_ui_text(prop, "Use Preview Range", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	

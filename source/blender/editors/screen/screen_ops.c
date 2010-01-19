@@ -2429,7 +2429,7 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
 			/* jump back to end? */
-			if (scene->r.psfra) {
+			if (PRVRANGEON) {
 				if (scene->r.cfra < scene->r.psfra) {
 					scene->r.cfra= scene->r.pefra;
 					sad->flag |= ANIMPLAY_FLAG_JUMPED;
@@ -2444,7 +2444,7 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		else {
 			/* jump back to start? */
-			if (scene->r.psfra) {
+			if (PRVRANGEON) {
 				if (scene->r.cfra > scene->r.pefra) {
 					scene->r.cfra= scene->r.psfra;
 					sad->flag |= ANIMPLAY_FLAG_JUMPED;

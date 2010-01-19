@@ -1118,7 +1118,7 @@ static bNodeSocket *best_socket_input(bNodeTree *ntree, bNode *node, int num, in
 {
 	bNodeSocket *sock;
 	int socktype, maxtype=0;
-	int a;
+	int a = 0;
 	
 	for (sock=node->inputs.first; sock; sock=sock->next) {
 		maxtype = MAX2(sock->type, maxtype);
