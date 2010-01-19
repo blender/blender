@@ -374,11 +374,11 @@ void read_Blog(void)
 	G.recent_files.first = G.recent_files.last = NULL;
 
 	/* read list of recent opend files from .Blog to memory */
-	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next, num++) {
+	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next) {
 		line = l->link;
-		if (!BLI_streq(line, "")) {
+		if (line[0] && BLI_exists(line)) {
 			if (num==0) 
-				strcpy(G.sce, line);
+				strcpy(G.sce, line); /* note: this seems highly dodgy since the file isnt actually read. please explain. - campbell */
 			
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
 			BLI_addtail(&(G.recent_files), recent);
@@ -386,6 +386,7 @@ void read_Blog(void)
 			recent->filename[0] = '\0';
 			
 			strcpy(recent->filename, line);
+			num++;
 		}
 	}
 
