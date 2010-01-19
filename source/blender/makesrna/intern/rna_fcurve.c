@@ -856,6 +856,11 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Variables", "Properties acting as inputs for this driver.");
 	rna_def_channeldriver_variables(brna, prop);
 	
+	/* Settings */
+	prop= RNA_def_property(srna, "show_debug_info", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", DRIVER_FLAG_SHOWDEBUG);
+	RNA_def_property_ui_text(prop, "Show Debug Info", "Show intermediate values for the driver calculations to allow debugging of drivers.");
+	
 	/* Functions */
 	RNA_api_drivers(srna);
 }

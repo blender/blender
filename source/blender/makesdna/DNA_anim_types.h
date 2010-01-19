@@ -294,9 +294,10 @@ typedef struct DriverVar {
 	char name[64];				/* name of the variable to use in py-expression (must be valid python identifier) */
 	
 	DriverTarget targets[8];	/* MAX_DRIVER_TARGETS, target slots */	
-	int num_targets;			/* number of targets actually used by this variable */
+	short num_targets;			/* number of targets actually used by this variable */
 	
-	int type;					/* type of driver target (eDriverTarget_Types) */		
+	short type;					/* type of driver target (eDriverTarget_Types) */	
+	float curval;				/* result of previous evaluation */
 } DriverVar;
 
 /* Driver Variable Types */
@@ -339,7 +340,7 @@ typedef struct ChannelDriver {
 	char expression[256];	/* expression to compile for evaluation */
 	void *expr_comp; 		/* PyObject - compiled expression, dont save this */
 	
-	float curval;		/* result of previous evaluation, for subtraction from result under certain circumstances */
+	float curval;		/* result of previous evaluation */
 	float influence;	/* influence of driver on result */ // XXX to be implemented... this is like the constraint influence setting
 	
 		/* general settings */
@@ -374,6 +375,8 @@ typedef enum eDriver_Flags {
 	DRIVER_FLAG_RECOMPILE	= (1<<3),
 		/* the names are cached so they dont need have python unicode versions created each time */
 	DRIVER_FLAG_RENAMEVAR	= (1<<4),
+		/* intermediate values of driver should be shown in the UI for debugging purposes */
+	DRIVER_FLAG_SHOWDEBUG	= (1<<5),
 } eDriver_Flags;
 
 /* F-Curves -------------------------------------- */

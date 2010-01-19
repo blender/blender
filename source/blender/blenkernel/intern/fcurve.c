@@ -1237,14 +1237,17 @@ float driver_get_variable_value (ChannelDriver *driver, DriverVar *dvar)
 		return 0.0f;
 	
 	/* call the relevant callbacks to get the variable value 
-	 * using the variable type info
+	 * using the variable type info, storing the obtained value
+	 * in dvar->curval so that drivers can be debugged
 	 */
 	dvti= get_dvar_typeinfo(dvar->type);
 	
 	if (dvti && dvti->get_value)
-		return dvti->get_value(driver, dvar);
+		dvar->curval= dvti->get_value(driver, dvar);
 	else
-		return 0.0f;
+		dvar->curval= 0.0f;
+	
+	return dvar->curval;
 }
 
 /* Evaluate an Channel-Driver to get a 'time' value to use instead of "evaltime"
