@@ -234,15 +234,40 @@ static void rna_NlaStrip_blend_out_set(PointerRNA *ptr, float value)
 static void rna_NlaStrip_action_start_frame_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
+	float actlen, mapping;
+	
+	/* prevent start frame from occurring after end of action */
 	CLAMP(value, MINAFRAME, data->actend);
 	data->actstart= value;
+	
+	/* calculate new length factors */
+	actlen= data->actend - data->actstart;
+	if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
+	mapping= data->scale * data->repeat;
+	
+	/* adjust endpoint of strip in response to this */
+	// FIXME: should we be moving the start backwards instead?
+	if (IS_EQ(mapping, 0.0f) == 0)
+		data->end = (actlen * mapping) + data->start; 
 }
 
 static void rna_NlaStrip_action_end_frame_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
+	float actlen, mapping;
+	
+	/* prevent end frame from starting before start of action */
 	CLAMP(value, data->actstart, MAXFRAME);
 	data->actend= value;
+	
+	/* calculate new length factors */
+	actlen= data->actend - data->actstart;
+	if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
+	mapping= data->scale * data->repeat;
+	
+	/* adjust endpoint of strip in response to this */
+	if (IS_EQ(mapping, 0.0f) == 0)
+		data->end = (actlen * mapping) + data->start; 
 }
 
 static void rna_NlaStrip_animated_influence_set(PointerRNA *ptr, int value)
