@@ -239,7 +239,10 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
-		
+
+		if (adt)
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+
 		/* set horizontal range (if applicable) */
 		if (mode != BEZT_OK_VALUERANGE) {
 			/* if channel is mapped in NLA, apply correction */
@@ -266,6 +269,10 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 		if (selectmode == SELECT_ADD) {
 			fcu->flag |= FCURVE_SELECTED;
 		}
+
+		/* un-apply NLA mapping from all the keyframes */
+		if (adt)
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 	}
 	
 	/* cleanup */
