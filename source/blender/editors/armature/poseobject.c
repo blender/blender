@@ -51,6 +51,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_anim.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -200,6 +201,7 @@ int ED_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 }
 
 /* ********************************************** */
+/* Motion Paths */
 
 /* For the object with pose/action: update paths for those that have got them
  * This should selectively update paths that exist...
@@ -208,120 +210,25 @@ int ED_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
  */
 void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 {
-	bArmature *arm;
-	bPoseChannel *pchan;
-	Base *base;
-	float *fp;
-	int cfra;
-	int sfra, efra;
+	ListBase targets = {NULL, NULL};
 	
-	/* sanity checks */
-	if ELEM(NULL, ob, ob->pose)
-		return;
-	arm= ob->data;
+	/* set flag to force recalc, then grab the relevant bones to target */
+	ob->pose->avs.recalc |= ANIMVIZ_RECALC_PATHS;
+	animviz_get_object_motionpaths(ob, &targets);
 	
-	/* set frame values */
-	cfra = CFRA;
-	sfra = efra = cfra; 
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
-			if (pchan->path) {
-				/* if the pathsf and pathef aren't initialised, abort! */
-				// XXX can now have negative frames, so this check needs improvement
-				if (ELEM(0, pchan->pathsf, pchan->pathef))	
-					return;
-				
-				/* try to increase area to do (only as much as needed) */
-				sfra= MIN2(sfra, pchan->pathsf);
-				efra= MAX2(efra, pchan->pathef);
-			}
-		}
-	}
-	if (efra <= sfra) return;
-	
-	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
-	if ((ob->recalc & OB_RECALC)==0) {
-		ob->recalc |= OB_RECALC;
-		DAG_id_update_flags(&ob->id);
-	}
-	else
-		DAG_id_update_flags(&ob->id);
-	
-	/* calculate path over requested range */
-	for (CFRA=sfra; CFRA<=efra; CFRA++) {
-		/* do all updates */
-		for (base= FIRSTBASE; base; base= base->next) {
-			if (base->object->recalc) {
-				int temp= base->object->recalc;
-				
-				if (base->object->adt)
-					BKE_animsys_evaluate_animdata(&base->object->id, base->object->adt, (float)CFRA, ADT_RECALC_ALL);
-				
-				/* update object */
-				object_handle_update(scene, base->object);
-				base->object->recalc= temp;
-			}
-		}
-		
-		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
-				if (pchan->path) {
-					/* only update if:
-					 *	- in range of this pchan's existing path
-					 *	- ... insert evil filtering/optimising conditions here...
-					 */
-					if (IN_RANGE(CFRA, pchan->pathsf, pchan->pathef)) {
-						fp= pchan->path+3*(CFRA-sfra);
-						
-						if (arm->pathflag & ARM_PATH_HEADS) { 
-							VECCOPY(fp, pchan->pose_head);
-						}
-						else {
-							VECCOPY(fp, pchan->pose_tail);
-						}
-						
-						mul_m4_v3(ob->obmat, fp);
-					}
-				}
-			}
-		}
-	}
-	
-	/* reset flags */
-	CFRA= cfra;
-	ob->pose->flag &= ~POSE_RECALCPATHS;
-	
-	/* flush one final time - to restore to the original state */
-	for (base= FIRSTBASE; base; base= base->next) {
-		if (base->object->recalc) {
-			int temp= base->object->recalc;
-			
-			if (base->object->adt)
-				BKE_animsys_evaluate_animdata(&base->object->id, base->object->adt, (float)CFRA, ADT_RECALC_ALL);
-			
-			object_handle_update(scene, base->object);
-			base->object->recalc= temp;
-		}
-	}
+	/* recalculate paths, then free */
+	animviz_calc_motionpaths(scene, &targets);
+	BLI_freelistN(&targets);
 }
-
-/* --------- */
 
 /* For the object with pose/action: create path curves for selected bones 
  * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
  */
 static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
 {
-	wmWindow *win= CTX_wm_window(C);
 	ScrArea *sa= CTX_wm_area(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
-	bArmature *arm;
-	bPoseChannel *pchan;
-	Base *base;
-	float *fp;
-	int cfra;
-	int sfra, efra;
 	
 	/* since this call may also be used from the buttons window, we need to check for where to get the object */
 	if (sa->spacetype == SPACE_BUTS) 
@@ -329,109 +236,20 @@ static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
 	else
 		ob= CTX_data_active_object(C);
 		
-	/* only continue if there's an object */
-	if ELEM(NULL, ob, ob->pose)
+	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
-	arm= ob->data;
 	
-	/* version patch for older files here (do_versions patch too complicated) */
-	if ((arm->pathsf == 0) || (arm->pathef == 0)) {
-		arm->pathsf = SFRA;
-		arm->pathef = EFRA;
+	/* set up path data for bones being calculated */
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
+	{
+		/* verify makes sure that the selected bone has a bone with the appropriate settings */
+		animviz_verify_motionpaths(scene, ob, pchan);
 	}
-	if (arm->pathsize == 0) {
-		arm->pathsize = 1;
-	}
+	CTX_DATA_END;
 	
-	/* get frame values to use */
-	cfra= CFRA;
-	sfra = arm->pathsf;
-	efra = arm->pathef;
-	
-	if (efra <= sfra) {
-		BKE_report(op->reports, RPT_ERROR, "Can't calculate paths when pathlen <= 0");
-		return OPERATOR_CANCELLED;
-	}
-	
-	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
-	if ((ob->recalc & OB_RECALC)==0) {
-		ob->recalc |= OB_RECALC;
-		DAG_id_update_flags(&ob->id);
-	}
-	else
-		DAG_id_update_flags(&ob->id);
-	
-	/* alloc the path cache arrays */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
-			if (arm->layer & pchan->bone->layer) {
-				pchan->pathlen= efra-sfra+1;
-				pchan->pathsf= sfra;
-				pchan->pathef= efra+1;
-				if (pchan->path)
-					MEM_freeN(pchan->path);
-				pchan->path= MEM_callocN(3*pchan->pathlen*sizeof(float), "pchan path");
-			}
-		}
-	}
-	
-	/* step through frame range sampling the values */
-	for (CFRA=sfra; CFRA<=efra; CFRA++) {
-		/* for each frame we calculate, update time-cursor... (may be too slow) */
-		WM_timecursor(win, CFRA);
-		
-		/* do all updates */
-		for (base= FIRSTBASE; base; base= base->next) {
-			if (base->object->recalc) {
-				int temp= base->object->recalc;
-				
-				if (base->object->adt)
-					BKE_animsys_evaluate_animdata(&base->object->id, base->object->adt, (float)CFRA, ADT_RECALC_ALL);
-				
-				object_handle_update(scene, base->object);
-				base->object->recalc= temp;
-			}
-		}
-		
-		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
-				if (arm->layer & pchan->bone->layer) {
-					if (pchan->path) {
-						fp= pchan->path+3*(CFRA-sfra);
-						
-						if (arm->pathflag & ARM_PATH_HEADS) { 
-							VECCOPY(fp, pchan->pose_head);
-						}
-						else {
-							VECCOPY(fp, pchan->pose_tail);
-						}
-						
-						mul_m4_v3(ob->obmat, fp);
-					}
-				}
-			}
-		}
-	}
-	
-	/* restore original cursor */
-	WM_cursor_restore(win);
-	
-	/* reset current frame, and clear flags */
-	CFRA= cfra;
-	ob->pose->flag &= ~POSE_RECALCPATHS;
-	
-	/* flush one final time - to restore to the original state */
-	for (base= FIRSTBASE; base; base= base->next) {
-		if (base->object->recalc) {
-			int temp= base->object->recalc;
-			
-			if (base->object->adt)
-				BKE_animsys_evaluate_animdata(&base->object->id, base->object->adt, (float)CFRA, ADT_RECALC_ALL);
-			
-			object_handle_update(scene, base->object);
-			base->object->recalc= temp;
-		}
-	}
+	/* calculate the bones that now have motionpaths... */
+	// TODO: only make for the selected bones?
+	ED_pose_recalculate_paths(C, scene, ob);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -464,12 +282,12 @@ void ED_pose_clear_paths(Object *ob)
 	if ELEM(NULL, ob, ob->pose)
 		return;
 	
-	/* free the path blocks */
+	/* free the motionpath blocks */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
-			if (pchan->path) {
-				MEM_freeN(pchan->path);
-				pchan->path= NULL;
+			if (pchan->mpath) {
+				animviz_free_motionpath(pchan->mpath);
+				pchan->mpath= NULL;
 			}
 		}
 	}
@@ -491,7 +309,7 @@ static int pose_clear_paths_exec (bContext *C, wmOperator *op)
 	if ELEM(NULL, ob, ob->pose)
 		return OPERATOR_CANCELLED;
 	
-	/* for now, just call the API function for this (which is shared with backend functions) */
+	/* use the backend function for this */
 	ED_pose_clear_paths(ob);
 	
 	/* notifiers for updates */

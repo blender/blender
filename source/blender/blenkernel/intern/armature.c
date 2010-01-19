@@ -1602,7 +1602,13 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	int counter=0;
 		
 	/* only done here */
-	if(ob->pose==NULL) ob->pose= MEM_callocN(sizeof(bPose), "new pose");
+	if(ob->pose==NULL) {
+		/* create new pose */
+		ob->pose= MEM_callocN(sizeof(bPose), "new pose");
+		
+		/* set default settings for animviz */
+		animviz_settings_init(&ob->pose->avs);
+	}
 	pose= ob->pose;
 	
 	/* clear */

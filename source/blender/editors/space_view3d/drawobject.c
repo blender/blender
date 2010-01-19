@@ -5180,6 +5180,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	/* no return after this point, otherwise leaks */
 	view3d_cached_text_draw_begin();
+	
 
 	/* draw keys? */
 #if 0 // XXX old animation system
@@ -5260,8 +5261,19 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
 	
-	/* draw paths... */
-	// TODO...
+	/* draw motion paths (in view space) */
+	if (ob->mpath) {
+		bAnimVizSettings *avs= &ob->avs;
+		
+		/* setup drawing environment for paths */
+		draw_motion_paths_init(scene, v3d, ar);
+		
+		/* draw motion path for object */
+		draw_motion_path_instance(scene, v3d, ar, ob, NULL, avs, ob->mpath);
+		
+		/* cleanup after drawing */
+		draw_motion_paths_cleanup(scene, v3d, ar);
+	}
 
 	/* multiply view with object matrix.
 	 * local viewmat and persmat, to calculate projections */

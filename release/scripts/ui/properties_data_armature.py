@@ -162,54 +162,7 @@ class DATA_PT_bone_groups(DataButtonsPanel):
         #row.operator("object.bone_group_select", text="Select")
         #row.operator("object.bone_group_deselect", text="Deselect")
 
-
-class DATA_PT_paths(DataButtonsPanel):
-    bl_label = "Paths"
-
-    def draw(self, context):
-        layout = self.layout
-
-        arm = context.armature
-        wide_ui = context.region.width > narrowui
-
-        if wide_ui:
-            layout.prop(arm, "paths_type", expand=True)
-        else:
-            layout.prop(arm, "paths_type", text="")
-
-        split = layout.split()
-
-        col = split.column()
-        sub = col.column(align=True)
-        if (arm.paths_type == 'CURRENT_FRAME'):
-            sub.prop(arm, "path_before_current", text="Before")
-            sub.prop(arm, "path_after_current", text="After")
-        elif (arm.paths_type == 'RANGE'):
-            sub.prop(arm, "path_start_frame", text="Start")
-            sub.prop(arm, "path_end_frame", text="End")
-
-        sub.prop(arm, "path_size", text="Step")
-        col.row().prop(arm, "paths_location", expand=True)
-
-        if wide_ui:
-            col = split.column()
-        col.label(text="Display:")
-        col.prop(arm, "paths_show_frame_numbers", text="Frame Numbers")
-        col.prop(arm, "paths_highlight_keyframes", text="Keyframes")
-        col.prop(arm, "paths_show_keyframe_numbers", text="Keyframe Numbers")
-
-        layout.separator()
-
-        split = layout.split()
-
-        col = split.column()
-        col.operator("pose.paths_calculate", text="Calculate Paths")
-
-        if wide_ui:
-            col = split.column()
-        col.operator("pose.paths_clear", text="Clear Paths")
-
-
+# TODO: this panel will soon be depreceated too
 class DATA_PT_ghost(DataButtonsPanel):
     bl_label = "Ghost"
 
@@ -302,7 +255,6 @@ bpy.types.register(DATA_PT_context_arm)
 bpy.types.register(DATA_PT_skeleton)
 bpy.types.register(DATA_PT_display)
 bpy.types.register(DATA_PT_bone_groups)
-bpy.types.register(DATA_PT_paths)
 bpy.types.register(DATA_PT_ghost)
 bpy.types.register(DATA_PT_iksolver_itasc)
 

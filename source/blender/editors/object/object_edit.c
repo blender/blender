@@ -1610,6 +1610,118 @@ void copy_attr_menu(Scene *scene, View3D *v3d)
 	copy_attr(scene, v3d, event);
 }
 
+/* ********************************************** */
+/* Motion Paths */
+
+/* For the object with pose/action: update paths for those that have got them
+ * This should selectively update paths that exist...
+ *
+ * To be called from various tools that do incremental updates 
+ */
+void ED_objects_recalculate_paths(bContext *C, Scene *scene)
+{
+	ListBase targets = {NULL, NULL};
+	
+	/* loop over objects in scene */
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
+	{
+		/* set flag to force recalc, then grab the relevant bones to target */
+		ob->avs.recalc |= ANIMVIZ_RECALC_PATHS;
+		animviz_get_object_motionpaths(ob, &targets);
+	}
+	CTX_DATA_END;
+	
+	/* recalculate paths, then free */
+	animviz_calc_motionpaths(scene, &targets);
+	BLI_freelistN(&targets);
+}
+
+/* For the object with pose/action: create path curves for selected bones 
+ * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
+ */
+static int object_calculate_paths_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	/* set up path data for bones being calculated */
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects)  
+	{
+		/* verify makes sure that the selected bone has a bone with the appropriate settings */
+		animviz_verify_motionpaths(scene, ob, NULL);
+	}
+	CTX_DATA_END;
+	
+	/* calculate the bones that now have motionpaths... */
+	// TODO: only make for the selected bones?
+	ED_objects_recalculate_paths(C, scene);
+	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	
+	return OPERATOR_FINISHED; 
+}
+
+void OBJECT_OT_paths_calculate (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Calculate Object Paths";
+	ot->idname= "OBJECT_OT_paths_calculate";
+	ot->description= "Calculate paths for the selected bones.";
+	
+	/* api callbacks */
+	ot->exec= object_calculate_paths_exec;
+	ot->poll= ED_operator_object_active_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* --------- */
+
+/* for the object with pose/action: clear path curves for selected bones only */
+void ED_objects_clear_paths(bContext *C, Scene *scene)
+{
+	/* loop over objects in scene */
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) 
+	{
+		if (ob->mpath) {
+			animviz_free_motionpath(ob->mpath);
+			ob->mpath= NULL;
+		}
+	}
+	CTX_DATA_END;
+}
+
+/* operator callback for this */
+static int object_clear_paths_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	
+	/* use the backend function for this */
+	ED_objects_clear_paths(C, scene);
+	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	
+	return OPERATOR_FINISHED; 
+}
+
+void OBJECT_OT_paths_clear (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Object Paths";
+	ot->idname= "OBJECT_OT_paths_clear";
+	ot->description= "Clear path caches for selected bones.";
+	
+	/* api callbacks */
+	ot->exec= object_clear_paths_exec;
+	ot->poll= ED_operator_object_active_editable;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
 /********************** Smooth/Flat *********************/
 
 static int shade_smooth_exec(bContext *C, wmOperator *op)

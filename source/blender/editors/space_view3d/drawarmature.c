@@ -2118,200 +2118,21 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
  */
 static void draw_pose_paths(Scene *scene, View3D *v3d, ARegion *ar, Object *ob)
 {
-	RegionView3D *rv3d= ar->regiondata;
-	AnimData *adt= BKE_animdata_from_id(&ob->id);
+	bAnimVizSettings *avs= &ob->pose->avs;
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
-	ActKeyColumn *ak;
-	DLRBT_Tree keys;
-	float *fp, *fp_start;
-	int a, stepsize;
-	int sfra, efra, len;
 	
-	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	/* setup drawing environment for paths */
+	draw_motion_paths_init(scene, v3d, ar);
 	
-	glPushMatrix();
-	glLoadMatrixf(rv3d->viewmat);
-	
-	/* version patch here - cannot access frame info from file reading */
-	if (arm->pathsize == 0) arm->pathsize= 1;
-	stepsize = arm->pathsize;
-	
+	/* draw paths where they exist and they releated bone is visible */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (pchan->bone->layer & arm->layer) {
-			if (pchan->path) {
-				/* version patch here - cannot access frame info from file reading */
-				if ((pchan->pathsf == 0) || (pchan->pathef == 0)) {
-					pchan->pathsf= SFRA;
-					pchan->pathef= EFRA;
-				}
-				
-				/* get frame ranges */
-				if (arm->pathflag & ARM_PATH_ACFRA) {
-					int sind;
-					
-					/* With "Around Current", we only choose frames from around 
-					 * the current frame to draw. However, this range is still 
-					 * restricted by the limits of the original path.
-					 */
-					sfra= CFRA - arm->pathbc;
-					efra= CFRA + arm->pathac;
-					if (sfra < pchan->pathsf) sfra= pchan->pathsf;
-					if (efra > pchan->pathef) efra= pchan->pathef;
-					
-					len= efra - sfra;
-					
-					sind= sfra - pchan->pathsf;
-					fp_start= (pchan->path + (3*sind));
-				}
-				else {
-					sfra= pchan->pathsf;
-					efra = sfra + pchan->pathlen;
-					len = pchan->pathlen;
-					fp_start = pchan->path;
-				}
-				
-				/* draw curve-line of path */
-				glShadeModel(GL_SMOOTH);
-				
-				glBegin(GL_LINE_STRIP); 				
-				for (a=0, fp=fp_start; a<len; a++, fp+=3) {
-					float intensity; /* how faint */
-					
-					/* set color
-					 * 	- more intense for active/selected bones, less intense for unselected bones
-					 * 	- black for before current frame, green for current frame, blue for after current frame
-					 * 	- intensity decreases as distance from current frame increases
-					 */
-					#define SET_INTENSITY(A, B, C, min, max) (((1.0f - ((C - B) / (C - A))) * (max-min)) + min) 
-					if ((a+sfra) < CFRA) {
-						/* black - before cfra */
-						if (pchan->bone->flag & BONE_SELECTED) {
-							// intensity= 0.5f;
-							intensity = SET_INTENSITY(sfra, a, CFRA, 0.25f, 0.75f);
-						}
-						else {
-							//intensity= 0.8f;
-							intensity = SET_INTENSITY(sfra, a, CFRA, 0.68f, 0.92f);
-						}
-						UI_ThemeColorBlend(TH_WIRE, TH_BACK, intensity);
-					}
-					else if ((a+sfra) > CFRA) {
-						/* blue - after cfra */
-						if (pchan->bone->flag & BONE_SELECTED) {
-							//intensity = 0.5f;
-							intensity = SET_INTENSITY(CFRA, a, efra, 0.25f, 0.75f);
-						}
-						else {
-							//intensity = 0.8f;
-							intensity = SET_INTENSITY(CFRA, a, efra, 0.68f, 0.92f);
-						}
-						UI_ThemeColorBlend(TH_BONE_POSE, TH_BACK, intensity);
-					}
-					else {
-						/* green - on cfra */
-						if (pchan->bone->flag & BONE_SELECTED) {
-							intensity= 0.5f;
-						}
-						else {
-							intensity= 0.99f;
-						}
-						UI_ThemeColorBlendShade(TH_CFRAME, TH_BACK, intensity, 10);
-					}	
-					
-					/* draw a vertex with this color */ 
-					glVertex3fv(fp);
-				}
-				
-				glEnd();
-				glShadeModel(GL_FLAT);
-				
-				glPointSize(1.0);
-				
-				/* draw little black point at each frame
-				 * NOTE: this is not really visible/noticable
-				 */
-				glBegin(GL_POINTS);
-				for (a=0, fp=fp_start; a<len; a++, fp+=3) 
-					glVertex3fv(fp);
-				glEnd();
-				
-				/* Draw little white dots at each framestep value */
-				UI_ThemeColor(TH_TEXT_HI);
-				glBegin(GL_POINTS);
-				for (a=0, fp=fp_start; a<len; a+=stepsize, fp+=(stepsize*3)) 
-					glVertex3fv(fp);
-				glEnd();
-				
-				/* Draw frame numbers at each framestep value */
-				if (arm->pathflag & ARM_PATH_FNUMS) {
-					for (a=0, fp=fp_start; a<len; a+=stepsize, fp+=(stepsize*3)) {
-						char str[32];
-						
-						/* only draw framenum if several consecutive highlighted points don't occur on same point */
-						if (a == 0) {
-							sprintf(str, "%d", (a+sfra));
-							view3d_cached_text_draw_add(fp[0], fp[1], fp[2], str, 0);
-						}
-						else if ((a > stepsize) && (a < len-stepsize)) { 
-							if ((equals_v3v3(fp, fp-(stepsize*3))==0) || (equals_v3v3(fp, fp+(stepsize*3))==0)) {
-								sprintf(str, "%d", (a+sfra));
-								view3d_cached_text_draw_add(fp[0], fp[1], fp[2], str, 0);
-							}
-						}
-					}
-				}
-				
-				/* Keyframes - dots and numbers */
-				if (arm->pathflag & ARM_PATH_KFRAS) {
-					/* build list of all keyframes in active action for pchan */
-					BLI_dlrbTree_init(&keys);
-					
-					if (adt) {
-						bActionGroup *agrp= action_groups_find_named(adt->action, pchan->name);
-						if (agrp) {
-							agroup_to_keylist(adt, agrp, &keys, NULL);
-							BLI_dlrbTree_linkedlist_sync(&keys);
-						}
-					}
-					
-					/* Draw slightly-larger yellow dots at each keyframe */
-					UI_ThemeColor(TH_VERTEX_SELECT);
-					glPointSize(5.0f);
-					
-					glBegin(GL_POINTS);
-					for (a=0, fp=fp_start; a<len; a++, fp+=3) {
-						for (ak= keys.first; ak; ak= ak->next) {
-							if (ak->cfra == (a+sfra))
-								glVertex3fv(fp);
-						}
-					}
-					glEnd();
-					
-					glPointSize(1.0f);
-					
-					/* Draw frame numbers of keyframes  */
-					if ((arm->pathflag & ARM_PATH_FNUMS) || (arm->pathflag & ARM_PATH_KFNOS)) {
-						for(a=0, fp=fp_start; a<len; a++, fp+=3) {
-							for (ak= keys.first; ak; ak= ak->next) {
-								if (ak->cfra == (a+sfra)) {
-									char str[32];
-									
-									sprintf(str, "%d", (a+sfra));
-									view3d_cached_text_draw_add(fp[0], fp[1], fp[2], str, 0);
-								}
-							}
-						}
-					}
-					
-					BLI_dlrbTree_free(&keys);
-				}
-			}
-		}
+		if ((pchan->bone->layer & arm->layer) && (pchan->mpath))
+			draw_motion_path_instance(scene, v3d, ar, ob, pchan, avs, pchan->mpath);
 	}
 	
-	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-	glPopMatrix();
+	/* cleanup after drawing */
+	draw_motion_paths_cleanup(scene, v3d, ar);
 }
 
 

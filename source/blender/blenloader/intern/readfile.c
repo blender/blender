@@ -10381,9 +10381,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					
 					avs->ghost_sf= arm->ghostsf;
 					avs->ghost_ef= arm->ghostef;
+					if ((avs->ghost_sf == avs->ghost_ef) && (avs->ghost_sf == 0)) {
+						avs->ghost_sf= 1;
+						avs->ghost_ef= 100;
+					}
 					
 						/* type */
-					avs->ghost_type= arm->ghosttype;
+					if (arm->ghostep == 0)
+						avs->ghost_type= GHOST_TYPE_NONE;
+					else
+						avs->ghost_type= arm->ghosttype + 1;
 					
 						/* stepsize */
 					avs->ghost_step= arm->ghostsize;
@@ -10394,9 +10401,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						/* ranges */
 					avs->path_bc= arm->pathbc;
 					avs->path_ac= arm->pathac;
+					if ((avs->path_bc == avs->path_ac) && (avs->path_bc == 0))
+						avs->path_bc= avs->path_ac= 10;
 					
 					avs->path_sf= arm->pathsf;
 					avs->path_ef= arm->pathef;
+					if ((avs->path_sf == avs->path_ef) && (avs->path_sf == 0)) {
+						avs->path_sf= 1;
+						avs->path_ef= 250;
+					}
 					
 						/* flags */
 					if (arm->pathflag & ARM_PATH_FNUMS)
@@ -10419,6 +10432,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if (avs->path_step == 0)
 						avs->path_step= 1;
 				}
+				else
+					animviz_settings_init(&ob->pose->avs);
 			}
 		}
 		

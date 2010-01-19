@@ -95,6 +95,10 @@ void ED_object_single_users(struct Scene *scene, int full);
 int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);
 
+/* object motion paths */
+void ED_objects_clear_paths(struct bContext *C, struct Scene *scene);
+void ED_objects_recalculate_paths(struct bContext *C, struct Scene *scene);
+
 /* constraints */
 struct ListBase *get_active_constraints(struct Object *ob);
 struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **pchan_r);
