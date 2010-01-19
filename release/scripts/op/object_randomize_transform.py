@@ -29,17 +29,20 @@ def randomize_selected(seed, loc, rot, scale, scale_even, scale_min):
     def rand_vec(vec_range):
         return Vector([uniform(-val, val) for val in vec_range])
 
-
     for obj in bpy.context.selected_objects:
         
         if loc:
             obj.location += rand_vec(loc)
+        else: # otherwise the values change under us
+            uniform(0.0, 0.0), uniform(0.0, 0.0), uniform(0.0, 0.0)
         
         if rot: # TODO, non euler's
             vec = rand_vec(rot)
             obj.rotation_euler[0] += vec[0]
             obj.rotation_euler[1] += vec[1]
             obj.rotation_euler[2] += vec[2]
+        else:
+            uniform(0.0, 0.0), uniform(0.0, 0.0), uniform(0.0, 0.0)
 
         if scale:
             org_sca_x, org_sca_y, org_sca_z = obj.scale
@@ -63,6 +66,8 @@ def randomize_selected(seed, loc, rot, scale, scale_even, scale_min):
             if aZ < bZ: aZ = bZ
 
             obj.scale = aX, aY, aZ
+        else:
+            uniform(0.0, 0.0), uniform(0.0, 0.0), uniform(0.0, 0.0)
 
 from bpy.props import *
 
