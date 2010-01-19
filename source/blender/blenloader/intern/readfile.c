@@ -10136,7 +10136,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			Scene *sce=main->scene.first;
 			Material *ma=main->mat.first;
 			World *wo=main->world.first;
-			int convert=0;
+			Tex *tex=main->tex.first;
+			int i, convert=0;
 			
 			/* convert to new color management system:
 			 while previously colors were stored as srgb, 
@@ -10152,11 +10153,37 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			
 			if (convert) {
 				while(ma) {
+					if (ma->ramp_col) {
+						ColorBand *band = (ColorBand *)ma->ramp_col;
+						for (i=0; i<band->tot; i++) {
+							CBData *data = band->data + i;
+							srgb_to_linearrgb_v3_v3(&data->r, &data->r);
+						}
+					}
+					if (ma->ramp_spec) {
+						ColorBand *band = (ColorBand *)ma->ramp_spec;
+						for (i=0; i<band->tot; i++) {
+							CBData *data = band->data + i;
+							srgb_to_linearrgb_v3_v3(&data->r, &data->r);
+						}
+					}
+					
 					srgb_to_linearrgb_v3_v3(&ma->r, &ma->r);
 					srgb_to_linearrgb_v3_v3(&ma->specr, &ma->specr);
 					srgb_to_linearrgb_v3_v3(&ma->mirr, &ma->mirr);
 					srgb_to_linearrgb_v3_v3(ma->sss_col, ma->sss_col);
 					ma=ma->id.next;
+				}
+				
+				while(tex) {
+					if (tex->coba) {
+						ColorBand *band = (ColorBand *)tex->coba;
+						for (i=0; i<band->tot; i++) {
+							CBData *data = band->data + i;
+							srgb_to_linearrgb_v3_v3(&data->r, &data->r);
+						}
+					}
+					tex=tex->id.next;
 				}
 				
 				while(wo) {
