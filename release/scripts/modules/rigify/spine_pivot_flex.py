@@ -304,6 +304,9 @@ def main(obj, bone_definition, base_names, options):
     mt_chain.update()
     ex_chain.update()
     rv_chain.update()
+    
+    # Axis locks
+    ex.ribcage_copy_p.lock_location = True, True, True
 
     # df.pelvis_p / DEF-wgt_pelvis
     con = df.pelvis_p.constraints.new('COPY_LOCATION')
@@ -437,7 +440,10 @@ def main(obj, bone_definition, base_names, options):
         # Add bend prop
         prop_name = "bend_%.2d" % i
         prop = rna_idprop_ui_prop_get(ex.ribcage_copy_p, prop_name, create=True)
-        ex.ribcage_copy_p[prop_name] = 1.0
+        if ("bend_%.2d" % i) in options:
+            ex.ribcage_copy_p[prop_name] = options["bend_%.2d" % i]
+        else:
+            ex.ribcage_copy_p[prop_name] = 1.0
         prop["soft_min"] = 0.0
         prop["soft_max"] = 1.0
 

@@ -152,6 +152,7 @@ def main(obj, bone_definition, base_names, options):
 
     control_pbone.rotation_mode = 'YZX'
     control_pbone.lock_rotation = False, True, True
+    control_pbone.lock_location = True, True, True
 
     driver_fcurves = pinky_pbone.driver_add("rotation_euler")
 
@@ -163,6 +164,8 @@ def main(obj, bone_definition, base_names, options):
     prop = rna_idprop_ui_prop_get(control_pbone, "spread", create=True)
     prop["soft_min"] = -1.0
     prop["soft_max"] = 1.0
+    prop["min"] = -1.0
+    prop["max"] = 1.0
 
 
     # *****

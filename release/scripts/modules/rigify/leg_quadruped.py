@@ -19,6 +19,8 @@
 # <pep8 compliant>
 
 import bpy
+from rna_prop_ui import rna_idprop_ui_prop_get
+from math import pi
 from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple, add_pole_target_bone, get_side_name, get_base_name
 from Mathutils import Vector
@@ -104,6 +106,8 @@ def metarig_definition(obj, orig_bone_name):
 
 
 def ik(obj, bone_definition, base_names, options):
+    eb = obj.data.edit_bones
+    pb = obj.pose.bones
     arm = obj.data
     bpy.ops.object.mode_set(mode='EDIT')
 
@@ -114,13 +118,14 @@ def ik(obj, bone_definition, base_names, options):
     mt.attr_initialize(METARIG_NAMES, bone_definition)
     mt_chain.attr_initialize(METARIG_NAMES, bone_definition)
 
-    ik_chain = mt_chain.copy(to_fmt="%s", base_names=base_names)
+    ik_chain = mt_chain.copy(to_fmt="MCH-%s.ik", base_names=base_names)
 
     ik_chain.thigh_e.connected = False
     ik_chain.thigh_e.parent = mt.hips_e
 
     ik_chain.foot_e.parent = None
-    ik_chain.rename("foot", get_base_name(ik_chain.foot) + "_ik" + get_side_name(ik_chain.foot))
+    ik_chain.rename("foot", get_base_name(base_names[bone_definition[3]]) + "_ik" + get_side_name(base_names[bone_definition[3]]))
+    ik_chain.rename("toe", get_base_name(base_names[bone_definition[4]]) + "_ik" + get_side_name(base_names[bone_definition[4]]))
 
     # keep the foot_ik as the parent
     ik_chain.toe_e.connected = False
@@ -129,21 +134,29 @@ def ik(obj, bone_definition, base_names, options):
     ik_chain.foot_e.align_orientation(mt_chain.toe_e)
 
     # children of ik_foot
-    ik = bone_class_instance(obj, ["foot_roll", "foot_roll_01", "foot_roll_02", "knee_target", "foot_target"])
+    ik = bone_class_instance(obj, ["foot_roll", "foot_roll_01", "foot_roll_02", "foot_target"])
 
-    ik.knee_target = add_pole_target_bone(obj, mt_chain.shin, "knee_target" + get_side_name(base_names[mt_chain.foot])) #XXX - pick a better name
-    ik.update()
-    ik.knee_target_e.parent = mt.hips_e
+    # knee rotator
+    knee_rotator = copy_bone_simple(arm, mt_chain.toe, "knee_rotator" + get_side_name(base_names[mt_chain.foot]), parent=True).name
+    eb[knee_rotator].connected = False
+    eb[knee_rotator].parent = eb[mt.hips]
+    eb[knee_rotator].head = eb[ik_chain.thigh].head
+    eb[knee_rotator].tail = eb[knee_rotator].head + eb[mt_chain.toe].vector
+    eb[knee_rotator].length = eb[ik_chain.thigh].length / 2
+    eb[knee_rotator].roll += pi/2
+    
+    # parent ik leg to the knee rotator
+    eb[ik_chain.thigh].parent = eb[knee_rotator]
 
     # foot roll is an interesting one!
     # plot a vector from the toe bones head, bactwards to the length of the foot
     # then align it with the foot but reverse direction.
     ik.foot_roll_e = copy_bone_simple(arm, mt_chain.toe, get_base_name(base_names[mt_chain.foot]) + "_roll" + get_side_name(base_names[mt_chain.foot]))
     ik.foot_roll = ik.foot_roll_e.name
+    ik.foot_roll_e.connected = False
     ik.foot_roll_e.parent = ik_chain.foot_e
-    ik.foot_roll_e.translate(- (mt_chain.toe_e.vector.normalize() * mt_chain.foot_e.length))
-    ik.foot_roll_e.align_orientation(mt_chain.foot_e)
-    ik.foot_roll_e.tail = ik.foot_roll_e.head - ik.foot_roll_e.vector # flip
+    ik.foot_roll_e.head -= mt_chain.toe_e.vector.normalize() * mt_chain.foot_e.length
+    ik.foot_roll_e.tail = ik.foot_roll_e.head - (mt_chain.foot_e.vector.normalize() * mt_chain.toe_e.length)
     ik.foot_roll_e.align_roll(mt_chain.foot_e.matrix.rotationPart() * Vector(0.0, 0.0, -1.0))
 
     # MCH-foot
@@ -173,23 +186,74 @@ def ik(obj, bone_definition, base_names, options):
     mt_chain.update()
     ik.update()
     ik_chain.update()
+    
+    # Set rotation modes and axis locks
+    #pb[knee_rotator].rotation_mode = 'YXZ'
+    #pb[knee_rotator].lock_rotation = False, True, False
+    pb[knee_rotator].lock_location = True, True, True
+    pb[ik.foot_roll].rotation_mode = 'XYZ'
+    pb[ik.foot_roll].lock_rotation = False, True, True
+    pb[ik_chain.toe].rotation_mode = 'XYZ'
+    pb[ik_chain.toe].lock_rotation = False, True, True
+    
+    # IK switch property
+    prop = rna_idprop_ui_prop_get(pb[ik_chain.foot], "ik", create=True)
+    pb[ik_chain.foot]["ik"] = 1.0
+    prop["soft_min"] = 0.0
+    prop["soft_max"] = 1.0
+    prop["min"] = 0.0
+    prop["max"] = 1.0
+    
+    ik_driver_path = pb[ik_chain.foot].path_to_id() + '["ik"]'
 
     # simple constraining of orig bones
     con = mt_chain.thigh_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = ik_chain.thigh
+    fcurve = con.driver_add("influence", 0)
+    driver = fcurve.driver
+    var = driver.variables.new()
+    driver.type = 'AVERAGE'
+    var.name = "var"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = ik_driver_path
 
     con = mt_chain.shin_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = ik_chain.shin
+    fcurve = con.driver_add("influence", 0)
+    driver = fcurve.driver
+    var = driver.variables.new()
+    driver.type = 'AVERAGE'
+    var.name = "var"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = ik_driver_path
 
     con = mt_chain.foot_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = ik.foot_roll_02
+    fcurve = con.driver_add("influence", 0)
+    driver = fcurve.driver
+    var = driver.variables.new()
+    driver.type = 'AVERAGE'
+    var.name = "var"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = ik_driver_path
 
     con = mt_chain.toe_p.constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = ik_chain.toe
+    fcurve = con.driver_add("influence", 0)
+    driver = fcurve.driver
+    var = driver.variables.new()
+    driver.type = 'AVERAGE'
+    var.name = "var"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = ik_driver_path
 
     # others...
     con = ik.foot_roll_01_p.constraints.new('COPY_ROTATION')
@@ -211,8 +275,7 @@ def ik(obj, bone_definition, base_names, options):
     con.target = obj
     con.subtarget = ik.foot_target
 
-    con.pole_target = obj
-    con.pole_subtarget = ik.knee_target
+    con.pole_target = None
 
     ik.update()
     ik_chain.update()
@@ -226,12 +289,204 @@ def ik(obj, bone_definition, base_names, options):
         obj.data.bones[getattr(ik_chain, attr)].layer = layer
     for attr in ik.attr_names:
         obj.data.bones[getattr(ik, attr)].layer = layer
+    obj.data.bones[knee_rotator].layer = layer
+    
+    return None, ik_chain.thigh, ik_chain.shin, ik_chain.foot, ik_chain.toe
     
 
 
-    return None, ik_chain.thigh, ik_chain.shin, ik_chain.foot, ik_chain.toe
+def fk(obj, bone_definition, base_names, options):
+    eb = obj.data.edit_bones
+    pb = obj.pose.bones
+    arm = obj.data
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    # setup the existing bones, use names from METARIG_NAMES
+    mt = bone_class_instance(obj, ["hips"])
+    mt_chain = bone_class_instance(obj, ["thigh", "shin", "foot", "toe"])
+
+    mt.attr_initialize(METARIG_NAMES, bone_definition)
+    mt_chain.attr_initialize(METARIG_NAMES, bone_definition)
+    
+    fk_chain = mt_chain.copy(to_fmt="%s", base_names=base_names)
+    
+    # Create the socket
+    socket = copy_bone_simple(arm, mt_chain.thigh, "MCH-leg_socket").name
+    eb[socket].parent = eb[mt.hips]
+    eb[socket].length = eb[mt_chain.thigh].length / 4
+    
+    # Create the hinge
+    hinge = copy_bone_simple(arm, mt.hips, "MCH-leg_hinge").name
+    eb[hinge].length = eb[mt.hips].length / 2
+    
+    # Make leg child of hinge
+    eb[fk_chain.thigh].connected = False
+    eb[fk_chain.thigh].parent = eb[hinge]
+    
+    
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # Set rotation modes and axis locks
+    pb[fk_chain.shin].rotation_mode = 'XYZ'
+    pb[fk_chain.shin].lock_rotation = False, True, True
+    
+    # Constrain original bones to control bones
+    con = mt_chain.thigh_p.constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = fk_chain.thigh
+    
+    con = mt_chain.shin_p.constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = fk_chain.shin
+
+    con = mt_chain.foot_p.constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = fk_chain.foot
+
+    con = mt_chain.toe_p.constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = fk_chain.toe
+    
+    # Socket constraint
+    con = pb[fk_chain.thigh].constraints.new('COPY_LOCATION')
+    con.target = obj
+    con.subtarget = socket
+    
+    # Hinge constraint
+    con = pb[hinge].constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = mt.hips
+    
+    prop = rna_idprop_ui_prop_get(pb[fk_chain.thigh], "hinge", create=True)
+    pb[fk_chain.thigh]["hinge"] = 0.0
+    prop["soft_min"] = 0.0
+    prop["soft_max"] = 1.0
+    prop["min"] = 0.0
+    prop["max"] = 1.0
+    
+    hinge_driver_path = pb[fk_chain.thigh].path_to_id() + '["hinge"]'
+
+    fcurve = con.driver_add("influence", 0)
+    driver = fcurve.driver
+    var = driver.variables.new()
+    driver.type = 'AVERAGE'
+    var.name = "var"
+    var.targets[0].id_type = 'OBJECT'
+    var.targets[0].id = obj
+    var.targets[0].data_path = hinge_driver_path
+
+    mod = fcurve.modifiers[0]
+    mod.poly_order = 1
+    mod.coefficients[0] = 1.0
+    mod.coefficients[1] = -1.0
+    
+    return None, fk_chain.thigh, fk_chain.shin, fk_chain.foot, fk_chain.toe
+
+
+
+
+def deform(obj, definitions, base_names, options):
+    bpy.ops.object.mode_set(mode='EDIT')
+
+    # Create upper leg bones: two bones, each half of the upper leg.
+    uleg1 = copy_bone_simple(obj.data, definitions[1], "DEF-%s.01" % base_names[definitions[1]], parent=True)
+    uleg2 = copy_bone_simple(obj.data, definitions[1], "DEF-%s.02" % base_names[definitions[1]], parent=True)
+    uleg1.connected = False
+    uleg2.connected = False
+    uleg2.parent = uleg1
+    center = uleg1.center
+    uleg1.tail = center
+    uleg2.head = center
+    
+    # Create lower leg bones: two bones, each half of the lower leg.
+    lleg1 = copy_bone_simple(obj.data, definitions[2], "DEF-%s.01" % base_names[definitions[2]], parent=True)
+    lleg2 = copy_bone_simple(obj.data, definitions[2], "DEF-%s.02" % base_names[definitions[2]], parent=True)
+    lleg1.connected = False
+    lleg2.connected = False
+    lleg2.parent = lleg1
+    center = lleg1.center
+    lleg1.tail = center
+    lleg2.head = center
+    
+    # Create a bone for the second lower leg deform bone to twist with
+    twist = copy_bone_simple(obj.data, lleg2.name, "MCH-leg_twist")
+    twist.length /= 4
+    twist.connected = False
+    twist.parent = obj.data.edit_bones[definitions[3]]
+    
+    # Create foot bone
+    foot = copy_bone_simple(obj.data, definitions[3], "DEF-%s" % base_names[definitions[3]], parent=True)
+    
+    # Create toe bone
+    toe = copy_bone_simple(obj.data, definitions[4], "DEF-%s" % base_names[definitions[4]], parent=True)
+    
+    # Store names before leaving edit mode
+    uleg1_name = uleg1.name
+    uleg2_name = uleg2.name
+    lleg1_name = lleg1.name
+    lleg2_name = lleg2.name
+    twist_name = twist.name
+    foot_name = foot.name
+    toe_name = toe.name
+    
+    # Leave edit mode
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # Get the pose bones
+    uleg1 = obj.pose.bones[uleg1_name]
+    uleg2 = obj.pose.bones[uleg2_name]
+    lleg1 = obj.pose.bones[lleg1_name]
+    lleg2 = obj.pose.bones[lleg2_name]
+    foot = obj.pose.bones[foot_name]
+    toe = obj.pose.bones[toe_name]
+    
+    # Upper leg constraints
+    con = uleg1.constraints.new('DAMPED_TRACK')
+    con.name = "trackto"
+    con.target = obj
+    con.subtarget = definitions[2]
+    
+    con = uleg2.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[1]
+    
+    # Lower leg constraints
+    con = lleg1.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[2]
+    
+    con = lleg2.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = twist_name
+    
+    con = lleg2.constraints.new('DAMPED_TRACK')
+    con.name = "trackto"
+    con.target = obj
+    con.subtarget = definitions[3]
+    
+    # Foot constraint
+    con = foot.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[3]
+    
+    # Toe constraint
+    con = toe.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[4]
+    
+    bpy.ops.object.mode_set(mode='EDIT')
+    return (uleg1_name, uleg2_name, lleg1_name, lleg2_name, foot_name, toe_name, None)
+    
+
 
 
 def main(obj, bone_definition, base_names, options):
+    bones_fk = fk(obj, bone_definition, base_names, options)
     bones_ik = ik(obj, bone_definition, base_names, options)
+    deform(obj, bone_definition, base_names, options)
     return bones_ik

@@ -213,6 +213,9 @@ def main(obj, bone_definition, base_names, options):
     ex_chain.update()
     ex.update()
 
+    # Axis locks
+    ex.head_ctrl_p.lock_location = True, True, True
+
     # Simple one off constraints, no drivers
     con = ex.head_ctrl_p.constraints.new('COPY_LOCATION')
     con.target = obj

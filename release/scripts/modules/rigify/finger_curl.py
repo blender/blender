@@ -150,103 +150,171 @@ def deform(obj, definitions, base_names, options):
 
 def main(obj, bone_definition, base_names, options):
     # *** EDITMODE
-
+    bpy.ops.object.mode_set(mode='EDIT')
+    
     # get assosiated data
     arm = obj.data
-    orig_ebone = arm.edit_bones[bone_definition[0]]
+    bb = obj.data.bones
+    eb = obj.data.edit_bones
+    pb = obj.pose.bones
+    
+    org_f1 = bone_definition[0] # Original finger bone 01
+    org_f2 = bone_definition[1] # Original finger bone 02
+    org_f3 = bone_definition[2] # Original finger bone 03
+    
+    # Check options
+    if "bend_ratio" in options:
+        bend_ratio = options["bend_ratio"]
+    else:
+        bend_ratio = 0.4
+    
+    yes = [1, 1.0, True, "True", "true", "Yes", "yes"]
+    make_hinge = False
+    if ("hinge" in options) and (eb[org_f1].parent is not None):
+        if options["hinge"] in yes:
+            make_hinge = True
 
-    obj.animation_data_create() # needed if its a new armature with no keys
+    
+    # Needed if its a new armature with no keys
+    obj.animation_data_create() 
 
-    children = orig_ebone.children_recursive
-    tot_len = reduce(lambda f, ebone: f + ebone.length, children, orig_ebone.length)
-
-    # FIXME, the line below is far too arbitrary
-    base_name = base_names[bone_definition[0]].rsplit(".", 2)[0]
-
-    # first make a new bone at the location of the finger
-    #control_ebone = arm.edit_bones.new(base_name)
-    control_ebone = copy_bone_simple(arm, bone_definition[0], base_name + get_side_name(base_names[bone_definition[0]]), parent=True)
-    control_bone_name = control_ebone.name # we dont know if we get the name requested
-
-    control_ebone.connected = orig_ebone.connected
-    control_ebone.parent = orig_ebone.parent
-    control_ebone.length = tot_len
-
-    # now add bones inbetween this and its children recursively
-
-    # switching modes so store names only!
-    children = [ebone.name for ebone in children]
-
-    driver_bone_pairs = []
-
-    for child_bone_name in children:
-        child_ebone = arm.edit_bones[child_bone_name]
-
-        # finger.02 --> finger_driver.02
-        driver_bone_name = child_bone_name.split('.')
-        driver_bone_name = driver_bone_name[0] + "_driver." + ".".join(driver_bone_name[1:])
-
-        driver_ebone = copy_bone_simple(arm, child_ebone.name, driver_bone_name)
-        driver_ebone.length *= 0.5
-
-        # Insert driver_ebone in the chain without connected parents
-        driver_ebone.connected = False
-        driver_ebone.parent = child_ebone.parent
-
-        child_ebone.connected = False
-        child_ebone.parent = driver_ebone
-
-        # Add the drivers to these when in posemode.
-        driver_bone_pairs.append((child_bone_name, driver_bone_name))
-
-    del control_ebone
-
+    # Create the control bone
+    base_name = base_names[bone_definition[0]].split(".", 1)[0]
+    tot_len = eb[org_f1].length + eb[org_f2].length + eb[org_f3].length
+    control = copy_bone_simple(arm, bone_definition[0], base_name + get_side_name(base_names[bone_definition[0]]), parent=True).name
+    eb[control].connected = eb[org_f1].connected
+    eb[control].parent = eb[org_f1].parent
+    eb[control].length = tot_len
+    
+    # Create secondary control bones
+    f1 = copy_bone_simple(arm, bone_definition[0], base_names[bone_definition[0]]).name
+    f2 = copy_bone_simple(arm, bone_definition[1], base_names[bone_definition[1]]).name
+    f3 = copy_bone_simple(arm, bone_definition[2], base_names[bone_definition[2]]).name
+    
+    # Create driver bones
+    df1 = copy_bone_simple(arm, bone_definition[0], "MCH-" + base_names[bone_definition[0]]).name
+    eb[df1].length /= 2
+    df2 = copy_bone_simple(arm, bone_definition[1], "MCH-" + base_names[bone_definition[1]]).name
+    eb[df2].length /= 2
+    df3 = copy_bone_simple(arm, bone_definition[2], "MCH-" + base_names[bone_definition[2]]).name
+    eb[df3].length /= 2
+    
+    # Set parents of the bones, interleaving the driver bones with the secondary control bones
+    eb[f3].connected = False
+    eb[df3].connected = False
+    eb[f2].connected = False
+    eb[df2].connected = False
+    eb[f1].connected = False
+    eb[df1].connected = eb[org_f1].connected
+    
+    eb[f3].parent = eb[df3]
+    eb[df3].parent = eb[f2]
+    eb[f2].parent = eb[df2]
+    eb[df2].parent = eb[f1]
+    eb[f1].parent = eb[df1]
+    eb[df1].parent = eb[org_f1].parent
+    
+    # Set up bones for hinge
+    if make_hinge:
+        socket = copy_bone_simple(arm, org_f1, "MCH-socket_"+control, parent=True).name
+        hinge = copy_bone_simple(arm, eb[org_f1].parent.name, "MCH-hinge_"+control).name
+        
+        eb[control].connected = False
+        eb[control].parent = eb[hinge]
+    
+    # Create the deform rig while we're still in edit mode
     deform(obj, bone_definition, base_names, options)
-
+    
+    
     # *** POSEMODE
     bpy.ops.object.mode_set(mode='OBJECT')
-
-
-    orig_pbone = obj.pose.bones[bone_definition[0]]
-    control_pbone = obj.pose.bones[control_bone_name]
-    control_bbone = arm.bones[control_bone_name]
-    control_pbone.rotation_mode = obj.pose.bones[bone_definition[0]].rotation_mode
-
-
-    # only allow Y scale
-    control_pbone.lock_scale = (True, False, True)
-
-    control_pbone["bend_ratio"] = 0.4
-    prop = rna_idprop_ui_prop_get(control_pbone, "bend_ratio", create=True)
+    
+    # Set rotation modes and axis locks
+    pb[control].rotation_mode = obj.pose.bones[bone_definition[0]].rotation_mode
+    pb[control].lock_location = True, True, True
+    pb[control].lock_scale = True, False, True
+    pb[f1].rotation_mode = 'YZX'
+    pb[f2].rotation_mode = 'YZX'
+    pb[f3].rotation_mode = 'YZX'
+    pb[f1].lock_location = True, True, True
+    pb[f2].lock_location = True, True, True
+    pb[f3].lock_location = True, True, True
+    pb[df2].rotation_mode = 'YZX'
+    pb[df3].rotation_mode = 'YZX'
+    
+    # Add the bend_ratio property to the control bone
+    pb[control]["bend_ratio"] = bend_ratio
+    prop = rna_idprop_ui_prop_get(pb[control], "bend_ratio", create=True)
     prop["soft_min"] = 0.0
     prop["soft_max"] = 1.0
-
-    con = orig_pbone.constraints.new('COPY_LOCATION')
+    
+    # Add hinge property to the control bone
+    if make_hinge:
+        pb[control]["hinge"] = 0.0
+        prop = rna_idprop_ui_prop_get(pb[control], "hinge", create=True)
+        prop["soft_min"] = 0.0
+        prop["soft_max"] = 1.0
+    
+    # Constraints
+    con = pb[df1].constraints.new('COPY_LOCATION')
     con.target = obj
-    con.subtarget = control_bone_name
+    con.subtarget = control
 
-    con = orig_pbone.constraints.new('COPY_ROTATION')
+    con = pb[df1].constraints.new('COPY_ROTATION')
     con.target = obj
-    con.subtarget = control_bone_name
+    con.subtarget = control
+    
+    con = pb[org_f1].constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = f1
+    
+    con = pb[org_f2].constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = f2
+    
+    con = pb[org_f3].constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = f3
+    
+    if make_hinge:
+        con = pb[hinge].constraints.new('COPY_TRANSFORMS')
+        con.target = obj
+        con.subtarget = bb[org_f1].parent.name
+        
+        hinge_driver_path = pb[control].path_to_id() + '["hinge"]'
 
+        fcurve = con.driver_add("influence", 0)
+        driver = fcurve.driver
+        var = driver.variables.new()
+        driver.type = 'AVERAGE'
+        var.name = "var"
+        var.targets[0].id_type = 'OBJECT'
+        var.targets[0].id = obj
+        var.targets[0].data_path = hinge_driver_path
 
-
-    # setup child drivers on each new smaller bone added. assume 2 for now.
-
-    # drives the bones
-    controller_path = control_pbone.path_to_id() # 'pose.bones["%s"]' % control_bone_name
+        mod = fcurve.modifiers[0]
+        mod.poly_order = 1
+        mod.coefficients[0] = 1.0
+        mod.coefficients[1] = -1.0
+    
+        con = pb[control].constraints.new('COPY_LOCATION')
+        con.target = obj
+        con.subtarget = socket
+    
+    # Create the drivers for the driver bones (control bone scale rotates driver bones)
+    controller_path = pb[control].path_to_id() # 'pose.bones["%s"]' % control_bone_name
 
     i = 0
-    for child_bone_name, driver_bone_name in driver_bone_pairs:
+    for bone in [df2, df3]:
 
         # XXX - todo, any number
         if i == 2:
             break
 
-        driver_pbone = obj.pose.bones[driver_bone_name]
+        pbone = pb[bone]
 
-        driver_pbone.rotation_mode = 'YZX'
-        fcurve_driver = driver_pbone.driver_add("rotation_euler", 0)
+        pbone.rotation_mode = 'YZX'
+        fcurve_driver = pbone.driver_add("rotation_euler", 0)
 
         #obj.driver_add('pose.bones["%s"].scale', 1)
         #obj.animation_data.drivers[-1] # XXX, WATCH THIS
@@ -272,24 +340,18 @@ def main(obj, bone_definition, base_names, options):
         elif i == 1:
             driver.expression = '(-scale+1.0)*pi*2.0*br'
 
-        child_pbone = obj.pose.bones[child_bone_name]
-
-        # only allow X rotation
-        driver_pbone.lock_rotation = child_pbone.lock_rotation = (False, True, True)
-
         i += 1
 
-
-    # last step setup layers
+    # Last step setup layers
     if "ex_layer" in options:
         layer = [n==options["ex_layer"] for n in range(0,32)]
     else:
         layer = list(arm.bones[bone_definition[0]].layer)
-    for child_bone_name, driver_bone_name in driver_bone_pairs:
-        arm.bones[driver_bone_name].layer = layer
+    for bone_name in [f1, f2, f3]:
+        arm.bones[bone_name].layer = layer
     
     layer = list(arm.bones[bone_definition[0]].layer)
-    control_bbone.layer = layer
+    bb[control].layer = layer
 
     # no blending the result of this
     return None
