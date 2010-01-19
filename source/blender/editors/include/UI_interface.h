@@ -216,6 +216,7 @@ typedef struct uiLayout uiLayout;
 #define LISTROW		(44<<9)
 #define HOTKEYEVT	(45<<9)
 #define BUT_IMAGE	(46<<9)
+#define HISTOGRAM	(47<<9)
 
 #define BUTTYPE		(63<<9)
 
@@ -654,6 +655,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);
 void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
+void uiTemplateHistogram(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, char *propname, int type, int levels, int brush);
 void uiTemplateColorWheel(uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider);
 void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);

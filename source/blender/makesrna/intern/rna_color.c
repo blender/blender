@@ -229,11 +229,22 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, NULL, "rna_CurveMapping_white_level_set", NULL);
 }
 
+static void rna_def_histogram(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "Histogram", NULL);
+	RNA_def_struct_ui_text(srna, "Histogram", "Statistical view of the levels of color in an image");
+	
+}
+
 void RNA_def_color(BlenderRNA *brna)
 {
 	rna_def_curvemappoint(brna);
 	rna_def_curvemap(brna);
 	rna_def_curvemapping(brna);
+	rna_def_histogram(brna);
 }
 
 #endif

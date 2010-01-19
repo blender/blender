@@ -1202,6 +1202,12 @@ static void rna_def_userdef_theme_space_image(BlenderRNA *brna)
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_ui_text(prop, "Active Vert/Edge/Face", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop= RNA_def_property(srna, "scope_back", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "preview_back");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Scope region background color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)

@@ -207,6 +207,8 @@ enum {
 	
 	TH_DOPESHEET_CHANNELOB,
 	TH_DOPESHEET_CHANNELSUBOB,
+	
+	TH_PREVIEW_BACK,
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

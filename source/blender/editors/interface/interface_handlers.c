@@ -751,7 +751,13 @@ static void ui_apply_but_LINK(bContext *C, uiBut *but, uiHandleButtonData *data)
 static void ui_apply_but_IMAGE(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	ui_apply_but_func(C, but);
+	data->retval= but->retval;
+	data->applied= 1;
+}
 
+static void ui_apply_but_HISTOGRAM(bContext *C, uiBut *but, uiHandleButtonData *data)
+{
+	ui_apply_but_func(C, but);
 	data->retval= but->retval;
 	data->applied= 1;
 }
@@ -877,6 +883,9 @@ static void ui_apply_button(bContext *C, uiBlock *block, uiBut *but, uiHandleBut
 			break;
 		case BUT_IMAGE:	
 			ui_apply_but_IMAGE(C, but, data);
+			break;
+		case HISTOGRAM:	
+			ui_apply_but_HISTOGRAM(C, but, data);
 			break;
 		default:
 			break;
@@ -3782,6 +3791,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case ROW:
 	case LISTROW:
 	case BUT_IMAGE:
+	case HISTOGRAM:
 		retval= ui_do_but_EXIT(C, but, data, event);
 		break;
 	case TEX:

@@ -878,3 +878,85 @@ void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
 	}
 }
 
+/* ***************** Histogram **************** */
+
+static inline int get_bin_float(float f)
+{
+	CLAMP(f, 0.0, 1.0);
+	
+	//return (int) (((f + 0.25) / 1.5) * 512);
+	
+	return (int)(f * 511);
+}
+
+
+void histogram_update(Histogram *hist, ImBuf *ibuf)
+{
+	int x, y, n;
+	double div;
+	float *rf;
+	unsigned char *rc;
+	unsigned int *bin_r, *bin_g, *bin_b;
+	
+	if (hist->ok == 1 ) return;
+	
+	/* hmmmm */
+	if (!(ELEM(ibuf->channels, 3, 4))) return;
+	
+	hist->channels = 3;
+	
+	bin_r = MEM_callocN(512 * sizeof(unsigned int), "temp historgram bins");
+	bin_g = MEM_callocN(512 * sizeof(unsigned int), "temp historgram bins");
+	bin_b = MEM_callocN(512 * sizeof(unsigned int), "temp historgram bins");
+	
+	if (ibuf->rect_float) {
+		hist->x_resolution = 512;
+		
+		/* divide into bins */
+		rf = ibuf->rect_float;
+		for (y = 0; y < ibuf->y; y++) {
+			for (x = 0; x < ibuf->x; x++) {
+				bin_r[ get_bin_float(rf[0]) ] += 1;
+				bin_g[ get_bin_float(rf[1]) ] += 1;
+				bin_b[ get_bin_float(rf[2]) ] += 1;
+				rf+= ibuf->channels;
+			}
+		}
+	}
+	else if (ibuf->rect) {
+		hist->x_resolution = 256;
+		
+		rc = (unsigned char *)ibuf->rect;
+		for (y = 0; y < ibuf->y; y++) {
+			for (x = 0; x < ibuf->x; x++) {
+				bin_r[ rc[0] ] += 1;
+				bin_g[ rc[1] ] += 1;
+				bin_b[ rc[2] ] += 1;
+				rc += ibuf->channels;
+			}
+		}
+	}
+	
+	/* convert to float */
+	n=0;
+	for (x=0; x<512; x++) {
+		if (bin_r[x] > n)
+			n = bin_r[x];
+		if (bin_g[x] > n)
+			n = bin_g[x];
+		if (bin_b[x] > n)
+			n = bin_b[x];
+	}
+	div = 1.f/(double)n;
+	for (x=0; x<512; x++) {
+		hist->data_r[x] = bin_r[x] * div;
+		hist->data_g[x] = bin_g[x] * div;
+		hist->data_b[x] = bin_b[x] * div;
+	}
+	
+	MEM_freeN(bin_r);
+	MEM_freeN(bin_g);
+	MEM_freeN(bin_b);
+	
+	hist->ok=1;
+}

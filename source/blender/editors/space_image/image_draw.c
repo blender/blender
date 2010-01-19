@@ -204,6 +204,16 @@ void draw_image_info(ARegion *ar, int channels, int x, int y, char *cp, float *f
 	UI_DrawString(10, 10, str);
 }
 
+static inline int get_bin_float(float f)
+{
+	CLAMP(f, 0.0, 1.0);
+	
+	//return (int) (((f + 0.25) / 1.5) * 512);
+
+	return (int)(f * 511);
+}
+
+
 /* image drawing */
 
 static void draw_image_grid(ARegion *ar, float zoomx, float zoomy)
@@ -702,6 +712,11 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	if(ibuf && ima && show_render)
 		draw_render_info(ima, ar);
 
+	/* histogram */
+	if (ibuf) {
+		histogram_update(&sima->hist, ibuf);
+	}
+	
 	/* XXX integrate this code */
 #if 0
 	if(ibuf) {

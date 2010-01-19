@@ -28,6 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_color_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
@@ -1527,9 +1528,45 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, char *propname, int 
 	MEM_freeN(cb);
 }
 
+/********************* Histogram Template ************************/
+
+void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, char *propname, int expand)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
+	PointerRNA cptr;
+	RNAUpdateCb *cb;
+	uiBlock *block;
+	uiBut *bt;
+	Histogram *hist;
+	rctf rect;
+	
+	if(!prop || RNA_property_type(prop) != PROP_POINTER)
+		return;
+	
+	cptr= RNA_property_pointer_get(ptr, prop);
+	if(!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_Histogram))
+		return;
+	
+	cb= MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
+	cb->ptr= *ptr;
+	cb->prop= prop;
+	
+	rect.xmin= 0; rect.xmax= 200;
+	rect.ymin= 0; rect.ymax= 190;
+	
+	block= uiLayoutAbsoluteBlock(layout);
+	//colorband_buttons_layout(layout, block, cptr.data, &rect, !expand, cb);
+	
+	hist = (Histogram *)cptr.data;
+	
+	bt= uiDefBut(block, HISTOGRAM, 0, "",		rect.xmin, rect.ymin, rect.xmax-rect.xmin, 100.0f, hist, 0, 0, 0, 0, "");
+	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+	
+	MEM_freeN(cb);
+}
+
 /********************* CurveMapping Template ************************/
 
-#include "DNA_color_types.h"
 #include "BKE_colortools.h"
 
 static void curvemap_buttons_zoom_in(bContext *C, void *cumap_v, void *unused)

@@ -333,6 +333,19 @@ static void rna_SpaceImageEditor_curves_update(Main *bmain, Scene *scene, Pointe
 	WM_main_add_notifier(NC_IMAGE, sima->image);
 }
 
+static void rna_SpaceImageEditor_histogram_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	SpaceImage *sima= (SpaceImage*)ptr->data;
+	ImBuf *ibuf;
+	void *lock;
+	
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
+	histogram_update(&sima->hist, ibuf);
+	ED_space_image_release_buffer(sima, lock);
+	
+	WM_main_add_notifier(NC_IMAGE, sima->image);
+}
+
 
 /* Space Text Editor */
 
@@ -1004,6 +1017,12 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "cumap");
 	RNA_def_property_ui_text(prop, "Curves", "Color curve mapping to use for displaying the image.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_SpaceImageEditor_curves_update");
+	
+	prop= RNA_def_property(srna, "histogram", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "hist");
+	RNA_def_property_struct_type(prop, "Histogram");
+	RNA_def_property_ui_text(prop, "Histogram", "Histogram for viewing image statistics");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_SpaceImageEditor_histogram_update");
 
 	prop= RNA_def_property(srna, "image_pin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pin", 0);

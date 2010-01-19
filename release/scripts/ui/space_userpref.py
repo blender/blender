@@ -735,6 +735,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             col = split.column()
             col.prop(image, "back")
+            col.prop(image, "scope_back")
             col.prop(image, "button")
 
             col = split.column()

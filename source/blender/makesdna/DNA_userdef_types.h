@@ -219,7 +219,7 @@ typedef struct ThemeSpace {
 	char handle_vertex_size;
 	char hpad[3];
 	
-	char pad[4];
+	char preview_back[4];
 	
 } ThemeSpace;
 

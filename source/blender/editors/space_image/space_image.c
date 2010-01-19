@@ -104,6 +104,33 @@ ARegion *image_has_buttons_region(ScrArea *sa)
 	return arnew;
 }
 
+ARegion *image_has_scope_region(ScrArea *sa)
+{
+	ARegion *ar, *arnew;
+	
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_PREVIEW)
+			return ar;
+	
+	/* add subdiv level; after buttons */
+	for(ar= sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_UI)
+			break;
+	
+	/* is error! */
+	if(ar==NULL) return NULL;
+	
+	arnew= MEM_callocN(sizeof(ARegion), "scopes for image");
+	
+	BLI_insertlinkafter(&sa->regionbase, ar, arnew);
+	arnew->regiontype= RGN_TYPE_PREVIEW;
+	arnew->alignment= RGN_ALIGN_RIGHT;
+	
+	arnew->flag = RGN_FLAG_HIDDEN;
+	
+	return arnew;
+}
+
 /* ******************** default callbacks for image space ***************** */
 
 static SpaceLink *image_new(const bContext *C)
@@ -133,6 +160,14 @@ static SpaceLink *image_new(const bContext *C)
 	BLI_addtail(&simage->regionbase, ar);
 	ar->regiontype= RGN_TYPE_UI;
 	ar->alignment= RGN_ALIGN_LEFT;
+	ar->flag = RGN_FLAG_HIDDEN;
+	
+	/* scopes */
+	ar= MEM_callocN(sizeof(ARegion), "buttons for image");
+	
+	BLI_addtail(&simage->regionbase, ar);
+	ar->regiontype= RGN_TYPE_PREVIEW;
+	ar->alignment= RGN_ALIGN_RIGHT;
 	ar->flag = RGN_FLAG_HIDDEN;
 	
 	/* main area */
@@ -201,6 +236,7 @@ void image_operatortypes(void)
 
 	WM_operatortype_append(IMAGE_OT_toolbox);
 	WM_operatortype_append(IMAGE_OT_properties);
+	WM_operatortype_append(IMAGE_OT_scopes);
 }
 
 void image_keymap(struct wmKeyConfig *keyconf)
@@ -213,6 +249,7 @@ void image_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "IMAGE_OT_save", SKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_save_as", F3KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_properties", NKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "IMAGE_OT_scopes", PKEY, KM_PRESS, 0, 0);
 	
 	keymap= WM_keymap_find(keyconf, "Image", SPACE_IMAGE, 0);
 	
@@ -278,8 +315,16 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 	}
 }
 
+static void image_histogram_tag_refresh(ScrArea *sa)
+{
+	SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
+	sima->hist.ok=0;
+}
+
 static void image_listener(ScrArea *sa, wmNotifier *wmn)
 {
+	SpaceImage *sima= (SpaceImage *)sa->spacedata.first;
+	
 	/* context changes */
 	switch(wmn->category) {
 		case NC_SCENE:
@@ -293,7 +338,11 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_IMAGE:
-			ED_area_tag_redraw(sa);
+			if (wmn->reference == sima->image) {
+				image_histogram_tag_refresh(sa);
+				ED_area_tag_refresh(sa);
+				ED_area_tag_redraw(sa);
+			}
 			break;
 		case NC_SPACE:	
 			if(wmn->data == ND_SPACE_IMAGE)
@@ -486,6 +535,31 @@ static void image_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
+/* *********************** scopes region ************************ */
+
+/* add handlers, stuff you only do once or on area/region changes */
+static void image_scope_area_init(wmWindowManager *wm, ARegion *ar)
+{
+	wmKeyMap *keymap;
+	
+	ED_region_panels_init(wm, ar);
+	
+	keymap= WM_keymap_find(wm->defaultconf, "Image Generic", SPACE_IMAGE, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+}
+
+static void image_scope_area_draw(const bContext *C, ARegion *ar)
+{
+	ED_region_panels(C, ar, 1, NULL, -1);
+}
+
+static void image_scope_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+	}
+}
+
 /************************* header region **************************/
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -541,6 +615,16 @@ void ED_spacetype_image(void)
 	BLI_addhead(&st->regiontypes, art);
 
 	image_buttons_register(art);
+	
+	/* regions: statistics/scope buttons */
+	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
+	art->regionid = RGN_TYPE_PREVIEW;
+	art->minsizex= 220; // XXX
+	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
+	art->listener= image_scope_area_listener;
+	art->init= image_scope_area_init;
+	art->draw= image_scope_area_draw;
+	BLI_addhead(&st->regiontypes, art);
 
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");

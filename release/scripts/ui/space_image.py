@@ -35,6 +35,7 @@ class IMAGE_MT_view(bpy.types.Menu):
         show_uvedit = sima.show_uvedit
 
         layout.operator("image.properties", icon='MENU_PANEL')
+        layout.operator("image.scopes", icon='MENU_PANEL')
 
         layout.separator()
 
@@ -386,6 +387,21 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
         col.separator()
         col.prop(ima, "mapping", expand=True)
 
+class IMAGE_PT_view_histogram(bpy.types.Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+    bl_label = "Histogram"
+    
+    def poll(self, context):
+        sima = context.space_data
+        return (sima and sima.image)
+    
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+                        
+        layout.template_histogram(sima, "histogram")
 
 class IMAGE_PT_view_properties(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -417,6 +433,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             col.prop(sima, "draw_repeated", text="Repeat")
             if show_uvedit:
                 col.prop(uvedit, "normalized_coordinates", text="Normalized")
+
         elif show_uvedit:
             col.label(text="Coordinates:")
             col.prop(uvedit, "normalized_coordinates", text="Normalized")
@@ -562,3 +579,4 @@ bpy.types.register(IMAGE_PT_paint_stroke)
 bpy.types.register(IMAGE_PT_paint_curve)
 bpy.types.register(IMAGE_PT_game_properties)
 bpy.types.register(IMAGE_PT_view_properties)
+bpy.types.register(IMAGE_PT_view_histogram)

@@ -1036,5 +1036,26 @@ void IMAGE_OT_properties(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
+static int image_scopes(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= image_has_scope_region(sa);
+	
+	if(ar)
+		ED_region_toggle_hidden(C, ar);
+	
+	return OPERATOR_FINISHED;
+}
 
+void IMAGE_OT_scopes(wmOperatorType *ot)
+{
+	ot->name= "Scopes";
+	ot->idname= "IMAGE_OT_scopes";
+	
+	ot->exec= image_scopes;
+	ot->poll= ED_operator_image_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
 

@@ -368,7 +368,10 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case TH_DOPESHEET_CHANNELSUBOB:
 				cp= ts->ds_subchannel;
 				break;	
-				
+					
+			case TH_PREVIEW_BACK:
+				cp= ts->preview_back;
+				break;	
 			}
 		}
 	}
@@ -569,6 +572,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tima.face,   255, 255, 255, 10);
 	SETCOL(btheme->tima.face_select, 255, 133, 0, 60);
 	SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
+	SETCOLF(btheme->tima.preview_back, 	0.45, 0.45, 0.45, 1.0);
 
 	/* space imageselect */
 	btheme->timasel= btheme->tv3d;

@@ -80,5 +80,16 @@ typedef struct CurveMapping {
 #define CUMA_DRAW_CFRA			4
 #define CUMA_DRAW_SAMPLE		8
 
+typedef struct Histogram {
+	int channels;
+	int x_resolution;
+	float data_r[512];
+	float data_g[512];
+	float data_b[512];
+	float min, max;
+	int ok;
+	int pad;
+} Histogram;
+
 #endif
 

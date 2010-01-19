@@ -691,6 +691,87 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 #endif // INTERNATIONAL
 #endif
 
+
+void ui_draw_but_HISTOGRAM(uiBut *but, uiWidgetColors *wcol, rcti *recti)
+{
+	Histogram *hist = (Histogram *)but->poin;
+	int res = hist->x_resolution;
+	rctf rect;
+	int i;
+	int rgb;
+	float w, h;
+	float alpha;
+	
+	if (hist==NULL) { printf("hist is null \n"); return; }
+	
+	rect.xmin = (float)recti->xmin;
+	rect.xmax = (float)recti->xmax;
+	rect.ymin = (float)recti->ymin;
+	rect.ymax = (float)recti->ymax;
+	
+	w = rect.xmax - rect.xmin;
+	h = rect.ymax - rect.ymin;
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	
+	glColor4f(0.f, 0.f, 0.f, 0.3f);
+	uiSetRoundBox(15);
+	gl_round_box(GL_POLYGON, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
+	
+	glColor4f(1.f, 1.f, 1.f, 0.08f);
+	/* draw grid lines here */
+	for (i=1; i<4; i++) {
+		fdrawline(rect.xmin, rect.ymin+(i/4.f)*h, rect.xmax, rect.ymin+(i/4.f)*h);
+		fdrawline(rect.xmin+(i/4.f)*w, rect.ymin, rect.xmin+(i/4.f)*w, rect.ymax);
+	}
+	
+	for (rgb=0; rgb<3; rgb++) {
+		float *data;
+		
+		if (rgb==0)			data = hist->data_r;
+		else if (rgb==1)	data = hist->data_g;
+		else if (rgb==2)	data = hist->data_b;
+		
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		alpha = 0.75;
+		if (rgb==0)			glColor4f(1.f, 0.f, 0.f, alpha);
+		else if (rgb==1)	glColor4f(0.f, 1.f, 0.f, alpha);
+		else if (rgb==2)	glColor4f(0.f, 0.f, 1.f, alpha);
+		
+		glShadeModel(GL_FLAT);
+		glBegin(GL_QUAD_STRIP);
+		glVertex2f(rect.xmin, rect.ymin);
+		glVertex2f(rect.xmin, rect.ymin + (data[0]*h));
+		for (i=1; i < res; i++) {
+			float x = rect.xmin + i * (w/(float)res);
+			glVertex2f(x, rect.ymin + (data[i]*h));
+			glVertex2f(x, rect.ymin);
+		}
+		glEnd();
+		
+		glColor4f(0.f, 0.f, 0.f, 0.25f);
+		
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_LINE_SMOOTH);
+		glBegin(GL_LINE_STRIP);
+		for (i=0; i < res; i++) {
+			float x = rect.xmin + i * (w/(float)res);
+			glVertex2f(x, rect.ymin + (data[i]*h));
+		}
+		glEnd();
+		glDisable(GL_LINE_SMOOTH);
+	}
+	
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glColor4f(0.f, 0.f, 0.f, 0.5f);
+	uiSetRoundBox(15);
+	gl_round_box(GL_LINE_LOOP, rect.xmin-1, rect.ymin-1, rect.xmax+1, rect.ymax+1, 3.0f);
+	
+	glDisable(GL_BLEND);
+}
+
+
 void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 {
 	ColorBand *coba;

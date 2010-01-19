@@ -426,11 +426,11 @@ extern void gl_round_box(int mode, float minx, float miny, float maxx, float max
 extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight);
 
+void ui_draw_but_HISTOGRAM(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_COLORBAND(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_NORMAL(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_CURVE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_IMAGE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
-
 
 /* interface_handlers.c */
 extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut *but);

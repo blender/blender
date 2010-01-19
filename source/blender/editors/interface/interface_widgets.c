@@ -1796,6 +1796,7 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	
 }
 
+
 /* ************ separator, for menus etc ***************** */
 static void ui_draw_separator(uiBut *but, rcti *rect,  uiWidgetColors *wcol)
 {
@@ -2662,6 +2663,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				
 			case BUT_IMAGE:
 				ui_draw_but_IMAGE(ar, but, &tui->wcol_regular, rect);
+				break;
+			
+			case HISTOGRAM:
+				ui_draw_but_HISTOGRAM(but, &tui->wcol_regular, rect);
 				break;
 				
 			case BUT_CURVE:

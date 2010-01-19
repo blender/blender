@@ -235,6 +235,7 @@ extern StructRNA RNA_GreasePencil;
 extern StructRNA RNA_Group;
 extern StructRNA RNA_Header;
 extern StructRNA RNA_HemiLamp;
+extern StructRNA RNA_Histogram;
 extern StructRNA RNA_HookModifier;
 extern StructRNA RNA_ID;
 extern StructRNA RNA_IDProperty;

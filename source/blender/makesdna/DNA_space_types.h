@@ -32,6 +32,7 @@
 #define DNA_SPACE_TYPES_H
 
 #include "DNA_listBase.h"
+#include "DNA_color_types.h"		/* for Histogram */
 #include "DNA_vec_types.h"
 #include "DNA_outliner_types.h"		/* for TreeStoreElem */
 #include "DNA_image_types.h"	/* ImageUser */
@@ -43,6 +44,7 @@ struct Text;
 struct Script;
 struct ImBuf;
 struct Image;
+struct Histogram;
 struct SpaceIpo;
 struct BlendHandle;
 struct RenderInfo;
@@ -255,6 +257,8 @@ typedef struct SpaceImage {
 	float centx, centy;				/* storage for offset while render drawing */
 	
 	struct bGPdata *gpd;			/* grease pencil data */
+	
+	struct Histogram hist;			/* viewer histogram */
 } SpaceImage;
 
 typedef struct SpaceNla {

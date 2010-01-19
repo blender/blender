@@ -31,6 +31,7 @@
 
 struct CurveMapping;
 struct CurveMap;
+struct Histogram;
 struct ImBuf;
 struct rctf;
 
@@ -70,6 +71,7 @@ void				curvemapping_initialize(struct CurveMapping *cumap);
 void				curvemapping_table_RGBA(struct CurveMapping *cumap, float **array, int *size);
 void				colorcorrection_do_ibuf(struct ImBuf *ibuf, const char *profile);
 
+void				histogram_update(struct Histogram *hist, struct ImBuf *ibuf);
 
 #endif
 

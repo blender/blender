@@ -1318,7 +1318,11 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	}
 
 	/* clear */
-	UI_GetThemeColor3fv(TH_BACK, col);
+	if (ar->type->regionid == RGN_TYPE_PREVIEW)
+		UI_GetThemeColor3fv(TH_PREVIEW_BACK, col);
+	else
+		UI_GetThemeColor3fv(TH_BACK, col);
+	
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 

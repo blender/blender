@@ -704,7 +704,8 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	// XXX other users?
 	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_RELOAD);
-
+	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
+	
 	MEM_freeN(op->customdata);
 
 	return OPERATOR_FINISHED;
