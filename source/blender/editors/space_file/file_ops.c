@@ -567,7 +567,7 @@ int file_exec(bContext *C, wmOperator *unused)
 	
 	if(sfile->op) {
 		wmOperator *op= sfile->op;
-		
+	
 		sfile->op = NULL;
 		RNA_string_set(op->ptr, "filename", sfile->params->file);
 		BLI_strncpy(name, sfile->params->dir, sizeof(name));
@@ -1090,3 +1090,13 @@ void FILE_OT_delete(struct wmOperatorType *ot)
 	ot->poll= file_delete_poll; /* <- important, handler is on window level */
 }
 
+
+void ED_operatormacros_file(void)
+{
+	wmOperatorType *ot;
+	
+	ot= WM_operatortype_append_macro("FILE_OT_select_execute", "Select and Execute", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "FILE_OT_select");
+	WM_operatortype_macro_define(ot, "FILE_OT_execute");
+
+}
