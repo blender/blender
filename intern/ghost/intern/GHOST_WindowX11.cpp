@@ -35,7 +35,7 @@
 #include <X11/cursorfont.h>
 #include <X11/Xatom.h>
 
-#if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__)
+#if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__) || defined (_AIX)
 #include <strings.h>
 #endif
 

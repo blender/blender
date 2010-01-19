@@ -52,6 +52,7 @@ def randomize_selected(seed, loc, rot, scale, scale_even, scale_min):
 
             if scale_even:
                 sca_x = sca_y = sca_z = uniform(scale[0], - scale[0])
+                uniform(0.0, 0.0), uniform(0.0, 0.0)
             else:
                 sca_x, sca_y, sca_z = rand_vec(scale)
 
@@ -111,7 +112,7 @@ class RandomizeLocRotSize(bpy.types.Operator):
 
     scale_min = FloatProperty(name="Minimun Scale Factor",
         description="Lowest scale percentage possible",
-        default=15.0, min=-1.0, max=1.0, precision=3)
+        default=0.15, min=-1.0, max=1.0, precision=3)
 
     scale = FloatVectorProperty(name="Scale",
         description="Maximum scale randomization over each axis",
