@@ -14,7 +14,7 @@ if window_system == 'darwin':
 pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_Window', 'GHOST_DropTarget']
 defs=['_USE_MATH_DEFINES']
 
-if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd6', 'irix6'):
+if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd6', 'irix6', 'aix4', 'aix5'):
 	for f in pf:
 		try:
 			sources.remove('intern' + os.sep + f + 'Win32.cpp')

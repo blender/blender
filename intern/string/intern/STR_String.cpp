@@ -39,6 +39,7 @@
 #include <stdlib.h> 
 #include <ctype.h>
 #include <string.h>
+#include <strings.h>
 #include "STR_String.h"
 
 /*-------------------------------------------------------------------------------------------------
