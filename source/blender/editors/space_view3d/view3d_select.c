@@ -345,9 +345,8 @@ int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, in
 /* warning; lasso select with backbuffer-check draws in backbuf with persp(PERSP_WIN) 
    and returns with persp(PERSP_VIEW). After lasso select backbuf is not OK
 */
-static void do_lasso_select_pose(ViewContext *vc, short mcords[][2], short moves, short select)
+static void do_lasso_select_pose(ViewContext *vc, Object *ob, short mcords[][2], short moves, short select)
 {
-	Object *ob= vc->obact;
 	bPoseChannel *pchan;
 	float vec[3];
 	short sco1[2], sco2[2];
@@ -382,7 +381,7 @@ static void do_lasso_select_objects(ViewContext *vc, short mcords[][2], short mo
 	Base *base;
 	
 	for(base= vc->scene->base.first; base; base= base->next) {
-		if(base->lay & vc->v3d->lay) {
+		if(BASE_SELECTABLE(vc->v3d, base)) { /* use this to avoid un-needed lasso lookups */
 			project_short(vc->ar, base->object->obmat[3], &base->sx);
 			if(lasso_inside(mcords, moves, base->sx, base->sy)) {
 				
@@ -391,7 +390,7 @@ static void do_lasso_select_objects(ViewContext *vc, short mcords[][2], short mo
 				base->object->flag= base->flag;
 			}
 			if(base->object->mode & OB_MODE_POSE) {
-				do_lasso_select_pose(vc, mcords, moves, select);
+				do_lasso_select_pose(vc, base->object, mcords, moves, select);
 			}
 		}
 	}

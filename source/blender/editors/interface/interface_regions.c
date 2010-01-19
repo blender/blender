@@ -2240,7 +2240,8 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	}
 
 	str= BLI_dynstr_get_cstring(ds);
-	ui_popup_menu_create(C, NULL, NULL, NULL, NULL, str);
+	if(str[0] != '\0')
+		ui_popup_menu_create(C, NULL, NULL, NULL, NULL, str);
 	MEM_freeN(str);
 
 	BLI_dynstr_free(ds);

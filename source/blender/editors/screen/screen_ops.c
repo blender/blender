@@ -1589,7 +1589,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	if (ak) 
 		CFRA= (int)ak->cfra;
 	else
-		BKE_report(op->reports, RPT_ERROR, "No more keyframes to jump to in this direction");
+		BKE_report(op->reports, RPT_INFO, "No more keyframes to jump to in this direction");
 	
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
