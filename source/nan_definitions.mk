@@ -155,7 +155,7 @@ ifndef CONFIG_GUESS
     export BF_OPENCOLLADA_INC ?= $(BF_OPENCOLLADA)/include
     export BF_OPENCOLLADA_LIBS ?= $(BF_OPENCOLLADA)/lib/libOpenCOLLADASaxFrameworkLoader.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADAFramework.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADABaseUtils.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADAStreamWriter.a $(BF_OPENCOLLADA)/lib/libMathMLSolver.a $(BF_OPENCOLLADA)/lib/libGeneratedSaxParser.a $(BF_OPENCOLLADA)/lib/libUTF.a -lxml2
     export BF_PCRE ?= $(LCGDIR)/pcre
-    export BF_PCRE_LIBS ?= $(NAN_PCRE)/lib/libpcre.a
+    export BF_PCRE_LIBS ?= $(BF_PCRE)/lib/libpcre.a
   endif
 
 
@@ -274,7 +274,7 @@ ifndef CONFIG_GUESS
         export USE_QTKIT = true
     endif
 
-    export NAN_PCRE = $(LCGDIR)/opencollada
+    export BF_PCRE = $(LCGDIR)/opencollada
 
   else
   ifeq ($(OS),freebsd)
