@@ -16,7 +16,10 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# <pep8 compliant>
+
 import bpy
+
 
 def randomize_selected(seed, loc, rot, scale, scale_even, scale_min):
 
@@ -27,15 +30,15 @@ def randomize_selected(seed, loc, rot, scale, scale_even, scale_min):
     random.seed(seed)
 
     def rand_vec(vec_range):
-        return Vector([uniform(-val, val) for val in vec_range])
+        return Vector([uniform(- val, val) for val in vec_range])
 
     for obj in bpy.context.selected_objects:
-        
+
         if loc:
             obj.location += rand_vec(loc)
         else: # otherwise the values change under us
             uniform(0.0, 0.0), uniform(0.0, 0.0), uniform(0.0, 0.0)
-        
+
         if rot: # TODO, non euler's
             vec = rand_vec(rot)
             obj.rotation_euler[0] += vec[0]
@@ -48,22 +51,25 @@ def randomize_selected(seed, loc, rot, scale, scale_even, scale_min):
             org_sca_x, org_sca_y, org_sca_z = obj.scale
 
             if scale_even:
-                sca_x = sca_y = sca_z = uniform(scale[0], -scale[0])
+                sca_x = sca_y = sca_z = uniform(scale[0], - scale[0])
             else:
                 sca_x, sca_y, sca_z = rand_vec(scale)
 
             aX = sca_x + org_sca_x
-            bX = org_sca_x * scale_min / 100.0
+            bX = org_sca_x * scale_min
 
             aY = sca_y + org_sca_y
-            bY = org_sca_y * scale_min / 100.0
+            bY = org_sca_y * scale_min
 
             aZ = sca_z + org_sca_z
-            bZ = org_sca_z * scale_min / 100.0
+            bZ = org_sca_z * scale_min
 
-            if aX < bX: aX = bX
-            if aY < bY: aY = bY
-            if aZ < bZ: aZ = bZ
+            if aX < bX:
+                aX = bX
+            if aY < bY:
+                aY = bY
+            if aZ < bZ:
+                aZ = bZ
 
             obj.scale = aX, aY, aZ
         else:
@@ -82,10 +88,10 @@ class RandomizeLocRotSize(bpy.types.Operator):
     random_seed = IntProperty(name="Random Seed",
         description="Seed value for the random generator",
         default=0, min=0, max=1000)
-        
+
     use_loc = BoolProperty(name="Randomize Location",
         description="Randomize the scale values", default=True)
-        
+
     loc = FloatVectorProperty(name="Location",
         description="Maximun distance the objects can spread over each axis",
         default=(0.0, 0.0, 0.0), min=-100.0, max=100.0)
@@ -105,22 +111,22 @@ class RandomizeLocRotSize(bpy.types.Operator):
 
     scale_min = FloatProperty(name="Minimun Scale Factor",
         description="Lowest scale percentage possible",
-        default=15.0, min=-100.0, max=100.0)
-        
+        default=15.0, min=-1.0, max=1.0, precision=3)
+
     scale = FloatVectorProperty(name="Scale",
         description="Maximum scale randomization over each axis",
         default=(0.0, 0.0, 0.0), min=-100.0, max=100.0)
-        
+
     def execute(self, context):
         from math import radians
         seed = self.properties.random_seed
 
         loc = self.properties.loc if self.properties.use_loc else None
         rot = self.properties.rot if self.properties.use_rot else None
-        scale = [radians(val) for val in self.properties.scale] if self.properties.use_scale else None        
+        scale = [radians(val) for val in self.properties.scale] if self.properties.use_scale else None
 
         scale_even = self.properties.scale_even
-        scale_min= self.properties.scale_min
+        scale_min = self.properties.scale_min
 
         randomize_selected(seed, loc, rot, scale, scale_even, scale_min)
 
@@ -130,7 +136,7 @@ class RandomizeLocRotSize(bpy.types.Operator):
 # Register the operator
 bpy.types.register(RandomizeLocRotSize)
 
-# Add to the menu
+
 def menu_func(self, context):
     if context.mode == 'OBJECT':
         self.layout.operator(RandomizeLocRotSize.bl_idname,

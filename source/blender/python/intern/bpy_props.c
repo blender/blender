@@ -130,7 +130,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "hidden", NULL};
 		char *id=NULL, *name="", *description="";
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def=0.0f;
-		int precision= 1, hidden=0;
+		int precision= 2, hidden=0;
 		PropertyRNA *prop;
 
 		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssffffffii:FloatProperty", kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &hidden))
@@ -164,7 +164,7 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "hidden", "size", NULL};
 		char *id=NULL, *name="", *description="";
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def[PYRNA_STACK_ARRAY]={0.0f};
-		int precision= 1, hidden=0, size=3;
+		int precision= 2, hidden=0, size=3;
 		PropertyRNA *prop;
 		PyObject *pydef= NULL;
 
