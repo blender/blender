@@ -2781,6 +2781,34 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 			
 			return WM_UI_HANDLER_BREAK;
 		}
+		else if (event->type == ZEROKEY && event->val == KM_PRESS) {
+			if (but->a1==9){
+				float rgb[3], hsv[3], def_hsv[3];
+				float *def;
+				int len;
+				
+				/* reset only value */
+				
+				len= RNA_property_array_length(&but->rnapoin, but->rnaprop);
+				if (len >= 3) {
+					def= MEM_callocN(sizeof(float)*len, "reset_defaults - float");
+					
+					RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
+					rgb_to_hsv(def[0], def[1], def[2], def_hsv, def_hsv+1, def_hsv+2);
+					
+					ui_get_but_vectorf(but, rgb);
+					rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+					
+					hsv_to_rgb(hsv[0], hsv[1], def_hsv[2], rgb, rgb+1, rgb+2);
+					ui_set_but_vectorf(but, rgb);
+					
+					RNA_property_update(C, &but->rnapoin, but->rnaprop);
+					
+					MEM_freeN(def);
+				}
+				return WM_UI_HANDLER_BREAK;
+			}
+		}
 	}
 	else if(data->state == BUTTON_STATE_NUM_EDITING) {
 		if(event->type == ESCKEY) {
@@ -2847,6 +2875,32 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 			if(ui_numedit_but_HSVCIRCLE(but, data, mx, my))
 				ui_numedit_apply(C, block, but, data);
 			
+			return WM_UI_HANDLER_BREAK;
+		}
+		else if (event->type == ZEROKEY && event->val == KM_PRESS) {
+			float rgb[3], hsv[3], def_hsv[3];
+			float *def;
+			int len;
+			
+			/* reset only saturation */
+			
+			len= RNA_property_array_length(&but->rnapoin, but->rnaprop);
+			if (len >= 3) {
+				def= MEM_callocN(sizeof(float)*len, "reset_defaults - float");
+				
+				RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
+				rgb_to_hsv(def[0], def[1], def[2], def_hsv, def_hsv+1, def_hsv+2);
+				
+				ui_get_but_vectorf(but, rgb);
+				rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
+				
+				hsv_to_rgb(hsv[0], def_hsv[1], hsv[2], rgb, rgb+1, rgb+2);
+				ui_set_but_vectorf(but, rgb);
+				
+				RNA_property_update(C, &but->rnapoin, but->rnaprop);
+				
+				MEM_freeN(def);
+			}
 			return WM_UI_HANDLER_BREAK;
 		}
 	}
@@ -3723,6 +3777,11 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			ED_region_tag_redraw(CTX_wm_region(C));
 			
 			return WM_UI_HANDLER_BREAK;
+		}
+		/* reset to default */
+		else if(event->type == ZEROKEY && event->val == KM_PRESS) {
+			if (!(ELEM(but->type, HSVCIRCLE, HSVCUBE)))
+				ui_set_but_default(C, but);
 		}
 		/* handle menu */
 		else if(event->type == RIGHTMOUSE && event->val == KM_PRESS) {

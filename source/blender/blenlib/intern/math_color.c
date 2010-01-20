@@ -386,3 +386,17 @@ int constrain_rgb(float *r, float *g, float *b)
     return 0;                         /* Color within RGB gamut */
 }
 
+/* ********************************* lift/gamma/gain / ASC-CDL conversion ********************************* */
+
+void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power)
+{
+	int c;
+	for(c=0; c<3; c++) {
+		offset[c]= lift[c]*gain[c];
+		slope[c]=  gain[c]*(1.0f-lift[c]);
+		if(gamma[c] == 0)
+			power[c]= FLT_MAX;
+		else
+			power[c]= 1.0f/gamma[c];
+	}
+}

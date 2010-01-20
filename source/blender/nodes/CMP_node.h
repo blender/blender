@@ -59,6 +59,7 @@ extern bNodeType cmp_node_gamma;
 extern bNodeType cmp_node_invert;
 extern bNodeType cmp_node_alphaover;
 extern bNodeType cmp_node_zcombine;
+extern bNodeType cmp_node_colorbalance;
 
 extern bNodeType cmp_node_normal;
 extern bNodeType cmp_node_curve_vec;

@@ -300,6 +300,18 @@ typedef struct NodeLensDist {
 	short jit, proj, fit, pad;
 } NodeLensDist;
 
+typedef struct NodeColorBalance {
+	/* for processing */
+	float slope[3];
+	float offset[3];
+	float power[3];
+	
+	/* for ui representation */
+	float lift[3];
+	float gamma[3];
+	float gain[3];
+} NodeColorBalance;
+
 /* TEX_output */
 typedef struct TexNodeOutput {
 	char name[32];

@@ -1626,6 +1626,17 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 	return 0;
 }
 
+void ui_set_but_default(bContext *C, uiBut *but)
+{
+	/* if there is a valid property that is editable... */
+	if (but->rnapoin.data && but->rnaprop && RNA_property_editable(&but->rnapoin, but->rnaprop)) {
+		if(RNA_property_reset(&but->rnapoin, but->rnaprop, -1)) {
+			/* perform updates required for this property */
+			RNA_property_update(C, &but->rnapoin, but->rnaprop);
+		}
+	}
+}
+
 static double soft_range_round_up(double value, double max)
 {
 	/* round up to .., 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, .. */

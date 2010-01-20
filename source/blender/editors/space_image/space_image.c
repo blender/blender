@@ -75,6 +75,228 @@
 
 #include "image_intern.h"
 
+/**************************** common state *****************************/
+
+/* note; image_panel_properties() uses pointer to sima->image directly */
+Image *ED_space_image(SpaceImage *sima)
+{
+	return sima->image;
+}
+
+/* called to assign images to UV faces */
+void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obedit, Image *ima)
+{
+	ED_uvedit_assign_image(scene, obedit, ima, sima->image);
+	
+	/* change the space ima after because uvedit_face_visible uses the space ima
+	 * to check if the face is displayed in UV-localview */
+	sima->image= ima;
+	
+	if(ima == NULL || ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE)
+		sima->flag &= ~SI_DRAWTOOL;
+	
+	if(sima->image)
+		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
+	
+	if(sima->image && sima->image->id.us==0)
+		sima->image->id.us= 1;
+	
+	if(C) {
+		if(obedit)
+			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+		
+		ED_area_tag_redraw(CTX_wm_area(C));
+	}
+}
+
+ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **lock_r)
+{
+	ImBuf *ibuf;
+	
+	if(sima && sima->image) {
+#if 0
+		if(sima->image->type==IMA_TYPE_R_RESULT && BIF_show_render_spare())
+			return BIF_render_spare_imbuf();
+		else
+#endif
+			ibuf= BKE_image_acquire_ibuf(sima->image, &sima->iuser, lock_r);
+		
+		if(ibuf && (ibuf->rect || ibuf->rect_float))
+			return ibuf;
+	}
+	
+	return NULL;
+}
+
+void ED_space_image_release_buffer(SpaceImage *sima, void *lock)
+{
+	if(sima && sima->image)
+		BKE_image_release_ibuf(sima->image, lock);
+}
+
+int ED_space_image_has_buffer(SpaceImage *sima)
+{
+	ImBuf *ibuf;
+	void *lock;
+	int has_buffer;
+	
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
+	has_buffer= (ibuf != NULL);
+	ED_space_image_release_buffer(sima, lock);
+	
+	return has_buffer;
+}
+
+void ED_image_size(Image *ima, int *width, int *height)
+{
+	ImBuf *ibuf= NULL;
+	void *lock;
+	
+	if(ima)
+		ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
+	
+	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
+		*width= ibuf->x;
+		*height= ibuf->y;
+	}
+	else {
+		*width= 256;
+		*height= 256;
+	}
+	
+	if(ima)
+		BKE_image_release_ibuf(ima, lock);
+}
+
+void ED_space_image_size(SpaceImage *sima, int *width, int *height)
+{
+	Scene *scene= sima->iuser.scene;
+	ImBuf *ibuf;
+	void *lock;
+	
+	ibuf= ED_space_image_acquire_buffer(sima, &lock);
+	
+	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
+		*width= ibuf->x;
+		*height= ibuf->y;
+	}
+	else if(sima->image && sima->image->type==IMA_TYPE_R_RESULT && scene) {
+		/* not very important, just nice */
+		*width= (scene->r.xsch*scene->r.size)/100;
+		*height= (scene->r.ysch*scene->r.size)/100;
+	}
+	/* I know a bit weak... but preview uses not actual image size */
+	// XXX else if(image_preview_active(sima, width, height));
+	else {
+		*width= 256;
+		*height= 256;
+	}
+	
+	ED_space_image_release_buffer(sima, lock);
+}
+
+void ED_image_aspect(Image *ima, float *aspx, float *aspy)
+{
+	*aspx= *aspy= 1.0;
+	
+	if((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
+	   (ima->aspx==0.0 || ima->aspy==0.0))
+		return;
+	
+	/* x is always 1 */
+	*aspy = ima->aspy/ima->aspx;
+}
+
+void ED_space_image_aspect(SpaceImage *sima, float *aspx, float *aspy)
+{
+	ED_image_aspect(ED_space_image(sima), aspx, aspy);
+}
+
+void ED_space_image_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float *zoomy)
+{
+	int width, height;
+	
+	ED_space_image_size(sima, &width, &height);
+	
+	*zoomx= (float)(ar->winrct.xmax - ar->winrct.xmin)/(float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin)*width);
+	*zoomy= (float)(ar->winrct.ymax - ar->winrct.ymin)/(float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin)*height);
+}
+
+void ED_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
+{
+	int w, h;
+	
+	ED_space_image_aspect(sima, aspx, aspy);
+	ED_space_image_size(sima, &w, &h);
+	
+	*aspx *= (float)w/256.0f;
+	*aspy *= (float)h/256.0f;
+}
+
+void ED_image_uv_aspect(Image *ima, float *aspx, float *aspy)
+{
+	int w, h;
+	
+	ED_image_aspect(ima, aspx, aspy);
+	ED_image_size(ima, &w, &h);
+	
+	*aspx *= (float)w;
+	*aspy *= (float)h;
+}
+
+int ED_space_image_show_render(SpaceImage *sima)
+{
+	return (sima->image && ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE));
+}
+
+int ED_space_image_show_paint(SpaceImage *sima)
+{
+	if(ED_space_image_show_render(sima))
+		return 0;
+	
+	return (sima->flag & SI_DRAWTOOL);
+}
+
+int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
+{
+	if(ED_space_image_show_render(sima))
+		return 0;
+	if(ED_space_image_show_paint(sima))
+		return 0;
+	
+	if(obedit && obedit->type == OB_MESH) {
+		EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
+		int ret;
+		
+		ret = EM_texFaceCheck(em);
+		
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return ret;
+	}
+	
+	return 0;
+}
+
+int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
+{
+	if(ED_space_image_show_render(sima))
+		return 0;
+	
+	if(ED_space_image_show_paint(sima))
+		if(obedit && obedit->type == OB_MESH) {
+			EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
+			int ret;
+			
+			ret = EM_texFaceCheck(em);
+			
+			BKE_mesh_end_editmesh(obedit->data, em);
+			return ret;
+		}
+	
+	return 0;
+}
+
+
 
 static void image_histogram_tag_refresh(ScrArea *sa)
 {
@@ -343,6 +565,8 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_MODE:
 				case ND_RENDER_RESULT:
 				case ND_COMPO_RESULT:
+					if (ED_space_image_show_render(sima))
+						image_histogram_tag_refresh(sa);
 					ED_area_tag_refresh(sa);
 					ED_area_tag_redraw(sa);
 					break;
@@ -648,226 +872,5 @@ void ED_spacetype_image(void)
 	BLI_addhead(&st->regiontypes, art);
 	
 	BKE_spacetype_register(st);
-}
-
-/**************************** common state *****************************/
-
-/* note; image_panel_properties() uses pointer to sima->image directly */
-Image *ED_space_image(SpaceImage *sima)
-{
-	return sima->image;
-}
-
-/* called to assign images to UV faces */
-void ED_space_image_set(bContext *C, SpaceImage *sima, Scene *scene, Object *obedit, Image *ima)
-{
-	ED_uvedit_assign_image(scene, obedit, ima, sima->image);
-
-	/* change the space ima after because uvedit_face_visible uses the space ima
-	 * to check if the face is displayed in UV-localview */
-	sima->image= ima;
-
-	if(ima == NULL || ima->type==IMA_TYPE_R_RESULT || ima->type==IMA_TYPE_COMPOSITE)
-		sima->flag &= ~SI_DRAWTOOL;
-
-	if(sima->image)
-		BKE_image_signal(sima->image, &sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
-
-	if(sima->image && sima->image->id.us==0)
-		sima->image->id.us= 1;
-
-	if(C) {
-		if(obedit)
-			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-
-		ED_area_tag_redraw(CTX_wm_area(C));
-	}
-}
-
-ImBuf *ED_space_image_acquire_buffer(SpaceImage *sima, void **lock_r)
-{
-	ImBuf *ibuf;
-
-	if(sima && sima->image) {
-#if 0
-		if(sima->image->type==IMA_TYPE_R_RESULT && BIF_show_render_spare())
-			return BIF_render_spare_imbuf();
-		else
-#endif
-			ibuf= BKE_image_acquire_ibuf(sima->image, &sima->iuser, lock_r);
-
-		if(ibuf && (ibuf->rect || ibuf->rect_float))
-			return ibuf;
-	}
-
-	return NULL;
-}
-
-void ED_space_image_release_buffer(SpaceImage *sima, void *lock)
-{
-	if(sima && sima->image)
-		BKE_image_release_ibuf(sima->image, lock);
-}
-
-int ED_space_image_has_buffer(SpaceImage *sima)
-{
-	ImBuf *ibuf;
-	void *lock;
-	int has_buffer;
-
-	ibuf= ED_space_image_acquire_buffer(sima, &lock);
-	has_buffer= (ibuf != NULL);
-	ED_space_image_release_buffer(sima, lock);
-
-	return has_buffer;
-}
-
-void ED_image_size(Image *ima, int *width, int *height)
-{
-	ImBuf *ibuf= NULL;
-	void *lock;
-
-	if(ima)
-		ibuf= BKE_image_acquire_ibuf(ima, NULL, &lock);
-
-	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
-		*width= ibuf->x;
-		*height= ibuf->y;
-	}
-	else {
-		*width= 256;
-		*height= 256;
-	}
-
-	if(ima)
-		BKE_image_release_ibuf(ima, lock);
-}
-
-void ED_space_image_size(SpaceImage *sima, int *width, int *height)
-{
-	Scene *scene= sima->iuser.scene;
-	ImBuf *ibuf;
-	void *lock;
-
-	ibuf= ED_space_image_acquire_buffer(sima, &lock);
-
-	if(ibuf && ibuf->x > 0 && ibuf->y > 0) {
-		*width= ibuf->x;
-		*height= ibuf->y;
-	}
-	else if(sima->image && sima->image->type==IMA_TYPE_R_RESULT && scene) {
-		/* not very important, just nice */
-		*width= (scene->r.xsch*scene->r.size)/100;
-		*height= (scene->r.ysch*scene->r.size)/100;
-	}
-	/* I know a bit weak... but preview uses not actual image size */
-	// XXX else if(image_preview_active(sima, width, height));
-	else {
-		*width= 256;
-		*height= 256;
-	}
-
-	ED_space_image_release_buffer(sima, lock);
-}
-
-void ED_image_aspect(Image *ima, float *aspx, float *aspy)
-{
-	*aspx= *aspy= 1.0;
-
-	if((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
-	   (ima->aspx==0.0 || ima->aspy==0.0))
-		return;
-
-	/* x is always 1 */
-	*aspy = ima->aspy/ima->aspx;
-}
-
-void ED_space_image_aspect(SpaceImage *sima, float *aspx, float *aspy)
-{
-	ED_image_aspect(ED_space_image(sima), aspx, aspy);
-}
-
-void ED_space_image_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float *zoomy)
-{
-	int width, height;
-
-	ED_space_image_size(sima, &width, &height);
-
-	*zoomx= (float)(ar->winrct.xmax - ar->winrct.xmin)/(float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin)*width);
-	*zoomy= (float)(ar->winrct.ymax - ar->winrct.ymin)/(float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin)*height);
-}
-
-void ED_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
-{
-	int w, h;
-
-	ED_space_image_aspect(sima, aspx, aspy);
-	ED_space_image_size(sima, &w, &h);
-
-	*aspx *= (float)w/256.0f;
-	*aspy *= (float)h/256.0f;
-}
-
-void ED_image_uv_aspect(Image *ima, float *aspx, float *aspy)
-{
-	int w, h;
-
-	ED_image_aspect(ima, aspx, aspy);
-	ED_image_size(ima, &w, &h);
-
-	*aspx *= (float)w;
-	*aspy *= (float)h;
-}
-
-int ED_space_image_show_render(SpaceImage *sima)
-{
-	return (sima->image && ELEM(sima->image->type, IMA_TYPE_R_RESULT, IMA_TYPE_COMPOSITE));
-}
-
-int ED_space_image_show_paint(SpaceImage *sima)
-{
-	if(ED_space_image_show_render(sima))
-		return 0;
-
-	return (sima->flag & SI_DRAWTOOL);
-}
-
-int ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
-{
-	if(ED_space_image_show_render(sima))
-		return 0;
-	if(ED_space_image_show_paint(sima))
-		return 0;
-
-	if(obedit && obedit->type == OB_MESH) {
-		EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
-		int ret;
-	
-		ret = EM_texFaceCheck(em);
-
-		BKE_mesh_end_editmesh(obedit->data, em);
-		return ret;
-	}
-
-	return 0;
-}
-
-int ED_space_image_show_uvshadow(SpaceImage *sima, Object *obedit)
-{
-	if(ED_space_image_show_render(sima))
-		return 0;
-
-	if(ED_space_image_show_paint(sima))
-		if(obedit && obedit->type == OB_MESH) {
-			EditMesh *em = BKE_mesh_get_editmesh(obedit->data);
-			int ret;
-
-			ret = EM_texFaceCheck(em);
-
-			BKE_mesh_end_editmesh(obedit->data, em);
-			return ret;
-		}
-
-	return 0;
 }
 

@@ -42,6 +42,8 @@
 #include "BKE_image.h"
 #include "BKE_texture.h"
 
+#include "BLI_math.h"
+
 #include "WM_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -294,6 +296,23 @@ static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *p
 	
 	BKE_image_multilayer_index(ima->rr, iuser);
 	BKE_image_signal(ima, iuser, IMA_SIGNAL_SRC_CHANGE);
+	
+	rna_Node_update(bmain, scene, ptr);
+}
+
+static void rna_Node_colorbalance_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNode *node= (bNode*)ptr->data;
+	NodeColorBalance *ncb = node->storage;
+	float lift[3], gamma[3], gain[3];
+	float n_one[3] = {-1.f, -1.f, -1.f};
+	
+	mul_v3_v3fl(lift, ncb->lift, 2.f);
+	add_v3_v3(lift, n_one);
+	mul_v3_v3fl(gamma, ncb->gamma, 2.f);
+	mul_v3_v3fl(gain, ncb->gain, 2.f);
+	
+	lift_gamma_gain_to_asc_cdl(lift, gamma, gain, ncb->offset, ncb->slope, ncb->power);
 	
 	rna_Node_update(bmain, scene, ptr);
 }
@@ -1853,6 +1872,38 @@ static void def_cmp_lensdist(StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "fit", 1);
 	RNA_def_property_ui_text(prop, "Fit", "For positive distortion factor only: scale image such that black areas are not visible");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_colorbalance(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	static float default_col[3] = {0.5f, 0.5f, 0.5f};
+	
+	RNA_def_struct_sdna_from(srna, "NodeColorBalance", "storage");
+	
+	prop = RNA_def_property(srna, "lift", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "lift");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, default_col);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Lift", "Correction for Shadows");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_colorbalance_update");
+	
+	prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gamma");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, default_col);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Gamma", "Correction for Midtones");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_colorbalance_update");
+	
+	prop = RNA_def_property(srna, "gain", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gain");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, default_col);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Gain", "Correction for Highlights");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_colorbalance_update");
 }
 	
 

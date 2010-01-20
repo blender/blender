@@ -913,6 +913,28 @@ static void node_composit_buts_view_levels(uiLayout *layout, bContext *C, Pointe
 	uiItemR(layout, NULL, 0, ptr, "channel", UI_ITEM_R_EXPAND);
 }
 
+static void node_composit_buts_colorbalance(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiLayout *split, *col, *row;
+	
+	split = uiLayoutSplit(layout, 0, 0);
+	col = uiLayoutColumn(split, 0);
+	uiTemplateColorWheel(col, ptr, "lift", 1);
+	row = uiLayoutRow(col, 0);
+	uiItemR(row, NULL, 0, ptr, "lift", 0);
+	
+	col = uiLayoutColumn(split, 0);
+	uiTemplateColorWheel(col, ptr, "gamma", 1);
+	row = uiLayoutRow(col, 0);
+	uiItemR(row, NULL, 0, ptr, "gamma", 0);
+	
+	col = uiLayoutColumn(split, 0);
+	uiTemplateColorWheel(col, ptr, "gain", 1);
+	row = uiLayoutRow(col, 0);
+	uiItemR(row, NULL, 0, ptr, "gain", 0);
+
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -1042,8 +1064,11 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_PREMULKEY:
 			ntype->uifunc= node_composit_buts_premulkey;
 			break;
-      case CMP_NODE_VIEW_LEVELS:
+		case CMP_NODE_VIEW_LEVELS:
 			ntype->uifunc=node_composit_buts_view_levels;
+ 			break;
+		case CMP_NODE_COLORBALANCE:
+			ntype->uifunc=node_composit_buts_colorbalance;
  			break;
 		default:
 			ntype->uifunc= NULL;

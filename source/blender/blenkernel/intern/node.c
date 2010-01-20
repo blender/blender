@@ -2983,6 +2983,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_invert);
 	nodeRegisterType(ntypelist, &cmp_node_alphaover);
 	nodeRegisterType(ntypelist, &cmp_node_zcombine);
+	nodeRegisterType(ntypelist, &cmp_node_colorbalance);
 	
 	nodeRegisterType(ntypelist, &cmp_node_normal);
 	nodeRegisterType(ntypelist, &cmp_node_curve_vec);
