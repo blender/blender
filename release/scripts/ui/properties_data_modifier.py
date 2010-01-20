@@ -352,10 +352,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "mode", text="")
         if wide_ui:
             col = split.column()
-        col.label(text="Vertex Group:")
         if md.mode == 'ARMATURE':
+            col.label(text="Armature:")
             col.prop(md, "armature", text="")
         elif md.mode == 'VERTEX_GROUP':
+            col.label(text="Vertex Group:")
             col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
         sub = col.column()
