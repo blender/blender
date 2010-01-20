@@ -1753,7 +1753,7 @@ def write(filename, batch_objects = None, \
                 for uf in uvlayer.data:
 #               for f in me.faces:
                     # workaround, since uf.uv iteration is wrong atm
-                    for uv in [uf.uv1, uf.uv2, uf.uv3, uf.uv4][:len(uf.uv)]:
+                    for uv in uf.uv:
 #                   for uv in f.uv:
                         if i==-1:
                             file.write('%.6f,%.6f' % tuple(uv))

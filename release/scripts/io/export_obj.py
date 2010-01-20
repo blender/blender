@@ -564,7 +564,7 @@ def write(filename, objects, scene,
                     tface = uv_layer.data[f_index]
 
                     # workaround, since tface.uv iteration is wrong atm
-                    uvs = [tface.uv1, tface.uv2, tface.uv3, tface.uv4][:len(tface.uv)]
+                    uvs = tface.uv
                     # uvs = [tface.uv1, tface.uv2, tface.uv3]
 
                     # # add another UV if it's a quad

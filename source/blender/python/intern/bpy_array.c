@@ -457,14 +457,16 @@ static PyObject *pyrna_py_from_array_internal(PointerRNA *ptr, PropertyRNA *prop
 }
 #endif
 
-PyObject *pyrna_py_from_array_index(BPy_PropertyRNA *self, int index)
+PyObject *pyrna_py_from_array_index(BPy_PropertyRNA *self, PointerRNA *ptr, PropertyRNA *prop, int index)
 {
-	int totdim, i, len;
-	int dimsize[MAX_ARRAY_DIMENSION];
+	int totdim, arraydim, arrayoffset, dimsize[MAX_ARRAY_DIMENSION], i, len;
 	BPy_PropertyRNA *ret= NULL;
 
+	arraydim= self ? self->arraydim : 0;
+	arrayoffset = self ? self->arrayoffset : 0;
+
 	/* just in case check */
-	len= RNA_property_multi_array_length(&self->ptr, self->prop, self->arraydim);
+	len= RNA_property_multi_array_length(ptr, prop, arraydim);
 	if (index >= len || index < 0) {
 		/* this shouldn't happen because higher level funcs must check for invalid index */
 		if (G.f & G_DEBUG) printf("pyrna_py_from_array_index: invalid index %d for array with length=%d\n", index, len);
@@ -473,11 +475,11 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyRNA *self, int index)
 		return NULL;
 	}
 
-	totdim= RNA_property_array_dimension(&self->ptr, self->prop, dimsize);
+	totdim= RNA_property_array_dimension(ptr, prop, dimsize);
 
-	if (self->arraydim + 1 < totdim) {
-		ret= (BPy_PropertyRNA*)pyrna_prop_CreatePyObject(&self->ptr, self->prop);
-		ret->arraydim= self->arraydim + 1;
+	if (arraydim + 1 < totdim) {
+		ret= (BPy_PropertyRNA*)pyrna_prop_CreatePyObject(ptr, prop);
+		ret->arraydim= arraydim + 1;
 
 		/* arr[3][4][5]
 
@@ -487,14 +489,14 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyRNA *self, int index)
 		   x = arr[2][3]
 		   index = offset + 3 * 5 */
 
-		for (i= self->arraydim + 1; i < totdim; i++)
+		for (i= arraydim + 1; i < totdim; i++)
 			index *= dimsize[i];
 
-		ret->arrayoffset= self->arrayoffset + index;
+		ret->arrayoffset= arrayoffset + index;
 	}
 	else {
-		index = self->arrayoffset + index;
-		ret= (BPy_PropertyRNA*)pyrna_array_item(&self->ptr, self->prop, index);
+		index = arrayoffset + index;
+		ret= (BPy_PropertyRNA*)pyrna_array_item(ptr, prop, index);
 	}
 
 	return (PyObject*)ret;

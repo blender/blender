@@ -617,7 +617,7 @@ class x3d_class:
         for face in mesh.active_uv_texture.data:
         # for face in mesh.faces:
             # workaround, since tface.uv iteration is wrong atm
-            uvs = [face.uv1, face.uv2, face.uv3, face.uv4][:len(face.uv)]
+            uvs = face.uv
             # uvs = [face.uv1, face.uv2, face.uv3, face.uv4] if face.verts[3] else [face.uv1, face.uv2, face.uv3]
 
             for uv in uvs:
