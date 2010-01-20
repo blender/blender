@@ -78,7 +78,6 @@ class TEXT_PT_properties(bpy.types.Panel):
         layout = self.layout
 
         st = context.space_data
-        text = st.text
 
         flow = layout.column_flow()
         flow.prop(st, "line_numbers")
@@ -89,7 +88,10 @@ class TEXT_PT_properties(bpy.types.Panel):
         flow = layout.column_flow()
         flow.prop(st, "font_size")
         flow.prop(st, "tab_width")
-        flow.prop(text, "tabs_as_spaces")
+
+        text = st.text
+        if text:
+            flow.prop(text, "tabs_as_spaces")
 
 
 class TEXT_PT_find(bpy.types.Panel):
