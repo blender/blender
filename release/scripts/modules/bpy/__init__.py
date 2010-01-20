@@ -34,8 +34,8 @@ from bpy import ops as _ops_module
 # fake operator module
 ops = _ops_module.ops_fake_module
 
-import sys
-DEBUG = ("-d" in sys.argv)
+import sys as _sys
+DEBUG = ("-d" in _sys.argv)
 
 
 def load_scripts(reload_scripts=False):
@@ -76,14 +76,14 @@ def load_scripts(reload_scripts=False):
 
         for module_name in loaded_modules:
             print("Reloading:", module_name)
-            reload(sys.modules[module_name])
+            reload(_sys.modules[module_name])
 
     for base_path in utils.script_paths():
         for path_subdir in ("ui", "op", "io"):
             path = os.path.join(base_path, path_subdir)
             if os.path.isdir(path):
-                if path not in sys.path: # reloading would add twice
-                    sys.path.insert(0, path)
+                if path not in _sys.path: # reloading would add twice
+                    _sys.path.insert(0, path)
                 for f in sorted(os.listdir(path)):
                     if f.endswith(".py"):
                         # python module
@@ -104,10 +104,13 @@ def load_scripts(reload_scripts=False):
 
 def _main():
 
+    # security issue, dont allow the $CWD in the path.
+    _sys.path[:] = filter(None, _sys.path)
+
     # a bit nasty but this prevents help() and input() from locking blender
     # Ideally we could have some way for the console to replace sys.stdin but
     # python would lock blender while waiting for a return value, not easy :|
-    sys.stdin = None
+    _sys.stdin = None
 
     # if "-d" in sys.argv: # Enable this to measure startup speed
     if 0:
