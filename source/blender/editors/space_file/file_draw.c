@@ -99,12 +99,6 @@ enum {
 static void do_file_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
-		case B_FS_EXEC:
-			file_exec(C, NULL);	/* file_ops.c */
-			break;
-		case B_FS_CANCEL:
-			file_cancel_exec(C, NULL); /* file_ops.c */
-			break;
 		case B_FS_PARENT:
 			file_parent_exec(C, NULL); /* file_ops.c */
 			break;
@@ -226,12 +220,13 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	
 	/* Execute / cancel buttons. */
 	if(loadbutton) {
-		uiDefBut(block, BUT, B_FS_EXEC, params->title, 
-		  max_x - loadbutton, line1_y, loadbutton, btn_h, 
-		  params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, params->title);
-		uiDefBut(block, BUT, B_FS_CANCEL, "Cancel", 
-		  max_x - loadbutton, line2_y, loadbutton, btn_h, 
-		  params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "Cancel.");
+		
+		uiDefButO(block, BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, params->title,
+			max_x - loadbutton, line1_y, loadbutton, btn_h, 
+			params->title);
+		uiDefButO(block, BUT, "FILE_OT_cancel", WM_OP_EXEC_REGION_WIN, "Cancel",
+			max_x - loadbutton, line2_y, loadbutton, btn_h, 
+			"Cancel");
 	}
 	
 	uiEndBlock(C, block);
