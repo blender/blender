@@ -1453,6 +1453,38 @@ static void armature_set_id_extern(Object *ob)
 			
 }
 
+void object_copy_proxy_drivers(Object *ob, Object *target)
+{
+	if ((target->adt) && (target->adt->drivers.first)) {
+		FCurve *fcu;
+		
+		/* add new animdata block */
+		if(!ob->adt)
+			ob->adt= BKE_id_add_animdata(&ob->id);
+		
+		/* make a copy of all the drivers (for now), then correct any links that need fixing */
+		free_fcurves(&ob->adt->drivers);
+		copy_fcurves(&ob->adt->drivers, &target->adt->drivers);
+		
+		for (fcu= ob->adt->drivers.first; fcu; fcu= fcu->next) {
+			ChannelDriver *driver= fcu->driver;
+			DriverVar *dvar;
+			
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				/* all drivers */
+				DRIVER_TARGETS_LOOPER(dvar) 
+				{
+					if ((Object *)dtar->id == target)
+						dtar->id= (ID *)ob;
+					else
+						id_lib_extern((ID *)dtar->id);
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
+		}
+	}
+}
+
 /* proxy rule: lib_object->proxy_from == the one we borrow from, set temporally while object_update */
 /*             local_object->proxy == pointer to library object, saved in files and read */
 /*             local_object->proxy_group == pointer to group dupli-object, saved in files and read */
@@ -1489,33 +1521,8 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	copy_m4_m4(ob->parentinv, target->parentinv);
 	
 	/* copy animdata stuff - drivers only for now... */
-	if ((target->adt) && (target->adt->drivers.first)) {
-		FCurve *fcu;
-		
-		/* add new animdata block */
-		ob->adt= BKE_id_add_animdata(&ob->id);
-		
-		/* make a copy of all the drivers (for now), then correct any links that need fixing */
-		copy_fcurves(&ob->adt->drivers, &target->adt->drivers);
-		
-		for (fcu= ob->adt->drivers.first; fcu; fcu= fcu->next) {
-			ChannelDriver *driver= fcu->driver;
-			DriverVar *dvar;
-			
-			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
-				/* all drivers */
-				DRIVER_TARGETS_LOOPER(dvar) 
-				{
-					if ((Object *)dtar->id == target)
-						dtar->id= (ID *)ob;
-					else
-						id_lib_extern((ID *)dtar->id);
-				}
-				DRIVER_TARGETS_LOOPER_END
-			}
-		}
-	}
-	
+	object_copy_proxy_drivers(ob, target);
+
 	/* skip constraints? */
 	// FIXME: this is considered by many as a bug
 	

@@ -61,7 +61,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
-#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
@@ -1573,15 +1572,6 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			pchan->custom= pchanp->custom;
 		}
 	}
-
-	/* copy drivers */
-	adt= BKE_animdata_from_id(&ob->id);
-	fromadt= BKE_animdata_from_id(&from->id);
-	if(!adt)
-		adt= BKE_id_add_animdata(&ob->id);
-
-	free_fcurves(&adt->drivers);
-	copy_fcurves(&adt->drivers, &fromadt->drivers);
 }
 
 static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int counter)
@@ -1644,8 +1634,10 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	// printf("rebuild pose %s, %d bones\n", ob->id.name, counter);
 	
 	/* synchronize protected layers with proxy */
-	if(ob->proxy)
+	if(ob->proxy) {
+		object_copy_proxy_drivers(ob, ob->proxy);
 		pose_proxy_synchronize(ob, ob->proxy, arm->layer_protected);
+	}
 	
 	update_pose_constraint_flags(ob->pose); // for IK detection for example
 	
