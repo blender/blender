@@ -510,7 +510,7 @@ typedef struct Paint {
 typedef struct ImagePaintSettings {
 	Paint paint;
 
-	short flag, tool;
+	short flag, pad;
 	
 	/* for projection painting only */
 	short seam_bleed, normal_angle;
@@ -565,7 +565,7 @@ typedef struct Sculpt {
 typedef struct VPaint {
 	Paint paint;
 
-	short mode, flag;
+	short flag, pad;
 	int tot;							/* allocation size of prev buffers */
 	unsigned int *vpaint_prev;			/* previous mesh colors */
 	struct MDeformVert *wpaint_prev;	/* previous vertex weights */

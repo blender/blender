@@ -65,8 +65,10 @@ typedef struct Brush {
 	float rgb[3];				/* color */
 	float alpha;				/* opacity */
 
-	char sculpt_tool;			/* active tool */
-	char pad2[3];
+	char sculpt_tool;			/* active sculpt tool */
+	char vertexpaint_tool;		/* active vertex/weight paint tool/blend mode */
+	char imagepaint_tool;		/* active image paint tool */
+	char pad2;
 } Brush;
 
 /* Brush.flag */

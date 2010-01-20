@@ -500,13 +500,13 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             row = col.row()
 
             if context.sculpt_object and brush:
-                defaulttools = 8
+                defaultbrushes = 8
             elif context.texture_paint_object and brush:
-                defaulttools = 4
+                defaultbrushes = 4
             else:
-                defaulttools = 2
+                defaultbrushes = 7
 
-            row.template_list(settings, "brushes", settings, "active_brush_index", rows=2, maxrows=defaulttools)
+            row.template_list(settings, "brushes", settings, "active_brush_index", rows=2, maxrows=defaultbrushes)
 
             col.template_ID(settings, "brush", new="brush.add")
 
@@ -657,8 +657,9 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel):
 
     def poll(self, context):
         settings = self.paint_settings(context)
-        return (settings and settings.brush and (context.sculpt_object or
-                             context.texture_paint_object))
+        return (settings and settings.brush and
+            (context.sculpt_object or context.texture_paint_object or 
+            context.vertex_paint_object or context.weight_paint_object))
 
     def draw(self, context):
         layout = self.layout
@@ -673,10 +674,13 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel):
         if context.sculpt_object:
             col.prop(brush, "sculpt_tool", expand=True)
         elif context.texture_paint_object:
-            col.prop_enum(settings, "tool", 'DRAW')
-            col.prop_enum(settings, "tool", 'SOFTEN')
-            col.prop_enum(settings, "tool", 'CLONE')
-            col.prop_enum(settings, "tool", 'SMEAR')
+            col.prop(brush, "imagepaint_tool", expand=True)
+            #col.prop_enum(settings, "tool", 'DRAW')
+            #col.prop_enum(settings, "tool", 'SOFTEN')
+            #col.prop_enum(settings, "tool", 'CLONE')
+            #col.prop_enum(settings, "tool", 'SMEAR')
+        elif context.vertex_paint_object or context.weight_paint_object:
+            col.prop(brush, "vertexpaint_tool", expand=True)
 
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel):
@@ -780,7 +784,6 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel):
         layout = self.layout
 
         col = layout.column()
-        # col.label(text="Blend:")
         col.operator("object.vertex_group_normalize_all", text="Normalize All")
         col.operator("object.vertex_group_normalize", text="Normalize")
         col.operator("object.vertex_group_invert", text="Invert")
@@ -798,8 +801,6 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
         wpaint = context.tool_settings.weight_paint
 
         col = layout.column()
-        col.label(text="Blend:")
-        col.prop(wpaint, "mode", text="")
         col.prop(wpaint, "all_faces")
         col.prop(wpaint, "normals")
         col.prop(wpaint, "spray")
@@ -830,8 +831,7 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel):
         vpaint = context.tool_settings.vertex_paint
 
         col = layout.column()
-        col.label(text="Blend:")
-        col.prop(vpaint, "mode", text="")
+        #col.prop(vpaint, "mode", text="")
         col.prop(vpaint, "all_faces")
         col.prop(vpaint, "normals")
         col.prop(vpaint, "spray")
@@ -850,7 +850,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
     bl_label = "Project Paint"
 
     def poll(self, context):
-        return context.tool_settings.image_paint.tool != 'SMEAR'
+        return context.tool_settings.image_paint.brush.imagepaint_tool != 'SMEAR'
 
     def draw_header(self, context):
         ipaint = context.tool_settings.image_paint
@@ -893,7 +893,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         col = layout.column()
         sub = col.column()
         row = sub.row()
-        row.active = (settings.tool == 'CLONE')
+        row.active = (settings.brush.imagepaint_tool == 'CLONE')
 
         row.prop(ipaint, "use_clone_layer", text="Clone")
         row.menu("VIEW3D_MT_tools_projectpaint_clone", text=context.active_object.data.uv_texture_clone.name)

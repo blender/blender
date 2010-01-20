@@ -4273,12 +4273,10 @@ static int image_paint_3d_poll(bContext *C)
 
 static int image_paint_2d_clone_poll(bContext *C)
 {
-	Scene *scene= CTX_data_scene(C);
-	ToolSettings *settings= scene->toolsettings;
 	Brush *brush= image_paint_brush(C);
 
 	if(!CTX_wm_region_view3d(C) && image_paint_poll(C))
-		if(brush && (settings->imapaint.tool == PAINT_TOOL_CLONE))
+		if(brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE))
 			if(brush->clone.image)
 				return 1;
 	
@@ -4386,7 +4384,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		return 0;
 
 	pop->s.brush = brush;
-	pop->s.tool = settings->imapaint.tool;
+	pop->s.tool = brush->imagepaint_tool;
 	if(pop->mode == PAINT_MODE_3D && (pop->s.tool == PAINT_TOOL_CLONE))
 		pop->s.tool = PAINT_TOOL_DRAW;
 	pop->s.blend = pop->s.brush->blend;

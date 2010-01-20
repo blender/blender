@@ -35,17 +35,6 @@
 #include "IMB_imbuf.h"
 #include "WM_types.h"
 
-EnumPropertyItem brush_sculpt_tool_items[] = {
-	{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
-	{SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-	{SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", ""},
-	{SCULPT_TOOL_INFLATE, "INFLATE", 0, "Inflate", ""},
-	{SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
-	{SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
-	{SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
-	{SCULPT_TOOL_CLAY, "CLAY", 0, "Clay", ""},
-	{0, NULL, 0, NULL, NULL}};
-
 #ifdef RNA_RUNTIME
 
 #include "MEM_guardedalloc.h"
@@ -121,6 +110,34 @@ static void rna_def_brush(BlenderRNA *brna)
 		{IMB_BLEND_ADD_ALPHA, "ADD_ALPHA", 0, "Add Alpha", "Add alpha while painting."},
 		{0, NULL, 0, NULL, NULL}};
 	
+	static EnumPropertyItem brush_sculpt_tool_items[] = {
+		{SCULPT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
+		{SCULPT_TOOL_SMOOTH, "SMOOTH", 0, "Smooth", ""},
+		{SCULPT_TOOL_PINCH, "PINCH", 0, "Pinch", ""},
+		{SCULPT_TOOL_INFLATE, "INFLATE", 0, "Inflate", ""},
+		{SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", ""},
+		{SCULPT_TOOL_LAYER, "LAYER", 0, "Layer", ""},
+		{SCULPT_TOOL_FLATTEN, "FLATTEN", 0, "Flatten", ""},
+		{SCULPT_TOOL_CLAY, "CLAY", 0, "Clay", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem brush_vertexpaint_tool_items[] = {
+		{0, "MIX", 0, "Mix", "Use mix blending mode while painting."},
+		{1, "ADD", 0, "Add", "Use add blending mode while painting."},
+		{2, "SUB", 0, "Subtract", "Use subtract blending mode while painting."},
+		{3, "MUL", 0, "Multiply", "Use multiply blending mode while painting."},
+		{4, "BLUR", 0, "Blur", "Blur the color with surrounding values"},
+		{5, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting."},
+		{6, "DARKEN", 0, "Darken", "Use darken blending mode while painting."},
+		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem brush_imagepaint_tool_items[] = {
+		{PAINT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
+		{PAINT_TOOL_SOFTEN, "SOFTEN", 0, "Soften", ""},
+		{PAINT_TOOL_SMEAR, "SMEAR", 0, "Smear", ""},
+		{PAINT_TOOL_CLONE, "CLONE", 0, "Clone", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
 	static const EnumPropertyItem prop_flip_direction_items[]= {
 		{0, "ADD", 0, "Add", "Add effect of brush"},
 		{BRUSH_DIR_IN, "SUBTRACT", 0, "Subtract", "Subtract effect of brush"},
@@ -139,6 +156,16 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "sculpt_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, brush_sculpt_tool_items);
 	RNA_def_property_ui_text(prop, "Sculpt Tool", "");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+	
+	prop= RNA_def_property(srna, "vertexpaint_tool", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, brush_vertexpaint_tool_items);
+	RNA_def_property_ui_text(prop, "Vertex/Weight Paint Tool", "");
+	RNA_def_property_update(prop, 0, "rna_Brush_update");
+	
+	prop= RNA_def_property(srna, "imagepaint_tool", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, brush_imagepaint_tool_items);
+	RNA_def_property_ui_text(prop, "Image Paint Tool", "");
 	RNA_def_property_update(prop, 0, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);

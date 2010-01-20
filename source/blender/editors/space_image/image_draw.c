@@ -625,7 +625,7 @@ static void draw_image_paint_helpers(SpaceImage *sima, ARegion *ar, Scene *scene
 
 	brush= paint_brush(&scene->toolsettings->imapaint.paint);
 
-	if(brush && (scene->toolsettings->imapaint.tool == PAINT_TOOL_CLONE)) {
+	if(brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE)) {
 		/* this is not very efficient, but glDrawPixels doesn't allow
 		   drawing with alpha */
 		clonerect= get_alpha_clone_image(scene, &w, &h);
