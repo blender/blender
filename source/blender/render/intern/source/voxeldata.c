@@ -246,7 +246,8 @@ static void free_voxeldata_one(Render *re, Tex *tex)
 	VoxelData *vd = tex->vd;
 	
 	if (vd->dataset) {
-		MEM_freeN(vd->dataset);
+		if(vd->file_format != TEX_VD_SMOKE)
+			MEM_freeN(vd->dataset);
 		vd->dataset = NULL;
 	}
 }
