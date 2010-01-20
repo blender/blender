@@ -1205,6 +1205,7 @@ ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 		
 	/* copy all data */
 	ndriver= MEM_dupallocN(driver);
+	ndriver->expr_comp= NULL;
 	
 	/* copy variables */
 	ndriver->variables.first= ndriver->variables.last= NULL;

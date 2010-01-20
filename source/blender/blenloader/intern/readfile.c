@@ -1780,6 +1780,8 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
 			DriverVar *dvar;
+
+			driver->expr_comp= NULL;
 			
 			/* relink variables, targets and their paths */
 			link_list(fd, &driver->variables);

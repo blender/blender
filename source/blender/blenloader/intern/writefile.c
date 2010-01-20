@@ -935,14 +935,7 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 			ChannelDriver *driver= fcu->driver;
 			DriverVar *dvar;
 			
-			/* don't save compiled python bytecode */
-			void *expr_comp= driver->expr_comp;
-			driver->expr_comp= NULL;
-			
 			writestruct(wd, DATA, "ChannelDriver", 1, driver);
-			
-			driver->expr_comp= expr_comp; /* restore */
-			
 			
 			/* variables */
 			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
