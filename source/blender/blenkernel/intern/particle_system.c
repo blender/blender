@@ -263,6 +263,12 @@ static int get_psys_tot_child(struct Scene *scene, ParticleSystem *psys)
 static void alloc_child_particles(ParticleSystem *psys, int tot)
 {
 	if(psys->child){
+		/* only re-allocate if we have to */
+		if(psys->part->childtype && psys->totchild == tot) {
+			memset(psys->child, 0, tot*sizeof(ChildParticle));
+			return;
+		}
+
 		MEM_freeN(psys->child);
 		psys->child=0;
 		psys->totchild=0;
