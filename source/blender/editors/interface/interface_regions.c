@@ -435,7 +435,6 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* set font, get bb */
 	data->fstyle= style->widget; /* copy struct */
 	data->fstyle.align= UI_STYLE_TEXT_CENTER;
-	ui_fontscale(&data->fstyle.points, aspect);
 	uiStyleFontSet(&data->fstyle);
 
 	h= BLF_height(data->lines[0]);
@@ -447,13 +446,12 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 
 	fontw *= aspect;
-	fonth *= aspect;
 
 	ar->regiondata= data;
 
 	data->toth= fonth;
-	data->lineh= h*aspect;
-	data->spaceh= 5*aspect;
+	data->lineh= h;
+	data->spaceh= 5;
 
 	/* compute position */
 	ofsx= (but->block->panel)? but->block->panel->ofsx: 0;
@@ -462,7 +460,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	x1f= (but->x1+but->x2)/2.0f + ofsx - 16.0f*aspect;
 	x2f= x1f + fontw + 16.0f*aspect;
 	y2f= but->y1 + ofsy - 15.0f*aspect;
-	y1f= y2f - fonth - 10.0f*aspect;
+	y1f= y2f - fonth*aspect - 15.0f*aspect;
 	
 	/* copy to int, gets projected if possible too */
 	x1= x1f; y1= y1f; x2= x2f; y2= y2f; 
@@ -494,8 +492,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 	}
 	if(y1 < 0) {
-		y1 += 56*aspect;
-		y2 += 56*aspect;
+		y1 += 56;
+		y2 += 56;
 	}
 
 	/* widget rect, in region coords */
