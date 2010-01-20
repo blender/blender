@@ -774,16 +774,6 @@ void recalcData(TransInfo *t)
 		else {
 			int i;
 			
-			for(base= FIRSTBASE; base; base= base->next) {
-				Object *ob= base->object;
-				
-				/* this flag is from depgraph, was stored in initialize phase, handled in drawview.c */
-				if(base->flag & BA_HAS_RECALC_OB)
-					ob->recalc |= OB_RECALC_OB;
-				if(base->flag & BA_HAS_RECALC_DATA)
-					ob->recalc |= OB_RECALC_DATA;
-			}
-			
 			for (i = 0; i < t->total; i++) {
 				TransData *td = t->data + i;
 				Object *ob = td->ob;
@@ -804,11 +794,10 @@ void recalcData(TransInfo *t)
 					autokeyframe_ob_cb_func(NULL, t->scene, (View3D *)t->view, ob, t->mode);
 				}
 				
-				/* proxy exception */
-				if(ob->proxy)
-					ob->proxy->recalc |= ob->recalc;
-				if(ob->proxy_group)
-					group_tag_recalc(ob->proxy_group->dup_group);
+				/* sets recalc flags fully, instead of flushing existing ones 
+				 * otherwise proxies don't function correctly
+				 */
+				DAG_id_flush_update(&ob->id, OB_RECALC);  
 			}
 		}
 		
