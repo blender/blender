@@ -58,6 +58,8 @@ class NLA_MT_view(bpy.types.Menu):
         layout.operator("nla.properties", icon='MENU_PANEL')
 
         layout.separator()
+
+        layout.prop(st, "realtime_updates")
         layout.prop(st, "show_cframe_indicator")
 
         layout.operator("anim.time_toggle", text="Show Frames" if st.show_seconds else "Show Seconds")

@@ -558,9 +558,7 @@ typedef struct SpaceAction {
 	bDopeSheet 	ads;			/* the currently active context (when not showing action) */
 	
 	char  mode, autosnap;		/* mode: editing context; autosnap: automatic keyframe snapping mode   */
-	short flag, actnr; 			/* flag: bitmapped settings; */
-	short pin, lock;			/* pin: keep showing current action; actnr: used for finding chosen action from menu; lock: lock time to other windows */
-	short actwidth;				/* width of the left-hand side name panel (in pixels?) */  // XXX depreceated!
+	short flag; 				/* flag: bitmapped settings; */
 	float timeslide;			/* for Time-Slide transform mode drawing - current frame? */
 } SpaceAction;
 
@@ -568,24 +566,26 @@ typedef struct SpaceAction {
 typedef enum eSAction_Flag {
 		/* during transform (only set for TimeSlide) */
 	SACTION_MOVING	= (1<<0),	
-		/* show sliders (if relevant) */
+		/* show sliders */
 	SACTION_SLIDERS	= (1<<1),	
 		/* draw time in seconds instead of time in frames */
 	SACTION_DRAWTIME = (1<<2),
 		/* don't filter action channels according to visibility */
-	SACTION_NOHIDE = (1<<3),
+	//SACTION_NOHIDE = (1<<3), // XXX depreceated... old animation system
 		/* don't kill overlapping keyframes after transform */
 	SACTION_NOTRANSKEYCULL = (1<<4),
 		/* don't include keyframes that are out of view */
-	SACTION_HORIZOPTIMISEON = (1<<5),
+	//SACTION_HORIZOPTIMISEON = (1<<5), // XXX depreceated... old irrelevant trick
 		/* hack for moving pose-markers (temp flag)  */
 	SACTION_POSEMARKERS_MOVE = (1<<6),
 		/* don't draw action channels using group colours (where applicable) */
-	SACTION_NODRAWGCOLORS = (1<<7),
+	SACTION_NODRAWGCOLORS = (1<<7), // XXX depreceated... irrelevant for current groups implementation
 		/* don't draw current frame number beside frame indicator */
 	SACTION_NODRAWCFRANUM = (1<<8),
 		/* temporary flag to force channel selections to be synced with main */
 	SACTION_TEMP_NEEDCHANSYNC = (1<<9),
+		/* don't perform realtime updates */
+	SACTION_NOREALTIMEUPDATES =	(1<<10),
 } eSAction_Flag;	
 
 /* SpaceAction Mode Settings */

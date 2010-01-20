@@ -335,6 +335,7 @@ void recalcData(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		Scene *scene= t->scene;
+		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		
 		bAnimContext ac;
 		ListBase anim_data = {NULL, NULL};
@@ -358,10 +359,14 @@ void recalcData(TransInfo *t)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
 		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
-		/* just tag these animdata-blocks to recalc, assuming that some data there changed */
-		for (ale= anim_data.first; ale; ale= ale->next) {
-			/* set refresh tags for objects using this animation */
-			ANIM_list_elem_update(t->scene, ale);
+		/* just tag these animdata-blocks to recalc, assuming that some data there changed 
+		 * BUT only do this if realtime updates are enabled
+		 */
+		if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
+			for (ale= anim_data.first; ale; ale= ale->next) {
+				/* set refresh tags for objects using this animation */
+				ANIM_list_elem_update(t->scene, ale);
+			}
 		}
 		
 		/* now free temp channels */
@@ -369,6 +374,7 @@ void recalcData(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		Scene *scene;
+		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
 		
 		ListBase anim_data = {NULL, NULL};
 		bAnimContext ac;
@@ -408,8 +414,11 @@ void recalcData(TransInfo *t)
 			else
 				calchandles_fcurve(fcu);
 				
-			/* set refresh tags for objects using this animation */
-			ANIM_list_elem_update(t->scene, ale);
+			/* set refresh tags for objects using this animation,
+			 * BUT only if realtime updates are enabled  
+			 */
+			if ((sipo->flag & SIPO_NOREALTIMEUPDATES) == 0)
+				ANIM_list_elem_update(t->scene, ale);
 		}
 		
 		/* do resort and other updates? */
@@ -439,8 +448,11 @@ void recalcData(TransInfo *t)
 			if (tdn->handle == 0)
 				continue;
 			
-			/* set refresh tags for objects using this animation */
-			ANIM_id_update(t->scene, tdn->id);
+			/* set refresh tags for objects using this animation,
+			 * BUT only if realtime updates are enabled  
+			 */
+			if ((snla->flag & SNLA_NOREALTIMEUPDATES) == 0)
+				ANIM_id_update(t->scene, tdn->id);
 			
 			/* if cancelling transform, just write the values without validating, then move on */
 			if (t->state == TRANS_CANCEL) {

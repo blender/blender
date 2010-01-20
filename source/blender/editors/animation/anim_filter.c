@@ -159,7 +159,7 @@ static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 	switch (saction->mode) {
 		case SACTCONT_ACTION: /* 'Action Editor' */
 			/* if not pinned, sync with active object */
-			if (saction->pin == 0) {
+			if (/*saction->pin == 0*/0) {
 				if (ac->obact && ac->obact->adt)
 					saction->action = ac->obact->adt->action;
 				else

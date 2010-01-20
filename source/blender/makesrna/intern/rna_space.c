@@ -449,7 +449,7 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, Scene *scene, Po
 	Object *obact= (scene->basact)? scene->basact->object: NULL;
 
 	/* we must set this action to be the one used by active object (if not pinned) */
-	if(obact && saction->pin == 0) {
+	if(obact/* && saction->pin == 0*/) {
 		AnimData *adt= BKE_id_add_animdata(&obact->id); /* this only adds if non-existant */
 		
 		/* set action */
@@ -1342,6 +1342,11 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SACTION_NOTRANSKEYCULL);
 	RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Show handles of Bezier control points.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
+	
+	prop= RNA_def_property(srna, "realtime_updates", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SACTION_NOREALTIMEUPDATES);
+	RNA_def_property_ui_text(prop, "Realtime Updates", "When transforming keyframes, changes to the animation data are flushed to other views.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
 
 	/* dopesheet */
 	prop= RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
@@ -1426,6 +1431,11 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "AutoMerge Keyframes", "Show handles of Bezier control points.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
+	prop= RNA_def_property(srna, "realtime_updates", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NOREALTIMEUPDATES);
+	RNA_def_property_ui_text(prop, "Realtime Updates", "When transforming keyframes, changes to the animation data are flushed to other views.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
+	
 	/* cursor */
 	prop= RNA_def_property(srna, "show_cursor", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SIPO_NODRAWCURSOR);
@@ -1488,6 +1498,12 @@ static void rna_def_space_nla(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "show_strip_curves", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SNLA_NOSTRIPCURVES);
 	RNA_def_property_ui_text(prop, "Show Control Curves", "Show influence curves on strips.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NLA, NULL);
+	
+	/* editing */
+	prop= RNA_def_property(srna, "realtime_updates", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SNLA_NOREALTIMEUPDATES);
+	RNA_def_property_ui_text(prop, "Realtime Updates", "When transforming strips, changes to the animation data are flushed to other views.");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_NLA, NULL);
 
 	/* dopesheet */
