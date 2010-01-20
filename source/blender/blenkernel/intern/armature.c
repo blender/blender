@@ -61,6 +61,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
@@ -1480,6 +1481,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	bPose *pose= ob->pose, *frompose= from->pose;
 	bPoseChannel *pchan, *pchanp, pchanw;
 	bConstraint *con;
+	AnimData *adt, *fromadt;
 	int error = 0;
 	
 	if (frompose==NULL) return;
@@ -1571,6 +1573,15 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			pchan->custom= pchanp->custom;
 		}
 	}
+
+	/* copy drivers */
+	adt= BKE_animdata_from_id(&ob->id);
+	fromadt= BKE_animdata_from_id(&from->id);
+	if(!adt)
+		adt= BKE_id_add_animdata(&ob->id);
+
+	free_fcurves(&adt->drivers);
+	copy_fcurves(&adt->drivers, &fromadt->drivers);
 }
 
 static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int counter)
