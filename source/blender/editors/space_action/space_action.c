@@ -398,6 +398,24 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 	}
 }
 
+static void action_header_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_OB_ACTIVE:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
+			break;
+	}
+}
+
 static void action_refresh(const bContext *C, ScrArea *sa)
 {
 	SpaceAction *saction= CTX_wm_space_action(C);
@@ -450,6 +468,7 @@ void ED_spacetype_action(void)
 	
 	art->init= action_header_area_init;
 	art->draw= action_header_area_draw;
+	art->listener= action_header_area_listener;
 	
 	BLI_addhead(&st->regiontypes, art);
 	
