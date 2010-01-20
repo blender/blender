@@ -847,6 +847,7 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_group_instance_add";
 
 	/* api callbacks */
+	ot->invoke= WM_enum_search_invoke;
 	ot->exec= group_instance_add_exec;
 
 	ot->poll= ED_operator_scene_editable;
@@ -857,6 +858,7 @@ void OBJECT_OT_group_instance_add(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
 	RNA_def_enum_funcs(prop, RNA_group_itemf);
+	ot->prop= prop;
 	ED_object_add_generic_props(ot, FALSE);
 }
 

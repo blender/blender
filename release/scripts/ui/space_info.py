@@ -222,7 +222,11 @@ class INFO_MT_add(bpy.types.Menu):
         layout.operator_menu_enum("object.effector_add", "type", 'EMPTY', text="Force Field", icon='OUTLINER_OB_EMPTY')
         layout.separator()
 
-        layout.operator_menu_enum("object.group_instance_add", "type", text="Group Instance", icon='OUTLINER_OB_EMPTY')
+        if(len(bpy.data.groups) > 10):
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("object.group_instance_add", "type", text="Group Instance...", icon='OUTLINER_OB_EMPTY')
+        else:
+            layout.operator_menu_enum("object.group_instance_add", "type", text="Group Instance", icon='OUTLINER_OB_EMPTY')
 
 
 class INFO_MT_game(bpy.types.Menu):
