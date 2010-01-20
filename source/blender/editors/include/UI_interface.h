@@ -651,7 +651,7 @@ void uiTemplateAnyID(uiLayout *layout, struct bContext *C, struct PointerRNA *pt
 	char *proptypename, char *text);
 void uiTemplatePathBuilder(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, 
 	struct PointerRNA *root_ptr, char *text);
-uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
+uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr, int compact);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);
 void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);

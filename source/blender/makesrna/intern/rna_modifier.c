@@ -2124,6 +2124,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Expanded);
 	RNA_def_property_ui_text(prop, "Expanded", "Set modifier expanded in the user interface.");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 
 
 	/* types */

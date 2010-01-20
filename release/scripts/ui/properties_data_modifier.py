@@ -20,7 +20,7 @@
 import bpy
 
 narrowui = 180
-
+narrowmod = 260
 
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -36,14 +36,13 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         ob = context.object
         wide_ui = context.region.width > narrowui
+        compact_mod = context.region.width < narrowmod
 
         row = layout.row()
         row.operator_menu_enum("object.modifier_add", "type")
-        if wide_ui:
-            row.label()
 
         for md in ob.modifiers:
-            box = layout.template_modifier(md)
+            box = layout.template_modifier(md, compact=compact_mod)
             if box:
                 # match enum type to our functions, avoids a lookup table.
                 getattr(self, md.type)(box, ob, md, wide_ui)

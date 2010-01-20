@@ -653,13 +653,13 @@ static int modifier_can_delete(ModifierData *md)
 	return 1;
 }
 
-static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex)
+static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex, int compact)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	PointerRNA ptr;
 	uiBut *but;
 	uiBlock *block;
-	uiLayout *box, *column, *row;
+	uiLayout *box, *column, *row, *col;
 	uiLayout *result= NULL;
 	int isVirtual = (md->mode & eModifierMode_Virtual);
 	char str[128];
@@ -673,11 +673,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	/* rounded header ------------------------------------------------------------------- */
 	box= uiLayoutBox(column);
 	
-	row= uiLayoutRow(box, 0);
-	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
-	block= uiLayoutGetBlock(row);
-	
 	if (isVirtual) {
+		row= uiLayoutRow(box, 0);
+		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
+		block= uiLayoutGetBlock(row);
 		/* VIRTUAL MODIFIER */
 		// XXX this is not used now, since these cannot be accessed via RNA
 		sprintf(str, "%s parent deform", md->name);
@@ -688,62 +687,88 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	}
 	else {
 		/* REAL MODIFIER */
-		uiLayout *subrow, *col2;
+		uiLayout *split;
+		
+		split = uiLayoutSplit(box, 0.16, 0);
+		
+		col= uiLayoutColumn(split, 0);
+		row = uiLayoutRow(col, 1);
+		
+		block = uiLayoutGetBlock(row);
+		
+		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* Open/Close .................................  */
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, 0, ICON_TRIA_RIGHT, 0, 0, UI_UNIT_X, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
+		uiItemR(row, "", 0, &ptr, "expanded", 0);
 		
 		/* modifier-type icon */
 		uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
+		
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		
+	
 		/* 'Middle Column' ............................ 
 		 *	- first row is the name of the modifier 
 		 *	- second row is the visibility settings, since the layouts were not wide enough to show all
 		 */
-		col2= uiLayoutColumn(row, 0);
-			/* First Row */
-			subrow= uiLayoutRow(col2, 0);
-				/* modifier name */
-				uiItemR(subrow, "", 0, &ptr, "name", 0);
+		col= uiLayoutColumn(split, 0);
+		
+		row= uiLayoutRow(col, 0);
+		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
+		
+		block = uiLayoutGetBlock(row);
+		
+		/* modifier name */
+		uiItemR(row, "", 0, &ptr, "name", 0);
+		
+		if (compact) {
+			/* insert delete button at end of top row before splitting to second line */
+			uiBlockSetEmboss(block, UI_EMBOSSN);
+			if (modifier_can_delete(md))
+				uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
+			uiBlockSetEmboss(block, UI_EMBOSS);
 			
-			/* Second Row */
-			subrow= uiLayoutRow(col2, 1);
-			uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_EXPAND);
-			block= uiLayoutGetBlock(subrow);
-				/* Softbody not allowed in this situation, enforce! */
-				if ( ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) 
-						&& (md->type!=eModifierType_Surface) ) 
-				{
-					uiItemR(subrow, "", ICON_SCENE, &ptr, "render", 0);
-					uiItemR(subrow, "", ICON_RESTRICT_VIEW_OFF, &ptr, "realtime", 0);
-					
-					if (mti->flags & eModifierTypeFlag_SupportsEditmode)
-						uiItemR(subrow, "", ICON_EDITMODE_HLT, &ptr, "editmode", 0);
-				}
-				
-				if ((ob->type==OB_MESH) && modifier_couldBeCage(md) && (index <= lastCageIndex)) 
-				{
-					but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
-					if (index < cageIndex)
-						uiButSetFlag(but, UI_BUT_DISABLED);
-					uiButSetFunc(but, modifiers_setOnCage, ob, md);
-				}
-			
-		/* Up/Down + Delete ........................... */
-		block= uiLayoutGetBlock(row);
+			split = uiLayoutSplit(box, 0.17, 0);
+			col= uiLayoutColumn(split, 0);
+			uiItemL(col, "", 0);
+			col= uiLayoutColumn(split, 0);
+			row = uiLayoutRow(col, 1);
+		}
+		
+		/* mode enabling buttons */
 		uiBlockBeginAlign(block);
-			uiItemO(row, "", ICON_TRIA_UP, "OBJECT_OT_modifier_move_up");
-			uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
+		/* Softbody not allowed in this situation, enforce! */
+		if ( ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) 
+			&& (md->type!=eModifierType_Surface) ) 
+		{
+			uiItemR(row, "", 0, &ptr, "render", 0);
+			uiItemR(row, "", 0, &ptr, "realtime", 0);
+			
+			if (mti->flags & eModifierTypeFlag_SupportsEditmode)
+				uiItemR(row, "", 0, &ptr, "editmode", 0);
+		}
+		if ((ob->type==OB_MESH) && modifier_couldBeCage(md) && (index <= lastCageIndex)) 
+		{
+			/* -- convert to rna ? */
+			but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+			if (index < cageIndex)
+				uiButSetFlag(but, UI_BUT_DISABLED);
+			uiButSetFunc(but, modifiers_setOnCage, ob, md);
+		}
 		uiBlockEndAlign(block);
 		
-		uiBlockSetEmboss(block, UI_EMBOSSN);
+		/* Up/Down + Delete ........................... */
+		uiBlockBeginAlign(block);
+		uiItemO(row, "", ICON_TRIA_UP, "OBJECT_OT_modifier_move_up");
+		uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
+		uiBlockEndAlign(block);
 		
-		if (modifier_can_delete(md))
-			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
-			
-		uiBlockSetEmboss(block, UI_EMBOSS);
+		if(!compact) {
+			uiBlockSetEmboss(block, UI_EMBOSSN);
+			if (modifier_can_delete(md))
+				uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
+			uiBlockSetEmboss(block, UI_EMBOSS);
+		}
 	}
 
 	
@@ -794,7 +819,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	return result;
 }
 
-uiLayout *uiTemplateModifier(uiLayout *layout, PointerRNA *ptr)
+uiLayout *uiTemplateModifier(uiLayout *layout, PointerRNA *ptr, int compact)
 {
 	Object *ob;
 	ModifierData *md, *vmd;
@@ -824,7 +849,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, PointerRNA *ptr)
 
 	for(i=0; vmd; i++, vmd=vmd->next) {
 		if(md == vmd)
-			return draw_modifier(layout, ob, md, i, cageIndex, lastCageIndex);
+			return draw_modifier(layout, ob, md, i, cageIndex, lastCageIndex, compact);
 		else if(vmd->mode & eModifierMode_Virtual)
 			i--;
 	}
