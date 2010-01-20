@@ -1270,12 +1270,12 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			if (driver->variables.first == driver->variables.last) {
 				/* just one target, so just use that */
 				dvar= driver->variables.first;
-				return driver_get_variable_value(driver, dvar);
+				driver->curval= driver_get_variable_value(driver, dvar);
 			}
 			else {
 				/* more than one target, so average the values of the targets */
-				int tot = 0;
 				float value = 0.0f;
+				int tot = 0;
 				
 				/* loop through targets, adding (hopefully we don't get any overflow!) */
 				for (dvar= driver->variables.first; dvar; dvar=dvar->next) {
@@ -1285,10 +1285,9 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 				
 				/* perform operations on the total if appropriate */
 				if (driver->type == DRIVER_TYPE_AVERAGE)
-					return (value / (float)tot);
+					driver->curval= (value / (float)tot);
 				else
-					return value;
-				
+					driver->curval= value;
 			}
 		}
 			break;
@@ -1322,6 +1321,9 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 					value= tmp_val;
 				}
 			}
+			
+			/* store value in driver */
+			driver->curval= value;
 		}
 			break;
 			
@@ -1332,13 +1334,15 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			if ( (driver->expression[0] == '\0') ||
 				 (driver->flag & DRIVER_FLAG_INVALID) )
 			{
-				return 0.0f;
+				driver->curval= 0.0f;
 			}
-			
-			/* this evaluates the expression using Python,and returns its result:
-			 * 	- on errors it reports, then returns 0.0f
-			 */
-			return BPY_pydriver_eval(driver);
+			else
+			{
+				/* this evaluates the expression using Python,and returns its result:
+				 * 	- on errors it reports, then returns 0.0f
+				 */
+				driver->curval= BPY_pydriver_eval(driver);
+			}
 #endif /* DISABLE_PYTHON*/
 		}
 			break;
@@ -1349,12 +1353,11 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			 *	This is currently used as the mechanism which allows animated settings to be able
 			 * 	to be changed via the UI.
 			 */
-			return driver->curval;
 		}
 	}
 	
-	/* return 0.0f, as couldn't find relevant data to use */
-	return 0.0f;
+	/* return value for driver */
+	return driver->curval;
 }
 
 /* ***************************** Curve Calculations ********************************* */
