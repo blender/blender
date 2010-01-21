@@ -392,12 +392,11 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 {
 	IDProperty *loop, *prop;
 	for (prop=src->data.group.first; prop; prop=prop->next) {
-		IDProperty *copy = IDP_CopyProperty(prop);
-
 		for (loop=dest->data.group.first; loop; loop=loop->next) {
 			if (BSTR_EQ(loop->name, prop->name)) {
-				if (loop->next) BLI_insertlinkbefore(&dest->data.group, loop->next, copy);
-				else BLI_addtail(&dest->data.group, copy);
+				IDProperty *copy = IDP_CopyProperty(prop);
+
+				BLI_insertlink(&dest->data.group, loop, copy);
 
 				BLI_remlink(&dest->data.group, loop);
 				IDP_FreeProperty(loop);
@@ -406,8 +405,12 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, IDProperty *src)
 			}
 		}
 
-		dest->len++;
-		BLI_addtail(&dest->data.group, copy);
+		/* only add at end if not added yet */
+		if (loop == NULL) {
+			IDProperty *copy = IDP_CopyProperty(prop);
+			dest->len++;
+			BLI_addtail(&dest->data.group, copy);
+		}
 	}
 }
 /*
@@ -419,8 +422,7 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 	IDProperty *loop;
 	for (loop=group->data.group.first; loop; loop=loop->next) {
 		if (BSTR_EQ(loop->name, prop->name)) {
-			if (loop->next) BLI_insertlinkbefore(&group->data.group, loop->next, prop);
-			else BLI_addtail(&group->data.group, prop);
+			BLI_insertlink(&group->data.group, loop, prop);
 			
 			BLI_remlink(&group->data.group, loop);
 			IDP_FreeProperty(loop);
@@ -513,14 +515,12 @@ void IDP_FreeIterBeforeEnd(void *vself)
   direct data.*/
 static void IDP_FreeGroup(IDProperty *prop)
 {
-	IDProperty *loop, *next;
-	for (loop=prop->data.group.first; loop; loop=next)
+	IDProperty *loop;
+	for (loop=prop->data.group.first; loop; loop=loop->next)
 	{
-		next = loop->next;
-		BLI_remlink(&prop->data.group, loop);
 		IDP_FreeProperty(loop);
-		MEM_freeN(loop);
 	}
+	BLI_freelistN(&prop->data.group);
 }
 
 
