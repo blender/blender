@@ -1,5 +1,5 @@
 /**
- * $Id: CMP_curves.c 18313 2009-01-04 14:14:06Z ton $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
