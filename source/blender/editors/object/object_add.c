@@ -181,6 +181,7 @@ void add_object_draw(Scene *scene, View3D *v3d, int type)	/* for toolbox or menu
 
 void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 {
+	PropertyRNA *prop;
 	RNA_def_boolean(ot->srna, "view_align", 0, "Align to View", "Align the new object to the view.");
 
 	if(do_editmode)
@@ -188,6 +189,9 @@ void ED_object_add_generic_props(wmOperatorType *ot, int do_editmode)
 	
 	RNA_def_float_vector(ot->srna, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "Location for the newly added object.", -FLT_MAX, FLT_MAX);
 	RNA_def_float_rotation(ot->srna, "rotation", 3, NULL, -FLT_MAX, FLT_MAX, "Rotation", "Rotation for the newly added object", -FLT_MAX, FLT_MAX);
+	
+	prop = RNA_def_boolean_layer_member(ot->srna, "layer", 32, NULL, "Layer", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
@@ -218,7 +222,30 @@ static void object_add_generic_invoke_options(bContext *C, wmOperator *op)
 
 		RNA_float_set_array(op->ptr, "rotation", rot);
 	}
-	
+
+	if (!RNA_property_is_set(op->ptr, "layer")) {
+		View3D *v3d = CTX_wm_view3d(C);
+		Scene *scene = CTX_data_scene(C);
+		int a, values[32], layer;
+		
+		if (v3d) {
+			if (v3d->localvd) {
+				layer = v3d->layact + v3d->lay;
+				for(a=0; a<32; a++)
+					values[a]= (layer & (1<<a));
+			} else {
+				layer = v3d->layact;
+				for(a=0; a<32; a++)
+					values[a]= (layer & (1<<a));
+			}
+		} else {
+			layer = scene->lay;
+			for(a=0; a<32; a++)
+				values[a]= (layer & (1<<a));
+		}
+		
+		RNA_boolean_set_array(op->ptr, "layer", values);
+	}
 }
 
 int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -227,20 +254,28 @@ int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return op->type->exec(C, op);
 }
 
-void ED_object_add_generic_get_opts(wmOperator *op, float *loc, float *rot, int *enter_editmode)
+void ED_object_add_generic_get_opts(wmOperator *op, float *loc, float *rot, int *enter_editmode, unsigned int *layer)
 {
+	int a, layer_values[32];
+	
 	*enter_editmode = FALSE;
-
 	if(RNA_struct_find_property(op->ptr, "enter_editmode") && RNA_boolean_get(op->ptr, "enter_editmode")) {
 		*enter_editmode = TRUE;
 	}
 	
 	RNA_float_get_array(op->ptr, "location", loc);
 	RNA_float_get_array(op->ptr, "rotation", rot);
+	RNA_boolean_get_array(op->ptr, "layer", layer_values);
+	
+	for(a=0; a<32; a++)
+		if(layer_values[a])
+			*layer |= (1 << a);
+		else
+			*layer &= ~(1 << a);
 }
 
 /* for object add primitive operators */
-Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int enter_editmode)
+Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int enter_editmode, unsigned int layer)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
@@ -251,6 +286,7 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int en
 	
 	/* deselects all, sets scene->basact */
 	ob= add_object(scene, type);
+	BASACT->lay = ob->lay = layer;
 	/* editor level activate, notifiers */
 	ED_base_object_activate(C, BASACT);
 
@@ -269,10 +305,11 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int en
 static int object_add_exec(bContext *C, wmOperator *op)
 {
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
-	ED_object_add_type(C, RNA_enum_get(op->ptr, "type"), loc, rot, enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	ED_object_add_type(C, RNA_enum_get(op->ptr, "type"), loc, rot, enter_editmode, layer);
 	
 	return OPERATOR_FINISHED;
 }
@@ -325,14 +362,15 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 {
 	Object *ob;
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
 	
 	object_add_generic_invoke_options(C, op);
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
 	if(type==PFIELD_GUIDE) {
-		ob= ED_object_add_type(C, OB_CURVE, loc, rot, FALSE);
+		ob= ED_object_add_type(C, OB_CURVE, loc, rot, FALSE, layer);
 		rename_id(&ob->id, "CurveGuide");
 
 		((Curve*)ob->data)->flag |= CU_PATH|CU_3D;
@@ -344,7 +382,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 			ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
 	}
 	else {
-		ob= ED_object_add_type(C, OB_EMPTY, loc, rot, FALSE);
+		ob= ED_object_add_type(C, OB_EMPTY, loc, rot, FALSE, layer);
 		rename_id(&ob->id, "Field");
 
 		switch(type) {
@@ -397,15 +435,16 @@ static int object_camera_add_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
 	/* force view align for cameras */
 	RNA_boolean_set(op->ptr, "view_align", 1);
 	
 	object_add_generic_invoke_options(C, op);
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
-	ob= ED_object_add_type(C, OB_CAMERA, loc, rot, FALSE);
+	ob= ED_object_add_type(C, OB_CAMERA, loc, rot, FALSE, layer);
 	
 	if (v3d) {
 		if (v3d->camera == NULL)
@@ -454,14 +493,15 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	int newob= 0, type= RNA_enum_get(op->ptr, "type");
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
-		obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE);
+		obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
 		newob = 1;
 
 		if(type & CU_PRIM_PATH)
@@ -542,14 +582,15 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	Nurb *nu;
 	int newob= 0;
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 	
 	if(obedit==NULL || obedit->type!=OB_SURF) {
-		obedit= ED_object_add_type(C, OB_SURF, loc, rot, TRUE);
+		obedit= ED_object_add_type(C, OB_SURF, loc, rot, TRUE, layer);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
@@ -606,14 +647,15 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	MetaElem *elem;
 	int newob= 0;
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	float mat[4][4];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 	
 	if(obedit==NULL || obedit->type!=OB_MBALL) {
-		obedit= ED_object_add_type(C, OB_MBALL, loc, rot, TRUE);
+		obedit= ED_object_add_type(C, OB_MBALL, loc, rot, TRUE, layer);
 		newob = 1;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
@@ -676,15 +718,16 @@ static int object_add_text_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 	
 	if(obedit && obedit->type==OB_FONT)
 		return OPERATOR_CANCELLED;
 
-	obedit= ED_object_add_type(C, OB_FONT, loc, rot, enter_editmode);
+	obedit= ED_object_add_type(C, OB_FONT, loc, rot, enter_editmode, layer);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
@@ -715,13 +758,14 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d= NULL;
 	int newob= 0;
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op); // XXX these props don't get set right when only exec() is called
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 	
 	if ((obedit==NULL) || (obedit->type != OB_ARMATURE)) {
-		obedit= ED_object_add_type(C, OB_ARMATURE, loc, rot, TRUE);
+		obedit= ED_object_add_type(C, OB_ARMATURE, loc, rot, TRUE, layer);
 		ED_object_enter_editmode(C, 0);
 		newob = 1;
 	}
@@ -770,12 +814,13 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	Object *ob;
 	int type= RNA_enum_get(op->ptr, "type");
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
 	object_add_generic_invoke_options(C, op);
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
-	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE);
+	ob= ED_object_add_type(C, OB_LAMP, loc, rot, FALSE, layer);
 	if(ob && ob->data)
 		((Lamp*)ob->data)->type= type;
 	
@@ -816,12 +861,13 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 	Group *group= BLI_findlink(&CTX_data_main(C)->group, RNA_enum_get(op->ptr, "type"));
 
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
 	if(group) {
-		Object *ob= ED_object_add_type(C, OB_EMPTY, loc, rot, FALSE);
+		Object *ob= ED_object_add_type(C, OB_EMPTY, loc, rot, FALSE, layer);
 		rename_id(&ob->id, group->id.name+2);
 		ob->dup_group= group;
 		ob->transflag |= OB_DUPLIGROUP;

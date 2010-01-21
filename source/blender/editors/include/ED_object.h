@@ -86,8 +86,8 @@ float ED_object_new_primitive_matrix(struct bContext *C, float *loc, float *rot,
 
 void ED_object_add_generic_props(struct wmOperatorType *ot, int do_editmode);
 int ED_object_add_generic_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-void ED_object_add_generic_get_opts(struct wmOperator *op, float *loc, float *rot, int *enter_editmode);
-struct Object *ED_object_add_type(struct bContext *C, int type, float *loc, float *rot, int enter_editmode);
+void ED_object_add_generic_get_opts(struct wmOperator *op, float *loc, float *rot, int *enter_editmode, unsigned int *layer);
+struct Object *ED_object_add_type(struct bContext *C, int type, float *loc, float *rot, int enter_editmode, unsigned int layer);
 
 void ED_object_single_users(struct Scene *scene, int full);
 

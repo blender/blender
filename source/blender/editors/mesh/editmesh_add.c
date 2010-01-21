@@ -1272,7 +1272,7 @@ static void make_prim(Object *obedit, int type, float mat[4][4], int tot, int se
 
 /* ********* add primitive operators ************* */
 
-static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmode,
+static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmode, unsigned int layer, 
 		int type, int tot, int seg,
 		int subdiv, float dia, float depth, int ext, int fill)
 {
@@ -1281,7 +1281,7 @@ static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmod
 	float mat[4][4];
 
 	if(obedit==NULL || obedit->type!=OB_MESH) {
-		obedit= ED_object_add_type(C, OB_MESH, loc, rot, FALSE);
+		obedit= ED_object_add_type(C, OB_MESH, loc, rot, FALSE, layer);
 		
 		/* create editmode */
 		ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
@@ -1307,12 +1307,13 @@ static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmod
 static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 {
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
 	/* sqrt(2.0f) - plane (diameter of 1.41 makes it unit size) */
-	make_prim_ext(C, loc, rot, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode, layer,
 			PRIM_PLANE, 4, 0, 0, sqrt(2.0f), 0.0f, 0, 1);
 	return OPERATOR_FINISHED;	
 }
@@ -1338,12 +1339,13 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 {
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
 	/* sqrt(2.0f) - plane (diameter of 1.41 makes it unit size) */
-	make_prim_ext(C, loc, rot, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode, layer,
 			PRIM_CUBE, 4, 0, 0, sqrt(2.0f), 1.0f, 1, 1);
 	return OPERATOR_FINISHED;
 }
@@ -1369,11 +1371,12 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 static int add_primitive_circle_exec(bContext *C, wmOperator *op)
 {
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode, layer,
 			PRIM_CIRCLE, RNA_int_get(op->ptr, "vertices"), 0, 0,
 			RNA_float_get(op->ptr,"radius"), 0.0f, 0,
 			RNA_boolean_get(op->ptr, "fill"));
@@ -1407,11 +1410,12 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 {
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode, layer,
 			PRIM_CYLINDER, RNA_int_get(op->ptr, "vertices"), 0, 0,
 			RNA_float_get(op->ptr,"radius"),
 			RNA_float_get(op->ptr, "depth"), 1, 
@@ -1447,11 +1451,12 @@ void MESH_OT_primitive_tube_add(wmOperatorType *ot)
 static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 {
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode, layer,
 			PRIM_CONE, RNA_int_get(op->ptr, "vertices"), 0, 0,
 			RNA_float_get(op->ptr,"radius"), RNA_float_get(op->ptr, "depth"),
 			0, RNA_boolean_get(op->ptr, "cap_end"));
@@ -1486,11 +1491,12 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 {
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode, layer,
 			PRIM_GRID, RNA_int_get(op->ptr, "x_subdivisions"),
 			RNA_int_get(op->ptr, "y_subdivisions"), 0,
 			RNA_float_get(op->ptr,"size"), 0.0f, 0, 1);
@@ -1524,11 +1530,12 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 {
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode, layer,
 			PRIM_MONKEY, 0, 0, 2, 0.0f, 0.0f, 0, 0);
 
 	return OPERATOR_FINISHED;
@@ -1555,11 +1562,12 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 {
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode, layer,
 			PRIM_UVSPHERE, RNA_int_get(op->ptr, "rings"),
 			RNA_int_get(op->ptr, "segments"), 0,
 			RNA_float_get(op->ptr,"size"), 0.0f, 0, 0);
@@ -1593,11 +1601,12 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 {
 	int enter_editmode;
+	unsigned int layer;
 	float loc[3], rot[3];
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
+	make_prim_ext(C, loc, rot, enter_editmode, layer,
 			PRIM_ICOSPHERE, 0, 0, RNA_int_get(op->ptr, "subdivisions"),
 			RNA_float_get(op->ptr,"size"), 0.0f, 0, 0);
 
