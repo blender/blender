@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+import os.path
 
 # General UI Theme Settings (User Interface)
 def ui_items_general(col, context):
@@ -161,7 +162,8 @@ class USERPREF_HT_header(bpy.types.Header):
 
         if userpref.active_section == 'INPUT':
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("wm.keyconfig_export", "Export Key Configuration...").path = "keymap.py"
+            op = layout.operator("wm.keyconfig_export", "Export Key Configuration...")
+            op.path = "keymap.py"
 
 
 class USERPREF_PT_tabs(bpy.types.Panel):
@@ -1166,15 +1168,24 @@ class USERPREF_PT_input(bpy.types.Panel):
                 subrow.prop(kmi, "alt")
                 subrow.prop(kmi, "oskey", text="Cmd")
                 subrow.prop(kmi, "key_modifier", text="", event=True)
+                
+            def display_properties(properties, title = None):
+                box.separator()
+                if title:
+                    box.label(text=title)
+                flow = box.column_flow(columns=2)
+                for pname in dir(properties):
+                    if not properties.is_property_hidden(pname):
+                        value = eval("properties." + pname)
+                        if isinstance(value, bpy.types.OperatorProperties):
+                            display_properties(value, title = pname)
+                        else:
+                            flow.prop(properties, pname)
 
             # Operator properties
             props = kmi.properties
             if props is not None:
-                box.separator()
-                flow = box.column_flow(columns=2)
-                for pname in dir(props):
-                    if not props.is_property_hidden(pname):
-                        flow.prop(props, pname)
+                display_properties(props)
 
             # Modal key maps attached to this operator
             if not km.modal:
@@ -1344,16 +1355,22 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
                 s.append(", key_modifier=\'%s\'" % kmi.key_modifier)
 
             s.append(")\n")
+            
+            def export_properties(prefix, properties):
+                for pname in dir(properties):
+                    if not properties.is_property_hidden(pname):
+                        value = eval("properties.%s" % pname)
+                        if isinstance(value, bpy.types.OperatorProperties):
+                            export_properties(prefix + "." + pname, value)
+                        elif properties.is_property_set(pname):
+                            value = _string_value(value)
+                            if value != "":
+                                s.append(prefix + ".%s = %s\n" % (pname, value))
 
             props = kmi.properties
 
             if props is not None:
-                for pname in dir(props):
-                    if props.is_property_set(pname) and not props.is_property_hidden(pname):
-                        value = eval("props.%s" % pname)
-                        value = _string_value(value)
-                        if value != "":
-                            s.append("kmi.properties.%s = %s\n" % (pname, value))
+                export_properties("kmi.properties", props)
 
             return "".join(s).strip()
 
@@ -1451,6 +1468,9 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
     bl_label = "Export Key Configuration..."
 
     path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
+    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True)
+    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True)
+    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True)
 
     def execute(self, context):
         if not self.properties.path:
@@ -1463,10 +1483,15 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         wm = context.manager
         kc = wm.active_keyconfig
 
-        f.write('# Configuration %s\n' % kc.name)
+        if kc.name == 'Blender':
+            name = os.path.splitext(os.path.basename(self.properties.path))[0]
+        else:
+            name = kc.name
+
+        f.write('# Configuration %s\n' % name)
 
         f.write("wm = bpy.data.window_managers[0]\n")
-        f.write("kc = wm.add_keyconfig(\'%s\')\n\n" % kc.name)
+        f.write("kc = wm.add_keyconfig(\'%s\')\n\n" % name)
 
         for km in kc.keymaps:
             km = km.active()
@@ -1492,18 +1517,25 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
                     f.write(", key_modifier=\'%s\'" % kmi.key_modifier)
                 f.write(")\n")
 
+                def export_properties(prefix, properties):
+                    for pname in dir(properties):
+                        if not properties.is_property_hidden(pname):
+                            value = eval("properties.%s" % pname)
+                            if isinstance(value, bpy.types.OperatorProperties):
+                                export_properties(prefix + "." + pname, value)
+                            elif properties.is_property_set(pname):
+                                value = _string_value(value)
+                                if value != "":
+                                    f.write(prefix + ".%s = %s\n" % (pname, value))
+    
                 props = kmi.properties
-
+    
                 if props is not None:
-                    for pname in dir(props):
-                        if props.is_property_set(pname) and not props.is_property_hidden(pname):
-                            value = eval("props.%s" % pname)
-                            value = _string_value(value)
-                            if value != "":
-                                f.write("kmi.properties.%s = %s\n" % (pname, value))
+                    export_properties("kmi.properties", props)
 
             f.write("\n")
 
+        f.write("wm.active_keyconfig = wm.keyconfigs[\'%s\']\n" % name)
         f.close()
 
         return {'FINISHED'}

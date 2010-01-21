@@ -391,15 +391,41 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 			motherop = op;
 			root = 1;
 		}
-		
-		for(otmacro= ot->macro.first; otmacro; otmacro= otmacro->next) {
-			wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
-			wmOperator *opm= wm_operator_create(wm, otm, otmacro->ptr, NULL);
-			
-			IDP_ReplaceGroupInGroup(opm->properties, motherop->properties);
 
-			BLI_addtail(&motherop->macro, opm);
-			opm->opm= motherop; /* pointer to mom, for modal() */
+		
+		/* if properties exist, it will contain everything needed */
+		if (properties) {
+			otmacro= ot->macro.first;
+
+			RNA_STRUCT_BEGIN(properties, prop) {
+
+				if (otmacro == NULL)
+					break;
+
+				/* skip invalid properties */
+				if (strcmp(RNA_property_identifier(prop), otmacro->idname) == 0)
+				{
+					wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
+					PointerRNA someptr = RNA_property_pointer_get(properties, prop);
+					wmOperator *opm= wm_operator_create(wm, otm, &someptr, NULL);
+
+					IDP_ReplaceGroupInGroup(opm->properties, otmacro->properties);
+
+					BLI_addtail(&motherop->macro, opm);
+					opm->opm= motherop; /* pointer to mom, for modal() */
+
+					otmacro= otmacro->next;
+				}
+			}
+			RNA_STRUCT_END;
+		} else {
+			for (otmacro = ot->macro.first; otmacro; otmacro = otmacro->next) {
+				wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
+				wmOperator *opm= wm_operator_create(wm, otm, otmacro->ptr, NULL);
+
+				BLI_addtail(&motherop->macro, opm);
+				opm->opm= motherop; /* pointer to mom, for modal() */
+			}
 		}
 		
 		if (root)
