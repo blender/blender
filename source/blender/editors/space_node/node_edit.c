@@ -212,7 +212,7 @@ bNode *editnode_get_active(bNodeTree *ntree)
 		return nodeGetActive(ntree);
 }
 
-void snode_handle_recalc(bContext *C, SpaceNode *snode)
+void snode_notify(bContext *C, SpaceNode *snode)
 {
 	if(snode->treetype==NTREE_SHADER)
 		WM_event_add_notifier(C, NC_MATERIAL|ND_NODES, snode->id);
@@ -1268,7 +1268,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 	
 	ntreeSolveOrder(snode->edittree);
 	node_tree_verify_groups(snode->nodetree);
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 
 	return OPERATOR_FINISHED;
 }
@@ -1407,7 +1407,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			ntreeSolveOrder(snode->edittree);
 			node_tree_verify_groups(snode->nodetree);
-			snode_handle_recalc(C, snode);
+			snode_notify(C, snode);
 			
 			MEM_freeN(op->customdata);
 			op->customdata= NULL;
@@ -1525,7 +1525,7 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 	snode_autoconnect(snode, 0, replace);
 
 	node_tree_verify_groups(snode->nodetree);
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1597,7 +1597,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		
 		ntreeSolveOrder(snode->edittree);
 		node_tree_verify_groups(snode->nodetree);
-		snode_handle_recalc(C, snode);
+		snode_notify(C, snode);
 		
 		return OPERATOR_FINISHED;
 	}
@@ -1652,7 +1652,7 @@ void node_read_renderlayers(SpaceNode *snode)
 		}
 	}
 	
-	// XXX			snode_handle_recalc(snode);
+	// XXX			snode_notify(snode);
 }
 
 void node_read_fullsamplelayers(SpaceNode *snode)
@@ -1733,7 +1733,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 		ntreeSolveOrder(snode->nodetree);
 	}
 	
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1782,7 +1782,7 @@ static int node_hide_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1817,11 +1817,12 @@ static int node_mute_exec(bContext *C, wmOperator *op)
 		if(node->flag & SELECT) {
 			if(node->inputs.first && node->outputs.first) {
 				node->flag ^= NODE_MUTED;
+				NodeTagChanged(snode->edittree, node);
 			}
 		}
 	}
 	
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1860,7 +1861,7 @@ static int node_delete_exec(bContext *C, wmOperator *op)
 	
 	node_tree_verify_groups(snode->nodetree);
 
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1888,7 +1889,7 @@ static int node_show_cycles_exec(bContext *C, wmOperator *op)
 	
 	/* this is just a wrapper around this call... */
 	ntreeSolveOrder(snode->edittree);
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }

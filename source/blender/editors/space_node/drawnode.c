@@ -937,8 +937,6 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *C, Point
 
 static void node_composit_buts_huecorrect(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	bNode *node= ptr->data;
-
 	uiTemplateCurveMapping(layout, ptr, "mapping", 'h', 0, 0);
 }
 

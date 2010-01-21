@@ -90,7 +90,7 @@ static void do_node_add(bContext *C, void *arg, int event)
 		if(node->flag & NODE_TEST) node->flag &= ~NODE_SELECT;
 	}
 		
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 }
 
 static void node_auto_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)

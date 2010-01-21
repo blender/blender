@@ -115,7 +115,7 @@ void ED_node_changed_update(ID *id, bNode *node)
 			//addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 			
 			//composite_node_render(snode, node);
-			//snode_handle_recalc(snode);
+			//snode_notify(snode);
 			
 			/* add another event, a render can go fullscreen and open new window */
 			//addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
