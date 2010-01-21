@@ -431,7 +431,7 @@ def generate_test(context, metarig_type="", GENERATE_FINAL=True):
             else:
                 new_objects.append((obj, None))
         else:
-            print("note: rig type '%s' has no metarig_template(), can't test this", module_name)
+            print("note: rig type '%s' has no metarig_template(), can't test this" % module_name)
 
     return new_objects
 
