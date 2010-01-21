@@ -986,7 +986,10 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	if (ELEM4(but->type, NUM, NUMABS, NUMSLI, SLI)) {
 		ui_text_label_rightclip(fstyle, but, rect);
 	}
-	else if (ELEM(but->type, TEX, SEARCH_MENU)) {	
+	else if (ELEM(but->type, TEX, SEARCH_MENU)) {
+		ui_text_leftclip(fstyle, but, rect);
+	}
+	else if ((but->block->flag & UI_BLOCK_LOOP) && (but->type == BUT)) {
 		ui_text_leftclip(fstyle, but, rect);
 	}
 	else but->ofs= 0;
