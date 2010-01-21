@@ -3009,6 +3009,9 @@ static void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf
 	}
 	if(rectf==NULL) return;
 	
+	if(ibuf->rect==NULL)
+		imb_addrectImBuf(ibuf);
+
 	rectf+= 4*(rr->rectx*ymin + xmin);
 	rectc= (char *)(ibuf->rect + ibuf->x*rymin + rxmin);
 	
