@@ -1851,6 +1851,24 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
 		}
 	}
+	else if (labeltype == 'h') {
+		/* HSV */
+		sub= uiLayoutRow(row, 1);
+		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
+		
+		if(cumap->cm[0].curve) {
+			bt= uiDefButI(block, ROW, 0, "H", 0, 0, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
+		}
+		if(cumap->cm[1].curve) {
+			bt= uiDefButI(block, ROW, 0, "S", 0, 0, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
+		}
+		if(cumap->cm[2].curve) {
+			bt= uiDefButI(block, ROW, 0, "V", 0, 0, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
+		}
+	}
 	else
 		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
 	
