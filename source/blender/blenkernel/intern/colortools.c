@@ -882,11 +882,14 @@ void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
 
 DO_INLINE int get_bin_float(float f)
 {
-	CLAMP(f, 0.0, 1.0);
+	int bin= (int)(f*511);
+
+	/* note: clamp integer instead of float to avoid problems with NaN */
+	CLAMP(bin, 0, 511);
 	
 	//return (int) (((f + 0.25) / 1.5) * 512);
 	
-	return (int)(f * 511);
+	return bin;
 }
 
 
