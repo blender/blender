@@ -37,6 +37,8 @@
 #include <string.h>	/* memcpy */
 #include <stdarg.h>
 
+#include "../../../source/blender/blenlib/BLI_mempool.h"
+
 /* mmap exception */
 #if defined(WIN32)
 #include <sys/types.h>
@@ -137,6 +139,40 @@ static int malloc_debug_memset= 0;
 /* --------------------------------------------------------------------- */
 /* implementation                                                        */
 /* --------------------------------------------------------------------- */
+
+#ifdef OPTIMIZE_SMALL_BLOCKS
+
+/*allocator for small objects
+
+  basic strategy: most slowdowns from overuse of the system allocator tends
+  to be from relatively small allocations.
+*/
+
+/*this is a little bit bigger then it perhaps needs to be, to accomodate vgroup
+  allocations (which are one system alloc per vertex of a mesh, and is a major
+  source of performance loss)*/
+#define SMALL_BLOCK_LIMIT	1024
+#define POOL_CHUNK_SIZE		512 /*size in number of elements, not bytes*/
+
+static BLI_mempool *alloc_pools[SMALL_BLOCK_LIMIT+sizeof(MemHead)+sizeof(MemTail)] = {NULL,};
+
+static void *mempool_alloc_mem(int size) {
+	size += sizeof(MemHead)+sizeof(MemTail);
+
+	if (!alloc_pools[size]) {
+		alloc_pools[size] = BLI_mempool_create(size, 1, POOL_CHUNK_SIZE, 1);
+	}
+	
+	return BLI_mempool_alloc(alloc_pools[size]);
+}
+
+static void mempool_free(void *mem, int size) {
+	size += sizeof(MemHead)+sizeof(MemTail);
+
+	BLI_mempool_free(alloc_pools[size], mem);
+}
+
+#endif
 
 static void print_error(const char *str, ...)
 {
@@ -254,7 +290,14 @@ void *MEM_mallocN(unsigned int len, const char *str)
 
 	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
 	
+#ifdef OPTIMIZE_SMALL_BLOCKS
+	if (len < SMALL_BLOCK_LIMIT)
+		memh= mempool_alloc_mem(len);
+	else
+		memh= (MemHead *)malloc(len+sizeof(MemHead)+sizeof(MemTail));
+#else
 	memh= (MemHead *)malloc(len+sizeof(MemHead)+sizeof(MemTail));
+#endif
 
 	if(memh) {
 		make_memhead_header(memh, len, str);
@@ -276,7 +319,16 @@ void *MEM_callocN(unsigned int len, const char *str)
 
 	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
 
+#ifdef OPTIMIZE_SMALL_BLOCKS
+	if (len < SMALL_BLOCK_LIMIT) {
+		memh= mempool_alloc_mem(len);
+		memset(memh, 0, len+sizeof(MemHead)+sizeof(MemTail));
+	} else {
+		memh= (MemHead *)calloc(len+sizeof(MemHead)+sizeof(MemTail),1);
+	}
+#else
 	memh= (MemHead *)calloc(len+sizeof(MemHead)+sizeof(MemTail),1);
+#endif
 
 	if(memh) {
 		make_memhead_header(memh, len, str);
@@ -629,6 +681,11 @@ static void rem_memblock(MemHead *memh)
         if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
             printf("Couldn't unmap memory %s\n", memh->name);
     }
+#ifdef OPTIMIZE_SMALL_BLOCKS
+	else if (memh->len < SMALL_BLOCK_LIMIT) {
+		mempool_free(memh, memh->len);
+	}
+#endif
     else {
 		if(malloc_debug_memset && memh->len)
 			memset(memh+1, 255, memh->len);

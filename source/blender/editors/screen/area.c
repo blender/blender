@@ -1085,7 +1085,10 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 		
 		/* tell WM to refresh, cursor types etc */
 		WM_event_add_mousemove(C);
-		
+				
+		/*send space change notifyer*/
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CHANGED, sa);
+
 		ED_area_tag_redraw(sa);
 		ED_area_tag_refresh(sa);
 	}
@@ -1107,6 +1110,9 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 		ED_area_newspace(C, sa, SPACE_INFO);
 	}
 	ED_area_tag_redraw(sa);
+
+	/*send space change notifyer*/
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CHANGED, sa);
 }
 
 static char *editortype_pup(void)
@@ -1152,6 +1158,9 @@ static void spacefunc(struct bContext *C, void *arg1, void *arg2)
 {
 	ED_area_newspace(C, CTX_wm_area(C), CTX_wm_area(C)->butspacetype);
 	ED_area_tag_redraw(CTX_wm_area(C));
+
+	/*send space change notifyer*/
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CHANGED, CTX_wm_area(C));
 }
 
 /* returns offset for next button in header */

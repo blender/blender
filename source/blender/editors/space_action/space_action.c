@@ -137,7 +137,8 @@ static void action_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void action_init(struct wmWindowManager *wm, ScrArea *sa)
 {
-
+	SpaceAction *saction = sa->spacedata.first;
+	saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 }
 
 static SpaceLink *action_duplicate(SpaceLink *sl)
@@ -392,8 +393,15 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_DOPESHEET)
-				ED_area_tag_redraw(sa);
+			switch (wmn->data) {
+				case ND_SPACE_DOPESHEET:
+					ED_area_tag_redraw(sa);
+					break;
+				case ND_SPACE_CHANGED:
+					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+					ED_area_tag_refresh(sa);
+					break;
+			}			
 			break;
 	}
 }
