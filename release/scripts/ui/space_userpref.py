@@ -416,6 +416,13 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.separator()
         col.separator()
         col.separator()
+        
+        col.label(text="Screencast:")
+        col.prop(system, "screencast_fps")
+        col.prop(system, "screencast_wait_time")     
+        col.separator()
+        col.separator()
+        col.separator()
 
         #column = split.column()
         #colsplit = column.split(percentage=0.85)

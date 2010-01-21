@@ -2322,6 +2322,16 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Audio Channels", "Sets the audio channel count.");
 	RNA_def_property_update(prop, 0, "rna_UserDef_audio_update");
 
+	prop= RNA_def_property(srna, "screencast_fps", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "scrcastfps");
+	RNA_def_property_range(prop, 10, 50);
+	RNA_def_property_ui_text(prop, "FPS", "Frame rate for the screencast to be played back.");
+
+	prop= RNA_def_property(srna, "screencast_wait_time", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "scrcastwait");
+	RNA_def_property_range(prop, 50, 1000);
+	RNA_def_property_ui_text(prop, "Wait Timer (ms)", "Time in milliseconds between each frame recorded for screencast.");
+
 #if 0
 	prop= RNA_def_property(srna, "verse_master", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "versemaster");
