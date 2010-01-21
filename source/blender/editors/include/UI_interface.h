@@ -220,6 +220,16 @@ typedef struct uiLayout uiLayout;
 
 #define BUTTYPE		(63<<9)
 
+/* gradient types, for color picker HSVCUBE etc */
+#define UI_GRAD_SV		0
+#define UI_GRAD_HV		1
+#define UI_GRAD_HS		2
+#define UI_GRAD_H		3
+#define UI_GRAD_S		4
+#define UI_GRAD_V		5
+
+#define UI_GRAD_V_ALT	9
+
 /* Drawing
  *
  * Functions to draw various shapes, taking theme settings into account.

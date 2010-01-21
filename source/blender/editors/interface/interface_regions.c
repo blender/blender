@@ -1696,7 +1696,7 @@ static void circle_picker(uiBlock *block, PointerRNA *ptr, const char *propname)
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, -1, 0.0, 0.0, 9, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, -1, 0.0, 0.0, UI_GRAD_V_ALT, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
@@ -1744,13 +1744,13 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 			circle_picker(block, ptr, propname);
 			break;
 		case USER_CP_SQUARE_SV:
-			square_picker(block, ptr, propname, 0);
+			square_picker(block, ptr, propname, UI_GRAD_SV);
 			break;
 		case USER_CP_SQUARE_HS:
-			square_picker(block, ptr, propname, 1);
+			square_picker(block, ptr, propname, UI_GRAD_HS);
 			break;
 		case USER_CP_SQUARE_HV:
-			square_picker(block, ptr, propname, 2);
+			square_picker(block, ptr, propname, UI_GRAD_HV);
 			break;
 	}
 	

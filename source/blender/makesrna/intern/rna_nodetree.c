@@ -305,10 +305,11 @@ static void rna_Node_colorbalance_update(Main *bmain, Scene *scene, PointerRNA *
 	bNode *node= (bNode*)ptr->data;
 	NodeColorBalance *ncb = node->storage;
 	float lift[3], gamma[3], gain[3];
-	float n_one[3] = {-1.f, -1.f, -1.f};
 	
-	mul_v3_v3fl(lift, ncb->lift, 2.f);
-	add_v3_v3(lift, n_one);
+	lift[0] = (ncb->lift[0] * 2.f - 1.f)*0.5f;
+	lift[1] = (ncb->lift[1] * 2.f - 1.f)*0.5f;
+	lift[2] = (ncb->lift[2] * 2.f - 1.f)*0.5f;
+	
 	mul_v3_v3fl(gamma, ncb->gamma, 2.f);
 	mul_v3_v3fl(gain, ncb->gain, 2.f);
 	
@@ -1905,7 +1906,17 @@ static void def_cmp_colorbalance(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Gain", "Correction for Highlights");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_colorbalance_update");
 }
+
+static void def_cmp_huecorrect(StructRNA *srna)
+{
+	PropertyRNA *prop;
 	
+	prop = RNA_def_property(srna, "mapping", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "storage");
+	RNA_def_property_struct_type(prop, "CurveMapping");
+	RNA_def_property_ui_text(prop, "Mapping", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
 
 
 /* -- Texture Nodes --------------------------------------------------------- */

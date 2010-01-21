@@ -1061,7 +1061,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 		glColor3ubv((unsigned char*)wcol->inner);
 		glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	}
-	
+		
 	/* grid, every .25 step */
 	glColor3ubvShade(wcol->inner, -16);
 	ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 0.25f);
@@ -1076,6 +1076,24 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	glVertex2f(rect->xmin + zoomx*(-offsx), rect->ymin);
 	glVertex2f(rect->xmin + zoomx*(-offsx), rect->ymax);
 	glEnd();
+	
+	/* magic trigger for curve backgrounds */
+	if (but->a1 != -1) {
+		if (but->a1 == UI_GRAD_H) {
+			rcti grid;
+			float col[3];
+			
+			grid.xmin = rect->xmin + zoomx*(-offsx);
+			grid.xmax = rect->xmax + zoomx*(-offsx);
+			grid.ymin = rect->ymin + zoomy*(-offsy);
+			grid.ymax = rect->ymax + zoomy*(-offsy);
+			
+			glEnable(GL_BLEND);
+			ui_draw_gradient(&grid, col, UI_GRAD_H, 0.5f);
+			glDisable(GL_BLEND);
+		}
+	}
+	
 	
 	/* cfra option */
 	/* XXX 2.48

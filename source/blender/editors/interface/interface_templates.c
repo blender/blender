@@ -1804,6 +1804,7 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	uiBut *bt;
 	float dx= UI_UNIT_X;
 	int icon, size;
+	int bg=-1;
 
 	block= uiLayoutGetBlock(layout);
 
@@ -1852,6 +1853,9 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	}
 	else
 		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+	
+	if (labeltype=='h')
+		bg = UI_GRAD_H;
 
 	/* operation buttons */
 	sub= uiLayoutRow(row, 1);
@@ -1885,7 +1889,7 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	/* curve itself */
 	size= uiLayoutGetWidth(layout);
 	row= uiLayoutRow(layout, 0);
-	uiDefBut(block, BUT_CURVE, 0, "", 0, 0, size, MIN2(size, 200), cumap, 0.0f, 1.0f, 0, 0, "");
+	uiDefBut(block, BUT_CURVE, 0, "", 0, 0, size, MIN2(size, 200), cumap, 0.0f, 1.0f, bg, 0, "");
 
 	/* black/white levels */
 	if(levels) {

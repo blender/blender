@@ -1947,7 +1947,7 @@ static void composit_begin_exec(bNodeTree *ntree, int is_group)
 			}
 		}
 		/* cannot initialize them while using in threads */
-		if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB)) {
+		if(ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT)) {
 			curvemapping_initialize(node->storage);
 			if(node->type==CMP_NODE_CURVE_RGB)
 				curvemapping_premultiply(node->storage, 0);
@@ -2984,6 +2984,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_alphaover);
 	nodeRegisterType(ntypelist, &cmp_node_zcombine);
 	nodeRegisterType(ntypelist, &cmp_node_colorbalance);
+	nodeRegisterType(ntypelist, &cmp_node_huecorrect);
 	
 	nodeRegisterType(ntypelist, &cmp_node_normal);
 	nodeRegisterType(ntypelist, &cmp_node_curve_vec);

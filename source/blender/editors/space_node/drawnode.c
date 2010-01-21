@@ -935,6 +935,13 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *C, Point
 
 }
 
+static void node_composit_buts_huecorrect(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node= ptr->data;
+
+	uiTemplateCurveMapping(layout, ptr, "mapping", 'h', 0, 0);
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -1069,6 +1076,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
  			break;
 		case CMP_NODE_COLORBALANCE:
 			ntype->uifunc=node_composit_buts_colorbalance;
+ 			break;
+		case CMP_NODE_HUECORRECT:
+			ntype->uifunc=node_composit_buts_huecorrect;
  			break;
 		default:
 			ntype->uifunc= NULL;
