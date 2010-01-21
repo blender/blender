@@ -954,7 +954,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		}
 
 		// Numerical input events
-		t->redraw |= handleNumInput(&(t->num), event);
+		t->redraw |= handleNumInput(&(t->num), event, t->snap[1]);
 
 		// NDof input events
 		switch(handleNDofInput(&(t->ndof), event))

@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Jonathan Smith
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -159,12 +159,18 @@ void applyNumInput(NumInput *n, float *vec)
 	}
 }
 
-char handleNumInput(NumInput *n, wmEvent *event)
+char handleNumInput(NumInput *n, wmEvent *event, float increment)
 {
 	float Val = 0;
 	short idx = n->idx, idx_max = n->idx_max;
 
 	switch (event->type) {
+    case DOWNARROWKEY: /* Increments down*/
+         n->val[idx] -= increment;
+         break;
+    case UPARROWKEY: /* Increments up*/
+         n->val[idx] += increment;
+         break;
 	case BACKSPACEKEY:
 		if (n->ctrl[idx] == 0) {
 			n->val[0]		= 
