@@ -365,7 +365,7 @@ static int rna_SceneRender_file_ext_length(PointerRNA *ptr)
 {
 	RenderData *rd= (RenderData*)ptr->data;
 	char ext[8];
-
+	ext[0]= '\0';
 	BKE_add_image_extension(ext, rd->imtype);
 	return strlen(ext);
 }
