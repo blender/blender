@@ -2149,6 +2149,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	wcol->inner[0]= FTOCHAR(col[0]);
 	wcol->inner[1]= FTOCHAR(col[1]);
 	wcol->inner[2]= FTOCHAR(col[2]);
+	wcol->shaded = 0;
 	
 	widgetbase_draw(&wtb, wcol);
 	
