@@ -1435,7 +1435,7 @@ setWindowCursorGrab(
 				setWindowCursorVisibility(false);
 
 		}
-		XGrabPointer(m_display, m_window, True, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+		XGrabPointer(m_display, m_window, False, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	}
 	else {
 		if (m_cursorGrab==GHOST_kGrabHide) {
