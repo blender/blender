@@ -501,7 +501,7 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 
     return new_faces
 
-def main(context):
+def main(self, context):
     global CULL_METHOD
 
     ob = context.object
@@ -509,7 +509,7 @@ def main(context):
     is_editmode = (ob.mode=='EDIT')
     if is_editmode: bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
     if ob == None or ob.type != 'MESH':
-        raise Exception("BPyMessages.Error_NoMeshActive()")
+        self.report({'ERROR'}, "No active mesh selected\n")
         return
 
     me = ob.data
@@ -518,7 +518,7 @@ def main(context):
     selEdges = getSelectedEdges(context, me, ob)
     vertLoops = getVertLoops(selEdges, me) # list of lists of edges.
     if vertLoops == None:
-        raise Exception('Error%t|Selection includes verts that are a part of more then 1 loop')
+        self.report({'ERROR'}, "Selection includes verts that are a part of more then 1 loop\n")
         if is_editmode: bpy.ops.object.mode_set(mode='EDIT', toggle=False)
         return
     # print len(vertLoops)
@@ -531,7 +531,7 @@ def main(context):
             return
 
     elif len(vertLoops) < 2:
-        raise Exception('Error%t|No Vertloops found!')
+        self.report({'ERROR'}, "No Vertloops found\n")
         if is_editmode: bpy.ops.object.mode_set(mode='EDIT', toggle=False)
         return
     else:
@@ -642,7 +642,7 @@ class MESH_OT_skin(bpy.types.Operator):
     '''
 
     def execute(self, context):
-        main(context)
+        main(self, context)
         return {'FINISHED'}
 
 
