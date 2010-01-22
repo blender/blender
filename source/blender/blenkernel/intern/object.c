@@ -1983,7 +1983,6 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
 	float stime=ctime, fac1, fac2, vec[3];
 	int a;
-	int pop; 
 	
 	/* new version: correct parent+vertexparent and track+parent */
 	/* this one only calculates direct attached parent and track */
@@ -2002,21 +2001,19 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 		
 		/* hurms, code below conflicts with depgraph... (ton) */
 		/* and even worse, it gives bad effects for NLA stride too (try ctime != par->ctime, with MBlur) */
-		pop= 0;
 		if(no_parent_ipo==0 && stime != par->ctime) {
 			// only for ipo systems? 
-			pushdata(par, sizeof(Object));
-			pop= 1;
+			Object tmp= *par;
 			
 			if(par->proxy_from);	// was a copied matrix, no where_is! bad...
 			else where_is_object_time(scene, par, ctime);
+
+			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
+
+			*par= tmp;
 		}
-		
-		solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
-		
-		if(pop) {
-			poplast(par);
-		}
+		else
+			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
 		
 		if(ob->partype & PARSLOW) {
 			// include framerate

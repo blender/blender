@@ -658,6 +658,8 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		Object *ob = eff->ob;
 		Object obcopy = *ob;
 
+		/* XXX this is not thread-safe, but used from multiple threads by
+		   particle system */
 		where_is_object_time(eff->scene, ob, cfra);
 
 		/* use z-axis as normal*/

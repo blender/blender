@@ -62,12 +62,6 @@ void BKE_userdef_free(void);
 void set_blender_test_break_cb(void (*func)(void) );
 int blender_test_break(void);
 
-void pushdata(void *data, int len);
-void popfirst(void *data);
-void poplast(void *data);
-void free_pushpop(void);
-void pushpop_test(void);
-
 /* global undo */
 extern void BKE_write_undo(struct bContext *C, char *name);
 extern void BKE_undo_step(struct bContext *C, int step);
