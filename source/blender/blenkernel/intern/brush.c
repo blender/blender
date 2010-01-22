@@ -89,6 +89,8 @@ Brush *add_brush(const char *name)
 	brush->flag |= BRUSH_SPACE;
 
 	brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
+	
+	default_mtex(&brush->mtex);
 
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;

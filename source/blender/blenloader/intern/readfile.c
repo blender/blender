@@ -10373,9 +10373,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put 2.50 compatibility code here until next subversion bump */
-
-	if (1) {
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 12))
+	{
 		Scene *sce;
 		Object *ob;
 		Brush *brush;
@@ -10474,6 +10473,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		
+	}
+	
+	
+	/* put 2.50 compatibility code here until next subversion bump */
+	if (1) {
+		;
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
