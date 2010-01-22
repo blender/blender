@@ -55,7 +55,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_Mask, "MASK", ICON_MOD_MASK, "Mask", ""},
 	{eModifierType_Mirror, "MIRROR", ICON_MOD_MIRROR, "Mirror", ""},
 	{eModifierType_Multires, "MULTIRES", ICON_MOD_MULTIRES, "Multiresolution", ""},
-	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_DISPLACE, "Solidify", ""},
+	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
 	{eModifierType_UVProject, "UV_PROJECT", ICON_MOD_UVPROJECT, "UV Project", ""},
 	{0, "", 0, "Deform", ""},
@@ -2021,7 +2021,7 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SolidifyModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Solidify Modifier", "Create a solid skin by extruding, compensating for sharp angles.");
 	RNA_def_struct_sdna(srna, "SolidifyModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_DISPLACE);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_SOLIDIFY);
 
 	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "offset");
