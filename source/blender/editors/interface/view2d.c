@@ -838,7 +838,8 @@ void UI_view2d_totRect_set_resize (View2D *v2d, int width, int height, int resiz
 		height -= V2D_SCROLL_HEIGHT;
 	
 	if (ELEM3(0, v2d, width, height)) {
-		printf("Error: View2D totRect set exiting: v2d=%p width=%d height=%d \n", v2d, width, height); // XXX temp debug info
+		if (G.f & G_DEBUG)
+			printf("Error: View2D totRect set exiting: v2d=%p width=%d height=%d \n", v2d, width, height); // XXX temp debug info
 		return;
 	}
 	

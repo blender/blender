@@ -1303,7 +1303,8 @@ static void poselib_preview_init_data (bContext *C, wmOperator *op)
 		if (pld->act->markers.first) {
 			/* just use first one then... */
 			pld->marker= pld->act->markers.first;
-			if (pose_index > -2) printf("PoseLib had no active pose\n");
+			if (pose_index > -2) 
+				BKE_report(op->reports, RPT_WARNING, "PoseLib had no active pose");
 		}
 		else {
 			BKE_report(op->reports, RPT_ERROR, "PoseLib has no poses to preview/apply");

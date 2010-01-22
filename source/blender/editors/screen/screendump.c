@@ -249,9 +249,10 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 		if(sj->dumprect) {
 			
 			if(mh) {
-				if(mh->append_movie(&rd, cfra, (int *)sj->dumprect, sj->dumpsx, sj->dumpsy, &sj->reports))
-					printf("Append frame %d\n", cfra);
-				else
+				if(mh->append_movie(&rd, cfra, (int *)sj->dumprect, sj->dumpsx, sj->dumpsy, &sj->reports)) {
+					BKE_reportf(&sj->reports, RPT_INFO, "Appended frame: %d", cfra);
+					printf("Appended frame %d\n", cfra);
+				} else
 					break;
 			}
 			else {
@@ -266,9 +267,13 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 				
 				if(ok==0) {
 					printf("Write error: cannot save %s\n", name);
+					BKE_reportf(&sj->reports, RPT_INFO, "Write error: cannot save %s\n", name);
 					break;
 				}
-				else printf("Saved: %s\n", name);
+				else {
+					printf("Saved file: %s\n", name);
+					BKE_reportf(&sj->reports, RPT_INFO, "Saved file: %s", name);
+				}
 				
                 /* imbuf knows which rects are not part of ibuf */
 				IMB_freeImBuf(ibuf);	
@@ -288,7 +293,8 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 	
 	if(mh)
 		mh->end_movie();
-	printf("screencast job stopped\n");
+
+	BKE_report(&sj->reports, RPT_INFO, "Screencast job stopped");
 }
 
 static int screencast_exec(bContext *C, wmOperator *op)

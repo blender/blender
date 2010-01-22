@@ -2268,7 +2268,6 @@ static int header_flip_exec(bContext *C, wmOperator *op)
 #endif
 
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
-	printf("executed header region flip\n");
 	
 	return OPERATOR_FINISHED;
 }
@@ -2946,7 +2945,8 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 	
 	/* very weak... but 512 characters is quite safe */
 	if(spos >= str+IMA_RW_MAXTEXT)
-		printf("WARNING! renderwin text beyond limit \n");
+		if (G.f & G_DEBUG)
+			printf("WARNING! renderwin text beyond limit \n");
 	
 }
 
@@ -3484,15 +3484,23 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	if(ibuf) {
 		if(BKE_imtype_is_movie(scene->r.imtype)) {
 			ok= oglrender->mh->append_movie(&scene->r, CFRA, (int*)ibuf->rect, oglrender->sizex, oglrender->sizey, oglrender->reports);
-			if(ok)
+			if(ok) {
 				printf("Append frame %d", scene->r.cfra);
+				BKE_reportf(op->reports, RPT_INFO, "Appended frame: %d", scene->r.cfra);
+			}
 		}
 		else {
 			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION);
 			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 			
-			if(ok==0) printf("write error: cannot save %s\n", name);
-			else printf("saved: %s", name);
+			if(ok==0) {
+				printf("Write error: cannot save %s\n", name);
+				BKE_reportf(op->reports, RPT_ERROR, "Write error: cannot save %s", name);
+			}
+			else {
+				printf("Saved: %s", name);
+				BKE_reportf(op->reports, RPT_INFO, "Saved file: %s", name);
+			}
 		}
 	}
 	

@@ -203,7 +203,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 					max+= BLI_snprintf(str, sizeof(str), "%s %%x%d|", dg->name, dvert->dw[i].def_nr); 
 					if(max<320) strcat(defstr, str);
 				}
-				else printf("oh no!\n");
+
 				if(tfp->curdef==dvert->dw[i].def_nr) {
 					init= 0;
 					tfp->defweightp= &dvert->dw[i].weight;
@@ -1135,11 +1135,13 @@ static void redo_cb(bContext *C, void *arg_op, void *arg2)
 	if(lastop) {
 		int retval;
 		
-		printf("operator redo %s\n", lastop->type->name);
+		if (G.f & G_DEBUG)
+			printf("operator redo %s\n", lastop->type->name);
 		ED_undo_pop(C);
 		retval= WM_operator_repeat(C, lastop);
 		if((retval & OPERATOR_FINISHED)==0) {
-			printf("operator redo failed %s\n", lastop->type->name);
+			if (G.f & G_DEBUG)
+				printf("operator redo failed %s\n", lastop->type->name);
 			ED_undo_redo(C);
 		}
 	}

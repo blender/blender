@@ -766,7 +766,8 @@ static void addedgeface_mesh(EditMesh *em, wmOperator *op)
 						else if( convex(neweve[0]->co, neweve[3]->co, neweve[1]->co, neweve[2]->co) ) {
 							efa= addfacelist(em, neweve[0], neweve[3], neweve[1], neweve[2], NULL, NULL);
 						}
-						else printf("cannot find nice quad from concave set of vertices\n");
+						else BKE_report(op->reports, RPT_ERROR, "cannot find nice quad from concave set of vertices");
+
 					}
 				}
 			}

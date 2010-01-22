@@ -108,11 +108,13 @@ static void redo_cb(bContext *C, void *arg_op, void *arg2)
 	if(lastop) {
 		int retval;
 		
-		printf("operator redo %s\n", lastop->type->name);
+		if (G.f & G_DEBUG)
+			printf("operator redo %s\n", lastop->type->name);
 		ED_undo_pop_op(C, lastop);
 		retval= WM_operator_repeat(C, lastop);
 		if((retval & OPERATOR_FINISHED)==0) {
-			printf("operator redo failed %s\n", lastop->type->name);
+			if (G.f & G_DEBUG)
+				printf("operator redo failed %s\n", lastop->type->name);
 			ED_undo_redo(C);
 		}
 	}

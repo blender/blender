@@ -291,8 +291,10 @@ void uiStyleInit(void)
 				font->blf_id= BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 		}
 
-		if (font->blf_id == -1)
-			printf("uiStyleInit error, no fonts available\n");
+		if (font->blf_id == -1) {
+			if (G.f & G_DEBUG)
+				printf("uiStyleInit error, no fonts available\n");
+		}
 		else {
 			BLF_set(font->blf_id);
 			/* ? just for speed to initialize?

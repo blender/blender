@@ -1079,7 +1079,7 @@ static int save_sequence_exec(bContext *C, wmOperator *op)
 				break;
 			}
 
-			printf("Saved: %s\n", ibuf->name);
+			BKE_reportf(op->reports, RPT_INFO, "Saved: %s\n", ibuf->name);
 			ibuf->userflags &= ~IB_BITMAPDIRTY;
 		}
 	}

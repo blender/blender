@@ -684,23 +684,19 @@ static void ui_add_link(uiBut *from, uiBut *to)
 	if( (line= ui_is_a_link(from, to)) ) {
 		line->flag |= UI_SELECT;
 		ui_delete_active_linkline(from->block);
-		printf("already exists, means deletion now\n");
 		return;
 	}
 
 	if (from->type==INLINK && to->type==INLINK) {
-		printf("cannot link\n");
 		return;
 	}
 	else if (from->type==LINK && to->type==INLINK) {
 		if( from->link->tocode != (int)to->hardmin ) {
-			printf("cannot link\n");
 			return;
 		}
 	}
 	else if(from->type==INLINK && to->type==LINK) {
 		if( to->link->tocode == (int)from->hardmin ) {
-			printf("cannot link\n");
 			return;
 		}
 	}

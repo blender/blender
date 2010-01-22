@@ -1051,7 +1051,7 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	/* try to insert keyframes for the channels specified by KeyingSet */
 	success= modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 	if (G.f & G_DEBUG)
-		printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
+		BKE_reportf(op->reports, RPT_INFO, "KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
 	
 	/* report failure or do updates? */
 	if (success) {
@@ -1320,7 +1320,7 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 			}
 		}
 		
-		printf("Ob '%s' - Successfully removed %d keyframes \n", id->name+2, success);
+		BKE_reportf(op->reports, RPT_INFO, "Ob '%s' - Successfully removed %d keyframes \n", id->name+2, success);
 		
 		ob->recalc |= OB_RECALC_OB;
 	}

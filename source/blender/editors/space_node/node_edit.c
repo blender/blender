@@ -242,7 +242,8 @@ void ED_node_shader_default(Material *ma)
 	
 	/* but lets check it anyway */
 	if(ma->nodetree) {
-		printf("error in shader initialize\n");
+		if (G.f & G_DEBUG)
+			printf("error in shader initialize\n");
 		return;
 	}
 	
@@ -272,7 +273,8 @@ void ED_node_composit_default(Scene *sce)
 	
 	/* but lets check it anyway */
 	if(sce->nodetree) {
-		printf("error in composit initialize\n");
+		if (G.f & G_DEBUG)
+			printf("error in composite initialize\n");
 		return;
 	}
 	
@@ -306,7 +308,8 @@ void ED_node_texture_default(Tex *tx)
 	
 	/* but lets check it anyway */
 	if(tx->nodetree) {
-		printf("error in texture initialize\n");
+		if (G.f & G_DEBUG)
+			printf("error in texture initialize\n");
 		return;
 	}
 	

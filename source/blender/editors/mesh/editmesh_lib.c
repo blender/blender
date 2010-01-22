@@ -432,7 +432,7 @@ void EM_select_face_fgon(EditMesh *em, EditFace *efa, int val)
 		if(efa->e3->fgoni) index= efa->e3->fgoni;
 		if(efa->v4 && efa->e4->fgoni) index= efa->e4->fgoni;
 		
-		if(index==0) printf("wrong fgon select\n");
+		if((index==0) && (G.f & G_DEBUG))printf("wrong fgon select\n");
 		
 		// select all ngon faces with index
 		for(efa= em->faces.first; efa; efa= efa->next) {
