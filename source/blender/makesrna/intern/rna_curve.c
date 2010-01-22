@@ -812,6 +812,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "extrude", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ext1");
 	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 0);
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Extrude", "Amount of curve extrusion when not using a bevel object.");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
@@ -824,23 +825,27 @@ static void rna_def_curve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu");
 	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_range(prop, 1, INT_MAX);
 	RNA_def_property_ui_text(prop, "Resolution U", "Surface resolution in U direction.");
 	RNA_def_property_update(prop, 0, "rna_Curve_resolution_u_update_data");
 	
 	prop= RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv");
 	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_range(prop, 1, INT_MAX);
 	RNA_def_property_ui_text(prop, "Resolution V", "Surface resolution in V direction.");
 	RNA_def_property_update(prop, 0, "rna_Curve_resolution_v_update_data");
 	
 	prop= RNA_def_property(srna, "render_resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
-	RNA_def_property_ui_range(prop, 0, 1024, 1, 0);
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_range(prop, 1, INT_MAX);
 	RNA_def_property_ui_text(prop, "Render Resolution U", "Surface resolution in U direction used while rendering. Zero skips this property.");
 	
 	prop= RNA_def_property(srna, "render_resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv_ren");
-	RNA_def_property_ui_range(prop, 0, 1024, 1, 0);
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_range(prop, 1, INT_MAX);
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
 	
 	
@@ -894,12 +899,6 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Twist Smooth", "Smoothing iteration for tangents");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-
-
-	prop= RNA_def_property(srna, "retopo", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_RETOPO);
-	RNA_def_property_ui_text(prop, "Retopo", "Turn on the re-topology tool.");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
 static void rna_def_curve_nurb(BlenderRNA *brna)
