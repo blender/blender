@@ -52,6 +52,7 @@
 #include <sys/sysctl.h>
 #else
 #include <unistd.h> 
+#include <sys/time.h>
 #endif
 
 /* ********** basic thread control API ************ 
