@@ -386,6 +386,11 @@ int constrain_rgb(float *r, float *g, float *b)
     return 0;                         /* Color within RGB gamut */
 }
 
+float rgb_to_grayscale(float rgb[3])
+{
+	return 0.3f*rgb[0] + 0.58f*rgb[1] + 0.12f*rgb[2];
+}
+
 /* ********************************* lift/gamma/gain / ASC-CDL conversion ********************************* */
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power)
@@ -400,3 +405,4 @@ void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *o
 			power[c]= 1.0f/gamma[c];
 	}
 }
+

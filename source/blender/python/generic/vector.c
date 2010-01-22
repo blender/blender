@@ -408,6 +408,7 @@ static PyObject *Vector_Reflect( VectorObject * self, VectorObject * value )
 	if (self->size > 2)		vec[2] = self->vec[2];
 	else					vec[2] = 0.0;
 	
+	normalize_v3(mirror);
 	reflect_v3_v3v3(reflect, vec, mirror);
 	
 	return newVectorObject(reflect, self->size, Py_NEW, NULL);

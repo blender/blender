@@ -32,30 +32,23 @@
 extern "C" {
 #endif
 
-/* add platform/compiler checks here if it is not supported */
-#define BLI_MATH_INLINE
-
 #ifdef BLI_MATH_INLINE
-#ifdef _MSC_VER
-#define MINLINE static __inline
-#else
-#define MINLINE static inline
-#endif
 #include "intern/math_vector_inline.c"
-#else
-#define MINLINE
 #endif
 
 /************************************* Init ***********************************/
 
 MINLINE void zero_v2(float r[2]);
 MINLINE void zero_v3(float r[3]);
+MINLINE void zero_v4(float r[4]);
 
 MINLINE void copy_v2_v2(float r[2], const float a[2]);
 MINLINE void copy_v3_v3(float r[3], const float a[3]);
+MINLINE void copy_v4_v4(float r[4], float a[4]);
 
 MINLINE void swap_v2_v2(float a[2], float b[2]);
 MINLINE void swap_v3_v3(float a[3], float b[3]);
+MINLINE void swap_v4_v4(float a[4], float b[4]);
 
 /********************************* Arithmetic ********************************/
 
@@ -118,12 +111,14 @@ void mid_v3_v3v3(float r[3], float a[3], float b[3]);
 
 /********************************* Comparison ********************************/
 
-int is_zero_v3(float a[3]);
-int equals_v3v3(float a[3], float b[3]);
-int compare_v3v3(float a[3], float b[3], float limit);
-int compare_len_v3v3(float a[3], float b[3], float limit);
+MINLINE int is_zero_v3(float a[3]);
+MINLINE int is_one_v3(float a[3]);
 
-int compare_v4v4(float a[4], float b[4], float limit);
+MINLINE int equals_v3v3(float a[3], float b[3]);
+MINLINE int compare_v3v3(float a[3], float b[3], float limit);
+MINLINE int compare_len_v3v3(float a[3], float b[3], float limit);
+
+MINLINE int compare_v4v4(float a[4], float b[4], float limit);
 
 /********************************** Angles ***********************************/
 /* - angle with 2 arguments is angle between vector                          */

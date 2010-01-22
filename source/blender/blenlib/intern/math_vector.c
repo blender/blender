@@ -84,50 +84,6 @@ void mid_v3_v3v3(float *v, float *v1, float *v2)
 	v[2]= 0.5f*(v1[2] + v2[2]);
 }
 
-/********************************* Comparison ********************************/
-
-int is_zero_v3(float *v)
-{
-	return (v[0] == 0 && v[1] == 0 && v[2] == 0);
-}
-
-int equals_v3v3(float *v1, float *v2)
-{
-	return ((v1[0]==v2[0]) && (v1[1]==v2[1]) && (v1[2]==v2[2]));
-}
-
-int compare_v3v3(float *v1, float *v2, float limit)
-{
-	if(fabs(v1[0]-v2[0])<limit)
-		if(fabs(v1[1]-v2[1])<limit)
-			if(fabs(v1[2]-v2[2])<limit)
-				return 1;
-
-	return 0;
-}
-
-int compare_len_v3v3(float *v1, float *v2, float limit)
-{
-    float x,y,z;
-
-	x=v1[0]-v2[0];
-	y=v1[1]-v2[1];
-	z=v1[2]-v2[2];
-
-	return ((x*x + y*y + z*z) < (limit*limit));
-}
-
-int compare_v4v4(float *v1, float *v2, float limit)
-{
-	if(fabs(v1[0]-v2[0])<limit)
-		if(fabs(v1[1]-v2[1])<limit)
-			if(fabs(v1[2]-v2[2])<limit)
-				if(fabs(v1[3]-v2[3])<limit)
-					return 1;
-
-	return 0;
-}
-
 /********************************** Angles ***********************************/
 
 /* Return the angle in radians between vecs 1-2 and 2-3 in radians
@@ -296,8 +252,6 @@ void reflect_v3_v3v3(float *out, float *v1, float *v2)
 
 	copy_v3_v3(vec, v1);
 	copy_v3_v3(normal, v2);
-
-	normalize_v3(normal);
 
 	dot2 = 2 * dot_v3v3(vec, normal);
 

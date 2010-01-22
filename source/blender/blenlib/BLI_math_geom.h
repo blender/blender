@@ -144,6 +144,9 @@ void perspective_m4(float mat[4][4], float left, float right,
 void orthographic_m4(float mat[4][4], float left, float right,
 	float bottom, float top, float nearClip, float farClip);
 
+int box_clip_bounds_m4(float boundbox[2][3],
+	float bounds[4], float winmat[4][4]);
+
 /********************************** Mapping **********************************/
 
 void map_to_tube(float *u, float *v, float x, float y, float z);
