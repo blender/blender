@@ -5166,6 +5166,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			return;
 	}
 
+	/* XXX particles are not safe for simultaneous threaded render */
+	if(G.rendering && ob->particlesystem.first)
+		return;
+
 	/* xray delay? */
 	if((flag & DRAW_PICKING)==0 && (base->flag & OB_FROMDUPLI)==0) {
 		/* don't do xray in particle mode, need the z-buffer */
