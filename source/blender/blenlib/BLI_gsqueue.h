@@ -49,6 +49,11 @@ GSQueue*	BLI_gsqueue_new		(int elem_size);
 int			BLI_gsqueue_is_empty(GSQueue *gq);
 
 	/**
+	 * Query number elements in the queue
+	 */
+int			BLI_gsqueue_size(GSQueue *gq);
+
+	/**
 	 * Access the item at the head of the queue
 	 * without removing it.
 	 * 
