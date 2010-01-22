@@ -166,11 +166,17 @@ char handleNumInput(NumInput *n, wmEvent *event, float increment)
 
 	switch (event->type) {
     case DOWNARROWKEY: /* Increments down*/
-         n->val[idx] -= increment;
-         break;
+		if (!n->ctrl[idx])
+			n->ctrl[idx] = 1;
+
+        n->val[idx] -= increment;
+        break;
     case UPARROWKEY: /* Increments up*/
-         n->val[idx] += increment;
-         break;
+		if (!n->ctrl[idx])
+			n->ctrl[idx] = 1;
+
+		n->val[idx] += increment;
+        break;
 	case BACKSPACEKEY:
 		if (n->ctrl[idx] == 0) {
 			n->val[0]		= 
