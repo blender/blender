@@ -864,6 +864,7 @@ static int group_instance_add_exec(bContext *C, wmOperator *op)
 	unsigned int layer;
 	float loc[3], rot[3];
 	
+	object_add_generic_invoke_options(C, op);
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 
 	if(group) {
