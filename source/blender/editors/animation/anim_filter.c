@@ -442,11 +442,15 @@ short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 		  
 /* quick macro to test if an anim-channel (F-Curve) is selected ok for editing purposes 
  *	- _SELEDIT means that only selected curves will have visible+editable keyframes
+ *
+ * checks here work as follows:
+ *	1) seledit off - don't need to consider the implications of this option
+ *	2) foredit off - we're not considering editing, so channel is ok still
+ *	3) test_func (i.e. selection test) - only if selected, this test will pass
  */
-// FIXME: this doesn't work cleanly yet...
 #define ANIMCHANNEL_SELEDITOK(test_func) \
 		( !(filter_mode & ANIMFILTER_SELEDIT) || \
-		  (filter_mode & ANIMFILTER_CHANNELS) || \
+		  !(filter_mode & ANIMFILTER_FOREDIT) || \
 		  (test_func) )
 
 /* ----------- 'Private' Stuff --------------- */
@@ -952,6 +956,7 @@ static int animdata_filter_action (ListBase *anim_data, bDopeSheet *ads, bAction
 				 *	- group is expanded
 				 *	- we just need the F-Curves present
 				 */
+				// FIXME: checking if groups are expanded is only valid if in one or other modes
 				if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || (filter_mode & ANIMFILTER_CURVESONLY) ) 
 				{
 					/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
@@ -1802,6 +1807,14 @@ static int animdata_filter_dopesheet (ListBase *anim_data, bAnimContext *ac, bDo
 		if (G.f & G_DEBUG)
 			printf("\tPointer = %p, Name = '%s' \n", ads->source, (ads->source)?ads->source->name:NULL);
 		return 0;
+	}
+	
+	/* augment the filter-flags with settings based on the dopesheet filterflags 
+	 * so that some temp settings can get added automagically...
+	 */
+	if (ads->filterflag & ADS_FILTER_SELEDIT) {
+		/* only selected F-Curves should get their keyframes considered for editability */
+		filter_mode |= ANIMFILTER_SELEDIT;
 	}
 	
 	/* scene-linked animation */

@@ -80,12 +80,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_ONLYNLA);
 	RNA_def_property_ui_text(prop, "Only NLA", "Only include NLA data from Animation data.");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
-
-	prop= RNA_def_property(srna, "use_filter", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_SELEDIT);
-	RNA_def_property_ui_text(prop, "Use Filter", "Indicates if filtering options must be taken into account.");
-	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
-
+	
 	prop= RNA_def_property(srna, "display_summary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_SUMMARY);
 	RNA_def_property_ui_text(prop, "Display Summary", "Display an additional 'summary' line. (DopeSheet Editors only)");

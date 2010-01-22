@@ -1480,7 +1480,6 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	bPose *pose= ob->pose, *frompose= from->pose;
 	bPoseChannel *pchan, *pchanp, pchanw;
 	bConstraint *con;
-	AnimData *adt, *fromadt;
 	int error = 0;
 	
 	if (frompose==NULL) return;
