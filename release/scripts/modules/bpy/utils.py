@@ -18,13 +18,18 @@
 
 # <pep8 compliant>
 
-import bpy
-import os
+"""
+This module contains utility functions spesific to blender but
+not assosiated with blenders internal data.
+"""
+
+import bpy as _bpy
+import os as _os
 
 
 def expandpath(path):
     if path.startswith("//"):
-        return os.path.join(os.path.dirname(bpy.data.filename), path[2:])
+        return _os.path.join(_os.path.dirname(_bpy.data.filename), path[2:])
 
     return path
 
@@ -47,21 +52,23 @@ _unclean_chars = ''.join([chr(i) for i in _unclean_chars])
 
 
 def clean_name(name, replace="_"):
-    '''
+    """
+    Returns a name with characters replaced that may cause problems under various circumstances, such as writing to a file.
     All characters besides A-Z/a-z, 0-9 are replaced with "_"
     or the replace argumet if defined.
-    '''
+    """
     for ch in _unclean_chars:
         name = name.replace(ch, replace)
     return name
 
 
 def display_name(name):
-    '''
-    Only capitalize all lowercase names, mixed case use them as is.
-    should work with filenames and module names.
-    '''
-    name_base = os.path.splitext(name)[0]
+    """
+    Creates a display string from name to be used menus and the user interface.
+    Capitalize the first letter in all lowercase names, mixed case names are kept as is.
+    Intended for use with filenames and module names.
+    """
+    name_base = _os.path.splitext(name)[0]
 
     # string replacements
     name_base = name_base.replace("_colon_", ":")
@@ -75,39 +82,44 @@ def display_name(name):
 
 
 # base scripts
-_scripts = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)
-_scripts = (os.path.normpath(_scripts), )
+_scripts = _os.path.join(_os.path.dirname(__file__), _os.path.pardir, _os.path.pardir)
+_scripts = (_os.path.normpath(_scripts), )
 
 
 def script_paths(*args):
+    """
+    Returns a list of valid script paths from the home directory and user preferences.
+
+    Accepts any number of string arguments which are joined to make a path.
+    """
     scripts = list(_scripts)
 
     # add user scripts dir
-    user_script_path = bpy.context.user_preferences.filepaths.python_scripts_directory
+    user_script_path = _bpy.context.user_preferences.filepaths.python_scripts_directory
 
     if not user_script_path:
         # XXX - WIN32 needs checking, perhaps better call a blender internal function.
-        user_script_path = os.path.join(os.path.expanduser("~"), ".blender", "scripts")
+        user_script_path = _os.path.join(_os.path.expanduser("~"), ".blender", "scripts")
 
-    user_script_path = os.path.normpath(user_script_path)
+    user_script_path = _os.path.normpath(user_script_path)
 
-    if user_script_path not in scripts and os.path.isdir(user_script_path):
+    if user_script_path not in scripts and _os.path.isdir(user_script_path):
         scripts.append(user_script_path)
 
     if not args:
         return scripts
 
-    subdir = os.path.join(*args)
+    subdir = _os.path.join(*args)
     script_paths = []
     for path in scripts:
-        path_subdir = os.path.join(path, subdir)
-        if os.path.isdir(path_subdir):
+        path_subdir = _os.path.join(path, subdir)
+        if _os.path.isdir(path_subdir):
             script_paths.append(path_subdir)
 
     return script_paths
 
 
-_presets = os.path.join(_scripts[0], "presets") # FIXME - multiple paths
+_presets = _os.path.join(_scripts[0], "presets") # FIXME - multiple paths
 
 
 def preset_paths(subdir):
@@ -115,4 +127,4 @@ def preset_paths(subdir):
     Returns a list of paths for a spesific preset.
     '''
 
-    return (os.path.join(_presets, subdir), )
+    return (_os.path.join(_presets, subdir), )

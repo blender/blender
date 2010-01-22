@@ -18,6 +18,27 @@
 
 # <pep8 compliant>
 
+"""
+This module contains application values that remain unchanged during runtime.
+
+.. data:: version
+
+   The Blender version as a tuple of 3 numbers. eg. (2, 50, 11)
+
+
+.. data:: version_string
+
+   The Blender version formatted as a string.
+
+.. data:: home
+
+   The blender home directory, normally matching $HOME
+
+.. data:: binary_path
+
+   The location of blenders executable, useful for utilities that spawn new instances.
+
+"""
 # constants
 import _bpy
 version = _bpy._VERSION

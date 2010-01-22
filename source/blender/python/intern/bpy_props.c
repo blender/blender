@@ -46,6 +46,10 @@ static PyObject *bpy_prop_deferred_return(void *func, PyObject *kw)
 
 /* Function that sets RNA, NOTE - self is NULL when called from python, but being abused from C so we can pass the srna allong
  * This isnt incorrect since its a python object - but be careful */
+static char BPy_BoolProperty_doc[] =
+".. function:: BoolProperty(name=\"\", description=\"\", default=False, hidden=False)\n"
+"\n"
+"   Returns a new boolean property definition..";
 
 PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
@@ -79,6 +83,10 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	}
 }
 
+static char BPy_IntProperty_doc[] =
+".. function:: IntProperty(name=\"\", description=\"\", default=0, min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, step=1, hidden=False)\n"
+"\n"
+"   Returns a new int property definition.";
 PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -113,6 +121,10 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 	}
 }
 
+static char BPy_FloatProperty_doc[] =
+".. function:: FloatProperty(name=\"\", description=\"\", default=0.0, min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, hidden=False)\n"
+"\n"
+"   Returns a new float property definition.";
 PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -147,6 +159,10 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 	}
 }
 
+static char BPy_FloatVectorProperty_doc[] =
+".. function:: FloatVectorProperty(name=\"\", description=\"\", default=(0.0, 0.0, 0.0), min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, hidden=False, size=3)\n"
+"\n"
+"   Returns a new vector float property definition.";
 PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -213,6 +229,10 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 	}
 }
 
+static char BPy_StringProperty_doc[] =
+".. function:: StringProperty(name=\"\", description=\"\", default=\"\", maxlen=0, hidden=False)\n"
+"\n"
+"   Returns a new string property definition.";
 PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -291,6 +311,13 @@ static EnumPropertyItem *enum_items_from_py(PyObject *value, const char *def, in
 	return items;
 }
 
+static char BPy_EnumProperty_doc[] =
+".. function:: EnumProperty(items, name=\"\", description=\"\", default=\"\", hidden=False)\n"
+"\n"
+"   Returns a new enumerator property definition.\n"
+"\n"
+"   :arg items: The items that make up this enumerator.\n"
+"   :type items: sequence of string triplets";
 PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -349,6 +376,13 @@ static StructRNA *pointer_type_from_py(PyObject *value)
 	return srna;
 }
 
+static char BPy_PointerProperty_doc[] =
+".. function:: PointerProperty(items, type=\"\", description=\"\", default=\"\", hidden=False)\n"
+"\n"
+"   Returns a new pointer property definition.\n"
+"\n"
+"   :arg type: Dynamic type from :mod:`bpy.types`.\n"
+"   :type type: class";
 PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -388,6 +422,13 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 	return NULL;
 }
 
+static char BPy_CollectionProperty_doc[] =
+".. function:: CollectionProperty(items, type=\"\", description=\"\", default=\"\", hidden=False)\n"
+"\n"
+"   Returns a new collection property definition.\n"
+"\n"
+"   :arg type: Dynamic type from :mod:`bpy.types`.\n"
+"   :type type: class";
 PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -428,21 +469,22 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static struct PyMethodDef props_methods[] = {
-	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"FloatVectorProperty", (PyCFunction)BPy_FloatVectorProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, ""},
-	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, ""},
+	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolProperty_doc},
+	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, BPy_IntProperty_doc},
+	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, BPy_FloatProperty_doc},
+	{"FloatVectorProperty", (PyCFunction)BPy_FloatVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_FloatVectorProperty_doc},
+	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, BPy_StringProperty_doc},
+	{"EnumProperty", (PyCFunction)BPy_EnumProperty, METH_VARARGS|METH_KEYWORDS, BPy_EnumProperty_doc},
+	{"PointerProperty", (PyCFunction)BPy_PointerProperty, METH_VARARGS|METH_KEYWORDS, BPy_PointerProperty_doc},
+	{"CollectionProperty", (PyCFunction)BPy_CollectionProperty, METH_VARARGS|METH_KEYWORDS, BPy_CollectionProperty_doc},
 	{NULL, NULL, 0, NULL}
 };
 
 static struct PyModuleDef props_module = {
 	PyModuleDef_HEAD_INIT,
 	"bpy.props",
-	"",
+	"This module defines properties to extend blenders internal data, the result of these functions"
+	" is used to assign properties to classes registered with blender and can't be used directly.",
 	-1,/* multiple "initialization" just copies the module dict. */
 	props_methods,
 	NULL, NULL, NULL, NULL
