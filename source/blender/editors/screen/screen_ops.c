@@ -2774,6 +2774,7 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= NULL;
 	SpaceImage *sima;
+	int area_was_image=0;
 	
 	if(scene->r.displaymode==R_OUTPUT_WINDOW) {
 		rcti rect;
@@ -2798,6 +2799,9 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 		sa= CTX_wm_area(C);
 	}
 	else if(scene->r.displaymode==R_OUTPUT_SCREEN) {
+		if (CTX_wm_area(C)->spacetype == SPACE_IMAGE)
+			area_was_image = 1;
+		
 		/* this function returns with changed context */
 		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_IMAGE);
 		sa= CTX_wm_area(C);
@@ -2836,14 +2840,24 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 	/* get the correct image, and scale it */
 	sima->image= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	
-	//	if(G.displaymode==2) { // XXX
-	if(sa->full) {
-		sima->flag |= SI_FULLWINDOW|SI_PREVSPACE;
-		
-		//			ed_screen_fullarea(C, win, sa);
-	}
-	//	}
 	
+	/* if we're rendering to full screen, set appropriate hints on image editor
+	 * so it can restore properly on pressing esc */
+	if(sa->full) {
+		sima->flag |= SI_FULLWINDOW;
+		
+		/* Tell the image editor to revert to previous space in space list on close
+		 * _only_ if it wasn't already an image editor when the render was invoked */
+		if (area_was_image == 0)
+			sima->flag |= SI_PREVSPACE;
+		else {
+			/* Leave it alone so the image editor will just go back from 
+			 * full screen to the original tiled setup */
+			;
+		}
+		
+	}
+
 }
 
 /* executes blocking render */
