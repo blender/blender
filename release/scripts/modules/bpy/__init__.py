@@ -70,7 +70,6 @@ def load_scripts(reload_scripts=False):
             reload(module)
         except:
             traceback.print_exc()
-            return None
 
     if reload_scripts:
         # reload modules that may not be directly included

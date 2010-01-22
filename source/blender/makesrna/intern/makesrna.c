@@ -51,12 +51,14 @@ static int replace_if_different(char *tmpfile)
 {
 
 #define REN_IF_DIFF \
+	remove(orgfile); \
 	if(rename(tmpfile, orgfile) != 0) { \
 		fprintf(stderr, "%s:%d, rename error: \"%s\" -> \"%s\"\n", __FILE__, __LINE__, tmpfile, orgfile); \
 		return -1; \
 	} \
 	remove(tmpfile); \
 	return 1; \
+/* end REN_IF_DIFF */
 
 
 	FILE *fp_new, *fp_org;
@@ -112,6 +114,7 @@ static int replace_if_different(char *tmpfile)
 		REN_IF_DIFF;
 	}
 	else {
+		remove(tmpfile);
 		return 0;
 	}
 
