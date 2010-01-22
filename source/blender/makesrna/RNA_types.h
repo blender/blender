@@ -266,6 +266,7 @@ typedef enum FunctionFlag {
 	FUNC_NO_SELF = 1, /* for static functions */
 	FUNC_USE_CONTEXT = 2,
 	FUNC_USE_REPORTS = 4,
+	FUNC_USE_SELF_ID = 2048,
 
 	/* registering */
 	FUNC_REGISTER = 8,

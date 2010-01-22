@@ -1293,7 +1293,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	srna= dsrna->srna;
 	func= dfunc->func;
 
-	if(func->flag & FUNC_REGISTER)
+	if(!dfunc->call)
 		return;
 
 	funcname= rna_alloc_function_name(srna->identifier, func->identifier, "call");
@@ -1304,6 +1304,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 	/* variable definitions */
 	if((func->flag & FUNC_NO_SELF)==0) {
+		if(func->flag & FUNC_USE_SELF_ID)
+			fprintf(f, "\tstruct ID *_selfid;\n");
+
 		if(dsrna->dnaname) fprintf(f, "\tstruct %s *_self;\n", dsrna->dnaname);
 		else fprintf(f, "\tstruct %s *_self;\n", srna->identifier);
 	}
@@ -1332,6 +1335,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 	/* assign self */
 	if((func->flag & FUNC_NO_SELF)==0) {
+		if(func->flag & FUNC_USE_SELF_ID)
+			fprintf(f, "\t_selfid= (struct ID*)_ptr->id.data;\n");
+
 		if(dsrna->dnaname) fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", dsrna->dnaname);
 		else fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", srna->identifier);
 	}
@@ -1375,6 +1381,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		first= 1;
 
 		if((func->flag & FUNC_NO_SELF)==0) {
+			if(func->flag & FUNC_USE_SELF_ID)
+				fprintf(f, "_selfid, ");
+
 			fprintf(f, "_self");
 			first= 0;
 		}
@@ -1672,6 +1681,9 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 
 	/* self, context and reports parameters */
 	if((func->flag & FUNC_NO_SELF)==0) {
+		if(func->flag & FUNC_USE_SELF_ID)
+			fprintf(f, "struct ID *_selfid, ");
+
 		if(dsrna->dnaname) fprintf(f, "struct %s *_self", dsrna->dnaname);
 		else fprintf(f, "struct %s *_self", srna->identifier);
 		first= 0;
@@ -1719,16 +1731,19 @@ static void rna_generate_static_function_prototypes(BlenderRNA *brna, StructRNA 
 {
 	FunctionRNA *func;
 	FunctionDefRNA *dfunc;
-
-	fprintf(f, "/* Repeated prototypes to detect errors */\n\n");
+	int first= 1;
 
 	for(func= srna->functions.first; func; func= func->cont.next) {
-		if(func->flag & FUNC_REGISTER)
-			continue;
-
 		dfunc= rna_find_function_def(func);
-		if(dfunc->call)
+
+		if(dfunc->call) {
+			if(first) {
+				fprintf(f, "/* Repeated prototypes to detect errors */\n\n");
+				first= 0;
+			}
+
 			rna_generate_static_parameter_prototypes(brna, srna, dfunc, f);
+		}
 	}
 
 	fprintf(f, "\n");
