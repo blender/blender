@@ -798,6 +798,42 @@ static void rna_BlenderRNA_structs_begin(CollectionPropertyIterator *iter, Point
 	rna_iterator_listbase_begin(iter, &((BlenderRNA*)ptr->data)->structs, NULL);
 }
 
+/* optional, for faster lookups */
+static int rna_BlenderRNA_structs_length(PointerRNA *ptr, int index)
+{
+	return BLI_countlist(&((BlenderRNA*)ptr->data)->structs);
+}
+static PointerRNA rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index)
+{
+	StructRNA *srna= BLI_findlink(&((BlenderRNA*)ptr->data)->structs, index);
+
+	if(srna) {
+		PointerRNA r_ptr;
+		RNA_pointer_create(NULL, &RNA_Struct, srna, &r_ptr);
+		return r_ptr;
+	}
+	else {
+		return PointerRNA_NULL;
+	}
+}
+static PointerRNA rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr, const char *key)
+{
+	StructRNA *srna= ((BlenderRNA*)ptr->data)->structs.first;
+	for(; srna; srna=srna->cont.next)
+		if(key[0] == srna->identifier[0] && strcmp(key, srna->identifier)==0)
+			break;
+
+	if(srna) {
+		PointerRNA r_ptr;
+		RNA_pointer_create(NULL, &RNA_Struct, srna, &r_ptr);
+		return r_ptr;
+	}
+	else {
+		return PointerRNA_NULL;
+	}
+}
+
+
 #else
 
 static void rna_def_struct(BlenderRNA *brna)
@@ -1238,7 +1274,14 @@ void RNA_def_rna(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "structs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
-	RNA_def_property_collection_funcs(prop, "rna_BlenderRNA_structs_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_BlenderRNA_structs_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get",
+		/* included for speed, can be removed */
+#if 0
+			0,0,0);
+#else
+			"rna_BlenderRNA_structs_length", "rna_BlenderRNA_structs_lookup_int", "rna_BlenderRNA_structs_lookup_string");
+#endif
+
 	RNA_def_property_ui_text(prop, "Structs", "");
 }
 

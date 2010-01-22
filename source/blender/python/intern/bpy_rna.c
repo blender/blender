@@ -3472,8 +3472,13 @@ static PyObject *pyrna_basetype_getattro( BPy_BaseTypeRNA *self, PyObject *pynam
 {
 	PointerRNA newptr;
 	PyObject *ret;
+	char *name= _PyUnicode_AsString(pyname);
 	
-	if (RNA_property_collection_lookup_string(&self->ptr, self->prop, _PyUnicode_AsString(pyname), &newptr)) {
+	if(strcmp(name, "register")==0) {
+		/* this is called so often, make an exception and save a full lookup on all types */
+		ret= PyObject_GenericGetAttr((PyObject *)self, pyname);
+	}
+	else if (RNA_property_collection_lookup_string(&self->ptr, self->prop, name, &newptr)) {
 		ret= pyrna_struct_Subtype(&newptr);
 		if (ret==NULL) {
 			PyErr_Format(PyExc_SystemError, "bpy.types.%.200s subtype could not be generated, this is a bug!", _PyUnicode_AsString(pyname));
