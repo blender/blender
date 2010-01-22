@@ -441,7 +441,7 @@ static PyObject *Vector_Dot( VectorObject * self, VectorObject * value )
 	int x;
 	
 	if (!VectorObject_Check(value)) {
-		PyErr_SetString( PyExc_TypeError, "vec.cross(value): expected a vector argument" );
+		PyErr_SetString( PyExc_TypeError, "vec.dot(value): expected a vector argument" );
 		return NULL;
 	}
 	
