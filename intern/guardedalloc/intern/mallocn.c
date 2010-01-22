@@ -539,8 +539,10 @@ short MEM_testN(void *vmemh) {
 	if (membl) membl = MEMNEXT(membl);
 
 	while(membl) {
-		if (vmemh == membl+1)
+		if (vmemh == membl+1) {
+			mem_unlock_thread();
 			return 1;
+		}
 
 		if(membl->next)
 			membl= MEMNEXT(membl->next);
