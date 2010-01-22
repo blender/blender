@@ -65,6 +65,13 @@ def load_scripts(reload_scripts=False):
             traceback.print_exc()
             return None
 
+    def test_reload(module):
+        try:
+            reload(module)
+        except:
+            traceback.print_exc()
+            return None
+
     if reload_scripts:
         # reload modules that may not be directly included
         for type_class_name in dir(types):
@@ -76,7 +83,7 @@ def load_scripts(reload_scripts=False):
 
         for module_name in loaded_modules:
             print("Reloading:", module_name)
-            reload(_sys.modules[module_name])
+            test_reload(_sys.modules[module_name])
 
     for base_path in utils.script_paths():
         for path_subdir in ("ui", "op", "io"):
@@ -96,7 +103,7 @@ def load_scripts(reload_scripts=False):
 
                     if reload_scripts and mod:
                         print("Reloading:", mod)
-                        reload(mod)
+                        test_reload(mod)
 
     if DEBUG:
         print("Time %.4f" % (time.time() - t_main))
