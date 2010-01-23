@@ -32,6 +32,10 @@
 #ifndef BLI_GHASH_H
 #define BLI_GHASH_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
@@ -263,5 +267,9 @@ BM_INLINE int BLI_ghash_haskey(GHash *gh, void *key) {
 	
 	return 0;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
