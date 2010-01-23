@@ -47,6 +47,7 @@
 /* for checking system threads - BLI_system_thread_count */
 #ifdef WIN32
 #include "windows.h"
+#include <sys/timeb.h>
 #elif defined(__APPLE__)
 #include <sys/types.h>
 #include <sys/sysctl.h>
@@ -524,32 +525,30 @@ void *BLI_thread_queue_pop(ThreadQueue *queue)
 
 static void wait_timeout(struct timespec *timeout, int ms)
 {
-#ifndef WIN32
-	struct timeval now;
 	ldiv_t div_result;
-	long x;
+	long sec, usec, x;
 
-	gettimeofday(&now, NULL);
-	div_result = ldiv(ms, 1000);
-	timeout->tv_sec = now.tv_sec + div_result.quot;
-	x = now.tv_usec + (div_result.rem*1000);
-
-	if (x >= 1000000) {
-		timeout->tv_sec++;
-		x -= 1000000;
+#ifdef WIN32
+	{
+		struct _timeb now;
+		_ftime(&now);
+		sec = now.time;
+		usec = now.millitm*1000; /* microsecond precision would be better */
 	}
-
-	timeout->tv_nsec = x*1000;
 #else
-	/*XXX test me*/
-	time_t now;
-	ldiv_t div_result;
-	long x;
+	{
+		struct timeval now;
+		gettimeofday(&now, NULL);
+		sec = now.tv_sec;
+		usec = now.tv_usec;
+	}
+#endif
 
-	time(&now);
+	/* add current time + millisecond offset */
 	div_result = ldiv(ms, 1000);
-	timeout->tv_sec = now + div_result.quot;
-	x = (now*1000) + (div_result.rem*1000);
+	timeout->tv_sec = sec + div_result.quot;
+
+	x = usec + (div_result.rem*1000);
 
 	if (x >= 1000000) {
 		timeout->tv_sec++;
@@ -557,7 +556,6 @@ static void wait_timeout(struct timespec *timeout, int ms)
 	}
 
 	timeout->tv_nsec = x*1000;
-#endif
 }
 
 void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
