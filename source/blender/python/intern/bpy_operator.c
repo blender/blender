@@ -32,6 +32,8 @@
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
 #include "bpy_util.h"
 
+#include "RNA_enum_types.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -45,6 +47,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	wmOperatorType *ot;
 	int error_val = 0;
 	PointerRNA ptr;
+	int operator_ret= OPERATOR_CANCELLED;
 	
 	char		*opname;
 	PyObject	*kw= NULL; /* optional args */
@@ -94,7 +97,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 			reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
 			BKE_reports_init(reports, RPT_STORE);
 
-			WM_operator_call_py(C, ot, context, &ptr, reports);
+			operator_ret= WM_operator_call_py(C, ot, context, &ptr, reports);
 
 			if(BPy_reports_to_error(reports))
 				error_val = -1;
@@ -140,7 +143,9 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 		return NULL;
 	}
 
-	Py_RETURN_NONE;
+	/* return operator_ret as a bpy enum */
+	return pyrna_enum_bitfield_to_py(operator_return_items, operator_ret);
+
 }
 
 static PyObject *pyop_as_string( PyObject * self, PyObject * args)

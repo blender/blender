@@ -79,6 +79,8 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *v
 int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const char *error_prefix);
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 
+PyObject *pyrna_enum_bitfield_to_py(struct EnumPropertyItem *items, int value);
+
 /* function for registering types */
 PyObject *pyrna_basetype_register(PyObject *self, PyObject *args);
 PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args);

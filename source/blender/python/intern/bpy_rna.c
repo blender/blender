@@ -424,6 +424,24 @@ static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *pr
 	return 1;
 }
 
+PyObject *pyrna_enum_bitfield_to_py(EnumPropertyItem *items, int value)
+{
+	PyObject *ret= PySet_New(NULL);
+	const char *identifier[RNA_ENUM_BITFLAG_SIZE + 1];
+
+	if(RNA_enum_bitflag_identifiers(items, value, identifier)) {
+		PyObject *item;
+		int index;
+		for(index=0; identifier[index]; index++) {
+			item= PyUnicode_FromString(identifier[index]);
+			PySet_Add(ret, item);
+			Py_DECREF(item);
+		}
+	}
+
+	return ret;
+}
+
 static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 {
 	PyObject *item, *ret= NULL;
