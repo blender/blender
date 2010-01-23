@@ -706,7 +706,7 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 		 * doesn't depend on this 
 		 */
 		if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0)
-			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 	}
 	
 	/* if points can be selected on this F-Curve */
@@ -804,7 +804,7 @@ static void graphkeys_mselect_leftright (bAnimContext *ac, short leftright, shor
 		 * doesn't depend on this 
 		 */
 		if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0)
-			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 	}
 	
 	/* set callbacks and editing data */
@@ -877,7 +877,7 @@ static void graphkeys_mselect_column (bAnimContext *ac, int mval[2], short selec
 		 * doesn't depend on this 
 		 */
 		if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0)
-			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 	}
 	
 	/* initialise keyframe editing data */

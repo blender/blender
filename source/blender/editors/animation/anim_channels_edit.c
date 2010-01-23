@@ -205,7 +205,7 @@ void ANIM_set_active_channel (bAnimContext *ac, void *data, short datatype, int 
  *	- test: check if deselecting instead of selecting
  *	- sel: eAnimChannels_SetFlag;
  */
-void ANIM_deselect_anim_channels (void *data, short datatype, short test, short sel)
+void ANIM_deselect_anim_channels (bAnimContext *ac, void *data, short datatype, short test, short sel)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -213,7 +213,7 @@ void ANIM_deselect_anim_channels (void *data, short datatype, short test, short 
 	
 	/* filter data */
 	filter= ANIMFILTER_VISIBLE|ANIMFILTER_CHANNELS;
-	ANIM_animdata_filter(NULL, &anim_data, filter, data, datatype);
+	ANIM_animdata_filter(ac, &anim_data, filter, data, datatype);
 	
 	/* See if we should be selecting or deselecting */
 	if (test) {
@@ -1368,7 +1368,7 @@ void ANIM_OT_channels_expand (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "all", 0, "All", "Expand all channels (not just selected ones)");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Expand all channels (not just selected ones)");
 }
 
 /* ********************** Collapse Channels Operator *********************** */
@@ -1410,7 +1410,7 @@ void ANIM_OT_channels_collapse (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "all", 0, "All", "Collapse all channels (not just selected ones)");
+	RNA_def_boolean(ot->srna, "all", 1, "All", "Collapse all channels (not just selected ones)");
 }
 
 /* ********************** Select All Operator *********************** */
@@ -1425,9 +1425,9 @@ static int animchannels_deselectall_exec(bContext *C, wmOperator *op)
 		
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	if (RNA_boolean_get(op->ptr, "invert"))
-		ANIM_deselect_anim_channels(ac.data, ac.datatype, 0, ACHANNEL_SETFLAG_TOGGLE);
+		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, 0, ACHANNEL_SETFLAG_TOGGLE);
 	else
-		ANIM_deselect_anim_channels(ac.data, ac.datatype, 1, ACHANNEL_SETFLAG_ADD);
+		ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, 1, ACHANNEL_SETFLAG_ADD);
 	
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION|ND_ANIMCHAN_SELECT, NULL);
@@ -1676,7 +1676,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 				}
 				else {
 					/* select AnimData block by itself */
-					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 					ale->adt->flag |= ADT_UI_SELECTED;
 				}
 				
@@ -1703,7 +1703,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 				FCurve *fcu;
 				
 				/* deselect all other channels */
-				ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 				
 				/* only select channels in group and group itself */
 				for (fcu= agrp->channels.first; fcu && fcu->grp==agrp; fcu= fcu->next)
@@ -1712,7 +1712,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 			}
 			else {
 				/* select group by itself */
-				ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 				agrp->flag |= AGRP_SELECTED;
 			}
 			
@@ -1734,7 +1734,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 			}
 			else {
 				/* select F-Curve by itself */
-				ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 				fcu->flag |= FCURVE_SELECTED;
 			}
 			
@@ -1756,7 +1756,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 			}
 			else {
 				/* select ShapeKey by itself */
-				ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 				kb->flag |= KEYBLOCK_SEL;
 			}
 				
@@ -1914,6 +1914,7 @@ void ED_operatortypes_animchannels(void)
 	WM_operatortype_append(ANIM_OT_channels_visibility_set);
 }
 
+// TODO: check on a poll callback for this, to get hotkeys into menus
 void ED_keymap_animchannels(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_find(keyconf, "Animation Channels", 0, 0);
@@ -1949,8 +1950,8 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_expand", PADPLUSKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_collapse", PADMINUS, KM_PRESS, 0, 0);
 	
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_expand", PADPLUSKEY, KM_PRESS, KM_CTRL, 0)->ptr, "all", 1);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_collapse", PADMINUS, KM_PRESS, KM_CTRL, 0)->ptr, "all", 1);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_expand", PADPLUSKEY, KM_PRESS, KM_CTRL, 0)->ptr, "all", 0);
+	RNA_boolean_set(WM_keymap_add_item(keymap, "ANIM_OT_channels_collapse", PADMINUS, KM_PRESS, KM_CTRL, 0)->ptr, "all", 0);
 	
 	/* rearranging - actions only */
 	//WM_keymap_add_item(keymap, "ANIM_OT_channels_move_up", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0);

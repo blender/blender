@@ -230,7 +230,9 @@ typedef enum eAnimFilter_Flags {
 /* Actions (also used for Dopesheet) */
 	/* Action Channel Group */
 #define EDITABLE_AGRP(agrp) ((agrp->flag & AGRP_PROTECTED)==0)
-#define EXPANDED_AGRP(agrp) (agrp->flag & AGRP_EXPANDED)
+#define EXPANDED_AGRP(agrp) \
+	( ( ((ac)->spacetype == SPACE_IPO) && (agrp->flag & AGRP_EXPANDED_G) ) || \
+	  ( ((ac)->spacetype != SPACE_IPO) && (agrp->flag & AGRP_EXPANDED)   ) )
 #define SEL_AGRP(agrp) ((agrp->flag & AGRP_SELECTED) || (agrp->flag & AGRP_ACTIVE))
 	/* F-Curve Channels */
 #define EDITABLE_FCU(fcu) ((fcu->flag & FCURVE_PROTECTED)==0)
@@ -345,7 +347,7 @@ typedef struct bAnimChannelType {
 		/* check if the given setting is valid in the current context */
 	short (*has_setting)(bAnimContext *ac, bAnimListElem *ale, int setting);
 		/* get the flag used for this setting */
-	int (*setting_flag)(int setting, short *neg);
+	int (*setting_flag)(bAnimContext *ac, int setting, short *neg);
 		/* get the pointer to int/short where data is stored, 
 		 * with type being  sizeof(ptr_data) which should be fine for runtime use...
 		 *	- assume that setting has been checked to be valid for current context
@@ -393,7 +395,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAn
 
 
 /* Deselect all animation channels */
-void ANIM_deselect_anim_channels(void *data, short datatype, short test, short sel);
+void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, short test, short sel);
 
 /* Set the 'active' channel of type channel_type, in the given action */
 void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type);
