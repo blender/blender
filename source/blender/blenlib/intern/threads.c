@@ -541,6 +541,7 @@ static void wait_timeout(struct timespec *timeout, int ms)
 
 	timeout->tv_nsec = x*1000;
 #else
+	/*XXX test me*/
 	time_t now;
 	ldiv_t div_result;
 	long x;
