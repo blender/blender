@@ -75,8 +75,8 @@ def display_name(name):
 
     name_base = name_base.replace("_", " ")
 
-    if name_base.lower() == name_base:
-        return ' '.join([w[0].upper() + w[1:] for w in name_base.split()])
+    if name_base.islower():
+        return name_base.capitalize()
     else:
         return name_base
 
