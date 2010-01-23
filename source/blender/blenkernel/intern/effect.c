@@ -593,7 +593,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 	float cfra = eff->scene->r.cfra;
 	int ret = 0;
 
-	if(eff->pd->shape==PFIELD_SHAPE_SURFACE && eff->surmd) {
+	if(eff->pd && eff->pd->shape==PFIELD_SHAPE_SURFACE && eff->surmd) {
 		/* closest point in the object surface is an effector */
 		float vec[3];
 
@@ -606,7 +606,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 
 		efd->size = 0.0f;
 	}
-	else if(eff->pd->shape==PFIELD_SHAPE_POINTS) {
+	else if(eff->pd && eff->pd->shape==PFIELD_SHAPE_POINTS) {
 
 		if(eff->ob->derivedFinal) {
 			DerivedMesh *dm = eff->ob->derivedFinal;
@@ -667,7 +667,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		normalize_v3(efd->nor);
 
 		/* for vortex the shape chooses between old / new force */
-		if(eff->pd->shape == PFIELD_SHAPE_PLANE) {
+		if(eff->pd && eff->pd->shape == PFIELD_SHAPE_PLANE) {
 			/* efd->loc is closes point on effector xy-plane */
 			float temp[3];
 			sub_v3_v3v3(temp, point->loc, ob->obmat[3]);
@@ -698,7 +698,7 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		efd->distance = len_v3(efd->vec_to_point);
 
 		/* rest length for harmonic effector, will have to see later if this could be extended to other effectors */
-		if(eff->pd->forcefield == PFIELD_HARMONIC && eff->pd->f_size)
+		if(eff->pd && eff->pd->forcefield == PFIELD_HARMONIC && eff->pd->f_size)
 			mul_v3_fl(efd->vec_to_point, (efd->distance-eff->pd->f_size)/efd->distance);
 
 		if(eff->flag & PE_USE_NORMAL_DATA) {
