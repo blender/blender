@@ -37,7 +37,7 @@ extern "C" {
 
 #ifdef BLI_MATH_INLINE
 #ifdef _MSC_VER
-#define MINLINE static __inline
+#define MINLINE static __forceinline
 #else
 #define MINLINE static inline
 #endif

@@ -524,6 +524,7 @@ void *BLI_thread_queue_pop(ThreadQueue *queue)
 
 static void wait_timeout(struct timespec *timeout, int ms)
 {
+#ifndef WIN32
 	struct timeval now;
 	ldiv_t div_result;
 	long x;
@@ -539,6 +540,23 @@ static void wait_timeout(struct timespec *timeout, int ms)
 	}
 
 	timeout->tv_nsec = x*1000;
+#else
+	time_t now;
+	ldiv_t div_result;
+	long x;
+
+	time(&now);
+	div_result = ldiv(ms, 1000);
+	timeout->tv_sec = now + div_result.quot;
+	x = (now*1000) + (div_result.rem*1000);
+
+	if (x >= 1000000) {
+		timeout->tv_sec++;
+		x -= 1000000;
+	}
+
+	timeout->tv_nsec = x*1000;
+#endif
 }
 
 void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)

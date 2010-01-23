@@ -110,7 +110,7 @@ MINLINE float shell_angle_to_dist(const float angle)
 /* used for zoom values*/
 MINLINE float power_of_2(float val)
 {
-	return (float)pow(2, ceil(log(val) / log(2)));
+	return (float)pow(2.0, ceil(log((double)val) / log(2.0)));
 }
 
 MINLINE float minf(float a, float b)
