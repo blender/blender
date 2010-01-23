@@ -284,9 +284,10 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 //		refresh_interface_font();
 
 		CTX_wm_window_set(C, NULL); /* exits queues */
-
+#ifndef DISABLE_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_load_user_modules(C);
+#endif
 	}
 	else if(retval==1)
 		BKE_write_undo(C, "Import file");
