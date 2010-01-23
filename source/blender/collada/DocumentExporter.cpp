@@ -669,7 +669,7 @@ class TransformWriter : protected TransformBase
 protected:
 	void add_node_transform(COLLADASW::Node& node, float mat[][4], float parent_mat[][4])
 	{
-		float loc[3], rot[3], size[3];
+		float loc[3], rot[3], scale[3];
 		float local[4][4];
 
 		if (parent_mat) {
@@ -681,27 +681,61 @@ protected:
 			copy_m4_m4(local, mat);
 		}
 
-		TransformBase::decompose(local, loc, rot, NULL, size);
+		TransformBase::decompose(local, loc, rot, NULL, scale);
 		
-		/*
-		// this code used to create a single <rotate> representing object rotation
-		float quat[4];
-		float axis[3];
-		float angle;
-		double angle_deg;
-		eul_to_quat( quat,rot);
-		normalize_qt(quat);
-		quat_to_axis_angle( axis, &angle,quat);
-		angle_deg = angle * 180.0f / M_PI;
-		node.addRotate(axis[0], axis[1], axis[2], angle_deg);
-		*/
-		node.addTranslate("location", loc[0], loc[1], loc[2]);
+		add_transform(node, loc, rot, scale);
+	}
 
+	void add_node_transform_ob(COLLADASW::Node& node, Object *ob)
+	{
+		float rot[3], loc[3], scale[3];
+
+		if (ob->parent) {
+			float C[4][4], D[4][4], tmat[4][4], imat[4][4], mat[4][4];
+
+			// factor out scale from obmat
+
+			copy_v3_v3(scale, ob->size);
+
+			ob->size[0] = ob->size[1] = ob->size[2] = 1.0f;
+			object_to_mat4(ob, C);
+			copy_v3_v3(ob->size, scale);
+
+			mul_serie_m4(tmat, ob->parent->obmat, ob->parentinv, C, NULL, NULL, NULL, NULL, NULL);
+
+			// calculate local mat
+
+			invert_m4_m4(imat, ob->parent->obmat);
+			mul_m4_m4m4(mat, tmat, imat);
+
+			// done
+
+			mat4_to_eul(rot, mat);
+			copy_v3_v3(loc, mat[3]);
+		}
+		else {
+			copy_v3_v3(loc, ob->loc);
+			copy_v3_v3(rot, ob->rot);
+			copy_v3_v3(scale, ob->size);
+		}
+
+		add_transform(node, loc, rot, scale);
+	}
+
+	void add_node_transform_identity(COLLADASW::Node& node)
+	{
+		float loc[] = {0.0f, 0.0f, 0.0f}, scale[] = {1.0f, 1.0f, 1.0f}, rot[] = {0.0f, 0.0f, 0.0f};
+		add_transform(node, loc, rot, scale);
+	}
+
+private:
+	void add_transform(COLLADASW::Node& node, float loc[3], float rot[3], float scale[3])
+	{
+		node.addTranslate("location", loc[0], loc[1], loc[2]);
 		node.addRotateZ("rotationZ", COLLADABU::Math::Utils::radToDegF(rot[2]));
 		node.addRotateY("rotationY", COLLADABU::Math::Utils::radToDegF(rot[1]));
 		node.addRotateX("rotationX", COLLADABU::Math::Utils::radToDegF(rot[0]));
-
-		node.addScale("scale", size[0], size[1], size[2]);
+		node.addScale("scale", scale[0], scale[1], scale[2]);
 	}
 };
 
@@ -1238,15 +1272,11 @@ public:
 
 		bool is_skinned_mesh = arm_exporter->is_skinned_mesh(ob);
 
-		float mat[4][4];
-		
 		if (ob->type == OB_MESH && is_skinned_mesh)
 			// for skinned mesh we write obmat in <bind_shape_matrix>
-			unit_m4(mat);
+			TransformWriter::add_node_transform_identity(node);
 		else
-			copy_m4_m4(mat, ob->obmat);
-
-		TransformWriter::add_node_transform(node, mat, ob->parent ? ob->parent->obmat : NULL);
+			TransformWriter::add_node_transform_ob(node, ob);
 		
 		// <instance_geometry>
 		if (ob->type == OB_MESH) {
