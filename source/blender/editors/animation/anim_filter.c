@@ -57,7 +57,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_gpencil_types.h"
-#include "DNA_ipo_types.h"
+#include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_key_types.h"
@@ -83,6 +83,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_key.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
@@ -1913,6 +1914,15 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 				if ( (ads->filterflag & ADS_FILTER_ONLYSEL) && !((base->flag & SELECT) /*|| (base == sce->basact)*/) )  {
 					/* only selected should be shown */
 					continue;
+				}
+				
+				/* check if object belongs to the filtering group if option to filter 
+				 * objects by the grouped status is on
+				 *	- used to ease the process of doing multiple-character choreographies
+				 */
+				if (ads->filterflag & ADS_FILTER_ONLYOBGROUP) {
+					if (object_in_group(ob, ads->filter_grp) == 0)
+						continue;
 				}
 				
 				/* check filters for datatypes */

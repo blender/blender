@@ -4653,9 +4653,12 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_IPO) {
 						SpaceIpo *sipo= (SpaceIpo *)sl;
+						bDopeSheet *ads= sipo->ads;
 						
-						if(sipo->ads)
-							sipo->ads->source= newlibadr(fd, sc->id.lib, sipo->ads->source);
+						if (ads) {
+							ads->source= newlibadr(fd, sc->id.lib, ads->source);
+							ads->filter_grp= newlibadr(fd, sc->id.lib, ads->filter_grp);
+						}
 					}
 					else if(sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *)sl;
@@ -4686,8 +4689,14 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_ACTION) {
 						SpaceAction *saction= (SpaceAction *)sl;
+						bDopeSheet *ads= &saction->ads;
+						
+						if (ads) {
+							ads->source= newlibadr(fd, sc->id.lib, ads->source);
+							ads->filter_grp= newlibadr(fd, sc->id.lib, ads->filter_grp);
+						}
+						
 						saction->action = newlibadr(fd, sc->id.lib, saction->action);
-						saction->ads.source= newlibadr(fd, sc->id.lib, saction->ads.source);
 					}
 					else if(sl->spacetype==SPACE_IMAGE) {
 						SpaceImage *sima= (SpaceImage *)sl;
@@ -4695,7 +4704,13 @@ static void lib_link_screen(FileData *fd, Main *main)
 						sima->image= newlibadr_us(fd, sc->id.lib, sima->image);
 					}
 					else if(sl->spacetype==SPACE_NLA){
-						/* SpaceNla *snla= (SpaceNla *)sl;	*/
+						SpaceNla *snla= (SpaceNla *)sl;
+						bDopeSheet *ads= snla->ads;
+						
+						if (ads) {
+							ads->source= newlibadr(fd, sc->id.lib, ads->source);
+							ads->filter_grp= newlibadr(fd, sc->id.lib, ads->filter_grp);
+						}
 					}
 					else if(sl->spacetype==SPACE_TEXT) {
 						SpaceText *st= (SpaceText *)sl;

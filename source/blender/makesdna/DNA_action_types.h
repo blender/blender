@@ -39,6 +39,7 @@
 
 struct SpaceLink;
 struct Object;
+struct Group;
 
 /* ************************************************ */
 /* Visualisation */
@@ -498,11 +499,13 @@ typedef enum eAction_Flags {
 
 /* Storage for Dopesheet/Grease-Pencil Editor data */
 typedef struct bDopeSheet {
-	ID 		*source;		/* currently ID_SCE (for Dopesheet), and ID_SC (for Grease Pencil) */
-	ListBase chanbase;		/* cache for channels (only initialised when pinned) */  // XXX not used!
+	ID 		*source;			/* currently ID_SCE (for Dopesheet), and ID_SC (for Grease Pencil) */
+	ListBase chanbase;			/* cache for channels (only initialised when pinned) */  // XXX not used!
 	
-	int filterflag;			/* flags to use for filtering data */
-	int flag;				/* standard flags */
+	struct Group *filter_grp;	/* object group for ADS_FILTER_ONLYOBGROUP filtering option */ 
+	
+	int filterflag;				/* flags to use for filtering data */
+	int flag;					/* standard flags */
 } bDopeSheet;
 
 
@@ -511,15 +514,19 @@ typedef enum eDopeSheet_FilterFlag {
 		/* general filtering */
 	ADS_FILTER_ONLYSEL			= (1<<0),	/* only include channels relating to selected data */
 	
-		/* assorted general settings */
-	ADS_FILTER_ONLYDRIVERS		= (1<<1),	/* for 'Drivers' editor - TEMPORARY -  only include Driver data from AnimData */
+		/* temporary filters */
+	ADS_FILTER_ONLYDRIVERS		= (1<<1),	/* for 'Drivers' editor - only include Driver data from AnimData */
 	ADS_FILTER_ONLYNLA			= (1<<2),	/* for 'NLA' editor - only include NLA data from AnimData */
-	ADS_FILTER_SELEDIT			= (1<<3),	/* for Graph Editor - TEMPORARY - used to indicate whether to include a filtering flag or not */
-	ADS_FILTER_SUMMARY			= (1<<4),	/* for 'DopeSheet' Editor - include 'summary' line */
+	ADS_FILTER_SELEDIT			= (1<<3),	/* for Graph Editor - used to indicate whether to include a filtering flag or not */
+	
+		/* general filtering 2 */
+	ADS_FILTER_SUMMARY			= (1<<4),	/* for 'DopeSheet' Editors - include 'summary' line */
+	ADS_FILTER_ONLYOBGROUP		= (1<<5),	/* only the objects in the specified object group get used */
 	
 		/* datatype-based filtering */
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
 	ADS_FILTER_NOMESH			= (1<<7),
+	// NOTE: there are a few more spaces for datablock filtering here...
 	ADS_FILTER_NOCAM			= (1<<10),
 	ADS_FILTER_NOMAT			= (1<<11),
 	ADS_FILTER_NOLAM			= (1<<12),

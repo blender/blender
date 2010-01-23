@@ -115,6 +115,17 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 		uiItemR(row, "", 0, ptr, "display_armature", 0);
 	if (mainptr && mainptr->particle.first)
 		uiItemR(row, "", 0, ptr, "display_particle", 0);
+	
+	/* group-based filtering (only when groups are available */
+	if (mainptr && mainptr->group.first) {
+		row= uiLayoutRow(layout, 1);
+		
+		uiItemR(row, "", 0, ptr, "only_group_objects", 0);
+		
+		/* if enabled, show the group selection field too */
+		if (RNA_boolean_get(ptr, "only_group_objects"))
+			uiItemR(row, "", 0, ptr, "filtering_group", 0);
+	}
 }
 
 /********************** Search Callbacks *************************/
