@@ -33,6 +33,18 @@ extern "C" {
 
 class NodeGroup;
 
+struct LoaderState {
+	float *pv;
+	float *pn;
+	unsigned *pvi;
+	unsigned *pni;
+	unsigned *pmi;
+	unsigned currentIndex;
+	unsigned currentMIndex;
+	float minBBox[3];
+	float maxBBox[3];
+};
+
 class LIB_SCENE_GRAPH_EXPORT BlenderFileLoader
 {
 public:
@@ -51,6 +63,10 @@ public:
 
 protected:
 	void insertShapeNode(ObjectRen *obr, int id);
+	int countClippedFaces(VertRen *v1, VertRen *v2, VertRen *v3, int clipped[3]);
+	void clipLine(VertRen *v1, VertRen *v2, float c[3], float z);
+	void clipTriangle(int numTris, float triCoords[][3], VertRen *v1, VertRen *v2, VertRen *v3, int clip[3]);
+	void addTriangle(struct LoaderState *state, float v1[3], float v2[3], float v3[3]);
 
 protected:
 	Render* _re;
