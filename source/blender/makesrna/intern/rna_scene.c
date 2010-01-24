@@ -150,15 +150,17 @@ static void rna_Scene_link_object(Scene *scene, ReportList *reports, Object *ob)
 	DAG_scene_sort(scene);
 }
 
-static void rna_Scene_unlink_object(Scene *sce, ReportList *reports, Object *ob)
+static void rna_Scene_unlink_object(Scene *scene, bContext *C, ReportList *reports, Object *ob)
 {
-	Base *base= object_in_scene(ob, sce);
+	Base *base= object_in_scene(ob, scene);
 	if (!base) {
 		BKE_report(reports, RPT_ERROR, "Object is not in this scene.");
 		return;
 	}
 	/* as long as ED_base_object_free_and_unlink calls free_libblock_us, we don't have to decrement ob->id.us */
-	ED_base_object_free_and_unlink(sce, base);
+	ED_base_object_free_and_unlink(scene, base);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 }
 
 static void rna_Scene_skgen_etch_template_set(PointerRNA *ptr, PointerRNA value)
@@ -2376,7 +2378,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "unlink", "rna_Scene_unlink_object");
 	RNA_def_function_ui_description(func, "Unlink object from scene.");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove from scene.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
