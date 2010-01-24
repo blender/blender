@@ -767,7 +767,7 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *bl
 	if ((ob->totcol) && !(filterflag & ADS_FILTER_NOMAT)) {
 		int a;
 		
-		for (a=0; a < ob->totcol; a++) {
+		for (a=1; a <= ob->totcol; a++) {
 			Material *ma= give_current_material(ob, a);
 			
 			/* there might not be a material */

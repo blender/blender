@@ -1185,7 +1185,7 @@ static int animdata_filter_dopesheet_mats (bAnimContext *ac, ListBase *anim_data
 	int items=0, a=0;
 	
 	/* firstly check that we actuallly have some materials, by gathering all materials in a temp list */
-	for (a=0; a < ob->totcol; a++) {
+	for (a=1; a <= ob->totcol; a++) {
 		Material *ma= give_current_material(ob, a);
 		short ok = 0;
 		
