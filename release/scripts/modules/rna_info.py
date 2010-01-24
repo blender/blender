@@ -263,7 +263,7 @@ class InfoFunctionRNA:
 
         for rna_prop in rna_func.parameters.values():
             prop = GetInfoPropertyRNA(rna_prop, parent_id)
-            if rna_prop.use_return:
+            if rna_prop.use_output:
                 self.return_values.append(prop)
             else:
                 self.args.append(prop)
