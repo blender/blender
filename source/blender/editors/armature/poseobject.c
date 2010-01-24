@@ -1236,7 +1236,7 @@ void POSE_OT_group_unassign (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Selected from Bone Groups";
 	ot->idname= "POSE_OT_group_unassign";
-	ot->description= "Add selected bones from all bone groups";
+	ot->description= "Remove selected bones from all bone groups";
 	
 	/* api callbacks */
 	ot->exec= pose_group_unassign_exec;

@@ -158,7 +158,7 @@ class DATA_PT_bone_groups(DataButtonsPanel):
         row.active = (ob.proxy is None)
 
         row.operator("pose.group_assign", text="Assign")
-        row.operator("pose.group_remove", text="Remove") #row.operator("pose.bone_group_remove_from", text="Remove")
+        row.operator("pose.group_unassign", text="Remove") #row.operator("pose.bone_group_remove_from", text="Remove")
         #row.operator("object.bone_group_select", text="Select")
         #row.operator("object.bone_group_deselect", text="Deselect")
 
