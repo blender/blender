@@ -27,8 +27,6 @@ Example::
 
   angle = DifferenceQuats(quat1, quat2)
   print angle  
-  
-@group Deprecated: CopyMat, CopyVec, CopyQuat, CopyEuler, RotateEuler, MatMultVec, VecMultMat, CrossVecs, DotVecs, CrossQuats, DotQuats
 """
 
 def Rand (low=0.0, high = 1.0):
@@ -119,41 +117,6 @@ def LineIntersect(vec1, vec2, vec3, vec4):
   @return: A tuple with the points on each line respectively closest to the other.
   """
 
-def CopyVec(vector):
-  """
-  Create a copy of the Vector object.
-  @attention: B{DEPRECATED} use vector.copy() instead.
-  @type vector: Vector object.
-  @param vector: A 2d,3d or 4d vector to be copied.
-  @rtype: Vector object.
-  @return: A new vector object which is a copy of the one passed in.
-  """
-
-def CrossVecs(vec1, vec2):
-  """
-  Return the cross product of two vectors.
-  @attention: B{DEPRECATED} use vector.cross(other) instead.
-  @type vec1: Vector object.
-  @param vec1: A 3d vector.
-  @type vec2: Vector object.
-  @param vec2: A 3d vector.
-  @rtype: Vector object.
-  @return: A new vector representing the cross product of
-  the two vectors.
-  """
-
-def DotVecs(vec1, vec2):
-  """
-  Return the dot product of two vectors.
-  @attention: B{DEPRECATED} use vector.dot(other) instead.
-  @type vec1: Vector object.
-  @param vec1: A 2d,3d or 4d vector.
-  @type vec2: Vector object.
-  @param vec2: A 2d,3d or 4d vector.
-  @rtype: float
-  @return: Return the scalar product of vector muliplication.
-  """
-
 def AngleBetweenVecs(vec1, vec2):
   """
   Return the angle between two vectors. Zero length vectors raise an error.
@@ -175,21 +138,6 @@ def MidpointVecs(vec1, vec2):
   @param vec2: A 2d,3d or 4d vector.
   @rtype: Vector object
   @return: The vector to the midpoint.
-  """
-
-def VecMultMat(vec, mat):
-  """
-  Multiply a vector and matrix (pre-multiply)
-  Vector size and matrix column size must equal.
-  @type vec: Vector object.
-  @param vec: A 2d,3d or 4d vector.
-  @type mat: Matrix object.
-  @param mat: A 2d,3d or 4d matrix.
-  @rtype: Vector object
-  @return: The row vector that results from the muliplication.
-  @attention: B{DEPRECATED} You should now multiply vector * matrix direcly
-  Example::
-      result = myVector * myMatrix
   """
 
 def ProjectVecs(vec1, vec2):
@@ -285,71 +233,6 @@ def ShearMatrix(plane, factor, matSize):
   @return: A new shear matrix.
   """
 
-def CopyMat(matrix):
-  """
-  Create a copy of the Matrix object.
-  @type matrix: Matrix object.
-  @param matrix: A 2d,3d or 4d matrix to be copied.
-  @rtype: Matrix object.
-  @return: A new matrix object which is a copy of the one passed in.
-  @attention: B{DEPRECATED} Use the matrix copy funtion to make a copy.
-  Example::
-      newMat = myMat.copy()
-  """
-
-def MatMultVec(mat, vec):
-  """
-  Multiply a matrix and a vector (post-multiply)
-  Vector size and matrix row size must equal.
-  @type vec: Vector object.
-  @param vec: A 2d,3d or 4d vector.
-  @type mat: Matrix object.
-  @param mat: A 2d,3d or 4d matrix.
-  @rtype: Vector object
-  @return: The column vector that results from the muliplication.
-  @attention: B{DEPRECATED} You should use direct muliplication on the arguments
-  Example::
-      result = myMatrix * myVector
-  """
-
-def CopyQuat(quaternion):
-  """
-  Create a copy of the Quaternion object.
-  @type quaternion: Quaternion object.
-  @param quaternion: Quaternion to be copied.
-  @rtype: Quaternion object.
-  @return: A new quaternion object which is a copy of the one passed in.
-  @attention: B{DEPRECATED} You should use the Quaterion() constructor directly
-  to create copies of quaternions
-  Example::
-      newQuat = Quaternion(myQuat)
-  """
-
-def CrossQuats(quat1, quat2):
-  """
-  Return the cross product of two quaternions.
-  @attention: B{DEPRECATED} use quat.cross(other) instead.
-  @type quat1: Quaternion object.
-  @param quat1: Quaternion.
-  @type quat2: Quaternion object.
-  @param quat2: Quaternion.
-  @rtype: Quaternion object.
-  @return: A new quaternion representing the cross product of
-  the two quaternions.
-  """
-
-def DotQuats(quat1, quat2):
-  """
-  Return the dot product of two quaternions.
-  @attention: B{DEPRECATED} use quat.dot(other) instead.
-  @type quat1: Quaternion object.
-  @param quat1: Quaternion.
-  @type quat2: Quaternion object.
-  @param quat2: Quaternion.
-  @rtype: float
-  @return: Return the scalar product of quaternion muliplication.
-  """
-
 def DifferenceQuats(quat1, quat2):
   """
   Returns a quaternion represting the rotational difference.
@@ -373,33 +256,6 @@ def Slerp(quat1, quat2, factor):
   @param factor: The interpolation value
   @rtype: Quaternion object
   @return: The interpolated rotation.
-  """
-
-def CopyEuler(euler):
-  """
-  Create a new euler object.
-  @type euler: Euler object
-  @param euler: The euler to copy
-  @rtype: Euler object
-  @return: A copy of the euler object passed in.
-  @attention: B{DEPRECATED} You should use the Euler constructor directly
-  to make copies of Euler objects
-  Example::
-      newEuler = Euler(myEuler)
-  """
-
-def RotateEuler(euler, angle, axis):
-  """
-  Roatate a euler by an amount in degrees around an axis.
-  @type euler: Euler object
-  @param euler: Euler to rotate.
-  @type angle: float
-  @param angle: The amount of rotation in degrees
-  @type axis: string
-  @param axis: axis to rotate around:
-       - "x"
-       - "y"
-       - "z"
   """
 
 class Vector:
