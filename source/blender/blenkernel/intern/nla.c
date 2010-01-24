@@ -1035,6 +1035,31 @@ short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
 	return 1;
 }
 
+/* Recalculate the start and end frames for the current strip, after changing
+ * the extents of the action or the mapping (repeats or scale factor) info
+ */
+void BKE_nlastrip_recalculate_bounds (NlaStrip *strip)
+{
+	float actlen, mapping;
+	
+	/* sanity checks
+	 *	- must have a strip
+	 *	- can only be done for action clips
+	 */
+	if ((strip == NULL) || (strip->type != NLASTRIP_TYPE_CLIP))
+		return;
+		
+	/* calculate new length factors */
+	actlen= strip->actend - strip->actstart;
+	if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
+	
+	mapping= strip->scale * strip->repeat;
+	
+	/* adjust endpoint of strip in response to this */
+	if (IS_EQ(mapping, 0.0f) == 0)
+		strip->end = (actlen * mapping) + strip->start;
+}
+
 /* Is the given NLA-strip the first one to occur for the given AnimData block */
 // TODO: make this an api method if necesary, but need to add prefix first
 static short nlastrip_is_first (AnimData *adt, NlaStrip *strip)

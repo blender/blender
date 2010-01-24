@@ -164,43 +164,25 @@ static void rna_NlaStrip_end_frame_set(PointerRNA *ptr, float value)
 static void rna_NlaStrip_scale_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
-	float actlen, mapping;
 	
 	/* set scale value */
 	CLAMP(value, 0.0001f, 1000.0f); /* NOTE: these need to be synced with the values in the property definition in rna_def_nlastrip() */
 	data->scale= value;
 	
-	/* calculate existing factors */
-	actlen= data->actend - data->actstart;
-	if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
-	mapping= data->scale * data->repeat;
-	
-	/* adjust endpoint of strip in response to this */
-	if (IS_EQ(mapping, 0.0f) == 0)
-		data->end = (actlen * mapping) + data->start; 
-	else
-		printf("NlaStrip Set Scale Error (in RNA): Scale = %0.4f, Repeat = %0.4f \n", data->scale, data->repeat);
+	/* adjust the strip extents in response to this */
+	BKE_nlastrip_recalculate_bounds(data);
 }
 
 static void rna_NlaStrip_repeat_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
-	float actlen, mapping;
 	
 	/* set repeat value */
 	CLAMP(value, 0.01f, 1000.0f); /* NOTE: these need to be synced with the values in the property definition in rna_def_nlastrip() */
 	data->repeat= value;
 	
-	/* calculate existing factors */
-	actlen= data->actend - data->actstart;
-	if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
-	mapping= data->scale * data->repeat;
-	
-	/* adjust endpoint of strip in response to this */
-	if (IS_EQ(mapping, 0.0f) == 0)
-		data->end = (actlen * mapping) + data->start; 
-	else
-		printf("NlaStrip Set Repeat Error (in RNA): Scale = %0.4f, Repeat = %0.4f \n", data->scale, data->repeat);
+	/* adjust the strip extents in response to this */
+	BKE_nlastrip_recalculate_bounds(data);
 }
 
 static void rna_NlaStrip_blend_in_set(PointerRNA *ptr, float value)
@@ -234,40 +216,26 @@ static void rna_NlaStrip_blend_out_set(PointerRNA *ptr, float value)
 static void rna_NlaStrip_action_start_frame_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
-	float actlen, mapping;
 	
 	/* prevent start frame from occurring after end of action */
 	CLAMP(value, MINAFRAME, data->actend);
 	data->actstart= value;
 	
-	/* calculate new length factors */
-	actlen= data->actend - data->actstart;
-	if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
-	mapping= data->scale * data->repeat;
-	
-	/* adjust endpoint of strip in response to this */
-	// FIXME: should we be moving the start backwards instead?
-	if (IS_EQ(mapping, 0.0f) == 0)
-		data->end = (actlen * mapping) + data->start; 
+	/* adjust the strip extents in response to this */
+	// TODO: should the strip be moved backwards instead as a special case?
+	BKE_nlastrip_recalculate_bounds(data);
 }
 
 static void rna_NlaStrip_action_end_frame_set(PointerRNA *ptr, float value)
 {
 	NlaStrip *data= (NlaStrip*)ptr->data;
-	float actlen, mapping;
 	
 	/* prevent end frame from starting before start of action */
 	CLAMP(value, data->actstart, MAXFRAME);
 	data->actend= value;
 	
-	/* calculate new length factors */
-	actlen= data->actend - data->actstart;
-	if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
-	mapping= data->scale * data->repeat;
-	
-	/* adjust endpoint of strip in response to this */
-	if (IS_EQ(mapping, 0.0f) == 0)
-		data->end = (actlen * mapping) + data->start; 
+	/* adjust the strip extents in response to this */
+	BKE_nlastrip_recalculate_bounds(data);
 }
 
 static void rna_NlaStrip_animated_influence_set(PointerRNA *ptr, int value)

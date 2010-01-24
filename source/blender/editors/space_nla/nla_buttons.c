@@ -363,6 +363,7 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 		uiItemL(column, "Action Extents:", 0);
 		uiItemR(column, "Start Frame", 0, &strip_ptr, "action_start_frame", 0);
 		uiItemR(column, "End Frame", 0, &strip_ptr, "action_end_frame", 0);
+		uiItemO(column, NULL, 0, "NLA_OT_action_sync_length");
 		
 	/* action usage */
 	column= uiLayoutColumn(layout, 1);
