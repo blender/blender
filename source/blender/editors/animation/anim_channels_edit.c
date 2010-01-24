@@ -372,6 +372,10 @@ void ANIM_flush_setting_anim_channels (bAnimContext *ac, ListBase *anim_data, bA
 	bAnimListElem *ale, *match=NULL;
 	int prevLevel=0, matchLevel=0;
 	
+	/* sanity check */
+	if (ELEM(NULL, anim_data, anim_data->first))
+		return;
+	
 	/* find the channel that got changed */
 	for (ale= anim_data->first; ale; ale= ale->next) {
 		/* compare data, and type as main way of identifying the channel */
@@ -390,6 +394,11 @@ void ANIM_flush_setting_anim_channels (bAnimContext *ac, ListBase *anim_data, bA
 	}
 	else {
 		bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale_setting);
+		
+		if (acf == NULL) {
+			printf("ERROR: no channel info for the changed channel \n");
+			return;
+		}
 		
 		/* get the level of the channel that was affected
 		 * 	 - we define the level as simply being the offset for the start of the channel
@@ -415,6 +424,10 @@ void ANIM_flush_setting_anim_channels (bAnimContext *ac, ListBase *anim_data, bA
 		for (ale= match->prev; ale; ale= ale->prev) {
 			bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 			int level;
+			
+			/* if no channel info was found, skip, since this type might not have any useful info */
+			if (acf == NULL)
+				continue;
 			
 			/* get the level of the current channel traversed 
 			 * 	 - we define the level as simply being the offset for the start of the channel
@@ -444,6 +457,10 @@ void ANIM_flush_setting_anim_channels (bAnimContext *ac, ListBase *anim_data, bA
 		for (ale= match->next; ale; ale= ale->next) {
 			bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 			int level;
+			
+			/* if no channel info was found, skip, since this type might not have any useful info */
+			if (acf == NULL)
+				continue;
 			
 			/* get the level of the current channel traversed 
 			 * 	 - we define the level as simply being the offset for the start of the channel
