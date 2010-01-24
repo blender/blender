@@ -439,7 +439,7 @@ static int rna_Property_readonly_get(PointerRNA *ptr)
 static int rna_Property_use_return_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	return prop->flag & PROP_RETURN ? 1:0;
+	return prop->flag & PROP_OUTPUT ? 1:0;
 }
 
 static int rna_Property_is_required_get(PointerRNA *ptr)

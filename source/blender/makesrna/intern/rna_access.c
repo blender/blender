@@ -3603,7 +3603,7 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, 
 
 	/* allocate data */
 	for(parm= func->cont.properties.first; parm; parm= parm->next)
-		tot+= rna_parameter_size(parm);
+		tot+= rna_parameter_size_alloc(parm);
 
 	parms->data= MEM_callocN(tot, "RNA_parameter_list_create");
 	parms->func= func;
@@ -3644,7 +3644,11 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, 
 			}
 		}
 
-		data= ((char*)data) + size;
+		/* set length to 0 */
+		if (parm->flag & PROP_DYNAMIC)
+			*((int *)(((char *)data) + size))= 0;
+
+		data= ((char*)data) + rna_parameter_size_alloc(parm);
 	}
 
 	return parms;
@@ -3666,7 +3670,7 @@ void RNA_parameter_list_free(ParameterList *parms)
 				MEM_freeN(array);
 		}
 
-		tot+= rna_parameter_size(parm);
+		tot+= rna_parameter_size_alloc(parm);
 	}
 
 	MEM_freeN(parms->data);
@@ -3692,7 +3696,7 @@ void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 	iter->offset= 0;
 
 	if(iter->valid) {
-		iter->size= rna_parameter_size(iter->parm);
+		iter->size= rna_parameter_size_alloc(iter->parm);
 		iter->data= (((char*)iter->parms->data)+iter->offset);
 		ptype= RNA_property_type(iter->parm);
 	}
@@ -3707,7 +3711,7 @@ void RNA_parameter_list_next(ParameterIterator *iter)
 	iter->valid= iter->parm != NULL;
 
 	if(iter->valid) {
-		iter->size= rna_parameter_size(iter->parm);
+		iter->size= rna_parameter_size_alloc(iter->parm);
 		iter->data= (((char*)iter->parms->data)+iter->offset);
 		ptype= RNA_property_type(iter->parm);
 	}
@@ -3776,6 +3780,51 @@ void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void
 
 	if(parm)
 		RNA_parameter_set(parms, parm, value);
+}
+
+int RNA_parameter_length_get(ParameterList *parms, PropertyRNA *parm)
+{
+	ParameterIterator iter;
+	int len= 0;
+
+	RNA_parameter_list_begin(parms, &iter);
+
+	for(; iter.valid; RNA_parameter_list_next(&iter))
+		if(iter.parm==parm)
+			break;
+
+	if(iter.valid)
+		len= RNA_parameter_length_get_data(parms, parm, iter.data);
+
+	RNA_parameter_list_end(&iter);
+
+	return len;
+}
+
+void RNA_parameter_length_set(ParameterList *parms, PropertyRNA *parm, int length)
+{
+	ParameterIterator iter;
+
+	RNA_parameter_list_begin(parms, &iter);
+
+	for(; iter.valid; RNA_parameter_list_next(&iter))
+		if(iter.parm==parm)
+			break;
+
+	if(iter.valid)
+		RNA_parameter_length_set_data(parms, parm, iter.data, length);
+
+	RNA_parameter_list_end(&iter);
+}
+
+int RNA_parameter_length_get_data(ParameterList *parms, PropertyRNA *parm, void *data)
+{
+	return *((int *)(((char *)data) + rna_parameter_size(parm)));
+}
+
+void RNA_parameter_length_set_data(ParameterList *parms, PropertyRNA *parm, void *data, int length)
+{
+	*((int *)(((char *)data) + rna_parameter_size(parm)))= length;
 }
 
 int RNA_function_call(bContext *C, ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
@@ -4022,7 +4071,7 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 			retdata= iter.data;
 			continue;
 		}
-		else if (flag & PROP_RETURN) {
+		else if (flag & PROP_OUTPUT) {
 			continue;
 		}
 

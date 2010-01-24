@@ -331,6 +331,7 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 /* Functions */
 
 int rna_parameter_size(struct PropertyRNA *parm);
+int rna_parameter_size_alloc(struct PropertyRNA *parm);
 
 #endif /* RNA_INTERNAL_H */
 

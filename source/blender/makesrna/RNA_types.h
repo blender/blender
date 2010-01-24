@@ -150,7 +150,7 @@ typedef enum PropertyFlag {
 
 	/* function paramater flags */
 	PROP_REQUIRED = 1<<2,
-	PROP_RETURN = 1<<3,
+	PROP_OUTPUT = 1<<3,
 	PROP_RNAPTR = 1<<11,
 	/* registering */
 	PROP_REGISTER = 1<<4,

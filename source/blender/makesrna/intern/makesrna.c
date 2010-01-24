@@ -1290,8 +1290,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyDefRNA *dparm;
-	char *funcname, *ptrstr;
-	int first;
+	PropertyType type;
+	char *funcname, *ptrstr, *valstr;
+	int flag, pout, cptr, first;
 
 	srna= dsrna->srna;
 	func= dfunc->func;
@@ -1316,19 +1317,30 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 	dparm= dfunc->cont.properties.first;
 	for(; dparm; dparm= dparm->next) {
-		if(dparm->prop->arraydimension)
+		type = dparm->prop->type;
+		flag = dparm->prop->flag;
+		pout = (flag & PROP_OUTPUT);
+		cptr = ((type == PROP_POINTER) && !(flag & PROP_RNAPTR));
+
+		if(dparm->prop==func->c_ret)
+			ptrstr= cptr || dparm->prop->arraydimension ? "*" : "";
+		/* XXX only arrays and strings are allowed to be dynamic, is this checked anywhere? */
+		else if (cptr || (flag & PROP_DYNAMIC))
+			ptrstr= pout ? "**" : "*";
+		/* fixed size arrays and RNA pointers are pre-allocated on the ParameterList stack, pass a pointer to it */
+		else if (type == PROP_POINTER || dparm->prop->arraydimension)
 			ptrstr= "*";
-		else if(dparm->prop==func->c_ret)
-			ptrstr= ((dparm->prop->type == PROP_POINTER) && !(dparm->prop->flag & PROP_RNAPTR))? "*": "";
-		else if ((dparm->prop->flag & PROP_RETURN)) {
-			if ((dparm->prop->flag & PROP_THICK_WRAP) && (dparm->prop->type == PROP_STRING))
-				ptrstr= "";
-			else
-				ptrstr= ((dparm->prop->type == PROP_POINTER) && !(dparm->prop->flag & PROP_RNAPTR))? "**": "*";
-		} else
-			ptrstr= (dparm->prop->type == PROP_POINTER)? "*": "";
+		/* PROP_THICK_WRAP strings are pre-allocated on the ParameterList stack, but type name for string props is already char*, so leave empty */
+		else if (type == PROP_STRING && (flag & PROP_THICK_WRAP))
+			ptrstr= "";
+		else
+			ptrstr= pout ? "*" : "";
 
 		fprintf(f, "\t%s%s %s%s;\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, dparm->prop->identifier);
+
+		/* for dynamic parameters we pass an additional int for the length of the parameter */
+		if (flag & PROP_DYNAMIC)
+			fprintf(f, "\tint %s%s_len;\n", pout ? "*" : "", dparm->prop->identifier);
 	}
 
 	fprintf(f, "\tchar *_data");
@@ -1349,30 +1361,45 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 	dparm= dfunc->cont.properties.first;
 	for(; dparm; dparm= dparm->next) {
-		if ((dparm->prop->flag & PROP_RETURN))
-			ptrstr= "";
-		else
-			ptrstr= "*";
+		type = dparm->prop->type;
+		flag = dparm->prop->flag;
+		pout = (flag & PROP_OUTPUT);
+		cptr = ((type == PROP_POINTER) && !(flag & PROP_RNAPTR));
 
 		if(dparm->prop==func->c_ret)
 			fprintf(f, "\t_retdata= _data;\n");
-		else if(dparm->prop->arraydimension)
-			fprintf(f, "\t%s= ((%s%s*)_data);\n", dparm->prop->identifier, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
-		else if(dparm->prop->type == PROP_POINTER) {
-			if(dparm->prop->flag & PROP_RNAPTR)
-				fprintf(f, "\t%s= ((%s%s*)_data);\n", dparm->prop->identifier, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
-			else
-				fprintf(f, "\t%s= %s((%s%s**)_data);\n", dparm->prop->identifier, ptrstr, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
-		}
-		else {
-			if ((dparm->prop->flag & PROP_THICK_WRAP) && (dparm->prop->type == PROP_STRING))
-				fprintf(f, "\t%s= %s((%s%s)_data);\n", dparm->prop->identifier, ptrstr, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
-			else
-				fprintf(f, "\t%s= %s((%s%s*)_data);\n", dparm->prop->identifier, ptrstr, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
+		else  {
+			if (cptr || (flag & PROP_DYNAMIC)) {
+				ptrstr= "**";
+				valstr= "*";
+			}
+			else if (type == PROP_POINTER || dparm->prop->arraydimension) {
+				ptrstr= "*";
+				valstr= "";
+			}
+			else if (type == PROP_STRING && (flag & PROP_THICK_WRAP)) {
+				ptrstr= "";
+				valstr= "";
+			}
+			else {
+				ptrstr= "*";
+				valstr= "*";
+			}
+
+			fprintf(f, "\t%s= ", dparm->prop->identifier);
+
+			if (!pout)
+				fprintf(f, "%s", valstr);
+
+			fprintf(f, "((%s%s%s)_data);\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr);
+
+			/* this must be kept in sync with RNA_parameter_length_get_data, we could just call the function directly, but this is faster */
+			if (flag & PROP_DYNAMIC)
+				fprintf(f, "\t%s_len= %s((int *)(_data+%d));\n", dparm->prop->identifier, pout ? "" : "*", rna_parameter_size(dparm->prop));
 		}
 
 		if(dparm->next)
-			fprintf(f, "\t_data+= %d;\n", rna_parameter_size(dparm->prop));
+			fprintf(f, "\t_data+= %d;\n", rna_parameter_size_alloc(dparm->prop));
 	}
 
 	if(dfunc->call) {
@@ -1412,6 +1439,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 			first= 0;
 
 			fprintf(f, "%s", dparm->prop->identifier);
+
+			if (dparm->prop->flag & PROP_DYNAMIC)
+				fprintf(f, ", %s_len", dparm->prop->identifier);
 		}
 
 		fprintf(f, ");\n");
@@ -1653,7 +1683,8 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 	FunctionRNA *func;
 	PropertyDefRNA *dparm;
 	StructDefRNA *dsrna;
-	int first;
+	PropertyType type;
+	int flag, pout, cptr, first;
 	char *ptrstr;
 
 	dsrna= rna_find_struct_def(srna);
@@ -1706,25 +1737,33 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 
 	/* defined parameters */
 	for(dparm= dfunc->cont.properties.first; dparm; dparm= dparm->next) {
+		type = dparm->prop->type;
+		flag = dparm->prop->flag;
+		pout = (flag & PROP_OUTPUT);
+		cptr = ((type == PROP_POINTER) && !(flag & PROP_RNAPTR));
+
 		if(dparm->prop==func->c_ret)
 			continue;
+
+		if (cptr || (flag & PROP_DYNAMIC))
+			ptrstr= pout ? "**" : "*";
+		else if (type == PROP_POINTER || dparm->prop->arraydimension)
+			ptrstr= "*";
+		else if (type == PROP_STRING && (flag & PROP_THICK_WRAP))
+			ptrstr= "";
+		else
+			ptrstr= pout ? "*" : "";
 
 		if(!first) fprintf(f, ", ");
 		first= 0;
 
-		if((dparm->prop->type == PROP_STRING && dparm->prop->flag & PROP_THICK_WRAP))
-			ptrstr= "";
-		else if(dparm->prop->flag & PROP_RETURN)
-			ptrstr= "*";
-		else
-			ptrstr= "";
-
-		if(dparm->prop->arraydimension)
+		if(!(flag & PROP_DYNAMIC) && dparm->prop->arraydimension)
 			fprintf(f, "%s%s %s[%d]", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), dparm->prop->identifier, dparm->prop->totarraylength);
-		else if(dparm->prop->type == PROP_POINTER)
-			fprintf(f, "%s%s *%s%s", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), (dparm->prop->flag & PROP_RNAPTR) ? "" : ptrstr, dparm->prop->identifier);
 		else
 			fprintf(f, "%s%s %s%s", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, dparm->prop->identifier);
+
+		if (flag & PROP_DYNAMIC)
+			fprintf(f, ", int %s%s_len", pout ? "*" : "", dparm->prop->identifier);
 	}
 
 	fprintf(f, ");\n");
