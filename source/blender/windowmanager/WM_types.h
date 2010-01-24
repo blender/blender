@@ -188,6 +188,7 @@ typedef struct wmNotifier {
 #define ND_CONSTRAINT		(24<<16) /* constraints edited */
 #define ND_PARTICLE_DATA	(25<<16) /* particles edited */
 #define ND_PARTICLE_SELECT	(26<<16) /* particles selecting change */
+#define ND_VIEW3D_TRANSFORM	(27<<16)
 
 	/* NC_MATERIAL Material */
 #define	ND_SHADING			(30<<16)

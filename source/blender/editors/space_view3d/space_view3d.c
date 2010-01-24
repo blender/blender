@@ -454,6 +454,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_FRAME:
 				case ND_TRANSFORM:
+				case ND_VIEW3D_TRANSFORM:
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 				case ND_LAYER:
@@ -470,6 +471,7 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
+				case ND_VIEW3D_TRANSFORM:
 				case ND_POSE:
 				case ND_DRAW:
 				case ND_MODIFIER:
@@ -636,6 +638,7 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_TRANSFORM:
+				case ND_VIEW3D_TRANSFORM:
 				case ND_POSE:
 				case ND_DRAW:
 				case ND_KEYS:

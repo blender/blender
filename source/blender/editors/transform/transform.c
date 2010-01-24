@@ -302,7 +302,7 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D)
 	{
 		/* Do we need more refined tags? */
-		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+		WM_event_add_notifier(C, NC_OBJECT|ND_VIEW3D_TRANSFORM, NULL);
 		
 		/* for realtime animation record - send notifiers recognised by animation editors */
 		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene))

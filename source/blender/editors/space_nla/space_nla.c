@@ -491,7 +491,8 @@ static void nla_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_refresh(sa);
 					break;
 			}*/
-			ED_area_tag_refresh(sa);
+			if (wmn->data != ND_VIEW3D_TRANSFORM)
+				ED_area_tag_refresh(sa);
 			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_NLA)
