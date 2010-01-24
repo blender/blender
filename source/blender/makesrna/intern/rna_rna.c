@@ -436,7 +436,7 @@ static int rna_Property_readonly_get(PointerRNA *ptr)
 	return prop->flag & PROP_EDITABLE ? 0:1;
 }
 
-static int rna_Property_use_return_get(PointerRNA *ptr)
+static int rna_Property_use_output_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
 	return prop->flag & PROP_OUTPUT ? 1:0;
@@ -997,10 +997,10 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_never_none_get", NULL);
 	RNA_def_property_ui_text(prop, "Never None", "True when this value can't be set to None.");
 
-	prop= RNA_def_property(srna, "use_return", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_Property_use_return_get", NULL);
-	RNA_def_property_ui_text(prop, "Return", "True when this property is a return value from an rna function.");
+	RNA_def_property_boolean_funcs(prop, "rna_Property_use_output_get", NULL);
+	RNA_def_property_ui_text(prop, "Return", "True when this property is an output value from an rna function.");
 
 	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
