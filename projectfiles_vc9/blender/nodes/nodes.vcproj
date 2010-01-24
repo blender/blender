@@ -350,6 +350,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_colorbalance.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_colorMatte.c"
 					>
 				</File>
@@ -407,6 +411,10 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_glare.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_huecorrect.c"
 					>
 				</File>
 				<File
