@@ -152,12 +152,31 @@ static int rna_DriverTarget_id_editable(PointerRNA *ptr)
 	return (dtar->idtype)? PROP_EDITABLE : 0;
 }
 
+static int rna_DriverTarget_id_type_editable(PointerRNA *ptr)
+{
+	DriverTarget *dtar= (DriverTarget*)ptr->data;
+	
+	/* when the id-type can only be object, don't allow editing
+	 * otherwise, there may be strange crashes
+	 */
+	return ((dtar->flag & DTAR_FLAG_ID_OB_ONLY) == 0);
+}
+
 static void rna_DriverTarget_id_type_set(PointerRNA *ptr, int value)
 {
 	DriverTarget *data= (DriverTarget*)(ptr->data);
 	
-	/* set the driver type, then clear the id-block if the type is invalid */
-	data->idtype= value;
+	/* check if ID-type is settable */
+	if ((data->flag & DTAR_FLAG_ID_OB_ONLY) == 0) {
+		/* change ID-type to the new type */
+		data->idtype= value;
+	}
+	else {
+		/* make sure ID-type is Object */
+		data->idtype= ID_OB;
+	}
+	
+	/* clear the id-block if the type is invalid */
 	if ((data->id) && (GS(data->id->name) != data->idtype))
 		data->id= NULL;
 }
@@ -724,8 +743,8 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "idtype");
 	RNA_def_property_enum_items(prop, id_type_items);
 	RNA_def_property_enum_default(prop, ID_OB);
-	// XXX need to add an 'editable func' for this, in the case where certain flags are set already...
 	RNA_def_property_enum_funcs(prop, NULL, "rna_DriverTarget_id_type_set", NULL);
+	RNA_def_property_editable_func(prop, "rna_DriverTarget_id_type_editable");
 	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used.");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
