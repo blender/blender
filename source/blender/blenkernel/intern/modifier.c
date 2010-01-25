@@ -9228,11 +9228,11 @@ int modifiers_getCageIndex(Scene *scene, Object *ob, int *lastPossibleCageIndex_
 	ModifierData *md = (virtual_)? modifiers_getVirtualModifierList(ob): ob->modifiers.first;
 	int i, cageIndex = -1;
 
-	md->scene= scene;
-
 	/* Find the last modifier acting on the cage. */
 	for (i=0; md; i++,md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		md->scene= scene;
 
 		if (!(md->mode & eModifierMode_Realtime)) continue;
 		if (!(md->mode & eModifierMode_Editmode)) continue;
