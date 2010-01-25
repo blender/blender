@@ -151,11 +151,11 @@ static SpaceLink *graph_new(const bContext *C)
 	
 	ar->v2d.cur= ar->v2d.tot;
 	
-	ar->v2d.min[0]= 0.00001f;
-	ar->v2d.min[1]= 0.00001f;
-	
+	ar->v2d.min[0]= FLT_MIN;
+	ar->v2d.min[1]= FLT_MIN;
+
 	ar->v2d.max[0]= MAXFRAMEF;
-	ar->v2d.max[1]= 50000.0f;
+	ar->v2d.max[1]= FLT_MAX;
 	
 	ar->v2d.scroll= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 	ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);

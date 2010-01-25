@@ -4632,7 +4632,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_VIEW3D) {
 						View3D *v3d= (View3D*) sl;
-						BGpic *bgpic;
+						BGpic *bgpic = NULL;
 						
 						v3d->camera= newlibadr(fd, sc->id.lib, v3d->camera);
 						v3d->ob_centre= newlibadr(fd, sc->id.lib, v3d->ob_centre);
@@ -6184,7 +6184,13 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				/* init mainarea view2d */
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
-								
+				
+				ar->v2d.min[0]= FLT_MIN;
+				ar->v2d.min[1]= FLT_MIN;
+				
+				ar->v2d.max[0]= MAXFRAMEF;
+				ar->v2d.max[1]= FLT_MAX;
+				
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}

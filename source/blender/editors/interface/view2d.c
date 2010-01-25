@@ -25,6 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <float.h>
 #include <limits.h>
 #include <math.h>
 #include <string.h>
@@ -347,11 +348,14 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 	if (v2d->keepzoom & V2D_LOCKZOOM_Y)
 		height= winy;
 		
-	/* values used to divide, so make it safe */
-	if(width<1) width= 1;
-	if(height<1) height= 1;
-	if(winx<1) winx= 1;
-	if(winy<1) winy= 1;
+	/* values used to divide, so make it safe 
+	 * NOTE: width and height must use FLT_MIN instead of 1, otherwise it is impossible to
+	 * 		get enough resolution in Graph Editor for editing some curves
+	 */
+	if(width < FLT_MIN) width= 1;
+	if(height < FLT_MIN) height= 1;
+	if(winx < 1) winx= 1;
+	if(winy < 1) winy= 1;
 	
 	/* V2D_LIMITZOOM indicates that zoom level should be preserved when the window size changes */
 	if (resize && (v2d->keepzoom & V2D_KEEPZOOM)) {
