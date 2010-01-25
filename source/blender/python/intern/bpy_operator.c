@@ -66,7 +66,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	ot= WM_operatortype_exists(opname);
 
 	if (ot == NULL) {
-		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator \"%s\" could not be found", opname);
+		PyErr_Format( PyExc_SystemError, "Calling operator \"bpy.ops.%s\" error, could not be found", opname);
 		return NULL;
 	}
 	
@@ -79,7 +79,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	Py_XINCREF(context_dict); /* so we done loose it */
 
 	if(WM_operator_poll((bContext*)C, ot) == FALSE) {
-		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator %.200s.poll() function failed, context is incorrect", opname);
+		PyErr_Format( PyExc_SystemError, "Operator bpy.ops.%.200s.poll() failed, context is incorrect", opname);
 		error_val= -1;
 	}
 	else {
