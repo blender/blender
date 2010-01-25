@@ -4869,10 +4869,11 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					
 				}
 				else if(sl->spacetype==SPACE_IPO) {
+					SpaceIpo *sipo= (SpaceIpo *)sl;
+					bDopeSheet *ads= sipo->ads;
+
 					/* XXX animato */
 #if 0
-					SpaceIpo *sipo= (SpaceIpo *)sl;
-
 					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
 					if(sipo->blocktype==ID_SEQ) 
 						sipo->from= (ID *)find_sequence_from_ipo_helper(newmain, sipo->ipo);
@@ -4882,7 +4883,11 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					// not free sipo->ipokey, creates dependency with src/
 					if(sipo->editipo) MEM_freeN(sipo->editipo);
 					sipo->editipo= NULL;
+
 #endif
+					if (ads->filter_grp) {
+						ads->filter_grp= restore_pointer_by_name(newmain, (ID *)ads->filter_grp, 0);
+					}
 				}
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
@@ -4908,6 +4913,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					SpaceAction *saction= (SpaceAction *)sl;
 					saction->action = restore_pointer_by_name(newmain, (ID *)saction->action, 1);
 					saction->ads.source= restore_pointer_by_name(newmain, (ID *)saction->ads.source, 1);
+
+					if(saction->ads.filter_grp) {
+						saction->ads.filter_grp= restore_pointer_by_name(newmain, (ID *)saction->ads.filter_grp, 0);
+					}
 				}
 				else if(sl->spacetype==SPACE_IMAGE) {
 					SpaceImage *sima= (SpaceImage *)sl;
@@ -4915,7 +4924,12 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					sima->image= restore_pointer_by_name(newmain, (ID *)sima->image, 1);
 				}
 				else if(sl->spacetype==SPACE_NLA){
-					/* SpaceNla *snla= (SpaceNla *)sl;	*/
+					SpaceNla *snla= (SpaceNla *)sl;
+					bDopeSheet *ads= snla->ads;
+
+					if (ads->filter_grp) {
+						ads->filter_grp= restore_pointer_by_name(newmain, (ID *)ads->filter_grp, 0);
+					}
 				}
 				else if(sl->spacetype==SPACE_TEXT) {
 					SpaceText *st= (SpaceText *)sl;
