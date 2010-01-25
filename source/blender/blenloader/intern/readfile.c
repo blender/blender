@@ -10555,7 +10555,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 						/* do it here, slightly less chance of getting a false positive */
 						for (fcu=adt->action->curves.first; fcu; fcu=fcu->next) {
-							if (strcmp(fcu->rna_path, "minimum_x")==0)
+							if (strstr(fcu->rna_path, "minimum_x"))
 								do_version_fcurve_radians_degrees_250(fcu);
 						}
 						
@@ -10576,11 +10576,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 				/* convert over named properties with PROP_UNIT_ROTATION time of this change */
 				for (fcu=act->curves.first; fcu; fcu=fcu->next) {
-					if (strstr(fcu->rna_path, "rotation_euler")==0)
+					if (strstr(fcu->rna_path, "rotation_euler"))
 						do_version_fcurve_radians_degrees_250(fcu);
-					else if (strstr(fcu->rna_path, "delta_rotation_euler")==0)
+					else if (strstr(fcu->rna_path, "delta_rotation_euler"))
 						do_version_fcurve_radians_degrees_250(fcu);
-					else if (strstr(fcu->rna_path, "pole_angle")==0)
+					else if (strstr(fcu->rna_path, "pole_angle"))
 						do_version_fcurve_radians_degrees_250(fcu);
 				}
 			}
