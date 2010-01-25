@@ -816,6 +816,10 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 			default:
 				break;
 		}
+		
+		if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION) {
+			value *= 180.0/M_PI;
+		}
 	}
 	else {
 		if (G.f & G_DEBUG)
