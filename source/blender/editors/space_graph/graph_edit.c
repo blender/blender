@@ -1923,11 +1923,11 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 	type= RNA_enum_get(op->ptr, "type");
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	if (RNA_boolean_get(op->ptr, "only_active"))
 		filter |= ANIMFILTER_ACTIVE;
 	else
-		filter |= ANIMFILTER_SEL;
+		filter |= (ANIMFILTER_SEL|ANIMFILTER_CURVEVISIBLE);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* smooth keyframes */
