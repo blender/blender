@@ -115,6 +115,28 @@ void copy_defvert (MDeformVert *dvert_r, const MDeformVert *dvert)
 	}
 }
 
+void normalize_defvert (MDeformVert *dvert)
+{
+	if(dvert->totweight<=0) {
+		/* nothing */
+	}
+	else if (dvert->totweight==1) {
+		dvert->dw[0].weight= 1.0f;
+	}
+	else {
+		int i;
+		float tot= 0.0f;
+		MDeformWeight *dw;
+		for(i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++)
+			tot += dw->weight;
+
+		if(tot > 0.0f) {
+			for(i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++)
+				dw->weight /= tot;
+		}
+	}
+}
+
 void flip_defvert (MDeformVert *dvert, int *flip_map)
 {
 	MDeformWeight *dw;

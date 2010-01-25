@@ -54,6 +54,7 @@ float vertexgroup_get_vertex_weight(const struct MDeformVert *dvert, int index, 
 
 void copy_defvert (struct MDeformVert *dvert_r, const struct MDeformVert *dvert);
 void flip_defvert (struct MDeformVert *dvert, int *flip_map);
+void normalize_defvert (struct MDeformVert *dvert);
 
 #endif
 

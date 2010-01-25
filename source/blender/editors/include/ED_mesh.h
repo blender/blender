@@ -189,6 +189,7 @@ struct bDeformGroup		*ED_vgroup_add_name(struct Object *ob, char *name);
 void					ED_vgroup_select_by_name(struct Object *ob, char *name);
 void					ED_vgroup_data_create(struct ID *id);
 int						ED_vgroup_give_array(struct ID *id, struct MDeformVert **dvert_arr, int *dvert_tot);
+void					ED_vgroup_mirror(struct Object *ob, int mirror_weights, int flip_vgroups);
 
 void		ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum,  float weight, int assignmode);
 void		ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);

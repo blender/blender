@@ -904,7 +904,7 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 	}
 }
 
-static void vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
+void ED_vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 {
 	EditVert *eve, *eve_mirr;
 	MDeformVert *dvert, *dvert_mirr;
@@ -1751,7 +1751,7 @@ static int vertex_group_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
-	vgroup_mirror(ob, RNA_boolean_get(op->ptr,"mirror_weights"), RNA_boolean_get(op->ptr,"flip_group_names"));
+	ED_vgroup_mirror(ob, RNA_boolean_get(op->ptr,"mirror_weights"), RNA_boolean_get(op->ptr,"flip_group_names"));
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
@@ -1779,7 +1779,6 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Groups", "Flip vertex group names while mirroring.");
 
 }
-
 
 static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *op)
 {
