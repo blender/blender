@@ -6497,6 +6497,35 @@ static void do_version_fcurves_radians_degrees_250(ListBase *lb, char *propname)
 		}
 	}
 }
+			
+static void do_version_constraints_radians_degrees_250(ListBase *lb)
+{
+	bConstraint *con;
+
+	/* fcurves for this are not converted, assumption is these were unlikely to be used */
+	for	(con=lb->first; con; con=con->next) {
+		if(con->type==CONSTRAINT_TYPE_RIGIDBODYJOINT) {
+			bRigidBodyJointConstraint *data = con->data;
+			data->axX *= M_PI/180.0;
+			data->axY *= M_PI/180.0;
+			data->axZ *= M_PI/180.0;
+		}
+		else if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+			bKinematicConstraint *data = con->data;
+			data->poleangle *= M_PI/180.0;
+		}
+		else if(con->type==CONSTRAINT_TYPE_ROTLIMIT) {
+			bRotLimitConstraint *data = con->data;
+
+			data->xmin *= M_PI/180.0;
+			data->xmax *= M_PI/180.0;
+			data->ymin *= M_PI/180.0;
+			data->ymax *= M_PI/180.0;
+			data->zmin *= M_PI/180.0;
+			data->zmax *= M_PI/180.0;
+		}
+	}
+}
 
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
@@ -10552,56 +10581,34 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	/* put 2.50 compatibility code here until next subversion bump */
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 13)) {
-		/* still missing: - Pose channel IK (min x/y/z, max x/y/z)
-		   NOTE: if you do more conversion, be sure to do it outside of this and
+		/* NOTE: if you do more conversion, be sure to do it outside of this and
 		   increase subversion again, otherwise it will not be correct */
-		bAction *act;
 		Object *ob;
-		
-		float rads_per_deg = M_PI / 180.0;
+		bAction *act;
 		
 		/* convert degrees to radians for internal use */
 		for (ob=main->object.first; ob; ob=ob->id.next) {
 			AnimData *adt = BKE_animdata_from_id((ID *)ob);
-			bConstraint *con;
+			bPoseChannel *pchan;
 
-			if(adt) {
+			if (adt) {
 				do_version_fcurves_radians_degrees_250(&adt->drivers, "rotation_euler");
 				do_version_fcurves_radians_degrees_250(&adt->drivers, "delta_rotation_euler");
 				do_version_fcurves_radians_degrees_250(&adt->drivers, "pole_angle");
 			}
-			
-			for	(con=ob->constraints.first; con; con=con->next) {
-				
-				if(con->type==CONSTRAINT_TYPE_RIGIDBODYJOINT) {
-					bRigidBodyJointConstraint *data = con->data;
-					data->axX *= rads_per_deg;
-					data->axY *= rads_per_deg;
-					data->axZ *= rads_per_deg;
-				}
-				else if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
-					bKinematicConstraint *data = con->data;
-					data->poleangle *= rads_per_deg;
-				}
-				else if(con->type==CONSTRAINT_TYPE_ROTLIMIT) {
-					bRotLimitConstraint *data = con->data;
 
-					if(adt) {
-						do_version_fcurves_radians_degrees_250(&adt->action->curves, "minimum_x");
-						do_version_fcurves_radians_degrees_250(&adt->action->curves, "minimum_y");
-						do_version_fcurves_radians_degrees_250(&adt->action->curves, "minimum_z");
-						do_version_fcurves_radians_degrees_250(&adt->action->curves, "maximum_x");
-						do_version_fcurves_radians_degrees_250(&adt->action->curves, "maximum_y");
-						do_version_fcurves_radians_degrees_250(&adt->action->curves, "maximum_z");
-					}
+			do_version_constraints_radians_degrees_250(&ob->constraints);
 
-					data->xmin *= rads_per_deg;
-					data->xmax *= rads_per_deg;
-					data->ymin *= rads_per_deg;
-					data->ymax *= rads_per_deg;
-					data->zmin *= rads_per_deg;
-					data->zmax *= rads_per_deg;
+			if (ob->pose) {
+				for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+					pchan->limitmin[0] *= M_PI/180.0;
+					pchan->limitmin[1] *= M_PI/180.0;
+					pchan->limitmin[2] *= M_PI/180.0;
+					pchan->limitmax[0] *= M_PI/180.0;
+					pchan->limitmax[1] *= M_PI/180.0;
+					pchan->limitmax[2] *= M_PI/180.0;
 
+					do_version_constraints_radians_degrees_250(&pchan->constraints);
 				}
 			}
 		}
