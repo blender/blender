@@ -925,7 +925,7 @@ void scene_add_render_layer(Scene *sce)
 
 int get_render_subsurf_level(RenderData *r, int lvl)
 {
-	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+	if(r->mode & R_SIMPLIFY)
 		return MIN2(r->simplify_subsurf, lvl);
 	else
 		return lvl;
@@ -933,7 +933,7 @@ int get_render_subsurf_level(RenderData *r, int lvl)
 
 int get_render_child_particle_number(RenderData *r, int num)
 {
-	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+	if(r->mode & R_SIMPLIFY)
 		return (int)(r->simplify_particles*num);
 	else
 		return num;
@@ -941,7 +941,7 @@ int get_render_child_particle_number(RenderData *r, int num)
 
 int get_render_shadow_samples(RenderData *r, int samples)
 {
-	if(G.rt == 1 && (r->mode & R_SIMPLIFY) && samples > 0)
+	if((r->mode & R_SIMPLIFY) && samples > 0)
 		return MIN2(r->simplify_shadowsamples, samples);
 	else
 		return samples;
@@ -949,7 +949,7 @@ int get_render_shadow_samples(RenderData *r, int samples)
 
 float get_render_aosss_error(RenderData *r, float error)
 {
-	if(G.rt == 1 && (r->mode & R_SIMPLIFY))
+	if(r->mode & R_SIMPLIFY)
 		return ((1.0f-r->simplify_aosss)*10.0f + 1.0f)*error;
 	else
 		return error;

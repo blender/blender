@@ -29,6 +29,8 @@
 
 #include "rna_internal.h"
 
+#include "DNA_group_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
@@ -626,6 +628,33 @@ static void rna_Scene_editmesh_select_mode_update(Main *bmain, Scene *scene, Poi
 
 	WM_main_add_notifier(NC_GEOM|ND_SELECT, me);
 	WM_main_add_notifier(NC_SCENE|ND_TOOLSETTINGS, NULL);
+}
+
+static void object_simplify_update(Object *ob)
+{
+	ModifierData *md;
+
+	for(md=ob->modifiers.first; md; md=md->next)
+		if(ELEM3(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem))
+			ob->recalc |= OB_RECALC_DATA;
+	
+	if(ob->dup_group) {
+		GroupObject *gob;
+
+		for(gob=ob->dup_group->gobject.first; gob; gob=gob->next)
+			object_simplify_update(gob->ob);
+	}
+}
+
+static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Base *base;
+
+	for(base= scene->base.first; base; base= base->next)
+		object_simplify_update(base->object);
+	
+	DAG_ids_flush_update(0);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, NULL);
 }
 
 #else
@@ -2362,10 +2391,37 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Use Game Engine", "Current rendering engine is a game engine.");
 
+	/* simplify */
+	prop= RNA_def_property(srna, "use_simplify", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_SIMPLIFY);
+	RNA_def_property_ui_text(prop, "Use Simplify", "Enable simplification of scene for quicker preview renders.");
+	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
+	prop= RNA_def_property(srna, "simplify_subdivision", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "simplify_subsurf");
+	RNA_def_property_ui_range(prop, 0, 6, 1, 0);
+	RNA_def_property_ui_text(prop, "Simplify Subdivision", "Global maximum subdivision level.");
+	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
+	prop= RNA_def_property(srna, "simplify_child_particles", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "simplify_particles");
+	RNA_def_property_ui_text(prop, "Simplify Child Particles", "Global child particles percentage.");
+	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
+	prop= RNA_def_property(srna, "simplify_shadow_samples", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "simplify_shadowsamples");
+	RNA_def_property_ui_range(prop, 1, 16, 1, 0);
+	RNA_def_property_ui_text(prop, "Simplify Shadow Samples", "Global maximum shadow samples.");
+	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
+	prop= RNA_def_property(srna, "simplify_ao_sss", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "simplify_aosss");
+	RNA_def_property_ui_text(prop, "Simplify AO and SSS", "Global approximate AA and SSS quality factor.");
+	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
 	/* Scene API */
 	RNA_api_scene_render(srna);
 }
-
 
 /* scene.objects */
 static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)

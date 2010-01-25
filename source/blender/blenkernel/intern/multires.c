@@ -50,6 +50,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
 
@@ -84,11 +85,11 @@ MultiresModifierData *find_multires_modifier(Object *ob)
 static int multires_get_level(Object *ob, MultiresModifierData *mmd, int render)
 {
 	if(render)
-		return mmd->renderlvl;
+		return get_render_subsurf_level(&mmd->modifier.scene->r, mmd->renderlvl);
 	else if(ob->mode == OB_MODE_SCULPT)
 		return mmd->sculptlvl;
 	else
-		return mmd->lvl;
+		return get_render_subsurf_level(&mmd->modifier.scene->r, mmd->lvl);
 }
 
 static void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lvl)

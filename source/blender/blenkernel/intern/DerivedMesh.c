@@ -1643,7 +1643,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	/* we always want to keep original indices */
 	dataMask |= CD_MASK_ORIGINDEX;
 
-	datamasks = modifiers_calcDataMasks(ob, md, dataMask, required_mode);
+	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
 	curr = datamasks;
 
 	if(deform_r) *deform_r = NULL;
@@ -1659,7 +1659,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 			md->scene= scene;
 			
-			if(!modifier_isEnabled(md, required_mode)) continue;
+			if(!modifier_isEnabled(scene, md, required_mode)) continue;
 			if(useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
 			if(mti->type == eModifierTypeType_OnlyDeform) {
@@ -1708,7 +1708,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 		md->scene= scene;
 		
-		if(!modifier_isEnabled(md, required_mode)) continue;
+		if(!modifier_isEnabled(scene, md, required_mode)) continue;
 		if(mti->type == eModifierTypeType_OnlyDeform && !useDeform) continue;
 		if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
 			modifier_setError(md, "Modifier requires original data, bad stack position.");
@@ -1884,12 +1884,12 @@ static float (*editmesh_getVertexCos(EditMesh *em, int *numVerts_r))[3]
 	return cos;
 }
 
-static int editmesh_modifier_is_enabled(ModifierData *md, DerivedMesh *dm)
+static int editmesh_modifier_is_enabled(Scene *scene, ModifierData *md, DerivedMesh *dm)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
-	if(!modifier_isEnabled(md, required_mode)) return 0;
+	if(!modifier_isEnabled(scene, md, required_mode)) return 0;
 	if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
 		modifier_setError(md, "Modifier requires original data, bad stack position.");
 		return 0;
@@ -1906,7 +1906,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 	float (*deformedVerts)[3] = NULL;
 	CustomDataMask mask;
 	DerivedMesh *dm, *orcodm = NULL;
-	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(ob, NULL, 1);
+	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	LinkNode *datamasks, *curr;
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
@@ -1922,7 +1922,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 	/* we always want to keep original indices */
 	dataMask |= CD_MASK_ORIGINDEX;
 
-	datamasks = modifiers_calcDataMasks(ob, md, dataMask, required_mode);
+	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
 
 	curr = datamasks;
 	for(i = 0; md; i++, md = md->next, curr = curr->next) {
@@ -1930,7 +1930,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 
 		md->scene= scene;
 		
-		if(!editmesh_modifier_is_enabled(md, dm))
+		if(!editmesh_modifier_is_enabled(scene, md, dm))
 			continue;
 
 		/* add an orco layer if needed by this modifier */
@@ -2348,12 +2348,12 @@ float *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 
 /* ********* crazyspace *************** */
 
-int editmesh_get_first_deform_matrices(Object *ob, EditMesh *em, float (**deformmats)[3][3], float (**deformcos)[3])
+int editmesh_get_first_deform_matrices(Scene *scene, Object *ob, EditMesh *em, float (**deformmats)[3][3], float (**deformcos)[3])
 {
 	ModifierData *md;
 	DerivedMesh *dm;
 	int i, a, numleft = 0, numVerts = 0;
-	int cageIndex = modifiers_getCageIndex(ob, NULL, 1);
+	int cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	float (*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
 
 	modifiers_clearErrors(ob);
@@ -2367,7 +2367,7 @@ int editmesh_get_first_deform_matrices(Object *ob, EditMesh *em, float (**deform
 	for(i = 0; md && i <= cageIndex; i++, md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if(!editmesh_modifier_is_enabled(md, dm))
+		if(!editmesh_modifier_is_enabled(scene, md, dm))
 			continue;
 
 		if(mti->type==eModifierTypeType_OnlyDeform && mti->deformMatricesEM) {
@@ -2388,7 +2388,7 @@ int editmesh_get_first_deform_matrices(Object *ob, EditMesh *em, float (**deform
 	}
 
 	for(; md && i <= cageIndex; md = md->next, i++)
-		if(editmesh_modifier_is_enabled(md, dm) && modifier_isCorrectableDeformed(md))
+		if(editmesh_modifier_is_enabled(scene, md, dm) && modifier_isCorrectableDeformed(md))
 			numleft++;
 
 	if(dm)

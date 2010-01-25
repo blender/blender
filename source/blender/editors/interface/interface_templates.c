@@ -614,9 +614,10 @@ void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 
 static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *ob = ob_v;
 	ModifierData *md= md_v;
-	int i, cageIndex = modifiers_getCageIndex(ob, NULL, 0);
+	int i, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 0);
 
 	/* undo button operation */
 	md->mode ^= eModifierMode_OnCage;
@@ -664,7 +665,7 @@ static int modifier_can_delete(ModifierData *md)
 	return 1;
 }
 
-static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex, int compact)
+static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex, int compact)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	PointerRNA ptr;
@@ -758,7 +759,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 			if (mti->flags & eModifierTypeFlag_SupportsEditmode)
 				uiItemR(row, "", 0, &ptr, "editmode", 0);
 		}
-		if ((ob->type==OB_MESH) && modifier_couldBeCage(md) && (index <= lastCageIndex)) 
+		if ((ob->type==OB_MESH) && modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) 
 		{
 			/* -- convert to rna ? */
 			but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
@@ -830,8 +831,9 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	return result;
 }
 
-uiLayout *uiTemplateModifier(uiLayout *layout, PointerRNA *ptr, int compact)
+uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr, int compact)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *ob;
 	ModifierData *md, *vmd;
 	int i, lastCageIndex, cageIndex;
@@ -853,14 +855,14 @@ uiLayout *uiTemplateModifier(uiLayout *layout, PointerRNA *ptr, int compact)
 	uiBlockSetButLock(uiLayoutGetBlock(layout), (ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
 	
 	/* find modifier and draw it */
-	cageIndex = modifiers_getCageIndex(ob, &lastCageIndex, 0);
+	cageIndex = modifiers_getCageIndex(scene, ob, &lastCageIndex, 0);
 
 	// XXX virtual modifiers are not accesible for python
 	vmd = modifiers_getVirtualModifierList(ob);
 
 	for(i=0; vmd; i++, vmd=vmd->next) {
 		if(md == vmd)
-			return draw_modifier(layout, ob, md, i, cageIndex, lastCageIndex, compact);
+			return draw_modifier(layout, scene, ob, md, i, cageIndex, lastCageIndex, compact);
 		else if(vmd->mode & eModifierMode_Virtual)
 			i--;
 	}

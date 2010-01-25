@@ -540,14 +540,12 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "levels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "levels");
-	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_range(prop, 0, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Levels", "Number of subdivisions to perform.");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "render_levels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "renderLevels");
-	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_range(prop, 0, 6, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Levels", "Number of subdivisions to perform when rendering.");
 

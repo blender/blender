@@ -180,11 +180,40 @@ class SCENE_PT_physics(SceneButtonsPanel):
         else:
             layout.column().prop(scene, "gravity", text="")
 
+class SCENE_PT_simplify(SceneButtonsPanel):
+    bl_label = "Simplify"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw_header(self, context):
+        scene = context.scene
+        rd = scene.render_data
+        self.layout.prop(rd, "use_simplify", text="")
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        rd = scene.render_data
+        wide_ui = context.region.width > narrowui
+
+        layout.active = rd.use_simplify
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(rd, "simplify_subdivision", text="Subdivision")
+        col.prop(rd, "simplify_child_particles", text="Child Particles")
+
+        if wide_ui:
+            col = split.column()
+        col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
+        col.prop(rd, "simplify_ao_sss", text="AO and SSS")
+
 bpy.types.register(SCENE_PT_scene)
 bpy.types.register(SCENE_PT_unit)
 bpy.types.register(SCENE_PT_keying_sets)
 bpy.types.register(SCENE_PT_keying_set_paths)
 bpy.types.register(SCENE_PT_physics)
+bpy.types.register(SCENE_PT_simplify)
 
 bpy.types.register(SCENE_PT_custom_props)
 

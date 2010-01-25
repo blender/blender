@@ -299,6 +299,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "text", "", 0, "", "Custom label to display in UI.");
 	
 	func= RNA_def_function(srna, "template_modifier", "uiTemplateModifier");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm= RNA_def_pointer(func, "data", "Modifier", "", "Modifier data.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");

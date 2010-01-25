@@ -101,6 +101,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_scene.h"
 #include "BKE_smoke.h"
 #include "BKE_softbody.h"
 #include "BKE_subsurf.h"
@@ -427,8 +428,9 @@ static void subsurfModifier_freeData(ModifierData *md)
 static int subsurfModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+	int levels= (useRenderParams)? smd->renderLevels: smd->levels;
 
-	return (useRenderParams)? (smd->renderLevels == 0): (smd->levels == 0);
+	return get_render_subsurf_level(&md->scene->r, levels) == 0;
 }
 
 static DerivedMesh *subsurfModifier_applyModifier(
@@ -9181,9 +9183,11 @@ void modifier_copyData(ModifierData *md, ModifierData *target)
 		mti->copyData(md, target);
 }
 
-int modifier_couldBeCage(ModifierData *md)
+int modifier_couldBeCage(Scene *scene, ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+	md->scene= scene;
 
 	return (	(md->mode & eModifierMode_Realtime) &&
 			(md->mode & eModifierMode_Editmode) &&
@@ -9219,10 +9223,12 @@ void modifier_setError(ModifierData *md, char *format, ...)
  * also used in transform_conversion.c, to detect CrazySpace [tm] (2nd arg
  * then is NULL)
  */
-int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r, int virtual_)
+int modifiers_getCageIndex(Scene *scene, Object *ob, int *lastPossibleCageIndex_r, int virtual_)
 {
 	ModifierData *md = (virtual_)? modifiers_getVirtualModifierList(ob): ob->modifiers.first;
 	int i, cageIndex = -1;
+
+	md->scene= scene;
 
 	/* Find the last modifier acting on the cage. */
 	for (i=0; md; i++,md=md->next) {
@@ -9267,9 +9273,11 @@ int modifiers_isParticleEnabled(Object *ob)
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-int modifier_isEnabled(ModifierData *md, int required_mode)
+int modifier_isEnabled(Scene *scene, ModifierData *md, int required_mode)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+	md->scene= scene;
 
 	if((md->mode & required_mode) != required_mode) return 0;
 	if(mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return 0;
@@ -9280,7 +9288,7 @@ int modifier_isEnabled(ModifierData *md, int required_mode)
 	return 1;
 }
 
-LinkNode *modifiers_calcDataMasks(Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
+LinkNode *modifiers_calcDataMasks(Scene *scene, Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
 {
 	LinkNode *dataMasks = NULL;
 	LinkNode *curr, *prev;
@@ -9290,7 +9298,7 @@ LinkNode *modifiers_calcDataMasks(Object *ob, ModifierData *md, CustomDataMask d
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 		CustomDataMask mask = 0;
 
-		if(modifier_isEnabled(md, required_mode))
+		if(modifier_isEnabled(scene, md, required_mode))
 			if(mti->requiredDataMask)
 				mask = mti->requiredDataMask(ob, md);
 
