@@ -164,127 +164,138 @@ char handleNumInput(NumInput *n, wmEvent *event, float increment)
 	float Val = 0;
 	short idx = n->idx, idx_max = n->idx_max;
 
-	switch (event->type) {
-    case DOWNARROWKEY: /* Increments down*/
-		if (!n->ctrl[idx])
-			n->ctrl[idx] = 1;
+	if (event->type == EVT_MODAL_MAP) {
+		switch (event->val) {
+		case TFM_MODAL_INCREMENT_UP:
+			if (!n->ctrl[idx])
+				n->ctrl[idx] = 1;
 
-        n->val[idx] -= increment;
-        break;
-    case UPARROWKEY: /* Increments up*/
-		if (!n->ctrl[idx])
-			n->ctrl[idx] = 1;
-
-		n->val[idx] += increment;
-        break;
-	case BACKSPACEKEY:
-		if (n->ctrl[idx] == 0) {
-			n->val[0]		= 
-				n->val[1]	= 
-				n->val[2]	= 0.0f;
-			n->ctrl[0]		= 
-				n->ctrl[1]	= 
-				n->ctrl[2]	= 0;
-			n->inv[0]		= 
-				n->inv[1]	= 
-				n->inv[2]	= 0;
-		}
-		else {
-			n->val[idx] = 0.0f;
-			n->ctrl[idx] = 0;
-			n->inv[idx] = 0;
-		}
-		break;
-	case PERIODKEY:
-	case PADPERIOD:
-		if (n->flag & NUM_NO_FRACTION)
+	        n->val[idx] += increment;
 			break;
+		case TFM_MODAL_INCREMENT_DOWN:
+			if (!n->ctrl[idx])
+				n->ctrl[idx] = 1;
 
-		switch (n->ctrl[idx])
-		{
-		case 0:
-		case 1:
-			n->ctrl[idx] = 10;
+	        n->val[idx] -= increment;
 			break;
-		case -1:
-			n->ctrl[idx] = -10;
 		}
-		break;
-	case PADMINUS:
-		if(event->alt)
-			break;
-	case MINUSKEY:
-		if (n->flag & NUM_NO_NEGATIVE)
-			break;
+	} else {
+		switch (event->type) {
+		case UPARROWKEY: /* Increments up*/
+			if (!n->ctrl[idx])
+				n->ctrl[idx] = 1;
 
-		if (n->ctrl[idx]) {
-			n->ctrl[idx] *= -1;
-			n->val[idx] *= -1;
-		}
-		else
-			n->ctrl[idx] = -1;
-		break;
-	case PADSLASHKEY:
-	case SLASHKEY:
-		n->inv[idx] = !n->inv[idx];
-		break;
-	case TABKEY:
-		idx++;
-		if (idx > idx_max)
-			idx = 0;
-		n->idx = idx;
-		break;
-	case PAD9:
-	case NINEKEY:
-		Val += 1.0f;
-	case PAD8:
-	case EIGHTKEY:
-		Val += 1.0f;
-	case PAD7:
-	case SEVENKEY:
-		Val += 1.0f;
-	case PAD6:
-	case SIXKEY:
-		Val += 1.0f;
-	case PAD5:
-	case FIVEKEY:
-		Val += 1.0f;
-	case PAD4:
-	case FOURKEY:
-		Val += 1.0f;
-	case PAD3:
-	case THREEKEY:
-		Val += 1.0f;
-	case PAD2:
-	case TWOKEY:
-		Val += 1.0f;
-	case PAD1:
-	case ONEKEY:
-		Val += 1.0f;
-	case PAD0:
-	case ZEROKEY:
-		if (!n->ctrl[idx])
-			n->ctrl[idx] = 1;
-
-		if (fabs(n->val[idx]) > 9999999.0f);
-		else if (n->ctrl[idx] == 1) {
-			n->val[idx] *= 10;
-			n->val[idx] += Val;
-		}
-		else if (n->ctrl[idx] == -1) {
-			n->val[idx] *= 10;
-			n->val[idx] -= Val;
-		}
-		else {
-			/* float resolution breaks when over six digits after comma */
-			if( ABS(n->ctrl[idx]) < 10000000) {
-				n->val[idx] += Val / (float)n->ctrl[idx];
-				n->ctrl[idx] *= 10;
+			n->val[idx] += increment;
+			break;
+		case BACKSPACEKEY:
+			if (n->ctrl[idx] == 0) {
+				n->val[0]		=
+					n->val[1]	=
+					n->val[2]	= 0.0f;
+				n->ctrl[0]		=
+					n->ctrl[1]	=
+					n->ctrl[2]	= 0;
+				n->inv[0]		=
+					n->inv[1]	=
+					n->inv[2]	= 0;
 			}
+			else {
+				n->val[idx] = 0.0f;
+				n->ctrl[idx] = 0;
+				n->inv[idx] = 0;
+			}
+			break;
+		case PERIODKEY:
+		case PADPERIOD:
+			if (n->flag & NUM_NO_FRACTION)
+				break;
+
+			switch (n->ctrl[idx])
+			{
+			case 0:
+			case 1:
+				n->ctrl[idx] = 10;
+				break;
+			case -1:
+				n->ctrl[idx] = -10;
+			}
+			break;
+		case PADMINUS:
+			if(event->alt)
+				break;
+		case MINUSKEY:
+			if (n->flag & NUM_NO_NEGATIVE)
+				break;
+
+			if (n->ctrl[idx]) {
+				n->ctrl[idx] *= -1;
+				n->val[idx] *= -1;
+			}
+			else
+				n->ctrl[idx] = -1;
+			break;
+		case PADSLASHKEY:
+		case SLASHKEY:
+			n->inv[idx] = !n->inv[idx];
+			break;
+		case TABKEY:
+			idx++;
+			if (idx > idx_max)
+				idx = 0;
+			n->idx = idx;
+			break;
+		case PAD9:
+		case NINEKEY:
+			Val += 1.0f;
+		case PAD8:
+		case EIGHTKEY:
+			Val += 1.0f;
+		case PAD7:
+		case SEVENKEY:
+			Val += 1.0f;
+		case PAD6:
+		case SIXKEY:
+			Val += 1.0f;
+		case PAD5:
+		case FIVEKEY:
+			Val += 1.0f;
+		case PAD4:
+		case FOURKEY:
+			Val += 1.0f;
+		case PAD3:
+		case THREEKEY:
+			Val += 1.0f;
+		case PAD2:
+		case TWOKEY:
+			Val += 1.0f;
+		case PAD1:
+		case ONEKEY:
+			Val += 1.0f;
+		case PAD0:
+		case ZEROKEY:
+			if (!n->ctrl[idx])
+				n->ctrl[idx] = 1;
+
+			if (fabs(n->val[idx]) > 9999999.0f);
+			else if (n->ctrl[idx] == 1) {
+				n->val[idx] *= 10;
+				n->val[idx] += Val;
+			}
+			else if (n->ctrl[idx] == -1) {
+				n->val[idx] *= 10;
+				n->val[idx] -= Val;
+			}
+			else {
+				/* float resolution breaks when over six digits after comma */
+				if( ABS(n->ctrl[idx]) < 10000000) {
+					n->val[idx] += Val / (float)n->ctrl[idx];
+					n->ctrl[idx] *= 10;
+				}
+			}
+			break;
+		default:
+			return 0;
 		}
-		break;
-	default:
-		return 0;
 	}
 	
 	/* REDRAW SINCE NUMBERS HAVE CHANGED */

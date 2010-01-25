@@ -470,6 +470,8 @@ static void view_editmove(unsigned short event)
 #define TFM_MODAL_CONS_OFF		15
 #define TFM_MODAL_ADD_SNAP		16
 #define TFM_MODAL_REMOVE_SNAP	17
+/*	18 and 19 used by numinput, defined in transform.h
+ * */
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
@@ -492,6 +494,8 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_CONS_OFF, "CONS_OFF", 0, "Remove Constraints", ""},
 	{TFM_MODAL_ADD_SNAP, "ADD_SNAP", 0, "Add Snap Point", ""},
 	{TFM_MODAL_REMOVE_SNAP, "REMOVE_SNAP", 0, "Remove Last Snap Point", ""},
+	{TFM_MODAL_INCREMENT_UP, "INCREMENT_UP", 0, "Numinput Increment Up", ""},
+	{TFM_MODAL_INCREMENT_DOWN, "INCREMENT_DOWN", 0, "Numinput Increment Down", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -518,6 +522,9 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, 0, 0, TFM_MODAL_ADD_SNAP);
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, KM_ALT, 0, TFM_MODAL_REMOVE_SNAP);
+
+	WM_modalkeymap_add_item(keymap, UPARROWKEY, KM_PRESS, 0, 0, TFM_MODAL_INCREMENT_UP);
+	WM_modalkeymap_add_item(keymap, DOWNARROWKEY, KM_PRESS, 0, 0, TFM_MODAL_INCREMENT_DOWN);
 
 	return keymap;
 }
@@ -702,6 +709,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				handled = 0;
 				break;
 		}
+
+		// Modal numinput events
+		t->redraw |= handleNumInput(&(t->num), event, t->snap[1]);
 	}
 	/* else do non-mapped events */
 	else if (event->val==KM_PRESS) {
