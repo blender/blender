@@ -90,6 +90,8 @@ class INFO_MT_file(bpy.types.Menu):
         layout.separator()
 
         layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
+        
+        layout.operator_context = 'EXEC_AREA'
         layout.operator("wm.read_homefile", text="Load Factory Settings").factory = True
 
         layout.separator()

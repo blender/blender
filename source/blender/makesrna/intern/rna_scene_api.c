@@ -108,6 +108,9 @@ void RNA_api_scene(StructRNA *srna)
 	parm= RNA_def_int(func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set.", MINAFRAME, MAXFRAME);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
+	func= RNA_def_function(srna, "update", "scene_update_tagged");
+	RNA_def_function_ui_description(func, "Update data tagged to be updated from previous access to data or operators.");
+
 	/* Add Keying Set */
 	func= RNA_def_function(srna, "add_keying_set", "rna_Scene_add_keying_set");
 	RNA_def_function_ui_description(func, "Add a new Keying Set to Scene.");
