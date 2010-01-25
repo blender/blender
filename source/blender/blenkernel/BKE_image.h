@@ -128,7 +128,7 @@ struct Image *BKE_image_verify_viewer(int type, const char *name);
 void BKE_image_assign_ibuf(struct Image *ima, struct ImBuf *ibuf);
 
 /* called on frame change or before render */
-void BKE_image_user_calc_imanr(struct ImageUser *iuser, int cfra, int fieldnr);
+void BKE_image_user_calc_frame(struct ImageUser *iuser, int cfra, int fieldnr);
 
 /* produce image export path */
 int BKE_get_image_export_path(struct Image *im, const char *dest_dir, char *abs, int abs_size, char *rel, int rel_size);

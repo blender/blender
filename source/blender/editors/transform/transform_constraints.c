@@ -203,8 +203,6 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	if(in[0]==0.0f && in[1]==0.0f && in[2]==0.0f)
 		return;
 
-	print_v3("viewinv[2]", t->viewinv[2]);
-
 	angle = fabs(angle_v3v3(axis, t->viewinv[2]));
 	if (angle > M_PI / 2) {
 		angle = M_PI - angle;

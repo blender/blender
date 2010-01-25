@@ -52,6 +52,10 @@ class ExportUVLayout(bpy.types.Operator):
         return image_width, image_height
 
     def execute(self, context):
+        # for making an XML compatible string
+        from xml.sax.saxutils import escape
+        from os.path import basename
+        
         ob = context.active_object
         is_editmode = (ob.mode == 'EDIT')
         if is_editmode:
@@ -84,15 +88,17 @@ class ExportUVLayout(bpy.types.Operator):
         fw('<svg width="%dpx" height="%dpx" viewBox="0px 0px %dpx %dpx"\n' % (image_width, image_height, image_width, image_height))
         fw('     xmlns="http://www.w3.org/2000/svg" version="1.1">\n')
         
-        fw('<desc>%s, %s, %s (Blender %s)</desc>\n' % (bpy.data.filename, ob.name, mesh.name, bpy.app.version_string))
-        
+        desc = "%s, %s, %s (Blender %s)" % (basename(bpy.data.filename), ob.name, mesh.name, bpy.app.version_string)
+        fw('<desc>%s</desc>\n' % escape(desc))
+
         # svg colors
         fill_settings = []
+        fill_default = 'fill="grey"'
         for mat in mesh.materials if mesh.materials else [None]:
             if mat:
                 fill_settings.append('fill="rgb(%d, %d, %d)"' % tuple(int(c*255) for c in mat.diffuse_color))
             else:
-                fill_settings.append('fill="grey"')
+                fill_settings.append(fill_default)
         
         only_selected = self.properties.only_selected
         
@@ -105,8 +111,13 @@ class ExportUVLayout(bpy.types.Operator):
                 uvs = uv.uv1, uv.uv2, uv.uv3
             else:
                 uvs = uv.uv1, uv.uv2, uv.uv3, uv.uv4
+            
+            try: # rare cases material index is invalid.
+                fill = fill_settings[faces[i].material_index]
+            except IndexError:
+                fill = fill_default
 
-            fw('<polygon %s fill-opacity="0.5" stroke="black" stroke-width="1px" \n' % fill_settings[faces[i].material_index])
+            fw('<polygon %s fill-opacity="0.5" stroke="black" stroke-width="1px" \n' % fill)
             fw('  points="')
             
             for j, uv in enumerate(uvs):

@@ -28,6 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_color_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
@@ -114,6 +115,17 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 		uiItemR(row, "", 0, ptr, "display_armature", 0);
 	if (mainptr && mainptr->particle.first)
 		uiItemR(row, "", 0, ptr, "display_particle", 0);
+	
+	/* group-based filtering (only when groups are available */
+	if (mainptr && mainptr->group.first) {
+		row= uiLayoutRow(layout, 1);
+		
+		uiItemR(row, "", 0, ptr, "only_group_objects", 0);
+		
+		/* if enabled, show the group selection field too */
+		if (RNA_boolean_get(ptr, "only_group_objects"))
+			uiItemR(row, "", 0, ptr, "filtering_group", 0);
+	}
 }
 
 /********************** Search Callbacks *************************/
@@ -602,9 +614,10 @@ void uiTemplatePathBuilder(uiLayout *layout, bContext *C, PointerRNA *ptr, char 
 
 static void modifiers_setOnCage(bContext *C, void *ob_v, void *md_v)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *ob = ob_v;
 	ModifierData *md= md_v;
-	int i, cageIndex = modifiers_getCageIndex(ob, NULL, 0);
+	int i, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 0);
 
 	/* undo button operation */
 	md->mode ^= eModifierMode_OnCage;
@@ -652,13 +665,13 @@ static int modifier_can_delete(ModifierData *md)
 	return 1;
 }
 
-static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex)
+static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, ModifierData *md, int index, int cageIndex, int lastCageIndex, int compact)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	PointerRNA ptr;
 	uiBut *but;
 	uiBlock *block;
-	uiLayout *box, *column, *row;
+	uiLayout *box, *column, *row, *col;
 	uiLayout *result= NULL;
 	int isVirtual = (md->mode & eModifierMode_Virtual);
 	char str[128];
@@ -672,11 +685,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	/* rounded header ------------------------------------------------------------------- */
 	box= uiLayoutBox(column);
 	
-	row= uiLayoutRow(box, 0);
-	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
-	block= uiLayoutGetBlock(row);
-	
 	if (isVirtual) {
+		row= uiLayoutRow(box, 0);
+		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
+		block= uiLayoutGetBlock(row);
 		/* VIRTUAL MODIFIER */
 		// XXX this is not used now, since these cannot be accessed via RNA
 		sprintf(str, "%s parent deform", md->name);
@@ -687,62 +699,88 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	}
 	else {
 		/* REAL MODIFIER */
-		uiLayout *subrow, *col2;
+		uiLayout *split;
+		
+		split = uiLayoutSplit(box, 0.16, 0);
+		
+		col= uiLayoutColumn(split, 0);
+		row = uiLayoutRow(col, 1);
+		
+		block = uiLayoutGetBlock(row);
+		
+		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
 		/* Open/Close .................................  */
-		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, 0, ICON_TRIA_RIGHT, 0, 0, UI_UNIT_X, UI_UNIT_Y, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
+		uiItemR(row, "", 0, &ptr, "expanded", 0);
 		
 		/* modifier-type icon */
 		uiItemL(row, "", RNA_struct_ui_icon(ptr.type));
+		
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		
+	
 		/* 'Middle Column' ............................ 
 		 *	- first row is the name of the modifier 
 		 *	- second row is the visibility settings, since the layouts were not wide enough to show all
 		 */
-		col2= uiLayoutColumn(row, 0);
-			/* First Row */
-			subrow= uiLayoutRow(col2, 0);
-				/* modifier name */
-				uiItemR(subrow, "", 0, &ptr, "name", 0);
+		col= uiLayoutColumn(split, 0);
+		
+		row= uiLayoutRow(col, 0);
+		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_EXPAND);
+		
+		block = uiLayoutGetBlock(row);
+		
+		/* modifier name */
+		uiItemR(row, "", 0, &ptr, "name", 0);
+		
+		if (compact) {
+			/* insert delete button at end of top row before splitting to second line */
+			uiBlockSetEmboss(block, UI_EMBOSSN);
+			if (modifier_can_delete(md))
+				uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
+			uiBlockSetEmboss(block, UI_EMBOSS);
 			
-			/* Second Row */
-			subrow= uiLayoutRow(col2, 1);
-			uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_EXPAND);
-			block= uiLayoutGetBlock(subrow);
-				/* Softbody not allowed in this situation, enforce! */
-				if ( ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) 
-						&& (md->type!=eModifierType_Surface) ) 
-				{
-					uiItemR(subrow, "", ICON_SCENE, &ptr, "render", 0);
-					uiItemR(subrow, "", ICON_RESTRICT_VIEW_OFF, &ptr, "realtime", 0);
-					
-					if (mti->flags & eModifierTypeFlag_SupportsEditmode)
-						uiItemR(subrow, "", ICON_EDITMODE_HLT, &ptr, "editmode", 0);
-				}
-				
-				if ((ob->type==OB_MESH) && modifier_couldBeCage(md) && (index <= lastCageIndex)) 
-				{
-					but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
-					if (index < cageIndex)
-						uiButSetFlag(but, UI_BUT_DISABLED);
-					uiButSetFunc(but, modifiers_setOnCage, ob, md);
-				}
-			
-		/* Up/Down + Delete ........................... */
-		block= uiLayoutGetBlock(row);
+			split = uiLayoutSplit(box, 0.17, 0);
+			col= uiLayoutColumn(split, 0);
+			uiItemL(col, "", 0);
+			col= uiLayoutColumn(split, 0);
+			row = uiLayoutRow(col, 1);
+		}
+		
+		/* mode enabling buttons */
 		uiBlockBeginAlign(block);
-			uiItemO(row, "", ICON_TRIA_UP, "OBJECT_OT_modifier_move_up");
-			uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
+		/* Softbody not allowed in this situation, enforce! */
+		if ( ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) 
+			&& (md->type!=eModifierType_Surface) ) 
+		{
+			uiItemR(row, "", 0, &ptr, "render", 0);
+			uiItemR(row, "", 0, &ptr, "realtime", 0);
+			
+			if (mti->flags & eModifierTypeFlag_SupportsEditmode)
+				uiItemR(row, "", 0, &ptr, "editmode", 0);
+		}
+		if ((ob->type==OB_MESH) && modifier_couldBeCage(scene, md) && (index <= lastCageIndex)) 
+		{
+			/* -- convert to rna ? */
+			but = uiDefIconButBitI(block, TOG, eModifierMode_OnCage, 0, ICON_MESH_DATA, 0, 0, 16, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+			if (index < cageIndex)
+				uiButSetFlag(but, UI_BUT_DISABLED);
+			uiButSetFunc(but, modifiers_setOnCage, ob, md);
+		}
 		uiBlockEndAlign(block);
 		
-		uiBlockSetEmboss(block, UI_EMBOSSN);
+		/* Up/Down + Delete ........................... */
+		uiBlockBeginAlign(block);
+		uiItemO(row, "", ICON_TRIA_UP, "OBJECT_OT_modifier_move_up");
+		uiItemO(row, "", ICON_TRIA_DOWN, "OBJECT_OT_modifier_move_down");
+		uiBlockEndAlign(block);
 		
-		if (modifier_can_delete(md))
-			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
-			
-		uiBlockSetEmboss(block, UI_EMBOSS);
+		if(!compact) {
+			uiBlockSetEmboss(block, UI_EMBOSSN);
+			if (modifier_can_delete(md))
+				uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
+			uiBlockSetEmboss(block, UI_EMBOSS);
+		}
 	}
 
 	
@@ -793,8 +831,9 @@ static uiLayout *draw_modifier(uiLayout *layout, Object *ob, ModifierData *md, i
 	return result;
 }
 
-uiLayout *uiTemplateModifier(uiLayout *layout, PointerRNA *ptr)
+uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr, int compact)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *ob;
 	ModifierData *md, *vmd;
 	int i, lastCageIndex, cageIndex;
@@ -816,14 +855,14 @@ uiLayout *uiTemplateModifier(uiLayout *layout, PointerRNA *ptr)
 	uiBlockSetButLock(uiLayoutGetBlock(layout), (ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
 	
 	/* find modifier and draw it */
-	cageIndex = modifiers_getCageIndex(ob, &lastCageIndex, 0);
+	cageIndex = modifiers_getCageIndex(scene, ob, &lastCageIndex, 0);
 
 	// XXX virtual modifiers are not accesible for python
 	vmd = modifiers_getVirtualModifierList(ob);
 
 	for(i=0; vmd; i++, vmd=vmd->next) {
 		if(md == vmd)
-			return draw_modifier(layout, ob, md, i, cageIndex, lastCageIndex);
+			return draw_modifier(layout, scene, ob, md, i, cageIndex, lastCageIndex, compact);
 		else if(vmd->mode & eModifierMode_Virtual)
 			i--;
 	}
@@ -1527,9 +1566,45 @@ void uiTemplateColorRamp(uiLayout *layout, PointerRNA *ptr, char *propname, int 
 	MEM_freeN(cb);
 }
 
+/********************* Histogram Template ************************/
+
+void uiTemplateHistogram(uiLayout *layout, PointerRNA *ptr, char *propname, int expand)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
+	PointerRNA cptr;
+	RNAUpdateCb *cb;
+	uiBlock *block;
+	uiBut *bt;
+	Histogram *hist;
+	rctf rect;
+	
+	if(!prop || RNA_property_type(prop) != PROP_POINTER)
+		return;
+	
+	cptr= RNA_property_pointer_get(ptr, prop);
+	if(!cptr.data || !RNA_struct_is_a(cptr.type, &RNA_Histogram))
+		return;
+	
+	cb= MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
+	cb->ptr= *ptr;
+	cb->prop= prop;
+	
+	rect.xmin= 0; rect.xmax= 200;
+	rect.ymin= 0; rect.ymax= 190;
+	
+	block= uiLayoutAbsoluteBlock(layout);
+	//colorband_buttons_layout(layout, block, cptr.data, &rect, !expand, cb);
+	
+	hist = (Histogram *)cptr.data;
+	
+	bt= uiDefBut(block, HISTOGRAM, 0, "",		rect.xmin, rect.ymin, rect.xmax-rect.xmin, 100.0f, hist, 0, 0, 0, 0, "");
+	uiButSetNFunc(bt, rna_update_cb, MEM_dupallocN(cb), NULL);
+	
+	MEM_freeN(cb);
+}
+
 /********************* CurveMapping Template ************************/
 
-#include "DNA_color_types.h"
 #include "BKE_colortools.h"
 
 static void curvemap_buttons_zoom_in(bContext *C, void *cumap_v, void *unused)
@@ -1742,6 +1817,7 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	uiBut *bt;
 	float dx= UI_UNIT_X;
 	int icon, size;
+	int bg=-1;
 
 	block= uiLayoutGetBlock(layout);
 
@@ -1788,8 +1864,29 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
 		}
 	}
+	else if (labeltype == 'h') {
+		/* HSV */
+		sub= uiLayoutRow(row, 1);
+		uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
+		
+		if(cumap->cm[0].curve) {
+			bt= uiDefButI(block, ROW, 0, "H", 0, 0, dx, 16, &cumap->cur, 0.0, 0.0, 0.0, 0.0, "");
+			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
+		}
+		if(cumap->cm[1].curve) {
+			bt= uiDefButI(block, ROW, 0, "S", 0, 0, dx, 16, &cumap->cur, 0.0, 1.0, 0.0, 0.0, "");
+			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
+		}
+		if(cumap->cm[2].curve) {
+			bt= uiDefButI(block, ROW, 0, "V", 0, 0, dx, 16, &cumap->cur, 0.0, 2.0, 0.0, 0.0, "");
+			uiButSetFunc(bt, curvemap_buttons_redraw, NULL, NULL);
+		}
+	}
 	else
 		uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
+	
+	if (labeltype=='h')
+		bg = UI_GRAD_H;
 
 	/* operation buttons */
 	sub= uiLayoutRow(row, 1);
@@ -1823,7 +1920,7 @@ static void curvemap_buttons_layout(uiLayout *layout, PointerRNA *ptr, char labe
 	/* curve itself */
 	size= uiLayoutGetWidth(layout);
 	row= uiLayoutRow(layout, 0);
-	uiDefBut(block, BUT_CURVE, 0, "", 0, 0, size, MIN2(size, 200), cumap, 0.0f, 1.0f, 0, 0, "");
+	uiDefBut(block, BUT_CURVE, 0, "", 0, 0, size, MIN2(size, 200), cumap, 0.0f, 1.0f, bg, 0, "");
 
 	/* black/white levels */
 	if(levels) {

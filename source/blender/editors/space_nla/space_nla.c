@@ -485,13 +485,14 @@ static void nla_listener(ScrArea *sa, wmNotifier *wmn)
 			ED_area_tag_refresh(sa);
 			break;
 		case NC_OBJECT:
-			/*switch (wmn->data) {
-				case ND_BONE_SELECT:
-				case ND_BONE_ACTIVE:
+			switch (wmn->data) {
+				case ND_TRANSFORM:
+					/* do nothing */
+					break;
+				default:
 					ED_area_tag_refresh(sa);
 					break;
-			}*/
-			ED_area_tag_refresh(sa);
+			}
 			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_NLA)

@@ -108,11 +108,13 @@ static void redo_cb(bContext *C, void *arg_op, void *arg2)
 	if(lastop) {
 		int retval;
 		
-		printf("operator redo %s\n", lastop->type->name);
+		if (G.f & G_DEBUG)
+			printf("operator redo %s\n", lastop->type->name);
 		ED_undo_pop_op(C, lastop);
 		retval= WM_operator_repeat(C, lastop);
 		if((retval & OPERATOR_FINISHED)==0) {
-			printf("operator redo failed %s\n", lastop->type->name);
+			if (G.f & G_DEBUG)
+				printf("operator redo failed %s\n", lastop->type->name);
 			ED_undo_redo(C);
 		}
 	}
@@ -159,6 +161,19 @@ static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)
 	else BLI_strncpy(pa->drawname, "Operator", sizeof(pa->drawname));
 }
 
+static void view3d_panel_operator_redo_operator(const bContext *C, Panel *pa, wmOperator *op)
+{
+	if(op->type->flag & OPTYPE_MACRO) {
+		for(op= op->macro.first; op; op= op->next) {
+			uiItemL(pa->layout, op->idname, 0);
+			view3d_panel_operator_redo_operator(C, pa, op);
+		}
+	}
+	else {
+		view3d_panel_operator_redo_buts(C, pa, op);
+	}
+}
+
 static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 {
 	wmOperator *op= view3d_last_operator(C);
@@ -173,13 +188,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 
 	uiBlockSetFunc(block, redo_cb, op, NULL);
 	
-	if(op->macro.first) {
-		for(op= op->macro.first; op; op= op->next)
-			view3d_panel_operator_redo_buts(C, pa, op);
-	}
-	else {
-		view3d_panel_operator_redo_buts(C, pa, op);
-	}
+	view3d_panel_operator_redo_operator(C, pa, op);
 }
 
 /* ******************* */

@@ -219,7 +219,7 @@ typedef struct ThemeSpace {
 	char handle_vertex_size;
 	char hpad[3];
 	
-	char pad[4];
+	char preview_back[4];
 	
 } ThemeSpace;
 
@@ -341,7 +341,10 @@ typedef struct UserDef {
 	short ndof_pan, ndof_rotate;
 	short curssize, ipo_new;
 	short color_picker_type;
-	short pad2[3];
+	short pad2;
+
+	short scrcastfps;		/* frame rate for screencast to be played back */
+	short scrcastwait;		/* milliseconds between screencast snapshots */
 
 	char versemaster[160];
 	char verseuser[160];

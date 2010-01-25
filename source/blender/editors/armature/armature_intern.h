@@ -86,6 +86,7 @@ void POSE_OT_select_parent(struct wmOperatorType *ot);
 void POSE_OT_select_hierarchy(struct wmOperatorType *ot);
 void POSE_OT_select_linked(struct wmOperatorType *ot);
 void POSE_OT_select_constraint_target(struct wmOperatorType *ot);
+void POSE_OT_select_grouped(struct wmOperatorType *ot);
 
 void POSE_OT_group_add(struct wmOperatorType *ot);
 void POSE_OT_group_remove(struct wmOperatorType *ot);
@@ -98,6 +99,8 @@ void POSE_OT_paths_clear(struct wmOperatorType *ot);
 
 void POSE_OT_autoside_names(struct wmOperatorType *ot);
 void POSE_OT_flip_names(struct wmOperatorType *ot);
+
+void POSE_OT_quaternions_flip(struct wmOperatorType *ot);
 
 void POSE_OT_flags_set(struct wmOperatorType *ot);
 

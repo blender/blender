@@ -2214,7 +2214,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	return BKE_image_acquire_ibuf(ima, iuser, NULL);
 }
 
-void BKE_image_user_calc_imanr(ImageUser *iuser, int cfra, int fieldnr)
+void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
 {
 	int imanr, len;
 	

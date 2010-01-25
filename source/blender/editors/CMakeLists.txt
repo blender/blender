@@ -27,7 +27,7 @@
 FILE(GLOB SRC */*.c)
 
 SET(INC ../windowmanager
-	../editors/include
+	../editors/include ../editors/interface
 	../../../intern/guardedalloc ../../../intern/memutil
 	../blenlib ../makesdna ../makesrna ../blenkernel
 	../include ../imbuf ../render/extern/include

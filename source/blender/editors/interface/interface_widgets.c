@@ -986,7 +986,10 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	if (ELEM4(but->type, NUM, NUMABS, NUMSLI, SLI)) {
 		ui_text_label_rightclip(fstyle, but, rect);
 	}
-	else if (ELEM(but->type, TEX, SEARCH_MENU)) {	
+	else if (ELEM(but->type, TEX, SEARCH_MENU)) {
+		ui_text_leftclip(fstyle, but, rect);
+	}
+	else if ((but->block->flag & UI_BLOCK_LOOP) && (but->type == BUT)) {
 		ui_text_leftclip(fstyle, but, rect);
 	}
 	else but->ofs= 0;
@@ -1607,64 +1610,57 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 /* ************ custom buttons, old stuff ************** */
 
 /* draws in resolution of 20x4 colors */
-static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
+void ui_draw_gradient(rcti *rect, float *rgb, int type, float alpha)
 {
 	int a;
-	float rgb[3], h,s,v;
-	float dx, dy, sx1, sx2, sy, x=0.0f, y=0.0f;
+	float h, s, v;
+	float dx, dy, sx1, sx2, sy;
 	float col0[4][3];	// left half, rect bottom to top
 	float col1[4][3];	// right half, rect bottom to top
 	
-	ui_get_but_vectorf(but, rgb);
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], &h, &s, &v);
 	
 	/* draw series of gouraud rects */
 	glShadeModel(GL_SMOOTH);
 	
-	
-	if(but->a1==0) {	// S and V vary
-		hsv_to_rgb(h, 0.0, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-		hsv_to_rgb(h, 0.333, 0.0, &col1[1][0], &col1[1][1], &col1[1][2]);
-		hsv_to_rgb(h, 0.666, 0.0, &col1[2][0], &col1[2][1], &col1[2][2]);
-		hsv_to_rgb(h, 1.0, 0.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		x= v; y= s;
+	switch(type) {
+		case UI_GRAD_SV:
+			hsv_to_rgb(h, 0.0, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			hsv_to_rgb(h, 0.333, 0.0, &col1[1][0], &col1[1][1], &col1[1][2]);
+			hsv_to_rgb(h, 0.666, 0.0, &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(h, 1.0, 0.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
+			break;
+		case UI_GRAD_HV:
+			hsv_to_rgb(0.0, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			hsv_to_rgb(0.0, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
+			hsv_to_rgb(0.0, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(0.0, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
+			break;
+		case UI_GRAD_HS:
+			hsv_to_rgb(0.0, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			hsv_to_rgb(0.0, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
+			hsv_to_rgb(0.0, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
+			hsv_to_rgb(0.0, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
+			break;
+		case UI_GRAD_H:
+			hsv_to_rgb(0.0, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+			VECCOPY(col1[1], col1[0]);
+			VECCOPY(col1[2], col1[0]);
+			VECCOPY(col1[3], col1[0]);
+			break;
+		case UI_GRAD_S:
+			hsv_to_rgb(1.0, 0.0, 1.0,   &col1[1][0], &col1[1][1], &col1[1][2]);
+			VECCOPY(col1[0], col1[1]);
+			VECCOPY(col1[2], col1[1]);
+			VECCOPY(col1[3], col1[1]);
+			break;
+		case UI_GRAD_V:
+			hsv_to_rgb(1.0, 1.0, 0.0,   &col1[2][0], &col1[2][1], &col1[2][2]);
+			VECCOPY(col1[0], col1[2]);
+			VECCOPY(col1[1], col1[2]);
+			VECCOPY(col1[3], col1[2]);
+			break;
 	}
-	else if(but->a1==1) {	// H and V vary
-		hsv_to_rgb(0.0, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-		hsv_to_rgb(0.0, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
-		hsv_to_rgb(0.0, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
-		hsv_to_rgb(0.0, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		x= h; y= v;
-	}
-	else if(but->a1==2) {	// H and S vary
-		hsv_to_rgb(0.0, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
-		hsv_to_rgb(0.0, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
-		hsv_to_rgb(0.0, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
-		hsv_to_rgb(0.0, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		x= h; y= s;
-	}
-	else if(but->a1==3) {	// only H
-		hsv_to_rgb(0.0, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-		VECCOPY(col1[1], col1[0]);
-		VECCOPY(col1[2], col1[0]);
-		VECCOPY(col1[3], col1[0]);
-		x= h; y= 0.5;
-	}
-	else if(but->a1==4) {	// only S
-		hsv_to_rgb(1.0, 0.0, 1.0,   &col1[1][0], &col1[1][1], &col1[1][2]);
-		VECCOPY(col1[0], col1[1]);
-		VECCOPY(col1[2], col1[1]);
-		VECCOPY(col1[3], col1[1]);
-		x= s; y= 0.5;
-	}
-	else if(but->a1==5) {	// only V
-		hsv_to_rgb(1.0, 1.0, 0.0,   &col1[2][0], &col1[2][1], &col1[2][2]);
-		VECCOPY(col1[0], col1[2]);
-		VECCOPY(col1[1], col1[2]);
-		VECCOPY(col1[3], col1[2]);
-		x= v; y= 0.5;
-	}
-	
 	
 	/* old below */
 	
@@ -1676,41 +1672,43 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 		VECCOPY(col0[3], col1[3]);
 		
 		// new color
-		if(but->a1==0) {	// S and V vary
-			hsv_to_rgb(h, 0.0, dx,   &col1[0][0], &col1[0][1], &col1[0][2]);
-			hsv_to_rgb(h, 0.333, dx, &col1[1][0], &col1[1][1], &col1[1][2]);
-			hsv_to_rgb(h, 0.666, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
-			hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		}
-		else if(but->a1==1) {	// H and V vary
-			hsv_to_rgb(dx, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-			hsv_to_rgb(dx, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
-			hsv_to_rgb(dx, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
-			hsv_to_rgb(dx, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		}
-		else if(but->a1==2) {	// H and S vary
-			hsv_to_rgb(dx, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
-			hsv_to_rgb(dx, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
-			hsv_to_rgb(dx, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
-			hsv_to_rgb(dx, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
-		}
-		else if(but->a1==3) {	// only H
-			hsv_to_rgb(dx, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
-			VECCOPY(col1[1], col1[0]);
-			VECCOPY(col1[2], col1[0]);
-			VECCOPY(col1[3], col1[0]);
-		}
-		else if(but->a1==4) {	// only S
-			hsv_to_rgb(h, dx, 1.0,   &col1[1][0], &col1[1][1], &col1[1][2]);
-			VECCOPY(col1[0], col1[1]);
-			VECCOPY(col1[2], col1[1]);
-			VECCOPY(col1[3], col1[1]);
-		}
-		else if(but->a1==5) {	// only V
-			hsv_to_rgb(h, 1.0, dx,   &col1[2][0], &col1[2][1], &col1[2][2]);
-			VECCOPY(col1[0], col1[2]);
-			VECCOPY(col1[1], col1[2]);
-			VECCOPY(col1[3], col1[2]);
+		switch(type) {
+			case UI_GRAD_SV:
+				hsv_to_rgb(h, 0.0, dx,   &col1[0][0], &col1[0][1], &col1[0][2]);
+				hsv_to_rgb(h, 0.333, dx, &col1[1][0], &col1[1][1], &col1[1][2]);
+				hsv_to_rgb(h, 0.666, dx, &col1[2][0], &col1[2][1], &col1[2][2]);
+				hsv_to_rgb(h, 1.0, dx,   &col1[3][0], &col1[3][1], &col1[3][2]);
+				break;
+			case UI_GRAD_HV:
+				hsv_to_rgb(dx, s, 0.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+				hsv_to_rgb(dx, s, 0.333, &col1[1][0], &col1[1][1], &col1[1][2]);
+				hsv_to_rgb(dx, s, 0.666, &col1[2][0], &col1[2][1], &col1[2][2]);
+				hsv_to_rgb(dx, s, 1.0,   &col1[3][0], &col1[3][1], &col1[3][2]);
+				break;
+			case UI_GRAD_HS:
+				hsv_to_rgb(dx, 0.0, v,   &col1[0][0], &col1[0][1], &col1[0][2]);
+				hsv_to_rgb(dx, 0.333, v, &col1[1][0], &col1[1][1], &col1[1][2]);
+				hsv_to_rgb(dx, 0.666, v, &col1[2][0], &col1[2][1], &col1[2][2]);
+				hsv_to_rgb(dx, 1.0, v,   &col1[3][0], &col1[3][1], &col1[3][2]);
+				break;
+			case UI_GRAD_H:
+				hsv_to_rgb(dx, 1.0, 1.0,   &col1[0][0], &col1[0][1], &col1[0][2]);
+				VECCOPY(col1[1], col1[0]);
+				VECCOPY(col1[2], col1[0]);
+				VECCOPY(col1[3], col1[0]);
+				break;
+			case UI_GRAD_S:
+				hsv_to_rgb(h, dx, 1.0,   &col1[1][0], &col1[1][1], &col1[1][2]);
+				VECCOPY(col1[0], col1[1]);
+				VECCOPY(col1[2], col1[1]);
+				VECCOPY(col1[3], col1[1]);
+				break;
+			case UI_GRAD_V:
+				hsv_to_rgb(h, 1.0, dx,   &col1[2][0], &col1[2][1], &col1[2][2]);
+				VECCOPY(col1[0], col1[2]);
+				VECCOPY(col1[1], col1[2]);
+				VECCOPY(col1[3], col1[2]);
+				break;
 		}
 		
 		// rect
@@ -1721,22 +1719,51 @@ static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 		
 		glBegin(GL_QUADS);
 		for(a=0; a<3; a++, sy+=dy) {
-			glColor3fv(col0[a]);
+			glColor4f(col0[a][0], col0[a][1], col0[a][2], alpha);
 			glVertex2f(sx1, sy);
 			
-			glColor3fv(col1[a]);
+			glColor4f(col1[a][0], col1[a][1], col1[a][2], alpha);
 			glVertex2f(sx2, sy);
-			
-			glColor3fv(col1[a+1]);
+
+			glColor4f(col1[a+1][0], col1[a+1][1], col1[a+1][2], alpha);
 			glVertex2f(sx2, sy+dy);
 			
-			glColor3fv(col0[a+1]);
+			glColor4f(col0[a+1][0], col0[a+1][1], col0[a+1][2], alpha);
 			glVertex2f(sx1, sy+dy);
 		}
 		glEnd();
 	}
 	
 	glShadeModel(GL_FLAT);
+	
+}
+
+
+
+static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
+{
+	float rgb[3], h,s,v;
+	float x=0.0f, y=0.0f;
+	
+	ui_get_but_vectorf(but, rgb);
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], &h, &s, &v);
+	
+	ui_draw_gradient(rect, rgb, but->a1, 1.f);
+	
+	switch((int)but->a1) {
+		case UI_GRAD_SV:
+			x= v; y= s; break;
+		case UI_GRAD_HV:
+			x= h; y= v; break;
+		case UI_GRAD_HS:
+			x= h; y= s; break;
+		case UI_GRAD_H:
+			x= h; y= 0.5; break;
+		case UI_GRAD_S:
+			x= s; y= 0.5; break;
+		case UI_GRAD_V:
+			x= v; y= 0.5; break;
+	}
 	
 	/* cursor */
 	x= rect->xmin + x*(rect->xmax-rect->xmin);
@@ -1796,6 +1823,7 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	
 }
 
+
 /* ************ separator, for menus etc ***************** */
 static void ui_draw_separator(uiBut *but, rcti *rect,  uiWidgetColors *wcol)
 {
@@ -1839,8 +1867,8 @@ static void widget_numbut(uiWidgetColors *wcol, rcti *rect, int state, int round
 	rect->xmax -= textofs;
 }
 
-
-static int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
+//static int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
+int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol)
 {
 	float dist, vec[4][2];
 
@@ -2121,6 +2149,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	wcol->inner[0]= FTOCHAR(col[0]);
 	wcol->inner[1]= FTOCHAR(col[1]);
 	wcol->inner[2]= FTOCHAR(col[2]);
+	wcol->shaded = 0;
 	
 	widgetbase_draw(&wtb, wcol);
 	
@@ -2662,6 +2691,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				
 			case BUT_IMAGE:
 				ui_draw_but_IMAGE(ar, but, &tui->wcol_regular, rect);
+				break;
+			
+			case HISTOGRAM:
+				ui_draw_but_HISTOGRAM(but, &tui->wcol_regular, rect);
 				break;
 				
 			case BUT_CURVE:

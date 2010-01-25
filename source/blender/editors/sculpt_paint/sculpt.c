@@ -1460,12 +1460,12 @@ static void sculpt_update_tex(Sculpt *sd, SculptSession *ss)
 }
 
 /* Checks whether full update mode (slower) needs to be used to work with modifiers */
-char sculpt_modifiers_active(Object *ob)
+static int sculpt_modifiers_active(Scene *scene, Object *ob)
 {
 	ModifierData *md;
 	
 	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
-		if(modifier_isEnabled(md, eModifierMode_Realtime))
+		if(modifier_isEnabled(scene, md, eModifierMode_Realtime))
 			if(!ELEM(md->type, eModifierType_Multires, eModifierType_ShapeKey))
 				return 1;
 	}
@@ -1801,7 +1801,9 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 
 static void sculpt_stroke_modifiers_check(bContext *C, SculptSession *ss)
 {
-	if(sculpt_modifiers_active(ss->ob)) {
+	Scene *scene= CTX_data_scene(C);
+
+	if(sculpt_modifiers_active(scene, ss->ob)) {
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = paint_brush(&sd->paint);
 
@@ -1979,6 +1981,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 
 static void sculpt_flush_update(bContext *C)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	ARegion *ar = CTX_wm_region(C);
@@ -1988,7 +1991,7 @@ static void sculpt_flush_update(bContext *C)
 	if(mmd)
 		multires_mark_as_modified(ob);
 
-	if(sculpt_modifiers_active(ob)) {
+	if(sculpt_modifiers_active(scene, ob)) {
 		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		ED_region_tag_redraw(ar);
 	}

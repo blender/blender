@@ -113,21 +113,28 @@ static ActKeyColumn *time_cfra_find_ak (ActKeyColumn *ak, float cframe)
 }
 
 /* helper for time_draw_keyframes() */
-static void time_draw_idblock_keyframes(View2D *v2d, ID *id)
+static void time_draw_idblock_keyframes(View2D *v2d, ID *id, short onlysel)
 {
+	bDopeSheet ads;
 	DLRBT_Tree keys;
 	ActKeyColumn *ak;
 	
 	/* init binarytree-list for getting keyframes */
 	BLI_dlrbTree_init(&keys);
 	
+	/* init dopesheet settings */
+	// FIXME: the ob_to_keylist function currently doesn't take this into account...
+	memset(&ads, 0, sizeof(bDopeSheet));
+	if (onlysel)
+		ads.filterflag |= ADS_FILTER_ONLYSEL;
+	
 	/* populate tree with keyframe nodes */
 	switch (GS(id->name)) {
 		case ID_SCE:
-			scene_to_keylist(NULL, (Scene *)id, &keys, NULL);
+			scene_to_keylist(&ads, (Scene *)id, &keys, NULL);
 			break;
 		case ID_OB:
-			ob_to_keylist(NULL, (Object *)id, &keys, NULL);
+			ob_to_keylist(&ads, (Object *)id, &keys, NULL);
 			break;
 	}
 		
@@ -159,21 +166,47 @@ static void time_draw_keyframes(const bContext *C, SpaceTime *stime, ARegion *ar
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	View2D *v2d= &ar->v2d;
+	short onlysel= (stime->flag & TIME_ONLYACTSEL);
 	
 	/* draw scene keyframes first 
-	 *	- only if we're not only showing the 
+	 *	- don't try to do this when only drawing active/selected data keyframes,
+	 *	  since this can become quite slow
 	 */
-	if ((scene) && (stime->flag & TIME_ONLYACTSEL)==0) {
+	if (scene && onlysel==0) {
 		/* set draw color */
 		glColor3ub(0xDD, 0xA7, 0x00);
-		time_draw_idblock_keyframes(v2d, (ID *)scene);
+		time_draw_idblock_keyframes(v2d, (ID *)scene, onlysel);
 	}
 	
-	/* draw active object's keyframes */
-	if (ob) {
-		/* set draw color */
-		glColor3ub(0xDD, 0xD7, 0x00);
-		time_draw_idblock_keyframes(v2d, (ID *)ob);
+	/* draw keyframes from selected objects 
+	 *	- only do the active object if in posemode (i.e. showing only keyframes for the bones)
+	 *	  OR the onlysel flag was set, which means that only active object's keyframes should
+	 *	  be considered
+	 */
+	glColor3ub(0xDD, 0xD7, 0x00);
+	
+	if (ob && ((ob->mode == OB_MODE_POSE) || onlysel)) {
+		/* draw keyframes for active object only */
+		time_draw_idblock_keyframes(v2d, (ID *)ob, onlysel);
+	}
+	else {
+		short active_done = 0;
+		
+		/* draw keyframes from all selected objects */
+		CTX_DATA_BEGIN(C, Object*, obsel, selected_objects) 
+		{
+			/* last arg is 0, since onlysel doesn't apply here... */
+			time_draw_idblock_keyframes(v2d, (ID *)obsel, 0);
+			
+			/* if this object is the active one, set flag so that we don't draw again */
+			if (obsel == ob)
+				active_done= 1;
+		}
+		CTX_DATA_END;
+		
+		/* if active object hasn't been done yet, draw it... */
+		if (ob && (active_done == 0))
+			time_draw_idblock_keyframes(v2d, (ID *)ob, 0);
 	}
 }
 

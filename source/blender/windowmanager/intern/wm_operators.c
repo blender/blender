@@ -347,8 +347,11 @@ wmOperatorType *WM_operatortype_append_macro(char *idname, char *name, int flag)
 	ot->modal= wm_macro_modal;
 	ot->cancel= wm_macro_cancel;
 	ot->poll= NULL;
+
+	if(!ot->description)
+		ot->description= "(undocumented operator)";
 	
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:"(undocumented operator)"); // XXX All ops should have a description but for now allow them not to.
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description); // XXX All ops should have a description but for now allow them not to.
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 
 	BLI_addtail(&global_ops, ot);
@@ -370,9 +373,12 @@ void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType*, void*), vo
 	ot->cancel= wm_macro_cancel;
 	ot->poll= NULL;
 
+	if(!ot->description)
+		ot->description= "(undocumented operator)";
+
 	opfunc(ot, userdata);
 
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description:"(undocumented operator)");
+	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description);
 	RNA_def_struct_identifier(ot->srna, ot->idname);
 
 	BLI_addtail(&global_ops, ot);
@@ -388,6 +394,12 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 	WM_operator_properties_alloc(&(otmacro->ptr), &(otmacro->properties), idname);
 	
 	BLI_addtail(&ot->macro, otmacro);
+
+	{
+		wmOperatorType *otsub = WM_operatortype_find(idname, 0);
+		RNA_def_pointer_runtime(ot->srna, otsub->idname, otsub->srna,
+		otsub->name, otsub->description);
+	}
 	
 	return otmacro;
 }

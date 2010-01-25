@@ -487,6 +487,8 @@ int wm_window_duplicate_op(bContext *C, wmOperator *op)
 	wm_window_copy(C, CTX_wm_window(C));
 	WM_check(C);
 	
+	WM_event_add_notifier(C, NC_WINDOW|NA_ADDED, NULL);
+	
 	return OPERATOR_FINISHED;
 }
 

@@ -174,6 +174,7 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *op)
 	
 	/* set the range directly */
 	get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL);
+	scene->r.flag |= SCER_PRV_RANGE;
 	scene->r.psfra= (int)floor(min + 0.5f);
 	scene->r.pefra= (int)floor(max + 0.5f);
 	

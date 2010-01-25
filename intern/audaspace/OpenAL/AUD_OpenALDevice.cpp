@@ -284,9 +284,7 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 	}
 #endif
 
-	m_device = alcOpenDevice("ALSA Software");
-	if(m_device == NULL)
-		m_device = alcOpenDevice(NULL);
+	m_device = alcOpenDevice(NULL);
 
 	if(!m_device)
 		AUD_THROW(AUD_ERROR_OPENAL);

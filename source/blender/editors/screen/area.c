@@ -728,7 +728,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 			if(count!=4) {
 				/* let's stop adding regions */
 				BLI_init_rcti(remainder, 0, 0, 0, 0);
-				printf("region quadsplit failed\n");
+				if (G.f & G_DEBUG)
+					printf("region quadsplit failed\n");
 			}
 			else quad= 1;
 		}
@@ -1085,7 +1086,10 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 		
 		/* tell WM to refresh, cursor types etc */
 		WM_event_add_mousemove(C);
-		
+				
+		/*send space change notifyer*/
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CHANGED, sa);
+
 		ED_area_tag_redraw(sa);
 		ED_area_tag_refresh(sa);
 	}
@@ -1107,6 +1111,9 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 		ED_area_newspace(C, sa, SPACE_INFO);
 	}
 	ED_area_tag_redraw(sa);
+
+	/*send space change notifyer*/
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CHANGED, sa);
 }
 
 static char *editortype_pup(void)
@@ -1152,6 +1159,9 @@ static void spacefunc(struct bContext *C, void *arg1, void *arg2)
 {
 	ED_area_newspace(C, CTX_wm_area(C), CTX_wm_area(C)->butspacetype);
 	ED_area_tag_redraw(CTX_wm_area(C));
+
+	/*send space change notifyer*/
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CHANGED, CTX_wm_area(C));
 }
 
 /* returns offset for next button in header */
@@ -1318,7 +1328,11 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	}
 
 	/* clear */
-	UI_GetThemeColor3fv(TH_BACK, col);
+	if (ar->type->regionid == RGN_TYPE_PREVIEW)
+		UI_GetThemeColor3fv(TH_PREVIEW_BACK, col);
+	else
+		UI_GetThemeColor3fv(TH_BACK, col);
+	
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 

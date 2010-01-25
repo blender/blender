@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from math import pi
 from rigify import RigifyError, get_layer_dict
 from rigify_utils import bone_class_instance, copy_bone_simple, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
@@ -219,12 +220,14 @@ def ik(obj, bone_definition, base_names, options):
     ik.foot_roll_p.lock_rotation = False, True, True
     ik_chain.toe_p.rotation_mode = 'YXZ'
     ik_chain.toe_p.lock_rotation = False, True, True
+    ik_chain.toe_p.lock_location = True, True, True
+    ik.foot_roll_p.lock_location = True, True, True
 
     # IK
     con = ik_chain.shin_p.constraints.new('IK')
     con.chain_length = 2
     con.iterations = 500
-    con.pole_angle = -90.0 # XXX - in deg!
+    con.pole_angle = -pi/2
     con.use_tail = True
     con.use_stretch = True
     con.use_target = True
@@ -329,6 +332,7 @@ def fk(obj, bone_definition, base_names, options):
     foot_p.rotation_mode = 'YXZ'
     fk_chain.toe_p.rotation_mode = 'YXZ'
     fk_chain.toe_p.lock_rotation = False, True, True
+    fk_chain.thigh_p.lock_location = True, True, True
 
     con = fk_chain.thigh_p.constraints.new('COPY_LOCATION')
     con.target = obj
@@ -336,7 +340,7 @@ def fk(obj, bone_definition, base_names, options):
 
     # hinge
     prop = rna_idprop_ui_prop_get(fk_chain.thigh_p, "hinge", create=True)
-    fk_chain.thigh_p["hinge"] = 0.5
+    fk_chain.thigh_p["hinge"] = 0.0
     prop["soft_min"] = 0.0
     prop["soft_max"] = 1.0
 
@@ -441,6 +445,11 @@ def deform(obj, definitions, base_names, options):
     con.target = obj
     con.subtarget = definitions[2]
     
+    con = uleg1.constraints.new('COPY_SCALE')
+    con.name = "scale"
+    con.target = obj
+    con.subtarget = definitions[1]
+    
     con = uleg2.constraints.new('COPY_ROTATION')
     con.name = "copy_rot"
     con.target = obj
@@ -448,6 +457,11 @@ def deform(obj, definitions, base_names, options):
     
     # Lower leg constraints
     con = lleg1.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[2]
+    
+    con = lleg1.constraints.new('COPY_SCALE')
     con.name = "copy_rot"
     con.target = obj
     con.subtarget = definitions[2]
@@ -484,5 +498,5 @@ def main(obj, bone_definition, base_names, options):
     deform(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    blend_bone_list(obj, bone_definition + [None], bones_fk, bones_ik, target_bone=bones_ik[6], target_prop="ik", blend_default=0.0)
+    blend_bone_list(obj, bone_definition + [None], bones_fk, bones_ik, target_bone=bones_ik[6], target_prop="ik", blend_default=1.0)
     

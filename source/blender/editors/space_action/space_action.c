@@ -137,7 +137,8 @@ static void action_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void action_init(struct wmWindowManager *wm, ScrArea *sa)
 {
-
+	SpaceAction *saction = sa->spacedata.first;
+	saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 }
 
 static SpaceLink *action_duplicate(SpaceLink *sl)
@@ -325,10 +326,12 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_OBJECT:
 			switch(wmn->data) {
+				case ND_TRANSFORM:
+					/* moving object shouldn't need to redraw action */
+					break;
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_KEYS:
-				case ND_TRANSFORM:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -385,15 +388,42 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
-					
+				case ND_TRANSFORM:
+					/* moving object shouldn't need to redraw action */
+					break;
 				default: /* just redrawing the view will do */
 					ED_area_tag_redraw(sa);
 					break;
 			}
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_DOPESHEET)
-				ED_area_tag_redraw(sa);
+			switch (wmn->data) {
+				case ND_SPACE_DOPESHEET:
+					ED_area_tag_redraw(sa);
+					break;
+				case ND_SPACE_CHANGED:
+					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+					ED_area_tag_refresh(sa);
+					break;
+			}			
+			break;
+	}
+}
+
+static void action_header_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_OB_ACTIVE:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }
@@ -450,6 +480,7 @@ void ED_spacetype_action(void)
 	
 	art->init= action_header_area_init;
 	art->draw= action_header_area_draw;
+	art->listener= action_header_area_listener;
 	
 	BLI_addhead(&st->regiontypes, art);
 	

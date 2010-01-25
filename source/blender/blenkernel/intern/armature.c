@@ -1602,7 +1602,13 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	int counter=0;
 		
 	/* only done here */
-	if(ob->pose==NULL) ob->pose= MEM_callocN(sizeof(bPose), "new pose");
+	if(ob->pose==NULL) {
+		/* create new pose */
+		ob->pose= MEM_callocN(sizeof(bPose), "new pose");
+		
+		/* set default settings for animviz */
+		animviz_settings_init(&ob->pose->avs);
+	}
 	pose= ob->pose;
 	
 	/* clear */
@@ -1627,8 +1633,10 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	// printf("rebuild pose %s, %d bones\n", ob->id.name, counter);
 	
 	/* synchronize protected layers with proxy */
-	if(ob->proxy)
+	if(ob->proxy) {
+		object_copy_proxy_drivers(ob, ob->proxy);
 		pose_proxy_synchronize(ob, ob->proxy, arm->layer_protected);
+	}
 	
 	update_pose_constraint_flags(ob->pose); // for IK detection for example
 	

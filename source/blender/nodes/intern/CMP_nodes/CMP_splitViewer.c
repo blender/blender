@@ -65,7 +65,7 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 		buf1= typecheck_compbuf(in[0]->data, CB_RGBA);
 		buf2= typecheck_compbuf(in[1]->data, CB_RGBA);
 		
-		BKE_image_user_calc_imanr(node->storage, rd->cfra, 0);
+		BKE_image_user_calc_frame(node->storage, rd->cfra, 0);
 		
 		/* always returns for viewer image, but we check nevertheless */
 		ibuf= BKE_image_get_ibuf(ima, node->storage);

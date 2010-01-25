@@ -39,6 +39,7 @@
 #include "eval.h"		/* for PyEval_EvalCode */
 
 #include "bpy_rna.h"
+#include "bpy_props.h"
 #include "bpy_operator.h"
 #include "bpy_ui.h"
 #include "bpy_util.h"

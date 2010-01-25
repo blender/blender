@@ -86,6 +86,7 @@ int ED_fileselect_layout_offset(FileLayout* layout, int x, int y);
 
 void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, int *x, int *y);
 
+void ED_operatormacros_file(void);
 
 #endif /* ED_FILES_H */
 

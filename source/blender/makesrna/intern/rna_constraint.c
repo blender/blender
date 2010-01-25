@@ -29,6 +29,8 @@
 
 #include "rna_internal.h"
 
+#include "BLI_math.h"
+
 #include "DNA_action_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_modifier_types.h"
@@ -488,9 +490,9 @@ static void rna_def_constraint_kinematic(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pole Sub-Target", "");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
-	prop= RNA_def_property(srna, "pole_angle", PROP_FLOAT, PROP_ANGLE); // XXX - todo, convert to rad
+	prop= RNA_def_property(srna, "pole_angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "poleangle");
-	RNA_def_property_range(prop, -180.0f, 180.f);
+	RNA_def_property_range(prop, -M_PI, M_PI);
 	RNA_def_property_ui_text(prop, "Pole Angle", "Pole rotation offset.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
@@ -1190,21 +1192,21 @@ static void rna_def_constraint_rigid_body_joint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pivot Z", "Offset pivot on Z.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "axis_x", PROP_FLOAT, PROP_ANGLE); // XXX - convert to radians
+	prop= RNA_def_property(srna, "axis_x", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "axX");
-	RNA_def_property_range(prop, -360.0, 360.f);
+	RNA_def_property_range(prop, -M_PI*2, M_PI*2);
 	RNA_def_property_ui_text(prop, "Axis X", "Rotate pivot on X axis in degrees.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "axis_y", PROP_FLOAT, PROP_ANGLE); // XXX - convert to radians
+	prop= RNA_def_property(srna, "axis_y", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "axY");
-	RNA_def_property_range(prop, -360.0, 360.f);
+	RNA_def_property_range(prop, -M_PI*2, M_PI*2);
 	RNA_def_property_ui_text(prop, "Axis Y", "Rotate pivot on Y axis in degrees.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
-	prop= RNA_def_property(srna, "axis_z", PROP_FLOAT, PROP_ANGLE); // XXX - convert to radians
+	prop= RNA_def_property(srna, "axis_z", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "axZ");
-	RNA_def_property_range(prop, -360.0, 360.f);
+	RNA_def_property_range(prop, -M_PI*2, M_PI*2);
 	RNA_def_property_ui_text(prop, "Axis Z", "Rotate pivot on Z axis in degrees.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	

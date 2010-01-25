@@ -429,7 +429,7 @@ static short acf_summary_setting_valid(bAnimContext *ac, bAnimListElem *ale, int
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_summary_setting_flag(int setting, short *neg)
+static int acf_summary_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	if (setting == ACHANNEL_SETTING_EXPAND) {
 		/* expanded */
@@ -512,7 +512,7 @@ static short acf_scene_setting_valid(bAnimContext *ac, bAnimListElem *ale, int s
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_scene_setting_flag(int setting, short *neg)
+static int acf_scene_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -631,7 +631,7 @@ static short acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, int 
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_object_setting_flag(int setting, short *neg)
+static int acf_object_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -754,7 +754,7 @@ static short acf_group_setting_valid(bAnimContext *ac, bAnimListElem *ale, int s
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_group_setting_flag(int setting, short *neg)
+static int acf_group_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -764,7 +764,15 @@ static int acf_group_setting_flag(int setting, short *neg)
 			return AGRP_SELECTED;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			return AGRP_EXPANDED;
+		{
+			/* NOTE: Graph Editor uses a different flag to everywhere else for this,
+			 * allowing different collapsing of groups there, since sharing the flag
+			 * proved to be a hazard for workflows...
+			 */
+			return (ac->spacetype == SPACE_IPO) ? 
+						AGRP_EXPANDED_G :	/* Graph Editor case */
+						AGRP_EXPANDED;		/* DopeSheet and elsewhere */
+		}
 			
 		case ACHANNEL_SETTING_MUTE: /* muted */
 			return AGRP_MUTED;
@@ -842,7 +850,7 @@ static short acf_fcurve_setting_valid(bAnimContext *ac, bAnimListElem *ale, int 
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fcurve_setting_flag(int setting, short *neg)
+static int acf_fcurve_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -914,7 +922,7 @@ static short acf_fillactd_setting_valid(bAnimContext *ac, bAnimListElem *ale, in
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fillactd_setting_flag(int setting, short *neg)
+static int acf_fillactd_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1001,7 +1009,7 @@ static short acf_filldrivers_setting_valid(bAnimContext *ac, bAnimListElem *ale,
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_filldrivers_setting_flag(int setting, short *neg)
+static int acf_filldrivers_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1063,7 +1071,7 @@ static void acf_fillmatd_name(bAnimListElem *ale, char *name)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fillmatd_setting_flag(int setting, short *neg)
+static int acf_fillmatd_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1107,7 +1115,7 @@ static void acf_fillpartd_name(bAnimListElem *ale, char *name)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fillpartd_setting_flag(int setting, short *neg)
+static int acf_fillpartd_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1152,7 +1160,7 @@ static short acf_dsmat_offset(bAnimContext *ac, bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsmat_setting_flag(int setting, short *neg)
+static int acf_dsmat_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1226,7 +1234,7 @@ static int acf_dslam_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dslam_setting_flag(int setting, short *neg)
+static int acf_dslam_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1300,7 +1308,7 @@ static int acf_dscam_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dscam_setting_flag(int setting, short *neg)
+static int acf_dscam_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1384,7 +1392,7 @@ static int acf_dscur_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dscur_setting_flag(int setting, short *neg)
+static int acf_dscur_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1458,7 +1466,7 @@ static int acf_dsskey_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsskey_setting_flag(int setting, short *neg)
+static int acf_dsskey_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1532,7 +1540,7 @@ static int acf_dswor_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dswor_setting_flag(int setting, short *neg)
+static int acf_dswor_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1606,7 +1614,7 @@ static int acf_dspart_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dspart_setting_flag(int setting, short *neg)
+static int acf_dspart_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1680,7 +1688,7 @@ static int acf_dsmball_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsmball_setting_flag(int setting, short *neg)
+static int acf_dsmball_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1754,7 +1762,7 @@ static int acf_dsarm_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsarm_setting_flag(int setting, short *neg)
+static int acf_dsarm_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1828,7 +1836,7 @@ static int acf_dsntree_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsntree_setting_flag(int setting, short *neg)
+static int acf_dsntree_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1902,7 +1910,7 @@ static int acf_dsmesh_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsmesh_setting_flag(int setting, short *neg)
+static int acf_dsmesh_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -2000,7 +2008,7 @@ static short acf_shapekey_setting_valid(bAnimContext *ac, bAnimListElem *ale, in
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_shapekey_setting_flag(int setting, short *neg)
+static int acf_shapekey_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -2267,7 +2275,7 @@ short ANIM_channel_setting_get (bAnimContext *ac, bAnimListElem *ale, int settin
 		int flag;
 		void *ptr;
 		
-		flag= acf->setting_flag(setting, &negflag);
+		flag= acf->setting_flag(ac, setting, &negflag);
 		ptr= acf->setting_ptr(ale, setting, &ptrsize);
 		
 		/* check if flag is enabled */
@@ -2345,7 +2353,7 @@ void ANIM_channel_setting_set (bAnimContext *ac, bAnimListElem *ale, int setting
 		int flag;
 		void *ptr;
 		
-		flag= acf->setting_flag(setting, &negflag);
+		flag= acf->setting_flag(ac, setting, &negflag);
 		ptr= acf->setting_ptr(ale, setting, &ptrsize);
 		
 		/* check if flag is enabled */
@@ -2691,7 +2699,7 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 	uiBut *but = NULL;
 	
 	/* get the flag and the pointer to that flag */
-	flag= acf->setting_flag(setting, &negflag);
+	flag= acf->setting_flag(ac, setting, &negflag);
 	ptr= acf->setting_ptr(ale, setting, &ptrsize);
 	enabled= ANIM_channel_setting_get(ac, ale, setting);
 	

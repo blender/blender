@@ -1397,7 +1397,8 @@ void single_obdata_users(Scene *scene, int flag)
 					armature_rebuild_pose(ob, ob->data);
 					break;
 				default:
-					printf("ERROR single_obdata_users: can't copy %s\n", id->name);
+					if (G.f & G_DEBUG)
+						printf("ERROR single_obdata_users: can't copy %s\n", id->name);
 					return;
 				}
 				

@@ -46,7 +46,9 @@
 #include "BKE_screen.h"
 #include "BKE_global.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include <string.h>
 
@@ -413,13 +415,13 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 	int ret= 0;
 
 	memset(result, 0, sizeof(bContextDataResult));
-
+#ifndef DISABLE_PYTHON
 	if(CTX_py_dict_get(C)) {
 		return BPY_context_get(C, member, result);
 //		if (BPY_context_get(C, member, result))
 //			return 1;
 	}
-
+#endif
 	/* we check recursion to ensure that we do not get infinite
 	 * loops requesting data from ourselfs in a context callback */
 

@@ -39,6 +39,7 @@
 
 struct SpaceLink;
 struct Object;
+struct Group;
 
 /* ************************************************ */
 /* Visualisation */
@@ -441,12 +442,14 @@ typedef enum eActionGroup_Flag {
 	AGRP_ACTIVE 	= (1<<1),
 		/* keyframes/channels belonging to it cannot be edited */
 	AGRP_PROTECTED 	= (1<<2),
-		/* for UI, sub-channels are shown */
+		/* for UI (DopeSheet), sub-channels are shown */
 	AGRP_EXPANDED 	= (1<<3),
 		/* sub-channels are not evaluated */
 	AGRP_MUTED		= (1<<4),
 		/* sub-channels are not visible in Graph Editor */
 	AGRP_NOTVISIBLE	= (1<<5),
+		/* for UI (Graph Editor), sub-channels are shown */
+	AGRP_EXPANDED_G	= (1<<6),
 	
 	AGRP_TEMP		= (1<<30),
 	AGRP_MOVED 		= (1<<31)
@@ -496,11 +499,13 @@ typedef enum eAction_Flags {
 
 /* Storage for Dopesheet/Grease-Pencil Editor data */
 typedef struct bDopeSheet {
-	ID 		*source;		/* currently ID_SCE (for Dopesheet), and ID_SC (for Grease Pencil) */
-	ListBase chanbase;		/* cache for channels (only initialised when pinned) */  // XXX not used!
+	ID 		*source;			/* currently ID_SCE (for Dopesheet), and ID_SC (for Grease Pencil) */
+	ListBase chanbase;			/* cache for channels (only initialised when pinned) */  // XXX not used!
 	
-	int filterflag;			/* flags to use for filtering data */
-	int flag;				/* standard flags */
+	struct Group *filter_grp;	/* object group for ADS_FILTER_ONLYOBGROUP filtering option */ 
+	
+	int filterflag;				/* flags to use for filtering data */
+	int flag;					/* standard flags */
 } bDopeSheet;
 
 
@@ -509,15 +514,19 @@ typedef enum eDopeSheet_FilterFlag {
 		/* general filtering */
 	ADS_FILTER_ONLYSEL			= (1<<0),	/* only include channels relating to selected data */
 	
-		/* temporary (runtime flags) */
+		/* temporary filters */
 	ADS_FILTER_ONLYDRIVERS		= (1<<1),	/* for 'Drivers' editor - only include Driver data from AnimData */
 	ADS_FILTER_ONLYNLA			= (1<<2),	/* for 'NLA' editor - only include NLA data from AnimData */
 	ADS_FILTER_SELEDIT			= (1<<3),	/* for Graph Editor - used to indicate whether to include a filtering flag or not */
-	ADS_FILTER_SUMMARY			= (1<<4),	/* for 'DopeSheet' Editor - include 'summary' line */
+	
+		/* general filtering 2 */
+	ADS_FILTER_SUMMARY			= (1<<4),	/* for 'DopeSheet' Editors - include 'summary' line */
+	ADS_FILTER_ONLYOBGROUP		= (1<<5),	/* only the objects in the specified object group get used */
 	
 		/* datatype-based filtering */
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
 	ADS_FILTER_NOMESH			= (1<<7),
+	// NOTE: there are a few more spaces for datablock filtering here...
 	ADS_FILTER_NOCAM			= (1<<10),
 	ADS_FILTER_NOMAT			= (1<<11),
 	ADS_FILTER_NOLAM			= (1<<12),
@@ -558,9 +567,7 @@ typedef struct SpaceAction {
 	bDopeSheet 	ads;			/* the currently active context (when not showing action) */
 	
 	char  mode, autosnap;		/* mode: editing context; autosnap: automatic keyframe snapping mode   */
-	short flag, actnr; 			/* flag: bitmapped settings; */
-	short pin, lock;			/* pin: keep showing current action; actnr: used for finding chosen action from menu; lock: lock time to other windows */
-	short actwidth;				/* width of the left-hand side name panel (in pixels?) */  // XXX depreceated!
+	short flag; 				/* flag: bitmapped settings; */
 	float timeslide;			/* for Time-Slide transform mode drawing - current frame? */
 } SpaceAction;
 
@@ -568,24 +575,26 @@ typedef struct SpaceAction {
 typedef enum eSAction_Flag {
 		/* during transform (only set for TimeSlide) */
 	SACTION_MOVING	= (1<<0),	
-		/* show sliders (if relevant) */
+		/* show sliders */
 	SACTION_SLIDERS	= (1<<1),	
 		/* draw time in seconds instead of time in frames */
 	SACTION_DRAWTIME = (1<<2),
 		/* don't filter action channels according to visibility */
-	SACTION_NOHIDE = (1<<3),
+	//SACTION_NOHIDE = (1<<3), // XXX depreceated... old animation system
 		/* don't kill overlapping keyframes after transform */
 	SACTION_NOTRANSKEYCULL = (1<<4),
 		/* don't include keyframes that are out of view */
-	SACTION_HORIZOPTIMISEON = (1<<5),
+	//SACTION_HORIZOPTIMISEON = (1<<5), // XXX depreceated... old irrelevant trick
 		/* hack for moving pose-markers (temp flag)  */
 	SACTION_POSEMARKERS_MOVE = (1<<6),
 		/* don't draw action channels using group colours (where applicable) */
-	SACTION_NODRAWGCOLORS = (1<<7),
+	SACTION_NODRAWGCOLORS = (1<<7), // XXX depreceated... irrelevant for current groups implementation
 		/* don't draw current frame number beside frame indicator */
 	SACTION_NODRAWCFRANUM = (1<<8),
 		/* temporary flag to force channel selections to be synced with main */
 	SACTION_TEMP_NEEDCHANSYNC = (1<<9),
+		/* don't perform realtime updates */
+	SACTION_NOREALTIMEUPDATES =	(1<<10),
 } eSAction_Flag;	
 
 /* SpaceAction Mode Settings */

@@ -47,19 +47,14 @@
 #define SWAP_FLOAT(a,b,tmp) tmp=a; a=b; b=tmp
 #define eps 0.000001
 
-/*-- forward declarations -- */
-static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq );
-static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args );
-static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args );
-static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args );
-static PyObject *M_Geometry_PointInQuad2D( PyObject * self, PyObject * args );
-static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * args );
-static PyObject *M_Geometry_BezierInterp( PyObject * self, PyObject * args );
-static PyObject *M_Geometry_BarycentricTransform( PyObject * self, PyObject * args );
-
 
 /*-------------------------DOC STRINGS ---------------------------*/
 static char M_Geometry_doc[] = "The Blender Geometry module\n\n";
+static char M_Geometry_Intersect_doc[] = "(v1, v2, v3, ray, orig, clip=1) - returns the intersection between a ray and a triangle, if possible, returns None otherwise";
+static char M_Geometry_TriangleArea_doc[] = "(v1, v2, v3) - returns the area size of the 2D or 3D triangle defined";
+static char M_Geometry_TriangleNormal_doc[] = "(v1, v2, v3) - returns the normal of the 3D triangle defined";
+static char M_Geometry_QuadNormal_doc[] = "(v1, v2, v3, v4) - returns the normal of the 3D quad defined";
+static char M_Geometry_LineIntersect_doc[] = "(v1, v2, v3, v4) - returns a tuple with the points on each line respectively closest to the other";
 static char M_Geometry_PolyFill_doc[] = "(veclist_list) - takes a list of polylines (each point a vector) and returns the point indicies for a polyline filled with triangles";
 static char M_Geometry_LineIntersect2D_doc[] = "(lineA_p1, lineA_p2, lineB_p1, lineB_p2) - takes 2 lines (as 4 vectors) and returns a vector for their point of intersection or None";
 static char M_Geometry_ClosestPointOnLine_doc[] = "(pt, line_p1, line_p2) - takes a point and a line and returns a (Vector, float) for the point on the line, and the bool so you can know if the point was between the 2 points";
@@ -67,40 +62,280 @@ static char M_Geometry_PointInTriangle2D_doc[] = "(pt, tri_p1, tri_p2, tri_p3) -
 static char M_Geometry_PointInQuad2D_doc[] = "(pt, quad_p1, quad_p2, quad_p3, quad_p4) - takes 5 vectors, one is the point and the next 4 define the quad, only the x and y are used from the vectors";
 static char M_Geometry_BoxPack2D_doc[] = "";
 static char M_Geometry_BezierInterp_doc[] = "";
-/*-----------------------METHOD DEFINITIONS ----------------------*/
-struct PyMethodDef M_Geometry_methods[] = {
-	{"PolyFill", ( PyCFunction ) M_Geometry_PolyFill, METH_O, M_Geometry_PolyFill_doc},
-	{"LineIntersect2D", ( PyCFunction ) M_Geometry_LineIntersect2D, METH_VARARGS, M_Geometry_LineIntersect2D_doc},
-	{"ClosestPointOnLine", ( PyCFunction ) M_Geometry_ClosestPointOnLine, METH_VARARGS, M_Geometry_ClosestPointOnLine_doc},
-	{"PointInTriangle2D", ( PyCFunction ) M_Geometry_PointInTriangle2D, METH_VARARGS, M_Geometry_PointInTriangle2D_doc},
-	{"PointInQuad2D", ( PyCFunction ) M_Geometry_PointInQuad2D, METH_VARARGS, M_Geometry_PointInQuad2D_doc},
-	{"BoxPack2D", ( PyCFunction ) M_Geometry_BoxPack2D, METH_O, M_Geometry_BoxPack2D_doc},
-	{"BezierInterp", ( PyCFunction ) M_Geometry_BezierInterp, METH_VARARGS, M_Geometry_BezierInterp_doc},
-	{"BarycentricTransform", ( PyCFunction ) M_Geometry_BarycentricTransform, METH_VARARGS, NULL},
-	{NULL, NULL, 0, NULL}
-};
 
-static struct PyModuleDef M_Geometry_module_def = {
-	PyModuleDef_HEAD_INIT,
-	"Geometry",  /* m_name */
-	M_Geometry_doc,  /* m_doc */
-	0,  /* m_size */
-	M_Geometry_methods,  /* m_methods */
-	0,  /* m_reload */
-	0,  /* m_traverse */
-	0,  /* m_clear */
-	0,  /* m_free */
-};
-
-/*----------------------------MODULE INIT-------------------------*/
-PyObject *Geometry_Init(void)
+//---------------------------------INTERSECTION FUNCTIONS--------------------
+//----------------------------------Mathutils.Intersect() -------------------
+static PyObject *M_Geometry_Intersect( PyObject * self, PyObject * args )
 {
-	PyObject *submodule;
-	
-	submodule = PyModule_Create(&M_Geometry_module_def);
-	PyDict_SetItemString(PySys_GetObject("modules"), M_Geometry_module_def.m_name, submodule);
-	
-	return (submodule);
+	VectorObject *ray, *ray_off, *vec1, *vec2, *vec3;
+	float dir[3], orig[3], v1[3], v2[3], v3[3], e1[3], e2[3], pvec[3], tvec[3], qvec[3];
+	float det, inv_det, u, v, t;
+	int clip = 1;
+
+	if(!PyArg_ParseTuple(args, "O!O!O!O!O!|i", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &ray, &vector_Type, &ray_off , &clip)) {
+		PyErr_SetString( PyExc_TypeError, "expected 5 vector types\n" );
+		return NULL;
+	}
+	if(vec1->size != 3 || vec2->size != 3 || vec3->size != 3 || ray->size != 3 || ray_off->size != 3) {
+		PyErr_SetString( PyExc_TypeError, "only 3D vectors for all parameters\n");
+		return NULL;
+	}
+
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3) || !BaseMath_ReadCallback(ray) || !BaseMath_ReadCallback(ray_off))
+		return NULL;
+
+	VECCOPY(v1, vec1->vec);
+	VECCOPY(v2, vec2->vec);
+	VECCOPY(v3, vec3->vec);
+
+	VECCOPY(dir, ray->vec);
+	normalize_v3(dir);
+
+	VECCOPY(orig, ray_off->vec);
+
+	/* find vectors for two edges sharing v1 */
+	sub_v3_v3v3(e1, v2, v1);
+	sub_v3_v3v3(e2, v3, v1);
+
+	/* begin calculating determinant - also used to calculated U parameter */
+	cross_v3_v3v3(pvec, dir, e2);
+
+	/* if determinant is near zero, ray lies in plane of triangle */
+	det = dot_v3v3(e1, pvec);
+
+	if (det > -0.000001 && det < 0.000001) {
+		Py_RETURN_NONE;
+	}
+
+	inv_det = 1.0f / det;
+
+	/* calculate distance from v1 to ray origin */
+	sub_v3_v3v3(tvec, orig, v1);
+
+	/* calculate U parameter and test bounds */
+	u = dot_v3v3(tvec, pvec) * inv_det;
+	if (clip && (u < 0.0f || u > 1.0f)) {
+		Py_RETURN_NONE;
+	}
+
+	/* prepare to test the V parameter */
+	cross_v3_v3v3(qvec, tvec, e1);
+
+	/* calculate V parameter and test bounds */
+	v = dot_v3v3(dir, qvec) * inv_det;
+
+	if (clip && (v < 0.0f || u + v > 1.0f)) {
+		Py_RETURN_NONE;
+	}
+
+	/* calculate t, ray intersects triangle */
+	t = dot_v3v3(e2, qvec) * inv_det;
+
+	mul_v3_fl(dir, t);
+	add_v3_v3v3(pvec, orig, dir);
+
+	return newVectorObject(pvec, 3, Py_NEW, NULL);
+}
+//----------------------------------Mathutils.LineIntersect() -------------------
+/* Line-Line intersection using algorithm from mathworld.wolfram.com */
+static PyObject *M_Geometry_LineIntersect( PyObject * self, PyObject * args )
+{
+	PyObject * tuple;
+	VectorObject *vec1, *vec2, *vec3, *vec4;
+	float v1[3], v2[3], v3[3], v4[3], i1[3], i2[3];
+
+	if( !PyArg_ParseTuple( args, "O!O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &vec4 ) ) {
+		PyErr_SetString( PyExc_TypeError, "expected 4 vector types\n" );
+		return NULL;
+	}
+	if( vec1->size != vec2->size || vec1->size != vec3->size || vec3->size != vec2->size) {
+		PyErr_SetString( PyExc_TypeError,"vectors must be of the same size\n" );
+		return NULL;
+	}
+
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3) || !BaseMath_ReadCallback(vec4))
+		return NULL;
+
+	if( vec1->size == 3 || vec1->size == 2) {
+		int result;
+
+		if (vec1->size == 3) {
+			VECCOPY(v1, vec1->vec);
+			VECCOPY(v2, vec2->vec);
+			VECCOPY(v3, vec3->vec);
+			VECCOPY(v4, vec4->vec);
+		}
+		else {
+			v1[0] = vec1->vec[0];
+			v1[1] = vec1->vec[1];
+			v1[2] = 0.0f;
+
+			v2[0] = vec2->vec[0];
+			v2[1] = vec2->vec[1];
+			v2[2] = 0.0f;
+
+			v3[0] = vec3->vec[0];
+			v3[1] = vec3->vec[1];
+			v3[2] = 0.0f;
+
+			v4[0] = vec4->vec[0];
+			v4[1] = vec4->vec[1];
+			v4[2] = 0.0f;
+		}
+
+		result = isect_line_line_v3(v1, v2, v3, v4, i1, i2);
+
+		if (result == 0) {
+			/* colinear */
+			Py_RETURN_NONE;
+		}
+		else {
+			tuple = PyTuple_New( 2 );
+			PyTuple_SetItem( tuple, 0, newVectorObject(i1, vec1->size, Py_NEW, NULL) );
+			PyTuple_SetItem( tuple, 1, newVectorObject(i2, vec1->size, Py_NEW, NULL) );
+			return tuple;
+		}
+	}
+	else {
+		PyErr_SetString( PyExc_TypeError, "2D/3D vectors only\n" );
+		return NULL;
+	}
+}
+
+
+
+//---------------------------------NORMALS FUNCTIONS--------------------
+//----------------------------------Mathutils.QuadNormal() -------------------
+static PyObject *M_Geometry_QuadNormal( PyObject * self, PyObject * args )
+{
+	VectorObject *vec1;
+	VectorObject *vec2;
+	VectorObject *vec3;
+	VectorObject *vec4;
+	float v1[3], v2[3], v3[3], v4[3], e1[3], e2[3], n1[3], n2[3];
+
+	if( !PyArg_ParseTuple( args, "O!O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3, &vector_Type, &vec4 ) ) {
+		PyErr_SetString( PyExc_TypeError, "expected 4 vector types\n" );
+		return NULL;
+	}
+	if( vec1->size != vec2->size || vec1->size != vec3->size || vec1->size != vec4->size) {
+		PyErr_SetString( PyExc_TypeError,"vectors must be of the same size\n" );
+		return NULL;
+	}
+	if( vec1->size != 3 ) {
+		PyErr_SetString( PyExc_TypeError, "only 3D vectors\n" );
+		return NULL;
+	}
+
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3) || !BaseMath_ReadCallback(vec4))
+		return NULL;
+
+	VECCOPY(v1, vec1->vec);
+	VECCOPY(v2, vec2->vec);
+	VECCOPY(v3, vec3->vec);
+	VECCOPY(v4, vec4->vec);
+
+	/* find vectors for two edges sharing v2 */
+	sub_v3_v3v3(e1, v1, v2);
+	sub_v3_v3v3(e2, v3, v2);
+
+	cross_v3_v3v3(n1, e2, e1);
+	normalize_v3(n1);
+
+	/* find vectors for two edges sharing v4 */
+	sub_v3_v3v3(e1, v3, v4);
+	sub_v3_v3v3(e2, v1, v4);
+
+	cross_v3_v3v3(n2, e2, e1);
+	normalize_v3(n2);
+
+	/* adding and averaging the normals of both triangles */
+	add_v3_v3v3(n1, n2, n1);
+	normalize_v3(n1);
+
+	return newVectorObject(n1, 3, Py_NEW, NULL);
+}
+
+//----------------------------Mathutils.TriangleNormal() -------------------
+static PyObject *M_Geometry_TriangleNormal( PyObject * self, PyObject * args )
+{
+	VectorObject *vec1, *vec2, *vec3;
+	float v1[3], v2[3], v3[3], e1[3], e2[3], n[3];
+
+	if( !PyArg_ParseTuple( args, "O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2, &vector_Type, &vec3 ) ) {
+		PyErr_SetString( PyExc_TypeError, "expected 3 vector types\n" );
+		return NULL;
+	}
+	if( vec1->size != vec2->size || vec1->size != vec3->size ) {
+		PyErr_SetString( PyExc_TypeError, "vectors must be of the same size\n" );
+		return NULL;
+	}
+	if( vec1->size != 3 ) {
+		PyErr_SetString( PyExc_TypeError, "only 3D vectors\n" );
+		return NULL;
+	}
+
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3))
+		return NULL;
+
+	VECCOPY(v1, vec1->vec);
+	VECCOPY(v2, vec2->vec);
+	VECCOPY(v3, vec3->vec);
+
+	/* find vectors for two edges sharing v2 */
+	sub_v3_v3v3(e1, v1, v2);
+	sub_v3_v3v3(e2, v3, v2);
+
+	cross_v3_v3v3(n, e2, e1);
+	normalize_v3(n);
+
+	return newVectorObject(n, 3, Py_NEW, NULL);
+}
+
+//--------------------------------- AREA FUNCTIONS--------------------
+//----------------------------------Mathutils.TriangleArea() -------------------
+static PyObject *M_Geometry_TriangleArea( PyObject * self, PyObject * args )
+{
+	VectorObject *vec1, *vec2, *vec3;
+	float v1[3], v2[3], v3[3];
+
+	if( !PyArg_ParseTuple
+	    ( args, "O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2
+		, &vector_Type, &vec3 ) ) {
+		PyErr_SetString( PyExc_TypeError, "expected 3 vector types\n");
+		return NULL;
+	}
+	if( vec1->size != vec2->size || vec1->size != vec3->size ) {
+		PyErr_SetString( PyExc_TypeError, "vectors must be of the same size\n" );
+		return NULL;
+	}
+
+	if(!BaseMath_ReadCallback(vec1) || !BaseMath_ReadCallback(vec2) || !BaseMath_ReadCallback(vec3))
+		return NULL;
+
+	if (vec1->size == 3) {
+		VECCOPY(v1, vec1->vec);
+		VECCOPY(v2, vec2->vec);
+		VECCOPY(v3, vec3->vec);
+
+		return PyFloat_FromDouble( area_tri_v3(v1, v2, v3) );
+	}
+	else if (vec1->size == 2) {
+		v1[0] = vec1->vec[0];
+		v1[1] = vec1->vec[1];
+
+		v2[0] = vec2->vec[0];
+		v2[1] = vec2->vec[1];
+
+		v3[0] = vec3->vec[0];
+		v3[1] = vec3->vec[1];
+
+		return PyFloat_FromDouble( area_tri_v2(v1, v2, v3) );
+	}
+	else {
+		PyErr_SetString( PyExc_TypeError, "only 2D,3D vectors are supported\n" );
+		return NULL;
+	}
 }
 
 /*----------------------------------Geometry.PolyFill() -------------------*/
@@ -568,4 +803,44 @@ static PyObject *M_Geometry_BarycentricTransform(PyObject * self, PyObject * arg
 			vec_t1_src->vec, vec_t2_src->vec, vec_t3_src->vec);
 
 	return newVectorObject(vec, 3, Py_NEW, NULL);
+}
+
+struct PyMethodDef M_Geometry_methods[] = {
+	{"Intersect", ( PyCFunction ) M_Geometry_Intersect, METH_VARARGS, M_Geometry_Intersect_doc},
+	{"TriangleArea", ( PyCFunction ) M_Geometry_TriangleArea, METH_VARARGS, M_Geometry_TriangleArea_doc},
+	{"TriangleNormal", ( PyCFunction ) M_Geometry_TriangleNormal, METH_VARARGS, M_Geometry_TriangleNormal_doc},
+	{"QuadNormal", ( PyCFunction ) M_Geometry_QuadNormal, METH_VARARGS, M_Geometry_QuadNormal_doc},
+	{"LineIntersect", ( PyCFunction ) M_Geometry_LineIntersect, METH_VARARGS, M_Geometry_LineIntersect_doc},
+	{"PolyFill", ( PyCFunction ) M_Geometry_PolyFill, METH_O, M_Geometry_PolyFill_doc},
+	{"LineIntersect2D", ( PyCFunction ) M_Geometry_LineIntersect2D, METH_VARARGS, M_Geometry_LineIntersect2D_doc},
+	{"ClosestPointOnLine", ( PyCFunction ) M_Geometry_ClosestPointOnLine, METH_VARARGS, M_Geometry_ClosestPointOnLine_doc},
+	{"PointInTriangle2D", ( PyCFunction ) M_Geometry_PointInTriangle2D, METH_VARARGS, M_Geometry_PointInTriangle2D_doc},
+	{"PointInQuad2D", ( PyCFunction ) M_Geometry_PointInQuad2D, METH_VARARGS, M_Geometry_PointInQuad2D_doc},
+	{"BoxPack2D", ( PyCFunction ) M_Geometry_BoxPack2D, METH_O, M_Geometry_BoxPack2D_doc},
+	{"BezierInterp", ( PyCFunction ) M_Geometry_BezierInterp, METH_VARARGS, M_Geometry_BezierInterp_doc},
+	{"BarycentricTransform", ( PyCFunction ) M_Geometry_BarycentricTransform, METH_VARARGS, NULL},
+	{NULL, NULL, 0, NULL}
+};
+
+static struct PyModuleDef M_Geometry_module_def = {
+	PyModuleDef_HEAD_INIT,
+	"Geometry",  /* m_name */
+	M_Geometry_doc,  /* m_doc */
+	0,  /* m_size */
+	M_Geometry_methods,  /* m_methods */
+	0,  /* m_reload */
+	0,  /* m_traverse */
+	0,  /* m_clear */
+	0,  /* m_free */
+};
+
+/*----------------------------MODULE INIT-------------------------*/
+PyObject *Geometry_Init(void)
+{
+	PyObject *submodule;
+
+	submodule = PyModule_Create(&M_Geometry_module_def);
+	PyDict_SetItemString(PySys_GetObject("modules"), M_Geometry_module_def.m_name, submodule);
+
+	return (submodule);
 }

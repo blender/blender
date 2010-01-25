@@ -50,6 +50,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_icons.h"
 #include "BKE_utildefines.h"
@@ -474,7 +475,8 @@ static void init_internal_icons()
 		if (BLI_exists(iconfilestr)) {
 			bbuf = IMB_loadiffname(iconfilestr, IB_rect);
 			if(bbuf->x < ICON_IMAGE_W || bbuf->y < ICON_IMAGE_H) {
-				printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
+				if (G.f & G_DEBUG)
+					printf("\n***WARNING***\nIcons file %s too small.\nUsing built-in Icons instead\n", iconfilestr);
 				IMB_freeImBuf(bbuf);
 				bbuf= NULL;
 			}
@@ -694,7 +696,8 @@ int UI_icon_get_width(int icon_id)
 	icon = BKE_icon_get(icon_id);
 	
 	if (!icon) {
-		printf("UI_icon_get_width: Internal error, no icon for icon ID: %d\n", icon_id);
+		if (G.f & G_DEBUG)
+			printf("UI_icon_get_width: Internal error, no icon for icon ID: %d\n", icon_id);
 		return 0;
 	}
 	
@@ -718,7 +721,8 @@ int UI_icon_get_height(int icon_id)
 	icon = BKE_icon_get(icon_id);
 	
 	if (!icon) {
-		printf("UI_icon_get_height: Internal error, no icon for icon ID: %d\n", icon_id);
+		if (G.f & G_DEBUG)
+			printf("UI_icon_get_height: Internal error, no icon for icon ID: %d\n", icon_id);
 		return 0;
 	}
 	
@@ -757,7 +761,8 @@ static void icon_create_mipmap(struct PreviewImage* prv_img, int miplevel)
 	unsigned int size = preview_render_size(miplevel);
 
 	if (!prv_img) {
-		printf("Error: requested preview image does not exist");
+		if (G.f & G_DEBUG)
+			printf("Error: requested preview image does not exist");
 	}
 	if (!prv_img->rect[miplevel]) {
 		prv_img->w[miplevel] = size;
@@ -772,7 +777,8 @@ static void icon_create_mipmap(struct PreviewImage* prv_img, int miplevel)
 static void icon_set_image(bContext *C, ID *id, PreviewImage* prv_img, int miplevel)
 {
 	if (!prv_img) {
-		printf("No preview image for this ID: %s\n", id->name);
+		if (G.f & G_DEBUG)
+			printf("No preview image for this ID: %s\n", id->name);
 		return;
 	}	
 
@@ -802,13 +808,14 @@ static void icon_draw_rect(float x, float y, int w, int h, float aspect, int rw,
 	/* draw */
 	if((w<1 || h<1)) {
 		// XXX - TODO 2.5 verify whether this case can happen
-		// and only print in debug
-		printf("what the heck! - icons are %i x %i pixels?\n", w, h);
+		if (G.f & G_DEBUG)
+			printf("what the heck! - icons are %i x %i pixels?\n", w, h);
 	}
 	/* rect contains image in 'rendersize', we only scale if needed */
 	else if(rw!=w && rh!=h) {
 		if(w>2000 || h>2000) { /* something has gone wrong! */
-			printf("insane icon size w=%d h=%d\n",w,h);
+			if (G.f & G_DEBUG)
+				printf("insane icon size w=%d h=%d\n",w,h);
 		}
 		else {
 			ImBuf *ima;
@@ -891,7 +898,8 @@ static void icon_draw_size(float x, float y, int icon_id, float aspect, float al
 	icon = BKE_icon_get(icon_id);
 	
 	if (!icon) {
-		printf("icon_draw_mipmap: Internal error, no icon for icon ID: %d\n", icon_id);
+		if (G.f & G_DEBUG)
+			printf("icon_draw_mipmap: Internal error, no icon for icon ID: %d\n", icon_id);
 		return;
 	}
 

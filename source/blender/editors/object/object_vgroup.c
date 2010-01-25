@@ -543,7 +543,8 @@ static void vgroup_duplicate(Object *ob)
 		BLI_snprintf(name, 32, "%s_copy", dg->name);
 		while(get_named_vertexgroup(ob, name)) {
 			if((strlen(name) + 6) > 32) {
-				printf("Internal error: the name for the new vertex group is > 32 characters");
+				if (G.f & G_DEBUG)
+					printf("Internal error: the name for the new vertex group is > 32 characters");
 				return;
 			}
 			strcpy(s, name);

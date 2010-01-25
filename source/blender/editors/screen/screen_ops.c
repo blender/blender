@@ -1589,7 +1589,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	if (ak) 
 		CFRA= (int)ak->cfra;
 	else
-		BKE_report(op->reports, RPT_ERROR, "No more keyframes to jump to in this direction");
+		BKE_report(op->reports, RPT_INFO, "No more keyframes to jump to in this direction");
 	
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
@@ -2268,7 +2268,6 @@ static int header_flip_exec(bContext *C, wmOperator *op)
 #endif
 
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
-	printf("executed header region flip\n");
 	
 	return OPERATOR_FINISHED;
 }
@@ -2429,7 +2428,7 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
 			/* jump back to end? */
-			if (scene->r.psfra) {
+			if (PRVRANGEON) {
 				if (scene->r.cfra < scene->r.psfra) {
 					scene->r.cfra= scene->r.pefra;
 					sad->flag |= ANIMPLAY_FLAG_JUMPED;
@@ -2444,7 +2443,7 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		else {
 			/* jump back to start? */
-			if (scene->r.psfra) {
+			if (PRVRANGEON) {
 				if (scene->r.cfra > scene->r.pefra) {
 					scene->r.cfra= scene->r.psfra;
 					sad->flag |= ANIMPLAY_FLAG_JUMPED;
@@ -2774,6 +2773,7 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= NULL;
 	SpaceImage *sima;
+	int area_was_image=0;
 	
 	if(scene->r.displaymode==R_OUTPUT_WINDOW) {
 		rcti rect;
@@ -2798,6 +2798,9 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 		sa= CTX_wm_area(C);
 	}
 	else if(scene->r.displaymode==R_OUTPUT_SCREEN) {
+		if (CTX_wm_area(C)->spacetype == SPACE_IMAGE)
+			area_was_image = 1;
+		
 		/* this function returns with changed context */
 		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_IMAGE);
 		sa= CTX_wm_area(C);
@@ -2836,14 +2839,24 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 	/* get the correct image, and scale it */
 	sima->image= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	
-	//	if(G.displaymode==2) { // XXX
-	if(sa->full) {
-		sima->flag |= SI_FULLWINDOW|SI_PREVSPACE;
-		
-		//			ed_screen_fullarea(C, win, sa);
-	}
-	//	}
 	
+	/* if we're rendering to full screen, set appropriate hints on image editor
+	 * so it can restore properly on pressing esc */
+	if(sa->full) {
+		sima->flag |= SI_FULLWINDOW;
+		
+		/* Tell the image editor to revert to previous space in space list on close
+		 * _only_ if it wasn't already an image editor when the render was invoked */
+		if (area_was_image == 0)
+			sima->flag |= SI_PREVSPACE;
+		else {
+			/* Leave it alone so the image editor will just go back from 
+			 * full screen to the original tiled setup */
+			;
+		}
+		
+	}
+
 }
 
 /* executes blocking render */
@@ -2935,7 +2948,8 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 	
 	/* very weak... but 512 characters is quite safe */
 	if(spos >= str+IMA_RW_MAXTEXT)
-		printf("WARNING! renderwin text beyond limit \n");
+		if (G.f & G_DEBUG)
+			printf("WARNING! renderwin text beyond limit \n");
 	
 }
 
@@ -3012,6 +3026,9 @@ static void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf
 	}
 	if(rectf==NULL) return;
 	
+	if(ibuf->rect==NULL)
+		imb_addrectImBuf(ibuf);
+
 	rectf+= 4*(rr->rectx*ymin + xmin);
 	rectc= (char *)(ibuf->rect + ibuf->x*rymin + rxmin);
 	
@@ -3473,15 +3490,23 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	if(ibuf) {
 		if(BKE_imtype_is_movie(scene->r.imtype)) {
 			ok= oglrender->mh->append_movie(&scene->r, CFRA, (int*)ibuf->rect, oglrender->sizex, oglrender->sizey, oglrender->reports);
-			if(ok)
+			if(ok) {
 				printf("Append frame %d", scene->r.cfra);
+				BKE_reportf(op->reports, RPT_INFO, "Appended frame: %d", scene->r.cfra);
+			}
 		}
 		else {
 			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION);
 			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 			
-			if(ok==0) printf("write error: cannot save %s\n", name);
-			else printf("saved: %s", name);
+			if(ok==0) {
+				printf("Write error: cannot save %s\n", name);
+				BKE_reportf(op->reports, RPT_ERROR, "Write error: cannot save %s", name);
+			}
+			else {
+				printf("Saved: %s", name);
+				BKE_reportf(op->reports, RPT_INFO, "Saved file: %s", name);
+			}
 		}
 	}
 	

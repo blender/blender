@@ -29,6 +29,8 @@
 
 #include "rna_internal.h"
 
+#include "DNA_group_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
@@ -150,15 +152,17 @@ static void rna_Scene_link_object(Scene *scene, ReportList *reports, Object *ob)
 	DAG_scene_sort(scene);
 }
 
-static void rna_Scene_unlink_object(Scene *sce, ReportList *reports, Object *ob)
+static void rna_Scene_unlink_object(Scene *scene, bContext *C, ReportList *reports, Object *ob)
 {
-	Base *base= object_in_scene(ob, sce);
+	Base *base= object_in_scene(ob, scene);
 	if (!base) {
 		BKE_report(reports, RPT_ERROR, "Object is not in this scene.");
 		return;
 	}
 	/* as long as ED_base_object_free_and_unlink calls free_libblock_us, we don't have to decrement ob->id.us */
-	ED_base_object_free_and_unlink(sce, base);
+	ED_base_object_free_and_unlink(scene, base);
+
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 }
 
 static void rna_Scene_skgen_etch_template_set(PointerRNA *ptr, PointerRNA value)
@@ -227,28 +231,21 @@ static void rna_Scene_end_frame_set(PointerRNA *ptr, int value)
 	data->r.efra= value;
 }
 
-static int rna_Scene_use_preview_range_get(PointerRNA *ptr)
-{
-	Scene *data= (Scene*)ptr->data;
-	
-	/* this is simply overloaded to assume that preview-range 
-	 * start frame cannot be less than 1 when on,
-	 * so psfra=0 means 'off'
-	 */
-	return (data->r.psfra != 0);
-}
-
 static void rna_Scene_use_preview_range_set(PointerRNA *ptr, int value)
 {
 	Scene *data= (Scene*)ptr->data;
 	
-	/* if enable, copy range from render-range, otherwise just clear */
 	if (value) {
-		data->r.psfra= data->r.sfra;
-		data->r.pefra= data->r.efra;
+		/* copy range from scene if not set before */
+		if ((data->r.psfra == data->r.pefra) && (data->r.psfra == 0)) {
+			data->r.psfra= data->r.sfra;
+			data->r.pefra= data->r.efra;
+		}
+		
+		data->r.flag |= SCER_PRV_RANGE;
 	}
 	else
-		data->r.psfra= 0;
+		data->r.flag &= ~SCER_PRV_RANGE;
 }
 
 
@@ -257,14 +254,14 @@ static void rna_Scene_preview_range_start_frame_set(PointerRNA *ptr, int value)
 	Scene *data= (Scene*)ptr->data;
 	
 	/* check if enabled already */
-	if (data->r.psfra == 0) {
+	if ((data->r.flag & SCER_PRV_RANGE) == 0) {
 		/* set end of preview range to end frame, then clamp as per normal */
 		// TODO: or just refuse to set instead?
 		data->r.pefra= data->r.efra;
 	}
 	
 	/* now set normally */
-	CLAMP(value, 1, data->r.pefra);
+	CLAMP(value, MINAFRAME, data->r.pefra);
 	data->r.psfra= value;
 }
 
@@ -273,7 +270,7 @@ static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
 	Scene *data= (Scene*)ptr->data;
 	
 	/* check if enabled already */
-	if (data->r.psfra == 0) {
+	if ((data->r.flag & SCER_PRV_RANGE) == 0) {
 		/* set start of preview range to start frame, then clamp as per normal */
 		// TODO: or just refuse to set instead?
 		data->r.psfra= data->r.sfra; 
@@ -372,7 +369,7 @@ static int rna_SceneRender_file_ext_length(PointerRNA *ptr)
 {
 	RenderData *rd= (RenderData*)ptr->data;
 	char ext[8];
-
+	ext[0]= '\0';
 	BKE_add_image_extension(ext, rd->imtype);
 	return strlen(ext);
 }
@@ -631,6 +628,33 @@ static void rna_Scene_editmesh_select_mode_update(Main *bmain, Scene *scene, Poi
 
 	WM_main_add_notifier(NC_GEOM|ND_SELECT, me);
 	WM_main_add_notifier(NC_SCENE|ND_TOOLSETTINGS, NULL);
+}
+
+static void object_simplify_update(Object *ob)
+{
+	ModifierData *md;
+
+	for(md=ob->modifiers.first; md; md=md->next)
+		if(ELEM3(md->type, eModifierType_Subsurf, eModifierType_Multires, eModifierType_ParticleSystem))
+			ob->recalc |= OB_RECALC_DATA;
+	
+	if(ob->dup_group) {
+		GroupObject *gob;
+
+		for(gob=ob->dup_group->gobject.first; gob; gob=gob->next)
+			object_simplify_update(gob->ob);
+	}
+}
+
+static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Base *base;
+
+	for(base= scene->base.first; base; base= base->next)
+		object_simplify_update(base->object);
+	
+	DAG_ids_flush_update(0);
+	WM_main_add_notifier(NC_GEOM|ND_DATA, NULL);
 }
 
 #else
@@ -893,6 +917,11 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 		{USER_UNIT_METRIC, "METRIC", 0, "Metric", ""},
 		{USER_UNIT_IMPERIAL, "IMPERIAL", 0, "Imperial", ""},
 		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem rotation_units[] = {
+		{0, "DEGREES", 0, "Degrees", ""},
+		{USER_UNIT_ROT_RADIANS, "RADIANS", 0, "Radians", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UnitSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Unit Settings", "");
@@ -912,6 +941,12 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "use_separate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_UNIT_OPT_SPLIT);
 	RNA_def_property_ui_text(prop, "Separate Units", "Display units in pairs.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	
+	prop= RNA_def_property(srna, "rotation_units", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, rotation_units);
+	RNA_def_property_ui_text(prop, "Rotation Units", "Unit to use for displaying/editing rotation values");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
@@ -2434,10 +2469,37 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Use Game Engine", "Current rendering engine is a game engine.");
 
+	/* simplify */
+	prop= RNA_def_property(srna, "use_simplify", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_SIMPLIFY);
+	RNA_def_property_ui_text(prop, "Use Simplify", "Enable simplification of scene for quicker preview renders.");
+	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
+	prop= RNA_def_property(srna, "simplify_subdivision", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "simplify_subsurf");
+	RNA_def_property_ui_range(prop, 0, 6, 1, 0);
+	RNA_def_property_ui_text(prop, "Simplify Subdivision", "Global maximum subdivision level.");
+	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
+	prop= RNA_def_property(srna, "simplify_child_particles", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "simplify_particles");
+	RNA_def_property_ui_text(prop, "Simplify Child Particles", "Global child particles percentage.");
+	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
+	prop= RNA_def_property(srna, "simplify_shadow_samples", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "simplify_shadowsamples");
+	RNA_def_property_ui_range(prop, 1, 16, 1, 0);
+	RNA_def_property_ui_text(prop, "Simplify Shadow Samples", "Global maximum shadow samples.");
+	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
+	prop= RNA_def_property(srna, "simplify_ao_sss", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "simplify_aosss");
+	RNA_def_property_ui_text(prop, "Simplify AO and SSS", "Global approximate AA and SSS quality factor.");
+	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
 	/* Scene API */
 	RNA_api_scene_render(srna);
 }
-
 
 /* scene.objects */
 static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
@@ -2461,7 +2523,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func= RNA_def_function(srna, "unlink", "rna_Scene_unlink_object");
 	RNA_def_function_ui_description(func, "Unlink object from scene.");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove from scene.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
@@ -2600,9 +2662,10 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	/* Preview Range (frame-range for UI playback) */
-	prop=RNA_def_property(srna, "use_preview_range", PROP_BOOLEAN, PROP_NONE); /* use_preview_range is not really a separate setting in SDNA */
+	prop=RNA_def_property(srna, "use_preview_range", PROP_BOOLEAN, PROP_NONE); 
 	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_Scene_use_preview_range_get", "rna_Scene_use_preview_range_set");
+	RNA_def_property_boolean_sdna(prop, NULL, "r.flag", SCER_PRV_RANGE);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_use_preview_range_set");
 	RNA_def_property_ui_text(prop, "Use Preview Range", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	

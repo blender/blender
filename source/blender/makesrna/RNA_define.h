@@ -172,7 +172,7 @@ void RNA_def_property_srna(PropertyRNA *prop, const char *type);
 FunctionRNA *RNA_def_function(StructRNA *srna, const char *identifier, const char *call);
 FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, CallFunc call);
 void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret);
-void RNA_def_function_return_mark(FunctionRNA *func, PropertyRNA *ret);
+void RNA_def_function_output(FunctionRNA *func, PropertyRNA *ret);
 void RNA_def_function_flag(FunctionRNA *func, int flag);
 void RNA_def_function_ui_description(FunctionRNA *func, const char *description);
 

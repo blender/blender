@@ -33,29 +33,6 @@
 #include "BLI_blenlib.h"
 
 
-//-------------------------DOC STRINGS ---------------------------
-
-static PyObject *Euler_Zero( EulerObject * self );
-static PyObject *Euler_Unique( EulerObject * self );
-static PyObject *Euler_ToMatrix( EulerObject * self );
-static PyObject *Euler_ToQuat( EulerObject * self );
-static PyObject *Euler_Rotate( EulerObject * self, PyObject *args );
-static PyObject *Euler_MakeCompatible( EulerObject * self, EulerObject *value );
-static PyObject *Euler_copy( EulerObject * self, PyObject *args );
-
-//-----------------------METHOD DEFINITIONS ----------------------
-static struct PyMethodDef Euler_methods[] = {
-	{"zero", (PyCFunction) Euler_Zero, METH_NOARGS, NULL},
-	{"unique", (PyCFunction) Euler_Unique, METH_NOARGS, NULL},
-	{"toMatrix", (PyCFunction) Euler_ToMatrix, METH_NOARGS, NULL},
-	{"toQuat", (PyCFunction) Euler_ToQuat, METH_NOARGS, NULL},
-	{"rotate", (PyCFunction) Euler_Rotate, METH_VARARGS, NULL},
-	{"makeCompatible", (PyCFunction) Euler_MakeCompatible, METH_O, NULL},
-	{"__copy__", (PyCFunction) Euler_copy, METH_VARARGS, NULL},
-	{"copy", (PyCFunction) Euler_copy, METH_VARARGS, NULL},
-	{NULL, NULL, 0, NULL}
-};
-
 //----------------------------------Mathutils.Euler() -------------------
 //makes a new euler for you to play with
 static PyObject *Euler_new(PyTypeObject * type, PyObject * args, PyObject * kwargs)
@@ -108,6 +85,15 @@ static PyObject *Euler_new(PyTypeObject * type, PyObject * args, PyObject * kwar
 //-----------------------------METHODS----------------------------
 //----------------------------Euler.toQuat()----------------------
 //return a quaternion representation of the euler
+
+static char Euler_ToQuat_doc[] =
+".. method:: to_quat()\n"
+"\n"
+"   Return a quaternion representation of the euler.\n"
+"\n"
+"   :return: Quaternion representation of the euler.\n"
+"   :rtype: Quaternion\n";
+
 static PyObject *Euler_ToQuat(EulerObject * self)
 {
 	float quat[4];
@@ -132,6 +118,14 @@ static PyObject *Euler_ToQuat(EulerObject * self)
 }
 //----------------------------Euler.toMatrix()---------------------
 //return a matrix representation of the euler
+static char Euler_ToMatrix_doc[] =
+".. method:: to_matrix()\n"
+"\n"
+"   Return a matrix representation of the euler.\n"
+"\n"
+"   :return: A 3x3 roation matrix representation of the euler.\n"
+"   :rtype: Matrix\n";
+
 static PyObject *Euler_ToMatrix(EulerObject * self)
 {
 	float mat[9] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
@@ -156,6 +150,14 @@ static PyObject *Euler_ToMatrix(EulerObject * self)
 }
 //----------------------------Euler.unique()-----------------------
 //sets the x,y,z values to a unique euler rotation
+
+static char Euler_Unique_doc[] =
+".. method:: unique()\n"
+"\n"
+"   Calculate a unique rotation for this euler. Avoids gimble lock.\n"
+"   :return: an instance of itself\n"
+"   :rtype: Euler\n";
+
 static PyObject *Euler_Unique(EulerObject * self)
 {
 #define PI_2		(Py_PI * 2.0)
@@ -220,6 +222,13 @@ static PyObject *Euler_Unique(EulerObject * self)
 }
 //----------------------------Euler.zero()-------------------------
 //sets the euler to 0,0,0
+static char Euler_Zero_doc[] =
+".. method:: zero()\n"
+"\n"
+"   Set all values to zero.\n"
+"   :return: an instance of itself\n"
+"   :rtype: Euler\n";
+
 static PyObject *Euler_Zero(EulerObject * self)
 {
 	self->eul[0] = 0.0;
@@ -278,6 +287,16 @@ static PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 	return (PyObject *)self;
 }
 
+static char Euler_MakeCompatible_doc[] =
+".. method:: make_compatible(other)\n"
+"\n"
+"   Make this euler compatible with another, so interpolating between them works as intended.\n"
+"\n"
+"   :arg other: make compatible with this rotation.\n"
+"   :type other: Euler\n"
+"   :return: an instance of itself.\n"
+"   :rtype: Euler\n";
+
 static PyObject *Euler_MakeCompatible(EulerObject * self, EulerObject *value)
 {
 #ifdef USE_MATHUTILS_DEG
@@ -317,6 +336,17 @@ static PyObject *Euler_MakeCompatible(EulerObject * self, EulerObject *value)
 
 //----------------------------Euler.rotate()-----------------------
 // return a copy of the euler
+
+static char Euler_copy_doc[] =
+".. function:: copy()\n"
+"\n"
+"   Returns a copy of this euler.\n"
+"\n"
+"   :return: A copy of the euler.\n"
+"   :rtype: Euler\n"
+"\n"
+"   .. note:: use this to get a copy of a wrapped euler with no reference to the original data.\n";
+
 static PyObject *Euler_copy(EulerObject * self, PyObject *args)
 {
 	if(!BaseMath_ReadCallback(self))
@@ -543,6 +573,20 @@ static PyGetSetDef Euler_getseters[] = {
 	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, "True when this wraps blenders internal data", NULL},
 	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, "Read only owner for vectors that depend on another object", NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+
+//-----------------------METHOD DEFINITIONS ----------------------
+static struct PyMethodDef Euler_methods[] = {
+	{"zero", (PyCFunction) Euler_Zero, METH_NOARGS, Euler_Zero_doc},
+	{"unique", (PyCFunction) Euler_Unique, METH_NOARGS, Euler_Unique_doc},
+	{"to_matrix", (PyCFunction) Euler_ToMatrix, METH_NOARGS, Euler_ToMatrix_doc},
+	{"to_quat", (PyCFunction) Euler_ToQuat, METH_NOARGS, Euler_ToQuat_doc},
+	{"rotate", (PyCFunction) Euler_Rotate, METH_VARARGS, NULL},
+	{"make_compatible", (PyCFunction) Euler_MakeCompatible, METH_O, Euler_MakeCompatible_doc},
+	{"__copy__", (PyCFunction) Euler_copy, METH_VARARGS, Euler_copy_doc},
+	{"copy", (PyCFunction) Euler_copy, METH_VARARGS, Euler_copy_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 //------------------PY_OBECT DEFINITION--------------------------

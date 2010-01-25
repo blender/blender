@@ -936,7 +936,7 @@ def main(context, island_margin, projection_limit):
         # Initialize projectVecs
         if USER_VIEW_INIT:
             # Generate Projection
-            projectVecs = [Vector(Window.GetViewVector()) * ob.matrixWorld.copy().invert().rotationPart()] # We add to this allong the way
+            projectVecs = [Vector(Window.GetViewVector()) * ob.matrixWorld.copy().invert().rotation_part()] # We add to this allong the way
         else:
             projectVecs = []
 

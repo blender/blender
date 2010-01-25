@@ -150,7 +150,7 @@ typedef enum PropertyFlag {
 
 	/* function paramater flags */
 	PROP_REQUIRED = 1<<2,
-	PROP_RETURN = 1<<3,
+	PROP_OUTPUT = 1<<3,
 	PROP_RNAPTR = 1<<11,
 	/* registering */
 	PROP_REGISTER = 1<<4,
@@ -266,6 +266,7 @@ typedef enum FunctionFlag {
 	FUNC_NO_SELF = 1, /* for static functions */
 	FUNC_USE_CONTEXT = 2,
 	FUNC_USE_REPORTS = 4,
+	FUNC_USE_SELF_ID = 2048,
 
 	/* registering */
 	FUNC_REGISTER = 8,

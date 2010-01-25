@@ -1780,6 +1780,8 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
 			DriverVar *dvar;
+
+			driver->expr_comp= NULL;
 			
 			/* relink variables, targets and their paths */
 			link_list(fd, &driver->variables);
@@ -2100,7 +2102,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				direct_link_curvemapping(fd, node->storage);
 			else if(ntree->type==NTREE_COMPOSIT) {
-				if( ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB))
+				if( ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
 					direct_link_curvemapping(fd, node->storage);
 				else if(ELEM3(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
 					((ImageUser *)node->storage)->ok= 1;
@@ -4635,12 +4637,20 @@ static void lib_link_screen(FileData *fd, Main *main)
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_VIEW3D) {
 						View3D *v3d= (View3D*) sl;
+						BGpic *bgpic = NULL;
 						
 						v3d->camera= newlibadr(fd, sc->id.lib, v3d->camera);
 						v3d->ob_centre= newlibadr(fd, sc->id.lib, v3d->ob_centre);
 						
+						/* should be do_versions but not easy adding into the listbase */
 						if(v3d->bgpic) {
-							v3d->bgpic->ima= newlibadr_us(fd, sc->id.lib, v3d->bgpic->ima);
+							v3d->bgpic= newlibadr(fd, sc->id.lib, v3d->bgpic);
+							BLI_addtail(&v3d->bgpicbase, bgpic);
+							v3d->bgpic= NULL;
+						}
+
+						for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
+							bgpic->ima= newlibadr_us(fd, sc->id.lib, bgpic->ima);
 						}
 						if(v3d->localvd) {
 							v3d->localvd->camera= newlibadr(fd, sc->id.lib, v3d->localvd->camera);
@@ -4648,9 +4658,12 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_IPO) {
 						SpaceIpo *sipo= (SpaceIpo *)sl;
+						bDopeSheet *ads= sipo->ads;
 						
-						if(sipo->ads)
-							sipo->ads->source= newlibadr(fd, sc->id.lib, sipo->ads->source);
+						if (ads) {
+							ads->source= newlibadr(fd, sc->id.lib, ads->source);
+							ads->filter_grp= newlibadr(fd, sc->id.lib, ads->filter_grp);
+						}
 					}
 					else if(sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *)sl;
@@ -4681,8 +4694,14 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_ACTION) {
 						SpaceAction *saction= (SpaceAction *)sl;
+						bDopeSheet *ads= &saction->ads;
+						
+						if (ads) {
+							ads->source= newlibadr(fd, sc->id.lib, ads->source);
+							ads->filter_grp= newlibadr(fd, sc->id.lib, ads->filter_grp);
+						}
+						
 						saction->action = newlibadr(fd, sc->id.lib, saction->action);
-						saction->ads.source= newlibadr(fd, sc->id.lib, saction->ads.source);
 					}
 					else if(sl->spacetype==SPACE_IMAGE) {
 						SpaceImage *sima= (SpaceImage *)sl;
@@ -4690,7 +4709,13 @@ static void lib_link_screen(FileData *fd, Main *main)
 						sima->image= newlibadr_us(fd, sc->id.lib, sima->image);
 					}
 					else if(sl->spacetype==SPACE_NLA){
-						/* SpaceNla *snla= (SpaceNla *)sl;	*/
+						SpaceNla *snla= (SpaceNla *)sl;
+						bDopeSheet *ads= snla->ads;
+						
+						if (ads) {
+							ads->source= newlibadr(fd, sc->id.lib, ads->source);
+							ads->filter_grp= newlibadr(fd, sc->id.lib, ads->filter_grp);
+						}
 					}
 					else if(sl->spacetype==SPACE_TEXT) {
 						SpaceText *st= (SpaceText *)sl;
@@ -4814,14 +4839,15 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 			for (sl= sa->spacedata.first; sl; sl= sl->next) {
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
+					BGpic *bgpic;
 					
 					v3d->camera= restore_pointer_by_name(newmain, (ID *)v3d->camera, 1);
 					if(v3d->camera==NULL)
 						v3d->camera= sc->scene->camera;
 					v3d->ob_centre= restore_pointer_by_name(newmain, (ID *)v3d->ob_centre, 1);
 					
-					if(v3d->bgpic) {
-						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima, 1);
+					for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
+						bgpic->ima= restore_pointer_by_name(newmain, (ID *)bgpic->ima, 1);
 					}
 					if(v3d->localvd) {
 						/*Base *base;*/
@@ -4848,10 +4874,11 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					
 				}
 				else if(sl->spacetype==SPACE_IPO) {
+					SpaceIpo *sipo= (SpaceIpo *)sl;
+					bDopeSheet *ads= sipo->ads;
+
 					/* XXX animato */
 #if 0
-					SpaceIpo *sipo= (SpaceIpo *)sl;
-
 					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
 					if(sipo->blocktype==ID_SEQ) 
 						sipo->from= (ID *)find_sequence_from_ipo_helper(newmain, sipo->ipo);
@@ -4861,7 +4888,11 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					// not free sipo->ipokey, creates dependency with src/
 					if(sipo->editipo) MEM_freeN(sipo->editipo);
 					sipo->editipo= NULL;
+
 #endif
+					if (ads->filter_grp) {
+						ads->filter_grp= restore_pointer_by_name(newmain, (ID *)ads->filter_grp, 0);
+					}
 				}
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
@@ -4887,6 +4918,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					SpaceAction *saction= (SpaceAction *)sl;
 					saction->action = restore_pointer_by_name(newmain, (ID *)saction->action, 1);
 					saction->ads.source= restore_pointer_by_name(newmain, (ID *)saction->ads.source, 1);
+
+					if(saction->ads.filter_grp) {
+						saction->ads.filter_grp= restore_pointer_by_name(newmain, (ID *)saction->ads.filter_grp, 0);
+					}
 				}
 				else if(sl->spacetype==SPACE_IMAGE) {
 					SpaceImage *sima= (SpaceImage *)sl;
@@ -4894,7 +4929,12 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					sima->image= restore_pointer_by_name(newmain, (ID *)sima->image, 1);
 				}
 				else if(sl->spacetype==SPACE_NLA){
-					/* SpaceNla *snla= (SpaceNla *)sl;	*/
+					SpaceNla *snla= (SpaceNla *)sl;
+					bDopeSheet *ads= snla->ads;
+
+					if (ads->filter_grp) {
+						ads->filter_grp= restore_pointer_by_name(newmain, (ID *)ads->filter_grp, 0);
+					}
 				}
 				else if(sl->spacetype==SPACE_TEXT) {
 					SpaceText *st= (SpaceText *)sl;
@@ -5094,10 +5134,22 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 
 			if (sl->spacetype==SPACE_VIEW3D) {
 				View3D *v3d= (View3D*) sl;
-				v3d->bgpic= newdataadr(fd, v3d->bgpic);
+				BGpic *bgpic;
+
 				v3d->flag |= V3D_INVALID_BACKBUF;
-				if(v3d->bgpic)
-					v3d->bgpic->iuser.ok= 1;
+
+				link_list(fd, &(v3d->bgpicbase));
+
+				/* should be do_versions except this doesnt fit well there */
+				if(v3d->bgpic) {
+					bgpic= newdataadr(fd, v3d->bgpic);
+					BLI_addtail(&v3d->bgpicbase, bgpic);
+					v3d->bgpic= NULL;
+				}
+
+				for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next)
+					bgpic->iuser.ok= 1;
+
 				if(v3d->gpd) {
 					v3d->gpd= newdataadr(fd, v3d->gpd);
 					direct_link_gpencil(fd, v3d->gpd);
@@ -6151,7 +6203,13 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				/* init mainarea view2d */
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
-								
+				
+				ar->v2d.min[0]= FLT_MIN;
+				ar->v2d.min[1]= FLT_MIN;
+				
+				ar->v2d.max[0]= MAXFRAMEF;
+				ar->v2d.max[1]= FLT_MAX;
+				
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
@@ -6402,6 +6460,74 @@ static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
 				mtex->colfac= (neg & LAMAP_COL)? -colfac: colfac;
 			else if(idtype == ID_WO)
 				mtex->colfac= (neg & WOMAP_HORIZ)? -colfac: colfac;
+		}
+	}
+}
+
+static void do_version_fcurves_radians_degrees_250(ListBase *lb, char *propname)
+{
+	FCurve *fcu;
+	FModifier *fcm;
+	int i;
+	
+	for (fcu=lb->first; fcu; fcu=fcu->next) {
+		if (strstr(fcu->rna_path, propname)) {
+			if (fcu->bezt) {
+				for (i=0; i<fcu->totvert; i++) {
+					BezTriple *bt = fcu->bezt+i;
+					
+					bt->vec[0][1] *= 180.0/M_PI;
+					bt->vec[1][1] *= 180.0/M_PI;
+					bt->vec[2][1] *= 180.0/M_PI;
+				}
+			}
+			else if (fcu->fpt) {
+				for (i=0; i<fcu->totvert; i++) {
+					FPoint *fpt = fcu->fpt+i;
+					
+					fpt->vec[1] *= 180.0/M_PI;
+				}
+			}
+			
+			for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
+				if (fcm->type == FMODIFIER_TYPE_GENERATOR) {
+					FMod_Generator *data= (FMod_Generator *)fcm->data;
+
+					for (i=0; i<data->arraysize; i++)
+						data->coefficients[i] *= 180/M_PI;
+				}
+			}
+
+			fcu->flag |= FCURVE_ROTATION_DEGREES;
+		}
+	}
+}
+			
+static void do_version_constraints_radians_degrees_250(ListBase *lb)
+{
+	bConstraint *con;
+
+	/* fcurves for this are not converted, assumption is these were unlikely to be used */
+	for	(con=lb->first; con; con=con->next) {
+		if(con->type==CONSTRAINT_TYPE_RIGIDBODYJOINT) {
+			bRigidBodyJointConstraint *data = con->data;
+			data->axX *= M_PI/180.0;
+			data->axY *= M_PI/180.0;
+			data->axZ *= M_PI/180.0;
+		}
+		else if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+			bKinematicConstraint *data = con->data;
+			data->poleangle *= M_PI/180.0;
+		}
+		else if(con->type==CONSTRAINT_TYPE_ROTLIMIT) {
+			bRotLimitConstraint *data = con->data;
+
+			data->xmin *= M_PI/180.0;
+			data->xmax *= M_PI/180.0;
+			data->ymin *= M_PI/180.0;
+			data->ymax *= M_PI/180.0;
+			data->zmin *= M_PI/180.0;
+			data->zmax *= M_PI/180.0;
 		}
 	}
 }
@@ -8355,8 +8481,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							((SpaceImage *)sl)->iuser.fie_ima= 2;
 						else if(sl->spacetype==SPACE_VIEW3D) {
 							View3D *v3d= (View3D *)sl;
-							if(v3d->bgpic)
-								v3d->bgpic->iuser.fie_ima= 2;
+							BGpic *bgpic;
+							for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next)
+								bgpic->iuser.fie_ima= 2;
 						}
 					}
 				}
@@ -10141,7 +10268,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			Scene *sce=main->scene.first;
 			Material *ma=main->mat.first;
 			World *wo=main->world.first;
-			int convert=0;
+			Tex *tex=main->tex.first;
+			int i, convert=0;
 			
 			/* convert to new color management system:
 			 while previously colors were stored as srgb, 
@@ -10157,11 +10285,37 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			
 			if (convert) {
 				while(ma) {
+					if (ma->ramp_col) {
+						ColorBand *band = (ColorBand *)ma->ramp_col;
+						for (i=0; i<band->tot; i++) {
+							CBData *data = band->data + i;
+							srgb_to_linearrgb_v3_v3(&data->r, &data->r);
+						}
+					}
+					if (ma->ramp_spec) {
+						ColorBand *band = (ColorBand *)ma->ramp_spec;
+						for (i=0; i<band->tot; i++) {
+							CBData *data = band->data + i;
+							srgb_to_linearrgb_v3_v3(&data->r, &data->r);
+						}
+					}
+					
 					srgb_to_linearrgb_v3_v3(&ma->r, &ma->r);
 					srgb_to_linearrgb_v3_v3(&ma->specr, &ma->specr);
 					srgb_to_linearrgb_v3_v3(&ma->mirr, &ma->mirr);
 					srgb_to_linearrgb_v3_v3(ma->sss_col, ma->sss_col);
 					ma=ma->id.next;
+				}
+				
+				while(tex) {
+					if (tex->coba) {
+						ColorBand *band = (ColorBand *)tex->coba;
+						for (i=0; i<band->tot; i++) {
+							CBData *data = band->data + i;
+							srgb_to_linearrgb_v3_v3(&data->r, &data->r);
+						}
+					}
+					tex=tex->id.next;
 				}
 				
 				while(wo) {
@@ -10327,9 +10481,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put 2.50 compatibility code here until next subversion bump */
-
-	if (1) {
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 12))
+	{
 		Scene *sce;
 		Object *ob;
 		Brush *brush;
@@ -10359,9 +10512,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					
 					avs->ghost_sf= arm->ghostsf;
 					avs->ghost_ef= arm->ghostef;
+					if ((avs->ghost_sf == avs->ghost_ef) && (avs->ghost_sf == 0)) {
+						avs->ghost_sf= 1;
+						avs->ghost_ef= 100;
+					}
 					
 						/* type */
-					avs->ghost_type= arm->ghosttype;
+					if (arm->ghostep == 0)
+						avs->ghost_type= GHOST_TYPE_NONE;
+					else
+						avs->ghost_type= arm->ghosttype + 1;
 					
 						/* stepsize */
 					avs->ghost_step= arm->ghostsize;
@@ -10372,9 +10532,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						/* ranges */
 					avs->path_bc= arm->pathbc;
 					avs->path_ac= arm->pathac;
+					if ((avs->path_bc == avs->path_ac) && (avs->path_bc == 0))
+						avs->path_bc= avs->path_ac= 10;
 					
 					avs->path_sf= arm->pathsf;
 					avs->path_ef= arm->pathef;
+					if ((avs->path_sf == avs->path_ef) && (avs->path_sf == 0)) {
+						avs->path_sf= 1;
+						avs->path_ef= 250;
+					}
 					
 						/* flags */
 					if (arm->pathflag & ARM_PATH_FNUMS)
@@ -10397,6 +10563,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if (avs->path_step == 0)
 						avs->path_step= 1;
 				}
+				else
+					animviz_settings_init(&ob->pose->avs);
 			}
 		}
 		
@@ -10413,6 +10581,50 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		
+	}
+	
+	
+	/* put 2.50 compatibility code here until next subversion bump */
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 13)) {
+		/* NOTE: if you do more conversion, be sure to do it outside of this and
+		   increase subversion again, otherwise it will not be correct */
+		Object *ob;
+		bAction *act;
+		
+		/* convert degrees to radians for internal use */
+		for (ob=main->object.first; ob; ob=ob->id.next) {
+			AnimData *adt = BKE_animdata_from_id((ID *)ob);
+			bPoseChannel *pchan;
+
+			if (adt) {
+				do_version_fcurves_radians_degrees_250(&adt->drivers, "rotation_euler");
+				do_version_fcurves_radians_degrees_250(&adt->drivers, "delta_rotation_euler");
+				do_version_fcurves_radians_degrees_250(&adt->drivers, "pole_angle");
+			}
+
+			do_version_constraints_radians_degrees_250(&ob->constraints);
+
+			if (ob->pose) {
+				for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+					pchan->limitmin[0] *= M_PI/180.0;
+					pchan->limitmin[1] *= M_PI/180.0;
+					pchan->limitmin[2] *= M_PI/180.0;
+					pchan->limitmax[0] *= M_PI/180.0;
+					pchan->limitmax[1] *= M_PI/180.0;
+					pchan->limitmax[2] *= M_PI/180.0;
+
+					do_version_constraints_radians_degrees_250(&pchan->constraints);
+				}
+			}
+		}
+		
+		/* convert fcurve values to be stored in degrees */
+		for (act = main->action.first; act; act=act->id.next) {
+			/* convert over named properties with PROP_UNIT_ROTATION time of this change */
+			do_version_fcurves_radians_degrees_250(&act->curves, "rotation_euler");
+			do_version_fcurves_radians_degrees_250(&act->curves, "delta_rotation_euler");
+			do_version_fcurves_radians_degrees_250(&act->curves, "pole_angle");
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

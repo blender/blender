@@ -73,6 +73,7 @@ class DOPESHEET_MT_view(bpy.types.Menu):
 
         layout.column()
 
+        layout.prop(st, "realtime_updates")
         layout.prop(st, "show_cframe_indicator")
         layout.prop(st, "show_sliders")
         layout.prop(st, "automerge_keyframes")

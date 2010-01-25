@@ -31,6 +31,7 @@
 #include "RNA_define.h"
 
 #include "bpy_rna.h"
+#include "bpy_props.h"
 #include "bpy_util.h"
 
 static void operator_properties_init(wmOperatorType *ot)

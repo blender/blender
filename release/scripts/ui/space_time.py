@@ -114,7 +114,13 @@ class TIME_MT_frame(bpy.types.Menu):
         layout.operator("marker.duplicate", text="Duplicate Marker")
         layout.operator("marker.move", text="Grab/Move Marker")
         layout.operator("marker.delete", text="Delete Marker")
-        layout.label(text="ToDo: Name Marker")
+
+        # it was ok for riscos... ok TODO, operator
+        for marker in context.scene.timeline_markers:
+            if marker.selected:
+                layout.separator()
+                layout.prop(marker, "name", text="", icon='MARKER_HLT')
+                break
 
         layout.separator()
 

@@ -70,6 +70,8 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_view_orbit);
 	WM_operatortype_append(VIEW3D_OT_view_pan);
 	WM_operatortype_append(VIEW3D_OT_view_persportho);
+	WM_operatortype_append(VIEW3D_OT_add_background_image);
+	WM_operatortype_append(VIEW3D_OT_remove_background_image);
 	WM_operatortype_append(VIEW3D_OT_view_selected);
 	WM_operatortype_append(VIEW3D_OT_view_center_cursor);
 	WM_operatortype_append(VIEW3D_OT_select);

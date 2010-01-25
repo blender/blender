@@ -352,6 +352,7 @@ class DATA_PT_spot(DataButtonsPanel):
         sub.prop(lamp, "spot_size", text="Size")
         sub.prop(lamp, "spot_blend", text="Blend", slider=True)
         col.prop(lamp, "square")
+        col.prop(lamp, "show_cone")
 
         if wide_ui:
             col = split.column()

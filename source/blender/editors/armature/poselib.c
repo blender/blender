@@ -901,7 +901,7 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 	}
 	
 	/* request drawing of view + clear redraw flag */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM|ND_POSE, pld->ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, pld->ob);
 	pld->redraw= PL_PREVIEW_NOREDRAW;
 }
 
@@ -1303,7 +1303,8 @@ static void poselib_preview_init_data (bContext *C, wmOperator *op)
 		if (pld->act->markers.first) {
 			/* just use first one then... */
 			pld->marker= pld->act->markers.first;
-			if (pose_index > -2) printf("PoseLib had no active pose\n");
+			if (pose_index > -2) 
+				BKE_report(op->reports, RPT_WARNING, "PoseLib had no active pose");
 		}
 		else {
 			BKE_report(op->reports, RPT_ERROR, "PoseLib has no poses to preview/apply");

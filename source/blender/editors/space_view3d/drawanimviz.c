@@ -104,6 +104,7 @@ void draw_motion_paths_init(Scene *scene, View3D *v3d, ARegion *ar)
  * 	- assumes that the viewport has already been initialised properly
  *		i.e. draw_motion_paths_init() has been called
  */
+// FIXME: the text is still drawn in the wrong space - it includes the current transforms of the object still...
 void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar, 
 			Object *ob, bPoseChannel *pchan, bAnimVizSettings *avs, bMotionPath *mpath)
 {
@@ -273,7 +274,7 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 		glPointSize(1.0f);
 		
 		/* Draw frame numbers of keyframes  */
-		if (avs->path_viewflag & (MOTIONPATH_VIEW_FNUMS|MOTIONPATH_VIEW_KFNOS)) {
+		if (avs->path_viewflag & MOTIONPATH_VIEW_FNUMS) {
 			for (i=0, mpv=mpv_start; i < len; i++, mpv++) {
 				float mframe= (float)(sfra + i);
 				

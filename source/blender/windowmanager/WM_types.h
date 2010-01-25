@@ -157,6 +157,7 @@ typedef struct wmNotifier {
 #define ND_SCREENCAST		(3<<16)
 #define ND_ANIMPLAY			(4<<16)
 #define ND_GPENCIL			(5<<16)
+#define ND_EDITOR_CHANGED	(6<<16) /*sent to new editors after switching to them*/
 
 	/* NC_SCENE Scene */
 #define ND_SCENEBROWSE		(1<<16)
@@ -241,6 +242,7 @@ typedef struct wmNotifier {
 #define ND_SPACE_NLA			(14<<16)
 #define ND_SPACE_SEQUENCER		(15<<16)
 #define ND_SPACE_NODE_VIEW		(16<<16)
+#define ND_SPACE_CHANGED		(17<<16) /*sent to a new editor type after it's replaced an old one*/
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00

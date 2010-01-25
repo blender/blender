@@ -2216,11 +2216,11 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 	/* detect CrazySpace [tm] */
 	if(propmode==0) {
-		if(modifiers_getCageIndex(t->obedit, NULL, 1)>=0) {
+		if(modifiers_getCageIndex(t->scene, t->obedit, NULL, 1)>=0) {
 			if(modifiers_isCorrectableDeformed(t->scene, t->obedit)) {
 				/* check if we can use deform matrices for modifier from the
 				   start up to stack, they are more accurate than quats */
-				totleft= editmesh_get_first_deform_matrices(t->obedit, em, &defmats, &defcos);
+				totleft= editmesh_get_first_deform_matrices(t->scene, t->obedit, em, &defmats, &defcos);
 
 				/* if we still have more modifiers, also do crazyspace
 				   correction with quats, relative to the coordinates after
@@ -4600,7 +4600,6 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 {
 	ID *id= &ob->id;
 	AnimData *adt= ob->adt;
-	bArmature *arm= ob->data;
 	bAction	*act= (adt) ? adt->action : NULL;
 	bPose	*pose= ob->pose;
 	bPoseChannel *pchan;
@@ -4708,8 +4707,8 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 		/* do the bone paths 
 		 * NOTE: only do this when there is context info
 		 */
-		if (C && (arm->pathflag & ARM_PATH_ACFRA)) {
-			//pose_clear_paths(ob); // XXX for now, don't need to clear
+		if (C && (ob->pose->avs.path_type == MOTIONPATH_TYPE_ACFRA)) {
+			//ED_pose_clear_paths(C, ob); // XXX for now, don't need to clear
 			ED_pose_recalculate_paths(C, scene, ob);
 		}
 	}
@@ -4963,7 +4962,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		;
 	}
 	else { /* Objects */
-		int i;
+		int i, recalcObPaths=0;
 
 		for (i = 0; i < t->total; i++) {
 			TransData *td = t->data + i;
@@ -4996,8 +4995,20 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 
 			/* Set autokey if necessary */
-			if (!cancelled)
+			if (!cancelled) {
 				autokeyframe_ob_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode);
+				
+				if (ob->avs.path_type == MOTIONPATH_TYPE_ACFRA)
+					recalcObPaths= 1;
+			}
+		}
+		
+		/* recalculate motion paths for objects (if necessary) 
+		 * NOTE: only do this when there is context info
+		 */
+		if (C && recalcObPaths) {
+			//ED_objects_clear_paths(C); // XXX for now, don't need to clear
+			ED_objects_recalculate_paths(C, t->scene);
 		}
 	}
 

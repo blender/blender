@@ -436,10 +436,10 @@ static int rna_Property_readonly_get(PointerRNA *ptr)
 	return prop->flag & PROP_EDITABLE ? 0:1;
 }
 
-static int rna_Property_use_return_get(PointerRNA *ptr)
+static int rna_Property_use_output_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop= (PropertyRNA*)ptr->data;
-	return prop->flag & PROP_RETURN ? 1:0;
+	return prop->flag & PROP_OUTPUT ? 1:0;
 }
 
 static int rna_Property_is_required_get(PointerRNA *ptr)
@@ -798,6 +798,42 @@ static void rna_BlenderRNA_structs_begin(CollectionPropertyIterator *iter, Point
 	rna_iterator_listbase_begin(iter, &((BlenderRNA*)ptr->data)->structs, NULL);
 }
 
+/* optional, for faster lookups */
+static int rna_BlenderRNA_structs_length(PointerRNA *ptr)
+{
+	return BLI_countlist(&((BlenderRNA*)ptr->data)->structs);
+}
+static PointerRNA rna_BlenderRNA_structs_lookup_int(PointerRNA *ptr, int index)
+{
+	StructRNA *srna= BLI_findlink(&((BlenderRNA*)ptr->data)->structs, index);
+
+	if(srna) {
+		PointerRNA r_ptr;
+		RNA_pointer_create(NULL, &RNA_Struct, srna, &r_ptr);
+		return r_ptr;
+	}
+	else {
+		return PointerRNA_NULL;
+	}
+}
+static PointerRNA rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr, const char *key)
+{
+	StructRNA *srna= ((BlenderRNA*)ptr->data)->structs.first;
+	for(; srna; srna=srna->cont.next)
+		if(key[0] == srna->identifier[0] && strcmp(key, srna->identifier)==0)
+			break;
+
+	if(srna) {
+		PointerRNA r_ptr;
+		RNA_pointer_create(NULL, &RNA_Struct, srna, &r_ptr);
+		return r_ptr;
+	}
+	else {
+		return PointerRNA_NULL;
+	}
+}
+
+
 #else
 
 static void rna_def_struct(BlenderRNA *brna)
@@ -961,10 +997,10 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_never_none_get", NULL);
 	RNA_def_property_ui_text(prop, "Never None", "True when this value can't be set to None.");
 
-	prop= RNA_def_property(srna, "use_return", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_output", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_Property_use_return_get", NULL);
-	RNA_def_property_ui_text(prop, "Return", "True when this property is a return value from an rna function.");
+	RNA_def_property_boolean_funcs(prop, "rna_Property_use_output_get", NULL);
+	RNA_def_property_ui_text(prop, "Return", "True when this property is an output value from an rna function.");
 
 	prop= RNA_def_property(srna, "registered", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -1238,7 +1274,14 @@ void RNA_def_rna(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "structs", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "Struct");
-	RNA_def_property_collection_funcs(prop, "rna_BlenderRNA_structs_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_BlenderRNA_structs_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get",
+		/* included for speed, can be removed */
+#if 0
+			0,0,0);
+#else
+			"rna_BlenderRNA_structs_length", "rna_BlenderRNA_structs_lookup_int", "rna_BlenderRNA_structs_lookup_string");
+#endif
+
 	RNA_def_property_ui_text(prop, "Structs", "");
 }
 

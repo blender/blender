@@ -60,6 +60,17 @@ int BLI_gsqueue_is_empty(GSQueue *gq)
 	return (gq->head==NULL);
 }
 
+int BLI_gsqueue_size(GSQueue *gq)
+{ 
+	GSQueueElem *elem;
+	int size= 0;
+
+	for(elem=gq->head; elem; elem=elem->next)
+		size++;
+	
+	return size;
+}
+
 void BLI_gsqueue_peek(GSQueue *gq, void *item_r)
 {
 	memcpy(item_r, &gq->head[1], gq->elem_size);

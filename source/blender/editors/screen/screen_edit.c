@@ -1473,7 +1473,8 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 			for(old= sc->areabase.first; old; old= old->next) 
 				if(old->full) break;
 			if(old==NULL) {
-				printf("something wrong in areafullscreen\n"); 
+				if (G.f & G_DEBUG)
+					printf("something wrong in areafullscreen\n"); 
 				return NULL;
 			}
 			    // old feature described below (ton)

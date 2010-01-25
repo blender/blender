@@ -2,7 +2,7 @@ LCGDIR = '../lib/openbsd3'
 LIBDIR = '${LCGDIR}'
 
 BF_PYTHON = '/usr/local'
-BF_PYTHON_VERSION = '2.5'
+BF_PYTHON_VERSION = '3.1'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
 BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'

@@ -486,7 +486,7 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			/* could be handlerized at some point, now only 1 exception still */
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				write_curvemapping(wd, node->storage);
-			else if(ntree->type==NTREE_COMPOSIT && (node->type==CMP_NODE_TIME || node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB))
+			else if(ntree->type==NTREE_COMPOSIT && ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
 				write_curvemapping(wd, node->storage);
 			else if(ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
 				write_curvemapping(wd, node->storage);
@@ -935,14 +935,7 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 			ChannelDriver *driver= fcu->driver;
 			DriverVar *dvar;
 			
-			/* don't save compiled python bytecode */
-			void *expr_comp= driver->expr_comp;
-			driver->expr_comp= NULL;
-			
 			writestruct(wd, DATA, "ChannelDriver", 1, driver);
-			
-			driver->expr_comp= expr_comp; /* restore */
-			
 			
 			/* variables */
 			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
@@ -2042,8 +2035,10 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D *) sl;
+					BGpic *bgpic;
 					writestruct(wd, DATA, "View3D", 1, v3d);
-					if(v3d->bgpic) writestruct(wd, DATA, "BGpic", 1, v3d->bgpic);
+					for (bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next)
+					writestruct(wd, DATA, "BGpic", 1, bgpic);
 					if(v3d->localvd) writestruct(wd, DATA, "View3D", 1, v3d->localvd);
 				}
 				else if(sl->spacetype==SPACE_IPO) {
@@ -2335,6 +2330,8 @@ static void write_brushes(WriteData *wd, ListBase *idbase)
 		if(brush->id.us>0 || wd->current) {
 			writestruct(wd, ID_BR, "Brush", 1, brush);
 			if (brush->id.properties) IDP_WriteProperty(brush->id.properties, wd);
+			
+			writestruct(wd, DATA, "MTex", 1, &brush->mtex);
 			
 			if(brush->curve)
 				write_curvemapping(wd, brush->curve);

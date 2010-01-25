@@ -35,7 +35,7 @@
 #include <X11/cursorfont.h>
 #include <X11/Xatom.h>
 
-#if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__)
+#if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__) || defined (_AIX)
 #include <strings.h>
 #endif
 
@@ -1435,7 +1435,7 @@ setWindowCursorGrab(
 				setWindowCursorVisibility(false);
 
 		}
-		XGrabPointer(m_display, m_window, True, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+		XGrabPointer(m_display, m_window, False, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	}
 	else {
 		if (m_cursorGrab==GHOST_kGrabHide) {

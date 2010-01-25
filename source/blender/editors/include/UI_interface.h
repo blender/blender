@@ -216,8 +216,19 @@ typedef struct uiLayout uiLayout;
 #define LISTROW		(44<<9)
 #define HOTKEYEVT	(45<<9)
 #define BUT_IMAGE	(46<<9)
+#define HISTOGRAM	(47<<9)
 
 #define BUTTYPE		(63<<9)
+
+/* gradient types, for color picker HSVCUBE etc */
+#define UI_GRAD_SV		0
+#define UI_GRAD_HV		1
+#define UI_GRAD_HS		2
+#define UI_GRAD_H		3
+#define UI_GRAD_S		4
+#define UI_GRAD_V		5
+
+#define UI_GRAD_V_ALT	9
 
 /* Drawing
  *
@@ -650,10 +661,11 @@ void uiTemplateAnyID(uiLayout *layout, struct bContext *C, struct PointerRNA *pt
 	char *proptypename, char *text);
 void uiTemplatePathBuilder(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, 
 	struct PointerRNA *root_ptr, char *text);
-uiLayout *uiTemplateModifier(uiLayout *layout, struct PointerRNA *ptr);
+uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, int compact);
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot);
 void uiTemplateColorRamp(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
+void uiTemplateHistogram(uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand);
 void uiTemplateCurveMapping(uiLayout *layout, struct PointerRNA *ptr, char *propname, int type, int levels, int brush);
 void uiTemplateColorWheel(uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider);
 void uiTemplateTriColorSet(uiLayout *layout, struct PointerRNA *ptr, char *propname);

@@ -30,14 +30,14 @@ def get_hub(co, _hubs, EPS_SPLINE):
             if (hub.co - co).length < EPS_SPLINE:
                 return hub
 
-        key = co.toTuple(3)
+        key = co.to_tuple(3)
         hub = _hubs[key] = Hub(co, key, len(_hubs))
         return hub
     else:
         pass
 
         '''
-        key = co.toTuple(3)
+        key = co.to_tuple(3)
         try:
             return _hubs[key]
         except:
@@ -274,9 +274,7 @@ def get_splines(gp):
 
 
 def xsect_spline(sp_a, sp_b, _hubs):
-    from Mathutils import LineIntersect
-    from Mathutils import MidpointVecs
-    from Geometry import ClosestPointOnLine
+    from Geometry import ClosestPointOnLine, LineIntersect
     pt_a_prev = pt_b_prev = None
     EPS_SPLINE = (sp_a.length + sp_b.length) / (EPS_SPLINE_DIV * 2)
     pt_a_prev = sp_a.points[0]
@@ -296,7 +294,7 @@ def xsect_spline(sp_a, sp_b, _hubs):
                         # if f >= 0.0-EPS_SPLINE and f <= 1.0+EPS_SPLINE:
                         if f >= 0.0 and f <= 1.0:
                             # This wont happen often
-                            co = MidpointVecs(xsect[0], xsect[1])
+                            co = xsect[0].lerp(xsect[1], 0.5)
                             hub = get_hub(co, _hubs, EPS_SPLINE)
 
                             sp_a.hubs.append((a, hub))
@@ -309,7 +307,6 @@ def xsect_spline(sp_a, sp_b, _hubs):
 
 def connect_splines(splines):
     HASH_PREC = 8
-    from Mathutils import AngleBetweenVecs
     from math import radians
     ANG_LIMIT = radians(ANGLE_JOIN_LIMIT)
     def sort_pair(a, b):
@@ -341,7 +338,7 @@ def connect_splines(splines):
         v1 = p1a - p1b
         v2 = p2b - p2a
         
-        if AngleBetweenVecs(v1, v2) > ANG_LIMIT:
+        if v1.angle(v2) > ANG_LIMIT:
             return False
 
         # print("joining!")
@@ -354,8 +351,8 @@ def connect_splines(splines):
     while do_join:
         do_join = False
         for i, s1 in enumerate(splines):
-            key1a = s1.points[0].toTuple(HASH_PREC)
-            key1b = s1.points[-1].toTuple(HASH_PREC)
+            key1a = s1.points[0].to_tuple(HASH_PREC)
+            key1b = s1.points[-1].to_tuple(HASH_PREC)
             
             for j, s2 in enumerate(splines):
                 if s1 is s2:
@@ -363,8 +360,8 @@ def connect_splines(splines):
 
                 length_average = min(s1.length, s2.length)
 
-                key2a = s2.points[0].toTuple(HASH_PREC)
-                key2b = s2.points[-1].toTuple(HASH_PREC)
+                key2a = s2.points[0].to_tuple(HASH_PREC)
+                key2b = s2.points[-1].to_tuple(HASH_PREC)
                 
                 # there are 4 ways this may be joined
                 key_pair = sort_pair(key1a, key2a)

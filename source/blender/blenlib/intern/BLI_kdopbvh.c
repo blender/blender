@@ -1502,7 +1502,8 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 
 	//ray-bv is really fast.. and simple tests revealed its worth to test it
 	//before calling the ray-primitive functions
-	float dist = fast_ray_nearest_hit(data, node);
+	/* XXX: temporary solution for particles untill fast_ray_nearest_hit supports ray.radius */
+	float dist = (data->ray.radius > 0.0f) ? ray_nearest_hit(data, node->bv) : fast_ray_nearest_hit(data, node);
 	if(dist >= data->hit.dist) return;
 
 	if(node->totnode == 0)

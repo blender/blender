@@ -1181,6 +1181,85 @@ void NLA_OT_move_down (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
+/* ******************** Sync Action Length Operator ***************************** */
+/* Recalculate the extents of the action ranges used for the selected strips  */
+
+static int nlaedit_sync_actlen_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	short active_only= RNA_boolean_get(op->ptr, "active");
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+		
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	if (active_only) filter |= ANIMFILTER_ACTIVE;
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each NLA-Track, apply scale of all selected strips */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		
+		for (strip= nlt->strips.first; strip; strip= strip->next) {
+			/* strip selection/active status check */
+			if (active_only) {
+				if ((strip->flag & NLASTRIP_FLAG_ACTIVE) == 0)
+					continue;
+			}
+			else {
+				if ((strip->flag & NLASTRIP_FLAG_SELECT) == 0)
+					continue;
+			}
+			
+			/* must be action-clip only (transitions don't have scale) */
+			if (strip->type == NLASTRIP_TYPE_CLIP) {
+				if (strip->act == NULL) 
+					continue;
+					
+				/* recalculate the length of the action */
+				calc_action_range(strip->act, &strip->actstart, &strip->actend, 0);
+				
+				/* adjust the strip extents in response to this */
+				BKE_nlastrip_recalculate_bounds(strip);
+			}
+		}
+	}
+	
+	/* free temp data */
+	BLI_freelistN(&anim_data);
+	
+	/* set notifier that things have changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+	
+	/* done */
+	return OPERATOR_FINISHED;
+}
+
+void NLA_OT_action_sync_length (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Sync Action Length";
+	ot->idname= "NLA_OT_action_sync_length";
+	ot->description= "Sychronise the length of the referenced Action with the lengths used in the strip.";
+	
+	/* api callbacks */
+	ot->exec= nlaedit_sync_actlen_exec;
+	ot->poll= ED_operator_nla_active; // XXX: is this satisfactory... probably requires a check for active strip...
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	ot->prop= RNA_def_boolean(ot->srna, "active", 1, "Active Strip Only", "Only sync the active length for the active strip.");
+}
+
 /* ******************** Apply Scale Operator ***************************** */
 /* Reset the scaling of the selected strips to 1.0f */
 

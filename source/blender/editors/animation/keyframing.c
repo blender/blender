@@ -783,6 +783,11 @@ short insert_keyframe_direct (PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, fl
 		curval= setting_get_rna_value(&ptr, prop, fcu->array_index);
 	}
 	
+	/* convert to degrees */
+	if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION) {
+		curval *= 180.0/M_PI;
+	}
+	
 	/* only insert keyframes where they are needed */
 	if (flag & INSERTKEY_NEEDED) {
 		short insert_mode;
@@ -855,7 +860,7 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 			printf("Insert Key: Could not insert keyframe, as this type does not support animation data (ID = %s, Path = %s)\n", id->name, rna_path);
 			return 0;
 		}
-
+		
 		/* apply NLA-mapping to frame to use (if applicable) */
 		cfra= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 	}
@@ -894,6 +899,10 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 				fcu->color_mode= FCURVE_COLOR_AUTO_RGB;
 			}
 		}
+		
+		/* mark the curve if it's a new rotation curve */
+		if ((fcu->totvert == 0) && (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION))
+			fcu->flag |= FCURVE_ROTATION_DEGREES;
 		
 		/* insert keyframe */
 		ret += insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
@@ -1051,7 +1060,7 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	/* try to insert keyframes for the channels specified by KeyingSet */
 	success= modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 	if (G.f & G_DEBUG)
-		printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
+		BKE_reportf(op->reports, RPT_INFO, "KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
 	
 	/* report failure or do updates? */
 	if (success) {
@@ -1320,7 +1329,7 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 			}
 		}
 		
-		printf("Ob '%s' - Successfully removed %d keyframes \n", id->name+2, success);
+		BKE_reportf(op->reports, RPT_INFO, "Ob '%s' - Successfully removed %d keyframes \n", id->name+2, success);
 		
 		ob->recalc |= OB_RECALC_OB;
 	}

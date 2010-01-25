@@ -236,6 +236,7 @@ extern StructRNA RNA_GreasePencil;
 extern StructRNA RNA_Group;
 extern StructRNA RNA_Header;
 extern StructRNA RNA_HemiLamp;
+extern StructRNA RNA_Histogram;
 extern StructRNA RNA_HookModifier;
 extern StructRNA RNA_ID;
 extern StructRNA RNA_IDProperty;
@@ -886,6 +887,10 @@ void RNA_parameter_get(ParameterList *parms, PropertyRNA *parm, void **value);
 void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void **value);
 void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, void *value);
 void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void *value);
+int RNA_parameter_length_get(ParameterList *parms, PropertyRNA *parm);
+int RNA_parameter_length_get_data(ParameterList *parms, PropertyRNA *parm, void *data);
+void RNA_parameter_length_set(ParameterList *parms, PropertyRNA *parm, int length);
+void RNA_parameter_length_set_data(ParameterList *parms, PropertyRNA *parm, void *data, int length);
 
 int RNA_function_call(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms);
 int RNA_function_call_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, ParameterList *parms);

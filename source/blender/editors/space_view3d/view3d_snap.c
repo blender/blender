@@ -707,7 +707,7 @@ static int snap_curs_to_grid(bContext *C, wmOperator *op)
 	curs[1]= gridf*floor(.5+curs[1]/gridf);
 	curs[2]= gridf*floor(.5+curs[2]/gridf);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, scene);	// hrm
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);	// hrm
 	
 	return OPERATOR_FINISHED;
 }
@@ -814,7 +814,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, scene);	// hrm
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 	
 	return OPERATOR_FINISHED;
 }
@@ -866,7 +866,7 @@ static int snap_curs_to_active(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, scene);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 	return OPERATOR_FINISHED;
 }
 
@@ -1097,7 +1097,7 @@ static int snap_curs_to_center(bContext *C, wmOperator *op)
     curs[1]= 0.0;
     curs[2]= 0.0;
 	
-    WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, scene);	// hrm
+    WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 	
     return OPERATOR_FINISHED;
 }

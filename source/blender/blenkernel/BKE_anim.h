@@ -53,7 +53,9 @@ void animviz_free_motionpath_cache(struct bMotionPath *mpath);
 void animviz_free_motionpath(struct bMotionPath *mpath);
 
 struct bMotionPath *animviz_verify_motionpaths(struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan);
-void animviz_calc_motionpaths(struct Scene *scene, struct Object *ob);
+
+void animviz_get_object_motionpaths(Object *ob, ListBase *targets);
+void animviz_calc_motionpaths(struct Scene *scene, ListBase *targets);
 
 /* ---------------------------------------------------- */
 /* Curve Paths */

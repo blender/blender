@@ -19,6 +19,11 @@
 // FLUID_3D.cpp: implementation of the static functions of the FLUID_3D class.
 //
 //////////////////////////////////////////////////////////////////////
+// Heavy parallel optimization done. Many of the old functions now
+// take begin and end parameters and process only specified part of the data.
+// Some functions were divided into multiple ones.
+//		- MiikaH
+//////////////////////////////////////////////////////////////////////
 
 #include <zlib.h>
 #include "FLUID_3D.h"
@@ -75,11 +80,11 @@ void FLUID_3D::addSmokeTestCase(float* field, Vec3Int res)
 //////////////////////////////////////////////////////////////////////
 // set x direction to Neumann boundary conditions
 //////////////////////////////////////////////////////////////////////
-void FLUID_3D::setNeumannX(float* field, Vec3Int res)
+void FLUID_3D::setNeumannX(float* field, Vec3Int res, int zBegin, int zEnd)
 {
 	const int slabSize = res[0] * res[1];
 	int index;
-	for (int z = 0; z < res[2]; z++)
+	for (int z = zBegin; z < zEnd; z++)
 		for (int y = 0; y < res[1]; y++)
 		{
 			// left slab
@@ -93,7 +98,7 @@ void FLUID_3D::setNeumannX(float* field, Vec3Int res)
 
 	// fix, force top slab to only allow outwards flux
 	for (int y = 0; y < res[1]; y++)
-		for (int z = 0; z < res[2]; z++)
+		for (int z = zBegin; z < zEnd; z++)
 		{
 			// top slab
 			index = y * res[0] + z * slabSize;
@@ -107,11 +112,11 @@ void FLUID_3D::setNeumannX(float* field, Vec3Int res)
 //////////////////////////////////////////////////////////////////////
 // set y direction to Neumann boundary conditions
 //////////////////////////////////////////////////////////////////////
-void FLUID_3D::setNeumannY(float* field, Vec3Int res)
+void FLUID_3D::setNeumannY(float* field, Vec3Int res, int zBegin, int zEnd)
 {
 	const int slabSize = res[0] * res[1];
 	int index;
-	for (int z = 0; z < res[2]; z++)
+	for (int z = zBegin; z < zEnd; z++)
 		for (int x = 0; x < res[0]; x++)
 		{
 			// bottom slab
@@ -124,7 +129,7 @@ void FLUID_3D::setNeumannY(float* field, Vec3Int res)
 		}
 
 	// fix, force top slab to only allow outwards flux
-	for (int z = 0; z < res[2]; z++)
+	for (int z = zBegin; z < zEnd; z++)
 		for (int x = 0; x < res[0]; x++)
 		{
 			// top slab
@@ -140,22 +145,36 @@ void FLUID_3D::setNeumannY(float* field, Vec3Int res)
 //////////////////////////////////////////////////////////////////////
 // set z direction to Neumann boundary conditions
 //////////////////////////////////////////////////////////////////////
-void FLUID_3D::setNeumannZ(float* field, Vec3Int res)
+void FLUID_3D::setNeumannZ(float* field, Vec3Int res, int zBegin, int zEnd)
 {
 	const int slabSize = res[0] * res[1];
 	const int totalCells = res[0] * res[1] * res[2];
+	const int cellsslab = totalCells - slabSize;
 	int index;
+
+	index = 0;
+	if (zBegin == 0)
 	for (int y = 0; y < res[1]; y++)
-		for (int x = 0; x < res[0]; x++)
+		for (int x = 0; x < res[0]; x++, index++)
 		{
 			// front slab
-			index = x + y * res[0];
 			field[index] = field[index + 2 * slabSize];
+		}
+
+	if (zEnd == res[2])
+	{
+	index = 0;
+	int indexx = 0;
+
+	for (int y = 0; y < res[1]; y++)
+		for (int x = 0; x < res[0]; x++, index++)
+		{
 
 			// back slab
-			index += totalCells - slabSize;
-			field[index] = field[index - 2 * slabSize];
+			indexx = index + cellsslab;
+			field[indexx] = field[indexx - 2 * slabSize];
 		}
+	
 
 	// fix, force top slab to only allow outwards flux
 	for (int y = 0; y < res[1]; y++)
@@ -163,22 +182,24 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res)
 		{
 			// top slab
 			index = x + y * res[0];
-			index += totalCells - slabSize;
+			index += cellsslab;
 			if(field[index]<0.) field[index] = 0.;
 			index -= slabSize;
 			if(field[index]<0.) field[index] = 0.;
 		}
+
+	}	// zEnd == res[2]
 		
 }
 
 //////////////////////////////////////////////////////////////////////
 // set x direction to zero
 //////////////////////////////////////////////////////////////////////
-void FLUID_3D::setZeroX(float* field, Vec3Int res)
+void FLUID_3D::setZeroX(float* field, Vec3Int res, int zBegin, int zEnd)
 {
 	const int slabSize = res[0] * res[1];
 	int index;
-	for (int z = 0; z < res[2]; z++)
+	for (int z = zBegin; z < zEnd; z++)
 		for (int y = 0; y < res[1]; y++)
 		{
 			// left slab
@@ -194,11 +215,11 @@ void FLUID_3D::setZeroX(float* field, Vec3Int res)
 //////////////////////////////////////////////////////////////////////
 // set y direction to zero
 //////////////////////////////////////////////////////////////////////
-void FLUID_3D::setZeroY(float* field, Vec3Int res)
+void FLUID_3D::setZeroY(float* field, Vec3Int res, int zBegin, int zEnd)
 {
 	const int slabSize = res[0] * res[1];
 	int index;
-	for (int z = 0; z < res[2]; z++)
+	for (int z = zBegin; z < zEnd; z++)
 		for (int x = 0; x < res[0]; x++)
 		{
 			// bottom slab
@@ -214,32 +235,44 @@ void FLUID_3D::setZeroY(float* field, Vec3Int res)
 //////////////////////////////////////////////////////////////////////
 // set z direction to zero
 //////////////////////////////////////////////////////////////////////
-void FLUID_3D::setZeroZ(float* field, Vec3Int res)
+void FLUID_3D::setZeroZ(float* field, Vec3Int res, int zBegin, int zEnd)
 {
 	const int slabSize = res[0] * res[1];
 	const int totalCells = res[0] * res[1] * res[2];
-	int index;
+
+	int index = 0;
+	if ((zBegin == 0))
 	for (int y = 0; y < res[1]; y++)
-		for (int x = 0; x < res[0]; x++)
+		for (int x = 0; x < res[0]; x++, index++)
 		{
 			// front slab
-			index = x + y * res[0];
 			field[index] = 0.0f;
+    }
 
-			// back slab
-			index += totalCells - slabSize;
-			field[index] = 0.0f;
-		}
+	if (zEnd == res[2])
+	{
+		index=0;
+		int indexx=0;
+		const int cellsslab = totalCells - slabSize;
+
+		for (int y = 0; y < res[1]; y++)
+			for (int x = 0; x < res[0]; x++, index++)
+			{
+
+				// back slab
+				indexx = index + cellsslab;
+				field[indexx] = 0.0f;
+			}
+	}
  }
-
 //////////////////////////////////////////////////////////////////////
 // copy grid boundary
 //////////////////////////////////////////////////////////////////////
-void FLUID_3D::copyBorderX(float* field, Vec3Int res)
+void FLUID_3D::copyBorderX(float* field, Vec3Int res, int zBegin, int zEnd)
 {
 	const int slabSize = res[0] * res[1];
 	int index;
-	for (int z = 0; z < res[2]; z++)
+	for (int z = zBegin; z < zEnd; z++)
 		for (int y = 0; y < res[1]; y++)
 		{
 			// left slab
@@ -251,12 +284,12 @@ void FLUID_3D::copyBorderX(float* field, Vec3Int res)
 			field[index] = field[index - 1];
 		}
 }
-void FLUID_3D::copyBorderY(float* field, Vec3Int res)
+void FLUID_3D::copyBorderY(float* field, Vec3Int res, int zBegin, int zEnd)
 {
 	const int slabSize = res[0] * res[1];
-	const int totalCells = res[0] * res[1] * res[2];
+	//const int totalCells = res[0] * res[1] * res[2];
 	int index;
-	for (int z = 0; z < res[2]; z++)
+	for (int z = zBegin; z < zEnd; z++)
 		for (int x = 0; x < res[0]; x++)
 		{
 			// bottom slab
@@ -267,40 +300,49 @@ void FLUID_3D::copyBorderY(float* field, Vec3Int res)
 			field[index] = field[index - res[0]];
 		}
 }
-void FLUID_3D::copyBorderZ(float* field, Vec3Int res)
+void FLUID_3D::copyBorderZ(float* field, Vec3Int res, int zBegin, int zEnd)
 {
 	const int slabSize = res[0] * res[1];
 	const int totalCells = res[0] * res[1] * res[2];
-	int index;
+	int index=0;
+
+	if ((zBegin == 0))
 	for (int y = 0; y < res[1]; y++)
-		for (int x = 0; x < res[0]; x++)
+		for (int x = 0; x < res[0]; x++, index++)
 		{
-			// front slab
-			index = x + y * res[0];
 			field[index] = field[index + slabSize]; 
-			// back slab
-			index += totalCells - slabSize;
-			field[index] = field[index - slabSize];
 		}
+
+	if ((zEnd == res[2]))
+	{
+
+	index=0;
+	int indexx=0;
+	const int cellsslab = totalCells - slabSize;
+
+	for (int y = 0; y < res[1]; y++)
+		for (int x = 0; x < res[0]; x++, index++)
+		{
+			// back slab
+			indexx = index + cellsslab;
+			field[indexx] = field[indexx - slabSize];
+		}
+	}
 }
 
 /////////////////////////////////////////////////////////////////////
 // advect field with the semi lagrangian method
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::advectFieldSemiLagrange(const float dt, const float* velx, const float* vely,  const float* velz,
-		float* oldField, float* newField, Vec3Int res)
+		float* oldField, float* newField, Vec3Int res, int zBegin, int zEnd)
 {
 	const int xres = res[0];
 	const int yres = res[1];
 	const int zres = res[2];
 	const int slabSize = res[0] * res[1];
 
-	// scale dt up to grid resolution
-#if PARALLEL==1 && !_WIN32
-#pragma omp parallel
-#pragma omp for  schedule(static)
-#endif
-	for (int z = 0; z < zres; z++)
+
+	for (int z = zBegin; z < zEnd; z++)
 		for (int y = 0; y < yres; y++)
 			for (int x = 0; x < xres; x++)
 			{
@@ -357,50 +399,69 @@ void FLUID_3D::advectFieldSemiLagrange(const float dt, const float* velx, const 
 			}
 }
 
+
 /////////////////////////////////////////////////////////////////////
 // advect field with the maccormack method
 //
 // comments are the pseudocode from selle's paper
 //////////////////////////////////////////////////////////////////////
-void FLUID_3D::advectFieldMacCormack(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity, 
-				float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const unsigned char* obstacles)
+void FLUID_3D::advectFieldMacCormack1(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity, 
+				float* oldField, float* tempResult, Vec3Int res, int zBegin, int zEnd)
 {
-	float* phiHatN  = temp1;
-	float* phiHatN1 = temp2;
 	const int sx= res[0];
 	const int sy= res[1];
 	const int sz= res[2];
 
-	for (int x = 0; x < sx * sy * sz; x++)
-		phiHatN[x] = phiHatN1[x] = oldField[x];
+	/*for (int x = 0; x < sx * sy * sz; x++)
+		phiHatN[x] = phiHatN1[x] = oldField[x];*/	// not needed as all the values are written first
+
+	float*& phiN    = oldField;
+	float*& phiN1   = tempResult;
+
+
+
+	// phiHatN1 = A(phiN)
+	advectFieldSemiLagrange(  dt, xVelocity, yVelocity, zVelocity, phiN, phiN1, res, zBegin, zEnd);		// uses wide data from old field and velocities (both are whole)
+}
+
+
+
+void FLUID_3D::advectFieldMacCormack2(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity, 
+				float* oldField, float* newField, float* tempResult, float* temp1, Vec3Int res, const unsigned char* obstacles, int zBegin, int zEnd)
+{
+	float* phiHatN  = tempResult;
+	float* t1  = temp1;
+	const int sx= res[0];
+	const int sy= res[1];
+	const int sz= res[2];
 
 	float*& phiN    = oldField;
 	float*& phiN1   = newField;
 
-	// phiHatN1 = A(phiN)
-	advectFieldSemiLagrange(  dt, xVelocity, yVelocity, zVelocity, phiN, phiHatN1, res);
+
 
 	// phiHatN = A^R(phiHatN1)
-	advectFieldSemiLagrange( -1.0*dt, xVelocity, yVelocity, zVelocity, phiHatN1, phiHatN, res);
+	advectFieldSemiLagrange( -1.0*dt, xVelocity, yVelocity, zVelocity, phiHatN, t1, res, zBegin, zEnd);		// uses wide data from old field and velocities (both are whole)
 
 	// phiN1 = phiHatN1 + (phiN - phiHatN) / 2
 	const int border = 0; 
-	for (int z = border; z < sz-border; z++)
+	for (int z = zBegin+border; z < zEnd-border; z++)
 		for (int y = border; y < sy-border; y++)
 			for (int x = border; x < sx-border; x++) {
 				int index = x + y * sx + z * sx*sy;
-				phiN1[index] = phiHatN1[index] + (phiN[index] - phiHatN[index]) * 0.50f;
+				phiN1[index] = phiHatN[index] + (phiN[index] - t1[index]) * 0.50f;
 				//phiN1[index] = phiHatN1[index]; // debug, correction off
 			}
-	copyBorderX(phiN1, res);
-	copyBorderY(phiN1, res);
-	copyBorderZ(phiN1, res);
+	copyBorderX(phiN1, res, zBegin, zEnd);
+	copyBorderY(phiN1, res, zBegin, zEnd);
+	copyBorderZ(phiN1, res, zBegin, zEnd);
 
 	// clamp any newly created extrema
-	clampExtrema(dt, xVelocity, yVelocity, zVelocity, oldField, newField, res);
+	clampExtrema(dt, xVelocity, yVelocity, zVelocity, oldField, newField, res, zBegin, zEnd);		// uses wide data from old field and velocities (both are whole)
 
 	// if the error estimate was bad, revert to first order
-	clampOutsideRays(dt, xVelocity, yVelocity, zVelocity, oldField, newField, res, obstacles, phiHatN1);
+	clampOutsideRays(dt, xVelocity, yVelocity, zVelocity, oldField, newField, res, obstacles, phiHatN, zBegin, zEnd);	// phiHatN is only used at cells within thread range, so its ok
+
 } 
 
 
@@ -408,13 +469,21 @@ void FLUID_3D::advectFieldMacCormack(const float dt, const float* xVelocity, con
 // Clamp the extrema generated by the BFECC error correction
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::clampExtrema(const float dt, const float* velx, const float* vely,  const float* velz,
-		float* oldField, float* newField, Vec3Int res)
+		float* oldField, float* newField, Vec3Int res, int zBegin, int zEnd)
 {
 	const int xres= res[0];
 	const int yres= res[1];
 	const int zres= res[2];
 	const int slabSize = res[0] * res[1];
-	for (int z = 1; z < zres-1; z++)
+
+	int bb=0;
+	int bt=0;
+
+	if (zBegin == 0) {bb = 1;}
+	if (zEnd == res[2]) {bt = 1;}
+
+
+	for (int z = zBegin+bb; z < zEnd-bt; z++)
 		for (int y = 1; y < yres-1; y++)
 			for (int x = 1; x < xres-1; x++)
 			{
@@ -484,14 +553,20 @@ void FLUID_3D::clampExtrema(const float dt, const float* velx, const float* vely
 // incorrect
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::clampOutsideRays(const float dt, const float* velx, const float* vely,  const float* velz,
-				float* oldField, float* newField, Vec3Int res, const unsigned char* obstacles, const float *oldAdvection)
+				float* oldField, float* newField, Vec3Int res, const unsigned char* obstacles, const float *oldAdvection, int zBegin, int zEnd)
 {
 	const int sx= res[0];
 	const int sy= res[1];
 	const int sz= res[2];
 	const int slabSize = res[0] * res[1];
 
-	for (int z = 1; z < sz-1; z++)
+	int bb=0;
+	int bt=0;
+
+	if (zBegin == 0) {bb = 1;}
+	if (zEnd == res[2]) {bt = 1;}
+
+	for (int z = zBegin+bb; z < zEnd-bt; z++)
 		for (int y = 1; y < sy-1; y++)
 			for (int x = 1; x < sx-1; x++)
 			{
@@ -607,4 +682,3 @@ void FLUID_3D::clampOutsideRays(const float dt, const float* velx, const float* 
 				}
 			} // xyz
 }
-

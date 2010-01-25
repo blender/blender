@@ -6,7 +6,7 @@
 # for keyboard event comparison
 # import GameKeys
 
-# support for Vector(), Matrix() types and advanced functions like AngleBetweenVecs(v1,v2) and RotationMatrix(...)
+# support for Vector(), Matrix() types and advanced functions like ScaleMatrix(...) and RotationMatrix(...)
 # import Mathutils
 
 # for functions like getWindowWidth(), getWindowHeight()

@@ -50,7 +50,7 @@ targetdir = normpath(root_build_dir + '/makesdna')
 if not (root_build_dir[0]==os.sep or root_build_dir[1]==':'):
 	targetdir = '#' + targetdir
 
-makesdna = makesdna_tool.Program (target = targetdir, source = source_files, LIBS=['bf_guardedalloc'])
+makesdna = makesdna_tool.Program (target = targetdir, source = source_files, LIBS=['bf_guardedalloc', 'bf_blenlib'])
 
 dna_dict = dna.Dictionary()
 dna.Depends ('dna.c', makesdna)

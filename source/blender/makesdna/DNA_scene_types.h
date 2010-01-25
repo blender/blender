@@ -515,7 +515,7 @@ typedef struct Paint {
 typedef struct ImagePaintSettings {
 	Paint paint;
 
-	short flag, tool;
+	short flag, pad;
 	
 	/* for projection painting only */
 	short seam_bleed, normal_angle;
@@ -570,7 +570,7 @@ typedef struct Sculpt {
 typedef struct VPaint {
 	Paint paint;
 
-	short mode, flag;
+	short flag, pad;
 	int tot;							/* allocation size of prev buffers */
 	unsigned int *vpaint_prev;			/* previous mesh colors */
 	struct MDeformVert *wpaint_prev;	/* previous vertex weights */
@@ -799,6 +799,10 @@ typedef struct Scene {
 #define R_FRONTBUF		4
 #define R_FRONTBUFANIM	8
 
+/* flag */
+	/* use preview range */
+#define SCER_PRV_RANGE	(1<<0)
+
 /* mode (int now) */
 #define R_OSA			0x0001
 #define R_SHADOW		0x0002
@@ -1002,8 +1006,9 @@ typedef struct Scene {
 #define	F_CFRA			((float)(scene->r.cfra))
 #define	SFRA			(scene->r.sfra)
 #define	EFRA			(scene->r.efra)
-#define PSFRA			((scene->r.psfra != 0)? (scene->r.psfra): (scene->r.sfra))
-#define PEFRA			((scene->r.psfra != 0)? (scene->r.pefra): (scene->r.efra))
+#define PRVRANGEON		(scene->r.flag & SCER_PRV_RANGE)
+#define PSFRA			((PRVRANGEON)? (scene->r.psfra): (scene->r.sfra))
+#define PEFRA			((PRVRANGEON)? (scene->r.pefra): (scene->r.efra))
 #define FRA2TIME(a)           ((((double) scene->r.frs_sec_base) * (a)) / scene->r.frs_sec)
 #define TIME2FRA(a)           ((((double) scene->r.frs_sec) * (a)) / scene->r.frs_sec_base)
 #define FPS                     (((double) scene->r.frs_sec) / scene->r.frs_sec_base)
@@ -1227,6 +1232,7 @@ typedef enum SculptFlags {
 #define	USER_UNIT_IMPERIAL		2
 /* UnitSettings->flag */
 #define	USER_UNIT_OPT_SPLIT		1
+#define USER_UNIT_ROT_RADIANS	2
 
 
 #ifdef __cplusplus

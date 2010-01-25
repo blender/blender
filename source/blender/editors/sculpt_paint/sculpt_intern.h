@@ -54,7 +54,6 @@ struct MultiresModifierData *sculpt_multires_active(struct Object *ob);
 struct Brush *sculptmode_brush(void);
 //void do_symmetrical_brush_actions(struct Sculpt *sd, struct wmOperator *wm, struct BrushAction *a, short *, short *);
 
-char sculpt_modifiers_active(struct Object *ob);
 void sculpt(Sculpt *sd);
 
 int sculpt_poll(struct bContext *C);

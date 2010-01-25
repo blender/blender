@@ -266,12 +266,13 @@ static SpaceLink *view3d_new(const bContext *C)
 static void view3d_free(SpaceLink *sl)
 {
 	View3D *vd= (View3D *) sl;
-	
-	if(vd->bgpic) {
-		if(vd->bgpic->ima) vd->bgpic->ima->id.us--;
-		MEM_freeN(vd->bgpic);
+
+	BGpic *bgpic;
+	for(bgpic= vd->bgpicbase.first; bgpic; bgpic= bgpic->next) {
+		if(bgpic->ima) bgpic->ima->id.us--;
 	}
-	
+	BLI_freelistN(&vd->bgpicbase);
+
 	if(vd->localvd) MEM_freeN(vd->localvd);
 	
 	if(vd->properties_storage) MEM_freeN(vd->properties_storage);
@@ -303,9 +304,12 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	
 	/* copy or clear inside new stuff */
 
-	if(v3dn->bgpic) {
-		v3dn->bgpic= MEM_dupallocN(v3dn->bgpic);
-		if(v3dn->bgpic->ima) v3dn->bgpic->ima->id.us++;
+	if(v3dn->bgpicbase.first) {
+		BGpic *bgpic;
+			for ( bgpic= v3dn->bgpicbase.first; bgpic; bgpic= bgpic->next ) {
+			bgpic= MEM_dupallocN(bgpic);
+			if(bgpic->ima) bgpic->ima->id.us++;
+			}
 	}
 	v3dn->properties_storage= NULL;
 	
@@ -785,18 +789,22 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 }
 
 /*area (not region) level listener*/
+#if 0 // removed since BKE_image_user_calc_frame is now called in draw_bgpic because screen_ops doesnt call the notifier.
 void space_view3d_listener(struct ScrArea *area, struct wmNotifier *wmn)
 {
 	if (wmn->category == NC_SCENE && wmn->data == ND_FRAME) {
 		View3D *v3d = area->spacedata.first;
-	
-		if (v3d->bgpic && v3d->bgpic->ima) {
-			Scene *scene = wmn->reference;
+		BGpic *bgpic = v3d->bgpicbase.first;
 
-			BKE_image_user_calc_imanr(&v3d->bgpic->iuser, scene->r.cfra, 0);
+		for (; bgpic; bgpic = bgpic->next) {
+			if (bgpic->ima) {
+				Scene *scene = wmn->reference;
+				BKE_image_user_calc_imanr(&bgpic->iuser, scene->r.cfra, 0);
+			}
 		}
 	}
 }
+#endif
 
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_view3d(void)
@@ -810,7 +818,7 @@ void ED_spacetype_view3d(void)
 	st->new= view3d_new;
 	st->free= view3d_free;
 	st->init= view3d_init;
-	st->listener = space_view3d_listener;
+//	st->listener = space_view3d_listener;
 	st->duplicate= view3d_duplicate;
 	st->operatortypes= view3d_operatortypes;
 	st->keymap= view3d_keymap;

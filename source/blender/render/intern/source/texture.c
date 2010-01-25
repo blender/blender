@@ -92,7 +92,7 @@ void init_render_texture(Render *re, Tex *tex)
 	
 	/* imap test */
 	if(tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-		BKE_image_user_calc_imanr(&tex->iuser, cfra, re?re->flag & R_SEC_FIELD:0);
+		BKE_image_user_calc_frame(&tex->iuser, cfra, re?re->flag & R_SEC_FIELD:0);
 	}
 	
 	if(tex->type==TEX_PLUGIN) {

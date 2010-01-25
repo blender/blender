@@ -19,6 +19,11 @@
 // FLUID_3D.h: interface for the FLUID_3D class.
 //
 //////////////////////////////////////////////////////////////////////
+// Heavy parallel optimization done. Many of the old functions now
+// take begin and end parameters and process only specified part of the data.
+// Some functions were divided into multiple ones.
+//		- MiikaH
+//////////////////////////////////////////////////////////////////////
 
 #ifndef FLUID_3D_H
 #define FLUID_3D_H
@@ -74,7 +79,8 @@ class FLUID_3D
 		int _totalImgDumps;
 		int _totalVelDumps;
 
-    void artificialDamping(float* field);
+		void artificialDampingSL(int zBegin, int zEnd);
+		void artificialDampingExactSL(int pos);
 
 		// fields
 		float* _density;
@@ -92,6 +98,13 @@ class FLUID_3D
 		float* _zForce;
 		unsigned char*  _obstacles;
 
+		// Required for proper threading:
+		float* _xVelocityTemp;
+		float* _yVelocityTemp;
+		float* _zVelocityTemp;
+		float* _heatTemp;
+		float* _densityTemp;
+
 		// CG fields
 		int _iterations;
 
@@ -107,13 +120,14 @@ class FLUID_3D
 		// WTURBULENCE* _wTurbulence;
 
 		// boundary setting functions
-		void copyBorderAll(float* field);
+		void copyBorderAll(float* field, int zBegin, int zEnd);
 
 		// timestepping functions
-		void wipeBoundaries();
-		void addForce();
-		void addVorticity();
-		void addBuoyancy(float *heat, float *density);
+		void wipeBoundaries(int zBegin, int zEnd);
+		void wipeBoundariesSL(int zBegin, int zEnd);
+		void addForce(int zBegin, int zEnd);
+		void addVorticity(int zBegin, int zEnd);
+		void addBuoyancy(float *heat, float *density, int zBegin, int zEnd);
 
 		// solver stuff
 		void project();
@@ -122,41 +136,58 @@ class FLUID_3D
 		void solvePressurePre(float* field, float* b, unsigned char* skip);
 		void solveHeat(float* field, float* b, unsigned char* skip);
 
+
 		// handle obstacle boundaries
-		void setObstacleBoundaries(float *_pressure);
-		void setObstaclePressure(float *_pressure);
+		void setObstacleBoundaries(float *_pressure, int zBegin, int zEnd);
+		void setObstaclePressure(float *_pressure, int zBegin, int zEnd);
 
 	public:
 		// advection, accessed e.g. by WTURBULENCE class
-		void advectMacCormack();
+		//void advectMacCormack();
+		void advectMacCormackBegin(int zBegin, int zEnd);
+		void advectMacCormackEnd1(int zBegin, int zEnd);
+		void advectMacCormackEnd2(int zBegin, int zEnd);
 
 		// boundary setting functions
-		static void copyBorderX(float* field, Vec3Int res);
-		static void copyBorderY(float* field, Vec3Int res);
-		static void copyBorderZ(float* field, Vec3Int res);
-		static void setNeumannX(float* field, Vec3Int res);
-		static void setNeumannY(float* field, Vec3Int res);
-		static void setNeumannZ(float* field, Vec3Int res);
-		static void setZeroX(float* field, Vec3Int res);
-		static void setZeroY(float* field, Vec3Int res);
-		static void setZeroZ(float* field, Vec3Int res);
-		static void setZeroBorder(float* field, Vec3Int res) {
-			setZeroX(field, res);
-			setZeroY(field, res);
-			setZeroZ(field, res);
+		static void copyBorderX(float* field, Vec3Int res, int zBegin, int zEnd);
+		static void copyBorderY(float* field, Vec3Int res, int zBegin, int zEnd);
+		static void copyBorderZ(float* field, Vec3Int res, int zBegin, int zEnd);
+		static void setNeumannX(float* field, Vec3Int res, int zBegin, int zEnd);
+		static void setNeumannY(float* field, Vec3Int res, int zBegin, int zEnd);
+		static void setNeumannZ(float* field, Vec3Int res, int zBegin, int zEnd);
+		static void setZeroX(float* field, Vec3Int res, int zBegin, int zEnd);
+		static void setZeroY(float* field, Vec3Int res, int zBegin, int zEnd);
+		static void setZeroZ(float* field, Vec3Int res, int zBegin, int zEnd);
+		static void setZeroBorder(float* field, Vec3Int res, int zBegin, int zEnd) {
+			setZeroX(field, res, zBegin, zEnd);
+			setZeroY(field, res, zBegin, zEnd);
+			setZeroZ(field, res, zBegin, zEnd);
 		};
+
+		
 
 		// static advection functions, also used by WTURBULENCE
 		static void advectFieldSemiLagrange(const float dt, const float* velx, const float* vely,  const float* velz,
-				float* oldField, float* newField, Vec3Int res);
-		static void advectFieldMacCormack(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity, 
-				float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const unsigned char* obstacles);
+				float* oldField, float* newField, Vec3Int res, int zBegin, int zEnd);
+		static void advectFieldMacCormack1(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity, 
+				float* oldField, float* tempResult, Vec3Int res, int zBegin, int zEnd);
+		static void advectFieldMacCormack2(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity, 
+				float* oldField, float* newField, float* tempResult, float* temp1,Vec3Int res, const unsigned char* obstacles, int zBegin, int zEnd);
+
+
+		// temp ones for testing
+		/*static void advectFieldMacCormack(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity, 
+				float* oldField, float* newField, float* temp1, float* temp2, Vec3Int res, const unsigned char* obstacles);*/
+		/*static void advectFieldSemiLagrange2(const float dt, const float* velx, const float* vely,  const float* velz,
+				float* oldField, float* newField, Vec3Int res);*/
 
 		// maccormack helper functions
 		static void clampExtrema(const float dt, const float* xVelocity, const float* yVelocity,  const float* zVelocity,
-				float* oldField, float* newField, Vec3Int res);
+				float* oldField, float* newField, Vec3Int res, int zBegin, int zEnd);
 		static void clampOutsideRays(const float dt, const float* xVelocity, const float* yVelocity,  const float* zVelocity,
-				float* oldField, float* newField, Vec3Int res, const unsigned char* obstacles, const float *oldAdvection);
+				float* oldField, float* newField, Vec3Int res, const unsigned char* obstacles, const float *oldAdvection, int zBegin, int zEnd);
+
+
 
 		// output helper functions
 		// static void writeImageSliceXY(const float *field, Vec3Int res, int slice, string prefix, int picCnt, float scale=1.);

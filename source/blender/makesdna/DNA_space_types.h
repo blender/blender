@@ -32,6 +32,7 @@
 #define DNA_SPACE_TYPES_H
 
 #include "DNA_listBase.h"
+#include "DNA_color_types.h"		/* for Histogram */
 #include "DNA_vec_types.h"
 #include "DNA_outliner_types.h"		/* for TreeStoreElem */
 #include "DNA_image_types.h"	/* ImageUser */
@@ -43,6 +44,7 @@ struct Text;
 struct Script;
 struct ImBuf;
 struct Image;
+struct Histogram;
 struct SpaceIpo;
 struct BlendHandle;
 struct RenderInfo;
@@ -255,6 +257,8 @@ typedef struct SpaceImage {
 	float centx, centy;				/* storage for offset while render drawing */
 	
 	struct bGPdata *gpd;			/* grease pencil data */
+	
+	struct Histogram hist;			/* viewer histogram */
 } SpaceImage;
 
 typedef struct SpaceNla {
@@ -746,6 +750,8 @@ enum FileSortTypeE {
 #define SIPO_SELVHANDLESONLY	(1<<9)
 	/* temporary flag to force channel selections to be synced with main */
 #define SIPO_TEMP_NEEDCHANSYNC	(1<<10)
+	/* don't perform realtime updates */
+#define SIPO_NOREALTIMEUPDATES	(1<<11)
 
 /* SpaceIpo->mode (Graph Editor Mode) */
 enum {
@@ -831,15 +837,15 @@ enum {
 #define IMS_INFILESLI		4
 
 /* nla->flag */
-	// depreceated
-#define SNLA_ALLKEYED		(1<<0)
-	// depreceated
-#define SNLA_ACTIVELAYERS	(1<<1)
-
+/* flags (1<<0), (1<<1), and (1<<3) are depreceated flags from old blenders */
+	/* draw timing in seconds instead of frames */
 #define SNLA_DRAWTIME		(1<<2)
-#define SNLA_NOTRANSKEYCULL	(1<<3)
+	/* don't draw frame number beside frame indicator */
 #define SNLA_NODRAWCFRANUM	(1<<4)
+	/* don't draw influence curves on strips */
 #define SNLA_NOSTRIPCURVES	(1<<5)
+	/* don't perform realtime updates */
+#define SNLA_NOREALTIMEUPDATES	(1<<6)
 
 /* time->flag */
 	/* show timing in frames instead of in seconds */

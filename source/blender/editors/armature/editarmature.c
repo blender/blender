@@ -320,7 +320,8 @@ void ED_armature_from_edit(Object *obedit)
 				if (fBone->parent==eBone)
 					fBone->parent= eBone->parent;
 			}
-			printf("Warning: removed zero sized bone: %s\n", eBone->name);
+			if (G.f & G_DEBUG)
+				printf("Warning: removed zero sized bone: %s\n", eBone->name);
 			bone_free(arm, eBone);
 		}
 	}
@@ -631,7 +632,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	applyarmature_fix_boneparents(scene, ob);
 	
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1128,7 +1129,7 @@ static int separate_armature_exec (bContext *C, wmOperator *op)
 	ED_armature_to_edit(obedit);
 	
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, obedit);
 	
 	/* recalc/redraw + cleanup */
 	WM_cursor_wait(0);
@@ -1802,7 +1803,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 	
 	ED_armature_sync_selection(arm->edbo);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }
@@ -2144,7 +2145,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 	
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3006,8 +3007,7 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 	}
 	else {
 		// FIXME.. figure out a method for multiple bones
-		BKE_report(op->reports, RPT_ERROR, "Too many points selected"); 
-		printf("Points selected: %d \n", count);
+		BKE_reportf(op->reports, RPT_ERROR, "Too many points selected: %d \n", count); 
 		BLI_freelistN(&points);
 		return OPERATOR_CANCELLED;
 	}
@@ -3047,8 +3047,10 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	
 	/* check if same bone */
 	if (start == end) {
-		printf("Error: same bone! \n");
-		printf("\tstart = %s, end = %s \n", start->name, end->name);
+		if (G.f & G_DEBUG) {
+			printf("Error: same bone! \n");
+			printf("\tstart = %s, end = %s \n", start->name, end->name);
+		}
 	}
 	
 	/* step 1: add a new bone
@@ -3174,7 +3176,7 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 	
 	/* updates */
 	ED_armature_sync_selection(arm->edbo);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3465,7 +3467,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 		add_v3_v3v3(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3557,7 +3559,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3727,7 +3729,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *op)
 	BLI_freelistN(&chains);	
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3876,7 +3878,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 	
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3954,7 +3956,7 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 	ED_armature_sync_selection(arm->edbo);
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }

@@ -390,6 +390,16 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 
 	if(but->rnaprop) {
+		int unit_type = RNA_SUBTYPE_UNIT(RNA_property_subtype(but->rnaprop));
+		
+		if (unit_type == PROP_UNIT_ROTATION) {
+			if (RNA_property_type(but->rnaprop) == PROP_FLOAT) {
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Radians: %f", RNA_property_float_get_index(&but->rnapoin, but->rnaprop, but->rnaindex));
+				data->linedark[data->totline]= 1;
+				data->totline++;
+			}
+		}
+		
 		if(but->flag & UI_BUT_DRIVEN) {
 			if(ui_but_anim_expression_get(but, buf, sizeof(buf))) {
 				/* expression */
@@ -435,7 +445,6 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* set font, get bb */
 	data->fstyle= style->widget; /* copy struct */
 	data->fstyle.align= UI_STYLE_TEXT_CENTER;
-	ui_fontscale(&data->fstyle.points, aspect);
 	uiStyleFontSet(&data->fstyle);
 
 	h= BLF_height(data->lines[0]);
@@ -447,13 +456,12 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 
 	fontw *= aspect;
-	fonth *= aspect;
 
 	ar->regiondata= data;
 
 	data->toth= fonth;
-	data->lineh= h*aspect;
-	data->spaceh= 5*aspect;
+	data->lineh= h;
+	data->spaceh= 5;
 
 	/* compute position */
 	ofsx= (but->block->panel)? but->block->panel->ofsx: 0;
@@ -462,7 +470,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	x1f= (but->x1+but->x2)/2.0f + ofsx - 16.0f*aspect;
 	x2f= x1f + fontw + 16.0f*aspect;
 	y2f= but->y1 + ofsy - 15.0f*aspect;
-	y1f= y2f - fonth - 10.0f*aspect;
+	y1f= y2f - fonth*aspect - 15.0f*aspect;
 	
 	/* copy to int, gets projected if possible too */
 	x1= x1f; y1= y1f; x2= x2f; y2= y2f; 
@@ -494,8 +502,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 	}
 	if(y1 < 0) {
-		y1 += 56*aspect;
-		y2 += 56*aspect;
+		y1 += 56;
+		y2 += 56;
 	}
 
 	/* widget rect, in region coords */
@@ -1698,7 +1706,7 @@ static void circle_picker(uiBlock *block, PointerRNA *ptr, const char *propname)
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, -1, 0.0, 0.0, 9, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, -1, 0.0, 0.0, UI_GRAD_V_ALT, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
@@ -1746,13 +1754,13 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 			circle_picker(block, ptr, propname);
 			break;
 		case USER_CP_SQUARE_SV:
-			square_picker(block, ptr, propname, 0);
+			square_picker(block, ptr, propname, UI_GRAD_SV);
 			break;
 		case USER_CP_SQUARE_HS:
-			square_picker(block, ptr, propname, 1);
+			square_picker(block, ptr, propname, UI_GRAD_HS);
 			break;
 		case USER_CP_SQUARE_HV:
-			square_picker(block, ptr, propname, 2);
+			square_picker(block, ptr, propname, UI_GRAD_HV);
 			break;
 	}
 	
@@ -2240,7 +2248,8 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 	}
 
 	str= BLI_dynstr_get_cstring(ds);
-	ui_popup_menu_create(C, NULL, NULL, NULL, NULL, str);
+	if(str[0] != '\0')
+		ui_popup_menu_create(C, NULL, NULL, NULL, NULL, str);
 	MEM_freeN(str);
 
 	BLI_dynstr_free(ds);

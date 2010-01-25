@@ -89,13 +89,13 @@ MATRIX_IDENTITY_4x4 = Matrix([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1])
 def eulerRotate(x,y,z, rot_order):
 
     # Clamp all values between 0 and 360, values outside this raise an error.
-    mats=[RotationMatrix(math.radians(x%360),3,'x'), RotationMatrix(math.radians(y%360),3,'y'), RotationMatrix(math.radians(z%360),3,'z')]
+    mats=[RotationMatrix(math.radians(x % 360), 3, 'X'), RotationMatrix(math.radians(y % 360),3,'Y'), RotationMatrix(math.radians(z % 360), 3, 'Z')]
     # print rot_order
     # Standard BVH multiplication order, apply the rotation in the order Z,X,Y
 
     #XXX, order changes???
-    #eul = (mats[rot_order[2]]*(mats[rot_order[1]]* (mats[rot_order[0]]* MATRIX_IDENTITY_3x3))).toEuler()
-    eul = (MATRIX_IDENTITY_3x3*mats[rot_order[0]]*(mats[rot_order[1]]* (mats[rot_order[2]]))).toEuler()
+    #eul = (mats[rot_order[2]]*(mats[rot_order[1]]* (mats[rot_order[0]]* MATRIX_IDENTITY_3x3))).to_euler()
+    eul = (MATRIX_IDENTITY_3x3*mats[rot_order[0]]*(mats[rot_order[1]]* (mats[rot_order[2]]))).to_euler()
 
     eul = math.degrees(eul.x), math.degrees(eul.y), math.degrees(eul.z)
 
@@ -534,8 +534,8 @@ def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOO
         bone_name= bvh_node.temp # may not be the same name as the bvh_node, could have been shortened.
         pose_bone= pose_bones[bone_name]
         rest_bone= arm_data.bones[bone_name]
-#XXX		bone_rest_matrix = rest_bone.matrix['ARMATURESPACE'].rotationPart()
-        bone_rest_matrix = rest_bone.matrix.rotationPart()
+#XXX		bone_rest_matrix = rest_bone.matrix['ARMATURESPACE'].rotation_part()
+        bone_rest_matrix = rest_bone.matrix.rotation_part()
 
 
         bone_rest_matrix_inv= Matrix(bone_rest_matrix)
@@ -575,31 +575,31 @@ def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOO
 
                 if ROT_STYLE=='QUAT':
                     # Set the rotation, not so simple
-                    bone_rotation_matrix= Euler(math.radians(rx), math.radians(ry), math.radians(rz)).toMatrix()
+                    bone_rotation_matrix= Euler(math.radians(rx), math.radians(ry), math.radians(rz)).to_matrix()
 
                     bone_rotation_matrix.resize4x4()
                     #XXX ORDER CHANGE???
-                    #pose_bone.rotation_quaternion= (bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).toQuat() # ORIGINAL
-                    # pose_bone.rotation_quaternion= (bone_rest_matrix_inv * bone_rotation_matrix * bone_rest_matrix).toQuat()
-                    # pose_bone.rotation_quaternion= (bone_rotation_matrix * bone_rest_matrix).toQuat() # BAD
-                    # pose_bone.rotation_quaternion= bone_rotation_matrix.toQuat() # NOT GOOD
-                    # pose_bone.rotation_quaternion= bone_rotation_matrix.toQuat() # NOT GOOD
+                    #pose_bone.rotation_quaternion= (bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).to_quat() # ORIGINAL
+                    # pose_bone.rotation_quaternion= (bone_rest_matrix_inv * bone_rotation_matrix * bone_rest_matrix).to_quat()
+                    # pose_bone.rotation_quaternion= (bone_rotation_matrix * bone_rest_matrix).to_quat() # BAD
+                    # pose_bone.rotation_quaternion= bone_rotation_matrix.to_quat() # NOT GOOD
+                    # pose_bone.rotation_quaternion= bone_rotation_matrix.to_quat() # NOT GOOD
 
-                    #pose_bone.rotation_quaternion= (bone_rotation_matrix * bone_rest_matrix_inv * bone_rest_matrix).toQuat()
-                    #pose_bone.rotation_quaternion= (bone_rest_matrix_inv * bone_rest_matrix * bone_rotation_matrix).toQuat()
-                    #pose_bone.rotation_quaternion= (bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).toQuat()
+                    #pose_bone.rotation_quaternion= (bone_rotation_matrix * bone_rest_matrix_inv * bone_rest_matrix).to_quat()
+                    #pose_bone.rotation_quaternion= (bone_rest_matrix_inv * bone_rest_matrix * bone_rotation_matrix).to_quat()
+                    #pose_bone.rotation_quaternion= (bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).to_quat()
 
-                    #pose_bone.rotation_quaternion= ( bone_rest_matrix* bone_rest_matrix_inv * bone_rotation_matrix).toQuat()
-                    #pose_bone.rotation_quaternion= (bone_rotation_matrix * bone_rest_matrix  * bone_rest_matrix_inv).toQuat()
-                    #pose_bone.rotation_quaternion= (bone_rest_matrix_inv * bone_rotation_matrix  * bone_rest_matrix ).toQuat()
+                    #pose_bone.rotation_quaternion= ( bone_rest_matrix* bone_rest_matrix_inv * bone_rotation_matrix).to_quat()
+                    #pose_bone.rotation_quaternion= (bone_rotation_matrix * bone_rest_matrix  * bone_rest_matrix_inv).to_quat()
+                    #pose_bone.rotation_quaternion= (bone_rest_matrix_inv * bone_rotation_matrix  * bone_rest_matrix ).to_quat()
 
-                    pose_bone.rotation_quaternion= (bone_rest_matrix_inv * bone_rotation_matrix * bone_rest_matrix).toQuat()
+                    pose_bone.rotation_quaternion= (bone_rest_matrix_inv * bone_rotation_matrix * bone_rest_matrix).to_quat()
 
                 else:
-                    bone_rotation_matrix= Euler(math.radians(rx), math.radians(ry), math.radians(rz)).toMatrix()
+                    bone_rotation_matrix= Euler(math.radians(rx), math.radians(ry), math.radians(rz)).to_matrix()
                     bone_rotation_matrix.resize4x4()
 
-                    eul= (bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).toEuler()
+                    eul= (bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).to_euler()
 
                     #pose_bone.rotation_euler = math.radians(rx), math.radians(ry), math.radians(rz)
                     pose_bone.rotation_euler = eul
@@ -610,8 +610,8 @@ def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOO
                 # Set the Location, simple too
 
                 #XXX ORDER CHANGE
-                # pose_bone.location= (TranslationMatrix(Vector(lx, ly, lz) - bvh_node.rest_head_local ) * bone_rest_matrix_inv).translationPart() # WHY * 10? - just how pose works
-                # pose_bone.location= (bone_rest_matrix_inv * TranslationMatrix(Vector(lx, ly, lz) - bvh_node.rest_head_local )).translationPart()
+                # pose_bone.location= (TranslationMatrix(Vector(lx, ly, lz) - bvh_node.rest_head_local ) * bone_rest_matrix_inv).translation_part() # WHY * 10? - just how pose works
+                # pose_bone.location= (bone_rest_matrix_inv * TranslationMatrix(Vector(lx, ly, lz) - bvh_node.rest_head_local )).translation_part()
                 # pose_bone.location= lx, ly, lz
                 pose_bone.location= Vector(lx, ly, lz) - bvh_node.rest_head_local
 
@@ -714,12 +714,12 @@ def bvh_node_dict2armature(context, bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOO
 
 
         def pose_rot(anim_data):
-            bone_rotation_matrix= Euler(anim_data[3], anim_data[4], anim_data[5]).toMatrix()
+            bone_rotation_matrix= Euler(anim_data[3], anim_data[4], anim_data[5]).to_matrix()
             bone_rotation_matrix.resize4x4()
-            return tuple((bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).toQuat()) # qw,qx,qy,qz
+            return tuple((bone_rest_matrix * bone_rotation_matrix * bone_rest_matrix_inv).to_quat()) # qw,qx,qy,qz
 
         def pose_loc(anim_data):
-            return tuple((TranslationMatrix(Vector(anim_data[0], anim_data[1], anim_data[2])) * bone_rest_matrix_inv).translationPart())
+            return tuple((TranslationMatrix(Vector(anim_data[0], anim_data[1], anim_data[2])) * bone_rest_matrix_inv).translation_part())
 
 
         last_frame= len(bvh_node.anim_data)+IMPORT_START_FRAME-1

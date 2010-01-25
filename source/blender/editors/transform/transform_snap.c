@@ -1578,9 +1578,10 @@ int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, float mv
 	 *
 	 * To solve that problem, we do it first as an exception. 
 	 * */
-	if(BASACT->object && BASACT->object->mode & OB_MODE_PARTICLE_EDIT)
+	base= BASACT;
+	if(base && base->object && base->object->mode & OB_MODE_PARTICLE_EDIT)
 	{
-		Object *ob = BASACT->object;
+		Object *ob = base->object;
 		retval |= snapObject(scene, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
 	}
 	

@@ -318,7 +318,7 @@ static void graph_panel_driverVar__singleProp(const bContext *C, uiLayout *layou
 	
 	/* Target ID */
 	row= uiLayoutRow(layout, 0);
-		uiTemplateAnyID(row, (bContext *)C, &dtar_ptr, "id", "id_type", "Value:");
+		uiTemplateAnyID(row, (bContext *)C, &dtar_ptr, "id", "id_type", "Prop:");
 	
 	/* Target Property */
 	// TODO: make this less technical...
@@ -490,6 +490,21 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			if (driver->flag & DRIVER_FLAG_INVALID)
 				uiItemL(col, "ERROR: invalid target channel(s)", ICON_ERROR);
 		}
+		
+	col= uiLayoutColumn(pa->layout, 1);
+		/* debug setting */
+		uiItemR(col, NULL, 0, &driver_ptr, "show_debug_info", 0);
+		
+		/* value of driver */
+		if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
+			uiLayout *row= uiLayoutRow(col, 1);
+			char valBuf[32];
+			
+			uiItemL(row, "Driver Value:", 0);
+			
+			sprintf(valBuf, "%.3f", driver->curval);
+			uiItemL(row, valBuf, 0);
+		}
 	
 	/* add driver variables */
 	col= uiLayoutColumn(pa->layout, 0);
@@ -542,6 +557,19 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 					graph_panel_driverVar__transChan(C, box, ale->id, dvar);
 					break;
 			}
+			
+		/* value of variable */
+		if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
+			uiLayout *row;
+			char valBuf[32];
+			
+			box= uiLayoutBox(col);
+			row= uiLayoutRow(box, 1);
+				uiItemL(row, "Value:", 0);
+				
+				sprintf(valBuf, "%.3f", dvar->curval);
+				uiItemL(row, valBuf, 0);
+		}
 	}
 	
 	/* cleanup */

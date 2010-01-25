@@ -109,6 +109,7 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 	bAnimListElem *ale;
 	int filter;
 	
+	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
 	BeztEditData bed;
 	BeztEditFunc test_cb, sel_cb;
 	
@@ -142,13 +143,18 @@ static void deselect_graph_keys (bAnimContext *ac, short test, short sel)
 		/* Keyframes First */
 		ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, sel_cb, NULL);
 		
-		/* deactivate the F-Curve, and deselect if deselecting keyframes.
-		 * otherwise select the F-Curve too since we've selected all the keyframes
-		 */
-		if (sel == SELECT_SUBTRACT) 
-			fcu->flag &= ~FCURVE_SELECTED;
-		else
-			fcu->flag |= FCURVE_SELECTED;
+		/* only change selection of channel when the visibility of keyframes doesn't depend on this */
+		if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
+			/* deactivate the F-Curve, and deselect if deselecting keyframes.
+			 * otherwise select the F-Curve too since we've selected all the keyframes
+			 */
+			if (sel == SELECT_SUBTRACT) 
+				fcu->flag &= ~FCURVE_SELECTED;
+			else
+				fcu->flag |= FCURVE_SELECTED;
+		}
+		
+		/* always deactivate all F-Curves if we perform batch ops for selection */
 		fcu->flag &= ~FCURVE_ACTIVE;
 	}
 	
@@ -214,6 +220,7 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 	bAnimListElem *ale;
 	int filter;
 	
+	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
 	BeztEditData bed;
 	BeztEditFunc ok_cb, select_cb;
 	View2D *v2d= &ac->ar->v2d;
@@ -240,32 +247,41 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
 		
-		/* set horizontal range (if applicable) */
+		/* apply NLA mapping to all the keyframes, since it's easier than trying to
+		 * guess when a callback might use something different
+		 */
+		if (adt)
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+		
+		/* set horizontal range (if applicable) 
+		 * NOTE: these values are only used for x-range and y-range but not region 
+		 * 		(which uses bed.data, i.e. rectf)
+		 */
 		if (mode != BEZT_OK_VALUERANGE) {
-			/* if channel is mapped in NLA, apply correction */
-			if (adt) {
-				bed.f1= BKE_nla_tweakedit_remap(adt, rectf.xmin, NLATIME_CONVERT_UNMAP);
-				bed.f2= BKE_nla_tweakedit_remap(adt, rectf.xmax, NLATIME_CONVERT_UNMAP);
-			}
-			else {
-				bed.f1= rectf.xmin;
-				bed.f2= rectf.xmax;
-			}
+			bed.f1= rectf.xmin;
+			bed.f2= rectf.xmax;
 		}
 		else {
 			bed.f1= rectf.ymin;
 			bed.f2= rectf.ymax;
 		}
 		
-		/* select keyframes that are in the appropriate places */
-		ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
-		
-		/* select the curve too 
-		 * NOTE: this should really only happen if the curve got touched...
-		 */
-		if (selectmode == SELECT_ADD) {
-			fcu->flag |= FCURVE_SELECTED;
+		/* firstly, check if any keyframes will be hit by this */
+		if (ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, ok_cb, NULL)) {
+			/* select keyframes that are in the appropriate places */
+			ANIM_fcurve_keys_bezier_loop(&bed, fcu, ok_cb, select_cb, NULL);
+			
+			/* only change selection of channel when the visibility of keyframes doesn't depend on this */
+			if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
+				/* select the curve too now that curve will be touched */
+				if (selectmode == SELECT_ADD)
+					fcu->flag |= FCURVE_SELECTED;
+			}
 		}
+		
+		/* un-apply NLA mapping from all the keyframes */
+		if (adt)
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 	}
 	
 	/* cleanup */
@@ -284,7 +300,7 @@ static int graphkeys_borderselect_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 
-	if(RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT)
+	if (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT)
 		selectmode= SELECT_ADD;
 	else
 		selectmode= SELECT_SUBTRACT;
@@ -578,7 +594,7 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 	 *	  include the 'only selected' flag...
 	 */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
-	if (sipo->flag & SIPO_SELCUVERTSONLY) 
+	if (sipo->flag & SIPO_SELCUVERTSONLY) 	// FIXME: this should really be check for by the filtering code...
 		filter |= ANIMFILTER_SEL;
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
@@ -664,6 +680,7 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 /* option 1) select keyframe directly under mouse */
 static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, short curves_only)
 {
+	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
 	FCurve *fcu;
 	BezTriple *bezt;
 	short handle;
@@ -681,9 +698,15 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 		/* reset selection mode */
 		select_mode= SELECT_ADD;
 		
-		/* deselect all other channels and keyframes */
-		//ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		/* deselect all other keyframes */
 		deselect_graph_keys(ac, 0, SELECT_SUBTRACT);
+		
+		/* deselect other channels too, but only only do this if 
+		 * selection of channel when the visibility of keyframes 
+		 * doesn't depend on this 
+		 */
+		if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0)
+			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 	}
 	
 	/* if points can be selected on this F-Curve */
@@ -740,16 +763,19 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 		ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, select_cb, NULL);
 	}
 	
-	/* select or deselect curve? */
-	if (select_mode == SELECT_INVERT)
-		fcu->flag ^= FCURVE_SELECTED;
-	else if (select_mode == SELECT_ADD)
-		fcu->flag |= FCURVE_SELECTED;
-		
-	/* set active F-Curve (NOTE: sync the filter flags with findnearest_fcurve_vert) */
-	if (fcu->flag & FCURVE_SELECTED) {
-		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
-		ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+	/* only change selection of channel when the visibility of keyframes doesn't depend on this */
+	if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
+		/* select or deselect curve? */
+		if (select_mode == SELECT_INVERT)
+			fcu->flag ^= FCURVE_SELECTED;
+		else if (select_mode == SELECT_ADD)
+			fcu->flag |= FCURVE_SELECTED;
+			
+		/* set active F-Curve (NOTE: sync the filter flags with findnearest_fcurve_vert) */
+		if (fcu->flag & FCURVE_SELECTED) {
+			filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
+			ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+		}
 	}
 }
 
@@ -760,6 +786,7 @@ static void graphkeys_mselect_leftright (bAnimContext *ac, short leftright, shor
 	bAnimListElem *ale;
 	int filter;
 	
+	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
 	BeztEditFunc ok_cb, select_cb;
 	BeztEditData bed;
 	Scene *scene= ac->scene;
@@ -769,9 +796,15 @@ static void graphkeys_mselect_leftright (bAnimContext *ac, short leftright, shor
 		/* reset selection mode to add to selection */
 		select_mode= SELECT_ADD;
 		
-		/* deselect all other channels and keyframes */
-		ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		/* deselect all other keyframes */
 		deselect_graph_keys(ac, 0, SELECT_SUBTRACT);
+		
+		/* deselect other channels too, but only only do this if 
+		 * selection of channel when the visibility of keyframes 
+		 * doesn't depend on this 
+		 */
+		if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0)
+			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 	}
 	
 	/* set callbacks and editing data */
@@ -816,6 +849,7 @@ static void graphkeys_mselect_column (bAnimContext *ac, int mval[2], short selec
 	bAnimListElem *ale;
 	int filter;
 	
+	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
 	BeztEditFunc select_cb, ok_cb;
 	BeztEditData bed;
 	FCurve *fcu;
@@ -835,9 +869,15 @@ static void graphkeys_mselect_column (bAnimContext *ac, int mval[2], short selec
 		/* reset selection mode to add to selection */
 		select_mode= SELECT_ADD;
 		
-		/* deselect all other channels and keyframes */
-		ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		/* deselect all other keyframes */
 		deselect_graph_keys(ac, 0, SELECT_SUBTRACT);
+		
+		/* deselect other channels too, but only only do this if 
+		 * selection of channel when the visibility of keyframes 
+		 * doesn't depend on this 
+		 */
+		if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0)
+			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 	}
 	
 	/* initialise keyframe editing data */

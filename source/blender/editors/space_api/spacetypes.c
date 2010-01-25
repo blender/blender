@@ -42,6 +42,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_fileselect.h"
 #include "ED_gpencil.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
@@ -115,6 +116,7 @@ void ED_spacetypes_init(void)
 	ED_operatormacros_mesh();
 	ED_operatormacros_node();
 	ED_operatormacros_object();
+	ED_operatormacros_file();
 }
 
 /* called in wm.c */

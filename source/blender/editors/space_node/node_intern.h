@@ -73,7 +73,7 @@ void node_buts_group(struct uiLayout *layout, struct bContext *C, struct Pointer
 
 /* node_edit.c */
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype);
-void snode_handle_recalc(bContext *C, SpaceNode *snode);
+void snode_notify(bContext *C, SpaceNode *snode);
 bNode *next_node(bNodeTree *ntree);
 bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);

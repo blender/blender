@@ -40,3 +40,14 @@ extern void node_copy_standard_storage(struct bNode *orig_node, struct bNode *ne
 
 #endif
 
+// this is needed for inlining behaviour
+#if defined _WIN32
+#   define DO_INLINE __inline
+#elif defined (__sgi)
+#   define DO_INLINE
+#elif defined (__sun) || defined (__sun__)
+#   define DO_INLINE
+#else
+#   define DO_INLINE static inline
+#endif
+

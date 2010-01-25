@@ -37,6 +37,7 @@ extern "C" {
 #endif
 
 #include <math.h>
+#include "BLI_math_inline.h"
 
 #ifndef M_PI
 #define M_PI        3.14159265358979323846
@@ -130,23 +131,30 @@ extern "C" {
 #define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
 #endif
 
+#ifdef BLI_MATH_INLINE
+#include "intern/math_base_inline.c"
+#endif
+
 /******************************* Float ******************************/
 
-float sqrt3f(float f);
-double sqrt3d(double d);
+MINLINE float sqrt3f(float f);
+MINLINE double sqrt3d(double d);
 
-float saacosf(float f);
-float saasinf(float f);
-float sasqrtf(float f);
-float saacos(float fac);
-float saasin(float fac);
-float sasqrt(float fac);
+MINLINE float saacosf(float f);
+MINLINE float saasinf(float f);
+MINLINE float sasqrtf(float f);
+MINLINE float saacos(float fac);
+MINLINE float saasin(float fac);
+MINLINE float sasqrt(float fac);
 
-float interpf(float a, float b, float t);
+MINLINE float interpf(float a, float b, float t);
 
-float power_of_2(float f);
+MINLINE float minf(float a, float b);
+MINLINE float maxf(float a, float b);
 
-float shell_angle_to_dist(float angle);
+MINLINE float power_of_2(float f);
+
+MINLINE float shell_angle_to_dist(float angle);
 
 double double_round(double x, int ndigits);
 

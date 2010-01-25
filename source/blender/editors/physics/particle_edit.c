@@ -4065,7 +4065,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 	
 		/* mesh may have changed since last entering editmode.
 		 * note, this may have run before if the edit data was just created, so could avoid this and speed up a little */
-		if(edit)
+		if(edit && edit->psys)
 			recalc_emitter_field(ob, edit->psys);
 		
 		toggle_particle_cursor(C, 1);

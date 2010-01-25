@@ -29,6 +29,7 @@ Generate html docs  by running...
     sphinx-build source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out
 '''
 
+
 import os
 import inspect
 import bpy
@@ -48,6 +49,142 @@ def write_indented_lines(ident, fn, text):
         return
     for l in text.split("\n"):
         fn(ident + l.strip() + "\n")
+
+
+def pymethod2sphinx(ident, fw, identifier, py_func):
+    '''
+    class method to sphinx
+    '''
+    arg_str = inspect.formatargspec(*inspect.getargspec(py_func))
+    if arg_str.startswith("(self, "):
+        arg_str = "(" + arg_str[7:]
+        func_type = "method"
+    elif arg_str.startswith("(cls, "):
+        arg_str = "(" + arg_str[6:]
+        func_type = "classmethod"
+    else:
+        func_type = "staticmethod"
+
+    fw(ident + ".. %s:: %s%s\n\n" % (func_type, identifier, arg_str))
+    if py_func.__doc__:
+        write_indented_lines(ident + "   ", fw, py_func.__doc__)
+        fw("\n")
+
+
+def pyfunc2sphinx(ident, fw, identifier, py_func, is_class=True):
+    '''
+    function or class method to sphinx
+    '''
+    arg_str = inspect.formatargspec(*inspect.getargspec(py_func))
+
+    if not is_class:
+        func_type = "function"
+        
+        # ther rest are class methods
+    elif arg_str.startswith("(self, "):
+        arg_str = "(" + arg_str[7:]
+        func_type = "method"
+    elif arg_str.startswith("(cls, "):
+        arg_str = "(" + arg_str[6:]
+        func_type = "classmethod"
+    else:
+        func_type = "staticmethod"
+
+    fw(ident + ".. %s:: %s%s\n\n" % (func_type, identifier, arg_str))
+    if py_func.__doc__:
+        write_indented_lines(ident + "   ", fw, py_func.__doc__.strip())
+        fw("\n")
+
+def py_c_func2sphinx(ident, fw, identifier, py_func, is_class=True):
+    '''
+    c defined function to sphinx.
+    '''
+    
+    # dump the docstring, assume its formatted correctly
+    if py_func.__doc__:
+        for l in py_func.__doc__.split("\n"):
+            fw(ident + l + "\n")
+        fw("\n")
+    else:
+        fw(ident + ".. function:: %s()\n\n" % identifier)
+        fw(ident + "   Undocumented function.\n\n" % identifier)
+
+
+def pyprop2sphinx(ident, fw, identifier, py_prop):
+    '''
+    python property to sphinx
+    '''
+    fw(ident + ".. attribute:: %s\n\n" % identifier)
+    write_indented_lines(ident + "   ", fw, py_prop.__doc__)
+    if py_prop.fset is None:
+        fw(ident + "   (readonly)\n\n")
+
+
+def pymodule2sphinx(BASEPATH, module_name, module, title):
+    import types
+    # lame, python wont give some access
+    MethodDescriptorType = type(dict.get)
+    GetSetDescriptorType = type(int.real)
+    
+
+    filepath = os.path.join(BASEPATH, module_name + ".rst")
+    
+    file = open(filepath, "w")
+    print(filepath)
+    print(filepath)
+    fw = file.write
+    
+    fw(title + "\n")
+    fw(("=" * len(title)) + "\n\n")
+    
+    fw(".. module:: %s\n\n" % module_name)
+    
+    if module.__doc__:
+        # Note, may contain sphinx syntax, dont mangle!
+        fw(module.__doc__.strip())
+        fw("\n\n")
+    
+    classes = []
+
+    for attribute in dir(module):
+        if not attribute.startswith("_"):
+            value = getattr(module, attribute)
+
+            value_type = type(value)
+
+            if value_type == types.FunctionType:
+                pyfunc2sphinx("", fw, attribute, value, is_class=False)
+            elif value_type in (types.BuiltinMethodType, types.BuiltinFunctionType): # both the same at the moment but to be future proof
+                # note: can't get args from these, so dump the string as is
+                # this means any module used like this must have fully formatted docstrings.
+                py_c_func2sphinx("", fw, attribute, value, is_class=False)
+            elif value_type == type:
+                classes.append((attribute, value))
+            # TODO, more types...
+    
+    # write collected classes now
+    for (attribute, value) in classes:
+        # May need to be its own function
+        fw(".. class:: %s\n\n" % attribute)
+        if value.__doc__:
+            for l in value.__doc__.split("\n"):
+                fw("   %s\n" % l)
+        fw("\n")
+
+        for key, descr in value.__dict__.items():
+            if key.startswith("__"):
+                continue
+
+            descr_type = type(descr)
+            if descr_type in (MethodDescriptorType, ): # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
+                if descr.__doc__:
+                    for l in descr.__doc__.split("\n"):
+                        fw("   %s\n" % l)
+                    fw("\n")
+        fw("\n\n")
+
+    file.close()
+
 
 def rna2sphinx(BASEPATH):
 
@@ -78,9 +215,33 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw(".. toctree::\n")
     fw("   :glob:\n\n")
-    fw("   bpy.ops.*\n\n")
-    fw("   bpy.types.*\n\n")
+    #fw("   bpy.ops.*\n\n")
+    #fw("   bpy.types.*\n\n")
+    
+    # py modules
+    fw("   bpy.utils\n\n")
+    fw("   bpy.app\n\n")
+    
+    # C modules
+    fw("   bpy.props\n\n")
+    
+    fw("   Mathutils\n\n")
+
     file.close()
+
+    # python modules
+    from bpy import utils as module
+    pymodule2sphinx(BASEPATH, "bpy.utils", module, "Blender Python Utilities")
+    from bpy import app as module
+    pymodule2sphinx(BASEPATH, "bpy.app", module, "Blender Python Application Constants")
+
+    from bpy import props as module
+    pymodule2sphinx(BASEPATH, "bpy.props", module, "Blender Python Property Definitions")
+    
+    import Mathutils as module
+    pymodule2sphinx(BASEPATH, "Mathutils", module, "Module Mathutils")
+    del module
+
 
     if 0:
         filepath = os.path.join(BASEPATH, "bpy.rst")
@@ -167,10 +328,7 @@ def rna2sphinx(BASEPATH):
         py_properties = struct.get_py_properties()
         py_prop = None
         for identifier, py_prop in py_properties:
-            fw("   .. attribute:: %s\n\n" % identifier)
-            write_indented_lines("      ", fw, py_prop.__doc__)
-            if py_prop.fset is None:
-                fw("      (readonly)\n\n")
+            pyprop2sphinx("   ", fw, identifier, py_prop)
         del py_properties, py_prop
 
         for func in struct.functions:
@@ -201,20 +359,7 @@ def rna2sphinx(BASEPATH):
         py_func = None
         
         for identifier, py_func in py_funcs:
-            arg_str = inspect.formatargspec(*inspect.getargspec(py_func))
-            if arg_str.startswith("(self, "):
-                arg_str = "(" + arg_str[7:]
-                func_type = "method"
-            elif arg_str.startswith("(cls, "):
-                arg_str = "(" + arg_str[6:]
-                func_type = "classmethod"
-            else:
-                func_type = "staticmethod"
-
-            fw("   .. %s:: %s%s\n\n" % (func_type, identifier, arg_str))
-            if py_func.__doc__:
-                write_indented_lines("      ", fw, py_func.__doc__)
-                fw("\n")
+            pyfunc2sphinx("   ", fw, identifier, py_func, is_class=True)
         del py_funcs, py_func
 
         if struct.references:
