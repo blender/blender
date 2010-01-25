@@ -1053,10 +1053,12 @@ class USERPREF_PT_input(bpy.types.Panel):
         row = col.row()
         row.prop(km, "children_expanded", text="", no_bg=True)
         row.label(text=km.name)
-
+        
         row.label()
         row.label()
 
+        if km.modal:
+            row.label(text="", icon='LINKED')
         if km.user_defined:
             row.operator("wm.keymap_restore", text="Restore")
         else:
