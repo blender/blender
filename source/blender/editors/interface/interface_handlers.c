@@ -1949,7 +1949,7 @@ static int ui_do_but_KEYEVT(bContext *C, uiBut *but, uiHandleButtonData *data, w
 static int ui_do_but_TEX(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
 {
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
-		if(ELEM4(event->type, LEFTMOUSE, PADENTER, RETKEY, EVT_BUT_OPEN) && event->val==KM_PRESS) {
+		if(ELEM(event->type, LEFTMOUSE, EVT_BUT_OPEN) && event->val==KM_PRESS) {
 			if(but->dt == UI_EMBOSSN && !event->ctrl);
 			else {
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
@@ -3491,7 +3491,8 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *ar, void *arg)
 	km = WM_keymap_guess_opname(C, but->optype->idname);		
 	kmi = WM_keymap_add_item(km, but->optype->idname, AKEY, KM_PRESS, 0, 0);
 	MEM_freeN(kmi->properties);
-	kmi->properties= IDP_CopyProperty(prop);
+	if (prop)
+		kmi->properties= IDP_CopyProperty(prop);
 	
 	RNA_pointer_create(NULL, &RNA_KeyMapItem, kmi, &ptr);
 	
