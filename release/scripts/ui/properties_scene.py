@@ -74,6 +74,8 @@ class SCENE_PT_unit(SceneButtonsPanel):
         if wide_ui:
             col = split.column()
         col.prop(unit, "use_separate")
+        
+        layout.column().prop(unit, "rotation_units")
 
 
 class SCENE_PT_keying_sets(SceneButtonsPanel):

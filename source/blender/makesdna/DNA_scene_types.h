@@ -1221,6 +1221,7 @@ typedef enum SculptFlags {
 #define	USER_UNIT_IMPERIAL		2
 /* UnitSettings->flag */
 #define	USER_UNIT_OPT_SPLIT		1
+#define USER_UNIT_ROT_RADIANS	2
 
 
 #ifdef __cplusplus

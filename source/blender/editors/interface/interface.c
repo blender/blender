@@ -1232,7 +1232,10 @@ int ui_is_but_unit(uiBut *but)
 	
 	unit_type = RNA_SUBTYPE_UNIT(RNA_property_subtype(but->rnaprop));
 	
-	if(scene->unit.system == USER_UNIT_NONE) {
+	if (scene->unit.flag & USER_UNIT_ROT_RADIANS && unit_type == PROP_UNIT_ROTATION)
+		return 0;
+		
+	if (scene->unit.system == USER_UNIT_NONE) {
 	   if (unit_type != PROP_UNIT_ROTATION)
 			return 0;
 	}

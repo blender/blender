@@ -888,6 +888,11 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 		{USER_UNIT_METRIC, "METRIC", 0, "Metric", ""},
 		{USER_UNIT_IMPERIAL, "IMPERIAL", 0, "Imperial", ""},
 		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem rotation_units[] = {
+		{0, "DEGREES", 0, "Degrees", ""},
+		{USER_UNIT_ROT_RADIANS, "RADIANS", 0, "Radians", ""},
+		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "UnitSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Unit Settings", "");
@@ -907,6 +912,12 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "use_separate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_UNIT_OPT_SPLIT);
 	RNA_def_property_ui_text(prop, "Separate Units", "Display units in pairs.");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	
+	prop= RNA_def_property(srna, "rotation_units", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, rotation_units);
+	RNA_def_property_ui_text(prop, "Rotation Units", "Unit to use for displaying/editing rotation values");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 
