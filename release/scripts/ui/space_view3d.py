@@ -419,6 +419,9 @@ class VIEW3D_MT_select_pose(bpy.types.Menu):
         props.extend = True
         props.direction = 'CHILD'
 
+        layout.separator()
+
+        layout.operator_menu_enum("pose.select_grouped", "type", text="Grouped")
         layout.operator("object.select_pattern", text="Select Pattern...")
 
 
@@ -987,6 +990,8 @@ class VIEW3D_MT_pose(bpy.types.Menu):
         layout.operator("pose.autoside_names", text="AutoName Top/Bottom").axis = 'ZAXIS'
 
         layout.operator("pose.flip_names")
+		
+        layout.operator("pose.quaternions_flip")
 
         layout.separator()
 
