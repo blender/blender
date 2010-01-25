@@ -783,6 +783,11 @@ short insert_keyframe_direct (PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, fl
 		curval= setting_get_rna_value(&ptr, prop, fcu->array_index);
 	}
 	
+	/* convert to degrees */
+	if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION) {
+		curval *= 180.0/M_PI;
+	}
+	
 	/* only insert keyframes where they are needed */
 	if (flag & INSERTKEY_NEEDED) {
 		short insert_mode;
@@ -894,6 +899,10 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 				fcu->color_mode= FCURVE_COLOR_AUTO_RGB;
 			}
 		}
+		
+		/* mark the curve if it's a new rotation curve */
+		if ((fcu->totvert == 0) && (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION))
+			fcu->flag |= FCURVE_ROTATION_DEGREES;
 		
 		/* insert keyframe */
 		ret += insert_keyframe_direct(ptr, prop, fcu, cfra, flag);

@@ -2584,13 +2584,11 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 
 						if (gameobj->GetPhysicsController())
 						{
-							float radsPerDeg = 6.283185307179586232f / 360.f;
-
 							PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) gameobj->GetPhysicsController()->GetUserData();
 							//we need to pass a full constraint frame, not just axis
 	                            
 							//localConstraintFrameBasis
-							MT_Matrix3x3 localCFrame(MT_Vector3(radsPerDeg*dat->axX,radsPerDeg*dat->axY,radsPerDeg*dat->axZ));
+							MT_Matrix3x3 localCFrame(MT_Vector3(dat->axX,dat->axY,dat->axZ));
 							MT_Vector3 axis0 = localCFrame.getColumn(0);
 							MT_Vector3 axis1 = localCFrame.getColumn(1);
 							MT_Vector3 axis2 = localCFrame.getColumn(2);

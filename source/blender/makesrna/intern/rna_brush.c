@@ -23,6 +23,7 @@
  */
 
 #include <stdlib.h>
+#include <math.h>
 
 #include "RNA_define.h"
 #include "RNA_types.h"
@@ -49,20 +50,6 @@ static void rna_Brush_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	WM_main_add_notifier(NC_BRUSH|NA_EDITED, br);
 }
 
-static float rna_BrushTextureSlot_angle_get(PointerRNA *ptr)
-{
-	MTex *tex= (MTex*)ptr->data;
-	const float conv = 57.295779506;
-	return tex->rot * conv;
-}
-
-static void rna_BrushTextureSlot_angle_set(PointerRNA *ptr, float v)
-{
-	MTex *tex= (MTex*)ptr->data;
-	const float conv = 0.017453293;
-	tex->rot = v * conv;
-}
-
 #else
 
 static void rna_def_brush_texture_slot(BlenderRNA *brna)
@@ -82,8 +69,7 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
-	RNA_def_property_range(prop, 0, 360);
-	RNA_def_property_float_funcs(prop, "rna_BrushTextureSlot_angle_get", "rna_BrushTextureSlot_angle_set", NULL);
+	RNA_def_property_range(prop, 0, M_PI*2);
 	RNA_def_property_ui_text(prop, "Angle", "Defines brush texture rotation.");
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 

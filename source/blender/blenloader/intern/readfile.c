@@ -6439,6 +6439,30 @@ static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
 	}
 }
 
+static void do_version_fcurve_radians_degrees_250(FCurve *fcu)
+{
+	int i;
+	
+	if (fcu->bezt) {
+		for (i=0; i<fcu->totvert; i++) {
+			BezTriple *bt = fcu->bezt+i;
+			
+			bt->vec[0][1] *= 180.0/M_PI;
+			bt->vec[1][1] *= 180.0/M_PI;
+			bt->vec[2][1] *= 180.0/M_PI;
+		}
+	}
+	else if (fcu->fpt) {
+		for (i=0; i<fcu->totvert; i++) {
+			FPoint *fpt = fcu->fpt+i;
+			
+			fpt->vec[1] *= 180.0/M_PI;
+		}
+	}
+	
+	fcu->flag |= FCURVE_ROTATION_DEGREES;
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -10493,7 +10517,68 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	/* put 2.50 compatibility code here until next subversion bump */
 	if (1) {
-		;
+		{
+			/* still missing:
+			   - Pose channel IK (min x/y/z, max x/y/z)
+			 */
+			bAction *act;
+			Object *ob;
+			
+			float rads_per_deg = M_PI / 180.0;
+			
+			/* convert degrees to radians for internal use */
+			for (ob=main->object.first; ob; ob=ob->id.next) {
+				AnimData *adt = BKE_animdata_from_id((ID *)ob);
+				bConstraint *con;
+				
+				for	(con=ob->constraints.first; con; con=con->next) {
+					
+					if(con->type==CONSTRAINT_TYPE_RIGIDBODYJOINT) {
+						bRigidBodyJointConstraint *data = con->data;
+						data->axX *= rads_per_deg;
+						data->axY *= rads_per_deg;
+						data->axZ *= rads_per_deg;
+					}
+					else if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+						bKinematicConstraint *data = con->data;
+						data->poleangle *= rads_per_deg;
+					}
+					else if(con->type==CONSTRAINT_TYPE_ROTLIMIT) {
+						bRotLimitConstraint *data = con->data;
+						FCurve *fcu;
+
+						/* do it here, slightly less chance of getting a false positive */
+						for (fcu=adt->action->curves.first; fcu; fcu=fcu->next) {
+							if (strcmp(fcu->rna_path, "minimum_x")==0)
+								do_version_fcurve_radians_degrees_250(fcu);
+						}
+						
+						data->xmin *= rads_per_deg;
+						data->xmax *= rads_per_deg;
+						data->ymin *= rads_per_deg;
+						data->ymax *= rads_per_deg;
+						data->zmin *= rads_per_deg;
+						data->zmax *= rads_per_deg;
+
+					}
+				}
+			}
+			
+			/* convert fcurve values to be stored in degrees */
+			for (act = main->action.first; act; act=act->id.next) {
+				FCurve *fcu;
+				
+				/* convert over named properties with PROP_UNIT_ROTATION time of this change */
+				for (fcu=act->curves.first; fcu; fcu=fcu->next) {
+					if (strcmp(fcu->rna_path, "rotation_euler")==0)
+						do_version_fcurve_radians_degrees_250(fcu);
+					else if (strcmp(fcu->rna_path, "delta_rotation_euler")==0)
+						do_version_fcurve_radians_degrees_250(fcu);
+					else if (strcmp(fcu->rna_path, "pole_angle")==0)
+						do_version_fcurve_radians_degrees_250(fcu);
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

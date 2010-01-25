@@ -1225,13 +1225,19 @@ int ui_is_but_float(uiBut *but)
 int ui_is_but_unit(uiBut *but)
 {
 	Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
-	if(scene->unit.system == USER_UNIT_NONE)
-		return 0;
-
+	int unit_type;
+	
 	if(but->rnaprop==NULL)
 		return 0;
+	
+	unit_type = RNA_SUBTYPE_UNIT(RNA_property_subtype(but->rnaprop));
+	
+	if(scene->unit.system == USER_UNIT_NONE) {
+	   if (unit_type != PROP_UNIT_ROTATION)
+			return 0;
+	}
 
-	if(RNA_SUBTYPE_UNIT_VALUE(RNA_property_subtype(but->rnaprop))==0)
+	if(unit_type == PROP_UNIT_NONE)
 		return 0;
 
 	return 1;
@@ -1406,12 +1412,12 @@ int ui_get_but_string_max_length(uiBut *but)
 static double ui_get_but_scale_unit(uiBut *but, double value)
 {
 	Scene *scene= CTX_data_scene((bContext *)but->block->evil_C);
-	int subtype= RNA_property_subtype(but->rnaprop);
+	int subtype= RNA_SUBTYPE_UNIT(RNA_property_subtype(but->rnaprop));
 
-	if(subtype & PROP_UNIT_LENGTH) {
+	if(subtype == PROP_UNIT_LENGTH) {
 		return value * scene->unit.scale_length;
 	}
-	else if(subtype & PROP_UNIT_TIME) { /* WARNING - using evil_C :| */
+	else if(subtype == PROP_UNIT_TIME) { /* WARNING - using evil_C :| */
 		return FRA2TIME(value);
 	}
 	else {
@@ -1596,7 +1602,7 @@ int ui_set_but_string(bContext *C, uiBut *but, const char *str)
 
 			BLI_strncpy(str_unit_convert, str, sizeof(str_unit_convert));
 
-			if(scene->unit.system != USER_UNIT_NONE && unit_type) {
+			if(ui_is_but_unit(but)) {
 				/* ugly, use the draw string to get the value, this could cause problems if it includes some text which resolves to a unit */
 				bUnit_ReplaceString(str_unit_convert, sizeof(str_unit_convert), but->drawstr, ui_get_but_scale_unit(but, 1.0), scene->unit.system, unit_type);
 			}

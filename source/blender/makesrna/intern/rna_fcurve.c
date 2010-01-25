@@ -23,6 +23,7 @@
  */
 
 #include <stdlib.h>
+#include <math.h>
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -49,6 +50,12 @@ EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},
 	{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},
 	{FMODIFIER_TYPE_LIMITS, "LIMITS", 0, "Limits", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem beztriple_keyframe_type_items[] = {
+	{BEZT_KEYTYPE_KEYFRAME, "KEYFRAME", 0, "Keyframe", ""},
+	{BEZT_KEYTYPE_BREAKDOWN, "BREAKDOWN", 0, "Breakdown", ""},
+	{BEZT_KEYTYPE_EXTREME, "EXTREME", 0, "Extreme", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -221,6 +228,159 @@ static void rna_DriverVariable_type_set(PointerRNA *ptr, int value)
 	
 	/* call the API function for this */
 	driver_change_variable_type(dvar, value);
+}
+
+/* ****************************** */
+
+static int rna_fpoint_is_rotation(ID *id, FPoint *fpt)
+{
+	bAction *act = (bAction *)id;
+	FCurve *fcu;
+	int found=0;
+	
+	for (fcu=act->curves.first; fcu; fcu=fcu->next) {
+		if (fcu->fpt) {
+			/* the following check works because 
+			 * the fpoints are always allocated in contiguous blocks */
+			if (fpt >= fcu->fpt && fpt < fcu->fpt+fcu->totvert) {
+				found=1;
+				break;
+			}
+		}
+	}
+	
+	if (!found)
+		return 0;
+	
+	return (fcu->flag & FCURVE_ROTATION_DEGREES);
+}
+
+
+static void rna_FPoint_vec_get(PointerRNA *ptr, float *values)
+{
+	ID *id = (ID *)ptr->id.data;
+	FPoint *fpt= (FPoint*)ptr->data;
+	
+	values[0]= fpt->vec[0];
+	
+	if (rna_fpoint_is_rotation(id, fpt))
+		values[1]= fpt->vec[1] * M_PI/180.0;
+	else
+		values[1]= fpt->vec[1];
+}
+
+static void rna_FPoint_vec_set(PointerRNA *ptr, const float *values)
+{
+	ID *id = (ID *)ptr->id.data;
+	FPoint *fpt= (FPoint*)ptr->data;
+	
+	 fpt->vec[0] = values[0];
+	
+	if (rna_fpoint_is_rotation(id, fpt))
+		fpt->vec[1]= values[1] * 180.0 / M_PI;
+	else
+		fpt->vec[1]= values[1];
+}
+
+static int rna_beztriple_is_rotation(ID *id, BezTriple *bt)
+{
+	bAction *act = (bAction *)id;
+	FCurve *fcu;
+	int found=0;
+	
+	for (fcu=act->curves.first; fcu; fcu=fcu->next) {
+		if (fcu->bezt) {
+			/* the following check works because 
+			 * the beztriples are always allocated in contiguous blocks */
+			if (bt >= fcu->bezt && bt < fcu->bezt+fcu->totvert) {
+				found=1;
+				break;
+			}
+		}
+	}
+	
+	if (!found)
+		return 0;
+	
+	return (fcu->flag & FCURVE_ROTATION_DEGREES);
+}
+
+static void rna_BezTriple_handle1_get(PointerRNA *ptr, float *values)
+{
+	ID *id = (ID *)ptr->id.data;
+	BezTriple *bt= (BezTriple*)ptr->data;
+	
+	values[0]= bt->vec[0][0];
+	
+	if (rna_beztriple_is_rotation(id, bt))
+		values[1]= bt->vec[0][1] * M_PI/180.0;
+	else
+		values[1]= bt->vec[0][1];
+}
+
+static void rna_BezTriple_handle1_set(PointerRNA *ptr, const float *values)
+{
+	ID *id = (ID *)ptr->id.data;
+	BezTriple *bt= (BezTriple*)ptr->data;
+	
+	bt->vec[0][0]= values[0];
+	
+	if (rna_beztriple_is_rotation(id, bt))
+		bt->vec[0][1]= values[1] * 180.0 / M_PI;
+	else
+		bt->vec[0][1]= values[1];
+}
+
+static void rna_BezTriple_handle2_get(PointerRNA *ptr, float *values)
+{
+	ID *id = (ID *)ptr->id.data;
+	BezTriple *bt= (BezTriple*)ptr->data;
+	
+	values[0]= bt->vec[2][0];
+	
+	if (rna_beztriple_is_rotation(id, bt))
+		values[1]= bt->vec[2][1] * M_PI/180.0;
+	else
+		values[1]= bt->vec[2][1];
+}
+
+static void rna_BezTriple_handle2_set(PointerRNA *ptr, const float *values)
+{
+	ID *id = (ID *)ptr->id.data;
+	BezTriple *bt= (BezTriple*)ptr->data;
+	
+	bt->vec[2][0]= values[0];
+	
+	if (rna_beztriple_is_rotation(id, bt))
+		bt->vec[2][1]= values[1] * 180.0 / M_PI;
+	else
+		bt->vec[2][1]= values[1];
+}
+
+static void rna_BezTriple_ctrlpoint_get(PointerRNA *ptr, float *values)
+{
+	ID *id = (ID *)ptr->id.data;
+	BezTriple *bt= (BezTriple*)ptr->data;
+
+	values[0]= bt->vec[1][0];
+	
+	if (rna_beztriple_is_rotation(id, bt))
+		values[1]= bt->vec[1][1] * M_PI/180.0;
+	else
+		values[1]= bt->vec[1][1];
+}
+
+static void rna_BezTriple_ctrlpoint_set(PointerRNA *ptr, const float *values)
+{
+	ID *id = (ID *)ptr->id.data;
+	BezTriple *bt= (BezTriple*)ptr->data;
+	
+	bt->vec[1][0]= values[0];
+	
+	if (rna_beztriple_is_rotation(id, bt))
+		bt->vec[1][1]= values[1] * 180.0 / M_PI;
+	else
+		bt->vec[1][1]= values[1];
 }
 
 /* ****************************** */
@@ -903,9 +1063,104 @@ static void rna_def_fpoint(BlenderRNA *brna)
 	/* Vector value */
 	prop= RNA_def_property(srna, "point", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_array(prop, 2);
-	RNA_def_property_float_sdna(prop, NULL, "vec");
+	RNA_def_property_float_funcs(prop, "rna_FPoint_vec_get", "rna_FPoint_vec_set", NULL);
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
 }
+
+
+/* duplicate of BezTriple in rna_curve.c
+ * but with F-Curve specific options updates/functionality */
+static void rna_def_fcurvebeztriple(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem beztriple_handle_type_items[] = {
+		{HD_FREE, "FREE", 0, "Free", ""},
+		{HD_AUTO, "AUTO", 0, "Auto", ""},
+		{HD_VECT, "VECTOR", 0, "Vector", ""},
+		{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
+		{HD_AUTO_ANIM, "AUTO_CLAMPED", 0, "Auto Clamped", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem beztriple_interpolation_mode_items[] = {
+		{BEZT_IPO_CONST, "CONSTANT", 0, "Constant", ""},
+		{BEZT_IPO_LIN, "LINEAR", 0, "Linear", ""},
+		{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	srna= RNA_def_struct(brna, "FCurveBezierSplinePoint", NULL);
+	RNA_def_struct_sdna(srna, "BezTriple");
+	RNA_def_struct_ui_text(srna, "FCurve Bezier Curve Point", "Bezier curve point with two handles, used in F-Curves.");
+	
+	/* Boolean values */
+	prop= RNA_def_property(srna, "selected_handle1", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
+	RNA_def_property_ui_text(prop, "Handle 1 selected", "Handle 1 selection status");
+	RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "selected_handle2", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "f3", 0);
+	RNA_def_property_ui_text(prop, "Handle 2 selected", "Handle 2 selection status");
+	RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "selected_control_point", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "f2", 0);
+	RNA_def_property_ui_text(prop, "Control Point selected", "Control point selection status");
+	RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "hidden", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "hide", 0);
+	RNA_def_property_ui_text(prop, "Hidden", "Visibility status");
+	RNA_def_property_update(prop, 0, NULL);
+	
+	/* Enums */
+	prop= RNA_def_property(srna, "handle1_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "h1");
+	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
+	RNA_def_property_ui_text(prop, "Handle 1 Type", "Handle types");
+	RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "handle2_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "h2");
+	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
+	RNA_def_property_ui_text(prop, "Handle 2 Type", "Handle types");
+	RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ipo");
+	RNA_def_property_enum_items(prop, beztriple_interpolation_mode_items);
+	RNA_def_property_ui_text(prop, "Interpolation", "(For F-Curves Only) Interpolation to use for segment of curve starting from current BezTriple.");
+	//RNA_def_property_update(prop, 0, "rna_Curve_update_data"); // this should be an F-Curve update call instead...
+	
+	prop= RNA_def_property(srna, "keyframe_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "hide");
+	RNA_def_property_enum_items(prop, beztriple_keyframe_type_items);
+	RNA_def_property_ui_text(prop, "Keyframe Type", "(For F-Curves only) The type of keyframe this control point defines.");
+	//RNA_def_property_update(prop, 0, "rna_Curve_update_data"); // this should be an F-Curve update call instead...
+	
+	/* Vector values */
+	prop= RNA_def_property(srna, "handle1", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_funcs(prop, "rna_BezTriple_handle1_get", "rna_BezTriple_handle1_set", NULL);
+	RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
+	RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_funcs(prop, "rna_BezTriple_ctrlpoint_get", "rna_BezTriple_ctrlpoint_set", NULL);
+	RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
+	RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "handle2", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_funcs(prop, "rna_BezTriple_handle2_get", "rna_BezTriple_handle2_set", NULL);
+	RNA_def_property_ui_text(prop, "Handle 2", "Coordinates of the second handle");
+	RNA_def_property_update(prop, 0, NULL);
+	
+	/* Number values */
+}
+
 
 static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 {
@@ -1016,7 +1271,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "keyframe_points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bezt", "totvert");
-	RNA_def_property_struct_type(prop, "BezierSplinePoint");
+	RNA_def_property_struct_type(prop, "FCurveBezierSplinePoint");
 	RNA_def_property_ui_text(prop, "Keyframes", "User-editable keyframes");
 	
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
@@ -1030,6 +1285,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 
 void RNA_def_fcurve(BlenderRNA *brna)
 {
+	rna_def_fcurvebeztriple(brna);
 	rna_def_fcurve(brna);
 	rna_def_fpoint(brna);
 	

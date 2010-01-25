@@ -413,7 +413,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 		if(data->weight != 0.0) {
 			if(poleconstrain)
 				IK_SolverSetPoleVectorConstraint(solver, iktarget, goalpos,
-					polepos, data->poleangle*M_PI/180, (poleangledata == data));
+					polepos, data->poleangle, (poleangledata == data));
 			IK_SolverAddGoal(solver, iktarget, goalpos, data->weight);
 		}
 		if((data->flag & CONSTRAINT_IK_ROT) && (data->orientweight != 0.0))
@@ -426,7 +426,7 @@ static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 	IK_Solve(solver, 0.0f, tree->iterations);
 
 	if(poleangledata)
-		poleangledata->poleangle= IK_SolverGetPoleAngle(solver)*180/M_PI;
+		poleangledata->poleangle= IK_SolverGetPoleAngle(solver);
 
 	IK_FreeSolver(solver);
 

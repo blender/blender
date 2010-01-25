@@ -730,6 +730,11 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 		/* set value - only for animatable numerical values */
 		if (RNA_property_animateable(&new_ptr, prop)) 
 		{
+			/* convert to radians */
+			if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION) {
+				value *= M_PI/180.0;
+			}
+			
 			switch (RNA_property_type(prop)) 
 			{
 				case PROP_BOOLEAN:
@@ -1465,6 +1470,11 @@ void nladata_flush_channels (ListBase *channels)
 		PropertyRNA *prop= nec->prop;
 		int array_index= nec->index;
 		float value= nec->value;
+		
+		/* convert to radians */
+		if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION) {
+			value *= M_PI/180.0;
+		}
 		
 		/* write values - see animsys_write_rna_setting() to sync the code */
 		switch (RNA_property_type(prop)) 
