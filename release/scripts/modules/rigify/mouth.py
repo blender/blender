@@ -121,15 +121,11 @@ def deform(obj, definitions, base_names, options):
     eb = obj.data.edit_bones
     pb = obj.pose.bones
     
-    print("YAHOO")
-    
     # Options
     req_options = ["mesh"]
     for option in req_options:
         if option not in options:
             raise RigifyError("'%s' rig type requires a '%s' option (bone: %s)" % (RIG_TYPE, option, base_names[definitions[0]]))
-    
-    print("YAHOO2")
             
     meshes = options["mesh"].replace(" ", "").split(",")
     
@@ -214,9 +210,7 @@ def deform(obj, definitions, base_names, options):
     eb[dlip7].bbone_segments = 8
     eb[dlip8].bbone_segments = 8
     
-    print("OBJECT MODE1")
     bpy.ops.object.mode_set(mode='OBJECT')
-    print("OBJECT MODE2")
     
     # Constraints
     con = pb[dlip1].constraints.new('COPY_TRANSFORMS')
@@ -258,8 +252,6 @@ def deform(obj, definitions, base_names, options):
     rotdiff_r = acos(eb[lip1].matrix.to_quat() * eb[lip8].matrix.to_quat()) * 2
     rotdiff_l = acos(eb[lip4].matrix.to_quat() * eb[lip5].matrix.to_quat()) * 2
     
-    print (rotdiff_l)
-    
     bpy.ops.object.mode_set(mode='OBJECT')
     
     
@@ -286,10 +278,10 @@ def deform(obj, definitions, base_names, options):
         
         # Set up the variable
         var.type = "ROTATION_DIFF"
-        var.targets[0].id_type = 'OBJECT'
+        #var.targets[0].id_type = 'OBJECT'
         var.targets[0].id = obj
         var.targets[0].bone_target = lip4
-        var.targets[1].id_type = 'OBJECT'
+        #var.targets[1].id_type = 'OBJECT'
         var.targets[1].id = obj
         var.targets[1].bone_target = lip5
         
@@ -321,10 +313,10 @@ def deform(obj, definitions, base_names, options):
         
         # Set up the variable
         var.type = "ROTATION_DIFF"
-        var.targets[0].id_type = 'OBJECT'
+        #var.targets[0].id_type = 'OBJECT'
         var.targets[0].id = obj
         var.targets[0].bone_target = lip1
-        var.targets[1].id_type = 'OBJECT'
+        #var.targets[1].id_type = 'OBJECT'
         var.targets[1].id = obj
         var.targets[1].bone_target = lip8
         
@@ -723,12 +715,9 @@ def control(obj, definitions, base_names, options):
 
 def main(obj, bone_definition, base_names, options):
     # Create control rig
-    print("CONTROL")
     control(obj, bone_definition, base_names, options)
-    print("DEFORM")
     # Create deform rig
     deform(obj, bone_definition, base_names, options)
-    print("DONE")
 
     return (None,)
 

@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from math import radians
+from math import radians, pi
 from rigify import RigifyError, get_layer_dict, ORG_PREFIX
 from rigify_utils import bone_class_instance, copy_bone_simple, add_pole_target_bone, add_stretch_to, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
@@ -162,7 +162,7 @@ def ik(obj, definitions, base_names, options):
     con.use_target = True
     con.use_rotation = False
     con.chain_length = 2
-    con.pole_angle = -90.0 # XXX, RAD2DEG
+    con.pole_angle = -pi/2
 
     # last step setup layers
     if "ik_layer" in options:

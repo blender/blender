@@ -19,6 +19,7 @@
 # <pep8 compliant>
 
 import bpy
+from math import pi
 from rigify import RigifyError, get_layer_dict
 from rigify_utils import bone_class_instance, copy_bone_simple, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
@@ -226,7 +227,7 @@ def ik(obj, bone_definition, base_names, options):
     con = ik_chain.shin_p.constraints.new('IK')
     con.chain_length = 2
     con.iterations = 500
-    con.pole_angle = -90.0 # XXX - in deg!
+    con.pole_angle = -pi/2
     con.use_tail = True
     con.use_stretch = True
     con.use_target = True
