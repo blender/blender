@@ -105,39 +105,6 @@ Mathutils_Callback mathutils_matrix_vector_cb = {
 };
 /* matrix vector callbacks, this is so you can do matrix[i][j] = val  */
 
-/*-------------------------DOC STRINGS ---------------------------*/
-
-static PyObject *Matrix_Zero( MatrixObject * self );
-static PyObject *Matrix_Identity( MatrixObject * self );
-static PyObject *Matrix_Transpose( MatrixObject * self );
-static PyObject *Matrix_Determinant( MatrixObject * self );
-static PyObject *Matrix_Invert( MatrixObject * self );
-static PyObject *Matrix_TranslationPart( MatrixObject * self );
-static PyObject *Matrix_RotationPart( MatrixObject * self );
-static PyObject *Matrix_scalePart( MatrixObject * self );
-static PyObject *Matrix_Resize4x4( MatrixObject * self );
-static PyObject *Matrix_toEuler( MatrixObject * self, PyObject *args );
-static PyObject *Matrix_toQuat( MatrixObject * self );
-static PyObject *Matrix_copy( MatrixObject * self );
-
-/*-----------------------METHOD DEFINITIONS ----------------------*/
-static struct PyMethodDef Matrix_methods[] = {
-	{"zero", (PyCFunction) Matrix_Zero, METH_NOARGS, NULL},
-	{"identity", (PyCFunction) Matrix_Identity, METH_NOARGS, NULL},
-	{"transpose", (PyCFunction) Matrix_Transpose, METH_NOARGS, NULL},
-	{"determinant", (PyCFunction) Matrix_Determinant, METH_NOARGS, NULL},
-	{"invert", (PyCFunction) Matrix_Invert, METH_NOARGS, NULL},
-	{"translationPart", (PyCFunction) Matrix_TranslationPart, METH_NOARGS, NULL},
-	{"rotationPart", (PyCFunction) Matrix_RotationPart, METH_NOARGS, NULL},
-	{"scalePart", (PyCFunction) Matrix_scalePart, METH_NOARGS, NULL},
-	{"resize4x4", (PyCFunction) Matrix_Resize4x4, METH_NOARGS, NULL},
-	{"toEuler", (PyCFunction) Matrix_toEuler, METH_VARARGS, NULL},
-	{"toQuat", (PyCFunction) Matrix_toQuat, METH_NOARGS, NULL},
-	{"copy", (PyCFunction) Matrix_copy, METH_NOARGS, NULL},
-	{"__copy__", (PyCFunction) Matrix_copy, METH_NOARGS, NULL},
-	{NULL, NULL, 0, NULL}
-};
-
 //----------------------------------Mathutils.Matrix() -----------------
 //mat is a 1D array of floats - row[0][0],row[0][1], row[1][0], etc.
 //create a new matrix type
@@ -214,8 +181,33 @@ static PyObject *Matrix_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 	return newMatrixObject(matrix, argSize, seqSize, Py_NEW, NULL);
 }
 
+/* assumes rowsize == colsize is checked and the read callback has run */
+static float matrix_determinant(MatrixObject * self)
+{
+	if(self->rowSize == 2) {
+		return determinant_m2(self->matrix[0][0], self->matrix[0][1],
+					 self->matrix[1][0], self->matrix[1][1]);
+	} else if(self->rowSize == 3) {
+		return determinant_m3(self->matrix[0][0], self->matrix[0][1],
+					 self->matrix[0][2], self->matrix[1][0],
+					 self->matrix[1][1], self->matrix[1][2],
+					 self->matrix[2][0], self->matrix[2][1],
+					 self->matrix[2][2]);
+	} else {
+		return determinant_m4((float (*)[4]) *self->matrix);
+	}
+}
+
+
 /*-----------------------------METHODS----------------------------*/
-/*---------------------------Matrix.toQuat() ---------------------*/
+static char Matrix_toQuat_doc[] =
+".. method:: to_quat()\n"
+"\n"
+"   Return a quaternion representation of the rotation matrix.\n"
+"\n"
+"   :return: Quaternion representation of the rotation matrix.\n"
+"   :rtype: Quaternion\n";
+
 static PyObject *Matrix_toQuat(MatrixObject * self)
 {
 	float quat[4];
@@ -237,6 +229,16 @@ static PyObject *Matrix_toQuat(MatrixObject * self)
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
 /*---------------------------Matrix.toEuler() --------------------*/
+static char Matrix_toEuler_doc[] =
+".. method:: to_euler(euler_compat)\n"
+"\n"
+"   Return an Euler representation of the rotation matrix (3x3 or 4x4 matrix only).\n"
+"\n"
+"   :arg euler_compat: Optional euler argument the new euler will be made compatible with (no axis flipping between them). Useful for converting a series of matrices to animation curves.\n"
+"   :type euler_compat: Euler\n"
+"   :return: Euler representation of the matrix.\n"
+"   :rtype: Euler\n";
+
 PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 {
 	float eul[3], eul_compatf[3];
@@ -288,6 +290,13 @@ PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 	return newEulerObject(eul, Py_NEW, NULL);
 }
 /*---------------------------Matrix.resize4x4() ------------------*/
+static char Matrix_Resize4x4_doc[] =
+".. method:: resize4x4()\n"
+"\n"
+"   Resize the matrix to 4x4.\n"
+"   :return: an instance of itself.\n"
+"   :rtype: Vector\n";
+
 PyObject *Matrix_Resize4x4(MatrixObject * self)
 {
 	int x, first_row_elem, curr_pos, new_pos, blank_columns, blank_rows, index;
@@ -345,6 +354,15 @@ PyObject *Matrix_Resize4x4(MatrixObject * self)
 	return (PyObject *)self;
 }
 /*---------------------------Matrix.translationPart() ------------*/
+static char Matrix_TranslationPart_doc[] =
+".. method:: translation_part()\n"
+"\n"
+"   Return a the translation part of a 4 row matrix.\n"
+"   :return: Return a the translation of a matrix.\n"
+"   :rtype: Matrix\n"
+"\n"
+"   .. note:: Note that the (4,4) element of a matrix can be used for uniform scaling too.\n";
+
 PyObject *Matrix_TranslationPart(MatrixObject * self)
 {
 	float vec[4];
@@ -364,6 +382,15 @@ PyObject *Matrix_TranslationPart(MatrixObject * self)
 	return newVectorObject(vec, 3, Py_NEW, NULL);
 }
 /*---------------------------Matrix.rotationPart() ---------------*/
+static char Matrix_RotationPart_doc[] =
+".. method:: rotation_part()\n"
+"\n"
+"   Return the 3d submatrix corresponding to the linear term of the embedded affine transformation in 3d. This matrix represents rotation and scale.\n"
+"   :return: Return the 3d matrix for rotation and scale.\n"
+"   :rtype: Matrix\n"
+"\n"
+"   .. note:: Note that the (4,4) element of a matrix can be used for uniform scaling too.\n";
+
 PyObject *Matrix_RotationPart(MatrixObject * self)
 {
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
@@ -390,6 +417,15 @@ PyObject *Matrix_RotationPart(MatrixObject * self)
 	return newMatrixObject(mat, 3, 3, Py_NEW, Py_TYPE(self));
 }
 /*---------------------------Matrix.scalePart() --------------------*/
+static char Matrix_scalePart_doc[] =
+".. method:: scale_part()\n"
+"\n"
+"   Return a the scale part of a 3x3 or 4x4 matrix.\n"
+"   :return: Return a the scale of a matrix.\n"
+"   :rtype: Vector\n"
+"\n"
+"   .. note:: This method does not return negative a scale on any axis because it is not possible to obtain this data from the matrix alone.\n";
+
 PyObject *Matrix_scalePart(MatrixObject * self)
 {
 	float scale[3], rot[3];
@@ -419,12 +455,22 @@ PyObject *Matrix_scalePart(MatrixObject * self)
 	return newVectorObject(scale, 3, Py_NEW, NULL);
 }
 /*---------------------------Matrix.invert() ---------------------*/
+static char Matrix_Invert_doc[] =
+".. method:: invert()\n"
+"\n"
+"   Set the matrix to its inverse.\n"
+"   :return: an instance of itself.\n"
+"   :rtype: Matrix\n"
+"\n"
+"   .. note:: :exc:`ValueError` exception is raised.\n"
+"\n"
+"   .. seealso:: <http://en.wikipedia.org/wiki/Inverse_matrix>\n";
+
 PyObject *Matrix_Invert(MatrixObject * self)
 {
 	
 	int x, y, z = 0;
 	float det = 0.0f;
-	PyObject *f = NULL;
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
@@ -437,9 +483,7 @@ PyObject *Matrix_Invert(MatrixObject * self)
 	}
 
 	/*calculate the determinant*/
-	f = Matrix_Determinant(self);
-	det = (float)PyFloat_AS_DOUBLE(f); /*Increfs, so we need to decref*/
-	Py_DECREF(f);
+	det = matrix_determinant(self);
 
 	if(det != 0) {
 		/*calculate the classical adjoint*/
@@ -478,10 +522,17 @@ PyObject *Matrix_Invert(MatrixObject * self)
 
 
 /*---------------------------Matrix.determinant() ----------------*/
+static char Matrix_Determinant_doc[] =
+".. method:: determinant()\n"
+"\n"
+"   Return the determinant of a matrix.\n"
+"   :return: Return a the determinant of a matrix.\n"
+"   :rtype: float\n"
+"\n"
+"   .. seealso:: <http://en.wikipedia.org/wiki/Determinant>\n";
+
 PyObject *Matrix_Determinant(MatrixObject * self)
 {
-	float det = 0.0f;
-
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
@@ -490,22 +541,18 @@ PyObject *Matrix_Determinant(MatrixObject * self)
 		return NULL;
 	}
 
-	if(self->rowSize == 2) {
-		det = determinant_m2(self->matrix[0][0], self->matrix[0][1],
-					 self->matrix[1][0], self->matrix[1][1]);
-	} else if(self->rowSize == 3) {
-		det = determinant_m3(self->matrix[0][0], self->matrix[0][1],
-					 self->matrix[0][2], self->matrix[1][0],
-					 self->matrix[1][1], self->matrix[1][2],
-					 self->matrix[2][0], self->matrix[2][1],
-					 self->matrix[2][2]);
-	} else {
-		det = determinant_m4((float (*)[4]) *self->matrix);
-	}
-
-	return PyFloat_FromDouble( (double) det );
+	return PyFloat_FromDouble((double)matrix_determinant(self));
 }
 /*---------------------------Matrix.transpose() ------------------*/
+static char Matrix_Transpose_doc[] =
+".. method:: transpose()\n"
+"\n"
+"   Set the matrix to its transpose.\n"
+"   :return: an instance of itself\n"
+"   :rtype: Matrix\n"
+"\n"
+"   .. seealso:: <http://en.wikipedia.org/wiki/Transpose>\n";
+
 PyObject *Matrix_Transpose(MatrixObject * self)
 {
 	float t = 0.0f;
@@ -535,6 +582,13 @@ PyObject *Matrix_Transpose(MatrixObject * self)
 
 
 /*---------------------------Matrix.zero() -----------------------*/
+static char Matrix_Zero_doc[] =
+".. method:: zero()\n"
+"\n"
+"   Set all the matrix values to zero.\n"
+"   :return: an instance of itself\n"
+"   :rtype: Matrix\n";
+
 PyObject *Matrix_Zero(MatrixObject * self)
 {
 	int row, col;
@@ -552,6 +606,17 @@ PyObject *Matrix_Zero(MatrixObject * self)
 	return (PyObject *)self;
 }
 /*---------------------------Matrix.identity(() ------------------*/
+static char Matrix_Identity_doc[] =
+".. method:: identity()\n"
+"\n"
+"   Set the matrix to the identity matrix.\n"
+"   :return: an instance of itself\n"
+"   :rtype: Matrix\n"
+"\n"
+"   .. note:: An object with zero location and rotation, a scale of one, will have an identity matrix.\n"
+"\n"
+"   .. seealso:: <http://en.wikipedia.org/wiki/Identity_matrix>\n";
+
 PyObject *Matrix_Identity(MatrixObject * self)
 {
 	if(!BaseMath_ReadCallback(self))
@@ -580,7 +645,14 @@ PyObject *Matrix_Identity(MatrixObject * self)
 	return (PyObject *)self;
 }
 
-/*---------------------------Matrix.inverted() ------------------*/
+/*---------------------------Matrix.copy() ------------------*/
+static char Matrix_copy_doc[] =
+".. method:: copy()\n"
+"\n"
+"   Returns a copy of this matrix.\n"
+"   :return: an instance of itself\n"
+"   :rtype: Matrix\n";
+
 PyObject *Matrix_copy(MatrixObject * self)
 {
 	if(!BaseMath_ReadCallback(self))
@@ -1160,6 +1232,24 @@ static PyGetSetDef Matrix_getseters[] = {
 	{"_owner",(getter)BaseMathObject_getOwner, (setter)NULL, "",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+/*-----------------------METHOD DEFINITIONS ----------------------*/
+static struct PyMethodDef Matrix_methods[] = {
+	{"zero", (PyCFunction) Matrix_Zero, METH_NOARGS, Matrix_Zero_doc},
+	{"identity", (PyCFunction) Matrix_Identity, METH_NOARGS, Matrix_Identity_doc},
+	{"transpose", (PyCFunction) Matrix_Transpose, METH_NOARGS, Matrix_Transpose_doc},
+	{"determinant", (PyCFunction) Matrix_Determinant, METH_NOARGS, Matrix_Determinant_doc},
+	{"invert", (PyCFunction) Matrix_Invert, METH_NOARGS, Matrix_Invert_doc},
+	{"translation_part", (PyCFunction) Matrix_TranslationPart, METH_NOARGS, Matrix_TranslationPart_doc},
+	{"rotation_part", (PyCFunction) Matrix_RotationPart, METH_NOARGS, Matrix_RotationPart_doc},
+	{"scale_part", (PyCFunction) Matrix_scalePart, METH_NOARGS, Matrix_scalePart_doc},
+	{"resize4x4", (PyCFunction) Matrix_Resize4x4, METH_NOARGS, Matrix_Resize4x4_doc},
+	{"to_euler", (PyCFunction) Matrix_toEuler, METH_VARARGS, Matrix_toEuler_doc},
+	{"to_quat", (PyCFunction) Matrix_toQuat, METH_NOARGS, Matrix_toQuat_doc},
+	{"copy", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
+	{"__copy__", (PyCFunction) Matrix_copy, METH_NOARGS, Matrix_copy_doc},
+	{NULL, NULL, 0, NULL}
 };
 
 /*------------------PY_OBECT DEFINITION--------------------------*/

@@ -146,7 +146,7 @@ def write_pov(filename, scene=None, info_callback=None):
         file.write('\tup <0, 1, 0>\n')
         file.write('\tangle  %f \n' % (360.0 * atan(16.0 / camera.data.lens) / pi))
 
-        file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple([degrees(e) for e in matrix.rotationPart().toEuler()]))
+        file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple([degrees(e) for e in matrix.rotation_part().to_euler()]))
         file.write('\ttranslate <%.6f, %.6f, %.6f>\n' % (matrix[3][0], matrix[3][1], matrix[3][2]))
         file.write('}\n')
 

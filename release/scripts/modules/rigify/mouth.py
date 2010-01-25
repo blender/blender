@@ -255,8 +255,8 @@ def deform(obj, definitions, base_names, options):
     bpy.ops.object.mode_set(mode='EDIT')
     
     # Calculate the rotation difference between the bones
-    rotdiff_r = acos(eb[lip1].matrix.toQuat() * eb[lip8].matrix.toQuat()) * 2
-    rotdiff_l = acos(eb[lip4].matrix.toQuat() * eb[lip5].matrix.toQuat()) * 2
+    rotdiff_r = acos(eb[lip1].matrix.to_quat() * eb[lip8].matrix.to_quat()) * 2
+    rotdiff_l = acos(eb[lip4].matrix.to_quat() * eb[lip5].matrix.to_quat()) * 2
     
     print (rotdiff_l)
     

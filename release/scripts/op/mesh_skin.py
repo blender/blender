@@ -22,8 +22,7 @@
 import time, functools
 import bpy
 # from Blender import Window
-from Mathutils import MidpointVecs, Vector
-from Mathutils import AngleBetweenVecs as _AngleBetweenVecs_
+from Mathutils import Vector
 # import BPyMessages
 
 # from Blender.Draw import PupMenu
@@ -36,7 +35,7 @@ CULL_METHOD = 0
 def AngleBetweenVecs(a1,a2):
     import math
     try:
-        return math.degrees(_AngleBetweenVecs_(a1,a2))
+        return math.degrees(a1.angle(a2))
     except:
         return 180.0
 
@@ -54,7 +53,7 @@ class edge(object):
         self.removed = 0	# Have we been culled from the eloop
         self.match = None	# The other edge were making a face with
 
-        self.cent= MidpointVecs(co1, co2)
+        self.cent= co1.lerp(co2, 0.5)
         self.angle= 0.0
         self.fake= False
 

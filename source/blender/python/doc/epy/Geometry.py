@@ -10,6 +10,83 @@ Geometry
 This new module provides access to a geometry function.
 """
 
+def Intersect(vec1, vec2, vec3, ray, orig, clip=1):
+  """
+  Return the intersection between a ray and a triangle, if possible, return None otherwise.
+  @type vec1: Vector object.
+  @param vec1: A 3d vector, one corner of the triangle.
+  @type vec2: Vector object.
+  @param vec2: A 3d vector, one corner of the triangle.
+  @type vec3: Vector object.
+  @param vec3: A 3d vector, one corner of the triangle.
+  @type ray: Vector object.
+  @param ray: A 3d vector, the orientation of the ray. the length of the ray is not used, only the direction.
+  @type orig: Vector object.
+  @param orig: A 3d vector, the origin of the ray.
+  @type clip: integer
+  @param clip: if 0, don't restrict the intersection to the area of the triangle, use the infinite plane defined by the triangle.
+  @rtype: Vector object
+  @return: The intersection between a ray and a triangle, if possible, None otherwise.
+  """
+
+def TriangleArea(vec1, vec2, vec3):
+  """
+  Return the area size of the 2D or 3D triangle defined.
+  @type vec1: Vector object.
+  @param vec1: A 2d or 3d vector, one corner of the triangle.
+  @type vec2: Vector object.
+  @param vec2: A 2d or 3d vector, one corner of the triangle.
+  @type vec3: Vector object.
+  @param vec3: A 2d or 3d vector, one corner of the triangle.
+  @rtype: float
+  @return: The area size of the 2D or 3D triangle defined.
+  """
+
+def TriangleNormal(vec1, vec2, vec3):
+  """
+  Return the normal of the 3D triangle defined.
+  @type vec1: Vector object.
+  @param vec1: A 3d vector, one corner of the triangle.
+  @type vec2: Vector object.
+  @param vec2: A 3d vector, one corner of the triangle.
+  @type vec3: Vector object.
+  @param vec3: A 3d vector, one corner of the triangle.
+  @rtype: float
+  @return: The normal of the 3D triangle defined.
+  """
+
+def QuadNormal(vec1, vec2, vec3, vec4):
+  """
+  Return the normal of the 3D quad defined.
+  @type vec1: Vector object.
+  @param vec1: A 3d vector, the first vertex of the quad.
+  @type vec2: Vector object.
+  @param vec2: A 3d vector, the second vertex of the quad.
+  @type vec3: Vector object.
+  @param vec3: A 3d vector, the third vertex of the quad.
+  @type vec4: Vector object.
+  @param vec4: A 3d vector, the fourth vertex of the quad.
+  @rtype: float
+  @return: The normal of the 3D quad defined.
+  """
+
+def LineIntersect(vec1, vec2, vec3, vec4):
+  """
+  Return a tuple with the points on each line respectively closest to the other
+  (when both lines intersect, both vector hold the same value).
+  The lines are evaluated as infinite lines in space, the values returned may not be between the 2 points given for each line.
+  @type vec1: Vector object.
+  @param vec1: A 3d vector, one point on the first line.
+  @type vec2: Vector object.
+  @param vec2: A 3d vector, another point on the first line.
+  @type vec3: Vector object.
+  @param vec3: A 3d vector, one point on the second line.
+  @type vec4: Vector object.
+  @param vec4: A 3d vector, another point on the second line.
+  @rtype: (Vector object, Vector object)
+  @return: A tuple with the points on each line respectively closest to the other.
+  """
+
 def PolyFill(polylines):
 	"""
 	Takes a list of polylines and calculates triangles that would fill in the polylines.

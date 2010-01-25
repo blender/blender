@@ -205,8 +205,8 @@ def add_pole_target_bone(obj, base_bone_name, name, mode='CROSS'):
         offset.length = distance
     elif mode == 'ZAVERAGE':
         # between both bones Z axis
-        z_axis_a = base_ebone.matrix.copy().rotationPart() * Vector(0.0, 0.0, -1.0)
-        z_axis_b = parent_ebone.matrix.copy().rotationPart() * Vector(0.0, 0.0, -1.0)
+        z_axis_a = base_ebone.matrix.copy().rotation_part() * Vector(0.0, 0.0, -1.0)
+        z_axis_b = parent_ebone.matrix.copy().rotation_part() * Vector(0.0, 0.0, -1.0)
         offset = (z_axis_a + z_axis_b).normalize() * distance
     else:
         # preset axis
@@ -274,8 +274,8 @@ def write_meta_rig(obj, func_name="metarig_template"):
     for bone_name in bones:
         bone = arm.edit_bones[bone_name]
         code.append("    bone = arm.edit_bones.new('%s')" % bone.name)
-        code.append("    bone.head[:] = %.4f, %.4f, %.4f" % bone.head.toTuple(4))
-        code.append("    bone.tail[:] = %.4f, %.4f, %.4f" % bone.tail.toTuple(4))
+        code.append("    bone.head[:] = %.4f, %.4f, %.4f" % bone.head.to_tuple(4))
+        code.append("    bone.tail[:] = %.4f, %.4f, %.4f" % bone.tail.to_tuple(4))
         code.append("    bone.roll = %.4f" % bone.roll)
         code.append("    bone.connected = %s" % str(bone.connected))
         if bone.parent:

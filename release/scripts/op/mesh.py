@@ -90,7 +90,7 @@ class MeshMirrorUV(bpy.types.Operator):
         mirror_gt = {}
         mirror_lt = {}
 
-        vcos = [v.co.toTuple(5) for v in mesh.verts]
+        vcos = [v.co.to_tuple(5) for v in mesh.verts]
 
         for i, co in enumerate(vcos):
             if co[0] > 0.0:

@@ -146,7 +146,7 @@ def eulerRadToDeg(eul):
 mtx4_identity = Mathutils.Matrix()
 
 # testing
-mtx_x90		= Mathutils.RotationMatrix( math.pi/2, 3, 'x') # used
+mtx_x90		= Mathutils.RotationMatrix( math.pi/2, 3, 'X') # used
 #mtx_x90n	= RotationMatrix(-90, 3, 'x')
 #mtx_y90	= RotationMatrix( 90, 3, 'y')
 #mtx_y90n	= RotationMatrix(-90, 3, 'y')
@@ -154,11 +154,11 @@ mtx_x90		= Mathutils.RotationMatrix( math.pi/2, 3, 'x') # used
 #mtx_z90n	= RotationMatrix(-90, 3, 'z')
 
 #mtx4_x90	= RotationMatrix( 90, 4, 'x')
-mtx4_x90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'x') # used
+mtx4_x90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'X') # used
 #mtx4_y90	= RotationMatrix( 90, 4, 'y')
-mtx4_y90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'y') # used
-mtx4_z90	= Mathutils.RotationMatrix( math.pi/2, 4, 'z') # used
-mtx4_z90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'z') # used
+mtx4_y90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'Y') # used
+mtx4_z90	= Mathutils.RotationMatrix( math.pi/2, 4, 'Z') # used
+mtx4_z90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'Z') # used
 
 # def strip_path(p):
 # 	return p.split('\\')[-1].split('/')[-1]
@@ -590,9 +590,9 @@ def write(filename, batch_objects = None, \
         def getAnimParRelMatrixRot(self, frame):
             type = self.blenObject.type
             if self.fbxParent:
-                matrix_rot = (((self.__anim_poselist[frame] * GLOBAL_MATRIX) * (self.fbxParent.__anim_poselist[frame] * GLOBAL_MATRIX).invert())).rotationPart()
+                matrix_rot = (((self.__anim_poselist[frame] * GLOBAL_MATRIX) * (self.fbxParent.__anim_poselist[frame] * GLOBAL_MATRIX).invert())).rotation_part()
             else:
-                matrix_rot = (self.__anim_poselist[frame] * GLOBAL_MATRIX).rotationPart()
+                matrix_rot = (self.__anim_poselist[frame] * GLOBAL_MATRIX).rotation_part()
 
             # Lamps need to be rotated
             if type =='LAMP':
@@ -600,7 +600,7 @@ def write(filename, batch_objects = None, \
             elif type =='CAMERA':
 # 			elif ob and type =='Camera':
                 y = Mathutils.Vector(0,1,0) * matrix_rot
-                matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, 'r', y)
+                matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, y)
 
             return matrix_rot
 
@@ -676,11 +676,11 @@ def write(filename, batch_objects = None, \
 # 				par_matrix = mtx4_z90 * parent.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
                 matrix = matrix * par_matrix.copy().invert()
 
-            matrix_rot =	matrix.rotationPart()
+            matrix_rot =	matrix.rotation_part()
 
-            loc =			tuple(matrix.translationPart())
-            scale =			tuple(matrix.scalePart())
-            rot =			tuple(matrix_rot.toEuler())
+            loc =			tuple(matrix.translation_part())
+            scale =			tuple(matrix.scale_part())
+            rot =			tuple(matrix_rot.to_euler())
 
         else:
             # This is bad because we need the parent relative matrix from the fbx parent (if we have one), dont use anymore
@@ -692,20 +692,20 @@ def write(filename, batch_objects = None, \
             #	matrix = matrix_scale * matrix
 
             if matrix:
-                loc = tuple(matrix.translationPart())
-                scale = tuple(matrix.scalePart())
+                loc = tuple(matrix.translation_part())
+                scale = tuple(matrix.scale_part())
 
-                matrix_rot = matrix.rotationPart()
+                matrix_rot = matrix.rotation_part()
                 # Lamps need to be rotated
                 if ob and ob.type =='Lamp':
                     matrix_rot = mtx_x90 * matrix_rot
-                    rot = tuple(matrix_rot.toEuler())
+                    rot = tuple(matrix_rot.to_euler())
                 elif ob and ob.type =='Camera':
                     y = Mathutils.Vector(0,1,0) * matrix_rot
-                    matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, 'r', y)
-                    rot = tuple(matrix_rot.toEuler())
+                    matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, y)
+                    rot = tuple(matrix_rot.to_euler())
                 else:
-                    rot = tuple(matrix_rot.toEuler())
+                    rot = tuple(matrix_rot.to_euler())
             else:
                 if not loc:
                     loc = 0,0,0
@@ -1131,7 +1131,7 @@ def write(filename, batch_objects = None, \
         else:
             do_light = 1
 
-        scale = abs(GLOBAL_MATRIX.scalePart()[0]) # scale is always uniform in this case
+        scale = abs(GLOBAL_MATRIX.scale_part()[0]) # scale is always uniform in this case
 
         file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
         file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",1')
@@ -2866,18 +2866,18 @@ Takes:  {''')
                         # ----------------
                         for TX_LAYER, TX_CHAN in enumerate('TRS'): # transform, rotate, scale
 
-                            if		TX_CHAN=='T':	context_bone_anim_vecs = [mtx[0].translationPart()	for mtx in context_bone_anim_mats]
-                            elif	TX_CHAN=='S':	context_bone_anim_vecs = [mtx[0].scalePart()		for mtx in context_bone_anim_mats]
+                            if		TX_CHAN=='T':	context_bone_anim_vecs = [mtx[0].translation_part()	for mtx in context_bone_anim_mats]
+                            elif	TX_CHAN=='S':	context_bone_anim_vecs = [mtx[0].scale_part()		for mtx in context_bone_anim_mats]
                             elif	TX_CHAN=='R':
                                 # Was....
-                                # elif 	TX_CHAN=='R':	context_bone_anim_vecs = [mtx[1].toEuler()			for mtx in context_bone_anim_mats]
+                                # elif 	TX_CHAN=='R':	context_bone_anim_vecs = [mtx[1].to_euler()			for mtx in context_bone_anim_mats]
                                 #
                                 # ...but we need to use the previous euler for compatible conversion.
                                 context_bone_anim_vecs = []
                                 prev_eul = None
                                 for mtx in context_bone_anim_mats:
-                                    if prev_eul:	prev_eul = mtx[1].toEuler(prev_eul)
-                                    else:			prev_eul = mtx[1].toEuler()
+                                    if prev_eul:	prev_eul = mtx[1].to_euler(prev_eul)
+                                    else:			prev_eul = mtx[1].to_euler()
                                     context_bone_anim_vecs.append(eulerRadToDeg(prev_eul))
 # 									context_bone_anim_vecs.append(prev_eul)
 

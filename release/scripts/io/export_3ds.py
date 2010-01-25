@@ -839,7 +839,7 @@ def make_track_chunk(ID, obj):
             track_chunk.add_variable("position", _3ds_point_3d(obj.getLocation()))
         elif ID==ROT_TRACK_TAG:
             # rotation (quaternion, angle first, followed by axis):
-            q = obj.getEuler().toQuat()
+            q = obj.getEuler().to_quat()
             track_chunk.add_variable("rotation", _3ds_point_4d((q.angle, q.axis[0], q.axis[1], q.axis[2])))
         elif ID==SCL_TRACK_TAG:
             # scale vector:

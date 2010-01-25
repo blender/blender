@@ -94,19 +94,19 @@ class _GenericBone:
     def x_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotationPart() * Vector(1,0,0)
+        return self.matrix.rotation_part() * Vector(1,0,0)
     
     @property
     def y_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotationPart() * Vector(0,1,0)
+        return self.matrix.rotation_part() * Vector(0,1,0)
     
     @property
     def z_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotationPart() * Vector(0,0,1)
+        return self.matrix.rotation_part() * Vector(0,0,1)
 
     @property
     def basename(self):
@@ -236,7 +236,7 @@ class EditBone(StructRNA, _GenericBone):
         Expects a 4x4 or 3x3 matrix.
         """
         from Mathutils import Vector
-        z_vec = self.matrix.rotationPart() * Vector(0.0, 0.0, 1.0)
+        z_vec = self.matrix.rotation_part() * Vector(0.0, 0.0, 1.0)
         self.tail = matrix * self.tail
         self.head = matrix * self.head
         scalar = matrix.median_scale
@@ -421,8 +421,8 @@ class OrderedMeta(type):
 
 
 # Only defined so operators members can be used by accessing self.order
-class Operator(StructRNA, metaclass=OrderedMeta):
-    __slots__ = ()
+#class Operator(StructRNA, metaclass=OrderedMeta):
+#    __slots__ = ()
 
 
 class Macro(StructRNA, metaclass=OrderedMeta):

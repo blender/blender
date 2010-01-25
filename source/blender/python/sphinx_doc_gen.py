@@ -29,6 +29,7 @@ Generate html docs  by running...
     sphinx-build source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out
 '''
 
+
 import os
 import inspect
 import bpy
@@ -121,6 +122,10 @@ def pyprop2sphinx(ident, fw, identifier, py_prop):
 
 def pymodule2sphinx(BASEPATH, module_name, module, title):
     import types
+    # lame, python wont give some access
+    MethodDescriptorType = type(dict.get)
+    GetSetDescriptorType = type(int.real)
+    
 
     filepath = os.path.join(BASEPATH, module_name + ".rst")
     
@@ -138,21 +143,45 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         # Note, may contain sphinx syntax, dont mangle!
         fw(module.__doc__.strip())
         fw("\n\n")
+    
+    classes = []
 
     for attribute in dir(module):
         if not attribute.startswith("_"):
             value = getattr(module, attribute)
 
             value_type = type(value)
-            print(attribute, value_type)
+
             if value_type == types.FunctionType:
                 pyfunc2sphinx("", fw, attribute, value, is_class=False)
             elif value_type in (types.BuiltinMethodType, types.BuiltinFunctionType): # both the same at the moment but to be future proof
                 # note: can't get args from these, so dump the string as is
                 # this means any module used like this must have fully formatted docstrings.
                 py_c_func2sphinx("", fw, attribute, value, is_class=False)
-
+            elif value_type == type:
+                classes.append((attribute, value))
             # TODO, more types...
+    
+    # write collected classes now
+    for (attribute, value) in classes:
+        # May need to be its own function
+        fw(".. class:: %s\n\n" % attribute)
+        if value.__doc__:
+            for l in value.__doc__.split("\n"):
+                fw("   %s\n" % l)
+        fw("\n")
+
+        for key, descr in value.__dict__.items():
+            if key.startswith("__"):
+                continue
+
+            descr_type = type(descr)
+            if descr_type in (MethodDescriptorType, ): # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
+                if descr.__doc__:
+                    for l in descr.__doc__.split("\n"):
+                        fw("   %s\n" % l)
+                    fw("\n")
+        fw("\n\n")
 
     file.close()
 
@@ -186,8 +215,8 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw(".. toctree::\n")
     fw("   :glob:\n\n")
-    fw("   bpy.ops.*\n\n")
-    fw("   bpy.types.*\n\n")
+    #fw("   bpy.ops.*\n\n")
+    #fw("   bpy.types.*\n\n")
     
     # py modules
     fw("   bpy.utils\n\n")
@@ -196,6 +225,8 @@ def rna2sphinx(BASEPATH):
     # C modules
     fw("   bpy.props\n\n")
     
+    fw("   Mathutils\n\n")
+
     file.close()
 
     # python modules
@@ -206,6 +237,9 @@ def rna2sphinx(BASEPATH):
 
     from bpy import props as module
     pymodule2sphinx(BASEPATH, "bpy.props", module, "Blender Python Property Definitions")
+    
+    import Mathutils as module
+    pymodule2sphinx(BASEPATH, "Mathutils", module, "Module Mathutils")
     del module
 
 

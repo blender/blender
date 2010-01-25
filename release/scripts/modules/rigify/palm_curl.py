@@ -249,15 +249,15 @@ def main(obj, bone_definition, base_names, options):
         # NOTE: the direction of the Z rotation depends on which side the palm is on.
         # we could do a simple side-of-x test but better to work out the direction
         # the hand is facing.
-        from Mathutils import Vector, AngleBetweenVecs
+        from Mathutils import Vector
         from math import degrees
         child_pbone_01 = obj.pose.bones[children[0]].bone
         child_pbone_02 = obj.pose.bones[children[1]].bone
 
         rel_vec = child_pbone_01.head - child_pbone_02.head
-        x_vec = child_pbone_01.matrix.rotationPart() * Vector(1.0, 0.0, 0.0)
+        x_vec = child_pbone_01.matrix.rotation_part() * Vector(1.0, 0.0, 0.0)
 
-        return degrees(AngleBetweenVecs(rel_vec, x_vec)) > 90.0
+        return degrees(rel_vec.angle(x_vec)) > 90.0
 
     if x_direction(): # flip
         driver.expression = "-(%s)" % driver.expression

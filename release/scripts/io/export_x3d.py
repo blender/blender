@@ -81,7 +81,7 @@ from export_3ds import create_derived_objects, free_derived_objects
 
 #
 DEG2RAD=0.017453292519943295
-MATWORLD= Mathutils.RotationMatrix(-90, 4, 'x')
+MATWORLD= Mathutils.RotationMatrix(-90, 4, 'X')
 
 ####################################
 # Global Variables
@@ -239,8 +239,8 @@ class x3d_class:
         # get the camera location, subtract 90 degress from X to orient like X3D does
         # mat = ob.matrixWorld - mat is now passed!
 
-        loc = self.rotatePointForVRML(mat.translationPart())
-        rot = mat.toEuler()
+        loc = self.rotatePointForVRML(mat.translation_part())
+        rot = mat.to_euler()
         rot = (((rot[0]-90)), rot[1], rot[2])
         # rot = (((rot[0]-90)*DEG2RAD), rot[1]*DEG2RAD, rot[2]*DEG2RAD)
         nRot = self.rotatePointForVRML( rot )
@@ -300,8 +300,8 @@ class x3d_class:
         # note -dz seems to equal om[3][1]
         # note  dy seems to equal om[3][2]
 
-        #location=(ob.matrixWorld*MATWORLD).translationPart() # now passed
-        location=(mtx*MATWORLD).translationPart()
+        #location=(ob.matrixWorld*MATWORLD).translation_part() # now passed
+        location=(mtx*MATWORLD).translation_part()
 
         radius = lamp.distance*math.cos(beamWidth)
         # radius = lamp.dist*math.cos(beamWidth)
@@ -346,8 +346,8 @@ class x3d_class:
             ambi = 0
             ambientIntensity = 0
 
-        # location=(ob.matrixWorld*MATWORLD).translationPart() # now passed
-        location= (mtx*MATWORLD).translationPart()
+        # location=(ob.matrixWorld*MATWORLD).translation_part() # now passed
+        location= (mtx*MATWORLD).translation_part()
 
         self.file.write("<PointLight DEF=\"%s\" " % safeName)
         self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity,self.cp)))
@@ -364,8 +364,8 @@ class x3d_class:
             return
         else:
             dx,dy,dz = self.computeDirection(mtx)
-            # location=(ob.matrixWorld*MATWORLD).translationPart()
-            location=(mtx*MATWORLD).translationPart()
+            # location=(ob.matrixWorld*MATWORLD).translation_part()
+            location=(mtx*MATWORLD).translation_part()
             self.writeIndented("<%s\n" % obname,1)
             self.writeIndented("direction=\"%s %s %s\"\n" % (round(dx,3),round(dy,3),round(dz,3)))
             self.writeIndented("location=\"%s %s %s\"\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
@@ -448,9 +448,9 @@ class x3d_class:
         # mtx = ob.matrixWorld * MATWORLD # mtx is now passed
         mtx = mtx * MATWORLD
 
-        loc= mtx.translationPart()
-        sca= mtx.scalePart()
-        quat = mtx.toQuat()
+        loc= mtx.translation_part()
+        sca= mtx.scale_part()
+        quat = mtx.to_quat()
         rot= quat.axis
 
         self.writeIndented('<Transform DEF="%s" translation="%.6f %.6f %.6f" scale="%.6f %.6f %.6f" rotation="%.6f %.6f %.6f %.6f">\n' % \
@@ -1048,7 +1048,7 @@ class x3d_class:
     def computeDirection(self, mtx):
         x,y,z=(0,-1.0,0) # point down
 
-        ax,ay,az = (mtx*MATWORLD).toEuler()
+        ax,ay,az = (mtx*MATWORLD).to_euler()
 
         # ax *= DEG2RAD
         # ay *= DEG2RAD
