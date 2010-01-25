@@ -851,6 +851,7 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
             layout.prop(vd, "resolution")
         elif vd.file_format == 'SMOKE':
             layout.prop(vd, "domain_object")
+            layout.prop(vd, "smoke_data_type")
         elif vd.file_format == 'IMAGE_SEQUENCE':
             layout.template_image(tex, "image", tex.image_user) 
 

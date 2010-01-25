@@ -165,16 +165,61 @@ void init_frame_smoke(Render *re, VoxelData *vd, Tex *tex)
 	if( (md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke)) )
 	{
 		SmokeModifierData *smd = (SmokeModifierData *)md;
+
 		
 		if(smd->domain && smd->domain->fluid) {
 			
-			if (smd->domain->flags & MOD_SMOKE_HIGHRES) {
-				smoke_turbulence_get_res(smd->domain->wt, vd->resol);
-				vd->dataset = smoke_turbulence_get_density(smd->domain->wt);
-			} else {
+			if (vd->smoked_type == TEX_VD_SMOKEHEAT) {
+				int totRes;
+				float *heat;
+				int i;
+
 				VECCOPY(vd->resol, smd->domain->res);
-				vd->dataset = smoke_get_density(smd->domain->fluid);
+				totRes = (vd->resol[0])*(vd->resol[1])*(vd->resol[2]);
+
+				// scaling heat values from -2.0-2.0 to 0.0-1.0
+				vd->dataset = MEM_mapallocN(sizeof(float)*(totRes), "smoke data");
+
+
+				heat = smoke_get_heat(smd->domain->fluid);
+
+				for (i=0; i<totRes; i++)
+				{
+					vd->dataset[i] = (heat[i]+2.0f)/4.0f;
+				}
+
+				//vd->dataset = smoke_get_heat(smd->domain->fluid);
 			}
+			else if (vd->smoked_type == TEX_VD_SMOKEVEL) {
+				int totRes;
+				float *xvel, *yvel, *zvel;
+				int i;
+
+				VECCOPY(vd->resol, smd->domain->res);
+				totRes = (vd->resol[0])*(vd->resol[1])*(vd->resol[2]);
+
+				// scaling heat values from -2.0-2.0 to 0.0-1.0
+				vd->dataset = MEM_mapallocN(sizeof(float)*(totRes), "smoke data");
+
+				xvel = smoke_get_velocity_x(smd->domain->fluid);
+				yvel = smoke_get_velocity_y(smd->domain->fluid);
+				zvel = smoke_get_velocity_z(smd->domain->fluid);
+
+				for (i=0; i<totRes; i++)
+				{
+					vd->dataset[i] = sqrt(xvel[i]*xvel[i] + yvel[i]*yvel[i] + zvel[i]*zvel[i])*3.0f;
+				}
+
+			}
+			else {
+				if (smd->domain->flags & MOD_SMOKE_HIGHRES) {
+					smoke_turbulence_get_res(smd->domain->wt, vd->resol);
+					vd->dataset = smoke_turbulence_get_density(smd->domain->wt);
+				} else {
+					VECCOPY(vd->resol, smd->domain->res);
+					vd->dataset = smoke_get_density(smd->domain->fluid);
+				}
+			} // end of fluid condition
 		}
 	}
 }

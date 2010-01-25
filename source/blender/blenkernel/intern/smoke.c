@@ -872,11 +872,13 @@ static void smoke_calc_domain(Scene *scene, Object *ob, SmokeModifierData *smd)
 								heat[index] = sfs->temp;
 								density[index] = sfs->density;
 
-								/*
+
+								// Uses particle velocity as initial velocity for smoke
+								if(smd->domain->flags & MOD_SMOKE_INITVELOCITY) {
 								velocity_x[index] = pa->state.vel[0];
 								velocity_y[index] = pa->state.vel[1];
 								velocity_z[index] = pa->state.vel[2];										
-								*/										
+								}										
 								
 								// obstacle[index] |= 2;
 								// we need different handling for the high-res feature
@@ -1396,8 +1398,9 @@ static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int
 
 static void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct)
 {
-	int x, y, z;
+	int z;
 	float bv[6];
+	int slabsize=res[0]*res[1];
 
 	memset(result, -1, sizeof(float)*res[0]*res[1]*res[2]);	// x
 	bv[0] = p0[0];
@@ -1409,18 +1412,19 @@ static void smoke_calc_transparency(float *result, float *input, float *p0, floa
 	bv[4] = p0[2];
 	bv[5] = p1[2];
 
-#pragma omp parallel for schedule(static) private(y, z)
-	for(x = 0; x < res[0]; x++)
+#pragma omp parallel for schedule(static,1)
+	for(z = 0; z < res[2]; z++)
+	{
+		size_t index = z*slabsize;
+		int x,y;
+
 		for(y = 0; y < res[1]; y++)
-			for(z = 0; z < res[2]; z++)
+			for(x = 0; x < res[0]; x++, index++)
 			{
 				float voxelCenter[3];
-				size_t index;
 				float pos[3];
 				int cell[3];
 				float tRay = 1.0;
-
-				index = smoke_get_index(x, res[0], y, res[1], z);
 
 				if(result[index] >= 0.0f)					
 					continue;								
@@ -1446,5 +1450,6 @@ static void smoke_calc_transparency(float *result, float *input, float *p0, floa
 // #pragma omp critical
 				result[index] = tRay;			
 			}
+	}
 }
 

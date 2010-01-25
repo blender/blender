@@ -710,7 +710,9 @@ static int ptcache_write_smoke(PTCacheFile *pf, void *smoke_v)
 		unsigned char *obstacles;
 		unsigned int in_len = sizeof(float)*(unsigned int)res;
 		unsigned char *out = (unsigned char *)MEM_callocN(LZO_OUT_LEN(in_len)*4, "pointcache_lzo_buffer");
-		int mode = res >= 1000000 ? 2 : 1;
+		//int mode = res >= 1000000 ? 2 : 1;
+		int mode=1;		// light
+		if (sds->cache_comp == SM_CACHE_HEAVY) mode=2;	// heavy
 
 		smoke_export(sds->fluid, &dt, &dx, &dens, &densold, &heat, &heatold, &vx, &vy, &vz, &vxold, &vyold, &vzold, &obstacles);
 
@@ -753,7 +755,10 @@ static int ptcache_write_smoke_turbulence(PTCacheFile *pf, void *smoke_v)
 
 		smoke_turbulence_get_res(sds->wt, res_big_array);
 		res_big = res_big_array[0]*res_big_array[1]*res_big_array[2];
-		mode =  res_big >= 1000000 ? 2 : 1;
+		//mode =  res_big >= 1000000 ? 2 : 1;
+		mode = 1;	// light
+		if (sds->cache_high_comp == SM_CACHE_HEAVY) mode=2;	// heavy
+
 		in_len_big = sizeof(float) * (unsigned int)res_big;
 
 		smoke_turbulence_export(sds->wt, &dens, &densold, &tcu, &tcv, &tcw);

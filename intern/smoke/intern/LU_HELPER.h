@@ -17,40 +17,35 @@
 // Copyright 2008 Theodore Kim and Nils Thuerey
 // 
 //////////////////////////////////////////////////////////////////////
+// Modified to not require TNT matrix library anymore. It was very slow
+// when being run in parallel. Required TNT JAMA:LU libraries were
+// converted into independent functions.
+//		- MiikaH
+//////////////////////////////////////////////////////////////////////
 
 #ifndef LU_HELPER_H
 #define LU_HELPER_H
+
+#include <cmath>
+#include <algorithm>
+
+using namespace std;
 
 //////////////////////////////////////////////////////////////////////
 // Helper function, compute eigenvalues of 3x3 matrix
 //////////////////////////////////////////////////////////////////////
 
-#include "tnt/jama_lu.h"
-
-//////////////////////////////////////////////////////////////////////
-// LU decomposition of 3x3 non-symmetric matrix
-//////////////////////////////////////////////////////////////////////
-JAMA::LU<float> inline computeLU3x3(
-		float a[3][3])
+struct sLU
 {
-		TNT::Array2D<float> A = TNT::Array2D<float>(3,3, &a[0][0]);
-		JAMA::LU<float> jLU= JAMA::LU<float>(A);
-		return jLU;
-}
+	float values[3][3];
+	int pivsign;
+	int piv[3];
+};
 
-//////////////////////////////////////////////////////////////////////
-// LU decomposition of 3x3 non-symmetric matrix
-//////////////////////////////////////////////////////////////////////
-void inline solveLU3x3(
-    JAMA::LU<float>& A,
-    float x[3],
-    float b[3])
-{
-  TNT::Array1D<float> jamaB = TNT::Array1D<float>(3, &b[0]);
-  TNT::Array1D<float> jamaX = A.solve(jamaB);
 
-  x[0] = jamaX[0];
-  x[1] = jamaX[1];
-  x[2] = jamaX[2];
-}
+int isNonsingular (sLU LU_);
+sLU computeLU( float a[3][3]);
+void solveLU3x3(sLU& A, float x[3], float b[3]);
+
+
 #endif

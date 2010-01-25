@@ -15,33 +15,60 @@
 // along with Wavelet Turbulence.  If not, see <http://www.gnu.org/licenses/>.
 // 
 // Copyright 2008 Theodore Kim and Nils Thuerey
-// 
+//
+//////////////////////////////////////////////////////////////////////
+// Modified to not require TNT matrix library anymore. It was very slow
+// when being run in parallel. Required TNT JAMA::Eigenvalue libraries were
+// converted into independent functions.
+//		- MiikaH
+//
 //////////////////////////////////////////////////////////////////////
 // Helper function, compute eigenvalues of 3x3 matrix
 //////////////////////////////////////////////////////////////////////
 
-#include "tnt/jama_eig.h"
+#ifndef EIGENVAL_HELPER_H
+#define EIGENVAL_HELPER_H
+
+//#include "tnt/jama_eig.h"
+
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
 
 //////////////////////////////////////////////////////////////////////
 // eigenvalues of 3x3 non-symmetric matrix
 //////////////////////////////////////////////////////////////////////
-int inline computeEigenvalues3x3(
-		float dout[3], 
-		float a[3][3])
+
+
+struct sEigenvalue
 {
-  TNT::Array2D<float> A = TNT::Array2D<float>(3,3, &a[0][0]);
-  TNT::Array1D<float> eig = TNT::Array1D<float>(3);
-  TNT::Array1D<float> eigImag = TNT::Array1D<float>(3);
-  JAMA::Eigenvalue<float> jeig = JAMA::Eigenvalue<float>(A);
-  jeig.getRealEigenvalues(eig);
+	int n;
+	int issymmetric;
+	float d[3];         /* real part */
+	float e[3];         /* img part */
+	float V[3][3];		/* Eigenvectors */
 
-  // complex ones
-  jeig.getImagEigenvalues(eigImag);
-  dout[0]  = sqrt(eig[0]*eig[0] + eigImag[0]*eigImag[0]);
-  dout[1]  = sqrt(eig[1]*eig[1] + eigImag[1]*eigImag[1]);
-  dout[2]  = sqrt(eig[2]*eig[2] + eigImag[2]*eigImag[2]);
-  return 0;
-}
+	float H[3][3];
+   
 
-#undef rfabs 
-#undef ROT
+    float ort[3];
+
+	float cdivr;
+	float cdivi;
+};
+
+void Eigentred2(sEigenvalue& eval);
+
+void Eigencdiv(sEigenvalue& eval, float xr, float xi, float yr, float yi);
+
+void Eigentql2 (sEigenvalue& eval);
+
+void Eigenorthes (sEigenvalue& eval);
+
+void Eigenhqr2 (sEigenvalue& eval);
+
+int computeEigenvalues3x3(float dout[3], float a[3][3]);
+
+
+#endif

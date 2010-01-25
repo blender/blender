@@ -184,7 +184,7 @@ typedef struct VoxelData {
 	short file_format;
 	short flag;
 	short extend;
-	short pad;
+	short smoked_type;
 	
 	struct Object *object; /* for rendering smoke sims */
 	float int_multiplier;	
@@ -545,6 +545,11 @@ typedef struct TexMapping {
 #define TEX_VD_RAW_16BIT		2
 #define TEX_VD_IMAGE_SEQUENCE	3
 #define TEX_VD_SMOKE			4
+
+/* smoke data types */
+#define TEX_VD_SMOKEDENSITY		0
+#define TEX_VD_SMOKEHEAT		1
+#define TEX_VD_SMOKEVEL			2
 
 #endif
 

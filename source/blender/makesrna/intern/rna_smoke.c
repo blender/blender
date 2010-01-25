@@ -117,6 +117,11 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 			/* 	{MOD_SMOKE_NOISECURL, "NOISECURL", 0, "Curl", ""}, */
 				{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem smoke_cache_comp_items[] = {
+		{SM_CACHE_HEAVY, "CACHEHEAVY", 0, "Heavy (Very slow)", "Effective but slow compression."},
+		{SM_CACHE_LIGHT, "CACHELIGHT", 0, "Light (Fast)", "Fast but not so effective compression."},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna = RNA_def_struct(brna, "SmokeDomainSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Domain Settings", "Smoke domain settings.");
 	RNA_def_struct_sdna(srna, "SmokeDomainSettings");
@@ -201,6 +206,11 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dissolve Speed", "Dissolve Speed");
 	RNA_def_property_update(prop, 0, NULL);
 
+	prop= RNA_def_property(srna, "initial_velocity", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_INITVELOCITY);
+	RNA_def_property_ui_text(prop, "Initial Velocity", "Smoke inherits it's velocity from the emitter particle.");
+	RNA_def_property_update(prop, 0, NULL);
+
 	prop= RNA_def_property(srna, "dissolve_smoke", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_SMOKE_DISSOLVE);
 	RNA_def_property_ui_text(prop, "Dissolve Smoke", "Enable smoke to disappear over time.");
@@ -221,10 +231,24 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "point_cache[1]");
 	RNA_def_property_ui_text(prop, "Point Cache", "");
 
+	prop= RNA_def_property(srna, "smoke_cache_comp", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "cache_comp");
+	RNA_def_property_enum_items(prop, smoke_cache_comp_items);
+	RNA_def_property_ui_text(prop, "Cache Compression", "Compression method to be used.");
+	RNA_def_property_update(prop, 0, NULL);
+
+	prop= RNA_def_property(srna, "smoke_cache_high_comp", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "cache_high_comp");
+	RNA_def_property_enum_items(prop, smoke_cache_comp_items);
+	RNA_def_property_ui_text(prop, "Cache Compression", "Compression method to be used.");
+	RNA_def_property_update(prop, 0, NULL);
+
+
 	prop= RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "EffectorWeights");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Effector Weights", "");
+
 }
 
 static void rna_def_smoke_flow_settings(BlenderRNA *brna)

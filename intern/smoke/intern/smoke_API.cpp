@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 // y in smoke is z in blender
 extern "C" FLUID_3D *smoke_init(int *res, float *p0, float dt)
@@ -110,8 +111,8 @@ extern "C" void smoke_dissolve(FLUID_3D *fluid, int speed, int log)
 
 			heat[i] *= (1.0 - dydx);
 
-			if(heat[i] < 0.0f)
-				heat[i] = 0.0f;
+			/*if(heat[i] < 0.0f)
+				heat[i] = 0.0f;*/
 		}
 	}
 	else // linear falloff
@@ -127,10 +128,9 @@ extern "C" void smoke_dissolve(FLUID_3D *fluid, int speed, int log)
 			if(density[i] < 0.0f)
 				density[i] = 0.0f;
 
-			heat[i] -= dydx;
-
-			if(heat[i] < 0.0f)
-				heat[i] = 0.0f;
+			if(abs(heat[i]) < dydx) heat[i] = 0.0f;
+			else if (heat[i]>0.0f) heat[i] -= dydx;
+			else if (heat[i]<0.0f) heat[i] += dydx;
 				
 		}
 	}
