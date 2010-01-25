@@ -22,6 +22,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+ #define _USE_MATH_DEFINES
+ 
 #include <stdlib.h>
 #include <math.h>
 
