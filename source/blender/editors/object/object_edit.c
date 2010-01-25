@@ -1656,7 +1656,7 @@ static int object_calculate_paths_exec (bContext *C, wmOperator *op)
 	ED_objects_recalculate_paths(C, scene);
 	
 	/* notifiers for updates */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 	
 	return OPERATOR_FINISHED; 
 }
@@ -1701,7 +1701,7 @@ static int object_clear_paths_exec (bContext *C, wmOperator *op)
 	ED_objects_clear_paths(C, scene);
 	
 	/* notifiers for updates */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
 	
 	return OPERATOR_FINISHED; 
 }

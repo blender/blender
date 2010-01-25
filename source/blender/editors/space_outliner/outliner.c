@@ -2019,7 +2019,7 @@ static int tree_element_active_posegroup(bContext *C, Scene *scene, TreeElement 
 	if(set) {
 		if (ob->pose) {
 			ob->pose->active_group= te->index+1;
-			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 		}
 	}
 	else {
@@ -4726,7 +4726,7 @@ static void restrictbutton_modifier_cb(bContext *C, void *poin, void *poin2)
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	object_handle_update(scene, ob);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 }
 
 static void restrictbutton_bone_cb(bContext *C, void *poin, void *poin2)

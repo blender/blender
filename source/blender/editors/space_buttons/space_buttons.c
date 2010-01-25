@@ -279,6 +279,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_TRANSFORM:
 					buttons_area_redraw(sa, BCONTEXT_OBJECT);
 					break;
+				case ND_POSE:
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 					buttons_area_redraw(sa, BCONTEXT_BONE);
@@ -303,8 +304,6 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 					/* currently works by redraws... if preview is set, it (re)starts job */
 					sbuts->preview= 1;
 					break;
-				case ND_VIEW3D_TRANSFORM:
-					break; /*do nothing*/
 				default:
 					/* Not all object RNA props have a ND_ notifier (yet) */
 					ED_area_tag_redraw(sa);

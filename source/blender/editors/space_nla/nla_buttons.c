@@ -97,7 +97,8 @@ static void do_nla_region_buttons(bContext *C, void *arg, int event)
 	}
 	
 	/* default for now */
-	WM_event_add_notifier(C, NC_SCENE|NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, NULL);
 }
 
 static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_ptr, PointerRNA *strip_ptr)

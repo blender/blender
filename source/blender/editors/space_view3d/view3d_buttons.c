@@ -900,7 +900,7 @@ static void do_view3d_region_buttons(bContext *C, void *arg, int event)
 	}
 
 	/* default for now */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, ob);
 }
 
 void removeTransformOrientation_func(bContext *C, void *target, void *unused)

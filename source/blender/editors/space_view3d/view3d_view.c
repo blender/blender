@@ -423,7 +423,7 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *op)
 	setcameratoview3d(v3d, rv3d, v3d->camera);
 	rv3d->persp = RV3D_CAMOB;
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, v3d->camera);
 	
 	return OPERATOR_FINISHED;
 

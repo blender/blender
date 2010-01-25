@@ -731,14 +731,14 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_location_editable");
 	RNA_def_property_ui_text(prop, "Location", "");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
-	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_scale_editable");
 	RNA_def_property_ui_text(prop, "Scale", "");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
-	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 
 	prop= RNA_def_property(srna, "rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
 	RNA_def_property_float_sdna(prop, NULL, "quat");
@@ -746,7 +746,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_float_array_default(prop, default_quat);
 	RNA_def_property_ui_text(prop, "Quaternion Rotation", "Rotation in Quaternions.");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
-	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
 		/* XXX: for axis-angle, it would have been nice to have 2 separate fields for UI purposes, but
 		 * having a single one is better for Keyframing and other property-management situations...
@@ -758,14 +758,14 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_float_array_default(prop, default_axisAngle);
 	RNA_def_property_ui_text(prop, "Axis-Angle Rotation", "Angle of Rotation for Axis-Angle rotation representation.");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
-	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
 	prop= RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "eul");
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_rotation_euler_editable");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
 	RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers.");
-	RNA_def_property_update(prop, NC_OBJECT|ND_TRANSFORM, "rna_Pose_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
 	
 	prop= RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
@@ -823,7 +823,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "ikflag", BONE_IK_NO_YDOF);
 	RNA_def_property_ui_text(prop, "IK Y DoF", "Allow movement around the Y axis.");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
-	RNA_def_property_update(prop, NC_OBJECT|ND_POSE|ND_TRANSFORM, "rna_Pose_IK_update");
+	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_IK_update");
 
 	prop= RNA_def_property(srna, "ik_dof_z", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "ikflag", BONE_IK_NO_ZDOF);

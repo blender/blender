@@ -462,7 +462,7 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 					sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
-				case ND_VIEW3D_TRANSFORM:
+				case ND_TRANSFORM:
 					break; /*do nothing*/					
 					
 				default: /* just redrawing the view will do */

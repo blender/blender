@@ -326,10 +326,12 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_OBJECT:
 			switch(wmn->data) {
+				case ND_TRANSFORM:
+					/* moving object shouldn't need to redraw action */
+					break;
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_KEYS:
-				case ND_TRANSFORM:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -386,8 +388,9 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
-				case ND_VIEW3D_TRANSFORM:
-					break; /*do nothing*/					
+				case ND_TRANSFORM:
+					/* moving object shouldn't need to redraw action */
+					break;
 				default: /* just redrawing the view will do */
 					ED_area_tag_redraw(sa);
 					break;

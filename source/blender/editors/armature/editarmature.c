@@ -632,7 +632,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	applyarmature_fix_boneparents(scene, ob);
 	
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1129,7 +1129,7 @@ static int separate_armature_exec (bContext *C, wmOperator *op)
 	ED_armature_to_edit(obedit);
 	
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, obedit);
 	
 	/* recalc/redraw + cleanup */
 	WM_cursor_wait(0);
@@ -1803,7 +1803,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 	
 	ED_armature_sync_selection(arm->edbo);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }
@@ -2145,7 +2145,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 	
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3176,7 +3176,7 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 	
 	/* updates */
 	ED_armature_sync_selection(arm->edbo);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3467,7 +3467,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 		add_v3_v3v3(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3559,7 +3559,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3729,7 +3729,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *op)
 	BLI_freelistN(&chains);	
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3878,7 +3878,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 	
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3956,7 +3956,7 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 	ED_armature_sync_selection(arm->edbo);
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }

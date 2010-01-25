@@ -901,7 +901,7 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 	}
 	
 	/* request drawing of view + clear redraw flag */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM|ND_POSE, pld->ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, pld->ob);
 	pld->redraw= PL_PREVIEW_NOREDRAW;
 }
 

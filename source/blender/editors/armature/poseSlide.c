@@ -287,7 +287,6 @@ static void pose_slide_refresh (bContext *C, tPoseSlideOp *pso)
 	
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, pso->ob);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);	
 }
 
 /* helper for apply() callabcks - find the next F-Curve with matching path... */
