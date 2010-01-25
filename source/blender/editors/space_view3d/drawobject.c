@@ -765,18 +765,89 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	return;
 }
 
-static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
+static void draw_spot_cone(Lamp *la, float x, float z)
 {
-	Lamp *la;
+	float vec[3];
+
+	z= fabs(z);
+
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex3f(0.0f, 0.0f, -x);
+
+	if(la->mode & LA_SQUARE) {
+		vec[0]= z;
+		vec[1]= z;
+		vec[2]= 0.0;
+
+		glVertex3fv(vec);
+		vec[1]= -z;
+		glVertex3fv(vec);
+		vec[0]= -z;
+		glVertex3fv(vec);
+		vec[1]= z;
+		glVertex3fv(vec);
+	}
+	else {
+		float angle;
+		int a;
+
+		for(a=0; a<33; a++) {
+			angle= a*M_PI*2/(33-1);
+			glVertex3f(z*cos(angle), z*sin(angle), 0);
+		}
+	}
+
+	glEnd();
+}
+
+static void draw_transp_spot_volume(Lamp *la, float x, float z)
+{
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glDepthMask(0);
+
+	/* draw backside darkening */
+	glCullFace(GL_FRONT);
+
+	glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+
+	draw_spot_cone(la, x, z);
+
+	/* draw front side lightening */
+	glCullFace(GL_BACK);
+
+	glBlendFunc(GL_ONE,  GL_ONE); 
+	glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
+
+	draw_spot_cone(la, x, z);
+
+	/* restore state */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_BLEND);
+	glDepthMask(1);
+	glDisable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+}
+
+static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
+{
+	Object *ob= base->object;
+	Lamp *la= ob->data;
 	float vec[3], lvec[3], vvec[3], circrad, x,y,z;
 	float pixsize, lampsize;
 	float imat[4][4], curcol[4];
 	char col[4];
+	int drawcone= (dt>OB_WIRE && !(G.f & G_PICKSEL) && la->type == LA_SPOT && (la->mode & LA_SHOW_CONE));
 
 	if(G.f & G_RENDER_SHADOW)
 		return;
 	
-	la= ob->data;
+	if(drawcone && !v3d->transp) {
+		/* in this case we need to draw delayed */
+		add_view3d_after(v3d, base, V3D_TRANSP, flag);
+		return;
+	}
 	
 	/* we first draw only the screen aligned & fixed scale stuff */
 	glPushMatrix();
@@ -888,12 +959,8 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 		y = cos( M_PI*la->spotsize/360.0 );
 		spotvolume(lvec, vvec, y);
 		x = -la->dist;
-		lvec[0] *=  x ; 
-		lvec[1] *=  x ; 
-		lvec[2] *=  x;
-		vvec[0] *= x ; 
-		vvec[1] *= x ; 
-		vvec[2] *= x;
+		mul_v3_fl(lvec, x);
+		mul_v3_fl(vvec, x);
 
 		/* draw the angled sides of the cone */
 		glBegin(GL_LINE_STRIP);
@@ -932,7 +999,9 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 			if (spotblcirc != 0 && spotblcirc != fabs(z))
 				circ(0.0, 0.0, spotblcirc);
 		}
-		
+
+		if(drawcone)
+			draw_transp_spot_volume(la, x, z);
 	}
 	else if ELEM(la->type, LA_HEMI, LA_SUN) {
 		
@@ -5516,7 +5585,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			drawaxes(ob->empty_drawsize, flag, ob->empty_drawtype);
 			break;
 		case OB_LAMP:
-			drawlamp(scene, v3d, rv3d, ob);
+			drawlamp(scene, v3d, rv3d, base, dt, flag);
 			if(dtx || (base->flag & SELECT)) wmMultMatrix(ob->obmat);
 			break;
 		case OB_CAMERA:
