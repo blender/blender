@@ -453,7 +453,7 @@ enum {
 void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Cancel", ""},
+	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
 
 	{VIEWROT_MODAL_AXIS_SNAP_ENABLE,	"AXIS_SNAP_ENABLE", 0, "Enable Axis Snap", ""},
 	{VIEWROT_MODAL_AXIS_SNAP_DISABLE,	"AXIS_SNAP_DISABLE", 0, "Disable Axis Snap", ""},

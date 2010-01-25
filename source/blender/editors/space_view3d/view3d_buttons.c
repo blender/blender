@@ -367,8 +367,6 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 		else if(totedge>1)
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Crease:",	0, 20, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
 		
-
-		uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Crease:",	0, 20, 200, 20, &(tfp->ve_median[3]), 0.0, 1.0, 10, 3, "");
 	}
 	else {	// apply
 		memcpy(ve_median, tfp->ve_median, sizeof(tfp->ve_median));
