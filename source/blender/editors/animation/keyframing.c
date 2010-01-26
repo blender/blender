@@ -920,7 +920,7 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	/* sanity checks */
 	if ELEM(NULL, id, adt) {
 		printf("ERROR: no ID-block and/or AnimData to delete keyframe from \n");
-		break;
+		return 0;
 	}	
 	
 	/* get F-Curve
