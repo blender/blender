@@ -1107,12 +1107,14 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		
 		basen= MEM_dupallocN(base);
 		basen->flag &= ~OB_FROMDUPLI;
+		basen->lay= base->lay;
 		BLI_addhead(&scene->base, basen);	/* addhead: othwise eternal loop */
 		basen->object= ob;
 		ob->ipo= NULL;		/* make sure apply works */
 		ob->parent= ob->track= NULL;
 		ob->disp.first= ob->disp.last= NULL;
 		ob->transflag &= ~OB_DUPLI;	
+		ob->lay= base->lay;
 		
 		copy_m4_m4(ob->obmat, dob->mat);
 		ED_object_apply_obmat(ob);
