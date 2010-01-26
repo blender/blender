@@ -3142,6 +3142,7 @@ int mouse_nurb(bContext *C, short mval[2], int extend)
 	int location[2];
 	short hand;
 	
+	view3d_operator_needs_opengl(C);
 	view3d_set_viewcontext(C, &vc);
 	
 	location[0]= mval[0];
@@ -3356,6 +3357,7 @@ static int addvert_Nurb(bContext *C, short mode, float location[3])
 	copy_m3_m4(mat, obedit->obmat);
 	invert_m3_m3(imat,mat);
 
+	view3d_operator_needs_opengl(C);
 	findselectedNurbvert(editnurb, &nu, &bezt, &bp);
 	if(bezt==0 && bp==0) return OPERATOR_CANCELLED;
 
@@ -3710,6 +3712,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	deselect= RNA_boolean_get(op->ptr, "deselect");
 	RNA_int_get_array(op->ptr, "location", location);
 	
+	view3d_operator_needs_opengl(C);
 	view3d_set_viewcontext(C, &vc);
 	findnearestNurbvert(&vc, 1, location, &nu, &bezt, &bp);
 
