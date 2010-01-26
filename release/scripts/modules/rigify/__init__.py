@@ -231,10 +231,31 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     obj.selected = True
     scene.objects.active = obj
     
-    # Copy over the pose_bone custom properties
+    # Copy over the pose_bone properties
     for bone in obj_orig.pose.bones:
+        bone_gen = obj.pose.bones[bone.name]
+        
+        # Rotation mode and transform locks
+        bone_gen.rotation_mode     = bone.rotation_mode
+        bone_gen.lock_rotation     = tuple(bone.lock_rotation)
+        bone_gen.lock_rotation_w   = bone.lock_rotation_w
+        bone_gen.lock_rotations_4d = bone.lock_rotations_4d
+        bone_gen.lock_location     = tuple(bone.lock_location)
+        bone_gen.lock_scale        = tuple(bone.lock_scale)
+        
+        # Custom properties
         for prop in bone.keys():
-            obj.pose.bones[bone.name][prop] = bone[prop]
+            bone_gen[prop] = bone[prop]
+    
+    # Copy over bone properties
+    for bone in obj_orig.data.bones:
+        bone_gen = obj.data.bones[bone.name]
+        
+        # B-bone stuff
+        bone_gen.bbone_segments = bone.bbone_segments
+        bone_gen.bbone_in = bone.bbone_in
+        bone_gen.bbone_out = bone.bbone_out
+    
     
     # Create proxy deformation rig
     # TODO: remove this

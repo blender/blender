@@ -168,8 +168,7 @@ def main(obj, bone_definition, base_names, options):
     #child.parent = mt.pelvis_e # was mt.ribcage
 
     # The first bone in the chain happens to be the basis of others, create them now
-    ex = bone_class_instance(obj, ["pelvis", "pelvis_copy", "ribcage", "ribcage_hinge", "ribcage_copy", "spine_rotate"])
-    df = bone_class_instance(obj, ["pelvis", "ribcage"]) # DEF-wgt_pelvis, DEF-wgt_rib_cage
+    ex = bone_class_instance(obj, ["pelvis_copy", "ribcage_hinge", "ribcage_copy", "spine_rotate"])
 
     ex.pelvis_copy_e = copy_bone_simple(arm, mt.pelvis, base_names[mt.pelvis]) # no parent
     ex.pelvis_copy = ex.pelvis_copy_e.name
@@ -186,32 +185,14 @@ def main(obj, bone_definition, base_names, options):
     ex.spine_rotate_e.connected = False
     ex.spine_rotate_e.parent = ex.pelvis_copy_e
 
-    df.pelvis_e = copy_bone_simple(arm, child.name, "DEF-wgt_%s" % base_names[mt.pelvis])
-    df.pelvis = df.pelvis_e.name
-    df.pelvis_e.translate(Vector(spine_chain_segment_length * 2.0, - spine_chain_segment_length, 0.0))
-
-    ex.pelvis_e = copy_bone_simple(arm, child.name, "MCH-wgt_%s" % base_names[mt.pelvis])
-    ex.pelvis = ex.pelvis_e.name
-    ex.pelvis_e.translate(Vector(0.0, - spine_chain_segment_length, 0.0))
-    ex.pelvis_e.connected = False
-    ex.pelvis_e.parent = ex.pelvis_copy_e
 
     # Copy the last bone now
     child = spine_chain[-1]
-
-    df.ribcage_e = copy_bone_simple(arm, child.name, "DEF-wgt_%s" % base_names[mt.ribcage])
-    df.ribcage = df.ribcage_e.name
-    df.ribcage_e.translate(Vector(spine_chain_segment_length * 2.0, - df.ribcage_e.length / 2.0, 0.0))
 
     ex.ribcage_copy_e = copy_bone_simple(arm, mt.ribcage, base_names[mt.ribcage])
     ex.ribcage_copy = ex.ribcage_copy_e.name
     ex.ribcage_copy_e.connected = False
     ex.ribcage_copy_e.parent = ex.ribcage_hinge_e
-
-    ex.ribcage_e = copy_bone_simple(arm, child.name, "MCH-wgt_%s" % base_names[mt.ribcage])
-    ex.ribcage = ex.ribcage_e.name
-    ex.ribcage_e.translate(Vector(0.0, - ex.ribcage_e.length / 2.0, 0.0))
-    ex.ribcage_e.parent = ex.ribcage_copy_e
 
     spine_chain = [child.name for child in spine_chain]
 
@@ -300,41 +281,12 @@ def main(obj, bone_definition, base_names, options):
     # refresh pose bones
     mt.update()
     ex.update()
-    df.update()
     mt_chain.update()
     ex_chain.update()
     rv_chain.update()
     
     # Axis locks
     ex.ribcage_copy_p.lock_location = True, True, True
-
-    # df.pelvis_p / DEF-wgt_pelvis
-    con = df.pelvis_p.constraints.new('COPY_LOCATION')
-    con.target = obj
-    con.subtarget = ex.pelvis
-    con.owner_space = 'LOCAL'
-    con.target_space = 'LOCAL'
-
-    con = df.pelvis_p.constraints.new('COPY_ROTATION')
-    con.target = obj
-    con.subtarget = ex.pelvis
-    con.owner_space = 'LOCAL'
-    con.target_space = 'LOCAL'
-
-    # df.ribcage_p / DEF-wgt_rib_cage
-    df.ribcage_p.lock_location = True, True, True
-
-    con = df.ribcage_p.constraints.new('COPY_ROTATION')
-    con.target = obj
-    con.subtarget = ex.ribcage
-    con.owner_space = 'LOCAL'
-    con.target_space = 'LOCAL'
-
-    con = df.ribcage_p.constraints.new('COPY_LOCATION')
-    con.target = obj
-    con.subtarget = ex.ribcage
-    con.owner_space = 'LOCAL'
-    con.target_space = 'LOCAL'
 
     con = ex.ribcage_hinge_p.constraints.new('COPY_ROTATION')
     con.name = "hinge"
@@ -356,34 +308,9 @@ def main(obj, bone_definition, base_names, options):
     mod.coefficients[0] = 1.0
     mod.coefficients[1] = -1.0
 
-
     con = ex.spine_rotate_p.constraints.new('COPY_ROTATION')
     con.target = obj
     con.subtarget = ex.ribcage_copy
-
-
-    # ex.pelvis_p / MCH-wgt_pelvis
-    con = ex.pelvis_p.constraints.new('COPY_LOCATION')
-    con.target = obj
-    con.subtarget = mt_chain.spine_01
-    con.owner_space = 'WORLD'
-    con.target_space = 'WORLD'
-
-    con = ex.pelvis_p.constraints.new('COPY_ROTATION')
-    con.target = obj
-    con.subtarget = mt_chain.spine_01
-    con.owner_space = 'WORLD'
-    con.target_space = 'WORLD'
-
-    # ex.ribcage_p / MCH-wgt_rib_cage
-    con = ex.ribcage_p.constraints.new('COPY_LOCATION')
-    con.target = obj
-    con.subtarget = getattr(mt_chain, mt_chain.attr_names[-1])
-    con.head_tail = 0.0
-
-    con = ex.ribcage_p.constraints.new('COPY_ROTATION')
-    con.target = obj
-    con.subtarget = getattr(mt_chain, mt_chain.attr_names[-1])
 
     # ex.pelvis_copy_p / rib_cage
     con = ex.ribcage_copy_p.constraints.new('COPY_LOCATION')
@@ -543,8 +470,6 @@ def main(obj, bone_definition, base_names, options):
         getattr(ex, attr + "_b").layer = layer
     for attr in ex_chain.attr_names:
         getattr(ex_chain, attr + "_b").layer = layer
-    for attr in df.attr_names:
-        getattr(df, attr + "_b").layer = layer
     for attr in rv_chain.attr_names:
         getattr(rv_chain, attr + "_b").layer = layer
         
