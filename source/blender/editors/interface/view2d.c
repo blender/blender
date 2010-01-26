@@ -1605,9 +1605,20 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			
 			state= (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE)?UI_SCROLL_PRESSED:0;
 			
-			if (!(v2d->keepzoom & V2D_LOCKZOOM_X) && (slider.xmax - slider.xmin > V2D_SCROLLER_HANDLE_SIZE))
+			/* show zoom handles if:
+			 *	- zooming on x-axis is allowed (no scroll otherwise)
+			 *	- slider bubble is large enough (no overdraw confusion)
+			 *	- scale is shown on the scroller 
+			 *	  (workaround to make sure that button windows don't show these, 
+			 *		and only the time-grids with their zoomability can do so)
+			 */
+			if ((v2d->keepzoom & V2D_LOCKZOOM_X)==0 && 
+				(v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) &&
+				(slider.xmax - slider.xmin > V2D_SCROLLER_HANDLE_SIZE))
+			{
 				state |= UI_SCROLL_ARROWS;
-				
+			}
+			
 			uiWidgetScrollDraw(&wcol, &hor, &slider, state);
 		}
 		
@@ -1702,8 +1713,19 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 			
 			state= (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE)?UI_SCROLL_PRESSED:0;
 			
-			if (!(v2d->keepzoom & V2D_LOCKZOOM_Y) && (slider.ymax - slider.ymin > V2D_SCROLLER_HANDLE_SIZE))
+			/* show zoom handles if:
+			 *	- zooming on y-axis is allowed (no scroll otherwise)
+			 *	- slider bubble is large enough (no overdraw confusion)
+			 *	- scale is shown on the scroller 
+			 *	  (workaround to make sure that button windows don't show these, 
+			 *		and only the time-grids with their zoomability can do so)
+			 */
+			if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0 && 
+				(v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) &&
+				(slider.ymax - slider.ymin > V2D_SCROLLER_HANDLE_SIZE))
+			{
 				state |= UI_SCROLL_ARROWS;
+			}
 				
 			uiWidgetScrollDraw(&wcol, &vert, &slider, state);
 		}
