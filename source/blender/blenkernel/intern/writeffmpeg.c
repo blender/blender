@@ -772,15 +772,6 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 
 /* Get the output filename-- similar to the other output formats */
 void filepath_ffmpeg(char* string, RenderData* rd) {
-
-	// XXX quick define, solve!
-#define FILE_MAXDIR 256
-#define FILE_MAXFILE 126
-		
-	char txt[FILE_MAXDIR+FILE_MAXFILE];
-	// XXX
-#undef FILE_MAXDIR
-#undef FILE_MAXFILE
 	char autosplit[20];
 
 	const char ** exts = get_file_extensions(rd->ffcodecdata.type);
@@ -810,9 +801,13 @@ void filepath_ffmpeg(char* string, RenderData* rd) {
 
 	if (!*fe) {
 		strcat(string, autosplit);
-		sprintf(txt, "%04d_%04d%s", (rd->sfra), 
-			(rd->efra), *exts);
-		strcat(string, txt);
+
+		/* if we dont have any #'s to insert numbers into, use 4 numbers by default */
+		if (strchr(string, '#')==NULL)
+			strcat(string, "####"); /* 4 numbers */
+
+		BLI_convertstringframe_range(string, rd->sfra, rd->efra);
+		strcat(string, *exts);
 	} else {
 		*(string + strlen(string) - strlen(*fe)) = 0;
 		strcat(string, autosplit);
