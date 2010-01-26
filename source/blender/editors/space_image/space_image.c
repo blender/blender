@@ -218,8 +218,8 @@ void ED_space_image_zoom(SpaceImage *sima, ARegion *ar, float *zoomx, float *zoo
 	
 	ED_space_image_size(sima, &width, &height);
 	
-	*zoomx= (float)(ar->winrct.xmax - ar->winrct.xmin)/(float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin)*width);
-	*zoomy= (float)(ar->winrct.ymax - ar->winrct.ymin)/(float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin)*height);
+	*zoomx= (float)(ar->winrct.xmax - ar->winrct.xmin + 1)/(float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin)*width);
+	*zoomy= (float)(ar->winrct.ymax - ar->winrct.ymin + 1)/(float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin)*height);
 }
 
 void ED_space_image_uv_aspect(SpaceImage *sima, float *aspx, float *aspy)
