@@ -428,7 +428,14 @@ static int view3d_ima_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	ID *id= (ID *)drag->poin;
-	RNA_string_set(drop->ptr, "name", id->name+2);
+	PointerRNA ptr;
+
+	/* need to put name in sub-operator in macro */
+	ptr= RNA_pointer_get(drop->ptr, "OBJECT_OT_add_named");
+	if(ptr.data)
+		RNA_string_set(&ptr, "name", id->name+2);
+	else
+		RNA_string_set(drop->ptr, "name", id->name+2);
 }
 
 /* region dropbox definition */
