@@ -408,7 +408,8 @@ void recalcData(TransInfo *t)
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			FCurve *fcu= (FCurve *)ale->key_data;
 			
-			ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, 1, 0);
+			// fixme: only do this for selected verts...
+			ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYSEL|ANIM_UNITCONV_SELVERTS|ANIM_UNITCONV_RESTORE);
 			
 			
 			/* watch it: if the time is wrong: do not correct handles yet */

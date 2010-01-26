@@ -467,11 +467,23 @@ void ED_nla_postop_refresh(bAnimContext *ac);
 /* ------------- Unit Conversion Mappings ------------- */
 /* anim_draw.c */
 
+/* flags for conversion mapping */
+typedef enum eAnimUnitConv_Flags {
+		/* restore to original internal values */
+	ANIM_UNITCONV_RESTORE	= (1<<0),
+		/* ignore handles (i.e. only touch main keyframes) */
+	ANIM_UNITCONV_ONLYKEYS	= (1<<1),
+		/* only touch selected BezTriples */
+	ANIM_UNITCONV_ONLYSEL	= (1<<2),
+		/* only touch selected vertices */
+	ANIM_UNITCONV_SELVERTS	= (1<<3),
+} eAnimUnitConv_Flags;
+
 /* Get unit conversion factor for given ID + F-Curve */
 float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FCurve *fcu, short restore);
 
 /* Apply/Unapply units conversions to keyframes */
-void ANIM_unit_mapping_apply_fcurve(struct Scene *scene, struct ID *id, struct FCurve *fcu, short restore, short only_keys);
+void ANIM_unit_mapping_apply_fcurve(struct Scene *scene, struct ID *id, struct FCurve *fcu, short flag);
 
 /* ------------- Utility macros ----------------------- */
 

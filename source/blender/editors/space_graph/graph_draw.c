@@ -561,7 +561,7 @@ static void draw_fcurve_curve_samples (bAnimContext *ac, ID *id, FCurve *fcu, Vi
 	glBegin(GL_LINE_STRIP);
 	
 	/* apply unit mapping */
-	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, 0, 0);
+	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, 0);
 	
 	/* extrapolate to left? - left-side of view comes before first keyframe? */
 	if (prevfpt->vec[0] > v2d->cur.xmin) {
@@ -622,7 +622,7 @@ static void draw_fcurve_curve_samples (bAnimContext *ac, ID *id, FCurve *fcu, Vi
 	}
 	
 	/* unapply unit mapping */
-	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, 1, 0);
+	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, ANIM_UNITCONV_RESTORE);
 	
 	glEnd();
 }
@@ -641,7 +641,7 @@ static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View
 	glBegin(GL_LINE_STRIP);
 	
 	/* apply unit mapping */
-	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, 0, 0);
+	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, 0);
 	
 	/* extrapolate to left? */
 	if (prevbezt->vec[1][0] > v2d->cur.xmin) {
@@ -775,7 +775,7 @@ static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View
 	}
 	
 	/* unapply unit mapping */
-	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, 1, 0);
+	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, ANIM_UNITCONV_RESTORE);
 	
 	glEnd();
 } 
@@ -912,7 +912,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 			}
 			else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
 				/* apply unit mapping */
-				ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, fcu, 0, 0);
+				ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, fcu, 0);
 				
 				if (fcu->bezt) {
 					/* only draw handles/vertices on keyframes */
@@ -928,7 +928,7 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				}
 				
 				/* unapply unit mapping */
-				ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, fcu, 1, 0);
+				ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, fcu, ANIM_UNITCONV_RESTORE);
 			}
 		}
 		

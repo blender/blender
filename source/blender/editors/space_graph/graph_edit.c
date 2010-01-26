@@ -1574,7 +1574,7 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 		
 		/* apply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, 0, 1);
+		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYKEYS);
 		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
@@ -1585,7 +1585,7 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
 		
 		/* unapply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, 1, 1);
+		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE|ANIM_UNITCONV_ONLYKEYS);
 	}
 	
 	BLI_freelistN(&anim_data);
@@ -1667,7 +1667,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* apply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 0, 0);
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 0);
 		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
@@ -1678,7 +1678,7 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 			
 		/* apply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 1, 0);
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE);
 	}
 	
 	BLI_freelistN(&anim_data);
@@ -1791,7 +1791,7 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
 		/* apply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 0, 1);
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYKEYS);
 		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
@@ -1802,7 +1802,7 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 			
 		/* unapply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 1, 1);
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYKEYS|ANIM_UNITCONV_RESTORE);
 	}
 	
 	BLI_freelistN(&anim_data);
