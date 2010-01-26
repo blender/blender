@@ -408,17 +408,21 @@ void recalcData(TransInfo *t)
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			FCurve *fcu= (FCurve *)ale->key_data;
 			
+			ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, 1, 0);
+			
+			
 			/* watch it: if the time is wrong: do not correct handles yet */
 			if (test_time_fcurve(fcu))
 				dosort++;
 			else
 				calchandles_fcurve(fcu);
-				
+			
 			/* set refresh tags for objects using this animation,
 			 * BUT only if realtime updates are enabled  
 			 */
 			if ((sipo->flag & SIPO_NOREALTIMEUPDATES) == 0)
 				ANIM_list_elem_update(t->scene, ale);
+
 		}
 		
 		/* do resort and other updates? */

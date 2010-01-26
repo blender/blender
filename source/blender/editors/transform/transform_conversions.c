@@ -3495,6 +3495,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		if (fcu->bezt == NULL)
 			continue;
 		
+		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, 0, 0);
+		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		for (i=0, bezt= fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {

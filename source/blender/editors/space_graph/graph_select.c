@@ -287,7 +287,7 @@ static void borderselect_graphkeys (bAnimContext *ac, rcti rect, short mode, sho
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 			
 		/* unapply unit corrections */
-		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 0, 1);
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 1, 1);
 	}
 	
 	/* cleanup */
