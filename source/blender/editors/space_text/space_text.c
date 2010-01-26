@@ -127,14 +127,6 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 			if(!wmn->reference || wmn->reference == st->text) {
 				ED_area_tag_redraw(sa);
 
-				if(wmn->data == ND_CURSOR || wmn->action == NA_EDITED) {
-					ARegion *ar;
-
-					for(ar=sa->regionbase.first; ar; ar= ar->next)
-						if(ar->regiontype==RGN_TYPE_WINDOW)
-							text_update_cursor_moved(st, ar);
-				}
-
 				if(wmn->action == NA_EDITED)
 					if(st->text)
 						text_update_edited(st->text);
