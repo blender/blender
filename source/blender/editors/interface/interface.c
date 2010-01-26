@@ -2333,7 +2333,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	
 	but->pos= -1;	/* cursor invisible */
 
-	if(ELEM(but->type, NUM, NUMABS)) {	/* add a space to name */
+	if(ELEM4(but->type, NUM, NUMABS, NUMSLI, HSVSLI)) {	/* add a space to name */
 		slen= strlen(but->str);
 		if(slen>0 && slen<UI_MAX_NAME_STR-2) {
 			if(but->str[slen-1]!=' ') {
