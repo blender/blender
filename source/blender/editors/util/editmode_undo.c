@@ -203,7 +203,6 @@ static void undo_clean_stack(bContext *C)
 {
 	UndoElem *uel, *next;
 	Object *obedit= CTX_data_edit_object(C);
-	int mixed= 0;
 	
 	/* global undo changes pointers, so we also allow identical names */
 	/* side effect: when deleting/renaming object and start editing new one with same name */
@@ -226,7 +225,9 @@ static void undo_clean_stack(bContext *C)
 		if(isvalid) 
 			uel->ob= obedit;
 		else {
-			mixed= 1;
+			if(uel == curundo)
+				curundo= NULL;
+
 			uel->freedata(uel->undodata);
 			BLI_freelinkN(&undobase, uel);
 		}
@@ -234,7 +235,7 @@ static void undo_clean_stack(bContext *C)
 		uel= next;
 	}
 	
-	if(mixed) curundo= undobase.last;
+	if(curundo == NULL) curundo= undobase.last;
 }
 
 /* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */

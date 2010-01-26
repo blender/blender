@@ -2077,7 +2077,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 	ot->poll= ED_operator_object_active_editable;
 	
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag= 0; /* no register/undo here, leave it to operators being called */
 	
 	prop= RNA_def_enum(ot->srna, "mode", object_mode_items, OB_MODE_OBJECT, "Mode", "");
 	RNA_def_enum_funcs(prop, object_mode_set_itemsf);
