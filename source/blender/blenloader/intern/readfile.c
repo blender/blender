@@ -6459,50 +6459,10 @@ static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
 	}
 }
 
-static void do_version_fcurves_radians_degrees_250(ListBase *lb, char *propname)
-{
-	FCurve *fcu;
-	FModifier *fcm;
-	int i;
-	
-	for (fcu=lb->first; fcu; fcu=fcu->next) {
-		if (strstr(fcu->rna_path, propname)) {
-			if (fcu->bezt) {
-				for (i=0; i<fcu->totvert; i++) {
-					BezTriple *bt = fcu->bezt+i;
-					
-					bt->vec[0][1] *= 180.0/M_PI;
-					bt->vec[1][1] *= 180.0/M_PI;
-					bt->vec[2][1] *= 180.0/M_PI;
-				}
-			}
-			else if (fcu->fpt) {
-				for (i=0; i<fcu->totvert; i++) {
-					FPoint *fpt = fcu->fpt+i;
-					
-					fpt->vec[1] *= 180.0/M_PI;
-				}
-			}
-			
-			for (fcm= fcu->modifiers.first; fcm; fcm= fcm->next) {
-				if (fcm->type == FMODIFIER_TYPE_GENERATOR) {
-					FMod_Generator *data= (FMod_Generator *)fcm->data;
-
-					for (i=0; i<data->arraysize; i++)
-						data->coefficients[i] *= 180/M_PI;
-				}
-			}
-
-			fcu->flag |= FCURVE_ROTATION_DEGREES;
-		}
-	}
-}
-			
 static void do_version_constraints_radians_degrees_250(ListBase *lb)
 {
 	bConstraint *con;
 
-	/* fcurves for this are not converted, assumption is these were unlikely to be used */
 	for	(con=lb->first; con; con=con->next) {
 		if(con->type==CONSTRAINT_TYPE_RIGIDBODYJOINT) {
 			bRigidBodyJointConstraint *data = con->data;
@@ -10578,24 +10538,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 	}
 	
-	
-	/* put 2.50 compatibility code here until next subversion bump */
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 13)) {
 		/* NOTE: if you do more conversion, be sure to do it outside of this and
 		   increase subversion again, otherwise it will not be correct */
 		Object *ob;
-		bAction *act;
 		
 		/* convert degrees to radians for internal use */
 		for (ob=main->object.first; ob; ob=ob->id.next) {
-			AnimData *adt = BKE_animdata_from_id((ID *)ob);
 			bPoseChannel *pchan;
-
-			if (adt) {
-				do_version_fcurves_radians_degrees_250(&adt->drivers, "rotation_euler");
-				do_version_fcurves_radians_degrees_250(&adt->drivers, "delta_rotation_euler");
-				do_version_fcurves_radians_degrees_250(&adt->drivers, "pole_angle");
-			}
 
 			do_version_constraints_radians_degrees_250(&ob->constraints);
 
@@ -10612,18 +10562,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-		
-		/* convert fcurve values to be stored in degrees */
-		for (act = main->action.first; act; act=act->id.next) {
-			/* convert over named properties with PROP_UNIT_ROTATION time of this change */
-			do_version_fcurves_radians_degrees_250(&act->curves, "rotation_euler");
-			do_version_fcurves_radians_degrees_250(&act->curves, "delta_rotation_euler");
-			do_version_fcurves_radians_degrees_250(&act->curves, "pole_angle");
-		}
+	}
+	
+	/* put 2.50 compatibility code here until next subversion bump */
+	if (1) {
+	
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
-	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
+	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
 	/* don't forget to set version number in blender.c! */
 }

@@ -62,6 +62,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_access.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -237,6 +239,7 @@ void ANIM_draw_previewrange (const bContext *C, View2D *v2d)
 /* NLA-MAPPING UTILITIES (required for drawing and also editing keyframes)  */
 
 /* Obtain the AnimData block providing NLA-mapping for the given channel (if applicable) */
+// TODO: do not supply return this if the animdata tells us that there is no mapping to perform
 AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 {
 	/* sanity checks */
@@ -251,11 +254,6 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 }
 
 /* ------------------- */
-
-typedef struct NlaMappingApplyBackup {
-	struct NlaMappingBackup *next, *prev;
-	BezTriple bezt;
-} NlaMappingApplyBackup;
 
 /* helper function for ANIM_nla_mapping_apply_fcurve() -> "restore", i.e. mapping points back to action-time */
 static short bezt_nlamapping_restore(BeztEditData *bed, BezTriple *bezt)
@@ -319,6 +317,96 @@ void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, s
 	
 	/* apply to F-Curve */
 	ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, map_cb, NULL);
+}
+
+/* *************************************************** */
+/* UNITS CONVERSION MAPPING (required for drawing and editing keyframes) */
+
+/* Get unit conversion factor for given ID + F-Curve */
+float ANIM_unit_mapping_get_factor (Scene *scene, ID *id, FCurve *fcu, short restore)
+{
+	/* sanity checks */
+	if (id && fcu && fcu->rna_path) 
+	{
+		PointerRNA ptr, id_ptr;
+		PropertyRNA *prop;
+		
+		/* get RNA property that F-Curve affects */
+		RNA_id_pointer_create(id, &id_ptr);
+		if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) 
+		{
+			/* rotations: radians <-> degrees? */
+			if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION)
+			{
+				/* if the radians flag is not set, default to using degrees which need conversions */
+				if ((scene) && (scene->unit.flag & USER_UNIT_ROT_RADIANS) == 0) {
+					if (restore)
+						return M_PI / 180.0f;	/* degrees to radians */
+					else
+						return 180.0f / M_PI;	/* radians to degrees */
+				}
+			}
+			
+			// TODO: other rotation types here as necessary
+		}
+	}
+	
+	/* no mapping needs to occur... */
+	return 1.0f;
+}
+
+/* ----------------------- */
+
+/* helper function for ANIM_unit_mapping_apply_fcurve -> mapping callback for unit mapping */
+static short bezt_unit_mapping_apply (BeztEditData *bed, BezTriple *bezt)
+{
+	/* mapping factor is stored in f1, only_keys option is stored in i1 */
+	short only_keys= (short)bed->i1;
+	float fac= bed->f1;
+	
+	/* adjust BezTriple handles only if allowed to */
+	if (only_keys == 0) {
+		bezt->vec[0][1] *= fac;
+		bezt->vec[2][1] *= fac;
+	}
+	
+	bezt->vec[1][1] *= fac;
+	
+	return 0;
+}
+
+/* Apply/Unapply units conversions to keyframes */
+void ANIM_unit_mapping_apply_fcurve (Scene *scene, ID *id, FCurve *fcu, short restore, short only_keys)
+{
+	BeztEditData bed;
+	float fac;
+	
+	/* calculate mapping factor, and abort if nothing to change */
+	fac= ANIM_unit_mapping_get_factor(scene, id, fcu, restore);
+	if (fac == 1.0f)
+		return;
+	
+	/* init edit data 
+	 *	- mapping factor is stored in f1
+	 *	- only_keys is stored in 'i1'
+	 */
+	memset(&bed, 0, sizeof(BeztEditData));
+	bed.f1= (float)fac;
+	bed.i1= (int)only_keys;
+	
+	/* apply to F-Curve */
+	ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, bezt_unit_mapping_apply, NULL);
+	
+	// FIXME: loop here for samples should be generalised
+	if (fcu->fpt) {
+		FPoint *fpt;
+		int i;
+		
+		for (i=0, fpt=fcu->fpt; i < fcu->totvert; i++, fpt++) {
+			/* apply unit mapping */
+			fpt->vec[1] *= fac;
+		}
+	}
 }
 
 /* *************************************************** */

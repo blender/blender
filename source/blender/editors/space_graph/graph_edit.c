@@ -121,14 +121,21 @@ void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, flo
 			AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 			FCurve *fcu= (FCurve *)ale->key_data;
 			float txmin, txmax, tymin, tymax;
+			float unitFac;
 			
-			/* get range and apply necessary scaling before */
+			/* get range */
 			calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax);
 			
+			/* apply NLA scaling */
 			if (adt) {
 				txmin= BKE_nla_tweakedit_remap(adt, txmin, NLATIME_CONVERT_MAP);
 				txmax= BKE_nla_tweakedit_remap(adt, txmax, NLATIME_CONVERT_MAP);
 			}
+			
+			/* apply unit corrections */
+			unitFac= ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, 0);
+			tymin *= unitFac;
+			tymax *= unitFac;
 			
 			/* try to set cur using these values, if they're more extreme than previously set values */
 			if ((xmin) && (txmin < *xmin)) 		*xmin= txmin;
@@ -280,10 +287,14 @@ static void create_ghost_curves (bAnimContext *ac, int start, int end)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		ChannelDriver *driver= fcu->driver;
 		FPoint *fpt;
+		float unitFac;
 		int cfra;		
 		
 		/* disable driver so that it don't muck up the sampling process */
 		fcu->driver= NULL;
+		
+		/* calculate unit-mapping factor */
+		unitFac= ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, 0);
 		
 		/* create samples, but store them in a new curve 
 		 *	- we cannot use fcurve_store_samples() as that will only overwrite the original curve 
@@ -508,6 +519,7 @@ static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
 	bAnimContext ac;
 	bAnimListElem *ale;
 	AnimData *adt;
+	FCurve *fcu;
 	float frame, val;
 	
 	/* get animation context */
@@ -520,7 +532,8 @@ static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
 		if (ale) MEM_freeN(ale);
 		return OPERATOR_CANCELLED;
 	}
-		
+	fcu = ale->data;
+	
 	/* get frame and value from props */
 	frame= RNA_float_get(op->ptr, "frame");
 	val= RNA_float_get(op->ptr, "value");
@@ -529,8 +542,11 @@ static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
 	adt= ANIM_nla_mapping_get(&ac, ale);
 	frame= BKE_nla_tweakedit_remap(adt, frame, NLATIME_CONVERT_UNMAP);
 	
+	/* apply inverse unit-mapping to value to get correct value for F-Curves */
+	val *= ANIM_unit_mapping_get_factor(ac.scene, ale->id, fcu, 1);
+	
 	/* insert keyframe on the specified frame + value */
-	insert_vert_fcurve((FCurve *)ale->data, frame, val, 0);
+	insert_vert_fcurve(fcu, frame, val, 0);
 	
 	/* free temp data */
 	MEM_freeN(ale);
@@ -1002,7 +1018,7 @@ void GRAPH_OT_bake (wmOperatorType *ot)
  * which provides the necessary info for baking the sound
  */
 typedef struct tSoundBakeInfo {
-	float* samples;
+	float *samples;
 	int length;
 	int cfra;
 } tSoundBakeInfo;
@@ -1075,7 +1091,7 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
 	/* loop through all selected F-Curves, replacing its data with the sound samples */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
-
+		
 		/* sample the sound */
 		fcurve_store_samples(fcu, &sbi, start, end, fcurve_samplingcb_sound);
 	}
@@ -1557,6 +1573,9 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 		
+		/* apply unit corrections */
+		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, 0, 1);
+		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
@@ -1565,6 +1584,8 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 		else
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
 		
+		/* unapply unit corrections */
+		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, 1, 1);
 	}
 	
 	BLI_freelistN(&anim_data);
@@ -1645,6 +1666,9 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
+		/* apply unit corrections */
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 0, 0);
+		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
@@ -1652,7 +1676,11 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 		}
 		else 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+			
+		/* apply unit corrections */
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 1, 0);
 	}
+	
 	BLI_freelistN(&anim_data);
 }
 
@@ -1762,6 +1790,9 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
+		/* apply unit corrections */
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 0, 1);
+		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
@@ -1769,7 +1800,11 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 		}
 		else 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+			
+		/* unapply unit corrections */
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 1, 1);
 	}
+	
 	BLI_freelistN(&anim_data);
 }
 

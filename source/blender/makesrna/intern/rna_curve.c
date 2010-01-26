@@ -415,12 +415,6 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Handle 2 Type", "Handle types");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "ipo");
-	RNA_def_property_enum_items(prop, beztriple_interpolation_mode_items);
-	RNA_def_property_ui_text(prop, "Interpolation", "(For F-Curves Only) Interpolation to use for segment of curve starting from current BezTriple.");
-	//RNA_def_property_update(prop, 0, "rna_Curve_update_data"); // this should be an F-Curve update call instead...
-	
 	/* Vector values */
 	prop= RNA_def_property(srna, "handle1", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);

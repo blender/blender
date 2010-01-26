@@ -73,6 +73,7 @@ typedef struct bAnimContext {
 	struct Scene *scene;	/* active scene */
 	struct Object *obact;	/* active object */
 	ListBase *markers;		/* active set of markers */
+	ListBase *reports;		/* pointer to current reports list */			// XXX not yet used
 } bAnimContext;
 
 /* Main Data container types */
@@ -448,7 +449,7 @@ int getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
 /* Automatically determine a color for the nth F-Curve */
 void getcolor_fcurve_rainbow(int cur, int tot, float *out);
 
-/* ------------- NLA-Mapping ----------------------- */
+/* ----------------- NLA-Mapping ----------------------- */
 /* anim_draw.c */
 
 /* Obtain the AnimData block providing NLA-scaling for the given channel if applicable */
@@ -462,6 +463,15 @@ void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt, struct FCurve *fcu, sho
 /* Perform auto-blending/extend refreshes after some operations */
 // NOTE: defined in space_nla/nla_edit.c, not in animation/
 void ED_nla_postop_refresh(bAnimContext *ac);
+
+/* ------------- Unit Conversion Mappings ------------- */
+/* anim_draw.c */
+
+/* Get unit conversion factor for given ID + F-Curve */
+float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FCurve *fcu, short restore);
+
+/* Apply/Unapply units conversions to keyframes */
+void ANIM_unit_mapping_apply_fcurve(struct Scene *scene, struct ID *id, struct FCurve *fcu, short restore, short only_keys);
 
 /* ------------- Utility macros ----------------------- */
 

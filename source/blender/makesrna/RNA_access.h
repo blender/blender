@@ -255,6 +255,7 @@ extern StructRNA RNA_KeyboardSensor;
 extern StructRNA RNA_KeyConfig;
 extern StructRNA RNA_KeyingSet;
 extern StructRNA RNA_KeyingSetPath;
+extern StructRNA RNA_Keyframe;
 extern StructRNA RNA_KeyMap;
 extern StructRNA RNA_KeyMapItem;
 extern StructRNA RNA_KinematicConstraint;
