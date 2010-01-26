@@ -679,7 +679,7 @@ typedef struct ShapeKeyModifierData {
 typedef struct SolidifyModifierData {
 	ModifierData modifier;
 
-	char vgroup[32];		/* name of vertex group to use */
+	char defgrp_name[32];		/* name of vertex group to use */
 	float offset;			/* new surface offset level*/
 	float crease_inner;
 	float crease_outer;

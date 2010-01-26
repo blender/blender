@@ -173,11 +173,13 @@ int get_named_vertexgroup_num (Object *ob, const char *name)
 	bDeformGroup *curdef;
 	int def_nr;
 	
-	for (curdef=ob->defbase.first, def_nr=0; curdef; curdef=curdef->next, def_nr++) {
-		if (!strcmp(curdef->name, name))
-			return def_nr;
+	if(name[0] != '\0') {
+		for (curdef=ob->defbase.first, def_nr=0; curdef; curdef=curdef->next, def_nr++) {
+			if (!strcmp(curdef->name, name))
+				return def_nr;
+		}
 	}
-	
+
 	return -1;
 }
 

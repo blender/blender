@@ -867,23 +867,7 @@ static DerivedMesh *maskModifier_applyModifier(ModifierData *md, Object *ob,
 	}
 	else		/* --- Using Nominated VertexGroup only --- */ 
 	{
-		int defgrp_index = -1;
-		
-		/* get index of vertex group */
-		if (mmd->vgroup[0]) 
-		{
-			bDeformGroup *def;
-			
-			/* find index by comparing names - SLOW... */
-			for (i = 0, def = ob->defbase.first; def; def = def->next, i++) 
-			{
-				if (!strcmp(def->name, mmd->vgroup)) 
-				{
-					defgrp_index = i;
-					break;
-				}
-			}
-		}
+		int defgrp_index = get_named_vertexgroup_num(ob, mmd->vgroup);
 		
 		/* get dverts */
 		if (defgrp_index >= 0)
@@ -3313,17 +3297,12 @@ static DerivedMesh *bevelModifier_applyModifier(
 
 	options = bmd->flags|bmd->val_flags|bmd->lim_flags|bmd->e_flags;
 
-	//~ if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
-		//~ for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			//~ if (!strcmp(def->name, bmd->defgrp_name)) {
-				//~ defgrp_index = i;
-				//~ break;
-			//~ }
-		//~ }
-		//~ if (defgrp_index < 0) {
-			//~ options &= ~BME_BEVEL_VWEIGHT;
-		//~ }
-	//~ }
+	/*if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
+		defgrp_index = get_named_vertexgroup_num(ob, bmd->defgrp_name);
+		if (defgrp_index < 0) {
+			options &= ~BME_BEVEL_VWEIGHT;
+		}
+	}*/
 
 	bm = BME_derivedmesh_to_bmesh(derivedData);
 	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);
@@ -3574,17 +3553,7 @@ static void displaceModifier_do(
 
 	if(!dmd->texture) return;
 
-	defgrp_index = -1;
-
-	if(dmd->defgrp_name[0]) {
-		bDeformGroup *def;
-		for(i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			if(!strcmp(def->name, dmd->defgrp_name)) {
-				defgrp_index = i;
-				break;
-			}
-		}
-	}
+	defgrp_index = get_named_vertexgroup_num(ob, dmd->defgrp_name);
 
 	mvert = CDDM_get_verts(dm);
 	if(defgrp_index >= 0)
@@ -4200,18 +4169,7 @@ static void smoothModifier_do(
 	medges = dm->getEdgeArray(dm);
 	numDMEdges = dm->getNumEdges(dm);
 
-	defgrp_index = -1;
-
-	if (smd->defgrp_name[0]) {
-		bDeformGroup *def;
-
-		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			if (!strcmp(def->name, smd->defgrp_name)) {
-				defgrp_index = i;
-				break;
-			}
-		}
-	}
+	defgrp_index = get_named_vertexgroup_num(ob, smd->defgrp_name);
 
 	if (defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -4424,7 +4382,7 @@ static void castModifier_sphere_do(
 
 	Object *ctrl_ob = NULL;
 
-	int i, defgrp_index = -1;
+	int i, defgrp_index;
 	int has_radius = 0;
 	short flag, type;
 	float fac, facm, len = 0.0f;
@@ -4466,16 +4424,7 @@ static void castModifier_sphere_do(
 
 	/* 3) if we were given a vertex group name,
 	* only those vertices should be affected */
-	if (cmd->defgrp_name[0]) {
-		bDeformGroup *def;
-
-		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			if (!strcmp(def->name, cmd->defgrp_name)) {
-				defgrp_index = i;
-				break;
-			}
-		}
-	}
+	defgrp_index = get_named_vertexgroup_num(ob, cmd->defgrp_name);
 
 	if ((ob->type == OB_MESH) && dm && defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -4609,7 +4558,7 @@ static void castModifier_cuboid_do(
 	MDeformVert *dvert = NULL;
 	Object *ctrl_ob = NULL;
 
-	int i, defgrp_index = -1;
+	int i, defgrp_index;
 	int has_radius = 0;
 	short flag;
 	float fac, facm;
@@ -4633,16 +4582,7 @@ static void castModifier_cuboid_do(
 
 	/* 3) if we were given a vertex group name,
 	* only those vertices should be affected */
-	if (cmd->defgrp_name[0]) {
-		bDeformGroup *def;
-
-		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			if (!strcmp(def->name, cmd->defgrp_name)) {
-				defgrp_index = i;
-				break;
-			}
-		}
-	}
+	defgrp_index = get_named_vertexgroup_num(ob, cmd->defgrp_name);
 
 	if ((ob->type == OB_MESH) && dm && defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -5140,18 +5080,7 @@ static void waveModifier_do(WaveModifierData *md,
 	}
 
 	/* get the index of the deform group */
-	defgrp_index = -1;
-
-	if(wmd->defgrp_name[0]) {
-		int i;
-		bDeformGroup *def;
-		for(i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			if(!strcmp(def->name, wmd->defgrp_name)) {
-				defgrp_index = i;
-				break;
-			}
-		}
-	}
+	defgrp_index = get_named_vertexgroup_num(ob, wmd->defgrp_name);
 
 	if(defgrp_index >= 0){
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -5579,50 +5508,46 @@ static void hookModifier_deformVerts(
 		}
 	} 
 	else if(hmd->name[0]) {	/* vertex group hook */
-		bDeformGroup *curdef;
 		Mesh *me = ob->data;
-		int index = 0;
-		int use_dverts;
+		int use_dverts = 0;
 		int maxVerts = 0;
-		
-		/* find the group (weak loop-in-loop) */
-		for(curdef = ob->defbase.first; curdef; curdef = curdef->next, index++)
-			if(!strcmp(curdef->name, hmd->name)) break;
+		int defgrp_index = get_named_vertexgroup_num(ob, hmd->name);
 
-		if(dm)
+		if(dm) {
 			if(dm->getVertData(dm, 0, CD_MDEFORMVERT)) {
-			use_dverts = 1;
-			maxVerts = dm->getNumVerts(dm);
-			} else use_dverts = 0;
-			else if(me->dvert) {
+				maxVerts = dm->getNumVerts(dm);
 				use_dverts = 1;
-				maxVerts = me->totvert;
-			} else use_dverts = 0;
-		
-			if(curdef && use_dverts) {
-				MDeformVert *dvert = me->dvert;
-				int i, j;
-			
-				for(i = 0; i < maxVerts; i++, dvert++) {
-					if(dm) dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
-					for(j = 0; j < dvert->totweight; j++) {
-						if(dvert->dw[j].def_nr == index) {
-							float fac = hmd->force*dvert->dw[j].weight;
-							float *co = vertexCos[i];
-						
-							if(hmd->falloff != 0.0) {
-								float len = len_v3v3(co, hmd->cent);
-								if(len > hmd->falloff) fac = 0.0;
-								else if(len > 0.0)
-									fac *= sqrt(1.0 - len / hmd->falloff);
-							}
-						
-							mul_v3_m4v3(vec, mat, co);
-							interp_v3_v3v3(co, co, vec, fac);
+			}
+		}
+		else if(me->dvert) {
+			maxVerts = me->totvert;
+			use_dverts = 1;
+		}
+
+		if(defgrp_index >= 0 && use_dverts) {
+			MDeformVert *dvert = me->dvert;
+			int i, j;
+
+			for(i = 0; i < maxVerts; i++, dvert++) {
+				if(dm) dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
+				for(j = 0; j < dvert->totweight; j++) {
+					if(dvert->dw[j].def_nr == defgrp_index) {
+						float fac = hmd->force*dvert->dw[j].weight;
+						float *co = vertexCos[i];
+
+						if(hmd->falloff != 0.0) {
+							float len = len_v3v3(co, hmd->cent);
+							if(len > hmd->falloff) fac = 0.0;
+							else if(len > 0.0)
+								fac *= sqrt(1.0 - len / hmd->falloff);
 						}
+
+						mul_v3_m4v3(vec, mat, co);
+						interp_v3_v3v3(co, co, vec, fac);
 					}
 				}
 			}
+		}
 	}
 }
 
@@ -5785,7 +5710,7 @@ static void solidifyModifier_copyData(ModifierData *md, ModifierData *target)
 	tsmd->crease_inner = smd->crease_inner;
 	tsmd->crease_outer = smd->crease_outer;
 	tsmd->crease_rim = smd->crease_rim;
-	strcpy(tsmd->vgroup, smd->vgroup);
+	strcpy(tsmd->defgrp_name, smd->defgrp_name);
 }
 
 static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
@@ -8239,21 +8164,10 @@ static void meshdeformModifier_do(
 			VECCOPY(dco[a], co)
 	}
 
-	defgrp_index = -1;
+	defgrp_index = get_named_vertexgroup_num(ob, mmd->defgrp_name);
 
-	if(mmd->defgrp_name[0]) {
-		bDeformGroup *def;
-
-		for(a=0, def=ob->defbase.first; def; def=def->next, a++) {
-			if(!strcmp(def->name, mmd->defgrp_name)) {
-				defgrp_index= a;
-				break;
-			}
-		}
-
-		if (defgrp_index >= 0)
-			dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
-	}
+	if (defgrp_index >= 0)
+		dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
 
 	/* do deformation */
 	fac= 1.0f;
