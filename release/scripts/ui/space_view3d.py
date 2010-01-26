@@ -1276,7 +1276,7 @@ class VIEW3D_MT_edit_mesh_faces(bpy.types.Menu):
         # layout.operator("mesh.bevel")
         layout.operator("mesh.edge_face_add")
         layout.operator("mesh.fill")
-        layout.operator("mesh.beauty_fill")
+        layout.operator("mesh.beautify_fill")
         layout.operator("mesh.solidify")
 
         layout.separator()

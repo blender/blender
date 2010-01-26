@@ -116,7 +116,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_colors_mirror);
 	
 	WM_operatortype_append(MESH_OT_fill);
-	WM_operatortype_append(MESH_OT_beauty_fill);
+	WM_operatortype_append(MESH_OT_beautify_fill);
 	WM_operatortype_append(MESH_OT_quads_convert_to_tris);
 	WM_operatortype_append(MESH_OT_tris_convert_to_quads);
 	WM_operatortype_append(MESH_OT_edge_flip);
@@ -256,7 +256,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_spin", RKEY, KM_PRESS, KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_fill", FKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_beauty_fill", FKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_beautify_fill", FKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_quads_convert_to_tris", TKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_tris_convert_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_edge_flip", FKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);

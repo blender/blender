@@ -3399,7 +3399,7 @@ void join_triangles(EditMesh *em)
 
 #define FACE_MARKCLEAR(f) (f->f1 = 1)
 
-/* quick hack, basically a copy of beauty_fill */
+/* quick hack, basically a copy of beautify_fill */
 void edge_flip(EditMesh *em)
 {
 	EditVert *v1, *v2, *v3, *v4;
@@ -6721,7 +6721,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 
 /* note; the EM_selectmode_set() calls here illustrate how badly constructed it all is... from before the
 edge/face flags, with very mixed results.... */
-static void beauty_fill(EditMesh *em)
+static void beautify_fill(EditMesh *em)
 {
 	EditVert *v1, *v2, *v3, *v4;
 	EditEdge *eed, *nexted;
@@ -6956,7 +6956,7 @@ static void fill_mesh(EditMesh *em)
 	}
 
 	BLI_end_edgefill();
-	beauty_fill(em);
+	beautify_fill(em);
 
 	WM_cursor_wait(0);
 	EM_select_flush(em);
@@ -6994,12 +6994,12 @@ void MESH_OT_fill(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int beauty_fill_exec(bContext *C, wmOperator *op)
+static int beautify_fill_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
-	beauty_fill(em);
+	beautify_fill(em);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
@@ -7009,15 +7009,15 @@ static int beauty_fill_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_beauty_fill(wmOperatorType *ot)
+void MESH_OT_beautify_fill(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Beauty Fill";
-	ot->description= "Arrange geometry on a selected surface to avoid skinny faces.";
-	ot->idname= "MESH_OT_beauty_fill";
+	ot->name= "Beautify Fill";
+	ot->description= "Rearrange geometry on a selected surface to avoid skinny faces.";
+	ot->idname= "MESH_OT_beautify_fill";
 
 	/* api callbacks */
-	ot->exec= beauty_fill_exec;
+	ot->exec= beautify_fill_exec;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */
