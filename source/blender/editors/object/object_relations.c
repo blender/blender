@@ -630,11 +630,11 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				}
 				else if(pararm && ob->type==OB_MESH && par->type == OB_ARMATURE) {
 					if(partype == PAR_ARMATURE_NAME)
-						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_NAME);
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_NAME, 0);
 					else if(partype == PAR_ARMATURE_ENVELOPE)
-						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_ENVELOPE);
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_ENVELOPE, 0);
 					else if(partype == PAR_ARMATURE_AUTO)
-						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_AUTO);
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_AUTO, 0);
 					
 					/* get corrected inverse */
 					ob->partype= PAROBJECT;

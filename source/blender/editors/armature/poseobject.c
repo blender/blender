@@ -1115,31 +1115,6 @@ void POSE_OT_paste (wmOperatorType *ot)
 
 /* ********************************************** */
 
-/* context weightpaint and deformer in posemode */
-void pose_adds_vgroups(Scene *scene, Object *meshobj, int heatweights)
-{
-// XXX	extern VPaint Gwp;         /* from vpaint */
-	Object *poseobj= modifiers_isDeformedByArmature(meshobj);
-
-	if(poseobj==NULL || (poseobj->mode & OB_MODE_POSE)==0) {
-		error("The active object must have a deforming armature in pose mode");
-		return;
-	}
-
-// XXX	add_verts_to_dgroups(meshobj, poseobj, heatweights, ((Mesh *)(meshobj->data))->editflag & ME_EDIT_MIRROR_X);
-
-	if(heatweights)
-		BIF_undo_push("Apply Bone Heat Weights to Vertex Groups");
-	else
-		BIF_undo_push("Apply Bone Envelopes to Vertex Groups");
-
-	
-	// and all its relations
-	DAG_id_flush_update(&meshobj->id, OB_RECALC_DATA);
-}
-
-/* ********************************************** */
-
 
 static int pose_group_add_exec (bContext *C, wmOperator *op)
 {

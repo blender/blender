@@ -4774,7 +4774,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	MEM_freeN(verts);
 }
 
-void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mode)
+void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mode, int mirror)
 {
 	/* Lets try to create some vertex groups 
 	 * based on the bones of the parent armature.
@@ -4795,7 +4795,7 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mod
 		 * that are populated with the vertices for which the
 		 * bone is closest.
 		 */
-		add_verts_to_dgroups(scene, ob, par, (mode == ARM_GROUPS_AUTO), 0);
+		add_verts_to_dgroups(scene, ob, par, (mode == ARM_GROUPS_AUTO), mirror);
 	}
 } 
 /* ************* Clear Pose *****************************/

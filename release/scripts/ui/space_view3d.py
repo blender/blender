@@ -49,7 +49,7 @@ class VIEW3D_HT_header(bpy.types.Header):
             if edit_object:
                 sub.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
             elif obj:
-                if mode_string not in ('PAINT_WEIGHT', 'PAINT_TEXTURE'):
+                if mode_string not in ('PAINT_TEXTURE'):
                     sub.menu("VIEW3D_MT_%s" % mode_string.lower())
             else:
                 sub.menu("VIEW3D_MT_object")
@@ -848,6 +848,24 @@ class VIEW3D_MT_vertex_group(bpy.types.Menu):
             layout.operator("object.vertex_group_remove", text="Remove Active Group")
             layout.operator("object.vertex_group_remove", text="Remove All Groups").all = True
 
+# ********** Weight paint menu **********
+
+class VIEW3D_MT_paint_weight(bpy.types.Menu):
+    bl_label = "Weights"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("paint.weight_from_bones", text="Assign Automatic From Bones").type = 'AUTOMATIC'
+        layout.operator("paint.weight_from_bones", text="Assign From Bone Envelopes").type = 'ENVELOPES'
+
+        layout.separator()
+
+        layout.operator("object.vertex_group_normalize_all", text="Normalize All")
+        layout.operator("object.vertex_group_normalize", text="Normalize")
+        layout.operator("object.vertex_group_invert", text="Invert")
+        layout.operator("object.vertex_group_clean", text="Clean")
+        layout.operator("object.vertex_group_levels", text="Levels")
 
 # ********** Sculpt menu **********
 
@@ -1978,8 +1996,8 @@ bpy.types.register(VIEW3D_MT_hook)
 bpy.types.register(VIEW3D_MT_vertex_group)
 
 bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
-
 bpy.types.register(VIEW3D_MT_paint_vertex)
+bpy.types.register(VIEW3D_MT_paint_weight)
 
 bpy.types.register(VIEW3D_MT_particle)# Particle Menu
 bpy.types.register(VIEW3D_MT_particle_specials)
