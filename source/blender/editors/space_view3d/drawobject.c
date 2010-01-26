@@ -1297,7 +1297,7 @@ static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, i
 
 	if(use_wcol) {
 		float col[3];
-		MDeformWeight *mdw= ED_vgroup_weight_get (lt->dvert+index, use_wcol-1);
+		MDeformWeight *mdw= defvert_find_index (lt->dvert+index, use_wcol-1);
 		
 		weight_to_rgb(mdw?mdw->weight:0.0f, col, col+1, col+2);
 		glColor3fv(col);

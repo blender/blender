@@ -1812,7 +1812,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 
 	if (do_vgroup_mirr) {
-		flip_map= defgroup_flip_map(ob);
+		flip_map= defgroup_flip_map(ob, 0);
 		if(flip_map == NULL)
 			do_vgroup_mirr= 0;
 	}

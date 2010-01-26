@@ -96,6 +96,7 @@ bDeformGroup *defgroup_duplicate (bDeformGroup *ingroup)
 	return outgroup;
 }
 
+/* copy & overwrite weights */
 void defvert_copy (MDeformVert *dvert_r, const MDeformVert *dvert)
 {
 	if(dvert_r->totweight == dvert->totweight) {
@@ -112,6 +113,44 @@ void defvert_copy (MDeformVert *dvert_r, const MDeformVert *dvert)
 			dvert_r->dw= NULL;
 
 		dvert_r->totweight = dvert->totweight;
+	}
+}
+
+/* only sync over matching weights, don't add or remove groups
+ * warning, loop within loop.
+ */
+void defvert_sync (MDeformVert *dvert_r, const MDeformVert *dvert, int use_verify)
+{
+	if(dvert->totweight && dvert_r->totweight) {
+		int i;
+		MDeformWeight *dw;
+		for(i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++) {
+			MDeformWeight *dw_r;
+			if(use_verify)	dw_r= defvert_find_index(dvert_r, dw->def_nr);
+			else			dw_r= defvert_verify_index(dvert_r, dw->def_nr);
+
+			if(dw_r) {
+				dw_r->weight= dw->weight;
+			}
+		}
+	}
+}
+
+/* be sure all flip_map values are valid */
+void defvert_sync_mapped (MDeformVert *dvert_r, const MDeformVert *dvert, int *flip_map, int use_verify)
+{
+	if(dvert->totweight && dvert_r->totweight) {
+		int i;
+		MDeformWeight *dw;
+		for(i=0, dw=dvert->dw; i < dvert->totweight; i++, dw++) {
+			MDeformWeight *dw_r;
+			if(use_verify)	dw_r= defvert_find_index(dvert_r, flip_map[dw->def_nr]);
+			else			dw_r= defvert_verify_index(dvert_r, flip_map[dw->def_nr]);
+
+			if(dw_r) {
+				dw_r->weight= dw->weight;
+			}
+		}
 	}
 }
 
@@ -225,7 +264,7 @@ int defgroup_find_index (Object *ob, bDeformGroup *dg)
 }
 
 /* note, must be freed */
-int *defgroup_flip_map(Object *ob)
+int *defgroup_flip_map(Object *ob, int use_default)
 {
 	bDeformGroup *dg;
 	int totdg= BLI_countlist(&ob->defbase);
@@ -236,14 +275,20 @@ int *defgroup_flip_map(Object *ob)
 	else {
 		char name[sizeof(dg->name)];
 		int i, flip_num, *map= MEM_mallocN(totdg * sizeof(int), "get_defgroup_flip_map");
+
 		memset(map, -1, totdg * sizeof(int));
 
 		for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
 			if(map[i] == -1) { /* may be calculated previously */
+
+				/* incase no valid value is found, use this */
+				if(use_default)
+					map[i]= i;
+
 				flip_side_name(name, dg->name, 0);
 				if(strcmp(name, dg->name)) {
 					flip_num= defgroup_name_index(ob, name);
-					if(flip_num > -1) {
+					if(flip_num >= 0) {
 						map[i]= flip_num;
 						map[flip_num]= i; /* save an extra lookup */
 					}
@@ -252,6 +297,22 @@ int *defgroup_flip_map(Object *ob)
 		}
 		return map;
 	}
+}
+
+int defgroup_flip_index(Object *ob, int index, int use_default)
+{
+	bDeformGroup *dg= BLI_findlink(&ob->defbase, index);
+	int flip_index = -1;
+
+	if(dg) {
+		char name[sizeof(dg->name)];
+		flip_side_name(name, dg->name, 0);
+
+		if(strcmp(name, dg->name))
+			flip_index= defgroup_name_index(ob, name);
+	}
+
+	return (flip_index==-1 && use_default) ? index : flip_index;
 }
 
 void defgroup_unique_name (bDeformGroup *dg, Object *ob)
@@ -423,29 +484,61 @@ void flip_side_name (char *name, const char *from_name, int strip_number)
 	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
-
-
 float defvert_find_weight(const struct MDeformVert *dvert, int group_num)
 {
-	if(dvert)
-	{
-		const MDeformWeight *dw = dvert->dw;
-		int i;
-
-		for(i=dvert->totweight; i>0; i--, dw++)
-			if(dw->def_nr == group_num)
-				return dw->weight;
-	}
-
-	/* Not found */
-	return 0.0;
+	MDeformWeight *dw= defvert_find_index(dvert, group_num);
+	return dw ? dw->weight : 1.0f;
 }
 
-float defvert_find_weight_safe(const struct MDeformVert *dvert, int index, int group_num)
+float defvert_array_find_weight_safe(const struct MDeformVert *dvert, int index, int group_num)
 {
 	if(group_num == -1 || dvert == NULL)
-		return 1.0;
+		return 1.0f;
 
 	return defvert_find_weight(dvert+index, group_num);
 }
 
+
+MDeformWeight *defvert_find_index(const MDeformVert *dvert, int defgroup)
+{
+	if(dvert && defgroup >= 0) {
+		MDeformWeight *dw = dvert->dw;
+		int i;
+
+		for(i=dvert->totweight; i>0; i--, dw++)
+			if(dw->def_nr == defgroup)
+				return dw;
+	}
+
+	return NULL;
+}
+
+/* Ensures that mv has a deform weight entry for the specified defweight group */
+/* Note this function is mirrored in editmesh_tools.c, for use for editvertices */
+MDeformWeight *defvert_verify_index(MDeformVert *dv, int defgroup)
+{
+	MDeformWeight *newdw;
+
+	/* do this check always, this function is used to check for it */
+	if(!dv || defgroup<0)
+		return NULL;
+
+	newdw = defvert_find_index(dv, defgroup);
+	if(newdw)
+		return newdw;
+
+	newdw = MEM_callocN(sizeof(MDeformWeight)*(dv->totweight+1), "deformWeight");
+	if(dv->dw) {
+		memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
+		MEM_freeN(dv->dw);
+	}
+	dv->dw=newdw;
+
+	dv->dw[dv->totweight].weight=0.0f;
+	dv->dw[dv->totweight].def_nr=defgroup;
+	/* Group index */
+
+	dv->totweight++;
+
+	return dv->dw+(dv->totweight-1);
+}

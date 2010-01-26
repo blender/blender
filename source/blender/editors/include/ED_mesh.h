@@ -195,9 +195,6 @@ void		ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum
 void		ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 float		ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 
-struct MDeformWeight	*ED_vgroup_weight_verify(struct MDeformVert *dv, int defgroup);
-struct MDeformWeight	*ED_vgroup_weight_get(struct MDeformVert *dv, int defgroup);
-
 /*needed by edge slide*/
 struct EditVert *editedge_getOtherVert(struct EditEdge *eed, struct EditVert *eve);
 struct EditVert *editedge_getSharedVert(struct EditEdge *eed, struct EditEdge *eed2);

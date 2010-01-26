@@ -435,9 +435,9 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 			faceverts[3]= mface->v4;
 			for (i=0; i<3 || faceverts[i]; i++) {
 				if(!((me->dvert+faceverts[i])->flag)) {
-					dw= ED_vgroup_weight_verify(me->dvert+faceverts[i], vgroup);
+					dw= defvert_verify_index(me->dvert+faceverts[i], vgroup);
 					if(dw) {
-						uw= ED_vgroup_weight_verify(wp->wpaint_prev+faceverts[i], vgroup);
+						uw= defvert_verify_index(wp->wpaint_prev+faceverts[i], vgroup);
 						uw->weight= dw->weight; /* set the undo weight */
 						dw->weight= paintweight;
 						
@@ -446,11 +446,11 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 							if(j>=0) {
 								/* copy, not paint again */
 								if(vgroup_mirror != -1) {
-									dw= ED_vgroup_weight_verify(me->dvert+j, vgroup_mirror);
-									uw= ED_vgroup_weight_verify(wp->wpaint_prev+j, vgroup_mirror);
+									dw= defvert_verify_index(me->dvert+j, vgroup_mirror);
+									uw= defvert_verify_index(wp->wpaint_prev+j, vgroup_mirror);
 								} else {
-									dw= ED_vgroup_weight_verify(me->dvert+j, vgroup);
-									uw= ED_vgroup_weight_verify(wp->wpaint_prev+j, vgroup);
+									dw= defvert_verify_index(me->dvert+j, vgroup);
+									uw= defvert_verify_index(wp->wpaint_prev+j, vgroup);
 								}
 								uw->weight= dw->weight; /* set the undo weight */
 								dw->weight= paintweight;
@@ -989,20 +989,20 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 				
 				fac= MIN4(w1, w2, w3, w4);
 				if(w1==fac) {
-					dw= ED_vgroup_weight_get(me->dvert+mface->v1, ob->actdef-1);
+					dw= defvert_find_index(me->dvert+mface->v1, ob->actdef-1);
 					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w2==fac) {
-					dw= ED_vgroup_weight_get(me->dvert+mface->v2, ob->actdef-1);
+					dw= defvert_find_index(me->dvert+mface->v2, ob->actdef-1);
 					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w3==fac) {
-					dw= ED_vgroup_weight_get(me->dvert+mface->v3, ob->actdef-1);
+					dw= defvert_find_index(me->dvert+mface->v3, ob->actdef-1);
 					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w4==fac) {
 					if(mface->v4) {
-						dw= ED_vgroup_weight_get(me->dvert+mface->v4, ob->actdef-1);
+						dw= defvert_find_index(me->dvert+mface->v4, ob->actdef-1);
 						if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 					}
 				}
@@ -1058,12 +1058,12 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	int vgroup= ob->actdef-1;
 	
 	if(wp->flag & VP_ONLYVGROUP) {
-		dw= ED_vgroup_weight_get(me->dvert+index, vgroup);
-		uw= ED_vgroup_weight_get(wp->wpaint_prev+index, vgroup);
+		dw= defvert_find_index(me->dvert+index, vgroup);
+		uw= defvert_find_index(wp->wpaint_prev+index, vgroup);
 	}
 	else {
-		dw= ED_vgroup_weight_verify(me->dvert+index, vgroup);
-		uw= ED_vgroup_weight_verify(wp->wpaint_prev+index, vgroup);
+		dw= defvert_verify_index(me->dvert+index, vgroup);
+		uw= defvert_verify_index(wp->wpaint_prev+index, vgroup);
 	}
 	if(dw==NULL || uw==NULL)
 		return;
@@ -1076,9 +1076,9 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 		if(j>=0) {
 			/* copy, not paint again */
 			if(vgroup_mirror != -1)
-				uw= ED_vgroup_weight_verify(me->dvert+j, vgroup_mirror);
+				uw= defvert_verify_index(me->dvert+j, vgroup_mirror);
 			else
-				uw= ED_vgroup_weight_verify(me->dvert+j, vgroup);
+				uw= defvert_verify_index(me->dvert+j, vgroup);
 				
 			uw->weight= dw->weight;
 
@@ -1538,10 +1538,10 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if(mface->v4) (me->dvert+mface->v4)->flag= 1;
 					
 			if(brush->vertexpaint_tool==VP_BLUR) {
-				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = ED_vgroup_weight_verify;
+				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = defvert_verify_index;
 						
 				if(wp->flag & VP_ONLYVGROUP)
-					dw_func= ED_vgroup_weight_get;
+					dw_func= defvert_find_index;
 						
 				dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
 				if(dw) {paintweight+= dw->weight; totw++;}

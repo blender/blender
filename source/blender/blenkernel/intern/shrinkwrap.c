@@ -184,7 +184,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	{
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
-		float weight = defvert_find_weight_safe(calc->dvert, i, calc->vgroup);
+		float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 		if(weight == 0.0f) continue;
 
 
@@ -356,7 +356,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 		{
 			float *co = calc->vertexCos[i];
 			float tmp_co[3], tmp_no[3];
-			float weight = defvert_find_weight_safe(calc->dvert, i, calc->vgroup);
+			float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 
 			if(weight == 0.0f) continue;
 
@@ -447,7 +447,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	{
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
-		float weight = defvert_find_weight_safe(calc->dvert, i, calc->vgroup);
+		float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 		if(weight == 0.0f) continue;
 
 		//Convert the vertex to tree coordinates

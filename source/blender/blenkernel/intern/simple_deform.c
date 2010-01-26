@@ -227,7 +227,7 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 
 	for(i=0; i<numVerts; i++)
 	{
-		float weight = defvert_find_weight_safe(dvert, i, vgroup);
+		float weight = defvert_array_find_weight_safe(dvert, i, vgroup);
 
 		if(weight != 0.0f)
 		{
