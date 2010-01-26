@@ -789,7 +789,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, v
 				PyErr_Format(PyExc_TypeError, "%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(ptype));
 				return -1;
 			} else if((flag & PROP_NEVER_NULL) && value == Py_None) {
-				PyErr_Format(PyExc_TypeError, "%.200s does not suppory a 'None' assignment %.200s type", error_prefix, RNA_struct_identifier(ptype));
+				PyErr_Format(PyExc_TypeError, "%.200s does not support a 'None' assignment %.200s type", error_prefix, RNA_struct_identifier(ptype));
 				return -1;
 			} else {
 				BPy_StructRNA *param= (BPy_StructRNA*)value;
