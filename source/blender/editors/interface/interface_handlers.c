@@ -3664,7 +3664,10 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		int w = uiLayoutGetWidth(layout);
 		wmKeyMap *km;
 		int kmi_id= WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, 1, &km);
-		wmKeyMapItem *kmi = WM_keymap_item_find_id(km, kmi_id);
+		wmKeyMapItem *kmi;
+		
+		if (kmi_id)
+			kmi= WM_keymap_item_find_id(km, kmi_id);
 
 		/* keyboard shortcuts */
 		if ((kmi) && ISKEYBOARD(kmi->type)) {
