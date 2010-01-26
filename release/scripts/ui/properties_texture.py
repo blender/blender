@@ -121,13 +121,8 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
         
         if wide_ui:
             col = split.column()
-        
-        if (not space.pin_id) and (
-            context.sculpt_object or
-            context.vertex_paint_object or
-            context.weight_paint_object or
-            context.texture_paint_object):
 
+        if not space.pin_id:
             col.prop(space, "brush_texture", text="Brush", toggle=True)
 
         if tex:
