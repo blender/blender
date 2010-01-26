@@ -149,7 +149,7 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 	float smd_limit[2], smd_factor;
 	SpaceTransform *transf = NULL, tmp_transf;
 	void (*simpleDeform_callback)(const float factor, const float dcut[3], float *co) = NULL;	//Mode callback
-	int vgroup = get_named_vertexgroup_num(ob, smd->vgroup_name);
+	int vgroup = defgroup_name_index(ob, smd->vgroup_name);
 	MDeformVert *dvert = NULL;
 
 	//Safe-check
@@ -227,7 +227,7 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 
 	for(i=0; i<numVerts; i++)
 	{
-		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
+		float weight = defvert_find_weight_safe(dvert, i, vgroup);
 
 		if(weight != 0.0f)
 		{

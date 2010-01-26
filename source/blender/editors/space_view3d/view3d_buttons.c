@@ -523,7 +523,7 @@ static void vgroup_copy_active_to_sel(Object *ob)
 			if(eve->f & SELECT && eve != eve_act) {
 				dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 				if(dvert)
-					copy_defvert(dvert, dvert_act);
+					defvert_copy(dvert, dvert_act);
 			}
 		}
 	}
@@ -584,7 +584,7 @@ static void vgroup_normalize_active(Object *ob)
 	if(dvert_act==NULL)
 		return;
 
-	normalize_defvert(dvert_act);
+	defvert_normalize(dvert_act);
 }
 
 static void do_view3d_vgroup_buttons(bContext *C, void *arg, int event)

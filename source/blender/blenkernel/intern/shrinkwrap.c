@@ -184,7 +184,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	{
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
-		float weight = vertexgroup_get_vertex_weight(calc->dvert, i, calc->vgroup);
+		float weight = defvert_find_weight_safe(calc->dvert, i, calc->vgroup);
 		if(weight == 0.0f) continue;
 
 
@@ -356,7 +356,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 		{
 			float *co = calc->vertexCos[i];
 			float tmp_co[3], tmp_no[3];
-			float weight = vertexgroup_get_vertex_weight(calc->dvert, i, calc->vgroup);
+			float weight = defvert_find_weight_safe(calc->dvert, i, calc->vgroup);
 
 			if(weight == 0.0f) continue;
 
@@ -447,7 +447,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	{
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
-		float weight = vertexgroup_get_vertex_weight(calc->dvert, i, calc->vgroup);
+		float weight = defvert_find_weight_safe(calc->dvert, i, calc->vgroup);
 		if(weight == 0.0f) continue;
 
 		//Convert the vertex to tree coordinates
@@ -519,7 +519,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object
 	calc.vertexCos = vertexCos;
 
 	//DeformVertex
-	calc.vgroup = get_named_vertexgroup_num(calc.ob, calc.smd->vgroup_name);
+	calc.vgroup = defgroup_name_index(calc.ob, calc.smd->vgroup_name);
 	if(dm)
 	{
 		calc.dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -545,7 +545,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object
 
 
 
-	calc.vgroup = get_named_vertexgroup_num(calc.ob, smd->vgroup_name);
+	calc.vgroup = defgroup_name_index(calc.ob, smd->vgroup_name);
 
 	if(dm != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
 	{

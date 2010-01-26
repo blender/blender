@@ -67,19 +67,19 @@
 #endif
 
 
-void copy_defgroups (ListBase *outbase, ListBase *inbase)
+void defgroup_copy_list (ListBase *outbase, ListBase *inbase)
 {
 	bDeformGroup *defgroup, *defgroupn;
 
 	outbase->first= outbase->last= 0;
 
 	for (defgroup = inbase->first; defgroup; defgroup=defgroup->next){
-		defgroupn= copy_defgroup(defgroup);
+		defgroupn= defgroup_duplicate(defgroup);
 		BLI_addtail(outbase, defgroupn);
 	}
 }
 
-bDeformGroup *copy_defgroup (bDeformGroup *ingroup)
+bDeformGroup *defgroup_duplicate (bDeformGroup *ingroup)
 {
 	bDeformGroup *outgroup;
 
@@ -96,7 +96,7 @@ bDeformGroup *copy_defgroup (bDeformGroup *ingroup)
 	return outgroup;
 }
 
-void copy_defvert (MDeformVert *dvert_r, const MDeformVert *dvert)
+void defvert_copy (MDeformVert *dvert_r, const MDeformVert *dvert)
 {
 	if(dvert_r->totweight == dvert->totweight) {
 		if(dvert->totweight)
@@ -115,7 +115,7 @@ void copy_defvert (MDeformVert *dvert_r, const MDeformVert *dvert)
 	}
 }
 
-void normalize_defvert (MDeformVert *dvert)
+void defvert_normalize (MDeformVert *dvert)
 {
 	if(dvert->totweight<=0) {
 		/* nothing */
@@ -137,7 +137,7 @@ void normalize_defvert (MDeformVert *dvert)
 	}
 }
 
-void flip_defvert (MDeformVert *dvert, int *flip_map)
+void defvert_flip (MDeformVert *dvert, int *flip_map)
 {
 	MDeformWeight *dw;
 	int i;
@@ -148,7 +148,7 @@ void flip_defvert (MDeformVert *dvert, int *flip_map)
 }
 
 
-bDeformGroup *get_named_vertexgroup (Object *ob, char *name)
+bDeformGroup *defgroup_find_name (Object *ob, char *name)
 {
 	/* return a pointer to the deform group with this name
 	 * or return NULL otherwise.
@@ -163,11 +163,11 @@ bDeformGroup *get_named_vertexgroup (Object *ob, char *name)
 	return NULL;
 }
 
-int get_named_vertexgroup_num (Object *ob, const char *name)
+int defgroup_name_index (Object *ob, const char *name)
 {
 	/* Return the location of the named deform group within the list of
-	 * deform groups. This function is a combination of get_defgroup_num and
-	 * get_named_vertexgroup. The other two could be called instead, but that
+	 * deform groups. This function is a combination of defgroup_find_index and
+	 * defgroup_find_name. The other two could be called instead, but that
 	 * require looping over the vertexgroups twice.
 	 */
 	bDeformGroup *curdef;
@@ -183,7 +183,7 @@ int get_named_vertexgroup_num (Object *ob, const char *name)
 	return -1;
 }
 
-int get_defgroup_num (Object *ob, bDeformGroup *dg)
+int defgroup_find_index (Object *ob, bDeformGroup *dg)
 {
 	/* Fetch the location of this deform group
 	 * within the linked list of deform groups.
@@ -225,7 +225,7 @@ int get_defgroup_num (Object *ob, bDeformGroup *dg)
 }
 
 /* note, must be freed */
-int *get_defgroup_flip_map(Object *ob)
+int *defgroup_flip_map(Object *ob)
 {
 	bDeformGroup *dg;
 	int totdg= BLI_countlist(&ob->defbase);
@@ -240,9 +240,9 @@ int *get_defgroup_flip_map(Object *ob)
 
 		for (dg=ob->defbase.first, i=0; dg; dg=dg->next, i++) {
 			if(map[i] == -1) { /* may be calculated previously */
-				flip_vertexgroup_name(name, dg->name, 0);
+				flip_side_name(name, dg->name, 0);
 				if(strcmp(name, dg->name)) {
-					flip_num= get_named_vertexgroup_num(ob, name);
+					flip_num= defgroup_name_index(ob, name);
 					if(flip_num > -1) {
 						map[i]= flip_num;
 						map[flip_num]= i; /* save an extra lookup */
@@ -254,7 +254,7 @@ int *get_defgroup_flip_map(Object *ob)
 	}
 }
 
-void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
+void defgroup_unique_name (bDeformGroup *dg, Object *ob)
 {
 	bDeformGroup *curdef;
 	int number;
@@ -311,7 +311,7 @@ void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
 
 /* finds the best possible flipped name. For renaming; check for unique names afterwards */
 /* if strip_number: removes number extensions */
-void flip_vertexgroup_name (char *name, const char *from_name, int strip_number)
+void flip_side_name (char *name, const char *from_name, int strip_number)
 {
 	int     len;
 	char    prefix[sizeof((bDeformGroup *)NULL)->name]={""};   /* The part before the facing */
@@ -425,7 +425,7 @@ void flip_vertexgroup_name (char *name, const char *from_name, int strip_number)
 
 
 
-float deformvert_get_weight(const struct MDeformVert *dvert, int group_num)
+float defvert_find_weight(const struct MDeformVert *dvert, int group_num)
 {
 	if(dvert)
 	{
@@ -441,11 +441,11 @@ float deformvert_get_weight(const struct MDeformVert *dvert, int group_num)
 	return 0.0;
 }
 
-float vertexgroup_get_vertex_weight(const struct MDeformVert *dvert, int index, int group_num)
+float defvert_find_weight_safe(const struct MDeformVert *dvert, int index, int group_num)
 {
 	if(group_num == -1 || dvert == NULL)
 		return 1.0;
 
-	return deformvert_get_weight(dvert+index, group_num);
+	return defvert_find_weight(dvert+index, group_num);
 }
 

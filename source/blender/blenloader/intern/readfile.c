@@ -7813,10 +7813,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 			if(ob->soft && ob->soft->vertgroup==0) {
-				bDeformGroup *locGroup = get_named_vertexgroup(ob, "SOFTGOAL");
+				bDeformGroup *locGroup = defgroup_find_name(ob, "SOFTGOAL");
 				if(locGroup){
 					/* retrieve index for that group */
-					ob->soft->vertgroup =  1 + get_defgroup_num(ob, locGroup); 
+					ob->soft->vertgroup =  1 + defgroup_find_index(ob, locGroup); 
 				}
 			}
 		}
@@ -8502,7 +8502,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for(curdef= ob->defbase.first; curdef; curdef=curdef->next) {
 				/* replace an empty-string name with unique name */
 				if (curdef->name[0] == '\0') {
-					unique_vertexgroup_name(curdef, ob);
+					defgroup_unique_name(curdef, ob);
 				}
 			}
 

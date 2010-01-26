@@ -1394,11 +1394,11 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 				bPoseChannel *pchan= get_pose_channel(modob->pose, actbone->name);
 
 				if(pchan) {
-					bDeformGroup *dg= get_named_vertexgroup(ob, pchan->name);
+					bDeformGroup *dg= defgroup_find_name(ob, pchan->name);
 					if(dg==NULL)
 						dg= ED_vgroup_add_name(ob, pchan->name);	/* sets actdef */
 					else
-						ob->actdef= 1 + get_defgroup_num(ob, dg);
+						ob->actdef= 1 + defgroup_find_index(ob, dg);
 				}
 			}
 		}

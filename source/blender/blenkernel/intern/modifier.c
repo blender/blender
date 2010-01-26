@@ -867,7 +867,7 @@ static DerivedMesh *maskModifier_applyModifier(ModifierData *md, Object *ob,
 	}
 	else		/* --- Using Nominated VertexGroup only --- */ 
 	{
-		int defgrp_index = get_named_vertexgroup_num(ob, mmd->vgroup);
+		int defgrp_index = defgroup_name_index(ob, mmd->vgroup);
 		
 		/* get dverts */
 		if (defgrp_index >= 0)
@@ -1812,7 +1812,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 
 	if (do_vgroup_mirr) {
-		flip_map= get_defgroup_flip_map(ob);
+		flip_map= defgroup_flip_map(ob);
 		if(flip_map == NULL)
 			do_vgroup_mirr= 0;
 	}
@@ -1874,7 +1874,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			if (do_vgroup_mirr) {
 				MDeformVert *dvert= DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
 				if(dvert) {
-					flip_defvert(dvert, flip_map);
+					defvert_flip(dvert, flip_map);
 				}
 			}
 
@@ -3298,7 +3298,7 @@ static DerivedMesh *bevelModifier_applyModifier(
 	options = bmd->flags|bmd->val_flags|bmd->lim_flags|bmd->e_flags;
 
 	/*if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
-		defgrp_index = get_named_vertexgroup_num(ob, bmd->defgrp_name);
+		defgrp_index = defgroup_name_index(ob, bmd->defgrp_name);
 		if (defgrp_index < 0) {
 			options &= ~BME_BEVEL_VWEIGHT;
 		}
@@ -3553,7 +3553,7 @@ static void displaceModifier_do(
 
 	if(!dmd->texture) return;
 
-	defgrp_index = get_named_vertexgroup_num(ob, dmd->defgrp_name);
+	defgrp_index = defgroup_name_index(ob, dmd->defgrp_name);
 
 	mvert = CDDM_get_verts(dm);
 	if(defgrp_index >= 0)
@@ -4169,7 +4169,7 @@ static void smoothModifier_do(
 	medges = dm->getEdgeArray(dm);
 	numDMEdges = dm->getNumEdges(dm);
 
-	defgrp_index = get_named_vertexgroup_num(ob, smd->defgrp_name);
+	defgrp_index = defgroup_name_index(ob, smd->defgrp_name);
 
 	if (defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -4424,7 +4424,7 @@ static void castModifier_sphere_do(
 
 	/* 3) if we were given a vertex group name,
 	* only those vertices should be affected */
-	defgrp_index = get_named_vertexgroup_num(ob, cmd->defgrp_name);
+	defgrp_index = defgroup_name_index(ob, cmd->defgrp_name);
 
 	if ((ob->type == OB_MESH) && dm && defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -4582,7 +4582,7 @@ static void castModifier_cuboid_do(
 
 	/* 3) if we were given a vertex group name,
 	* only those vertices should be affected */
-	defgrp_index = get_named_vertexgroup_num(ob, cmd->defgrp_name);
+	defgrp_index = defgroup_name_index(ob, cmd->defgrp_name);
 
 	if ((ob->type == OB_MESH) && dm && defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -5080,7 +5080,7 @@ static void waveModifier_do(WaveModifierData *md,
 	}
 
 	/* get the index of the deform group */
-	defgrp_index = get_named_vertexgroup_num(ob, wmd->defgrp_name);
+	defgrp_index = defgroup_name_index(ob, wmd->defgrp_name);
 
 	if(defgrp_index >= 0){
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -5511,7 +5511,7 @@ static void hookModifier_deformVerts(
 		Mesh *me = ob->data;
 		int use_dverts = 0;
 		int maxVerts = 0;
-		int defgrp_index = get_named_vertexgroup_num(ob, hmd->name);
+		int defgrp_index = defgroup_name_index(ob, hmd->name);
 
 		if(dm) {
 			if(dm->getVertData(dm, 0, CD_MDEFORMVERT)) {
@@ -7123,7 +7123,7 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 			for(i=0; i<totvert; i++){
 				val = BLI_frand();
 				val = (1.0f-emd->protect)*val + emd->protect*0.5f;
-				if(val < deformvert_get_weight(dvert+i,emd->vgroup-1))
+				if(val < defvert_find_weight(dvert+i,emd->vgroup-1))
 					vertpa[i] = -1;
 			}
 		}
@@ -8164,7 +8164,7 @@ static void meshdeformModifier_do(
 			VECCOPY(dco[a], co)
 	}
 
-	defgrp_index = get_named_vertexgroup_num(ob, mmd->defgrp_name);
+	defgrp_index = defgroup_name_index(ob, mmd->defgrp_name);
 
 	if (defgrp_index >= 0)
 		dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);

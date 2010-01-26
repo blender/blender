@@ -4773,7 +4773,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 		else {
 			switch(tselem->type) {
 			case TSE_DEFGROUP:
-				unique_vertexgroup_name(te->directdata, (Object *)tselem->id); //	id = object
+				defgroup_unique_name(te->directdata, (Object *)tselem->id); //	id = object
 				break;
 			case TSE_NLA_ACTION:
 				test_idbutton(tselem->id->name+2);

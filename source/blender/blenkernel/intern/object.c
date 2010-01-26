@@ -1286,7 +1286,7 @@ Object *copy_object(Object *ob)
 		if(ob->type==OB_ARMATURE)
 			armature_rebuild_pose(obn, obn->data);
 	}
-	copy_defgroups(&obn->defbase, &ob->defbase);
+	defgroup_copy_list(&obn->defbase, &ob->defbase);
 	copy_constraints(&obn->constraints, &ob->constraints);
 
 	obn->mode = 0;

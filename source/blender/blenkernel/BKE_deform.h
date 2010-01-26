@@ -40,21 +40,24 @@ struct ListBase;
 struct bDeformGroup;
 struct MDeformVert;
 
-void copy_defgroups (struct ListBase *lb1, struct ListBase *lb2);
-struct bDeformGroup *copy_defgroup (struct bDeformGroup *ingroup);
-struct bDeformGroup *get_named_vertexgroup (Object *ob, char *name);
-int get_defgroup_num (struct Object *ob, struct bDeformGroup *dg);
-int *get_defgroup_flip_map(struct Object *ob);
-int get_named_vertexgroup_num (Object *ob, const char *name);
-void unique_vertexgroup_name (struct bDeformGroup *dg, struct Object *ob);
-void flip_vertexgroup_name (char *name, const char *from_name, int strip_number);
+void				 defgroup_copy_list(struct ListBase *lb1, struct ListBase *lb2);
+struct bDeformGroup *defgroup_duplicate(struct bDeformGroup *ingroup);
+struct bDeformGroup *defgroup_find_name(Object *ob, char *name);
+int					 defgroup_find_index(struct Object *ob, struct bDeformGroup *dg);
+int					*defgroup_flip_map(struct Object *ob);
+int					 defgroup_name_index(Object *ob, const char *name);
+void				 defgroup_unique_name(struct bDeformGroup *dg, struct Object *ob);
 
-float deformvert_get_weight(const struct MDeformVert *dvert, int group_num);
-float vertexgroup_get_vertex_weight(const struct MDeformVert *dvert, int index, int group_num);
+float defvert_find_weight(const struct MDeformVert *dvert, int group_num);
+float defvert_find_weight_safe(const struct MDeformVert *dvert, int index, int group_num);
 
-void copy_defvert (struct MDeformVert *dvert_r, const struct MDeformVert *dvert);
-void flip_defvert (struct MDeformVert *dvert, int *flip_map);
-void normalize_defvert (struct MDeformVert *dvert);
+void defvert_copy(struct MDeformVert *dvert_r, const struct MDeformVert *dvert);
+void defvert_flip(struct MDeformVert *dvert, int *flip_map);
+void defvert_normalize(struct MDeformVert *dvert);
+
+/* utility function, note that 32 chars is the maximum string length since its only
+ * used with defgroups currently */
+void flip_side_name(char *name, const char *from_name, int strip_number);
 
 #endif
 

@@ -142,7 +142,7 @@ bDeformGroup *ED_vgroup_add_name(Object *ob, char *name)
 	BLI_strncpy(defgroup->name, name, 32);
 
 	BLI_addtail(&ob->defbase, defgroup);
-	unique_vertexgroup_name(defgroup, ob);
+	defgroup_unique_name(defgroup, ob);
 
 	ob->actdef = BLI_countlist(&ob->defbase);
 
@@ -362,7 +362,7 @@ void ED_vgroup_vert_add(Object *ob, bDeformGroup *dg, int vertnum, float weight,
 	/* get the deform group number, exit if
 	 * it can't be found
 	 */
-	def_nr = get_defgroup_num(ob, dg);
+	def_nr = defgroup_find_index(ob, dg);
 	if(def_nr < 0) return;
 
 	/* if there's no deform verts then create some,
@@ -393,7 +393,7 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup	*dg, int vertnum)
 	 * to this deform group, and abort if it
 	 * can not be found.
 	 */
-	def_nr = get_defgroup_num(ob, dg);
+	def_nr = defgroup_find_index(ob, dg);
 	if(def_nr < 0) return;
 
 	/* call another routine to do the work
@@ -446,7 +446,7 @@ float ED_vgroup_vert_weight(Object *ob, bDeformGroup *dg, int vertnum)
 
 	if(!ob) return 0.0f;
 
-	def_nr = get_defgroup_num(ob, dg);
+	def_nr = defgroup_find_index(ob, dg);
 	if(def_nr < 0) return 0.0f;
 
 	return get_vert_def_nr(ob, def_nr, vertnum);
@@ -541,7 +541,7 @@ static void vgroup_duplicate(Object *ob)
 	}
 	else {
 		BLI_snprintf(name, 32, "%s_copy", dg->name);
-		while(get_named_vertexgroup(ob, name)) {
+		while(defgroup_find_name(ob, name)) {
 			if((strlen(name) + 6) > 32) {
 				if (G.f & G_DEBUG)
 					printf("Internal error: the name for the new vertex group is > 32 characters");
@@ -552,9 +552,9 @@ static void vgroup_duplicate(Object *ob)
 		}
 	}		
 
-	cdg = copy_defgroup(dg);
+	cdg = defgroup_duplicate(dg);
 	strcpy(cdg->name, name);
-	unique_vertexgroup_name(cdg, ob);
+	defgroup_unique_name(cdg, ob);
 	
 	BLI_addtail(&ob->defbase, cdg);
 
@@ -923,7 +923,7 @@ void ED_vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))
 			return;
 
-		flip_map= get_defgroup_flip_map(ob);
+		flip_map= defgroup_flip_map(ob);
 
 		/* Go through the list of editverts and assign them */
 		for(eve=em->verts.first; eve; eve=eve->next){
@@ -937,8 +937,8 @@ void ED_vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 							if(mirror_weights)
 								SWAP(MDeformVert, *dvert, *dvert_mirr);
 							if(flip_vgroups) {
-								flip_defvert(dvert, flip_map);
-								flip_defvert(dvert_mirr, flip_map);
+								defvert_flip(dvert, flip_map);
+								defvert_flip(dvert_mirr, flip_map);
 							}
 						}
 						else {
@@ -948,9 +948,9 @@ void ED_vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 							}
 
 							if(mirror_weights)
-								copy_defvert(dvert, dvert_mirr);
+								defvert_copy(dvert, dvert_mirr);
 							if(flip_vgroups) {
-								flip_defvert(dvert, flip_map);
+								defvert_flip(dvert, flip_map);
 							}
 						}
 					}

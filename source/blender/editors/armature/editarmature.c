@@ -4489,7 +4489,7 @@ static int ED_vgroup_add_unique_bone(Object *ob, Bone *bone, void *data)
 	 * If such a vertex group aleady exist the routine exits.
       */
 	if (!(bone->flag & BONE_NO_DEFORM)) {
-		if (!get_named_vertexgroup(ob,bone->name)) {
+		if (!defgroup_find_name(ob,bone->name)) {
 			ED_vgroup_add_name(ob, bone->name);
 			return 1;
 		}
@@ -4533,7 +4533,7 @@ static int dgroup_skinnable(Object *ob, Bone *bone, void *datap)
 			else
 				segments = 1;
 			
-			if (!(defgroup = get_named_vertexgroup(ob, bone->name)))
+			if (!(defgroup = defgroup_find_name(ob, bone->name)))
 				defgroup = ED_vgroup_add_name(ob, bone->name);
 			
 			if (data->list != NULL) {
