@@ -430,6 +430,8 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(const bContext *C, ListBase *h
 		}
 	}
 	
+	/* ensure un-initialized keymap is never used */
+	if(keymap_r) *keymap_r= NULL;
 	return NULL;
 }
 
