@@ -797,8 +797,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			if (md->type==eModifierType_ParticleSystem) {
 		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
 				
-	    		if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
-					if(ELEM3(psys->part->ren_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
+	    		if (!(ob->mode & OB_MODE_PARTICLE_EDIT) && psys->pathcache) {
+					if(ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB))
+						uiItemO(row, "Convert", 0, "OBJECT_OT_duplicates_make_real");
+					else if(psys->part->ren_as == PART_DRAW_PATH)
 						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
 				}
 			}

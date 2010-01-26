@@ -1152,7 +1152,6 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_duplicates_make_real";
 	
 	/* api callbacks */
-	ot->invoke= WM_operator_confirm;
 	ot->exec= object_duplicates_make_real_exec;
 	
 	ot->poll= ED_operator_scene_editable;

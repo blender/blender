@@ -265,78 +265,73 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 	psys=((ParticleSystemModifierData *)md)->psys;
 	part= psys->part;
 
-	if(part->ren_as == PART_DRAW_GR || part->ren_as == PART_DRAW_OB) {
-		; // XXX make_object_duplilist_real(NULL);
+	if(part->ren_as != PART_DRAW_PATH || psys->pathcache == 0)
+		return 0;
+
+	totpart= psys->totcached;
+	totchild= psys->totchildcache;
+
+	if(totchild && (part->draw&PART_DRAW_PARENT)==0)
+		totpart= 0;
+
+	/* count */
+	cache= psys->pathcache;
+	for(a=0; a<totpart; a++) {
+		key= cache[a];
+		totvert+= key->steps+1;
+		totedge+= key->steps;
 	}
-	else {
-		if(part->ren_as != PART_DRAW_PATH || psys->pathcache == 0)
-			return 0;
 
-		totpart= psys->totcached;
-		totchild= psys->totchildcache;
+	cache= psys->childcache;
+	for(a=0; a<totchild; a++) {
+		key= cache[a];
+		totvert+= key->steps+1;
+		totedge+= key->steps;
+	}
 
-		if(totchild && (part->draw&PART_DRAW_PARENT)==0)
-			totpart= 0;
+	if(totvert==0) return 0;
 
-		/* count */
-		cache= psys->pathcache;
-		for(a=0; a<totpart; a++) {
-			key= cache[a];
-			totvert+= key->steps+1;
-			totedge+= key->steps;
-		}
+	/* add new mesh */
+	obn= add_object(scene, OB_MESH);
+	me= obn->data;
+	
+	me->totvert= totvert;
+	me->totedge= totedge;
+	
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
+	me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
+	
+	mvert= me->mvert;
+	medge= me->medge;
 
-		cache= psys->childcache;
-		for(a=0; a<totchild; a++) {
-			key= cache[a];
-			totvert+= key->steps+1;
-			totedge+= key->steps;
-		}
-
-		if(totvert==0) return 0;
-
-		/* add new mesh */
-		obn= add_object(scene, OB_MESH);
-		me= obn->data;
-		
-		me->totvert= totvert;
-		me->totedge= totedge;
-		
-		me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
-		me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
-		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
-		
-		mvert= me->mvert;
-		medge= me->medge;
-
-		/* copy coordinates */
-		cache= psys->pathcache;
-		for(a=0; a<totpart; a++) {
-			key= cache[a];
-			kmax= key->steps;
-			for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
-				VECCOPY(mvert->co,key->co);
-				if(k) {
-					medge->v1= cvert-1;
-					medge->v2= cvert;
-					medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
-					medge++;
-				}
+	/* copy coordinates */
+	cache= psys->pathcache;
+	for(a=0; a<totpart; a++) {
+		key= cache[a];
+		kmax= key->steps;
+		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
+			VECCOPY(mvert->co,key->co);
+			if(k) {
+				medge->v1= cvert-1;
+				medge->v2= cvert;
+				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+				medge++;
 			}
 		}
+	}
 
-		cache=psys->childcache;
-		for(a=0; a<totchild; a++) {
-			key=cache[a];
-			kmax=key->steps;
-			for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
-				VECCOPY(mvert->co,key->co);
-				if(k) {
-					medge->v1=cvert-1;
-					medge->v2=cvert;
-					medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
-					medge++;
-				}
+	cache=psys->childcache;
+	for(a=0; a<totchild; a++) {
+		key=cache[a];
+		kmax=key->steps;
+		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
+			VECCOPY(mvert->co,key->co);
+			if(k) {
+				medge->v1=cvert-1;
+				medge->v2=cvert;
+				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+				medge++;
 			}
 		}
 	}
