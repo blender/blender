@@ -785,6 +785,12 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, v
 			StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
 			int flag = RNA_property_flag(prop);
 
+			/* if property is an OperatorProperties pointer and value is a map, forward back to pyrna_pydict_to_props */
+			if (RNA_struct_is_a(ptype, &RNA_OperatorProperties) && PyDict_Check(value)) {
+				PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
+				return pyrna_pydict_to_props(&opptr, value, 0, error_prefix);
+			}
+
 			if(!BPy_StructRNA_Check(value) && value != Py_None) {
 				PyErr_Format(PyExc_TypeError, "%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(ptype));
 				return -1;
