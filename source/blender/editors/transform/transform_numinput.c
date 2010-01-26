@@ -178,6 +178,8 @@ char handleNumInput(NumInput *n, wmEvent *event, float increment)
 
 	        n->val[idx] -= increment;
 			break;
+		default:
+			return 0;
 		}
 	} else {
 		switch (event->type) {
