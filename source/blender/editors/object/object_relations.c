@@ -91,6 +91,7 @@
 #include "ED_curve.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_view3d.h"
 
 #include "object_intern.h"
 
@@ -1826,4 +1827,42 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "material", 0, "Materials", "Make materials local to each datablock");
 	RNA_def_boolean(ot->srna, "texture", 0, "Textures", "Make textures local to each material");
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation Data", "Make animation data local to each object");
+}
+
+static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Base *base= ED_view3d_give_base_under_cursor(C, event->mval);
+	Material *ma;
+	char name[32];
+	
+	RNA_string_get(op->ptr, "name", name);
+	ma= (Material *)find_id("MA", name);
+	if(base==NULL || ma==NULL) 
+		return OPERATOR_CANCELLED;
+	
+	assign_material(base->object, ma, 1);
+	
+	WM_event_add_notifier(C, NC_OBJECT|ND_SHADING, base->object);
+	return OPERATOR_FINISHED;
+}
+
+/* used for dropbox */
+/* assigns to object under cursor, only first material slot */
+void OBJECT_OT_drop_named_material(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name= "Drop Named Material on Object";
+	ot->description = "";
+	ot->idname= "OBJECT_OT_drop_named_material";
+	
+	/* api callbacks */
+	ot->invoke= drop_named_material_invoke;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_string(ot->srna, "name", "Material", 24, "Name", "Material name to assign.");
 }

@@ -821,6 +821,7 @@ void GHOST_WindowWin32::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 			case GHOST_kStandardCursorBottomRightCorner:	id = IDC_SIZENWSE;	break;
 			case GHOST_kStandardCursorBottomLeftCorner:	id = IDC_SIZENESW;	break;
 			case GHOST_kStandardCursorPencil:		id = IDC_ARROW; 	break;
+			case GHOST_kStandardCursorCopy:			id = IDC_ARROW; 	break;
 			default:
 			success = false;
 		}

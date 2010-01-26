@@ -81,8 +81,15 @@ void wm_event_add(wmWindow *win, wmEvent *event_to_add)
 
 void wm_event_free(wmEvent *event)
 {
-	if(event->customdata && event->customdatafree)
-		MEM_freeN(event->customdata);
+	if(event->customdata) {
+		if(event->customdatafree) {
+			/* note: pointer to listbase struct elsewhere */
+			if(event->custom==EVT_DATA_LISTBASE)
+				BLI_freelistN(event->customdata);
+			else
+				MEM_freeN(event->customdata);
+		}
+	}
 	MEM_freeN(event);
 }
 
@@ -336,7 +343,7 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 	else if(repeat==0)
 		WM_operator_free(op);
 	
-	return retval;
+	return retval | OPERATOR_HANDLED;
 	
 }
 
@@ -483,7 +490,9 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				wm_operator_print(op);
 		}
 
-		if(retval & OPERATOR_FINISHED) {
+		if(retval & OPERATOR_HANDLED)
+			; /* do nothing, wm_operator_exec() has been called somewhere */
+		else if(retval & OPERATOR_FINISHED) {
 			op->customdata= NULL;
 
 			if(ot->flag & OPTYPE_UNDO)
@@ -1227,6 +1236,26 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				/* screen context changes here */
 				action |= wm_handler_fileselect_call(C, handlers, handler, event);
 			}
+			else if(handler->dropboxes) {
+				if(event->type==EVT_DROP) {
+					wmDropBox *drop= handler->dropboxes->first;
+					for(; drop; drop= drop->next) {
+						/* other drop custom types allowed */
+						if(event->custom==EVT_DATA_LISTBASE) {
+							ListBase *lb= (ListBase *)event->customdata;
+							wmDrag *drag;
+							for(drag= lb->first; drag; drag= drag->next) {
+								if(drop->poll(C, drag, event)) {
+									drop->copy(drag, drop);
+									
+									wm_operator_invoke(C, drop->ot, event, drop->ptr, NULL);
+									action |= WM_HANDLER_BREAK;
+								}
+							}
+						}
+					}
+				}
+			}
 			else {
 				/* modal, swallows all */
 				action |= wm_handler_operator_call(C, handlers, handler, event, NULL);
@@ -1353,13 +1382,51 @@ static void wm_paintcursor_test(bContext *C, wmEvent *event)
 	}
 }
 
+static void wm_event_drag_test(wmWindowManager *wm, wmWindow *win, wmEvent *event)
+{
+	if(wm->drags.first==NULL) return;
+	
+	if(event->type==MOUSEMOVE)
+		win->screen->do_draw_drag= 1;
+	else if(event->type==ESCKEY) {
+		BLI_freelistN(&wm->drags);
+		win->screen->do_draw_drag= 1;
+	}
+	else if(event->type==LEFTMOUSE && event->val==KM_RELEASE) {
+		event->type= EVT_DROP;
+		
+		/* create customdata, first free existing */
+		if(event->customdata) {
+			if(event->customdatafree)
+				MEM_freeN(event->customdata);
+		}
+		
+		event->custom= EVT_DATA_LISTBASE;
+		event->customdata= &wm->drags;
+		event->customdatafree= 1;
+		
+		/* clear drop icon */
+		win->screen->do_draw_drag= 1;
+		
+		/* restore cursor (disabled, see wm_dragdrop.c) */
+		// WM_cursor_restore(win);
+	}
+	
+	/* overlap fails otherwise */
+	if(win->screen->do_draw_drag)
+		if(win->drawmethod == USER_DRAW_OVERLAP)
+			win->screen->do_draw= 1;
+	
+}
+
 /* called in main loop */
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
 void wm_event_do_handlers(bContext *C)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win;
 
-	for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
+	for(win= wm->windows.first; win; win= win->next) {
 		wmEvent *event;
 		
 		if( win->screen==NULL )
@@ -1386,6 +1453,9 @@ void wm_event_do_handlers(bContext *C)
 			if(CTX_wm_window(C)==NULL)
 				return;
 			
+			/* check dragging, creates new event or frees, adds draw tag */
+			wm_event_drag_test(wm, win, event);
+			
 			/* builtin tweak, if action is break it removes tweak */
 			wm_tweakevent_test(C, event, action);
 
@@ -1410,8 +1480,16 @@ void wm_event_do_handlers(bContext *C)
 							for(ar=sa->regionbase.first; ar; ar= ar->next) {
 								if(wm_event_inside_i(event, &ar->winrct)) {
 									CTX_wm_region_set(C, ar);
+									
+									/* does polls for drop regions and checks uibuts */
+									/* need to be here to make sure region context is true */
+									if(event->type==MOUSEMOVE) {
+										wm_region_mouse_co(C, event);
+										wm_drags_check_ops(C, event);
+									}
+									
 									action |= wm_handlers_do(C, event, &ar->handlers);
-
+									
 									doit |= (BLI_in_rcti(&ar->winrct, event->x, event->y));
 									
 									if(action & WM_HANDLER_BREAK)
@@ -1657,6 +1735,25 @@ void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHa
 	}
 }
 
+wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes)
+{
+	wmEventHandler *handler;
+
+	/* only allow same dropbox once */
+	for(handler= handlers->first; handler; handler= handler->next)
+		if(handler->dropboxes==dropboxes)
+			return handler;
+	
+	handler= MEM_callocN(sizeof(wmEventHandler), "dropbox handler");
+	
+	/* dropbox stored static, no free or copy */
+	handler->dropboxes= dropboxes;
+	BLI_addhead(handlers, handler);
+	
+	return handler;
+}
+
+/* XXX solution works, still better check the real cause (ton) */
 void WM_event_remove_area_handler(ListBase *handlers, void *area)
 {
 	wmEventHandler *handler, *nexthandler;
@@ -1704,7 +1801,6 @@ int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 	}
 	return 0;
 }
-
 
 /* ********************* ghost stuff *************** */
 
@@ -1804,10 +1900,43 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 	} 
 }
 
+/* imperfect but probably usable... draw/enable drags to other windows */
+static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *evt)
+{
+	short mx= evt->x, my= evt->y;
+	
+	if(wm->windows.first== wm->windows.last)
+		return NULL;
+	
+	/* top window bar... */
+	if(mx<0 || my<0 || mx>win->sizex || my>win->sizey+30) {	
+		wmWindow *owin;
+		
+		/* to desktop space */
+		mx+= win->posx;
+		my+= win->posy;
+		
+		/* check other windows to see if it has mouse inside */
+		for(owin= wm->windows.first; owin; owin= owin->next) {
+			if(owin!=win) {
+				if(mx-owin->posx >= 0 && my-owin->posy >= 0 &&
+				   mx-owin->posx <= owin->sizex && my-owin->posy <= owin->sizey) {
+					evt->x= mx-owin->posx;
+					evt->y= my-owin->posy;
+					
+					return owin;
+				}
+			}
+		}
+	}
+	return NULL;
+}
 
 /* windows store own event queues, no bContext here */
-void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
+/* time is in 1000s of seconds, from ghost */
+void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int time, void *customdata)
 {
+	wmWindow *owin;
 	wmEvent event, *evt= win->eventstate;
 	
 	/* initialize and copy state (only mouse x y and modifiers) */
@@ -1818,20 +1947,42 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 		case GHOST_kEventCursorMove: {
 			if(win->active) {
 				GHOST_TEventCursorData *cd= customdata;
+				
 #if defined(__APPLE__) && defined(GHOST_COCOA)
 				//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
-				event.type= MOUSEMOVE;
-				event.x= evt->x = cd->x;
-				event.y = evt->y = cd->y;
+				evt->x= cd->x;
+				evt->y= cd->y;
 #else
 				int cx, cy;
+				
 				GHOST_ScreenToClient(win->ghostwin, cd->x, cd->y, &cx, &cy);
-				event.type= MOUSEMOVE;
-				event.x= evt->x= cx;
-				event.y= evt->y= (win->sizey-1) - cy;
+				evt->x= cx;
+				evt->y= (win->sizey-1) - cy;
 #endif
+				
+				event.x= evt->x;
+				event.y= evt->y;
+
+				event.type= MOUSEMOVE;
+
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);
+				
+				/* also add to other window if event is there, this makes overdraws disappear nicely */
+				/* it remaps mousecoord to other window in event */
+				owin= wm_event_cursor_other_windows(wm, win, &event);
+				if(owin) {
+					wmEvent oevent= *(owin->eventstate);
+					
+					oevent.x= event.x;
+					oevent.y= event.y;
+					oevent.type= MOUSEMOVE;
+					
+					*(owin->eventstate)= oevent;
+					update_tablet_data(owin, &oevent);
+					wm_event_add(owin, &oevent);
+				}
+				
 			}
 			break;
 		}
@@ -1888,8 +2039,23 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			else
 				event.type= MIDDLEMOUSE;
 			
-			update_tablet_data(win, &event);
-			wm_event_add(win, &event);
+			/* add to other window if event is there (not to both!) */
+			owin= wm_event_cursor_other_windows(wm, win, &event);
+			if(owin) {
+				wmEvent oevent= *(owin->eventstate);
+				
+				oevent.x= event.x;
+				oevent.y= event.y;
+				oevent.type= event.type;
+				oevent.val= event.val;
+				
+				update_tablet_data(owin, &oevent);
+				wm_event_add(owin, &oevent);
+			}
+			else {
+				update_tablet_data(win, &event);
+				wm_event_add(win, &event);
+			}
 			
 			break;
 		}
@@ -1943,7 +2109,7 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			/* if test_break set, it catches this. XXX Keep global for now? */
 			if(event.type==ESCKEY)
 				G.afbreek= 1;
-
+			
 			wm_event_add(win, &event);
 			
 			break;
@@ -1980,6 +2146,7 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			wm_event_add(win, &event);
 
 			break;
+			
 		}
 
 	}

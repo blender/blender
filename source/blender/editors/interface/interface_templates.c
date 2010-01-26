@@ -360,8 +360,9 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y, "Browse ID data");
 		if(type) {
 			but->icon= RNA_struct_ui_icon(type);
-			but->flag|= UI_HAS_ICON;
-			but->flag|= UI_ICON_LEFT;
+			/* default dragging of icon for id browse buttons */
+			uiButSetDragID(but, id);
+			uiButSetFlag(but, UI_HAS_ICON|UI_ICON_LEFT);
 		}
 
 		if((idfrom && idfrom->lib))
@@ -2215,7 +2216,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	else
-		uiItemL(sub, name, icon);
+		uiItemLDrag(sub, itemptr, name, icon); /* fails, backdrop LISTROW... */
 
 	/* free name */
 	if(namebuf)
@@ -2299,6 +2300,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propna
 				icon= list_item_icon_get(C, &itemptr, rnaicon);
 				but= uiDefIconButR(block, LISTROW, 0, icon, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
 				uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
+				
 
 				i++;
 			}

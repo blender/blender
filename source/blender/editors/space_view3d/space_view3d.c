@@ -319,6 +319,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	ListBase *lb;
 	wmKeyMap *keymap;
 
 	/* object ops. */
@@ -386,7 +387,61 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 	keymap= WM_keymap_find(wm->defaultconf, "3D View", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	/* add drop boxes */
+	lb= WM_dropboxmap_find("View3D", SPACE_VIEW3D, RGN_TYPE_WINDOW);
+	
+	WM_event_add_dropbox_handler(&ar->handlers, lb);
+	
 }
+
+static int view3d_ob_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_ID) {
+		ID *id= (ID *)drag->poin;
+		if( GS(id->name)==ID_OB )
+			return 1;
+	}
+	return 0;
+}
+
+static int view3d_mat_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_ID) {
+		ID *id= (ID *)drag->poin;
+		if( GS(id->name)==ID_MA )
+			return 1;
+	}
+	return 0;
+}
+
+static int view3d_ima_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_ID) {
+		ID *id= (ID *)drag->poin;
+		if( GS(id->name)==ID_IM )
+			return 1;
+	}
+	return 0;
+}
+
+static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	ID *id= (ID *)drag->poin;
+	RNA_string_set(drop->ptr, "name", id->name+2);
+}
+
+/* region dropbox definition */
+static void view3d_dropboxes(void)
+{
+	ListBase *lb= WM_dropboxmap_find("View3D", SPACE_VIEW3D, RGN_TYPE_WINDOW);
+	
+	WM_dropbox_add(lb, "OBJECT_OT_add_named_cursor", view3d_ob_drop_poll, view3d_id_drop_copy);
+	WM_dropbox_add(lb, "OBJECT_OT_drop_named_material", view3d_mat_drop_poll, view3d_id_drop_copy);
+	WM_dropbox_add(lb, "MESH_OT_drop_named_image", view3d_ima_drop_poll, view3d_id_drop_copy);
+}
+
+
 
 /* type callback, not region itself */
 static void view3d_main_area_free(ARegion *ar)
@@ -822,6 +877,7 @@ void ED_spacetype_view3d(void)
 	st->duplicate= view3d_duplicate;
 	st->operatortypes= view3d_operatortypes;
 	st->keymap= view3d_keymap;
+	st->dropboxes= view3d_dropboxes;
 	st->context= view3d_context;
 	
 	/* regions: main window */
@@ -839,7 +895,7 @@ void ED_spacetype_view3d(void)
 	/* regions: listview/buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= 180; // XXX
+	art->prefsizex= 180; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= view3d_buttons_area_listener;
 	art->init= view3d_buttons_area_init;
@@ -851,8 +907,8 @@ void ED_spacetype_view3d(void)
 	/* regions: tool(bar) */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_TOOLS;
-	art->minsizex= 160; // XXX
-	art->minsizey= 50; // XXX
+	art->prefsizex= 160; // XXX
+	art->prefsizey= 50; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= view3d_buttons_area_listener;
 	art->init= view3d_tools_area_init;
@@ -864,8 +920,8 @@ void ED_spacetype_view3d(void)
 	/* regions: tool properties */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_TOOL_PROPS;
-	art->minsizex= 0;
-	art->minsizey= 120;
+	art->prefsizex= 0;
+	art->prefsizey= 120;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= view3d_buttons_area_listener;
 	art->init= view3d_tools_area_init;
@@ -878,7 +934,7 @@ void ED_spacetype_view3d(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->listener= view3d_header_area_listener;
 	art->init= view3d_header_area_init;

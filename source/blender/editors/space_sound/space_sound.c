@@ -246,7 +246,7 @@ void ED_spacetype_sound(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sound region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
 	
 	art->init= sound_header_area_init;
@@ -257,7 +257,7 @@ void ED_spacetype_sound(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sound region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 80;
+	art->prefsizex= 80;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
 //	art->init= sound_channel_area_init;

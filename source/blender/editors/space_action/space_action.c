@@ -475,7 +475,7 @@ void ED_spacetype_action(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype action region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	
 	art->init= action_header_area_init;
@@ -487,7 +487,7 @@ void ED_spacetype_action(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype action region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 200;
+	art->prefsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
 	art->init= action_channel_area_init;

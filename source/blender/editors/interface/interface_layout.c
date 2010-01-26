@@ -1321,7 +1321,7 @@ void uiItemM(uiLayout *layout, bContext *C, char *name, int icon, char *menuname
 }
 
 /* label item */
-void uiItemL(uiLayout *layout, char *name, int icon)
+static uiBut *uiItemL_(uiLayout *layout, char *name, int icon)
 {
 	uiBlock *block= layout->root->block;
 	uiBut *but;
@@ -1342,7 +1342,24 @@ void uiItemL(uiLayout *layout, char *name, int icon)
 		but= uiDefIconBut(block, LABEL, 0, icon, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	else
 		but= uiDefBut(block, LABEL, 0, (char*)name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+	
+	return but;
 }
+
+void uiItemL(uiLayout *layout, char *name, int icon)
+{
+	uiItemL_(layout, name, icon);
+}
+
+void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, char *name, int icon)
+{
+	uiBut *but= uiItemL_(layout, name, icon);
+
+	if(ptr && ptr->type)
+		if(RNA_struct_is_ID(ptr->type))
+			uiButSetDragID(but, ptr->id.data);
+}
+
 
 /* value item */
 void uiItemV(uiLayout *layout, char *name, int icon, int argval)

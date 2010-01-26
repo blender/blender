@@ -175,7 +175,7 @@ void ED_spacetype_userpref(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype userpref region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
 	art->listener= userpref_header_listener;
 	art->init= userpref_header_area_init;

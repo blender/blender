@@ -588,7 +588,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 		RNA_string_set(op->ptr, "filename", sfile->params->file);
 		BLI_strncpy(name, sfile->params->dir, sizeof(name));
 		RNA_string_set(op->ptr, "directory", name);
-		strcat(name, sfile->params->file);
+		strcat(name, sfile->params->file); // XXX unsafe
 
 		if(RNA_struct_find_property(op->ptr, "relative_paths"))
 			if(RNA_boolean_get(op->ptr, "relative_paths"))

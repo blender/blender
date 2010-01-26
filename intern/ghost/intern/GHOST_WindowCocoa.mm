@@ -72,6 +72,8 @@ extern "C" {
 - (void)windowDidResignKey:(NSNotification *)notification;
 - (void)windowDidExpose:(NSNotification *)notification;
 - (void)windowDidResize:(NSNotification *)notification;
+- (void)windowDidMove:(NSNotification *)notification;
+- (void)windowWillMove:(NSNotification *)notification;
 @end
 
 @implementation CocoaWindowDelegate : NSObject
@@ -99,6 +101,16 @@ extern "C" {
 - (void)windowDidExpose:(NSNotification *)notification
 {
 	systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, associatedWindow);
+}
+
+- (void)windowDidMove:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowMove, associatedWindow);
+}
+
+- (void)windowWillMove:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowMove, associatedWindow);
 }
 
 - (void)windowDidResize:(NSNotification *)notification
@@ -1042,6 +1054,7 @@ void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 			case GHOST_kStandardCursorTopRightCorner:
 			case GHOST_kStandardCursorBottomRightCorner:
 			case GHOST_kStandardCursorBottomLeftCorner:
+			case GHOST_kStandardCursorCopy:
 			case GHOST_kStandardCursorDefault:
 			default:
 				tmpCursor = [NSCursor arrowCursor];

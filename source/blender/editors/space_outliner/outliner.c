@@ -140,7 +140,7 @@ static void error() {}
 
 
 /* ******************** PROTOTYPES ***************** */
-static void outliner_draw_tree_element(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, int startx, int *starty);
+static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, int startx, int *starty);
 static void outliner_do_object_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
 										 void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *));
 
@@ -4087,8 +4087,39 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
 
 /* ***************** DRAW *************** */
 
-static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElement *te)
+/* make function calls a bit compacter */
+struct DrawIconArg {
+	uiBlock *block;
+	ID *id;
+	int xmax, x, y;
+	float alpha;
+};
+
+static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
 {
+	/* restrict collumn clip... it has been coded by simply overdrawing, doesnt work for buttons */
+	if(arg->x >= arg->xmax) 
+		UI_icon_draw(arg->x, arg->y, icon);
+	else {
+		uiBut *but= uiDefIconBut(arg->block, LABEL, 0, icon, arg->x-4, arg->y, ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH, NULL, 0.0, 0.0, 1.0, arg->alpha, "");
+		if(arg->id)
+			uiButSetDragID(but, arg->id);
+	}
+	
+}
+
+static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeStoreElem *tselem, TreeElement *te, float alpha)
+{
+	struct DrawIconArg arg;
+	
+	/* make function calls a bit compacter */
+	arg.block= block;
+	arg.id= tselem->id;
+	arg.xmax= xmax;
+	arg.x= x;
+	arg.y= y;
+	arg.alpha= alpha;
+	
 	if(tselem->type) {
 		switch( tselem->type) {
 			case TSE_ANIM_DATA:
@@ -4219,7 +4250,12 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				UI_icon_draw(x, y, ICON_OBJECT_DATA);
 				break;
 			case TSE_RNA_STRUCT:
-				UI_icon_draw(x, y, RNA_struct_ui_icon(te->rnaptr.type));
+				if(RNA_struct_is_ID(te->rnaptr.type)) {
+					arg.id= (ID *)te->rnaptr.data;
+					tselem_draw_icon_uibut(&arg, RNA_struct_ui_icon(te->rnaptr.type));
+				}
+				else
+					UI_icon_draw(x, y, RNA_struct_ui_icon(te->rnaptr.type));
 				break;
 			default:
 				UI_icon_draw(x, y, ICON_DOT); break;
@@ -4228,92 +4264,92 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 	else if (GS(tselem->id->name) == ID_OB) {
 		Object *ob= (Object *)tselem->id;
 		switch (ob->type) {
-			case OB_LAMP: 
-				UI_icon_draw(x, y, ICON_OUTLINER_OB_LAMP); break;
+			case OB_LAMP:
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_LAMP); break;
 			case OB_MESH: 
-				UI_icon_draw(x, y, ICON_OUTLINER_OB_MESH); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_MESH); break;
 			case OB_CAMERA: 
-				UI_icon_draw(x, y, ICON_OUTLINER_OB_CAMERA); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_CAMERA); break;
 			case OB_CURVE: 
-				UI_icon_draw(x, y, ICON_OUTLINER_OB_CURVE); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_CURVE); break;
 			case OB_MBALL: 
-				UI_icon_draw(x, y, ICON_OUTLINER_OB_META); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_META); break;
 			case OB_LATTICE: 
-				UI_icon_draw(x, y, ICON_OUTLINER_OB_LATTICE); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_LATTICE); break;
 			case OB_ARMATURE: 
-				UI_icon_draw(x, y, ICON_OUTLINER_OB_ARMATURE); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_ARMATURE); break;
 			case OB_FONT: 
-				UI_icon_draw(x, y, ICON_OUTLINER_OB_FONT); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_FONT); break;
 			case OB_SURF: 
-				UI_icon_draw(x, y, ICON_OUTLINER_OB_SURFACE); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_SURFACE); break;
 			case OB_EMPTY: 
-				UI_icon_draw(x, y, ICON_OUTLINER_OB_EMPTY); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_EMPTY); break;
 		
 		}
 	}
 	else {
 		switch( GS(tselem->id->name)) {
 			case ID_SCE:
-				UI_icon_draw(x, y, ICON_SCENE_DATA); break;
+				tselem_draw_icon_uibut(&arg, ICON_SCENE_DATA); break;
 			case ID_ME:
-				UI_icon_draw(x, y, ICON_OUTLINER_DATA_MESH); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_MESH); break;
 			case ID_CU:
-				UI_icon_draw(x, y, ICON_OUTLINER_DATA_CURVE); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_CURVE); break;
 			case ID_MB:
-				UI_icon_draw(x, y, ICON_OUTLINER_DATA_META); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_META); break;
 			case ID_LT:
-				UI_icon_draw(x, y, ICON_OUTLINER_DATA_LATTICE); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_LATTICE); break;
 			case ID_LA:
 			{
 				Lamp *la= (Lamp *)tselem->id;
 				
 				switch(la->type) {
 					case LA_LOCAL:
-						UI_icon_draw(x, y, ICON_LAMP_POINT); break;
+						tselem_draw_icon_uibut(&arg, ICON_LAMP_POINT); break;
 					case LA_SUN:
-						UI_icon_draw(x, y, ICON_LAMP_SUN); break;
+						tselem_draw_icon_uibut(&arg, ICON_LAMP_SUN); break;
 					case LA_SPOT:
-						UI_icon_draw(x, y, ICON_LAMP_SPOT); break;
+						tselem_draw_icon_uibut(&arg, ICON_LAMP_SPOT); break;
 					case LA_HEMI:
-						UI_icon_draw(x, y, ICON_LAMP_HEMI); break;
+						tselem_draw_icon_uibut(&arg, ICON_LAMP_HEMI); break;
 					case LA_AREA:
-						UI_icon_draw(x, y, ICON_LAMP_AREA); break;
+						tselem_draw_icon_uibut(&arg, ICON_LAMP_AREA); break;
 					default:
-						UI_icon_draw(x, y, ICON_OUTLINER_DATA_LAMP); break;
+						tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_LAMP); break;
 				}
 				break;
 			}
 			case ID_MA:
-				UI_icon_draw(x, y, ICON_MATERIAL_DATA); break;
+				tselem_draw_icon_uibut(&arg, ICON_MATERIAL_DATA); break;
 			case ID_TE:
-				UI_icon_draw(x, y, ICON_TEXTURE_DATA); break;
+				tselem_draw_icon_uibut(&arg, ICON_TEXTURE_DATA); break;
 			case ID_IM:
-				UI_icon_draw(x, y, ICON_IMAGE_DATA); break;
+				tselem_draw_icon_uibut(&arg, ICON_IMAGE_DATA); break;
 			case ID_SO:
-				UI_icon_draw(x, y, ICON_SPEAKER); break;
+				tselem_draw_icon_uibut(&arg, ICON_SPEAKER); break;
 			case ID_AR:
-				UI_icon_draw(x, y, ICON_OUTLINER_DATA_ARMATURE); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_ARMATURE); break;
 			case ID_CA:
-				UI_icon_draw(x, y, ICON_OUTLINER_DATA_CAMERA); break;
+				tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_CAMERA); break;
 			case ID_KE:
-				UI_icon_draw(x, y, ICON_SHAPEKEY_DATA); break;
+				tselem_draw_icon_uibut(&arg, ICON_SHAPEKEY_DATA); break;
 			case ID_WO:
-				UI_icon_draw(x, y, ICON_WORLD_DATA); break;
+				tselem_draw_icon_uibut(&arg, ICON_WORLD_DATA); break;
 			case ID_AC:
-				UI_icon_draw(x, y, ICON_ACTION); break;
+				tselem_draw_icon_uibut(&arg, ICON_ACTION); break;
 			case ID_NLA:
-				UI_icon_draw(x, y, ICON_NLA); break;
+				tselem_draw_icon_uibut(&arg, ICON_NLA); break;
 			case ID_TXT:
-				UI_icon_draw(x, y, ICON_SCRIPT); break;
+				tselem_draw_icon_uibut(&arg, ICON_SCRIPT); break;
 			case ID_GR:
-				UI_icon_draw(x, y, ICON_GROUP); break;
+				tselem_draw_icon_uibut(&arg, ICON_GROUP); break;
 			case ID_LI:
-				UI_icon_draw(x, y, ICON_LIBRARY_DATA_DIRECT); break;
+				tselem_draw_icon_uibut(&arg, ICON_LIBRARY_DATA_DIRECT); break;
 		}
 	}
 }
 
-static void outliner_draw_iconrow(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, int level, int *offsx, int ys)
+static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, SpaceOops *soops, ListBase *lb, int level, int xmax, int *offsx, int ys)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -4338,10 +4374,10 @@ static void outliner_draw_iconrow(bContext *C, Scene *scene, SpaceOops *soops, L
 				uiSetRoundBox(15);
 				glColor4ub(255, 255, 255, 100);
 				uiRoundBox( (float)*offsx-0.5f, (float)ys-1.0f, (float)*offsx+OL_H-3.0f, (float)ys+OL_H-3.0f, OL_H/2.0f-2.0f);
-				glEnable(GL_BLEND);
+				glEnable(GL_BLEND); /* roundbox disables */
 			}
 			
-			tselem_draw_icon((float)*offsx, (float)ys, tselem, te);
+			tselem_draw_icon(block, xmax, (float)*offsx, (float)ys, tselem, te, 0.5f);
 			te->xs= (float)*offsx;
 			te->ys= (float)ys;
 			te->xend= (short)*offsx+OL_X;
@@ -4352,12 +4388,12 @@ static void outliner_draw_iconrow(bContext *C, Scene *scene, SpaceOops *soops, L
 		
 		/* this tree element always has same amount of branches, so dont draw */
 		if(tselem->type!=TSE_R_LAYER)
-			outliner_draw_iconrow(C, scene, soops, &te->subtree, level+1, offsx, ys);
+			outliner_draw_iconrow(C, block, scene, soops, &te->subtree, level+1, xmax, offsx, ys);
 	}
 	
 }
 
-static void outliner_draw_tree_element(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, int startx, int *starty)
+static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, int startx, int *starty)
 {
 	TreeElement *ten;
 	TreeStoreElem *tselem;
@@ -4366,7 +4402,12 @@ static void outliner_draw_tree_element(bContext *C, Scene *scene, ARegion *ar, S
 	tselem= TREESTORE(te);
 
 	if(*starty+2*OL_H >= ar->v2d.cur.ymin && *starty<= ar->v2d.cur.ymax) {
-	
+		int xmax= ar->v2d.cur.xmax;
+		
+		/* icons can be ui buts, we dont want it to overlap with restrict */
+		if((soops->flag & SO_HIDE_RESTRICTCOLS)==0)
+			xmax-= OL_TOGW+ICON_DEFAULT_WIDTH;
+		
 		glEnable(GL_BLEND);
 
 		/* colors for active/selected data */
@@ -4439,8 +4480,9 @@ static void outliner_draw_tree_element(bContext *C, Scene *scene, ARegion *ar, S
 		/* datatype icon */
 		
 		if(!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))) {
-				// icons a bit higher
-			tselem_draw_icon((float)startx+offsx, (float)*starty+2, tselem, te);
+			// icons a bit higher
+			tselem_draw_icon(block, xmax, (float)startx+offsx, (float)*starty+2, tselem, te, 1.0f);
+			
 			offsx+= OL_X;
 		}
 		else
@@ -4472,6 +4514,7 @@ static void outliner_draw_tree_element(bContext *C, Scene *scene, ARegion *ar, S
 				if(tselem->type==0 && te->idcode==ID_SCE);
 				else if(tselem->type!=TSE_R_LAYER) { /* this tree element always has same amount of branches, so dont draw */
 					int tempx= startx+offsx;
+					
 					// divider
 					UI_ThemeColorShade(TH_BACK, -40);
 					glRecti(tempx -10, *starty+4, tempx -8, *starty+OL_H-4);
@@ -4479,8 +4522,8 @@ static void outliner_draw_tree_element(bContext *C, Scene *scene, ARegion *ar, S
 					glEnable(GL_BLEND);
 					glPixelTransferf(GL_ALPHA_SCALE, 0.5);
 
-					outliner_draw_iconrow(C, scene, soops, &te->subtree, 0, &tempx, *starty+2);
-					
+					outliner_draw_iconrow(C, block, scene, soops, &te->subtree, 0, xmax, &tempx, *starty+2);
+
 					glPixelTransferf(GL_ALPHA_SCALE, 1.0);
 					glDisable(GL_BLEND);
 				}
@@ -4496,7 +4539,7 @@ static void outliner_draw_tree_element(bContext *C, Scene *scene, ARegion *ar, S
 
 	if((tselem->flag & TSE_CLOSED)==0) {
 		for(ten= te->subtree.first; ten; ten= ten->next) {
-			outliner_draw_tree_element(C, scene, ar, soops, ten, startx+OL_X, starty);
+			outliner_draw_tree_element(C, block, scene, ar, soops, ten, startx+OL_X, starty);
 		}
 	}	
 }
@@ -4575,7 +4618,7 @@ static void outliner_draw_selection(ARegion *ar, SpaceOops *soops, ListBase *lb,
 }
 
 
-static void outliner_draw_tree(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops)
+static void outliner_draw_tree(bContext *C, uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops)
 {
 	TreeElement *te;
 	int starty, startx;
@@ -4607,7 +4650,7 @@ static void outliner_draw_tree(bContext *C, Scene *scene, ARegion *ar, SpaceOops
 	starty= (int)ar->v2d.tot.ymax-OL_H;
 	startx= 0;
 	for(te= soops->tree.first; te; te= te->next) {
-		outliner_draw_tree_element(C, scene, ar, soops, te, startx, &starty);
+		outliner_draw_tree_element(C, block, scene, ar, soops, te, startx, &starty);
 	}
 }
 
@@ -5355,10 +5398,10 @@ void draw_outliner(const bContext *C)
 
 	/* draw outliner stuff (background and hierachy lines) */
 	outliner_back(ar, soops);
-	outliner_draw_tree((bContext *)C, scene, ar, soops);
+	block= uiBeginBlock(C, ar, "outliner buttons", UI_EMBOSS);
+	outliner_draw_tree((bContext *)C, block, scene, ar, soops);
 
 	/* draw icons and names */
-	block= uiBeginBlock(C, ar, "outliner buttons", UI_EMBOSS);
 	outliner_buttons(C, block, ar, soops, &soops->tree);
 	
 	if(ELEM(soops->outlinevis, SO_DATABLOCKS, SO_USERDEF)) {

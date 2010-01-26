@@ -2743,6 +2743,7 @@ uiBut *uiDefButO(uiBlock *block, int type, char *opname, int opcontext, char *st
 	return but;
 }
 
+/* if a1==1.0 then a2 is an extra icon blending factor (alpha 0.0 - 1.0) */
 uiBut *uiDefIconBut(uiBlock *block, int type, int retval, int icon, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip)
 {
 	uiBut *but= ui_def_but(block, type, retval, "", x1, y1, x2, y2, poin, min, max, a1, a2, tip);
@@ -3012,6 +3013,45 @@ void uiButClearFlag(uiBut *but, int flag)
 int uiButGetRetVal(uiBut *but)
 {
 	return but->retval;
+}
+
+void uiButSetDragID(uiBut *but, ID *id)
+{
+	but->dragtype= WM_DRAG_ID;
+	but->dragpoin= (void *)id;
+}
+
+void uiButSetDragRNA(uiBut *but, PointerRNA *ptr)
+{
+	but->dragtype= WM_DRAG_RNA;
+	but->dragpoin= (void *)ptr;
+}
+
+void uiButSetDragPath(uiBut *but, const char *path)
+{
+	but->dragtype= WM_DRAG_PATH;
+	but->dragpoin= (void *)path;
+}
+
+void uiButSetDragName(uiBut *but, const char *name)
+{
+	but->dragtype= WM_DRAG_NAME;
+	but->dragpoin= (void *)name;
+}
+
+/* value from button itself */
+void uiButSetDragValue(uiBut *but)
+{
+	but->dragtype= WM_DRAG_VALUE;
+}
+
+void uiButSetDragImage(uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale)
+{
+	but->dragtype= WM_DRAG_PATH;
+	but->icon= icon; /* no flag UI_HAS_ICON, so icon doesnt draw in button */
+	but->dragpoin= (void *)path;
+	but->imb= imb;
+	but->imb_scale= scale;
 }
 
 PointerRNA *uiButGetOperatorPtrRNA(uiBut *but)

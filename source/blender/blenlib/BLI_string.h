@@ -66,6 +66,14 @@ char *BLI_strdupn(const char *str, int len);
 	 *   the size of dst)
 	 * @retval Returns dst
 	 */
+char *BLI_strdupcat(const char *str1, const char *str2);
+
+	/**
+	 * Appends the two strings, and returns new mallocN'ed string
+	 * @param str1 first string for copy
+	 * @param str2 second string for append
+	 * @retval Returns dst
+	 */
 char *BLI_strncpy(char *dst, const char *src, int maxncpy);
 
 	/* Makes a copy of the text within the "" that appear after some text 'blahblah'

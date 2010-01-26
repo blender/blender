@@ -121,6 +121,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_lamp_add);
 	WM_operatortype_append(OBJECT_OT_camera_add);
 	WM_operatortype_append(OBJECT_OT_add);
+	WM_operatortype_append(OBJECT_OT_add_named);
 	WM_operatortype_append(OBJECT_OT_effector_add);
 	WM_operatortype_append(OBJECT_OT_group_instance_add);
 	WM_operatortype_append(OBJECT_OT_metaball_add);
@@ -202,6 +203,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_hook_recenter);
 
 	WM_operatortype_append(OBJECT_OT_bake_image);
+	WM_operatortype_append(OBJECT_OT_drop_named_material);
 }
 
 void ED_operatormacros_object(void)
@@ -223,6 +225,15 @@ void ED_operatormacros_object(void)
 		RNA_boolean_set(otmacro->ptr, "linked", 1);
 		otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", PROP_EDIT_OFF);
+	}
+	
+	/* XXX */
+	ot= WM_operatortype_append_macro("OBJECT_OT_add_named_cursor", "Add named object at cursor", OPTYPE_UNDO|OPTYPE_REGISTER);
+	if(ot) {
+		RNA_def_string(ot->srna, "name", "Cube", 24, "Name", "Object name to add.");
+
+		WM_operatortype_macro_define(ot, "VIEW3D_OT_cursor3d");
+		WM_operatortype_macro_define(ot, "OBJECT_OT_add_named");
 	}
 }
 
@@ -308,7 +319,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_duplicate_move_linked", DKEY, KM_PRESS, KM_ALT, 0);
-
+	
 	WM_keymap_add_item(keymap, "OBJECT_OT_join", JKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_convert", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_proxy_make", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);

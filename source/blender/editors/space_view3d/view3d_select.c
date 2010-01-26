@@ -1006,6 +1006,123 @@ static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buff
 	return 0;
 }
 
+/* returns basact */
+static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int hits, short *mval, Base *startbase, int has_bones)
+{
+	Scene *scene= vc->scene;
+	View3D *v3d= vc->v3d;
+	Base *base, *basact= NULL;
+	static short lastmval[2]={-100, -100};
+	int a, donearest= 0;
+	
+	/* define if we use solid nearest select or not */
+	if(v3d->drawtype>OB_WIRE) {
+		donearest= 1;
+		if( ABS(mval[0]-lastmval[0])<3 && ABS(mval[1]-lastmval[1])<3) {
+			if(!has_bones)	/* hrms, if theres bones we always do nearest */
+				donearest= 0;
+		}
+	}
+	lastmval[0]= mval[0]; lastmval[1]= mval[1];
+	
+	if(donearest) {
+		unsigned int min= 0xFFFFFFFF;
+		int selcol= 0, notcol=0;
+		
+		
+		if(has_bones) {
+			/* we skip non-bone hits */
+			for(a=0; a<hits; a++) {
+				if( min > buffer[4*a+1] && (buffer[4*a+3] & 0xFFFF0000) ) {
+					min= buffer[4*a+1];
+					selcol= buffer[4*a+3] & 0xFFFF;
+				}
+			}
+		}
+		else {
+			/* only exclude active object when it is selected... */
+			if(BASACT && (BASACT->flag & SELECT) && hits>1) notcol= BASACT->selcol;	
+			
+			for(a=0; a<hits; a++) {
+				if( min > buffer[4*a+1] && notcol!=(buffer[4*a+3] & 0xFFFF)) {
+					min= buffer[4*a+1];
+					selcol= buffer[4*a+3] & 0xFFFF;
+				}
+			}
+		}
+		
+		base= FIRSTBASE;
+		while(base) {
+			if(base->lay & v3d->lay) {
+				if(base->selcol==selcol) break;
+			}
+			base= base->next;
+		}
+		if(base) basact= base;
+	}
+	else {
+		
+		base= startbase;
+		while(base) {
+			/* skip objects with select restriction, to prevent prematurely ending this loop
+			* with an un-selectable choice */
+			if (base->object->restrictflag & OB_RESTRICT_SELECT) {
+				base=base->next;
+				if(base==NULL) base= FIRSTBASE;
+				if(base==startbase) break;
+			}
+			
+			if(base->lay & v3d->lay) {
+				for(a=0; a<hits; a++) {
+					if(has_bones) {
+						/* skip non-bone objects */
+						if((buffer[4*a+3] & 0xFFFF0000)) {
+							if(base->selcol== (buffer[(4*a)+3] & 0xFFFF))
+								basact= base;
+						}
+					}
+					else {
+						if(base->selcol== (buffer[(4*a)+3] & 0xFFFF))
+							basact= base;
+					}
+				}
+			}
+			
+			if(basact) break;
+			
+			base= base->next;
+			if(base==NULL) base= FIRSTBASE;
+			if(base==startbase) break;
+		}
+	}
+	
+	return basact;
+}
+
+/* mval comes from event->mval, only use within region handlers */
+Base *ED_view3d_give_base_under_cursor(bContext *C, short *mval)
+{
+	ViewContext vc;
+	Base *basact= NULL;
+	unsigned int buffer[4*MAXPICKBUF];
+	int hits;
+	
+	/* setup view context for argument to callbacks */
+	view3d_operator_needs_opengl(C);
+	view3d_set_viewcontext(C, &vc);
+	
+	hits= mixed_bones_object_selectbuffer(&vc, buffer, mval);
+	
+	if(hits>0) {
+		int a, has_bones= 0;
+		
+		for(a=0; a<hits; a++) if(buffer[4*a+3] & 0xFFFF0000) has_bones= 1;
+		
+		basact= mouse_select_eval_buffer(&vc, buffer, hits, mval, vc.scene->base.first, has_bones);
+	}
+	
+	return basact;
+}
 
 /* mval is region coords */
 static int mouse_select(bContext *C, short *mval, short extend, short obcenter, short enumerate)
@@ -1070,89 +1187,7 @@ static int mouse_select(bContext *C, short *mval, short extend, short obcenter, 
 			if(has_bones==0 && enumerate) {
 				basact= mouse_select_menu(C, &vc, buffer, hits, mval, extend);
 			} else {
-				static short lastmval[2]={-100, -100};
-				int donearest= 0;
-				
-				/* define if we use solid nearest select or not */
-				if(v3d->drawtype>OB_WIRE) {
-					donearest= 1;
-					if( ABS(mval[0]-lastmval[0])<3 && ABS(mval[1]-lastmval[1])<3) {
-						if(!has_bones)	/* hrms, if theres bones we always do nearest */
-							donearest= 0;
-					}
-				}
-				lastmval[0]= mval[0]; lastmval[1]= mval[1];
-				
-				if(donearest) {
-					unsigned int min= 0xFFFFFFFF;
-					int selcol= 0, notcol=0;
-					
-
-					if(has_bones) {
-						/* we skip non-bone hits */
-						for(a=0; a<hits; a++) {
-							if( min > buffer[4*a+1] && (buffer[4*a+3] & 0xFFFF0000) ) {
-								min= buffer[4*a+1];
-								selcol= buffer[4*a+3] & 0xFFFF;
-							}
-						}
-					}
-					else {
-						/* only exclude active object when it is selected... */
-						if(BASACT && (BASACT->flag & SELECT) && hits>1) notcol= BASACT->selcol;	
-					
-						for(a=0; a<hits; a++) {
-							if( min > buffer[4*a+1] && notcol!=(buffer[4*a+3] & 0xFFFF)) {
-								min= buffer[4*a+1];
-								selcol= buffer[4*a+3] & 0xFFFF;
-							}
-						}
-					}
-
-					base= FIRSTBASE;
-					while(base) {
-						if(base->lay & v3d->lay) {
-							if(base->selcol==selcol) break;
-						}
-						base= base->next;
-					}
-					if(base) basact= base;
-				}
-				else {
-					
-					base= startbase;
-					while(base) {
-						/* skip objects with select restriction, to prevent prematurely ending this loop
-						 * with an un-selectable choice */
-						if (base->object->restrictflag & OB_RESTRICT_SELECT) {
-							base=base->next;
-							if(base==NULL) base= FIRSTBASE;
-							if(base==startbase) break;
-						}
-					
-						if(base->lay & v3d->lay) {
-							for(a=0; a<hits; a++) {
-								if(has_bones) {
-									/* skip non-bone objects */
-									if((buffer[4*a+3] & 0xFFFF0000)) {
-										if(base->selcol== (buffer[(4*a)+3] & 0xFFFF))
-											basact= base;
-									}
-								}
-								else {
-									if(base->selcol== (buffer[(4*a)+3] & 0xFFFF))
-										basact= base;
-								}
-							}
-						}
-						
-						if(basact) break;
-						
-						base= base->next;
-						if(base==NULL) base= FIRSTBASE;
-						if(base==startbase) break;
-					}
-				}
+				basact= mouse_select_eval_buffer(&vc, buffer, hits, mval, startbase, has_bones);
 			}
 			
 			if(has_bones && basact) {

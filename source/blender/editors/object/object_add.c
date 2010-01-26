@@ -1693,6 +1693,70 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 
+/* **************** add named object, for dragdrop ************* */
+
+/* contextual operator dupli */
+static int add_named_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Base *basen, *base;
+	Object *ob;
+	int linked= RNA_boolean_get(op->ptr, "linked");
+	int dupflag= (linked)? 0: U.dupflag;
+	char name[32];
+	
+	/* find object, create fake base */
+	RNA_string_get(op->ptr, "name", name);
+	ob= (Object *)find_id("OB", name);
+	if(ob==NULL) 
+		return OPERATOR_CANCELLED;
+	
+	base= MEM_callocN(sizeof(Base), "duplibase");
+	base->object= ob;
+	base->flag= ob->flag;
+	
+	/* prepare dupli */
+	clear_id_newpoins();
+	clear_sca_new_poins();	/* sensor/contr/act */
+	
+	basen= object_add_duplicate_internal(scene, base, dupflag);
+	basen->lay= basen->object->lay= scene->lay;
+	
+	ED_object_location_from_view(C, basen->object->loc);
+	ED_base_object_activate(C, basen);
+	
+	copy_object_set_idnew(C, dupflag);
+	
+	DAG_scene_sort(scene);
+	DAG_ids_flush_update(0);
+	
+	MEM_freeN(base);
+	
+	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_add_named(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Add Named Object";
+	ot->description = "Add named object.";
+	ot->idname= "OBJECT_OT_add_named";
+	
+	/* api callbacks */
+	ot->exec= add_named_exec;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_boolean(ot->srna, "linked", 0, "Linked", "Duplicate object but not object data, linking to the original data.");
+	RNA_def_string(ot->srna, "name", "Cube", 24, "Name", "Object name to add.");
+}
+
+
+
 /**************************** Join *************************/
 static int join_poll(bContext *C)
 {

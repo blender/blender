@@ -2123,7 +2123,6 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 				wm_event_add(window, &event);
 				
 				WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
-				window->tweak= NULL;
 			}
 			
 			break;
@@ -2133,7 +2132,6 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 		case MIDDLEMOUSE:
 			if(gesture->event_type==event->type) {
 				WM_gesture_end(C, gesture);
-				window->tweak= NULL;
 
 				/* when tweak fails we should give the other keymap entries a chance */
 				event->val= KM_RELEASE;
@@ -2142,7 +2140,6 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 		default:
 			if(!ISTIMER(event->type)) {
 				WM_gesture_end(C, gesture);
-				window->tweak= NULL;
 			}
 			break;
 	}
@@ -2155,16 +2152,16 @@ void wm_tweakevent_test(bContext *C, wmEvent *event, int action)
 	
 	if(win->tweak==NULL) {
 		if(CTX_wm_region(C)) {
-			if(event->val==KM_PRESS) { // pressed
+			if(event->val==KM_PRESS) { 
 				if( ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) )
 					win->tweak= WM_gesture_new(C, event, WM_GESTURE_TWEAK);
 			}
 		}
 	}
 	else {
-		if(action & WM_HANDLER_BREAK) {
+		/* no tweaks if event was handled */
+		if((action & WM_HANDLER_BREAK)) {
 			WM_gesture_end(C, win->tweak);
-			win->tweak= NULL;
 		}
 		else
 			tweak_gesture_modal(C, event);

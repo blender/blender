@@ -433,7 +433,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 
 static int sequencer_add_image_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	sequencer_generic_invoke_xy__internal(C, op, event, 0);
+	sequencer_generic_invoke_xy__internal(C, op, event, SEQPROP_ENDFRAME);
 	return WM_operator_filesel(C, op, event);	
 	//return sequencer_add_image_strip_exec(C, op);
 }
@@ -457,7 +457,7 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL);
-	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_FILES);
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME|SEQPROP_ENDFRAME|SEQPROP_FILES);
 }
 
 

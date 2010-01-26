@@ -787,10 +787,10 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 
 			if(name) {
 				if(!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE) && ptr->type == &RNA_Scene)
-					uiItemL(row, "", icon); /* save some space */
+					uiItemLDrag(row, ptr, "", icon); /* save some space */
 				else
-					uiItemL(row, name, icon);
-
+					uiItemLDrag(row, ptr, name, icon);
+								 
 				if(name != namebuf)
 					MEM_freeN(name);
 			}

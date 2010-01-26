@@ -4536,6 +4536,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->defaultconf= NULL;
 
 	wm->jobs.first= wm->jobs.last= NULL;
+	wm->drags.first= wm->drags.last= NULL;
 	
 	wm->windrawable= NULL;
 	wm->initialized= 0;

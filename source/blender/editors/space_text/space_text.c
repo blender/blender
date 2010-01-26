@@ -433,7 +433,7 @@ void ED_spacetype_text(void)
 	/* regions: properties */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= UI_COMPACT_PANEL_WIDTH;
+	art->prefsizex= UI_COMPACT_PANEL_WIDTH;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
 	art->init= text_properties_area_init;
@@ -443,7 +443,7 @@ void ED_spacetype_text(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
 	
 	art->init= text_header_area_init;

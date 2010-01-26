@@ -1002,6 +1002,9 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 			case GHOST_kEventWindowUpdate:
 				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowUpdate, window) );
 				break;
+			case GHOST_kEventWindowMove:
+				pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowMove, window) );
+				break;
 			case GHOST_kEventWindowSize:
 				if (!m_ignoreWindowSizedMessages)
 				{

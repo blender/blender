@@ -46,6 +46,7 @@ struct uiLayout;
 struct bContextStore;
 struct Scene;
 struct ID;
+struct ImBuf;
 
 /* ****************** general defines ************** */
 
@@ -226,8 +227,14 @@ struct uiBut {
 	int opcontext;
 	struct IDProperty *opproperties;
 	struct PointerRNA *opptr;
+	
+	/* Draggable data, type is WM_DRAG_... */
+	int dragtype;
+	void *dragpoin;
+	struct ImBuf *imb;
+	float imb_scale;
 
-		/* active button data */
+	/* active button data */
 	struct uiHandleButtonData *active;
 
 	char *editstr;

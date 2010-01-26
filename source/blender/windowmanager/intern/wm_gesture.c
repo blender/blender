@@ -101,10 +101,23 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 
 void WM_gesture_end(bContext *C, wmGesture *gesture)
 {
-	BLI_remlink(&CTX_wm_window(C)->gesture, gesture);
+	wmWindow *win= CTX_wm_window(C);
+	
+	if(win->tweak==gesture)
+		win->tweak= NULL;
+	BLI_remlink(&win->gesture, gesture);
 	MEM_freeN(gesture->customdata);
 	MEM_freeN(gesture);
 }
+
+void WM_gestures_remove(bContext *C)
+{
+	wmWindow *win= CTX_wm_window(C);
+	
+	while(win->gesture.first)
+		WM_gesture_end(C, win->gesture.first);
+}
+
 
 /* tweak and line gestures */
 #define TWEAK_THRESHOLD		10
@@ -337,4 +350,5 @@ void wm_gesture_tag_redraw(bContext *C)
 	if(ar && win->drawmethod != USER_DRAW_TRIPLE)
 		ED_region_tag_redraw(ar);
 }
+
 

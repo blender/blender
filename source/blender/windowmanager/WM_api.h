@@ -44,6 +44,9 @@ struct rcti;
 struct PointerRNA;
 struct EnumPropertyItem;
 struct MenuType;
+struct wmDropBox;
+struct wmDrag;
+struct ImBuf;
 
 typedef struct wmJob wmJob;
 
@@ -155,9 +158,13 @@ void		WM_event_remove_area_handler(struct ListBase *handlers, void *area);
 struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
 void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
 
+struct wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes);
+
+			/* mouse */
 void		WM_event_add_mousemove(struct bContext *C);
 int			WM_modal_tweak_exit(struct wmEvent *evt, int tweak_event);
 
+			/* notifiers */
 void		WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference);
 void		WM_main_add_notifier(unsigned int type, void *reference);
 
@@ -248,6 +255,7 @@ void		WM_OT_tweak_gesture(struct wmOperatorType *ot);
 			/* Gesture manager API */
 struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int type);
 void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
+void		WM_gestures_remove(struct bContext *C);
 
 			/* radial control operator */
 int			WM_radial_control_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
@@ -258,6 +266,14 @@ void		WM_radial_control_string(struct wmOperator *op, char str[], int maxlen);
 			/* fileselecting support */
 void		WM_event_add_fileselect(struct bContext *C, struct wmOperator *op);
 void		WM_event_fileselect_event(struct bContext *C, void *ophandle, int eventval);
+
+			/* drag and drop */
+struct wmDrag		*WM_event_start_drag(struct bContext *C, int icon, int type, void *poin, double value);
+void				WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale, int sx, int sy);
+
+struct wmDropBox	*WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(struct bContext *, struct wmDrag *, struct wmEvent *event),
+						  void (*copy)(struct wmDrag *, struct wmDropBox *));
+ListBase	*WM_dropboxmap_find(char *idname, int spaceid, int regionid);
 
 			/* OpenGL wrappers, mimicking opengl syntax */
 void		wmSubWindowSet			(struct wmWindow *win, int swinid);

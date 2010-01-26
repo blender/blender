@@ -234,7 +234,7 @@ void MESH_OT_rip(struct wmOperatorType *ot);
 void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
 void MESH_OT_blend_from_shape(struct wmOperatorType *ot);
 
-/* ******************* mesh_layers.c */
+/* ******************* mesh_data.c */
 
 void MESH_OT_uv_texture_add(struct wmOperatorType *ot);
 void MESH_OT_uv_texture_remove(struct wmOperatorType *ot);
@@ -242,6 +242,7 @@ void MESH_OT_vertex_color_add(struct wmOperatorType *ot);
 void MESH_OT_vertex_color_remove(struct wmOperatorType *ot);
 void MESH_OT_sticky_add(struct wmOperatorType *ot);
 void MESH_OT_sticky_remove(struct wmOperatorType *ot);
+void MESH_OT_drop_named_image(struct wmOperatorType *ot);
 
 void MESH_OT_edgering_select(struct wmOperatorType *ot);
 void MESH_OT_loopcut(struct wmOperatorType *ot);

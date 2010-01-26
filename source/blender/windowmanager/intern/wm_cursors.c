@@ -64,6 +64,7 @@ static GHOST_TStandardCursor convert_cursor(int curs)
 		case CURSOR_X_MOVE:		return GHOST_kStandardCursorLeftRight;
 		case CURSOR_Y_MOVE:		return GHOST_kStandardCursorUpDown;
 		case CURSOR_PENCIL:		return GHOST_kStandardCursorPencil;
+		case CURSOR_COPY:		return GHOST_kStandardCursorCopy;
 	}
 }
 
@@ -136,9 +137,10 @@ void WM_cursor_set(wmWindow *win, int curs)
 
 void WM_cursor_modal(wmWindow *win, int val)
 {
-	if(win->lastcursor == 0)
+	if(win->lastcursor == 0) {
 		win->lastcursor = win->cursor;
-	WM_cursor_set(win, val);
+		WM_cursor_set(win, val);
+	}
 }
 
 void WM_cursor_restore(wmWindow *win)

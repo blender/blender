@@ -755,6 +755,9 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 		else alpha= 0.5f;
 	}
 	
+	/* extra feature allows more alpha blending */
+	if(but->type==LABEL && but->a1==1.0f) alpha *= but->a2;
+	
 	glEnable(GL_BLEND);
 	
 	if(icon && icon!=ICON_BLANK1) {
@@ -784,8 +787,14 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 			xs= (rect->xmin+rect->xmax- height)/2;
 			ys= (rect->ymin+rect->ymax- height)/2;
 		}
-	
-		UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
+		
+		/* to indicate draggable */
+		if(but->dragpoin && (but->flag & UI_ACTIVE)) {
+			float rgb[3]= {1.25f, 1.25f, 1.25f};
+			UI_icon_draw_aspect_color(xs, ys, icon, aspect, rgb);
+		}
+		else
+			UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
 	}
 	
 	if(but->flag & UI_ICON_SUBMENU) {

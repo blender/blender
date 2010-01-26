@@ -554,6 +554,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 	bContext *C= private;
 	wmWindowManager *wm= CTX_wm_manager(C);
 	GHOST_TEventType type= GHOST_GetEventType(evt);
+	int time= GHOST_GetEventTime(evt);
 	
 	if (type == GHOST_kEventQuit) {
 		WM_exit(C);
@@ -578,7 +579,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 		
 		switch(type) {
 			case GHOST_kEventWindowDeactivate:
-				wm_event_add_ghostevent(win, type, data);
+				wm_event_add_ghostevent(wm, win, type, time, data);
 				win->active= 0; /* XXX */
 				break;
 			case GHOST_kEventWindowActivate: 
@@ -595,19 +596,19 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				kdata.ascii= 0;
 				if (win->eventstate->shift && !query_qual('s')) {
 					kdata.key= GHOST_kKeyLeftShift;
-					wm_event_add_ghostevent(win, GHOST_kEventKeyUp, &kdata);
+					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
 				if (win->eventstate->ctrl && !query_qual('c')) {
 					kdata.key= GHOST_kKeyLeftControl;
-					wm_event_add_ghostevent(win, GHOST_kEventKeyUp, &kdata);
+					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
 				if (win->eventstate->alt && !query_qual('a')) {
 					kdata.key= GHOST_kKeyLeftAlt;
-					wm_event_add_ghostevent(win, GHOST_kEventKeyUp, &kdata);
+					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
 				if (win->eventstate->oskey && !query_qual('C')) {
 					kdata.key= GHOST_kKeyCommand;
-					wm_event_add_ghostevent(win, GHOST_kEventKeyUp, &kdata);
+					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
 				/* keymodifier zero, it hangs on hotkeys that open windows otherwise */
 				win->eventstate->keymodifier= 0;
@@ -624,6 +625,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 #else
 				win->eventstate->y= (win->sizey-1) - cy;
 #endif
+				
+				win->addmousemove= 1;	/* enables highlighted buttons */
 				
 				wm_window_make_drawable(C, win);
 				break;
@@ -679,7 +682,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 						win->sizey= sizey;
 						win->posx= posx;
 						win->posy= posy;
-	
+
 						/* debug prints */
 						if(0) {
 							state = GHOST_GetWindowState(win->ghostwin);
@@ -711,8 +714,29 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				}
 				break;
 			}
+			case GHOST_kEventDraggingDropDone:
+			{
+				wmEvent event= *(win->eventstate);	/* copy last state, like mouse coords */
+				
+				/* make blender drop event with custom data pointing to wm drags */
+				event.type= EVT_DROP;
+				event.custom= EVT_DATA_LISTBASE;
+				event.customdata= &wm->drags;
+				
+				printf("Drop detected\n");
+				
+				/* add drag data to wm for paths: */
+				/* need icon type, some dropboxes check for that... see filesel code for this */
+				// WM_event_start_drag(C, icon, WM_DRAG_PATH, void *poin, 0.0);
+				/* void poin should point to string, it makes a copy */
+				
+				wm_event_add(win, &event);
+				
+				break;
+			}
+			
 			default:
-				wm_event_add_ghostevent(win, type, data);
+				wm_event_add_ghostevent(wm, win, type, time, data);
 				break;
 		}
 

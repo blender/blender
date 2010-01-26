@@ -1384,10 +1384,18 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		rmd->origx= event->x;
 		rmd->origy= event->y;
 		rmd->maxsize = area_max_regionsize(rmd->sa, rmd->ar, rmd->edge);
+		
+		/* if not set we do now, otherwise it uses type */
+		if(rmd->ar->sizex==0) 
+			rmd->ar->sizex= rmd->ar->type->prefsizex;
+		if(rmd->ar->sizey==0) 
+			rmd->ar->sizey= rmd->ar->type->prefsizey;
+		
+		/* now copy to regionmovedata */
 		if(rmd->edge=='l' || rmd->edge=='r') {
-			rmd->origval= rmd->ar->type->minsizex;
+			rmd->origval= rmd->ar->sizex;
 		} else {
-			rmd->origval= rmd->ar->type->minsizey;
+			rmd->origval= rmd->ar->sizey;
 		}
 		CLAMP(rmd->maxsize, 0, 1000);
 		
@@ -1413,11 +1421,11 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				delta= event->x - rmd->origx;
 				if(rmd->edge=='l') delta= -delta;
 				
-				rmd->ar->type->minsizex= rmd->origval + delta;
-				CLAMP(rmd->ar->type->minsizex, 0, rmd->maxsize);
+				rmd->ar->sizex= rmd->origval + delta;
+				CLAMP(rmd->ar->sizex, 0, rmd->maxsize);
 				
-				if(rmd->ar->type->minsizex < 24) {
-					rmd->ar->type->minsizex= rmd->origval;
+				if(rmd->ar->sizex < 24) {
+					rmd->ar->sizex= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						ED_region_toggle_hidden(C, rmd->ar);
 				}
@@ -1428,11 +1436,11 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				delta= event->y - rmd->origy;
 				if(rmd->edge=='b') delta= -delta;
 				
-				rmd->ar->type->minsizey= rmd->origval + delta;
-				CLAMP(rmd->ar->type->minsizey, 0, rmd->maxsize);
+				rmd->ar->sizey= rmd->origval + delta;
+				CLAMP(rmd->ar->sizey, 0, rmd->maxsize);
 				
-				if(rmd->ar->type->minsizey < 24) {
-					rmd->ar->type->minsizey= rmd->origval;
+				if(rmd->ar->sizey < 24) {
+					rmd->ar->sizey= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						ED_region_toggle_hidden(C, rmd->ar);
 				}

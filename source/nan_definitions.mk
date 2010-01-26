@@ -266,7 +266,7 @@ ifndef CONFIG_GUESS
     export NAN_SAMPLERATE_LIBS ?= $(NAN_SAMPLERATE)/lib/libsamplerate.a 
 
     # enable building with Cocoa
-    export WITH_COCOA ?= true
+    export WITH_COCOA ?= false
     export USE_QTKIT ?= false
     # use cocoa and qtkit for 64bit builds
     ifeq (64, $(findstring 64, $(MACOSX_ARCHITECTURE)))

@@ -121,6 +121,8 @@ typedef struct wmWindowManager {
 	
 	ListBase paintcursors;	/* extra overlay cursors to draw, like circles */
 	
+	ListBase drags;			/* active dragged items */
+	
 	ListBase keyconfigs;				/* known key configurations */
 	struct wmKeyConfig *defaultconf;	/* default configuration, not saved */
 
@@ -290,6 +292,8 @@ typedef struct wmOperator {
 #define OPERATOR_FINISHED		4
 /* add this flag if the event should pass through */
 #define OPERATOR_PASS_THROUGH	8
+/* in case operator got executed outside WM code... like via fileselect */
+#define OPERATOR_HANDLED		16
 
 /* wmOperator flag */
 #define OP_GRAB_POINTER			1

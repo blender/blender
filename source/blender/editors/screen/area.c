@@ -624,8 +624,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 	if(ar->next==NULL && alignment!=RGN_ALIGN_QSPLIT)
 		alignment= RGN_ALIGN_NONE;
 	
-	prefsizex= ar->type->minsizex;
-	prefsizey= ar->type->minsizey;
+	prefsizex= ar->sizex?ar->sizex:ar->type->prefsizex;
+	prefsizey= ar->sizey?ar->sizey:ar->type->prefsizey;
 	
 	/* hidden is user flag */
 	if(ar->flag & RGN_FLAG_HIDDEN);
@@ -1230,11 +1230,11 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 
 	if(vertical) {
 		w= v2d->cur.xmax - v2d->cur.xmin;
-		em= (ar->type->minsizex)? 10: 20;
+		em= (ar->type->prefsizex)? 10: 20;
 	}
 	else {
 		w= UI_PANEL_WIDTH;
-		em= (ar->type->minsizex)? 10: 20;
+		em= (ar->type->prefsizex)? 10: 20;
 	}
 
 	x= 0;

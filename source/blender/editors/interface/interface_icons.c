@@ -613,6 +613,7 @@ static void init_iconfile_list(struct ListBase *list)
 	
 	for(; i>=0; i--){
 		MEM_freeN(dir[i].relname);
+		MEM_freeN(dir[i].path);
 		if (dir[i].string) MEM_freeN(dir[i].string);
 	}
 	free(dir);

@@ -47,6 +47,7 @@ enum {
 	CURSOR_STD, 
 	CURSOR_NONE,
 	CURSOR_PENCIL,
+	CURSOR_COPY,
 };
 
 

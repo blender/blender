@@ -376,7 +376,7 @@ void ED_spacetype_node(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->listener= node_region_listener;
 	art->init= node_header_area_init;
@@ -389,7 +389,7 @@ void ED_spacetype_node(void)
 	/* regions: listview/buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= 180; // XXX
+	art->prefsizex= 180; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= node_region_listener;
 	art->init= node_buttons_area_init;

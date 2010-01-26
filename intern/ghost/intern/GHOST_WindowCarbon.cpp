@@ -635,6 +635,7 @@ void GHOST_WindowCarbon::loadCursor(bool visible, GHOST_TStandardCursor cursor) 
 		GCMAP( GHOST_kStandardCursorTopRightCorner,			kThemeArrowCursor);
 		GCMAP( GHOST_kStandardCursorBottomRightCorner,		kThemeArrowCursor);
 		GCMAP( GHOST_kStandardCursorBottomLeftCorner,		kThemeArrowCursor);
+		GCMAP( GHOST_kStandardCursorCopy,					kThemeCopyArrowCursor);
 		};
 #undef GCMAP
 

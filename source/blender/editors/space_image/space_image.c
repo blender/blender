@@ -431,10 +431,14 @@ static void image_free(SpaceLink *sl)
 }
 
 
-/* spacetype; init callback */
+/* spacetype; init callback, add handlers */
 static void image_init(struct wmWindowManager *wm, ScrArea *sa)
 {
+	ListBase *lb= WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
 
+	/* add drop boxes */
+	WM_event_add_dropbox_handler(&sa->handlers, lb);
+	
 }
 
 static SpaceLink *image_duplicate(SpaceLink *sl)
@@ -520,6 +524,31 @@ void image_keymap(struct wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "IMAGE_OT_toolbox", SPACEKEY, KM_PRESS, 0, 0);
 }
+
+/* dropboxes */
+static int image_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_PATH)
+		if(ELEM(drag->icon, ICON_FILE_IMAGE, ICON_FILE_BLANK))	/* rule might not work? */
+			return 1;
+	return 0;
+}
+
+static void image_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	/* copy drag path to properties */
+	RNA_string_set(drop->ptr, "path", drag->path);
+}
+
+/* area+region dropbox definition */
+static void image_dropboxes(void)
+{
+	ListBase *lb= WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
+	
+	WM_dropbox_add(lb, "IMAGE_OT_open", image_drop_poll, image_drop_copy);
+}
+
+
 
 static void image_refresh(const bContext *C, ScrArea *sa)
 {
@@ -685,6 +714,7 @@ static void image_main_area_init(wmWindowManager *wm, ARegion *ar)
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 	keymap= WM_keymap_find(wm->defaultconf, "Image", SPACE_IMAGE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
 }
 
 static void image_main_area_draw(const bContext *C, ARegion *ar)
@@ -825,6 +855,7 @@ void ED_spacetype_image(void)
 	st->duplicate= image_duplicate;
 	st->operatortypes= image_operatortypes;
 	st->keymap= image_keymap;
+	st->dropboxes= image_dropboxes;
 	st->refresh= image_refresh;
 	st->listener= image_listener;
 	st->context= image_context;
@@ -842,7 +873,7 @@ void ED_spacetype_image(void)
 	/* regions: listview/buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= 220; // XXX
+	art->prefsizex= 220; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= image_buttons_area_listener;
 	art->init= image_buttons_area_init;
@@ -864,7 +895,7 @@ void ED_spacetype_image(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype image region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->init= image_header_area_init;
 	art->draw= image_header_area_draw;

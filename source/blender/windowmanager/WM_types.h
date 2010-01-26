@@ -33,9 +33,11 @@ struct wmEvent;
 struct wmWindowManager;
 struct uiLayout;
 struct wmOperator;
+struct ImBuf;
 
 #include "RNA_types.h"
 #include "DNA_listBase.h"
+#include "BKE_utildefines.h" /* FILE_MAX */
 
 /* exported types for WM */
 #include "wm_cursors.h"
@@ -437,7 +439,51 @@ typedef struct wmReport {
 	char *message;
 } wmReport;
 
-/* *************** migrated stuff, clean later? ******************************** */
+/* *************** Drag and drop *************** */
+
+#define WM_DRAG_ID		0
+#define WM_DRAG_RNA		1
+#define WM_DRAG_PATH	2
+#define WM_DRAG_NAME	3
+#define WM_DRAG_VALUE	4
+
+/* note: structs need not exported? */
+
+typedef struct wmDrag {
+	struct wmDrag *next, *prev;
+	
+	int icon, type;					/* type, see WM_DRAG defines above */
+	void *poin;
+	char path[FILE_MAX];
+	double value;
+	
+	struct ImBuf *imb;						/* if no icon but imbuf should be drawn around cursor */
+	float scale;
+	short sx, sy;
+	
+	char opname[FILE_MAX];			/* if set, draws operator name*/
+} wmDrag;
+
+/* dropboxes are like keymaps, part of the screen/area/region definition */
+/* allocation and free is on startup and exit */
+typedef struct wmDropBox {
+	struct wmDropBox *next, *prev;
+	
+	/* test if the dropbox is active, then can print optype name */
+	int (*poll)(struct bContext *, struct wmDrag *, wmEvent *);
+
+	/* before exec, this copies drag info to wmDrop properties */
+	void (*copy)(struct wmDrag *, struct wmDropBox *);
+	
+	/* if poll survives, operator is called */
+	wmOperatorType *ot;				/* not saved in file, so can be pointer */
+
+	struct IDProperty *properties;			/* operator properties, assigned to ptr->data and can be written to a file */
+	struct PointerRNA *ptr;			/* rna pointer to access properties */
+
+} wmDropBox;
+
+/* *************** migrated stuff, clean later? ************** */
 
 typedef struct RecentFile {
 	struct RecentFile *next, *prev;
