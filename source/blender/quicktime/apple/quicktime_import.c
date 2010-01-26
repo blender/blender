@@ -373,6 +373,8 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 	}
 #endif
 
+	ibuf->profile == IB_PROFILE_SRGB;
+	
 	IMB_flipy(ibuf);
 	return ibuf;
 }

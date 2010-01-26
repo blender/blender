@@ -504,6 +504,8 @@ static ImBuf * avi_fetchibuf (struct anim *anim, int position) {
 		MEM_freeN (tmp);
 	}
 
+	ibuf->profile = IB_PROFILE_SRGB;
+		
 	return ibuf;
 }
 
@@ -881,6 +883,8 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 		IMB_filtery(ibuf);
 	}
 
+	ibuf->profile = IB_PROFILE_SRGB;
+	
 	return(ibuf);
 }
 
@@ -1069,6 +1073,7 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 			if (nextanim5(anim)) return (0);
 		}
 		ibuf = anim5_fetchibuf(anim);
+		ibuf->profile = IB_PROFILE_SRGB;
 		break;
 	case ANIM_SEQUENCE:
 		pic = an_stringdec(anim->first, head, tail, &digits);
@@ -1089,22 +1094,26 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 		if (ibuf) {
 			anim->curposition = position;
 			IMB_convert_rgba_to_abgr(ibuf);
+			ibuf->profile = IB_PROFILE_SRGB;
 		}
 		break;
 	case ANIM_AVI:
 		ibuf = avi_fetchibuf(anim, position);
-		if (ibuf) anim->curposition = position;
+		if (ibuf)
+			anim->curposition = position;
 		break;
 #ifdef WITH_QUICKTIME
 	case ANIM_QTIME:
 		ibuf = qtime_fetchibuf(anim, position);
-		if (ibuf) anim->curposition = position;
+		if (ibuf)
+			anim->curposition = position;
 		break;
 #endif
 #ifdef WITH_FFMPEG
 	case ANIM_FFMPEG:
 		ibuf = ffmpeg_fetchibuf(anim, position);
-		if (ibuf) anim->curposition = position;
+		if (ibuf)
+			anim->curposition = position;
 		filter_y = 0; /* done internally */
 		break;
 #endif
