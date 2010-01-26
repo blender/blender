@@ -138,12 +138,52 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 	  Strip::vertex_container::iterator v[3];
 	  StrokeVertexRep *svRep[3];
 	  Vec3r color[3];
-	  unsigned int face_index;
+	  unsigned int vertex_index;
+	  float width = freestyle_scene->r.xsch;
+	  float height = freestyle_scene->r.ysch;
+	  Vec2r p;
 	
 	  for(vector<Strip*>::iterator s=strips.begin(), send=strips.end();
 	  s!=send;
 	  ++s){		
 		
+	    Strip::vertex_container& strip_vertices = (*s)->vertices();
+		int strip_vertex_count = (*s)->sizeStrip();
+		int m, n, visible_faces, visible_segments;
+		bool visible;
+
+		// iterate over all vertices and count visible faces and strip segments
+		// (note: a strip segment is a series of visible faces, while two strip
+		// segments are separated by one or more invisible faces)
+		v[0] = strip_vertices.begin();
+	    v[1] = v[0]; ++(v[1]);
+	    v[2] = v[1]; ++(v[2]);
+		visible_faces = visible_segments = 0;
+		visible = false;
+	    for (n = 2; n < strip_vertex_count; n++)
+		{
+			svRep[0] = *(v[0]);
+			svRep[1] = *(v[1]);
+			svRep[2] = *(v[2]);
+			m = 0;
+			for (int j = 0; j < 3; j++) {
+				p = svRep[j]->point2d();
+				if (p[0] < 0.0 || p[0] > width || p[1] < 0.0 || p[1] > height)
+					m++;
+			}
+			if (m == 3) {
+				visible = false;
+			} else {
+				visible_faces++;
+				if (!visible)
+					visible_segments++;
+				visible = true;
+			}
+			++v[0]; ++v[1]; ++v[2];
+		}
+		if (visible_faces == 0)
+			continue;
+
 		// me = Mesh.New()
 		Object* object_mesh = add_object(freestyle_scene, OB_MESH);
 		Mesh* mesh = (Mesh *) object_mesh->data;
@@ -164,14 +204,12 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 		object_mesh->actcol= object_mesh->totcol;
 #endif
 		
-		int strip_vertex_count = (*s)->sizeStrip();
-	
 		// vertices allocation
-		mesh->totvert = strip_vertex_count;
+		mesh->totvert = visible_faces + visible_segments * 2;
 		mesh->mvert = (MVert*) CustomData_add_layer( &mesh->vdata, CD_MVERT, CD_CALLOC, NULL, mesh->totvert);
 			
 		// faces allocation
-		mesh->totface = strip_vertex_count - 2;
+		mesh->totface = visible_faces;
 		mesh->mface = (MFace*) CustomData_add_layer( &mesh->fdata, CD_MFACE, CD_CALLOC, NULL, mesh->totface);
 		
 		// colors allocation  - me.vertexColors = True
@@ -185,75 +223,84 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 		MFace* faces = mesh->mface;
 		MCol* colors = mesh->mcol;
 		
-	    Strip::vertex_container& strip_vertices = (*s)->vertices();
 	    v[0] = strip_vertices.begin();
 	    v[1] = v[0]; ++(v[1]);
 	    v[2] = v[1]; ++(v[2]);
 
-		// first vertex
-		svRep[0] = *(v[0]);
-		vertices->co[0] = svRep[0]->point2d()[0];
-		vertices->co[1] = svRep[0]->point2d()[1];
-		vertices->co[2] = 0.0;
-		++vertices;
+		vertex_index = 0;
+		visible = false;
 		
-		// second vertex
-		svRep[1] = *(v[1]);
-		vertices->co[0] = svRep[1]->point2d()[0];
-		vertices->co[1] = svRep[1]->point2d()[1];
-		vertices->co[2] = 0.0;
-		++vertices;
-		
-		// iterating over subsequent vertices: each vertex adds a new face
-		face_index = 0;
-		
-	    while( v[2] != strip_vertices.end() ) 
+	    for (n = 2; n < strip_vertex_count; n++)
 		{
-			// INPUT
 			svRep[0] = *(v[0]);
 			svRep[1] = *(v[1]);
 			svRep[2] = *(v[2]);
-			
-			color[0] = svRep[0]->color();
-			color[1] = svRep[1]->color();
-			color[2] = svRep[2]->color();
-			
-			// vertex
-			vertices->co[0] = svRep[2]->point2d()[0];
-			vertices->co[1] = svRep[2]->point2d()[1];
-			vertices->co[2] = 0.0;
-			
-			// faces
-			faces->v1 = face_index;
-			faces->v2 = face_index + 1;
-			faces->v3 = face_index + 2;
-			faces->v4 = 0;
-			
-			// colors
-			// red and blue are swapped - cf DNA_meshdata_types.h : MCol	
-			colors->r = (short)(255.0f*(color[0])[2]);
-			colors->g = (short)(255.0f*(color[0])[1]);
-			colors->b = (short)(255.0f*(color[0])[0]);
-			colors->a = (short)(255.0f*svRep[0]->alpha());
-			++colors;
-			
-			colors->r = (short)(255.0f*(color[1])[2]);
-			colors->g = (short)(255.0f*(color[1])[1]);
-			colors->b = (short)(255.0f*(color[1])[0]);
-			colors->a = (short)(255.0f*svRep[1]->alpha());
-			++colors;
-			
-			colors->r = (short)(255.0f*(color[2])[2]);
-			colors->g = (short)(255.0f*(color[2])[1]);
-			colors->b = (short)(255.0f*(color[2])[0]);
-			colors->a = (short)(255.0f*svRep[2]->alpha());
-			++colors;
-			
-			// ITERATION
+			m = 0;
+			for (int j = 0; j < 3; j++) {
+				p = svRep[j]->point2d();
+				if (p[0] < 0.0 || p[0] > width || p[1] < 0.0 || p[1] > height)
+					m++;
+			}
+			if (m == 3) {
+				visible = false;
+			} else {
+				if (!visible) {
+					vertex_index += 2;
+
+					// first vertex
+					vertices->co[0] = svRep[0]->point2d()[0];
+					vertices->co[1] = svRep[0]->point2d()[1];
+					vertices->co[2] = 0.0;
+					++vertices;
+					
+					// second vertex
+					vertices->co[0] = svRep[1]->point2d()[0];
+					vertices->co[1] = svRep[1]->point2d()[1];
+					vertices->co[2] = 0.0;
+					++vertices;
+				}
+				visible = true;
+
+				// vertex
+				vertices->co[0] = svRep[2]->point2d()[0];
+				vertices->co[1] = svRep[2]->point2d()[1];
+				vertices->co[2] = 0.0;
+				
+				// faces
+				faces->v1 = vertex_index - 2;
+				faces->v2 = vertex_index - 1;
+				faces->v3 = vertex_index;
+				faces->v4 = 0;
+				
+				// colors
+				// red and blue are swapped - cf DNA_meshdata_types.h : MCol	
+				color[0] = svRep[0]->color();
+				color[1] = svRep[1]->color();
+				color[2] = svRep[2]->color();
+
+				colors->r = (short)(255.0f*(color[0])[2]);
+				colors->g = (short)(255.0f*(color[0])[1]);
+				colors->b = (short)(255.0f*(color[0])[0]);
+				colors->a = (short)(255.0f*svRep[0]->alpha());
+				++colors;
+				
+				colors->r = (short)(255.0f*(color[1])[2]);
+				colors->g = (short)(255.0f*(color[1])[1]);
+				colors->b = (short)(255.0f*(color[1])[0]);
+				colors->a = (short)(255.0f*svRep[1]->alpha());
+				++colors;
+				
+				colors->r = (short)(255.0f*(color[2])[2]);
+				colors->g = (short)(255.0f*(color[2])[1]);
+				colors->b = (short)(255.0f*(color[2])[0]);
+				colors->a = (short)(255.0f*svRep[2]->alpha());
+				++colors;
+
+				++faces; ++vertices; ++colors;
+				++vertex_index;
+			}
 			++v[0]; ++v[1]; ++v[2];
-			++faces; ++vertices; ++colors;
-			++face_index;
-		
+
 		} // loop over strip vertices 
 	
 	} // loop over strips	
