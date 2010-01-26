@@ -516,7 +516,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	
 	/* draw from darkest blend to lowest */
 	for(cur= stepsize; cur<range; cur+=stepsize) {
-		ctime= cur - (float)fmod(cfrao, stepsize);	/* ensures consistant stepping */
+		ctime= cur - (float)fmod(cfrao, stepsize);	/* ensures consistent stepping */
 		colfac= ctime/range;
 		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0*sqrt(colfac)));
 		
@@ -531,7 +531,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			}
 		}
 		
-		ctime= cur + (float)fmod((float)cfrao, stepsize) - stepsize+1.0f;	/* ensures consistant stepping */
+		ctime= cur + (float)fmod((float)cfrao, stepsize) - stepsize+1.0f;	/* ensures consistent stepping */
 		colfac= ctime/range;
 		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0*sqrt(colfac)));
 		

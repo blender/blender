@@ -11987,7 +11987,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	Main *mainvar= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 
-	/* make main consistant */
+	/* make main consistent */
 	expand_main(*fd, mainl);
 
 	/* do this when expand found other libs */

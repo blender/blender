@@ -1291,7 +1291,7 @@ void zbufshade_tile(RenderPart *pa)
 		
 		zbuffer_solid(pa, rl, NULL, NULL);
 		
-		if(!R.test_break(R.tbh)) {	/* NOTE: this if() is not consistant */
+		if(!R.test_break(R.tbh)) {	/* NOTE: this if() is not consistent */
 			
 			/* edges only for solid part, ztransp doesn't support it yet anti-aliased */
 			if(rl->layflag & SCE_LAY_EDGE) {

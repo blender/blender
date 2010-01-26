@@ -67,7 +67,7 @@ void BLO_free_memfile(MemFile *memfile)
 	memfile->size= 0;
 }
 
-/* to keep list of memfiles consistant, 'first' is always first in list */
+/* to keep list of memfiles consistent, 'first' is always first in list */
 /* result is that 'first' is being freed */
 void BLO_merge_memfile(MemFile *first, MemFile *second)
 {

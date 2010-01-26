@@ -906,7 +906,7 @@ static void jitter_plane_offset(float *jitter1, float *jitter2, int tot, float s
 }
 
 /* called from convertBlenderScene.c */
-/* we do this in advance to get consistant random, not alter the render seed, and be threadsafe */
+/* we do this in advance to get consistent random, not alter the render seed, and be threadsafe */
 void init_jitter_plane(LampRen *lar)
 {
 	float *fp;
