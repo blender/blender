@@ -27,8 +27,6 @@
  */
 
 #include <float.h>
-#define _USE_MATH_DEFINES
-#include <math.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -47,6 +45,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
 #include "BLI_editVert.h"
+#include "BLI_math.h"
 
 #include "BKE_blender.h"
 #include "BKE_context.h"

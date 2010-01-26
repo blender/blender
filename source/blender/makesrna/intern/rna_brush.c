@@ -21,10 +21,8 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- #define _USE_MATH_DEFINES
 
 #include <stdlib.h>
-#include <math.h>
 
 #include "RNA_define.h"
 #include "RNA_types.h"
@@ -34,7 +32,10 @@
 #include "DNA_brush_types.h"
 #include "DNA_texture_types.h"
 
+#include "BLI_math.h"
+
 #include "IMB_imbuf.h"
+
 #include "WM_types.h"
 
 #ifdef RNA_RUNTIME

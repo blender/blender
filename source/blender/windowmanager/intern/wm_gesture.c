@@ -26,9 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#define _USE_MATH_DEFINES
-#include <math.h>
-
 #include "DNA_screen_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"
@@ -38,6 +35,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"	/* lasso tessellation */
+#include "BLI_math.h"
 #include "BLI_scanfill.h"	/* lasso tessellation */
 
 #include "BKE_context.h"

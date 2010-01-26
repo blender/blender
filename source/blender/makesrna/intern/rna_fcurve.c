@@ -22,10 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
- #define _USE_MATH_DEFINES
- 
 #include <stdlib.h>
-#include <math.h>
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -39,6 +36,8 @@
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "BLI_math.h"
 
 #include "WM_types.h"
 

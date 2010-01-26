@@ -32,6 +32,8 @@
 #ifndef __WINSTUFF_H__
 #define __WINSTUFF_H__
 
+#ifdef _WIN32
+
 #ifndef FREE_WINDOWS
 #pragma warning(once: 4761 4305 4244 4018)
 #endif
@@ -137,6 +139,8 @@ int BLI_getInstallationDir(char *str);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif /* __WINSTUFF_H__ */
