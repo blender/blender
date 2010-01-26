@@ -692,6 +692,11 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 					ED_region_tag_redraw(ar);
 					break;
 			}
+			switch(wmn->action) {
+				case NA_EDITED:
+					ED_region_tag_redraw(ar);
+					break;
+			}
 			break;
 		case NC_OBJECT:
 			switch(wmn->data) {
