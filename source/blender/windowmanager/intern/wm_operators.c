@@ -2661,7 +2661,7 @@ static void WM_OT_redraw_timer(wmOperatorType *ot)
 	ot->exec= redraw_timer_exec;
 	ot->poll= WM_operator_winactive;
 	
-	RNA_def_enum(ot->srna, "type", prop_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_type_items, 0, "Type", "");
 	RNA_def_int(ot->srna, "iterations", 10, 1,INT_MAX, "Iterations", "Number of times to redraw", 1,1000);
 
 }

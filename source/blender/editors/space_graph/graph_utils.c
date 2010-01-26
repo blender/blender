@@ -224,10 +224,10 @@ int graphop_editable_keyframes_poll (bContext *C)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return 0;
 	
-	/* loop over the editable (selected + editable) F-Curves, and see if they're suitable
+	/* loop over the editable F-Curves, and see if they're suitable
 	 * stopping on the first successful match
 	 */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	if (items == 0) 
 		return 0;
