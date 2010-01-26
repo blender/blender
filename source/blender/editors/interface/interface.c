@@ -26,6 +26,7 @@
  */
 
 #include <float.h>
+#include <limits.h>
 #include <math.h>
 #include <string.h>
  
@@ -1680,12 +1681,14 @@ void ui_set_but_soft_range(uiBut *but, double value)
 	if(but->rnaprop) {
 		type= RNA_property_type(but->rnaprop);
 
+		/* clamp button range to something reasonable in case
+		 * we get -inf/inf from RNA properties */
 		if(type == PROP_INT) {
 			int imin, imax, istep;
 
 			RNA_property_int_ui_range(&but->rnapoin, but->rnaprop, &imin, &imax, &istep);
-			softmin= imin;
-			softmax= imax;
+			softmin= (imin == INT_MIN)? -1e4: imin;
+			softmax= (imin == INT_MAX)? 1e4: imax;
 			step= istep;
 			precision= 1;
 		}
@@ -1693,18 +1696,13 @@ void ui_set_but_soft_range(uiBut *but, double value)
 			float fmin, fmax, fstep, fprecision;
 
 			RNA_property_float_ui_range(&but->rnapoin, but->rnaprop, &fmin, &fmax, &fstep, &fprecision);
-			softmin= fmin;
-			softmax= fmax;
+			softmin= (fmin == -FLT_MAX)? -1e4: fmin;
+			softmax= (fmax == FLT_MAX)? 1e4: fmax;
 			step= fstep;
 			precision= fprecision;
 		}
 		else
 			return;
-
-		/* clamp button range to something reasonable in case
-		 * we get -inf/inf from RNA properties */
-		softmin= MAX2(softmin, -1e4);
-		softmax= MIN2(softmax, 1e4);
 
 		/* if the value goes out of the soft/max range, adapt the range */
 		if(value+1e-10 < softmin) {
