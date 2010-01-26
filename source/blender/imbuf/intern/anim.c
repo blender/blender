@@ -1060,7 +1060,9 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 		if (ibuf == NULL) {
 			return (0);
 		}
+
 		IMB_freeImBuf(ibuf); /* ???? */
+		ibuf= NULL;
 	}
 
 	if (position < 0) return(0);
