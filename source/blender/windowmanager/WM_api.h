@@ -131,7 +131,7 @@ wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, in
 void		WM_modalkeymap_assign(struct wmKeyMap *km, char *opname);
 
 const char	*WM_key_event_string(short type);
-int			WM_key_event_operator_id(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, struct wmKeyMap **keymap_r);
+int			WM_key_event_operator_id(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, int hotkey, struct wmKeyMap **keymap_r);
 char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);
 
 			/* handlers */

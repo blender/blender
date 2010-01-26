@@ -3456,7 +3456,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *ar, void *arg)
 	uiLayout *layout;
 	uiStyle *style= U.uistyles.first;
 	IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
-	int kmi_id = WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, &km);
+	int kmi_id = WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, 1, &km);
 
 	kmi = WM_keymap_item_find_id(km, kmi_id);
 	
@@ -3524,7 +3524,7 @@ static void remove_shortcut_func(bContext *C, void *arg1, void *arg2)
 	wmKeyMap *km;
 	wmKeyMapItem *kmi;
 	IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
-	int kmi_id = WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, &km);
+	int kmi_id = WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, 1, &km);
 	
 	kmi = WM_keymap_item_find_id(km, kmi_id);
 	WM_keymap_remove_item(km, kmi);
@@ -3662,10 +3662,12 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		uiBut *but2;
 		IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
 		int w = uiLayoutGetWidth(layout);
-		char buf[512];
+		wmKeyMap *km;
+		int kmi_id= WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, 1, &km);
+		wmKeyMapItem *kmi = WM_keymap_item_find_id(km, kmi_id);
 
 		/* keyboard shortcuts */
-		if(WM_key_event_operator_string(C, but->optype->idname, but->opcontext, prop, buf, sizeof(buf))) {
+		if ((kmi) && ISKEYBOARD(kmi->type)) {
 
 			// would rather use a block but, but gets weirdly positioned...
 			//uiDefBlockBut(block, menu_change_shortcut, but, "Change Shortcut", 0, 0, uiLayoutGetWidth(layout), UI_UNIT_Y, "");
