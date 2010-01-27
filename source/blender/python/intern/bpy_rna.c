@@ -1898,43 +1898,49 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 		ret = pyrna_func_to_py((BPy_DummyPointerRNA *)self, func);
 	}
 	else if (self->ptr.type == &RNA_Context) {
-		PointerRNA newptr;
-		ListBase newlb;
-		int done;
+		bContext *C = self->ptr.data;
+		if(C==NULL) {
+			PyErr_Format( PyExc_AttributeError, "StructRNA Context is 'NULL', can't get \"%.200s\" from context", name);
+			ret= NULL;
+		}
+		else {
+			PointerRNA newptr;
+			ListBase newlb;
 
-		done= CTX_data_get(self->ptr.data, name, &newptr, &newlb);
+			int done= CTX_data_get(C, name, &newptr, &newlb);
 
-		if(done==1) { /* found */
-			if (newptr.data) {
-				ret = pyrna_struct_CreatePyObject(&newptr);
-			}
-			else if (newlb.first) {
-				CollectionPointerLink *link;
-				PyObject *linkptr;
+			if(done==1) { /* found */
+				if (newptr.data) {
+					ret = pyrna_struct_CreatePyObject(&newptr);
+				}
+				else if (newlb.first) {
+					CollectionPointerLink *link;
+					PyObject *linkptr;
 
-				ret = PyList_New(0);
+					ret = PyList_New(0);
 
-				for(link=newlb.first; link; link=link->next) {
-					linkptr= pyrna_struct_CreatePyObject(&link->ptr);
-					PyList_Append(ret, linkptr);
-					Py_DECREF(linkptr);
+					for(link=newlb.first; link; link=link->next) {
+						linkptr= pyrna_struct_CreatePyObject(&link->ptr);
+						PyList_Append(ret, linkptr);
+						Py_DECREF(linkptr);
+					}
+				}
+				else {
+					ret = Py_None;
+					Py_INCREF(ret);
 				}
 			}
-			else {
+			else if (done==-1) { /* found but not set */
 				ret = Py_None;
 				Py_INCREF(ret);
 			}
-		}
-		else if (done==-1) { /* found but not set */
-			ret = Py_None;
-			Py_INCREF(ret);
-		}
-        else { /* not found in the context */
-        	/* lookup the subclass. raise an error if its not found */
-        	ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
-        }
+			else { /* not found in the context */
+				/* lookup the subclass. raise an error if its not found */
+				ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
+			}
 
-		BLI_freelistN(&newlb);
+			BLI_freelistN(&newlb);
+		}
 	}
 	else {
 #if 0
