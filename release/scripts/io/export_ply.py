@@ -275,10 +275,12 @@ class ExportPLY(bpy.types.Operator):
 
 
     path = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen=1024, default="")
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, hidden=True)
     use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default=True)
     use_normals = BoolProperty(name="Normals", description="Export Normals for smooth and hard shaded faces", default=True)
     use_uvs = BoolProperty(name="UVs", description="Exort the active UV layer", default=True)
     use_colors = BoolProperty(name="Vertex Colors", description="Exort the active vertex color layer", default=True)
+
 
     def poll(self, context):
         return context.active_object != None

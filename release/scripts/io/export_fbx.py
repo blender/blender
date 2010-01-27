@@ -3363,6 +3363,7 @@ class ExportFBX(bpy.types.Operator):
 
 
     path = StringProperty(name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default="")
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, hidden=True)
 
     EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
 # 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
