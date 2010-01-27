@@ -312,6 +312,10 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data==ND_SPACE_NODE)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_SCREEN:
+			if(wmn->data == ND_GPENCIL)	
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 		case NC_MATERIAL:
 		case NC_TEXTURE:

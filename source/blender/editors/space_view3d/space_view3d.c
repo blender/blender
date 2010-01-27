@@ -598,6 +598,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_SCREEN:
+			if(wmn->data == ND_GPENCIL)	
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
