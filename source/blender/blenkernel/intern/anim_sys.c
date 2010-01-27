@@ -60,8 +60,8 @@
 
 /* Getter/Setter -------------------------------------------- */
 
-/* Internal utility to check if ID can have AnimData */
-static short id_has_animdata (ID *id)
+/* Check if ID can have AnimData */
+short id_type_can_have_animdata (ID *id)
 {
 	/* sanity check */
 	if (id == NULL)
@@ -99,7 +99,7 @@ AnimData *BKE_animdata_from_id (ID *id)
 	 * types that do to be of type IdAdtTemplate, and extract the
 	 * AnimData that way
 	 */
-	if (id_has_animdata(id)) {
+	if (id_type_can_have_animdata(id)) {
 		IdAdtTemplate *iat= (IdAdtTemplate *)id;
 		return iat->adt;
 	}
@@ -117,7 +117,7 @@ AnimData *BKE_id_add_animdata (ID *id)
 	 * types that do to be of type IdAdtTemplate, and add the AnimData
 	 * to it using the template
 	 */
-	if (id_has_animdata(id)) {
+	if (id_type_can_have_animdata(id)) {
 		IdAdtTemplate *iat= (IdAdtTemplate *)id;
 		
 		/* check if there's already AnimData, in which case, don't add */
@@ -145,7 +145,7 @@ void BKE_free_animdata (ID *id)
 	/* Only some ID-blocks have this info for now, so we cast the 
 	 * types that do to be of type IdAdtTemplate
 	 */
-	if (id_has_animdata(id)) {
+	if (id_type_can_have_animdata(id)) {
 		IdAdtTemplate *iat= (IdAdtTemplate *)id;
 		AnimData *adt= iat->adt;
 		

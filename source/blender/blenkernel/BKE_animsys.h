@@ -43,7 +43,10 @@ struct AnimMapper;
 /* ************************************* */
 /* AnimData API */
 
-/* Get AnimData from the given ID-block. */
+/* Check if the given ID-block can have AnimData */
+short id_type_can_have_animdata(struct ID *id);
+
+/* Get AnimData from the given ID-block */
 struct AnimData *BKE_animdata_from_id(struct ID *id);
 
 /* Add AnimData to the given ID-block */

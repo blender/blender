@@ -36,6 +36,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
@@ -1110,6 +1111,10 @@ int RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 {
+	/* check that base ID-block can support animation data */
+	if (!id_type_can_have_animdata(ptr->id.data))
+		return 0;
+	
 	prop= rna_ensure_property(prop);
 
 	if(!(prop->flag & PROP_ANIMATEABLE))
