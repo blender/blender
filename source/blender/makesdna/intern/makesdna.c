@@ -277,7 +277,13 @@ int add_name(char *str)
 	if((str[0]==0) /*  || (str[1]==0) */) return -1;
 
 	if (str[0] == '(' && str[1] == '*') {
-		if (debugSDNA > 3) printf("\t\t\t\t*** Function pointer found\n");
+		/* we handle function pointer and special array cases here, e.g.
+		   void (*function)(...) and float (*array)[..]. the array case
+		   name is still converted to (array*)() though because it is that
+		   way in old dna too, and works correct with elementsize() */
+		int isfuncptr = (strchr(str+1, '(')) != NULL;
+
+		if (debugSDNA > 3) printf("\t\t\t\t*** Function pointer or multidim array pointer found\n");
 		/* functionpointer: transform the type (sometimes) */
 		i = 0;
 		j = 0;
@@ -302,7 +308,15 @@ int add_name(char *str)
 		if (debugSDNA > 3) printf("seen %c ( %d) \n", str[j], str[j]); 
 		if (debugSDNA > 3) printf("special after offset %d\n", j); 
 				
-		if (str[j] == 0 ) {
+		if (!isfuncptr) {
+			/* multidimensional array pointer case */
+			if(str[j] == 0) {
+				if (debugSDNA > 3) printf("offsetting for multidim array pointer\n");
+			}
+			else
+				printf("Error during tokening multidim array pointer\n");
+		}
+		else if (str[j] == 0 ) {
 			if (debugSDNA > 3) printf("offsetting for space\n"); 
 			/* get additional offset */
 			k = 0;
