@@ -1346,7 +1346,7 @@ static void wm_paintcursor_tag(bContext *C, wmPaintCursor *pc, ARegion *ar)
 {
 	if(ar) {
 		for(; pc; pc= pc->next) {
-			if(pc->poll(C)) {
+			if(pc->poll == NULL || pc->poll(C)) {
 				wmWindow *win= CTX_wm_window(C);
 				win->screen->do_draw_paintcursor= 1;
 
