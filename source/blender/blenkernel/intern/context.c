@@ -486,7 +486,12 @@ static int ctx_data_pointer_verify(const bContext *C, const char *member, void *
 {
 	bContextDataResult result;
 
-	if(ctx_data_get((bContext*)C, member, &result)==1) {
+	/* if context is NULL, pointer must be NULL too and that is a valid return */
+	if (C == NULL) {
+		*pointer= NULL;
+		return 1;
+	}
+	else if(ctx_data_get((bContext*)C, member, &result)==1) {
 		*pointer= result.ptr.data;
 		return 1;
 	}
