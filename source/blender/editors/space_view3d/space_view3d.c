@@ -425,7 +425,7 @@ static int view3d_ima_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	return 0;
 }
 
-static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	ID *id= (ID *)drag->poin;
 	PointerRNA ptr;
@@ -438,12 +438,20 @@ static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
 		RNA_string_set(drop->ptr, "name", id->name+2);
 }
 
+static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	ID *id= (ID *)drag->poin;
+
+	RNA_string_set(drop->ptr, "name", id->name+2);
+}
+
+
 /* region dropbox definition */
 static void view3d_dropboxes(void)
 {
 	ListBase *lb= WM_dropboxmap_find("View3D", SPACE_VIEW3D, RGN_TYPE_WINDOW);
 	
-	WM_dropbox_add(lb, "OBJECT_OT_add_named_cursor", view3d_ob_drop_poll, view3d_id_drop_copy);
+	WM_dropbox_add(lb, "OBJECT_OT_add_named_cursor", view3d_ob_drop_poll, view3d_ob_drop_copy);
 	WM_dropbox_add(lb, "OBJECT_OT_drop_named_material", view3d_mat_drop_poll, view3d_id_drop_copy);
 	WM_dropbox_add(lb, "MESH_OT_drop_named_image", view3d_ima_drop_poll, view3d_id_drop_copy);
 }

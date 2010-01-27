@@ -1842,7 +1842,9 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	assign_material(base->object, ma, 1);
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_SHADING, base->object);
+	DAG_ids_flush_update(0);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	
 	return OPERATOR_FINISHED;
 }
 
