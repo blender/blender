@@ -822,7 +822,7 @@ static void wm_eventemulation(wmEvent *event)
 #ifdef __APPLE__
 	/* rightmouse emulation */
 	if(U.flag & USER_TWOBUTTONMOUSE) {
-		if(event->type == LEFTMOUSE && (event->oskey || mmb_emulated == KM_PRESS) {
+		if(event->type == LEFTMOUSE && (event->oskey || mmb_emulated == KM_PRESS)) {
 			event->type = RIGHTMOUSE;
 			event->oskey = 0;
 			mmb_emulated = event->val;
