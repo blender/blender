@@ -30,6 +30,7 @@ class ExportUVLayout(bpy.types.Operator):
     bl_undo = True
     
     path = StringProperty(name="File Path", description="File path used for exporting the SVG file", maxlen=1024, default="")
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, hidden=True)
     only_selected = BoolProperty(name="Only Selected", description="Export Only the selected UVs", default=False)
     
     def poll(self, context):

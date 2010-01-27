@@ -218,7 +218,7 @@ void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
-void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type);
+void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action);
 void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int extend);
 void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 

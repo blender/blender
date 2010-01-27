@@ -756,7 +756,7 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* default properties for fileselect */
-void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
+void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, short action)
 {
 	PropertyRNA *prop;
 
@@ -764,6 +764,11 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file.");
 	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Directory of the file.");
 
+	if (action == FILE_SAVE) {
+		prop= RNA_def_boolean(ot->srna, "check_existing", 1, "Check Existing", "Check and warn on overwriting existing files");
+		RNA_def_property_flag(prop, PROP_HIDDEN);
+	}
+	
 	prop= RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop= RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
@@ -1319,7 +1324,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->exec= wm_open_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPEN);
 
 	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file.");
 }
@@ -1477,7 +1482,7 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	
 	ot->flag |= OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB, FILE_OPEN);
 	
 	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending.");
 	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects.");
@@ -1562,7 +1567,7 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 	ot->invoke= wm_recover_auto_save_invoke;
 	ot->poll= WM_operator_winactive;
 
-	WM_operator_properties_filesel(ot, BLENDERFILE, FILE_BLENDER);
+	WM_operator_properties_filesel(ot, BLENDERFILE, FILE_BLENDER, FILE_OPEN);
 }
 
 /* *************** save file as **************** */
@@ -1644,7 +1649,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
 	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory.");
 }
@@ -1654,7 +1659,8 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	char name[FILE_MAX];
-
+	int check_existing=1;
+	
 	/* cancel if no active window */
 	if (CTX_wm_window(C) == NULL)
 		return OPERATOR_CANCELLED;
@@ -1665,10 +1671,19 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	untitled(name);
 	RNA_string_set(op->ptr, "path", name);
 	
-	if (G.save_over)
-		uiPupMenuSaveOver(C, op, name);
-	else
+	if (RNA_struct_find_property(op->ptr, "check_existing"))
+		if (RNA_boolean_get(op->ptr, "check_existing")==0)
+			check_existing = 0;
+	
+	if (G.save_over) {
+		if (check_existing)
+			uiPupMenuSaveOver(C, op, name);
+		else {
+			WM_operator_call(C, op);
+		}
+	} else {
 		WM_event_add_fileselect(C, op);
+	}
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1683,7 +1698,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= NULL;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
 	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory.");
 }

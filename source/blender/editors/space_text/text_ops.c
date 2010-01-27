@@ -287,7 +287,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 	ot->poll= text_new_poll;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPEN);
 }
 
 /******************* reload operator *********************/
@@ -527,7 +527,7 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_SAVE);
 }
 
 /******************* run script operator *********************/

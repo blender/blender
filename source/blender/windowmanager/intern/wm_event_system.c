@@ -1109,7 +1109,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				if(event->val==EVT_FILESELECT_EXEC) {
 					/* a bit weak, might become arg for WM_event_fileselect? */
 					/* XXX also extension code in image-save doesnt work for this yet */
-					if(strncmp(handler->op->type->name, "Save", 4)==0) {
+					if (RNA_struct_find_property(handler->op->ptr, "check_existing") && 
+							RNA_boolean_get(handler->op->ptr, "check_existing")) {
 						/* this gives ownership to pupmenu */
 						uiPupMenuSaveOver(C, handler->op, (path)? path: "");
 					}

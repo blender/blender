@@ -914,7 +914,7 @@ void OBJECT_OT_multires_save_external(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE|BTXFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BTXFILE, FILE_SPECIAL, FILE_SAVE);
 }
 
 /****************** multires pack operator *********************/
