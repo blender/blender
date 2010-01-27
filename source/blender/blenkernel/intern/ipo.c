@@ -1275,8 +1275,10 @@ static void icu_to_fcurves (ListBase *groups, ListBase *list, IpoCurve *icu, cha
 				/* 'hide' flag is now used for keytype - only 'keyframes' existed before */
 				dst->hide= BEZT_KEYTYPE_KEYFRAME;
 					
-				/* correct values for euler rotation curves - they were degrees/10 */
-				// XXX for now, just make them into radians as RNA sets/reads directly in that form
+				/* correct values for euler rotation curves 
+				 *	- they were degrees/10 
+				 *	- we need radians for RNA to do the right thing
+				 */
 				if ( ((icu->blocktype == ID_OB) && ELEM3(icu->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) ||
 					 ((icu->blocktype == ID_PO) && ELEM3(icu->adrcode, AC_EUL_X, AC_EUL_Y, AC_EUL_Z)) )
 				{
