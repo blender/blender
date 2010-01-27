@@ -6577,7 +6577,6 @@ static DerivedMesh *booleanModifier_applyModifier(
 		ModifierData *md, Object *ob, DerivedMesh *derivedData,
   int useRenderParams, int isFinalCalc)
 {
-	// XXX doesn't handle derived data
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
 	DerivedMesh *dm = bmd->object->derivedFinal;
 
@@ -6587,20 +6586,14 @@ static DerivedMesh *booleanModifier_applyModifier(
 		DerivedMesh *result = NewBooleanDerivedMesh(dm, bmd->object, derivedData, ob,
 				1 + bmd->operation);
 
-		if(dm)
-			dm->release(dm);
-
 		/* if new mesh returned, return it; otherwise there was
 		* an error, so delete the modifier object */
 		if(result)
 			return result;
 		else
-			bmd->object = NULL;
+			modifier_setError(md, "Can't execute boolean operation.");
 	}
 	
-	if(dm)
-			dm->release(dm);
-
 	return derivedData;
 }
 
