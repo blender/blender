@@ -1097,6 +1097,8 @@ class USERPREF_PT_input(bpy.types.Panel):
                     self.draw_entry(kc, entry, col, level + 1)
 
     def draw_kmi(self, kc, km, kmi, layout, level):
+        # reset keymap pointer, it might get changed by modal keymaps added after keymap items
+        layout.set_context_pointer("keymap", km)
         layout.set_context_pointer("keyitem", kmi)
 
         col = self.indented_layout(layout, level)
