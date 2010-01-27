@@ -106,6 +106,7 @@ ARegion *nla_has_buttons_region(ScrArea *sa)
 static SpaceLink *nla_new(const bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar;
 	SpaceNla *snla;
 	
@@ -151,7 +152,7 @@ static SpaceLink *nla_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
 	ar->v2d.tot.xmin= (float)(SFRA-10);
-	ar->v2d.tot.ymin= -500.0f;
+	ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
 	ar->v2d.tot.xmax= (float)(EFRA+10);
 	ar->v2d.tot.ymax= 0.0f;
 	

@@ -103,7 +103,7 @@ static SpaceLink *action_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
 	ar->v2d.tot.xmin= -10.0f;
-	ar->v2d.tot.ymin= (float)(-sa->winy);
+	ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
 	ar->v2d.tot.xmax= (float)(sa->winx);
 	ar->v2d.tot.ymax= 0.0f;
 	
@@ -113,7 +113,7 @@ static SpaceLink *action_new(const bContext *C)
  	ar->v2d.min[1]= 0.0f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
- 	ar->v2d.max[1]= 10000.0f;
+ 	ar->v2d.max[1]= FLT_MAX;
  	
 	ar->v2d.minzoom= 0.01f;
 	ar->v2d.maxzoom= 50;

@@ -6226,6 +6226,9 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				SpaceNla *snla= (SpaceNla *)sl;
 				memcpy(&ar->v2d, &snla->v2d, sizeof(View2D));
 				
+				ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
+				ar->v2d.tot.ymax= 0.0f;
+				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 				ar->v2d.align = V2D_ALIGN_NO_POS_Y;
@@ -6236,7 +6239,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			{
 				/* we totally reinit the view for the Action Editor, as some old instances had some weird cruft set */
 				ar->v2d.tot.xmin= -20.0f;
-				ar->v2d.tot.ymin= (float)(-sa->winy);
+				ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
 				ar->v2d.tot.xmax= (float)((sa->winx > 120)? (sa->winx) : 120);
 				ar->v2d.tot.ymax= 0.0f;
 				
@@ -6246,7 +6249,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
  				ar->v2d.min[1]= 0.0f;
 				
 				ar->v2d.max[0]= MAXFRAMEF;
- 				ar->v2d.max[1]= 10000.0f;
+ 				ar->v2d.max[1]= FLT_MAX;
 			 	
 				ar->v2d.minzoom= 0.01f;
 				ar->v2d.maxzoom= 50;
@@ -10568,8 +10571,34 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	/* put 2.50 compatibility code here until next subversion bump */
-	if (1) {
-	
+	{
+		/* fix for bad View2D extents for Animation Editors */
+		bScreen *screen;
+		ScrArea *sa;
+		SpaceLink *sl;
+		
+		for (screen= main->screen.first; screen; screen= screen->id.next) {
+			for (sa= screen->areabase.first; sa; sa= sa->next) {
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					ListBase *regionbase;
+					ARegion *ar;
+					
+					if (sl == sa->spacedata.first)
+						regionbase = &sa->regionbase;
+					else
+						regionbase = &sl->regionbase;
+						
+					if (ELEM(sl->spacetype, SPACE_ACTION, SPACE_NLA)) {
+						for (ar = (ARegion*)regionbase->first; ar; ar = ar->next) {
+							if (ar->regiontype == RGN_TYPE_WINDOW) {
+								ar->v2d.cur.ymax= ar->v2d.tot.ymax= 0.0f;
+								ar->v2d.cur.ymin= ar->v2d.tot.ymin= (float)(-sa->winy) / 3.0f;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
