@@ -1829,7 +1829,7 @@ static float *sphere_sampler(int type, int resol, int thread, int xs, int ys)
 	}
 }
 
-static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
+static void ray_ao_qmc(ShadeInput *shi, float *ao, float *env)
 {
 	Isect isec;
 	RayHint point_hint;
@@ -1845,8 +1845,8 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	int samples=0;
 	int max_samples = R.wrld.aosamp*R.wrld.aosamp;
 	
-	float dxyview[3], skyadded=0, div;
-	int aocolor;
+	float dxyview[3], skyadded=0;
+	int envcolor;
 	
 	RE_RC_INIT(isec, *shi);
 	isec.orig.ob   = shi->obi;
@@ -1866,15 +1866,15 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	RE_rayobject_hint_bb( R.raytree, &point_hint, isec.start, isec.start );
 	isec.hint = &point_hint;
 
-	
-	shadfac[0]= shadfac[1]= shadfac[2]= 0.0f;
+	zero_v3(ao);
+	zero_v3(env);
 	
 	/* prevent sky colors to be added for only shadow (shadow becomes alpha) */
-	aocolor= R.wrld.aocolor;
+	envcolor= R.wrld.aocolor;
 	if(shi->mat->mode & MA_ONLYSHADOW)
-		aocolor= WO_AOPLAIN;
+		envcolor= WO_AOPLAIN;
 	
-	if(aocolor == WO_AOSKYTEX) {
+	if(envcolor == WO_AOSKYTEX) {
 		dxyview[0]= 1.0f/(float)R.wrld.aosamp;
 		dxyview[1]= 1.0f/(float)R.wrld.aosamp;
 		dxyview[2]= 0.0f;
@@ -1927,7 +1927,7 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 			if (R.wrld.aomode & WO_AODIST) fac+= exp(-isec.labda*R.wrld.aodistfac); 
 			else fac+= 1.0f;
 		}
-		else if(aocolor!=WO_AOPLAIN) {
+		else if(envcolor!=WO_AOPLAIN) {
 			float skycol[4];
 			float skyfac, view[3];
 			
@@ -1936,18 +1936,18 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 			view[2]= -dir[2];
 			normalize_v3(view);
 			
-			if(aocolor==WO_AOSKYCOL) {
+			if(envcolor==WO_AOSKYCOL) {
 				skyfac= 0.5*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
-				shadfac[0]+= (1.0f-skyfac)*R.wrld.horr + skyfac*R.wrld.zenr;
-				shadfac[1]+= (1.0f-skyfac)*R.wrld.horg + skyfac*R.wrld.zeng;
-				shadfac[2]+= (1.0f-skyfac)*R.wrld.horb + skyfac*R.wrld.zenb;
+				env[0]+= (1.0f-skyfac)*R.wrld.horr + skyfac*R.wrld.zenr;
+				env[1]+= (1.0f-skyfac)*R.wrld.horg + skyfac*R.wrld.zeng;
+				env[2]+= (1.0f-skyfac)*R.wrld.horb + skyfac*R.wrld.zenb;
 			}
 			else {	/* WO_AOSKYTEX */
 				shadeSkyView(skycol, isec.start, view, dxyview, shi->thread);
 				shadeSunView(skycol, shi->view);
-				shadfac[0]+= skycol[0];
-				shadfac[1]+= skycol[1];
-				shadfac[2]+= skycol[2];
+				env[0]+= skycol[0];
+				env[1]+= skycol[1];
+				env[2]+= skycol[2];
 			}
 			skyadded++;
 		}
@@ -1965,29 +1965,27 @@ static void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 		}
 	}
 	
-	if(aocolor!=WO_AOPLAIN && skyadded) {
-		div= (1.0f - fac/(float)samples)/((float)skyadded);
-		
-		shadfac[0]*= div;	// average color times distances/hits formula
-		shadfac[1]*= div;	// average color times distances/hits formula
-		shadfac[2]*= div;	// average color times distances/hits formula
-	} else {
-		shadfac[0]= shadfac[1]= shadfac[2]= 1.0f - fac/(float)samples;
-	}
+	/* average color times distances/hits formula */
+	ao[0]= ao[1]= ao[2]= 1.0f - fac/(float)samples;
+
+	if(envcolor!=WO_AOPLAIN && skyadded)
+		mul_v3_fl(env, (1.0f - fac/(float)samples)/((float)skyadded));
+	else
+		copy_v3_v3(env, ao);
 	
 	if (qsa)
 		release_thread_qmcsampler(&R, shi->thread, qsa);
 }
 
 /* extern call from shade_lamp_loop, ambient occlusion calculus */
-static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
+static void ray_ao_spheresamp(ShadeInput *shi, float *ao, float *env)
 {
 	Isect isec;
 	RayHint point_hint;
-	float *vec, *nrm, div, bias, sh=0.0f;
+	float *vec, *nrm, bias, sh=0.0f;
 	float maxdist = R.wrld.aodist;
 	float dxyview[3];
-	int j= -1, tot, actual=0, skyadded=0, aocolor, resol= R.wrld.aosamp;
+	int j= -1, tot, actual=0, skyadded=0, envcolor, resol= R.wrld.aosamp;
 	
 	RE_RC_INIT(isec, *shi);
 	isec.orig.ob   = shi->obi;
@@ -2007,7 +2005,8 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	RE_rayobject_hint_bb( R.raytree, &point_hint, isec.start, isec.start );
 	isec.hint = &point_hint;
 
-	shadfac[0]= shadfac[1]= shadfac[2]= 0.0f;
+	zero_v3(ao);
+	zero_v3(env);
 
 	/* bias prevents smoothed faces to appear flat */
 	if(shi->vlr->flag & R_SMOOTH) {
@@ -2020,9 +2019,9 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	}
 
 	/* prevent sky colors to be added for only shadow (shadow becomes alpha) */
-	aocolor= R.wrld.aocolor;
+	envcolor= R.wrld.aocolor;
 	if(shi->mat->mode & MA_ONLYSHADOW)
-		aocolor= WO_AOPLAIN;
+		envcolor= WO_AOPLAIN;
 	
 	if(resol>32) resol= 32;
 	
@@ -2031,7 +2030,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	// warning: since we use full sphere now, and dotproduct is below, we do twice as much
 	tot= 2*resol*resol;
 
-	if(aocolor == WO_AOSKYTEX) {
+	if(envcolor == WO_AOSKYTEX) {
 		dxyview[0]= 1.0f/(float)resol;
 		dxyview[1]= 1.0f/(float)resol;
 		dxyview[2]= 0.0f;
@@ -2063,7 +2062,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 				if (R.wrld.aomode & WO_AODIST) sh+= exp(-isec.labda*R.wrld.aodistfac); 
 				else sh+= 1.0f;
 			}
-			else if(aocolor!=WO_AOPLAIN) {
+			else if(envcolor!=WO_AOPLAIN) {
 				float skycol[4];
 				float fac, view[3];
 				
@@ -2072,18 +2071,18 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 				view[2]= -vec[2];
 				normalize_v3(view);
 				
-				if(aocolor==WO_AOSKYCOL) {
+				if(envcolor==WO_AOSKYCOL) {
 					fac= 0.5*(1.0f+view[0]*R.grvec[0]+ view[1]*R.grvec[1]+ view[2]*R.grvec[2]);
-					shadfac[0]+= (1.0f-fac)*R.wrld.horr + fac*R.wrld.zenr;
-					shadfac[1]+= (1.0f-fac)*R.wrld.horg + fac*R.wrld.zeng;
-					shadfac[2]+= (1.0f-fac)*R.wrld.horb + fac*R.wrld.zenb;
+					env[0]+= (1.0f-fac)*R.wrld.horr + fac*R.wrld.zenr;
+					env[1]+= (1.0f-fac)*R.wrld.horg + fac*R.wrld.zeng;
+					env[2]+= (1.0f-fac)*R.wrld.horb + fac*R.wrld.zenb;
 				}
 				else {	/* WO_AOSKYTEX */
 					shadeSkyView(skycol, isec.start, view, dxyview, shi->thread);
 					shadeSunView(skycol, shi->view);
-					shadfac[0]+= skycol[0];
-					shadfac[1]+= skycol[1];
-					shadfac[2]+= skycol[2];
+					env[0]+= skycol[0];
+					env[1]+= skycol[1];
+					env[2]+= skycol[2];
 				}
 				skyadded++;
 			}
@@ -2095,28 +2094,25 @@ static void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	if(actual==0) sh= 1.0f;
 	else sh = 1.0f - sh/((float)actual);
 	
-	if(aocolor!=WO_AOPLAIN && skyadded) {
-		div= sh/((float)skyadded);
-		
-		shadfac[0]*= div;	// average color times distances/hits formula
-		shadfac[1]*= div;	// average color times distances/hits formula
-		shadfac[2]*= div;	// average color times distances/hits formula
-	}
-	else {
-		shadfac[0]= shadfac[1]= shadfac[2]= sh;
-	}
+	/* average color times distances/hits formula */
+	ao[0]= ao[1]= ao[2]= sh;
+
+	if(envcolor!=WO_AOPLAIN && skyadded)
+		mul_v3_fl(env, sh/((float)skyadded));
+	else
+		copy_v3_v3(env, ao);
 }
 
-void ray_ao(ShadeInput *shi, float *shadfac)
+void ray_ao(ShadeInput *shi, float *ao, float *env)
 {
 	/* Unfortunately, the unusual way that the sphere sampler calculates roughly twice as many
 	 * samples as are actually traced, and skips them based on bias and OSA settings makes it very difficult
 	 * to reuse code between these two functions. This is the easiest way I can think of to do it
 	 * --broken */
 	if (ELEM(R.wrld.ao_samp_method, WO_AOSAMP_HAMMERSLEY, WO_AOSAMP_HALTON))
-		ray_ao_qmc(shi, shadfac);
+		ray_ao_qmc(shi, ao, env);
 	else if (R.wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
-		ray_ao_spheresamp(shi, shadfac);
+		ray_ao_spheresamp(shi, ao, env);
 }
 
 static void ray_shadow_jittered_coords(ShadeInput *shi, int max, float jitco[RE_MAX_OSA][3], int *totjitco)

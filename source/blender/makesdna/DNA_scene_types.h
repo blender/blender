@@ -170,23 +170,25 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_NEG_ZMASK	0x80000
 
 /* srl->passflag */
-#define SCE_PASS_COMBINED	1
-#define SCE_PASS_Z			2
-#define SCE_PASS_RGBA		4
-#define SCE_PASS_DIFFUSE	8
-#define SCE_PASS_SPEC		16
-#define SCE_PASS_SHADOW		32
-#define SCE_PASS_AO			64
-#define SCE_PASS_REFLECT	128
-#define SCE_PASS_NORMAL		256
-#define SCE_PASS_VECTOR		512
-#define SCE_PASS_REFRACT	1024
-#define SCE_PASS_INDEXOB	2048
-#define SCE_PASS_UV			4096
-#define SCE_PASS_RADIO		8192 /* Radio removed, can use for new GI? */
-#define SCE_PASS_MIST		16384
-
-#define SCE_PASS_RAYHITS	32768
+#define SCE_PASS_COMBINED		1
+#define SCE_PASS_Z				2
+#define SCE_PASS_RGBA			4
+#define SCE_PASS_DIFFUSE		8
+#define SCE_PASS_SPEC			16
+#define SCE_PASS_SHADOW			32
+#define SCE_PASS_AO				64
+#define SCE_PASS_REFLECT		128
+#define SCE_PASS_NORMAL			256
+#define SCE_PASS_VECTOR			512
+#define SCE_PASS_REFRACT		1024
+#define SCE_PASS_INDEXOB		2048
+#define SCE_PASS_UV				4096
+#define SCE_PASS_RADIO			8192 /* Radio removed, can use for new GI? */
+#define SCE_PASS_MIST			16384
+#define SCE_PASS_RAYHITS		32768
+#define SCE_PASS_EMIT			65536
+#define SCE_PASS_ENVIRONMENT	131072
+#define SCE_PASS_INDIRECT		262144
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 

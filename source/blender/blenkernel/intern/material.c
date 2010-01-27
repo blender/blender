@@ -112,7 +112,7 @@ void init_material(Material *ma)
 	ma->specr= ma->specg= ma->specb= 1.0;
 	ma->mirr= ma->mirg= ma->mirb= 1.0;
 	ma->spectra= 1.0;
-	ma->amb= 0.5;
+	ma->amb= 1.0;
 	ma->alpha= 1.0;
 	ma->spec= ma->hasize= 0.5;
 	ma->har= 50;

@@ -459,6 +459,9 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 				col= shr->col;
 				pixsize= 4;
 				break;
+			case SCE_PASS_EMIT:
+				col= shr->emit;
+				break;
 			case SCE_PASS_DIFFUSE:
 				col= shr->diff;
 				break;
@@ -470,6 +473,12 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 				break;
 			case SCE_PASS_AO:
 				col= shr->ao;
+				break;
+			case SCE_PASS_ENVIRONMENT:
+				col= shr->env;
+				break;
+			case SCE_PASS_INDIRECT:
+				col= shr->indirect;
 				break;
 			case SCE_PASS_REFLECT:
 				col= shr->refl;
@@ -557,6 +566,9 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 				col= shr->col;
 				pixsize= 4;
 				break;
+			case SCE_PASS_EMIT:
+				col= shr->emit;
+				break;
 			case SCE_PASS_DIFFUSE:
 				col= shr->diff;
 				break;
@@ -568,6 +580,12 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 				break;
 			case SCE_PASS_AO:
 				col= shr->ao;
+				break;
+			case SCE_PASS_ENVIRONMENT:
+				col= shr->env;
+				break;
+			case SCE_PASS_INDIRECT:
+				col= shr->indirect;
 				break;
 			case SCE_PASS_REFLECT:
 				col= shr->refl;
@@ -2117,10 +2135,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	if(bs->type==RE_BAKE_AO) {
 		ambient_occlusion(shi);
 
-		if(R.r.bake_flag & R_BAKE_NORMALIZE)
-			VECCOPY(shr.combined, shi->ao)
-		else
-			ambient_occlusion_to_diffuse(shi, shr.combined);
+		VECCOPY(shr.combined, shi->ao)
 	}
 	else {
 		if (bs->type==RE_BAKE_SHADOW) /* Why do shadows set the color anyhow?, ignore material color for baking */

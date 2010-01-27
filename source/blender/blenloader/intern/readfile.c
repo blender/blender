@@ -10604,6 +10604,36 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 15)) {
+		World *wo;
+		Material *ma;
+
+		/* ambient default from 0.5f to 1.0f */
+		for(ma= main->mat.first; ma; ma=ma->id.next)
+			ma->amb *= 2.0f;
+
+		for(wo= main->world.first; wo; wo=wo->id.next) {
+			/* ao splitting into ao/env/indirect */
+			wo->ao_env_energy= wo->aoenergy;
+			wo->aoenergy= 1.0f;
+
+			if(wo->ao_indirect_bounces == 0)
+				wo->ao_indirect_bounces= 1;
+			else
+				wo->mode |= WO_INDIRECT_LIGHT;
+
+			if(wo->aomix == WO_AOSUB)
+				wo->ao_env_energy= -wo->ao_env_energy;
+			else if(wo->aomix == WO_AOADDSUB)
+				wo->mode |= WO_AMB_OCC;
+
+			wo->aomix= WO_AOMUL;
+
+			/* ambient default from 0.5f to 1.0f */
+			mul_v3_fl(&wo->ambr, 0.5f);
+			wo->ao_env_energy *= 0.5f;
+		}
+	}
 	
 	/* put 2.50 compatibility code here until next subversion bump */
 	//{

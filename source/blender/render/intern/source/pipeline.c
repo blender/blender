@@ -309,6 +309,12 @@ static char *get_pass_name(int passtype, int channel)
 		if(channel==2) return "Color.B";
 		return "Color.A";
 	}
+	if(passtype == SCE_PASS_EMIT) {
+		if(channel==-1) return "Emit";
+		if(channel==0) return "Emit.R";
+		if(channel==1) return "Emit.G";
+		return "Emit.B";
+	}
 	if(passtype == SCE_PASS_DIFFUSE) {
 		if(channel==-1) return "Diffuse";
 		if(channel==0) return "Diffuse.R";
@@ -332,6 +338,18 @@ static char *get_pass_name(int passtype, int channel)
 		if(channel==0) return "AO.R";
 		if(channel==1) return "AO.G";
 		return "AO.B";
+	}
+	if(passtype == SCE_PASS_ENVIRONMENT) {
+		if(channel==-1) return "Environment";
+		if(channel==0) return "Environment.R";
+		if(channel==1) return "Environment.G";
+		return "Environment.B";
+	}
+	if(passtype == SCE_PASS_INDIRECT) {
+		if(channel==-1) return "Indirect";
+		if(channel==0) return "Indirect.R";
+		if(channel==1) return "Indirect.G";
+		return "Indirect.B";
 	}
 	if(passtype == SCE_PASS_REFLECT) {
 		if(channel==-1) return "Reflect";
@@ -390,6 +408,9 @@ static int passtype_from_name(char *str)
 	if(strcmp(str, "Color")==0)
 		return SCE_PASS_RGBA;
 
+	if(strcmp(str, "Emit")==0)
+		return SCE_PASS_EMIT;
+
 	if(strcmp(str, "Diffuse")==0)
 		return SCE_PASS_DIFFUSE;
 
@@ -401,6 +422,12 @@ static int passtype_from_name(char *str)
 	
 	if(strcmp(str, "AO")==0)
 		return SCE_PASS_AO;
+
+	if(strcmp(str, "Environment")==0)
+		return SCE_PASS_ENVIRONMENT;
+
+	if(strcmp(str, "Indirect")==0)
+		return SCE_PASS_INDIRECT;
 
 	if(strcmp(str, "Reflect")==0)
 		return SCE_PASS_REFLECT;
@@ -572,12 +599,18 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_UV);
 		if(srl->passflag  & SCE_PASS_RGBA)
 			render_layer_add_pass(rr, rl, 4, SCE_PASS_RGBA);
+		if(srl->passflag  & SCE_PASS_EMIT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_EMIT);
 		if(srl->passflag  & SCE_PASS_DIFFUSE)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE);
 		if(srl->passflag  & SCE_PASS_SPEC)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_SPEC);
 		if(srl->passflag  & SCE_PASS_AO)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
+		if(srl->passflag  & SCE_PASS_ENVIRONMENT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_ENVIRONMENT);
+		if(srl->passflag  & SCE_PASS_INDIRECT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_INDIRECT);
 		if(srl->passflag  & SCE_PASS_SHADOW)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_SHADOW);
 		if(srl->passflag  & SCE_PASS_REFLECT)

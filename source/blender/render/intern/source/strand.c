@@ -222,6 +222,8 @@ void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float t, Sha
 			interpolate_vec3(shr1->nor, shr2->nor, t, negt, shr->nor);
 			normalize_v3(shr->nor);
 		}
+		if(addpassflag & SCE_PASS_EMIT)
+			interpolate_vec3(shr1->emit, shr2->emit, t, negt, shr->emit);
 		if(addpassflag & SCE_PASS_DIFFUSE)
 			interpolate_vec3(shr1->diff, shr2->diff, t, negt, shr->diff);
 		if(addpassflag & SCE_PASS_SPEC)
@@ -230,6 +232,10 @@ void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float t, Sha
 			interpolate_vec3(shr1->shad, shr2->shad, t, negt, shr->shad);
 		if(addpassflag & SCE_PASS_AO)
 			interpolate_vec3(shr1->ao, shr2->ao, t, negt, shr->ao);
+		if(addpassflag & SCE_PASS_ENVIRONMENT)
+			interpolate_vec3(shr1->env, shr2->env, t, negt, shr->env);
+		if(addpassflag & SCE_PASS_INDIRECT)
+			interpolate_vec3(shr1->indirect, shr2->indirect, t, negt, shr->indirect);
 		if(addpassflag & SCE_PASS_REFLECT)
 			interpolate_vec3(shr1->refl, shr2->refl, t, negt, shr->refl);
 		if(addpassflag & SCE_PASS_REFRACT)
@@ -963,6 +969,7 @@ StrandSurface *cache_strand_surface(Render *re, ObjectRen *obr, DerivedMesh *dm,
 		mesh->totface= totface;
 		mesh->face= MEM_callocN(sizeof(int)*4*mesh->totface, "StrandSurfFaces");
 		mesh->ao= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfAO");
+		mesh->env= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfEnv");
 		mesh->indirect= MEM_callocN(sizeof(float)*3*mesh->totvert, "StrandSurfIndirect");
 		BLI_addtail(&re->strandsurface, mesh);
 	}
@@ -1002,6 +1009,7 @@ void free_strand_surface(Render *re)
 		if(mesh->prevco) MEM_freeN(mesh->prevco);
 		if(mesh->nextco) MEM_freeN(mesh->nextco);
 		if(mesh->ao) MEM_freeN(mesh->ao);
+		if(mesh->env) MEM_freeN(mesh->env);
 		if(mesh->indirect) MEM_freeN(mesh->indirect);
 		if(mesh->face) MEM_freeN(mesh->face);
 	}

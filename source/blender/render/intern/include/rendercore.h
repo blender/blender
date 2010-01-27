@@ -99,7 +99,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi);
 
 extern void ray_shadow(ShadeInput *, LampRen *, float *);
 extern void ray_trace(ShadeInput *, ShadeResult *);
-extern void ray_ao(ShadeInput *, float *);
+extern void ray_ao(ShadeInput *, float *, float *);
 extern void init_jitter_plane(LampRen *lar);
 extern void init_ao_sphere(struct World *wrld);
 extern void init_render_qmcsampler(Render *re);
