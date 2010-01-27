@@ -1360,6 +1360,8 @@ static int pyrna_prop_ass_subscript( BPy_PropertyRNA *self, PyObject *key, PyObj
 		PyErr_SetString(PyExc_AttributeError, "invalid key, key must be an int");
 		return -1;
 	}
+
+	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 }
 
 
