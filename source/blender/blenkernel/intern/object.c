@@ -1846,17 +1846,16 @@ static void give_parvert(Object *par, int nr, float *vec)
 			DerivedMesh *dm = par->derivedFinal;
 			
 			if(dm) {
-				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
+				MVert *mvert= dm->getVertArray(dm);
 				int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
-				float co[3];
+				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
 
 				/* get the average of all verts with (original index == nr) */
-				for(i = 0; i < numVerts; ++i) {
-					vindex= (index)? *index: i;
+				for(i = 0; i < numVerts; i++) {
+					vindex= (index)? index[i]: i;
 
 					if(vindex == nr) {
-						dm->getVertCo(dm, i, co);
-						add_v3_v3v3(vec, vec, co);
+						add_v3_v3v3(vec, vec, mvert[i].co);
 						count++;
 					}
 				}
