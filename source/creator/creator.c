@@ -707,10 +707,26 @@ int main(int argc, char **argv)
 			case 'P':
 
 #ifndef DISABLE_PYTHON
-				//XXX 
-				// FOR TESTING ONLY
 				a++;
-				BPY_run_python_script(C, argv[a], NULL, NULL); // use reports?
+
+				/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
+				{
+					/* XXX, temp setting the WM is ugly, splash also does this :S */
+					wmWindowManager *wm= CTX_wm_manager(C);
+					wmWindow *prevwin= CTX_wm_window(C);
+
+					if(wm->windows.first) {
+						CTX_wm_window_set(C, wm->windows.first);
+
+						BPY_run_python_script(C, argv[a], NULL, NULL); // use reports?
+
+						CTX_wm_window_set(C, prevwin);
+					}
+					else {
+						fprintf(stderr, "Python script \"%s\" running with missing context data.\n", argv[a]);
+						BPY_run_python_script(C, argv[a], NULL, NULL); // use reports?
+					}
+				}
 #if 0
 				a++;
 				if (a < argc) {
