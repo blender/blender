@@ -4886,8 +4886,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					sipo->editipo= NULL;
 
 #endif
-					if (ads->filter_grp) {
-						ads->filter_grp= restore_pointer_by_name(newmain, (ID *)ads->filter_grp, 0);
+					if(ads) {
+						if(ads->filter_grp) {
+							ads->filter_grp= restore_pointer_by_name(newmain, (ID *)ads->filter_grp, 0);
+						}
 					}
 				}
 				else if(sl->spacetype==SPACE_BUTS) {
