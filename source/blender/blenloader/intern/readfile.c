@@ -10570,8 +10570,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
-	/* put 2.50 compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 14)) {
 		/* fix for bad View2D extents for Animation Editors */
 		bScreen *screen;
 		ScrArea *sa;
@@ -10600,6 +10599,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	
+	
+	/* put 2.50 compatibility code here until next subversion bump */
+	//{
+	
+	//}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
