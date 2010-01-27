@@ -4823,10 +4823,14 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 	
 	
 	for(sc= newmain->screen.first; sc; sc= sc->id.next) {
-		
+		Scene *oldscene= sc->scene;
+
 		sc->scene= restore_pointer_by_name(newmain, (ID *)sc->scene, 1);
 		if(sc->scene==NULL)
 			sc->scene= curscene;
+
+		/* keep cursor location through undo */
+		copy_v3_v3(sc->scene->cursor, oldscene->cursor);
 
 		sa= sc->areabase.first;
 		while(sa) {
