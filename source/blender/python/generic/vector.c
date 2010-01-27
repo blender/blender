@@ -560,6 +560,38 @@ static PyObject *Vector_Angle(VectorObject * self, VectorObject * value)
 #endif
 }
 
+static char Vector_Difference_doc[] =
+".. function:: difference(other)\n"
+"\n"
+"   Returns a quaternion representing the rotational difference between this vector and another.\n"
+"\n"
+"   :arg other: second vector.\n"
+"   :type other: Vector\n"
+"   :return: the rotational difference between the two vectors.\n"
+"   :rtype: Quaternion\n";
+
+static PyObject *Vector_Difference( VectorObject * self, VectorObject * value )
+{
+	float quat[4];
+
+	if (!VectorObject_Check(value)) {
+		PyErr_SetString( PyExc_TypeError, "vec.difference(value): expected a vector argument" );
+		return NULL;
+	}
+
+	if(self->size < 3 || value->size < 3) {
+		PyErr_SetString(PyExc_AttributeError, "vec.difference(value): expects both vectors to be size 3 or 4\n");
+		return NULL;
+	}
+
+	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
+		return NULL;
+
+	rotation_between_vecs_to_quat(quat, self->vec, value->vec);
+
+	return newQuaternionObject(quat, Py_NEW, NULL);
+}
+
 static char Vector_Project_doc[] =
 ".. function:: project(other)\n"
 "\n"
@@ -2076,6 +2108,7 @@ static struct PyMethodDef Vector_methods[] = {
 	{"cross", ( PyCFunction ) Vector_Cross, METH_O, Vector_Cross_doc},
 	{"dot", ( PyCFunction ) Vector_Dot, METH_O, Vector_Dot_doc},
 	{"angle", ( PyCFunction ) Vector_Angle, METH_O, Vector_Angle_doc},
+	{"difference", ( PyCFunction ) Vector_Difference, METH_O, Vector_Difference_doc},
 	{"project", ( PyCFunction ) Vector_Project, METH_O, Vector_Project_doc},
 	{"lerp", ( PyCFunction ) Vector_Lerp, METH_VARARGS, Vector_Lerp_doc},
 	{"copy", (PyCFunction) Vector_copy, METH_NOARGS, Vector_copy_doc},

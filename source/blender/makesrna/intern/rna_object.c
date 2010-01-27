@@ -1378,12 +1378,12 @@ static void rna_def_object(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem track_items[] = {
-		{OB_POSX, "POSX", 0, "+X", ""},
-		{OB_POSY, "POSY", 0, "+Y", ""},
-		{OB_POSZ, "POSZ", 0, "+Z", ""},
-		{OB_NEGX, "NEGX", 0, "-X", ""},
-		{OB_NEGY, "NEGY", 0, "-Y", ""},
-		{OB_NEGZ, "NEGZ", 0, "-Z", ""},
+		{OB_POSX, "POS_X", 0, "+X", ""},
+		{OB_POSY, "POS_Y", 0, "+Y", ""},
+		{OB_POSZ, "POS_Z", 0, "+Z", ""},
+		{OB_NEGX, "NEG_X", 0, "-X", ""},
+		{OB_NEGY, "NEG_Y", 0, "-Y", ""},
+		{OB_NEGZ, "NEG_Z", 0, "-Z", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem up_items[] = {
