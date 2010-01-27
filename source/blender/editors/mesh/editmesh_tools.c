@@ -5835,6 +5835,10 @@ static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 
+	if (C==NULL) {
+		return merge_type_items;
+	}
+
 	if(obedit && obedit->type == OB_MESH) {
 		EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
 

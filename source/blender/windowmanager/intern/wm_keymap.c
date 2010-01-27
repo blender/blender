@@ -57,6 +57,12 @@
 
 /* ********************* key config ***********************/
 
+static void keymap_properties_set(wmKeyMapItem *kmi)
+{
+	WM_operator_properties_alloc(&(kmi->ptr), &(kmi->properties), kmi->idname);
+	WM_operator_properties_sanitize(kmi->ptr);
+}
+
 void WM_keymap_properties_reset(wmKeyMapItem *kmi)
 {
 	WM_operator_properties_free(kmi->ptr);
@@ -65,12 +71,7 @@ void WM_keymap_properties_reset(wmKeyMapItem *kmi)
 	kmi->ptr = NULL;
 	kmi->properties = NULL;
 
-	WM_operator_properties_alloc(&(kmi->ptr), &(kmi->properties), kmi->idname);
-}
-
-static void keymap_properties_set(wmKeyMapItem *kmi)
-{
-	WM_operator_properties_alloc(&(kmi->ptr), &(kmi->properties), kmi->idname);
+	keymap_properties_set(kmi);
 }
 
 wmKeyConfig *WM_keyconfig_add(wmWindowManager *wm, char *idname)

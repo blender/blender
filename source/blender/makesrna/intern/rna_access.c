@@ -943,15 +943,25 @@ EnumPropertyItem DummyRNA_NULL_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+/* Reuse for dynamic types with default value */
+EnumPropertyItem DummyRNA_DEFAULT_items[] = {
+	{0, "DEFAULT", 0, "Default", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free)
 {
 	EnumPropertyRNA *eprop= (EnumPropertyRNA*)rna_ensure_property(prop);
 
 	*free= 0;
 
-	if(eprop->itemf && C) {
+	if(eprop->itemf && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
 		int tot= 0;
-		*item= eprop->itemf(C, ptr, free);
+
+		if (prop->flag & PROP_ENUM_NO_CONTEXT)
+			*item= eprop->itemf(NULL, ptr, free);
+		else
+			*item= eprop->itemf(C, ptr, free);
 
 		if(totitem) {
 			if(*item) {

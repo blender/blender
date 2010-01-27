@@ -357,7 +357,7 @@ static EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *ptr, 
 	GroupObject *go;
 
 	if(!ob || !ob->dup_group)
-		return DummyRNA_NULL_items;
+		return DummyRNA_DEFAULT_items;
 
 	memset(&item_tmp, 0, sizeof(item_tmp));
 
@@ -393,7 +393,7 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_string(ot->srna, "object", "", 19, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for.");
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "Group object"); /* XXX, relies on hard coded ID at the moment */
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Type", "Group object"); /* XXX, relies on hard coded ID at the moment */
 	RNA_def_enum_funcs(prop, proxy_group_object_itemf);
 	ot->prop= prop;
 }

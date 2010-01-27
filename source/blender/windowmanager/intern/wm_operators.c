@@ -391,6 +391,7 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 
 	/* do this on first use, since operatordefinitions might have been not done yet */
 	WM_operator_properties_alloc(&(otmacro->ptr), &(otmacro->properties), idname);
+	WM_operator_properties_sanitize(otmacro->ptr);
 	
 	BLI_addtail(&ot->macro, otmacro);
 
@@ -592,6 +593,30 @@ void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, con
 
 }
 
+void WM_operator_properties_sanitize(PointerRNA *ptr)
+{
+	RNA_STRUCT_BEGIN(ptr, prop) {
+		switch(RNA_property_type(prop)) {
+		case PROP_ENUM:
+			RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+			break;
+		case PROP_POINTER:
+			{
+				StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
+
+				/* recurse into operator properties */
+				if (RNA_struct_is_a(ptype, &RNA_OperatorProperties)) {
+					PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
+					WM_operator_properties_sanitize(&opptr);
+				}
+				break;
+			}
+		default:
+			break;
+		}
+	}
+	RNA_STRUCT_END;
+}
 
 void WM_operator_properties_free(PointerRNA *ptr)
 {
@@ -2971,9 +2996,9 @@ static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, I
 /* can add more */
 EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	return rna_id_itemf(C, ptr, free, (ID *)CTX_data_main(C)->group.first);
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->group.first : NULL);
 }
 EnumPropertyItem *RNA_scene_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	return rna_id_itemf(C, ptr, free, (ID *)CTX_data_main(C)->scene.first);
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->scene.first : NULL);
 }

@@ -64,6 +64,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -432,6 +433,10 @@ static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *ptr,
 	int totitem= 0;
 	int i= 0;
 
+	if (C==NULL) {
+		return DummyRNA_DEFAULT_items;
+	}
+
 	memset(&item_tmp, 0, sizeof(item_tmp));
 	
 	/* check that the action exists */
@@ -500,9 +505,6 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 void POSELIB_OT_pose_remove (wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	static EnumPropertyItem prop_poses_dummy_types[] = {
-		{0, NULL, 0, NULL, NULL}
-	};
 	
 	/* identifiers */
 	ot->name= "PoseLib Remove Pose";
@@ -518,7 +520,7 @@ void POSELIB_OT_pose_remove (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "pose", prop_poses_dummy_types, 0, "Pose", "The pose to remove");
+	prop= RNA_def_enum(ot->srna, "pose", DummyRNA_DEFAULT_items, 0, "Pose", "The pose to remove");
 	RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
 	ot->prop= prop;
 }
