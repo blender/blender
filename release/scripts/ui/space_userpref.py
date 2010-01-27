@@ -1472,6 +1472,8 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
     bl_label = "Export Key Configuration..."
 
     path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
+    filename = bpy.props.StringProperty(name="File Name", description="Name of the file.")
+    directory = bpy.props.StringProperty(name="Directory", description="Directory of the file.")
     filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True)
     filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True)
     filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True)
