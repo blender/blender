@@ -808,20 +808,24 @@ int WM_userdef_event_map(int kmitype)
 
 static void wm_eventemulation(wmEvent *event)
 {
+	static int mmb_emulated = 0; /* this should be in a data structure somwhere */
+	
 	/* middlemouse emulation */
 	if(U.flag & USER_TWOBUTTONMOUSE) {
-		if(event->type == LEFTMOUSE && event->alt) {
+		if(event->type == LEFTMOUSE && (event->alt || mmb_emulated == KM_PRESS)) {
 			event->type = MIDDLEMOUSE;
 			event->alt = 0;
+			mmb_emulated = event->val;
 		}
 	}
 
 #ifdef __APPLE__
 	/* rightmouse emulation */
 	if(U.flag & USER_TWOBUTTONMOUSE) {
-		if(event->type == LEFTMOUSE && event->oskey) {
+		if(event->type == LEFTMOUSE && (event->oskey || mmb_emulated == KM_PRESS) {
 			event->type = RIGHTMOUSE;
 			event->oskey = 0;
+			mmb_emulated = event->val;
 		}
 	}
 #endif
