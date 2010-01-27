@@ -207,7 +207,11 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 	angle = angle * (float) (Py_PI / 180);
 #endif
 
-	if(axis == NULL && matSize == 2) {
+	/* check for valid vector/axis above */
+	if(vec) {
+		axis_angle_to_mat3( (float (*)[3])mat,vec->vec, angle);
+	}
+	else if(matSize == 2) {
 		//2D rotation matrix
 		mat[0] = (float) cos (angle);
 		mat[1] = (float) sin (angle);
@@ -234,9 +238,11 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		mat[3] = -((float) sin(angle));
 		mat[4] = (float) cos(angle);
 		mat[8] = 1.0f;
-	} else {
-		/* check for valid vector/axis above */
-		axis_angle_to_mat3( (float (*)[3])mat,vec->vec, angle);
+	}
+	else {
+		/* should never get here */
+		PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): unknown error\n");
+		return NULL;
 	}
 
 	if(matSize == 4) {
