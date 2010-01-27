@@ -130,8 +130,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
     filepath = os.path.join(BASEPATH, module_name + ".rst")
     
     file = open(filepath, "w")
-    print(filepath)
-    print(filepath)
+
     fw = file.write
     
     fw(title + "\n")
@@ -169,18 +168,29 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         if value.__doc__:
             for l in value.__doc__.split("\n"):
                 fw("   %s\n" % l)
-        fw("\n")
+            fw("\n")
 
-        for key, descr in value.__dict__.items():
+        for key in sorted(value.__dict__.keys()):
             if key.startswith("__"):
                 continue
+            descr = value.__dict__[key]
+            if type(descr) == GetSetDescriptorType:
+                if descr.__doc__:
+                    fw("   .. attribute:: %s\n\n" % key)
+                    for l in descr.__doc__.split("\n"):
+                        fw("   %s\n" % l)
+                    fw("\n")
 
-            descr_type = type(descr)
-            if descr_type in (MethodDescriptorType, ): # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
+        for key in sorted(value.__dict__.keys()):
+            if key.startswith("__"):
+                continue
+            descr = value.__dict__[key]
+            if type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
                 if descr.__doc__:
                     for l in descr.__doc__.split("\n"):
                         fw("   %s\n" % l)
                     fw("\n")
+            
         fw("\n\n")
 
     file.close()
@@ -215,8 +225,8 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw(".. toctree::\n")
     fw("   :glob:\n\n")
-    #fw("   bpy.ops.*\n\n")
-    #fw("   bpy.types.*\n\n")
+    fw("   bpy.ops.*\n\n")
+    fw("   bpy.types.*\n\n")
     
     # py modules
     fw("   bpy.utils\n\n")
@@ -239,7 +249,7 @@ def rna2sphinx(BASEPATH):
     pymodule2sphinx(BASEPATH, "bpy.props", module, "Blender Python Property Definitions")
     
     import Mathutils as module
-    pymodule2sphinx(BASEPATH, "Mathutils", module, "Module Mathutils")
+    pymodule2sphinx(BASEPATH, "Mathutils", module, "Blender Mathutils")
     del module
 
 

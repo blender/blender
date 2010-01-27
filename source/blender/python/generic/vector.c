@@ -97,8 +97,9 @@ static char Vector_Zero_doc[] =
 ".. method:: zero()\n"
 "\n"
 "   Set all values to zero.\n"
+"\n"
 "   :return: an instance of itself\n"
-"   :rtype: vector\n";
+"   :rtype: :class:`Vector`\n";
 
 static PyObject *Vector_Zero(VectorObject * self)
 {
@@ -116,8 +117,9 @@ static char Vector_Normalize_doc[] =
 ".. method:: normalize()\n"
 "\n"
 "   Normalize the vector, making the length of the vector always 1.0.\n"
+"\n"
 "   :return: an instance of itself\n"
-"   :rtype: vector\n"
+"   :rtype: :class:`Vector`\n"
 "\n"
 "   .. warning:: Normalizing a vector where all values are zero results in all axis having a nan value (not a number).\n"
 "\n"
@@ -150,8 +152,9 @@ static char Vector_Resize2D_doc[] =
 ".. method:: resize2D()\n"
 "\n"
 "   Resize the vector to 2D  (x, y).\n"
+"\n"
 "   :return: an instance of itself\n"
-"   :rtype: vector\n";
+"   :rtype: :class:`Vector`\n";
 
 static PyObject *Vector_Resize2D(VectorObject * self)
 {
@@ -179,8 +182,9 @@ static char Vector_Resize3D_doc[] =
 ".. method:: resize3D()\n"
 "\n"
 "   Resize the vector to 3D  (x, y, z).\n"
+"\n"
 "   :return: an instance of itself\n"
-"   :rtype: vector\n";
+"   :rtype: :class:`Vector`\n";
 
 static PyObject *Vector_Resize3D(VectorObject * self)
 {
@@ -211,8 +215,9 @@ static char Vector_Resize4D_doc[] =
 ".. method:: resize4D()\n"
 "\n"
 "   Resize the vector to 4D (x, y, z, w).\n"
+"\n"
 "   :return: an instance of itself\n"
-"   :rtype: vector\n";
+"   :rtype: :class:`Vector`\n";
 
 static PyObject *Vector_Resize4D(VectorObject * self)
 {
@@ -287,7 +292,7 @@ static char Vector_ToTrackQuat_doc[] =
 "   :arg up: Up axis in ['X', 'Y', 'Z'].\n"
 "   :type up: string\n"
 "   :return: rotation from the vector and the track and up axis."
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 {
@@ -404,9 +409,9 @@ static char Vector_Reflect_doc[] =
 "   Return the reflection vector from the *mirror* argument.\n"
 "\n"
 "   :arg mirror: This vector could be a normal from the reflecting surface.\n"
-"   :type mirror: vector\n"
-"   :return: The reflected vector.\n"
-"   :rtype: Vector object matching the size of this vector.\n";
+"   :type mirror: :class:`Vector`\n"
+"   :return: The reflected vector matching the size of this vector.\n"
+"   :rtype: :class:`Vector`\n";
 
 static PyObject *Vector_Reflect( VectorObject * self, VectorObject * value )
 {
@@ -443,9 +448,9 @@ static char Vector_Cross_doc[] =
 "   Return the cross product of this vector and another.\n"
 "\n"
 "   :arg other: The other vector to perform the cross product with.\n"
-"   :type other: vector\n"
+"   :type other: :class:`Vector`\n"
 "   :return: The cross product.\n"
-"   :rtype: Vector\n"
+"   :rtype: :class:`Vector`\n"
 "\n"
 "   .. note:: both vectors must be 3D\n";
 
@@ -477,9 +482,9 @@ static char Vector_Dot_doc[] =
 "   Return the dot product of this vector and another.\n"
 "\n"
 "   :arg other: The other vector to perform the dot product with.\n"
-"   :type other: vector\n"
+"   :type other: :class:`Vector`\n"
 "   :return: The dot product.\n"
-"   :rtype: Vector\n";
+"   :rtype: :class:`Vector`\n";
 
 static PyObject *Vector_Dot( VectorObject * self, VectorObject * value )
 {
@@ -510,7 +515,7 @@ static char Vector_Angle_doc[] =
 "\n"
 "   Return the angle between two vectors.\n"
 "\n"
-"   :type other: vector\n"
+"   :type other: :class:`Vector`\n"
 "   :return angle: angle in radians\n"
 "   :rtype: float\n"
 "\n"
@@ -566,13 +571,15 @@ static char Vector_Difference_doc[] =
 "   Returns a quaternion representing the rotational difference between this vector and another.\n"
 "\n"
 "   :arg other: second vector.\n"
-"   :type other: Vector\n"
+"   :type other: :class:`Vector`\n"
 "   :return: the rotational difference between the two vectors.\n"
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n"
+"\n"
+"   .. note:: 2D vectors raise an :exc:`AttributeError`.\n";;
 
 static PyObject *Vector_Difference( VectorObject * self, VectorObject * value )
 {
-	float quat[4];
+	float quat[4], vec_a[3], vec_b[3];
 
 	if (!VectorObject_Check(value)) {
 		PyErr_SetString( PyExc_TypeError, "vec.difference(value): expected a vector argument" );
@@ -587,7 +594,10 @@ static PyObject *Vector_Difference( VectorObject * self, VectorObject * value )
 	if(!BaseMath_ReadCallback(self) || !BaseMath_ReadCallback(value))
 		return NULL;
 
-	rotation_between_vecs_to_quat(quat, self->vec, value->vec);
+	normalize_v3_v3(vec_a, self->vec);
+	normalize_v3_v3(vec_b, value->vec);
+
+	rotation_between_vecs_to_quat(quat, vec_a, vec_b);
 
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
@@ -597,9 +607,9 @@ static char Vector_Project_doc[] =
 "\n"
 "   Return the projection of this vector onto the *other*.\n"
 "\n"
-"   :type other: vector\n"
+"   :type other: :class:`Vector`\n"
 "   :return projection: the parallel projection vector\n"
-"   :rtype: vector\n";
+"   :rtype: :class:`Vector`\n";
 
 static PyObject *Vector_Project(VectorObject * self, VectorObject * value)
 {
@@ -644,11 +654,11 @@ static char Vector_Lerp_doc[] =
 "   Returns the interpolation of two vectors.\n"
 "\n"
 "   :arg other: value to interpolate with.\n"
-"   :type other: Vector\n"
+"   :type other: :class:`Vector`\n"
 "   :arg factor: The interpolation value in [0.0, 1.0].\n"
 "   :type factor: float\n"
 "   :return: The interpolated rotation.\n"
-"   :rtype: Vector\n";
+"   :rtype: :class:`Vector`\n";
 
 static PyObject *Vector_Lerp(VectorObject * self, PyObject * args)
 {
@@ -683,7 +693,7 @@ static char Vector_copy_doc[] =
 "   Returns a copy of this vector.\n"
 "\n"
 "   :return: A copy of the vector.\n"
-"   :rtype: Vector\n"
+"   :rtype: :class:`Vector`\n"
 "\n"
 "   .. note:: use this to get a copy of a wrapped vector with no reference to the original data.\n";
 
@@ -1619,38 +1629,14 @@ static int Vector_setSwizzle(VectorObject * self, PyObject * value, void *closur
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Vector_getseters[] = {
-	{"x",
-	 (getter)Vector_getAxis, (setter)Vector_setAxis,
-	 "Vector X axis",
-	 (void *)0},
-	{"y",
-	 (getter)Vector_getAxis, (setter)Vector_setAxis,
-	 "Vector Y axis",
-	 (void *)1},
-	{"z",
-	 (getter)Vector_getAxis, (setter)Vector_setAxis,
-	 "Vector Z axis",
-	 (void *)2},
-	{"w",
-	 (getter)Vector_getAxis, (setter)Vector_setAxis,
-	 "Vector Z axis",
-	 (void *)3},
-	{"length",
-	 (getter)Vector_getLength, (setter)Vector_setLength,
-	 "Vector Length",
-	 NULL},
-	{"magnitude",
-	 (getter)Vector_getLength, (setter)Vector_setLength,
-	 "Vector Length",
-	 NULL},
-	{"wrapped",
-	 (getter)BaseMathObject_getWrapped, (setter)NULL,
-	 "True when this wraps blenders internal data",
-	 NULL},
-	{"_owner",
-	 (getter)BaseMathObject_getOwner, (setter)NULL,
-	 "Read only owner for vectors that depend on another object",
-	 NULL},
+	{"x", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector X axis. **type** float", (void *)0},
+	{"y", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector Y axis. **type** float", (void *)1},
+	{"z", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector Z axis (3D Vectors only). **type** float", (void *)2},
+	{"w", (getter)Vector_getAxis, (setter)Vector_setAxis, "Vector W axis (4D Vectors only). **type** float", (void *)3},
+	{"length", (getter)Vector_getLength, (setter)Vector_setLength, "Vector Length. **type** float", NULL},
+	{"magnitude", (getter)Vector_getLength, (setter)Vector_setLength, "Vector Length. **type** float", NULL},
+	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
+	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	
 	/* autogenerated swizzle attrs, see python script below */
 	{"xx",   (getter)Vector_getSwizzle, (setter)Vector_setSwizzle, NULL, SET_INT_IN_POINTER(((0|SWIZZLE_VALID_AXIS) | ((0|SWIZZLE_VALID_AXIS)<<SWIZZLE_BITS_PER_AXIS)))}, /* 36 */
@@ -2077,8 +2063,9 @@ static char Vector_Negate_doc[] =
 ".. method:: negate()\n"
 "\n"
 "   Set all values to their negative.\n"
+"\n"
 "   :return: an instance of itself\n"
-"   :rtype: vector\n";
+"   :rtype: :class:`Vector`\n";
 
 static PyObject *Vector_Negate(VectorObject * self)
 {

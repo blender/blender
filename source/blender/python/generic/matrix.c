@@ -206,7 +206,7 @@ static char Matrix_toQuat_doc[] =
 "   Return a quaternion representation of the rotation matrix.\n"
 "\n"
 "   :return: Quaternion representation of the rotation matrix.\n"
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Matrix_toQuat(MatrixObject * self)
 {
@@ -235,9 +235,9 @@ static char Matrix_toEuler_doc[] =
 "   Return an Euler representation of the rotation matrix (3x3 or 4x4 matrix only).\n"
 "\n"
 "   :arg euler_compat: Optional euler argument the new euler will be made compatible with (no axis flipping between them). Useful for converting a series of matrices to animation curves.\n"
-"   :type euler_compat: Euler\n"
+"   :type euler_compat: :class:`Euler`\n"
 "   :return: Euler representation of the matrix.\n"
-"   :rtype: Euler\n";
+"   :rtype: :class:`Euler`\n";
 
 PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 {
@@ -294,8 +294,9 @@ static char Matrix_Resize4x4_doc[] =
 ".. method:: resize4x4()\n"
 "\n"
 "   Resize the matrix to 4x4.\n"
+"\n"
 "   :return: an instance of itself.\n"
-"   :rtype: Vector\n";
+"   :rtype: :class:`Vector`\n";
 
 PyObject *Matrix_Resize4x4(MatrixObject * self)
 {
@@ -358,8 +359,9 @@ static char Matrix_TranslationPart_doc[] =
 ".. method:: translation_part()\n"
 "\n"
 "   Return a the translation part of a 4 row matrix.\n"
+"\n"
 "   :return: Return a the translation of a matrix.\n"
-"   :rtype: Matrix\n"
+"   :rtype: :class:`Matrix`\n"
 "\n"
 "   .. note:: Note that the (4,4) element of a matrix can be used for uniform scaling too.\n";
 
@@ -386,8 +388,9 @@ static char Matrix_RotationPart_doc[] =
 ".. method:: rotation_part()\n"
 "\n"
 "   Return the 3d submatrix corresponding to the linear term of the embedded affine transformation in 3d. This matrix represents rotation and scale.\n"
+"\n"
 "   :return: Return the 3d matrix for rotation and scale.\n"
-"   :rtype: Matrix\n"
+"   :rtype: :class:`Matrix`\n"
 "\n"
 "   .. note:: Note that the (4,4) element of a matrix can be used for uniform scaling too.\n";
 
@@ -421,8 +424,9 @@ static char Matrix_scalePart_doc[] =
 ".. method:: scale_part()\n"
 "\n"
 "   Return a the scale part of a 3x3 or 4x4 matrix.\n"
+"\n"
 "   :return: Return a the scale of a matrix.\n"
-"   :rtype: Vector\n"
+"   :rtype: :class:`Vector`\n"
 "\n"
 "   .. note:: This method does not return negative a scale on any axis because it is not possible to obtain this data from the matrix alone.\n";
 
@@ -459,8 +463,9 @@ static char Matrix_Invert_doc[] =
 ".. method:: invert()\n"
 "\n"
 "   Set the matrix to its inverse.\n"
+"\n"
 "   :return: an instance of itself.\n"
-"   :rtype: Matrix\n"
+"   :rtype: :class:`Matrix`\n"
 "\n"
 "   .. note:: :exc:`ValueError` exception is raised.\n"
 "\n"
@@ -526,6 +531,7 @@ static char Matrix_Determinant_doc[] =
 ".. method:: determinant()\n"
 "\n"
 "   Return the determinant of a matrix.\n"
+"\n"
 "   :return: Return a the determinant of a matrix.\n"
 "   :rtype: float\n"
 "\n"
@@ -548,8 +554,9 @@ static char Matrix_Transpose_doc[] =
 ".. method:: transpose()\n"
 "\n"
 "   Set the matrix to its transpose.\n"
+"\n"
 "   :return: an instance of itself\n"
-"   :rtype: Matrix\n"
+"   :rtype: :class:`Matrix`\n"
 "\n"
 "   .. seealso:: <http://en.wikipedia.org/wiki/Transpose>\n";
 
@@ -586,8 +593,9 @@ static char Matrix_Zero_doc[] =
 ".. method:: zero()\n"
 "\n"
 "   Set all the matrix values to zero.\n"
+"\n"
 "   :return: an instance of itself\n"
-"   :rtype: Matrix\n";
+"   :rtype: :class:`Matrix`\n";
 
 PyObject *Matrix_Zero(MatrixObject * self)
 {
@@ -610,8 +618,9 @@ static char Matrix_Identity_doc[] =
 ".. method:: identity()\n"
 "\n"
 "   Set the matrix to the identity matrix.\n"
+"\n"
 "   :return: an instance of itself\n"
-"   :rtype: Matrix\n"
+"   :rtype: :class:`Matrix`\n"
 "\n"
 "   .. note:: An object with zero location and rotation, a scale of one, will have an identity matrix.\n"
 "\n"
@@ -650,8 +659,9 @@ static char Matrix_copy_doc[] =
 ".. method:: copy()\n"
 "\n"
 "   Returns a copy of this matrix.\n"
+"\n"
 "   :return: an instance of itself\n"
-"   :rtype: Matrix\n";
+"   :rtype: :class:`Matrix`\n";
 
 PyObject *Matrix_copy(MatrixObject * self)
 {
@@ -1225,12 +1235,11 @@ static PyObject *Matrix_getMedianScale( MatrixObject * self, void *type )
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Matrix_getseters[] = {
-	{"row_size", (getter)Matrix_getRowSize, (setter)NULL, "", NULL},
-	{"col_size", (getter)Matrix_getColSize, (setter)NULL, "", NULL},
-    {"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, "", NULL},
-	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, "", NULL},
-	{"_owner",(getter)BaseMathObject_getOwner, (setter)NULL, "",
-	 NULL},
+	{"row_size", (getter)Matrix_getRowSize, (setter)NULL, "The row size of the matrix (readonly). **type** int", NULL},
+	{"col_size", (getter)Matrix_getColSize, (setter)NULL, "The column size of the matrix (readonly). **type** int", NULL},
+    {"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, "The average scale applied to each axis (readonly). **type** float", NULL},
+	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
+	{"_owner",(getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -1253,6 +1262,8 @@ static struct PyMethodDef Matrix_methods[] = {
 };
 
 /*------------------PY_OBECT DEFINITION--------------------------*/
+static char matrix_doc[] = "This object gives access to Matrices in Blender.";
+
 PyTypeObject matrix_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"matrix",						/*tp_name*/
@@ -1274,7 +1285,7 @@ PyTypeObject matrix_Type = {
 	0,								/*tp_setattro*/
 	0,								/*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, /*tp_flags*/
-	0,								/*tp_doc*/
+	matrix_doc,						/*tp_doc*/
 	0,								/*tp_traverse*/
 	0,								/*tp_clear*/
 	(richcmpfunc)Matrix_richcmpr,	/*tp_richcompare*/

@@ -137,9 +137,9 @@ static char M_Mathutils_RotationMatrix_doc[] =
 "   :arg size: The size of the rotation matrix to construct [2, 4].\n"
 "   :type size: int\n"
 "   :arg axis: a string in ['X', 'Y', 'Z'] or a 3D Vector Object (optional when size is 2).\n"
-"   :type axis: string or vector\n"
+"   :type axis: string or :class:`Vector`\n"
 "   :return: A new rotation matrix.\n"
-"   :rtype: Matrix\n";
+"   :rtype: :class:`Matrix`\n";
 
 static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 {
@@ -266,9 +266,9 @@ static char M_Mathutils_TranslationMatrix_doc[] =
 "   Create a matrix representing a translation.\n"
 "\n"
 "   :arg vector: The translation vector.\n"
-"   :type vector: Vector\n"
+"   :type vector: :class:`Vector`\n"
 "   :return: An identity matrix with a translation.\n"
-"   :rtype: Matrix\n";
+"   :rtype: :class:`Matrix`\n";
 
 static PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * vec)
 {
@@ -307,9 +307,9 @@ static char M_Mathutils_ScaleMatrix_doc[] =
 "   :arg size: The size of the scale matrix to construct [2, 4].\n"
 "   :type size: int\n"
 "   :arg axis: Direction to influence scale. (optional).\n"
-"   :type axis: Vector\n"
+"   :type axis: :class:`Vector`\n"
 "   :return: A new scale matrix.\n"
-"   :rtype: Matrix\n";
+"   :rtype: :class:`Matrix`\n";
 
 static PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args)
 {
@@ -397,10 +397,10 @@ static char M_Mathutils_OrthoProjectionMatrix_doc[] =
 "   :type plane: string\n"
 "   :arg size: The size of the projection matrix to construct [2, 4].\n"
 "   :type size: int\n"
-"   :arg axis: Arbitrary perpendicular plane vector.\n"
-"   :type axis: vector (optional)\n"
+"   :arg axis: Arbitrary perpendicular plane vector (optional).\n"
+"   :type axis: :class:`Vector`\n"
 "   :return: A new projection matrix.\n"
-"   :rtype: Matrix\n";
+"   :rtype: :class:`Matrix`\n";
 static PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * args)
 {
 	VectorObject *vec = NULL;
@@ -502,7 +502,7 @@ static char M_Mathutils_ShearMatrix_doc[] =
 "   :arg size: The size of the shear matrix to construct [2, 4].\n"
 "   :type size: int\n"
 "   :return: A new shear matrix.\n"
-"   :rtype: Matrix\n";
+"   :rtype: :class:`Matrix`\n";
 
 static PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args)
 {
@@ -661,6 +661,7 @@ int _BaseMathObject_WriteIndexCallback(BaseMathObject *self, int index)
 }
 
 /* BaseMathObject generic functions for all mathutils types */
+char BaseMathObject_Owner_doc[] = "The item this is wrapping or None  (readonly).";
 PyObject *BaseMathObject_getOwner( BaseMathObject * self, void *type )
 {
 	PyObject *ret= self->cb_user ? self->cb_user : Py_None;
@@ -668,6 +669,7 @@ PyObject *BaseMathObject_getOwner( BaseMathObject * self, void *type )
 	return ret;
 }
 
+char BaseMathObject_Wrapped_doc[] = "True when this object wraps external data (readonly). **type** boolean";
 PyObject *BaseMathObject_getWrapped( BaseMathObject *self, void *type )
 {
 	return PyBool_FromLong((self->wrapped == Py_WRAP) ? 1:0);

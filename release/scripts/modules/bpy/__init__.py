@@ -35,8 +35,6 @@ from bpy import ops as _ops_module
 ops = _ops_module.ops_fake_module
 
 import sys as _sys
-DEBUG = ("-d" in _sys.argv)
-
 
 def load_scripts(reload_scripts=False):
     import os
@@ -58,7 +56,7 @@ def load_scripts(reload_scripts=False):
         try:
             t = time.time()
             ret = __import__(module_name)
-            if DEBUG:
+            if app.debug:
                 print("time %s %.4f" % (module_name, time.time() - t))
             return ret
         except:
@@ -104,7 +102,7 @@ def load_scripts(reload_scripts=False):
                         print("Reloading:", mod)
                         test_reload(mod)
 
-    if DEBUG:
+    if app.debug:
         print("Time %.4f" % (time.time() - t_main))
 
 

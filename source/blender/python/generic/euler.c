@@ -92,7 +92,7 @@ static char Euler_ToQuat_doc[] =
 "   Return a quaternion representation of the euler.\n"
 "\n"
 "   :return: Quaternion representation of the euler.\n"
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Euler_ToQuat(EulerObject * self)
 {
@@ -124,7 +124,7 @@ static char Euler_ToMatrix_doc[] =
 "   Return a matrix representation of the euler.\n"
 "\n"
 "   :return: A 3x3 roation matrix representation of the euler.\n"
-"   :rtype: Matrix\n";
+"   :rtype: :class:`Matrix`\n";
 
 static PyObject *Euler_ToMatrix(EulerObject * self)
 {
@@ -155,8 +155,9 @@ static char Euler_Unique_doc[] =
 ".. method:: unique()\n"
 "\n"
 "   Calculate a unique rotation for this euler. Avoids gimble lock.\n"
+"\n"
 "   :return: an instance of itself\n"
-"   :rtype: Euler\n";
+"   :rtype: :class:`Euler`\n";
 
 static PyObject *Euler_Unique(EulerObject * self)
 {
@@ -226,8 +227,9 @@ static char Euler_Zero_doc[] =
 ".. method:: zero()\n"
 "\n"
 "   Set all values to zero.\n"
+"\n"
 "   :return: an instance of itself\n"
-"   :rtype: Euler\n";
+"   :rtype: :class:`Euler`\n";
 
 static PyObject *Euler_Zero(EulerObject * self)
 {
@@ -293,9 +295,9 @@ static char Euler_MakeCompatible_doc[] =
 "   Make this euler compatible with another, so interpolating between them works as intended.\n"
 "\n"
 "   :arg other: make compatible with this rotation.\n"
-"   :type other: Euler\n"
+"   :type other: :class:`Euler`\n"
 "   :return: an instance of itself.\n"
-"   :rtype: Euler\n";
+"   :rtype: :class:`Euler`\n";
 
 static PyObject *Euler_MakeCompatible(EulerObject * self, EulerObject *value)
 {
@@ -343,7 +345,7 @@ static char Euler_copy_doc[] =
 "   Returns a copy of this euler.\n"
 "\n"
 "   :return: A copy of the euler.\n"
-"   :rtype: Euler\n"
+"   :rtype: :class:`Euler`\n"
 "\n"
 "   .. note:: use this to get a copy of a wrapped euler with no reference to the original data.\n";
 
@@ -551,7 +553,6 @@ static PySequenceMethods Euler_SeqMethods = {
 /*
  * vector axis, vector.x/y/z/w
  */
-	
 static PyObject *Euler_getAxis( EulerObject * self, void *type )
 {
 	return Euler_item(self, GET_INT_FROM_POINTER(type));
@@ -566,12 +567,12 @@ static int Euler_setAxis( EulerObject * self, PyObject * value, void * type )
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Euler_getseters[] = {
-	{"x", (getter)Euler_getAxis, (setter)Euler_setAxis, "Euler X axis", (void *)0},
-	{"y", (getter)Euler_getAxis, (setter)Euler_setAxis, "Euler Y axis", (void *)1},
-	{"z", (getter)Euler_getAxis, (setter)Euler_setAxis, "Euler Z axis", (void *)2},
+	{"x", (getter)Euler_getAxis, (setter)Euler_setAxis, "Euler X axis in radians. **type** float", (void *)0},
+	{"y", (getter)Euler_getAxis, (setter)Euler_setAxis, "Euler Y axis in radians. **type** float", (void *)1},
+	{"z", (getter)Euler_getAxis, (setter)Euler_setAxis, "Euler Z axis in radians. **type** float", (void *)2},
 
-	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, "True when this wraps blenders internal data", NULL},
-	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, "Read only owner for vectors that depend on another object", NULL},
+	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
+	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -590,6 +591,8 @@ static struct PyMethodDef Euler_methods[] = {
 };
 
 //------------------PY_OBECT DEFINITION--------------------------
+static char euler_doc[] = "This object gives access to Eulers in Blender.";
+
 PyTypeObject euler_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"euler",						//tp_name
@@ -611,7 +614,7 @@ PyTypeObject euler_Type = {
 	0,								//tp_setattro
 	0,								//tp_as_buffer
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, //tp_flags
-	0,								//tp_doc
+	euler_doc, //tp_doc
 	0,								//tp_traverse
 	0,								//tp_clear
 	(richcmpfunc)Euler_richcmpr,	//tp_richcompare

@@ -33,15 +33,6 @@ class Vector:
   """
   The Vector object
   =================
-    This object gives access to Vectors in Blender.
-  @group Axises: x, y, z, w
-  @ivar x: The x value.
-  @ivar y: The y value.
-  @ivar z: The z value (if any).
-  @ivar w: The w value (if any).
-  @ivar length: The magnitude of the vector.
-  @ivar magnitude: This is a synonym for length.
-  @ivar wrapped: Whether or not this item is wrapped data
   @note: Comparison operators can be done on Vector classes:
       - >, >=, <, <= test the vector magnitude
       - ==, != test vector values e.g. 1,2,3 != 1,2,4 even if they are the same length
@@ -106,11 +97,6 @@ class Euler:
   The Euler object
   ================
     This object gives access to Eulers in Blender.
-  @group Axises: x, y, z
-  @ivar x: The heading value in degrees.
-  @ivar y: The pitch value in degrees.
-  @ivar z: The roll value in degrees.
-  @ivar wrapped: Whether or not this object is wrapping data directly
   @note: You can access a euler object like a sequence
       - x = euler[0]
   @note: Comparison operators can be done:
@@ -152,16 +138,6 @@ class Quaternion:
   The Quaternion object
   =====================
     This object gives access to Quaternions in Blender.
-  @group Axises: x, y, z, w
-  @ivar w: The w value.
-  @ivar x: The x value.
-  @ivar y: The y value.
-  @ivar z: The z value.
-  @ivar wrapped: Wether or not this object wraps data directly
-  @ivar magnitude: The magnitude of the quaternion.
-  @ivar axis: Vector representing the axis of rotation.
-  @ivar angle: A scalar representing the amount of rotation
-  in degrees.
   @note: Comparison operators can be done:
       - ==, != test numeric values within epsilon
   @note: Math can be performed on Quaternion classes
@@ -215,10 +191,6 @@ class Matrix:
   """
   The Matrix Object
   =================
-    This object gives access to Matrices in Blender.
-  @ivar rowSize: The row size of the matrix.
-  @ivar colSize: The column size of the matrix.
-  @ivar wrapped: Whether or not this object wrapps internal data
   @note: Math can be performed on Matrix classes
       - mat + mat 
       - mat - mat 

@@ -38,10 +38,16 @@ This module contains application values that remain unchanged during runtime.
 
    The location of blenders executable, useful for utilities that spawn new instances.
 
+.. data:: debug
+
+   Boolean, set when blender is running in debug mode (started with -d)
+
 """
 # constants
 import _bpy
+import sys as _sys
 version = _bpy._VERSION
 version_string = _bpy._VERSION_STR
 home = _bpy._HOME
 binary_path = _bpy._BINPATH
+debug = ("-d" in _sys.argv)
