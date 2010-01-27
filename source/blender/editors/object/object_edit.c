@@ -500,7 +500,7 @@ static int editmode_toggle_poll(bContext *C)
 	Object *ob = CTX_data_active_object(C);
 
 	/* covers proxies too */
-	if(ob->data==NULL || ((ID *)ob->data)->lib)
+	if(ELEM(NULL, ob, ob->data) || ((ID *)ob->data)->lib)
 		return 0;
 
 	return ob && (ob->type == OB_MESH || ob->type == OB_ARMATURE ||

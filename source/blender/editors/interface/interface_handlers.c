@@ -3803,9 +3803,9 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		IDProperty *prop= (but->opptr)? but->opptr->data: NULL;
 		int w = uiLayoutGetWidth(layout);
 		wmKeyMap *km;
+		wmKeyMapItem *kmi= NULL;
 		int kmi_id= WM_key_event_operator_id(C, but->optype->idname, but->opcontext, prop, 1, &km);
-		wmKeyMapItem *kmi;
-		
+
 		if (kmi_id)
 			kmi= WM_keymap_item_find_id(km, kmi_id);
 

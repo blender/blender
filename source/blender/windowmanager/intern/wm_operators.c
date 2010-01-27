@@ -1241,6 +1241,18 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 
 /* ************ window / screen operator definitions ************** */
 
+/* this poll functions is needed in place of WM_operator_winactive
+ * while it crashes on full screen */
+static int wm_operator_winactive_normal(bContext *C)
+{
+	wmWindow *win= CTX_wm_window(C);
+
+    if(win==NULL || win->screen==NULL || win->screen->full != SCREENNORMAL)
+    	return 0;
+
+	return 1;
+}
+
 static void WM_OT_window_duplicate(wmOperatorType *ot)
 {
 	ot->name= "Duplicate Window";
@@ -1248,7 +1260,7 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 	ot->description="Duplicate the current Blender window.";
 		
 	ot->exec= wm_window_duplicate_op;
-	ot->poll= WM_operator_winactive;
+	ot->poll= wm_operator_winactive_normal;
 }
 
 static void WM_OT_save_homefile(wmOperatorType *ot)
