@@ -2872,10 +2872,18 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 		hsv[2]= x; 
 	}
 	else if (but->a1==9){
+		float range;
+		
 		/* vertical 'value' strip */
 		hsv[2]= y; 
+		
+		/* exception only for value strip - use the range set in but->min/max */
+		range = but->softmax - but->softmin;
+		hsv[2] = y*range + but->softmin;
+		
 		if (color_profile)
 			hsv[2] = srgb_to_linearrgb(hsv[2]);
+		
 	}
 
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);

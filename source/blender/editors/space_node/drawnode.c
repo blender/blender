@@ -125,7 +125,7 @@ static void node_buts_rgb(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
 	
 	col = uiLayoutColumn(layout, 0);
-	uiTemplateColorWheel(col, &sockptr, "default_value", 1);
+	uiTemplateColorWheel(col, &sockptr, "default_value", 1, 0);
 	uiItemR(col, "", 0, &sockptr, "default_value", 0);
 }
 
@@ -917,21 +917,44 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext *C, Point
 {
 	uiLayout *split, *col, *row;
 	
-	split = uiLayoutSplit(layout, 0, 0);
-	col = uiLayoutColumn(split, 0);
-	uiTemplateColorWheel(col, ptr, "lift", 1);
-	row = uiLayoutRow(col, 0);
-	uiItemR(row, NULL, 0, ptr, "lift", 0);
+	uiItemR(layout, NULL, 0, ptr, "correction_formula", 0);
 	
-	col = uiLayoutColumn(split, 0);
-	uiTemplateColorWheel(col, ptr, "gamma", 1);
-	row = uiLayoutRow(col, 0);
-	uiItemR(row, NULL, 0, ptr, "gamma", 0);
+	if (RNA_enum_get(ptr, "correction_formula")== 0) {
 	
-	col = uiLayoutColumn(split, 0);
-	uiTemplateColorWheel(col, ptr, "gain", 1);
-	row = uiLayoutRow(col, 0);
-	uiItemR(row, NULL, 0, ptr, "gain", 0);
+		split = uiLayoutSplit(layout, 0, 0);
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "lift", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "lift", 0);
+		
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "gamma", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "gamma", 0);
+		
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "gain", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "gain", 0);
+
+	} else {
+		
+		split = uiLayoutSplit(layout, 0, 0);
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "offset", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "offset", 0);
+		
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "power", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "power", 0);
+		
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "slope", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "slope", 0);
+	}
 
 }
 
