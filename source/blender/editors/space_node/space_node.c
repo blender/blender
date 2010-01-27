@@ -170,8 +170,12 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 	/* preview renders */
 	switch(wmn->category) {
 		case NC_SCENE:
-			if(wmn->data==ND_NODES)
-				ED_area_tag_refresh(sa);
+			switch (wmn->data) {
+				case ND_NODES:
+				case ND_FRAME:
+					ED_area_tag_refresh(sa);
+					break;
+			}
 			break;
 		case NC_WM:
 			if(wmn->data==ND_FILEREAD)

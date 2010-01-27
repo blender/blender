@@ -284,6 +284,46 @@ int list_find_data_fcurves (ListBase *dst, ListBase *src, const char *dataPrefix
 	return matches;
 }
 
+FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction **action, int *driven)
+{
+	FCurve *fcu= NULL;
+	
+	*driven= 0;
+	
+	/* there must be some RNA-pointer + property combon */
+	if(prop && ptr->id.data && RNA_property_animateable(ptr, prop)) {
+		AnimData *adt= BKE_animdata_from_id(ptr->id.data);
+		char *path;
+		
+		if(adt) {
+			if((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
+				/* XXX this function call can become a performance bottleneck */
+				path= RNA_path_from_ID_to_property(ptr, prop);
+				
+				if(path) {
+					/* animation takes priority over drivers */
+					if(adt->action && adt->action->curves.first)
+						fcu= list_find_fcurve(&adt->action->curves, path, rnaindex);
+					
+					/* if not animated, check if driven */
+					if(!fcu && (adt->drivers.first)) {
+						fcu= list_find_fcurve(&adt->drivers, path, rnaindex);
+						
+						if(fcu)
+							*driven= 1;
+					}
+					
+					if(fcu && action)
+						*action= adt->action;
+					
+					MEM_freeN(path);
+				}
+			}
+		}
+	}
+	
+	return fcu;
+}
 
 /* threshold for binary-searching keyframes - threshold here should be good enough for now, but should become userpref */
 #define BEZT_BINARYSEARCH_THRESH 	0.00001f

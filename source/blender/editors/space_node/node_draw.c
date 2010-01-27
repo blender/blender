@@ -109,22 +109,9 @@ void ED_node_changed_update(ID *id, bNode *node)
 		NodeTagChanged(edittree, node);
 		/* don't use NodeTagIDChanged, it gives far too many recomposites for image, scene layers, ... */
 			
-		/* not the best implementation of the world... but we need it to work now :) */
-		if(node->type==CMP_NODE_R_LAYERS && node->custom2) {
-			/* add event for this window (after render curarea can be changed) */
-			//addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
-			
-			//composite_node_render(snode, node);
-			//snode_notify(snode);
-			
-			/* add another event, a render can go fullscreen and open new window */
-			//addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
-		}
-		else {
-			node= node_tree_get_editgroup(nodetree);
-			if(node)
-				NodeTagIDChanged(nodetree, node->id);
-		}
+		node= node_tree_get_editgroup(nodetree);
+		if(node)
+			NodeTagIDChanged(nodetree, node->id);
 
 		WM_main_add_notifier(NC_SCENE|ND_NODES, id);
 	}			

@@ -30,45 +30,7 @@
 
 static FCurve *ui_but_get_fcurve(uiBut *but, bAction **action, int *driven)
 {
-	FCurve *fcu= NULL;
-
-	*driven= 0;
-
-	/* there must be some RNA-pointer + property combo for this button */
-	if(but->rnaprop && but->rnapoin.id.data && 
-		RNA_property_animateable(&but->rnapoin, but->rnaprop)) 
-	{
-		AnimData *adt= BKE_animdata_from_id(but->rnapoin.id.data);
-		char *path;
-		
-		if(adt) {
-			if((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
-				/* XXX this function call can become a performance bottleneck */
-				path= RNA_path_from_ID_to_property(&but->rnapoin, but->rnaprop);
-
-				if(path) {
-					/* animation takes priority over drivers */
-					if(adt->action && adt->action->curves.first)
-						fcu= list_find_fcurve(&adt->action->curves, path, but->rnaindex);
-					
-					/* if not animated, check if driven */
-					if(!fcu && (adt->drivers.first)) {
-						fcu= list_find_fcurve(&adt->drivers, path, but->rnaindex);
-						
-						if(fcu)
-							*driven= 1;
-					}
-
-					if(fcu && action)
-						*action= adt->action;
-
-					MEM_freeN(path);
-				}
-			}
-		}
-	}
-
-	return fcu;
+	return rna_get_fcurve(&but->rnapoin, but->rnaprop, but->rnaindex, action, driven);
 }
 
 void ui_but_anim_flag(uiBut *but, float cfra)
