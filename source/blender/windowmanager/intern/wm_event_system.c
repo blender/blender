@@ -1916,6 +1916,13 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 	/* top window bar... */
 	if(mx<0 || my<0 || mx>win->sizex || my>win->sizey+30) {	
 		wmWindow *owin;
+		wmEventHandler *handler;
+		
+		/* let's skip windows having modal handlers now */
+		/* potential XXX ugly... I wouldn't have added a modalhandlers list (introduced in rev 23331, ton) */
+		for(handler= win->modalhandlers.first; handler; handler= handler->next)
+			if(handler->ui_handle)
+				return NULL;
 		
 		/* to desktop space */
 		mx+= win->posx;
@@ -1923,6 +1930,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 		
 		/* check other windows to see if it has mouse inside */
 		for(owin= wm->windows.first; owin; owin= owin->next) {
+			
 			if(owin!=win) {
 				if(mx-owin->posx >= 0 && my-owin->posy >= 0 &&
 				   mx-owin->posx <= owin->sizex && my-owin->posy <= owin->sizey) {
