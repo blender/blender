@@ -60,8 +60,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     if reload_scripts:
         # reload modules that may not be directly included
-        for type_class_name in dir(types):
-            type_class = getattr(types, type_class_name)
+        for type_class_name in dir(_bpy.types):
+            type_class = getattr(_bpy.types, type_class_name)
             module_name = getattr(type_class, "__module__", "")
 
             if module_name and module_name != "bpy.types": # hard coded for C types

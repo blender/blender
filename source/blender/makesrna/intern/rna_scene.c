@@ -49,6 +49,7 @@
 
 #include "WM_types.h"
 
+#include "BLI_threads.h"
 
 EnumPropertyItem snap_target_items[] = {
 	{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target."},
