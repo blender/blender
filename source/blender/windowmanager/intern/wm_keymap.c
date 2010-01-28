@@ -85,6 +85,27 @@ wmKeyConfig *WM_keyconfig_add(wmWindowManager *wm, char *idname)
 	return keyconf;
 }
 
+wmKeyConfig *WM_keyconfig_add_user(wmWindowManager *wm, char *idname)
+{
+	wmKeyConfig *keyconf = WM_keyconfig_add(wm, idname);
+
+	keyconf->flag |= KEYCONF_USER;
+
+	return keyconf;
+}
+
+void WM_keyconfig_remove(wmWindowManager *wm, wmKeyConfig *keyconf)
+{
+	if (keyconf) {
+		if (BLI_streq(U.keyconfigstr, keyconf->idname)) {
+			BLI_strncpy(U.keyconfigstr, wm->defaultconf->idname, sizeof(U.keyconfigstr));
+		}
+
+		BLI_remlink(&wm->keyconfigs, keyconf);
+		WM_keyconfig_free(keyconf);
+	}
+}
+
 void WM_keyconfig_free(wmKeyConfig *keyconf)
 {
 	wmKeyMap *km;

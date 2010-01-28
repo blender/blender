@@ -259,9 +259,7 @@ typedef struct wmKeyConfig {
 } wmKeyConfig;
 
 /* wmKeyConfig.flag */
-#define KEYCONF_TWOBUTTONMOUSE	(1 << 1)
-#define KEYCONF_LMOUSESELECT	(1 << 2)
-#define KEYCONF_NONUMPAD		(1 << 3)
+#define KEYCONF_USER			(1 << 1)
 
 /* this one is the operator itself, stored in files for macros etc */
 /* operator + operatortype should be able to redo entirely, but for different contextes */
