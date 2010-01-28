@@ -126,8 +126,8 @@ typedef struct SpaceButs {
 	short preview;					/* preview is signal to refresh */
 	char flag, pad[3];
 	
-	void *path;				/* runtime */
-	int pathflag, dataicon;	/* runtime */
+	void *path;						/* runtime */
+	int pathflag, dataicon;			/* runtime */
 	ID *pinid;
 } SpaceButs;
 
@@ -577,7 +577,6 @@ typedef struct SpaceUserPref {
 #define TAB_SCENE_SOUND		3
 #define TAB_SCENE_SEQUENCER	4
 
-
 /* buts->mainb new */
 #define BCONTEXT_RENDER				0
 #define BCONTEXT_SCENE				1
@@ -599,6 +598,7 @@ typedef struct SpaceUserPref {
 #define SB_PIN_CONTEXT		2
 #define SB_WORLD_TEX		4
 #define SB_BRUSH_TEX		8
+#define SB_SHADING_CONTEXT	16
 
 /* sbuts->align */
 #define BUT_FREE  		0

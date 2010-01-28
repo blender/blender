@@ -474,6 +474,32 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	return found;
 }
 
+static int buttons_shading_context(const bContext *C, int mainb)
+{
+	Object *ob= CTX_data_active_object(C);
+
+	if(ELEM3(mainb, BCONTEXT_MATERIAL, BCONTEXT_WORLD, BCONTEXT_TEXTURE))
+		return 1;
+	if(mainb == BCONTEXT_DATA && ob && ELEM(ob->type, OB_LAMP, OB_CAMERA))
+		return 1;
+	
+	return 0;
+}
+
+static int buttons_shading_new_context(const bContext *C, int flag, int mainb)
+{
+	Object *ob= CTX_data_active_object(C);
+
+	if(flag & (1 << BCONTEXT_MATERIAL))
+		return BCONTEXT_MATERIAL;
+	else if(ob && ELEM(ob->type, OB_LAMP, OB_CAMERA) && (flag & (1 << BCONTEXT_DATA)))
+		return BCONTEXT_DATA;
+	else if(flag & (1 << BCONTEXT_WORLD))
+		return BCONTEXT_WORLD;
+	
+	return BCONTEXT_RENDER;
+}
+
 void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 {
 	ButsContextPath *path;
@@ -511,7 +537,11 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 
 	/* in case something becomes invalid, change */
 	if((flag & (1 << sbuts->mainb)) == 0) {
-		if(flag & BCONTEXT_OBJECT) {
+		if(sbuts->flag & SB_SHADING_CONTEXT) {
+			/* try to keep showing shading related buttons */
+			sbuts->mainb= buttons_shading_new_context(C, flag, sbuts->mainb);
+		}
+		else if(flag & BCONTEXT_OBJECT) {
 			sbuts->mainb= BCONTEXT_OBJECT;
 		}
 		else {
@@ -532,6 +562,11 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 		else
 			sbuts->mainb= BCONTEXT_SCENE;
 	}
+
+	if(buttons_shading_context(C, sbuts->mainb))
+		sbuts->flag |= SB_SHADING_CONTEXT;
+	else
+		sbuts->flag &= ~SB_SHADING_CONTEXT;
 
 	sbuts->pathflag= flag;
 }
