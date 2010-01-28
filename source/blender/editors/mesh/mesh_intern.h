@@ -32,10 +32,13 @@
 #ifndef MESH_INTERN_H
 #define MESH_INTERN_H
 
-#include "BLI_editVert.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+
+#include "BKE_tessmesh.h"
+
+#include "BLI_editVert.h"
 
 struct bContext;
 struct wmOperatorType;
@@ -57,9 +60,13 @@ ok: the EDBM module is for editmode bmesh stuff.  in contrast, the
     the BMEditMesh structure.
 */
 
-/*calls a bmesh op, reporting errors to the user, doing conversions,
-  etc.*/
+/*calls a bmesh op, reporting errors to the user, etc*/
 int EDBM_CallOpf(struct BMEditMesh *em, struct wmOperator *op, char *fmt, ...);
+
+/*calls a bmesh op, reporting errors to the user, etc.
+
+  selects an output slot specified by selslot*/
+int EDBM_CallAndSelectOpf(struct BMEditMesh *em, struct wmOperator *op, char *selslot, char *fmt, ...);
 
 /*same as above, but doesn't report errors.*/
 int EDBM_CallOpfSilent(struct BMEditMesh *em, char *fmt, ...);
@@ -83,14 +90,11 @@ void EDBM_stats_update(struct BMEditMesh *em);
 
 /* ******************** editface.c */
 
-int edgetag_context_check(Scene *scene, EditEdge *eed);
-void edgetag_context_set(Scene *scene, EditEdge *eed, int val);
-int edgetag_shortest_path(Scene *scene, EditMesh *em, EditEdge *source, EditEdge *target);
+int edgetag_context_check(Scene *scene, BMEdge *eed);
+void edgetag_context_set(Scene *scene, BMEdge *eed, int val);
+int edgetag_shortest_path(Scene *scene, BMEditMesh *em, EditEdge *source, EditEdge *target);
 
 /* ******************* editmesh.c */
-
-void EM_beginEditMesh(struct Object *ob);
-void EM_endEditMesh(struct Object *ob, EditMesh *em);
 
 extern void free_editvert(EditMesh *em, EditVert *eve);
 extern void free_editedge(EditMesh *em, EditEdge *eed);

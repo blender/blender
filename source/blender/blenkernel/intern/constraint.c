@@ -70,6 +70,7 @@
 #include "BKE_mesh.h"
 #include "BKE_shrinkwrap.h"
 #include "BKE_mesh.h"
+#include "BKE_tessmesh.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
@@ -406,7 +407,7 @@ static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, f
 {
 	DerivedMesh *dm;
 	Mesh *me= ob->data;
-	EditMesh *em = BKE_mesh_get_editmesh(me);
+	BMEditMesh *em = me->edit_btmesh;
 	float vec[3] = {0.0f, 0.0f, 0.0f}, tvec[3];
 	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
 	float imat[3][3], tmat[3][3];
@@ -423,7 +424,7 @@ static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, f
 	/* get DerivedMesh */
 	if (em) {
 		/* target is in editmode, so get a special derived mesh */
-		dm = CDDM_from_editmesh(em, ob->data);
+		dm = CDDM_from_BMEditMesh(em, ob->data);
 		freeDM= 1;
 	}
 	else {
@@ -503,8 +504,6 @@ static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, f
 	/* free temporary DerivedMesh created (in EditMode case) */
 	if (dm && freeDM)
 		dm->release(dm);
-	if (em)
-		BKE_mesh_end_editmesh(me, em);
 }
 
 /* function that sets the given matrix based on given vertex group in lattice */

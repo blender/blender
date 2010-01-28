@@ -1786,15 +1786,17 @@ void MESH_OT_select_less(wmOperatorType *ot)
 static int mesh_select_nth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 	int nth = RNA_int_get(op->ptr, "nth");
 
+#if 0 //BMESH_TODO
 	if(EM_deselect_nth(em, nth) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face.");
 		return OPERATOR_CANCELLED;
 	}
-
-	BKE_mesh_end_editmesh(obedit->data, em);
+#else
+		BKE_report(op->reports, RPT_ERROR, "Unimplemented");
+#endif
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -2052,4 +2054,22 @@ int EM_deselect_nth(EditMesh *em, int nth)
 	return 0;
 #endif
 	return 1;
+}
+
+void em_setup_viewcontext(bContext *C, ViewContext *vc)
+{
+	view3d_set_viewcontext(C, vc);
+	
+	if(vc->obedit) {
+		Mesh *me= vc->obedit->data;
+		vc->em= me->edit_btmesh;
+	}
+}
+
+/* poll call for mesh operators requiring a view3d context */
+int EM_view3d_poll(bContext *C)
+{
+	if(ED_operator_editmesh(C) && ED_operator_view3d_active(C))
+		return 1;
+	return 0;
 }

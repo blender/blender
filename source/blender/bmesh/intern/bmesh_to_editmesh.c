@@ -1,3 +1,4 @@
+#if 0
 #include "MEM_guardedalloc.h"
 #include "BKE_customdata.h" 
 #include "DNA_listBase.h"
@@ -314,3 +315,4 @@ EditMesh *bmesh_to_editmesh(BMesh *bmesh)
 	
 	return em;
 }
+#endif

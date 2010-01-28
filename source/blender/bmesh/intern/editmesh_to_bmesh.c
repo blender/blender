@@ -1,3 +1,4 @@
+#if 0
 
 #include "MEM_guardedalloc.h"
 #include "BKE_customdata.h" 
@@ -472,3 +473,4 @@ BMesh *init_editmesh_to_bmesh(EditMesh *em, BMOperator *op)
 
 	return bm;
 }
+#endif

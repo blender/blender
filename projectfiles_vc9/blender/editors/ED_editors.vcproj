@@ -1200,6 +1200,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\mesh\editbmesh_add.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\mesh\editbmesh_bvh.c"
 				>
 			</File>
@@ -1209,30 +1213,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\mesh\editface.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\mesh\editmesh.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\mesh\editmesh_add.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\mesh\editmesh_lib.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\mesh\editmesh_loop.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\mesh\editmesh_mods.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\editors\mesh\editmesh_tools.c"
 				>
 			</File>
 			<File

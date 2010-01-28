@@ -56,6 +56,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -74,13 +75,14 @@
 
 #include "object_intern.h"
 
-static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float *cent)
+static int return_editmesh_indexar(BMEditMesh *em, int *tot, int **indexar, float *cent)
 {
-	EditVert *eve;
+	BMVert *eve;
+	BMIter iter;
 	int *index, nr, totvert=0;
 	
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f & SELECT) totvert++;
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if(BM_TestHFlag(eve, BM_SELECT)) totvert++;
 	}
 	if(totvert==0) return 0;
 	
@@ -89,8 +91,8 @@ static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float 
 	nr= 0;
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f & SELECT) {
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if(BM_TestHFlag(eve, BM_SELECT)) {
 			*index= nr; index++;
 			add_v3_v3v3(cent, cent, eve->co);
 		}
@@ -102,10 +104,11 @@ static int return_editmesh_indexar(EditMesh *em, int *tot, int **indexar, float 
 	return totvert;
 }
 
-static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, float *cent)
+static int return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *name, float *cent)
 {
 	MDeformVert *dvert;
-	EditVert *eve;
+	BMVert *eve;
+	BMIter iter;
 	int i, totvert=0;
 	
 	cent[0]= cent[1]= cent[2]= 0.0;
@@ -113,8 +116,8 @@ static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, floa
 	if(obedit->actdef) {
 		
 		/* find the vertices */
-		for(eve= em->verts.first; eve; eve= eve->next) {
-			dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 
 			if(dvert) {
 				for(i=0; i<dvert->totweight; i++){
@@ -136,25 +139,27 @@ static int return_editmesh_vgroup(Object *obedit, EditMesh *em, char *name, floa
 	return 0;
 }	
 
-static void select_editmesh_hook(Object *ob, HookModifierData *hmd)
+static void select_editbmesh_hook(Object *ob, HookModifierData *hmd)
 {
 	Mesh *me= ob->data;
-	EditMesh *em= BKE_mesh_get_editmesh(me);
-	EditVert *eve;
+	BMEditMesh *em= me->edit_btmesh;
+	BMVert *eve;
+	BMIter iter;
 	int index=0, nr=0;
 	
 	if (hmd->indexar == NULL)
 		return;
 	
-	for(eve= em->verts.first; eve; eve= eve->next, nr++) {
+	BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 		if(nr==hmd->indexar[index]) {
-			eve->f |= SELECT;
+			BM_Select(em->bm, eve, 1);
 			if(index < hmd->totindex-1) index++;
 		}
-	}
-	EM_select_flush(em);
 
-	BKE_mesh_end_editmesh(me, em);
+		nr++;
+	}
+
+	EDBM_selectmode_flush(em);
 }
 
 static int return_editlattice_indexar(Lattice *editlatt, int *tot, int **indexar, float *cent)
@@ -303,15 +308,13 @@ static int object_hook_index_array(Object *obedit, int *tot, int **indexar, char
 		case OB_MESH:
 		{
 			Mesh *me= obedit->data;
-			EditMesh *em = BKE_mesh_get_editmesh(me);
+			BMEditMesh *em = me->edit_btmesh;
 
 			/* check selected vertices first */
 			if( return_editmesh_indexar(em, tot, indexar, cent_r)) {
-				BKE_mesh_end_editmesh(me, em);
 				return 1;
 			} else {
 				int ret = return_editmesh_vgroup(obedit, em, name, cent_r);
-				BKE_mesh_end_editmesh(me, em);
 				return ret;
 			}
 		}
@@ -380,7 +383,7 @@ static void object_hook_select(Object *ob, HookModifierData *hmd)
 	if (hmd->indexar == NULL)
 		return;
 	
-	if(ob->type==OB_MESH) select_editmesh_hook(ob, hmd);
+	if(ob->type==OB_MESH) select_editbmesh_hook(ob, hmd);
 	else if(ob->type==OB_LATTICE) select_editlattice_hook(ob, hmd);
 	else if(ob->type==OB_CURVE) select_editcurve_hook(ob, hmd);
 	else if(ob->type==OB_SURF) select_editcurve_hook(ob, hmd);

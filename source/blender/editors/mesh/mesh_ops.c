@@ -96,8 +96,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_primitive_monkey_add);
 	WM_operatortype_append(MESH_OT_primitive_uv_sphere_add);
 	WM_operatortype_append(MESH_OT_primitive_ico_sphere_add);
-	WM_operatortype_append(MESH_OT_fgon_clear);
-	WM_operatortype_append(MESH_OT_fgon_make);
 	WM_operatortype_append(MESH_OT_duplicate);
 	WM_operatortype_append(MESH_OT_remove_doubles);
 	WM_operatortype_append(MESH_OT_extrude);
@@ -291,9 +289,6 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "MESH_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MESH_OT_delete", DELKEY, KM_PRESS, 0, 0);
-	
-	WM_keymap_add_item(keymap, "MESH_OT_fgon_make", FKEY, KM_PRESS, KM_ALT, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_fgon_clear", FKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_knife_cut", LEFTMOUSE, KM_PRESS, 0, KKEY);
 	

@@ -80,21 +80,6 @@
 
 #include "bmesh.h"
 
-EditMesh *BKE_mesh_get_editmesh(Mesh *me)
-{
-	return bmesh_to_editmesh(me->edit_btmesh->bm);
-}
-
-void free_editMesh(EditMesh *em);
-void BKE_mesh_end_editmesh(Mesh *me, EditMesh *em)
-{
-	BM_Free_Mesh(me->edit_btmesh->bm);
-	me->edit_btmesh->bm = editmesh_to_bmesh(em);
-	BMEdit_RecalcTesselation(me->edit_btmesh);
-	free_editMesh(em);
-	MEM_freeN(em);
-}
-
 static void mesh_ensure_tesselation_customdata(Mesh *me)
 {
 	int tottex, totcol;
@@ -1605,9 +1590,19 @@ static void mesh_loops_to_corners(CustomData *fdata, CustomData *ldata,
 	}
 }
 
-/*this function recreates a tesselation.
+/*
+  this function recreates a tesselation.
+  returns number of tesselation faces.
 
-  returns number of tesselation faces.*/
+  use_poly_origindex sets whether or not the tesselation faces' origindex
+  layer should point to original poly indices or real poly indices.
+
+  use_face_origindex sets the tesselation faces' origindex layer
+  to point to the tesselation faces themselves, not the polys.
+
+  if both of the above are 0, it'll use the indices of the mpolys of the MPoly
+  data in pdata, and ignore the origindex layer altogether.
+ */
 int mesh_recalcTesselation(CustomData *fdata, 
                            CustomData *ldata, CustomData *pdata,
                            MVert *mvert, int totface, int totloop, 

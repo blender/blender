@@ -91,12 +91,15 @@ void EDBM_MakeEditBMesh(struct ToolSettings *ts, struct Scene *scene, struct Obj
 void EDBM_FreeEditBMesh(struct BMEditMesh *tm);
 void EDBM_LoadEditBMesh(struct Scene *scene, struct Object *ob);
 
-void EDBM_init_index_arrays(struct BMEditMesh *tm, int forvert, int foredge, int forface);
-void EDBM_free_index_arrays(struct BMEditMesh *tm);
-struct BMVert *EDBM_get_vert_for_index(struct BMEditMesh *tm, int index);
-struct BMEdge *EDBM_get_edge_for_index(struct BMEditMesh *tm, int index);
-struct BMFace *EDBM_get_face_for_index(struct BMEditMesh *tm, int index);
+void EDBM_init_index_arrays(struct BMEditMesh *em, int forvert, int foredge, int forface);
+void EDBM_free_index_arrays(struct BMEditMesh *em);
+struct BMVert *EDBM_get_vert_for_index(struct BMEditMesh *em, int index);
+struct BMEdge *EDBM_get_edge_for_index(struct BMEditMesh *em, int index);
+struct BMFace *EDBM_get_face_for_index(struct BMEditMesh *em, int index);
 struct BMFace *EDBM_get_actFace(struct BMEditMesh *em, int sloppy);
+
+int EDBM_CallAndSelectOpf(struct BMEditMesh *em, struct wmOperator *op, 
+						  char *selectslot, char *fmt, ...);
 
 /*flushes based on the current select mode.  if in vertex select mode,
   verts select/deselect edges and faces, if in edge select mode,

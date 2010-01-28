@@ -61,6 +61,7 @@
 #include "BKE_paint.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "RE_pipeline.h"
 
@@ -115,7 +116,7 @@
 
 /* XXX */
 static int simaFaceDraw_Check() {return 0;}
-static int simaUVSel_Check() {return 0;}
+static int simaUVSel_Check() { return 0;}
 /* XXX */
 
 /* proto */
@@ -222,39 +223,32 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 {
 	SpaceImage *sima= CTX_wm_space_image(C);
 	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em;
+	BMFace *efa;
+	MTexPoly *tf;
+	BMLoop *l;
+	MLoopUV *luv;
+	BMIter iter, liter;
 	static float ocent[2];
 	float cent[2]= {0.0, 0.0};
 	int imx= 256, imy= 256;
 	int nactive= 0, step, digits;
-	EditMesh *em;
-	EditFace *efa;
-	MTFace *tf;
 	
 	image_transform_but_attr(sima, &imx, &imy, &step, &digits);
 	
-	em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (simaFaceDraw_Check(efa, tf)) {
+	em= ((Mesh *)obedit->data)->edit_btmesh;
+	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+		if (!simaFaceDraw_Check(efa, tf))
+			continue;
+
+		BM_ITER(l, &iter, em->bm, BM_LOOPS_OF_FACE, efa) {
+			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			
-			if (simaUVSel_Check(efa, tf, 0)) {
-				cent[0]+= tf->uv[0][0];
-				cent[1]+= tf->uv[0][1];
-				nactive++;
-			}
-			if (simaUVSel_Check(efa, tf, 1)) {
-				cent[0]+= tf->uv[1][0];
-				cent[1]+= tf->uv[1][1];
-				nactive++;
-			}
-			if (simaUVSel_Check(efa, tf, 2)) {
-				cent[0]+= tf->uv[2][0];
-				cent[1]+= tf->uv[2][1];
-				nactive++;
-			}
-			if (efa->v4 && simaUVSel_Check(efa, tf, 3)) {
-				cent[0]+= tf->uv[3][0];
-				cent[1]+= tf->uv[3][1];
+			if (simaUVSel_Check(efa, tf, luv)) {
+				cent[0] += luv->uv[0];
+				cent[1] += luv->uv[1];
+
 				nactive++;
 			}
 		}
@@ -297,32 +291,23 @@ static void image_editvertex_buts(const bContext *C, uiBlock *block)
 			delta[1]= ocent[1]/imy - cent[1];
 		}
 
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (simaFaceDraw_Check(efa, tf)) {
-				if (simaUVSel_Check(efa, tf, 0)) {
-					tf->uv[0][0]+= delta[0];
-					tf->uv[0][1]+= delta[1];
-				}
-				if (simaUVSel_Check(efa, tf, 1)) {
-					tf->uv[1][0]+= delta[0];
-					tf->uv[1][1]+= delta[1];
-				}
-				if (simaUVSel_Check(efa, tf, 2)) {
-					tf->uv[2][0]+= delta[0];
-					tf->uv[2][1]+= delta[1];
-				}
-				if (efa->v4 && simaUVSel_Check(efa, tf, 3)) {
-					tf->uv[3][0]+= delta[0];
-					tf->uv[3][1]+= delta[1];
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+			if (!simaFaceDraw_Check(efa, tf))
+				continue;
+
+			BM_ITER(l, &iter, em->bm, BM_LOOPS_OF_FACE, efa) {
+				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
+				
+				if (simaUVSel_Check(efa, tf, luv)) {
+					luv->uv[0] += delta[0];
+					luv->uv[1] += delta[1];
 				}
 			}
 		}
-		
+
 		WM_event_add_notifier(C, NC_IMAGE, sima->image);
 	}
-
-	BKE_mesh_end_editmesh(obedit->data, em);
 }
 
 

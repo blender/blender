@@ -101,27 +101,3 @@ void connectverts_exec(BMesh *bm, BMOperator *op)
 	BLI_array_free(loops);
 	BLI_array_free(verts);
 }
-
-int BM_ConnectVerts(EditMesh *em, int flag) 
-{
-	EditMesh *em2;
-	BMesh *bm = editmesh_to_bmesh(em);
-	BMOperator op;
-	
-	BMO_Init_Op(&op, "connectverts");
-	BMO_HeaderFlag_To_Slot(bm, &op, "verts", flag, BM_VERT);
-	BMO_Exec_Op(bm, &op);
-	BMO_Finish_Op(bm, &op);
-	
-	if (BMO_GetSlot(&op, "edgeout")->len > 0 && 
-	    BMO_GetError(bm, NULL, NULL)==0)
-	{
-		em2 = bmesh_to_editmesh(bm);
-		set_editMesh(em, em2);
-		MEM_freeN(em2);
-
-		return 1;
-	}
-
-	return 0;
-}

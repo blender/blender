@@ -61,5 +61,11 @@ void bmesh_vertexshortestpath_exec(BMesh *bm, BMOperator *op);
 void bmesh_scale_exec(BMesh *bm, BMOperator *op);
 void bmesh_edgesplitop_exec(BMesh *bm, BMOperator *op);
 void bmesh_automerge_exec(BMesh *bm, BMOperator *op);
+void bmesh_create_cone_exec(BMesh *bm, BMOperator *op);
+void bmesh_create_monkey_exec(BMesh *bm, BMOperator *op);
+void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op);
+void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op);
+void bmesh_create_grid_exec(BMesh *bm, BMOperator *op);
+void bmesh_create_cube_exec(BMesh *bm, BMOperator *op);
 
 #endif

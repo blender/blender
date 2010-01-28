@@ -1329,11 +1329,11 @@ void calculateCenter(TransInfo *t)
 		/* EDIT MODE ACTIVE EDITMODE ELEMENT */
 
 		if (t->obedit && t->obedit->type == OB_MESH) {
-			EditSelection ese;
-			EditMesh *em = BKE_mesh_get_editmesh(t->obedit->data);
+			BMEditSelection ese;
+			BMEditMesh *em = ((Mesh*)t->obedit->data)->edit_btmesh;
 			
-			if (EM_get_actSelection(em, &ese)) {
-			EM_editselection_center(t->center, &ese);
+			if (EDBM_get_actSelection(em, &ese)) {
+			EDBM_editselection_center(em, t->center, &ese);
 			calculateCenter2D(t);
 			break;
 			}

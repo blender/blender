@@ -75,6 +75,7 @@
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -105,7 +106,8 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *obedit= CTX_data_edit_object(C);
-	EditVert *eve;
+	BMVert *eve;
+	BMIter iter;
 	Curve *cu;
 	Nurb *nu;
 	BezTriple *bezt;
@@ -117,22 +119,17 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 	
 	if(obedit->type==OB_MESH) {
 		Mesh *me= obedit->data;
-		EditMesh *em = BKE_mesh_get_editmesh(me);
+		BMEditMesh *em = me->edit_btmesh;
 
-		eve= em->verts.first;
-		while(eve) {
-			if(eve->f & 1) {
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (BM_TestHFlag(eve, BM_SELECT)) {
 				if(v1==0) v1= nr;
 				else if(v2==0) v2= nr;
 				else if(v3==0) v3= nr;
 				else if(v4==0) v4= nr;
 				else break;
 			}
-			nr++;
-			eve= eve->next;
 		}
-
-		BKE_mesh_end_editmesh(me, em);
 	}
 	else if(ELEM(obedit->type, OB_SURF, OB_CURVE)) {
 		ListBase *editnurb= curve_get_editcurve(obedit);

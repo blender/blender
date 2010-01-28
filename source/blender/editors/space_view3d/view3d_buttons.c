@@ -379,20 +379,19 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 		
 		if(ob->type==OB_MESH) {
 			Mesh *me= ob->data;
-			EditMesh *em = BKE_mesh_get_editmesh(me);
-			EditVert *eve;
-			EditEdge *eed;
-			
-			eve= em->verts.first;
-			while(eve) {
-				if(eve->f & SELECT) {
+			BMEditMesh *em = me->edit_btmesh;
+			BMVert *eve;
+			BMEdge *eed;
+			BMIter iter;
+
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+				if(BM_TestHFlag(eve, BM_SELECT)) {
 					add_v3_v3v3(eve->co, eve->co, median);
 				}
-				eve= eve->next;
 			}
 			
-			for(eed= em->edges.first; eed; eed= eed->next) {
-				if(eed->f & SELECT) {
+			BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+				if(BM_TestHFlag(eed, BM_SELECT)) {
 					/* ensure the median can be set to zero or one */
 					if(ve_median[3]==0.0f) eed->crease= 0.0f;
 					else if(ve_median[3]==1.0f) eed->crease= 1.0f;
@@ -403,9 +402,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 				}
 			}
 			
-			recalc_editnormals(em);
-
-			BKE_mesh_end_editmesh(me, em);
+			EDBM_RecalcNormals(em);
 		}
 		else if(ob->type==OB_CURVE || ob->type==OB_SURF) {
 			Curve *cu= ob->data;

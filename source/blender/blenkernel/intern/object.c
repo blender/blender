@@ -1816,25 +1816,27 @@ static void ob_parbone(Object *ob, Object *par, float mat[][4])
 
 static void give_parvert(Object *par, int nr, float *vec)
 {
-	EditMesh *em;
+	BMEditMesh *em;
 	int a, count;
 	
 	vec[0]=vec[1]=vec[2]= 0.0f;
 	
 	if(par->type==OB_MESH) {
 		Mesh *me= par->data;
-		em = BKE_mesh_get_editmesh(me);
+		em = me->edit_btmesh;
 
 		if(em) {
-			EditVert *eve;
-			
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->keyindex==nr) {
+			BMVert *eve;
+			BMIter iter;
+
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+				int *keyindex = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_SHAPE_KEYINDEX);
+				
+				if(keyindex && *keyindex==nr) {
 					memcpy(vec, eve->co, sizeof(float)*3);
 					break;
 				}
 			}
-			BKE_mesh_end_editmesh(me, em);
 		}
 		else {
 			DerivedMesh *dm = par->derivedFinal;

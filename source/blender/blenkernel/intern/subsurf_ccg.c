@@ -1433,13 +1433,13 @@ void cgdm_faceIterStep(void *self)
 		return;
 	}
 
-	fiter->head.index++;
-	
-	if (fiter->head.index >= ccgSubSurf_getNumFinalFaces(fiter->cgdm->ss)) {
+	if (fiter->head.index+1 >= ccgSubSurf_getNumFinalFaces(fiter->cgdm->ss)) {
 		fiter->head.done = 1;
 		return;
 	};
 
+	fiter->head.index++;
+	
 	fiter->mf++;
 
 	fiter->head.flags = fiter->mface->flag;

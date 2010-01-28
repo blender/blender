@@ -7501,7 +7501,6 @@ static void meshdeformModifier_do(
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 	Mesh *me= (mmd->object)? mmd->object->data: NULL;
-	EditMesh *em = (me)? BKE_mesh_get_editmesh(me): NULL;
 	BMEditMesh *bem = me->edit_btmesh;
 	DerivedMesh *tmpdm, *cagedm;
 	MDeformVert *dvert = NULL;

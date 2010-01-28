@@ -3653,3 +3653,1137 @@ void MESH_OT_solidify(wmOperatorType *ot)
 	prop= RNA_def_float(ot->srna, "thickness", 0.01f, -FLT_MAX, FLT_MAX, "thickness", "", -10.0f, 10.0f);
 	RNA_def_property_ui_range(prop, -10, 10, 0.1, 4);
 }
+
+#define TRAIL_POLYLINE 1 /* For future use, They don't do anything yet */
+#define TRAIL_FREEHAND 2
+#define TRAIL_MIXED    3 /* (1|2) */
+#define TRAIL_AUTO     4 
+#define	TRAIL_MIDPOINTS 8
+
+typedef struct CutCurve {
+	float  x; 
+	float  y;
+} CutCurve;
+
+/* ******************************************************************** */
+/* Knife Subdivide Tool.  Subdivides edges intersected by a mouse trail
+	drawn by user.
+	
+	Currently mapped to KKey when in MeshEdit mode.
+	Usage:
+		Hit Shift K, Select Centers or Exact
+		Hold LMB down to draw path, hit RETKEY.
+		ESC cancels as expected.
+   
+	Contributed by Robert Wenzlaff (Det. Thorn).
+
+    2.5 revamp:
+    - non modal (no menu before cutting)
+    - exit on mouse release
+    - polygon/segment drawing can become handled by WM cb later
+
+	bmesh port version
+*/
+
+#define KNIFE_EXACT		1
+#define KNIFE_MIDPOINT	2
+#define KNIFE_MULTICUT	3
+
+static EnumPropertyItem knife_items[]= {
+	{KNIFE_EXACT, "EXACT", 0, "Exact", ""},
+	{KNIFE_MIDPOINT, "MIDPOINTS", 0, "Midpoints", ""},
+	{KNIFE_MULTICUT, "MULTICUT", 0, "Multicut", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* seg_intersect() Determines if and where a mouse trail intersects an EditEdge */
+
+static float bm_seg_intersect(BMEdge *e, CutCurve *c, int len, char mode,
+                              struct GHash *gh, int *isected)
+{
+#define MAXSLOPE 100000
+	float  x11, y11, x12=0, y12=0, x2max, x2min, y2max;
+	float  y2min, dist, lastdist=0, xdiff2, xdiff1;
+	float  m1, b1, m2, b2, x21, x22, y21, y22, xi;
+	float  yi, x1min, x1max, y1max, y1min, perc=0; 
+	float  *scr;
+	float  threshold = 0.0;
+	int  i;
+	
+	//threshold = 0.000001; /*tolerance for vertex intersection*/
+	// XXX	threshold = scene->toolsettings->select_thresh / 100;
+	
+	/* Get screen coords of verts */
+	scr = BLI_ghash_lookup(gh, e->v1);
+	x21=scr[0];
+	y21=scr[1];
+	
+	scr = BLI_ghash_lookup(gh, e->v2);
+	x22=scr[0];
+	y22=scr[1];
+	
+	xdiff2=(x22-x21);  
+	if (xdiff2) {
+		m2=(y22-y21)/xdiff2;
+		b2= ((x22*y21)-(x21*y22))/xdiff2;
+	}
+	else {
+		m2=MAXSLOPE;  /* Verticle slope  */
+		b2=x22;      
+	}
+
+	*isected = 0;
+
+	/*check for *exact* vertex intersection first*/
+	if(mode!=KNIFE_MULTICUT){
+		for (i=0; i<len; i++){
+			if (i>0){
+				x11=x12;
+				y11=y12;
+			}
+			else {
+				x11=c[i].x;
+				y11=c[i].y;
+			}
+			x12=c[i].x;
+			y12=c[i].y;
+			
+			/*test e->v1*/
+			if((x11 == x21 && y11 == y21) || (x12 == x21 && y12 == y21)){
+				perc = 0;
+				*isected = 1;
+				return(perc);
+			}
+			/*test e->v2*/
+			else if((x11 == x22 && y11 == y22) || (x12 == x22 && y12 == y22)){
+				perc = 0;
+				*isected = 2;
+				return(perc);
+			}
+		}
+	}
+	
+	/*now check for edge interesect (may produce vertex intersection as well)*/
+	for (i=0; i<len; i++){
+		if (i>0){
+			x11=x12;
+			y11=y12;
+		}
+		else {
+			x11=c[i].x;
+			y11=c[i].y;
+		}
+		x12=c[i].x;
+		y12=c[i].y;
+		
+		/* Perp. Distance from point to line */
+		if (m2!=MAXSLOPE) dist=(y12-m2*x12-b2);/* /sqrt(m2*m2+1); Only looking for */
+			/* change in sign.  Skip extra math */	
+		else dist=x22-x12;	
+		
+		if (i==0) lastdist=dist;
+		
+		/* if dist changes sign, and intersect point in edge's Bound Box*/
+		if ((lastdist*dist)<=0){
+			xdiff1=(x12-x11); /* Equation of line between last 2 points */
+			if (xdiff1){
+				m1=(y12-y11)/xdiff1;
+				b1= ((x12*y11)-(x11*y12))/xdiff1;
+			}
+			else{
+				m1=MAXSLOPE;
+				b1=x12;
+			}
+			x2max=MAX2(x21,x22)+0.001; /* prevent missed edges   */
+			x2min=MIN2(x21,x22)-0.001; /* due to round off error */
+			y2max=MAX2(y21,y22)+0.001;
+			y2min=MIN2(y21,y22)-0.001;
+			
+			/* Found an intersect,  calc intersect point */
+			if (m1==m2){ /* co-incident lines */
+				/* cut at 50% of overlap area*/
+				x1max=MAX2(x11, x12);
+				x1min=MIN2(x11, x12);
+				xi= (MIN2(x2max,x1max)+MAX2(x2min,x1min))/2.0;	
+				
+				y1max=MAX2(y11, y12);
+				y1min=MIN2(y11, y12);
+				yi= (MIN2(y2max,y1max)+MAX2(y2min,y1min))/2.0;
+			}			
+			else if (m2==MAXSLOPE){ 
+				xi=x22;
+				yi=m1*x22+b1;
+			}
+			else if (m1==MAXSLOPE){ 
+				xi=x12;
+				yi=m2*x12+b2;
+			}
+			else {
+				xi=(b1-b2)/(m2-m1);
+				yi=(b1*m2-m1*b2)/(m2-m1);
+			}
+			
+			/* Intersect inside bounding box of edge?*/
+			if ((xi>=x2min)&&(xi<=x2max)&&(yi<=y2max)&&(yi>=y2min)){
+				/*test for vertex intersect that may be 'close enough'*/
+				if(mode!=KNIFE_MULTICUT){
+					if(xi <= (x21 + threshold) && xi >= (x21 - threshold)){
+						if(yi <= (y21 + threshold) && yi >= (y21 - threshold)){
+							*isected = 1;
+							perc = 0;
+							break;
+						}
+					}
+					if(xi <= (x22 + threshold) && xi >= (x22 - threshold)){
+						if(yi <= (y22 + threshold) && yi >= (y22 - threshold)){
+							*isected = 2;
+							perc = 0;
+							break;
+						}
+					}
+				}
+				if ((m2<=1.0)&&(m2>=-1.0)) perc = (xi-x21)/(x22-x21);	
+				else perc=(yi-y21)/(y22-y21); /*lower slope more accurate*/
+				//isect=32768.0*(perc+0.0000153); /* Percentage in 1/32768ths */
+				
+				break;
+			}
+		}	
+		lastdist=dist;
+	}
+	return(perc);
+} 
+
+#define MAX_CUTS 256
+
+static int knife_cut_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= (((Mesh *)obedit->data))->edit_btmesh;
+	BMesh *bm = em->bm;
+	ARegion *ar= CTX_wm_region(C);
+	BMVert *bv;
+	BMIter iter;
+	BMEdge *be;
+	BMOperator bmop;
+	CutCurve curve[MAX_CUTS];
+	struct GHash *gh;
+	float isect=0.0;
+	float  *scr, co[4];
+	int len=0, isected, flag, i;
+	short numcuts=1, mode= RNA_int_get(op->ptr, "type");
+	
+	/* edit-object needed for matrix, and ar->regiondata for projections to work */
+	if (ELEM3(NULL, obedit, ar, ar->regiondata))
+		return OPERATOR_CANCELLED;
+	
+	if (bm->totvertsel < 2) {
+		error("No edges are selected to operate on");
+		return OPERATOR_CANCELLED;;
+	}
+
+	/* get the cut curve */
+	RNA_BEGIN(op->ptr, itemptr, "path") {
+		
+		RNA_float_get_array(&itemptr, "loc", (float *)&curve[len]);
+		len++;
+		if(len>= MAX_CUTS) break;
+	}
+	RNA_END;
+	
+	if(len<2) {
+		return OPERATOR_CANCELLED;
+	}
+
+	/*the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer*/
+	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	for(bv=BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);bv;bv=BMIter_Step(&iter)){
+		scr = MEM_mallocN(sizeof(float)*2, "Vertex Screen Coordinates");
+		VECCOPY(co, bv->co);
+		co[3]= 1.0;
+		mul_m4_v4(obedit->obmat, co);
+		project_float(ar, co, scr);
+		BLI_ghash_insert(gh, bv, scr);
+	}
+	
+	BMO_Init_Op(&bmop, "esubd");
+	
+	i = 0;
+	/*store percentage of edge cut for KNIFE_EXACT here.*/
+	for (be=BMIter_New(&iter, bm, BM_EDGES_OF_MESH, NULL); be; be=BMIter_Step(&iter)) {
+		if( BM_Selected(bm, be) ) {
+			isect= bm_seg_intersect(be, curve, len, mode, gh, &isected);
+			
+			if (isect != 0.0f) {
+				if (mode != KNIFE_MULTICUT && mode != KNIFE_MIDPOINT) {
+					BMO_Insert_MapFloat(bm, &bmop, 
+				               "edgepercents",
+				               be, isect);
+
+				}
+				BMO_SetFlag(bm, be, 1);
+			} else BMO_ClearFlag(bm, be, 1);
+		} else BMO_ClearFlag(bm, be, 1);
+	}
+	
+	BMO_Flag_To_Slot(bm, &bmop, "edges", 1, BM_EDGE);
+
+	BMO_Set_Int(&bmop, "numcuts", numcuts);
+	flag = B_KNIFE;
+	if (mode == KNIFE_MIDPOINT) numcuts = 1;
+	BMO_Set_Int(&bmop, "flag", flag);
+	BMO_Set_Float(&bmop, "radius", 0);
+	
+	BMO_Exec_Op(bm, &bmop);
+	BMO_Finish_Op(bm, &bmop);
+	
+	BLI_ghash_free(gh, NULL, (GHashValFreeFP)WMEM_freeN);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_knife_cut(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+	
+	ot->name= "Knife Cut";
+	ot->description= "Cut selected edges and faces into parts.";
+	ot->idname= "MESH_OT_knife_cut";
+	
+	ot->invoke= WM_gesture_lines_invoke;
+	ot->modal= WM_gesture_lines_modal;
+	ot->exec= knife_cut_exec;
+	
+	ot->poll= EM_view3d_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", knife_items, KNIFE_EXACT, "Type", "");
+	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
+	
+	/* internal */
+	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
+}
+
+static int mesh_separate_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Scene *scene= CTX_data_scene(C);
+	Base *base= CTX_data_active_base(C);
+	int retval= 0, type= RNA_enum_get(op->ptr, "type");
+	
+	if(type == 0)
+		retval= mesh_separate_selected(scene, base);
+	else if(type == 1)
+		retval= mesh_separate_material (scene, base);
+	else if(type == 2)
+		retval= mesh_separate_loose(scene, base);
+	   
+	if(retval) {
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, base->object->data);
+		return OPERATOR_FINISHED;
+	}
+
+#endif
+	return OPERATOR_CANCELLED;
+}
+
+/* *************** Operator: separate parts *************/
+
+static EnumPropertyItem prop_separate_types[] = {
+	{0, "SELECTED", 0, "Selection", ""},
+	{1, "MATERIAL", 0, "By Material", ""},
+	{2, "LOOSE", 0, "By loose parts", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+void MESH_OT_separate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Separate";
+	ot->description= "Separate selected geometry into a new mesh.";
+	ot->idname= "MESH_OT_separate";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= mesh_separate_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	RNA_def_enum(ot->srna, "type", prop_separate_types, 0, "Type", "");
+}
+
+
+static int fill_mesh_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	fill_mesh(em);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+#endif
+	return OPERATOR_FINISHED;
+
+}
+
+void MESH_OT_fill(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Fill";
+	ot->idname= "MESH_OT_fill";
+
+	/* api callbacks */
+	ot->exec= fill_mesh_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int beauty_fill_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	beauty_fill(em);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+#endif
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_beauty_fill(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Beauty Fill";
+	ot->idname= "MESH_OT_beauty_fill";
+
+	/* api callbacks */
+	ot->exec= beauty_fill_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** Quad/Tri Operators *************************/
+
+static int quads_convert_to_tris_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+
+	//convert_to_triface(em,0);
+	if (!EDBM_CallOpf(em, op, "triangulate faces=%hf", BM_SELECT))
+		return OPERATOR_CANCELLED;
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+#endif
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Quads to Tris";
+	ot->idname= "MESH_OT_quads_convert_to_tris";
+
+	/* api callbacks */
+	ot->exec= quads_convert_to_tris_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int tris_convert_to_quads_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	join_triangles(em);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+#endif
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Tris to Quads";
+	ot->idname= "MESH_OT_tris_convert_to_quads";
+
+	/* api callbacks */
+	ot->exec= tris_convert_to_quads_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int edge_flip_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	edge_flip(em);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+#endif
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_edge_flip(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Edge Flip";
+	ot->idname= "MESH_OT_edge_flip";
+
+	/* api callbacks */
+	ot->exec= edge_flip_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int split_mesh(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+	WM_cursor_wait(1);
+
+	/* make duplicate first */
+	adduplicateflag(em, SELECT);
+	/* old faces have flag 128 set, delete them */
+	delfaceflag(em, 128);
+	recalc_editnormals(em);
+
+	WM_cursor_wait(0);
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+	return OPERATOR_FINISHED;
+#endif
+}
+
+void MESH_OT_split(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Split";
+	ot->idname= "MESH_OT_split";
+
+	/* api callbacks */
+	ot->exec= split_mesh;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
+static int spin_mesh(bContext *C, wmOperator *op, float *dvec, int steps, float degr, int dupli )
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	ToolSettings *ts= CTX_data_tool_settings(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	EditVert *eve,*nextve;
+	float nor[3]= {0.0f, 0.0f, 0.0f};
+	float si, n[3], q[4], cmat[3][3], imat[3][3], tmat[3][3];
+	float cent[3], bmat[3][3];
+	float phi;
+	short a, ok= 1;
+
+	RNA_float_get_array(op->ptr, "center", cent);
+
+	/* imat and center and size */
+	copy_m3_m4(bmat, obedit->obmat);
+	invert_m3_m3(imat,bmat);
+
+	cent[0]-= obedit->obmat[3][0];
+	cent[1]-= obedit->obmat[3][1];
+	cent[2]-= obedit->obmat[3][2];
+	mul_m3_v3(imat, cent);
+
+	phi= degr*M_PI/360.0;
+	phi/= steps;
+	if(ts->editbutflag & B_CLOCKWISE) phi= -phi;
+
+	RNA_float_get_array(op->ptr, "axis", n);
+	normalize_v3(n);
+
+	q[0]= (float)cos(phi);
+	si= (float)sin(phi);
+	q[1]= n[0]*si;
+	q[2]= n[1]*si;
+	q[3]= n[2]*si;
+	quat_to_mat3( cmat,q);
+
+	mul_m3_m3m3(tmat,cmat,bmat);
+	mul_m3_m3m3(bmat,imat,tmat);
+
+	if(dupli==0)
+		if(ts->editbutflag & B_KEEPORIG)
+			adduplicateflag(em, 1);
+
+	for(a=0; a<steps; a++) {
+		if(dupli==0) ok= extrudeflag(obedit, em, SELECT, nor, 0);
+		else adduplicateflag(em, SELECT);
+
+		if(ok==0)
+			break;
+
+		rotateflag(em, SELECT, cent, bmat);
+		if(dvec) {
+			mul_m3_v3(bmat,dvec);
+			translateflag(em, SELECT, dvec);
+		}
+	}
+
+	if(ok==0) {
+		/* no vertices or only loose ones selected, remove duplicates */
+		eve= em->verts.first;
+		while(eve) {
+			nextve= eve->next;
+			if(eve->f & SELECT) {
+				BLI_remlink(&em->verts,eve);
+				free_editvert(em, eve);
+			}
+			eve= nextve;
+		}
+	}
+	else {
+		recalc_editnormals(em);
+
+		EM_fgon_flags(em);
+
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	}
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+	return ok;
+#endif
+}
+
+static int spin_mesh_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	int ok;
+
+	ok= spin_mesh(C, op, NULL, RNA_int_get(op->ptr,"steps"), RNA_float_get(op->ptr,"degrees"), RNA_boolean_get(op->ptr,"dupli"));
+	if(ok==0) {
+		BKE_report(op->reports, RPT_ERROR, "No valid vertices are selected");
+		return OPERATOR_CANCELLED;
+	}
+
+	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+#endif
+	return OPERATOR_FINISHED;
+}
+
+/* get center and axis, in global coords */
+static int spin_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+#if 0
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+
+	RNA_float_set_array(op->ptr, "center", give_cursor(scene, v3d));
+	RNA_float_set_array(op->ptr, "axis", rv3d->viewinv[2]);
+
+	return spin_mesh_exec(C, op);
+#endif
+}
+
+void MESH_OT_spin(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Spin";
+	ot->idname= "MESH_OT_spin";
+
+	/* api callbacks */
+	ot->invoke= spin_mesh_invoke;
+	ot->exec= spin_mesh_exec;
+	ot->poll= EM_view3d_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, INT_MAX);
+	RNA_def_boolean(ot->srna, "dupli", 0, "Dupli", "Make Duplicates");
+	RNA_def_float(ot->srna, "degrees", 90.0f, -FLT_MAX, FLT_MAX, "Degrees", "Degrees", -360.0f, 360.0f);
+
+	RNA_def_float_vector(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
+
+}
+
+static int screw_mesh_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	EditVert *eve,*v1=0,*v2=0;
+	EditEdge *eed;
+	float dvec[3], nor[3];
+	int steps, turns;
+
+	turns= RNA_int_get(op->ptr, "turns");
+	steps= RNA_int_get(op->ptr, "steps");
+
+	/* clear flags */
+	for(eve= em->verts.first; eve; eve= eve->next)
+		eve->f1= 0;
+
+	/* edges set flags in verts */
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->v1->f & SELECT) {
+			if(eed->v2->f & SELECT) {
+				/* watch: f1 is a byte */
+				if(eed->v1->f1<2) eed->v1->f1++;
+				if(eed->v2->f1<2) eed->v2->f1++;
+			}
+		}
+	}
+	/* find two vertices with eve->f1==1, more or less is wrong */
+	for(eve= em->verts.first; eve; eve= eve->next) {
+		if(eve->f1==1) {
+			if(v1==NULL) v1= eve;
+			else if(v2==NULL) v2= eve;
+			else {
+				v1= NULL;
+				break;
+			}
+		}
+	}
+	if(v1==NULL || v2==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "You have to select a string of connected vertices too");
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+
+	/* calculate dvec */
+	dvec[0]= ( v1->co[0]- v2->co[0] )/steps;
+	dvec[1]= ( v1->co[1]- v2->co[1] )/steps;
+	dvec[2]= ( v1->co[2]- v2->co[2] )/steps;
+
+	VECCOPY(nor, obedit->obmat[2]);
+
+	if(nor[0]*dvec[0]+nor[1]*dvec[1]+nor[2]*dvec[2]>0.000) {
+		dvec[0]= -dvec[0];
+		dvec[1]= -dvec[1];
+		dvec[2]= -dvec[2];
+	}
+
+	if(spin_mesh(C, op, dvec, turns*steps, 360.0f*turns, 0)) {
+		DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No valid vertices are selected");
+		BKE_mesh_end_editmesh(obedit->data, em);
+		return OPERATOR_CANCELLED;
+	}
+#endif
+}
+
+/* get center and axis, in global coords */
+static int screw_mesh_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+#if 0
+	Scene *scene = CTX_data_scene(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d= ED_view3d_context_rv3d(C);
+
+	RNA_float_set_array(op->ptr, "center", give_cursor(scene, v3d));
+	RNA_float_set_array(op->ptr, "axis", rv3d->viewinv[1]);
+#endif
+	return screw_mesh_exec(C, op);
+}
+
+void MESH_OT_screw(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Screw";
+	ot->idname= "MESH_OT_screw";
+
+	/* api callbacks */
+	ot->invoke= screw_mesh_invoke;
+	ot->exec= screw_mesh_exec;
+	ot->poll= EM_view3d_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/*props */
+	RNA_def_int(ot->srna, "steps", 9, 0, INT_MAX, "Steps", "Steps", 0, 256);
+	RNA_def_int(ot->srna, "turns", 1, 0, INT_MAX, "Turns", "Turns", 0, 256);
+
+	RNA_def_float_vector(ot->srna, "center", 3, NULL, -FLT_MAX, FLT_MAX, "Center", "Center in global view space", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -FLT_MAX, FLT_MAX);
+}
+
+static int region_to_loop(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	EditEdge *eed;
+	EditFace *efa;
+	int selected= 0;
+
+	for(eed=em->edges.first; eed; eed=eed->next) eed->f1 = 0;
+
+	for(efa=em->faces.first; efa; efa=efa->next){
+		if(efa->f&SELECT){
+			efa->e1->f1++;
+			efa->e2->f1++;
+			efa->e3->f1++;
+			if(efa->e4)
+				efa->e4->f1++;
+
+			selected= 1;
+		}
+	}
+
+	if(!selected)
+		return OPERATOR_CANCELLED;
+
+	EM_clear_flag_all(em, SELECT);
+
+	for(eed=em->edges.first; eed; eed=eed->next){
+		if(eed->f1 == 1) EM_select_edge(eed, 1);
+	}
+
+	em->selectmode = SCE_SELECT_EDGE;
+	EM_selectmode_set(em);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+#endif
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_region_to_loop(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Region to Loop";
+	ot->idname= "MESH_OT_region_to_loop";
+
+	/* api callbacks */
+	ot->exec= region_to_loop;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+static int loop_to_region(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+
+
+	EditFace *efa;
+	ListBase allcollections={NULL,NULL};
+	Collection *edgecollection;
+	int testflag;
+
+	build_edgecollection(em, &allcollections);
+
+	for(edgecollection = (Collection *)allcollections.first; edgecollection; edgecollection=edgecollection->next){
+		if(validate_loop(em, edgecollection)){
+			testflag = loop_bisect(em, edgecollection);
+			for(efa=em->faces.first; efa; efa=efa->next){
+				if(efa->f1 == testflag){
+					if(efa->f&SELECT) EM_select_face(efa, 0);
+					else EM_select_face(efa,1);
+				}
+			}
+		}
+	}
+
+	for(efa=em->faces.first; efa; efa=efa->next){ /*fix this*/
+		if(efa->f&SELECT) EM_select_face(efa,1);
+	}
+
+	freecollections(&allcollections);
+	BKE_mesh_end_editmesh(obedit->data, em);
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+#endif
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_loop_to_region(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Loop to Region";
+	ot->idname= "MESH_OT_loop_to_region";
+
+	/* api callbacks */
+	ot->exec= loop_to_region;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+int select_by_number_vertices_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	EditFace *efa;
+	int numverts= RNA_enum_get(op->ptr, "type");
+
+	/* Selects trias/qiads or isolated verts, and edges that do not have 2 neighboring
+	 * faces
+	 */
+
+	/* for loose vertices/edges, we first select all, loop below will deselect */
+	if(numverts==5) {
+		EM_set_flag_all(em, SELECT);
+	}
+	else if(em->selectmode!=SCE_SELECT_FACE) {
+		BKE_report(op->reports, RPT_ERROR, "Only works in face selection mode");
+		return OPERATOR_CANCELLED;
+	}
+	
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->e4) {
+			EM_select_face(efa, (numverts==4) );
+		}
+		else {
+			EM_select_face(efa, (numverts==3) );
+		}
+	}
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+#endif
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
+{
+	static const EnumPropertyItem type_items[]= {
+		{3, "TRIANGLES", 0, "Triangles", NULL},
+		{4, "QUADS", 0, "Triangles", NULL},
+		{5, "OTHER", 0, "Other", NULL},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "Select by Number of Vertices";
+	ot->description= "Select vertices or faces by vertex count.";
+	ot->idname= "MESH_OT_select_by_number_vertices";
+	
+	/* api callbacks */
+	ot->exec= select_by_number_vertices_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select.");
+}
+
+
+int select_mirror_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+
+	int extend= RNA_boolean_get(op->ptr, "extend");
+
+	EM_select_mirrored(obedit, em, extend);
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+#endif
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_select_mirror(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Mirror";
+	ot->description= "Select mesh items at mirrored locations.";
+	ot->idname= "MESH_OT_select_mirror";
+
+	/* api callbacks */
+	ot->exec= select_mirror_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
+}
+
+static int select_sharp_edges_exec(bContext *C, wmOperator *op)
+{
+	/* Find edges that have exactly two neighboring faces,
+	* check the angle between those faces, and if angle is
+	* small enough, select the edge
+	*/
+}
+
+void MESH_OT_edges_select_sharp(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Sharp Edges";
+	ot->description= "Marked selected edges as sharp.";
+	ot->idname= "MESH_OT_edges_select_sharp";
+	
+	/* api callbacks */
+	ot->exec= select_sharp_edges_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_float(ot->srna, "sharpness", 0.01f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
+}
+
+static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	
+	select_linked_flat_faces(em, op, RNA_float_get(op->ptr, "sharpness"));
+	
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+	return OPERATOR_FINISHED;
+#endif
+}
+
+void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Linked Flat Faces";
+	ot->description= "Select linked faces by angle.";
+	ot->idname= "MESH_OT_faces_select_linked_flat";
+	
+	/* api callbacks */
+	ot->exec= select_linked_flat_faces_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_float(ot->srna, "sharpness", 0.0f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
+}
+
+static int select_non_manifold_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	
+	select_non_manifold(em, op);
+	
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+
+	BKE_mesh_end_editmesh(obedit->data, em);
+	return OPERATOR_FINISHED;
+#endif
+}
+
+void MESH_OT_select_non_manifold(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Non Manifold";
+	ot->description= "Select all non-manifold vertices or edges.";
+	ot->idname= "MESH_OT_select_non_manifold";
+	
+	/* api callbacks */
+	ot->exec= select_non_manifold_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int mesh_select_random_exec(bContext *C, wmOperator *op)
+{
+#if 0
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
+	
+	if(!RNA_boolean_get(op->ptr, "extend"))
+		EM_deselect_all(em);
+	
+	selectrandom_mesh(em, RNA_float_get(op->ptr, "percent")/100.0f);
+		
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	
+	BKE_mesh_end_editmesh(obedit->data, em);
+#endif
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_select_random(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Random";
+	ot->description= "Randomly select vertices.";
+	ot->idname= "MESH_OT_select_random";
+
+	/* api callbacks */
+	ot->exec= mesh_select_random_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
+}

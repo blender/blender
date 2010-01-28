@@ -1841,6 +1841,10 @@ void cddm_stepiter(void *self)
 	CDDM_FaceIter *iter = self;
 	MPoly *mp;
 	
+	mp = iter->cddm->mpoly + iter->head.index;
+	mp->flag = iter->head.flags;
+	mp->mat_nr = iter->head.mat_nr;
+
 	iter->head.index++;
 	if (iter->head.index >= iter->cddm->dm.numPolyData) {
 		iter->head.done = 1;
@@ -1937,8 +1941,13 @@ DMFaceIter *cdDM_newFaceIter(DerivedMesh *source)
 	iter->liter.cddm = cddm;
 
 	iter->cddm = cddm;
-	iter->head.index = -1;
-	iter->head.step(iter);
+
+	if (source->numFaceData) {
+		iter->head.index = -1;
+		iter->head.step(iter);
+	} else {
+		iter->head.done = 1;
+	}
 
 	return (DMFaceIter*) iter;
 }

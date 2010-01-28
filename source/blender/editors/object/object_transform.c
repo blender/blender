@@ -53,6 +53,7 @@
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -712,11 +713,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 /*	BezTriple *bezt;
 	BPoint *bp; */
 	Nurb *nu, *nu1;
-	EditVert *eve;
 	float cent[3], centn[3], min[3], max[3], omat[3][3];
 	int a, total= 0;
-	int centermode = RNA_enum_get(op->ptr, "type");
-	
+	int centermode = RNA_enum_get(op->ptr, "type");	
 	/* keep track of what is changed */
 	int tot_change=0, tot_lib_error=0, tot_multiuser_arm_error=0;
 	MVert *mvert;
@@ -732,14 +731,15 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	cent[0]= cent[1]= cent[2]= 0.0;	
 	
 	if(obedit) {
-
 		INIT_MINMAX(min, max);
 	
 		if(obedit->type==OB_MESH) {
 			Mesh *me= obedit->data;
-			EditMesh *em = BKE_mesh_get_editmesh(me);
+			BMEditMesh *em = me->edit_btmesh;
+			BMVert *eve;
+			BMIter iter;
 
-			for(eve= em->verts.first; eve; eve= eve->next) {
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				if(v3d->around==V3D_CENTROID) {
 					total++;
 					VECADD(cent, cent, eve->co);
@@ -758,14 +758,13 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				cent[2]= (min[2]+max[2])/2.0f;
 			}
 			
-			for(eve= em->verts.first; eve; eve= eve->next) {
+			BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
 				sub_v3_v3v3(eve->co, eve->co, cent);			
 			}
 			
-			recalc_editnormals(em);
+			EDBM_RecalcNormals(em);
 			tot_change++;
 			DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
-			BKE_mesh_end_editmesh(me, em);
 		}
 	}
 	

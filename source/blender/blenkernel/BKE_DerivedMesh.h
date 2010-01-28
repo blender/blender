@@ -151,6 +151,9 @@ typedef struct DMFaceIter {
 
 	int index;
 	int len;
+
+	/*you can set mat_nr and flags, and the backends 
+	  must detect and update the internal faces*/
 	int mat_nr;
 	int flags;
 

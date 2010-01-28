@@ -3386,6 +3386,8 @@ static int iteratorStopped(void *arg)
 
 ReebGraph *BIF_ReebGraphMultiFromEditMesh(bContext *C)
 {
+	return NULL;
+#if 0
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	EditMesh *em =BKE_mesh_get_editmesh(((Mesh*)obedit->data));
@@ -3491,6 +3493,7 @@ ReebGraph *BIF_ReebGraphMultiFromEditMesh(bContext *C)
 	MEM_freeN(em);
 	
 	return rg;
+#endif
 }
 
 #if 0

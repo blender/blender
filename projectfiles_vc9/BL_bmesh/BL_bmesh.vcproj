@@ -264,11 +264,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\source\blender\bmesh\operators\join_triangles.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\source\blender\bmesh\operators\mesh_conv.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\source\blender\bmesh\operators\mirror.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\source\blender\bmesh\operators\primitiveops.c"
 				>
 			</File>
 			<File

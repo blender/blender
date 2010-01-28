@@ -172,7 +172,7 @@ void EDBM_backbuf_checkAndSelectVerts(BMEditMesh *em, int select)
 	}
 }
 
-void EM_backbuf_checkAndSelectEdges(BMEditMesh *em, int select)
+void EDBM_backbuf_checkAndSelectEdges(BMEditMesh *em, int select)
 {
 	BMEdge *eed;
 	BMIter iter;
@@ -188,7 +188,7 @@ void EM_backbuf_checkAndSelectEdges(BMEditMesh *em, int select)
 	}
 }
 
-void EM_backbuf_checkAndSelectFaces(BMEditMesh *em, int select)
+void EDBM_backbuf_checkAndSelectFaces(BMEditMesh *em, int select)
 {
 	BMFace *efa;
 	BMIter iter;
@@ -204,7 +204,7 @@ void EM_backbuf_checkAndSelectFaces(BMEditMesh *em, int select)
 	}
 }
 
-void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
+void EDBM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 {
 	MFace *mface = me->mface;
 	int a;
@@ -431,7 +431,7 @@ static void do_lasso_select_mesh__doSelectEdge(void *userData, BMEdge *eed, int 
 {
 	struct { ViewContext vc; rcti *rect; short (*mcords)[2], moves, select, pass, done; } *data = userData;
 
-	if (EM_check_backbuf(bm_solidoffs+index)) {
+	if (EDBM_check_backbuf(bm_solidoffs+index)) {
 		if (data->pass==0) {
 			if (	edge_fully_inside_rect(data->rect, x0, y0, x1, y1)  &&
 					lasso_inside(data->mcords, data->moves, x0, y0) &&
@@ -474,11 +474,11 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 	data.done = 0;
 	data.pass = 0;
 
-	/* workaround: init mats first, EM_mask_init_backbuf_border can change
+	/* workaround: init mats first, EDBM_mask_init_backbuf_border can change
 	   view matrix to pixel space, breaking edge select with backbuf .. */
 	// XXX not needed anymore, check here if selection is broken
 	//ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
-	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	bbsel= EDBM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
 	if(vc->scene->toolsettings->selectmode & SCE_SELECT_VERTEX) {
 		if (bbsel) {
@@ -501,13 +501,13 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 	
 	if(vc->scene->toolsettings->selectmode & SCE_SELECT_FACE) {
 		if (bbsel) {
-			EM_backbuf_checkAndSelectFaces(vc->em, select);
+			EDBM_backbuf_checkAndSelectFaces(vc->em, select);
 		} else {
 			mesh_foreachScreenFace(vc, do_lasso_select_mesh__doSelectFace, &data);
 		}
 	}
 	
-	EM_free_backbuf();
+	EDBM_free_backbuf();
 	EDBM_selectmode_flush(vc->em);	
 }
 
@@ -680,11 +680,11 @@ static void do_lasso_select_facemode(ViewContext *vc, short mcords[][2], short m
 	bm_vertoffs= me->totface+1;	/* max index array */
 	
 	lasso_select_boundbox(&rect, mcords, moves);
-	EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	EDBM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
-	EM_backbuf_checkAndSelectTFaces(me, select);
+	EDBM_backbuf_checkAndSelectTFaces(me, select);
 	
-	EM_free_backbuf();
+	EDBM_free_backbuf();
 	
 // XXX	object_tface_flags_changed(ob, 0);
 }
@@ -1336,7 +1336,7 @@ static void do_mesh_box_select__doSelectEdge(void *userData, BMEdge *eed, int x0
 {
 	struct { ViewContext vc; rcti *rect; short select, pass, done; } *data = userData;
 
-	if(EM_check_backbuf(bm_solidoffs+index)) {
+	if(EDBM_check_backbuf(bm_solidoffs+index)) {
 		if (data->pass==0) {
 			if (edge_fully_inside_rect(data->rect, x0, y0, x1, y1)) {
 				BM_Select_Edge(data->vc.em->bm, eed, data->select);
@@ -1405,13 +1405,13 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exte
 	
 	if(vc->scene->toolsettings->selectmode & SCE_SELECT_FACE) {
 		if(bbsel) {
-			EM_backbuf_checkAndSelectFaces(vc->em, select);
+			EDBM_backbuf_checkAndSelectFaces(vc->em, select);
 		} else {
 			mesh_foreachScreenFace(vc, do_mesh_box_select__doSelectFace, &data);
 		}
 	}
 	
-	EM_free_backbuf();
+	EDBM_free_backbuf();
 		
 	EDBM_selectmode_flush(vc->em);
 }
@@ -1459,7 +1459,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			Mesh *me= obedit->data;
 			vc.em= me->edit_btmesh;
 			do_mesh_box_select(&vc, &rect, selecting, extend);
-//			if (EM_texFaceCheck())
+//			if (EDBM_texFaceCheck())
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 			
 		}
@@ -1834,7 +1834,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 
 		if(vc->scene->toolsettings->selectmode & SCE_SELECT_EDGE) {
 			if (bbsel) {
-				EM_backbuf_checkAndSelectEdges(vc->em, selecting==LEFTMOUSE);
+				EDBM_backbuf_checkAndSelectEdges(vc->em, selecting==LEFTMOUSE);
 			} else {
 				mesh_foreachScreenEdge(vc, mesh_circle_doSelectEdge, &data, 0);
 			}
@@ -1842,7 +1842,7 @@ static void mesh_circle_select(ViewContext *vc, int selecting, short *mval, floa
 		
 		if(vc->scene->toolsettings->selectmode & SCE_SELECT_FACE) {
 			if(bbsel) {
-				EM_backbuf_checkAndSelectFaces(vc->em, selecting==LEFTMOUSE);
+				EDBM_backbuf_checkAndSelectFaces(vc->em, selecting==LEFTMOUSE);
 			} else {
 				mesh_foreachScreenFace(vc, mesh_circle_doSelectFace, &data);
 			}

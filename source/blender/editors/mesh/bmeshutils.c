@@ -118,33 +118,6 @@ void EDBM_stats_update(BMEditMesh *em)
 	}
 }
 
-/*this function is defunct, dead*/
-void EDBM_Tesselate(EditMesh *em)
-{
-	EditMesh *em2;
-	EditFace *efa;
-	BMesh *bm;
-	int found=0;
-	
-	for (efa=em->faces.first; efa; efa=efa->next) {
-		if ((efa->e1->h & EM_FGON) || (efa->e2->h & EM_FGON) ||
-		    (efa->e3->h & EM_FGON) || (efa->e4&&(efa->e4->h&EM_FGON)))
-		{
-			found = 1;
-			break;
-		}
-	}
-
-	if (found) {
-		bm = editmesh_to_bmesh(em);
-		em2 = bmesh_to_editmesh(bm);
-		set_editMesh(em, em2);
-
-		MEM_freeN(em2);
-		BM_Free_Mesh(bm);
-	}
-}
-
 int EDBM_InitOpf(BMEditMesh *em, BMOperator *bmop, wmOperator *op, char *fmt, ...)
 {
 	BMesh *bm = em->bm;
@@ -228,6 +201,32 @@ int EDBM_CallOpf(BMEditMesh *em, wmOperator *op, char *fmt, ...)
 	return EDBM_FinishOp(em, &bmop, op, 1);
 }
 
+int EDBM_CallAndSelectOpf(BMEditMesh *em, wmOperator *op, char *selectslot, char *fmt, ...)
+{
+	BMesh *bm = em->bm;
+	BMOperator bmop;
+	va_list list;
+
+	va_start(list, fmt);
+
+	if (!BMO_VInitOpf(bm, &bmop, fmt, list)) {
+		BKE_report(op->reports, RPT_ERROR,
+			   "Parse error in EDBM_CallOpf");
+		va_end(list);
+		return 0;
+	}
+
+	if (!em->emcopy)
+		em->emcopy = BMEdit_Copy(em);
+	em->emcopyusers++;
+
+	BMO_Exec_Op(bm, &bmop);
+	BMO_HeaderFlag_Buffer(em->bm, &bmop, selectslot, BM_SELECT, BM_ALL);
+
+	va_end(list);
+	return EDBM_FinishOp(em, &bmop, op, 1);
+}
+
 int EDBM_CallOpfSilent(BMEditMesh *em, char *fmt, ...)
 {
 	BMesh *bm = em->bm;
@@ -258,12 +257,10 @@ void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *scene, Object *ob)
 	BMesh *bm;
 
 	if (!me->mpoly && me->totface) {
-		printf("yeek!! bmesh conversion issue! may lose shapekeys!\n");
-
-		em = make_editMesh(scene, ob);
-		bm = editmesh_to_bmesh(em);
-	
-		free_editMesh(em);
+		printf("yeek!! bmesh conversion issue! may lose lots of geometry!\n");
+		
+		/*BMESH_TODO need to write smarter code here*/
+		bm = BKE_mesh_to_bmesh(me, ob);
 	} else {
 		bm = BKE_mesh_to_bmesh(me, ob);
 	}
@@ -788,7 +785,8 @@ MTexPoly *EDBM_get_active_mtexpoly(BMEditMesh *em, BMFace **act_efa, int sloppy)
 int EDBM_texFaceCheck(BMEditMesh *em)
 {
 	/* some of these checks could be a touch overkill */
-	return em && em->bm->totface && CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY);
+	return em && em->bm->totface && CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY) &&
+		   CustomData_has_layer(&em->bm->ldata, CD_MLOOPCOL);
 }
 
 int EDBM_vertColorCheck(BMEditMesh *em)

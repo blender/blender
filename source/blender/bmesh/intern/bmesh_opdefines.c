@@ -578,15 +578,6 @@ BMOpDefine def_extrudefaceregion = {
 	0
 };
 
-BMOpDefine def_makefgonsop = {
-	"makefgon",
-	{{BMOP_OPSLOT_INT, "trifan"}, /*use triangle fans instead of 
-				        real interpolation*/
-	 {0} /*null-terminating sentinel*/},
-	bmesh_make_fgons_exec,
-	0
-};
-
 BMOpDefine def_dissolvevertsop = {
 	"dissolveverts",
 	{{BMOP_OPSLOT_ELEMENT_BUF, "verts"},
@@ -644,9 +635,10 @@ BMOpDefine def_subdop = {
 	{BMOP_OPSLOT_MAPPING, "custompatterns"},
 	{BMOP_OPSLOT_MAPPING, "edgepercents"},
 	
-	/*these next two can have multiple types of elements in them.*/
+	/*these next three can have multiple types of elements in them.*/
 	{BMOP_OPSLOT_ELEMENT_BUF, "outinner"},
 	{BMOP_OPSLOT_ELEMENT_BUF, "outsplit"},
+	{BMOP_OPSLOT_ELEMENT_BUF, "geomout"}, /*contains all output geometry*/
 
 	{BMOP_OPSLOT_INT, "quadcornertype"}, //quad corner type, see bmesh_operators.h
 	{BMOP_OPSLOT_INT, "gridfill"}, //fill in fully-selected faces with a grid
@@ -655,22 +647,6 @@ BMOpDefine def_subdop = {
 	{0} /*null-terminating sentinel*/,
 	},
 	esubdivide_exec,
-	0
-};
-
-BMOpDefine def_edit2bmesh = {
-	"editmesh_to_bmesh",
-	{{BMOP_OPSLOT_PNT, "em"}, {BMOP_OPSLOT_MAPPING, "map"},
-	{0} /*null-terminating sentinel*/},
-	edit2bmesh_exec,
-	0
-};
-
-BMOpDefine def_bmesh2edit = {
-	"bmesh_to_editmesh",
-	{{BMOP_OPSLOT_PNT, "emout"},
-	{0} /*null-terminating sentinel*/},
-	bmesh2edit_exec,
 	0
 };
 
@@ -837,19 +813,114 @@ BMOpDefine def_edgesplit = {
 	0
 };
 
+/*
+  Create Grid
+
+  Creates a grid with a variable number of subdivisions
+*/
+BMOpDefine def_create_grid = {
+	"create_grid",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
+	 {BMOP_OPSLOT_INT,         "xsegments"}, //number of x segments
+	 {BMOP_OPSLOT_INT,         "ysegments"}, //number of y segments
+	 {BMOP_OPSLOT_FLT,         "size"}, //size of the grid
+	 {BMOP_OPSLOT_MAT,         "mat"}, //matrix to multiply the new geometry with
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_create_grid_exec,
+	0,
+};
+
+/*
+  Create UV Sphere
+
+  Creates a grid with a variable number of subdivisions
+*/
+BMOpDefine def_create_uvsphere = {
+	"create_uvsphere",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
+	 {BMOP_OPSLOT_INT,         "segments"}, //number of u segments
+	 {BMOP_OPSLOT_INT,         "revolutions"}, //number of v segment
+	 {BMOP_OPSLOT_FLT,         "diameter"}, //diameter
+	 {BMOP_OPSLOT_MAT,         "mat"}, //matrix to multiply the new geometry with--
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_create_uvsphere_exec,
+	0,
+};
+
+/*
+  Create Ico Sphere
+
+  Creates a grid with a variable number of subdivisions
+*/
+BMOpDefine def_create_icosphere = {
+	"create_icosphere",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
+	 {BMOP_OPSLOT_INT,         "subdivisions"}, //how many times to recursively subdivide the sphere
+	 {BMOP_OPSLOT_FLT,       "diameter"}, //diameter
+	 {BMOP_OPSLOT_MAT, "mat"}, //matrix to multiply the new geometry with
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_create_icosphere_exec,
+	0,
+};
+
+/*
+  Create Suzanne
+
+  Creates a monkey.  Be wary.
+*/
+BMOpDefine def_create_monkey = {
+	"create_monkey",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
+	 {BMOP_OPSLOT_MAT, "mat"}, //matrix to multiply the new geometry with--
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_create_monkey_exec,
+	0,
+};
+
+/*
+  Create Cone
+
+  Creates a cone with variable depth at both ends
+*/
+BMOpDefine def_create_cone = {
+	"create_cone",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
+	 {BMOP_OPSLOT_INT, "cap_ends"}, //wheter or not to fill in the ends with faces
+	 {BMOP_OPSLOT_INT, "segments"},
+	 {BMOP_OPSLOT_FLT, "diameter1"}, //diameter of one end
+	 {BMOP_OPSLOT_FLT, "diameter2"}, //diameter of the opposite
+	 {BMOP_OPSLOT_FLT, "depth"}, //distance between ends
+	 {BMOP_OPSLOT_MAT, "mat"}, //matrix to multiply the new geometry with--
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_create_monkey_exec,
+	0,
+};
+
+/*
+  Create Cone
+
+  Creates a cone with variable depth at both ends
+*/
+BMOpDefine def_create_cube = {
+	"create_cube",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "vertout"}, //output verts
+	 {BMOP_OPSLOT_FLT, "size"}, //size of the cube
+	 {BMOP_OPSLOT_MAT, "mat"}, //matrix to multiply the new geometry with--
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_create_cube_exec,
+	0,
+};
+
 BMOpDefine *opdefines[] = {
 	&def_splitop,
 	&def_dupeop,
 	&def_delop,
-	&def_edit2bmesh,
-	&def_bmesh2edit,
 	&def_subdop,
 	&def_triangop,
 	&def_dissolvefacesop,
 	&def_dissolveedgessop,
 	&def_dissolveedgeloopsop,
 	&def_dissolvevertsop,
-	&def_makefgonsop,
 	&def_extrudefaceregion,
 	&def_connectverts,
 	//&def_makeprim,
@@ -892,6 +963,12 @@ BMOpDefine *opdefines[] = {
 	&def_scale,
 	&def_edgesplit,
 	&def_automerge,
+	&def_create_uvsphere,
+	&def_create_grid,
+	&def_create_icosphere,
+	&def_create_monkey,
+	&def_create_cone,
+	&def_create_cube,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));

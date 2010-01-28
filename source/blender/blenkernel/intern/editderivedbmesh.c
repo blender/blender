@@ -1387,6 +1387,11 @@ void bmDM_faceIterStep(void *self)
 {
 	bmDM_faceIter *iter = self;
 	
+	if (iter->f) {
+		iter->f->mat_nr = iter->head.mat_nr;
+		iter->f->head.flag = MEFlags_To_BMFlags(iter->head.flags, BM_FACE);
+	}
+
 	iter->f = iter->nextf;
 
 	iter->head.mat_nr = iter->f->mat_nr;

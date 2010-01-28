@@ -990,7 +990,7 @@ static int select_edgeloop(Scene *scene, Image *ima, BMEditMesh *em, NearestHit 
 		select= 1;
 	
 	BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-		tf= CustomData_em_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+		tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
 		a = 0;
 		BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
@@ -1174,7 +1174,7 @@ static void select_linked(Scene *scene, Image *ima, BMEditMesh *em, float limit[
 	MEM_freeN(stack);
 	MEM_freeN(flag);
 	EDBM_free_uv_vert_map(vmap);
-	EM_free_index_arrays();
+	EDBM_free_index_arrays(em);
 }
 
 /* ******************** align operator **************** */
@@ -1352,7 +1352,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 		
 		a = 0;
 		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
-			vlist= EM_get_uv_map_vert(vmap, a);
+			vlist= EDBM_get_uv_map_vert(vmap, a);
 
 			while(vlist) {
 				newuv[0]= 0; newuv[1]= 0;
@@ -1504,7 +1504,7 @@ static int select_inverse_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-			tf = CustomData_em_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+			tf = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 
 			if(!uvedit_face_visible(scene, ima, efa, tf))
 				continue;
@@ -1859,7 +1859,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 			/* deselect */
 			if(select==0) {
 				BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-					tf= CustomData_em_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+					tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 					if(!uvedit_face_visible(scene, ima, efa, tf))
 						continue;
 
@@ -1913,7 +1913,7 @@ static int mouse_select(bContext *C, float co[2], int extend, int loop)
 		/* select sticky uvs */
 		if(sticky != SI_STICKY_DISABLE) {
 			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
-				tf= CustomData_em_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
+				tf= CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_MTEXPOLY);
 				if(!uvedit_face_visible(scene, ima, efa, tf))
 					continue;
 				

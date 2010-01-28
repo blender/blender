@@ -964,6 +964,9 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		         ELE_INNER, BM_ALL);
 	BMO_Flag_To_Slot(bmesh, op, "outsplit",
 		         ELE_SPLIT, BM_ALL);
+	
+	BMO_Flag_To_Slot(bmesh, op, "geomout",
+		         ELE_INNER|ELE_SPLIT, BM_ALL);
 }
 
 /*editmesh-emulating function*/
