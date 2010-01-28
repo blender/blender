@@ -465,6 +465,10 @@ bool GHOST_WindowCocoa::getValid() const
 	return (m_window != 0);
 }
 
+void* GHOST_WindowCocoa::getOSWindow() const
+{
+	return (void*)m_window;
+}
 
 void GHOST_WindowCocoa::setTitle(const STR_String& title)
 {

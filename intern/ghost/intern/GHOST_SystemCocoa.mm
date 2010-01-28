@@ -1186,7 +1186,15 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 	NSEvent *event = (NSEvent *)eventPtr;
 	GHOST_IWindow* window = m_windowManager->getActiveWindow();
 	
-	if (!window) return GHOST_kFailure;
+	if (!window) {
+		/* If no active window found, still tries to find the window associated with the event
+		 This may happen when Cocoa continues to send some events after the window deactivate one */
+		window = m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
+		if (!window) {
+			//printf("\nW failure for event 0x%x",[event type]);
+			return GHOST_kFailure;
+		}
+	}
 	
 	GHOST_TabletData& ct=((GHOST_WindowCocoa*)window)->GetCocoaTabletData();
 	
@@ -1238,7 +1246,13 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
     GHOST_Window* window = (GHOST_Window*)m_windowManager->getActiveWindow();
 	
 	if (!window) {
-		return GHOST_kFailure;
+		/* If no active window found, still tries to find the window associated with the event
+		 This may happen when Cocoa continues to send some events after the window deactivate one */
+		window = (GHOST_Window*)m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
+		if (!window) {
+			//printf("\nW failure for event 0x%x",[event type]);
+			return GHOST_kFailure;
+		}
 	}
 	
 	switch ([event type])
@@ -1442,12 +1456,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 	unsigned char ascii;
 	NSString* charsIgnoringModifiers;
 
-	/* Can happen, very rarely - seems to only be when command-H makes
-	 * the window go away and we still get an HKey up. 
-	 */
 	if (!window) {
-		//printf("\nW failure");
-		return GHOST_kFailure;
+		/* If no active window found, still tries to find the window associated with the event
+		 This may happen when Cocoa continues to send some events after the window deactivate one */
+		window = m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
+		if (!window) {
+			//printf("\nW failure for event 0x%x",[event type]);
+			return GHOST_kFailure;
+		}
 	}
 	
 	switch ([event type]) {
@@ -1486,6 +1502,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 	
 		case NSFlagsChanged: 
 			modifiers = [event modifierFlags];
+			
 			if ((modifiers & NSShiftKeyMask) != (m_modifierMask & NSShiftKeyMask)) {
 				pushEvent( new GHOST_EventKey([event timestamp]*1000, (modifiers & NSShiftKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
 			}
