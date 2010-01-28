@@ -336,6 +336,11 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	// Pixel Format Attributes for the windowed NSOpenGLContext
 	i=0;
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
+	
+	// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object’s flushBuffer
+	// needed for 'Draw Overlap' drawing method
+	pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore; 
+	
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
 	//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
 	
@@ -366,6 +371,11 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	if (pixelFormat == nil) {
 		i=0;
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
+		
+		// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object’s flushBuffer
+		// needed for 'Draw Overlap' drawing method
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore;
+		
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
 		//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
 		
