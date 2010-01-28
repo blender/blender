@@ -36,74 +36,6 @@ ops = _ops_module.ops_fake_module
 
 import sys as _sys
 
-def load_scripts(reload_scripts=False):
-    import os
-    import traceback
-    import time
-
-
-    t_main = time.time()
-
-    loaded_modules = set()
-
-    def test_import(module_name):
-        if module_name in loaded_modules:
-            return None
-        if "." in module_name:
-            print("Ignoring '%s', can't import files containing multiple periods." % module_name)
-            return None
-
-        try:
-            t = time.time()
-            ret = __import__(module_name)
-            if app.debug:
-                print("time %s %.4f" % (module_name, time.time() - t))
-            return ret
-        except:
-            traceback.print_exc()
-            return None
-
-    def test_reload(module):
-        try:
-            reload(module)
-        except:
-            traceback.print_exc()
-
-    if reload_scripts:
-        # reload modules that may not be directly included
-        for type_class_name in dir(types):
-            type_class = getattr(types, type_class_name)
-            module_name = getattr(type_class, "__module__", "")
-
-            if module_name and module_name != "bpy.types": # hard coded for C types
-               loaded_modules.add(module_name)
-
-        for module_name in loaded_modules:
-            print("Reloading:", module_name)
-            test_reload(_sys.modules[module_name])
-
-    for base_path in utils.script_paths():
-        for path_subdir in ("ui", "op", "io"):
-            path = os.path.join(base_path, path_subdir)
-            if os.path.isdir(path):
-                if path not in _sys.path: # reloading would add twice
-                    _sys.path.insert(0, path)
-                for f in sorted(os.listdir(path)):
-                    if f.endswith(".py"):
-                        # python module
-                        mod = test_import(f[0:-3])
-                    elif "." not in f:
-                        # python package
-                        mod = test_import(f)
-                    else:
-                        mod = None
-
-                    if reload_scripts and mod:
-                        print("Reloading:", mod)
-                        test_reload(mod)
-
-    if app.debug:
-        print("Time %.4f" % (time.time() - t_main))
 
 
 def _main():
@@ -119,14 +51,14 @@ def _main():
     # if "-d" in sys.argv: # Enable this to measure startup speed
     if 0:
         import cProfile
-        cProfile.run('import bpy; bpy.load_scripts()', 'blender.prof')
+        cProfile.run('import bpy; bpy.utils.load_scripts()', 'blender.prof')
 
         import pstats
         p = pstats.Stats('blender.prof')
         p.sort_stats('cumulative').print_stats(100)
 
     else:
-        load_scripts()
+        utils.load_scripts()
 
 
 _main()

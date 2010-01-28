@@ -25,6 +25,80 @@ not assosiated with blenders internal data.
 
 import bpy as _bpy
 import os as _os
+import sys as _sys
+
+def load_scripts(reload_scripts=False, refresh_scripts=False):
+    import traceback
+    import time
+
+    t_main = time.time()
+
+    loaded_modules = set()
+
+    def test_import(module_name):
+        if module_name in loaded_modules:
+            return None
+        if "." in module_name:
+            print("Ignoring '%s', can't import files containing multiple periods." % module_name)
+            return None
+
+        try:
+            t = time.time()
+            ret = __import__(module_name)
+            if _bpy.app.debug:
+                print("time %s %.4f" % (module_name, time.time() - t))
+            return ret
+        except:
+            traceback.print_exc()
+            return None
+
+    def test_reload(module):
+        try:
+            reload(module)
+        except:
+            traceback.print_exc()
+
+    if reload_scripts:
+        # reload modules that may not be directly included
+        for type_class_name in dir(types):
+            type_class = getattr(types, type_class_name)
+            module_name = getattr(type_class, "__module__", "")
+
+            if module_name and module_name != "bpy.types": # hard coded for C types
+               loaded_modules.add(module_name)
+
+        for module_name in loaded_modules:
+            print("Reloading:", module_name)
+            test_reload(_sys.modules[module_name])
+
+    for base_path in script_paths():
+        for path_subdir in ("ui", "op", "io"):
+            path = _os.path.join(base_path, path_subdir)
+            if _os.path.isdir(path):
+
+                # needed to load scripts after the users script path changes
+                # we should also support a full reload but since this is now unstable it can be postponed.
+                if refresh_scripts and path in _sys.path:
+                    continue
+
+                if path not in _sys.path: # reloading would add twice
+                    _sys.path.insert(0, path)
+                for f in sorted(_os.listdir(path)):
+                    if f.endswith(".py"):
+                        # python module
+                        mod = test_import(f[0:-3])
+                    elif "." not in f:
+                        # python package
+                        mod = test_import(f)
+                    else:
+                        mod = None
+
+                    if reload_scripts and mod:
+                        print("Reloading:", mod)
+                        test_reload(mod)
+
+    if _bpy.app.debug:
+        print("Time %.4f" % (time.time() - t_main))
 
 
 def expandpath(path):
