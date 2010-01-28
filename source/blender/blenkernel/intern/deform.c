@@ -487,13 +487,13 @@ void flip_side_name (char *name, const char *from_name, int strip_number)
 float defvert_find_weight(const struct MDeformVert *dvert, int group_num)
 {
 	MDeformWeight *dw= defvert_find_index(dvert, group_num);
-	return dw ? dw->weight : 1.0f;
+	return dw ? dw->weight : 0.0f;
 }
 
 float defvert_array_find_weight_safe(const struct MDeformVert *dvert, int index, int group_num)
 {
 	if(group_num == -1 || dvert == NULL)
-		return 1.0f;
+		return 0.0f;
 
 	return defvert_find_weight(dvert+index, group_num);
 }
