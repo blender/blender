@@ -2088,6 +2088,8 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 			return WM_UI_HANDLER_CONTINUE;
 		}
 		
+		/* while wait drag, always block other events to get handled */
+		return WM_UI_HANDLER_BREAK;
 	}
 	
 	return WM_UI_HANDLER_CONTINUE;
@@ -4078,6 +4080,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case LISTROW:
 	case BUT_IMAGE:
 		retval= ui_do_but_EXIT(C, but, data, event);
+		break;
 	case HISTOGRAM:
 		retval= ui_do_but_HISTOGRAM(C, block, but, data, event);
 		break;
