@@ -1062,7 +1062,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20;
 	
 	/* open/close */
-	uiItemR(subrow, NULL, 0, &ptr, "expand", UI_ITEM_R_ICON_ONLY);
+	uiItemR(subrow, "", 0, &ptr, "expanded", UI_ITEM_R_ICON_ONLY);
 	
 	/* name */	
 	uiBlockSetEmboss(block, UI_EMBOSS);
