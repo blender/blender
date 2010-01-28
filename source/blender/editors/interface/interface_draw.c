@@ -690,7 +690,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 #endif
 
 
-void ui_draw_but_HISTOGRAM(uiBut *but, uiWidgetColors *wcol, rcti *recti)
+void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *recti)
 {
 	Histogram *hist = (Histogram *)but->poin;
 	int res = hist->x_resolution;
@@ -699,6 +699,7 @@ void ui_draw_but_HISTOGRAM(uiBut *but, uiWidgetColors *wcol, rcti *recti)
 	int rgb;
 	float w, h;
 	float alpha;
+	GLint scissor[4];
 	
 	if (hist==NULL) { printf("hist is null \n"); return; }
 	
@@ -709,6 +710,7 @@ void ui_draw_but_HISTOGRAM(uiBut *but, uiWidgetColors *wcol, rcti *recti)
 	
 	w = rect.xmax - rect.xmin;
 	h = rect.ymax - rect.ymin;
+	h *= hist->ymax;
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -724,6 +726,10 @@ void ui_draw_but_HISTOGRAM(uiBut *but, uiWidgetColors *wcol, rcti *recti)
 		fdrawline(rect.xmin+(i/4.f)*w, rect.ymin, rect.xmin+(i/4.f)*w, rect.ymax);
 	}
 	
+	/* need scissor test, histogram can draw outside of boundary */
+	glGetIntegerv(GL_VIEWPORT, scissor);
+	glScissor(ar->winrct.xmin + (rect.xmin-1), ar->winrct.ymin+(rect.ymin-1), (rect.xmax+1)-(rect.xmin-1), (rect.ymax+1)-(rect.ymin-1));
+		
 	for (rgb=0; rgb<3; rgb++) {
 		float *data;
 		
@@ -760,6 +766,9 @@ void ui_draw_but_HISTOGRAM(uiBut *but, uiWidgetColors *wcol, rcti *recti)
 		glEnd();
 		glDisable(GL_LINE_SMOOTH);
 	}
+	
+	/* restore scissortest */
+	glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 	
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glColor4f(0.f, 0.f, 0.f, 0.5f);

@@ -524,8 +524,22 @@ static int rna_SceneRenderData_engine_get(PointerRNA *ptr)
 
 static void rna_SceneRenderData_color_management_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
-	/* reset all generated image block buffers to prevent out-of-date conversions */
-	BKE_image_free_image_ibufs();
+	/* reset image nodes */
+	Scene *scene= (Scene*)ptr->id.data;
+	bNodeTree *ntree=scene->nodetree;
+	bNode *node;
+	
+	if(ntree && scene->use_nodes) {
+		for (node=ntree->nodes.first; node; node=node->next) {
+			if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_IMAGE)) {
+				ED_node_changed_update(&scene->id, node);
+				WM_main_add_notifier(NC_NODE|NA_EDITED, node);
+				
+				if (node->type == CMP_NODE_IMAGE)
+					BKE_image_signal((Image *)node->id, NULL, IMA_SIGNAL_RELOAD);
+			}
+		}
+	}
 }
 
 static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)

@@ -701,11 +701,6 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	/* render info */
 	if(ibuf && ima && show_render)
 		draw_render_info(ima, ar);
-
-	/* histogram */
-	if (ibuf) {
-		histogram_update(&sima->hist, ibuf);
-	}
 	
 	/* XXX integrate this code */
 #if 0

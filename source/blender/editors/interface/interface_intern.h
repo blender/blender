@@ -439,7 +439,7 @@ extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float 
 
 void ui_draw_gradient(rcti *rect, float *rgb, int type, float alpha);
 
-void ui_draw_but_HISTOGRAM(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
+void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_COLORBAND(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_NORMAL(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_CURVE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);

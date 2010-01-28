@@ -815,6 +815,13 @@ static void image_scope_area_init(wmWindowManager *wm, ARegion *ar)
 
 static void image_scope_area_draw(const bContext *C, ARegion *ar)
 {
+	SpaceImage *sima= CTX_wm_space_image(C);
+	void *lock;
+	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
+	
+	histogram_update(&sima->hist, ibuf);
+	ED_space_image_release_buffer(sima, lock);
+	
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
@@ -822,6 +829,22 @@ static void image_scope_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_MODE:
+				case ND_RENDER_RESULT:
+				case ND_COMPO_RESULT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_IMAGE:
+			ED_region_tag_redraw(ar);
+			break;
+		case NC_NODE:
+			ED_region_tag_redraw(ar);
+			break;
+			
 	}
 }
 

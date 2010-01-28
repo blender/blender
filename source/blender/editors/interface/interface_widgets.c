@@ -2712,7 +2712,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 			
 			case HISTOGRAM:
-				ui_draw_but_HISTOGRAM(but, &tui->wcol_regular, rect);
+				ui_draw_but_HISTOGRAM(ar, but, &tui->wcol_regular, rect);
 				break;
 				
 			case BUT_CURVE:

@@ -2979,6 +2979,12 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	ui_get_but_vectorf(but, rgb);
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	
+	/* exception, when using color wheel in 'locked' value state:
+	 * allow choosing a hue for black values, by giving a tiny increment */
+	if (but->a2 == 1) { // lock
+		if (hsv[2] == 0.f) hsv[2] = 0.0001f;
+	}
+		
 	ui_hsvcircle_vals_from_pos(hsv, hsv+1, &rect, (float)mx, (float)my);
 	
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb+1, rgb+2);
@@ -3409,6 +3415,81 @@ static int ui_do_but_CURVE(bContext *C, uiBlock *block, uiBut *but, uiHandleButt
 		return WM_UI_HANDLER_BREAK;
 	}
 
+	return WM_UI_HANDLER_CONTINUE;
+}
+
+static int ui_numedit_but_HISTOGRAM(uiBut *but, uiHandleButtonData *data, int mx, int my)
+{
+	Histogram *hist = (Histogram *)but->poin;
+	rcti rect;
+	int changed= 1;
+	float dx, dy, yfac=1.f;
+	
+	rect.xmin= but->x1; rect.xmax= but->x2;
+	rect.ymin= but->y1; rect.ymax= but->y2;
+	
+	dx = mx - data->draglastx;
+	dy = my - data->draglasty;
+	
+	yfac = MIN2(powf(hist->ymax, 2.f), 1.f) * 0.5;
+	hist->ymax += dy * yfac;
+	
+	CLAMP(hist->ymax, 1.f, 100.f);
+	
+	data->draglastx= mx;
+	data->draglasty= my;
+	
+	return changed;
+}
+
+static int ui_do_but_HISTOGRAM(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, wmEvent *event)
+{
+	int mx, my;
+	
+	mx= event->x;
+	my= event->y;
+	ui_window_to_block(data->region, block, &mx, &my);
+	
+	if(data->state == BUTTON_STATE_HIGHLIGHT) {
+		if(event->type==LEFTMOUSE && event->val==KM_PRESS) {
+			data->dragstartx= mx;
+			data->dragstarty= my;
+			data->draglastx= mx;
+			data->draglasty= my;
+			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+			
+			/* also do drag the first time */
+			if(ui_numedit_but_HISTOGRAM(but, data, mx, my))
+				ui_numedit_apply(C, block, but, data);
+			
+			return WM_UI_HANDLER_BREAK;
+		}
+		else if (event->type == ZEROKEY && event->val == KM_PRESS) {
+			Histogram *hist = (Histogram *)but->poin;
+			hist->ymax = 1.f;
+			
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
+	else if(data->state == BUTTON_STATE_NUM_EDITING) {
+		if(event->type == ESCKEY) {
+			data->cancel= 1;
+			data->escapecancel= 1;
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		else if(event->type == MOUSEMOVE) {
+			if(mx!=data->draglastx || my!=data->draglasty) {
+				if(ui_numedit_but_HISTOGRAM(but, data, mx, my))
+					ui_numedit_apply(C, block, but, data);
+			}
+		}
+		else if(event->type==LEFTMOUSE && event->val!=KM_PRESS) {
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+		}
+		return WM_UI_HANDLER_BREAK;
+	}
+	
 	return WM_UI_HANDLER_CONTINUE;
 }
 
@@ -3926,7 +4007,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 		}
 		/* reset to default */
 		else if(event->type == ZEROKEY && event->val == KM_PRESS) {
-			if (!(ELEM(but->type, HSVCIRCLE, HSVCUBE)))
+			if (!(ELEM3(but->type, HSVCIRCLE, HSVCUBE, HISTOGRAM)))
 				ui_set_but_default(C, but);
 		}
 		/* handle menu */
@@ -3996,8 +4077,9 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 	case ROW:
 	case LISTROW:
 	case BUT_IMAGE:
-	case HISTOGRAM:
 		retval= ui_do_but_EXIT(C, but, data, event);
+	case HISTOGRAM:
+		retval= ui_do_but_HISTOGRAM(C, block, but, data, event);
 		break;
 	case TEX:
 	case IDPOIN:
