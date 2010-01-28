@@ -791,8 +791,7 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	
 	pix_in= ibuf->rect_float;
 	pix_out= tmpbuf->rect_float;
-//	pixc= (char *)ibuf->rect;
-	
+
 	if(ibuf->channels)
 		stride= ibuf->channels;
 	
@@ -817,7 +816,6 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	IMB_rect_from_float(tmpbuf);
 	SWAP(unsigned int *, tmpbuf->rect, ibuf->rect);
 	IMB_freeImBuf(tmpbuf);
-	
 	
 	curvemapping_premultiply(cumap, 1);
 }

@@ -1850,10 +1850,10 @@ void RNA_def_constraint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Target Space", "Space that target is evaluated in.");
 
 	/* flags */
-		// XXX do we want to wrap this?
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CONSTRAINT_EXPAND);
 	RNA_def_property_ui_text(prop, "Expanded", "Constraint's panel is expanded in UI.");
+	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 	
 		// XXX this is really an internal flag, but it may be useful for some tools to be able to access this...
 	prop= RNA_def_property(srna, "disabled", PROP_BOOLEAN, PROP_NONE);
