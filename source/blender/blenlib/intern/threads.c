@@ -107,7 +107,7 @@ static pthread_mutex_t _custom1_lock = PTHREAD_MUTEX_INITIALIZER;
 static int thread_levels= 0;	/* threads can be invoked inside threads */
 
 /* just a max for security reasons */
-#define RE_MAX_THREAD	8
+#define RE_MAX_THREAD BLENDER_MAX_THREADS
 
 typedef struct ThreadSlot {
 	struct ThreadSlot *next, *prev;

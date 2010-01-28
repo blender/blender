@@ -3758,7 +3758,7 @@ void seqUniqueName(ListBase *seqbasep, Sequence *seq)
 	 BLI_uniquename(seqbasep, seq, "Sequence", '.', offsetof(Sequence, name), SEQ_NAME_MAXSTR);
 }
 
-/* NOTE: this function doesn't fill in iamge names */
+/* NOTE: this function doesn't fill in image names */
 Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {
 	Scene *scene= CTX_data_scene(C); /* only for active seq */

@@ -34,7 +34,7 @@
 #include <pthread.h>
 
 /* for tables, button in UI, etc */
-#define BLENDER_MAX_THREADS		8
+#define BLENDER_MAX_THREADS		64
 
 struct ListBase;
 
