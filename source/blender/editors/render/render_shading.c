@@ -795,7 +795,7 @@ static int paste_material_exec(bContext *C, wmOperator *op)
 	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
 
 	if(ma==NULL)
-		return;
+		return OPERATOR_CANCELLED;
 
 	paste_matcopybuf(ma);
 
