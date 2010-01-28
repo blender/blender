@@ -1502,12 +1502,14 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
         
         f.close()
         
-        path = bpy.context.user_preferences.filepaths.python_scripts_directory
+        path = os.path.split(os.path.split(__file__)[0])[0] # remove ui/space_userpref.py
+        path = os.path.join(path, "cfg")
         
-        if not path:
-            path = os.path.split(__file__)[0]
-            
-        path += os.path.sep + config_name + ".py"
+        # create config folder if needed
+        if not os.path.exists(path):
+            os.mkdir(path)        
+        
+        path = os.path.join(path, config_name + ".py")
             
         if self.properties.keep_original:
             shutil.copy(self.properties.path, path)
@@ -1717,6 +1719,11 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
         module = __import__(keyconfig.name)
         
         os.remove(module.__file__)
+
+        compiled_path = module.__file__ + "c" # for .pyc
+        
+        if os.path.exists(compiled_path):
+            os.remove(compiled_path)
         
         wm.remove_keyconfig(keyconfig)
         return {'FINISHED'}
