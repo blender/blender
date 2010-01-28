@@ -339,7 +339,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 	
 	/* check if property is able to be added */
-	if (ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
+	if (ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
 		if (path) {

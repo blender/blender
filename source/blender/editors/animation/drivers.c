@@ -390,7 +390,7 @@ static int add_driver_button_exec (bContext *C, wmOperator *op)
 	if (all)
 		index= -1;
 
-	if (ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
+	if (ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
 		if (path) {			
@@ -505,7 +505,7 @@ static int copy_driver_button_exec (bContext *C, wmOperator *op)
 	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 	
-	if (ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
+	if (ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
 		if (path) {
@@ -549,7 +549,7 @@ static int paste_driver_button_exec (bContext *C, wmOperator *op)
 	memset(&ptr, 0, sizeof(PointerRNA));
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 	
-	if (ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
+	if (ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
 		if (path) {
