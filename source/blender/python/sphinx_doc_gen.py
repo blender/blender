@@ -27,6 +27,13 @@ This will generate python files in "./source/blender/python/doc/sphinx-in"
 Generate html docs  by running...
     
     sphinx-build source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out
+
+
+For PDF generation
+
+    sphinx-build -b latex source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out
+    cd source/blender/python/doc/sphinx-out
+    make
 '''
 
 
@@ -215,6 +222,10 @@ def rna2sphinx(BASEPATH):
     fw("copyright = u'Blender Foundation'\n")
     fw("version = '%s'\n" % bpy.app.version_string)
     fw("release = '%s'\n" % bpy.app.version_string)
+    fw("\n")
+    # needed for latex, pdf gen
+    fw("latex_documents = [ ('contents', 'contents.tex', 'Blender Index', 'Blender Foundation', 'manual'), ]\n")
+    fw("latex_paper_size = 'a4paper'\n")
     file.close()
 
 
