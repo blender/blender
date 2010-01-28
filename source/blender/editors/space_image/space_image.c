@@ -818,8 +818,8 @@ static void image_scope_area_draw(const bContext *C, ARegion *ar)
 	SpaceImage *sima= CTX_wm_space_image(C);
 	void *lock;
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
-	
-	histogram_update(&sima->hist, ibuf);
+	if(ibuf)
+        histogram_update(&sima->hist, ibuf);
 	ED_space_image_release_buffer(sima, lock);
 	
 	ED_region_panels(C, ar, 1, NULL, -1);
