@@ -43,6 +43,17 @@ class MATERIAL_MT_sss_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
+class MATERIAL_MT_specials(bpy.types.Menu):
+    bl_label = "Material Options"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.material_slot_copy", icon='COPY_ID')
+        layout.operator("material.copy", icon='COPYDOWN')
+        layout.operator("material.paste", icon='PASTEDOWN')
+
+
 class MaterialButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -92,7 +103,8 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
             col = row.column(align=True)
             col.operator("object.material_slot_add", icon='ZOOMIN', text="")
             col.operator("object.material_slot_remove", icon='ZOOMOUT', text="")
-            col.operator("object.material_slot_copy", icon='COPY_ID', text="")
+            
+            col.menu("MATERIAL_MT_specials", icon='DOWNARROW_HLT', text="")
 
             if ob.mode == 'EDIT':
                 row = layout.row(align=True)
@@ -914,6 +926,7 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
         col.prop(vol, "depth_cutoff")
 
 bpy.types.register(MATERIAL_MT_sss_presets)
+bpy.types.register(MATERIAL_MT_specials)
 
 bpy.types.register(MATERIAL_PT_volume_density)
 bpy.types.register(MATERIAL_PT_volume_shading)

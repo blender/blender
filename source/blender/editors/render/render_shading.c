@@ -758,3 +758,62 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 
 	RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
 }
+
+
+
+/* material copy/paste */
+static int copy_material_exec(bContext *C, wmOperator *op)
+{
+	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+
+	if(ma==NULL)
+		return;
+
+	copy_matcopybuf(ma);
+
+	WM_event_add_notifier(C, NC_MATERIAL, ma);
+
+	return OPERATOR_FINISHED;
+}
+
+void MATERIAL_OT_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Material";
+	ot->idname= "MATERIAL_OT_copy";
+	ot->description="Copy the material settings and nodes.";
+
+	/* api callbacks */
+	ot->exec= copy_material_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int paste_material_exec(bContext *C, wmOperator *op)
+{
+	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+
+	if(ma==NULL)
+		return;
+
+	paste_matcopybuf(ma);
+
+	WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, ma);
+
+	return OPERATOR_FINISHED;
+}
+
+void MATERIAL_OT_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste Material";
+	ot->idname= "MATERIAL_OT_paste";
+	ot->description="Copy the material settings and nodes.";
+
+	/* api callbacks */
+	ot->exec= paste_material_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}

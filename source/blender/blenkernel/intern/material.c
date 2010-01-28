@@ -1240,4 +1240,110 @@ void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 	}	
 }
 
+/* copy/paste buffer, if we had a propper py api that would be better */
+Material matcopybuf;
+// MTex mtexcopybuf;
+static short matcopied=0;
 
+void clear_matcopybuf(void)
+{
+	memset(&matcopybuf, 0, sizeof(Material));
+}
+
+void free_matcopybuf(void)
+{
+//	extern MTex mtexcopybuf;	/* buttons.c */
+	int a;
+
+	for(a=0; a<MAX_MTEX; a++) {
+		if(matcopybuf.mtex[a]) {
+			MEM_freeN(matcopybuf.mtex[a]);
+			matcopybuf.mtex[a]= NULL;
+		}
+	}
+
+	if(matcopybuf.ramp_col) MEM_freeN(matcopybuf.ramp_col);
+	if(matcopybuf.ramp_spec) MEM_freeN(matcopybuf.ramp_spec);
+
+	matcopybuf.ramp_col= NULL;
+	matcopybuf.ramp_spec= NULL;
+
+	if(matcopybuf.nodetree) {
+		ntreeFreeTree(matcopybuf.nodetree);
+		MEM_freeN(matcopybuf.nodetree);
+		matcopybuf.nodetree= NULL;
+	}
+//	default_mtex(&mtexcopybuf);
+}
+
+void copy_matcopybuf(Material *ma)
+{
+	int a;
+	MTex *mtex;
+
+	if(matcopied)
+		free_matcopybuf();
+
+	memcpy(&matcopybuf, ma, sizeof(Material));
+	if(matcopybuf.ramp_col) matcopybuf.ramp_col= MEM_dupallocN(matcopybuf.ramp_col);
+	if(matcopybuf.ramp_spec) matcopybuf.ramp_spec= MEM_dupallocN(matcopybuf.ramp_spec);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		mtex= matcopybuf.mtex[a];
+		if(mtex) {
+			matcopybuf.mtex[a]= MEM_dupallocN(mtex);
+		}
+	}
+	matcopybuf.nodetree= ntreeCopyTree(ma->nodetree, 0);
+	matcopybuf.preview= NULL;
+	matcopybuf.gpumaterial.first= matcopybuf.gpumaterial.last= NULL;
+	matcopied= 1;
+}
+
+void paste_matcopybuf(Material *ma)
+{
+	int a;
+	MTex *mtex;
+	ID id;
+
+	if(matcopied==0)
+		return;
+	/* free current mat */
+	if(ma->ramp_col) MEM_freeN(ma->ramp_col);
+	if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
+	for(a=0; a<MAX_MTEX; a++) {
+		mtex= ma->mtex[a];
+		if(mtex && mtex->tex) mtex->tex->id.us--;
+		if(mtex) MEM_freeN(mtex);
+	}
+
+	if(ma->nodetree) {
+		ntreeFreeTree(ma->nodetree);
+		MEM_freeN(ma->nodetree);
+	}
+
+	GPU_materials_free(ma);
+
+	id= (ma->id);
+	memcpy(ma, &matcopybuf, sizeof(Material));
+	(ma->id)= id;
+
+	if(matcopybuf.ramp_col) ma->ramp_col= MEM_dupallocN(matcopybuf.ramp_col);
+	if(matcopybuf.ramp_spec) ma->ramp_spec= MEM_dupallocN(matcopybuf.ramp_spec);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		mtex= ma->mtex[a];
+		if(mtex) {
+			ma->mtex[a]= MEM_dupallocN(mtex);
+			if(mtex->tex) id_us_plus((ID *)mtex->tex);
+		}
+	}
+
+	ma->nodetree= ntreeCopyTree(matcopybuf.nodetree, 0);
+
+	/*
+	BIF_preview_changed(ID_MA);
+	BIF_undo_push("Paste material settings");
+	scrarea_queue_winredraw(curarea);
+	*/
+}
