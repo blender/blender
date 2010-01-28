@@ -256,9 +256,16 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 	switch(wmn->category) {
 		case NC_SCENE:
 			switch(wmn->data) {
-				case ND_FRAME:
 				case ND_RENDER_OPTIONS:
 					buttons_area_redraw(sa, BCONTEXT_RENDER);
+					break;
+				case ND_FRAME:
+					buttons_area_redraw(sa, BCONTEXT_RENDER);
+					buttons_area_redraw(sa, BCONTEXT_MATERIAL);
+					buttons_area_redraw(sa, BCONTEXT_TEXTURE);
+					buttons_area_redraw(sa, BCONTEXT_WORLD);
+					buttons_area_redraw(sa, BCONTEXT_DATA);
+					sbuts->preview= 1;
 					break;
 				case ND_OB_ACTIVE:
 					ED_area_tag_redraw(sa);
