@@ -217,7 +217,9 @@ static void bpy_init_modules( void )
 	/* bpy context */
 	{
 		bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
+
 		RNA_pointer_create(NULL, &RNA_Context, NULL, &bpy_context_module->ptr);
+		bpy_context_module->freeptr= 0;
 
 		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 	}
