@@ -148,12 +148,18 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 	memset(seq_load, 0, sizeof(SeqLoadInfo));
 
 	seq_load->start_frame=	RNA_int_get(op->ptr, "start_frame");
+	seq_load->end_frame=	seq_load->start_frame; /* un-set */
+
 	seq_load->channel=		RNA_int_get(op->ptr, "channel");
-	seq_load->len=			1; // images only!
+	seq_load->len=			1; // images only, if endframe isnt set!
 
 	RNA_string_get(op->ptr, "name", seq_load->name+2);
 
 	RNA_string_get(op->ptr, "path", seq_load->path); /* full path, file is set by the caller */
+
+	if (RNA_struct_find_property(op->ptr, "end_frame")) {
+		seq_load->end_frame = RNA_int_get(op->ptr, "end_frame");
+	}
 
 	if (RNA_struct_find_property(op->ptr, "replace_sel") && RNA_boolean_get(op->ptr, "replace_sel"))
 		seq_load->flag |= SEQ_LOAD_REPLACE_SEL;
@@ -417,8 +423,9 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		BLI_split_dirfile_basic(seq_load.path, NULL, se->name);
-		seq->startstill= 25;
-		seq->endstill= 25;
+		if(seq_load.start_frame < seq_load.end_frame) {
+			seq->endstill= seq_load.end_frame - seq_load.start_frame;
+		}
 	}
 	
 	calc_sequence_disp(seq);

@@ -204,6 +204,7 @@ void active_seq_set(struct Scene *scene, struct Sequence *seq);
 /* api for adding new sequence strips */
 typedef struct SeqLoadInfo {
 	int start_frame;
+	int end_frame;
 	int channel;
 	int flag;	/* use sound, replace sel */
 	int type;
