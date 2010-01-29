@@ -878,6 +878,13 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	if (array_index == -1) { 
 		array_index= 0;
 		array_index_max= RNA_property_array_length(&ptr, prop);
+		
+		/* for single properties, increase max_index so that the property itself gets included,
+		 * but don't do this for standard arrays since that can cause corruption issues 
+		 * (extra unused curves)
+		 */
+		if (array_index_max == array_index)
+			array_index_max++;
 	}
 	
 	/* will only loop once unless the array index was -1 */
