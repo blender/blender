@@ -1062,9 +1062,9 @@ class USERPREF_PT_input(bpy.types.Panel):
         if km.modal:
             row.label(text="", icon='LINKED')
         if km.user_defined:
-            row.operator("wm.keymap_restore", text="Restore")
+            op = row.operator("wm.keymap_restore", text="Restore")
         else:
-            row.operator("wm.keymap_edit", text="Edit")
+            op = row.operator("wm.keymap_edit", text="Edit")
 
         if km.children_expanded:
             if children:
@@ -1086,7 +1086,7 @@ class USERPREF_PT_input(bpy.types.Panel):
                 col = self.indented_layout(col, level + 1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.active = km.user_defined
-                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+                op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
 
             col.separator()
 
@@ -1099,9 +1099,7 @@ class USERPREF_PT_input(bpy.types.Panel):
                     self.draw_entry(kc, entry, col, level + 1)
 
     def draw_kmi(self, kc, km, kmi, layout, level):
-        # reset keymap pointer, it might get changed by modal keymaps added after keymap items
-        layout.set_context_pointer("keymap", km)
-        layout.set_context_pointer("keyitem", kmi)
+        map_type = kmi.map_type
 
         col = self.indented_layout(layout, level)
 
@@ -1127,27 +1125,30 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         row = split.row()
         row.prop(kmi, "map_type", text="")
-        if kmi.map_type == 'KEYBOARD':
+        if map_type == 'KEYBOARD':
             row.prop(kmi, "type", text="", full_event=True)
-        elif kmi.map_type == 'MOUSE':
+        elif map_type == 'MOUSE':
             row.prop(kmi, "type", text="", full_event=True)
-        elif kmi.map_type == 'TWEAK':
+        elif map_type == 'TWEAK':
             subrow = row.row()
             subrow.prop(kmi, "type", text="")
             subrow.prop(kmi, "value", text="")
-        elif kmi.map_type == 'TIMER':
+        elif map_type == 'TIMER':
             row.prop(kmi, "type", text="")
         else:
             row.label()
 
-        row.operator("wm.keyitem_restore", text="", icon='BACK')
-        row.operator("wm.keyitem_remove", text="", icon='X')
+        if kmi.id:
+            op = row.operator("wm.keyitem_restore", text="", icon='BACK')
+            op.item_id = kmi.id
+        op = row.operator("wm.keyitem_remove", text="", icon='X')
+        op.item_id = kmi.id
 
         # Expanded, additional event settings
         if kmi.expanded:
             box = col.box()
 
-            if kmi.map_type not in ('TEXTINPUT', 'TIMER'):
+            if map_type not in ('TEXTINPUT', 'TIMER'):
                 split = box.split(percentage=0.4)
                 sub = split.row()
 
@@ -1159,10 +1160,10 @@ class USERPREF_PT_input(bpy.types.Panel):
                 sub = split.column()
                 subrow = sub.row(align=True)
 
-                if kmi.map_type == 'KEYBOARD':
+                if map_type == 'KEYBOARD':
                     subrow.prop(kmi, "type", text="", event=True)
                     subrow.prop(kmi, "value", text="")
-                elif kmi.map_type == 'MOUSE':
+                elif map_type == 'MOUSE':
                     subrow.prop(kmi, "type", text="")
                     subrow.prop(kmi, "value", text="")
 
@@ -1198,6 +1199,7 @@ class USERPREF_PT_input(bpy.types.Panel):
                 kmm = kc.find_keymap_modal(kmi.idname)
                 if kmm:
                     self.draw_km(kc, kmm, None, layout, level + 1)
+                    layout.set_context_pointer("keymap", km)
 
     def draw_input_prefs(self, inputs, layout):
         # General settings
@@ -1259,7 +1261,6 @@ class USERPREF_PT_input(bpy.types.Panel):
             filtered_items = [kmi for kmi in km.items if filter in kmi.name.lower()]
 
             if len(filtered_items) != 0:
-                layout.set_context_pointer("keymap", km)
                 col = layout.column()
 
                 row = col.row()
@@ -1269,9 +1270,11 @@ class USERPREF_PT_input(bpy.types.Panel):
                 row.label()
 
                 if km.user_defined:
-                    row.operator("wm.keymap_restore", text="Restore")
+                    op = row.operator("wm.keymap_restore", text="Restore")
+                    op.keymap = km
                 else:
-                    row.operator("wm.keymap_edit", text="Edit")
+                    op = row.operator("wm.keymap_edit", text="Edit")
+                    op.keymap = km
 
                 for kmi in filtered_items:
                     self.draw_kmi(kc, km, kmi, col, 1)
@@ -1280,7 +1283,8 @@ class USERPREF_PT_input(bpy.types.Panel):
                 col = self.indented_layout(layout, 1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.active = km.user_defined
-                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+                op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+                op.keymap = km
 
     def draw_hierarchy(self, defkc, layout):
         for entry in KM_HIERARCHY:
@@ -1288,6 +1292,10 @@ class USERPREF_PT_input(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        
+        #import time
+        
+        #start = time.time()
 
         userpref = context.user_preferences
         wm = context.manager
@@ -1322,6 +1330,8 @@ class USERPREF_PT_input(bpy.types.Panel):
             self.draw_filtered(kc, col)
         else:
             self.draw_hierarchy(kc, col)
+            
+        #print("runtime", time.time() - start)
 
 bpy.types.register(USERPREF_HT_header)
 bpy.types.register(USERPREF_PT_tabs)
@@ -1651,15 +1661,12 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
     bl_idname = "wm.keyitem_restore"
     bl_label = "Restore Key Map Item"
 
-    def poll(self, context):
-        kmi = context.keyitem
-        km = context.keymap
-        return km and kmi and kmi.id != 0
+    item_id = IntProperty(attr="item_id", name="Item Identifier",  description="Identifier of the item to remove")
 
     def execute(self, context):
         wm = context.manager
-        kmi = context.keyitem
         km = context.keymap
+        kmi = km.item_from_id(self.properties.item_id)
 
         km.restore_item_to_default(kmi)
 
@@ -1695,10 +1702,12 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
     bl_idname = "wm.keyitem_remove"
     bl_label = "Remove Key Map Item"
 
+    item_id = IntProperty(attr="item_id", name="Item Identifier",  description="Identifier of the item to remove")
+    
     def execute(self, context):
         wm = context.manager
-        kmi = context.keyitem
         km = context.keymap
+        kmi = km.item_from_id(self.properties.item_id)
         km.remove_item(kmi)
         return {'FINISHED'}
 

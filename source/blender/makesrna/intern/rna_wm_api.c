@@ -365,6 +365,12 @@ void RNA_api_keymap(StructRNA *srna)
 	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
+	func= RNA_def_function(srna, "item_from_id", "WM_keymap_item_find_id");
+	parm= RNA_def_property(func, "id", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_text(parm, "id", "ID of the item.");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
+	RNA_def_function_return(func, parm);
+
 	func= RNA_def_function(srna, "copy_to_user", "WM_keymap_copy_to_user");
 	parm= RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "User editable key map.");
 	RNA_def_function_return(func, parm);

@@ -688,12 +688,7 @@ void WM_keymap_restore_item_to_default(bContext *C, wmKeyMap *keymap, wmKeyMapIt
 	}
 
 	if (km) {
-		wmKeyMapItem *orig;
-
-		for (orig = km->items.first; orig; orig = orig->next) {
-			if (orig->id == kmi->id)
-				break;
-		}
+		wmKeyMapItem *orig = WM_keymap_item_find_id(km, kmi->id);
 
 		if (orig) {
 			if(strcmp(orig->idname, kmi->idname) != 0) {
