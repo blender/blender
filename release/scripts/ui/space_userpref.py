@@ -1103,19 +1103,20 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         col = self.indented_layout(layout, level)
 
-        col.enabled = km.user_defined
-
         if km.user_defined:
             col = col.column(align=True)
             box = col.box()
         else:
             box = col.column()
 
-        split = box.split(percentage=0.4)
+        split = box.split(percentage=0.05)
 
         # header bar
         row = split.row()
         row.prop(kmi, "expanded", text="", no_bg=True)
+
+        row = split.row()
+        row.enabled = km.user_defined
         row.prop(kmi, "active", text="", no_bg=True)
 
         if km.modal:
@@ -1124,6 +1125,7 @@ class USERPREF_PT_input(bpy.types.Panel):
             row.label(text=kmi.name)
 
         row = split.row()
+        row.enabled = km.user_defined
         row.prop(kmi, "map_type", text="")
         if map_type == 'KEYBOARD':
             row.prop(kmi, "type", text="", full_event=True)
@@ -1147,6 +1149,8 @@ class USERPREF_PT_input(bpy.types.Panel):
         # Expanded, additional event settings
         if kmi.expanded:
             box = col.box()
+            
+            box.enabled = km.user_defined
 
             if map_type not in ('TEXTINPUT', 'TIMER'):
                 split = box.split(percentage=0.4)
