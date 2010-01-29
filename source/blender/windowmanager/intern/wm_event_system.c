@@ -303,9 +303,37 @@ int WM_operator_poll(bContext *C, wmOperatorType *ot)
 	return 1;
 }
 
+static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+
+	op->customdata= NULL;
+
+	/* we don't want to do undo pushes for operators that are being
+	   called from operators that already do an undo push. usually
+	   this will happen for python operators that call C operators */
+	if(wm->op_undo_depth == 0)
+		if(op->type->flag & OPTYPE_UNDO)
+			ED_undo_push_op(C, op);
+	
+	if(repeat==0) {
+		if(G.f & G_DEBUG) {
+			char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+			BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+			MEM_freeN(buf);
+		}
+
+		if((wm->op_undo_depth == 0) && (op->type->flag & OPTYPE_REGISTER))
+			wm_operator_register(C, op);
+		else
+			WM_operator_free(op);
+	}
+}
+
 /* if repeat is true, it doesn't register again, nor does it free */
 static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_CANCELLED;
 	
 	if(op==NULL || op->type==NULL)
@@ -314,32 +342,22 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 	if(0==WM_operator_poll(C, op->type))
 		return retval;
 	
-	if(op->type->exec)
+	if(op->type->exec) {
+		if(op->type->flag & OPTYPE_UNDO)
+			wm->op_undo_depth++;
+
 		retval= op->type->exec(C, op);
+
+		if(op->type->flag & OPTYPE_UNDO)
+			wm->op_undo_depth--;
+	}
 	
 	if(retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
 		if(op->reports->list.first)
 			uiPupMenuReports(C, op->reports);
 	
-	if(retval & OPERATOR_FINISHED) {
-		op->customdata= NULL;
-
-		if(op->type->flag & OPTYPE_UNDO)
-			ED_undo_push_op(C, op);
-		
-		if(repeat==0) {
-			if(G.f & G_DEBUG) {
-				char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
-				BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
-				MEM_freeN(buf);
-			}
-
-			if((op->type->flag & OPTYPE_REGISTER))
-				wm_operator_register(C, op);
-			else
-				WM_operator_free(op);
-		}
-	}
+	if(retval & OPERATOR_FINISHED)
+		wm_operator_finished(C, op, repeat);
 	else if(repeat==0)
 		WM_operator_free(op);
 	
@@ -472,10 +490,24 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		
 		if(op->type->invoke && event) {
 			wm_region_mouse_co(C, event);
+
+			if(op->type->flag & OPTYPE_UNDO)
+				wm->op_undo_depth++;
+
 			retval= op->type->invoke(C, op, event);
+
+			if(op->type->flag & OPTYPE_UNDO)
+				wm->op_undo_depth--;
 		}
-		else if(op->type->exec)
+		else if(op->type->exec) {
+			if(op->type->flag & OPTYPE_UNDO)
+				wm->op_undo_depth++;
+
 			retval= op->type->exec(C, op);
+
+			if(op->type->flag & OPTYPE_UNDO)
+				wm->op_undo_depth--;
+		}
 		else
 			printf("invalid operator call %s\n", ot->idname); /* debug, important to leave a while, should never happen */
 
@@ -493,21 +525,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		if(retval & OPERATOR_HANDLED)
 			; /* do nothing, wm_operator_exec() has been called somewhere */
 		else if(retval & OPERATOR_FINISHED) {
-			op->customdata= NULL;
-
-			if(ot->flag & OPTYPE_UNDO)
-				ED_undo_push_op(C, op);
-			
-			if(G.f & G_DEBUG) {
-				char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
-				BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
-				MEM_freeN(buf);
-			}
-			
-			if((ot->flag & OPTYPE_REGISTER))
-				wm_operator_register(C, op);
-			else
-				WM_operator_free(op);
+			wm_operator_finished(C, op, 0);
 		}
 		else if(retval & OPERATOR_RUNNING_MODAL) {
 			/* grab cursor during blocking modal ops (X11)
@@ -657,8 +675,15 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 	wmWindowManager *wm=	CTX_wm_manager(C);
 	op= wm_operator_create(wm, ot, properties, reports);
 
-	if (op->type->exec)
+	if (op->type->exec) {
+		if(op->type->flag & OPTYPE_UNDO)
+			wm->op_undo_depth++;
+
 		retval= op->type->exec(C, op);
+
+		if(op->type->flag & OPTYPE_UNDO)
+			wm->op_undo_depth--;
+	}
 	else
 		printf("error \"%s\" operator has no exec function, python cannot call it\n", op->type->name);
 #endif
@@ -721,6 +746,7 @@ static void wm_handler_op_context(bContext *C, wmEventHandler *handler)
 void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 {
 	wmEventHandler *handler;
+	wmWindowManager *wm= CTX_wm_manager(C);
 	
 	/* C is zero on freeing database, modal handlers then already were freed */
 	while((handler=handlers->first)) {
@@ -733,7 +759,13 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 				
 				wm_handler_op_context(C, handler);
 
+				if(handler->op->type->flag & OPTYPE_UNDO)
+					wm->op_undo_depth++;
+
 				handler->op->type->cancel(C, handler->op);
+
+				if(handler->op->type->flag & OPTYPE_UNDO)
+					wm->op_undo_depth--;
 
 				CTX_wm_area_set(C, area);
 				CTX_wm_region_set(C, region);
@@ -926,6 +958,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 		if(ot->modal) {
 			/* we set context to where modal handler came from */
+			wmWindowManager *wm= CTX_wm_manager(C);
 			ScrArea *area= CTX_wm_area(C);
 			ARegion *region= CTX_wm_region(C);
 			
@@ -933,7 +966,13 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			wm_region_mouse_co(C, event);
 			wm_event_modalkeymap(C, op, event);
 			
+			if(ot->flag & OPTYPE_UNDO)
+				wm->op_undo_depth++;
+
 			retval= ot->modal(C, op, event);
+
+			if(ot->flag & OPTYPE_UNDO)
+				wm->op_undo_depth--;
 
 			/* putting back screen context, reval can pass trough after modal failures! */
 			if((retval & OPERATOR_PASS_THROUGH) || wm_event_always_pass(event)) {
@@ -956,21 +995,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			}			
 
 			if(retval & OPERATOR_FINISHED) {
-				op->customdata= NULL;
-
-				if(ot->flag & OPTYPE_UNDO)
-					ED_undo_push_op(C, op);
-				
-				if(G.f & G_DEBUG) {
-					char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
-					BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
-					MEM_freeN(buf);
-				}
-				
-				if((ot->flag & OPTYPE_REGISTER))
-					wm_operator_register(C, op);
-				else
-					WM_operator_free(op);
+				wm_operator_finished(C, op, 0);
 				handler->op= NULL;
 			}
 			else if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
@@ -1053,6 +1078,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 /* fileselect handlers are only in the window queue, so it's save to switch screens or area types */
 static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	SpaceFile *sfile;
 	int action= WM_HANDLER_CONTINUE;
 	
@@ -1119,7 +1145,15 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 						uiPupMenuSaveOver(C, handler->op, (path)? path: "");
 					}
 					else {
-						int retval= handler->op->type->exec(C, handler->op);
+						int retval;
+						
+						if(handler->op->type->flag & OPTYPE_UNDO)
+							wm->op_undo_depth++;
+
+						retval= handler->op->type->exec(C, handler->op);
+
+						if(handler->op->type->flag & OPTYPE_UNDO)
+							wm->op_undo_depth--;
 						
 						if (retval & OPERATOR_FINISHED)
 							if(G.f & G_DEBUG)
@@ -1144,8 +1178,15 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 					}
 				}
 				else {
-					if(handler->op->type->cancel)
+					if(handler->op->type->cancel) {
+						if(handler->op->type->flag & OPTYPE_UNDO)
+							wm->op_undo_depth++;
+
 						handler->op->type->cancel(C, handler->op);
+
+						if(handler->op->type->flag & OPTYPE_UNDO)
+							wm->op_undo_depth--;
+					}
 
 					WM_operator_free(handler->op);
 				}

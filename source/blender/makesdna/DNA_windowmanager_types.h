@@ -109,7 +109,7 @@ typedef struct wmWindowManager {
 	
 	int initialized;		/* set on file read */
 	short file_saved;		/* indicator whether data was saved */
-	short pad;
+	short op_undo_depth;	/* operator stack depth to avoid nested undo pushes */
 	
 	ListBase operators;		/* operator registry */
 	
