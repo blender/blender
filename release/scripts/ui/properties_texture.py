@@ -87,14 +87,13 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        slot = context.texture_slot
+        node = context.texture_node
         space = context.space_data
         tex = context.texture
         wide_ui = context.region.width > narrowui
         idblock = context_tex_datablock(context)
-        tex_collection = space.pin_id == None and type(idblock) != bpy.types.Brush
-
-        
+        tex_collection = space.pin_id == None and type(idblock) != bpy.types.Brush and not node
 
         if tex_collection:
             row = layout.row()
@@ -113,6 +112,8 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
             
         if tex_collection:
             col.template_ID(idblock, "active_texture", new="texture.new")
+        elif node:
+            col.template_ID(node, "texture", new="texture.new")
         elif idblock:
             col.template_ID(idblock, "texture", new="texture.new")
         
@@ -129,7 +130,6 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
             split = layout.split(percentage=0.2)
 
             if tex.use_nodes:
-                slot = context.texture_slot
 
                 if slot:
                     split.label(text="Output:")

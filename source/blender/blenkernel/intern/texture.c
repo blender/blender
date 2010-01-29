@@ -858,6 +858,16 @@ void set_current_lamp_texture(Lamp *la, Tex *newtex)
 	}
 }
 
+bNode *give_current_material_texture_node(Material *ma)
+{
+	bNode *node;
+	
+	if(ma && ma->use_nodes && ma->nodetree)
+		return nodeGetActiveID(ma->nodetree, ID_TE);
+	
+	return NULL;
+}
+
 Tex *give_current_material_texture(Material *ma)
 {
 	MTex *mtex= NULL;
@@ -865,6 +875,9 @@ Tex *give_current_material_texture(Material *ma)
 	bNode *node;
 	
 	if(ma && ma->use_nodes && ma->nodetree) {
+		/* first check texture, then material, this works together
+		   with a hack that clears the active ID flag for textures on
+		   making a material node active */
 		node= nodeGetActiveID(ma->nodetree, ID_TE);
 
 		if(node) {
@@ -877,6 +890,7 @@ Tex *give_current_material_texture(Material *ma)
 				ma= (Material*)node->id;
 		}
 	}
+
 	if(ma) {
 		mtex= ma->mtex[(int)(ma->texact)];
 		if(mtex) tex= mtex->tex;

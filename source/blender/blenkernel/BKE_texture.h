@@ -31,6 +31,7 @@
 #ifndef BKE_TEXTURE_H
 #define BKE_TEXTURE_H
 
+struct bNode;
 struct Brush;
 struct ColorBand;
 struct EnvMap;
@@ -74,6 +75,8 @@ struct Tex *give_current_material_texture(struct Material *ma);
 struct Tex *give_current_lamp_texture(struct Lamp *la);
 struct Tex *give_current_world_texture(struct World *world);
 struct Tex *give_current_brush_texture(struct Brush *br);
+
+struct bNode *give_current_material_texture_node(struct Material *ma);
 
 int			 give_active_mtex(struct ID *id, struct MTex ***mtex_ar, short *act);
 void		 set_active_mtex(struct ID *id, short act);

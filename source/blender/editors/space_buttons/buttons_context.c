@@ -35,6 +35,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -399,7 +400,6 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 			return 1;
 		}
 	}
-	/* TODO: material nodes */
 
 	/* no path to a texture possible */
 	return 0;
@@ -648,13 +648,29 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 		return 1;
 	}
+	else if(CTX_data_equals(member, "texture_node")) {
+		PointerRNA *ptr;
+
+		if((ptr=get_pointer_type(path, &RNA_Material))) {
+			Material *ma= ptr->data;
+
+			if(ma) {
+				bNode *node= give_current_material_texture_node(ma);
+				CTX_data_pointer_set(result, &ma->id, &RNA_Node, node);
+			}
+		}
+
+		return 1;
+	}
 	else if(CTX_data_equals(member, "texture_slot")) {
 		PointerRNA *ptr;
 
 		if((ptr=get_pointer_type(path, &RNA_Material))) {
-			Material *ma= ptr->data; /* should this be made a different option? */
-			Material *ma_node= give_node_material(ma);
-			ma= ma_node?ma_node:ma;
+			Material *ma= ptr->data;
+
+			/* if we have a node material, get slot from material in material node */
+			if(ma && ma->use_nodes && ma->nodetree)
+				ma= give_node_material(ma);
 
 			if(ma)
 				CTX_data_pointer_set(result, &ma->id, &RNA_MaterialTextureSlot, ma->mtex[(int)ma->texact]);
