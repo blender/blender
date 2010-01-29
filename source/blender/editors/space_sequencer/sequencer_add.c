@@ -417,6 +417,8 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	}
 	else {
 		BLI_split_dirfile_basic(seq_load.path, NULL, se->name);
+		seq->startstill= 25;
+		seq->endstill= 25;
 	}
 	
 	calc_sequence_disp(seq);

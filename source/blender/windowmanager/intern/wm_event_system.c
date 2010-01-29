@@ -1962,7 +1962,7 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 		/* let's skip windows having modal handlers now */
 		/* potential XXX ugly... I wouldn't have added a modalhandlers list (introduced in rev 23331, ton) */
 		for(handler= win->modalhandlers.first; handler; handler= handler->next)
-			if(handler->ui_handle)
+			if(handler->ui_handle || handler->op)
 				return NULL;
 		
 		/* to desktop space */

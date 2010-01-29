@@ -2204,7 +2204,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	else
-		uiItemLDrag(sub, itemptr, name, icon); /* fails, backdrop LISTROW... */
+		uiItemL(sub, name, icon); /* fails, backdrop LISTROW... */
 
 	/* free name */
 	if(namebuf)
