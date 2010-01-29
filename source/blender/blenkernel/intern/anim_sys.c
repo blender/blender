@@ -422,10 +422,51 @@ void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, c
 	MEM_freeN(newN);
 }
 
+void BKE_animdata_main_cb(Main *main, void (*func)(ID *, AnimData *, void *), void *user_data)
+{
+	ID *id;
+
+#define ANIMDATA_IDS_CB(first) \
+	for (id= first; id; id= id->next) { \
+		AnimData *adt= BKE_animdata_from_id(id); \
+		if(adt) func(id, adt, user_data); \
+	}
+
+	ANIMDATA_IDS_CB(main->nodetree.first);	/* nodes */
+	ANIMDATA_IDS_CB(main->tex.first);		/* textures */
+	ANIMDATA_IDS_CB(main->lamp.first);		/* lamps */
+	ANIMDATA_IDS_CB(main->mat.first);		/* materials */
+	ANIMDATA_IDS_CB(main->camera.first);	/* cameras */
+	ANIMDATA_IDS_CB(main->key.first);		/* shapekeys */
+	ANIMDATA_IDS_CB(main->mball.first);		/* metaballs */
+	ANIMDATA_IDS_CB(main->curve.first);		/* curves */
+	ANIMDATA_IDS_CB(main->armature.first);	/* armatures */
+	ANIMDATA_IDS_CB(main->mesh.first);		/* meshes */
+	ANIMDATA_IDS_CB(main->particle.first);	/* particles */
+	ANIMDATA_IDS_CB(main->object.first);	/* objects */
+	ANIMDATA_IDS_CB(main->world.first);		/* worlds */
+
+	/* scenes */
+	for (id= main->scene.first; id; id= id->next) {
+		AnimData *adt= BKE_animdata_from_id(id);
+		Scene *scene= (Scene *)id;
+
+		/* do compositing nodes first (since these aren't included in main tree) */
+		if (scene->nodetree) {
+			AnimData *adt2= BKE_animdata_from_id((ID *)scene->nodetree);
+			if(adt2) func(id, adt2, user_data);
+		}
+
+		/* now fix scene animation data as per normal */
+		if(adt) func((ID *)id, adt, user_data);
+	}
+}
+
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
  * 		i.e. pose.bones["Bone"]
  */
+/* TODO: use BKE_animdata_main_cb for looping over all data  */
 void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newName)
 {
 	Main *mainptr= G.main;

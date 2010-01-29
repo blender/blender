@@ -94,6 +94,8 @@ void BKE_animdata_fix_paths_rename(struct ID *owner_id, struct AnimData *adt, ch
 /* Fix all the paths for the entire database... */
 void BKE_all_animdata_fix_paths_rename(char *prefix, char *oldName, char *newName);
 
+void BKE_animdata_main_cb(struct Main *main, void (*func)(struct ID *, struct AnimData *, void *), void *user_data);
+
 /* ************************************* */
 // TODO: overrides, remapping, and path-finding api's
 
