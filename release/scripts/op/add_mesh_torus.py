@@ -130,12 +130,29 @@ class AddTorus(bpy.types.Operator):
         ob_new = bpy.data.objects.new("Torus", 'MESH')
         ob_new.data = mesh
         scene.objects.link(ob_new)
-        scene.objects.active = ob_new
         ob_new.selected = True
 
-        ob_new.location = tuple(context.scene.cursor_location)
+        ob_new.location = scene.cursor_location
+        
+        obj_act = scene.objects.active
+        
+        if obj_act and obj_act.mode == 'EDIT':
+            bpy.ops.object.mode_set(mode='OBJECT')
+            
+            obj_act.selected = True
+            scene.update() # apply location
+            #scene.objects.active = ob_new
+
+            bpy.ops.object.join() # join into the active.
+
+            bpy.ops.object.mode_set(mode='EDIT')
+        else:
+            scene.objects.active = ob_new
+            if context.user_preferences.edit.enter_edit_mode:
+                bpy.ops.object.mode_set(mode='EDIT')
 
         return {'FINISHED'}
+
 
 # Register the operator
 bpy.types.register(AddTorus)
