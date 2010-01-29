@@ -94,7 +94,7 @@ typedef enum {
 
 
 #define UI_MAX_DRAW_STR	400
-#define UI_MAX_NAME_STR	64
+#define UI_MAX_NAME_STR	128
 #define UI_ARRAY	29
 
 /* panel limits */

@@ -371,7 +371,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 
 	/* text button with name */
 	if(id) {
-		char name[64];
+		char name[UI_MAX_NAME_STR];
 
 		//text_idbutton(id, name);
 		name[0]= '\0';
