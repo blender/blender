@@ -1374,6 +1374,7 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	if(az->ar) {
 		RegionMoveData *rmd= MEM_callocN(sizeof(RegionMoveData), "RegionMoveData");
+		int maxsize;
 		
 		op->customdata= rmd;
 		
@@ -1397,7 +1398,14 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		} else {
 			rmd->origval= rmd->ar->sizey;
 		}
-		CLAMP(rmd->maxsize, 0, 1000);
+		
+		/* limit headers to standard height for now */
+		if (rmd->ar->regiontype == RGN_TYPE_HEADER)
+			maxsize = rmd->ar->type->prefsizey;
+		else
+			maxsize = 1000;
+		
+		CLAMP(rmd->maxsize, 0, maxsize);
 		
 		/* add temp handler */
 		WM_event_add_modal_handler(C, op);
