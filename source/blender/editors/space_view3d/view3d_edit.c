@@ -1852,10 +1852,14 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 				/* lastview -  */
 
 				if(rv3d->persp != RV3D_CAMOB) {
-					/* store settings of current view before allowing overwriting with camera view */
-					QUATCOPY(rv3d->lviewquat, rv3d->viewquat);
-					rv3d->lview= rv3d->view;
-					rv3d->lpersp= rv3d->persp;
+
+					if (!rv3d->smooth_timer) {
+						/* store settings of current view before allowing overwriting with camera view
+						 * only if we're not currently in a view transition */
+						QUATCOPY(rv3d->lviewquat, rv3d->viewquat);
+						rv3d->lview= rv3d->view;
+						rv3d->lpersp= rv3d->persp;
+					}
 
 	#if 0
 					if(G.qual==LR_ALTKEY) {
