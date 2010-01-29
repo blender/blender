@@ -2308,6 +2308,12 @@ static int ui_do_but_NUM(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 			else if(ELEM(event->type, PADENTER, RETKEY) && event->val==KM_PRESS)
 				click= 1;
+			else if (event->type == MINUSKEY && event->val==KM_PRESS) {
+				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+				data->value = -data->value;
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+				retval= WM_UI_HANDLER_BREAK;
+			}
 		}
 		
 	}
@@ -2525,6 +2531,12 @@ static int ui_do_but_SLI(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			}
 			else if(ELEM(event->type, PADENTER, RETKEY) && event->val==KM_PRESS)
 				click= 1;
+			else if (event->type == MINUSKEY && event->val==KM_PRESS) {
+				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+				data->value = -data->value;
+				button_activate_state(C, but, BUTTON_STATE_EXIT);
+				retval= WM_UI_HANDLER_BREAK;
+			}
 		}
 	}
 	else if(data->state == BUTTON_STATE_NUM_EDITING) {
