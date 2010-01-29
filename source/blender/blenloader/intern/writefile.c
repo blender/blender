@@ -2445,10 +2445,11 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *reports)
 {
 	char userfilename[FILE_MAXDIR+FILE_MAXFILE];
-	char tempname[FILE_MAXDIR+FILE_MAXFILE];
+	char tempname[FILE_MAXDIR+FILE_MAXFILE+1];
 	int file, err, write_user_block;
 
-	sprintf(tempname, "%s@", dir);
+	/* open temporary file, so we preserve the original in case we crash */
+	BLI_snprintf(tempname, sizeof(tempname), "%s@", dir);
 
 	file = open(tempname,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
@@ -2456,6 +2457,7 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 		return 0;
 	}
 
+	/* remapping of relative paths to new file location */
 	if(write_flags & G_FILE_RELATIVE_REMAP) {
 		char dir1[FILE_MAXDIR+FILE_MAXFILE];
 		char dir2[FILE_MAXDIR+FILE_MAXFILE];
@@ -2470,7 +2472,6 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 			write_flags &= ~G_FILE_RELATIVE_REMAP;
 		else
 			makeFilesAbsolute(G.sce, NULL);
-
 	}
 
 	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B25.blend");
@@ -2479,33 +2480,46 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 	if(write_flags & G_FILE_RELATIVE_REMAP)
 		makeFilesRelative(dir, NULL); /* note, making relative to something OTHER then G.sce */
 
+	/* actual file writing */
 	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags);
 	close(file);
 
+	/* rename/compress */
 	if(!err) {
-		if(write_flags & G_FILE_COMPRESS)
-		{	
-			// compressed files have the same ending as regular files... only from 2.4!!!
+		if(write_flags & G_FILE_COMPRESS) {
+			/* compressed files have the same ending as regular files... only from 2.4!!! */
+			char gzname[FILE_MAXDIR+FILE_MAXFILE+4];
+			int ret;
+
+			/* first write compressed to separate @.gz */
+			BLI_snprintf(gzname, sizeof(gzname), "%s@.gz", dir);
+			ret = BLI_gzip(tempname, gzname);
 			
-			int ret = BLI_gzip(tempname, dir);
-			
-			if(-1==ret) {
+			if(0==ret) {
+				/* now rename to real file name, and delete temp @ file too */
+				if(BLI_rename(gzname, dir) != 0) {
+					BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @.");
+					return 0;
+				}
+
+				BLI_delete(tempname, 0, 0);
+			}
+			else if(-1==ret) {
 				BKE_report(reports, RPT_ERROR, "Failed opening .gz file.");
 				return 0;
 			}
-			if(-2==ret) {
+			else if(-2==ret) {
 				BKE_report(reports, RPT_ERROR, "Failed opening .blend file for compression.");
 				return 0;
 			}
 		}
-		else
-		if(BLI_rename(tempname, dir) != 0) {
+		else if(BLI_rename(tempname, dir) != 0) {
 			BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @");
 			return 0;
 		}
-
 		
-	} else {
+	}
+	else {
 		BKE_report(reports, RPT_ERROR, strerror(errno));
 		remove(tempname);
 
