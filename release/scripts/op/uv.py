@@ -34,8 +34,8 @@ class ExportUVLayout(bpy.types.Operator):
     only_selected = BoolProperty(name="Only Selected", description="Export Only the selected UVs", default=False)
     
     def poll(self, context):
-        ob = context.active_object
-        return (ob and ob.type == 'MESH')
+        obj = context.active_object
+        return (obj and obj.type == 'MESH')
     
     def _image_size(self, context, default_width=1024, default_height=1024):
         # fallback if not in image context.
@@ -57,14 +57,14 @@ class ExportUVLayout(bpy.types.Operator):
         from xml.sax.saxutils import escape
         from os.path import basename
         
-        ob = context.active_object
-        is_editmode = (ob.mode == 'EDIT')
+        obj = context.active_object
+        is_editmode = (obj.mode == 'EDIT')
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         image_width, image_height = self._image_size(context)
 
-        mesh = ob.data
+        mesh = obj.data
         
         active_uv_layer = None
         for lay in mesh.uv_textures:
@@ -89,7 +89,7 @@ class ExportUVLayout(bpy.types.Operator):
         fw('<svg width="%dpx" height="%dpx" viewBox="0px 0px %dpx %dpx"\n' % (image_width, image_height, image_width, image_height))
         fw('     xmlns="http://www.w3.org/2000/svg" version="1.1">\n')
         
-        desc = "%s, %s, %s (Blender %s)" % (basename(bpy.data.filename), ob.name, mesh.name, bpy.app.version_string)
+        desc = "%s, %s, %s (Blender %s)" % (basename(bpy.data.filename), obj.name, mesh.name, bpy.app.version_string)
         fw('<desc>%s</desc>\n' % escape(desc))
 
         # svg colors
