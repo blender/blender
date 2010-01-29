@@ -52,8 +52,9 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re)
 	set_scene_bg( freestyle_scene );
 
 	// image dimensions
+	float ycor = ((float)re->r.yasp) / ((float)re->r.xasp);
 	float width = freestyle_scene->r.xsch;
-	float height = freestyle_scene->r.ysch;
+	float height = freestyle_scene->r.ysch * ycor;
 
 	// Camera
 	Object* object_camera = add_object(freestyle_scene, OB_CAMERA);

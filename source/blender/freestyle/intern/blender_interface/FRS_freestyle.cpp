@@ -81,8 +81,9 @@ extern "C" {
 	//=======================================================
 
 	void init_view(Render* re){
+		float ycor = ((float)re->r.yasp) / ((float)re->r.xasp);
 		int width = re->scene->r.xsch;
-		int height = re->scene->r.ysch;
+		int height = (int)(((float)re->scene->r.ysch) * ycor);
 		
 		freestyle_viewport[0] = freestyle_viewport[1] = 0;
 		freestyle_viewport[2] = width;
@@ -168,10 +169,12 @@ extern "C" {
 		rl = render_get_active_layer( freestyle_render, freestyle_render->result );
 	    if( !rl || rl->rectf == NULL) { cout << "Cannot find Freestyle result image" << endl; return; }
 		src  = rl->rectf;
+		//cout << "src: " << rl->rectx << " x " << rl->recty << endl;
 		
 		rl = RE_GetRenderLayer(re->result, srl->name);
 	    if( !rl || rl->rectf == NULL) { cout << "No layer to composite to" << endl; return; }
 		dest  = rl->rectf;
+		//cout << "dest: " << rl->rectx << " x " << rl->recty << endl;
 		
 		rectx = re->rectx;
 		recty = re->recty;
