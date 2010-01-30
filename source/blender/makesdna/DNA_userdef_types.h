@@ -291,7 +291,9 @@ typedef struct UserDef {
 	char sounddir[160];
 	char anim_player[240];	// FILE_MAX length
 	int anim_player_preset;
-	int pad;
+	
+	short v2d_min_gridsize;		/* minimum spacing between gridlines in View2D grids */
+	short timecode_style;		/* style of timecode display */
 	
 	short versions;
 	short dbl_click_time;
@@ -495,6 +497,21 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_CP_SQUARE_SV	1
 #define USER_CP_SQUARE_HS	2
 #define USER_CP_SQUARE_HV	3
+
+/* timecode display styles */
+	/* as little info as is necessary to show relevant info
+	 * with '+' to denote the frames 
+	 * i.e. HH:MM:SS+FF, MM:SS+FF, SS+FF, or MM:SS
+	 */
+#define USER_TIMECODE_MINIMAL		0
+	/* reduced SMPTE - (HH:)MM:SS:FF */
+#define USER_TIMECODE_SMPTE_MSF		1
+	/* full SMPTE - HH:MM:SS:FF */
+#define USER_TIMECODE_SMPTE_FULL	2
+	/* milliseconds for sub-frames - HH:MM:SS.sss */
+#define USER_TIMECODE_MILLISECONDS	3
+	/* seconds only */
+#define USER_TIMECODE_SECONDS_ONLY	4
 
 /* theme drawtypes */
 #define TH_MINIMAL  	0

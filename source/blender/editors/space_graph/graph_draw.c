@@ -491,11 +491,6 @@ static void draw_fcurve_samples (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, 
 
 /* Curve ---------------- */
 
-/* minimum pixels per gridstep 
- * XXX: defined in view2d.c - must keep these in sync or relocate to View2D header!
- */
-#define MINGRIDSTEP 	35
-
 /* helper func - just draw the F-Curve by sampling the visible region (for drawing curves with modifiers) */
 static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, SpaceIpo *sipo, View2D *v2d, View2DGrid *grid)
 {
@@ -523,10 +518,10 @@ static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, SpaceIpo *
 	 *	loop (i.e. too close to FLT_EPSILON), fall back to default of 0.001
 	 */
 		/* grid->dx is the first float in View2DGrid struct, so just cast to float pointer, and use it
-		 * It represents the number of 'frames' between gridlines, but we divide by MINGRIDSTEP to get pixels-steps
+		 * It represents the number of 'frames' between gridlines, but we divide by U.v2d_min_gridsize to get pixels-steps
 		 */
 		// TODO: perhaps we should have 1.0 frames as upper limit so that curves don't get too distorted?
-	samplefreq= *((float *)grid) / MINGRIDSTEP;
+	samplefreq= *((float *)grid) / U.v2d_min_gridsize;
 	if (IS_EQ(samplefreq, 0)) samplefreq= 0.001f;
 	
 	

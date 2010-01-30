@@ -107,6 +107,40 @@ static void rna_userdef_autokeymode_set(PointerRNA *ptr,int value)
 	}
 }
 
+static void rna_userdef_timecode_style_set(PointerRNA *ptr, int value)
+{
+	UserDef *userdef = (UserDef*)ptr->data;
+	int required_size = userdef->v2d_min_gridsize;
+	
+	/* set the timecode style */
+	userdef->timecode_style= value;
+	
+	/* adjust the v2d gridsize if needed so that timecodes don't overlap 
+	 * NOTE: most of these have been hand-picked to avoid overlaps while still keeping
+	 * things from getting too blown out
+	 */
+	switch (value) {
+		case USER_TIMECODE_MINIMAL:
+		case USER_TIMECODE_SECONDS_ONLY:
+			/* 35 is great most of the time, but not that great for full-blown */
+			required_size= 35;
+			break;
+		case USER_TIMECODE_SMPTE_MSF:
+			required_size= 50;
+			break;
+		case USER_TIMECODE_SMPTE_FULL:
+			/* the granddaddy! */
+			required_size= 65;
+			break;
+		case USER_TIMECODE_MILLISECONDS:
+			required_size= 45;
+			break;
+	}
+	
+	if (U.v2d_min_gridsize < required_size)
+		U.v2d_min_gridsize= required_size;
+}
+
 static PointerRNA rna_UserDef_view_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_UserPreferencesView, ptr->data);
@@ -1682,6 +1716,14 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 
 static void rna_def_userdef_view(BlenderRNA *brna)
 {
+	static EnumPropertyItem timecode_styles[] = {
+		{USER_TIMECODE_MINIMAL, "MINIMAL", 0, "Minimal Info", "Most compact representation. Uses '+' as separator for sub-second frame numbers, with left and right truncation of the timecode as necessary."},
+		{USER_TIMECODE_SMPTE_FULL, "SMPTE", 0, "SMPTE (Full)", "Full SMPTE timecode. Format is HH:MM:SS:FF."},
+		{USER_TIMECODE_SMPTE_MSF, "SMPTE_COMPACT", 0, "SMPTE (Compact)", "SMPTE timecode showing minutes, seconds, and frames only. Hours are also shown if necessary, but not by default."},
+		{USER_TIMECODE_MILLISECONDS, "MILLISECONDS", 0, "Compact with Milliseconds", "Similar to SMPTE (Compact), except that instead of frames, milliseconds are shown instead."},
+		{USER_TIMECODE_SECONDS_ONLY, "SECONDS_ONLY", 0, "Only Seconds", "Direct conversion of frame numbers to seconds."},
+		{0, NULL, 0, NULL, NULL}};
+	
 	PropertyRNA *prop;
 	StructRNA *srna;
 	
@@ -1769,13 +1811,11 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Auto Depth", "Use the depth under the mouse to improve view pan/rotate/zoom functionality.");
 
 	/* view zoom */
-
 	prop= RNA_def_property(srna, "zoom_to_mouse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ZOOM_TO_MOUSEPOS);
 	RNA_def_property_ui_text(prop, "Zoom To Mouse Position", "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center.");
 
 	/* view rotation */
-	
 	prop= RNA_def_property(srna, "auto_perspective", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_AUTOPERSP);
 	RNA_def_property_ui_text(prop, "Auto Perspective", "Automatically switch between orthographic and perspective when changing from top/front/side views.");
@@ -1783,17 +1823,8 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "rotate_around_selection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_ORBIT_SELECTION);
 	RNA_def_property_ui_text(prop, "Rotate Around Selection", "Use selection as the pivot point.");
-
-	/* select with */
 	
-
-	
-	
-	
-	prop= RNA_def_property(srna, "use_middle_mouse_paste", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_MMB_PASTE);
-	RNA_def_property_ui_text(prop, "Middle Mouse Paste", "In text window, paste with middle mouse button instead of panning.");
-
+	/* mini axis */
 	prop= RNA_def_property(srna, "show_mini_axis", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_ROTVIEWICON);
 	RNA_def_property_ui_text(prop, "Show Mini Axis", "Show a small rotating 3D axis in the bottom left corner of the 3D View.");
@@ -1812,9 +1843,10 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	/* middle mouse button */
+	prop= RNA_def_property(srna, "use_middle_mouse_paste", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_MMB_PASTE);
+	RNA_def_property_ui_text(prop, "Middle Mouse Paste", "In text window, paste with middle mouse button instead of panning.");
 	
-	
-
 	prop= RNA_def_property(srna, "wheel_invert_zoom", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_WHEELZOOMDIR);
 	RNA_def_property_ui_text(prop, "Wheel Invert Zoom", "Swap the Mouse Wheel zoom direction.");
@@ -1862,6 +1894,21 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_range(prop, 4, 10);
 	RNA_def_property_ui_text(prop, "Object Origin Size", "Diameter in Pixels for Object/Lamp origin display.");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	/* View2D Grid Displays */
+	prop= RNA_def_property(srna, "view2d_grid_minimum_spacing", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "v2d_min_gridsize");
+	RNA_def_property_range(prop, 1, 500); // XXX: perhaps the lower range should only go down to 5?
+	RNA_def_property_ui_text(prop, "2D View Minimum Grid Spacing", "Minimum number of pixels between each gridline in 2D Viewports");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+		// TODO: add a setter for this, so that we can bump up the minimum size as necessary...
+	prop= RNA_def_property(srna, "timecode_style", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, timecode_styles);
+	RNA_def_property_enum_sdna(prop, NULL, "timecode_style");
+	RNA_def_property_enum_funcs(prop, NULL, "rna_userdef_timecode_style_set", NULL);
+	RNA_def_property_ui_text(prop, "TimeCode Style", "Format of Time Codes displayed when not displaying timing in terms of frames.");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_edit(BlenderRNA *brna)
@@ -1873,7 +1920,8 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 		{AUTOKEY_MODE_NORMAL, "ADD_REPLACE_KEYS", 0, "Add/Replace", ""},
 		{AUTOKEY_MODE_EDITKEYS, "REPLACE_KEYS", 0, "Replace", ""},
 		{0, NULL, 0, NULL, NULL}};
-
+	
+	// XXX: we could just use the one that is defined in rna_curve.h
 	static EnumPropertyItem new_interpolation_types[] = {
 		{BEZT_IPO_CONST, "CONSTANT", 0, "Constant", ""},
 		{BEZT_IPO_LIN, "LINEAR", 0, "Linear", ""},

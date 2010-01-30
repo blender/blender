@@ -236,7 +236,14 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.prop(view, "auto_perspective")
         col.prop(view, "smooth_view")
         col.prop(view, "rotation_angle")
-
+        
+        col.separator()
+        col.separator()
+        
+        col.label(text="2D Viewports:")
+        col.prop(view, "view2d_grid_minimum_spacing", text="Minimum Grid Spacing")
+        col.prop(view, "timecode_style")
+        
         row.separator()
         row.separator()
 

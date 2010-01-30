@@ -75,71 +75,147 @@
 extern void ui_rasterpos_safe(float x, float y, float aspect);
 
 /* *************************************************** */
+/* TIME CODE FORMATTING */
+
+/* Generate timecode/frame number string and store in the supplied string 
+ * 	- buffer: must be at least 13 chars long 
+ *	- power: special setting for View2D grid drawing, 
+ *	  used to specify how detailed we need to be
+ *	- timecodes: boolean specifying whether timecodes or
+ *	  frame numbers get drawn
+ *	- cfra: time in frames or seconds, consistent with the values shown by timecodes
+ */
+// TODO: have this in kernel instead under scene?
+void ANIM_timecode_string_from_frame (char *str, Scene *scene, int power, short timecodes, float cfra)
+{
+	if (timecodes) {
+		int hours=0, minutes=0, seconds=0, frames=0;
+		float raw_seconds= cfra;
+		char neg[2]= "";
+		
+		/* get cframes */
+		if (cfra < 0) {
+			/* correction for negative cfraues */
+			sprintf(neg, "-");
+			cfra = -cfra;
+		}
+		if (cfra >= 3600) {
+			/* hours */
+			/* XXX should we only display a single digit for hours since clips are 
+			 * 	   VERY UNLIKELY to be more than 1-2 hours max? However, that would 
+			 *	   go against conventions...
+			 */
+			hours= (int)cfra / 3600;
+			cfra= (float)fmod(cfra, 3600);
+		}
+		if (cfra >= 60) {
+			/* minutes */
+			minutes= (int)cfra / 60;
+			cfra= (float)fmod(cfra, 60);
+		}
+		if (power <= 0) {
+			/* seconds + frames
+			 *	Frames are derived from 'fraction' of second. We need to perform some additional rounding
+			 *	to cope with 'half' frames, etc., which should be fine in most cases
+			 */
+			seconds= (int)cfra;
+			frames= (int)floor( ((cfra - seconds) * FPS) + 0.5f );
+		}
+		else {
+			/* seconds (with pixel offset rounding) */
+			seconds= (int)floor(cfra + 0.375f);
+		}
+		
+		switch (U.timecode_style) {
+			case USER_TIMECODE_MINIMAL: 
+			{
+				/*	- In general, minutes and seconds should be shown, as most clips will be
+				 *	  within this length. Hours will only be included if relevant.
+				 *	- Only show frames when zoomed in enough for them to be relevant 
+				 *	  (using separator of '+' for frames).
+				 *	  When showing frames, use slightly different display to avoid confusion with mm:ss format
+				 */
+				if (power <= 0) {
+					/* include "frames" in display */
+					if (hours) sprintf(str, "%s%02d:%02d:%02d+%02d", neg, hours, minutes, seconds, frames);
+					else if (minutes) sprintf(str, "%s%02d:%02d+%02d", neg, minutes, seconds, frames);
+					else sprintf(str, "%s%d+%02d", neg, seconds, frames);
+				}
+				else {
+					/* don't include 'frames' in display */
+					if (hours) sprintf(str, "%s%02d:%02d:%02d", neg, hours, minutes, seconds);
+					else sprintf(str, "%s%02d:%02d", neg, minutes, seconds);
+				}
+			}
+				break;
+				
+			case USER_TIMECODE_SMPTE_MSF:
+			{
+				/* reduced SMPTE format that always shows minutes, seconds, frames. Hours only shown as needed. */
+				if (hours) sprintf(str, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
+				else sprintf(str, "%s%02d:%02d:%02d", neg, minutes, seconds, frames);
+			}
+				break;
+			
+			case USER_TIMECODE_MILLISECONDS:
+			{
+				/* reduced SMPTE. Instead of frames, milliseconds are shown */
+				int ms_dp= (power <= 0) ? (1 - power) : 1; /* precision of decimal part */
+				int s_pad= ms_dp+3;	/* to get 2 digit whole-number part for seconds display (i.e. 3 is for 2 digits + radix, on top of full length) */
+				
+				if (hours) sprintf(str, "%s%02d:%02d:%0*.*f", neg, hours, minutes, s_pad, ms_dp, cfra);
+				else sprintf(str, "%s%02d:%0*.*f", neg, minutes, s_pad,  ms_dp, cfra);
+			}
+				break;
+				
+			case USER_TIMECODE_SECONDS_ONLY:
+			{
+				/* only show the original seconds display */
+				/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
+				if (power <= 0) sprintf(str, "%.*f", 1-power, raw_seconds);
+				else sprintf(str, "%d", (int)floor(raw_seconds + 0.375f));
+			}
+				break;
+			
+			case USER_TIMECODE_SMPTE_FULL:
+			default:
+			{
+				/* full SMPTE format */
+				sprintf(str, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
+			}
+				break;
+		}
+	}
+	else {
+		/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
+		if (power <= 0) sprintf(str, "%.*f", 1-power, cfra);
+		else sprintf(str, "%d", (int)floor(cfra + 0.375f));
+	}
+} 
+
+/* *************************************************** */
 /* CURRENT FRAME DRAWING */
 
 /* Draw current frame number in a little green box beside the current frame indicator */
 static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 {
 	float xscale, yscale, x, y;
-	char str[32];
+	char str[32] = "    t";	/* t is the character to start replacing from */
 	short slen;
 	
 	/* because the frame number text is subject to the same scaling as the contents of the view */
 	UI_view2d_getscale(v2d, &xscale, &yscale);
 	glScalef(1.0f/xscale, 1.0f, 1.0f);
 	
-	if (time) {
-		/* Timecode:
-		 *	- In general, minutes and seconds should be shown, as most clips will be
-		 *	  within this length. Hours will only be included if relevant.
-		 *	- Only show frames when zoomed in enough for them to be relevant 
-		 *	  (using separator of '!' for frames).
-		 *	  When showing frames, use slightly different display to avoid confusion with mm:ss format
-		 * TODO: factor into reusable function.
-		 * Meanwhile keep in sync:
-		 *	  source/blender/editors/animation/anim_draw.c
-		 *	  source/blender/editors/interface/view2d.c
-		 */
-		float val= FRA2TIME(CFRA);
-		int hours=0, minutes=0, seconds=0, frames=0;
-		char neg[2]= "";
-		
-		/* get values */
-		if (val < 0) {
-			/* correction for negative values */
-			sprintf(neg, "-");
-			val = -val;
-		}
-		if (val >= 3600) {
-			/* hours */
-			/* XXX should we only display a single digit for hours since clips are 
-			 * 	   VERY UNLIKELY to be more than 1-2 hours max? However, that would 
-			 *	   go against conventions...
-			 */
-			hours= (int)val / 3600;
-			val= (float)fmod(val, 3600);
-		}
-		if (val >= 60) {
-			/* minutes */
-			minutes= (int)val / 60;
-			val= (float)fmod(val, 60);
-		}
-		{
-			/* seconds + frames
-			 *	Frames are derived from 'fraction' of second. We need to perform some additional rounding
-			 *	to cope with 'half' frames, etc., which should be fine in most cases
-			 */
-			seconds= (int)val;
-			frames= (int)floor( ((val - seconds) * FPS) + 0.5f );
-		}
-		
-		/* print timecode to temp string buffer */
-		if (hours) sprintf(str, "   %s%02d:%02d:%02d!%02d", neg, hours, minutes, seconds, frames);
-		else if (minutes) sprintf(str, "   %s%02d:%02d!%02d", neg, minutes, seconds, frames);
-		else sprintf(str, "   %s%d!%02d", neg, seconds, frames);
-	}
-	else 
-		sprintf(str, "   %d", CFRA);
+	/* get timecode string 
+	 *	- padding on str-buf passed so that it doesn't sit on the frame indicator
+	 *	- power = 0, gives 'standard' behaviour for time
+	 *	  but power = 1 is required for frames (to get integer frames)
+	 */
+	if (time)
+		ANIM_timecode_string_from_frame(&str[4], scene, 0, time, FRA2TIME(cfra));
+	else	
+		ANIM_timecode_string_from_frame(&str[4], scene, 1, time, cfra);
 	slen= (short)UI_GetStringWidth(str) - 1;
 	
 	/* get starting coordinates for drawing */
