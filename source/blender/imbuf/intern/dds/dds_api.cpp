@@ -80,6 +80,10 @@ struct ImBuf *imb_load_dds(unsigned char *mem, int size, int flags)
 
 	/* check if DDS is valid and supported */
 	if (!dds.isValid()) {
+		/* no need to print error here, just testing if it is a DDS */
+		if(flags & IB_test)
+			return (0);
+
 		printf("DDS: not valid; header follows\n");
 		dds.printInfo();
 		return(0);
