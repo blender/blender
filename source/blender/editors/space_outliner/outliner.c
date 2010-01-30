@@ -4356,6 +4356,11 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 	int active;
 
 	for(te= lb->first; te; te= te->next) {
+		
+		/* exit drawing early */
+		if((*offsx) - OL_X > xmax)
+			break;
+
 		tselem= TREESTORE(te);
 		
 		/* object hierarchy always, further constrained on level */
