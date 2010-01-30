@@ -190,11 +190,10 @@ void WM_keymap_init(bContext *C)
 		/* create default key config */
 		wm_window_keymap(wm->defaultconf);
 		ED_spacetypes_keymap(wm->defaultconf);
+		WM_keyconfig_userdef(wm);
 
 		wm->initialized |= WM_INIT_KEYMAP;
 	}
-
-	WM_keyconfig_userdef(wm);
 }
 
 void WM_check(bContext *C)
