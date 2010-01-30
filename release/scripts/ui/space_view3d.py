@@ -56,11 +56,15 @@ class VIEW3D_HT_header(bpy.types.Header):
 
         row.template_header_3D()
 
+        # do in C for now since these buttons cant be both toggle AND exclusive.
+        '''
         if obj and obj.mode == 'EDIT' and obj.type == 'MESH':
             row_sub = row.row(align=True)
             row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=0, icon='VERTEXSEL')
             row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=1, icon='EDGESEL')
             row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=2, icon='FACESEL')
+        '''
+
 
         # Particle edit
         if obj and obj.mode == 'PARTICLE_EDIT':
