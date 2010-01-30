@@ -282,9 +282,12 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 				sms.orig_lens= v3d->lens;
 			}
 			/* grid draw as floor */
-			sms.orig_view= rv3d->view;
-			rv3d->view= 0;
-			
+			if((rv3d->viewlock & RV3D_LOCKED)==0) {
+				/* use existing if exists, means multiple calls to smooth view wont loose the original 'view' setting */
+				sms.orig_view= rv3d->sms ? rv3d->sms->orig_view : rv3d->view;
+				rv3d->view= 0;
+			}
+
 			/* ensure it shows correct */
 			if(sms.to_camera) rv3d->persp= RV3D_PERSP;
 
@@ -344,8 +347,11 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			rv3d->dist = sms->new_dist;
 			v3d->lens = sms->new_lens;
 		}
-		rv3d->view= sms->orig_view;
 		
+		if((rv3d->viewlock & RV3D_LOCKED)==0) {
+			rv3d->view= sms->orig_view;
+		}
+
 		MEM_freeN(rv3d->sms);
 		rv3d->sms= NULL;
 		
