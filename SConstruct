@@ -578,11 +578,14 @@ else:
 		allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc'):
-	if env['OURPLATFORM'] == 'win64-vc':
-		dllsources = []
-	else:
-		dllsources = ['${LCGDIR}/gettext/lib/gnu_gettext.dll',
-				'${BF_PNG_LIBPATH}/libpng.dll',
+	dllsources = []
+
+	if env['OURPLATFORM'] != 'win64-vc':
+		if env['OURPLATFORM'] != 'win32-mingw':
+			# For MinGW static linking will be used
+			dllsources += ['${LCGDIR}/gettext/lib/gnu_gettext.dll']		
+		
+		dllsources += ['${BF_PNG_LIBPATH}/libpng.dll',
 				'${BF_ZLIB_LIBPATH}/zlib.dll',
 				'${BF_TIFF_LIBPATH}/${BF_TIFF_LIB}.dll']
 	dllsources += ['${BF_PTHREADS_LIBPATH}/${BF_PTHREADS_LIB}.dll']
@@ -599,7 +602,8 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc'):
 	if env['WITH_BF_ICONV']:
 		if env['OURPLATFORM'] == 'win64-vc':
 			pass # we link statically to iconv on win64
-		else:
+		elif env['OURPLATFORM'] != 'win32-mingw':
+			#gettext for MinGW is compiled staticly
 			dllsources += ['${BF_ICONV_LIBPATH}/iconv.dll']
 	if env['WITH_BF_OPENAL']:
 		dllsources.append('${LCGDIR}/openal/lib/OpenAL32.dll')

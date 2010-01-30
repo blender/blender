@@ -85,10 +85,16 @@ BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
 WITH_BF_INTERNATIONAL = True
 
-BF_GETTEXT = LIBDIR + '/gettext'
+BF_GETTEXT = LIBDIR + '/gcc/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
-BF_GETTEXT_LIB = 'gnu_gettext'
+BF_GETTEXT_LIB = 'intl'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
+
+WITH_BF_FFTW3 = False
+BF_FFTW3 = LIBDIR + '/gcc/fftw3'
+BF_FFTW3_INC = '${BF_FFTW3}/include'
+BF_FFTW3_LIB = 'fftw3'
+BF_FFTW3_LIBPATH = '${BF_FFTW3}/lib'
 
 WITH_BF_GAMEENGINE = False
 WITH_BF_PLAYER = False
