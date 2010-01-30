@@ -810,7 +810,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 
 	if (ibuf) {	
 		BLI_convertstringcode(name, G.sce);
-		BLI_convertstringframe(name, scene->r.cfra);
+		BLI_convertstringframe(name, scene->r.cfra, 0);
 		
 		if(scene->r.scemode & R_EXTENSION)  {
 			BKE_add_image_extension(name, sima->imtypenr);

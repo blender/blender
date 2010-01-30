@@ -98,7 +98,7 @@ char *rna_Image_get_abs_filename(Image *image, bContext *C)
 
 	BLI_strncpy(filename, image->name, FILE_MAXDIR + FILE_MAXFILE);
 	BLI_convertstringcode(filename, CTX_data_main(C)->name);
-	BLI_convertstringframe(filename, CTX_data_scene(C)->r.cfra);
+	BLI_convertstringframe(filename, CTX_data_scene(C)->r.cfra, 0);
 
 	return filename;
 }

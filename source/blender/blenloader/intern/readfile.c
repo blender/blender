@@ -9682,7 +9682,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						char str[FILE_MAX];
 						BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
 						BLI_convertstringcode(str, G.sce);
-						BLI_convertstringframe(str, scene->r.cfra);
 						seq->sound = sound_new_file(main, str);
 					}
 				}

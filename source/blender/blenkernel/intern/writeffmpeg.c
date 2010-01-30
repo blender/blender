@@ -781,7 +781,6 @@ void filepath_ffmpeg(char* string, RenderData* rd) {
 
 	strcpy(string, rd->pic);
 	BLI_convertstringcode(string, G.sce);
-	BLI_convertstringframe(string, rd->cfra);
 
 	BLI_make_existing_file(string);
 
@@ -802,11 +801,7 @@ void filepath_ffmpeg(char* string, RenderData* rd) {
 	if (!*fe) {
 		strcat(string, autosplit);
 
-		/* if we dont have any #'s to insert numbers into, use 4 numbers by default */
-		if (strchr(string, '#')==NULL)
-			strcat(string, "####"); /* 4 numbers */
-
-		BLI_convertstringframe_range(string, rd->sfra, rd->efra);
+		BLI_convertstringframe_range(string, rd->sfra, rd->efra, 4);
 		strcat(string, *exts);
 	} else {
 		*(string + strlen(string) - strlen(*fe)) = 0;

@@ -2084,7 +2084,7 @@ static void load_backbuffer(Render *re)
 		
 		strcpy(name, re->r.backbuf);
 		BLI_convertstringcode(name, G.sce);
-		BLI_convertstringframe(name, re->r.cfra);
+		BLI_convertstringframe(name, re->r.cfra, 0);
 		
 		if(re->backbuf) {
 			re->backbuf->id.us--;
