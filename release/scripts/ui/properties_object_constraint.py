@@ -744,18 +744,14 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
     bl_context = "bone_constraint"
 
     def poll(self, context):
-        ob = context.object
-        return (ob and ob.type == 'ARMATURE' and context.bone)
+        return (context.pose_bone)
 
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
-        pchan = ob.pose.bones[context.bone.name]
-
         layout.operator_menu_enum("pose.constraint_add", "type")
 
-        for con in pchan.constraints:
+        for con in context.pose_bone.constraints:
             self.draw_constraint(context, con)
 
 bpy.types.register(OBJECT_PT_constraints)

@@ -48,6 +48,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_action.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
@@ -274,6 +275,40 @@ static int buttons_context_path_bone(ButsContextPath *path)
 	return 0;
 }
 
+static int buttons_context_path_pose_bone(ButsContextPath *path)
+{
+	PointerRNA *ptr= &path->ptr[path->len-1];
+
+	/* if we already have a (pinned) PoseBone, we're done */
+	if(RNA_struct_is_a(ptr->type, &RNA_PoseBone)) {
+		return 1;
+	}
+
+	/* if we have an armature, get the active bone */
+	if(buttons_context_path_object(path)) {
+		Object *ob= path->ptr[path->len-1].data;
+		bArmature *arm= ob->data; /* path->ptr[path->len-1].data - works too */
+
+		if(ob->type != OB_ARMATURE || arm->edbo) {
+			return 0;
+		}
+		else {
+			if(arm->act_bone) {
+				bPoseChannel *pchan= get_pose_channel(ob->pose, arm->act_bone->name);
+				if(pchan) {
+					RNA_pointer_create(&ob->id, &RNA_PoseBone, pchan, &path->ptr[path->len]);
+					path->len++;
+					return 1;
+				}
+			}
+		}
+	}
+
+	/* no path to a bone possible */
+	return 0;
+}
+
+
 static int buttons_context_path_particle(ButsContextPath *path)
 {
 	Object *ob;
@@ -461,10 +496,12 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found= buttons_context_path_texture(C, path);
 			break;
 		case BCONTEXT_BONE:
-		case BCONTEXT_BONE_CONSTRAINT:
 			found= buttons_context_path_bone(path);
 			if(!found)
 				found= buttons_context_path_data(path, OB_ARMATURE);
+			break;
+		case BCONTEXT_BONE_CONSTRAINT:
+			found= buttons_context_path_pose_bone(path);
 			break;
 		default:
 			found= 0;
@@ -586,7 +623,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		static const char *dir[] = {
 			"world", "object", "mesh", "armature", "lattice", "curve",
 			"meta_ball", "lamp", "camera", "material", "material_slot",
-			"texture", "texture_slot", "bone", "edit_bone", "particle_system", "particle_system_editable",
+			"texture", "texture_slot", "bone", "edit_bone", "pose_bone", "particle_system", "particle_system_editable",
 			"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
 
 		CTX_data_dir_set(result, dir);
@@ -702,6 +739,10 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	}
 	else if(CTX_data_equals(member, "edit_bone")) {
 		set_pointer_type(path, result, &RNA_EditBone);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "pose_bone")) {
+		set_pointer_type(path, result, &RNA_PoseBone);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "particle_system")) {
