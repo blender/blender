@@ -140,8 +140,9 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 	  StrokeVertexRep *svRep[3];
 	  Vec3r color[3];
 	  unsigned int vertex_index;
+	  float ycor = ((float)freestyle_scene->r.yasp) / ((float)freestyle_scene->r.xasp);
 	  float width = freestyle_scene->r.xsch;
-	  float height = freestyle_scene->r.ysch;
+	  float height = freestyle_scene->r.ysch * ycor;
 	  Vec2r p;
 	
 	  for(vector<Strip*>::iterator s=strips.begin(), send=strips.end();
