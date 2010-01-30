@@ -48,8 +48,8 @@ void	free_image(struct Image *me);
 void	BKE_stamp_info(struct Scene *scene, struct ImBuf *ibuf);
 void	BKE_stamp_buf(struct Scene *scene, unsigned char *rect, float *rectf, int width, int height, int channels);
 int		BKE_write_ibuf(struct Scene *scene, struct ImBuf *ibuf, char *name, int imtype, int subimtype, int quality);
-void	BKE_makepicstring(struct Scene *scene, char *string, char *base, int frame, int imtype);
-void	BKE_add_image_extension(struct Scene *scene, char *string, int imtype);
+void	BKE_makepicstring(char *string, char *base, int frame, int imtype, int use_ext);
+void	BKE_add_image_extension(char *string, int imtype);
 int		BKE_ftype_to_imtype(int ftype);
 int		BKE_imtype_to_ftype(int imtype);
 int		BKE_imtype_is_movie(int imtype);
@@ -129,7 +129,7 @@ struct Image *BKE_image_verify_viewer(int type, const char *name);
 void BKE_image_assign_ibuf(struct Image *ima, struct ImBuf *ibuf);
 
 /* called on frame change or before render */
-void BKE_image_user_calc_imanr(struct ImageUser *iuser, int cfra, int fieldnr);
+void BKE_image_user_calc_frame(struct ImageUser *iuser, int cfra, int fieldnr);
 
 /* produce image export path */
 int BKE_get_image_export_path(struct Image *im, const char *dest_dir, char *abs, int abs_size, char *rel, int rel_size);
@@ -143,7 +143,7 @@ struct RenderPass *BKE_image_multilayer_index(struct RenderResult *rr, struct Im
 /* for multilayer images as well as for render-viewer */
 struct RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, struct Image *ima);
 void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
-
+	
 /* goes over all textures that use images */
 void	BKE_image_free_all_textures(void);
 

@@ -34,9 +34,11 @@
 #include <Carbon/Carbon.h>
 #endif
 
+#include <OpenGL/gl.h>
 /***** Multithreaded opengl code : uncomment for enabling
 #include <OpenGL/OpenGL.h>
 */
+
  
 #include "GHOST_WindowCocoa.h"
 #include "GHOST_SystemCocoa.h"
@@ -70,6 +72,8 @@ extern "C" {
 - (void)windowDidResignKey:(NSNotification *)notification;
 - (void)windowDidExpose:(NSNotification *)notification;
 - (void)windowDidResize:(NSNotification *)notification;
+- (void)windowDidMove:(NSNotification *)notification;
+- (void)windowWillMove:(NSNotification *)notification;
 @end
 
 @implementation CocoaWindowDelegate : NSObject
@@ -97,6 +101,16 @@ extern "C" {
 - (void)windowDidExpose:(NSNotification *)notification
 {
 	systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, associatedWindow);
+}
+
+- (void)windowDidMove:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowMove, associatedWindow);
+}
+
+- (void)windowWillMove:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowMove, associatedWindow);
 }
 
 - (void)windowDidResize:(NSNotification *)notification
@@ -277,14 +291,15 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
-	const bool stereoVisual
+	const bool stereoVisual, const GHOST_TUns16 numOfAASamples
 ) :
-	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone, stereoVisual),
+	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone, stereoVisual, numOfAASamples),
 	m_customCursor(0)
 {
 	NSOpenGLPixelFormatAttribute pixelFormatAttrsWindow[40];
+	NSOpenGLPixelFormat *pixelFormat = nil;
 	int i;
-	
+		
 	m_systemCocoa = systemCocoa;
 	m_fullScreen = false;
 	
@@ -321,6 +336,11 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	// Pixel Format Attributes for the windowed NSOpenGLContext
 	i=0;
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
+	
+	// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object’s flushBuffer
+	// needed for 'Draw Overlap' drawing method
+	pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore; 
+	
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
 	//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
 	
@@ -329,13 +349,57 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	if (stereoVisual) pixelFormatAttrsWindow[i++] = NSOpenGLPFAStereo;
 	
+	if (numOfAASamples>0) {
+		// Multisample anti-aliasing
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFAMultisample;
+		
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFASampleBuffers;
+		pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) 1;
+		
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFASamples;
+		pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) numOfAASamples;
+		
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFANoRecovery;
+	}
+	
 	pixelFormatAttrsWindow[i] = (NSOpenGLPixelFormatAttribute) 0;
 	
-
-	//Creates the OpenGL View inside the window
-	NSOpenGLPixelFormat *pixelFormat =
-	[[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttrsWindow];
+	pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttrsWindow];
 	
+	
+	//Fall back to no multisampling if Antialiasing init failed
+	if (pixelFormat == nil) {
+		i=0;
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
+		
+		// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object’s flushBuffer
+		// needed for 'Draw Overlap' drawing method
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore;
+		
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
+		//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
+		
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFADepthSize;
+		pixelFormatAttrsWindow[i++] = (NSOpenGLPixelFormatAttribute) 32;
+		
+		if (stereoVisual) pixelFormatAttrsWindow[i++] = NSOpenGLPFAStereo;
+		
+		pixelFormatAttrsWindow[i] = (NSOpenGLPixelFormatAttribute) 0;
+		
+		pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttrsWindow];
+		
+	}
+	
+	if (numOfAASamples>0) { //Set m_numOfAASamples to the actual value
+		GLint gli;
+		[pixelFormat getValues:&gli forAttribute:NSOpenGLPFASamples forVirtualScreen:0];
+		if (m_numOfAASamples != (GHOST_TUns16)gli) {
+			m_numOfAASamples = (GHOST_TUns16)gli;
+			printf("GHOST_Window could be created with anti-aliasing of only %i samples\n",m_numOfAASamples);
+		}
+	}
+		
+	//Creates the OpenGL View inside the window
 	m_openGLView = [[CocoaOpenGLView alloc] initWithFrame:rect
 												 pixelFormat:pixelFormat];
 	
@@ -398,16 +462,13 @@ GHOST_WindowCocoa::~GHOST_WindowCocoa()
 
 bool GHOST_WindowCocoa::getValid() const
 {
-    bool valid;
-    if (!m_fullScreen) {
-        valid = (m_window != 0); //&& ::IsValidWindowPtr(m_windowRef);
-    }
-    else {
-        valid = true;
-    }
-    return valid;
+	return (m_window != 0);
 }
 
+void* GHOST_WindowCocoa::getOSWindow() const
+{
+	return (void*)m_window;
+}
 
 void GHOST_WindowCocoa::setTitle(const STR_String& title)
 {
@@ -842,6 +903,9 @@ GHOST_TSuccess GHOST_WindowCocoa::activateDrawingContext()
 		if (m_openGLContext != nil) {
 			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 			[m_openGLContext makeCurrentContext];
+			
+			// Disable AA by default
+			if (m_numOfAASamples > 0) glDisable(GL_MULTISAMPLE_ARB);
 			[pool drain];
 			return GHOST_kSuccess;
 		}
@@ -1004,6 +1068,7 @@ void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 			case GHOST_kStandardCursorTopRightCorner:
 			case GHOST_kStandardCursorBottomRightCorner:
 			case GHOST_kStandardCursorBottomLeftCorner:
+			case GHOST_kStandardCursorCopy:
 			case GHOST_kStandardCursorDefault:
 			default:
 				tmpCursor = [NSCursor arrowCursor];

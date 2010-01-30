@@ -39,7 +39,6 @@
 #include "stdarg.h"
 #include "math.h"
 #include "float.h"
-#include "ctype.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -102,6 +101,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_scene.h"
 #include "BKE_smoke.h"
 #include "BKE_softbody.h"
 #include "BKE_subsurf.h"
@@ -144,12 +144,15 @@ static int is_last_displist(Object *ob)
 	return 0;
 }
 
-static DerivedMesh *get_original_dm(Scene *scene, Object *ob, float (*vertexCos)[3], int orco)
+/* returns a derived mesh if dm == NULL, for deforming modifiers that need it */
+static DerivedMesh *get_dm(Scene *scene, Object *ob, EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3], int orco)
 {
-	DerivedMesh *dm= NULL;
+	if(dm)
+		return dm;
 
 	if(ob->type==OB_MESH) {
-		dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
+		if(em) dm= CDDM_from_editmesh(em, ob->data);
+		else dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
 
 		if(vertexCos) {
 			CDDM_apply_vert_coords(dm, vertexCos);
@@ -182,6 +185,26 @@ static DerivedMesh *get_original_dm(Scene *scene, Object *ob, float (*vertexCos)
 		}
 	}
 
+	return dm;
+}
+
+/* returns a cdderivedmesh if dm == NULL or is another type of derivedmesh */
+static DerivedMesh *get_cddm(Scene *scene, Object *ob, EditMesh *em, DerivedMesh *dm, float (*vertexCos)[3])
+{
+	if(dm && dm->type == DM_TYPE_CDDM)
+		return dm;
+
+	if(!dm) {
+		dm= get_dm(scene, ob, em, dm, vertexCos, 0);
+	}
+	else {
+		dm= CDDM_copy(dm);
+		CDDM_apply_vert_coords(dm, vertexCos);
+	}
+
+	if(dm)
+		CDDM_calc_normals(dm);
+	
 	return dm;
 }
 
@@ -405,8 +428,9 @@ static void subsurfModifier_freeData(ModifierData *md)
 static int subsurfModifier_isDisabled(ModifierData *md, int useRenderParams)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+	int levels= (useRenderParams)? smd->renderLevels: smd->levels;
 
-	return (useRenderParams)? (smd->renderLevels == 0): (smd->levels == 0);
+	return get_render_subsurf_level(&md->scene->r, levels) == 0;
 }
 
 static DerivedMesh *subsurfModifier_applyModifier(
@@ -843,23 +867,7 @@ static DerivedMesh *maskModifier_applyModifier(ModifierData *md, Object *ob,
 	}
 	else		/* --- Using Nominated VertexGroup only --- */ 
 	{
-		int defgrp_index = -1;
-		
-		/* get index of vertex group */
-		if (mmd->vgroup[0]) 
-		{
-			bDeformGroup *def;
-			
-			/* find index by comparing names - SLOW... */
-			for (i = 0, def = ob->defbase.first; def; def = def->next, i++) 
-			{
-				if (!strcmp(def->name, mmd->vgroup)) 
-				{
-					defgrp_index = i;
-					break;
-				}
-			}
-		}
+		int defgrp_index = defgroup_name_index(ob, mmd->vgroup);
 		
 		/* get dverts */
 		if (defgrp_index >= 0)
@@ -1778,118 +1786,6 @@ static void mirrorModifier_updateDepgraph(ModifierData *md, DagForest *forest, S
 	}
 }
 
-/* finds the best possible flipped name. For renaming; check for unique names afterwards */
-/* if strip_number: removes number extensions */
-static void vertgroup_flip_name (char *name, int strip_number)
-{
-	int     len;
-	char    prefix[128]={""};   /* The part before the facing */
-	char    suffix[128]={""};   /* The part after the facing */
-	char    replace[128]={""};  /* The replacement string */
-	char    number[128]={""};   /* The number extension string */
-	char    *index=NULL;
-
-	len= strlen(name);
-	if(len<3) return; // we don't do names like .R or .L
-
-	/* We first check the case with a .### extension, let's find the last period */
-	if(isdigit(name[len-1])) {
-		index= strrchr(name, '.'); // last occurrance
-		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
-			if(strip_number==0) 
-				strcpy(number, index);
-			*index= 0;
-			len= strlen(name);
-		}
-	}
-
-	strcpy (prefix, name);
-
-#define IS_SEPARATOR(a) ((a)=='.' || (a)==' ' || (a)=='-' || (a)=='_')
-
-	/* first case; separator . - _ with extensions r R l L  */
-	if( IS_SEPARATOR(name[len-2]) ) {
-		switch(name[len-1]) {
-			case 'l':
-				prefix[len-1]= 0;
-				strcpy(replace, "r");
-				break;
-			case 'r':
-				prefix[len-1]= 0;
-				strcpy(replace, "l");
-				break;
-			case 'L':
-				prefix[len-1]= 0;
-				strcpy(replace, "R");
-				break;
-			case 'R':
-				prefix[len-1]= 0;
-				strcpy(replace, "L");
-				break;
-		}
-	}
-	/* case; beginning with r R l L , with separator after it */
-	else if( IS_SEPARATOR(name[1]) ) {
-		switch(name[0]) {
-			case 'l':
-				strcpy(replace, "r");
-				strcpy(suffix, name+1);
-				prefix[0]= 0;
-				break;
-			case 'r':
-				strcpy(replace, "l");
-				strcpy(suffix, name+1);
-				prefix[0]= 0;
-				break;
-			case 'L':
-				strcpy(replace, "R");
-				strcpy(suffix, name+1);
-				prefix[0]= 0;
-				break;
-			case 'R':
-				strcpy(replace, "L");
-				strcpy(suffix, name+1);
-				prefix[0]= 0;
-				break;
-		}
-	}
-	else if(len > 5) {
-		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
-		index = BLI_strcasestr(prefix, "right");
-		if (index==prefix || index==prefix+len-5) {
-			if(index[0]=='r') 
-				strcpy (replace, "left");
-			else {
-				if(index[1]=='I') 
-					strcpy (replace, "LEFT");
-				else
-					strcpy (replace, "Left");
-			}
-			*index= 0;
-			strcpy (suffix, index+5);
-		}
-		else {
-			index = BLI_strcasestr(prefix, "left");
-			if (index==prefix || index==prefix+len-4) {
-				if(index[0]=='l') 
-					strcpy (replace, "right");
-				else {
-					if(index[1]=='E') 
-						strcpy (replace, "RIGHT");
-					else
-						strcpy (replace, "Right");
-				}
-				*index= 0;
-				strcpy (suffix, index+4);
-			}
-		}
-	}
-
-#undef IS_SEPARATOR
-
-	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
-}
-
 static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		Object *ob,
 		DerivedMesh *dm,
@@ -1903,9 +1799,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	int maxVerts = dm->getNumVerts(dm);
 	int maxEdges = dm->getNumEdges(dm);
 	int maxFaces = dm->getNumFaces(dm);
-	int vector_size=0, j, a, b;
-	bDeformGroup *def, *defb;
-	bDeformGroup **vector_def = NULL;
+	int *flip_map= NULL;
+	int do_vgroup_mirr= (mmd->flag & MOD_MIR_VGROUP);
 	int (*indexMap)[2];
 	float mtx[4][4], imtx[4][4];
 
@@ -1916,18 +1811,10 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, maxFaces * 2);
 
 
-	if (mmd->flag & MOD_MIR_VGROUP) {
-		/* calculate the number of deformedGroups */
-		for(vector_size = 0, def = ob->defbase.first; def;
-		    def = def->next, vector_size++);
-
-		/* load the deformedGroups for fast access */
-		vector_def =
-		    (bDeformGroup **)MEM_mallocN(sizeof(bDeformGroup*) * vector_size,
-		                                 "group_index");
-		for(a = 0, def = ob->defbase.first; def; def = def->next, a++) {
-			vector_def[a] = def;
-		}
+	if (do_vgroup_mirr) {
+		flip_map= defgroup_flip_map(ob, 0);
+		if(flip_map == NULL)
+			do_vgroup_mirr= 0;
 	}
 
 	if (mmd->mirror_ob) {
@@ -1974,7 +1861,6 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			mv->flag |= ME_VERT_MERGED;
 		} else {
 			MVert *mv2 = CDDM_get_vert(result, numVerts);
-			MDeformVert *dvert = NULL;
 			
 			DM_copy_vert_data(dm, result, i, numVerts, 1);
 			*mv2 = *mv;
@@ -1985,36 +1871,13 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			}
 			copy_v3_v3(mv2->co, co);
 			
-			if (mmd->flag & MOD_MIR_VGROUP){
-				dvert = DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
-				
-				if (dvert)
-				{
-					for(j = 0; j < dvert[0].totweight; ++j)
-					{
-						char tmpname[32];
-						
-						if(dvert->dw[j].def_nr < 0 ||
-						   dvert->dw[j].def_nr >= vector_size)
-							continue;
-						
-						def = vector_def[dvert->dw[j].def_nr];
-						strcpy(tmpname, def->name);
-						vertgroup_flip_name(tmpname,0);
-						
-						for(b = 0, defb = ob->defbase.first; defb;
-						    defb = defb->next, b++)
-						{
-							if(!strcmp(defb->name, tmpname))
-							{
-								dvert->dw[j].def_nr = b;
-								break;
-							}
-						}
-					}
+			if (do_vgroup_mirr) {
+				MDeformVert *dvert= DM_get_vert_data(result, numVerts, CD_MDEFORMVERT);
+				if(dvert) {
+					defvert_flip(dvert, flip_map);
 				}
 			}
-			
+
 			numVerts++;
 		}
 	}
@@ -2099,7 +1962,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		}
 	}
 
-	if (vector_def) MEM_freeN(vector_def);
+	if (flip_map) MEM_freeN(flip_map);
 
 	MEM_freeN(indexMap);
 
@@ -3434,17 +3297,12 @@ static DerivedMesh *bevelModifier_applyModifier(
 
 	options = bmd->flags|bmd->val_flags|bmd->lim_flags|bmd->e_flags;
 
-	//~ if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
-		//~ for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			//~ if (!strcmp(def->name, bmd->defgrp_name)) {
-				//~ defgrp_index = i;
-				//~ break;
-			//~ }
-		//~ }
-		//~ if (defgrp_index < 0) {
-			//~ options &= ~BME_BEVEL_VWEIGHT;
-		//~ }
-	//~ }
+	/*if ((options & BME_BEVEL_VWEIGHT) && bmd->defgrp_name[0]) {
+		defgrp_index = defgroup_name_index(ob, bmd->defgrp_name);
+		if (defgrp_index < 0) {
+			options &= ~BME_BEVEL_VWEIGHT;
+		}
+	}*/
 
 	bm = BME_derivedmesh_to_bmesh(derivedData);
 	BME_bevel(bm,bmd->value,bmd->res,options,defgrp_index,bmd->bevel_angle,NULL);
@@ -3594,7 +3452,7 @@ static void get_texture_coords(DisplaceModifierData *dmd, Object *ob,
 
 	/* UVs need special handling, since they come from faces */
 	if(texmapping == MOD_DISP_MAP_UV) {
-		if(dm->getFaceDataArray(dm, CD_MTFACE)) {
+		if(CustomData_has_layer(&dm->faceData, CD_MTFACE)) {
 			MFace *mface = dm->getFaceArray(dm);
 			MFace *mf;
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
@@ -3676,8 +3534,8 @@ static void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
 	* if the texture didn't give an RGB value, copy the intensity across
 	*/
 	if(result_type & TEX_RGB)
-		texres->tin = (0.35 * texres->tr + 0.45 * texres->tg
-				+ 0.2 * texres->tb);
+		texres->tin = (0.35f * texres->tr + 0.45f * texres->tg
+				+ 0.2f * texres->tb);
 	else
 		texres->tr = texres->tg = texres->tb = texres->tin;
 }
@@ -3695,17 +3553,7 @@ static void displaceModifier_do(
 
 	if(!dmd->texture) return;
 
-	defgrp_index = -1;
-
-	if(dmd->defgrp_name[0]) {
-		bDeformGroup *def;
-		for(i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			if(!strcmp(def->name, dmd->defgrp_name)) {
-				defgrp_index = i;
-				break;
-			}
-		}
-	}
+	defgrp_index = defgroup_name_index(ob, dmd->defgrp_name);
 
 	mvert = CDDM_get_verts(dm);
 	if(defgrp_index >= 0)
@@ -3770,37 +3618,26 @@ static void displaceModifier_deformVerts(
 					 ModifierData *md, Object *ob, DerivedMesh *derivedData,
       float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm;
-
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
-	else return;
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	DerivedMesh *dm= get_cddm(md->scene, ob, NULL, derivedData, vertexCos);
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
 			     vertexCos, numVerts);
 
-	dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static void displaceModifier_deformVertsEM(
 					   ModifierData *md, Object *ob, EditMesh *editData,
 	DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm;
-
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_editmesh(editData, ob->data);
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	DerivedMesh *dm= get_cddm(md->scene, ob, editData, derivedData, vertexCos);
 
 	displaceModifier_do((DisplaceModifierData *)md, ob, dm,
 			     vertexCos, numVerts);
 
-	dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 /* UVProject */
@@ -3912,7 +3749,8 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	if(num_projectors == 0) return dm;
 
 	/* make sure there are UV layers available */
-	if(!dm->getFaceDataArray(dm, CD_MTFACE)) return dm;
+
+	if(!CustomData_has_layer(&dm->faceData, CD_MTFACE)) return dm;
 
 	/* make sure we're using an existing layer */
 	validate_layer_name(&dm->faceData, CD_MTFACE, umd->uvlayer_name, uvname);
@@ -4328,21 +4166,10 @@ static void smoothModifier_do(
 	fac = smd->fac;
 	facm = 1 - fac;
 
-	medges = CDDM_get_edges(dm);
+	medges = dm->getEdgeArray(dm);
 	numDMEdges = dm->getNumEdges(dm);
 
-	defgrp_index = -1;
-
-	if (smd->defgrp_name[0]) {
-		bDeformGroup *def;
-
-		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			if (!strcmp(def->name, smd->defgrp_name)) {
-				defgrp_index = i;
-				break;
-			}
-		}
-	}
+	defgrp_index = defgroup_name_index(ob, smd->defgrp_name);
 
 	if (defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -4447,36 +4274,26 @@ static void smoothModifier_deformVerts(
 				       ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	   float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm;
-
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_mesh(ob->data, ob);
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	DerivedMesh *dm= get_dm(md->scene, ob, NULL, derivedData, NULL, 0);
 
 	smoothModifier_do((SmoothModifierData *)md, ob, dm,
 			   vertexCos, numVerts);
 
-	dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static void smoothModifier_deformVertsEM(
 					 ModifierData *md, Object *ob, EditMesh *editData,
       DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm;
-
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_editmesh(editData, ob->data);
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	DerivedMesh *dm= get_dm(md->scene, ob, editData, derivedData, NULL, 0);
 
 	smoothModifier_do((SmoothModifierData *)md, ob, dm,
 			   vertexCos, numVerts);
 
-	dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 /* Cast */
@@ -4565,7 +4382,7 @@ static void castModifier_sphere_do(
 
 	Object *ctrl_ob = NULL;
 
-	int i, defgrp_index = -1;
+	int i, defgrp_index;
 	int has_radius = 0;
 	short flag, type;
 	float fac, facm, len = 0.0f;
@@ -4607,16 +4424,7 @@ static void castModifier_sphere_do(
 
 	/* 3) if we were given a vertex group name,
 	* only those vertices should be affected */
-	if (cmd->defgrp_name[0]) {
-		bDeformGroup *def;
-
-		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			if (!strcmp(def->name, cmd->defgrp_name)) {
-				defgrp_index = i;
-				break;
-			}
-		}
-	}
+	defgrp_index = defgroup_name_index(ob, cmd->defgrp_name);
 
 	if ((ob->type == OB_MESH) && dm && defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -4750,7 +4558,7 @@ static void castModifier_cuboid_do(
 	MDeformVert *dvert = NULL;
 	Object *ctrl_ob = NULL;
 
-	int i, defgrp_index = -1;
+	int i, defgrp_index;
 	int has_radius = 0;
 	short flag;
 	float fac, facm;
@@ -4774,16 +4582,7 @@ static void castModifier_cuboid_do(
 
 	/* 3) if we were given a vertex group name,
 	* only those vertices should be affected */
-	if (cmd->defgrp_name[0]) {
-		bDeformGroup *def;
-
-		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			if (!strcmp(def->name, cmd->defgrp_name)) {
-				defgrp_index = i;
-				break;
-			}
-		}
-	}
+	defgrp_index = defgroup_name_index(ob, cmd->defgrp_name);
 
 	if ((ob->type == OB_MESH) && dm && defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -5027,11 +4826,8 @@ static void castModifier_deformVerts(
 				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm = derivedData;
+	DerivedMesh *dm = get_dm(md->scene, ob, NULL, derivedData, NULL, 0);
 	CastModifierData *cmd = (CastModifierData *)md;
-
-	if (!dm && ob->type == OB_MESH)
-		dm = CDDM_from_mesh(ob->data, ob);
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
 		castModifier_cuboid_do(cmd, ob, dm, vertexCos, numVerts);
@@ -5039,18 +4835,16 @@ static void castModifier_deformVerts(
 		castModifier_sphere_do(cmd, ob, dm, vertexCos, numVerts);
 	}
 
-	if (!derivedData && dm) dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static void castModifier_deformVertsEM(
 				       ModifierData *md, Object *ob, EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = derivedData;
+	DerivedMesh *dm = get_dm(md->scene, ob, editData, derivedData, NULL, 0);
 	CastModifierData *cmd = (CastModifierData *)md;
-
-	if (!dm && ob->type == OB_MESH)
-		dm = CDDM_from_editmesh(editData, ob->data);
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
 		castModifier_cuboid_do(cmd, ob, dm, vertexCos, numVerts);
@@ -5058,7 +4852,8 @@ static void castModifier_deformVertsEM(
 		castModifier_sphere_do(cmd, ob, dm, vertexCos, numVerts);
 	}
 
-	if (!derivedData && dm) dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 /* Wave */
@@ -5187,7 +4982,7 @@ static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
 
 	/* UVs need special handling, since they come from faces */
 	if(texmapping == MOD_WAV_MAP_UV) {
-		if(dm->getFaceDataArray(dm, CD_MTFACE)) {
+		if(CustomData_has_layer(&dm->faceData, CD_MTFACE)) {
 			MFace *mface = dm->getFaceArray(dm);
 			MFace *mf;
 			char *done = MEM_callocN(sizeof(*done) * numVerts,
@@ -5285,18 +5080,7 @@ static void waveModifier_do(WaveModifierData *md,
 	}
 
 	/* get the index of the deform group */
-	defgrp_index = -1;
-
-	if(wmd->defgrp_name[0]) {
-		int i;
-		bDeformGroup *def;
-		for(i = 0, def = ob->defbase.first; def; def = def->next, i++) {
-			if(!strcmp(def->name, wmd->defgrp_name)) {
-				defgrp_index = i;
-				break;
-			}
-		}
-	}
+	defgrp_index = defgroup_name_index(ob, wmd->defgrp_name);
 
 	if(defgrp_index >= 0){
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -5429,45 +5213,36 @@ static void waveModifier_deformVerts(
 				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm;
+	DerivedMesh *dm= derivedData;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
-	if(!wmd->texture && !wmd->defgrp_name[0] && !(wmd->flag & MOD_WAVE_NORM))
-		dm = derivedData;
-	else if(derivedData) dm = derivedData;
-	else if(ob->type == OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
-	else return;
-
-	if(wmd->flag & MOD_WAVE_NORM) {
-		CDDM_apply_vert_coords(dm, vertexCos);
-		CDDM_calc_normals(dm);
-	}
+	if(wmd->flag & MOD_WAVE_NORM)
+		dm= get_cddm(md->scene, ob, NULL, dm, vertexCos);
+	else if(wmd->texture || wmd->defgrp_name[0])
+		dm= get_dm(md->scene, ob, NULL, dm, NULL, 0);
 
 	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
 
-	if(dm != derivedData) dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static void waveModifier_deformVertsEM(
 				       ModifierData *md, Object *ob, EditMesh *editData,
 	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm;
+	DerivedMesh *dm= derivedData;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
-	if(!wmd->texture && !wmd->defgrp_name[0] && !(wmd->flag & MOD_WAVE_NORM))
-		dm = derivedData;
-	else if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_editmesh(editData, ob->data);
-
-	if(wmd->flag & MOD_WAVE_NORM) {
-		CDDM_apply_vert_coords(dm, vertexCos);
-		CDDM_calc_normals(dm);
-	}
+	if(wmd->flag & MOD_WAVE_NORM)
+		dm= get_cddm(md->scene, ob, editData, dm, vertexCos);
+	else if(wmd->texture || wmd->defgrp_name[0])
+		dm= get_dm(md->scene, ob, editData, dm, NULL, 0);
 
 	waveModifier_do(wmd, md->scene, ob, dm, vertexCos, numVerts);
 
-	if(dm != derivedData) dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 /* Armature */
@@ -5733,50 +5508,46 @@ static void hookModifier_deformVerts(
 		}
 	} 
 	else if(hmd->name[0]) {	/* vertex group hook */
-		bDeformGroup *curdef;
 		Mesh *me = ob->data;
-		int index = 0;
-		int use_dverts;
+		int use_dverts = 0;
 		int maxVerts = 0;
-		
-		/* find the group (weak loop-in-loop) */
-		for(curdef = ob->defbase.first; curdef; curdef = curdef->next, index++)
-			if(!strcmp(curdef->name, hmd->name)) break;
+		int defgrp_index = defgroup_name_index(ob, hmd->name);
 
-		if(dm)
+		if(dm) {
 			if(dm->getVertData(dm, 0, CD_MDEFORMVERT)) {
-			use_dverts = 1;
-			maxVerts = dm->getNumVerts(dm);
-			} else use_dverts = 0;
-			else if(me->dvert) {
+				maxVerts = dm->getNumVerts(dm);
 				use_dverts = 1;
-				maxVerts = me->totvert;
-			} else use_dverts = 0;
-		
-			if(curdef && use_dverts) {
-				MDeformVert *dvert = me->dvert;
-				int i, j;
-			
-				for(i = 0; i < maxVerts; i++, dvert++) {
-					if(dm) dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
-					for(j = 0; j < dvert->totweight; j++) {
-						if(dvert->dw[j].def_nr == index) {
-							float fac = hmd->force*dvert->dw[j].weight;
-							float *co = vertexCos[i];
-						
-							if(hmd->falloff != 0.0) {
-								float len = len_v3v3(co, hmd->cent);
-								if(len > hmd->falloff) fac = 0.0;
-								else if(len > 0.0)
-									fac *= sqrt(1.0 - len / hmd->falloff);
-							}
-						
-							mul_v3_m4v3(vec, mat, co);
-							interp_v3_v3v3(co, co, vec, fac);
+			}
+		}
+		else if(me->dvert) {
+			maxVerts = me->totvert;
+			use_dverts = 1;
+		}
+
+		if(defgrp_index >= 0 && use_dverts) {
+			MDeformVert *dvert = me->dvert;
+			int i, j;
+
+			for(i = 0; i < maxVerts; i++, dvert++) {
+				if(dm) dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
+				for(j = 0; j < dvert->totweight; j++) {
+					if(dvert->dw[j].def_nr == defgrp_index) {
+						float fac = hmd->force*dvert->dw[j].weight;
+						float *co = vertexCos[i];
+
+						if(hmd->falloff != 0.0) {
+							float len = len_v3v3(co, hmd->cent);
+							if(len > hmd->falloff) fac = 0.0;
+							else if(len > 0.0)
+								fac *= sqrt(1.0 - len / hmd->falloff);
 						}
+
+						mul_v3_m4v3(vec, mat, co);
+						interp_v3_v3v3(co, co, vec, fac);
 					}
 				}
 			}
+		}
 	}
 }
 
@@ -5928,7 +5699,7 @@ static void solidifyModifier_initData(ModifierData *md)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData*) md;
 	smd->offset = 0.01f;
-	smd->flag = MOD_SOLIDIFY_EVEN | MOD_SOLIDIFY_RIM | MOD_SOLIDIFY_NORMAL_CALC;
+	smd->flag = MOD_SOLIDIFY_RIM;
 }
  
 static void solidifyModifier_copyData(ModifierData *md, ModifierData *target)
@@ -5939,7 +5710,7 @@ static void solidifyModifier_copyData(ModifierData *md, ModifierData *target)
 	tsmd->crease_inner = smd->crease_inner;
 	tsmd->crease_outer = smd->crease_outer;
 	tsmd->crease_rim = smd->crease_rim;
-	strcpy(tsmd->vgroup, smd->vgroup);
+	strcpy(tsmd->defgrp_name, smd->defgrp_name);
 }
 
 static DerivedMesh *solidifyModifier_applyModifier(ModifierData *md,
@@ -6289,18 +6060,12 @@ static void smokeModifier_deformVerts(
       float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
 	SmokeModifierData *smd = (SmokeModifierData*) md;
-	DerivedMesh *dm = NULL;
-
-	if(derivedData) dm = derivedData;
-	else if(ob->type == OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
-	else return;
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	DerivedMesh *dm = dm= get_cddm(md->scene, ob, NULL, derivedData, vertexCos);
 
 	smokeModifier_do(smd, md->scene, ob, dm, useRenderParams, isFinalCalc);
 
-	if(dm != derivedData) dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static int smokeModifier_dependsOnTime(ModifierData *md)
@@ -6701,7 +6466,7 @@ static void surfaceModifier_deformVerts(
 
 	/* if possible use/create DerivedMesh */
 	if(derivedData) surmd->dm = CDDM_copy(derivedData);
-	else surmd->dm = get_original_dm(md->scene, ob, NULL, 0);
+	else surmd->dm = get_dm(md->scene, ob, NULL, NULL, NULL, 0);
 	
 	if(!ob->pd)
 	{
@@ -6812,7 +6577,6 @@ static DerivedMesh *booleanModifier_applyModifier(
 		ModifierData *md, Object *ob, DerivedMesh *derivedData,
   int useRenderParams, int isFinalCalc)
 {
-	// XXX doesn't handle derived data
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
 	DerivedMesh *dm = bmd->object->derivedFinal;
 
@@ -6822,20 +6586,14 @@ static DerivedMesh *booleanModifier_applyModifier(
 		DerivedMesh *result = NewBooleanDerivedMesh(dm, bmd->object, derivedData, ob,
 				1 + bmd->operation);
 
-		if(dm)
-			dm->release(dm);
-
 		/* if new mesh returned, return it; otherwise there was
 		* an error, so delete the modifier object */
 		if(result)
 			return result;
 		else
-			bmd->object = NULL;
+			modifier_setError(md, "Can't execute boolean operation.");
 	}
 	
-	if(dm)
-			dm->release(dm);
-
 	return derivedData;
 }
 
@@ -6944,7 +6702,7 @@ static void particleSystemModifier_deformVerts(
 		return;
 
 	if(dm==0) {
-		dm= get_original_dm(md->scene, ob, vertexCos, 1);
+		dm= get_dm(md->scene, ob, NULL, NULL, vertexCos, 1);
 
 		if(!dm)
 			return;
@@ -7358,7 +7116,7 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 			for(i=0; i<totvert; i++){
 				val = BLI_frand();
 				val = (1.0f-emd->protect)*val + emd->protect*0.5f;
-				if(val < deformvert_get_weight(dvert+i,emd->vgroup-1))
+				if(val < defvert_find_weight(dvert+i,emd->vgroup-1))
 					vertpa[i] = -1;
 			}
 		}
@@ -7886,7 +7644,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
   DerivedMesh *to_explode)
 {
 	DerivedMesh *explode, *dm=to_explode;
-	MFace *mf=0;
+	MFace *mf=0, *mface;
 	ParticleSettings *part=psmd->psys->part;
 	ParticleSimulationData sim = {scene, ob, psmd->psys, psmd};
 	ParticleData *pa=NULL, *pars=psmd->psys->particles;
@@ -7902,6 +7660,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 	totface= dm->getNumFaces(dm);
 	totvert= dm->getNumVerts(dm);
+	mface= dm->getFaceArray(dm);
 	totpart= psmd->psys->totpart;
 
 	timestep= psys_get_timestep(&sim);
@@ -7922,7 +7681,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 		else 
 			mindex = totvert+facepa[i];
 
-		mf=CDDM_get_face(dm,i);
+		mf= &mface[i];
 
 		/* set face vertices to exist in particle group */
 		BLI_edgehash_insert(vertpahash, mf->v1, mindex, NULL);
@@ -8029,8 +7788,6 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 
 		test_index_face(mf, &explode->faceData, i, (orig_v4 ? 4 : 3));
 	}
-
-	MEM_printmemlist_stats();
 
 	/* cleanup */
 	BLI_edgehash_free(vertpahash, NULL);
@@ -8345,7 +8102,7 @@ static void meshdeformModifier_do(
 	/* if we don't have one computed, use derivedmesh from data
 	 * without any modifiers */
 	if(!cagedm) {
-		cagedm= get_original_dm(md->scene, mmd->object, NULL, 0);
+		cagedm= get_dm(md->scene, mmd->object, NULL, NULL, NULL, 0);
 		if(cagedm)
 			cagedm->needsFree= 1;
 	}
@@ -8400,21 +8157,10 @@ static void meshdeformModifier_do(
 			VECCOPY(dco[a], co)
 	}
 
-	defgrp_index = -1;
+	defgrp_index = defgroup_name_index(ob, mmd->defgrp_name);
 
-	if(mmd->defgrp_name[0]) {
-		bDeformGroup *def;
-
-		for(a=0, def=ob->defbase.first; def; def=def->next, a++) {
-			if(!strcmp(def->name, mmd->defgrp_name)) {
-				defgrp_index= a;
-				break;
-			}
-		}
-
-		if (defgrp_index >= 0)
-			dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
-	}
+	if (defgrp_index >= 0)
+		dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
 
 	/* do deformation */
 	fac= 1.0f;
@@ -8481,14 +8227,10 @@ static void meshdeformModifier_deformVerts(
 					   ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm;
+	DerivedMesh *dm= get_dm(md->scene, ob, NULL, derivedData, NULL, 0);;
 
-	if (!derivedData) {
-		dm= get_original_dm(md->scene, ob, NULL, 0);
-		if (dm == NULL) return;
-	}
-	else dm= derivedData;
-
+	if(!dm)
+		return;
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
@@ -8625,52 +8367,31 @@ static void shrinkwrapModifier_foreachObjectLink(ModifierData *md, Object *ob, O
 
 static void shrinkwrapModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm = NULL;
+	DerivedMesh *dm = derivedData;
 	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(ob, md);
 
-	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	/* ensure we get a CDDM with applied vertex coords */
 	if(dataMask)
-	{
-		if(derivedData) dm = CDDM_copy(derivedData);
-		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
-		else if(ob->type==OB_LATTICE) dm = NULL;
-		else return;
-
-		if(dm != NULL && (dataMask & (1<<CD_MVERT)))
-		{
-			CDDM_apply_vert_coords(dm, vertexCos);
-			CDDM_calc_normals(dm);
-		}
-	}
+		dm= get_cddm(md->scene, ob, NULL, dm, vertexCos);
 
 	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, md->scene, ob, dm, vertexCos, numVerts);
 
-	if(dm)
+	if(dm != derivedData)
 		dm->release(dm);
 }
 
 static void shrinkwrapModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = NULL;
+	DerivedMesh *dm = derivedData;
 	CustomDataMask dataMask = shrinkwrapModifier_requiredDataMask(ob, md);
 
+	/* ensure we get a CDDM with applied vertex coords */
 	if(dataMask)
-	{
-		if(derivedData) dm = CDDM_copy(derivedData);
-		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
-		else if(ob->type==OB_LATTICE) dm = NULL;
-		else return;
-
-		if(dm != NULL && (dataMask & (1<<CD_MVERT)))
-		{
-			CDDM_apply_vert_coords(dm, vertexCos);
-			CDDM_calc_normals(dm);
-		}
-	}
+		dm= get_cddm(md->scene, ob, editData, dm, vertexCos);
 
 	shrinkwrapModifier_deform((ShrinkwrapModifierData*)md, md->scene, ob, dm, vertexCos, numVerts);
 
-	if(dm)
+	if(dm != derivedData)
 		dm->release(dm);
 }
 
@@ -8739,54 +8460,33 @@ static void simpledeformModifier_updateDepgraph(ModifierData *md, DagForest *for
 
 static void simpledeformModifier_deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm = NULL;
+	DerivedMesh *dm = derivedData;
 	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(ob, md);
 
-	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	/* we implement requiredDataMask but thats not really usefull since
+	   mesh_calc_modifiers pass a NULL derivedData */
 	if(dataMask)
-	{
-		if(derivedData) dm = CDDM_copy(derivedData);
-		else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
-		else if(ob->type==OB_LATTICE) dm = NULL;
-		else return;
-
-		if(dm != NULL && (dataMask & CD_MVERT))
-		{
-			CDDM_apply_vert_coords(dm, vertexCos);
-			CDDM_calc_normals(dm);
-		}
-	}
+		dm= get_dm(md->scene, ob, NULL, dm, NULL, 0);
 
 	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
 
-	if(dm)
+	if(dm != derivedData)
 		dm->release(dm);
-
 }
 
 static void simpledeformModifier_deformVertsEM(ModifierData *md, Object *ob, EditMesh *editData, DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = NULL;
+	DerivedMesh *dm = derivedData;
 	CustomDataMask dataMask = simpledeformModifier_requiredDataMask(ob, md);
 
-	/* We implement requiredDataMask but thats not really usefull since mesh_calc_modifiers pass a NULL derivedData or without the modified vertexs applied */
+	/* we implement requiredDataMask but thats not really usefull since
+	   mesh_calc_modifiers pass a NULL derivedData */
 	if(dataMask)
-	{
-		if(derivedData) dm = CDDM_copy(derivedData);
-		else if(ob->type==OB_MESH) dm = CDDM_from_editmesh(editData, ob->data);
-		else if(ob->type==OB_LATTICE) dm = NULL;
-		else return;
-
-		if(dm != NULL && (dataMask & CD_MVERT))
-		{
-			CDDM_apply_vert_coords(dm, vertexCos);
-			CDDM_calc_normals(dm);
-		}
-	}
+		dm= get_dm(md->scene, ob, editData, dm, NULL, 0);
 
 	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
 
-	if(dm)
+	if(dm != derivedData)
 		dm->release(dm);
 }
 
@@ -9390,9 +9090,11 @@ void modifier_copyData(ModifierData *md, ModifierData *target)
 		mti->copyData(md, target);
 }
 
-int modifier_couldBeCage(ModifierData *md)
+int modifier_couldBeCage(Scene *scene, ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+	md->scene= scene;
 
 	return (	(md->mode & eModifierMode_Realtime) &&
 			(md->mode & eModifierMode_Editmode) &&
@@ -9428,7 +9130,7 @@ void modifier_setError(ModifierData *md, char *format, ...)
  * also used in transform_conversion.c, to detect CrazySpace [tm] (2nd arg
  * then is NULL)
  */
-int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r, int virtual_)
+int modifiers_getCageIndex(Scene *scene, Object *ob, int *lastPossibleCageIndex_r, int virtual_)
 {
 	ModifierData *md = (virtual_)? modifiers_getVirtualModifierList(ob): ob->modifiers.first;
 	int i, cageIndex = -1;
@@ -9436,6 +9138,8 @@ int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r, int virtual
 	/* Find the last modifier acting on the cage. */
 	for (i=0; md; i++,md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		md->scene= scene;
 
 		if (!(md->mode & eModifierMode_Realtime)) continue;
 		if (!(md->mode & eModifierMode_Editmode)) continue;
@@ -9476,9 +9180,11 @@ int modifiers_isParticleEnabled(Object *ob)
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-int modifier_isEnabled(ModifierData *md, int required_mode)
+int modifier_isEnabled(Scene *scene, ModifierData *md, int required_mode)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+	md->scene= scene;
 
 	if((md->mode & required_mode) != required_mode) return 0;
 	if(mti->isDisabled && mti->isDisabled(md, required_mode == eModifierMode_Render)) return 0;
@@ -9489,7 +9195,7 @@ int modifier_isEnabled(ModifierData *md, int required_mode)
 	return 1;
 }
 
-LinkNode *modifiers_calcDataMasks(Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
+LinkNode *modifiers_calcDataMasks(Scene *scene, Object *ob, ModifierData *md, CustomDataMask dataMask, int required_mode)
 {
 	LinkNode *dataMasks = NULL;
 	LinkNode *curr, *prev;
@@ -9499,7 +9205,7 @@ LinkNode *modifiers_calcDataMasks(Object *ob, ModifierData *md, CustomDataMask d
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 		CustomDataMask mask = 0;
 
-		if(modifier_isEnabled(md, required_mode))
+		if(modifier_isEnabled(scene, md, required_mode))
 			if(mti->requiredDataMask)
 				mask = mti->requiredDataMask(ob, md);
 

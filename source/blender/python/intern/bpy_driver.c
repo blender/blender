@@ -177,13 +177,28 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		}
 	}
 
+	if(driver->expr_comp==NULL)
+		driver->flag |= DRIVER_FLAG_RECOMPILE;
+
 	/* compile the expression first if it hasn't been compiled or needs to be rebuilt */
-	if((driver->flag & DRIVER_FLAG_RECOMPILE) || (driver->expr_comp==NULL)) {
+	if(driver->flag & DRIVER_FLAG_RECOMPILE) {
 		Py_XDECREF(driver->expr_comp);
 		driver->expr_comp= PyTuple_New(2);
 
 		expr_code= Py_CompileString(expr, "<bpy driver>", Py_eval_input);
 		PyTuple_SET_ITEM(((PyObject *)driver->expr_comp), 0, expr_code);
+
+		driver->flag &= ~DRIVER_FLAG_RECOMPILE;
+		driver->flag |= DRIVER_FLAG_RENAMEVAR; /* maybe this can be removed but for now best keep until were sure */
+	}
+	else {
+		expr_code= PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 0);
+	}
+
+	if(driver->flag & DRIVER_FLAG_RENAMEVAR) {
+		/* may not be set */
+		expr_vars= PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 1);
+		Py_XDECREF(expr_vars);
 
 		/* intern the arg names so creating the namespace for every run is faster */
 		expr_vars= PyTuple_New(BLI_countlist(&driver->variables));
@@ -192,11 +207,8 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		for (dvar= driver->variables.first, i=0; dvar; dvar= dvar->next) {
 			PyTuple_SET_ITEM(expr_vars, i++, PyUnicode_InternFromString(dvar->name));
 		}
-
-		driver->flag &= ~DRIVER_FLAG_RECOMPILE;
 	}
 	else {
-		expr_code= PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 0);
 		expr_vars= PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 1);
 	}
 

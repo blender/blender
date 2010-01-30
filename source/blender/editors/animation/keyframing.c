@@ -855,7 +855,7 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 			printf("Insert Key: Could not insert keyframe, as this type does not support animation data (ID = %s, Path = %s)\n", id->name, rna_path);
 			return 0;
 		}
-
+		
 		/* apply NLA-mapping to frame to use (if applicable) */
 		cfra= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 	}
@@ -878,6 +878,13 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	if (array_index == -1) { 
 		array_index= 0;
 		array_index_max= RNA_property_array_length(&ptr, prop);
+		
+		/* for single properties, increase max_index so that the property itself gets included,
+		 * but don't do this for standard arrays since that can cause corruption issues 
+		 * (extra unused curves)
+		 */
+		if (array_index_max == array_index)
+			array_index_max++;
 	}
 	
 	/* will only loop once unless the array index was -1 */
@@ -916,6 +923,12 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 {
 	AnimData *adt= BKE_animdata_from_id(id);
 	FCurve *fcu = NULL;
+	
+	/* sanity checks */
+	if ELEM(NULL, id, adt) {
+		printf("ERROR: no ID-block and/or AnimData to delete keyframe from \n");
+		return 0;
+	}	
 	
 	/* get F-Curve
 	 * Note: here is one of the places where we don't want new Action + F-Curve added!
@@ -1051,7 +1064,7 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	/* try to insert keyframes for the channels specified by KeyingSet */
 	success= modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 	if (G.f & G_DEBUG)
-		printf("KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
+		BKE_reportf(op->reports, RPT_INFO, "KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
 	
 	/* report failure or do updates? */
 	if (success) {
@@ -1320,7 +1333,7 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 			}
 		}
 		
-		printf("Ob '%s' - Successfully removed %d keyframes \n", id->name+2, success);
+		BKE_reportf(op->reports, RPT_INFO, "Ob '%s' - Successfully removed %d keyframes \n", id->name+2, success);
 		
 		ob->recalc |= OB_RECALC_OB;
 	}

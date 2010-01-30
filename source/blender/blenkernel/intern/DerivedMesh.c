@@ -184,9 +184,10 @@ void DM_init_funcs(DerivedMesh *dm)
 	bvhcache_init(&dm->bvhCache);
 }
 
-void DM_init(DerivedMesh *dm,
+void DM_init(DerivedMesh *dm, DerivedMeshType type,
              int numVerts, int numEdges, int numFaces)
 {
+	dm->type = type;
 	dm->numVertData = numVerts;
 	dm->numEdgeData = numEdges;
 	dm->numFaceData = numFaces;
@@ -196,7 +197,7 @@ void DM_init(DerivedMesh *dm,
 	dm->needsFree = 1;
 }
 
-void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
+void DM_from_template(DerivedMesh *dm, DerivedMesh *source, DerivedMeshType type,
                       int numVerts, int numEdges, int numFaces)
 {
 	CustomData_copy(&source->vertData, &dm->vertData, CD_MASK_DERIVEDMESH,
@@ -206,6 +207,7 @@ void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
 	CustomData_copy(&source->faceData, &dm->faceData, CD_MASK_DERIVEDMESH,
 	                CD_CALLOC, numFaces);
 
+	dm->type = type;
 	dm->numVertData = numVerts;
 	dm->numEdgeData = numEdges;
 	dm->numFaceData = numFaces;
@@ -336,16 +338,25 @@ void *DM_get_face_data(DerivedMesh *dm, int index, int type)
 
 void *DM_get_vert_data_layer(DerivedMesh *dm, int type)
 {
+	if(type == CD_MVERT)
+		return dm->getVertArray(dm);
+
 	return CustomData_get_layer(&dm->vertData, type);
 }
 
 void *DM_get_edge_data_layer(DerivedMesh *dm, int type)
 {
+	if(type == CD_MEDGE)
+		return dm->getEdgeArray(dm);
+
 	return CustomData_get_layer(&dm->edgeData, type);
 }
 
 void *DM_get_face_data_layer(DerivedMesh *dm, int type)
 {
+	if(type == CD_MFACE)
+		return dm->getFaceArray(dm);
+
 	return CustomData_get_layer(&dm->faceData, type);
 }
 
@@ -512,56 +523,14 @@ static void emDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *us
 		}
 		glEnd();
 	} else {
-		GPUBuffer *buffer = NULL;
-		float *varray;
-
-		if(GPU_buffer_legacy(dm)==FALSE)
-			buffer = GPU_buffer_alloc( sizeof(float)*3*2*emdm->em->totedge, 0 );
-
-		if( buffer != 0 && (varray = GPU_buffer_lock_stream( buffer )) ) {
-			int prevdraw = 0;
-			int numedges = 0;
-			int draw = 0;
-			int datatype[] = { GPU_BUFFER_INTER_V3F, GPU_BUFFER_INTER_END };
-			GPU_buffer_unlock( buffer );
-			GPU_interleaved_setup( buffer, datatype );
-			varray = GPU_buffer_lock_stream( buffer );
-			for(i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next) {
-				if(!setDrawOptions || setDrawOptions(userData, i)) {
-					draw = 1;
-				} else {
-					draw = 0;
-				}
-				if( prevdraw != draw && prevdraw != 0 && numedges > 0) {
-					GPU_buffer_unlock( buffer );
-					glDrawArrays(GL_LINES,0,numedges*2);
-					varray = GPU_buffer_lock_stream( buffer );
-					numedges = 0;
-				}
-				if( draw != 0 ) {
-					VECCOPY(&varray[numedges*6],eed->v1->co);
-					VECCOPY(&varray[numedges*6+3],eed->v2->co);
-					numedges++;
-				}
-				prevdraw = draw;
+		glBegin(GL_LINES);
+		for(i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next) {
+			if(!setDrawOptions || setDrawOptions(userData, i)) {
+				glVertex3fv(eed->v1->co);
+				glVertex3fv(eed->v2->co);
 			}
-			GPU_buffer_unlock( buffer );
-			if( prevdraw != 0 && numedges > 0) {
-				glDrawArrays(GL_LINES,0,numedges*2);
-			}
-			GPU_buffer_unbind();
-		} else {
-			glBegin(GL_LINES);
-			for(i=0,eed= emdm->em->edges.first; eed; i++,eed= eed->next) {
-				if(!setDrawOptions || setDrawOptions(userData, i)) {
-					glVertex3fv(eed->v1->co);
-					glVertex3fv(eed->v2->co);
-				}
-			}
-			glEnd();
 		}
-		if( buffer != 0 )
-			GPU_buffer_free( buffer, 0 );
+		glEnd();
 	}
 }
 static void emDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
@@ -722,135 +691,41 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 			}
 		}
 	} else {
-		GPUBuffer *buffer = 0;
-		float *varray;
-		if( setDrawOptions == 0 ) {
-			/* 3 floats for position, 3 for normal and times two because the faces may actually be quads instead of triangles */
-			buffer = GPU_buffer_alloc( sizeof(float)*6*emdm->em->totface*3*2, 0 );
-		}
-		if( buffer != 0 && (varray = GPU_buffer_lock_stream( buffer )) ) {
-			int prevdraw = 0;
-			int numfaces = 0;
-			int datatype[] = { GPU_BUFFER_INTER_V3F, GPU_BUFFER_INTER_N3F, GPU_BUFFER_INTER_END };
-			GPU_buffer_unlock( buffer );
-			GPU_interleaved_setup( buffer, datatype );
-			glShadeModel(GL_SMOOTH);
-			varray = GPU_buffer_lock_stream( buffer );
-			for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
-				int drawSmooth = (efa->flag & ME_SMOOTH);
-				draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
-				if( prevdraw != draw && prevdraw != 0 && numfaces > 0) {
-					if( prevdraw==2 ) {
-						glEnable(GL_POLYGON_STIPPLE);
-		  				glPolygonStipple(stipple_quarttone);
-					}
-					GPU_buffer_unlock( buffer );
-					glDrawArrays(GL_TRIANGLES,0,numfaces*3);
-					if( prevdraw==2 ) {
-						glDisable(GL_POLYGON_STIPPLE);
-					}
-					varray = GPU_buffer_lock_stream( buffer );
-					numfaces = 0;
-				}
-				if( draw != 0 ) {
-					if(!drawSmooth) {
-						VECCOPY(&varray[numfaces*18],efa->v1->co);
-						VECCOPY(&varray[numfaces*18+3],efa->n);
-
-						VECCOPY(&varray[numfaces*18+6],efa->v2->co);
-						VECCOPY(&varray[numfaces*18+9],efa->n);
-
-						VECCOPY(&varray[numfaces*18+12],efa->v3->co);
-						VECCOPY(&varray[numfaces*18+15],efa->n);
-						numfaces++;
-						if( efa->v4 ) {
-							VECCOPY(&varray[numfaces*18],efa->v3->co);
-							VECCOPY(&varray[numfaces*18+3],efa->n);
-
-							VECCOPY(&varray[numfaces*18+6],efa->v4->co);
-							VECCOPY(&varray[numfaces*18+9],efa->n);
-
-							VECCOPY(&varray[numfaces*18+12],efa->v1->co);
-							VECCOPY(&varray[numfaces*18+15],efa->n);
-							numfaces++;
-						}
-					}
-					else {
-						VECCOPY(&varray[numfaces*18],efa->v1->co);
-						VECCOPY(&varray[numfaces*18+3],efa->v1->no);
-
-						VECCOPY(&varray[numfaces*18+6],efa->v2->co);
-						VECCOPY(&varray[numfaces*18+9],efa->v2->no);
-
-						VECCOPY(&varray[numfaces*18+12],efa->v3->co);
-						VECCOPY(&varray[numfaces*18+15],efa->v3->no);
-						numfaces++;
-						if( efa->v4 ) {
-							VECCOPY(&varray[numfaces*18],efa->v3->co);
-							VECCOPY(&varray[numfaces*18+3],efa->v3->no);
-
-							VECCOPY(&varray[numfaces*18+6],efa->v4->co);
-							VECCOPY(&varray[numfaces*18+9],efa->v4->no);
-
-							VECCOPY(&varray[numfaces*18+12],efa->v1->co);
-							VECCOPY(&varray[numfaces*18+15],efa->v1->no);
-							numfaces++;
-						}
-					}
-				}
-				prevdraw = draw;
-			}
-			GPU_buffer_unlock( buffer );
-			if( prevdraw != 0 && numfaces > 0) {
-				if( prevdraw==2 ) {
+		for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
+			int drawSmooth = (efa->flag & ME_SMOOTH);
+			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
+			if(draw) {
+				if (draw==2) { /* enabled with stipple */
 					glEnable(GL_POLYGON_STIPPLE);
-	  				glPolygonStipple(stipple_quarttone);
+					glPolygonStipple(stipple_quarttone);
 				}
-				glDrawArrays(GL_TRIANGLES,0,numfaces*3);
-				if( prevdraw==2 ) {
-					glDisable(GL_POLYGON_STIPPLE);
-				}
-			}
-			GPU_buffer_unbind();
-		} else {
-			for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
-				int drawSmooth = (efa->flag & ME_SMOOTH);
-				draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
-				if(draw) {
-					if (draw==2) { /* enabled with stipple */
-		  				glEnable(GL_POLYGON_STIPPLE);
-		  				glPolygonStipple(stipple_quarttone);
-					}
-					glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 
-					glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-					if (!drawSmooth) {
-						glNormal3fv(efa->n);
-						glVertex3fv(efa->v1->co);
-						glVertex3fv(efa->v2->co);
-						glVertex3fv(efa->v3->co);
-						if(efa->v4) glVertex3fv(efa->v4->co);
-					} else {
-						glNormal3fv(efa->v1->no);
-						glVertex3fv(efa->v1->co);
-						glNormal3fv(efa->v2->no);
-						glVertex3fv(efa->v2->co);
-						glNormal3fv(efa->v3->no);
-						glVertex3fv(efa->v3->co);
-						if(efa->v4) {
-							glNormal3fv(efa->v4->no);
-							glVertex3fv(efa->v4->co);
-						}
+				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+				if (!drawSmooth) {
+					glNormal3fv(efa->n);
+					glVertex3fv(efa->v1->co);
+					glVertex3fv(efa->v2->co);
+					glVertex3fv(efa->v3->co);
+					if(efa->v4) glVertex3fv(efa->v4->co);
+				} else {
+					glNormal3fv(efa->v1->no);
+					glVertex3fv(efa->v1->co);
+					glNormal3fv(efa->v2->no);
+					glVertex3fv(efa->v2->co);
+					glNormal3fv(efa->v3->no);
+					glVertex3fv(efa->v3->co);
+					if(efa->v4) {
+						glNormal3fv(efa->v4->no);
+						glVertex3fv(efa->v4->co);
 					}
-					glEnd();
-					
-					if (draw==2)
-						glDisable(GL_POLYGON_STIPPLE);
 				}
+				glEnd();
+				
+				if (draw==2)
+					glDisable(GL_POLYGON_STIPPLE);
 			}
 		}
-		if( buffer != 0 )
-			GPU_buffer_free( buffer, 0 );
 	}
 }
 
@@ -1450,7 +1325,7 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 {
 	EditMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "emdm");
 
-	DM_init(&emdm->dm, BLI_countlist(&em->verts),
+	DM_init(&emdm->dm, DM_TYPE_EDITMESH, BLI_countlist(&em->verts),
 	                 BLI_countlist(&em->edges), BLI_countlist(&em->faces));
 
 	emdm->dm.getMinMax = emDM_getMinMax;
@@ -1768,7 +1643,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	/* we always want to keep original indices */
 	dataMask |= CD_MASK_ORIGINDEX;
 
-	datamasks = modifiers_calcDataMasks(ob, md, dataMask, required_mode);
+	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
 	curr = datamasks;
 
 	if(deform_r) *deform_r = NULL;
@@ -1784,7 +1659,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 			md->scene= scene;
 			
-			if(!modifier_isEnabled(md, required_mode)) continue;
+			if(!modifier_isEnabled(scene, md, required_mode)) continue;
 			if(useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
 			if(mti->type == eModifierTypeType_OnlyDeform) {
@@ -1833,7 +1708,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 		md->scene= scene;
 		
-		if(!modifier_isEnabled(md, required_mode)) continue;
+		if(!modifier_isEnabled(scene, md, required_mode)) continue;
 		if(mti->type == eModifierTypeType_OnlyDeform && !useDeform) continue;
 		if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
 			modifier_setError(md, "Modifier requires original data, bad stack position.");
@@ -1894,7 +1769,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					CDDM_calc_normals(dm);
 				}
 
-				if(dataMask & CD_MASK_WEIGHT_MCOL)
+				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 					add_weight_mcol_dm(ob, dm);
 			}
 
@@ -1960,7 +1835,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 		CDDM_apply_vert_coords(finaldm, deformedVerts);
 		CDDM_calc_normals(finaldm);
 
-		if(dataMask & CD_MASK_WEIGHT_MCOL)
+		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 			add_weight_mcol_dm(ob, finaldm);
 	} else if(dm) {
 		finaldm = dm;
@@ -1972,7 +1847,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			CDDM_calc_normals(finaldm);
 		}
 
-		if(dataMask & CD_MASK_WEIGHT_MCOL)
+		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 			add_weight_mcol_dm(ob, finaldm);
 	}
 
@@ -2009,12 +1884,12 @@ static float (*editmesh_getVertexCos(EditMesh *em, int *numVerts_r))[3]
 	return cos;
 }
 
-static int editmesh_modifier_is_enabled(ModifierData *md, DerivedMesh *dm)
+static int editmesh_modifier_is_enabled(Scene *scene, ModifierData *md, DerivedMesh *dm)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
-	if(!modifier_isEnabled(md, required_mode)) return 0;
+	if(!modifier_isEnabled(scene, md, required_mode)) return 0;
 	if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
 		modifier_setError(md, "Modifier requires original data, bad stack position.");
 		return 0;
@@ -2031,7 +1906,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 	float (*deformedVerts)[3] = NULL;
 	CustomDataMask mask;
 	DerivedMesh *dm, *orcodm = NULL;
-	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(ob, NULL, 1);
+	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	LinkNode *datamasks, *curr;
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
@@ -2047,7 +1922,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 	/* we always want to keep original indices */
 	dataMask |= CD_MASK_ORIGINDEX;
 
-	datamasks = modifiers_calcDataMasks(ob, md, dataMask, required_mode);
+	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
 
 	curr = datamasks;
 	for(i = 0; md; i++, md = md->next, curr = curr->next) {
@@ -2055,7 +1930,7 @@ static void editmesh_calc_modifiers(Scene *scene, Object *ob, EditMesh *em, Deri
 
 		md->scene= scene;
 		
-		if(!editmesh_modifier_is_enabled(md, dm))
+		if(!editmesh_modifier_is_enabled(scene, md, dm))
 			continue;
 
 		/* add an orco layer if needed by this modifier */
@@ -2233,7 +2108,8 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Object *obact = scene->basact?scene->basact->object:NULL;
 	int editing = paint_facesel_test(ob);
-	int needMapping = editing && (ob==obact);
+	/* weight paint and face select need original indicies because of selection buffer drawing */
+	int needMapping = (ob==obact) && (editing || (ob->mode & OB_MODE_WEIGHT_PAINT) || paint_facesel_test(ob));
 	float min[3], max[3];
 	
 	clear_mesh_caches(ob);
@@ -2473,12 +2349,12 @@ float *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 
 /* ********* crazyspace *************** */
 
-int editmesh_get_first_deform_matrices(Object *ob, EditMesh *em, float (**deformmats)[3][3], float (**deformcos)[3])
+int editmesh_get_first_deform_matrices(Scene *scene, Object *ob, EditMesh *em, float (**deformmats)[3][3], float (**deformcos)[3])
 {
 	ModifierData *md;
 	DerivedMesh *dm;
 	int i, a, numleft = 0, numVerts = 0;
-	int cageIndex = modifiers_getCageIndex(ob, NULL, 1);
+	int cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	float (*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
 
 	modifiers_clearErrors(ob);
@@ -2492,7 +2368,7 @@ int editmesh_get_first_deform_matrices(Object *ob, EditMesh *em, float (**deform
 	for(i = 0; md && i <= cageIndex; i++, md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if(!editmesh_modifier_is_enabled(md, dm))
+		if(!editmesh_modifier_is_enabled(scene, md, dm))
 			continue;
 
 		if(mti->type==eModifierTypeType_OnlyDeform && mti->deformMatricesEM) {
@@ -2513,7 +2389,7 @@ int editmesh_get_first_deform_matrices(Object *ob, EditMesh *em, float (**deform
 	}
 
 	for(; md && i <= cageIndex; md = md->next, i++)
-		if(editmesh_modifier_is_enabled(md, dm) && modifier_isCorrectableDeformed(md))
+		if(editmesh_modifier_is_enabled(scene, md, dm) && modifier_isCorrectableDeformed(md))
 			numleft++;
 
 	if(dm)

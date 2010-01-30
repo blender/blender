@@ -44,6 +44,7 @@ struct bNodeTree;
 
 /* space_image.c */
 struct ARegion *image_has_buttons_region(struct ScrArea *sa);
+struct ARegion *image_has_scope_region(struct ScrArea *sa);
 
 /* image_header.c */
 void image_header_buttons(const struct bContext *C, struct ARegion *ar);
@@ -88,6 +89,7 @@ void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene 
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
 void image_buttons_register(struct ARegionType *art);
 void IMAGE_OT_properties(struct wmOperatorType *ot);
+void IMAGE_OT_scopes(struct wmOperatorType *ot);
 
 #endif /* ED_IMAGE_INTERN_H */
 

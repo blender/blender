@@ -162,6 +162,8 @@ extern void GHOST_GetMainDisplayDimensions(GHOST_SystemHandle systemhandle,
  * @param	height	The height the window.
  * @param	state	The state of the window when opened.
  * @param	type	The type of drawing context installed in this window.
+ * @param stereoVisual		Stereo visual for quad buffered stereo.
+ * @param numOfAASamples	Number of samples used for AA (zero if no AA)
  * @return	A handle to the new window ( == NULL if creation failed).
  */
 extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
@@ -172,7 +174,8 @@ extern GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
-	const int stereoVisual);
+	const int stereoVisual,
+	const GHOST_TUns16 numOfAASamples);
 
 /**
  * Returns the window user data.

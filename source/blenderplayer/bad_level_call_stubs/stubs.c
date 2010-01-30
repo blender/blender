@@ -102,6 +102,7 @@ int ED_space_image_show_render(struct SpaceImage *sima){return 0;}
 int ED_space_image_show_paint(struct SpaceImage *sima){return 0;}
 void ED_space_image_set(struct bContext *C, struct SpaceImage *sima, struct Scene *scene, struct Object *obedit, struct Image *ima){}
 struct ImBuf *ED_space_image_buffer(struct SpaceImage *sima){return (struct ImBuf *) NULL;}
+void	ED_screen_set_scene(struct bContext *C, struct Scene *scene){}
 
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob){return (struct PTCacheEdit *) NULL;}
 void PE_current_changed(struct Scene *scene, struct Object *ob){}
@@ -113,6 +114,8 @@ struct wmKeyMap *WM_keymap_add_item(struct wmKeyMap *keymap, char *idname, int t
 struct wmKeyMap *WM_keymap_copy_to_user(struct wmKeyMap *kemap){return (struct wmKeyMap *) NULL;} 
 struct wmKeyMap *WM_keymap_list_find(struct ListBase *lb, char *idname, int spaceid, int regionid){return (struct wmKeyMap *) NULL;}
 struct wmKeyConfig *WM_keyconfig_add(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
+struct wmKeyConfig *WM_keyconfig_add_user(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
+void WM_keyconfig_remove(struct wmWindowManager *wm, char *idname){}
 void WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
 void WM_keymap_restore_to_default(struct wmKeyMap *keymap){}
 void WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
@@ -159,6 +162,7 @@ void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int ver
 void ED_mesh_material_add(struct Mesh *me, struct Material *ma){}
 void ED_mesh_transform(struct Mesh *me, float *mat){}
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C){}
+int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
 int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
 void ED_object_apply_obmat(struct Object *ob){}
 void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob){}
@@ -206,6 +210,7 @@ void uiTemplateID(struct uiLayout *layout, struct bContext *C, struct PointerRNA
 struct uiLayout *uiTemplateModifier(struct uiLayout *layout, struct PointerRNA *ptr){return (struct uiLayout *) NULL;}
 struct uiLayout *uiTemplateConstraint(struct uiLayout *layout, struct PointerRNA *ptr){return (struct uiLayout *) NULL;}
 void uiTemplatePreview(struct uiLayout *layout, struct ID *id, struct ID *parent, struct MTex *slot){}
+void uiTemplateIDPreview(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, char *newop, char *openop, char *unlinkop, int rows, int cols){}
 void uiTemplateCurveMapping(struct uiLayout *layout, struct CurveMapping *cumap, int type, int compact){}
 void uiTemplateColorRamp(struct uiLayout *layout, struct ColorBand *coba, int expand){}
 void uiTemplateLayers(struct uiLayout *layout, struct PointerRNA *ptr, char *propname){}
@@ -218,6 +223,7 @@ void uiTemplateHeader3D(struct uiLayout *layout, struct bContext *C){}
 void uiTemplateTextureImage(struct uiLayout *layout, struct bContext *C, struct Tex *tex){}
 void uiTemplateImage(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *userptr, int compact){}
 void uiTemplateDopeSheetFilter(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr){}
+void uiTemplateColorWheel(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider){}
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h){return (struct RenderResult *) NULL;}

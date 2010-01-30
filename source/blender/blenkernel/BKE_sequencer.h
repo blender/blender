@@ -28,8 +28,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_SEQUENCE_H
-#define BKE_SEQUENCE_H
+#ifndef BKE_SEQUENCER_H
+#define BKE_SEQUENCER_H
 
 struct Editing;
 struct Sequence;
@@ -76,8 +76,6 @@ void seq_array(struct Editing *ed, struct Sequence ***seqarray, int *tot, int us
 		} \
 		seq_end(&iter); \
 	}
-
-#endif
 
 
 /* Wipe effect */
@@ -206,6 +204,7 @@ void active_seq_set(struct Scene *scene, struct Sequence *seq);
 /* api for adding new sequence strips */
 typedef struct SeqLoadInfo {
 	int start_frame;
+	int end_frame;
 	int channel;
 	int flag;	/* use sound, replace sel */
 	int type;
@@ -238,3 +237,5 @@ struct Sequence *sequencer_add_movie_strip(struct bContext *C, ListBase *seqbase
 /* copy/paste */
 extern ListBase seqbase_clipboard;
 extern int seqbase_clipboard_frame;
+
+#endif // BKE_SEQUENCER_H

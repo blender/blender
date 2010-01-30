@@ -205,6 +205,7 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	if (efra < 1) efra = 1.0f;
 	if (efra < sfra) efra= sfra;
 	
+	scene->r.flag |= SCER_PRV_RANGE;
 	scene->r.psfra= (int)floor(sfra + 0.5f);
 	scene->r.pefra= (int)floor(efra + 0.5f);
 	
@@ -251,6 +252,7 @@ static int previewrange_clear_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* simply clear values */
+	scene->r.flag &= ~SCER_PRV_RANGE;
 	scene->r.psfra= 0;
 	scene->r.pefra= 0;
 	

@@ -327,6 +327,7 @@ void normalize_qt(float *q)
 	}
 }
 
+/* note: expects vectors to be normalized */
 void rotation_between_vecs_to_quat(float *q, const float v1[3], const float v2[3])
 {
 	float axis[3];

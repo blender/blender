@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -56,6 +57,10 @@ class DATA_PT_context_mesh(DataButtonsPanel):
                 layout.template_ID(ob, "data")
             elif mesh:
                 layout.template_ID(space, "pin_id")
+
+
+class DATA_PT_custom_props_mesh(DataButtonsPanel, PropertyPanel):
+    _context_path = "object.data"
 
 
 class DATA_PT_normals(DataButtonsPanel):
@@ -150,7 +155,12 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 
         ob = context.object
         key = ob.data.shape_keys
-        kb = ob.active_shape_key
+        if key and len(key.keys):
+            # this is so that we get the active shapekey from the 
+            # shapekeys block, not from object data
+            kb = key.keys[ob.active_shape_key.name]
+        else:
+            kb = None
         wide_ui = context.region.width > narrowui
 
         enable_edit = ob.mode != 'EDIT'
@@ -197,17 +207,12 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             sub = row.row(align=True)
             subsub = sub.row(align=True)
             subsub.active = enable_edit_value
-            if ob.shape_key_lock:
-                subsub.prop(ob, "shape_key_lock", icon='PINNED', text="")
-            else:
-                subsub.prop(ob, "shape_key_lock", icon='UNPINNED', text="")
-            if kb.mute:
-                subsub.prop(kb, "mute", icon='MUTE_IPO_ON', text="")
-            else:
-                subsub.prop(kb, "mute", icon='MUTE_IPO_OFF', text="")
+            subsub.prop(ob, "shape_key_lock", text="")
+            subsub.prop(kb, "mute", text="")
             sub.prop(ob, "shape_key_edit_mode", text="")
 
             sub = row.row(align=True)
+            sub.operator("object.shape_key_transfer", icon='COPY_ID', text="") # icon is not ideal
             sub.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT', text="")
             sub.operator("object.shape_key_clear", icon='X', text="")
 
@@ -292,3 +297,6 @@ bpy.types.register(DATA_PT_vertex_groups)
 bpy.types.register(DATA_PT_shape_keys)
 bpy.types.register(DATA_PT_uv_texture)
 bpy.types.register(DATA_PT_vertex_colors)
+
+bpy.types.register(DATA_PT_custom_props_mesh)
+

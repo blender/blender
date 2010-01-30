@@ -98,7 +98,8 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
 	GHOST_TUns32 height,
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
-	const bool stereoVisual
+	const bool stereoVisual,
+	const GHOST_TUns16 numOfAASamples
 ) :
 	GHOST_Window(title, left, top, width, height, state, GHOST_kDrawingContextTypeNone),
 	m_windowRef(0),
@@ -634,6 +635,7 @@ void GHOST_WindowCarbon::loadCursor(bool visible, GHOST_TStandardCursor cursor) 
 		GCMAP( GHOST_kStandardCursorTopRightCorner,			kThemeArrowCursor);
 		GCMAP( GHOST_kStandardCursorBottomRightCorner,		kThemeArrowCursor);
 		GCMAP( GHOST_kStandardCursorBottomLeftCorner,		kThemeArrowCursor);
+		GCMAP( GHOST_kStandardCursorCopy,					kThemeCopyArrowCursor);
 		};
 #undef GCMAP
 

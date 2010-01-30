@@ -49,10 +49,13 @@ typedef struct ShadeResult
 	float combined[4];
 	float col[4];
 	float alpha, mist, z;
+	float emit[3];
 	float diff[3];		/* no ramps, shadow, etc */
 	float spec[3];
 	float shad[3];
 	float ao[3];
+	float env[3];
+	float indirect[3];
 	float refl[3];
 	float refr[3];
 	float nor[3];
@@ -153,7 +156,7 @@ typedef struct ShadeInput
 	float dxstrand, dystrand;
 	
 	/* AO is a pre-process now */
-	float ao[3], indirect[3];
+	float ao[3], indirect[3], env[3];
 	
 	int xs, ys;				/* pixel to be rendered */
 	int mask;				/* subsample mask */

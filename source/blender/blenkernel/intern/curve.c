@@ -2325,7 +2325,7 @@ void makeBevelList(Object *ob)
 
 /*
  *   handlecodes:
- *		1: nothing,  1:auto,  2:vector,  3:aligned
+ *		0: nothing,  1:auto,  2:vector,  3:aligned
  */
 
 /* mode: is not zero when FCurve, is 2 when forced horizontal for autohandles */

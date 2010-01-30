@@ -415,7 +415,7 @@ static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, f
 	copy_m4_m4(mat, ob->obmat);
 	
 	/* get index of vertex group */
-	dgroup = get_named_vertexgroup_num(ob, substring);
+	dgroup = defgroup_name_index(ob, substring);
 	if (dgroup < 0) return;
 	
 	/* get DerivedMesh */
@@ -524,7 +524,7 @@ static void contarget_get_lattice_mat (Object *ob, char *substring, float mat[][
 	copy_m4_m4(mat, ob->obmat);
 	
 	/* get index of vertex group */
-	dgroup = get_named_vertexgroup_num(ob, substring);
+	dgroup = defgroup_name_index(ob, substring);
 	if (dgroup < 0) return;
 	if (dvert == NULL) return;
 	
@@ -1353,10 +1353,7 @@ static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 	
 	mat4_to_eulO( eul, cob->rotOrder,cob->matrix);
 	
-	/* eulers: radians to degrees! */
-	eul[0] = (float)(eul[0] / M_PI * 180);
-	eul[1] = (float)(eul[1] / M_PI * 180);
-	eul[2] = (float)(eul[2] / M_PI * 180);
+	/* constraint data uses radians internally */
 	
 	/* limiting of euler values... */
 	if (data->flag & LIMIT_XROT) {
@@ -1381,11 +1378,6 @@ static void rotlimit_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 			eul[2] = data->zmax;
 	}
 		
-	/* eulers: degrees to radians ! */
-	eul[0] = (float)(eul[0] / 180 * M_PI); 
-	eul[1] = (float)(eul[1] / 180 * M_PI);
-	eul[2] = (float)(eul[2] / 180 * M_PI);
-	
 	loc_eulO_size_to_mat4(cob->matrix, loc, eul, size, cob->rotOrder);
 }
 

@@ -274,7 +274,7 @@ void bone_flip_name (char *name, int strip_number)
 
 	/* We first check the case with a .### extension, let's find the last period */
 	if(isdigit(name[len-1])) {
-		index= strrchr(name, '.');	// last occurrance
+		index= strrchr(name, '.');	// last occurrence
 		if (index && isdigit(index[1]) ) {		// doesnt handle case bone.1abc2 correct..., whatever!
 			if(strip_number==0) 
 				strcpy(number, index);
@@ -1480,8 +1480,23 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	bPose *pose= ob->pose, *frompose= from->pose;
 	bPoseChannel *pchan, *pchanp, pchanw;
 	bConstraint *con;
+	int error = 0;
 	
 	if (frompose==NULL) return;
+
+	/* in some cases when rigs change, we cant synchronize
+	 * to avoid crashing check for possible errors here */
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone->layer & layer_protected) {
+			if(get_pose_channel(frompose, pchan->name) == NULL) {
+				printf("failed to sync proxy armature because '%s' is missing pose channel '%s'\n", from->id.name, pchan->name);
+				error = 1;
+			}
+		}
+	}
+
+	if(error)
+		return;
 	
 	/* exception, armature local layer should be proxied too */
 	if (pose->proxy_layer)
@@ -1500,9 +1515,10 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	pose->active_group= frompose->active_group;
 	
 	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		pchanp= get_pose_channel(frompose, pchan->name);
+
 		if (pchan->bone->layer & layer_protected) {
 			ListBase proxylocal_constraints = {NULL, NULL};
-			pchanp= get_pose_channel(frompose, pchan->name);
 			
 			/* copy posechannel to temp, but restore important pointers */
 			pchanw= *pchanp;
@@ -1550,6 +1566,10 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			/* the final copy */
 			*pchan= pchanw;
 		}
+		else {
+			/* always copy custom shape */
+			pchan->custom= pchanp->custom;
+		}
 	}
 }
 
@@ -1582,7 +1602,13 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	int counter=0;
 		
 	/* only done here */
-	if(ob->pose==NULL) ob->pose= MEM_callocN(sizeof(bPose), "new pose");
+	if(ob->pose==NULL) {
+		/* create new pose */
+		ob->pose= MEM_callocN(sizeof(bPose), "new pose");
+		
+		/* set default settings for animviz */
+		animviz_settings_init(&ob->pose->avs);
+	}
 	pose= ob->pose;
 	
 	/* clear */
@@ -1607,8 +1633,10 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	// printf("rebuild pose %s, %d bones\n", ob->id.name, counter);
 	
 	/* synchronize protected layers with proxy */
-	if(ob->proxy)
+	if(ob->proxy) {
+		object_copy_proxy_drivers(ob, ob->proxy);
 		pose_proxy_synchronize(ob, ob->proxy, arm->layer_protected);
+	}
 	
 	update_pose_constraint_flags(ob->pose); // for IK detection for example
 	

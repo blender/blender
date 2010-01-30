@@ -237,7 +237,7 @@ static void sequencer_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void sequencer_init(struct wmWindowManager *wm, ScrArea *sa)
 {
-
+	
 }
 
 static SpaceLink *sequencer_duplicate(SpaceLink *sl)
@@ -251,11 +251,13 @@ static SpaceLink *sequencer_duplicate(SpaceLink *sl)
 }
 
 
+
 /* *********************** sequencer (main) region ************************ */
 /* add handlers, stuff you only do once or on area/region changes */
 static void sequencer_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
 	wmKeyMap *keymap;
+	ListBase *lb;
 	
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 	
@@ -265,6 +267,12 @@ static void sequencer_main_area_init(wmWindowManager *wm, ARegion *ar)
 	/* own keymap */
 	keymap= WM_keymap_find(wm->defaultconf, "Sequencer", SPACE_SEQ, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+	
+	/* add drop boxes */
+	lb= WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
+	
+	WM_event_add_dropbox_handler(&ar->handlers, lb);
+	
 }
 
 static void sequencer_main_area_draw(const bContext *C, ARegion *ar)
@@ -275,6 +283,40 @@ static void sequencer_main_area_draw(const bContext *C, ARegion *ar)
 	draw_timeline_seq(C, ar);
 }
 
+/* ************* dropboxes ************* */
+
+static int image_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_PATH)
+		if(ELEM(drag->icon, ICON_FILE_IMAGE, ICON_FILE_BLANK))	/* rule might not work? */
+			return 1;
+	return 0;
+}
+
+static int movie_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_PATH)
+		if(ELEM(drag->icon, ICON_FILE_MOVIE, ICON_FILE_BLANK))	/* rule might not work? */
+			return 1;
+	return 0;
+}
+
+static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	/* copy drag path to properties */
+	RNA_string_set(drop->ptr, "path", drag->path);
+}
+
+/* this region dropbox definition */
+static void sequencer_dropboxes(void)
+{
+	ListBase *lb= WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
+	
+	WM_dropbox_add(lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy);
+	WM_dropbox_add(lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy);
+}
+
+/* ************* end drop *********** */
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void sequencer_header_area_init(wmWindowManager *wm, ARegion *ar)
@@ -421,7 +463,8 @@ void ED_spacetype_sequencer(void)
 	st->duplicate= sequencer_duplicate;
 	st->operatortypes= sequencer_operatortypes;
 	st->keymap= sequencer_keymap;
-	
+	st->dropboxes= sequencer_dropboxes;
+
 	/* regions: main window */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
 	art->regionid = RGN_TYPE_WINDOW;
@@ -435,7 +478,7 @@ void ED_spacetype_sequencer(void)
 	/* preview */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
 	art->regionid = RGN_TYPE_PREVIEW;
-	art->minsizey = 240; // XXX
+	art->prefsizey = 240; // XXX
 	art->init= sequencer_preview_area_init;
 	art->draw= sequencer_preview_area_draw;
 	art->listener= sequencer_preview_area_listener;
@@ -445,7 +488,7 @@ void ED_spacetype_sequencer(void)
 	/* regions: listview/buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= 220; // XXX
+	art->prefsizex= 220; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= sequencer_buttons_area_listener;
 	art->init= sequencer_buttons_area_init;
@@ -459,7 +502,7 @@ void ED_spacetype_sequencer(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	
 	art->init= sequencer_header_area_init;

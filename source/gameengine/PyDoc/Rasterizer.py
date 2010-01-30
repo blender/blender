@@ -136,7 +136,7 @@ def disableMist():
 	
 def setEyeSeparation(eyesep):
 	"""
-	Sets the eye separation for stereo mode.
+	Sets the eye separation for stereo mode. Usually Focal Length/30 provides a confortable value.
 	
 	@param eyesep: The distance between the left and right eye.
 	@type eyesep: float
@@ -151,7 +151,7 @@ def getEyeSeparation():
 	
 def setFocalLength(focallength):
 	"""
-	Sets the focal length for stereo mode.
+	Sets the focal length for stereo mode. It uses the current camera focal length as initial value.
 	
 	@param focallength: The focal length.  
 	@type focallength: float

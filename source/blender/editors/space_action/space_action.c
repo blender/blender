@@ -103,7 +103,7 @@ static SpaceLink *action_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
 	ar->v2d.tot.xmin= -10.0f;
-	ar->v2d.tot.ymin= (float)(-sa->winy);
+	ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
 	ar->v2d.tot.xmax= (float)(sa->winx);
 	ar->v2d.tot.ymax= 0.0f;
 	
@@ -113,7 +113,7 @@ static SpaceLink *action_new(const bContext *C)
  	ar->v2d.min[1]= 0.0f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
- 	ar->v2d.max[1]= 10000.0f;
+ 	ar->v2d.max[1]= FLT_MAX;
  	
 	ar->v2d.minzoom= 0.01f;
 	ar->v2d.maxzoom= 50;
@@ -137,7 +137,8 @@ static void action_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void action_init(struct wmWindowManager *wm, ScrArea *sa)
 {
-
+	SpaceAction *saction = sa->spacedata.first;
+	saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 }
 
 static SpaceLink *action_duplicate(SpaceLink *sl)
@@ -325,10 +326,12 @@ static void action_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_OBJECT:
 			switch(wmn->data) {
+				case ND_TRANSFORM:
+					/* moving object shouldn't need to redraw action */
+					break;
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 				case ND_KEYS:
-				case ND_TRANSFORM:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -385,15 +388,42 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
-					
+				case ND_TRANSFORM:
+					/* moving object shouldn't need to redraw action */
+					break;
 				default: /* just redrawing the view will do */
 					ED_area_tag_redraw(sa);
 					break;
 			}
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_DOPESHEET)
-				ED_area_tag_redraw(sa);
+			switch (wmn->data) {
+				case ND_SPACE_DOPESHEET:
+					ED_area_tag_redraw(sa);
+					break;
+				case ND_SPACE_CHANGED:
+					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+					ED_area_tag_refresh(sa);
+					break;
+			}			
+			break;
+	}
+}
+
+static void action_header_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_OB_ACTIVE:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
 			break;
 	}
 }
@@ -445,18 +475,19 @@ void ED_spacetype_action(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype action region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	
 	art->init= action_header_area_init;
 	art->draw= action_header_area_draw;
+	art->listener= action_header_area_listener;
 	
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype action region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 200;
+	art->prefsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
 	art->init= action_channel_area_init;

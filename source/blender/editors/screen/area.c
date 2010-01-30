@@ -121,10 +121,12 @@ void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 		case NC_WINDOW:
 			ED_region_tag_redraw(ar);
 			break;
+#ifndef WM_FAST_DRAW
 		case NC_SCREEN:
 			if(note->action==NA_EDITED)
 				ED_region_tag_redraw(ar);
 			/* pass on */
+#endif
 		default:
 			if(ar->type && ar->type->listener)
 				ar->type->listener(ar, note);
@@ -512,9 +514,9 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 	}
 	else if(az->edge=='b') {
 		az->x1= ar->winrct.xmin + AZONEPAD_ICON;
-		az->y1= ar->winrct.ymin - AZONEPAD_ICON;
+		az->y1= ar->winrct.ymin - 2*AZONEPAD_ICON;
 		az->x2= ar->winrct.xmin + 2*AZONEPAD_ICON;
-		az->y2= ar->winrct.ymin - 2*AZONEPAD_ICON;
+		az->y2= ar->winrct.ymin - AZONEPAD_ICON;
 	}
 	else if(az->edge=='l') {
 		az->x1= ar->winrct.xmin - 2*AZONEPAD_ICON;
@@ -622,8 +624,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 	if(ar->next==NULL && alignment!=RGN_ALIGN_QSPLIT)
 		alignment= RGN_ALIGN_NONE;
 	
-	prefsizex= ar->type->minsizex;
-	prefsizey= ar->type->minsizey;
+	prefsizex= ar->sizex?ar->sizex:ar->type->prefsizex;
+	prefsizey= ar->sizey?ar->sizey:ar->type->prefsizey;
 	
 	/* hidden is user flag */
 	if(ar->flag & RGN_FLAG_HIDDEN);
@@ -726,7 +728,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, int
 			if(count!=4) {
 				/* let's stop adding regions */
 				BLI_init_rcti(remainder, 0, 0, 0, 0);
-				printf("region quadsplit failed\n");
+				if (G.f & G_DEBUG)
+					printf("region quadsplit failed\n");
 			}
 			else quad= 1;
 		}
@@ -1083,7 +1086,10 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 		
 		/* tell WM to refresh, cursor types etc */
 		WM_event_add_mousemove(C);
-		
+				
+		/*send space change notifyer*/
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CHANGED, sa);
+
 		ED_area_tag_redraw(sa);
 		ED_area_tag_refresh(sa);
 	}
@@ -1105,6 +1111,9 @@ void ED_area_prevspace(bContext *C, ScrArea *sa)
 		ED_area_newspace(C, sa, SPACE_INFO);
 	}
 	ED_area_tag_redraw(sa);
+
+	/*send space change notifyer*/
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CHANGED, sa);
 }
 
 static char *editortype_pup(void)
@@ -1150,6 +1159,9 @@ static void spacefunc(struct bContext *C, void *arg1, void *arg2)
 {
 	ED_area_newspace(C, CTX_wm_area(C), CTX_wm_area(C)->butspacetype);
 	ED_area_tag_redraw(CTX_wm_area(C));
+
+	/*send space change notifyer*/
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CHANGED, CTX_wm_area(C));
 }
 
 /* returns offset for next button in header */
@@ -1218,11 +1230,11 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 
 	if(vertical) {
 		w= v2d->cur.xmax - v2d->cur.xmin;
-		em= (ar->type->minsizex)? 10: 20;
+		em= (ar->type->prefsizex)? 10: 20;
 	}
 	else {
 		w= UI_PANEL_WIDTH;
-		em= (ar->type->minsizex)? 10: 20;
+		em= (ar->type->prefsizex)? 10: 20;
 	}
 
 	x= 0;
@@ -1316,7 +1328,11 @@ void ED_region_panels(const bContext *C, ARegion *ar, int vertical, char *contex
 	}
 
 	/* clear */
-	UI_GetThemeColor3fv(TH_BACK, col);
+	if (ar->type->regionid == RGN_TYPE_PREVIEW)
+		UI_GetThemeColor3fv(TH_PREVIEW_BACK, col);
+	else
+		UI_GetThemeColor3fv(TH_BACK, col);
+	
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 

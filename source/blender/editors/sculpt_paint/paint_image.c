@@ -1001,8 +1001,7 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 	float puv[4][2]; /* pixelspace uv's */
 	float no1[2], no2[2], no3[2], no4[2]; /* normals */
 	float dir1[2], dir2[2], dir3[2], dir4[2];
-	float ibuf_x_inv = 1.0f / (float)ibuf_x; 
-	float ibuf_y_inv = 1.0f / (float)ibuf_y; 
+	float ibuf_inv[2] = {1.0f / (float)ibuf_x, 1.0f / (float)ibuf_y};
 	
 	/* make UV's in pixel space so we can */
 	puv[0][0] = orig_uv[0][0] * ibuf_x;
@@ -1035,17 +1034,20 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		sub_v2_v2v2(dir3, puv[0], puv[2]);
 		normalize_v2(dir3);
 	}
-	
+
+	/* TODO - angle_normalized_v2v2(...) * (M_PI/180.0f)
+	 * This is incorrect. Its already given radians but without it wont work.
+	 * need to look into a fix - campbell */
 	if (is_quad) {
-		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir4, dir1));
-		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2));
-		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3));
-		a4 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir4));
+		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir4, dir1) * (M_PI/180.0f));
+		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2) * (M_PI/180.0f));
+		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3) * (M_PI/180.0f));
+		a4 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir4) * (M_PI/180.0f));
 	}
 	else {
-		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir1));
-		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2));
-		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3));
+		a1 = shell_angle_to_dist(angle_normalized_v2v2(dir3, dir1) * (M_PI/180.0f));
+		a2 = shell_angle_to_dist(angle_normalized_v2v2(dir1, dir2) * (M_PI/180.0f));
+		a3 = shell_angle_to_dist(angle_normalized_v2v2(dir2, dir3) * (M_PI/180.0f));
 	}
 	
 	if (is_quad) {
@@ -1065,17 +1067,10 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		add_v2_v2v2(outset_uv[1], puv[1], no2);
 		add_v2_v2v2(outset_uv[2], puv[2], no3);
 		add_v2_v2v2(outset_uv[3], puv[3], no4);
-		outset_uv[0][0] *= ibuf_x_inv;
-		outset_uv[0][1] *= ibuf_y_inv;
-		
-		outset_uv[1][0] *= ibuf_x_inv;
-		outset_uv[1][1] *= ibuf_y_inv;
-		
-		outset_uv[2][0] *= ibuf_x_inv;
-		outset_uv[2][1] *= ibuf_y_inv;
-		
-		outset_uv[3][0] *= ibuf_x_inv;
-		outset_uv[3][1] *= ibuf_y_inv;
+		mul_v2_v2(outset_uv[0], ibuf_inv);
+		mul_v2_v2(outset_uv[1], ibuf_inv);
+		mul_v2_v2(outset_uv[2], ibuf_inv);
+		mul_v2_v2(outset_uv[3], ibuf_inv);
 	}
 	else {
 		sub_v2_v2v2(no1, dir3, dir1);
@@ -1090,14 +1085,10 @@ static void uv_image_outset(float (*orig_uv)[2], float (*outset_uv)[2], const fl
 		add_v2_v2v2(outset_uv[0], puv[0], no1);
 		add_v2_v2v2(outset_uv[1], puv[1], no2);
 		add_v2_v2v2(outset_uv[2], puv[2], no3);
-		outset_uv[0][0] *= ibuf_x_inv;
-		outset_uv[0][1] *= ibuf_y_inv;
-		
-		outset_uv[1][0] *= ibuf_x_inv;
-		outset_uv[1][1] *= ibuf_y_inv;
-		
-		outset_uv[2][0] *= ibuf_x_inv;
-		outset_uv[2][1] *= ibuf_y_inv;
+
+		mul_v2_v2(outset_uv[0], ibuf_inv);
+		mul_v2_v2(outset_uv[1], ibuf_inv);
+		mul_v2_v2(outset_uv[2], ibuf_inv);
 	}
 }
 
@@ -2849,7 +2840,17 @@ static void project_paint_begin(ProjPaintState *ps)
 		}
 	}
 	
-
+	/* when using subsurf or multires, mface arrays are thrown away, we need to keep a copy */
+	if(ps->dm->type != DM_TYPE_CDDM) {
+		ps->dm_mvert= MEM_dupallocN(ps->dm_mvert);
+		ps->dm_mface= MEM_dupallocN(ps->dm_mface);
+		/* looks like these are ok for now.*/
+		/*
+		ps->dm_mtface= MEM_dupallocN(ps->dm_mtface);
+		ps->dm_mtface_clone= MEM_dupallocN(ps->dm_mtface_clone);
+		ps->dm_mtface_stencil= MEM_dupallocN(ps->dm_mtface_stencil);
+		 */
+	}
 	
 	ps->viewDir[0] = 0.0f;
 	ps->viewDir[1] = 0.0f;
@@ -3275,6 +3276,18 @@ static void project_paint_end(ProjPaintState *ps)
 		BLI_memarena_free(ps->arena_mt[a]);
 	}
 	
+	/* copy for subsurf/multires, so throw away */
+	if(ps->dm->type != DM_TYPE_CDDM) {
+		if(ps->dm_mvert) MEM_freeN(ps->dm_mvert);
+		if(ps->dm_mface) MEM_freeN(ps->dm_mface);
+		/* looks like these dont need copying */
+		/*
+		if(ps->dm_mtface) MEM_freeN(ps->dm_mtface);
+		if(ps->dm_mtface_clone) MEM_freeN(ps->dm_mtface_clone);
+		if(ps->dm_mtface_stencil) MEM_freeN(ps->dm_mtface_stencil);
+		*/
+	}
+
 	if(ps->dm_release)
 		ps->dm->release(ps->dm);
 }
@@ -4090,10 +4103,17 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 
 		s->clonecanvas= ibuf;
 
+		/* temporarily add float rect for cloning */
 		if(s->canvas->rect_float && !s->clonecanvas->rect_float) {
-			/* temporarily add float rect for cloning */
+			int profile = IB_PROFILE_NONE;
+			
+			/* Don't want to color manage, but don't disturb existing profiles */
+			SWAP(int, s->clonecanvas->profile, profile);
+
 			IMB_float_from_rect(s->clonecanvas);
 			s->clonefreefloat= 1;
+			
+			SWAP(int, s->clonecanvas->profile, profile);
 		}
 		else if(!s->canvas->rect_float && !s->clonecanvas->rect)
 			IMB_rect_from_float(s->clonecanvas);
@@ -4253,12 +4273,10 @@ static int image_paint_3d_poll(bContext *C)
 
 static int image_paint_2d_clone_poll(bContext *C)
 {
-	Scene *scene= CTX_data_scene(C);
-	ToolSettings *settings= scene->toolsettings;
 	Brush *brush= image_paint_brush(C);
 
 	if(!CTX_wm_region_view3d(C) && image_paint_poll(C))
-		if(brush && (settings->imapaint.tool == PAINT_TOOL_CLONE))
+		if(brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE))
 			if(brush->clone.image)
 				return 1;
 	
@@ -4366,7 +4384,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		return 0;
 
 	pop->s.brush = brush;
-	pop->s.tool = settings->imapaint.tool;
+	pop->s.tool = brush->imagepaint_tool;
 	if(pop->mode == PAINT_MODE_3D && (pop->s.tool == PAINT_TOOL_CLONE))
 		pop->s.tool = PAINT_TOOL_DRAW;
 	pop->s.blend = pop->s.brush->blend;

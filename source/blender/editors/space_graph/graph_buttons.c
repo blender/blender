@@ -147,7 +147,7 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 	SpaceIpo *sipo= CTX_wm_space_graph(C);
 	Scene *scene= CTX_data_scene(C);
 	PointerRNA spaceptr, sceneptr;
-	uiLayout *col, *subcol;
+	uiLayout *col, *subcol, *row;
 	
 	/* get RNA pointers for use when creating the UI elements */
 	RNA_id_pointer_create(&scene->id, &sceneptr);
@@ -159,12 +159,16 @@ static void graph_panel_view(const bContext *C, Panel *pa)
 		
 		subcol= uiLayoutColumn(col, 1);
 		uiLayoutSetActive(subcol, RNA_boolean_get(&spaceptr, "show_cursor")); 
-			uiItemR(subcol, "Cursor X", 0, &sceneptr, "current_frame", 0);
-			uiItemR(subcol, "Cursor Y", 0, &spaceptr, "cursor_value", 0);
-			
+			uiItemO(subcol, "Cursor from Selection", 0, "GRAPH_OT_frame_jump");
+		
 		subcol= uiLayoutColumn(col, 1);
 		uiLayoutSetActive(subcol, RNA_boolean_get(&spaceptr, "show_cursor")); 
-			uiItemO(subcol, "Cursor from Selection", 0, "GRAPH_OT_frame_jump");
+			row= uiLayoutSplit(subcol, 0.7, 1);
+				uiItemR(row, "Cursor X", 0, &sceneptr, "current_frame", 0);
+				uiItemEnumO(row, "To Keys", 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_CFRA);
+			row= uiLayoutSplit(subcol, 0.7, 1);
+				uiItemR(row, "Cursor Y", 0, &spaceptr, "cursor_value", 0);
+				uiItemEnumO(row, "To Keys", 0, "GRAPH_OT_snap", "type", GRAPHKEYS_SNAP_VALUE);
 }
 
 /* ******************* active F-Curve ************** */
@@ -314,7 +318,7 @@ static void graph_panel_driverVar__singleProp(const bContext *C, uiLayout *layou
 	
 	/* Target ID */
 	row= uiLayoutRow(layout, 0);
-		uiTemplateAnyID(row, (bContext *)C, &dtar_ptr, "id", "id_type", "Value:");
+		uiTemplateAnyID(row, (bContext *)C, &dtar_ptr, "id", "id_type", "Prop:");
 	
 	/* Target Property */
 	// TODO: make this less technical...
@@ -486,6 +490,21 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			if (driver->flag & DRIVER_FLAG_INVALID)
 				uiItemL(col, "ERROR: invalid target channel(s)", ICON_ERROR);
 		}
+		
+	col= uiLayoutColumn(pa->layout, 1);
+		/* debug setting */
+		uiItemR(col, NULL, 0, &driver_ptr, "show_debug_info", 0);
+		
+		/* value of driver */
+		if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
+			uiLayout *row= uiLayoutRow(col, 1);
+			char valBuf[32];
+			
+			uiItemL(row, "Driver Value:", 0);
+			
+			sprintf(valBuf, "%.3f", driver->curval);
+			uiItemL(row, valBuf, 0);
+		}
 	
 	/* add driver variables */
 	col= uiLayoutColumn(pa->layout, 0);
@@ -538,6 +557,19 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 					graph_panel_driverVar__transChan(C, box, ale->id, dvar);
 					break;
 			}
+			
+		/* value of variable */
+		if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
+			uiLayout *row;
+			char valBuf[32];
+			
+			box= uiLayoutBox(col);
+			row= uiLayoutRow(box, 1);
+				uiItemL(row, "Value:", 0);
+				
+				sprintf(valBuf, "%.3f", dvar->curval);
+				uiItemL(row, valBuf, 0);
+		}
 	}
 	
 	/* cleanup */

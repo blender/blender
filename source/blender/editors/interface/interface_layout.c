@@ -388,28 +388,28 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, char *name, int icon
 		}
 	}
 	else if(subtype == PROP_MATRIX) {
-		/* matrix layout */
+		int totdim, dim_size[3];	/* 3 == RNA_MAX_ARRAY_DIMENSION */
 		int row, col;
 
 		uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, 1));
 
-		len= ceil(sqrt(len));
+		totdim= RNA_property_array_dimension(ptr, prop, dim_size);
+		if (totdim != 2) return;	/* only 2D matrices supported in UI so far */
+		
+		w /= dim_size[0];
+		h /= dim_size[1];
 
-		h /= len;
-		w /= len;
-
-		// XXX test
 		for(a=0; a<len; a++) {
-			col= a%len;
-			row= a/len;
-
-			but= uiDefAutoButR(block, ptr, prop, a, "", 0, x + w*col, y+(row-a-1)*UI_UNIT_Y, w, UI_UNIT_Y);
+			col= a % dim_size[0];
+			row= a / dim_size[0];
+			
+			but= uiDefAutoButR(block, ptr, prop, a, "", 0, x + w*col, y+(dim_size[1]*UI_UNIT_Y)-(row*UI_UNIT_Y), w, UI_UNIT_Y);
 			if(slider && but->type==NUM)
 				but->type= NUMSLI;
 		}
 	}
 	else {
-		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA))
+		if(ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) && !expand)
 			uiDefAutoButR(block, ptr, prop, -1, "", 0, 0, 0, w, UI_UNIT_Y);
 
 		if(!ELEM(subtype, PROP_COLOR, PROP_COLOR_GAMMA) || expand) {
@@ -911,7 +911,7 @@ void uiItemFullR(uiLayout *layout, char *name, int icon, PointerRNA *ptr, Proper
 		name= (char*)RNA_property_ui_name(prop);
 	if(!icon)
 		icon= RNA_property_ui_icon(prop);
-
+	
 	if(ELEM4(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER))
 		name= ui_item_name_add_colon(name, namestr);
 	else if(type == PROP_BOOLEAN && len && index == RNA_NO_INDEX)
@@ -1321,7 +1321,7 @@ void uiItemM(uiLayout *layout, bContext *C, char *name, int icon, char *menuname
 }
 
 /* label item */
-void uiItemL(uiLayout *layout, char *name, int icon)
+static uiBut *uiItemL_(uiLayout *layout, char *name, int icon)
 {
 	uiBlock *block= layout->root->block;
 	uiBut *but;
@@ -1342,7 +1342,24 @@ void uiItemL(uiLayout *layout, char *name, int icon)
 		but= uiDefIconBut(block, LABEL, 0, icon, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	else
 		but= uiDefBut(block, LABEL, 0, (char*)name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+	
+	return but;
 }
+
+void uiItemL(uiLayout *layout, char *name, int icon)
+{
+	uiItemL_(layout, name, icon);
+}
+
+void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, char *name, int icon)
+{
+	uiBut *but= uiItemL_(layout, name, icon);
+
+	if(ptr && ptr->type)
+		if(RNA_struct_is_ID(ptr->type))
+			uiButSetDragID(but, ptr->id.data);
+}
+
 
 /* value item */
 void uiItemV(uiLayout *layout, char *name, int icon, int argval)

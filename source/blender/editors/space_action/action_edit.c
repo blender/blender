@@ -214,6 +214,7 @@ static int actkeys_previewrange_exec(bContext *C, wmOperator *op)
 	
 	/* set the range directly */
 	get_keyframe_extents(&ac, &min, &max);
+	scene->r.flag |= SCER_PRV_RANGE;
 	scene->r.psfra= (int)floor(min + 0.5f);
 	scene->r.pefra= (int)floor(max + 0.5f);
 	
@@ -513,7 +514,7 @@ void ACTION_OT_keyframe_insert (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_actkeys_insertkey_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_insertkey_types, 0, "Type", "");
 }
 
 /* ******************** Duplicate Keyframes Operator ************************* */
@@ -872,7 +873,7 @@ void ACTION_OT_extrapolation_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_actkeys_expo_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_expo_types, 0, "Type", "");
 }
 
 /* ******************** Set Interpolation-Type Operator *********************** */
@@ -943,7 +944,7 @@ void ACTION_OT_interpolation_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
 }
 
 /* ******************** Set Handle-Type Operator *********************** */
@@ -1032,7 +1033,7 @@ void ACTION_OT_handle_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", beztriple_handle_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", beztriple_handle_type_items, 0, "Type", "");
 }
 
 /* ******************** Set Keyframe-Type Operator *********************** */
@@ -1103,7 +1104,7 @@ void ACTION_OT_keyframe_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", beztriple_keyframe_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", beztriple_keyframe_type_items, 0, "Type", "");
 }
 
 /* ************************************************************************** */
@@ -1133,7 +1134,6 @@ static int actkeys_framejump_exec(bContext *C, wmOperator *op)
 	
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
-		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
@@ -1224,6 +1224,7 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 		else 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 	}
+	
 	BLI_freelistN(&anim_data);
 }
 
@@ -1269,7 +1270,7 @@ void ACTION_OT_snap (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_actkeys_snap_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_snap_types, 0, "Type", "");
 }
 
 /* ******************** Mirror Keyframes Operator *********************** */
@@ -1277,7 +1278,6 @@ void ACTION_OT_snap (wmOperatorType *ot)
 /* defines for mirror keyframes tool */
 EnumPropertyItem prop_actkeys_mirror_types[] = {
 	{ACTKEYS_MIRROR_CFRA, "CFRA", 0, "By Times over Current frame", ""},
-	{ACTKEYS_MIRROR_YAXIS, "YAXIS", 0, "By Times over Time=0", ""},
 	{ACTKEYS_MIRROR_XAXIS, "XAXIS", 0, "By Values over Value=0", ""},
 	{ACTKEYS_MIRROR_MARKER, "MARKER", 0, "By Times over First Selected Marker", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -1341,6 +1341,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 		else 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
 	}
+	
 	BLI_freelistN(&anim_data);
 }
 
@@ -1386,7 +1387,7 @@ void ACTION_OT_mirror (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_actkeys_mirror_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_actkeys_mirror_types, 0, "Type", "");
 }
 
 /* ************************************************************************** */

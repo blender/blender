@@ -89,6 +89,8 @@ Brush *add_brush(const char *name)
 	brush->flag |= BRUSH_SPACE;
 
 	brush_curve_preset(brush, CURVE_PRESET_SMOOTH);
+	
+	default_mtex(&brush->mtex);
 
 	/* enable fake user by default */
 	brush->id.flag |= LIB_FAKEUSER;
@@ -225,7 +227,7 @@ void brush_toggled_fake_user(Brush *brush)
 	}
 }
 
-void brush_curve_preset(Brush *b, CurveMappingPreset preset)
+void brush_curve_preset(Brush *b, /*CurveMappingPreset*/int preset)
 {
 	CurveMap *cm = NULL;
 

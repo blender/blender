@@ -682,7 +682,6 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 			if (isect!=0.0f) eed->f2= 1;
 			else eed->f2=0;
 			eed->tmp.fp= isect;
-			//printf("isect=%i\n", isect);
 		}
 		else {
 			eed->f2=0;

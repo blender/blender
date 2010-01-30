@@ -483,10 +483,7 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 			newrect->xmax= MAX2(newrect->xmax, rect->xmin + rres.rectx + offx);
 			newrect->ymax= MAX2(newrect->ymax, rect->ymin + rres.recty);
 
-			glPushMatrix();
-			glTranslatef(offx, 0, 0);
-			glaDrawPixelsSafe_to32(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, gamma_correct);
-			glPopMatrix();
+			glaDrawPixelsSafe_to32(rect->xmin+offx, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, gamma_correct);
 
 			RE_ReleaseResultImage(re);
 			return 1;
@@ -717,7 +714,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 		rdata.layers.first= rdata.layers.last= NULL;
 		rdata.renderer= R_INTERN;
 		 
-		RE_InitState(re, NULL, &rdata, sa->winx, sa->winy, &ri->disprect);
+		RE_InitState(re, NULL, &rdata, NULL, sa->winx, sa->winy, &ri->disprect);
 	
 		if(orth)
 			RE_SetOrtho(re, &viewplane, clipsta, clipend);
@@ -923,7 +920,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	else sizex= sp->sizex;
 
 	/* allocates or re-uses render result */
-	RE_InitState(re, NULL, &sce->r, sizex, sp->sizey, NULL);
+	RE_InitState(re, NULL, &sce->r, NULL, sizex, sp->sizey, NULL);
 
 	/* callbacs are cleared on GetRender() */
 	if(sp->pr_method==PR_BUTS_RENDER) {

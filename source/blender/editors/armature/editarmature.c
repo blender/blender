@@ -320,7 +320,8 @@ void ED_armature_from_edit(Object *obedit)
 				if (fBone->parent==eBone)
 					fBone->parent= eBone->parent;
 			}
-			printf("Warning: removed zero sized bone: %s\n", eBone->name);
+			if (G.f & G_DEBUG)
+				printf("Warning: removed zero sized bone: %s\n", eBone->name);
 			bone_free(arm, eBone);
 		}
 	}
@@ -517,7 +518,7 @@ void unique_editbone_name (ListBase *edbo, char *name, EditBone *bone)
 		/*	Strip off the suffix, if it's a number */
 		number= strlen(name);
 		if (number && isdigit(name[number-1])) {
-			dot= strrchr(name, '.');	// last occurrance
+			dot= strrchr(name, '.');	// last occurrence
 			if (dot)
 				*dot=0;
 		}
@@ -631,7 +632,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	applyarmature_fix_boneparents(scene, ob);
 	
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1128,7 +1129,7 @@ static int separate_armature_exec (bContext *C, wmOperator *op)
 	ED_armature_to_edit(obedit);
 	
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, obedit);
 	
 	/* recalc/redraw + cleanup */
 	WM_cursor_wait(0);
@@ -1384,7 +1385,7 @@ void ARMATURE_OT_flags_set (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_bone_setting_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_bone_setting_types, 0, "Type", "");
 	RNA_def_enum(ot->srna, "mode", prop_bone_setting_modes, 0, "Mode", "");
 }
 
@@ -1404,7 +1405,7 @@ void POSE_OT_flags_set (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_bone_setting_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_bone_setting_types, 0, "Type", "");
 	RNA_def_enum(ot->srna, "mode", prop_bone_setting_modes, 0, "Mode", "");
 }
 
@@ -1486,6 +1487,11 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	return OPERATOR_FINISHED;
 }
 
+static int pose_select_linked_poll(bContext *C)
+{
+	return ( ED_operator_view3d_active(C) && ED_operator_posemode(C) );
+}
+
 void POSE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1495,7 +1501,7 @@ void POSE_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= NULL;
 	ot->invoke= pose_select_connected_invoke;
-	ot->poll= ED_operator_posemode;
+	ot->poll= pose_select_linked_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1580,6 +1586,11 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, wmEvent *e
 	return OPERATOR_FINISHED;
 }
 
+static int armature_select_linked_poll(bContext *C)
+{
+	return ( ED_operator_view3d_active(C) && ED_operator_editarmature(C) );
+}
+
 void ARMATURE_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1589,7 +1600,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= NULL;
 	ot->invoke= armature_select_linked_invoke;
-	ot->poll= ED_operator_editarmature;
+	ot->poll= armature_select_linked_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -1792,7 +1803,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *op)
 	
 	ED_armature_sync_selection(arm->edbo);
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }
@@ -2134,7 +2145,7 @@ static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 	
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -2154,7 +2165,7 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_calc_roll_types, 0, "Type", "");
 }
 
 /* **************** undo for armatures ************** */
@@ -2996,8 +3007,7 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 	}
 	else {
 		// FIXME.. figure out a method for multiple bones
-		BKE_report(op->reports, RPT_ERROR, "Too many points selected"); 
-		printf("Points selected: %d \n", count);
+		BKE_reportf(op->reports, RPT_ERROR, "Too many points selected: %d \n", count); 
 		BLI_freelistN(&points);
 		return OPERATOR_CANCELLED;
 	}
@@ -3037,8 +3047,10 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 	
 	/* check if same bone */
 	if (start == end) {
-		printf("Error: same bone! \n");
-		printf("\tstart = %s, end = %s \n", start->name, end->name);
+		if (G.f & G_DEBUG) {
+			printf("Error: same bone! \n");
+			printf("\tstart = %s, end = %s \n", start->name, end->name);
+		}
 	}
 	
 	/* step 1: add a new bone
@@ -3164,7 +3176,7 @@ static int armature_merge_exec (bContext *C, wmOperator *op)
 	
 	/* updates */
 	ED_armature_sync_selection(arm->edbo);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3190,7 +3202,7 @@ void ARMATURE_OT_merge (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", merge_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", merge_types, 0, "Type", "");
 }
 
 /* ************** END Add/Remove stuff in editmode ************ */
@@ -3455,7 +3467,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 		add_v3_v3v3(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3547,7 +3559,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 	
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, obedit);
+	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, obedit);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3717,7 +3729,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *op)
 	BLI_freelistN(&chains);	
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3866,7 +3878,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 	
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3944,7 +3956,7 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 	ED_armature_sync_selection(arm->edbo);
 
 	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3963,7 +3975,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_editarm_clear_parent_types, 0, "ClearType", "What way to clear parenting");
 }
 
 /* ****************  Selections  ******************/
@@ -4477,7 +4489,7 @@ static int ED_vgroup_add_unique_bone(Object *ob, Bone *bone, void *data)
 	 * If such a vertex group aleady exist the routine exits.
       */
 	if (!(bone->flag & BONE_NO_DEFORM)) {
-		if (!get_named_vertexgroup(ob,bone->name)) {
+		if (!defgroup_find_name(ob,bone->name)) {
 			ED_vgroup_add_name(ob, bone->name);
 			return 1;
 		}
@@ -4521,7 +4533,7 @@ static int dgroup_skinnable(Object *ob, Bone *bone, void *datap)
 			else
 				segments = 1;
 			
-			if (!(defgroup = get_named_vertexgroup(ob, bone->name)))
+			if (!(defgroup = defgroup_find_name(ob, bone->name)))
 				defgroup = ED_vgroup_add_name(ob, bone->name);
 			
 			if (data->list != NULL) {
@@ -4762,7 +4774,7 @@ void add_verts_to_dgroups(Scene *scene, Object *ob, Object *par, int heat, int m
 	MEM_freeN(verts);
 }
 
-void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mode)
+void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mode, int mirror)
 {
 	/* Lets try to create some vertex groups 
 	 * based on the bones of the parent armature.
@@ -4783,7 +4795,7 @@ void create_vgroups_from_armature(Scene *scene, Object *ob, Object *par, int mod
 		 * that are populated with the vertices for which the
 		 * bone is closest.
 		 */
-		add_verts_to_dgroups(scene, ob, par, (mode == ARM_GROUPS_AUTO), 0);
+		add_verts_to_dgroups(scene, ob, par, (mode == ARM_GROUPS_AUTO), mirror);
 	}
 } 
 /* ************* Clear Pose *****************************/
@@ -5318,7 +5330,7 @@ void unique_bone_name (bArmature *arm, char *name)
 		/*	Strip off the suffix, if it's a number */
 		number= strlen(name);
 		if(number && isdigit(name[number-1])) {
-			dot= strrchr(name, '.');	// last occurrance
+			dot= strrchr(name, '.');	// last occurrence
 			if (dot)
 				*dot=0;
 		}
@@ -5549,7 +5561,7 @@ void ARMATURE_OT_autoside_names (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* settings */
-	RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with.");
+	ot->prop= RNA_def_enum(ot->srna, "type", axis_items, 0, "Axis", "Axis tag names with.");
 }
 
 

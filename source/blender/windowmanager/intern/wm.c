@@ -190,11 +190,10 @@ void WM_keymap_init(bContext *C)
 		/* create default key config */
 		wm_window_keymap(wm->defaultconf);
 		ED_spacetypes_keymap(wm->defaultconf);
+		WM_keyconfig_userdef(wm);
 
 		wm->initialized |= WM_INIT_KEYMAP;
 	}
-
-	WM_keyconfig_userdef(wm);
 }
 
 void WM_check(bContext *C)
@@ -298,6 +297,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	BLI_freelistN(&wm->queue);
 	
 	BLI_freelistN(&wm->paintcursors);
+	BLI_freelistN(&wm->drags);
 	BKE_reports_clear(&wm->reports);
 	
 	if(C && CTX_wm_manager(C)==wm) CTX_wm_manager_set(C, NULL);

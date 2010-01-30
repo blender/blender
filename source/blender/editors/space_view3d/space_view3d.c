@@ -48,6 +48,7 @@
 #include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_image.h"
 
 #include "ED_armature.h"
 #include "ED_space_api.h"
@@ -221,8 +222,8 @@ static SpaceLink *view3d_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_HEADER;
 	ar->alignment= RGN_ALIGN_BOTTOM;
 	
-	/* toolbar */
-	ar= MEM_callocN(sizeof(ARegion), "toolbar for view3d");
+	/* tool shelf */
+	ar= MEM_callocN(sizeof(ARegion), "toolshelf for view3d");
 	
 	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype= RGN_TYPE_UI;
@@ -265,12 +266,13 @@ static SpaceLink *view3d_new(const bContext *C)
 static void view3d_free(SpaceLink *sl)
 {
 	View3D *vd= (View3D *) sl;
-	
-	if(vd->bgpic) {
-		if(vd->bgpic->ima) vd->bgpic->ima->id.us--;
-		MEM_freeN(vd->bgpic);
+
+	BGpic *bgpic;
+	for(bgpic= vd->bgpicbase.first; bgpic; bgpic= bgpic->next) {
+		if(bgpic->ima) bgpic->ima->id.us--;
 	}
-	
+	BLI_freelistN(&vd->bgpicbase);
+
 	if(vd->localvd) MEM_freeN(vd->localvd);
 	
 	if(vd->properties_storage) MEM_freeN(vd->properties_storage);
@@ -288,6 +290,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 {
 	View3D *v3do= (View3D *)sl;
 	View3D *v3dn= MEM_dupallocN(sl);
+	BGpic *bgpic;
 	
 	/* clear or remove stuff from old */
 	
@@ -302,10 +305,11 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	
 	/* copy or clear inside new stuff */
 
-	if(v3dn->bgpic) {
-		v3dn->bgpic= MEM_dupallocN(v3dn->bgpic);
-		if(v3dn->bgpic->ima) v3dn->bgpic->ima->id.us++;
-	}
+	BLI_duplicatelist(&v3dn->bgpicbase, &v3do->bgpicbase);
+	for(bgpic= v3dn->bgpicbase.first; bgpic; bgpic= bgpic->next)
+		if(bgpic->ima)
+			bgpic->ima->id.us++;
+
 	v3dn->properties_storage= NULL;
 	
 	return (SpaceLink *)v3dn;
@@ -314,6 +318,7 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
+	ListBase *lb;
 	wmKeyMap *keymap;
 
 	/* object ops. */
@@ -381,7 +386,76 @@ static void view3d_main_area_init(wmWindowManager *wm, ARegion *ar)
 
 	keymap= WM_keymap_find(wm->defaultconf, "3D View", SPACE_VIEW3D, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
+	
+	/* add drop boxes */
+	lb= WM_dropboxmap_find("View3D", SPACE_VIEW3D, RGN_TYPE_WINDOW);
+	
+	WM_event_add_dropbox_handler(&ar->handlers, lb);
+	
 }
+
+static int view3d_ob_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_ID) {
+		ID *id= (ID *)drag->poin;
+		if( GS(id->name)==ID_OB )
+			return 1;
+	}
+	return 0;
+}
+
+static int view3d_mat_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_ID) {
+		ID *id= (ID *)drag->poin;
+		if( GS(id->name)==ID_MA )
+			return 1;
+	}
+	return 0;
+}
+
+static int view3d_ima_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_ID) {
+		ID *id= (ID *)drag->poin;
+		if( GS(id->name)==ID_IM )
+			return 1;
+	}
+	return 0;
+}
+
+static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	ID *id= (ID *)drag->poin;
+	PointerRNA ptr;
+
+	/* need to put name in sub-operator in macro */
+	ptr= RNA_pointer_get(drop->ptr, "OBJECT_OT_add_named");
+	if(ptr.data)
+		RNA_string_set(&ptr, "name", id->name+2);
+	else
+		RNA_string_set(drop->ptr, "name", id->name+2);
+}
+
+static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	ID *id= (ID *)drag->poin;
+
+	RNA_string_set(drop->ptr, "name", id->name+2);
+}
+
+
+/* region dropbox definition */
+static void view3d_dropboxes(void)
+{
+	ListBase *lb= WM_dropboxmap_find("View3D", SPACE_VIEW3D, RGN_TYPE_WINDOW);
+	
+	WM_dropbox_add(lb, "OBJECT_OT_add_named_cursor", view3d_ob_drop_poll, view3d_ob_drop_copy);
+	WM_dropbox_add(lb, "OBJECT_OT_drop_named_material", view3d_mat_drop_poll, view3d_id_drop_copy);
+	WM_dropbox_add(lb, "MESH_OT_drop_named_image", view3d_ima_drop_poll, view3d_id_drop_copy);
+}
+
+
 
 /* type callback, not region itself */
 static void view3d_main_area_free(ARegion *ar)
@@ -447,8 +521,8 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SCENE:
 			switch(wmn->data) {
-				case ND_TRANSFORM:
 				case ND_FRAME:
+				case ND_TRANSFORM:
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
 				case ND_LAYER:
@@ -480,6 +554,11 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_DATA:
 				case ND_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			switch(wmn->action) {
+				case NA_EDITED:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -526,6 +605,10 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->action == NA_RENAME)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_SCREEN:
+			if(wmn->data == ND_GPENCIL)	
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 
@@ -568,6 +651,7 @@ static void view3d_header_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_SELECT:
 				case ND_MODE:
 				case ND_LAYER:
+				case ND_TOOLSETTINGS:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -616,6 +700,11 @@ static void view3d_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_OB_SELECT:
 				case ND_MODE:
 				case ND_LAYER:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			switch(wmn->action) {
+				case NA_EDITED:
 					ED_region_tag_redraw(ar);
 					break;
 			}
@@ -777,6 +866,24 @@ static int view3d_context(const bContext *C, const char *member, bContextDataRes
 	return -1; /* found but not available */
 }
 
+/*area (not region) level listener*/
+#if 0 // removed since BKE_image_user_calc_frame is now called in draw_bgpic because screen_ops doesnt call the notifier.
+void space_view3d_listener(struct ScrArea *area, struct wmNotifier *wmn)
+{
+	if (wmn->category == NC_SCENE && wmn->data == ND_FRAME) {
+		View3D *v3d = area->spacedata.first;
+		BGpic *bgpic = v3d->bgpicbase.first;
+
+		for (; bgpic; bgpic = bgpic->next) {
+			if (bgpic->ima) {
+				Scene *scene = wmn->reference;
+				BKE_image_user_calc_imanr(&bgpic->iuser, scene->r.cfra, 0);
+			}
+		}
+	}
+}
+#endif
+
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_view3d(void)
 {
@@ -789,9 +896,11 @@ void ED_spacetype_view3d(void)
 	st->new= view3d_new;
 	st->free= view3d_free;
 	st->init= view3d_init;
+//	st->listener = space_view3d_listener;
 	st->duplicate= view3d_duplicate;
 	st->operatortypes= view3d_operatortypes;
 	st->keymap= view3d_keymap;
+	st->dropboxes= view3d_dropboxes;
 	st->context= view3d_context;
 	
 	/* regions: main window */
@@ -809,7 +918,7 @@ void ED_spacetype_view3d(void)
 	/* regions: listview/buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= 180; // XXX
+	art->prefsizex= 180; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= view3d_buttons_area_listener;
 	art->init= view3d_buttons_area_init;
@@ -821,21 +930,21 @@ void ED_spacetype_view3d(void)
 	/* regions: tool(bar) */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_TOOLS;
-	art->minsizex= 160; // XXX
-	art->minsizey= 50; // XXX
+	art->prefsizex= 160; // XXX
+	art->prefsizey= 50; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= view3d_buttons_area_listener;
 	art->init= view3d_tools_area_init;
 	art->draw= view3d_tools_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 	
-	view3d_toolbar_register(art);
+	view3d_toolshelf_register(art);
 
 	/* regions: tool properties */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_TOOL_PROPS;
-	art->minsizex= 0;
-	art->minsizey= 120;
+	art->prefsizex= 0;
+	art->prefsizey= 120;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= view3d_buttons_area_listener;
 	art->init= view3d_tools_area_init;
@@ -848,7 +957,7 @@ void ED_spacetype_view3d(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype view3d region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->listener= view3d_header_area_listener;
 	art->init= view3d_header_area_init;

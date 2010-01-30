@@ -402,6 +402,7 @@ GHOST_IWindow* GHOST_SystemCarbon::createWindow(
 	GHOST_TWindowState state,
 	GHOST_TDrawingContextType type,
 	bool stereoVisual,
+	const GHOST_TUns16 numOfAASamples,
 	const GHOST_TEmbedderWindowID parentWindow
 )
 {

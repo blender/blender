@@ -443,7 +443,7 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 			
 			PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) physicsid;
 			PHY_IPhysicsController* physctrl2 = (PHY_IPhysicsController*) physicsid2;
-			if (physctrl) //TODO:check for existance of this pointer!
+			if (physctrl) //TODO:check for existence of this pointer!
 			{
 				PHY_ConstraintType ct = (PHY_ConstraintType) constrainttype;
 				int constraintid =0;

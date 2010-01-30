@@ -161,6 +161,7 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 		ibuf = imb_cocoaLoadImage((uchar *)mem, size, flags);
 		if(ibuf) {
 			ibuf->ftype = TIF;
+			ibuf->profile = IB_PROFILE_SRGB;
 			return ibuf;
 		}
 #else

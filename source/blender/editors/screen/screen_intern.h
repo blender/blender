@@ -60,6 +60,9 @@ void ed_screen_context(const bContext *C, const char *member, bContextDataResult
 void SCREEN_OT_screenshot(struct wmOperatorType *ot);
 void SCREEN_OT_screencast(struct wmOperatorType *ot);
 
+/* partial updates, much faster then drawing everything, ton is away so allow easy undo'ing - campbell */
+#define WM_FAST_DRAW
+
 #endif /* ED_SCREEN_INTERN_H */
 
 

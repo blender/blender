@@ -103,7 +103,6 @@
 #include "GPU_draw.h"
 #include "GPU_material.h"
 #include "GPU_extensions.h"
-#include "gpu_buffers.h"
 
 #include "ED_mesh.h"
 #include "ED_particle.h"
@@ -766,18 +765,89 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	return;
 }
 
-static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
+static void draw_spot_cone(Lamp *la, float x, float z)
 {
-	Lamp *la;
+	float vec[3];
+
+	z= fabs(z);
+
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex3f(0.0f, 0.0f, -x);
+
+	if(la->mode & LA_SQUARE) {
+		vec[0]= z;
+		vec[1]= z;
+		vec[2]= 0.0;
+
+		glVertex3fv(vec);
+		vec[1]= -z;
+		glVertex3fv(vec);
+		vec[0]= -z;
+		glVertex3fv(vec);
+		vec[1]= z;
+		glVertex3fv(vec);
+	}
+	else {
+		float angle;
+		int a;
+
+		for(a=0; a<33; a++) {
+			angle= a*M_PI*2/(33-1);
+			glVertex3f(z*cos(angle), z*sin(angle), 0);
+		}
+	}
+
+	glEnd();
+}
+
+static void draw_transp_spot_volume(Lamp *la, float x, float z)
+{
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glDepthMask(0);
+
+	/* draw backside darkening */
+	glCullFace(GL_FRONT);
+
+	glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
+	glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+
+	draw_spot_cone(la, x, z);
+
+	/* draw front side lightening */
+	glCullFace(GL_BACK);
+
+	glBlendFunc(GL_ONE,  GL_ONE); 
+	glColor4f(0.2f, 0.2f, 0.2f, 1.0f);
+
+	draw_spot_cone(la, x, z);
+
+	/* restore state */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_BLEND);
+	glDepthMask(1);
+	glDisable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+}
+
+static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt, int flag)
+{
+	Object *ob= base->object;
+	Lamp *la= ob->data;
 	float vec[3], lvec[3], vvec[3], circrad, x,y,z;
 	float pixsize, lampsize;
 	float imat[4][4], curcol[4];
 	char col[4];
+	int drawcone= (dt>OB_WIRE && !(G.f & G_PICKSEL) && la->type == LA_SPOT && (la->mode & LA_SHOW_CONE));
 
 	if(G.f & G_RENDER_SHADOW)
 		return;
 	
-	la= ob->data;
+	if(drawcone && !v3d->transp) {
+		/* in this case we need to draw delayed */
+		add_view3d_after(v3d, base, V3D_TRANSP, flag);
+		return;
+	}
 	
 	/* we first draw only the screen aligned & fixed scale stuff */
 	glPushMatrix();
@@ -820,6 +890,8 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 		circrad = 3.0f*lampsize;
 		drawcircball(GL_LINE_LOOP, vec, circrad, imat);
 	}
+	else
+		circrad = 0.0f;
 	
 	setlinestyle(3);
 
@@ -887,12 +959,8 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 		y = cos( M_PI*la->spotsize/360.0 );
 		spotvolume(lvec, vvec, y);
 		x = -la->dist;
-		lvec[0] *=  x ; 
-		lvec[1] *=  x ; 
-		lvec[2] *=  x;
-		vvec[0] *= x ; 
-		vvec[1] *= x ; 
-		vvec[2] *= x;
+		mul_v3_fl(lvec, x);
+		mul_v3_fl(vvec, x);
 
 		/* draw the angled sides of the cone */
 		glBegin(GL_LINE_STRIP);
@@ -931,7 +999,9 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 			if (spotblcirc != 0 && spotblcirc != fabs(z))
 				circ(0.0, 0.0, spotblcirc);
 		}
-		
+
+		if(drawcone)
+			draw_transp_spot_volume(la, x, z);
 	}
 	else if ELEM(la->type, LA_HEMI, LA_SUN) {
 		
@@ -1227,7 +1297,7 @@ static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, i
 
 	if(use_wcol) {
 		float col[3];
-		MDeformWeight *mdw= ED_vgroup_weight_get (lt->dvert+index, use_wcol-1);
+		MDeformWeight *mdw= defvert_find_index (lt->dvert+index, use_wcol-1);
 		
 		weight_to_rgb(mdw?mdw->weight:0.0f, col, col+1, col+2);
 		glColor3fv(col);
@@ -1575,82 +1645,15 @@ static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *
 	}
 }
 
-/* disabled because it crashes combined with e.g. subsurf modifier,
- * the derivedmesh can't be assumed to be an EditMeshDerivedMesh,
- * nor should this struct be copied around, it should be defined in
- * a single place only to avoid them getting out of sync */
-#if 0
-/* originally defined in DerivedMesh.c */
-typedef struct {
-	DerivedMesh dm;
-
-	EditMesh *em;
-	float (*vertexCos)[3];
-	float (*vertexNos)[3];
-	float (*faceNos)[3];
-} EditMeshDerivedMesh;
-#endif
-
 static void draw_dm_verts(DerivedMesh *dm, int sel, EditVert *eve_act)
 {
 	struct { int sel; EditVert *eve_act; } data;
-	//GPUBuffer *buffer;
-	//float *varray;
 	data.sel = sel;
 	data.eve_act = eve_act;
 
-#if 0
-	/* first come the unselected vertices, then the selected */
-	buffer = GPU_buffer_legacy(dm)?0:GPU_buffer_alloc( sizeof(float)*3*dm->getNumVerts(dm)*2, 0 );
-
-	if( (varray = GPU_buffer_lock_stream( buffer )) && bglPointHack() == 0 ) {
-		EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
-		EditVert *eve;
-		int i;
-		int numverts = 0, numselected = 0;
-		int datatype[] = { GPU_BUFFER_INTER_V3F, GPU_BUFFER_INTER_END };
-		GPU_buffer_unlock( buffer );
-		GPU_interleaved_setup( buffer, datatype );
-		varray = GPU_buffer_lock_stream( buffer );
-
-		glBegin(GL_POINTS);
-		for (i=0,eve= emdm->em->verts.first; eve; i++,eve=eve->next) {
-			if (eve->h==0 && (eve->f&SELECT)==data.sel) {
-				if (eve==data.eve_act) {
-					if (emdm->vertexCos) {
-						VECCOPY(&varray[3*(dm->getNumVerts(dm)+numselected)],emdm->vertexCos[i]);
-					}
-					else {
-						VECCOPY(&varray[3*(dm->getNumVerts(dm)+numselected)],eve->co);
-					}
-					numselected++;
-				} else {
-					if (emdm->vertexCos) {
-						VECCOPY(&varray[3*numverts],emdm->vertexCos[i]);
-					} else {
-						VECCOPY(&varray[3*numverts],eve->co);
-					}
-					numverts++;
-				}
-			}
-		}
-		glEnd();
-		GPU_buffer_unlock( buffer );
-		glDrawArrays(GL_POINTS,0,numverts);
-		UI_ThemeColor4(TH_EDITMESH_ACTIVE);
-		glDrawArrays(GL_POINTS,dm->getNumVerts(dm),numselected);
-		UI_ThemeColor4(data.sel?TH_VERTEX_SELECT:TH_VERTEX);
-		GPU_buffer_unbind();
-	}
-	{
-#endif
-		bglBegin(GL_POINTS);
-		dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data);
-		bglEnd();
-#if 0
-	}
-	GPU_buffer_free( buffer, 0 );
-#endif
+	bglBegin(GL_POINTS);
+	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data);
+	bglEnd();
 }
 
 	/* Draw edges with color set based on selection */
@@ -1722,55 +1725,8 @@ static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, int i
 static void draw_dm_edges_sel_interp(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol)
 {
 	unsigned char *cols[2] = {baseCol, selCol};
-#if 0
-	int elemsize = sizeof(float)*3+sizeof(unsigned char)*4;
-	EditMeshDerivedMesh *emdm = (EditMeshDerivedMesh *)dm;
-	EditMesh *em= emdm->em;
-	unsigned char *varray;
-	int i;
-	GPUBuffer *buffer;
 
-	buffer = GPU_buffer_legacy(dm)?0:GPU_buffer_alloc( elemsize*em->totedge*2, 0 );
-	if( (varray = GPU_buffer_lock_stream( buffer )) ) {
-		EditEdge *eed;
-		int numedges = 0;
-		int datatype[] = { GPU_BUFFER_INTER_V3F, GPU_BUFFER_INTER_C4UB, GPU_BUFFER_INTER_END };
-		GPU_buffer_unlock( buffer );
-		GPU_interleaved_setup( buffer, datatype );
-		varray = GPU_buffer_lock_stream( buffer );
-		for (i=0,eed= em->edges.first; eed; i++,eed= eed->next) {
-			if(eed->h==0) {
-				unsigned char *col0 = cols[(eed->v1->f&SELECT)?1:0];
-				unsigned char *col1 = cols[(eed->v2->f&SELECT)?1:0];
-
-				if( emdm->vertexCos ) {
-					VECCOPY(((float *)&varray[elemsize*numedges*2]),emdm->vertexCos[(int) eed->v1->tmp.l]);
-				}
-				else {
-					VECCOPY(((float *)&varray[elemsize*numedges*2]),eed->v1->co);
-				}
-				QUATCOPY(&varray[elemsize*numedges*2+sizeof(float)*3],col0);
-				if( emdm->vertexCos ) {
-					VECCOPY(((float *)&varray[elemsize*numedges*2+elemsize]),emdm->vertexCos[(int) eed->v2->tmp.l]);
-				}
-				else {
-					VECCOPY(((float *)&varray[elemsize*numedges*2+elemsize]),eed->v2->co);
-				}
-				QUATCOPY(&varray[elemsize*numedges*2+elemsize+sizeof(float)*3],col1);
-				numedges++;
-			}
-		}
-		GPU_buffer_unlock( buffer );
-		glDrawArrays(GL_LINES,0,numedges*2);
-		GPU_buffer_unbind();
-	}
-	else {
-#endif
-		dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, cols);
-#if 0
-	}
-	GPU_buffer_free( buffer, 0 );
-#endif
+	dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, cols);
 }
 
 	/* Draw only seam edges */
@@ -1824,236 +1780,12 @@ static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *dra
 static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *actCol, EditFace *efa_act) 
 {
 	struct { unsigned char *cols[3]; EditFace *efa_act; } data;
-	//EditMeshDerivedMesh *emdm = (EditMeshDerivedMesh *)dm;
-	EditFace *efa;
-	unsigned char *col;
-	GPUBuffer *buffer;
-	unsigned char *varray;
-	unsigned char black[] = { 0, 0, 0, 0 };
-	int i, draw=0;
-	int elemsize = (sizeof(float)*6+sizeof(unsigned char)*4);
 	data.cols[0] = baseCol;
 	data.cols[1] = selCol;
 	data.cols[2] = actCol;
 	data.efa_act = efa_act;
 
-
-	buffer = GPU_buffer_legacy(dm)?0:GPU_buffer_alloc( elemsize*dm->getNumFaces(dm)*3*2, 0 );
-	if( dm->getVertCos == 0 && (varray = GPU_buffer_lock_stream( buffer )) ) {
-		int prevdraw = 0;
-		int numfaces = 0;
-		int datatype[] = { GPU_BUFFER_INTER_V3F, GPU_BUFFER_INTER_N3F, GPU_BUFFER_INTER_C4UB, GPU_BUFFER_INTER_END };
-		GPU_buffer_unlock( buffer );
-		GPU_interleaved_setup( buffer, datatype );
-		glShadeModel(GL_SMOOTH);
-		varray = GPU_buffer_lock_stream( buffer );
-		for (i=0,efa= efa_act; efa; i++,efa= efa->next) {
-			int drawSmooth = (efa->flag & ME_SMOOTH);
-			if (efa->h==0) {
-				if (efa == data.efa_act) {
-					draw = 2;
-				} else {
-					col = data.cols[(efa->f&SELECT)?1:0];
-					if (col[3]==0) draw = 0;
-					else draw = 1;
-				}
-			}
-			else {
-				draw = 0;
-			}
-			if( prevdraw != draw && prevdraw != 0 && numfaces > 0) {
-				if( prevdraw==2 ) {
-					glEnable(GL_POLYGON_STIPPLE);
-	  				glPolygonStipple(stipple_quarttone);
-				}
-				GPU_buffer_unlock( buffer );
-				glDrawArrays(GL_TRIANGLES,0,numfaces*3);
-				if( prevdraw==2 ) {
-					glDisable(GL_POLYGON_STIPPLE);
-				}
-				varray = GPU_buffer_lock_stream( buffer );
-				numfaces = 0;
-			}
-
-			if( draw != 0 ) {
-				if(!drawSmooth) {
-					/*if (emdm->vertexCos) {
-						VECCOPY((float *)&varray[elemsize*3*numfaces],emdm->vertexCos[(int) efa->v1->tmp.l]);
-						VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],emdm->faceNos[i]);
-
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],emdm->vertexCos[(int) efa->v2->tmp.l]);
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],emdm->faceNos[i]);
-
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],emdm->vertexCos[(int) efa->v3->tmp.l]);
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],emdm->faceNos[i]);
-					}
-					else {*/
-						VECCOPY((float *)&varray[elemsize*3*numfaces],efa->v1->co);
-						VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],efa->n);
-
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],efa->v2->co);
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],efa->n);
-
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],efa->v3->co);
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],efa->n);
-					/*}*/
-					if( draw == 2 ) {
-						QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[2]);
-						QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[2]);
-						QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[2]);
-					}
-					else if( draw == 1 ) {
-						QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
-						QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
-						QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
-					}
-					else {
-						QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],black);
-						QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],black);
-						QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],black);
-					}
-
-					numfaces++;
-					if( efa->v4 ) {
-						/*if (emdm->vertexCos) {
-							VECCOPY((float *)&varray[elemsize*3*numfaces],emdm->vertexCos[(int) efa->v3->tmp.l]);
-							VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],emdm->faceNos[i]);
-
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],emdm->vertexCos[(int) efa->v4->tmp.l]);
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],emdm->faceNos[i]);
-
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],emdm->vertexCos[(int) efa->v1->tmp.l]);
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],emdm->faceNos[i]);
-						}
-						else {*/
-							VECCOPY((float *)&varray[elemsize*3*numfaces],efa->v3->co);
-							VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],efa->n);
-
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],efa->v4->co);
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],efa->n);
-
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],efa->v1->co);
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],efa->n);
-						/*}*/
-
-						if( draw == 2 ) {
-							QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[2]);
-							QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[2]);
-							QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[2]);
-						}
-						else if( draw == 1 ) {
-							QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
-							QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
-							QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
-						}
-						else {
-							QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],black);
-							QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],black);
-							QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],black);
-						}
-
-						numfaces++;
-					}
-				}
-				else {
-					/*if (emdm->vertexCos) {
-						VECCOPY((float *)&varray[elemsize*3*numfaces],emdm->vertexCos[(int) efa->v1->tmp.l]);
-						VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],emdm->vertexNos[(int) efa->v1->tmp.l]);
-
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],emdm->vertexCos[(int) efa->v2->tmp.l]);
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],emdm->vertexNos[(int) efa->v2->tmp.l]);
-
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],emdm->vertexCos[(int) efa->v3->tmp.l]);
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],emdm->vertexNos[(int) efa->v3->tmp.l]);
-					}
-					else {*/
-						VECCOPY((float *)&varray[elemsize*3*numfaces],efa->v1->co);
-						VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],efa->v1->no);
-
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],efa->v2->co);
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],efa->v2->no);
-
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],efa->v3->co);
-						VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],efa->v3->no);
-					/*}*/
-
-					if( draw == 2 ) {
-						QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[2]);
-						QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[2]);
-						QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[2]);
-					}
-					else if( draw == 1 ) {
-						QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
-						QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
-						QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
-					}
-					else {
-						QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],black);
-						QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],black);
-						QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],black);
-					}
-
-					numfaces++;
-					if( efa->v4 ) {
-						/*if (emdm->vertexCos) {
-							VECCOPY((float *)&varray[elemsize*3*numfaces],emdm->vertexCos[(int) efa->v3->tmp.l]);
-							VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],emdm->vertexNos[(int) efa->v1->tmp.l]);
-
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],emdm->vertexCos[(int) efa->v4->tmp.l]);
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],emdm->vertexNos[(int) efa->v2->tmp.l]);
-
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],emdm->vertexCos[(int) efa->v1->tmp.l]);
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],emdm->vertexNos[(int) efa->v3->tmp.l]);
-						}
-						else {*/
-							VECCOPY((float *)&varray[elemsize*3*numfaces],efa->v3->co);
-							VECCOPY((float *)&varray[elemsize*3*numfaces+sizeof(float)*3],efa->v3->no);
-
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize],efa->v4->co);
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize+sizeof(float)*3],efa->v4->no);
-
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2],efa->v1->co);
-							VECCOPY((float *)&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*3],efa->v1->no);
-						/*}*/
-
-						if( draw == 2 ) {
-							QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[2]);
-							QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[2]);
-							QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[2]);
-						}
-						else if( draw == 1 ) {
-							QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
-							QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
-							QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],data.cols[(efa->f&SELECT)?1:0]);
-						}
-						else {
-							QUATCOPY(&varray[elemsize*3*numfaces+sizeof(float)*6],black);
-							QUATCOPY(&varray[elemsize*3*numfaces+elemsize+sizeof(float)*6],black);
-							QUATCOPY(&varray[elemsize*3*numfaces+elemsize*2+sizeof(float)*6],black);
-						}
-
-						numfaces++;
-					}
-				}
-			}
-			prevdraw = draw;
-		}
-		GPU_buffer_unlock( buffer );
-		if( prevdraw != 0 && numfaces > 0) {
-			if( prevdraw==2 ) {
-				glEnable(GL_POLYGON_STIPPLE);
-  				glPolygonStipple(stipple_quarttone);
-			}
-			glDrawArrays(GL_TRIANGLES,0,numfaces*3);
-			if( prevdraw==2 ) {
-				glDisable(GL_POLYGON_STIPPLE);
-			}
-		}
-		GPU_buffer_unbind();
-	} else {
-		dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, &data, 0);
-	}
-	GPU_buffer_free( buffer, 0 );
+	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, &data, 0);
 }
 
 static int draw_dm_creases__setDrawOptions(void *userData, int index)
@@ -2376,7 +2108,7 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 				/* Vec 1 */
 				sprintf(val,"%.3f", RAD2DEG(angle_v3v3v3(v4, v1, v2)));
 				interp_v3_v3v3(fvec, efa->cent, efa->v1->co, 0.8f);
-				view3d_cached_text_draw_add(efa->cent[0], efa->cent[1], efa->cent[2], val, 0);
+				view3d_cached_text_draw_add(fvec[0], fvec[1], fvec[2], val, 0);
 			}
 			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
@@ -2467,114 +2199,12 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 		}
 		else {
 			/* 3 floats for position, 3 for normal and times two because the faces may actually be quads instead of triangles */
-			GPUBuffer *buffer = GPU_buffer_legacy(em->derivedFinal)?0:GPU_buffer_alloc( sizeof(float)*6*em->totface*3*2, 0 );
-			float *varray;
-			EditFace *efa;
-			int i, curmat = 0, draw = 0;
-
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
 
 			glEnable(GL_LIGHTING);
 			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-			if( finalDM->getVertCos == 0 && (varray = GPU_buffer_lock_stream( buffer )) ) {
-				int prevdraw = 0, prevmat = 0;
-				int numfaces = 0;
-				int datatype[] = { GPU_BUFFER_INTER_V3F, GPU_BUFFER_INTER_N3F, GPU_BUFFER_INTER_END };
-				GPU_buffer_unlock( buffer );
-				GPU_interleaved_setup( buffer, datatype );
-				glShadeModel(GL_SMOOTH);
-				varray = GPU_buffer_lock_stream( buffer );
-				for (i=0,efa= em->faces.first; efa; i++,efa= efa->next) {
-					int drawSmooth = (efa->flag & ME_SMOOTH);
-					if( efa->h == 0 ) {
-						curmat = efa->mat_nr+1;
-						draw = 1;
-					} 
-					else {
-						draw = 0;
-					}
-					if( ((prevdraw != draw) || (curmat != prevmat)) && prevdraw != 0 && numfaces > 0) {
-						if( prevdraw==2 ) {
-							glEnable(GL_POLYGON_STIPPLE);
-		  					glPolygonStipple(stipple_quarttone);
-						}
-						GPU_buffer_unlock( buffer );
-						GPU_enable_material(prevmat, NULL);
-						glDrawArrays(GL_TRIANGLES,0,numfaces*3);
-						if( prevdraw==2 ) {
-							glDisable(GL_POLYGON_STIPPLE);
-						}
-						varray = GPU_buffer_lock_stream( buffer );
-						numfaces = 0;
-					}
-					if( draw != 0 ) {
-						if(!drawSmooth) {
-							VECCOPY(&varray[numfaces*18],efa->v1->co);
-							VECCOPY(&varray[numfaces*18+3],efa->n);
-
-							VECCOPY(&varray[numfaces*18+6],efa->v2->co);
-							VECCOPY(&varray[numfaces*18+9],efa->n);
-
-							VECCOPY(&varray[numfaces*18+12],efa->v3->co);
-							VECCOPY(&varray[numfaces*18+15],efa->n);
-							numfaces++;
-							if( efa->v4 ) {
-								VECCOPY(&varray[numfaces*18],efa->v3->co);
-								VECCOPY(&varray[numfaces*18+3],efa->n);
-
-								VECCOPY(&varray[numfaces*18+6],efa->v4->co);
-								VECCOPY(&varray[numfaces*18+9],efa->n);
-
-								VECCOPY(&varray[numfaces*18+12],efa->v1->co);
-								VECCOPY(&varray[numfaces*18+15],efa->n);
-								numfaces++;
-							}
-						}
-						else {
-							VECCOPY(&varray[numfaces*18],efa->v1->co);
-							VECCOPY(&varray[numfaces*18+3],efa->v1->no);
-
-							VECCOPY(&varray[numfaces*18+6],efa->v2->co);
-							VECCOPY(&varray[numfaces*18+9],efa->v2->no);
-
-							VECCOPY(&varray[numfaces*18+12],efa->v3->co);
-							VECCOPY(&varray[numfaces*18+15],efa->v3->no);
-							numfaces++;
-							if( efa->v4 ) {
-								VECCOPY(&varray[numfaces*18],efa->v3->co);
-								VECCOPY(&varray[numfaces*18+3],efa->v3->no);
-
-								VECCOPY(&varray[numfaces*18+6],efa->v4->co);
-								VECCOPY(&varray[numfaces*18+9],efa->v4->no);
-
-								VECCOPY(&varray[numfaces*18+12],efa->v1->co);
-								VECCOPY(&varray[numfaces*18+15],efa->v1->no);
-								numfaces++;
-							}
-						}
-					}
-					prevdraw = draw;
-					prevmat = curmat;
-				}
-				GPU_buffer_unlock( buffer );
-				if( prevdraw != 0 && numfaces > 0) {
-					if( prevdraw==2 ) {
-						glEnable(GL_POLYGON_STIPPLE);
-	  					glPolygonStipple(stipple_quarttone);
-					}
-					GPU_enable_material(prevmat, NULL);
-					glDrawArrays(GL_TRIANGLES,0,numfaces*3);
-					if( prevdraw==2 ) {
-						glDisable(GL_POLYGON_STIPPLE);
-					}
-				}
-				GPU_buffer_unbind();
-			}
-			else {
-				finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, 0, 0);
-			}
-			GPU_buffer_free(buffer,0);
+			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, 0, 0);
 
 			glFrontFace(GL_CCW);
 			glDisable(GL_LIGHTING);
@@ -2799,44 +2429,70 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	else if(dt==OB_SOLID) {
-		Paint *p;
+		if(ob==OBACT && ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
+			/* weight paint in solid mode, special case. focus on making the weights clear
+			 * rather then the shading, this is also forced in wire view */
+			GPU_enable_material(0, NULL);
+			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1);
 
-		if((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
-			draw_mesh_object_outline(v3d, ob, dm);
+			bglPolygonOffset(rv3d->dist, 1.0);
+			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 
-		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED );
+			glEnable(GL_BLEND);
+			glColor4ub(196, 196, 196, 196);
+			glEnable(GL_LINE_STIPPLE);
+			glLineStipple(1, 0x8888);
 
-		glEnable(GL_LIGHTING);
-		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+			dm->drawEdges(dm, 1);
 
-		if(ob->sculpt && (p=paint_get_active(scene))) {
-			float planes[4][4];
-			float (*fpl)[4] = NULL;
-			int fast= (p->flags & PAINT_FAST_NAVIGATE) && (rv3d->rflag & RV3D_NAVIGATING);
+			bglPolygonOffset(rv3d->dist, 0.0);
+			glDepthMask(1);
+			glDisable(GL_LINE_STIPPLE);
 
-			if(ob->sculpt->partial_redraw) {
-				sculpt_get_redraw_planes(planes, ar, rv3d, ob);
-				fpl = planes;
-				ob->sculpt->partial_redraw = 0;
+			GPU_disable_material();
+
+
+		}
+		else {
+			Paint *p;
+
+			if((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
+				draw_mesh_object_outline(v3d, ob, dm);
+
+			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED );
+
+			glEnable(GL_LIGHTING);
+			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+
+			if(ob->sculpt && (p=paint_get_active(scene))) {
+				float planes[4][4];
+				float (*fpl)[4] = NULL;
+				int fast= (p->flags & PAINT_FAST_NAVIGATE) && (rv3d->rflag & RV3D_NAVIGATING);
+
+				if(ob->sculpt->partial_redraw) {
+					sculpt_get_redraw_planes(planes, ar, rv3d, ob);
+					fpl = planes;
+					ob->sculpt->partial_redraw = 0;
+				}
+
+				dm->drawFacesSolid(dm, fpl, fast, GPU_enable_material);
 			}
+			else
+				dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
 
-			dm->drawFacesSolid(dm, fpl, fast, GPU_enable_material);
+			GPU_disable_material();
+
+			glFrontFace(GL_CCW);
+			glDisable(GL_LIGHTING);
+
+			if(base->flag & SELECT) {
+				UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+			} else {
+				UI_ThemeColor(TH_WIRE);
+			}
+			if(!ob->sculpt)
+				dm->drawLooseEdges(dm);
 		}
-		else
-			dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
-
-		GPU_disable_material();
-
-		glFrontFace(GL_CCW);
-		glDisable(GL_LIGHTING);
-
-		if(base->flag & SELECT) {
-			UI_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
-		} else {
-			UI_ThemeColor(TH_WIRE);
-		}
-		if(!ob->sculpt)
-			dm->drawLooseEdges(dm);
 	}
 	else if(dt==OB_SHADED) {
 		int do_draw= 1;	/* to resolve all G.f settings below... */
@@ -2928,15 +2584,28 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	if (draw_wire) {
-			/* If drawing wire and drawtype is not OB_WIRE then we are
-				* overlaying the wires.
-				*
-				* UPDATE bug #10290 - With this wire-only objects can draw
-				* behind other objects depending on their order in the scene. 2x if 0's below. undo'ing zr's commit: r4059
-				* 
-				* if draw wire is 1 then just drawing wire, no need for depth buffer stuff,
-				* otherwise this wire is to overlay solid mode faces so do some depth buffer tricks.
-				*/
+
+		/* When using wireframe object traw in particle edit mode
+		 * the mesh gets in the way of seeing the particles, fade the wire color
+		 * with the background. */
+		if(ob==OBACT && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
+			float col_wire[4], col_bg[4], col[3];
+
+			UI_GetThemeColor3fv(TH_BACK, col_bg);
+			glGetFloatv(GL_CURRENT_COLOR, col_wire);
+			interp_v3_v3v3(col, col_bg, col_wire, 0.15);
+			glColor3fv(col);
+		}
+
+		/* If drawing wire and drawtype is not OB_WIRE then we are
+		 * overlaying the wires.
+		 *
+		 * UPDATE bug #10290 - With this wire-only objects can draw
+		 * behind other objects depending on their order in the scene. 2x if 0's below. undo'ing zr's commit: r4059
+		 *
+		 * if draw wire is 1 then just drawing wire, no need for depth buffer stuff,
+		 * otherwise this wire is to overlay solid mode faces so do some depth buffer tricks.
+		 */
 		if (dt!=OB_WIRE && draw_wire==2) {
 			bglPolygonOffset(rv3d->dist, 1.0);
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
@@ -4237,6 +3906,12 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 
 	glEnable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glShadeModel(GL_SMOOTH);
+
+	if(pset->brushtype == PE_BRUSH_WEIGHT) {
+		glLineWidth(2.0f);
+		glDisable(GL_LIGHTING);
+	}
 
 	cache=edit->pathcache;
 	for(i=0; i<totpoint; i++){
@@ -4344,9 +4019,9 @@ static void draw_ptcache_edit(Scene *scene, View3D *v3d, RegionView3D *rv3d, Obj
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
+	glShadeModel(GL_FLAT);
 	glEnable(GL_DEPTH_TEST);
 	glLineWidth(1.0f);
-
 	glPointSize(1.0);
 }
 //static void ob_draw_RE_motion(float com[3],float rotscale[3][3],float tw,float th)
@@ -5560,6 +5235,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			return;
 	}
 
+	/* XXX particles are not safe for simultaneous threaded render */
+	if(G.rendering && ob->particlesystem.first)
+		return;
+
 	/* xray delay? */
 	if((flag & DRAW_PICKING)==0 && (base->flag & OB_FROMDUPLI)==0) {
 		/* don't do xray in particle mode, need the z-buffer */
@@ -5574,6 +5253,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	/* no return after this point, otherwise leaks */
 	view3d_cached_text_draw_begin();
+	
 
 	/* draw keys? */
 #if 0 // XXX old animation system
@@ -5654,8 +5334,19 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
 	/* if( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
 	
-	/* draw paths... */
-	// TODO...
+	/* draw motion paths (in view space) */
+	if (ob->mpath) {
+		bAnimVizSettings *avs= &ob->avs;
+		
+		/* setup drawing environment for paths */
+		draw_motion_paths_init(scene, v3d, ar);
+		
+		/* draw motion path for object */
+		draw_motion_path_instance(scene, v3d, ar, ob, NULL, avs, ob->mpath);
+		
+		/* cleanup after drawing */
+		draw_motion_paths_cleanup(scene, v3d, ar);
+	}
 
 	/* multiply view with object matrix.
 	 * local viewmat and persmat, to calculate projections */
@@ -5718,10 +5409,14 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 			if(ob->mode & OB_MODE_EDIT);
 			else {
-				if(dt<OB_SOLID)
+				if(dt<OB_SOLID) {
 					zbufoff= 1;
+					dt= OB_SOLID;
+				}
+				else {
+					dt= OB_SHADED;
+				}
 
-				dt= OB_SHADED;
 				glEnable(GL_DEPTH_TEST);
 			}
 		}
@@ -5890,7 +5585,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			drawaxes(ob->empty_drawsize, flag, ob->empty_drawtype);
 			break;
 		case OB_LAMP:
-			drawlamp(scene, v3d, rv3d, ob);
+			drawlamp(scene, v3d, rv3d, base, dt, flag);
 			if(dtx || (base->flag & SELECT)) wmMultMatrix(ob->obmat);
 			break;
 		case OB_CAMERA:
@@ -6312,24 +6007,13 @@ static void bbs_mesh_solid_EM(Scene *scene, View3D *v3d, Object *ob, DerivedMesh
 	}
 }
 
-static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *drawSmooth_r)
-{
-	Mesh *me = userData;
-
-	if (!(me->mface[index].flag&ME_HIDE)) {
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
-static int bbs_mesh_solid__setDrawOpts_legacy(void *userData, int index, int *drawSmooth_r)
+static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmooth_r)
 {
 	WM_set_framebuffer_index_color(index+1);
 	return 1;
 }
 
-static int bbs_mesh_solid_hide__setDrawOpts_legacy(void *userData, int index, int *drawSmooth_r)
+static int bbs_mesh_solid_hide__setDrawOpts(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = userData;
 
@@ -6345,43 +6029,12 @@ static void bbs_mesh_solid(Scene *scene, View3D *v3d, Object *ob)
 {
 	DerivedMesh *dm = mesh_get_derived_final(scene, ob, v3d->customdata_mask);
 	Mesh *me = (Mesh*)ob->data;
-	MCol *colors;
-	int i,j;
 	int face_sel_mode = (me->flag & ME_EDIT_PAINT_MASK) ? 1:0;
 	
 	glColor3ub(0, 0, 0);
 		
-	if( !GPU_buffer_legacy(dm) ) {
-		int *index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
-		int ind;
-		colors = MEM_mallocN(dm->getNumFaces(dm)*sizeof(MCol)*4,"bbs_mesh_solid");
-		for(i=0;i<dm->getNumFaces(dm);i++) {
-			ind= ( index )? index[i]: i;
-
-			if (face_sel_mode==0 || !(me->mface[ind].flag&ME_HIDE)) {
-				unsigned int fbindex = index_to_framebuffer(ind+1);
-				for(j=0;j<4;j++) {
-					colors[i*4+j].b = ((fbindex)&0xFF);
-					colors[i*4+j].g = (((fbindex)>>8)&0xFF);
-					colors[i*4+j].r = (((fbindex)>>16)&0xFF);
-				}
-			}
-			else {
-				memset(&colors[i*4],0,sizeof(MCol)*4);
-			}
-		}
-
-		CustomData_add_layer( &dm->faceData, CD_ID_MCOL, CD_ASSIGN, colors, dm->numFaceData );
-		GPU_buffer_free(dm->drawObject->colors,0);
-		dm->drawObject->colors = 0;
-
-		if(face_sel_mode)	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, me, 1);
-		else				dm->drawMappedFaces(dm, NULL, me, 1);
-	}
-	else {
-		if(face_sel_mode)	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts_legacy, me, 0);
-		else				dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts_legacy, me, 0);
-	}
+	if(face_sel_mode)	dm->drawMappedFaces(dm, bbs_mesh_solid_hide__setDrawOpts, me, 0);
+	else				dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, me, 0);
 
 	dm->release(dm);
 }

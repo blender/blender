@@ -118,7 +118,7 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ImageUser *iuser= ptr->data;
 
-	BKE_image_user_calc_imanr(iuser, scene->r.cfra, 0);
+	BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
 }
 
 static EnumPropertyItem *rna_Image_source_itemf(bContext *C, PointerRNA *ptr, int *free)
@@ -152,6 +152,26 @@ static int rna_Image_has_data_get(PointerRNA *ptr)
 
 	return 0;
 }
+
+static void rna_Image_size_get(PointerRNA *ptr,int *values)
+{
+	Image *im= (Image*)ptr->data;
+	ImBuf *ibuf;
+	void *lock;
+
+	ibuf = BKE_image_acquire_ibuf(im, NULL , &lock);
+	if (ibuf) {
+		values[0]= ibuf->x;
+		values[1]= ibuf->y;
+	}
+    else {
+		values[0]= 0;
+		values[1]= 0;
+	}
+
+	BKE_image_release_ibuf(im, lock);
+}
+
 
 static int rna_Image_depth_get(PointerRNA *ptr)
 {
@@ -399,6 +419,10 @@ static void rna_def_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "depth", PROP_INT, PROP_NONE);
 	RNA_def_property_int_funcs(prop, "rna_Image_depth_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Depth", "Image bit depth.");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_int_vector(srna, "size" , 2 , NULL , 0, 0, "Size" , "Width and height in pixels, zero when image data cant be loaded." , 0 , 0);
+	RNA_def_property_int_funcs(prop, "rna_Image_size_get" , NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	RNA_api_image(srna);

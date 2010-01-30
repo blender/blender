@@ -32,6 +32,8 @@
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
 #include "bpy_util.h"
 
+#include "RNA_enum_types.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -45,6 +47,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	wmOperatorType *ot;
 	int error_val = 0;
 	PointerRNA ptr;
+	int operator_ret= OPERATOR_CANCELLED;
 	
 	char		*opname;
 	PyObject	*kw= NULL; /* optional args */
@@ -63,7 +66,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	ot= WM_operatortype_exists(opname);
 
 	if (ot == NULL) {
-		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator \"%s\" could not be found", opname);
+		PyErr_Format( PyExc_SystemError, "Calling operator \"bpy.ops.%s\" error, could not be found", opname);
 		return NULL;
 	}
 	
@@ -76,13 +79,11 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	Py_XINCREF(context_dict); /* so we done loose it */
 
 	if(WM_operator_poll((bContext*)C, ot) == FALSE) {
-		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator %.200s.poll() function failed, context is incorrect", opname);
+		PyErr_Format( PyExc_SystemError, "Operator bpy.ops.%.200s.poll() failed, context is incorrect", opname);
 		error_val= -1;
 	}
 	else {
-		/* WM_operator_properties_create(&ptr, opname); */
-		/* Save another lookup */
-		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+		WM_operator_properties_create_ptr(&ptr, ot);
 
 		if(kw && PyDict_Size(kw))
 			error_val= pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");
@@ -94,7 +95,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 			reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
 			BKE_reports_init(reports, RPT_STORE);
 
-			WM_operator_call_py(C, ot, context, &ptr, reports);
+			operator_ret= WM_operator_call_py(C, ot, context, &ptr, reports);
 
 			if(BPy_reports_to_error(reports))
 				error_val = -1;
@@ -140,7 +141,9 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 		return NULL;
 	}
 
-	Py_RETURN_NONE;
+	/* return operator_ret as a bpy enum */
+	return pyrna_enum_bitfield_to_py(operator_return_items, operator_ret);
+
 }
 
 static PyObject *pyop_as_string( PyObject * self, PyObject * args)

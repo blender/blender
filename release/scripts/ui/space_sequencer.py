@@ -310,7 +310,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        render_data = context.scene.render_data
         strip = act_strip(context)
 
         split = layout.split(percentage=0.3)
@@ -344,7 +344,9 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         col.enabled = not strip.lock
         col.prop(strip, "channel")
         col.prop(strip, "start_frame")
-        col.prop(strip, "length")
+        subrow = col.split(percentage=0.66)
+        subrow.prop(strip, "length")
+        subrow.label(text="%.2f sec" % (strip.length / (render_data.fps / render_data.fps_base)))
 
         col = layout.column(align=True)
         col.label(text="Offset:")
@@ -606,13 +608,16 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel):
             row = layout.row()
             row.active = strip.use_color_balance
             col = row.column()
-            col.prop(strip.color_balance, "lift")
+            col.template_color_wheel(strip.color_balance, "lift", value_slider=False)
+            col.row().prop(strip.color_balance, "lift")
             col.prop(strip.color_balance, "inverse_lift", text="Inverse")
             col = row.column()
-            col.prop(strip.color_balance, "gamma")
+            col.template_color_wheel(strip.color_balance, "gamma", value_slider=False)
+            col.row().prop(strip.color_balance, "gamma")
             col.prop(strip.color_balance, "inverse_gamma", text="Inverse")
             col = row.column()
-            col.prop(strip.color_balance, "gain")
+            col.template_color_wheel(strip.color_balance, "gain", value_slider=False)
+            col.row().prop(strip.color_balance, "gain")
             col.prop(strip.color_balance, "inverse_gain", text="Inverse")
 
 

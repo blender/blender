@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -58,6 +59,10 @@ class DATA_PT_context_lattice(DataButtonsPanel):
                 layout.template_ID(space, "pin_id")
 
 
+class DATA_PT_custom_props_lattice(DataButtonsPanel, PropertyPanel):
+    _context_path = "object.data"
+
+
 class DATA_PT_lattice(DataButtonsPanel):
     bl_label = "Lattice"
 
@@ -90,5 +95,8 @@ class DATA_PT_lattice(DataButtonsPanel):
 
         layout.prop(lat, "outside")
 
+
 bpy.types.register(DATA_PT_context_lattice)
 bpy.types.register(DATA_PT_lattice)
+
+bpy.types.register(DATA_PT_custom_props_lattice)

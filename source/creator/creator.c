@@ -493,13 +493,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		WM_init(C);
-
-#ifndef DISABLE_PYTHON
-		BPY_set_context(C); /* necessary evil */
-		BPY_start_python(argc, argv);
-		BPY_load_user_modules(C);
-#endif
+		WM_init(C, argc, argv);
 		
 		// XXX BRECHT SOLVE
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
@@ -539,13 +533,8 @@ int main(int argc, char **argv)
 			}
 		}
 
-		WM_init(C);
+		WM_init(C, argc, argv);
 
-#ifndef DISABLE_PYTHON
-		BPY_set_context(C); /* necessary evil */
-		BPY_start_python(argc, argv);
-		BPY_load_user_modules(C);
-#endif		
 		BLI_where_is_temp( btempdir, 0 ); /* call after loading the .B.blend so we can read U.tempdir */
 	}
 #ifndef DISABLE_PYTHON
@@ -718,10 +707,26 @@ int main(int argc, char **argv)
 			case 'P':
 
 #ifndef DISABLE_PYTHON
-				//XXX 
-				// FOR TESTING ONLY
 				a++;
-				BPY_run_python_script(C, argv[a], NULL, NULL); // use reports?
+
+				/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
+				{
+					/* XXX, temp setting the WM is ugly, splash also does this :S */
+					wmWindowManager *wm= CTX_wm_manager(C);
+					wmWindow *prevwin= CTX_wm_window(C);
+
+					if(wm->windows.first) {
+						CTX_wm_window_set(C, wm->windows.first);
+
+						BPY_run_python_script(C, argv[a], NULL, NULL); // use reports?
+
+						CTX_wm_window_set(C, prevwin);
+					}
+					else {
+						fprintf(stderr, "Python script \"%s\" running with missing context data.\n", argv[a]);
+						BPY_run_python_script(C, argv[a], NULL, NULL); // use reports?
+					}
+				}
 #if 0
 				a++;
 				if (a < argc) {

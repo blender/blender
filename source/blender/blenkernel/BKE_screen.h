@@ -84,6 +84,8 @@ typedef struct SpaceType {
 	void		(*operatortypes)(void);
 	/* add default items to WM keymap */
 	void		(*keymap)(struct wmKeyConfig *);
+	/* on startup, define dropboxes for spacetype+regions */
+	void		(*dropboxes)(void);
 
 	/* return context data */
 	int			(*context)(const struct bContext *, const char*, struct bContextDataResult *);
@@ -93,7 +95,7 @@ typedef struct SpaceType {
 	
 	/* tool shelf definitions */
 	ListBase toolshelf;
-	
+		
 	/* read and write... */
 	
 	/* default keymaps to add */
@@ -142,6 +144,8 @@ typedef struct ARegionType {
 	
 	/* hardcoded constraints, smaller than these values region is not visible */
 	int			minsizex, minsizey;
+	/* when new region opens (region prefsizex/y are zero then */
+	int			prefsizex, prefsizey;
 	/* default keymaps to add */
 	int			keymapflag;
 } ARegionType;

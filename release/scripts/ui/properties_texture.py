@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -86,14 +87,13 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        slot = context.texture_slot
+        node = context.texture_node
         space = context.space_data
         tex = context.texture
         wide_ui = context.region.width > narrowui
         idblock = context_tex_datablock(context)
-        tex_collection = space.pin_id == None and type(idblock) != bpy.types.Brush
-
-        
+        tex_collection = space.pin_id == None and type(idblock) != bpy.types.Brush and not node
 
         if tex_collection:
             row = layout.row()
@@ -112,6 +112,8 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
             
         if tex_collection:
             col.template_ID(idblock, "active_texture", new="texture.new")
+        elif node:
+            col.template_ID(node, "texture", new="texture.new")
         elif idblock:
             col.template_ID(idblock, "texture", new="texture.new")
         
@@ -120,22 +122,14 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
         
         if wide_ui:
             col = split.column()
-        
-        if (not space.pin_id) and (
-            context.sculpt_object or
-            context.vertex_paint_object or
-            context.weight_paint_object or
-            context.texture_paint_object):
 
+        if not space.pin_id:
             col.prop(space, "brush_texture", text="Brush", toggle=True)
 
         if tex:
-            layout.prop(tex, "use_nodes")
-
             split = layout.split(percentage=0.2)
 
             if tex.use_nodes:
-                slot = context.texture_slot
 
                 if slot:
                     split.label(text="Output:")
@@ -147,6 +141,13 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
                     split.prop(tex, "type", text="")
                 else:
                     layout.prop(tex, "type", text="")
+
+
+class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel):
+    _context_path = "texture"
+
+    def poll(self, context): # use alternate poll since NONE texture type is ok
+        return context.texture
 
 
 class TEXTURE_PT_colors(TextureButtonsPanel):
@@ -845,6 +846,9 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
             layout.prop(vd, "resolution")
         elif vd.file_format == 'SMOKE':
             layout.prop(vd, "domain_object")
+            layout.prop(vd, "smoke_data_type")
+        elif vd.file_format == 'IMAGE_SEQUENCE':
+            layout.template_image(tex, "image", tex.image_user) 
 
         layout.prop(vd, "still")
         row = layout.row()
@@ -976,3 +980,5 @@ bpy.types.register(TEXTURE_PT_pointdensity_turbulence)
 bpy.types.register(TEXTURE_PT_colors)
 bpy.types.register(TEXTURE_PT_mapping)
 bpy.types.register(TEXTURE_PT_influence)
+
+bpy.types.register(TEXTURE_PT_custom_props)

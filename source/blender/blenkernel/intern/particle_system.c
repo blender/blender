@@ -247,12 +247,12 @@ static int get_psys_child_number(struct Scene *scene, ParticleSystem *psys)
 	if(!psys->part->childtype)
 		return 0;
 
-	if(psys->renderdata) {
+	if(psys->renderdata)
 		nbr= psys->part->ren_child_nbr;
-		return get_render_child_particle_number(&scene->r, nbr);
-	}
 	else
-		return psys->part->child_nbr;
+		nbr= psys->part->child_nbr;
+
+	return get_render_child_particle_number(&scene->r, nbr);
 }
 
 static int get_psys_tot_child(struct Scene *scene, ParticleSystem *psys)
@@ -263,6 +263,12 @@ static int get_psys_tot_child(struct Scene *scene, ParticleSystem *psys)
 static void alloc_child_particles(ParticleSystem *psys, int tot)
 {
 	if(psys->child){
+		/* only re-allocate if we have to */
+		if(psys->part->childtype && psys->totchild == tot) {
+			memset(psys->child, 0, tot*sizeof(ChildParticle));
+			return;
+		}
+
 		MEM_freeN(psys->child);
 		psys->child=0;
 		psys->totchild=0;
@@ -3071,10 +3077,8 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 					dvert->dw = MEM_callocN (sizeof(MDeformWeight), "deformWeight");
 					dvert->totweight = 1;
 				}
-
-				/* no special reason for the 0.5 */
-				/* just seems like a nice value from experiments */
-				dvert->dw->weight = k ? 0.5f : 1.0f;
+				/* roots should be 1.0, the rest can be anything from 0.0 to 1.0 */
+				dvert->dw->weight = key->weight;
 				dvert++;
 			}
 		}

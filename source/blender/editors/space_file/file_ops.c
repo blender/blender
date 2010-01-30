@@ -560,19 +560,35 @@ void FILE_OT_cancel(struct wmOperatorType *ot)
 }
 
 /* sends events now, so things get handled on windowqueue level */
-int file_exec(bContext *C, wmOperator *unused)
+int file_exec(bContext *C, wmOperator *exec_op)
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	char name[FILE_MAX];
 	
 	if(sfile->op) {
 		wmOperator *op= sfile->op;
+	
+		/* when used as a macro, for doubleclick, 
+		 to prevent closing when doubleclicking on .. item */
+		if (RNA_boolean_get(exec_op->ptr, "need_active")) {
+			int i, active=0;
+			struct direntry *file;
+			
+			for (i=0; i<filelist_numfiles(sfile->files); i++) {
+				file = filelist_file(sfile->files, i);
+				if(file->flags & ACTIVE) {
+					active=1;
+				}
+			}
+			if (active == 0)
+				return OPERATOR_CANCELLED;
+		}
 		
 		sfile->op = NULL;
 		RNA_string_set(op->ptr, "filename", sfile->params->file);
 		BLI_strncpy(name, sfile->params->dir, sizeof(name));
 		RNA_string_set(op->ptr, "directory", name);
-		strcat(name, sfile->params->file);
+		strcat(name, sfile->params->file); // XXX unsafe
 
 		if(RNA_struct_find_property(op->ptr, "relative_paths"))
 			if(RNA_boolean_get(op->ptr, "relative_paths"))
@@ -637,6 +653,8 @@ void FILE_OT_execute(struct wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec= file_exec;
 	ot->poll= file_operator_poll; 
+	
+	RNA_def_boolean(ot->srna, "need_active", 0, "Need Active", "Only execute if there's an active selected file in the file list.");
 }
 
 
@@ -1090,3 +1108,15 @@ void FILE_OT_delete(struct wmOperatorType *ot)
 	ot->poll= file_delete_poll; /* <- important, handler is on window level */
 }
 
+
+void ED_operatormacros_file(void)
+{
+	wmOperatorType *ot;
+	wmOperatorTypeMacro *otmacro;
+	
+	ot= WM_operatortype_append_macro("FILE_OT_select_execute", "Select and Execute", OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "FILE_OT_select");
+	otmacro= WM_operatortype_macro_define(ot, "FILE_OT_execute");
+	RNA_boolean_set(otmacro->ptr, "need_active", 1);
+
+}

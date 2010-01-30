@@ -219,7 +219,7 @@ void ED_spacetype_script(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype script region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
 	
 	art->init= script_header_area_init;

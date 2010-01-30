@@ -633,6 +633,12 @@ static PBVHNode *pbvh_iter_next(PBVHIter *iter)
 		/* pop node */
 		iter->stacksize--;
 		node= iter->stack[iter->stacksize].node;
+
+		/* on a mesh with no faces this can happen
+		 * can remove this check if we know meshes have at least 1 face */
+		if(node==NULL)
+			return NULL;
+
 		revisiting= iter->stack[iter->stacksize].revisiting;
 
 		/* revisiting node already checked */

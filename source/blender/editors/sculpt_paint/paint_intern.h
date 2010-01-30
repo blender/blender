@@ -52,6 +52,8 @@ typedef void (*StrokeDone)(struct bContext *C, struct PaintStroke *stroke);
 struct PaintStroke *paint_stroke_new(struct bContext *C,
 				     StrokeGetLocation get_location, StrokeTestStart test_start,
 				     StrokeUpdateStep update_step, StrokeDone done);
+void paint_stroke_free(struct PaintStroke *stroke);
+
 int paint_stroke_modal(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int paint_stroke_exec(struct bContext *C, struct wmOperator *op);
 struct ViewContext *paint_stroke_view_context(struct PaintStroke *stroke);
@@ -62,6 +64,7 @@ void paint_cursor_start(struct bContext *C, int (*poll)(struct bContext *C));
 
 /* paint_vertex.c */
 int weight_paint_poll(struct bContext *C);
+int weight_paint_mode_poll(struct bContext *C);
 int vertex_paint_poll(struct bContext *C);
 int vertex_paint_mode_poll(struct bContext *C);
 
@@ -72,6 +75,7 @@ void PAINT_OT_weight_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint(struct wmOperatorType *ot);
 void PAINT_OT_weight_set(struct wmOperatorType *ot);
+void PAINT_OT_weight_from_bones(struct wmOperatorType *ot);
 
 void PAINT_OT_vertex_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint_toggle(struct wmOperatorType *ot);

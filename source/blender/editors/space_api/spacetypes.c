@@ -42,6 +42,7 @@
 #include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_fileselect.h"
 #include "ED_gpencil.h"
 #include "ED_markers.h"
 #include "ED_mesh.h"
@@ -104,10 +105,12 @@ void ED_spacetypes_init(void)
 	UI_view2d_operatortypes();
 	UI_buttons_operatortypes();
 	
+	/* register operators */
 	spacetypes = BKE_spacetypes_list();
-	for(type=spacetypes->first; type; type=type->next)
-		type->operatortypes();
-
+	for(type=spacetypes->first; type; type=type->next) {
+		if(type->operatortypes)
+			type->operatortypes();
+	}
 
 	/* Macros's must go last since they reference other operators
 	 * maybe we'll need to have them go after python operators too? */
@@ -115,6 +118,15 @@ void ED_spacetypes_init(void)
 	ED_operatormacros_mesh();
 	ED_operatormacros_node();
 	ED_operatormacros_object();
+	ED_operatormacros_file();
+
+	/* register dropboxes (can use macros) */
+	spacetypes = BKE_spacetypes_list();
+	for(type=spacetypes->first; type; type=type->next) {
+		if(type->dropboxes)
+			type->dropboxes();
+	}
+	
 }
 
 /* called in wm.c */

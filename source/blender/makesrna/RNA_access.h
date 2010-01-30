@@ -52,6 +52,9 @@ extern StructRNA RNA_ActuatorSensor;
 extern StructRNA RNA_AlwaysSensor;
 extern StructRNA RNA_AndController;
 extern StructRNA RNA_AnimData;
+extern StructRNA RNA_AnimViz;
+extern StructRNA RNA_AnimVizOnionSkinning;
+extern StructRNA RNA_AnimVizMotionPaths;
 extern StructRNA RNA_AnyType;
 extern StructRNA RNA_Area;
 extern StructRNA RNA_AreaLamp;
@@ -232,6 +235,7 @@ extern StructRNA RNA_GreasePencil;
 extern StructRNA RNA_Group;
 extern StructRNA RNA_Header;
 extern StructRNA RNA_HemiLamp;
+extern StructRNA RNA_Histogram;
 extern StructRNA RNA_HookModifier;
 extern StructRNA RNA_ID;
 extern StructRNA RNA_IDProperty;
@@ -251,6 +255,7 @@ extern StructRNA RNA_KeyboardSensor;
 extern StructRNA RNA_KeyConfig;
 extern StructRNA RNA_KeyingSet;
 extern StructRNA RNA_KeyingSetPath;
+extern StructRNA RNA_Keyframe;
 extern StructRNA RNA_KeyMap;
 extern StructRNA RNA_KeyMapItem;
 extern StructRNA RNA_KinematicConstraint;
@@ -305,6 +310,8 @@ extern StructRNA RNA_MirrorModifier;
 extern StructRNA RNA_Modifier;
 extern StructRNA RNA_MouseSensor;
 extern StructRNA RNA_MovieSequence;
+extern StructRNA RNA_MotionPath;
+extern StructRNA RNA_MotionPathVert;
 extern StructRNA RNA_MultiresModifier;
 extern StructRNA RNA_MusgraveTexture;
 extern StructRNA RNA_NandController;
@@ -312,6 +319,7 @@ extern StructRNA RNA_NearSensor;
 extern StructRNA RNA_NlaStrip;
 extern StructRNA RNA_NlaTrack;
 extern StructRNA RNA_Node;
+extern StructRNA RNA_NodeGroup;
 extern StructRNA RNA_NodeSocket;
 extern StructRNA RNA_NodeTree;
 extern StructRNA RNA_NoiseTexture;
@@ -486,6 +494,7 @@ extern StructRNA RNA_TextureSlot;
 extern StructRNA RNA_Theme;
 extern StructRNA RNA_ThemeAudioWindow;
 extern StructRNA RNA_ThemeBoneColorSet;
+extern StructRNA RNA_ThemeConsole;
 extern StructRNA RNA_ThemeDopeSheet;
 extern StructRNA RNA_ThemeFileBrowser;
 extern StructRNA RNA_ThemeFontStyle;
@@ -562,6 +571,7 @@ void RNA_id_pointer_create(struct ID *id, PointerRNA *r_ptr);
 void RNA_pointer_create(struct ID *id, StructRNA *type, void *data, PointerRNA *r_ptr);
 
 void RNA_blender_rna_pointer_create(PointerRNA *r_ptr);
+void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr);
 
 extern PointerRNA PointerRNA_NULL;
 
@@ -637,7 +647,7 @@ void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin
 void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *softmin, float *softmax, float *step, float *precision);
 
 int RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **identifier);
-int RNA_enum_bitflag_identifierss(EnumPropertyItem *item, const int value, const char **identifier);
+int RNA_enum_bitflag_identifiers(EnumPropertyItem *item, const int value, const char **identifier);
 int RNA_enum_name(EnumPropertyItem *item, const int value, const char **name);
 
 void RNA_property_enum_items(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free);
@@ -877,6 +887,10 @@ void RNA_parameter_get(ParameterList *parms, PropertyRNA *parm, void **value);
 void RNA_parameter_get_lookup(ParameterList *parms, const char *identifier, void **value);
 void RNA_parameter_set(ParameterList *parms, PropertyRNA *parm, void *value);
 void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void *value);
+int RNA_parameter_length_get(ParameterList *parms, PropertyRNA *parm);
+int RNA_parameter_length_get_data(ParameterList *parms, PropertyRNA *parm, void *data);
+void RNA_parameter_length_set(ParameterList *parms, PropertyRNA *parm, int length);
+void RNA_parameter_length_set_data(ParameterList *parms, PropertyRNA *parm, void *data, int length);
 
 int RNA_function_call(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms);
 int RNA_function_call_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, ParameterList *parms);

@@ -677,7 +677,10 @@ void initNumInput(NumInput *n);
 void outputNumInput(NumInput *n, char *str);
 short hasNumInput(NumInput *n);
 void applyNumInput(NumInput *n, float *vec);
-char handleNumInput(NumInput *n, struct wmEvent *event);
+char handleNumInput(NumInput *n, struct wmEvent *event, float increment);
+
+#define TFM_MODAL_INCREMENT_UP   18
+#define TFM_MODAL_INCREMENT_DOWN 19
 
 /*********************** NDofInput ********************************/
 

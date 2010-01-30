@@ -33,6 +33,7 @@ extern EnumPropertyItem id_type_items[];
 
 /* use in cases where only dynamic types are used */
 extern EnumPropertyItem DummyRNA_NULL_items[];
+extern EnumPropertyItem DummyRNA_DEFAULT_items[];
 
 extern EnumPropertyItem object_mode_items[];
 
@@ -63,6 +64,8 @@ extern EnumPropertyItem event_type_items[];
 extern EnumPropertyItem operator_return_items[];
 
 extern EnumPropertyItem brush_sculpt_tool_items[];
+
+extern EnumPropertyItem texture_type_items[];
 
 extern EnumPropertyItem unpack_method_items[];
 

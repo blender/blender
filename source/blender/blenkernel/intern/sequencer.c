@@ -1066,17 +1066,19 @@ static TStripElem *give_tstripelem(Sequence *seq, int cfra)
 
 StripElem *give_stripelem(Sequence *seq, int cfra)
 {
-	StripElem *se;
-	int nr;
+	StripElem *se= seq->strip->stripdata;
 
-	se = seq->strip->stripdata;
-	nr = give_stripelem_index(seq, cfra);
+	if(seq->type == SEQ_MOVIE) {
+		/* use the first */
+	}
+	else {
+		int nr = give_stripelem_index(seq, cfra);
 
-	if (nr == -1) return 0;
-	if (se == 0) return 0;
-
-	se += nr + seq->anim_startofs; 
+		if (nr == -1) return 0;
+		if (se == 0) return 0;
 	
+		se += nr + seq->anim_startofs;
+	}
 	return se;
 }
 
@@ -1694,7 +1696,19 @@ static void input_preprocess(Scene *scene, Sequence *seq, TStripElem *se, int cf
 
 	if(seq->flag & SEQ_MAKE_FLOAT) {
 		if (!se->ibuf->rect_float) {
-			IMB_float_from_rect(se->ibuf);
+			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+				IMB_float_from_rect(se->ibuf);
+			} else {
+				int profile = IB_PROFILE_NONE;
+				
+				/* no color management:
+				 * don't disturb the existing profiles */
+				SWAP(int, se->ibuf->profile, profile);
+
+				IMB_float_from_rect(se->ibuf);
+				
+				SWAP(int, se->ibuf->profile, profile);
+			}
 		}
 		if (se->ibuf->rect) {
 			imb_freerectImBuf(se->ibuf);
@@ -2094,7 +2108,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			doseq= scene->r.scemode & R_DOSEQ;
 			scene->r.scemode &= ~R_DOSEQ;
 			
-			RE_BlenderFrame(re, sce,
+			RE_BlenderFrame(re, sce, NULL,
 					seq->sfra+se->nr+seq->anim_startofs);
 			
 			if(rendering)
@@ -3640,7 +3654,7 @@ void seq_offset_animdata(Scene *scene, Sequence *seq, int ofs)
 	char str[32];
 	FCurve *fcu;
 
-	if(scene->adt==NULL || ofs==0)
+	if(scene->adt==NULL || ofs==0 || scene->adt->action==NULL)
 		return;
 
 	sprintf(str, "[\"%s\"]", seq->name+2);
@@ -3744,7 +3758,7 @@ void seqUniqueName(ListBase *seqbasep, Sequence *seq)
 	 BLI_uniquename(seqbasep, seq, "Sequence", '.', offsetof(Sequence, name), SEQ_NAME_MAXSTR);
 }
 
-/* NOTE: this function doesn't fill in iamge names */
+/* NOTE: this function doesn't fill in image names */
 Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {
 	Scene *scene= CTX_data_scene(C); /* only for active seq */

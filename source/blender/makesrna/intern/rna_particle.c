@@ -590,7 +590,7 @@ static void psys_vg_name_set__internal(PointerRNA *ptr, const char *value, int i
 		psys->vgroup[index]= 0;
 	}
 	else {
-		int vgroup_num = get_named_vertexgroup_num(ob, (char*)value);
+		int vgroup_num = defgroup_name_index(ob, (char*)value);
 
 		if(vgroup_num == -1)
 			return;
@@ -658,7 +658,8 @@ static void rna_def_particle_hair_key(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Time", "Relative time of key over hair length.");
 
 	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_UNSIGNED);
-	RNA_def_property_ui_text(prop, "Weight", "Weight for softbody simulation.");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_text(prop, "Weight", "Weight for cloth simulation.");
 }
 
 static void rna_def_particle_key(BlenderRNA *brna)

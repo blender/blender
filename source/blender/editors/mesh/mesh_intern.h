@@ -172,7 +172,7 @@ void MESH_OT_select_nth(struct wmOperatorType *ot);
 extern EditEdge *findnearestedge(ViewContext *vc, int *dist);
 extern void EM_automerge(Scene *scene, Object *obedit, int update);
 void editmesh_select_by_material(EditMesh *em, int index);
-void righthandfaces(EditMesh *em, int select);	/* makes faces righthand turning */
+void EM_recalc_normal_direction(EditMesh *em, int inside, int select);	/* makes faces righthand turning */
 void EM_select_more(EditMesh *em);
 void selectconnected_mesh_all(EditMesh *em);
 void faceloop_select(EditMesh *em, EditEdge *startedge, int select);
@@ -198,7 +198,7 @@ extern EditVert *findnearestvert(ViewContext *vc, int *dist, short sel, short st
 
 void join_triangles(EditMesh *em);
 int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
-void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beauty, int numcuts, int seltype);
+void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beautify, int numcuts, int seltype);
 int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc);
 
 void MESH_OT_merge(struct wmOperatorType *ot);
@@ -209,7 +209,7 @@ void MESH_OT_spin(struct wmOperatorType *ot);
 void MESH_OT_screw(struct wmOperatorType *ot);
 
 void MESH_OT_fill(struct wmOperatorType *ot);
-void MESH_OT_beauty_fill(struct wmOperatorType *ot);
+void MESH_OT_beautify_fill(struct wmOperatorType *ot);
 void MESH_OT_quads_convert_to_tris(struct wmOperatorType *ot);
 void MESH_OT_tris_convert_to_quads(struct wmOperatorType *ot);
 void MESH_OT_edge_flip(struct wmOperatorType *ot);
@@ -234,7 +234,7 @@ void MESH_OT_rip(struct wmOperatorType *ot);
 void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
 void MESH_OT_blend_from_shape(struct wmOperatorType *ot);
 
-/* ******************* mesh_layers.c */
+/* ******************* mesh_data.c */
 
 void MESH_OT_uv_texture_add(struct wmOperatorType *ot);
 void MESH_OT_uv_texture_remove(struct wmOperatorType *ot);
@@ -242,6 +242,7 @@ void MESH_OT_vertex_color_add(struct wmOperatorType *ot);
 void MESH_OT_vertex_color_remove(struct wmOperatorType *ot);
 void MESH_OT_sticky_add(struct wmOperatorType *ot);
 void MESH_OT_sticky_remove(struct wmOperatorType *ot);
+void MESH_OT_drop_named_image(struct wmOperatorType *ot);
 
 void MESH_OT_edgering_select(struct wmOperatorType *ot);
 void MESH_OT_loopcut(struct wmOperatorType *ot);

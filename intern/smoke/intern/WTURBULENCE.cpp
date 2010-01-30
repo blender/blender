@@ -18,6 +18,10 @@
 // 
 // WTURBULENCE handling
 ///////////////////////////////////////////////////////////////////////////////////
+// Parallelized turbulence even further. TNT matrix library functions
+// rewritten to improve performance.
+//		- MiikaH
+//////////////////////////////////////////////////////////////////////
 
 #include "WTURBULENCE.h"
 #include "INTERPOLATE.h"
@@ -29,6 +33,7 @@
 #include "LU_HELPER.h"
 #include "SPHERE.h"
 #include <zlib.h>
+#include <math.h>
 
 // needed to access static advection functions
 #include "FLUID_3D.h"
@@ -278,27 +283,34 @@ static float minDz(int x, int y, int z, float* input, Vec3Int res)
 // Beware -- uses big density maccormack as temporary arrays
 ////////////////////////////////////////////////////////////////////// 
 void WTURBULENCE::advectTextureCoordinates (float dtOrg, float* xvel, float* yvel, float* zvel, float *tempBig1, float *tempBig2) {
+
   // advection
   SWAP_POINTERS(_tcTemp, _tcU);
-  FLUID_3D::copyBorderX(_tcTemp, _resSm);
-  FLUID_3D::copyBorderY(_tcTemp, _resSm);
-  FLUID_3D::copyBorderZ(_tcTemp, _resSm);
-  FLUID_3D::advectFieldMacCormack(dtOrg, xvel, yvel, zvel, 
-      _tcTemp, _tcU, tempBig1, tempBig2, _resSm, NULL);
+  FLUID_3D::copyBorderX(_tcTemp, _resSm, 0 , _resSm[2]);
+  FLUID_3D::copyBorderY(_tcTemp, _resSm, 0 , _resSm[2]);
+  FLUID_3D::copyBorderZ(_tcTemp, _resSm, 0 , _resSm[2]);
+  FLUID_3D::advectFieldMacCormack1(dtOrg, xvel, yvel, zvel, 
+      _tcTemp, tempBig1, _resSm, 0 , _resSm[2]);
+  FLUID_3D::advectFieldMacCormack2(dtOrg, xvel, yvel, zvel, 
+      _tcTemp, _tcU, tempBig1, tempBig2, _resSm, NULL, 0 , _resSm[2]);
 
   SWAP_POINTERS(_tcTemp, _tcV);
-  FLUID_3D::copyBorderX(_tcTemp, _resSm);
-  FLUID_3D::copyBorderY(_tcTemp, _resSm);
-  FLUID_3D::copyBorderZ(_tcTemp, _resSm);
-  FLUID_3D::advectFieldMacCormack(dtOrg, xvel, yvel, zvel, 
-      _tcTemp, _tcV, tempBig1, tempBig2, _resSm, NULL);
+  FLUID_3D::copyBorderX(_tcTemp, _resSm, 0 , _resSm[2]);
+  FLUID_3D::copyBorderY(_tcTemp, _resSm, 0 , _resSm[2]);
+  FLUID_3D::copyBorderZ(_tcTemp, _resSm, 0 , _resSm[2]);
+  FLUID_3D::advectFieldMacCormack1(dtOrg, xvel, yvel, zvel, 
+      _tcTemp, tempBig1, _resSm, 0 , _resSm[2]);
+  FLUID_3D::advectFieldMacCormack2(dtOrg, xvel, yvel, zvel, 
+      _tcTemp, _tcV, tempBig1, tempBig2, _resSm, NULL, 0 , _resSm[2]);
 
   SWAP_POINTERS(_tcTemp, _tcW);
-  FLUID_3D::copyBorderX(_tcTemp, _resSm);
-  FLUID_3D::copyBorderY(_tcTemp, _resSm);
-  FLUID_3D::copyBorderZ(_tcTemp, _resSm);
-  FLUID_3D::advectFieldMacCormack(dtOrg, xvel, yvel, zvel, 
-      _tcTemp, _tcW, tempBig1, tempBig2, _resSm, NULL);
+  FLUID_3D::copyBorderX(_tcTemp, _resSm, 0 , _resSm[2]);
+  FLUID_3D::copyBorderY(_tcTemp, _resSm, 0 , _resSm[2]);
+  FLUID_3D::copyBorderZ(_tcTemp, _resSm, 0 , _resSm[2]);
+  FLUID_3D::advectFieldMacCormack1(dtOrg, xvel, yvel, zvel, 
+      _tcTemp, tempBig1, _resSm, 0 , _resSm[2]);
+  FLUID_3D::advectFieldMacCormack2(dtOrg, xvel, yvel, zvel, 
+      _tcTemp, _tcW, tempBig1, tempBig2, _resSm, NULL, 0 , _resSm[2]);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -325,9 +337,9 @@ void WTURBULENCE::computeEigenvalues(float *_eigMin, float *_eigMax) {
 
         // ONLY compute the eigenvalues after checking that the matrix
         // is nonsingular
-        JAMA::LU<float> LU = computeLU3x3(jacobian);
+        sLU LU = computeLU(jacobian);
 
-        if (LU.isNonsingular())
+        if (isNonsingular(LU))
         {
           // get the analytic eigenvalues, quite slow right now...
           Vec3 eigenvalues = Vec3(1.);
@@ -422,9 +434,9 @@ void WTURBULENCE::computeEnergy(float *_energy, float* xvel, float* yvel, float*
   for (int x = 0; x < _totalCellsSm; x++) 
     _energy[x] = 0.5f * (xvel[x] * xvel[x] + yvel[x] * yvel[x] + zvel[x] * zvel[x]);
 
-  FLUID_3D::copyBorderX(_energy, _resSm);
-  FLUID_3D::copyBorderY(_energy, _resSm);
-  FLUID_3D::copyBorderZ(_energy, _resSm);
+  FLUID_3D::copyBorderX(_energy, _resSm, 0 , _resSm[2]);
+  FLUID_3D::copyBorderY(_energy, _resSm, 0 , _resSm[2]);
+  FLUID_3D::copyBorderZ(_energy, _resSm, 0 , _resSm[2]);
 
   // pseudo-march the values into the obstacles
   // the wavelet upsampler only uses a 3x3 support neighborhood, so
@@ -563,7 +575,7 @@ Vec3 WTURBULENCE::WVelocityWithJacobian(Vec3 orgPos, float* xUnwarped, float* yU
 //////////////////////////////////////////////////////////////////////
 // perform an actual noise advection step
 //////////////////////////////////////////////////////////////////////
-void WTURBULENCE::stepTurbulenceReadable(float dtOrg, float* xvel, float* yvel, float* zvel, unsigned char *obstacles) 
+/*void WTURBULENCE::stepTurbulenceReadable(float dtOrg, float* xvel, float* yvel, float* zvel, unsigned char *obstacles) 
 {
 	// enlarge timestep to match grid
 	const float dt = dtOrg * _amplify;
@@ -689,9 +701,9 @@ void WTURBULENCE::stepTurbulenceReadable(float dtOrg, float* xvel, float* yvel, 
   const float dtSubdiv = dt / (float)totalSubsteps;
 
   // set boundaries of big velocity grid
-  FLUID_3D::setZeroX(bigUx, _resBig); 
-  FLUID_3D::setZeroY(bigUy, _resBig); 
-  FLUID_3D::setZeroZ(bigUz, _resBig);
+  FLUID_3D::setZeroX(bigUx, _resBig, 0, _resBig[2]); 
+  FLUID_3D::setZeroY(bigUy, _resBig, 0, _resBig[2]); 
+  FLUID_3D::setZeroZ(bigUz, _resBig, 0, _resBig[2]);
 
   // do the MacCormack advection, with substepping if necessary
   for(int substep = 0; substep < totalSubsteps; substep++)
@@ -704,7 +716,7 @@ void WTURBULENCE::stepTurbulenceReadable(float dtOrg, float* xvel, float* yvel, 
   } // substep
   
   // wipe the density borders
-  FLUID_3D::setZeroBorder(_densityBig, _resBig);
+  FLUID_3D::setZeroBorder(_densityBig, _resBig, 0, _resBig[2]);
     
   // reset texture coordinates now in preparation for next timestep
   // Shouldn't do this before generating the noise because then the 
@@ -724,7 +736,9 @@ void WTURBULENCE::stepTurbulenceReadable(float dtOrg, float* xvel, float* yvel, 
   
 
   _totalStepsBig++;
-}
+}*/
+
+//struct
 
 //////////////////////////////////////////////////////////////////////
 // perform the full turbulence algorithm, including OpenMP 
@@ -747,6 +761,7 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
 
 	memset(_tcTemp, 0, sizeof(float)*_totalCellsSm);
 
+
 	// prepare textures
 	advectTextureCoordinates(dtOrg, xvel,yvel,zvel, tempBig1, tempBig2);
 
@@ -763,25 +778,38 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
 		if (obstacles[x]) highFreqEnergy[x] = 0.f;
 
 	Vec3Int ressm(_xResSm, _yResSm, _zResSm);
-	FLUID_3D::setNeumannX(highFreqEnergy, ressm);
-	FLUID_3D::setNeumannY(highFreqEnergy, ressm);
-	FLUID_3D::setNeumannZ(highFreqEnergy, ressm);
+	FLUID_3D::setNeumannX(highFreqEnergy, ressm, 0 , ressm[2]);
+	FLUID_3D::setNeumannY(highFreqEnergy, ressm, 0 , ressm[2]);
+	FLUID_3D::setNeumannZ(highFreqEnergy, ressm, 0 , ressm[2]);
+
+
+   int threadval = 1;
+#if PARALLEL==1
+  threadval = omp_get_max_threads();
+#endif
+
 
   // parallel region setup
-  float maxVelMagThreads[8] = { -1., -1., -1., -1., -1., -1., -1., -1. };
-#if PARALLEL==1 && !_WIN32
+  // Uses omp_get_max_trheads to get number of required cells.
+  float* maxVelMagThreads = new float[threadval];
+
+  for (int i=0; i<threadval; i++) maxVelMagThreads[i] = -1.0f;
+
+#if PARALLEL==1
+
 #pragma omp parallel
 #endif
   { float maxVelMag1 = 0.;
-#if PARALLEL==1 && !_WIN32
+#if PARALLEL==1
     const int id  = omp_get_thread_num(); /*, num = omp_get_num_threads(); */
 #endif
 
   // vector noise main loop
-#if PARALLEL==1 && !_WIN32
-#pragma omp for  schedule(static)
+#if PARALLEL==1
+#pragma omp for schedule(static,1)
 #endif
-  for (int zSmall = 0; zSmall < _zResSm; zSmall++) 
+  for (int zSmall = 0; zSmall < _zResSm; zSmall++)
+  {
   for (int ySmall = 0; ySmall < _yResSm; ySmall++) 
   for (int xSmall = 0; xSmall < _xResSm; xSmall++)
   {
@@ -796,14 +824,14 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
 
     // get LU factorization of texture jacobian and apply 
     // it to unit vectors
-    JAMA::LU<float> LU = computeLU3x3(jacobian);
+    sLU LU = computeLU(jacobian);
     float xUnwarped[] = {1.0f, 0.0f, 0.0f};
     float yUnwarped[] = {0.0f, 1.0f, 0.0f};
     float zUnwarped[] = {0.0f, 0.0f, 1.0f};
     float xWarped[] = {1.0f, 0.0f, 0.0f};
     float yWarped[] = {0.0f, 1.0f, 0.0f};
     float zWarped[] = {0.0f, 0.0f, 1.0f};
-    bool nonSingular = LU.isNonsingular();
+    bool nonSingular = isNonsingular(LU);
 #if 0
 	// UNUSED
     float eigMax = 10.0f;
@@ -908,23 +936,26 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
           obstacles, posSm[0], posSm[1], posSm[2], _xResSm, _yResSm, _zResSm); 
       if (obsCheck > 0.95) 
         bigUx[index] = bigUy[index] = bigUz[index] = 0.;
-    } // xyz
+    } // xyz*/
 
-#if PARALLEL==1 && !_WIN32
+#if PARALLEL==1
     maxVelMagThreads[id] = maxVelMag1;
 #else
     maxVelMagThreads[0] = maxVelMag1;
 #endif
   }
+  }
   } // omp
   
   // compute maximum over threads
   float maxVelMag = maxVelMagThreads[0];
-#if PARALLEL==1 && !_WIN32
-  for (int i = 1; i < 8; i++) 
+#if PARALLEL==1
+  for (int i = 1; i < threadval; i++) 
     if (maxVelMag < maxVelMagThreads[i]) 
       maxVelMag = maxVelMagThreads[i];
+  delete [] maxVelMagThreads;
 #endif
+
 
   // prepare density for an advection
   SWAP_POINTERS(_densityBig, _densityBigOld);
@@ -941,15 +972,56 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
   const float dtSubdiv = dt / (float)totalSubsteps;
 
   // set boundaries of big velocity grid
-  FLUID_3D::setZeroX(bigUx, _resBig); 
-  FLUID_3D::setZeroY(bigUy, _resBig); 
-  FLUID_3D::setZeroZ(bigUz, _resBig);
+  FLUID_3D::setZeroX(bigUx, _resBig, 0 , _resBig[2]); 
+  FLUID_3D::setZeroY(bigUy, _resBig, 0 , _resBig[2]); 
+  FLUID_3D::setZeroZ(bigUz, _resBig, 0 , _resBig[2]);
+
+#if PARALLEL==1
+  int stepParts = threadval*2;	// Dividing parallelized sections into numOfThreads * 2 sections
+  float partSize = (float)_zResBig/stepParts;	// Size of one part;
+
+  if (partSize < 4) {stepParts = threadval;					// If the slice gets too low (might actually slow things down, change it to larger
+					partSize = (float)_zResBig/stepParts;}
+  if (partSize < 4) {stepParts = (int)(ceil((float)_zResBig/4.0f));	// If it's still too low (only possible on future systems with +24 cores), change it to 4
+					partSize = (float)_zResBig/stepParts;}
+#else
+  int zBegin=0;
+  int zEnd=_resBig[2];
+#endif
 
   // do the MacCormack advection, with substepping if necessary
   for(int substep = 0; substep < totalSubsteps; substep++)
   {
-    FLUID_3D::advectFieldMacCormack(dtSubdiv, bigUx, bigUy, bigUz, 
-        _densityBigOld, _densityBig, tempBig1, tempBig2, _resBig, NULL);
+
+#if PARALLEL==1
+	#pragma omp parallel
+	{
+
+	#pragma omp for schedule(static,1)
+	for (int i=0; i<stepParts; i++)
+	{
+		int zBegin = (int)((float)i*partSize + 0.5f);
+		int zEnd = (int)((float)(i+1)*partSize + 0.5f);
+#endif
+		FLUID_3D::advectFieldMacCormack1(dtSubdiv, bigUx, bigUy, bigUz, 
+		    _densityBigOld, tempBig1, _resBig, zBegin, zEnd);
+#if PARALLEL==1
+	}
+
+	#pragma omp barrier
+
+	#pragma omp for schedule(static,1)
+	for (int i=0; i<stepParts; i++)
+	{
+		int zBegin = (int)((float)i*partSize + 0.5f);
+		int zEnd = (int)((float)(i+1)*partSize + 0.5f);
+#endif
+		FLUID_3D::advectFieldMacCormack2(dtSubdiv, bigUx, bigUy, bigUz, 
+		    _densityBigOld, _densityBig, tempBig1, tempBig2, _resBig, NULL, zBegin, zEnd);
+#if PARALLEL==1
+	}
+	}
+#endif
 
     if (substep < totalSubsteps - 1) 
       SWAP_POINTERS(_densityBig, _densityBigOld);
@@ -964,7 +1036,7 @@ void WTURBULENCE::stepTurbulenceFull(float dtOrg, float* xvel, float* yvel, floa
   free(highFreqEnergy);
   
   // wipe the density borders
-  FLUID_3D::setZeroBorder(_densityBig, _resBig);
+  FLUID_3D::setZeroBorder(_densityBig, _resBig, 0 , _resBig[2]);
     
   // reset texture coordinates now in preparation for next timestep
   // Shouldn't do this before generating the noise because then the 

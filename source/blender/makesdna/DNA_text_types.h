@@ -84,6 +84,7 @@ typedef struct Text {
 #define TXT_ISSCRIPT            0x0010 /* used by space handler scriptlinks */
 #define TXT_READONLY            0x0100
 #define TXT_FOLLOW              0x0200 /* always follow cursor (console) */
+#define TXT_TABSTOSPACES        0x0400 /* use space instead of tabs */
 
 /* format continuation flags */
 #define TXT_NOCONT				0x00 /* no continuation */

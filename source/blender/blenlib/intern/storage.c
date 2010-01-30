@@ -261,6 +261,7 @@ void BLI_builddir(char *dirname, char *relname)
 				while(dlink){
 					memset(&files[actnum], 0 , sizeof(struct direntry));
 					files[actnum].relname = dlink->name;
+					files[actnum].path = BLI_strdupcat(dirname, dlink->name);
 // use 64 bit file size, only needed for WIN32 and WIN64. 
 // Excluding other than current MSVC compiler until able to test.
 #if (defined(WIN32) || defined(WIN64)) && (_MSC_VER>=1500)

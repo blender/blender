@@ -42,7 +42,11 @@
 #include "BKE_image.h"
 #include "BKE_texture.h"
 
+#include "BLI_math.h"
+
 #include "WM_types.h"
+
+#include "MEM_guardedalloc.h"
 
 #ifdef RNA_RUNTIME
 
@@ -63,6 +67,9 @@ static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 		
 		#undef DefNode
 		
+		case NODE_GROUP:
+			return &RNA_NodeGroup;
+			
 		default:
 			return &RNA_Node;
 	}
@@ -174,6 +181,16 @@ static void rna_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
 	bNode *node= (bNode*)ptr->data;
 
+	node_update(bmain, scene, ntree, node);
+}
+
+static void rna_NodeGroup_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNodeTree *ntree= (bNodeTree*)ptr->id.data;
+	bNode *node= (bNode*)ptr->data;
+	
+	nodeVerifyGroup((bNodeTree *)node->id);
+	
 	node_update(bmain, scene, ntree, node);
 }
 
@@ -474,7 +491,7 @@ static EnumPropertyItem node_filter_items[] = {
 
 enum
 {
-	Category_NoCategory,
+	Category_GroupNode,
 	Category_ShaderNode,
 	Category_CompositorNode,
 	Category_TextureNode
@@ -521,6 +538,8 @@ static void init(void)
 	
 	#undef DefNode
 	#undef Str
+	
+	reg_node(NODE_GROUP, Category_GroupNode, "GROUP", "NodeGroup", "Node", "Group", "");
 }
 
 static StructRNA* def_node(BlenderRNA *brna, int node_id)
@@ -535,17 +554,17 @@ static StructRNA* def_node(BlenderRNA *brna, int node_id)
 	return srna;
 }
 
-static EnumPropertyItem* alloc_node_type_items(int category)
+void alloc_node_type_items(EnumPropertyItem *items, int category)
 {
 	int i;
-	int count = 2;
-	EnumPropertyItem *item, *items;
+	int count = 3;
+	EnumPropertyItem *item  = items;
 	
 	for(i=0; i<MaxNodes; i++)
 		if(nodes[i].defined && nodes[i].category == category)
 			count++;
 		
-	item = items = malloc(count * sizeof(EnumPropertyItem));
+	/*item = items = MEM_callocN(count * sizeof(EnumPropertyItem), "alloc_node_type_items");*/
 	
 	for(i=0; i<MaxNodes; i++) {
 		NodeInfo *node = nodes + i;
@@ -562,18 +581,40 @@ static EnumPropertyItem* alloc_node_type_items(int category)
 	
 	item->value = NODE_DYNAMIC;
 	item->identifier = "SCRIPT";
+	item->icon = 0;
 	item->name = "Script";
 	item->description = "";
 	
 	item++;
 	
-	memset(item, 0, sizeof(EnumPropertyItem));
+	item->value = NODE_GROUP;
+	item->identifier = "GROUP";
+	item->icon = 0;
+	item->name = "Group";
+	item->description = "";
 	
-	return items;
+	item++;
+	
+	/* NOTE!, increase 'count' when adding items here */
+	
+	memset(item, 0, sizeof(EnumPropertyItem));
 }
 
 
 /* -- Common nodes ---------------------------------------------------------- */
+
+static void def_group(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	prop = RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "NodeTree");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Node Tree", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeGroup_update");
+}
+
 
 static void def_math(StructRNA *srna)
 {
@@ -1076,12 +1117,6 @@ static void def_cmp_render_layers(StructRNA *srna)
 	RNA_def_property_enum_items(prop, prop_scene_layer_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_scene_layer_itemf");
 	RNA_def_property_ui_text(prop, "Layer", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	/* TODO: comments indicate this might be a hack */
-	prop = RNA_def_property(srna, "re_render", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "custom2", 1);
-	RNA_def_property_ui_text(prop, "Re-render", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -1821,7 +1856,83 @@ static void def_cmp_lensdist(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Fit", "For positive distortion factor only: scale image such that black areas are not visible");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
+
+static void def_cmp_colorbalance(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	static float default_1[3] = {1.f, 1.f, 1.f};
 	
+	static EnumPropertyItem type_items[] = {
+		{0, "LIFT_GAMMA_GAIN",      0, "Lift/Gamma/Gain",      ""},
+		{1, "OFFSET_POWER_SLOPE",     0, "Offset/Power/Slope (ASC-CDL)",     "ASC-CDL standard color correction"},
+		{0, NULL, 0, NULL, NULL}};
+	
+	prop = RNA_def_property(srna, "correction_formula", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, type_items);
+	RNA_def_property_ui_text(prop, "Correction Formula", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	RNA_def_struct_sdna_from(srna, "NodeColorBalance", "storage");
+	
+	prop = RNA_def_property(srna, "lift", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "lift");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Lift", "Correction for Shadows");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gamma");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Gamma", "Correction for Midtones");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "gain", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gain");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Gain", "Correction for Highlights");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	
+	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "lift");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Offset", "Correction for Shadows");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "power", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gamma");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Power", "Correction for Midtones");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "slope", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gain");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Slope", "Correction for Highlights");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_huecorrect(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	prop = RNA_def_property(srna, "mapping", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "storage");
+	RNA_def_property_struct_type(prop, "CurveMapping");
+	RNA_def_property_ui_text(prop, "Mapping", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
 
 
 /* -- Texture Nodes --------------------------------------------------------- */
@@ -1889,13 +2000,13 @@ static void def_tex_bricks(StructRNA *srna)
 
 /* -------------------------------------------------------------------------- */
 
+static EnumPropertyItem shader_node_type_items[MaxNodes];
 static void rna_def_shader_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	EnumPropertyItem *node_type_items;
 	
-	node_type_items = alloc_node_type_items(Category_ShaderNode);
+	alloc_node_type_items(shader_node_type_items, Category_ShaderNode);
 
 	srna = RNA_def_struct(brna, "ShaderNode", "Node");
 	RNA_def_struct_ui_text(srna, "Shader Node", "Material shader node.");
@@ -1903,17 +2014,17 @@ static void rna_def_shader_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, node_type_items);
+	RNA_def_property_enum_items(prop, shader_node_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 }
 
+static EnumPropertyItem compositor_node_type_items[MaxNodes];
 static void rna_def_compositor_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	EnumPropertyItem *node_type_items;
 	
-	node_type_items = alloc_node_type_items(Category_CompositorNode);
+	alloc_node_type_items(compositor_node_type_items, Category_CompositorNode);
 	
 	srna = RNA_def_struct(brna, "CompositorNode", "Node");
 	RNA_def_struct_ui_text(srna, "Compositor Node", "");
@@ -1921,17 +2032,17 @@ static void rna_def_compositor_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, node_type_items);
+	RNA_def_property_enum_items(prop, compositor_node_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 }
 
+static EnumPropertyItem texture_node_type_items[MaxNodes];
 static void rna_def_texture_node(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	EnumPropertyItem *node_type_items;
 	
-	node_type_items = alloc_node_type_items(Category_TextureNode);
+	alloc_node_type_items(texture_node_type_items, Category_TextureNode);
 	
 	srna = RNA_def_struct(brna, "TextureNode", "Node");
 	RNA_def_struct_ui_text(srna, "Texture Node", "");
@@ -1939,7 +2050,7 @@ static void rna_def_texture_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, node_type_items);
+	RNA_def_property_enum_items(prop, texture_node_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
 }
 
@@ -2112,13 +2223,15 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	rna_def_shader_node(brna);
 	rna_def_compositor_node(brna);
 	rna_def_texture_node(brna);
-	
+		
 	#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
 		define_specific_node(brna, ID, DefFunc);
 		
 	#include "rna_nodetree_types.h"
 	
 	#undef DefNode
+	
+	define_specific_node(brna, NODE_GROUP, def_group);
 }
 
 #endif

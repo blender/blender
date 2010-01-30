@@ -359,7 +359,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 
 	// get the name
 	fontname = FT_Get_Postscript_Name(face);
-	strcpy(vfd->name, (fontname == NULL) ? "Fontname not available" : fontname);
+	strcpy(vfd->name, (fontname == NULL) ? "" : fontname);
 
 	// Extract the first 256 character from TTF
 	lcode= charcode= FT_Get_First_Char(face, &glyph_index);

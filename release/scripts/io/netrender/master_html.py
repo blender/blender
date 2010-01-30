@@ -37,8 +37,11 @@ def get(handler):
         output("<link rel='stylesheet' href='/html/netrender.css' type='text/css'>")
 
 
-    def link(text, url):
-        return "<a href='%s'>%s</a>" % (url, text)
+    def link(text, url, script=""):
+        return "<a href='%s' %s>%s</a>" % (url, script, text)
+
+    def tag(name, text, attr=""):
+        return "<%s %s>%s</%s>" % (name, attr, text, name)
 
     def startTable(border=1, class_style = None, caption = None):
         output("<table border='%i'" % border)
@@ -104,7 +107,7 @@ def get(handler):
 
         output("<h2>Master</h2>")
 
-        output("""<button title="remove all jobs" onclick="request('/clear', null);">CLEAR JOB LIST</button>""")
+        output("""<button title="remove all jobs" onclick="clear_jobs();">CLEAR JOB LIST</button>""")
 
         startTable(caption = "Rules", class_style = "rules")
 
@@ -166,7 +169,7 @@ def get(handler):
                         "done",
                         "dispatched",
                         "error",
-                        "first",
+                        "priority",
                         "exception"
                     )
 
@@ -175,7 +178,8 @@ def get(handler):
         for job in handler.server.jobs:
             results = job.framesStatus()
             rowTable(
-                        """<button title="cancel job" onclick="request('/cancel_%s', null);">X</button>""" % job.id +
+                        """<button title="cancel job" onclick="cancel_job('%s');">X</button>""" % job.id +
+                        """<button title="pause job" onclick="request('/pause_%s', null);">P</button>""" % job.id +
                         """<button title="reset all frames" onclick="request('/resetall_%s_0', null);">R</button>""" % job.id,
                         job.id,
                         link(job.name, "/html/job" + job.id),
@@ -194,7 +198,8 @@ def get(handler):
                         results[DISPATCHED],
                         str(results[ERROR]) +
                         """<button title="reset error frames" onclick="request('/reset_%s_0', null);" %s>R</button>""" % (job.id, "disabled=True" if not results[ERROR] else ""),
-                        handler.server.balancer.applyPriorities(job), handler.server.balancer.applyExceptions(job)
+                        "yes" if handler.server.balancer.applyPriorities(job) else "no",
+                        "yes" if handler.server.balancer.applyExceptions(job) else "no"
                     )
 
         endTable()
@@ -210,6 +215,17 @@ def get(handler):
         job = handler.server.getJobID(job_id)
 
         if job:
+            output("<h2>Render Information</h2>")
+
+            job.initInfo()
+            
+            startTable()
+
+            rowTable("resolution", "%ix%i at %i%%" % job.resolution)
+
+            endTable()
+
+            
             output("<h2>Files</h2>")
 
             startTable()
@@ -257,10 +273,19 @@ def get(handler):
             output("<h2>Frames</h2>")
 
             startTable()
-            headerTable("no", "status", "render time", "slave", "log", "result")
+            headerTable("no", "status", "render time", "slave", "log", "result", "")
 
             for frame in job.frames:
-                rowTable(frame.number, frame.statusText(), "%.1fs" % frame.time, frame.slave.name if frame.slave else "&nbsp;", link("view log", logURL(job_id, frame.number)) if frame.log_path else "&nbsp;", link("view result", renderURL(job_id, frame.number)) if frame.status == DONE else "&nbsp;")
+                rowTable(
+                         frame.number,
+                         frame.statusText(),
+                         "%.1fs" % frame.time,
+                         frame.slave.name if frame.slave else "&nbsp;",
+                         link("view log", logURL(job_id, frame.number)) if frame.log_path else "&nbsp;",
+                         link("view result", renderURL(job_id, frame.number))  + " [" +
+                         tag("span", "show", attr="class='thumb' onclick='showThumb(%s, %i)'" % (job.id, frame.number)) + "]" if frame.status == DONE else "&nbsp;",
+                         "<img name='thumb%i' title='hide thumbnails' src='' class='thumb' onclick='showThumb(%s, %i)'>" % (frame.number, job.id, frame.number)
+                         )
 
             endTable()
         else:

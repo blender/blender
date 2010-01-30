@@ -819,7 +819,6 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 		for(x = 1; x < edgeSize - 1; x++, i++) {
 			vd= ccgSubSurf_getEdgeData(ss, e, x);
 			copy_v3_v3(mvert[i].co, vd->co);
-			/* TODO CCGSubsurf does not set these */
 			normal_float_to_short_v3(mvert[i].no, vd->no);
 		}
 	}
@@ -2227,7 +2226,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	MFace *mface = NULL;
 	FaceVertWeight *qweight, *tweight;
 
-	DM_from_template(&ccgdm->dm, dm, ccgSubSurf_getNumFinalVerts(ss),
+	DM_from_template(&ccgdm->dm, dm, DM_TYPE_CCGDM,
+					 ccgSubSurf_getNumFinalVerts(ss),
 					 ccgSubSurf_getNumFinalEdges(ss),
 					 ccgSubSurf_getNumFinalFaces(ss));
 
@@ -2505,7 +2505,9 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	CCGDerivedMesh *result;
 
 	if(editMode) {
-		smd->emCache = _getSubSurf(smd->emCache, smd->levels, useAging, 0,
+		int levels= (smd->modifier.scene)? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels): smd->levels;
+
+		smd->emCache = _getSubSurf(smd->emCache, levels, useAging, 0,
 		                           useSimple);
 		ss_sync_from_derivedmesh(smd->emCache, dm, vertCos, useSimple);
 
@@ -2515,9 +2517,8 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	} else if(useRenderParams) {
 		/* Do not use cache in render mode. */
 		CCGSubSurf *ss;
-		int levels;
-		
-		levels= smd->renderLevels; // XXX get_render_subsurf_level(&scene->r, smd->renderLevels);
+		int levels= (smd->modifier.scene)? get_render_subsurf_level(&smd->modifier.scene->r, smd->renderLevels): smd->renderLevels;
+
 		if(levels == 0)
 			return dm;
 		
@@ -2532,6 +2533,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	} else {
 		int useIncremental = (smd->flags & eSubsurfModifierFlag_Incremental);
 		int useAging = smd->flags & eSubsurfModifierFlag_DebugIncr;
+		int levels= (smd->modifier.scene)? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels): smd->levels;
 		CCGSubSurf *ss;
 		
 		/* It is quite possible there is a much better place to do this. It
@@ -2548,7 +2550,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		}
 
 		if(useIncremental && isFinalCalc) {
-			smd->mCache = ss = _getSubSurf(smd->mCache, smd->levels,
+			smd->mCache = ss = _getSubSurf(smd->mCache, levels,
 			                               useAging, 0, useSimple);
 
 			ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
@@ -2562,7 +2564,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 				smd->mCache = NULL;
 			}
 
-			ss = _getSubSurf(NULL, smd->levels, 0, 1, useSimple);
+			ss = _getSubSurf(NULL, levels, 0, 1, useSimple);
 			ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
 
 			result = getCCGDerivedMesh(ss, drawInteriorEdges, useSubsurfUv, dm);

@@ -533,8 +533,8 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		/* Scene lock */
 		uiItemR(layout, "", 0, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY);
 	}
-
-	/* selection modus */
+	
+	/* selection modus, dont use python for this since it cant do the toggle buttons with shift+click as well as clicking to set one. */
 	if(obedit && (obedit->type == OB_MESH)) {
 		EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 

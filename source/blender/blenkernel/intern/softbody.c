@@ -1269,7 +1269,7 @@ static int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],floa
 						normalize_v3(d_nvect);	
 						if ( 
 							/* isect_line_tri_v3(nv1, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
-							 we did that edge allready */
+							 we did that edge already */
 							isect_line_tri_v3(nv3, nv4, face_v1, face_v2, face_v3, &t, NULL) ||
 							isect_line_tri_v3(nv4, nv1, face_v1, face_v2, face_v3, &t, NULL) ){
 							Vec3PlusStVec(force,-0.5f,d_nvect);
@@ -3267,7 +3267,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 
 		if (sb->namedVG_Mass[0])
 		{
-			int grp= get_named_vertexgroup_num (ob,sb->namedVG_Mass);
+			int grp= defgroup_name_index (ob,sb->namedVG_Mass);
 			/* printf("VGN  %s %d \n",sb->namedVG_Mass,grp); */
 			if(grp > -1){
 				get_scalar_from_vertexgroup(ob, a,(short) (grp), &bp->mass);
@@ -3281,7 +3281,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 
 		if (sb->namedVG_Spring_K[0])
 		{
-			int grp= get_named_vertexgroup_num (ob,sb->namedVG_Spring_K);
+			int grp= defgroup_name_index (ob,sb->namedVG_Spring_K);
 			//printf("VGN  %s %d \n",sb->namedVG_Spring_K,grp); 
 			if(grp > -1){
 				get_scalar_from_vertexgroup(ob, a,(short) (grp), &bp->springweight);

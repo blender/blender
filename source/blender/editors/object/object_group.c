@@ -266,14 +266,16 @@ static EnumPropertyItem *group_itemf(bContext *C, PointerRNA *ptr, int *free)
 	
 	RNA_enum_items_add_value(&item, &totitem, group_items, -1);
 
-	if(bmain->group.first)
-		RNA_enum_item_add_separator(&item, &totitem);
+	if (bmain) {
+		if(bmain->group.first)
+			RNA_enum_item_add_separator(&item, &totitem);
 
-	for(a=0, group=bmain->group.first; group; group=group->id.next, a++) {
-		tmp.value= a;
-		tmp.identifier= group->id.name+2;
-		tmp.name= group->id.name+2;
-		RNA_enum_item_add(&item, &totitem, &tmp);
+		for(a=0, group=bmain->group.first; group; group=group->id.next, a++) {
+			tmp.value= a;
+			tmp.identifier= group->id.name+2;
+			tmp.name= group->id.name+2;
+			RNA_enum_item_add(&item, &totitem, &tmp);
+		}
 	}
 
 	RNA_enum_item_end(&item, &totitem);

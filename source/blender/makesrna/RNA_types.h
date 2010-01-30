@@ -150,7 +150,7 @@ typedef enum PropertyFlag {
 
 	/* function paramater flags */
 	PROP_REQUIRED = 1<<2,
-	PROP_RETURN = 1<<3,
+	PROP_OUTPUT = 1<<3,
 	PROP_RNAPTR = 1<<11,
 	/* registering */
 	PROP_REGISTER = 1<<4,
@@ -187,7 +187,8 @@ typedef enum PropertyFlag {
 	PROP_RAW_ACCESS = 1<<13,
 	PROP_RAW_ARRAY = 1<<14,
 	PROP_FREE_POINTERS = 1<<15,
-	PROP_DYNAMIC = 1<<17 /* for dynamic arrays, and retvals of type string */
+	PROP_DYNAMIC = 1<<17, /* for dynamic arrays, and retvals of type string */
+	PROP_ENUM_NO_CONTEXT = 1<<18 /* for enum that shouldn't be contextual */
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
@@ -266,6 +267,7 @@ typedef enum FunctionFlag {
 	FUNC_NO_SELF = 1, /* for static functions */
 	FUNC_USE_CONTEXT = 2,
 	FUNC_USE_REPORTS = 4,
+	FUNC_USE_SELF_ID = 2048,
 
 	/* registering */
 	FUNC_REGISTER = 8,
@@ -322,6 +324,20 @@ typedef struct ExtensionRNA {
 	int (*call)(PointerRNA *, FunctionRNA *, ParameterList *);
 	void (*free)(void *data);
 } ExtensionRNA;
+
+/* fake struct definitions, needed otherwise collections end up owning the C
+ * structs like 'Object' when defined first */
+#define MainCameras Main
+#define MainScenes Main
+#define MainArmatures Main
+#define MainMaterials Main
+#define MainMeshes Main
+#define MainLamps Main
+#define MainObjects Main
+#define MainTexts Main
+#define MainActions Main
+#define MainGroups Main
+#define MainTextures Main
 
 #ifdef __cplusplus
 }

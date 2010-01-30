@@ -767,7 +767,7 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, DLRBT_Tree *bl
 	if ((ob->totcol) && !(filterflag & ADS_FILTER_NOMAT)) {
 		int a;
 		
-		for (a=0; a < ob->totcol; a++) {
+		for (a=1; a <= ob->totcol; a++) {
 			Material *ma= give_current_material(ob, a);
 			
 			/* there might not be a material */
@@ -855,7 +855,7 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, DLRBT_Tree 
 	if (fcu && fcu->totvert && fcu->bezt) {
 		/* apply NLA-mapping (if applicable) */
 		if (adt)	
-			ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 1);
+			ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
 		
 		/* if getting long keyframes too, grab the BezTriples in a BST for 
 		 * accelerated searching...
@@ -891,7 +891,8 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, DLRBT_Tree 
 		}
 		
 		/* unapply NLA-mapping if applicable */
-		ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 1);
+		if (adt)
+			ANIM_nla_mapping_apply_fcurve(adt, fcu, 1, 0);
 	}
 }
 

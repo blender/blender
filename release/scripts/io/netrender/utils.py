@@ -28,7 +28,7 @@ try:
 except:
   bpy = None
 
-VERSION = bytes("0.7", encoding='utf8')
+VERSION = bytes("0.8", encoding='utf8')
 
 # Jobs status
 JOB_WAITING = 0 # before all data has been entered
@@ -172,3 +172,48 @@ def prefixPath(prefix_directory, file_path, prefix_path):
         full_path = prefix_directory + file_path
 
     return full_path
+
+def getFileInfo(filepath, infos):
+    process = subprocess.Popen([sys.argv[0], "-b", "-noaudio", filepath, "-P", __file__, "--"] + infos, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)    
+    stdout = bytes()
+    while process.poll() == None:
+        stdout += process.stdout.read(1024)
+
+    # read leftovers if needed
+    stdout += process.stdout.read()
+    
+    stdout = str(stdout, encoding="utf8")
+    
+    values = [eval(v[1:].strip()) for v in stdout.split("\n") if v.startswith("$")]
+    
+    return values
+                
+def thumbnail(filename):
+    root = os.path.splitext(filename)[0]
+    imagename = os.path.split(filename)[1]
+    thumbname = root + ".jpg"
+    
+    if os.path.exists(thumbname):
+        return thumbname
+    
+    if bpy:
+        sce = bpy.data.scenes[0]
+        sce.render_data.file_format = "JPEG"
+        sce.render_data.quality = 90
+        bpy.ops.image.open(path = filename)
+        img = bpy.data.images[imagename]
+        img.save(thumbname, scene = sce)
+        
+        try:
+            process = subprocess.Popen(["convert", thumbname, "-resize", "300x300", thumbname])
+            process.wait()                                        
+            return thumbname
+        except:
+            pass
+
+    return None
+
+if __name__ == "__main__":
+    import bpy
+    for info in sys.argv[7:]:
+        print("$", eval(info))

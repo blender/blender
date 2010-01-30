@@ -883,7 +883,7 @@ int BKE_imtype_is_movie(int imtype)
 	return 0;
 }
 
-void BKE_add_image_extension(Scene *scene, char *string, int imtype)
+void BKE_add_image_extension(char *string, int imtype)
 {
 	char *extension="";
 	
@@ -1397,7 +1397,7 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 	
 	BLI_make_existing_file(name);
 
-	if(scene->r.stamp & R_STAMP_ALL)
+	if(scene && scene->r.stamp & R_STAMP_ALL)
 		BKE_stamp_info(scene, ibuf);
 	
 	ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
@@ -1409,7 +1409,7 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 }
 
 
-void BKE_makepicstring(struct Scene *scene, char *string, char *base, int frame, int imtype)
+void BKE_makepicstring(char *string, char *base, int frame, int imtype, int use_ext)
 {
 	if (string==NULL) return;
 
@@ -1422,8 +1422,8 @@ void BKE_makepicstring(struct Scene *scene, char *string, char *base, int frame,
 	BLI_convertstringcode(string, G.sce);
 	BLI_convertstringframe(string, frame);
 
-	if(scene->r.scemode & R_EXTENSION) 
-		BKE_add_image_extension(scene, string, imtype);
+	if(use_ext)
+		BKE_add_image_extension(string, imtype);
 		
 }
 
@@ -1438,7 +1438,10 @@ struct anim *openanim(char *name, int flags)
 
 	ibuf = IMB_anim_absolute(anim, 0);
 	if (ibuf == NULL) {
-		printf("not an anim; %s\n", name);
+		if(BLI_exists(name))
+			printf("not an anim: %s\n", name);
+		else
+			printf("anim file doesn't exist: %s\n", name);
 		IMB_free_anim(anim);
 		return(0);
 	}
@@ -1469,7 +1472,7 @@ struct anim *openanim(char *name, int flags)
 */
 
 
-/* forces existance of 1 Image for renderout or nodes, returns Image */
+/* forces existence of 1 Image for renderout or nodes, returns Image */
 /* name is only for default, when making new one */
 Image *BKE_image_verify_viewer(int type, const char *name)
 {
@@ -1898,6 +1901,7 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 			ibuf->rect_float= rpass->rect;
 			ibuf->flags |= IB_rectfloat;
 			ibuf->channels= rpass->channels;
+			ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
 			image_assign_ibuf(ima, ibuf, iuser?iuser->multi_index:IMA_NO_INDEX, 0);
 		}
@@ -2199,7 +2203,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	return BKE_image_acquire_ibuf(ima, iuser, NULL);
 }
 
-void BKE_image_user_calc_imanr(ImageUser *iuser, int cfra, int fieldnr)
+void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
 {
 	int imanr, len;
 	

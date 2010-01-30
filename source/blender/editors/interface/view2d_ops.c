@@ -199,6 +199,16 @@ static int view_pan_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* set initial settings */
 	vpd->startx= vpd->lastx= event->x;
 	vpd->starty= vpd->lasty= event->y;
+
+	if (event->type == MOUSEPAN) {
+		RNA_int_set(op->ptr, "deltax", event->prevx - event->x);
+		RNA_int_set(op->ptr, "deltay", event->prevy - event->y);
+		
+		view_pan_apply(C, op);
+		view_pan_exit(C, op);
+		return OPERATOR_FINISHED;
+	}
+	
 	RNA_int_set(op->ptr, "deltax", 0);
 	RNA_int_set(op->ptr, "deltay", 0);
 	
@@ -236,6 +246,18 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 			
 		case LEFTMOUSE:
+			/* switch to zoom */
+			if (event->val==KM_PRESS) {
+				/* calculate overall delta mouse-movement for redo */
+				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
+				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
+				
+				view_pan_exit(C, op);
+				WM_cursor_restore(CTX_wm_window(C));
+				
+				WM_operator_name_call(C, "VIEW2D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
+				return OPERATOR_FINISHED;
+			}
 		case MIDDLEMOUSE:
 		case ESCKEY:
 			if (event->val==KM_RELEASE) {
@@ -483,7 +505,43 @@ void VIEW2D_OT_scroll_up(wmOperatorType *ot)
  */
 
 /* ------------------ 'Shared' stuff ------------------------ */
- 
+
+/* temp customdata for operator */
+typedef struct v2dViewZoomData {
+	View2D *v2d;			/* view2d we're operating in */
+	
+	int lastx, lasty;		/* previous x/y values of mouse in window */
+	float dx, dy;			/* running tally of previous delta values (for obtaining final zoom) */
+	float mx_2d, my_2d;		/* initial mouse location in v2d coords */
+} v2dViewZoomData;
+
+
+/* initialise panning customdata */
+static int view_zoomdrag_init(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	v2dViewZoomData *vzd;
+	View2D *v2d;
+	
+	/* regions now have v2d-data by default, so check for region */
+	if (ar == NULL)
+		return 0;
+	v2d= &ar->v2d;
+	
+	/* check that 2d-view is zoomable */
+	if ((v2d->keepzoom & V2D_LOCKZOOM_X) && (v2d->keepzoom & V2D_LOCKZOOM_Y))
+		return 0;
+	
+	/* set custom-data for operator */
+	vzd= MEM_callocN(sizeof(v2dViewZoomData), "v2dViewZoomData");
+	op->customdata= vzd;
+	
+	/* set pointers to owners */
+	vzd->v2d= v2d;
+	
+	return 1;
+}
+
 /* check if step-zoom can be applied */
 static int view_zoom_poll(bContext *C)
 {
@@ -506,6 +564,7 @@ static int view_zoom_poll(bContext *C)
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void view_zoomstep_apply(bContext *C, wmOperator *op)
 {
+	v2dViewZoomData *vzd= op->customdata;
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
 	float dx, dy, facx, facy;
@@ -536,8 +595,17 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 				v2d->cur.xmax -= 2*dx;
 		}
 		else {
-			v2d->cur.xmin += dx;
-			v2d->cur.xmax -= dx;
+			if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+				float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / (v2d->cur.xmax-v2d->cur.xmin);
+				float mval_faci = 1.0 - mval_fac;
+				float ofs= (mval_fac * dx) - (mval_faci * dx);
+				v2d->cur.xmin += ofs + dx;
+				v2d->cur.xmax += ofs - dx;
+			}
+			else {
+				v2d->cur.xmin += dx;
+				v2d->cur.xmax -= dx;
+			}
 		}
 	}
 	if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
@@ -551,8 +619,16 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 				v2d->cur.ymax -= 2*dy;
 		}
 		else {
-			v2d->cur.ymin += dy;
-			v2d->cur.ymax -= dy;
+			if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+				float mval_fac = (vzd->my_2d - v2d->cur.ymin) / (v2d->cur.ymax-v2d->cur.ymin);
+				float mval_faci = 1.0 - mval_fac;
+				float ofs= (mval_fac * dy) - (mval_faci * dy);
+				v2d->cur.ymin += ofs + dy;
+				v2d->cur.ymax += ofs - dy;
+			} else {
+				v2d->cur.ymin += dy;
+				v2d->cur.ymax -= dy;
+			}
 		}
 	}
 
@@ -566,6 +642,15 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 }
 
 /* --------------- Individual Operators ------------------- */
+
+/* cleanup temp customdata  */
+static void view_zoomstep_exit(bContext *C, wmOperator *op)
+{
+	if (op->customdata) {
+		MEM_freeN(op->customdata);
+		op->customdata= NULL;				
+	}
+}
 
 /* this operator only needs this single callback, where it calls the view_zoom_*() methods */
 static int view_zoomin_exec(bContext *C, wmOperator *op)
@@ -581,7 +666,26 @@ static int view_zoomin_exec(bContext *C, wmOperator *op)
 	/* apply movement, then we're done */
 	view_zoomstep_apply(C, op);
 	
+	view_zoomstep_exit(C, op);
+	
 	return OPERATOR_FINISHED;
+}
+
+static int view_zoomin_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	v2dViewZoomData *vzd;
+	
+	if (!view_zoomdrag_init(C, op))
+		return OPERATOR_PASS_THROUGH;
+	
+	vzd= op->customdata;
+	
+	if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+		ARegion *ar= CTX_wm_region(C);
+		UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, &vzd->mx_2d, &vzd->my_2d);
+	}
+	
+	return view_zoomin_exec(C, op);
 }
 
 void VIEW2D_OT_zoom_in(wmOperatorType *ot)
@@ -592,7 +696,9 @@ void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 	ot->idname= "VIEW2D_OT_zoom_in";
 	
 	/* api callbacks */
+	ot->invoke= view_zoomin_invoke;
 	ot->exec= view_zoomin_exec;
+	ot->poll= view_zoom_poll;
 	
 	/* operator is repeatable */
 	// ot->flag= OPTYPE_REGISTER;
@@ -601,9 +707,7 @@ void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
 	RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, "Zoom Factor Y", "", -FLT_MAX, FLT_MAX);
 }
-
-
-
+	
 /* this operator only needs this single callback, where it callsthe view_zoom_*() methods */
 static int view_zoomout_exec(bContext *C, wmOperator *op)
 {
@@ -617,8 +721,27 @@ static int view_zoomout_exec(bContext *C, wmOperator *op)
 	
 	/* apply movement, then we're done */
 	view_zoomstep_apply(C, op);
+
+	view_zoomstep_exit(C, op);
 	
 	return OPERATOR_FINISHED;
+}
+
+static int view_zoomout_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	v2dViewZoomData *vzd;
+	
+	if (!view_zoomdrag_init(C, op))
+		return OPERATOR_PASS_THROUGH;
+
+	vzd= op->customdata;
+	
+	if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+		ARegion *ar= CTX_wm_region(C);
+		UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, &vzd->mx_2d, &vzd->my_2d);
+	}
+	
+	return view_zoomout_exec(C, op);
 }
 
 void VIEW2D_OT_zoom_out(wmOperatorType *ot)
@@ -629,7 +752,9 @@ void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 	ot->idname= "VIEW2D_OT_zoom_out";
 	
 	/* api callbacks */
+	ot->invoke= view_zoomout_invoke;
 	ot->exec= view_zoomout_exec;
+	ot->poll= view_zoom_poll;
 	
 	/* operator is repeatable */
 	// ot->flag= OPTYPE_REGISTER;
@@ -647,43 +772,6 @@ void VIEW2D_OT_zoom_out(wmOperatorType *ot)
  *	In order to make sure this works, each operator must define the following RNA-Operator Props:
  *		deltax, deltay	- amounts to add to each side of the 'cur' rect
  */
- 
-/* ------------------ Shared 'core' stuff ---------------------- */
- 
-/* temp customdata for operator */
-typedef struct v2dViewZoomData {
-	View2D *v2d;			/* view2d we're operating in */
-	
-	int lastx, lasty;		/* previous x/y values of mouse in window */
-	float dx, dy;			/* running tally of previous delta values (for obtaining final zoom) */
-	float mx_2d, my_2d;		/* initial mouse location in v2d coords */
-} v2dViewZoomData;
- 
-/* initialise panning customdata */
-static int view_zoomdrag_init(bContext *C, wmOperator *op)
-{
-	ARegion *ar= CTX_wm_region(C);
-	v2dViewZoomData *vzd;
-	View2D *v2d;
-	
-	/* regions now have v2d-data by default, so check for region */
-	if (ar == NULL)
-		return 0;
-	v2d= &ar->v2d;
-	
-	/* check that 2d-view is zoomable */
-	if ((v2d->keepzoom & V2D_LOCKZOOM_X) && (v2d->keepzoom & V2D_LOCKZOOM_Y))
-		return 0;
-	
-	/* set custom-data for operator */
-	vzd= MEM_callocN(sizeof(v2dViewZoomData), "v2dViewZoomData");
-	op->customdata= vzd;
-	
-	/* set pointers to owners */
-	vzd->v2d= v2d;
-	
-	return 1;
-}
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void view_zoomdrag_apply(bContext *C, wmOperator *op)
@@ -776,6 +864,26 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	vzd= op->customdata;
 	v2d= vzd->v2d;
+	
+	if (event->type == MOUSEZOOM) {
+		float dx, dy, fac;
+		
+		vzd->lastx= event->prevx;
+		vzd->lasty= event->prevy;
+		
+		/* As we have only 1D information (magnify value), feed both axes
+		with magnify information that is stored in x axis */
+		fac= 0.01f * (event->x - event->prevx);
+		dx= fac * (v2d->cur.xmax - v2d->cur.xmin) / 10.0f;
+		dy= fac * (v2d->cur.ymax - v2d->cur.ymin) / 10.0f;
+
+		RNA_float_set(op->ptr, "deltax", dx);
+		RNA_float_set(op->ptr, "deltay", dy);
+		
+		view_zoomdrag_apply(C, op);
+		view_zoomdrag_exit(C, op);
+		return OPERATOR_FINISHED;
+	}	
 	
 	/* set initial settings */
 	vzd->lastx= event->x;
@@ -1455,6 +1563,8 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
 	
+	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MOUSEPAN, 0, 0, 0);
+	
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_right", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_left", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
 	
@@ -1477,6 +1587,7 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	
 	/* zoom - drag */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEZOOM, 0, 0, 0);
 	
 	/* borderzoom - drag */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_border", BKEY, KM_PRESS, KM_SHIFT, 0);
@@ -1487,9 +1598,11 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	/* Alternative keymap for buttons listview */
 	keymap= WM_keymap_find(keyconf, "View2D Buttons List", 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MOUSEPAN, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEZOOM, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_out", PADMINUS, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_in", PADPLUSKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_reset", HOMEKEY, KM_PRESS, 0, 0);

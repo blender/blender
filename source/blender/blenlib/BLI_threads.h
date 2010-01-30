@@ -34,7 +34,7 @@
 #include <pthread.h>
 
 /* for tables, button in UI, etc */
-#define BLENDER_MAX_THREADS		8
+#define BLENDER_MAX_THREADS		64
 
 struct ListBase;
 
@@ -107,6 +107,21 @@ void BLI_destroy_worker(struct ThreadedWorker *worker);
  * NOTE: inserting work is NOT thread safe, so make sure it is only done from one thread */
 void BLI_insert_work(struct ThreadedWorker *worker, void *param);
 
+/* ThreadWorkQueue
+ *
+ * Thread-safe work queue to push work/pointers between threads. */
+
+typedef struct ThreadQueue ThreadQueue;
+
+ThreadQueue *BLI_thread_queue_init();
+void BLI_thread_queue_free(ThreadQueue *queue);
+
+void BLI_thread_queue_push(ThreadQueue *queue, void *work);
+void *BLI_thread_queue_pop(ThreadQueue *queue);
+void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms);
+int BLI_thread_queue_size(ThreadQueue *queue);
+
+void BLI_thread_queue_nowait(ThreadQueue *queue);
 
 #endif
 

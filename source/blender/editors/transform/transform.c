@@ -217,7 +217,7 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 
 		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
-	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
+	else if(ELEM3(t->spacetype, SPACE_IPO, SPACE_NLA, SPACE_ACTION)) {
 		int out[2] = {0, 0};
 
 		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1);
@@ -470,6 +470,8 @@ static void view_editmove(unsigned short event)
 #define TFM_MODAL_CONS_OFF		15
 #define TFM_MODAL_ADD_SNAP		16
 #define TFM_MODAL_REMOVE_SNAP	17
+/*	18 and 19 used by numinput, defined in transform.h
+ * */
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
@@ -492,6 +494,8 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_CONS_OFF, "CONS_OFF", 0, "Remove Constraints", ""},
 	{TFM_MODAL_ADD_SNAP, "ADD_SNAP", 0, "Add Snap Point", ""},
 	{TFM_MODAL_REMOVE_SNAP, "REMOVE_SNAP", 0, "Remove Last Snap Point", ""},
+	{TFM_MODAL_INCREMENT_UP, "INCREMENT_UP", 0, "Numinput Increment Up", ""},
+	{TFM_MODAL_INCREMENT_DOWN, "INCREMENT_DOWN", 0, "Numinput Increment Down", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -518,6 +522,9 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, 0, 0, TFM_MODAL_ADD_SNAP);
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, KM_ALT, 0, TFM_MODAL_REMOVE_SNAP);
+
+	WM_modalkeymap_add_item(keymap, UPARROWKEY, KM_PRESS, 0, 0, TFM_MODAL_INCREMENT_UP);
+	WM_modalkeymap_add_item(keymap, DOWNARROWKEY, KM_PRESS, 0, 0, TFM_MODAL_INCREMENT_DOWN);
 
 	return keymap;
 }
@@ -702,6 +709,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				handled = 0;
 				break;
 		}
+
+		// Modal numinput events
+		t->redraw |= handleNumInput(&(t->num), event, t->snap[1]);
 	}
 	/* else do non-mapped events */
 	else if (event->val==KM_PRESS) {
@@ -954,7 +964,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		}
 
 		// Numerical input events
-		t->redraw |= handleNumInput(&(t->num), event);
+		t->redraw |= handleNumInput(&(t->num), event, t->snap[1]);
 
 		// NDof input events
 		switch(handleNDofInput(&(t->ndof), event))
@@ -5069,37 +5079,37 @@ int SeqSlide(TransInfo *t, short mval[2])
 static short getAnimEdit_SnapMode(TransInfo *t)
 {
 	short autosnap= SACTSNAP_OFF;
-
-	/* currently, some of these are only for the action editor */
+	
 	if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-
+		
 		if (saction)
 			autosnap= saction->autosnap;
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
-
+		
 		if (sipo)
 			autosnap= sipo->autosnap;
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
-
+		
 		if (snla)
 			autosnap= snla->autosnap;
 	}
 	else {
-		// TRANSFORM_FIX_ME This needs to use proper defines for t->modifiers
-//		// FIXME: this still toggles the modes...
-//		if (ctrl)
-//			autosnap= SACTSNAP_STEP;
-//		else if (shift)
-//			autosnap= SACTSNAP_FRAME;
-//		else if (alt)
-//			autosnap= SACTSNAP_MARKER;
-//		else
+		autosnap= SACTSNAP_OFF;
+	}
+	
+	/* toggle autosnap on/off 
+	 * 	- when toggling on, prefer nearest frame over 1.0 frame increments
+	 */
+	if (t->modifiers & MOD_SNAP_INVERT) {
+		if (autosnap)
 			autosnap= SACTSNAP_OFF;
+		else
+			autosnap= SACTSNAP_FRAME;
 	}
 
 	return autosnap;
@@ -5113,17 +5123,21 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 {
 	short drawtime;
 
-	/* currently, some of these are only for the action editor */
 	if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-
+		
 		drawtime = (saction->flag & SACTION_DRAWTIME)? 1 : 0;
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
-
+		
 		drawtime = (snla->flag & SNLA_DRAWTIME)? 1 : 0;
 	}
+	else if (t->spacetype == SPACE_IPO) {
+		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+		
+		drawtime = (sipo->flag & SIPO_DRAWTIME)? 1 : 0;
+	}	
 	else {
 		drawtime = 0;
 	}
@@ -5217,7 +5231,7 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 		const short doTime = getAnimEdit_DrawTime(t);
 		const double secf= FPS;
 		float val = t->values[0];
-
+		
 		/* apply snapping + frame->seconds conversions */
 		if (autosnap == SACTSNAP_STEP) {
 			if (doTime)
@@ -5229,8 +5243,11 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 			if (doTime)
 				val= val / secf;
 		}
-
-		sprintf(&tvec[0], "%.4f", val);
+		
+		if (autosnap == SACTSNAP_FRAME)
+			sprintf(&tvec[0], "%d.00 (%.4f)", (int)val, val);
+		else
+			sprintf(&tvec[0], "%.4f", val);
 	}
 
 	sprintf(str, "DeltaX: %s", &tvec[0]);
@@ -5449,11 +5466,21 @@ int TimeSlide(TransInfo *t, short mval[2])
 
 void initTimeScale(TransInfo *t)
 {
+	int center[2];
+
 	t->mode = TFM_TIME_SCALE;
 	t->transform = TimeScale;
 
-	initMouseInputMode(t, &t->mouse, INPUT_NONE);
-	t->helpline = HLP_SPRING; /* set manually because we don't use a predefined input */
+	/* recalculate center2d to use CFRA and mouse Y, since that's
+	 * what is used in time scale */
+	t->center[0] = t->scene->r.cfra;
+	projectIntView(t, t->center, center);
+	center[1] = t->imval[1];
+
+	/* force a reinit with the center2d used here */
+	initMouseInput(t, &t->mouse, center, t->imval);
+
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING_FLIP);
 
 	t->flag |= T_NULL_ONE;
 	t->num.flag |= NUM_NULL_ONE;
@@ -5521,19 +5548,8 @@ static void applyTimeScale(TransInfo *t) {
 
 int TimeScale(TransInfo *t, short mval[2])
 {
-	float cval, sval;
-	float deltax, startx;
-	float width= 0.0f;
 	char str[200];
-
-	sval= t->imval[0];
-	cval= mval[0];
-
-	/* calculate scaling factor */
-	startx= sval-(width/2+(t->ar->winx)/2);
-	deltax= cval-(width/2+(t->ar->winx)/2);
-	t->values[0] = deltax / startx;
-
+	
 	/* handle numeric-input stuff */
 	t->vec[0] = t->values[0];
 	applyNumInput(&t->num, &t->vec[0]);

@@ -440,17 +440,35 @@ int folderlist_clear_next(struct SpaceFile *sfile)
 	return 1;
 }
 
+/* not listbase itself */
 void folderlist_free(ListBase* folderlist)
 {
 	FolderList *folder;
 	if (folderlist){
-		for(folder= folderlist->last; folder; folder= folderlist->last) {
-				MEM_freeN(folder->foldername);
-				BLI_freelinkN(folderlist, folder);
-		}
+		for(folder= folderlist->first; folder; folder= folder->next)
+			MEM_freeN(folder->foldername);
+		BLI_freelistN(folderlist);
 	}
 	folderlist= NULL;
 }
+
+ListBase *folderlist_duplicate(ListBase* folderlist)
+{
+	
+	if (folderlist) {
+		ListBase *folderlistn= MEM_callocN(sizeof(ListBase), "copy folderlist");
+		FolderList *folder;
+		
+		BLI_duplicatelist(folderlistn, folderlist);
+		
+		for(folder= folderlistn->first; folder; folder= folder->next) {
+			folder->foldername= MEM_dupallocN(folder->foldername);
+		}
+		return folderlistn;
+	}
+	return NULL;
+}
+
 
 static void filelist_read_main(struct FileList* filelist);
 static void filelist_read_library(struct FileList* filelist);
@@ -499,6 +517,8 @@ void filelist_free(struct FileList* filelist)
 		filelist->filelist[i].image = 0;
 		if (filelist->filelist[i].relname)
 			MEM_freeN(filelist->filelist[i].relname);
+		if (filelist->filelist[i].path)
+			MEM_freeN(filelist->filelist[i].path);
 		filelist->filelist[i].relname = 0;
 		if (filelist->filelist[i].string)
 			MEM_freeN(filelist->filelist[i].string);
@@ -863,7 +883,9 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 			file->flags |= BLENDERFILE;
 		} else if(BLI_testextensie(file->relname, ".py")) {
 				file->flags |= PYSCRIPTFILE;
-		} else if(BLI_testextensie(file->relname, ".txt")) {
+		} else if(BLI_testextensie(file->relname, ".txt")
+					|| BLI_testextensie(file->relname, ".glsl")
+					|| BLI_testextensie(file->relname, ".data")) {
 				file->flags |= TEXTFILE;
 		} else if( BLI_testextensie(file->relname, ".ttf")
 					|| BLI_testextensie(file->relname, ".ttc")

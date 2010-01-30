@@ -97,7 +97,7 @@ void BOID_OT_rule_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", boidrule_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", boidrule_type_items, 0, "Type", "");
 }
 static int rule_del_exec(bContext *C, wmOperator *op)
 {

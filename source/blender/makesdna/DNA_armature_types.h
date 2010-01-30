@@ -117,7 +117,7 @@ typedef enum eArmature_Flag {
 	ARM_AUTO_IK			= (1<<9),
 	ARM_NO_CUSTOM		= (1<<10), 	/* made option negative, for backwards compat */
 	ARM_COL_CUSTOM		= (1<<11),	/* draw custom colours  */
-	ARM_GHOST_ONLYSEL 	= (1<<12),	/* when ghosting, only show selected bones (this should belong to ghostflag instead) */
+	ARM_GHOST_ONLYSEL 	= (1<<12),	/* when ghosting, only show selected bones (this should belong to ghostflag instead) */ // XXX depreceated
 	ARM_DS_EXPAND 		= (1<<13)
 } eArmature_Flag;
 

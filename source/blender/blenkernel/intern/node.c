@@ -35,6 +35,7 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "DNA_anim_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
@@ -43,8 +44,11 @@
 #include "DNA_text_types.h"
 #include "DNA_scene_types.h"
 
+#include "RNA_access.h"
+
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -530,20 +534,6 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 			BLI_addtail(&ngroup->nodes, node);
 			node->locx-= 0.5f*(min[0]+max[0]);
 			node->locy-= 0.5f*(min[1]+max[1]);
-
-			/* set selin and selout of the nodetree */
-			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(sock->flag & SOCK_SEL) {
-					ngroup->selin= sock;
-					break;
-				}
-			}
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(sock->flag & SOCK_SEL) {
-					ngroup->selout= sock;
-					break;
-				}
-			}
 
 			/* set socket own_index to zero since it can still have a value
 			 * from being in a group before, otherwise it doesn't get a unique
@@ -1133,28 +1123,6 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 			if(internal_select) {
 				node->flag &= ~(NODE_SELECT|NODE_ACTIVE);
 				nnode->flag |= NODE_SELECT;
-			}
-
-			/* deselect original sockets */
-			for(sock= node->inputs.first; sock; sock= sock->next) {
-				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
-			}
-			for(sock= node->outputs.first; sock; sock= sock->next) {
-				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
-			}
-			
-			/* set tree selin and selout to new sockets */
-			for(sock= nnode->inputs.first; sock; sock= sock->next) {
-				if(sock->flag & SOCK_SEL) {
-					ntree->selin= sock;
-					break;
-				}
-			}
-			for(sock= nnode->outputs.first; sock; sock= sock->next) {
-				if(sock->flag & SOCK_SEL) {
-					ntree->selout= sock;
-					break;
-				}
 			}
 		}
 		if(node==last) break;
@@ -1983,7 +1951,7 @@ static void composit_begin_exec(bNodeTree *ntree, int is_group)
 			}
 		}
 		/* cannot initialize them while using in threads */
-		if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB)) {
+		if(ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT)) {
 			curvemapping_initialize(node->storage);
 			if(node->type==CMP_NODE_CURVE_RGB)
 				curvemapping_premultiply(node->storage, 0);
@@ -2901,6 +2869,54 @@ void ntreeCompositTagRender(Scene *curscene)
 	}
 }
 
+static int node_animation_properties(bNodeTree *ntree, bNode *node)
+{
+	bNodeSocket *sock;
+	ListBase *lb;
+	Link *link;
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	
+	/* check to see if any of the node's properties have fcurves */
+	RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
+	lb = RNA_struct_defined_properties(ptr.type);
+	
+	for (link=lb->first; link; link=link->next) {
+		int driven, len=1, index;
+		prop = (PropertyRNA *)link;
+		
+		if (RNA_property_array_check(&ptr, prop))
+			len = RNA_property_array_length(&ptr, prop);
+		
+		for (index=0; index<len; index++) {
+			if (rna_get_fcurve(&ptr, prop, index, NULL, &driven)) {
+				NodeTagChanged(ntree, node);
+				return 1;
+			}
+		}
+	}
+	
+	/* now check node sockets */
+	for (sock = node->inputs.first; sock; sock=sock->next) {
+		int driven, len=1, index;
+		
+		RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
+		prop = RNA_struct_find_property(&ptr, "default_value");
+		
+		if (RNA_property_array_check(&ptr, prop))
+			len = RNA_property_array_length(&ptr, prop);
+		
+		for (index=0; index<len; index++) {
+			if (rna_get_fcurve(&ptr, prop, index, NULL, &driven)) {
+				NodeTagChanged(ntree, node);
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 /* tags nodes that have animation capabilities */
 int ntreeCompositTagAnimated(bNodeTree *ntree)
 {
@@ -2910,6 +2926,10 @@ int ntreeCompositTagAnimated(bNodeTree *ntree)
 	if(ntree==NULL) return 0;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
+		
+		tagged = node_animation_properties(ntree, node);
+		
+		/* otherwise always tag these node types */
 		if(node->type==CMP_NODE_IMAGE) {
 			Image *ima= (Image *)node->id;
 			if(ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
@@ -3019,6 +3039,8 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_invert);
 	nodeRegisterType(ntypelist, &cmp_node_alphaover);
 	nodeRegisterType(ntypelist, &cmp_node_zcombine);
+	nodeRegisterType(ntypelist, &cmp_node_colorbalance);
+	nodeRegisterType(ntypelist, &cmp_node_huecorrect);
 	
 	nodeRegisterType(ntypelist, &cmp_node_normal);
 	nodeRegisterType(ntypelist, &cmp_node_curve_vec);

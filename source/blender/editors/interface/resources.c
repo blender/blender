@@ -154,6 +154,9 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case SPACE_USERPREF:
 				ts= &btheme->tuserpref;
 				break;
+			case SPACE_CONSOLE:
+				ts= &btheme->tconsole;
+				break;
 			case SPACE_TIME:
 				ts= &btheme->ttime;
 				break;
@@ -340,6 +343,15 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case TH_SEQ_META:
 				cp= ts->meta; break;
 				
+			case TH_CONSOLE_OUTPUT:
+				cp= ts->console_output; break;
+			case TH_CONSOLE_INPUT:
+				cp= ts-> console_input; break;
+			case TH_CONSOLE_INFO:
+				cp= ts->console_info; break;
+			case TH_CONSOLE_ERROR:
+				cp= ts->console_error; break;
+
 			case TH_HANDLE_VERTEX:
 				cp= ts->handle_vertex;
 				break;
@@ -356,7 +368,10 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case TH_DOPESHEET_CHANNELSUBOB:
 				cp= ts->ds_subchannel;
 				break;	
-				
+					
+			case TH_PREVIEW_BACK:
+				cp= ts->preview_back;
+				break;	
 			}
 		}
 	}
@@ -407,6 +422,7 @@ static void ui_theme_init_new(bTheme *btheme)
 	ui_theme_init_new_do(&btheme->tnode);
 	ui_theme_init_new_do(&btheme->tlogic);
 	ui_theme_init_new_do(&btheme->tuserpref);
+	ui_theme_init_new_do(&btheme->tconsole);
 	
 }
 
@@ -556,6 +572,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tima.face,   255, 255, 255, 10);
 	SETCOL(btheme->tima.face_select, 255, 133, 0, 60);
 	SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
+	SETCOLF(btheme->tima.preview_back, 	0.45, 0.45, 0.45, 1.0);
 
 	/* space imageselect */
 	btheme->timasel= btheme->tv3d;
@@ -594,6 +611,14 @@ void ui_theme_init_userdef(void)
 	/* space user preferences */
 	btheme->tuserpref= btheme->tv3d;
 	SETCOLF(btheme->tuserpref.back, 0.45, 0.45, 0.45, 1.0);
+	
+	/* space console */
+	btheme->tconsole= btheme->tv3d;
+	SETCOL(btheme->tconsole.console_output, 96, 128, 255, 255);
+	SETCOL(btheme->tconsole.console_input, 255, 255, 255, 255);
+	SETCOL(btheme->tconsole.console_info, 0, 170, 0, 255);
+	SETCOL(btheme->tconsole.console_error, 220, 96, 96, 255);
+	
 
 	/* space sound */
 	btheme->tsnd= btheme->tv3d;
@@ -780,6 +805,26 @@ void UI_GetThemeColor3fv(int colorid, float *col)
 	col[0]= ((float)cp[0])/255.0;
 	col[1]= ((float)cp[1])/255.0;
 	col[2]= ((float)cp[2])/255.0;
+}
+
+// get the color, range 0.0-1.0, complete with shading offset
+void UI_GetThemeColorShade3fv(int colorid, int offset, float *col)
+{
+	int r, g, b;
+	char *cp;
+	
+	cp= UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	
+	r= offset + (int) cp[0];
+	CLAMP(r, 0, 255);
+	g= offset + (int) cp[1];
+	CLAMP(g, 0, 255);
+	b= offset + (int) cp[2];
+	CLAMP(b, 0, 255);
+	
+	col[0]= ((float)r)/255.0;
+	col[1]= ((float)g)/255.0;
+	col[2]= ((float)b)/255.0;
 }
 
 // get the color, in char pointer
@@ -1327,6 +1372,13 @@ void init_userdef_do_versions(void)
 	}
 	if (U.anim_player_preset == 0) {
 		U.anim_player_preset =1 ;
+	}
+	if (U.scrcastfps == 0) {
+		U.scrcastfps = 10;
+		U.scrcastwait = 50;
+	}
+	if (U.v2d_min_gridsize == 0) {
+		U.v2d_min_gridsize= 35;
 	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */

@@ -26,9 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#define _USE_MATH_DEFINES
-#include <math.h>
-
 #include "DNA_screen_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"
@@ -37,6 +34,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_editVert.h"	/* lasso tessellation */
+#include "BLI_math.h"
+#include "BLI_scanfill.h"	/* lasso tessellation */
 
 #include "BKE_context.h"
 #include "BKE_utildefines.h"
@@ -89,10 +89,11 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 	}
 	else if (ELEM(type, WM_GESTURE_LINES, WM_GESTURE_LASSO)) {
 		short *lasso;
-		gesture->customdata= lasso= MEM_callocN(2*sizeof(short)*WM_LASSO_MAX_POINTS, "lasso points");
+		gesture->customdata= lasso= MEM_callocN(2*sizeof(short)*WM_LASSO_MIN_POINTS, "lasso points");
 		lasso[0] = event->x - sx;
 		lasso[1] = event->y - sy;
 		gesture->points= 1;
+		gesture->size = WM_LASSO_MIN_POINTS;
 	}
 	
 	return gesture;
@@ -100,10 +101,23 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 
 void WM_gesture_end(bContext *C, wmGesture *gesture)
 {
-	BLI_remlink(&CTX_wm_window(C)->gesture, gesture);
+	wmWindow *win= CTX_wm_window(C);
+	
+	if(win->tweak==gesture)
+		win->tweak= NULL;
+	BLI_remlink(&win->gesture, gesture);
 	MEM_freeN(gesture->customdata);
 	MEM_freeN(gesture);
 }
+
+void WM_gestures_remove(bContext *C)
+{
+	wmWindow *win= CTX_wm_window(C);
+	
+	while(win->gesture.first)
+		WM_gesture_end(C, win->gesture.first);
+}
+
 
 /* tweak and line gestures */
 #define TWEAK_THRESHOLD		10
@@ -149,8 +163,18 @@ static void wm_gesture_draw_rect(wmWindow *win, wmGesture *gt)
 {
 	rcti *rect= (rcti *)gt->customdata;
 	
+	glEnable(GL_BLEND);
+	glColor4f(1.0, 1.0, 1.0, 0.05);
+	glBegin(GL_QUADS);
+	glVertex2s(rect->xmax, rect->ymin);
+	glVertex2s(rect->xmax, rect->ymax);
+	glVertex2s(rect->xmin, rect->ymax);
+	glVertex2s(rect->xmin, rect->ymin);
+	glEnd();
+	glDisable(GL_BLEND);
+	
 	glEnable(GL_LINE_STIPPLE);
-	glColor3ub(0, 0, 0);
+	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xCCCC);
 	sdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	glColor3ub(255, 255, 255);
@@ -164,7 +188,7 @@ static void wm_gesture_draw_line(wmWindow *win, wmGesture *gt)
 	rcti *rect= (rcti *)gt->customdata;
 	
 	glEnable(GL_LINE_STIPPLE);
-	glColor3ub(0, 0, 0);
+	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xAAAA);
 	sdrawline(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	glColor3ub(255, 255, 255);
@@ -181,8 +205,13 @@ static void wm_gesture_draw_circle(wmWindow *win, wmGesture *gt)
 
 	glTranslatef((float)rect->xmin, (float)rect->ymin, 0.0f);
 
+	glEnable(GL_BLEND);
+	glColor4f(1.0, 1.0, 1.0, 0.05);
+	glutil_draw_filled_arc(0.0, M_PI*2.0, rect->xmax, 40);
+	glDisable(GL_BLEND);
+	
 	glEnable(GL_LINE_STIPPLE);
-	glColor3ub(0, 0, 0);
+	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xAAAA);
 	glutil_draw_lined_arc(0.0, M_PI*2.0, rect->xmax, 40);
 	glColor3ub(255, 255, 255);
@@ -194,15 +223,56 @@ static void wm_gesture_draw_circle(wmWindow *win, wmGesture *gt)
 	
 }
 
+static void draw_filled_lasso(wmGesture *gt)
+{
+	EditVert *v=NULL, *lastv=NULL, *firstv=NULL;
+	EditEdge *e;
+	EditFace *efa;
+	short *lasso= (short *)gt->customdata;
+	int i;
+	
+	for (i=0; i<gt->points; i++, lasso+=2) {
+		float co[3] = {(float)lasso[0], (float)lasso[1], 0.f};
+		
+		v = BLI_addfillvert(co);
+		if (lastv)
+			e = BLI_addfilledge(lastv, v);
+		lastv = v;
+        if (firstv==NULL) firstv = v;
+	}
+	
+	/* highly unlikely this will fail, but could crash if (gt->points == 0) */
+	if(firstv) {
+		BLI_addfilledge(firstv, v);
+		BLI_edgefill(0, 0);
+	
+		glEnable(GL_BLEND);
+		glColor4f(1.0, 1.0, 1.0, 0.05);
+		glBegin(GL_TRIANGLES);
+		for (efa = fillfacebase.first; efa; efa=efa->next) {
+			glVertex2f(efa->v1->co[0], efa->v1->co[1]);
+			glVertex2f(efa->v2->co[0], efa->v2->co[1]);
+			glVertex2f(efa->v3->co[0], efa->v3->co[1]);
+		}
+		glEnd();
+		glDisable(GL_BLEND);
+	
+		BLI_end_edgefill();
+	}
+}
+
 static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt)
 {
 	short *lasso= (short *)gt->customdata;
 	int i;
+
+	draw_filled_lasso(gt);
 	
 	glEnable(GL_LINE_STIPPLE);
-	glColor3ub(0, 0, 0);
+	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xAAAA);
 	glBegin(GL_LINE_STRIP);
+	lasso= (short *)gt->customdata;
 	for(i=0; i<gt->points; i++, lasso+=2)
 		glVertex2sv(lasso);
 	if(gt->type==WM_GESTURE_LASSO)
@@ -228,7 +298,7 @@ static void wm_gesture_draw_cross(wmWindow *win, wmGesture *gt)
 	rcti *rect= (rcti *)gt->customdata;
 	
 	glEnable(GL_LINE_STIPPLE);
-	glColor3ub(0, 0, 0);
+	glColor3ub(96, 96, 96);
 	glLineStipple(1, 0xCCCC);
 	sdrawline(rect->xmin - win->sizex, rect->ymin, rect->xmin + win->sizex, rect->ymin);
 	sdrawline(rect->xmin, rect->ymin - win->sizey, rect->xmin, rect->ymin + win->sizey);
@@ -280,4 +350,5 @@ void wm_gesture_tag_redraw(bContext *C)
 	if(ar && win->drawmethod != USER_DRAW_TRIPLE)
 		ED_region_tag_redraw(ar);
 }
+
 

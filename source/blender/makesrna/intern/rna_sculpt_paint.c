@@ -44,6 +44,7 @@ static EnumPropertyItem particle_edit_hair_brush_items[] = {
 	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", "Make hairs longer or shorter."},
 	{PE_BRUSH_PUFF, "PUFF", 0, "Puff", "Make hairs stand up."},
 	{PE_BRUSH_CUT, "CUT", 0, "Cut", "Cut hairs."},
+	{PE_BRUSH_WEIGHT, "WEIGHT", 0, "Weight", "Weight hair particles."},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -276,23 +277,10 @@ static void rna_def_vertex_paint(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem brush_mode_items[] = {
-		{0, "MIX", 0, "Mix", "Use mix blending mode while painting."},
-		{1, "ADD", 0, "Add", "Use add blending mode while painting."},
-		{2, "SUB", 0, "Subtract", "Use subtract blending mode while painting."},
-		{3, "MUL", 0, "Multiply", "Use multiply blending mode while painting."},
-		{4, "BLUR", 0, "Blur", "Blur the color with surrounding values"},
-		{5, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting."},
-		{6, "DARKEN", 0, "Darken", "Use darken blending mode while painting."},
-		{0, NULL, 0, NULL, NULL}};
-	
+
 	srna= RNA_def_struct(brna, "VertexPaint", "Paint");
 	RNA_def_struct_sdna(srna, "VPaint");
 	RNA_def_struct_ui_text(srna, "Vertex Paint", "Properties of vertex and weight paint mode.");
-    
-	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, brush_mode_items);
-	RNA_def_property_ui_text(prop, "Brush Mode", "Mode in which color is painted.");
 	
 	prop= RNA_def_property(srna, "all_faces", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", VP_AREA);
@@ -311,22 +299,11 @@ static void rna_def_image_paint(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static EnumPropertyItem tool_items[] = {
-		{PAINT_TOOL_DRAW, "DRAW", 0, "Draw", ""},
-		{PAINT_TOOL_SOFTEN, "SOFTEN", 0, "Soften", ""},
-		{PAINT_TOOL_SMEAR, "SMEAR", 0, "Smear", ""},
-		{PAINT_TOOL_CLONE, "CLONE", 0, "Clone", ""},
-		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "ImagePaint", "Paint");
 	RNA_def_struct_sdna(srna, "ImagePaintSettings");
 	RNA_def_struct_ui_text(srna, "Image Paint", "Properties of image and texture painting mode.");
- 
-	prop= RNA_def_property(srna, "tool", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, tool_items);
-	RNA_def_property_ui_text(prop, "Tool", "");
-
+	
 	/* booleans */
 
 	prop= RNA_def_property(srna, "show_brush_draw", PROP_BOOLEAN, PROP_NONE);
@@ -526,6 +503,10 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "invert");
 	RNA_def_property_enum_items(prop, puff_mode);
 	RNA_def_property_ui_text(prop, "Puff Mode", "");
+
+	prop= RNA_def_property(srna, "use_puff_volume", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_BRUSH_DATA_PUFF_VOLUME);
+	RNA_def_property_ui_text(prop, "Puff Volume", "Apply puff to unselected end-points, (helps maintain hair volume when puffing root)");
 
 	prop= RNA_def_property(srna, "length_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "invert");

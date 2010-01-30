@@ -1286,7 +1286,7 @@ Object *copy_object(Object *ob)
 		if(ob->type==OB_ARMATURE)
 			armature_rebuild_pose(obn, obn->data);
 	}
-	copy_defgroups(&obn->defbase, &ob->defbase);
+	defgroup_copy_list(&obn->defbase, &ob->defbase);
 	copy_constraints(&obn->constraints, &ob->constraints);
 
 	obn->mode = 0;
@@ -1453,6 +1453,38 @@ static void armature_set_id_extern(Object *ob)
 			
 }
 
+void object_copy_proxy_drivers(Object *ob, Object *target)
+{
+	if ((target->adt) && (target->adt->drivers.first)) {
+		FCurve *fcu;
+		
+		/* add new animdata block */
+		if(!ob->adt)
+			ob->adt= BKE_id_add_animdata(&ob->id);
+		
+		/* make a copy of all the drivers (for now), then correct any links that need fixing */
+		free_fcurves(&ob->adt->drivers);
+		copy_fcurves(&ob->adt->drivers, &target->adt->drivers);
+		
+		for (fcu= ob->adt->drivers.first; fcu; fcu= fcu->next) {
+			ChannelDriver *driver= fcu->driver;
+			DriverVar *dvar;
+			
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				/* all drivers */
+				DRIVER_TARGETS_LOOPER(dvar) 
+				{
+					if ((Object *)dtar->id == target)
+						dtar->id= (ID *)ob;
+					else
+						id_lib_extern((ID *)dtar->id);
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
+		}
+	}
+}
+
 /* proxy rule: lib_object->proxy_from == the one we borrow from, set temporally while object_update */
 /*             local_object->proxy == pointer to library object, saved in files and read */
 /*             local_object->proxy_group == pointer to group dupli-object, saved in files and read */
@@ -1489,33 +1521,8 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	copy_m4_m4(ob->parentinv, target->parentinv);
 	
 	/* copy animdata stuff - drivers only for now... */
-	if ((target->adt) && (target->adt->drivers.first)) {
-		FCurve *fcu;
-		
-		/* add new animdata block */
-		ob->adt= BKE_id_add_animdata(&ob->id);
-		
-		/* make a copy of all the drivers (for now), then correct any links that need fixing */
-		copy_fcurves(&ob->adt->drivers, &target->adt->drivers);
-		
-		for (fcu= ob->adt->drivers.first; fcu; fcu= fcu->next) {
-			ChannelDriver *driver= fcu->driver;
-			DriverVar *dvar;
-			
-			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
-				/* all drivers */
-				DRIVER_TARGETS_LOOPER(dvar) 
-				{
-					if ((Object *)dtar->id == target)
-						dtar->id= (ID *)ob;
-					else
-						id_lib_extern((ID *)dtar->id);
-				}
-				DRIVER_TARGETS_LOOPER_END
-			}
-		}
-	}
-	
+	object_copy_proxy_drivers(ob, target);
+
 	/* skip constraints? */
 	// FIXME: this is considered by many as a bug
 	
@@ -1839,17 +1846,16 @@ static void give_parvert(Object *par, int nr, float *vec)
 			DerivedMesh *dm = par->derivedFinal;
 			
 			if(dm) {
-				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
+				MVert *mvert= dm->getVertArray(dm);
 				int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
-				float co[3];
+				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
 
 				/* get the average of all verts with (original index == nr) */
-				for(i = 0; i < numVerts; ++i) {
-					vindex= (index)? *index: i;
+				for(i = 0; i < numVerts; i++) {
+					vindex= (index)? index[i]: i;
 
 					if(vindex == nr) {
-						dm->getVertCo(dm, i, co);
-						add_v3_v3v3(vec, vec, co);
+						add_v3_v3v3(vec, vec, mvert[i].co);
 						count++;
 					}
 				}
@@ -1976,7 +1982,6 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
 	float stime=ctime, fac1, fac2, vec[3];
 	int a;
-	int pop; 
 	
 	/* new version: correct parent+vertexparent and track+parent */
 	/* this one only calculates direct attached parent and track */
@@ -1995,21 +2000,19 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 		
 		/* hurms, code below conflicts with depgraph... (ton) */
 		/* and even worse, it gives bad effects for NLA stride too (try ctime != par->ctime, with MBlur) */
-		pop= 0;
 		if(no_parent_ipo==0 && stime != par->ctime) {
 			// only for ipo systems? 
-			pushdata(par, sizeof(Object));
-			pop= 1;
+			Object tmp= *par;
 			
 			if(par->proxy_from);	// was a copied matrix, no where_is! bad...
 			else where_is_object_time(scene, par, ctime);
+
+			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
+
+			*par= tmp;
 		}
-		
-		solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
-		
-		if(pop) {
-			poplast(par);
-		}
+		else
+			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
 		
 		if(ob->partype & PARSLOW) {
 			// include framerate
@@ -2035,7 +2038,7 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	}
 
 	/* solve constraints */
-	if (ob->constraints.first) {
+	if (ob->constraints.first && !(ob->flag & OB_NO_CONSTRAINTS)) {
 		bConstraintOb *cob;
 		
 		cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);

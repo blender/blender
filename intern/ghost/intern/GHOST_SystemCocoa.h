@@ -93,13 +93,15 @@ public:
 	 * Create a new window.
 	 * The new window is added to the list of windows managed. 
 	 * Never explicitly delete the window, use disposeWindow() instead.
-	 * @param	title	The name of the window (displayed in the title bar of the window if the OS supports it).
-	 * @param	left	The coordinate of the left edge of the window.
-	 * @param	top		The coordinate of the top edge of the window.
-	 * @param	width	The width the window.
-	 * @param	height	The height the window.
-	 * @param	state	The state of the window when opened.
-	 * @param	type	The type of drawing context installed in this window.
+	 * @param	title			The name of the window (displayed in the title bar of the window if the OS supports it).
+	 * @param	left			The coordinate of the left edge of the window.
+	 * @param	top				The coordinate of the top edge of the window.
+	 * @param	width			The width the window.
+	 * @param	height			The height the window.
+	 * @param	state			The state of the window when opened.
+	 * @param	type			The type of drawing context installed in this window.
+	 * @param	stereoVisual	Stereo visual for quad buffered stereo.
+	 * @param	numOfAASamples	Number of samples used for AA (zero if no AA)
 	 * @param	parentWindow 	Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
@@ -111,7 +113,8 @@ public:
 		GHOST_TUns32 height,
 		GHOST_TWindowState state,
 		GHOST_TDrawingContextType type,
-		const bool stereoVisual,
+		const bool stereoVisual = false,
+		const GHOST_TUns16 numOfAASamples = 0,
 		const GHOST_TEmbedderWindowID parentWindow = 0 
 	);
 	
@@ -261,6 +264,9 @@ protected:
 	/** Event has been processed directly by Cocoa and has sent a ghost event to be dispatched */
 	bool m_outsideLoopEventProcessed;
 	
+	/** Raised window is not yet known by the window manager, so delay application become active event handling */
+	bool m_needDelayedApplicationBecomeActiveEventProcessing;
+	
 	/** Mouse buttons state */
 	GHOST_TUns32 m_pressedMouseButtons;
 	
@@ -274,6 +280,12 @@ protected:
 	 * Needed because cocoa event delta cursor move takes setCursorPosition changes too.
 	 */
 	GHOST_TInt32 m_cursorDelta_x, m_cursorDelta_y;
+	
+	/** Multitouch trackpad availability */
+	bool m_hasMultiTouchTrackpad;
+	
+	/** Multitouch gesture in progress, useful to distinguish trackpad from mouse scroll events */
+	bool m_isGestureInProgress;
 };
 
 #endif // _GHOST_SYSTEM_COCOA_H_

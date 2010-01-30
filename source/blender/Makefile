@@ -37,11 +37,15 @@ DIRS += python nodes gpu
 DIRS += blenfont ikplugin
 
 ifeq ($(WITH_QUICKTIME), true)
-	DIRS += quicktime
+    DIRS += quicktime
 endif
 
 ifeq ($(WITH_OPENJPEG), true)
     CFLAGS += -DWITH_OPENJPEG -I../../../../extern/libopenjpeg
+endif
+
+ifeq ($(WITH_OPENCOLLADA), true)
+    DIRS += collada
 endif
 
 

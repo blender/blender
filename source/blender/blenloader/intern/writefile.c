@@ -145,6 +145,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "MEM_guardedalloc.h" // MEM_freeN
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
+#include "BLI_bpath.h"
 
 #include "BKE_action.h"
 #include "BKE_blender.h"
@@ -485,7 +486,7 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			/* could be handlerized at some point, now only 1 exception still */
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				write_curvemapping(wd, node->storage);
-			else if(ntree->type==NTREE_COMPOSIT && (node->type==CMP_NODE_TIME || node->type==CMP_NODE_CURVE_VEC || node->type==CMP_NODE_CURVE_RGB))
+			else if(ntree->type==NTREE_COMPOSIT && ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
 				write_curvemapping(wd, node->storage);
 			else if(ntree->type==NTREE_TEXTURE && (node->type==TEX_NODE_CURVE_RGB || node->type==TEX_NODE_CURVE_TIME) )
 				write_curvemapping(wd, node->storage);
@@ -934,14 +935,7 @@ static void write_fcurves(WriteData *wd, ListBase *fcurves)
 			ChannelDriver *driver= fcu->driver;
 			DriverVar *dvar;
 			
-			/* don't save compiled python bytecode */
-			void *expr_comp= driver->expr_comp;
-			driver->expr_comp= NULL;
-			
 			writestruct(wd, DATA, "ChannelDriver", 1, driver);
-			
-			driver->expr_comp= expr_comp; /* restore */
-			
 			
 			/* variables */
 			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
@@ -2034,8 +2028,10 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D *) sl;
+					BGpic *bgpic;
 					writestruct(wd, DATA, "View3D", 1, v3d);
-					if(v3d->bgpic) writestruct(wd, DATA, "BGpic", 1, v3d->bgpic);
+					for (bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next)
+						writestruct(wd, DATA, "BGpic", 1, bgpic);
 					if(v3d->localvd) writestruct(wd, DATA, "View3D", 1, v3d->localvd);
 				}
 				else if(sl->spacetype==SPACE_IPO) {
@@ -2328,6 +2324,8 @@ static void write_brushes(WriteData *wd, ListBase *idbase)
 			writestruct(wd, ID_BR, "Brush", 1, brush);
 			if (brush->id.properties) IDP_WriteProperty(brush->id.properties, wd);
 			
+			writestruct(wd, DATA, "MTex", 1, &brush->mtex);
+			
 			if(brush->curve)
 				write_curvemapping(wd, brush->curve);
 		}
@@ -2447,10 +2445,11 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *reports)
 {
 	char userfilename[FILE_MAXDIR+FILE_MAXFILE];
-	char tempname[FILE_MAXDIR+FILE_MAXFILE];
+	char tempname[FILE_MAXDIR+FILE_MAXFILE+1];
 	int file, err, write_user_block;
 
-	sprintf(tempname, "%s@", dir);
+	/* open temporary file, so we preserve the original in case we crash */
+	BLI_snprintf(tempname, sizeof(tempname), "%s@", dir);
 
 	file = open(tempname,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if(file == -1) {
@@ -2458,36 +2457,69 @@ int BLO_write_file(Main *mainvar, char *dir, int write_flags, ReportList *report
 		return 0;
 	}
 
+	/* remapping of relative paths to new file location */
+	if(write_flags & G_FILE_RELATIVE_REMAP) {
+		char dir1[FILE_MAXDIR+FILE_MAXFILE];
+		char dir2[FILE_MAXDIR+FILE_MAXFILE];
+		BLI_split_dirfile_basic(dir, dir1, NULL);
+		BLI_split_dirfile_basic(mainvar->name, dir2, NULL);
+
+		/* just incase there is some subtle difference */
+		BLI_cleanup_dir(mainvar->name, dir1);
+		BLI_cleanup_dir(mainvar->name, dir2);
+
+		if(strcmp(dir1, dir2)==0)
+			write_flags &= ~G_FILE_RELATIVE_REMAP;
+		else
+			makeFilesAbsolute(G.sce, NULL);
+	}
+
 	BLI_make_file_string(G.sce, userfilename, BLI_gethome(), ".B25.blend");
 	write_user_block= BLI_streq(dir, userfilename);
 
+	if(write_flags & G_FILE_RELATIVE_REMAP)
+		makeFilesRelative(dir, NULL); /* note, making relative to something OTHER then G.sce */
+
+	/* actual file writing */
 	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags);
 	close(file);
 
+	/* rename/compress */
 	if(!err) {
-		if(write_flags & G_FILE_COMPRESS)
-		{	
-			// compressed files have the same ending as regular files... only from 2.4!!!
+		if(write_flags & G_FILE_COMPRESS) {
+			/* compressed files have the same ending as regular files... only from 2.4!!! */
+			char gzname[FILE_MAXDIR+FILE_MAXFILE+4];
+			int ret;
+
+			/* first write compressed to separate @.gz */
+			BLI_snprintf(gzname, sizeof(gzname), "%s@.gz", dir);
+			ret = BLI_gzip(tempname, gzname);
 			
-			int ret = BLI_gzip(tempname, dir);
-			
-			if(-1==ret) {
+			if(0==ret) {
+				/* now rename to real file name, and delete temp @ file too */
+				if(BLI_rename(gzname, dir) != 0) {
+					BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @.");
+					return 0;
+				}
+
+				BLI_delete(tempname, 0, 0);
+			}
+			else if(-1==ret) {
 				BKE_report(reports, RPT_ERROR, "Failed opening .gz file.");
 				return 0;
 			}
-			if(-2==ret) {
+			else if(-2==ret) {
 				BKE_report(reports, RPT_ERROR, "Failed opening .blend file for compression.");
 				return 0;
 			}
 		}
-		else
-		if(BLI_rename(tempname, dir) != 0) {
+		else if(BLI_rename(tempname, dir) != 0) {
 			BKE_report(reports, RPT_ERROR, "Can't change old file. File saved with @");
 			return 0;
 		}
-
 		
-	} else {
+	}
+	else {
 		BKE_report(reports, RPT_ERROR, strerror(errno));
 		remove(tempname);
 

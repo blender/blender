@@ -763,10 +763,15 @@ void colorcorrection_do_ibuf(ImBuf *ibuf, const char *profile)
 	}
 }
 
-
+/* only used for image editor curves */
 void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 {
+	ImBuf *tmpbuf;
 	int pixel;
+	float *pix_in;
+	float col[3];
+	int stride= 4;
+	float *pix_out;
 	
 	if(ibuf==NULL)
 		return;
@@ -775,34 +780,42 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	else if(ibuf->rect==NULL)
 		imb_addrectImBuf(ibuf);
 	
+	if (!ibuf->rect || !ibuf->rect_float)
+		return;
+	
+	/* work on a temp buffer, so can color manage afterwards.
+	 * No worse off memory wise than comp nodes */
+	tmpbuf = IMB_dupImBuf(ibuf);
+	
 	curvemapping_premultiply(cumap, 0);
 	
-	if(ibuf->rect_float && ibuf->rect) {
-		float *pixf= ibuf->rect_float;
-		float col[3];
-		int stride= 4;
-		char *pixc= (char *)ibuf->rect;
-		
-		if(ibuf->channels)
-			stride= ibuf->channels;
-		
-		for(pixel= ibuf->x*ibuf->y; pixel>0; pixel--, pixf+=stride, pixc+=4) {
-			if(stride<3) {
-				col[0]= curvemap_evaluateF(cumap->cm, *pixf);
-				pixc[1]= pixc[2]= pixc[3]= pixc[0]= FTOCHAR(col[0]);
-			}
-			else {
-				curvemapping_evaluate_premulRGBF(cumap, col, pixf);
-				pixc[0]= FTOCHAR(col[0]);
-				pixc[1]= FTOCHAR(col[1]);
-				pixc[2]= FTOCHAR(col[2]);
-				if(stride>3)
-					pixc[3]= FTOCHAR(pixf[3]);
-				else
-					pixc[3]= 255;
-			}
+	pix_in= ibuf->rect_float;
+	pix_out= tmpbuf->rect_float;
+
+	if(ibuf->channels)
+		stride= ibuf->channels;
+	
+	for(pixel= ibuf->x*ibuf->y; pixel>0; pixel--, pix_in+=stride, pix_out+=4) {
+		if(stride<3) {
+			col[0]= curvemap_evaluateF(cumap->cm, *pix_in);
+			
+			pix_out[1]= pix_out[2]= pix_out[3]= pix_out[0]= col[0];
+		}
+		else {
+			curvemapping_evaluate_premulRGBF(cumap, col, pix_in);
+			pix_out[0]= col[0];
+			pix_out[1]= col[1];
+			pix_out[2]= col[2];
+			if(stride>3)
+				pix_out[3]= pix_in[3];
+			else
+				pix_out[3]= 1.f;
 		}
 	}
+	
+	IMB_rect_from_float(tmpbuf);
+	SWAP(unsigned int *, tmpbuf->rect, ibuf->rect);
+	IMB_freeImBuf(tmpbuf);
 	
 	curvemapping_premultiply(cumap, 1);
 }
@@ -863,3 +876,91 @@ void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
 	}
 }
 
+/* ***************** Histogram **************** */
+
+DO_INLINE int get_bin_float(float f)
+{
+	int bin= (int)(f*255);
+
+	/* note: clamp integer instead of float to avoid problems with NaN */
+	CLAMP(bin, 0, 255);
+	
+	//return (int) (((f + 0.25) / 1.5) * 255);
+	
+	return bin;
+}
+
+
+void histogram_update(Histogram *hist, ImBuf *ibuf)
+{
+	int x, y, n;
+	double div;
+	float *rf;
+	unsigned char *rc;
+	unsigned int *bin_r, *bin_g, *bin_b;
+	
+	if (hist->ok == 1 ) return;
+	
+	if (hist->xmax == 0.f) hist->xmax = 1.f;
+	if (hist->ymax == 0.f) hist->ymax = 1.f;
+	
+	/* hmmmm */
+	if (!(ELEM(ibuf->channels, 3, 4))) return;
+	
+	hist->channels = 3;
+	
+	bin_r = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	bin_g = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	bin_b = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	
+	if (ibuf->rect_float) {
+		hist->x_resolution = 256;
+		
+		/* divide into bins */
+		rf = ibuf->rect_float;
+		for (y = 0; y < ibuf->y; y++) {
+			for (x = 0; x < ibuf->x; x++) {
+				bin_r[ get_bin_float(rf[0]) ] += 1;
+				bin_g[ get_bin_float(rf[1]) ] += 1;
+				bin_b[ get_bin_float(rf[2]) ] += 1;
+				rf+= ibuf->channels;
+			}
+		}
+	}
+	else if (ibuf->rect) {
+		hist->x_resolution = 256;
+		
+		rc = (unsigned char *)ibuf->rect;
+		for (y = 0; y < ibuf->y; y++) {
+			for (x = 0; x < ibuf->x; x++) {
+				bin_r[ rc[0] ] += 1;
+				bin_g[ rc[1] ] += 1;
+				bin_b[ rc[2] ] += 1;
+				rc += ibuf->channels;
+			}
+		}
+	}
+	
+	/* convert to float */
+	n=0;
+	for (x=0; x<256; x++) {
+		if (bin_r[x] > n)
+			n = bin_r[x];
+		if (bin_g[x] > n)
+			n = bin_g[x];
+		if (bin_b[x] > n)
+			n = bin_b[x];
+	}
+	div = 1.f/(double)n;
+	for (x=0; x<256; x++) {
+		hist->data_r[x] = bin_r[x] * div;
+		hist->data_g[x] = bin_g[x] * div;
+		hist->data_b[x] = bin_b[x] * div;
+	}
+	
+	MEM_freeN(bin_r);
+	MEM_freeN(bin_g);
+	MEM_freeN(bin_b);
+	
+	hist->ok=1;
+}

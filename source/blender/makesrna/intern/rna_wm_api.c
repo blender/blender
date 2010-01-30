@@ -144,7 +144,34 @@ static void rna_Operator_report(wmOperator *op, int type, char *msg)
 	BKE_report(op->reports, type, msg);
 }
 
+/* since event isnt needed... */
+static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
+{
+	WM_enum_search_invoke(C, op, NULL);
+	
+}
+
 #else
+
+static void rna_generic_op_invoke(FunctionRNA *func, int use_event, int use_ret)
+{
+	PropertyRNA *parm;
+
+	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "operator", "Operator", "", "Operator to call.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	if(use_event) {
+		parm= RNA_def_pointer(func, "event", "Event", "", "Event.");
+		RNA_def_property_flag(parm, PROP_REQUIRED);
+	}
+
+	if(use_ret) {
+		parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", "");
+		RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+		RNA_def_function_return(func, parm);
+	}
+}
 
 void RNA_api_wm(StructRNA *srna)
 {
@@ -152,37 +179,32 @@ void RNA_api_wm(StructRNA *srna)
 	PropertyRNA *parm;
 
 	func= RNA_def_function(srna, "add_fileselect", "WM_event_add_fileselect");
-	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Show up the file selector.");
-	parm= RNA_def_pointer(func, "operator", "Operator", "", "Operator to call.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	rna_generic_op_invoke(func, 0, 0);
 
-	func= RNA_def_function(srna, "add_keyconfig", "WM_keyconfig_add");
+	func= RNA_def_function(srna, "add_keyconfig", "WM_keyconfig_add_user");
 	parm= RNA_def_string(func, "name", "", 0, "Name", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "keyconfig", "KeyConfig", "Key Configuration", "Added key configuration.");
 	RNA_def_function_return(func, parm);
 	
+	func= RNA_def_function(srna, "remove_keyconfig", "WM_keyconfig_remove");
+	parm= RNA_def_pointer(func, "keyconfig", "KeyConfig", "Key Configuration", "Removed key configuration.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
 	/* invoke functions, for use with python */
 	func= RNA_def_function(srna, "invoke_props_popup", "WM_operator_props_popup");
-	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Operator popup invoke.");
-	parm= RNA_def_pointer(func, "operator", "Operator", "", "Operator to call.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_pointer(func, "event", "Event", "", "Event.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	rna_generic_op_invoke(func, 1, 1);
 
-	parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", ""); // better name?
-	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
-	RNA_def_function_return(func, parm);
-
+	/* invoke enum */
+	func= RNA_def_function(srna, "invoke_search_popup", "rna_Operator_enum_search_invoke");
+	rna_generic_op_invoke(func, 0, 0);
 
 	/* invoke functions, for use with python */
 	func= RNA_def_function(srna, "invoke_popup", "WM_operator_ui_popup");
-	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Operator popup invoke.");
-	parm= RNA_def_pointer(func, "operator", "Operator", "", "Operator to call.");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	rna_generic_op_invoke(func, 0, 0);
 	parm= RNA_def_int(func, "width", 300, 0, INT_MAX, "", "Width of the popup.", 0, INT_MAX);
 	parm= RNA_def_int(func, "height", 20, 0, INT_MAX, "", "Height of the popup.", 0, INT_MAX);
 }
@@ -342,6 +364,12 @@ void RNA_api_keymap(StructRNA *srna)
 	func= RNA_def_function(srna, "remove_item", "WM_keymap_remove_item");
 	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "item_from_id", "WM_keymap_item_find_id");
+	parm= RNA_def_property(func, "id", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_text(parm, "id", "ID of the item.");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
+	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "copy_to_user", "WM_keymap_copy_to_user");
 	parm= RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "User editable key map.");

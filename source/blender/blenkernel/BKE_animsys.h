@@ -43,7 +43,10 @@ struct AnimMapper;
 /* ************************************* */
 /* AnimData API */
 
-/* Get AnimData from the given ID-block. */
+/* Check if the given ID-block can have AnimData */
+short id_type_can_have_animdata(struct ID *id);
+
+/* Get AnimData from the given ID-block */
 struct AnimData *BKE_animdata_from_id(struct ID *id);
 
 /* Add AnimData to the given ID-block */
@@ -54,6 +57,9 @@ void BKE_free_animdata(struct ID *id);
 
 /* Copy AnimData */
 struct AnimData *BKE_copy_animdata(struct AnimData *adt);
+
+/* Copy AnimData */
+int BKE_copy_animdata_id(struct ID *id_to, struct ID *id_from);
 
 /* Make Local */
 void BKE_animdata_make_local(struct AnimData *adt);
@@ -87,6 +93,16 @@ void BKE_animdata_fix_paths_rename(struct ID *owner_id, struct AnimData *adt, ch
 
 /* Fix all the paths for the entire database... */
 void BKE_all_animdata_fix_paths_rename(char *prefix, char *oldName, char *newName);
+
+/* ************************************* */
+/* Batch AnimData API */
+
+/* Define for callback looper used in BKE_animdata_main_cb */
+typedef void (*ID_AnimData_Edit_Callback)(struct ID *id, struct AnimData *adt, void *user_data);
+
+
+/* Loop over all datablocks applying callback */
+void BKE_animdata_main_cb(struct Main *main, ID_AnimData_Edit_Callback func, void *user_data);
 
 /* ************************************* */
 // TODO: overrides, remapping, and path-finding api's

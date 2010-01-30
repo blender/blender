@@ -930,7 +930,7 @@ static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
 		return PointerRNA_NULL;
 	
 	kb= BLI_findlink(&key->block, ob->shapenr-1);
-	RNA_pointer_create(&key->id, &RNA_ShapeKey, kb, &keyptr);
+	RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
 	return keyptr;
 }
 
@@ -1378,12 +1378,12 @@ static void rna_def_object(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem track_items[] = {
-		{OB_POSX, "POSX", 0, "+X", ""},
-		{OB_POSY, "POSY", 0, "+Y", ""},
-		{OB_POSZ, "POSZ", 0, "+Z", ""},
-		{OB_NEGX, "NEGX", 0, "-X", ""},
-		{OB_NEGY, "NEGY", 0, "-Y", ""},
-		{OB_NEGZ, "NEGZ", 0, "-Z", ""},
+		{OB_POSX, "POS_X", 0, "+X", ""},
+		{OB_POSY, "POS_Y", 0, "+Y", ""},
+		{OB_POSZ, "POS_Z", 0, "+Z", ""},
+		{OB_NEGX, "NEG_X", 0, "-X", ""},
+		{OB_NEGY, "NEG_Y", 0, "-Y", ""},
+		{OB_NEGZ, "NEG_Z", 0, "-Z", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem up_items[] = {
@@ -1559,7 +1559,7 @@ static void rna_def_object(BlenderRNA *brna)
 		 * having a single one is better for Keyframing and other property-management situations...
 		 */
 	prop= RNA_def_property(srna, "rotation_axis_angle", PROP_FLOAT, PROP_AXISANGLE);
-	RNA_def_property_array(prop, 4); // TODO: maybe we'll need to define the 'default value' getter too...
+	RNA_def_property_array(prop, 4);
 	RNA_def_property_float_funcs(prop, "rna_Object_rotation_axis_angle_get", "rna_Object_rotation_axis_angle_set", NULL);
 	RNA_def_property_editable_array_func(prop, "rna_Object_rotation_4d_editable");
 	RNA_def_property_float_array_default(prop, default_axisAngle);
@@ -1770,6 +1770,9 @@ static void rna_def_object(BlenderRNA *brna)
 
 	/* anim */
 	rna_def_animdata_common(srna);
+	
+	rna_def_animviz_common(srna);
+	rna_def_motionpath_common(srna);
 	
 	/* duplicates */
 	prop= RNA_def_property(srna, "track_override_parent", PROP_BOOLEAN, PROP_NONE);

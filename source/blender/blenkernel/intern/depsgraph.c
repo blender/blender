@@ -29,12 +29,9 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef _WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_winstuff.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
@@ -809,7 +806,7 @@ DagNode * dag_find_node (DagForest *forest,void * fob)
 
 static int ugly_hack_sorry= 1;	// prevent type check
 
-/* no checking of existance, use dag_find_node first or dag_get_node */
+/* no checking of existence, use dag_find_node first or dag_get_node */
 DagNode * dag_add_node (DagForest *forest, void * fob)
 {
 	DagNode *node;

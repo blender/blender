@@ -153,29 +153,39 @@ int BLI_gzip(char *from, char *to) {
 	char buffer[10240];
 	int file;
 	int readsize = 0;
+	int rval= 0, err;
+	gzFile gzfile;
 	
-	gzFile gzfile = gzopen(to,"wb"); 
-	if (NULL == gzfile) return -1;
+	gzfile = gzopen(to, "wb"); 
+	if(gzfile == NULL)
+		return -1;
 	
-	file = open(from,O_BINARY|O_RDONLY);
-	
-	if (file < 0)	return -2;
+	file = open(from, O_BINARY|O_RDONLY);
+	if(file < 0)
+		return -2;
 
-	while ( 1 )
-	{
+	while(1) {
 		readsize = read(file, buffer, 10240);
+
+		if(readsize < 0) {
+			rval= -2; /* error happened in reading */
+			fprintf(stderr, "Error reading file %s: %s.\n", from, strerror(errno));
+			break;
+		}
+		else if(readsize == 0)
+			break; /* done reading */
 		
-		if (readsize <= 0) break;
-		
-		gzwrite(gzfile,buffer,readsize);
+		if(gzwrite(gzfile, buffer, readsize) <= 0) {
+			rval= -1; /* error happened in writing */
+			fprintf(stderr, "Error writing gz file %s: %s.\n", to, gzerror(gzfile, &err));
+			break;
+		}
 	}
 	
 	gzclose(gzfile);
 	close(file);
-	
-	remove(from);
 
-	return 0;
+	return rval;
 }
 
 /* return 1 when file can be written */

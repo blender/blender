@@ -112,6 +112,23 @@ class RENDER_OT_netclientanim(bpy.types.Operator):
         return self.execute(context)
 
 @rnaType
+class RENDER_OT_netclientrun(bpy.types.Operator):
+    '''Start network rendering service'''
+    bl_idname = "render.netclientstart"
+    bl_label = "Start Service"
+
+    def poll(self, context):
+        return True
+
+    def execute(self, context):
+        bpy.ops.screen.render('INVOKE_AREA', animation=True)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        return self.execute(context)
+
+@rnaType
 class RENDER_OT_netclientsend(bpy.types.Operator):
     '''Send Render Job to the Network'''
     bl_idname = "render.netclientsend"
@@ -390,8 +407,7 @@ class netclientdownload(bpy.types.Operator):
 
 @rnaType
 class netclientscan(bpy.types.Operator):
-    __slots__ = []
-    '''Operator documentation text, will be used for the operator tooltip and python docs.'''
+    '''Listen on network for master server broadcasting its address and port.'''
     bl_idname = "render.netclientscan"
     bl_label = "Client Scan"
 
@@ -410,7 +426,6 @@ class netclientscan(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        print(dir(self))
         return self.execute(context)
 
 @rnaType

@@ -532,6 +532,8 @@ struct ImBuf * anim5_fetchibuf(struct anim * anim) {
 	ibuf = IMB_dupImBuf(anim->ibuf1);
 	planes_to_rect(ibuf, anim->ib_flags);
 
+	ibuf->profile = IB_PROFILE_SRGB;
+	
 	return(ibuf);
 }
 

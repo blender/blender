@@ -332,7 +332,7 @@ static void createTransTexspace(bContext *C, TransInfo *t)
 /* ********************* edge (for crease) ***** */
 
 static void createTransEdge(bContext *C, TransInfo *t) {
-#if 0	// TRANSFORM_FIX_ME
+	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 	TransData *td = NULL;
 	EditEdge *eed;
 	float mtx[3][3], smtx[3][3];
@@ -390,7 +390,6 @@ static void createTransEdge(bContext *C, TransInfo *t) {
 			td++;
 		}
 	}
-#endif
 }
 
 /* ********************* pose mode ************* */
@@ -715,7 +714,7 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 	for(pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
 		if(bone->layer & arm->layer) {
-			if(bone->flag & BONE_SELECTED)
+			if((bone->flag & BONE_SELECTED) && !(ob->proxy && pchan->bone->layer & arm->layer_protected))
 				bone->flag |= BONE_TRANSFORM;
 			else
 				bone->flag &= ~BONE_TRANSFORM;
@@ -2140,14 +2139,20 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	int count=0, countsel=0, a, totleft;
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
+	short selectmode = ts->selectmode;
 
 	if (t->flag & T_MIRROR)
 	{
 		mirror = 1;
 	}
 
+	/* edge slide forces edge select */
+	if (t->mode == TFM_EDGE_SLIDE) {
+		selectmode = SCE_SELECT_EDGE;
+	}
+
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
-	if(ts->selectmode & SCE_SELECT_VERTEX) {
+	if(selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->h==0 && (eve->f & SELECT))
 				eve->f1= SELECT;
@@ -2155,7 +2160,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				eve->f1= 0;
 		}
 	}
-	else if(ts->selectmode & SCE_SELECT_EDGE) {
+	else if(selectmode & SCE_SELECT_EDGE) {
 		EditEdge *eed;
 		for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
 		for(eed= em->edges.first; eed; eed= eed->next) {
@@ -2211,11 +2216,11 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 	/* detect CrazySpace [tm] */
 	if(propmode==0) {
-		if(modifiers_getCageIndex(t->obedit, NULL, 1)>=0) {
+		if(modifiers_getCageIndex(t->scene, t->obedit, NULL, 1)>=0) {
 			if(modifiers_isCorrectableDeformed(t->scene, t->obedit)) {
 				/* check if we can use deform matrices for modifier from the
 				   start up to stack, they are more accurate than quats */
-				totleft= editmesh_get_first_deform_matrices(t->obedit, em, &defmats, &defcos);
+				totleft= editmesh_get_first_deform_matrices(t->scene, t->obedit, em, &defmats, &defcos);
 
 				/* if we still have more modifiers, also do crazyspace
 				   correction with quats, relative to the coordinates after
@@ -3490,6 +3495,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		if (fcu->bezt == NULL)
 			continue;
 		
+		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYSEL|ANIM_UNITCONV_SELVERTS);
+		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		for (i=0, bezt= fcu->bezt; i < fcu->totvert; i++, bezt++) {
 			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
@@ -4225,7 +4232,6 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *track;
-	ListBase fakecons = {NULL, NULL};
 	float obmtx[3][3];
 	short constinv;
 	short skip_invert = 0;
@@ -4251,18 +4257,13 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 		track= ob->track;
 		ob->track= NULL;
 		
-		if (constinv == 0) {
-			fakecons.first = ob->constraints.first;
-			fakecons.last = ob->constraints.last;
-			ob->constraints.first = ob->constraints.last = NULL;
-		}
+		if (constinv == 0)
+			ob->transflag |= OB_NO_CONSTRAINTS; /* where_is_object_time checks this */
 		
 		where_is_object(t->scene, ob);
 		
-		if (constinv == 0) {
-			ob->constraints.first = fakecons.first;
-			ob->constraints.last = fakecons.last;
-		}
+		if (constinv == 0)
+			ob->transflag &= ~OB_NO_CONSTRAINTS;
 		
 		ob->track= track;
 	}
@@ -4601,7 +4602,6 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 {
 	ID *id= &ob->id;
 	AnimData *adt= ob->adt;
-	bArmature *arm= ob->data;
 	bAction	*act= (adt) ? adt->action : NULL;
 	bPose	*pose= ob->pose;
 	bPoseChannel *pchan;
@@ -4709,8 +4709,8 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 		/* do the bone paths 
 		 * NOTE: only do this when there is context info
 		 */
-		if (C && (arm->pathflag & ARM_PATH_ACFRA)) {
-			//pose_clear_paths(ob); // XXX for now, don't need to clear
+		if (C && (ob->pose->avs.path_type == MOTIONPATH_TYPE_ACFRA)) {
+			//ED_pose_clear_paths(C, ob); // XXX for now, don't need to clear
 			ED_pose_recalculate_paths(C, scene, ob);
 		}
 	}
@@ -4964,7 +4964,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		;
 	}
 	else { /* Objects */
-		int i;
+		int i, recalcObPaths=0;
 
 		for (i = 0; i < t->total; i++) {
 			TransData *td = t->data + i;
@@ -4997,8 +4997,20 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 
 			/* Set autokey if necessary */
-			if (!cancelled)
+			if (!cancelled) {
 				autokeyframe_ob_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode);
+				
+				if (ob->avs.path_type == MOTIONPATH_TYPE_ACFRA)
+					recalcObPaths= 1;
+			}
+		}
+		
+		/* recalculate motion paths for objects (if necessary) 
+		 * NOTE: only do this when there is context info
+		 */
+		if (C && recalcObPaths) {
+			//ED_objects_clear_paths(C); // XXX for now, don't need to clear
+			ED_objects_recalculate_paths(C, t->scene);
 		}
 	}
 
@@ -5148,11 +5160,11 @@ void createTransData(bContext *C, TransInfo *t)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = OBACT;
 
-	if (t->options == CTX_TEXTURE) {
+	if (t->options & CTX_TEXTURE) {
 		t->flag |= T_TEXTURE;
 		createTransTexspace(C, t);
 	}
-	else if (t->options == CTX_EDGE) {
+	else if (t->options & CTX_EDGE) {
 		t->ext = NULL;
 		t->flag |= T_EDIT;
 		createTransEdge(C, t);

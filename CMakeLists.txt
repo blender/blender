@@ -82,11 +82,11 @@ OPTION(WITH_INSTALL       "Install accompanying scripts and language files neede
 OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	ON)
 
 # Unix defaults to OpenMP On
-IF (UNIX)
+IF(UNIX AND NOT APPLE)
 	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
-ELSE(UNIX)
+ELSE()
 	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
-ENDIF(UNIX)
+ENDIF()
 
 IF (APPLE)
 	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
@@ -248,7 +248,7 @@ IF(UNIX AND NOT APPLE)
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
 	# Better warnings
-	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement")
+	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
 	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
 	INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR} ${PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} )
@@ -601,7 +601,7 @@ IF(APPLE)
 	ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
 
 	# Better warnings
-	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement")
+	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
 	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
 ENDIF(APPLE)

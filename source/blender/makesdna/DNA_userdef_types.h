@@ -201,6 +201,8 @@ typedef struct ThemeSpace {
 	char cframe[4];
 	char ds_channel[4], ds_subchannel[4]; // dopesheet
 	
+	char console_output[4], console_input[4], console_info[4], console_error[4]; // Console 
+	
 	char vertex_size, facedot_size;
 	char bpad[2]; 
 
@@ -217,7 +219,7 @@ typedef struct ThemeSpace {
 	char handle_vertex_size;
 	char hpad[3];
 	
-	char pad[4];
+	char preview_back[4];
 	
 } ThemeSpace;
 
@@ -261,12 +263,13 @@ typedef struct bTheme {
 	ThemeSpace tnode;
 	ThemeSpace tlogic;
 	ThemeSpace tuserpref;	
+	ThemeSpace tconsole;
 	
 	/* 20 sets of bone colors for this theme */
 	ThemeWireColor tarm[20];
 	/*ThemeWireColor tobj[20];*/
 	
-	int active_theme_group, pad;
+	int active_theme_area, pad;
 	
 } bTheme;
 
@@ -288,7 +291,9 @@ typedef struct UserDef {
 	char sounddir[160];
 	char anim_player[240];	// FILE_MAX length
 	int anim_player_preset;
-	int pad;
+	
+	short v2d_min_gridsize;		/* minimum spacing between gridlines in View2D grids */
+	short timecode_style;		/* style of timecode display */
 	
 	short versions;
 	short dbl_click_time;
@@ -337,6 +342,11 @@ typedef struct UserDef {
 	short glreslimit;
 	short ndof_pan, ndof_rotate;
 	short curssize, ipo_new;
+	short color_picker_type;
+	short pad2;
+
+	short scrcastfps;		/* frame rate for screencast to be played back */
+	short scrcastwait;		/* milliseconds between screencast snapshots */
 
 	char versemaster[160];
 	char verseuser[160];
@@ -465,9 +475,11 @@ extern UserDef U; /* from blenkernel blender.c */
 
 /* gameflags */
 #define USER_DEPRECATED_FLAG	1
-#define USER_DISABLE_SOUND		2
+// #define USER_DISABLE_SOUND		2 deprecated, don't use without checking for
+// backwards compatibilty in do_versions!
 #define USER_DISABLE_MIPMAP		4
 #define USER_DISABLE_VBO		8
+#define USER_DISABLE_AA			16
 
 /* wm draw method */
 #define USER_DRAW_TRIPLE		0
@@ -479,6 +491,27 @@ extern UserDef U; /* from blenkernel blender.c */
 /* gp_settings (Grease Pencil Settings) */
 #define GP_PAINT_DOSMOOTH		(1<<0)
 #define GP_PAINT_DOSIMPLIFY		(1<<1)
+
+/* color picker types */
+#define USER_CP_CIRCLE		0
+#define USER_CP_SQUARE_SV	1
+#define USER_CP_SQUARE_HS	2
+#define USER_CP_SQUARE_HV	3
+
+/* timecode display styles */
+	/* as little info as is necessary to show relevant info
+	 * with '+' to denote the frames 
+	 * i.e. HH:MM:SS+FF, MM:SS+FF, SS+FF, or MM:SS
+	 */
+#define USER_TIMECODE_MINIMAL		0
+	/* reduced SMPTE - (HH:)MM:SS:FF */
+#define USER_TIMECODE_SMPTE_MSF		1
+	/* full SMPTE - HH:MM:SS:FF */
+#define USER_TIMECODE_SMPTE_FULL	2
+	/* milliseconds for sub-frames - HH:MM:SS.sss */
+#define USER_TIMECODE_MILLISECONDS	3
+	/* seconds only */
+#define USER_TIMECODE_SECONDS_ONLY	4
 
 /* theme drawtypes */
 #define TH_MINIMAL  	0

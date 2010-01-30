@@ -121,14 +121,21 @@ void get_graph_keyframe_extents (bAnimContext *ac, float *xmin, float *xmax, flo
 			AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 			FCurve *fcu= (FCurve *)ale->key_data;
 			float txmin, txmax, tymin, tymax;
+			float unitFac;
 			
-			/* get range and apply necessary scaling before */
+			/* get range */
 			calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax);
 			
+			/* apply NLA scaling */
 			if (adt) {
 				txmin= BKE_nla_tweakedit_remap(adt, txmin, NLATIME_CONVERT_MAP);
 				txmax= BKE_nla_tweakedit_remap(adt, txmax, NLATIME_CONVERT_MAP);
 			}
+			
+			/* apply unit corrections */
+			unitFac= ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, 0);
+			tymin *= unitFac;
+			tymax *= unitFac;
 			
 			/* try to set cur using these values, if they're more extreme than previously set values */
 			if ((xmin) && (txmin < *xmin)) 		*xmin= txmin;
@@ -174,6 +181,7 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *op)
 	
 	/* set the range directly */
 	get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL);
+	scene->r.flag |= SCER_PRV_RANGE;
 	scene->r.psfra= (int)floor(min + 0.5f);
 	scene->r.pefra= (int)floor(max + 0.5f);
 	
@@ -279,10 +287,14 @@ static void create_ghost_curves (bAnimContext *ac, int start, int end)
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		ChannelDriver *driver= fcu->driver;
 		FPoint *fpt;
+		float unitFac;
 		int cfra;		
 		
 		/* disable driver so that it don't muck up the sampling process */
 		fcu->driver= NULL;
+		
+		/* calculate unit-mapping factor */
+		unitFac= ANIM_unit_mapping_get_factor(ac->scene, ale->id, fcu, 0);
 		
 		/* create samples, but store them in a new curve 
 		 *	- we cannot use fcurve_store_samples() as that will only overwrite the original curve 
@@ -497,7 +509,7 @@ void GRAPH_OT_keyframe_insert (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_graphkeys_insertkey_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_graphkeys_insertkey_types, 0, "Type", "");
 }
 
 /* ******************** Click-Insert Keyframes Operator ************************* */
@@ -507,6 +519,7 @@ static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
 	bAnimContext ac;
 	bAnimListElem *ale;
 	AnimData *adt;
+	FCurve *fcu;
 	float frame, val;
 	
 	/* get animation context */
@@ -519,7 +532,8 @@ static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
 		if (ale) MEM_freeN(ale);
 		return OPERATOR_CANCELLED;
 	}
-		
+	fcu = ale->data;
+	
 	/* get frame and value from props */
 	frame= RNA_float_get(op->ptr, "frame");
 	val= RNA_float_get(op->ptr, "value");
@@ -528,8 +542,11 @@ static int graphkeys_click_insert_exec (bContext *C, wmOperator *op)
 	adt= ANIM_nla_mapping_get(&ac, ale);
 	frame= BKE_nla_tweakedit_remap(adt, frame, NLATIME_CONVERT_UNMAP);
 	
+	/* apply inverse unit-mapping to value to get correct value for F-Curves */
+	val *= ANIM_unit_mapping_get_factor(ac.scene, ale->id, fcu, 1);
+	
 	/* insert keyframe on the specified frame + value */
-	insert_vert_fcurve((FCurve *)ale->data, frame, val, 0);
+	insert_vert_fcurve(fcu, frame, val, 0);
 	
 	/* free temp data */
 	MEM_freeN(ale);
@@ -1001,7 +1018,7 @@ void GRAPH_OT_bake (wmOperatorType *ot)
  * which provides the necessary info for baking the sound
  */
 typedef struct tSoundBakeInfo {
-	float* samples;
+	float *samples;
 	int length;
 	int cfra;
 } tSoundBakeInfo;
@@ -1074,7 +1091,7 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
 	/* loop through all selected F-Curves, replacing its data with the sound samples */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->key_data;
-
+		
 		/* sample the sound */
 		fcurve_store_samples(fcu, &sbi, start, end, fcurve_samplingcb_sound);
 	}
@@ -1121,7 +1138,7 @@ void GRAPH_OT_sound_bake (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPEN);
 	RNA_def_float(ot->srna, "low", 0.0f, 0.0, 100000.0, "Lowest frequency", "", 0.1, 1000.00);
 	RNA_def_float(ot->srna, "high", 100000.0, 0.0, 100000.0, "Highest frequency", "", 0.1, 1000.00);
 	RNA_def_float(ot->srna, "attack", 0.005, 0.0, 2.0, "Attack time", "", 0.01, 0.1);
@@ -1270,7 +1287,7 @@ void GRAPH_OT_extrapolation_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_graphkeys_expo_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_graphkeys_expo_types, 0, "Type", "");
 }
 
 /* ******************** Set Interpolation-Type Operator *********************** */
@@ -1339,7 +1356,7 @@ void GRAPH_OT_interpolation_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", beztriple_interpolation_mode_items, 0, "Type", "");
 }
 
 /* ******************** Set Handle-Type Operator *********************** */
@@ -1427,7 +1444,7 @@ void GRAPH_OT_handle_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", beztriple_handle_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", beztriple_handle_type_items, 0, "Type", "");
 }
 
 /* ************************************************************************** */
@@ -1556,6 +1573,9 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 		
+		/* apply unit corrections */
+		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYKEYS);
+		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
@@ -1564,6 +1584,8 @@ static int graphkeys_framejump_exec(bContext *C, wmOperator *op)
 		else
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, bezt_calc_average, NULL);
 		
+		/* unapply unit corrections */
+		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE|ANIM_UNITCONV_ONLYKEYS);
 	}
 	
 	BLI_freelistN(&anim_data);
@@ -1644,6 +1666,9 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
+		/* apply unit corrections */
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 0);
+		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
@@ -1651,7 +1676,11 @@ static void snap_graph_keys(bAnimContext *ac, short mode)
 		}
 		else 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+			
+		/* apply unit corrections */
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE);
 	}
+	
 	BLI_freelistN(&anim_data);
 }
 
@@ -1686,7 +1715,7 @@ void GRAPH_OT_snap (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Snap Keys";
 	ot->idname= "GRAPH_OT_snap";
-	ot->description= "Snap selected keyframes to the times specified.";
+	ot->description= "Snap selected keyframes to the chosen times/values.";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1697,7 +1726,7 @@ void GRAPH_OT_snap (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_graphkeys_snap_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_graphkeys_snap_types, 0, "Type", "");
 }
 
 /* ******************** Mirror Keyframes Operator *********************** */
@@ -1761,6 +1790,9 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
+		/* apply unit corrections */
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYKEYS);
+		
 		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1); 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
@@ -1768,7 +1800,11 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 		}
 		else 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, NULL, edit_cb, calchandles_fcurve);
+			
+		/* unapply unit corrections */
+		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYKEYS|ANIM_UNITCONV_RESTORE);
 	}
+	
 	BLI_freelistN(&anim_data);
 }
 
@@ -1814,7 +1850,7 @@ void GRAPH_OT_mirror (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", prop_graphkeys_mirror_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_graphkeys_mirror_types, 0, "Type", "");
 }
 
 /* ******************** Smooth Keyframes Operator *********************** */
@@ -1922,11 +1958,11 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 	type= RNA_enum_get(op->ptr, "type");
 	
 	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE| ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	if (RNA_boolean_get(op->ptr, "only_active"))
 		filter |= ANIMFILTER_ACTIVE;
 	else
-		filter |= ANIMFILTER_SEL;
+		filter |= (ANIMFILTER_SEL|ANIMFILTER_CURVEVISIBLE);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* smooth keyframes */

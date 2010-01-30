@@ -839,7 +839,7 @@ def make_track_chunk(ID, obj):
             track_chunk.add_variable("position", _3ds_point_3d(obj.getLocation()))
         elif ID==ROT_TRACK_TAG:
             # rotation (quaternion, angle first, followed by axis):
-            q = obj.getEuler().toQuat()
+            q = obj.getEuler().to_quat()
             track_chunk.add_variable("rotation", _3ds_point_4d((q.angle, q.axis[0], q.axis[1], q.axis[2])))
         elif ID==SCL_TRACK_TAG:
             # scale vector:
@@ -1061,7 +1061,7 @@ def save_3ds(filename, context):
         kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
         '''
 # 		if not blender_mesh.users:
-        bpy.data.remove_mesh(blender_mesh)
+        bpy.data.meshes.remove(blender_mesh)
 # 		blender_mesh.verts = None
 
         i+=i
@@ -1122,7 +1122,7 @@ class Export3DS(bpy.types.Operator):
 
     # filename = StringProperty(name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
     path = StringProperty(name="File Path", description="File path used for exporting the 3DS file", maxlen= 1024, default= "")
-
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, hidden=True)
 
     def execute(self, context):
         save_3ds(self.properties.path, context)

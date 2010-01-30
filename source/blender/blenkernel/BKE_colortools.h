@@ -31,8 +31,19 @@
 
 struct CurveMapping;
 struct CurveMap;
+struct Histogram;
 struct ImBuf;
 struct rctf;
+
+#if defined _WIN32
+#   define DO_INLINE __inline
+#elif defined (__sgi)
+#   define DO_INLINE
+#elif defined (__sun) || defined (__sun__)
+#   define DO_INLINE
+#else
+#   define DO_INLINE static inline
+#endif
 
 typedef enum CurveMappingPreset {
 	CURVE_PRESET_LINE,
@@ -70,6 +81,7 @@ void				curvemapping_initialize(struct CurveMapping *cumap);
 void				curvemapping_table_RGBA(struct CurveMapping *cumap, float **array, int *size);
 void				colorcorrection_do_ibuf(struct ImBuf *ibuf, const char *profile);
 
+void				histogram_update(struct Histogram *hist, struct ImBuf *ibuf);
 
 #endif
 

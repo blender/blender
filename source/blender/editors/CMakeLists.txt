@@ -27,7 +27,7 @@
 FILE(GLOB SRC */*.c)
 
 SET(INC ../windowmanager
-	../editors/include
+	../editors/include ../editors/interface
 	../../../intern/guardedalloc ../../../intern/memutil
 	../blenlib ../makesdna ../makesrna ../blenkernel
 	../include ../imbuf ../render/extern/include
@@ -89,10 +89,9 @@ IF(WIN32)
 	SET(INC ${INC} ${PTHREADS_INC})
 ENDIF(WIN32)
 
-# TODO buildinfo
-IF(BF_BUILDINFO)
+IF(WITH_BUILDINFO)
 	ADD_DEFINITIONS(-DNAN_BUILDINFO)
-ENDIF(BF_BUILDINFO)
+ENDIF(WITH_BUILDINFO)
 
 BLENDERLIB_NOLIST(bf_editors "${SRC}" "${INC}")
 

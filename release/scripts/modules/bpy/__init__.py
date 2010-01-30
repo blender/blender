@@ -34,71 +34,31 @@ from bpy import ops as _ops_module
 # fake operator module
 ops = _ops_module.ops_fake_module
 
-import sys
-DEBUG = ("-d" in sys.argv)
+import sys as _sys
 
-
-def load_scripts(reload_scripts=False):
-    import os
-    import traceback
-    import time
-
-
-    t_main = time.time()
-
-    def test_import(module_name):
-        try:
-            t = time.time()
-            ret = __import__(module_name)
-            if DEBUG:
-                print("time %s %.4f" % (module_name, time.time() - t))
-            return ret
-        except:
-            traceback.print_exc()
-            return None
-
-
-    for base_path in utils.script_paths():
-        for path_subdir in ("ui", "op", "io"):
-            path = os.path.join(base_path, path_subdir)
-            if os.path.isdir(path):
-                sys.path.insert(0, path)
-                for f in sorted(os.listdir(path)):
-                    if f.endswith(".py"):
-                        # python module
-                        mod = test_import(f[0:-3])
-                    elif "." not in f:
-                        # python package
-                        mod = test_import(f)
-                    else:
-                        mod = None
-
-                    if reload_scripts and mod:
-                        print("Reloading:", mod)
-                        reload(mod)
-
-    if DEBUG:
-        print("Time %.4f" % (time.time() - t_main))
 
 
 def _main():
 
+    # security issue, dont allow the $CWD in the path.
+    _sys.path[:] = filter(None, _sys.path)
+
     # a bit nasty but this prevents help() and input() from locking blender
     # Ideally we could have some way for the console to replace sys.stdin but
     # python would lock blender while waiting for a return value, not easy :|
-    sys.stdin = None
+    _sys.stdin = None
 
     # if "-d" in sys.argv: # Enable this to measure startup speed
     if 0:
         import cProfile
-        cProfile.run('import bpy; bpy.load_scripts()', 'blender.prof')
+        cProfile.run('import bpy; bpy.utils.load_scripts()', 'blender.prof')
 
         import pstats
         p = pstats.Stats('blender.prof')
         p.sort_stats('cumulative').print_stats(100)
 
     else:
-        load_scripts()
+        utils.load_scripts()
 
 
 _main()

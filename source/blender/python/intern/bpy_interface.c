@@ -39,6 +39,7 @@
 #include "eval.h"		/* for PyEval_EvalCode */
 
 #include "bpy_rna.h"
+#include "bpy_props.h"
 #include "bpy_operator.h"
 #include "bpy_ui.h"
 #include "bpy_util.h"
@@ -216,7 +217,9 @@ static void bpy_init_modules( void )
 	/* bpy context */
 	{
 		bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
+
 		RNA_pointer_create(NULL, &RNA_Context, NULL, &bpy_context_module->ptr);
+		bpy_context_module->freeptr= 0;
 
 		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
 	}
@@ -299,9 +302,20 @@ void BPY_start_python_path(void)
 			   \nThis may make python import function fail\n");
 #endif
 	
-#if 0
-	BLI_setenv("PYTHONHOME", py_path_bundle);
-	BLI_setenv("PYTHONPATH", py_path_bundle);
+#ifdef _WIN32
+	/* cmake/MSVC debug build crashes without this, why only
+	   in this case is unknown.. */
+	{
+		char *envpath = getenv("PYTHONPATH");
+
+		if(envpath && envpath[0]) {
+			char *newenvpath = BLI_sprintfN("%s;%s", py_path_bundle, envpath);
+			BLI_setenv("PYTHONPATH", newenvpath);
+			MEM_freeN(newenvpath);
+		}
+		else
+			BLI_setenv("PYTHONPATH", py_path_bundle);	
+	}
 #endif
 
 	{
@@ -698,7 +712,12 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 void BPY_load_user_modules(bContext *C)
 {
 	PyGILState_STATE gilstate;
+	Main *bmain= CTX_data_main(C);
 	Text *text;
+
+	/* can happen on file load */
+	if(bmain==NULL)
+		return;
 
 	bpy_context_set(C, &gilstate);
 

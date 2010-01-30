@@ -349,8 +349,10 @@ bGPDframe *gpencil_layer_getframe (bGPDlayer *gpl, int cframe, short addnew)
 	if (gpl->actframe) {
 		gpf= gpl->actframe;
 		
-		/* do not allow any changes to layer's active frame if layer is locked */
-		if (gpl->flag & GP_LAYER_LOCKED)
+		/* do not allow any changes to layer's active frame if layer is locked from changes
+		 * or if the layer has been set to stay on the current frame
+		 */
+		if (gpl->flag & (GP_LAYER_LOCKED|GP_LAYER_FRAMELOCK))
 			return gpf;
 		/* do not allow any changes to actframe if frame has painting tag attached to it */
 		if (gpf->flag & GP_FRAME_PAINT) 

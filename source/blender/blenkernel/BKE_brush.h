@@ -55,7 +55,7 @@ int brush_clone_image_set_nr(struct Brush *brush, int nr);
 int brush_clone_image_delete(struct Brush *brush);
 
 /* brush curve */
-void brush_curve_preset(struct Brush *b, enum CurveMappingPreset preset);
+void brush_curve_preset(struct Brush *b, /*enum CurveMappingPreset*/int preset);
 float brush_curve_strength_clamp(struct Brush *br, float p, const float len);
 float brush_curve_strength(struct Brush *br, float p, const float len); /* used for sculpt */
 

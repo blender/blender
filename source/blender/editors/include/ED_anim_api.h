@@ -73,6 +73,7 @@ typedef struct bAnimContext {
 	struct Scene *scene;	/* active scene */
 	struct Object *obact;	/* active object */
 	ListBase *markers;		/* active set of markers */
+	ListBase *reports;		/* pointer to current reports list */			// XXX not yet used
 } bAnimContext;
 
 /* Main Data container types */
@@ -230,7 +231,9 @@ typedef enum eAnimFilter_Flags {
 /* Actions (also used for Dopesheet) */
 	/* Action Channel Group */
 #define EDITABLE_AGRP(agrp) ((agrp->flag & AGRP_PROTECTED)==0)
-#define EXPANDED_AGRP(agrp) (agrp->flag & AGRP_EXPANDED)
+#define EXPANDED_AGRP(agrp) \
+	( ( ((ac)->spacetype == SPACE_IPO) && (agrp->flag & AGRP_EXPANDED_G) ) || \
+	  ( ((ac)->spacetype != SPACE_IPO) && (agrp->flag & AGRP_EXPANDED)   ) )
 #define SEL_AGRP(agrp) ((agrp->flag & AGRP_SELECTED) || (agrp->flag & AGRP_ACTIVE))
 	/* F-Curve Channels */
 #define EDITABLE_FCU(fcu) ((fcu->flag & FCURVE_PROTECTED)==0)
@@ -327,13 +330,14 @@ typedef enum eAnimChannel_Settings {
 /* Drawing, mouse handling, and flag setting behaviour... */
 typedef struct bAnimChannelType {
 	/* drawing */
+		/* get RGB color that is used to draw the majority of the backdrop */
+	void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float *color);
 		/* draw backdrop strip for channel */
 	void (*draw_backdrop)(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
 		/* get depth of indention (relative to the depth channel is nested at) */
 	short (*get_indent_level)(bAnimContext *ac, bAnimListElem *ale);
 		/* get offset in pixels for the start of the channel (in addition to the indent depth) */
 	short (*get_offset)(bAnimContext *ac, bAnimListElem *ale);
-	
 	
 	/* get name (for channel lists) */
 	void (*name)(bAnimListElem *ale, char *name);
@@ -344,7 +348,7 @@ typedef struct bAnimChannelType {
 		/* check if the given setting is valid in the current context */
 	short (*has_setting)(bAnimContext *ac, bAnimListElem *ale, int setting);
 		/* get the flag used for this setting */
-	int (*setting_flag)(int setting, short *neg);
+	int (*setting_flag)(bAnimContext *ac, int setting, short *neg);
 		/* get the pointer to int/short where data is stored, 
 		 * with type being  sizeof(ptr_data) which should be fine for runtime use...
 		 *	- assume that setting has been checked to be valid for current context
@@ -385,13 +389,14 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting,
  *	 	  then the channels under closed expanders get ignored...
  *	- ale_setting: the anim channel (not in the anim_data list directly, though occuring there)
  *		with the new state of the setting that we want flushed up/down the hierarchy 
- *	- vizOn: whether the visibility setting has been enabled or disabled 
+ *	- setting: type of setting to set
+ *	- on: whether the visibility setting has been enabled or disabled 
  */
-void ANIM_visibility_flush_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, short vizOn);
+void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAnimListElem *ale_setting, int setting, short on);
 
 
 /* Deselect all animation channels */
-void ANIM_deselect_anim_channels(void *data, short datatype, short test, short sel);
+void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, short test, short sel);
 
 /* Set the 'active' channel of type channel_type, in the given action */
 void ANIM_set_active_channel(bAnimContext *ac, void *data, short datatype, int filter, void *channel_data, short channel_type);
@@ -403,6 +408,9 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, struct AnimData *adt, st
 /* ************************************************ */
 /* DRAWING API */
 /* anim_draw.c */
+
+/* Get string representing the given frame number as an appropriately represented frame or timecode */
+void ANIM_timecode_string_from_frame(char *str, struct Scene *scene, int power, short timecodes, float cfra);
 
 /* ---------- Current Frame Drawing ---------------- */
 
@@ -444,7 +452,7 @@ int getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
 /* Automatically determine a color for the nth F-Curve */
 void getcolor_fcurve_rainbow(int cur, int tot, float *out);
 
-/* ------------- NLA-Mapping ----------------------- */
+/* ----------------- NLA-Mapping ----------------------- */
 /* anim_draw.c */
 
 /* Obtain the AnimData block providing NLA-scaling for the given channel if applicable */
@@ -458,6 +466,27 @@ void ANIM_nla_mapping_apply_fcurve(struct AnimData *adt, struct FCurve *fcu, sho
 /* Perform auto-blending/extend refreshes after some operations */
 // NOTE: defined in space_nla/nla_edit.c, not in animation/
 void ED_nla_postop_refresh(bAnimContext *ac);
+
+/* ------------- Unit Conversion Mappings ------------- */
+/* anim_draw.c */
+
+/* flags for conversion mapping */
+typedef enum eAnimUnitConv_Flags {
+		/* restore to original internal values */
+	ANIM_UNITCONV_RESTORE	= (1<<0),
+		/* ignore handles (i.e. only touch main keyframes) */
+	ANIM_UNITCONV_ONLYKEYS	= (1<<1),
+		/* only touch selected BezTriples */
+	ANIM_UNITCONV_ONLYSEL	= (1<<2),
+		/* only touch selected vertices */
+	ANIM_UNITCONV_SELVERTS	= (1<<3),
+} eAnimUnitConv_Flags;
+
+/* Get unit conversion factor for given ID + F-Curve */
+float ANIM_unit_mapping_get_factor(struct Scene *scene, struct ID *id, struct FCurve *fcu, short restore);
+
+/* Apply/Unapply units conversions to keyframes */
+void ANIM_unit_mapping_apply_fcurve(struct Scene *scene, struct ID *id, struct FCurve *fcu, short flag);
 
 /* ------------- Utility macros ----------------------- */
 

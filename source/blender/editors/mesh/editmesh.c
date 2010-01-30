@@ -753,7 +753,7 @@ void make_editMesh(Scene *scene, Object *ob)
 	KeyBlock *actkey;
 	EditMesh *em;
 	EditVert *eve, **evlist, *eve1, *eve2, *eve3, *eve4;
-	EditFace *efa;
+	EditFace *efa, *efa_last_sel= NULL;
 	EditEdge *eed;
 	EditSelection *ese;
 	float *co, (*keyco)[3]= NULL;
@@ -886,12 +886,18 @@ void make_editMesh(Scene *scene, Object *ob)
 						if(paint_facesel_test(ob)) {
 							EM_select_face(efa, 1); /* flush down */
 						}
+
+						efa_last_sel= efa;
 					}
 				}
 			}
 		}
 	}
 	
+	if(EM_get_actFace(em, 0) && efa_last_sel) {
+		EM_set_actFace(em, efa_last_sel);
+	}
+
 	if(eekadoodle)
 		error("This Mesh has old style edgecodes, please put it in the bugtracker!");
 	
@@ -1504,7 +1510,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_separate_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_separate_types, 0, "Type", "");
 }
 
 
@@ -1552,7 +1558,7 @@ typedef struct UndoMesh {
 	EditFaceC *faces;
 	EditSelectionC *selected;
 	int totvert, totedge, totface, totsel;
-	short selectmode;
+	int selectmode, shapenr;
 	RetopoPaintData *retopo_paint_data;
 	char retopo_mode;
 	CustomData vdata, edata, fdata;
@@ -1592,6 +1598,7 @@ static void *editMesh_to_undoMesh(void *emv)
 	um= MEM_callocN(sizeof(UndoMesh), "undomesh");
 	
 	um->selectmode = em->selectmode;
+	um->shapenr = em->shapenr;
 	
 	for(eve=em->verts.first; eve; eve= eve->next) um->totvert++;
 	for(eed=em->edges.first; eed; eed= eed->next) um->totedge++;
@@ -1694,6 +1701,7 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 	memset(em, 0, sizeof(EditMesh));
 		
 	em->selectmode = um->selectmode;
+	em->shapenr = um->shapenr;
 	
 	init_editmesh_fastmalloc(em, um->totvert, um->totedge, um->totface);
 

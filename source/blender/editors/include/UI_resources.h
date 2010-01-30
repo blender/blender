@@ -184,6 +184,11 @@ enum {
 	TH_NODE_CONVERTOR,
 	TH_NODE_GROUP,
 	
+	TH_CONSOLE_OUTPUT,
+	TH_CONSOLE_INPUT,
+	TH_CONSOLE_INFO,
+	TH_CONSOLE_ERROR,
+	
 	TH_SEQ_MOVIE,
 	TH_SEQ_IMAGE,
 	TH_SEQ_SCENE,
@@ -202,6 +207,8 @@ enum {
 	
 	TH_DOPESHEET_CHANNELOB,
 	TH_DOPESHEET_CHANNELSUBOB,
+	
+	TH_PREVIEW_BACK,
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 
@@ -236,6 +243,8 @@ int 	UI_GetThemeValue(int colorid);
 
 // get three color values, scaled to 0.0-1.0 range
 void 	UI_GetThemeColor3fv(int colorid, float *col);
+// get the color, range 0.0-1.0, complete with shading offset
+void 	UI_GetThemeColorShade3fv(int colorid, int offset, float *col);
 
 // get the 3 or 4 byte values
 void 	UI_GetThemeColor3ubv(int colorid, char *col);

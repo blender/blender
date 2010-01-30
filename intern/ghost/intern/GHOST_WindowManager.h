@@ -134,7 +134,14 @@ public:
 	 * interface above for this,
 	 */
 	std::vector<GHOST_IWindow *> & getWindows();
-
+	
+	/**
+	 * Finds the window associated with an OS window object/handle
+	 * @param osWindow The OS window object/handle
+	 * @return The associated window, null if none corresponds
+	 */
+	virtual GHOST_IWindow* getWindowAssociatedWithOSWindow(void* osWindow);
+	
 	/**
 	 * Return true if any windows has a modified status
 	 * @return True if any window has unsaved changes

@@ -423,7 +423,7 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *op)
 	setcameratoview3d(v3d, rv3d, v3d->camera);
 	rv3d->persp = RV3D_CAMOB;
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, v3d->camera);
 	
 	return OPERATOR_FINISHED;
 
@@ -1199,6 +1199,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	ARegion *ar= vc->ar;
 	rctf rect;
 	short code, hits;
+	char dt, dtx;
 	
 	G.f |= G_PICKSEL;
 	
@@ -1269,8 +1270,16 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 							tbase.object= dob->ob;
 							copy_m4_m4(dob->ob->obmat, dob->mat);
 							
+							/* extra service: draw the duplicator in drawtype of parent */
+							/* MIN2 for the drawtype to allow bounding box objects in groups for lods */
+							dt= tbase.object->dt;	tbase.object->dt= MIN2(tbase.object->dt, base->object->dt);
+							dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
+
 							draw_object(scene, ar, v3d, &tbase, DRAW_PICKING|DRAW_CONSTCOLOR);
 							
+							tbase.object->dt= dt;
+							tbase.object->dtx= dtx;
+
 							copy_m4_m4(dob->ob->obmat, dob->omat);
 						}
 						free_object_duplilist(lb);
@@ -1656,11 +1665,6 @@ void game_set_commmandline_options(GameData *gm)
 
 	if ( (syshandle = SYS_GetSystem()) ) {
 		/* User defined settings */
-		test= (U.gameflags & USER_DISABLE_SOUND);
-		/* if user already disabled audio at the command-line, don't re-enable it */
-		if (test)
-			SYS_WriteCommandLineInt(syshandle, "noaudio", test);
-
 		test= (U.gameflags & USER_DISABLE_MIPMAP);
 		GPU_set_mipmap(!test);
 		SYS_WriteCommandLineInt(syshandle, "nomipmap", test);
@@ -2486,14 +2490,7 @@ static int flyApply(FlyInfo *fly)
 			if (rv3d->persp==RV3D_CAMOB) {
 				rv3d->persp= RV3D_PERSP; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
 				setviewmatrixview3d(scene, v3d, rv3d);
-
 				setcameratoview3d(v3d, rv3d, v3d->camera);
-
-				{	//XXX - some reason setcameratoview3d doesnt copy, shouldnt not be needed!
-					VECCOPY(v3d->camera->loc, rv3d->ofs);
-					negate_v3(v3d->camera->loc);
-				}
-
 				rv3d->persp= RV3D_CAMOB;
 #if 0 //XXX2.5
 				/* record the motion */

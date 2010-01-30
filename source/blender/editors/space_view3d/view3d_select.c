@@ -124,12 +124,19 @@ void view3d_get_view_aligned_coordinate(ViewContext *vc, float *fp, short mval[2
 	}
 }
 
+/*
+ * ob == NULL if you want global matrices
+ * */
 void view3d_get_transformation(ARegion *ar, RegionView3D *rv3d, Object *ob, bglMats *mats)
 {
 	float cpy[4][4];
 	int i, j;
 
-	mul_m4_m4m4(cpy, ob->obmat, rv3d->viewmat);
+	if (ob) {
+		mul_m4_m4m4(cpy, ob->obmat, rv3d->viewmat);
+	} else {
+		copy_m4_m4(cpy, rv3d->viewmat);
+	}
 
 	for(i = 0; i < 4; ++i) {
 		for(j = 0; j < 4; ++j) {
@@ -338,9 +345,8 @@ int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, in
 /* warning; lasso select with backbuffer-check draws in backbuf with persp(PERSP_WIN) 
    and returns with persp(PERSP_VIEW). After lasso select backbuf is not OK
 */
-static void do_lasso_select_pose(ViewContext *vc, short mcords[][2], short moves, short select)
+static void do_lasso_select_pose(ViewContext *vc, Object *ob, short mcords[][2], short moves, short select)
 {
-	Object *ob= vc->obact;
 	bPoseChannel *pchan;
 	float vec[3];
 	short sco1[2], sco2[2];
@@ -375,7 +381,7 @@ static void do_lasso_select_objects(ViewContext *vc, short mcords[][2], short mo
 	Base *base;
 	
 	for(base= vc->scene->base.first; base; base= base->next) {
-		if(base->lay & vc->v3d->lay) {
+		if(BASE_SELECTABLE(vc->v3d, base)) { /* use this to avoid un-needed lasso lookups */
 			project_short(vc->ar, base->object->obmat[3], &base->sx);
 			if(lasso_inside(mcords, moves, base->sx, base->sy)) {
 				
@@ -384,7 +390,7 @@ static void do_lasso_select_objects(ViewContext *vc, short mcords[][2], short mo
 				base->object->flag= base->flag;
 			}
 			if(base->object->mode & OB_MODE_POSE) {
-				do_lasso_select_pose(vc, mcords, moves, select);
+				do_lasso_select_pose(vc, base->object, mcords, moves, select);
 			}
 		}
 	}
@@ -463,7 +469,8 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 
 	/* workaround: init mats first, EM_mask_init_backbuf_border can change
 	   view matrix to pixel space, breaking edge select with backbuf .. */
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	// XXX not needed anymore, check here if selection is broken
+	//ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
@@ -999,6 +1006,123 @@ static short mixed_bones_object_selectbuffer(ViewContext *vc, unsigned int *buff
 	return 0;
 }
 
+/* returns basact */
+static Base *mouse_select_eval_buffer(ViewContext *vc, unsigned int *buffer, int hits, short *mval, Base *startbase, int has_bones)
+{
+	Scene *scene= vc->scene;
+	View3D *v3d= vc->v3d;
+	Base *base, *basact= NULL;
+	static short lastmval[2]={-100, -100};
+	int a, donearest= 0;
+	
+	/* define if we use solid nearest select or not */
+	if(v3d->drawtype>OB_WIRE) {
+		donearest= 1;
+		if( ABS(mval[0]-lastmval[0])<3 && ABS(mval[1]-lastmval[1])<3) {
+			if(!has_bones)	/* hrms, if theres bones we always do nearest */
+				donearest= 0;
+		}
+	}
+	lastmval[0]= mval[0]; lastmval[1]= mval[1];
+	
+	if(donearest) {
+		unsigned int min= 0xFFFFFFFF;
+		int selcol= 0, notcol=0;
+		
+		
+		if(has_bones) {
+			/* we skip non-bone hits */
+			for(a=0; a<hits; a++) {
+				if( min > buffer[4*a+1] && (buffer[4*a+3] & 0xFFFF0000) ) {
+					min= buffer[4*a+1];
+					selcol= buffer[4*a+3] & 0xFFFF;
+				}
+			}
+		}
+		else {
+			/* only exclude active object when it is selected... */
+			if(BASACT && (BASACT->flag & SELECT) && hits>1) notcol= BASACT->selcol;	
+			
+			for(a=0; a<hits; a++) {
+				if( min > buffer[4*a+1] && notcol!=(buffer[4*a+3] & 0xFFFF)) {
+					min= buffer[4*a+1];
+					selcol= buffer[4*a+3] & 0xFFFF;
+				}
+			}
+		}
+		
+		base= FIRSTBASE;
+		while(base) {
+			if(base->lay & v3d->lay) {
+				if(base->selcol==selcol) break;
+			}
+			base= base->next;
+		}
+		if(base) basact= base;
+	}
+	else {
+		
+		base= startbase;
+		while(base) {
+			/* skip objects with select restriction, to prevent prematurely ending this loop
+			* with an un-selectable choice */
+			if (base->object->restrictflag & OB_RESTRICT_SELECT) {
+				base=base->next;
+				if(base==NULL) base= FIRSTBASE;
+				if(base==startbase) break;
+			}
+			
+			if(base->lay & v3d->lay) {
+				for(a=0; a<hits; a++) {
+					if(has_bones) {
+						/* skip non-bone objects */
+						if((buffer[4*a+3] & 0xFFFF0000)) {
+							if(base->selcol== (buffer[(4*a)+3] & 0xFFFF))
+								basact= base;
+						}
+					}
+					else {
+						if(base->selcol== (buffer[(4*a)+3] & 0xFFFF))
+							basact= base;
+					}
+				}
+			}
+			
+			if(basact) break;
+			
+			base= base->next;
+			if(base==NULL) base= FIRSTBASE;
+			if(base==startbase) break;
+		}
+	}
+	
+	return basact;
+}
+
+/* mval comes from event->mval, only use within region handlers */
+Base *ED_view3d_give_base_under_cursor(bContext *C, short *mval)
+{
+	ViewContext vc;
+	Base *basact= NULL;
+	unsigned int buffer[4*MAXPICKBUF];
+	int hits;
+	
+	/* setup view context for argument to callbacks */
+	view3d_operator_needs_opengl(C);
+	view3d_set_viewcontext(C, &vc);
+	
+	hits= mixed_bones_object_selectbuffer(&vc, buffer, mval);
+	
+	if(hits>0) {
+		int a, has_bones= 0;
+		
+		for(a=0; a<hits; a++) if(buffer[4*a+3] & 0xFFFF0000) has_bones= 1;
+		
+		basact= mouse_select_eval_buffer(&vc, buffer, hits, mval, vc.scene->base.first, has_bones);
+	}
+	
+	return basact;
+}
 
 /* mval is region coords */
 static int mouse_select(bContext *C, short *mval, short extend, short obcenter, short enumerate)
@@ -1063,89 +1187,7 @@ static int mouse_select(bContext *C, short *mval, short extend, short obcenter, 
 			if(has_bones==0 && enumerate) {
 				basact= mouse_select_menu(C, &vc, buffer, hits, mval, extend);
 			} else {
-				static short lastmval[2]={-100, -100};
-				int donearest= 0;
-				
-				/* define if we use solid nearest select or not */
-				if(v3d->drawtype>OB_WIRE) {
-					donearest= 1;
-					if( ABS(mval[0]-lastmval[0])<3 && ABS(mval[1]-lastmval[1])<3) {
-						if(!has_bones)	/* hrms, if theres bones we always do nearest */
-							donearest= 0;
-					}
-				}
-				lastmval[0]= mval[0]; lastmval[1]= mval[1];
-				
-				if(donearest) {
-					unsigned int min= 0xFFFFFFFF;
-					int selcol= 0, notcol=0;
-					
-
-					if(has_bones) {
-						/* we skip non-bone hits */
-						for(a=0; a<hits; a++) {
-							if( min > buffer[4*a+1] && (buffer[4*a+3] & 0xFFFF0000) ) {
-								min= buffer[4*a+1];
-								selcol= buffer[4*a+3] & 0xFFFF;
-							}
-						}
-					}
-					else {
-						/* only exclude active object when it is selected... */
-						if(BASACT && (BASACT->flag & SELECT) && hits>1) notcol= BASACT->selcol;	
-					
-						for(a=0; a<hits; a++) {
-							if( min > buffer[4*a+1] && notcol!=(buffer[4*a+3] & 0xFFFF)) {
-								min= buffer[4*a+1];
-								selcol= buffer[4*a+3] & 0xFFFF;
-							}
-						}
-					}
-
-					base= FIRSTBASE;
-					while(base) {
-						if(base->lay & v3d->lay) {
-							if(base->selcol==selcol) break;
-						}
-						base= base->next;
-					}
-					if(base) basact= base;
-				}
-				else {
-					
-					base= startbase;
-					while(base) {
-						/* skip objects with select restriction, to prevent prematurely ending this loop
-						 * with an un-selectable choice */
-						if (base->object->restrictflag & OB_RESTRICT_SELECT) {
-							base=base->next;
-							if(base==NULL) base= FIRSTBASE;
-							if(base==startbase) break;
-						}
-					
-						if(base->lay & v3d->lay) {
-							for(a=0; a<hits; a++) {
-								if(has_bones) {
-									/* skip non-bone objects */
-									if((buffer[4*a+3] & 0xFFFF0000)) {
-										if(base->selcol== (buffer[(4*a)+3] & 0xFFFF))
-											basact= base;
-									}
-								}
-								else {
-									if(base->selcol== (buffer[(4*a)+3] & 0xFFFF))
-										basact= base;
-								}
-							}
-						}
-						
-						if(basact) break;
-						
-						base= base->next;
-						if(base==NULL) base= FIRSTBASE;
-						if(base==startbase) break;
-					}
-				}
+				basact= mouse_select_eval_buffer(&vc, buffer, hits, mval, startbase, has_bones);
 			}
 			
 			if(has_bones && basact) {
@@ -1354,7 +1396,10 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exte
 		EM_deselect_all(vc->em);
 	}
 
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	/* XXX Don't think we need this, it break selection of transformed objects.
+	 * Also, it's not done by Circle select and that works fine
+	 */
+	//ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
@@ -1416,7 +1461,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	rect.xmax= RNA_int_get(op->ptr, "xmax");
 	rect.ymax= RNA_int_get(op->ptr, "ymax");
 	extend = RNA_boolean_get(op->ptr, "extend");
-	
+
 	if(obedit==NULL && (paint_facesel_test(OBACT))) {
 		face_borderselect(C, obact, &rect, selecting, extend);
 		return OPERATOR_FINISHED;

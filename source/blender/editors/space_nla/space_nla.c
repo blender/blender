@@ -106,6 +106,7 @@ ARegion *nla_has_buttons_region(ScrArea *sa)
 static SpaceLink *nla_new(const bContext *C)
 {
 	Scene *scene= CTX_data_scene(C);
+	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar;
 	SpaceNla *snla;
 	
@@ -151,7 +152,7 @@ static SpaceLink *nla_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
 	ar->v2d.tot.xmin= (float)(SFRA-10);
-	ar->v2d.tot.ymin= -500.0f;
+	ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
 	ar->v2d.tot.xmax= (float)(EFRA+10);
 	ar->v2d.tot.ymax= 0.0f;
 	
@@ -485,13 +486,14 @@ static void nla_listener(ScrArea *sa, wmNotifier *wmn)
 			ED_area_tag_refresh(sa);
 			break;
 		case NC_OBJECT:
-			/*switch (wmn->data) {
-				case ND_BONE_SELECT:
-				case ND_BONE_ACTIVE:
+			switch (wmn->data) {
+				case ND_TRANSFORM:
+					/* do nothing */
+					break;
+				default:
 					ED_area_tag_refresh(sa);
 					break;
-			}*/
-			ED_area_tag_refresh(sa);
+			}
 			break;
 		case NC_SPACE:
 			if(wmn->data == ND_SPACE_NLA)
@@ -530,7 +532,7 @@ void ED_spacetype_nla(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype nla region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	
 	art->init= nla_header_area_init;
@@ -541,7 +543,7 @@ void ED_spacetype_nla(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype nla region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 200;
+	art->prefsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
 	art->init= nla_channel_area_init;
@@ -553,7 +555,7 @@ void ED_spacetype_nla(void)
 	/* regions: UI buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype nla region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= 200;
+	art->prefsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI;
 	art->listener= nla_region_listener;
 	art->init= nla_buttons_area_init;

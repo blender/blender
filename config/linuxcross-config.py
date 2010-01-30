@@ -2,7 +2,7 @@ LCGDIR = '#../lib/windows'
 LIBDIR = '${LCGDIR}'
 
 BF_PYTHON = LIBDIR + '/python'
-BF_PYTHON_VERSION = '2.5'
+BF_PYTHON_VERSION = '3.1'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = 'python'
 BF_PYTHON_LIB = 'python25'

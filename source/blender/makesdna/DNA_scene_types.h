@@ -170,23 +170,25 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_NEG_ZMASK	0x80000
 
 /* srl->passflag */
-#define SCE_PASS_COMBINED	1
-#define SCE_PASS_Z			2
-#define SCE_PASS_RGBA		4
-#define SCE_PASS_DIFFUSE	8
-#define SCE_PASS_SPEC		16
-#define SCE_PASS_SHADOW		32
-#define SCE_PASS_AO			64
-#define SCE_PASS_REFLECT	128
-#define SCE_PASS_NORMAL		256
-#define SCE_PASS_VECTOR		512
-#define SCE_PASS_REFRACT	1024
-#define SCE_PASS_INDEXOB	2048
-#define SCE_PASS_UV			4096
-#define SCE_PASS_RADIO		8192 /* Radio removed, can use for new GI? */
-#define SCE_PASS_MIST		16384
-
-#define SCE_PASS_RAYHITS	32768
+#define SCE_PASS_COMBINED		1
+#define SCE_PASS_Z				2
+#define SCE_PASS_RGBA			4
+#define SCE_PASS_DIFFUSE		8
+#define SCE_PASS_SPEC			16
+#define SCE_PASS_SHADOW			32
+#define SCE_PASS_AO				64
+#define SCE_PASS_REFLECT		128
+#define SCE_PASS_NORMAL			256
+#define SCE_PASS_VECTOR			512
+#define SCE_PASS_REFRACT		1024
+#define SCE_PASS_INDEXOB		2048
+#define SCE_PASS_UV				4096
+#define SCE_PASS_RADIO			8192 /* Radio removed, can use for new GI? */
+#define SCE_PASS_MIST			16384
+#define SCE_PASS_RAYHITS		32768
+#define SCE_PASS_EMIT			65536
+#define SCE_PASS_ENVIRONMENT	131072
+#define SCE_PASS_INDIRECT		262144
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
@@ -510,7 +512,7 @@ typedef struct Paint {
 typedef struct ImagePaintSettings {
 	Paint paint;
 
-	short flag, tool;
+	short flag, pad;
 	
 	/* for projection painting only */
 	short seam_bleed, normal_angle;
@@ -521,6 +523,7 @@ typedef struct ImagePaintSettings {
 typedef struct ParticleBrushData {
 	short size, strength;	/* common settings */
 	short step, invert;		/* for specific brushes only */
+	int flag, pad;
 } ParticleBrushData;
 
 typedef struct ParticleEditSettings {
@@ -564,7 +567,7 @@ typedef struct Sculpt {
 typedef struct VPaint {
 	Paint paint;
 
-	short mode, flag;
+	short flag, pad;
 	int tot;							/* allocation size of prev buffers */
 	unsigned int *vpaint_prev;			/* previous mesh colors */
 	struct MDeformVert *wpaint_prev;	/* previous vertex weights */
@@ -788,6 +791,10 @@ typedef struct Scene {
 #define R_FRONTBUF		4
 #define R_FRONTBUFANIM	8
 
+/* flag */
+	/* use preview range */
+#define SCER_PRV_RANGE	(1<<0)
+
 /* mode (int now) */
 #define R_OSA			0x0001
 #define R_SHADOW		0x0002
@@ -990,8 +997,9 @@ typedef struct Scene {
 #define	F_CFRA			((float)(scene->r.cfra))
 #define	SFRA			(scene->r.sfra)
 #define	EFRA			(scene->r.efra)
-#define PSFRA			((scene->r.psfra != 0)? (scene->r.psfra): (scene->r.sfra))
-#define PEFRA			((scene->r.psfra != 0)? (scene->r.pefra): (scene->r.efra))
+#define PRVRANGEON		(scene->r.flag & SCER_PRV_RANGE)
+#define PSFRA			((PRVRANGEON)? (scene->r.psfra): (scene->r.sfra))
+#define PEFRA			((PRVRANGEON)? (scene->r.pefra): (scene->r.efra))
 #define FRA2TIME(a)           ((((double) scene->r.frs_sec_base) * (a)) / scene->r.frs_sec)
 #define TIME2FRA(a)           ((((double) scene->r.frs_sec) * (a)) / scene->r.frs_sec_base)
 #define FPS                     (((double) scene->r.frs_sec) / scene->r.frs_sec_base)
@@ -1136,9 +1144,13 @@ typedef enum SculptFlags {
 #define PE_BRUSH_PUFF		3
 #define PE_BRUSH_ADD		4
 #define PE_BRUSH_SMOOTH		5
+#define PE_BRUSH_WEIGHT		6
 
 /* this must equal ParticleEditSettings.brush array size */
 #define PE_TOT_BRUSH		6
+
+/* ParticleBrushData->flag */
+#define PE_BRUSH_DATA_PUFF_VOLUME 1
 
 /* tooksettings->particle edittype */
 #define PE_TYPE_PARTICLES	0
@@ -1211,6 +1223,7 @@ typedef enum SculptFlags {
 #define	USER_UNIT_IMPERIAL		2
 /* UnitSettings->flag */
 #define	USER_UNIT_OPT_SPLIT		1
+#define USER_UNIT_ROT_RADIANS	2
 
 
 #ifdef __cplusplus

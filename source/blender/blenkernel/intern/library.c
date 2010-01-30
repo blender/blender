@@ -117,6 +117,7 @@
 #include "BKE_idprop.h"
 #include "BKE_particle.h"
 #include "BKE_gpencil.h"
+#include "BKE_fcurve.h"
 
 #define MAX_IDPUP		60	/* was 24 */
 
@@ -698,6 +699,30 @@ void set_free_windowmanager_cb(void (*func)(bContext *C, wmWindowManager *) )
 	free_windowmanager_cb= func;
 }
 
+void animdata_dtar_clear_cb(ID *id, AnimData *adt, void *userdata)
+{
+	ChannelDriver *driver;
+	FCurve *fcu;
+
+	/* find the driver this belongs to and update it */
+	for (fcu=adt->drivers.first; fcu; fcu=fcu->next) {
+		driver= fcu->driver;
+		
+		if (driver) {
+			DriverVar *dvar;
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				DRIVER_TARGETS_USED_LOOPER(dvar) 
+				{
+					if (dtar->id == userdata)
+						dtar->id= NULL;
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
+		}
+	}
+}
+
+
 /* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
 void free_libblock(ListBase *lb, void *idv)
 {
@@ -768,7 +793,7 @@ void free_libblock(ListBase *lb, void *idv)
 			sound_free((bSound*)id);
 			break;
 		case ID_GR:
-			free_group((Group *)id);
+			free_group_objects((Group *)id);
 			break;
 		case ID_AR:
 			free_armature((bArmature *)id);
@@ -798,9 +823,13 @@ void free_libblock(ListBase *lb, void *idv)
 		IDP_FreeProperty(id->properties);
 		MEM_freeN(id->properties);
 	}
-	BLI_remlink(lb, id);
-	MEM_freeN(id);
 
+	BLI_remlink(lb, id);
+
+	/* this ID may be a driver target! */
+	BKE_animdata_main_cb(G.main, animdata_dtar_clear_cb, (void *)id);
+
+	MEM_freeN(id);
 }
 
 void free_libblock_us(ListBase *lb, void *idv)		/* test users */
@@ -1274,13 +1303,13 @@ void all_local(Library *lib, int untagged_only)
 			id->newid= NULL;
 			idn= id->next;		/* id is possibly being inserted again */
 			
-			/* The check on the second line (LIB_APPEND_TAG) is done so its
+			/* The check on the second line (LIB_PRE_EXISTING) is done so its
 			 * possible to tag data you dont want to be made local, used for
 			 * appending data, so any libdata alredy linked wont become local
 			 * (very nasty to discover all your links are lost after appending)  
 			 * */
 			if(id->flag & (LIB_EXTERN|LIB_INDIRECT|LIB_NEW) &&
-			  (untagged_only==0 || !(id->flag & LIB_APPEND_TAG)))
+			  (untagged_only==0 || !(id->flag & LIB_PRE_EXISTING)))
 			{
 				if(lib==NULL || id->lib==lib) {
 					id->flag &= ~(LIB_EXTERN|LIB_INDIRECT|LIB_NEW);

@@ -37,6 +37,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math.h"
+
 #include "WM_types.h"
 
 EnumPropertyItem fmodifier_type_items[] = {
@@ -49,6 +51,12 @@ EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},
 	{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},
 	{FMODIFIER_TYPE_LIMITS, "LIMITS", 0, "Limits", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem beztriple_keyframe_type_items[] = {
+	{BEZT_KEYTYPE_KEYFRAME, "KEYFRAME", 0, "Keyframe", ""},
+	{BEZT_KEYTYPE_BREAKDOWN, "BREAKDOWN", 0, "Breakdown", ""},
+	{BEZT_KEYTYPE_EXTREME, "EXTREME", 0, "Extreme", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -129,6 +137,15 @@ static void rna_DriverTarget_update_data(Main *bmain, Scene *scene, PointerRNA *
 	}
 }
 
+static void rna_DriverTarget_update_name(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	ChannelDriver *driver= ptr->data;
+	rna_DriverTarget_update_data(bmain, scene, ptr);
+
+	driver->flag |= DRIVER_FLAG_RENAMEVAR;
+
+}
+
 /* ----------- */
 
 static StructRNA *rna_DriverTarget_id_typef(PointerRNA *ptr)
@@ -143,12 +160,31 @@ static int rna_DriverTarget_id_editable(PointerRNA *ptr)
 	return (dtar->idtype)? PROP_EDITABLE : 0;
 }
 
+static int rna_DriverTarget_id_type_editable(PointerRNA *ptr)
+{
+	DriverTarget *dtar= (DriverTarget*)ptr->data;
+	
+	/* when the id-type can only be object, don't allow editing
+	 * otherwise, there may be strange crashes
+	 */
+	return ((dtar->flag & DTAR_FLAG_ID_OB_ONLY) == 0);
+}
+
 static void rna_DriverTarget_id_type_set(PointerRNA *ptr, int value)
 {
 	DriverTarget *data= (DriverTarget*)(ptr->data);
 	
-	/* set the driver type, then clear the id-block if the type is invalid */
-	data->idtype= value;
+	/* check if ID-type is settable */
+	if ((data->flag & DTAR_FLAG_ID_OB_ONLY) == 0) {
+		/* change ID-type to the new type */
+		data->idtype= value;
+	}
+	else {
+		/* make sure ID-type is Object */
+		data->idtype= ID_OB;
+	}
+	
+	/* clear the id-block if the type is invalid */
 	if ((data->id) && (GS(data->id->name) != data->idtype))
 		data->id= NULL;
 }
@@ -193,6 +229,56 @@ static void rna_DriverVariable_type_set(PointerRNA *ptr, int value)
 	
 	/* call the API function for this */
 	driver_change_variable_type(dvar, value);
+}
+
+/* ****************************** */
+
+static void rna_FKeyframe_handle1_get(PointerRNA *ptr, float *values)
+{
+	BezTriple *bezt= (BezTriple*)ptr->data;
+	
+	values[0]= bezt->vec[0][0];
+	values[1]= bezt->vec[0][1];
+}
+
+static void rna_FKeyframe_handle1_set(PointerRNA *ptr, const float *values)
+{
+	BezTriple *bezt= (BezTriple*)ptr->data;
+	
+	bezt->vec[0][0]= values[0];
+	bezt->vec[0][1]= values[1];
+}
+
+static void rna_FKeyframe_handle2_get(PointerRNA *ptr, float *values)
+{
+	BezTriple *bezt= (BezTriple*)ptr->data;
+	
+	values[0]= bezt->vec[2][0];
+	values[1]= bezt->vec[2][1];
+}
+
+static void rna_FKeyframe_handle2_set(PointerRNA *ptr, const float *values)
+{
+	BezTriple *bezt= (BezTriple*)ptr->data;
+	
+	bezt->vec[2][0]= values[0];
+	bezt->vec[2][1]= values[1];
+}
+
+static void rna_FKeyframe_ctrlpoint_get(PointerRNA *ptr, float *values)
+{
+	BezTriple *bezt= (BezTriple*)ptr->data;
+	
+	values[0]= bezt->vec[1][0];
+	values[1]= bezt->vec[1][1];
+}
+
+static void rna_FKeyframe_ctrlpoint_set(PointerRNA *ptr, const float *values)
+{
+	BezTriple *bezt= (BezTriple*)ptr->data;
+	
+	bezt->vec[1][0]= values[0];
+	bezt->vec[1][1]= values[1];
 }
 
 /* ****************************** */
@@ -715,8 +801,8 @@ static void rna_def_drivertarget(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "idtype");
 	RNA_def_property_enum_items(prop, id_type_items);
 	RNA_def_property_enum_default(prop, ID_OB);
-	// XXX need to add an 'editable func' for this, in the case where certain flags are set already...
 	RNA_def_property_enum_funcs(prop, NULL, "rna_DriverTarget_id_type_set", NULL);
+	RNA_def_property_editable_func(prop, "rna_DriverTarget_id_type_editable");
 	RNA_def_property_ui_text(prop, "ID Type", "Type of ID-block that can be used.");
 	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data");
 	
@@ -764,7 +850,7 @@ static void rna_def_drivervar(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_ui_text(prop, "Name", "Name to use in scripted expressions/functions. (No spaces or dots are allowed. Also, must not start with a symbol or digit)");
-	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_data"); // XXX
+	RNA_def_property_update(prop, 0, "rna_DriverTarget_update_name"); // XXX
 	
 	/* Enums */
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -847,6 +933,11 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Variables", "Properties acting as inputs for this driver.");
 	rna_def_channeldriver_variables(brna, prop);
 	
+	/* Settings */
+	prop= RNA_def_property(srna, "show_debug_info", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", DRIVER_FLAG_SHOWDEBUG);
+	RNA_def_property_ui_text(prop, "Show Debug Info", "Show intermediate values for the driver calculations to allow debugging of drivers.");
+	
 	/* Functions */
 	RNA_api_drivers(srna);
 }
@@ -869,10 +960,85 @@ static void rna_def_fpoint(BlenderRNA *brna)
 	
 	/* Vector value */
 	prop= RNA_def_property(srna, "point", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_array(prop, 2);
 	RNA_def_property_float_sdna(prop, NULL, "vec");
+	RNA_def_property_array(prop, 2);
 	RNA_def_property_ui_text(prop, "Point", "Point coordinates");
 }
+
+
+/* duplicate of BezTriple in rna_curve.c
+ * but with F-Curve specific options updates/functionality 
+ */
+static void rna_def_fkeyframe(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "Keyframe", NULL);
+	RNA_def_struct_sdna(srna, "BezTriple");
+	RNA_def_struct_ui_text(srna, "Keyframe", "Bezier curve point with two handles defining a Keyframe on an F-Curve.");
+	
+	/* Boolean values */
+	prop= RNA_def_property(srna, "selected_handle1", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "f1", 0);
+	RNA_def_property_ui_text(prop, "Handle 1 selected", "Handle 1 selection status");
+	//RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "selected_handle2", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "f3", 0);
+	RNA_def_property_ui_text(prop, "Handle 2 selected", "Handle 2 selection status");
+	//RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "f2", 0);
+	RNA_def_property_ui_text(prop, "Selected", "Control point selection status");
+	//RNA_def_property_update(prop, 0, NULL);
+	
+	/* Enums */
+	prop= RNA_def_property(srna, "handle1_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "h1");
+	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
+	RNA_def_property_ui_text(prop, "Handle 1 Type", "Handle types");
+	//RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "handle2_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "h2");
+	RNA_def_property_enum_items(prop, beztriple_handle_type_items);
+	RNA_def_property_ui_text(prop, "Handle 2 Type", "Handle types");
+	//RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ipo");
+	RNA_def_property_enum_items(prop, beztriple_interpolation_mode_items);
+	RNA_def_property_ui_text(prop, "Interpolation", "Interpolation method to use for segment of the curve from this Keyframe until the next Keyframe.");
+	//RNA_def_property_update(prop, 0, "rna_Curve_update_data"); // this should be an F-Curve update call instead...
+	
+	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "hide");
+	RNA_def_property_enum_items(prop, beztriple_keyframe_type_items);
+	RNA_def_property_ui_text(prop, "Type", "The type of keyframe.");
+	//RNA_def_property_update(prop, 0, "rna_Curve_update_data"); // this should be an F-Curve update call instead...
+	
+	/* Vector values */
+	prop= RNA_def_property(srna, "handle1", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_funcs(prop, "rna_FKeyframe_handle1_get", "rna_FKeyframe_handle1_set", NULL);
+	RNA_def_property_ui_text(prop, "Handle 1", "Coordinates of the first handle");
+	//RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_funcs(prop, "rna_FKeyframe_ctrlpoint_get", "rna_FKeyframe_ctrlpoint_set", NULL);
+	RNA_def_property_ui_text(prop, "Control Point", "Coordinates of the control point");
+	//RNA_def_property_update(prop, 0, NULL);
+	
+	prop= RNA_def_property(srna, "handle2", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_float_funcs(prop, "rna_FKeyframe_handle2_get", "rna_FKeyframe_handle2_set", NULL);
+	RNA_def_property_ui_text(prop, "Handle 2", "Coordinates of the second handle");
+	//RNA_def_property_update(prop, 0, NULL);
+}
+
 
 static void rna_def_fcurve_modifiers(BlenderRNA *brna, PropertyRNA *cprop)
 {
@@ -983,7 +1149,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "keyframe_points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "bezt", "totvert");
-	RNA_def_property_struct_type(prop, "BezierSplinePoint");
+	RNA_def_property_struct_type(prop, "Keyframe");
 	RNA_def_property_ui_text(prop, "Keyframes", "User-editable keyframes");
 	
 	prop= RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
@@ -998,7 +1164,8 @@ static void rna_def_fcurve(BlenderRNA *brna)
 void RNA_def_fcurve(BlenderRNA *brna)
 {
 	rna_def_fcurve(brna);
-	rna_def_fpoint(brna);
+		rna_def_fkeyframe(brna);
+		rna_def_fpoint(brna);
 	
 	rna_def_drivertarget(brna);
 	rna_def_drivervar(brna);

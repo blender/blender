@@ -26,6 +26,7 @@
 
 #include <math.h>
 #include <string.h>
+#include <stddef.h>
 
 #include <GL/glew.h>
 
@@ -639,6 +640,11 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 				
 				area_swap_exit(C, op);
 				
+#ifdef WM_FAST_DRAW
+				ED_area_tag_redraw(sad->sa1);
+				ED_area_tag_redraw(sad->sa2);
+#endif
+
 				WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				
 				return OPERATOR_FINISHED;
@@ -707,6 +713,10 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* copy area to new screen */
 	area_copy_data((ScrArea *)newsc->areabase.first, sa, 0);
 	
+#ifdef WM_FAST_DRAW
+	ED_area_tag_redraw((ScrArea *)newsc->areabase.first);
+#endif
+
 	/* screen, areas init */
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	
@@ -853,8 +863,16 @@ static void area_move_apply_do(bContext *C, int origval, int delta, int dir, int
 			}
 		}
 	}
-	
-	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+#ifdef WM_FAST_DRAW
+	{
+		ScrArea *sa;
+		for(sa= sc->areabase.first; sa; sa= sa->next)
+			if(sa->v1->flag || sa->v2->flag || sa->v3->flag || sa->v4->flag)
+				ED_area_tag_redraw(sa);
+	}
+
+#endif
+	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL); /* redraw everything */
 }
 
 static void area_move_apply(bContext *C, wmOperator *op)
@@ -1115,7 +1133,11 @@ static int area_split_apply(bContext *C, wmOperator *op)
 		
 		if(dir=='h') sd->origval= sd->nedge->v1->vec.y;
 		else sd->origval= sd->nedge->v1->vec.x;
-		
+
+#ifdef WM_FAST_DRAW
+		ED_area_tag_redraw(sd->sarea);
+		ED_area_tag_redraw(sd->narea);
+#endif
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 		
 		return 1;
@@ -1127,6 +1149,12 @@ static int area_split_apply(bContext *C, wmOperator *op)
 static void area_split_exit(bContext *C, wmOperator *op)
 {
 	if (op->customdata) {
+#ifdef WM_FAST_DRAW
+		sAreaSplitData *sd= (sAreaSplitData *)op->customdata;
+		if(sd->sarea) ED_area_tag_redraw(sd->sarea);
+		if(sd->narea) ED_area_tag_redraw(sd->narea);
+#endif
+
 		MEM_freeN(op->customdata);
 		op->customdata = NULL;
 	}
@@ -1249,8 +1277,6 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			fac= (dir == 'v') ? event->x-sd->origmin : event->y-sd->origmin;
 			RNA_float_set(op->ptr, "factor", fac / (float)sd->origsize);
-			
-			WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 			break;
 			
 		case LEFTMOUSE:
@@ -1348,6 +1374,7 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	if(az->ar) {
 		RegionMoveData *rmd= MEM_callocN(sizeof(RegionMoveData), "RegionMoveData");
+		int maxsize;
 		
 		op->customdata= rmd;
 		
@@ -1358,12 +1385,27 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		rmd->origx= event->x;
 		rmd->origy= event->y;
 		rmd->maxsize = area_max_regionsize(rmd->sa, rmd->ar, rmd->edge);
+		
+		/* if not set we do now, otherwise it uses type */
+		if(rmd->ar->sizex==0) 
+			rmd->ar->sizex= rmd->ar->type->prefsizex;
+		if(rmd->ar->sizey==0) 
+			rmd->ar->sizey= rmd->ar->type->prefsizey;
+		
+		/* now copy to regionmovedata */
 		if(rmd->edge=='l' || rmd->edge=='r') {
-			rmd->origval= rmd->ar->type->minsizex;
+			rmd->origval= rmd->ar->sizex;
 		} else {
-			rmd->origval= rmd->ar->type->minsizey;
+			rmd->origval= rmd->ar->sizey;
 		}
-		CLAMP(rmd->maxsize, 0, 1000);
+		
+		/* limit headers to standard height for now */
+		if (rmd->ar->regiontype == RGN_TYPE_HEADER)
+			maxsize = rmd->ar->type->prefsizey;
+		else
+			maxsize = 1000;
+		
+		CLAMP(rmd->maxsize, 0, maxsize);
 		
 		/* add temp handler */
 		WM_event_add_modal_handler(C, op);
@@ -1387,11 +1429,11 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				delta= event->x - rmd->origx;
 				if(rmd->edge=='l') delta= -delta;
 				
-				rmd->ar->type->minsizex= rmd->origval + delta;
-				CLAMP(rmd->ar->type->minsizex, 0, rmd->maxsize);
+				rmd->ar->sizex= rmd->origval + delta;
+				CLAMP(rmd->ar->sizex, 0, rmd->maxsize);
 				
-				if(rmd->ar->type->minsizex < 24) {
-					rmd->ar->type->minsizex= rmd->origval;
+				if(rmd->ar->sizex < 24) {
+					rmd->ar->sizex= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						ED_region_toggle_hidden(C, rmd->ar);
 				}
@@ -1402,18 +1444,20 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				delta= event->y - rmd->origy;
 				if(rmd->edge=='b') delta= -delta;
 				
-				rmd->ar->type->minsizey= rmd->origval + delta;
-				CLAMP(rmd->ar->type->minsizey, 0, rmd->maxsize);
+				rmd->ar->sizey= rmd->origval + delta;
+				CLAMP(rmd->ar->sizey, 0, rmd->maxsize);
 				
-				if(rmd->ar->type->minsizey < 24) {
-					rmd->ar->type->minsizey= rmd->origval;
+				if(rmd->ar->sizey < 24) {
+					rmd->ar->sizey= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						ED_region_toggle_hidden(C, rmd->ar);
 				}
 				else if(rmd->ar->flag & RGN_FLAG_HIDDEN)
 					ED_region_toggle_hidden(C, rmd->ar);
 			}
-			
+#ifdef WM_FAST_DRAW
+			ED_area_tag_redraw(rmd->sa);
+#endif
 			WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 			
 			break;
@@ -1424,6 +1468,9 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if(ABS(event->x - rmd->origx) < 2 && ABS(event->y - rmd->origy) < 2) {
 					if(rmd->ar->flag & RGN_FLAG_HIDDEN) {
 						ED_region_toggle_hidden(C, rmd->ar);
+#ifdef WM_FAST_DRAW
+						ED_area_tag_redraw(rmd->sa);
+#endif
 						WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 					}
 				}
@@ -1558,7 +1605,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	if (ak) 
 		CFRA= (int)ak->cfra;
 	else
-		BKE_report(op->reports, RPT_ERROR, "No more keyframes to jump to in this direction");
+		BKE_report(op->reports, RPT_INFO, "No more keyframes to jump to in this direction");
 	
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
@@ -1906,6 +1953,10 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 			break;
 		case LEFTMOUSE:
 			if(event->val==KM_RELEASE) {
+#ifdef WM_FAST_DRAW
+				ED_area_tag_redraw(jd->sa1);
+				ED_area_tag_redraw(jd->sa2);
+#endif
 				area_join_apply(C, op);
 				WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 				area_join_exit(C, op);
@@ -2088,6 +2139,9 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 				MEM_freeN(ar);
 			}
 		}
+#ifdef WM_FAST_DRAW
+		ED_area_tag_redraw(sa);
+#endif
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	}
 	else if(ar->next)
@@ -2124,6 +2178,9 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 			rv3d->view= RV3D_VIEW_CAMERA; rv3d->persp= RV3D_CAMOB;
 		}
 		
+#ifdef WM_FAST_DRAW
+		ED_area_tag_redraw(sa);
+#endif
 		WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	}
 	
@@ -2166,6 +2223,9 @@ static int region_flip_exec(bContext *C, wmOperator *op)
 	else if(ar->alignment==RGN_ALIGN_RIGHT)
 		ar->alignment= RGN_ALIGN_LEFT;
 	
+#ifdef WM_FAST_DRAW
+		ED_area_tag_redraw(CTX_wm_area(C));
+#endif
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -2219,8 +2279,11 @@ static int header_flip_exec(bContext *C, wmOperator *op)
 	else if(ar->alignment==RGN_ALIGN_RIGHT)
 		ar->alignment= RGN_ALIGN_LEFT;
 	
+#ifdef WM_FAST_DRAW
+	ED_area_tag_redraw(CTX_wm_area(C));
+#endif
+
 	WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
-	printf("executed header region flip\n");
 	
 	return OPERATOR_FINISHED;
 }
@@ -2381,7 +2444,7 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if (sad->flag & ANIMPLAY_FLAG_REVERSE) {
 			/* jump back to end? */
-			if (scene->r.psfra) {
+			if (PRVRANGEON) {
 				if (scene->r.cfra < scene->r.psfra) {
 					scene->r.cfra= scene->r.pefra;
 					sad->flag |= ANIMPLAY_FLAG_JUMPED;
@@ -2396,7 +2459,7 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		}
 		else {
 			/* jump back to start? */
-			if (scene->r.psfra) {
+			if (PRVRANGEON) {
 				if (scene->r.cfra > scene->r.pefra) {
 					scene->r.cfra= scene->r.psfra;
 					sad->flag |= ANIMPLAY_FLAG_JUMPED;
@@ -2726,6 +2789,7 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 	Scene *scene= CTX_data_scene(C);
 	ScrArea *sa= NULL;
 	SpaceImage *sima;
+	int area_was_image=0;
 	
 	if(scene->r.displaymode==R_OUTPUT_WINDOW) {
 		rcti rect;
@@ -2750,6 +2814,9 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 		sa= CTX_wm_area(C);
 	}
 	else if(scene->r.displaymode==R_OUTPUT_SCREEN) {
+		if (CTX_wm_area(C)->spacetype == SPACE_IMAGE)
+			area_was_image = 1;
+		
 		/* this function returns with changed context */
 		ED_screen_full_newspace(C, CTX_wm_area(C), SPACE_IMAGE);
 		sa= CTX_wm_area(C);
@@ -2788,14 +2855,24 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 	/* get the correct image, and scale it */
 	sima->image= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	
-	//	if(G.displaymode==2) { // XXX
-	if(sa->full) {
-		sima->flag |= SI_FULLWINDOW|SI_PREVSPACE;
-		
-		//			ed_screen_fullarea(C, win, sa);
-	}
-	//	}
 	
+	/* if we're rendering to full screen, set appropriate hints on image editor
+	 * so it can restore properly on pressing esc */
+	if(sa->full) {
+		sima->flag |= SI_FULLWINDOW;
+		
+		/* Tell the image editor to revert to previous space in space list on close
+		 * _only_ if it wasn't already an image editor when the render was invoked */
+		if (area_was_image == 0)
+			sima->flag |= SI_PREVSPACE;
+		else {
+			/* Leave it alone so the image editor will just go back from 
+			 * full screen to the original tiled setup */
+			;
+		}
+		
+	}
+
 }
 
 /* executes blocking render */
@@ -2812,7 +2889,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	if(RNA_boolean_get(op->ptr, "animation"))
 		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
 	else
-		RE_BlenderFrame(re, scene, scene->r.cfra);
+		RE_BlenderFrame(re, scene, NULL, scene->r.cfra);
 	
 	// no redraw needed, we leave state as we entered it
 	ED_update_for_newframe(C, 1);
@@ -2826,6 +2903,7 @@ typedef struct RenderJob {
 	Scene *scene;
 	Render *re;
 	wmWindow *win;
+	SceneRenderLayer *srl;
 	int anim;
 	Image *image;
 	ImageUser iuser;
@@ -2883,7 +2961,8 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 	
 	/* very weak... but 512 characters is quite safe */
 	if(spos >= str+IMA_RW_MAXTEXT)
-		printf("WARNING! renderwin text beyond limit \n");
+		if (G.f & G_DEBUG)
+			printf("WARNING! renderwin text beyond limit \n");
 	
 }
 
@@ -2960,6 +3039,9 @@ static void image_buffer_rect_update(Scene *scene, RenderResult *rr, ImBuf *ibuf
 	}
 	if(rectf==NULL) return;
 	
+	if(ibuf->rect==NULL)
+		imb_addrectImBuf(ibuf);
+
 	rectf+= 4*(rr->rectx*ymin + xmin);
 	rectc= (char *)(ibuf->rect + ibuf->x*rymin + rxmin);
 	
@@ -3038,7 +3120,7 @@ static void render_startjob(void *rjv, short *stop, short *do_update)
 	if(rj->anim)
 		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
 	else
-		RE_BlenderFrame(rj->re, rj->scene, rj->scene->r.cfra);
+		RE_BlenderFrame(rj->re, rj->scene, rj->srl, rj->scene->r.cfra);
 }
 
 /* called by render, check job 'stop' value or the global */
@@ -3074,6 +3156,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	/* new render clears all callbacks */
 	Scene *scene= CTX_data_scene(C);
+	SceneRenderLayer *srl=NULL;
 	Render *re;
 	wmJob *steve;
 	RenderJob *rj;
@@ -3102,10 +3185,29 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* ensure at least 1 area shows result */
 	screen_set_image_output(C, event->x, event->y);
 	
+	/* single layer re-render */
+	if(RNA_property_is_set(op->ptr, "layer")) {
+		SceneRenderLayer *rl;
+		Scene *scn;
+		char scene_name[19], rl_name[RE_MAXNAME];
+		
+		RNA_string_get(op->ptr, "layer", rl_name);
+		RNA_string_get(op->ptr, "scene", scene_name);
+		
+		scn = (Scene *)BLI_findstring(&CTX_data_main(C)->scene, scene_name, offsetof(ID, name) + 2);
+		rl = (SceneRenderLayer *)BLI_findstring(&scene->r.layers, rl_name, offsetof(SceneRenderLayer, name));
+		
+		if (scn && rl) {
+			scene = scn;
+			srl = rl;
+		}
+	}
+	
 	/* job custom data */
 	rj= MEM_callocN(sizeof(RenderJob), "render job");
 	rj->scene= scene;
 	rj->win= CTX_wm_window(C);
+	rj->srl = srl;
 	rj->anim= RNA_boolean_get(op->ptr, "animation");
 	rj->iuser.scene= scene;
 	rj->iuser.ok= 1;
@@ -3167,6 +3269,8 @@ static void SCREEN_OT_render(wmOperatorType *ot)
 	ot->poll= ED_operator_screenactive;
 	
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "");
+	RNA_def_string(ot->srna, "layer", "", RE_MAXNAME, "Render Layer", "Single render layer to re-render");
+	RNA_def_string(ot->srna, "scene", "", 19, "Scene", "Re-render single layer in this scene");
 }
 
 /* ****************************** opengl render *************************** */
@@ -3189,7 +3293,7 @@ typedef struct OGLRender {
 	bMovieHandle *mh;
 	int cfrao, nfra;
 	
-	wmTimer *timer;
+	wmTimer *timer; /* use to check if running modal or not (invoke'd or exec'd)*/
 } OGLRender;
 
 static void screen_opengl_render_apply(OGLRender *oglrender)
@@ -3289,11 +3393,11 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	
 	/* create render and render result */
 	oglrender->re= RE_NewRender(scene->id.name);
-	RE_InitState(oglrender->re, NULL, &scene->r, sizex, sizey, NULL);
+	RE_InitState(oglrender->re, NULL, &scene->r, NULL, sizex, sizey, NULL);
 	
 	rr= RE_AcquireResultWrite(oglrender->re);
 	if(rr->rectf==NULL)
-		rr->rectf= MEM_mallocN(sizeof(float)*4*sizex*sizex, "32 bits rects");
+		rr->rectf= MEM_mallocN(sizeof(float)*4*sizex*sizey, "32 bits rects");
 	RE_ReleaseResult(oglrender->re);
 	
 	return 1;
@@ -3307,8 +3411,8 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 		if(BKE_imtype_is_movie(scene->r.imtype))
 			oglrender->mh->end_movie();
 	}
-	
-	if(oglrender->timer) {
+
+	if(oglrender->timer) { /* exec will not have a timer */
 		scene->r.cfra= oglrender->cfrao;
 		scene_update_for_newframe(scene, scene->lay);
 		
@@ -3330,7 +3434,32 @@ static int screen_opengl_render_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *event)
+/* share between invoke and exec */
+static int screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
+{
+	/* initialize animation */
+	OGLRender *oglrender;
+	Scene *scene;
+
+	oglrender= op->customdata;
+	scene= oglrender->scene;
+
+	oglrender->reports= op->reports;
+	oglrender->mh= BKE_get_movie_handle(scene->r.imtype);
+	if(BKE_imtype_is_movie(scene->r.imtype)) {
+		if(!oglrender->mh->start_movie(scene, &scene->r, oglrender->sizex, oglrender->sizey, oglrender->reports)) {
+			screen_opengl_render_end(C, oglrender);
+			return 0;
+		}
+	}
+
+	oglrender->cfrao= scene->r.cfra;
+	oglrender->nfra= SFRA;
+	scene->r.cfra= SFRA;
+
+	return 1;
+}
+static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 {
 	OGLRender *oglrender= op->customdata;
 	Scene *scene= oglrender->scene;
@@ -3339,7 +3468,83 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *even
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	unsigned int lay;
 	int ok= 0;
+
+	/* go to next frame */
+	while(CFRA<oglrender->nfra) {
+		if(scene->lay & 0xFF000000)
+			lay= scene->lay & 0xFF000000;
+		else
+			lay= scene->lay;
+
+		scene_update_for_newframe(scene, lay);
+		CFRA++;
+	}
+
+	scene_update_for_newframe(scene, scene->lay);
+
+	if(oglrender->rv3d->persp==RV3D_CAMOB && oglrender->v3d->camera && oglrender->v3d->scenelock) {
+		/* since scene_update_for_newframe() is used rather
+		 * then ED_update_for_newframe() the camera needs to be set */
+		Object *camera= scene_find_camera_switch(scene);
+
+		if(camera)
+			oglrender->v3d->camera= scene->camera= camera;
+	}
 	
+	/* render into offscreen buffer */
+	screen_opengl_render_apply(oglrender);
+	
+	/* save to disk */
+	ibuf= BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
+	
+	if(ibuf) {
+		if(BKE_imtype_is_movie(scene->r.imtype)) {
+			ok= oglrender->mh->append_movie(&scene->r, CFRA, (int*)ibuf->rect, oglrender->sizex, oglrender->sizey, oglrender->reports);
+			if(ok) {
+				printf("Append frame %d", scene->r.cfra);
+				BKE_reportf(op->reports, RPT_INFO, "Appended frame: %d", scene->r.cfra);
+			}
+		}
+		else {
+			BKE_makepicstring(name, scene->r.pic, scene->r.cfra, scene->r.imtype, scene->r.scemode & R_EXTENSION);
+			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
+			
+			if(ok==0) {
+				printf("Write error: cannot save %s\n", name);
+				BKE_reportf(op->reports, RPT_ERROR, "Write error: cannot save %s", name);
+			}
+			else {
+				printf("Saved: %s", name);
+				BKE_reportf(op->reports, RPT_INFO, "Saved file: %s", name);
+			}
+		}
+	}
+	
+	BKE_image_release_ibuf(oglrender->ima, lock);
+	
+	/* movie stats prints have no line break */
+	printf("\n");
+	
+	/* go to next frame */
+	oglrender->nfra += scene->r.frame_step;
+	scene->r.cfra++;
+	
+	/* stop at the end or on error */
+	if(scene->r.cfra > EFRA || !ok) {
+		screen_opengl_render_end(C, op->customdata);
+		return 0;
+	}
+
+	return 1;
+}
+
+
+static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	OGLRender *oglrender= op->customdata;
+
+	int ret;
+
 	switch(event->type) {
 		case ESCKEY:
 			/* cancel */
@@ -3353,64 +3558,13 @@ static int screen_opengl_render_modal(bContext *C, wmOperator *op, wmEvent *even
 			/* nothing to do */
 			return OPERATOR_RUNNING_MODAL;
 	}
-	
-	/* go to next frame */
-	while(CFRA<oglrender->nfra) {
-		if(scene->lay & 0xFF000000)
-			lay= scene->lay & 0xFF000000;
-		else
-			lay= scene->lay;
-		
-		scene_update_for_newframe(scene, lay);
-		CFRA++;
-	}
-	
-	scene_update_for_newframe(scene, scene->lay);
 
-	if(oglrender->rv3d->persp==RV3D_CAMOB && oglrender->v3d->camera && oglrender->v3d->scenelock) {
-		/* since scene_update_for_newframe() is used rather
-		 * then ED_update_for_newframe() the camera needs to be set */
-		Object *camera= scene_find_camera_switch(scene);
+	ret= screen_opengl_render_anim_step(C, op);
 
-		if(camera)
-			oglrender->v3d->camera= scene->camera= camera;
-	}
-
-	/* render into offscreen buffer */
-	screen_opengl_render_apply(oglrender);
-	
-	/* save to disk */
-	ibuf= BKE_image_acquire_ibuf(oglrender->ima, &oglrender->iuser, &lock);
-	
-	if(ibuf) {
-		if(BKE_imtype_is_movie(scene->r.imtype)) {
-			ok= oglrender->mh->append_movie(&scene->r, CFRA, (int*)ibuf->rect, oglrender->sizex, oglrender->sizey, oglrender->reports);
-			if(ok)
-				printf("Append frame %d", scene->r.cfra);
-		}
-		else {
-			BKE_makepicstring(scene, name, scene->r.pic, scene->r.cfra, scene->r.imtype);
-			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
-			
-			if(ok==0) printf("write error: cannot save %s\n", name);
-			else printf("saved: %s", name);
-		}
-	}
-	
-	BKE_image_release_ibuf(oglrender->ima, lock);
-	
-	/* movie stats prints have no line break */
-	printf("\n");
-	
-	/* go to next frame */
-	oglrender->nfra += scene->r.frame_step;
-	scene->r.cfra++;
-	
 	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, oglrender->scene);
 	
 	/* stop at the end or on error */
-	if(scene->r.cfra > EFRA || !ok) {
-		screen_opengl_render_end(C, op->customdata);
+	if(ret == 0) {
 		return OPERATOR_FINISHED;
 	}
 	
@@ -3433,33 +3587,51 @@ static int screen_opengl_render_invoke(bContext *C, wmOperator *op, wmEvent *eve
 		return OPERATOR_FINISHED;
 	}
 	else {
-		/* initialize animation */
-		OGLRender *oglrender;
-		Scene *scene;
-		
-		oglrender= op->customdata;
-		scene= oglrender->scene;
-		
-		oglrender->reports= op->reports;
-		oglrender->mh= BKE_get_movie_handle(scene->r.imtype);
-		if(BKE_imtype_is_movie(scene->r.imtype)) {
-			if(!oglrender->mh->start_movie(scene, &scene->r, oglrender->sizex, oglrender->sizey, oglrender->reports)) {
-				screen_opengl_render_end(C, oglrender);
-				return OPERATOR_CANCELLED;
-			}
-		}
-		
-		oglrender->cfrao= scene->r.cfra;
-		oglrender->nfra= SFRA;
-		scene->r.cfra= SFRA;
-		
+		OGLRender *oglrender= op->customdata;
+
+		if(!screen_opengl_render_anim_initialize(C, op))
+			return OPERATOR_CANCELLED;
+
+		screen_set_image_output(C, event->x, event->y);
+
 		WM_event_add_modal_handler(C, op);
 		oglrender->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-		
-		screen_set_image_output(C, event->x, event->y);
-		
+
 		return OPERATOR_RUNNING_MODAL;
 	}
+}
+
+/* executes blocking render */
+static int screen_opengl_render_exec(bContext *C, wmOperator *op)
+{
+	int anim= RNA_boolean_get(op->ptr, "animation");
+
+	if(!screen_opengl_render_init(C, op))
+		return OPERATOR_CANCELLED;
+
+	if(!anim) { /* same as invoke */
+		/* render image */
+		screen_opengl_render_apply(op->customdata);
+		screen_opengl_render_end(C, op->customdata);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		int ret= 1;
+
+		if(!screen_opengl_render_anim_initialize(C, op))
+			return OPERATOR_CANCELLED;
+
+		while(ret) {
+			ret= screen_opengl_render_anim_step(C, op);
+		}
+	}
+
+	// no redraw needed, we leave state as we entered it
+//	ED_update_for_newframe(C, 1);
+	WM_event_add_notifier(C, NC_SCENE|ND_RENDER_RESULT, CTX_data_scene(C));
+
+	return OPERATOR_FINISHED;
 }
 
 static void SCREEN_OT_opengl_render(wmOperatorType *ot)
@@ -3471,6 +3643,7 @@ static void SCREEN_OT_opengl_render(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= screen_opengl_render_invoke;
+	ot->exec= screen_opengl_render_exec; /* blocking */
 	ot->modal= screen_opengl_render_modal;
 	ot->cancel= screen_opengl_render_cancel;
 	
@@ -3740,7 +3913,7 @@ void SCENE_OT_new(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
 /********************* delete scene operator *********************/
@@ -3749,7 +3922,7 @@ static int scene_delete_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_SCENEDELETE, scene);
+	WM_event_add_notifier(C, NC_SCENE|NA_REMOVED, scene);
 	
 	return OPERATOR_FINISHED;
 }
@@ -3865,7 +4038,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE_AREA, 0, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE_AREA, 0, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_dupli", EVT_ACTIONZONE_AREA, 0, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_swap", EVT_ACTIONZONE_AREA, 0, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_swap", EVT_ACTIONZONE_AREA, 0, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_region_scale", EVT_ACTIONZONE_REGION, 0, 0, 0);
 	/* area move after action zones */
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);

@@ -55,6 +55,7 @@ struct direntry{
 	char	*string;
 	mode_t	type;
 	char	*relname;
+	char	*path;
 #if (defined(WIN32) || defined(WIN64)) && (_MSC_VER>=1500)
 	struct _stat64 s;
 #else

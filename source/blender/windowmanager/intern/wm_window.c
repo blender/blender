@@ -307,12 +307,14 @@ static void wm_window_add_ghostwindow(wmWindowManager *wm, char *title, wmWindow
 		inital_state += macPrefState;
 	}
 #endif
-	
+	/* Disable AA for now, as GL_SELECT (used for border, lasso, ... select)
+	 doesn't work well when AA is initialized, even if not used. */
 	ghostwin= GHOST_CreateWindow(g_system, title, 
 								 win->posx, posy, win->sizex, win->sizey, 
 								 inital_state, 
 								 GHOST_kDrawingContextTypeOpenGL,
-								 0 /* no stereo */);
+								 0 /* no stereo */,
+								 0 /* no AA */);
 	
 	if (ghostwin) {
 		
@@ -485,6 +487,8 @@ int wm_window_duplicate_op(bContext *C, wmOperator *op)
 	wm_window_copy(C, CTX_wm_window(C));
 	WM_check(C);
 	
+	WM_event_add_notifier(C, NC_WINDOW|NA_ADDED, NULL);
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -550,6 +554,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 	bContext *C= private;
 	wmWindowManager *wm= CTX_wm_manager(C);
 	GHOST_TEventType type= GHOST_GetEventType(evt);
+	int time= GHOST_GetEventTime(evt);
 	
 	if (type == GHOST_kEventQuit) {
 		WM_exit(C);
@@ -574,7 +579,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 		
 		switch(type) {
 			case GHOST_kEventWindowDeactivate:
-				wm_event_add_ghostevent(win, type, data);
+				wm_event_add_ghostevent(wm, win, type, time, data);
 				win->active= 0; /* XXX */
 				break;
 			case GHOST_kEventWindowActivate: 
@@ -591,19 +596,19 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				kdata.ascii= 0;
 				if (win->eventstate->shift && !query_qual('s')) {
 					kdata.key= GHOST_kKeyLeftShift;
-					wm_event_add_ghostevent(win, GHOST_kEventKeyUp, &kdata);
+					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
 				if (win->eventstate->ctrl && !query_qual('c')) {
 					kdata.key= GHOST_kKeyLeftControl;
-					wm_event_add_ghostevent(win, GHOST_kEventKeyUp, &kdata);
+					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
 				if (win->eventstate->alt && !query_qual('a')) {
 					kdata.key= GHOST_kKeyLeftAlt;
-					wm_event_add_ghostevent(win, GHOST_kEventKeyUp, &kdata);
+					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
 				if (win->eventstate->oskey && !query_qual('C')) {
 					kdata.key= GHOST_kKeyCommand;
-					wm_event_add_ghostevent(win, GHOST_kEventKeyUp, &kdata);
+					wm_event_add_ghostevent(wm, win, GHOST_kEventKeyUp, time, &kdata);
 				}
 				/* keymodifier zero, it hangs on hotkeys that open windows otherwise */
 				win->eventstate->keymodifier= 0;
@@ -620,6 +625,8 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 #else
 				win->eventstate->y= (win->sizey-1) - cy;
 #endif
+				
+				win->addmousemove= 1;	/* enables highlighted buttons */
 				
 				wm_window_make_drawable(C, win);
 				break;
@@ -675,7 +682,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 						win->sizey= sizey;
 						win->posx= posx;
 						win->posy= posy;
-	
+
 						/* debug prints */
 						if(0) {
 							state = GHOST_GetWindowState(win->ghostwin);
@@ -702,12 +709,34 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 						wm_window_make_drawable(C, win);
 						wm_draw_window_clear(win);
 						WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
+						WM_event_add_notifier(C, NC_WINDOW|NA_EDITED, NULL);
 					}
 				}
 				break;
 			}
+			case GHOST_kEventDraggingDropDone:
+			{
+				wmEvent event= *(win->eventstate);	/* copy last state, like mouse coords */
+				
+				/* make blender drop event with custom data pointing to wm drags */
+				event.type= EVT_DROP;
+				event.custom= EVT_DATA_LISTBASE;
+				event.customdata= &wm->drags;
+				
+				printf("Drop detected\n");
+				
+				/* add drag data to wm for paths: */
+				/* need icon type, some dropboxes check for that... see filesel code for this */
+				// WM_event_start_drag(C, icon, WM_DRAG_PATH, void *poin, 0.0);
+				/* void poin should point to string, it makes a copy */
+				
+				wm_event_add(win, &event);
+				
+				break;
+			}
+			
 			default:
-				wm_event_add_ghostevent(win, type, data);
+				wm_event_add_ghostevent(wm, win, type, time, data);
 				break;
 		}
 

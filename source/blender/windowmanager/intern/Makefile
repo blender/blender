@@ -74,6 +74,14 @@ ifeq ($(WITH_QUICKTIME),true)
 	CPPFLAGS += -DWITH_QUICKTIME
 endif
 
+ifeq ($(WITH_OPENCOLLADA), true)
+    CPPFLAGS += -DWITH_COLLADA
+endif
+
+ifeq ($(NAN_BUILDINFO), true)
+    CPPFLAGS += -DNAN_BUILDINFO
+endif
+
 ifeq ($(OS),linux)
     ifeq ($(CPU),alpha)
 	CPPFLAGS += -I$(NAN_MESA)/include

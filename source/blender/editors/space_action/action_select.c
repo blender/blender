@@ -416,7 +416,7 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (adt) {	
+		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
@@ -633,7 +633,7 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 		select_mode= SELECT_ADD;
 		
 		/* deselect all other channels and keyframes */
-		ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 		deselect_action_keys(ac, 0, SELECT_SUBTRACT);
 	}
 	
@@ -872,7 +872,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 		/* highlight channel clicked on */
 		if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
 			/* deselect all other channels first */
-			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 			
 			/* Highlight Action-Group or F-Curve? */
 			if (ale && ale->data) {
@@ -891,7 +891,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 			}
 		}
 		else if (ac->datatype == ANIMCONT_GPENCIL) {
-			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 			
 			/* Highlight gpencil layer */
 			//gpl->flag |= GP_LAYER_SELECT;

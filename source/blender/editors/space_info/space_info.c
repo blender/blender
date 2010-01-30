@@ -116,12 +116,16 @@ static SpaceLink *info_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void info_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ED_region_panels_init(wm, ar);
 }
 
 static void info_main_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL, -1);
+	float col[3];
+	
+	/* clear and setup matrix */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void info_operatortypes(void)
@@ -204,7 +208,8 @@ void ED_spacetype_info(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype info region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
+	
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->listener= info_header_listener;
 	art->init= info_header_area_init;

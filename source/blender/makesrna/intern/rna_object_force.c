@@ -1312,7 +1312,7 @@ static void rna_def_field(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Amplitude", "The amplitude of the offset");
 	RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
-	/* Variables used for Curve Guide, allready wrapped, used for other fields too */
+	/* Variables used for Curve Guide, already wrapped, used for other fields too */
 	// falloff_power, use_max_distance, maximum_distance
 }
 

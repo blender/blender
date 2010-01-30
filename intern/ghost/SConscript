@@ -14,7 +14,7 @@ if window_system == 'darwin':
 pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_Window', 'GHOST_DropTarget']
 defs=['_USE_MATH_DEFINES']
 
-if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd6', 'irix6'):
+if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd6', 'irix6', 'aix4', 'aix5'):
 	for f in pf:
 		try:
 			sources.remove('intern' + os.sep + f + 'Win32.cpp')
@@ -57,7 +57,7 @@ else:
 if env['BF_GHOST_DEBUG']:
 	defs.append('BF_GHOST_DEBUG')
 	
-incs = '. ../string ' + env['BF_OPENGL_INC']
+incs = '. ../string #extern/glew/include ' + env['BF_OPENGL_INC']
 if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross', 'win64-vc'):
 	incs = env['BF_WINTAB_INC'] + ' ' + incs
 env.BlenderLib ('bf_ghost', sources, Split(incs), defines=defs, libtype=['intern','player'], priority = [40,15] ) 

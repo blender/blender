@@ -42,6 +42,12 @@ SET(SRC
 INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../ikplugin ../../windowmanager ../../editors/include ../../imbuf ../../render/extern/include .)
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 
+IF(WITH_PYTHON)
+
+ELSE(WITH_PYTHON)
+	ADD_DEFINITIONS(-DDISABLE_PYTHON)
+ENDIF(WITH_PYTHON)
+
 IF(WIN32)
 	SET(INC ${INC} ${PTHREADS_INC})
 ENDIF(WIN32)
@@ -63,7 +69,7 @@ IF(WITH_DDS)
 ENDIF(WITH_DDS)
 
 IF(WITH_QUICKTIME)
-	SET(INC "${INC} ../../quicktime")
+	SET(INC ${INC} ../../quicktime)
 	ADD_DEFINITIONS(-DWITH_QUICKTIME)
 ENDIF(WITH_QUICKTIME)
 
@@ -99,6 +105,7 @@ TARGET_LINK_LIBRARIES(makesrna bf_dna)
 # Output rna_*_gen.c
 ADD_CUSTOM_COMMAND(
 	OUTPUT ${GENSRC}
+	# with crashes try add this after COMMAND: valgrind --leak-check=full --track-origins=yes 
 	COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesrna ${CMAKE_CURRENT_BINARY_DIR}/
 	DEPENDS makesrna
 )

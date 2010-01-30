@@ -18,13 +18,92 @@
 
 # <pep8 compliant>
 
-import bpy
-import os
+"""
+This module contains utility functions spesific to blender but
+not assosiated with blenders internal data.
+"""
+
+import bpy as _bpy
+import os as _os
+import sys as _sys
+
+def load_scripts(reload_scripts=False, refresh_scripts=False):
+    import traceback
+    import time
+
+    t_main = time.time()
+
+    loaded_modules = set()
+
+    def test_import(module_name):
+        if module_name in loaded_modules:
+            return None
+        if "." in module_name:
+            print("Ignoring '%s', can't import files containing multiple periods." % module_name)
+            return None
+
+        try:
+            t = time.time()
+            ret = __import__(module_name)
+            if _bpy.app.debug:
+                print("time %s %.4f" % (module_name, time.time() - t))
+            return ret
+        except:
+            traceback.print_exc()
+            return None
+
+    def test_reload(module):
+        try:
+            reload(module)
+        except:
+            traceback.print_exc()
+
+    if reload_scripts:
+        # reload modules that may not be directly included
+        for type_class_name in dir(_bpy.types):
+            type_class = getattr(_bpy.types, type_class_name)
+            module_name = getattr(type_class, "__module__", "")
+
+            if module_name and module_name != "bpy.types": # hard coded for C types
+               loaded_modules.add(module_name)
+
+        for module_name in loaded_modules:
+            print("Reloading:", module_name)
+            test_reload(_sys.modules[module_name])
+
+    for base_path in script_paths():
+        for path_subdir in ("ui", "op", "io", "cfg"):
+            path = _os.path.join(base_path, path_subdir)
+            if _os.path.isdir(path):
+
+                # needed to load scripts after the users script path changes
+                # we should also support a full reload but since this is now unstable it can be postponed.
+                if refresh_scripts and path in _sys.path:
+                    continue
+
+                if path not in _sys.path: # reloading would add twice
+                    _sys.path.insert(0, path)
+                for f in sorted(_os.listdir(path)):
+                    if f.endswith(".py"):
+                        # python module
+                        mod = test_import(f[0:-3])
+                    elif "." not in f:
+                        # python package
+                        mod = test_import(f)
+                    else:
+                        mod = None
+
+                    if reload_scripts and mod:
+                        print("Reloading:", mod)
+                        test_reload(mod)
+
+    if _bpy.app.debug:
+        print("Time %.4f" % (time.time() - t_main))
 
 
 def expandpath(path):
     if path.startswith("//"):
-        return os.path.join(os.path.dirname(bpy.data.filename), path[2:])
+        return _os.path.join(_os.path.dirname(_bpy.data.filename), path[2:])
 
     return path
 
@@ -47,67 +126,74 @@ _unclean_chars = ''.join([chr(i) for i in _unclean_chars])
 
 
 def clean_name(name, replace="_"):
-    '''
+    """
+    Returns a name with characters replaced that may cause problems under various circumstances, such as writing to a file.
     All characters besides A-Z/a-z, 0-9 are replaced with "_"
     or the replace argumet if defined.
-    '''
+    """
     for ch in _unclean_chars:
         name = name.replace(ch, replace)
     return name
 
 
 def display_name(name):
-    '''
-    Only capitalize all lowercase names, mixed case use them as is.
-    should work with filenames and module names.
-    '''
-    name_base = os.path.splitext(name)[0]
+    """
+    Creates a display string from name to be used menus and the user interface.
+    Capitalize the first letter in all lowercase names, mixed case names are kept as is.
+    Intended for use with filenames and module names.
+    """
+    name_base = _os.path.splitext(name)[0]
 
     # string replacements
     name_base = name_base.replace("_colon_", ":")
 
     name_base = name_base.replace("_", " ")
 
-    if name_base.lower() == name_base:
-        return ' '.join([w[0].upper() + w[1:] for w in name_base.split()])
+    if name_base.islower():
+        return name_base.capitalize()
     else:
         return name_base
 
 
 # base scripts
-_scripts = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)
-_scripts = (os.path.normpath(_scripts), )
+_scripts = _os.path.join(_os.path.dirname(__file__), _os.path.pardir, _os.path.pardir)
+_scripts = (_os.path.normpath(_scripts), )
 
 
 def script_paths(*args):
+    """
+    Returns a list of valid script paths from the home directory and user preferences.
+
+    Accepts any number of string arguments which are joined to make a path.
+    """
     scripts = list(_scripts)
 
     # add user scripts dir
-    user_script_path = bpy.context.user_preferences.filepaths.python_scripts_directory
+    user_script_path = _bpy.context.user_preferences.filepaths.python_scripts_directory
 
     if not user_script_path:
         # XXX - WIN32 needs checking, perhaps better call a blender internal function.
-        user_script_path = os.path.join(os.path.expanduser("~"), ".blender", "scripts")
+        user_script_path = _os.path.join(_os.path.expanduser("~"), ".blender", "scripts")
 
-    user_script_path = os.path.normpath(user_script_path)
+    user_script_path = _os.path.normpath(user_script_path)
 
-    if user_script_path not in scripts and os.path.isdir(user_script_path):
+    if user_script_path not in scripts and _os.path.isdir(user_script_path):
         scripts.append(user_script_path)
 
     if not args:
         return scripts
 
-    subdir = os.path.join(*args)
+    subdir = _os.path.join(*args)
     script_paths = []
     for path in scripts:
-        path_subdir = os.path.join(path, subdir)
-        if os.path.isdir(path_subdir):
+        path_subdir = _os.path.join(path, subdir)
+        if _os.path.isdir(path_subdir):
             script_paths.append(path_subdir)
 
     return script_paths
 
 
-_presets = os.path.join(_scripts[0], "presets") # FIXME - multiple paths
+_presets = _os.path.join(_scripts[0], "presets") # FIXME - multiple paths
 
 
 def preset_paths(subdir):
@@ -115,4 +201,4 @@ def preset_paths(subdir):
     Returns a list of paths for a spesific preset.
     '''
 
-    return (os.path.join(_presets, subdir), )
+    return (_os.path.join(_presets, subdir), )

@@ -30,7 +30,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         mode_string = context.mode
         edit_object = context.edit_object
         obj = context.active_object
-        toolsettings = context.scene.tool_settings
+        toolsettings = context.tool_settings
 
         row = layout.row()
         row.template_header()
@@ -49,12 +49,22 @@ class VIEW3D_HT_header(bpy.types.Header):
             if edit_object:
                 sub.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
             elif obj:
-                if mode_string not in ('PAINT_WEIGHT', 'PAINT_TEXTURE'):
+                if mode_string not in ('PAINT_TEXTURE'):
                     sub.menu("VIEW3D_MT_%s" % mode_string.lower())
             else:
                 sub.menu("VIEW3D_MT_object")
 
         row.template_header_3D()
+
+        # do in C for now since these buttons cant be both toggle AND exclusive.
+        '''
+        if obj and obj.mode == 'EDIT' and obj.type == 'MESH':
+            row_sub = row.row(align=True)
+            row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=0, icon='VERTEXSEL')
+            row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=1, icon='EDGESEL')
+            row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=2, icon='FACESEL')
+        '''
+
 
         # Particle edit
         if obj and obj.mode == 'PARTICLE_EDIT':
@@ -65,7 +75,7 @@ class VIEW3D_HT_header(bpy.types.Header):
             row.prop(view, "occlude_geometry", text="")
 
         # Proportional editing
-        if obj and obj.mode in ('OBJECT', 'EDIT'):
+        if obj and obj.mode in ('OBJECT', 'EDIT', 'PARTICLE_EDIT'):
             row = layout.row(align=True)
             row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
             if toolsettings.proportional_editing != 'DISABLED':
@@ -186,6 +196,8 @@ class VIEW3D_MT_mirror(bpy.types.Menu):
             props.constraint_axis = (False, False, True)
             props.constraint_orientation = 'LOCAL'
 
+            layout.operator("object.vertex_group_mirror")
+
 
 class VIEW3D_MT_snap(bpy.types.Menu):
     bl_label = "Snap"
@@ -200,6 +212,7 @@ class VIEW3D_MT_snap(bpy.types.Menu):
         layout.separator()
 
         layout.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected")
+        layout.operator("view3d.snap_cursor_to_center", text="Cursor to Center")
         layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid")
         layout.operator("view3d.snap_cursor_to_active", text="Cursor to Active")
 
@@ -231,7 +244,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("view3d.properties", icon='MENU_PANEL')
-        layout.operator("view3d.toolbar", icon='MENU_PANEL')
+        layout.operator("view3d.toolshelf", icon='MENU_PANEL')
 
         layout.separator()
 
@@ -265,7 +278,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
         layout.separator()
 
         layout.operator("view3d.localview", text="View Global/Local")
-        layout.operator("view3d.view_center")
+        layout.operator("view3d.view_selected")
         layout.operator("view3d.view_all")
 
         layout.separator()
@@ -313,7 +326,7 @@ class VIEW3D_MT_view_align(bpy.types.Menu):
 
         layout.operator("view3d.view_all", text="Center Cursor and View All").center = True
         layout.operator("view3d.camera_to_view", text="Align Active Camera to View")
-        layout.operator("view3d.view_center")
+        layout.operator("view3d.view_selected")
         layout.operator("view3d.view_center_cursor")
 
 
@@ -410,6 +423,9 @@ class VIEW3D_MT_select_pose(bpy.types.Menu):
         props.extend = True
         props.direction = 'CHILD'
 
+        layout.separator()
+
+        layout.operator_menu_enum("pose.select_grouped", "type", text="Grouped")
         layout.operator("object.select_pattern", text="Select Pattern...")
 
 
@@ -639,7 +655,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.separator()
 
         layout.operator("object.duplicate_move")
-        layout.operator("object.duplicate", text="Duplicate Linked").linked = True
+        layout.operator("object.duplicate_move_linked")
         layout.operator("object.delete", text="Delete...")
         layout.operator("object.proxy_make", text="Make Proxy...")
         layout.menu("VIEW3D_MT_make_links", text="Make Links...")
@@ -656,6 +672,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.separator()
 
         layout.operator("object.join_shapes")
+        layout.operator("object.join_uvs")
         layout.operator("object.join")
 
         layout.separator()
@@ -777,7 +794,7 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
         layout = self.layout
 
         layout.operator_menu_enum("object.make_links_scene", "type", text="Objects to Scene...")
-
+        layout.operator_menu_enum("marker.make_links_scene", "type", text="Markers to Scene...")
         layout.operator_enums("object.make_links_data", property="type") # inline
 
 
@@ -835,6 +852,24 @@ class VIEW3D_MT_vertex_group(bpy.types.Menu):
             layout.operator("object.vertex_group_remove", text="Remove Active Group")
             layout.operator("object.vertex_group_remove", text="Remove All Groups").all = True
 
+# ********** Weight paint menu **********
+
+class VIEW3D_MT_paint_weight(bpy.types.Menu):
+    bl_label = "Weights"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("paint.weight_from_bones", text="Assign Automatic From Bones").type = 'AUTOMATIC'
+        layout.operator("paint.weight_from_bones", text="Assign From Bone Envelopes").type = 'ENVELOPES'
+
+        layout.separator()
+
+        layout.operator("object.vertex_group_normalize_all", text="Normalize All")
+        layout.operator("object.vertex_group_normalize", text="Normalize")
+        layout.operator("object.vertex_group_invert", text="Invert")
+        layout.operator("object.vertex_group_clean", text="Clean")
+        layout.operator("object.vertex_group_levels", text="Levels")
 
 # ********** Sculpt menu **********
 
@@ -896,6 +931,7 @@ class VIEW3D_MT_particle(bpy.types.Menu):
             layout.operator("particle.subdivide")
 
         layout.operator("particle.rekey")
+        layout.operator("particle.weight_set")
 
         layout.separator()
 
@@ -976,6 +1012,8 @@ class VIEW3D_MT_pose(bpy.types.Menu):
         layout.operator("pose.autoside_names", text="AutoName Top/Bottom").axis = 'ZAXIS'
 
         layout.operator("pose.flip_names")
+		
+        layout.operator("pose.quaternions_flip")
 
         layout.separator()
 
@@ -1217,7 +1255,8 @@ class VIEW3D_MT_edit_mesh_edges(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("TRANSFORM_OT_edge_slide", text="Edge Slide")
+        layout.operator("TRANSFORM_OT_edge_slide")
+        layout.operator("TRANSFORM_OT_edge_crease")
         layout.operator("mesh.loop_multi_select", text="Edge Loop")
 
         # uiItemO(layout, "Loopcut", 0, "mesh.loop_cut"); // CutEdgeloop(em, 1);
@@ -1241,7 +1280,7 @@ class VIEW3D_MT_edit_mesh_faces(bpy.types.Menu):
         # layout.operator("mesh.bevel")
         layout.operator("mesh.edge_face_add")
         layout.operator("mesh.fill")
-        layout.operator("mesh.beauty_fill")
+        layout.operator("mesh.beautify_fill")
         layout.operator("mesh.solidify")
 
         layout.separator()
@@ -1701,15 +1740,21 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         col.prop(gs, "material_mode", text="")
         col.prop(view, "textured_solid")
 
-# XXX - the Quad View options don't work yet
-#		layout.separator()
-#
-#		layout.operator("screen.region_foursplit", text="Toggle Quad View")
-#		col = layout.column()
-#		col.prop(view, "lock_rotation")
-#		col.prop(view, "box_preview")
-#		col.prop(view, "box_clip")
+        layout.separator()
 
+        region = view.region_quadview
+
+        layout.operator("screen.region_quadview", text="Toggle Quad View")
+
+        if region:
+            col = layout.column()
+            col.prop(region, "lock_rotation")
+            row = col.row()
+            row.enabled = region.lock_rotation
+            row.prop(region, "box_preview")
+            row = col.row()
+            row.enabled = region.lock_rotation and region.box_preview
+            row.prop(region, "box_clip")
 
 class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -1771,7 +1816,7 @@ class VIEW3D_PT_3dview_curvedisplay(bpy.types.Panel):
 class VIEW3D_PT_background_image(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Background Image"
+    bl_label = "Background Images"
     bl_default_closed = True
 
     def poll(self, context):
@@ -1783,28 +1828,38 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
         layout = self.layout
         view = context.space_data
 
-        layout.prop(view, "display_background_image", text="")
+        layout.prop(view, "display_background_images", text="")
 
     def draw(self, context):
         layout = self.layout
 
         view = context.space_data
-        bg = view.background_image
+        
+        col = layout.column()
+        col.operator("view3d.add_background_image", text="Add Image")
 
-        if bg:
-            layout.active = view.display_background_image
+        for i, bg in enumerate(view.background_images):
+            layout.active = view.display_background_images
+            box = layout.box()
+            row = box.row(align=True)
+            row.prop(bg, "show_expanded", text="", no_bg=True)
+            row.label(text=getattr(bg.image, "name", "Not Set"))
+            row.operator("view3d.remove_background_image", text="", icon='X').index = i
+            
+            box.prop(bg, "view_axis", text="Axis")
+            
+            if bg.show_expanded:
+                row = box.row()
+                row.template_ID(bg, "image", open="image.open")
+                if (bg.image):
+                    box.template_image(bg, "image", bg.image_user, compact=True)
 
-            col = layout.column()
-            col.template_ID(bg, "image", open="image.open")
-            col.prop(bg, "size")
-            col.prop(bg, "transparency", slider=True)
-
-
-            col = layout.column(align=True)
-            col.label(text="Offset:")
-            col.prop(bg, "offset_x", text="X")
-            col.prop(bg, "offset_y", text="Y")
-
+                    box.prop(bg, "transparency", slider=True)
+                    box.prop(bg, "size")
+                    row = box.row(align=True)
+                    row.prop(bg, "offset_x", text="X")
+                    row.prop(bg, "offset_y", text="Y")
+ 
 
 class VIEW3D_PT_transform_orientations(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
@@ -1951,8 +2006,8 @@ bpy.types.register(VIEW3D_MT_hook)
 bpy.types.register(VIEW3D_MT_vertex_group)
 
 bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
-
 bpy.types.register(VIEW3D_MT_paint_vertex)
+bpy.types.register(VIEW3D_MT_paint_weight)
 
 bpy.types.register(VIEW3D_MT_particle)# Particle Menu
 bpy.types.register(VIEW3D_MT_particle_specials)

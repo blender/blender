@@ -152,6 +152,7 @@ def main(obj, bone_definition, base_names, options):
 
     control_pbone.rotation_mode = 'YZX'
     control_pbone.lock_rotation = False, True, True
+    control_pbone.lock_location = True, True, True
 
     driver_fcurves = pinky_pbone.driver_add("rotation_euler")
 
@@ -163,6 +164,8 @@ def main(obj, bone_definition, base_names, options):
     prop = rna_idprop_ui_prop_get(control_pbone, "spread", create=True)
     prop["soft_min"] = -1.0
     prop["soft_max"] = 1.0
+    prop["min"] = -1.0
+    prop["max"] = 1.0
 
 
     # *****
@@ -246,23 +249,22 @@ def main(obj, bone_definition, base_names, options):
         # NOTE: the direction of the Z rotation depends on which side the palm is on.
         # we could do a simple side-of-x test but better to work out the direction
         # the hand is facing.
-        from Mathutils import Vector, AngleBetweenVecs
+        from Mathutils import Vector
         from math import degrees
         child_pbone_01 = obj.pose.bones[children[0]].bone
         child_pbone_02 = obj.pose.bones[children[1]].bone
 
         rel_vec = child_pbone_01.head - child_pbone_02.head
-        x_vec = child_pbone_01.matrix.rotationPart() * Vector(1.0, 0.0, 0.0)
+        x_vec = child_pbone_01.matrix.rotation_part() * Vector(1.0, 0.0, 0.0)
 
-        return degrees(AngleBetweenVecs(rel_vec, x_vec)) > 90.0
+        return degrees(rel_vec.angle(x_vec)) > 90.0
 
     if x_direction(): # flip
         driver.expression = "-(%s)" % driver.expression
 
 
     # last step setup layers
-    layers = get_layer_dict(options)
-    arm.bones[control_name].layer = layers["extra"]
+    arm.bones[control_name].layer = list(arm.bones[bone_definition[1]].layer)
 
 
     # no blending the result of this

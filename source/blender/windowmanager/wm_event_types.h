@@ -39,6 +39,7 @@
 #define EVT_DATA_TABLET		1
 #define EVT_DATA_GESTURE	2
 #define EVT_DATA_TIMER		3
+#define EVT_DATA_LISTBASE	4
 
 /* tablet active, matches GHOST_TTabletMode */
 #define EVT_TABLET_NONE		0
@@ -56,9 +57,13 @@
 		/* only use if you want user option switch possible */
 #define ACTIONMOUSE		0x005
 #define SELECTMOUSE		0x006
-/* Extra mouse buttons */
+		/* Extra mouse buttons */
 #define BUTTON4MOUSE	0x007  
 #define BUTTON5MOUSE	0x008
+		/* Extra trackpad gestures */
+#define MOUSEPAN		0x00e
+#define MOUSEZOOM		0x00f
+#define MOUSEROTATE		0x010
 		/* defaults from ghost */
 #define WHEELUPMOUSE	0x00a	
 #define WHEELDOWNMOUSE	0x00b
@@ -67,7 +72,7 @@
 #define WHEELOUTMOUSE	0x00d
 
 
-/* SYSTEM : 0x01x */
+/* SYSTEM : 0x01xx */
 #define	INPUTCHANGE		0x0103	/* input connected or disconnected */
 #define WINDEACTIVATE	0x0104	/* window is deactivated, focus lost */
 
@@ -202,7 +207,7 @@
 #define ISKEYBOARD(event)	(event >=' ' && event <=320)
 
 	/* test whether the event is a mouse button */
-#define ISMOUSE(event)	(event >= LEFTMOUSE && event <= WHEELOUTMOUSE)
+#define ISMOUSE(event)	(event >= LEFTMOUSE && event <= MOUSEROTATE)
 
 	/* test whether the event is timer event */
 #define ISTIMER(event)	(event >= TIMER && event <= TIMERAUTOSAVE)
@@ -261,6 +266,7 @@
 /* event->type */
 #define EVT_BUT_OPEN	0x5021
 #define EVT_MODAL_MAP	0x5022
+#define EVT_DROP		0x5023
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
 #define GESTURE_MODAL_CANCEL		1

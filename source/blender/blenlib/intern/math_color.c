@@ -274,6 +274,26 @@ void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
 	*b /= 255.0f;
 }
 
+void rgb_byte_to_float(char *in, float *out)
+{
+	out[0]= ((float)in[0]) / 255.0f;
+	out[1]= ((float)in[1]) / 255.0f;
+	out[2]= ((float)in[2]) / 255.0f;
+}
+
+void rgb_float_to_byte(float *in, char *out)
+{
+	int r, g, b;
+	
+	r= (int)(in[0] * 255.0);
+	g= (int)(in[1] * 255.0); 
+	b= (int)(in[2] * 255.0); 
+	
+	out[0]= (char)((r <= 0)? 0 : (r >= 255)? 255 : r);
+	out[1]= (char)((g <= 0)? 0 : (g >= 255)? 255 : g);
+	out[2]= (char)((b <= 0)? 0 : (b >= 255)? 255 : b);
+}
+
 /* ********************************* color transforms ********************************* */
 
 
@@ -364,5 +384,25 @@ int constrain_rgb(float *r, float *g, float *b)
     }
 
     return 0;                         /* Color within RGB gamut */
+}
+
+float rgb_to_grayscale(float rgb[3])
+{
+	return 0.3f*rgb[0] + 0.58f*rgb[1] + 0.12f*rgb[2];
+}
+
+/* ********************************* lift/gamma/gain / ASC-CDL conversion ********************************* */
+
+void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power)
+{
+	int c;
+	for(c=0; c<3; c++) {
+		offset[c]= lift[c]*gain[c];
+		slope[c]=  gain[c]*(1.0f-lift[c]);
+		if(gamma[c] == 0)
+			power[c]= FLT_MAX;
+		else
+			power[c]= 1.0f/gamma[c];
+	}
 }
 

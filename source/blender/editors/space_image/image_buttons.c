@@ -592,7 +592,7 @@ static void set_frames_cb(bContext *C, void *ima_v, void *iuser_v)
 	
 	if(ima->anim) {
 		iuser->frames = IMB_anim_get_duration(ima->anim);
-		BKE_image_user_calc_imanr(iuser, scene->r.cfra, 0);
+		BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
 	}
 }
 
@@ -888,26 +888,30 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 				uiblock_layer_pass_arrow_buttons(layout, ima->rr, iuser);
 			}
 			else if(ima->source != IMA_SRC_GENERATED) {
-				ibuf= BKE_image_acquire_ibuf(ima, iuser, &lock);
-				image_info(ima, ibuf, str);
-				BKE_image_release_ibuf(ima, lock);
-				uiItemL(layout, str, 0);
+				if(compact == 0) {
+					ibuf= BKE_image_acquire_ibuf(ima, iuser, &lock);
+					image_info(ima, ibuf, str);
+					BKE_image_release_ibuf(ima, lock);
+					uiItemL(layout, str, 0);
+				}
 			}
 			
 			if(ima->source != IMA_SRC_GENERATED) {
-				uiItemS(layout);
+				if(compact == 0) { /* background image view doesnt need these */
+					uiItemS(layout);
 
-				split= uiLayoutSplit(layout, 0, 0);
+					split= uiLayoutSplit(layout, 0, 0);
 
-				col= uiLayoutColumn(split, 0);
-				uiItemR(col, NULL, 0, &imaptr, "fields", 0);
-				row= uiLayoutRow(col, 0);
-				uiItemR(row, NULL, 0, &imaptr, "field_order", UI_ITEM_R_EXPAND);
-				uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "fields"));
+					col= uiLayoutColumn(split, 0);
+					uiItemR(col, NULL, 0, &imaptr, "fields", 0);
+					row= uiLayoutRow(col, 0);
+					uiItemR(row, NULL, 0, &imaptr, "field_order", UI_ITEM_R_EXPAND);
+					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "fields"));
 
-				col= uiLayoutColumn(split, 0);
-				uiItemR(col, NULL, 0, &imaptr, "antialias", 0);
-				uiItemR(col, NULL, 0, &imaptr, "premultiply", 0);
+					col= uiLayoutColumn(split, 0);
+					uiItemR(col, NULL, 0, &imaptr, "antialias", 0);
+					uiItemR(col, NULL, 0, &imaptr, "premultiply", 0);
+				}
 			}
 
 			if(ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
@@ -1036,5 +1040,26 @@ void IMAGE_OT_properties(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
+static int image_scopes(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= image_has_scope_region(sa);
+	
+	if(ar)
+		ED_region_toggle_hidden(C, ar);
+	
+	return OPERATOR_FINISHED;
+}
 
+void IMAGE_OT_scopes(wmOperatorType *ot)
+{
+	ot->name= "Scopes";
+	ot->idname= "IMAGE_OT_scopes";
+	
+	ot->exec= image_scopes;
+	ot->poll= ED_operator_image_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
 

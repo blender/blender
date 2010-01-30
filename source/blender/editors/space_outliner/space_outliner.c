@@ -128,9 +128,11 @@ static void outliner_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_OBJECT:
 			switch(wmn->data) {
+				case ND_TRANSFORM:
+					/* transform doesn't change outliner data */
+					break;
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
-				case ND_TRANSFORM:
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_MODIFIER:
@@ -284,7 +286,7 @@ void ED_spacetype_outliner(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype time region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	
 	art->init= outliner_header_area_init;

@@ -28,8 +28,14 @@ LAYER_TYPES = "main", "extra", "ik", "fk"
 
 ORG_LAYERS = [n==31 for n in range(0,32)]
 MCH_LAYERS = [n==30 for n in range(0,32)]
-DEF_LAYERS = [n==29 for n in range(0,32)] 
+DEF_LAYERS = [n==29 for n in range(0,32)]
+ROOT_LAYERS = [n==28 for n in range(0,32)] 
 
+ORG_PREFIX = "ORG-"
+MCH_PREFIX = "MCH-"
+DEF_PREFIX = "DEF-"
+
+WGT_PREFIX = "WGT-"
 
 
 
@@ -79,11 +85,15 @@ def get_bone_type_options(pbone, type_name):
     options = {}
     bone_name = pbone.name
     for key, value in pbone.items():
-        key_pair = key.split(".")
+        key_pair = key.rsplit(".")
+        # get all bone properties
+        """"
         if key_pair[0] == type_name:
             if len(key_pair) != 2:
                 raise RigifyError("option error for bone '%s', property name was not a pair '%s'" % (bone_name, key_pair))
             options[key_pair[1]] = value
+        """
+        options[key] = value
 
     return options
 
@@ -144,6 +154,8 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     from collections import OrderedDict
     import rigify_utils
     reload(rigify_utils)
+    
+    print("Begin...")
 
     # Not needed but catches any errors before duplicating
     validate_rig(context, obj_orig)
@@ -154,38 +166,125 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     rest_backup = obj_orig.data.pose_position
     obj_orig.data.pose_position = 'REST'
 
-
     bpy.ops.object.mode_set(mode='OBJECT')
 
     scene = context.scene
 
-    # copy object and data
+    # Check if the generated rig already exists, so we can
+    # regenerate in the same object.  If not, create a new
+    # object to generate the rig in.
+    print("Fetch rig.")
+    try:
+        name = obj_orig["rig_object_name"]
+    except KeyError:
+        name = "rig"
+        
+    try:
+        obj = scene.objects[name]
+    except KeyError:
+        obj = bpy.data.objects.new(name, type='ARMATURE')
+        obj.data = bpy.data.armatures.new(name)
+        scene.objects.link(obj)
+        
+    obj.data.pose_position = 'POSE'
+    
+    # Get rid of anim data in case the rig already existed
+    print("Clear rig animation data.")
+    obj.animation_data_clear()
+        
+    # Select generated rig object
     obj_orig.selected = False
-    obj = obj_orig.copy()
-    obj.data = obj_orig.data.copy()
-    scene.objects.link(obj)
-    scene.objects.active = obj
     obj.selected = True
-
+    scene.objects.active = obj
+    
+    # Remove all bones from the generated rig armature.
+    bpy.ops.object.mode_set(mode='EDIT')
+    for bone in obj.data.edit_bones:
+        obj.data.edit_bones.remove(bone)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+    # Create temporary duplicates for merging
+    temp_rig_1 = obj_orig.copy()
+    temp_rig_1.data = obj_orig.data.copy()
+    scene.objects.link(temp_rig_1)
+    
+    temp_rig_2 = obj_orig.copy()
+    temp_rig_2.data = obj.data
+    scene.objects.link(temp_rig_2)
+    
+    # Select the temp rigs for merging
+    for objt in scene.objects:
+        objt.selected = False # deselect all objects
+    temp_rig_1.selected = True
+    temp_rig_2.selected = True
+    scene.objects.active = temp_rig_2
+    
+    # Merge the temporary rigs
+    bpy.ops.object.join(context)
+    
+    # Delete the second temp rig
+    bpy.ops.object.delete()
+    
+    # Select the generated rig
+    for objt in scene.objects:
+        objt.selected = False # deselect all objects
+    obj.selected = True
+    scene.objects.active = obj
+    
+    # Copy over the pose_bone properties
+    for bone in obj_orig.pose.bones:
+        bone_gen = obj.pose.bones[bone.name]
+        
+        # Rotation mode and transform locks
+        bone_gen.rotation_mode     = bone.rotation_mode
+        bone_gen.lock_rotation     = tuple(bone.lock_rotation)
+        bone_gen.lock_rotation_w   = bone.lock_rotation_w
+        bone_gen.lock_rotations_4d = bone.lock_rotations_4d
+        bone_gen.lock_location     = tuple(bone.lock_location)
+        bone_gen.lock_scale        = tuple(bone.lock_scale)
+        
+        # Custom properties
+        for prop in bone.keys():
+            bone_gen[prop] = bone[prop]
+    
+    # Copy over bone properties
+    for bone in obj_orig.data.bones:
+        bone_gen = obj.data.bones[bone.name]
+        
+        # B-bone stuff
+        bone_gen.bbone_segments = bone.bbone_segments
+        bone_gen.bbone_in = bone.bbone_in
+        bone_gen.bbone_out = bone.bbone_out
+    
+    
+    # Create proxy deformation rig
+    # TODO: remove this
     if META_DEF:
         obj_def = obj_orig.copy()
         obj_def.data = obj_orig.data.copy()
         scene.objects.link(obj_def)
+    
+    scene.update()
+    print("On to the real work.")
 
     arm = obj.data
 
-    # original name mapping
+    # prepend the ORG prefix to the bones, and create the base_names mapping
     base_names = {}
-
-    # add all new parentless children to this bone
-    root_bone = None
-
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in arm.edit_bones:
         bone_name = bone.name
-        if obj.pose.bones[bone_name].get("type", "") != "root":
-            bone.name = prefix + bone_name
-        base_names[bone.name] = bone_name # new -> old mapping
+        bone.name = ORG_PREFIX + bone_name
+        base_names[bone.name] = bone_name
+
+    # create root_bone
+    bpy.ops.object.mode_set(mode='EDIT')
+    edit_bone = obj.data.edit_bones.new("root")
+    root_bone = edit_bone.name
+    edit_bone.head = (0.0, 0.0, 0.0)
+    edit_bone.tail = (0.0, 1.0, 0.0)
+    edit_bone.roll = 0.0
+    edit_bone.layer = ROOT_LAYERS
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # key: bone name
@@ -218,12 +317,6 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         else:
             bone_type_list = []
 
-        if bone_type_list == ["root"]: # special case!
-            if root_bone:
-                raise RigifyError("cant have more then 1 root bone, found '%s' and '%s' to have type==root" % (root_bone, bone_name))
-            root_bone = bone_name
-            bone_type_list[:] = []
-
         for bone_type in bone_type_list:
             type_name, submod, type_func = submodule_func_from_type(bone_type)
             reload(submod)
@@ -247,7 +340,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     # for pbone in obj.pose.bones:
     for pbone in bones_sorted:
         bone_name = pbone.name
-
+        print(bone_name)
         if bone_name not in bone_typeinfos:
             continue
 
@@ -260,6 +353,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         bone_names_pre = {bone.name for bone in arm.bones}
 
         for type_name, type_func in bone_typeinfos[bone_name]:
+            print("    " + type_name)
             # this bones definition of the current typeinfo
             definition = bone_def_dict[type_name]
             options = get_bone_type_options(pbone, type_name)
@@ -292,9 +386,11 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     # need a reverse lookup on bone_genesis so as to know immediately
     # where a bone comes from
     bone_genesis_reverse = {}
+    '''
     for bone_name, bone_children in bone_genesis.items():
         for bone_child_name in bone_children:
             bone_genesis_reverse[bone_child_name] = bone_name
+    '''
 
 
     if root_bone:
@@ -304,6 +400,9 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         root_ebone = arm.edit_bones[root_bone]
         for ebone in arm.edit_bones:
             bone_name = ebone.name
+            if ebone.parent is None:
+                ebone.parent = root_ebone
+            '''
             if ebone.parent is None and bone_name not in base_names:
                 # check for override
                 bone_creator = bone_genesis_reverse[bone_name]
@@ -317,6 +416,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
                 ebone.connected = False
                 ebone.parent = root_ebone_tmp
+            '''
 
         bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -348,18 +448,22 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
 
     for bone_name, bone in arm.bones.items():
         bone.deform = False  # Non DEF bones shouldn't deform
-        if bone_name.startswith(prefix):
+        if bone_name.startswith(ORG_PREFIX):
             bone.layer = ORG_LAYERS
-        elif bone_name.startswith("MCH-"): # XXX fixme
+        elif bone_name.startswith(MCH_PREFIX): # XXX fixme
             bone.layer = MCH_LAYERS
-        elif bone_name.startswith("DEF-"): # XXX fixme
+        elif bone_name.startswith(DEF_PREFIX): # XXX fixme
             bone.layer = DEF_LAYERS
             bone.deform = True
+        else:
+            # Assign bone appearance if there is a widget for it
+            obj.pose.bones[bone_name].custom_shape = context.scene.objects.get(WGT_PREFIX+bone_name)
 
         layer_tot[:] = [max(lay) for lay in zip(layer_tot, bone.layer)]
 
     # Only for demo'ing
-    arm.layer = layer_tot
+    layer_show = [a and not (b or c or d) for a,b,c,d in zip(layer_tot, ORG_LAYERS, MCH_LAYERS, DEF_LAYERS)]
+    arm.layer = layer_show
 
 
     # obj.restrict_view = True
@@ -368,7 +472,10 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     bpy.ops.object.mode_set(mode=mode_orig)
     obj_orig.data.pose_position = rest_backup
     obj.data.pose_position = 'POSE'
+    obj_orig.data.pose_position = 'POSE'
     context.user_preferences.edit.global_undo = global_undo
+    
+    print("Done.\n")
 
     return obj
 
@@ -380,8 +487,8 @@ def generate_test(context, metarig_type="", GENERATE_FINAL=True):
     scene = context.scene
 
     def create_empty_armature(name):
-        obj_new = bpy.data.add_object('ARMATURE', name)
-        armature = bpy.data.add_armature(name)
+        obj_new = bpy.data.objects.new(name, 'ARMATURE')
+        armature = bpy.data.armatures.new(name)
         obj_new.data = armature
         scene.objects.link(obj_new)
         scene.objects.active = obj_new
@@ -413,7 +520,7 @@ def generate_test(context, metarig_type="", GENERATE_FINAL=True):
             else:
                 new_objects.append((obj, None))
         else:
-            print("note: rig type '%s' has no metarig_template(), can't test this", module_name)
+            print("note: rig type '%s' has no metarig_template(), can't test this" % module_name)
 
     return new_objects
 

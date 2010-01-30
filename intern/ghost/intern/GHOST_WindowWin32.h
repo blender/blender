@@ -75,6 +75,7 @@ public:
 	 * @param state		The state the window is initially opened with.
 	 * @param type		The type of drawing context installed in this window.
 	 * @param stereoVisual	Stereo visual for quad buffered stereo.
+	 * @param numOfAASamples	Number of samples used for AA (zero if no AA)
 	 */
 	GHOST_WindowWin32(
 		GHOST_SystemWin32 * system,
@@ -85,7 +86,10 @@ public:
 		GHOST_TUns32 height,
 		GHOST_TWindowState state,
 		GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
-		const bool stereoVisual = false
+		const bool stereoVisual = false,
+		const GHOST_TUns16 numOfAASamples = 0,
+		GHOST_TSuccess msEnabled = GHOST_kFailure,
+		int msPixelFormat = 0
 	);
 
 	/**
@@ -93,6 +97,13 @@ public:
 	 * Closes the window and disposes resources allocated.
 	 */
 	virtual ~GHOST_WindowWin32();
+
+	/**
+	 * Returns the window to replace this one if it's getting replaced
+	 * @return The window replacing this one.
+	 */
+
+	GHOST_Window *getNextWindow();
 
 	/**
 	 * Returns indication as to whether the window is valid.
@@ -241,6 +252,8 @@ public:
 	void processWin32TabletEvent(WPARAM wParam, LPARAM lParam);
 
 protected:
+	GHOST_TSuccess initMultisample(PIXELFORMATDESCRIPTOR pfd);
+
 	/**
 	 * Tries to install a rendering context in this window.
 	 * @param type	The type of rendering context installed.
@@ -323,7 +336,25 @@ protected:
 	LONG m_maxPressure;
 	LONG m_maxAzimuth, m_maxAltitude;
 
+	/** Preferred number of samples */
+	GHOST_TUns16 m_multisample;
+
+	/** Check if multisample is supported */
+	GHOST_TSuccess m_multisampleEnabled;
+
+	/** The pixelFormat to use for multisample */
+	int m_msPixelFormat;
+
+	/** We need to following to recreate the window */
+	const STR_String& m_title;
+	GHOST_TInt32 m_left;
+	GHOST_TInt32 m_top;
+	GHOST_TUns32 m_width;
+	GHOST_TUns32 m_height;
+	bool m_stereo;
+
+	/** The GHOST_System passes this to wm if this window is being replaced */
+	GHOST_Window *m_nextWindow;
 };
 
 #endif // _GHOST_WINDOW_WIN32_H_
-

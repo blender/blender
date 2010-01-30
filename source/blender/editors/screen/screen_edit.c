@@ -468,6 +468,7 @@ static void screen_copy(bScreen *to, bScreen *from)
 		sa->spacedata.first= sa->spacedata.last= NULL;
 		sa->regionbase.first= sa->regionbase.last= NULL;
 		sa->actionzones.first= sa->actionzones.last= NULL;
+		sa->handlers.first= sa->handlers.last= NULL;
 		
 		area_copy_data(sa, saf, 0);
 	}
@@ -1125,7 +1126,13 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	screen->winid= 0;
 	
 	/* before deleting the temp screen or we get invalid access */
-	CTX_wm_window_set(C, prevwin);
+	if (prevwin->screen->full != SCREENTEMP) {
+		/* use previous window if possible */
+		CTX_wm_window_set(C, prevwin);
+	} else {
+		/* none otherwise */
+		CTX_wm_window_set(C, NULL);
+	}
 	
 	/* if temp screen, delete it */
 	if(screen->full == SCREENTEMP) {
@@ -1271,7 +1278,13 @@ void ED_screen_set(bContext *C, bScreen *sc)
 	
 	if (oldscreen != sc) {
 		wmTimer *wt= oldscreen->animtimer;
-		
+		ScrArea *sa;
+
+		/* remove handlers referencing areas in old screen */
+		for(sa = oldscreen->areabase.first; sa; sa = sa->next) {
+			WM_event_remove_area_handler(&win->modalhandlers, sa);
+		}
+
 		/* we put timer to sleep, so screen_exit has to think there's no timer */
 		oldscreen->animtimer= NULL;
 		if(wt)
@@ -1461,7 +1474,8 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 			for(old= sc->areabase.first; old; old= old->next) 
 				if(old->full) break;
 			if(old==NULL) {
-				printf("something wrong in areafullscreen\n"); 
+				if (G.f & G_DEBUG)
+					printf("something wrong in areafullscreen\n"); 
 				return NULL;
 			}
 			    // old feature described below (ton)

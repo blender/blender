@@ -281,6 +281,8 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 
 	ibuf = nsImageToiBuf(frameImage,anim->x, anim->y);
 	[pool drain];
+	
+	ibuf->profile = IB_PROFILE_SRGB;
 	return ibuf;
 }
 

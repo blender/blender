@@ -646,6 +646,11 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Spot Size", "Angle of the spotlight beam in degrees.");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
+	prop= RNA_def_property(srna, "show_cone", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_SHOW_CONE);
+	RNA_def_property_ui_text(prop, "Show Cone", "Draw transparent cone in 3D view to visualize which objects are contained in it.");
+	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
+
 	prop= RNA_def_property(srna, "shadow_buffer_clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
 	RNA_def_property_range(prop, 0.0f, 9999.0f);

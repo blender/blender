@@ -18,6 +18,7 @@
 
 # <pep8 compliant>
 import bpy
+from rna_prop_ui import PropertyPanel
 
 narrowui = 180
 
@@ -40,6 +41,17 @@ class MATERIAL_MT_sss_presets(bpy.types.Menu):
     preset_subdir = "sss"
     preset_operator = "script.python_file_run"
     draw = bpy.types.Menu.draw_preset
+
+
+class MATERIAL_MT_specials(bpy.types.Menu):
+    bl_label = "Material Options"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.material_slot_copy", icon='COPY_ID')
+        layout.operator("material.copy", icon='COPYDOWN')
+        layout.operator("material.paste", icon='PASTEDOWN')
 
 
 class MaterialButtonsPanel(bpy.types.Panel):
@@ -91,7 +103,8 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
             col = row.column(align=True)
             col.operator("object.material_slot_add", icon='ZOOMIN', text="")
             col.operator("object.material_slot_remove", icon='ZOOMOUT', text="")
-            col.operator("object.material_slot_copy", icon='COPY_ID', text="")
+            
+            col.menu("MATERIAL_MT_specials", icon='DOWNARROW_HLT', text="")
 
             if ob.mode == 'EDIT':
                 row = layout.row(align=True)
@@ -123,6 +136,11 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
                 layout.prop(mat, "type", expand=True)
             else:
                 layout.prop(mat, "type", text="")
+
+
+class MATERIAL_PT_custom_props(MaterialButtonsPanel, PropertyPanel):
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    _context_path = "material"
 
 
 class MATERIAL_PT_shading(MaterialButtonsPanel):
@@ -635,6 +653,40 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
             sub.prop(rayt, "gloss_threshold", text="Threshold")
             sub.prop(rayt, "gloss_samples", text="Samples")
 
+class MATERIAL_PT_transp_game(MaterialButtonsPanel):
+    bl_label = "Transparency"
+    bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_GAME'}
+
+    def poll(self, context):
+        mat = active_node_mat(context.material)
+        engine = context.scene.render_data.engine
+        return mat  and (engine in self.COMPAT_ENGINES)
+
+    def draw_header(self, context):
+        mat = active_node_mat(context.material)
+
+        self.layout.prop(mat, "transparency", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        mat = active_node_mat(context.material)
+        rayt = mat.raytrace_transparency
+        wide_ui = context.region.width > narrowui
+
+        row = layout.row()
+        row.active = mat.transparency and (not mat.shadeless)
+        if wide_ui:
+            row.prop(mat, "transparency_method", expand=True)
+        else:
+            row.prop(mat, "transparency_method", text="")
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(mat, "alpha")
+    
 
 class MATERIAL_PT_halo(MaterialButtonsPanel):
     bl_label = "Halo"
@@ -734,7 +786,7 @@ bpy.types.register(MATERIAL_PT_physics)
 bpy.types.register(MATERIAL_PT_strand)
 bpy.types.register(MATERIAL_PT_options)
 bpy.types.register(MATERIAL_PT_shadow)
-
+bpy.types.register(MATERIAL_PT_transp_game)
 
 class VolumeButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -874,9 +926,13 @@ class MATERIAL_PT_volume_integration(VolumeButtonsPanel):
         col.prop(vol, "depth_cutoff")
 
 bpy.types.register(MATERIAL_MT_sss_presets)
+bpy.types.register(MATERIAL_MT_specials)
 
 bpy.types.register(MATERIAL_PT_volume_density)
 bpy.types.register(MATERIAL_PT_volume_shading)
 bpy.types.register(MATERIAL_PT_volume_lighting)
 bpy.types.register(MATERIAL_PT_volume_transp)
+
 bpy.types.register(MATERIAL_PT_volume_integration)
+
+bpy.types.register(MATERIAL_PT_custom_props)

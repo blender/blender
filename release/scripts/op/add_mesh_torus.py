@@ -82,10 +82,10 @@ class AddTorus(bpy.types.Operator):
     bl_undo = True
 
     major_radius = FloatProperty(name="Major Radius",
-            description="Number of segments for the main ring of the torus",
+            description="Radius from center of torus to center of it's cross section",
             default=1.0, min=0.01, max=100.0)
     minor_radius = FloatProperty(name="Minor Radius",
-            description="Number of segments for the minor ring of the torus",
+            description="Radius of the torus' cross section",
             default=0.25, min=0.01, max=100.0)
     major_segments = IntProperty(name="Major Segments",
             description="Number of segments for the main ring of the torus",
@@ -93,15 +93,28 @@ class AddTorus(bpy.types.Operator):
     minor_segments = IntProperty(name="Minor Segments",
             description="Number of segments for the minor ring of the torus",
             default=16, min=3, max=256)
+    use_abso = BoolProperty(name="Use Int+Ext Controls",
+            description="Use the Int / Ext controls for torus dimensions", default=False)
+    abso_major_rad = FloatProperty(name="Exterior Radius",
+            description="Total Exterior Radius of the torus",
+            default=1.0, min=0.01, max=100.0)
+    abso_minor_rad = FloatProperty(name="Inside Radius",
+            description="Total Interior Radius of the torus",
+            default=0.5, min=0.01, max=100.0)
 
     def execute(self, context):
+
+        if self.properties.use_abso == True:
+            extra_helper = (self.properties.abso_major_rad - self.properties.abso_minor_rad) * 0.5
+            self.properties.major_radius = self.properties.abso_minor_rad + extra_helper
+            self.properties.minor_radius = extra_helper
 
         verts_loc, faces = add_torus(self.properties.major_radius,
                                     self.properties.minor_radius,
                                     self.properties.major_segments,
                                     self.properties.minor_segments)
 
-        mesh = bpy.data.add_mesh("Torus")
+        mesh = bpy.data.meshes.new("Torus")
 
         mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
         mesh.verts.foreach_set("co", verts_loc)
@@ -114,15 +127,32 @@ class AddTorus(bpy.types.Operator):
             ob.selected = False
 
         mesh.update()
-        ob_new = bpy.data.add_object('MESH', "Torus")
+        ob_new = bpy.data.objects.new("Torus", 'MESH')
         ob_new.data = mesh
         scene.objects.link(ob_new)
-        scene.objects.active = ob_new
         ob_new.selected = True
 
-        ob_new.location = tuple(context.scene.cursor_location)
+        ob_new.location = scene.cursor_location
+        
+        obj_act = scene.objects.active
+        
+        if obj_act and obj_act.mode == 'EDIT':
+            bpy.ops.object.mode_set(mode='OBJECT')
+            
+            obj_act.selected = True
+            scene.update() # apply location
+            #scene.objects.active = ob_new
+
+            bpy.ops.object.join() # join into the active.
+
+            bpy.ops.object.mode_set(mode='EDIT')
+        else:
+            scene.objects.active = ob_new
+            if context.user_preferences.edit.enter_edit_mode:
+                bpy.ops.object.mode_set(mode='EDIT')
 
         return {'FINISHED'}
+
 
 # Register the operator
 bpy.types.register(AddTorus)

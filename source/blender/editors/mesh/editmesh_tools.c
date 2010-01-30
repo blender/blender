@@ -1326,7 +1326,7 @@ void MESH_OT_delete(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/*props */
-	RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 10, "Type", "Method used for deleting mesh data");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_mesh_delete_types, 10, "Type", "Method used for deleting mesh data");
 }
 
 
@@ -3399,7 +3399,7 @@ void join_triangles(EditMesh *em)
 
 #define FACE_MARKCLEAR(f) (f->f1 = 1)
 
-/* quick hack, basically a copy of beauty_fill */
+/* quick hack, basically a copy of beautify_fill */
 void edge_flip(EditMesh *em)
 {
 	EditVert *v1, *v2, *v3, *v4;
@@ -5835,6 +5835,10 @@ static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *ptr, int *fre
 	EnumPropertyItem *item= NULL;
 	int totitem= 0;
 
+	if (C==NULL) {
+		return merge_type_items;
+	}
+
 	if(obedit && obedit->type == OB_MESH) {
 		EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
 
@@ -5881,6 +5885,7 @@ void MESH_OT_merge(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", merge_type_items, 3, "Type", "Merge method to use.");
 	RNA_def_enum_funcs(prop, merge_type_itemf);
+	ot->prop= prop;
 	RNA_def_boolean(ot->srna, "uvs", 0, "UVs", "Move UVs according to merge.");
 }
 
@@ -6082,7 +6087,7 @@ void MESH_OT_select_vertex_path(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "type", type_items, PATH_SELECT_EDGE_LENGTH, "Type", "Method to compute distance.");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, PATH_SELECT_EDGE_LENGTH, "Type", "Method to compute distance.");
 }
 
 /********************** Region/Loop Operators *************************/
@@ -6720,7 +6725,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 
 /* note; the EM_selectmode_set() calls here illustrate how badly constructed it all is... from before the
 edge/face flags, with very mixed results.... */
-static void beauty_fill(EditMesh *em)
+static void beautify_fill(EditMesh *em)
 {
 	EditVert *v1, *v2, *v3, *v4;
 	EditEdge *eed, *nexted;
@@ -6955,7 +6960,7 @@ static void fill_mesh(EditMesh *em)
 	}
 
 	BLI_end_edgefill();
-	beauty_fill(em);
+	beautify_fill(em);
 
 	WM_cursor_wait(0);
 	EM_select_flush(em);
@@ -6993,12 +6998,12 @@ void MESH_OT_fill(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-static int beauty_fill_exec(bContext *C, wmOperator *op)
+static int beautify_fill_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 
-	beauty_fill(em);
+	beautify_fill(em);
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
@@ -7008,15 +7013,15 @@ static int beauty_fill_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_beauty_fill(wmOperatorType *ot)
+void MESH_OT_beautify_fill(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Beauty Fill";
-	ot->description= "Arrange geometry on a selected surface to avoid skinny faces.";
-	ot->idname= "MESH_OT_beauty_fill";
+	ot->name= "Beautify Fill";
+	ot->description= "Rearrange geometry on a selected surface to avoid skinny faces.";
+	ot->idname= "MESH_OT_beautify_fill";
 
 	/* api callbacks */
-	ot->exec= beauty_fill_exec;
+	ot->exec= beautify_fill_exec;
 	ot->poll= ED_operator_editmesh;
 
 	/* flags */

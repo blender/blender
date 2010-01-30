@@ -37,8 +37,7 @@ struct Object;
 struct bAction;
 struct Scene;
 
-void		free_group_object(struct GroupObject *go);
-void		free_group(struct Group *group);
+void		free_group_objects(struct Group *group);
 void		unlink_group(struct Group *group);
 struct Group *add_group(char *name);
 struct Group *copy_group(struct Group *group);

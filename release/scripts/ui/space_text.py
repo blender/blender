@@ -89,6 +89,10 @@ class TEXT_PT_properties(bpy.types.Panel):
         flow.prop(st, "font_size")
         flow.prop(st, "tab_width")
 
+        text = st.text
+        if text:
+            flow.prop(text, "tabs_as_spaces")
+
 
 class TEXT_PT_find(bpy.types.Panel):
     bl_space_type = 'TEXT_EDITOR'

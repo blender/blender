@@ -1044,14 +1044,6 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	UI_ThemeColor(TH_WIRE);
 	glRectf(x1, y1, x2, y2);
 	
-	/* camera name - draw in highlighted text color */
-	if (ca && (ca->flag & CAM_SHOWNAME)) {
-		UI_ThemeColor(TH_TEXT_HI);
-		BLF_draw_default(x1, y1-15, 0.0f, v3d->camera->id.name+2);
-		UI_ThemeColor(TH_WIRE);
-	}
-	
-	
 	/* border */
 	if(scene->r.mode & R_BORDER) {
 		
@@ -1086,6 +1078,12 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 	setlinestyle(0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	
+	/* camera name - draw in highlighted text color */
+	if (ca && (ca->flag & CAM_SHOWNAME)) {
+		UI_ThemeColor(TH_TEXT_HI);
+		BLF_draw_default(x1, y1-15, 0.0f, v3d->camera->id.name+2);
+		UI_ThemeColor(TH_WIRE);
+	}
 }
 
 /* *********************** backdraw for selection *************** */
@@ -1095,16 +1093,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 	RegionView3D *rv3d= ar->regiondata;
 	struct Base *base = scene->basact;
 	rcti winrct;
-
-/*for 2.43 release, don't use glext and just define the constant.
-  this to avoid possibly breaking platforms before release.*/
-#ifndef GL_MULTISAMPLE_ARB
-	#define GL_MULTISAMPLE_ARB	0x809D
-#endif
-
-#ifdef GL_MULTISAMPLE_ARB
-	int m;
-#endif
 
 	if(base && (base->object->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT) ||
 		     paint_facesel_test(base->object)));
@@ -1125,16 +1113,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 //			return;
 //		}
 //	}
-
-	/* Disable FSAA for backbuffer selection.  
-	
-	Only works if GL_MULTISAMPLE_ARB is defined by the header
-	file, which is should be for every OS that supports FSAA.*/
-
-#ifdef GL_MULTISAMPLE_ARB
-	m = glIsEnabled(GL_MULTISAMPLE_ARB);
-	if (m) glDisable(GL_MULTISAMPLE_ARB);
-#endif
 
 	if(v3d->drawtype > OB_WIRE) v3d->zbuf= TRUE;
 	
@@ -1171,10 +1149,6 @@ void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_clr_clipping();
-
-#ifdef GL_MULTISAMPLE_ARB
-	if (m) glEnable(GL_MULTISAMPLE_ARB);
-#endif
 
 	/* it is important to end a view in a transform compatible with buttons */
 //	persp(PERSP_WIN);  // set ortho
@@ -1338,106 +1312,113 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	ImBuf *ibuf= NULL;
 	float vec[4], fac, asp, zoomx, zoomy;
 	float x1, y1, x2, y2, cx, cy;
-	
-	bgpic= v3d->bgpic;
-	if(bgpic==NULL) return;
-	
-	ima= bgpic->ima;
-	
-	if(ima)
-		ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
-	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL) ) 
-		return;
-	if(ibuf->channels!=4)
-		return;
-	if(ibuf->rect==NULL)
-		IMB_rect_from_float(ibuf);
-	
-	if(rv3d->persp==2) {
-		rctf vb;
-		
-		calc_viewborder(scene, ar, v3d, &vb);
-		
-		x1= vb.xmin;
-		y1= vb.ymin;
-		x2= vb.xmax;
-		y2= vb.ymax;
-	}
-	else {
-		float sco[2];
-		
-		/* calc window coord */
-		initgrabz(rv3d, 0.0, 0.0, 0.0);
-		window_to_3d_delta(ar, vec, 1, 0);
-		fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
-		fac= 1.0/fac;
-		
-		asp= ( (float)ibuf->y)/(float)ibuf->x;
-		
-		vec[0] = vec[1] = vec[2] = 0.0;
-		view3d_project_float(ar, vec, sco, rv3d->persmat);
-		cx = sco[0];
-		cy = sco[1];
-		
-		x1=  cx+ fac*(bgpic->xof-bgpic->size);
-		y1=  cy+ asp*fac*(bgpic->yof-bgpic->size);
-		x2=  cx+ fac*(bgpic->xof+bgpic->size);
-		y2=  cy+ asp*fac*(bgpic->yof+bgpic->size);
-	}
-	
-	/* complete clip? */
-	
-	if(x2 < 0 ) return;
-	if(y2 < 0 ) return;
-	if(x1 > ar->winx ) return;
-	if(y1 > ar->winy ) return;
-	
-	zoomx= (x2-x1)/ibuf->x;
-	zoomy= (y2-y1)/ibuf->y;
-	
-	/* for some reason; zoomlevels down refuses to use GL_ALPHA_SCALE */
-	if(zoomx < 1.0f || zoomy < 1.0f) {
-		float tzoom= MIN2(zoomx, zoomy);
-		int mip= 0;
-		
-		if(ibuf->mipmap[0]==NULL)
-			IMB_makemipmap(ibuf, 0, 0);
-		
-		while(tzoom < 1.0f && mip<8 && ibuf->mipmap[mip]) {
-			tzoom*= 2.0f;
-			zoomx*= 2.0f;
-			zoomy*= 2.0f;
-			mip++;
-		}
-		if(mip>0)
-			ibuf= ibuf->mipmap[mip-1];
-	}
-	
-	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
-	glDepthMask(0);
-	
-	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
-	
-	/* need to use wm push/pop matrix because ED_region_pixelspace
-	   uses the wm functions too, otherwise gets out of sync */
-	wmPushMatrix();
-	ED_region_pixelspace(ar);
-	
-	glEnable(GL_BLEND);
-	
-	glPixelZoom(zoomx, zoomy);
-	glColor4f(1.0, 1.0, 1.0, 1.0-bgpic->blend);
-	glaDrawPixelsTex(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
-	
-	glPixelZoom(1.0, 1.0);
-	glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
-	
-	wmPopMatrix();
-	
-	glDisable(GL_BLEND);
 
-	glDepthMask(1);
-	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+
+	for ( bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next ) {
+
+		if(	(bgpic->view == 0) || /* zero for any */
+			(bgpic->view & (1<<rv3d->view)) || /* check agaist flags */
+			(rv3d->persp==RV3D_CAMOB && bgpic->view == (1<<RV3D_VIEW_CAMERA))
+		) {
+			ima= bgpic->ima;
+			if(ima==NULL)
+				continue;
+			BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
+			ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
+			if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL) )
+				continue;
+			if(ibuf->channels!=4)
+				continue;
+			if(ibuf->rect==NULL)
+				IMB_rect_from_float(ibuf);
+
+			if(rv3d->persp==RV3D_CAMOB) {
+				rctf vb;
+
+				calc_viewborder(scene, ar, v3d, &vb);
+
+				x1= vb.xmin;
+				y1= vb.ymin;
+				x2= vb.xmax;
+				y2= vb.ymax;
+			}
+			else {
+				float sco[2];
+
+				/* calc window coord */
+				initgrabz(rv3d, 0.0, 0.0, 0.0);
+				window_to_3d_delta(ar, vec, 1, 0);
+				fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
+				fac= 1.0/fac;
+
+				asp= ( (float)ibuf->y)/(float)ibuf->x;
+
+				vec[0] = vec[1] = vec[2] = 0.0;
+				view3d_project_float(ar, vec, sco, rv3d->persmat);
+				cx = sco[0];
+				cy = sco[1];
+
+				x1=  cx+ fac*(bgpic->xof-bgpic->size);
+				y1=  cy+ asp*fac*(bgpic->yof-bgpic->size);
+				x2=  cx+ fac*(bgpic->xof+bgpic->size);
+				y2=  cy+ asp*fac*(bgpic->yof+bgpic->size);
+			}
+
+			/* complete clip? */
+
+			if(x2 < 0 ) continue;
+			if(y2 < 0 ) continue;
+			if(x1 > ar->winx ) continue;
+			if(y1 > ar->winy ) continue;
+
+			zoomx= (x2-x1)/ibuf->x;
+			zoomy= (y2-y1)/ibuf->y;
+
+			/* for some reason; zoomlevels down refuses to use GL_ALPHA_SCALE */
+			if(zoomx < 1.0f || zoomy < 1.0f) {
+				float tzoom= MIN2(zoomx, zoomy);
+				int mip= 0;
+
+				if(ibuf->mipmap[0]==NULL)
+					IMB_makemipmap(ibuf, 0, 0);
+
+				while(tzoom < 1.0f && mip<8 && ibuf->mipmap[mip]) {
+					tzoom*= 2.0f;
+					zoomx*= 2.0f;
+					zoomy*= 2.0f;
+					mip++;
+				}
+				if(mip>0)
+					ibuf= ibuf->mipmap[mip-1];
+			}
+
+			if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+			glDepthMask(0);
+
+			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+
+			/* need to use wm push/pop matrix because ED_region_pixelspace
+		   uses the wm functions too, otherwise gets out of sync */
+			wmPushMatrix();
+			ED_region_pixelspace(ar);
+
+			glEnable(GL_BLEND);
+
+			glPixelZoom(zoomx, zoomy);
+			glColor4f(1.0, 1.0, 1.0, 1.0-bgpic->blend);
+			glaDrawPixelsTex(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+
+			glPixelZoom(1.0, 1.0);
+			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
+
+			wmPopMatrix();
+
+			glDisable(GL_BLEND);
+
+			glDepthMask(1);
+			if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+		}
+	}
 }
 
 /* ****************** View3d afterdraw *************** */
@@ -1519,7 +1500,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	ListBase *lb;
 	DupliObject *dob;
 	Base tbase;
-	BoundBox *bb= NULL;
+	BoundBox bb; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist=0;
 	short transflag, use_displist= -1;	/* -1 is initialize */
 	char dt, dtx;
@@ -1561,7 +1542,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 					/* disable boundbox check for list creation */
 					object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
 					/* need this for next part of code */
-					bb= object_get_boundbox(dob->ob);
+					bb= *object_get_boundbox(dob->ob);
 					
 					unit_m4(dob->ob->obmat);	/* obmat gets restored */
 					
@@ -1576,7 +1557,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			}
 			if(use_displist) {
 				wmMultMatrix(dob->mat);
-				if(boundbox_clip(rv3d, dob->mat, bb))
+				if(boundbox_clip(rv3d, dob->mat, &bb))
 					glCallList(displist);
 				wmLoadMatrix(rv3d->viewmat);
 			}
@@ -1953,8 +1934,16 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	G.f |= G_RENDER_OGL;
 	GPU_free_images();
 
-	/* set background color */
-	glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
+	/* set background color, fallback on the view background color */
+	if(scene->world) {
+		glClearColor(scene->world->horr, scene->world->horg, scene->world->horb, 0.0);
+	}
+	else {
+		float col[3];
+		UI_GetThemeColor3fv(TH_BACK, col);
+		glClearColor(col[0], col[1], col[2], 0.0); 	
+	}
+
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 	/* setup view matrices */
@@ -2057,6 +2046,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	}
 	else
 		v3d->zbuf= FALSE;
+
+	/* enables anti-aliasing for 3D view drawing */
+	if (!(U.gameflags & USER_DISABLE_AA))
+		glEnable(GL_MULTISAMPLE_ARB);
 	
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	rv3d->gridview= v3d->grid;
@@ -2070,7 +2063,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 								  star_stuff_term_func);
 				}
 			}
-			if(v3d->flag & V3D_DISPBGPIC) draw_bgpic(scene, ar, v3d);
+			if(v3d->flag & V3D_DISPBGPICS) draw_bgpic(scene, ar, v3d);
 		}
 	}
 	else {
@@ -2082,7 +2075,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		glMatrixMode(GL_MODELVIEW);
 		wmLoadMatrix(rv3d->viewmat);
 		
-		if(v3d->flag & V3D_DISPBGPIC) {
+		if(v3d->flag & V3D_DISPBGPICS) {
 			draw_bgpic(scene, ar, v3d);
 		}
 	}
@@ -2164,6 +2157,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	BIF_draw_manipulator(C);
 	
+	/* Disable back anti-aliasing */
+	if (!(U.gameflags & USER_DISABLE_AA))
+		glDisable(GL_MULTISAMPLE_ARB);
+
 	if(v3d->zbuf) {
 		v3d->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);

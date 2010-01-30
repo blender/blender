@@ -33,6 +33,9 @@
 #include "MT_Plane3.h"
 #include "BSP_CSGException.h"
 
+// for insert_iterator
+#include <iterator>
+
 // for vector reverse
 #include <iostream>
 #include <algorithm>

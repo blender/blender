@@ -33,6 +33,8 @@
 #define MOD_SMOKE_HIGHRES (1<<1) /* enable high resolution */
 #define MOD_SMOKE_DISSOLVE (1<<2) /* let smoke dissolve */
 #define MOD_SMOKE_DISSOLVE_LOG (1<<3) /* using 1/x for dissolve */
+#define MOD_SMOKE_INITVELOCITY (1<<4) /* passes particles speed to
+										 the smoke*/
 
 /* noise */
 #define MOD_SMOKE_NOISEWAVE (1<<0)
@@ -40,6 +42,10 @@
 #define MOD_SMOKE_NOISECURL (1<<2)
 /* viewsettings */
 #define MOD_SMOKE_VIEW_SHOWBIG (1<<0)
+
+/* cache compression */
+#define SM_CACHE_LIGHT		0
+#define SM_CACHE_HEAVY		1
 
 typedef struct SmokeDomainSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
@@ -73,6 +79,8 @@ typedef struct SmokeDomainSettings {
 	int res_wt[3];
 	float dx_wt;
 	int v3dnum;
+	int cache_comp;
+	int cache_high_comp;
 	struct PointCache *point_cache[2];	/* definition is in DNA_object_force.h */
 	struct ListBase ptcaches[2];
 	struct EffectorWeights *effector_weights;

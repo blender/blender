@@ -356,6 +356,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\python\intern\bpy_props.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_rna.c"
 					>
 				</File>
@@ -442,6 +446,10 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_panel_wrap.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\intern\bpy_props.h"
 					>
 				</File>
 				<File

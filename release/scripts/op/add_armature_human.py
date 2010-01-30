@@ -29,17 +29,11 @@ def metarig_template():
     bpy.ops.object.mode_set(mode='EDIT')
     obj = bpy.context.active_object
     arm = obj.data
-    bone = arm.edit_bones.new('root')
-    bone.head[:] = 0.0000, 0.0000, 0.0000
-    bone.tail[:] = 0.0000, 0.4000, 0.0000
-    bone.roll = 0.0000
-    bone.connected = False
     bone = arm.edit_bones.new('pelvis')
     bone.head[:] = -0.0000, -0.0145, 1.1263
     bone.tail[:] = -0.0000, -0.0145, 0.9563
     bone.roll = 3.1416
     bone.connected = False
-    bone.parent = arm.edit_bones['root']
     bone = arm.edit_bones.new('torso')
     bone.head[:] = -0.0000, -0.0145, 1.1263
     bone.tail[:] = -0.0000, -0.0145, 1.2863
@@ -462,10 +456,6 @@ def metarig_template():
     bone.parent = arm.edit_bones['finger_index.02.R']
 
     bpy.ops.object.mode_set(mode='OBJECT')
-    pbone = obj.pose.bones['root']
-    pbone['type'] = 'root'
-    pbone = obj.pose.bones['root']
-    pbone['root.layer'] = 16
     pbone = obj.pose.bones['torso']
     pbone['type'] = 'spine_pivot_flex'
     pbone = obj.pose.bones['torso']
@@ -473,13 +463,13 @@ def metarig_template():
     pbone = obj.pose.bones['torso']
     pbone['spine_pivot_flex.layer_extra'] = 2
     pbone = obj.pose.bones['thigh.L']
-    pbone['type'] = 'leg_biped_generic'
+    pbone['type'] = 'leg_biped'
     pbone = obj.pose.bones['thigh.L']
     pbone['leg_biped_generic.layer_ik'] = 12
     pbone = obj.pose.bones['thigh.L']
     pbone['leg_biped_generic.layer_fk'] = 11
     pbone = obj.pose.bones['thigh.R']
-    pbone['type'] = 'leg_biped_generic'
+    pbone['type'] = 'leg_biped'
     pbone = obj.pose.bones['thigh.R']
     pbone['leg_biped_generic.layer_ik'] = 14
     pbone = obj.pose.bones['thigh.R']
@@ -507,7 +497,7 @@ def metarig_template():
     pbone = obj.pose.bones['DLT-upper_arm.R']
     pbone['type'] = 'delta'
     pbone = obj.pose.bones['upper_arm.L']
-    pbone['type'] = 'arm_biped_generic'
+    pbone['type'] = 'arm_biped'
     pbone = obj.pose.bones['upper_arm.L']
     pbone['arm_biped_generic.elbow_parent'] = 'spine.04'
     pbone = obj.pose.bones['upper_arm.L']
@@ -515,7 +505,7 @@ def metarig_template():
     pbone = obj.pose.bones['upper_arm.L']
     pbone['arm_biped_generic.layer_ik'] = 8
     pbone = obj.pose.bones['upper_arm.R']
-    pbone['type'] = 'arm_biped_generic'
+    pbone['type'] = 'arm_biped'
     pbone = obj.pose.bones['upper_arm.R']
     pbone['arm_biped_generic.layer_fk'] = 9
     pbone = obj.pose.bones['upper_arm.R']

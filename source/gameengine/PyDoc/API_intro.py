@@ -16,10 +16,10 @@ The Blender Game Engine Python API Reference
 			- L{Rasterizer} display and rendering.
 			- L{GameTypes} contains all the python types spesific to the GameEngine.
 	
-	Undocumented modules:
+	Modules with documentation in progress:
 	---------------------
-		- VideoTexture
-		- PhysicsConstraints
+		- L{VideoTexture}
+		- L{PhysicsConstraints}
 	
 	Additional Modules:
 	-------------------

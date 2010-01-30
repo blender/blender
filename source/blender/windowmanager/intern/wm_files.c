@@ -109,11 +109,13 @@ static void writeBlog(void);
 static void wm_window_match_init(bContext *C, ListBase *wmlist)
 {
 	wmWindowManager *wm= G.main->wm.first;
-	wmWindow *win;
+	wmWindow *win, *active_win;
 	
 	*wmlist= G.main->wm;
 	G.main->wm.first= G.main->wm.last= NULL;
 	
+	active_win = CTX_wm_window(C);
+
 	/* first wrap up running stuff */
 	/* code copied from wm_init_exit.c */
 	for(wm= wmlist->first; wm; wm= wm->id.next) {
@@ -129,6 +131,9 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 		}
 	}
 	
+	/* reset active window */
+	CTX_wm_window_set(C, active_win);
+
 	ED_editors_exit(C);
 	
 return;	
@@ -279,9 +284,10 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 //		refresh_interface_font();
 
 		CTX_wm_window_set(C, NULL); /* exits queues */
-
+#ifndef DISABLE_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_load_user_modules(C);
+#endif
 	}
 	else if(retval==1)
 		BKE_write_undo(C, "Import file");
@@ -369,11 +375,11 @@ void read_Blog(void)
 	G.recent_files.first = G.recent_files.last = NULL;
 
 	/* read list of recent opend files from .Blog to memory */
-	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next, num++) {
+	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next) {
 		line = l->link;
-		if (!BLI_streq(line, "")) {
+		if (line[0] && BLI_exists(line)) {
 			if (num==0) 
-				strcpy(G.sce, line);
+				strcpy(G.sce, line); /* note: this seems highly dodgy since the file isnt actually read. please explain. - campbell */
 			
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
 			BLI_addtail(&(G.recent_files), recent);
@@ -381,6 +387,7 @@ void read_Blog(void)
 			recent->filename[0] = '\0';
 			
 			strcpy(recent->filename, line);
+			num++;
 		}
 	}
 

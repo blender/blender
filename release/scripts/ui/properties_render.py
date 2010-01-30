@@ -137,11 +137,11 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.prop(rl, "pass_uv")
         col.prop(rl, "pass_mist")
         col.prop(rl, "pass_object_index")
+        col.prop(rl, "pass_color")
 
         if wide_ui:
             col = split.column()
         col.label()
-        col.prop(rl, "pass_color")
         col.prop(rl, "pass_diffuse")
         row = col.row()
         row.prop(rl, "pass_specular")
@@ -150,15 +150,23 @@ class RENDER_PT_layers(RenderButtonsPanel):
         row.prop(rl, "pass_shadow")
         row.prop(rl, "pass_shadow_exclude", text="", icon='X')
         row = col.row()
+        row.prop(rl, "pass_emit")
+        row.prop(rl, "pass_emit_exclude", text="", icon='X')
+        row = col.row()
         row.prop(rl, "pass_ao")
         row.prop(rl, "pass_ao_exclude", text="", icon='X')
+        row = col.row()
+        row.prop(rl, "pass_environment")
+        row.prop(rl, "pass_environment_exclude", text="", icon='X')
+        row = col.row()
+        row.prop(rl, "pass_indirect")
+        row.prop(rl, "pass_indirect_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_reflection")
         row.prop(rl, "pass_reflection_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_refraction")
         row.prop(rl, "pass_refraction_exclude", text="", icon='X')
-
 
 class RENDER_PT_shading(RenderButtonsPanel):
     bl_label = "Shading"
@@ -292,7 +300,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 
         if wide_ui:
             col = split.column()
-        col.prop(rd, "file_extensions")
+        col.prop(rd, "use_file_extension")
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
 

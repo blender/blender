@@ -442,7 +442,7 @@ static void mouse_nla_strips (bContext *C, bAnimContext *ac, int mval[2], short 
 		deselect_nla_strips(ac, 0, SELECT_SUBTRACT);
 		
 		/* deselect all other channels first */
-		ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 		
 		/* Highlight NLA-Track */
 		if (ale->type == ANIMTYPE_NLATRACK) {	
@@ -492,7 +492,7 @@ static void nlaedit_mselect_leftright (bContext *C, bAnimContext *ac, short left
 		select_mode= SELECT_ADD;
 		
 		/* deselect all other channels and keyframes */
-		ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 		deselect_nla_strips(ac, 0, SELECT_SUBTRACT);
 	}
 	

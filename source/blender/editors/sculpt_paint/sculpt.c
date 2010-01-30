@@ -1460,12 +1460,12 @@ static void sculpt_update_tex(Sculpt *sd, SculptSession *ss)
 }
 
 /* Checks whether full update mode (slower) needs to be used to work with modifiers */
-char sculpt_modifiers_active(Object *ob)
+static int sculpt_modifiers_active(Scene *scene, Object *ob)
 {
 	ModifierData *md;
 	
 	for(md= modifiers_getVirtualModifierList(ob); md; md= md->next) {
-		if(modifier_isEnabled(md, eModifierMode_Realtime))
+		if(modifier_isEnabled(scene, md, eModifierMode_Realtime))
 			if(!ELEM(md->type, eModifierType_Multires, eModifierType_ShapeKey))
 				return 1;
 	}
@@ -1801,7 +1801,9 @@ static void sculpt_update_cache_variants(Sculpt *sd, SculptSession *ss, struct P
 
 static void sculpt_stroke_modifiers_check(bContext *C, SculptSession *ss)
 {
-	if(sculpt_modifiers_active(ss->ob)) {
+	Scene *scene= CTX_data_scene(C);
+
+	if(sculpt_modifiers_active(scene, ss->ob)) {
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = paint_brush(&sd->paint);
 
@@ -1979,6 +1981,7 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 
 static void sculpt_flush_update(bContext *C)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	ARegion *ar = CTX_wm_region(C);
@@ -1988,7 +1991,7 @@ static void sculpt_flush_update(bContext *C)
 	if(mmd)
 		multires_mark_as_modified(ob);
 
-	if(sculpt_modifiers_active(ob)) {
+	if(sculpt_modifiers_active(scene, ob)) {
 		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 		ED_region_tag_redraw(ar);
 	}
@@ -2010,15 +2013,20 @@ static void sculpt_flush_update(bContext *C)
 	}
 }
 
-static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent *event)
+/* Returns whether the mouse/stylus is over the mesh (1)
+   or over the background (0) */
+static int over_mesh(bContext *C, struct wmOperator *op, float x, float y)
 {
-	float mouse[2] = {event->x, event->y}, location[3];
-	int over_mesh;
+	float mouse[2] = {x, y}, co[3];
 	
-	over_mesh = sculpt_stroke_get_location(C, op->customdata, location, mouse);
-	
+	return (int)sculpt_stroke_get_location(C, op->customdata, co, mouse);
+}
+
+static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
+				    wmEvent *event)
+{
 	/* Don't start the stroke until mouse goes over the mesh */
-	if(over_mesh) {
+	if(over_mesh(C, op, event->x, event->y)) {
 		Object *ob = CTX_data_active_object(C);
 		SculptSession *ss = ob->sculpt;
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
@@ -2076,14 +2084,27 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *stroke)
 
 static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	struct PaintStroke *stroke;
+	int ignore_background_click;
+
 	if(!sculpt_brush_stroke_init(C, op->reports))
 		return OPERATOR_CANCELLED;
 
-	op->customdata = paint_stroke_new(C, sculpt_stroke_get_location,
-					  sculpt_stroke_test_start,
-					  sculpt_stroke_update_step,
-					  sculpt_stroke_done);
+	stroke = paint_stroke_new(C, sculpt_stroke_get_location,
+				  sculpt_stroke_test_start,
+				  sculpt_stroke_update_step,
+				  sculpt_stroke_done);
 
+	op->customdata = stroke;
+
+	/* For tablet rotation */
+	ignore_background_click = RNA_boolean_get(op->ptr,
+						  "ignore_background_click"); 
+	if(ignore_background_click && !over_mesh(C, op, event->x, event->y)) {
+		paint_stroke_free(stroke);
+		return OPERATOR_PASS_THROUGH;
+	}
+	
 	/* add modal handler */
 	WM_event_add_modal_handler(C, op);
 
@@ -2144,6 +2165,10 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 
 	/* The initial 2D location of the mouse */
 	RNA_def_float_vector(ot->srna, "initial_mouse", 2, NULL, INT_MIN, INT_MAX, "initial_mouse", "", INT_MIN, INT_MAX);
+
+	RNA_def_boolean(ot->srna, "ignore_background_click", 0,
+			"Ignore Background Click",
+			"Clicks on the background don't start the stroke");
 }
 
 /**** Reset the copy of the mesh that is being sculpted on (currently just for the layer brush) ****/

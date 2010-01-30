@@ -64,6 +64,7 @@ EnumPropertyItem event_value_items[] = {
 	{KM_PRESS, "PRESS", 0, "Press", ""},
 	{KM_RELEASE, "RELEASE", 0, "Release", ""},
 	{KM_CLICK, "CLICK", 0, "Click", ""},
+	{KM_DBL_CLICK, "DOUBLE_CLICK", 0, "Double Click", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem event_tweak_type_items[]= {
@@ -84,6 +85,9 @@ EnumPropertyItem event_mouse_type_items[]= {
 	{SELECTMOUSE, "SELECTMOUSE", 0, "Select", ""},
 	{0, "", 0, NULL, NULL},
 	{MOUSEMOVE, "MOUSEMOVE", 0, "Move", ""},
+	{MOUSEPAN, "TRACKPADPAN", 0, "Mouse/Trackpad Pan", ""},
+	{MOUSEZOOM, "TRACKPADZOOM", 0, "Mouse/Trackpad Zoom", ""},
+	{MOUSEROTATE, "MOUSEROTATE", 0, "Mouse/Trackpad Rotate", ""},
 	{0, "", 0, NULL, NULL},
 	{WHEELUPMOUSE, "WHEELUPMOUSE", 0, "Wheel Up", ""},
 	{WHEELDOWNMOUSE, "WHEELDOWNMOUSE", 0, "Wheel Down", ""},
@@ -111,6 +115,9 @@ EnumPropertyItem event_type_items[] = {
 	{SELECTMOUSE, "SELECTMOUSE", 0, "Select Mouse", ""},
 	{0, "", 0, NULL, NULL},
 	{MOUSEMOVE, "MOUSEMOVE", 0, "Mouse Move", ""},
+	{MOUSEPAN, "TRACKPADPAN", 0, "Mouse/Trackpad Pan", ""},
+	{MOUSEZOOM, "TRACKPADZOOM", 0, "Mouse/Trackpad Zoom", ""},
+	{MOUSEROTATE, "MOUSEROTATE", 0, "Mouse/Trackpad Rotate", ""},
 	{0, "", 0, NULL, NULL},
 	{WHEELUPMOUSE, "WHEELUPMOUSE", 0, "Wheel Up", ""},
 	{WHEELDOWNMOUSE, "WHEELDOWNMOUSE", 0, "Wheel Down", ""},
@@ -598,7 +605,8 @@ static void rna_Operator_unregister(const bContext *C, StructRNA *type)
 	WM_operatortype_remove(ot->idname);
 	MEM_freeN(idname);
 
-	// RNA_struct_free(&BLENDER_RNA, type); // WM_operatortype_remove calls this
+	/* not to be confused with the RNA_struct_free that WM_operatortype_remove calls, they are 2 different srna's */
+	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
 	if(C)
@@ -691,6 +699,7 @@ static void operator_draw(bContext *C, wmOperator *op)
 	RNA_parameter_list_free(&list);
 }
 
+#ifndef DISABLE_PYTHON
 void operator_wrapper(wmOperatorType *ot, void *userdata);
 void macro_wrapper(wmOperatorType *ot, void *userdata);
 
@@ -829,6 +838,7 @@ static StructRNA *rna_MacroOperator_register(const bContext *C, ReportList *repo
 
 	return dummyot.ext.srna;
 }
+#endif
 
 static StructRNA* rna_Operator_refine(PointerRNA *opr)
 {
@@ -853,7 +863,9 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Operator", "Storage of an operator being executed, or registered after execution.");
 	RNA_def_struct_sdna(srna, "wmOperator");
 	RNA_def_struct_refine_func(srna, "rna_Operator_refine");
+#ifndef DISABLE_PYTHON
 	RNA_def_struct_register_funcs(srna, "rna_Operator_register", "rna_Operator_unregister");
+#endif
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -878,6 +890,11 @@ static void rna_def_operator(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
+	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->description");
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
@@ -906,8 +923,10 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Macro Operator", "Storage of a macro operator being executed, or registered after execution.");
 	RNA_def_struct_sdna(srna, "wmOperator");
 	RNA_def_struct_refine_func(srna, "rna_MacroOperator_refine");
+#ifndef DISABLE_PYTHON
 	RNA_def_struct_register_funcs(srna, "rna_MacroOperator_register", "rna_Operator_unregister");
-
+#endif
+    
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Operator_name_get", "rna_Operator_name_length", NULL);
@@ -928,6 +947,11 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "bl_label", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
+	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
+	RNA_def_property_flag(prop, PROP_REGISTER);
+
+	prop= RNA_def_property(srna, "bl_description", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->description");
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
@@ -1161,6 +1185,11 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "keymaps", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyMap");
 	RNA_def_property_ui_text(prop, "Key Maps", "Key maps configured as part of this configuration.");
+
+	prop= RNA_def_property(srna, "user_defined", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYCONF_USER);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "User Defined", "Indicates that a keyconfig was defined by the user.");
 
 	RNA_api_keyconfig(srna);
 

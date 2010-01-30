@@ -44,6 +44,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -654,7 +655,8 @@ static void connect_hair(Scene *scene, Object *ob, ParticleSystem *psys)
 		BLI_bvhtree_find_nearest(bvhtree.tree, key->co, &nearest, bvhtree.nearest_callback, &bvhtree);
 
 		if(nearest.index == -1) {
-			printf("No nearest point found for hair root!");
+			if (G.f & G_DEBUG)
+				printf("No nearest point found for hair root!");
 			continue;
 		}
 

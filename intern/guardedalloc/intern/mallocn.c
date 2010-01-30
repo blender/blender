@@ -487,8 +487,10 @@ short MEM_testN(void *vmemh) {
 	if (membl) membl = MEMNEXT(membl);
 
 	while(membl) {
-		if (vmemh == membl+1)
+		if (vmemh == membl+1) {
+			mem_unlock_thread();
 			return 1;
+		}
 
 		if(membl->next)
 			membl= MEMNEXT(membl->next);
@@ -628,8 +630,8 @@ static void rem_memblock(MemHead *memh)
         mmap_in_use -= memh->len;
         if (munmap(memh, memh->len + sizeof(MemHead) + sizeof(MemTail)))
             printf("Couldn't unmap memory %s\n", memh->name);
-    }
-    else {
+    }	
+	else {
 		if(malloc_debug_memset && memh->len)
 			memset(memh+1, 255, memh->len);
         free(memh);

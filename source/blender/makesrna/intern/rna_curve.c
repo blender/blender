@@ -50,12 +50,6 @@ EnumPropertyItem beztriple_interpolation_mode_items[] = {
 		{BEZT_IPO_LIN, "LINEAR", 0, "Linear", ""},
 		{BEZT_IPO_BEZ, "BEZIER", 0, "Bezier", ""},
 		{0, NULL, 0, NULL, NULL}};
-		
-EnumPropertyItem beztriple_keyframe_type_items[] = {
-		{BEZT_KEYTYPE_KEYFRAME, "KEYFRAME", 0, "Keyframe", ""},
-		{BEZT_KEYTYPE_BREAKDOWN, "BREAKDOWN", 0, "Breakdown", ""},
-		{BEZT_KEYTYPE_EXTREME, "EXTREME", 0, "Extreme", ""},
-		{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -73,7 +67,7 @@ static StructRNA *rna_Curve_refine(PointerRNA *ptr)
 {
 	Curve *cu= (Curve*)ptr->data;
 	short obtype= curve_type(cu);
-
+	
 	if(obtype == OB_FONT) return &RNA_TextCurve;
 	else if(obtype == OB_SURF) return &RNA_SurfaceCurve;
 	else return &RNA_Curve;
@@ -421,18 +415,6 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Handle 2 Type", "Handle types");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "ipo");
-	RNA_def_property_enum_items(prop, beztriple_interpolation_mode_items);
-	RNA_def_property_ui_text(prop, "Interpolation", "(For F-Curves Only) Interpolation to use for segment of curve starting from current BezTriple.");
-	//RNA_def_property_update(prop, 0, "rna_Curve_update_data"); // this should be an F-Curve update call instead...
-	
-	prop= RNA_def_property(srna, "keyframe_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "hide");
-	RNA_def_property_enum_items(prop, beztriple_keyframe_type_items);
-	RNA_def_property_ui_text(prop, "Keyframe Type", "(For F-Curves only) The type of keyframe this control point defines.");
-	//RNA_def_property_update(prop, 0, "rna_Curve_update_data"); // this should be an F-Curve update call instead...
-
 	/* Vector values */
 	prop= RNA_def_property(srna, "handle1", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_array(prop, 3);
@@ -634,6 +616,7 @@ static void rna_def_font(BlenderRNA *brna, StructRNA *srna)
 	prop= RNA_def_property(srna, "font", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "vfont");
 	RNA_def_property_ui_text(prop, "Font", "");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop= RNA_def_property(srna, "edit_format", PROP_POINTER, PROP_NONE);
@@ -811,6 +794,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "extrude", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ext1");
 	RNA_def_property_ui_range(prop, 0, 100.0, 0.1, 0);
+	RNA_def_property_range(prop, 0.0, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Extrude", "Amount of curve extrusion when not using a bevel object.");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
@@ -823,23 +807,27 @@ static void rna_def_curve(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu");
 	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_range(prop, 1, INT_MAX);
 	RNA_def_property_ui_text(prop, "Resolution U", "Surface resolution in U direction.");
 	RNA_def_property_update(prop, 0, "rna_Curve_resolution_u_update_data");
 	
 	prop= RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv");
 	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_range(prop, 1, INT_MAX);
 	RNA_def_property_ui_text(prop, "Resolution V", "Surface resolution in V direction.");
 	RNA_def_property_update(prop, 0, "rna_Curve_resolution_v_update_data");
 	
 	prop= RNA_def_property(srna, "render_resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
 	RNA_def_property_ui_range(prop, 0, 1024, 1, 0);
+	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_text(prop, "Render Resolution U", "Surface resolution in U direction used while rendering. Zero skips this property.");
 	
 	prop= RNA_def_property(srna, "render_resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv_ren");
 	RNA_def_property_ui_range(prop, 0, 1024, 1, 0);
+	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
 	
 	
@@ -893,12 +881,6 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Twist Smooth", "Smoothing iteration for tangents");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
-
-
-	prop= RNA_def_property(srna, "retopo", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_RETOPO);
-	RNA_def_property_ui_text(prop, "Retopo", "Turn on the re-topology tool.");
-	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
 static void rna_def_curve_nurb(BlenderRNA *brna)

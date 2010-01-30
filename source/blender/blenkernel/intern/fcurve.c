@@ -284,6 +284,46 @@ int list_find_data_fcurves (ListBase *dst, ListBase *src, const char *dataPrefix
 	return matches;
 }
 
+FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction **action, int *driven)
+{
+	FCurve *fcu= NULL;
+	
+	*driven= 0;
+	
+	/* there must be some RNA-pointer + property combon */
+	if(prop && ptr->id.data && RNA_property_animateable(ptr, prop)) {
+		AnimData *adt= BKE_animdata_from_id(ptr->id.data);
+		char *path;
+		
+		if(adt) {
+			if((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
+				/* XXX this function call can become a performance bottleneck */
+				path= RNA_path_from_ID_to_property(ptr, prop);
+				
+				if(path) {
+					/* animation takes priority over drivers */
+					if(adt->action && adt->action->curves.first)
+						fcu= list_find_fcurve(&adt->action->curves, path, rnaindex);
+					
+					/* if not animated, check if driven */
+					if(!fcu && (adt->drivers.first)) {
+						fcu= list_find_fcurve(&adt->drivers, path, rnaindex);
+						
+						if(fcu)
+							*driven= 1;
+					}
+					
+					if(fcu && action)
+						*action= adt->action;
+					
+					MEM_freeN(path);
+				}
+			}
+		}
+	}
+	
+	return fcu;
+}
 
 /* threshold for binary-searching keyframes - threshold here should be good enough for now, but should become userpref */
 #define BEZT_BINARYSEARCH_THRESH 	0.00001f
@@ -1097,6 +1137,12 @@ void driver_free_variable (ChannelDriver *driver, DriverVar *dvar)
 		BLI_freelinkN(&driver->variables, dvar);
 	else
 		MEM_freeN(dvar);
+
+#ifndef DISABLE_PYTHON
+	/* since driver variables are cached, the expression needs re-compiling too */
+	if(driver->type==DRIVER_TYPE_PYTHON)
+		driver->flag |= DRIVER_FLAG_RENAMEVAR;
+#endif
 }
 
 /* Change the type of driver variable */
@@ -1149,6 +1195,12 @@ DriverVar *driver_add_new_variable (ChannelDriver *driver)
 	/* set the default type to 'single prop' */
 	driver_change_variable_type(dvar, DVAR_TYPE_SINGLE_PROP);
 	
+#ifndef DISABLE_PYTHON
+	/* since driver variables are cached, the expression needs re-compiling too */
+	if(driver->type==DRIVER_TYPE_PYTHON)
+		driver->flag |= DRIVER_FLAG_RENAMEVAR;
+#endif
+
 	/* return the target */
 	return dvar;
 }
@@ -1193,6 +1245,7 @@ ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 		
 	/* copy all data */
 	ndriver= MEM_dupallocN(driver);
+	ndriver->expr_comp= NULL;
 	
 	/* copy variables */
 	ndriver->variables.first= ndriver->variables.last= NULL;
@@ -1225,14 +1278,17 @@ float driver_get_variable_value (ChannelDriver *driver, DriverVar *dvar)
 		return 0.0f;
 	
 	/* call the relevant callbacks to get the variable value 
-	 * using the variable type info
+	 * using the variable type info, storing the obtained value
+	 * in dvar->curval so that drivers can be debugged
 	 */
 	dvti= get_dvar_typeinfo(dvar->type);
 	
 	if (dvti && dvti->get_value)
-		return dvti->get_value(driver, dvar);
+		dvar->curval= dvti->get_value(driver, dvar);
 	else
-		return 0.0f;
+		dvar->curval= 0.0f;
+	
+	return dvar->curval;
 }
 
 /* Evaluate an Channel-Driver to get a 'time' value to use instead of "evaltime"
@@ -1255,12 +1311,12 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			if (driver->variables.first == driver->variables.last) {
 				/* just one target, so just use that */
 				dvar= driver->variables.first;
-				return driver_get_variable_value(driver, dvar);
+				driver->curval= driver_get_variable_value(driver, dvar);
 			}
 			else {
 				/* more than one target, so average the values of the targets */
-				int tot = 0;
 				float value = 0.0f;
+				int tot = 0;
 				
 				/* loop through targets, adding (hopefully we don't get any overflow!) */
 				for (dvar= driver->variables.first; dvar; dvar=dvar->next) {
@@ -1270,10 +1326,9 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 				
 				/* perform operations on the total if appropriate */
 				if (driver->type == DRIVER_TYPE_AVERAGE)
-					return (value / (float)tot);
+					driver->curval= (value / (float)tot);
 				else
-					return value;
-				
+					driver->curval= value;
 			}
 		}
 			break;
@@ -1307,6 +1362,9 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 					value= tmp_val;
 				}
 			}
+			
+			/* store value in driver */
+			driver->curval= value;
 		}
 			break;
 			
@@ -1317,13 +1375,15 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			if ( (driver->expression[0] == '\0') ||
 				 (driver->flag & DRIVER_FLAG_INVALID) )
 			{
-				return 0.0f;
+				driver->curval= 0.0f;
 			}
-			
-			/* this evaluates the expression using Python,and returns its result:
-			 * 	- on errors it reports, then returns 0.0f
-			 */
-			return BPY_pydriver_eval(driver);
+			else
+			{
+				/* this evaluates the expression using Python,and returns its result:
+				 * 	- on errors it reports, then returns 0.0f
+				 */
+				driver->curval= BPY_pydriver_eval(driver);
+			}
 #endif /* DISABLE_PYTHON*/
 		}
 			break;
@@ -1334,12 +1394,11 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			 *	This is currently used as the mechanism which allows animated settings to be able
 			 * 	to be changed via the UI.
 			 */
-			return driver->curval;
 		}
 	}
 	
-	/* return 0.0f, as couldn't find relevant data to use */
-	return 0.0f;
+	/* return value for driver */
+	return driver->curval;
 }
 
 /* ***************************** Curve Calculations ********************************* */
@@ -1722,9 +1781,16 @@ static float fcurve_eval_samples (FCurve *fcu, FPoint *fpts, float evaltime)
 		cvalue= lastfpt->vec[1];
 	}
 	else {
+		float t= (float)abs(evaltime - (int)evaltime);
+		
 		/* find the one on the right frame (assume that these are spaced on 1-frame intervals) */
 		fpt= prevfpt + (int)(evaltime - prevfpt->vec[0]);
-		cvalue= fpt->vec[1];
+		
+		/* if not exactly on the frame, perform linear interpolation with the next one */
+		if (t != 0.0f) 
+			cvalue= interpf(fpt->vec[1], (fpt+1)->vec[1], t);
+		else
+			cvalue= fpt->vec[1];
 	}
 	
 	/* return value */

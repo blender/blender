@@ -51,6 +51,25 @@ static EnumPropertyItem texture_filter_items[] = {
 	{TXF_SAT, "SAT", 0, "SAT (4x mem)", ""},
 	{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem texture_type_items[] = {
+	{0, "NONE", 0, "None", ""},
+	{TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", ""},
+	{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", ""},
+	{TEX_DISTNOISE, "DISTORTED_NOISE", ICON_TEXTURE, "Distorted Noise", ""},
+	{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA, "Environment Map", ""},
+	{TEX_IMAGE, "IMAGE", ICON_IMAGE_DATA, "Image or Movie", ""},
+	{TEX_MAGIC, "MAGIC", ICON_TEXTURE, "Magic", ""},
+	{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", ""},
+	{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", ""},
+	{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise", ""},
+	{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""},
+	{TEX_POINTDENSITY, "POINT_DENSITY", ICON_TEXTURE, "Point Density", ""},
+	{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", ""},
+	{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", ""},
+	{TEX_VOXELDATA, "VOXEL_DATA", ICON_TEXTURE, "Voxel Data", ""},
+	{TEX_WOOD, "WOOD", ICON_TEXTURE, "Wood", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "MEM_guardedalloc.h"
@@ -1598,7 +1617,7 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "radius");
-	RNA_def_property_range(prop, 0.01, FLT_MAX);
+	RNA_def_property_range(prop, 0.001, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Radius", "Radius from the shaded sample to look for points within");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
@@ -1707,6 +1726,12 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 		{TEX_REPEAT, "REPEAT", 0, "Repeat", "Causes the image to repeat horizontally and vertically"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem smoked_type_items[] = {
+		{TEX_VD_SMOKEDENSITY, "SMOKEDENSITY", 0, "Density", "Use smoke density as texture data."},
+		{TEX_VD_SMOKEHEAT, "SMOKEHEAT", 0, "Heat", "Use smoke heat as texture data. Values from -2.0 to 2.0 are used."},
+		{TEX_VD_SMOKEVEL, "SMOKEVEL", 0, "Velocity", "Use smoke velocity as texture data."},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "VoxelData", NULL);
 	RNA_def_struct_sdna(srna, "VoxelData");
 	RNA_def_struct_ui_text(srna, "VoxelData", "Voxel data settings.");
@@ -1715,6 +1740,12 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "interp_type");
 	RNA_def_property_enum_items(prop, interpolation_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation", "Method to interpolate/smooth values between voxel cells");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+
+	prop= RNA_def_property(srna, "smoke_data_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "smoked_type");
+	RNA_def_property_enum_items(prop, smoked_type_items);
+	RNA_def_property_ui_text(prop, "Source", "Simulation value to be used as a texture.");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "extension", PROP_ENUM, PROP_NONE);
@@ -1772,31 +1803,24 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "VoxelData");
 	RNA_def_property_ui_text(prop, "Voxel Data", "The voxel data associated with this texture");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ima");
+	RNA_def_property_struct_type(prop, "Image");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Image", "");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
+	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed.");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
 static void rna_def_texture(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static EnumPropertyItem prop_type_items[] = {
-		{0, "NONE", 0, "None", ""},
-		{TEX_BLEND, "BLEND", ICON_TEXTURE, "Blend", ""},
-		{TEX_CLOUDS, "CLOUDS", ICON_TEXTURE, "Clouds", ""},
-		{TEX_DISTNOISE, "DISTORTED_NOISE", ICON_TEXTURE, "Distorted Noise", ""},
-		{TEX_ENVMAP, "ENVIRONMENT_MAP", ICON_IMAGE_DATA, "Environment Map", ""},
-		{TEX_IMAGE, "IMAGE", ICON_IMAGE_DATA, "Image or Movie", ""},
-		{TEX_MAGIC, "MAGIC", ICON_TEXTURE, "Magic", ""},
-		{TEX_MARBLE, "MARBLE", ICON_TEXTURE, "Marble", ""},
-		{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", ""},
-		{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise", ""},
-		{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""},
-		{TEX_POINTDENSITY, "POINT_DENSITY", ICON_TEXTURE, "Point Density", ""},
-		{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", ""},
-		{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", ""},
-		{TEX_VOXELDATA, "VOXEL_DATA", ICON_TEXTURE, "Voxel Data", ""},
-		{TEX_WOOD, "WOOD", ICON_TEXTURE, "Wood", ""},
-		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Texture", "ID");
 	RNA_def_struct_sdna(srna, "Tex");
@@ -1807,7 +1831,7 @@ static void rna_def_texture(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	//RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, prop_type_items);
+	RNA_def_property_enum_items(prop, texture_type_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_Texture_type_set", NULL);
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");

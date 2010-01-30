@@ -75,7 +75,6 @@
 #endif
 
 extern void do_init_ffmpeg();
-static void makeffmpegstring(RenderData* rd, char* string);
 
 static int ffmpeg_type = 0;
 static int ffmpeg_codec = CODEC_ID_MPEG4;
@@ -638,7 +637,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	do_init_ffmpeg();
 
 	/* Determine the correct filename */
-	makeffmpegstring(rd, name);
+	filepath_ffmpeg(name, rd);
 	fprintf(stderr, "Starting output to %s(ffmpeg)...\n"
 		"  Using type=%d, codec=%d, audio_codec=%d,\n"
 		"  video_bitrate=%d, audio_bitrate=%d,\n"
@@ -772,16 +771,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
    ********************************************************************** */
 
 /* Get the output filename-- similar to the other output formats */
-static void makeffmpegstring(RenderData* rd, char* string) {
-
-	// XXX quick define, solve!
-#define FILE_MAXDIR 256
-#define FILE_MAXFILE 126
-		
-	char txt[FILE_MAXDIR+FILE_MAXFILE];
-	// XXX
-#undef FILE_MAXDIR
-#undef FILE_MAXFILE
+void filepath_ffmpeg(char* string, RenderData* rd) {
 	char autosplit[20];
 
 	const char ** exts = get_file_extensions(rd->ffcodecdata.type);
@@ -811,9 +801,13 @@ static void makeffmpegstring(RenderData* rd, char* string) {
 
 	if (!*fe) {
 		strcat(string, autosplit);
-		sprintf(txt, "%04d_%04d%s", (rd->sfra), 
-			(rd->efra), *exts);
-		strcat(string, txt);
+
+		/* if we dont have any #'s to insert numbers into, use 4 numbers by default */
+		if (strchr(string, '#')==NULL)
+			strcat(string, "####"); /* 4 numbers */
+
+		BLI_convertstringframe_range(string, rd->sfra, rd->efra);
+		strcat(string, *exts);
 	} else {
 		*(string + strlen(string) - strlen(*fe)) = 0;
 		strcat(string, autosplit);

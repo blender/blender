@@ -63,9 +63,14 @@ struct wmTimer;
  
 /* Background Picture in 3D-View */
 typedef struct BGpic {
+    struct BGpic *next, *prev;
+
     struct Image *ima;
 	struct ImageUser iuser;
     float xof, yof, size, blend;
+    short view;
+    short flag;
+    float pad2;
 } BGpic;
 
 /* ********************************* */
@@ -140,7 +145,10 @@ typedef struct View3D {
 	short view;	/* XXX depricated */
 	
 	struct Object *camera, *ob_centre;
-	struct BGpic *bgpic;
+
+	struct ListBase bgpicbase;
+	struct BGpic *bgpic; /* deprecated, use bgpicbase, only kept for do_versions(...) */
+
 	struct View3D *localvd;
 	
 	char ob_centre_bone[32];		/* optional string for armature bone to define center */
@@ -197,7 +205,7 @@ typedef struct View3D {
 /* View3D->flag (short) */
 #define V3D_MODE			(16+32+64+128+256+512)
 #define V3D_DISPIMAGE		1
-#define V3D_DISPBGPIC		2
+#define V3D_DISPBGPICS		2
 #define V3D_HIDE_HELPLINES	4
 #define V3D_INVALID_BACKBUF	8
 #define V3D_EDITMODE		16
@@ -283,6 +291,9 @@ typedef struct View3D {
 #define V3D_DRAW_MANIPULATOR	2
 #define V3D_CALC_MANIPULATOR	4
 
+/* BGPic->flag */
+/* may want to use 1 for select ?*/
+#define V3D_BGPIC_EXPANDED		2
 
 #endif
 

@@ -19,8 +19,8 @@
 # <pep8 compliant>
 
 import bpy
-from math import radians
-from rigify import RigifyError, get_layer_dict
+from math import radians, pi
+from rigify import RigifyError, get_layer_dict, ORG_PREFIX
 from rigify_utils import bone_class_instance, copy_bone_simple, add_pole_target_bone, add_stretch_to, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 from Mathutils import Vector
@@ -59,7 +59,7 @@ def metarig_template():
 
     bpy.ops.object.mode_set(mode='OBJECT')
     pbone = obj.pose.bones['upper_arm']
-    pbone['type'] = 'arm_biped_generic'
+    pbone['type'] = 'arm_biped'
 
 
 def metarig_definition(obj, orig_bone_name):
@@ -126,7 +126,7 @@ def ik(obj, definitions, base_names, options):
 
     if elbow_parent_name:
         try:
-            elbow_parent_e = arm.edit_bones[elbow_parent_name]
+            elbow_parent_e = arm.edit_bones[ORG_PREFIX + elbow_parent_name]
         except:
             # TODO, old/new parent mapping
             raise RigifyError("parent bone from property 'arm_biped_generic.elbow_parent' not found '%s'" % elbow_parent_name)
@@ -162,16 +162,17 @@ def ik(obj, definitions, base_names, options):
     con.use_target = True
     con.use_rotation = False
     con.chain_length = 2
-    con.pole_angle = -90.0 # XXX, RAD2DEG
+    con.pole_angle = -pi/2
 
     # last step setup layers
-    layers = get_layer_dict(options)
-    lay = layers["ik"]
-    for attr in ik_chain.attr_names:
-        getattr(ik_chain, attr + "_b").layer = lay
-    for attr in ik.attr_names:
-        getattr(ik, attr + "_b").layer = lay
-
+    if "ik_layer" in options:
+        layer = [n==options["ik_layer"] for n in range(0,32)]
+    else:
+        layer = list(mt.arm_b.layer)
+    ik_chain.hand_b.layer = layer
+    ik.hand_vis_b.layer   = layer
+    ik.pole_b.layer       = layer
+    ik.pole_vis_b.layer   = layer
 
     bpy.ops.object.mode_set(mode='EDIT')
     # don't blend the shoulder
@@ -200,9 +201,9 @@ def fk(obj, definitions, base_names, options):
     ex.socket_e.parent = mt.shoulder_e
     ex.socket_e.length *= 0.5
 
-    # insert the 'DLT-hand', between the forearm and the hand
+    # insert the 'MCH-delta_hand', between the forearm and the hand
     # copies forarm rotation
-    ex.hand_delta_e = copy_bone_simple(arm, fk_chain.hand, "DLT-%s" % base_names[mt.hand], parent=True)
+    ex.hand_delta_e = copy_bone_simple(arm, fk_chain.hand, "MCH-delta_%s" % base_names[mt.hand], parent=True)
     ex.hand_delta = ex.hand_delta_e.name
     ex.hand_delta_e.length *= 0.5
     ex.hand_delta_e.connected = False
@@ -222,6 +223,7 @@ def fk(obj, definitions, base_names, options):
     fk_chain.forearm_p.rotation_mode = 'XYZ'
     fk_chain.forearm_p.lock_rotation = (False, True, True)
     fk_chain.hand_p.rotation_mode = 'ZXY'
+    fk_chain.arm_p.lock_location = True, True, True
 
     con = fk_chain.arm_p.constraints.new('COPY_LOCATION')
     con.target = obj
@@ -267,18 +269,22 @@ def fk(obj, definitions, base_names, options):
 
     hinge_setup()
 
-
     # last step setup layers
-    layers = get_layer_dict(options)
-    lay = layers["fk"]
-    for attr in fk_chain.attr_names:
-        getattr(fk_chain, attr + "_b").layer = lay
-
-    lay = layers["extra"]
-    for attr in ex.attr_names:
-        getattr(ex, attr + "_b").layer = lay
-
-
+    if "fk_layer" in options:
+        layer = [n==options["fk_layer"] for n in range(0,32)]
+    else:
+        layer = list(mt.arm_b.layer)
+    fk_chain.arm_b.layer     = layer
+    fk_chain.forearm_b.layer = layer
+    fk_chain.hand_b.layer    = layer
+    
+    # Forearm was getting wrong roll somehow.  Hack to fix that.
+    bpy.ops.object.mode_set(mode='EDIT')
+    fk_chain.update()
+    mt.update()
+    fk_chain.forearm_e.roll = mt.forearm_e.roll
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
     bpy.ops.object.mode_set(mode='EDIT')
     return None, fk_chain.arm, fk_chain.forearm, fk_chain.hand
 
@@ -340,6 +346,11 @@ def deform(obj, definitions, base_names, options):
     con.target = obj
     con.subtarget = definitions[2]
     
+    con = uarm1.constraints.new('COPY_SCALE')
+    con.name = "trackto"
+    con.target = obj
+    con.subtarget = definitions[1]
+    
     con = uarm2.constraints.new('COPY_ROTATION')
     con.name = "copy_rot"
     con.target = obj
@@ -347,6 +358,11 @@ def deform(obj, definitions, base_names, options):
     
     # Forearm constraints
     con = farm1.constraints.new('COPY_ROTATION')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[2]
+    
+    con = farm1.constraints.new('COPY_SCALE')
     con.name = "copy_rot"
     con.target = obj
     con.subtarget = definitions[2]
@@ -378,4 +394,3 @@ def main(obj, bone_definition, base_names, options):
 
     bpy.ops.object.mode_set(mode='OBJECT')
     blend_bone_list(obj, bone_definition, bones_fk, bones_ik, target_bone=bones_ik[3], target_prop="ik", blend_default=0.0)
-    

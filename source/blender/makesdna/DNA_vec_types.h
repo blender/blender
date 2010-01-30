@@ -38,13 +38,15 @@ typedef struct vec2s {
 	short x, y;
 } vec2s;
 
-typedef struct vec2i {
-	int x, y;
-} vec2i;
-
 typedef struct vec2f {
 	float x, y;
 } vec2f;
+
+/* not used at the moment */
+#if 0
+typedef struct vec2i {
+	int x, y;
+} vec2i;
 
 typedef struct vec2d {
 	double x, y;
@@ -73,6 +75,7 @@ typedef struct vec4f {
 typedef struct vec4d {
 	double x, y, z, w;
 } vec4d;
+#endif
 
 typedef struct rcti {
     int xmin, xmax;

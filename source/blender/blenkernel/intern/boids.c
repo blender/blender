@@ -77,6 +77,7 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 	EffectedPoint epoint;
 	ListBase *effectors = bbd->sim->psys->effectors;
 	EffectorCache *cur, *eff = NULL;
+	EffectorCache temp_eff;
 	EffectorData efd, cur_efd;
 	float mul = (rule->type == eBoidRuleType_Avoid ? 1.0 : -1.0);
 	float priority = 0.0f, len = 0.0f;
@@ -91,7 +92,7 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 
 		if(gabr->ob && (rule->type != eBoidRuleType_Goal || gabr->ob != bpa->ground)) {
 			if(gabr->ob == eob) {
-				/* TODO: objects without any effector and effectors with multiple points */
+				/* TODO: effectors with multiple points */
 				if(get_effector_data(cur, &efd, &epoint, 0)) {
 					if(cur->pd && cur->pd->forcefield == PFIELD_BOID)
 						priority = mul * pd->f_strength * effector_falloff(cur, &efd, &epoint, bbd->part->effector_weights);
@@ -105,7 +106,7 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 		}
 		else if(rule->type == eBoidRuleType_Goal && eob == bpa->ground)
 			; /* skip current object */
-		else if(pd->forcefield == PFIELD_BOID && mul * pd->f_strength > 0.0f && get_effector_data(eff, &efd, &epoint, 0)) {
+		else if(pd->forcefield == PFIELD_BOID && mul * pd->f_strength > 0.0f && get_effector_data(cur, &cur_efd, &epoint, 0)) {
 			float temp = mul * pd->f_strength * effector_falloff(cur, &cur_efd, &epoint, bbd->part->effector_weights);
 
 			if(temp == 0.0f)
@@ -125,11 +126,21 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 		}
 	}
 
+	/* if the object doesn't have effector data we have to fake it */
+	if(eff == NULL && gabr->ob) {
+		memset(&temp_eff, 0, sizeof(EffectorCache));
+		temp_eff.ob = gabr->ob;
+		temp_eff.scene = bbd->sim->scene;
+		eff = &temp_eff;
+		get_effector_data(eff, &efd, &epoint, 0);
+		priority = 1.0f;
+	}
+
 	/* then use that effector */
 	if(priority > (rule->type==eBoidRuleType_Avoid ? gabr->fear_factor : 0.0f)) { /* with avoid, factor is "fear factor" */
 		Object *eob = eff->ob;
-		PartDeflect *pd = eob->pd;
-		float surface = pd->shape == PFIELD_SHAPE_SURFACE ? 1.0f : 0.0f;
+		PartDeflect *pd = eff->pd;
+		float surface = (pd && pd->shape == PFIELD_SHAPE_SURFACE) ? 1.0f : 0.0f;
 
 		if(gabr->options & BRULE_GOAL_AVOID_PREDICT) {
 			/* estimate future location of target */
@@ -219,10 +230,19 @@ static int rule_avoid_collision(BoidRule *rule, BoidBrainData *bbd, BoidValues *
 		}
 		/* then avoid that object */
 		if(hit.index>=0) {
-			/* TODO: not totally happy with this part */
 			t = hit.dist/col.ray_len;
 
-			VECCOPY(bbd->wanted_co, col.nor);
+			/* avoid head-on collision */
+			if(dot_v3v3(col.nor, pa->prev_state.ave) < -0.99) {
+				/* don't know why, but uneven range [0.0,1.0] */
+				/* works much better than even [-1.0,1.0] */
+				bbd->wanted_co[0] = BLI_frand();
+				bbd->wanted_co[1] = BLI_frand();
+				bbd->wanted_co[2] = BLI_frand();
+			}
+			else {
+				VECCOPY(bbd->wanted_co, col.nor);
+			}
 
 			mul_v3_fl(bbd->wanted_co, (1.0f - t) * val->personal_space * pa->size);
 

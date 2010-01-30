@@ -198,6 +198,8 @@ typedef struct PreviewImage {
 			/* fluidsim Ipo */
 #define ID_FLUIDSIM	MAKE_ID2('F', 'S')
 
+#define ID_REAL_USERS(id) (((ID *)id)->us - ((((ID *)id)->flag & LIB_FAKEUSER) ? 1:0))
+
 /* id->flag: set frist 8 bits always at zero while reading */
 #define LIB_LOCAL		0
 #define LIB_EXTERN		1
@@ -212,8 +214,8 @@ typedef struct PreviewImage {
 #define LIB_FAKEUSER	512
 /* free test flag */
 #define LIB_DOIT		1024
-/*  */
-#define LIB_APPEND_TAG	2048 
+/* tag existing data before linking so we know what is new */
+#define LIB_PRE_EXISTING	2048
 
 #ifdef __cplusplus
 }

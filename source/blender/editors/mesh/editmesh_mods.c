@@ -120,7 +120,7 @@ void EM_cache_x_mirror_vert(struct Object *ob, struct EditMesh *em)
 	}
 }
 
-void EM_select_mirrored(Object *obedit, EditMesh *em, int extend)
+static void EM_select_mirrored(Object *obedit, EditMesh *em, int extend)
 {
 
 	EditVert *eve;
@@ -1260,6 +1260,10 @@ static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *ptr,
 	Object *obedit= CTX_data_edit_object(C);
 	EnumPropertyItem *item= NULL;
 	int a, totitem= 0;
+
+	if (C == NULL) {
+		return prop_similar_types;
+	}
 		
 	if(obedit && obedit->type == OB_MESH) {
 		EditMesh *em= BKE_mesh_get_editmesh(obedit->data); 
@@ -1304,6 +1308,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", prop_similar_types, SIMVERT_NORMAL, "Type", "");
 	RNA_def_enum_funcs(prop, select_similar_type_itemf);
+	ot->prop= prop;
 }
 
 /* ******************************************* */
@@ -2111,7 +2116,7 @@ void MESH_OT_loop_select(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= mesh_select_loop_invoke;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_editmesh_view3d;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2213,7 +2218,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= mesh_shortest_path_select_invoke;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_editmesh_view3d;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2521,7 +2526,7 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= select_linked_pick_invoke;
-	ot->poll= ED_operator_editmesh;
+	ot->poll= ED_operator_editmesh_view3d;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
@@ -2858,7 +2863,7 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 {
 	static const EnumPropertyItem type_items[]= {
 		{3, "TRIANGLES", 0, "Triangles", NULL},
-		{4, "QUADS", 0, "Triangles", NULL},
+		{4, "QUADS", 0, "Quads", NULL},
 		{5, "OTHER", 0, "Other", NULL},
 		{0, NULL, 0, NULL, NULL}};
 
@@ -2869,13 +2874,14 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= select_by_number_vertices_exec;
+	ot->invoke= WM_menu_invoke;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select.");
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 3, "Type", "Type of elements to select.");
 }
 
 
@@ -3800,8 +3806,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 
 /* **************** NORMALS ************** */
 
-/* XXX value of select is messed up, it means two things */
-void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning */
+void EM_recalc_normal_direction(EditMesh *em, int inside, int select)	/* makes faces righthand turning */
 {
 	EditEdge *eed, *ed1, *ed2, *ed3, *ed4;
 	EditFace *efa, *startvl;
@@ -3893,16 +3898,12 @@ void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning *
 			cent_tri_v3(cent, startvl->v1->co, startvl->v2->co, startvl->v3->co);
 		}
 		/* first normal is oriented this way or the other */
-		if(select) {
-			if(select==2) {
-				if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] > 0.0) flipface(em, startvl);
-			}
-			else {
-				if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] < 0.0) flipface(em, startvl);
-			}
+		if(inside) {
+			if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] > 0.0) flipface(em, startvl);
 		}
-		else if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] < 0.0) flipface(em, startvl);
-
+		else {
+			if(cent[0]*nor[0]+cent[1]*nor[1]+cent[2]*nor[2] < 0.0) flipface(em, startvl);
+		}
 
 		eed= startvl->e1;
 		if(eed->v1==startvl->v1) eed->f2= 1; 
@@ -4012,7 +4013,7 @@ void righthandfaces(EditMesh *em, int select)	/* makes faces righthand turning *
 }
 
 
-static int righthandfaces_exec(bContext *C, wmOperator *op)
+static int normals_make_consistent_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
@@ -4020,7 +4021,7 @@ static int righthandfaces_exec(bContext *C, wmOperator *op)
 	/* 'standard' behaviour - check if selected, then apply relevant selection */
 	
 	// XXX  need other args
-	righthandfaces(em, RNA_boolean_get(op->ptr, "inside"));
+	EM_recalc_normal_direction(em, RNA_boolean_get(op->ptr, "inside"), 1);
 	
 	BKE_mesh_end_editmesh(obedit->data, em);
 
@@ -4038,7 +4039,7 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 	ot->idname= "MESH_OT_normals_make_consistent";
 	
 	/* api callbacks */
-	ot->exec= righthandfaces_exec;
+	ot->exec= normals_make_consistent_exec;
 	ot->poll= ED_operator_editmesh;
 	
 	/* flags */

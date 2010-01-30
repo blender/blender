@@ -97,30 +97,74 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 
         scene = context.scene
         netsettings = scene.network_render
-
-        layout.active = True
-
-        split = layout.split()
-
-        col = split.column()
-
-        if netsettings.mode in ("RENDER_MASTER", "RENDER_SLAVE"):
-            col.operator("screen.render", text="Start", icon='PLAY').animation = True
-            
+        
         verify_address(netsettings)
 
-        col.prop(netsettings, "mode")
-        col.prop(netsettings, "path")
-        col.prop(netsettings, "server_address")
-        col.prop(netsettings, "server_port")
+        layout.prop(netsettings, "mode", expand=True)
 
-        if netsettings.mode == "RENDER_MASTER":
-            col.prop(netsettings, "server_broadcast")
-        else:
-            col.operator("render.netclientscan", icon='FILE_REFRESH', text="")
+        if netsettings.mode in ("RENDER_MASTER", "RENDER_SLAVE"):
+            layout.operator("render.netclientstart", icon='PLAY')
 
-        col.operator("render.netclientweb", icon='QUESTION')
+        layout.prop(netsettings, "path")
+        
+        split = layout.split(percentage=0.7)
+        
+        col = split.column()
+        col.label(text="Server Adress:")
+        col.prop(netsettings, "server_address", text="")
+            
+        col = split.column()
+        col.label(text="Port:")
+        col.prop(netsettings, "server_port", text="")
 
+        if netsettings.mode != "RENDER_MASTER":
+            layout.operator("render.netclientscan", icon='FILE_REFRESH', text="")
+
+        layout.operator("render.netclientweb", icon='QUESTION')
+
+@rnaType
+class RENDER_PT_network_slave_settings(RenderButtonsPanel):
+    bl_label = "Slave Settings"
+    COMPAT_ENGINES = {'NET_RENDER'}
+
+    def poll(self, context):
+        scene = context.scene
+        return (super().poll(context)
+                and scene.network_render.mode == "RENDER_SLAVE")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render_data
+        netsettings = scene.network_render
+
+        layout.prop(netsettings, "slave_clear")
+        layout.prop(netsettings, "slave_thumb")
+        layout.label(text="Threads:")
+        layout.prop(rd, "threads_mode", expand=True)
+        sub = layout.column()
+        sub.enabled = rd.threads_mode == 'THREADS_FIXED'
+        sub.prop(rd, "threads")        
+@rnaType
+class RENDER_PT_network_master_settings(RenderButtonsPanel):
+    bl_label = "Master Settings"
+    COMPAT_ENGINES = {'NET_RENDER'}
+
+    def poll(self, context):
+        scene = context.scene
+        return (super().poll(context)
+                and scene.network_render.mode == "RENDER_MASTER")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        netsettings = scene.network_render
+
+        layout.prop(netsettings, "master_broadcast")
+        layout.prop(netsettings, "master_clear")
+        
 @rnaType
 class RENDER_PT_network_job(RenderButtonsPanel):
     bl_label = "Job Settings"
@@ -137,22 +181,27 @@ class RENDER_PT_network_job(RenderButtonsPanel):
         scene = context.scene
         netsettings = scene.network_render
 
-        layout.active = True
-
-        split = layout.split()
-
-        col = split.column()
-
         verify_address(netsettings)
         
         if netsettings.server_address != "[default]":
-            col.operator("render.netclientanim", icon='RENDER_ANIMATION')
-            col.operator("render.netclientsend", icon='FILE_BLEND')
+            layout.operator("render.netclientanim", icon='RENDER_ANIMATION')
+            layout.operator("render.netclientsend", icon='FILE_BLEND')
             if netsettings.job_id:
-                col.operator("screen.render", text="Get Results", icon='RENDER_ANIMATION').animation = True
-        col.prop(netsettings, "job_name")
-        col.prop(netsettings, "job_category")
-        row = col.row()
+                row = layout.row()
+                row.operator("screen.render", text="Get Image", icon='RENDER_STILL')
+                row.operator("screen.render", text="Get Animation", icon='RENDER_ANIMATION').animation = True
+                
+        split = layout.split(percentage=0.3)
+        
+        col = split.column()
+        col.label(text="Name:")
+        col.label(text="Category:")
+        
+        col = split.column()
+        col.prop(netsettings, "job_name", text="")
+        col.prop(netsettings, "job_category", text="")
+        
+        row = layout.row()
         row.prop(netsettings, "priority")
         row.prop(netsettings, "chunks")
 
@@ -298,10 +347,25 @@ NetRenderSettings.IntProperty( attr="server_port",
                 min=1,
                 max=65535)
 
-NetRenderSettings.BoolProperty( attr="server_broadcast",
-                name="Broadcast server address",
-                description="broadcast server address on local network",
+NetRenderSettings.BoolProperty( attr="master_broadcast",
+                name="Broadcast",
+                description="broadcast master server address on local network",
                 default = True)
+
+NetRenderSettings.BoolProperty( attr="slave_clear",
+                name="Clear on exit",
+                description="delete downloaded files on exit",
+                default = True)
+
+NetRenderSettings.BoolProperty( attr="slave_thumb",
+                name="Generate thumbnails",
+                description="Generate thumbnails on slaves instead of master",
+                default = False)
+
+NetRenderSettings.BoolProperty( attr="master_clear",
+                name="Clear on exit",
+                description="delete saved files on exit",
+                default = False)
 
 default_path = os.environ.get("TEMP")
 

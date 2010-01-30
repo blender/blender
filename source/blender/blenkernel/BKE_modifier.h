@@ -279,10 +279,10 @@ void 		  modifier_unique_name(struct ListBase *modifiers, struct ModifierData *m
 void          modifier_copyData(struct ModifierData *md, struct ModifierData *target);
 int           modifier_dependsOnTime(struct ModifierData *md);
 int           modifier_supportsMapping(struct ModifierData *md);
-int           modifier_couldBeCage(struct ModifierData *md);
+int           modifier_couldBeCage(struct Scene *scene, struct ModifierData *md);
 int           modifier_isCorrectableDeformed(struct ModifierData *md);
 int			  modifier_sameTopology(ModifierData *md);
-int           modifier_isEnabled(struct ModifierData *md, int required_mode);
+int           modifier_isEnabled(struct Scene *scene, struct ModifierData *md, int required_mode);
 void          modifier_setError(struct ModifierData *md, char *format, ...);
 
 void          modifiers_foreachObjectLink(struct Object *ob,
@@ -293,7 +293,7 @@ void          modifiers_foreachIDLink(struct Object *ob,
                                       void *userData);
 struct ModifierData  *modifiers_findByType(struct Object *ob, ModifierType type);
 void          modifiers_clearErrors(struct Object *ob);
-int           modifiers_getCageIndex(struct Object *ob,
+int           modifiers_getCageIndex(struct Scene *scene, struct Object *ob,
                                      int *lastPossibleCageIndex_r, int virtual_);
 
 int           modifiers_isSoftbodyEnabled(struct Object *ob);
@@ -313,7 +313,8 @@ int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md
  * evaluation, assuming the data indicated by dataMask is required at the
  * end of the stack.
  */
-struct LinkNode *modifiers_calcDataMasks(struct Object *ob,
+struct LinkNode *modifiers_calcDataMasks(struct Scene *scene, 
+                                         struct Object *ob,
                                          struct ModifierData *md,
                                          CustomDataMask dataMask,
                                          int required_mode);

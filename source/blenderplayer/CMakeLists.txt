@@ -80,8 +80,11 @@ IF(UNIX)
 		bf_rasterizer 
 		bf_oglrasterizer 
 		bf_expressions 
-		bf_scenegraph 
-		bf_IK
+		bf_scenegraph
+        bf_ikplugin
+        bf_ITASC
+        bf_IK
+        bf_smoke
 		bf_moto 
 		bf_kernel 
 		bf_nodes

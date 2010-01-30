@@ -310,19 +310,23 @@ static Object *rna_Object_find_armature(Object *ob)
 	return ob_arm;
 }
 
-static KeyBlock *rna_Object_add_shape_key(Object *ob, bContext *C, ReportList *reports, char *name, int from_mix)
+static PointerRNA rna_Object_add_shape_key(Object *ob, bContext *C, ReportList *reports, char *name, int from_mix)
 {
 	Scene *scene= CTX_data_scene(C);
 	KeyBlock *kb= NULL;
 
 	if((kb=object_insert_shape_key(scene, ob, name, from_mix))) {
+		PointerRNA keyptr;
+
+		RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+		
+		return keyptr;
 	}
 	else {
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\"does not support shapes.", ob->id.name+2);
+		return PointerRNA_NULL;
 	}
-
-	return kb;
 }
 
 int rna_Object_is_visible(Object *ob, bContext *C)
@@ -339,7 +343,7 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 	}
 
 	Mesh *me = (Mesh*)ob->data;
-	int group_index = get_defgroup_num(ob, group);
+	int group_index = defgroup_find_index(ob, group);
 	if (group_index == -1) {
 		BKE_report(reports, RPT_ERROR, "No deform groups assigned to mesh.");
 		return;
@@ -476,6 +480,7 @@ void RNA_api_object(StructRNA *srna)
 	parm= RNA_def_string(func, "name", "Key", 0, "", "Unique name for the new keylock."); /* optional */
 	parm= RNA_def_boolean(func, "from_mix", 1, "", "Create new shape from existing mix of shapes.");
 	parm= RNA_def_pointer(func, "key", "ShapeKey", "", "New shape keyblock.");
+	RNA_def_property_flag(parm, PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
 
 	/* Ray Cast */
@@ -492,13 +497,13 @@ void RNA_api_object(StructRNA *srna)
 	/* return location and normal */
 	parm= RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "The hit location of this ray cast", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
-	RNA_def_function_return_mark(func, parm);
+	RNA_def_function_output(func, parm);
 	parm= RNA_def_float_vector(func, "normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal", "The face normal at the ray cast hit location", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
-	RNA_def_function_return_mark(func, parm);
+	RNA_def_function_output(func, parm);
 	
 	parm= RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when no intersection is found.", 0, 0);
-	RNA_def_function_return_mark(func, parm);
+	RNA_def_function_output(func, parm);
 
 	
 	/* DAG */

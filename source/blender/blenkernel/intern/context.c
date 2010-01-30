@@ -46,7 +46,9 @@
 #include "BKE_screen.h"
 #include "BKE_global.h"
 
+#ifndef DISABLE_PYTHON
 #include "BPY_extern.h"
+#endif
 
 #include <string.h>
 
@@ -413,13 +415,13 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 	int ret= 0;
 
 	memset(result, 0, sizeof(bContextDataResult));
-
+#ifndef DISABLE_PYTHON
 	if(CTX_py_dict_get(C)) {
 		return BPY_context_get(C, member, result);
 //		if (BPY_context_get(C, member, result))
 //			return 1;
 	}
-
+#endif
 	/* we check recursion to ensure that we do not get infinite
 	 * loops requesting data from ourselfs in a context callback */
 
@@ -484,7 +486,12 @@ static int ctx_data_pointer_verify(const bContext *C, const char *member, void *
 {
 	bContextDataResult result;
 
-	if(ctx_data_get((bContext*)C, member, &result)==1) {
+	/* if context is NULL, pointer must be NULL too and that is a valid return */
+	if (C == NULL) {
+		*pointer= NULL;
+		return 1;
+	}
+	else if(ctx_data_get((bContext*)C, member, &result)==1) {
 		*pointer= result.ptr.data;
 		return 1;
 	}

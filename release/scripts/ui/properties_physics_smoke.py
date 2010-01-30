@@ -80,6 +80,8 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 col = split.column()
                 col.label(text="Resolution:")
                 col.prop(domain, "maxres", text="Divisions")
+                col.label(text="Particle:")
+                col.prop(domain, "initial_velocity", text="Initial Velocity")
 
                 if wide_ui:
                     col = split.column()
@@ -155,6 +157,13 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
         return md and (md.smoke_type == 'TYPE_DOMAIN')
 
     def draw(self, context):
+        layout = self.layout
+
+        domain = context.smoke.domain_settings
+
+        layout.label(text="Compression:")
+        layout.prop(domain, "smoke_cache_comp", expand=True)
+
         md = context.smoke.domain_settings
         cache = md.point_cache_low
 
@@ -203,6 +212,14 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
         return md and (md.smoke_type == 'TYPE_DOMAIN') and md.domain_settings.highres
 
     def draw(self, context):
+        layout = self.layout
+
+        domain = context.smoke.domain_settings
+
+        layout.label(text="Compression:")
+        layout.prop(domain, "smoke_cache_high_comp", expand=True)
+
+
         md = context.smoke.domain_settings
         cache = md.point_cache_high
 

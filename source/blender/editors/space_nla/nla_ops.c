@@ -157,6 +157,8 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_move_up);
 	WM_operatortype_append(NLA_OT_move_down);
 	
+	WM_operatortype_append(NLA_OT_action_sync_length);
+	
 	WM_operatortype_append(NLA_OT_apply_scale);
 	WM_operatortype_append(NLA_OT_clear_scale);
 	

@@ -140,7 +140,8 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
 									  GHOST_TUns32 height,
 									  GHOST_TWindowState state,
 									  GHOST_TDrawingContextType type,
-									  const int stereoVisual)
+									  const int stereoVisual,
+									  const GHOST_TUns16 numOfAASamples)
 {
 	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
 	bool bstereoVisual;
@@ -151,7 +152,7 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
 		bstereoVisual = false;
 
 	return (GHOST_WindowHandle) system->createWindow(title, left, top, width, height,
-		state, type, bstereoVisual);
+		state, type, bstereoVisual, numOfAASamples);
 }
 
 GHOST_TUserDataPtr GHOST_GetWindowUserData(GHOST_WindowHandle windowhandle)

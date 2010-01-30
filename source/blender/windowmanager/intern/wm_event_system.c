@@ -81,8 +81,15 @@ void wm_event_add(wmWindow *win, wmEvent *event_to_add)
 
 void wm_event_free(wmEvent *event)
 {
-	if(event->customdata && event->customdatafree)
-		MEM_freeN(event->customdata);
+	if(event->customdata) {
+		if(event->customdatafree) {
+			/* note: pointer to listbase struct elsewhere */
+			if(event->custom==EVT_DATA_LISTBASE)
+				BLI_freelistN(event->customdata);
+			else
+				MEM_freeN(event->customdata);
+		}
+	}
 	MEM_freeN(event);
 }
 
@@ -187,19 +194,24 @@ void wm_event_do_notifiers(bContext *C)
 							printf("screen delete %p\n", note->reference);
 					}
 				}
-				else if(note->category==NC_SCENE) {
+			}
+
+			if(note->window==win || (note->window == NULL && (note->reference == NULL || note->reference == CTX_data_scene(C)))) {
+				if(note->category==NC_SCENE) {
 					if(note->data==ND_SCENEBROWSE) {
 						ED_screen_set_scene(C, note->reference);	// XXX hrms, think this over!
 						if(G.f & G_DEBUG)
 							printf("scene set %p\n", note->reference);
 					}
-					if(note->data==ND_SCENEDELETE) {
+					else if(note->data==ND_FRAME)
+						do_anim= 1;
+					
+					if(note->action == NA_REMOVED) {
 						ED_screen_delete_scene(C, note->reference);	// XXX hrms, think this over!
 						if(G.f & G_DEBUG)
 							printf("scene delete %p\n", note->reference);
 					}
-					else if(note->data==ND_FRAME)
-						do_anim= 1;
+						
 				}
 			}
 			if(ELEM4(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_SCENE)) {
@@ -291,9 +303,37 @@ int WM_operator_poll(bContext *C, wmOperatorType *ot)
 	return 1;
 }
 
+static void wm_operator_finished(bContext *C, wmOperator *op, int repeat)
+{
+	wmWindowManager *wm= CTX_wm_manager(C);
+
+	op->customdata= NULL;
+
+	/* we don't want to do undo pushes for operators that are being
+	   called from operators that already do an undo push. usually
+	   this will happen for python operators that call C operators */
+	if(wm->op_undo_depth == 0)
+		if(op->type->flag & OPTYPE_UNDO)
+			ED_undo_push_op(C, op);
+	
+	if(repeat==0) {
+		if(G.f & G_DEBUG) {
+			char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
+			BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
+			MEM_freeN(buf);
+		}
+
+		if((wm->op_undo_depth == 0) && (op->type->flag & OPTYPE_REGISTER))
+			wm_operator_register(C, op);
+		else
+			WM_operator_free(op);
+	}
+}
+
 /* if repeat is true, it doesn't register again, nor does it free */
 static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	int retval= OPERATOR_CANCELLED;
 	
 	if(op==NULL || op->type==NULL)
@@ -302,36 +342,26 @@ static int wm_operator_exec(bContext *C, wmOperator *op, int repeat)
 	if(0==WM_operator_poll(C, op->type))
 		return retval;
 	
-	if(op->type->exec)
+	if(op->type->exec) {
+		if(op->type->flag & OPTYPE_UNDO)
+			wm->op_undo_depth++;
+
 		retval= op->type->exec(C, op);
+
+		if(op->type->flag & OPTYPE_UNDO)
+			wm->op_undo_depth--;
+	}
 	
 	if(retval & (OPERATOR_FINISHED|OPERATOR_CANCELLED))
 		if(op->reports->list.first)
 			uiPupMenuReports(C, op->reports);
 	
-	if(retval & OPERATOR_FINISHED) {
-		op->customdata= NULL;
-
-		if(op->type->flag & OPTYPE_UNDO)
-			ED_undo_push_op(C, op);
-		
-		if(repeat==0) {
-			if(G.f & G_DEBUG) {
-				char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
-				BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
-				MEM_freeN(buf);
-			}
-
-			if((op->type->flag & OPTYPE_REGISTER))
-				wm_operator_register(C, op);
-			else
-				WM_operator_free(op);
-		}
-	}
+	if(retval & OPERATOR_FINISHED)
+		wm_operator_finished(C, op, repeat);
 	else if(repeat==0)
 		WM_operator_free(op);
 	
-	return retval;
+	return retval | OPERATOR_HANDLED;
 	
 }
 
@@ -386,15 +416,41 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 			motherop = op;
 			root = 1;
 		}
-		
-		for(otmacro= ot->macro.first; otmacro; otmacro= otmacro->next) {
-			wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
-			wmOperator *opm= wm_operator_create(wm, otm, otmacro->ptr, NULL);
-			
-			IDP_ReplaceGroupInGroup(opm->properties, motherop->properties);
 
-			BLI_addtail(&motherop->macro, opm);
-			opm->opm= motherop; /* pointer to mom, for modal() */
+		
+		/* if properties exist, it will contain everything needed */
+		if (properties) {
+			otmacro= ot->macro.first;
+
+			RNA_STRUCT_BEGIN(properties, prop) {
+
+				if (otmacro == NULL)
+					break;
+
+				/* skip invalid properties */
+				if (strcmp(RNA_property_identifier(prop), otmacro->idname) == 0)
+				{
+					wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
+					PointerRNA someptr = RNA_property_pointer_get(properties, prop);
+					wmOperator *opm= wm_operator_create(wm, otm, &someptr, NULL);
+
+					IDP_ReplaceGroupInGroup(opm->properties, otmacro->properties);
+
+					BLI_addtail(&motherop->macro, opm);
+					opm->opm= motherop; /* pointer to mom, for modal() */
+
+					otmacro= otmacro->next;
+				}
+			}
+			RNA_STRUCT_END;
+		} else {
+			for (otmacro = ot->macro.first; otmacro; otmacro = otmacro->next) {
+				wmOperatorType *otm= WM_operatortype_find(otmacro->idname, 0);
+				wmOperator *opm= wm_operator_create(wm, otm, otmacro->ptr, NULL);
+
+				BLI_addtail(&motherop->macro, opm);
+				opm->opm= motherop; /* pointer to mom, for modal() */
+			}
 		}
 		
 		if (root)
@@ -434,10 +490,24 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		
 		if(op->type->invoke && event) {
 			wm_region_mouse_co(C, event);
+
+			if(op->type->flag & OPTYPE_UNDO)
+				wm->op_undo_depth++;
+
 			retval= op->type->invoke(C, op, event);
+
+			if(op->type->flag & OPTYPE_UNDO)
+				wm->op_undo_depth--;
 		}
-		else if(op->type->exec)
+		else if(op->type->exec) {
+			if(op->type->flag & OPTYPE_UNDO)
+				wm->op_undo_depth++;
+
 			retval= op->type->exec(C, op);
+
+			if(op->type->flag & OPTYPE_UNDO)
+				wm->op_undo_depth--;
+		}
 		else
 			printf("invalid operator call %s\n", ot->idname); /* debug, important to leave a while, should never happen */
 
@@ -452,22 +522,10 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 				wm_operator_print(op);
 		}
 
-		if(retval & OPERATOR_FINISHED) {
-			op->customdata= NULL;
-
-			if(ot->flag & OPTYPE_UNDO)
-				ED_undo_push_op(C, op);
-			
-			if(G.f & G_DEBUG) {
-				char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
-				BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
-				MEM_freeN(buf);
-			}
-			
-			if((ot->flag & OPTYPE_REGISTER))
-				wm_operator_register(C, op);
-			else
-				WM_operator_free(op);
+		if(retval & OPERATOR_HANDLED)
+			; /* do nothing, wm_operator_exec() has been called somewhere */
+		else if(retval & OPERATOR_FINISHED) {
+			wm_operator_finished(C, op, 0);
 		}
 		else if(retval & OPERATOR_RUNNING_MODAL) {
 			/* grab cursor during blocking modal ops (X11)
@@ -617,8 +675,15 @@ int WM_operator_call_py(bContext *C, wmOperatorType *ot, int context, PointerRNA
 	wmWindowManager *wm=	CTX_wm_manager(C);
 	op= wm_operator_create(wm, ot, properties, reports);
 
-	if (op->type->exec)
+	if (op->type->exec) {
+		if(op->type->flag & OPTYPE_UNDO)
+			wm->op_undo_depth++;
+
 		retval= op->type->exec(C, op);
+
+		if(op->type->flag & OPTYPE_UNDO)
+			wm->op_undo_depth--;
+	}
 	else
 		printf("error \"%s\" operator has no exec function, python cannot call it\n", op->type->name);
 #endif
@@ -681,6 +746,7 @@ static void wm_handler_op_context(bContext *C, wmEventHandler *handler)
 void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 {
 	wmEventHandler *handler;
+	wmWindowManager *wm= CTX_wm_manager(C);
 	
 	/* C is zero on freeing database, modal handlers then already were freed */
 	while((handler=handlers->first)) {
@@ -693,7 +759,13 @@ void WM_event_remove_handlers(bContext *C, ListBase *handlers)
 				
 				wm_handler_op_context(C, handler);
 
+				if(handler->op->type->flag & OPTYPE_UNDO)
+					wm->op_undo_depth++;
+
 				handler->op->type->cancel(C, handler->op);
+
+				if(handler->op->type->flag & OPTYPE_UNDO)
+					wm->op_undo_depth--;
 
 				CTX_wm_area_set(C, area);
 				CTX_wm_region_set(C, region);
@@ -766,47 +838,55 @@ int WM_userdef_event_map(int kmitype)
 	return kmitype;
 }
 
+static void wm_eventemulation(wmEvent *event)
+{
+	static int mmb_emulated = 0; /* this should be in a data structure somwhere */
+	
+	/* middlemouse emulation */
+	if(U.flag & USER_TWOBUTTONMOUSE) {
+		if(event->type == LEFTMOUSE && (event->alt || mmb_emulated == KM_PRESS)) {
+			event->type = MIDDLEMOUSE;
+			event->alt = 0;
+			mmb_emulated = event->val;
+		}
+	}
+
+#ifdef __APPLE__
+	/* rightmouse emulation */
+	if(U.flag & USER_TWOBUTTONMOUSE) {
+		if(event->type == LEFTMOUSE && (event->oskey || mmb_emulated == KM_PRESS)) {
+			event->type = RIGHTMOUSE;
+			event->oskey = 0;
+			mmb_emulated = event->val;
+		}
+	}
+#endif
+
+	/* numpad emulation */
+	if(U.flag & USER_NONUMPAD) {
+		switch(event->type) {
+			case ZEROKEY: event->type = PAD0; break;
+			case ONEKEY: event->type = PAD1; break;
+			case TWOKEY: event->type = PAD2; break;
+			case THREEKEY: event->type = PAD3; break;
+			case FOURKEY: event->type = PAD4; break;
+			case FIVEKEY: event->type = PAD5; break;
+			case SIXKEY: event->type = PAD6; break;
+			case SEVENKEY: event->type = PAD7; break;
+			case EIGHTKEY: event->type = PAD8; break;
+			case NINEKEY: event->type = PAD9; break;
+			case MINUSKEY: event->type = PADMINUS; break;
+			case EQUALKEY: event->type = PADPLUSKEY; break;
+			case BACKSLASHKEY: event->type = PADSLASHKEY; break;
+		}
+	}
+}
+
 static int wm_eventmatch(wmEvent *winevent, wmKeyMapItem *kmi)
 {
 	int kmitype= WM_userdef_event_map(kmi->type);
 
 	if(kmi->flag & KMI_INACTIVE) return 0;
-
-	/* exception for middlemouse emulation */
-	if((U.flag & USER_TWOBUTTONMOUSE) && (kmi->type == MIDDLEMOUSE)) {
-		if(winevent->type == LEFTMOUSE && winevent->alt) {
-			wmKeyMapItem tmp= *kmi;
-
-			tmp.type= winevent->type;
-			tmp.alt= winevent->alt;
-			if(wm_eventmatch(winevent, &tmp))
-				return 1;
-		}
-	}
-	/* exception for numpad emulation */
-	else if(U.flag & USER_NONUMPAD) {
-		wmKeyMapItem tmp= *kmi;
-
-		switch(kmi->type) {
-			case PAD0: tmp.type = ZEROKEY; break;
-			case PAD1: tmp.type = ONEKEY; break;
-			case PAD2: tmp.type = TWOKEY; break;
-			case PAD3: tmp.type = THREEKEY; break;
-			case PAD4: tmp.type = FOURKEY; break;
-			case PAD5: tmp.type = FIVEKEY; break;
-			case PAD6: tmp.type = SIXKEY; break;
-			case PAD7: tmp.type = SEVENKEY; break;
-			case PAD8: tmp.type = EIGHTKEY; break;
-			case PAD9: tmp.type = NINEKEY; break;
-			case PADMINUS: tmp.type = MINUSKEY; break;
-			case PADPLUSKEY: tmp.type = EQUALKEY; break;
-			case PADSLASHKEY: tmp.type = BACKSLASHKEY; break;
-		}
-
-		if(tmp.type != kmi->type)
-			if(wm_eventmatch(winevent, &tmp))
-				return 1;
-	}
 
 	/* the matching rules */
 	if(kmitype==KM_TEXTINPUT)
@@ -878,6 +958,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 		if(ot->modal) {
 			/* we set context to where modal handler came from */
+			wmWindowManager *wm= CTX_wm_manager(C);
 			ScrArea *area= CTX_wm_area(C);
 			ARegion *region= CTX_wm_region(C);
 			
@@ -885,7 +966,13 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			wm_region_mouse_co(C, event);
 			wm_event_modalkeymap(C, op, event);
 			
+			if(ot->flag & OPTYPE_UNDO)
+				wm->op_undo_depth++;
+
 			retval= ot->modal(C, op, event);
+
+			if(ot->flag & OPTYPE_UNDO)
+				wm->op_undo_depth--;
 
 			/* putting back screen context, reval can pass trough after modal failures! */
 			if((retval & OPERATOR_PASS_THROUGH) || wm_event_always_pass(event)) {
@@ -908,21 +995,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			}			
 
 			if(retval & OPERATOR_FINISHED) {
-				op->customdata= NULL;
-
-				if(ot->flag & OPTYPE_UNDO)
-					ED_undo_push_op(C, op);
-				
-				if(G.f & G_DEBUG) {
-					char *buf = WM_operator_pystring(C, op->type, op->ptr, 1);
-					BKE_report(CTX_wm_reports(C), RPT_OPERATOR, buf);
-					MEM_freeN(buf);
-				}
-				
-				if((ot->flag & OPTYPE_REGISTER))
-					wm_operator_register(C, op);
-				else
-					WM_operator_free(op);
+				wm_operator_finished(C, op, 0);
 				handler->op= NULL;
 			}
 			else if(retval & (OPERATOR_CANCELLED|OPERATOR_FINISHED)) {
@@ -1005,6 +1078,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 /* fileselect handlers are only in the window queue, so it's save to switch screens or area types */
 static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	SpaceFile *sfile;
 	int action= WM_HANDLER_CONTINUE;
 	
@@ -1060,26 +1134,59 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				
 				wm_handler_op_context(C, handler);
 
+				/* needed for uiPupMenuReports */
+
 				if(event->val==EVT_FILESELECT_EXEC) {
 					/* a bit weak, might become arg for WM_event_fileselect? */
 					/* XXX also extension code in image-save doesnt work for this yet */
-					if(strncmp(handler->op->type->name, "Save", 4)==0) {
+					if (RNA_struct_find_property(handler->op->ptr, "check_existing") && 
+							RNA_boolean_get(handler->op->ptr, "check_existing")) {
 						/* this gives ownership to pupmenu */
 						uiPupMenuSaveOver(C, handler->op, (path)? path: "");
 					}
 					else {
-						int retval= handler->op->type->exec(C, handler->op);
+						int retval;
+						
+						if(handler->op->type->flag & OPTYPE_UNDO)
+							wm->op_undo_depth++;
+
+						retval= handler->op->type->exec(C, handler->op);
+
+						if(handler->op->type->flag & OPTYPE_UNDO)
+							wm->op_undo_depth--;
 						
 						if (retval & OPERATOR_FINISHED)
 							if(G.f & G_DEBUG)
 								wm_operator_print(handler->op);
 						
+						if(handler->op->reports->list.first) {
+
+							/* FIXME, temp setting window, this is really bad!
+							 * only have because lib linking errors need to be seen by users :(
+							 * it can be removed without breaking anything but then no linking errors - campbell */
+							wmWindow *win_prev= CTX_wm_window(C);
+							if(win_prev==NULL)
+								CTX_wm_window_set(C, CTX_wm_manager(C)->windows.first);
+
+							handler->op->reports->printlevel = RPT_WARNING;
+							uiPupMenuReports(C, handler->op->reports);
+
+							CTX_wm_window_set(C, win_prev);
+						}
+
 						WM_operator_free(handler->op);
 					}
 				}
 				else {
-					if(handler->op->type->cancel)
+					if(handler->op->type->cancel) {
+						if(handler->op->type->flag & OPTYPE_UNDO)
+							wm->op_undo_depth++;
+
 						handler->op->type->cancel(C, handler->op);
+
+						if(handler->op->type->flag & OPTYPE_UNDO)
+							wm->op_undo_depth--;
+					}
 
 					WM_operator_free(handler->op);
 				}
@@ -1175,6 +1282,26 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				/* screen context changes here */
 				action |= wm_handler_fileselect_call(C, handlers, handler, event);
 			}
+			else if(handler->dropboxes) {
+				if(event->type==EVT_DROP) {
+					wmDropBox *drop= handler->dropboxes->first;
+					for(; drop; drop= drop->next) {
+						/* other drop custom types allowed */
+						if(event->custom==EVT_DATA_LISTBASE) {
+							ListBase *lb= (ListBase *)event->customdata;
+							wmDrag *drag;
+							for(drag= lb->first; drag; drag= drag->next) {
+								if(drop->poll(C, drag, event)) {
+									drop->copy(drag, drop);
+									
+									wm_operator_invoke(C, drop->ot, event, drop->ptr, NULL);
+									action |= WM_HANDLER_BREAK;
+								}
+							}
+						}
+					}
+				}
+			}
 			else {
 				/* modal, swallows all */
 				action |= wm_handler_operator_call(C, handlers, handler, event, NULL);
@@ -1264,7 +1391,7 @@ static void wm_paintcursor_tag(bContext *C, wmPaintCursor *pc, ARegion *ar)
 {
 	if(ar) {
 		for(; pc; pc= pc->next) {
-			if(pc->poll(C)) {
+			if(pc->poll == NULL || pc->poll(C)) {
 				wmWindow *win= CTX_wm_window(C);
 				win->screen->do_draw_paintcursor= 1;
 
@@ -1301,13 +1428,51 @@ static void wm_paintcursor_test(bContext *C, wmEvent *event)
 	}
 }
 
+static void wm_event_drag_test(wmWindowManager *wm, wmWindow *win, wmEvent *event)
+{
+	if(wm->drags.first==NULL) return;
+	
+	if(event->type==MOUSEMOVE)
+		win->screen->do_draw_drag= 1;
+	else if(event->type==ESCKEY) {
+		BLI_freelistN(&wm->drags);
+		win->screen->do_draw_drag= 1;
+	}
+	else if(event->type==LEFTMOUSE && event->val==KM_RELEASE) {
+		event->type= EVT_DROP;
+		
+		/* create customdata, first free existing */
+		if(event->customdata) {
+			if(event->customdatafree)
+				MEM_freeN(event->customdata);
+		}
+		
+		event->custom= EVT_DATA_LISTBASE;
+		event->customdata= &wm->drags;
+		event->customdatafree= 1;
+		
+		/* clear drop icon */
+		win->screen->do_draw_drag= 1;
+		
+		/* restore cursor (disabled, see wm_dragdrop.c) */
+		// WM_cursor_restore(win);
+	}
+	
+	/* overlap fails otherwise */
+	if(win->screen->do_draw_drag)
+		if(win->drawmethod == USER_DRAW_OVERLAP)
+			win->screen->do_draw= 1;
+	
+}
+
 /* called in main loop */
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
 void wm_event_do_handlers(bContext *C)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win;
 
-	for(win= CTX_wm_manager(C)->windows.first; win; win= win->next) {
+	for(win= wm->windows.first; win; win= win->next) {
 		wmEvent *event;
 		
 		if( win->screen==NULL )
@@ -1315,6 +1480,8 @@ void wm_event_do_handlers(bContext *C)
 		
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
+
+			wm_eventemulation(event);
 
 			CTX_wm_window_set(C, win);
 			
@@ -1331,6 +1498,9 @@ void wm_event_do_handlers(bContext *C)
 			/* fileread case */
 			if(CTX_wm_window(C)==NULL)
 				return;
+			
+			/* check dragging, creates new event or frees, adds draw tag */
+			wm_event_drag_test(wm, win, event);
 			
 			/* builtin tweak, if action is break it removes tweak */
 			wm_tweakevent_test(C, event, action);
@@ -1356,8 +1526,16 @@ void wm_event_do_handlers(bContext *C)
 							for(ar=sa->regionbase.first; ar; ar= ar->next) {
 								if(wm_event_inside_i(event, &ar->winrct)) {
 									CTX_wm_region_set(C, ar);
+									
+									/* does polls for drop regions and checks uibuts */
+									/* need to be here to make sure region context is true */
+									if(event->type==MOUSEMOVE) {
+										wm_region_mouse_co(C, event);
+										wm_drags_check_ops(C, event);
+									}
+									
 									action |= wm_handlers_do(C, event, &ar->handlers);
-
+									
 									doit |= (BLI_in_rcti(&ar->winrct, event->x, event->y));
 									
 									if(action & WM_HANDLER_BREAK)
@@ -1603,6 +1781,46 @@ void WM_event_remove_ui_handler(ListBase *handlers, wmUIHandlerFunc func, wmUIHa
 	}
 }
 
+wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes)
+{
+	wmEventHandler *handler;
+
+	/* only allow same dropbox once */
+	for(handler= handlers->first; handler; handler= handler->next)
+		if(handler->dropboxes==dropboxes)
+			return handler;
+	
+	handler= MEM_callocN(sizeof(wmEventHandler), "dropbox handler");
+	
+	/* dropbox stored static, no free or copy */
+	handler->dropboxes= dropboxes;
+	BLI_addhead(handlers, handler);
+	
+	return handler;
+}
+
+/* XXX solution works, still better check the real cause (ton) */
+void WM_event_remove_area_handler(ListBase *handlers, void *area)
+{
+	wmEventHandler *handler, *nexthandler;
+
+	for(handler = handlers->first; handler; handler= nexthandler) {
+		nexthandler = handler->next;
+		if (handler->type != WM_HANDLER_FILESELECT) {
+			if (handler->ui_area == area) {
+				BLI_remlink(handlers, handler);
+				wm_event_free_handler(handler);
+			}
+		}
+	}
+}
+
+void WM_event_remove_handler(ListBase *handlers, wmEventHandler *handler)
+{
+	BLI_remlink(handlers, handler);
+	wm_event_free_handler(handler);
+}
+
 void WM_event_add_mousemove(bContext *C)
 {
 	wmWindow *window= CTX_wm_window(C);
@@ -1629,7 +1847,6 @@ int WM_modal_tweak_exit(wmEvent *evt, int tweak_event)
 	}
 	return 0;
 }
-
 
 /* ********************* ghost stuff *************** */
 
@@ -1729,10 +1946,51 @@ static void update_tablet_data(wmWindow *win, wmEvent *event)
 	} 
 }
 
+/* imperfect but probably usable... draw/enable drags to other windows */
+static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *win, wmEvent *evt)
+{
+	short mx= evt->x, my= evt->y;
+	
+	if(wm->windows.first== wm->windows.last)
+		return NULL;
+	
+	/* top window bar... */
+	if(mx<0 || my<0 || mx>win->sizex || my>win->sizey+30) {	
+		wmWindow *owin;
+		wmEventHandler *handler;
+		
+		/* let's skip windows having modal handlers now */
+		/* potential XXX ugly... I wouldn't have added a modalhandlers list (introduced in rev 23331, ton) */
+		for(handler= win->modalhandlers.first; handler; handler= handler->next)
+			if(handler->ui_handle || handler->op)
+				return NULL;
+		
+		/* to desktop space */
+		mx+= win->posx;
+		my+= win->posy;
+		
+		/* check other windows to see if it has mouse inside */
+		for(owin= wm->windows.first; owin; owin= owin->next) {
+			
+			if(owin!=win) {
+				if(mx-owin->posx >= 0 && my-owin->posy >= 0 &&
+				   mx-owin->posx <= owin->sizex && my-owin->posy <= owin->sizey) {
+					evt->x= mx-owin->posx;
+					evt->y= my-owin->posy;
+					
+					return owin;
+				}
+			}
+		}
+	}
+	return NULL;
+}
 
 /* windows store own event queues, no bContext here */
-void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
+/* time is in 1000s of seconds, from ghost */
+void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int time, void *customdata)
 {
+	wmWindow *owin;
 	wmEvent event, *evt= win->eventstate;
 	
 	/* initialize and copy state (only mouse x y and modifiers) */
@@ -1743,21 +2001,79 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 		case GHOST_kEventCursorMove: {
 			if(win->active) {
 				GHOST_TEventCursorData *cd= customdata;
+				
 #if defined(__APPLE__) && defined(GHOST_COCOA)
 				//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
-				event.type= MOUSEMOVE;
-				event.x= evt->x = cd->x;
-				event.y = evt->y = cd->y;
+				evt->x= cd->x;
+				evt->y= cd->y;
 #else
 				int cx, cy;
+				
 				GHOST_ScreenToClient(win->ghostwin, cd->x, cd->y, &cx, &cy);
-				event.type= MOUSEMOVE;
-				event.x= evt->x= cx;
-				event.y= evt->y= (win->sizey-1) - cy;
+				evt->x= cx;
+				evt->y= (win->sizey-1) - cy;
 #endif
+				
+				event.x= evt->x;
+				event.y= evt->y;
+
+				event.type= MOUSEMOVE;
+
 				update_tablet_data(win, &event);
 				wm_event_add(win, &event);
+				
+				/* also add to other window if event is there, this makes overdraws disappear nicely */
+				/* it remaps mousecoord to other window in event */
+				owin= wm_event_cursor_other_windows(wm, win, &event);
+				if(owin) {
+					wmEvent oevent= *(owin->eventstate);
+					
+					oevent.x= event.x;
+					oevent.y= event.y;
+					oevent.type= MOUSEMOVE;
+					
+					*(owin->eventstate)= oevent;
+					update_tablet_data(owin, &oevent);
+					wm_event_add(owin, &oevent);
+				}
+				
 			}
+			break;
+		}
+		case GHOST_kEventTrackpad: {
+			if (win->active) {
+				GHOST_TEventTrackpadData * pd = customdata;
+				switch (pd->subtype) {
+					case GHOST_kTrackpadEventMagnify:
+						event.type = MOUSEZOOM;
+						break;
+					case GHOST_kTrackpadEventRotate:
+						event.type = MOUSEROTATE;
+						break;
+					case GHOST_kTrackpadEventScroll:
+					default:
+						event.type= MOUSEPAN;
+						break;
+				}
+#if defined(__APPLE__) && defined(GHOST_COCOA)
+				//Cocoa already uses coordinates with y=0 at bottom, and returns inwindow coordinates on mouse moved event
+				event.x= evt->x = pd->x;
+				event.y = evt->y = pd->y;
+#else
+                {
+				int cx, cy;
+				GHOST_ScreenToClient(win->ghostwin, pd->x, pd->y, &cx, &cy);
+				event.x= evt->x= cx;
+				event.y= evt->y= (win->sizey-1) - cy;
+                }
+#endif
+				// Use prevx/prevy so we can calculate the delta later
+				event.prevx= event.x - pd->deltaX;
+				event.prevy= event.y - pd->deltaY;
+				
+				update_tablet_data(win, &event);
+				wm_event_add(win, &event);
+			}			
 			break;
 		}
 		/* mouse button */
@@ -1777,8 +2093,23 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			else
 				event.type= MIDDLEMOUSE;
 			
-			update_tablet_data(win, &event);
-			wm_event_add(win, &event);
+			/* add to other window if event is there (not to both!) */
+			owin= wm_event_cursor_other_windows(wm, win, &event);
+			if(owin) {
+				wmEvent oevent= *(owin->eventstate);
+				
+				oevent.x= event.x;
+				oevent.y= event.y;
+				oevent.type= event.type;
+				oevent.val= event.val;
+				
+				update_tablet_data(owin, &oevent);
+				wm_event_add(owin, &oevent);
+			}
+			else {
+				update_tablet_data(win, &event);
+				wm_event_add(win, &event);
+			}
 			
 			break;
 		}
@@ -1832,7 +2163,7 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			/* if test_break set, it catches this. XXX Keep global for now? */
 			if(event.type==ESCKEY)
 				G.afbreek= 1;
-
+			
 			wm_event_add(win, &event);
 			
 			break;
@@ -1869,6 +2200,7 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			wm_event_add(win, &event);
 
 			break;
+			
 		}
 
 	}

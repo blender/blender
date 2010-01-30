@@ -108,11 +108,13 @@ static void redo_cb(bContext *C, void *arg_op, void *arg2)
 	if(lastop) {
 		int retval;
 		
-		printf("operator redo %s\n", lastop->type->name);
+		if (G.f & G_DEBUG)
+			printf("operator redo %s\n", lastop->type->name);
 		ED_undo_pop_op(C, lastop);
 		retval= WM_operator_repeat(C, lastop);
 		if((retval & OPERATOR_FINISHED)==0) {
-			printf("operator redo failed %s\n", lastop->type->name);
+			if (G.f & G_DEBUG)
+				printf("operator redo failed %s\n", lastop->type->name);
 			ED_undo_redo(C);
 		}
 	}
@@ -159,6 +161,19 @@ static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)
 	else BLI_strncpy(pa->drawname, "Operator", sizeof(pa->drawname));
 }
 
+static void view3d_panel_operator_redo_operator(const bContext *C, Panel *pa, wmOperator *op)
+{
+	if(op->type->flag & OPTYPE_MACRO) {
+		for(op= op->macro.first; op; op= op->next) {
+			uiItemL(pa->layout, op->idname, 0);
+			view3d_panel_operator_redo_operator(C, pa, op);
+		}
+	}
+	else {
+		view3d_panel_operator_redo_buts(C, pa, op);
+	}
+}
+
 static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 {
 	wmOperator *op= view3d_last_operator(C);
@@ -173,13 +188,7 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 
 	uiBlockSetFunc(block, redo_cb, op, NULL);
 	
-	if(op->macro.first) {
-		for(op= op->macro.first; op; op= op->next)
-			view3d_panel_operator_redo_buts(C, pa, op);
-	}
-	else {
-		view3d_panel_operator_redo_buts(C, pa, op);
-	}
+	view3d_panel_operator_redo_operator(C, pa, op);
 }
 
 /* ******************* */
@@ -282,7 +291,7 @@ static void view3d_panel_tool_shelf(const bContext *C, Panel *pa)
 }
 
 
-void view3d_toolbar_register(ARegionType *art)
+void view3d_toolshelf_register(ARegionType *art)
 {
 	PanelType *pt;
 
@@ -305,9 +314,9 @@ void view3d_tool_props_register(ARegionType *art)
 	BLI_addtail(&art->paneltypes, pt);
 }
 
-/* ********** operator to open/close toolbar region */
+/* ********** operator to open/close toolshelf region */
 
-static int view3d_toolbar(bContext *C, wmOperator *op)
+static int view3d_toolshelf(bContext *C, wmOperator *op)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= view3d_has_tools_region(sa);
@@ -318,13 +327,13 @@ static int view3d_toolbar(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_toolbar(wmOperatorType *ot)
+void VIEW3D_OT_toolshelf(wmOperatorType *ot)
 {
-	ot->name= "Toolbar";
-	ot->description= "Toggles toolbar display.";
-	ot->idname= "VIEW3D_OT_toolbar";
+	ot->name= "Tool Shelf";
+	ot->description= "Toggles tool shelf display.";
+	ot->idname= "VIEW3D_OT_toolshelf";
 	
-	ot->exec= view3d_toolbar;
+	ot->exec= view3d_toolshelf;
 	ot->poll= ED_operator_view3d_active;
 	
 	/* flags */

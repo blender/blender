@@ -313,7 +313,6 @@ Documentation for the GameLogic Module.
 import GameTypes
 
 # TODO
-# globalDict
 # error
 
 def getCurrentController():
@@ -445,6 +444,14 @@ def setPhysicsTicRate(ticrate):
 	
 	@param ticrate: The new update frequency (in Hz).
 	@type ticrate: float
+	"""
+def saveGlobalDict():
+	"""
+	Saves GameLogic.globalDict to a file.
+	"""
+def loadGlobalDict():
+	"""
+	Loads GameLogic.globalDict from a file.
 	"""
 
 #{ Utility functions

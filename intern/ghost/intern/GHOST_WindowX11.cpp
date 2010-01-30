@@ -35,7 +35,7 @@
 #include <X11/cursorfont.h>
 #include <X11/Xatom.h>
 
-#if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__)
+#if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__) || defined (_AIX)
 #include <strings.h>
 #endif
 
@@ -153,9 +153,10 @@ GHOST_WindowX11(
 	GHOST_TWindowState state,
 	const GHOST_TEmbedderWindowID parentWindow,
 	GHOST_TDrawingContextType type,
-	const bool stereoVisual
+	const bool stereoVisual,
+	const GHOST_TUns16 numOfAASamples
 ) :
-	GHOST_Window(title,left,top,width,height,state,type,stereoVisual),
+	GHOST_Window(title,left,top,width,height,state,type,stereoVisual,numOfAASamples),
 	m_context(NULL),
 	m_display(display),
 	m_system (system),
@@ -168,29 +169,54 @@ GHOST_WindowX11(
 	// Set up the minimum atrributes that we require and see if
 	// X can find us a visual matching those requirements.
 
-	int attributes[40], i = 0;
+	int attributes[40], i, samples;
 	Atom atoms[2];
-	int natom;	
-	
-	if(m_stereoVisual)
-		attributes[i++] = GLX_STEREO;
+	int natom;
+	int glxVersionMajor, glxVersionMinor; // As in GLX major.minor
 
-	attributes[i++] = GLX_RGBA;
-	attributes[i++] = GLX_DOUBLEBUFFER;	
-	attributes[i++] = GLX_RED_SIZE;   attributes[i++] = 1;
-	attributes[i++] = GLX_BLUE_SIZE;  attributes[i++] = 1;
-	attributes[i++] = GLX_GREEN_SIZE; attributes[i++] = 1;
-	attributes[i++] = GLX_DEPTH_SIZE; attributes[i++] = 1;
-	attributes[i] = None;
-	
-	m_visual = glXChooseVisual(m_display, DefaultScreen(m_display), attributes);
-
-	if (m_visual == NULL) {
-		// barf : no visual meeting these requirements could be found.
-		printf("%s:%d: X11 glxChooseVisual() failed for OpenGL, verify working openGL system!\n", __FILE__, __LINE__);
+	if (!glXQueryVersion(m_display, &glxVersionMajor, &glxVersionMinor)) {
+		printf("%s:%d: X11 glXQueryVersion() failed, verify working openGL system!\n", __FILE__, __LINE__);
 		return;
 	}
-	
+
+	/* Find the display with highest samples, starting at level requested */
+	for (samples = m_numOfAASamples; samples >= 0; samples--) {
+		i = 0; /* Reusing attributes array, so reset counter */
+
+		if(m_stereoVisual)
+			attributes[i++] = GLX_STEREO;
+
+		attributes[i++] = GLX_RGBA;
+		attributes[i++] = GLX_DOUBLEBUFFER;
+		attributes[i++] = GLX_RED_SIZE;   attributes[i++] = 1;
+		attributes[i++] = GLX_BLUE_SIZE;  attributes[i++] = 1;
+		attributes[i++] = GLX_GREEN_SIZE; attributes[i++] = 1;
+		attributes[i++] = GLX_DEPTH_SIZE; attributes[i++] = 1;
+		/* GLX >= 1.4 required for multi-sample */
+		if(samples && (glxVersionMajor >= 1) && (glxVersionMinor >= 4)) {
+			attributes[i++] = GLX_SAMPLE_BUFFERS; attributes[i++] = 1;
+			attributes[i++] = GLX_SAMPLES; attributes[i++] = samples;
+		}
+		attributes[i] = None;
+
+		m_visual = glXChooseVisual(m_display, DefaultScreen(m_display), attributes);
+
+		/* Any sample level or even zero, which means oversampling disabled, is good
+		   but we need a valid visual to continue */
+		if (m_visual == NULL) {
+			if (samples == 0) {
+				/* All options exhausted, cannot continue */
+				printf("%s:%d: X11 glXChooseVisual() failed, verify working openGL system!\n", __FILE__, __LINE__);
+				return;
+			}
+		} else {
+			if (m_numOfAASamples && (m_numOfAASamples > samples)) {
+				printf("%s:%d: oversampling requested %i but using %i samples\n", __FILE__, __LINE__, m_numOfAASamples, samples);
+			}
+			break;
+		}
+	}
+
 	memset(&m_xtablet, 0, sizeof(m_xtablet));
 
 	// Create a bunch of attributes needed to create an X window.
@@ -1333,6 +1359,7 @@ getStandardCursor(
 	GtoX(GHOST_kStandardCursorBottomRightCorner, XC_bottom_right_corner); break;
 	GtoX(GHOST_kStandardCursorBottomLeftCorner, XC_bottom_left_corner); break;
 	GtoX(GHOST_kStandardCursorPencil, XC_pencil); break;
+	GtoX(GHOST_kStandardCursorCopy, XC_arrow); break;
 	default:
 		xcursor_id = 0;
 	}
@@ -1409,7 +1436,7 @@ setWindowCursorGrab(
 				setWindowCursorVisibility(false);
 
 		}
-		XGrabPointer(m_display, m_window, True, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+		XGrabPointer(m_display, m_window, False, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	}
 	else {
 		if (m_cursorGrab==GHOST_kGrabHide) {

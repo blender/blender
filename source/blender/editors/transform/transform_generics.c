@@ -335,6 +335,7 @@ void recalcData(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		Scene *scene= t->scene;
+		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		
 		bAnimContext ac;
 		ListBase anim_data = {NULL, NULL};
@@ -358,10 +359,14 @@ void recalcData(TransInfo *t)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
 		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
-		/* just tag these animdata-blocks to recalc, assuming that some data there changed */
-		for (ale= anim_data.first; ale; ale= ale->next) {
-			/* set refresh tags for objects using this animation */
-			ANIM_list_elem_update(t->scene, ale);
+		/* just tag these animdata-blocks to recalc, assuming that some data there changed 
+		 * BUT only do this if realtime updates are enabled
+		 */
+		if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
+			for (ale= anim_data.first; ale; ale= ale->next) {
+				/* set refresh tags for objects using this animation */
+				ANIM_list_elem_update(t->scene, ale);
+			}
 		}
 		
 		/* now free temp channels */
@@ -369,6 +374,7 @@ void recalcData(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		Scene *scene;
+		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
 		
 		ListBase anim_data = {NULL, NULL};
 		bAnimContext ac;
@@ -402,14 +408,22 @@ void recalcData(TransInfo *t)
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			FCurve *fcu= (FCurve *)ale->key_data;
 			
+			// fixme: only do this for selected verts...
+			ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYSEL|ANIM_UNITCONV_SELVERTS|ANIM_UNITCONV_RESTORE);
+			
+			
 			/* watch it: if the time is wrong: do not correct handles yet */
 			if (test_time_fcurve(fcu))
 				dosort++;
 			else
 				calchandles_fcurve(fcu);
-				
-			/* set refresh tags for objects using this animation */
-			ANIM_list_elem_update(t->scene, ale);
+			
+			/* set refresh tags for objects using this animation,
+			 * BUT only if realtime updates are enabled  
+			 */
+			if ((sipo->flag & SIPO_NOREALTIMEUPDATES) == 0)
+				ANIM_list_elem_update(t->scene, ale);
+
 		}
 		
 		/* do resort and other updates? */
@@ -439,8 +453,11 @@ void recalcData(TransInfo *t)
 			if (tdn->handle == 0)
 				continue;
 			
-			/* set refresh tags for objects using this animation */
-			ANIM_id_update(t->scene, tdn->id);
+			/* set refresh tags for objects using this animation,
+			 * BUT only if realtime updates are enabled  
+			 */
+			if ((snla->flag & SNLA_NOREALTIMEUPDATES) == 0)
+				ANIM_id_update(t->scene, tdn->id);
 			
 			/* if cancelling transform, just write the values without validating, then move on */
 			if (t->state == TRANS_CANCEL) {
@@ -762,16 +779,6 @@ void recalcData(TransInfo *t)
 		else {
 			int i;
 			
-			for(base= FIRSTBASE; base; base= base->next) {
-				Object *ob= base->object;
-				
-				/* this flag is from depgraph, was stored in initialize phase, handled in drawview.c */
-				if(base->flag & BA_HAS_RECALC_OB)
-					ob->recalc |= OB_RECALC_OB;
-				if(base->flag & BA_HAS_RECALC_DATA)
-					ob->recalc |= OB_RECALC_DATA;
-			}
-			
 			for (i = 0; i < t->total; i++) {
 				TransData *td = t->data + i;
 				Object *ob = td->ob;
@@ -792,11 +799,10 @@ void recalcData(TransInfo *t)
 					autokeyframe_ob_cb_func(NULL, t->scene, (View3D *)t->view, ob, t->mode);
 				}
 				
-				/* proxy exception */
-				if(ob->proxy)
-					ob->proxy->recalc |= ob->recalc;
-				if(ob->proxy_group)
-					group_tag_recalc(ob->proxy_group->dup_group);
+				/* sets recalc flags fully, instead of flushing existing ones 
+				 * otherwise proxies don't function correctly
+				 */
+				DAG_id_flush_update(&ob->id, OB_RECALC);  
 			}
 		}
 		
@@ -917,6 +923,11 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	/* if there's an event, we're modal */
 	if (event) {
 		t->flag |= T_MODAL;
+	}
+
+	/* Crease needs edge flag */
+	if (t->mode == TFM_CREASE) {
+		t->options |= CTX_EDGE;
 	}
 
 	t->spacetype = sa->spacetype;

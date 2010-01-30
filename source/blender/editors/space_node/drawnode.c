@@ -94,54 +94,13 @@
 
 #include "node_intern.h"
 
-/* ****************** GENERAL CALLBACKS FOR NODES ***************** */
-
-#if 0
-/* XXX not used yet, make compiler happy :) */
-static void node_group_alone_cb(bContext *C, void *node_v, void *unused_v)
-{
-	bNode *node= node_v;
-	
-	nodeCopyGroup(node);
-
-	// allqueue(REDRAWNODE, 0);
-}
 
 /* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
 
-static void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
+void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-
-	if(node->id) {
-		uiBut *bt;
-		short width;
-		
-		uiBlockBeginAlign(block);
-		
-		/* name button */
-		width= (short)(butr->xmax-butr->xmin - (node->id->us>1?19.0f:0.0f));
-		bt= uiDefBut(block, TEX, B_NOP, "NT:",
-					 (short)butr->xmin, (short)butr->ymin, width, 19, 
-					 node->id->name+2, 0.0, 19.0, 0, 0, "NodeTree name");
-		uiButSetFunc(bt, node_ID_title_cb, node, NULL);
-		
-		/* user amount */
-		if(node->id->us>1) {
-			char str1[32];
-			sprintf(str1, "%d", node->id->us);
-			bt= uiDefBut(block, BUT, B_NOP, str1, 
-						 (short)butr->xmax-19, (short)butr->ymin, 19, 19, 
-						 NULL, 0, 0, 0, 0, "Displays number of users.");
-			uiButSetFunc(bt, node_group_alone_cb, node, NULL);
-		}
-		
-		uiBlockEndAlign(block);
-	}	
+	uiTemplateIDBrowse(layout, C, ptr, "nodetree", NULL, NULL, "");
 }
-#endif
 
 static void node_buts_value(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
@@ -166,6 +125,7 @@ static void node_buts_rgb(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
 	
 	col = uiLayoutColumn(layout, 0);
+	uiTemplateColorWheel(col, &sockptr, "default_value", 1, 0);
 	uiItemR(col, "", 0, &sockptr, "default_value", 0);
 }
 
@@ -545,16 +505,33 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node= ptr->data;
-	uiLayout *col;
-
+	uiLayout *col, *row;
+	PointerRNA op_ptr;
+	PointerRNA scn_ptr;
+	PropertyRNA *prop;
+	const char *layer_name;
+	char scene_name[19];
+	
 	uiTemplateID(layout, C, ptr, "scene", NULL, NULL, NULL);
 	
 	if(!node->id) return;
 
 	col= uiLayoutColumn(layout, 0);
-	uiItemR(col, "", 0, ptr, "layer", 0);
+	row = uiLayoutRow(col, 0);
+	uiItemR(row, "", 0, ptr, "layer", 0);
 	
-	/* XXX Missing 're-render this layer' button - needs completely new implementation */
+	prop = RNA_struct_find_property(ptr, "layer");
+	if (!(RNA_property_enum_identifier(C, ptr, prop, RNA_property_enum_get(ptr, prop), &layer_name)))
+		return;
+	
+	scn_ptr = RNA_pointer_get(ptr, "scene");
+	RNA_string_get(&scn_ptr, "name", scene_name);
+	
+	WM_operator_properties_create(&op_ptr, "SCREEN_OT_render");
+	RNA_string_set(&op_ptr, "layer", layer_name);
+	RNA_string_set(&op_ptr, "scene", scene_name);
+	uiItemFullO(row, "", ICON_RENDER_STILL, "SCREEN_OT_render", op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
+
 }
 
 
@@ -936,6 +913,56 @@ static void node_composit_buts_view_levels(uiLayout *layout, bContext *C, Pointe
 	uiItemR(layout, NULL, 0, ptr, "channel", UI_ITEM_R_EXPAND);
 }
 
+static void node_composit_buts_colorbalance(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiLayout *split, *col, *row;
+	
+	uiItemR(layout, NULL, 0, ptr, "correction_formula", 0);
+	
+	if (RNA_enum_get(ptr, "correction_formula")== 0) {
+	
+		split = uiLayoutSplit(layout, 0, 0);
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "lift", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "lift", 0);
+		
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "gamma", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "gamma", 0);
+		
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "gain", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "gain", 0);
+
+	} else {
+		
+		split = uiLayoutSplit(layout, 0, 0);
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "offset", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "offset", 0);
+		
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "power", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "power", 0);
+		
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "slope", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "slope", 0);
+	}
+
+}
+
+static void node_composit_buts_huecorrect(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiTemplateCurveMapping(layout, ptr, "mapping", 'h', 0, 0);
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -1065,8 +1092,14 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_PREMULKEY:
 			ntype->uifunc= node_composit_buts_premulkey;
 			break;
-      case CMP_NODE_VIEW_LEVELS:
+		case CMP_NODE_VIEW_LEVELS:
 			ntype->uifunc=node_composit_buts_view_levels;
+ 			break;
+		case CMP_NODE_COLORBALANCE:
+			ntype->uifunc=node_composit_buts_colorbalance;
+ 			break;
+		case CMP_NODE_HUECORRECT:
+			ntype->uifunc=node_composit_buts_huecorrect;
  			break;
 		default:
 			ntype->uifunc= NULL;
@@ -1251,7 +1284,7 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 			
 			if(!ibuf->rect) {
 				if(color_manage)
-					ibuf->profile= IB_PROFILE_SRGB;
+					ibuf->profile = IB_PROFILE_LINEAR_RGB;
 				else
 					ibuf->profile = IB_PROFILE_NONE;
 				IMB_rect_from_float(ibuf);
