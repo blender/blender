@@ -160,6 +160,7 @@ void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct AR
 void view3d_clipping_local(struct RegionView3D *rv3d, float mat[][4]);
 
 Base *ED_view3d_give_base_under_cursor(struct bContext *C, short *mval);
+void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar);
 
 #endif /* ED_VIEW3D_H */
 

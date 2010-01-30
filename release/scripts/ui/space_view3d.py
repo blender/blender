@@ -1740,15 +1740,21 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         col.prop(gs, "material_mode", text="")
         col.prop(view, "textured_solid")
 
-# XXX - the Quad View options don't work yet
-#		layout.separator()
-#
-#		layout.operator("screen.region_foursplit", text="Toggle Quad View")
-#		col = layout.column()
-#		col.prop(view, "lock_rotation")
-#		col.prop(view, "box_preview")
-#		col.prop(view, "box_clip")
+        layout.separator()
 
+        region = view.region_quadview
+
+        layout.operator("screen.region_quadview", text="Toggle Quad View")
+
+        if region:
+            col = layout.column()
+            col.prop(region, "lock_rotation")
+            row = col.row()
+            row.enabled = region.lock_rotation
+            row.prop(region, "box_preview")
+            row = col.row()
+            row.enabled = region.lock_rotation and region.box_preview
+            row.prop(region, "box_clip")
 
 class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
