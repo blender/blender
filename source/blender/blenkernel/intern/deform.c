@@ -493,7 +493,7 @@ float defvert_find_weight(const struct MDeformVert *dvert, int group_num)
 float defvert_array_find_weight_safe(const struct MDeformVert *dvert, int index, int group_num)
 {
 	if(group_num == -1 || dvert == NULL)
-		return 0.0f;
+		return 1.0f;
 
 	return defvert_find_weight(dvert+index, group_num);
 }

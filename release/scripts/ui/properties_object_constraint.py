@@ -730,13 +730,10 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-        ob = context.object
-        wide_ui = context.region.width > narrowui
 
-        row = layout.row()
-        row.operator_menu_enum("object.constraint_add", "type")
-        if wide_ui:
-            row.label()
+        ob = context.object
+
+        layout.operator_menu_enum("object.constraint_add", "type")
 
         for con in ob.constraints:
             self.draw_constraint(context, con)
@@ -755,12 +752,8 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
 
         ob = context.object
         pchan = ob.pose.bones[context.bone.name]
-        wide_ui = context.region.width > narrowui
 
-        row = layout.row()
-        row.operator_menu_enum("pose.constraint_add", "type")
-        if wide_ui:
-            row.label()
+        layout.operator_menu_enum("pose.constraint_add", "type")
 
         for con in pchan.constraints:
             self.draw_constraint(context, con)

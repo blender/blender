@@ -148,6 +148,9 @@ void loc_quat_size_to_mat4(float R[4][4],
 void blend_m3_m3m3(float R[3][3], float A[3][3], float B[3][3], float t);
 void blend_m4_m4m4(float R[4][4], float A[4][4], float B[4][4], float t);
 
+int is_negative_m3(float mat[3][3]);
+int is_negative_m4(float mat[4][4]);
+
 /*********************************** Other ***********************************/
 
 void print_m3(char *str, float M[3][3]);

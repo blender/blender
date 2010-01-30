@@ -3575,11 +3575,12 @@ PyObject *BPY_rna_types(void)
 	}
 	
 	self= (BPy_BaseTypeRNA *)PyObject_NEW( BPy_BaseTypeRNA, &pyrna_basetype_Type );
-	
+	self->arraydim = self->arrayoffset = 0; /* unused but better set */
+
 	/* avoid doing this lookup for every getattr */
 	RNA_blender_rna_pointer_create(&self->ptr);
 	self->prop = RNA_struct_find_property(&self->ptr, "structs");
-	
+
 	return (PyObject *)self;
 }
 

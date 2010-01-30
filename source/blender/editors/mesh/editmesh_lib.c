@@ -743,6 +743,11 @@ void EM_convertsel(EditMesh *em, short oldmode, short selectmode)
 	EM_nfaces_selected(em);
 }
 
+void EM_selectmode_to_scene(struct Scene *scene, struct Object *obedit)
+{
+	scene->toolsettings->selectmode= get_mesh(obedit)->edit_mesh->selectmode;
+}
+
 /* when switching select mode, makes sure selection is consistent for editing */
 /* also for paranoia checks to make sure edge or face mode works */
 void EM_selectmode_set(EditMesh *em)

@@ -422,14 +422,17 @@ void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, c
 	MEM_freeN(newN);
 }
 
-void BKE_animdata_main_cb(Main *main, void (*func)(ID *, AnimData *, void *), void *user_data)
+/* Whole Database Ops -------------------------------------------- */
+
+/* apply the given callback function on all data in main database */
+void BKE_animdata_main_cb (Main *main, ID_AnimData_Edit_Callback func, void *user_data)
 {
 	ID *id;
 
 #define ANIMDATA_IDS_CB(first) \
 	for (id= first; id; id= id->next) { \
 		AnimData *adt= BKE_animdata_from_id(id); \
-		if(adt) func(id, adt, user_data); \
+		if (adt) func(id, adt, user_data); \
 	}
 
 	ANIMDATA_IDS_CB(main->nodetree.first);	/* nodes */
@@ -450,15 +453,15 @@ void BKE_animdata_main_cb(Main *main, void (*func)(ID *, AnimData *, void *), vo
 	for (id= main->scene.first; id; id= id->next) {
 		AnimData *adt= BKE_animdata_from_id(id);
 		Scene *scene= (Scene *)id;
-
+		
 		/* do compositing nodes first (since these aren't included in main tree) */
 		if (scene->nodetree) {
 			AnimData *adt2= BKE_animdata_from_id((ID *)scene->nodetree);
-			if(adt2) func(id, adt2, user_data);
+			if (adt2) func(id, adt2, user_data);
 		}
-
+		
 		/* now fix scene animation data as per normal */
-		if(adt) func((ID *)id, adt, user_data);
+		if (adt) func((ID *)id, adt, user_data);
 	}
 }
 

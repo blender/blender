@@ -162,6 +162,8 @@ static void view3d_boxview_clip(ScrArea *sa)
 			if(rv3d->viewlock & RV3D_BOXCLIP) {
 				rv3d->rflag |= RV3D_CLIPPING;
 				memcpy(rv3d->clip, clip, sizeof(clip));
+				if(rv3d->clipbb) MEM_freeN(rv3d->clipbb);
+				rv3d->clipbb= MEM_dupallocN(bb);
 			}
 		}
 	}
@@ -225,6 +227,34 @@ void view3d_boxview_copy(ScrArea *sa, ARegion *ar)
 		}
 	}
 	view3d_boxview_clip(sa);
+}
+
+void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	short viewlock;
+
+	/* this function copies flags from the first of the 3 other quadview
+	   regions to the 2 other, so it assumes this is the region whose
+	   properties are always being edited, weak */
+	viewlock= rv3d->viewlock;
+
+	if((viewlock & RV3D_LOCKED)==0)
+		viewlock= 0;
+	else if((viewlock & RV3D_BOXVIEW)==0)
+		viewlock &= ~RV3D_BOXCLIP;
+
+	for(; ar; ar= ar->prev) {
+		if(ar->alignment==RGN_ALIGN_QSPLIT) {
+			rv3d= ar->regiondata;
+			rv3d->viewlock= viewlock;
+		}
+	}
+
+	if(rv3d->viewlock & RV3D_BOXVIEW)
+		view3d_boxview_copy(sa, sa->regionbase.last);
+
+	ED_area_tag_redraw(sa);
 }
 
 /* ************************** init for view ops **********************************/

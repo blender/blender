@@ -5254,7 +5254,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 
 	/* if we are didn't handle the event yet, lets pass it on to
 	 * buttons inside this region. disabled inside check .. not sure
-	 * anymore why it was there? but i meant enter enter didn't work
+	 * anymore why it was there? but it meant enter didn't work
 	 * for example when mouse was not over submenu */
 	if((/*inside &&*/ (!menu->menuretval || menu->menuretval == UI_RETURN_UPDATE) && retval == WM_UI_HANDLER_CONTINUE) || event->type == TIMER) {
 		but= ui_but_find_activated(ar);
@@ -5313,8 +5313,6 @@ static int ui_handle_menu_return_submenu(bContext *C, wmEvent *event, uiPopupBlo
 		}
 
 		update= (submenu->menuretval == UI_RETURN_UPDATE);
-		if(update)
-			menu->menuretval = UI_RETURN_UPDATE;
 
 		/* now let activated button in this menu exit, which
 		 * will actually close the submenu too */

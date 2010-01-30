@@ -269,6 +269,11 @@ void undo_editmode_step(bContext *C, int step)
 		}
 	}
 	
+	/* special case for editmesh, mode must be copied back to the scene */
+	if(obedit->type == OB_MESH) {
+		EM_selectmode_to_scene(CTX_data_scene(C), obedit);
+	}
+
 	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 
 	/* XXX notifiers */

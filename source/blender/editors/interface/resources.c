@@ -1377,6 +1377,9 @@ void init_userdef_do_versions(void)
 		U.scrcastfps = 10;
 		U.scrcastwait = 50;
 	}
+	if (U.v2d_min_gridsize == 0) {
+		U.v2d_min_gridsize= 35;
+	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */
 // XXX	space_set_commmandline_options();

@@ -133,6 +133,7 @@ void		EM_selectmode_set(struct EditMesh *em);
 void		EM_select_flush(struct EditMesh *em);
 void		EM_convertsel(struct EditMesh *em, short oldmode, short selectmode);
 void		EM_validate_selections(struct EditMesh *em);
+void		EM_selectmode_to_scene(struct Scene *scene, struct Object *obedit);
 
 			/* exported to transform */
 int			EM_get_actSelection(struct EditMesh *em, struct EditSelection *ese);

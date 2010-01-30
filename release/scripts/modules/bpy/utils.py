@@ -72,7 +72,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             test_reload(_sys.modules[module_name])
 
     for base_path in script_paths():
-        for path_subdir in ("ui", "op", "io", "cfg"):
+        for path_subdir in ("", "ui", "op", "io", "cfg"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
 
@@ -87,7 +87,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     if f.endswith(".py"):
                         # python module
                         mod = test_import(f[0:-3])
-                    elif "." not in f:
+                    elif ("." not in f) and (_os.path.isdir(_os.path.join(path, f, "__init__.py"))):
                         # python package
                         mod = test_import(f)
                     else:

@@ -94,7 +94,15 @@ void BKE_animdata_fix_paths_rename(struct ID *owner_id, struct AnimData *adt, ch
 /* Fix all the paths for the entire database... */
 void BKE_all_animdata_fix_paths_rename(char *prefix, char *oldName, char *newName);
 
-void BKE_animdata_main_cb(struct Main *main, void (*func)(struct ID *, struct AnimData *, void *), void *user_data);
+/* ************************************* */
+/* Batch AnimData API */
+
+/* Define for callback looper used in BKE_animdata_main_cb */
+typedef void (*ID_AnimData_Edit_Callback)(struct ID *id, struct AnimData *adt, void *user_data);
+
+
+/* Loop over all datablocks applying callback */
+void BKE_animdata_main_cb(struct Main *main, ID_AnimData_Edit_Callback func, void *user_data);
 
 /* ************************************* */
 // TODO: overrides, remapping, and path-finding api's

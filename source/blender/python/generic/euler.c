@@ -571,7 +571,7 @@ static PyGetSetDef Euler_getseters[] = {
 	{"y", (getter)Euler_getAxis, (setter)Euler_setAxis, "Euler Y axis in radians. **type** float", (void *)1},
 	{"z", (getter)Euler_getAxis, (setter)Euler_setAxis, "Euler Z axis in radians. **type** float", (void *)2},
 
-	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
+	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
 	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };

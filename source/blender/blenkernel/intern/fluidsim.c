@@ -562,6 +562,12 @@ void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
 	int i;
 	float vec[3];
 
+	if(totvert == 0) {
+		zero_v3(start);
+		zero_v3(size);
+		return;
+	}
+
 	VECCOPY(vec, mvert[0].co); 
 	mul_m4_v3(obmat, vec);
 	bbsx = vec[0]; bbsy = vec[1]; bbsz = vec[2];

@@ -1491,11 +1491,14 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 	}
 	else if(but->type == IDPOIN) {
 		/* ID pointer */
-		ID *id= *(but->idpoin_idpp);
-
-		if(id) BLI_strncpy(str, id->name+2, maxlen);
-		else BLI_strncpy(str, "", maxlen);
-
+		if(but->idpoin_idpp) { /* Can be NULL for ID properties by python */
+			ID *id= *(but->idpoin_idpp);
+			if(id)
+				BLI_strncpy(str, id->name+2, maxlen);
+		}
+		else {
+			str[0] = '\0';
+		}
 		return;
 	}
 	else if(but->type == TEX) {

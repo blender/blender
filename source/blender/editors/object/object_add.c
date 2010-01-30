@@ -379,7 +379,7 @@ static Object *effector_add_type(bContext *C, wmOperator *op, int type)
 		BLI_addtail(curve_get_editcurve(ob), add_nurbs_primitive(C, mat, CU_NURBS|CU_PRIM_PATH, 1));
 
 		if(!enter_editmode)
-			ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
+			ED_object_exit_editmode(C, EM_FREEDATA);
 	}
 	else {
 		ob= ED_object_add_type(C, OB_EMPTY, loc, rot, FALSE, layer);
@@ -517,7 +517,7 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	
 	/* userdef */
 	if (newob && !enter_editmode) {
-		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
+		ED_object_exit_editmode(C, EM_FREEDATA);
 	}
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
@@ -603,7 +603,7 @@ static int object_add_surface_exec(bContext *C, wmOperator *op)
 	
 	/* userdef */
 	if (newob && !enter_editmode) {
-		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
+		ED_object_exit_editmode(C, EM_FREEDATA);
 	}
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
@@ -668,7 +668,7 @@ static int object_metaball_add_exec(bContext *C, wmOperator *op)
 	
 	/* userdef */
 	if (newob && !enter_editmode) {
-		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
+		ED_object_exit_editmode(C, EM_FREEDATA);
 	}
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
@@ -783,9 +783,8 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	add_primitive_bone(CTX_data_scene(C), v3d, rv3d);
 
 	/* userdef */
-	if (newob && !enter_editmode) {
-		ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);
-	}
+	if (newob && !enter_editmode)
+		ED_object_exit_editmode(C, EM_FREEDATA);
 	
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obedit);
 	

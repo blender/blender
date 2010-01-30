@@ -854,7 +854,7 @@ static PyGetSetDef Quaternion_getseters[] = {
 	{"magnitude", (getter)Quaternion_getMagnitude, (setter)NULL, "Size of the quaternion (readonly). **type** float", NULL},
 	{"angle", (getter)Quaternion_getAngle, (setter)NULL, "angle of the quaternion (readonly). **type** float", NULL},
 	{"axis",(getter)Quaternion_getAxisVec, (setter)NULL, "quaternion axis as a vector (readonly). **type** :class:`Vector`", NULL},
-	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
+	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
 	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
