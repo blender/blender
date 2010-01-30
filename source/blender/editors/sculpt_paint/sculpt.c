@@ -2078,6 +2078,11 @@ static void sculpt_stroke_done(bContext *C, struct PaintStroke *stroke)
 		if(ss->refkb) sculpt_key_to_mesh(ss->refkb, ob);
 
 		ss->partial_redraw = 0;
+		
+		/* try to avoid calling this, only for e.g. linked duplicates now */
+		if(((Mesh*)ob->data)->id.us > 1)
+			DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
 	}
 }
