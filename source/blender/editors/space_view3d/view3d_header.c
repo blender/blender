@@ -187,6 +187,7 @@ static int layers_exec(bContext *C, wmOperator *op)
 			v3d->layact= 1;
 	}
 	else {
+		int bit;
 		nr--;
 
 		if(RNA_boolean_get(op->ptr, "extend")) {
@@ -194,21 +195,30 @@ static int layers_exec(bContext *C, wmOperator *op)
 				v3d->lay &= ~(1<<nr);
 			else
 				v3d->lay |= (1<<nr);
-		} else
+		} else {
 			v3d->lay = (1<<nr);
+
+			/* sanity check - when in editmode disallow switching the editmode layer off since its confusing
+			 * an alternative would be to always draw the editmode object. */
+			if(scene->obedit && (scene->obedit->lay & v3d->lay)==0) {
+				for(bit=0; bit<32; bit++) {
+					if(scene->obedit->lay & (1<<bit)) {
+						v3d->lay |= 1<<bit;
+						break;
+					}
+				}
+			}
+		}
 		
 		/* set active layer, ensure to always have one */
 		if(v3d->lay & (1<<nr))
 		   v3d->layact= 1<<nr;
 		else if((v3d->lay & v3d->layact)==0) {
-			int bit= 0;
-
-			while(bit<32) {
+			for(bit=0; bit<32; bit++) {
 				if(v3d->lay & (1<<bit)) {
 					v3d->layact= 1<<bit;
 					break;
 				}
-				bit++;
 			}
 		}
 	}
