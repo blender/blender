@@ -3565,7 +3565,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int cfra)
 			strcpy(filename, fss->surfdataPath);
 			strcat(filename, suffix);
 			BLI_convertstringcode(filename, G.sce);
-			BLI_convertstringframe(filename, curFrame); // fixed #frame-no 
+			BLI_convertstringframe(filename, curFrame, 0); // fixed #frame-no 
 			strcat(filename, suffix2);
 	
 			gzf = gzopen(filename, "rb");
