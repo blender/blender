@@ -1466,6 +1466,11 @@ static int mesh_separate_loose(Scene *scene, Base *editbase)
 		
 		selectconnected_mesh_all(em);
 		
+		/* don't separate the very last part */
+		for(eve=em->verts.first; eve; eve= eve->next)
+			if((eve->f & SELECT)==0) break;
+		if(eve==NULL) break;
+
 		/* and now separate */
 		doit= mesh_separate_selected(scene, editbase);
 	}
