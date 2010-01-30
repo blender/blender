@@ -31,11 +31,11 @@
 #include <config.h>
 #endif
 
-static int sound_disabled = 0;
+static int force_device = -1;
 
-void sound_disable()
+void sound_force_device(int device)
 {
-	sound_disabled = 1;
+	force_device = device;
 }
 
 void sound_init()
@@ -49,8 +49,8 @@ void sound_init()
 	specs.format = U.audioformat;
 	specs.rate = U.audiorate;
 
-	if (sound_disabled)
-		device = 0;
+	if(force_device >= 0)
+		device = force_device;
 
 	if(buffersize < 128)
 		buffersize = AUD_DEFAULT_BUFFER_SIZE;

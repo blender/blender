@@ -41,7 +41,7 @@ void sound_init();
 
 void sound_exit();
 
-void sound_disable();
+void sound_force_device(int device);
 
 struct bSound* sound_new_file(struct Main *main, char* filename);
 

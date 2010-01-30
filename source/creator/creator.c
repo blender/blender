@@ -487,7 +487,7 @@ int main(int argc, char **argv)
 					else if (BLI_strcasecmp(argv[a], "-noglsl") == 0)
 						GPU_extensions_disable();
 					else if (BLI_strcasecmp(argv[a], "-noaudio") == 0)
-						sound_disable();
+						sound_force_device(0);
 					break;
 				}
 			}
@@ -527,7 +527,7 @@ int main(int argc, char **argv)
 				case 'n':
 				case 'N':
 					if (BLI_strcasecmp(argv[a], "-noaudio") == 0)
-						sound_disable();
+						sound_force_device(0);
 					break;
 				}
 			}
