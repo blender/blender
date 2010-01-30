@@ -88,6 +88,8 @@ ELSE()
 	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
 ENDIF()
 
+OPTION(WITH_BF_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" OFF) 
+
 IF (APPLE)
 	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
 	OPTION(USE_QTKIT	  "Use QtKit instead of Carbon quicktime (needed for having partial quicktime for 64bit)" OFF)
@@ -558,7 +560,7 @@ IF(APPLE)
 		SET(OPENCOLLADA ${LIBDIR}/opencollada)
 		SET(OPENCOLLADA_INC ${OPENCOLLADA}/include)
 		SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-		SET(OPENCOLLADA_LIB "OpenCOLLADASaxFrameworkLoader -lOpenCOLLADAFramework -lOpenCOLLADABaseUtils -lOpenCOLLADAStreamWriter -lMathMLSolver -lGeneratedSaxParser -lUTF -lxml2" )
+		SET(OPENCOLLADA_LIB "OpenCOLLADASaxFrameworkLoader -lOpenCOLLADAFramework -lOpenCOLLADABaseUtils -lOpenCOLLADAStreamWriter -lMathMLSolver -lGeneratedSaxParser -lUTF -lxml2 -lbuffer -lftoa" )
 		#pcre is bundled with openCollada
 		#SET(PCRE ${LIBDIR}/pcre)
 		#SET(PCRE_LIBPATH ${PCRE}/lib)
