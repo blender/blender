@@ -541,6 +541,9 @@ public:
 	/* --------------------------------------------------------------------- */
 
 	KX_PYMETHOD_DOC(KX_Scene, addObject);
+	KX_PYMETHOD_DOC(KX_Scene, end);
+	KX_PYMETHOD_DOC(KX_Scene, restart);
+	KX_PYMETHOD_DOC(KX_Scene, replace);
 	KX_PYMETHOD_DOC(KX_Scene, get);
 
 	/* attributes */

@@ -333,14 +333,13 @@ static PyObject* gPyLoadGlobalDict(PyObject*)
 	Py_RETURN_NONE;
 }
 
-
 static char gPySendMessage_doc[] = 
 "sendMessage(subject, [body, to, from])\n\
 sends a message in same manner as a message actuator\
 subject = Subject of the message\
 body = Message body\
 to = Name of object to send the message to\
-from = Name of object to sned the string from";
+from = Name of object to send the string from";
 
 static PyObject* gPySendMessage(PyObject*, PyObject* args)
 {
@@ -494,6 +493,25 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 	
     closedir(dp);
     return list;
+}
+
+static char gPyAddScene_doc[] = 
+"addScene(name, [overlay])\n\
+adds a scene to the game engine\n\
+name = Name of the scene\n\
+overlay = Overlay or underlay";
+static PyObject* gPyAddScene(PyObject*, PyObject* args)
+{
+	char* name;
+	int overlay = 1;
+	KX_Scene* scene = NULL;
+	
+	if (!PyArg_ParseTuple(args, "s|i:addScene", &name , &overlay))
+		return NULL;
+	
+	gp_KetsjiEngine->ConvertAndAddScene(name, (overlay != 0));
+
+	Py_RETURN_NONE;
 }
 
 static const char *gPyGetCurrentScene_doc =
@@ -722,15 +740,11 @@ static struct PyMethodDef game_methods[] = {
 	{"saveGlobalDict", (PyCFunction)gPySaveGlobalDict, METH_NOARGS, (const char *)gPySaveGlobalDict_doc},
 	{"loadGlobalDict", (PyCFunction)gPyLoadGlobalDict, METH_NOARGS, (const char *)gPyLoadGlobalDict_doc},
 	{"sendMessage", (PyCFunction)gPySendMessage, METH_VARARGS, (const char *)gPySendMessage_doc},
-	{"getCurrentController",
-	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
-	METH_NOARGS, SCA_PythonController::sPyGetCurrentController__doc__},
-	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene,
-	METH_NOARGS, gPyGetCurrentScene_doc},
-	{"getSceneList", (PyCFunction) gPyGetSceneList,
-	METH_NOARGS, (const char *)gPyGetSceneList_doc},
-	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,
-	METH_NOARGS, (const char *)gPyGetRandomFloat_doc},
+	{"getCurrentController", (PyCFunction) SCA_PythonController::sPyGetCurrentController, METH_NOARGS, SCA_PythonController::sPyGetCurrentController__doc__},
+	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene, METH_NOARGS, gPyGetCurrentScene_doc},
+	{"getSceneList", (PyCFunction) gPyGetSceneList, METH_NOARGS, (const char *)gPyGetSceneList_doc},
+	{"addScene", (PyCFunction)gPyAddScene, METH_VARARGS, (const char *)gPyAddScene_doc},
+	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat, METH_NOARGS, (const char *)gPyGetRandomFloat_doc},
 	{"setGravity",(PyCFunction) gPySetGravity, METH_O, (const char *)"set Gravitation"},
 	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS, (const char *)"get audio spectrum"},
 	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS, (const char *)"stop using the audio dsp (for performance reasons)"},
