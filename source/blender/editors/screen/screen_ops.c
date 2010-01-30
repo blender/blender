@@ -1374,6 +1374,7 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	if(az->ar) {
 		RegionMoveData *rmd= MEM_callocN(sizeof(RegionMoveData), "RegionMoveData");
+		int maxsize;
 		
 		op->customdata= rmd;
 		
@@ -1384,12 +1385,27 @@ static int region_scale_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		rmd->origx= event->x;
 		rmd->origy= event->y;
 		rmd->maxsize = area_max_regionsize(rmd->sa, rmd->ar, rmd->edge);
+		
+		/* if not set we do now, otherwise it uses type */
+		if(rmd->ar->sizex==0) 
+			rmd->ar->sizex= rmd->ar->type->prefsizex;
+		if(rmd->ar->sizey==0) 
+			rmd->ar->sizey= rmd->ar->type->prefsizey;
+		
+		/* now copy to regionmovedata */
 		if(rmd->edge=='l' || rmd->edge=='r') {
-			rmd->origval= rmd->ar->type->minsizex;
+			rmd->origval= rmd->ar->sizex;
 		} else {
-			rmd->origval= rmd->ar->type->minsizey;
+			rmd->origval= rmd->ar->sizey;
 		}
-		CLAMP(rmd->maxsize, 0, 1000);
+		
+		/* limit headers to standard height for now */
+		if (rmd->ar->regiontype == RGN_TYPE_HEADER)
+			maxsize = rmd->ar->type->prefsizey;
+		else
+			maxsize = 1000;
+		
+		CLAMP(rmd->maxsize, 0, maxsize);
 		
 		/* add temp handler */
 		WM_event_add_modal_handler(C, op);
@@ -1413,11 +1429,11 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				delta= event->x - rmd->origx;
 				if(rmd->edge=='l') delta= -delta;
 				
-				rmd->ar->type->minsizex= rmd->origval + delta;
-				CLAMP(rmd->ar->type->minsizex, 0, rmd->maxsize);
+				rmd->ar->sizex= rmd->origval + delta;
+				CLAMP(rmd->ar->sizex, 0, rmd->maxsize);
 				
-				if(rmd->ar->type->minsizex < 24) {
-					rmd->ar->type->minsizex= rmd->origval;
+				if(rmd->ar->sizex < 24) {
+					rmd->ar->sizex= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						ED_region_toggle_hidden(C, rmd->ar);
 				}
@@ -1428,11 +1444,11 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 				delta= event->y - rmd->origy;
 				if(rmd->edge=='b') delta= -delta;
 				
-				rmd->ar->type->minsizey= rmd->origval + delta;
-				CLAMP(rmd->ar->type->minsizey, 0, rmd->maxsize);
+				rmd->ar->sizey= rmd->origval + delta;
+				CLAMP(rmd->ar->sizey, 0, rmd->maxsize);
 				
-				if(rmd->ar->type->minsizey < 24) {
-					rmd->ar->type->minsizey= rmd->origval;
+				if(rmd->ar->sizey < 24) {
+					rmd->ar->sizey= rmd->origval;
 					if(!(rmd->ar->flag & RGN_FLAG_HIDDEN))
 						ED_region_toggle_hidden(C, rmd->ar);
 				}
@@ -4028,7 +4044,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_split", EVT_ACTIONZONE_AREA, 0, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_join", EVT_ACTIONZONE_AREA, 0, 0, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_dupli", EVT_ACTIONZONE_AREA, 0, KM_SHIFT, 0);
-	WM_keymap_verify_item(keymap, "SCREEN_OT_area_swap", EVT_ACTIONZONE_AREA, 0, KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "SCREEN_OT_area_swap", EVT_ACTIONZONE_AREA, 0, KM_CTRL, 0);
 	WM_keymap_verify_item(keymap, "SCREEN_OT_region_scale", EVT_ACTIONZONE_REGION, 0, 0, 0);
 	/* area move after action zones */
 	WM_keymap_verify_item(keymap, "SCREEN_OT_area_move", LEFTMOUSE, KM_PRESS, 0, 0);

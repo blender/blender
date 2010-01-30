@@ -1260,6 +1260,10 @@ static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *ptr,
 	Object *obedit= CTX_data_edit_object(C);
 	EnumPropertyItem *item= NULL;
 	int a, totitem= 0;
+
+	if (C == NULL) {
+		return prop_similar_types;
+	}
 		
 	if(obedit && obedit->type == OB_MESH) {
 		EditMesh *em= BKE_mesh_get_editmesh(obedit->data); 

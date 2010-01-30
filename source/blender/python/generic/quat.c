@@ -39,9 +39,9 @@ static char Quaternion_ToEuler_doc[] =
 "   Return Euler representation of the quaternion.\n"
 "\n"
 "   :arg euler_compat: Optional euler argument the new euler will be made compatible with (no axis flipping between them). Useful for converting a series of matrices to animation curves.\n"
-"   :type euler_compat: Euler\n"
+"   :type euler_compat: :class:`Euler`\n"
 "   :return: Euler representation of the quaternion.\n"
-"   :rtype: Euler\n";
+"   :rtype: :class:`Euler`\n";
 
 static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 {
@@ -98,7 +98,7 @@ static char Quaternion_ToMatrix_doc[] =
 "   Return a matrix representation of the quaternion.\n"
 "\n"
 "   :return: A 3x3 rotation matrix representation of the quaternion.\n"
-"   :rtype: Matrix\n";
+"   :rtype: :class:`Matrix`\n";
 
 static PyObject *Quaternion_ToMatrix(QuaternionObject * self)
 {
@@ -118,9 +118,9 @@ static char Quaternion_Cross_doc[] =
 "   Return the cross product of this quaternion and another.\n"
 "\n"
 "   :arg other: The other quaternion to perform the cross product with.\n"
-"   :type other: Quaternion\n"
+"   :type other: :class:`Quaternion`\n"
 "   :return: The cross product.\n"
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Quaternion_Cross(QuaternionObject * self, QuaternionObject * value)
 {
@@ -145,9 +145,9 @@ static char Quaternion_Dot_doc[] =
 "   Return the dot product of this quaternion and another.\n"
 "\n"
 "   :arg other: The other quaternion to perform the dot product with.\n"
-"   :type other: Quaternion\n"
+"   :type other: :class:`Quaternion`\n"
 "   :return: The dot product.\n"
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Quaternion_Dot(QuaternionObject * self, QuaternionObject * value)
 {
@@ -168,9 +168,9 @@ static char Quaternion_Difference_doc[] =
 "   Returns a quaternion representing the rotational difference.\n"
 "\n"
 "   :arg other: second quaternion.\n"
-"   :type other: Quaternion\n"
+"   :type other: :class:`Quaternion`\n"
 "   :return: the rotational difference between the two quat rotations.\n"
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Quaternion_Difference(QuaternionObject * self, QuaternionObject * value)
 {
@@ -207,11 +207,11 @@ static char Quaternion_Slerp_doc[] =
 "   Returns the interpolation of two quaternions.\n"
 "\n"
 "   :arg other: value to interpolate with.\n"
-"   :type other: Quaternion\n"
+"   :type other: :class:`Quaternion`\n"
 "   :arg factor: The interpolation value in [0.0, 1.0].\n"
 "   :type factor: float\n"
 "   :return: The interpolated rotation.\n"
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Quaternion_Slerp(QuaternionObject *self, PyObject *args)
 {
@@ -244,7 +244,7 @@ static char Quaternion_Normalize_doc[] =
 "   Normalize the quaternion.\n"
 "\n"
 "   :return: an instance of itself.\n"
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Quaternion_Normalize(QuaternionObject * self)
 {
@@ -264,7 +264,7 @@ static char Quaternion_Inverse_doc[] =
 "   Set the quaternion to its inverse.\n"
 "\n"
 "   :return: an instance of itself.\n"
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Quaternion_Inverse(QuaternionObject * self)
 {
@@ -284,7 +284,7 @@ static char Quaternion_Identity_doc[] =
 "   Set the quaternion to an identity quaternion.\n"
 "\n"
 "   :return: an instance of itself.\n"
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Quaternion_Identity(QuaternionObject * self)
 {
@@ -304,7 +304,7 @@ static char Quaternion_Negate_doc[] =
 "   Set the quaternion to its negative.\n"
 "\n"
 "   :return: an instance of itself.\n"
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Quaternion_Negate(QuaternionObject * self)
 {
@@ -324,7 +324,7 @@ static char Quaternion_Conjugate_doc[] =
 "   Set the quaternion to its conjugate (negate x, y, z).\n"
 "\n"
 "   :return: an instance of itself.\n"
-"   :rtype: Quaternion\n";
+"   :rtype: :class:`Quaternion`\n";
 
 static PyObject *Quaternion_Conjugate(QuaternionObject * self)
 {
@@ -344,7 +344,7 @@ static char Quaternion_copy_doc[] =
 "   Returns a copy of this quaternion.\n"
 "\n"
 "   :return: A copy of the quaternion.\n"
-"   :rtype: Quaternion\n"
+"   :rtype: :class:`Quaternion`\n"
 "\n"
 "   .. note:: use this to get a copy of a wrapped quaternion with no reference to the original data.\n";
 
@@ -847,19 +847,21 @@ static struct PyMethodDef Quaternion_methods[] = {
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Quaternion_getseters[] = {
-	{"w", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion W value", (void *)0},
-	{"x", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion X axis", (void *)1},
-	{"y", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion Y axis", (void *)2},
-	{"z", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion Z axis", (void *)3},
-	{"magnitude", (getter)Quaternion_getMagnitude, (setter)NULL, "Size of the quaternion", NULL},
-	{"angle", (getter)Quaternion_getAngle, (setter)NULL, "angle of the quaternion", NULL},
-	{"axis",(getter)Quaternion_getAxisVec, (setter)NULL, "quaternion axis as a vector", NULL},
-	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, "True when this wraps blenders internal data", NULL},
-	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, "Read only owner for vectors that depend on another object", NULL},
+	{"w", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion W value. **type** float", (void *)0},
+	{"x", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion X axis. **type** float", (void *)1},
+	{"y", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion Y axis. **type** float", (void *)2},
+	{"z", (getter)Quaternion_getAxis, (setter)Quaternion_setAxis, "Quaternion Z axis. **type** float", (void *)3},
+	{"magnitude", (getter)Quaternion_getMagnitude, (setter)NULL, "Size of the quaternion (readonly). **type** float", NULL},
+	{"angle", (getter)Quaternion_getAngle, (setter)NULL, "angle of the quaternion (readonly). **type** float", NULL},
+	{"axis",(getter)Quaternion_getAxisVec, (setter)NULL, "quaternion axis as a vector (readonly). **type** :class:`Vector`", NULL},
+	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
+	{"_owner", (getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
 //------------------PY_OBECT DEFINITION--------------------------
+static char quaternion_doc[] = "This object gives access to Quaternions in Blender.";
+
 PyTypeObject quaternion_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"quaternion",						//tp_name
@@ -881,7 +883,7 @@ PyTypeObject quaternion_Type = {
 	0,								//tp_setattro
 	0,								//tp_as_buffer
 	Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE, //tp_flags
-	0,								//tp_doc
+	quaternion_doc, //tp_doc
 	0,								//tp_traverse
 	0,								//tp_clear
 	(richcmpfunc)Quaternion_richcmpr,	//tp_richcompare

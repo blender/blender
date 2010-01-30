@@ -33,6 +33,7 @@ extern EnumPropertyItem id_type_items[];
 
 /* use in cases where only dynamic types are used */
 extern EnumPropertyItem DummyRNA_NULL_items[];
+extern EnumPropertyItem DummyRNA_DEFAULT_items[];
 
 extern EnumPropertyItem object_mode_items[];
 

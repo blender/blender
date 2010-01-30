@@ -483,10 +483,7 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 			newrect->xmax= MAX2(newrect->xmax, rect->xmin + rres.rectx + offx);
 			newrect->ymax= MAX2(newrect->ymax, rect->ymin + rres.recty);
 
-			glPushMatrix();
-			glTranslatef(offx, 0, 0);
-			glaDrawPixelsSafe_to32(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, gamma_correct);
-			glPopMatrix();
+			glaDrawPixelsSafe_to32(rect->xmin+offx, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, gamma_correct);
 
 			RE_ReleaseResultImage(re);
 			return 1;

@@ -35,6 +35,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -399,7 +400,6 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 			return 1;
 		}
 	}
-	/* TODO: material nodes */
 
 	/* no path to a texture possible */
 	return 0;
@@ -474,6 +474,32 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	return found;
 }
 
+static int buttons_shading_context(const bContext *C, int mainb)
+{
+	Object *ob= CTX_data_active_object(C);
+
+	if(ELEM3(mainb, BCONTEXT_MATERIAL, BCONTEXT_WORLD, BCONTEXT_TEXTURE))
+		return 1;
+	if(mainb == BCONTEXT_DATA && ob && ELEM(ob->type, OB_LAMP, OB_CAMERA))
+		return 1;
+	
+	return 0;
+}
+
+static int buttons_shading_new_context(const bContext *C, int flag, int mainb)
+{
+	Object *ob= CTX_data_active_object(C);
+
+	if(flag & (1 << BCONTEXT_MATERIAL))
+		return BCONTEXT_MATERIAL;
+	else if(ob && ELEM(ob->type, OB_LAMP, OB_CAMERA) && (flag & (1 << BCONTEXT_DATA)))
+		return BCONTEXT_DATA;
+	else if(flag & (1 << BCONTEXT_WORLD))
+		return BCONTEXT_WORLD;
+	
+	return BCONTEXT_RENDER;
+}
+
 void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 {
 	ButsContextPath *path;
@@ -511,7 +537,11 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 
 	/* in case something becomes invalid, change */
 	if((flag & (1 << sbuts->mainb)) == 0) {
-		if(flag & BCONTEXT_OBJECT) {
+		if(sbuts->flag & SB_SHADING_CONTEXT) {
+			/* try to keep showing shading related buttons */
+			sbuts->mainb= buttons_shading_new_context(C, flag, sbuts->mainb);
+		}
+		else if(flag & BCONTEXT_OBJECT) {
 			sbuts->mainb= BCONTEXT_OBJECT;
 		}
 		else {
@@ -532,6 +562,11 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 		else
 			sbuts->mainb= BCONTEXT_SCENE;
 	}
+
+	if(buttons_shading_context(C, sbuts->mainb))
+		sbuts->flag |= SB_SHADING_CONTEXT;
+	else
+		sbuts->flag &= ~SB_SHADING_CONTEXT;
 
 	sbuts->pathflag= flag;
 }
@@ -613,13 +648,29 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 		return 1;
 	}
+	else if(CTX_data_equals(member, "texture_node")) {
+		PointerRNA *ptr;
+
+		if((ptr=get_pointer_type(path, &RNA_Material))) {
+			Material *ma= ptr->data;
+
+			if(ma) {
+				bNode *node= give_current_material_texture_node(ma);
+				CTX_data_pointer_set(result, &ma->id, &RNA_Node, node);
+			}
+		}
+
+		return 1;
+	}
 	else if(CTX_data_equals(member, "texture_slot")) {
 		PointerRNA *ptr;
 
 		if((ptr=get_pointer_type(path, &RNA_Material))) {
-			Material *ma= ptr->data; /* should this be made a different option? */
-			Material *ma_node= give_node_material(ma);
-			ma= ma_node?ma_node:ma;
+			Material *ma= ptr->data;
+
+			/* if we have a node material, get slot from material in material node */
+			if(ma && ma->use_nodes && ma->nodetree)
+				ma= give_node_material(ma);
 
 			if(ma)
 				CTX_data_pointer_set(result, &ma->id, &RNA_MaterialTextureSlot, ma->mtex[(int)ma->texact]);
@@ -787,10 +838,10 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 
 			if(name) {
 				if(!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE) && ptr->type == &RNA_Scene)
-					uiItemL(row, "", icon); /* save some space */
+					uiItemLDrag(row, ptr, "", icon); /* save some space */
 				else
-					uiItemL(row, name, icon);
-
+					uiItemLDrag(row, ptr, name, icon);
+								 
 				if(name != namebuf)
 					MEM_freeN(name);
 			}

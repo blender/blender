@@ -20,17 +20,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#define _USE_MATH_DEFINES
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include <math.h>
 
-#if defined(WIN32) && (!(defined snprintf))
-#define snprintf _snprintf
-#endif
+#include "BLI_math.h"
+#include "BLI_winstuff.h"
 
 #define TEMP_STR_SIZE 256
 

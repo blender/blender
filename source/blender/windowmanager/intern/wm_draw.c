@@ -63,7 +63,8 @@
 #define WIN_FRONT_OK    2
 #define WIN_BOTH_OK		3
 
-/* ********************* drawing, swap ****************** */
+/* ******************* drawing, overlays *************** */
+
 
 static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 {
@@ -90,6 +91,8 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 		}
 	}
 }
+
+/* ********************* drawing, swap ****************** */
 
 static void wm_area_mark_invalid_backbuf(ScrArea *sa)
 {
@@ -179,9 +182,11 @@ static void wm_flush_regions_up(bScreen *screen, rcti *dirty)
 
 static void wm_method_draw_overlap_all(bContext *C, wmWindow *win)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	bScreen *screen= win->screen;
 	ScrArea *sa;
 	ARegion *ar;
+	static rcti rect= {0, 0, 0, 0};
 	int exchange= (G.f & G_SWAP_EXCHANGE);
 
 	/* flush overlapping regions */
@@ -203,6 +208,16 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win)
 				wm_flush_regions_down(screen, &ar->winrct);
 	}
 
+	/* flush drag item */
+	if(rect.xmin!=rect.xmax) {
+		wm_flush_regions_down(screen, &rect);
+		rect.xmin= rect.xmax = 0;
+	}
+	if(wm->drags.first) {
+		/* doesnt draw, fills rect with boundbox */
+		wm_drags_draw(C, win, &rect);
+	}
+	
 	/* draw marked area regions */
 	for(sa= screen->areabase.first; sa; sa= sa->next) {
 		CTX_wm_area_set(C, sa);
@@ -273,6 +288,11 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win)
 
 	if(screen->do_draw_gesture)
 		wm_gesture_draw(win);
+	
+	/* needs pixel coords in screen */
+	if(wm->drags.first) {
+		wm_drags_draw(C, win, NULL);
+	}
 }
 
 #if 0
@@ -607,6 +627,12 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 
 		wmSubWindowSet(win, screen->mainwin);
 	}
+	
+	/* needs pixel coords in screen */
+	if(wm->drags.first) {
+		wm_drags_draw(C, win, NULL);
+	}
+
 }
 
 /****************** main update call **********************/
@@ -624,6 +650,8 @@ static int wm_draw_update_test_window(wmWindow *win)
 	if(win->screen->do_draw_gesture)
 		return 1;
 	if(win->screen->do_draw_paintcursor)
+		return 1;
+	if(win->screen->do_draw_drag)
 		return 1;
 	
 	for(ar= win->screen->regionbase.first; ar; ar= ar->next)
@@ -672,6 +700,7 @@ void wm_draw_update(bContext *C)
 
 			win->screen->do_draw_gesture= 0;
 			win->screen->do_draw_paintcursor= 0;
+			win->screen->do_draw_drag= 0;
 		
 			wm_window_swap_buffers(win);
 

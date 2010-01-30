@@ -540,7 +540,7 @@ bool CcdPhysicsController::ReplaceControllerShape(btCollisionShape *newShape)
 
 	for(int i= 0; i < obarr.size(); i++) {
 		ob= obarr[i];
-		if (ob->getCollisionShape() == newShape); {
+		if (ob->getCollisionShape() == newShape) {
 			proxy = ob->getBroadphaseHandle();
 			
 			if(proxy)

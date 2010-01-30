@@ -725,17 +725,6 @@ void BKE_image_print_memlist(void)
 	}
 }
 
-/* frees all ibufs used by any image datablocks */
-void BKE_image_free_image_ibufs(void)
-{
-	Image *ima;
-	
-	for(ima= G.main->image.first; ima; ima= ima->id.next) {
-		image_free_buffers(ima);
-	}
-	
-}
-
 void BKE_image_free_all_textures(void)
 {
 	Tex *tex;

@@ -616,7 +616,7 @@ void ED_spacetype_ipo(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->listener= graph_region_listener;
 	art->init= graph_header_area_init;
@@ -627,7 +627,7 @@ void ED_spacetype_ipo(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 200+V2D_SCROLL_WIDTH; /* 200 is the 'standard', but due to scrollers, we want a bit more to fit the lock icons in */
+	art->prefsizex= 200+V2D_SCROLL_WIDTH; /* 200 is the 'standard', but due to scrollers, we want a bit more to fit the lock icons in */
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	art->listener= graph_region_listener;
 	art->init= graph_channel_area_init;
@@ -638,7 +638,7 @@ void ED_spacetype_ipo(void)
 	/* regions: UI buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= 200;
+	art->prefsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI;
 	art->listener= graph_region_listener;
 	art->init= graph_buttons_area_init;

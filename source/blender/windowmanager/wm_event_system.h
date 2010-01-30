@@ -64,6 +64,9 @@ typedef struct wmEventHandler {
 	/* fileselect handler re-uses modal operator data */
 	struct bScreen *filescreen;			/* screen it started in, to validate exec */
 	
+	/* drop box handler */
+	ListBase *dropboxes;
+	
 } wmEventHandler;
 
 
@@ -89,12 +92,16 @@ void		wm_event_free_handler	(wmEventHandler *handler);
 			/* goes over entire hierarchy:  events -> window -> screen -> area -> region */
 void		wm_event_do_handlers	(bContext *C);
 
-void		wm_event_add_ghostevent	(wmWindow *win, int type, void *customdata);
+void		wm_event_add_ghostevent	(wmWindowManager *wm, wmWindow *win, int type, int time, void *customdata);
 
 void		wm_event_do_notifiers	(bContext *C);
 
 /* wm_keymap.c */
 
+/* wm_dropbox.c */
+void		wm_dropbox_free(void);
+void		wm_drags_check_ops(bContext *C, wmEvent *event);
+void		wm_drags_draw(bContext *C, wmWindow *win, rcti *rect);
 
 #endif /* WM_EVENT_SYSTEM_H */
 

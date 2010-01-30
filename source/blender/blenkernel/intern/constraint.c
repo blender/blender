@@ -415,7 +415,7 @@ static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, f
 	copy_m4_m4(mat, ob->obmat);
 	
 	/* get index of vertex group */
-	dgroup = get_named_vertexgroup_num(ob, substring);
+	dgroup = defgroup_name_index(ob, substring);
 	if (dgroup < 0) return;
 	
 	/* get DerivedMesh */
@@ -524,7 +524,7 @@ static void contarget_get_lattice_mat (Object *ob, char *substring, float mat[][
 	copy_m4_m4(mat, ob->obmat);
 	
 	/* get index of vertex group */
-	dgroup = get_named_vertexgroup_num(ob, substring);
+	dgroup = defgroup_name_index(ob, substring);
 	if (dgroup < 0) return;
 	if (dvert == NULL) return;
 	

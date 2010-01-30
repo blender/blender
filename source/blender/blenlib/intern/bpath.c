@@ -47,11 +47,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_ID.h" /* Library */
-#include "DNA_vfont_types.h"
+#include "DNA_customdata_types.h"
 #include "DNA_image_types.h"
-#include "DNA_sound_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h" /* to get the current frame */
 #include "DNA_sequence_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_vfont_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
@@ -82,6 +84,7 @@ enum BPathTypes {
 	BPATH_FONT,
 	BPATH_LIB,
 	BPATH_SEQ,
+	BPATH_CDATA,
 
  	BPATH_DONE
 };
@@ -295,6 +298,23 @@ static void seq_setpath(struct BPathIterator *bpi, char *path) {
 	}
 }
 
+static struct Mesh *cdata_stepdata__internal(struct Mesh *me, int step_next) {
+	if (me==NULL)
+		return NULL;
+	
+	if (step_next)
+		me = me->id.next;
+	
+	while (me) {
+		if (me->fdata.external) {
+			break;
+		}
+		
+		me = me->id.next;
+	}	
+	return me;
+}
+
 static void bpi_type_step__internal( struct BPathIterator *bpi) {
 	bpi->type++; /* advance to the next type */
 	bpi->data = NULL;
@@ -406,6 +426,20 @@ void BLI_bpathIterator_step( struct BPathIterator *bpi) {
 			} else {
 				bpi_type_step__internal(bpi);
 			}
+		} else if  ((bpi->type) == BPATH_CDATA) {
+			if (bpi->data)	bpi->data = cdata_stepdata__internal( bpi->data, 1 );
+			else 			bpi->data = cdata_stepdata__internal( G.main->mesh.first, 0 );
+
+			if (bpi->data) {
+				Mesh *me = (Mesh *)bpi->data;
+				bpi->lib = me->id.lib ? me->id.lib->filename : NULL;
+				bpi->path = me->fdata.external->filename;
+				bpi->name = me->id.name+2;
+				bpi->len = sizeof(me->fdata.external->filename);
+				break;
+			} else {
+				bpi_type_step__internal(bpi);
+			}
 		}
 	}
 }
@@ -439,6 +473,9 @@ static void bpath_as_report(struct BPathIterator *bpi, const char *message, Repo
 		break;
 	case BPATH_SEQ:
 		prefix= "Sequence";
+		break;
+	case BPATH_CDATA:
+		prefix= "Mesh Data";
 		break;
 	default:
 		prefix= "Unknown";

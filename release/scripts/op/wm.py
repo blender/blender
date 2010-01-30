@@ -411,7 +411,7 @@ class WM_OT_reload_scripts(bpy.types.Operator):
 
     def execute(self, context):
         MOD = type(bpy)
-        bpy.load_scripts(True)
+        bpy.utils.load_scripts(True)
         return {'FINISHED'}
 
 

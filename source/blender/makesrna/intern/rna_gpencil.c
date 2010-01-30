@@ -35,6 +35,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "WM_types.h"
+
 #ifdef RNA_RUNTIME
 
 static int rna_GPencilLayer_active_frame_editable(PointerRNA *ptr)
@@ -81,11 +83,13 @@ static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Coordinates", "");
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	prop= RNA_def_property(srna, "pressure", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "pressure");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Pressure", "Pressure of tablet at point when drawing it.");
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 }
 
 static void rna_def_gpencil_stroke(BlenderRNA *brna)
@@ -168,55 +172,65 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Color", "Color that all sketches in this layer are drawn with.");
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	prop= RNA_def_property(srna, "opacity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "color[3]");
 	RNA_def_property_range(prop, 0.3, 1.0f);
 	RNA_def_property_ui_text(prop, "Opacity", "Visibility of strokes.");
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	/* Line Thickness */
 	prop= RNA_def_property(srna, "line_thickness", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "thickness");
 	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_text(prop, "Thickness", "Thickness of strokes (in pixels).");
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	/* Onion-Skinning */
 	prop= RNA_def_property(srna, "use_onion_skinning", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_ONIONSKIN);
 	RNA_def_property_ui_text(prop, "Use Onion Skinning", "Ghost frames on either side of frame.");
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	prop= RNA_def_property(srna, "max_ghost_range", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "gstep");
 	RNA_def_property_range(prop, 0, 120);
 	RNA_def_property_ui_text(prop, "Max Ghost Range", "Maximum number of frames on either side of the active frame to show. (0 = just show the 'first' available sketch on either side)");
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	/* Flags */
 	prop= RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_HIDE);
 	RNA_def_property_ui_text(prop, "Hide", "Layer doesn't get drawn.");
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	prop= RNA_def_property(srna, "locked", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_LOCKED);
 	RNA_def_property_ui_text(prop, "Locked", "Layer is protected from further editing and/or frame changes.");
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	prop= RNA_def_property(srna, "frame_lock", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_FRAMELOCK);
 	RNA_def_property_ui_text(prop, "Frame Locked", "Current frame displayed by layer cannot be changed.");
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_ACTIVE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_GPencilLayer_active_set");
 	RNA_def_property_ui_text(prop, "Active", "Layer is 'active' layer being edited.");
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_SELECT);
 	RNA_def_property_ui_text(prop, "Selected", "Layer is selected for editing in the DopeSheet.");
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 	
 		// XXX keep this option?
 	prop= RNA_def_property(srna, "show_points", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_DRAWDEBUG);
 	RNA_def_property_ui_text(prop, "Show Points", "Draw the points which make up the strokes (for debugging purposes).");
-	
+	RNA_def_property_update(prop, NC_SCREEN|ND_GPENCIL, NULL);
 }
 
 static void rna_def_gpencil_data(BlenderRNA *brna)

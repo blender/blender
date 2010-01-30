@@ -357,7 +357,7 @@ void ED_spacetype_logic(void)
 	/* regions: listview/buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype logic region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= 220; // XXX
+	art->prefsizex= 220; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= logic_listener;
 	art->init= logic_buttons_area_init;
@@ -369,7 +369,7 @@ void ED_spacetype_logic(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype logic region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->init= logic_header_area_init;
 	art->draw= logic_header_area_draw;

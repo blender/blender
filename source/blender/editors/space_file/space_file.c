@@ -173,10 +173,10 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 	if (sfileo->params)
 		sfilen->files = filelist_new(sfileo->params->type);
 	if(sfileo->folders_prev)
-		sfilen->folders_prev = MEM_dupallocN(sfileo->folders_prev);
+		sfilen->folders_prev = folderlist_duplicate(sfileo->folders_prev);
 
 	if(sfileo->folders_next)
-		sfilen->folders_next = MEM_dupallocN(sfileo->folders_next);
+		sfilen->folders_next = folderlist_duplicate(sfileo->folders_next);
 
 	if(sfileo->params) {
 		sfilen->params= MEM_dupallocN(sfileo->params);
@@ -531,7 +531,7 @@ void ED_spacetype_file(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
 	art->init= file_header_area_init;
 	art->draw= file_header_area_draw;
@@ -541,7 +541,7 @@ void ED_spacetype_file(void)
 	/* regions: ui */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizey= 60;
+	art->prefsizey= 60;
 	art->keymapflag= ED_KEYMAP_UI;
 	art->listener= file_ui_area_listener;
 	art->init= file_ui_area_init;
@@ -551,7 +551,7 @@ void ED_spacetype_file(void)
 	/* regions: channels (directories) */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 240;
+	art->prefsizex= 240;
 	art->keymapflag= ED_KEYMAP_UI;
 	art->listener= file_channel_area_listener;
 	art->init= file_channel_area_init;

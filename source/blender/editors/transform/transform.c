@@ -5079,37 +5079,37 @@ int SeqSlide(TransInfo *t, short mval[2])
 static short getAnimEdit_SnapMode(TransInfo *t)
 {
 	short autosnap= SACTSNAP_OFF;
-
-	/* currently, some of these are only for the action editor */
+	
 	if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-
+		
 		if (saction)
 			autosnap= saction->autosnap;
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
-
+		
 		if (sipo)
 			autosnap= sipo->autosnap;
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
-
+		
 		if (snla)
 			autosnap= snla->autosnap;
 	}
 	else {
-		// TRANSFORM_FIX_ME This needs to use proper defines for t->modifiers
-//		// FIXME: this still toggles the modes...
-//		if (ctrl)
-//			autosnap= SACTSNAP_STEP;
-//		else if (shift)
-//			autosnap= SACTSNAP_FRAME;
-//		else if (alt)
-//			autosnap= SACTSNAP_MARKER;
-//		else
+		autosnap= SACTSNAP_OFF;
+	}
+	
+	/* toggle autosnap on/off 
+	 * 	- when toggling on, prefer nearest frame over 1.0 frame increments
+	 */
+	if (t->modifiers & MOD_SNAP_INVERT) {
+		if (autosnap)
 			autosnap= SACTSNAP_OFF;
+		else
+			autosnap= SACTSNAP_FRAME;
 	}
 
 	return autosnap;
@@ -5123,17 +5123,21 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 {
 	short drawtime;
 
-	/* currently, some of these are only for the action editor */
 	if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-
+		
 		drawtime = (saction->flag & SACTION_DRAWTIME)? 1 : 0;
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
-
+		
 		drawtime = (snla->flag & SNLA_DRAWTIME)? 1 : 0;
 	}
+	else if (t->spacetype == SPACE_IPO) {
+		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+		
+		drawtime = (sipo->flag & SIPO_DRAWTIME)? 1 : 0;
+	}	
 	else {
 		drawtime = 0;
 	}
@@ -5227,7 +5231,7 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 		const short doTime = getAnimEdit_DrawTime(t);
 		const double secf= FPS;
 		float val = t->values[0];
-
+		
 		/* apply snapping + frame->seconds conversions */
 		if (autosnap == SACTSNAP_STEP) {
 			if (doTime)
@@ -5239,8 +5243,11 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 			if (doTime)
 				val= val / secf;
 		}
-
-		sprintf(&tvec[0], "%.4f", val);
+		
+		if (autosnap == SACTSNAP_FRAME)
+			sprintf(&tvec[0], "%d.00 (%.4f)", (int)val, val);
+		else
+			sprintf(&tvec[0], "%.4f", val);
 	}
 
 	sprintf(str, "DeltaX: %s", &tvec[0]);

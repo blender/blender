@@ -49,6 +49,7 @@
 
 #include "WM_types.h"
 
+#include "BLI_threads.h"
 
 EnumPropertyItem snap_target_items[] = {
 	{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target."},
@@ -524,8 +525,22 @@ static int rna_SceneRenderData_engine_get(PointerRNA *ptr)
 
 static void rna_SceneRenderData_color_management_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 {
-	/* reset all generated image block buffers to prevent out-of-date conversions */
-	BKE_image_free_image_ibufs();
+	/* reset image nodes */
+	Scene *scene= (Scene*)ptr->id.data;
+	bNodeTree *ntree=scene->nodetree;
+	bNode *node;
+	
+	if(ntree && scene->use_nodes) {
+		for (node=ntree->nodes.first; node; node=node->next) {
+			if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_IMAGE)) {
+				ED_node_changed_update(&scene->id, node);
+				WM_main_add_notifier(NC_NODE|NA_EDITED, node);
+				
+				if (node->type == CMP_NODE_IMAGE)
+					BKE_image_signal((Image *)node->id, NULL, IMA_SIGNAL_RELOAD);
+			}
+		}
+	}
 }
 
 static void rna_SceneRenderLayer_name_set(PointerRNA *ptr, const char *value)
@@ -835,6 +850,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "selectmode", 1);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_editmesh_select_mode_set");
+	RNA_def_property_ui_text(prop, "Mesh Selection Mode", "Which mesh elements selection works on.");
 	RNA_def_property_update(prop, 0, "rna_Scene_editmesh_select_mode_update");
 
 	prop= RNA_def_property(srna, "vertex_group_weight", PROP_FLOAT, PROP_FACTOR);
@@ -1147,6 +1163,24 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+	prop= RNA_def_property(srna, "pass_emit", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_EMIT);
+	RNA_def_property_ui_text(prop, "Emit", "Deliver emission pass.");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "pass_environment", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_ENVIRONMENT);
+	RNA_def_property_ui_text(prop, "Environment", "Deliver environment lighting pass.");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "pass_indirect", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_INDIRECT);
+	RNA_def_property_ui_text(prop, "Indirect", "Deliver indirect lighting pass.");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	prop= RNA_def_property(srna, "pass_specular_exclude", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_SPEC);
 	RNA_def_property_ui_text(prop, "Specular Exclude", "Exclude specular pass from combined.");
@@ -1174,6 +1208,24 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	prop= RNA_def_property(srna, "pass_refraction_exclude", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_REFRACT);
 	RNA_def_property_ui_text(prop, "Refraction Exclude", "Exclude raytraced refraction pass from combined.");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "pass_emit_exclude", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_EMIT);
+	RNA_def_property_ui_text(prop, "Emit Exclude", "Exclude emission pass from combined.");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "pass_environment_exclude", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_ENVIRONMENT);
+	RNA_def_property_ui_text(prop, "Environment Exclude", "Exclude environment pass from combined.");
+	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
+	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "pass_indirect_exclude", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "pass_xor", SCE_PASS_INDIRECT);
+	RNA_def_property_ui_text(prop, "Indirect Exclude", "Exclude indirect pass from combined.");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_SceneRenderLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
@@ -2170,7 +2222,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "threads", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "threads");
-	RNA_def_property_range(prop, 1, 8);
+	RNA_def_property_range(prop, 1, BLENDER_MAX_THREADS);
 	RNA_def_property_int_funcs(prop, "rna_SceneRenderData_threads_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Threads", "Number of CPU threads to use simultaneously while rendering (for multi-core/CPU systems)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);

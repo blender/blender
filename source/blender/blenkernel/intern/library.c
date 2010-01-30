@@ -698,6 +698,30 @@ void set_free_windowmanager_cb(void (*func)(bContext *C, wmWindowManager *) )
 	free_windowmanager_cb= func;
 }
 
+void animdata_dtar_clear_cb(ID *id, AnimData *adt, void *userdata)
+{
+	ChannelDriver *driver;
+	FCurve *fcu;
+
+	/* find the driver this belongs to and update it */
+	for (fcu=adt->drivers.first; fcu; fcu=fcu->next) {
+		driver= fcu->driver;
+
+		if (driver) {
+			DriverVar *dvar;
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				DriverTarget *dtar= &dvar->targets[0];
+				int tarIndex= 0;
+				for (; tarIndex < MAX_DRIVER_TARGETS; tarIndex++, dtar++) {
+					if(dtar->id == userdata)
+						dtar->id= NULL;
+				}
+			}
+		}
+	}
+}
+
+
 /* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
 void free_libblock(ListBase *lb, void *idv)
 {
@@ -798,9 +822,13 @@ void free_libblock(ListBase *lb, void *idv)
 		IDP_FreeProperty(id->properties);
 		MEM_freeN(id->properties);
 	}
-	BLI_remlink(lb, id);
-	MEM_freeN(id);
 
+	BLI_remlink(lb, id);
+
+	/* this ID may be a driver target! */
+	BKE_animdata_main_cb(G.main, animdata_dtar_clear_cb, (void *)id);
+
+	MEM_freeN(id);
 }
 
 void free_libblock_us(ListBase *lb, void *idv)		/* test users */

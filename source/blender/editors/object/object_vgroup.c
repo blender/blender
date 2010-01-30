@@ -85,51 +85,6 @@ static Lattice *vgroup_edit_lattice(Object *ob)
 	return NULL;
 }
 
-/* check if deform vertex has defgroup index */
-MDeformWeight *ED_vgroup_weight_get(MDeformVert *dv, int defgroup)
-{
-	int i;
-	
-	if(!dv || defgroup<0)
-		return NULL;
-	
-	for(i=0; i<dv->totweight; i++)
-		if(dv->dw[i].def_nr == defgroup)
-			return dv->dw+i;
-
-	return NULL;
-}
-
-/* Ensures that mv has a deform weight entry for the specified defweight group */
-/* Note this function is mirrored in editmesh_tools.c, for use for editvertices */
-MDeformWeight *ED_vgroup_weight_verify(MDeformVert *dv, int defgroup)
-{
-	MDeformWeight *newdw;
-
-	/* do this check always, this function is used to check for it */
-	if(!dv || defgroup<0)
-		return NULL;
-	
-	newdw = ED_vgroup_weight_get(dv, defgroup);
-	if(newdw)
-		return newdw;
-	
-	newdw = MEM_callocN(sizeof(MDeformWeight)*(dv->totweight+1), "deformWeight");
-	if(dv->dw) {
-		memcpy(newdw, dv->dw, sizeof(MDeformWeight)*dv->totweight);
-		MEM_freeN(dv->dw);
-	}
-	dv->dw=newdw;
-	
-	dv->dw[dv->totweight].weight=0.0f;
-	dv->dw[dv->totweight].def_nr=defgroup;
-	/* Group index */
-	
-	dv->totweight++;
-
-	return dv->dw+(dv->totweight-1);
-}
-
 bDeformGroup *ED_vgroup_add_name(Object *ob, char *name)
 {
 	bDeformGroup *defgroup;
@@ -142,7 +97,7 @@ bDeformGroup *ED_vgroup_add_name(Object *ob, char *name)
 	BLI_strncpy(defgroup->name, name, 32);
 
 	BLI_addtail(&ob->defbase, defgroup);
-	unique_vertexgroup_name(defgroup, ob);
+	defgroup_unique_name(defgroup, ob);
 
 	ob->actdef = BLI_countlist(&ob->defbase);
 
@@ -362,7 +317,7 @@ void ED_vgroup_vert_add(Object *ob, bDeformGroup *dg, int vertnum, float weight,
 	/* get the deform group number, exit if
 	 * it can't be found
 	 */
-	def_nr = get_defgroup_num(ob, dg);
+	def_nr = defgroup_find_index(ob, dg);
 	if(def_nr < 0) return;
 
 	/* if there's no deform verts then create some,
@@ -393,7 +348,7 @@ void ED_vgroup_vert_remove(Object *ob, bDeformGroup	*dg, int vertnum)
 	 * to this deform group, and abort if it
 	 * can not be found.
 	 */
-	def_nr = get_defgroup_num(ob, dg);
+	def_nr = defgroup_find_index(ob, dg);
 	if(def_nr < 0) return;
 
 	/* call another routine to do the work
@@ -446,7 +401,7 @@ float ED_vgroup_vert_weight(Object *ob, bDeformGroup *dg, int vertnum)
 
 	if(!ob) return 0.0f;
 
-	def_nr = get_defgroup_num(ob, dg);
+	def_nr = defgroup_find_index(ob, dg);
 	if(def_nr < 0) return 0.0f;
 
 	return get_vert_def_nr(ob, def_nr, vertnum);
@@ -541,7 +496,7 @@ static void vgroup_duplicate(Object *ob)
 	}
 	else {
 		BLI_snprintf(name, 32, "%s_copy", dg->name);
-		while(get_named_vertexgroup(ob, name)) {
+		while(defgroup_find_name(ob, name)) {
 			if((strlen(name) + 6) > 32) {
 				if (G.f & G_DEBUG)
 					printf("Internal error: the name for the new vertex group is > 32 characters");
@@ -552,9 +507,9 @@ static void vgroup_duplicate(Object *ob)
 		}
 	}		
 
-	cdg = copy_defgroup(dg);
+	cdg = defgroup_duplicate(dg);
 	strcpy(cdg->name, name);
-	unique_vertexgroup_name(cdg, ob);
+	defgroup_unique_name(cdg, ob);
 	
 	BLI_addtail(&ob->defbase, cdg);
 
@@ -569,11 +524,11 @@ static void vgroup_duplicate(Object *ob)
 
 	for(i = 0; i < dvert_tot; i++) {
 		dvert = dvert_array+i;
-		org = ED_vgroup_weight_get(dvert, idg);
+		org = defvert_find_index(dvert, idg);
 		if(org) {
 			float weight = org->weight;
-			/* ED_vgroup_weight_verify re-allocs org so need to store the weight first */
-			cpy = ED_vgroup_weight_verify(dvert, icdg);
+			/* defvert_verify_index re-allocs org so need to store the weight first */
+			cpy = defvert_verify_index(dvert, icdg);
 			cpy->weight = weight;
 		}
 	}
@@ -597,7 +552,7 @@ static void vgroup_normalize(Object *ob)
 
 		for(i = 0; i < dvert_tot; i++) {
 			dvert = dvert_array+i;
-			dw = ED_vgroup_weight_get(dvert, def_nr);
+			dw = defvert_find_index(dvert, def_nr);
 			if(dw) {
 				weight_max = MAX2(dw->weight, weight_max);
 			}
@@ -606,7 +561,7 @@ static void vgroup_normalize(Object *ob)
 		if(weight_max > 0.0f) {
 			for(i = 0; i < dvert_tot; i++) {
 				dvert = dvert_array+i;
-				dw = ED_vgroup_weight_get(dvert, def_nr);
+				dw = defvert_find_index(dvert, def_nr);
 				if(dw) {
 					dw->weight /= weight_max;
 					
@@ -634,7 +589,7 @@ static void vgroup_levels(Object *ob, float offset, float gain)
 		
 		for(i = 0; i < dvert_tot; i++) {
 			dvert = dvert_array+i;
-			dw = ED_vgroup_weight_get(dvert, def_nr);
+			dw = defvert_find_index(dvert, def_nr);
 			if(dw) {
 				dw->weight = gain * (dw->weight + offset);
 				
@@ -745,9 +700,9 @@ static void vgroup_invert(Object *ob, int auto_assign, int auto_remove)
 			dvert = dvert_array+i;
 
 			if(auto_assign) {
-				dw= ED_vgroup_weight_verify(dvert, def_nr);
+				dw= defvert_verify_index(dvert, def_nr);
 			} else {
-				dw= ED_vgroup_weight_get(dvert, def_nr);
+				dw= defvert_find_index(dvert, def_nr);
 			}
 
 			if(dw) {
@@ -820,7 +775,7 @@ static void vgroup_blend(Object *ob)
 				if(em)	dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 				else	dvert= dvert_array+i2;
 
-				dw= ED_vgroup_weight_get(dvert, def_nr);
+				dw= defvert_find_index(dvert, def_nr);
 
 				if(dw) {
 					vg_weights[i1] += dw->weight;
@@ -835,7 +790,7 @@ static void vgroup_blend(Object *ob)
 				if(em)	dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 				else	dvert= dvert_array+i;
 
-				dw= ED_vgroup_weight_verify(dvert, def_nr);
+				dw= defvert_verify_index(dvert, def_nr);
 				dw->weight= vg_weights[i] / (float)vg_users[i];
 			}
 
@@ -863,7 +818,7 @@ static void vgroup_clean(Object *ob, float eul, int keep_single)
 		for(i = 0; i < dvert_tot; i++) {
 			dvert = dvert_array+i;
 
-			dw= ED_vgroup_weight_get(dvert, def_nr);
+			dw= defvert_find_index(dvert, def_nr);
 
 			if(dw) {
 				if(dw->weight <= eul)
@@ -904,7 +859,7 @@ static void vgroup_clean_all(Object *ob, float eul, int keep_single)
 	}
 }
 
-static void vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
+void ED_vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 {
 	EditVert *eve, *eve_mirr;
 	MDeformVert *dvert, *dvert_mirr;
@@ -923,7 +878,7 @@ static void vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 		if(!CustomData_has_layer(&em->vdata, CD_MDEFORMVERT))
 			return;
 
-		flip_map= get_defgroup_flip_map(ob);
+		flip_map= defgroup_flip_map(ob, 0);
 
 		/* Go through the list of editverts and assign them */
 		for(eve=em->verts.first; eve; eve=eve->next){
@@ -937,8 +892,8 @@ static void vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 							if(mirror_weights)
 								SWAP(MDeformVert, *dvert, *dvert_mirr);
 							if(flip_vgroups) {
-								flip_defvert(dvert, flip_map);
-								flip_defvert(dvert_mirr, flip_map);
+								defvert_flip(dvert, flip_map);
+								defvert_flip(dvert_mirr, flip_map);
 							}
 						}
 						else {
@@ -948,9 +903,9 @@ static void vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 							}
 
 							if(mirror_weights)
-								copy_defvert(dvert, dvert_mirr);
+								defvert_copy(dvert, dvert_mirr);
 							if(flip_vgroups) {
-								flip_defvert(dvert, flip_map);
+								defvert_flip(dvert, flip_map);
 							}
 						}
 					}
@@ -1042,7 +997,7 @@ static void vgroup_delete_object_mode(Object *ob)
 		for(i = 0; i < dvert_tot; i++) {
 			dvert = dvert_array + i;
 			if(dvert) {
-				if(ED_vgroup_weight_get(dvert, (ob->actdef-1)))
+				if(defvert_find_index(dvert, (ob->actdef-1)))
 					ED_vgroup_vert_remove(ob, dg, i);
 			}
 		}
@@ -1751,7 +1706,7 @@ static int vertex_group_mirror_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
 
-	vgroup_mirror(ob, RNA_boolean_get(op->ptr,"mirror_weights"), RNA_boolean_get(op->ptr,"flip_group_names"));
+	ED_vgroup_mirror(ob, RNA_boolean_get(op->ptr,"mirror_weights"), RNA_boolean_get(op->ptr,"flip_group_names"));
 
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
@@ -1779,7 +1734,6 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "flip_group_names", TRUE, "Flip Groups", "Flip vertex group names while mirroring.");
 
 }
-
 
 static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *op)
 {

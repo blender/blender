@@ -590,7 +590,7 @@ static void psys_vg_name_set__internal(PointerRNA *ptr, const char *value, int i
 		psys->vgroup[index]= 0;
 	}
 	else {
-		int vgroup_num = get_named_vertexgroup_num(ob, (char*)value);
+		int vgroup_num = defgroup_name_index(ob, (char*)value);
 
 		if(vgroup_num == -1)
 			return;

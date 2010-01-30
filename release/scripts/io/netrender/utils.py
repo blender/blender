@@ -173,6 +173,21 @@ def prefixPath(prefix_directory, file_path, prefix_path):
 
     return full_path
 
+def getFileInfo(filepath, infos):
+    process = subprocess.Popen([sys.argv[0], "-b", "-noaudio", filepath, "-P", __file__, "--"] + infos, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)    
+    stdout = bytes()
+    while process.poll() == None:
+        stdout += process.stdout.read(1024)
+
+    # read leftovers if needed
+    stdout += process.stdout.read()
+    
+    stdout = str(stdout, encoding="utf8")
+    
+    values = [eval(v[1:].strip()) for v in stdout.split("\n") if v.startswith("$")]
+    
+    return values
+                
 def thumbnail(filename):
     root = os.path.splitext(filename)[0]
     imagename = os.path.split(filename)[1]
@@ -197,3 +212,8 @@ def thumbnail(filename):
             pass
 
     return None
+
+if __name__ == "__main__":
+    import bpy
+    for info in sys.argv[7:]:
+        print("$", eval(info))

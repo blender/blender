@@ -107,7 +107,7 @@ typedef struct World {
 	short aomode, aosamp, aomix, aocolor;
 	float ao_adapt_thresh, ao_adapt_speed_fac;
 	float ao_approx_error, ao_approx_correction;
-	float ao_indirect_energy;
+	float ao_indirect_energy, ao_env_energy, ao_pad2;
 	short ao_indirect_bounces, ao_pad;
 	short ao_samp_method, ao_gather_method, ao_approx_passes;
 	
@@ -142,13 +142,16 @@ typedef struct World {
 #define WO_STARS               2
 #define WO_DOF                 4
 #define WO_ACTIVITY_CULLING	   8
-#define WO_AMB_OCC	   		  16
+#define WO_ENV_LIGHT   		  16
 #define WO_DBVT_CULLING		  32
+#define WO_AMB_OCC   		  64
+#define WO_INDIRECT_LIGHT	  128
 
 /* aomix */
 #define WO_AOADD	0
-#define WO_AOSUB	1
-#define WO_AOADDSUB	2
+#define WO_AOSUB	1 /* deprecated */
+#define WO_AOADDSUB	2 /* deprecated */
+#define WO_AOMUL	3
 
 /* ao_samp_method - methods for sampling the AO hemi */
 #define WO_AOSAMP_CONSTANT			0

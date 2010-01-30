@@ -1836,7 +1836,7 @@ void do_material_tex(ShadeInput *shi)
 					TexResult ttexr = {0, 0, 0, 0, 0, texres.talpha, NULL};	// temp TexResult
 					float tco[3], texv[3], cd, ud, vd, du, dv, idu, idv;
 					const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
-					const float bf = 0.04f*Tnor*mtex->norfac;
+					const float bf = 0.04f*Tnor*stencilTin*mtex->norfac;
 					// disable internal bump eval
 					float* nvec = texres.nor;
 					texres.nor = NULL;

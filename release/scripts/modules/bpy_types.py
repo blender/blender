@@ -421,8 +421,8 @@ class OrderedMeta(type):
 
 
 # Only defined so operators members can be used by accessing self.order
-#class Operator(StructRNA, metaclass=OrderedMeta):
-#    __slots__ = ()
+class Operator(StructRNA, metaclass=OrderedMeta):
+    __slots__ = ()
 
 
 class Macro(StructRNA, metaclass=OrderedMeta):

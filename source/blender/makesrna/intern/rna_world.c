@@ -45,9 +45,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-static PointerRNA rna_World_ambient_occlusion_get(PointerRNA *ptr)
+static PointerRNA rna_World_lighting_get(PointerRNA *ptr)
 {
-	return rna_pointer_inherit_refine(ptr, &RNA_WorldAmbientOcclusion, ptr->id.data);
+	return rna_pointer_inherit_refine(ptr, &RNA_WorldLighting, ptr->id.data);
 }
 
 static PointerRNA rna_World_stars_get(PointerRNA *ptr)
@@ -182,15 +182,14 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_World_update");
 }
 
-static void rna_def_ambient_occlusion(BlenderRNA *brna)
+static void rna_def_lighting(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
 	static EnumPropertyItem blend_mode_items[] = {
+		{WO_AOMUL, "MULTIPLY", 0, "Multiply", "Multiply direct lighting with ambient occlusion, darkening the result."},
 		{WO_AOADD, "ADD", 0, "Add", "Add light and shadow."},
-		{WO_AOSUB, "SUBTRACT", 0, "Subtract", "Subtract light and shadow (needs a normal light to make anything visible.)"},
-		{WO_AOADDSUB, "BOTH", 0, "Both", "Both lighten and darken."},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_color_items[] = {
@@ -210,14 +209,78 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 		{WO_AOGATHER_APPROX, "APPROXIMATE", 0, "Approximate", "Inaccurate, but faster and without noise."},
 		{0, NULL, 0, NULL, NULL}};
 
-	srna= RNA_def_struct(brna, "WorldAmbientOcclusion", NULL);
+	srna= RNA_def_struct(brna, "WorldLighting", NULL);
 	RNA_def_struct_sdna(srna, "World");
 	RNA_def_struct_nested(brna, srna, "World");
-	RNA_def_struct_ui_text(srna, "Ambient Occlusion", "Ambient occlusion settings for a World datablock.");
+	RNA_def_struct_ui_text(srna, "Lighting", "Lighting for a World datablock.");
 
-	prop= RNA_def_property(srna, "enabled", PROP_BOOLEAN, PROP_NONE);
+	/* ambient occlusion */
+	prop= RNA_def_property(srna, "use_ambient_occlusion", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_AMB_OCC);
-	RNA_def_property_ui_text(prop, "Enabled", "Use Ambient Occlusion to add light based on distance between elements, creating the illusion of omnipresent light");
+	RNA_def_property_ui_text(prop, "Use Ambient Occlusion", "Use Ambient Occlusion to add shadowing based on distance between objects.");
+	RNA_def_property_update(prop, 0, "rna_World_update");
+
+	prop= RNA_def_property(srna, "ao_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "aoenergy");
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Factor", "Factor for ambient occlusion blending blending.");
+	RNA_def_property_update(prop, 0, "rna_World_update");
+
+	prop= RNA_def_property(srna, "ao_blend_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "aomix");
+	RNA_def_property_enum_items(prop, blend_mode_items);
+	RNA_def_property_ui_text(prop, "Blend Mode", "Defines how AO mixes with material shading.");
+	RNA_def_property_update(prop, 0, "rna_World_update");
+
+	/* environment lighting */
+	prop= RNA_def_property(srna, "use_environment_lighting", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_ENV_LIGHT);
+	RNA_def_property_ui_text(prop, "Use Environment Lighting", "Add light coming from the environment.");
+	RNA_def_property_update(prop, 0, "rna_World_update");
+
+	prop= RNA_def_property(srna, "environment_energy", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "ao_env_energy");
+	RNA_def_property_ui_range(prop, 0, FLT_MAX, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Environment Color", "Defines the strength of environment light.");
+	RNA_def_property_update(prop, 0, "rna_World_update");
+
+	prop= RNA_def_property(srna, "environment_color", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "aocolor");
+	RNA_def_property_enum_items(prop, prop_color_items);
+	RNA_def_property_ui_text(prop, "Environment Color", "Defines where the color of the environment light comes from.");
+	RNA_def_property_update(prop, 0, "rna_World_update");
+
+	/* indirect lighting */
+	prop= RNA_def_property(srna, "use_indirect_lighting", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", WO_INDIRECT_LIGHT);
+	RNA_def_property_ui_text(prop, "Use Indirect Lighting", "Add indirect light bouncing of surrounding objects.");
+	RNA_def_property_update(prop, 0, "rna_World_update");
+
+	prop= RNA_def_property(srna, "indirect_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "ao_indirect_energy");
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 2);
+	RNA_def_property_ui_text(prop, "Indirect Factor", "Factor for how much surrounding objects contribute to light.");
+	RNA_def_property_update(prop, 0, "rna_World_update");
+
+	prop= RNA_def_property(srna, "indirect_bounces", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "ao_indirect_bounces");
+	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_ui_text(prop, "Bounces", "Number of indirect diffuse light bounces to use for approximate ambient occlusion.");
+	RNA_def_property_update(prop, 0, "rna_World_update");
+
+	/* gathering parameters */
+	prop= RNA_def_property(srna, "gather_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "ao_gather_method");
+	RNA_def_property_enum_items(prop, prop_gather_method_items);
+	RNA_def_property_ui_text(prop, "Gather Method", "");
+	RNA_def_property_update(prop, 0, "rna_World_update");
+
+	prop= RNA_def_property(srna, "passes", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "ao_approx_passes");
+	RNA_def_property_range(prop, 0, 10);
+	RNA_def_property_ui_text(prop, "Passes", "Number of preprocessing passes to reduce overocclusion (for Approximate).");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
@@ -228,12 +291,6 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "falloff_strength", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "aodistfac");
 	RNA_def_property_ui_text(prop, "Strength", "Distance attenuation factor, the higher, the 'shorter' the shadows.");
-	RNA_def_property_update(prop, 0, "rna_World_update");
-
-	prop= RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "aoenergy");
-	RNA_def_property_ui_range(prop, 0, 10, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Energy", "Amount of enerygy generated by ambient occlusion.");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "bias", PROP_FLOAT, PROP_NONE);
@@ -283,45 +340,10 @@ static void rna_def_ambient_occlusion(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Samples", "Amount of ray samples. Higher values give smoother results and longer rendering times");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
-	prop= RNA_def_property(srna, "blend_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "aomix");
-	RNA_def_property_enum_items(prop, blend_mode_items);
-	RNA_def_property_ui_text(prop, "Blend Mode", "Defines how AO mixes with material shading.");
-	RNA_def_property_update(prop, 0, "rna_World_update");
-
-	prop= RNA_def_property(srna, "color", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "aocolor");
-	RNA_def_property_enum_items(prop, prop_color_items);
-	RNA_def_property_ui_text(prop, "Color", "Defines the color of the AO light");
-	RNA_def_property_update(prop, 0, "rna_World_update");
-
 	prop= RNA_def_property(srna, "sample_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ao_samp_method");
 	RNA_def_property_enum_items(prop, prop_sample_method_items);
 	RNA_def_property_ui_text(prop, "Sample Method", "Method for generating shadow samples (for Raytrace).");
-	RNA_def_property_update(prop, 0, "rna_World_update");
-
-	prop= RNA_def_property(srna, "gather_method", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "ao_gather_method");
-	RNA_def_property_enum_items(prop, prop_gather_method_items);
-	RNA_def_property_ui_text(prop, "Gather Method", "");
-	RNA_def_property_update(prop, 0, "rna_World_update");
-
-	prop= RNA_def_property(srna, "passes", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "ao_approx_passes");
-	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "Passes", "Number of preprocessing passes to reduce overocclusion (for Approximate).");
-	RNA_def_property_update(prop, 0, "rna_World_update");
-
-	prop= RNA_def_property(srna, "indirect_energy", PROP_FLOAT, PROP_UNSIGNED);
-	RNA_def_property_float_sdna(prop, NULL, "ao_indirect_energy");
-	RNA_def_property_ui_range(prop, 0, 10, 0.1, 3);
-	RNA_def_property_ui_text(prop, "Indirect", "Use approximate ambient occlusion for indirect diffuse lighting.");
-	RNA_def_property_update(prop, 0, "rna_World_update");
-
-	prop= RNA_def_property(srna, "indirect_bounces", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_sdna(prop, NULL, "ao_indirect_bounces");
-	RNA_def_property_ui_text(prop, "Bounces", "Number of indirect diffuse light bounces to use for approximate ambient occlusion.");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 }
 
@@ -499,11 +521,11 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	/* nested structs */
-	prop= RNA_def_property(srna, "ambient_occlusion", PROP_POINTER, PROP_NONE);
+	prop= RNA_def_property(srna, "lighting", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "WorldAmbientOcclusion");
-	RNA_def_property_pointer_funcs(prop, "rna_World_ambient_occlusion_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Ambient Occlusion", "World ambient occlusion settings.");
+	RNA_def_property_struct_type(prop, "WorldLighting");
+	RNA_def_property_pointer_funcs(prop, "rna_World_lighting_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Lighting", "World lighting settings.");
 
 	prop= RNA_def_property(srna, "mist", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
@@ -517,7 +539,7 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_World_stars_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Stars", "World stars settings.");
 
-	rna_def_ambient_occlusion(brna);
+	rna_def_lighting(brna);
 	rna_def_world_mist(brna);
 	rna_def_world_stars(brna);
 	rna_def_world_mtex(brna);

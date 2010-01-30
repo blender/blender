@@ -624,51 +624,6 @@ void CONSTRAINT_OT_childof_clear_inverse (wmOperatorType *ot)
 
 /***************************** BUTTONS ****************************/
 
-/* Rename the given constraint, con already has the new name */
-void ED_object_constraint_rename(Object *ob, bConstraint *con, char *oldname)
-{
-	bConstraint *tcon;
-	ListBase *conlist= NULL;
-	int from_object= 0;
-	
-	/* get context by searching for con (primitive...) */
-	for (tcon= ob->constraints.first; tcon; tcon= tcon->next) {
-		if (tcon==con)
-			break;
-	}
-	
-	if (tcon) {
-		conlist= &ob->constraints;
-		from_object= 1;
-	}
-	else if (ob->pose) {
-		bPoseChannel *pchan;
-		
-		for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-			for (tcon= pchan->constraints.first; tcon; tcon= tcon->next) {
-				if (tcon==con)
-					break;
-			}
-			if (tcon) 
-				break;
-		}
-		
-		if (tcon) {
-			conlist= &pchan->constraints;
-		}
-	}
-	
-	if (conlist==NULL) {
-		printf("rename constraint failed\n");	/* should not happen in UI */
-		return;
-	}
-	
-	/* first make sure it's a unique name within context */
-	unique_constraint_name(con, conlist);
-}
-
-
-
 
 void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 {	

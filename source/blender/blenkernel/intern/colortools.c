@@ -791,8 +791,7 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	
 	pix_in= ibuf->rect_float;
 	pix_out= tmpbuf->rect_float;
-//	pixc= (char *)ibuf->rect;
-	
+
 	if(ibuf->channels)
 		stride= ibuf->channels;
 	
@@ -817,7 +816,6 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	IMB_rect_from_float(tmpbuf);
 	SWAP(unsigned int *, tmpbuf->rect, ibuf->rect);
 	IMB_freeImBuf(tmpbuf);
-	
 	
 	curvemapping_premultiply(cumap, 1);
 }
@@ -882,12 +880,12 @@ void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
 
 DO_INLINE int get_bin_float(float f)
 {
-	int bin= (int)(f*511);
+	int bin= (int)(f*255);
 
 	/* note: clamp integer instead of float to avoid problems with NaN */
-	CLAMP(bin, 0, 511);
+	CLAMP(bin, 0, 255);
 	
-	//return (int) (((f + 0.25) / 1.5) * 512);
+	//return (int) (((f + 0.25) / 1.5) * 255);
 	
 	return bin;
 }
@@ -903,17 +901,20 @@ void histogram_update(Histogram *hist, ImBuf *ibuf)
 	
 	if (hist->ok == 1 ) return;
 	
+	if (hist->xmax == 0.f) hist->xmax = 1.f;
+	if (hist->ymax == 0.f) hist->ymax = 1.f;
+	
 	/* hmmmm */
 	if (!(ELEM(ibuf->channels, 3, 4))) return;
 	
 	hist->channels = 3;
 	
-	bin_r = MEM_callocN(512 * sizeof(unsigned int), "temp historgram bins");
-	bin_g = MEM_callocN(512 * sizeof(unsigned int), "temp historgram bins");
-	bin_b = MEM_callocN(512 * sizeof(unsigned int), "temp historgram bins");
+	bin_r = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	bin_g = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	bin_b = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
 	
 	if (ibuf->rect_float) {
-		hist->x_resolution = 512;
+		hist->x_resolution = 256;
 		
 		/* divide into bins */
 		rf = ibuf->rect_float;
@@ -942,7 +943,7 @@ void histogram_update(Histogram *hist, ImBuf *ibuf)
 	
 	/* convert to float */
 	n=0;
-	for (x=0; x<512; x++) {
+	for (x=0; x<256; x++) {
 		if (bin_r[x] > n)
 			n = bin_r[x];
 		if (bin_g[x] > n)
@@ -951,7 +952,7 @@ void histogram_update(Histogram *hist, ImBuf *ibuf)
 			n = bin_b[x];
 	}
 	div = 1.f/(double)n;
-	for (x=0; x<512; x++) {
+	for (x=0; x<256; x++) {
 		hist->data_r[x] = bin_r[x] * div;
 		hist->data_g[x] = bin_g[x] * div;
 		hist->data_b[x] = bin_b[x] * div;

@@ -300,24 +300,6 @@ static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *p
 	rna_Node_update(bmain, scene, ptr);
 }
 
-static void rna_Node_colorbalance_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	bNode *node= (bNode*)ptr->data;
-	NodeColorBalance *ncb = node->storage;
-	float lift[3], gamma[3], gain[3];
-	
-	lift[0] = (ncb->lift[0] * 2.f - 1.f)*0.5f;
-	lift[1] = (ncb->lift[1] * 2.f - 1.f)*0.5f;
-	lift[2] = (ncb->lift[2] * 2.f - 1.f)*0.5f;
-	
-	mul_v3_v3fl(gamma, ncb->gamma, 2.f);
-	mul_v3_v3fl(gain, ncb->gain, 2.f);
-	
-	lift_gamma_gain_to_asc_cdl(lift, gamma, gain, ncb->offset, ncb->slope, ncb->power);
-	
-	rna_Node_update(bmain, scene, ptr);
-}
-
 static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 {
 	EnumPropertyItem *item= NULL;
@@ -1878,33 +1860,67 @@ static void def_cmp_lensdist(StructRNA *srna)
 static void def_cmp_colorbalance(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	static float default_col[3] = {0.5f, 0.5f, 0.5f};
+	static float default_1[3] = {1.f, 1.f, 1.f};
+	
+	static EnumPropertyItem type_items[] = {
+		{0, "LIFT_GAMMA_GAIN",      0, "Lift/Gamma/Gain",      ""},
+		{1, "OFFSET_POWER_SLOPE",     0, "Offset/Power/Slope (ASC-CDL)",     "ASC-CDL standard color correction"},
+		{0, NULL, 0, NULL, NULL}};
+	
+	prop = RNA_def_property(srna, "correction_formula", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, type_items);
+	RNA_def_property_ui_text(prop, "Correction Formula", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	RNA_def_struct_sdna_from(srna, "NodeColorBalance", "storage");
 	
 	prop = RNA_def_property(srna, "lift", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "lift");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_float_array_default(prop, default_col);
 	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Lift", "Correction for Shadows");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_colorbalance_update");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "gamma");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_float_array_default(prop, default_col);
-	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Gamma", "Correction for Midtones");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_colorbalance_update");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "gain", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "gain");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_float_array_default(prop, default_col);
-	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Gain", "Correction for Highlights");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_colorbalance_update");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	
+	prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "lift");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Offset", "Correction for Shadows");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "power", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gamma");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Power", "Correction for Midtones");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "slope", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gain");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Slope", "Correction for Highlights");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
 static void def_cmp_huecorrect(StructRNA *srna)

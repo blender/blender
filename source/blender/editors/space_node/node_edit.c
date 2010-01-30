@@ -433,12 +433,12 @@ void node_set_active(SpaceNode *snode, bNode *node)
 	if(node->type!=NODE_GROUP) {
 		/* tree specific activate calls */
 		if(snode->treetype==NTREE_SHADER) {
-			// XXX
-#if 0
-			
 			/* when we select a material, active texture is cleared, for buttons */
 			if(node->id && GS(node->id->name)==ID_MA)
 				nodeClearActiveID(snode->edittree, ID_TE);
+
+			// XXX
+#if 0
 			if(node->id)
 				; // XXX BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
 			

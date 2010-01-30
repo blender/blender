@@ -27,8 +27,6 @@
  */
 
 #include <float.h>
-#define _USE_MATH_DEFINES
-#include <math.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
@@ -48,6 +46,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h" /*for WM_operator_pystring */
+#include "BLI_math.h"
 
 #include "BLO_readfile.h"
 
@@ -392,6 +391,7 @@ wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char
 
 	/* do this on first use, since operatordefinitions might have been not done yet */
 	WM_operator_properties_alloc(&(otmacro->ptr), &(otmacro->properties), idname);
+	WM_operator_properties_sanitize(otmacro->ptr);
 	
 	BLI_addtail(&ot->macro, otmacro);
 
@@ -593,6 +593,30 @@ void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, con
 
 }
 
+void WM_operator_properties_sanitize(PointerRNA *ptr)
+{
+	RNA_STRUCT_BEGIN(ptr, prop) {
+		switch(RNA_property_type(prop)) {
+		case PROP_ENUM:
+			RNA_def_property_flag(prop, PROP_ENUM_NO_CONTEXT);
+			break;
+		case PROP_POINTER:
+			{
+				StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
+
+				/* recurse into operator properties */
+				if (RNA_struct_is_a(ptype, &RNA_OperatorProperties)) {
+					PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
+					WM_operator_properties_sanitize(&opptr);
+				}
+				break;
+			}
+		default:
+			break;
+		}
+	}
+	RNA_STRUCT_END;
+}
 
 void WM_operator_properties_free(PointerRNA *ptr)
 {
@@ -757,7 +781,7 @@ int WM_operator_filesel(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* default properties for fileselect */
-void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
+void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, short action)
 {
 	PropertyRNA *prop;
 
@@ -765,6 +789,11 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type)
 	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file.");
 	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Directory of the file.");
 
+	if (action == FILE_SAVE) {
+		prop= RNA_def_boolean(ot->srna, "check_existing", 1, "Check Existing", "Check and warn on overwriting existing files");
+		RNA_def_property_flag(prop, PROP_HIDDEN);
+	}
+	
 	prop= RNA_def_boolean(ot->srna, "filter_blender", (filter & BLENDERFILE), "Filter .blend files", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop= RNA_def_boolean(ot->srna, "filter_image", (filter & IMAGEFILE), "Filter image files", "");
@@ -1237,6 +1266,18 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 
 /* ************ window / screen operator definitions ************** */
 
+/* this poll functions is needed in place of WM_operator_winactive
+ * while it crashes on full screen */
+static int wm_operator_winactive_normal(bContext *C)
+{
+	wmWindow *win= CTX_wm_window(C);
+
+    if(win==NULL || win->screen==NULL || win->screen->full != SCREENNORMAL)
+    	return 0;
+
+	return 1;
+}
+
 static void WM_OT_window_duplicate(wmOperatorType *ot)
 {
 	ot->name= "Duplicate Window";
@@ -1244,7 +1285,7 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 	ot->description="Duplicate the current Blender window.";
 		
 	ot->exec= wm_window_duplicate_op;
-	ot->poll= WM_operator_winactive;
+	ot->poll= wm_operator_winactive_normal;
 }
 
 static void WM_OT_save_homefile(wmOperatorType *ot)
@@ -1320,7 +1361,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	ot->exec= wm_open_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPEN);
 
 	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file.");
 }
@@ -1478,7 +1519,7 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	
 	ot->flag |= OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB, FILE_OPEN);
 	
 	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending.");
 	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects.");
@@ -1563,7 +1604,7 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 	ot->invoke= wm_recover_auto_save_invoke;
 	ot->poll= WM_operator_winactive;
 
-	WM_operator_properties_filesel(ot, BLENDERFILE, FILE_BLENDER);
+	WM_operator_properties_filesel(ot, BLENDERFILE, FILE_BLENDER, FILE_OPEN);
 }
 
 /* *************** save file as **************** */
@@ -1645,7 +1686,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
 	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory.");
 }
@@ -1655,7 +1696,8 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	char name[FILE_MAX];
-
+	int check_existing=1;
+	
 	/* cancel if no active window */
 	if (CTX_wm_window(C) == NULL)
 		return OPERATOR_CANCELLED;
@@ -1666,10 +1708,19 @@ static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	untitled(name);
 	RNA_string_set(op->ptr, "path", name);
 	
-	if (G.save_over)
-		uiPupMenuSaveOver(C, op, name);
-	else
+	if (RNA_struct_find_property(op->ptr, "check_existing"))
+		if (RNA_boolean_get(op->ptr, "check_existing")==0)
+			check_existing = 0;
+	
+	if (G.save_over) {
+		if (check_existing)
+			uiPupMenuSaveOver(C, op, name);
+		else {
+			WM_operator_call(C, op);
+		}
+	} else {
 		WM_event_add_fileselect(C, op);
+	}
 	
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -1684,7 +1735,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= NULL;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE);
 	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
 	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory.");
 }
@@ -2124,7 +2175,6 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 				wm_event_add(window, &event);
 				
 				WM_gesture_end(C, gesture);	/* frees gesture itself, and unregisters from window */
-				window->tweak= NULL;
 			}
 			
 			break;
@@ -2134,7 +2184,6 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 		case MIDDLEMOUSE:
 			if(gesture->event_type==event->type) {
 				WM_gesture_end(C, gesture);
-				window->tweak= NULL;
 
 				/* when tweak fails we should give the other keymap entries a chance */
 				event->val= KM_RELEASE;
@@ -2143,7 +2192,6 @@ static void tweak_gesture_modal(bContext *C, wmEvent *event)
 		default:
 			if(!ISTIMER(event->type)) {
 				WM_gesture_end(C, gesture);
-				window->tweak= NULL;
 			}
 			break;
 	}
@@ -2156,16 +2204,16 @@ void wm_tweakevent_test(bContext *C, wmEvent *event, int action)
 	
 	if(win->tweak==NULL) {
 		if(CTX_wm_region(C)) {
-			if(event->val==KM_PRESS) { // pressed
+			if(event->val==KM_PRESS) { 
 				if( ELEM3(event->type, LEFTMOUSE, MIDDLEMOUSE, RIGHTMOUSE) )
 					win->tweak= WM_gesture_new(C, event, WM_GESTURE_TWEAK);
 			}
 		}
 	}
 	else {
-		if(action & WM_HANDLER_BREAK) {
+		/* no tweaks if event was handled */
+		if((action & WM_HANDLER_BREAK)) {
 			WM_gesture_end(C, win->tweak);
-			win->tweak= NULL;
 		}
 		else
 			tweak_gesture_modal(C, event);
@@ -2661,7 +2709,7 @@ static void WM_OT_redraw_timer(wmOperatorType *ot)
 	ot->exec= redraw_timer_exec;
 	ot->poll= WM_operator_winactive;
 	
-	RNA_def_enum(ot->srna, "type", prop_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_type_items, 0, "Type", "");
 	RNA_def_int(ot->srna, "iterations", 10, 1,INT_MAX, "Iterations", "Number of times to redraw", 1,1000);
 
 }
@@ -2948,9 +2996,9 @@ static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, I
 /* can add more */
 EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	return rna_id_itemf(C, ptr, free, (ID *)CTX_data_main(C)->group.first);
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->group.first : NULL);
 }
 EnumPropertyItem *RNA_scene_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
-	return rna_id_itemf(C, ptr, free, (ID *)CTX_data_main(C)->scene.first);
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->scene.first : NULL);
 }

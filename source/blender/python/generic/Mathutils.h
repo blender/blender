@@ -41,6 +41,9 @@
 
 /* Can cast different mathutils types to this, use for generic funcs */
 
+extern char BaseMathObject_Wrapped_doc[];
+extern char BaseMathObject_Owner_doc[];
+
 typedef struct {
 	PyObject_VAR_HEAD
 	float *data;					/*array of data (alias), wrapped status depends on wrapped status */

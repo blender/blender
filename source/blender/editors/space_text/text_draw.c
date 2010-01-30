@@ -43,6 +43,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_suggestions.h"
@@ -1311,10 +1312,19 @@ void text_update_character_width(SpaceText *st)
 
 /* Moves the view to the cursor location,
   also used to make sure the view isnt outside the file */
-void text_update_cursor_moved(SpaceText *st, ARegion *ar)
+void text_update_cursor_moved(bContext *C)
 {
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= st->text;
-	int i, x;
+	ARegion *ar;
+	int i, x, winx= 0;
+
+	if(!st) return;
+
+	for(ar=sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_WINDOW)
+			winx= ar->winx;
 
 	if(!text || !text->curl) return;
 
@@ -1330,8 +1340,8 @@ void text_update_cursor_moved(SpaceText *st, ARegion *ar)
 	else {
 		x= text_draw(st, text->sell->line, st->left, text->selc, 0, 0, 0, NULL);
 
-		if(x==0 || x>ar->winx)
-			st->left= text->curc-0.5*(ar->winx)/st->cwidth;
+		if(x==0 || x>winx)
+			st->left= text->curc-0.5*winx/st->cwidth;
 	}
 
 	if(st->top < 0) st->top= 0;

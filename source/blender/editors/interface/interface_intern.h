@@ -46,6 +46,7 @@ struct uiLayout;
 struct bContextStore;
 struct Scene;
 struct ID;
+struct ImBuf;
 
 /* ****************** general defines ************** */
 
@@ -93,7 +94,7 @@ typedef enum {
 
 
 #define UI_MAX_DRAW_STR	400
-#define UI_MAX_NAME_STR	64
+#define UI_MAX_NAME_STR	128
 #define UI_ARRAY	29
 
 /* panel limits */
@@ -226,8 +227,14 @@ struct uiBut {
 	int opcontext;
 	struct IDProperty *opproperties;
 	struct PointerRNA *opptr;
+	
+	/* Draggable data, type is WM_DRAG_... */
+	int dragtype;
+	void *dragpoin;
+	struct ImBuf *imb;
+	float imb_scale;
 
-		/* active button data */
+	/* active button data */
 	struct uiHandleButtonData *active;
 
 	char *editstr;
@@ -432,7 +439,7 @@ extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float 
 
 void ui_draw_gradient(rcti *rect, float *rgb, int type, float alpha);
 
-void ui_draw_but_HISTOGRAM(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
+void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_COLORBAND(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_NORMAL(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_CURVE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);

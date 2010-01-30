@@ -3516,6 +3516,9 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 				col= shr->col;
 				pixsize= 4;
 				break;
+			case SCE_PASS_EMIT:
+				col= shr->emit;
+				break;
 			case SCE_PASS_DIFFUSE:
 				col= shr->diff;
 				break;
@@ -3527,6 +3530,12 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 				break;
 			case SCE_PASS_AO:
 				col= shr->ao;
+				break;
+			case SCE_PASS_ENVIRONMENT:
+				col= shr->env;
+				break;
+			case SCE_PASS_INDIRECT:
+				col= shr->indirect;
 				break;
 			case SCE_PASS_REFLECT:
 				col= shr->refl;
@@ -3615,6 +3624,9 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 				fp= rpass->rect + 4*offset;
 				addAlphaOverFloat(fp, shr->col);
 				break;
+			case SCE_PASS_EMIT:
+				col= shr->emit;
+				break;
 			case SCE_PASS_DIFFUSE:
 				col= shr->diff;
 				break;
@@ -3626,6 +3638,12 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 				break;
 			case SCE_PASS_AO:
 				col= shr->ao;
+				break;
+			case SCE_PASS_ENVIRONMENT:
+				col= shr->env;
+				break;
+			case SCE_PASS_INDIRECT:
+				col= shr->indirect;
 				break;
 			case SCE_PASS_REFLECT:
 				col= shr->refl;
@@ -3851,6 +3869,9 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 					if(addpassflag & SCE_PASS_NORMAL)
 						addvecmul(samp_shr->nor, shr->nor, fac);
 
+					if(addpassflag & SCE_PASS_EMIT)
+						addvecmul(samp_shr->emit, shr->emit, fac);
+
 					if(addpassflag & SCE_PASS_DIFFUSE)
 						addvecmul(samp_shr->diff, shr->diff, fac);
 					
@@ -3862,6 +3883,12 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 
 					if(addpassflag & SCE_PASS_AO)
 						addvecmul(samp_shr->ao, shr->ao, fac);
+
+					if(addpassflag & SCE_PASS_ENVIRONMENT)
+						addvecmul(samp_shr->env, shr->env, fac);
+
+					if(addpassflag & SCE_PASS_INDIRECT)
+						addvecmul(samp_shr->indirect, shr->indirect, fac);
 
 					if(addpassflag & SCE_PASS_REFLECT)
 						addvecmul(samp_shr->refl, shr->refl, fac);

@@ -182,12 +182,16 @@ void RNA_api_wm(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Show up the file selector.");
 	rna_generic_op_invoke(func, 0, 0);
 
-	func= RNA_def_function(srna, "add_keyconfig", "WM_keyconfig_add");
+	func= RNA_def_function(srna, "add_keyconfig", "WM_keyconfig_add_user");
 	parm= RNA_def_string(func, "name", "", 0, "Name", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "keyconfig", "KeyConfig", "Key Configuration", "Added key configuration.");
 	RNA_def_function_return(func, parm);
 	
+	func= RNA_def_function(srna, "remove_keyconfig", "WM_keyconfig_remove");
+	parm= RNA_def_pointer(func, "keyconfig", "KeyConfig", "Key Configuration", "Removed key configuration.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
 	/* invoke functions, for use with python */
 	func= RNA_def_function(srna, "invoke_props_popup", "WM_operator_props_popup");
 	RNA_def_function_ui_description(func, "Operator popup invoke.");
@@ -360,6 +364,12 @@ void RNA_api_keymap(StructRNA *srna)
 	func= RNA_def_function(srna, "remove_item", "WM_keymap_remove_item");
 	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "item_from_id", "WM_keymap_item_find_id");
+	parm= RNA_def_property(func, "id", PROP_INT, PROP_NONE);
+	RNA_def_property_ui_text(parm, "id", "ID of the item.");
+	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
+	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "copy_to_user", "WM_keymap_copy_to_user");
 	parm= RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "User editable key map.");

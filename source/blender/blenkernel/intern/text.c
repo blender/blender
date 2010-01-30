@@ -431,9 +431,15 @@ Text *copy_text(Text *ta)
 	
 	tan= copy_libblock(ta);
 	
-	tan->name= MEM_mallocN(strlen(ta->name)+1, "text_name");
-	strcpy(tan->name, ta->name);
-	
+	/* file name can be NULL */
+	if(ta->name) {
+		tan->name= MEM_mallocN(strlen(ta->name)+1, "text_name");
+		strcpy(tan->name, ta->name);
+	}
+	else {
+		tan->name= NULL;
+	}
+
 	tan->flags = ta->flags | TXT_ISDIRTY;
 	
 	tan->lines.first= tan->lines.last= NULL;

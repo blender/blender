@@ -94,8 +94,8 @@ ifeq ($(OS),darwin)
     CCFLAGS += -arch $(MACOSX_ARCHITECTURE) #-isysroot $(MACOSX_SDK) -mmacosx-version-min=$(MACOSX_MIN_VERS)
 
     ifeq ($(MACOSX_ARCHITECTURE), $(findstring $(MACOSX_ARCHITECTURE), "i386 x86_64"))
-        REL_CFLAGS += -O2 -ftree-vectorize -msse -msse2 -msse3
-        REL_CCFLAGS += -O2 -ftree-vectorize -msse -msse2 -msse3
+        REL_CFLAGS += -ftree-vectorize -msse -msse2 -msse3
+        REL_CCFLAGS += -ftree-vectorize -msse -msse2 -msse3
     endif
 
     ifeq ($(MACOSX_ARCHITECTURE), x86_64)

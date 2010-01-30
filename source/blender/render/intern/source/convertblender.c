@@ -1701,7 +1701,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			if(re->r.mode & R_SPEED)
 				dosurfacecache= 1;
-			else if((re->wrld.mode & WO_AMB_OCC) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
+			else if((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
 				if(ma->amb != 0.0f)
 					dosurfacecache= 1;
 
@@ -3811,7 +3811,7 @@ void init_render_world(Render *re)
 			while(re->wrld.aosamp*re->wrld.aosamp < re->osa) 
 				re->wrld.aosamp++;
 		if(!(re->r.mode & R_RAYTRACE) && (re->wrld.ao_gather_method == WO_AOGATHER_RAYTRACE))
-			re->wrld.mode &= ~WO_AMB_OCC;
+			re->wrld.mode &= ~(WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT);
 	}
 	else {
 		memset(&re->wrld, 0, sizeof(World));
@@ -4849,7 +4849,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	if(re->r.mode & R_RAYTRACE) {
 		init_render_qmcsampler(re);
 
-		if(re->wrld.mode & WO_AMB_OCC)
+		if(re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT))
 			if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
 				init_ao_sphere(&re->wrld);
 	}
@@ -4925,7 +4925,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0, 1);
 		
 		/* Occlusion */
-		if((re->wrld.mode & WO_AMB_OCC) && !re->test_break(re->tbh))
+		if((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && !re->test_break(re->tbh))
 			if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
 				if(re->r.renderer==R_INTERN)
 					if(re->r.mode & R_SHADOW)
@@ -5537,7 +5537,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	if(re->r.mode & R_RAYTRACE) {
 		init_render_qmcsampler(re);
 		
-		if(re->wrld.mode & WO_AMB_OCC)
+		if(re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT))
 			if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
 				init_ao_sphere(&re->wrld);
 	}
@@ -5569,7 +5569,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 			makeraytree(re);
 	
 	/* occlusion */
-	if((re->wrld.mode & WO_AMB_OCC) && !re->test_break(re->tbh))
+	if((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && !re->test_break(re->tbh))
 		if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
 			if(re->r.mode & R_SHADOW)
 				make_occ_tree(re);

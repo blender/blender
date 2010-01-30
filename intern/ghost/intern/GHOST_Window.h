@@ -124,6 +124,12 @@ public:
 	virtual ~GHOST_Window();
 
 	/**
+	 * Returns the associated OS object/handle
+	 * @return The associated OS object/handle
+	 */
+	virtual void* getOSWindow() const;
+	
+	/**
 	 * Returns the current cursor shape.
 	 * @return	The current cursor shape.
 	 */

@@ -129,7 +129,7 @@ void ED_armature_apply_transform(struct Object *ob, float mat[4][4]);
 #define ARM_GROUPS_ENVELOPE	2
 #define ARM_GROUPS_AUTO		3
 
-void create_vgroups_from_armature(struct Scene *scene, struct Object *ob, struct Object *par, int mode);
+void create_vgroups_from_armature(struct Scene *scene, struct Object *ob, struct Object *par, int mode, int mirror);
 
 void auto_align_armature(struct Scene *scene, struct View3D *v3d, short mode);
 void unique_editbone_name(struct ListBase *ebones, char *name, EditBone *bone); /* if bone is already in list, pass it as param to ignore it */

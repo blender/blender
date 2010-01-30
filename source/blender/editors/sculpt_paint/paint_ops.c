@@ -127,6 +127,7 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_weight_paint_radial_control);
 	WM_operatortype_append(PAINT_OT_weight_paint);
 	WM_operatortype_append(PAINT_OT_weight_set);
+	WM_operatortype_append(PAINT_OT_weight_from_bones);
 
 	/* vertex */
 	WM_operatortype_append(PAINT_OT_vertex_paint_radial_control);
@@ -263,7 +264,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	/* Vertex Paint mode */
 	keymap= WM_keymap_find(keyconf, "Vertex Paint", 0, 0);
-	keymap->poll= vertex_paint_poll;
+	keymap->poll= vertex_paint_mode_poll;
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_vertex_paint_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_vertex_paint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
@@ -281,7 +282,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	/* Weight Paint mode */
 	keymap= WM_keymap_find(keyconf, "Weight Paint", 0, 0);
-	keymap->poll= weight_paint_poll;
+	keymap->poll= weight_paint_mode_poll;
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_weight_paint_radial_control", FKEY, KM_PRESS, 0, 0)->ptr, "mode", WM_RADIALCONTROL_SIZE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_weight_paint_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", WM_RADIALCONTROL_STRENGTH);
@@ -296,6 +297,8 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", MKEY, KM_PRESS, 0, 0); /* mask toggle */
 	RNA_string_set(kmi->ptr, "path", "weight_paint_object.data.use_paint_mask");
+
+	WM_keymap_verify_item(keymap, "PAINT_OT_weight_from_bones", WKEY, KM_PRESS, 0, 0);
 
 	/* Image/Texture Paint mode */
 	keymap= WM_keymap_find(keyconf, "Image Paint", 0, 0);

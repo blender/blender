@@ -420,7 +420,7 @@ void FONT_OT_file_paste(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE, FILE_SPECIAL, FILE_OPEN);
 }
 
 /******************* paste buffer operator ********************/
@@ -1642,7 +1642,7 @@ void FONT_OT_open(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|FTFONTFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|FTFONTFILE, FILE_SPECIAL, FILE_OPEN);
 }
 
 /******************* delete operator *********************/

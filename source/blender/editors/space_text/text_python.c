@@ -401,6 +401,7 @@ short do_textmarkers(SpaceText *st, char ascii, unsigned short evnt, short val)
 			if(marker) {
 				txt_move_to(text, marker->lineno, marker->start, 0);
 				txt_move_to(text, marker->lineno, marker->end, 1);
+				// XXX text_update_cursor_moved(C);
 				// XXX WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 				evnt= ascii= val= 0;
 				draw= 1;
@@ -504,6 +505,7 @@ short do_textmarkers(SpaceText *st, char ascii, unsigned short evnt, short val)
 				if(mrk) {
 					txt_move_to(text, mrk->lineno, mrk->start, 0);
 					txt_move_to(text, mrk->lineno, mrk->end, 1);
+					// XXX text_update_cursor_moved(C);
 					// XXX WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 				}
 				swallow= 1;

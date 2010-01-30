@@ -310,7 +310,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        render_data = context.scene.render_data
         strip = act_strip(context)
 
         split = layout.split(percentage=0.3)
@@ -344,7 +344,9 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         col.enabled = not strip.lock
         col.prop(strip, "channel")
         col.prop(strip, "start_frame")
-        col.prop(strip, "length")
+        subrow = col.split(percentage=0.66)
+        subrow.prop(strip, "length")
+        subrow.label(text="%.2f sec" % (strip.length / (render_data.fps / render_data.fps_base)))
 
         col = layout.column(align=True)
         col.label(text="Offset:")

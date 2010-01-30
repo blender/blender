@@ -73,6 +73,12 @@ public:
 	virtual	bool getValid() const = 0;
 
 	/**
+	 * Returns the associated OS object/handle
+	 * @return The associated OS object/handle
+	 */
+	virtual void* getOSWindow() const = 0;
+
+	/**
 	 * Returns the type of drawing context used in this window.
 	 * @return The current type of drawing context.
 	 */

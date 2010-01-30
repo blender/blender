@@ -44,6 +44,9 @@ struct rcti;
 struct PointerRNA;
 struct EnumPropertyItem;
 struct MenuType;
+struct wmDropBox;
+struct wmDrag;
+struct ImBuf;
 
 typedef struct wmJob wmJob;
 
@@ -94,6 +97,8 @@ void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
 
 			/* keyconfig and keymap */
 wmKeyConfig *WM_keyconfig_add	(struct wmWindowManager *wm, char *idname);
+wmKeyConfig *WM_keyconfig_add_user(struct wmWindowManager *wm, char *idname);
+void 		WM_keyconfig_remove	(struct wmWindowManager *wm, struct wmKeyConfig *keyconf);
 void 		WM_keyconfig_free	(struct wmKeyConfig *keyconf);
 void		WM_keyconfig_userdef(struct wmWindowManager *wm);
 
@@ -131,7 +136,7 @@ wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, in
 void		WM_modalkeymap_assign(struct wmKeyMap *km, char *opname);
 
 const char	*WM_key_event_string(short type);
-int			WM_key_event_operator_id(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, struct wmKeyMap **keymap_r);
+int			WM_key_event_operator_id(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, int hotkey, struct wmKeyMap **keymap_r);
 char		*WM_key_event_operator_string(const struct bContext *C, const char *opname, int opcontext, struct IDProperty *properties, char *str, int len);
 
 			/* handlers */
@@ -155,9 +160,13 @@ void		WM_event_remove_area_handler(struct ListBase *handlers, void *area);
 struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op);
 void		WM_event_remove_handlers(struct bContext *C, ListBase *handlers);
 
+struct wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes);
+
+			/* mouse */
 void		WM_event_add_mousemove(struct bContext *C);
 int			WM_modal_tweak_exit(struct wmEvent *evt, int tweak_event);
 
+			/* notifiers */
 void		WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference);
 void		WM_main_add_notifier(unsigned int type, void *reference);
 
@@ -208,10 +217,11 @@ int         WM_operator_name_call	(struct bContext *C, const char *opstring, int
 int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports);
 
 void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */
+void		WM_operator_properties_sanitize(struct PointerRNA *ptr); /* make props not context sensitive */
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
-void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type);
+void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action);
 void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int extend);
 void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 
@@ -248,6 +258,7 @@ void		WM_OT_tweak_gesture(struct wmOperatorType *ot);
 			/* Gesture manager API */
 struct wmGesture *WM_gesture_new(struct bContext *C, struct wmEvent *event, int type);
 void		WM_gesture_end(struct bContext *C, struct wmGesture *gesture);
+void		WM_gestures_remove(struct bContext *C);
 
 			/* radial control operator */
 int			WM_radial_control_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
@@ -258,6 +269,14 @@ void		WM_radial_control_string(struct wmOperator *op, char str[], int maxlen);
 			/* fileselecting support */
 void		WM_event_add_fileselect(struct bContext *C, struct wmOperator *op);
 void		WM_event_fileselect_event(struct bContext *C, void *ophandle, int eventval);
+
+			/* drag and drop */
+struct wmDrag		*WM_event_start_drag(struct bContext *C, int icon, int type, void *poin, double value);
+void				WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale, int sx, int sy);
+
+struct wmDropBox	*WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(struct bContext *, struct wmDrag *, struct wmEvent *event),
+						  void (*copy)(struct wmDrag *, struct wmDropBox *));
+ListBase	*WM_dropboxmap_find(char *idname, int spaceid, int regionid);
 
 			/* OpenGL wrappers, mimicking opengl syntax */
 void		wmSubWindowSet			(struct wmWindow *win, int swinid);

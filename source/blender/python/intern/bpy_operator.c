@@ -83,9 +83,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 		error_val= -1;
 	}
 	else {
-		/* WM_operator_properties_create(&ptr, opname); */
-		/* Save another lookup */
-		RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+		WM_operator_properties_create_ptr(&ptr, ot);
 
 		if(kw && PyDict_Size(kw))
 			error_val= pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");

@@ -121,18 +121,20 @@ static int sframe;
 
 static void filepath_avi (char *string, RenderData *rd)
 {
-	char txt[64];
-
-	if (string==0) return;
+	if (string==NULL) return;
 
 	strcpy(string, rd->pic);
 	BLI_convertstringcode(string, G.sce);
 
 	BLI_make_existing_file(string);
 
-	if (BLI_strcasecmp(string + strlen(string) - 4, ".avi")) {
-		sprintf(txt, "%04d_%04d.avi", (rd->sfra) , (rd->efra) );
-		strcat(string, txt);
+	if (!BLI_testextensie(string, ".avi")) {
+		/* if we dont have any #'s to insert numbers into, use 4 numbers by default */
+		if (strchr(string, '#')==NULL)
+			strcat(string, "####"); /* 4 numbers */
+
+		BLI_convertstringframe_range(string, rd->sfra, rd->efra);
+		strcat(string, ".avi");
 	}
 }
 

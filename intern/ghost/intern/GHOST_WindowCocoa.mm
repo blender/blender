@@ -72,6 +72,8 @@ extern "C" {
 - (void)windowDidResignKey:(NSNotification *)notification;
 - (void)windowDidExpose:(NSNotification *)notification;
 - (void)windowDidResize:(NSNotification *)notification;
+- (void)windowDidMove:(NSNotification *)notification;
+- (void)windowWillMove:(NSNotification *)notification;
 @end
 
 @implementation CocoaWindowDelegate : NSObject
@@ -99,6 +101,16 @@ extern "C" {
 - (void)windowDidExpose:(NSNotification *)notification
 {
 	systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, associatedWindow);
+}
+
+- (void)windowDidMove:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowMove, associatedWindow);
+}
+
+- (void)windowWillMove:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowMove, associatedWindow);
 }
 
 - (void)windowDidResize:(NSNotification *)notification
@@ -324,6 +336,11 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	// Pixel Format Attributes for the windowed NSOpenGLContext
 	i=0;
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
+	
+	// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object’s flushBuffer
+	// needed for 'Draw Overlap' drawing method
+	pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore; 
+	
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
 	//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
 	
@@ -354,6 +371,11 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	if (pixelFormat == nil) {
 		i=0;
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
+		
+		// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object’s flushBuffer
+		// needed for 'Draw Overlap' drawing method
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore;
+		
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
 		//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
 		
@@ -443,6 +465,10 @@ bool GHOST_WindowCocoa::getValid() const
 	return (m_window != 0);
 }
 
+void* GHOST_WindowCocoa::getOSWindow() const
+{
+	return (void*)m_window;
+}
 
 void GHOST_WindowCocoa::setTitle(const STR_String& title)
 {
@@ -1042,6 +1068,7 @@ void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 			case GHOST_kStandardCursorTopRightCorner:
 			case GHOST_kStandardCursorBottomRightCorner:
 			case GHOST_kStandardCursorBottomLeftCorner:
+			case GHOST_kStandardCursorCopy:
 			case GHOST_kStandardCursorDefault:
 			default:
 				tmpCursor = [NSCursor arrowCursor];

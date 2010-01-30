@@ -330,6 +330,10 @@
 			Name="intern"
 			>
 			<File
+				RelativePath="..\..\intern\EIGENVALUE_HELPER.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\intern\EIGENVALUE_HELPER.h"
 				>
 			</File>
@@ -359,6 +363,10 @@
 			</File>
 			<File
 				RelativePath="..\..\intern\INTERPOLATE.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\LU_HELPER.cpp"
 				>
 			</File>
 			<File

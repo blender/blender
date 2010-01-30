@@ -96,6 +96,12 @@ public:
 	 * @return The validity of the window.
 	 */
 	virtual	bool getValid() const;
+	
+	/**
+	 * Returns the associated NSWindow object
+	 * @return The associated NSWindow object
+	 */
+	virtual void* getOSWindow() const;
 
 	/**
 	 * Sets the title displayed in the title bar.

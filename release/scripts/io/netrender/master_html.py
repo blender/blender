@@ -215,6 +215,17 @@ def get(handler):
         job = handler.server.getJobID(job_id)
 
         if job:
+            output("<h2>Render Information</h2>")
+
+            job.initInfo()
+            
+            startTable()
+
+            rowTable("resolution", "%ix%i at %i%%" % job.resolution)
+
+            endTable()
+
+            
             output("<h2>Files</h2>")
 
             startTable()

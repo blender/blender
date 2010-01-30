@@ -88,6 +88,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
+#include "ED_armature.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -133,6 +134,13 @@ int vertex_paint_poll(bContext *C)
 		}
 	}
 	return 0;
+}
+
+int weight_paint_mode_poll(bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+
+	return ob && ob->mode == OB_MODE_WEIGHT_PAINT;
 }
 
 int weight_paint_poll(bContext *C)
@@ -427,9 +435,9 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 			faceverts[3]= mface->v4;
 			for (i=0; i<3 || faceverts[i]; i++) {
 				if(!((me->dvert+faceverts[i])->flag)) {
-					dw= ED_vgroup_weight_verify(me->dvert+faceverts[i], vgroup);
+					dw= defvert_verify_index(me->dvert+faceverts[i], vgroup);
 					if(dw) {
-						uw= ED_vgroup_weight_verify(wp->wpaint_prev+faceverts[i], vgroup);
+						uw= defvert_verify_index(wp->wpaint_prev+faceverts[i], vgroup);
 						uw->weight= dw->weight; /* set the undo weight */
 						dw->weight= paintweight;
 						
@@ -438,11 +446,11 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 							if(j>=0) {
 								/* copy, not paint again */
 								if(vgroup_mirror != -1) {
-									dw= ED_vgroup_weight_verify(me->dvert+j, vgroup_mirror);
-									uw= ED_vgroup_weight_verify(wp->wpaint_prev+j, vgroup_mirror);
+									dw= defvert_verify_index(me->dvert+j, vgroup_mirror);
+									uw= defvert_verify_index(wp->wpaint_prev+j, vgroup_mirror);
 								} else {
-									dw= ED_vgroup_weight_verify(me->dvert+j, vgroup);
-									uw= ED_vgroup_weight_verify(wp->wpaint_prev+j, vgroup);
+									dw= defvert_verify_index(me->dvert+j, vgroup);
+									uw= defvert_verify_index(wp->wpaint_prev+j, vgroup);
 								}
 								uw->weight= dw->weight; /* set the undo weight */
 								dw->weight= paintweight;
@@ -981,20 +989,20 @@ void sample_wpaint(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 				
 				fac= MIN4(w1, w2, w3, w4);
 				if(w1==fac) {
-					dw= ED_vgroup_weight_get(me->dvert+mface->v1, ob->actdef-1);
+					dw= defvert_find_index(me->dvert+mface->v1, ob->actdef-1);
 					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w2==fac) {
-					dw= ED_vgroup_weight_get(me->dvert+mface->v2, ob->actdef-1);
+					dw= defvert_find_index(me->dvert+mface->v2, ob->actdef-1);
 					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w3==fac) {
-					dw= ED_vgroup_weight_get(me->dvert+mface->v3, ob->actdef-1);
+					dw= defvert_find_index(me->dvert+mface->v3, ob->actdef-1);
 					if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 				}
 				else if(w4==fac) {
 					if(mface->v4) {
-						dw= ED_vgroup_weight_get(me->dvert+mface->v4, ob->actdef-1);
+						dw= defvert_find_index(me->dvert+mface->v4, ob->actdef-1);
 						if(dw) ts->vgroup_weight= dw->weight; else ts->vgroup_weight= 0.0f;
 					}
 				}
@@ -1050,12 +1058,12 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 	int vgroup= ob->actdef-1;
 	
 	if(wp->flag & VP_ONLYVGROUP) {
-		dw= ED_vgroup_weight_get(me->dvert+index, vgroup);
-		uw= ED_vgroup_weight_get(wp->wpaint_prev+index, vgroup);
+		dw= defvert_find_index(me->dvert+index, vgroup);
+		uw= defvert_find_index(wp->wpaint_prev+index, vgroup);
 	}
 	else {
-		dw= ED_vgroup_weight_verify(me->dvert+index, vgroup);
-		uw= ED_vgroup_weight_verify(wp->wpaint_prev+index, vgroup);
+		dw= defvert_verify_index(me->dvert+index, vgroup);
+		uw= defvert_verify_index(wp->wpaint_prev+index, vgroup);
 	}
 	if(dw==NULL || uw==NULL)
 		return;
@@ -1068,9 +1076,9 @@ static void do_weight_paint_vertex(VPaint *wp, Object *ob, int index,
 		if(j>=0) {
 			/* copy, not paint again */
 			if(vgroup_mirror != -1)
-				uw= ED_vgroup_weight_verify(me->dvert+j, vgroup_mirror);
+				uw= defvert_verify_index(me->dvert+j, vgroup_mirror);
 			else
-				uw= ED_vgroup_weight_verify(me->dvert+j, vgroup);
+				uw= defvert_verify_index(me->dvert+j, vgroup);
 				
 			uw->weight= dw->weight;
 
@@ -1386,11 +1394,11 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 				bPoseChannel *pchan= get_pose_channel(modob->pose, actbone->name);
 
 				if(pchan) {
-					bDeformGroup *dg= get_named_vertexgroup(ob, pchan->name);
+					bDeformGroup *dg= defgroup_find_name(ob, pchan->name);
 					if(dg==NULL)
 						dg= ED_vgroup_add_name(ob, pchan->name);	/* sets actdef */
 					else
-						ob->actdef= 1 + get_defgroup_num(ob, dg);
+						ob->actdef= 1 + defgroup_find_index(ob, dg);
 				}
 			}
 		}
@@ -1530,10 +1538,10 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if(mface->v4) (me->dvert+mface->v4)->flag= 1;
 					
 			if(brush->vertexpaint_tool==VP_BLUR) {
-				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = ED_vgroup_weight_verify;
+				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = defvert_verify_index;
 						
 				if(wp->flag & VP_ONLYVGROUP)
-					dw_func= ED_vgroup_weight_get;
+					dw_func= defvert_find_index;
 						
 				dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
 				if(dw) {paintweight+= dw->weight; totw++;}
@@ -1978,5 +1986,53 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 
 	RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
+}
+
+/* ********************** weight from bones operator ******************* */
+
+static int weight_from_bones_poll(bContext *C)
+{
+	Object *ob= CTX_data_active_object(C);
+
+	return (ob && (ob->mode & OB_MODE_WEIGHT_PAINT) && modifiers_isDeformedByArmature(ob));
+}
+
+static int weight_from_bones_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
+	Object *armob= modifiers_isDeformedByArmature(ob);
+	Mesh *me= ob->data;
+	int type= RNA_enum_get(op->ptr, "type");
+
+	create_vgroups_from_armature(scene, ob, armob, type, (me->editflag & ME_EDIT_MIRROR_X));
+
+	DAG_id_flush_update(&me->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, me);
+
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_weight_from_bones(wmOperatorType *ot)
+{
+	static EnumPropertyItem type_items[]= {
+		{ARM_GROUPS_AUTO, "AUTOMATIC", 0, "Automatic", "Automatic weights froms bones."},
+		{ARM_GROUPS_ENVELOPE, "ENVELOPES", 0, "From Envelopes", "Weights from envelopes with user defined radius."},
+		{0, NULL, 0, NULL, NULL}};
+
+	/* identifiers */
+	ot->name= "Weight from Bones";
+	ot->idname= "PAINT_OT_weight_from_bones";
+	
+	/* api callbacks */
+	ot->exec= weight_from_bones_exec;
+	ot->invoke= WM_menu_invoke;
+	ot->poll= weight_from_bones_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	ot->prop= RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Method to use for assigning weights.");
 }
 

@@ -360,8 +360,9 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		but= uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X*1.6, UI_UNIT_Y, "Browse ID data");
 		if(type) {
 			but->icon= RNA_struct_ui_icon(type);
-			but->flag|= UI_HAS_ICON;
-			but->flag|= UI_ICON_LEFT;
+			/* default dragging of icon for id browse buttons */
+			uiButSetDragID(but, id);
+			uiButSetFlag(but, UI_HAS_ICON|UI_ICON_LEFT);
 		}
 
 		if((idfrom && idfrom->lib))
@@ -370,7 +371,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 
 	/* text button with name */
 	if(id) {
-		char name[64];
+		char name[UI_MAX_NAME_STR];
 
 		//text_idbutton(id, name);
 		name[0]= '\0';
@@ -797,8 +798,10 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob, Modif
 			if (md->type==eModifierType_ParticleSystem) {
 		    	ParticleSystem *psys= ((ParticleSystemModifierData *)md)->psys;
 				
-	    		if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
-					if(ELEM3(psys->part->ren_as, PART_DRAW_PATH, PART_DRAW_GR, PART_DRAW_OB) && psys->pathcache)
+	    		if (!(ob->mode & OB_MODE_PARTICLE_EDIT) && psys->pathcache) {
+					if(ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB))
+						uiItemO(row, "Convert", 0, "OBJECT_OT_duplicates_make_real");
+					else if(psys->part->ren_as == PART_DRAW_PATH)
 						uiItemO(row, "Convert", 0, "OBJECT_OT_modifier_convert");
 				}
 			}
@@ -931,18 +934,6 @@ static void constraint_active_func(bContext *C, void *ob_v, void *con_v)
 	ED_object_constraint_set_active(ob_v, con_v);
 }
 
-static void verify_constraint_name_func (bContext *C, void *con_v, void *dummy)
-{
-	Object *ob= CTX_data_active_object(C);
-	bConstraint *con= con_v;
-	
-	if (!con)
-		return;
-	
-	ED_object_constraint_rename(ob, con, NULL);
-	ED_object_constraint_set_active(ob, con);
-	// XXX allqueue(REDRAWACTION, 0); 
-}
 
 /* some commonly used macros in the constraints drawing code */
 #define is_armature_target(target) (target && target->type==OB_ARMATURE)
@@ -1071,7 +1062,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20;
 	
 	/* open/close */
-	uiDefIconButBitS(block, ICONTOG, CONSTRAINT_EXPAND, B_CONSTRAINT_TEST, ICON_TRIA_RIGHT, xco-10, yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Constraint");
+	uiItemR(subrow, "", 0, &ptr, "expanded", UI_ITEM_R_ICON_ONLY);
 	
 	/* name */	
 	uiBlockSetEmboss(block, UI_EMBOSS);
@@ -1082,13 +1073,10 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 	uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, xco+10, yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 	
 	if(proxy_protected == 0) {
-		but = uiDefBut(block, TEX, B_CONSTRAINT_TEST, "", xco+120, yco, 85, 18, con->name, 0.0, 29.0, 0.0, 0.0, "Constraint name"); 
-		uiButSetFunc(but, verify_constraint_name_func, con, con->name);
+		uiItemR(subrow, "", 0, &ptr, "name", 0);
 	}
 	else
-		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, con->name, xco+120, yco-1, 135, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
-	// XXX uiBlockSetCol(block, TH_AUTO);	
+		uiItemL(subrow, con->name, 0);
 
 	subrow= uiLayoutRow(row, 0);
 	uiLayoutSetAlignment(subrow, UI_LAYOUT_ALIGN_RIGHT);
@@ -1962,26 +1950,29 @@ void uiTemplateCurveMapping(uiLayout *layout, PointerRNA *ptr, char *propname, i
 
 #define WHEEL_SIZE	100
 
-void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int value_slider)
+void uiTemplateColorWheel(uiLayout *layout, PointerRNA *ptr, char *propname, int value_slider, int lock)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, propname);
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiLayout *col, *row;
+	float softmin, softmax, step, precision;
 	
 	if (!prop) {
 		printf("uiTemplateColorWheel: property not found: %s\n", propname);
 		return;
 	}
 	
+	RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
+	
 	col = uiLayoutColumn(layout, 0);
 	row= uiLayoutRow(col, 1);
 	
-	uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 0, 0, "");
+	uiDefButR(block, HSVCIRCLE, 0, "",	0, 0, WHEEL_SIZE, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 0, lock, "");
 	
 	uiItemS(row);
 	
 	if (value_slider)
-		uiDefButR(block, HSVCUBE, 0, "", WHEEL_SIZE+6, 0, 14, WHEEL_SIZE, ptr, propname, -1, 0.0, 0.0, 9, 0, "");
+		uiDefButR(block, HSVCUBE, 0, "", WHEEL_SIZE+6, 0, 14, WHEEL_SIZE, ptr, propname, -1, softmin, softmax, 9, 0, "");
 
 	/* maybe a switch for this?
 	row= uiLayoutRow(col, 0);
@@ -2213,7 +2204,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 	else
-		uiItemL(sub, name, icon);
+		uiItemL(sub, name, icon); /* fails, backdrop LISTROW... */
 
 	/* free name */
 	if(namebuf)
@@ -2297,6 +2288,7 @@ void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propna
 				icon= list_item_icon_get(C, &itemptr, rnaicon);
 				but= uiDefIconButR(block, LISTROW, 0, icon, 0,0,UI_UNIT_X*10,UI_UNIT_Y, activeptr, activepropname, 0, 0, i, 0, 0, "");
 				uiButSetFlag(but, UI_BUT_NO_TOOLTIP);
+				
 
 				i++;
 			}

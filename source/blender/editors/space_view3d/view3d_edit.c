@@ -453,7 +453,7 @@ enum {
 void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Cancel", ""},
+	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
 
 	{VIEWROT_MODAL_AXIS_SNAP_ENABLE,	"AXIS_SNAP_ENABLE", 0, "Enable Axis Snap", ""},
 	{VIEWROT_MODAL_AXIS_SNAP_DISABLE,	"AXIS_SNAP_DISABLE", 0, "Disable Axis Snap", ""},
@@ -1852,10 +1852,14 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 				/* lastview -  */
 
 				if(rv3d->persp != RV3D_CAMOB) {
-					/* store settings of current view before allowing overwriting with camera view */
-					QUATCOPY(rv3d->lviewquat, rv3d->viewquat);
-					rv3d->lview= rv3d->view;
-					rv3d->lpersp= rv3d->persp;
+
+					if (!rv3d->smooth_timer) {
+						/* store settings of current view before allowing overwriting with camera view
+						 * only if we're not currently in a view transition */
+						QUATCOPY(rv3d->lviewquat, rv3d->viewquat);
+						rv3d->lview= rv3d->view;
+						rv3d->lpersp= rv3d->persp;
+					}
 
 	#if 0
 					if(G.qual==LR_ALTKEY) {

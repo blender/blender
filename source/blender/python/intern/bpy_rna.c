@@ -371,11 +371,8 @@ static void pyrna_struct_dealloc( BPy_StructRNA *self )
 {
 	if (self->freeptr && self->ptr.data) {
 		IDP_FreeProperty(self->ptr.data);
-		if (self->ptr.type != &RNA_Context)
-		{
-			MEM_freeN(self->ptr.data);
-			self->ptr.data= NULL;
-		}
+		MEM_freeN(self->ptr.data);
+		self->ptr.data= NULL;
 	}
 
 	/* Note, for subclassed PyObjects we cant just call PyObject_DEL() directly or it will crash */
@@ -785,11 +782,17 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, v
 			StructRNA *ptype= RNA_property_pointer_type(ptr, prop);
 			int flag = RNA_property_flag(prop);
 
+			/* if property is an OperatorProperties pointer and value is a map, forward back to pyrna_pydict_to_props */
+			if (RNA_struct_is_a(ptype, &RNA_OperatorProperties) && PyDict_Check(value)) {
+				PointerRNA opptr = RNA_property_pointer_get(ptr, prop);
+				return pyrna_pydict_to_props(&opptr, value, 0, error_prefix);
+			}
+
 			if(!BPy_StructRNA_Check(value) && value != Py_None) {
 				PyErr_Format(PyExc_TypeError, "%.200s expected a %.200s type", error_prefix, RNA_struct_identifier(ptype));
 				return -1;
 			} else if((flag & PROP_NEVER_NULL) && value == Py_None) {
-				PyErr_Format(PyExc_TypeError, "%.200s does not suppory a 'None' assignment %.200s type", error_prefix, RNA_struct_identifier(ptype));
+				PyErr_Format(PyExc_TypeError, "%.200s does not support a 'None' assignment %.200s type", error_prefix, RNA_struct_identifier(ptype));
 				return -1;
 			} else {
 				BPy_StructRNA *param= (BPy_StructRNA*)value;
@@ -1354,6 +1357,8 @@ static int pyrna_prop_ass_subscript( BPy_PropertyRNA *self, PyObject *key, PyObj
 		PyErr_SetString(PyExc_AttributeError, "invalid key, key must be an int");
 		return -1;
 	}
+
+	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 }
 
 
@@ -1892,43 +1897,49 @@ static PyObject *pyrna_struct_getattro( BPy_StructRNA *self, PyObject *pyname )
 		ret = pyrna_func_to_py((BPy_DummyPointerRNA *)self, func);
 	}
 	else if (self->ptr.type == &RNA_Context) {
-		PointerRNA newptr;
-		ListBase newlb;
-		int done;
+		bContext *C = self->ptr.data;
+		if(C==NULL) {
+			PyErr_Format( PyExc_AttributeError, "StructRNA Context is 'NULL', can't get \"%.200s\" from context", name);
+			ret= NULL;
+		}
+		else {
+			PointerRNA newptr;
+			ListBase newlb;
 
-		done= CTX_data_get(self->ptr.data, name, &newptr, &newlb);
+			int done= CTX_data_get(C, name, &newptr, &newlb);
 
-		if(done==1) { /* found */
-			if (newptr.data) {
-				ret = pyrna_struct_CreatePyObject(&newptr);
-			}
-			else if (newlb.first) {
-				CollectionPointerLink *link;
-				PyObject *linkptr;
+			if(done==1) { /* found */
+				if (newptr.data) {
+					ret = pyrna_struct_CreatePyObject(&newptr);
+				}
+				else if (newlb.first) {
+					CollectionPointerLink *link;
+					PyObject *linkptr;
 
-				ret = PyList_New(0);
+					ret = PyList_New(0);
 
-				for(link=newlb.first; link; link=link->next) {
-					linkptr= pyrna_struct_CreatePyObject(&link->ptr);
-					PyList_Append(ret, linkptr);
-					Py_DECREF(linkptr);
+					for(link=newlb.first; link; link=link->next) {
+						linkptr= pyrna_struct_CreatePyObject(&link->ptr);
+						PyList_Append(ret, linkptr);
+						Py_DECREF(linkptr);
+					}
+				}
+				else {
+					ret = Py_None;
+					Py_INCREF(ret);
 				}
 			}
-			else {
+			else if (done==-1) { /* found but not set */
 				ret = Py_None;
 				Py_INCREF(ret);
 			}
-		}
-		else if (done==-1) { /* found but not set */
-			ret = Py_None;
-			Py_INCREF(ret);
-		}
-        else { /* not found in the context */
-        	/* lookup the subclass. raise an error if its not found */
-        	ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
-        }
+			else { /* not found in the context */
+				/* lookup the subclass. raise an error if its not found */
+				ret = PyObject_GenericGetAttr((PyObject *)self, pyname);
+			}
 
-		BLI_freelistN(&newlb);
+			BLI_freelistN(&newlb);
+		}
 	}
 	else {
 #if 0

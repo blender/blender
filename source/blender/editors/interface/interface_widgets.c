@@ -755,6 +755,9 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 		else alpha= 0.5f;
 	}
 	
+	/* extra feature allows more alpha blending */
+	if(but->type==LABEL && but->a1==1.0f) alpha *= but->a2;
+	
 	glEnable(GL_BLEND);
 	
 	if(icon && icon!=ICON_BLANK1) {
@@ -784,8 +787,14 @@ static void widget_draw_icon(uiBut *but, BIFIconID icon, float alpha, rcti *rect
 			xs= (rect->xmin+rect->xmax- height)/2;
 			ys= (rect->ymin+rect->ymax- height)/2;
 		}
-	
-		UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
+		
+		/* to indicate draggable */
+		if(but->dragpoin && (but->flag & UI_ACTIVE)) {
+			float rgb[3]= {1.25f, 1.25f, 1.25f};
+			UI_icon_draw_aspect_color(xs, ys, icon, aspect, rgb);
+		}
+		else
+			UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
 	}
 	
 	if(but->flag & UI_ICON_SUBMENU) {
@@ -1568,6 +1577,11 @@ void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
 	copy_v3_v3(hsvo, hsv);
 	
+	/* exception: if 'lock' is set (stored in but->a2),
+	 * lock the value of the color wheel to 1.
+	 * Useful for color correction tools where you're only interested in hue. */
+	if (but->a2) hsv[2] = 1.f;
+	
 	hsv_to_rgb(0.f, 0.f, hsv[2], colcent, colcent+1, colcent+2);
 	
 	glShadeModel(GL_SMOOTH);
@@ -1784,7 +1798,7 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	uiWidgetBase wtb;
 	float rad= 0.5f*(rect->xmax - rect->xmin);
 	float x, y;
-	float rgb[3], hsv[3], v;
+	float rgb[3], hsv[3], v, range;
 	int color_profile = but->block->color_profile;
 	
 	if (but->rnaprop) {
@@ -1799,6 +1813,10 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 	
 	if (color_profile)
 		v = linearrgb_to_srgb(v);
+
+	/* map v from property range to [0,1] */
+	range = but->softmax - but->softmin;
+	v =	(v - but->softmin)/range;
 	
 	widget_init(&wtb);
 	
@@ -2694,7 +2712,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 			
 			case HISTOGRAM:
-				ui_draw_but_HISTOGRAM(but, &tui->wcol_regular, rect);
+				ui_draw_but_HISTOGRAM(ar, but, &tui->wcol_regular, rect);
 				break;
 				
 			case BUT_CURVE:

@@ -328,7 +328,7 @@ static void rna_CastModifier_vgroup_set(PointerRNA *ptr, const char *value)
 static void rna_SolidifyModifier_vgroup_set(PointerRNA *ptr, const char *value)
 {
 	SolidifyModifierData *smd= (SolidifyModifierData*)ptr->data;
-	rna_object_vgroup_name_set(ptr, value, smd->vgroup, sizeof(smd->vgroup));
+	rna_object_vgroup_name_set(ptr, value, smd->defgrp_name, sizeof(smd->defgrp_name));
 }
 
 static void rna_DisplaceModifier_uvlayer_set(PointerRNA *ptr, const char *value)
@@ -2050,7 +2050,7 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop= RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "vgroup");
+	RNA_def_property_string_sdna(prop, NULL, "defgrp_name");
 	RNA_def_property_ui_text(prop, "Vertex Group", "Vertex group name.");
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SolidifyModifier_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");

@@ -103,7 +103,7 @@ static SpaceLink *action_new(const bContext *C)
 	ar->regiontype= RGN_TYPE_WINDOW;
 	
 	ar->v2d.tot.xmin= -10.0f;
-	ar->v2d.tot.ymin= (float)(-sa->winy);
+	ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
 	ar->v2d.tot.xmax= (float)(sa->winx);
 	ar->v2d.tot.ymax= 0.0f;
 	
@@ -113,7 +113,7 @@ static SpaceLink *action_new(const bContext *C)
  	ar->v2d.min[1]= 0.0f;
 	
 	ar->v2d.max[0]= MAXFRAMEF;
- 	ar->v2d.max[1]= 10000.0f;
+ 	ar->v2d.max[1]= FLT_MAX;
  	
 	ar->v2d.minzoom= 0.01f;
 	ar->v2d.maxzoom= 50;
@@ -475,7 +475,7 @@ void ED_spacetype_action(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype action region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	
 	art->init= action_header_area_init;
@@ -487,7 +487,7 @@ void ED_spacetype_action(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype action region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 200;
+	art->prefsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
 	art->init= action_channel_area_init;

@@ -139,21 +139,6 @@ class SubdivisionSet(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class Retopo(bpy.types.Operator):
-    '''TODO - doc'''
-
-    bl_idname = "object.retopology"
-    bl_label = "Retopology from Grease Pencil"
-    bl_register = True
-    bl_undo = True
-
-    def execute(self, context):
-        import retopo
-        reload(retopo)
-        retopo.main()
-        return {'FINISHED'}
-
-
 class ShapeTransfer(bpy.types.Operator):
     '''Copy the active objects current shape to other selected objects with the same number of verts'''
 
@@ -384,6 +369,5 @@ if __name__ == "__main__":
 
 bpy.types.register(SelectPattern)
 bpy.types.register(SubdivisionSet)
-bpy.types.register(Retopo)
 bpy.types.register(ShapeTransfer)
 bpy.types.register(JoinUVs)

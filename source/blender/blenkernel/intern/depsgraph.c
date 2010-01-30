@@ -29,12 +29,9 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef _WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_winstuff.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"

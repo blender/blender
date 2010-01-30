@@ -105,6 +105,7 @@ class WORLD_PT_world(WorldButtonsPanel):
 
 class WORLD_PT_mist(WorldButtonsPanel):
     bl_label = "Mist"
+    bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -135,6 +136,7 @@ class WORLD_PT_mist(WorldButtonsPanel):
 
 class WORLD_PT_stars(WorldButtonsPanel):
     bl_label = "Stars"
+    bl_default_closed = True
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
@@ -166,76 +168,109 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
-        world = context.world
-
-        self.layout.prop(world.ambient_occlusion, "enabled", text="")
+        light = context.world.lighting
+        self.layout.prop(light, "use_ambient_occlusion", text="")
 
     def draw(self, context):
         layout = self.layout
-        wide_ui = context.region.width > narrowui
-        ao = context.world.ambient_occlusion
+        light = context.world.lighting
 
-        layout.active = ao.enabled
+        layout.active = light.use_ambient_occlusion
 
-        layout.prop(ao, "gather_method", expand=True)
+        split = layout.split()
+        split.prop(light, "ao_factor", text="Factor")
+        split.prop(light, "ao_blend_mode", text="")
+
+class WORLD_PT_environment_lighting(WorldButtonsPanel):
+    bl_label = "Environment Lighting"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw_header(self, context):
+        light = context.world.lighting
+        self.layout.prop(light, "use_environment_lighting", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        light = context.world.lighting
+
+        layout.active = light.use_environment_lighting
+
+        split = layout.split()
+        split.prop(light, "environment_energy", text="Energy")
+        split.prop(light, "environment_color", text="")
+
+class WORLD_PT_indirect_lighting(WorldButtonsPanel):
+    bl_label = "Indirect Lighting"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw_header(self, context):
+        light = context.world.lighting
+        self.layout.prop(light, "use_indirect_lighting", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        light = context.world.lighting
+
+        layout.active = light.use_indirect_lighting
+
+        split = layout.split()
+        split.prop(light, "indirect_factor", text="Factor")
+        split.prop(light, "indirect_bounces", text="Bounces")
+
+class WORLD_PT_gather(WorldButtonsPanel):
+    bl_label = "Gather"
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw(self, context):
+        layout = self.layout
+        light = context.world.lighting
+
+        layout.active = light.use_ambient_occlusion or light.use_environment_lighting or light.use_indirect_lighting
+
+        layout.prop(light, "gather_method", expand=True)
 
         split = layout.split()
 
         col = split.column()
         col.label(text="Attenuation:")
-        if ao.gather_method == 'RAYTRACE':
-            col.prop(ao, "distance")
-        col.prop(ao, "falloff")
+        if light.gather_method == 'RAYTRACE':
+            col.prop(light, "distance")
+        col.prop(light, "falloff")
         sub = col.row()
-        sub.active = ao.falloff
-        sub.prop(ao, "falloff_strength", text="Strength")
+        sub.active = light.falloff
+        sub.prop(light, "falloff_strength", text="Strength")
 
-        if ao.gather_method == 'RAYTRACE':
-            if wide_ui:
-                col = split.column()
+        if light.gather_method == 'RAYTRACE':
+            col = split.column()
 
             col.label(text="Sampling:")
-            col.prop(ao, "sample_method", text="")
+            col.prop(light, "sample_method", text="")
 
             sub = col.column()
-            sub.prop(ao, "samples")
+            sub.prop(light, "samples")
 
-            if ao.sample_method == 'ADAPTIVE_QMC':
-                sub.prop(ao, "threshold")
-                sub.prop(ao, "adapt_to_speed", slider=True)
-            elif ao.sample_method == 'CONSTANT_JITTERED':
-                sub.prop(ao, "bias")
+            if light.sample_method == 'ADAPTIVE_QMC':
+                sub.prop(light, "threshold")
+                sub.prop(light, "adapt_to_speed", slider=True)
+            elif light.sample_method == 'CONSTANT_JITTERED':
+                sub.prop(light, "bias")
 
-        if ao.gather_method == 'APPROXIMATE':
-            if wide_ui:
-                col = split.column()
+        if light.gather_method == 'APPROXIMATE':
+            col = split.column()
 
             col.label(text="Sampling:")
-            col.prop(ao, "passes")
-            col.prop(ao, "error_tolerance", text="Error")
-            col.prop(ao, "pixel_cache")
-            col.prop(ao, "correction")
-
-        col = layout.column()
-        col.label(text="Influence:")
-
-        col.row().prop(ao, "blend_mode", expand=True)
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(ao, "energy")
-        col.prop(ao, "indirect_energy")
-
-        if wide_ui:
-            col = split.column()
-        col.prop(ao, "color")
-        col.prop(ao, "indirect_bounces")
+            col.prop(light, "passes")
+            col.prop(light, "error_tolerance", text="Error")
+            col.prop(light, "pixel_cache")
+            col.prop(light, "correction")
 
 bpy.types.register(WORLD_PT_context_world)
 bpy.types.register(WORLD_PT_preview)
 bpy.types.register(WORLD_PT_world)
 bpy.types.register(WORLD_PT_ambient_occlusion)
+bpy.types.register(WORLD_PT_environment_lighting)
+bpy.types.register(WORLD_PT_indirect_lighting)
+bpy.types.register(WORLD_PT_gather)
 bpy.types.register(WORLD_PT_mist)
 bpy.types.register(WORLD_PT_stars)
 

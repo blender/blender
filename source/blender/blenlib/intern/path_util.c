@@ -525,7 +525,7 @@ int BLI_parent_dir(char *path)
 	}
 }
 
-int BLI_convertstringframe(char *path, int frame)
+static int stringframe_chars(char *path, int *char_start, int *char_end)
 {
 	int ch_sta, ch_end, i;
 	/* Insert current frame: file### -> file001 */
@@ -544,54 +544,44 @@ int BLI_convertstringframe(char *path, int frame)
 			/* dont break, there may be a slash after this that invalidates the previous #'s */
 		}
 	}
-	if (ch_end) { /* warning, ch_end is the last # +1 */
-		/* Add the frame number? */
-		short numlen, hashlen;
-		char tmp[FILE_MAX];
-		
-		char format[16]; /* 6 is realistically the maxframe (300000), so 8 should be enough, but 16 to be safe. */
-		if (((ch_end-1)-ch_sta) >= 16) {
-			ch_end = ch_sta+15; /* disallow values longer then 'format' can hold */
-		}
-		
-		strcpy(tmp, path);
-		
-		numlen = 1 + (int)log10((double)frame); /* this is the number of chars in the number */
-		hashlen = ch_end - ch_sta;
-		
-		sprintf(format, "%d", frame);
-		
-		if (numlen==hashlen) { /* simple case */
-			memcpy(tmp+ch_sta, format, numlen);
-		} else if (numlen < hashlen) {
-			memcpy(tmp+ch_sta + (hashlen-numlen), format, numlen); /*dont copy the string terminator */
-			memset(tmp+ch_sta, '0', hashlen-numlen);
-		} else {
-			/* number is longer then number of #'s */
-			if (tmp[ch_end] == '\0') { /* hashes are last, no need to move any string*/
-				/* bad juju - not testing string length here :/ */
-				memcpy(tmp+ch_sta, format, numlen+1); /* add 1 to get the string terminator \0 */
-			} else {
-				/* we need to move the end characters, reuse i */
-				int j;
-				
-				i = strlen(tmp); /* +1 to copy the string terminator */
-				j = i + (numlen-hashlen); /* from/to */
-				
-				while (i >= ch_end) {
-					tmp[j] = tmp[i]; 
-					i--;
-					j--;
-				}
-				memcpy(tmp + ch_sta, format, numlen);
-			}
-		}	
+
+	if(ch_end) {
+		*char_start= ch_sta;
+		*char_end= ch_end;
+		return 1;
+	}
+	else {
+		*char_start= -1;
+		*char_end= -1;
+		return 0;
+	}
+}
+
+int BLI_convertstringframe(char *path, int frame)
+{
+	int ch_sta, ch_end;
+	if (stringframe_chars(path, &ch_sta, &ch_end)) { /* warning, ch_end is the last # +1 */
+		char tmp[FILE_MAX], format[64];
+		sprintf(format, "%%.%ds%%.%dd%%s", ch_sta, ch_end-ch_sta); /* example result: "%.12s%.5d%s" */
+		sprintf(tmp, format, path, frame, path+ch_end);
 		strcpy(path, tmp);
 		return 1;
 	}
 	return 0;
 }
 
+int BLI_convertstringframe_range(char *path, int sta, int end)
+{
+	int ch_sta, ch_end;
+	if (stringframe_chars(path, &ch_sta, &ch_end)) { /* warning, ch_end is the last # +1 */
+		char tmp[FILE_MAX], format[64];
+		sprintf(format, "%%.%ds%%.%dd_%%.%dd%%s", ch_sta, ch_end-ch_sta, ch_end-ch_sta); /* example result: "%.12s%.5d-%.5d%s" */
+		sprintf(tmp, format, path, sta, end, path+ch_end);
+		strcpy(path, tmp);
+		return 1;
+	}
+	return 0;
+}
 
 int BLI_convertstringcode(char *path, const char *basepath)
 {

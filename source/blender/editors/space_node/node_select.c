@@ -122,7 +122,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
 
 	/* WATCH THIS, there are a few other ways to change the active material */
 	if(node) {
-		if (node->id && GS(node->id->name)== ID_MA) {
+		if (node->id && ELEM(GS(node->id->name), ID_MA, ID_TE)) {
 			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, node->id);
 		}
 	}

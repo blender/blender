@@ -1558,7 +1558,7 @@ typedef struct UndoMesh {
 	EditFaceC *faces;
 	EditSelectionC *selected;
 	int totvert, totedge, totface, totsel;
-	short selectmode;
+	int selectmode, shapenr;
 	RetopoPaintData *retopo_paint_data;
 	char retopo_mode;
 	CustomData vdata, edata, fdata;
@@ -1598,6 +1598,7 @@ static void *editMesh_to_undoMesh(void *emv)
 	um= MEM_callocN(sizeof(UndoMesh), "undomesh");
 	
 	um->selectmode = em->selectmode;
+	um->shapenr = em->shapenr;
 	
 	for(eve=em->verts.first; eve; eve= eve->next) um->totvert++;
 	for(eed=em->edges.first; eed; eed= eed->next) um->totedge++;
@@ -1700,6 +1701,7 @@ static void undoMesh_to_editMesh(void *umv, void *emv)
 	memset(em, 0, sizeof(EditMesh));
 		
 	em->selectmode = um->selectmode;
+	em->shapenr = um->shapenr;
 	
 	init_editmesh_fastmalloc(em, um->totvert, um->totedge, um->totface);
 

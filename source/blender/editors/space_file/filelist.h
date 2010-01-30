@@ -81,6 +81,7 @@ void				filelist_hideparent(struct FileList* filelist, short hide);
 
 struct ListBase *	folderlist_new();
 void				folderlist_free(struct ListBase* folderlist);
+struct ListBase	*	folderlist_duplicate(ListBase* folderlist);
 void				folderlist_popdir(struct ListBase* folderlist, char *dir);
 void				folderlist_pushdir(struct ListBase* folderlist, const char *dir);
 int					folderlist_clear_next(struct SpaceFile* sfile);

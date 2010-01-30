@@ -942,7 +942,7 @@ public:
 		// at this stage we get vertex influence info that should go into me->verts and ob->defbase
 		// there's no info to which object this should be long so we associate it with skin controller data UID
 
-		// don't forget to call unique_vertexgroup_name before we copy
+		// don't forget to call defgroup_unique_name before we copy
 
 		// controller data uid -> [armature] -> joint data, 
 		// [mesh object]

@@ -227,6 +227,7 @@ static int add_empty_ks_path_exec (bContext *C, wmOperator *op)
 	ks->active_path= BLI_countlist(&ks->paths);
 	
 	ksp->groupmode= KSP_GROUP_KSNAME; // XXX?
+	ksp->idtype= ID_OB;
 	
 	return OPERATOR_FINISHED;
 }
@@ -320,10 +321,8 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 		 */
 		flag |= KEYINGSET_ABSOLUTE;
 		
-		if (IS_AUTOKEY_FLAG(AUTOMATKEY)) 
-			keyingflag |= INSERTKEY_MATRIX;
-		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) 
-			keyingflag |= INSERTKEY_NEEDED;
+		keyingflag |= ANIM_get_keyframing_flags(scene, 0);
+		
 		if (IS_AUTOKEY_FLAG(XYZ2RGB)) 
 			keyingflag |= INSERTKEY_XYZ2RGB;
 			
@@ -340,7 +339,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 	
 	/* check if property is able to be added */
-	if (ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
+	if (ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
 		if (path) {

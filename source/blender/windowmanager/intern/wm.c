@@ -298,6 +298,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	BLI_freelistN(&wm->queue);
 	
 	BLI_freelistN(&wm->paintcursors);
+	BLI_freelistN(&wm->drags);
 	BKE_reports_clear(&wm->reports);
 	
 	if(C && CTX_wm_manager(C)==wm) CTX_wm_manager_set(C, NULL);

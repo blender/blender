@@ -605,7 +605,8 @@ static void rna_Operator_unregister(const bContext *C, StructRNA *type)
 	WM_operatortype_remove(ot->idname);
 	MEM_freeN(idname);
 
-	// RNA_struct_free(&BLENDER_RNA, type); // WM_operatortype_remove calls this
+	/* not to be confused with the RNA_struct_free that WM_operatortype_remove calls, they are 2 different srna's */
+	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
 	if(C)
@@ -1184,6 +1185,11 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "keymaps", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "KeyMap");
 	RNA_def_property_ui_text(prop, "Key Maps", "Key maps configured as part of this configuration.");
+
+	prop= RNA_def_property(srna, "user_defined", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYCONF_USER);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "User Defined", "Indicates that a keyconfig was defined by the user.");
 
 	RNA_api_keyconfig(srna);
 

@@ -83,12 +83,12 @@ typedef struct CurveMapping {
 typedef struct Histogram {
 	int channels;
 	int x_resolution;
-	float data_r[512];
-	float data_g[512];
-	float data_b[512];
-	float min, max;
+	float data_r[256];
+	float data_g[256];
+	float data_b[256];
+	float xmax, ymax;
 	int ok;
-	int pad;
+	int flag;
 } Histogram;
 
 #endif

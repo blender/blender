@@ -256,6 +256,7 @@ extern StructRNA RNA_KeyboardSensor;
 extern StructRNA RNA_KeyConfig;
 extern StructRNA RNA_KeyingSet;
 extern StructRNA RNA_KeyingSetPath;
+extern StructRNA RNA_Keyframe;
 extern StructRNA RNA_KeyMap;
 extern StructRNA RNA_KeyMapItem;
 extern StructRNA RNA_KinematicConstraint;
@@ -647,7 +648,7 @@ void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin
 void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *softmin, float *softmax, float *step, float *precision);
 
 int RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **identifier);
-int RNA_enum_bitflag_identifierss(EnumPropertyItem *item, const int value, const char **identifier);
+int RNA_enum_bitflag_identifiers(EnumPropertyItem *item, const int value, const char **identifier);
 int RNA_enum_name(EnumPropertyItem *item, const int value, const char **name);
 
 void RNA_property_enum_items(struct bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free);

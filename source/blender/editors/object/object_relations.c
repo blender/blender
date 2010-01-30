@@ -91,6 +91,7 @@
 #include "ED_curve.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_view3d.h"
 
 #include "object_intern.h"
 
@@ -356,7 +357,7 @@ static EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA *ptr, 
 	GroupObject *go;
 
 	if(!ob || !ob->dup_group)
-		return DummyRNA_NULL_items;
+		return DummyRNA_DEFAULT_items;
 
 	memset(&item_tmp, 0, sizeof(item_tmp));
 
@@ -392,7 +393,7 @@ void OBJECT_OT_proxy_make (wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_string(ot->srna, "object", "", 19, "Proxy Object", "Name of lib-linked/grouped object to make a proxy for.");
-	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "Group object"); /* XXX, relies on hard coded ID at the moment */
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_DEFAULT_items, 0, "Type", "Group object"); /* XXX, relies on hard coded ID at the moment */
 	RNA_def_enum_funcs(prop, proxy_group_object_itemf);
 	ot->prop= prop;
 }
@@ -630,11 +631,11 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				}
 				else if(pararm && ob->type==OB_MESH && par->type == OB_ARMATURE) {
 					if(partype == PAR_ARMATURE_NAME)
-						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_NAME);
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_NAME, 0);
 					else if(partype == PAR_ARMATURE_ENVELOPE)
-						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_ENVELOPE);
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_ENVELOPE, 0);
 					else if(partype == PAR_ARMATURE_AUTO)
-						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_AUTO);
+						create_vgroups_from_armature(scene, ob, par, ARM_GROUPS_AUTO, 0);
 					
 					/* get corrected inverse */
 					ob->partype= PAROBJECT;
@@ -1826,4 +1827,44 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "material", 0, "Materials", "Make materials local to each datablock");
 	RNA_def_boolean(ot->srna, "texture", 0, "Textures", "Make textures local to each material");
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation Data", "Make animation data local to each object");
+}
+
+static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Base *base= ED_view3d_give_base_under_cursor(C, event->mval);
+	Material *ma;
+	char name[32];
+	
+	RNA_string_get(op->ptr, "name", name);
+	ma= (Material *)find_id("MA", name);
+	if(base==NULL || ma==NULL) 
+		return OPERATOR_CANCELLED;
+	
+	assign_material(base->object, ma, 1);
+	
+	DAG_ids_flush_update(0);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	
+	return OPERATOR_FINISHED;
+}
+
+/* used for dropbox */
+/* assigns to object under cursor, only first material slot */
+void OBJECT_OT_drop_named_material(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name= "Drop Named Material on Object";
+	ot->description = "";
+	ot->idname= "OBJECT_OT_drop_named_material";
+	
+	/* api callbacks */
+	ot->invoke= drop_named_material_invoke;
+	ot->poll= ED_operator_scene_editable;
+	
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_string(ot->srna, "name", "Material", 24, "Name", "Material name to assign.");
 }

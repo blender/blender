@@ -49,18 +49,22 @@ class VIEW3D_HT_header(bpy.types.Header):
             if edit_object:
                 sub.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
             elif obj:
-                if mode_string not in ('PAINT_WEIGHT', 'PAINT_TEXTURE'):
+                if mode_string not in ('PAINT_TEXTURE'):
                     sub.menu("VIEW3D_MT_%s" % mode_string.lower())
             else:
                 sub.menu("VIEW3D_MT_object")
 
         row.template_header_3D()
 
+        # do in C for now since these buttons cant be both toggle AND exclusive.
+        '''
         if obj and obj.mode == 'EDIT' and obj.type == 'MESH':
             row_sub = row.row(align=True)
             row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=0, icon='VERTEXSEL')
             row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=1, icon='EDGESEL')
             row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=2, icon='FACESEL')
+        '''
+
 
         # Particle edit
         if obj and obj.mode == 'PARTICLE_EDIT':
@@ -848,6 +852,24 @@ class VIEW3D_MT_vertex_group(bpy.types.Menu):
             layout.operator("object.vertex_group_remove", text="Remove Active Group")
             layout.operator("object.vertex_group_remove", text="Remove All Groups").all = True
 
+# ********** Weight paint menu **********
+
+class VIEW3D_MT_paint_weight(bpy.types.Menu):
+    bl_label = "Weights"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("paint.weight_from_bones", text="Assign Automatic From Bones").type = 'AUTOMATIC'
+        layout.operator("paint.weight_from_bones", text="Assign From Bone Envelopes").type = 'ENVELOPES'
+
+        layout.separator()
+
+        layout.operator("object.vertex_group_normalize_all", text="Normalize All")
+        layout.operator("object.vertex_group_normalize", text="Normalize")
+        layout.operator("object.vertex_group_invert", text="Invert")
+        layout.operator("object.vertex_group_clean", text="Clean")
+        layout.operator("object.vertex_group_levels", text="Levels")
 
 # ********** Sculpt menu **********
 
@@ -1258,7 +1280,7 @@ class VIEW3D_MT_edit_mesh_faces(bpy.types.Menu):
         # layout.operator("mesh.bevel")
         layout.operator("mesh.edge_face_add")
         layout.operator("mesh.fill")
-        layout.operator("mesh.beauty_fill")
+        layout.operator("mesh.beautify_fill")
         layout.operator("mesh.solidify")
 
         layout.separator()
@@ -1978,8 +2000,8 @@ bpy.types.register(VIEW3D_MT_hook)
 bpy.types.register(VIEW3D_MT_vertex_group)
 
 bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
-
 bpy.types.register(VIEW3D_MT_paint_vertex)
+bpy.types.register(VIEW3D_MT_paint_weight)
 
 bpy.types.register(VIEW3D_MT_particle)# Particle Menu
 bpy.types.register(VIEW3D_MT_particle_specials)

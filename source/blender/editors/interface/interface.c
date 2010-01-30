@@ -26,6 +26,7 @@
  */
 
 #include <float.h>
+#include <limits.h>
 #include <math.h>
 #include <string.h>
  
@@ -1680,12 +1681,14 @@ void ui_set_but_soft_range(uiBut *but, double value)
 	if(but->rnaprop) {
 		type= RNA_property_type(but->rnaprop);
 
+		/* clamp button range to something reasonable in case
+		 * we get -inf/inf from RNA properties */
 		if(type == PROP_INT) {
 			int imin, imax, istep;
 
 			RNA_property_int_ui_range(&but->rnapoin, but->rnaprop, &imin, &imax, &istep);
-			softmin= imin;
-			softmax= imax;
+			softmin= (imin == INT_MIN)? -1e4: imin;
+			softmax= (imin == INT_MAX)? 1e4: imax;
 			step= istep;
 			precision= 1;
 		}
@@ -1693,18 +1696,13 @@ void ui_set_but_soft_range(uiBut *but, double value)
 			float fmin, fmax, fstep, fprecision;
 
 			RNA_property_float_ui_range(&but->rnapoin, but->rnaprop, &fmin, &fmax, &fstep, &fprecision);
-			softmin= fmin;
-			softmax= fmax;
+			softmin= (fmin == -FLT_MAX)? -1e4: fmin;
+			softmax= (fmax == FLT_MAX)? 1e4: fmax;
 			step= fstep;
 			precision= fprecision;
 		}
 		else
 			return;
-
-		/* clamp button range to something reasonable in case
-		 * we get -inf/inf from RNA properties */
-		softmin= MAX2(softmin, -1e4);
-		softmax= MIN2(softmax, 1e4);
 
 		/* if the value goes out of the soft/max range, adapt the range */
 		if(value+1e-10 < softmin) {
@@ -2333,7 +2331,7 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	
 	but->pos= -1;	/* cursor invisible */
 
-	if(ELEM(but->type, NUM, NUMABS)) {	/* add a space to name */
+	if(ELEM4(but->type, NUM, NUMABS, NUMSLI, HSVSLI)) {	/* add a space to name */
 		slen= strlen(but->str);
 		if(slen>0 && slen<UI_MAX_NAME_STR-2) {
 			if(but->str[slen-1]!=' ') {
@@ -2745,6 +2743,7 @@ uiBut *uiDefButO(uiBlock *block, int type, char *opname, int opcontext, char *st
 	return but;
 }
 
+/* if a1==1.0 then a2 is an extra icon blending factor (alpha 0.0 - 1.0) */
 uiBut *uiDefIconBut(uiBlock *block, int type, int retval, int icon, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip)
 {
 	uiBut *but= ui_def_but(block, type, retval, "", x1, y1, x2, y2, poin, min, max, a1, a2, tip);
@@ -3014,6 +3013,45 @@ void uiButClearFlag(uiBut *but, int flag)
 int uiButGetRetVal(uiBut *but)
 {
 	return but->retval;
+}
+
+void uiButSetDragID(uiBut *but, ID *id)
+{
+	but->dragtype= WM_DRAG_ID;
+	but->dragpoin= (void *)id;
+}
+
+void uiButSetDragRNA(uiBut *but, PointerRNA *ptr)
+{
+	but->dragtype= WM_DRAG_RNA;
+	but->dragpoin= (void *)ptr;
+}
+
+void uiButSetDragPath(uiBut *but, const char *path)
+{
+	but->dragtype= WM_DRAG_PATH;
+	but->dragpoin= (void *)path;
+}
+
+void uiButSetDragName(uiBut *but, const char *name)
+{
+	but->dragtype= WM_DRAG_NAME;
+	but->dragpoin= (void *)name;
+}
+
+/* value from button itself */
+void uiButSetDragValue(uiBut *but)
+{
+	but->dragtype= WM_DRAG_VALUE;
+}
+
+void uiButSetDragImage(uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale)
+{
+	but->dragtype= WM_DRAG_PATH;
+	but->icon= icon; /* no flag UI_HAS_ICON, so icon doesnt draw in button */
+	but->dragpoin= (void *)path;
+	but->imb= imb;
+	but->imb_scale= scale;
 }
 
 PointerRNA *uiButGetOperatorPtrRNA(uiBut *but)

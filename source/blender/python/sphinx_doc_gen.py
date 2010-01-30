@@ -27,6 +27,13 @@ This will generate python files in "./source/blender/python/doc/sphinx-in"
 Generate html docs  by running...
     
     sphinx-build source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out
+
+
+For PDF generation
+
+    sphinx-build -b latex source/blender/python/doc/sphinx-in source/blender/python/doc/sphinx-out
+    cd source/blender/python/doc/sphinx-out
+    make
 '''
 
 
@@ -130,8 +137,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
     filepath = os.path.join(BASEPATH, module_name + ".rst")
     
     file = open(filepath, "w")
-    print(filepath)
-    print(filepath)
+
     fw = file.write
     
     fw(title + "\n")
@@ -169,18 +175,29 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         if value.__doc__:
             for l in value.__doc__.split("\n"):
                 fw("   %s\n" % l)
-        fw("\n")
+            fw("\n")
 
-        for key, descr in value.__dict__.items():
+        for key in sorted(value.__dict__.keys()):
             if key.startswith("__"):
                 continue
+            descr = value.__dict__[key]
+            if type(descr) == GetSetDescriptorType:
+                if descr.__doc__:
+                    fw("   .. attribute:: %s\n\n" % key)
+                    for l in descr.__doc__.split("\n"):
+                        fw("   %s\n" % l)
+                    fw("\n")
 
-            descr_type = type(descr)
-            if descr_type in (MethodDescriptorType, ): # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
+        for key in sorted(value.__dict__.keys()):
+            if key.startswith("__"):
+                continue
+            descr = value.__dict__[key]
+            if type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
                 if descr.__doc__:
                     for l in descr.__doc__.split("\n"):
                         fw("   %s\n" % l)
                     fw("\n")
+            
         fw("\n\n")
 
     file.close()
@@ -203,8 +220,12 @@ def rna2sphinx(BASEPATH):
     fw("project = 'Blender 3D'\n")
     # fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
-    fw("version = '2.5'\n")
-    fw("release = '2.5'\n")
+    fw("version = '%s'\n" % bpy.app.version_string)
+    fw("release = '%s'\n" % bpy.app.version_string)
+    fw("\n")
+    # needed for latex, pdf gen
+    fw("latex_documents = [ ('contents', 'contents.tex', 'Blender Index', 'Blender Foundation', 'manual'), ]\n")
+    fw("latex_paper_size = 'a4paper'\n")
     file.close()
 
 
@@ -212,35 +233,68 @@ def rna2sphinx(BASEPATH):
     file = open(filepath, "w")
     fw = file.write
     
+    fw("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+    fw(" Blender Documentation contents\n")
+    fw("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
+    fw("\n")
+    fw("This document is an API reference for Blender %s.\n" % bpy.app.version_string.split()[0])
+    fw("\n")
+    fw("An introduction to blender and python can be found at <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>\n")
     fw("\n")
     fw(".. toctree::\n")
-    fw("   :glob:\n\n")
-    #fw("   bpy.ops.*\n\n")
-    #fw("   bpy.types.*\n\n")
+    fw("   :maxdepth: 1\n\n")
+    fw("   bpy.ops.rst\n\n")
+    fw("   bpy.types.rst\n\n")
     
     # py modules
-    fw("   bpy.utils\n\n")
-    fw("   bpy.app\n\n")
+    fw("   bpy.utils.rst\n\n")
+    fw("   bpy.app.rst\n\n")
     
     # C modules
-    fw("   bpy.props\n\n")
+    fw("   bpy.props.rst\n\n")
     
-    fw("   Mathutils\n\n")
+    fw("   Mathutils.rst\n\n")
 
     file.close()
 
+
+
+    # internal modules
+    filepath = os.path.join(BASEPATH, "bpy.ops.rst")
+    file = open(filepath, "w")
+    fw = file.write
+    fw("Blender Operators (bpy.ops)\n")
+    fw("===========================\n\n")
+    fw(".. toctree::\n")
+    fw("   :glob:\n\n")
+    fw("   bpy.ops.*\n\n")
+    file.close()
+
+    filepath = os.path.join(BASEPATH, "bpy.types.rst")
+    file = open(filepath, "w")
+    fw = file.write
+    fw("Blender Types (bpy.types)\n")
+    fw("=========================\n\n")
+    fw(".. toctree::\n")
+    fw("   :glob:\n\n")
+    fw("   bpy.types.*\n\n")
+    file.close()
+
+
+
     # python modules
     from bpy import utils as module
-    pymodule2sphinx(BASEPATH, "bpy.utils", module, "Blender Python Utilities")
+    pymodule2sphinx(BASEPATH, "bpy.utils", module, "Utilities (bpy.utils)")
     from bpy import app as module
-    pymodule2sphinx(BASEPATH, "bpy.app", module, "Blender Python Application Constants")
+    pymodule2sphinx(BASEPATH, "bpy.app", module, "Application Data (bpy.app)")
 
     from bpy import props as module
-    pymodule2sphinx(BASEPATH, "bpy.props", module, "Blender Python Property Definitions")
+    pymodule2sphinx(BASEPATH, "bpy.props", module, "Property Definitions (bpy.props)")
     
     import Mathutils as module
-    pymodule2sphinx(BASEPATH, "Mathutils", module, "Module Mathutils")
+    pymodule2sphinx(BASEPATH, "Mathutils", module, "Math Types & Utilities (Mathutils)")
     del module
+
 
 
     if 0:
@@ -422,6 +476,7 @@ if __name__ == '__main__':
         # os.system("rm source/blender/python/doc/sphinx-in/*.rst")
         # os.system("rm -rf source/blender/python/doc/sphinx-out/*")
         rna2sphinx('source/blender/python/doc/sphinx-in')
+        # os.system("rm source/blender/python/doc/sphinx-in/bpy.types.*.rst")
 
     import sys
     sys.exit()

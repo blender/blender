@@ -72,6 +72,10 @@ GHOST_Window::~GHOST_Window()
 {
 }
 
+void* GHOST_Window::getOSWindow() const
+{
+	return NULL;
+}
 
 GHOST_TSuccess GHOST_Window::setDrawingContextType(GHOST_TDrawingContextType type)
 {

@@ -223,10 +223,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\include\ED_interface.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_keyframes_draw.h"
 				>
 			</File>

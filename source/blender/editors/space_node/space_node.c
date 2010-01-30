@@ -170,8 +170,12 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 	/* preview renders */
 	switch(wmn->category) {
 		case NC_SCENE:
-			if(wmn->data==ND_NODES)
-				ED_area_tag_refresh(sa);
+			switch (wmn->data) {
+				case ND_NODES:
+				case ND_FRAME:
+					ED_area_tag_refresh(sa);
+					break;
+			}
 			break;
 		case NC_WM:
 			if(wmn->data==ND_FILEREAD)
@@ -308,6 +312,10 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data==ND_SPACE_NODE)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_SCREEN:
+			if(wmn->data == ND_GPENCIL)	
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_SCENE:
 		case NC_MATERIAL:
 		case NC_TEXTURE:
@@ -376,7 +384,7 @@ void ED_spacetype_node(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->listener= node_region_listener;
 	art->init= node_header_area_init;
@@ -389,7 +397,7 @@ void ED_spacetype_node(void)
 	/* regions: listview/buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype node region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= 180; // XXX
+	art->prefsizex= 180; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= node_region_listener;
 	art->init= node_buttons_area_init;

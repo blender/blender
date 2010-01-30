@@ -156,16 +156,20 @@ void makeqtstring (RenderData *rd, char *string) {
 void filepath_qt(char *string, RenderData *rd) {
 	char txt[64];
 	
-	if (string==0) return;
+	if (string==NULL) return;
 	
 	strcpy(string, rd->pic);
 	BLI_convertstringcode(string, G.sce);
 	
 	BLI_make_existing_file(string);
 	
-	if (BLI_strcasecmp(string + strlen(string) - 4, ".mov")) {
-		sprintf(txt, "%04d_%04d.mov", (rd->sfra) , (rd->efra) );
-		strcat(string, txt);
+	if (!BLI_testextensie(string, ".mov")) {
+		/* if we dont have any #'s to insert numbers into, use 4 numbers by default */
+		if (strchr(string, '#')==NULL)
+			strcat(string, "####"); /* 4 numbers */
+
+		BLI_convertstringframe_range(string, rd->sfra, rd->efra);
+		strcat(string, ".mov");
 	}
 }
 

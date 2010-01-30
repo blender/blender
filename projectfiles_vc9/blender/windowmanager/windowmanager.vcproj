@@ -316,6 +316,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\windowmanager\intern\wm_dragdrop.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\windowmanager\intern\wm_draw.c"
 				>
 			</File>

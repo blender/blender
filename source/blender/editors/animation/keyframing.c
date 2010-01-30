@@ -783,11 +783,6 @@ short insert_keyframe_direct (PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, fl
 		curval= setting_get_rna_value(&ptr, prop, fcu->array_index);
 	}
 	
-	/* convert to degrees */
-	if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION) {
-		curval *= 180.0/M_PI;
-	}
-	
 	/* only insert keyframes where they are needed */
 	if (flag & INSERTKEY_NEEDED) {
 		short insert_mode;
@@ -883,6 +878,13 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 	if (array_index == -1) { 
 		array_index= 0;
 		array_index_max= RNA_property_array_length(&ptr, prop);
+		
+		/* for single properties, increase max_index so that the property itself gets included,
+		 * but don't do this for standard arrays since that can cause corruption issues 
+		 * (extra unused curves)
+		 */
+		if (array_index_max == array_index)
+			array_index_max++;
 	}
 	
 	/* will only loop once unless the array index was -1 */
@@ -899,10 +901,6 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 				fcu->color_mode= FCURVE_COLOR_AUTO_RGB;
 			}
 		}
-		
-		/* mark the curve if it's a new rotation curve */
-		if ((fcu->totvert == 0) && (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION))
-			fcu->flag |= FCURVE_ROTATION_DEGREES;
 		
 		/* insert keyframe */
 		ret += insert_keyframe_direct(ptr, prop, fcu, cfra, flag);
@@ -925,6 +923,12 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 {
 	AnimData *adt= BKE_animdata_from_id(id);
 	FCurve *fcu = NULL;
+	
+	/* sanity checks */
+	if ELEM(NULL, id, adt) {
+		printf("ERROR: no ID-block and/or AnimData to delete keyframe from \n");
+		return 0;
+	}	
 	
 	/* get F-Curve
 	 * Note: here is one of the places where we don't want new Action + F-Curve added!

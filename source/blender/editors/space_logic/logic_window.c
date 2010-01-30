@@ -375,7 +375,7 @@ void do_logic_buts(bContext *C, void *arg, int event)
 	switch(event) {
 
 	case B_SETPROP:
-		/* check for inconsistant types */
+		/* check for inconsistent types */
 		ob->gameflag &= ~(OB_SECTOR|OB_MAINACTOR|OB_DYNAMIC|OB_ACTOR);
 		break;
 

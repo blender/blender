@@ -54,6 +54,19 @@ char *BLI_strdup(const char *str) {
 	return BLI_strdupn(str, strlen(str));
 }
 
+char *BLI_strdupcat(const char *str1, const char *str2)
+{
+	int len;
+	char *n;
+	
+	len= strlen(str1)+strlen(str2);
+	n= MEM_mallocN(len+1, "strdupcat");
+	strcpy(n, str1);
+	strcat(n, str2);
+	
+	return n;
+}
+
 char *BLI_strncpy(char *dst, const char *src, int maxncpy) {
 	int srclen= strlen(src);
 	int cpylen= (srclen>(maxncpy-1))?(maxncpy-1):srclen;
