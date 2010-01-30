@@ -37,9 +37,8 @@ class DATA_PT_modifiers(DataButtonsPanel):
         ob = context.object
         wide_ui = context.region.width > narrowui
         compact_mod = context.region.width < narrowmod
-
-        row = layout.row()
-        row.operator_menu_enum("object.modifier_add", "type")
+        
+        layout.operator_menu_enum("object.modifier_add", "type")
 
         for md in ob.modifiers:
             box = layout.template_modifier(md, compact=compact_mod)
