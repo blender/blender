@@ -467,12 +467,10 @@ static void *_edge_getCo(CCGEdge *e, int lvl, int x, int dataSize) {
 	int levelBase = lvl + (1<<lvl) - 1;
 	return &EDGE_getLevelData(e)[dataSize*(levelBase + x)];
 }
-#if 0
 static float *_edge_getNo(CCGEdge *e, int lvl, int x, int dataSize, int normalDataOffset) {
 	int levelBase = lvl + (1<<lvl) - 1;
 	return (float*) &EDGE_getLevelData(e)[dataSize*(levelBase + x) + normalDataOffset];
 }
-#endif
 static void *_edge_getCoVert(CCGEdge *e, CCGVert *v, int lvl, int x, int dataSize) {
 	int levelBase = lvl + (1<<lvl) - 1;
 	if (v==e->v0) {
@@ -534,6 +532,12 @@ static CCG_INLINE void *_face_getIECo(CCGFace *f, int lvl, int S, int x, int lev
 	int spacing = 1<<(levels-lvl);
 	byte *gridBase = FACE_getCenterData(f) + dataSize*(1 + S*(maxGridSize + maxGridSize*maxGridSize));
 	return &gridBase[dataSize*x*spacing];
+}
+static CCG_INLINE void *_face_getIENo(CCGFace *f, int lvl, int S, int x, int levels, int dataSize, int normalDataOffset) {
+	int maxGridSize = 1 + (1<<(levels-1));
+	int spacing = 1<<(levels-lvl);
+	byte *gridBase = FACE_getCenterData(f) + dataSize*(1 + S*(maxGridSize + maxGridSize*maxGridSize));
+	return &gridBase[dataSize*x*spacing + normalDataOffset];
 }
 static CCG_INLINE void *_face_getIFCo(CCGFace *f, int lvl, int S, int x, int y, int levels, int dataSize) {
 	int maxGridSize = 1 + (1<<(levels-1));
@@ -1139,8 +1143,11 @@ CCGError ccgSubSurf_processSync(CCGSubSurf *ss) {
 	return eCCGError_None;
 }
 
+#define VERT_getNo(e, lvl)					_vert_getNo(e, lvl, vertDataSize, normalDataOffset)
+#define EDGE_getNo(e, lvl, x)				_edge_getNo(e, lvl, x, vertDataSize, normalDataOffset)
 #define FACE_getIFNo(f, lvl, S, x, y)		_face_getIFNo(f, lvl, S, x, y, subdivLevels, vertDataSize, normalDataOffset)
 #define FACE_calcIFNo(f, lvl, S, x, y, no)	_face_calcIFNo(f, lvl, S, x, y, no, subdivLevels, vertDataSize)
+#define FACE_getIENo(f, lvl, S, x)			_face_getIENo(f, lvl, S, x, subdivLevels, vertDataSize, normalDataOffset)
 static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 	CCGVert **effectedV, CCGEdge **effectedE, CCGFace **effectedF,
 	int numEffectedV, int numEffectedE, int numEffectedF) {
@@ -1304,6 +1311,26 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 					}
 				}
 			}
+
+			VertDataCopy((float*)((byte*)FACE_getCenterData(f) + normalDataOffset),
+				FACE_getIFNo(f, lvl, S, 0, 0));
+
+			for (x=1; x<gridSize-1; x++)
+				NormCopy(FACE_getIENo(f, lvl, S, x),
+					FACE_getIFNo(f, lvl, S, x, 0));
+		}
+	}
+
+	for (ptrIdx=0; ptrIdx<numEffectedE; ptrIdx++) {
+		CCGEdge *e = (CCGEdge*) effectedE[ptrIdx];
+
+		if (e->numFaces) {
+			CCGFace *f = e->faces[0];
+			int x;
+
+			for (x=0; x<edgeSize; x++)
+				NormCopy(EDGE_getNo(e, lvl, x),
+					_face_getIFNoEdge(f, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset));
 		}
 	}
 }
