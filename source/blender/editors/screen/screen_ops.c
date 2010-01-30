@@ -3397,7 +3397,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	
 	rr= RE_AcquireResultWrite(oglrender->re);
 	if(rr->rectf==NULL)
-		rr->rectf= MEM_mallocN(sizeof(float)*4*sizex*sizex, "32 bits rects");
+		rr->rectf= MEM_mallocN(sizeof(float)*4*sizex*sizey, "32 bits rects");
 	RE_ReleaseResult(oglrender->re);
 	
 	return 1;

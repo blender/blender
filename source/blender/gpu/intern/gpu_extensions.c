@@ -103,7 +103,7 @@ int GPU_non_power_of_two_support()
 	/* Exception for buggy ATI/Apple driver in Mac OS X 10.5/10.6,
 	 * they claim to support this but can cause system freeze */
 #ifdef __APPLE__
-	if(strcmp(glGetString(GL_VENDOR), "ATI Technologies Inc.") == 0)
+	if(strcmp((char*)glGetString(GL_VENDOR), "ATI Technologies Inc.") == 0)
 		return 0;
 #endif
 
