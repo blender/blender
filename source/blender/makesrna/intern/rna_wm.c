@@ -605,7 +605,8 @@ static void rna_Operator_unregister(const bContext *C, StructRNA *type)
 	WM_operatortype_remove(ot->idname);
 	MEM_freeN(idname);
 
-	// RNA_struct_free(&BLENDER_RNA, type); // WM_operatortype_remove calls this
+	/* not to be confused with the RNA_struct_free that WM_operatortype_remove calls, they are 2 different srna's */
+	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
 	if(C)
