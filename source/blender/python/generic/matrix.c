@@ -1233,8 +1233,6 @@ static PyObject *Matrix_getMedianScale( MatrixObject * self, void *type )
 
 static PyObject *Matrix_getIsNegative( MatrixObject * self, void *type )
 {
-	float vec[3];
-
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 
@@ -1257,7 +1255,7 @@ static PyGetSetDef Matrix_getseters[] = {
 	{"row_size", (getter)Matrix_getRowSize, (setter)NULL, "The row size of the matrix (readonly). **type** int", NULL},
 	{"col_size", (getter)Matrix_getColSize, (setter)NULL, "The column size of the matrix (readonly). **type** int", NULL},
 	{"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, "The average scale applied to each axis (readonly). **type** float", NULL},
-	{"is_negative", (getter)Matrix_getIsNegative, (setter)NULL, "True if this matrix results in a negative scale, (3x3, 4x4 only) (readonly). **type** bool", NULL},
+	{"is_negative", (getter)Matrix_getIsNegative, (setter)NULL, "True if this matrix results in a negative scale, 3x3 and 4x4 only, (readonly). **type** bool", NULL},
 	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
 	{"_owner",(getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
