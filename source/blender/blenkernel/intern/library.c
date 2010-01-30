@@ -117,6 +117,7 @@
 #include "BKE_idprop.h"
 #include "BKE_particle.h"
 #include "BKE_gpencil.h"
+#include "BKE_fcurve.h"
 
 #define MAX_IDPUP		60	/* was 24 */
 
@@ -706,16 +707,16 @@ void animdata_dtar_clear_cb(ID *id, AnimData *adt, void *userdata)
 	/* find the driver this belongs to and update it */
 	for (fcu=adt->drivers.first; fcu; fcu=fcu->next) {
 		driver= fcu->driver;
-
+		
 		if (driver) {
 			DriverVar *dvar;
 			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
-				DriverTarget *dtar= &dvar->targets[0];
-				int tarIndex= 0;
-				for (; tarIndex < MAX_DRIVER_TARGETS; tarIndex++, dtar++) {
-					if(dtar->id == userdata)
+				DRIVER_TARGETS_USED_LOOPER(dvar) 
+				{
+					if (dtar->id == userdata)
 						dtar->id= NULL;
 				}
+				DRIVER_TARGETS_LOOPER_END
 			}
 		}
 	}
