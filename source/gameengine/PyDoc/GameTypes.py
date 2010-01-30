@@ -142,6 +142,11 @@ class SCA_ISensor(SCA_ILogicBrick):
 	@type triggered: boolean
 	@ivar positive: True if this sensor brick is in a positive state. (read-only)
 	@type positive: boolean
+	@ivar status: The status of the sensor. (read-only)
+		KX_SENSOR_INACTIVE, KX_SENSOR_JUST_ACTIVATED, 
+		KX_SENSOR_ACTIVE, KX_SENSOR_JUST_DEACTIVATED
+		Note: this convenient attribute combines the values of triggered and positive attributes
+	@type status: int from 0-3.
 	"""
 	
 	def reset():
