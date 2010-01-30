@@ -1529,6 +1529,8 @@ class KX_GameObject(SCA_IObject):
 	@ivar visible: visibility flag.
 		- note: Game logic will still run for invisible objects.
 	@type visible: boolean
+	@ivar color: The object color of the object
+	@type color: list [r, g, b, a]
 	@ivar occlusion: occlusion capability flag.
 	@type occlusion: boolean
 	@ivar position: The object's position. 
