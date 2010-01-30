@@ -94,16 +94,17 @@ extern "C" {
 	}
 
 	void init_camera(Render* re){
-		Object* maincam_obj = re->scene->camera;
-		// Camera *cam = (Camera*) maincam_obj->data;
-		
-		freestyle_viewpoint[0] = maincam_obj->obmat[3][0];
-		freestyle_viewpoint[1] = maincam_obj->obmat[3][1];
-		freestyle_viewpoint[2] = maincam_obj->obmat[3][2];
+		// It is assumed that imported meshes are in the camera coordinate system.
+		// Therefore, the view point (i.e., camera position) is at the origin, and
+		// the the model-view matrix is simply the identity matrix.
+
+		freestyle_viewpoint[0] = 0.0;
+		freestyle_viewpoint[1] = 0.0;
+		freestyle_viewpoint[2] = 0.0;
 		
 		for( int i = 0; i < 4; i++ )
 		   for( int j = 0; j < 4; j++ )
-			freestyle_mv[i][j] = re->viewmat[i][j];
+			freestyle_mv[i][j] = (i == j) ? 1.0 : 0.0;
 		
 		for( int i = 0; i < 4; i++ )
 		   for( int j = 0; j < 4; j++ )

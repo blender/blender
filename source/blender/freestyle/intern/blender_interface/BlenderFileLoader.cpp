@@ -207,32 +207,10 @@ void BlenderFileLoader::addTriangle(struct LoaderState *ls, float v1[3], float v
 
 void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 {
+	// We parse vlak nodes and count the number of faces after the clipping by
+	// the near and far view planes is applied (Note: mesh vertices are in the
+	// camera coordinate system).
 	VlakRen *vlr;
-	
-	// Mesh *mesh = (Mesh *)ob->data;
-	//---------------------
-	// mesh => obr
-	
-	// We invert the matrix in order to be able to retrieve the shape's coordinates in its local coordinates system (origin is the iNode pivot)
-	// Lib3dsMatrix M;
-	// lib3ds_matrix_copy(M, mesh->matrix);
-	// lib3ds_matrix_inv(M);
-	//---------------------
-	// M allows to recover world coordinates from camera coordinates
-	// M => obr->ob->imat * obr->obmat  (multiplication from left to right)
-	float M[4][4];
-	mul_m4_m4m4(M, obr->ob->imat, obr->ob->obmat); 
-	
-	// We compute a normal per vertex and manages the smoothing of the shape:
-	// Lib3dsVector *normalL=(Lib3dsVector*)malloc(3*sizeof(Lib3dsVector)*mesh->faces);
-	// lib3ds_mesh_calculate_normals(mesh, normalL);
-	// mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mface, mesh->totface, NULL);
-	//---------------------
-	// already calculated and availabe in vlak ?	
-//	printf("%s\n", obr->ob->id.name + 2);
-	
-	// We build the rep:
-	IndexedFaceSet *rep;
 	unsigned numFaces = 0;
 	int clip_1[3], clip_2[3];
 	for(int a=0; a < obr->totvlak; a++) {
@@ -250,6 +228,7 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 	if (numFaces == 0)
 		return;
 
+	// We allocate memory for the meshes to be imported
 	NodeTransform *currentMesh = new NodeTransform;
 	NodeShape * shape = new NodeShape;
 
@@ -283,11 +262,9 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 	ls.currentMIndex = 0;
 	
 	FrsMaterial tmpMat;
-	
-	// we want to find the min and max coordinates as we build the rep. 
-	// We initialize the min and max values whith the first vertex.
-	//lib3ds_vector_transform(pvtmp, M, mesh->pointL[mesh->faceL[0].points[0]].pos);
 
+	// We parse the vlak nodes again and import meshes while applying the clipping
+	// by the near and far view planes.
 	int p;
 	for(p=0; p < obr->totvlak; ++p) // we parse the faces of the mesh
 	{
@@ -344,10 +321,6 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 
 			if (numTris_1 > 0) {
 				clipTriangle(numTris_1, triCoords, vlr->v1, vlr->v2, vlr->v3, clip_1);
-				for (i = 0; i < 2 + numTris_1; i++) {
-					mul_m4_v3(M, triCoords[i]); // camera to world
-//					printf("%d %f, %f, %f\n", i, triCoords[i][0], triCoords[i][1], triCoords[i][2]);
-				}
 				for (i = 0; i < numTris_1; i++) {
 					addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2]);
 					_numFacesRead++;
@@ -356,10 +329,6 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 
 			if (numTris_2 > 0) {
 				clipTriangle(numTris_2, triCoords, vlr->v1, vlr->v3, vlr->v4, clip_2);
-				for (i = 0; i < 2 + numTris_2; i++) {
-					mul_m4_v3(M, triCoords[i]); // camera to world
-//					printf("%d %f, %f, %f\n", i, triCoords[i][0], triCoords[i][1], triCoords[i][2]);
-				}
 				for (i = 0; i < numTris_2; i++) {
 					addTriangle(&ls, triCoords[0], triCoords[i+1], triCoords[i+2]);
 					_numFacesRead++;
@@ -406,6 +375,7 @@ void BlenderFileLoader::insertShapeNode(ObjectRen *obr, int id)
 	delete [] NIndices;
 	
 	// Create the IndexedFaceSet with the retrieved attributes
+	IndexedFaceSet *rep;
 	rep = new IndexedFaceSet(cleanVertices, cvSize, 
 	                         cleanNormals, cnSize,
 	                         marray, meshFrsMaterials.size(),
