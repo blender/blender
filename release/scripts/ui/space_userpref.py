@@ -1268,6 +1268,7 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         for km in kc.keymaps:
             km = km.active()
+            layout.set_context_pointer("keymap", km)
 
             filtered_items = [kmi for kmi in km.items if filter in kmi.name.lower()]
 
@@ -1282,10 +1283,8 @@ class USERPREF_PT_input(bpy.types.Panel):
 
                 if km.user_defined:
                     op = row.operator("wm.keymap_restore", text="Restore")
-                    op.keymap = km
                 else:
                     op = row.operator("wm.keymap_edit", text="Edit")
-                    op.keymap = km
 
                 for kmi in filtered_items:
                     self.draw_kmi(kc, km, kmi, col, 1)
@@ -1295,7 +1294,6 @@ class USERPREF_PT_input(bpy.types.Panel):
                 subcol = col.split(percentage=0.2).column()
                 subcol.active = km.user_defined
                 op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
-                op.keymap = km
 
     def draw_hierarchy(self, defkc, layout):
         for entry in KM_HIERARCHY:
