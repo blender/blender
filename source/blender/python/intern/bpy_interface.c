@@ -235,6 +235,7 @@ static void bpy_init_modules( void )
 		sprintf(tmpstr, "%d.%02d (sub %d)", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 		PyModule_AddStringConstant(mod, "_VERSION_STR",  tmpstr);
 		PyModule_AddStringConstant(mod, "_BINPATH",  bprogname);
+		PyModule_AddIntConstant(mod, "_DEBUG",  G.f & G_DEBUG ? 1:0);
 	}
 
 	/* add our own modules dir, this is a python package */

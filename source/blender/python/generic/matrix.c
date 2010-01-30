@@ -1231,14 +1231,34 @@ static PyObject *Matrix_getMedianScale( MatrixObject * self, void *type )
 	return PyFloat_FromDouble(mat3_to_scale(mat));
 }
 
+static PyObject *Matrix_getIsNegative( MatrixObject * self, void *type )
+{
+	float vec[3];
+
+	if(!BaseMath_ReadCallback(self))
+		return NULL;
+
+	/*must be 3-4 cols, 3-4 rows, square matrix*/
+	if(self->colSize == 4 && self->rowSize == 4)
+		return PyBool_FromLong(is_negative_m4((float (*)[4])*self->matrix));
+	else if(self->colSize == 3 && self->rowSize == 3)
+		return PyBool_FromLong(is_negative_m3((float (*)[3])*self->matrix));
+	else {
+		PyErr_SetString(PyExc_AttributeError, "Matrix.is_negative: inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
+		return NULL;
+	}
+}
+
+
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */
 /*****************************************************************************/
 static PyGetSetDef Matrix_getseters[] = {
 	{"row_size", (getter)Matrix_getRowSize, (setter)NULL, "The row size of the matrix (readonly). **type** int", NULL},
 	{"col_size", (getter)Matrix_getColSize, (setter)NULL, "The column size of the matrix (readonly). **type** int", NULL},
-    {"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, "The average scale applied to each axis (readonly). **type** float", NULL},
-	{"wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
+	{"median_scale", (getter)Matrix_getMedianScale, (setter)NULL, "The average scale applied to each axis (readonly). **type** float", NULL},
+	{"is_negative", (getter)Matrix_getIsNegative, (setter)NULL, "True if this matrix results in a negative scale, (3x3, 4x4 only) (readonly). **type** bool", NULL},
+	{"is_wrapped", (getter)BaseMathObject_getWrapped, (setter)NULL, BaseMathObject_Wrapped_doc, NULL},
 	{"_owner",(getter)BaseMathObject_getOwner, (setter)NULL, BaseMathObject_Owner_doc, NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };

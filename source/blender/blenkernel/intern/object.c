@@ -1980,7 +1980,7 @@ void set_no_parent_ipo(int val)
 void where_is_object_time(Scene *scene, Object *ob, float ctime)
 {
 	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
-	float stime=ctime, fac1, fac2, vec[3];
+	float stime=ctime, fac1, fac2;
 	int a;
 	
 	/* new version: correct parent+vertexparent and track+parent */
@@ -2050,9 +2050,8 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	}
 	
 	/* set negative scale flag in object */
-	cross_v3_v3v3(vec, ob->obmat[0], ob->obmat[1]);
-	if( dot_v3v3(vec, ob->obmat[2]) < 0.0 ) ob->transflag |= OB_NEG_SCALE;
-	else ob->transflag &= ~OB_NEG_SCALE;
+	if(is_negative_m4(ob->obmat))	ob->transflag |= OB_NEG_SCALE;
+	else							ob->transflag &= ~OB_NEG_SCALE;
 }
 
 static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul)
