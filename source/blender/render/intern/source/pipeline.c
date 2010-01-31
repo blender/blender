@@ -2836,9 +2836,18 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 			
 			/* float factor for random dither, imbuf takes care of it */
 			ibuf->dither= scene->r.dither_intensity;
+			
 			/* prepare to gamma correct to sRGB color space */
-			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-				ibuf->profile = IB_PROFILE_LINEAR_RGB;
+			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+				/* sequence editor can generate 8bpc render buffers */
+				if (ibuf->rect) {
+					ibuf->profile = IB_PROFILE_SRGB;
+					if (ELEM(scene->r.imtype, R_OPENEXR, R_RADHDR))
+						IMB_float_from_rect(ibuf);
+				} else {				
+					ibuf->profile = IB_PROFILE_LINEAR_RGB;
+				}
+			}
 
 			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 			
