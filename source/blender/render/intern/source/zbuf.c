@@ -3828,6 +3828,11 @@ static int shade_tra_samples(ShadeSample *ssamp, StrandShadeCache *cache, int x,
 						renderspothalo(shi, shr->combined, shr->combined[3]);
 			}
 		}
+		else if(shi->passflag & SCE_PASS_Z) {
+			for(samp=0; samp<ssamp->tot; samp++, shi++, shr++)
+				shr->z= -shi->co[2];
+		}
+
 		return 1;
 	}
 	return 0;
