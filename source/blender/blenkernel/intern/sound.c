@@ -33,6 +33,20 @@
 
 static int force_device = -1;
 
+int sound_define_from_str(char *str)
+{
+	if (BLI_strcaseeq(str, "NULL"))
+		return AUD_NULL_DEVICE;
+	if (BLI_strcaseeq(str, "SDL"))
+		return AUD_SDL_DEVICE;
+	if (BLI_strcaseeq(str, "OPENAL"))
+		return AUD_OPENAL_DEVICE;
+	if (BLI_strcaseeq(str, "JACK"))
+		return AUD_JACK_DEVICE;
+
+	return -1;
+}
+
 void sound_force_device(int device)
 {
 	force_device = device;

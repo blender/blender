@@ -221,6 +221,8 @@ static void print_help(void)
 	printf ("  -nojoystick\tDisable joystick support\n");
 	printf ("  -noglsl\tDisable GLSL shading\n");
 	printf ("  -noaudio\tForce sound system to None\n");
+	printf ("  -setaudio\tForce sound system to a specific device\n");
+	printf ("    \tNULL SDL OPENAL JACK\n");
 	printf ("  -h\t\tPrint this help text\n");
 	printf ("  -y\t\tDisable automatic python script execution (pydrivers, pyconstraints, pynodes)\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
@@ -476,7 +478,7 @@ int main(int argc, char **argv)
 					break;
 				case 'n':
 				case 'N':
-					if (BLI_strcasecmp(argv[a], "-nojoystick") == 0) {
+					if (BLI_strcaseeq(argv[a], "-nojoystick")) {
 						/**
 						 	don't initialize joysticks if user doesn't want to use joysticks
 							failed joystick initialization delays over 5 seconds, before game engine start
@@ -484,10 +486,17 @@ int main(int argc, char **argv)
 						SYS_WriteCommandLineInt(syshandle,"nojoystick",1);
 						if (G.f & G_DEBUG) printf("disabling nojoystick\n");
 					}
-					else if (BLI_strcasecmp(argv[a], "-noglsl") == 0)
+					else if (BLI_strcaseeq(argv[a], "-noglsl"))
 						GPU_extensions_disable();
-					else if (BLI_strcasecmp(argv[a], "-noaudio") == 0)
+					else if (BLI_strcaseeq(argv[a], "-noaudio"))
 						sound_force_device(0);
+					break;
+				case 's':
+				case 'S':
+					if (BLI_strcaseeq(argv[a], "-setaudio") && a + 1 < argc) {
+						a++;
+						sound_force_device(sound_define_from_str(argv[a]));
+					}
 					break;
 				}
 			}
@@ -526,8 +535,15 @@ int main(int argc, char **argv)
 					break;
 				case 'n':
 				case 'N':
-					if (BLI_strcasecmp(argv[a], "-noaudio") == 0)
+					if (BLI_strcaseeq(argv[a], "-noaudio"))
 						sound_force_device(0);
+					break;
+				case 's':
+				case 'S':
+					if (BLI_strcaseeq(argv[a], "-setaudio") && a + 1 < argc) {
+						a++;
+						sound_force_device(sound_define_from_str(argv[a]));
+					}
 					break;
 				}
 			}
@@ -664,20 +680,30 @@ int main(int argc, char **argv)
 				}
 				break;
 			case 'S':
-				if(++a < argc) {
-					set_scene_name(argv[a]);
+				if (BLI_strcaseeq(argv[a], "-setaudio") && a + 1 < argc) {
+					a++; /* already taken care of, just need to swallow the next argument */
+				}
+				else if (argv[a][2] == '\0') {
+					if(++a < argc) {
+						set_scene_name(argv[a]);
+					}
 				}
 				break;
 			case 's':
-				a++;
-				if (CTX_data_scene(C)) {
-					Scene *scene= CTX_data_scene(C);
-					if (a < argc) {
-						int frame = atoi(argv[a]);
-						(scene->r.sfra) = MIN2(MAXFRAME, MAX2(1, frame));
+				if (BLI_strcaseeq(argv[a], "-setaudio") && a + 1 < argc) {
+					a++; /* already taken care of, just need to swallow the next argument */
+				}
+				else if (argv[a][2] == '\0') {
+					a++;
+					if (CTX_data_scene(C)) {
+						Scene *scene= CTX_data_scene(C);
+						if (a < argc) {
+							int frame = atoi(argv[a]);
+							(scene->r.sfra) = MIN2(MAXFRAME, MAX2(1, frame));
+						}
+					} else {
+						printf("\nError: no blend loaded. cannot use '-s'.\n");
 					}
-				} else {
-					printf("\nError: no blend loaded. cannot use '-s'.\n");
 				}
 				break;
 			case 'e':
