@@ -644,13 +644,14 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel):
         settings = self.paint_settings(context)
         brush = settings.brush
         tex_slot = brush.texture_slot
-        
+
         col = layout.column()
-        
+
         col.template_ID_preview(brush, "texture", new="texture.new", rows=2, cols=4)
-        
+
         col.row().prop(tex_slot, "map_mode", expand=True)
-        
+
+
 class VIEW3D_PT_tools_brush_tool(PaintPanel):
     bl_label = "Tool"
     bl_default_closed = True
@@ -658,7 +659,7 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel):
     def poll(self, context):
         settings = self.paint_settings(context)
         return (settings and settings.brush and
-            (context.sculpt_object or context.texture_paint_object or 
+            (context.sculpt_object or context.texture_paint_object or
             context.vertex_paint_object or context.weight_paint_object))
 
     def draw(self, context):

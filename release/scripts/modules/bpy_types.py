@@ -61,6 +61,7 @@ class Object(bpy_types.ID):
         name = self.name
         return [scene for scene in bpy.data.scenes if name in scene.objects]
 
+
 class _GenericBone:
     """
     functions for bones, common between Armature/Pose/Edit bones.
@@ -89,24 +90,24 @@ class _GenericBone:
             i += 1
 
         return 0
-    
+
     @property
     def x_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotation_part() * Vector(1,0,0)
-    
+        return self.matrix.rotation_part() * Vector(1.0, 0.0, 0.0)
+
     @property
     def y_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotation_part() * Vector(0,1,0)
-    
+        return self.matrix.rotation_part() * Vector(0.0, 1.0, 0.0)
+
     @property
     def z_axis(self):
         """ Vector pointing down the x-axis of the bone.
         """
-        return self.matrix.rotation_part() * Vector(0,0,1)
+        return self.matrix.rotation_part() * Vector(0.0, 0.0, 1.0)
 
     @property
     def basename(self):
@@ -243,6 +244,7 @@ class EditBone(StructRNA, _GenericBone):
         self.head_radius *= scalar
         self.tail_radius *= scalar
         self.align_roll(matrix * z_vec)
+
 
 def ord_ind(i1, i2):
     if i1 < i2:
@@ -388,6 +390,7 @@ class MeshEdge(StructRNA):
 
 class MeshFace(StructRNA):
     __slots__ = ()
+
     @property
     def center(self):
         """The midpoint of the face."""
@@ -464,7 +467,7 @@ class _GenericUI:
     def prepend(cls, draw_func):
         """Prepend a draw function to this menu, takes the same arguments as the menus draw function."""
         draw_funcs = cls._dyn_ui_initialize()
-        draw_funcs.insert(0, draw_func)    
+        draw_funcs.insert(0, draw_func)
 
 
 class Panel(StructRNA, _GenericUI):

@@ -283,7 +283,7 @@ class DATA_PT_font(DataButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         layout.template_ID(text, "font", open="font.open", unlink="font.unlink")
-        
+
         #if wide_ui:
         #    layout.prop(text, "font")
         #else:

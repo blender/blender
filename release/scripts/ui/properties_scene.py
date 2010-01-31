@@ -74,7 +74,7 @@ class SCENE_PT_unit(SceneButtonsPanel):
         if wide_ui:
             col = split.column()
         col.prop(unit, "use_separate")
-        
+
         layout.column().prop(unit, "rotation_units")
 
 
@@ -180,6 +180,7 @@ class SCENE_PT_physics(SceneButtonsPanel):
         else:
             layout.column().prop(scene, "gravity", text="")
 
+
 class SCENE_PT_simplify(SceneButtonsPanel):
     bl_label = "Simplify"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -188,7 +189,7 @@ class SCENE_PT_simplify(SceneButtonsPanel):
         scene = context.scene
         rd = scene.render_data
         self.layout.prop(rd, "use_simplify", text="")
-    
+
     def draw(self, context):
         layout = self.layout
         scene = context.scene
@@ -216,4 +217,3 @@ bpy.types.register(SCENE_PT_physics)
 bpy.types.register(SCENE_PT_simplify)
 
 bpy.types.register(SCENE_PT_custom_props)
-

@@ -104,7 +104,7 @@ def clientConnection(address, port, report = None, scan = True):
 #			else:
         if not scan:
             return None
-        
+
         address, port = clientScan()
         if address == "":
             return None
@@ -174,28 +174,28 @@ def prefixPath(prefix_directory, file_path, prefix_path):
     return full_path
 
 def getFileInfo(filepath, infos):
-    process = subprocess.Popen([sys.argv[0], "-b", "-noaudio", filepath, "-P", __file__, "--"] + infos, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)    
+    process = subprocess.Popen([sys.argv[0], "-b", "-noaudio", filepath, "-P", __file__, "--"] + infos, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     stdout = bytes()
     while process.poll() == None:
         stdout += process.stdout.read(1024)
 
     # read leftovers if needed
     stdout += process.stdout.read()
-    
+
     stdout = str(stdout, encoding="utf8")
-    
+
     values = [eval(v[1:].strip()) for v in stdout.split("\n") if v.startswith("$")]
-    
+
     return values
-                
+
 def thumbnail(filename):
     root = os.path.splitext(filename)[0]
     imagename = os.path.split(filename)[1]
     thumbname = root + ".jpg"
-    
+
     if os.path.exists(thumbname):
         return thumbname
-    
+
     if bpy:
         sce = bpy.data.scenes[0]
         sce.render_data.file_format = "JPEG"
@@ -203,10 +203,10 @@ def thumbnail(filename):
         bpy.ops.image.open(path = filename)
         img = bpy.data.images[imagename]
         img.save(thumbname, scene = sce)
-        
+
         try:
             process = subprocess.Popen(["convert", thumbname, "-resize", "300x300", thumbname])
-            process.wait()                                        
+            process.wait()
             return thumbname
         except:
             pass

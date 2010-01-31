@@ -83,7 +83,7 @@ def get(handler):
 
     def endTable():
         output("</table>")
-        
+
     def checkbox(title, value, script=""):
         return """<input type="checkbox" title="%s" %s %s>""" % (title, "checked" if value else "", ("onclick=\"%s\"" % script) if script else "")
 
@@ -114,29 +114,29 @@ def get(handler):
         headerTable("type", "enabled", "description", "limit")
 
         for rule in handler.server.balancer.rules:
-            rowTable(   
+            rowTable(
                         "rating",
                         checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
                         rule,
-                        rule.str_limit() + 
+                        rule.str_limit() +
                         """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
                     )
 
         for rule in handler.server.balancer.priorities:
-            rowTable(   
+            rowTable(
                         "priority",
                         checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
                         rule,
-                        rule.str_limit() + 
+                        rule.str_limit() +
                         """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
                     )
 
         for rule in handler.server.balancer.exceptions:
-            rowTable(   
+            rowTable(
                         "exception",
                         checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
                         rule,
-                        rule.str_limit() + 
+                        rule.str_limit() +
                         """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
                     )
 
@@ -218,14 +218,14 @@ def get(handler):
             output("<h2>Render Information</h2>")
 
             job.initInfo()
-            
+
             startTable()
 
             rowTable("resolution", "%ix%i at %i%%" % job.resolution)
 
             endTable()
 
-            
+
             output("<h2>Files</h2>")
 
             startTable()

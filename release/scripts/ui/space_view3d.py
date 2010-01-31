@@ -854,6 +854,7 @@ class VIEW3D_MT_vertex_group(bpy.types.Menu):
 
 # ********** Weight paint menu **********
 
+
 class VIEW3D_MT_paint_weight(bpy.types.Menu):
     bl_label = "Weights"
 
@@ -1012,7 +1013,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
         layout.operator("pose.autoside_names", text="AutoName Top/Bottom").axis = 'ZAXIS'
 
         layout.operator("pose.flip_names")
-		
+
         layout.operator("pose.quaternions_flip")
 
         layout.separator()
@@ -1756,6 +1757,7 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
             row.enabled = region.lock_rotation and region.box_preview
             row.prop(region, "box_clip")
 
+
 class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -1834,7 +1836,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
         layout = self.layout
 
         view = context.space_data
-        
+
         col = layout.column()
         col.operator("view3d.add_background_image", text="Add Image")
 
@@ -1845,9 +1847,9 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
             row.prop(bg, "show_expanded", text="", no_bg=True)
             row.label(text=getattr(bg.image, "name", "Not Set"))
             row.operator("view3d.remove_background_image", text="", icon='X').index = i
-            
+
             box.prop(bg, "view_axis", text="Axis")
-            
+
             if bg.show_expanded:
                 row = box.row()
                 row.template_ID(bg, "image", open="image.open")
@@ -1859,7 +1861,7 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
                     row = box.row(align=True)
                     row.prop(bg, "offset_x", text="X")
                     row.prop(bg, "offset_y", text="Y")
- 
+
 
 class VIEW3D_PT_transform_orientations(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'

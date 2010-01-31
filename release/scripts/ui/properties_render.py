@@ -168,6 +168,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
         row.prop(rl, "pass_refraction")
         row.prop(rl, "pass_refraction_exclude", text="", icon='X')
 
+
 class RENDER_PT_shading(RenderButtonsPanel):
     bl_label = "Shading"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -567,12 +568,12 @@ class RENDER_PT_bake(RenderButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         layout.operator("object.bake_image", icon='RENDER_STILL')
-        
+
         if wide_ui:
             layout.prop(rd, "bake_type")
         else:
             layout.prop(rd, "bake_type", text="")
-        
+
         if rd.bake_type == 'NORMALS':
             if wide_ui:
                 layout.prop(rd, "bake_normal_space")
@@ -580,19 +581,19 @@ class RENDER_PT_bake(RenderButtonsPanel):
                 layout.prop(rd, "bake_normal_space", text="")
         elif rd.bake_type in ('DISPLACEMENT', 'AO'):
             layout.prop(rd, "bake_normalized")
-        
+
         # col.prop(rd, "bake_aa_mode")
         # col.prop(rd, "bake_enable_aa")
-        
+
         layout.separator()
-        
+
         split = layout.split()
 
         col = split.column()
         col.prop(rd, "bake_clear")
         col.prop(rd, "bake_margin")
         col.prop(rd, "bake_quad_split", text="Split")
-        
+
         if wide_ui:
             col = split.column()
         col.prop(rd, "bake_active")
@@ -601,7 +602,7 @@ class RENDER_PT_bake(RenderButtonsPanel):
         sub.prop(rd, "bake_distance")
         sub.prop(rd, "bake_bias")
 
-        
+
 bpy.types.register(RENDER_MT_presets)
 bpy.types.register(RENDER_PT_render)
 bpy.types.register(RENDER_PT_layers)

@@ -103,7 +103,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
             col = row.column(align=True)
             col.operator("object.material_slot_add", icon='ZOOMIN', text="")
             col.operator("object.material_slot_remove", icon='ZOOMOUT', text="")
-            
+
             col.menu("MATERIAL_MT_specials", icon='DOWNARROW_HLT', text="")
 
             if ob.mode == 'EDIT':
@@ -653,6 +653,7 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
             sub.prop(rayt, "gloss_threshold", text="Threshold")
             sub.prop(rayt, "gloss_samples", text="Samples")
 
+
 class MATERIAL_PT_transp_game(MaterialButtonsPanel):
     bl_label = "Transparency"
     bl_default_closed = True
@@ -686,7 +687,7 @@ class MATERIAL_PT_transp_game(MaterialButtonsPanel):
 
         col = split.column()
         col.prop(mat, "alpha")
-    
+
 
 class MATERIAL_PT_halo(MaterialButtonsPanel):
     bl_label = "Halo"
@@ -787,6 +788,7 @@ bpy.types.register(MATERIAL_PT_strand)
 bpy.types.register(MATERIAL_PT_options)
 bpy.types.register(MATERIAL_PT_shadow)
 bpy.types.register(MATERIAL_PT_transp_game)
+
 
 class VolumeButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'

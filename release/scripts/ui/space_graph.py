@@ -70,7 +70,7 @@ class GRAPH_MT_view(bpy.types.Menu):
 
         layout.operator("graph.properties", icon='MENU_PANEL')
         layout.separator()
-		
+
         layout.prop(st, "realtime_updates")
         layout.prop(st, "show_cframe_indicator")
         layout.prop(st, "show_cursor")

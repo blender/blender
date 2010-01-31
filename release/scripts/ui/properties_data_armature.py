@@ -162,7 +162,10 @@ class DATA_PT_bone_groups(DataButtonsPanel):
         #row.operator("object.bone_group_select", text="Select")
         #row.operator("object.bone_group_deselect", text="Deselect")
 
+
 # TODO: this panel will soon be depreceated too
+
+
 class DATA_PT_ghost(DataButtonsPanel):
     bl_label = "Ghost"
 

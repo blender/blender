@@ -43,7 +43,9 @@ rna_reverse_prop = BoolProperty(name="Reverse",
         description="Cycle backwards", default=False)
 
 rna_relative_prop = BoolProperty(name="Relative",
-        description="Apply relative to the current value (delta)", default=False)
+        description="Apply relative to the current value (delta)",
+        default=False)
+
 
 def context_path_validate(context, path):
     import sys
@@ -105,7 +107,8 @@ class WM_OT_context_set_float(bpy.types.Operator): # same as enum
     bl_undo = True
 
     path = rna_path_prop
-    value = FloatProperty(name="Value", description="Assignment value", default=0.0)
+    value = FloatProperty(name="Value",
+            description="Assignment value", default=0.0)
     relative = rna_relative_prop
 
     execute = execute_context_assign

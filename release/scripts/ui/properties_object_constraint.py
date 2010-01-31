@@ -460,12 +460,12 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         layout.prop(con, "use_offset")
 
         self.space_template(layout, con, wide_ui)
-		
+
     def COPY_TRANSFORMS(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)
 
         self.space_template(layout, con, wide_ui)
-		
+
 
     #def SCRIPT(self, context, layout, con):
 
@@ -566,7 +566,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         if wide_ui:
             row.label(text="Min/Max:")
         row.prop(con, "floor_location", expand=True)
-		
+
         self.space_template(layout, con, wide_ui)
 
     def RIGID_BODY_JOINT(self, context, layout, con, wide_ui):

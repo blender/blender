@@ -103,23 +103,23 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
             col = row.column(align=True)
             col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
             col.operator("texture.slot_move", text="", icon='TRIA_DOWN').type = 'DOWN'
-        
+
         if wide_ui:
             split = layout.split(percentage=0.65)
             col = split.column()
         else:
             col = layout.column()
-            
+
         if tex_collection:
             col.template_ID(idblock, "active_texture", new="texture.new")
         elif node:
             col.template_ID(node, "texture", new="texture.new")
         elif idblock:
             col.template_ID(idblock, "texture", new="texture.new")
-        
+
         if space.pin_id:
             col.template_ID(space, "pin_id")
-        
+
         if wide_ui:
             col = split.column()
 
@@ -281,7 +281,7 @@ class TEXTURE_PT_influence(TextureSlotPanel):
         idblock = context_tex_datablock(context)
         if type(idblock) == bpy.types.Brush:
             return False
-    
+
         return context.texture_slot
 
     def draw(self, context):
@@ -848,7 +848,7 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
             layout.prop(vd, "domain_object")
             layout.prop(vd, "smoke_data_type")
         elif vd.file_format == 'IMAGE_SEQUENCE':
-            layout.template_image(tex, "image", tex.image_user) 
+            layout.template_image(tex, "image", tex.image_user)
 
         layout.prop(vd, "still")
         row = layout.row()

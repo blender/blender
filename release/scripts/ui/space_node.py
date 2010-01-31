@@ -120,7 +120,7 @@ class NODE_MT_node(bpy.types.Menu):
 
         layout.separator()
         layout.operator("node.link_make")
-        layout.operator("node.link_make", text="Make and Replace Links").replace=True
+        layout.operator("node.link_make", text="Make and Replace Links").replace = True
 
         layout.separator()
         layout.operator("node.group_edit")

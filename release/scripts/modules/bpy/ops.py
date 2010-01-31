@@ -135,7 +135,7 @@ class bpy_ops_submodule_op(object):
     def idname(self):
         # submod.foo -> SUBMOD_OT_foo
         return self.module.upper() + "_OT_" + self.func
-        
+
     def idname_py(self):
         # submod.foo -> SUBMOD_OT_foo
         return self.module + "." + self.func

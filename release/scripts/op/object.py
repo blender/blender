@@ -109,17 +109,17 @@ class SubdivisionSet(bpy.types.Operator):
                                     mod.sculpt_levels = level
                             elif obj.mode == 'OBJECT':
                                 if mod.levels != level:
-                                    mod.levels = level                          
+                                    mod.levels = level
                         return
                     else:
                         if obj.mode == 'SCULPT':
-                            if mod.sculpt_levels+level <= mod.total_levels:
+                            if mod.sculpt_levels + level <= mod.total_levels:
                                 mod.sculpt_levels += level
                         elif obj.mode == 'OBJECT':
-                            if mod.levels+level <= mod.total_levels:
+                            if mod.levels + level <= mod.total_levels:
                                 mod.levels += level
                         return
-                
+
                 elif mod.type == 'SUBSURF':
                     if relative:
                         mod.levels += level
@@ -160,6 +160,7 @@ class ShapeTransfer(bpy.types.Operator):
                 default=False)
 
     def _main(self, ob_act, objects, mode='OFFSET', use_clamp=False):
+
         def me_nos(verts):
             return [v.normal.copy() for v in verts]
 
@@ -328,12 +329,12 @@ class JoinUVs(bpy.types.Operator):
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         len_faces = len(mesh.faces)
-        
+
         uv_array = array.array('f', [0.0] * 8) * len_faces # seems to be the fastest way to create an array
         mesh.active_uv_texture.data.foreach_get("uv_raw", uv_array)
 
         objects = context.selected_editable_objects[:]
-        
+
         for obj_other in objects:
             if obj_other.type == 'MESH':
                 obj_other.data.tag = False
@@ -344,7 +345,7 @@ class JoinUVs(bpy.types.Operator):
                 if mesh_other != mesh:
                     if mesh_other.tag == False:
                         mesh_other.tag = True
-                        
+
                         if len(mesh_other.faces) != len_faces:
                             self.report({'WARNING'}, "Object: %s, Mesh: '%s' has %d faces, expected %d\n" % (obj_other.name, mesh_other.name, len(mesh_other.faces), len_faces))
                         else:
@@ -352,7 +353,7 @@ class JoinUVs(bpy.types.Operator):
                             if not uv_other:
                                 mesh_other.uv_texture_add() # should return the texture it adds
                                 uv_other = mesh_other.active_uv_texture
-                            
+
                             # finally do the copy
                             uv_other.data.foreach_set("uv_raw", uv_array)
 

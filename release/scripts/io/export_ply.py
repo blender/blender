@@ -281,7 +281,6 @@ class ExportPLY(bpy.types.Operator):
     use_uvs = BoolProperty(name="UVs", description="Exort the active UV layer", default=True)
     use_colors = BoolProperty(name="Vertex Colors", description="Exort the active vertex color layer", default=True)
 
-
     def poll(self, context):
         return context.active_object != None
 
@@ -328,4 +327,3 @@ bpy.types.INFO_MT_file_export.append(menu_func)
 
 if __name__ == "__main__":
     bpy.ops.export.ply(path="/tmp/test.ply")
-

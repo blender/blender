@@ -18,10 +18,14 @@
 
 # <pep8 compliant>
 import bpy
-import os, re, shutil
+import os
+import re
+import shutil
 
-# General UI Theme Settings (User Interface)
+
 def ui_items_general(col, context):
+    """ General UI Theme Settings (User Interface)
+    """
     row = col.row()
     sub = row.column()
     sub.prop(context, "outline")
@@ -38,9 +42,10 @@ def ui_items_general(col, context):
     subsub.active = context.shaded
     subsub.prop(context, "shadetop")
     subsub.prop(context, "shadedown")
-    
+
     col.separator()
-    
+
+
 def opengl_lamp_buttons(column, lamp):
     split = column.split(percentage=0.1)
 
@@ -236,14 +241,14 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.prop(view, "auto_perspective")
         col.prop(view, "smooth_view")
         col.prop(view, "rotation_angle")
-        
+
         col.separator()
         col.separator()
-        
+
         col.label(text="2D Viewports:")
         col.prop(view, "view2d_grid_minimum_spacing", text="Minimum Grid Spacing")
         col.prop(view, "timecode_style")
-        
+
         row.separator()
         row.separator()
 
@@ -427,10 +432,10 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.separator()
         col.separator()
         col.separator()
-        
+
         col.label(text="Screencast:")
         col.prop(system, "screencast_fps")
-        col.prop(system, "screencast_wait_time")     
+        col.prop(system, "screencast_wait_time")
         col.separator()
         col.separator()
         col.separator()
@@ -448,7 +453,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         #col.separator()
 
         #col.prop(system, "use_textured_fonts")
-        
+
 
         # 2. Column
         column = split.column()
@@ -475,7 +480,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.label(text="Sequencer:")
         col.prop(system, "prefetch_frames")
         col.prop(system, "memory_cache_limit")
-        
+
 
         # 3. Column
         column = split.column()
@@ -486,27 +491,27 @@ class USERPREF_PT_system(bpy.types.Panel):
         split.label()
         split.label(text="Colors:")
         split.label(text="Direction:")
-        
+
         lamp = system.solid_lights[0]
         opengl_lamp_buttons(column, lamp)
-        
+
         lamp = system.solid_lights[1]
         opengl_lamp_buttons(column, lamp)
-        
+
         lamp = system.solid_lights[2]
         opengl_lamp_buttons(column, lamp)
 
         column.separator()
         column.separator()
         column.separator()
-        
+
         column.label(text="Color Picker Type:")
         column.row().prop(system, "color_picker_type", text="")
-        
+
         column.separator()
         column.separator()
         column.separator()
-        
+
         column.prop(system, "use_weight_color_range", text="Custom Weight Paint Range")
         sub = column.column()
         sub.active = system.use_weight_color_range
@@ -532,7 +537,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
         split_themes.prop(theme, "theme_area", expand=True)
 
         split = split_themes.split()
-        
+
         if theme.theme_area == 'USER_INTERFACE':
             col = split.column()
 
@@ -939,19 +944,18 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             col = split.column()
             col.prop(prefs, "header_text")
-            
+
         elif theme.theme_area == 'CONSOLE':
             prefs = theme.console
-             
+
             col = split.column()
             col.prop(prefs, "header")
-            
+
             col = split.column()
             col.prop(prefs, "line_output")
             col.prop(prefs, "line_input")
             col.prop(prefs, "line_info")
             col.prop(prefs, "line_error")
-            
 
 
 class USERPREF_PT_file(bpy.types.Panel):
@@ -1062,7 +1066,7 @@ class USERPREF_PT_input(bpy.types.Panel):
         row = col.row()
         row.prop(km, "children_expanded", text="", no_bg=True)
         row.label(text=km.name)
-        
+
         row.label()
         row.label()
 
@@ -1156,7 +1160,7 @@ class USERPREF_PT_input(bpy.types.Panel):
         # Expanded, additional event settings
         if kmi.expanded:
             box = col.box()
-            
+
             box.enabled = km.user_defined
 
             if map_type not in ('TEXTINPUT', 'TIMER'):
@@ -1186,8 +1190,8 @@ class USERPREF_PT_input(bpy.types.Panel):
                 subrow.prop(kmi, "alt")
                 subrow.prop(kmi, "oskey", text="Cmd")
                 subrow.prop(kmi, "key_modifier", text="", event=True)
-                
-            def display_properties(properties, title = None):
+
+            def display_properties(properties, title=None):
                 box.separator()
                 if title:
                     box.label(text=title)
@@ -1196,7 +1200,7 @@ class USERPREF_PT_input(bpy.types.Panel):
                     if not properties.is_property_hidden(pname):
                         value = eval("properties." + pname)
                         if isinstance(value, bpy.types.OperatorProperties):
-                            display_properties(value, title = pname)
+                            display_properties(value, title=pname)
                         else:
                             flow.prop(properties, pname)
 
@@ -1301,9 +1305,9 @@ class USERPREF_PT_input(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         #import time
-        
+
         #start = time.time()
 
         userpref = context.user_preferences
@@ -1328,7 +1332,7 @@ class USERPREF_PT_input(bpy.types.Panel):
         row = subcol.row()
         row.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="Configuration:")
 
-        layout.set_context_pointer("keyconfig", wm.active_keyconfig) 
+        layout.set_context_pointer("keyconfig", wm.active_keyconfig)
         row.operator("wm.keyconfig_remove", text="", icon='X')
 
         row.prop(kc, "filter", icon="VIEWZOOM")
@@ -1339,7 +1343,7 @@ class USERPREF_PT_input(bpy.types.Panel):
             self.draw_filtered(kc, col)
         else:
             self.draw_hierarchy(kc, col)
-            
+
         #print("runtime", time.time() - start)
 
 bpy.types.register(USERPREF_HT_header)
@@ -1383,7 +1387,7 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
                 s.append(", key_modifier=\'%s\'" % kmi.key_modifier)
 
             s.append(")\n")
-            
+
             def export_properties(prefix, properties):
                 for pname in dir(properties):
                     if not properties.is_property_hidden(pname):
@@ -1489,6 +1493,7 @@ def _string_value(value):
 
     return result
 
+
 class WM_OT_keyconfig_import(bpy.types.Operator):
     "Import key configuration from a python script."
     bl_idname = "wm.keyconfig_import"
@@ -1515,28 +1520,28 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
 
         for line in f.readlines():
             match = name_pattern.match(line)
-            
+
             if match:
                 config_name = match.groups()[0]
-        
+
         f.close()
-        
+
         path = os.path.split(os.path.split(__file__)[0])[0] # remove ui/space_userpref.py
         path = os.path.join(path, "cfg")
-        
+
         # create config folder if needed
         if not os.path.exists(path):
-            os.mkdir(path)        
-        
+            os.mkdir(path)
+
         path = os.path.join(path, config_name + ".py")
-            
+
         if self.properties.keep_original:
             shutil.copy(self.properties.path, path)
         else:
             shutil.move(self.properties.path, path)
-        
-        __import__(config_name) 
-        
+
+        __import__(config_name)
+
         wm = bpy.data.window_managers[0]
         wm.active_keyconfig = wm.keyconfigs[config_name]
 
@@ -1546,7 +1551,8 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
         wm = context.manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
-    
+
+
 class WM_OT_keyconfig_export(bpy.types.Operator):
     "Export key configuration to a python script."
     bl_idname = "wm.keyconfig_export"
@@ -1615,9 +1621,9 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
                                 value = _string_value(value)
                                 if value != "":
                                     f.write(prefix + ".%s = %s\n" % (pname, value))
-    
+
                 props = kmi.properties
-    
+
                 if props is not None:
                     export_properties("kmi.properties", props)
 
@@ -1670,7 +1676,7 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
     bl_idname = "wm.keyitem_restore"
     bl_label = "Restore Key Map Item"
 
-    item_id = IntProperty(attr="item_id", name="Item Identifier",  description="Identifier of the item to remove")
+    item_id = IntProperty(attr="item_id", name="Item Identifier", description="Identifier of the item to remove")
 
     def execute(self, context):
         wm = context.manager
@@ -1711,14 +1717,15 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
     bl_idname = "wm.keyitem_remove"
     bl_label = "Remove Key Map Item"
 
-    item_id = IntProperty(attr="item_id", name="Item Identifier",  description="Identifier of the item to remove")
-    
+    item_id = IntProperty(attr="item_id", name="Item Identifier", description="Identifier of the item to remove")
+
     def execute(self, context):
         wm = context.manager
         km = context.keymap
         kmi = km.item_from_id(self.properties.item_id)
         km.remove_item(kmi)
         return {'FINISHED'}
+
 
 class WM_OT_keyconfig_remove(bpy.types.Operator):
     "Remove key config."
@@ -1731,18 +1738,18 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
 
     def execute(self, context):
         wm = context.manager
-        
+
         keyconfig = wm.active_keyconfig
-        
+
         module = __import__(keyconfig.name)
-        
+
         os.remove(module.__file__)
 
         compiled_path = module.__file__ + "c" # for .pyc
-        
+
         if os.path.exists(compiled_path):
             os.remove(compiled_path)
-        
+
         wm.remove_keyconfig(keyconfig)
         return {'FINISHED'}
 

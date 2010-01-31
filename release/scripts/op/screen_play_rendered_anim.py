@@ -29,6 +29,7 @@ import subprocess
 import os
 import platform
 
+
 def guess_player_path(preset):
     if preset == 'BLENDER24':
         player_path = 'blender'

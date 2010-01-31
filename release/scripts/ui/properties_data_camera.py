@@ -121,7 +121,6 @@ class DATA_PT_camera(DataButtonsPanel):
         if cam.dof_object != None:
             col.enabled = False
         col.prop(cam, "dof_distance", text="Distance")
-        
 
 
 class DATA_PT_camera_display(DataButtonsPanel):

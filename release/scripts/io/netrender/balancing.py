@@ -24,7 +24,7 @@ import netrender.model
 class RatingRule:
     def __init__(self):
         self.enabled = True
-        
+
     def rate(self, job):
         return 0
 
@@ -58,7 +58,7 @@ class Balancer:
         for rule in self.exceptions:
             if id(rule) == rule_id:
                 return rule
-        
+
         return None
 
     def addRule(self, rule):
@@ -129,7 +129,7 @@ class NewJobPriority(PriorityRule):
     def __init__(self, limit = 1):
         super().__init__()
         self.limit = limit
-    
+
     def setLimit(self, value):
         self.limit = int(value)
 
@@ -175,7 +175,7 @@ class ExcludeSlavesLimit(ExclusionRule):
 
     def setLimit(self, value):
         self.limit = float(value)
-        
+
     def str_limit(self):
         return "more than %.0f%% of all slaves" % (self.limit * 100)
 

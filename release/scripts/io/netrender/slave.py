@@ -217,11 +217,11 @@ def render_slave(engine, netsettings, threads):
                             # send image back to server
 
                             filename = JOB_PREFIX + "%06d" % frame.number + ".exr"
-                            
+
                             # thumbnail first
                             if netsettings.slave_thumb:
                                 thumbname = thumbnail(filename)
-                                
+
                                 f = open(thumbname, 'rb')
                                 conn.request("PUT", "/thumb", f, headers=headers)
                                 f.close()
@@ -232,7 +232,7 @@ def render_slave(engine, netsettings, threads):
                             f.close()
                             if conn.getresponse().status == http.client.NO_CONTENT:
                                 continue
-                            
+
                         elif job.type == netrender.model.JOB_PROCESS:
                             conn.request("PUT", "/render", headers=headers)
                             if conn.getresponse().status == http.client.NO_CONTENT:
@@ -255,7 +255,7 @@ def render_slave(engine, netsettings, threads):
                         break
 
         conn.close()
-        
+
         if netsettings.slave_clear:
             clearSlave(NODE_PREFIX)
 
