@@ -52,6 +52,7 @@
 #include "BKE_action.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -999,6 +1000,8 @@ static float *get_weights_array(Object *ob, char *vgroup)
 {
 	bDeformGroup *curdef;
 	MDeformVert *dvert= NULL;
+	EditMesh *em= NULL;
+	EditVert *eve;
 	int totvert= 0, index= 0;
 	
 	/* no vgroup string set? */
@@ -1009,6 +1012,9 @@ static float *get_weights_array(Object *ob, char *vgroup)
 		Mesh *me= ob->data;
 		dvert= me->dvert;
 		totvert= me->totvert;
+
+		if(me->edit_mesh && me->edit_mesh->totvert == totvert)
+			em= me->edit_mesh;
 	}
 	else if(ob->type==OB_LATTICE) {
 		Lattice *lt= ob->data;
@@ -1028,15 +1034,32 @@ static float *get_weights_array(Object *ob, char *vgroup)
 		int i, j;
 		
 		weights= MEM_callocN(totvert*sizeof(float), "weights");
-		
-		for (i=0; i < totvert; i++, dvert++) {
-			for(j=0; j<dvert->totweight; j++) {
-				if (dvert->dw[j].def_nr == index) {
-					weights[i]= dvert->dw[j].weight;
-					break;
+
+		if(em) {
+			for(i=0, eve=em->verts.first; eve; eve=eve->next, i++) {
+				dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+
+				if(dvert) {
+					for(j=0; j<dvert->totweight; j++) {
+						if(dvert->dw[j].def_nr == index) {
+							weights[i]= dvert->dw[j].weight;
+							break;
+						}
+					}
 				}
 			}
 		}
+		else {
+			for(i=0; i < totvert; i++, dvert++) {
+				for(j=0; j<dvert->totweight; j++) {
+					if(dvert->dw[j].def_nr == index) {
+						weights[i]= dvert->dw[j].weight;
+						break;
+					}
+				}
+			}
+		}
+
 		return weights;
 	}
 	return NULL;
