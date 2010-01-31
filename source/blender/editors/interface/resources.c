@@ -1355,6 +1355,11 @@ void init_userdef_do_versions(void)
 				strcpy(km->idname, "Property Editor");
 		}
 	}
+	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 16)) {
+		if(U.wmdrawmethod == USER_DRAW_TRIPLE)
+			U.wmdrawmethod = USER_DRAW_AUTOMATIC;
+	}
+
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {

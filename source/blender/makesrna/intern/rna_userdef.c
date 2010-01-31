@@ -2167,6 +2167,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem draw_method_items[] = {
+		{USER_DRAW_AUTOMATIC, "AUTOMATIC", 0, "Automatic", "Automatically set based on graphics card and driver."},
 		{USER_DRAW_TRIPLE, "TRIPLE_BUFFER", 0, "Triple Buffer", "Use a third buffer for minimal redraws at the cost of more memory."},
 		{USER_DRAW_OVERLAP, "OVERLAP", 0, "Overlap", "Redraw all overlapping regions, minimal memory usage but more redraws."},
 		{USER_DRAW_FULL, "FULL", 0, "Full", "Do a full redraw each time, slow, only use for reference or when all else fails."},

@@ -605,14 +605,12 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 		}
 	}
 	
-#ifdef __APPLE__
-//	if(is_a_really_crappy_nvidia_card()) {	XXX
+//	if(GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_MAC, GPU_DRIVER_OFFICIAL)) {	XXX
 //		float zoomx= curarea->winx/(float)(G.v2d->cur.xmax-G.v2d->cur.xmin);
 //		float zoomy= curarea->winy/(float)(G.v2d->cur.ymax-G.v2d->cur.ymin);
 //		glPixelZoom(zoomx*xscale, zoomy*yscale);
 //	}
 //	else
-#endif
 		glPixelZoom(xscale, yscale);
 
 	glEnable(GL_BLEND);

@@ -467,7 +467,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         #Anti-aliasing is disabled as it breaks broder/lasso select
         #col.prop(system, "use_antialiasing")
         col.label(text="Window Draw Method:")
-        col.row().prop(system, "window_draw_method", expand=True)
+        col.prop(system, "window_draw_method", text="")
         col.label(text="Textures:")
         col.prop(system, "gl_texture_limit", text="Limit Size")
         col.prop(system, "texture_time_out", text="Time Out")

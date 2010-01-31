@@ -71,7 +71,19 @@ static struct GPUGlobal {
 	GLuint currentfb;
 	int glslsupport;
 	int extdisabled;
+	GPUDeviceType device;
+	GPUOSType os;
+	GPUDriverType driver;
 } GG = {1, 0, 0, 0};
+
+/* GPU Types */
+
+int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
+{
+	return (GG.device & device) && (GG.os & os) && (GG.driver & driver);
+}
+
+/* GPU Extensions */
 
 void GPU_extensions_disable()
 {
@@ -80,6 +92,8 @@ void GPU_extensions_disable()
 
 void GPU_extensions_init()
 {
+	const char *vendor, *renderer;
+
 	glewInit();
 
 	/* glewIsSupported("GL_VERSION_2_0") */
@@ -91,6 +105,54 @@ void GPU_extensions_init()
 	if (!GLEW_ARB_multitexture) GG.glslsupport = 0;
 	if (!GLEW_ARB_vertex_shader) GG.glslsupport = 0;
 	if (!GLEW_ARB_fragment_shader) GG.glslsupport = 0;
+
+	vendor = (const char*)glGetString(GL_VENDOR);
+	renderer = (const char*)glGetString(GL_RENDERER);
+
+	if(strstr(vendor, "ATI")) {
+		GG.device = GPU_DEVICE_ATI;
+		GG.driver = GPU_DRIVER_OFFICIAL;
+	}
+	else if(strstr(vendor, "NVIDIA")) {
+		GG.device = GPU_DEVICE_NVIDIA;
+		GG.driver = GPU_DRIVER_OFFICIAL;
+	}
+	else if(strstr(vendor, "Intel") || strstr(renderer, "Mesa DRI Intel")) {
+		GG.device = GPU_DEVICE_INTEL;
+		GG.driver = GPU_DRIVER_OFFICIAL;
+	}
+	else if(strstr(renderer, "Mesa DRI R")) {
+		GG.device = GPU_DEVICE_ATI;
+		GG.driver = GPU_DRIVER_OPENSOURCE;
+	}
+	else if(strstr(renderer, "Nouveau")) {
+		GG.device = GPU_DEVICE_NVIDIA;
+		GG.driver = GPU_DRIVER_OPENSOURCE;
+	}
+	else if(strcmp(vendor, "Mesa") == 0) {
+		GG.device = GPU_DEVICE_SOFTWARE;
+		GG.driver = GPU_DRIVER_SOFTWARE;
+	}
+	else if(strstr(vendor, "Microsoft")) {
+		GG.device = GPU_DEVICE_SOFTWARE;
+		GG.driver = GPU_DRIVER_SOFTWARE;
+	}
+	else if(strcmp(renderer, "Apple Software Renderer") == 0) {
+		GG.device = GPU_DEVICE_SOFTWARE;
+		GG.driver = GPU_DRIVER_SOFTWARE;
+	}
+	else {
+		GG.device = GPU_DEVICE_UNKNOWN;
+		GG.driver = GPU_DRIVER_UNKNOWN;
+	}
+
+	GG.os = GPU_OS_UNIX;
+#ifdef _WIN32
+	GG.os = GPU_OS_WIN;
+#endif
+#ifdef __APPLE__
+	GG.os = GPU_OS_MAC;
+#endif
 }
 
 int GPU_glsl_support()
@@ -102,10 +164,8 @@ int GPU_non_power_of_two_support()
 {
 	/* Exception for buggy ATI/Apple driver in Mac OS X 10.5/10.6,
 	 * they claim to support this but can cause system freeze */
-#ifdef __APPLE__
-	if(strcmp((char*)glGetString(GL_VENDOR), "ATI Technologies Inc.") == 0)
+	if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_MAC, GPU_DRIVER_OFFICIAL))
 		return 0;
-#endif
 
 	return GLEW_ARB_texture_non_power_of_two;
 }

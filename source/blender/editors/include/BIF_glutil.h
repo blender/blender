@@ -203,7 +203,6 @@ void bglVertex3f(float x, float y, float z);
 void bglVertex2fv(float *vec);
 /* intel gfx cards frontbuffer problem */
 void bglFlush(void);
-int is_a_really_crappy_intel_card(void);
 void set_inverted_drawing(int enable);
 void setlinestyle(int nr);
 

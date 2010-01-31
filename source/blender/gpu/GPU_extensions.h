@@ -37,8 +37,6 @@
 extern "C" {
 #endif
 
-/* GPU extensions support */
-
 struct Image;
 struct ImageUser;
 
@@ -54,12 +52,41 @@ typedef struct GPUOffScreen GPUOffScreen;
 struct GPUShader;
 typedef struct GPUShader GPUShader;
 
+/* GPU extensions support */
+
 void GPU_extensions_disable(void);
 void GPU_extensions_init(void); /* call this before running any of the functions below */
 void GPU_extensions_exit(void);
 int GPU_glsl_support(void);
 int GPU_non_power_of_two_support(void);
 int GPU_print_error(char *str);
+
+/* GPU Types */
+
+typedef enum GPUDeviceType {
+	GPU_DEVICE_NVIDIA =		(1<<0),
+	GPU_DEVICE_ATI =		(1<<1),
+	GPU_DEVICE_INTEL =		(1<<2),
+	GPU_DEVICE_SOFTWARE =	(1<<3),
+	GPU_DEVICE_UNKNOWN = 	(1<<4),
+	GPU_DEVICE_ANY = 		(0xff)
+} GPUDeviceType;
+
+typedef enum GPUOSType {
+	GPU_OS_WIN = 			(1<<16),
+	GPU_OS_MAC = 			(1<<17),
+	GPU_OS_UNIX =			(1<<18),
+	GPU_OS_ANY =			(0xff00)
+} GPUOSType;
+
+typedef enum GPUDriverType {
+	GPU_DRIVER_OFFICIAL =	(1<<24),
+	GPU_DRIVER_OPENSOURCE = (1<<25),
+	GPU_DRIVER_SOFTWARE =	(1<<26),
+	GPU_DRIVER_UNKNOWN =	(0xff0000)
+} GPUDriverType;
+
+int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver);
 
 /* GPU Texture
    - always returns unsigned char RGBA textures

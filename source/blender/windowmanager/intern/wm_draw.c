@@ -689,6 +689,15 @@ void wm_draw_update(bContext *C)
 
 			if(win->drawfail)
 				wm_method_draw_overlap_all(C, win);
+			else if(win->drawmethod == USER_DRAW_AUTOMATIC) {
+				/* ATI opensource driver is known to be very slow at this,
+				   Windows software driver darkens color on each redraw */
+				if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) ||
+				   GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
+					wm_method_draw_overlap_all(C, win);
+				else
+					wm_method_draw_triple(C, win);
+			}
 			else if(win->drawmethod == USER_DRAW_FULL)
 				wm_method_draw_full(C, win);
 			else if(win->drawmethod == USER_DRAW_OVERLAP)
