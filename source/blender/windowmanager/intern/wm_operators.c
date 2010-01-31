@@ -2685,7 +2685,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 	
 	WM_cursor_wait(0);
 	
-	BKE_reportf(op->reports, RPT_INFO, "%d x %s: %.2f ms,  average: %.4f", iter, infostr, time, time/iter);
+	BKE_reportf(op->reports, RPT_WARNING, "%d x %s: %.2f ms,  average: %.4f", iter, infostr, time, time/iter);
 	
 	return OPERATOR_FINISHED;
 }
