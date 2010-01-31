@@ -602,7 +602,7 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_IMAGE:
-			if (wmn->reference == sima->image) {
+			if (wmn->reference == sima->image || !wmn->reference) {
 				image_histogram_tag_refresh(sa);
 				ED_area_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
