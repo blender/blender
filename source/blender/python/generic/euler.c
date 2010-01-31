@@ -591,7 +591,10 @@ static struct PyMethodDef Euler_methods[] = {
 };
 
 //------------------PY_OBECT DEFINITION--------------------------
-static char euler_doc[] = "This object gives access to Eulers in Blender.";
+static char euler_doc[] =
+"This object gives access to Eulers in Blender.\n"
+"\n"
+".. literalinclude:: ../examples/mathutils_euler.py\n";
 
 PyTypeObject euler_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)

@@ -41,7 +41,6 @@
 #include "bpy_rna.h"
 #include "bpy_props.h"
 #include "bpy_operator.h"
-#include "bpy_ui.h"
 #include "bpy_util.h"
 
 #ifndef WIN32
@@ -60,11 +59,9 @@
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 
-#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_text.h"
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 
 #include "BPY_extern.h"
@@ -210,9 +207,7 @@ static void bpy_init_modules( void )
 	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
 	PyModule_AddObject( mod, "props", BPY_rna_props() );
 	PyModule_AddObject( mod, "ops", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
-	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
-
-
+	PyModule_AddObject( mod, "app", BPY_app_struct() );
 
 	/* bpy context */
 	{
@@ -222,20 +217,6 @@ static void bpy_init_modules( void )
 		bpy_context_module->freeptr= 0;
 
 		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
-	}
-
-	/* blender info that wont change at runtime, add into _bpy */
-	{
-		extern char bprogname[]; /* argv[0] from creator.c */
-
-		PyObject *mod_dict= PyModule_GetDict(mod);
-		char tmpstr[256];
-		PyModule_AddStringConstant(mod, "_HOME",  BLI_gethome());
-		PyDict_SetItemString(mod_dict, "_VERSION", Py_BuildValue("(iii)", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION));
-		sprintf(tmpstr, "%d.%02d (sub %d)", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
-		PyModule_AddStringConstant(mod, "_VERSION_STR",  tmpstr);
-		PyModule_AddStringConstant(mod, "_BINPATH",  bprogname);
-		PyModule_AddIntConstant(mod, "_DEBUG",  G.f & G_DEBUG ? 1:0);
 	}
 
 	/* add our own modules dir, this is a python package */
@@ -794,7 +775,7 @@ int BPY_context_get(bContext *C, const char *member, bContextDataResult *result)
 		if (item)	printf("Context '%s' not a valid type\n", member);
 		else		printf("Context '%s' not found\n", member);
 	}
-	else if (G.f & G_DEBUG) {
+	else {
 		printf("Context '%s' found\n", member);
 	}
 

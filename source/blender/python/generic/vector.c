@@ -2110,7 +2110,10 @@ static struct PyMethodDef Vector_methods[] = {
  vec*mat and mat*vec both get sent to Vector_mul and it neesd to sort out the order
 */
 
-static char vector_doc[] = "This object gives access to Vectors in Blender.";
+static char vector_doc[] =
+"This object gives access to Vectors in Blender.\n"
+"\n"
+".. literalinclude:: ../examples/mathutils_vector.py\n";
 
 PyTypeObject vector_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)

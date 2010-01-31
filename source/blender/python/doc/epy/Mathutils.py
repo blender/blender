@@ -1,60 +1,9 @@
 # Blender.Mathutils module and its subtypes
 
-"""
-The Blender.Mathutils submodule.
 
-Mathutils
-=========
-(when accessing it from the Game Engine use Mathutils instead of Blender.Mathutils)
-
-This module provides access to matrices, eulers, quaternions and vectors.
-
-Example::
-  import Blender
-  from Blender import Mathutils
-  from Blender.Mathutils import *
-
-  vec = Vector([1,2,3])
-  mat = RotationMatrix(90, 4, 'x')
-  matT = TranslationMatrix(vec)
-
-  matTotal = mat * matT
-  matTotal.invert()
-
-  mat3 = matTotal.rotationPart
-  quat1 = mat.to_quat()
-  quat2 = mat3.to_quat()
-
-  angle = DifferenceQuats(quat1, quat2)
-  print angle  
-"""
 
 class Vector:
   """
-  The Vector object
-  =================
-  @note: Comparison operators can be done on Vector classes:
-      - >, >=, <, <= test the vector magnitude
-      - ==, != test vector values e.g. 1,2,3 != 1,2,4 even if they are the same length
-  @note: Math can be performed on Vector classes
-      - vec + vec
-      - vec - vec
-      - vec * float/int
-      - vec * matrix
-      - vec * vec
-      - vec * quat
-      - -vec
-  @note: You can access a vector object like a sequence
-      - x = vector[0]
-      - vec_a[:] vec_b
-      - vec2d[:] vec3d[:2]
-  @note: Vectors support 'swizzle' operations
-      - vec.xyz = vec.zyx
-      - vec.xy = vec.zw
-      - vec.xxy = vec.wzz
-      - vec.yzyz = vec.yxyx
-
-      See U{http://en.wikipedia.org/wiki/Swizzling_(computer_graphics)}
   
   @attention: Vector data can be wrapped or non-wrapped. When a object is wrapped it
   means that the object will give you direct access to the data inside of blender. Modification
@@ -62,15 +11,6 @@ class Vector:
   you need to use the object's constructor. If you copy and object by assignment you will not get
   a second copy but a second reference to the same data. Only certain functions will return 
   wrapped data. This will be indicated in the method description.
-  Example::
-      wrappedObject = Object.getAttribute() #this is wrapped data
-      print wrappedObject.wrapped #prints 'True'
-      copyOfObject = wrappedObject.copy() #creates a copy of the object
-      secondPointer = wrappedObject #creates a second pointer to the same data
-      print wrappedObject.attribute #prints '5'
-      secondPointer.attribute = 10
-      print wrappedObject.attribute #prints '10'
-      print copyOfObject.attribute #prints '5'
   """
 
   def __init__(list = None):
@@ -107,15 +47,6 @@ class Euler:
   you need to use the object's constructor. If you copy and object by assignment you will not get
   a second copy but a second reference to the same data. Only certain functions will return 
   wrapped data. This will be indicated in the method description.
-  Example::
-      wrappedObject = Object.getAttribute() #this is wrapped data
-      print wrappedObject.wrapped #prints 'True'
-      copyOfObject = wrappedObject.copy() #creates a copy of the object
-      secondPointer = wrappedObject #creates a second pointer to the same data
-      print wrappedObject.attribute #prints '5'
-      secondPointer.attribute = 10
-      print wrappedObject.attribute #prints '10'
-      print copyOfObject.attribute #prints '5'
   """
 
   def __init__(list = None):
@@ -154,15 +85,6 @@ class Quaternion:
   you need to use the object's constructor. If you copy and object by assignment you will not get
   a second copy but a second reference to the same data. Only certain functions will return 
   wrapped data. This will be indicated in the method description.
-  Example::
-      wrappedObject = Object.getAttribute() #this is wrapped data
-      print wrappedObject.wrapped #prints 'True'
-      copyOfObject = wrappedObject.copy() #creates a copy of the object
-      secondPointer = wrappedObject #creates a second pointer to the same data
-      print wrappedObject.attribute #prints '5'
-      secondPointer.attribute = 10
-      print wrappedObject.attribute #prints '10'
-      print copyOfObject.attribute #prints '5'
   """
 
   def __init__(list, angle = None):
@@ -208,15 +130,6 @@ class Matrix:
   you need to use the object's constructor. If you copy and object by assignment you will not get
   a second copy but a second reference to the same data. Only certain functions will return 
   wrapped data. This will be indicated in the method description.
-  Example::
-      wrappedObject = Object.getAttribute() #this is wrapped data
-      print wrappedObject.wrapped #prints 'True'
-      copyOfObject = wrappedObject.copy() #creates a copy of the object
-      secondPointer = wrappedObject #creates a second pointer to the same data
-      print wrappedObject.attribute #prints '5'
-      secondPointer.attribute = 10
-      print wrappedObject.attribute #prints '10'
-      print copyOfObject.attribute #prints '5'
   """
 
   def __init__(list1 = None, list2 = None, list3 = None, list4 = None):

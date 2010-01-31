@@ -14,35 +14,21 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2006, Blender Foundation
-# All rights reserved.
-#
-# The Original Code is: all of this file.
-#
-# Contributor(s): Jacques Beaurainm, Campbell Barton
+# Contributor(s): Campbell Barton
 #
 # ***** END GPL LICENSE BLOCK *****
 
-ADD_SUBDIRECTORY(generic)
-
-FILE(GLOB SRC intern/*.c)
+FILE(GLOB SRC *.c)
 
 SET(INC 
 	.
-	../blenlib
-	../makesdna
-	../makesrna
-	../blenkernel
-	../windowmanager
-	../editors/include
-	../../../intern/guardedalloc
+	../../blenlib
+	../../makesdna
+	../../blenkernel
+	../../editors/include
+	../../../../intern/guardedalloc
+	../../../../extern/glew/include
 	${PYTHON_INC}
 )
 
-# only to check if buildinfo is available
-IF(WITH_BUILDINFO)
-	ADD_DEFINITIONS(-DBUILD_DATE)
-ENDIF(WITH_BUILDINFO)
-
-BLENDERLIB(bf_python "${SRC}" "${INC}")
-
+BLENDERLIB(bf_gen_python "${SRC}" "${INC}")
