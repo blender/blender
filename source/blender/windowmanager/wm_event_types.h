@@ -267,6 +267,7 @@
 #define EVT_BUT_OPEN	0x5021
 #define EVT_MODAL_MAP	0x5022
 #define EVT_DROP		0x5023
+#define EVT_BUT_CANCEL	0x5024
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
 #define GESTURE_MODAL_CANCEL		1

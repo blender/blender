@@ -4204,7 +4204,6 @@ static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 {
 	uiBlock *block;
 	
-
 	/* check if the mouse is in the region */
 	if(!BLI_in_rcti(&ar->winrct, x, y)) {
 		for(block=ar->uiblocks.first; block; block=block->next)
@@ -4698,6 +4697,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		switch(event->type) {
 			case WINDEACTIVATE:
+			case EVT_BUT_CANCEL:
 				data->cancel= 1;
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				retval= WM_UI_HANDLER_CONTINUE;
