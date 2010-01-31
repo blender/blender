@@ -831,7 +831,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
 	
 	
-	prop= RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "ctime");
 	RNA_def_property_ui_text(prop, "Evaluation Time", "Parametric position along the length of the curve that Objects 'following' it should be at.");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");

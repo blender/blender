@@ -180,11 +180,9 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
 
         layout.active = curve.use_path
 
-        row = layout.row()
+        col = layout.column()
         layout.prop(curve, "path_length", text="Frames")
-
-        if wide_ui:
-            row.label()
+        layout.prop(curve, "eval_time")
 
         split = layout.split()
 
