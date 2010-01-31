@@ -154,8 +154,6 @@ void makeqtstring (RenderData *rd, char *string) {
 }
 
 void filepath_qt(char *string, RenderData *rd) {
-	char txt[64];
-	
 	if (string==NULL) return;
 	
 	strcpy(string, rd->pic);
@@ -168,7 +166,7 @@ void filepath_qt(char *string, RenderData *rd) {
 		if (strchr(string, '#')==NULL)
 			strcat(string, "####"); /* 4 numbers */
 
-		BLI_convertstringframe_range(string, rd->sfra, rd->efra);
+		BLI_convertstringframe_range(string, rd->sfra, rd->efra, 4);
 		strcat(string, ".mov");
 	}
 }
