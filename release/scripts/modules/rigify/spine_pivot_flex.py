@@ -128,16 +128,16 @@ def deform(obj, definitions, base_names, options):
 
         # Create deform bone.
         bone = copy_bone_simple(obj.data, org_bone_name, "DEF-%s" % base_names[org_bone_name], parent=True)
-        
+
         # Store name before leaving edit mode
         bone_name = bone.name
-        
+
         # Leave edit mode
         bpy.ops.object.mode_set(mode='OBJECT')
-        
+
         # Get the pose bone
         bone = obj.pose.bones[bone_name]
-        
+
         # Constrain to the original bone
         # XXX. Todo, is this needed if the bone is connected to its parent?
         con = bone.constraints.new('COPY_TRANSFORMS')
@@ -284,7 +284,7 @@ def main(obj, bone_definition, base_names, options):
     mt_chain.update()
     ex_chain.update()
     rv_chain.update()
-    
+
     # Axis locks
     ex.ribcage_copy_p.lock_location = True, True, True
 
@@ -453,8 +453,8 @@ def main(obj, bone_definition, base_names, options):
         mod.poly_order = 1
         mod.coefficients[0] = - (i - 1)
         mod.coefficients[1] = spine_chain_len
-    
-    
+
+
     # Set pelvis and ribcage controls to use the first and last bone in the
     # spine respectively for their custom shape transform
     ex.ribcage_copy_p.custom_shape_transform = obj.pose.bones[bone_definition[len(bone_definition)-1]]
@@ -472,7 +472,7 @@ def main(obj, bone_definition, base_names, options):
         getattr(ex_chain, attr + "_b").layer = layer
     for attr in rv_chain.attr_names:
         getattr(rv_chain, attr + "_b").layer = layer
-        
+
     layer = list(arm.bones[bone_definition[1]].layer)
     arm.bones[ex.pelvis_copy].layer = layer
     arm.bones[ex.ribcage_copy].layer = layer

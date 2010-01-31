@@ -66,7 +66,7 @@ def main(obj, bone_definition, base_names, options):
         raise RigifyError("'%s' rig type 'to' parameter must be a string (bone: %s)" % (RIG_TYPE, base_names[0]))
     if ("ORG-" + options["to"]) not in obj.data.bones:
         raise RigifyError("'%s' rig type 'to' parameter must name a bone in the metarig (bone: %s)" % (RIG_TYPE, base_names[0]))
-    
+
     preserve_volume = None
     # Check optional parameter
     if "preserve_volume" in options:
@@ -74,30 +74,30 @@ def main(obj, bone_definition, base_names, options):
             preserve_volume = bool_map[options["preserve_volume"]]
         except KeyError:
             preserve_volume = False
-    
+
     eb = obj.data.edit_bones
     bb = obj.data.bones
     pb = obj.pose.bones
-        
+
     bpy.ops.object.mode_set(mode='EDIT')
     arm = obj.data
-    
+
     mbone1 = bone_definition[0]
     mbone2 = "ORG-" + options["to"]
-    
+
     bone_e = copy_bone_simple(obj.data, mbone1, "MCH-%s" % base_names[bone_definition[0]])
     bone_e.connected = False
     bone_e.parent = None
     bone_e.head = (eb[mbone1].head + eb[mbone2].head) / 2
     bone_e.tail = (bone_e.head[0], bone_e.head[1], bone_e.head[2]+0.1)
     mid_bone = bone_e.name
-    
+
     bone_e = copy_bone_simple(obj.data, mbone1, "DEF-%s.01" % base_names[bone_definition[0]])
     bone_e.connected = False
     bone_e.parent = eb[mbone1]
     bone_e.tail = eb[mid_bone].head
     bone1 = bone_e.name
-    
+
     bone_e = copy_bone_simple(obj.data, mbone2, "DEF-%s.02" % base_names[bone_definition[0]])
     bone_e.connected = False
     bone_e.parent = eb[mbone2]
@@ -105,26 +105,26 @@ def main(obj, bone_definition, base_names, options):
     bone2 = bone_e.name
 
 
-    
+
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # Constraints
-    
+
     # Mid bone
     con = pb[mid_bone].constraints.new('COPY_LOCATION')
     con.target = obj
     con.subtarget = mbone1
-    
+
     con = pb[mid_bone].constraints.new('COPY_LOCATION')
     con.target = obj
     con.subtarget = mbone2
     con.influence = 0.5
-    
+
     # Bone 1
     con = pb[bone1].constraints.new('DAMPED_TRACK')
     con.target = obj
     con.subtarget = mid_bone
-    
+
     con = pb[bone1].constraints.new('STRETCH_TO')
     con.target = obj
     con.subtarget = mid_bone
@@ -133,12 +133,12 @@ def main(obj, bone_definition, base_names, options):
         con.volume = 'VOLUME_XZX'
     else:
         con.volume = 'NO_VOLUME'
-        
+
     # Bone 2
     con = pb[bone2].constraints.new('DAMPED_TRACK')
     con.target = obj
     con.subtarget = mid_bone
-    
+
     con = pb[bone2].constraints.new('STRETCH_TO')
     con.target = obj
     con.subtarget = mid_bone

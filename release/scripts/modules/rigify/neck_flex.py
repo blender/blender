@@ -106,16 +106,16 @@ def deform(obj, definitions, base_names, options):
 
         # Create deform bone.
         bone = copy_bone_simple(obj.data, org_bone_name, "DEF-%s" % base_names[org_bone_name], parent=True)
-        
+
         # Store name before leaving edit mode
         bone_name = bone.name
-        
+
         # Leave edit mode
         bpy.ops.object.mode_set(mode='OBJECT')
-        
+
         # Get the pose bone
         bone = obj.pose.bones[bone_name]
-        
+
         # Constrain to the original bone
         # XXX. Todo, is this needed if the bone is connected to its parent?
         con = bone.constraints.new('COPY_TRANSFORMS')
@@ -323,8 +323,8 @@ def main(obj, bone_definition, base_names, options):
         con = orig_neck_p.constraints.new('COPY_ROTATION')
         con.target = obj
         con.subtarget = neck_p.name
-    
-    
+
+
     # Set the head control's custom shape to use the last
     # org neck bone for its transform
     ex.head_ctrl_p.custom_shape_transform = obj.pose.bones[bone_definition[len(bone_definition)-1]]
@@ -339,11 +339,11 @@ def main(obj, bone_definition, base_names, options):
         getattr(ex_chain, attr + "_b").layer = layer
     for attr in ex.attr_names:
         getattr(ex, attr + "_b").layer = layer
-    
+
     layer = list(arm.bones[bone_definition[1]].layer)
     ex.head_ctrl_b.layer = layer
 
 
     # no blending the result of this
     return None
-    
+

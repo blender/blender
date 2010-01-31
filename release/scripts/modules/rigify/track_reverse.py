@@ -66,17 +66,17 @@ def main(obj, bone_definition, base_names, options):
         raise RigifyError("'%s' rig type 'to' parameter must be a string (bone: %s)" % (RIG_TYPE, base_names[0]))
     if ("ORG-" + options["to"]) not in obj.data.bones:
         raise RigifyError("'%s' rig type 'to' parameter must name a bone in the metarig (bone: %s)" % (RIG_TYPE, base_names[0]))
-    
+
     eb = obj.data.edit_bones
     bb = obj.data.bones
     pb = obj.pose.bones
-        
+
     bpy.ops.object.mode_set(mode='EDIT')
     arm = obj.data
-    
+
     mbone1 = bone_definition[0]
     mbone2 = "ORG-" + options["to"]
-    
+
     bone_e = copy_bone_simple(obj.data, mbone2, "DEF-%s.02" % base_names[bone_definition[0]])
     bone_e.connected = False
     bone_e.parent = eb[mbone1]
@@ -84,14 +84,14 @@ def main(obj, bone_definition, base_names, options):
     bone = bone_e.name
 
 
-    
+
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # Constraints
     con = pb[bone].constraints.new('COPY_LOCATION')
     con.target = obj
     con.subtarget = mbone2
-    
+
     con = pb[bone].constraints.new('DAMPED_TRACK')
     con.target = obj
     con.subtarget = mbone1
