@@ -4234,13 +4234,13 @@ static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 		mask_rct.ymin= v2d->mask.ymin;
 		mask_rct.ymax= v2d->mask.ymax;
 		
-		if (v2d->scroll & V2D_SCROLL_VERTICAL_HIDE) {
+		if (v2d->scroll & (V2D_SCROLL_VERTICAL_HIDE|V2D_SCROLL_VERTICAL_FULLR)) {
 			if (v2d->scroll & V2D_SCROLL_LEFT)
 				mask_rct.xmin= v2d->vert.xmin;
 			else if (v2d->scroll & V2D_SCROLL_RIGHT)
 				mask_rct.xmax= v2d->vert.xmax;
 		}
-		if (v2d->scroll & V2D_SCROLL_HORIZONTAL_HIDE) {
+		if (v2d->scroll & (V2D_SCROLL_HORIZONTAL_HIDE|V2D_SCROLL_HORIZONTAL_FULLR)) {
 			if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O))
 				mask_rct.ymin= v2d->hor.ymin;
 			else if (v2d->scroll & V2D_SCROLL_TOP)

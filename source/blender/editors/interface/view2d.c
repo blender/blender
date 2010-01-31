@@ -62,7 +62,12 @@
 
 /* *********************************************************************** */
 
-/* helper to allow scrollbars to dynamically hide */
+/* helper to allow scrollbars to dynamically hide
+ * 	- returns a copy of the scrollbar settings with the flags to display 
+ *	  horizontal/vertical scrollbars removed
+ *	- input scroll value is the v2d->scroll var
+ *	- hide flags are set per region at drawtime
+ */
 static int view2d_scroll_mapped(int scroll)
 {
 	if(scroll & V2D_SCROLL_HORIZONTAL_HIDE)
@@ -1411,10 +1416,14 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 			CLAMP(scrollers->hor_min, hor.xmin, hor.xmax-V2D_SCROLLER_HANDLE_SIZE);
 		}
 		
-		/* check whether sliders can disappear */
+		/* check whether sliders can disappear due to the full-range being used */
 		if(v2d->keeptot) {
-			if(fac1 <= 0.0f && fac2 >= 1.0f) 
+			if ((fac1 <= 0.0f) && (fac2 >= 1.0f)) { 
+				v2d->scroll |= V2D_SCROLL_HORIZONTAL_FULLR;
 				scrollers->horfull= 1;
+			}
+			else	
+				v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_FULLR;
 		}
 	}
 	
@@ -1448,10 +1457,14 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 			CLAMP(scrollers->vert_min, vert.ymin, vert.ymax-V2D_SCROLLER_HANDLE_SIZE);
 		}
 
-		/* check whether sliders can disappear */
+		/* check whether sliders can disappear due to the full-range being used */
 		if(v2d->keeptot) {
-			if(fac1 <= 0.0f && fac2 >= 1.0f) 
+			if ((fac1 <= 0.0f) && (fac2 >= 1.0f)) { 
+				v2d->scroll |= V2D_SCROLL_VERTICAL_FULLR;
 				scrollers->vertfull= 1;
+			}
+			else	
+				v2d->scroll &= ~V2D_SCROLL_VERTICAL_FULLR;
 		}
 	}
 	
