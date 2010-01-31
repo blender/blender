@@ -475,10 +475,11 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C, const char *op
 	if(found==NULL) {
 		if(ELEM(opcontext, WM_OP_EXEC_REGION_WIN, WM_OP_INVOKE_REGION_WIN)) {
 			if(sa) {
-				ARegion *ar= sa->regionbase.first;
-				for(; ar; ar= ar->next)
-					if(ar->regiontype==RGN_TYPE_WINDOW)
-						break;
+				if(!(ar && ar->regiontype == RGN_TYPE_WINDOW)) {
+					for(ar= sa->regionbase.first; ar; ar= ar->next)
+						if(ar->regiontype==RGN_TYPE_WINDOW)
+							break;
+				}
 
 				if(ar)
 					found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, hotkey, compare_props, keymap_r);

@@ -594,11 +594,12 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 			case WM_OP_EXEC_REGION_WIN:
 			case WM_OP_INVOKE_REGION_WIN: 
 			{
-				/* forces operator to go to the region window, for header menus */
+				/* forces operator to go to the region window, for header menus
+				   but we stay in the same region if we are already in one */
 				ARegion *ar= CTX_wm_region(C);
 				ScrArea *area= CTX_wm_area(C);
 				
-				if(area) {
+				if(!(ar && ar->regiontype == RGN_TYPE_WINDOW) && area) {
 					ARegion *ar1= area->regionbase.first;
 					for(; ar1; ar1= ar1->next)
 						if(ar1->regiontype==RGN_TYPE_WINDOW)
