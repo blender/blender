@@ -124,4 +124,6 @@ PyObject *BPY_app_struct(void)
 	/* prevent user from creating new instances */
 	BlenderAppType.tp_init = NULL;
 	BlenderAppType.tp_new = NULL;
+	
+	return ret;
 }

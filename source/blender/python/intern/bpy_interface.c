@@ -38,6 +38,7 @@
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
 
+#include "bpy_app.h"
 #include "bpy_rna.h"
 #include "bpy_props.h"
 #include "bpy_operator.h"
