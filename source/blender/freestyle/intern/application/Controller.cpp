@@ -450,6 +450,7 @@ void Controller::ComputeViewMap()
   _Chrono.start();
  
   edgeDetector.setViewpoint(Vec3r(vp));
+  edgeDetector.enableOrthographicProjection(proj[3][3] != 0.0);
   edgeDetector.enableRidgesAndValleysFlag(_ComputeRidges);
   edgeDetector.enableSuggestiveContours(_ComputeSuggestive);
   edgeDetector.setSphereRadius(_sphereRadius);

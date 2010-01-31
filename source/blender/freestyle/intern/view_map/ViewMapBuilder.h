@@ -58,6 +58,7 @@ private:
   //SilhouetteGeomEngine _GeomEngine;
   ProgressBar *_pProgressBar;
   Vec3r _viewpoint;
+  bool _orthographicProjection;
   Grid* _Grid;
   ViewEdgeXBuilder *_pViewEdgeBuilder;
   bool _EnableQI;
@@ -129,6 +130,7 @@ public:
 			   real iFocalLength,
 			   real iAspect,
 			   real iFovy) {
+	_orthographicProjection = (iProjectionMatrix[3][3] != 0.0);
     SilhouetteGeomEngine::setTransform(iModelViewMatrix, iProjectionMatrix, iViewport, iFocalLength);
   }
   

@@ -56,6 +56,7 @@ public:
     _computeRidgesAndValleys = true;
     _computeSuggestiveContours = true;
     _sphereRadius = 1.0;
+    _orthographicProjection = false;
     _changes = false;
     _kr_derivative_epsilon = 0.0;
   }
@@ -107,6 +108,7 @@ public:
 
   /*! Sets the current viewpoint */
   inline void setViewpoint(const Vec3r& ivp) {_Viewpoint = ivp;}
+  inline void enableOrthographicProjection(bool b) {_orthographicProjection = b;}
   inline void enableRidgesAndValleysFlag(bool b) {_computeRidgesAndValleys = b;}
   inline void enableSuggestiveContours(bool b) {_computeSuggestiveContours = b;}
   /*! Sets the radius of the geodesic sphere around each vertex (for the curvature computation)
@@ -136,6 +138,7 @@ protected:
   real _maxKr;
   unsigned _nPoints;
   real _meanEdgeSize;
+  bool _orthographicProjection;
 
   bool _computeRidgesAndValleys;
   bool _computeSuggestiveContours;

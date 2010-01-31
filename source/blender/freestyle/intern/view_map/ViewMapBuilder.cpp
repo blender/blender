@@ -103,7 +103,12 @@ void ViewMapBuilder::computeCusps(ViewMap *ioViewMap){
       Vec3r m((A+B)/2.0);
       Vec3r crossP(AB^(fes)->normal()); 
       crossP.normalize();
-      Vec3r viewvector(m-_viewpoint);
+      Vec3r viewvector;
+      if (_orthographicProjection) {
+        viewvector = Vec3r(0.0, 0.0, m.z()-_viewpoint.z());
+      } else {
+        viewvector = Vec3r(m-_viewpoint);
+      }
       viewvector.normalize();
       if(first){
         if(((crossP)*(viewvector)) > 0)
@@ -583,7 +588,12 @@ void ViewMapBuilder::FindOccludee(FEdge *fe, Grid* iGrid, real epsilon, Polygon3
   A = Vec3r(((fe)->vertexA()->point3D() + (fe)->vertexB()->point3D())/2.0);
   edge = Vec3r((fe)->vertexB()->point3D()-(fe)->vertexA()->point3D());
   origin = Vec3r((fe)->vertexA()->point3D());
-  Vec3r u(_viewpoint-A);
+  Vec3r u;
+  if (_orthographicProjection) {
+    u = Vec3r(0.0, 0.0, _viewpoint.z()-A.z());
+  } else {
+    u = Vec3r(_viewpoint-A);
+  }
   u.normalize();
   if(A < iGrid->getOrigin())
     cerr << "Warning: point is out of the grid for fedge " << fe->getId().getFirst() << "-" << fe->getId().getSecond() << endl;
@@ -637,13 +647,19 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe, Grid* iGrid, real eps
   //    //return 0;
   //  }
 
-  Vec3r u(_viewpoint - center);
+  Vec3r vp;
+  if (_orthographicProjection) {
+    vp = Vec3r(center.x(), center.y(), _viewpoint.z());
+  } else {
+    vp = Vec3r(_viewpoint);
+  }
+  Vec3r u(vp - center);
   real raylength = u.norm();
   u.normalize();
   //cout << "grid origin " << iGrid->getOrigin().x() << "," << iGrid->getOrigin().y() << "," << iGrid->getOrigin().z() << endl;
   //cout << "center " << center.x() << "," << center.y() << "," << center.z() << endl;
   
-  iGrid->castRay(center, Vec3r(_viewpoint), occluders, timestamp);
+  iGrid->castRay(center, vp, occluders, timestamp);
 
   WFace *face = 0;
   if(fe->isSmooth()){

@@ -129,14 +129,23 @@ void FEdgeXDetector::preProcessFace(WXFace *iFace){
   Vec3r N = iFace->GetNormal();
 
   // Compute the dot product between V (=_Viewpoint - firstPoint) and N:
-  Vec3r V(_Viewpoint - firstPoint);
+  Vec3r V;
+  if (_orthographicProjection) {
+    V = Vec3r(0.0, 0.0, _Viewpoint.z() - firstPoint.z());
+  } else {
+    V = Vec3r(_Viewpoint - firstPoint);
+  }
   N.normalize();
   V.normalize();
   iFace->setDotP(N * V);
   
   // compute the distance between the face center and the viewpoint:
-  Vec3r dist_vec(iFace->center() - _Viewpoint);
-  iFace->setZ(dist_vec.norm());
+  if (_orthographicProjection) {
+    iFace->setZ(iFace->center().z() - _Viewpoint.z());
+  } else {
+    Vec3r dist_vec(iFace->center() - _Viewpoint);
+    iFace->setZ(dist_vec.norm());
+  }
 }
 
 void FEdgeXDetector::computeCurvatures(WXVertex *vertex){
@@ -181,7 +190,11 @@ void FEdgeXDetector::computeCurvatures(WXVertex *vertex){
     
   // compute radial curvature :
   n = C->e1 ^ C->e2;
-  v = _Viewpoint - vertex->GetVertex();
+  if (_orthographicProjection) {
+    v = Vec3r(0.0, 0.0, _Viewpoint.z() - vertex->GetVertex().z());
+  } else {
+    v = Vec3r(_Viewpoint - vertex->GetVertex());
+  }
   C->er = v - (v * n) * n;
   C->er.normalize();
   e1 = C->e1;
@@ -243,14 +256,23 @@ void FEdgeXDetector::ProcessSilhouetteFace(WXFace *iFace)
   for(int i=0; i<numVertices; i++){
     point = iFace->GetVertex(i)->GetVertex();
     normal = iFace->GetVertexNormal(i);
-    Vec3r V(_Viewpoint - point);
     normal.normalize();
+    Vec3r V;
+    if (_orthographicProjection) {
+      V = Vec3r(0.0, 0.0, _Viewpoint.z() - point.z());
+    } else {
+      V = Vec3r(_Viewpoint - point);
+    }
     V.normalize();
     real d = normal * V;
     faceLayer->PushDotP(d);
     // Find the point the closest to the viewpoint
-    Vec3r dist_vec(point - _Viewpoint);
-    dist = dist_vec.norm();
+    if (_orthographicProjection) {
+      dist = point.z() - _Viewpoint.z();
+    } else {
+      Vec3r dist_vec(point - _Viewpoint);
+      dist = dist_vec.norm();
+    }
     if(dist < minDist) {
       minDist = dist;
       closestPointId = i;
