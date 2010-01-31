@@ -19,8 +19,8 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import get_layer_dict
-from rigify_utils import bone_class_instance, copy_bone_simple
+from rigify import RigifyError
+from rigify_utils import copy_bone_simple
 
 METARIG_NAMES = tuple()
 RIG_TYPE = "track_dual"
@@ -48,10 +48,9 @@ bool_map = {0:False, 1:True,
             "no":False, "yes":True,
             "No":False, "Yes":True}
 
+
 def metarig_definition(obj, orig_bone_name):
     return (orig_bone_name,)
-
-
 
 
 def main(obj, bone_definition, base_names, options):
@@ -89,7 +88,6 @@ def main(obj, bone_definition, base_names, options):
     bone2 = bone_e.name
 
 
-
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # Constraints
@@ -110,4 +108,3 @@ def main(obj, bone_definition, base_names, options):
 
 
     return tuple()
-

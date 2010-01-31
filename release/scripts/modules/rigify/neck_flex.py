@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import RigifyError, get_layer_dict
+from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
 

@@ -19,11 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rna_prop_ui import rna_idprop_ui_prop_get
-from math import acos
-from Mathutils import Vector
-from rigify import get_layer_dict
-from rigify_utils import bone_class_instance, copy_bone_simple
+from rigify import RigifyError
 
 #METARIG_NAMES = ("cpy",)
 RIG_TYPE = "shape_key_distance"

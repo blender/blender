@@ -19,7 +19,6 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import get_layer_dict
 from rigify_utils import bone_class_instance, copy_bone_simple
 
 METARIG_NAMES = ("cpy",)

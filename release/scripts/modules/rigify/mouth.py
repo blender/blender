@@ -22,8 +22,8 @@ import bpy
 from rna_prop_ui import rna_idprop_ui_prop_get
 from math import acos, pi
 from Mathutils import Vector
-from rigify import get_layer_dict, RigifyError
-from rigify_utils import bone_class_instance, copy_bone_simple
+from rigify import RigifyError
+from rigify_utils import copy_bone_simple
 
 #METARIG_NAMES = ("cpy",)
 RIG_TYPE = "mouth"
@@ -105,12 +105,12 @@ def metarig_definition(obj, orig_bone_name):
     try:
         chain += [bone.parent.parent.name, bone.parent.name, bone.name]
     except AttributeError:
-        raise RigifyError("'%s' rig type requires a chain of two parents (bone: %s)" % (RIG_TYPE, base_names[0]))
+        raise RigifyError("'%s' rig type requires a chain of two parents (bone: %s)" % (RIG_TYPE, orig_bone_name))
 
     chain += [child.name for child in bone.children_recursive_basename]
 
     if len(chain) < 10:
-        raise RigifyError("'%s' rig type requires a chain of 8 bones (bone: %s)" % (RIG_TYPE, base_names[0]))
+        raise RigifyError("'%s' rig type requires a chain of 8 bones (bone: %s)" % (RIG_TYPE, orig_bone_name))
 
     return chain[:10]
 

@@ -19,8 +19,8 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import get_layer_dict
-from rigify_utils import bone_class_instance, copy_bone_simple
+from rigify import RigifyError
+from rigify_utils import copy_bone_simple
 
 METARIG_NAMES = tuple()
 RIG_TYPE = "track_reverse"

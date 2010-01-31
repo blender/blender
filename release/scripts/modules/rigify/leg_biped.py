@@ -20,7 +20,7 @@
 
 import bpy
 from math import pi
-from rigify import RigifyError, get_layer_dict
+from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 

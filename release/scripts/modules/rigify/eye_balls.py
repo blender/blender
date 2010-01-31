@@ -20,10 +20,9 @@
 
 import bpy
 from rna_prop_ui import rna_idprop_ui_prop_get
-from math import acos
 from Mathutils import Vector
-from rigify import get_layer_dict
-from rigify_utils import bone_class_instance, copy_bone_simple
+from rigify import RigifyError
+from rigify_utils import copy_bone_simple
 
 #METARIG_NAMES = ("cpy",)
 RIG_TYPE = "eye_balls"
@@ -70,7 +69,7 @@ def metarig_definition(obj, orig_bone_name):
     try:
         chain += [bone.parent.name, bone.name]
     except AttributeError:
-        raise RigifyError("'%s' rig type requires a parent (bone: %s)" % (RIG_TYPE, base_names[0]))
+        raise RigifyError("'%s' rig type requires a parent (bone: %s)" % (RIG_TYPE, orig_bone_name))
 
     return chain
 

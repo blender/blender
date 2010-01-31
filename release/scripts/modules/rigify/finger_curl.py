@@ -19,10 +19,9 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import RigifyError, get_layer_dict
+from rigify import RigifyError
 from rigify_utils import copy_bone_simple, get_side_name
 from rna_prop_ui import rna_idprop_ui_prop_get
-from functools import reduce
 
 METARIG_NAMES = "finger_01", "finger_02", "finger_03"
 
