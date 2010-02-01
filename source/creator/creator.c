@@ -372,13 +372,6 @@ static int prefsize(int argc, char **argv, void *data)
 	return 4;
 }
 
-static int swap_exchange(int argc, char **argv, void *data)
-{
-	G.f |= G_SWAP_EXCHANGE;
-
-	return 0;
-}
-
 static int with_borders(int argc, char **argv, void *data)
 {
 	/* with borders XXX OLD CRUFT!*/
@@ -846,7 +839,6 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 	/* second pass: custom window stuff */
 	BLI_argsAdd(ba, "-p", 2, prefsize, NULL);
-	BLI_argsAdd(ba, "-E", 2, swap_exchange, NULL);
 	BLI_argsAdd(ba, "-w", 2, with_borders, NULL);
 	BLI_argsAdd(ba, "-W", 2, without_borders, NULL);
 	BLI_argsAdd(ba, "-R", 2, register_extension, ba);

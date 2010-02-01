@@ -486,6 +486,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_DRAW_OVERLAP		1
 #define USER_DRAW_FULL			2
 #define USER_DRAW_AUTOMATIC		3
+#define USER_DRAW_OVERLAP_FLIP	4
 
 /* tw_flag (transform widget) */
 
