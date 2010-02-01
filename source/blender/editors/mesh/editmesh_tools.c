@@ -732,9 +732,81 @@ static int mesh_extrude_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+/* extrude options */
+EnumPropertyItem extrude_item_region = {1, "REGION", 0, "Region", ""};
+EnumPropertyItem extrude_item_faces = {2, "FACES", 0, "Individual Faces", ""};
+EnumPropertyItem extrude_item_edges = {3, "EDGES", 0, "Only Edges", ""};
+EnumPropertyItem extrude_item_verts = {4, "VERTS", 0, "Only Vertices", ""};
+
+static EnumPropertyItem *extrude_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	EnumPropertyItem *item= NULL;
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
+
+	int totitem= 0;
+
+	if(!obedit)
+		return NULL;
+
+	if(em->selectmode & SCE_SELECT_VERTEX) {
+		if(em->totvertsel==0) {}
+		else if(em->totvertsel==1) { RNA_enum_item_add(&item, &totitem, &extrude_item_verts); }
+		else if(em->totedgesel==0) { RNA_enum_item_add(&item, &totitem, &extrude_item_verts); }
+		else if(em->totfacesel==0) {
+			RNA_enum_item_add(&item, &totitem, &extrude_item_edges);
+			RNA_enum_item_add(&item, &totitem, &extrude_item_verts);
+		}
+		else if(em->totfacesel==1) {
+			RNA_enum_item_add(&item, &totitem, &extrude_item_region);
+			RNA_enum_item_add(&item, &totitem, &extrude_item_edges);
+			RNA_enum_item_add(&item, &totitem, &extrude_item_verts);
+		}
+		else {
+			RNA_enum_item_add(&item, &totitem, &extrude_item_region);
+			RNA_enum_item_add(&item, &totitem, &extrude_item_edges);
+			RNA_enum_item_add(&item, &totitem, &extrude_item_verts);
+		}
+	}
+	else if(em->selectmode & SCE_SELECT_EDGE) {
+		if (em->totedgesel==0) {}
+		else if (em->totedgesel==1) { RNA_enum_item_add(&item, &totitem, &extrude_item_edges); }
+		else if(em->totfacesel==0) { RNA_enum_item_add(&item, &totitem, &extrude_item_edges); }
+		else if(em->totfacesel==1) {
+			RNA_enum_item_add(&item, &totitem, &extrude_item_region);
+			RNA_enum_item_add(&item, &totitem, &extrude_item_edges);
+		}
+		else {
+			RNA_enum_item_add(&item, &totitem, &extrude_item_region);
+			RNA_enum_item_add(&item, &totitem, &extrude_item_faces);
+			RNA_enum_item_add(&item, &totitem, &extrude_item_edges);
+		}
+	}
+	else {
+		if (em->totfacesel == 0) {}
+		else if (em->totfacesel == 1) { RNA_enum_item_add(&item, &totitem, &extrude_item_region); }
+		else {
+			RNA_enum_item_add(&item, &totitem, &extrude_item_region);
+			RNA_enum_item_add(&item, &totitem, &extrude_item_faces);
+		}
+	}
+
+	if(item) {
+		RNA_enum_item_end(&item, &totitem);
+		*free= 1;
+		return item;
+	}
+	else {
+		return NULL;
+	}
+}
 
 void MESH_OT_extrude(wmOperatorType *ot)
 {
+#if 0
+	PropertyRNA *prop;
+#endif
+
 	/* identifiers */
 	ot->name= "Extrude";
 	ot->description= "Extrude selected vertices, edges or faces.";
@@ -747,6 +819,13 @@ void MESH_OT_extrude(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+#if 0
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+	RNA_def_enum_funcs(prop, extrude_itemf);
+	ot->prop= prop;
+#endif
 }
 
 static int split_mesh(bContext *C, wmOperator *op)
