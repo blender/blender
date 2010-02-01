@@ -1799,27 +1799,62 @@ void flushTransParticles(TransInfo *t)
 /* ********************* mesh ****************** */
 
 /* proportional distance based on connectivity  */
-#define E_VEC(a)	(vectors + (3 * (a)->tmp.l))
-#define E_NEAR(a)	(nears[((a)->tmp.l)])
 #define THRESHOLD	0.0001f
-static void editmesh_set_connectivity_distance(EditMesh *em, int total, float *vectors, EditVert **nears)
+
+static int connectivity_edge(float mtx[][3], EditVert *v1, EditVert *v2)
+{
+	float edge_vec[3];
+	float edge_len;
+	int done = 0;
+
+	sub_v3_v3v3(edge_vec, v1->co, v2->co);
+	mul_m3_v3(mtx, edge_vec);
+
+	edge_len = len_v3(edge_vec);
+
+	if (v1->f2 + v2->f2 == 4)
+		return 0;
+
+	if (v1->f2) {
+		if (v2->f2) {
+			if (v2->tmp.fp + edge_len < v1->tmp.fp) {
+				v1->tmp.fp = v2->tmp.fp + edge_len;
+				done = 1;
+			} else if (v1->tmp.fp + edge_len < v2->tmp.fp) {
+				v2->tmp.fp = v1->tmp.fp + edge_len;
+				done = 1;
+			}
+		}
+		else {
+			v2->f2 = 1;
+			v2->tmp.fp = v1->tmp.fp + edge_len;
+			done = 1;
+		}
+	}
+	else if (v2->f2) {
+		v1->f2 = 1;
+		v1->tmp.fp = v2->tmp.fp + edge_len;
+		done = 1;
+	}
+
+	return done;
+}
+
+static void editmesh_set_connectivity_distance(EditMesh *em, float mtx[][3])
 {
 	EditVert *eve;
 	EditEdge *eed;
-	int i= 0, done= 1;
+	EditFace *efa;
+	int done= 1;
 
 	/* f2 flag is used for 'selection' */
 	/* tmp.l is offset on scratch array   */
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->h==0) {
-			eve->tmp.l = i++;
+			eve->tmp.fp = 0;
 
 			if(eve->f & SELECT) {
 				eve->f2= 2;
-				E_NEAR(eve) = eve;
-				E_VEC(eve)[0] = 0.0f;
-				E_VEC(eve)[1] = 0.0f;
-				E_VEC(eve)[2] = 0.0f;
 			}
 			else {
 				eve->f2 = 0;
@@ -1839,75 +1874,15 @@ static void editmesh_set_connectivity_distance(EditMesh *em, int total, float *v
 
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if(eed->h==0) {
-				EditVert *v1= eed->v1, *v2= eed->v2;
-				float *vec2 = E_VEC(v2);
-				float *vec1 = E_VEC(v1);
+				done |= connectivity_edge(mtx, eed->v1, eed->v2);
+			}
+		}
 
-				if (v1->f2 + v2->f2 == 4)
-					continue;
-
-				if (v1->f2) {
-					if (v2->f2) {
-						float nvec[3];
-						float len1 = len_v3(vec1);
-						float len2 = len_v3(vec2);
-						float lenn;
-						/* for v2 if not selected */
-						if (v2->f2 != 2) {
-							sub_v3_v3v3(nvec, v2->co, E_NEAR(v1)->co);
-							lenn = len_v3(nvec);
-							/* 1 < n < 2 */
-							if (lenn - len1 > THRESHOLD && len2 - lenn > THRESHOLD) {
-								VECCOPY(vec2, nvec);
-								E_NEAR(v2) = E_NEAR(v1);
-								done = 1;
-							}
-							/* n < 1 < 2 */
-							else if (len2 - len1 > THRESHOLD && len1 - lenn > THRESHOLD) {
-								VECCOPY(vec2, vec1);
-								E_NEAR(v2) = E_NEAR(v1);
-								done = 1;
-							}
-						}
-						/* for v1 if not selected */
-						if (v1->f2 != 2) {
-							sub_v3_v3v3(nvec, v1->co, E_NEAR(v2)->co);
-							lenn = len_v3(nvec);
-							/* 2 < n < 1 */
-							if (lenn - len2 > THRESHOLD && len1 - lenn > THRESHOLD) {
-								VECCOPY(vec1, nvec);
-								E_NEAR(v1) = E_NEAR(v2);
-								done = 1;
-							}
-							/* n < 2 < 1 */
-							else if (len1 - len2 > THRESHOLD && len2 - lenn > THRESHOLD) {
-								VECCOPY(vec1, vec2);
-								E_NEAR(v1) = E_NEAR(v2);
-								done = 1;
-							}
-						}
-					}
-					else {
-						v2->f2 = 1;
-						sub_v3_v3v3(vec2, v2->co, E_NEAR(v1)->co);
-						/* 2 < 1 */
-						if (len_v3(vec1) - len_v3(vec2) > THRESHOLD) {
-							VECCOPY(vec2, vec1);
-						}
-						E_NEAR(v2) = E_NEAR(v1);
-						done = 1;
-					}
-				}
-				else if (v2->f2) {
-					v1->f2 = 1;
-					sub_v3_v3v3(vec1, v1->co, E_NEAR(v2)->co);
-					/* 2 < 1 */
-					if (len_v3(vec2) - len_v3(vec1) > THRESHOLD) {
-						VECCOPY(vec1, vec2);
-					}
-					E_NEAR(v1) = E_NEAR(v2);
-					done = 1;
-				}
+		/* do internal edges for quads */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->v4) {
+				done |= connectivity_edge(mtx, efa->v1, efa->v3);
+				done |= connectivity_edge(mtx, efa->v2, efa->v4);
 			}
 		}
 	}
@@ -2132,9 +2107,8 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	TransData *tob = NULL;
 	EditMesh *em = ((Mesh *)t->obedit->data)->edit_mesh;
 	EditVert *eve;
-	EditVert **nears = NULL;
 	EditVert *eve_act = NULL;
-	float *vectors = NULL, *mappedcos = NULL, *quats= NULL;
+	float *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
 	int count=0, countsel=0, a, totleft;
 	int propmode = t->flag & T_PROP_EDIT;
@@ -2199,20 +2173,15 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	}
 
 
-	if(propmode) {
-		t->total = count;
-
-		/* allocating scratch arrays */
-		vectors = (float *)MEM_mallocN(t->total * 3 * sizeof(float), "scratch vectors");
-		nears = (EditVert**)MEM_mallocN(t->total * sizeof(EditVert*), "scratch nears");
-	}
+	if(propmode) t->total = count;
 	else t->total = countsel;
+
 	tob= t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
 
 	copy_m3_m4(mtx, t->obedit->obmat);
 	invert_m3_m3(smtx, mtx);
 
-	if(propmode) editmesh_set_connectivity_distance(em, t->total, vectors, nears);
+	if(propmode) editmesh_set_connectivity_distance(em, mtx);
 
 	/* detect CrazySpace [tm] */
 	if(propmode==0) {
@@ -2266,10 +2235,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 				if(propmode) {
 					if (eve->f2) {
-						float vec[3];
-						VECCOPY(vec, E_VEC(eve));
-						mul_m3_v3(mtx, vec);
-						tob->dist= len_v3(vec);
+						tob->dist= eve->tmp.fp;
 					}
 					else {
 						tob->flag |= TD_NOTCONNECTED;
@@ -2326,10 +2292,6 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		}
 	}
 	
-	if (propmode) {
-		MEM_freeN(vectors);
-		MEM_freeN(nears);
-	}
 	/* crazy space free */
 	if(quats)
 		MEM_freeN(quats);

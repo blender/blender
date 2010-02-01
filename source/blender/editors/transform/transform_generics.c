@@ -1440,8 +1440,12 @@ void calculatePropRatio(TransInfo *t)
 			else {
 				/* Use rdist for falloff calculations, it is the real distance */
 				td->flag &= ~TD_NOACTION;
-				dist= (t->prop_size-td->rdist)/t->prop_size;
 				
+				if (connected)
+					dist= (t->prop_size-td->dist)/t->prop_size;
+				else
+					dist= (t->prop_size-td->rdist)/t->prop_size;
+
 				/*
 				 * Clamp to positive numbers.
 				 * Certain corner cases with connectivity and individual centers
