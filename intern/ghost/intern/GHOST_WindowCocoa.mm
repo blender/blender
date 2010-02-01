@@ -1100,6 +1100,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 		//No need to perform grab without warp as it is always on in OS X
 		if(mode != GHOST_kGrabNormal) {
 			GHOST_TInt32 x_old,y_old;
+			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 			m_systemCocoa->getCursorPosition(x_old,y_old);
 			screenToClient(x_old, y_old, m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
@@ -1110,8 +1111,13 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 				setWindowCursorVisibility(false);
 			}
 			
+			//Make window key if it wasn't to get the mouse move events
+			[m_window makeKeyWindow];
+			
 			//Dissociate cursor position even for warp mode, to allow mouse acceleration to work even when warping the cursor
 			err = CGAssociateMouseAndMouseCursorPosition(false) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
+			
+			[pool drain];
 		}
 	}
 	else {
