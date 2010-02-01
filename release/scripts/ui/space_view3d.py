@@ -1131,7 +1131,7 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("mesh.extrude_move")
+        layout.operator("wm.call_menu", text="Extrude").name = "VIEW3D_MT_edit_mesh_extrude"
         layout.operator("mesh.duplicate_move")
         layout.operator("mesh.delete", text="Delete...")
 
@@ -1197,6 +1197,19 @@ class VIEW3D_MT_edit_mesh_selection_mode(bpy.types.Menu):
         prop = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
         prop.value = "(False, False, True)"
         prop.path = "tool_settings.mesh_selection_mode"
+
+class VIEW3D_MT_edit_mesh_extrude(bpy.types.Menu):
+    bl_label = "Extrude"
+
+    def draw(self, context):
+        layout = self.layout
+        
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        
+        layout.operator("mesh.extrude_region_move", text="Region")
+        layout.operator("mesh.extrude_faces_move", text="Individual Faces")
+        layout.operator("mesh.extrude_edges_move", text="Edges Only")
+        layout.operator("mesh.extrude_vertices_move", text="Vertices Only")
 
 
 class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
@@ -2032,6 +2045,7 @@ bpy.types.register(VIEW3D_MT_edit_mesh_edges)
 bpy.types.register(VIEW3D_MT_edit_mesh_faces)
 bpy.types.register(VIEW3D_MT_edit_mesh_normals)
 bpy.types.register(VIEW3D_MT_edit_mesh_showhide)
+bpy.types.register(VIEW3D_MT_edit_mesh_extrude)
 
 bpy.types.register(VIEW3D_MT_edit_curve)
 bpy.types.register(VIEW3D_MT_edit_curve_ctrlpoints)

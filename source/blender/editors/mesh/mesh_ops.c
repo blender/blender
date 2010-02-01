@@ -188,16 +188,29 @@ void ED_operatormacros_mesh(void)
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 
-	ot= WM_operatortype_append_macro("MESH_OT_extrude_move_along_normals", "Extrude Along Normals", OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->poll = ED_operator_editmesh_face_select; /* restrict extrude along normals to face select */
-	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_region_move", "Extrude Region and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
+	otmacro= WM_operatortype_macro_define(ot, "MESH_OT_extrude");
+	RNA_enum_set(otmacro->ptr, "type", 1);
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_enum_set(otmacro->ptr, "constraint_orientation", V3D_MANIP_NORMAL);
 	RNA_boolean_set_array(otmacro->ptr, "constraint_axis", constraint_axis);
 
-	ot= WM_operatortype_append_macro("MESH_OT_extrude_move", "Extrude and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
-	WM_operatortype_macro_define(ot, "MESH_OT_extrude");
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_faces_move", "Extrude Individual Faces and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
+	otmacro= WM_operatortype_macro_define(ot, "MESH_OT_extrude");
+	RNA_enum_set(otmacro->ptr, "type", 2);
+	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_shrink_fatten");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_edges_move", "Extrude Only Edges and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
+	otmacro= WM_operatortype_macro_define(ot, "MESH_OT_extrude");
+	RNA_enum_set(otmacro->ptr, "type", 3);
+	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+
+	ot= WM_operatortype_append_macro("MESH_OT_extrude_vertices_move", "Extrude Only Vertices and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
+	otmacro= WM_operatortype_macro_define(ot, "MESH_OT_extrude");
+	RNA_enum_set(otmacro->ptr, "type", 4);
 	otmacro= WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 }
@@ -251,8 +264,7 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MESH_OT_normals_make_consistent", NKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "inside", 1);
 	
-	WM_keymap_add_item(keymap, "MESH_OT_extrude_move_along_normals", EKEY, KM_PRESS, 0, 0); /* this first so it's selected if possible */
-	WM_keymap_add_item(keymap, "MESH_OT_extrude_move", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_extrude", EKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "MESH_OT_spin", RKEY, KM_PRESS, KM_ALT, 0);
 	
