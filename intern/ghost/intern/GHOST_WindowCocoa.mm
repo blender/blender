@@ -203,11 +203,16 @@ extern "C" {
 {
 	NSPoint mouseLocation = [sender draggingLocation];
 	NSPasteboard *draggingPBoard = [sender draggingPasteboard];
+	NSImage *droppedImg;
 	id data;
 	
 	switch (m_draggedObjectType) {
 		case GHOST_kDragnDropTypeBitmap:
-			data = [draggingPBoard dataForType:NSTIFFPboardType];
+			if([NSImage canInitWithPasteboard:draggingPBoard]) {
+				droppedImg = [[NSImage alloc]initWithPasteboard:draggingPBoard];
+				data = droppedImg; //[draggingPBoard dataForType:NSTIFFPboardType];
+			}
+			else return NO;
 			break;
 		case GHOST_kDragnDropTypeFilenames:
 			data = [draggingPBoard propertyListForType:NSFilenamesPboardType];

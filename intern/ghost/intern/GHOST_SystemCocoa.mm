@@ -1050,10 +1050,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 			if (!data) return GHOST_kFailure;
 			
 			switch (draggedObjectType) {
-				case GHOST_kDragnDropTypeBitmap:
-					//TODO: implement bitmap conversion to a blender friendly format
-					return GHOST_kFailure;
-					break;
 				case GHOST_kDragnDropTypeFilenames:
 					droppedArray = (NSArray*)data;
 					
@@ -1101,6 +1097,124 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 					temp_buff[pastedTextSize] = '\0';
 					
 					eventData = (GHOST_TEventDataPtr) temp_buff;
+					break;
+				
+				case GHOST_kDragnDropTypeBitmap:
+				{
+					NSImage *droppedImg = (NSImage*)data;
+					NSSize imgSize = [droppedImg size];
+					ImBuf *ibuf = NULL;
+					GHOST_TUns8 *rasterRGB = NULL;
+					GHOST_TUns8 *rasterRGBA = NULL;
+					GHOST_TUns8 *toIBuf = NULL;
+					int x, y, to_i, from_i;
+					NSBitmapImageRep *blBitmapFormatImageRGB,*blBitmapFormatImageRGBA,*bitmapImage=nil;
+					NSEnumerator *enumerator;
+					NSImageRep *representation;
+					
+					ibuf = IMB_allocImBuf (imgSize.width , imgSize.height, 32, IB_rect, 0);
+					if (!ibuf) {
+						[droppedImg release];
+						return GHOST_kFailure;
+					}
+					
+					/*Get the bitmap of the image*/
+					enumerator = [[droppedImg representations] objectEnumerator];
+					while ((representation = [enumerator nextObject])) {
+						if ([representation isKindOfClass:[NSBitmapImageRep class]]) {
+							bitmapImage = (NSBitmapImageRep *)representation;
+							break;
+						}
+					}
+					if (bitmapImage == nil) return GHOST_kFailure;
+					
+					if (([bitmapImage bitsPerPixel] == 32) && (([bitmapImage bitmapFormat] & 0x5) == 0)
+						&& ![bitmapImage isPlanar]) {
+						/* Try a fast copy if the image is a meshed RGBA 32bit bitmap*/
+						toIBuf = (GHOST_TUns8*)ibuf->rect;
+						rasterRGB = (GHOST_TUns8*)[bitmapImage bitmapData];
+						for (y = 0; y < imgSize.height; y++) {
+							to_i = (imgSize.height-y-1)*imgSize.width;
+							from_i = y*imgSize.width;
+							memcpy(toIBuf+4*to_i, rasterRGB+4*from_i, 4*imgSize.width);
+						}
+					}
+					else {
+						/* Tell cocoa image resolution is same as current system one */
+						[bitmapImage setSize:imgSize];
+						
+						/* Convert the image in a RGBA 32bit format */
+						/* As Core Graphics does not support contextes with non premutliplied alpha,
+						 we need to get alpha key values in a separate batch */
+						
+						/* First get RGB values w/o Alpha to avoid pre-multiplication, 32bit but last byte is unused */
+						blBitmapFormatImageRGB = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
+																						 pixelsWide:imgSize.width 
+																						 pixelsHigh:imgSize.height
+																					  bitsPerSample:8 samplesPerPixel:3 hasAlpha:NO isPlanar:NO
+																					 colorSpaceName:NSDeviceRGBColorSpace 
+																					   bitmapFormat:(NSBitmapFormat)0
+																						bytesPerRow:4*imgSize.width
+																					   bitsPerPixel:32/*RGB format padded to 32bits*/];
+						
+						[NSGraphicsContext saveGraphicsState];
+						[NSGraphicsContext setCurrentContext:[NSGraphicsContext graphicsContextWithBitmapImageRep:blBitmapFormatImageRGB]];
+						[bitmapImage draw];
+						[NSGraphicsContext restoreGraphicsState];
+						
+						rasterRGB = (GHOST_TUns8*)[blBitmapFormatImageRGB bitmapData];
+						if (rasterRGB == NULL) {
+							[bitmapImage release];
+							[blBitmapFormatImageRGB release];
+							[droppedImg release];
+							return GHOST_kFailure;
+						}
+						
+						/* Then get Alpha values by getting the RGBA image (that is premultiplied btw) */
+						blBitmapFormatImageRGBA = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:NULL
+																						  pixelsWide:imgSize.width
+																						  pixelsHigh:imgSize.height
+																					   bitsPerSample:8 samplesPerPixel:4 hasAlpha:YES isPlanar:NO
+																					  colorSpaceName:NSDeviceRGBColorSpace
+																						bitmapFormat:(NSBitmapFormat)0
+																						 bytesPerRow:4*imgSize.width
+																						bitsPerPixel:32/* RGBA */];
+						
+						[NSGraphicsContext saveGraphicsState];
+						[NSGraphicsContext setCurrentContext:[NSGraphicsContext graphicsContextWithBitmapImageRep:blBitmapFormatImageRGBA]];
+						[bitmapImage draw];
+						[NSGraphicsContext restoreGraphicsState];
+						
+						rasterRGBA = (GHOST_TUns8*)[blBitmapFormatImageRGBA bitmapData];
+						if (rasterRGBA == NULL) {
+							[bitmapImage release];
+							[blBitmapFormatImageRGB release];
+							[blBitmapFormatImageRGBA release];
+							[droppedImg release];
+							return GHOST_kFailure;
+						}
+						
+						/*Copy the image to ibuf, flipping it vertically*/
+						toIBuf = (GHOST_TUns8*)ibuf->rect;
+						for (y = 0; y < imgSize.height; y++) {
+							for (x = 0; x < imgSize.width; x++) {
+								to_i = (imgSize.height-y-1)*imgSize.width + x;
+								from_i = y*imgSize.width + x;
+								
+								toIBuf[4*to_i] = rasterRGB[4*from_i]; /* R */
+								toIBuf[4*to_i+1] = rasterRGB[4*from_i+1]; /* G */
+								toIBuf[4*to_i+2] = rasterRGB[4*from_i+2]; /* B */
+								toIBuf[4*to_i+3] = rasterRGBA[4*from_i+3]; /* A */
+							}
+						}
+						
+						[blBitmapFormatImageRGB release];
+						[blBitmapFormatImageRGBA release];
+						[droppedImg release];
+					}
+					
+					eventData = (GHOST_TEventDataPtr) ibuf;
+				}
 					break;
 					
 				default:
