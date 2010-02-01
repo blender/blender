@@ -590,8 +590,11 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
 		# For MinGW and linuxcross static linking will be used
 		dllsources += ['${LCGDIR}/gettext/lib/gnu_gettext.dll']
 
-	dllsources += ['${BF_PNG_LIBPATH}/libpng.dll',
-			'${BF_ZLIB_LIBPATH}/zlib.dll',
+	#currently win64-vc doesn't appear to have libpng.dll
+	if env['OURPLATFORM'] != 'win64-vc':
+		dllsources += ['${BF_PNG_LIBPATH}/libpng.dll']
+
+	dllsources += ['${BF_ZLIB_LIBPATH}/zlib.dll',
 			'${BF_TIFF_LIBPATH}/${BF_TIFF_LIB}.dll']
 
 	if env['OURPLATFORM'] != 'linuxcross':
