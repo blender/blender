@@ -129,7 +129,7 @@ void GPU_extensions_init()
 		GG.device = GPU_DEVICE_NVIDIA;
 		GG.driver = GPU_DRIVER_OPENSOURCE;
 	}
-	else if(strcmp(vendor, "Mesa") == 0) {
+	else if(strstr(vendor, "Mesa")) {
 		GG.device = GPU_DEVICE_SOFTWARE;
 		GG.driver = GPU_DRIVER_SOFTWARE;
 	}
@@ -137,7 +137,7 @@ void GPU_extensions_init()
 		GG.device = GPU_DEVICE_SOFTWARE;
 		GG.driver = GPU_DRIVER_SOFTWARE;
 	}
-	else if(strcmp(renderer, "Apple Software Renderer") == 0) {
+	else if(strstr(renderer, "Apple Software Renderer")) {
 		GG.device = GPU_DEVICE_SOFTWARE;
 		GG.driver = GPU_DRIVER_SOFTWARE;
 	}
