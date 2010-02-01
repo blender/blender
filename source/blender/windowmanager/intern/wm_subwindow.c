@@ -131,12 +131,14 @@ void wm_subwindow_getmatrix(wmWindow *win, int swinid, float mat[][4])
 
 	if(swin) {
 		/* used by UI, should find a better way to get the matrix there */
-		float viewmat[4][4], winmat[4][4];
+		if(swinid == win->screen->mainwin) {
+			int width, height;
 
-		glGetFloatv(GL_MODELVIEW_MATRIX, (float*)winmat);
-		glGetFloatv(GL_PROJECTION_MATRIX, (float*)viewmat);
-
-		mul_m4_m4m4(mat, viewmat, winmat);
+			wm_subwindow_getsize(win, swin->swinid, &width, &height);
+			orthographic_m4(mat, -0.375, (float)width-0.375, -0.375, (float)height-0.375, -100, 100);
+		}
+		else
+			glGetFloatv(GL_PROJECTION_MATRIX, (float*)mat);
 	}
 }
 
