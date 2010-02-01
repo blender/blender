@@ -105,7 +105,8 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
             
             subcol = col.column()
             subcol.operator_context = 'INVOKE_DEFAULT'
-            subcol.operator("anim.keying_set_export", text="Export to File")
+            op = subcol.operator("anim.keying_set_export", text="Export to File")
+            op.path = "keyingset.py"
 
             if wide_ui:
                 col = row.column()
@@ -249,30 +250,64 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         scene = context.scene
         ks = scene.active_keying_set
         
-        # TODO:
-        #   - build a table of aliases for the ID's which
-        #     gets utilised to speed up the reloading process
-        #   - add code which sets the keyframing/relative state info
-        #     for the keyingset
-
-        f.write('# Keying Set: %s\n' % ks.name)
+        
+        f.write("# Keying Set: %s\n" % ks.name)
         
         f.write("import bpy\n\n")
         f.write("scene= bpy.data.scenes[0]\n\n")
 
+        # Add KeyingSet and set general settings 
+        f.write("# Keying Set Level declarations\n")
         f.write("ks= scene.add_keying_set(name=\"%s\")\n" % ks.name)
+        
+        if ks.absolute is False:
+            f.write("ks.absolute = False\n")
+        f.write("\n")
+        
+        f.write("ks.insertkey_needed = %s\n" % ks.insertkey_needed)
+        f.write("ks.insertkey_visual = %s\n" % ks.insertkey_visual)
+        f.write("ks.insertkey_xyz_to_rgb = %s\n" % ks.insertkey_xyz_to_rgb)
+        f.write("\n")
+        
+        
+        # generate and write set of lookups for id's used in paths
+        id_to_paths_cache = {} # cache for syncing ID-blocks to bpy paths + shorthands
+        
         for ksp in ks.paths:
-            f.write("ks.add_destination(")
+            if ksp.id is None:
+                continue;
+            if ksp.id in id_to_paths_cache:
+                continue;
+                
+            # - idtype_list is used to get the list of id-datablocks from bpy.data.*
+            #   since this info isn't available elsewhere
+            # - id.bl_rna.name gives a name suitable for UI, 
+            #   with a capitalised first letter, but we need
+            #   the plural form that's all lower case
+            idtype_list = ksp.id.bl_rna.name.lower() + "s"
+            id_bpy_path = "bpy.data.%s[\"%s\"]" % (idtype_list, ksp.id.name)
+            
+            # shorthand ID for the ID-block (as used in the script)
+            short_id = "id_%d" % len(id_to_paths_cache)
+            
+            # store this in the cache now
+            id_to_paths_cache[ksp.id] = [short_id, id_bpy_path]
+            
+        f.write("# ID's that are commonly used\n")
+        for id_pair in id_to_paths_cache.values():
+            f.write("%s = %s\n" % (id_pair[0], id_pair[1]))
+        f.write("\n")
+        
+        
+        # write paths
+        f.write("# Path Definitions\n") 
+        for ksp in ks.paths:
+            f.write("ksp = ks.add_destination(")
             
             # id-block + RNA-path
             if ksp.id:
-                # idtype_list is used to get a path to the ID-datablock using bpy.data.*
-                # but since this info isn't available, we try to construct it here
-                #   id.bl_rna.name gives a name suitable for UI, 
-                #   with a capitalised first letter, but we need
-                #   the plural form that's all lower case
-                idtype_path = ksp.id.bl_rna.name.lower() + "s"
-                id_bpy_path = "bpy.data.%s[\"%s\"]" % (idtype_path, ksp.id.name)
+                # find the relevant shorthand from the cache
+                id_bpy_path = id_to_paths_cache[ksp.id][0]
             else:
                 id_bpy_path = "None" # XXX... 
             f.write("%s, '%s'" % (id_bpy_path, ksp.data_path))
