@@ -88,7 +88,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     if f.endswith(".py"):
                         # python module
                         mod = test_import(f[0:-3])
-                    elif ("." not in f) and (_os.path.isdir(_os.path.join(path, f, "__init__.py"))):
+                    elif ("." not in f) and (_os.path.isfile(_os.path.join(path, f, "__init__.py"))):
                         # python package
                         mod = test_import(f)
                     else:
