@@ -370,7 +370,7 @@ def write(filename, objects, scene,
         file.write('mtllib %s\n' % ( mtlfilename.split('\\')[-1].split('/')[-1] ))
 
     if EXPORT_ROTX90:
-        mat_xrot90= Mathutils.RotationMatrix(-math.pi/2, 4, 'x')
+        mat_xrot90= Mathutils.RotationMatrix(-math.pi/2, 4, 'X')
 
     # Initialize totals, these are updated each object
     totverts = totuvco = totno = 1
