@@ -344,8 +344,8 @@ static void ui_centered_bounds_block(const bContext *C, uiBlock *block)
 static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int bounds_calc)
 {
 	wmWindow *window= CTX_wm_window(C);
-	int startx, starty, endx, endy, width, height;
-	int oldbounds, mx, my, xmax, ymax;
+	int startx, starty, endx, endy, width, height, oldwidth, oldheight;
+	int oldbounds, xmax, ymax;
 
 	oldbounds= block->bounds;
 
@@ -354,9 +354,9 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int bounds_
 	
 	wm_window_get_size(window, &xmax, &ymax);
 
-	mx= window->eventstate->x + block->minx + block->mx;
-	my= window->eventstate->y + block->miny + block->my;
-	
+	oldwidth= block->maxx - block->minx;
+	oldheight= block->maxy - block->miny;
+
 	/* first we ensure wide enough text bounds */
 	if(bounds_calc==UI_BLOCK_BOUNDS_POPUP_MENU) {
 		if(block->flag & UI_BLOCK_LOOP) {
@@ -373,8 +373,10 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int bounds_
 	width= block->maxx - block->minx;
 	height= block->maxy - block->miny;
 
-	startx= mx-(0.8*(width));
-	starty= my;
+	/* offset block based on mouse position, user offset is scaled
+	   along in case we resized the block in ui_text_bounds_block */
+	startx= window->eventstate->x + block->minx + (block->mx*width)/oldwidth;
+	starty= window->eventstate->y + block->miny + (block->my*height)/oldheight;
 	
 	if(startx<10)
 		startx= 10;
