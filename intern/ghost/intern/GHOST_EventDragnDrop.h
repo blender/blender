@@ -30,6 +30,10 @@
 #define _GHOST_EVENT_DRAGNDROP_H_
 
 #include "GHOST_Event.h"
+extern "C" {
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+};
 
 /**
  * Drag & drop event
@@ -55,7 +59,7 @@
  * <br>Currently supported object types :
  * <li>UTF-8 string
  * <li>array of strings representing filenames (GHOST_TStringArray)
- * <li>bitmap image
+ * <li>bitmap ImBuf
  */
 class GHOST_EventDragnDrop : public GHOST_Event
 {
@@ -89,7 +93,7 @@ public:
 		
 		switch (m_dragnDropEventData.dataType) {
 			case GHOST_kDragnDropTypeBitmap:
-				//Not currently implemented
+				IMB_freeImBuf((ImBuf*)m_dragnDropEventData.data);
 				break;
 			case GHOST_kDragnDropTypeFilenames:
 			{

@@ -281,6 +281,61 @@ void wm_event_do_notifiers(bContext *C)
 	CTX_wm_window_set(C, NULL);
 }
 
+/* ********************* ui handler ******************* */
+
+static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *event, int always_pass)
+{
+	ScrArea *area= CTX_wm_area(C);
+	ARegion *region= CTX_wm_region(C);
+	ARegion *menu= CTX_wm_menu(C);
+	int retval;
+			
+	/* we set context to where ui handler came from */
+	if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
+	if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
+	if(handler->ui_menu) CTX_wm_menu_set(C, handler->ui_menu);
+
+	retval= handler->ui_handle(C, event, handler->ui_userdata);
+
+	/* putting back screen context */
+	if((retval != WM_UI_HANDLER_BREAK) || always_pass) {
+		CTX_wm_area_set(C, area);
+		CTX_wm_region_set(C, region);
+		CTX_wm_menu_set(C, menu);
+	}
+	else {
+		/* this special cases is for areas and regions that get removed */
+		CTX_wm_area_set(C, NULL);
+		CTX_wm_region_set(C, NULL);
+		CTX_wm_menu_set(C, NULL);
+	}
+
+	if(retval == WM_UI_HANDLER_BREAK)
+		return WM_HANDLER_BREAK;
+
+	return WM_HANDLER_CONTINUE;
+}
+
+static void wm_handler_ui_cancel(bContext *C)
+{
+	wmWindow *win= CTX_wm_window(C);
+	ARegion *ar= CTX_wm_region(C);
+	wmEventHandler *handler, *nexthandler;
+
+	if(!ar)
+		return;
+
+	for(handler= ar->handlers.first; handler; handler= nexthandler) {
+		nexthandler= handler->next;
+
+		if(handler->ui_handle) {
+			wmEvent event= *(win->eventstate);
+			event.type= EVT_BUT_CANCEL;
+			handler->ui_handle(C, &event, handler->ui_userdata);
+		}
+	}
+}
+
 /* ********************* operators ******************* */
 
 int WM_operator_poll(bContext *C, wmOperatorType *ot)
@@ -457,6 +512,8 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 			motherop= NULL;
 	}
 	
+	WM_operator_properties_sanitize(op->ptr, 0);
+
 	return op;
 }
 
@@ -553,6 +610,12 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 
 				WM_cursor_grab(CTX_wm_window(C), wrap, FALSE, bounds);
 			}
+
+			/* cancel UI handlers, typically tooltips that can hang around
+			   while dragging the view or worse, that stay there permanently
+			   after the modal operator has swallowed all events and passed
+			   none to the UI handler */
+			wm_handler_ui_cancel(C);
 		}
 		else
 			WM_operator_free(op);
@@ -594,11 +657,12 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 			case WM_OP_EXEC_REGION_WIN:
 			case WM_OP_INVOKE_REGION_WIN: 
 			{
-				/* forces operator to go to the region window, for header menus */
+				/* forces operator to go to the region window, for header menus
+				   but we stay in the same region if we are already in one */
 				ARegion *ar= CTX_wm_region(C);
 				ScrArea *area= CTX_wm_area(C);
 				
-				if(area) {
+				if(!(ar && ar->regiontype == RGN_TYPE_WINDOW) && area) {
 					ARegion *ar1= area->regionbase.first;
 					for(; ar1; ar1= ar1->next)
 						if(ar1->regiontype==RGN_TYPE_WINDOW)
@@ -1039,42 +1103,6 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 	return WM_HANDLER_BREAK;
 }
 
-static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *event)
-{
-	ScrArea *area= CTX_wm_area(C);
-	ARegion *region= CTX_wm_region(C);
-	ARegion *menu= CTX_wm_menu(C);
-	int retval, always_pass;
-			
-	/* we set context to where ui handler came from */
-	if(handler->ui_area) CTX_wm_area_set(C, handler->ui_area);
-	if(handler->ui_region) CTX_wm_region_set(C, handler->ui_region);
-	if(handler->ui_menu) CTX_wm_menu_set(C, handler->ui_menu);
-
-	/* in advance to avoid access to freed event on window close */
-	always_pass= wm_event_always_pass(event);
-
-	retval= handler->ui_handle(C, event, handler->ui_userdata);
-
-	/* putting back screen context */
-	if((retval != WM_UI_HANDLER_BREAK) || always_pass) {
-		CTX_wm_area_set(C, area);
-		CTX_wm_region_set(C, region);
-		CTX_wm_menu_set(C, menu);
-	}
-	else {
-		/* this special cases is for areas and regions that get removed */
-		CTX_wm_area_set(C, NULL);
-		CTX_wm_region_set(C, NULL);
-		CTX_wm_menu_set(C, NULL);
-	}
-
-	if(retval == WM_UI_HANDLER_BREAK)
-		return WM_HANDLER_BREAK;
-
-	return WM_HANDLER_CONTINUE;
-}
-
 /* fileselect handlers are only in the window queue, so it's save to switch screens or area types */
 static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHandler *handler, wmEvent *event)
 {
@@ -1276,7 +1304,7 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 				}
 			}
 			else if(handler->ui_handle) {
-				action |= wm_handler_ui_call(C, handler, event);
+				action |= wm_handler_ui_call(C, handler, event, always_pass);
 			}
 			else if(handler->type==WM_HANDLER_FILESELECT) {
 				/* screen context changes here */

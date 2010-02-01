@@ -19,33 +19,31 @@
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Jacques Beaurain.
+# Contributor(s): Jacques Beaurainm, Campbell Barton
 #
 # ***** END GPL LICENSE BLOCK *****
 
+ADD_SUBDIRECTORY(generic)
+
 FILE(GLOB SRC intern/*.c)
-FILE(GLOB GENSRC generic/*.c)
 
 SET(INC 
-	. ../../../intern/guardedalloc ../blenlib ../makesdna ../makesrna
-	../blenkernel ../editors/include ../windowmanager ${PYTHON_INC}
-	../../../extern/glew/include ../freestyle/intern/python
+	.
+	../blenlib
+	../makesdna
+	../makesrna
+	../blenkernel
+	../windowmanager
+	../editors/include
+	../freestyle/intern/python
+	../../../intern/guardedalloc
+	${PYTHON_INC}
 )
 
-IF(WITH_OPENEXR)
-	ADD_DEFINITIONS(-DWITH_OPENEXR)
-ENDIF(WITH_OPENEXR)
-
-IF(WITH_QUICKTIME)
-	SET(INC ${INC} ${QUICKTIME_INC})
-	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_QUICKTIME)
-
-IF(WITH_FFMPEG)
-	SET(INC ${INC} ${FFMPEG_INC})
-	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_FFMPEG)
+# only to check if buildinfo is available
+IF(WITH_BUILDINFO)
+	ADD_DEFINITIONS(-DBUILD_DATE)
+ENDIF(WITH_BUILDINFO)
 
 BLENDERLIB(bf_python "${SRC}" "${INC}")
-BLENDERLIB(bf_gen_python "${GENSRC}" "${INC}")
 

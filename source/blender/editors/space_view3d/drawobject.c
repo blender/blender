@@ -554,7 +554,10 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 			for(a=0; a<6; a++)
 				glDisable(GL_CLIP_PLANE0+a);
 		
-		wmPushMatrix();
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
 		ED_region_pixelspace(ar);
 		
 		if(depth_write) {
@@ -574,7 +577,10 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 		}
 		else glDepthMask(1);
 		
-		wmPopMatrix();
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPopMatrix();
 
 		if(rv3d->rflag & RV3D_CLIPPING)
 			for(a=0; a<6; a++)
@@ -851,7 +857,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	
 	/* we first draw only the screen aligned & fixed scale stuff */
 	glPushMatrix();
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 
 	/* lets calculate the scale: */
 	pixsize= rv3d->persmat[0][3]*ob->obmat[3][0]+ rv3d->persmat[1][3]*ob->obmat[3][1]+ rv3d->persmat[2][3]*ob->obmat[3][2]+ rv3d->persmat[3][3];
@@ -1065,7 +1071,7 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	}
 	
 	/* and back to viewspace */
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 	VECCOPY(vec, ob->obmat[3]);
 
 	setlinestyle(0);
@@ -1136,7 +1142,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	/* a standing up pyramid with (0,0,0) as top */
 	Camera *cam;
 	World *wrld;
-	float vec[8][4], tmat[4][4], fac, facx, facy, depth;
+	float nobmat[4][4], vec[8][4], fac, facx, facy, depth;
 	int i;
 
 	if(G.f & G_RENDER_SHADOW)
@@ -1216,13 +1222,13 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 
 	if(flag==0) {
 		if(cam->flag & (CAM_SHOWLIMITS+CAM_SHOWMIST)) {
-			wmLoadMatrix(rv3d->viewmat);
-			copy_m4_m4(vec, ob->obmat);
-			normalize_m4(vec);
-			wmMultMatrix(vec);
+			/* draw in normalized object matrix space */
+			copy_m4_m4(nobmat, ob->obmat);
+			normalize_m4(nobmat);
 
-			swap_m4m4(rv3d->persmat, tmat);
-			wmGetSingleMatrix(rv3d->persmat);
+			glPushMatrix();
+			glLoadMatrixf(rv3d->viewmat);
+			glMultMatrixf(nobmat);
 
 			if(cam->flag & CAM_SHOWLIMITS) {
 				draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
@@ -1234,7 +1240,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 			if(cam->flag & CAM_SHOWMIST) 
 				if(wrld) draw_limit_line(wrld->miststa, wrld->miststa+wrld->mistdist, 0xFFFFFF);
 				
-			swap_m4m4(rv3d->persmat, tmat);
+			glPopMatrix();
 		}
 	}
 }
@@ -3355,7 +3361,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {
 		float mat[4][4];
 		mul_m4_m4m4(mat, psys->imat, ob->obmat);
-		wmMultMatrix(mat);
+		glMultMatrixf(mat);
 	}
 
 	totpart=psys->totpart;
@@ -3856,7 +3862,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 	}
 
 	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) )
-		wmLoadMatrix(rv3d->viewmat);
+		glLoadMatrixf(rv3d->viewmat);
 }
 
 static void draw_update_ptcache_edit(Scene *scene, Object *ob, PTCacheEdit *edit)
@@ -4692,7 +4698,7 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	Object *ob= base->object;
 	MetaBall *mb;
 	MetaElem *ml;
-	float imat[4][4], tmat[4][4];
+	float imat[4][4];
 	int code= 1;
 	
 	mb= ob->data;
@@ -4717,8 +4723,7 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	}
 	else UI_ThemeColor(TH_WIRE);
 
-	wmGetMatrix(tmat);
-	invert_m4_m4(imat, tmat);
+	invert_m4_m4(imat, rv3d->viewmatob);
 	normalize_v3(imat[0]);
 	normalize_v3(imat[1]);
 	
@@ -4753,7 +4758,7 @@ static int drawmball(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	return 0;
 }
 
-static void draw_forcefield(Scene *scene, Object *ob)
+static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 {
 	PartDeflect *pd= ob->pd;
 	float imat[4][4], tmat[4][4];
@@ -4776,8 +4781,7 @@ static void draw_forcefield(Scene *scene, Object *ob)
 	else size = 1.0;
 	
 	/* calculus here, is reused in PFIELD_FORCE */
-	wmGetMatrix(tmat);
-	invert_m4_m4(imat, tmat);
+	invert_m4_m4(imat, rv3d->viewmatob);
 //	normalize_v3(imat[0]);		// we don't do this because field doesnt scale either... apart from wind!
 //	normalize_v3(imat[1]);
 	
@@ -5586,7 +5590,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			break;
 		case OB_LAMP:
 			drawlamp(scene, v3d, rv3d, base, dt, flag);
-			if(dtx || (base->flag & SELECT)) wmMultMatrix(ob->obmat);
+			if(dtx || (base->flag & SELECT)) glMultMatrixf(ob->obmat);
 			break;
 		case OB_CAMERA:
 			drawcamera(scene, v3d, rv3d, ob, flag);
@@ -5609,17 +5613,17 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		if ((sb= ob->soft)){
 			if(sb->solverflags & SBSO_ESTIMATEIPO){
 
-				wmLoadMatrix(rv3d->viewmat);
+				glLoadMatrixf(rv3d->viewmat);
 				copy_m3_m3(msc,sb->lscale);
 				copy_m3_m3(mrt,sb->lrot);
 				mul_m3_m3m3(mtr,mrt,msc); 
 				ob_draw_RE_motion(sb->lcom,mtr,tipw,tiph,drawsize);
-				wmMultMatrix(ob->obmat);
+				glMultMatrixf(ob->obmat);
 			}
 		}
 	}
 
-	if(ob->pd && ob->pd->forcefield) draw_forcefield(scene, ob);
+	if(ob->pd && ob->pd->forcefield) draw_forcefield(scene, ob, rv3d);
 
 	/* code for new particle system */
 	if(		(warning_recursive==0) &&
@@ -5633,7 +5637,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
 		//glDepthMask(GL_FALSE);
 
-		wmLoadMatrix(rv3d->viewmat);
+		glLoadMatrixf(rv3d->viewmat);
 		
 		view3d_cached_text_draw_begin();
 
@@ -5648,7 +5652,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		
 		view3d_cached_text_draw_end(v3d, ar, 0, NULL);
 
-		wmMultMatrix(ob->obmat);
+		glMultMatrixf(ob->obmat);
 		
 		//glDepthMask(GL_TRUE);
 		if(col) cpack(col);
@@ -5663,9 +5667,9 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
 			PTCacheEdit *edit = PE_get_current(scene, ob);
 			if(edit) {
-				wmLoadMatrix(rv3d->viewmat);
+				glLoadMatrixf(rv3d->viewmat);
 				draw_ptcache_edit(scene, v3d, rv3d, ob, edit, dt);
-				wmMultMatrix(ob->obmat);
+				glMultMatrixf(ob->obmat);
 			}
 		}
 	}
@@ -5683,7 +5687,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			{
 				size_t i;
 
-				wmLoadMatrix(rv3d->viewmat);
+				glLoadMatrixf(rv3d->viewmat);
 
 				if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	
 				glDepthMask(GL_FALSE);
@@ -5701,7 +5705,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				bglEnd();
 				glPointSize(1.0);
 
-				wmMultMatrix(ob->obmat);
+				glMultMatrixf(ob->obmat);
 				glDisable(GL_BLEND);
 				glDepthMask(GL_TRUE);
 				if(col) cpack(col);
@@ -5725,8 +5729,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				int x, y, z;
 				float *density = smoke_get_density(smd->domain->fluid);
 
-				wmLoadMatrix(rv3d->viewmat);
-				// wmMultMatrix(ob->obmat);	
+				glLoadMatrixf(rv3d->viewmat);
+				// glMultMatrixf(ob->obmat);	
 
 				if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	
 				glDepthMask(GL_FALSE);
@@ -5759,7 +5763,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				bglEnd();
 				glPointSize(1.0);
 
-				wmMultMatrix(ob->obmat);
+				glMultMatrixf(ob->obmat);
 				glDisable(GL_BLEND);
 				glDepthMask(GL_TRUE);
 				if(col) cpack(col);
@@ -5809,11 +5813,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if(dt<OB_SHADED) {
 		if((ob->gameflag & OB_DYNAMIC) || 
 			((ob->gameflag & OB_BOUNDS) && (ob->boundtype == OB_BOUND_SPHERE))) {
-			float tmat[4][4], imat[4][4], vec[3];
+			float imat[4][4], vec[3];
 
 			vec[0]= vec[1]= vec[2]= 0.0;
-			wmGetMatrix(tmat);
-			invert_m4_m4(imat, tmat);
+			invert_m4_m4(imat, rv3d->viewmatob);
 
 			setlinestyle(2);
 			drawcircball(GL_LINE_LOOP, vec, ob->inertia, imat);
@@ -5824,7 +5827,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* return warning, this is cached text draw */
 	view3d_cached_text_draw_end(v3d, ar, 1, NULL);
 
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 
 	if(zbufoff) glDisable(GL_DEPTH_TEST);
 
@@ -6043,7 +6046,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 {
 	ToolSettings *ts= scene->toolsettings;
 
-	wmMultMatrix(ob->obmat);
+	glMultMatrixf(ob->obmat);
 
 	glClearDepth(1.0); glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
@@ -6092,7 +6095,7 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 		break;
 	}
 
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 }
 
 

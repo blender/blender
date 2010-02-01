@@ -6078,6 +6078,14 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->alignment= RGN_ALIGN_LEFT;
 				ar->v2d.scroll= V2D_SCROLL_BOTTOM;
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+				
+					// for some reason, some files still don't get this auto
+				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_RIGHT;
+				ar->v2d.scroll= V2D_SCROLL_RIGHT;
+				ar->v2d.flag = RGN_FLAG_HIDDEN;
 				break;
 				
 			case SPACE_NODE:
@@ -9679,7 +9687,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						char str[FILE_MAX];
 						BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
 						BLI_convertstringcode(str, G.sce);
-						BLI_convertstringframe(str, scene->r.cfra);
 						seq->sound = sound_new_file(main, str);
 					}
 				}

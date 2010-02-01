@@ -860,7 +860,10 @@ static PyGetSetDef Quaternion_getseters[] = {
 };
 
 //------------------PY_OBECT DEFINITION--------------------------
-static char quaternion_doc[] = "This object gives access to Quaternions in Blender.";
+static char quaternion_doc[] =
+"This object gives access to Quaternions in Blender.\n"
+"\n"
+".. literalinclude:: ../examples/mathutils_quat.py\n";
 
 PyTypeObject quaternion_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)

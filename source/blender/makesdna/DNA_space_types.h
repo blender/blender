@@ -650,7 +650,7 @@ enum FileSortTypeE {
 #define FILE_MAIN			2
 #define FILE_LOADFONT		3
 /* filesel op property -> action */
-#define FILE_OPEN			0
+#define FILE_OPENFILE		0
 #define FILE_SAVE			1
 
 /* sfile->flag and simasel->flag */

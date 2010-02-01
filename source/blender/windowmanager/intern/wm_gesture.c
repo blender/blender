@@ -318,7 +318,6 @@ void wm_gesture_draw(wmWindow *win)
 	for(; gt; gt= gt->next) {
 		/* all in subwindow space */
 		wmSubWindowSet(win, gt->swinid);
-		wmOrthoPixelSpace();
 		
 		if(gt->type==WM_GESTURE_RECT)
 			wm_gesture_draw_rect(win, gt);

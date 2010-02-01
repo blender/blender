@@ -731,7 +731,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *
 	glScissor(ar->winrct.xmin + (rect.xmin-1), ar->winrct.ymin+(rect.ymin-1), (rect.xmax+1)-(rect.xmin-1), (rect.ymax+1)-(rect.ymin-1));
 		
 	for (rgb=0; rgb<3; rgb++) {
-		float *data;
+		float *data = NULL;
 		
 		if (rgb==0)			data = hist->data_r;
 		else if (rgb==1)	data = hist->data_g;

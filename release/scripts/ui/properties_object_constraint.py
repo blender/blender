@@ -460,12 +460,12 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         layout.prop(con, "use_offset")
 
         self.space_template(layout, con, wide_ui)
-		
+
     def COPY_TRANSFORMS(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)
 
         self.space_template(layout, con, wide_ui)
-		
+
 
     #def SCRIPT(self, context, layout, con):
 
@@ -566,7 +566,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         if wide_ui:
             row.label(text="Min/Max:")
         row.prop(con, "floor_location", expand=True)
-		
+
         self.space_template(layout, con, wide_ui)
 
     def RIGID_BODY_JOINT(self, context, layout, con, wide_ui):
@@ -744,18 +744,14 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
     bl_context = "bone_constraint"
 
     def poll(self, context):
-        ob = context.object
-        return (ob and ob.type == 'ARMATURE' and context.bone)
+        return (context.pose_bone)
 
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
-        pchan = ob.pose.bones[context.bone.name]
-
         layout.operator_menu_enum("pose.constraint_add", "type")
 
-        for con in pchan.constraints:
+        for con in context.pose_bone.constraints:
             self.draw_constraint(context, con)
 
 bpy.types.register(OBJECT_PT_constraints)

@@ -949,6 +949,18 @@ void ACTION_OT_interpolation_type (wmOperatorType *ot)
 
 /* ******************** Set Handle-Type Operator *********************** */
 
+EnumPropertyItem actkeys_handle_type_items[] = {
+	{0, "", 0, "For Selected Handles", ""},
+	{HD_FREE, "FREE", 0, "Free", ""},
+	{HD_AUTO, "AUTO", 0, "Auto", ""},
+	{HD_VECT, "VECTOR", 0, "Vector", ""},
+	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
+	{0, "", 0, "For Selected F-Curves", ""},
+	{HD_AUTO_ANIM, "ANIM_CLAMPED", 0, "Auto Clamped", "Handles stay horizontal"},
+	{0, NULL, 0, NULL, NULL}};
+
+/* ------------------- */
+
 /* this function is responsible for setting handle-type of selected keyframes */
 static void sethandles_action_keys(bAnimContext *ac, short mode) 
 {
@@ -964,25 +976,36 @@ static void sethandles_action_keys(bAnimContext *ac, short mode)
 	/* loop through setting flags for handles 
 	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
 	 */
+	for (ale= anim_data.first; ale; ale= ale->next)
+		ANIM_fcurve_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
+	
+	/* cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* this function is responsible for toggling clamped-handles  */
+static void sethandles_clamped_action_keys(bAnimContext *ac) 
+{
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	/* toggle auto-handles on the F-Curves, which forces handles to stay horizontal */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		if (mode == -1) {	
-			BeztEditFunc toggle_cb;
+		FCurve *fcu= ale->data;
+		
+		/* only enable if curve is selected */
+		if (SEL_FCU(fcu))
+			fcu->flag |= FCURVE_AUTO_HANDLES;
+		else
+			fcu->flag &= ~FCURVE_AUTO_HANDLES;
 			
-			/* check which type of handle to set (free or aligned) 
-			 *	- check here checks for handles with free alignment already
-			 */
-			if (ANIM_fcurve_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, NULL))
-				toggle_cb= ANIM_editkeyframes_handles(HD_FREE);
-			else
-				toggle_cb= ANIM_editkeyframes_handles(HD_ALIGN);
-				
-			/* set handle-type */
-			ANIM_fcurve_keys_bezier_loop(NULL, ale->key_data, NULL, toggle_cb, calchandles_fcurve);
-		}
-		else {
-			/* directly set handle-type */
-			ANIM_fcurve_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
-		}
+		/* force handles to be recalculated */
+		calchandles_fcurve(fcu);
 	}
 	
 	/* cleanup */
@@ -1006,7 +1029,10 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
 	mode= RNA_enum_get(op->ptr, "type");
 	
 	/* set handle type */
-	sethandles_action_keys(&ac, mode);
+	if (mode == HD_AUTO_ANIM)
+		sethandles_clamped_action_keys(&ac);
+	else
+		sethandles_action_keys(&ac, mode);
 	
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);
@@ -1033,7 +1059,7 @@ void ACTION_OT_handle_type (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	ot->prop= RNA_def_enum(ot->srna, "type", beztriple_handle_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", actkeys_handle_type_items, 0, "Type", "");
 }
 
 /* ******************** Set Keyframe-Type Operator *********************** */

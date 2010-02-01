@@ -432,7 +432,7 @@ DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifie
 	}
 	
 	BLI_convertstringcode(targetDir, G.sce);
-	BLI_convertstringframe(targetDir, curFrame); // fixed #frame-no 
+	BLI_convertstringframe(targetDir, curFrame, 0); // fixed #frame-no 
 	
 	strcpy(targetFile,targetDir);
 	strcat(targetFile, ".bobj.gz");

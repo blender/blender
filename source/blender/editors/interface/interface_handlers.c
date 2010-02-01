@@ -4204,7 +4204,6 @@ static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 {
 	uiBlock *block;
 	
-
 	/* check if the mouse is in the region */
 	if(!BLI_in_rcti(&ar->winrct, x, y)) {
 		for(block=ar->uiblocks.first; block; block=block->next)
@@ -4234,13 +4233,13 @@ static int ui_mouse_inside_region(ARegion *ar, int x, int y)
 		mask_rct.ymin= v2d->mask.ymin;
 		mask_rct.ymax= v2d->mask.ymax;
 		
-		if (v2d->scroll & V2D_SCROLL_VERTICAL_HIDE) {
+		if (v2d->scroll & (V2D_SCROLL_VERTICAL_HIDE|V2D_SCROLL_VERTICAL_FULLR)) {
 			if (v2d->scroll & V2D_SCROLL_LEFT)
 				mask_rct.xmin= v2d->vert.xmin;
 			else if (v2d->scroll & V2D_SCROLL_RIGHT)
 				mask_rct.xmax= v2d->vert.xmax;
 		}
-		if (v2d->scroll & V2D_SCROLL_HORIZONTAL_HIDE) {
+		if (v2d->scroll & (V2D_SCROLL_HORIZONTAL_HIDE|V2D_SCROLL_HORIZONTAL_FULLR)) {
 			if (v2d->scroll & (V2D_SCROLL_BOTTOM|V2D_SCROLL_BOTTOM_O))
 				mask_rct.ymin= v2d->hor.ymin;
 			else if (v2d->scroll & V2D_SCROLL_TOP)
@@ -4698,6 +4697,7 @@ static int ui_handle_button_event(bContext *C, wmEvent *event, uiBut *but)
 	if(data->state == BUTTON_STATE_HIGHLIGHT) {
 		switch(event->type) {
 			case WINDEACTIVATE:
+			case EVT_BUT_CANCEL:
 				data->cancel= 1;
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				retval= WM_UI_HANDLER_CONTINUE;

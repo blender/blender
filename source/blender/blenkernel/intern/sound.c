@@ -31,11 +31,25 @@
 #include <config.h>
 #endif
 
-static int sound_disabled = 0;
+static int force_device = -1;
 
-void sound_disable()
+int sound_define_from_str(char *str)
 {
-	sound_disabled = 1;
+	if (BLI_strcaseeq(str, "NULL"))
+		return AUD_NULL_DEVICE;
+	if (BLI_strcaseeq(str, "SDL"))
+		return AUD_SDL_DEVICE;
+	if (BLI_strcaseeq(str, "OPENAL"))
+		return AUD_OPENAL_DEVICE;
+	if (BLI_strcaseeq(str, "JACK"))
+		return AUD_JACK_DEVICE;
+
+	return -1;
+}
+
+void sound_force_device(int device)
+{
+	force_device = device;
 }
 
 void sound_init()
@@ -49,8 +63,8 @@ void sound_init()
 	specs.format = U.audioformat;
 	specs.rate = U.audiorate;
 
-	if (sound_disabled)
-		device = 0;
+	if(force_device >= 0)
+		device = force_device;
 
 	if(buffersize < 128)
 		buffersize = AUD_DEFAULT_BUFFER_SIZE;

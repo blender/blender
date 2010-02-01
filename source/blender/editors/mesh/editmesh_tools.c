@@ -623,46 +623,16 @@ void hashvert_flag(EditMesh *em, int flag)
 }
 
 /* generic extern called extruder */
-void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
+void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op, short type)
 {
 	float nor[3]= {0.0, 0.0, 0.0};
-	short nr, transmode= 0;
+	short transmode= 0;
 
-	/* extrude depends on totvertsel etc */
-	EM_stats_update(em);
-	
-	if(em->selectmode & SCE_SELECT_VERTEX) {
-		if(em->totvertsel==0) nr= 0;
-		else if(em->totvertsel==1) nr= 4;
-		else if(em->totedgesel==0) nr= 4;
-		else if(em->totfacesel==0)
-			nr= 3; // pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
-		else if(em->totfacesel==1)
-			nr= 1; // pupmenu("Extrude %t|Region %x1|Only Edges%x3|Only Vertices%x4");
-		else
-			nr= 1; // pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
-	}
-	else if(em->selectmode & SCE_SELECT_EDGE) {
-		if (em->totedgesel==0) nr = 0;
-		else if (em->totedgesel==1) nr = 3;
-		else if(em->totfacesel==0) nr = 3;
-		else if(em->totfacesel==1)
-			nr= 1; // pupmenu("Extrude %t|Region %x1|Only Edges%x3");
-		else
-			nr= 1; // pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
-	}
-	else {
-		if (em->totfacesel == 0) nr = 0;
-		else if (em->totfacesel == 1) nr = 1;
-		else
-			nr= 1; // pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
-	}
+	if(type<1) return;
 
-	if(nr<1) return;
-
-	if(nr==1)  transmode= extrudeflag(obedit, em, SELECT, nor, 0);
-	else if(nr==4) transmode= extrudeflag_verts_indiv(em, SELECT, nor);
-	else if(nr==3) transmode= extrudeflag_edges_indiv(em, SELECT, nor);
+	if(type==1)  transmode= extrudeflag(obedit, em, SELECT, nor, 0);
+	else if(type==4) transmode= extrudeflag_verts_indiv(em, SELECT, nor);
+	else if(type==3) transmode= extrudeflag_edges_indiv(em, SELECT, nor);
 	else transmode= extrudeflag_face_indiv(em, SELECT, nor);
 
 	if(transmode==0) {
@@ -682,7 +652,7 @@ void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op)
 
 		/* individual faces? */
 //		BIF_TransformSetUndo("Extrude");
-		if(nr==2) {
+		if(type==2) {
 //			initTransform(TFM_SHRINKFATTEN, CTX_NO_PET|CTX_NO_MIRROR);
 //			Transform();
 		}
@@ -706,7 +676,7 @@ static int mesh_extrude_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	
-	extrude_mesh(scene, obedit, em, op);
+	extrude_mesh(scene, obedit, em, op, RNA_int_get(op->ptr, "type"));
 
 	BKE_mesh_end_editmesh(obedit->data, em);
 
@@ -723,7 +693,7 @@ static int mesh_extrude_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 	EditMesh *em= BKE_mesh_get_editmesh(obedit->data);
 
-	extrude_mesh(scene, obedit, em, op);
+	extrude_mesh(scene, obedit, em, op, RNA_int_get(op->ptr, "type"));
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
@@ -732,9 +702,86 @@ static int mesh_extrude_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+EnumPropertyItem extrude_items[] = {
+		{1, "REGION", 0, "Region", ""},
+		{2, "FACES", 0, "Individual Faces", ""},
+		{3, "EDGES", 0, "Only Edges", ""},
+		{4, "VERTS", 0, "Only Vertices", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+
+static EnumPropertyItem *extrude_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	EnumPropertyItem *item= NULL;
+	Object *obedit= CTX_data_edit_object(C);
+	EditMesh *em;
+
+	int totitem= 0;
+
+	if(!obedit)
+		return extrude_items;
+
+	em = BKE_mesh_get_editmesh(obedit->data);
+
+	EM_stats_update(em);
+
+	if(em->selectmode & SCE_SELECT_VERTEX) {
+		if(em->totvertsel==0) {}
+		else if(em->totvertsel==1) { RNA_enum_item_add(&item, &totitem, &extrude_items[3]); }
+		else if(em->totedgesel==0) { RNA_enum_item_add(&item, &totitem, &extrude_items[3]); }
+		else if(em->totfacesel==0) {
+			RNA_enum_item_add(&item, &totitem, &extrude_items[2]);
+			RNA_enum_item_add(&item, &totitem, &extrude_items[3]);
+		}
+		else if(em->totfacesel==1) {
+			RNA_enum_item_add(&item, &totitem, &extrude_items[0]);
+			RNA_enum_item_add(&item, &totitem, &extrude_items[2]);
+			RNA_enum_item_add(&item, &totitem, &extrude_items[3]);
+		}
+		else {
+			RNA_enum_item_add(&item, &totitem, &extrude_items[0]);
+			RNA_enum_item_add(&item, &totitem, &extrude_items[1]);
+			RNA_enum_item_add(&item, &totitem, &extrude_items[2]);
+			RNA_enum_item_add(&item, &totitem, &extrude_items[3]);
+		}
+	}
+	else if(em->selectmode & SCE_SELECT_EDGE) {
+		if (em->totedgesel==0) {}
+		else if (em->totedgesel==1) { RNA_enum_item_add(&item, &totitem, &extrude_items[2]); }
+		else if(em->totfacesel==0) { RNA_enum_item_add(&item, &totitem, &extrude_items[2]); }
+		else if(em->totfacesel==1) {
+			RNA_enum_item_add(&item, &totitem, &extrude_items[0]);
+			RNA_enum_item_add(&item, &totitem, &extrude_items[2]);
+		}
+		else {
+			RNA_enum_item_add(&item, &totitem, &extrude_items[0]);
+			RNA_enum_item_add(&item, &totitem, &extrude_items[1]);
+			RNA_enum_item_add(&item, &totitem, &extrude_items[2]);
+		}
+	}
+	else {
+		if (em->totfacesel == 0) {}
+		else if (em->totfacesel == 1) { RNA_enum_item_add(&item, &totitem, &extrude_items[0]); }
+		else {
+			RNA_enum_item_add(&item, &totitem, &extrude_items[0]);
+			RNA_enum_item_add(&item, &totitem, &extrude_items[1]);
+		}
+	}
+
+	if(item) {
+		RNA_enum_item_end(&item, &totitem);
+		*free= 1;
+		return item;
+	}
+	else {
+		return NULL;
+	}
+}
 
 void MESH_OT_extrude(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Extrude";
 	ot->description= "Extrude selected vertices, edges or faces.";
@@ -747,6 +794,11 @@ void MESH_OT_extrude(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/* properties */
+	prop= RNA_def_enum(ot->srna, "type", extrude_items, 0, "Type", "");
+	RNA_def_enum_funcs(prop, extrude_itemf);
+	ot->prop= prop;
 }
 
 static int split_mesh(bContext *C, wmOperator *op)

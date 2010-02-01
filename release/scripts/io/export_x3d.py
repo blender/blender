@@ -626,7 +626,7 @@ class x3d_class:
                 texCoordList.append(uv)
                 j=j+1
             texIndexList.append(-1)
-			
+
         if self.writingtexture == 0:
             self.file.write("\n\t\t\ttexCoordIndex=\"")
             texIndxStr=""
@@ -1228,7 +1228,7 @@ class ExportX3D(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
     path = StringProperty(name="File Path", description="File path used for exporting the X3D file", maxlen= 1024, default= "")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, hidden=True)
-    
+
     apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object.", default=True)
     triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=False)
     compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install.", default=False)

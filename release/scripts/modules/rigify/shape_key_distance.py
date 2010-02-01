@@ -19,11 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from rna_prop_ui import rna_idprop_ui_prop_get
-from math import acos
-from Mathutils import Vector
-from rigify import get_layer_dict
-from rigify_utils import bone_class_instance, copy_bone_simple
+from rigify import RigifyError
 
 #METARIG_NAMES = ("cpy",)
 RIG_TYPE = "shape_key_distance"
@@ -36,16 +32,16 @@ def addget_shape_key(obj, name="Key"):
     if obj.data.shape_keys is None:
         shape = obj.add_shape_key(name="Basis", from_mix=False)
         obj.active_shape_key_index = 0
-        
+
     # Get the shapekey, or create it if it doesn't already exist
     if name in obj.data.shape_keys.keys:
         shape_key = obj.data.shape_keys.keys[name]
     else:
         shape_key = obj.add_shape_key(name=name, from_mix=False)
-    
+
     return shape_key
-    
-    
+
+
 def addget_shape_key_driver(obj, name="Key"):
     """ Fetches the driver for the shape key, or creates it if it doesn't
         already exist.
@@ -60,7 +56,7 @@ def addget_shape_key_driver(obj, name="Key"):
     if fcurve == None:
         fcurve = obj.data.shape_keys.keys[name].driver_add("value", 0)
     fcurve.driver.type = 'AVERAGE'
-    
+
     return fcurve
 
 
@@ -90,42 +86,42 @@ def metarig_definition(obj, orig_bone_name):
 def deform(obj, definitions, base_names, options):
     bpy.ops.object.mode_set(mode='EDIT')
     eb = obj.data.edit_bones
-    
+
     bone_from = definitions[0]
-    
-    
+
+
     # Options
     req_options = ["to", "mesh", "shape_key"]
     for option in req_options:
         if option not in options:
             raise RigifyError("'%s' rig type requires a '%s' option (bone: %s)" % (RIG_TYPE, option, base_names[definitions[0]]))
-            
+
     bone_to = "ORG-" + options["to"]
     meshes = options["mesh"].replace(" ", "").split(",")
     shape_key_name = options["shape_key"]
-    
+
     if "dmul" in options:
         shape_blend_fac = options["dmul"]
     else:
         shape_blend_fac = 1.0
-        
-    
+
+
     # Calculate the distance between the bones
     distance = (eb[bone_from].head - eb[bone_to].head).length
-    
+
     bpy.ops.object.mode_set(mode='OBJECT')
-    
+
     # For every listed mesh object
     for mesh_name in meshes:
         mesh_obj = bpy.data.objects[mesh_name]
-    
+
         # Add/get the shape key
         shape_key = addget_shape_key(mesh_obj, name=shape_key_name)
-        
+
         # Add/get the shape key driver
         fcurve = addget_shape_key_driver(mesh_obj, name=shape_key_name)
         driver = fcurve.driver
-        
+
         # Get the variable, or create it if it doesn't already exist
         var_name = base_names[bone_from]
         if var_name in driver.variables:
@@ -133,7 +129,7 @@ def deform(obj, definitions, base_names, options):
         else:
             var = driver.variables.new()
             var.name = var_name
-        
+
         # Set up the variable
         var.type = "LOC_DIFF"
         var.targets[0].id_type = 'OBJECT'
@@ -142,14 +138,14 @@ def deform(obj, definitions, base_names, options):
         var.targets[1].id_type = 'OBJECT'
         var.targets[1].id = obj
         var.targets[1].bone_target = bone_to
-        
+
         # Set fcurve offset, so zero is at the rest distance
-        
+
         mod = fcurve.modifiers[0]
         if distance > 0.00001:
             mod.coefficients[0] = -shape_blend_fac
             mod.coefficients[1] = shape_blend_fac / distance
-    
+
     return (None,)
 
 

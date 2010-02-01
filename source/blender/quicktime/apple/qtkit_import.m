@@ -186,7 +186,7 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 																		 pixelsWide:width 
 																		 pixelsHigh:height
 																	  bitsPerSample:8 samplesPerPixel:3 hasAlpha:NO isPlanar:NO
-																	 colorSpaceName:NSCalibratedRGBColorSpace 
+																	 colorSpaceName:NSDeviceRGBColorSpace 
 																	   bitmapFormat:0
 																		bytesPerRow:4*width
 																	   bitsPerPixel:32/*RGB format padded to 32bits*/];
@@ -208,7 +208,7 @@ static ImBuf * nsImageToiBuf(NSImage *sourceImage, int width, int height)
 																		  pixelsWide:width
 																		  pixelsHigh:height
 																	   bitsPerSample:8 samplesPerPixel:4 hasAlpha:YES isPlanar:NO
-																	  colorSpaceName:NSCalibratedRGBColorSpace
+																	  colorSpaceName:NSDeviceRGBColorSpace
 																		bitmapFormat:0
 																		 bytesPerRow:4*width
 																		bitsPerPixel:32/* RGBA */];

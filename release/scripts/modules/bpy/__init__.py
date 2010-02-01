@@ -20,14 +20,13 @@
 
 # internal blender C module
 import _bpy
-from _bpy import types, props
+from _bpy import types, props, app
 
 data = _bpy.data
 context = _bpy.context
 
 # python modules
 from bpy import utils
-from bpy import app
 
 from bpy import ops as _ops_module
 
@@ -35,7 +34,6 @@ from bpy import ops as _ops_module
 ops = _ops_module.ops_fake_module
 
 import sys as _sys
-
 
 
 def _main():

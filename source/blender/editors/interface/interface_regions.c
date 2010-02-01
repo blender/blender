@@ -1875,6 +1875,19 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 
 /************************ Popup Menu Memory ****************************/
 
+static int ui_popup_string_hash(char *str)
+{
+	/* sometimes button contains hotkey, sometimes not, strip for proper compare */
+	int hash;
+	char *delimit= strchr(str, '|');
+
+	if(delimit) *delimit= 0;
+	hash= BLI_ghashutil_strhash(str);
+	if(delimit) *delimit= '|';
+
+	return hash;
+}
+
 static int ui_popup_menu_hash(char *str)
 {
 	return BLI_ghashutil_strhash(str);
@@ -1883,7 +1896,7 @@ static int ui_popup_menu_hash(char *str)
 /* but == NULL read, otherwise set */
 uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but)
 {
-	static char mem[256], first=1;
+	static int mem[256], first=1;
 	int hash= block->puphash;
 	
 	if(first) {
@@ -1894,12 +1907,16 @@ uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but)
 
 	if(but) {
 		/* set */
-		mem[hash & 255 ]= BLI_findindex(&block->buttons, but);
+		mem[hash & 255 ]= ui_popup_string_hash(but->str);
 		return NULL;
 	}
 	else {
 		/* get */
-		return BLI_findlink(&block->buttons, mem[hash & 255]);
+		for(but=block->buttons.first; but; but=but->next)
+			if(ui_popup_string_hash(but->str) == mem[hash & 255])
+				return but;
+
+		return NULL;
 	}
 }
 
@@ -1924,7 +1941,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	ScrArea *sa;
 	ARegion *ar;
 	uiPopupMenu *pup= arg_pup;
-	int offset, direction, minwidth, flip;
+	int offset[2], direction, minwidth, width, height, flip;
 
 	if(pup->menu_func) {
 		pup->block->handle= handle;
@@ -1960,7 +1977,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 	block->direction= direction;
 
-	uiBlockLayoutResolve(block, NULL, NULL);
+	uiBlockLayoutResolve(block, &width, &height);
 
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
@@ -1969,17 +1986,27 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 		uiBlockSetDirection(block, direction);
 
 		/* offset the mouse position, possibly based on earlier selection */
-		offset= 1.5*MENU_BUTTON_HEIGHT;
+		if((block->flag & UI_BLOCK_POPUP_MEMORY) &&
+			(bt= ui_popup_menu_memory(block, NULL))) {
+			/* position mouse on last clicked item, at 0.8*width of the
+			   button, so it doesn't overlap the text too much, also note
+			   the offset is negative because we are inverse moving the
+			   block to be under the mouse */
+			offset[0]= -(bt->x1 + 0.8f*(bt->x2 - bt->x1));
+			offset[1]= -(bt->y1 + 0.5f*MENU_BUTTON_HEIGHT);
+		}
+		else {
+			/* position mouse at 0.8*width of the button and below the tile
+			   on the first item */
+			offset[0]= 0;
+			for(bt=block->buttons.first; bt; bt=bt->next)
+				offset[0]= MIN2(offset[0], -(bt->x1 + 0.8f*(bt->x2 - bt->x1)));
 
-		if(block->flag & UI_BLOCK_POPUP_MEMORY) {
-			bt= ui_popup_menu_memory(block, NULL);
-
-			if(bt)
-				offset= -bt->y1 - 0.5f*MENU_BUTTON_HEIGHT;
+			offset[1]= 1.5*MENU_BUTTON_HEIGHT;
 		}
 
 		block->minbounds= minwidth;
-		uiMenuPopupBoundsBlock(block, 1, 20, offset);
+		uiMenuPopupBoundsBlock(block, 1, offset[0], offset[1]);
 	}
 	else {
 		/* for a header menu we set the direction automatic */

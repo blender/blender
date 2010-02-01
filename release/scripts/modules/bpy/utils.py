@@ -27,6 +27,7 @@ import bpy as _bpy
 import os as _os
 import sys as _sys
 
+
 def load_scripts(reload_scripts=False, refresh_scripts=False):
     import traceback
     import time
@@ -65,7 +66,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             module_name = getattr(type_class, "__module__", "")
 
             if module_name and module_name != "bpy.types": # hard coded for C types
-               loaded_modules.add(module_name)
+                loaded_modules.add(module_name)
 
         for module_name in loaded_modules:
             print("Reloading:", module_name)
@@ -87,7 +88,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     if f.endswith(".py"):
                         # python module
                         mod = test_import(f[0:-3])
-                    elif ("." not in f) and (_os.path.isdir(_os.path.join(path, f, "__init__.py"))):
+                    elif ("." not in f) and (_os.path.isfile(_os.path.join(path, f, "__init__.py"))):
                         # python package
                         mod = test_import(f)
                     else:

@@ -182,7 +182,7 @@ extern "C" {
 	NSPoint mouseLocation = [sender draggingLocation];
 	
 	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingUpdated, m_draggedObjectType, associatedWindow, mouseLocation.x, mouseLocation.y, nil);
-	return NSDragOperationCopy;
+	return associatedWindow->canAcceptDragOperation()?NSDragOperationCopy:NSDragOperationNone;
 }
 
 - (void)draggingExited:(id < NSDraggingInfo >)sender
@@ -203,11 +203,16 @@ extern "C" {
 {
 	NSPoint mouseLocation = [sender draggingLocation];
 	NSPasteboard *draggingPBoard = [sender draggingPasteboard];
+	NSImage *droppedImg;
 	id data;
 	
 	switch (m_draggedObjectType) {
 		case GHOST_kDragnDropTypeBitmap:
-			data = [draggingPBoard dataForType:NSTIFFPboardType];
+			if([NSImage canInitWithPasteboard:draggingPBoard]) {
+				droppedImg = [[NSImage alloc]initWithPasteboard:draggingPBoard];
+				data = droppedImg; //[draggingPBoard dataForType:NSTIFFPboardType];
+			}
+			else return NO;
 			break;
 		case GHOST_kDragnDropTypeFilenames:
 			data = [draggingPBoard propertyListForType:NSFilenamesPboardType];
@@ -1100,6 +1105,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 		//No need to perform grab without warp as it is always on in OS X
 		if(mode != GHOST_kGrabNormal) {
 			GHOST_TInt32 x_old,y_old;
+			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 			m_systemCocoa->getCursorPosition(x_old,y_old);
 			screenToClient(x_old, y_old, m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
@@ -1110,8 +1116,13 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 				setWindowCursorVisibility(false);
 			}
 			
+			//Make window key if it wasn't to get the mouse move events
+			[m_window makeKeyWindow];
+			
 			//Dissociate cursor position even for warp mode, to allow mouse acceleration to work even when warping the cursor
 			err = CGAssociateMouseAndMouseCursorPosition(false) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
+			
+			[pool drain];
 		}
 	}
 	else {

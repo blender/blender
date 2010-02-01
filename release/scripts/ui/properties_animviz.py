@@ -24,6 +24,7 @@ narrowui = 180
 ################################################
 # Generic Panels (Independent of DataType)
 
+
 class MotionPathButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -31,9 +32,9 @@ class MotionPathButtonsPanel(bpy.types.Panel):
 
     def draw_settings(self, context, avs, wide_ui, bones=False):
         layout = self.layout
-        
+
         mps = avs.motion_paths
-        
+
         if wide_ui:
             layout.prop(mps, "type", expand=True)
         else:
@@ -60,6 +61,7 @@ class MotionPathButtonsPanel(bpy.types.Panel):
         col.prop(mps, "show_frame_numbers", text="Frame Numbers")
         col.prop(mps, "highlight_keyframes", text="Keyframes")
         col.prop(mps, "show_keyframe_numbers", text="Keyframe Numbers")
+
 
 # FIXME: this panel still needs to be ported so that it will work correctly with animviz
 class OnionSkinButtonsPanel(bpy.types.Panel):
@@ -99,21 +101,22 @@ class OnionSkinButtonsPanel(bpy.types.Panel):
 ################################################
 # Specific Panels for DataTypes
 
+
 class OBJECT_PT_motion_paths(MotionPathButtonsPanel):
     #bl_label = "Object Motion Paths"
     bl_context = "object"
 
     def poll(self, context):
         return (context.object)
-        
+
     def draw(self, context):
         layout = self.layout
-        
-        ob = context.object 
+
+        ob = context.object
         wide_ui = context.region.width > narrowui
-        
+
         self.draw_settings(context, ob.animation_visualisation, wide_ui)
-        
+
         layout.separator()
 
         split = layout.split()
@@ -124,7 +127,8 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel):
         if wide_ui:
             col = split.column()
         col.operator("object.paths_clear", text="Clear Paths")
-        
+
+
 class DATA_PT_motion_paths(MotionPathButtonsPanel):
     #bl_label = "Bone Motion Paths"
     bl_context = "data"
@@ -132,15 +136,15 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel):
     def poll(self, context):
         # XXX: include posemode check?
         return (context.object) and (context.armature)
-        
+
     def draw(self, context):
         layout = self.layout
-        
-        ob = context.object 
+
+        ob = context.object
         wide_ui = context.region.width > narrowui
-        
+
         self.draw_settings(context, ob.pose.animation_visualisation, wide_ui, bones=True)
-        
+
         layout.separator()
 
         split = layout.split()

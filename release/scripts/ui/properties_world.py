@@ -181,6 +181,7 @@ class WORLD_PT_ambient_occlusion(WorldButtonsPanel):
         split.prop(light, "ao_factor", text="Factor")
         split.prop(light, "ao_blend_mode", text="")
 
+
 class WORLD_PT_environment_lighting(WorldButtonsPanel):
     bl_label = "Environment Lighting"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -199,6 +200,7 @@ class WORLD_PT_environment_lighting(WorldButtonsPanel):
         split.prop(light, "environment_energy", text="Energy")
         split.prop(light, "environment_color", text="")
 
+
 class WORLD_PT_indirect_lighting(WorldButtonsPanel):
     bl_label = "Indirect Lighting"
     COMPAT_ENGINES = {'BLENDER_RENDER'}
@@ -216,6 +218,7 @@ class WORLD_PT_indirect_lighting(WorldButtonsPanel):
         split = layout.split()
         split.prop(light, "indirect_factor", text="Factor")
         split.prop(light, "indirect_bounces", text="Bounces")
+
 
 class WORLD_PT_gather(WorldButtonsPanel):
     bl_label = "Gather"

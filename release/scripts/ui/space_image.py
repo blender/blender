@@ -387,21 +387,23 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
         col.separator()
         col.prop(ima, "mapping", expand=True)
 
+
 class IMAGE_PT_view_histogram(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'PREVIEW'
     bl_label = "Histogram"
-    
+
     def poll(self, context):
         sima = context.space_data
         return (sima and sima.image)
-    
+
     def draw(self, context):
         layout = self.layout
 
         sima = context.space_data
-                        
+
         layout.template_histogram(sima, "histogram")
+
 
 class IMAGE_PT_view_properties(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'

@@ -22,6 +22,7 @@ import bpy
 narrowui = 180
 narrowmod = 260
 
+
 class DataButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -37,7 +38,7 @@ class DATA_PT_modifiers(DataButtonsPanel):
         ob = context.object
         wide_ui = context.region.width > narrowui
         compact_mod = context.region.width < narrowmod
-        
+
         layout.operator_menu_enum("object.modifier_add", "type")
 
         for md in ob.modifiers:
@@ -602,22 +603,22 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
     def SOLIDIFY(self, layout, ob, md, wide_ui):
         layout.prop(md, "offset")
-        
+
         split = layout.split()
-        
+
         col = split.column()
         col.label(text="Crease:")
-        col.prop(md, "edge_crease_inner",text="Inner")
+        col.prop(md, "edge_crease_inner", text="Inner")
         col.prop(md, "edge_crease_outer", text="Outer")
         col.prop(md, "edge_crease_rim", text="Rim")
-        
+
         if wide_ui:
             col = split.column()
             col.label()
         col.prop(md, "use_rim")
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
-        
+
         # col = layout.column()
         # col.label(text="Vertex Group:")
         # col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")

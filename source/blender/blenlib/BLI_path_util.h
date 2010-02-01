@@ -97,8 +97,8 @@ int BLI_has_parent(char *path);
 	 * @retval Returns true if the path was relative (started with "//").
 	 */
 int BLI_convertstringcode(char *path, const char *basepath);
-int BLI_convertstringframe(char *path, int frame);
-int BLI_convertstringframe_range(char *path, int sta, int end);
+int BLI_convertstringframe(char *path, int frame, int digits);
+int BLI_convertstringframe_range(char *path, int sta, int end, int digits);
 int BLI_convertstringcwd(char *path);
 
 void BLI_makestringcode(const char *relfile, char *file);

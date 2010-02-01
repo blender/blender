@@ -337,15 +337,18 @@ static void draw_fcurve_vertices (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar,
 
 static int draw_fcurve_handles_check(SpaceIpo *sipo, FCurve *fcu)
 {
-	/* don't draw handle lines if handles are not shown */
-	if (	(sipo->flag & SIPO_NOHANDLES) ||
-			(fcu->flag & FCURVE_PROTECTED) ||
-			(fcu->flag & FCURVE_INT_VALUES) ||
-			((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED))
-			/* || (fcu->totvert <= 1) */
-	) {
+	/* don't draw handle lines if handles are not to be shown */
+	if (	(sipo->flag & SIPO_NOHANDLES) || /* handles shouldn't be shown anywhere */
+			(fcu->flag & FCURVE_PROTECTED) || /* keyframes aren't editable */
+			(fcu->flag & FCURVE_INT_VALUES) || /* editing the handles here will cause weird/incorrect interpolation issues */
+			((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) || /* group that curve belongs to is not editable */
+			(fcu->totvert <= 1) /* do not show handles if there is only 1 keyframe, otherwise they all clump together in an ugly ball */
+		) 
+	{
 		return 0;
-	} else {
+	} 
+	else 
+	{
 		return 1;
 	}
 }
@@ -427,7 +430,7 @@ static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, 
 		}
 	}
 	
-	glEnd(); // GL_LINES
+	glEnd(); // GL_LINES 
 }
 
 /* Samples ---------------- */
@@ -922,14 +925,14 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				
 				if (fcu->bezt) {
 					int do_handles = draw_fcurve_handles_check(sipo, fcu);
-
-					if(do_handles) {
+					
+					if (do_handles) {
 						/* only draw handles/vertices on keyframes */
 						glEnable(GL_BLEND);
 						draw_fcurve_handles(ac, sipo, ar, fcu);
 						glDisable(GL_BLEND);
 					}
-
+					
 					draw_fcurve_vertices(ac, sipo, ar, fcu, do_handles);
 				}
 				else {

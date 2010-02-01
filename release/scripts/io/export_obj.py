@@ -898,7 +898,7 @@ class ExportOBJ(bpy.types.Operator):
 
     path = StringProperty(name="File Path", description="File path used for exporting the OBJ file", maxlen= 1024, default= "")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, hidden=True)
-    
+
     # context group
     use_selection = BoolProperty(name="Selection Only", description="", default= False)
     use_all_scenes = BoolProperty(name="All Scenes", description="", default= False)

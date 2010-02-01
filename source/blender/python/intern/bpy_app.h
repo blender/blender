@@ -21,11 +21,11 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef BPY_UI_H__
-#define BPY_UI_H__
+#ifndef BPY_APP_H__
+#define BPY_APP_H__
 
 #include <Python.h>
 
-PyObject *BPY_ui_module( void );
+PyObject *BPY_app_struct( void );
 
 #endif

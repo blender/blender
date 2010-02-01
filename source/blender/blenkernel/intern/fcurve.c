@@ -1010,7 +1010,8 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 	Object *ob= (Object *)dtar->id;
 	bPoseChannel *pchan;
 	float mat[4][4];
-	short rotOrder = 0;
+	float eul[3] = {0.0f,0.0f,0.0f};
+	short useEulers=0, rotOrder=ROT_MODE_EUL;
 	
 	/* check if this target has valid data */
 	if ((ob == NULL) || (GS(dtar->id->name) != ID_OB)) {
@@ -1025,7 +1026,11 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 	/* check if object or bone, and get transform matrix accordingly */
 	if (pchan) {
 		/* bone */
-		rotOrder= (pchan->rotmode > 0) ? pchan->rotmode : ROT_MODE_EUL;
+		if (pchan->rotmode > 0) {
+			VECCOPY(eul, pchan->eul);
+			rotOrder= pchan->rotmode;
+			useEulers = 1;
+		}
 		
 		if (dtar->flag & DTAR_FLAG_LOCALSPACE)
 			copy_m4_m4(mat, pchan->chan_mat);
@@ -1034,7 +1039,11 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 	}
 	else {
 		/* object */
-		rotOrder= (ob->rotmode > 0) ? ob->rotmode : ROT_MODE_EUL;
+		if (ob->rotmode > 0) {
+			VECCOPY(eul, ob->rot);
+			rotOrder= ob->rotmode;
+			useEulers = 1;
+		}
 		
 		if (dtar->flag & DTAR_FLAG_LOCALSPACE)
 			object_to_mat4(ob, mat);
@@ -1055,10 +1064,10 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 		return scale[dtar->transChan - DTAR_TRANSCHAN_SCALEX];
 	}
 	else if (dtar->transChan >= DTAR_TRANSCHAN_ROTX) {
-		/* extract euler rotation, and choose the right axis */
-		float eul[3];
+		/* extract euler rotation (if needed), and choose the right axis */
+		if ((dtar->flag & DTAR_FLAG_LOCALSPACE)==0 || (useEulers == 0))
+			mat4_to_eulO(eul, rotOrder, mat);
 		
-		mat4_to_eulO(eul, rotOrder, mat);
 		return eul[dtar->transChan - DTAR_TRANSCHAN_ROTX];
 	}
 	else {

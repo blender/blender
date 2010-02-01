@@ -19,7 +19,6 @@
 # <pep8 compliant>
 
 import bpy
-from rigify import get_layer_dict
 from rigify_utils import copy_bone_simple, get_side_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 
@@ -104,16 +103,16 @@ def deform(obj, definitions, base_names, options):
 
         # Create deform bone.
         bone = copy_bone_simple(obj.data, org_bone_name, "DEF-%s" % base_names[org_bone_name], parent=True)
-        
+
         # Store name before leaving edit mode
         bone_name = bone.name
-        
+
         # Leave edit mode
         bpy.ops.object.mode_set(mode='OBJECT')
-        
+
         # Get the pose bone
         bone = obj.pose.bones[bone_name]
-        
+
         # Constrain to the original bone
         # XXX. Todo, is this needed if the bone is connected to its parent?
         con = bone.constraints.new('COPY_TRANSFORMS')
@@ -141,7 +140,7 @@ def main(obj, bone_definition, base_names, options):
     offset = (pinky_ebone.head - ring_ebone.head)
 
     control_ebone.translate(offset)
-    
+
     deform(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')

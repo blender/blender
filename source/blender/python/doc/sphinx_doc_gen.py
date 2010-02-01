@@ -21,7 +21,7 @@
 script_help_msg = '''
 Usage,
 run this script from blenders root path once you have compiled blender
-    ./blender.bin -b -P /b/source/blender/python/sphinx_doc_gen.py
+    ./blender.bin -b -P /b/source/blender/python/doc/sphinx_doc_gen.py
 
 This will generate python files in "./source/blender/python/doc/sphinx-in"
 Generate html docs  by running...
@@ -51,11 +51,14 @@ def range_str(val):
     else:
         return str(val)
 
-def write_indented_lines(ident, fn, text):
+def write_indented_lines(ident, fn, text, strip=True):
     if text is None:
         return
     for l in text.split("\n"):
-        fn(ident + l.strip() + "\n")
+        if strip:
+            fn(ident + l.strip() + "\n")
+        else:
+            fn(ident + l + "\n")
 
 
 def pymethod2sphinx(ident, fw, identifier, py_func):
@@ -109,8 +112,7 @@ def py_c_func2sphinx(ident, fw, identifier, py_func, is_class=True):
     
     # dump the docstring, assume its formatted correctly
     if py_func.__doc__:
-        for l in py_func.__doc__.split("\n"):
-            fw(ident + l + "\n")
+        write_indented_lines(ident, fw, py_func.__doc__, False)
         fw("\n")
     else:
         fw(ident + ".. function:: %s()\n\n" % identifier)
@@ -133,6 +135,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
     MethodDescriptorType = type(dict.get)
     GetSetDescriptorType = type(int.real)
     
+    
 
     filepath = os.path.join(BASEPATH, module_name + ".rst")
     
@@ -149,6 +152,16 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         # Note, may contain sphinx syntax, dont mangle!
         fw(module.__doc__.strip())
         fw("\n\n")
+    
+    # write members of the module
+    # only tested with PyStructs which are not exactly modules
+    for attribute, descr in sorted(type(module).__dict__.items()):
+        if type(descr) == types.MemberDescriptorType:
+            if descr.__doc__:
+                fw(".. data:: %s\n\n" % attribute)
+                write_indented_lines("   ", fw, descr.__doc__, False)
+                fw("\n")
+    
     
     classes = []
 
@@ -173,8 +186,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         # May need to be its own function
         fw(".. class:: %s\n\n" % attribute)
         if value.__doc__:
-            for l in value.__doc__.split("\n"):
-                fw("   %s\n" % l)
+            write_indented_lines("   ", fw, value.__doc__, False)
             fw("\n")
 
         for key in sorted(value.__dict__.keys()):
@@ -184,8 +196,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
             if type(descr) == GetSetDescriptorType:
                 if descr.__doc__:
                     fw("   .. attribute:: %s\n\n" % key)
-                    for l in descr.__doc__.split("\n"):
-                        fw("   %s\n" % l)
+                    write_indented_lines("   ", fw, descr.__doc__, False)
                     fw("\n")
 
         for key in sorted(value.__dict__.keys()):
@@ -194,13 +205,13 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
             descr = value.__dict__[key]
             if type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
                 if descr.__doc__:
-                    for l in descr.__doc__.split("\n"):
-                        fw("   %s\n" % l)
+                    write_indented_lines("   ", fw, descr.__doc__, False)
                     fw("\n")
             
         fw("\n\n")
 
     file.close()
+
 
 
 def rna2sphinx(BASEPATH):
@@ -217,11 +228,16 @@ def rna2sphinx(BASEPATH):
     file = open(filepath, "w")
     fw = file.write
     
+    
+    version_string = bpy.app.version_string.split("(")[0]
+    if bpy.app.build_revision != "Unknown":
+        version_string = version_string + " r" + bpy.app.build_revision
+    
     fw("project = 'Blender 3D'\n")
     # fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
-    fw("version = '%s'\n" % bpy.app.version_string)
-    fw("release = '%s'\n" % bpy.app.version_string)
+    fw("version = '%s'\n" % version_string)
+    fw("release = '%s'\n" % version_string)
     fw("\n")
     # needed for latex, pdf gen
     fw("latex_documents = [ ('contents', 'contents.tex', 'Blender Index', 'Blender Foundation', 'manual'), ]\n")
@@ -237,7 +253,7 @@ def rna2sphinx(BASEPATH):
     fw(" Blender Documentation contents\n")
     fw("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n")
     fw("\n")
-    fw("This document is an API reference for Blender %s.\n" % bpy.app.version_string.split()[0])
+    fw("This document is an API reference for Blender %s. built %s.\n" % (version_string, bpy.app.build_date))
     fw("\n")
     fw("An introduction to blender and python can be found at <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>\n")
     fw("\n")
@@ -285,6 +301,8 @@ def rna2sphinx(BASEPATH):
     # python modules
     from bpy import utils as module
     pymodule2sphinx(BASEPATH, "bpy.utils", module, "Utilities (bpy.utils)")
+
+    # C modules
     from bpy import app as module
     pymodule2sphinx(BASEPATH, "bpy.app", module, "Application Data (bpy.app)")
 
@@ -473,10 +491,18 @@ if __name__ == '__main__':
         print("\nError, this script must run from inside blender2.5")
         print(script_help_msg)
     else:
-        # os.system("rm source/blender/python/doc/sphinx-in/*.rst")
-        # os.system("rm -rf source/blender/python/doc/sphinx-out/*")
-        rna2sphinx('source/blender/python/doc/sphinx-in')
+        import shutil
+
+        path_in = 'source/blender/python/doc/sphinx-in'
+        path_out = 'source/blender/python/doc/sphinx-in'
+
+        shutil.rmtree(path_in, True)
+        shutil.rmtree(path_out, True)
+        rna2sphinx(path_in)
+
+        # for fast module testing
         # os.system("rm source/blender/python/doc/sphinx-in/bpy.types.*.rst")
+        # os.system("rm source/blender/python/doc/sphinx-in/bpy.ops.*.rst")
 
     import sys
     sys.exit()

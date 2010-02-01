@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC . ../string ../../extern/glew/include)
+SET(INC . ../string ../../extern/glew/include ../../source/blender/imbuf ../../source/blender/makesdna)
 
 FILE(GLOB SRC intern/*.cpp intern/*.mm)
 

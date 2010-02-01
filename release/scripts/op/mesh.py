@@ -16,9 +16,10 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# <pep8-80 compliant>
+# <pep8 compliant>
 
 import bpy
+
 
 class MeshSelectInteriorFaces(bpy.types.Operator):
     '''Select faces where all edges have more then 2 face users.'''
@@ -69,23 +70,23 @@ class MeshMirrorUV(bpy.types.Operator):
     bl_label = "Copy Mirrored UV coords"
     bl_register = True
     bl_undo = True
-    
+
     def poll(self, context):
         ob = context.active_object
         return (ob and ob.type == 'MESH')
-        
+
     def execute(self, context):
         DIR = 1 # TODO, make an option
-        
+
         from Mathutils import Vector
-        
+
         ob = context.active_object
         is_editmode = (ob.mode == 'EDIT')
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
         mesh = ob.data
-        
+
         # mirror lookups
         mirror_gt = {}
         mirror_lt = {}
@@ -109,7 +110,7 @@ class MeshMirrorUV(bpy.types.Operator):
                 j = mirror_b.get(nco)
                 if j is not None:
                     vmap[i] = j
-        
+
 
         active_uv_layer = None
         for lay in mesh.uv_textures:
@@ -119,13 +120,13 @@ class MeshMirrorUV(bpy.types.Operator):
 
         fuvs = [(uv.uv1, uv.uv2, uv.uv3, uv.uv4) for uv in active_uv_layer]
         fuvs_cpy = [(uv[0].copy(), uv[1].copy(), uv[2].copy(), uv[3].copy()) for uv in fuvs]
-        
+
         # as a list
         faces = mesh.faces[:]
-        
+
         fuvsel = [(False not in uv.uv_selected) for uv in active_uv_layer]
         fcents = [f.center for f in faces]
-        
+
         # find mirror faces
         mirror_fm = {}
         for i, f in enumerate(faces):
@@ -133,7 +134,7 @@ class MeshMirrorUV(bpy.types.Operator):
             verts.sort()
             verts = tuple(verts)
             mirror_fm[verts] = i
-        
+
         fmap = {}
         for i, f in enumerate(faces):
             verts = [vmap.get(j) for j in f.verts]
@@ -142,10 +143,10 @@ class MeshMirrorUV(bpy.types.Operator):
                 j = mirror_fm.get(tuple(verts))
                 if j is not None:
                     fmap[i] = j
-                
+
         done = [False] * len(faces)
         for i, j in fmap.items():
-            
+
             if not fuvsel[i] or not fuvsel[j]:
                 continue
             elif DIR == 0 and fcents[i][0] < 0.0:
@@ -154,19 +155,19 @@ class MeshMirrorUV(bpy.types.Operator):
                 continue
 
             # copy UVs
-            uv1= fuvs[i]
-            uv2= fuvs_cpy[j]
-            
+            uv1 = fuvs[i]
+            uv2 = fuvs_cpy[j]
+
             # get the correct rotation
             v1 = faces[j].verts[:]
             v2 = [vmap[k] for k in faces[i].verts[:]]
-            
+
 
             for k in range(len(uv1)):
                 k_map = v1.index(v2[k])
-                uv1[k].x = -(uv2[k_map].x-0.5) + 0.5
+                uv1[k].x = - (uv2[k_map].x - 0.5) + 0.5
                 uv1[k].y = uv2[k_map].y
-            
+
         if is_editmode:
             bpy.ops.object.mode_set(mode='EDIT', toggle=False)
 

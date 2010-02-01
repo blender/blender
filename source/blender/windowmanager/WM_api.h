@@ -217,7 +217,7 @@ int         WM_operator_name_call	(struct bContext *C, const char *opstring, int
 int			WM_operator_call_py(struct bContext *C, struct wmOperatorType *ot, int context, struct PointerRNA *properties, struct ReportList *reports);
 
 void		WM_operator_properties_alloc(struct PointerRNA **ptr, struct IDProperty **properties, const char *opstring); /* used for keymap and macro items */
-void		WM_operator_properties_sanitize(struct PointerRNA *ptr); /* make props not context sensitive */
+void		WM_operator_properties_sanitize(struct PointerRNA *ptr, int val); /* make props context sensitive or not */
 void		WM_operator_properties_create(struct PointerRNA *ptr, const char *opstring);
 void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperatorType *ot);
 void		WM_operator_properties_free(struct PointerRNA *ptr);
@@ -278,23 +278,14 @@ struct wmDropBox	*WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(s
 						  void (*copy)(struct wmDrag *, struct wmDropBox *));
 ListBase	*WM_dropboxmap_find(char *idname, int spaceid, int regionid);
 
-			/* OpenGL wrappers, mimicking opengl syntax */
+			/* Set a subwindow active in pixelspace view, with optional scissor subset */
 void		wmSubWindowSet			(struct wmWindow *win, int swinid);
 void		wmSubWindowScissorSet	(struct wmWindow *win, int swinid, struct rcti *srct);
 
-void		wmLoadMatrix		(float mat[][4]);
-void		wmGetMatrix			(float mat[][4]);
-void		wmMultMatrix		(float mat[][4]);
-void		wmGetSingleMatrix	(float mat[][4]);
-void		wmScale				(float x, float y, float z);
-void		wmLoadIdentity		(void);		/* note: old name clear_view_mat */
-void		wmPushMatrix		(void);		/* one level only */
-void		wmPopMatrix			(void);		/* one level only */
-
+			/* OpenGL utilities with safety check + working in modelview matrix mode */
 void		wmFrustum			(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho				(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho2			(float x1, float x2, float y1, float y2);
-void		wmOrthoPixelSpace	(void);
 
 			/* utilities */
 void		WM_set_framebuffer_index_color(int index);

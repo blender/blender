@@ -29,7 +29,7 @@ LAYER_TYPES = "main", "extra", "ik", "fk"
 ORG_LAYERS = [n==31 for n in range(0,32)]
 MCH_LAYERS = [n==30 for n in range(0,32)]
 DEF_LAYERS = [n==29 for n in range(0,32)]
-ROOT_LAYERS = [n==28 for n in range(0,32)] 
+ROOT_LAYERS = [n==28 for n in range(0,32)]
 
 ORG_PREFIX = "ORG-"
 MCH_PREFIX = "MCH-"
@@ -154,7 +154,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     from collections import OrderedDict
     import rigify_utils
     reload(rigify_utils)
-    
+
     print("Begin...")
 
     # Not needed but catches any errors before duplicating
@@ -178,63 +178,63 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         name = obj_orig["rig_object_name"]
     except KeyError:
         name = "rig"
-        
+
     try:
         obj = scene.objects[name]
     except KeyError:
         obj = bpy.data.objects.new(name, type='ARMATURE')
         obj.data = bpy.data.armatures.new(name)
         scene.objects.link(obj)
-        
+
     obj.data.pose_position = 'POSE'
-    
+
     # Get rid of anim data in case the rig already existed
     print("Clear rig animation data.")
     obj.animation_data_clear()
-        
+
     # Select generated rig object
     obj_orig.selected = False
     obj.selected = True
     scene.objects.active = obj
-    
+
     # Remove all bones from the generated rig armature.
     bpy.ops.object.mode_set(mode='EDIT')
     for bone in obj.data.edit_bones:
         obj.data.edit_bones.remove(bone)
     bpy.ops.object.mode_set(mode='OBJECT')
-    
+
     # Create temporary duplicates for merging
     temp_rig_1 = obj_orig.copy()
     temp_rig_1.data = obj_orig.data.copy()
     scene.objects.link(temp_rig_1)
-    
+
     temp_rig_2 = obj_orig.copy()
     temp_rig_2.data = obj.data
     scene.objects.link(temp_rig_2)
-    
+
     # Select the temp rigs for merging
     for objt in scene.objects:
         objt.selected = False # deselect all objects
     temp_rig_1.selected = True
     temp_rig_2.selected = True
     scene.objects.active = temp_rig_2
-    
+
     # Merge the temporary rigs
     bpy.ops.object.join(context)
-    
+
     # Delete the second temp rig
     bpy.ops.object.delete()
-    
+
     # Select the generated rig
     for objt in scene.objects:
         objt.selected = False # deselect all objects
     obj.selected = True
     scene.objects.active = obj
-    
+
     # Copy over the pose_bone properties
     for bone in obj_orig.pose.bones:
         bone_gen = obj.pose.bones[bone.name]
-        
+
         # Rotation mode and transform locks
         bone_gen.rotation_mode     = bone.rotation_mode
         bone_gen.lock_rotation     = tuple(bone.lock_rotation)
@@ -242,28 +242,28 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
         bone_gen.lock_rotations_4d = bone.lock_rotations_4d
         bone_gen.lock_location     = tuple(bone.lock_location)
         bone_gen.lock_scale        = tuple(bone.lock_scale)
-        
+
         # Custom properties
         for prop in bone.keys():
             bone_gen[prop] = bone[prop]
-    
+
     # Copy over bone properties
     for bone in obj_orig.data.bones:
         bone_gen = obj.data.bones[bone.name]
-        
+
         # B-bone stuff
         bone_gen.bbone_segments = bone.bbone_segments
         bone_gen.bbone_in = bone.bbone_in
         bone_gen.bbone_out = bone.bbone_out
-    
-    
+
+
     # Create proxy deformation rig
     # TODO: remove this
     if META_DEF:
         obj_def = obj_orig.copy()
         obj_def.data = obj_orig.data.copy()
         scene.objects.link(obj_def)
-    
+
     scene.update()
     print("On to the real work.")
 
@@ -474,7 +474,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     obj.data.pose_position = 'POSE'
     obj_orig.data.pose_position = 'POSE'
     context.user_preferences.edit.global_undo = global_undo
-    
+
     print("Done.\n")
 
     return obj

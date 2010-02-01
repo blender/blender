@@ -106,7 +106,6 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 
 	strcpy(str, name);
 	BLI_convertstringcode(str, G.sce);
-	BLI_convertstringframe(str, scene->r.cfra); /* TODO - is this even used? */
 
 	if (confirm)
 		overwrite = saveover(str);

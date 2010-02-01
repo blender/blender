@@ -60,7 +60,7 @@ typedef struct Global {
 	/* strings of recent opend files */
 	struct ListBase recent_files;
         
-	short afbreek, moving;
+	short afbreek, moving, file_loaded;
 	short background;
 	short winpos, displaymode;	/* used to be in Render */
 	short rendering;			/* to indicate render is busy, prevent renderwindow events etc */

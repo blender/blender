@@ -1314,7 +1314,9 @@ void GPU_state_init(void)
 	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
 
-	glDisable(GL_MULTISAMPLE_ARB);
+	/* calling this makes drawing very slow when AA is not set up in ghost
+	   on Linux/NVIDIA.
+	glDisable(GL_MULTISAMPLE); */
 }
 
 /* debugging aid */

@@ -557,9 +557,30 @@ static int stringframe_chars(char *path, int *char_start, int *char_end)
 	}
 }
 
-int BLI_convertstringframe(char *path, int frame)
+static void ensure_digits(char *path, int digits)
+{
+	char *file= BLI_last_slash(path);
+
+	if(file==NULL)
+		file= path;
+
+	if(strrchr(file, '#') == NULL) {
+		int len= strlen(file);
+
+		while(digits--) {
+			file[len++]= '#';
+		}
+		file[len]= '\0';
+	}
+}
+
+int BLI_convertstringframe(char *path, int frame, int digits)
 {
 	int ch_sta, ch_end;
+
+	if(digits)
+		ensure_digits(path, digits);
+
 	if (stringframe_chars(path, &ch_sta, &ch_end)) { /* warning, ch_end is the last # +1 */
 		char tmp[FILE_MAX], format[64];
 		sprintf(format, "%%.%ds%%.%dd%%s", ch_sta, ch_end-ch_sta); /* example result: "%.12s%.5d%s" */
@@ -570,9 +591,13 @@ int BLI_convertstringframe(char *path, int frame)
 	return 0;
 }
 
-int BLI_convertstringframe_range(char *path, int sta, int end)
+int BLI_convertstringframe_range(char *path, int sta, int end, int digits)
 {
 	int ch_sta, ch_end;
+
+	if(digits)
+		ensure_digits(path, digits);
+
 	if (stringframe_chars(path, &ch_sta, &ch_end)) { /* warning, ch_end is the last # +1 */
 		char tmp[FILE_MAX], format[64];
 		sprintf(format, "%%.%ds%%.%dd_%%.%dd%%s", ch_sta, ch_end-ch_sta, ch_end-ch_sta); /* example result: "%.12s%.5d-%.5d%s" */

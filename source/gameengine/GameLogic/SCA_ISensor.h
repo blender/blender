@@ -160,6 +160,12 @@ public:
 	{
 		return m_state;
 	}
+	
+	/** get the previous state of the sensor: positive or negative */
+	bool GetPrevState()
+	{
+		return m_prev_state;
+	}
 
 	/** Resume sensing. */
 	void Resume();
@@ -178,8 +184,17 @@ public:
 	
 	static PyObject*	pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_status(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int          pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int          pyattr_check_tap(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+	enum SensorStatus {
+		KX_SENSOR_INACTIVE = 0,
+		KX_SENSOR_JUST_ACTIVATED,
+		KX_SENSOR_ACTIVE,
+		KX_SENSOR_JUST_DEACTIVATED
+	
+	};
 #endif // DISABLE_PYTHON
 };
 

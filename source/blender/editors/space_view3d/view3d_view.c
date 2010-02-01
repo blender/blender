@@ -104,9 +104,9 @@ void view3d_operator_needs_opengl(const bContext *C)
 		
 		wmSubWindowSet(CTX_wm_window(C), ar->swinid);
 		glMatrixMode(GL_PROJECTION);
-		wmLoadMatrix(rv3d->winmat);
+		glLoadMatrixf(rv3d->winmat);
 		glMatrixMode(GL_MODELVIEW);
-		wmLoadMatrix(rv3d->viewmat);
+		glLoadMatrixf(rv3d->viewmat);
 	}
 }
 
@@ -282,9 +282,12 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 				sms.orig_lens= v3d->lens;
 			}
 			/* grid draw as floor */
-			sms.orig_view= rv3d->view;
-			rv3d->view= 0;
-			
+			if((rv3d->viewlock & RV3D_LOCKED)==0) {
+				/* use existing if exists, means multiple calls to smooth view wont loose the original 'view' setting */
+				sms.orig_view= rv3d->sms ? rv3d->sms->orig_view : rv3d->view;
+				rv3d->view= 0;
+			}
+
 			/* ensure it shows correct */
 			if(sms.to_camera) rv3d->persp= RV3D_PERSP;
 
@@ -344,8 +347,11 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			rv3d->dist = sms->new_dist;
 			v3d->lens = sms->new_lens;
 		}
-		rv3d->view= sms->orig_view;
 		
+		if((rv3d->viewlock & RV3D_LOCKED)==0) {
+			rv3d->view= sms->orig_view;
+		}
+
 		MEM_freeN(rv3d->sms);
 		rv3d->sms= NULL;
 		
@@ -1068,12 +1074,9 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)		/* rect: for pick
 		else wmFrustum(x1, x2, y1, y2, clipsta, clipend);
 	}
 
-	/* not sure what this was for? (ton) */
-	glMatrixMode(GL_PROJECTION);
-	wmGetMatrix(rv3d->winmat);
-	glMatrixMode(GL_MODELVIEW);
+	/* update matrix in 3d view region */
+	glGetFloatv(GL_PROJECTION_MATRIX, (float*)rv3d->winmat);
 }
-
 
 static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short smooth)
 {

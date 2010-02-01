@@ -42,7 +42,6 @@ EnumPropertyItem beztriple_handle_type_items[] = {
 		{HD_AUTO, "AUTO", 0, "Auto", ""},
 		{HD_VECT, "VECTOR", 0, "Vector", ""},
 		{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
-		{HD_AUTO_ANIM, "AUTO_CLAMPED", 0, "Auto Clamped", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem beztriple_interpolation_mode_items[] = {
@@ -831,7 +830,7 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
 	
 	
-	prop= RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "ctime");
 	RNA_def_property_ui_text(prop, "Evaluation Time", "Parametric position along the length of the curve that Objects 'following' it should be at.");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");

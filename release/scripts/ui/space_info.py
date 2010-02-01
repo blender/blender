@@ -90,7 +90,7 @@ class INFO_MT_file(bpy.types.Menu):
         layout.separator()
 
         layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
-        
+
         layout.operator_context = 'EXEC_AREA'
         layout.operator("wm.read_homefile", text="Load Factory Settings").factory = True
 
@@ -128,6 +128,7 @@ class INFO_MT_file_open_recent(bpy.types.Menu):
             line = line.rstrip()
             layout.operator("wm.open_mainfile", text=line, icon='FILE_BLEND').path = line
         file.close()
+
 
 class INFO_MT_file_import(bpy.types.Menu):
     bl_idname = "INFO_MT_file_import"

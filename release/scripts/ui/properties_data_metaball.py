@@ -140,5 +140,3 @@ bpy.types.register(DATA_PT_metaball)
 bpy.types.register(DATA_PT_metaball_element)
 
 bpy.types.register(DATA_PT_custom_props_metaball)
-
-

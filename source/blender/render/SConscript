@@ -34,6 +34,11 @@ if env['OURPLATFORM'] == 'linux2':
         cxxflags = env['CXXFLAGS'] +  env['BF_RAYOPTIMIZATION_SSE_FLAGS']
     incs += ' ../../../extern/binreloc/include'
 
+if env['OURPLATFORM'] == 'linuxcross':
+    if env['WITH_BF_RAYOPTIMIZATION']:
+        cflags = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+        cxxflags = env['CCFLAGS'] + env['BF_RAYOPTIMIZATION_SSE_FLAGS']
+
 if env['WITH_BF_QUICKTIME']:
     defs.append('WITH_QUICKTIME')
     incs += ' ../quicktime ' + env['BF_QUICKTIME_INC']
@@ -43,6 +48,12 @@ if env['WITH_BF_OPENEXR']:
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
     incs += ' ' + env['BF_PTHREADS_INC']
+
+#
+# HACK: To fix problem with error 'MMX instruction set not enabled' from mmintrin.h
+#
+if env['OURPLATFORM'] == 'linuxcross':
+    defs.append('__MMX__')
 
 if env['WITH_BF_RAYOPTIMIZATION']:
     defs.append('__SSE__')

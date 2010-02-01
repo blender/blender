@@ -33,7 +33,7 @@
  * allowing script writers to make OpenGL calls in their Python scripts. */
 
 #include "BGL.h" /*This must come first */
-
+#include <GL/glew.h>
 #include "MEM_guardedalloc.h"
 
 static int type_size( int type );

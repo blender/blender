@@ -753,8 +753,8 @@ BeztEditFunc ANIM_editkeyframes_mirror(short type)
 static short set_bezier_auto(BeztEditData *bed, BezTriple *bezt) 
 {
 	if((bezt->f1  & SELECT) || (bezt->f3 & SELECT)) {
-		if (bezt->f1 & SELECT) bezt->h1= 1; /* the secret code for auto */
-		if (bezt->f3 & SELECT) bezt->h2= 1;
+		if (bezt->f1 & SELECT) bezt->h1= HD_AUTO; /* the secret code for auto */
+		if (bezt->f3 & SELECT) bezt->h2= HD_AUTO;
 		
 		/* if the handles are not of the same type, set them
 		 * to type free
@@ -809,7 +809,7 @@ static short set_bezier_free(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
-/* Set all Bezier Handles to a single type */
+/* Set all selected Bezier Handles to a single type */
 // calchandles_fcurve
 BeztEditFunc ANIM_editkeyframes_handles(short code)
 {

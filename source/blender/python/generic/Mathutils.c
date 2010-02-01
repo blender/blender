@@ -54,7 +54,10 @@
 #include "BKE_utildefines.h"
 
 //-------------------------DOC STRINGS ---------------------------
-static char M_Mathutils_doc[] = "This module provides access to matrices, eulers, quaternions and vectors.";
+static char M_Mathutils_doc[] =
+"This module provides access to matrices, eulers, quaternions and vectors.\n"
+"\n"
+".. literalinclude:: ../examples/mathutils.py\n";
 
 //-----------------------------METHODS----------------------------
 //-----------------quat_rotation (internal)-----------

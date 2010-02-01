@@ -344,6 +344,30 @@ def addActiveActuator(actuator, activate):
 	@type activate: boolean
 	@param activate: whether to activate or deactivate the given actuator.
 	"""
+def loadGlobalDict():
+	"""
+	Loads GameLogic.globalDict from a file.
+	"""
+def saveGlobalDict():
+	"""
+	Saves GameLogic.globalDict to a file.
+	"""
+def addScene(name, overlay=1):
+	"""
+	Loads a scene into the game engine.
+	
+	@param name: The name of the scene
+	@type name: string
+	@param body: Overlay or underlay (optional)
+	@type body: int
+	"""
+def removeScene(name):
+	"""
+	Removes a scene from the game engine.
+	
+	@param name: The name of the scene
+	@type name: string
+	"""
 def sendMessage(subject, body="", to="", message_from=""):
 	"""
 	Sends a message to sensors in any active scene.

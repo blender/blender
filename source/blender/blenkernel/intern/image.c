@@ -392,7 +392,6 @@ Image *BKE_add_image_file(const char *name, int frame)
 	
 	BLI_strncpy(str, name, sizeof(str));
 	BLI_convertstringcode(str, G.sce);
-	BLI_convertstringframe(str, frame);
 	
 	/* exists? */
 	file= open(str, O_BINARY|O_RDONLY);
@@ -404,7 +403,6 @@ Image *BKE_add_image_file(const char *name, int frame)
 		if(ima->source!=IMA_SRC_VIEWER && ima->source!=IMA_SRC_GENERATED) {
 			BLI_strncpy(strtest, ima->name, sizeof(ima->name));
 			BLI_convertstringcode(strtest, G.sce);
-			BLI_convertstringframe(strtest, frame);
 			
 			if( strcmp(strtest, str)==0 ) {
 				if(ima->anim==NULL || ima->id.us==0) {
@@ -1412,15 +1410,9 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 void BKE_makepicstring(char *string, char *base, int frame, int imtype, int use_ext)
 {
 	if (string==NULL) return;
-
 	BLI_strncpy(string, base, FILE_MAX - 10);	/* weak assumption */
-	
-	/* if we dont have any #'s to insert numbers into, use 4 numbers by default */
-	if (strchr(string, '#')==NULL)
-		strcat(string, "####"); /* 4 numbers */
-	
 	BLI_convertstringcode(string, G.sce);
-	BLI_convertstringframe(string, frame);
+	BLI_convertstringframe(string, frame, 4);
 
 	if(use_ext)
 		BKE_add_image_extension(string, imtype);
@@ -1675,8 +1667,6 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 	else
 		BLI_convertstringcode(name, G.sce);
 	
-	BLI_convertstringframe(name, frame); /* TODO - should this be here? */
-	
 	/* read ibuf */
 	ibuf = IMB_loadiffname(name, IB_rect|IB_multilayer);
 	if(G.f & G_DEBUG) printf("loaded %s\n", name);
@@ -1838,7 +1828,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		else
 			BLI_convertstringcode(str, G.sce);
 		
-		BLI_convertstringframe(str, cfra);
+		BLI_convertstringframe(str, cfra, 0);
 		
 		/* read ibuf */
 		ibuf = IMB_loadiffname(str, IB_rect|IB_multilayer|IB_imginfo);

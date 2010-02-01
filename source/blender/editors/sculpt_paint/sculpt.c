@@ -152,8 +152,6 @@ typedef struct StrokeCache {
 	float (*face_norms)[3]; /* Copy of the mesh faces' normals */
 	float rotation; /* Texture rotation (radians) for anchored and rake modes */
 	int pixel_radius, previous_pixel_radius;
-	PBVHNode **grab_active_nodes[8]; /* The same list of nodes is used throught grab stroke */
-	int grab_active_totnode[8];
 	float grab_active_location[8][3];
 	float grab_delta[3], grab_delta_symmetry[3];
 	float old_grab_location[3], orig_grab_location[3];
@@ -689,8 +687,7 @@ typedef struct {
 	Sculpt *sd;
 	SculptSession *ss;
 	float radius_squared;
-	ListBase *active_verts;
-	float area_normal[3];
+	int original;
 } SculptSearchSphereData;
 
 /* Test AABB against sphere */
@@ -701,7 +698,10 @@ static int sculpt_search_sphere_cb(PBVHNode *node, void *data_v)
 	float t[3], bb_min[3], bb_max[3];
 	int i;
 
-	BLI_pbvh_node_get_BB(node, bb_min, bb_max);
+	if(data->original)
+		BLI_pbvh_node_get_original_BB(node, bb_min, bb_max);
+	else
+		BLI_pbvh_node_get_BB(node, bb_min, bb_max);
 
 	for(i = 0; i < 3; ++i) {
 		if(bb_min[i] > center[i])
@@ -1351,21 +1351,14 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, StrokeCache *cache)
 	/* Build a list of all nodes that are potentially within the brush's
 	   area of influence */
 	if(brush->sculpt_tool == SCULPT_TOOL_GRAB) {
-		if(cache->first_time) {
-			/* For the grab tool we store these nodes once in the beginning
-			   and then reuse them. */
-			BLI_pbvh_search_gather(ss->tree, sculpt_search_sphere_cb, &data,
+		data.original= 1;
+		BLI_pbvh_search_gather(ss->tree, sculpt_search_sphere_cb, &data,
 				&nodes, &totnode);
-			
-			ss->cache->grab_active_nodes[ss->cache->symmetry]= nodes;
-			ss->cache->grab_active_totnode[ss->cache->symmetry]= totnode;
+
+		if(cache->first_time)
 			copy_v3_v3(ss->cache->grab_active_location[ss->cache->symmetry], ss->cache->location);
-		}
-		else {
-			nodes= ss->cache->grab_active_nodes[ss->cache->symmetry];
-			totnode= ss->cache->grab_active_totnode[ss->cache->symmetry];
+		else
 			copy_v3_v3(ss->cache->location, ss->cache->grab_active_location[ss->cache->symmetry]);
-		}
 	}
 	else {
 		BLI_pbvh_search_gather(ss->tree, sculpt_search_sphere_cb, &data,
@@ -1405,7 +1398,7 @@ static void do_brush_action(Sculpt *sd, SculptSession *ss, StrokeCache *cache)
 		/* copy the modified vertices from mesh to the active key */
 		if(ss->kb) mesh_to_key(ss->ob->data, ss->kb);
 		
-		if((brush->sculpt_tool != SCULPT_TOOL_GRAB) && nodes)
+		if(nodes)
 			MEM_freeN(nodes);
 	}	
 }
@@ -1651,15 +1644,10 @@ static float unproject_brush_radius(Object *ob, ViewContext *vc, float center[3]
 
 static void sculpt_cache_free(StrokeCache *cache)
 {
-	int i;
 	if(cache->face_norms)
 		MEM_freeN(cache->face_norms);
 	if(cache->mats)
 		MEM_freeN(cache->mats);
-	for(i = 0; i < 8; ++i) {
-		if(cache->grab_active_nodes[i])
-			MEM_freeN(cache->grab_active_nodes[i]);
-	}
 	MEM_freeN(cache);
 }
 

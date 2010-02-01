@@ -1414,6 +1414,18 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		scroller_activate_init(C, op, event, in_scroller);
 		vsm= (v2dScrollerMove *)op->customdata;
 		
+		/* check if zoom zones are inappropriate (i.e. zoom widgets not shown), so cannot continue
+		 * NOTE: see view2d.c for latest conditions, and keep this in sync with that
+		 */
+		if (ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
+			if ( ((vsm->scroller=='h') && (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL)==0) ||
+				 ((vsm->scroller=='v') && (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL)==0) )
+			{
+				/* switch to bar (i.e. no scaling gets handled) */
+				vsm->zone= SCROLLHANDLE_BAR;
+			}
+		}
+		
 		/* check if zone is inappropriate (i.e. 'bar' but panning is banned), so cannot continue */
 		if (vsm->zone == SCROLLHANDLE_BAR) {
 			if ( ((vsm->scroller=='h') && (v2d->keepofs & V2D_LOCKOFS_X)) ||
@@ -1426,15 +1438,21 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				return OPERATOR_PASS_THROUGH;
 			}			
 		}
+		
 		/* zone is also inappropriate if scroller is not visible... */
-		if ( ((vsm->scroller=='h') && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HIDE)) ||
-			 ((vsm->scroller=='v') && (v2d->scroll & V2D_SCROLL_VERTICAL_HIDE)) )
+		if ( ((vsm->scroller=='h') && (v2d->scroll & (V2D_SCROLL_HORIZONTAL_HIDE|V2D_SCROLL_HORIZONTAL_FULLR))) ||
+			 ((vsm->scroller=='v') && (v2d->scroll & (V2D_SCROLL_VERTICAL_HIDE|V2D_SCROLL_VERTICAL_FULLR))) )
 		{
+			/* free customdata initialised */
+			scroller_activate_exit(C, op);
+				
 			/* can't catch this event for ourselves, so let it go to someone else? */
+			// FIXME: still this doesn't fall through to the item_activate callback for the outliner...
 			return OPERATOR_PASS_THROUGH;
 		}
 		
-		if(vsm->scroller=='h')
+		/* activate the scroller */
+		if (vsm->scroller=='h')
 			v2d->scroll_ui |= V2D_SCROLL_H_ACTIVE;
 		else
 			v2d->scroll_ui |= V2D_SCROLL_V_ACTIVE;

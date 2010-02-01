@@ -17,7 +17,7 @@ def main(context):
         for j, v_idx in enumerate(mesh.faces[i].verts):
             if uv.uv_selected[j]:
                 # apply the location of the vertex as a UV
-                uvs[j][:] = mesh.verts[v_idx].co.xy       
+                uvs[j][:] = mesh.verts[v_idx].co.xy
 
 
     if is_editmode:

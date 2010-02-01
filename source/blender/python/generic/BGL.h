@@ -41,7 +41,6 @@
 #endif
 
 #include <Python.h>
-#include <GL/glew.h>
 
 PyObject *BGL_Init(void);
 

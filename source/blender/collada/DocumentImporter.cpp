@@ -1564,15 +1564,13 @@ public:
 		return NULL;
 	}
 	
-	MTex *assign_textures_to_uvlayer(COLLADAFW::InstanceGeometry::TextureCoordinateBinding &ctexture,
+	MTex *assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBinding &ctexture,
 									 Mesh *me, TexIndexTextureArrayMap& texindex_texarray_map,
 									 MTex *color_texture)
 	{
-		
-		COLLADAFW::TextureMapId texture_index = ctexture.textureMapId;
-		
-		char *uvname = CustomData_get_layer_name(&me->fdata, CD_MTFACE, ctexture.setIndex);
-		
+		COLLADAFW::TextureMapId texture_index = ctexture.getTextureMapId();
+		char *uvname = CustomData_get_layer_name(&me->fdata, CD_MTFACE, ctexture.getSetIndex());
+
 		if (texindex_texarray_map.find(texture_index) == texindex_texarray_map.end()) {
 			
 			fprintf(stderr, "Cannot find texture array by texture index.\n");
@@ -1595,7 +1593,7 @@ public:
 		return color_texture;
 	}
 	
-	MTFace *assign_material_to_geom(COLLADAFW::InstanceGeometry::MaterialBinding cmaterial,
+	MTFace *assign_material_to_geom(COLLADAFW::MaterialBinding cmaterial,
 									std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
 									Object *ob, const COLLADAFW::UniqueId *geom_uid, 
 									MTex **color_texture, char *layername, MTFace *texture_face,
@@ -1614,7 +1612,7 @@ public:
 		Material *ma = uid_material_map[ma_uid];
 		assign_material(ob, ma, ob->totcol + 1);
 		
-		COLLADAFW::InstanceGeometry::TextureCoordinateBindingArray& tex_array = 
+		COLLADAFW::TextureCoordinateBindingArray& tex_array = 
 			cmaterial.getTextureCoordinateBindingArray();
 		TexIndexTextureArrayMap texindex_texarray_map = material_texture_mapping_map[ma];
 		unsigned int i;
@@ -1714,7 +1712,7 @@ public:
 		MTFace *texture_face = NULL;
 		MTex *color_texture = NULL;
 		
-		COLLADAFW::InstanceGeometry::MaterialBindingArray& mat_array = 
+		COLLADAFW::MaterialBindingArray& mat_array =
 			geom->getMaterialBindings();
 		
 		// loop through geom's materials
@@ -3130,7 +3128,7 @@ public:
 				ob = create_lamp_object(lamp[0], ob, sce);
 			}
 			else if (controller.getCount() != 0) {
-				COLLADAFW::InstanceController *geom = (COLLADAFW::InstanceController*)controller[0];
+				COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry*)controller[0];
 				ob = mesh_importer.create_mesh_object(node, geom, true, uid_material_map, material_texture_mapping_map);
 			}
 			// XXX instance_node is not supported yet
@@ -3284,7 +3282,6 @@ public:
 		
 		int i = 0;
 		COLLADAFW::Color col;
-		COLLADAFW::Texture ctex;
 		MTex *mtex = NULL;
 		TexIndexTextureArrayMap texindex_texarray_map;
 		
@@ -3298,7 +3295,7 @@ public:
 		}
 		// texture
 		else if (ef->getDiffuse().isTexture()) {
-			ctex = ef->getDiffuse().getTexture(); 
+			COLLADAFW::Texture ctex = ef->getDiffuse().getTexture(); 
 			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_COL;
@@ -3316,7 +3313,7 @@ public:
 		}
 		// texture
 		else if (ef->getAmbient().isTexture()) {
-			ctex = ef->getAmbient().getTexture(); 
+			COLLADAFW::Texture ctex = ef->getAmbient().getTexture(); 
 			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_AMB; 
@@ -3333,7 +3330,7 @@ public:
 		}
 		// texture
 		else if (ef->getSpecular().isTexture()) {
-			ctex = ef->getSpecular().getTexture(); 
+			COLLADAFW::Texture ctex = ef->getSpecular().getTexture(); 
 			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_SPEC; 
@@ -3350,7 +3347,7 @@ public:
 		}
 		// texture
 		else if (ef->getReflective().isTexture()) {
-			ctex = ef->getReflective().getTexture(); 
+			COLLADAFW::Texture ctex = ef->getReflective().getTexture(); 
 			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_REF; 
@@ -3365,7 +3362,7 @@ public:
 		}
 		// texture
 		else if (ef->getEmission().isTexture()) {
-			ctex = ef->getEmission().getTexture(); 
+			COLLADAFW::Texture ctex = ef->getEmission().getTexture(); 
 			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_EMIT; 

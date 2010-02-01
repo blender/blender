@@ -172,10 +172,11 @@ RegionView3D *ED_view3d_context_rv3d(bContext *C)
  */
 void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d)
 {
-	wmMultMatrix(ob->obmat);
 	/* local viewmat and persmat, to calculate projections */
-	wmGetMatrix(rv3d->viewmatob);
-	wmGetSingleMatrix(rv3d->persmatob);
+	mul_m4_m4m4(rv3d->viewmatob, ob->obmat, rv3d->viewmat);
+	mul_m4_m4m4(rv3d->persmatob, ob->obmat, rv3d->persmat);
+
+	glLoadMatrixf(rv3d->viewmatob);
 
 	/* initializes object space clipping, speeds up clip tests */
 	ED_view3d_local_clipping(rv3d, ob->obmat);

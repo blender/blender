@@ -124,9 +124,12 @@ typedef struct View2D {
 #define V2D_SCROLL_SCALE_VERTICAL	(1<<5)
 	/* scale markings - horizontal */	
 #define V2D_SCROLL_SCALE_HORIZONTAL	(1<<6)
-	/* disable draw temporary */
+	/* induce hiding of scrollbars - set by region drawing in response to size of region */
 #define V2D_SCROLL_VERTICAL_HIDE	(1<<7)		
 #define V2D_SCROLL_HORIZONTAL_HIDE	(1<<8)
+	/* scrollbar extends beyond its available window - set when calculating scrollbars for drawing */
+#define V2D_SCROLL_VERTICAL_FULLR 	(1<<9)	
+#define V2D_SCROLL_HORIZONTAL_FULLR (1<<10)	
 
 /* scroll_ui, activate flag for drawing */
 #define V2D_SCROLL_H_ACTIVE			(1<<0)

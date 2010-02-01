@@ -3,12 +3,16 @@ Import ('env')
 
 sources = env.Glob('intern/*.cpp')
 
+incs = ''
 defs = ''
 
 if env['WITH_BF_OPENMP']:
+    if env['OURPLATFORM'] == 'linuxcross':
+        incs += ' ' + env['BF_OPENMP_INC']
+
     defs += ' PARALLEL=1'
 
-incs = env['BF_PNG_INC'] + ' ' + env['BF_ZLIB_INC'] 
+incs += ' ' + env['BF_PNG_INC'] + ' ' + env['BF_ZLIB_INC'] 
 incs += ' intern ../../extern/bullet2/src ../memutil ../guardealloc '
 
 if env['WITH_BF_FFTW3']:

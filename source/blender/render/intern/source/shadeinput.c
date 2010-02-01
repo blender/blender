@@ -1416,6 +1416,10 @@ int shade_samples(ShadeSample *ssamp, PixStr *ps, int x, int y)
 				shade_input_do_shade(shi, shr);
 			}
 		}
+		else if(shi->passflag & SCE_PASS_Z) {
+			for(samp=0; samp<ssamp->tot; samp++, shi++, shr++)
+				shr->z= -shi->co[2];
+		}
 		
 		return 1;
 	}

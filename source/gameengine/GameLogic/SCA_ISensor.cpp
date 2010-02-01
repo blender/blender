@@ -360,6 +360,7 @@ PyAttributeDef SCA_ISensor::Attributes[] = {
 	KX_PYATTRIBUTE_BOOL_RW_CHECK("tap",SCA_ISensor,m_tap,pyattr_check_tap),
 	KX_PYATTRIBUTE_RO_FUNCTION("triggered", SCA_ISensor, pyattr_get_triggered),
 	KX_PYATTRIBUTE_RO_FUNCTION("positive", SCA_ISensor, pyattr_get_positive),
+	KX_PYATTRIBUTE_RO_FUNCTION("status", SCA_ISensor, pyattr_get_status),
 	//KX_PYATTRIBUTE_TODO("links"),
 	//KX_PYATTRIBUTE_TODO("posTicks"),
 	//KX_PYATTRIBUTE_TODO("negTicks"),
@@ -380,6 +381,28 @@ PyObject* SCA_ISensor::pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DE
 {
 	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
 	return PyLong_FromSsize_t(self->GetState());
+}
+
+PyObject* SCA_ISensor::pyattr_get_status(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	SCA_ISensor* self= static_cast<SCA_ISensor*>(self_v);
+	int status = 0;
+	if (self->GetState()) 
+	{
+		if (self->GetState() == self->GetPrevState()) 
+		{
+			status = 2;
+		}
+		else 
+		{
+			status = 1;
+		}
+	}
+	else if (self->GetState() != self->GetPrevState()) 
+	{
+		status = 3;
+	}
+	return PyLong_FromSsize_t(status);
 }
 
 int SCA_ISensor::pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)

@@ -55,15 +55,17 @@ makesdna = makesdna_tool.Program (target = targetdir, source = source_files, LIB
 dna_dict = dna.Dictionary()
 dna.Depends ('dna.c', makesdna)
 dna.Depends ('dna.c', header_files)
+
 if env['OURPLATFORM'] != 'linuxcross':
+	if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
+		dna.Command ('dna.c', '', "\"" + root_build_dir+os.sep+"makesdna\" $TARGET")
+	else:
+		dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna $TARGET")
+else:
 	if USE_WINE:
 		dna.Command ('dna.c', '', 'wine ' + root_build_dir+os.sep+"makesdna $TARGET")
 	else:
-		if env['OURPLATFORM'] in ('win32-vc', 'win64-vc', 'win32-mingw'):
-			dna.Command ('dna.c', '', "\"" + root_build_dir+os.sep+"makesdna\" $TARGET")
-		else:
-			dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna $TARGET")
-else:
-	dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna.exe $TARGET")
+		dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna.exe $TARGET")
+
 obj = ['intern/dna.c', 'intern/dna_genfile.c']
 Return ('obj')

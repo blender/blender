@@ -155,12 +155,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 
         ob = context.object
         key = ob.data.shape_keys
-        if key and len(key.keys):
-            # this is so that we get the active shapekey from the 
-            # shapekeys block, not from object data
-            kb = key.keys[ob.active_shape_key.name]
-        else:
-            kb = None
+        kb = ob.active_shape_key
         wide_ui = context.region.width > narrowui
 
         enable_edit = ob.mode != 'EDIT'
@@ -299,4 +294,3 @@ bpy.types.register(DATA_PT_uv_texture)
 bpy.types.register(DATA_PT_vertex_colors)
 
 bpy.types.register(DATA_PT_custom_props_mesh)
-
