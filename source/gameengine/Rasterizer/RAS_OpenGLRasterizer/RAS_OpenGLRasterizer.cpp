@@ -904,7 +904,9 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 
 			// if Rasterizer.setFocalLength is not called we use the camera focallength
 			if (!m_setfocallength)
-				m_focallength = focallength;
+				// if focallength is null we use a value known to be reasonable
+				m_focallength = (focallength == 0.f) ? m_eyeseparation * 30.0
+					: focallength;
 
 			near_div_focallength = frustnear / m_focallength;
 			offset = 0.5 * m_eyeseparation * near_div_focallength;
