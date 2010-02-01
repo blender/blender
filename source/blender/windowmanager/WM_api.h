@@ -278,23 +278,14 @@ struct wmDropBox	*WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(s
 						  void (*copy)(struct wmDrag *, struct wmDropBox *));
 ListBase	*WM_dropboxmap_find(char *idname, int spaceid, int regionid);
 
-			/* OpenGL wrappers, mimicking opengl syntax */
+			/* Set a subwindow active in pixelspace view, with optional scissor subset */
 void		wmSubWindowSet			(struct wmWindow *win, int swinid);
 void		wmSubWindowScissorSet	(struct wmWindow *win, int swinid, struct rcti *srct);
 
-void		wmLoadMatrix		(float mat[][4]);
-void		wmGetMatrix			(float mat[][4]);
-void		wmMultMatrix		(float mat[][4]);
-void		wmGetSingleMatrix	(float mat[][4]);
-void		wmScale				(float x, float y, float z);
-void		wmLoadIdentity		(void);		/* note: old name clear_view_mat */
-void		wmPushMatrix		(void);		/* one level only */
-void		wmPopMatrix			(void);		/* one level only */
-
+			/* OpenGL utilities with safety check + working in modelview matrix mode */
 void		wmFrustum			(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho				(float x1, float x2, float y1, float y2, float n, float f);
 void		wmOrtho2			(float x1, float x2, float y1, float y2);
-void		wmOrthoPixelSpace	(void);
 
 			/* utilities */
 void		WM_set_framebuffer_index_color(int index);

@@ -1474,9 +1474,7 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	view3d_operator_needs_opengl(C);
 		
 	/* load projection matrix */
-	wmMultMatrix(ob->obmat);
-	wmGetSingleMatrix(mat);
-	wmLoadMatrix(vc->rv3d->viewmat);
+	mul_m4_m4m4(mat, ob->obmat, vc->rv3d->persmat);
 
 	flip = RNA_boolean_get(itemptr, "flip");
 	pressure = RNA_float_get(itemptr, "pressure");
@@ -1904,9 +1902,7 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 	view3d_operator_needs_opengl(C);
 			
 	/* load projection matrix */
-	wmMultMatrix(ob->obmat);
-	wmGetSingleMatrix(mat);
-	wmLoadMatrix(vc->rv3d->viewmat);
+	mul_m4_m4m4(mat, ob->obmat, vc->rv3d->persmat);
 
 	mval[0]-= vc->ar->winrct.xmin;
 	mval[1]-= vc->ar->winrct.ymin;

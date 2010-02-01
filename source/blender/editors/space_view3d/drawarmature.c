@@ -1581,7 +1581,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 	/* precalc inverse matrix for drawing screen aligned */
 	if (arm->drawtype==ARM_ENVELOPE) {
 		/* precalc inverse matrix for drawing screen aligned */
-		wmGetMatrix(smat);
+		copy_m4_m4(smat, rv3d->viewmatob);
 		mul_mat3_m4_fl(smat, 1.0f/len_v3(ob->obmat[0]));
 		invert_m4_m4(imat, smat);
 		
@@ -1941,7 +1941,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	/* envelope (deform distance) */
 	if(arm->drawtype==ARM_ENVELOPE) {
 		/* precalc inverse matrix for drawing screen aligned */
-		wmGetMatrix(smat);
+		copy_m4_m4(smat, rv3d->viewmatob);
 		mul_mat3_m4_fl(smat, 1.0f/len_v3(ob->obmat[0]));
 		invert_m4_m4(imat, smat);
 		

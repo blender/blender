@@ -746,8 +746,11 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	ui_but_to_pixelrect(&rect, ar, block, NULL);
 	
 	/* pixel space for AA widgets */
-	wmPushMatrix();
-	wmLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
 	
 	wmOrtho2(-0.01f, ar->winx-0.01f, -0.01f, ar->winy-0.01f);
 	
@@ -765,7 +768,10 @@ void uiDrawBlock(const bContext *C, uiBlock *block)
 	}
 	
 	/* restore matrix */
-	wmPopMatrix();
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
 	
 	ui_draw_links(block);
 }

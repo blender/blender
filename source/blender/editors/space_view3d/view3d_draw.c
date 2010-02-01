@@ -1395,14 +1395,14 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 			glDepthMask(0);
 
+			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
 
-			/* need to use wm push/pop matrix because ED_region_pixelspace
-		   uses the wm functions too, otherwise gets out of sync */
-			wmPushMatrix();
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
 			ED_region_pixelspace(ar);
-
-			glEnable(GL_BLEND);
 
 			glPixelZoom(zoomx, zoomy);
 			glColor4f(1.0, 1.0, 1.0, 1.0-bgpic->blend);
@@ -1411,7 +1411,10 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 			glPixelZoom(1.0, 1.0);
 			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 
-			wmPopMatrix();
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
 
 			glDisable(GL_BLEND);
 
@@ -1556,10 +1559,10 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 				}
 			}
 			if(use_displist) {
-				wmMultMatrix(dob->mat);
+				glMultMatrixf(dob->mat);
 				if(boundbox_clip(rv3d, dob->mat, &bb))
 					glCallList(displist);
-				wmLoadMatrix(rv3d->viewmat);
+				glLoadMatrixf(rv3d->viewmat);
 			}
 			else {
 				copy_m4_m4(dob->ob->obmat, dob->mat);
@@ -1638,7 +1641,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 
 	v3d->zbuf= TRUE;
 	glEnable(GL_DEPTH_TEST);
@@ -1674,7 +1677,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 //	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
 	
 	if(rv3d->rflag & RV3D_CLIPPING) {
@@ -1910,10 +1913,9 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	
 	/* set for opengl */
 	glMatrixMode(GL_PROJECTION);
-	wmLoadMatrix(rv3d->winmat);
-
+	glLoadMatrixf(rv3d->winmat);
 	glMatrixMode(GL_MODELVIEW);
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 }
 
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy, float viewmat[][4], float winmat[][4])
@@ -2071,9 +2073,9 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		drawgrid(&scene->unit, ar, v3d, &grid_unit);
 		/* XXX make function? replaces persp(1) */
 		glMatrixMode(GL_PROJECTION);
-		wmLoadMatrix(rv3d->winmat);
+		glLoadMatrixf(rv3d->winmat);
 		glMatrixMode(GL_MODELVIEW);
-		wmLoadMatrix(rv3d->viewmat);
+		glLoadMatrixf(rv3d->viewmat);
 		
 		if(v3d->flag & V3D_DISPBGPICS) {
 			draw_bgpic(scene, ar, v3d);

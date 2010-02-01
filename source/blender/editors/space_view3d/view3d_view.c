@@ -104,9 +104,9 @@ void view3d_operator_needs_opengl(const bContext *C)
 		
 		wmSubWindowSet(CTX_wm_window(C), ar->swinid);
 		glMatrixMode(GL_PROJECTION);
-		wmLoadMatrix(rv3d->winmat);
+		glLoadMatrixf(rv3d->winmat);
 		glMatrixMode(GL_MODELVIEW);
-		wmLoadMatrix(rv3d->viewmat);
+		glLoadMatrixf(rv3d->viewmat);
 	}
 }
 
@@ -1074,12 +1074,9 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)		/* rect: for pick
 		else wmFrustum(x1, x2, y1, y2, clipsta, clipend);
 	}
 
-	/* not sure what this was for? (ton) */
-	glMatrixMode(GL_PROJECTION);
-	wmGetMatrix(rv3d->winmat);
-	glMatrixMode(GL_MODELVIEW);
+	/* update matrix in 3d view region */
+	glGetFloatv(GL_PROJECTION_MATRIX, (float*)rv3d->winmat);
 }
-
 
 static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short smooth)
 {
