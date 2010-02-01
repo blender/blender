@@ -182,7 +182,7 @@ extern "C" {
 	NSPoint mouseLocation = [sender draggingLocation];
 	
 	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingUpdated, m_draggedObjectType, associatedWindow, mouseLocation.x, mouseLocation.y, nil);
-	return NSDragOperationCopy;
+	return associatedWindow->canAcceptDragOperation()?NSDragOperationCopy:NSDragOperationNone;
 }
 
 - (void)draggingExited:(id < NSDraggingInfo >)sender
