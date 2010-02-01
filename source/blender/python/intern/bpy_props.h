@@ -31,7 +31,9 @@ PyObject *BPY_rna_props( void );
 
 /* functions for setting up new props - experemental */
 PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw);
+PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw);
+PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw);
 PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw);

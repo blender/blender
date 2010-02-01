@@ -373,3 +373,56 @@ int BPy_errors_to_report(ReportList *reports)
 	return 1;
 }
 
+/* array utility function */
+int BPyAsPrimitiveArray(void *array, PyObject *value, int length, PyTypeObject *type, char *error_prefix)
+{
+	PyObject *value_fast;
+	int value_len;
+	int i;
+
+	if(!(value_fast=PySequence_Fast(value, error_prefix))) {
+		return -1;
+	}
+
+	value_len= PySequence_Fast_GET_SIZE(value_fast);
+
+	if(value_len != length) {
+		Py_DECREF(value);
+		PyErr_Format(PyExc_TypeError, "%s: invalid sequence length. expected %d, got %d.", error_prefix, length, value_len);
+		return -1;
+	}
+
+	/* for each type */
+	if(type == &PyFloat_Type) {
+		float *array_float= array;
+		for(i=0; i<length; i++) {
+			array_float[i] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value_fast, i));
+		}
+	}
+	else if(type == &PyLong_Type) {
+		int *array_int= array;
+		for(i=0; i<length; i++) {
+			array_int[i] = PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i));
+		}
+	}
+	else if(type == &PyBool_Type) {
+		int *array_bool= array;
+		for(i=0; i<length; i++) {
+			array_bool[i] = (PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value_fast, i)) != 0);
+		}
+	}
+	else {
+		Py_DECREF(value_fast);
+		PyErr_Format(PyExc_TypeError, "%s: internal error %s is invalid.", error_prefix, type->tp_name);
+		return -1;
+	}
+
+	Py_DECREF(value_fast);
+
+	if(PyErr_Occurred()) {
+		PyErr_Format(PyExc_TypeError, "%s: one or more items could not be used as a %s.", error_prefix, type->tp_name);
+		return -1;
+	}
+
+	return 0;
+}

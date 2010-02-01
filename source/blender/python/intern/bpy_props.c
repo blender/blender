@@ -24,6 +24,7 @@
 
 #include "bpy_props.h"
 #include "bpy_rna.h"
+#include "bpy_util.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h" /* for defining our own rna */
@@ -55,7 +56,7 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_Size(args) > 0) {
+	if (PyTuple_GET_SIZE(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
 	}
@@ -83,6 +84,52 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 	}
 }
 
+static char BPy_BoolVectorProperty_doc[] =
+".. function:: BoolVectorProperty(name=\"\", description=\"\", default=(False, False, False), hidden=False, size=3)\n"
+"\n"
+"   Returns a new vector boolean property definition.";
+PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
+{
+	StructRNA *srna;
+
+	if (PyTuple_GET_SIZE(args) > 0) {
+	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
+		return NULL;
+	}
+
+	srna= srna_from_self(self);
+	if(srna==NULL && PyErr_Occurred()) {
+		return NULL; /* self's type was compatible but error getting the srna */
+	}
+	else if(srna) {
+		static char *kwlist[] = {"attr", "name", "description", "default", "hidden", "size", NULL};
+		char *id=NULL, *name="", *description="";
+		int def[PYRNA_STACK_ARRAY]={0};
+		int hidden=0, size=3;
+		PropertyRNA *prop;
+		PyObject *pydef= NULL;
+
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOii:BoolVectorProperty", kwlist, &id, &name, &description, &pydef, &hidden, &size))
+			return NULL;
+
+		if(size < 1 || size > PYRNA_STACK_ARRAY) {
+			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(size=%d): size must be between 0 and %d.", size, PYRNA_STACK_ARRAY);
+			return NULL;
+		}
+
+		if(pydef && BPyAsPrimitiveArray(def, pydef, size, &PyBool_Type, "BoolVectorProperty(default=sequence)") < 0)
+			return NULL;
+
+		prop= RNA_def_boolean_array(srna, id, size, pydef ? def:NULL, name, description);
+		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
+		RNA_def_property_duplicate_pointers(prop);
+		Py_RETURN_NONE;
+	}
+	else { /* operators defer running this function */
+		return bpy_prop_deferred_return((void *)BPy_BoolVectorProperty, kw);
+	}
+}
+
 static char BPy_IntProperty_doc[] =
 ".. function:: IntProperty(name=\"\", description=\"\", default=0, min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, step=1, hidden=False)\n"
 "\n"
@@ -91,7 +138,7 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_Size(args) > 0) {
+	if (PyTuple_GET_SIZE(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
 	}
@@ -121,6 +168,54 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 	}
 }
 
+static char BPy_IntVectorProperty_doc[] =
+".. function:: IntVectorProperty(name=\"\", description=\"\", default=(0, 0, 0), min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, hidden=False, size=3)\n"
+"\n"
+"   Returns a new vector int property definition.";
+PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
+{
+	StructRNA *srna;
+
+	if (PyTuple_GET_SIZE(args) > 0) {
+	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
+		return NULL;
+	}
+
+	srna= srna_from_self(self);
+	if(srna==NULL && PyErr_Occurred()) {
+		return NULL; /* self's type was compatible but error getting the srna */
+	}
+	else if(srna) {
+		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "hidden", "size", NULL};
+		char *id=NULL, *name="", *description="";
+		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def[PYRNA_STACK_ARRAY]={0};
+		int hidden=0, size=3;
+		PropertyRNA *prop;
+		PyObject *pydef= NULL;
+
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOiiiiii:IntVectorProperty", kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &hidden, &size))
+			return NULL;
+
+		if(size < 1 || size > PYRNA_STACK_ARRAY) {
+			PyErr_Format(PyExc_TypeError, "IntVectorProperty(size=%d): size must be between 0 and %d.", size, PYRNA_STACK_ARRAY);
+			return NULL;
+		}
+
+		if(pydef && BPyAsPrimitiveArray(def, pydef, size, &PyLong_Type, "IntVectorProperty(default=sequence)") < 0)
+			return NULL;
+
+		prop= RNA_def_int_array(srna, id, size, pydef ? def:NULL, min, max, name, description, soft_min, soft_max);
+		RNA_def_property_ui_range(prop, min, max, step, 0);
+		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
+		RNA_def_property_duplicate_pointers(prop);
+		Py_RETURN_NONE;
+	}
+	else { /* operators defer running this function */
+		return bpy_prop_deferred_return((void *)BPy_IntVectorProperty, kw);
+	}
+}
+
+
 static char BPy_FloatProperty_doc[] =
 ".. function:: FloatProperty(name=\"\", description=\"\", default=0.0, min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, hidden=False)\n"
 "\n"
@@ -129,7 +224,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_Size(args) > 0) {
+	if (PyTuple_GET_SIZE(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
 	}
@@ -167,7 +262,7 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_Size(args) > 0) {
+	if (PyTuple_GET_SIZE(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
 	}
@@ -187,38 +282,15 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOfffffiii:FloatVectorProperty", kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &precision, &hidden, &size))
 			return NULL;
 
-		if(size < 0 || size > PYRNA_STACK_ARRAY) {
-			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(): size must be between 0 and %d, given %d.", PYRNA_STACK_ARRAY, size);
+		if(size < 1 || size > PYRNA_STACK_ARRAY) {
+			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(size=%d): size must be between 0 and %d.", size, PYRNA_STACK_ARRAY);
 			return NULL;
 		}
 
-		if(pydef) {
-			int i;
+		if(pydef && BPyAsPrimitiveArray(def, pydef, size, &PyFloat_Type, "FloatVectorProperty(default=sequence)") < 0)
+			return NULL;
 
-			if(!PySequence_Check(pydef)) {
-				PyErr_Format(PyExc_TypeError, "FloatVectorProperty(): default value is not a sequence of size: %d.", size);
-				return NULL;
-			}
-
-			if(size != PySequence_Size(pydef)) {
-				PyErr_Format(PyExc_TypeError, "FloatVectorProperty(): size: %d, does not default: %d.", size, PySequence_Size(pydef));
-				return NULL;
-			}
-
-			for(i=0; i<size; i++) {
-				PyObject *item= PySequence_GetItem(pydef, i);
-				if(item) {
-					def[i]= PyFloat_AsDouble(item);
-					Py_DECREF(item);
-				}
-			}
-
-			if(PyErr_Occurred()) { /* error set above */
-				return NULL;
-			}
-		}
-
-		prop= RNA_def_float_vector(srna, id, size, pydef ? def:NULL, min, max, name, description, soft_min, soft_max);
+		prop= RNA_def_float_array(srna, id, size, pydef ? def:NULL, min, max, name, description, soft_min, soft_max);
 		RNA_def_property_ui_range(prop, min, max, step, precision);
 		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
 		RNA_def_property_duplicate_pointers(prop);
@@ -237,7 +309,7 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_Size(args) > 0) {
+	if (PyTuple_GET_SIZE(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
 	}
@@ -322,7 +394,7 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_Size(args) > 0) {
+	if (PyTuple_GET_SIZE(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
 	}
@@ -387,7 +459,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_Size(args) > 0) {
+	if (PyTuple_GET_SIZE(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
 	}
@@ -433,7 +505,7 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	if (PyTuple_Size(args) > 0) {
+	if (PyTuple_GET_SIZE(args) > 0) {
 	 	PyErr_SetString(PyExc_ValueError, "all args must be keywors"); // TODO - py3 can enforce this.
 		return NULL;
 	}
@@ -470,7 +542,9 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 static struct PyMethodDef props_methods[] = {
 	{"BoolProperty", (PyCFunction)BPy_BoolProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolProperty_doc},
+	{"BoolVectorProperty", (PyCFunction)BPy_BoolVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_BoolVectorProperty_doc},
 	{"IntProperty", (PyCFunction)BPy_IntProperty, METH_VARARGS|METH_KEYWORDS, BPy_IntProperty_doc},
+	{"IntVectorProperty", (PyCFunction)BPy_IntVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_IntVectorProperty_doc},
 	{"FloatProperty", (PyCFunction)BPy_FloatProperty, METH_VARARGS|METH_KEYWORDS, BPy_FloatProperty_doc},
 	{"FloatVectorProperty", (PyCFunction)BPy_FloatVectorProperty, METH_VARARGS|METH_KEYWORDS, BPy_FloatVectorProperty_doc},
 	{"StringProperty", (PyCFunction)BPy_StringProperty, METH_VARARGS|METH_KEYWORDS, BPy_StringProperty_doc},

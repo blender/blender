@@ -78,5 +78,5 @@ void BPy_SetContext(struct bContext *C);
 extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate);
 extern void bpy_context_clear(struct bContext *C, PyGILState_STATE *gilstate);
 
-
+int BPyAsPrimitiveArray(void *array, PyObject *value, int length, PyTypeObject *type, char *error_prefix);
 #endif
