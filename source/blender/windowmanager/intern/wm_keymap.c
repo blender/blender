@@ -60,7 +60,7 @@
 static void keymap_properties_set(wmKeyMapItem *kmi)
 {
 	WM_operator_properties_alloc(&(kmi->ptr), &(kmi->properties), kmi->idname);
-	WM_operator_properties_sanitize(kmi->ptr);
+	WM_operator_properties_sanitize(kmi->ptr, 1);
 }
 
 void WM_keymap_properties_reset(wmKeyMapItem *kmi)

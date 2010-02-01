@@ -512,6 +512,8 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 			motherop= NULL;
 	}
 	
+	WM_operator_properties_sanitize(op->ptr, 0);
+
 	return op;
 }
 
