@@ -247,6 +247,7 @@ void NLA_OT_tweakmode_exit (wmOperatorType *ot)
 /* Add a new Action-Clip strip to the active track (or the active block if no space in the track) */
 
 /* pop up menu allowing user to choose the action to use */
+// TODO: at some point, we may have to migrate to a search menu to manage the case where there are many actions
 static int nlaedit_add_actionclip_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 {
 	Main *m= CTX_data_main(C);
@@ -259,7 +260,7 @@ static int nlaedit_add_actionclip_invoke (bContext *C, wmOperator *op, wmEvent *
 	
 	/* loop through Actions in Main database, adding as items in the menu */
 	for (act= m->action.first; act; act= act->id.next)
-		uiItemStringO(layout, act->id.name+2, 0, "NLA_OT_actionclip_add", "action", act->id.name);
+		uiItemStringO(layout, act->id.name+2, 0, "NLA_OT_actionclip_add", "action", act->id.name+2);
 	uiItemS(layout);
 	
 	uiPupMenuEnd(C, pup);
@@ -278,7 +279,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	int filter, items;
 	
 	bAction *act = NULL;
-	char actname[22];
+	char actname[20];
 	float cfra;
 	
 	/* get editor data */
@@ -290,7 +291,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 		
 	/* get action to use */
 	RNA_string_get(op->ptr, "action", actname);
-	act= (bAction *)find_id("AC", actname+2);
+	act= (bAction *)find_id("AC", actname);
 	
 	if (act == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No valid Action to add.");
@@ -364,7 +365,7 @@ void NLA_OT_actionclip_add (wmOperatorType *ot)
 	
 	/* props */
 		// TODO: this would be nicer as an ID-pointer...
-	RNA_def_string(ot->srna, "action", "", 21, "Action", "Name of Action to add as a new Action-Clip Strip.");
+	ot->prop = RNA_def_string(ot->srna, "action", "", 19, "Action", "Name of Action to add as a new Action-Clip Strip.");
 }
 
 /* ******************** Add Transition Operator ***************************** */
@@ -1672,7 +1673,7 @@ void NLA_OT_fmodifier_add (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* id-props */
-	RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
 	RNA_def_boolean(ot->srna, "only_active", 0, "Only Active", "Only add F-Modifier of the specified type to the active strip.");
 }
 
