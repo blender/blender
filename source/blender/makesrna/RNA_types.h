@@ -90,7 +90,7 @@ typedef enum PropertyUnit {
 
 #define RNA_ENUM_BITFLAG_SIZE 32
 
-/* also update rna_property_subtypename when you change this */
+/* also update enums in bpy_props.c when adding items here */
 typedef enum PropertySubType {
 	PROP_NONE = 0,
 
@@ -125,6 +125,7 @@ typedef enum PropertySubType {
 	PROP_LAYER_MEMBER = 41
 } PropertySubType;
 
+/* Make sure enums are updated with thses */
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except

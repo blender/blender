@@ -33,6 +33,47 @@
 
 #include "float.h" /* FLT_MIN/MAX */
 
+EnumPropertyItem property_flag_items[] = {
+	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
+	{PROP_ANIMATEABLE, "ANIMATEABLE", 0, "Animateable", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+/* subtypes */
+EnumPropertyItem property_subtype_string_items[] = {
+	{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
+	{PROP_DIRPATH, "DIR_PATH", 0, "Directory Path", ""},
+	{PROP_FILENAME, "FILENAME", 0, "Filename", ""},
+
+	{PROP_NONE, "NONE", 0, "None", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem property_subtype_number_items[] = {
+	{PROP_UNSIGNED, "UNSIGNED", 0, "Unsigned", ""},
+	{PROP_PERCENTAGE, "PERCENTAGE", 0, "Percentage", ""},
+	{PROP_FACTOR, "FACTOR", 0, "Factor", ""},
+	{PROP_ANGLE, "ANGLE", 0, "Angle", ""},
+	{PROP_TIME, "TIME", 0, "Time", ""},
+	{PROP_DISTANCE, "DISTANCE", 0, "Distance", ""},
+
+	{PROP_NONE, "NONE", 0, "None", ""},
+	{0, NULL, 0, NULL, NULL}};
+
+EnumPropertyItem property_subtype_array_items[] = {
+	{PROP_COLOR, "COLOR", 0, "Color", ""},
+	{PROP_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
+	{PROP_DIRECTION, "DIRECTION", 0, "Direction", ""},
+	{PROP_VELOCITY, "VELOCITY", 0, "Velocity", ""},
+	{PROP_ACCELERATION, "ACCELERATION", 0, "Acceleration", ""},
+	{PROP_MATRIX, "MATRIX", 0, "Matrix", ""},
+	{PROP_EULER, "EULER", 0, "Euler", ""},
+	{PROP_QUATERNION, "QUATERNION", 0, "Quaternion", ""},
+	{PROP_AXISANGLE, "AXISANGLE", 0, "Axis Angle", ""},
+	{PROP_XYZ, "XYZ", 0, "XYZ", ""},
+	{PROP_COLOR_GAMMA, "COLOR_GAMMA", 0, "Color Gamma", ""},
+
+	{PROP_NONE, "NONE", 0, "None", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 /* operators use this so it can store the args given but defer running
  * it until the operator runs where these values are used to setup the
  * default args for that operator instance */
@@ -48,9 +89,14 @@ static PyObject *bpy_prop_deferred_return(void *func, PyObject *kw)
 /* Function that sets RNA, NOTE - self is NULL when called from python, but being abused from C so we can pass the srna allong
  * This isnt incorrect since its a python object - but be careful */
 static char BPy_BoolProperty_doc[] =
-".. function:: BoolProperty(name=\"\", description=\"\", default=False, hidden=False)\n"
+".. function:: BoolProperty(name=\"\", description=\"\", default=False, options={'ANIMATEABLE'}, subtype='NONE')\n"
 "\n"
-"   Returns a new boolean property definition..";
+"   Returns a new boolean property definition.\n"
+"\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :type options: set\n"
+"   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
+"   :type subtype: string";
 
 PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
@@ -66,16 +112,35 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
-		static char *kwlist[] = {"attr", "name", "description", "default", "hidden", NULL};
+		static char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", NULL};
 		char *id=NULL, *name="", *description="";
-		int def=0, hidden=0;
+		int def=0;
 		PropertyRNA *prop;
+		PyObject *pyopts= NULL;
+		int opts=0;
+		char *pysubtype= NULL;
+		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssii:BoolProperty", kwlist, &id, &name, &description, &def, &hidden))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiO!s:BoolProperty", kwlist, &id, &name, &description, &def, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
 
-		prop= RNA_def_boolean(srna, id, def, name, description);
-		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
+		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "BoolProperty(options={...}):"))
+			return NULL;
+
+		if(pysubtype && RNA_enum_value(property_subtype_number_items, pysubtype, &subtype)==0) {
+			PyErr_Format(PyExc_TypeError, "BoolProperty(subtype='%s'): invalid subtype.");
+			return NULL;
+		}
+
+		// prop= RNA_def_boolean(srna, id, def, name, description);
+		prop= RNA_def_property(srna, id, PROP_BOOLEAN, subtype);
+		RNA_def_property_boolean_default(prop, def);
+		RNA_def_property_ui_text(prop, name, description);
+
+		if(pyopts) {
+			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -85,9 +150,14 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static char BPy_BoolVectorProperty_doc[] =
-".. function:: BoolVectorProperty(name=\"\", description=\"\", default=(False, False, False), hidden=False, size=3)\n"
+".. function:: BoolVectorProperty(name=\"\", description=\"\", default=(False, False, False), options={'ANIMATEABLE'}, subtype='NONE', size=3)\n"
 "\n"
-"   Returns a new vector boolean property definition.";
+"   Returns a new vector boolean property definition.\n"
+"\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :type options: set\n"
+"   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'NONE'].\n"
+"   :type subtype: string";
 PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -102,15 +172,27 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
-		static char *kwlist[] = {"attr", "name", "description", "default", "hidden", "size", NULL};
+		static char *kwlist[] = {"attr", "name", "description", "default", "options", "subtype", "size", NULL};
 		char *id=NULL, *name="", *description="";
 		int def[PYRNA_STACK_ARRAY]={0};
-		int hidden=0, size=3;
+		int size=3;
 		PropertyRNA *prop;
 		PyObject *pydef= NULL;
+		PyObject *pyopts= NULL;
+		int opts=0;
+		char *pysubtype= NULL;
+		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOii:BoolVectorProperty", kwlist, &id, &name, &description, &pydef, &hidden, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOO!si:BoolVectorProperty", kwlist, &id, &name, &description, &pydef, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
+
+		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "BoolVectorProperty(options={...}):"))
+			return NULL;
+
+		if(pysubtype && RNA_enum_value(property_subtype_array_items, pysubtype, &subtype)==0) {
+			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(subtype='%s'): invalid subtype.");
+			return NULL;
+		}
 
 		if(size < 1 || size > PYRNA_STACK_ARRAY) {
 			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(size=%d): size must be between 0 and %d.", size, PYRNA_STACK_ARRAY);
@@ -120,8 +202,16 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pydef && BPyAsPrimitiveArray(def, pydef, size, &PyBool_Type, "BoolVectorProperty(default=sequence)") < 0)
 			return NULL;
 
-		prop= RNA_def_boolean_array(srna, id, size, pydef ? def:NULL, name, description);
-		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
+		// prop= RNA_def_boolean_array(srna, id, size, pydef ? def:NULL, name, description);
+		prop= RNA_def_property(srna, id, PROP_BOOLEAN, subtype);
+		RNA_def_property_array(prop, size);
+		if(pydef) RNA_def_property_boolean_array_default(prop, def);
+		RNA_def_property_ui_text(prop, name, description);
+
+		if(pyopts) {
+			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -131,9 +221,14 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static char BPy_IntProperty_doc[] =
-".. function:: IntProperty(name=\"\", description=\"\", default=0, min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, step=1, hidden=False)\n"
+".. function:: IntProperty(name=\"\", description=\"\", default=0, min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, step=1, options={'ANIMATEABLE'}, subtype='NONE')\n"
 "\n"
-"   Returns a new int property definition.";
+"   Returns a new int property definition.\n"
+"\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :type options: set\n"
+"   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
+"   :type subtype: string";
 PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -148,18 +243,36 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
-		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "hidden", NULL};
+		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", NULL};
 		char *id=NULL, *name="", *description="";
 		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def=0;
-		int hidden=0;
 		PropertyRNA *prop;
+		PyObject *pyopts= NULL;
+		int opts=0;
+		char *pysubtype= NULL;
+		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiiiiiii:IntProperty", kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &hidden))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssiiiiiiis:IntProperty", kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
 
-		prop= RNA_def_int(srna, id, def, min, max, name, description, soft_min, soft_max);
-		RNA_def_property_ui_range(prop, min, max, step, 0);
-		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
+		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "IntProperty(options={...}):"))
+			return NULL;
+
+		if(pysubtype && RNA_enum_value(property_subtype_number_items, pysubtype, &subtype)==0) {
+			PyErr_Format(PyExc_TypeError, "IntProperty(subtype='%s'): invalid subtype.");
+			return NULL;
+		}
+
+		prop= RNA_def_property(srna, id, PROP_INT, subtype);
+		RNA_def_property_int_default(prop, def);
+		RNA_def_property_range(prop, min, max);
+		RNA_def_property_ui_text(prop, name, description);
+		RNA_def_property_ui_range(prop, soft_min, soft_max, step, 3);
+
+		if(pyopts) {
+			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -169,9 +282,14 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static char BPy_IntVectorProperty_doc[] =
-".. function:: IntVectorProperty(name=\"\", description=\"\", default=(0, 0, 0), min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, hidden=False, size=3)\n"
+".. function:: IntVectorProperty(name=\"\", description=\"\", default=(0, 0, 0), min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, options={'ANIMATEABLE'}, subtype='NONE', size=3)\n"
 "\n"
-"   Returns a new vector int property definition.";
+"   Returns a new vector int property definition.\n"
+"\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :type options: set\n"
+"   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'NONE'].\n"
+"   :type subtype: string";
 PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -186,15 +304,27 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
-		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "hidden", "size", NULL};
+		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "options", "subtype", "size", NULL};
 		char *id=NULL, *name="", *description="";
 		int min=INT_MIN, max=INT_MAX, soft_min=INT_MIN, soft_max=INT_MAX, step=1, def[PYRNA_STACK_ARRAY]={0};
-		int hidden=0, size=3;
+		int size=3;
 		PropertyRNA *prop;
 		PyObject *pydef= NULL;
+		PyObject *pyopts= NULL;
+		int opts=0;
+		char *pysubtype= NULL;
+		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOiiiiii:IntVectorProperty", kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &hidden, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOiiiiiO!si:IntVectorProperty", kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
+
+		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "IntVectorProperty(options={...}):"))
+			return NULL;
+
+		if(pysubtype && RNA_enum_value(property_subtype_array_items, pysubtype, &subtype)==0) {
+			PyErr_Format(PyExc_TypeError, "IntVectorProperty(subtype='%s'): invalid subtype.");
+			return NULL;
+		}
 
 		if(size < 1 || size > PYRNA_STACK_ARRAY) {
 			PyErr_Format(PyExc_TypeError, "IntVectorProperty(size=%d): size must be between 0 and %d.", size, PYRNA_STACK_ARRAY);
@@ -204,9 +334,17 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pydef && BPyAsPrimitiveArray(def, pydef, size, &PyLong_Type, "IntVectorProperty(default=sequence)") < 0)
 			return NULL;
 
-		prop= RNA_def_int_array(srna, id, size, pydef ? def:NULL, min, max, name, description, soft_min, soft_max);
-		RNA_def_property_ui_range(prop, min, max, step, 0);
-		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
+		prop= RNA_def_property(srna, id, PROP_INT, subtype);
+		RNA_def_property_array(prop, size);
+		if(pydef) RNA_def_property_int_array_default(prop, def);
+		RNA_def_property_range(prop, min, max);
+		RNA_def_property_ui_text(prop, name, description);
+		RNA_def_property_ui_range(prop, soft_min, soft_max, step, 3);
+
+		if(pyopts) {
+			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -217,9 +355,14 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 
 static char BPy_FloatProperty_doc[] =
-".. function:: FloatProperty(name=\"\", description=\"\", default=0.0, min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, hidden=False)\n"
+".. function:: FloatProperty(name=\"\", description=\"\", default=0.0, min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, options={'ANIMATEABLE'}, subtype='NONE')\n"
 "\n"
-"   Returns a new float property definition.";
+"   Returns a new float property definition.\n"
+"\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :type options: set\n"
+"   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
+"   :type subtype: string";
 PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -234,18 +377,37 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
-		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "hidden", NULL};
+		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", NULL};
 		char *id=NULL, *name="", *description="";
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def=0.0f;
-		int precision= 2, hidden=0;
+		int precision= 2;
 		PropertyRNA *prop;
+		PyObject *pyopts= NULL;
+		int opts=0;
+		char *pysubtype= NULL;
+		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssffffffii:FloatProperty", kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &hidden))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssffffffiiO!s:FloatProperty", kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
 
-		prop= RNA_def_float(srna, id, def, min, max, name, description, soft_min, soft_max);
-		RNA_def_property_ui_range(prop, min, max, step, precision);
-		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
+		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "FloatProperty(options={...}):"))
+			return NULL;
+
+		if(pysubtype && RNA_enum_value(property_subtype_number_items, pysubtype, &subtype)==0) {
+			PyErr_Format(PyExc_TypeError, "FloatProperty(subtype='%s'): invalid subtype.");
+			return NULL;
+		}
+
+		prop= RNA_def_property(srna, id, PROP_FLOAT, subtype);
+		RNA_def_property_float_default(prop, def);
+		RNA_def_property_range(prop, min, max);
+		RNA_def_property_ui_text(prop, name, description);
+		RNA_def_property_ui_range(prop, soft_min, soft_max, step, precision);
+
+		if(pyopts) {
+			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -255,9 +417,14 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static char BPy_FloatVectorProperty_doc[] =
-".. function:: FloatVectorProperty(name=\"\", description=\"\", default=(0.0, 0.0, 0.0), min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, hidden=False, size=3)\n"
+".. function:: FloatVectorProperty(name=\"\", description=\"\", default=(0.0, 0.0, 0.0), min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, options={'ANIMATEABLE'}, subtype='NONE', size=3)\n"
 "\n"
-"   Returns a new vector float property definition.";
+"   Returns a new vector float property definition.\n"
+"\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :type options: set\n"
+"   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'NONE'].\n"
+"   :type subtype: string";
 PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -272,15 +439,27 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
-		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "hidden", "size", NULL};
+		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "size", NULL};
 		char *id=NULL, *name="", *description="";
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def[PYRNA_STACK_ARRAY]={0.0f};
-		int precision= 2, hidden=0, size=3;
+		int precision= 2, size=3;
 		PropertyRNA *prop;
 		PyObject *pydef= NULL;
+		PyObject *pyopts= NULL;
+		int opts=0;
+		char *pysubtype= NULL;
+		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOfffffiii:FloatVectorProperty", kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &precision, &hidden, &size))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssOfffffiO!si:FloatVectorProperty", kwlist, &id, &name, &description, &pydef, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &size))
 			return NULL;
+
+		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "FloatVectorProperty(options={...}):"))
+			return NULL;
+
+		if(pysubtype && RNA_enum_value(property_subtype_array_items, pysubtype, &subtype)==0) {
+			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(subtype='%s'): invalid subtype.");
+			return NULL;
+		}
 
 		if(size < 1 || size > PYRNA_STACK_ARRAY) {
 			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(size=%d): size must be between 0 and %d.", size, PYRNA_STACK_ARRAY);
@@ -290,9 +469,17 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pydef && BPyAsPrimitiveArray(def, pydef, size, &PyFloat_Type, "FloatVectorProperty(default=sequence)") < 0)
 			return NULL;
 
-		prop= RNA_def_float_array(srna, id, size, pydef ? def:NULL, min, max, name, description, soft_min, soft_max);
-		RNA_def_property_ui_range(prop, min, max, step, precision);
-		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
+		prop= RNA_def_property(srna, id, PROP_FLOAT, subtype);
+		RNA_def_property_array(prop, size);
+		if(pydef) RNA_def_property_float_array_default(prop, def);
+		RNA_def_property_range(prop, min, max);
+		RNA_def_property_ui_text(prop, name, description);
+		RNA_def_property_ui_range(prop, soft_min, soft_max, step, precision);
+
+		if(pyopts) {
+			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -302,9 +489,14 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static char BPy_StringProperty_doc[] =
-".. function:: StringProperty(name=\"\", description=\"\", default=\"\", maxlen=0, hidden=False)\n"
+".. function:: StringProperty(name=\"\", description=\"\", default=\"\", maxlen=0, options={'ANIMATEABLE'}, subtype='NONE')\n"
 "\n"
-"   Returns a new string property definition.";
+"   Returns a new string property definition.\n"
+"\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :type options: set\n"
+"   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILENAME', 'NONE'].\n"
+"   :type subtype: string";
 PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -319,16 +511,35 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
-		static char *kwlist[] = {"attr", "name", "description", "default", "maxlen", "hidden", NULL};
+		static char *kwlist[] = {"attr", "name", "description", "default", "maxlen", "options", "subtype", NULL};
 		char *id=NULL, *name="", *description="", *def="";
-		int maxlen=0, hidden=0;
+		int maxlen=0;
 		PropertyRNA *prop;
+		PyObject *pyopts= NULL;
+		int opts=0;
+		char *pysubtype= NULL;
+		int subtype= PROP_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|sssii:StringProperty", kwlist, &id, &name, &description, &def, &maxlen, &hidden))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|sssiO!s:StringProperty", kwlist, &id, &name, &description, &def, &maxlen, &PySet_Type, &pyopts, &pysubtype))
 			return NULL;
 
-		prop= RNA_def_string(srna, id, def, maxlen, name, description);
-		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
+		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "StringProperty(options={...}):"))
+			return NULL;
+
+		if(pysubtype && RNA_enum_value(property_subtype_string_items, pysubtype, &subtype)==0) {
+			PyErr_Format(PyExc_TypeError, "StringProperty(subtype='%s'): invalid subtype.");
+			return NULL;
+		}
+
+		prop= RNA_def_property(srna, id, PROP_STRING, subtype);
+		if(maxlen != 0) RNA_def_property_string_maxlength(prop, maxlen);
+		if(def) RNA_def_property_string_default(prop, def);
+		RNA_def_property_ui_text(prop, name, description);
+
+		if(pyopts) {
+			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -384,10 +595,12 @@ static EnumPropertyItem *enum_items_from_py(PyObject *value, const char *def, in
 }
 
 static char BPy_EnumProperty_doc[] =
-".. function:: EnumProperty(items, name=\"\", description=\"\", default=\"\", hidden=False)\n"
+".. function:: EnumProperty(items, name=\"\", description=\"\", default=\"\", options={'ANIMATEABLE'})\n"
 "\n"
 "   Returns a new enumerator property definition.\n"
 "\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :type options: set\n"
 "   :arg items: The items that make up this enumerator.\n"
 "   :type items: sequence of string triplets";
 PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -404,14 +617,19 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
-		static char *kwlist[] = {"attr", "items", "name", "description", "default", "hidden", NULL};
+		static char *kwlist[] = {"attr", "items", "name", "description", "default", "options", NULL};
 		char *id=NULL, *name="", *description="", *def="";
-		int defvalue=0, hidden=0;
+		int defvalue=0;
 		PyObject *items= Py_None;
 		EnumPropertyItem *eitems;
 		PropertyRNA *prop;
+		PyObject *pyopts= NULL;
+		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|sssi:EnumProperty", kwlist, &id, &items, &name, &description, &def, &hidden))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|sssO!:EnumProperty", kwlist, &id, &items, &name, &description, &def, &PySet_Type, &pyopts))
+			return NULL;
+
+		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "EnumProperty(options={...}):"))
 			return NULL;
 
 		eitems= enum_items_from_py(items, def, &defvalue);
@@ -419,7 +637,10 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 
 		prop= RNA_def_enum(srna, id, eitems, defvalue, name, description);
-		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
+		if(pyopts) {
+			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+		}
 		RNA_def_property_duplicate_pointers(prop);
 		MEM_freeN(eitems);
 
@@ -449,10 +670,12 @@ static StructRNA *pointer_type_from_py(PyObject *value)
 }
 
 static char BPy_PointerProperty_doc[] =
-".. function:: PointerProperty(items, type=\"\", description=\"\", default=\"\", hidden=False)\n"
+".. function:: PointerProperty(items, type=\"\", description=\"\", default=\"\", options={'ANIMATEABLE'})\n"
 "\n"
 "   Returns a new pointer property definition.\n"
 "\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :type options: set\n"
 "   :arg type: Dynamic type from :mod:`bpy.types`.\n"
 "   :type type: class";
 PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -469,14 +692,18 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
-		static char *kwlist[] = {"attr", "type", "name", "description", "hidden", NULL};
+		static char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
 		char *id=NULL, *name="", *description="";
-		int hidden= 0;
 		PropertyRNA *prop;
 		StructRNA *ptype;
 		PyObject *type= Py_None;
+		PyObject *pyopts= NULL;
+		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ssi:PointerProperty", kwlist, &id, &type, &name, &description, &hidden))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ssO!:PointerProperty", kwlist, &id, &type, &name, &description, &PySet_Type, &pyopts))
+			return NULL;
+
+		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "PointerProperty(options={...}):"))
 			return NULL;
 
 		ptype= pointer_type_from_py(type);
@@ -484,7 +711,10 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 
 		prop= RNA_def_pointer_runtime(srna, id, ptype, name, description);
-		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
+		if(pyopts) {
+			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}
@@ -495,10 +725,12 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static char BPy_CollectionProperty_doc[] =
-".. function:: CollectionProperty(items, type=\"\", description=\"\", default=\"\", hidden=False)\n"
+".. function:: CollectionProperty(items, type=\"\", description=\"\", default=\"\", options={'ANIMATEABLE'})\n"
 "\n"
 "   Returns a new collection property definition.\n"
 "\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :type options: set\n"
 "   :arg type: Dynamic type from :mod:`bpy.types`.\n"
 "   :type type: class";
 PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
@@ -515,14 +747,18 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
-		static char *kwlist[] = {"attr", "type", "name", "description", "hidden", NULL};
+		static char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
 		char *id=NULL, *name="", *description="";
-		int hidden= 0;
 		PropertyRNA *prop;
 		StructRNA *ptype;
 		PyObject *type= Py_None;
+		PyObject *pyopts= NULL;
+		int opts=0;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ssi:CollectionProperty", kwlist, &id, &type, &name, &description, &hidden))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "sO|ssO!:CollectionProperty", kwlist, &id, &type, &name, &description, &PySet_Type, &pyopts))
+			return NULL;
+
+		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "CollectionProperty(options={...}):"))
 			return NULL;
 
 		ptype= pointer_type_from_py(type);
@@ -530,7 +766,10 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 
 		prop= RNA_def_collection_runtime(srna, id, ptype, name, description);
-		if(hidden) RNA_def_property_flag(prop, PROP_HIDDEN);
+		if(pyopts) {
+			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
+			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
 	}

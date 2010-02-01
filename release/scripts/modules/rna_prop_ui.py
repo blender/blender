@@ -140,7 +140,7 @@ from bpy.props import *
 
 
 rna_path = StringProperty(name="Property Edit",
-    description="Property path edit", maxlen=1024, default="", hidden=True)
+    description="Property path edit", maxlen=1024, default="", options={'HIDDEN'})
 
 rna_value = StringProperty(name="Property Value",
     description="Property value edit", maxlen=1024, default="")

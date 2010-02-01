@@ -1502,9 +1502,9 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
     path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
     filename = bpy.props.StringProperty(name="File Name", description="Name of the file.")
     directory = bpy.props.StringProperty(name="Directory", description="Directory of the file.")
-    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, hidden=True)
-    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, hidden=True)
-    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, hidden=True)
+    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
+    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
+    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
     keep_original = bpy.props.BoolProperty(name="Keep original", description="Keep original file after copying to configuration folder", default=True)
 
@@ -1561,9 +1561,9 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
     path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
     filename = bpy.props.StringProperty(name="File Name", description="Name of the file.")
     directory = bpy.props.StringProperty(name="Directory", description="Directory of the file.")
-    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, hidden=True)
-    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, hidden=True)
-    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, hidden=True)
+    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
+    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
+    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
         if not self.properties.path:
