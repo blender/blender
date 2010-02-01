@@ -9632,6 +9632,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bSound *sound;
 		Sequence *seq;
 		bActuator *act;
+		int a;
 
 		for(sound = main->sound.first; sound; sound = sound->id.next)
 		{
@@ -9704,6 +9705,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(ma= main->mat.first; ma; ma= ma->id.next) {
 			if(ma->nodetree && strlen(ma->nodetree->id.name)==0)
 				strcpy(ma->nodetree->id.name, "NTShader Nodetree");
+			
+			/* which_output 0 is now "not specified" */
+			for(a=0; a<MAX_MTEX; a++) {
+				if(ma->mtex[a]) {
+					tx= newlibadr(fd, lib, ma->mtex[a]->tex);
+					if(tx && tx->use_nodes)
+						ma->mtex[a]->which_output++;
+				}
+			}
 		}
 		/* and composit trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
@@ -9726,8 +9736,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		/* and texture trees */
 		for(tx= main->tex.first; tx; tx= tx->id.next) {
-			if(tx->nodetree && strlen(tx->nodetree->id.name)==0)
-				strcpy(tx->nodetree->id.name, "NTTexture Nodetree");
+			bNode *node;
+
+			if(tx->nodetree) {
+				if(strlen(tx->nodetree->id.name)==0)
+					strcpy(tx->nodetree->id.name, "NTTexture Nodetree");
+
+				/* which_output 0 is now "not specified" */
+				for(node=tx->nodetree->nodes.first; node; node=node->next)
+					if(node->type == TEX_NODE_OUTPUT)
+						node->custom1++;
+			}
 		}
 		
 		/* copy standard draw flag to meshes(used to be global, is not available here) */
