@@ -346,6 +346,8 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 			GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(iter));
 	}
 
+	BLI_ghashIterator_free(iter);
+
 	for(i = 0; i < totface*4; ++i)
 		if(node->face_vert_indices[i] < 0)
 			node->face_vert_indices[i]= -node->face_vert_indices[i] + node->uniq_verts - 1;
@@ -1005,6 +1007,8 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 	    !BLI_ghashIterator_isDone(hiter);
 	    BLI_ghashIterator_step(hiter), ++i)
 		faces[i]= BLI_ghashIterator_getKey(hiter);
+
+	BLI_ghashIterator_free(hiter);
 
 	BLI_ghash_free(map, NULL, NULL);
 
