@@ -480,10 +480,13 @@ PyObject *BPy_Wrap_GetKeys(IDProperty *prop)
 	IDProperty *loop;
 	int i;
 
-	for (i=0, loop=prop->data.group.first; loop; loop=loop->next, i++)
+	for (i=0, loop=prop->data.group.first; loop && (i < prop->len); loop=loop->next, i++)
 		PyList_SET_ITEM(seq, i, PyUnicode_FromString(loop->name));
 
-	if (i != prop->len) {
+	/* if the id prop is corrupt, count the remaining */
+	for (; loop; loop=loop->next, i++) {}
+
+	if (i != prop->len) { /* if the loop didnt finish, we know the length is wrong */
 		BPy_IDGroup_CorrectListLen(prop, seq, i);
 		Py_DECREF(seq); /*free the list*/
 		/*call self again*/
