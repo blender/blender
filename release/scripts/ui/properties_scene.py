@@ -102,6 +102,10 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
             col = row.column()
             col.prop(ks, "name")
             col.prop(ks, "absolute")
+            
+            subcol = col.column()
+            subcol.operator_context = 'INVOKE_DEFAULT'
+            subcol.operator("anim.keying_set_export", text="Export to File")
 
             if wide_ui:
                 col = row.column()
@@ -217,3 +221,84 @@ bpy.types.register(SCENE_PT_physics)
 bpy.types.register(SCENE_PT_simplify)
 
 bpy.types.register(SCENE_PT_custom_props)
+
+################################
+
+from bpy.props import *
+
+class ANIM_OT_keying_set_export(bpy.types.Operator):
+    "Export Keying Set to a python script."
+    bl_idname = "anim.keying_set_export"
+    bl_label = "Export Keying Set..."
+
+    path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
+    filename = bpy.props.StringProperty(name="File Name", description="Name of the file.")
+    directory = bpy.props.StringProperty(name="Directory", description="Directory of the file.")
+    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, hidden=True)
+    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, hidden=True)
+    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, hidden=True)
+
+    def execute(self, context):
+        if not self.properties.path:
+            raise Exception("File path not set.")
+
+        f = open(self.properties.path, "w")
+        if not f:
+            raise Exception("Could not open file.")
+
+        scene = context.scene
+        ks = scene.active_keying_set
+        
+        # TODO:
+        #   - build a table of aliases for the ID's which
+        #     gets utilised to speed up the reloading process
+        #   - add code which sets the keyframing/relative state info
+        #     for the keyingset
+
+        f.write('# Keying Set: %s\n' % ks.name)
+        
+        f.write("import bpy\n\n")
+        f.write("scene= bpy.data.scenes[0]\n\n")
+
+        f.write("ks= scene.add_keying_set(name=\"%s\")\n" % ks.name)
+        for ksp in ks.paths:
+            f.write("ks.add_destination(")
+            
+            # id-block + RNA-path
+            if ksp.id:
+                # idtype_list is used to get a path to the ID-datablock using bpy.data.*
+                # but since this info isn't available, we try to construct it here
+                #   id.bl_rna.name gives a name suitable for UI, 
+                #   with a capitalised first letter, but we need
+                #   the plural form that's all lower case
+                idtype_path = ksp.id.bl_rna.name.lower() + "s"
+                id_bpy_path = "bpy.data.%s[\"%s\"]" % (idtype_path, ksp.id.name)
+            else:
+                id_bpy_path = "None" # XXX... 
+            f.write("%s, '%s'" % (id_bpy_path, ksp.data_path))
+            
+            # array index settings (if applicable)
+            if ksp.entire_array is False:
+                f.write(", entire_array=False, array_index=%d" % ksp.array_index)
+            
+            # grouping settings (if applicable)
+            # NOTE: the current default is KEYINGSET, but if this changes, change this code too
+            if ksp.grouping == 'NAMED':
+                f.write(", grouping_method='%s', group_name=\"%s\"" % (ksp.grouping, ksp.group))
+            elif ksp.grouping != 'KEYINGSET':
+                f.write(", grouping_method='%s'" % ksp.grouping)
+            
+            # finish off
+            f.write(")\n")
+        
+        f.write("\n")
+        f.close()
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.manager
+        wm.add_fileselect(self)
+        return {'RUNNING_MODAL'}
+
+bpy.types.register(ANIM_OT_keying_set_export)
