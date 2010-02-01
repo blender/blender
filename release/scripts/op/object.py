@@ -171,6 +171,7 @@ class ShapeTransfer(bpy.types.Operator):
             me = ob.data
             key = ob.add_shape_key(from_mix=False)
             if len(me.shape_keys.keys) == 1:
+                key.name = "Basis"
                 key = ob.add_shape_key(from_mix=False) # we need a rest
             key.name = name
             ob.active_shape_key_index = len(me.shape_keys.keys) - 1
@@ -188,7 +189,8 @@ class ShapeTransfer(bpy.types.Operator):
         orig_shape_coords = me_cos(ob_act.active_shape_key.data)
 
         orig_normals = me_nos(me.verts)
-        orig_coords = me_cos(me.verts)
+        # orig_coords = me_cos(me.verts) # the actual mverts location isnt as relyable as the base shape :S
+        orig_coords = me_cos(me.shape_keys.keys[0].data)
 
         for ob_other in objects:
             me_other = ob_other.data
