@@ -90,6 +90,12 @@ BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'intl'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
+WITH_BF_OPENJPEG = True
+BF_OPENJPEG = '#extern/libopenjpeg'
+BF_OPENJPEG_LIB = ''
+BF_OPENJPEG_INC = '${BF_OPENJPEG}'
+BF_OPENJPEG_LIBPATH='${BF_OPENJPEG}/lib'
+
 WITH_BF_FFTW3 = False
 BF_FFTW3 = LIBDIR + '/gcc/fftw3'
 BF_FFTW3_INC = '${BF_FFTW3}/include'
@@ -123,6 +129,9 @@ BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
+WITH_BF_REDCODE = False
+BF_REDCODE_INC = '#extern'
+
 # Mesa Libs should go here if your using them as well....
 WITH_BF_STATICOPENGL = False
 BF_OPENGL = 'C:\\MingW'
@@ -138,9 +147,9 @@ BF_COLLADA = '#source/blender/collada'
 BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
 
-BF_OPENCOLLADA = LIBDIR + '/opencollada'
+BF_OPENCOLLADA = LIBDIR + '/gcc/opencollada'
 BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
-BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver xml2 pcre'
+BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 
 #Ray trace optimization

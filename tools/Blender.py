@@ -117,15 +117,19 @@ def setup_staticlibs(lenv):
 	statlibs = [
 		#here libs for static linking
 	]
-	libincs = [
-		'/usr/lib',
+
+	libincs = []
+	if lenv['OURPLATFORM'] != 'linuxcross':
+		libincs.append('/usr/lib')
+
+	libincs.extend([
 		lenv['BF_OPENGL_LIBPATH'],
 		lenv['BF_JPEG_LIBPATH'],
 		lenv['BF_PNG_LIBPATH'],
 		lenv['BF_ZLIB_LIBPATH'],
 		lenv['BF_LIBSAMPLERATE_LIBPATH'],
 		lenv['BF_ICONV_LIBPATH']
-		]
+		])
 
 	libincs += Split(lenv['BF_FREETYPE_LIBPATH'])
 	if lenv['WITH_BF_PYTHON']:
@@ -166,6 +170,10 @@ def setup_staticlibs(lenv):
 		if lenv['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc'):
 			libincs += Split(lenv['BF_PCRE_LIBPATH'])
 			libincs += Split(lenv['BF_EXPAT_LIBPATH'])
+
+	if lenv['WITH_BF_OPENMP']:
+		if lenv['OURPLATFORM'] == 'linuxcross':
+			libincs += Split(lenv['BF_OPENMP_LIBPATH'])
 
 
 	return statlibs, libincs
@@ -752,11 +760,11 @@ class BlenderEnvironment(SConsEnvironment):
 		if  lenv['OURPLATFORM']=='darwin':
 			lenv['BINARYKIND'] = binarykind
 			lenv.AddPostAction(prog,Action(AppIt,strfunction=my_appit_print))
-		elif os.sep == '/': # any unix
+		elif os.sep == '/' and lenv['OURPLATFORM'] != 'linuxcross': # any unix (except cross-compilation)
 			if lenv['WITH_BF_PYTHON']:
 				if not lenv['WITHOUT_BF_INSTALL'] and not lenv['WITHOUT_BF_PYTHON_INSTALL']:
 					lenv.AddPostAction(prog,Action(UnixPyBundle,strfunction=my_unixpybundle_print))
-		elif lenv['OURPLATFORM'].startswith('win'): # windows
+		elif lenv['OURPLATFORM'].startswith('win') or lenv['OURPLATFORM'] == 'linuxcross': # windows or cross-compilation
 			if lenv['WITH_BF_PYTHON']:
 				if not lenv['WITHOUT_BF_PYTHON_INSTALL']:
 					lenv.AddPostAction(prog,Action(WinPyBundle,strfunction=my_winpybundle_print))

@@ -1,6 +1,9 @@
 #!/usr/bin/python
 Import ('env')
 
-source = 'winblender.rcscons'
+if env['OURPLATFORM'] == 'linuxcross':
+	source = 'linuxcrossblender.rcscons'
+else:
+	source = 'winblender.rcscons'
 
 env.BlenderRes('winresource', source, ['core'], priority=[95])
