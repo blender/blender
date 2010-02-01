@@ -665,10 +665,27 @@ static int wm_draw_update_test_window(wmWindow *win)
 	return 0;
 }
 
+static int wm_automatic_draw_method(wmWindow *win)
+{
+	if(win->drawmethod == USER_DRAW_AUTOMATIC) {
+		/* ATI opensource driver is known to be very slow at this */
+		if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE))
+			return USER_DRAW_OVERLAP;
+		/* Windows software driver darkens color on each redraw */
+		else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
+			return USER_DRAW_OVERLAP_FLIP;
+		else
+			return USER_DRAW_TRIPLE;
+	}
+	else
+		return win->drawmethod;
+}
+
 void wm_draw_update(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win;
+	int drawmethod;
 	
 	for(win= wm->windows.first; win; win= win->next) {
 		if(win->drawmethod != U.wmdrawmethod) {
@@ -686,25 +703,17 @@ void wm_draw_update(bContext *C)
 			if(win->screen->do_refresh)
 				ED_screen_refresh(wm, win);
 
+			drawmethod= wm_automatic_draw_method(win);
+
 			if(win->drawfail)
 				wm_method_draw_overlap_all(C, win, 0);
-			else if(win->drawmethod == USER_DRAW_AUTOMATIC) {
-				/* ATI opensource driver is known to be very slow at this,
-				   Windows software driver darkens color on each redraw */
-				if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE))
-					wm_method_draw_overlap_all(C, win, 0);
-				else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
-					wm_method_draw_overlap_all(C, win, 1);
-				else
-					wm_method_draw_triple(C, win);
-			}
-			else if(win->drawmethod == USER_DRAW_FULL)
+			else if(drawmethod == USER_DRAW_FULL)
 				wm_method_draw_full(C, win);
-			else if(win->drawmethod == USER_DRAW_OVERLAP)
+			else if(drawmethod == USER_DRAW_OVERLAP)
 				wm_method_draw_overlap_all(C, win, 0);
-			else if(win->drawmethod == USER_DRAW_OVERLAP_FLIP)
+			else if(drawmethod == USER_DRAW_OVERLAP_FLIP)
 				wm_method_draw_overlap_all(C, win, 1);
-			else // if(win->drawmethod == USER_DRAW_TRIPLE)
+			else // if(drawmethod == USER_DRAW_TRIPLE)
 				wm_method_draw_triple(C, win);
 
 			win->screen->do_draw_gesture= 0;
@@ -723,8 +732,9 @@ void wm_draw_window_clear(wmWindow *win)
 	bScreen *screen= win->screen;
 	ScrArea *sa;
 	ARegion *ar;
+	int drawmethod= wm_automatic_draw_method(win);
 
-	if(win->drawmethod == USER_DRAW_TRIPLE)
+	if(drawmethod == USER_DRAW_TRIPLE)
 		wm_draw_triple_free(win);
 
 	/* clear screen swap flags */
@@ -739,7 +749,9 @@ void wm_draw_window_clear(wmWindow *win)
 
 void wm_draw_region_clear(wmWindow *win, ARegion *ar)
 {
-	if(win->drawmethod == USER_DRAW_OVERLAP)
+	int drawmethod= wm_automatic_draw_method(win);
+
+	if(ELEM(drawmethod, USER_DRAW_OVERLAP, USER_DRAW_OVERLAP_FLIP))
 		wm_flush_regions_down(win->screen, &ar->winrct);
 
 	win->screen->do_draw= 1;
