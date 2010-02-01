@@ -3323,8 +3323,8 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 	/* read in pixels & stamp */
 	rr= RE_AcquireResultRead(oglrender->re);
 	glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_FLOAT, rr->rectf);
-	if((scene->r.scemode & R_STAMP_INFO) && (scene->r.stamp & R_STAMP_DRAW))
-		BKE_stamp_buf(scene, (unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty, 3);
+	if((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
+		BKE_stamp_buf(scene, NULL, rr->rectf, rr->rectx, rr->recty, 4);
 	RE_ReleaseResult(oglrender->re);
 	
 	/* update byte from float buffer */
