@@ -43,6 +43,7 @@
 #include "GHOST_EventNDOF.h"
 #include "GHOST_EventTrackpad.h"
 #include "GHOST_EventDragnDrop.h"
+#include "GHOST_EventString.h"
 
 #include "GHOST_TimerManager.h"
 #include "GHOST_TimerTask.h"
@@ -1025,7 +1026,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleWindowEvent(GHOST_TEventType eventType, 
 GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,
 								   GHOST_WindowCocoa* window, int mouseX, int mouseY, void* data)
 {
-	if (!validWindow(window) && (eventType != GHOST_kEventDraggingDropOnIcon)) {
+	if (!validWindow(window)) {
 		return GHOST_kFailure;
 	}
 	switch(eventType) 
@@ -1037,7 +1038,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleDraggingEvent(GHOST_TEventType eventType
 			break;
 			
 		case GHOST_kEventDraggingDropDone:
-		case GHOST_kEventDraggingDropOnIcon:
 		{
 			GHOST_TUns8 * temp_buff;
 			GHOST_TStringArray *strArray;
@@ -1158,7 +1158,18 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 	NSString *filepath = (NSString*)filepathStr;
 	int confirmOpen = NSAlertAlternateReturn;
 	NSArray *windowsList;
+	char * temp_buff;
+	size_t filenameTextSize;	
+	GHOST_Window* window= (GHOST_Window*)m_windowManager->getActiveWindow();
 	
+	if (!window) {
+		return NO;
+	}	
+	
+	//Discard event if we are in cursor grab sequence, it'll lead to "stuck cursor" situation if the alert panel is raised
+	if (window && (window->getCursorGrabMode() != GHOST_kGrabDisable) && (window->getCursorGrabMode() != GHOST_kGrabNormal))
+		return GHOST_kExitCancel;
+
 	//Check open windows if some changes are not saved
 	if (m_windowManager->getAnyModifiedState())
 	{
@@ -1175,7 +1186,20 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 
 	if (confirmOpen == NSAlertAlternateReturn)
 	{
-		handleDraggingEvent(GHOST_kEventDraggingDropOnIcon,GHOST_kDragnDropTypeFilenames,NULL,0,0, [NSArray arrayWithObject:filepath]);
+		filenameTextSize = [filepath lengthOfBytesUsingEncoding:NSISOLatin1StringEncoding];
+		
+		temp_buff = (char*) malloc(filenameTextSize+1); 
+		
+		if (temp_buff == NULL) {
+			return GHOST_kFailure;
+		}
+		
+		strncpy(temp_buff, [filepath cStringUsingEncoding:NSISOLatin1StringEncoding], filenameTextSize);
+		
+		temp_buff[filenameTextSize] = '\0';
+
+		pushEvent(new GHOST_EventString(getMilliSeconds(),GHOST_kEventOpenMainFile,window,(GHOST_TEventDataPtr) temp_buff));
+
 		return YES;
 	}
 	else return NO;

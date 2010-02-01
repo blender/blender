@@ -34,6 +34,7 @@
 #include "DNA_listBase.h"	
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
+#include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -711,6 +712,28 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 						WM_event_add_notifier(C, NC_SCREEN|NA_EDITED, NULL);
 						WM_event_add_notifier(C, NC_WINDOW|NA_EDITED, NULL);
 					}
+				}
+				break;
+			}
+				
+			case GHOST_kEventOpenMainFile:
+			{
+				PointerRNA props_ptr;
+				wmWindow *oldWindow;
+				char *path = GHOST_GetEventData(evt);
+				
+				if (path) {
+					/* operator needs a valid window in context, ensures
+					 it is correctly set */
+					oldWindow = CTX_wm_window(C);
+					CTX_wm_window_set(C, win);
+					
+					WM_operator_properties_create(&props_ptr, "WM_OT_open_mainfile");
+					RNA_string_set(&props_ptr, "path", path);
+					WM_operator_name_call(C, "WM_OT_open_mainfile", WM_OP_EXEC_DEFAULT, &props_ptr);
+					WM_operator_properties_free(&props_ptr);
+					
+					CTX_wm_window_set(C, oldWindow);
 				}
 				break;
 			}

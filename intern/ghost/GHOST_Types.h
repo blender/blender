@@ -173,7 +173,8 @@ typedef enum {
 	GHOST_kEventDraggingUpdated,
 	GHOST_kEventDraggingExited,
 	GHOST_kEventDraggingDropDone,
-	GHOST_kEventDraggingDropOnIcon,
+	
+	GHOST_kEventOpenMainFile, // Needed for Cocoa to open double-clicked .blend file at startup
 
 	GHOST_kEventTimer,
 
