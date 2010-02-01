@@ -1,5 +1,5 @@
 /**
- * $Id: bpy_ui.h 21094 2009-06-23 00:09:26Z gsrb3d $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
