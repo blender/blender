@@ -4098,7 +4098,8 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 				/* Baking lets us define a quad split order */
 				split_quads(obr, re->r.bake_quad_split);
 			} else {
-				check_non_flat_quads(obr);
+				if((re->r.simplify_flag & R_SIMPLE_NO_TRIANGULATE) == 0)
+					check_non_flat_quads(obr);
 			}
 			
 			set_fullsample_flag(re, obr);

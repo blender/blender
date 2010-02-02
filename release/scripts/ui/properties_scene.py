@@ -208,11 +208,15 @@ class SCENE_PT_simplify(SceneButtonsPanel):
         col = split.column()
         col.prop(rd, "simplify_subdivision", text="Subdivision")
         col.prop(rd, "simplify_child_particles", text="Child Particles")
+        
+        col.prop(rd, "simplify_triangulate")
 
         if wide_ui:
             col = split.column()
         col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
+        
+        
 
 bpy.types.register(SCENE_PT_scene)
 bpy.types.register(SCENE_PT_unit)
