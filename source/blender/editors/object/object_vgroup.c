@@ -28,6 +28,7 @@
  */
 
 #include <string.h>
+#include <stddef.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
@@ -921,7 +922,7 @@ void ED_vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 	}
 }
 
-static void vgroup_delete_update_users(Object *ob, int id)
+static void vgroup_remap_update_users(Object *ob, int *map)
 {
 	ExplodeModifierData *emd;
 	ModifierData *md;
@@ -933,53 +934,46 @@ static void vgroup_delete_update_users(Object *ob, int id)
 	/* these cases don't use names to refer to vertex groups, so when
 	 * they get deleted the numbers get out of sync, this corrects that */
 
-	if(ob->soft) {
-		if(ob->soft->vertgroup == id)
-			ob->soft->vertgroup= 0;
-		else if(ob->soft->vertgroup > id)
-			ob->soft->vertgroup--;
-	}
+	if(ob->soft)
+		ob->soft->vertgroup= map[ob->soft->vertgroup];
 
 	for(md=ob->modifiers.first; md; md=md->next) {
 		if(md->type == eModifierType_Explode) {
 			emd= (ExplodeModifierData*)md;
-
-			if(emd->vgroup == id)
-				emd->vgroup= 0;
-			else if(emd->vgroup > id)
-				emd->vgroup--;
+			emd->vgroup= map[emd->vgroup];
 		}
 		else if(md->type == eModifierType_Cloth) {
 			clmd= (ClothModifierData*)md;
 			clsim= clmd->sim_parms;
 
 			if(clsim) {
-				if(clsim->vgroup_mass == id)
-					clsim->vgroup_mass= 0;
-				else if(clsim->vgroup_mass > id)
-					clsim->vgroup_mass--;
-
-				if(clsim->vgroup_bend == id)
-					clsim->vgroup_bend= 0;
-				else if(clsim->vgroup_bend > id)
-					clsim->vgroup_bend--;
-
-				if(clsim->vgroup_struct == id)
-					clsim->vgroup_struct= 0;
-				else if(clsim->vgroup_struct > id)
-					clsim->vgroup_struct--;
+				clsim->vgroup_mass= map[clsim->vgroup_mass];
+				clsim->vgroup_bend= map[clsim->vgroup_bend];
+				clsim->vgroup_struct= map[clsim->vgroup_struct];
 			}
 		}
 	}
 
 	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 		for(a=0; a<PSYS_TOT_VG; a++)
-			if(psys->vgroup[a] == id)
-				psys->vgroup[a]= 0;
-			else if(psys->vgroup[a] > id)
-				psys->vgroup[a]--;
+			psys->vgroup[a]= map[psys->vgroup[a]];
 	}
 }
+
+
+static void vgroup_delete_update_users(Object *ob, int id)
+{
+	int i, tot= BLI_countlist(&ob->defbase) + 1;
+	int *map= MEM_mallocN(sizeof(int) * tot, "vgroup del");
+
+	map[id]= map[0]= 0;
+	for(i=1; i<id; i++) map[i]=i;
+	for(i=id+1; i<tot; i++) map[i]=i-1;
+
+	vgroup_remap_update_users(ob, map);
+	MEM_freeN(map);
+}
+
 
 static void vgroup_delete_object_mode(Object *ob)
 {
@@ -1840,3 +1834,78 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	ot->prop= prop;
 }
 
+static int vgroup_sort(void *def_a_ptr, void *def_b_ptr)
+{
+	bDeformGroup *def_a= (bDeformGroup *)def_a_ptr;
+	bDeformGroup *def_b= (bDeformGroup *)def_b_ptr;
+
+	return strcmp(def_a->name, def_b->name);
+}
+
+#define DEF_GROUP_SIZE (sizeof(((bDeformGroup *)NULL)->name))
+static int vertex_group_sort_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+	bDeformGroup *def;
+	int def_tot = BLI_countlist(&ob->defbase);
+	char *name;
+	char *name_array= MEM_mallocN(DEF_GROUP_SIZE * sizeof(char) * def_tot, "sort vgroups");
+	int *sort_map_update= MEM_mallocN(DEF_GROUP_SIZE * sizeof(int) * def_tot + 1, "sort vgroups"); /* needs a dummy index at the start*/
+	int *sort_map= sort_map_update + 1;
+	int i;
+
+	MDeformVert *dvert= NULL;
+	int dvert_tot;
+
+	name= name_array;
+	for(def = ob->defbase.first; def; def=def->next){
+		BLI_strncpy(name, def->name, DEF_GROUP_SIZE);
+		name += DEF_GROUP_SIZE;
+	}
+
+	BLI_sortlist(&ob->defbase, vgroup_sort);
+
+	name= name_array;
+	for(def= ob->defbase.first, i=0; def; def=def->next, i++){
+		sort_map[i]= BLI_findstringindex(&ob->defbase, name, offsetof(bDeformGroup, name));
+		name += DEF_GROUP_SIZE;
+	}
+
+	ED_vgroup_give_array(ob->data, &dvert, &dvert_tot);
+	while(dvert_tot--) {
+		defvert_remap(dvert, sort_map);
+		dvert++;
+	}
+
+	/* update users */
+	for(i=0; i<def_tot; i++)
+		sort_map[i]++;
+
+	sort_map_update[0]= 0;
+
+	vgroup_remap_update_users(ob, sort_map_update);
+
+	MEM_freeN(name_array);
+	MEM_freeN(sort_map_update);
+
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob);
+
+	return OPERATOR_FINISHED;
+}
+#undef DEF_GROUP_SIZE
+
+
+void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
+{
+	ot->name= "Sort Vertex Groups";
+	ot->idname= "OBJECT_OT_vertex_group_sort";
+	ot->description= "Sorts vertex groups alphabetically.";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_sort_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}

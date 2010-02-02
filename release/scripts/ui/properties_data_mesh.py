@@ -121,6 +121,7 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
         col = row.column(align=True)
         col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
         col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="")
+        col.operator("object.vertex_group_sort", icon='SORTALPHA', text="")
 
         col.operator("object.vertex_group_copy", icon='COPY_ID', text="")
         if ob.data.users > 1:
