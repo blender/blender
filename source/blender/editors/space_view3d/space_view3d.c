@@ -176,7 +176,10 @@ void ED_view3d_init_mats_rv3d(struct Object *ob, struct RegionView3D *rv3d)
 	mul_m4_m4m4(rv3d->viewmatob, ob->obmat, rv3d->viewmat);
 	mul_m4_m4m4(rv3d->persmatob, ob->obmat, rv3d->persmat);
 
-	glLoadMatrixf(rv3d->viewmatob);
+	/* we have to multiply instead of loading viewmatob to make
+	   it work with duplis using displists, otherwise it will
+	   override the dupli-matrix */
+	glMultMatrixf(ob->obmat);
 
 	/* initializes object space clipping, speeds up clip tests */
 	ED_view3d_local_clipping(rv3d, ob->obmat);
