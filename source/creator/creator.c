@@ -29,11 +29,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 /* for setuid / getuid */
 #ifdef __sgi
 #include <sys/types.h>
 #include <unistd.h>
+#endif
+
+#ifdef __linux__
+#include <fenv.h>
 #endif
 
 /* This little block needed for linking to Blender... */
@@ -942,6 +945,12 @@ int main(int argc, char **argv)
 
 #ifdef __sgi
 	setuid(getuid()); /* end superuser */
+#endif
+
+#ifdef __linux__
+	/* zealous but makes float issues a heck of a lot easier to find! */
+	if(G.f & G_DEBUG)
+		feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 #endif
 
 	/* for all platforms, even windos has it! */

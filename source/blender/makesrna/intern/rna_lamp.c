@@ -665,7 +665,7 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "shadow_buffer_bias", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "bias");
-	RNA_def_property_range(prop, 0.0f, 5.0f);
+	RNA_def_property_range(prop, 0.001f, 5.0f);
 	RNA_def_property_ui_text(prop, "Shadow Buffer Bias", "Shadow buffer sampling bias.");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
