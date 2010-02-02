@@ -883,7 +883,7 @@ void ED_vgroup_mirror(Object *ob, int mirror_weights, int flip_vgroups)
 		/* Go through the list of editverts and assign them */
 		for(eve=em->verts.first; eve; eve=eve->next){
 			if((eve_mirr=eve->tmp.v)) {
-				if(eve_mirr->f & SELECT || eve->f & SELECT) {
+				if((eve_mirr->f & SELECT || eve->f & SELECT) && (eve != eve_mirr)) {
 					dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 					dvert_mirr= CustomData_em_get(&em->vdata, eve_mirr->data, CD_MDEFORMVERT);
 					if(dvert && dvert_mirr) {
