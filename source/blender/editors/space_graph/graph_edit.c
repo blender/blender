@@ -1362,13 +1362,12 @@ void GRAPH_OT_interpolation_type (wmOperatorType *ot)
 /* ******************** Set Handle-Type Operator *********************** */
 
 EnumPropertyItem graphkeys_handle_type_items[] = {
-	{0, "", 0, "For Selected Handles", ""},
 	{HD_FREE, "FREE", 0, "Free", ""},
-	{HD_AUTO, "AUTO", 0, "Auto", ""},
 	{HD_VECT, "VECTOR", 0, "Vector", ""},
 	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
-	{0, "", 0, "For Selected F-Curves", ""},
-	{HD_AUTO_ANIM, "ANIM_CLAMPED", 0, "Auto Clamped", "Handles stay horizontal"},
+	{0, "", 0, "", ""},
+	{HD_AUTO, "AUTO", 0, "Auto", "Handles that are automatically adjusted upon moving the keyframe. Whole curve."},
+	{HD_AUTO_ANIM, "ANIM_CLAMPED", 0, "Auto Clamped", "Auto handles clamped to not overshoot. Whole curve."},
 	{0, NULL, 0, NULL, NULL}};
 
 /* ------------------- */
@@ -1379,7 +1378,9 @@ static void sethandles_graph_keys(bAnimContext *ac, short mode)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter;
-	BeztEditFunc set_cb= ANIM_editkeyframes_handles(mode);
+	
+	BeztEditFunc edit_cb= ANIM_editkeyframes_handles(mode);
+	BeztEditFunc sel_cb= ANIM_editkeyframes_ok(BEZT_OK_SELECTED);
 	
 	/* filter data */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
@@ -1388,42 +1389,25 @@ static void sethandles_graph_keys(bAnimContext *ac, short mode)
 	/* loop through setting flags for handles 
 	 * Note: we do not supply BeztEditData to the looper yet. Currently that's not necessary here...
 	 */
-	for (ale= anim_data.first; ale; ale= ale->next)
-		ANIM_fcurve_keys_bezier_loop(NULL, ale->key_data, NULL, set_cb, calchandles_fcurve);
-	
-	/* cleanup */
-	BLI_freelistN(&anim_data);
-}
-
-/* this function is responsible for toggling clamped-handles  */
-static void sethandles_clamped_graph_keys(bAnimContext *ac) 
-{
-	ListBase anim_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
-	
-	/* filter data */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
-	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
-	
-	/* toggle auto-handles on the F-Curves, which forces handles to stay horizontal */
 	for (ale= anim_data.first; ale; ale= ale->next) {
-		FCurve *fcu= ale->data;
+		FCurve *fcu= (FCurve *)ale->key_data;
 		
-		/* only enable if curve is selected */
-		if (SEL_FCU(fcu))
-			fcu->flag |= FCURVE_AUTO_HANDLES;
-		else
-			fcu->flag &= ~FCURVE_AUTO_HANDLES;
+		/* any selected keyframes for editing? */
+		if (ANIM_fcurve_keys_bezier_loop(NULL, fcu, NULL, sel_cb, NULL)) {
+			/* for auto/auto-clamped, toggle the auto-handles flag on the F-Curve */
+			if (mode == HD_AUTO_ANIM)
+				fcu->flag |= FCURVE_AUTO_HANDLES;
+			else if (mode == HD_AUTO)
+				fcu->flag &= ~FCURVE_AUTO_HANDLES;
 			
-		/* force handles to be recalculated */
-		calchandles_fcurve(fcu);
+			/* change type of selected handles */
+			ANIM_fcurve_keys_bezier_loop(NULL, fcu, NULL, edit_cb, calchandles_fcurve);
+		}
 	}
 	
 	/* cleanup */
 	BLI_freelistN(&anim_data);
 }
-
 /* ------------------- */
 
 static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
@@ -1439,10 +1423,7 @@ static int graphkeys_handletype_exec(bContext *C, wmOperator *op)
 	mode= RNA_enum_get(op->ptr, "type");
 	
 	/* set handle type */
-	if (mode == HD_AUTO_ANIM)
-		sethandles_clamped_graph_keys(&ac);
-	else
-		sethandles_graph_keys(&ac, mode);
+	sethandles_graph_keys(&ac, mode);
 	
 	/* validate keyframes after editing */
 	ANIM_editkeyframes_refresh(&ac);

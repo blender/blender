@@ -815,7 +815,9 @@ BeztEditFunc ANIM_editkeyframes_handles(short code)
 {
 	switch (code) {
 		case HD_AUTO: /* auto */
+		case HD_AUTO_ANIM: /* auto clamped */
 			return set_bezier_auto;
+			
 		case HD_VECT: /* vector */
 			return set_bezier_vector;
 		case HD_FREE: /* free */
@@ -823,7 +825,7 @@ BeztEditFunc ANIM_editkeyframes_handles(short code)
 		case HD_ALIGN: /* align */
 			return set_bezier_align;
 		
-		default: /* free or align? */
+		default: /* check for toggle free or align? */
 			return bezier_isfree;
 	}
 }
