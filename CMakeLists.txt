@@ -416,7 +416,7 @@ IF(WIN32)
 	SET(OPENCOLLADA ${LIBDIR}/opencollada)
 	SET(OPENCOLLADA_INC ${OPENCOLLADA}/include)
 	SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-	SET(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2 )
+	SET(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2 buffer ftoa)
 	#pcre is bundled with openCollada
 	#SET(PCRE ${LIBDIR}/pcre)
 	#SET(PCRE_LIBPATH ${PCRE}/lib)
