@@ -619,7 +619,7 @@ void OBJECT_OT_surface_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_surface_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke; // WM_menu_invoke
+	ot->invoke= WM_menu_invoke;
 	ot->exec= object_add_surface_exec;
 	
 	ot->poll= ED_operator_scene_editable;
@@ -627,7 +627,7 @@ void OBJECT_OT_surface_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_surface_types, 0, "Primitive", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_surface_types, 0, "Primitive", "");
 	ED_object_add_generic_props(ot, TRUE);
 }
 
