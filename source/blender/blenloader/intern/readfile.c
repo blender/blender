@@ -3310,6 +3310,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
 			of library blocks that implement this.*/
 			if (me->id.properties) IDP_LibLinkProperty(me->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			if (me->adt) lib_link_animdata(fd, &me->id, me->adt);
 
 			/* this check added for python created meshes */
 			if(me->mat) {
@@ -3397,6 +3398,9 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->msticky= newdataadr(fd, mesh->msticky);
 	mesh->dvert= newdataadr(fd, mesh->dvert);
 	
+	mesh->adt= newdataadr(fd, mesh->adt);
+	direct_link_animdata(fd, mesh->adt);
+
 	/* Partial-mesh visibility (do this before using totvert, totface, or totedge!) */
 	mesh->pv= newdataadr(fd, mesh->pv);
 	if(mesh->pv) {

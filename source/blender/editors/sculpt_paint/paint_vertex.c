@@ -1536,10 +1536,12 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 			if(mface->v4) (me->dvert+mface->v4)->flag= 1;
 					
 			if(brush->vertexpaint_tool==VP_BLUR) {
-				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = defvert_verify_index;
+				MDeformWeight *dw, *(*dw_func)(MDeformVert *, int);
 						
 				if(wp->flag & VP_ONLYVGROUP)
-					dw_func= defvert_find_index;
+					dw_func= (void *)defvert_find_index; /* uses a const, cast to quiet warning */
+				else
+					dw_func= defvert_verify_index;
 						
 				dw= dw_func(me->dvert+mface->v1, ob->actdef-1);
 				if(dw) {paintweight+= dw->weight; totw++;}
