@@ -199,7 +199,8 @@ class ShapeTransfer(bpy.types.Operator):
                 continue
 
             target_normals = me_nos(me_other.verts)
-            target_coords = me_cos(me_other.verts)
+            # target_coords = me_cos(me_other.verts)
+            target_coords = me_cos(me_other.shape_keys.keys[0].data)
 
             ob_add_shape(ob_other, orig_key_name)
 
