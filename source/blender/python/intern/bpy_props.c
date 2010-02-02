@@ -28,6 +28,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h" /* for defining our own rna */
+#include "RNA_enum_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -127,7 +128,7 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "BoolProperty(options={...}):"))
 			return NULL;
 
-		if(pysubtype && RNA_enum_value(property_subtype_number_items, pysubtype, &subtype)==0) {
+		if(pysubtype && RNA_enum_value_from_id(property_subtype_number_items, pysubtype, &subtype)==0) {
 			PyErr_Format(PyExc_TypeError, "BoolProperty(subtype='%s'): invalid subtype.");
 			return NULL;
 		}
@@ -189,7 +190,7 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "BoolVectorProperty(options={...}):"))
 			return NULL;
 
-		if(pysubtype && RNA_enum_value(property_subtype_array_items, pysubtype, &subtype)==0) {
+		if(pysubtype && RNA_enum_value_from_id(property_subtype_array_items, pysubtype, &subtype)==0) {
 			PyErr_Format(PyExc_TypeError, "BoolVectorProperty(subtype='%s'): invalid subtype.");
 			return NULL;
 		}
@@ -258,7 +259,7 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "IntProperty(options={...}):"))
 			return NULL;
 
-		if(pysubtype && RNA_enum_value(property_subtype_number_items, pysubtype, &subtype)==0) {
+		if(pysubtype && RNA_enum_value_from_id(property_subtype_number_items, pysubtype, &subtype)==0) {
 			PyErr_Format(PyExc_TypeError, "IntProperty(subtype='%s'): invalid subtype.");
 			return NULL;
 		}
@@ -321,7 +322,7 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "IntVectorProperty(options={...}):"))
 			return NULL;
 
-		if(pysubtype && RNA_enum_value(property_subtype_array_items, pysubtype, &subtype)==0) {
+		if(pysubtype && RNA_enum_value_from_id(property_subtype_array_items, pysubtype, &subtype)==0) {
 			PyErr_Format(PyExc_TypeError, "IntVectorProperty(subtype='%s'): invalid subtype.");
 			return NULL;
 		}
@@ -355,14 +356,16 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 
 static char BPy_FloatProperty_doc[] =
-".. function:: FloatProperty(name=\"\", description=\"\", default=0.0, min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, options={'ANIMATABLE'}, subtype='NONE')\n"
+".. function:: FloatProperty(name=\"\", description=\"\", default=0.0, min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, options={'ANIMATABLE'}, subtype='NONE', unit='NONE')\n"
 "\n"
 "   Returns a new float property definition.\n"
 "\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
-"   :type subtype: string";
+"   :type subtype: string\n"
+"   :arg unit: Enumerator in ['NONE', 'LENGTH', 'AREA', 'VOLUME', 'ROTATION', 'TIME', 'VELOCITY', 'ACCELERATION'].\n"
+"   :type unit: string\n";
 PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
@@ -377,7 +380,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
 	else if(srna) {
-		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", NULL};
+		static char *kwlist[] = {"attr", "name", "description", "default", "min", "max", "soft_min", "soft_max", "step", "precision", "options", "subtype", "unit", NULL};
 		char *id=NULL, *name="", *description="";
 		float min=-FLT_MAX, max=FLT_MAX, soft_min=-FLT_MAX, soft_max=FLT_MAX, step=3, def=0.0f;
 		int precision= 2;
@@ -386,19 +389,26 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		int opts=0;
 		char *pysubtype= NULL;
 		int subtype= PROP_NONE;
+		char *pyunit= NULL;
+		int unit= PROP_UNIT_NONE;
 
-		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssffffffiO!s:FloatProperty", kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype))
+		if (!PyArg_ParseTupleAndKeywords(args, kw, "s|ssffffffiO!ss:FloatProperty", kwlist, &id, &name, &description, &def, &min, &max, &soft_min, &soft_max, &step, &precision, &PySet_Type, &pyopts, &pysubtype, &pyunit))
 			return NULL;
 
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "FloatProperty(options={...}):"))
 			return NULL;
 
-		if(pysubtype && RNA_enum_value(property_subtype_number_items, pysubtype, &subtype)==0) {
+		if(pysubtype && RNA_enum_value_from_id(property_subtype_number_items, pysubtype, &subtype)==0) {
 			PyErr_Format(PyExc_TypeError, "FloatProperty(subtype='%s'): invalid subtype.");
 			return NULL;
 		}
 
-		prop= RNA_def_property(srna, id, PROP_FLOAT, subtype);
+		if(pyunit && RNA_enum_value_from_id(property_unit_items, pyunit, &unit)==0) {
+			PyErr_Format(PyExc_TypeError, "FloatProperty(unit='%s'): invalid unit.");
+			return NULL;
+		}
+
+		prop= RNA_def_property(srna, id, PROP_FLOAT, subtype | unit);
 		RNA_def_property_float_default(prop, def);
 		RNA_def_property_range(prop, min, max);
 		RNA_def_property_ui_text(prop, name, description);
@@ -456,7 +466,7 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "FloatVectorProperty(options={...}):"))
 			return NULL;
 
-		if(pysubtype && RNA_enum_value(property_subtype_array_items, pysubtype, &subtype)==0) {
+		if(pysubtype && RNA_enum_value_from_id(property_subtype_array_items, pysubtype, &subtype)==0) {
 			PyErr_Format(PyExc_TypeError, "FloatVectorProperty(subtype='%s'): invalid subtype.");
 			return NULL;
 		}
@@ -526,7 +536,7 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "StringProperty(options={...}):"))
 			return NULL;
 
-		if(pysubtype && RNA_enum_value(property_subtype_string_items, pysubtype, &subtype)==0) {
+		if(pysubtype && RNA_enum_value_from_id(property_subtype_string_items, pysubtype, &subtype)==0) {
 			PyErr_Format(PyExc_TypeError, "StringProperty(subtype='%s'): invalid subtype.");
 			return NULL;
 		}

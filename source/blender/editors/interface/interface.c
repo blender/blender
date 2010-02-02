@@ -1429,6 +1429,12 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
 	if(subtype == PROP_UNIT_LENGTH) {
 		return value * scene->unit.scale_length;
 	}
+	else if(subtype == PROP_UNIT_AREA) {
+		return value * pow(scene->unit.scale_length, 2);
+	}
+	else if(subtype == PROP_UNIT_VOLUME) {
+		return value * pow(scene->unit.scale_length, 3);
+	}
 	else if(subtype == PROP_UNIT_TIME) { /* WARNING - using evil_C :| */
 		return FRA2TIME(value);
 	}

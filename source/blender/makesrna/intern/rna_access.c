@@ -1034,17 +1034,6 @@ int RNA_enum_name(EnumPropertyItem *item, const int value, const char **name)
 	return 0;
 }
 
-int RNA_enum_value(EnumPropertyItem *item, const char *name, int *r_value)
-{
-	for (; item->identifier; item++) {
-		if(item->identifier[0] && strcmp(item->identifier, name)==0) {
-			*r_value= item->value;
-			return 1;
-		}
-	}
-	return 0;
-}
-
 int RNA_property_enum_identifier(bContext *C, PointerRNA *ptr, PropertyRNA *prop, const int value, const char **identifier)
 {	
 	EnumPropertyItem *item= NULL;

@@ -442,7 +442,7 @@ int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_
 			return -1;
 		}
 
-		if(RNA_enum_value(items, param, &ret) == 0) {
+		if(RNA_enum_value_from_id(items, param, &ret) == 0) {
 			char *enum_str= BPy_enum_as_string(items);
 			PyErr_Format(PyExc_TypeError, "%s \"%.200s\" not found in (%.200s)", error_prefix, param, enum_str);
 			MEM_freeN(enum_str);
