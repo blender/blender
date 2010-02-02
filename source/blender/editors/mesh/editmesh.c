@@ -1195,11 +1195,40 @@ void load_editMesh(Scene *scene, Object *ob)
 		KeyBlock *currkey;
 		KeyBlock *actkey= BLI_findlink(&me->key->block, em->shapenr-1);
 
+		float (*ofs)[3] = NULL;
+
+		/* editing the base key should update others */
+		if(me->key->type==KEY_RELATIVE && oldverts) {
+			int act_is_basis = 0;
+			/* find if this key is a basis for any others */
+			for(currkey = me->key->block.first; currkey; currkey= currkey->next) {
+				if(em->shapenr-1 == currkey->relative) {
+					act_is_basis = 1;
+					break;
+				}
+			}
+
+			if(act_is_basis) { /* active key is a base */
+				i=0;
+				ofs= MEM_callocN(sizeof(float) * 3 * em->totvert,  "currkey->data");
+				eve= em->verts.first;
+				mvert = me->mvert;
+				while(eve) {
+					VECSUB(ofs[i], mvert->co, oldverts[eve->keyindex].co);
+					eve= eve->next;
+					i++;
+					mvert++;
+				}
+			}
+		}
+
+
 		/* Lets reorder the key data so that things line up roughly
 		 * with the way things were before editmode */
 		currkey = me->key->block.first;
 		while(currkey) {
-			
+			int apply_offset = (ofs && (currkey != actkey) && (em->shapenr-1 == currkey->relative));
+
 			fp= newkey= MEM_callocN(me->key->elemsize*em->totvert,  "currkey->data");
 			oldkey = currkey->data;
 
@@ -1229,6 +1258,12 @@ void load_editMesh(Scene *scene, Object *ob)
 				else {
 					VECCOPY(fp, mvert->co);
 				}
+
+				/* propagate edited basis offsets to other shapes */
+				if(apply_offset) {
+					VECADD(fp, fp, ofs[i]);
+				}
+
 				fp+= 3;
 				++i;
 				++mvert;
@@ -1240,6 +1275,8 @@ void load_editMesh(Scene *scene, Object *ob)
 			
 			currkey= currkey->next;
 		}
+
+		if(ofs) MEM_freeN(ofs);
 	}
 
 	if(oldverts) MEM_freeN(oldverts);
