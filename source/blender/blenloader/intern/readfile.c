@@ -10654,9 +10654,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	/* put 2.50 compatibility code here until next subversion bump */
-	//{
-	
-	//}
+	{
+		Scene *sce;
+
+		/* initialize to sane default so toggling on border shows something */
+		for(sce = main->scene.first; sce; sce = sce->id.next) {
+			if(sce->r.border.xmin == 0.0f && sce->r.border.ymin == 0.0f &&
+			   sce->r.border.xmax == 0.0f && sce->r.border.ymax == 0.0f) {
+				sce->r.border.xmin= 0.0f;
+				sce->r.border.ymin= 0.0f;
+				sce->r.border.xmax= 1.0f;
+				sce->r.border.ymax= 1.0f;
+			}
+		}
+	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */

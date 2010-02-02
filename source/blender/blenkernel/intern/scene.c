@@ -367,6 +367,11 @@ Scene *add_scene(char *name)
 	sce->r.cineonblack= 95;
 	sce->r.cineonwhite= 685;
 	sce->r.cineongamma= 1.7f;
+
+	sce->r.border.xmin= 0.0f;
+	sce->r.border.ymin= 0.0f;
+	sce->r.border.xmax= 1.0f;
+	sce->r.border.ymax= 1.0f;
 	
 	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
 	sce->toolsettings->cornertype=1;
