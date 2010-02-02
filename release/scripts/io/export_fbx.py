@@ -524,7 +524,7 @@ def write(filename, batch_objects = None, \
                 self.__pose_bone.tail.copy() )
             '''
 
-            self.__anim_poselist[f] = self.__pose_bone.pose_matrix.copy()
+            self.__anim_poselist[f] = self.__pose_bone.matrix.copy()
 # 			self.__anim_poselist[f] = self.__pose_bone.poseMatrix.copy()
 
         # get pose from frame.
@@ -2025,11 +2025,11 @@ def write(filename, batch_objects = None, \
         # This is needed so applying modifiers dosnt apply the armature deformation, its also needed
         # ...so mesh objects return their rest worldspace matrix when bone-parents are exported as weighted meshes.
         # set every armature to its rest, backup the original values so we done mess up the scene
-        ob_arms_orig_rest = [arm.rest_position for arm in bpy.data.armatures]
+        ob_arms_orig_rest = [arm.pose_position for arm in bpy.data.armatures]
 # 		ob_arms_orig_rest = [arm.restPosition for arm in bpy.data.armatures]
 
         for arm in bpy.data.armatures:
-            arm.rest_position = True
+            arm.pose_position = 'REST'
 # 			arm.restPosition = True
 
         if ob_arms_orig_rest:
@@ -2204,7 +2204,7 @@ def write(filename, batch_objects = None, \
     if EXP_ARMATURE:
         # now we have the meshes, restore the rest arm position
         for i, arm in enumerate(bpy.data.armatures):
-            arm.rest_position = ob_arms_orig_rest[i]
+            arm.pose_position = ob_arms_orig_rest[i]
 # 			arm.restPosition = ob_arms_orig_rest[i]
 
         if ob_arms_orig_rest:
