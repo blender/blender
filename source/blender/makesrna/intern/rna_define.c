@@ -938,7 +938,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 		prop->flag= PROP_EDITABLE;
 	
 		if(type != PROP_STRING)
-			prop->flag |= PROP_ANIMATEABLE;
+			prop->flag |= PROP_ANIMATABLE;
 	}
 
 	if(DefRNA.preprocess) {

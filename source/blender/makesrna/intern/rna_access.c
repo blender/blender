@@ -1138,7 +1138,7 @@ int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 	
 	prop= rna_ensure_property(prop);
 
-	if(!(prop->flag & PROP_ANIMATEABLE))
+	if(!(prop->flag & PROP_ANIMATABLE))
 		return 0;
 
 	return (prop->flag & PROP_EDITABLE);

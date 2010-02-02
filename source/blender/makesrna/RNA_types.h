@@ -141,7 +141,7 @@ typedef enum PropertyFlag {
 	 * other input, be it animation curves, expressions, ..
 	 * properties are animateable by default except for pointers
 	 * and collections */
-	PROP_ANIMATEABLE = 1<<1,
+	PROP_ANIMATABLE = 1<<1,
 
 	/* icon */
 	PROP_ICONS_CONSECUTIVE = 1<<12,

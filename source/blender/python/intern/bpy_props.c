@@ -35,7 +35,7 @@
 
 EnumPropertyItem property_flag_items[] = {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},
-	{PROP_ANIMATEABLE, "ANIMATEABLE", 0, "Animateable", ""},
+	{PROP_ANIMATABLE, "ANIMATABLE", 0, "Animateable", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 /* subtypes */
@@ -89,11 +89,11 @@ static PyObject *bpy_prop_deferred_return(void *func, PyObject *kw)
 /* Function that sets RNA, NOTE - self is NULL when called from python, but being abused from C so we can pass the srna allong
  * This isnt incorrect since its a python object - but be careful */
 static char BPy_BoolProperty_doc[] =
-".. function:: BoolProperty(name=\"\", description=\"\", default=False, options={'ANIMATEABLE'}, subtype='NONE')\n"
+".. function:: BoolProperty(name=\"\", description=\"\", default=False, options={'ANIMATABLE'}, subtype='NONE')\n"
 "\n"
 "   Returns a new boolean property definition.\n"
 "\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string";
@@ -139,7 +139,7 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
@@ -150,11 +150,11 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static char BPy_BoolVectorProperty_doc[] =
-".. function:: BoolVectorProperty(name=\"\", description=\"\", default=(False, False, False), options={'ANIMATEABLE'}, subtype='NONE', size=3)\n"
+".. function:: BoolVectorProperty(name=\"\", description=\"\", default=(False, False, False), options={'ANIMATABLE'}, subtype='NONE', size=3)\n"
 "\n"
 "   Returns a new vector boolean property definition.\n"
 "\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'NONE'].\n"
 "   :type subtype: string";
@@ -210,7 +210,7 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
@@ -221,11 +221,11 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static char BPy_IntProperty_doc[] =
-".. function:: IntProperty(name=\"\", description=\"\", default=0, min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, step=1, options={'ANIMATEABLE'}, subtype='NONE')\n"
+".. function:: IntProperty(name=\"\", description=\"\", default=0, min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, step=1, options={'ANIMATABLE'}, subtype='NONE')\n"
 "\n"
 "   Returns a new int property definition.\n"
 "\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string";
@@ -271,7 +271,7 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
@@ -282,11 +282,11 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static char BPy_IntVectorProperty_doc[] =
-".. function:: IntVectorProperty(name=\"\", description=\"\", default=(0, 0, 0), min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, options={'ANIMATEABLE'}, subtype='NONE', size=3)\n"
+".. function:: IntVectorProperty(name=\"\", description=\"\", default=(0, 0, 0), min=-sys.maxint, max=sys.maxint, soft_min=-sys.maxint, soft_max=sys.maxint, options={'ANIMATABLE'}, subtype='NONE', size=3)\n"
 "\n"
 "   Returns a new vector int property definition.\n"
 "\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'NONE'].\n"
 "   :type subtype: string";
@@ -343,7 +343,7 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
@@ -355,11 +355,11 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 
 static char BPy_FloatProperty_doc[] =
-".. function:: FloatProperty(name=\"\", description=\"\", default=0.0, min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, options={'ANIMATEABLE'}, subtype='NONE')\n"
+".. function:: FloatProperty(name=\"\", description=\"\", default=0.0, min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, options={'ANIMATABLE'}, subtype='NONE')\n"
 "\n"
 "   Returns a new float property definition.\n"
 "\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['UNSIGNED', 'PERCENTAGE', 'FACTOR', 'ANGLE', 'TIME', 'DISTANCE', 'NONE'].\n"
 "   :type subtype: string";
@@ -406,7 +406,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
@@ -417,11 +417,11 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static char BPy_FloatVectorProperty_doc[] =
-".. function:: FloatVectorProperty(name=\"\", description=\"\", default=(0.0, 0.0, 0.0), min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, options={'ANIMATEABLE'}, subtype='NONE', size=3)\n"
+".. function:: FloatVectorProperty(name=\"\", description=\"\", default=(0.0, 0.0, 0.0), min=sys.float_info.min, max=sys.float_info.max, soft_min=sys.float_info.min, soft_max=sys.float_info.max, step=3, precision=2, options={'ANIMATABLE'}, subtype='NONE', size=3)\n"
 "\n"
 "   Returns a new vector float property definition.\n"
 "\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'NONE'].\n"
 "   :type subtype: string";
@@ -478,7 +478,7 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
@@ -489,11 +489,11 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static char BPy_StringProperty_doc[] =
-".. function:: StringProperty(name=\"\", description=\"\", default=\"\", maxlen=0, options={'ANIMATEABLE'}, subtype='NONE')\n"
+".. function:: StringProperty(name=\"\", description=\"\", default=\"\", maxlen=0, options={'ANIMATABLE'}, subtype='NONE')\n"
 "\n"
 "   Returns a new string property definition.\n"
 "\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg subtype: Enumerator in ['FILE_PATH', 'DIR_PATH', 'FILENAME', 'NONE'].\n"
 "   :type subtype: string";
@@ -538,7 +538,7 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
@@ -595,11 +595,11 @@ static EnumPropertyItem *enum_items_from_py(PyObject *value, const char *def, in
 }
 
 static char BPy_EnumProperty_doc[] =
-".. function:: EnumProperty(items, name=\"\", description=\"\", default=\"\", options={'ANIMATEABLE'})\n"
+".. function:: EnumProperty(items, name=\"\", description=\"\", default=\"\", options={'ANIMATABLE'})\n"
 "\n"
 "   Returns a new enumerator property definition.\n"
 "\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg items: The items that make up this enumerator.\n"
 "   :type items: sequence of string triplets";
@@ -639,7 +639,7 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		prop= RNA_def_enum(srna, id, eitems, defvalue, name, description);
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(prop);
 		MEM_freeN(eitems);
@@ -670,11 +670,11 @@ static StructRNA *pointer_type_from_py(PyObject *value)
 }
 
 static char BPy_PointerProperty_doc[] =
-".. function:: PointerProperty(items, type=\"\", description=\"\", default=\"\", options={'ANIMATEABLE'})\n"
+".. function:: PointerProperty(items, type=\"\", description=\"\", default=\"\", options={'ANIMATABLE'})\n"
 "\n"
 "   Returns a new pointer property definition.\n"
 "\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg type: Dynamic type from :mod:`bpy.types`.\n"
 "   :type type: class";
@@ -713,7 +713,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 		prop= RNA_def_pointer_runtime(srna, id, ptype, name, description);
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;
@@ -725,11 +725,11 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 }
 
 static char BPy_CollectionProperty_doc[] =
-".. function:: CollectionProperty(items, type=\"\", description=\"\", default=\"\", options={'ANIMATEABLE'})\n"
+".. function:: CollectionProperty(items, type=\"\", description=\"\", default=\"\", options={'ANIMATABLE'})\n"
 "\n"
 "   Returns a new collection property definition.\n"
 "\n"
-"   :arg options: Enumerator in ['HIDDEN', 'ANIMATEABLE'].\n"
+"   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
 "   :arg type: Dynamic type from :mod:`bpy.types`.\n"
 "   :type type: class";
@@ -768,7 +768,7 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 		prop= RNA_def_collection_runtime(srna, id, ptype, name, description);
 		if(pyopts) {
 			if(opts & PROP_HIDDEN) RNA_def_property_flag(prop, PROP_HIDDEN);
-			if((opts & PROP_ANIMATEABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+			if((opts & PROP_ANIMATABLE)==0) RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 		}
 		RNA_def_property_duplicate_pointers(prop);
 		Py_RETURN_NONE;

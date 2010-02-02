@@ -1154,14 +1154,14 @@ static void rna_def_transform(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "translation_unit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "percent");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* not meant to be animated */
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* not meant to be animated */
 	RNA_def_property_enum_items(prop, translation_unit_items);
 	RNA_def_property_ui_text(prop, "Translation Unit", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, interpolation_items);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* not meant to be animated */
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* not meant to be animated */
 	RNA_def_property_ui_text(prop, "Interpolation", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
@@ -1192,7 +1192,7 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "global_speed", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "globalSpeed");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); /* seq->facf0 is used to animate this */
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* seq->facf0 is used to animate this */
 	RNA_def_property_ui_text(prop, "Global Speed", "");
 	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
