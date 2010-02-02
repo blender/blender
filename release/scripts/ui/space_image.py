@@ -491,10 +491,10 @@ class IMAGE_PT_paint(bpy.types.Panel):
             sub = layout.row(align=True)
         else:
             sub = layout.column(align=True)
-        sub.prop_enum(toolsettings, "tool", 'DRAW')
-        sub.prop_enum(toolsettings, "tool", 'SOFTEN')
-        sub.prop_enum(toolsettings, "tool", 'CLONE')
-        sub.prop_enum(toolsettings, "tool", 'SMEAR')
+        sub.prop_enum(brush, "imagepaint_tool", 'DRAW')
+        sub.prop_enum(brush, "imagepaint_tool", 'SOFTEN')
+        sub.prop_enum(brush, "imagepaint_tool", 'CLONE')
+        sub.prop_enum(brush, "imagepaint_tool", 'SMEAR')
 
         if brush:
             col = layout.column()
@@ -515,6 +515,10 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
             col.prop(brush, "blend", text="Blend")
 
+            if brush.imagepaint_tool == 'CLONE':
+                col.separator()
+                col.prop(brush, "clone_image", text="Image")
+                col.prop(brush, "clone_alpha", text="Alpha")
 
 class IMAGE_PT_paint_stroke(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -544,6 +548,7 @@ class IMAGE_PT_paint_stroke(bpy.types.Panel):
         row.prop(brush, "spacing", text="Distance", slider=True)
         row.prop(brush, "use_spacing_pressure", toggle=True, text="")
 
+        layout.prop(brush, "use_wrap")
 
 class IMAGE_PT_paint_curve(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
