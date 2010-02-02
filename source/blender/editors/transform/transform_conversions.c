@@ -1817,10 +1817,10 @@ static int connectivity_edge(float mtx[][3], EditVert *v1, EditVert *v2)
 
 	if (v1->f2) {
 		if (v2->f2) {
-			if (v2->tmp.fp + edge_len < v1->tmp.fp) {
+			if (v2->tmp.fp + edge_len + THRESHOLD < v1->tmp.fp) {
 				v1->tmp.fp = v2->tmp.fp + edge_len;
 				done = 1;
-			} else if (v1->tmp.fp + edge_len < v2->tmp.fp) {
+			} else if (v1->tmp.fp + edge_len + THRESHOLD < v2->tmp.fp) {
 				v2->tmp.fp = v1->tmp.fp + edge_len;
 				done = 1;
 			}
