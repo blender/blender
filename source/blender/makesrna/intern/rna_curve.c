@@ -460,8 +460,8 @@ static void rna_def_path(BlenderRNA *brna, StructRNA *srna)
 	/* number values */
 	prop= RNA_def_property(srna, "path_length", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pathlen");
-	RNA_def_property_range(prop, 1, 32767);
-	RNA_def_property_ui_text(prop, "Path Length", "If no speed IPO was set, the length of path in frames.");
+	RNA_def_property_range(prop, 1, MAXFRAME);
+	RNA_def_property_ui_text(prop, "Path Length", "The number of frames that are needed to traverse the path, defining the maximum value for the 'Evaluation Time' setting.");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	/* flags */
@@ -830,9 +830,9 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property.");
 	
 	
-	prop= RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_FACTOR);
+	prop= RNA_def_property(srna, "eval_time", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ctime");
-	RNA_def_property_ui_text(prop, "Evaluation Time", "Parametric position along the length of the curve that Objects 'following' it should be at.");
+	RNA_def_property_ui_text(prop, "Evaluation Time", "Parametric position along the length of the curve that Objects 'following' it should be at. Position is evaluated by dividing by the 'Path Length' value.");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 	
 	/* pointers */
