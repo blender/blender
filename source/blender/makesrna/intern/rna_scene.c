@@ -160,6 +160,11 @@ static void rna_Scene_unlink_object(Scene *scene, bContext *C, ReportList *repor
 		BKE_report(reports, RPT_ERROR, "Object is not in this scene.");
 		return;
 	}
+	if (base==scene->basact && ob->mode != OB_MODE_OBJECT) {
+		BKE_report(reports, RPT_ERROR, "Object must be in 'Object Mode' to unlink.");
+		return;
+	}
+
 	/* as long as ED_base_object_free_and_unlink calls free_libblock_us, we don't have to decrement ob->id.us */
 	ED_base_object_free_and_unlink(scene, base);
 
