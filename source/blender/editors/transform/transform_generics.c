@@ -1072,6 +1072,8 @@ void postTrans (bContext *C, TransInfo *t)
 	
 	if (t->draw_handle_view)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_view);
+	if (t->draw_handle_apply)
+		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_apply);
 	if (t->draw_handle_pixel)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_pixel);
 	if (t->draw_handle_cursor)

@@ -364,7 +364,7 @@ void applyMouseInput(TransInfo *t, MouseInput *mi, short mval[2], float output[3
 
 int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 {
-	int redraw = 0;
+	int redraw = TREDRAW_NOTHING;
 
 	switch (event->type)
 	{
@@ -384,7 +384,7 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 			t->modifiers &= ~MOD_PRECISION;
 			mi->precision = 0;
 		}
-		redraw = 1;
+		redraw = TREDRAW_HARD;
 		break;
 	}
 
