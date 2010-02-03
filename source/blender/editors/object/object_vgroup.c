@@ -1872,7 +1872,7 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 	}
 
 	ED_vgroup_give_array(ob->data, &dvert, &dvert_tot);
-	while(dvert_tot--) {
+	while(dvert && dvert_tot--) {
 		defvert_remap(dvert, sort_map);
 		dvert++;
 	}
