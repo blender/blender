@@ -2022,7 +2022,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	int retopo= 0, sculptparticle= 0;
 	Object *obact = OBACT;
 	char *grid_unit= NULL;
-	
+
 	/* from now on all object derived meshes check this */
 	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
 	
@@ -2037,6 +2037,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_draw_clipping(rv3d);
