@@ -254,10 +254,3 @@ def create_shape_and_driver(obj, bone, meshes, shape_name, var_name, var_path, f
         var_fac.targets[0].id = obj
         var_fac.targets[0].data_path = 'pose.bones["' + bone + '"]["' + fac_name + '"]'
     
-
-def main(obj, bone_definition, base_names, options):
-    control(obj, bone_definition, base_names, options)
-
-
-    return (None,)
-
