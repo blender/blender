@@ -367,6 +367,7 @@ void RNA_api_keymap(StructRNA *srna)
 
 	func= RNA_def_function(srna, "item_from_id", "WM_keymap_item_find_id");
 	parm= RNA_def_property(func, "id", PROP_INT, PROP_NONE);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_property_ui_text(parm, "id", "ID of the item.");
 	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
 	RNA_def_function_return(func, parm);
@@ -380,7 +381,7 @@ void RNA_api_keymap(StructRNA *srna)
 	func= RNA_def_function(srna, "restore_item_to_default", "rna_keymap_restore_item_to_default");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 void RNA_api_keymapitem(StructRNA *srna)
