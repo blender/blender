@@ -336,6 +336,10 @@
 				Name="internal"
 				>
 				<File
+					RelativePath="..\..\..\source\blender\python\intern\bpy_app.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_array.c"
 					>
 				</File>
@@ -361,10 +365,6 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_rna.c"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\source\blender\python\intern\bpy_ui.c"
 					>
 				</File>
 				<File
@@ -429,6 +429,10 @@
 				Name="internal"
 				>
 				<File
+					RelativePath="..\..\..\source\blender\python\intern\bpy_app.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_idprop.h"
 					>
 				</File>
@@ -454,10 +458,6 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_rna.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\..\source\blender\python\intern\bpy_ui.h"
 					>
 				</File>
 				<File

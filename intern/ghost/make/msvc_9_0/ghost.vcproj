@@ -120,7 +120,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\wintab\INCLUDE;..\..\..\..\..\build\msvc_9\extern\glew\include"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\wintab\INCLUDE;..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB,_USE_MATH_DEFINES"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -386,6 +386,10 @@
 				</File>
 				<File
 					RelativePath="..\..\intern\GHOST_EventPrinter.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\intern\GHOST_EventString.h"
 					>
 				</File>
 				<File
