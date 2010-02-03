@@ -2028,11 +2028,9 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	 *	  the shape but be moved elsewhere
 	 */
 	if (ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) {
-		VECCOPY(poseMat[3], pchan->pose_head);
+		VECCOPY(poseHead, pchan->pose_head);
 	}
-	else {
-		VECCOPY(poseMat[3], poseHead);
-	}
+	VECCOPY(poseMat[3], poseHead);
 	
 	/* finally, store the new transform */
 	copy_m4_m4(pchan->pose_mat, poseMat);
