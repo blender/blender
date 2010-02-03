@@ -84,7 +84,7 @@ ListBase *get_active_constraints (Object *ob)
 {
 	if (ob == NULL)
 		return NULL;
-
+	
 	if (ob->mode & OB_MODE_POSE) {
 		bPoseChannel *pchan;
 		
@@ -94,34 +94,43 @@ ListBase *get_active_constraints (Object *ob)
 	}
 	else 
 		return &ob->constraints;
-
+	
 	return NULL;
 }
 
+/* Find the list that a given constraint belongs to, and/or also get the posechannel this is from (if applicable) */
 ListBase *get_constraint_lb (Object *ob, bConstraint *con, bPoseChannel **pchan_r)
 {
-	if(pchan_r)
+	if (pchan_r)
 		*pchan_r= NULL;
-
+	
 	if (ELEM(NULL, ob, con))
 		return NULL;
-
-	if((BLI_findindex(&ob->constraints, con) != -1)) {
+	
+	/* try object constraints first */
+	if ((BLI_findindex(&ob->constraints, con) != -1)) {
 		return &ob->constraints;
 	}
-	else if(ob->pose) {
+	
+	/* if armature, try pose bones too */
+	if (ob->pose) {
 		bPoseChannel *pchan;
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if((BLI_findindex(&pchan->constraints, con) != -1)) {
-
-				if(pchan_r)
+		
+		/* try each bone in order 
+		 * NOTE: it's not possible to directly look up the active bone yet, so this will have to do
+		 */
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if ((BLI_findindex(&pchan->constraints, con) != -1)) {
+				
+				if (pchan_r)
 					*pchan_r= pchan;
-
+				
 				return &pchan->constraints;
 			}
 		}
 	}
-
+	
+	/* done */
 	return NULL;
 }
 
@@ -665,21 +674,23 @@ static int constraint_delete_exec (bContext *C, wmOperator *op)
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "constraint", &RNA_Constraint);
 	Object *ob= ptr.id.data;
 	bConstraint *con= ptr.data;
-	ListBase *lb;
+	ListBase *lb = get_constraint_lb(ob, con, NULL);
 	
-	/* remove constraint itself */
-	lb= get_active_constraints(ob);
-	if (BLI_findindex(lb, con) == -1)
-		/* abnormal situation which happens on bone constraint when the armature is not in pose mode */
+	/* free the constraint */
+	if (remove_constraint(lb, con)) {
+		/* there's no active constraint now */
+		// FIXME: maybe this doesn't set things ok...
+		ED_object_constraint_set_active(ob, NULL);
+		
+		/* notifiers */
+		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
+		
+		return OPERATOR_FINISHED;
+	}
+	else {
+		/* couldn't remove due to some invalid data */
 		return OPERATOR_CANCELLED;
-
-	free_constraint_data(con);
-	BLI_freelinkN(lb, con);
-	
-	ED_object_constraint_set_active(ob, NULL);
-	WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
-
-	return OPERATOR_FINISHED;
+	}
 }
 
 void CONSTRAINT_OT_delete (wmOperatorType *ot)
@@ -704,7 +715,7 @@ static int constraint_move_down_exec (bContext *C, wmOperator *op)
 	bConstraint *con= ptr.data;
 	
 	if (con->next) {
-		ListBase *conlist= get_active_constraints(ob);
+		ListBase *conlist= get_constraint_lb(ob, con, NULL);
 		bConstraint *nextCon= con->next;
 		
 		/* insert the nominated constraint after the one that used to be after it */
@@ -742,7 +753,7 @@ static int constraint_move_up_exec (bContext *C, wmOperator *op)
 	bConstraint *con= ptr.data;
 	
 	if (con->prev) {
-		ListBase *conlist= get_active_constraints(ob);
+		ListBase *conlist= get_constraint_lb(ob, con, NULL);
 		bConstraint *prevCon= con->prev;
 		
 		/* insert the nominated constraint before the one that used to be before it */
