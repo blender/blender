@@ -633,15 +633,16 @@ void CONSTRAINT_OT_childof_clear_inverse (wmOperatorType *ot)
 
 /***************************** BUTTONS ****************************/
 
-
 void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 {	
+	ListBase *lb = get_constraint_lb(ob, con, NULL);
+	
 	/* lets be nice and escape if its active already */
 	// NOTE: this assumes that the stack doesn't have other active ones set...
-	if (con && (con->flag & CONSTRAINT_ACTIVE))
-		return ;
+	if ((lb && con) && (con->flag & CONSTRAINT_ACTIVE))
+		return;
 	
-	constraints_set_active(get_active_constraints(ob), con);
+	constraints_set_active(lb, con);
 }
 
 void ED_object_constraint_update(Object *ob)
@@ -678,9 +679,8 @@ static int constraint_delete_exec (bContext *C, wmOperator *op)
 	
 	/* free the constraint */
 	if (remove_constraint(lb, con)) {
-		/* there's no active constraint now */
-		// FIXME: maybe this doesn't set things ok...
-		ED_object_constraint_set_active(ob, NULL);
+		/* there's no active constraint now, so make sure this is the case */
+		constraints_set_active(lb, NULL);
 		
 		/* notifiers */
 		WM_event_add_notifier(C, NC_OBJECT|ND_CONSTRAINT, ob);
