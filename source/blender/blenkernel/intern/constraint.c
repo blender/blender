@@ -1206,7 +1206,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 			}
 			else {
 				/* fixed position along curve */
-				curvetime= data->offset; // XXX might need a more sensible value
+				curvetime= data->offset_fac;
 			}
 			
 			if ( where_on_path(ct->tar, curvetime, vec, dir, NULL, &radius) ) {
