@@ -343,6 +343,20 @@ static int debug_mode(int argc, char **argv, void *data)
 	return 0;
 }
 
+static int set_fpe(int argc, char **argv, void *data)
+{
+#if defined(__sgi) || defined(__linux__)
+	/* zealous but makes float issues a heck of a lot easier to find!
+	 * set breakpoints on fpe_handler */
+	signal(SIGFPE, fpe_handler);
+
+#ifdef __linux__
+	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
+#endif
+	return 0;
+}
+
 static int playback_mode(int argc, char **argv, void *data)
 {
 	/* not if -b was given first */
@@ -835,6 +849,8 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, "-Y", 1, forked_tongue, NULL);
 	BLI_argsAdd(ba, "-y", 1, disable_python, NULL);
 
+	BLI_argsAdd(ba, "-fpe", 1, set_fpe, NULL);
+
 	BLI_argsAdd(ba, "-B", 1, background_mode, NULL);
 	BLI_argsAdd(ba, "-b", 1, background_mode, NULL);
 	BLI_argsAdd(ba, "-a", 1, playback_mode, NULL);
@@ -940,17 +956,6 @@ int main(int argc, char **argv)
 	setuid(getuid()); /* end superuser */
 #endif
 
-#if defined(__sgi) || defined(__linux__)
-	if(G.f & G_DEBUG) {
-		/* zealous but makes float issues a heck of a lot easier to find!
-		 * set breakpoints on fpe_handler */
-		signal(SIGFPE, fpe_handler);
-
-#ifdef __linux__
-		feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
-#endif
-	}
-#endif
 
 	/* for all platforms, even windos has it! */
 	if(G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */
