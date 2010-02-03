@@ -97,6 +97,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 	bool isbulletdyna = false;
 	bool isbulletsensor = false;
+	bool useGimpact = false;
 	CcdConstructionInfo ci;
 	class PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
 	class CcdShapeConstructionInfo *shapeInfo = new CcdShapeConstructionInfo();
@@ -121,7 +122,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	shapeInfo->m_radius = objprop->m_radius;
 	isbulletdyna = objprop->m_dyna;
 	isbulletsensor = objprop->m_sensor;
-	
+	useGimpact = ((isbulletdyna || isbulletsensor) && !objprop->m_softbody);
+
 	ci.m_localInertiaTensor = btVector3(ci.m_mass/3.f,ci.m_mass/3.f,ci.m_mass/3.f);
 	
 	btCollisionShape* bm = 0;
@@ -178,24 +180,22 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 		}
 	case KX_BOUNDPOLYTOPE:
 		{
-			shapeInfo->SetMesh(meshobj, dm,true,false);
+			shapeInfo->SetMesh(meshobj, dm,true);
 			bm = shapeInfo->CreateBulletShape(ci.m_margin);
 			break;
 		}
 	case KX_BOUNDMESH:
 		{
-			bool useGimpact = ((ci.m_mass || isbulletsensor) && !objprop->m_softbody);
-
 			// mesh shapes can be shared, check first if we already have a shape on that mesh
-			class CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, dm, false,useGimpact);
+			class CcdShapeConstructionInfo *sharedShapeInfo = CcdShapeConstructionInfo::FindMesh(meshobj, dm, false);
 			if (sharedShapeInfo != NULL) 
 			{
-				delete shapeInfo;
+				shapeInfo->Release();
 				shapeInfo = sharedShapeInfo;
 				shapeInfo->AddRef();
 			} else
 			{
-				shapeInfo->SetMesh(meshobj, dm, false,useGimpact);
+				shapeInfo->SetMesh(meshobj, dm, false);
 			}
 
 			// Soft bodies require welding. Only avoid remove doubles for non-soft bodies!
@@ -204,7 +204,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 				shapeInfo->setVertexWeldingThreshold1(objprop->m_soft_welding); //todo: expose this to the UI
 			}
 
-			bm = shapeInfo->CreateBulletShape(ci.m_margin);
+			bm = shapeInfo->CreateBulletShape(ci.m_margin, useGimpact, !objprop->m_softbody);
 			//should we compute inertia for dynamic shape?
 			//bm->calculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
 
@@ -218,7 +218,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	if (!bm)
 	{
 		delete motionstate;
-		delete shapeInfo;
+		shapeInfo->Release();
 		return;
 	}
 
@@ -268,6 +268,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 				compoundShape->calculateLocalInertia(mass,localInertia);
 				rigidbody->setMassProps(mass,localInertia);
 			}
+			shapeInfo->Release();
 			// delete motionstate as it's not used
 			delete motionstate;
 			return;
@@ -284,6 +285,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			compoundShape->addChildShape(shapeInfo->m_childTrans,bm);
 			// now replace the shape
 			bm = compoundShape;
+			shapeInfo->Release();
 			shapeInfo = compoundShapeInfo;
 		}
 
@@ -395,6 +397,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_contactProcessingThreshold = objprop->m_contactProcessingThreshold;//todo: expose this in advanced settings, just like margin, default to 10000 or so
 	ci.m_bSoft = objprop->m_softbody;
 	ci.m_bSensor = isbulletsensor;
+	ci.m_bGimpact = useGimpact;
 	MT_Vector3 scaling = gameobj->NodeGetWorldScaling();
 	ci.m_scaling.setValue(scaling[0], scaling[1], scaling[2]);
 	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,isbulletdyna,isbulletsensor,objprop->m_hasCompoundChildren);
@@ -544,7 +547,8 @@ bool KX_ReInstanceBulletShapeFromMesh(KX_GameObject *gameobj, KX_GameObject *fro
 	shapeInfo->UpdateMesh(from_gameobj, from_meshobj);
 
 	/* create the new bullet mesh */
-	btCollisionShape* bm= shapeInfo->CreateBulletShape(spc->getConstructionInfo().m_margin);
+	CcdConstructionInfo& cci = spc->getConstructionInfo();
+	btCollisionShape* bm= shapeInfo->CreateBulletShape(cci.m_margin, cci.m_bGimpact, !cci.m_bSoft);
 
 	spc->ReplaceControllerShape(bm);
 	return true;

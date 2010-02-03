@@ -279,13 +279,15 @@ void    KX_BulletPhysicsController::AddCompoundChild(KX_IPhysicsController* chil
 	// we will need this to make sure that we remove the right proxy later when unparenting
 	proxyShapeInfo->m_userData = childCtrl;
 	proxyShapeInfo->SetProxy(childCtrl->GetShapeInfo()->AddRef());
-	// add to parent compound shapeinfo
+	// add to parent compound shapeinfo (increments ref count)
 	GetShapeInfo()->AddShape(proxyShapeInfo);
 	// create new bullet collision shape from the object shapeinfo and set scaling
-	btCollisionShape* newChildShape = proxyShapeInfo->CreateBulletShape(childCtrl->GetMargin());
+	btCollisionShape* newChildShape = proxyShapeInfo->CreateBulletShape(childCtrl->GetMargin(), childCtrl->getConstructionInfo().m_bGimpact, true);
 	newChildShape->setLocalScaling(relativeScale);
 	// add bullet collision shape to parent compound collision shape
 	compoundShape->addChildShape(proxyShapeInfo->m_childTrans,newChildShape);
+	// proxyShapeInfo is not needed anymore, release it
+	proxyShapeInfo->Release();
 	// remember we created this shape
 	childCtrl->m_bulletChildShape = newChildShape;
 	// recompute inertia of parent
