@@ -1456,6 +1456,16 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			}
 			else {
 				/* not painting, so start stroke (this should be mouse-button down) */
+				
+				/* we must check that we're still within the area that we're set up to work from
+				 * otherwise we could crash (see bug #20586)
+				 */
+				if (CTX_wm_area(C) != p->sa) {
+					//printf("\t\t\tGP - wrong area execution abort! \n");
+					gpencil_draw_exit(C, op);
+					return OPERATOR_CANCELLED;
+				}
+				 
 				//printf("\t\tGP - start stroke \n");
 				p->status= GP_STATUS_PAINTING;
 				/* no break now, since we should immediately start painting */
