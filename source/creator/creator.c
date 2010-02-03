@@ -134,7 +134,8 @@ char blender_path[FILE_MAXDIR+FILE_MAXFILE] = BLENDERPATH;
 /* Initialise callbacks for the modules that need them */
 static void setCallbacks(void); 
 
-#if defined(__sgi) || defined(__alpha__)
+/* on linux set breakpoints here when running in debug mode, useful to catch floating point errors */
+#if defined(__sgi) || defined(__linux__)
 static void fpe_handler(int sig)
 {
 	// printf("SIGFPE trapped\n");
@@ -899,14 +900,6 @@ int main(int argc, char **argv)
 #ifdef __FreeBSD__
 	fpsetmask(0);
 #endif
-#ifdef __linux__
-    #ifdef __alpha__
-	signal (SIGFPE, fpe_handler);
-    #endif
-#endif
-#if defined(__sgi)
-	signal (SIGFPE, fpe_handler);
-#endif
 
 	// copy path to executable in bprogname. playanim and creting runtimes
 	// need this.
@@ -947,10 +940,16 @@ int main(int argc, char **argv)
 	setuid(getuid()); /* end superuser */
 #endif
 
+#if defined(__sgi) || defined(__linux__)
+	if(G.f & G_DEBUG) {
+		/* zealous but makes float issues a heck of a lot easier to find!
+		 * set breakpoints on fpe_handler */
+		signal(SIGFPE, fpe_handler);
+
 #ifdef __linux__
-	/* zealous but makes float issues a heck of a lot easier to find! */
-	if(G.f & G_DEBUG)
 		feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
+	}
 #endif
 
 	/* for all platforms, even windos has it! */
