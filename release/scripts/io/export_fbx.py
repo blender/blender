@@ -998,7 +998,7 @@ def write(filename, batch_objects = None, \
         loc, rot, scale, matrix, matrix_rot = write_object_props(my_cam.blenObject, None, my_cam.parRelMatrix())
 
         file.write('\n\t\t\tProperty: "Roll", "Roll", "A+",0')
-        file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % data.angle)
+        file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % math.degrees(data.angle))
         file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1')
         file.write('\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1')
         file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
@@ -3198,9 +3198,9 @@ def fbx_ui():
 
     Draw.BeginAlign()
     GLOBALS['_SCALE'] =		Draw.Number('Scale:',	EVENT_NONE, x+20, y+120, 140, 20, GLOBALS['_SCALE'].val,	0.01, 1000.0, 'Scale all data, (Note! some imports dont support scaled armatures)')
-    GLOBALS['_XROT90'] =	Draw.Toggle('Rot X90',	EVENT_NONE, x+160, y+120, 60, 20, GLOBALS['_XROT90'].val,		'Rotate all objects 90 degrese about the X axis')
-    GLOBALS['_YROT90'] =	Draw.Toggle('Rot Y90',	EVENT_NONE, x+220, y+120, 60, 20, GLOBALS['_YROT90'].val,		'Rotate all objects 90 degrese about the Y axis')
-    GLOBALS['_ZROT90'] =	Draw.Toggle('Rot Z90',	EVENT_NONE, x+280, y+120, 60, 20, GLOBALS['_ZROT90'].val,		'Rotate all objects 90 degrese about the Z axis')
+    GLOBALS['_XROT90'] =	Draw.Toggle('Rot X90',	EVENT_NONE, x+160, y+120, 60, 20, GLOBALS['_XROT90'].val,		'Rotate all objects 90 degrees about the X axis')
+    GLOBALS['_YROT90'] =	Draw.Toggle('Rot Y90',	EVENT_NONE, x+220, y+120, 60, 20, GLOBALS['_YROT90'].val,		'Rotate all objects 90 degrees about the Y axis')
+    GLOBALS['_ZROT90'] =	Draw.Toggle('Rot Z90',	EVENT_NONE, x+280, y+120, 60, 20, GLOBALS['_ZROT90'].val,		'Rotate all objects 90 degrees about the Z axis')
     Draw.EndAlign()
 
     y -= 35
@@ -3368,9 +3368,9 @@ class ExportFBX(bpy.types.Operator):
     EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
 # 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
     TX_SCALE = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
-    TX_XROT90 = BoolProperty(name="Rot X90", description="Rotate all objects 90 degrese about the X axis", default=True)
-    TX_YROT90 = BoolProperty(name="Rot Y90", description="Rotate all objects 90 degrese about the Y axis", default=False)
-    TX_ZROT90 = BoolProperty(name="Rot Z90", description="Rotate all objects 90 degrese about the Z axis", default=False)
+    TX_XROT90 = BoolProperty(name="Rot X90", description="Rotate all objects 90 degrees about the X axis", default=True)
+    TX_YROT90 = BoolProperty(name="Rot Y90", description="Rotate all objects 90 degrees about the Y axis", default=False)
+    TX_ZROT90 = BoolProperty(name="Rot Z90", description="Rotate all objects 90 degrees about the Z axis", default=False)
     EXP_EMPTY = BoolProperty(name="Empties", description="Export empty objects", default=True)
     EXP_CAMERA = BoolProperty(name="Cameras", description="Export camera objects", default=True)
     EXP_LAMP = BoolProperty(name="Lamps", description="Export lamp objects", default=True)
