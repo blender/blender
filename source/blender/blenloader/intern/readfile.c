@@ -3187,6 +3187,13 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 				pt->ob=newlibadr(fd, id->lib, pt->ob);
 
 			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
+
+			if(psys->clmd) {
+				/* XXX - from reading existing code this seems correct but intended usage of
+				 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
+				psys->clmd->point_cache= psys->pointcache;
+				psys->clmd->ptcaches.first= psys->clmd->ptcaches.last= NULL;
+			}
 		}
 		else {
 			/* particle modifier must be removed before particle system */
