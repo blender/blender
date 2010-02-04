@@ -1569,6 +1569,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 		else {
 			/* always copy custom shape */
 			pchan->custom= pchanp->custom;
+			pchan->custom_tx= pchanp->custom_tx;
 		}
 	}
 }
