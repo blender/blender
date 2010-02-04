@@ -345,11 +345,11 @@ PyObject* KX_LightObject::pyattr_get_typeconst(void *self_v, const KX_PYATTRIBUT
 
 	const char* type = attrdef->m_name;
 
-	if(strcmp(type, "SPOT")) {
+	if(!strcmp(type, "SPOT")) {
 		retvalue = PyLong_FromSsize_t(RAS_LightObject::LIGHT_SPOT);
-	} else if (strcmp(type, "SUN")) {
+	} else if (!strcmp(type, "SUN")) {
 		retvalue = PyLong_FromSsize_t(RAS_LightObject::LIGHT_SUN);
-	} else if (strcmp(type, "NORMAL")) {
+	} else if (!strcmp(type, "NORMAL")) {
 		retvalue = PyLong_FromSsize_t(RAS_LightObject::LIGHT_NORMAL);
 	}
 
