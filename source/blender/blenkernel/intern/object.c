@@ -1145,8 +1145,8 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	}
 
 	if(psys->clmd) {
-		ClothModifierData *nclmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
-		modifier_copyData((ModifierData*)psys->clmd, (ModifierData*)nclmd);
+		psysn->clmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
+		modifier_copyData((ModifierData*)psys->clmd, (ModifierData*)psysn->clmd);
 		psys->hair_in_dm = psys->hair_out_dm = NULL;
 	}
 
