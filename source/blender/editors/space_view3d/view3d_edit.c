@@ -2306,9 +2306,19 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	initgrabz(rv3d, fp[0], fp[1], fp[2]);
 
 	if(mval[0]!=IS_CLIPPED) {
+		short depth_used = 0;
 
-		window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
-		sub_v3_v3v3(fp, fp, dvec);
+		if (U.uiflag & USER_ORBIT_ZBUF) { /* maybe this should be accessed some other way */
+			short mval_depth[2] = {mx, my};
+			view3d_operator_needs_opengl(C);
+			if (view_autodist(scene, ar, v3d, mval_depth, fp))
+				depth_used= 1;
+		}
+
+		if(depth_used==0) {
+			window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
+			sub_v3_v3v3(fp, fp, dvec);
+		}
 	}
 	else {
 
