@@ -291,7 +291,7 @@ class x3d_class:
 
         # compute cutoff and beamwidth
         intensity=min(lamp.energy/1.75,1.0)
-        beamWidth=((lamp.spot_size*math.pi)/180.0)*.37;
+        beamWidth=lamp.spot_size * 0.37;
         # beamWidth=((lamp.spotSize*math.pi)/180.0)*.37;
         cutOffAngle=beamWidth*1.3
 
