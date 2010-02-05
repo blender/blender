@@ -1918,6 +1918,14 @@ static void actcon_new_data (void *cdata)
 	data->type = 20;
 }
 
+/* only for setting the ID as extern */
+static void actcon_copy_data (bConstraint *con, bConstraint *srccon)
+{
+	bActionConstraint *src= srccon->data;
+	bActionConstraint *dst= con->data;
+	id_lib_extern((ID *)dst->act); /* would be better solved with something like modifiers_foreachIDLink */
+}
+
 static int actcon_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
@@ -2057,7 +2065,7 @@ static bConstraintTypeInfo CTI_ACTION = {
 	"bActionConstraint", /* struct name */
 	NULL, /* free data */
 	actcon_relink, /* relink data */
-	NULL, /* copy data */
+	actcon_copy_data, /* copy data */
 	actcon_new_data, /* new data */
 	actcon_get_tars, /* get constraint targets */
 	actcon_flush_tars, /* flush constraint targets */
