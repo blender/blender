@@ -1636,8 +1636,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					if ( (bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)) )
 						flag &= ~BONE_CONNECTED;
 					
-					/* set temporary flag for drawing bone as active */
-					if (bone == arm->act_bone)
+					/* set temporary flag for drawing bone as active, but only if selected */
+					if ((bone == arm->act_bone) && (bone->flag & BONE_SELECTED))
 						flag |= BONE_DRAW_ACTIVE;
 					
 					/* set color-set to use */
@@ -1721,8 +1721,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 							if ((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
 								flag &= ~BONE_CONNECTED;
 								
-							/* set temporary flag for drawing bone as active */
-							if (bone == arm->act_bone)
+							/* set temporary flag for drawing bone as active, but only if selected */
+							if ((bone == arm->act_bone) && (bone->flag & BONE_SELECTED))
 								flag |= BONE_DRAW_ACTIVE;
 							
 							draw_custom_bone(scene, v3d, rv3d, pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
@@ -1816,8 +1816,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					if ((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
 						flag &= ~BONE_CONNECTED;
 					
-					/* set temporary flag for drawing bone as active */
-					if (bone == arm->act_bone)
+					/* set temporary flag for drawing bone as active, but only if selected */
+					if ((bone == arm->act_bone) && (bone->flag & BONE_SELECTED))
 						flag |= BONE_DRAW_ACTIVE;
 					
 					/* extra draw service for pose mode */
@@ -1980,8 +1980,8 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 					if ( (eBone->parent) && ((eBone->parent->flag & BONE_HIDDEN_A) || (eBone->parent->layer & arm->layer)==0) )
 						flag &= ~BONE_CONNECTED;
 						
-					/* set temporary flag for drawing bone as active */
-					if (eBone == arm->act_edbone)
+					/* set temporary flag for drawing bone as active, but only if selected */
+					if ((eBone == arm->act_edbone) && (eBone->flag & BONE_SELECTED))
 						flag |= BONE_DRAW_ACTIVE;
 					
 					if (arm->drawtype==ARM_ENVELOPE)
@@ -2019,8 +2019,8 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 				if ( (eBone->parent) && ((eBone->parent->flag & BONE_HIDDEN_A) || (eBone->parent->layer & arm->layer)==0) )
 					flag &= ~BONE_CONNECTED;
 					
-				/* set temporary flag for drawing bone as active */
-				if (eBone == arm->act_edbone)
+				/* set temporary flag for drawing bone as active, but only if selected */
+				if ((eBone == arm->act_edbone) && (eBone->flag & BONE_SELECTED))
 					flag |= BONE_DRAW_ACTIVE;
 				
 				if (arm->drawtype == ARM_ENVELOPE) {
