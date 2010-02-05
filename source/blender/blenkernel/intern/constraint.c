@@ -3878,11 +3878,13 @@ void constraints_set_active (ListBase *list, bConstraint *con)
 {
 	bConstraint *c;
 	
-	for (c= list->first; c; c= c->next) {
-		if (c == con) 
-			c->flag |= CONSTRAINT_ACTIVE;
-		else 
-			c->flag &= ~CONSTRAINT_ACTIVE;
+	if (list) {
+		for (c= list->first; c; c= c->next) {
+			if (c == con) 
+				c->flag |= CONSTRAINT_ACTIVE;
+			else 
+				c->flag &= ~CONSTRAINT_ACTIVE;
+		}
 	}
 }
 
