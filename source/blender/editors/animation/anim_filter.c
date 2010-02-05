@@ -775,7 +775,8 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
  
 /* ----------------------------------------- */
 
-static int skip_fcurve_selected_data(FCurve *fcu, ID *owner_id)
+/* NOTE: when this function returns true, the F-Curve is to be skipped */
+static int skip_fcurve_selected_data(FCurve *fcu, ID *owner_id, int filter_mode)
 {
 	if (GS(owner_id->name) == ID_OB) {
 		Object *ob= (Object *)owner_id;
@@ -790,9 +791,21 @@ static int skip_fcurve_selected_data(FCurve *fcu, ID *owner_id)
 			pchan= get_pose_channel(ob->pose, bone_name);
 			if (bone_name) MEM_freeN(bone_name);
 			
-			/* can only add this F-Curve if it is selected */
-			if ((pchan) && (pchan->bone) && (pchan->bone->flag & BONE_SELECTED)==0)
-				return 1;
+			/* check whether to continue or skip */
+			if ((pchan) && (pchan->bone)) {
+				/* if only visible channels, skip if bone not visible */
+				// TODO: should we just do this always?
+				if (filter_mode & ANIMFILTER_VISIBLE) {
+					bArmature *arm= (bArmature *)ob->data;
+					
+					if ((arm->layer & pchan->bone->layer) == 0)
+						return 1;
+				}
+				
+				/* can only add this F-Curve if it is selected */
+				if ((pchan->bone->flag & BONE_SELECTED) == 0)
+					return 1;
+			}
 		}
 	}
 	else if (GS(owner_id->name) == ID_SCE) {
@@ -853,15 +866,16 @@ static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bAct
 		 *	- this will also affect things like Drivers, and also works for Bone Constraints
 		 */
 		if ( ((ads) && (ads->filterflag & ADS_FILTER_ONLYSEL)) && (owner_id) ) {
-			if (skip_fcurve_selected_data(fcu, owner_id))
+			if (skip_fcurve_selected_data(fcu, owner_id, filter_mode))
 				continue;
 		}
-				
+			
 		/* only include if visible (Graph Editor check, not channels check) */
 		if (!(filter_mode & ANIMFILTER_CURVEVISIBLE) || (fcu->flag & FCURVE_VISIBLE)) {
 			/* only work with this channel and its subchannels if it is editable */
 			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
 				/* only include this curve if selected in a way consistent with the filtering requirements */
+				// FIXME: the first selection test is buggered, and works wrong for sel+curvesonly filtering
 				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) && ANIMCHANNEL_SELEDITOK(SEL_FCU(fcu)) ) {
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
