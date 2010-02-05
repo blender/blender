@@ -31,6 +31,7 @@
 #include <math.h>
 #include <float.h>
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -70,6 +71,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -2030,11 +2032,6 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 		mul_v3_fl(fly->rv3d->ofs, -1.0f); /*flip the vector*/
 
 		fly->rv3d->dist=0.0;
-
-		/* used for recording */
-//XXX2.5		if(v3d->camera->ipoflag & OB_ACTION_OB)
-//XXX2.5			actname= "Object";
-
 	} else {
 		/* perspective or ortho */
 		if (fly->rv3d->persp==RV3D_ORTHO)
@@ -2242,7 +2239,6 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 	}
 }
 
-//int fly_exec(bContext *C, wmOperator *op)
 static int flyApply(FlyInfo *fly)
 {
 	/*
@@ -2269,12 +2265,7 @@ static int flyApply(FlyInfo *fly)
 	unsigned char
 	apply_rotation= 1; /* if the user presses shift they can look about without movinf the direction there looking*/
 
-	/* for recording */
-#if 0 //XXX2.5 todo, get animation recording working again.
-	int playing_anim = 0; //XXX has_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
-	int cfra = -1; /*so the first frame always has a key added */
-	char *actname="";
-#endif
+	
 	/* the dist defines a vector that is infront of the offset
 	to rotate the view about.
 	this is no good for fly mode because we
@@ -2487,34 +2478,38 @@ static int flyApply(FlyInfo *fly)
 				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X off/Z off,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
 #endif
 
-//XXX2.5			do_screenhandlers(G.curscreen); /* advance the next frame */
-
 			/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to the view */
 			if (rv3d->persp==RV3D_CAMOB) {
 				rv3d->persp= RV3D_PERSP; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
 				setviewmatrixview3d(scene, v3d, rv3d);
 				setcameratoview3d(v3d, rv3d, v3d->camera);
 				rv3d->persp= RV3D_CAMOB;
-#if 0 //XXX2.5
+				
 				/* record the motion */
-				if (IS_AUTOKEY_MODE(NORMAL) && (!playing_anim || cfra != G.scene->r.cfra)) {
-					cfra = G.scene->r.cfra;
-
+				if (autokeyframe_cfra_can_key(scene, &v3d->camera->id)) {
+					bCommonKeySrc cks;
+					ListBase dsources = {&cks, &cks};
+					int cfra = CFRA;
+					
+					/* init common-key-source for use by KeyingSets */
+					memset(&cks, 0, sizeof(bCommonKeySrc));
+					cks.id= &v3d->camera->id;
+					
+					/* insert keyframes 
+					 *	1) on the first frame
+					 *	2) on each subsequent frame
+					 *		TODO: need to check in future that frame changed before doing this 
+					 */
 					if (fly->xlock || fly->zlock || moffset[0] || moffset[1]) {
-						insertkey(&v3d->camera->id, ID_OB, actname, NULL, OB_ROT_X, 0);
-						insertkey(&v3d->camera->id, ID_OB, actname, NULL, OB_ROT_Y, 0);
-						insertkey(&v3d->camera->id, ID_OB, actname, NULL, OB_ROT_Z, 0);
+						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 					if (fly->speed) {
-						insertkey(&v3d->camera->id, ID_OB, actname, NULL, OB_LOC_X, 0);
-						insertkey(&v3d->camera->id, ID_OB, actname, NULL, OB_LOC_Y, 0);
-						insertkey(&v3d->camera->id, ID_OB, actname, NULL, OB_LOC_Z, 0);
+						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 				}
-#endif
 			}
-//XXX2.5			scrarea_do_windraw(curarea);
-//XXX2.5			screen_swapbuffers();
 		} else
 			/*were not redrawing but we need to update the time else the view will jump */
 			fly->time_lastdraw= PIL_check_seconds_timer();
