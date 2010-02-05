@@ -894,7 +894,7 @@ void make_editMesh(Scene *scene, Object *ob)
 		}
 	}
 	
-	if(EM_get_actFace(em, 0) && efa_last_sel) {
+	if(EM_get_actFace(em, 0)==NULL && efa_last_sel) {
 		EM_set_actFace(em, efa_last_sel);
 	}
 
