@@ -44,7 +44,7 @@ class MATERIAL_MT_sss_presets(bpy.types.Menu):
 
 
 class MATERIAL_MT_specials(bpy.types.Menu):
-    bl_label = "Material Options"
+    bl_label = "Material Specials"
 
     def draw(self, context):
         layout = self.layout

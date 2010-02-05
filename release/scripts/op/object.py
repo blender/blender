@@ -140,7 +140,7 @@ class SubdivisionSet(bpy.types.Operator):
 
 
 class ShapeTransfer(bpy.types.Operator):
-    '''Copy the active objects current shape to other selected objects with the same number of verts'''
+    '''Copy another selected objects active shape to this one by applying the relative offsets.'''
 
     bl_idname = "object.shape_key_transfer"
     bl_label = "Transfer Shape Key"
@@ -199,8 +199,10 @@ class ShapeTransfer(bpy.types.Operator):
                 continue
 
             target_normals = me_nos(me_other.verts)
-            # target_coords = me_cos(me_other.verts)
-            target_coords = me_cos(me_other.shape_keys.keys[0].data)
+            if me_other.shape_keys:
+                target_coords = me_cos(me_other.shape_keys.keys[0].data)
+            else:
+                target_coords = me_cos(me_other.verts)
 
             ob_add_shape(ob_other, orig_key_name)
 
@@ -306,12 +308,22 @@ class ShapeTransfer(bpy.types.Operator):
     def execute(self, context):
         C = bpy.context
         ob_act = C.active_object
-        if ob_act.active_shape_key is None:
-            self.report({'ERROR'}, "Active object has no shape key")
-            return {'CANCELLED'}
         objects = [ob for ob in C.selected_editable_objects if ob != ob_act]
-        return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)
 
+        if 1: # swap from/to, means we cant copy to many at once.
+            if len(objects) != 1:
+                self.report({'ERROR'}, "Expected one other selected mesh object to copy from")
+                return {'CANCELLED'}
+            ob_act, objects = objects[0], [ob_act]
+            
+        if ob_act.type != 'MESH':
+            self.report({'ERROR'}, "Other object is not a mesh.")
+            return {'CANCELLED'}
+
+        if ob_act.active_shape_key is None:
+            self.report({'ERROR'}, "Other object has no shape key")
+            return {'CANCELLED'}
+        return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)        
 
 class JoinUVs(bpy.types.Operator):
     '''Copy UV Layout to objects with matching geometry'''
