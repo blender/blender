@@ -769,7 +769,9 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	if(!mc)
 		mc = DM_get_face_data_layer(dm, CD_MCOL);
 
-	if( GPU_buffer_legacy(dm) ) {
+	/* back-buffer always uses legacy since VBO's would need the
+	 * color array temporarily overwritten for drawing, then reset. */
+	if( GPU_buffer_legacy(dm) || G.f & G_BACKBUFSEL) {
 		DEBUG_VBO( "Using legacy code. cdDM_drawMappedFaces\n" );
 		for(i = 0; i < dm->numFaceData; i++, mf++) {
 			int drawSmooth = (mf->flag & ME_SMOOTH);
