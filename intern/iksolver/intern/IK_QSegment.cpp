@@ -368,21 +368,21 @@ void IK_QSphericalSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 		return;
 	
 	if (axis == 1) {
-		lmin = MT_clamp(lmin, -180, 180);
-		lmax = MT_clamp(lmax, -180, 180);
+		lmin = MT_clamp(lmin, -M_PI, M_PI);
+		lmax = MT_clamp(lmax, -M_PI, M_PI);
 
-		m_min_y = MT_radians(lmin);
-		m_max_y = MT_radians(lmax);
+		m_min_y = lmin;
+		m_max_y = lmax;
 
 		m_limit_y = true;
 	}
 	else {
 		// clamp and convert to axis angle parameters
-		lmin = MT_clamp(lmin, -180, 180);
-		lmax = MT_clamp(lmax, -180, 180);
+		lmin = MT_clamp(lmin, -M_PI, M_PI);
+		lmax = MT_clamp(lmax, -M_PI, M_PI);
 
-		lmin = sin(MT_radians(lmin)*0.5);
-		lmax = sin(MT_radians(lmax)*0.5);
+		lmin = sin(lmin*0.5);
+		lmax = sin(lmax*0.5);
 
 		if (axis == 0) {
 			m_min[0] = -lmax;
@@ -611,11 +611,11 @@ void IK_QRevoluteSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 		return;
 	
 	// clamp and convert to axis angle parameters
-	lmin = MT_clamp(lmin, -180, 180);
-	lmax = MT_clamp(lmax, -180, 180);
+	lmin = MT_clamp(lmin, -M_PI, M_PI);
+	lmax = MT_clamp(lmax, -M_PI, M_PI);
 
-	m_min = MT_radians(lmin);
-	m_max = MT_radians(lmax);
+	m_min = lmin;
+	m_max = lmax;
 
 	m_limit = true;
 }
@@ -750,11 +750,11 @@ void IK_QSwingSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 		return;
 	
 	// clamp and convert to axis angle parameters
-	lmin = MT_clamp(lmin, -180, 180);
-	lmax = MT_clamp(lmax, -180, 180);
+	lmin = MT_clamp(lmin, -M_PI, M_PI);
+	lmax = MT_clamp(lmax, -M_PI, M_PI);
 
-	lmin = sin(MT_radians(lmin)*0.5);
-	lmax = sin(MT_radians(lmax)*0.5);
+	lmin = sin(lmin*0.5);
+	lmax = sin(lmax*0.5);
 
 	// put center of ellispe in the middle between min and max
 	MT_Scalar offset = 0.5*(lmin + lmax);
@@ -896,11 +896,11 @@ void IK_QElbowSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 		return;
 
 	// clamp and convert to axis angle parameters
-	lmin = MT_clamp(lmin, -180, 180);
-	lmax = MT_clamp(lmax, -180, 180);
+	lmin = MT_clamp(lmin, -M_PI, M_PI);
+	lmax = MT_clamp(lmax, -M_PI, M_PI);
 
-	lmin = MT_radians(lmin);
-	lmax = MT_radians(lmax);
+	lmin = lmin;
+	lmax = lmax;
 
 	if (axis == 1) {
 		m_min_twist = lmin;

@@ -1479,8 +1479,8 @@ static void draw_pose_dofs(Object *ob)
 									float amin[3], amax[3];
 									
 									for (i=0; i<3; i++) {
-										amin[i]= (float)sin(pchan->limitmin[i]*M_PI/360.0);
-										amax[i]= (float)sin(pchan->limitmax[i]*M_PI/360.0);
+										amin[i]= (float)sin(pchan->limitmin[i]);
+										amax[i]= (float)sin(pchan->limitmax[i]);
 									}
 									
 									glScalef(1.0f, -1.0f, 1.0f);
@@ -1498,7 +1498,7 @@ static void draw_pose_dofs(Object *ob)
 							
 							/* arcs */
 							if (pchan->ikflag & BONE_IK_ZLIMIT) {
-								theta= 0.5f*(pchan->limitmin[2]+pchan->limitmax[2]);
+								theta= 0.5f*(pchan->limitmin[2]+pchan->limitmax[2]) * (float)(180.0f/M_PI);
 								glRotatef(theta, 0.0f, 0.0f, 1.0f);
 								
 								glColor3ub(50, 50, 255);	// blue, Z axis limit
@@ -1506,7 +1506,7 @@ static void draw_pose_dofs(Object *ob)
 								for (a=-16; a<=16; a++) {
 									float fac= ((float)a)/16.0f;
 									
-									phi= fac * (float)(M_PI/360.0f) * (pchan->limitmax[2] - pchan->limitmin[2]);
+									phi= fac * (pchan->limitmax[2] - pchan->limitmin[2]);
 									
 									i= (a == -16) ? 0 : 1;
 									corner[i][0]= (float)sin(phi);
@@ -1520,14 +1520,14 @@ static void draw_pose_dofs(Object *ob)
 							}					
 							
 							if (pchan->ikflag & BONE_IK_XLIMIT) {
-								theta= 0.5f * (pchan->limitmin[0] + pchan->limitmax[0]);
+								theta= 0.5f * (pchan->limitmin[0] + pchan->limitmax[0]) * (float)(180.0f/M_PI);
 								glRotatef(theta, 1.0f, 0.0f, 0.0f);
 								
 								glColor3ub(255, 50, 50);	// Red, X axis limit
 								glBegin(GL_LINE_STRIP);
 								for (a=-16; a<=16; a++) {
 									float fac= ((float)a)/16.0f;
-									phi= (float)(0.5*M_PI) + fac * (float)(M_PI/360.0f) * (pchan->limitmax[0] - pchan->limitmin[0]);
+									phi= (float)(0.5*M_PI) + fac * (pchan->limitmax[0] - pchan->limitmin[0]);
 									
 									i= (a == -16) ? 2 : 3;
 									corner[i][0]= 0.0f;
