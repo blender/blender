@@ -1323,7 +1323,7 @@ static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview wi
 	Object *ob= OBACT;
 	Object *obedit= CTX_data_edit_object(C);
 	float size, min[3], max[3], afm[3];
-	int ok=0;
+	int ok=0, ok_dist=1;
 
 	/* SMOOTHVIEW */
 	float new_ofs[3];
@@ -1397,11 +1397,21 @@ static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview wi
 	afm[1]= (max[1]-min[1]);
 	afm[2]= (max[2]-min[2]);
 	size= MAX3(afm[0], afm[1], afm[2]);
-	/* perspective should be a bit farther away to look nice */
-	if(rv3d->persp==RV3D_ORTHO)
-		size*= 0.7;
 
-	if(size <= v3d->near*1.5f) size= v3d->near*1.5f;
+	if(rv3d->persp==RV3D_ORTHO) {
+		if(size < 0.0001f) { /* if its a sinble point. dont even re-scale */
+			ok_dist= 0;
+		}
+		else {
+			/* perspective should be a bit farther away to look nice */
+			size*= 0.7f;
+		}
+	}
+	else {
+		if(size <= v3d->near*1.5f) {
+			size= v3d->near*1.5f;
+		}
+	}
 
 	new_ofs[0]= -(min[0]+max[0])/2.0f;
 	new_ofs[1]= -(min[1]+max[1])/2.0f;
@@ -1421,7 +1431,7 @@ static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview wi
 		smooth_view(C, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 	}
 	else {
-		smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
+		smooth_view(C, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
 	}
 
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
