@@ -114,16 +114,16 @@ typedef struct bIpoActuator {
 	char name[32];
 	char frameProp[32];	/* Set this property to the actions current frame */
 	
-	short pad1, cur, butsta, butend;
+	short pad1, pad2, pad3, pad4;
 	
 } bIpoActuator;
 
 typedef struct bCameraActuator {
 	struct Object *ob;
 	float height, min, max;
-	float fac;
-	short flag, axis;
-	float visifac;
+	float pad;
+	short pad1, axis;
+	float pad2;
 } bCameraActuator ;
 
 typedef struct bConstraintActuator {
