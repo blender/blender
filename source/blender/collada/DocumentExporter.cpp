@@ -322,7 +322,18 @@ std::string getActiveUVLayerName(Object *ob)
 // TODO: optimize UV sets by making indexed list with duplicates removed
 class GeometryExporter : COLLADASW::LibraryGeometries
 {
+	struct Face
+	{
+		unsigned int v1, v2, v3, v4;
+	};
+
+	struct Normal
+	{
+		float x, y, z;
+	};
+
 	Scene *mScene;
+
 public:
 	GeometryExporter(COLLADASW::StreamWriter *sw) : COLLADASW::LibraryGeometries(sw) {}
 
@@ -345,7 +356,11 @@ public:
 #endif
 		Mesh *me = (Mesh*)ob->data;
 		std::string geom_id = get_geometry_id(ob);
-		
+		std::vector<Normal> nor;
+		std::vector<Face> norind;
+
+		create_normals(nor, norind, me);
+
 		// openMesh(geoId, geoName, meshId)
 		openMesh(geom_id);
 		
@@ -353,7 +368,7 @@ public:
 		createVertsSource(geom_id, me);
 		
 		// writes <source> for normal coords
-		createNormalsSource(geom_id, me);
+		createNormalsSource(geom_id, me, nor);
 
 		int has_uvs = CustomData_has_layer(&me->fdata, CD_MTFACE);
 		
@@ -374,11 +389,11 @@ public:
 			for(int a = 0; a < ob->totcol; a++)	{
 				// account for NULL materials, this should not normally happen?
 				Material *ma = give_current_material(ob, a + 1);
-				createPolylist(ma != NULL, a, has_uvs, ob, geom_id);
+				createPolylist(ma != NULL, a, has_uvs, ob, geom_id, norind);
 			}
 		}
 		else {
-			createPolylist(false, 0, has_uvs, ob, geom_id);
+			createPolylist(false, 0, has_uvs, ob, geom_id, norind);
 		}
 		
 		closeMesh();
@@ -394,7 +409,8 @@ public:
 						int material_index,
 						bool has_uvs,
 						Object *ob,
-						std::string& geom_id)
+						std::string& geom_id,
+						std::vector<Face>& norind)
 	{
 #if 0
 		MFace *mfaces = dm->getFaceArray(dm);
@@ -443,12 +459,10 @@ public:
 		COLLADASW::InputList &til = polylist.getInputList();
 			
 		// creates <input> in <polylist> for vertices 
-		COLLADASW::Input input1(COLLADASW::VERTEX, getUrlBySemantics
-								(geom_id, COLLADASW::VERTEX), 0);
+		COLLADASW::Input input1(COLLADASW::VERTEX, getUrlBySemantics(geom_id, COLLADASW::VERTEX), 0);
 			
 		// creates <input> in <polylist> for normals
-		COLLADASW::Input input2(COLLADASW::NORMAL, getUrlBySemantics
-								(geom_id, COLLADASW::NORMAL), 0);
+		COLLADASW::Input input2(COLLADASW::NORMAL, getUrlBySemantics(geom_id, COLLADASW::NORMAL), 1);
 			
 		til.push_back(input1);
 		til.push_back(input2);
@@ -460,7 +474,7 @@ public:
 			char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
 			COLLADASW::Input input3(COLLADASW::TEXCOORD,
 									makeUrl(makeTexcoordSourceId(geom_id, i)),
-									1, // offset always 1, this is only until we have optimized UV sets
+									2, // offset always 2, this is only until we have optimized UV sets
 									i  // set number equals UV layer index
 									);
 			til.push_back(input3);
@@ -480,8 +494,10 @@ public:
 			if ((has_material && f->mat_nr == material_index) || !has_material) {
 
 				unsigned int *v = &f->v1;
+				unsigned int *n = &norind[i].v1;
 				for (int j = 0; j < (f->v4 == 0 ? 3 : 4); j++) {
 					polylist.appendValues(v[j]);
+					polylist.appendValues(n[j]);
 
 					if (has_uvs)
 						polylist.appendValues(texindex + j);
@@ -596,21 +612,18 @@ public:
 
 
 	//creates <source> for normals
-	void createNormalsSource(std::string geom_id, Mesh *me)
+	void createNormalsSource(std::string geom_id, Mesh *me, std::vector<Normal>& nor)
 	{
 #if 0
 		int totverts = dm->getNumVerts(dm);
 		MVert *verts = dm->getVertArray(dm);
 #endif
 
-		int totverts = me->totvert;
-		MVert *verts = me->mvert;
-
 		COLLADASW::FloatSourceF source(mSW);
 		source.setId(getIdBySemantics(geom_id, COLLADASW::NORMAL));
 		source.setArrayId(getIdBySemantics(geom_id, COLLADASW::NORMAL) +
 						  ARRAY_ID_SUFFIX);
-		source.setAccessorCount(totverts);
+		source.setAccessorCount(nor.size());
 		source.setAccessorStride(3);
 		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
 		param.push_back("X");
@@ -618,17 +631,64 @@ public:
 		param.push_back("Z");
 		
 		source.prepareToAppendValues();
-		
-		int i = 0;
-		
-		for( i = 0; i < totverts; ++i ){
-			
-			source.appendValues(float(verts[i].no[0]/32767.0),
-								float(verts[i].no[1]/32767.0),
-								float(verts[i].no[2]/32767.0));
-				
+
+		std::vector<Normal>::iterator it;
+		for (it = nor.begin(); it != nor.end(); it++) {
+			Normal& n = *it;
+			source.appendValues(n.x, n.y, n.z);
 		}
+
 		source.finish();
+	}
+
+	void create_normals(std::vector<Normal> &nor, std::vector<Face> &ind, Mesh *me)
+	{
+		int i, j, v;
+		MVert *vert = me->mvert;
+		std::map<unsigned int, unsigned int> nshar;
+
+		for (i = 0; i < me->totface; i++) {
+			MFace *fa = &me->mface[i];
+			Face f;
+			Normal n;
+			unsigned int *nn = &f.v1;
+			unsigned int *vv = &fa->v1;
+
+			memset(&f, 0, sizeof(f));
+			v = fa->v4 == 0 ? 3 : 4;
+
+			if (!(fa->flag & ME_SMOOTH)) {
+				if (v == 4)
+					normal_quad_v3(&n.x, vert[fa->v1].co, vert[fa->v2].co, vert[fa->v3].co, vert[fa->v4].co);
+				else
+					normal_tri_v3(&n.x, vert[fa->v1].co, vert[fa->v2].co, vert[fa->v3].co);
+			}
+
+			for (j = 0; j < v; j++) {
+				if (fa->flag & ME_SMOOTH) {
+					if (nshar.find(*vv) != nshar.end())
+						*nn = nshar[*vv];
+					else {
+						Normal n = {
+							vert[*vv].no[0]/32767.0,
+							vert[*vv].no[1]/32767.0,
+							vert[*vv].no[2]/32767.0
+						};
+						nor.push_back(n);
+						*nn = nor.size() - 1;
+						nshar[*vv] = *nn;
+					}
+					vv++;
+				}
+				else {
+					nor.push_back(n);
+					*nn = nor.size() - 1;
+				}
+				nn++;
+			}
+
+			ind.push_back(f);
+		}
 	}
 	
 	std::string getIdBySemantics(std::string geom_id, COLLADASW::Semantics type, std::string other_suffix = "") {
