@@ -860,7 +860,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 						dontdraw = 1;
 				}
 				else
-					orig = i;
+					orig = actualFace;
 				if( dontdraw ) {
 					state = 0;
 				}
