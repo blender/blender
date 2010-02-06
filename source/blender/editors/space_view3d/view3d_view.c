@@ -1801,11 +1801,13 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 	set_scene_bg(startscene);
 	//XXX scene_update_for_newframe(G.scene, G.scene->lay);
 	
-#else
-	printf("GameEngine Disabled\n");
-#endif
 	ED_area_tag_redraw(CTX_wm_area(C));
+
 	return OPERATOR_FINISHED;
+#else
+	BKE_report(op->reports, RPT_ERROR, "Game engine is disabled in this build.");
+	return OPERATOR_CANCELLED;
+#endif
 }
 
 void VIEW3D_OT_game_start(wmOperatorType *ot)
