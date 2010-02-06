@@ -2812,10 +2812,10 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 			case ACT_2DFILTER_NOFILTER:
 			case ACT_2DFILTER_DISABLED:
 			case ACT_2DFILTER_ENABLED:
-				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,0.0,MAX_RENDER_PASS-1,0.0,0.0,"Set motion blur value");
+				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,0.0,MAX_RENDER_PASS-1,0.0,0.0,"Set filter order");
 				break;
 			case ACT_2DFILTER_CUSTOMFILTER:
-				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,0.0,MAX_RENDER_PASS-1,0.0,0.0,"Set motion blur value");
+				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,0.0,MAX_RENDER_PASS-1,0.0,0.0,"Set filter order");
 				uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "Script: ", xco+30,yco-64,width-60, 19, &tdfa->text, "");
 				break;
 		}

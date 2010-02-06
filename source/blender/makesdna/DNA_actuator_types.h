@@ -86,7 +86,7 @@ typedef struct bEditObjectActuator {
 } bEditObjectActuator;
 
 typedef struct bSceneActuator {
-	short type, flag;
+	short type, pad1;
 	int pad;
 	struct Scene *scene;
 	struct Object *camera;
