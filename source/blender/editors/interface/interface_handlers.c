@@ -5152,7 +5152,7 @@ int ui_handle_menu_event(bContext *C, wmEvent *event, uiPopupBlockHandle *menu, 
 				case ZEROKEY: 	case PAD0: 
 					if(act==0) act= 10;
 				
-					if(block->flag & UI_BLOCK_NUMSELECT) {
+					if((block->flag & UI_BLOCK_NUMSELECT) && event->val==KM_PRESS) {
 						if(event->alt) act+= 10;
 						
 						count= 0;
