@@ -732,25 +732,46 @@ Object *scene_find_camera_switch(Scene *scene)
 }
 #endif
 
-static char *get_cfra_marker_name(Scene *scene)
+char *scene_find_marker_name(Scene *scene, int frame)
 {
 	ListBase *markers= &scene->markers;
 	TimeMarker *m1, *m2;
 
 	/* search through markers for match */
 	for (m1=markers->first, m2=markers->last; m1 && m2; m1=m1->next, m2=m2->prev) {
-		if (m1->frame==CFRA)
+		if (m1->frame==frame)
 			return m1->name;
 
 		if (m1 == m2)
 			break;
 
-		if (m2->frame==CFRA)
+		if (m2->frame==frame)
 			return m2->name;
 	}
 
 	return NULL;
 }
+
+/* return the current marker for this frame,
+we can have more then 1 marker per frame, this just returns the first :/ */
+char *scene_find_last_marker_name(Scene *scene, int frame)
+{
+	TimeMarker *marker, *best_marker = NULL;
+	int best_frame = -MAXFRAME*2;
+	for (marker= scene->markers.first; marker; marker= marker->next) {
+		if (marker->frame==frame) {
+			return marker;
+		}
+
+		if ( marker->frame > best_frame && marker->frame < frame) {
+			best_marker = marker;
+			best_frame = marker->frame;
+		}
+	}
+
+	return best_marker ? best_marker->name : NULL;
+}
+
 
 Base *scene_add_base(Scene *sce, Object *ob)
 {

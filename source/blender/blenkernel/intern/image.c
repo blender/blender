@@ -1011,9 +1011,9 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 	
 	if (scene->r.stamp & R_STAMP_MARKER) {
-		TimeMarker *marker = NULL; // XXX get_frame_marker(scene->r.cfra);
+		char *name = scene_find_last_marker_name(scene, CFRA);
 	
-		if (marker) strcpy(text, marker->name);
+		if (name)	strcpy(text, name);
 		else 		strcpy(text, "<none>");
 		
 		if (do_prefix)		sprintf(stamp_data->marker, "Marker %s", text);

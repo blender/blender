@@ -755,27 +755,6 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 	}
 }
 
-
-static char *get_cfra_marker_name(Scene *scene)
-{
-	ListBase *markers= &scene->markers;
-	TimeMarker *m1, *m2;
-	
-	/* search through markers for match */
-	for (m1=markers->first, m2=markers->last; m1 && m2; m1=m1->next, m2=m2->prev) {
-		if (m1->frame==CFRA)
-			return m1->name;
-		
-		if (m1 == m2)
-			break;		
-		
-		if (m2->frame==CFRA)
-			return m2->name;
-	}
-	
-	return NULL;
-}
-
 /* draw info beside axes in bottom left-corner: 
 * 	framenum, object name, bone name (if available), marker name (if available)
 */
@@ -785,7 +764,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 	short offset=30;
 	
 	/* get name of marker on current frame (if available) */
-	markern= get_cfra_marker_name(scene);
+	markern= scene_find_marker_name(scene, CFRA);
 	
 	/* check if there is an object */
 	if(ob) {
