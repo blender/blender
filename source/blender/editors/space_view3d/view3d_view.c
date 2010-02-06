@@ -1747,7 +1747,7 @@ int ED_view3d_context_activate(bContext *C)
 	return 1;
 }
 
-static int game_engine_exec(bContext *C, wmOperator *unused)
+static int game_engine_exec(bContext *C, wmOperator *op)
 {
 #if GAMEBLENDER == 1
 	Scene *startscene = CTX_data_scene(C);
