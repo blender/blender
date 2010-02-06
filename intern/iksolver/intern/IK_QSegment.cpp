@@ -28,6 +28,10 @@
  */
 
 #include "IK_QSegment.h"
+#ifdef WIN32
+#define _USE_MATH_DEFINES
+#endif
+#include <cmath>
 
 // Utility functions
 
