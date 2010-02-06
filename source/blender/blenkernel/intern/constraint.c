@@ -648,6 +648,7 @@ static bConstraintTypeInfo CTI_CONSTRNAME = {
 	"bConstrNameConstraint", /* struct name */
 	constrname_free, /* free data */
 	constrname_relink, /* relink data */
+	constrname_id_looper, /* id looper */
 	constrname_copy, /* copy data */
 	constrname_new_data, /* new data */
 	constrname_get_tars, /* get constraint targets */
@@ -774,6 +775,14 @@ static void childof_new_data (void *cdata)
 	unit_m4(data->invmat);
 }
 
+static void childof_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bChildOfConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
+}
+
 static int childof_get_tars (bConstraint *con, ListBase *list)
 {
 	if (con && list) {
@@ -858,6 +867,7 @@ static bConstraintTypeInfo CTI_CHILDOF = {
 	"bChildOfConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	childof_id_looper, /* id looper */
 	NULL, /* copy data */
 	childof_new_data, /* new data */
 	childof_get_tars, /* get constraint targets */
@@ -875,6 +885,14 @@ static void trackto_new_data (void *cdata)
 	data->reserved1 = TRACK_Y;
 	data->reserved2 = UP_Z;
 }	
+
+static void trackto_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bTrackToConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
+}
 
 static int trackto_get_tars (bConstraint *con, ListBase *list)
 {
@@ -1037,6 +1055,7 @@ static bConstraintTypeInfo CTI_TRACKTO = {
 	"bTrackToConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	trackto_id_looper, /* id looper */
 	NULL, /* copy data */
 	trackto_new_data, /* new data */
 	trackto_get_tars, /* get constraint targets */
@@ -1056,6 +1075,17 @@ static void kinematic_new_data (void *cdata)
 	data->iterations = 500;
 	data->dist= (float)1.0;
 	data->flag= CONSTRAINT_IK_TIP|CONSTRAINT_IK_STRETCH|CONSTRAINT_IK_POS;
+}
+
+static void kinematic_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bKinematicConstraint *data= con->data;
+	
+	/* chain target */
+	func(con, (ID**)&data->tar, userdata);
+	
+	/* poletarget */
+	func(con, (ID**)&data->poletar, userdata);
 }
 
 static int kinematic_get_tars (bConstraint *con, ListBase *list)
@@ -1120,6 +1150,7 @@ static bConstraintTypeInfo CTI_KINEMATIC = {
 	"bKinematicConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	kinematic_id_looper, /* id looper */
 	NULL, /* copy data */
 	kinematic_new_data, /* new data */
 	kinematic_get_tars, /* get constraint targets */
@@ -1138,6 +1169,14 @@ static void followpath_new_data (void *cdata)
 	data->upflag = UP_Z;
 	data->offset = 0;
 	data->followflag = 0;
+}
+
+static void followpath_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bFollowPathConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
 }
 
 static int followpath_get_tars (bConstraint *con, ListBase *list)
@@ -1283,6 +1322,7 @@ static bConstraintTypeInfo CTI_FOLLOWPATH = {
 	"bFollowPathConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	followpath_id_looper, /* id looper */
 	NULL, /* copy data */
 	followpath_new_data, /* new data */
 	followpath_get_tars, /* get constraint targets */
@@ -1331,6 +1371,7 @@ static bConstraintTypeInfo CTI_LOCLIMIT = {
 	"bLocLimitConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	NULL, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */
 	NULL, /* get constraint targets */
@@ -1388,6 +1429,7 @@ static bConstraintTypeInfo CTI_ROTLIMIT = {
 	"bRotLimitConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	NULL, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */
 	NULL, /* get constraint targets */
@@ -1447,6 +1489,7 @@ static bConstraintTypeInfo CTI_SIZELIMIT = {
 	"bSizeLimitConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	NULL, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */
 	NULL, /* get constraint targets */
@@ -1462,6 +1505,14 @@ static void loclike_new_data (void *cdata)
 	bLocateLikeConstraint *data= (bLocateLikeConstraint *)cdata;
 	
 	data->flag = LOCLIKE_X|LOCLIKE_Y|LOCLIKE_Z;
+}
+
+static void loclike_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bLocateLikeConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
 }
 
 static int loclike_get_tars (bConstraint *con, ListBase *list)
@@ -1529,6 +1580,7 @@ static bConstraintTypeInfo CTI_LOCLIKE = {
 	"bLocateLikeConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	loclike_id_looper, /* id looper */
 	NULL, /* copy data */
 	loclike_new_data, /* new data */
 	loclike_get_tars, /* get constraint targets */
@@ -1544,6 +1596,14 @@ static void rotlike_new_data (void *cdata)
 	bRotateLikeConstraint *data= (bRotateLikeConstraint *)cdata;
 	
 	data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
+}
+
+static void rotlike_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bChildOfConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
 }
 
 static int rotlike_get_tars (bConstraint *con, ListBase *list)
@@ -1631,6 +1691,7 @@ static bConstraintTypeInfo CTI_ROTLIKE = {
 	"bRotateLikeConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	rotlike_id_looper, /* id looper */
 	NULL, /* copy data */
 	rotlike_new_data, /* new data */
 	rotlike_get_tars, /* get constraint targets */
@@ -1646,6 +1707,14 @@ static void sizelike_new_data (void *cdata)
 	bSizeLikeConstraint *data= (bSizeLikeConstraint *)cdata;
 	
 	data->flag = SIZELIKE_X|SIZELIKE_Y|SIZELIKE_Z;
+}
+
+static void sizelike_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bSizeLikeConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
 }
 
 static int sizelike_get_tars (bConstraint *con, ListBase *list)
@@ -1719,6 +1788,7 @@ static bConstraintTypeInfo CTI_SIZELIKE = {
 	"bSizeLikeConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	sizelike_id_looper, /* id looper */
 	NULL, /* copy data */
 	sizelike_new_data, /* new data */
 	sizelike_get_tars, /* get constraint targets */
@@ -1728,6 +1798,14 @@ static bConstraintTypeInfo CTI_SIZELIKE = {
 };
 
 /* ----------- Copy Transforms ------------- */
+
+static void translike_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bTransLikeConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
+}
 
 static int translike_get_tars (bConstraint *con, ListBase *list)
 {
@@ -1772,6 +1850,7 @@ static bConstraintTypeInfo CTI_TRANSLIKE = {
 	"bTransLikeConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	translike_id_looper, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */
 	translike_get_tars, /* get constraint targets */
@@ -1831,6 +1910,19 @@ static int pycon_get_tars (bConstraint *con, ListBase *list)
 	}
 	
 	return 0;
+}
+
+static void pycon_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bPythonConstraint *data= con->data;
+	bConstraintTarget *ct;
+	
+	/* targets */
+	for (ct= data->targets.first; ct; ct= ct->next)
+		func(con, (ID**)&ct->tar, userdata);
+		
+	/* script */
+	func(con, (ID**)&data->text, userdata);
 }
 
 /* Whether this approach is maintained remains to be seen (aligorith) */
@@ -1894,6 +1986,7 @@ static bConstraintTypeInfo CTI_PYTHON = {
 	"bPythonConstraint", /* struct name */
 	pycon_free, /* free data */
 	pycon_relink, /* relink data */
+	pycon_id_looper, /* id looper */
 	pycon_copy, /* copy data */
 	pycon_new_data, /* new data */
 	pycon_get_tars, /* get constraint targets */
@@ -1921,9 +2014,20 @@ static void actcon_new_data (void *cdata)
 /* only for setting the ID as extern */
 static void actcon_copy_data (bConstraint *con, bConstraint *srccon)
 {
-	bActionConstraint *src= srccon->data;
+	//bActionConstraint *src= srccon->data;
 	bActionConstraint *dst= con->data;
 	id_lib_extern((ID *)dst->act); /* would be better solved with something like modifiers_foreachIDLink */
+}
+
+static void actcon_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bActionConstraint *data= con->data;
+	
+	/* target */
+	func(con, (ID**)&data->tar, userdata);
+	
+	/* action */
+	func(con, (ID**)&data->act, userdata);
 }
 
 static int actcon_get_tars (bConstraint *con, ListBase *list)
@@ -2065,6 +2169,7 @@ static bConstraintTypeInfo CTI_ACTION = {
 	"bActionConstraint", /* struct name */
 	NULL, /* free data */
 	actcon_relink, /* relink data */
+	actcon_id_looper, /* id looper */
 	actcon_copy_data, /* copy data */
 	actcon_new_data, /* new data */
 	actcon_get_tars, /* get constraint targets */
@@ -2082,6 +2187,14 @@ static void locktrack_new_data (void *cdata)
 	data->trackflag = TRACK_Y;
 	data->lockflag = LOCK_Z;
 }	
+
+static void locktrack_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bLockTrackConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
+}
 
 static int locktrack_get_tars (bConstraint *con, ListBase *list)
 {
@@ -2418,6 +2531,7 @@ static bConstraintTypeInfo CTI_LOCKTRACK = {
 	"bLockTrackConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	locktrack_id_looper, /* id looper */
 	NULL, /* copy data */
 	locktrack_new_data, /* new data */
 	locktrack_get_tars, /* get constraint targets */
@@ -2432,7 +2546,15 @@ static void distlimit_new_data (void *cdata)
 {
 	bDistLimitConstraint *data= (bDistLimitConstraint *)cdata;
 	
-	data->dist= 0.0;
+	data->dist= 0.0f;
+}
+
+static void distlimit_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bDistLimitConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
 }
 
 static int distlimit_get_tars (bConstraint *con, ListBase *list)
@@ -2534,6 +2656,7 @@ static bConstraintTypeInfo CTI_DISTLIMIT = {
 	"bDistLimitConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	distlimit_id_looper, /* id looper */
 	NULL, /* copy data */
 	distlimit_new_data, /* new data */
 	distlimit_get_tars, /* get constraint targets */
@@ -2552,6 +2675,14 @@ static void stretchto_new_data (void *cdata)
 	data->plane = 0;
 	data->orglength = 0.0; 
 	data->bulge = 1.0;
+}
+
+static void stretchto_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bStretchToConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
 }
 
 static int stretchto_get_tars (bConstraint *con, ListBase *list)
@@ -2714,6 +2845,7 @@ static bConstraintTypeInfo CTI_STRETCHTO = {
 	"bStretchToConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	stretchto_id_looper, /* id looper */
 	NULL, /* copy data */
 	stretchto_new_data, /* new data */
 	stretchto_get_tars, /* get constraint targets */
@@ -2732,6 +2864,14 @@ static void minmax_new_data (void *cdata)
 	data->offset = 0.0f;
 	data->cache[0] = data->cache[1] = data->cache[2] = 0.0f;
 	data->flag = 0;
+}
+
+static void minmax_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bMinMaxConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
 }
 
 static int minmax_get_tars (bConstraint *con, ListBase *list)
@@ -2850,6 +2990,7 @@ static bConstraintTypeInfo CTI_MINMAX = {
 	"bMinMaxConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	minmax_id_looper, /* id looper */
 	NULL, /* copy data */
 	minmax_new_data, /* new data */
 	minmax_get_tars, /* get constraint targets */
@@ -2866,6 +3007,14 @@ static void rbj_new_data (void *cdata)
 	
 	// removed code which set target of this constraint  
     data->type=1;
+}
+
+static void rbj_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bRigidBodyJointConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
 }
 
 static int rbj_get_tars (bConstraint *con, ListBase *list)
@@ -2901,6 +3050,7 @@ static bConstraintTypeInfo CTI_RIGIDBODYJOINT = {
 	"bRigidBodyJointConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	rbj_id_looper, /* id looper */
 	NULL, /* copy data */
 	rbj_new_data, /* new data */
 	rbj_get_tars, /* get constraint targets */
@@ -2910,6 +3060,14 @@ static bConstraintTypeInfo CTI_RIGIDBODYJOINT = {
 };
 
 /* -------- Clamp To ---------- */
+
+static void clampto_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bClampToConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
+}
 
 static int clampto_get_tars (bConstraint *con, ListBase *list)
 {
@@ -3078,6 +3236,7 @@ static bConstraintTypeInfo CTI_CLAMPTO = {
 	"bClampToConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	clampto_id_looper, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */
 	clampto_get_tars, /* get constraint targets */
@@ -3095,6 +3254,14 @@ static void transform_new_data (void *cdata)
 	data->map[0]= 0;
 	data->map[1]= 1;
 	data->map[2]= 2;
+}
+
+static void transform_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bTransformConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
 }
 
 static int transform_get_tars (bConstraint *con, ListBase *list)
@@ -3217,6 +3384,7 @@ static bConstraintTypeInfo CTI_TRANSFORM = {
 	"bTransformConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	transform_id_looper, /* id looper */
 	NULL, /* copy data */
 	transform_new_data, /* new data */
 	transform_get_tars, /* get constraint targets */
@@ -3226,6 +3394,14 @@ static bConstraintTypeInfo CTI_TRANSFORM = {
 };
 
 /* ---------- Shrinkwrap Constraint ----------- */
+
+static void shrinkwrap_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bShrinkwrapConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->target, userdata);
+}
 
 static int shrinkwrap_get_tars (bConstraint *con, ListBase *list)
 {
@@ -3374,6 +3550,7 @@ static bConstraintTypeInfo CTI_SHRINKWRAP = {
 	"bShrinkwrapConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	shrinkwrap_id_looper, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */
 	shrinkwrap_get_tars, /* get constraint targets */
@@ -3390,6 +3567,14 @@ static void damptrack_new_data (void *cdata)
 	
 	data->trackflag = TRACK_Y;
 }	
+
+static void damptrack_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bDampTrackConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
+}
 
 static int damptrack_get_tars (bConstraint *con, ListBase *list)
 {
@@ -3493,6 +3678,7 @@ static bConstraintTypeInfo CTI_DAMPTRACK = {
 	"bDampTrackConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* relink data */
+	damptrack_id_looper, /* id looper */
 	NULL, /* copy data */
 	damptrack_new_data, /* new data */
 	damptrack_get_tars, /* get constraint targets */
@@ -3519,6 +3705,14 @@ static void splineik_copy (bConstraint *con, bConstraint *srccon)
 	
 	/* copy the binding array */
 	dst->points= MEM_dupallocN(src->points);
+}
+
+static void splineik_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
+{
+	bSplineIKConstraint *data= con->data;
+	
+	/* target only */
+	func(con, (ID**)&data->tar, userdata);
 }
 
 static int splineik_get_tars (bConstraint *con, ListBase *list)
@@ -3575,6 +3769,7 @@ static bConstraintTypeInfo CTI_SPLINEIK = {
 	"bSplineIKConstraint", /* struct name */
 	splineik_free, /* free data */
 	NULL, /* relink data */
+	splineik_id_looper, /* id looper */
 	splineik_copy, /* copy data */
 	NULL, /* new data */
 	splineik_get_tars, /* get constraint targets */
@@ -3833,6 +4028,21 @@ void relink_constraints (ListBase *conlist)
 			/* relink any other special data */
 			if (cti->relink_data)
 				cti->relink_data(con);
+		}
+	}
+}
+
+/* Run the given callback on all ID-blocks in list of constraints */
+void id_loop_constraints (ListBase *conlist, ConstraintIDFunc func, void *userdata)
+{
+	bConstraint *con;
+	
+	for (con= conlist->first; con; con= con->next) {
+		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+		
+		if (cti) {
+			if (cti->id_looper)
+				cti->id_looper(con, func, userdata);
 		}
 	}
 }
