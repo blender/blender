@@ -1240,13 +1240,15 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 			MEM_freeN(faces);
 		}
 
-		/* should be per face */
-		if(faceFlags && faceFlags[0] & ME_SMOOTH)
-			glShadeModel(GL_SMOOTH);
+		if(dm->numFaceData) {
+			/* should be per face */
+			if(!setMaterial(faceFlags[1], NULL))
+				return;
 
-		BLI_pbvh_draw(ccgdm->pbvh, partial_redraw_planes, NULL);
-
-		glShadeModel(GL_FLAT);
+			glShadeModel((faceFlags[0] & ME_SMOOTH)? GL_SMOOTH: GL_FLAT);
+			BLI_pbvh_draw(ccgdm->pbvh, partial_redraw_planes, NULL);
+			glShadeModel(GL_FLAT);
+		}
 
 		return;
 	}

@@ -414,15 +414,17 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 }
 
 	if(cddm->pbvh) {
-		float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
+		if(dm->numFaceData) {
+			float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 
-		/* should be per face */
-		if(dm->numFaceData && mface->flag & ME_SMOOTH)
-			glShadeModel(GL_SMOOTH);
+			/* should be per face */
+			if(!setMaterial(mface->mat_nr+1, NULL))
+				return;
 
-		BLI_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors);
-
-		glShadeModel(GL_FLAT);
+			glShadeModel((mface->flag & ME_SMOOTH)? GL_SMOOTH: GL_FLAT);
+			BLI_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors);
+			glShadeModel(GL_FLAT);
+		}
 
 		return;
 	}
