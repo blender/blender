@@ -106,11 +106,6 @@
 #define VP_LIGHTEN	5
 #define VP_DARKEN	6
 
-#define MAXINDEX	512000
-
-/* XXX */
-static void error() {}
-
 /* polling - retrieve whether cursor should be set or operator should be done */
 
 
@@ -171,9 +166,9 @@ static VPaint *new_vpaint(int wpaint)
 	return vp;
 }
 
-static int *get_indexarray(void)
+static int *get_indexarray(Mesh *me)
 {
-	return MEM_mallocN(sizeof(int)*MAXINDEX + 2, "vertexpaint");
+	return MEM_mallocN(sizeof(int)*(me->totface+1), "vertexpaint");
 }
 
 
@@ -380,7 +375,8 @@ void wpaint_fill(VPaint *wp, Object *ob, float paintweight)
 	
 	selected= (me->editflag & ME_EDIT_PAINT_MASK);
 
-	indexar= get_indexarray();
+	indexar= get_indexarray(me);
+
 	if(selected) {
 		for(index=0, mface=me->mface; index<me->totface; index++, mface++) {
 			if((mface->flag & ME_FACE_SEL)==0)
@@ -714,8 +710,6 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	struct ImBuf *ibuf;
 	int a, tot=0, index;
 	
-	if(totface+4>=MAXINDEX) return 0;
-	
 	/* brecht: disabled this because it obviously failes for
 	   brushes with size > 64, why is this here? */
 	/*if(size>64.0) size= 64.0;*/
@@ -724,7 +718,7 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 	if(ibuf) {
 		unsigned int *rt= ibuf->rect;
 
-		memset(indexar, 0, sizeof(int)*totface+4);	/* plus 2! first element is total, +2 was giving valgrind errors, +4 seems ok */
+		memset(indexar, 0, sizeof(int)*(totface+1));
 		
 		size= ibuf->x*ibuf->y;
 		while(size--) {
@@ -1100,12 +1094,6 @@ static int set_wpaint(bContext *C, wmOperator *op)		/* toggle */
 	me= get_mesh(ob);
 	if(ob->id.lib || me==NULL) return OPERATOR_PASS_THROUGH;
 	
-	if(me && me->totface>=MAXINDEX) {
-		error("Maximum number of faces: %d", MAXINDEX-1);
-		ob->mode &= ~OB_MODE_WEIGHT_PAINT;
-		return OPERATOR_CANCELLED;
-	}
-	
 	if(ob->mode & OB_MODE_WEIGHT_PAINT) ob->mode &= ~OB_MODE_WEIGHT_PAINT;
 	else ob->mode |= OB_MODE_WEIGHT_PAINT;
 	
@@ -1382,7 +1370,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *event)
 	/* ALLOCATIONS! no return after this line */
 	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
 	wpd->vertexcosnos= mesh_get_mapped_verts_nors(scene, ob);
-	wpd->indexar= get_indexarray();
+	wpd->indexar= get_indexarray(me);
 	copy_wpaint_prev(wp, me->dvert, me->totvert);
 	
 	/* this happens on a Bone select, when no vgroup existed yet */
@@ -1729,12 +1717,6 @@ static int set_vpaint(bContext *C, wmOperator *op)		/* toggle */
 		return OPERATOR_PASS_THROUGH;
 	}
 	
-	if(me && me->totface>=MAXINDEX) {
-		error("Maximum number of faces: %d", MAXINDEX-1);
-		ob->mode &= ~OB_MODE_VERTEX_PAINT;
-		return OPERATOR_FINISHED;
-	}
-	
 	if(me && me->mcol==NULL) make_vertexcol(ob);
 	
 	/* toggle: end vpaint */
@@ -1835,7 +1817,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	view3d_set_viewcontext(C, &vpd->vc);
 	
 	vpd->vertexcosnos= mesh_get_mapped_verts_nors(vpd->vc.scene, ob);
-	vpd->indexar= get_indexarray();
+	vpd->indexar= get_indexarray(me);
 	vpd->paintcol= vpaint_get_current_col(vp);
 	
 	/* for filtering */
