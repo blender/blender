@@ -1076,7 +1076,11 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	short event_code= VIEW_PASS;
 
 	/* execute the events */
-	if(event->type==MOUSEMOVE) {
+	if (event->type == TIMER && event->customdata == vod->timer) {
+		/* continuous zoom */
+		event_code= VIEW_APPLY;
+	}
+	else if(event->type==MOUSEMOVE) {
 		event_code= VIEW_APPLY;
 	}
 	else if(event->type==EVT_MODAL_MAP) {
@@ -1194,6 +1198,12 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_FINISHED;
 		}
 		else {
+			if(U.viewzoom == USER_ZOOM_CONT) {
+				/* needs a timer to continue redrawing */
+				vod->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+				vod->timer_lastdraw= PIL_check_seconds_timer();
+			}
+
 			/* add temp handler */
 			WM_event_add_modal_handler(C, op);
 
