@@ -460,7 +460,26 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
             col = split.column()
         col.prop(rd, "pixel_filter", text="")
         col.prop(rd, "filter_size", text="Size")
+        
 
+class RENDER_PT_motion_blur(RenderButtonsPanel):
+    bl_label = "Full Sample Motion Blur"
+    bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw_header(self, context):
+        rd = context.scene.render_data
+
+        self.layout.prop(rd, "motion_blur", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render_data
+        layout.active = rd.motion_blur
+
+        row = layout.row()
+        row.prop(rd, "motion_blur_samples")
 
 class RENDER_PT_dimensions(RenderButtonsPanel):
     bl_label = "Dimensions"
@@ -608,6 +627,7 @@ bpy.types.register(RENDER_PT_render)
 bpy.types.register(RENDER_PT_layers)
 bpy.types.register(RENDER_PT_dimensions)
 bpy.types.register(RENDER_PT_antialiasing)
+bpy.types.register(RENDER_PT_motion_blur)
 bpy.types.register(RENDER_PT_shading)
 bpy.types.register(RENDER_PT_output)
 bpy.types.register(RENDER_PT_encoding)

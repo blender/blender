@@ -2070,8 +2070,8 @@ void zbuffer_solid(RenderPart *pa, RenderLayer *rl, void(*fillfunc)(RenderPart*,
 			zspan->zofsy= -pa->disprect.ymin - R.jit[pa->sample+zsample][1];
 		}
 		else if(R.i.curblur) {
-			zspan->zofsx= -pa->disprect.xmin - R.jit[R.i.curblur-1][0];
-			zspan->zofsy= -pa->disprect.ymin - R.jit[R.i.curblur-1][1];
+			zspan->zofsx= -pa->disprect.xmin - R.mblur_jit[R.i.curblur-1][0];
+			zspan->zofsy= -pa->disprect.ymin - R.mblur_jit[R.i.curblur-1][1];
 		}
 		else {
 			zspan->zofsx= -pa->disprect.xmin;
@@ -3414,7 +3414,7 @@ static int zbuffer_abuf_render(RenderPart *pa, APixstr *APixbuf, APixstrand *APi
 	if(R.osa)
 		jit= R.jit;
 	else if(R.i.curblur)
-		jit= &R.jit[R.i.curblur-1];
+		jit= &R.mblur_jit[R.i.curblur-1];
 	else
 		jit= NULL;
 	

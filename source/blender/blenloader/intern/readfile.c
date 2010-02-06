@@ -10082,6 +10082,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 				if(sce->r.frame_step==0)
 					sce->r.frame_step= 1;
+				if (sce->r.mblur_samples==0)
+					sce->r.mblur_samples = sce->r.osa;
 				
 				if(sce->ed && sce->ed->seqbasep)
 				{

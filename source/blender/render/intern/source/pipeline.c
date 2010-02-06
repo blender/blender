@@ -1929,20 +1929,20 @@ static void do_render_blur_3d(Render *re)
 {
 	RenderResult *rres;
 	float blurfac;
-	int blur= re->r.osa;
+	int blur= re->r.mblur_samples;
 	
 	/* create accumulation render result */
 	rres= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 	
 	/* do the blur steps */
 	while(blur--) {
-		set_mblur_offs( re->r.blurfac*((float)(re->r.osa-blur))/(float)re->r.osa );
+		set_mblur_offs( re->r.blurfac*((float)(re->r.mblur_samples-blur))/(float)re->r.mblur_samples );
 		
-		re->i.curblur= re->r.osa-blur;	/* stats */
+		re->i.curblur= re->r.mblur_samples-blur;	/* stats */
 		
 		do_render_3d(re);
 		
-		blurfac= 1.0f/(float)(re->r.osa-blur);
+		blurfac= 1.0f/(float)(re->r.mblur_samples-blur);
 		
 		merge_renderresult_blur(rres, re->result, blurfac, re->r.alphamode & R_ALPHAKEY);
 		if(re->test_break(re->tbh)) break;

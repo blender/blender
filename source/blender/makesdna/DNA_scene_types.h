@@ -302,7 +302,10 @@ typedef struct RenderData {
 	
 	/* information on different layers to be rendered */
 	ListBase layers;
-	short actlay, pad;
+	short actlay;
+	
+	/* number of mblur samples */
+	short mblur_samples;
 	
 	/**
 	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45

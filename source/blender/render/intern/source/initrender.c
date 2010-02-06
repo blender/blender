@@ -85,15 +85,23 @@
 static void init_render_jit(Render *re)
 {
 	static float jit[32][2];	/* simple caching */
+	static float mblur_jit[32][2];	/* simple caching */
 	static int lastjit= 0;
+	static int last_mblur_jit= 0;
 	
-	if(lastjit!=re->r.osa) {
+	if(lastjit!=re->r.osa || last_mblur_jit != re->r.mblur_samples) {
 		memset(jit, 0, sizeof(jit));
 		BLI_initjit(jit[0], re->r.osa);
+		
+		memset(mblur_jit, 0, sizeof(mblur_jit));
+		BLI_initjit(mblur_jit[0], re->r.mblur_samples);
 	}
 	
 	lastjit= re->r.osa;
 	memcpy(re->jit, jit, sizeof(jit));
+	
+	last_mblur_jit= re->r.mblur_samples;
+	memcpy(re->mblur_jit, mblur_jit, sizeof(mblur_jit));
 }
 
 
