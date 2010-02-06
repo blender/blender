@@ -554,11 +554,10 @@ static int set_image_type(int argc, char **argv, void *data)
 			else if (!strcmp(imtype,"JP2")) scene->r.imtype = R_JP2;
 #endif
 			else printf("\nError: Format from '-F' not known or not compiled in this release.\n");
-
 		}
 		return 1;
 	} else {
-		printf("\nError: no blend loaded. cannot use '-x'.\n");
+		printf("\nError: you must specify a format after '-F '.\n");
 		return 0;
 	}
 }
