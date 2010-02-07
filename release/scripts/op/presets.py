@@ -131,7 +131,7 @@ class AddPresetCloth(AddPresetBase):
 
 
 class AddPresetSunSky(AddPresetBase):
-    '''Add a Cloth Preset.'''
+    '''Add a Sky & Atmosphere Preset.'''
     bl_idname = "lamp.sunsky_preset_add"
     bl_label = "Add Sunsky Preset"
     name = AddPresetBase.name
@@ -148,7 +148,6 @@ class AddPresetSunSky(AddPresetBase):
         "bpy.context.object.data.sky.sun_size",
         "bpy.context.object.data.sky.backscattered_light",
         "bpy.context.object.data.sky.sun_intensity",
-        "bpy.context.object.data.sky.atmosphere_distance_factor",
         "bpy.context.object.data.sky.atmosphere_inscattering",
         "bpy.context.object.data.sky.atmosphere_extinction",
     ]

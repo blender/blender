@@ -9,6 +9,5 @@ bpy.context.object.data.sky.sun_brightness = 1.99999988079
 bpy.context.object.data.sky.sun_size = 4.0
 bpy.context.object.data.sky.backscattered_light = -1.0
 bpy.context.object.data.sky.sun_intensity = 10.0
-bpy.context.object.data.sky.atmosphere_distance_factor = 0.0
 bpy.context.object.data.sky.atmosphere_inscattering = 1.0
 bpy.context.object.data.sky.atmosphere_extinction = 1.0
