@@ -574,6 +574,118 @@ void ACTION_OT_select_column (wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
 }
 
+/* ******************** Select More/Less Operators *********************** */
+
+/* Common code to perform selection */
+static void select_moreless_action_keys (bAnimContext *ac, short mode)
+{
+	ListBase anim_data= {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	BeztEditData bed;
+	BeztEditFunc build_cb;
+	
+	
+	/* init selmap building data */
+	build_cb= ANIM_editkeyframes_buildselmap(mode);
+	memset(&bed, 0, sizeof(BeztEditData)); 
+	
+	/* loop through all of the keys and select additional keyframes based on these */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->key_data;
+		
+		/* only continue if F-Curve has keyframes */
+		if (fcu->bezt == NULL)
+			continue;
+		
+		/* build up map of whether F-Curve's keyframes should be selected or not */
+		bed.data= MEM_callocN(fcu->totvert, "selmap actEdit more");
+		ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, build_cb, NULL);
+		
+		/* based on this map, adjust the selection status of the keyframes */
+		ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, bezt_selmap_flush, NULL);
+		
+		/* free the selmap used here */
+		MEM_freeN(bed.data);
+		bed.data= NULL;
+	}
+	
+	/* Cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* ----------------- */
+
+static int actkeys_select_more_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* perform select changes */
+	select_moreless_action_keys(&ac, SELMAP_MORE);
+	
+	/* set notifier that keyframe selection has changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_select_more (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select More";
+	ot->idname= "ACTION_OT_select_more";
+	ot->description = "Select keyframes beside already selected ones.";
+	
+	/* api callbacks */
+	ot->exec= actkeys_select_more_exec;
+	ot->poll= ED_operator_action_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+}
+
+/* ----------------- */
+
+static int actkeys_select_less_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* perform select changes */
+	select_moreless_action_keys(&ac, SELMAP_LESS);
+	
+	/* set notifier that keyframe selection has changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_select_less (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Less";
+	ot->idname= "ACTION_OT_select_less";
+	ot->description = "Deselect keyframes on ends of selection islands.";
+	
+	/* api callbacks */
+	ot->exec= actkeys_select_less_exec;
+	ot->poll= ED_operator_action_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+}
+
 /* ******************** Mouse-Click Select Operator *********************** */
 /* This operator works in one of three ways:
  *	- 1) keyframe under mouse - no special modifiers
