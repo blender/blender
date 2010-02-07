@@ -1943,7 +1943,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	}
 	else {
 		RenderResult rres;
-		float *rectf;
+		float *rectf, *rectz;
 		unsigned int *rect;
 		float dither;
 		int channels, layer, pass;
@@ -1956,6 +1956,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		RE_AcquireResultImage(RE_GetRender(iuser->scene->id.name), &rres);
 		rect= (unsigned int *)rres.rect32;
 		rectf= rres.rectf;
+		rectz= rres.rectz;
 		dither= iuser->scene->r.dither_intensity;
 
 		/* get compo/seq result by default */
@@ -1963,18 +1964,24 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		else if(rr->layers.first) {
 			RenderLayer *rl= BLI_findlink(&rr->layers, layer-(rr->rectf?1:0));
 			if(rl) {
+				RenderPass *rpass;
+
 				/* there's no combined pass, is in renderlayer itself */
 				if(pass==0) {
 					rectf= rl->rectf;
 				}
 				else {
-					RenderPass *rpass= BLI_findlink(&rl->passes, pass-1);
+					rpass= BLI_findlink(&rl->passes, pass-1);
 					if(rpass) {
 						channels= rpass->channels;
 						rectf= rpass->rect;
 						dither= 0.0f; /* don't dither passes */
 					}
 				}
+
+				for(rpass= rl->passes.first; rpass; rpass= rpass->next)
+					if(rpass->passtype == SCE_PASS_Z)
+						rectz= rpass->rect;
 			}
 		}
 		
@@ -1997,7 +2004,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 			ibuf->rect_float= rectf;
 			ibuf->flags |= IB_rectfloat;
 			ibuf->channels= channels;
-			ibuf->zbuf_float= rres.rectz;
+			ibuf->zbuf_float= rectz;
 			ibuf->flags |= IB_zbuffloat;
 			ibuf->dither= dither;
 
