@@ -92,7 +92,7 @@ void ImageRender::setBackground (int red, int green, int blue, int alpha)
 
 
 // capture image from viewport
-void ImageRender::calcImage (unsigned int texId)
+void ImageRender::calcImage (unsigned int texId, double ts)
 {
     if (m_rasterizer->GetDrawingMode() != RAS_IRasterizer::KX_TEXTURED ||   // no need for texture
         m_camera->GetViewport() ||        // camera must be inactive
@@ -105,7 +105,7 @@ void ImageRender::calcImage (unsigned int texId)
     // render the scene from the camera
     Render();
 	// get image from viewport
-	ImageViewport::calcImage(texId);
+	ImageViewport::calcImage(texId, ts);
     // restore OpenGL state
     m_canvas->EndFrame();
 }

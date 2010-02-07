@@ -129,6 +129,9 @@ protected:
 	/// end of file reached
 	bool m_eof;
 
+	/// flag to indicate that time is coming from application
+	bool m_externTime;
+
 	/// current file pointer position in file expressed in frame number
 	long m_curPosition;
 
@@ -154,10 +157,10 @@ protected:
 	STR_String m_imageName;
 
 	/// image calculation
-	virtual void calcImage (unsigned int texId);
+	virtual void calcImage (unsigned int texId, double ts);
 
 	/// load frame from video
-	void loadFrame (void);
+	void loadFrame (double ts);
 
 	/// set actual position
 	void setPositions (void);

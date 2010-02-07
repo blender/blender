@@ -279,7 +279,9 @@ PyObject * Texture_refresh (Texture * self, PyObject * args)
 {
 	// get parameter - refresh source
 	PyObject * param;
-	if (!PyArg_ParseTuple(args, "O:refresh", &param) || !PyBool_Check(param))
+	double ts = -1.0;
+
+	if (!PyArg_ParseTuple(args, "O|d:refresh", &param, &ts) || !PyBool_Check(param))
 	{
 		// report error
 		PyErr_SetString(PyExc_TypeError, "The value must be a bool");
@@ -315,7 +317,7 @@ PyObject * Texture_refresh (Texture * self, PyObject * args)
 				}
 
 				// get texture
-				unsigned int * texture = self->m_source->m_image->getImage(self->m_actTex);
+				unsigned int * texture = self->m_source->m_image->getImage(self->m_actTex, ts);
 				// if texture is available
 				if (texture != NULL)
 				{

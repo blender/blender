@@ -63,7 +63,7 @@ ExceptionID ImageSizesNotMatch;
 ExpDesc ImageSizesNotMatchDesc (ImageSizesNotMatch, "Image sizes of sources are different");
 
 // calculate image from sources and set its availability
-void ImageMix::calcImage (unsigned int texId)
+void ImageMix::calcImage (unsigned int texId, double ts)
 {
 	// check source sizes
 	if (!checkSourceSizes()) THRWEXCP(ImageSizesNotMatch, S_OK);

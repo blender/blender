@@ -78,7 +78,7 @@ protected:
 	virtual ImageSource * newSource (const char * id) { return new ImageSourceMix(id); }
 
 	/// calculate image from sources and set its availability
-	virtual void calcImage (unsigned int texId);
+	virtual void calcImage (unsigned int texId, double ts);
 };
 
 

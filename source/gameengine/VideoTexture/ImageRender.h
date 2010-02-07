@@ -90,7 +90,7 @@ protected:
 
 
 	/// render 3d scene to image
-	virtual void calcImage (unsigned int texId);
+	virtual void calcImage (unsigned int texId, double ts);
 
 	void Render();
 	void SetupRenderFrame(KX_Scene *scene, KX_Camera* cam);

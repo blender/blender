@@ -81,7 +81,7 @@ protected:
 	bool m_texInit;
 
 	/// capture image from viewport
-	virtual void calcImage (unsigned int texId);
+	virtual void calcImage (unsigned int texId, double ts);
 
 	/// get viewport size
 	GLint * getViewportSize (void) { return m_viewport + 2; }

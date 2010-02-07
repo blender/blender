@@ -54,7 +54,7 @@ public:
 	virtual bool release (void);
 
 	/// get image
-	unsigned int * getImage (unsigned int texId = 0);
+	unsigned int * getImage (unsigned int texId = 0, double timestamp=-1.0);
 	/// get image size
 	short * getSize (void) { return m_size; }
 	/// get image buffer size
@@ -123,7 +123,7 @@ protected:
 	bool checkSourceSizes (void);
 
 	/// calculate image from sources and set its availability
-	virtual void calcImage (unsigned int texId) {}
+	virtual void calcImage (unsigned int texId, double ts) {}
 
 	/// perform loop detection
 	bool loopDetect (ImageBase * img);
@@ -269,7 +269,7 @@ public:
 	void setSource (PyImage * source);
 
 	/// get image from source
-	unsigned int * getImage (void);
+	unsigned int * getImage (double ts=-1.0);
 	/// get buffered image
 	unsigned int * getImageBuf (void) { return m_image; }
 	/// refresh source

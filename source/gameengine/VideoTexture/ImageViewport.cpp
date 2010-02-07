@@ -105,7 +105,7 @@ void ImageViewport::setPosition (GLint * pos)
 
 
 // capture image from viewport
-void ImageViewport::calcImage (unsigned int texId)
+void ImageViewport::calcImage (unsigned int texId, double ts)
 {
 	// if scale was changed
 	if (m_scaleChange)

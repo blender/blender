@@ -71,7 +71,7 @@ bool ImageBase::release (void)
 
 
 // get image
-unsigned int * ImageBase::getImage (unsigned int texId)
+unsigned int * ImageBase::getImage (unsigned int texId, double ts)
 {
 	// if image is not available
 	if (!m_avail)
@@ -82,12 +82,12 @@ unsigned int * ImageBase::getImage (unsigned int texId)
 			// get images from sources
 			for (ImageSourceList::iterator it = m_sources.begin(); it != m_sources.end(); ++it)
 				// get source image
-				(*it)->getImage();
+				(*it)->getImage(ts);
 			// init image
 			init(m_sources[0]->getSize()[0], m_sources[0]->getSize()[1]);
 		}
 		// calculate new image
-		calcImage(texId);
+		calcImage(texId, ts);
 	}
 	// if image is available, return it, otherwise NULL
 	return m_avail ? m_image : NULL;
@@ -305,12 +305,12 @@ void ImageSource::setSource (PyImage * source)
 
 
 // get image from source
-unsigned int * ImageSource::getImage (void)
+unsigned int * ImageSource::getImage (double ts)
 {
 	// if source is available
 	if (m_source != NULL)
 		// get image from source
-		m_image = m_source->m_image->getImage();
+		m_image = m_source->m_image->getImage(0, ts);
 	// otherwise reset buffer
 	else
 		m_image = NULL;
