@@ -456,10 +456,11 @@ def wrap(line, view_width, wrap_chars):
 
 int wrap_width(SpaceText *st, ARegion *ar)
 {
+	int winx= ar->winx - TXT_SCROLL_WIDTH;
 	int x, max;
 	
 	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-	max= (ar->winx-x)/st->cwidth;
+	max= (winx-x)/st->cwidth;
 	return max>8 ? max : 8;
 }
 
@@ -1209,7 +1210,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	TextLine *tmp;
 	rcti scroll;
 	char linenr[12];
-	int i, x, y, linecount= 0;
+	int i, x, y, winx, linecount= 0;
 
 	/* if no text, nothing to do */
 	if(!text)
@@ -1252,6 +1253,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		x= TXT_OFFSET;
 	}
 	y= ar->winy-st->lheight;
+	winx= ar->winx - TXT_SCROLL_WIDTH;
 
 	/* draw cursor */
 	draw_cursor(st, ar);
@@ -1279,7 +1281,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
 		if(st->wordwrap) {
 			/* draw word wrapped text */
-			int lines = text_draw_wrapped(st, tmp->line, x, y, ar->winx-x, tmp->format);
+			int lines = text_draw_wrapped(st, tmp->line, x, y, winx-x, tmp->format);
 			y -= lines*st->lheight;
 		}
 		else {
@@ -1325,6 +1327,8 @@ void text_update_cursor_moved(bContext *C)
 	for(ar=sa->regionbase.first; ar; ar= ar->next)
 		if(ar->regiontype==RGN_TYPE_WINDOW)
 			winx= ar->winx;
+	
+	winx -= TXT_SCROLL_WIDTH;
 
 	if(!text || !text->curl) return;
 
