@@ -208,7 +208,6 @@ static void clean_paths(Main *main)
 
 static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename) 
 {
-	Object *ob;
 	bScreen *curscreen= NULL;
 	Scene *curscene= NULL;
 	int recover;
@@ -318,14 +317,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(CTX_data_scene(C));
 
-	/* last stage of do_versions actually, that sets recalc flags for recalc poses */
-	for(ob= G.main->object.first; ob; ob= ob->id.next) {
-		if(ob->type==OB_ARMATURE)
-			if(ob->recalc) object_handle_update(CTX_data_scene(C), ob);
-	}
-	
-	/* now tag update flags, to ensure deformers get calculated on redraw */
-	DAG_scene_update_flags(CTX_data_scene(C), CTX_data_scene(C)->lay);
+	DAG_on_load_update();
 	
 	MEM_freeN(bfd);
 }

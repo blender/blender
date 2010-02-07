@@ -6741,14 +6741,14 @@ static void particleSystemModifier_deformVerts(
 		psmd->totdmvert= psmd->dm->getNumVerts(psmd->dm);
 		psmd->totdmedge= psmd->dm->getNumEdges(psmd->dm);
 		psmd->totdmface= psmd->dm->getNumFaces(psmd->dm);
-		  }
+	}
 
-		  if(psys){
-			  psmd->flag &= ~eParticleSystemFlag_psys_updated;
-			  particle_system_update(md->scene, ob, psys);
-			  psmd->flag |= eParticleSystemFlag_psys_updated;
-			  psmd->flag &= ~eParticleSystemFlag_DM_changed;
-		  }
+	if(psys) {
+		psmd->flag &= ~eParticleSystemFlag_psys_updated;
+		particle_system_update(md->scene, ob, psys);
+		psmd->flag |= eParticleSystemFlag_psys_updated;
+		psmd->flag &= ~eParticleSystemFlag_DM_changed;
+	}
 }
 
 /* disabled particles in editmode for now, until support for proper derivedmesh

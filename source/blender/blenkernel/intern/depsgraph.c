@@ -2211,6 +2211,48 @@ void DAG_ids_flush_update(int time)
 		DAG_scene_flush_update(sce, lay, time);
 }
 
+void DAG_on_load_update(void)
+{
+	Main *bmain= G.main;
+	Scene *scene, *sce;
+	Base *base;
+	Object *ob;
+	Group *group;
+	GroupObject *go;
+	unsigned int lay;
+
+	dag_current_scene_layers(bmain, &scene, &lay);
+
+	if(scene) {
+		/* derivedmeshes and displists are not saved to file so need to be
+		   remade, tag them so they get remade in the scene update loop,
+		   note armature poses or object matrices are preserved and do not
+		   require updates, so we skip those */
+		for(SETLOOPER(scene, base)) {
+			ob= base->object;
+
+			if(base->lay & lay) {
+				if(ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
+					ob->recalc |= OB_RECALC_DATA;
+				if(ob->dup_group) 
+					ob->dup_group->id.flag |= LIB_DOIT;
+			}
+		}
+
+		for(group= G.main->group.first; group; group= group->id.next) {
+			if(group->id.flag & LIB_DOIT) {
+				if(ELEM5(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
+					go->ob->recalc |= OB_RECALC_DATA;
+
+				group->id.flag &= ~LIB_DOIT;
+			}
+		}
+
+		/* now tag update flags, to ensure deformers get calculated on redraw */
+		DAG_scene_update_flags(scene, lay);
+	}
+}
+
 void DAG_id_flush_update(ID *id, short flag)
 {
 	Main *bmain= G.main;
