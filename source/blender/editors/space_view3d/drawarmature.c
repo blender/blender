@@ -1479,8 +1479,9 @@ static void draw_pose_dofs(Object *ob)
 									float amin[3], amax[3];
 									
 									for (i=0; i<3; i++) {
-										amin[i]= (float)sin(pchan->limitmin[i]);
-										amax[i]= (float)sin(pchan->limitmax[i]);
+										/* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
+										amin[i]= (float)sin(pchan->limitmin[i]*0.5f);
+										amax[i]= (float)sin(pchan->limitmax[i]*0.5f);
 									}
 									
 									glScalef(1.0f, -1.0f, 1.0f);
@@ -1498,13 +1499,14 @@ static void draw_pose_dofs(Object *ob)
 							
 							/* arcs */
 							if (pchan->ikflag & BONE_IK_ZLIMIT) {
+								/* OpenGL requires rotations in degrees; so we're taking the average angle here */
 								theta= 0.5f*(pchan->limitmin[2]+pchan->limitmax[2]) * (float)(180.0f/M_PI);
 								glRotatef(theta, 0.0f, 0.0f, 1.0f);
 								
 								glColor3ub(50, 50, 255);	// blue, Z axis limit
 								glBegin(GL_LINE_STRIP);
 								for (a=-16; a<=16; a++) {
-									float fac= ((float)a)/16.0f;
+									float fac= ((float)a)/16.0f * 0.5f; /* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
 									
 									phi= fac * (pchan->limitmax[2] - pchan->limitmin[2]);
 									
@@ -1520,13 +1522,14 @@ static void draw_pose_dofs(Object *ob)
 							}					
 							
 							if (pchan->ikflag & BONE_IK_XLIMIT) {
-								theta= 0.5f * (pchan->limitmin[0] + pchan->limitmax[0]) * (float)(180.0f/M_PI);
+							/* OpenGL requires rotations in degrees; so we're taking the average angle here */
+								theta= 0.5f*(pchan->limitmin[0] + pchan->limitmax[0]) * (float)(180.0f/M_PI);
 								glRotatef(theta, 1.0f, 0.0f, 0.0f);
 								
 								glColor3ub(255, 50, 50);	// Red, X axis limit
 								glBegin(GL_LINE_STRIP);
 								for (a=-16; a<=16; a++) {
-									float fac= ((float)a)/16.0f;
+									float fac= ((float)a)/16.0f * 0.5f; /* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
 									phi= (float)(0.5*M_PI) + fac * (pchan->limitmax[0] - pchan->limitmin[0]);
 									
 									i= (a == -16) ? 2 : 3;
