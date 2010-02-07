@@ -619,7 +619,7 @@ void OBJECT_OT_surface_add(wmOperatorType *ot)
 	ot->idname= "OBJECT_OT_surface_add";
 	
 	/* api callbacks */
-	ot->invoke= ED_object_add_generic_invoke; // WM_menu_invoke
+	ot->invoke= WM_menu_invoke;
 	ot->exec= object_add_surface_exec;
 	
 	ot->poll= ED_operator_scene_editable;
@@ -627,7 +627,7 @@ void OBJECT_OT_surface_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_surface_types, 0, "Primitive", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_surface_types, 0, "Primitive", "");
 	ED_object_add_generic_props(ot, TRUE);
 }
 
@@ -1695,6 +1695,20 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
 /* **************** add named object, for dragdrop ************* */
 
 /* contextual operator dupli */
+
+static int add_named_poll(bContext *C)
+{
+	if(!ED_operator_scene_editable(C)) {
+		return 0;
+	} else {
+		Object *ob= CTX_data_active_object(C);
+		if(ob && ob->mode != OB_MODE_OBJECT)
+			return 0;
+		else
+			return 1;
+	}
+}
+
 static int add_named_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -1745,7 +1759,7 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec= add_named_exec;
-	ot->poll= ED_operator_scene_editable;
+	ot->poll= add_named_poll;
 	
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;

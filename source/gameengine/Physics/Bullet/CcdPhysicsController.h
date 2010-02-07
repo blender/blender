@@ -62,7 +62,7 @@ public:
 		float uv[2];
 	};
 	
-	static CcdShapeConstructionInfo* FindMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope, bool gimpact);
+	static CcdShapeConstructionInfo* FindMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope);
 
 	CcdShapeConstructionInfo() :
 		m_shapeType(PHY_SHAPE_NONE),
@@ -74,7 +74,6 @@ public:
 		m_refCount(1),
 		m_meshObject(NULL),
 		m_unscaledShape(NULL),
-		m_useGimpact(false),
 		m_forceReInstance(false),
 		m_weldingThreshold1(0.f),
 		m_shapeProxy(NULL)
@@ -143,7 +142,7 @@ public:
 		return true;
 	}
 
-	bool SetMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope,bool useGimpact);
+	bool SetMesh(class RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope);
 	RAS_MeshObject* GetMesh(void)
 	{
 		return m_meshObject;
@@ -158,7 +157,7 @@ public:
 		return m_shapeProxy;
 	}
 
-	btCollisionShape* CreateBulletShape(btScalar margin);
+	btCollisionShape* CreateBulletShape(btScalar margin, bool useGimpact=false, bool useBvh=true);
 
 	// member variables
 	PHY_ShapeType			m_shapeType;
@@ -193,7 +192,6 @@ protected:
 	btBvhTriangleMeshShape* m_unscaledShape;// holds the shared unscale BVH mesh shape, 
 											// the actual shape is of type btScaledBvhTriangleMeshShape
 	std::vector<CcdShapeConstructionInfo*> m_shapeArray;	// for compound shapes
-	bool	m_useGimpact; //use gimpact for concave dynamic/moving collision detection
 	bool	m_forceReInstance; //use gimpact for concave dynamic/moving collision detection
 	float	m_weldingThreshold1;	//welding closeby vertices together can improve softbody stability etc.
 	CcdShapeConstructionInfo* m_shapeProxy;	// only used for PHY_SHAPE_PROXY, pointer to actual shape info
@@ -240,6 +238,7 @@ struct CcdConstructionInfo
 		m_bRigid(false),
 		m_bSoft(false),
 		m_bSensor(false),
+		m_bGimpact(false),
 		m_collisionFilterGroup(DefaultFilter),
 		m_collisionFilterMask(AllFilter),
 		m_collisionShape(0),
@@ -308,6 +307,7 @@ struct CcdConstructionInfo
 	bool		m_bRigid;
 	bool		m_bSoft;
 	bool		m_bSensor;
+	bool		m_bGimpact;			// use Gimpact for mesh body
 
 	///optional use of collision group/mask:
 	///only collision with object goups that match the collision mask.

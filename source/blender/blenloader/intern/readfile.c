@@ -2137,10 +2137,24 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 
 /* ************ READ ARMATURE ***************** */
 
+/* temp struct used to transport needed info to lib_link_constraint_cb() */
+typedef struct tConstraintLinkData {
+	FileData *fd;
+	ID *id;
+} tConstraintLinkData;
+/* callback function used to relink constraint ID-links */
+static void lib_link_constraint_cb(bConstraint *con, ID **idpoin, void *userdata)
+{
+	tConstraintLinkData *cld= (tConstraintLinkData *)userdata;
+	*idpoin = newlibadr(cld->fd, cld->id->lib, *idpoin);
+}
+
 static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 {
+	tConstraintLinkData cld;
 	bConstraint *con;
-
+	
+	/* legacy fixes */
 	for (con = conlist->first; con; con=con->next) {
 		/* patch for error introduced by changing constraints (dunno how) */
 		/* if con->data type changes, dna cannot resolve the pointer! (ton) */
@@ -2149,184 +2163,48 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 		}
 		/* own ipo, all constraints have it */
 		con->ipo= newlibadr_us(fd, id->lib, con->ipo); // XXX depreceated - old animation system
-		
-		switch (con->type) {
-		case CONSTRAINT_TYPE_PYTHON:
-			{
-				bPythonConstraint *data= (bPythonConstraint*)con->data;
-				bConstraintTarget *ct;
-				
-				for (ct= data->targets.first; ct; ct= ct->next)
-					ct->tar = newlibadr(fd, id->lib, ct->tar);
-					
-				data->text = newlibadr(fd, id->lib, data->text);
-				//IDP_LibLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-			}
-			break;
-		case CONSTRAINT_TYPE_ACTION:
-			{
-				bActionConstraint *data;
-				data= ((bActionConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-				data->act = newlibadr(fd, id->lib, data->act);
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCLIKE:
-			{
-				bLocateLikeConstraint *data;
-				data= ((bLocateLikeConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_ROTLIKE:
-			{
-				bRotateLikeConstraint *data;
-				data= ((bRotateLikeConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_SIZELIKE:
-			{
-				bSizeLikeConstraint *data;
-				data= ((bSizeLikeConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_KINEMATIC:
-			{
-				bKinematicConstraint *data;
-				data = ((bKinematicConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-				data->poletar = newlibadr(fd, id->lib, data->poletar);
-				con->lin_error = 0.f;
-				con->rot_error = 0.f;
-			}
-			break;
-		case CONSTRAINT_TYPE_TRACKTO:
-			{
-				bTrackToConstraint *data;
-				data = ((bTrackToConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_MINMAX:
-			{
-				bMinMaxConstraint *data;
-				data = ((bMinMaxConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCKTRACK:
-			{
-				bLockTrackConstraint *data;
-				data= ((bLockTrackConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_FOLLOWPATH:
-			{
-				bFollowPathConstraint *data;
-				data= ((bFollowPathConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_STRETCHTO:
-			{
-				bStretchToConstraint *data;
-				data= ((bStretchToConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-			{
-				bRigidBodyJointConstraint *data;
-				data= ((bRigidBodyJointConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_CLAMPTO:
-			{
-				bClampToConstraint *data;
-				data= ((bClampToConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_CHILDOF:
-			{
-				bChildOfConstraint *data;
-				data= ((bChildOfConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_TRANSFORM:
-			{
-				bTransformConstraint *data;
-				data= ((bTransformConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_DISTLIMIT:
-			{
-				bDistLimitConstraint *data;
-				data= ((bDistLimitConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_SHRINKWRAP:
-			{
-				bShrinkwrapConstraint *data;
-				data= ((bShrinkwrapConstraint*)con->data);
-				data->target = newlibadr(fd, id->lib, data->target);
-			}
-			break;
-		case CONSTRAINT_TYPE_DAMPTRACK:
-			{
-				bDampTrackConstraint *data;
-				data= ((bDampTrackConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_SPLINEIK:
-			{
-				bSplineIKConstraint *data;
-				data= ((bSplineIKConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_TRANSLIKE:
-			{
-				bTransLikeConstraint *data;
-				data= ((bTransLikeConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_NULL:
-			break;
-		}
 	}
+	
+	/* relink all ID-blocks used by the constraints */
+	cld.fd= fd;
+	cld.id= id;
+	
+	id_loop_constraints(conlist, lib_link_constraint_cb, &cld);
 }
 
 static void direct_link_constraints(FileData *fd, ListBase *lb)
 {
-	bConstraint *cons;
+	bConstraint *con;
 
 	link_list(fd, lb);
-	for (cons=lb->first; cons; cons=cons->next) {
-		cons->data = newdataadr(fd, cons->data);
+	for (con=lb->first; con; con=con->next) {
+		con->data = newdataadr(fd, con->data);
 		
-		if (cons->type == CONSTRAINT_TYPE_PYTHON) {
-			bPythonConstraint *data= cons->data;
-			
-			link_list(fd, &data->targets);
-			
-			data->prop = newdataadr(fd, data->prop);
-			if (data->prop)
-				IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-		}
-		else if (cons->type == CONSTRAINT_TYPE_SPLINEIK) {
-			bSplineIKConstraint *data= cons->data;
-			
-			data->points= newdataadr(fd, data->points);
+		switch (con->type) {
+			case CONSTRAINT_TYPE_PYTHON:
+			{
+				bPythonConstraint *data= con->data;
+				
+				link_list(fd, &data->targets);
+				
+				data->prop = newdataadr(fd, data->prop);
+				if (data->prop)
+					IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			}
+				break;
+			case CONSTRAINT_TYPE_SPLINEIK:
+			{
+				bSplineIKConstraint *data= con->data;
+				
+				data->points= newdataadr(fd, data->points);
+			}
+				break;
+			case CONSTRAINT_TYPE_KINEMATIC:
+			{
+				con->lin_error = 0.f;
+				con->rot_error = 0.f;
+			}
+				break;
 		}
 	}
 }
@@ -3187,6 +3065,13 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 				pt->ob=newlibadr(fd, id->lib, pt->ob);
 
 			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
+
+			if(psys->clmd) {
+				/* XXX - from reading existing code this seems correct but intended usage of
+				 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
+				psys->clmd->point_cache= psys->pointcache;
+				psys->clmd->ptcaches.first= psys->clmd->ptcaches.last= NULL;
+			}
 		}
 		else {
 			/* particle modifier must be removed before particle system */
@@ -3310,6 +3195,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
 			of library blocks that implement this.*/
 			if (me->id.properties) IDP_LibLinkProperty(me->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			if (me->adt) lib_link_animdata(fd, &me->id, me->adt);
 
 			/* this check added for python created meshes */
 			if(me->mat) {
@@ -3397,6 +3283,9 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->msticky= newdataadr(fd, mesh->msticky);
 	mesh->dvert= newdataadr(fd, mesh->dvert);
 	
+	mesh->adt= newdataadr(fd, mesh->adt);
+	direct_link_animdata(fd, mesh->adt);
+
 	/* Partial-mesh visibility (do this before using totvert, totface, or totedge!) */
 	mesh->pv= newdataadr(fd, mesh->pv);
 	if(mesh->pv) {
@@ -9637,6 +9526,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bSound *sound;
 		Sequence *seq;
 		bActuator *act;
+		int a;
 
 		for(sound = main->sound.first; sound; sound = sound->id.next)
 		{
@@ -9709,6 +9599,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(ma= main->mat.first; ma; ma= ma->id.next) {
 			if(ma->nodetree && strlen(ma->nodetree->id.name)==0)
 				strcpy(ma->nodetree->id.name, "NTShader Nodetree");
+			
+			/* which_output 0 is now "not specified" */
+			for(a=0; a<MAX_MTEX; a++) {
+				if(ma->mtex[a]) {
+					tx= newlibadr(fd, lib, ma->mtex[a]->tex);
+					if(tx && tx->use_nodes)
+						ma->mtex[a]->which_output++;
+				}
+			}
 		}
 		/* and composit trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
@@ -9731,8 +9630,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		/* and texture trees */
 		for(tx= main->tex.first; tx; tx= tx->id.next) {
-			if(tx->nodetree && strlen(tx->nodetree->id.name)==0)
-				strcpy(tx->nodetree->id.name, "NTTexture Nodetree");
+			bNode *node;
+
+			if(tx->nodetree) {
+				if(strlen(tx->nodetree->id.name)==0)
+					strcpy(tx->nodetree->id.name, "NTTexture Nodetree");
+
+				/* which_output 0 is now "not specified" */
+				for(node=tx->nodetree->nodes.first; node; node=node->next)
+					if(node->type == TEX_NODE_OUTPUT)
+						node->custom1++;
+			}
 		}
 		
 		/* copy standard draw flag to meshes(used to be global, is not available here) */
@@ -10179,6 +10087,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 				if(sce->r.frame_step==0)
 					sce->r.frame_step= 1;
+				if (sce->r.mblur_samples==0)
+					sce->r.mblur_samples = sce->r.osa;
 				
 				if(sce->ed && sce->ed->seqbasep)
 				{
@@ -10640,9 +10550,20 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	/* put 2.50 compatibility code here until next subversion bump */
-	//{
-	
-	//}
+	{
+		Scene *sce;
+
+		/* initialize to sane default so toggling on border shows something */
+		for(sce = main->scene.first; sce; sce = sce->id.next) {
+			if(sce->r.border.xmin == 0.0f && sce->r.border.ymin == 0.0f &&
+			   sce->r.border.xmax == 0.0f && sce->r.border.ymax == 0.0f) {
+				sce->r.border.xmin= 0.0f;
+				sce->r.border.ymin= 0.0f;
+				sce->r.border.xmax= 1.0f;
+				sce->r.border.ymax= 1.0f;
+			}
+		}
+	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
@@ -11281,148 +11202,33 @@ static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 	}
 }
 
+/* temp struct used to transport needed info to expand_constraint_cb() */
+typedef struct tConstraintExpandData {
+	FileData *fd;
+	Main *mainvar;
+} tConstraintExpandData;
+/* callback function used to expand constraint ID-links */
+static void expand_constraint_cb(bConstraint *con, ID **idpoin, void *userdata)
+{
+	tConstraintExpandData *ced= (tConstraintExpandData *)userdata;
+	expand_doit(ced->fd, ced->mainvar, *idpoin);
+}
+
 static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 {
+	tConstraintExpandData ced;
 	bConstraint *curcon;
-
+	
+	/* relink all ID-blocks used by the constraints */
+	ced.fd= fd;
+	ced.mainvar= mainvar;
+	
+	id_loop_constraints(lb, expand_constraint_cb, &ced);
+	
+	/* depreceated manual expansion stuff */
 	for (curcon=lb->first; curcon; curcon=curcon->next) {
-		
 		if (curcon->ipo)
 			expand_doit(fd, mainvar, curcon->ipo); // XXX depreceated - old animation system
-		
-		switch (curcon->type) {
-		case CONSTRAINT_TYPE_NULL:
-			break;
-		case CONSTRAINT_TYPE_PYTHON:
-			{
-				bPythonConstraint *data = (bPythonConstraint*)curcon->data;
-				bConstraintTarget *ct;
-				
-				for (ct= data->targets.first; ct; ct= ct->next)
-					expand_doit(fd, mainvar, ct->tar);
-				
-				expand_doit(fd, mainvar, data->text);
-			}
-			break;
-		case CONSTRAINT_TYPE_ACTION:
-			{
-				bActionConstraint *data = (bActionConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-				expand_doit(fd, mainvar, data->act);
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCLIKE:
-			{
-				bLocateLikeConstraint *data = (bLocateLikeConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_ROTLIKE:
-			{
-				bRotateLikeConstraint *data = (bRotateLikeConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_SIZELIKE:
-			{
-				bSizeLikeConstraint *data = (bSizeLikeConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_KINEMATIC:
-			{
-				bKinematicConstraint *data = (bKinematicConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-				expand_doit(fd, mainvar, data->poletar);
-			}
-			break;
-		case CONSTRAINT_TYPE_TRACKTO:
-			{
-				bTrackToConstraint *data = (bTrackToConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_MINMAX:
-			{
-				bMinMaxConstraint *data = (bMinMaxConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCKTRACK:
-			{
-				bLockTrackConstraint *data = (bLockTrackConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_FOLLOWPATH:
-			{
-				bFollowPathConstraint *data = (bFollowPathConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_STRETCHTO:
-			{
-				bStretchToConstraint *data = (bStretchToConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-			{
-				bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_CLAMPTO:
-			{
-				bClampToConstraint *data = (bClampToConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_CHILDOF:
-			{
-				bChildOfConstraint *data = (bChildOfConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_TRANSFORM:
-			{
-				bTransformConstraint *data = (bTransformConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_DISTLIMIT:	
-			{
-				bDistLimitConstraint *data = (bDistLimitConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_SHRINKWRAP:
-			{
-				bShrinkwrapConstraint *data = (bShrinkwrapConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->target);
-			}
-			break;
-		case CONSTRAINT_TYPE_DAMPTRACK:
-			{
-				bDampTrackConstraint *data = (bDampTrackConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_SPLINEIK:
-			{
-				bSplineIKConstraint *data = (bSplineIKConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_TRANSLIKE:
-			{
-				bTransLikeConstraint *data = (bTransLikeConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		default:
-			break;
-		}
 	}
 }
 

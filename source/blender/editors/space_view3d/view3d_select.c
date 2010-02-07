@@ -468,9 +468,8 @@ static void do_lasso_select_mesh(ViewContext *vc, short mcords[][2], short moves
 	data.pass = 0;
 
 	/* workaround: init mats first, EM_mask_init_backbuf_border can change
-	   view matrix to pixel space, breaking edge select with backbuf .. */
-	// XXX not needed anymore, check here if selection is broken
-	//ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	   view matrix to pixel space, breaking edge select with backbuf. fixes bug #20936 */
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	bbsel= EM_mask_init_backbuf_border(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
 	if(ts->selectmode & SCE_SELECT_VERTEX) {
@@ -1396,10 +1395,9 @@ static void do_mesh_box_select(ViewContext *vc, rcti *rect, int select, int exte
 		EM_deselect_all(vc->em);
 	}
 
-	/* XXX Don't think we need this, it break selection of transformed objects.
-	 * Also, it's not done by Circle select and that works fine
-	 */
-	//ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
+	/* workaround: init mats first, EM_mask_init_backbuf_border can change
+	   view matrix to pixel space, breaking edge select with backbuf. fixes bug #20936 */
+	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 	bbsel= EM_init_backbuf_border(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	if(ts->selectmode & SCE_SELECT_VERTEX) {

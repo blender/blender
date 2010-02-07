@@ -71,15 +71,17 @@ def addget_shape_key_driver(obj, name="Key"):
     driver_path = 'keys["' + name + '"].value'
     fcurve = None
     driver = None
+    new = False
     if obj.data.shape_keys.animation_data is not None:
         for driver_s in obj.data.shape_keys.animation_data.drivers:
             if driver_s.data_path == driver_path:
                 fcurve = driver_s
     if fcurve == None:
         fcurve = obj.data.shape_keys.keys[name].driver_add("value", 0)
-    fcurve.driver.type = 'AVERAGE'
+        fcurve.driver.type = 'AVERAGE'
+        new = True
 
-    return fcurve
+    return fcurve, new
 
 
 def metarig_template():
@@ -132,88 +134,42 @@ def deform(obj, definitions, base_names, options):
 
     meshes = options["mesh"].replace(" ", "").split(",")
 
-    # Upper lip MCH
-    lip1  = make_lip_stretch_bone(obj, "MCH-lip", definitions[3], definitions[2], 0.0)
-    lip2  = make_lip_stretch_bone(obj, "MCH-lip", definitions[4], definitions[3], 0.0)
-    lip22 = make_lip_stretch_bone(obj, "MCH-lip", definitions[5], definitions[4], 0.0)
-    lip33 = make_lip_stretch_bone(obj, "MCH-lip", definitions[3], definitions[4], 0.0)
-    lip3  = make_lip_stretch_bone(obj, "MCH-lip", definitions[4], definitions[5], 0.0)
-    lip4  = make_lip_stretch_bone(obj, "MCH-lip", definitions[5], definitions[6], 0.0)
+    # Lip DEF
+    lip1 = copy_bone_simple(obj.data, definitions[2], "DEF-" + base_names[definitions[2]]).name
+    lip2 = copy_bone_simple(obj.data, definitions[3], "DEF-" + base_names[definitions[3]]).name
+    lip3 = copy_bone_simple(obj.data, definitions[4], "DEF-" + base_names[definitions[4]]).name
+    lip4 = copy_bone_simple(obj.data, definitions[5], "DEF-" + base_names[definitions[5]]).name
+    lip5 = copy_bone_simple(obj.data, definitions[6], "DEF-" + base_names[definitions[6]]).name
+    lip6 = copy_bone_simple(obj.data, definitions[7], "DEF-" + base_names[definitions[7]]).name
+    lip7 = copy_bone_simple(obj.data, definitions[8], "DEF-" + base_names[definitions[8]]).name
+    lip8 = copy_bone_simple(obj.data, definitions[9], "DEF-" + base_names[definitions[9]]).name
 
-    eb[lip1].parent =  eb[definitions[3]]
-    eb[lip2].parent =  eb[definitions[4]]
-    eb[lip22].parent = eb[definitions[5]]
-    eb[lip33].parent = eb[definitions[3]]
-    eb[lip3].parent =  eb[definitions[4]]
-    eb[lip4].parent =  eb[definitions[5]]
+    # Mouth corner spread bones (for driving corrective shape keys)
+    spread_l_1 = copy_bone_simple(obj.data, definitions[6], "MCH-" + base_names[definitions[6]] + ".spread_1").name
+    spread_l_2 = copy_bone_simple(obj.data, definitions[6], "MCH-" + base_names[definitions[6]] + ".spread_2").name
+    eb[spread_l_1].tail = eb[definitions[5]].head
+    eb[spread_l_2].tail = eb[definitions[5]].head
+    eb[spread_l_1].roll = 0
+    eb[spread_l_2].roll = 0
+    eb[spread_l_1].connected = False
+    eb[spread_l_2].connected = False
+    eb[spread_l_1].parent = eb[definitions[6]]
+    eb[spread_l_2].parent = eb[definitions[6]]
 
-    eb[lip22].bbone_segments = 8
-    eb[lip33].bbone_segments = 8
-
-    # Lower lip MCH
-    lip5 =  make_lip_stretch_bone(obj, "MCH-lip", definitions[7], definitions[6], 0.0)
-    lip6 =  make_lip_stretch_bone(obj, "MCH-lip", definitions[8], definitions[7], 0.0)
-    lip66 = make_lip_stretch_bone(obj, "MCH-lip", definitions[9], definitions[8], 0.0)
-    lip77 = make_lip_stretch_bone(obj, "MCH-lip", definitions[7], definitions[8], 0.0)
-    lip7 =  make_lip_stretch_bone(obj, "MCH-lip", definitions[8], definitions[9], 0.0)
-    lip8 =  make_lip_stretch_bone(obj, "MCH-lip", definitions[9], definitions[2], 0.0)
-
-    eb[lip5].parent = eb[definitions[7]]
-    eb[lip6].parent = eb[definitions[8]]
-    eb[lip66].parent = eb[definitions[9]]
-    eb[lip77].parent = eb[definitions[7]]
-    eb[lip7].parent = eb[definitions[8]]
-    eb[lip8].parent = eb[definitions[9]]
-
-    eb[lip66].bbone_segments = 8
-    eb[lip77].bbone_segments = 8
-
-    # Upper lip DEF
-    dlip1 = copy_bone_simple(obj.data, lip1, "DEF-" + base_names[definitions[4]] + ".01.R", parent=True).name
-    dlip2 = copy_bone_simple(obj.data, lip2, "DEF-" + base_names[definitions[4]] + ".02.R", parent=True).name
-    dlip3 = copy_bone_simple(obj.data, lip3, "DEF-" + base_names[definitions[4]] + ".02.L", parent=True).name
-    dlip4 = copy_bone_simple(obj.data, lip4, "DEF-" + base_names[definitions[4]] + ".01.L", parent=True).name
-
-    eb[dlip1].parent  = eb[dlip2]
-    eb[dlip2].parent = eb[lip22]
-
-    eb[dlip4].parent  = eb[dlip3]
-    eb[dlip3].parent = eb[lip33]
-
-    eb[dlip1].connected  = True
-    eb[dlip2].connected = True
-    eb[dlip4].connected  = True
-    eb[dlip3].connected = True
-
-    eb[dlip1].bbone_segments = 8
-    eb[dlip2].bbone_segments = 8
-    eb[dlip3].bbone_segments = 8
-    eb[dlip4].bbone_segments = 8
-
-    # Lower lip DEF
-    dlip8 = copy_bone_simple(obj.data, lip8, "DEF-" + base_names[definitions[8]] + ".01.R", parent=True).name
-    dlip7 = copy_bone_simple(obj.data, lip7, "DEF-" + base_names[definitions[8]] + ".02.R", parent=True).name
-    dlip6 = copy_bone_simple(obj.data, lip6, "DEF-" + base_names[definitions[8]] + ".02.L", parent=True).name
-    dlip5 = copy_bone_simple(obj.data, lip5, "DEF-" + base_names[definitions[8]] + ".01.L", parent=True).name
+    spread_r_1 = copy_bone_simple(obj.data, definitions[2], "MCH-" + base_names[definitions[2]] + ".spread_1").name
+    spread_r_2 = copy_bone_simple(obj.data, definitions[2], "MCH-" + base_names[definitions[2]] + ".spread_2").name
+    eb[spread_r_1].tail = eb[definitions[3]].head
+    eb[spread_r_2].tail = eb[definitions[3]].head
+    eb[spread_r_1].roll = 0
+    eb[spread_r_2].roll = 0
+    eb[spread_r_1].connected = False
+    eb[spread_r_2].connected = False
+    eb[spread_r_1].parent = eb[definitions[2]]
+    eb[spread_r_2].parent = eb[definitions[2]]
 
 
-    eb[dlip5].parent = eb[dlip6]
-    eb[dlip6].parent = eb[lip66]
 
-    eb[dlip8].parent = eb[dlip7]
-    eb[dlip7].parent = eb[lip77]
-
-    eb[dlip5].connected = True
-    eb[dlip6].connected = True
-    eb[dlip8].connected = True
-    eb[dlip7].connected = True
-
-    eb[dlip5].bbone_segments = 8
-    eb[dlip6].bbone_segments = 8
-    eb[dlip7].bbone_segments = 8
-    eb[dlip8].bbone_segments = 8
-
-    # Jaw open bones
+    # Jaw open bones (for driving corrective shape keys)
     jopen1 = copy_bone_simple(obj.data, jaw, "MCH-"+base_names[jaw]+".track1", parent=True).name
     eb[jopen1].connected = False
     eb[jopen1].head = eb[jaw].tail
@@ -225,45 +181,71 @@ def deform(obj, definitions, base_names, options):
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
-    # Constraints
-    con = pb[dlip1].constraints.new('COPY_TRANSFORMS')
+    # Constrain DEF bones to ORG bones
+    con = pb[lip1].constraints.new('COPY_TRANSFORMS')
     con.target = obj
-    con.subtarget = lip1
+    con.subtarget = definitions[2]
 
-    con = pb[dlip2].constraints.new('COPY_TRANSFORMS')
+    con = pb[lip2].constraints.new('COPY_TRANSFORMS')
     con.target = obj
-    con.subtarget = lip2
+    con.subtarget = definitions[3]
 
-    con = pb[dlip3].constraints.new('COPY_TRANSFORMS')
+    con = pb[lip3].constraints.new('COPY_TRANSFORMS')
     con.target = obj
-    con.subtarget = lip3
+    con.subtarget = definitions[4]
 
-    con = pb[dlip4].constraints.new('COPY_TRANSFORMS')
+    con = pb[lip4].constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = definitions[5]
+    
+    con = pb[lip5].constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = definitions[6]
+    
+    con = pb[lip6].constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = definitions[7]
+    
+    con = pb[lip7].constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = definitions[8]
+    
+    con = pb[lip8].constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = definitions[9]
+    
+    # Constraint mouth corner spread bones
+    con = pb[spread_l_1].constraints.new('DAMPED_TRACK')
     con.target = obj
     con.subtarget = lip4
 
-    con = pb[dlip5].constraints.new('COPY_TRANSFORMS')
+    con = pb[spread_l_2].constraints.new('COPY_TRANSFORMS')
     con.target = obj
-    con.subtarget = lip5
+    con.subtarget = spread_l_1
 
-    con = pb[dlip6].constraints.new('COPY_TRANSFORMS')
+    con = pb[spread_l_2].constraints.new('DAMPED_TRACK')
     con.target = obj
     con.subtarget = lip6
 
-    con = pb[dlip7].constraints.new('COPY_TRANSFORMS')
+    con = pb[spread_r_1].constraints.new('DAMPED_TRACK')
     con.target = obj
-    con.subtarget = lip7
+    con.subtarget = lip2
 
-    con = pb[dlip8].constraints.new('COPY_TRANSFORMS')
+    con = pb[spread_r_2].constraints.new('COPY_TRANSFORMS')
+    con.target = obj
+    con.subtarget = spread_r_1
+    
+    con = pb[spread_r_2].constraints.new('DAMPED_TRACK')
     con.target = obj
     con.subtarget = lip8
 
+    
     # Corrective shape keys for the corners of the mouth.
     bpy.ops.object.mode_set(mode='EDIT')
 
     # Calculate the rotation difference between the bones
-    rotdiff_r = acos(eb[lip1].matrix.to_quat() * eb[lip8].matrix.to_quat()) * 2
-    rotdiff_l = acos(eb[lip4].matrix.to_quat() * eb[lip5].matrix.to_quat()) * 2
+    rotdiff_l = acos((eb[lip5].head - eb[lip4].head).normalize().dot((eb[lip5].head - eb[lip6].head).normalize()))
+    rotdiff_r = acos((eb[lip1].head - eb[lip2].head).normalize().dot((eb[lip1].head - eb[lip8].head).normalize()))
 
     bpy.ops.object.mode_set(mode='OBJECT')
 
@@ -271,13 +253,13 @@ def deform(obj, definitions, base_names, options):
     # Left side shape key
     for mesh_name in meshes:
         mesh_obj = bpy.data.objects[mesh_name]
-        shape_key_name = "COR-" + base_names[definitions[4]] + ".L.spread"
+        shape_key_name = "COR-" + base_names[definitions[6]] + ".spread"
 
         # Add/get the shape key
         shape_key = addget_shape_key(mesh_obj, name=shape_key_name)
 
         # Add/get the shape key driver
-        fcurve = addget_shape_key_driver(mesh_obj, name=shape_key_name)
+        fcurve, is_new_driver = addget_shape_key_driver(mesh_obj, name=shape_key_name)
         driver = fcurve.driver
 
         # Get the variable, or create it if it doesn't already exist
@@ -291,26 +273,27 @@ def deform(obj, definitions, base_names, options):
         # Set up the variable
         var.type = "ROTATION_DIFF"
         var.targets[0].id = obj
-        var.targets[0].bone_target = lip4
+        var.targets[0].bone_target = spread_l_1
         var.targets[1].id = obj
-        var.targets[1].bone_target = lip5
+        var.targets[1].bone_target = spread_l_2
 
         # Set fcurve offset
-        mod = fcurve.modifiers[0]
-        if rotdiff_l != pi:
-            mod.coefficients[0] = -rotdiff_l / (pi-rotdiff_l)
-            mod.coefficients[1] = 1 / (pi-rotdiff_l)
+        if is_new_driver:
+            mod = fcurve.modifiers[0]
+            if rotdiff_l != pi:
+                mod.coefficients[0] = -rotdiff_l / (pi-rotdiff_l)
+                mod.coefficients[1] = 1 / (pi-rotdiff_l)
 
     # Right side shape key
     for mesh_name in meshes:
         mesh_obj = bpy.data.objects[mesh_name]
-        shape_key_name = "COR-" + base_names[definitions[4]] + ".R.spread"
+        shape_key_name = "COR-" + base_names[definitions[2]] + ".spread"
 
         # Add/get the shape key
         shape_key = addget_shape_key(mesh_obj, name=shape_key_name)
 
         # Add/get the shape key driver
-        fcurve = addget_shape_key_driver(mesh_obj, name=shape_key_name)
+        fcurve, is_new_driver = addget_shape_key_driver(mesh_obj, name=shape_key_name)
         driver = fcurve.driver
 
         # Get the variable, or create it if it doesn't already exist
@@ -324,15 +307,16 @@ def deform(obj, definitions, base_names, options):
         # Set up the variable
         var.type = "ROTATION_DIFF"
         var.targets[0].id = obj
-        var.targets[0].bone_target = lip1
+        var.targets[0].bone_target = spread_r_1
         var.targets[1].id = obj
-        var.targets[1].bone_target = lip8
+        var.targets[1].bone_target = spread_r_2
 
         # Set fcurve offset
-        mod = fcurve.modifiers[0]
-        if rotdiff_r != pi:
-            mod.coefficients[0] = -rotdiff_r / (pi-rotdiff_r)
-            mod.coefficients[1] = 1 / (pi-rotdiff_r)
+        if is_new_driver:
+            mod = fcurve.modifiers[0]
+            if rotdiff_r != pi:
+                mod.coefficients[0] = -rotdiff_r / (pi-rotdiff_r)
+                mod.coefficients[1] = 1 / (pi-rotdiff_r)
 
     # Jaw open corrective shape key
     for mesh_name in meshes:
@@ -343,7 +327,7 @@ def deform(obj, definitions, base_names, options):
         shape_key = addget_shape_key(mesh_obj, name=shape_key_name)
 
         # Add/get the shape key driver
-        fcurve = addget_shape_key_driver(mesh_obj, name=shape_key_name)
+        fcurve, is_new_driver = addget_shape_key_driver(mesh_obj, name=shape_key_name)
         driver = fcurve.driver
 
         # Get the variable, or create it if it doesn't already exist
@@ -362,9 +346,10 @@ def deform(obj, definitions, base_names, options):
         var.targets[1].bone_target = jopen2
 
         # Set fcurve offset
-        mod = fcurve.modifiers[0]
-        mod.coefficients[0] = 0.0
-        mod.coefficients[1] = 1.0 / bb[jaw].length
+        if is_new_driver:
+            mod = fcurve.modifiers[0]
+            mod.coefficients[0] = 0.0
+            mod.coefficients[1] = 1.0 / bb[jaw].length
 
     return (None,)
 
@@ -430,25 +415,6 @@ def control(obj, definitions, base_names, options):
     lip7 = copy_bone_simple(obj.data, definitions[8], base_names[definitions[8]]).name
     lip8 = copy_bone_simple(obj.data, definitions[9], base_names[definitions[9]]).name
 
-    size = eb[lip1].length
-    eb[lip1].tail = eb[lip1].head + Vector(0,size,0)
-    eb[lip2].tail = eb[lip2].head + Vector(0,size,0)
-    eb[lip3].tail = eb[lip3].head + Vector(0,size,0)
-    eb[lip4].tail = eb[lip4].head + Vector(0,size,0)
-    eb[lip5].tail = eb[lip5].head + Vector(0,size,0)
-    eb[lip6].tail = eb[lip6].head + Vector(0,size,0)
-    eb[lip7].tail = eb[lip7].head + Vector(0,size,0)
-    eb[lip8].tail = eb[lip8].head + Vector(0,size,0)
-
-    eb[lip1].roll = 0
-    eb[lip2].roll = 0
-    eb[lip3].roll = 0
-    eb[lip4].roll = 0
-    eb[lip5].roll = 0
-    eb[lip6].roll = 0
-    eb[lip7].roll = 0
-    eb[lip8].roll = 0
-
     eb[lip1].parent = eb[hlip1]
     eb[lip2].parent = eb[hlip2]
     eb[lip3].parent = eb[hlip3]
@@ -457,25 +423,6 @@ def control(obj, definitions, base_names, options):
     eb[lip6].parent = eb[hlip6]
     eb[lip7].parent = eb[hlip7]
     eb[lip8].parent = eb[hlip8]
-
-    # Link lips
-    llip1 = copy_bone_simple(obj.data, definitions[2], "MCH-"+base_names[definitions[2]]+".link").name
-    llip2 = copy_bone_simple(obj.data, definitions[3], "MCH-"+base_names[definitions[3]]+".link").name
-    llip3 = copy_bone_simple(obj.data, definitions[4], "MCH-"+base_names[definitions[4]]+".link").name
-    llip4 = copy_bone_simple(obj.data, definitions[5], "MCH-"+base_names[definitions[5]]+".link").name
-    llip5 = copy_bone_simple(obj.data, definitions[6], "MCH-"+base_names[definitions[6]]+".link").name
-    llip6 = copy_bone_simple(obj.data, definitions[7], "MCH-"+base_names[definitions[7]]+".link").name
-    llip7 = copy_bone_simple(obj.data, definitions[8], "MCH-"+base_names[definitions[8]]+".link").name
-    llip8 = copy_bone_simple(obj.data, definitions[9], "MCH-"+base_names[definitions[9]]+".link").name
-
-    eb[llip1].parent = eb[lip1]
-    eb[llip2].parent = eb[lip2]
-    eb[llip3].parent = eb[lip3]
-    eb[llip4].parent = eb[lip4]
-    eb[llip5].parent = eb[lip5]
-    eb[llip6].parent = eb[lip6]
-    eb[llip7].parent = eb[lip7]
-    eb[llip8].parent = eb[lip8]
 
     # Jaw open tracker
     jopent = copy_bone_simple(obj.data, jaw_e.name, "MCH-"+base_names[jaw_e.name]+".track", parent=True).name
@@ -515,7 +462,7 @@ def control(obj, definitions, base_names, options):
     con.volume = 'NO_VOLUME'
 
     # Head lips to jaw lips
-    influence = [0.02, 0.15, 0.5, 0.25, 0.0]
+    influence = [0.02, 0.1, 0.35, 0.25, 0.0]
 
     con = pb[hlip1].constraints.new('COPY_TRANSFORMS')
     con.target = obj
@@ -557,38 +504,38 @@ def control(obj, definitions, base_names, options):
     con.subtarget = jlip8
     con.influence = 1.0 - influence[3]
 
-    # ORG bones to link lips
+    # ORG bones to lips
     con = pb[definitions[2]].constraints.new('COPY_TRANSFORMS')
     con.target = obj
-    con.subtarget = llip1
+    con.subtarget = lip1
 
     con = pb[definitions[3]].constraints.new('COPY_TRANSFORMS')
     con.target = obj
-    con.subtarget = llip2
+    con.subtarget = lip2
 
     con = pb[definitions[4]].constraints.new('COPY_TRANSFORMS')
     con.target = obj
-    con.subtarget = llip3
+    con.subtarget = lip3
 
     con = pb[definitions[5]].constraints.new('COPY_TRANSFORMS')
     con.target = obj
-    con.subtarget = llip4
+    con.subtarget = lip4
 
     con = pb[definitions[6]].constraints.new('COPY_TRANSFORMS')
     con.target = obj
-    con.subtarget = llip5
+    con.subtarget = lip5
 
     con = pb[definitions[7]].constraints.new('COPY_TRANSFORMS')
     con.target = obj
-    con.subtarget = llip6
+    con.subtarget = lip6
 
     con = pb[definitions[8]].constraints.new('COPY_TRANSFORMS')
     con.target = obj
-    con.subtarget = llip7
+    con.subtarget = lip7
 
     con = pb[definitions[9]].constraints.new('COPY_TRANSFORMS')
     con.target = obj
-    con.subtarget = llip8
+    con.subtarget = lip8
 
     # Action constraints for open mouth
     con = pb[lip1].constraints.new('ACTION')

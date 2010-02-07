@@ -129,7 +129,7 @@ void BLI_argsAdd(struct bArgs *ba, char *arg, int pass, BA_ArgCallback cb, void 
 
 	key->arg = arg;
 	key->pass = pass;
-	key->case_str = 1;
+	key->case_str = 0;
 
 	a->func = cb;
 	a->data = data;
@@ -144,7 +144,7 @@ void BLI_argsAddCase(struct bArgs *ba, char *arg, int pass, BA_ArgCallback cb, v
 
 	key->arg = arg;
 	key->pass = pass;
-	key->case_str = 0;
+	key->case_str = 1;
 
 	a->func = cb;
 	a->data = data;

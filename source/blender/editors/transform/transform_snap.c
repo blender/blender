@@ -273,7 +273,7 @@ void applyProject(TransInfo *t)
 			
 			project_float(t->ar, iloc, mval);
 			
-			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.target))
+			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect))
 			{
 //				if(t->flag & (T_EDIT|T_POSE)) {
 //					mul_m4_v3(imat, loc);

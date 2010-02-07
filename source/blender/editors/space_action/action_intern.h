@@ -56,6 +56,8 @@ void action_header_buttons(const struct bContext *C, struct ARegion *ar);
 void ACTION_OT_select_all_toggle(struct wmOperatorType *ot);
 void ACTION_OT_select_border(struct wmOperatorType *ot);
 void ACTION_OT_select_column(struct wmOperatorType *ot);
+void ACTION_OT_select_more(struct wmOperatorType *ot);
+void ACTION_OT_select_less(struct wmOperatorType *ot);
 void ACTION_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */

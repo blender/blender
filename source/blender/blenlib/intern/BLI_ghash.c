@@ -60,7 +60,7 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp) {
 	GHash *gh= MEM_mallocN(sizeof(*gh), "GHash");
 	gh->hashfp= hashfp;
 	gh->cmpfp= cmpfp;
-	gh->entrypool = BLI_mempool_create(sizeof(Entry), 1024, 1024, 0);
+	gh->entrypool = BLI_mempool_create(sizeof(Entry), 64, 64, 0);
 
 	gh->cursize= 0;
 	gh->nentries= 0;

@@ -480,6 +480,10 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_args.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_bfile.c"
 				>
 			</File>
@@ -652,6 +656,10 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_args.h"
+				>
+			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_bfile.h"
 				>

@@ -95,14 +95,14 @@ class RandomizeLocRotSize(bpy.types.Operator):
 
     loc = FloatVectorProperty(name="Location",
         description="Maximun distance the objects can spread over each axis",
-        default=(0.0, 0.0, 0.0), min=-100.0, max=100.0)
+        default=(0.0, 0.0, 0.0), min=-100.0, max=100.0, subtype='TRANSLATION')
 
     use_rot = BoolProperty(name="Randomize Rotation",
         description="Randomize the rotation values", default=True)
 
     rot = FloatVectorProperty(name="Rotation",
         description="Maximun rotation over each axis",
-        default=(0.0, 0.0, 0.0), min=-180.0, max=180.0)
+        default=(0.0, 0.0, 0.0), min=-180.0, max=180.0, subtype='TRANSLATION')
 
     use_scale = BoolProperty(name="Randomize Scale",
         description="Randomize the scale values", default=True)
@@ -116,7 +116,7 @@ class RandomizeLocRotSize(bpy.types.Operator):
 
     scale = FloatVectorProperty(name="Scale",
         description="Maximum scale randomization over each axis",
-        default=(0.0, 0.0, 0.0), min=-100.0, max=100.0)
+        default=(0.0, 0.0, 0.0), min=-100.0, max=100.0, subtype='TRANSLATION')
 
     def execute(self, context):
         from math import radians

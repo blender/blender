@@ -307,7 +307,10 @@ typedef struct RenderData {
 	
 	/* information on different layers to be rendered */
 	ListBase layers;
-	short actlay, pad;
+	short actlay;
+	
+	/* number of mblur samples */
+	short mblur_samples;
 	
 	/**
 	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
@@ -364,8 +367,9 @@ typedef struct RenderData {
 	float bg_stamp[4];
 
 	/* render simplify */
-	int simplify_subsurf;
-	int simplify_shadowsamples;
+	int simplify_flag;
+	short simplify_subsurf;
+	short simplify_shadowsamples;
 	float simplify_particles;
 	float simplify_aosss;
 
@@ -976,6 +980,9 @@ typedef struct Scene {
 #define R_BAKE_SPACE_WORLD	 1
 #define R_BAKE_SPACE_OBJECT	 2
 #define R_BAKE_SPACE_TANGENT 3
+
+/* simplify_flag */
+#define R_SIMPLE_NO_TRIANGULATE		1
 
 /* **************** SCENE ********************* */
 

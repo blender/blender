@@ -1569,6 +1569,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 		else {
 			/* always copy custom shape */
 			pchan->custom= pchanp->custom;
+			pchan->custom_tx= pchanp->custom_tx;
 		}
 	}
 }
@@ -1892,6 +1893,12 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		
 		/* tail endpoint */
 		if ( where_on_path(ikData->tar, tree->points[index], vec, dir, NULL, &rad) ) {
+			/* apply curve's object-mode transforms to the position 
+			 * unless the option to allow curve to be positioned elsewhere is activated (i.e. no root)
+			 */
+			if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) == 0)
+				mul_m4_v3(ikData->tar->obmat, vec);
+			
 			/* convert the position to pose-space, then store it */
 			mul_m4_v3(ob->imat, vec);
 			interp_v3_v3v3(poseTail, pchan->pose_tail, vec, tailBlendFac);
@@ -1902,6 +1909,12 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 		
 		/* head endpoint */
 		if ( where_on_path(ikData->tar, tree->points[index+1], vec, dir, NULL, &rad) ) {
+			/* apply curve's object-mode transforms to the position 
+			 * unless the option to allow curve to be positioned elsewhere is activated (i.e. no root)
+			 */
+			if ((ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) == 0)
+				mul_m4_v3(ikData->tar->obmat, vec);
+			
 			/* store the position, and convert it to pose space */
 			mul_m4_v3(ob->imat, vec);
 			VECCOPY(poseHead, vec);
@@ -2016,11 +2029,9 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	 *	  the shape but be moved elsewhere
 	 */
 	if (ikData->flag & CONSTRAINT_SPLINEIK_NO_ROOT) {
-		VECCOPY(poseMat[3], pchan->pose_head);
+		VECCOPY(poseHead, pchan->pose_head);
 	}
-	else {
-		VECCOPY(poseMat[3], poseHead);
-	}
+	VECCOPY(poseMat[3], poseHead);
 	
 	/* finally, store the new transform */
 	copy_m4_m4(pchan->pose_mat, poseMat);

@@ -755,27 +755,6 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 	}
 }
 
-
-static char *get_cfra_marker_name(Scene *scene)
-{
-	ListBase *markers= &scene->markers;
-	TimeMarker *m1, *m2;
-	
-	/* search through markers for match */
-	for (m1=markers->first, m2=markers->last; m1 && m2; m1=m1->next, m2=m2->prev) {
-		if (m1->frame==CFRA)
-			return m1->name;
-		
-		if (m1 == m2)
-			break;		
-		
-		if (m2->frame==CFRA)
-			return m2->name;
-	}
-	
-	return NULL;
-}
-
 /* draw info beside axes in bottom left-corner: 
 * 	framenum, object name, bone name (if available), marker name (if available)
 */
@@ -785,7 +764,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 	short offset=30;
 	
 	/* get name of marker on current frame (if available) */
-	markern= get_cfra_marker_name(scene);
+	markern= scene_find_marker_name(scene, CFRA);
 	
 	/* check if there is an object */
 	if(ob) {
@@ -1503,7 +1482,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	ListBase *lb;
 	DupliObject *dob;
 	Base tbase;
-	BoundBox bb; /* use a copy because draw_object, calls clear_mesh_caches */
+	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist=0;
 	short transflag, use_displist= -1;	/* -1 is initialize */
 	char dt, dtx;
@@ -1539,14 +1518,14 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			if(use_displist == -1) {
 				
 				/* lamp drawing messes with matrices, could be handled smarter... but this works */
-				if(dob->ob->type==OB_LAMP || dob->type==OB_DUPLIGROUP)
+				if(dob->ob->type==OB_LAMP || dob->type==OB_DUPLIGROUP || !(bb_tmp= object_get_boundbox(dob->ob)))
 					use_displist= 0;
 				else {
+					bb= *bb_tmp; /* must make a copy  */
+
 					/* disable boundbox check for list creation */
 					object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
 					/* need this for next part of code */
-					bb= *object_get_boundbox(dob->ob);
-					
 					unit_m4(dob->ob->obmat);	/* obmat gets restored */
 					
 					displist= glGenLists(1);
@@ -2022,7 +2001,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	int retopo= 0, sculptparticle= 0;
 	Object *obact = OBACT;
 	char *grid_unit= NULL;
-	
+
 	/* from now on all object derived meshes check this */
 	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
 	
@@ -2037,6 +2016,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
+
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_draw_clipping(rv3d);

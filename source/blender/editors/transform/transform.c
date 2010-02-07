@@ -122,6 +122,8 @@
 
 #include "transform.h"
 
+void drawTransformApply(const struct bContext *C, struct ARegion *ar, void *arg);
+
 /* ************************** SPACE DEPENDANT CODE **************************** */
 
 void setTransformViewMatrices(TransInfo *t)
@@ -297,7 +299,7 @@ void removeAspectRatio(TransInfo *t, float *vec)
 	}
 }
 
-static void viewRedrawForce(bContext *C, TransInfo *t)
+static void viewRedrawForce(const bContext *C, TransInfo *t)
 {
 	if (t->spacetype == SPACE_VIEW3D)
 	{
@@ -543,7 +545,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		t->mval[0] = event->x - t->ar->winrct.xmin;
 		t->mval[1] = event->y - t->ar->winrct.ymin;
 
-		t->redraw = 1;
+		t->redraw |= TREDRAW_SOFT;
 
 		if (t->state == TRANS_STARTING) {
 		    t->state = TRANS_RUNNING;
@@ -568,7 +570,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					restoreTransObjects(t);
 					initTranslation(t);
 					initSnapping(t, NULL); // need to reinit after mode change
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_ROTATE:
@@ -586,7 +588,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 						initRotation(t);
 					}
 					initSnapping(t, NULL); // need to reinit after mode change
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_RESIZE:
@@ -596,21 +598,21 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					restoreTransObjects(t);
 					initResize(t);
 					initSnapping(t, NULL); // need to reinit after mode change
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 				
 			case TFM_MODAL_SNAP_INV_ON:
 				t->modifiers |= MOD_SNAP_INVERT;
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 				break;
 			case TFM_MODAL_SNAP_INV_OFF:
 				t->modifiers &= ~MOD_SNAP_INVERT;
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 				break;
 			case TFM_MODAL_SNAP_TOGGLE:
 				t->modifiers ^= MOD_SNAP;
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 				break;
 			case TFM_MODAL_AXIS_X:
 				if ((t->flag & T_NO_CONSTRAINT)==0) {
@@ -625,7 +627,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 							setUserConstraint(t, t->current_orientation, (CON_AXIS0), "along %s X");
 						}
 					}
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_AXIS_Y:
@@ -641,7 +643,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 							setUserConstraint(t, t->current_orientation, (CON_AXIS1), "along %s Y");
 						}
 					}
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_AXIS_Z:
@@ -652,7 +654,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					else {
 						setUserConstraint(t, t->current_orientation, (CON_AXIS2), "along %s Z");
 					}
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_PLANE_X:
@@ -663,7 +665,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					else {
 						setUserConstraint(t, t->current_orientation, (CON_AXIS1|CON_AXIS2), "locking %s X");
 					}
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_PLANE_Y:
@@ -674,7 +676,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					else {
 						setUserConstraint(t, t->current_orientation, (CON_AXIS0|CON_AXIS2), "locking %s Y");
 					}
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_PLANE_Z:
@@ -685,22 +687,22 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					else {
 						setUserConstraint(t, t->current_orientation, (CON_AXIS0|CON_AXIS1), "locking %s Z");
 					}
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_CONS_OFF:
 				if ((t->flag & T_NO_CONSTRAINT)==0) {
 					stopConstraint(t);
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_ADD_SNAP:
 				addSnapPoint(t);
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 				break;
 			case TFM_MODAL_REMOVE_SNAP:
 				removeSnapPoint(t);
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 				break;
 			default:
 				handled = 0;
@@ -720,7 +722,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			t->modifiers |= MOD_CONSTRAINT_PLANE;
-			t->redraw = 1;
+			t->redraw |= TREDRAW_HARD;
 			break;
 
 		case SPACEKEY:
@@ -768,7 +770,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 						postSelectConstraint(t);
 					}
 				}
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case ESCKEY:
@@ -785,7 +787,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				restoreTransObjects(t);
 				initTranslation(t);
 				initSnapping(t, NULL); // need to reinit after mode change
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case SKEY:
@@ -795,7 +797,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				restoreTransObjects(t);
 				initResize(t);
 				initSnapping(t, NULL); // need to reinit after mode change
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case RKEY:
@@ -813,7 +815,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					initRotation(t);
 				}
 				initSnapping(t, NULL); // need to reinit after mode change
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case CKEY:
@@ -825,7 +827,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			}
 			else {
 				stopConstraint(t);
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case XKEY:
@@ -854,7 +856,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1|CON_AXIS2), "locking %s X");
 					}
 				}
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case YKEY:
@@ -883,7 +885,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0|CON_AXIS2), "locking %s Y");
 					}
 				}
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case ZKEY:
@@ -904,14 +906,14 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0|CON_AXIS1), "locking %s Z");
 				}
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case OKEY:
 			if (t->flag & T_PROP_EDIT && event->shift) {
 				t->prop_mode = (t->prop_mode + 1) % 6;
 				calculatePropRatio(t);
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case PADPLUSKEY:
@@ -982,7 +984,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				else
 				{
 					/* Otherwise, just redraw, NDof input was cancelled */
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case NDOF_NOMOVE:
@@ -993,7 +995,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				}
 				break;
 			case NDOF_REFRESH:
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 				break;
 			default:
 				handled = 0;
@@ -1010,14 +1012,14 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			t->modifiers &= ~MOD_CONSTRAINT_PLANE;
-			t->redraw = 1;
+			t->redraw |= TREDRAW_HARD;
 			break;
 
 		case MIDDLEMOUSE:
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
 				t->modifiers &= ~MOD_CONSTRAINT_SELECT;
 				postSelectConstraint(t);
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 //		case LEFTMOUSE:
@@ -1453,6 +1455,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		//calc_manipulator_stats(curarea);
 		initTransformOrientation(C, t);
 
+		t->draw_handle_apply = ED_region_draw_cb_activate(t->ar->type, drawTransformApply, t, REGION_DRAW_PRE_VIEW);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
 		//t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
 		t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), NULL, drawHelpline, t);
@@ -1624,9 +1627,9 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	return 1;
 }
 
-void transformApply(bContext *C, TransInfo *t)
+void transformApply(const bContext *C, TransInfo *t)
 {
-	if (t->redraw)
+	if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT)))
 	{
 		if (t->modifiers & MOD_CONSTRAINT_SELECT)
 			t->con.mode |= CON_SELECT;
@@ -1636,7 +1639,9 @@ void transformApply(bContext *C, TransInfo *t)
 			t->transform(t, t->mval);  // calls recalcData()
 			viewRedrawForce(C, t);
 		}
-		t->redraw = 0;
+		t->redraw = TREDRAW_NOTHING;
+	} else if (t->redraw & TREDRAW_SOFT) {
+		viewRedrawForce(C, t);
 	}
 
 	/* If auto confirm is on, break after one pass */
@@ -1649,7 +1654,17 @@ void transformApply(bContext *C, TransInfo *t)
 	{
 		// TRANSFORM_FIX_ME
 		//do_screenhandlers(G.curscreen);
-		t->redraw = 1;
+		t->redraw |= TREDRAW_HARD;
+	}
+}
+
+void drawTransformApply(const struct bContext *C, struct ARegion *ar, void *arg)
+{
+	TransInfo *t = arg;
+
+	if (t->redraw & TREDRAW_SOFT) {
+		t->redraw |= TREDRAW_HARD;
+		transformApply(C, t);
 	}
 }
 

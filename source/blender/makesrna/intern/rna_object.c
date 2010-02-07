@@ -930,7 +930,7 @@ static PointerRNA rna_Object_active_shape_key_get(PointerRNA *ptr)
 		return PointerRNA_NULL;
 	
 	kb= BLI_findlink(&key->block, ob->shapenr-1);
-	RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
+	RNA_pointer_create((ID *)key, &RNA_ShapeKey, kb, &keyptr);
 	return keyptr;
 }
 
@@ -1522,11 +1522,11 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Proxy Group", "Library group duplicator object this proxy object controls.");
 
 	/* materials */
-	prop= RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
+	prop= RNA_def_property(srna, "material_slots", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
 	RNA_def_property_struct_type(prop, "MaterialSlot");
 	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_iterator_array_get", 0, 0, 0); /* don't dereference pointer! */
-	RNA_def_property_ui_text(prop, "Materials", "Material slots in the object.");
+	RNA_def_property_ui_text(prop, "Material Slots", "Material slots in the object.");
 
 	prop= RNA_def_property(srna, "active_material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Material");
@@ -1961,7 +1961,7 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "active_shape_key_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "shapenr");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE); // XXX this is really unpredictable...
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); // XXX this is really unpredictable...
 	RNA_def_property_int_funcs(prop, "rna_Object_active_shape_key_index_get", "rna_Object_active_shape_key_index_set", "rna_Object_active_shape_key_index_range");
 	RNA_def_property_ui_text(prop, "Active Shape Key Index", "Current shape key index.");
 	RNA_def_property_update(prop, 0, "rna_Object_active_shape_update");

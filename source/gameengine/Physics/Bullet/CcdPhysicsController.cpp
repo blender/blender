@@ -236,7 +236,7 @@ bool CcdPhysicsController::CreateSoftbody()
 			}
 		} else
 		{
-			btBvhTriangleMeshShape* trimeshshape = (btBvhTriangleMeshShape*) m_cci.m_collisionShape;
+			btTriangleMeshShape* trimeshshape = (btTriangleMeshShape*) m_cci.m_collisionShape;
 			///only deal with meshes that have 1 sub part/component, for now
 			if (trimeshshape->getMeshInterface()->getNumSubParts()==1)
 			{
@@ -682,7 +682,7 @@ void		CcdPhysicsController::PostProcessReplica(class PHY_IMotionState* motionsta
 	if (m_shapeInfo)
 	{
 		m_shapeInfo->AddRef();
-		m_collisionShape = m_shapeInfo->CreateBulletShape(m_cci.m_margin);
+		m_collisionShape = m_shapeInfo->CreateBulletShape(m_cci.m_margin, m_cci.m_bGimpact, !m_cci.m_bSoft);
 
 		if (m_collisionShape)
 		{
@@ -1276,7 +1276,7 @@ PHY_IPhysicsController*	CcdPhysicsController::GetReplica()
 	if (m_shapeInfo)
 	{
 		// This situation does not normally happen
-		cinfo.m_collisionShape = m_shapeInfo->CreateBulletShape(m_cci.m_margin);
+		cinfo.m_collisionShape = m_shapeInfo->CreateBulletShape(m_cci.m_margin, m_cci.m_bGimpact, !m_cci.m_bSoft);
 	} 
 	else if (m_collisionShape)
 	{
@@ -1379,9 +1379,9 @@ void	DefaultMotionState::calculateWorldTransformations()
 // Shape constructor
 std::map<RAS_MeshObject*, CcdShapeConstructionInfo*> CcdShapeConstructionInfo::m_meshShapeMap;
 
-CcdShapeConstructionInfo* CcdShapeConstructionInfo::FindMesh(RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope, bool gimpact)
+CcdShapeConstructionInfo* CcdShapeConstructionInfo::FindMesh(RAS_MeshObject* mesh, struct DerivedMesh* dm, bool polytope)
 {
-	if (polytope || dm || gimpact)
+	if (polytope || dm)
 		// not yet supported
 		return NULL;
 
@@ -1391,11 +1391,9 @@ CcdShapeConstructionInfo* CcdShapeConstructionInfo::FindMesh(RAS_MeshObject* mes
 	return NULL;
 }
 
-bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm, bool polytope,bool useGimpact)
+bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm, bool polytope)
 {
 	int numpolys, numverts;
-
-	m_useGimpact = useGimpact;
 
 	// assume no shape information
 	// no support for dynamic change of shape yet
@@ -1656,7 +1654,7 @@ bool CcdShapeConstructionInfo::SetMesh(RAS_MeshObject* meshobj, DerivedMesh* dm,
 	}
 
 	// sharing only on static mesh at present, if you change that, you must also change in FindMesh
-	if (!polytope && !dm && !useGimpact)
+	if (!polytope && !dm)
 	{
 		// triangle shape can be shared, store the mesh object in the map
 		m_meshShapeMap.insert(std::pair<RAS_MeshObject*,CcdShapeConstructionInfo*>(meshobj,this));
@@ -1991,13 +1989,13 @@ bool CcdShapeConstructionInfo::SetProxy(CcdShapeConstructionInfo* shapeInfo)
 	return true;
 }
 
-btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin)
+btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin, bool useGimpact, bool useBvh)
 {
 	btCollisionShape* collisionShape = 0;
 	btCompoundShape* compoundShape = 0;	
 
 	if (m_shapeType == PHY_SHAPE_PROXY && m_shapeProxy != NULL)
-		return m_shapeProxy->CreateBulletShape(margin);
+		return m_shapeProxy->CreateBulletShape(margin, useGimpact, useBvh);
 
 	switch (m_shapeType) 
 	{
@@ -2037,7 +2035,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin)
 		// 9 multiplications/additions and one function call for each triangle that passes the mid phase filtering
 		// One possible optimization is to use directly the btBvhTriangleMeshShape when the scale is 1,1,1
 		// and btScaledBvhTriangleMeshShape otherwise.
-		if (m_useGimpact)
+		if (useGimpact)
 		{				
 				btTriangleIndexVertexArray* indexVertexArrays = new btTriangleIndexVertexArray(
 						m_polygonIndexArray.size(),
@@ -2095,14 +2093,14 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin)
 				if(m_unscaledShape) {
 					DeleteBulletShape(m_unscaledShape, false);
 					m_unscaledShape->~btBvhTriangleMeshShape();
-	
-					m_unscaledShape = new(m_unscaledShape) btBvhTriangleMeshShape( indexVertexArrays, true );
+					m_unscaledShape = new(m_unscaledShape) btBvhTriangleMeshShape( indexVertexArrays, true, useBvh );
 				} else {
-					m_unscaledShape = new btBvhTriangleMeshShape( indexVertexArrays, true );
+					m_unscaledShape = new btBvhTriangleMeshShape( indexVertexArrays, true, useBvh );
 				}
-				
 				m_forceReInstance= false;
-				m_unscaledShape->recalcLocalAabb();
+			} else if (useBvh && m_unscaledShape->getOptimizedBvh() == NULL) {
+				// the existing unscaledShape was not build with Bvh, do it now
+				m_unscaledShape->buildOptimizedBvh();
 			}
 			collisionShape = new btScaledBvhTriangleMeshShape(m_unscaledShape, btVector3(1.0f,1.0f,1.0f));
 			collisionShape->setMargin(margin);
@@ -2117,7 +2115,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin)
 				 sit != m_shapeArray.end();
 				 sit++)
 			{
-				collisionShape = (*sit)->CreateBulletShape(margin);
+				collisionShape = (*sit)->CreateBulletShape(margin, useGimpact, useBvh);
 				if (collisionShape)
 				{
 					collisionShape->setLocalScaling((*sit)->m_childScale);
@@ -2133,6 +2131,7 @@ btCollisionShape* CcdShapeConstructionInfo::CreateBulletShape(btScalar margin)
 void CcdShapeConstructionInfo::AddShape(CcdShapeConstructionInfo* shapeInfo)
 {
 	m_shapeArray.push_back(shapeInfo);
+	shapeInfo->AddRef();
 }
 
 CcdShapeConstructionInfo::~CcdShapeConstructionInfo()

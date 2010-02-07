@@ -199,6 +199,7 @@ static void rna_def_touch_sensor(BlenderRNA *brna)
 	RNA_def_struct_sdna_from(srna, "bTouchSensor", "data");
 
 	prop= RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_pointer_sdna(prop, NULL, "ma");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Material", "Only look for floors with this material.");
@@ -324,6 +325,7 @@ static void rna_def_actuator_sensor(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Actuator Sensor", "Sensor to detect state modifications of actuators.");
 	RNA_def_struct_sdna_from(srna, "bActuatorSensor", "data");
 
+	// XXX if eventually have Logics using RNA 100%, we could use the actuator datablock isntead of its name
 	prop= RNA_def_property(srna, "actuator", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Actuator", "Actuator name, actuator active state modifications will be detected.");
@@ -372,6 +374,13 @@ static void rna_def_collision_sensor(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "materialName");
 	RNA_def_property_ui_text(prop, "Material Name", "Only look for Objects with this material.");
 
+/*
+	prop= RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ma");
+	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material.");
+*/
 	prop= RNA_def_property(srna, "collision_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, prop_type_items);
@@ -455,6 +464,14 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "material", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "matname");
 	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material.");
+
+/*
+	prop= RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Material");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ma");
+	RNA_def_property_ui_text(prop, "Material", "Only look for Objects with this material.");
+*/
 
 	prop= RNA_def_property(srna, "ray_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mode");

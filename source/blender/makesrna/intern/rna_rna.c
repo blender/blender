@@ -32,6 +32,17 @@
 
 #include "rna_internal.h"
 
+EnumPropertyItem property_unit_items[] = {
+	{PROP_UNIT_NONE, "NONE", 0, "None", ""},
+	{PROP_UNIT_LENGTH, "LENGTH", 0, "Length", ""},
+	{PROP_UNIT_AREA, "AREA", 0, "Area", ""},
+	{PROP_UNIT_VOLUME, "VOLUME", 0, "Volume", ""},
+	{PROP_UNIT_ROTATION, "ROTATION", 0, "Rotation", ""},
+	{PROP_UNIT_TIME, "TIME", 0, "Time", ""},
+	{PROP_UNIT_VELOCITY, "VELOCITY", 0, "Velocity", ""},
+	{PROP_UNIT_ACCELERATION, "ACCELERATION", 0, "Acceleration", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "BLI_ghash.h"
@@ -926,16 +937,6 @@ static void rna_def_property(BlenderRNA *brna)
 		{PROP_LAYER, "LAYER", 0, "Layer", ""},
 		{PROP_LAYER_MEMBER, "LAYER_MEMBERSHIP", 0, "Layer Membership", ""},
 		{0, NULL, 0, NULL, NULL}};
-	static EnumPropertyItem unit_items[] = {
-		{PROP_UNIT_NONE, "NONE", 0, "None", ""},
-		{PROP_UNIT_LENGTH, "LENGTH", 0, "Length", ""},
-		{PROP_UNIT_AREA, "AREA", 0, "Area", ""},
-		{PROP_UNIT_VOLUME, "VOLUME", 0, "Volume", ""},
-		{PROP_UNIT_ROTATION, "ROTATION", 0, "Rotation", ""},
-		{PROP_UNIT_TIME, "TIME", 0, "Time", ""},
-		{PROP_UNIT_VELOCITY, "VELOCITY", 0, "Velocity", ""},
-		{PROP_UNIT_ACCELERATION, "ACCELERATION", 0, "Acceleration", ""},
-		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Property", NULL);
 	RNA_def_struct_ui_text(srna, "Property Definition", "RNA property definition.");
@@ -978,7 +979,7 @@ static void rna_def_property(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "unit", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, unit_items);
+	RNA_def_property_enum_items(prop, property_unit_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_unit_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Unit", "Type of units for this property.");
 

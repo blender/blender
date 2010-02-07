@@ -90,7 +90,7 @@ typedef enum PropertyUnit {
 
 #define RNA_ENUM_BITFLAG_SIZE 32
 
-/* also update rna_property_subtypename when you change this */
+/* also update enums in bpy_props.c when adding items here */
 typedef enum PropertySubType {
 	PROP_NONE = 0,
 
@@ -125,6 +125,7 @@ typedef enum PropertySubType {
 	PROP_LAYER_MEMBER = 41
 } PropertySubType;
 
+/* Make sure enums are updated with thses */
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
@@ -140,7 +141,7 @@ typedef enum PropertyFlag {
 	 * other input, be it animation curves, expressions, ..
 	 * properties are animateable by default except for pointers
 	 * and collections */
-	PROP_ANIMATEABLE = 1<<1,
+	PROP_ANIMATABLE = 1<<1,
 
 	/* icon */
 	PROP_ICONS_CONSECUTIVE = 1<<12,

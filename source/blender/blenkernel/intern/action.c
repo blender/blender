@@ -1028,7 +1028,7 @@ void copy_pose_result(bPose *to, bPose *from)
 	bPoseChannel *pchanto, *pchanfrom;
 	
 	if(to==NULL || from==NULL) {
-		printf("pose result copy error\n"); // debug temp
+		printf("pose result copy error to:%p from:%p\n", to, from); // debug temp
 		return;
 	}
 

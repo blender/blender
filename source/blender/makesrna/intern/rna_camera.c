@@ -49,6 +49,18 @@ static void rna_Camera_lens_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	cam->angle= 360.0f * atan(16.0f/cam->lens) / M_PI;
 }
 
+/* only for rad/deg conversion! can remove later */
+static float rna_Camera_angle_get(PointerRNA *ptr)
+{
+	Camera *cam= ptr->id.data;
+	return cam->angle * (M_PI / 180.0);
+}
+
+static void rna_Camera_angle_set(PointerRNA *ptr, float value)
+{
+	Camera *cam= ptr->id.data;
+	cam->angle= value * (180.0 / M_PI);
+}
 
 #else
 
@@ -82,10 +94,12 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Passepartout Alpha", "Opacity (alpha) of the darkened overlay in Camera view.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
-	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "angle");
-	RNA_def_property_range(prop, 0.0f, 172.85f);
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
+	//RNA_def_property_float_sdna(prop, NULL, "angle");
+	//RNA_def_property_range(prop, 0.0f, 172.85f);
+	RNA_def_property_range(prop, 0.0f, M_PI * (172.85/180.0));
 	RNA_def_property_ui_text(prop, "Angle", "Perspective Camera lend field of view in degrees.");
+	RNA_def_property_float_funcs(prop, "rna_Camera_angle_get", "rna_Camera_angle_set", NULL); /* only for deg/rad conversion */
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Camera_angle_update");
 
 	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_NONE);

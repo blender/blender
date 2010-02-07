@@ -29,11 +29,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 /* for setuid / getuid */
 #ifdef __sgi
 #include <sys/types.h>
 #include <unistd.h>
+#endif
+
+#ifdef __linux__
+#include <fenv.h>
 #endif
 
 /* This little block needed for linking to Blender... */
@@ -133,7 +136,8 @@ char blender_path[FILE_MAXDIR+FILE_MAXFILE] = BLENDERPATH;
 /* Initialise callbacks for the modules that need them */
 static void setCallbacks(void); 
 
-#if defined(__sgi) || defined(__alpha__)
+/* on linux set breakpoints here when running in debug mode, useful to catch floating point errors */
+#if defined(__sgi) || defined(__linux__)
 static void fpe_handler(int sig)
 {
 	// printf("SIGFPE trapped\n");
@@ -341,6 +345,20 @@ static int debug_mode(int argc, char **argv, void *data)
 	return 0;
 }
 
+static int set_fpe(int argc, char **argv, void *data)
+{
+#if defined(__sgi) || defined(__linux__)
+	/* zealous but makes float issues a heck of a lot easier to find!
+	 * set breakpoints on fpe_handler */
+	signal(SIGFPE, fpe_handler);
+
+#ifdef __linux__
+	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
+#endif
+#endif
+	return 0;
+}
+
 static int playback_mode(int argc, char **argv, void *data)
 {
 	/* not if -b was given first */
@@ -538,11 +556,10 @@ static int set_image_type(int argc, char **argv, void *data)
 			else if (!strcmp(imtype,"JP2")) scene->r.imtype = R_JP2;
 #endif
 			else printf("\nError: Format from '-F' not known or not compiled in this release.\n");
-
 		}
 		return 1;
 	} else {
-		printf("\nError: no blend loaded. cannot use '-x'.\n");
+		printf("\nError: you must specify a format after '-F '.\n");
 		return 0;
 	}
 }
@@ -833,6 +850,8 @@ void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, "-Y", 1, forked_tongue, NULL);
 	BLI_argsAdd(ba, "-y", 1, disable_python, NULL);
 
+	BLI_argsAdd(ba, "-fpe", 1, set_fpe, NULL);
+
 	BLI_argsAdd(ba, "-B", 1, background_mode, NULL);
 	BLI_argsAdd(ba, "-b", 1, background_mode, NULL);
 	BLI_argsAdd(ba, "-a", 1, playback_mode, NULL);
@@ -898,14 +917,6 @@ int main(int argc, char **argv)
 #ifdef __FreeBSD__
 	fpsetmask(0);
 #endif
-#ifdef __linux__
-    #ifdef __alpha__
-	signal (SIGFPE, fpe_handler);
-    #endif
-#endif
-#if defined(__sgi)
-	signal (SIGFPE, fpe_handler);
-#endif
 
 	// copy path to executable in bprogname. playanim and creting runtimes
 	// need this.
@@ -945,6 +956,7 @@ int main(int argc, char **argv)
 #ifdef __sgi
 	setuid(getuid()); /* end superuser */
 #endif
+
 
 	/* for all platforms, even windos has it! */
 	if(G.background) signal(SIGINT, blender_esc);	/* ctrl c out bg render */

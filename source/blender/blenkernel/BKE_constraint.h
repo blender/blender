@@ -30,6 +30,7 @@
 #ifndef BKE_CONSTRAINT_H
 #define BKE_CONSTRAINT_H
 
+struct ID;
 struct bConstraint;
 struct bConstraintTarget;
 struct ListBase;
@@ -57,6 +58,11 @@ typedef struct bConstraintOb {
 
 /* ---------------------------------------------------------------------------- */
 
+/* Callback format for performing operations on ID-pointers for Constraints */
+typedef void (*ConstraintIDFunc)(struct bConstraint *con, struct ID **idpoin, void *userdata);
+
+/* ....... */
+
 /* Constraint Type-Info (shorthand in code = cti):
  *  This struct provides function pointers for runtime, so that functions can be
  *  written more generally (with fewer/no special exceptions for various constraints).
@@ -80,6 +86,8 @@ typedef struct bConstraintTypeInfo {
 	void (*free_data)(struct bConstraint *con);
 		/* adjust pointer to other ID-data using ID_NEW(), but not to targets (optional) */
 	void (*relink_data)(struct bConstraint *con);
+		/* run the provided callback function on all the ID-blocks linked to the constraint */
+	void (*id_looper)(struct bConstraint *con, ConstraintIDFunc func, void *userdata);
 		/* copy any special data that is allocated separately (optional) */
 	void (*copy_data)(struct bConstraint *con, struct bConstraint *src);
 		/* set settings for data that will be used for bConstraint.data (memory already allocated using MEM_callocN) */
@@ -116,6 +124,7 @@ void unique_constraint_name(struct bConstraint *con, struct ListBase *list);
 void free_constraints(struct ListBase *list);
 void copy_constraints(struct ListBase *dst, const struct ListBase *src);
 void relink_constraints(struct ListBase *list);
+void id_loop_constraints(struct ListBase *list, ConstraintIDFunc func, void *userdata);
 void free_constraint_data(struct bConstraint *con);
 
 /* Constraint API function prototypes */

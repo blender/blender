@@ -1076,7 +1076,11 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	short event_code= VIEW_PASS;
 
 	/* execute the events */
-	if(event->type==MOUSEMOVE) {
+	if (event->type == TIMER && event->customdata == vod->timer) {
+		/* continuous zoom */
+		event_code= VIEW_APPLY;
+	}
+	else if(event->type==MOUSEMOVE) {
 		event_code= VIEW_APPLY;
 	}
 	else if(event->type==EVT_MODAL_MAP) {
@@ -1194,6 +1198,12 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_FINISHED;
 		}
 		else {
+			if(U.viewzoom == USER_ZOOM_CONT) {
+				/* needs a timer to continue redrawing */
+				vod->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+				vod->timer_lastdraw= PIL_check_seconds_timer();
+			}
+
 			/* add temp handler */
 			WM_event_add_modal_handler(C, op);
 
@@ -1323,7 +1333,7 @@ static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview wi
 	Object *ob= OBACT;
 	Object *obedit= CTX_data_edit_object(C);
 	float size, min[3], max[3], afm[3];
-	int ok=0;
+	int ok=0, ok_dist=1;
 
 	/* SMOOTHVIEW */
 	float new_ofs[3];
@@ -1397,11 +1407,21 @@ static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview wi
 	afm[1]= (max[1]-min[1]);
 	afm[2]= (max[2]-min[2]);
 	size= MAX3(afm[0], afm[1], afm[2]);
-	/* perspective should be a bit farther away to look nice */
-	if(rv3d->persp==RV3D_ORTHO)
-		size*= 0.7;
 
-	if(size <= v3d->near*1.5f) size= v3d->near*1.5f;
+	if(rv3d->persp==RV3D_ORTHO) {
+		if(size < 0.0001f) { /* if its a sinble point. dont even re-scale */
+			ok_dist= 0;
+		}
+		else {
+			/* perspective should be a bit farther away to look nice */
+			size*= 0.7f;
+		}
+	}
+	else {
+		if(size <= v3d->near*1.5f) {
+			size= v3d->near*1.5f;
+		}
+	}
 
 	new_ofs[0]= -(min[0]+max[0])/2.0f;
 	new_ofs[1]= -(min[1]+max[1])/2.0f;
@@ -1421,7 +1441,7 @@ static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview wi
 		smooth_view(C, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 	}
 	else {
-		smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
+		smooth_view(C, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
 	}
 
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
@@ -2306,9 +2326,19 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	initgrabz(rv3d, fp[0], fp[1], fp[2]);
 
 	if(mval[0]!=IS_CLIPPED) {
+		short depth_used = 0;
 
-		window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
-		sub_v3_v3v3(fp, fp, dvec);
+		if (U.uiflag & USER_ORBIT_ZBUF) { /* maybe this should be accessed some other way */
+			short mval_depth[2] = {mx, my};
+			view3d_operator_needs_opengl(C);
+			if (view_autodist(scene, ar, v3d, mval_depth, fp))
+				depth_used= 1;
+		}
+
+		if(depth_used==0) {
+			window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
+			sub_v3_v3v3(fp, fp, dvec);
+		}
 	}
 	else {
 

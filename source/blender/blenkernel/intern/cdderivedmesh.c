@@ -414,15 +414,17 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 }
 
 	if(cddm->pbvh) {
-		float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
+		if(dm->numFaceData) {
+			float (*face_nors)[3] = CustomData_get_layer(&dm->faceData, CD_NORMAL);
 
-		/* should be per face */
-		if(dm->numFaceData && mface->flag & ME_SMOOTH)
-			glShadeModel(GL_SMOOTH);
+			/* should be per face */
+			if(!setMaterial(mface->mat_nr+1, NULL))
+				return;
 
-		BLI_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors);
-
-		glShadeModel(GL_FLAT);
+			glShadeModel((mface->flag & ME_SMOOTH)? GL_SMOOTH: GL_FLAT);
+			BLI_pbvh_draw(cddm->pbvh, partial_redraw_planes, face_nors);
+			glShadeModel(GL_FLAT);
+		}
 
 		return;
 	}
@@ -769,7 +771,9 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	if(!mc)
 		mc = DM_get_face_data_layer(dm, CD_MCOL);
 
-	if( GPU_buffer_legacy(dm) ) {
+	/* back-buffer always uses legacy since VBO's would need the
+	 * color array temporarily overwritten for drawing, then reset. */
+	if( GPU_buffer_legacy(dm) || G.f & G_BACKBUFSEL) {
 		DEBUG_VBO( "Using legacy code. cdDM_drawMappedFaces\n" );
 		for(i = 0; i < dm->numFaceData; i++, mf++) {
 			int drawSmooth = (mf->flag & ME_SMOOTH);
@@ -858,7 +862,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 						dontdraw = 1;
 				}
 				else
-					orig = i;
+					orig = actualFace;
 				if( dontdraw ) {
 					state = 0;
 				}

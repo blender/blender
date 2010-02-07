@@ -3179,7 +3179,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	FRS_set_context(C);
 
 	/* flush multires changes (for sculpt) */
-	multires_force_update(CTX_data_active_object(C));
+	multires_force_render_update(CTX_data_active_object(C));
 	
 	/* get editmode results */
 	ED_object_exit_editmode(C, EM_FREEDATA|EM_DO_UNDO);	/* 0 = does not exit editmode */

@@ -524,7 +524,7 @@ def write(filename, batch_objects = None, \
                 self.__pose_bone.tail.copy() )
             '''
 
-            self.__anim_poselist[f] = self.__pose_bone.pose_matrix.copy()
+            self.__anim_poselist[f] = self.__pose_bone.matrix.copy()
 # 			self.__anim_poselist[f] = self.__pose_bone.poseMatrix.copy()
 
         # get pose from frame.
@@ -998,7 +998,7 @@ def write(filename, batch_objects = None, \
         loc, rot, scale, matrix, matrix_rot = write_object_props(my_cam.blenObject, None, my_cam.parRelMatrix())
 
         file.write('\n\t\t\tProperty: "Roll", "Roll", "A+",0')
-        file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % data.angle)
+        file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % math.degrees(data.angle))
         file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1')
         file.write('\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1')
         file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
@@ -1142,7 +1142,7 @@ def write(filename, batch_objects = None, \
         file.write('\n\t\t\tProperty: "Color", "Color", "A+",1,1,1')
         file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy*100, 200))) # clamp below 200
         if light.type == 'SPOT':
-            file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spot_size * scale))
+            file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % math.degrees(light.spot_size))
 # 		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spotSize * scale))
         file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
         file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.color))
@@ -2025,11 +2025,11 @@ def write(filename, batch_objects = None, \
         # This is needed so applying modifiers dosnt apply the armature deformation, its also needed
         # ...so mesh objects return their rest worldspace matrix when bone-parents are exported as weighted meshes.
         # set every armature to its rest, backup the original values so we done mess up the scene
-        ob_arms_orig_rest = [arm.rest_position for arm in bpy.data.armatures]
+        ob_arms_orig_rest = [arm.pose_position for arm in bpy.data.armatures]
 # 		ob_arms_orig_rest = [arm.restPosition for arm in bpy.data.armatures]
 
         for arm in bpy.data.armatures:
-            arm.rest_position = True
+            arm.pose_position = 'REST'
 # 			arm.restPosition = True
 
         if ob_arms_orig_rest:
@@ -2204,7 +2204,7 @@ def write(filename, batch_objects = None, \
     if EXP_ARMATURE:
         # now we have the meshes, restore the rest arm position
         for i, arm in enumerate(bpy.data.armatures):
-            arm.rest_position = ob_arms_orig_rest[i]
+            arm.pose_position = ob_arms_orig_rest[i]
 # 			arm.restPosition = ob_arms_orig_rest[i]
 
         if ob_arms_orig_rest:
@@ -3198,9 +3198,9 @@ def fbx_ui():
 
     Draw.BeginAlign()
     GLOBALS['_SCALE'] =		Draw.Number('Scale:',	EVENT_NONE, x+20, y+120, 140, 20, GLOBALS['_SCALE'].val,	0.01, 1000.0, 'Scale all data, (Note! some imports dont support scaled armatures)')
-    GLOBALS['_XROT90'] =	Draw.Toggle('Rot X90',	EVENT_NONE, x+160, y+120, 60, 20, GLOBALS['_XROT90'].val,		'Rotate all objects 90 degrese about the X axis')
-    GLOBALS['_YROT90'] =	Draw.Toggle('Rot Y90',	EVENT_NONE, x+220, y+120, 60, 20, GLOBALS['_YROT90'].val,		'Rotate all objects 90 degrese about the Y axis')
-    GLOBALS['_ZROT90'] =	Draw.Toggle('Rot Z90',	EVENT_NONE, x+280, y+120, 60, 20, GLOBALS['_ZROT90'].val,		'Rotate all objects 90 degrese about the Z axis')
+    GLOBALS['_XROT90'] =	Draw.Toggle('Rot X90',	EVENT_NONE, x+160, y+120, 60, 20, GLOBALS['_XROT90'].val,		'Rotate all objects 90 degrees about the X axis')
+    GLOBALS['_YROT90'] =	Draw.Toggle('Rot Y90',	EVENT_NONE, x+220, y+120, 60, 20, GLOBALS['_YROT90'].val,		'Rotate all objects 90 degrees about the Y axis')
+    GLOBALS['_ZROT90'] =	Draw.Toggle('Rot Z90',	EVENT_NONE, x+280, y+120, 60, 20, GLOBALS['_ZROT90'].val,		'Rotate all objects 90 degrees about the Z axis')
     Draw.EndAlign()
 
     y -= 35
@@ -3363,14 +3363,14 @@ class ExportFBX(bpy.types.Operator):
 
 
     path = StringProperty(name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default="")
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, hidden=True)
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
 # 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
     TX_SCALE = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
-    TX_XROT90 = BoolProperty(name="Rot X90", description="Rotate all objects 90 degrese about the X axis", default=True)
-    TX_YROT90 = BoolProperty(name="Rot Y90", description="Rotate all objects 90 degrese about the Y axis", default=False)
-    TX_ZROT90 = BoolProperty(name="Rot Z90", description="Rotate all objects 90 degrese about the Z axis", default=False)
+    TX_XROT90 = BoolProperty(name="Rot X90", description="Rotate all objects 90 degrees about the X axis", default=True)
+    TX_YROT90 = BoolProperty(name="Rot Y90", description="Rotate all objects 90 degrees about the Y axis", default=False)
+    TX_ZROT90 = BoolProperty(name="Rot Z90", description="Rotate all objects 90 degrees about the Z axis", default=False)
     EXP_EMPTY = BoolProperty(name="Empties", description="Export empty objects", default=True)
     EXP_CAMERA = BoolProperty(name="Cameras", description="Export camera objects", default=True)
     EXP_LAMP = BoolProperty(name="Lamps", description="Export lamp objects", default=True)

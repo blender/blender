@@ -132,6 +132,7 @@ void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock){}
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **lock_r){return (struct ImBuf *) NULL;}
 char *ED_info_stats_string(struct Scene *scene){return NULL;}
 void ED_area_tag_redraw(struct ScrArea *sa){}
+void ED_area_tag_refresh(struct ScrArea *sa){}
 void ED_area_newspace(struct bContext *C, struct ScrArea *sa, int type){} 
 void WM_event_add_fileselect(struct bContext *C, struct wmOperator *op){}
 void ED_node_texture_default(struct Tex *tx){}

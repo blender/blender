@@ -208,11 +208,15 @@ class SCENE_PT_simplify(SceneButtonsPanel):
         col = split.column()
         col.prop(rd, "simplify_subdivision", text="Subdivision")
         col.prop(rd, "simplify_child_particles", text="Child Particles")
+        
+        col.prop(rd, "simplify_triangulate")
 
         if wide_ui:
             col = split.column()
         col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
+        
+        
 
 bpy.types.register(SCENE_PT_scene)
 bpy.types.register(SCENE_PT_unit)
@@ -235,9 +239,9 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
     path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
     filename = bpy.props.StringProperty(name="File Name", description="Name of the file.")
     directory = bpy.props.StringProperty(name="Directory", description="Directory of the file.")
-    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, hidden=True)
-    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, hidden=True)
-    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, hidden=True)
+    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
+    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
+    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
         if not self.properties.path:

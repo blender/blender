@@ -195,22 +195,22 @@ char *rna_TextureSlot_path(PointerRNA *ptr)
 		
 		/* find the 'textures' property of the ID-struct */
 		RNA_id_pointer_create(ptr->id.data, &id_ptr);
-		prop= RNA_struct_find_property(&id_ptr, "textures");
+		prop= RNA_struct_find_property(&id_ptr, "texture_slots");
 		
 		/* get an iterator for this property, and try to find the relevant index */
 		if (prop) {
 			int index= RNA_property_collection_lookup_index(&id_ptr, prop, ptr);
 			
 			if (index >= 0)
-				return BLI_sprintfN("textures[%d]", index);
+				return BLI_sprintfN("texture_slots[%d]", index);
 		}
 	}
 	
 	/* this is a compromise for the remaining cases... */
 	if (mtex->tex)
-		return BLI_sprintfN("textures[\"%s\"]", mtex->tex->id.name+2);
+		return BLI_sprintfN("texture_slots[\"%s\"]", mtex->tex->id.name+2);
 	else
-		return BLI_strdup("textures[0]");
+		return BLI_strdup("texture_slots[0]");
 }
 
 static int rna_TextureSlot_name_length(PointerRNA *ptr)

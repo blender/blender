@@ -68,6 +68,9 @@ int next_object(struct Scene *scene, int val, struct Base **base, struct Object 
 struct Object *scene_find_camera(struct Scene *sc);
 struct Object *scene_find_camera_switch(struct Scene *scene); // DURIAN_CAMERA_SWITCH
 
+char *scene_find_marker_name(struct Scene *scene, int frame);
+char *scene_find_last_marker_name(struct Scene *scene, int frame);
+
 struct Base *scene_add_base(struct Scene *sce, struct Object *ob);
 void scene_deselect_all(struct Scene *sce);
 void scene_select_base(struct Scene *sce, struct Base *selbase);

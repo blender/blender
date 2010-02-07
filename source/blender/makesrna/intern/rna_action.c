@@ -197,6 +197,7 @@ static void rna_def_action_group(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
 	
 	/* WARNING: be very careful when working with this list, since the endpoint is not
 	 * defined like a standard ListBase. Adding/removing channels from this list needs
@@ -214,18 +215,22 @@ static void rna_def_action_group(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_SELECTED);
 	RNA_def_property_ui_text(prop, "Selected", "Action Group is selected.");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_SELECT, NULL);
 	
 	prop= RNA_def_property(srna, "locked", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_PROTECTED);
 	RNA_def_property_ui_text(prop, "Locked", "Action Group is locked.");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
 	
 	prop= RNA_def_property(srna, "expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", AGRP_EXPANDED);
 	RNA_def_property_ui_text(prop, "Expanded", "Action Group is expanded.");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
 	
 	prop= RNA_def_property(srna, "custom_color", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "customCol");
 	RNA_def_property_ui_text(prop, "Custom Color", "Index of custom color set.");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
 }
 
 static void rna_def_action(BlenderRNA *brna)

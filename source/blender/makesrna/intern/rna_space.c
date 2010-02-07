@@ -530,7 +530,7 @@ static void rna_SpaceDopeSheetEditor_action_update(Main *bmain, Scene *scene, Po
 static void rna_SpaceDopeSheetEditor_mode_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	SpaceAction *saction= (SpaceAction*)(ptr->data);
-
+	
 	/* special exception for ShapeKey Editor mode:
 	 * 		enable 'show sliders' by default, since one of the main
 	 *		points of the ShapeKey Editor is to provide a one-stop shop
@@ -538,6 +538,19 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *bmain, Scene *scene, Poin
 	 */
 	if (saction->mode == SACTCONT_SHAPEKEY)
 		saction->flag |= SACTION_SLIDERS;
+}
+
+/* Space Graph Editor */
+
+static void rna_SpaceGraphEditor_display_mode_update(bContext *C, PointerRNA *ptr)
+{
+	//SpaceIpo *sipo= (SpaceIpo*)(ptr->data);
+	ScrArea *sa= CTX_wm_area(C);
+	
+	/* after changing view mode, must force recalculation of F-Curve colors 
+	 * which can only be achieved using refresh as opposed to redraw
+	 */
+	ED_area_tag_refresh(sa);
 }
 
 static int rna_SpaceGraphEditor_has_ghost_curves_get(PointerRNA *ptr)
@@ -1473,7 +1486,8 @@ static void rna_def_space_graph(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Editing context being displayed.");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL); // XXX need to be able to flush channel types
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, "rna_SpaceGraphEditor_display_mode_update");
 	
 	/* display */
 	prop= RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);

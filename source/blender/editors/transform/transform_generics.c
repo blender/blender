@@ -1072,6 +1072,8 @@ void postTrans (bContext *C, TransInfo *t)
 	
 	if (t->draw_handle_view)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_view);
+	if (t->draw_handle_apply)
+		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_apply);
 	if (t->draw_handle_pixel)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_pixel);
 	if (t->draw_handle_cursor)
@@ -1440,8 +1442,12 @@ void calculatePropRatio(TransInfo *t)
 			else {
 				/* Use rdist for falloff calculations, it is the real distance */
 				td->flag &= ~TD_NOACTION;
-				dist= (t->prop_size-td->rdist)/t->prop_size;
 				
+				if (connected)
+					dist= (t->prop_size-td->dist)/t->prop_size;
+				else
+					dist= (t->prop_size-td->rdist)/t->prop_size;
+
 				/*
 				 * Clamp to positive numbers.
 				 * Certain corner cases with connectivity and individual centers

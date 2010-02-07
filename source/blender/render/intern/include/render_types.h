@@ -161,6 +161,7 @@ struct Render
 	/* samples */
 	SampleTables *samples;
 	float jit[32][2];
+	float mblur_jit[32][2];
 	ListBase *qmcsamplers;
 	
 	/* shadow counter, detect shadow-reuse for shaders */

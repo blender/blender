@@ -460,7 +460,7 @@ class _3ds_chunk(object):
 def get_material_images(material):
     # blender utility func.
     if material:
-        return [s.texture.image for s in material.textures if s and s.texture.type == 'IMAGE' and s.texture.image]
+        return [s.texture.image for s in material.texture_slots if s and s.texture.type == 'IMAGE' and s.texture.image]
 
     return []
 # 	images = []
@@ -1122,7 +1122,7 @@ class Export3DS(bpy.types.Operator):
 
     # filename = StringProperty(name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
     path = StringProperty(name="File Path", description="File path used for exporting the 3DS file", maxlen= 1024, default= "")
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, hidden=True)
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     def execute(self, context):
         save_3ds(self.properties.path, context)

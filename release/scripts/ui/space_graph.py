@@ -122,6 +122,10 @@ class GRAPH_MT_select(bpy.types.Menu):
         layout.operator("graph.select_column", text="Columns on Selected Markers").mode = 'MARKERS_COLUMN'
         layout.operator("graph.select_column", text="Between Selected Markers").mode = 'MARKERS_BETWEEN'
 
+        layout.separator()
+        layout.operator("graph.select_more")
+        layout.operator("graph.select_less")
+
 
 class GRAPH_MT_channel(bpy.types.Menu):
     bl_label = "Channel"

@@ -40,6 +40,7 @@ struct Object;
 void multires_mark_as_modified(struct Object *ob);
 
 void multires_force_update(struct Object *ob);
+void multires_force_render_update(struct Object *ob);
 
 struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*,
 	int local_mmd, struct DerivedMesh*, struct Object *, int, int);

@@ -103,6 +103,8 @@ void	DAG_scene_sort(struct Scene *sce);
 void	DAG_scene_update_flags(struct Scene *sce, unsigned int lay);
 		/* flushes all recalc flags in objects down the dependency tree */
 void	DAG_scene_flush_update(struct Scene *sce, unsigned int lay, int time);
+		/* tag objects for update on file load */
+void	DAG_on_load_update(void);
 
 		/* flag all IDs that need recalc because they're animated, influencing
 		   this ID only. only for objects currently */

@@ -98,6 +98,7 @@ typedef struct bDelaySensor {
 typedef struct bCollisionSensor {
 	char name[32];          /* property name */
 	char materialName[32];  /* material      */
+	// struct Material *ma; // XXX remove materialName
 	short damptimer, damp;
 	short mode;             /* flag to choose material or property */
  	short pad2;
@@ -121,6 +122,7 @@ typedef struct bRaySensor {
 	float range;
 	char propname[32];
 	char matname[32];
+	//struct Material *ma; // XXX remove materialName
 	short mode;
 	short pad1;
 	int axisflag;

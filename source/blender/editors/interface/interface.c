@@ -372,12 +372,16 @@ static void ui_popup_bounds_block(const bContext *C, uiBlock *block, int bounds_
 	/* and we adjust the position to fit within window */
 	width= block->maxx - block->minx;
 	height= block->maxy - block->miny;
+    
+    /* avoid divide by zero below, caused by calling with no UI, but better not crash */
+    oldwidth= oldwidth > 0 ? oldwidth : MAX2(1, width);
+    oldheight= oldheight > 0 ? oldheight : MAX2(1, height);
 
 	/* offset block based on mouse position, user offset is scaled
 	   along in case we resized the block in ui_text_bounds_block */
 	startx= window->eventstate->x + block->minx + (block->mx*width)/oldwidth;
 	starty= window->eventstate->y + block->miny + (block->my*height)/oldheight;
-	
+
 	if(startx<10)
 		startx= 10;
 	if(starty<10)
@@ -1428,6 +1432,12 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
 
 	if(subtype == PROP_UNIT_LENGTH) {
 		return value * scene->unit.scale_length;
+	}
+	else if(subtype == PROP_UNIT_AREA) {
+		return value * pow(scene->unit.scale_length, 2);
+	}
+	else if(subtype == PROP_UNIT_VOLUME) {
+		return value * pow(scene->unit.scale_length, 3);
 	}
 	else if(subtype == PROP_UNIT_TIME) { /* WARNING - using evil_C :| */
 		return FRA2TIME(value);

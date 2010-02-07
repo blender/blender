@@ -134,7 +134,7 @@ def write_mtl(scene, filename, copy_images):
 # 			file.write('map_Kd %s\n' % img.filename.split('\\')[-1].split('/')[-1]) # Diffuse mapping image
 
         elif mat: # No face image. if we havea material search for MTex image.
-            for mtex in mat.textures:
+            for mtex in mat.texture_slots:
                 if mtex and mtex.texture.type == 'IMAGE':
                     try:
                         filename = copy_image(mtex.texture.image)
@@ -176,7 +176,7 @@ def copy_images(dest_dir):
 
         # Get MTex images
         if mat:
-            for mtex in mat.textures:
+            for mtex in mat.texture_slots:
                 if mtex and mtex.texture.type == 'IMAGE':
                     image_tex = mtex.texture.image
                     if image_tex:
@@ -370,7 +370,7 @@ def write(filename, objects, scene,
         file.write('mtllib %s\n' % ( mtlfilename.split('\\')[-1].split('/')[-1] ))
 
     if EXPORT_ROTX90:
-        mat_xrot90= Mathutils.RotationMatrix(-math.pi/2, 4, 'x')
+        mat_xrot90= Mathutils.RotationMatrix(-math.pi/2, 4, 'X')
 
     # Initialize totals, these are updated each object
     totverts = totuvco = totno = 1
@@ -897,7 +897,7 @@ class ExportOBJ(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
     path = StringProperty(name="File Path", description="File path used for exporting the OBJ file", maxlen= 1024, default= "")
-    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, hidden=True)
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     # context group
     use_selection = BoolProperty(name="Selection Only", description="", default= False)

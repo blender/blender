@@ -1083,7 +1083,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	ParticleCacheKey *cache;
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size=0.0;
-	float (*obmat)[4], (*oldobmat)[4];
+	float (*obmat)[4], (*oldobmat)[4], recurs_mat[4][4];
 	int lay, a, b, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
 
@@ -1099,6 +1099,10 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 	if(!psys_check_enabled(par, psys))
 		return;
+	
+	/* particles are already in world space, don't want the object mat twice */
+	if(par_space_mat)
+		mul_m4_m4m4(recurs_mat, psys->imat, par_space_mat);
 
 	ctime = bsystem_time(scene, par, (float)scene->r.cfra, 0.0);
 
@@ -1243,7 +1247,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					mul_m4_m4m4(tmat, oblist[b]->obmat, pamat);
 					mul_mat3_m4_fl(tmat, size*scale);
 					if(par_space_mat)
-						mul_m4_m4m4(mat, tmat, par_space_mat);
+						mul_m4_m4m4(mat, tmat, recurs_mat);
 					else
 						copy_m4_m4(mat, tmat);
 
@@ -1269,7 +1273,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					VECADD(tmat[3], tmat[3], vec);
 
 				if(par_space_mat)
-					mul_m4_m4m4(mat, tmat, par_space_mat);
+					mul_m4_m4m4(mat, tmat, recurs_mat);
 				else
 					copy_m4_m4(mat, tmat);
 

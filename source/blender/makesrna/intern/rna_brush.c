@@ -154,7 +154,7 @@ static void rna_def_brush(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "imagepaint_tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, brush_imagepaint_tool_items);
 	RNA_def_property_ui_text(prop, "Image Paint Tool", "");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
@@ -302,19 +302,19 @@ static void rna_def_brush(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "clone.image");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Clone Image", "Image for clone tool.");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_Brush_update");
 	
-	prop= RNA_def_property(srna, "clone_opacity", PROP_FLOAT, PROP_NONE);
+	prop= RNA_def_property(srna, "clone_alpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "clone.alpha");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Clone Opacity", "Opacity of clone image display.");
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
+	RNA_def_property_ui_text(prop, "Clone Alpha", "Opacity of clone image display.");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_Brush_update");
 
 	prop= RNA_def_property(srna, "clone_offset", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "clone.offset");
 	RNA_def_property_ui_text(prop, "Clone Offset", "");
 	RNA_def_property_ui_range(prop, -1.0f , 1.0f, 10.0f, 3);
-	RNA_def_property_update(prop, 0, "rna_Brush_update");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_IMAGE, "rna_Brush_update");
 }
 
 

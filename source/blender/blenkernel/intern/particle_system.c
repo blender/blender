@@ -172,12 +172,6 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 	PARTICLE_P;
 	int totpart, totsaved = 0;
 
-	if(psys->edit && psys->free_edit) {
-		psys->free_edit(psys->edit);
-		psys->edit = NULL;
-		psys->free_edit = NULL;
-	}
-
 	if(new_totpart<0) {
 		if(part->distr==PART_DISTR_GRID  && part->from != PART_FROM_VERT) {
 			totpart= part->grid_res;
@@ -190,6 +184,12 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 		totpart=new_totpart;
 
 	if(totpart && totpart != psys->totpart) {
+		if(psys->edit && psys->free_edit) {
+			psys->free_edit(psys->edit);
+			psys->edit = NULL;
+			psys->free_edit = NULL;
+		}
+
 		newpars= MEM_callocN(totpart*sizeof(ParticleData), "particles");
 		if(psys->part->phystype == PART_PHYS_BOIDS)
 			newboids= MEM_callocN(totpart*sizeof(BoidParticle), "boid particles");

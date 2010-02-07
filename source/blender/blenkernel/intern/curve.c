@@ -1422,7 +1422,7 @@ static short bevelinside(BevList *bl1,BevList *bl2)
 	prevbevp= bevp+(nr-1);
 
 	while(nr--) {
-		min= prevbevp->vec[0];
+		min= prevbevp->vec[1];
 		max= bevp->vec[1];
 		if(max<min) {
 			min= max;

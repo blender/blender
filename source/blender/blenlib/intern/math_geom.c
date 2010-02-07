@@ -1848,28 +1848,33 @@ float *find_vertex_tangent(VertexTangent *vtang, float *uv)
 
 void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2, float *co3, float *n, float *tang)
 {
-	float tangv[3], ct[3], e1[3], e2[3], s1, t1, s2, t2, det;
+	float s1= uv2[0] - uv1[0];
+	float s2= uv3[0] - uv1[0];
+	float t1= uv2[1] - uv1[1];
+	float t2= uv3[1] - uv1[1];
 
-	s1= uv2[0] - uv1[0];
-	s2= uv3[0] - uv1[0];
-	t1= uv2[1] - uv1[1];
-	t2= uv3[1] - uv1[1];
-	det= 1.0f / (s1 * t2 - s2 * t1);
+	if(s1 && s2 && t1 && t2) { /* otherwise 'tang' becomes nan */
+		float tangv[3], ct[3], e1[3], e2[3], det;
+		det= 1.0f / (s1 * t2 - s2 * t1);
+
+		/* normals in render are inversed... */
+		sub_v3_v3v3(e1, co1, co2);
+		sub_v3_v3v3(e2, co1, co3);
+		tang[0] = (t2*e1[0] - t1*e2[0])*det;
+		tang[1] = (t2*e1[1] - t1*e2[1])*det;
+		tang[2] = (t2*e1[2] - t1*e2[2])*det;
+		tangv[0] = (s1*e2[0] - s2*e1[0])*det;
+		tangv[1] = (s1*e2[1] - s2*e1[1])*det;
+		tangv[2] = (s1*e2[2] - s2*e1[2])*det;
+		cross_v3_v3v3(ct, tang, tangv);
 	
-	/* normals in render are inversed... */
-	sub_v3_v3v3(e1, co1, co2);
-	sub_v3_v3v3(e2, co1, co3);
-	tang[0] = (t2*e1[0] - t1*e2[0])*det;
-	tang[1] = (t2*e1[1] - t1*e2[1])*det;
-	tang[2] = (t2*e1[2] - t1*e2[2])*det;
-	tangv[0] = (s1*e2[0] - s2*e1[0])*det;
-	tangv[1] = (s1*e2[1] - s2*e1[1])*det;
-	tangv[2] = (s1*e2[2] - s2*e1[2])*det;
-	cross_v3_v3v3(ct, tang, tangv);
-
-	/* check flip */
-	if ((ct[0]*n[0] + ct[1]*n[1] + ct[2]*n[2]) < 0.0f)
-		negate_v3(tang);
+		/* check flip */
+		if ((ct[0]*n[0] + ct[1]*n[1] + ct[2]*n[2]) < 0.0f)
+			negate_v3(tang);
+	}
+	else {
+		tang[0]= tang[1]= tang[0]=  0.0;
+	}
 }
 
 /********************************************************/

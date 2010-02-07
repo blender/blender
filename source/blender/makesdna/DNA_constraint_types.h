@@ -257,11 +257,15 @@ typedef struct bDampTrackConstraint {
 
 /* Follow Path constraints */
 typedef struct bFollowPathConstraint {
-	Object		*tar;	/* Must be path object */
-	float		offset; /* Offset in time on the path (in frame) */
+	Object		*tar;			/* Must be path object */
+	
+	float		offset; 		/* Offset in time on the path (in frames), when NOT using 'fixed position' */
+	float 		offset_fac;		/* Parametric offset factor defining position along path, when using 'fixed position' */
+	
 	int			followflag;
-	int			trackflag;
-	int			upflag;
+	
+	short		trackflag;
+	short		upflag;
 } bFollowPathConstraint;
 
 /* Stretch to constraint */

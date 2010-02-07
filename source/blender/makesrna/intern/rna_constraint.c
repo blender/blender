@@ -1045,7 +1045,7 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
 	prop= RNA_def_property(srna, "offset_factor", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "offset"); // XXX we might be better with another var or some hackery?
+	RNA_def_property_float_sdna(prop, NULL, "offset_fac");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Offset Factor", "Percentage value defining target position along length of bone.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
@@ -1067,7 +1067,6 @@ static void rna_def_constraint_follow_path(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Follow Curve", "Object will follow the heading and banking of the curve.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 	
-		// TODO: do we need to do some special trickery to get offset sane for this?
 	prop= RNA_def_property(srna, "use_fixed_position", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "followflag", FOLLOWPATH_STATIC);
 	RNA_def_property_ui_text(prop, "Fixed Position", "Object will stay locked to a single point somewhere along the length of the curve regardless of time.");

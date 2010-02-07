@@ -169,8 +169,8 @@ def write_pov(filename, scene=None, info_callback=None):
                 file.write('\tspotlight\n')
 
                 # Falloff is the main radius from the centre line
-                file.write('\tfalloff %.2f\n' % (lamp.spot_size / 2.0)) # 1 TO 179 FOR BOTH
-                file.write('\tradius %.6f\n' % ((lamp.spot_size / 2.0) * (1.0 - lamp.spot_blend)))
+                file.write('\tfalloff %.2f\n' % (degrees(lamp.spot_size) / 2.0)) # 1 TO 179 FOR BOTH
+                file.write('\tradius %.6f\n' % ((degrees(lamp.spot_size) / 2.0) * (1.0 - lamp.spot_blend)))
 
                 # Blender does not have a tightness equivilent, 0 is most like blender default.
                 file.write('\ttightness 0\n') # 0:10f

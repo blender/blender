@@ -122,11 +122,18 @@ void multires_mark_as_modified(Object *ob)
 
 void multires_force_update(Object *ob)
 {
+
 	if(ob && ob->derivedFinal) {
 		ob->derivedFinal->needsFree =1;
 		ob->derivedFinal->release(ob->derivedFinal);
 		ob->derivedFinal = NULL;
 	}
+}
+
+void multires_force_render_update(Object *ob)
+{
+	if(ob && (ob->mode & OB_MODE_SCULPT) && modifiers_findByType(ob, eModifierType_Multires))
+		multires_force_update(ob);
 }
 
 /* XXX */

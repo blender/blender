@@ -964,13 +964,13 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	/* flag */
 	prop= RNA_def_property(srna, "react_start_end", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_REACT_STA_END);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Start/End", "Give birth to unreacted particles eventually.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "react_multiple", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_REACT_MULTIPLE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Multi React", "React multiple times.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -991,37 +991,37 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "trand", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_TRAND);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Random", "Emit in random order of elements");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "even_distribution", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_EDISTR);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Even Distribution", "Use even distribution from faces based on face areas or edge lengths.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
  
 	prop= RNA_def_property(srna, "die_on_collision", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_DIE_ON_COL);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Die on hit", "Particles die when they collide with a deflector object.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "size_deflect", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_SIZE_DEFL);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Size Deflect", "Use particle's size in deflection.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "rotation_dynamic", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_ROT_DYN);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Dynamic", "Sets rotation to dynamic/constant");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "sizemass", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_SIZEMASS);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Mass from Size", "Multiply mass with particle size.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -1083,21 +1083,21 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, type_items);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_update(prop, 0, "rna_Particle_change_type");
 
 	prop= RNA_def_property(srna, "emit_from", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "from");
 	RNA_def_property_enum_items(prop, part_reactor_from_items);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_from_itemf");
 	RNA_def_property_ui_text(prop, "Emit From", "Where to emit particles from");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "distribution", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "distr");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, dist_items);
 	RNA_def_property_ui_text(prop, "Distribution", "How to distribute particles on selected element");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -1105,28 +1105,28 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	/* physics modes */
 	prop= RNA_def_property(srna, "physics_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "phystype");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, phys_type_items);
 	RNA_def_property_ui_text(prop, "Physics Type", "Particle physics type");
 	RNA_def_property_update(prop, 0, "rna_Particle_change_physics");
 
 	prop= RNA_def_property(srna, "rotation_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "rotmode");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, rot_mode_items);
 	RNA_def_property_ui_text(prop, "Rotation", "Particles initial rotation");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "angular_velocity_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "avemode");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, ave_mode_items);
 	RNA_def_property_ui_text(prop, "Angular Velocity Mode", "Particle angular velocity mode.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "react_event", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "reactevent");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, react_event_items);
 	RNA_def_property_ui_text(prop, "React On", "The event of target particles to react on.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -1378,7 +1378,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "start", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "sta");//optional if prop names are the same
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_funcs(prop, NULL, "rna_PartSettings_start_set", NULL);
 	RNA_def_property_ui_text(prop, "Start", "Frame # to start emitting particles.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -1386,7 +1386,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
 
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_funcs(prop, NULL, "rna_PartSettings_end_set", NULL);
 	RNA_def_property_ui_text(prop, "End", "Frame # to stop emitting particles.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
@@ -1409,7 +1409,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "jitter_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_float_sdna(prop, NULL, "jitfac");
 	RNA_def_property_range(prop, 0.0f, 2.0f);
 	RNA_def_property_ui_text(prop, "Amount", "Amount of jitter applied to the sampling.");
@@ -1423,7 +1423,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "amount", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "totpart");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	/* This limit is for those freaks who have the machine power to handle it. */
 	/* 10M particles take around 2.2 Gb of memory / disk space in saved file and */
 	/* each cached frame takes around 0.5 Gb of memory / disk space depending on cache mode. */
@@ -1434,14 +1434,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "userjit", PROP_INT, PROP_UNSIGNED);//TODO: can we get a better name for userjit?
 	RNA_def_property_int_sdna(prop, NULL, "userjit");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0, 1000);
 	RNA_def_property_ui_text(prop, "P/F", "Emission locations / face (0 = automatic).");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "grid_resolution", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "grid_res");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1, 46); /* ~100k particles in a cube */
 	RNA_def_property_ui_range(prop, 1, 215, 1, 0); /* ~10M particles in a cube */
 	RNA_def_property_ui_text(prop, "Resolution", "The resolution of the particle grid.");
@@ -1873,12 +1873,12 @@ static void rna_def_particle_target(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "valid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PTARGET_VALID);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Valid", "Keyed particles target is valid.");
 
 	prop= RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, mode_items);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Mode", "");
 	RNA_def_property_update(prop, 0, "rna_Particle_target_reset");
 
@@ -1955,7 +1955,7 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	/* keyed */
 	prop= RNA_def_property(srna, "keyed_timing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PSYS_KEYED_TIMING);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Keyed timing", "Use key times");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 

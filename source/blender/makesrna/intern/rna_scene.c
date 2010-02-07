@@ -160,6 +160,11 @@ static void rna_Scene_unlink_object(Scene *scene, bContext *C, ReportList *repor
 		BKE_report(reports, RPT_ERROR, "Object is not in this scene.");
 		return;
 	}
+	if (base==scene->basact && ob->mode != OB_MODE_OBJECT) {
+		BKE_report(reports, RPT_ERROR, "Object must be in 'Object Mode' to unlink.");
+		return;
+	}
+
 	/* as long as ED_base_object_free_and_unlink calls free_libblock_us, we don't have to decrement ob->id.us */
 	ED_base_object_free_and_unlink(scene, base);
 
@@ -770,7 +775,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_float_sdna(prop, NULL, "normalsize");
 	RNA_def_property_ui_text(prop, "Normal Size", "Display size for normals in the 3D view.");
 	RNA_def_property_range(prop, 0.00001, 1000.0);
-	RNA_def_property_ui_range(prop, 0.01, 10.0, 0.1, 2);
+	RNA_def_property_ui_range(prop, 0.01, 10.0, 10.0, 2);
 	RNA_def_property_update(prop, NC_GEOM|ND_DATA, NULL);
 
 	prop= RNA_def_property(srna, "automerge_editing", PROP_BOOLEAN, PROP_NONE);
@@ -2085,12 +2090,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "fps", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frs_sec");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 1, 120);
 	RNA_def_property_ui_text(prop, "FPS", "Framerate, expressed in frames per second.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "fps_base", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "frs_sec_base");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.1f, 120.0f);
 	RNA_def_property_ui_text(prop, "FPS Base", "Framerate base");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
@@ -2235,7 +2242,13 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "motion_blur", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_MBLUR);
-	RNA_def_property_ui_text(prop, "Motion Blur", "Use multi-sampled 3D scene motion blur (uses number of anti-aliasing samples).");
+	RNA_def_property_ui_text(prop, "Motion Blur", "Use multi-sampled 3D scene motion blur");
+	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+	
+	prop= RNA_def_property(srna, "motion_blur_samples", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "mblur_samples");
+	RNA_def_property_range(prop, 1, 32);
+	RNA_def_property_ui_text(prop, "Motion Samples", "Number of scene samples to take with motion blur");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "use_border", PROP_BOOLEAN, PROP_NONE);
@@ -2549,6 +2562,10 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Simplify AO and SSS", "Global approximate AA and SSS quality factor.");
 	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
 
+	prop= RNA_def_property(srna, "simplify_triangulate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "simplify_flag", R_SIMPLE_NO_TRIANGULATE);
+	RNA_def_property_ui_text(prop, "Skip Quad to Triangles", "Disables non-planer quads being triangulated.");
+
 	/* Scene API */
 	RNA_api_scene_render(srna);
 }
@@ -2683,14 +2700,14 @@ void RNA_def_scene(BlenderRNA *brna)
 	
 	/* Frame Range Stuff */
 	prop= RNA_def_property(srna, "current_frame", PROP_INT, PROP_TIME);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_frame_update");
 	
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.sfra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_start_frame_set", NULL);
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
@@ -2698,7 +2715,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "end_frame", PROP_INT, PROP_TIME);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.efra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_end_frame_set", NULL);
 	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
@@ -2706,7 +2723,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "frame_step", PROP_INT, PROP_TIME);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.frame_step");
 	RNA_def_property_range(prop, 0, MAXFRAME);
 	RNA_def_property_ui_range(prop, 0, 100, 1, 0);
@@ -2715,21 +2732,21 @@ void RNA_def_scene(BlenderRNA *brna)
 	
 	/* Preview Range (frame-range for UI playback) */
 	prop=RNA_def_property(srna, "use_preview_range", PROP_BOOLEAN, PROP_NONE); 
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "r.flag", SCER_PRV_RANGE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_use_preview_range_set");
 	RNA_def_property_ui_text(prop, "Use Preview Range", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "preview_range_start_frame", PROP_INT, PROP_TIME);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.psfra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_preview_range_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Preview Range Start Frame", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "preview_range_end_frame", PROP_INT, PROP_TIME);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATEABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.pefra");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_preview_range_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Preview Range End Frame", "");

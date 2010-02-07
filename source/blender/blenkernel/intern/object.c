@@ -1145,8 +1145,8 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	}
 
 	if(psys->clmd) {
-		ClothModifierData *nclmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
-		modifier_copyData((ModifierData*)psys->clmd, (ModifierData*)nclmd);
+		psysn->clmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
+		modifier_copyData((ModifierData*)psys->clmd, (ModifierData*)psysn->clmd);
 		psys->hair_in_dm = psys->hair_out_dm = NULL;
 	}
 
@@ -1163,6 +1163,12 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->renderdata = NULL;
 	
 	psysn->pointcache= BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches);
+
+	/* XXX - from reading existing code this seems correct but intended usage of
+	 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
+	if(psysn->clmd) {
+		psysn->clmd->point_cache= psysn->pointcache;
+	}
 
 	id_us_plus((ID *)psysn->part);
 

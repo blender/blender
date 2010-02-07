@@ -275,7 +275,9 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				v2d->keeptot= V2D_KEEPTOT_BOUNDS;
 				
 				v2d->scroll |= (V2D_SCROLL_RIGHT|V2D_SCROLL_BOTTOM);
-				
+				v2d->scroll |= V2D_SCROLL_HORIZONTAL_HIDE;
+				v2d->scroll &= ~V2D_SCROLL_VERTICAL_HIDE;
+
 				v2d->tot.xmin= 0.0f;
 				v2d->tot.xmax= winx;
 				

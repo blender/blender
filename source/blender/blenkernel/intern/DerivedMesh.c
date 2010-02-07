@@ -1622,7 +1622,7 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos)[3],
                                 DerivedMesh **deform_r, DerivedMesh **final_r,
                                 int useRenderParams, int useDeform,
-                                int needMapping, CustomDataMask dataMask, int index)
+                                int needMapping, CustomDataMask dataMask, int index, int useCache)
 {
 	Mesh *me = ob->data;
 	ModifierData *firstmd, *md;
@@ -1798,7 +1798,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
 					DM_add_face_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
 
-			ndm = mti->applyModifier(md, ob, dm, useRenderParams, !inputVertexCos);
+			ndm = mti->applyModifier(md, ob, dm, useRenderParams, useCache);
 
 			if(ndm) {
 				/* if the modifier returned a new dm, release the old one */
@@ -2116,7 +2116,7 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 
 	mesh_calc_modifiers(scene, ob, NULL, &ob->derivedDeform,
 						&ob->derivedFinal, 0, 1,
-						needMapping, dataMask, -1);
+						needMapping, dataMask, -1, 1);
 
 	INIT_MINMAX(min, max);
 
@@ -2129,7 +2129,6 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 	ob->derivedFinal->needsFree = 0;
 	ob->derivedDeform->needsFree = 0;
 	ob->lastDataMask = dataMask;
-
 }
 
 static void editmesh_build_data(Scene *scene, Object *obedit, EditMesh *em, CustomDataMask dataMask)
@@ -2203,7 +2202,7 @@ DerivedMesh *mesh_create_derived_render(Scene *scene, Object *ob, CustomDataMask
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 1, 1, 0, dataMask, -1);
+	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 1, 1, 0, dataMask, -1, 0);
 
 	return final;
 }
@@ -2212,7 +2211,7 @@ DerivedMesh *mesh_create_derived_index_render(Scene *scene, Object *ob, CustomDa
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 1, 1, 0, dataMask, index);
+	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 1, 1, 0, dataMask, index, 0);
 
 	return final;
 }
@@ -2221,7 +2220,7 @@ DerivedMesh *mesh_create_derived_view(Scene *scene, Object *ob, CustomDataMask d
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 0, 1, 0, dataMask, -1);
+	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 0, 1, 0, dataMask, -1, 0);
 
 	return final;
 }
@@ -2231,7 +2230,7 @@ DerivedMesh *mesh_create_derived_no_deform(Scene *scene, Object *ob, float (*ver
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, 0, 0, dataMask, -1);
+	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, 0, 0, dataMask, -1, 0);
 
 	return final;
 }
@@ -2241,7 +2240,7 @@ DerivedMesh *mesh_create_derived_no_virtual(Scene *scene, Object *ob, float (*ve
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, -1, 0, dataMask, -1);
+	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, -1, 0, dataMask, -1, 0);
 
 	return final;
 }
@@ -2252,7 +2251,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(Scene *scene, Object *ob,
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 1, 0, 0, dataMask, -1);
+	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 1, 0, 0, dataMask, -1, 0);
 
 	return final;
 }

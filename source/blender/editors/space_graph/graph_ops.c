@@ -237,6 +237,8 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPH_OT_select_all_toggle);
 	WM_operatortype_append(GRAPH_OT_select_border);
 	WM_operatortype_append(GRAPH_OT_select_column);
+	WM_operatortype_append(GRAPH_OT_select_more);
+	WM_operatortype_append(GRAPH_OT_select_less);
 	
 		/* editing */
 	WM_operatortype_append(GRAPH_OT_snap);
@@ -309,6 +311,10 @@ static void graphedit_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPH_OT_select_column", KKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_CFRA);
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPH_OT_select_column", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "GRAPH_OT_select_column", KKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN);
+	
+		/* select more/less */
+	WM_keymap_add_item(keymap, "GRAPH_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "GRAPH_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	
 	
 	/* graph_edit.c */

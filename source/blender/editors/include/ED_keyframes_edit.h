@@ -58,13 +58,19 @@ typedef enum eEditKeyframes_Validate {
 
 /* ------------ */
 
-/* select tools */
+/* select modes */
 typedef enum eEditKeyframes_Select {
 	SELECT_REPLACE	=	(1<<0),
 	SELECT_ADD		= 	(1<<1),
 	SELECT_SUBTRACT	= 	(1<<2),
 	SELECT_INVERT	= 	(1<<4),
 } eEditKeyframes_Select;
+
+/* "selection map" building modes */
+typedef enum eEditKeyframes_SelMap {
+	SELMAP_MORE	= 0,
+	SELMAP_LESS,
+} eEditKeyframes_SelMap;
 
 /* snapping tools */
 typedef enum eEditKeyframes_Snap {
@@ -91,11 +97,16 @@ typedef enum eEditKeyframes_Mirror {
 /* --- Generic Properties for Bezier Edit Tools ----- */
 
 typedef struct BeztEditData {
+		/* generic properties/data access */
 	ListBase list;				/* temp list for storing custom list of data to check */
 	struct Scene *scene;		/* pointer to current scene - many tools need access to cfra/etc.  */
 	void *data;					/* pointer to custom data - usually 'Object' but also 'rectf', but could be other types too */
 	float f1, f2;				/* storage of times/values as 'decimals' */
 	int i1, i2;					/* storage of times/values/flags as 'whole' numbers */
+	
+		/* current iteration data */
+	struct FCurve *fcu;			/* F-Curve that is being iterated over */
+	int curIndex;				/* index of current keyframe being iterated over */
 } BeztEditData;
 
 /* ------- Function Pointer Typedefs ---------------- */
@@ -142,6 +153,18 @@ BeztEditFunc ANIM_editkeyframes_select(short mode);
 BeztEditFunc ANIM_editkeyframes_handles(short mode);
 BeztEditFunc ANIM_editkeyframes_ipo(short mode);
 BeztEditFunc ANIM_editkeyframes_keytype(short mode);
+
+/* -------- BezTriple Callbacks (Selection Map) ---------- */
+
+/* Get a callback to populate the selection settings map  
+ * requires: bed->custom = char[] of length fcurve->totvert 
+ */
+BeztEditFunc ANIM_editkeyframes_buildselmap(short mode);
+
+/* Change the selection status of the keyframe based on the map entry for this vert
+ * requires: bed->custom = char[] of length fcurve->totvert
+ */
+short bezt_selmap_flush(BeztEditData *bed, struct BezTriple *bezt);
 
 /* ----------- BezTriple Callback (Assorted Utilities) ---------- */
 
