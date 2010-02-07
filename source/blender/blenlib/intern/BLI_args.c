@@ -44,6 +44,7 @@ typedef struct bAKey {
 } bAKey;
 
 typedef struct bArgument {
+	bAKey *key;
 	BA_ArgCallback func;
 	void *data;
 } bArgument;
@@ -55,7 +56,7 @@ struct bArgs {
 	int	  *passes;
 };
 
-unsigned int case_strhash(void *ptr) {
+static unsigned int case_strhash(void *ptr) {
 	char *s= ptr;
 	unsigned int i= 0;
 	unsigned char c;
@@ -84,6 +85,17 @@ static int keycmp(void *a, void *b)
 	} else {
 		return BLI_ghashutil_intcmp((void*)ka->pass, (void*)kb->pass);
 	}
+}
+
+static bArgument *lookUp(struct bArgs *ba, char *arg, int pass, int case_str)
+{
+	bAKey key;
+
+	key.case_str = case_str;
+	key.pass = pass;
+	key.arg = arg;
+
+	return BLI_ghash_lookup(ba->items, &key);
 }
 
 bArgs *BLI_argsInit(int argc, char **argv)
@@ -122,49 +134,52 @@ char **BLI_argsArgv(struct bArgs *ba)
 	return ba->argv;
 }
 
-void BLI_argsAdd(struct bArgs *ba, char *arg, int pass, BA_ArgCallback cb, void *data)
+static void internalAdd(struct bArgs *ba, char *arg, int pass, int case_str, BA_ArgCallback cb, void *data)
 {
-	bArgument *a = MEM_callocN(sizeof(bArgument), "bArgument");
-	bAKey *key = MEM_callocN(sizeof(bAKey), "bAKey");
+	bArgument *a;
+	bAKey *key;
+
+	a = lookUp(ba, arg, pass, case_str);
+
+	if (a) {
+		printf("WARNING: conflicting argument\n");
+		printf("\ttrying to add '%s' on pass %i, %scase sensitive\n", arg, pass, case_str == 1? "not ": "");
+		printf("\tconflict with '%s' on pass %i, %scase sensitive\n\n", a->key->arg, (int)a->key->pass, a->key->case_str == 1? "not ": "");
+	}
+
+	a = MEM_callocN(sizeof(bArgument), "bArgument");
+	key = MEM_callocN(sizeof(bAKey), "bAKey");
 
 	key->arg = arg;
 	key->pass = pass;
-	key->case_str = 0;
+	key->case_str = case_str;
 
+	a->key = key;
 	a->func = cb;
 	a->data = data;
 
 	BLI_ghash_insert(ba->items, key, a);
 }
 
+void BLI_argsAdd(struct bArgs *ba, char *arg, int pass, BA_ArgCallback cb, void *data)
+{
+	internalAdd(ba, arg, pass, 0, cb, data);
+}
+
 void BLI_argsAddCase(struct bArgs *ba, char *arg, int pass, BA_ArgCallback cb, void *data)
 {
-	bArgument *a = MEM_callocN(sizeof(bArgument), "bArgument");
-	bAKey *key = MEM_callocN(sizeof(bAKey), "bAKey");
-
-	key->arg = arg;
-	key->pass = pass;
-	key->case_str = 1;
-
-	a->func = cb;
-	a->data = data;
-
-	BLI_ghash_insert(ba->items, key, a);
+	internalAdd(ba, arg, pass, 1, cb, data);
 }
 
 
 void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *default_data)
 {
-	bAKey key;
 	int i = 0;
 
-	key.case_str = -1; /* signal what side of the comparison it is */
-	key.pass = pass;
-
 	for( i = 1; i < ba->argc; i++) { /* skip argv[0] */
-		key.arg = ba->argv[i];
 		if (ba->passes[i] == 0) {
-			bArgument *a = BLI_ghash_lookup(ba->items, &key);
+			 /* -1 signal what side of the comparison it is */
+			bArgument *a = lookUp(ba, ba->argv[i], pass, -1);
 			BA_ArgCallback func = NULL;
 			void *data = NULL;
 
@@ -174,10 +189,6 @@ void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *
 			} else {
 				func = default_cb;
 				data = default_data;
-
-				if (func) {
-					printf("calling default on %s\n", ba->argv[i]);
-				}
 			}
 
 			if (func) {
