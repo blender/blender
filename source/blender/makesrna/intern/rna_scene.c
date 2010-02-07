@@ -354,8 +354,17 @@ static int rna_SceneRenderData_threads_get(PointerRNA *ptr)
 static int rna_SceneRenderData_save_buffers_get(PointerRNA *ptr)
 {
 	RenderData *rd= (RenderData*)ptr->data;
+	if(rd->mode & R_BORDER)
+		return 0;
+	else
+		return (rd->scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE)) != 0;
+}
 
-	return (rd->scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE)) != 0;
+static int rna_SceneRenderData_full_sample_get(PointerRNA *ptr)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+
+	return (rd->scemode & R_FULL_SAMPLE) && !(rd->mode & R_BORDER);
 }
 
 static void rna_SceneRenderData_file_format_set(PointerRNA *ptr, int value)
@@ -2175,7 +2184,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_border", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", R_BORDER);
-	RNA_def_property_ui_text(prop, "Border", "Render a user-defined border region, within the frame size.");
+	RNA_def_property_ui_text(prop, "Border", "Render a user-defined border region, within the frame size. Note, this disables save_buffers and full_sample.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
 	prop= RNA_def_property(srna, "border_min_x", PROP_FLOAT, PROP_NONE);
@@ -2268,6 +2277,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "full_sample", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FULL_SAMPLE);
+ 	RNA_def_property_boolean_funcs(prop, "rna_SceneRenderData_full_sample_get", NULL);
 	RNA_def_property_ui_text(prop, "Full Sample","Save for every anti-aliasing sample the entire RenderLayer results. This solves anti-aliasing issues with compositing.");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	

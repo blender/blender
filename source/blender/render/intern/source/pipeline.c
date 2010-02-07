@@ -1227,6 +1227,13 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 #ifdef WITH_OPENEXR
 	if(re->r.scemode & R_FULL_SAMPLE)
 		re->r.scemode |= R_EXR_TILE_FILE;	/* enable automatic */
+
+	/* Until use_border is made compatible with save_buffers/full_sample, render without the later instead of not rendering at all.*/
+	if(re->r.mode & R_BORDER) 
+	{
+		re->r.scemode &= ~(R_EXR_TILE_FILE|R_FULL_SAMPLE);
+	}
+
 #else
 	/* can't do this without openexr support */
 	re->r.scemode &= ~(R_EXR_TILE_FILE|R_FULL_SAMPLE);
@@ -2606,10 +2613,6 @@ static int is_rendering_allowed(Render *re)
 		if(re->r.border.xmax <= re->r.border.xmin || 
 		   re->r.border.ymax <= re->r.border.ymin) {
 			re->error(re->erh, "No border area selected.");
-			return 0;
-		}
-		if(re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE)) {
-			re->error(re->erh, "Border render and Buffer-save not supported yet");
 			return 0;
 		}
 	}

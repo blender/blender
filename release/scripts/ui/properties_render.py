@@ -222,8 +222,8 @@ class RENDER_PT_performance(RenderButtonsPanel):
             col = split.column()
         col.label(text="Memory:")
         sub = col.column()
+        sub.enabled = not (rd.use_border or rd.full_sample) 
         sub.prop(rd, "save_buffers")
-        sub.enabled = not rd.full_sample
         sub = col.column()
         sub.active = rd.use_compositing
         sub.prop(rd, "free_image_textures")
@@ -454,7 +454,9 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 
         col = split.column()
         col.row().prop(rd, "antialiasing_samples", expand=True)
-        col.prop(rd, "full_sample")
+        sub = col.row() 
+        sub.enabled = not rd.use_border
+        sub.prop(rd, "full_sample")
 
         if wide_ui:
             col = split.column()
