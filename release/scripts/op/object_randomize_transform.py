@@ -93,7 +93,7 @@ class RandomizeLocRotSize(bpy.types.Operator):
     use_loc = BoolProperty(name="Randomize Location",
         description="Randomize the scale values", default=True)
 
-    sdfwefreloc = FloatVectorProperty(name="Location",
+    loc = FloatVectorProperty(name="Location",
         description="Maximun distance the objects can spread over each axis",
         default=(0.0, 0.0, 0.0), min=-100.0, max=100.0, subtype='TRANSLATION')
 
