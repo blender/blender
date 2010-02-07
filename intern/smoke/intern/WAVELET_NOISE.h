@@ -42,6 +42,10 @@
 
 #include <MERSENNETWISTER.h>
 
+// Tile file header, update revision upon any change done to the noise generator
+static const char tilefile_headerstring[] = "Noise Tile File rev. ";
+static const char tilefile_revision[] =  "001";
+
 #define NOISE_TILE_SIZE 128
 static const int noiseTileSize = NOISE_TILE_SIZE;
 
@@ -94,7 +98,7 @@ static void downsampleNeumann(const float *from, float *to, int n, int stride)
 {
   // if these values are not local incorrect results are generated
   float downCoeffs[32] = { DOWNCOEFFS };
-  static const float *const aCoCenter= &downCoeffs[16];
+  const float *const aCoCenter= &downCoeffs[16];
 	for (int i = 0; i < n / 2; i++) {
 		to[i * stride] = 0;
 		for (int k = 2 * i - 16; k < 2 * i + 16; k++) { 
@@ -212,6 +216,12 @@ static void upsampleZNeumann(float* to, const float* from, int sx, int sy, int s
 static bool loadTile(float* const noiseTileData, std::string filename)
 {
 	FILE* file;
+	char headerbuffer[64];
+	size_t headerlen;
+	size_t bread;
+	int endiantest = 1;
+	char endianness;
+	
 	file = fopen(filename.c_str(), "rb");
 
 	if (file == NULL) {
@@ -219,11 +229,28 @@ static bool loadTile(float* const noiseTileData, std::string filename)
 		return false;
 	}
 
+	//Check header
+	headerlen = strlen(tilefile_headerstring) + strlen(tilefile_revision) + 2;
+	bread = fread((void*)headerbuffer, 1, headerlen, file);
+	if (*((unsigned char*)&endiantest) == 1)
+		endianness = 'L';
+	else
+		endianness = 'B';
+	if ((bread != headerlen)
+		|| (strncmp(headerbuffer, tilefile_headerstring, strlen(tilefile_headerstring)))
+		|| (strncmp(headerbuffer+ strlen(tilefile_headerstring), tilefile_revision, strlen(tilefile_revision)))
+		|| (headerbuffer[headerlen-2] != endianness)
+		|| (headerbuffer[headerlen-1] != (char)((char)sizeof(long)+'0')))
+	{
+		printf("loadTile : Noise tile '%s' was generated on an incompatible platform.\n",filename.c_str());
+		return false;
+	}
+	
 	// dimensions
 	size_t gridSize = noiseTileSize * noiseTileSize * noiseTileSize;
 
 	// noiseTileData memory is managed by caller
-	size_t bread = fread((void*)noiseTileData, sizeof(float), gridSize, file);
+	bread = fread((void*)noiseTileData, sizeof(float), gridSize, file);
 	fclose(file);
 	printf("Noise tile file '%s' loaded.\n", filename.c_str());
 
@@ -241,12 +268,27 @@ static void saveTile(float* const noiseTileData, std::string filename)
 {
 	FILE* file;
 	file = fopen(filename.c_str(), "wb");
+	int endiantest=1;
+	char longsize;
 
 	if (file == NULL) {
 		printf("saveTile: Noise tile '%s' could not be saved.\n", filename.c_str());
 		return;
 	} 
 
+	//Write file header
+	fwrite(tilefile_headerstring, strlen(tilefile_headerstring), 1, file);
+	fwrite(tilefile_revision, strlen(tilefile_revision), 1, file);
+	//Endianness
+	if (*((unsigned char*)&endiantest) == 1)
+		fwrite("L", 1, 1, file); //Little endian
+	else
+		fwrite("B",1,1,file); //Big endian
+	//32/64bit
+	longsize = (char)sizeof(long)+'0';
+	fwrite(&longsize, 1, 1, file);
+	
+	
 	fwrite((void*)noiseTileData, sizeof(float), noiseTileSize * noiseTileSize * noiseTileSize, file);
 	fclose(file);
 
