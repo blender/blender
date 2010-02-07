@@ -2135,7 +2135,13 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	if(bs->type==RE_BAKE_AO) {
 		ambient_occlusion(shi);
 
-		VECCOPY(shr.combined, shi->ao)
+		if(R.r.bake_flag & R_BAKE_NORMALIZE) {
+			copy_v3_v3(shr.combined, shi->ao);
+		}
+		else {
+			zero_v3(shr.combined);
+			environment_lighting_apply(shi, &shr);
+		}
 	}
 	else {
 		if (bs->type==RE_BAKE_SHADOW) /* Why do shadows set the color anyhow?, ignore material color for baking */
