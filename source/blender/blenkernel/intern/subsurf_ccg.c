@@ -1220,6 +1220,21 @@ static void ccgDM_glNormalFast(float *a, float *b, float *c, float *d)
 	glNormal3fv(no);
 }
 
+static void ccgdm_pbvh_update(CCGDerivedMesh *ccgdm)
+{
+	if(ccgdm->pbvh) {
+		CCGFace **faces;
+		int totface;
+
+		BLI_pbvh_get_grid_updates(ccgdm->pbvh, 1, (void***)&faces, &totface);
+		if(totface) {
+			ccgSubSurf_updateFromFaces(ccgdm->ss, 0, faces, totface);
+			ccgSubSurf_updateNormals(ccgdm->ss, faces, totface);
+			MEM_freeN(faces);
+		}
+	}
+}
+
 	/* Only used by non-editmesh types */
 static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)[4], int fast, int (*setMaterial)(int, void *attribs)) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
@@ -1229,17 +1244,9 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 	char *faceFlags = ccgdm->faceFlags;
 	int step = (fast)? gridSize-1: 1;
 
+	ccgdm_pbvh_update(ccgdm);
+
 	if(ccgdm->pbvh && ccgdm->multires.mmd && !fast) {
-		CCGFace **faces;
-		int totface;
-
-		BLI_pbvh_get_grid_updates(ccgdm->pbvh, 1, (void***)&faces, &totface);
-		if(totface) {
-			ccgSubSurf_updateFromFaces(ss, 0, faces, totface);
-			ccgSubSurf_updateNormals(ss, faces, totface);
-			MEM_freeN(faces);
-		}
-
 		if(dm->numFaceData) {
 			/* should be per face */
 			if(!setMaterial(faceFlags[1]+1, NULL))
@@ -1329,6 +1336,8 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, v
 	int transp, orig_transp, new_transp;
 	char *faceFlags = ccgdm->faceFlags;
 	int a, b, i, doDraw, numVerts, matnr, new_matnr, totface;
+
+	ccgdm_pbvh_update(ccgdm);
 
 	doDraw = 0;
 	numVerts = 0;
@@ -1484,6 +1493,8 @@ static void ccgDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned ch
 	unsigned char *cp1, *cp2;
 	int useTwoSide=1;
 
+	ccgdm_pbvh_update(ccgdm);
+
 	cp1= col1;
 	if(col2) {
 		cp2= col2;
@@ -1553,6 +1564,8 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	char *faceFlags = ccgdm->faceFlags;
 	int i, totface, flag, gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
+
+	ccgdm_pbvh_update(ccgdm);
 
 	if(!mcol)
 		mcol = dm->getFaceDataArray(dm, CD_MCOL);
