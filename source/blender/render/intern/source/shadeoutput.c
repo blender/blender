@@ -1538,18 +1538,21 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 	}
 	
 	/* quite disputable this...  also note it doesn't mirror-raytrace */	
-	if((R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && shi->amb!=0.0f) {
+	if((R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT)) && shi->amb!=0.0f) {
 		float f;
 		
-		f= 1.0f - shi->ao[0];
-		f= R.wrld.aoenergy*f*shi->amb;
-		
-		if(R.wrld.aomix==WO_AOADD) {
-			shr->alpha += f;
-			shr->alpha *= f;
+		if(R.wrld.mode & WO_AMB_OCC) {
+			f= R.wrld.aoenergy*shi->amb;
+
+			if(R.wrld.aomix==WO_AOADD)
+				shr->alpha += f*(1.0f - rgb_to_grayscale(shi->ao));
+			else
+				shr->alpha= (1.0f - f)*shr->alpha + f*(1.0f - (1.0f - shr->alpha)*rgb_to_grayscale(shi->ao));
 		}
-		else if(R.wrld.aomix==WO_AOMUL) {
-			shr->alpha *= f;
+
+		if(R.wrld.mode & WO_ENV_LIGHT) {
+			f= R.wrld.ao_env_energy*shi->amb;
+			shr->alpha += f*(1.0f - rgb_to_grayscale(shi->env));
 		}
 	}
 }
