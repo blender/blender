@@ -123,7 +123,9 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         if (st.view_type == 'SEQUENCER') or (st.view_type == 'SEQUENCER_PREVIEW'):
             layout.operator("sequencer.view_all", text='View all Sequences')
         if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):
+            layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text='Fit preview in window')
+            layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("sequencer.view_selected")
 
         layout.prop(st, "draw_frames")

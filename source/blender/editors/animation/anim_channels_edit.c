@@ -1385,7 +1385,7 @@ void ANIM_OT_channels_expand (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Expand all channels (not just selected ones)");
+	ot->prop= RNA_def_boolean(ot->srna, "all", 1, "All", "Expand all channels (not just selected ones)");
 }
 
 /* ********************** Collapse Channels Operator *********************** */
@@ -1427,7 +1427,7 @@ void ANIM_OT_channels_collapse (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Collapse all channels (not just selected ones)");
+	ot->prop= RNA_def_boolean(ot->srna, "all", 1, "All", "Collapse all channels (not just selected ones)");
 }
 
 /* ********************** Select All Operator *********************** */
@@ -1467,7 +1467,7 @@ void ANIM_OT_channels_select_all_toggle (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 /* ******************** Borderselect Operator *********************** */

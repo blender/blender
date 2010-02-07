@@ -48,6 +48,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
 #include "ED_fileselect.h"
@@ -656,17 +657,37 @@ static int wm_operator_call_internal(bContext *C, wmOperatorType *ot, int contex
 			
 			case WM_OP_EXEC_REGION_WIN:
 			case WM_OP_INVOKE_REGION_WIN: 
+			case WM_OP_EXEC_REGION_CHANNELS:
+			case WM_OP_INVOKE_REGION_CHANNELS:
+			case WM_OP_EXEC_REGION_PREVIEW:
+			case WM_OP_INVOKE_REGION_PREVIEW:
 			{
-				/* forces operator to go to the region window, for header menus
-				   but we stay in the same region if we are already in one */
+				/* forces operator to go to the region window/channels/preview, for header menus
+				 * but we stay in the same region if we are already in one 
+				 */
 				ARegion *ar= CTX_wm_region(C);
 				ScrArea *area= CTX_wm_area(C);
+				int type = RGN_TYPE_WINDOW;
 				
-				if(!(ar && ar->regiontype == RGN_TYPE_WINDOW) && area) {
-					ARegion *ar1= area->regionbase.first;
-					for(; ar1; ar1= ar1->next)
-						if(ar1->regiontype==RGN_TYPE_WINDOW)
-							break;
+				switch (context) {
+					case WM_OP_EXEC_REGION_CHANNELS:
+					case WM_OP_INVOKE_REGION_CHANNELS:
+						type = RGN_TYPE_CHANNELS;
+					
+					case WM_OP_EXEC_REGION_PREVIEW:
+					case WM_OP_INVOKE_REGION_PREVIEW:
+						type = RGN_TYPE_PREVIEW;
+						break;
+					
+					case WM_OP_EXEC_REGION_WIN:
+					case WM_OP_INVOKE_REGION_WIN: 
+					default:
+						type = RGN_TYPE_WINDOW;
+						break;
+				}
+				
+				if(!(ar && ar->regiontype == type) && area) {
+					ARegion *ar1= BKE_area_find_region_type(area, type);
 					if(ar1)
 						CTX_wm_region_set(C, ar1);
 				}

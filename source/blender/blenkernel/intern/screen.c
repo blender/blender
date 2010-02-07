@@ -336,3 +336,19 @@ unsigned int BKE_screen_visible_layers(bScreen *screen, Scene *scene)
 	return layer;
 }
 
+/* ***************** Utilities ********************** */
+
+/* Find a region of the specified type from the given area */
+ARegion *BKE_area_find_region_type(ScrArea *sa, int type)
+{
+	if (sa) {
+		ARegion *ar;
+		
+		for (ar=sa->regionbase.first; ar; ar= ar->next) {
+			if (ar->regiontype == type)
+				return ar;
+		}
+	}
+	return NULL;
+}
+

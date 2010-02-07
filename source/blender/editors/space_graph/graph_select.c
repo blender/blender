@@ -199,7 +199,7 @@ void GRAPH_OT_select_all_toggle (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -361,7 +361,7 @@ void GRAPH_OT_select_border(wmOperatorType *ot)
 	/* rna */
 	WM_operator_properties_gesture_border(ot, FALSE);
 	
-	RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+	ot->prop= RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 }
 
 /* ******************** Column Select Operator **************************** */
@@ -546,7 +546,7 @@ void GRAPH_OT_select_column (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 	
 	/* props */
-	RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
+	ot->prop= RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
 }
 
 /* ******************** Select More/Less Operators *********************** */
