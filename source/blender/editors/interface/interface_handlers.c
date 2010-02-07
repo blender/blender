@@ -2084,7 +2084,7 @@ static int ui_do_but_EXIT(bContext *C, uiBut *but, uiHandleButtonData *data, wmE
 		/* pass on release as press for other keymaps XXX hack alert! */
 		if(event->type==LEFTMOUSE && event->val==KM_RELEASE) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			event->val= KM_PRESS;
+			event->val= KM_CLICK;
 			return WM_UI_HANDLER_CONTINUE;
 		}
 		
