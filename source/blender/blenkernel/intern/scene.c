@@ -760,7 +760,7 @@ char *scene_find_last_marker_name(Scene *scene, int frame)
 	int best_frame = -MAXFRAME*2;
 	for (marker= scene->markers.first; marker; marker= marker->next) {
 		if (marker->frame==frame) {
-			return marker;
+			return marker->name;
 		}
 
 		if ( marker->frame > best_frame && marker->frame < frame) {
