@@ -1599,7 +1599,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Z Offset", "Gives faces an artificial offset in the Z buffer for Z transparency.");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
-	prop= RNA_def_property(srna, "sky", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_sky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_ENV);
 	RNA_def_property_ui_text(prop, "Sky", "Renders this material with zero alpha, with sky background in place (scanline only).");
 	RNA_def_property_update(prop, 0, "rna_Material_update");

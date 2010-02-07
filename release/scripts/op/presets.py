@@ -49,7 +49,11 @@ class AddPresetBase(bpy.types.Operator):
         file_preset = open(os.path.join(target_path, filename), 'w')
 
         for rna_path in self.preset_values:
-            file_preset.write("%s = %s\n" % (rna_path, eval(rna_path)))
+            value = eval(rna_path)
+            if type(value) == str:
+                value = "'%s'" % value
+
+            file_preset.write("%s = %s\n" % (rna_path, value))
 
         file_preset.close()
 
@@ -125,6 +129,34 @@ class AddPresetCloth(AddPresetBase):
 
     preset_subdir = "cloth"
 
+
+class AddPresetSunSky(AddPresetBase):
+    '''Add a Cloth Preset.'''
+    bl_idname = "lamp.sunsky_preset_add"
+    bl_label = "Add Sunsky Preset"
+    name = AddPresetBase.name
+
+    preset_values = [
+        "bpy.context.object.data.sky.atmosphere_turbidity",
+        "bpy.context.object.data.sky.sky_blend_type",
+        "bpy.context.object.data.sky.sky_blend",
+        "bpy.context.object.data.sky.horizon_brightness",
+        "bpy.context.object.data.sky.spread",
+        "bpy.context.object.data.sky.sky_color_space",
+        "bpy.context.object.data.sky.sky_exposure",
+        "bpy.context.object.data.sky.sun_brightness",
+        "bpy.context.object.data.sky.sun_size",
+        "bpy.context.object.data.sky.backscattered_light",
+        "bpy.context.object.data.sky.sun_intensity",
+        "bpy.context.object.data.sky.atmosphere_distance_factor",
+        "bpy.context.object.data.sky.atmosphere_inscattering",
+        "bpy.context.object.data.sky.atmosphere_extinction",
+    ]
+
+    preset_subdir = "sunsky"
+
+
 bpy.types.register(AddPresetRender)
 bpy.types.register(AddPresetSSS)
 bpy.types.register(AddPresetCloth)
+bpy.types.register(AddPresetSunSky)

@@ -307,12 +307,12 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 
 	/* boolean */
 	
-	prop= RNA_def_property(srna, "sky", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_sky", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "sun_effect_type", LA_SUN_EFFECT_SKY);
 	RNA_def_property_ui_text(prop, "Sky", "Apply sun effect on sky.");
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");
 
-	prop= RNA_def_property(srna, "atmosphere", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_atmosphere", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "sun_effect_type", LA_SUN_EFFECT_AP);
 	RNA_def_property_ui_text(prop, "Atmosphere", "Apply sun effect on atmosphere.");
 	RNA_def_property_update(prop, 0, "rna_Lamp_sky_update");

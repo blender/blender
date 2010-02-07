@@ -274,7 +274,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
         col = split.column()
         col.prop(mat, "traceable")
         col.prop(mat, "full_oversampling")
-        col.prop(mat, "sky")
+        col.prop(mat, "use_sky")
         col.prop(mat, "exclude_mist")
         col.prop(mat, "invert_z")
         sub = col.row()
