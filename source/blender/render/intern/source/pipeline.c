@@ -2055,7 +2055,6 @@ static void do_render_fields_3d(Render *re)
 
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
-	RE_FreeRenderResult(rr1);
 
 	if(rr2) {
 		if(re->r.mode & R_ODDFIELD)
@@ -2065,6 +2064,8 @@ static void do_render_fields_3d(Render *re)
 		
 		RE_FreeRenderResult(rr2);
 	}
+
+	RE_FreeRenderResult(rr1);
 	
 	re->i.curfield= 0;	/* stats */
 	
