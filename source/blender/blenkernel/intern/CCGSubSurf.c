@@ -2297,9 +2297,8 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 		VertDataZero(FACE_getCenterData(f));
 
 		for (S=0; S<f->numVerts; S++)
-			if (FACE_getEdges(f)[S]->flags&Edge_eEffected)
-				for (x=0; x<gridSize; x++)
-					VertDataZero(FACE_getIECo(f, lvl, S, x));
+			for (x=0; x<gridSize; x++)
+				VertDataZero(FACE_getIECo(f, lvl, S, x));
 
 		for (S=0; S<f->numVerts; S++) {
 			int prevS = (S+f->numVerts-1)%f->numVerts;
@@ -2311,10 +2310,8 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 				VertDataAdd(VERT_getCo(FACE_getVerts(f)[S], lvl), FACE_getIFCo(f, lvl, S, cornerIdx, cornerIdx));
 
 			for (x=1; x<gridSize-1; x++) {
-				if (FACE_getEdges(f)[S]->flags&Edge_eEffected)
-					VertDataAdd(FACE_getIECo(f, lvl, S, x), FACE_getIFCo(f, lvl, S, x, 0));
-				if (FACE_getEdges(f)[prevS]->flags&Edge_eEffected)
-					VertDataAdd(FACE_getIECo(f, lvl, prevS, x), FACE_getIFCo(f, lvl, S, 0, x));
+				VertDataAdd(FACE_getIECo(f, lvl, S, x), FACE_getIFCo(f, lvl, S, x, 0));
+				VertDataAdd(FACE_getIECo(f, lvl, prevS, x), FACE_getIFCo(f, lvl, S, 0, x));
 			}
 
 			for (x=0; x<gridSize-1; x++) {
@@ -2351,9 +2348,8 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 		VertDataMulN(FACE_getCenterData(f), 1.0f/f->numVerts);
 
 		for (S=0; S<f->numVerts; S++)
-			if (FACE_getEdges(f)[S]->flags&Edge_eEffected)
-				for (x=1; x<gridSize-1; x++)
-					VertDataMulN(FACE_getIECo(f, lvl, S, x), 0.5f);
+			for (x=1; x<gridSize-1; x++)
+				VertDataMulN(FACE_getIECo(f, lvl, S, x), 0.5f);
 
 		for (S=0; S<f->numVerts; S++) {
 			int prevS = (S+f->numVerts-1)%f->numVerts;

@@ -96,16 +96,11 @@ static void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lv
 {
 	mmd->totlvl = lvl;
 
-	if(ob->mode != OB_MODE_SCULPT) {
-		mmd->lvl = MAX2(mmd->lvl, lvl);
-		CLAMP(mmd->lvl, 0, mmd->totlvl);
-	}
+	if(ob->mode != OB_MODE_SCULPT)
+		mmd->lvl = CLAMPIS(MAX2(mmd->lvl, lvl), 0, mmd->totlvl);
 
-	mmd->sculptlvl = MAX2(mmd->sculptlvl, lvl);
-	CLAMP(mmd->sculptlvl, 0, mmd->totlvl);
-
-	mmd->renderlvl = MAX2(mmd->renderlvl, lvl);
-	CLAMP(mmd->renderlvl, 0, mmd->totlvl);
+	mmd->sculptlvl = CLAMPIS(MAX2(mmd->sculptlvl, lvl), 0, mmd->totlvl);
+	mmd->renderlvl = CLAMPIS(MAX2(mmd->renderlvl, lvl), 0, mmd->totlvl);
 }
 
 static void multires_dm_mark_as_modified(DerivedMesh *dm)

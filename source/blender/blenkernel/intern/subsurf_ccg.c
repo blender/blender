@@ -1242,7 +1242,7 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 
 		if(dm->numFaceData) {
 			/* should be per face */
-			if(!setMaterial(faceFlags[1], NULL))
+			if(!setMaterial(faceFlags[1]+1, NULL))
 				return;
 
 			glShadeModel((faceFlags[0] & ME_SMOOTH)? GL_SMOOTH: GL_FLAT);
