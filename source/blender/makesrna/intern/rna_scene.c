@@ -775,7 +775,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_float_sdna(prop, NULL, "normalsize");
 	RNA_def_property_ui_text(prop, "Normal Size", "Display size for normals in the 3D view.");
 	RNA_def_property_range(prop, 0.00001, 1000.0);
-	RNA_def_property_ui_range(prop, 0.01, 10.0, 0.1, 2);
+	RNA_def_property_ui_range(prop, 0.01, 10.0, 10.0, 2);
 	RNA_def_property_update(prop, NC_GEOM|ND_DATA, NULL);
 
 	prop= RNA_def_property(srna, "automerge_editing", PROP_BOOLEAN, PROP_NONE);
