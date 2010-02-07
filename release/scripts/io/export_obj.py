@@ -134,7 +134,7 @@ def write_mtl(scene, filename, copy_images):
 # 			file.write('map_Kd %s\n' % img.filename.split('\\')[-1].split('/')[-1]) # Diffuse mapping image
 
         elif mat: # No face image. if we havea material search for MTex image.
-            for mtex in mat.textures:
+            for mtex in mat.texture_slots:
                 if mtex and mtex.texture.type == 'IMAGE':
                     try:
                         filename = copy_image(mtex.texture.image)
@@ -176,7 +176,7 @@ def copy_images(dest_dir):
 
         # Get MTex images
         if mat:
-            for mtex in mat.textures:
+            for mtex in mat.texture_slots:
                 if mtex and mtex.texture.type == 'IMAGE':
                     image_tex = mtex.texture.image
                     if image_tex:

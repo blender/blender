@@ -460,7 +460,7 @@ class _3ds_chunk(object):
 def get_material_images(material):
     # blender utility func.
     if material:
-        return [s.texture.image for s in material.textures if s and s.texture.type == 'IMAGE' and s.texture.image]
+        return [s.texture.image for s in material.texture_slots if s and s.texture.type == 'IMAGE' and s.texture.image]
 
     return []
 # 	images = []
