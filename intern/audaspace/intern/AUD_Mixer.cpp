@@ -68,6 +68,11 @@ AUD_IReader* AUD_Mixer::prepare(AUD_IReader* reader)
 	return reader;
 }
 
+AUD_DeviceSpecs AUD_Mixer::getSpecs()
+{
+	return m_specs;
+}
+
 void AUD_Mixer::setSpecs(AUD_DeviceSpecs specs)
 {
 	m_specs = specs;
@@ -115,10 +120,11 @@ void AUD_Mixer::setSpecs(AUD_DeviceSpecs specs)
 	}
 }
 
-void AUD_Mixer::add(sample_t* buffer, int length, float volume)
+void AUD_Mixer::add(sample_t* buffer, int start, int length, float volume)
 {
 	AUD_MixerBuffer buf;
 	buf.buffer = buffer;
+	buf.start = start;
 	buf.length = length;
 	buf.volume = volume;
 	m_buffers.push_back(buf);
@@ -145,11 +151,11 @@ void AUD_Mixer::superpose(data_t* buffer, int length, float volume)
 		buf = m_buffers.front();
 		m_buffers.pop_front();
 
-		end = buf.length*channels;
+		end = buf.length * channels;
 		in = buf.buffer;
 
 		for(int i = 0; i < end; i++)
-			out[i] += in[i]*buf.volume * volume;
+			out[i + buf.start * channels] += in[i] * buf.volume * volume;
 	}
 
 	m_convert(buffer, (data_t*) out, length * channels);

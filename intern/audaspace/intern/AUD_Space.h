@@ -294,7 +294,11 @@ typedef struct
 	union
 	{
 		// loop reader
-		int loopcount;
+		struct
+		{
+			int loopcount;
+			float time;
+		};
 
 		// volume reader
 		float volume;

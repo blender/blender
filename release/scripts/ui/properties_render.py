@@ -416,11 +416,11 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col.prop(rd, "ffmpeg_packetsize", text="Packet Size")
 
         # Audio:
-        layout.prop(rd, "ffmpeg_multiplex_audio", text="Audio")
-
         sub = layout.column()
-        sub.active = rd.ffmpeg_multiplex_audio
-        sub.prop(rd, "ffmpeg_audio_codec", text="Codec")
+
+        if rd.ffmpeg_format not in ('MP3'):
+          sub.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
+
         sub.separator()
 
         split = sub.split()

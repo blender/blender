@@ -180,7 +180,7 @@ void AUD_OpenALDevice::updateStreams()
 											 AUD_DEVICE_SAMPLE_SIZE(specs),
 											 specs.rate);
 
-								if(alGetError() != AL_NO_ERROR)
+								if((err = alGetError()) != AL_NO_ERROR)
 								{
 									sound->data_end = true;
 									break;
@@ -839,13 +839,14 @@ bool AUD_OpenALDevice::seek(AUD_Handle* handle, float position)
 
 			if(info != AL_PLAYING)
 			{
-				if(info != AL_STOPPED)
+				if(info == AL_PAUSED)
 					alSourceStop(alhandle->source);
 
-				alSourceUnqueueBuffers(alhandle->source,
-									   AUD_OPENAL_CYCLE_BUFFERS,
-									   alhandle->buffers);
-				if(alGetError() == AL_NO_ERROR)
+				alSourcei(alhandle->source, AL_BUFFER, 0);
+				alhandle->current = 0;
+
+				ALenum err;
+				if((err = alGetError()) == AL_NO_ERROR)
 				{
 					sample_t* buf;
 					int length;

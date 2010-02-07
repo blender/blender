@@ -46,6 +46,11 @@ private:
 	 */
 	int m_loop;
 
+	/**
+	 * The left samples.
+	 */
+	int m_samples;
+
 public:
 	/**
 	 * Creates a new loop reader.

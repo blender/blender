@@ -233,8 +233,8 @@ void seq_free_sequence(Scene *scene, Sequence *seq)
 		if (ed->act_seq==seq)
 			ed->act_seq= NULL;
 
-		if(seq->sound_handle)
-			sound_delete_handle(scene, seq->sound_handle);
+		if(seq->scene_sound)
+			sound_remove_scene_sound(scene, seq->scene_sound);
 	}
 
 	MEM_freeN(seq);
@@ -484,7 +484,7 @@ void build_seqar_cb(ListBase *seqbase, Sequence  ***seqar, int *totseq,
 }
 
 
-void calc_sequence_disp(Sequence *seq)
+void calc_sequence_disp(Scene *scene, Sequence *seq)
 {
 	if(seq->startofs && seq->startstill) seq->startstill= 0;
 	if(seq->endofs && seq->endstill) seq->endstill= 0;
@@ -500,10 +500,10 @@ void calc_sequence_disp(Sequence *seq)
 		seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
 	}
 
-	seq_update_sound(seq);
+	seq_update_sound(scene, seq);
 }
 
-void calc_sequence(Sequence *seq)
+void calc_sequence(Scene *scene, Sequence *seq)
 {
 	Sequence *seqm;
 	int min, max;
@@ -511,7 +511,7 @@ void calc_sequence(Sequence *seq)
 	/* check all metas recursively */
 	seqm= seq->seqbase.first;
 	while(seqm) {
-		if(seqm->seqbase.first) calc_sequence(seqm);
+		if(seqm->seqbase.first) calc_sequence(scene, seqm);
 		seqm= seqm->next;
 	}
 
@@ -534,7 +534,7 @@ void calc_sequence(Sequence *seq)
 			seq->enddisp= MIN3(seq->seq1->enddisp, seq->seq2->enddisp, seq->seq3->enddisp);
 			seq->len= seq->enddisp - seq->startdisp;
 		} else {
-			calc_sequence_disp(seq);
+			calc_sequence_disp(scene, seq);
 		}
 
 		if(seq->strip && seq->len!=seq->strip->len) {
@@ -563,7 +563,7 @@ void calc_sequence(Sequence *seq)
 				}
 			}
 		}
-		calc_sequence_disp(seq);
+		calc_sequence_disp(scene, seq);
 	}
 }
 
@@ -614,7 +614,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 		}
 		seq->strip->len = seq->len;
 	} else if (seq->type == SEQ_SOUND) {
-		seq->len = AUD_getInfo(seq->sound->handle).length * FPS;
+		seq->len = AUD_getInfo(seq->sound->playback_handle).length * FPS;
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
 		if (seq->len < 0) {
@@ -653,7 +653,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 
 	free_proxy_seq(seq);
 
-	calc_sequence(seq);
+	calc_sequence(scene, seq);
 }
 
 void sort_seq(Scene *scene)
@@ -3189,7 +3189,7 @@ static int update_changed_seq_recurs(Scene *scene, Sequence *seq, Sequence *chan
 		}
 		
 		if(len_change)
-			calc_sequence(seq);
+			calc_sequence(scene, seq);
 	}
 	
 	return free_imbuf;
@@ -3238,23 +3238,6 @@ static void free_imbuf_seq_with_ipo(Scene *scene, struct Ipo *ipo)
 	SEQ_END
 }
 #endif
-
-static int seq_sound_reload_cb(Sequence *seq, void *arg_pt)
-{
-	if (seq->type==SEQ_SOUND && seq->sound) {
-		Scene *scene= (Scene *)arg_pt;
-		if(seq->sound_handle)
-			sound_delete_handle(scene, seq->sound_handle);
-
-		seq->sound_handle = sound_new_handle(scene, seq->sound, seq->start, seq->start + seq->strip->len, 0);
-		return 0;
-	}
-	return 1; /* recurse meta's */
-}
-void seqbase_sound_reload(Scene *scene, ListBase *seqbase)
-{
-	seqbase_recursive_apply(seqbase, seq_sound_reload_cb, (void *)scene);
-}
 
 /* seq funcs's for transforming internally
  notice the difference between start/end and left/right.
@@ -3463,7 +3446,7 @@ static void seq_translate(Scene *evil_scene, Sequence *seq, int delta)
 		}
 	}
 
-	calc_sequence_disp(seq);
+	calc_sequence_disp(evil_scene, seq);
 }
 
 /* return 0 if there werent enough space */
@@ -3471,13 +3454,13 @@ int shuffle_seq(ListBase * seqbasep, Sequence *test, Scene *evil_scene)
 {
 	int orig_machine= test->machine;
 	test->machine++;
-	calc_sequence(test);
+	calc_sequence(evil_scene, test);
 	while( seq_test_overlap(seqbasep, test) ) {
 		if(test->machine >= MAXSEQ) {
 			break;
 		}
 		test->machine++;
-		calc_sequence(test); // XXX - I dont think this is needed since were only moving vertically, Campbell.
+		calc_sequence(evil_scene, test); // XXX - I dont think this is needed since were only moving vertically, Campbell.
 	}
 
 	
@@ -3497,7 +3480,7 @@ int shuffle_seq(ListBase * seqbasep, Sequence *test, Scene *evil_scene)
 		new_frame = new_frame + (test->start-test->startdisp); /* adjust by the startdisp */
 		seq_translate(evil_scene, test, new_frame - test->start);
 
-		calc_sequence(test);
+		calc_sequence(evil_scene, test);
 		return 0;
 	} else {
 		return 1;
@@ -3526,7 +3509,7 @@ static int shuffle_seq_time_offset_test(ListBase * seqbasep, char dir)
 	return offset;
 }
 
-static int shuffle_seq_time_offset(ListBase * seqbasep, char dir)
+static int shuffle_seq_time_offset(Scene* scene, ListBase * seqbasep, char dir)
 {
 	int ofs= 0;
 	int tot_ofs= 0;
@@ -3545,7 +3528,7 @@ static int shuffle_seq_time_offset(ListBase * seqbasep, char dir)
 
 	for(seq= seqbasep->first; seq; seq= seq->next) {
 		if(seq->tmp)
-			calc_sequence_disp(seq); /* corrects dummy startdisp/enddisp values */
+			calc_sequence_disp(scene, seq); /* corrects dummy startdisp/enddisp values */
 	}
 
 	return tot_ofs;
@@ -3557,8 +3540,8 @@ int shuffle_seq_time(ListBase * seqbasep, Scene *evil_scene)
 
 	Sequence *seq;
 
-	int offset_l = shuffle_seq_time_offset(seqbasep, 'L');
-	int offset_r = shuffle_seq_time_offset(seqbasep, 'R');
+	int offset_l = shuffle_seq_time_offset(evil_scene, seqbasep, 'L');
+	int offset_r = shuffle_seq_time_offset(evil_scene, seqbasep, 'R');
 	int offset = (-offset_l < offset_r) ?  offset_l:offset_r;
 
 	if(offset) {
@@ -3573,19 +3556,16 @@ int shuffle_seq_time(ListBase * seqbasep, Scene *evil_scene)
 	return offset? 0:1;
 }
 
-void seq_update_sound(Sequence *seq)
+void seq_update_sound(Scene* scene, Sequence *seq)
 {
-	if(seq->type == SEQ_SOUND && seq->sound_handle)
+	if(seq->scene_sound)
 	{
-		seq->sound_handle->startframe = seq->startdisp;
-		seq->sound_handle->endframe = seq->enddisp;
-		seq->sound_handle->frameskip = seq->startofs + seq->anim_startofs;
-		seq->sound_handle->changed = -1;
+		sound_move_scene_sound(scene, seq->scene_sound, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
 		/* mute is set in seq_update_muting_recursive */
 	}
 }
 
-static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, int mute)
+static void seq_update_muting_recursive(Scene *scene, ListBase *seqbasep, Sequence *metaseq, int mute)
 {
 	Sequence *seq;
 	int seqmute;
@@ -3601,27 +3581,26 @@ static void seq_update_muting_recursive(ListBase *seqbasep, Sequence *metaseq, i
 			if(seq == metaseq)
 				seqmute= 0;
 
-			seq_update_muting_recursive(&seq->seqbase, metaseq, seqmute);
+			seq_update_muting_recursive(scene, &seq->seqbase, metaseq, seqmute);
 		}
 		else if(seq->type == SEQ_SOUND) {
-			if(seq->sound_handle && seqmute != seq->sound_handle->mute) {
-				seq->sound_handle->mute = seqmute;
-				seq->sound_handle->changed = -1;
+			if(seq->scene_sound) {
+				sound_mute_scene_sound(scene, seq->scene_sound, seqmute);
 			}
 		}
 	}
 }
 
-void seq_update_muting(Editing *ed)
+void seq_update_muting(Scene *scene, Editing *ed)
 {
 	if(ed) {
 		/* mute all sounds up to current metastack list */
 		MetaStack *ms= ed->metastack.last;
 
 		if(ms)
-			seq_update_muting_recursive(&ed->seqbase, ms->parseq, 1);
+			seq_update_muting_recursive(scene, &ed->seqbase, ms->parseq, 1);
 		else
-			seq_update_muting_recursive(&ed->seqbase, NULL, 0);
+			seq_update_muting_recursive(scene, &ed->seqbase, NULL, 0);
 	}
 }
 
@@ -3744,6 +3723,7 @@ Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
 	seq->machine= machine;
 	seq->mul= 1.0;
 	seq->blend_opacity = 100.0;
+	seq->volume = 1.0f;
 
 	return seq;
 }
@@ -3793,13 +3773,13 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	sound = sound_new_file(CTX_data_main(C), seq_load->path);
 
-	if (sound==NULL || sound->handle == NULL) {
+	if (sound==NULL || sound->playback_handle == NULL) {
 		//if(op)
 		//	BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return NULL;
 	}
 
-	info = AUD_getInfo(sound->handle);
+	info = AUD_getInfo(sound->playback_handle);
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
 		sound_delete(C, sound);
@@ -3824,9 +3804,9 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
 
-	seq->sound_handle = sound_new_handle(scene, sound, seq_load->start_frame, seq_load->start_frame + strip->len, 0);
+	seq->scene_sound = sound_add_scene_sound(scene, seq, seq_load->start_frame, seq_load->start_frame + strip->len, 0);
 
-	calc_sequence_disp(seq);
+	calc_sequence_disp(scene, seq);
 
 	/* last active name */
 	strncpy(ed->act_sounddir, strip->dir, FILE_MAXDIR-1);
@@ -3868,7 +3848,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
 
-	calc_sequence_disp(seq);
+	calc_sequence_disp(scene, seq);
 
 
 	if(seq_load->flag & SEQ_LOAD_MOVIE_SOUND) {

@@ -107,6 +107,7 @@ EnumPropertyItem snap_element_items[] = {
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_mesh.h"
+#include "BKE_sound.h"
 
 #include "BLI_threads.h"
 #include "BLI_editVert.h"
@@ -287,10 +288,11 @@ static void rna_Scene_preview_range_end_frame_set(PointerRNA *ptr, int value)
 	data->r.pefra= value;
 }
 
-static void rna_Scene_frame_update(Main *bmain, Scene *unused, PointerRNA *ptr)
+static void rna_Scene_frame_update(bContext *C, PointerRNA *ptr)
 {
 	//Scene *scene= ptr->id.data;
 	//ED_update_for_newframe(C);
+	sound_seek_scene(C);
 }
 
 static int rna_Scene_active_keying_set_editable(PointerRNA *ptr)
@@ -1675,12 +1677,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 #ifdef WITH_FFMPEG
 		{R_H264, "H264", ICON_FILE_MOVIE, "H.264", ""},
 		{R_XVID, "XVID", ICON_FILE_MOVIE, "Xvid", ""},
-		// XXX broken
-#if 0
-#ifdef WITH_OGG
 		{R_THEORA, "THEORA", ICON_FILE_MOVIE, "Ogg Theora", ""},
-#endif
-#endif
 		{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "FFMpeg", ""},
 #endif
 		{R_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", ""},
@@ -1731,16 +1728,15 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{FFMPEG_DV, "DV", 0, "DV", ""},
 		{FFMPEG_H264, "H264", 0, "H.264", ""},
 		{FFMPEG_XVID, "XVID", 0, "Xvid", ""},
-		// XXX broken
-#if 0
-#ifdef WITH_OGG
 		{FFMPEG_OGG, "OGG", 0, "Ogg", ""},
-#endif
-#endif
+		{FFMPEG_MKV, "MKV", 0, "Matroska", ""},
 		{FFMPEG_FLV, "FLASH", 0, "Flash", ""},
+		{FFMPEG_WAV, "WAV", 0, "Wav", ""},
+		{FFMPEG_MP3, "MP3", 0, "Mp3", ""},
 		{0, NULL, 0, NULL, NULL}};
-		
+
 	static EnumPropertyItem ffmpeg_codec_items[] = {
+		{CODEC_ID_NONE, "NONE", 0, "None", ""},
 		{CODEC_ID_MPEG1VIDEO, "MPEG1", 0, "MPEG-1", ""},
 		{CODEC_ID_MPEG2VIDEO, "MPEG2", 0, "MPEG-2", ""},
 		{CODEC_ID_MPEG4, "MPEG4", 0, "MPEG-4(divx)", ""},
@@ -1748,18 +1744,18 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{CODEC_ID_DVVIDEO, "DV", 0, "DV", ""},
 		{CODEC_ID_H264, "H264", 0, "H.264", ""},
 		{CODEC_ID_XVID, "XVID", 0, "Xvid", ""},
-#ifdef WITH_OGG
 		{CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
-#endif
 		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
 		{0, NULL, 0, NULL, NULL}};
-		
+
 	static EnumPropertyItem ffmpeg_audio_codec_items[] = {
+		{CODEC_ID_NONE, "NONE", 0, "None", ""},
 		{CODEC_ID_MP2, "MP2", 0, "MP2", ""},
 		{CODEC_ID_MP3, "MP3", 0, "MP3", ""},
 		{CODEC_ID_AC3, "AC3", 0, "AC3", ""},
 		{CODEC_ID_AAC, "AAC", 0, "AAC", ""},
 		{CODEC_ID_VORBIS, "VORBIS", 0, "Vorbis", ""},
+		{CODEC_ID_FLAC, "FLAC", 0, "FLAC", ""},
 		{CODEC_ID_PCM_S16LE, "PCM", 0, "PCM", ""},
 		{0, NULL, 0, NULL, NULL}};
 #endif
@@ -1992,7 +1988,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	/* FFMPEG Audio*/
-	
 	prop= RNA_def_property(srna, "ffmpeg_audio_codec", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ffcodecdata.audio_codec");
 	RNA_def_property_enum_items(prop, ffmpeg_audio_codec_items);
@@ -2005,11 +2000,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bitrate", "Audio bitrate(kb/s)");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
-	prop= RNA_def_property(srna, "ffmpeg_multiplex_audio", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "ffcodecdata.flags", FFMPEG_MULTIPLEX_AUDIO);
-	RNA_def_property_ui_text(prop, "Multiplex Audio", "Interleave audio with the output video");
-	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-
 	prop= RNA_def_property(srna, "ffmpeg_audio_mixrate", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ffcodecdata.audio_mixrate");
 	RNA_def_property_range(prop, 8000, 192000);
@@ -2636,6 +2626,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_frame_update");
 	
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);

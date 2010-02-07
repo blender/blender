@@ -12,6 +12,7 @@
 #include "BLI_blenlib.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_screen_types.h"
@@ -26,6 +27,9 @@
 #include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_packedFile.h"
+#include "BKE_fcurve.h"
+
+#include "RNA_access.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -107,7 +111,7 @@ struct bSound* sound_new_file(struct Main *main, char* filename)
 
 	sound_load(main, sound);
 
-	if(!sound->handle)
+	if(!sound->playback_handle)
 	{
 		free_libblock(&main->sound, sound);
 		sound = NULL;
@@ -133,7 +137,7 @@ struct bSound* sound_new_buffer(struct bContext *C, struct bSound *source)
 
 	sound_load(CTX_data_main(C), sound);
 
-	if(!sound->handle)
+	if(!sound->playback_handle)
 	{
 		free_libblock(&CTX_data_main(C)->sound, sound);
 		sound = NULL;
@@ -159,7 +163,7 @@ struct bSound* sound_new_limiter(struct bContext *C, struct bSound *source, floa
 
 	sound_load(CTX_data_main(C), sound);
 
-	if(!sound->handle)
+	if(!sound->playback_handle)
 	{
 		free_libblock(&CTX_data_main(C)->sound, sound);
 		sound = NULL;
@@ -175,8 +179,6 @@ void sound_delete(struct bContext *C, struct bSound* sound)
 	{
 		sound_free(sound);
 
-		sound_unlink(C, sound);
-
 		free_libblock(&CTX_data_main(C)->sound, sound);
 	}
 }
@@ -187,7 +189,7 @@ void sound_cache(struct bSound* sound, int ignore)
 		AUD_unload(sound->cache);
 
 	sound->cache = AUD_bufferSound(sound->handle);
-	sound->changed++;
+	sound->playback_handle = sound->cache;
 }
 
 void sound_delete_cache(struct bSound* sound)
@@ -196,6 +198,7 @@ void sound_delete_cache(struct bSound* sound)
 	{
 		AUD_unload(sound->cache);
 		sound->cache = NULL;
+		sound->playback_handle = sound->handle;
 	}
 }
 
@@ -207,6 +210,7 @@ void sound_load(struct Main *main, struct bSound* sound)
 		{
 			AUD_unload(sound->handle);
 			sound->handle = NULL;
+			sound->playback_handle = NULL;
 		}
 
 // XXX unused currently
@@ -253,7 +257,10 @@ void sound_load(struct Main *main, struct bSound* sound)
 			break;
 		}
 #endif
-		sound->changed++;
+		if(sound->cache)
+			sound->playback_handle = sound->cache;
+		else
+			sound->playback_handle = sound->handle;
 	}
 }
 
@@ -269,243 +276,115 @@ void sound_free(struct bSound* sound)
 	{
 		AUD_unload(sound->handle);
 		sound->handle = NULL;
+		sound->playback_handle = NULL;
 	}
 }
 
-void sound_unlink(struct bContext *C, struct bSound* sound)
+static float sound_get_volume(Scene* scene, Sequence* sequence, float time)
 {
-	Scene *scene;
-	SoundHandle *handle;
-
-// XXX unused currently
-#if 0
-	bSound *snd;
-	for(snd = CTX_data_main(C)->sound.first; snd; snd = snd->id.next)
-	{
-		if(snd->child_sound == sound)
-		{
-			snd->child_sound = NULL;
-			if(snd->handle)
-			{
-				AUD_unload(sound->handle);
-				snd->handle = NULL;
-			}
-
-			sound_unlink(C, snd);
-		}
-	}
-#endif
-
-	for(scene = CTX_data_main(C)->scene.first; scene; scene = scene->id.next)
-	{
-		for(handle = scene->sound_handles.first; handle; handle = handle->next)
-		{
-			if(handle->source == sound)
-			{
-				handle->source = NULL;
-				if(handle->handle)
-					AUD_stop(handle->handle);
-			}
-		}
-	}
+	struct FCurve* fcu = id_data_find_fcurve(scene, sequence, &RNA_Sequence, "volume", 0);
+	if(fcu)
+		return evaluate_fcurve(fcu, time * FPS);
+	else
+		return sequence->volume;
 }
 
-struct SoundHandle* sound_new_handle(struct Scene *scene, struct bSound* sound, int startframe, int endframe, int frameskip)
+AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume)
 {
-	ListBase* handles = &scene->sound_handles;
+	AUD_Device* mixdown = AUD_openReadDevice(specs);
 
-	SoundHandle* handle = MEM_callocN(sizeof(SoundHandle), "sound_handle");
-	handle->source = sound;
-	handle->startframe = startframe;
-	handle->endframe = endframe;
-	handle->frameskip = frameskip;
-	handle->state = AUD_STATUS_INVALID;
-	handle->volume = 1.0f;
+	AUD_setDeviceVolume(mixdown, volume);
 
-	BLI_addtail(handles, handle);
+	AUD_playDevice(mixdown, scene->sound_scene, start / FPS);
 
-	return handle;
+	return mixdown;
 }
 
-void sound_delete_handle(struct Scene *scene, struct SoundHandle *handle)
+void sound_create_scene(struct Scene *scene)
 {
-	if(handle == NULL)
-		return;
-
-	if(handle->handle)
-		AUD_stop(handle->handle);
-
-	BLI_freelinkN(&scene->sound_handles, handle);
+	scene->sound_scene = AUD_createSequencer(scene, (AUD_volumeFunction)&sound_get_volume);
 }
 
-void sound_stop_all(struct bContext *C)
+void sound_destroy_scene(struct Scene *scene)
 {
-	SoundHandle *handle;
-
-	for(handle = CTX_data_scene(C)->sound_handles.first; handle; handle = handle->next)
-	{
-		if(handle->state == AUD_STATUS_PLAYING)
-		{
-			AUD_pause(handle->handle);
-			handle->state = AUD_STATUS_PAUSED;
-		}
-	}
+	if(scene->sound_scene_handle)
+		AUD_stop(scene->sound_scene_handle);
+	if(scene->sound_scene)
+		AUD_destroySequencer(scene->sound_scene);
 }
 
-void sound_update_playing(struct bContext *C)
+void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip)
 {
-	SoundHandle *handle;
-	Scene* scene = CTX_data_scene(C);
-	int cfra = CFRA;
-	float fps = FPS;
-	int action;
+	return AUD_addSequencer(scene->sound_scene, &(sequence->sound->playback_handle), startframe / FPS, endframe / FPS, frameskip / FPS, sequence);
+}
 
+void sound_remove_scene_sound(struct Scene *scene, void* handle)
+{
+	AUD_removeSequencer(scene->sound_scene, handle);
+}
+
+void sound_mute_scene_sound(struct Scene *scene, void* handle, char mute)
+{
+	AUD_muteSequencer(scene->sound_scene, handle, mute);
+}
+
+void sound_move_scene_sound(struct Scene *scene, void* handle, int startframe, int endframe, int frameskip)
+{
+	AUD_moveSequencer(scene->sound_scene, handle, startframe / FPS, endframe / FPS, frameskip / FPS);
+}
+
+void sound_start_play_scene(struct Scene *scene)
+{
+	AUD_Sound* sound;
+	sound = AUD_loopSound(scene->sound_scene);
+	scene->sound_scene_handle = AUD_play(sound, 1);
+	AUD_unload(sound);
+}
+
+void sound_play_scene(struct Scene *scene)
+{
 	AUD_lock();
 
-	for(handle = scene->sound_handles.first; handle; handle = handle->next)
-	{
-		if(cfra < handle->startframe || cfra >= handle->endframe || handle->mute || (scene->audio.flag & AUDIO_MUTE))
-		{
-			if(handle->state == AUD_STATUS_PLAYING)
-			{
-				AUD_pause(handle->handle);
-				handle->state = AUD_STATUS_PAUSED;
-			}
-		}
-		else
-		{
-			action = 0;
+	if(!scene->sound_scene_handle || AUD_getStatus(scene->sound_scene_handle) == AUD_STATUS_INVALID)
+		sound_start_play_scene(scene);
 
-			if(handle->changed != handle->source->changed)
-			{
-				handle->changed = handle->source->changed;
-				action = 3;
-				if(handle->state != AUD_STATUS_INVALID)
-				{
-					AUD_stop(handle->handle);
-					handle->state = AUD_STATUS_INVALID;
-				}
-			}
-			else
-			{
-				if(handle->state != AUD_STATUS_PLAYING)
-					action = 3;
-				else
-				{
-					handle->state = AUD_getStatus(handle->handle);
-					if(handle->state != AUD_STATUS_PLAYING)
-						action = 3;
-					else
-					{
-						float diff = AUD_getPosition(handle->handle) * fps - cfra + handle->startframe;
-						if(diff < 0.0)
-							diff = -diff;
-						if(diff > FPS/2.0)
-						{
-							action = 2;
-						}
-					}
-				}
-			}
-
-			AUD_setSoundVolume(handle->handle, handle->volume);
-			
-			if(action & 1)
-			{
-				if(handle->state == AUD_STATUS_INVALID)
-				{
-					if(handle->source && handle->source->handle)
-					{
-						AUD_Sound* limiter = AUD_limitSound(handle->source->cache ? handle->source->cache : handle->source->handle, handle->frameskip / fps, (handle->frameskip + handle->endframe - handle->startframe)/fps);
-						handle->handle = AUD_play(limiter, 1);
-						AUD_unload(limiter);
-						if(handle->handle)
-							handle->state = AUD_STATUS_PLAYING;
-						if(cfra == handle->startframe)
-							action &= ~2;
-					}
-				}
-				else
-					if(AUD_resume(handle->handle))
-						handle->state = AUD_STATUS_PLAYING;
-					else
-						handle->state = AUD_STATUS_INVALID;
-			}
-
-			if(action & 2)
-				AUD_seek(handle->handle, (cfra - handle->startframe) / fps);
-		}
-	}
+	AUD_seek(scene->sound_scene_handle, CFRA / FPS);
+	AUD_setLoop(scene->sound_scene_handle, -1, -1);
+	AUD_resume(scene->sound_scene_handle);
 
 	AUD_unlock();
 }
 
-void sound_scrub(struct bContext *C)
+void sound_stop_scene(struct Scene *scene)
 {
-	SoundHandle *handle;
-	Scene* scene = CTX_data_scene(C);
-	int cfra = CFRA;
-	float fps = FPS;
+	AUD_pause(scene->sound_scene_handle);
+}
+
+void sound_seek_scene(struct bContext *C)
+{
+	struct Scene *scene = CTX_data_scene(C);
+
+	AUD_lock();
+
+	if(!scene->sound_scene_handle || AUD_getStatus(scene->sound_scene_handle) == AUD_STATUS_INVALID)
+	{
+		sound_start_play_scene(scene);
+		AUD_pause(scene->sound_scene_handle);
+	}
 
 	if(scene->audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
 	{
-		AUD_lock();
-
-		for(handle = scene->sound_handles.first; handle; handle = handle->next)
-		{
-			if(cfra >= handle->startframe && cfra < handle->endframe && !handle->mute)
-			{
-				if(handle->source && handle->source->handle)
-				{
-					int frameskip = handle->frameskip + cfra - handle->startframe;
-					AUD_Sound* limiter = AUD_limitSound(handle->source->cache ? handle->source->cache : handle->source->handle, frameskip / fps, (frameskip + 1)/fps);
-					AUD_play(limiter, 0);
-					AUD_unload(limiter);
-				}
-			}
-		}
-
-		AUD_unlock();
+		AUD_setLoop(scene->sound_scene_handle, -1, 1 / FPS);
+		AUD_seek(scene->sound_scene_handle, CFRA / FPS);
+		AUD_resume(scene->sound_scene_handle);
 	}
+	else
+		AUD_seek(scene->sound_scene_handle, CFRA / FPS);
+
+	AUD_unlock();
 }
 
-AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, int end, float volume)
+int sound_read_sound_buffer(bSound* sound, float* buffer, int length)
 {
-	AUD_Device* mixdown = AUD_openReadDevice(specs);
-	SoundHandle *handle;
-	float fps = FPS;
-	AUD_Sound *limiter, *delayer;
-	int frameskip, s, e;
-
-	end++;
-
-	AUD_setDeviceVolume(mixdown, volume);
-
-	for(handle = scene->sound_handles.first; handle; handle = handle->next)
-	{
-		if(start < handle->endframe && end > handle->startframe && !handle->mute && handle->source && handle->source->handle)
-		{
-			frameskip = handle->frameskip;
-			s = handle->startframe - start;
-			e = handle->frameskip + AUD_MIN(handle->endframe, end) - handle->startframe;
-
-			if(s < 0)
-			{
-				frameskip -= s;
-				s = 0;
-			}
-			
-			AUD_setSoundVolume(handle->handle, handle->volume);
-			
-			limiter = AUD_limitSound(handle->source->handle, frameskip / fps, e / fps);
-			delayer = AUD_delaySound(limiter, s / fps);
-
-			AUD_playDevice(mixdown, delayer);
-
-			AUD_unload(delayer);
-			AUD_unload(limiter);
-		}
-	}
-
-	return mixdown;
+	AUD_readSound(sound->cache, buffer, length);
 }

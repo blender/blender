@@ -150,8 +150,8 @@ struct ImBuf *give_ibuf_seq(struct Scene *scene, int rectx, int recty, int cfra,
 struct ImBuf *give_ibuf_seq_threaded(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
 struct ImBuf *give_ibuf_seq_direct(struct Scene *scene, int rectx, int recty, int cfra, int render_size, struct Sequence *seq);
 void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown, int render_size);
-void calc_sequence(struct Sequence *seq);
-void calc_sequence_disp(struct Sequence *seq);
+void calc_sequence(struct Scene *scene, struct Sequence *seq);
+void calc_sequence_disp(struct Scene *scene, struct Sequence *seq);
 void new_tstripdata(struct Sequence *seq);
 void reload_sequence_new_file(struct Scene *scene, struct Sequence * seq);
 void sort_seq(struct Scene *scene);
@@ -191,8 +191,8 @@ int shuffle_seq_time(ListBase * seqbasep, struct Scene *evil_scene);
 int seqbase_isolated_sel_check(struct ListBase *seqbase);
 void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage);
 
-void seq_update_sound(struct Sequence *seq);
-void seq_update_muting(struct Editing *ed);
+void seq_update_sound(struct Scene* scene, struct Sequence *seq);
+void seq_update_muting(struct Scene* scene, struct Editing *ed);
 void seqbase_sound_reload(Scene *scene, ListBase *seqbase);
 void clear_scene_in_allseqs(struct Scene *sce);
 

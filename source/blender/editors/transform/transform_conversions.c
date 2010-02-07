@@ -2369,10 +2369,10 @@ void flushTransSeq(TransInfo *t)
 				/* Calculate this strip and all nested strips
 				 * children are ALWAYS transformed first
 				 * so we dont need to do this in another loop. */
-				calc_sequence(seq);
+				calc_sequence(t->scene, seq);
 			}
 			else {
-				calc_sequence_disp(seq);
+				calc_sequence_disp(t->scene, seq);
 			}
 		}
 		seq_prev= seq;
@@ -2404,7 +2404,7 @@ void flushTransSeq(TransInfo *t)
 
 		while(seq) {
 			if (seq->type == SEQ_META && seq->flag & SELECT)
-				calc_sequence(seq);
+				calc_sequence(t->scene, seq);
 			seq= seq->next;
 		}
 	}
@@ -4105,9 +4105,9 @@ static void freeSeqData(TransInfo *t)
 			for(seq= seqbasep->first; seq; seq= seq->next) {
 				/* We might want to build a list of effects that need to be updated during transform */
 				if(seq->type & SEQ_EFFECT) {
-					if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
-					else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
-					else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
+					if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(t->scene, seq);
+					else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(t->scene, seq);
+					else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(t->scene, seq);
 				}
 			}
 
@@ -4118,7 +4118,7 @@ static void freeSeqData(TransInfo *t)
 			for(a=0; a<t->total; a++, td++) {
 				seq= ((TransDataSeq *)td->extra)->seq;
 				if ((seq != seq_prev) && (seq->depth==0)) {
-					calc_sequence_disp(seq);
+					calc_sequence_disp(t->scene, seq);
 				}
 				seq_prev= seq;
 			}

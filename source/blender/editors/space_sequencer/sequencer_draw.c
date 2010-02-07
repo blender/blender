@@ -49,7 +49,8 @@
 #include "BKE_sequencer.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
- 
+#include "BKE_sound.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -169,6 +170,38 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, char *col)
 		break;
 	default:
 		col[0] = 10; col[1] = 255; col[2] = 40;
+	}
+}
+
+static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, float stepsize)
+{
+	/*
+	x1 is the starting x value to draw the wave,
+	x2 the end x value, same for y1 and y2
+	stepsize is width of a pixel.
+	*/
+	if(seq->sound->cache)
+	{
+		int i;
+		int length = floor((x2-x1)/stepsize)+1;
+		float ymid = (y1+y2)/2;
+		float yscale = (y2-y1)/2;
+		float* samples = malloc(length * sizeof(float) * 2);
+		if(!samples)
+			return;
+		if(sound_read_sound_buffer(seq->sound, samples, length) != length)
+		{
+			free(samples);
+			return;
+		}
+		glBegin(GL_LINES);
+		for(i = 0; i < length; i++)
+		{
+			glVertex2f(x1+i*stepsize, ymid + samples[i * 2] * yscale);
+			glVertex2f(x1+i*stepsize, ymid + samples[i * 2 + 1] * yscale);
+		}
+		glEnd();
+		free(samples);
 	}
 }
 
@@ -557,6 +590,9 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, SpaceSeq *sseq, Sequence *
 	x1= seq->startdisp;
 	x2= seq->enddisp;
 	
+	/* draw sound wave */
+	if(seq->type == SEQ_SOUND) drawseqwave(seq, x1, y1, x2, y2, (ar->v2d.cur.xmax - ar->v2d.cur.xmin)/ar->winx);
+
 	get_seq_color3ubv(scene, seq, col);
 	if (G.moving && (seq->flag & SELECT)) {
 		if(seq->flag & SEQ_OVERLAP) {

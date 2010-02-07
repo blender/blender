@@ -479,7 +479,7 @@ static void reload_sound_strip(Scene *scene, char *name)
 		seqact->strip= seq->strip;
 
 		seqact->len= seq->len;
-		calc_sequence(seqact);
+		calc_sequence(scene, seqact);
 
 		seq->strip= 0;
 		seq_free_sequence(scene, seq);
@@ -519,7 +519,7 @@ static void reload_image_strip(Scene *scene, char *name)
 		seqact->strip= seq->strip;
 
 		seqact->len= seq->len;
-		calc_sequence(seqact);
+		calc_sequence(scene, seqact);
 
 		seq->strip= 0;
 		seq_free_sequence(scene, seq);
@@ -857,8 +857,8 @@ static Sequence *dupli_seq(struct Scene *scene, Sequence *seq)
 	} else if(seq->type == SEQ_SOUND) {
 		seqn->strip->stripdata =
 				MEM_dupallocN(seq->strip->stripdata);
-		if(seq->sound_handle)
-			seqn->sound_handle = sound_new_handle(scene, seqn->sound, seq->sound_handle->startframe, seq->sound_handle->endframe, seq->sound_handle->frameskip);
+		if(seq->scene_sound)
+			seqn->scene_sound = sound_add_scene_sound(scene, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
 
 		seqn->sound->id.us++;
 	} else if(seq->type == SEQ_IMAGE) {
@@ -983,7 +983,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 	}
 	
 	reload_sequence_new_file(scene, seq);
-	calc_sequence(seq);
+	calc_sequence(scene, seq);
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
@@ -1022,7 +1022,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 		}
 		
 		reload_sequence_new_file(scene, seqn);
-		calc_sequence(seqn);
+		calc_sequence(scene, seqn);
 	}
 	return seqn;
 }
@@ -1072,7 +1072,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 		}
 	}
 	
-	calc_sequence(seq);
+	calc_sequence(scene, seq);
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
@@ -1107,7 +1107,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 			seqn->startstill = 0;
 		}
 		
-		calc_sequence(seqn);
+		calc_sequence(scene, seqn);
 	}
 	return seqn;
 }
@@ -1161,7 +1161,7 @@ int insert_gap(Scene *scene, int gap, int cfra)
 	SEQP_BEGIN(ed, seq) {
 		if(seq->startdisp >= cfra) {
 			seq->start+= gap;
-			calc_sequence(seq);
+			calc_sequence(scene, seq);
 			done= 1;
 		}
 	}
@@ -1336,7 +1336,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 				}
 				seq_tx_handle_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
 			}
-			calc_sequence(seq);
+			calc_sequence(scene, seq);
 		}
 	}
 	SEQ_END
@@ -1351,11 +1351,11 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 		}
 		else if(seq->type & SEQ_EFFECT) {
 			if(seq->seq1 && (seq->seq1->flag & SELECT)) 
-				calc_sequence(seq);
+				calc_sequence(scene, seq);
 			else if(seq->seq2 && (seq->seq2->flag & SELECT)) 
-				calc_sequence(seq);
+				calc_sequence(scene, seq);
 			else if(seq->seq3 && (seq->seq3->flag & SELECT)) 
-				calc_sequence(seq);
+				calc_sequence(scene, seq);
 		}
 	}
 	SEQ_END;
@@ -1425,7 +1425,7 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	seq_update_muting(ed);
+	seq_update_muting(scene, ed);
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1476,7 +1476,7 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	seq_update_muting(ed);
+	seq_update_muting(scene, ed);
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1622,8 +1622,6 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	free_imbuf_seq(scene, &ed->seqbase, FALSE);
-
-	seqbase_sound_reload(scene, &ed->seqbase);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
@@ -1840,7 +1838,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 	/* updates lengths etc */
 	seq= ed->seqbasep->first;
 	while(seq) {
-		calc_sequence(seq);
+		calc_sequence(scene, seq);
 		seq= seq->next;
 	}
 
@@ -1848,7 +1846,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 	ms= ed->metastack.last;
 	while(ms) {
 		ms->parseq->strip->len= 0;		/* force new alloc */
-		calc_sequence(ms->parseq);
+		calc_sequence(scene, ms->parseq);
 		ms= ms->prev;
 	}
 
@@ -1923,7 +1921,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				/* new stripdata */
 				strip_new->stripdata= se_new= MEM_callocN(sizeof(StripElem)*1, "stripelem");
 				strncpy(se_new->name, se->name, FILE_MAXFILE-1);
-				calc_sequence(seq_new);
+				calc_sequence(scene, seq_new);
 				seq_new->flag &= ~SEQ_OVERLAP;
 				if (seq_test_overlap(ed->seqbasep, seq_new)) {
 					shuffle_seq(ed->seqbasep, seq_new, scene);
@@ -2011,7 +2009,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
 
 		/* recalc all: the meta can have effects connected to it */
 		for(seq= ed->seqbasep->first; seq; seq= seq->next)
-			calc_sequence(seq);
+			calc_sequence(scene, seq);
 
 		active_seq_set(scene, ms->parseq);
 
@@ -2022,7 +2020,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
 
 	}
 
-	seq_update_muting(ed);
+	seq_update_muting(scene, ed);
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
@@ -2081,7 +2079,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 		seq= next;
 	}
 	seqm->machine= channel_max;
-	calc_sequence(seqm);
+	calc_sequence(scene, seqm);
 
 	seqm->strip= MEM_callocN(sizeof(Strip), "metastrip");
 	seqm->strip->len= seqm->len;
@@ -2091,7 +2089,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
 	if( seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm, scene);
 
-	seq_update_muting(ed);
+	seq_update_muting(scene, ed);
 
 	seqUniqueName(scene->ed->seqbasep, seqm);
 
@@ -2165,7 +2163,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *op)
 	SEQ_END;
 
 	sort_seq(scene);
-	seq_update_muting(ed);
+	seq_update_muting(scene, ed);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
@@ -2521,13 +2519,13 @@ void SEQUENCER_OT_previous_edit(wmOperatorType *ot)
 	/* properties */
 }
 
-static void swap_sequence(Sequence* seqa, Sequence* seqb)
+static void swap_sequence(Scene* scene, Sequence* seqa, Sequence* seqb)
 {
 	int gap = seqb->startdisp - seqa->enddisp;
 	seqb->start = seqa->start;
-	calc_sequence(seqb);
+	calc_sequence(scene, seqb);
 	seqa->start = seqb->enddisp + gap;
-	calc_sequence(seqa);
+	calc_sequence(scene, seqa);
 }
 
 static Sequence* sequence_find_parent(Scene* scene, Sequence* child)
@@ -2571,17 +2569,17 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 
 		switch (side) {
 			case SEQ_SIDE_LEFT: 
-				swap_sequence(seq, active_seq);
+				swap_sequence(scene, seq, active_seq);
 				break;
 			case SEQ_SIDE_RIGHT: 
-				swap_sequence(active_seq, seq);
+				swap_sequence(scene, active_seq, seq);
 				break;
 		}
 
 		// XXX - should be a generic function
 		for(iseq= scene->ed->seqbasep->first; iseq; iseq= iseq->next) {
 			if((iseq->type & SEQ_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
-				calc_sequence(iseq);
+				calc_sequence(scene, iseq);
 			}
 		}
 
@@ -2682,9 +2680,9 @@ static void seq_del_sound(Scene *scene, Sequence *seq)
 			seq_del_sound(scene, iseq);
 		}
 	}
-	else if(seq->sound_handle) {
-		sound_delete_handle(scene, seq->sound_handle);
-		seq->sound_handle= NULL;
+	else if(seq->scene_sound) {
+		sound_remove_scene_sound(scene, seq->scene_sound);
+		seq->scene_sound = NULL;
 	}
 }
 
@@ -2733,19 +2731,19 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 	/* properties */
 }
 
-static void seq_offset(Sequence *seq, int ofs)
+static void seq_offset(Scene *scene, Sequence *seq, int ofs)
 {
 	if(seq->type == SEQ_META) {
 		Sequence *iseq;
 		for(iseq= seq->seqbase.first; iseq; iseq= iseq->next) {
-			seq_offset(iseq, ofs);
+			seq_offset(scene, iseq, ofs);
 		}
 	}
 	else {
 		seq->start += ofs;
 	}
 
-	calc_sequence_disp(seq);
+	calc_sequence_disp(scene, seq);
 }
 
 static int sequencer_paste_exec(bContext *C, wmOperator *op)
@@ -2764,7 +2762,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
 	/* transform pasted strips before adding */
 	if(ofs) {
 		for(iseq= new.first; iseq; iseq= iseq->next) {
-			seq_offset(iseq, ofs);
+			seq_offset(scene, iseq, ofs);
 		}
 	}
 

@@ -215,7 +215,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	else
 		strcpy(seq->name+2, sce_seq->id.name+2);
 	
-	calc_sequence_disp(seq);
+	calc_sequence_disp(scene, seq);
 	sort_seq(scene);
 	
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
@@ -303,7 +303,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	}
 
 	sort_seq(scene);
-	seq_update_muting(ed);
+	seq_update_muting(scene, ed);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
@@ -428,7 +428,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	calc_sequence_disp(seq);
+	calc_sequence_disp(scene, seq);
 
 	sort_seq(scene);
 
@@ -530,7 +530,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 
 	seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
 
-	calc_sequence(seq);
+	calc_sequence(scene, seq);
 	
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");

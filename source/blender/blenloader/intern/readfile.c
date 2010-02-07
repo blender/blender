@@ -4138,14 +4138,14 @@ static void lib_link_scene(FileData *fd, Main *main)
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 				if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
 				if(seq->sound) {
-					seq->sound_handle= NULL;
+					seq->scene_sound = NULL;
 					if(seq->type == SEQ_HD_SOUND)
 						seq->type = SEQ_SOUND;
 					else
 						seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
 					if (seq->sound) {
 						seq->sound->id.us++;
-						seq->sound_handle= sound_new_handle(sce, seq->sound, seq->startdisp, seq->enddisp, seq->startofs);
+						seq->scene_sound = sound_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs);
 					}
 				}
 				seq->anim= 0;
@@ -4161,7 +4161,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 #endif
 
 			if(sce->ed)
-				seq_update_muting(sce->ed);
+				seq_update_muting(sce, sce->ed);
 			
 			if(sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
@@ -4217,7 +4217,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->obedit= NULL;
 	sce->stats= 0;
 
-	memset(&sce->sound_handles, 0, sizeof(sce->sound_handles));
+	sound_create_scene(sce);
 
 	/* set users to one by default, not in lib-link, this will increase it for compo nodes */
 	sce->id.us= 1;
@@ -5200,6 +5200,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 static void direct_link_sound(FileData *fd, bSound *sound)
 {
 	sound->handle = NULL;
+	sound->playback_handle = NULL;
 
 	sound->packedfile = direct_link_packedfile(fd, sound->packedfile);
 	sound->newpackedfile = direct_link_packedfile(fd, sound->newpackedfile);
@@ -10565,6 +10566,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
 		Scene *sce;
+		Sequence *seq;
 
 		/* initialize to sane default so toggling on border shows something */
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
@@ -10575,6 +10577,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->r.border.xmax= 1.0f;
 				sce->r.border.ymax= 1.0f;
 			}
+
+			if((sce->r.ffcodecdata.flags & FFMPEG_MULTIPLEX_AUDIO) == 0)
+				sce->r.ffcodecdata.audio_codec = 0x0; // CODEC_ID_NONE
+
+			SEQ_BEGIN(sce->ed, seq) {
+				seq->volume = 1.0f;
+			}
+			SEQ_END
 		}
 
 		/* sequencer changes */

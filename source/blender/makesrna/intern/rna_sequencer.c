@@ -93,7 +93,7 @@ static void rna_Sequence_frame_change_update(Scene *scene, Sequence *seq)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 	ListBase *seqbase= seq_seqbase(&ed->seqbase, seq);
-	calc_sequence_disp(seq);
+	calc_sequence_disp(scene, seq);
 
 	if(seq_test_overlap(seqbase, seq)) {
 		shuffle_seq(seqbase, seq, scene); // XXX - BROKEN!, uses context seqbasep
@@ -351,14 +351,14 @@ static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	free_imbuf_seq(scene, &ed->seqbase, FALSE);
 
 	if(RNA_struct_is_a(ptr->type, &RNA_SoundSequence))
-		seq_update_sound(ptr->data);
+		seq_update_sound(scene, ptr->data);
 }
 
 static void rna_Sequence_mute_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
 
-	seq_update_muting(ed);
+	seq_update_muting(scene, ed);
 	rna_Sequence_update(bmain, scene, ptr);
 }
 
@@ -606,24 +606,28 @@ static void rna_def_sequence(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "length", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "len");
 	RNA_def_property_range(prop, 1, MAXFRAME);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Length", "The length of the contents of this strip before the handles are applied");
 	RNA_def_property_int_funcs(prop, "rna_Sequence_length_get", "rna_Sequence_length_set",NULL);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "start");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Start Frame", "");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_start_frame_set",NULL); // overlap tests and calc_seq_disp
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	prop= RNA_def_property(srna, "start_frame_final", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "startdisp");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Start Frame", "Start frame displayed in the sequence editor after offsets are applied, setting this is equivilent to moving the handle, not the actual start frame.");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_start_frame_final_set", NULL); // overlap tests and calc_seq_disp
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	prop= RNA_def_property(srna, "end_frame_final", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "enddisp");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "End Frame", "End frame displayed in the sequence editor after offsets are applied.");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Sequence_end_frame_final_set", NULL); // overlap tests and calc_seq_disp
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
@@ -949,6 +953,12 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Sound", "Sound datablock used by this sequence.");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
+	prop= RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "volume");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Volume", "Playback volume of the sound");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "strip->stripdata->name");
 	RNA_def_property_ui_text(prop, "Filename", "");
@@ -961,14 +971,6 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 	
 	rna_def_input(srna);
-	
-	RNA_def_struct_sdna_from(srna, "SoundHandle", "sound_handle");
-	
-	prop= RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "volume");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Volume", "Playback volume of the sound");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 
 static void rna_def_effect(BlenderRNA *brna)

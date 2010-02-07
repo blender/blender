@@ -36,6 +36,7 @@ struct bSound;
 struct bContext;
 struct ListBase;
 struct Main;
+struct Sequence;
 
 void sound_init();
 
@@ -63,20 +64,28 @@ void sound_load(struct Main *main, struct bSound* sound);
 
 void sound_free(struct bSound* sound);
 
-void sound_unlink(struct bContext *C, struct bSound* sound);
-
-struct SoundHandle* sound_new_handle(struct Scene *scene, struct bSound* sound, int startframe, int endframe, int frameskip);
-
-void sound_delete_handle(struct Scene *scene, struct SoundHandle *handle);
-
-void sound_update_playing(struct bContext *C);
-
-void sound_scrub(struct bContext *C);
-
 #ifdef AUD_CAPI
-AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, int end, float volume);
+AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume);
 #endif
 
-void sound_stop_all(struct bContext *C);
+void sound_create_scene(struct Scene *scene);
+
+void sound_destroy_scene(struct Scene *scene);
+
+void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip);
+
+void sound_remove_scene_sound(struct Scene *scene, void* handle);
+
+void sound_mute_scene_sound(struct Scene *scene, void* handle, char mute);
+
+void sound_move_scene_sound(struct Scene *scene, void* handle, int startframe, int endframe, int frameskip);
+
+void sound_play_scene(struct Scene *scene);
+
+void sound_stop_scene(struct Scene *scene);
+
+void sound_seek_scene(struct bContext *C);
+
+int sound_read_sound_buffer(struct bSound* sound, float* buffer, int length);
 
 #endif

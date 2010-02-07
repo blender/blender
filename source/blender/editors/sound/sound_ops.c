@@ -74,12 +74,12 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	sound = sound_new_file(CTX_data_main(C), path);
 
-	if (sound==NULL || sound->handle == NULL) {
+	if (sound==NULL || sound->playback_handle == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return OPERATOR_CANCELLED;
 	}
 
-	info = AUD_getInfo(sound->handle);
+	info = AUD_getInfo(sound->playback_handle);
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
 		sound_delete(C, sound);

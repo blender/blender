@@ -83,7 +83,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	CFRA= RNA_int_get(op->ptr, "frame");
 	
 	/* do updates */
-	sound_scrub(C);
+	sound_seek_scene(C);
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 }
 

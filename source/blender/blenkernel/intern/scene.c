@@ -83,6 +83,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
+#include "BKE_sound.h"
 
 //XXX #include "BIF_previewrender.h"
 //XXX #include "BIF_editseq.h"
@@ -233,6 +234,8 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
         }
 	}
 
+	sound_create_scene(scen);
+
 	return scen;
 }
 
@@ -315,6 +318,8 @@ void free_scene(Scene *sce)
 
 	if(sce->stats)
 		MEM_freeN(sce->stats);
+
+	sound_destroy_scene(sce);
 }
 
 Scene *add_scene(char *name)
@@ -479,6 +484,8 @@ Scene *add_scene(char *name)
 
 	sce->gm.flag = GAME_DISPLAY_LISTS;
 	sce->gm.matmode = GAME_MAT_MULTITEX;
+
+	sound_create_scene(sce);
 
 	return sce;
 }

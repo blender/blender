@@ -758,7 +758,8 @@ typedef struct Scene {
 	ListBase markers;
 	ListBase transform_spaces;
 	
-	ListBase sound_handles;
+	void *sound_scene;
+	void *sound_scene_handle;
 	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
@@ -1078,7 +1079,7 @@ typedef struct Scene {
 #define AUDIO_SYNC		2
 #define AUDIO_SCRUB		4
 
-#define FFMPEG_MULTIPLEX_AUDIO  1
+#define FFMPEG_MULTIPLEX_AUDIO  1 /* deprecated, you can choose none as audiocodec now */
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
 
 /* Paint.flags */
