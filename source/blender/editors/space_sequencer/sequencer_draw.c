@@ -611,21 +611,18 @@ void set_special_seq_update(int val)
 	else special_seq_update= 0;
 }
 
-// XXX todo: remove special offset code for image-buf calculations...
-void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
+void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq)
 {
 	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);
 	struct ImBuf *ibuf;
-	int x1, y1, rectx, recty;
+	struct View2D *v2d = &ar->v2d;
+	int rectx, recty;
 	int free_ibuf = 0;
 	static int recursive= 0;
-	float zoom;
-	float zoomx, zoomy;
 	float render_size = 0.0;
 	float proxy_size = 100.0;
-
-	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	GLuint texid;
+	GLuint last_texid;
 
 	render_size = sseq->render_size;
 	if (render_size == 0) {
@@ -637,14 +634,21 @@ void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 		return;
 	}
 
-	rectx= (render_size*scene->r.xsch)/100;
-	recty= (render_size*scene->r.ysch)/100;
+	rectx= (render_size*(float)scene->r.xsch)/100.0f+0.5f;
+	recty= (render_size*(float)scene->r.ysch)/100.0f+0.5f;
+
+	/* XXX TODO: take color from theme */
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	UI_view2d_totRect_set(v2d, rectx, recty);
+	UI_view2d_curRect_validate(v2d);
 
 	/* BIG PROBLEM: the give_ibuf_seq() can call a rendering, which in turn calls redraws...
 	   this shouldn't belong in a window drawing....
 	   So: solve this once event based. 
 	   Now we check for recursion, space type and active area again (ton) */
-	
+
 	if(recursive)
 		return;
 	else {
@@ -708,34 +712,37 @@ void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 		IMB_rect_from_float(ibuf);	
 	}
 	
-	/* needed for gla draw */
-	glaDefine2DArea(&ar->winrct);
-	
-	zoom= SEQ_ZOOM_FAC(sseq->zoom);
-	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-		zoom /= proxy_size / 100.0;
-		zoomx = zoom * ((float)scene->r.xasp / (float)scene->r.yasp);
-		zoomy = zoom;
-	} else {
-		zoomx = zoomy = zoom;
-	}
+	/* setting up the view - actual drawing starts here */
+	UI_view2d_view_ortho(C, v2d);
 
-	/* calc location */
-	x1= (ar->winx-zoomx*ibuf->x)/2 + sseq->xof;
-	y1= (ar->winy-zoomy*ibuf->y)/2 + sseq->yof;
-	
-	glPixelZoom(zoomx, zoomy);
-	
-	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-	
-	glPixelZoom(1.0, 1.0);
+	last_texid= glaGetOneInteger(GL_TEXTURE_2D);
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, (GLuint *)&texid);
+
+	glBindTexture(GL_TEXTURE_2D, texid);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	glBegin(GL_QUADS); 
+		glTexCoord2f(0.0f, 0.0f); glVertex2f(v2d->tot.xmin, v2d->tot.ymin);
+		glTexCoord2f(0.0f, 1.0f);glVertex2f(v2d->tot.xmin, v2d->tot.ymax); 
+		glTexCoord2f(1.0f, 1.0f);glVertex2f(v2d->tot.xmax, v2d->tot.ymax);
+		glTexCoord2f(1.0f, 0.0f);glVertex2f(v2d->tot.xmax, v2d->tot.ymin); 
+	glEnd( );
+	glBindTexture(GL_TEXTURE_2D, last_texid);
+	glDisable(GL_TEXTURE_2D);
+	glDeleteTextures(1, &texid);
 
 	/* safety border */
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && 
 	    (sseq->flag & SEQ_DRAW_SAFE_MARGINS) != 0) {
 		float fac= 0.1;
-		float x2 = x1 + ibuf->x * zoomx;
-		float y2 = y1 + ibuf->y * zoomy;
+		float x1 = v2d->tot.xmin;
+		float y1 = v2d->tot.ymin;
+		float x2 = v2d->tot.xmax;
+		float y2 = v2d->tot.ymax;
 		
 		float a= fac*(x2-x1);
 		x1+= a; 
@@ -769,82 +776,9 @@ void draw_image_seq(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 //	if (sseq->flag & SEQ_DRAW_GPENCIL)
 // XXX		draw_gpencil_2dview(sa, 0);
 	
-	/* ortho at pixel level sa */
-// XXX	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
-	
+	/* ortho at pixel level */
+	UI_view2d_view_restore(C);
 }
-
-// XXX part of wacko image-drawing system...
-void seq_reset_imageofs(SpaceSeq *sseq)
-{
-	sseq->xof = sseq->yof = sseq->zoom = 0;
-}
-
-
-#if 0
-/* XXX - these should really be made to use View2D instead of so wacko private system - Aligorith */
-
-void seq_viewzoom(SpaceSeq *sseq, unsigned short event, int invert)
-{
-
-	if(event==PAD1)
-		sseq->zoom= 1.0;
-	else if(event==PAD2)
-		sseq->zoom= (invert)? 2.0: 0.5;
-	else if(event==PAD4)
-		sseq->zoom= (invert)? 4.0: 0.25;
-	else if(event==PAD8)
-		sseq->zoom= (invert)? 8.0: 0.125;
-	
-	/* ensure pixel exact locations for draw */
-	sseq->xof= (int)sseq->xof;
-	sseq->yof= (int)sseq->yof;
-}
-
-void seq_viewmove(Scene *scene, ARegion *ar, SpaceSeq *sseq)
-{	
-	short mval[2], mvalo[2];
-	short rectx, recty, xmin, xmax, ymin, ymax, pad;
-	int oldcursor;
-	Window *win;
-	
-	sa = sseq->area;
-	rectx= (scene->r.size*scene->r.xsch)/100;
-	recty= (scene->r.size*scene->r.ysch)/100;
-	
-	pad = 10;
-	xmin = -(ar->winx/2) - rectx/2 + pad;
-	xmax = ar->winx/2 + rectx/2 - pad;
-	ymin = -(ar->winy/2) - recty/2 + pad;
-	ymax = ar->winy/2 + recty/2 - pad;
-	
-	getmouseco_sc(mvalo);
-
-	oldcursor=get_cursor();
-	win=winlay_get_active_window();
-	
-	SetBlenderCursor(BC_NSEW_SCROLLCURSOR);
-	
-	while(get_mbut()&(L_MOUSE|M_MOUSE)) {
-		
-		getmouseco_sc(mval);
-		
-		if(mvalo[0]!=mval[0] || mvalo[1]!=mval[1]) {
-
-			sseq->xof -= (mvalo[0]-mval[0]);
-			sseq->yof -= (mvalo[1]-mval[1]);
-			
-			/* prevent dragging image outside of the window and losing it! */
-			CLAMP(sseq->xof, xmin, xmax);
-			CLAMP(sseq->yof, ymin, ymax);
-			
-			mvalo[0]= mval[0];
-			mvalo[1]= mval[1];
-			
-		}
-	}
-}
-#endif
 
 void drawprefetchseqspace(Scene *scene, ARegion *ar, SpaceSeq *sseq)
 {

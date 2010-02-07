@@ -2226,13 +2226,17 @@ void SEQUENCER_OT_view_all(wmOperatorType *ot)
 static int sequencer_view_all_preview_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	//bScreen *sc= CTX_wm_screen(C);
+	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *area= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
 	SpaceSeq *sseq= area->spacedata.first;
-	//View2D *v2d= UI_view2d_fromcontext(C);
+	View2D *v2d= UI_view2d_fromcontext(C);
 
-
+	v2d->cur= v2d->tot;
+	UI_view2d_curRect_validate(v2d);
+	UI_view2d_sync(sc, area, v2d, V2D_LOCK_COPY);
+	
+#if 0
 	/* Like zooming on an image view */
 	float zoomX, zoomY;
 	int width, height, imgwidth, imgheight;
@@ -2261,6 +2265,7 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *op)
 	else {
 		sseq->zoom= 1.0f;
 	}
+#endif
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 	return OPERATOR_FINISHED;

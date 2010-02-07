@@ -48,7 +48,7 @@ struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
 
 /* sequencer_draw.c */
 void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
-void draw_image_seq(struct Scene *scene, struct ARegion *ar, struct SpaceSeq *sseq);
+void draw_image_seq(const struct bContext* C, struct Scene *scene,struct  ARegion *ar, struct SpaceSeq *sseq);
 
 void seq_reset_imageofs(struct SpaceSeq *sseq);
 

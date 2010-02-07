@@ -5921,6 +5921,29 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	ar->v2d.flag = (V2D_PIXELOFS_X|V2D_PIXELOFS_Y);
 }
 
+static void sequencer_init_preview_region(ARegion* ar)
+{
+	// XXX a bit ugly still, copied from space_sequencer
+	/* NOTE: if you change values here, also change them in space_sequencer.c, sequencer_new */
+	ar->regiontype= RGN_TYPE_PREVIEW;
+	ar->alignment= RGN_ALIGN_TOP;
+	ar->flag |= RGN_FLAG_HIDDEN;
+	ar->v2d.keepzoom= V2D_KEEPASPECT | V2D_KEEPZOOM;
+	ar->v2d.minzoom= 0.00001f;
+	ar->v2d.maxzoom= 100000.0f;
+	ar->v2d.tot.xmin= -960.0f; /* 1920 width centered */
+	ar->v2d.tot.ymin= -540.0f; /* 1080 height centered */
+	ar->v2d.tot.xmax= 960.0f;
+	ar->v2d.tot.ymax= 540.0f;
+	ar->v2d.min[0]= 0.0f;
+	ar->v2d.min[1]= 0.0f;
+	ar->v2d.max[0]= 12000.0f;
+	ar->v2d.max[1]= 12000.0f;
+	ar->v2d.cur= ar->v2d.tot;
+	ar->v2d.align= V2D_ALIGN_FREE; // (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
+	ar->v2d.keeptot= V2D_KEEPTOT_FREE;
+}
+
 /* 2.50 patch */
 static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 {
@@ -6001,9 +6024,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				}
 				ar= MEM_callocN(sizeof(ARegion), "preview area for sequencer");
 				BLI_insertlinkbefore(lb, ar_main, ar);
-				ar->regiontype= RGN_TYPE_PREVIEW;
-				ar->alignment= RGN_ALIGN_TOP;
-				ar->flag |= RGN_FLAG_HIDDEN;
+				sequencer_init_preview_region(ar);
 				break;
 			case SPACE_VIEW3D:
 				/* toolbar */
@@ -10300,7 +10321,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								break;
 						}
 
-						if (ar) {
+						if (ar && (ar->regiontype == RGN_TYPE_PREVIEW)) {
 							SpaceType *st= BKE_spacetype_from_id(SPACE_SEQ);
 							BKE_area_region_free(st, ar);
 							BLI_freelinkN(regionbase, ar);
@@ -10345,9 +10366,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							}
 							ar= MEM_callocN(sizeof(ARegion), "preview area for sequencer");
 							BLI_insertlinkbefore(regionbase, ar_main, ar);
-							ar->regiontype= RGN_TYPE_PREVIEW;
-							ar->alignment= RGN_ALIGN_TOP;
-							ar->flag |= RGN_FLAG_HIDDEN;
+							sequencer_init_preview_region(ar);
 						}
 					}
 				}
@@ -10454,7 +10473,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->vol.ms_intensity = 1.f;	
 			}
 		}
-		
 	}
 	
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 13)) {
@@ -10558,6 +10576,40 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->r.border.ymax= 1.0f;
 			}
 		}
+
+		/* sequencer changes */
+		{
+			bScreen *screen;
+			ScrArea *sa;
+			SpaceLink *sl;
+
+			for(screen= main->screen.first; screen; screen= screen->id.next) {
+				for(sa= screen->areabase.first; sa; sa= sa->next) {
+					for(sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_SEQ) {
+							ARegion *ar_preview;
+							ListBase *regionbase;
+							SpaceSeq *sseq = (SpaceSeq *)sl;
+
+							if (sl == sa->spacedata.first) {
+								regionbase = &sa->regionbase;
+							} else {
+								regionbase = &sl->regionbase;
+							}
+
+							ar_preview = (ARegion*)regionbase->first;
+							for (; ar_preview; ar_preview = ar_preview->next) {
+								if (ar_preview->regiontype == RGN_TYPE_PREVIEW)
+									break;
+							}
+							if (ar_preview && (ar_preview->regiontype == RGN_TYPE_PREVIEW)) {
+								sequencer_init_preview_region(ar_preview);
+							}
+						}
+					}
+				}
+			}
+		} /* sequencer changes */
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
