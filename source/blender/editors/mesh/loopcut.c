@@ -345,6 +345,7 @@ static int ringsel_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	
 	if (lcd->em->selectmode == SCE_SELECT_FACE) {
 		ringsel_exit(C, op);
+		WM_operator_name_call(C, "MESH_OT_loop_select", WM_OP_INVOKE_REGION_WIN, NULL);
 		return OPERATOR_CANCELLED;
 	}
 
