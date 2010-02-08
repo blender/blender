@@ -2872,7 +2872,7 @@ void ntreeCompositTagRender(Scene *curscene)
 static int node_animation_properties(bNodeTree *ntree, bNode *node)
 {
 	bNodeSocket *sock;
-	ListBase *lb;
+	const ListBase *lb;
 	Link *link;
 	PointerRNA ptr;
 	PropertyRNA *prop;

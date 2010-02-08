@@ -26,6 +26,12 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
+#if defined(__linux__) && defined(__GNUC__)
+#define _GNU_SOURCE
+#include <fenv.h>
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -33,10 +39,6 @@
 #ifdef __sgi
 #include <sys/types.h>
 #include <unistd.h>
-#endif
-
-#ifdef __linux__
-#include <fenv.h>
 #endif
 
 /* This little block needed for linking to Blender... */
@@ -350,7 +352,7 @@ static int set_fpe(int argc, char **argv, void *data)
 	 * set breakpoints on fpe_handler */
 	signal(SIGFPE, fpe_handler);
 
-#ifdef __linux__
+#if defined(__linux__) && defined(__GNUC__)
 	feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW );
 #endif
 #endif

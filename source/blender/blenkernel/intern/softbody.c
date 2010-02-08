@@ -2864,7 +2864,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	/* or heun ~ 2nd order runge-kutta steps, mode 1,2 */
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bp;
-	float dx[3],dv[3],aabbmin[3],aabbmax[3],cm[3]={0.0f,0.0f,0.0f};
+	float dx[3]={0},dv[3],aabbmin[3],aabbmax[3],cm[3]={0.0f,0.0f,0.0f};
 	float timeovermass/*,freezeloc=0.00001f,freezeforce=0.00000000001f*/;
 	float maxerrpos= 0.0f,maxerrvel = 0.0f;
 	int a,fuzzy=0;

@@ -186,12 +186,12 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, f
 		int length = floor((x2-x1)/stepsize)+1;
 		float ymid = (y1+y2)/2;
 		float yscale = (y2-y1)/2;
-		float* samples = malloc(length * sizeof(float) * 2);
+		float* samples = MEM_mallocN(length * sizeof(float) * 2, "seqwave_samples");
 		if(!samples)
 			return;
 		if(sound_read_sound_buffer(seq->sound, samples, length) != length)
 		{
-			free(samples);
+			MEM_freeN(samples);
 			return;
 		}
 		glBegin(GL_LINES);
@@ -201,7 +201,7 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, f
 			glVertex2f(x1+i*stepsize, ymid + samples[i * 2 + 1] * yscale);
 		}
 		glEnd();
-		free(samples);
+		MEM_freeN(samples);
 	}
 }
 

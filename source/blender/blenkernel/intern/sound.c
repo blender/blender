@@ -282,7 +282,7 @@ void sound_free(struct bSound* sound)
 
 static float sound_get_volume(Scene* scene, Sequence* sequence, float time)
 {
-	struct FCurve* fcu = id_data_find_fcurve(scene, sequence, &RNA_Sequence, "volume", 0);
+	struct FCurve* fcu = id_data_find_fcurve(&scene->id, sequence, &RNA_Sequence, "volume", 0);
 	if(fcu)
 		return evaluate_fcurve(fcu, time * FPS);
 	else
@@ -386,5 +386,5 @@ void sound_seek_scene(struct bContext *C)
 
 int sound_read_sound_buffer(bSound* sound, float* buffer, int length)
 {
-	AUD_readSound(sound->cache, buffer, length);
+	return AUD_readSound(sound->cache, buffer, length);
 }

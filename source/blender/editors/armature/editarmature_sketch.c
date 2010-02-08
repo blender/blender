@@ -1074,7 +1074,7 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 		DepthPeel *p1, *p2;
 		float *last_p = NULL;
 		float dist = FLT_MAX;
-		float p[3];
+		float p[3] = {0};
 		float size = 0;
 		float mvalf[2];
 

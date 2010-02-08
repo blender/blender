@@ -452,11 +452,11 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 
 			fclose(fp);
 
-			pystring= malloc(strlen(fn) + 32);
+			pystring= MEM_mallocN(strlen(fn) + 32, "pystring");
 			pystring[0]= '\0';
 			sprintf(pystring, "exec(open(r'%s').read())", fn);
 			py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
-			free(pystring);
+			MEM_freeN(pystring);
 #else
 			py_result = PyRun_File(fp, fn, Py_file_input, py_dict, py_dict);
 			fclose(fp);

@@ -129,7 +129,6 @@ static int write_audio_frame(void)
 {
 	AVCodecContext* c = NULL;
 	AVPacket pkt;
-	AVStream* str = audio_stream;
 
 	c = get_codec_from_stream(audio_stream);
 

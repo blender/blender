@@ -4982,7 +4982,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 			}
 			else {
 				/* perform clamping using euler form (3-components) */
-				float eul[3], oldeul[3], quat1[4];
+				float eul[3], oldeul[3], quat1[4] = {0};
 				
 				if (pchan->rotmode == ROT_MODE_QUAT) {
 					QUATCOPY(quat1, pchan->quat);

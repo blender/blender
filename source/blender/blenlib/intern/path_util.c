@@ -990,11 +990,11 @@ void BLI_setenv(const char *env, const char*val)
 {
 	/* SGI or free windows */
 #if (defined(__sgi) || ((defined(WIN32) || defined(WIN64)) && defined(FREE_WINDOWS)))
-	char *envstr= malloc(sizeof(char) * (strlen(env) + strlen(val) + 2)); /* one for = another for \0 */
+	char *envstr= MEM_mallocN(sizeof(char) * (strlen(env) + strlen(val) + 2), "envstr"); /* one for = another for \0 */
 
 	sprintf(envstr, "%s=%s", env, val);
 	putenv(envstr);
-	free(envstr);
+	MEM_freeN(envstr);
 
 	/* non-free windows */
 #elif (defined(WIN32) || defined(WIN64)) /* not free windows */

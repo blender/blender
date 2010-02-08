@@ -313,6 +313,7 @@ gsl_poly_solve_quadratic (double a, double b, double c,
 * See Bridson et al. "Robust Treatment of Collision, Contact and Friction for Cloth Animation"
 *     page 4, left column
 */
+#if 0
 static int cloth_get_collision_time ( double a[3], double b[3], double c[3], double d[3], double e[3], double f[3], double solution[3] )
 {
 	int num_sols = 0;
@@ -424,6 +425,7 @@ static int cloth_get_collision_time ( double a[3], double b[3], double c[3], dou
 
 	return num_sols;
 }
+#endif
 
 
 // w3 is not perfect
@@ -837,6 +839,7 @@ static int cloth_collision_response_moving( ClothModifierData *clmd, CollisionMo
 }
 #endif
 
+#if 0
 static float projectPointOntoLine(float *p, float *a, float *b) 
 {
    float ba[3], pa[3];
@@ -1067,7 +1070,6 @@ static float edgedge_distance(float np11[3], float np12[3], float np21[3], float
 	return 0;
 }
 
-#if 0
 static int cloth_collision_moving_edges ( ClothModifierData *clmd, CollisionModifierData *collmd, CollPair *collpair )
 {
 	EdgeCollPair edgecollpair;

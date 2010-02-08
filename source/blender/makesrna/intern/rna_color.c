@@ -232,7 +232,6 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 static void rna_def_histogram(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "Histogram", NULL);
 	RNA_def_struct_ui_text(srna, "Histogram", "Statistical view of the levels of color in an image");

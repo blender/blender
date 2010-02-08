@@ -10599,7 +10599,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						if(sl->spacetype==SPACE_SEQ) {
 							ARegion *ar_preview;
 							ListBase *regionbase;
-							SpaceSeq *sseq = (SpaceSeq *)sl;
 
 							if (sl == sa->spacedata.first) {
 								regionbase = &sa->regionbase;

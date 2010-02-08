@@ -801,7 +801,7 @@ static void filelist_read_dir(struct FileList* filelist)
 	BLI_hide_dot_files(filelist->hide_dot);
 	filelist->numfiles = BLI_getdir(filelist->dir, &(filelist->filelist));
 
-	chdir(wdir);
+	if(!chdir(wdir)) /* fix warning about not checking return value */;
 	filelist_setfiletypes(filelist, G.have_quicktime);
 	filelist_filter(filelist);
 

@@ -57,7 +57,6 @@ void FLUID_3D::addSmokeTestCase(float* field, Vec3Int res)
 
 	float xTotal = dx * res[0];
 	float yTotal = dx * res[1];
-	float zTotal = dx * res[2];
 
 	float heighMin = 0.05;
 	float heighMax = 0.10;
@@ -408,11 +407,11 @@ void FLUID_3D::advectFieldSemiLagrange(const float dt, const float* velx, const 
 void FLUID_3D::advectFieldMacCormack1(const float dt, const float* xVelocity, const float* yVelocity, const float* zVelocity, 
 				float* oldField, float* tempResult, Vec3Int res, int zBegin, int zEnd)
 {
-	const int sx= res[0];
+	/*const int sx= res[0];
 	const int sy= res[1];
 	const int sz= res[2];
 
-	/*for (int x = 0; x < sx * sy * sz; x++)
+	for (int x = 0; x < sx * sy * sz; x++)
 		phiHatN[x] = phiHatN1[x] = oldField[x];*/	// not needed as all the values are written first
 
 	float*& phiN    = oldField;
@@ -433,7 +432,6 @@ void FLUID_3D::advectFieldMacCormack2(const float dt, const float* xVelocity, co
 	float* t1  = temp1;
 	const int sx= res[0];
 	const int sy= res[1];
-	const int sz= res[2];
 
 	float*& phiN    = oldField;
 	float*& phiN1   = newField;

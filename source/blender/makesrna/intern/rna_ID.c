@@ -246,40 +246,6 @@ ID *rna_ID_copy(ID *id)
 	return NULL;
 }
 
-static int rna_IDPropertyGroup_name_length(PointerRNA *ptr)
-{
-	IDProperty *group=(IDProperty*)ptr->id.data;
-	IDProperty *idprop;
-	idprop= IDP_GetPropertyFromGroup(group, "name");
-
-	if(idprop && idprop->type == IDP_STRING)
-		return strlen(idprop->data.pointer);
-	else
-		return 0;
-}
-
-static void rna_IDPropertyGroup_name_get(PointerRNA *ptr, char *str)
-{
-	IDProperty *group=(IDProperty*)ptr->id.data;
-	IDProperty *idprop;
-	idprop= IDP_GetPropertyFromGroup(group, "name");
-
-	if(idprop && idprop->type == IDP_STRING)
-		strcpy(str, idprop->data.pointer);
-	else
-		str[0]= '\0';
-}
-
-void rna_IDPropertyGroup_name_set(PointerRNA *ptr, const char *value)
-{
-	IDProperty *group=(IDProperty*)ptr->id.data;
-	IDProperty *idprop;
-	IDPropertyTemplate val = {0};
-	val.str= (char *)value;
-	idprop = IDP_New(IDP_STRING, val, "name");
-	IDP_ReplaceInGroup(group, idprop);
-}
-
 #else
 
 static void rna_def_ID_properties(BlenderRNA *brna)
@@ -357,7 +323,6 @@ static void rna_def_ID_properties(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EXPORT|PROP_IDPROPERTY);
 	//RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Name", "Unique name used in the code and scripting.");
-	RNA_def_property_string_funcs(prop, "rna_IDPropertyGroup_name_get", "rna_IDPropertyGroup_name_length", "rna_IDPropertyGroup_name_set");
 	RNA_def_struct_name_property(srna, prop);
 }
 

@@ -57,29 +57,40 @@
 #include "texture.h"
 #include "voxeldata.h"
 
-void load_frame_blendervoxel(FILE *fp, float *F, int size, int frame, int offset)
+static int load_frame_blendervoxel(FILE *fp, float *F, int size, int frame, int offset)
 {	
-	fseek(fp,frame*size*sizeof(float)+offset,0);
-	fread(F,sizeof(float),size,fp);
+	if(fseek(fp,frame*size*sizeof(float)+offset,0) == -1)
+		return 0;
+	if(fread(F,sizeof(float),size,fp) != size)
+		return 0;
+	
+	return 1;
 }
 
-void load_frame_raw8(FILE *fp, float *F, int size, int frame)
+static int load_frame_raw8(FILE *fp, float *F, int size, int frame)
 {
 	char *tmp;
 	int i;
 	
 	tmp = (char *)MEM_mallocN(sizeof(char)*size, "temporary voxel file reading storage");
 	
-	fseek(fp,(frame-1)*size*sizeof(char),0);
-	fread(tmp, sizeof(char), size, fp);
+	if(fseek(fp,(frame-1)*size*sizeof(char),0) == -1) {
+		MEM_freeN(tmp);
+		return 0;
+	}
+	if(fread(tmp, sizeof(char), size, fp) != size) {
+		MEM_freeN(tmp);
+		return 0;
+	}
 	
 	for (i=0; i<size; i++) {
 		F[i] = (float)tmp[i] / 256.f;
 	}
 	MEM_freeN(tmp);
+	return 1;
 }
 
-void load_frame_image_sequence(Render *re, VoxelData *vd, Tex *tex)
+static void load_frame_image_sequence(Render *re, VoxelData *vd, Tex *tex)
 {
 	ImBuf *ibuf;
 	Image *ima = tex->ima;
@@ -133,26 +144,25 @@ void load_frame_image_sequence(Render *re, VoxelData *vd, Tex *tex)
 	}
 }
 
-void write_voxeldata_header(struct VoxelDataHeader *h, FILE *fp)
-{
-	fwrite(h,sizeof(struct VoxelDataHeader),1,fp);
-}
-
-void read_voxeldata_header(FILE *fp, struct VoxelData *vd)
+static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
 {
 	VoxelDataHeader *h=(VoxelDataHeader *)MEM_mallocN(sizeof(VoxelDataHeader), "voxel data header");
 	
 	rewind(fp);
-	fread(h,sizeof(VoxelDataHeader),1,fp);
+	if(fread(h,sizeof(VoxelDataHeader),1,fp) != 1) {
+		MEM_freeN(h);
+		return 0;
+	}
 	
 	vd->resol[0]=h->resolX;
 	vd->resol[1]=h->resolY;
 	vd->resol[2]=h->resolZ;
 
 	MEM_freeN(h);
+	return 1;
 }
 
-void init_frame_smoke(Render *re, VoxelData *vd, Tex *tex)
+static void init_frame_smoke(Render *re, VoxelData *vd, Tex *tex)
 {
 	Object *ob;
 	ModifierData *md;
@@ -224,7 +234,7 @@ void init_frame_smoke(Render *re, VoxelData *vd, Tex *tex)
 	}
 }
 
-void cache_voxeldata(struct Render *re,Tex *tex)
+static void cache_voxeldata(struct Render *re,Tex *tex)
 {	
 	VoxelData *vd = tex->vd;
 	FILE *fp;
@@ -246,8 +256,12 @@ void cache_voxeldata(struct Render *re,Tex *tex)
 	fp = fopen(vd->source_path,"rb");
 	if (!fp) return;
 
-	if (vd->file_format == TEX_VD_BLENDERVOXEL)
-		read_voxeldata_header(fp, vd);
+	if (vd->file_format == TEX_VD_BLENDERVOXEL) {
+		if(!read_voxeldata_header(fp, vd)) {
+			fclose(fp);
+			return;
+		}
+	}
 	
 	size = (vd->resol[0])*(vd->resol[1])*(vd->resol[2]);
 	vd->dataset = MEM_mapallocN(sizeof(float)*size, "voxel dataset");

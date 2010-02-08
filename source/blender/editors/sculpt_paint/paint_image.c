@@ -3578,7 +3578,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	rctf bucket_bounds;
 	
 	/* for smear only */
-	float pos_ofs[2];
+	float pos_ofs[2] = {0};
 	float co[2];
 	float mask = 1.0f; /* airbrush wont use mask */
 	unsigned short mask_short;

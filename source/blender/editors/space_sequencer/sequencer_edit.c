@@ -2223,11 +2223,13 @@ void SEQUENCER_OT_view_all(wmOperatorType *ot)
 /* view_all operator */
 static int sequencer_view_all_preview_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *area= CTX_wm_area(C);
+#if 0
 	ARegion *ar= CTX_wm_region(C);
 	SpaceSeq *sseq= area->spacedata.first;
+	Scene *scene= CTX_data_scene(C);
+#endif
 	View2D *v2d= UI_view2d_fromcontext(C);
 
 	v2d->cur= v2d->tot;
@@ -2528,6 +2530,7 @@ static void swap_sequence(Scene* scene, Sequence* seqa, Sequence* seqb)
 	calc_sequence(scene, seqa);
 }
 
+#if 0
 static Sequence* sequence_find_parent(Scene* scene, Sequence* child)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -2542,9 +2545,10 @@ static Sequence* sequence_find_parent(Scene* scene, Sequence* child)
 			break;
 		}
 	}
-	return parent;
 
+	return parent;
 }
+#endif
 
 static int sequencer_swap_exec(bContext *C, wmOperator *op)
 {

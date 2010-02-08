@@ -738,7 +738,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 	char *printable = NULL;
 	
 	if (v3d->localvd) {
-		printable = malloc(strlen(name) + strlen(" (Local)_")); /* '_' gives space for '\0' */
+		printable = MEM_mallocN(strlen(name) + strlen(" (Local)_"), "viewport_name"); /* '_' gives space for '\0' */
 												 strcpy(printable, name);
 												 strcat(printable, " (Local)");
 	} else {
@@ -751,7 +751,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 	}
 
 	if (v3d->localvd) {
-		free(printable);
+		MEM_freeN(printable);
 	}
 }
 
