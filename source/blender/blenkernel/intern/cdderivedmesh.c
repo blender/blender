@@ -1087,6 +1087,12 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 								return;
 							}
 						}
+						else {
+							/* if the buffer was set, dont use it again.
+							 * prevdraw was assumed true but didnt run so set to false - [#21036] */
+							prevdraw= 0;
+							buffer= NULL;
+						}
 					}
 				}
 				if(!dodraw) {
