@@ -59,7 +59,7 @@ AUD_IReader* AUD_Mixer::prepare(AUD_IReader* reader)
 	m_resampler->setReader(reader);
 	reader = m_resampler->createReader();
 
-	if(reader->getSpecs().channels != m_specs.channels)
+	if(reader != NULL && reader->getSpecs().channels != m_specs.channels)
 	{
 		m_mapper->setReader(reader);
 		reader = m_mapper->createReader();
