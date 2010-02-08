@@ -865,12 +865,15 @@ static char *get_rna_access (int blocktype, int adrcode, char actname[], char co
 		
 		case ID_SO: /* sound */
 			propname= sound_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
 		
 		case ID_WO: /* world */
 			propname= world_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
 
 		case ID_PA: /* particle */
 			propname= particle_adrcodes_to_paths(adrcode, &dummy_index);
+			break;
 			
 		/* XXX problematic blocktypes */
 		case ID_CU: /* curve */
@@ -1800,18 +1803,36 @@ void do_versions_ipos_to_animato(Main *main)
 		}
 	}
 	
+	/* worlds */
+	for (id= main->world.first; id; id= id->next) {
+		World *wo= (World *)id;
+		
+		if (G.f & G_DEBUG) printf("\tconverting world %s \n", id->name+2);
+		
+		/* we're only interested in the IPO */
+		if (wo->ipo) {
+			/* Add AnimData block */
+			adt= BKE_id_add_animdata(id);
+			
+			/* Convert World data... */
+			ipo_to_animdata(id, wo->ipo, NULL, NULL);
+			wo->ipo->id.us--;
+			wo->ipo= NULL;
+		}
+	}
+	
 	/* sequence strips */
 	for(scene = main->scene.first; scene; scene = scene->id.next) {
 		if(scene->ed && scene->ed->seqbasep) {
 			Sequence * seq;
-
+			
 			for(seq = scene->ed->seqbasep->first; 
 			    seq; seq = seq->next) {
 				short adrcode = SEQ_FAC1;
-
+				
 				if (G.f & G_DEBUG) 
 					printf("\tconverting sequence strip %s \n", seq->name+2);
-
+				
 				if (!seq->ipo || !seq->ipo->curve.first) {
 					seq->flag |= 
 						SEQ_USE_EFFECT_DEFAULT_FADE;
