@@ -10934,7 +10934,8 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				/* this is actually only needed on UI call? when ID was already read before, and another append
 				   happens which invokes same ID... in that case the lookup table needs this entry */
 				oldnewmap_insert(fd->libmap, bhead->old, id, 1);
-				if(G.f & G_DEBUG) printf("expand: already read %s\n", id->name);
+                // commented because this can print way too much
+				// if(G.f & G_DEBUG) printf("expand: already read %s\n", id->name);
 			}
 		}
 	}
