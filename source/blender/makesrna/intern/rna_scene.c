@@ -1746,6 +1746,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		{CODEC_ID_XVID, "XVID", 0, "Xvid", ""},
 		{CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
 		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
+		{CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem ffmpeg_audio_codec_items[] = {
