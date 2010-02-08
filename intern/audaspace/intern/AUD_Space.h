@@ -97,7 +97,7 @@
 //#define AUD_DEBUG_MEMORY
 
 #ifdef AUD_DEBUG_MEMORY
-int AUD_References(int count = 0, const char* text = "");
+extern int AUD_References(int count, const char* text);
 #define AUD_NEW(text) AUD_References(1, text);
 #define AUD_DELETE(text) AUD_References(-1, text);
 #else

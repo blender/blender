@@ -762,3 +762,16 @@ int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
 
 	return length;
 }
+
+#ifdef AUD_DEBUG_MEMORY
+int AUD_References(int count, const char* text)
+{
+	static int m_count = 0;
+	m_count += count;
+	if(count > 0)
+		printf("+%s\n", text);
+	if(count < 0)
+		printf("-%s\n", text);
+	return m_count;
+}
+#endif

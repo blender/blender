@@ -25,6 +25,7 @@
 
 #include "AUD_Mixer.h"
 #include "AUD_SRCResampleFactory.h"
+#include "AUD_LinearResampleFactory.h"
 #include "AUD_ChannelMapperFactory.h"
 #include "AUD_IReader.h"
 #include "AUD_Buffer.h"
@@ -86,7 +87,7 @@ void AUD_Mixer::setSpecs(AUD_DeviceSpecs specs)
 		delete m_mapper; AUD_DELETE("factory")
 	}
 
-	m_resampler = new AUD_SRCResampleFactory(specs); AUD_NEW("factory")
+	m_resampler = new AUD_MIXER_RESAMPLER(specs); AUD_NEW("factory")
 	m_mapper = new AUD_ChannelMapperFactory(specs); AUD_NEW("factory")
 
 	int bigendian = 1;

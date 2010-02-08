@@ -26,9 +26,11 @@
 #ifndef AUD_MIXER
 #define AUD_MIXER
 
+#define AUD_MIXER_RESAMPLER AUD_LinearResampleFactory
+
 #include "AUD_ConverterFunctions.h"
 class AUD_ConverterFactory;
-class AUD_SRCResampleFactory;
+class AUD_MIXER_RESAMPLER;
 class AUD_ChannelMapperFactory;
 class AUD_Buffer;
 class AUD_IReader;
@@ -54,7 +56,7 @@ private:
 	/**
 	 * The resampling factory that resamples all readers for superposition.
 	 */
-	AUD_SRCResampleFactory* m_resampler;
+	AUD_MIXER_RESAMPLER* m_resampler;
 
 	/**
 	 * The channel mapper factory that maps all readers for superposition.

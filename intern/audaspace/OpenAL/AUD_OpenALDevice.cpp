@@ -890,11 +890,14 @@ float AUD_OpenALDevice::getPosition(AUD_Handle* handle)
 	if(isValid(handle))
 	{
 		AUD_OpenALHandle* h = (AUD_OpenALHandle*)handle;
-		if(h->isBuffered)
-			alGetSourcef(h->source, AL_SEC_OFFSET, &position);
-		else
-			position = h->reader->getPosition() /
-					   (float)h->reader->getSpecs().rate;
+		alGetSourcef(h->source, AL_SEC_OFFSET, &position);
+		if(!h->isBuffered)
+		{
+			AUD_Specs specs = h->reader->getSpecs();
+			position += (h->reader->getPosition() - m_buffersize *
+									AUD_OPENAL_CYCLE_BUFFERS / specs.channels) /
+					   (float)specs.rate;
+		}
 	}
 
 	unlock();

@@ -100,13 +100,17 @@ void AUD_SequencerReader::add(AUD_SequencerEntry* entry)
 {
 	AUD_SequencerStrip* strip = new AUD_SequencerStrip; AUD_NEW("seqstrip")
 	strip->entry = entry;
-	strip->old_sound = NULL;
 
-	if(strip->old_sound)
+	if(*strip->entry->sound)
+	{
+		strip->old_sound = *strip->entry->sound;
 		strip->reader = m_mixer.prepare(strip->old_sound->createReader());
+	}
 	else
+	{
 		strip->reader = NULL;
-
+		strip->old_sound = NULL;
+	}
 	m_strips.push_front(strip);
 }
 
@@ -124,7 +128,7 @@ void AUD_SequencerReader::remove(AUD_SequencerEntry* entry)
 				delete strip->reader; AUD_DELETE("reader")
 			}
 			m_strips.remove(strip);
-			delete strip;
+			delete strip; AUD_DELETE("seqstrip")
 			return;
 		}
 	}
