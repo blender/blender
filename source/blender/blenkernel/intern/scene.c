@@ -726,7 +726,7 @@ Object *scene_find_camera_switch(Scene *scene)
 	Object *camera= NULL;
 
 	for (m= scene->markers.first; m; m= m->next) {
-		if(m->camera && (m->frame <= cfra) && (m->frame > frame)) {
+		if(m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER)==0 && (m->frame <= cfra) && (m->frame > frame)) {
 			camera= m->camera;
 			frame= m->frame;
 
