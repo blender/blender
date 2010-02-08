@@ -974,8 +974,8 @@ void GPU_buffer_copy_uv( DerivedMesh *dm, float *varray, int *index, int *redir,
 GPUBuffer *GPU_buffer_uv( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_uv\n");
-	if( DM_get_face_data_layer(dm, CD_MTFACE) != 0 )
-		return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*2*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_uv);
+	if( DM_get_face_data_layer(dm, CD_MTFACE) != 0 ) /* was sizeof(float)*2 but caused buffer overrun  */
+		return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_uv);
 	else
 		return 0;
 }
