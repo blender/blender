@@ -85,6 +85,13 @@ extern "C" {
 	void *MEM_dupallocN(void *vmemh);
 
 	/**
+	  * Reallocates a block of memory, and returns pointer to the newly
+	  * allocated block, the old one is freed. this is not as optimized
+	  * as a system realloc but just makes a new allocation and copies
+	  * over from existing memory. */
+	void *MEM_reallocN(void *vmemh, unsigned int len);
+
+	/**
 	 * Allocate a block of memory of size len, with tag name str. The
 	 * memory is cleared. The name must be static, because only a
 	 * pointer to it is stored ! */
