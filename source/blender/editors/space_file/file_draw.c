@@ -528,6 +528,22 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 		file = filelist_file(files, i);	
 		
+		UI_ThemeColor4(TH_TEXT);
+
+		spos = ( FILE_IMGDISPLAY == params->display ) ? sx : sx + ICON_DEFAULT_WIDTH + 4;
+
+		sw = file_string_width(file->relname);
+		if (file->flags & EDITING) {
+			int but_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : layout->column_widths[COLUMN_NAME];
+
+			uiBut *but = uiDefBut(block, TEX, 1, "", spos, sy-layout->tile_h-3, 
+				but_width, layout->textheight*2, file->relname, 1.0f, (float)FILE_MAX,0,0,"");
+			uiButSetRenameFunc(but, renamebutton_cb, file);
+			if ( 0 == uiButActiveOnly(C, block, but)) {
+				file->flags &= ~EDITING;
+			}
+		}
+
 		if (!(file->flags & EDITING)) {
 			if (params->active_file == i) {
 				if (file->flags & ACTIVE) colorid= TH_HILITE;
@@ -538,8 +554,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				draw_tile(sx, sy-3, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
 			} 
 		}
-
-		spos = sx;
+		uiSetRoundBox(0);
 
 		if ( FILE_IMGDISPLAY == params->display ) {
 			if ( (file->flags & IMAGEFILE) /* || (file->flags & MOVIEFILE) */) {			
@@ -555,28 +570,14 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			file_draw_preview(block, file, sx, sy, imb, layout, !is_icon && (file->flags & IMAGEFILE));
 
 		} else {
-			file_draw_icon(block, file->path, spos, sy-3, get_file_icon(file), ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
-			spos += ICON_DEFAULT_WIDTH + 4;
+			file_draw_icon(block, file->path, sx, sy-3, get_file_icon(file), ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
 		}
 
 		UI_ThemeColor4(TH_TEXT);
-
-		sw = file_string_width(file->relname);
-		if (file->flags & EDITING) {
-			int but_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : layout->column_widths[COLUMN_NAME];
-
-			uiBut *but = uiDefBut(block, TEX, 1, "", spos, sy-layout->tile_h-3, 
-				but_width, layout->textheight*2, file->relname, 1.0f, (float)FILE_MAX,0,0,"");
-			uiButSetRenameFunc(but, renamebutton_cb, file);
-			if ( 0 == uiButActiveOnly(C, block, but)) {
-				file->flags &= ~EDITING;
-			}
-		} else {
+		if (!(file->flags & EDITING))  {
 			float name_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : sw;
 			file_draw_string(spos, sy, file->relname, name_width, layout->tile_h, FILE_SHORTEN_END);
 		}
-
-		uiSetRoundBox(0);
 
 		if (params->display == FILE_SHORTDISPLAY) {
 			spos += layout->column_widths[COLUMN_NAME] + 12;
