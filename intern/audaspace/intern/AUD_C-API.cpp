@@ -671,17 +671,15 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 
 AUD_Sound* AUD_createSequencer(void* data, AUD_volumeFunction volume)
 {
-	if(AUD_device)
-	{
-		return new AUD_SequencerFactory(AUD_device->getSpecs().specs, data, volume);
-	}
-	else
-	{
-		AUD_Specs specs;
-		specs.channels = AUD_CHANNELS_STEREO;
-		specs.rate = AUD_RATE_44100;
-		return new AUD_SequencerFactory(specs, data, volume);
-	}
+/* AUD_XXX should be this: but AUD_createSequencer is called before the device
+ * is initialized.
+
+	return new AUD_SequencerFactory(AUD_device->getSpecs().specs, data, volume);
+*/
+	AUD_Specs specs;
+	specs.channels = AUD_CHANNELS_STEREO;
+	specs.rate = AUD_RATE_44100;
+	return new AUD_SequencerFactory(specs, data, volume);
 }
 
 void AUD_destroySequencer(AUD_Sound* sequencer)

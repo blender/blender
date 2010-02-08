@@ -26,7 +26,7 @@
 #ifndef AUD_MIXER
 #define AUD_MIXER
 
-#define AUD_MIXER_RESAMPLER AUD_LinearResampleFactory
+#define AUD_MIXER_RESAMPLER AUD_SRCResampleFactory
 
 #include "AUD_ConverterFunctions.h"
 class AUD_ConverterFactory;
