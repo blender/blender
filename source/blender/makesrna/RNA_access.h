@@ -701,7 +701,9 @@ void RNA_property_string_get(PointerRNA *ptr, PropertyRNA *prop, char *value);
 char *RNA_property_string_get_alloc(PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen);
 void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *value);
 int RNA_property_string_length(PointerRNA *ptr, PropertyRNA *prop);
-// TODO: get default strings...
+void RNA_property_string_get_default(PointerRNA *ptr, PropertyRNA *prop, char *value);
+char *RNA_property_string_get_default_alloc(PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen);
+int RNA_property_string_default_length(PointerRNA *ptr, PropertyRNA *prop);
 
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value);

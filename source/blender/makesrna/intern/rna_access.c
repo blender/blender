@@ -1775,6 +1775,36 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 	}
 }
 
+void RNA_property_string_get_default(PointerRNA *ptr, PropertyRNA *prop, char *value)
+{
+	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
+	strcpy(value, sprop->defaultvalue);
+}
+
+char *RNA_property_string_get_default_alloc(PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen)
+{
+	char *buf;
+	int length;
+
+	length= RNA_property_string_default_length(ptr, prop);
+
+	if(length+1 < fixedlen)
+		buf= fixedbuf;
+	else
+		buf= MEM_callocN(sizeof(char)*(length+1), "RNA_string_get_alloc");
+
+	RNA_property_string_get_default(ptr, prop, buf);
+
+	return buf;
+}
+
+/* this is the length without \0 terminator */
+int RNA_property_string_default_length(PointerRNA *ptr, PropertyRNA *prop)
+{
+	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
+	return strlen(sprop->defaultvalue);
+}
+
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)
 {
 	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
@@ -4316,8 +4346,15 @@ int RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
 			return 1;
 		}
 		
+		case PROP_STRING:
+		{
+			char *value= RNA_property_string_get_default_alloc(ptr, prop, NULL, 0);
+			RNA_property_string_set(ptr, prop, value);
+			MEM_freeN(value);
+			return 1;
+		}
+		
 		//case PROP_POINTER:
-		//case PROP_STRING:
 		default: 
 			// FIXME: many of the other types such as strings and pointers need this implemented too!
 			return 0;
