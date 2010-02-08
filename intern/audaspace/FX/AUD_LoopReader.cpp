@@ -31,6 +31,7 @@
 AUD_LoopReader::AUD_LoopReader(AUD_IReader* reader, int loop) :
 		AUD_EffectReader(reader), m_loop(loop)
 {
+	m_samples = -1;
 	m_buffer = new AUD_Buffer(); AUD_NEW("buffer")
 }
 
@@ -51,6 +52,7 @@ bool AUD_LoopReader::notify(AUD_Message &message)
 	if(message.type == AUD_MSG_LOOP)
 	{
 		m_loop = message.loopcount;
+		m_samples = message.time * m_reader->getSpecs().rate;
 
 		m_reader->notify(message);
 
@@ -63,6 +65,13 @@ void AUD_LoopReader::read(int & length, sample_t* & buffer)
 {
 	AUD_Specs specs = m_reader->getSpecs();
 	int samplesize = AUD_SAMPLE_SIZE(specs);
+
+	if(m_samples >= 0)
+	{
+		if(length > m_samples)
+			length = m_samples;
+		m_samples -= length;
+	}
 
 	int len = length;
 

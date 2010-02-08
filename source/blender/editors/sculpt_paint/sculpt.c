@@ -1276,7 +1276,7 @@ static void do_flatten_clay_brush(Sculpt *sd, SculptSession *ss, PBVHNode **node
 	Brush *brush = paint_brush(&sd->paint);
 	float bstrength= ss->cache->bstrength;
 	float area_normal[3];
-	float cntr[3], cntr2[3], bstr = 0;
+	float cntr[3], cntr2[3] = {0}, bstr = 0;
 	int n, flip = 0;
 
 	calc_area_normal(sd, ss, area_normal, nodes, totnode);

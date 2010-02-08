@@ -187,7 +187,7 @@ bool KX_SoundActuator::Update(double curtime, bool frame)
 			case KX_SOUNDACT_LOOPBIDIRECTIONAL:
 				{
 					// stop the looping so that the sound stops when it finished
-					AUD_stopLoop(m_handle);
+					AUD_setLoop(m_handle, 0, -1);
 					break;
 				}
 			default:

@@ -25,6 +25,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cmath>
 
 #include "AUD_NULLDevice.h"
 #include "AUD_I3DDevice.h"
@@ -47,6 +48,7 @@
 #include "AUD_ReadDevice.h"
 #include "AUD_SourceCaps.h"
 #include "AUD_IReader.h"
+#include "AUD_SequencerFactory.h"
 
 #ifdef WITH_SDL
 #include "AUD_SDLDevice.h"
@@ -231,7 +233,7 @@ AUD_Sound* AUD_delaySound(AUD_Sound* sound, float delay)
 	}
 }
 
-extern AUD_Sound* AUD_limitSound(AUD_Sound* sound, float start, float end)
+AUD_Sound* AUD_limitSound(AUD_Sound* sound, float start, float end)
 {
 	assert(sound);
 
@@ -273,13 +275,14 @@ AUD_Sound* AUD_loopSound(AUD_Sound* sound)
 	}
 }
 
-int AUD_stopLoop(AUD_Handle* handle)
+int AUD_setLoop(AUD_Handle* handle, int loops, float time)
 {
 	if(handle)
 	{
 		AUD_Message message;
 		message.type = AUD_MSG_LOOP;
-		message.loopcount = 0;
+		message.loopcount = loops;
+		message.time = time;
 
 		try
 		{
@@ -537,14 +540,16 @@ AUD_Device* AUD_openReadDevice(AUD_DeviceSpecs specs)
 	}
 }
 
-AUD_Handle* AUD_playDevice(AUD_Device* device, AUD_Sound* sound)
+AUD_Handle* AUD_playDevice(AUD_Device* device, AUD_Sound* sound, float seek)
 {
 	assert(device);
 	assert(sound);
 
 	try
 	{
-		return device->play(sound);
+		AUD_Handle* handle = device->play(sound);
+		device->seek(handle, seek);
+		return handle;
 	}
 	catch(AUD_Exception)
 	{
@@ -663,3 +668,108 @@ float* AUD_readSoundBuffer(const char* filename, float low, float high,
 	*length = position;
 	return result;
 }
+
+AUD_Sound* AUD_createSequencer(void* data, AUD_volumeFunction volume)
+{
+/* AUD_XXX should be this: but AUD_createSequencer is called before the device
+ * is initialized.
+
+	return new AUD_SequencerFactory(AUD_device->getSpecs().specs, data, volume);
+*/
+	AUD_Specs specs;
+	specs.channels = AUD_CHANNELS_STEREO;
+	specs.rate = AUD_RATE_44100;
+	return new AUD_SequencerFactory(specs, data, volume);
+}
+
+void AUD_destroySequencer(AUD_Sound* sequencer)
+{
+	delete ((AUD_SequencerFactory*)sequencer);
+}
+
+AUD_SequencerEntry* AUD_addSequencer(AUD_Sound** sequencer, AUD_Sound* sound,
+								 float begin, float end, float skip, void* data)
+{
+	return ((AUD_SequencerFactory*)sequencer)->add((AUD_IFactory**) sound, begin, end, skip, data);
+}
+
+void AUD_removeSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry)
+{
+	((AUD_SequencerFactory*)sequencer)->remove(entry);
+}
+
+void AUD_moveSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry,
+				   float begin, float end, float skip)
+{
+	((AUD_SequencerFactory*)sequencer)->move(entry, begin, end, skip);
+}
+
+void AUD_muteSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry, char mute)
+{
+	((AUD_SequencerFactory*)sequencer)->mute(entry, mute);
+}
+
+int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length)
+{
+	AUD_IReader* reader = sound->createReader();
+	AUD_DeviceSpecs specs;
+	sample_t* buf;
+
+	specs.specs = reader->getSpecs();
+	specs.channels = AUD_CHANNELS_MONO;
+	specs.format = AUD_FORMAT_FLOAT32;
+
+	AUD_ChannelMapperFactory mapper(reader, specs);
+
+	if(!reader || reader->getType() != AUD_TYPE_BUFFER)
+		return -1;
+
+	reader = mapper.createReader();
+
+	if(!reader)
+		return -1;
+
+	int len = reader->getLength();
+	float samplejump = (float)len / (float)length;
+	float min, max;
+
+	for(int i = 0; i < length; i++)
+	{
+		len = floor(samplejump * (i+1)) - floor(samplejump * i);
+		reader->read(len, buf);
+
+		if(len < 1)
+		{
+			length = i;
+			break;
+		}
+
+		max = min = *buf;
+		for(int j = 1; j < len; j++)
+		{
+			if(buf[j] < min)
+				min = buf[j];
+			if(buf[j] > max)
+				max = buf[j];
+			buffer[i * 2] = min;
+			buffer[i * 2 + 1] = max;
+		}
+	}
+
+	delete reader; AUD_DELETE("reader")
+
+	return length;
+}
+
+#ifdef AUD_DEBUG_MEMORY
+int AUD_References(int count, const char* text)
+{
+	static int m_count = 0;
+	m_count += count;
+	if(count > 0)
+		printf("+%s\n", text);
+	if(count < 0)
+		printf("-%s\n", text);
+	return m_count;
+}
+#endif

@@ -50,6 +50,8 @@ typedef struct
 	typedef void AUD_Sound;
 	typedef void AUD_Handle;
 	typedef void AUD_Device;
+	typedef void AUD_SequencerEntry;
+	typedef float (*AUD_volumeFunction)(void*, void*, float);
 #endif
 
 /**
@@ -143,11 +145,13 @@ extern AUD_Sound* AUD_pingpongSound(AUD_Sound* sound);
 extern AUD_Sound* AUD_loopSound(AUD_Sound* sound);
 
 /**
- * Stops a looping sound when the current playback finishes.
+ * Sets a remaining loop count of a looping sound that currently plays.
  * \param handle The playback handle.
+ * \param loops The count of remaining loops, -1 for infinity.
+ * \param time The time after which playback should stop, -1 for infinity.
  * \return Whether the handle is valid.
  */
-extern int AUD_stopLoop(AUD_Handle* handle);
+extern int AUD_setLoop(AUD_Handle* handle, int loops, float time);
 
 /**
  * Rectifies a sound.
@@ -211,6 +215,7 @@ extern int AUD_seek(AUD_Handle* handle, float seekTo);
 
 /**
  * Retrieves the playback position of a handle.
+ * \param handle The handle to the sound.
  * \return The current playback position in seconds or 0.0 if the handle is
  *         invalid.
  */
@@ -318,9 +323,10 @@ extern int AUD_setDeviceVolume(AUD_Device* device, float volume);
  * Plays back a sound file through a read device.
  * \param device The read device.
  * \param sound The handle of the sound file.
+ * \param seek The position where the sound should be seeked to.
  * \return A handle to the played back sound.
  */
-extern AUD_Handle* AUD_playDevice(AUD_Device* device, AUD_Sound* sound);
+extern AUD_Handle* AUD_playDevice(AUD_Device* device, AUD_Sound* sound, float seek);
 
 /**
  * Sets the volume of a played back sound of a read device.
@@ -359,6 +365,23 @@ extern float* AUD_readSoundBuffer(const char* filename, float low, float high,
 								  int accumulate, int additive, int square,
 								  float sthreshold, int samplerate,
 								  int* length);
+
+extern AUD_Sound* AUD_createSequencer(void* data, AUD_volumeFunction volume);
+
+extern void AUD_destroySequencer(AUD_Sound* sequencer);
+
+extern AUD_SequencerEntry* AUD_addSequencer(AUD_Sound** sequencer, AUD_Sound* sound,
+										float begin, float end, float skip, void* data);
+
+extern void AUD_removeSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry);
+
+extern void AUD_moveSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry,
+						  float begin, float end, float skip);
+
+extern void AUD_muteSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry,
+						  char mute);
+
+extern int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length);
 
 #ifdef __cplusplus
 }

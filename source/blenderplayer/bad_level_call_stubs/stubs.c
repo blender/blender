@@ -135,6 +135,7 @@ void ED_area_tag_redraw(struct ScrArea *sa){}
 void ED_area_tag_refresh(struct ScrArea *sa){}
 void ED_area_newspace(struct bContext *C, struct ScrArea *sa, int type){} 
 void WM_event_add_fileselect(struct bContext *C, struct wmOperator *op){}
+void WM_cursor_wait (int val) {}
 void ED_node_texture_default(struct Tex *tx){}
 void ED_node_changed_update(struct bContext *C, struct bNode *node){}
 void ED_view3d_scene_layers_update(struct Main *bmain, struct Scene *scene){}

@@ -86,8 +86,8 @@ void shade_lamp_loop(struct ShadeInput *shi, struct ShadeResult *shr);
 
 void shade_color(struct ShadeInput *shi, ShadeResult *shr);
 
-void ambient_occlusion_to_diffuse(struct ShadeInput *shi, float *diff);
 void ambient_occlusion(struct ShadeInput *shi);
+void environment_lighting_apply(struct ShadeInput *shi, struct ShadeResult *shr);
 
 ListBase *get_lights(struct ShadeInput *shi);
 float lamp_get_visibility(struct LampRen *lar, float *co, float *lv, float *dist);

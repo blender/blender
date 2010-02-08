@@ -62,6 +62,11 @@ private:
 	 */
 	SRC_STATE* m_src;
 
+	/**
+	 * The current playback position;
+	 */
+	int m_position;
+
 public:
 	/**
 	 * Creates a resampling reader.

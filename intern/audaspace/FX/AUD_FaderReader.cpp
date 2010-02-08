@@ -78,7 +78,7 @@ void AUD_FaderReader::read(int & length, sample_t* & buffer)
 	else
 	{
 		sample_t* buf = m_buffer->getBuffer();
-		float volume;
+		float volume = 1.0f;
 
 		for(int i = 0; i < length * specs.channels; i++)
 		{

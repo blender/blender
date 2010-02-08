@@ -98,7 +98,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel):
         if ob:
             row = layout.row()
 
-            row.template_list(ob, "materials", ob, "active_material_index", rows=2)
+            row.template_list(ob, "material_slots", ob, "active_material_index", rows=2)
 
             col = row.column(align=True)
             col.operator("object.material_slot_add", icon='ZOOMIN', text="")
@@ -274,7 +274,7 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
         col = split.column()
         col.prop(mat, "traceable")
         col.prop(mat, "full_oversampling")
-        col.prop(mat, "sky")
+        col.prop(mat, "use_sky")
         col.prop(mat, "exclude_mist")
         col.prop(mat, "invert_z")
         sub = col.row()

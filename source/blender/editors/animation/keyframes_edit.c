@@ -89,52 +89,59 @@
  */
 short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb) 
 {
-    BezTriple *bezt;
+ 	BezTriple *bezt;
+ 	int i;
 	
 	/* sanity check */
 	if (ELEM(NULL, fcu, fcu->bezt))
 		return 0;
 	
 	/* set the F-Curve into the editdata so that it can be accessed */
-	bed->fcu= fcu;
-	bed->curIndex= 0;
+ 	if(bed) {
+ 		bed->fcu= fcu;
+ 		bed->curIndex= 0;
+ 	}
 	
 	/* if function to apply to bezier curves is set, then loop through executing it on beztriples */
-    if (bezt_cb) {
+ 	if (bezt_cb) {
 		/* if there's a validation func, include that check in the loop 
 		 * (this is should be more efficient than checking for it in every loop)
 		 */
 		if (bezt_ok) {
-			for (bed->curIndex=0, bezt=fcu->bezt; bed->curIndex < fcu->totvert; bed->curIndex++, bezt++) {
+			for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
 				/* Only operate on this BezTriple if it fullfills the criteria of the validation func */
+				if(bed) bed->curIndex= i;
 				if (bezt_ok(bed, bezt)) {
 					/* Exit with return-code '1' if function returns positive
 					 * This is useful if finding if some BezTriple satisfies a condition.
 					 */
-			        if (bezt_cb(bed, bezt)) return 1;
+					if (bezt_cb(bed, bezt)) return 1;
 				}
 			}
 		}
 		else {
-			for (bed->curIndex=0, bezt=fcu->bezt; bed->curIndex < fcu->totvert; bed->curIndex++, bezt++) {
+			for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
 				/* Exit with return-code '1' if function returns positive
 				 * This is useful if finding if some BezTriple satisfies a condition.
 				 */
-		        if (bezt_cb(bed, bezt)) return 1;
+				if(bed) bed->curIndex= i;
+				if (bezt_cb(bed, bezt)) return 1;
 			}
 		}
-    }
+	 }
 	
 	/* unset the F-Curve from the editdata now that it's done */
-	bed->fcu= NULL;
-	bed->curIndex= 0;
+ 	if(bed) {
+ 		bed->fcu= NULL;
+ 		bed->curIndex= 0;
+ 	}
 
-    /* if fcu_cb (F-Curve post-editing callback) has been specified then execute it */
-    if (fcu_cb)
-        fcu_cb(fcu);
+	/* if fcu_cb (F-Curve post-editing callback) has been specified then execute it */
+	if (fcu_cb)
+		fcu_cb(fcu);
 	
 	/* done */	
-    return 0;
+	return 0;
 }
 
 /* -------------------------------- Further Abstracted (Not Exposed Directly) ----------------------------- */

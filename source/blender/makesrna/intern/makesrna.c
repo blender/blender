@@ -99,8 +99,10 @@ static int replace_if_different(char *tmpfile)
 	arr_new= MEM_mallocN(sizeof(char)*len_new, "rna_cmp_file_new");
 	arr_org= MEM_mallocN(sizeof(char)*len_org, "rna_cmp_file_org");
 
-	fread(arr_new, sizeof(char), len_new, fp_new);
-	fread(arr_org, sizeof(char), len_org, fp_org);
+	if(fread(arr_new, sizeof(char), len_new, fp_new) != len_new)
+		fprintf(stderr, "%s:%d, error reading file %s for comparison.\n", __FILE__, __LINE__, tmpfile);
+	if(fread(arr_org, sizeof(char), len_org, fp_org) != len_org)
+		fprintf(stderr, "%s:%d, error reading file %s for comparison.\n", __FILE__, __LINE__, orgfile);
 
 	fclose(fp_new);
 	fclose(fp_org);

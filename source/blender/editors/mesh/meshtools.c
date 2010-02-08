@@ -732,7 +732,7 @@ void sort_faces(Scene *scene, View3D *v3d)
 				if (event == 1) { /* sort on view axis */
 					mul_m4_v3(mat, vec);
 					face_sort_floats[i] = vec[2] * reverse;
-				} else { /* distance from cursor*/
+				} else if(event == 2) { /* distance from cursor*/
 					face_sort_floats[i] = len_v3v3(cur, vec) * reverse; /* back to front */
 				}
 			}

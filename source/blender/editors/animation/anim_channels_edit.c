@@ -71,6 +71,7 @@
 #include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_utildefines.h"
 
 #include "UI_interface.h"
@@ -436,18 +437,29 @@ void ANIM_flush_setting_anim_channels (bAnimContext *ac, ListBase *anim_data, bA
 			
 			/* if the level is 'less than' (i.e. more important) the level we're matching
 			 * but also 'less than' the level just tried (i.e. only the 1st group above grouped F-Curves, 
-			 * when toggling visibility of F-Curves, gets flushed), flush the new status...
+			 * when toggling visibility of F-Curves, gets flushed, which should happen if we don't let prevLevel
+			 * get updated below once the first 1st group is found)...
 			 */
-			if (level < prevLevel)
+			if (level < prevLevel) {
+				/* flush the new status... */
 				ANIM_channel_setting_set(ac, ale, setting, on);
-			/* however, if the level is 'greater than' (i.e. less important than the previous channel,
-			 * stop searching, since we've already reached the bottom of another hierarchy
-			 */
-			else if (level > matchLevel)
-				break;
-			
-			/* store this level as the 'old' level now */
-			prevLevel= level;
+				
+				/* store this level as the 'old' level now */
+				prevLevel= level;
+			}	
+			/* if the level is 'greater than' (i.e. less important) than the previous level... */
+			else if (level > prevLevel) {
+				/* if previous level was a base-level (i.e. 0 offset / root of one hierarchy),
+				 * stop here
+				 */
+				if (prevLevel == 0)
+					break;
+				/* otherwise, this level weaves into another sibling hierarchy to the previous one just
+				 * finished, so skip until we get to the parent of this level 
+				 */
+				else
+					continue;
+			}
 		}
 	}
 	
@@ -1385,7 +1397,7 @@ void ANIM_OT_channels_expand (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Expand all channels (not just selected ones)");
+	ot->prop= RNA_def_boolean(ot->srna, "all", 1, "All", "Expand all channels (not just selected ones)");
 }
 
 /* ********************** Collapse Channels Operator *********************** */
@@ -1427,7 +1439,7 @@ void ANIM_OT_channels_collapse (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "all", 1, "All", "Collapse all channels (not just selected ones)");
+	ot->prop= RNA_def_boolean(ot->srna, "all", 1, "All", "Collapse all channels (not just selected ones)");
 }
 
 /* ********************** Select All Operator *********************** */
@@ -1467,7 +1479,7 @@ void ANIM_OT_channels_select_all_toggle (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 /* ******************** Borderselect Operator *********************** */
@@ -1594,7 +1606,8 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
+		if (G.f & G_DEBUG)
+			printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
 		
 		BLI_freelistN(&anim_data);
 		return 0;
@@ -1793,7 +1806,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 		case ANIMTYPE_GPLAYER:
 		{
 #if 0 // XXX future of this is unclear
-			bGPdata *gpd= (bGPdata *)ale->owner;
+			bGPdata *gpd= (bGPdata *)ale->owner; // xxx depreceated
 			bGPDlayer *gpl= (bGPDlayer *)ale->data;
 			
 			if (x >= (ACHANNEL_NAMEWIDTH-16)) {
@@ -1818,7 +1831,8 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 		}
 			break;
 		default:
-			printf("Error: Invalid channel type in mouse_anim_channels() \n");
+			if (G.f & G_DEBUG)
+				printf("Error: Invalid channel type in mouse_anim_channels() \n");
 	}
 	
 	/* free channels */

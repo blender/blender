@@ -2048,6 +2048,10 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 		/*Done with correcting for the dist*/
 	}
 
+	
+	/* center the mouse, probably the UI mafia are against this but without its quite annoying */
+	WM_cursor_warp(CTX_wm_window(C), fly->ar->winrct.xmin + fly->ar->winx/2, fly->ar->winrct.ymin + fly->ar->winy/2);
+	
 	return 1;
 }
 

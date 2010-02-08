@@ -144,7 +144,7 @@ static void unique_name(bNode *node)
 					new_len = 31;
 			}
 			
-			new_name = malloc(new_len + 1);
+			new_name = MEM_mallocN(new_len + 1, "new_name");
 			strcpy(new_name, name);
 			name = new_name;
 		}
@@ -153,7 +153,7 @@ static void unique_name(bNode *node)
 	
 	if(new_name) {
 		strcpy(tno->name, new_name);
-		free(new_name);
+		MEM_freeN(new_name);
 	}
 }
 

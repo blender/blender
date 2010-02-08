@@ -409,6 +409,7 @@ get_perm_c(int ispec, SuperMatrix *A, int *perm_c)
 	      return; 
         default:
 	      ABORT("Invalid ISPEC");
+		  return;
     }
 
     if ( bnz != 0 ) {

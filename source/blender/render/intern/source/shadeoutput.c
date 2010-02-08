@@ -1050,7 +1050,7 @@ static void ambient_occlusion_apply(ShadeInput *shi, ShadeResult *shr)
 	}
 }
 
-static void environment_lighting_apply(ShadeInput *shi, ShadeResult *shr)
+void environment_lighting_apply(ShadeInput *shi, ShadeResult *shr)
 {
 	float f= R.wrld.ao_env_energy*shi->amb;
 

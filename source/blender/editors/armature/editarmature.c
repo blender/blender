@@ -4982,7 +4982,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 			}
 			else {
 				/* perform clamping using euler form (3-components) */
-				float eul[3], oldeul[3], quat1[4];
+				float eul[3], oldeul[3], quat1[4] = {0};
 				
 				if (pchan->rotmode == ROT_MODE_QUAT) {
 					QUATCOPY(quat1, pchan->quat);
@@ -5082,7 +5082,8 @@ static int pose_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	
 	/*	Set the flags */
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) {
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+	{
 		if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
 			pchan->bone->flag ^= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
@@ -5114,11 +5115,20 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 
 	if (action == SEL_TOGGLE) {
-		action = SEL_SELECT;
-		/* Determine if there are any selected bones and therefore whether we are selecting or deselecting */
-		// NOTE: we have to check for > 1 not > 0, since there is almost always an active bone that can't be cleared...
-		if (CTX_DATA_COUNT(C, selected_pose_bones) > 1)
+		bPoseChannel *pchan= CTX_data_active_pose_bone(C);
+		int num_sel = CTX_DATA_COUNT(C, selected_pose_bones);
+		
+		/* cases for deselect:
+		 * 	1) there's only one bone selected, and that is the active one
+		 *	2) there's more than one bone selected
+		 */
+		if ( ((num_sel == 1) && (pchan) && (pchan->bone->flag & BONE_SELECTED)) ||
+			 (num_sel > 1) )
+		{
 			action = SEL_DESELECT;
+		}
+		else 
+			action = SEL_SELECT;
 	}
 	
 	/*	Set the flags */

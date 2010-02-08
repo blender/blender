@@ -4138,14 +4138,14 @@ static void lib_link_scene(FileData *fd, Main *main)
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 				if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
 				if(seq->sound) {
-					seq->sound_handle= NULL;
+					seq->scene_sound = NULL;
 					if(seq->type == SEQ_HD_SOUND)
 						seq->type = SEQ_SOUND;
 					else
 						seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
 					if (seq->sound) {
 						seq->sound->id.us++;
-						seq->sound_handle= sound_new_handle(sce, seq->sound, seq->startdisp, seq->enddisp, seq->startofs);
+						seq->scene_sound = sound_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs);
 					}
 				}
 				seq->anim= 0;
@@ -4161,7 +4161,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 #endif
 
 			if(sce->ed)
-				seq_update_muting(sce->ed);
+				seq_update_muting(sce, sce->ed);
 			
 			if(sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
@@ -4218,7 +4218,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->obedit= NULL;
 	sce->stats= 0;
 
-	memset(&sce->sound_handles, 0, sizeof(sce->sound_handles));
+	sound_create_scene(sce);
 
 	/* set users to one by default, not in lib-link, this will increase it for compo nodes */
 	sce->id.us= 1;
@@ -5205,6 +5205,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 static void direct_link_sound(FileData *fd, bSound *sound)
 {
 	sound->handle = NULL;
+	sound->playback_handle = NULL;
 
 	sound->packedfile = direct_link_packedfile(fd, sound->packedfile);
 	sound->newpackedfile = direct_link_packedfile(fd, sound->newpackedfile);
@@ -5926,6 +5927,29 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	ar->v2d.flag = (V2D_PIXELOFS_X|V2D_PIXELOFS_Y);
 }
 
+static void sequencer_init_preview_region(ARegion* ar)
+{
+	// XXX a bit ugly still, copied from space_sequencer
+	/* NOTE: if you change values here, also change them in space_sequencer.c, sequencer_new */
+	ar->regiontype= RGN_TYPE_PREVIEW;
+	ar->alignment= RGN_ALIGN_TOP;
+	ar->flag |= RGN_FLAG_HIDDEN;
+	ar->v2d.keepzoom= V2D_KEEPASPECT | V2D_KEEPZOOM;
+	ar->v2d.minzoom= 0.00001f;
+	ar->v2d.maxzoom= 100000.0f;
+	ar->v2d.tot.xmin= -960.0f; /* 1920 width centered */
+	ar->v2d.tot.ymin= -540.0f; /* 1080 height centered */
+	ar->v2d.tot.xmax= 960.0f;
+	ar->v2d.tot.ymax= 540.0f;
+	ar->v2d.min[0]= 0.0f;
+	ar->v2d.min[1]= 0.0f;
+	ar->v2d.max[0]= 12000.0f;
+	ar->v2d.max[1]= 12000.0f;
+	ar->v2d.cur= ar->v2d.tot;
+	ar->v2d.align= V2D_ALIGN_FREE; // (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
+	ar->v2d.keeptot= V2D_KEEPTOT_FREE;
+}
+
 /* 2.50 patch */
 static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 {
@@ -6006,9 +6030,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				}
 				ar= MEM_callocN(sizeof(ARegion), "preview area for sequencer");
 				BLI_insertlinkbefore(lb, ar_main, ar);
-				ar->regiontype= RGN_TYPE_PREVIEW;
-				ar->alignment= RGN_ALIGN_TOP;
-				ar->flag |= RGN_FLAG_HIDDEN;
+				sequencer_init_preview_region(ar);
 				break;
 			case SPACE_VIEW3D:
 				/* toolbar */
@@ -10305,7 +10327,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								break;
 						}
 
-						if (ar) {
+						if (ar && (ar->regiontype == RGN_TYPE_PREVIEW)) {
 							SpaceType *st= BKE_spacetype_from_id(SPACE_SEQ);
 							BKE_area_region_free(st, ar);
 							BLI_freelinkN(regionbase, ar);
@@ -10350,9 +10372,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							}
 							ar= MEM_callocN(sizeof(ARegion), "preview area for sequencer");
 							BLI_insertlinkbefore(regionbase, ar_main, ar);
-							ar->regiontype= RGN_TYPE_PREVIEW;
-							ar->alignment= RGN_ALIGN_TOP;
-							ar->flag |= RGN_FLAG_HIDDEN;
+							sequencer_init_preview_region(ar);
 						}
 					}
 				}
@@ -10459,7 +10479,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->vol.ms_intensity = 1.f;	
 			}
 		}
-		
 	}
 	
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 13)) {
@@ -10552,6 +10571,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
 		Scene *sce;
+		Sequence *seq;
 
 		/* initialize to sane default so toggling on border shows something */
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
@@ -10562,7 +10582,48 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->r.border.xmax= 1.0f;
 				sce->r.border.ymax= 1.0f;
 			}
+
+			if((sce->r.ffcodecdata.flags & FFMPEG_MULTIPLEX_AUDIO) == 0)
+				sce->r.ffcodecdata.audio_codec = 0x0; // CODEC_ID_NONE
+
+			SEQ_BEGIN(sce->ed, seq) {
+				seq->volume = 1.0f;
+			}
+			SEQ_END
 		}
+
+		/* sequencer changes */
+		{
+			bScreen *screen;
+			ScrArea *sa;
+			SpaceLink *sl;
+
+			for(screen= main->screen.first; screen; screen= screen->id.next) {
+				for(sa= screen->areabase.first; sa; sa= sa->next) {
+					for(sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_SEQ) {
+							ARegion *ar_preview;
+							ListBase *regionbase;
+
+							if (sl == sa->spacedata.first) {
+								regionbase = &sa->regionbase;
+							} else {
+								regionbase = &sl->regionbase;
+							}
+
+							ar_preview = (ARegion*)regionbase->first;
+							for (; ar_preview; ar_preview = ar_preview->next) {
+								if (ar_preview->regiontype == RGN_TYPE_PREVIEW)
+									break;
+							}
+							if (ar_preview && (ar_preview->regiontype == RGN_TYPE_PREVIEW)) {
+								sequencer_init_preview_region(ar_preview);
+							}
+						}
+					}
+				}
+			}
+		} /* sequencer changes */
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -10878,7 +10939,8 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				/* this is actually only needed on UI call? when ID was already read before, and another append
 				   happens which invokes same ID... in that case the lookup table needs this entry */
 				oldnewmap_insert(fd->libmap, bhead->old, id, 1);
-				if(G.f & G_DEBUG) printf("expand: already read %s\n", id->name);
+                // commented because this can print way too much
+				// if(G.f & G_DEBUG) printf("expand: already read %s\n", id->name);
 			}
 		}
 	}

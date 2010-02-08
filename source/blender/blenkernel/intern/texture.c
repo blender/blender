@@ -860,8 +860,6 @@ void set_current_lamp_texture(Lamp *la, Tex *newtex)
 
 bNode *give_current_material_texture_node(Material *ma)
 {
-	bNode *node;
-	
 	if(ma && ma->use_nodes && ma->nodetree)
 		return nodeGetActiveID(ma->nodetree, ID_TE);
 	

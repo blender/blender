@@ -43,6 +43,7 @@
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -475,15 +476,26 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C, const char *op
 	if(found==NULL) {
 		if(ELEM(opcontext, WM_OP_EXEC_REGION_WIN, WM_OP_INVOKE_REGION_WIN)) {
 			if(sa) {
-				if(!(ar && ar->regiontype == RGN_TYPE_WINDOW)) {
-					for(ar= sa->regionbase.first; ar; ar= ar->next)
-						if(ar->regiontype==RGN_TYPE_WINDOW)
-							break;
-				}
-
+				if (!(ar && ar->regiontype == RGN_TYPE_WINDOW))
+					ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
+				
 				if(ar)
 					found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, hotkey, compare_props, keymap_r);
 			}
+		}
+		else if(ELEM(opcontext, WM_OP_EXEC_REGION_CHANNELS, WM_OP_INVOKE_REGION_CHANNELS)) {
+			if (!(ar && ar->regiontype == RGN_TYPE_CHANNELS))
+					ar= BKE_area_find_region_type(sa, RGN_TYPE_CHANNELS);
+				
+				if(ar)
+					found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, hotkey, compare_props, keymap_r);
+		}
+		else if(ELEM(opcontext, WM_OP_EXEC_REGION_PREVIEW, WM_OP_INVOKE_REGION_PREVIEW)) {
+			if (!(ar && ar->regiontype == RGN_TYPE_PREVIEW))
+					ar= BKE_area_find_region_type(sa, RGN_TYPE_PREVIEW);
+				
+				if(ar)
+					found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, hotkey, compare_props, keymap_r);
 		}
 		else {
 			if(ar)

@@ -1376,11 +1376,11 @@ static void p_polygon_kernel_center(float (*points)[2], int npoints, float *cent
 
 		if (nnewpoints*2 > size) {
 			size *= 2;
-			free(oldpoints);
-			oldpoints = malloc(sizeof(float)*2*size);
+			MEM_freeN(oldpoints);
+			oldpoints = MEM_mallocN(sizeof(float)*2*size, "oldpoints");
 			memcpy(oldpoints, newpoints, sizeof(float)*2*nnewpoints);
-			free(newpoints);
-			newpoints = malloc(sizeof(float)*2*size);
+			MEM_freeN(newpoints);
+			newpoints = MEM_mallocN(sizeof(float)*2*size, "newpoints");
 		}
 		else {
 			float (*sw_points)[2] = oldpoints;

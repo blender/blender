@@ -129,7 +129,6 @@ void rna_def_actuator(BlenderRNA *brna)
 static void rna_def_object_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ObjectActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Object Actuator", "Actuator to control the object movement.");
@@ -259,7 +258,6 @@ static void rna_def_camera_actuator(BlenderRNA *brna)
 static void rna_def_sound_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "SoundActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Sound Actuator", "Actuator to ...");
@@ -271,7 +269,6 @@ static void rna_def_sound_actuator(BlenderRNA *brna)
 static void rna_def_property_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "PropertyActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Property Actuator", "Actuator to ...");
@@ -283,7 +280,6 @@ static void rna_def_property_actuator(BlenderRNA *brna)
 static void rna_def_constraint_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ConstraintActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Constraint Actuator", "Actuator to ...");
@@ -295,7 +291,6 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 static void rna_def_edit_object_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "EditObjectActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Edit Object Actuator", "Actuator to ...");
@@ -527,7 +522,6 @@ static void rna_def_message_actuator(BlenderRNA *brna)
 static void rna_def_action_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ActionActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Action Actuator", "Actuator to ...");
@@ -696,7 +690,6 @@ static void rna_def_parent_actuator(BlenderRNA *brna)
 static void rna_def_shape_action_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ShapeActionActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Shape Action Actuator", "Actuator to ...");
@@ -708,7 +701,6 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 static void rna_def_state_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "StateActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "State Actuator", "Actuator to ...");
@@ -720,7 +712,6 @@ static void rna_def_state_actuator(BlenderRNA *brna)
 static void rna_def_armature_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ArmatureActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Armature Actuator", "Actuator to ...");

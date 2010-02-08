@@ -2011,14 +2011,6 @@ static void actcon_new_data (void *cdata)
 	data->type = 20;
 }
 
-/* only for setting the ID as extern */
-static void actcon_copy_data (bConstraint *con, bConstraint *srccon)
-{
-	//bActionConstraint *src= srccon->data;
-	bActionConstraint *dst= con->data;
-	id_lib_extern((ID *)dst->act); /* would be better solved with something like modifiers_foreachIDLink */
-}
-
 static void actcon_id_looper (bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
 	bActionConstraint *data= con->data;
@@ -2170,7 +2162,7 @@ static bConstraintTypeInfo CTI_ACTION = {
 	NULL, /* free data */
 	actcon_relink, /* relink data */
 	actcon_id_looper, /* id looper */
-	actcon_copy_data, /* copy data */
+	NULL, /* copy data */
 	actcon_new_data, /* new data */
 	actcon_get_tars, /* get constraint targets */
 	actcon_flush_tars, /* flush constraint targets */
@@ -4049,6 +4041,12 @@ void id_loop_constraints (ListBase *conlist, ConstraintIDFunc func, void *userda
 
 /* ......... */
 
+static void con_extern_cb(bConstraint *con, ID **idpoin, void *userdata)
+{
+	if(idpoin && (*idpoin)->lib)
+		id_lib_extern(*idpoin);
+}
+
 /* duplicate all of the constraints in a constraint stack */
 void copy_constraints (ListBase *dst, const ListBase *src)
 {
@@ -4067,8 +4065,15 @@ void copy_constraints (ListBase *dst, const ListBase *src)
 		id_us_plus((ID *)con->ipo);
 		
 		/* only do specific constraints if required */
-		if (cti && cti->copy_data)
-			cti->copy_data(con, srccon);
+		if (cti) {
+			if (cti->copy_data) {
+				cti->copy_data(con, srccon);
+			}
+
+			if(cti->id_looper) {
+				cti->id_looper(con, con_extern_cb, NULL);
+			}
+		}
 	}
 }
 

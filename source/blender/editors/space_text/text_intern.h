@@ -58,6 +58,11 @@ void text_update_edited(struct Text *text);
 void text_update_character_width(struct SpaceText *st);
 void text_update_cursor_moved(struct bContext *C);
 
+	/* TXT_OFFSET used to be 35 when the scrollbar was on the left... */
+#define TXT_OFFSET 15
+#define TXT_SCROLL_WIDTH 20
+#define TXT_SCROLL_SPACE 2
+
 #define TEXTXLOC		(st->cwidth * st->linenrs_tot)
 
 #define SUGG_LIST_SIZE	7

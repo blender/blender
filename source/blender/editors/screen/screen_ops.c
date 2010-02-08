@@ -1513,9 +1513,11 @@ static int frame_offset_exec(bContext *C, wmOperator *op)
 	int delta;
 	
 	delta = RNA_int_get(op->ptr, "delta");
-	
+
 	CTX_data_scene(C)->r.cfra += delta;
 	
+	sound_seek_scene(C);
+
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, CTX_data_scene(C));
 	
 	return OPERATOR_FINISHED;
@@ -2473,12 +2475,13 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 			}
 		}
 		
+		if(sad->flag & ANIMPLAY_FLAG_JUMPED)
+			sound_seek_scene(C);
+
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
 
 		ED_update_for_newframe(C, 1);
 		
-		sound_update_playing(C);
-
 		for(sa= screen->areabase.first; sa; sa= sa->next) {
 			ARegion *ar;
 			for(ar= sa->regionbase.first; ar; ar= ar->next) {
@@ -2521,16 +2524,19 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 {
 	bScreen *screen= CTX_wm_screen(C);
+	struct Scene* scene = CTX_data_scene(C);
 	
 	if(screen->animtimer) {
 		/* stop playback now */
 		ED_screen_animation_timer(C, 0, 0, 0);
-		sound_stop_all(C);
+		sound_stop_scene(scene);
 	}
 	else {
 		ScrArea *sa= CTX_wm_area(C);
 		int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
 		int sync= -1;
+		if(mode == 1) // XXX only play audio forwards!?
+			sound_play_scene(scene);
 		
 		if(RNA_property_is_set(op->ptr, "sync"))
 			sync= (RNA_boolean_get(op->ptr, "sync"));

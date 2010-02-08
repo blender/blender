@@ -225,6 +225,28 @@ void *MEM_dupallocN(void *vmemh)
 	return newp;
 }
 
+void *MEM_reallocN(void *vmemh, unsigned int len)
+{
+	void *newp= NULL;
+	
+	if (vmemh) {
+		MemHead *memh= vmemh;
+		memh--;
+
+		newp= MEM_mallocN(len, memh->name);
+		if(newp) {
+			if(len < memh->len)
+				memcpy(newp, vmemh, len);
+			else
+				memcpy(newp, vmemh, memh->len);
+		}
+
+		MEM_freeN(vmemh);
+	}
+
+	return newp;
+}
+
 static void make_memhead_header(MemHead *memh, unsigned int len, const char *str)
 {
 	MemTail *memt;

@@ -70,8 +70,6 @@ typedef struct Text {
 	double mtime;
 } Text;
 
-	/* TXT_OFFSET used to be 35 when the scrollbar was on the left... */
-#define TXT_OFFSET 15
 #define TXT_TABSIZE	4
 #define TXT_INIT_UNDO 1024
 #define TXT_MAX_UNDO	(TXT_INIT_UNDO*TXT_INIT_UNDO)

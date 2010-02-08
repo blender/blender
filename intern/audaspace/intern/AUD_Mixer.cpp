@@ -25,6 +25,7 @@
 
 #include "AUD_Mixer.h"
 #include "AUD_SRCResampleFactory.h"
+#include "AUD_LinearResampleFactory.h"
 #include "AUD_ChannelMapperFactory.h"
 #include "AUD_IReader.h"
 #include "AUD_Buffer.h"
@@ -59,13 +60,18 @@ AUD_IReader* AUD_Mixer::prepare(AUD_IReader* reader)
 	m_resampler->setReader(reader);
 	reader = m_resampler->createReader();
 
-	if(reader->getSpecs().channels != m_specs.channels)
+	if(reader != NULL && reader->getSpecs().channels != m_specs.channels)
 	{
 		m_mapper->setReader(reader);
 		reader = m_mapper->createReader();
 	}
 
 	return reader;
+}
+
+AUD_DeviceSpecs AUD_Mixer::getSpecs()
+{
+	return m_specs;
 }
 
 void AUD_Mixer::setSpecs(AUD_DeviceSpecs specs)
@@ -81,7 +87,7 @@ void AUD_Mixer::setSpecs(AUD_DeviceSpecs specs)
 		delete m_mapper; AUD_DELETE("factory")
 	}
 
-	m_resampler = new AUD_SRCResampleFactory(specs); AUD_NEW("factory")
+	m_resampler = new AUD_MIXER_RESAMPLER(specs); AUD_NEW("factory")
 	m_mapper = new AUD_ChannelMapperFactory(specs); AUD_NEW("factory")
 
 	int bigendian = 1;
@@ -115,10 +121,11 @@ void AUD_Mixer::setSpecs(AUD_DeviceSpecs specs)
 	}
 }
 
-void AUD_Mixer::add(sample_t* buffer, int length, float volume)
+void AUD_Mixer::add(sample_t* buffer, int start, int length, float volume)
 {
 	AUD_MixerBuffer buf;
 	buf.buffer = buffer;
+	buf.start = start;
 	buf.length = length;
 	buf.volume = volume;
 	m_buffers.push_back(buf);
@@ -145,11 +152,11 @@ void AUD_Mixer::superpose(data_t* buffer, int length, float volume)
 		buf = m_buffers.front();
 		m_buffers.pop_front();
 
-		end = buf.length*channels;
+		end = buf.length * channels;
 		in = buf.buffer;
 
 		for(int i = 0; i < end; i++)
-			out[i] += in[i]*buf.volume * volume;
+			out[i + buf.start * channels] += in[i] * buf.volume * volume;
 	}
 
 	m_convert(buffer, (data_t*) out, length * channels);

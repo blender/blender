@@ -204,16 +204,13 @@ void FLUID_3D::initBlenderRNA(float *alpha, float *beta)
 //////////////////////////////////////////////////////////////////////
 void FLUID_3D::step()
 {
-
-	int threadval = 1;
 #if PARALLEL==1
+	int threadval = 1;
 	threadval = omp_get_max_threads();
-#endif
 
 	int stepParts = 1;
 	float partSize = _zRes;
 
-#if PARALLEL==1
 	stepParts = threadval*2;	// Dividing parallelized sections into numOfThreads * 2 sections
 	partSize = (float)_zRes/stepParts;	// Size of one part;
 
@@ -935,7 +932,6 @@ void FLUID_3D::addVorticity(int zBegin, int zEnd)
 
 	float *_xVorticity, *_yVorticity, *_zVorticity, *_vorticity;
 
-	int _vIndex = _slabSize + _xRes + 1;
 	int bb=0;
 	int bt=0;
 	int bb1=-1;

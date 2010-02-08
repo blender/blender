@@ -43,8 +43,8 @@
 
 /* local */
 static float noise3_perlin(float vec[3]);
-static float turbulence_perlin(float *point, float lofreq, float hifreq);
-static float turbulencep(float noisesize, float x, float y, float z, int nr);
+//static float turbulence_perlin(float *point, float lofreq, float hifreq);
+//static float turbulencep(float noisesize, float x, float y, float z, int nr);
 
 #define HASHVEC(x,y,z) hashvectf+3*hash[ (hash[ (hash[(z) & 255]+(y)) & 255]+(x)) & 255]
 
@@ -976,6 +976,7 @@ static float noise3_perlin(float vec[3])
 	return 1.5 * lerp(sz, c, d); /* interpolate in z */
 }
 
+#if 0
 static float turbulence_perlin(float *point, float lofreq, float hifreq)
 {
 	float freq, t, p[3];
@@ -993,6 +994,7 @@ static float turbulence_perlin(float *point, float lofreq, float hifreq)
 	}
 	return t - 0.3; /* readjust to make mean value = 0.0 */
 }
+#endif
 
 /* for use with BLI_gNoise/gTurbulence, returns signed noise */
 static float orgPerlinNoise(float x, float y, float z)
@@ -1029,7 +1031,7 @@ float BLI_hnoisep(float noisesize, float x, float y, float z)
 	return noise3_perlin(vec);
 }
 
-static float turbulencep(float noisesize, float x, float y, float z, int nr)
+/*static float turbulencep(float noisesize, float x, float y, float z, int nr)
 {
 	float vec[3];
 
@@ -1038,7 +1040,7 @@ static float turbulencep(float noisesize, float x, float y, float z, int nr)
 	vec[2]= z/noisesize;
 	nr++;
 	return turbulence_perlin(vec, 1.0, (float)(1<<nr));
-}
+}*/
 
 /******************/
 /* VORONOI/WORLEY */

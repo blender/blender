@@ -133,6 +133,8 @@ class GRAPH_MT_channel(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.operator_context = 'INVOKE_REGION_CHANNELS'
+
         layout.column()
         layout.operator("anim.channels_setting_toggle")
         layout.operator("anim.channels_setting_enable")

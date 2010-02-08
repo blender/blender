@@ -75,5 +75,9 @@ ELSE(WITH_PYTHON)
 	ADD_DEFINITIONS(-DDISABLE_PYTHON)
 ENDIF(WITH_PYTHON)
 
+IF(WITH_FFMPEG)
+	ADD_DEFINITIONS(-DWITH_FFMPEG)
+ENDIF(WITH_FFMPEG)
+
 BLENDERLIB(bf_ketsji "${SRC}" "${INC}")
 #env.BlenderLib ( 'bf_ketsji', sources, Split(incs), [], libtype=['game','player'], priority=[25, 72], compileflags = cflags )

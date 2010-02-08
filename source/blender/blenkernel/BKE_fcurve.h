@@ -34,6 +34,7 @@ struct ChannelDriver;
 struct DriverVar;
 struct DriverTarget;
 
+struct bAction;
 struct BezTriple;
 struct StructRNA;
 struct PointerRNA;

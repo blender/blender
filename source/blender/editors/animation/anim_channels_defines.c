@@ -2074,7 +2074,7 @@ static void dummy_olddraw_gpencil ()
 		case ANIMTYPE_GPDATABLOCK: /* gpencil datablock */
 		{
 			bGPdata *gpd = (bGPdata *)ale->data;
-			ScrArea *sa = (ScrArea *)ale->owner;
+			ScrArea *sa = (ScrArea *)ale->owner; // XXX depreceated...
 			
 			indent = 0;
 			group= 3;

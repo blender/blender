@@ -42,7 +42,13 @@
 #include "DNA_smoke_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
 
+#include "PIL_time.h"
+
+#include "WM_api.h"
+
+#include "BKE_blender.h"
 #include "BKE_cloth.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -57,8 +63,6 @@
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 #include "BIK_api.h"
-
-#include "BLI_blenlib.h"
 
 /* both in intern */
 #include "smoke_API.h"
@@ -82,6 +86,13 @@
 #else
 #include <process.h>
   #include "BLI_winstuff.h"
+#endif
+
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+/* ************** libgomp (Apple gcc 4.2.1) TLS bug workaround *************** */
+#include <pthread.h>
+extern pthread_key_t gomp_tls_key;
+static void *thread_tls_data;
 #endif
 
 #define PTCACHE_DATA_FROM(data, type, from)		if(data[type]) { memcpy(data[type], from, ptcache_data_size[type]); }
@@ -2247,6 +2258,32 @@ void BKE_ptcache_quick_cache_all(Scene *scene)
 		BKE_ptcache_make_cache(&baker);
 }
 
+/* Simulation thread, no need for interlocks as data written in both threads
+ are only unitary integers (I/O assumed to be atomic for them) */
+typedef struct {
+	int break_operation;
+	int thread_ended;
+	int endframe;
+	int step;
+	int *cfra_ptr;
+	Scene *scene;
+} ptcache_make_cache_data;
+
+static void *ptcache_make_cache_thread(void *ptr) {
+	ptcache_make_cache_data *data = (ptcache_make_cache_data*)ptr;
+
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
+	pthread_setspecific (gomp_tls_key, thread_tls_data);
+#endif
+	
+	for(; (*data->cfra_ptr <= data->endframe) && !data->break_operation; *data->cfra_ptr+=data->step)
+		scene_update_for_newframe(data->scene, data->scene->lay);
+
+	data->thread_ended = TRUE;
+	return NULL;
+}
+
 /* if bake is not given run simulations to current frame */
 void BKE_ptcache_make_cache(PTCacheBaker* baker)
 {
@@ -2258,10 +2295,16 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	float frameleno = scene->r.framelen;
 	int cfrao = CFRA;
 	int startframe = MAXFRAME;
-	int endframe = baker->anim_init ? scene->r.sfra : CFRA;
 	int bake = baker->bake;
 	int render = baker->render;
-	int step = baker->quick_step;
+	ListBase threads;
+	ptcache_make_cache_data thread_data;
+	int progress, old_progress;
+	
+	thread_data.endframe = baker->anim_init ? scene->r.sfra : CFRA;
+	thread_data.step = baker->quick_step;
+	thread_data.cfra_ptr = &CFRA;
+	thread_data.scene = baker->scene;
 
 	G.afbreek = 0;
 
@@ -2299,11 +2342,11 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 			startframe = MAX2(cache->last_exact, cache->startframe);
 
 			if(bake) {
-				endframe = cache->endframe;
+				thread_data.endframe = cache->endframe;
 				cache->flag |= PTCACHE_BAKING;
 			}
 			else {
-				endframe = MIN2(endframe, cache->endframe);
+				thread_data.endframe = MIN2(thread_data.endframe, cache->endframe);
 			}
 
 			cache->flag &= ~PTCACHE_BAKED;
@@ -2335,7 +2378,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 					cache->flag |= PTCACHE_BAKING;
 
 					if(bake)
-						endframe = MAX2(endframe, cache->endframe);
+						thread_data.endframe = MAX2(thread_data.endframe, cache->endframe);
 				}
 
 				cache->flag &= ~PTCACHE_BAKED;
@@ -2345,30 +2388,45 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		BLI_freelistN(&pidlist);
 	}
 
-	CFRA= startframe;
+	CFRA = startframe;
 	scene->r.framelen = 1.0;
-
-	for(; CFRA <= endframe; CFRA+=step) {
-		int prog;
+	thread_data.break_operation = FALSE;
+	thread_data.thread_ended = FALSE;
+	old_progress = -1;
+	
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
+	thread_tls_data = pthread_getspecific(gomp_tls_key);
+#endif
+	BLI_init_threads(&threads, ptcache_make_cache_thread, 1);
+	BLI_insert_thread(&threads, (void*)&thread_data);
+	
+	while (thread_data.thread_ended == FALSE) {
 
 		if(bake)
-			prog = (int)(100.0f * (float)(CFRA - startframe)/(float)(endframe-startframe));
+			progress = (int)(100.0f * (float)(CFRA - startframe)/(float)(thread_data.endframe-startframe));
 		else
-			prog = CFRA;
+			progress = CFRA;
 
 		/* NOTE: baking should not redraw whole ui as this slows things down */
-		if(baker->progressbar)
-			baker->progressbar(baker->progresscontext, prog);
+		if ((baker->progressbar) && (progress != old_progress)) {
+			baker->progressbar(baker->progresscontext, progress);
+			old_progress = progress;
+		}
 		
-		scene_update_for_newframe(scene, scene->lay);
+		/* Delay to lessen CPU load from UI thread */
+		PIL_sleep_ms(200);
 
 		/* NOTE: breaking baking should leave calculated frames in cache, not clear it */
-		if(baker->break_test && baker->break_test(baker->break_data))
-			break;
+		if(blender_test_break() && !thread_data.break_operation) {
+			thread_data.break_operation = TRUE;
+			if (baker->progressend)
+				baker->progressend(baker->progresscontext);
+			WM_cursor_wait(1);
+		}
 	}
 
-	if (baker->progressend)
-		baker->progressend(baker->progresscontext);
+	BLI_end_threads(&threads);
 
 	/* clear baking flag */
 	if(pid) {
@@ -2391,7 +2449,7 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 		
 			cache = pid->cache;
 
-			if(step > 1)
+			if(thread_data.step > 1)
 				cache->flag &= ~(PTCACHE_BAKING|PTCACHE_OUTDATED);
 			else
 				cache->flag &= ~(PTCACHE_BAKING|PTCACHE_REDO_NEEDED);
@@ -2412,6 +2470,11 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	
 	if(bake) /* already on cfra unless baking */
 		scene_update_for_newframe(scene, scene->lay);
+
+	if (thread_data.break_operation)
+		WM_cursor_wait(0);
+	else if (baker->progressend)
+		baker->progressend(baker->progresscontext);
 
 	/* TODO: call redraw all windows somehow */
 }

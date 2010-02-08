@@ -45,6 +45,8 @@ extern "C" {
 #define FFMPEG_FLV      8
 #define FFMPEG_MKV      9
 #define FFMPEG_OGG      10
+#define FFMPEG_WAV      11
+#define FFMPEG_MP3      12
 
 #define FFMPEG_PRESET_NONE		0
 #define FFMPEG_PRESET_DVD		1

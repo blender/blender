@@ -234,6 +234,8 @@ struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);
 void	BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
 void	BKE_screen_area_free(struct ScrArea *sa);
 
+struct ARegion *BKE_area_find_region_type(struct ScrArea *sa, int type);
+
 /* screen */
 void free_screen(struct bScreen *sc); 
 unsigned int BKE_screen_visible_layers(struct bScreen *screen, struct Scene *scene);

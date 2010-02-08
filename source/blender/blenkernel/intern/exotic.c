@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
 
 #ifndef _WIN32 
 #include <unistd.h>
@@ -76,8 +77,8 @@
 #include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_exotic.h"
+#include "BKE_report.h"
 
-/*  #include "BKE_error.h" */
 #include "BKE_screen.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
@@ -205,18 +206,31 @@ static void read_stl_mesh_binary(Scene *scene, char *str)
 	unsigned int numfacets = 0, i, j, vertnum;
 	unsigned int maxmeshsize, nummesh, lastmeshsize;
 	unsigned int totvert, totface;
+	ReportList *reports= NULL; /* XXX */
 
 	fpSTL= fopen(str, "rb");
 	if(fpSTL==NULL) {
-		//XXX error("Can't read file");
+		BKE_reportf(reports, RPT_ERROR, "Can't read file: %s.", strerror(errno));
 		return;
 	}
 
-	fseek(fpSTL, 80, SEEK_SET);
-	fread(&numfacets, 4*sizeof(char), 1, fpSTL);
+	if(fseek(fpSTL, 80, SEEK_SET) != 0) {
+		BKE_reportf(reports, RPT_ERROR, "Failed reading file: %s.", strerror(errno));
+		fclose(fpSTL);
+		return;
+	}
+
+	if(fread(&numfacets, 4*sizeof(char), 1, fpSTL) != 1) {
+		if(feof(fpSTL))
+			BKE_reportf(reports, RPT_ERROR, "Failed reading file: premature end of file.");
+		else
+			BKE_reportf(reports, RPT_ERROR, "Failed reading file: %s.", strerror(errno));
+		fclose(fpSTL);
+		return;
+	}
 	if (ENDIAN_ORDER==B_ENDIAN) {
-                SWITCH_INT(numfacets);
-        }
+		SWITCH_INT(numfacets);
+	}
 
 	maxmeshsize = MESH_MAX_VERTS/3;
 
@@ -318,13 +332,14 @@ static void read_stl_mesh_ascii(Scene *scene, char *str)
 	unsigned int numtenthousand, linenum;
 	unsigned int i, vertnum;
 	unsigned int totvert, totface;
+	ReportList *reports= NULL; /* XXX */
 
 	/* ASCII stl sucks ... we don't really know how many faces there
 	   are until the file is done, so lets allocate faces 10000 at a time */
 
 	fpSTL= fopen(str, "r");
 	if(fpSTL==NULL) {
-		//XXX error("Can't read file");
+		BKE_reportf(reports, RPT_ERROR, "Can't read file: %s.", strerror(errno));
 		return;
 	}
 	
@@ -634,6 +649,7 @@ static void read_inventor(Scene *scene, char *str, struct ListBase *listb)
 	int file, filelen, count, lll, face, nr = 0;
 	int skipdata, ok, a, b, tot, first, colnr, coordtype, polytype, *idata;
 	struct DispList *dl;
+	ReportList *reports= NULL; /* XXX */
 	
 	ivbase.first= ivbase.last= 0;
 	iv_curcol= 0;
@@ -641,7 +657,7 @@ static void read_inventor(Scene *scene, char *str, struct ListBase *listb)
 	
 	file= open(str, O_BINARY|O_RDONLY);
 	if(file== -1) {
-		//XXX error("Can't read file\n");
+		BKE_reportf(reports, RPT_ERROR, "Can't read file: %s.", strerror(errno));
 		return;
 	}
 
@@ -652,7 +668,11 @@ static void read_inventor(Scene *scene, char *str, struct ListBase *listb)
 	}
 	
 	maindata= MEM_mallocN(filelen, "leesInventor");
-	read(file, maindata, filelen);
+	if(read(file, maindata, filelen) < filelen) {
+		BKE_reportf(reports, RPT_ERROR, "Failed reading file: premature end of file.");
+		close(file);
+		return;
+	}
 	close(file);
 
 	iv_data_stack= MEM_mallocN(sizeof(float)*IV_MAXSTACK, "ivstack");
@@ -1895,6 +1915,7 @@ void write_stl(Scene *scene, char *str)
 	Base   *base;
 	FILE   *fpSTL;
 	int    numfacets = 0;
+	ReportList *reports= NULL; /* XXX */
 	
 	if(BLI_testextensie(str,".blend")) str[ strlen(str)-6]= 0;
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
@@ -1908,7 +1929,7 @@ void write_stl(Scene *scene, char *str)
 	fpSTL= fopen(str, "wb");
 	
 	if(fpSTL==NULL) {
-		//XXX error("Can't write file");
+		BKE_reportf(reports, RPT_ERROR, "Can't open file: %s.", strerror(errno));
 		return;
 	}
 	strcpy(temp_dir, str);
@@ -3388,7 +3409,7 @@ static void dxf_read_polyline(Scene *scene, int noob) {
 	/* Blender vars */
 	Object *ob;
 	Mesh *me;
-	float vert[3];
+	float vert[3] = {0};
 	
 	MVert *mvert, *vtmp;
 	MFace *mface, *ftmp;
@@ -3613,7 +3634,7 @@ static void dxf_read_lwpolyline(Scene *scene, int noob) {
 	/* Blender vars */
 	Object *ob;
 	Mesh *me;
-	float vert[3];
+	float vert[3] = {0};
 	
 	MVert *mvert;
 	MFace *mface;

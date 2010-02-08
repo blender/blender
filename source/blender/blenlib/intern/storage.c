@@ -487,7 +487,7 @@ LinkNode *BLI_read_file_as_lines(char *name)
 	size= ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
-	buf= malloc(size);
+	buf= MEM_mallocN(size, "file_as_lines");
 	if (buf) {
 		int i, last= 0;
 		
@@ -506,7 +506,7 @@ LinkNode *BLI_read_file_as_lines(char *name)
 			}
 		}
 		
-		free(buf);
+		MEM_freeN(buf);
 	}
 	
 	fclose(fp);

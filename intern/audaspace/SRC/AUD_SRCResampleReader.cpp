@@ -44,6 +44,7 @@ AUD_SRCResampleReader::AUD_SRCResampleReader(AUD_IReader* reader,
 	m_tspecs = specs;
 	m_tspecs.channels = m_sspecs.channels;
 	m_factor = (double)m_tspecs.rate / (double)m_sspecs.rate;
+	m_position = 0;
 
 	int error;
 	m_src = src_callback_new(src_callback,
@@ -71,7 +72,7 @@ AUD_SRCResampleReader::~AUD_SRCResampleReader()
 
 long AUD_SRCResampleReader::doCallback(float** data)
 {
-	int length = m_buffer->getSize() / 4 / m_tspecs.channels;
+	int length = m_buffer->getSize() / AUD_SAMPLE_SIZE(m_tspecs);
 	sample_t* buffer;
 
 	m_reader->read(length, buffer);
@@ -84,6 +85,7 @@ void AUD_SRCResampleReader::seek(int position)
 {
 	m_reader->seek(position / m_factor);
 	src_reset(m_src);
+	m_position = position;
 }
 
 int AUD_SRCResampleReader::getLength()
@@ -93,7 +95,7 @@ int AUD_SRCResampleReader::getLength()
 
 int AUD_SRCResampleReader::getPosition()
 {
-	return m_reader->getPosition() * m_factor;
+	return m_position;
 }
 
 AUD_Specs AUD_SRCResampleReader::getSpecs()
@@ -111,4 +113,6 @@ void AUD_SRCResampleReader::read(int & length, sample_t* & buffer)
 	buffer = m_buffer->getBuffer();
 
 	length = src_callback_read(m_src, m_factor, length, buffer);
+
+	m_position += length;
 }

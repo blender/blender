@@ -54,7 +54,7 @@ VideoFFmpeg::VideoFFmpeg (HRESULT * hRslt) : VideoBase(),
 m_codec(NULL), m_formatCtx(NULL), m_codecCtx(NULL), 
 m_frame(NULL), m_frameDeinterlaced(NULL), m_frameRGB(NULL), m_imgConvertCtx(NULL),
 m_deinterlace(false), m_preseek(0),	m_videoStream(-1), m_baseFrameRate(25.0),
-m_lastFrame(-1),  m_eof(false), m_curPosition(-1), m_startTime(0), 
+m_lastFrame(-1),  m_eof(false), m_externTime(false), m_curPosition(-1), m_startTime(0), 
 m_captWidth(0), m_captHeight(0), m_captRate(0.f), m_isImage(false),
 m_isThreaded(false), m_stopThread(false), m_cacheStarted(false)
 {
@@ -723,22 +723,37 @@ void VideoFFmpeg::setFrameRate (float rate)
 
 
 // image calculation
-void VideoFFmpeg::calcImage (unsigned int texId)
+void VideoFFmpeg::calcImage (unsigned int texId, double ts)
 {
-	loadFrame();
+	loadFrame(ts);
 }
 
 
 // load frame from video
-void VideoFFmpeg::loadFrame (void)
+void VideoFFmpeg::loadFrame (double ts)
 {
 	if (m_status == SourcePlaying)
 	{
 		// get actual time
 		double startTime = PIL_check_seconds_timer();
-		if (m_lastFrame == -1 && !m_isFile)
-			m_startTime = startTime;
-		double actTime = startTime - m_startTime;
+		double actTime;
+		if (m_isFile && ts >= 0.0)
+		{
+			// allow setting timestamp only when not streaming
+			actTime = ts;
+			if (m_eof && actTime * actFrameRate() < m_lastFrame) 
+			{
+				// user is asking to rewind while the playback is already finished in the cache.
+				// we must clean the cache otherwise the eof condition will prevent any further reading.
+				stopCache();
+			}
+		}
+		else
+		{
+			if (m_lastFrame == -1 && !m_isFile)
+				m_startTime = startTime;
+			actTime = startTime - m_startTime;
+		}
 		// if video has ended
 		if (m_isFile && actTime * m_frameRate >= m_range[1])
 		{
