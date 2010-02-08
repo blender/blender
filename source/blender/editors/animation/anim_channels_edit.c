@@ -1795,7 +1795,7 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 		case ANIMTYPE_GPLAYER:
 		{
 #if 0 // XXX future of this is unclear
-			bGPdata *gpd= (bGPdata *)ale->owner;
+			bGPdata *gpd= (bGPdata *)ale->owner; // xxx depreceated
 			bGPDlayer *gpl= (bGPDlayer *)ale->data;
 			
 			if (x >= (ACHANNEL_NAMEWIDTH-16)) {

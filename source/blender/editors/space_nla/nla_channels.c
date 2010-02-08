@@ -279,7 +279,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			break;
 		case ANIMTYPE_NLAACTION:
 		{
-			AnimData *adt= BKE_animdata_from_id(ale->owner); /* this won't crash, right? */
+			AnimData *adt= BKE_animdata_from_id(ale->id);
 			
 			if (x >= (v2d->cur.xmax-NLACHANNEL_BUTTON_WIDTH)) {
 				if (nlaedit_is_tweakmode_on(ac) == 0) {
