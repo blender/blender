@@ -5082,7 +5082,8 @@ static int pose_select_inverse_exec(bContext *C, wmOperator *op)
 {
 	
 	/*	Set the flags */
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) {
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+	{
 		if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
 			pchan->bone->flag ^= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}

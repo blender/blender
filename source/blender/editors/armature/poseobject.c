@@ -333,88 +333,43 @@ void POSE_OT_paths_clear (wmOperatorType *ot)
 
 /* ******************* Select Constraint Target Operator ************* */
 
-// XXX this function is to be removed when the other stuff is recoded
-void pose_select_constraint_target(Scene *scene)
-{
-	Object *obedit= scene->obedit; // XXX context
-	Object *ob= OBACT;
-	bArmature *arm= ob->data;
-	bPoseChannel *pchan;
-	bConstraint *con;
-	
-	/* paranoia checks */
-	if (!ob && !ob->pose) return;
-	if (ob==obedit || (ob->mode & OB_MODE_POSE)==0) return;
-	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (arm->layer & pchan->bone->layer) {
-			if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) {
-				for (con= pchan->constraints.first; con; con= con->next) {
-					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
-					ListBase targets = {NULL, NULL};
-					bConstraintTarget *ct;
-					
-					if (cti && cti->get_constraint_targets) {
-						cti->get_constraint_targets(con, &targets);
-						
-						for (ct= targets.first; ct; ct= ct->next) {
-							if ((ct->tar == ob) && (ct->subtarget[0])) {
-								bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
-								if((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE))
-									pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-							}
-						}
-						
-						if (cti->flush_constraint_targets)
-							cti->flush_constraint_targets(con, &targets, 1);
-					}
-				}
-			}
-		}
-	}
-	
-	BIF_undo_push("Select constraint target");
-
-}
-
 static int pose_select_constraint_target_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= ob->data;
-	bPoseChannel *pchan;
 	bConstraint *con;
 	int found= 0;
 	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (arm->layer & pchan->bone->layer) {
-			if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) {
-				for (con= pchan->constraints.first; con; con= con->next) {
-					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
-					ListBase targets = {NULL, NULL};
-					bConstraintTarget *ct;
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+	{
+		if ((pchan->bone->flag & BONE_SELECTED) || (pchan->bone == arm->act_bone)) {
+			for (con= pchan->constraints.first; con; con= con->next) {
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+				ListBase targets = {NULL, NULL};
+				bConstraintTarget *ct;
+				
+				if (cti && cti->get_constraint_targets) {
+					cti->get_constraint_targets(con, &targets);
 					
-					if (cti && cti->get_constraint_targets) {
-						cti->get_constraint_targets(con, &targets);
-						
-						for (ct= targets.first; ct; ct= ct->next) {
-							if ((ct->tar == ob) && (ct->subtarget[0])) {
-								bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
-								if((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
-									pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-									found= 1;
-								}
+					for (ct= targets.first; ct; ct= ct->next) {
+						if ((ct->tar == ob) && (ct->subtarget[0])) {
+							bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
+							if((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
+								pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+								found= 1;
 							}
 						}
-						
-						if (cti->flush_constraint_targets)
-							cti->flush_constraint_targets(con, &targets, 1);
 					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(con, &targets, 1);
 				}
 			}
 		}
 	}
+	CTX_DATA_END;
 
-	if(!found)
+	if (!found)
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
@@ -442,24 +397,22 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= ob->data;
-	bPoseChannel *pchan;
 	Bone *curbone, *pabone, *chbone;
 	int direction = RNA_enum_get(op->ptr, "direction");
 	int add_to_sel = RNA_boolean_get(op->ptr, "extend");
 	int found= 0;
 	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+	{
 		curbone= pchan->bone;
 		
-		if ((arm->layer & curbone->layer) && (curbone->flag & BONE_UNSELECTABLE)==0) {
+		if ((curbone->flag & BONE_UNSELECTABLE)==0) {
 			if (curbone == arm->act_bone) {
 				if (direction == BONE_SELECT_PARENT) {
-				
 					if (pchan->parent == NULL) continue;
 					else pabone= pchan->parent->bone;
 					
 					if ((arm->layer & pabone->layer) && !(pabone->flag & BONE_HIDDEN_P)) {
-						
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						pabone->flag |= BONE_SELECTED;
 						arm->act_bone= pabone;
@@ -467,13 +420,12 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 						found= 1;
 						break;
 					}
-				} else { // BONE_SELECT_CHILD
-				
+				} 
+				else { /* direction == BONE_SELECT_CHILD */
 					if (pchan->child == NULL) continue;
 					else chbone = pchan->child->bone;
 					
 					if ((arm->layer & chbone->layer) && !(chbone->flag & BONE_HIDDEN_P)) {
-					
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						chbone->flag |= BONE_SELECTED;
 						arm->act_bone= chbone;
@@ -485,6 +437,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
+	CTX_DATA_END;
 
 	if (found == 0)
 		return OPERATOR_CANCELLED;
@@ -521,11 +474,10 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 
 /* ******************* select grouped operator ************* */
 
-static short pose_select_same_group (Object *ob, short extend)
+static short pose_select_same_group (bContext *C, Object *ob, short extend)
 {
-	bPose *pose= (ob)? ob->pose : NULL;
 	bArmature *arm= (ob)? ob->data : NULL;
-	bPoseChannel *pchan;
+	bPose *pose= (ob)? ob->pose : NULL;
 	char *group_flags;
 	int numGroups = 0;
 	short changed=0, tagged=0;
@@ -545,25 +497,26 @@ static short pose_select_same_group (Object *ob, short extend)
 	 */
 	group_flags= MEM_callocN(numGroups+1, "pose_select_same_group");
 	
-	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (arm->layer & pchan->bone->layer) {
-			/* keep track of group as group to use later? */
-			if ((pchan->bone->flag & BONE_SELECTED) || (pchan->bone == arm->act_bone)) {
-				group_flags[pchan->agrp_index] = 1;
-				tagged= 1;
-			}
-			
-			/* deselect all bones before selecting new ones? */
-			if ((extend == 0) && (pchan->bone->flag & BONE_UNSELECTABLE)==0)
-				pchan->bone->flag &= ~BONE_SELECTED;
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+	{
+		/* keep track of group as group to use later? */
+		if ((pchan->bone->flag & BONE_SELECTED) || (pchan->bone == arm->act_bone)) {
+			group_flags[pchan->agrp_index] = 1;
+			tagged= 1;
 		}
+		
+		/* deselect all bones before selecting new ones? */
+		if ((extend == 0) && (pchan->bone->flag & BONE_UNSELECTABLE)==0)
+			pchan->bone->flag &= ~BONE_SELECTED;
 	}
+	CTX_DATA_END;
 	
 	/* small optimisation: only loop through bones a second time if there are any groups tagged */
 	if (tagged) {
 		/* only if group matches (and is not selected or current bone) */
-		for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
-			if ((arm->layer & pchan->bone->layer) && (pchan->bone->flag & BONE_UNSELECTABLE)==0) {
+		CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+		{
+			if ((pchan->bone->flag & BONE_UNSELECTABLE)==0) {
 				/* check if the group used by this bone is counted */
 				if (group_flags[pchan->agrp_index]) {
 					pchan->bone->flag |= BONE_SELECTED;
@@ -571,6 +524,7 @@ static short pose_select_same_group (Object *ob, short extend)
 				}
 			}
 		}
+		CTX_DATA_END;
 	}
 	
 	/* free temp info */
@@ -579,11 +533,10 @@ static short pose_select_same_group (Object *ob, short extend)
 	return changed;
 }
 
-static short pose_select_same_layer (Object *ob, short extend)
+static short pose_select_same_layer (bContext *C, Object *ob, short extend)
 {
 	bPose *pose= (ob)? ob->pose : NULL;
 	bArmature *arm= (ob)? ob->data : NULL;
-	bPoseChannel *pchan;
 	short changed= 0;
 	int layers= 0;
 	
@@ -591,30 +544,30 @@ static short pose_select_same_layer (Object *ob, short extend)
 		return 0;
 	
 	/* figure out what bones are selected */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (arm->layer & pchan->bone->layer) {
-			/* keep track of layers to use later? */
-			if ((pchan->bone->flag & BONE_SELECTED) || (pchan->bone == arm->act_bone))
-				layers |= pchan->bone->layer;
-				
-			/* deselect all bones before selecting new ones? */
-			if ((extend == 0) && (pchan->bone->flag & BONE_UNSELECTABLE)==0)
-				pchan->bone->flag &= ~BONE_SELECTED;
-		}
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+	{
+		/* keep track of layers to use later? */
+		if ((pchan->bone->flag & BONE_SELECTED) || (pchan->bone == arm->act_bone))
+			layers |= pchan->bone->layer;
+			
+		/* deselect all bones before selecting new ones? */
+		if ((extend == 0) && (pchan->bone->flag & BONE_UNSELECTABLE)==0)
+			pchan->bone->flag &= ~BONE_SELECTED;
 	}
+	CTX_DATA_END;
 	if (layers == 0) 
 		return 0;
 		
 	/* select bones that are on same layers as layers flag */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (arm->layer & pchan->bone->layer) {
-			/* if bone is on a suitable layer, and the bone can have its selection changed, select it */
-			if ((layers & pchan->bone->layer) && (pchan->bone->flag & BONE_UNSELECTABLE)==0) {
-				pchan->bone->flag |= BONE_SELECTED;
-				changed= 1;
-			}
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+	{
+		/* if bone is on a suitable layer, and the bone can have its selection changed, select it */
+		if ((layers & pchan->bone->layer) && (pchan->bone->flag & BONE_UNSELECTABLE)==0) {
+			pchan->bone->flag |= BONE_SELECTED;
+			changed= 1;
 		}
 	}
+	CTX_DATA_END;
 	
 	return changed;
 }
@@ -635,10 +588,10 @@ static int pose_select_grouped_exec (bContext *C, wmOperator *op)
 	 */
 	switch (RNA_enum_get(op->ptr, "type")) {
 		case 1: /* group */
-			changed= pose_select_same_group(ob, extend);
+			changed= pose_select_same_group(C, ob, extend);
 			break;
 		default: /* layer */
-			changed= pose_select_same_layer(ob, extend);
+			changed= pose_select_same_layer(C, ob, extend);
 			break;
 	}
 	
