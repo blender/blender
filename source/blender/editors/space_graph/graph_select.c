@@ -687,7 +687,16 @@ enum {
 	NEAREST_HANDLE_KEY,
 	NEAREST_HANDLE_RIGHT
 } eHandleIndex; 
- 
+
+/* check if its ok to select a handle */
+// XXX also need to check for int-values only?
+static int fcurve_handle_sel_check(SpaceIpo *sipo, BezTriple *bezt)
+{
+	if (sipo->flag & SIPO_NOHANDLES) return 0;
+	if ((sipo->flag & SIPO_SELVHANDLESONLY) && BEZSELECTED(bezt)==0) return 0;
+	return 1;
+}
+
 /* Find the vertex (either handle (0/2) or the keyframe (1)) that is nearest to the mouse cursor (in area coordinates)  
  * Selected verts get a disadvantage, to make it easier to select handles behind.
  * Returns eHandleIndex
@@ -751,8 +760,7 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 				}
 				
 				/* handles - only do them if they're visible */
-				// XXX also need to check for int-values only?
-				if ((sipo->flag & SIPO_NOHANDLES)==0) {
+				if (fcurve_handle_sel_check(sipo, bezt1)) {
 					/* first handle only visible if previous segment had handles */
 					if ( (!prevbezt && (bezt1->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) )
 					{
