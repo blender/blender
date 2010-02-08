@@ -1499,7 +1499,7 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		}
 
 		if(!buf) {
-			BLI_strncpy(str, "", maxlen);
+			str[0] = '\0';
 		}
 		else if(buf && buf != str) {
 			/* string was too long, we have to truncate */
@@ -1511,12 +1511,12 @@ void ui_get_but_string(uiBut *but, char *str, int maxlen)
 		/* ID pointer */
 		if(but->idpoin_idpp) { /* Can be NULL for ID properties by python */
 			ID *id= *(but->idpoin_idpp);
-			if(id)
+			if(id) {
 				BLI_strncpy(str, id->name+2, maxlen);
+				return;
+			}
 		}
-		else {
-			str[0] = '\0';
-		}
+		str[0] = '\0';
 		return;
 	}
 	else if(but->type == TEX) {
@@ -2067,7 +2067,7 @@ void ui_check_but(uiBut *but)
 		
 	case HOTKEYEVT:
 		if (but->flag & UI_SELECT) {
-			strncpy(but->drawstr, "", UI_MAX_DRAW_STR);
+			but->drawstr[0]= '\0';
 			
 			if(but->modifier_key) {
 				char *str= but->drawstr;
