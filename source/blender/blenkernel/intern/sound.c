@@ -11,6 +11,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_sound_types.h"
@@ -282,7 +283,15 @@ void sound_free(struct bSound* sound)
 
 static float sound_get_volume(Scene* scene, Sequence* sequence, float time)
 {
-	struct FCurve* fcu = id_data_find_fcurve(&scene->id, sequence, &RNA_Sequence, "volume", 0);
+	AnimData *adt= BKE_animdata_from_id(&scene->id);
+	FCurve *fcu = NULL;
+	char buf[64];
+	
+	/* NOTE: this manually constructed path needs to be used here to avoid problems with RNA crashes */
+	sprintf(buf, "sequence_editor.sequences_all[\"%s\"].volume", sequence->name+2);
+	if (adt && adt->action && adt->action->curves.first)
+		fcu= list_find_fcurve(&adt->action->curves, buf, 0);
+	
 	if(fcu)
 		return evaluate_fcurve(fcu, time * FPS);
 	else
