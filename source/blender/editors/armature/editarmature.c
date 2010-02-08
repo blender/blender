@@ -5114,11 +5114,20 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 
 	if (action == SEL_TOGGLE) {
-		action = SEL_SELECT;
-		/* Determine if there are any selected bones and therefore whether we are selecting or deselecting */
-		// NOTE: we have to check for > 1 not > 0, since there is almost always an active bone that can't be cleared...
-		if (CTX_DATA_COUNT(C, selected_pose_bones) > 1)
+		bPoseChannel *pchan= CTX_data_active_pose_bone(C);
+		int num_sel = CTX_DATA_COUNT(C, selected_pose_bones);
+		
+		/* cases for deselect:
+		 * 	1) there's only one bone selected, and that is the active one
+		 *	2) there's more than one bone selected
+		 */
+		if ( ((num_sel == 1) && (pchan) && (pchan->bone->flag & BONE_SELECTED)) ||
+			 (num_sel > 1) )
+		{
 			action = SEL_DESELECT;
+		}
+		else 
+			action = SEL_SELECT;
 	}
 	
 	/*	Set the flags */
