@@ -71,6 +71,7 @@
 #include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_utildefines.h"
 
 #include "UI_interface.h"
@@ -1594,7 +1595,8 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
+		if (G.f & G_DEBUG)
+			printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
 		
 		BLI_freelistN(&anim_data);
 		return 0;
@@ -1818,7 +1820,8 @@ static int mouse_anim_channels (bAnimContext *ac, float x, int channel_index, sh
 		}
 			break;
 		default:
-			printf("Error: Invalid channel type in mouse_anim_channels() \n");
+			if (G.f & G_DEBUG)
+				printf("Error: Invalid channel type in mouse_anim_channels() \n");
 	}
 	
 	/* free channels */

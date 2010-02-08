@@ -59,6 +59,7 @@
 #include "BKE_animsys.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -109,7 +110,8 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
+		if (G.f & G_DEBUG)
+			printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
 		
 		BLI_freelistN(&anim_data);
 		return 0;
@@ -298,7 +300,8 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			break;
 			
 		default:
-			printf("Error: Invalid channel type in mouse_nla_channels() \n");
+			if (G.f & G_DEBUG)
+				printf("Error: Invalid channel type in mouse_nla_channels() \n");
 	}
 	
 	/* free channels */
