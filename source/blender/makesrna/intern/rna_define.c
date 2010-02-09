@@ -1703,6 +1703,7 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 			else {
 				dp->dnalengthstructname= structname;
 				dp->dnalengthname= lengthpropname;
+				prop->totarraylength= 0;
 			}
 
 			cprop->next= (PropCollectionNextFunc)"rna_iterator_array_next";
