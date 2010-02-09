@@ -1064,20 +1064,25 @@ static int animchannels_visibility_set_exec(bContext *C, wmOperator *op)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
 	
+	/* get list of all channels that selection may need to be flushed to */
+	filter= ANIMFILTER_CHANNELS;
+	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
 	
 	/* hide all channels not selected */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_UNSEL);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
-	for (ale= anim_data.first; ale; ale= ale->next)
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		/* clear setting first */
 		ANIM_channel_setting_set(&ac, ale, ACHANNEL_SETTING_VISIBLE, ACHANNEL_SETFLAG_CLEAR);
+		
+		/* now also flush selection status as appropriate 
+		 * NOTE: in some cases, this may result in repeat flushing being performed
+		 */
+		ANIM_flush_setting_anim_channels(&ac, &all_data, ale, ACHANNEL_SETTING_VISIBLE, 0);
+	}
 	
 	BLI_freelistN(&anim_data);
-	
-	
-	/* get list of all channels that selection may need to be flushed to */
-	filter= ANIMFILTER_CHANNELS;
-	ANIM_animdata_filter(&ac, &all_data, filter, ac.data, ac.datatype);
 	
 	/* make all the selected channels visible */
 	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL);
