@@ -940,11 +940,10 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 		/* make a copy of filtering flags for use by the sub-channels of this group */
 		filter_gmode= filter_mode;
 		
-		/* if we care about the selection status of the channels and the group's contents, 
+		/* if we care about the selection status of the channels, 
 		 * but the group isn't expanded...
 		 */
 		if ( (filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) &&	/* care about selection status */
-			 (filter_mode & ANIMFILTER_CURVESONLY) &&				/* care about contents of group only */
 			 (EXPANDED_AGRP(agrp)==0) )								/* group isn't expanded */
 		{
 			/* if the group itself isn't selected appropriately, we shouldn't consider it's children either */
@@ -973,10 +972,13 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 		if (first_fcu) {
 			/* add this group as a channel first */
 			if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
+				/* filter selection of channel specially here again, since may be open and not subject to previous test */
+				if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
 				ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
-				if (ale) {
-					BLI_addtail(anim_data, ale);
-					items++;
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
 				}
 			}
 			

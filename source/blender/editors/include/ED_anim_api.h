@@ -365,6 +365,9 @@ typedef struct bAnimChannelType {
 /* Get typeinfo for the given channel */
 bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale);
 
+/* Print debugging info about a given channel */
+void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level);
+
 /* Draw the given channel */
 void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
 /* Draw the widgets for the given channel */

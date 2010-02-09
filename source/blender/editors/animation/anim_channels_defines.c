@@ -2302,6 +2302,36 @@ bAnimChannelType *ANIM_channel_get_typeinfo (bAnimListElem *ale)
 
 /* --------------------------- */
 
+/* Print debug info string for the given channel */
+void ANIM_channel_debug_print_info (bAnimListElem *ale, short indent_level)
+{
+	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
+	
+	/* print indents */
+	for (; indent_level > 0; indent_level--)
+		printf("  ");
+	
+	/* print info */
+	if (acf) {
+		char name[256]; /* hopefully this will be enough! */
+		
+		/* get UI name */
+		if (acf->name)
+			acf->name(ale, name);
+		else
+			sprintf(name, "<No name>");
+			
+		/* print type name + ui name */
+		printf("ChanType: <%s> Name: \"%s\"\n", acf->channel_type_name, name);
+	}
+	else if (ale)
+		printf("ChanType: <Unknown - %d>\n", ale->type);
+	else
+		printf("<Invalid channel - NULL>\n");
+}
+
+/* --------------------------- */
+
 /* Check if some setting for a channel is enabled 
  * Returns: 1 = On, 0 = Off, -1 = Invalid
  */
