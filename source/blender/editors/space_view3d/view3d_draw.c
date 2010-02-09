@@ -2121,8 +2121,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		view3d_update_depths(ar, v3d);
 	}
 	
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
-	
 //	REEB_draw();
 	
 //	if(scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
@@ -2130,6 +2128,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* Transp and X-ray afterdraw stuff */
 	view3d_draw_transp(scene, ar, v3d);
 	view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
+	
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	
 	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
 		view3d_update_depths(ar, v3d);
