@@ -191,7 +191,7 @@ int PE_start_edit(PTCacheEdit *edit)
 
 ParticleEditSettings *PE_settings(Scene *scene)
 {
-	return &scene->toolsettings->particle;
+	return scene->toolsettings ? &scene->toolsettings->particle : NULL;
 }
 
 /* always gets atleast the first particlesystem even if PSYS_CURRENT flag is not set
@@ -205,11 +205,11 @@ static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 	ListBase pidlist;
 	PTCacheID *pid;
 
+	if(pset==NULL || pset->object==NULL)
+		return NULL;
+
 	pset->scene = scene;
 	pset->object = ob;
-
-	if(ob==NULL)
-		return NULL;
 
 	BKE_ptcache_ids_from_object(&pidlist, ob);
 
