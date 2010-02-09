@@ -1274,7 +1274,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "display", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "disp");
 	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_text(prop, "Display", "Percentage of particles to display in 3d view");
+	RNA_def_property_ui_text(prop, "Display", "Percentage of particles to display in 3D view");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
 	prop= RNA_def_property(srna, "material", PROP_INT, PROP_NONE);

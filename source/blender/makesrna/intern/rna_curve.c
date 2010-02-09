@@ -354,7 +354,7 @@ static void rna_def_bpoint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "alfa");
 	/*RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
-	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3d View");
+	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3D View");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop= RNA_def_property(srna, "weight_softbody", PROP_FLOAT, PROP_NONE);
@@ -437,7 +437,7 @@ static void rna_def_beztriple(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "tilt", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "alfa");
 	/*RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);*/
-	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3d View");
+	RNA_def_property_ui_text(prop, "Tilt", "Tilt in 3D View");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop= RNA_def_property(srna, "weight", PROP_FLOAT, PROP_NONE);

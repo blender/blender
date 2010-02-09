@@ -1741,7 +1741,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "display_object_info", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_DRAWVIEWINFO);
-	RNA_def_property_ui_text(prop, "Display Object Info", "Display objects name and frame number in 3d view.");
+	RNA_def_property_ui_text(prop, "Display Object Info", "Display objects name and frame number in 3D view.");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "global_scene", PROP_BOOLEAN, PROP_NONE);
@@ -1869,7 +1869,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	/* 3D transform widget */
 	prop= RNA_def_property(srna, "use_manipulator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "tw_flag", 1);
-	RNA_def_property_ui_text(prop, "Manipulator", "Use 3d transform manipulator.");
+	RNA_def_property_ui_text(prop, "Manipulator", "Use 3D transform manipulator.");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "manipulator_size", PROP_INT, PROP_NONE);
@@ -2308,11 +2308,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "clip_alpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "glalphaclip");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Clip Alpha", "Clip alpha below this threshold in the 3d textured view.");
+	RNA_def_property_ui_text(prop, "Clip Alpha", "Clip alpha below this threshold in the 3D textured view.");
 	
 	prop= RNA_def_property(srna, "use_mipmaps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_MIPMAP);
-	RNA_def_property_ui_text(prop, "Mipmaps", "Scale textures for the 3d View (looks nicer but uses more memory and slows image reloading.)");
+	RNA_def_property_ui_text(prop, "Mipmaps", "Scale textures for the 3D View (looks nicer but uses more memory and slows image reloading.)");
 
 	prop= RNA_def_property(srna, "use_vbos", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_VBO);
