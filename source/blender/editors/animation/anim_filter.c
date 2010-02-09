@@ -876,7 +876,6 @@ static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bAct
 			/* only work with this channel and its subchannels if it is editable */
 			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
 				/* only include this curve if selected in a way consistent with the filtering requirements */
-				// FIXME: the first selection test is buggered, and works wrong for sel+curvesonly filtering
 				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) && ANIMCHANNEL_SELEDITOK(SEL_FCU(fcu)) ) {
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
@@ -931,27 +930,53 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 	// TODO: in future, should we expect to need nested groups?
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		FCurve *first_fcu;
+		int filter_gmode;
 		
 		/* store reference to last channel of group */
 		if (agrp->channels.last) 
 			lastchan= agrp->channels.last;
 		
-		/* get the first F-Curve in this group we can start to use, 
-		 * and if there isn't any F-Curve to start from, then don't 
-		 * this group at all...
+		
+		/* make a copy of filtering flags for use by the sub-channels of this group */
+		filter_gmode= filter_mode;
+		
+		/* if we care about the selection status of the channels and the group's contents, 
+		 * but the group isn't expanded...
 		 */
-		first_fcu = animdata_filter_fcurve_next(ads, agrp->channels.first, agrp, filter_mode, owner_id);
+		if ( (filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) &&	/* care about selection status */
+			 (filter_mode & ANIMFILTER_CURVESONLY) &&				/* care about contents of group only */
+			 (EXPANDED_AGRP(agrp)==0) )								/* group isn't expanded */
+		{
+			/* if the group itself isn't selected appropriately, we shouldn't consider it's children either */
+			if (ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) == 0)
+				continue;
+			
+			/* if we're still here, then the selection status of the curves within this group should not matter,
+			 * since this creates too much overhead for animators (i.e. making a slow workflow)
+			 *
+			 * Tools affected by this at time of coding (2010 Feb 09):
+			 *	- inserting keyframes on selected channels only
+			 *	- pasting keyframes
+			 *	- creating ghost curves in Graph Editor
+			 */
+			filter_gmode &= ~(ANIMFILTER_SEL|ANIMFILTER_UNSEL);
+		}
+		
+		
+		/* get the first F-Curve in this group we can start to use, and if there isn't any F-Curve to start from,  
+		 * then don't use this group at all...
+		 *
+		 * NOTE: use filter_gmode here not filter_mode, since there may be some flags we shouldn't consider under certain circumstances
+		 */
+		first_fcu = animdata_filter_fcurve_next(ads, agrp->channels.first, agrp, filter_gmode, owner_id);
 		
 		if (first_fcu) {
 			/* add this group as a channel first */
 			if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
-				/* check if filtering by selection */
-				if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
-					ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
-					if (ale) {
-						BLI_addtail(anim_data, ale);
-						items++;
-					}
+				ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
+				if (ale) {
+					BLI_addtail(anim_data, ale);
+					items++;
 				}
 			}
 			
@@ -966,7 +991,6 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 				 *	- group is expanded
 				 *	- we just need the F-Curves present
 				 */
-				// FIXME: checking if groups are expanded is only valid if in one or other modes
 				if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || (filter_mode & ANIMFILTER_CURVESONLY) ) 
 				{
 					/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
@@ -976,7 +1000,8 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 					if ( !(filter_mode & ANIMFILTER_CURVEVISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
 					{
 						if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
-							items += animdata_filter_fcurves(anim_data, ads, first_fcu, agrp, owner, ownertype, filter_mode, owner_id);
+							/* NOTE: filter_gmode is used here, not standard filter_mode, since there may be some flags that shouldn't apply */
+							items += animdata_filter_fcurves(anim_data, ads, first_fcu, agrp, owner, ownertype, filter_gmode, owner_id);
 						}
 					}
 				}
