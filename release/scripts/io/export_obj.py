@@ -928,7 +928,11 @@ class ExportOBJ(bpy.types.Operator):
 
     def execute(self, context):
 
-        do_export(self.properties.path, context,
+        path = self.properties.path
+        if not path.lower().endswith(".obj"):
+            path += ".obj"
+
+        do_export(path, context,
                   EXPORT_TRI=self.properties.use_triangles,
                   EXPORT_EDGES=self.properties.use_edges,
                   EXPORT_NORMALS=self.properties.use_normals,

@@ -897,7 +897,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         row = sub.row()
         row.active = (settings.brush.imagepaint_tool == 'CLONE')
 
-        row.prop(ipaint, "use_clone_layer", text="Clone")
+        row.prop(ipaint, "use_clone_layer", text="Layer")
         row.menu("VIEW3D_MT_tools_projectpaint_clone", text=context.active_object.data.uv_texture_clone.name)
 
         sub = col.column()

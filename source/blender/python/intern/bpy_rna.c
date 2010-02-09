@@ -2599,7 +2599,7 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 {
 	/* Try get values from a collection */
 	PyObject *ret;
-	PyObject *iter;
+	PyObject *iter= NULL;
 	
 	if(RNA_property_array_check(&self->ptr, self->prop)) {
 		int len= pyrna_prop_array_length(self);
@@ -2614,9 +2614,13 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 	}
 	
 	
-	/* we know this is a list so no need to PyIter_Check */
-	iter = PyObject_GetIter(ret);
-	Py_DECREF(ret);
+	/* we know this is a list so no need to PyIter_Check
+	 * otherwise it could be NULL (unlikely) if conversion failed */
+	if(ret) {
+		iter = PyObject_GetIter(ret);
+		Py_DECREF(ret);
+	}
+
 	return iter;
 }
 
