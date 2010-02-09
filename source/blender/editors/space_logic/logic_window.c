@@ -2156,11 +2156,11 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 					if(sa->flag & ACT_SND_3D_SOUND)
 					{
 						uiDefButF(block, NUM, 0, "Minimum Gain: ", xco+10, yco-110, wval, 19, &sa->sound3D.min_gain, 0.0, 1.0, 0.0, 0.0, "The minimum gain of the sound, no matter how far it is away.");
-						uiDefButF(block, NUM, 0, "Maximum Gain: ", xco+10, yco-132, wval, 19, &sa->sound3D.max_gain, 0.0, 1.0, 0.0, 0.0, "The maximum gain of the sound, no matter how near it is..");
+						uiDefButF(block, NUM, 0, "Maximum Gain: ", xco+10, yco-132, wval, 19, &sa->sound3D.max_gain, 0.0, 1.0, 0.0, 0.0, "The maximum gain of the sound, no matter how near it is.");
 						uiDefButF(block, NUM, 0, "Reference Distance: ", xco+10, yco-154, wval, 19, &sa->sound3D.reference_distance, 0.0, FLT_MAX, 0.0, 0.0, "The reference distance is the distance where the sound has a gain of 1.0.");
 						uiDefButF(block, NUM, 0, "Maximum Distance: ", xco+10, yco-176, wval, 19, &sa->sound3D.max_distance, 0.0, FLT_MAX, 0.0, 0.0, "The maximum distance at which you can hear the sound.");
 						uiDefButF(block, NUM, 0, "Rolloff: ", xco+wval+10, yco-110, wval, 19, &sa->sound3D.rolloff_factor, 0.0, 5.0, 0.0, 0.0, "The rolloff factor defines the influence factor on volume depending on distance.");
-						uiDefButF(block, NUM, 0, "Cone Outer Gain: ", xco+wval+10, yco-132, wval, 19, &sa->sound3D.cone_outer_gain, 0.0, 1.0, 0.0, 0.0, "The gain outside the outer cone. The gain in the outer cone will be interpolated between this value und the normal gain in the inner cone.");
+						uiDefButF(block, NUM, 0, "Cone Outer Gain: ", xco+wval+10, yco-132, wval, 19, &sa->sound3D.cone_outer_gain, 0.0, 1.0, 0.0, 0.0, "The gain outside the outer cone. The gain in the outer cone will be interpolated between this value and the normal gain in the inner cone.");
 						uiDefButF(block, NUM, 0, "Cone Outer Angle: ", xco+wval+10, yco-154, wval, 19, &sa->sound3D.cone_outer_angle, 0.0, 360.0, 0.0, 0.0, "The angle of the outer cone.");
 						uiDefButF(block, NUM, 0, "Cone Inner Angle: ", xco+wval+10, yco-176, wval, 19, &sa->sound3D.cone_inner_angle, 0.0, 360.0, 0.0, 0.0, "The angle of the inner cone.");
 					}
@@ -2882,7 +2882,7 @@ static short draw_actuatorbuttons(Object *ob, bActuator *act, uiBlock *block, sh
 				but = uiDefBut(block, TEX, 1, "Cons: ",
 						(xco+5)+(width-10)/2, (yco-44), (width-10)/2, 19,
 						armAct->constraint, 0, 31, 0, 0,
-						"Name of the constraint you want to controle");
+						"Name of the constraint you want to control");
 				uiButSetFunc(but, check_armature_actuator, but, armAct);
 				uiBlockEndAlign(block);
 				ysize = 48;

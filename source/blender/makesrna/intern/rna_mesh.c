@@ -1258,7 +1258,6 @@ static void rna_def_mtface(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_LIGHT);
 	RNA_def_property_ui_text(prop, "Light", "Use light for face");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 	prop= RNA_def_property(srna, "invisible", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", TF_INVISIBLE);

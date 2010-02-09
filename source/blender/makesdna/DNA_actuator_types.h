@@ -63,13 +63,13 @@ typedef struct bActionActuator {
 
 typedef struct bSoundActuator {
 	short flag, sndnr;
-	int sta, end;
-	short pad1[2];
+	int pad1, pad2;
+	short pad3[2];
 	float volume, pitch;
 	struct bSound *sound;
 	struct Sound3D sound3D;
-	short type, makecopy;
-	short copymade, pad2[1];
+	short type, pad4;
+	short pad5, pad6[1];
 } bSoundActuator;
 
 typedef struct bEditObjectActuator {
@@ -93,16 +93,16 @@ typedef struct bSceneActuator {
 } bSceneActuator;
 
 typedef struct bPropertyActuator {
-	int flag, type;
+	int pad, type;
 	char name[32], value[32];
-	struct Object *ob;
+	struct Object *ob; // not in use anymore
 } bPropertyActuator;
 
 typedef struct bObjectActuator {
 	short flag, type, otype;
 	short damping;
 	float forceloc[3], forcerot[3];
-	float loc[3], rot[3];
+	float pad[3], pad1[3];
 	float dloc[3], drot[3];
 	float linearvelocity[3], angularvelocity[3];
 	struct Object *reference;
@@ -502,6 +502,12 @@ typedef struct FreeCamera {
 #define ACT_ARM_SETWEIGHT	4
 /* update this define if more type are addedd */
 #define ACT_ARM_MAXTYPE		4
+
+/* stateactuator->type */
+#define ACT_STATE_SET		0
+#define ACT_STATE_ADD		1
+#define ACT_STATE_REMOVE	2
+#define ACT_STATE_CHANGE	3
 
 #endif
 
