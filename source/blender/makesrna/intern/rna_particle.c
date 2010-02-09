@@ -1450,7 +1450,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	/* initial velocity factors */
 	prop= RNA_def_property(srna, "normal_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "normfac");//optional if prop names are the same
-	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_range(prop, -1000.0f, 1000.0f);
+	RNA_def_property_ui_range(prop, 0, 100, 1, 2);
 	RNA_def_property_ui_text(prop, "Normal", "Let the surface normal give the particle a starting speed.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -1464,6 +1465,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "random_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "randfac");//optional if prop names are the same
 	RNA_def_property_range(prop, 0.0f, 200.0f);
+	RNA_def_property_ui_range(prop, 0, 100, 1, 2);
 	RNA_def_property_ui_text(prop, "Random", "Give the starting speed a random variation.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -1476,7 +1478,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "tangent_factor", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "tanfac");
-	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_range(prop, -1000.0f, 1000.0f);
+	RNA_def_property_ui_range(prop, -100, 100, 1, 2);
 	RNA_def_property_ui_text(prop, "Tangent", "Let the surface tangent give the particle a starting speed.");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
@@ -1496,6 +1499,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "ob_vel");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_range(prop, -200.0f, 200.0f);
+	RNA_def_property_ui_range(prop, -100, 100, 1, 2);
 	RNA_def_property_ui_text(prop, "Object Aligned", "Let the emitter object orientation give the particle a starting speed");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
