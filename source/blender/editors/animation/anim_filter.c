@@ -471,6 +471,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 		ale->data= data;
 		ale->type= datatype;
 			// XXX what is the point of the owner data?
+			// xxx try and use this to simplify the problem of finding whether parent channels are working...
 		ale->owner= owner;
 		ale->ownertype= ownertype;
 		
@@ -938,16 +939,10 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 		/* get the first F-Curve in this group we can start to use, 
 		 * and if there isn't any F-Curve to start from, then don't 
 		 * this group at all...
-		 *
-		 * exceptions for when we might not care whether there's anything inside this group or not
-		 *	- if we're interested in channels and their selections, in which case group channel should get considered too
-		 *	  even if all its sub channels are hidden...
 		 */
 		first_fcu = animdata_filter_fcurve_next(ads, agrp->channels.first, agrp, filter_mode, owner_id);
 		
-		if ( (filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) ||
-			 (first_fcu) ) 
-		{
+		if (first_fcu) {
 			/* add this group as a channel first */
 			if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
 				/* check if filtering by selection */
