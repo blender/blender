@@ -320,6 +320,14 @@ static int movie_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	return 0;
 }
 
+static int sound_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_PATH)
+		if(ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK))	/* rule might not work? */
+			return 1;
+	return 0;
+}
+
 static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	/* copy drag path to properties */
@@ -333,6 +341,7 @@ static void sequencer_dropboxes(void)
 	
 	WM_dropbox_add(lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy);
 	WM_dropbox_add(lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy);
+	WM_dropbox_add(lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy);
 }
 
 /* ************* end drop *********** */
