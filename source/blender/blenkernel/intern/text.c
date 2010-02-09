@@ -2370,7 +2370,11 @@ static char tab_to_spaces[] = "    ";
 
 static void txt_convert_tab_to_spaces (Text *text)
 {
-	char *sb = &tab_to_spaces[text->curl->len % TXT_TABSIZE];
+	/* sb aims to pad adjust the tab-width needed so that the right number of spaces
+	 * is added so that the indention of the line is the right width (i.e. aligned
+	 * to multiples of TXT_TABSIZE)
+	 */
+	char *sb = &tab_to_spaces[text->curc % TXT_TABSIZE];
 	txt_insert_buf(text, sb);
 }
 
