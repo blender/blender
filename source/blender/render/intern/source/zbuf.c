@@ -2288,8 +2288,9 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 	zbuf_alloc_span(&zspan, size, size, 1.0f);
 	zspan.zmulx=  ((float)size)/2.0;
 	zspan.zmuly=  ((float)size)/2.0;
-	zspan.zofsx= jitx;
-	zspan.zofsy= jity;
+	/* -0.5f to center the sample position */
+	zspan.zofsx= jitx - 0.5f;
+	zspan.zofsy= jity - 0.5f;
 	
 	/* the buffers */
 	zspan.rectz= rectz;
@@ -3280,11 +3281,9 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 			zspan->zofsy= -pa->disprect.ymin;
 		}
 
-		if(!shadow) {
-			/* to center the sample position */
-			zspan->zofsx -= 0.5f;
-			zspan->zofsy -= 0.5f;
-		}
+		/* to center the sample position */
+		zspan->zofsx -= 0.5f;
+		zspan->zofsy -= 0.5f;
 	}
 	
 	/* we use this to test if nothing was filled in */

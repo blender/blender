@@ -1086,13 +1086,27 @@ static float readshadowbuf(ShadBuf *shb, ShadSampleBuf *shsample, int bias, int 
 	}
 }
 
+static void shadowbuf_project_co(float *x, float *y, float *z, ShadBuf *shb, float co[3])
+{
+	float hco[4], size= 0.5f*(float)shb->size;
+
+	copy_v3_v3(hco, co);
+	hco[3]= 1.0f;
+
+	mul_m4_v4(shb->persmat, hco);
+
+	*x= size*(1.0f+hco[0]/hco[3]);
+	*y= size*(1.0f+hco[1]/hco[3]);
+	if(z) *z= (hco[2]/hco[3]);
+}
+
 /* the externally called shadow testing (reading) function */
 /* return 1.0: no shadow at all */
-float testshadowbuf(Render *re, ShadBuf *shb, float *rco, float *dxco, float *dyco, float inp, float mat_bias)
+float testshadowbuf(Render *re, ShadBuf *shb, float *co, float *dxco, float *dyco, float inp, float mat_bias)
 {
 	ShadSampleBuf *shsample;
-	float fac, co[4], dx[3], dy[3], shadfac=0.0f;
-	float xs1,ys1, siz, *jit, *weight, xres, yres, biasf;
+	float fac, dco[3], dx[3], dy[3], shadfac=0.0f;
+	float xs1, ys1, zs1, *jit, *weight, xres, yres, biasf;
 	int xs, ys, zs, bias, *rz;
 	short a, num;
 	
@@ -1100,42 +1114,35 @@ float testshadowbuf(Render *re, ShadBuf *shb, float *rco, float *dxco, float *dy
 	if(shb->buffers.first==NULL)
 		return 1.0f;
 	
-	if(inp <= 0.0f) return 0.0f;
-
-	/* rotate renderco en osaco */
-	siz= 0.5f*(float)shb->size;
-	VECCOPY(co, rco);
-	co[3]= 1.0f;
-
-	mul_m4_v4(shb->persmat, co);	/* rational hom co */
-
-	xs1= siz*(1.0f+co[0]/co[3]);
-	ys1= siz*(1.0f+co[1]/co[3]);
-
-	/* Clip for z: clipsta and clipend clip values of the shadow buffer. We
-		* can test for -1.0/1.0 because of the properties of the
-		* coordinate transformations. */
-	fac= (co[2]/co[3]);
-
-	if(fac>=1.0f) {
+	/* when facing away, assume fully in shadow */
+	if(inp <= 0.0f)
 		return 0.0f;
-	} else if(fac<= -1.0f) {
-		return 1.0f;
-	}
 
-	zs= ((float)0x7FFFFFFF)*fac;
+	/* project coordinate to pixel space */
+	shadowbuf_project_co(&xs1, &ys1, &zs1, shb, co);
+
+	/* clip z coordinate, z is projected so that (-1.0, 1.0) matches
+	   (clipstart, clipend), so we can do this simple test */
+	if(zs1>=1.0f)
+		return 0.0f;
+	else if(zs1<= -1.0f)
+		return 1.0f;
+
+	zs= ((float)0x7FFFFFFF)*zs1;
 
 	/* take num*num samples, increase area with fac */
 	num= get_render_shadow_samples(&re->r, shb->samp);
 	num= num*num;
 	fac= shb->soft;
 	
+	/* compute z bias */
 	if(mat_bias!=0.0f) biasf= shb->bias*mat_bias;
 	else biasf= shb->bias;
 	/* with inp==1.0, bias is half the size. correction value was 1.1, giving errors 
 	   on cube edges, with one side being almost frontal lighted (ton)  */
 	bias= (1.5f-inp*inp)*biasf;
 	
+	/* in case of no filtering we can do things simpler */
 	if(num==1) {
 		for(shsample= shb->buffers.first; shsample; shsample= shsample->next)
 			shadfac += readshadowbuf(shb, shsample, bias, (int)xs1, (int)ys1, zs);
@@ -1144,30 +1151,26 @@ float testshadowbuf(Render *re, ShadBuf *shb, float *rco, float *dxco, float *dy
 	}
 
 	/* calculate filter size */
-	co[0]= rco[0]+dxco[0];
-	co[1]= rco[1]+dxco[1];
-	co[2]= rco[2]+dxco[2];
-	co[3]= 1.0;
-	mul_m4_v4(shb->persmat,co);     /* rational hom co */
-	dx[0]= xs1- siz*(1.0+co[0]/co[3]);
-	dx[1]= ys1- siz*(1.0+co[1]/co[3]);
-	
-	co[0]= rco[0]+dyco[0];
-	co[1]= rco[1]+dyco[1];
-	co[2]= rco[2]+dyco[2];
-	co[3]= 1.0;
-	mul_m4_v4(shb->persmat,co);     /* rational hom co */
-	dy[0]= xs1- siz*(1.0+co[0]/co[3]);
-	dy[1]= ys1- siz*(1.0+co[1]/co[3]);
-	
-	xres= fac*( fabs(dx[0])+fabs(dy[0]) );
-	yres= fac*( fabs(dx[1])+fabs(dy[1]) );
-	if(xres<fac) xres= fac;
-	if(yres<fac) yres= fac;
-	
-	xs1-= (xres)/2;
-	ys1-= (yres)/2;
+	add_v3_v3v3(dco, co, dxco);
+	shadowbuf_project_co(&dx[0], &dx[1], NULL, shb, dco);
+	dx[0]= xs1 - dx[0];
+	dx[1]= ys1 - dx[1];
 
+	add_v3_v3v3(dco, co, dyco);
+	shadowbuf_project_co(&dy[0], &dy[1], NULL, shb, dco);
+	dy[0]= xs1 - dy[0];
+	dy[1]= ys1 - dy[1];
+	
+	xres= fac*(fabs(dx[0]) + fabs(dy[0]));
+	yres= fac*(fabs(dx[1]) + fabs(dy[1]));
+	if(xres<1.0f) xres= 1.0f;
+	if(yres<1.0f) yres= 1.0f;
+	
+	/* make xs1/xs1 corner of sample area */
+	xs1 -= xres*0.5f;
+	ys1 -= yres*0.5f;
+
+	/* in case we have a constant value in a tile, we can do quicker lookup */
 	if(xres<16.0f && yres<16.0f) {
 		shsample= shb->buffers.first;
 	    if(firstreadshadbuf(shb, shsample, &rz, (int)xs1, (int)ys1, 0)) {
@@ -1181,6 +1184,7 @@ float testshadowbuf(Render *re, ShadBuf *shb, float *rco, float *dxco, float *dy
 	    }
 	}
 	
+	/* full jittered shadow buffer lookup */
 	for(shsample= shb->buffers.first; shsample; shsample= shsample->next) {
 		jit= shb->jit;
 		weight= shb->weight;

@@ -3407,7 +3407,7 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	/* bias is percentage, made 2x larger because of correction for angle of incidence */
 	/* when a ray is closer to parallel of a face, bias value is increased during render */
 	shb->bias= (0.02*lar->bias)*0x7FFFFFFF;
-	shb->bias= shb->bias*(100/re->r.size);
+	shb->bias= shb->bias;
 	
 	/* halfway method (average of first and 2nd z) reduces bias issues */
 	if(ELEM(lar->buftype, LA_SHADBUF_HALFWAY, LA_SHADBUF_DEEP))
