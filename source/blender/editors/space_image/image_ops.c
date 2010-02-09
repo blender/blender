@@ -1791,6 +1791,51 @@ void IMAGE_OT_record_composite(wmOperatorType *ot)
 	ot->poll= space_image_poll;
 }
 
+/********************* cycle render slot operator *********************/
+
+static int cycle_render_slot_poll(bContext *C)
+{
+	Image *ima= CTX_data_edit_image(C);
+
+	return (ima && ima->type == IMA_TYPE_R_RESULT);
+}
+
+static int cycle_render_slot_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	int a, slot, cur= RE_GetViewSlot();
+
+	for(a=1; a<RE_SLOT_MAX; a++) {
+		slot= (cur+a)%RE_SLOT_MAX;
+
+		if(RE_GetRender(scene->id.name, slot)) {
+			RE_SetViewSlot(slot);
+			break;
+		}
+	}
+
+	if(a == RE_SLOT_MAX)
+		RE_SetViewSlot((cur == 1)? 0: 1);
+
+	WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Cycle Render Slot";
+	ot->idname= "IMAGE_OT_cycle_render_slot";
+	
+	/* api callbacks */
+	ot->exec= cycle_render_slot_exec;
+	ot->poll= cycle_render_slot_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /******************** TODO ********************/
 
 /* XXX notifier? */
@@ -1842,4 +1887,5 @@ void BIF_image_update_frame(void)
 	}
 }
 #endif
+
 

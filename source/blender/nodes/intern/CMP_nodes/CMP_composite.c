@@ -50,7 +50,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 		RenderData *rd= data;
 		
 		if(scene && (rd->scemode & R_DOCOMP)) {
-			Render *re= RE_GetRender(scene->id.name);
+			Render *re= RE_GetRender(scene->id.name, RE_SLOT_RENDERING);
 			RenderResult *rr= RE_AcquireResultWrite(re); 
 			if(rr) {
 				CompBuf *outbuf, *zbuf=NULL;

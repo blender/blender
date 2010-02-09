@@ -113,6 +113,7 @@ struct Render
 {
 	struct Render *next, *prev;
 	char name[RE_MAXNAME];
+	int slot;
 	
 	/* state settings */
 	short flag, osa, ok, result_ok;

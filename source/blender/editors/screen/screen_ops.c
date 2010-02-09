@@ -2885,10 +2885,10 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 static int screen_render_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Render *re= RE_GetRender(scene->id.name);
+	Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
 	
 	if(re==NULL) {
-		re= RE_NewRender(scene->id.name);
+		re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
 	}
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
 	
@@ -3236,7 +3236,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->image= ima;
 	
 	/* setup new render */
-	re= RE_NewRender(scene->id.name);
+	re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
 	RE_test_break_cb(re, rj, render_breakjob);
 	RE_display_draw_cb(re, rj, image_rect_update);
 	RE_stats_draw_cb(re, rj, image_renderinfo_cb);
@@ -3398,7 +3398,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->iuser.ok= 1;
 	
 	/* create render and render result */
-	oglrender->re= RE_NewRender(scene->id.name);
+	oglrender->re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
 	RE_InitState(oglrender->re, NULL, &scene->r, NULL, sizex, sizey, NULL);
 	
 	rr= RE_AcquireResultWrite(oglrender->re);

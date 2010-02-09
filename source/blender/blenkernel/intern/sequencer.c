@@ -2049,7 +2049,6 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		Scene *sce= seq->scene;// *oldsce= scene;
 		Render *re;
 		RenderResult rres;
-		char scenename[64];
 		int have_seq= FALSE;
 		int sce_valid= FALSE;
 
@@ -2093,11 +2092,10 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 
 			oldcfra = seq->scene->r.cfra;
 
-			if(rendering) {
-				BLI_strncpy(scenename, sce->id.name+2, 64);
-				strcpy(sce->id.name+2, " do_build_seq_ibuf");
-			}
-			re= RE_NewRender(sce->id.name);
+			if(rendering)
+				re= RE_NewRender(" do_build_seq_ibuf", RE_SLOT_DEFAULT);
+			else
+				re= RE_NewRender(sce->id.name, RE_SLOT_VIEW);
 			
 			/* prevent eternal loop */
 			doseq= scene->r.scemode & R_DOSEQ;
@@ -2105,9 +2103,6 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			
 			RE_BlenderFrame(re, sce, NULL,
 					seq->sfra+se->nr+seq->anim_startofs);
-			
-			if(rendering)
-				BLI_strncpy(sce->id.name+2, scenename, 64);
 			
 			RE_AcquireResultImage(re, &rres);
 			

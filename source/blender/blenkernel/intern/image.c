@@ -1088,7 +1088,7 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 
 	{
-		Render *re= RE_GetRender(scene->id.name);
+		Render *re= RE_GetRender(scene->id.name, RE_SLOT_RENDERING);
 		RenderStats *stats= re ? RE_GetStats(re):NULL;
 
 		if (stats && (scene->r.stamp & R_STAMP_RENDERTIME)) {
@@ -1599,7 +1599,7 @@ RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, Image *ima)
 	if(ima->rr)
 		return ima->rr;
 	else if(ima->type==IMA_TYPE_R_RESULT)
-		return RE_AcquireResultRead(RE_GetRender(scene->id.name));
+		return RE_AcquireResultRead(RE_GetRender(scene->id.name, RE_SLOT_VIEW));
 	return NULL;
 }
 
@@ -1607,7 +1607,7 @@ void BKE_image_release_renderresult(struct Scene *scene, Image *ima)
 {
 	if(ima->rr);
 	else if(ima->type==IMA_TYPE_R_RESULT)
-		RE_ReleaseResult(RE_GetRender(scene->id.name));
+		RE_ReleaseResult(RE_GetRender(scene->id.name, RE_SLOT_VIEW));
 }
 
 /* after imbuf load, openexr type can return with a exrhandle open */
@@ -1919,7 +1919,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		return NULL;
 
 	if(iuser && iuser->scene) {
-		re= RE_GetRender(iuser->scene->id.name);
+		re= RE_GetRender(iuser->scene->id.name, RE_SLOT_VIEW);
 		rr= RE_AcquireResultRead(re);
 
 		/* release is done in BKE_image_release_ibuf using lock_r */
@@ -1953,7 +1953,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		pass= (iuser)? iuser->pass: 0;
 		
 		/* this gives active layer, composite or seqence result */
-		RE_AcquireResultImage(RE_GetRender(iuser->scene->id.name), &rres);
+		RE_AcquireResultImage(RE_GetRender(iuser->scene->id.name, RE_SLOT_VIEW), &rres);
 		rect= (unsigned int *)rres.rect32;
 		rectf= rres.rectf;
 		rectz= rres.rectz;
