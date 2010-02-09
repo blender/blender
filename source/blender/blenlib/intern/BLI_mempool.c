@@ -69,6 +69,7 @@ BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk, int use_sysmall
 	pool->pchunk = pchunk;	
 	pool->csize = esize * pchunk;
 	pool->chunks.first = pool->chunks.last = NULL;
+	pool->totused= 0;
 	
 	maxchunks = tote / pchunk + 1;
 	
