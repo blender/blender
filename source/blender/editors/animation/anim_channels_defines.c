@@ -2398,12 +2398,12 @@ short ANIM_channel_setting_get (bAnimContext *ac, bAnimListElem *ale, int settin
 #define ACF_SETTING_SET(sval, sflag, smode) \
 	{\
 		if (negflag) {\
-			if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(sval) ^= (sflag); \
+			if (smode == ACHANNEL_SETFLAG_INVERT) 	(sval) ^= (sflag); \
 			else if (smode == ACHANNEL_SETFLAG_ADD) (sval) &= ~(sflag); \
 			else 									(sval) |= (sflag); \
 		} \
 		else {\
-			if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(sval) ^= (sflag); \
+			if (smode == ACHANNEL_SETFLAG_INVERT) 	(sval) ^= (sflag); \
 			else if (smode == ACHANNEL_SETFLAG_ADD) (sval) |= (sflag); \
 			else 									(sval) &= ~(sflag); \
 		}\

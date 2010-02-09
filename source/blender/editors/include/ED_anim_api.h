@@ -311,9 +311,10 @@ short ANIM_animdata_context_getdata(bAnimContext *ac);
 
 /* flag-setting behaviour */
 typedef enum eAnimChannels_SetFlag {
-	ACHANNEL_SETFLAG_CLEAR = 0,
-	ACHANNEL_SETFLAG_ADD,
-	ACHANNEL_SETFLAG_TOGGLE
+	ACHANNEL_SETFLAG_CLEAR = 0,		/* turn off */
+	ACHANNEL_SETFLAG_ADD,			/* turn on */
+	ACHANNEL_SETFLAG_INVERT,		/* on->off, off->on */
+	ACHANNEL_SETFLAG_TOGGLE,		/* some on -> all off // all on */
 } eAnimChannels_SetFlag;
 
 /* types of settings for AnimChannels */
@@ -504,24 +505,24 @@ void ANIM_unit_mapping_apply_fcurve(struct Scene *scene, struct ID *id, struct F
 
 /* set/clear/toggle macro 
  *	- channel - channel with a 'flag' member that we're setting
- *	- smode - 0=clear, 1=set, 2=toggle
+ *	- smode - 0=clear, 1=set, 2=invert
  *	- sflag - bitflag to set
  */
 #define ACHANNEL_SET_FLAG(channel, smode, sflag) \
 	{ \
-		if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(channel)->flag ^= (sflag); \
+		if (smode == ACHANNEL_SETFLAG_INVERT) 	(channel)->flag ^= (sflag); \
 		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag |= (sflag); \
 		else 									(channel)->flag &= ~(sflag); \
 	}
 	
 /* set/clear/toggle macro, where the flag is negative 
  *	- channel - channel with a 'flag' member that we're setting
- *	- smode - 0=clear, 1=set, 2=toggle
+ *	- smode - 0=clear, 1=set, 2=invert
  *	- sflag - bitflag to set
  */
 #define ACHANNEL_SET_FLAG_NEG(channel, smode, sflag) \
 	{ \
-		if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(channel)->flag ^= (sflag); \
+		if (smode == ACHANNEL_SETFLAG_INVERT) 	(channel)->flag ^= (sflag); \
 		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag &= ~(sflag); \
 		else 									(channel)->flag |= (sflag); \
 	}
