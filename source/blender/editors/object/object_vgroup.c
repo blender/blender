@@ -75,6 +75,7 @@
 #include "object_intern.h"
 
 /************************ Exported Functions **********************/
+static void vgroup_remap_update_users(Object *ob, int *map);
 
 static Lattice *vgroup_edit_lattice(Object *ob)
 {
@@ -151,6 +152,56 @@ int ED_vgroup_give_array(ID *id, MDeformVert **dvert_arr, int *dvert_tot)
 	*dvert_tot= 0;
 	return FALSE;
 }
+
+/* matching index only */
+int ED_vgroup_copy_array(Object *ob, Object *ob_from)
+{
+	MDeformVert *dvert_array_from, *dvf;
+	MDeformVert *dvert_array, *dv;
+
+	int dvert_tot_from;
+	int dvert_tot;
+	int i;
+	int totdef_from= BLI_countlist(&ob_from->defbase);
+	int totdef= BLI_countlist(&ob->defbase);
+
+	ED_vgroup_give_array(ob_from->data, &dvert_array_from, &dvert_tot_from);
+	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
+
+	if(ob==ob_from || dvert_tot==0 || (dvert_tot != dvert_tot_from))
+		return 0;
+
+	/* do the copy */
+	BLI_freelistN(&ob->defbase);
+	BLI_duplicatelist(&ob->defbase, &ob_from->defbase);
+	ob->actdef= ob_from->actdef;
+
+	if(totdef_from < totdef) {
+		/* correct vgroup indices because the number of vgroups is being reduced. */
+		int *remap= MEM_mallocN(sizeof(int) * (totdef + 1), "ED_vgroup_copy_array");
+		for(i=0; i<=totdef_from; i++) remap[i]= i;
+		for(; i<=totdef; i++) remap[i]= 0; /* cany use these, so disable */
+
+		vgroup_remap_update_users(ob, remap);
+		MEM_freeN(remap);
+	}
+
+	dvf= dvert_array_from;
+	dv= dvert_array;
+
+	for(i=0; i<dvert_tot; i++, dvf++, dv++) {
+		if(dv->dw)
+			MEM_freeN(dv->dw);
+
+		*dv= *dvf;
+
+		if(dv->dw)
+			dv->dw= MEM_dupallocN(dv->dw);
+	}
+
+	return 1;
+}
+
 /* for mesh in object mode
    lattice can be in editmode */
 void ED_vgroup_nr_vert_remove(Object *ob, int def_nr, int vertnum)
@@ -1758,13 +1809,43 @@ static int vertex_group_copy_to_linked_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Copy Vertex Group to Linked";
+	ot->name= "Copy Vertex Groups to Linked";
 	ot->idname= "OBJECT_OT_vertex_group_copy_to_linked";
 	ot->description= "Copy Vertex Groups to all users of the same Geometry data.";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
 	ot->exec= vertex_group_copy_to_linked_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
+{
+	Object *obact= CTX_data_pointer_get_type(C, "object", &RNA_Object).data;
+
+	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects)
+	{
+		if(obact != ob)
+			ED_vgroup_copy_array(ob, obact);
+	}
+	CTX_DATA_END;
+
+	return OPERATOR_FINISHED;
+}
+
+
+void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Vertex Group to Selected";
+	ot->idname= "OBJECT_OT_vertex_group_copy_to_selected";
+	ot->description= "Copy Vertex Groups to other selected objects with matching indicies.";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_copy_to_selected_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
