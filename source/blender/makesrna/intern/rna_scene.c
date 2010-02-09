@@ -833,7 +833,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	
 	prop= RNA_def_property(srna, "snap_project", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "snap_flag", SCE_SNAP_PROJECT);
-	RNA_def_property_ui_text(prop, "Project Individual Elements", "DOC_BROKEN");
+	RNA_def_property_ui_text(prop, "Project Individual Elements", "Project vertices over other objects surface.");
 	RNA_def_property_ui_icon(prop, ICON_RETOPO, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_TOOLSETTINGS, NULL); /* header redraw */
 
