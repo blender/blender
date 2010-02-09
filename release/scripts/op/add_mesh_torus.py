@@ -92,7 +92,7 @@ class AddTorus(bpy.types.Operator):
             default=48, min=3, max=256)
     minor_segments = IntProperty(name="Minor Segments",
             description="Number of segments for the minor ring of the torus",
-            default=16, min=3, max=256)
+            default=12, min=3, max=256)
     use_abso = BoolProperty(name="Use Int+Ext Controls",
             description="Use the Int / Ext controls for torus dimensions",
             default=False)
@@ -121,6 +121,7 @@ class AddTorus(bpy.types.Operator):
         mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
         mesh.verts.foreach_set("co", verts_loc)
         mesh.faces.foreach_set("verts_raw", faces)
+        mesh.faces.foreach_set("smooth", [False] * len(mesh.faces))
 
         scene = context.scene
 
