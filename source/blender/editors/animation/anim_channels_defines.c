@@ -468,6 +468,8 @@ static void *acf_summary_setting_ptr(bAnimListElem *ale, int setting, short *typ
 /* all animation summary (DopeSheet only) type define */
 static bAnimChannelType ACF_SUMMARY = 
 {
+	"Summary",							/* type name */
+
 	acf_summary_color,					/* backdrop color */
 	acf_summary_backdrop,				/* backdrop */
 	acf_generic_indention_0,			/* indent level */
@@ -567,6 +569,8 @@ static void *acf_scene_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* scene type define */
 static bAnimChannelType ACF_SCENE = 
 {
+	"Scene",						/* type name */
+
 	acf_generic_root_color,			/* backdrop color */
 	acf_generic_root_backdrop,		/* backdrop */
 	acf_generic_indention_0,		/* indent level */
@@ -687,6 +691,8 @@ static void *acf_object_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* object type define */
 static bAnimChannelType ACF_OBJECT = 
 {
+	"Object",						/* type name */
+	
 	acf_generic_root_color,			/* backdrop color */
 	acf_generic_root_backdrop,		/* backdrop */
 	acf_generic_indention_0,		/* indent level */
@@ -802,6 +808,8 @@ static void *acf_group_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* group type define */
 static bAnimChannelType ACF_GROUP = 
 {
+	"Group",						/* type name */
+	
 	acf_group_color,				/* backdrop color */
 	acf_group_backdrop,				/* backdrop */
 	acf_generic_indention_0,		/* indent level */
@@ -886,6 +894,8 @@ static void *acf_fcurve_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* fcurve type define */
 static bAnimChannelType ACF_FCURVE = 
 {
+	"F-Curve",						/* type name */
+	
 	acf_generic_channel_color,		/* backdrop color */
 	acf_generic_channel_backdrop,	/* backdrop */
 	acf_generic_indention_flexible,	/* indent level */		// xxx rename this to f-curves only?
@@ -968,6 +978,8 @@ static void *acf_fillactd_setting_ptr(bAnimListElem *ale, int setting, short *ty
 /* object action expander type define */
 static bAnimChannelType ACF_FILLACTD = 
 {
+	"Ob-Action Filler",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1044,6 +1056,8 @@ static void *acf_filldrivers_setting_ptr(bAnimListElem *ale, int setting, short 
 /* drivers expander type define */
 static bAnimChannelType ACF_FILLDRIVERS = 
 {
+	"Drivers Filler",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1088,6 +1102,8 @@ static int acf_fillmatd_setting_flag(bAnimContext *ac, int setting, short *neg)
 /* materials expander type define */
 static bAnimChannelType ACF_FILLMATD= 
 {
+	"Materials Filler",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1132,6 +1148,8 @@ static int acf_fillpartd_setting_flag(bAnimContext *ac, int setting, short *neg)
 /* particles expander type define */
 static bAnimChannelType ACF_FILLPARTD= 
 {
+	"Particles Filler",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1212,6 +1230,8 @@ static void *acf_dsmat_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* material expander type define */
 static bAnimChannelType ACF_DSMAT= 
 {
+	"Material Data Expander",		/* type name */
+	
 	acf_generic_channel_color,		/* backdrop color */
 	acf_generic_channel_backdrop,	/* backdrop */
 	acf_generic_indention_0,		/* indent level */
@@ -1286,6 +1306,8 @@ static void *acf_dslam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* lamp expander type define */
 static bAnimChannelType ACF_DSLAM= 
 {
+	"Lamp Expander",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1360,6 +1382,8 @@ static void *acf_dscam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* camera expander type define */
 static bAnimChannelType ACF_DSCAM= 
 {
+	"Camera Expander",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1444,6 +1468,8 @@ static void *acf_dscur_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* curve expander type define */
 static bAnimChannelType ACF_DSCUR= 
 {
+	"Curve Expander",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1518,6 +1544,8 @@ static void *acf_dsskey_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* shapekey expander type define */
 static bAnimChannelType ACF_DSSKEY= 
 {
+	"Shape Key Expander",			/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1592,6 +1620,8 @@ static void *acf_dswor_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* world expander type define */
 static bAnimChannelType ACF_DSWOR= 
 {
+	"World Expander",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1666,6 +1696,8 @@ static void *acf_dspart_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* particle expander type define */
 static bAnimChannelType ACF_DSPART= 
 {
+	"Particle Data Expander",		/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1740,6 +1772,8 @@ static void *acf_dsmball_setting_ptr(bAnimListElem *ale, int setting, short *typ
 /* metaball expander type define */
 static bAnimChannelType ACF_DSMBALL= 
 {
+	"Metaball Expander",			/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1814,6 +1848,8 @@ static void *acf_dsarm_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* metaball expander type define */
 static bAnimChannelType ACF_DSARM= 
 {
+	"Armature Expander",			/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1888,6 +1924,8 @@ static void *acf_dsntree_setting_ptr(bAnimListElem *ale, int setting, short *typ
 /* node tree expander type define */
 static bAnimChannelType ACF_DSNTREE= 
 {
+	"Node Tree Expander",			/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */		// XXX this only works for compositing
@@ -1962,6 +2000,8 @@ static void *acf_dsmesh_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* node tree expander type define */
 static bAnimChannelType ACF_DSMESH= 
 {
+	"Mesh Expander",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */		// XXX this only works for compositing
@@ -2050,6 +2090,8 @@ static void *acf_shapekey_setting_ptr(bAnimListElem *ale, int setting, short *ty
 /* shapekey expander type define */
 static bAnimChannelType ACF_SHAPEKEY= 
 {
+	"Shape Key",					/* type name */
+	
 	acf_generic_channel_color,		/* backdrop color */
 	acf_generic_channel_backdrop,	/* backdrop */
 	acf_generic_indention_0,		/* indent level */

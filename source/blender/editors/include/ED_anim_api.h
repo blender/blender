@@ -329,6 +329,10 @@ typedef enum eAnimChannel_Settings {
 
 /* Drawing, mouse handling, and flag setting behaviour... */
 typedef struct bAnimChannelType {
+	/* type data */
+		/* name of the channel type, for debugging */
+	char *channel_type_name;
+	
 	/* drawing */
 		/* get RGB color that is used to draw the majority of the backdrop */
 	void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float *color);
