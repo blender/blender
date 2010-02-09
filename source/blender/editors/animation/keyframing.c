@@ -1427,8 +1427,8 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 		/* send updates */
 		DAG_ids_flush_update(0);
 		
-		/* for now, only send ND_KEYS for KeyingSets */
-		WM_event_add_notifier(C, ND_KEYS, NULL);
+		/* send notifiers that keyframes have been changed */
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	}
 	
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
@@ -1493,12 +1493,12 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 	}
 	
 	
-	if(success) {
+	if (success) {
 		/* send updates */
 		DAG_ids_flush_update(0);
 		
-		/* for now, only send ND_KEYS for KeyingSets */
-		WM_event_add_notifier(C, ND_KEYS, NULL);
+		/* send notifiers that keyframes have been changed */
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	}
 	
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;

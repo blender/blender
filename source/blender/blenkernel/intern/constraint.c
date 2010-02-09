@@ -4041,9 +4041,10 @@ void id_loop_constraints (ListBase *conlist, ConstraintIDFunc func, void *userda
 
 /* ......... */
 
+/* helper for copy_constraints(), to be used for making sure that ID's are valid */
 static void con_extern_cb(bConstraint *con, ID **idpoin, void *userdata)
 {
-	if(idpoin && (*idpoin)->lib)
+	if (idpoin && (*idpoin)->lib)
 		id_lib_extern(*idpoin);
 }
 
@@ -4066,13 +4067,13 @@ void copy_constraints (ListBase *dst, const ListBase *src)
 		
 		/* only do specific constraints if required */
 		if (cti) {
-			if (cti->copy_data) {
+			/* perform custom copying operations if needed */
+			if (cti->copy_data)
 				cti->copy_data(con, srccon);
-			}
-
-			if(cti->id_looper) {
+			
+			/* go over used ID-links for this constraint to ensure that they are valid for proxies */
+			if (cti->id_looper)
 				cti->id_looper(con, con_extern_cb, NULL);
-			}
 		}
 	}
 }
