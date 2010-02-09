@@ -740,6 +740,14 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{SK_CONVERT_RETARGET, "RETARGET", 0, "Retarget", "Retarget template bone chain to stroke."},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem edge_tag_items[] = {
+		{EDGE_MODE_SELECT, "SELECT", 0, "Select", ""},
+		{EDGE_MODE_TAG_SEAM, "SEAM", 0, "Tag Seam", ""},
+		{EDGE_MODE_TAG_SHARP, "SHARP", 0, "Tag Sharp", ""},
+		{EDGE_MODE_TAG_CREASE, "CREASE", 0, "Tag Crease", ""},
+		{EDGE_MODE_TAG_BEVEL, "BEVEL", 0, "Tag Bevel", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna= RNA_def_struct(brna, "ToolSettings", NULL);
 	RNA_def_struct_ui_text(srna, "Tool Settings", "");
 	
@@ -872,6 +880,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop= RNA_def_property(srna, "vertex_group_weight", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "vgroup_weight");
 	RNA_def_property_ui_text(prop, "Vertex Group Weight", "Weight to assign in vertex groups.");
+
+	/* use with MESH_OT_select_shortest_path */
+	prop= RNA_def_property(srna, "edge_path_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "edge_mode");
+	RNA_def_property_enum_items(prop, edge_tag_items);
+	RNA_def_property_ui_text(prop, "Edge Tag Mode", "The edge flag to tag when selecting the shortest path.");
 
 	/* etch-a-ton */
 	prop= RNA_def_property(srna, "bone_sketching", PROP_BOOLEAN, PROP_NONE);

@@ -155,6 +155,7 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel):
             mesh = context.active_object.data
             col = layout.column(align=True)
             col.prop(mesh, "use_mirror_x")
+            col.prop(context.tool_settings, "edge_path_mode")
 
 # ********** default tools for editmode_curve ****************
 

@@ -2133,7 +2133,7 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 {
 	ViewContext vc;
 	EditMesh *em;
-	EditEdge *eed;
+	EditEdge *eed, *eed_act= NULL;
 	int dist= 50;
 	
 	em_setup_viewcontext(C, &vc);
@@ -2153,7 +2153,6 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 			EditSelection *ese = em->selected.last;
 			
 			if(ese && ese->type == EDITEDGE) {
-				EditEdge *eed_act;
 				eed_act = (EditEdge*)ese->data;
 				if (eed_act != eed) {
 					if (edgetag_shortest_path(vc.scene, em, eed_act, eed)) {
@@ -2167,14 +2166,20 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 			int act = (edgetag_context_check(vc.scene, eed)==0);
 			edgetag_context_set(vc.scene, eed, act); /* switch the edge option */
 		}
-		
-		EM_selectmode_flush(em);
 
 		/* even if this is selected it may not be in the selection list */
-		if(edgetag_context_check(vc.scene, eed)==0)
+		if(edgetag_context_check(vc.scene, eed)==EDGE_MODE_SELECT)
 			EM_remove_selection(em, eed, EDITEDGE);
-		else
+		else {
+			/* other modes need to keep the last edge tagged */
+			if(eed_act)
+				EM_select_edge(eed_act, 0);
+
+			EM_select_edge(eed, 1);
 			EM_store_selection(em, eed, EDITEDGE);
+		}
+
+		EM_selectmode_flush(em);
 	
 		/* force drawmode for mesh */
 		switch (vc.scene->toolsettings->edge_mode) {
