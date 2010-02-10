@@ -770,13 +770,17 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, prop_drawtype_items);
 	RNA_def_property_ui_text(prop, "Draw Type", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
+// XXX depreceated ....... old animviz for armatures only
 	prop= RNA_def_property(srna, "ghost_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ghosttype");
 	RNA_def_property_enum_items(prop, prop_ghost_type_items);
 	RNA_def_property_ui_text(prop, "Ghost Type", "Method of Onion-skinning for active Action");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-	
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+// XXX depreceated ....... old animviz for armatures only	
+
 	/* Boolean values */
 		/* layer */
 	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_LAYER_MEMBER);
@@ -799,11 +803,13 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DRAWAXES);
 	RNA_def_property_ui_text(prop, "Draw Axes", "Draw bone axes.");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 	prop= RNA_def_property(srna, "draw_names", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DRAWNAMES);
 	RNA_def_property_ui_text(prop, "Draw Names", "Draw bone names.");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 	prop= RNA_def_property(srna, "delay_deform", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DELAYDEFORM);
@@ -814,11 +820,13 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_MIRROR_EDIT);
 	RNA_def_property_ui_text(prop, "X-Axis Mirror", "Apply changes to matching bone on opposite side of X-Axis.");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 	prop= RNA_def_property(srna, "auto_ik", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_AUTO_IK);
 	RNA_def_property_ui_text(prop, "Auto IK", "Add temporaral IK constraints while grabbing bones in Pose Mode.");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 	prop= RNA_def_property(srna, "draw_custom_bone_shapes", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", ARM_NO_CUSTOM);
@@ -835,6 +843,7 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_GHOST_ONLYSEL);
 	RNA_def_property_ui_text(prop, "Draw Ghosts on Selected Bones Only", "");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 // XXX depreceated ....... old animviz for armatures only
 	
 		/* deformflag */
@@ -871,24 +880,28 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 30);
 	RNA_def_property_ui_text(prop, "Ghosting Step", "Number of frame steps on either side of current frame to show as ghosts (only for 'Around Current Frame' Onion-skining method).");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 	prop= RNA_def_property(srna, "ghost_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ghostsize");
 	RNA_def_property_range(prop, 1, 20);
 	RNA_def_property_ui_text(prop, "Ghosting Frame Step", "Frame step for Ghosts (not for 'On Keyframes' Onion-skining method).");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 	prop= RNA_def_property(srna, "ghost_start_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghostsf");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_start_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Ghosting Start Frame", "Starting frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method).");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 	
 	prop= RNA_def_property(srna, "ghost_end_frame", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "ghostef");
 	RNA_def_property_int_funcs(prop, NULL, "rna_Armature_ghost_end_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Ghosting End Frame", "End frame of range of Ghosts to display (not for 'Around Current Frame' Onion-skinning method).");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 // XXX depreceated ....... old animviz for armatures only	
 }
 
