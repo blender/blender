@@ -2501,15 +2501,14 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 
 		int early_out = sh.early_out(seq, facf, facf);
 
-		/* if any of these are the case blender would crash */
-		if(se1->ibuf==NULL || se1->ibuf_comp==NULL || se2->ibuf==NULL || se2->ibuf_comp==NULL)
-			continue;
-
 		switch (early_out) {
 		case 0: {
 			int x= se2->ibuf->x;
 			int y= se2->ibuf->y;
 			int swap_input = FALSE;
+
+			if(se1->ibuf_comp == NULL)
+				continue;
 
 			if (se1->ibuf_comp->rect_float ||
 			    se2->ibuf->rect_float) {
@@ -2573,7 +2572,8 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 		}
 		case 1: {
 			se2->ibuf_comp = se1->ibuf;
-			IMB_refImBuf(se2->ibuf_comp);
+			if(se2->ibuf_comp)
+				IMB_refImBuf(se2->ibuf_comp);
 
 			break;
 		}
