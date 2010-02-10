@@ -331,10 +331,11 @@ if USE_SDK==True:
 	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-isysroot',MACOSX_SDK,'-arch',MACOSX_ARCHITECTURE]+PLATFORM_LINKFLAGS
 	CCFLAGS=SDK_FLAGS+CCFLAGS
 	CXXFLAGS=SDK_FLAGS+CXXFLAGS
-	
+
+#Intel Macs are CoreDuo and Up	
 if MACOSX_ARCHITECTURE == 'i386' or MACOSX_ARCHITECTURE == 'x86_64':
-	REL_CFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3']
-	REL_CCFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3']
+	REL_CFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
+	REL_CCFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
 else:
 	CFLAGS = CFLAGS+['-fno-strict-aliasing']
 	CCFLAGS =  CCFLAGS+['-fno-strict-aliasing']
@@ -342,10 +343,10 @@ else:
 	REL_CFLAGS = ['-O2']
 	REL_CCFLAGS = ['-O2']
 
-# add -mssse3 for intel 64bit archs
+# Intel 64bit Macs are Core2Duo and up
 if MACOSX_ARCHITECTURE == 'x86_64':
-	REL_CFLAGS = REL_CFLAGS+['-mssse3']
-	REL_CCFLAGS = REL_CCFLAGS+['-mssse3']
+	REL_CFLAGS = REL_CFLAGS+['-march=core2','-mssse3','-with-tune=core2','-enable-threads']
+	REL_CCFLAGS = REL_CCFLAGS+['-march=core2','-mssse3','-with-tune=core2','-enable-threads']
 
 CC_WARN = ['-Wall']
 C_WARN = ['-Wno-char-subscripts', '-Wpointer-arith', '-Wcast-align', '-Wdeclaration-after-statement', '-Wno-unknown-pragmas']
