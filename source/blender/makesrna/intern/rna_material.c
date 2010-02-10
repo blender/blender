@@ -1665,7 +1665,7 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "MaterialRaytraceTransparency");
 	RNA_def_property_pointer_funcs(prop, "rna_Material_transp_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Raytrace Transparency", "Raytraced reflection settings for the material.");
+	RNA_def_property_ui_text(prop, "Raytrace Transparency", "Raytraced transparency settings for the material.");
 
 	prop= RNA_def_property(srna, "volume", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
