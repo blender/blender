@@ -180,7 +180,7 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 		/* correct vgroup indices because the number of vgroups is being reduced. */
 		int *remap= MEM_mallocN(sizeof(int) * (totdef + 1), "ED_vgroup_copy_array");
 		for(i=0; i<=totdef_from; i++) remap[i]= i;
-		for(; i<=totdef; i++) remap[i]= 0; /* cany use these, so disable */
+		for(; i<=totdef; i++) remap[i]= 0; /* can't use these, so disable */
 
 		vgroup_remap_update_users(ob, remap);
 		MEM_freeN(remap);

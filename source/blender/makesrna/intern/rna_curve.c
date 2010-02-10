@@ -82,7 +82,7 @@ static PointerRNA rna_Curve_active_nurb_get(PointerRNA *ptr)
 		nu = BLI_findlink(cu->editnurb, cu->actnu);
 
 	if(nu)
-		return rna_pointer_inherit_refine(ptr, &RNA_Nurb, nu);
+		return rna_pointer_inherit_refine(ptr, &RNA_Spline, nu);
 
 	return rna_pointer_inherit_refine(ptr, NULL, NULL);
 }
@@ -755,11 +755,11 @@ static void rna_def_curve(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "splines", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "nurb", NULL);
-	RNA_def_property_struct_type(prop, "Nurb");
+	RNA_def_property_struct_type(prop, "Spline");
 	RNA_def_property_ui_text(prop, "Splines", "Collection of splines in this curve data object.");
 
 	prop= RNA_def_property(srna, "active_spline", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Nurb");
+	RNA_def_property_struct_type(prop, "Spline");
 	RNA_def_property_pointer_funcs(prop, "rna_Curve_active_nurb_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Active Spline", "The active editmode spline");
 
@@ -902,7 +902,8 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "Nurb", NULL);
+	srna= RNA_def_struct(brna, "Spline", NULL);
+    RNA_def_struct_sdna(srna, "Nurb");
 	RNA_def_struct_ui_text(srna, "Spline", "Element of a curve, either Nurbs, Bezier or Polyline or a character with text objects.");
 
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
