@@ -169,6 +169,10 @@ static void rna_Scene_unlink_object(Scene *scene, bContext *C, ReportList *repor
 	/* as long as ED_base_object_free_and_unlink calls free_libblock_us, we don't have to decrement ob->id.us */
 	ED_base_object_free_and_unlink(scene, base);
 
+	/* needed otherwise the depgraph will contain free'd objects which can crash, see [#20958] */
+	DAG_scene_sort(scene);
+	DAG_ids_flush_update(0);
+
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_ACTIVE, scene);
 }
 

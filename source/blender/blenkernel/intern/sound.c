@@ -29,6 +29,7 @@
 #include "BKE_library.h"
 #include "BKE_packedFile.h"
 #include "BKE_fcurve.h"
+#include "BKE_animsys.h"
 
 #include "RNA_access.h"
 
