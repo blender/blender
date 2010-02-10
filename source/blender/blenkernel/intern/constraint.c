@@ -4044,7 +4044,7 @@ void id_loop_constraints (ListBase *conlist, ConstraintIDFunc func, void *userda
 /* helper for copy_constraints(), to be used for making sure that ID's are valid */
 static void con_extern_cb(bConstraint *con, ID **idpoin, void *userdata)
 {
-	if (idpoin && (*idpoin)->lib)
+	if (*idpoin && (*idpoin)->lib)
 		id_lib_extern(*idpoin);
 }
 
