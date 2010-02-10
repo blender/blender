@@ -956,6 +956,7 @@ static int from_view_exec(bContext *C, wmOperator *op)
 	Camera *camera= NULL;
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh*)obedit->data);
 	ARegion *ar= CTX_wm_region(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	RegionView3D *rv3d= ar->regiondata;
 	EditFace *efa;
 	MTFace *tf;
@@ -969,8 +970,8 @@ static int from_view_exec(bContext *C, wmOperator *op)
 	}
 
 	/* establish the camera object, so we can default to view mapping if anything is wrong with it */
-	if ((rv3d->persp==RV3D_CAMOB) && (scene->camera) && (scene->camera->type==OB_CAMERA)) {
-		camera=scene->camera->data;
+	if ((rv3d->persp==RV3D_CAMOB) && (v3d->camera) && (v3d->camera->type==OB_CAMERA)) {
+		camera= v3d->camera->data;
 	}
 
 	if(RNA_boolean_get(op->ptr, "orthographic")) {
@@ -989,7 +990,6 @@ static int from_view_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if (camera) {
-		
 		if (camera->type==CAM_PERSP) {
 			camsize=1/tan(DEG2RAD(camera->angle)/2.0f); /* calcs ez as distance from camera plane to viewer */
 		}
@@ -997,7 +997,7 @@ static int from_view_exec(bContext *C, wmOperator *op)
 			camsize=camera->ortho_scale;
 		}
 
-		if (invert_m4_m4(invmat,scene->camera->obmat)) {
+		if (invert_m4_m4(invmat, v3d->camera->obmat)) {
 			copy_m4_m4(rotmat, obedit->obmat);
 
 			/* also make aspect ratio adjustment factors */
