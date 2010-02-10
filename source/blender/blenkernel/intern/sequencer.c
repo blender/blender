@@ -2498,8 +2498,13 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 		TStripElem* se2 = give_tstripelem(seq_arr[i], cfra);
 
 		float facf = seq->blend_opacity / 100.0;
-	
+
 		int early_out = sh.early_out(seq, facf, facf);
+
+		/* if any of these are the case blender would crash */
+		if(se1->ibuf==NULL || se1->ibuf_comp==NULL || se2->ibuf==NULL || se2->ibuf_comp==NULL)
+			continue;
+
 		switch (early_out) {
 		case 0: {
 			int x= se2->ibuf->x;
