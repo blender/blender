@@ -146,39 +146,7 @@ from import_scene_obj import unpack_face_list, load_image
 import bpy
 import Mathutils
 
-# import Blender
-# from Blender import Mesh, Object, Material, Image, Texture, Lamp, Mathutils
-# from Blender.Mathutils import Vector
-# import BPyImage
-
-# import BPyMessages
-
-# try:
-# 	from struct import calcsize, unpack
-# except:
-# 	calcsize= unpack= None
-
-
-
-# # If python version is less than 2.4, try to get set stuff from module
-# try:
-# 	set
-# except:
-# 	from sets import Set as set
-
 BOUNDS_3DS = []
-
-
-#this script imports uvcoords as sticky vertex coords
-#this parameter enables copying these to face uv coords
-#which shold be more useful.
-
-def createBlenderTexture(material, name, image):
-    texture = bpy.data.textures.new(name)
-    texture.setType('Image')
-    texture.image = image
-    material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL)
-
 
 
 ######################################################
@@ -294,11 +262,8 @@ def read_chunk(file, chunk):
 def read_string(file):
     #read in the characters till we get a null character
     s = b''
-# 	s = ''
     while not s.endswith(b'\x00'):
-# 	while not s.endswith('\x00'):
         s += struct.unpack('<c', file.read(1))[0]
-# 		s += struct.unpack( '<c', file.read(1) )[0]
         #print 'string: ',s
 
     s = str(s[:-1], 'ASCII')
@@ -327,29 +292,17 @@ def skip_to_end(file, skip_chunk):
 
 
 def add_texture_to_material(image, texture, material, mapto):
-# 	if mapto=='DIFFUSE':
-# 		map = Texture.MapTo.COL
-# 	elif mapto=='SPECULAR':
-# 		map = Texture.MapTo.SPEC
-# 	elif mapto=='OPACITY':
-# 		map = Texture.MapTo.ALPHA
-# 	elif mapto=='BUMP':
-# 		map = Texture.MapTo.NOR
-# 	else:
+    #print('assigning %s to %s' % (texture, material))
+    
     if mapto not in ("COLOR", "SPECULARITY", "ALPHA", "NORMAL"):
         print('/tError:  Cannot map to "%s"\n\tassuming diffuse color. modify material "%s" later.' % (mapto, material.name))
         mapto = "COLOR"
-# 		map = Texture.MapTo.COL
 
-    if image: texture.image = image
+    if image: 
+        texture.image = image
 # 	if image: texture.setImage(image) # double check its an image.
 
     material.add_texture(texture, "UV", mapto)
-# 	free_tex_slots = [i for i, tex in enumerate( material.getTextures() ) if tex == None]
-# 	if not free_tex_slots:
-# 		print('/tError: Cannot add "%s" map. 10 Texture slots alredy used.' % mapto)
-# 	else:
-# 		material.setTexture(free_tex_slots[0],texture,Texture.TexCo.UV,map)
 
 
 def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
@@ -436,7 +389,6 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
                 if bmesh.faces and (contextMeshUV or img):
                     bmesh.add_uv_texture()
-# 					bmesh.faceUV = 1
                     for ii, i in enumerate(faces):
 
                         # Mapped index- faces may have not been added- if so, then map to the correct index
@@ -461,7 +413,9 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 # 								targetFace.uv = [contextMeshUV[vindex] for vindex in myContextMesh_facels[i]]
                             if img:
                                 uf.image = img
-# 								targetFace.image = img
+                                
+                                # to get this image to show up in 'Textured' shading mode
+                                uf.tex = True 
 
             # bmesh.transform(contextMatrix)
             ob = bpy.data.objects.new(tempName, 'MESH')
@@ -507,7 +461,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
         return [float(col)/255 for col in struct.unpack('<3B', temp_data)] # data [0,1,2] == rgb
 
     def read_texture(new_chunk, temp_chunk, name, mapto):
-        new_texture = bpy.data.textures.new('Diffuse')
+        new_texture = bpy.data.textures.new(name)
         new_texture.type = 'IMAGE'
         new_texture = new_texture.recast_type()
 
@@ -657,96 +611,15 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
         elif (new_chunk.ID == MAT_TEXTURE_MAP):
             read_texture(new_chunk, temp_chunk, "Diffuse", "COLOR")
-# 			#print 'elif (new_chunk.ID==MAT_TEXTURE_MAP):'
-# 			new_texture= bpy.data.textures.new('Diffuse')
-# 			new_texture.setType('Image')
-# 			img = None
-# 			while (new_chunk.bytes_read<new_chunk.length):
-# 				#print 'MAT_TEXTURE_MAP..while', new_chunk.bytes_read, new_chunk.length
-# 				read_chunk(file, temp_chunk)
-
-# 				if (temp_chunk.ID==MAT_MAP_FILENAME):
-# 					texture_name=read_string(file)
-# 					#img= TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
-# 					img= TEXTURE_DICT[contextMaterial.name]= BPyImage.comprehensiveImageLoad(texture_name, FILENAME, PLACE_HOLDER= False, RECURSIVE= IMAGE_SEARCH)
-# 					new_chunk.bytes_read += (len(texture_name)+1) #plus one for the null character that gets removed
-
-# 				else:
-# 					skip_to_end(file, temp_chunk)
-
-# 				new_chunk.bytes_read+= temp_chunk.bytes_read
-
-# 			#add the map to the material in the right channel
-# 			if img:
-# 				add_texture_to_material(img, new_texture, contextMaterial, 'DIFFUSE')
 
         elif (new_chunk.ID == MAT_SPECULAR_MAP):
             read_texture(new_chunk, temp_chunk, "Specular", "SPECULARITY")
-# 			#print 'elif (new_chunk.ID == MAT_SPECULAR_MAP):'
-# 			new_texture = bpy.data.textures.new('Specular')
-# 			new_texture.setType('Image')
-# 			img = None
-# 			while (new_chunk.bytes_read < new_chunk.length):
-# 				read_chunk(file, temp_chunk)
-
-# 				if (temp_chunk.ID == MAT_MAP_FILENAME):
-# 					texture_name = read_string(file)
-# 					#img = BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
-# 					img = BPyImage.comprehensiveImageLoad(texture_name, FILENAME, PLACE_HOLDER=False, RECURSIVE=IMAGE_SEARCH)
-# 					new_chunk.bytes_read+= (len(texture_name)+1) #plus one for the null character that gets removed
-# 				else:
-# 					skip_to_end(file, temp_chunk)
-
-# 				new_chunk.bytes_read += temp_chunk.bytes_read
-
-# 			#add the map to the material in the right channel
-# 			if img:
-# 				add_texture_to_material(img, new_texture, contextMaterial, 'SPECULAR')
 
         elif (new_chunk.ID == MAT_OPACITY_MAP):
             read_texture(new_chunk, temp_chunk, "Opacity", "ALPHA")
-# 			#print 'new_texture = Blender.Texture.New('Opacity')'
-# 			new_texture = bpy.data.textures.new('Opacity')
-# 			new_texture.setType('Image')
-# 			img = None
-# 			while (new_chunk.bytes_read < new_chunk.length):
-# 				read_chunk(file, temp_chunk)
-
-# 				if (temp_chunk.ID == MAT_MAP_FILENAME):
-# 					texture_name = read_string(file)
-# 					#img = BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
-# 					img = BPyImage.comprehensiveImageLoad(texture_name, FILENAME, PLACE_HOLDER=False, RECURSIVE=IMAGE_SEARCH)
-# 					new_chunk.bytes_read += (len(texture_name)+1) #plus one for the null character that gets removed
-# 				else:
-# 					skip_to_end(file, temp_chunk)
-
-# 				new_chunk.bytes_read += temp_chunk.bytes_read
-# 			#add the map to the material in the right channel
-# 			if img:
-# 				add_texture_to_material(img, new_texture, contextMaterial, 'OPACITY')
 
         elif (new_chunk.ID == MAT_BUMP_MAP):
             read_texture(new_chunk, temp_chunk, "Bump", "NORMAL")
-# 			#print 'elif (new_chunk.ID == MAT_BUMP_MAP):'
-# 			new_texture = bpy.data.textures.new('Bump')
-# 			new_texture.setType('Image')
-# 			img = None
-# 			while (new_chunk.bytes_read < new_chunk.length):
-# 				read_chunk(file, temp_chunk)
-
-# 				if (temp_chunk.ID == MAT_MAP_FILENAME):
-# 					texture_name = read_string(file)
-# 					#img = BPyImage.comprehensiveImageLoad(texture_name, FILENAME)
-# 					img = BPyImage.comprehensiveImageLoad(texture_name, FILENAME, PLACE_HOLDER=False, RECURSIVE=IMAGE_SEARCH)
-# 					new_chunk.bytes_read += (len(texture_name)+1) #plus one for the null character that gets removed
-# 				else:
-# 					skip_to_end(file, temp_chunk)
-
-# 				new_chunk.bytes_read += temp_chunk.bytes_read
-
-# 			#add the map to the material in the right channel
-# 			if img:
-# 				add_texture_to_material(img, new_texture, contextMaterial, 'BUMP')
 
         elif (new_chunk.ID == MAT_TRANSPARENCY):
             #print 'elif (new_chunk.ID == MAT_TRANSPARENCY):'
@@ -852,7 +725,6 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                 temp_data = file.read(STRUCT_SIZE_2FLOAT)
                 new_chunk.bytes_read += STRUCT_SIZE_2FLOAT #2 float x 4 bytes each
                 return Mathutils.Vector( struct.unpack('<2f', temp_data) )
-# 				return Vector( struct.unpack('<2f', temp_data) )
 
             contextMeshUV = [ getuv() for i in range(num_uv) ]
 
@@ -863,7 +735,6 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             new_chunk.bytes_read += STRUCT_SIZE_4x3MAT
 
             contextMatrix_rot = Mathutils.Matrix(\
-# 			contextMatrix_rot = Blender.Mathutils.Matrix(\
              data[:3] + [0],\
              data[3:6] + [0],\
              data[6:9] + [0],\
@@ -1089,16 +960,9 @@ def load_3ds(filename, context, IMPORT_CONSTRAIN_BOUNDS=10.0, IMAGE_SEARCH=True,
     print('finished importing: "%s" in %.4f sec.' % (filename, (time.clock()-time1)))
 # 	print('finished importing: "%s" in %.4f sec.' % (filename, (Blender.sys.time()-time1)))
     file.close()
-# 	Blender.Window.WaitCursor(0)
 
 
 DEBUG = False
-# if __name__=='__main__' and not DEBUG:
-# 	if calcsize == None:
-# 		Blender.Draw.PupMenu('Error%t|a full python installation not found')
-# 	else:
-# 		Blender.Window.FileSelector(load_3ds, 'Import 3DS', '*.3ds')
-
 # For testing compatibility
 #load_3ds('/metavr/convert/vehicle/truck_002/TruckTanker1.3DS', False)
 #load_3ds('/metavr/archive/convert/old/arranged_3ds_to_hpx-2/only-need-engine-trains/Engine2.3DS', False)

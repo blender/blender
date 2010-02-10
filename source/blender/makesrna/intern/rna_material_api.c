@@ -55,10 +55,10 @@ static void rna_Material_add_texture(Material *ma, Tex *tex, int mapto, int texc
 			break;
 		}
 	}
-
+	
 	if (slot == -1)
 		slot= 0;
-
+	
 	if (ma->mtex[slot]) {
 		ma->mtex[slot]->tex->id.us--;
 	}
@@ -69,8 +69,9 @@ static void rna_Material_add_texture(Material *ma, Tex *tex, int mapto, int texc
 	mtex= ma->mtex[slot];
 
 	mtex->tex= tex;
-	id_us_plus(&tex->id);
-
+	if (tex)
+		id_us_plus(&tex->id);
+	
 	mtex->texco= mapto;
 	mtex->mapto= texco;
 }
@@ -117,7 +118,8 @@ void RNA_api_material(StructRNA *srna)
 
 	func= RNA_def_function(srna, "add_texture", "rna_Material_add_texture");
 	RNA_def_function_ui_description(func, "Add a texture to material's free texture slot.");
-	parm= RNA_def_pointer(func, "texture", "Texture", "", "Texture to add.");
+	parm= RNA_def_pointer(func, "texture", "Texture", "Texture", "Texture to add."); 
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_enum(func, "texture_coordinates", prop_texture_coordinates_items, TEXCO_UV, "", "Source of texture coordinate information."); /* optional */
 	parm= RNA_def_enum(func, "map_to", prop_texture_mapto_items, MAP_COL, "", "Controls which material property the texture affects."); /* optional */
 }
