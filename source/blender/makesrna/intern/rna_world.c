@@ -188,25 +188,25 @@ static void rna_def_lighting(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem blend_mode_items[] = {
-		{WO_AOMUL, "MULTIPLY", 0, "Multiply", "Multiply direct lighting with ambient occlusion, darkening the result."},
-		{WO_AOADD, "ADD", 0, "Add", "Add light and shadow."},
+		{WO_AOMUL, "MULTIPLY", 0, "Multiply", "Multiply direct lighting with ambient occlusion, darkening the result"},
+		{WO_AOADD, "ADD", 0, "Add", "Add light and shadow"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_color_items[] = {
 		{WO_AOPLAIN, "PLAIN", 0, "White", "Plain diffuse energy (white.)"},
-		{WO_AOSKYCOL, "SKY_COLOR", 0, "Sky Color", "Use horizon and zenith color for diffuse energy."},
-		{WO_AOSKYTEX, "SKY_TEXTURE", 0, "Sky Texture", "Does full Sky texture render for diffuse energy."},
+		{WO_AOSKYCOL, "SKY_COLOR", 0, "Sky Color", "Use horizon and zenith color for diffuse energy"},
+		{WO_AOSKYTEX, "SKY_TEXTURE", 0, "Sky Texture", "Does full Sky texture render for diffuse energy"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_sample_method_items[] = {
 		{WO_AOSAMP_CONSTANT, "CONSTANT_JITTERED", 0, "Constant Jittered", ""},
-		{WO_AOSAMP_HALTON, "ADAPTIVE_QMC", 0, "Adaptive QMC", "Fast in high-contrast areas."},
-		{WO_AOSAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", "Best quality."},
+		{WO_AOSAMP_HALTON, "ADAPTIVE_QMC", 0, "Adaptive QMC", "Fast in high-contrast areas"},
+		{WO_AOSAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", "Best quality"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_gather_method_items[] = {
-		{WO_AOGATHER_RAYTRACE, "RAYTRACE", 0, "Raytrace", "Accurate, but slow when noise-free results are required."},
-		{WO_AOGATHER_APPROX, "APPROXIMATE", 0, "Approximate", "Inaccurate, but faster and without noise."},
+		{WO_AOGATHER_RAYTRACE, "RAYTRACE", 0, "Raytrace", "Accurate, but slow when noise-free results are required"},
+		{WO_AOGATHER_APPROX, "APPROXIMATE", 0, "Approximate", "Inaccurate, but faster and without noise"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "WorldLighting", NULL);

@@ -69,7 +69,7 @@ class AddPresetBase(bpy.types.Operator):
 
 
 class AddPresetRender(AddPresetBase):
-    '''Add a Render Preset.'''
+    '''Add a Render Preset'''
     bl_idname = "render.preset_add"
     bl_label = "Add Render Preset"
     name = AddPresetBase.name
@@ -91,7 +91,7 @@ class AddPresetRender(AddPresetBase):
 
 
 class AddPresetSSS(AddPresetBase):
-    '''Add a Subsurface Scattering Preset.'''
+    '''Add a Subsurface Scattering Preset'''
     bl_idname = "material.sss_preset_add"
     bl_label = "Add SSS Preset"
     name = AddPresetBase.name
@@ -116,7 +116,7 @@ class AddPresetSSS(AddPresetBase):
 
 
 class AddPresetCloth(AddPresetBase):
-    '''Add a Cloth Preset.'''
+    '''Add a Cloth Preset'''
     bl_idname = "cloth.preset_add"
     bl_label = "Add Cloth Preset"
     name = AddPresetBase.name
@@ -134,7 +134,7 @@ class AddPresetCloth(AddPresetBase):
 
 
 class AddPresetSunSky(AddPresetBase):
-    '''Add a Sky & Atmosphere Preset.'''
+    '''Add a Sky & Atmosphere Preset'''
     bl_idname = "lamp.sunsky_preset_add"
     bl_label = "Add Sunsky Preset"
     name = AddPresetBase.name

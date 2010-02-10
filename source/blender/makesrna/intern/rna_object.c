@@ -1423,10 +1423,10 @@ static void rna_def_object(BlenderRNA *brna)
 
 	static EnumPropertyItem dupli_items[] = {
 		{0, "NONE", 0, "None", ""},
-		{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make copy of object for every frame."},
-		{OB_DUPLIVERTS, "VERTS", 0, "Verts", "Duplicate child objects on all vertices."},
-		{OB_DUPLIFACES, "FACES", 0, "Faces", "Duplicate child objects on all faces."},
-		{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing."},
+		{OB_DUPLIFRAMES, "FRAMES", 0, "Frames", "Make copy of object for every frame"},
+		{OB_DUPLIVERTS, "VERTS", 0, "Verts", "Duplicate child objects on all vertices"},
+		{OB_DUPLIFACES, "FACES", 0, "Faces", "Duplicate child objects on all faces"},
+		{OB_DUPLIGROUP, "GROUP", 0, "Group", "Enable group instancing"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	// XXX: this RNA enum define is currently duplicated for objects, since there is some text here which is not applicable
@@ -1438,7 +1438,7 @@ static void rna_def_object(BlenderRNA *brna)
 		{ROT_MODE_YZX, "YZX", 0, "YZX Euler", "YZX Rotation Order. Prone to Gimbal Lock"},
 		{ROT_MODE_ZXY, "ZXY", 0, "ZXY Euler", "ZXY Rotation Order. Prone to Gimbal Lock"},
 		{ROT_MODE_ZYX, "ZYX", 0, "ZYX Euler", "ZYX Rotation Order. Prone to Gimbal Lock"},
-		{ROT_MODE_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle", "Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector."},
+		{ROT_MODE_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle", "Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static float default_quat[4] = {1,0,0,0};	/* default quaternion values */
@@ -1447,7 +1447,7 @@ static void rna_def_object(BlenderRNA *brna)
 	int boundbox_dimsize[]= {8, 3};
 
 	srna= RNA_def_struct(brna, "Object", "ID");
-	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene.");
+	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene");
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 	RNA_def_struct_ui_icon(srna, ICON_OBJECT_DATA);
 

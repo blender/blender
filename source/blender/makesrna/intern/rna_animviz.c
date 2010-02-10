@@ -223,8 +223,8 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static const EnumPropertyItem prop_type_items[]= {
-		{MOTIONPATH_TYPE_RANGE, "RANGE", 0, "In Range", "Display Paths of poses within specified range."},
-		{MOTIONPATH_TYPE_ACFRA, "CURRENT_FRAME", 0, "Around Frame", "Display Paths of poses within a fixed number of frames around the current frame."},
+		{MOTIONPATH_TYPE_RANGE, "RANGE", 0, "In Range", "Display Paths of poses within specified range"},
+		{MOTIONPATH_TYPE_ACFRA, "CURRENT_FRAME", 0, "Around Frame", "Display Paths of poses within a fixed number of frames around the current frame"},
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_location_items[]= {
 		{MOTIONPATH_BAKE_HEADS, "HEADS", 0, "Heads", "Calculate bone paths from heads"},
