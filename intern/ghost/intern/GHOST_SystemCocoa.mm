@@ -1322,16 +1322,12 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventType)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
-	GHOST_IWindow* window = m_windowManager->getActiveWindow();
+	GHOST_IWindow* window;
 	
+	window = m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
 	if (!window) {
-		/* If no active window found, still tries to find the window associated with the event
-		 This may happen when Cocoa continues to send some events after the window deactivate one */
-		window = m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
-		if (!window) {
-			//printf("\nW failure for event 0x%x",[event type]);
-			return GHOST_kFailure;
-		}
+		//printf("\nW failure for event 0x%x",[event type]);
+		return GHOST_kFailure;
 	}
 	
 	GHOST_TabletData& ct=((GHOST_WindowCocoa*)window)->GetCocoaTabletData();
@@ -1381,16 +1377,12 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
-    GHOST_Window* window = (GHOST_Window*)m_windowManager->getActiveWindow();
+    GHOST_Window* window;
 	
+	window = (GHOST_Window*)m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
 	if (!window) {
-		/* If no active window found, still tries to find the window associated with the event
-		 This may happen when Cocoa continues to send some events after the window deactivate one */
-		window = (GHOST_Window*)m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
-		if (!window) {
-			//printf("\nW failure for event 0x%x",[event type]);
-			return GHOST_kFailure;
-		}
+		//printf("\nW failure for event 0x%x",[event type]);
+		return GHOST_kFailure;
 	}
 	
 	switch ([event type])
@@ -1586,7 +1578,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 {
 	NSEvent *event = (NSEvent *)eventPtr;
-	GHOST_IWindow* window = m_windowManager->getActiveWindow();
+	GHOST_IWindow* window;
 	unsigned int modifiers;
 	NSString *characters;
 	NSData *convertedCharacters;
@@ -1594,14 +1586,10 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 	unsigned char ascii;
 	NSString* charsIgnoringModifiers;
 
+	window = m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
 	if (!window) {
-		/* If no active window found, still tries to find the window associated with the event
-		 This may happen when Cocoa continues to send some events after the window deactivate one */
-		window = m_windowManager->getWindowAssociatedWithOSWindow((void*)[event window]);
-		if (!window) {
-			//printf("\nW failure for event 0x%x",[event type]);
-			return GHOST_kFailure;
-		}
+		//printf("\nW failure for event 0x%x",[event type]);
+		return GHOST_kFailure;
 	}
 	
 	switch ([event type]) {
