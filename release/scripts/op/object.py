@@ -394,7 +394,7 @@ class MakeDupliFace(bpy.types.Operator):
 
         SCALE_FAC = 0.01
         offset = 0.5 * SCALE_FAC
-        base_tri = Vector(-offset, -offset, 0.0), Vector(-offset, offset, 0.0), Vector(offset, offset, 0.0), Vector(offset, -offset, 0.0)
+        base_tri = Vector(-offset, -offset, 0.0), Vector(offset, -offset, 0.0), Vector(offset, offset, 0.0), Vector(-offset, offset, 0.0)
 
         def matrix_to_quat(matrix):
             # scale = matrix.median_scale
