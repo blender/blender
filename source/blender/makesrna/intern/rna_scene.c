@@ -130,18 +130,18 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base*)internal->link)->object);
 }
 
-static void rna_Scene_link_object(Scene *scene, ReportList *reports, Object *ob)
+static Base *rna_Scene_link_object(Scene *scene, ReportList *reports, Object *ob)
 {
 	Base *base;
 
 	if (ob->type != OB_EMPTY && ob->data==NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not an Empty type and has no Object Data set.");
-		return;
+		return NULL;
 	}
 
 	if (object_in_scene(ob, scene)) {
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is already in scene \"%s\".", ob->id.name+2, scene->id.name+2);
-		return;
+		return NULL;
 	}
 
 	base= scene_add_base(scene, ob);
@@ -152,6 +152,8 @@ static void rna_Scene_link_object(Scene *scene, ReportList *reports, Object *ob)
 	ob->recalc |= OB_RECALC;
 
 	DAG_scene_sort(scene);
+
+	return base;
 }
 
 static void rna_Scene_unlink_object(Scene *scene, bContext *C, ReportList *reports, Object *ob)
@@ -2530,6 +2532,8 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add to scene.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "base", "ObjectBase", "", "The newly created base.");
+	RNA_def_function_return(func, parm);
 
 	func= RNA_def_function(srna, "unlink", "rna_Scene_unlink_object");
 	RNA_def_function_ui_description(func, "Unlink object from scene.");

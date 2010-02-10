@@ -379,11 +379,78 @@ class JoinUVs(bpy.types.Operator):
         self._main(context)
         return {'FINISHED'}
 
-if __name__ == "__main__":
-    bpy.ops.uv.simple_operator()
+class MakeDupliFace(bpy.types.Operator):
+    '''Make linked objects into dupli-faces'''
+    bl_idname = "object.make_dupli_face"
+    bl_label = "Make DupliFace"
+
+    def poll(self, context):
+        obj = context.active_object
+        return (obj and obj.type == 'MESH')
+
+    def _main(self, context):
+        from Mathutils import Vector
+        from math import sqrt
+
+        SCALE_FAC = 0.01
+        offset = 0.5 * SCALE_FAC
+        base_tri = Vector(-offset, -offset, 0.0), Vector(-offset, offset, 0.0), Vector(offset, offset, 0.0), Vector(offset, -offset, 0.0)
+
+        def matrix_to_quat(matrix):
+            # scale = matrix.median_scale
+            trans = matrix.translation_part()
+            rot = matrix.rotation_part() # also contains scale
+            
+            return [(rot * b) + trans for b in base_tri]
+        scene = bpy.context.scene
+        linked = {}
+        for obj in bpy.context.selected_objects:
+            data = obj.data
+            if data:
+                linked.setdefault(data, []).append(obj)
+
+        for data, objects in linked.items():
+            face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix) for axis in v]
+            faces = list(range(int(len(face_verts) / 3)))
+
+            mesh = bpy.data.meshes.new(data.name + "_dupli")
+
+            mesh.add_geometry(int(len(face_verts) / 3), 0, int(len(face_verts) / (4 * 3)))
+            mesh.verts.foreach_set("co", face_verts)
+            mesh.faces.foreach_set("verts_raw", faces)
+            mesh.update() # generates edge data
+
+            # pick an object to use 
+            obj = objects[0]
+
+            ob_new = bpy.data.objects.new(mesh.name, 'MESH')
+            ob_new.data = mesh
+            base = scene.objects.link(ob_new)
+            base.layers[:] = obj.layers
+            
+            ob_inst = bpy.data.objects.new(data.name, obj.type)
+            ob_inst.data = data
+            base = scene.objects.link(ob_inst)
+            base.layers[:] = obj.layers
+            
+            for obj in objects:
+                scene.objects.unlink(obj)
+            
+            ob_new.dupli_type = 'FACES'
+            ob_inst.parent = ob_new
+            ob_new.use_dupli_faces_scale = True
+            ob_new.dupli_faces_scale = 1.0 / SCALE_FAC
+
+    def execute(self, context):
+        self._main(context)
+        return {'FINISHED'}
+
+# if __name__ == "__main__":
+#     bpy.ops.uv.simple_operator()
 
 
 bpy.types.register(SelectPattern)
 bpy.types.register(SubdivisionSet)
 bpy.types.register(ShapeTransfer)
 bpy.types.register(JoinUVs)
+bpy.types.register(MakeDupliFace)
