@@ -969,12 +969,22 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 		 */
 		first_fcu = animdata_filter_fcurve_next(ads, agrp->channels.first, agrp, filter_gmode, owner_id);
 		
+		/* Bug note: 
+		 * 	Selecting open group to toggle visbility of the group, where the F-Curves of the group are not suitable 
+		 *	for inclusion due to their selection status (vs visibility status of bones/etc., as is usually the case),
+		 *	will not work, since the group gets skipped. However, fixing this can easily reintroduce the bugs whereby
+		 * 	hidden groups (due to visibility status of bones/etc.) that were selected before becoming invisible, can
+		 *	easily get deleted accidentally as they'd be included in the list filtered for that purpose.
+		 *
+		 * 	So, for now, best solution is to just leave this note here, and hope to find a solution at a later date.
+		 *	-- Joshua Leung, 2010 Feb 10
+		 */
 		if (first_fcu) {
 			/* add this group as a channel first */
 			if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
 				/* filter selection of channel specially here again, since may be open and not subject to previous test */
 				if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
-				ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
+					ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
 					if (ale) {
 						BLI_addtail(anim_data, ale);
 						items++;
