@@ -261,7 +261,7 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Layers";
-	ot->description= "Toggle layer(s) visibility.";
+	ot->description= "Toggle layer(s) visibility";
 	ot->idname= "VIEW3D_OT_layers";
 	
 	/* api callbacks */

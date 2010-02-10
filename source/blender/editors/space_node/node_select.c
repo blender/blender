@@ -280,7 +280,7 @@ void NODE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select/Deselect All";
-	ot->description = "(De)select all nodes.";
+	ot->description = "(De)select all nodes";
 	ot->idname = "NODE_OT_select_all";
 	
 	/* api callbacks */
@@ -320,7 +320,7 @@ void NODE_OT_select_linked_to(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Linked To";
-	ot->description = "Select nodes linked to the selected ones.";
+	ot->description = "Select nodes linked to the selected ones";
 	ot->idname = "NODE_OT_select_linked_to";
 	
 	/* api callbacks */
@@ -360,7 +360,7 @@ void NODE_OT_select_linked_from(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Linked From";
-	ot->description = "Select nodes linked from the selected ones.";
+	ot->description = "Select nodes linked from the selected ones";
 	ot->idname = "NODE_OT_select_linked_from";
 	
 	/* api callbacks */

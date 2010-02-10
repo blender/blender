@@ -142,7 +142,7 @@ void RNA_def_context(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Context", NULL);
-	RNA_def_struct_ui_text(srna, "Context", "Current windowmanager and data context.");
+	RNA_def_struct_ui_text(srna, "Context", "Current windowmanager and data context");
 	RNA_def_struct_sdna(srna, "bContext");
 
 	/* WM */

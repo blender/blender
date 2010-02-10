@@ -1028,7 +1028,7 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 {
 	ot->name= "Debug Menu";
 	ot->idname= "WM_OT_debug_menu";
-	ot->description= "Open a popup to set the debug level.";
+	ot->description= "Open a popup to set the debug level";
 	
 	ot->invoke= wm_debug_menu_invoke;
 	ot->exec= wm_debug_menu_exec;
@@ -1285,7 +1285,7 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 {
 	ot->name= "Duplicate Window";
 	ot->idname= "WM_OT_window_duplicate";
-	ot->description="Duplicate the current Blender window.";
+	ot->description="Duplicate the current Blender window";
 		
 	ot->exec= wm_window_duplicate_op;
 	ot->poll= wm_operator_winactive_normal;
@@ -1295,7 +1295,7 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 {
 	ot->name= "Save User Settings";
 	ot->idname= "WM_OT_save_homefile";
-	ot->description="Make the current file the default .blend file.";
+	ot->description="Make the current file the default .blend file";
 		
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_write_homefile;
@@ -1306,7 +1306,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 {
 	ot->name= "Reload Start-Up File";
 	ot->idname= "WM_OT_read_homefile";
-	ot->description="Open the default file (doesn't save the current file).";
+	ot->description="Open the default file (doesn't save the current file)";
 	
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_read_homefile;
@@ -1358,7 +1358,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Open Blender File";
 	ot->idname= "WM_OT_open_mainfile";
-	ot->description="Open a Blender file.";
+	ot->description="Open a Blender file";
 	
 	ot->invoke= wm_open_mainfile_invoke;
 	ot->exec= wm_open_mainfile_exec;
@@ -1558,7 +1558,7 @@ static void WM_OT_recover_last_session(wmOperatorType *ot)
 {
 	ot->name= "Recover Last Session";
 	ot->idname= "WM_OT_recover_last_session";
-	ot->description="Open the last closed file (\"quit.blend\").";
+	ot->description="Open the last closed file (\"quit.blend\")";
 	
 	ot->exec= wm_recover_last_session_exec;
 	ot->poll= WM_operator_winactive;
@@ -1601,7 +1601,7 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 {
 	ot->name= "Recover Auto Save";
 	ot->idname= "WM_OT_recover_auto_save";
-	ot->description="Open an automatically saved file to recover it.";
+	ot->description="Open an automatically saved file to recover it";
 	
 	ot->exec= wm_recover_auto_save_exec;
 	ot->invoke= wm_recover_auto_save_invoke;
@@ -1683,7 +1683,7 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Save As Blender File";
 	ot->idname= "WM_OT_save_as_mainfile";
-	ot->description="Save the current file in the desired location.";
+	ot->description="Save the current file in the desired location";
 	
 	ot->invoke= wm_save_as_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
@@ -1732,7 +1732,7 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Save Blender File";
 	ot->idname= "WM_OT_save_mainfile";
-	ot->description="Save the current Blender file.";
+	ot->description="Save the current Blender file";
 	
 	ot->invoke= wm_save_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
@@ -1849,7 +1849,7 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 {
 	ot->name= "Toggle Fullscreen";
 	ot->idname= "WM_OT_window_fullscreen_toggle";
-	ot->description="Toggle the current window fullscreen.";
+	ot->description="Toggle the current window fullscreen";
 
 	ot->exec= wm_window_fullscreen_toggle_op;
 	ot->poll= WM_operator_winactive;
@@ -1868,7 +1868,7 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 {
 	ot->name= "Exit Blender";
 	ot->idname= "WM_OT_exit_blender";
-	ot->description= "Quit Blender.";
+	ot->description= "Quit Blender";
 
 	ot->invoke= WM_operator_confirm;
 	ot->exec= wm_exit_blender_op;
@@ -2132,7 +2132,7 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
 {
 	ot->name= "Circle Gesture";
 	ot->idname= "WM_OT_circle_gesture";
-	ot->description="Enter rotate mode with a circular gesture.";
+	ot->description="Enter rotate mode with a circular gesture";
 	
 	ot->invoke= WM_gesture_circle_invoke;
 	ot->modal= WM_gesture_circle_modal;
@@ -2352,7 +2352,7 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 	
 	ot->name= "Lasso Gesture";
 	ot->idname= "WM_OT_lasso_gesture";
-	ot->description="Select objects within the lasso as you move the pointer.";
+	ot->description="Select objects within the lasso as you move the pointer";
 	
 	ot->invoke= WM_gesture_lasso_invoke;
 	ot->modal= WM_gesture_lasso_modal;
@@ -2706,7 +2706,7 @@ static void WM_OT_redraw_timer(wmOperatorType *ot)
 	
 	ot->name= "Redraw Timer";
 	ot->idname= "WM_OT_redraw_timer";
-	ot->description="Simple redraw timer to test the speed of updating the interface.";
+	ot->description="Simple redraw timer to test the speed of updating the interface";
 	
 	ot->invoke= WM_menu_invoke;
 	ot->exec= redraw_timer_exec;
@@ -2729,7 +2729,7 @@ static void WM_OT_memory_statistics(wmOperatorType *ot)
 {
 	ot->name= "Memory Statistics";
 	ot->idname= "WM_OT_memory_statistics";
-	ot->description= "Print memory statistics to the console.";
+	ot->description= "Print memory statistics to the console";
 	
 	ot->exec= memory_statistics_exec;
 }

@@ -538,7 +538,7 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "UILayout", NULL);
 	RNA_def_struct_sdna(srna, "uiLayout");
-	RNA_def_struct_ui_text(srna, "UI Layout", "User interface layout in a panel or header.");
+	RNA_def_struct_ui_text(srna, "UI Layout", "User interface layout in a panel or header");
 
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_active_get", "rna_UILayout_active_set");
@@ -581,7 +581,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "Panel", NULL);
-	RNA_def_struct_ui_text(srna, "Panel", "Panel containing buttons.");
+	RNA_def_struct_ui_text(srna, "Panel", "Panel containing buttons");
 	RNA_def_struct_sdna(srna, "Panel");
 	RNA_def_struct_refine_func(srna, "rna_Panel_refine");
 	RNA_def_struct_register_funcs(srna, "rna_Panel_register", "rna_Panel_unregister");
@@ -653,7 +653,7 @@ static void rna_def_header(BlenderRNA *brna)
 	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "Header", NULL);
-	RNA_def_struct_ui_text(srna, "Header", "Editor header containing buttons.");
+	RNA_def_struct_ui_text(srna, "Header", "Editor header containing buttons");
 	RNA_def_struct_sdna(srna, "Header");
 	RNA_def_struct_refine_func(srna, "rna_Header_refine");
 	RNA_def_struct_register_funcs(srna, "rna_Header_register", "rna_Header_unregister");
@@ -692,7 +692,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "Menu", NULL);
-	RNA_def_struct_ui_text(srna, "Menu", "Editor menu containing buttons.");
+	RNA_def_struct_ui_text(srna, "Menu", "Editor menu containing buttons");
 	RNA_def_struct_sdna(srna, "Menu");
 	RNA_def_struct_refine_func(srna, "rna_Menu_refine");
 	RNA_def_struct_register_funcs(srna, "rna_Menu_register", "rna_Menu_unregister");

@@ -283,7 +283,7 @@ void RNA_def_main_cameras(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainCameras");
 	srna= RNA_def_struct(brna, "MainCameras", NULL);
-	RNA_def_struct_ui_text(srna, "Main Cameras", "Collection of cameras.");
+	RNA_def_struct_ui_text(srna, "Main Cameras", "Collection of cameras");
 
 	func= RNA_def_function(srna, "new", "rna_Main_cameras_new");
 	RNA_def_function_ui_description(func, "Add a new camera to the main database");
@@ -308,7 +308,7 @@ void RNA_def_main_scenes(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainScenes");
 	srna= RNA_def_struct(brna, "MainScenes", NULL);
-	RNA_def_struct_ui_text(srna, "Main Scenes", "Collection of scenes.");
+	RNA_def_struct_ui_text(srna, "Main Scenes", "Collection of scenes");
 
 	func= RNA_def_function(srna, "new", "rna_Main_scenes_new");
 	RNA_def_function_ui_description(func, "Add a new scene to the main database");
@@ -334,7 +334,7 @@ void RNA_def_main_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainObjects");
 	srna= RNA_def_struct(brna, "MainObjects", NULL);
-	RNA_def_struct_ui_text(srna, "Main Objects", "Collection of objects.");
+	RNA_def_struct_ui_text(srna, "Main Objects", "Collection of objects");
 
 	func= RNA_def_function(srna, "new", "rna_Main_objects_new");
 	RNA_def_function_ui_description(func, "Add a new object to the main database");
@@ -362,7 +362,7 @@ void RNA_def_main_materials(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainMaterials");
 	srna= RNA_def_struct(brna, "MainMaterials", NULL);
-	RNA_def_struct_ui_text(srna, "Main Material", "Collection of materials.");
+	RNA_def_struct_ui_text(srna, "Main Material", "Collection of materials");
 
 	func= RNA_def_function(srna, "new", "rna_Main_materials_new");
 	RNA_def_function_ui_description(func, "Add a new material to the main database");
@@ -390,7 +390,7 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainMeshes");
 	srna= RNA_def_struct(brna, "MainMeshes", NULL);
-	RNA_def_struct_ui_text(srna, "Main Meshes", "Collection of meshes.");
+	RNA_def_struct_ui_text(srna, "Main Meshes", "Collection of meshes");
 
 	func= RNA_def_function(srna, "new", "rna_Main_meshes_new");
 	RNA_def_function_ui_description(func, "Add a new mesh to the main database");
@@ -414,7 +414,7 @@ void RNA_def_main_lamps(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainLamps");
 	srna= RNA_def_struct(brna, "MainLamps", NULL);
-	RNA_def_struct_ui_text(srna, "Main Lamps", "Collection of lamps.");
+	RNA_def_struct_ui_text(srna, "Main Lamps", "Collection of lamps");
 
 	func= RNA_def_function(srna, "new", "rna_Main_lamps_new");
 	RNA_def_function_ui_description(func, "Add a new lamp to the main database");
@@ -470,7 +470,7 @@ void RNA_def_main_textures(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainTextures");
 	srna= RNA_def_struct(brna, "MainTextures", NULL);
-	RNA_def_struct_ui_text(srna, "Main Textures", "Collection of groups.");
+	RNA_def_struct_ui_text(srna, "Main Textures", "Collection of groups");
 
 	func= RNA_def_function(srna, "new", "rna_Main_textures_new");
 	RNA_def_function_ui_description(func, "Add a new texture to the main database");
@@ -502,7 +502,7 @@ void RNA_def_main_groups(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainGroups");
 	srna= RNA_def_struct(brna, "MainGroups", NULL);
-	RNA_def_struct_ui_text(srna, "Main Groups", "Collection of groups.");
+	RNA_def_struct_ui_text(srna, "Main Groups", "Collection of groups");
 
 	func= RNA_def_function(srna, "new", "rna_Main_groups_new");
 	RNA_def_function_ui_description(func, "Add a new group to the main database");
@@ -526,7 +526,7 @@ void RNA_def_main_texts(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainTexts");
 	srna= RNA_def_struct(brna, "MainTexts", NULL);
-	RNA_def_struct_ui_text(srna, "Main Texts", "Collection of texts.");
+	RNA_def_struct_ui_text(srna, "Main Texts", "Collection of texts");
 
 	func= RNA_def_function(srna, "new", "rna_Main_texts_new");
 	RNA_def_function_ui_description(func, "Add a new text to the main database");
@@ -564,7 +564,7 @@ void RNA_def_main_armatures(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainArmatures");
 	srna= RNA_def_struct(brna, "MainArmatures", NULL);
-	RNA_def_struct_ui_text(srna, "Main Armatures", "Collection of armatures.");
+	RNA_def_struct_ui_text(srna, "Main Armatures", "Collection of armatures");
 
 	func= RNA_def_function(srna, "new", "rna_Main_armatures_new");
 	RNA_def_function_ui_description(func, "Add a new armature to the main database");
@@ -588,7 +588,7 @@ void RNA_def_main_actions(BlenderRNA *brna, PropertyRNA *cprop)
 
 	RNA_def_property_srna(cprop, "MainActions");
 	srna= RNA_def_struct(brna, "MainActions", NULL);
-	RNA_def_struct_ui_text(srna, "Main Actions", "Collection of actions.");
+	RNA_def_struct_ui_text(srna, "Main Actions", "Collection of actions");
 
 	func= RNA_def_function(srna, "new", "rna_Main_actions_new");
 	RNA_def_function_ui_description(func, "Add a new action to the main database");

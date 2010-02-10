@@ -1541,7 +1541,7 @@ void MESH_OT_separate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Separate";
-	ot->description= "Separate selected geometry into a new mesh.";
+	ot->description= "Separate selected geometry into a new mesh";
 	ot->idname= "MESH_OT_separate";
 	
 	/* api callbacks */

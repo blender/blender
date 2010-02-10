@@ -214,7 +214,7 @@ void NODE_OT_visibility_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Visibility";
 	ot->idname= "NODE_OT_visibility_toggle";
-	ot->description= "Handle clicks on node header buttons.";
+	ot->description= "Handle clicks on node header buttons";
 	
 	/* api callbacks */
 	ot->invoke= node_toggle_visibility_invoke;

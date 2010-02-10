@@ -1502,7 +1502,7 @@ void OUTLINER_OT_visibility_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Visability";
 	ot->idname= "OUTLINER_OT_visibility_toggle";
-	ot->description= "Toggle the visibility of selected items.";
+	ot->description= "Toggle the visibility of selected items";
 	
 	/* callbacks */
 	ot->exec= outliner_toggle_visibility_exec;
@@ -1580,7 +1580,7 @@ void OUTLINER_OT_renderability_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Renderability";
 	ot->idname= "OUTLINER_OT_renderability_toggle";
-	ot->description= "Toggle the renderbility of selected items.";
+	ot->description= "Toggle the renderbility of selected items";
 	
 	/* callbacks */
 	ot->exec= outliner_toggle_renderability_exec;
@@ -1611,7 +1611,7 @@ void OUTLINER_OT_expanded_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Expand/Collapse All";
 	ot->idname= "OUTLINER_OT_expanded_toggle";
-	ot->description= "Expand/Collapse all items.";
+	ot->description= "Expand/Collapse all items";
 	
 	/* callbacks */
 	ot->exec= outliner_toggle_expanded_exec;
@@ -1644,7 +1644,7 @@ void OUTLINER_OT_selected_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Selected";
 	ot->idname= "OUTLINER_OT_selected_toggle";
-	ot->description= "Toggle the Outliner selection of items.";
+	ot->description= "Toggle the Outliner selection of items";
 	
 	/* callbacks */
 	ot->exec= outliner_toggle_selected_exec;
@@ -2640,7 +2640,7 @@ void OUTLINER_OT_show_active(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Show Active";
 	ot->idname= "OUTLINER_OT_show_active";
-	ot->description= "Adjust the view so that the active Object is shown centered.";
+	ot->description= "Adjust the view so that the active Object is shown centered";
 	
 	/* callbacks */
 	ot->exec= outliner_show_active_exec;
@@ -2848,7 +2848,7 @@ void OUTLINER_OT_show_hierarchy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Show Hierarchy";
 	ot->idname= "OUTLINER_OT_show_hierarchy";
-	ot->description= "Open all object entries and close all others.";
+	ot->description= "Open all object entries and close all others";
 	
 	/* callbacks */
 	ot->exec= outliner_show_hierarchy_exec;
@@ -3864,7 +3864,7 @@ void OUTLINER_OT_drivers_add_selected(wmOperatorType *ot)
 	/* api callbacks */
 	ot->idname= "OUTLINER_OT_drivers_add_selected";
 	ot->name= "Add Drivers for Selected";
-	ot->description= "Add drivers to selected items.";
+	ot->description= "Add drivers to selected items";
 	
 	/* api callbacks */
 	ot->exec= outliner_drivers_addsel_exec;
@@ -3899,7 +3899,7 @@ void OUTLINER_OT_drivers_delete_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->idname= "OUTLINER_OT_drivers_delete_selected";
 	ot->name= "Delete Drivers for Selected";
-	ot->description= "Delete drivers assigned to selected items.";
+	ot->description= "Delete drivers assigned to selected items";
 	
 	/* api callbacks */
 	ot->exec= outliner_drivers_deletesel_exec;

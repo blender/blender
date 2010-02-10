@@ -499,7 +499,7 @@ void OBJECT_OT_hook_add_selobj(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Hook to Selected Object";
-	ot->description= "Hook selected vertices to the first selected Object.";
+	ot->description= "Hook selected vertices to the first selected Object";
 	ot->idname= "OBJECT_OT_hook_add_selob";
 	
 	/* api callbacks */
@@ -526,7 +526,7 @@ void OBJECT_OT_hook_add_newobj(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Hook to New Object";
-	ot->description= "Hook selected vertices to the first selected Object.";
+	ot->description= "Hook selected vertices to the first selected Object";
 	ot->idname= "OBJECT_OT_hook_add_newob";
 	
 	/* api callbacks */
@@ -599,7 +599,7 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Hook";
 	ot->idname= "OBJECT_OT_hook_remove";
-	ot->description= "Remove a hook from the active object.";
+	ot->description= "Remove a hook from the active object";
 	
 	/* api callbacks */
 	ot->exec= object_hook_remove_exec;
@@ -666,7 +666,7 @@ void OBJECT_OT_hook_reset(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Reset Hook";
-	ot->description= "Recalculate and and clear offset transformation.";
+	ot->description= "Recalculate and and clear offset transformation";
 	ot->idname= "OBJECT_OT_hook_reset";
 	
 	/* callbacks */
@@ -722,7 +722,7 @@ void OBJECT_OT_hook_recenter(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Recenter Hook";
-	ot->description= "Set hook center to cursor position.";
+	ot->description= "Set hook center to cursor position";
 	ot->idname= "OBJECT_OT_hook_recenter";
 	
 	/* callbacks */
@@ -785,7 +785,7 @@ void OBJECT_OT_hook_assign(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Assign to Hook";
-	ot->description= "Assign the selected vertices to a hook.";
+	ot->description= "Assign the selected vertices to a hook";
 	ot->idname= "OBJECT_OT_hook_assign";
 	
 	/* callbacks */
@@ -834,7 +834,7 @@ void OBJECT_OT_hook_select(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Select Hook";
-	ot->description= "Selects effected vertices on mesh.";
+	ot->description= "Selects effected vertices on mesh";
 	ot->idname= "OBJECT_OT_hook_select";
 	
 	/* callbacks */

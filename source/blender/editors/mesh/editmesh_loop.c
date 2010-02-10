@@ -718,7 +718,7 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	ot->name= "Knife Cut";
-	ot->description= "Cut selected edges and faces into parts.";
+	ot->description= "Cut selected edges and faces into parts";
 	ot->idname= "MESH_OT_knife_cut";
 	
 	ot->invoke= WM_gesture_lines_invoke;

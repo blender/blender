@@ -209,7 +209,7 @@ void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Clear Restrict View";
-	ot->description = "Reveal the object by setting the restrictview flag.";
+	ot->description = "Reveal the object by setting the restrictview flag";
 	ot->idname= "OBJECT_OT_restrictview_clear";
 	
 	/* api callbacks */
@@ -261,7 +261,7 @@ void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Restrict View";
-	ot->description = "Hide the object by setting the restrictview flag.";
+	ot->description = "Hide the object by setting the restrictview flag";
 	ot->idname= "OBJECT_OT_restrictview_set";
 	
 	/* api callbacks */
@@ -514,7 +514,7 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Toggle Editmode";
-	ot->description = "Toggle object's editmode.";
+	ot->description = "Toggle object's editmode";
 	ot->idname= "OBJECT_OT_editmode_toggle";
 	
 	/* api callbacks */
@@ -1666,7 +1666,7 @@ void OBJECT_OT_paths_calculate (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Calculate Object Paths";
 	ot->idname= "OBJECT_OT_paths_calculate";
-	ot->description= "Calculate paths for the selected bones.";
+	ot->description= "Calculate paths for the selected bones";
 	
 	/* api callbacks */
 	ot->exec= object_calculate_paths_exec;
@@ -1711,7 +1711,7 @@ void OBJECT_OT_paths_clear (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clear Object Paths";
 	ot->idname= "OBJECT_OT_paths_clear";
-	ot->description= "Clear path caches for selected bones.";
+	ot->description= "Clear path caches for selected bones";
 	
 	/* api callbacks */
 	ot->exec= object_clear_paths_exec;
@@ -2068,7 +2068,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set Object Mode";
-	ot->description = "Sets the object interaction mode.";
+	ot->description = "Sets the object interaction mode";
 	ot->idname= "OBJECT_OT_mode_set";
 	
 	/* api callbacks */

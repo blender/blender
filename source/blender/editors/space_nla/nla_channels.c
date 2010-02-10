@@ -437,7 +437,7 @@ void NLA_OT_tracks_add (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Track(s)";
 	ot->idname= "NLA_OT_tracks_add";
-	ot->description= "Add NLA-Tracks above/after the selected tracks.";
+	ot->description= "Add NLA-Tracks above/after the selected tracks";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_add_tracks_exec;
@@ -493,7 +493,7 @@ void NLA_OT_delete_tracks (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Delete Tracks";
 	ot->idname= "NLA_OT_delete_tracks";
-	ot->description= "Delete selected NLA-Tracks and the strips they contain.";
+	ot->description= "Delete selected NLA-Tracks and the strips they contain";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_delete_tracks_exec;

@@ -642,7 +642,7 @@ void POSE_OT_apply (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Apply Pose as Rest Pose";
 	ot->idname= "POSE_OT_apply";
-	ot->description= "Apply the current pose as the new rest pose.";
+	ot->description= "Apply the current pose as the new rest pose";
 	
 	/* callbacks */
 	ot->exec= apply_armature_pose2bones_exec;
@@ -1142,7 +1142,7 @@ void ARMATURE_OT_separate (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Separate Bones";
 	ot->idname= "ARMATURE_OT_separate";
-	ot->description= "Isolate selected bones into a separate armature.";
+	ot->description= "Isolate selected bones into a separate armature";
 	
 	/* callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -1374,7 +1374,7 @@ void ARMATURE_OT_flags_set (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Bone Flags";
 	ot->idname= "ARMATURE_OT_flags_set";
-	ot->description= "Set flags for armature bones.";
+	ot->description= "Set flags for armature bones";
 	
 	/* callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1394,7 +1394,7 @@ void POSE_OT_flags_set (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Bone Flags";
 	ot->idname= "POSE_OT_flags_set";
-	ot->description= "Set flags for armature bones.";
+	ot->description= "Set flags for armature bones";
 	
 	/* callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -3023,7 +3023,7 @@ void ARMATURE_OT_fill (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Fill Between Joints";
 	ot->idname= "ARMATURE_OT_fill";
-	ot->description= "Add bone between selected joint(s) and/or 3D-Cursor.";
+	ot->description= "Add bone between selected joint(s) and/or 3D-Cursor";
 	
 	/* callbacks */
 	ot->exec= armature_fill_bones_exec;
@@ -3191,7 +3191,7 @@ void ARMATURE_OT_merge (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Merge Bones";
 	ot->idname= "ARMATURE_OT_merge";
-	ot->description= "Merge continuous chains of selected bones.";
+	ot->description= "Merge continuous chains of selected bones";
 	
 	/* callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -4279,7 +4279,7 @@ void ARMATURE_OT_align(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Align Bones";
 	ot->idname= "ARMATURE_OT_align";
-	ot->description= "Align selected bones to the active bone (or to their parent).";
+	ot->description= "Align selected bones to the active bone (or to their parent)";
 	
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
@@ -5508,7 +5508,7 @@ void ARMATURE_OT_flip_names (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Flip Names";
 	ot->idname= "ARMATURE_OT_flip_names";
-	ot->description= "Flips (and corrects) the names of selected bones.";
+	ot->description= "Flips (and corrects) the names of selected bones";
 	
 	/* api callbacks */
 	ot->exec= armature_flip_names_exec;
@@ -5560,7 +5560,7 @@ void ARMATURE_OT_autoside_names (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "AutoName by Axis";
 	ot->idname= "ARMATURE_OT_autoside_names";
-	ot->description= "Automatically renames the selected bones according to which side of the target axis they fall on.";
+	ot->description= "Automatically renames the selected bones according to which side of the target axis they fall on";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;

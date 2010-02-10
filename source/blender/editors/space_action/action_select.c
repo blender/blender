@@ -186,7 +186,7 @@ void ACTION_OT_select_all_toggle (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select All";
 	ot->idname= "ACTION_OT_select_all_toggle";
-	ot->description= "Toggle selection of all keyframes.";
+	ot->description= "Toggle selection of all keyframes";
 	
 	/* api callbacks */
 	ot->exec= actkeys_deselectall_exec;
@@ -347,7 +347,7 @@ void ACTION_OT_select_border(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Border Select";
 	ot->idname= "ACTION_OT_select_border";
-	ot->description= "Select all keyframes within the specified region.";
+	ot->description= "Select all keyframes within the specified region";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -561,7 +561,7 @@ void ACTION_OT_select_column (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select All";
 	ot->idname= "ACTION_OT_select_column";
-	ot->description= "Select all keyframes on the specified frame(s).";
+	ot->description= "Select all keyframes on the specified frame(s)";
 	
 	/* api callbacks */
 	ot->exec= actkeys_columnselect_exec;
@@ -642,7 +642,7 @@ void ACTION_OT_select_more (wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select More";
 	ot->idname= "ACTION_OT_select_more";
-	ot->description = "Select keyframes beside already selected ones.";
+	ot->description = "Select keyframes beside already selected ones";
 	
 	/* api callbacks */
 	ot->exec= actkeys_select_more_exec;
@@ -676,7 +676,7 @@ void ACTION_OT_select_less (wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Less";
 	ot->idname= "ACTION_OT_select_less";
-	ot->description = "Deselect keyframes on ends of selection islands.";
+	ot->description = "Deselect keyframes on ends of selection islands";
 	
 	/* api callbacks */
 	ot->exec= actkeys_select_less_exec;
@@ -1096,7 +1096,7 @@ void ACTION_OT_clickselect (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mouse Select Keys";
 	ot->idname= "ACTION_OT_clickselect";
-	ot->description= "Select keyframes by clicking on them.";
+	ot->description= "Select keyframes by clicking on them";
 	
 	/* api callbacks - absolutely no exec() this yet... */
 	ot->invoke= actkeys_clickselect_invoke;

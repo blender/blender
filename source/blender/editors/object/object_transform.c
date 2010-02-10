@@ -117,7 +117,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Location";
-	ot->description = "Clear the object's location.";
+	ot->description = "Clear the object's location";
 	ot->idname= "OBJECT_OT_location_clear";
 	
 	/* api callbacks */
@@ -256,7 +256,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Rotation";
-	ot->description = "Clear the object's rotation.";
+	ot->description = "Clear the object's rotation";
 	ot->idname= "OBJECT_OT_rotation_clear";
 	
 	/* api callbacks */
@@ -317,7 +317,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Scale";
-	ot->description = "Clear the object's scale.";
+	ot->description = "Clear the object's scale";
 	ot->idname= "OBJECT_OT_scale_clear";
 	
 	/* api callbacks */
@@ -361,7 +361,7 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Origin";
-	ot->description = "Clear the object's origin.";
+	ot->description = "Clear the object's origin";
 	ot->idname= "OBJECT_OT_origin_clear";
 	
 	/* api callbacks */
@@ -572,7 +572,7 @@ void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Apply Visual Transform";
-	ot->description = "Apply the object's visual transformation to its data.";
+	ot->description = "Apply the object's visual transformation to its data";
 	ot->idname= "OBJECT_OT_visual_transform_apply";
 	
 	/* api callbacks */
@@ -592,7 +592,7 @@ void OBJECT_OT_location_apply(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Apply Location";
-	ot->description = "Apply the object's location to its data.";
+	ot->description = "Apply the object's location to its data";
 	ot->idname= "OBJECT_OT_location_apply";
 	
 	/* api callbacks */
@@ -612,7 +612,7 @@ void OBJECT_OT_scale_apply(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Apply Scale";
-	ot->description = "Apply the object's scale to its data.";
+	ot->description = "Apply the object's scale to its data";
 	ot->idname= "OBJECT_OT_scale_apply";
 	
 	/* api callbacks */
@@ -632,7 +632,7 @@ void OBJECT_OT_rotation_apply(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Apply Rotation";
-	ot->description = "Apply the object's rotation to its data.";
+	ot->description = "Apply the object's rotation to its data";
 	ot->idname= "OBJECT_OT_rotation_apply";
 	
 	/* api callbacks */

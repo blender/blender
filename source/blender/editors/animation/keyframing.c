@@ -1096,7 +1096,7 @@ void ANIM_OT_keyframe_insert (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Insert Keyframe";
 	ot->idname= "ANIM_OT_keyframe_insert";
-	ot->description= "Insert keyframes on the current frame for all properties in the specified Keying Set.";
+	ot->description= "Insert keyframes on the current frame for all properties in the specified Keying Set";
 	
 	/* callbacks */
 	ot->exec= insert_key_exec; 
@@ -1283,7 +1283,7 @@ void ANIM_OT_keyframe_delete (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Delete Keyframe";
 	ot->idname= "ANIM_OT_keyframe_delete";
-	ot->description= "Delete keyframes on the current frame for all properties in the specified Keying Set.";
+	ot->description= "Delete keyframes on the current frame for all properties in the specified Keying Set";
 	
 	/* callbacks */
 	ot->exec= delete_key_exec; 

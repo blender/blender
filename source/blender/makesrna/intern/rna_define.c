@@ -650,7 +650,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		/* define some builtin properties */
 		prop= RNA_def_property(&srna->cont, "rna_properties", PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_flag(prop, PROP_BUILTIN);
-		RNA_def_property_ui_text(prop, "Properties", "RNA property collection.");
+		RNA_def_property_ui_text(prop, "Properties", "RNA property collection");
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Property");
@@ -668,7 +668,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		prop= RNA_def_property(&srna->cont, "rna_type", PROP_POINTER, PROP_NONE);
 		RNA_def_property_flag(prop, PROP_HIDDEN);
-		RNA_def_property_ui_text(prop, "RNA", "RNA type definition.");
+		RNA_def_property_ui_text(prop, "RNA", "RNA type definition");
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Struct");

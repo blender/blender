@@ -572,7 +572,7 @@ void NODE_OT_group_edit(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Edit Group";
-	ot->description = "Edit node group.";
+	ot->description = "Edit node group";
 	ot->idname = "NODE_OT_group_edit";
 	
 	/* api callbacks */
@@ -618,7 +618,7 @@ void NODE_OT_group_ungroup(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Ungroup";
-	ot->description = "Ungroup selected nodes.";
+	ot->description = "Ungroup selected nodes";
 	ot->idname = "NODE_OT_group_ungroup";
 	
 	/* api callbacks */
@@ -1280,7 +1280,7 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate Nodes";
-	ot->description = "Duplicate the nodes.";
+	ot->description = "Duplicate the nodes";
 	ot->idname= "NODE_OT_duplicate";
 	
 	/* api callbacks */
@@ -1537,7 +1537,7 @@ void NODE_OT_link_make(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Links";
-	ot->description= "Makes a link between selected output in input sockets.";
+	ot->description= "Makes a link between selected output in input sockets";
 	ot->idname= "NODE_OT_link_make";
 	
 	/* callbacks */
@@ -1745,7 +1745,7 @@ void NODE_OT_group_make(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Group";
-	ot->description = "Make group from selected nodes.";
+	ot->description = "Make group from selected nodes";
 	ot->idname = "NODE_OT_group_make";
 	
 	/* api callbacks */
@@ -1794,7 +1794,7 @@ void NODE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Hide";
-	ot->description= "Toggle hiding of the nodes.";
+	ot->description= "Toggle hiding of the nodes";
 	ot->idname= "NODE_OT_hide";
 	
 	/* callbacks */
@@ -1834,7 +1834,7 @@ void NODE_OT_mute(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mute";
-	ot->description= "Toggle muting of the nodes.";
+	ot->description= "Toggle muting of the nodes";
 	ot->idname= "NODE_OT_mute";
 	
 	/* callbacks */
@@ -1873,7 +1873,7 @@ void NODE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
-	ot->description = "Delete selected nodes.";
+	ot->description = "Delete selected nodes";
 	ot->idname= "NODE_OT_delete";
 	
 	/* api callbacks */
@@ -1901,7 +1901,7 @@ void NODE_OT_show_cyclic_dependencies(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Show Cyclic Dependencies";
-	ot->description= "Sort the nodes and show the cyclic dependencies between the nodes.";
+	ot->description= "Sort the nodes and show the cyclic dependencies between the nodes";
 	ot->idname= "NODE_OT_show_cyclic_dependencies";
 	
 	/* callbacks */

@@ -480,7 +480,7 @@ void CONSTRAINT_OT_stretchto_reset (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Reset Original Length";
 	ot->idname= "CONSTRAINT_OT_stretchto_reset";
-	ot->description= "Reset original length of bone for Stretch To Constraint.";
+	ot->description= "Reset original length of bone for Stretch To Constraint";
 	
 	ot->exec= stretchto_reset_exec;
 	ot->poll= stretchto_poll;
@@ -512,7 +512,7 @@ void CONSTRAINT_OT_limitdistance_reset (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Reset Distance";
 	ot->idname= "CONSTRAINT_OT_limitdistance_reset";
-	ot->description= "Reset limiting distance for Limit Distance Constraint.";
+	ot->description= "Reset limiting distance for Limit Distance Constraint";
 	
 	ot->exec= limitdistance_reset_exec;
 	ot->poll= limitdistance_poll;
@@ -592,7 +592,7 @@ void CONSTRAINT_OT_childof_set_inverse (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Inverse";
 	ot->idname= "CONSTRAINT_OT_childof_set_inverse";
-	ot->description= "Set inverse correction for ChildOf constraint.";
+	ot->description= "Set inverse correction for ChildOf constraint";
 	
 	ot->exec= childof_set_inverse_exec;
 	ot->poll= childof_poll;
@@ -622,7 +622,7 @@ void CONSTRAINT_OT_childof_clear_inverse (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clear Inverse";
 	ot->idname= "CONSTRAINT_OT_childof_clear_inverse";
-	ot->description= "Clear inverse correction for ChildOf constraint.";
+	ot->description= "Clear inverse correction for ChildOf constraint";
 	
 	ot->exec= childof_clear_inverse_exec;
 	ot->poll= childof_poll;
@@ -698,7 +698,7 @@ void CONSTRAINT_OT_delete (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Delete Constraint";
 	ot->idname= "CONSTRAINT_OT_delete";
-	ot->description= "Remove constraitn from constraint stack.";
+	ot->description= "Remove constraitn from constraint stack";
 	
 	/* callbacks */
 	ot->exec= constraint_delete_exec;
@@ -735,7 +735,7 @@ void CONSTRAINT_OT_move_down (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Constraint Down";
 	ot->idname= "CONSTRAINT_OT_move_down";
-	ot->description= "Move constraint down constraint stack.";
+	ot->description= "Move constraint down constraint stack";
 	
 	/* callbacks */
 	ot->exec= constraint_move_down_exec;
@@ -773,7 +773,7 @@ void CONSTRAINT_OT_move_up (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Constraint Up";
 	ot->idname= "CONSTRAINT_OT_move_up";
-	ot->description= "Move constraint up constraint stack.";
+	ot->description= "Move constraint up constraint stack";
 	
 	/* callbacks */
 	ot->exec= constraint_move_up_exec;
@@ -815,7 +815,7 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Clear Constraints";
 	ot->idname= "POSE_OT_constraints_clear";
-	ot->description= "Clear all the constraints for the selected bones.";
+	ot->description= "Clear all the constraints for the selected bones";
 	
 	/* callbacks */
 	ot->exec= pose_constraints_clear_exec;
@@ -847,7 +847,7 @@ void OBJECT_OT_constraints_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Clear Constraints";
 	ot->idname= "OBJECT_OT_constraints_clear";
-	ot->description= "Clear all the constraints for the active Object only.";
+	ot->description= "Clear all the constraints for the active Object only";
 	
 	/* callbacks */
 	ot->exec= object_constraints_clear_exec;
@@ -1172,7 +1172,7 @@ void OBJECT_OT_constraint_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Constraint";
-	ot->description = "Add a constraint to the active object.";
+	ot->description = "Add a constraint to the active object";
 	ot->idname= "OBJECT_OT_constraint_add";
 	
 	/* api callbacks */
@@ -1191,7 +1191,7 @@ void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Constraint (with Targets)";
-	ot->description = "Add a constraint to the active object, with target (where applicable) set to the selected Objects/Bones.";
+	ot->description = "Add a constraint to the active object, with target (where applicable) set to the selected Objects/Bones";
 	ot->idname= "OBJECT_OT_constraint_add_with_targets";
 	
 	/* api callbacks */
@@ -1210,7 +1210,7 @@ void POSE_OT_constraint_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Constraint";
-	ot->description = "Add a constraint to the active bone.";
+	ot->description = "Add a constraint to the active bone";
 	ot->idname= "POSE_OT_constraint_add";
 	
 	/* api callbacks */
@@ -1229,7 +1229,7 @@ void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Constraint (with Targets)";
-	ot->description = "Add a constraint to the active bone, with target (where applicable) set to the selected Objects/Bones.";
+	ot->description = "Add a constraint to the active bone, with target (where applicable) set to the selected Objects/Bones";
 	ot->idname= "POSE_OT_constraint_add_with_targets";
 	
 	/* api callbacks */
@@ -1315,7 +1315,7 @@ void POSE_OT_ik_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add IK to Bone";
-	ot->description= "Add IK Constraint to the active Bone.";
+	ot->description= "Add IK Constraint to the active Bone";
 	ot->idname= "POSE_OT_ik_add";
 	
 	/* api callbacks */
@@ -1366,7 +1366,7 @@ void POSE_OT_ik_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove IK";
-	ot->description= "Remove all IK Constraints from selected bones.";
+	ot->description= "Remove all IK Constraints from selected bones";
 	ot->idname= "POSE_OT_ik_clear";
 	
 	/* api callbacks */

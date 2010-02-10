@@ -231,7 +231,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	
 	srna= RNA_def_struct(brna, "RenderEngine", NULL);
 	RNA_def_struct_sdna(srna, "RenderEngine");
-	RNA_def_struct_ui_text(srna, "Render Engine", "Render engine.");
+	RNA_def_struct_ui_text(srna, "Render Engine", "Render engine");
 	RNA_def_struct_refine_func(srna, "rna_RenderEngine_refine");
 	RNA_def_struct_register_funcs(srna, "rna_RenderEngine_register", "rna_RenderEngine_unregister");
 
@@ -292,7 +292,7 @@ static void rna_def_render_result(BlenderRNA *brna)
 	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "RenderResult", NULL);
-	RNA_def_struct_ui_text(srna, "Render Result", "Result of rendering, including all layers and passes.");
+	RNA_def_struct_ui_text(srna, "Render Result", "Result of rendering, including all layers and passes");
 
 	func= RNA_def_function(srna, "load_from_file", "RE_result_load_from_file");
 	RNA_def_function_ui_description(func, "Copies the pixels of this render result from an image file.");

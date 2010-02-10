@@ -227,7 +227,7 @@ void UI_OT_copy_data_path_button(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Data Path";
 	ot->idname= "UI_OT_copy_data_path_button";
-	ot->description= "Copy the RNA data path for this property to the clipboard.";
+	ot->description= "Copy the RNA data path for this property to the clipboard";
 
 	/* callbacks */
 	ot->exec= copy_data_path_button_exec;
@@ -367,7 +367,7 @@ void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy To Selected";
 	ot->idname= "UI_OT_copy_to_selected_button";
-	ot->description= "Copy property from this object to selected objects or bones.";
+	ot->description= "Copy property from this object to selected objects or bones";
 
 	/* callbacks */
 	ot->poll= copy_to_selected_button_poll;

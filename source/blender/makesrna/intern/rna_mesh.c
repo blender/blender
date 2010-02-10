@@ -1000,7 +1000,7 @@ static void rna_def_mvert_group(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "VertexGroupElement", NULL);
 	RNA_def_struct_sdna(srna, "MDeformWeight");
 	RNA_def_struct_path_func(srna, "rna_VertexGroupElement_path");
-	RNA_def_struct_ui_text(srna, "Vertex Group Element", "Weight value of a vertex in a vertex group.");
+	RNA_def_struct_ui_text(srna, "Vertex Group Element", "Weight value of a vertex in a vertex group");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP_VERTEX);
 
 	/* we can't point to actual group, it is in the object and so
@@ -1024,7 +1024,7 @@ static void rna_def_mvert(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "MeshVertex", NULL);
 	RNA_def_struct_sdna(srna, "MVert");
-	RNA_def_struct_ui_text(srna, "Mesh Vertex", "Vertex in a Mesh datablock.");
+	RNA_def_struct_ui_text(srna, "Mesh Vertex", "Vertex in a Mesh datablock");
 	RNA_def_struct_path_func(srna, "rna_MeshVertex_path");
 	RNA_def_struct_ui_icon(srna, ICON_VERTEXSEL);
 
@@ -1055,12 +1055,12 @@ static void rna_def_mvert(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "groups", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_funcs(prop, "rna_MeshVertex_groups_begin", "rna_iterator_array_next", "rna_iterator_array_end", "rna_iterator_array_get", 0, 0, 0);
 	RNA_def_property_struct_type(prop, "VertexGroupElement");
-	RNA_def_property_ui_text(prop, "Groups", "Weights for the vertex groups this vertex is member of.");
+	RNA_def_property_ui_text(prop, "Groups", "Weights for the vertex groups this vertex is member of");
 
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_MeshVertex_index_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex.");
+	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex");
 }
 
 static void rna_def_medge(BlenderRNA *brna)
@@ -1070,7 +1070,7 @@ static void rna_def_medge(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "MeshEdge", NULL);
 	RNA_def_struct_sdna(srna, "MEdge");
-	RNA_def_struct_ui_text(srna, "Mesh Edge", "Edge in a Mesh datablock.");
+	RNA_def_struct_ui_text(srna, "Mesh Edge", "Edge in a Mesh datablock");
 	RNA_def_struct_path_func(srna, "rna_MeshEdge_path");
 	RNA_def_struct_ui_icon(srna, ICON_EDGESEL);
 
@@ -1123,7 +1123,7 @@ static void rna_def_medge(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_MeshEdge_index_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex.");
+	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex");
 }
 
 static void rna_def_mface(BlenderRNA *brna)
@@ -1133,7 +1133,7 @@ static void rna_def_mface(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "MeshFace", NULL);
 	RNA_def_struct_sdna(srna, "MFace");
-	RNA_def_struct_ui_text(srna, "Mesh Face", "Face in a Mesh datablock.");
+	RNA_def_struct_ui_text(srna, "Mesh Face", "Face in a Mesh datablock");
 	RNA_def_struct_path_func(srna, "rna_MeshFace_path");
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL);
 
@@ -1187,7 +1187,7 @@ static void rna_def_mface(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_MeshFace_index_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex.");
+	RNA_def_property_ui_text(prop, "Index", "Index number of the vertex");
 }
 
 static void rna_def_mtface(BlenderRNA *brna)
@@ -1203,7 +1203,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 	int uv_dim[]= {4, 2};
 
 	srna= RNA_def_struct(brna, "MeshTextureFaceLayer", NULL);
-	RNA_def_struct_ui_text(srna, "Mesh Texture Face Layer", "Layer of texture faces in a Mesh datablock.");
+	RNA_def_struct_ui_text(srna, "Mesh Texture Face Layer", "Layer of texture faces in a Mesh datablock");
 	RNA_def_struct_sdna(srna, "CustomDataLayer");
 	RNA_def_struct_path_func(srna, "rna_MeshTextureFaceLayer_path");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP_UVS);
@@ -1238,7 +1238,7 @@ static void rna_def_mtface(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "MeshTextureFace", NULL);
 	RNA_def_struct_sdna(srna, "MTFace");
-	RNA_def_struct_ui_text(srna, "Mesh Texture Face", "UV mapping, texturing and game engine data for a face.");
+	RNA_def_struct_ui_text(srna, "Mesh Texture Face", "UV mapping, texturing and game engine data for a face");
 	RNA_def_struct_path_func(srna, "rna_MeshTextureFace_path");
 	RNA_def_struct_ui_icon(srna, ICON_FACESEL_HLT);
 
@@ -1372,11 +1372,11 @@ static void rna_def_msticky(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "MeshSticky", NULL);
 	RNA_def_struct_sdna(srna, "MSticky");
-	RNA_def_struct_ui_text(srna, "Mesh Vertex Sticky Texture Coordinate", "Stricky texture coordinate.");
+	RNA_def_struct_ui_text(srna, "Mesh Vertex Sticky Texture Coordinate", "Stricky texture coordinate");
 	RNA_def_struct_path_func(srna, "rna_MeshSticky_path");
 
 	prop= RNA_def_property(srna, "co", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_ui_text(prop, "Location", "Sticky texture coordinate location.");
+	RNA_def_property_ui_text(prop, "Location", "Sticky texture coordinate location");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 }
 
@@ -1386,7 +1386,7 @@ static void rna_def_mcol(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "MeshColorLayer", NULL);
-	RNA_def_struct_ui_text(srna, "Mesh Vertex Color Layer", "Layer of vertex colors in a Mesh datablock.");
+	RNA_def_struct_ui_text(srna, "Mesh Vertex Color Layer", "Layer of vertex colors in a Mesh datablock");
 	RNA_def_struct_sdna(srna, "CustomDataLayer");
 	RNA_def_struct_path_func(srna, "rna_MeshColorLayer_path");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP_VCOL);
@@ -1415,7 +1415,7 @@ static void rna_def_mcol(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "MeshColor", NULL);
 	RNA_def_struct_sdna(srna, "MCol");
-	RNA_def_struct_ui_text(srna, "Mesh Vertex Color", "Vertex colors for a face in a Mesh.");
+	RNA_def_struct_ui_text(srna, "Mesh Vertex Color", "Vertex colors for a face in a Mesh");
 	RNA_def_struct_path_func(srna, "rna_MeshColor_path");
 
 	prop= RNA_def_property(srna, "color1", PROP_FLOAT, PROP_COLOR);
@@ -1455,7 +1455,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	/* Float */
 	srna= RNA_def_struct(brna, "MeshFloatPropertyLayer", NULL);
 	RNA_def_struct_sdna(srna, "CustomDataLayer");
-	RNA_def_struct_ui_text(srna, "Mesh Float Property Layer", "User defined layer of floating pointer number values.");
+	RNA_def_struct_ui_text(srna, "Mesh Float Property Layer", "User defined layer of floating pointer number values");
 	RNA_def_struct_path_func(srna, "rna_MeshFloatPropertyLayer_path");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -1470,7 +1470,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "MeshFloatProperty", NULL);
 	RNA_def_struct_sdna(srna, "MFloatProperty");
-	RNA_def_struct_ui_text(srna, "Mesh Float Property", "User defined floating point number value in a float properties layer.");
+	RNA_def_struct_ui_text(srna, "Mesh Float Property", "User defined floating point number value in a float properties layer");
 	RNA_def_struct_path_func(srna, "rna_MeshFloatProperty_path");
 
 	prop= RNA_def_property(srna, "value", PROP_FLOAT, PROP_NONE);
@@ -1481,7 +1481,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	/* Int */
 	srna= RNA_def_struct(brna, "MeshIntPropertyLayer", NULL);
 	RNA_def_struct_sdna(srna, "CustomDataLayer");
-	RNA_def_struct_ui_text(srna, "Mesh Int Property Layer", "User defined layer of integer number values.");
+	RNA_def_struct_ui_text(srna, "Mesh Int Property Layer", "User defined layer of integer number values");
 	RNA_def_struct_path_func(srna, "rna_MeshIntPropertyLayer_path");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -1496,7 +1496,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "MeshIntProperty", NULL);
 	RNA_def_struct_sdna(srna, "MIntProperty");
-	RNA_def_struct_ui_text(srna, "Mesh Int Property", "User defined integer number value in an integer properties layer.");
+	RNA_def_struct_ui_text(srna, "Mesh Int Property", "User defined integer number value in an integer properties layer");
 	RNA_def_struct_path_func(srna, "rna_MeshIntProperty_path");
 
 	prop= RNA_def_property(srna, "value", PROP_INT, PROP_NONE);
@@ -1507,7 +1507,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 	/* String */
 	srna= RNA_def_struct(brna, "MeshStringPropertyLayer", NULL);
 	RNA_def_struct_sdna(srna, "CustomDataLayer");
-	RNA_def_struct_ui_text(srna, "Mesh String Property Layer", "User defined layer of string text values.");
+	RNA_def_struct_ui_text(srna, "Mesh String Property Layer", "User defined layer of string text values");
 	RNA_def_struct_path_func(srna, "rna_MeshStringPropertyLayer_path");
 
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -1522,7 +1522,7 @@ static void rna_def_mproperties(BlenderRNA *brna)
 
 	srna= RNA_def_struct(brna, "MeshStringProperty", NULL);
 	RNA_def_struct_sdna(srna, "MStringProperty");
-	RNA_def_struct_ui_text(srna, "Mesh String Property", "User defined string text value in a string properties layer.");
+	RNA_def_struct_ui_text(srna, "Mesh String Property", "User defined string text value in a string properties layer");
 	RNA_def_struct_path_func(srna, "rna_MeshStringProperty_path");
 
 	prop= RNA_def_property(srna, "value", PROP_STRING, PROP_NONE);
@@ -1538,17 +1538,17 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 	/* texture space */
 	prop= RNA_def_property(srna, "auto_texspace", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "texflag", AUTOSPACE);
-	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object.");
+	RNA_def_property_ui_text(prop, "Auto Texture Space", "Adjusts active object's texture space automatically when transforming object");
 
 	prop= RNA_def_property(srna, "texspace_loc", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
-	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location.");
+	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
 	RNA_def_property_editable_func(prop, texspace_editable);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
 	prop= RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
-	RNA_def_property_ui_text(prop, "Texture Space Size", "Texture space size.");
+	RNA_def_property_ui_text(prop, "Texture Space Size", "Texture space size");
 	RNA_def_property_editable_func(prop, texspace_editable);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
@@ -1579,7 +1579,7 @@ static void rna_def_mesh_faces(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "MeshFaces");
 	srna= RNA_def_struct(brna, "MeshFaces", NULL);
 	RNA_def_struct_sdna(srna, "Mesh");
-	RNA_def_struct_ui_text(srna, "Mesh Faces", "Collection of mesh faces.");
+	RNA_def_struct_ui_text(srna, "Mesh Faces", "Collection of mesh faces");
 
 	prop= RNA_def_property(srna, "active", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "act_face");
@@ -1593,35 +1593,35 @@ static void rna_def_mesh(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Mesh", "ID");
-	RNA_def_struct_ui_text(srna, "Mesh", "Mesh datablock to define geometric surfaces.");
+	RNA_def_struct_ui_text(srna, "Mesh", "Mesh datablock to define geometric surfaces");
 	RNA_def_struct_ui_icon(srna, ICON_MESH_DATA);
 
 	prop= RNA_def_property(srna, "verts", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mvert", "totvert");
 	RNA_def_property_struct_type(prop, "MeshVertex");
-	RNA_def_property_ui_text(prop, "Vertices", "Vertices of the mesh.");
+	RNA_def_property_ui_text(prop, "Vertices", "Vertices of the mesh");
 
 	prop= RNA_def_property(srna, "edges", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "medge", "totedge");
 	RNA_def_property_struct_type(prop, "MeshEdge");
-	RNA_def_property_ui_text(prop, "Edges", "Edges of the mesh.");
+	RNA_def_property_ui_text(prop, "Edges", "Edges of the mesh");
 
 	prop= RNA_def_property(srna, "faces", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "mface", "totface");
 	RNA_def_property_struct_type(prop, "MeshFace");
-	RNA_def_property_ui_text(prop, "Faces", "Faces of the mesh.");
+	RNA_def_property_ui_text(prop, "Faces", "Faces of the mesh");
 	rna_def_mesh_faces(brna, prop);
 
 	prop= RNA_def_property(srna, "sticky", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "msticky", "totvert");
 	RNA_def_property_struct_type(prop, "MeshSticky");
-	RNA_def_property_ui_text(prop, "Sticky", "Sticky texture coordinates.");
+	RNA_def_property_ui_text(prop, "Sticky", "Sticky texture coordinates");
 
 	/* TODO, should this be allowed to be its self? */
 	prop= RNA_def_property(srna, "texture_mesh", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "texcomesh");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
-	RNA_def_property_ui_text(prop, "Texture Mesh", "Use another mesh for texture indicies (vertex indicies must be aligned).");
+	RNA_def_property_ui_text(prop, "Texture Mesh", "Use another mesh for texture indicies (vertex indicies must be aligned)");
 
 	/* UV textures */
 	prop= RNA_def_property(srna, "uv_textures", PROP_COLLECTION, PROP_NONE);
@@ -1634,33 +1634,33 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_uv_texture_get", "rna_Mesh_active_uv_texture_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Active UV Texture", "Active UV texture.");
+	RNA_def_property_ui_text(prop, "Active UV Texture", "Active UV texture");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 	prop= RNA_def_property(srna, "active_uv_texture_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_funcs(prop, "rna_Mesh_active_uv_texture_index_get", "rna_Mesh_active_uv_texture_index_set", "rna_Mesh_active_uv_texture_index_range");
-	RNA_def_property_ui_text(prop, "Active UV Texture Index", "Active UV texture index.");
+	RNA_def_property_ui_text(prop, "Active UV Texture Index", "Active UV texture index");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 	prop= RNA_def_property(srna, "uv_texture_clone", PROP_POINTER, PROP_UNSIGNED);
 	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_uv_texture_clone_get", "rna_Mesh_uv_texture_clone_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Clone UV Texture", "UV texture to be used as cloning source.");
+	RNA_def_property_ui_text(prop, "Clone UV Texture", "UV texture to be used as cloning source");
 
 	prop= RNA_def_property(srna, "uv_texture_clone_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_funcs(prop, "rna_Mesh_uv_texture_clone_index_get", "rna_Mesh_uv_texture_clone_index_set", "rna_Mesh_active_uv_texture_index_range");
-	RNA_def_property_ui_text(prop, "Clone UV Texture Index", "Clone UV texture index.");
+	RNA_def_property_ui_text(prop, "Clone UV Texture Index", "Clone UV texture index");
 
 	prop= RNA_def_property(srna, "uv_texture_stencil", PROP_POINTER, PROP_UNSIGNED);
 	RNA_def_property_struct_type(prop, "MeshTextureFaceLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_uv_texture_stencil_get", "rna_Mesh_uv_texture_stencil_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Mask UV Texture", "UV texture to mask the painted area.");
+	RNA_def_property_ui_text(prop, "Mask UV Texture", "UV texture to mask the painted area");
 
 	prop= RNA_def_property(srna, "uv_texture_stencil_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_funcs(prop, "rna_Mesh_uv_texture_stencil_index_get", "rna_Mesh_uv_texture_stencil_index_set", "rna_Mesh_active_uv_texture_index_range");
-	RNA_def_property_ui_text(prop, "Mask UV Texture Index", "Mask UV texture index.");
+	RNA_def_property_ui_text(prop, "Mask UV Texture Index", "Mask UV texture index");
 
 	/* Vertex colors */
 
@@ -1674,12 +1674,12 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "MeshColorLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Mesh_active_vertex_color_get", "rna_Mesh_active_vertex_color_set", NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Active Vertex Color Layer", "Active vertex color layer.");
+	RNA_def_property_ui_text(prop, "Active Vertex Color Layer", "Active vertex color layer");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 	prop= RNA_def_property(srna, "active_vertex_color_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_funcs(prop, "rna_Mesh_active_vertex_color_index_get", "rna_Mesh_active_vertex_color_index_set", "rna_Mesh_active_vertex_color_index_range");
-	RNA_def_property_ui_text(prop, "Active Vertex Color Index", "Active vertex color index.");
+	RNA_def_property_ui_text(prop, "Active Vertex Color Index", "Active vertex color index");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
 
 	prop= RNA_def_property(srna, "float_layers", PROP_COLLECTION, PROP_NONE);

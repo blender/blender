@@ -491,7 +491,7 @@ void MESH_OT_loopcut (wmOperatorType *ot)
 	/* description */
 	ot->name= "Loop Cut";
 	ot->idname= "MESH_OT_loopcut";
-	ot->description= "Add a new loop between existing loops.";
+	ot->description= "Add a new loop between existing loops";
 	
 	/* callbacks */
 	ot->invoke= ringcut_invoke;

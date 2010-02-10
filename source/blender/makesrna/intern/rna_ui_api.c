@@ -79,7 +79,7 @@ static void api_ui_item_common(FunctionRNA *func)
 
 	prop= RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, icon_items);
-	RNA_def_property_ui_text(prop, "Icon", "Override automatic icon of the item.");
+	RNA_def_property_ui_text(prop, "Icon", "Override automatic icon of the item");
 
 }
 

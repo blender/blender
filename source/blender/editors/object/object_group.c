@@ -92,7 +92,7 @@ void GROUP_OT_objects_add_active(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Selected To Active Group";
-	ot->description = "Add the object to an object group that contains the active object.";
+	ot->description = "Add the object to an object group that contains the active object";
 	ot->idname= "GROUP_OT_objects_add_active";
 	
 	/* api callbacks */
@@ -138,7 +138,7 @@ void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Selected From Active Group";
-	ot->description = "Remove the object from an object group that contains the active object.";
+	ot->description = "Remove the object from an object group that contains the active object";
 	ot->idname= "GROUP_OT_objects_remove_active";
 	
 	/* api callbacks */
@@ -171,7 +171,7 @@ void GROUP_OT_objects_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove From Groups";
-	ot->description = "Remove selected objects from all groups.";
+	ot->description = "Remove selected objects from all groups";
 	ot->idname= "GROUP_OT_objects_remove";
 	
 	/* api callbacks */
@@ -207,7 +207,7 @@ void GROUP_OT_create(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Create New Group";
-	ot->description = "Create an object group from selected objects.";
+	ot->description = "Create an object group from selected objects";
 	ot->idname= "GROUP_OT_create";
 	
 	/* api callbacks */
@@ -291,7 +291,7 @@ void OBJECT_OT_group_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add to Group";
 	ot->idname= "OBJECT_OT_group_add";
-	ot->description = "Add an object to an existing group, or create new.";
+	ot->description = "Add an object to an existing group, or create new";
 	
 	/* api callbacks */
 	ot->exec= group_add_exec;

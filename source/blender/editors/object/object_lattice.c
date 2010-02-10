@@ -228,7 +228,7 @@ void LATTICE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select or Deselect All";
-    ot->description= "Change selection of all UVW control points.";
+    ot->description= "Change selection of all UVW control points";
 	ot->idname= "LATTICE_OT_select_all";
 	
 	/* api callbacks */
@@ -276,7 +276,7 @@ void LATTICE_OT_make_regular(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Regular";
-    ot->description= "Set UVW control points a uniform distance apart.";
+    ot->description= "Set UVW control points a uniform distance apart";
 	ot->idname= "LATTICE_OT_make_regular";
 	
 	/* api callbacks */

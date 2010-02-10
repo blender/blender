@@ -139,7 +139,7 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "File Browse";
-	ot->description="Open a file browser.";
+	ot->description="Open a file browser";
 	ot->idname= "BUTTONS_OT_file_browse";
 	
 	/* api callbacks */

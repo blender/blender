@@ -165,7 +165,7 @@ void ANIM_OT_change_frame(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Change frame";
 	ot->idname= "ANIM_OT_change_frame";
-	ot->description= "Interactively change the current frame number.";
+	ot->description= "Interactively change the current frame number";
 	
 	/* api callbacks */
 	ot->exec= change_frame_exec;

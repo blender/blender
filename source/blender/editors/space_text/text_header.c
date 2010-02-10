@@ -136,7 +136,7 @@ void TEXT_OT_properties(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Properties";
-    ot->description= "Toggle text properties panel.";
+    ot->description= "Toggle text properties panel";
 	ot->idname= "TEXT_OT_properties";
 	
 	/* api callbacks */

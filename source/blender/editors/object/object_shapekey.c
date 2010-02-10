@@ -310,7 +310,7 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Shape Keys";
-	ot->description= "Clear weights for all shape keys.";
+	ot->description= "Clear weights for all shape keys";
 	ot->idname= "OBJECT_OT_shape_key_clear";
 	
 	/* api callbacks */

@@ -320,7 +320,7 @@ void FONT_OT_insert_lorem(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Lorem";
-    ot->description= "Insert placeholder text.";
+    ot->description= "Insert placeholder text";
 	ot->idname= "FONT_OT_insert_lorem";
 	
 	/* api callbacks */
@@ -408,7 +408,7 @@ void FONT_OT_file_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste File";
-    ot->description= "Paste contents from file.";
+    ot->description= "Paste contents from file";
 	ot->idname= "FONT_OT_file_paste";
 	
 	/* api callbacks */
@@ -457,7 +457,7 @@ void FONT_OT_buffer_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste Buffer";
-    ot->description= "Paste text from OS buffer.";
+    ot->description= "Paste text from OS buffer";
 	ot->idname= "FONT_OT_buffer_paste";
 	
 	/* api callbacks */
@@ -656,7 +656,7 @@ void FONT_OT_style_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Style";
-    ot->description= "Set font style.";
+    ot->description= "Set font style";
 	ot->idname= "FONT_OT_style_set";
 	
 	/* api callbacks */
@@ -694,7 +694,7 @@ void FONT_OT_style_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Style";
-    ot->description= "Toggle font style.";
+    ot->description= "Toggle font style";
 	ot->idname= "FONT_OT_style_toggle";
 	
 	/* api callbacks */
@@ -737,7 +737,7 @@ void FONT_OT_text_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy Text";
-    ot->description= "Copy selected text to clipboard.";
+    ot->description= "Copy selected text to clipboard";
 	ot->idname= "FONT_OT_text_copy";
 	
 	/* api callbacks */
@@ -768,7 +768,7 @@ void FONT_OT_text_cut(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Cut Text";
-    ot->description= "Cut selected text to clipboard.";
+    ot->description= "Cut selected text to clipboard";
 	ot->idname= "FONT_OT_text_cut";
 	
 	/* api callbacks */
@@ -826,7 +826,7 @@ void FONT_OT_text_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste Text";
-    ot->description= "Paste text from clipboard.";
+    ot->description= "Paste text from clipboard";
 	ot->idname= "FONT_OT_text_paste";
 	
 	/* api callbacks */
@@ -962,7 +962,7 @@ void FONT_OT_move(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Cursor";
-    ot->description= "Move cursor to position type.";
+    ot->description= "Move cursor to position type";
 	ot->idname= "FONT_OT_move";
 	
 	/* api callbacks */
@@ -989,7 +989,7 @@ void FONT_OT_move_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Select";
-    ot->description= "Make selection from current cursor position to new cursor position type.";
+    ot->description= "Make selection from current cursor position to new cursor position type";
 	ot->idname= "FONT_OT_move_select";
 	
 	/* api callbacks */
@@ -1031,7 +1031,7 @@ void FONT_OT_change_spacing(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Change Spacing";
-    ot->description= "Change font spacing.";
+    ot->description= "Change font spacing";
 	ot->idname= "FONT_OT_change_spacing";
 	
 	/* api callbacks */
@@ -1076,7 +1076,7 @@ void FONT_OT_change_character(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Change Character";
-    ot->description= "Change font character code.";
+    ot->description= "Change font character code";
 	ot->idname= "FONT_OT_change_character";
 	
 	/* api callbacks */
@@ -1119,7 +1119,7 @@ void FONT_OT_line_break(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Line Break";
-    ot->description= "Insert line break at cursor position.";
+    ot->description= "Insert line break at cursor position";
 	ot->idname= "FONT_OT_line_break";
 	
 	/* api callbacks */
@@ -1209,7 +1209,7 @@ void FONT_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
-    ot->description= "Delete text by cursor position.";
+    ot->description= "Delete text by cursor position";
 	ot->idname= "FONT_OT_delete";
 	
 	/* api callbacks */
@@ -1351,7 +1351,7 @@ void FONT_OT_text_insert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert Text";
-    ot->description= "Insert text at cursor position.";
+    ot->description= "Insert text at cursor position";
 	ot->idname= "FONT_OT_text_insert";
 	
 	/* api callbacks */
@@ -1487,7 +1487,7 @@ void FONT_OT_case_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Case";
-    ot->description= "Set font case.";
+    ot->description= "Set font case";
 	ot->idname= "FONT_OT_case_set";
 	
 	/* api callbacks */
@@ -1530,7 +1530,7 @@ void FONT_OT_case_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Toggle Case";
-    ot->description= "Toggle font case.";
+    ot->description= "Toggle font case";
 	ot->idname= "FONT_OT_case_toggle";
 	
 	/* api callbacks */
@@ -1696,7 +1696,7 @@ void FONT_OT_unlink(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Unlink";
 	ot->idname= "FONT_OT_unlink";
-	ot->description= "Unlink active font data block.";
+	ot->description= "Unlink active font data block";
 	
 	/* api callbacks */
 	ot->exec= font_unlink_exec;

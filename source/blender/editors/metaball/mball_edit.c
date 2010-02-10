@@ -206,7 +206,7 @@ void MBALL_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select/Deselect All";
-    ot->description= "Change selection of all meta elements.";
+    ot->description= "Change selection of all meta elements";
 	ot->idname= "MBALL_OT_select_all";
 
 	/* callback functions */
@@ -247,7 +247,7 @@ void MBALL_OT_select_inverse_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Inverse";
-    ot->description= "Select inverse of (un)selected metaelements.";
+    ot->description= "Select inverse of (un)selected metaelements";
 	ot->idname= "MBALL_OT_select_inverse_metaelems";
 
 	/* callback functions */
@@ -293,7 +293,7 @@ void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Random...";
-    ot->description= "Randomly select metaelements.";
+    ot->description= "Randomly select metaelements";
 	ot->idname= "MBALL_OT_select_random_metaelems";
 	
 	/* callback functions */
@@ -352,7 +352,7 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate";
-    ot->description= "Delete selected metaelement(s).";
+    ot->description= "Delete selected metaelement(s)";
 	ot->idname= "MBALL_OT_duplicate_metaelems";
 
 	/* callback functions */
@@ -398,7 +398,7 @@ void MBALL_OT_delete_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
-    ot->description= "Delete selected metaelement(s).";
+    ot->description= "Delete selected metaelement(s)";
 	ot->idname= "MBALL_OT_delete_metaelems";
 
 	/* callback functions */
@@ -448,7 +448,7 @@ void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Hide";
-    ot->description= "Hide (un)selected metaelement(s).";
+    ot->description= "Hide (un)selected metaelement(s)";
 	ot->idname= "MBALL_OT_hide_metaelems";
 
 	/* callback functions */
@@ -489,7 +489,7 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reveal";
-    ot->description= "Reveal all hidden metaelements.";
+    ot->description= "Reveal all hidden metaelements";
 	ot->idname= "MBALL_OT_reveal_metaelems";
 	
 	/* callback functions */

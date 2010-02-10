@@ -862,7 +862,7 @@ void POSE_OT_relax (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Relax Pose";
 	ot->idname= "POSE_OT_relax";
-	ot->description= "Make the current pose more similar to its surrounding ones.";
+	ot->description= "Make the current pose more similar to its surrounding ones";
 	
 	/* callbacks */
 	ot->exec= pose_slide_relax_exec;
@@ -919,7 +919,7 @@ void POSE_OT_breakdown (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Pose Breakdowner";
 	ot->idname= "POSE_OT_breakdown";
-	ot->description= "Create a suitable breakdown pose on the current frame.";
+	ot->description= "Create a suitable breakdown pose on the current frame";
 	
 	/* callbacks */
 	ot->exec= pose_slide_breakdown_exec;

@@ -159,7 +159,7 @@ void RNA_def_camera(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "show_mist", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_SHOWMIST);
-	RNA_def_property_ui_text(prop, "Show Mist", "Draw a line from the Camera to indicate the mist area.");
+	RNA_def_property_ui_text(prop, "Show Mist", "Draw a line from the Camera to indicate the mist area");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	prop= RNA_def_property(srna, "show_passepartout", PROP_BOOLEAN, PROP_NONE);

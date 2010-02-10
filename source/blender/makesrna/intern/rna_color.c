@@ -126,7 +126,7 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
     };
 
 	srna= RNA_def_struct(brna, "CurveMapPoint", NULL);
-	RNA_def_struct_ui_text(srna, "CurveMapPoint", "Point of a curve used for a curve mapping.");
+	RNA_def_struct_ui_text(srna, "CurveMapPoint", "Point of a curve used for a curve mapping");
 
 	/* not editable for now, need to have CurveMapping to do curvemapping_changed */
 
@@ -134,17 +134,17 @@ static void rna_def_curvemappoint(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Location", "X/Y coordinates of the curve point.");
+	RNA_def_property_ui_text(prop, "Location", "X/Y coordinates of the curve point");
 
 	prop= RNA_def_property(srna, "handle_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_handle_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Handle Type", "Curve interpolation at this point: bezier or vector.");
+	RNA_def_property_ui_text(prop, "Handle Type", "Curve interpolation at this point: bezier or vector");
 
 	prop= RNA_def_property(srna, "selected", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_SELECT);
-	RNA_def_property_ui_text(prop, "Selected", "Selection state of the curve point.");
+	RNA_def_property_ui_text(prop, "Selected", "Selection state of the curve point");
 }
 
 static void rna_def_curvemap(BlenderRNA *brna)
@@ -158,7 +158,7 @@ static void rna_def_curvemap(BlenderRNA *brna)
     };
 
 	srna= RNA_def_struct(brna, "CurveMap", NULL);
-	RNA_def_struct_ui_text(srna, "CurveMap", "Curve in a curve mapping.");
+	RNA_def_struct_ui_text(srna, "CurveMap", "Curve in a curve mapping");
 
 	/* not editable for now, need to have CurveMapping to do curvemapping_changed */
 
@@ -166,7 +166,7 @@ static void rna_def_curvemap(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_extend_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Extend", "Extrapolate the curve or extend it horizontally.");
+	RNA_def_property_ui_text(prop, "Extend", "Extrapolate the curve or extend it horizontally");
 
 	prop= RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "curve", "totpoint");
@@ -180,7 +180,7 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "CurveMapping", NULL);
-	RNA_def_struct_ui_text(srna, "CurveMapping", "Curve mapping to map color, vector and scalar values to other values using a user defined curve.");
+	RNA_def_struct_ui_text(srna, "CurveMapping", "Curve mapping to map color, vector and scalar values to other values using a user defined curve");
 	
 	prop= RNA_def_property(srna, "clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_DO_CLIP);

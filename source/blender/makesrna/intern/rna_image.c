@@ -202,7 +202,7 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "ImageUser", NULL);
-	RNA_def_struct_ui_text(srna, "Image User", "Parameters defining how an Image datablock is used by another datablock.");
+	RNA_def_struct_ui_text(srna, "Image User", "Parameters defining how an Image datablock is used by another datablock");
 
 	prop= RNA_def_property(srna, "auto_refresh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_ANIM_ALWAYS);
@@ -273,7 +273,7 @@ static void rna_def_image(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Image", "ID");
-	RNA_def_struct_ui_text(srna, "Image", "Image datablock referencing an external or packed image.");
+	RNA_def_struct_ui_text(srna, "Image", "Image datablock referencing an external or packed image");
 	RNA_def_struct_ui_icon(srna, ICON_IMAGE_DATA);
 
 	prop= RNA_def_property(srna, "filename", PROP_STRING, PROP_FILEPATH);

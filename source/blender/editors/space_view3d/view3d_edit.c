@@ -766,7 +766,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Rotate view";
-	ot->description = "Rotate the view.";
+	ot->description = "Rotate the view";
 	ot->idname= "VIEW3D_OT_rotate";
 
 	/* api callbacks */
@@ -909,7 +909,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Move view";
-	ot->description = "Move the view.";
+	ot->description = "Move the view";
 	ot->idname= "VIEW3D_OT_move";
 
 	/* api callbacks */
@@ -1218,7 +1218,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom view";
-	ot->description = "Zoom in/out in the view.";
+	ot->description = "Zoom in/out in the view";
 	ot->idname= "VIEW3D_OT_zoom";
 
 	/* api callbacks */
@@ -1313,7 +1313,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View All";
-	ot->description = "View all objects in scene.";
+	ot->description = "View all objects in scene";
 	ot->idname= "VIEW3D_OT_view_all";
 
 	/* api callbacks */
@@ -1458,7 +1458,7 @@ void VIEW3D_OT_view_selected(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "View Selected";
-	ot->description = "Move the view to the selection center.";
+	ot->description = "Move the view to the selection center";
 	ot->idname= "VIEW3D_OT_view_selected";
 
 	/* api callbacks */
@@ -1503,7 +1503,7 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Center View to Cursor";
-	ot->description= "Centers the view so that the cursor is in the middle of the view.";
+	ot->description= "Centers the view so that the cursor is in the middle of the view";
 	ot->idname= "VIEW3D_OT_view_center_cursor";
 	
 	/* api callbacks */
@@ -1576,7 +1576,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Render Border";
-	ot->description = "Set the boundries of the border render and enables border render .";
+	ot->description = "Set the boundries of the border render and enables border render ";
 	ot->idname= "VIEW3D_OT_render_border";
 
 	/* api callbacks */
@@ -1750,7 +1750,7 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Border Zoom";
-	ot->description = "Zoom in the view to the nearest object contained in the border.";
+	ot->description = "Zoom in the view to the nearest object contained in the border";
 	ot->idname= "VIEW3D_OT_zoom_border";
 
 	/* api callbacks */
@@ -1958,7 +1958,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View numpad";
-	ot->description = "Set the view.";
+	ot->description = "Set the view";
 	ot->idname= "VIEW3D_OT_viewnumpad";
 
 	/* api callbacks */
@@ -2028,7 +2028,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View Orbit";
-	ot->description = "Orbit the view.";
+	ot->description = "Orbit the view";
 	ot->idname= "VIEW3D_OT_view_orbit";
 
 	/* api callbacks */
@@ -2078,7 +2078,7 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View Pan";
-	ot->description = "Pan the view.";
+	ot->description = "Pan the view";
 	ot->idname= "VIEW3D_OT_view_pan";
 
 	/* api callbacks */
@@ -2110,7 +2110,7 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View Persp/Ortho";
-	ot->description = "Switch the current view from perspective/orthographic.";
+	ot->description = "Switch the current view from perspective/orthographic";
 	ot->idname= "VIEW3D_OT_view_persportho";
 
 	/* api callbacks */
@@ -2150,7 +2150,7 @@ void VIEW3D_OT_add_background_image(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name   = "Add Background Image";
-	ot->description= "Add a new background image.";
+	ot->description= "Add a new background image";
 	ot->idname = "VIEW3D_OT_add_background_image";
 
 	/* api callbacks */
@@ -2283,7 +2283,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Clipping Border";
-	ot->description = "Set the view clipping border.";
+	ot->description = "Set the view clipping border";
 	ot->idname= "VIEW3D_OT_clip_border";
 
 	/* api callbacks */
@@ -2368,7 +2368,7 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set 3D Cursor";
-	ot->description = "Set the location of the 3D cursor.";
+	ot->description = "Set the location of the 3D cursor";
 	ot->idname= "VIEW3D_OT_cursor3d";
 
 	/* api callbacks */
@@ -2410,7 +2410,7 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "3D Manipulator";
-	ot->description = "Manipulate selected item by axis.";
+	ot->description = "Manipulate selected item by axis";
 	ot->idname= "VIEW3D_OT_manipulator";
 
 	/* api callbacks */
@@ -2444,7 +2444,7 @@ void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Enable 3D Manipulator";
-	ot->description = "Enable the transform manipulator for use.";
+	ot->description = "Enable the transform manipulator for use";
 	ot->idname= "VIEW3D_OT_enable_manipulator";
 	
 	/* api callbacks */

@@ -330,7 +330,7 @@ static int view3d_toolshelf(bContext *C, wmOperator *op)
 void VIEW3D_OT_toolshelf(wmOperatorType *ot)
 {
 	ot->name= "Tool Shelf";
-	ot->description= "Toggles tool shelf display.";
+	ot->description= "Toggles tool shelf display";
 	ot->idname= "VIEW3D_OT_toolshelf";
 	
 	ot->exec= view3d_toolshelf;

@@ -1043,7 +1043,7 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	prop= RNA_def_property(srna, "zmask_layers", PROP_BOOLEAN, PROP_LAYER);
 	RNA_def_property_boolean_sdna(prop, NULL, "lay_zmask", 1);
 	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Zmask Layers", "Zmask scene layers.");
+	RNA_def_property_ui_text(prop, "Zmask Layers", "Zmask scene layers");
 	if(scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -1312,7 +1312,7 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "SceneGameData", NULL);
 	RNA_def_struct_sdna(srna, "GameData");
 	RNA_def_struct_nested(brna, srna, "Scene");
-	RNA_def_struct_ui_text(srna, "Game Data", "Game data for a Scene datablock.");
+	RNA_def_struct_ui_text(srna, "Game Data", "Game data for a Scene datablock");
 	
 	prop= RNA_def_property(srna, "resolution_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xplay");
@@ -1554,7 +1554,7 @@ static void rna_def_scene_render_layer(BlenderRNA *brna)
 	StructRNA *srna;
 
 	srna= RNA_def_struct(brna, "SceneRenderLayer", NULL);
-	RNA_def_struct_ui_text(srna, "Scene Render Layer", "Render layer.");
+	RNA_def_struct_ui_text(srna, "Scene Render Layer", "Render layer");
 
 	rna_def_render_layer_common(srna, 1);
 }
@@ -1789,7 +1789,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "RenderData");
 	RNA_def_struct_nested(brna, srna, "Scene");
 	RNA_def_struct_path_func(srna, "rna_SceneRenderData_path");
-	RNA_def_struct_ui_text(srna, "Render Data", "Rendering settings for a Scene datablock.");
+	RNA_def_struct_ui_text(srna, "Render Data", "Rendering settings for a Scene datablock");
 	
 	prop= RNA_def_property(srna, "color_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "planes");
@@ -2525,7 +2525,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "SceneObjects");
 	srna= RNA_def_struct(brna, "SceneObjects", NULL);
 	RNA_def_struct_sdna(srna, "Scene");
-	RNA_def_struct_ui_text(srna, "Scene Objects", "Collection of scene objects.");
+	RNA_def_struct_ui_text(srna, "Scene Objects", "Collection of scene objects");
 
 	func= RNA_def_function(srna, "link", "rna_Scene_link_object");
 	RNA_def_function_ui_description(func, "Link object to scene.");
@@ -2564,7 +2564,7 @@ static void rna_def_scene_bases(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "SceneBases");
 	srna= RNA_def_struct(brna, "SceneBases", NULL);
 	RNA_def_struct_sdna(srna, "Scene");
-	RNA_def_struct_ui_text(srna, "Scene Bases", "Collection of scene bases.");
+	RNA_def_struct_ui_text(srna, "Scene Bases", "Collection of scene bases");
 
 	prop= RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ObjectBase");
@@ -2592,7 +2592,7 @@ void RNA_def_scene(BlenderRNA *brna)
 
 	/* Struct definition */
 	srna= RNA_def_struct(brna, "Scene", "ID");
-	RNA_def_struct_ui_text(srna, "Scene", "Scene consisting objects and defining time and render related settings.");
+	RNA_def_struct_ui_text(srna, "Scene", "Scene consisting objects and defining time and render related settings");
 	RNA_def_struct_ui_icon(srna, ICON_SCENE_DATA);
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 	

@@ -1732,7 +1732,7 @@ void OBJECT_OT_vertex_group_clean(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clean Vertex Group";
 	ot->idname= "OBJECT_OT_vertex_group_clean";
-	ot->description= "Remove Vertex Group assignments which aren't required.";
+	ot->description= "Remove Vertex Group assignments which aren't required";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -1765,7 +1765,7 @@ void OBJECT_OT_vertex_group_mirror(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mirror Vertex Group";
 	ot->idname= "OBJECT_OT_vertex_group_mirror";
-	ot->description= "Mirror weights, and flip vertex group names, copying when only one side is selected.";
+	ot->description= "Mirror weights, and flip vertex group names, copying when only one side is selected";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll_edit;
@@ -1811,7 +1811,7 @@ void OBJECT_OT_vertex_group_copy_to_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Vertex Groups to Linked";
 	ot->idname= "OBJECT_OT_vertex_group_copy_to_linked";
-	ot->description= "Copy Vertex Groups to all users of the same Geometry data.";
+	ot->description= "Copy Vertex Groups to all users of the same Geometry data";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -1841,7 +1841,7 @@ void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Vertex Group to Selected";
 	ot->idname= "OBJECT_OT_vertex_group_copy_to_selected";
-	ot->description= "Copy Vertex Groups to other selected objects with matching indicies.";
+	ot->description= "Copy Vertex Groups to other selected objects with matching indicies";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -1899,7 +1899,7 @@ void OBJECT_OT_vertex_group_set_active(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Active Vertex Group";
 	ot->idname= "OBJECT_OT_vertex_group_set_active";
-	ot->description= "Set the active vertex group.";
+	ot->description= "Set the active vertex group";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
@@ -1981,7 +1981,7 @@ void OBJECT_OT_vertex_group_sort(wmOperatorType *ot)
 {
 	ot->name= "Sort Vertex Groups";
 	ot->idname= "OBJECT_OT_vertex_group_sort";
-	ot->description= "Sorts vertex groups alphabetically.";
+	ot->description= "Sorts vertex groups alphabetically";
 
 	/* api callbacks */
 	ot->poll= vertex_group_poll;

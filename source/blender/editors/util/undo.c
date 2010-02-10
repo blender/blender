@@ -242,7 +242,7 @@ void ED_OT_undo(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Undo";
-    ot->description= "Undo previous action.";
+    ot->description= "Undo previous action";
 	ot->idname= "ED_OT_undo";
 	
 	/* api callbacks */
@@ -254,7 +254,7 @@ void ED_OT_redo(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Redo";
-    ot->description= "Redo previous action.";
+    ot->description= "Redo previous action";
 	ot->idname= "ED_OT_redo";
 	
 	/* api callbacks */

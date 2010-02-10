@@ -233,7 +233,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_add";
-	ot->description="Add a new material slot or duplicate the selected one.";
+	ot->description="Add a new material slot or duplicate the selected one";
 	
 	/* api callbacks */
 	ot->exec= material_slot_add_exec;
@@ -260,7 +260,7 @@ void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_remove";
-	ot->description="Remove the selected material slot.";
+	ot->description="Remove the selected material slot";
 	
 	/* api callbacks */
 	ot->exec= material_slot_remove_exec;
@@ -319,7 +319,7 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Assign Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_assign";
-	ot->description="Assign the material in the selected material slot to the selected vertices.";
+	ot->description="Assign the material in the selected material slot to the selected vertices";
 	
 	/* api callbacks */
 	ot->exec= material_slot_assign_exec;
@@ -403,7 +403,7 @@ void OBJECT_OT_material_slot_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_select";
-	ot->description="Select vertices assigned to the selected material slot.";
+	ot->description="Select vertices assigned to the selected material slot";
 	
 	/* api callbacks */
 	ot->exec= material_slot_select_exec;
@@ -422,7 +422,7 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Deselect Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_deselect";
-	ot->description="Deselect vertices assigned to the selected material slot.";
+	ot->description="Deselect vertices assigned to the selected material slot";
 	
 	/* api callbacks */
 	ot->exec= material_slot_deselect_exec;
@@ -462,7 +462,7 @@ void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Material to Others";
 	ot->idname= "OBJECT_OT_material_slot_copy";
-	ot->description="Copies materials to other selected objects.";
+	ot->description="Copies materials to other selected objects";
 
 	/* api callbacks */
 	ot->exec= material_slot_copy_exec;
@@ -508,7 +508,7 @@ void MATERIAL_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Material";
 	ot->idname= "MATERIAL_OT_new";
-	ot->description="Add a new material.";
+	ot->description="Add a new material";
 	
 	/* api callbacks */
 	ot->exec= new_material_exec;
@@ -554,7 +554,7 @@ void TEXTURE_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Texture";
 	ot->idname= "TEXTURE_OT_new";
-	ot->description="Add a new texture.";
+	ot->description="Add a new texture";
 	
 	/* api callbacks */
 	ot->exec= new_texture_exec;
@@ -600,7 +600,7 @@ void WORLD_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New World";
 	ot->idname= "WORLD_OT_new";
-	ot->description= "Add a new world.";
+	ot->description= "Add a new world";
 	
 	/* api callbacks */
 	ot->exec= new_world_exec;
@@ -628,7 +628,7 @@ void SCENE_OT_render_layer_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Render Layer";
 	ot->idname= "SCENE_OT_render_layer_add";
-	ot->description="Add a render layer.";
+	ot->description="Add a render layer";
 	
 	/* api callbacks */
 	ot->exec= render_layer_add_exec;
@@ -674,7 +674,7 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Render Layer";
 	ot->idname= "SCENE_OT_render_layer_remove";
-	ot->description="Remove the selected render layer.";
+	ot->description="Remove the selected render layer";
 	
 	/* api callbacks */
 	ot->exec= render_layer_remove_exec;
@@ -748,7 +748,7 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Texture Slot";
 	ot->idname= "TEXTURE_OT_slot_move";
-	ot->description="Move texture slots up and down.";
+	ot->description="Move texture slots up and down";
 
 	/* api callbacks */
 	ot->exec= texture_slot_move;
@@ -781,7 +781,7 @@ void MATERIAL_OT_copy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Material";
 	ot->idname= "MATERIAL_OT_copy";
-	ot->description="Copy the material settings and nodes.";
+	ot->description="Copy the material settings and nodes";
 
 	/* api callbacks */
 	ot->exec= copy_material_exec;
@@ -809,7 +809,7 @@ void MATERIAL_OT_paste(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Paste Material";
 	ot->idname= "MATERIAL_OT_paste";
-	ot->description="Copy the material settings and nodes.";
+	ot->description="Copy the material settings and nodes";
 
 	/* api callbacks */
 	ot->exec= paste_material_exec;

@@ -332,7 +332,7 @@ void OBJECT_OT_bake_image(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Bake";
-	ot->description= "Bake image textures of selected objects.";
+	ot->description= "Bake image textures of selected objects";
 	ot->idname= "OBJECT_OT_bake_image";
 
 	/* api callbacks */

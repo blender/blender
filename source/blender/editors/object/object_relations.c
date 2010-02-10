@@ -248,7 +248,7 @@ void OBJECT_OT_vertex_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Vertex Parent";
-	ot->description = "Parent selected objects to the selected vertices.";
+	ot->description = "Parent selected objects to the selected vertices";
 	ot->idname= "OBJECT_OT_vertex_parent_set";
 	
 	/* api callbacks */
@@ -440,7 +440,7 @@ void OBJECT_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Parent";
-	ot->description = "Clear the object's parenting.";
+	ot->description = "Clear the object's parenting";
 	ot->idname= "OBJECT_OT_parent_clear";
 	
 	/* api callbacks */
@@ -698,7 +698,7 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Parent";
-	ot->description = "Set the object's parenting.";
+	ot->description = "Set the object's parenting";
 	ot->idname= "OBJECT_OT_parent_set";
 	
 	/* api callbacks */
@@ -754,7 +754,7 @@ void OBJECT_OT_parent_no_inverse_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Parent without Inverse";
-	ot->description = "Set the object's parenting without setting the inverse parent correction.";
+	ot->description = "Set the object's parenting without setting the inverse parent correction";
 	ot->idname= "OBJECT_OT_parent_no_inverse_set";
 	
 	/* api callbacks */
@@ -795,7 +795,7 @@ void OBJECT_OT_slow_parent_clear(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Clear Slow Parent";
-	ot->description = "Clear the object's slow parent.";
+	ot->description = "Clear the object's slow parent";
 	ot->idname= "OBJECT_OT_slow_parent_clear";
 	
 	/* api callbacks */
@@ -833,7 +833,7 @@ void OBJECT_OT_slow_parent_set(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Set Slow Parent";
-	ot->description = "Set the object's slow parent.";
+	ot->description = "Set the object's slow parent";
 	ot->idname= "OBJECT_OT_slow_parent_set";
 	
 	/* api callbacks */
@@ -881,7 +881,7 @@ void OBJECT_OT_track_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear track";
-	ot->description = "Clear tracking constraint or flag from object.";
+	ot->description = "Clear tracking constraint or flag from object";
 	ot->idname= "OBJECT_OT_track_clear";
 	
 	/* api callbacks */
@@ -973,7 +973,7 @@ void OBJECT_OT_track_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Track";
-	ot->description = "Make the object track another object, either by constraint or old way or locked track.";
+	ot->description = "Make the object track another object, either by constraint or old way or locked track";
 	ot->idname= "OBJECT_OT_track_set";
 	
 	/* api callbacks */
@@ -1081,7 +1081,7 @@ void OBJECT_OT_move_to_layer(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move to Layer";
-	ot->description = "Move the object to different layers.";
+	ot->description = "Move the object to different layers";
 	ot->idname= "OBJECT_OT_move_to_layer";
 	
 	/* api callbacks */
@@ -1223,7 +1223,7 @@ void OBJECT_OT_make_links_scene(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Link Objects to Scene";
-	ot->description = "Make linked data local to each object.";
+	ot->description = "Make linked data local to each object";
 	ot->idname= "OBJECT_OT_make_links_scene";
 
 	/* api callbacks */
@@ -1252,7 +1252,7 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Link Data";
-	ot->description = "Make links from the active object to other selected objects.";
+	ot->description = "Make links from the active object to other selected objects";
 	ot->idname= "OBJECT_OT_make_links_data";
 
 	/* api callbacks */
@@ -1757,7 +1757,7 @@ void OBJECT_OT_make_local(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Make Local";
-	ot->description = "Make library linked datablocks local to this file.";
+	ot->description = "Make library linked datablocks local to this file";
 	ot->idname= "OBJECT_OT_make_local";
 	
 	/* api callbacks */
@@ -1808,7 +1808,7 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Make Single User";
-	ot->description = "Make linked data local to each object.";
+	ot->description = "Make linked data local to each object";
 	ot->idname= "OBJECT_OT_make_single_user";
 
 	/* api callbacks */
