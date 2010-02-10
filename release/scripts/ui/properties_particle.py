@@ -348,7 +348,8 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel):
 
         sub = split.column()
 
-        sub.prop(part, "angular_velocity_factor", text="")
+        if part.angular_velocity_mode != 'NONE':
+            sub.prop(part, "angular_velocity_factor", text="")
 
 
 class PARTICLE_PT_physics(ParticleButtonsPanel):
