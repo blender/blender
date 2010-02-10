@@ -75,6 +75,8 @@ extern EnumPropertyItem space_type_items[];
 
 extern EnumPropertyItem keymap_propvalue_items[];
 
+extern EnumPropertyItem operator_context_items[];
+
 extern EnumPropertyItem wm_report_items[];
 
 extern EnumPropertyItem property_unit_items[];

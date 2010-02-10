@@ -2369,6 +2369,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			float *col= rres.rectf + 4*y*re->rectx;
 				
 			for(x=0; x<re->rectx; x++, rf+=4, col+=4) {
+				/* clamping to 1.0 is needed for correct AA */
 				if(col[0]<0.0f) col[0]=0.0f; else if(col[0] > 1.0f) col[0]= 1.0f;
 				if(col[1]<0.0f) col[1]=0.0f; else if(col[1] > 1.0f) col[1]= 1.0f;
 				if(col[2]<0.0f) col[2]=0.0f; else if(col[2] > 1.0f) col[2]= 1.0f;

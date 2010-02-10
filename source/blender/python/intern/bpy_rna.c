@@ -389,7 +389,7 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	
 	RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
 	if(item) {
-		result= (char*)BPy_enum_as_string(item);
+		result= BPy_enum_as_string(item);
 	}
 	else {
 		result= "";
@@ -400,6 +400,7 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	
 	return result;
 }
+
 
 static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *prop, int *val, const char *error_prefix)
 {
