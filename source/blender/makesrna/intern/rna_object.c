@@ -996,6 +996,19 @@ static void rna_Object_modifier_remove(Object *object, bContext *C, ReportList *
 	ED_object_modifier_remove(reports, CTX_data_scene(C), object, md);
 }
 
+static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
+{
+	Object *ob= (Object*)ptr->id.data;
+	BoundBox *bb= object_get_boundbox(ob);
+	if(bb) {
+		memcpy(values, bb->vec, sizeof(bb->vec));
+	}
+	else {
+		memset(values, -1.0f, sizeof(bb->vec));
+	}
+
+}
+
 #else
 
 static void rna_def_vertex_group(BlenderRNA *brna)
@@ -1431,6 +1444,7 @@ static void rna_def_object(BlenderRNA *brna)
 	static float default_quat[4] = {1,0,0,0};	/* default quaternion values */
 	static float default_axisAngle[4] = {0,0,1,0};	/* default axis-angle rotation values */
 	int matrix_dimsize[]= {4, 4};
+	int boundbox_dimsize[]= {8, 3};
 
 	srna= RNA_def_struct(brna, "Object", "ID");
 	RNA_def_struct_ui_text(srna, "Object", "Object datablock defining an object in a scene..");
@@ -1469,6 +1483,13 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
 	RNA_def_property_ui_text(prop, "Selected", "Object selection state.");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Object_select_update");
+
+	/* for data access */
+	prop= RNA_def_property(srna, "bound_box", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_multi_array(prop, 2, boundbox_dimsize);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_Object_boundbox_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Bound Box", "Objects bound box in object-space coords");
 
 	/* parent and track */
 	prop= RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
