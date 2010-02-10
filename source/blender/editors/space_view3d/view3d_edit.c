@@ -1303,6 +1303,8 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 
 	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_copy(CTX_wm_area(C), ar);
+		
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 
 	return OPERATOR_FINISHED;
 }

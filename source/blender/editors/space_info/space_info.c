@@ -175,6 +175,9 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data == ND_SPACE_INFO)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
 	}
 	
 }
