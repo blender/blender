@@ -361,13 +361,6 @@ def addScene(name, overlay=1):
 	@param body: Overlay or underlay (optional)
 	@type body: int
 	"""
-def removeScene(name):
-	"""
-	Removes a scene from the game engine.
-	
-	@param name: The name of the scene
-	@type name: string
-	"""
 def sendMessage(subject, body="", to="", message_from=""):
 	"""
 	Sends a message to sensors in any active scene.
