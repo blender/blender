@@ -950,7 +950,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             prefs = theme.console
 
             col = split.column()
-            col.prop(prefs, "background")
+            col.prop(prefs, "back")
             col.prop(prefs, "header")
 
             col = split.column()
