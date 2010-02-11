@@ -65,12 +65,12 @@ EnumPropertyItem space_type_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem draw_channels_items[] = {
-	{0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors."},
-	{SI_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha", "Draw image with RGB colors and alpha transparency."},
-	{SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel."},
-	{SI_SHOW_ZBUF, "Z_BUFFER", ICON_IMAGE_ZDEPTH, "Z-Buffer", "Draw Z-buffer associated with image (mapped from camera clip start to end)."},
+	{0, "COLOR", ICON_IMAGE_RGB, "Color", "Draw image with RGB colors"},
+	{SI_USE_ALPHA, "COLOR_ALPHA", ICON_IMAGE_RGB_ALPHA, "Color and Alpha", "Draw image with RGB colors and alpha transparency"},
+	{SI_SHOW_ALPHA, "ALPHA", ICON_IMAGE_ALPHA, "Alpha", "Draw alpha transparency channel"},
+	{SI_SHOW_ZBUF, "Z_BUFFER", ICON_IMAGE_ZDEPTH, "Z-Buffer", "Draw Z-buffer associated with image (mapped from camera clip start to end)"},
 #ifdef WITH_LCMS
-	{SI_COLOR_CORRECTION, "COLOR_CORRECTED", ICON_IMAGE_ALPHA, "Color Corrected", "Display color corrected image."},
+	{SI_COLOR_CORRECTION, "COLOR_CORRECTED", ICON_IMAGE_ALPHA, "Color Corrected", "Display color corrected image"},
 #endif
 	{0, NULL, 0, NULL, NULL}};
 
@@ -85,9 +85,9 @@ static EnumPropertyItem transform_orientation_items[] = {
 
 EnumPropertyItem autosnap_items[] = {
 	{SACTSNAP_OFF, "NONE", 0, "No Auto-Snap", ""},
-	{SACTSNAP_STEP, "STEP", 0, "Time Step", "Snap to 1.0 frame/second intervals."},
-	{SACTSNAP_FRAME, "FRAME", 0, "Nearest Frame", "Snap to actual frames/seconds (nla-action time)."},
-	{SACTSNAP_MARKER, "MARKER", 0, "Nearest Marker", "Snap to nearest marker."},
+	{SACTSNAP_STEP, "STEP", 0, "Time Step", "Snap to 1.0 frame/second intervals"},
+	{SACTSNAP_FRAME, "FRAME", 0, "Nearest Frame", "Snap to actual frames/seconds (nla-action time)"},
+	{SACTSNAP_MARKER, "MARKER", 0, "Nearest Marker", "Snap to nearest marker"},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -591,21 +591,21 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem sticky_mode_items[] = {
-		{SI_STICKY_DISABLE, "DISABLED", ICON_STICKY_UVS_DISABLE, "Disabled", "Sticky vertex selection disabled."},
-		{SI_STICKY_LOC, "SHARED_LOCATION", ICON_STICKY_UVS_LOC, "Shared Location", "Select UVs that are at the same location and share a mesh vertex."},
-		{SI_STICKY_VERTEX, "SHARED_VERTEX", ICON_STICKY_UVS_VERT, "Shared Vertex", "Select UVs that share mesh vertex, irrespective if they are in the same location."},
+		{SI_STICKY_DISABLE, "DISABLED", ICON_STICKY_UVS_DISABLE, "Disabled", "Sticky vertex selection disabled"},
+		{SI_STICKY_LOC, "SHARED_LOCATION", ICON_STICKY_UVS_LOC, "Shared Location", "Select UVs that are at the same location and share a mesh vertex"},
+		{SI_STICKY_VERTEX, "SHARED_VERTEX", ICON_STICKY_UVS_VERT, "Shared Vertex", "Select UVs that share mesh vertex, irrespective if they are in the same location"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem dt_uv_items[] = {
-		{SI_UVDT_OUTLINE, "OUTLINE", 0, "Outline", "Draw white edges with black outline."},
-		{SI_UVDT_DASH, "DASH", 0, "Dash", "Draw dashed black-white edges."},
-		{SI_UVDT_BLACK, "BLACK", 0, "Black", "Draw black edges."},
-		{SI_UVDT_WHITE, "WHITE", 0, "White", "Draw white edges."},
+		{SI_UVDT_OUTLINE, "OUTLINE", 0, "Outline", "Draw white edges with black outline"},
+		{SI_UVDT_DASH, "DASH", 0, "Dash", "Draw dashed black-white edges"},
+		{SI_UVDT_BLACK, "BLACK", 0, "Black", "Draw black edges"},
+		{SI_UVDT_WHITE, "WHITE", 0, "White", "Draw white edges"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem dt_uvstretch_items[] = {
-		{SI_UVDT_STRETCH_ANGLE, "ANGLE", 0, "Angle", "Angular distortion between UV and 3D angles."},
-		{SI_UVDT_STRETCH_AREA, "AREA", 0, "Area", "Area distortion between UV and 3D faces."},
+		{SI_UVDT_STRETCH_ANGLE, "ANGLE", 0, "Angle", "Angular distortion between UV and 3D angles"},
+		{SI_UVDT_STRETCH_AREA, "AREA", 0, "Area", "Area distortion between UV and 3D faces"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem pivot_items[] = {
@@ -1787,10 +1787,10 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem file_sort_items[] = {
-		{FILE_SORT_ALPHA, "FILE_SORT_ALPHA", ICON_SORTALPHA, "Sort alphabetically", "Sort the file list alphabetically."},
-		{FILE_SORT_EXTENSION, "FILE_SORT_EXTENSION", ICON_SORTBYEXT, "Sort by extension", "Sort the file list by extension."},
-		{FILE_SORT_TIME, "FILE_SORT_TIME", ICON_SORTTIME, "Sort by time", "Sort files by modification time."},
-		{FILE_SORT_SIZE, "FILE_SORT_SIZE", ICON_SORTSIZE, "Sort by size", "Sort files by size."},
+		{FILE_SORT_ALPHA, "FILE_SORT_ALPHA", ICON_SORTALPHA, "Sort alphabetically", "Sort the file list alphabetically"},
+		{FILE_SORT_EXTENSION, "FILE_SORT_EXTENSION", ICON_SORTBYEXT, "Sort by extension", "Sort the file list by extension"},
+		{FILE_SORT_TIME, "FILE_SORT_TIME", ICON_SORTTIME, "Sort by time", "Sort files by modification time"},
+		{FILE_SORT_SIZE, "FILE_SORT_SIZE", ICON_SORTSIZE, "Sort by size", "Sort files by size"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "FileSelectParams", NULL);
@@ -1922,15 +1922,15 @@ static void rna_def_space_node(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem tree_type_items[] = {
-		{NTREE_SHADER, "MATERIAL", ICON_MATERIAL, "Material", "Material nodes."},
+		{NTREE_SHADER, "MATERIAL", ICON_MATERIAL, "Material", "Material nodes"},
 		{NTREE_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture nodes."},
-		{NTREE_COMPOSIT, "COMPOSITING", ICON_RENDERLAYERS, "Compositing", "Compositing nodes."},
+		{NTREE_COMPOSIT, "COMPOSITING", ICON_RENDERLAYERS, "Compositing", "Compositing nodes"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem texture_type_items[] = {
-		{SNODE_TEX_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit texture nodes from Object."},
-		{SNODE_TEX_WORLD, "WORLD", ICON_WORLD_DATA, "World", "Edit texture nodes from World."},
-		{SNODE_TEX_BRUSH, "BRUSH", ICON_BRUSH_DATA, "Brush", "Edit texture nodes from Brush."},
+		{SNODE_TEX_OBJECT, "OBJECT", ICON_OBJECT_DATA, "Object", "Edit texture nodes from Object"},
+		{SNODE_TEX_WORLD, "WORLD", ICON_WORLD_DATA, "World", "Edit texture nodes from World"},
+		{SNODE_TEX_BRUSH, "BRUSH", ICON_BRUSH_DATA, "Brush", "Edit texture nodes from Brush"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "SpaceNodeEditor", "Space");
