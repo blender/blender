@@ -226,8 +226,9 @@ public:
   
   inline void process(Point& p, 
                       vector<Segment<T,Point>*>& segments, 
-                      binary_rule<Segment<T,Point>,Segment<T,Point> >& binrule
-                      //binary_rule<Segment<T,Point>,Segment<T,Point> >& binrule = binary_rule<Segment<T,Point>,Segment<T,Point> >()
+                      binary_rule<Segment<T,Point>,Segment<T,Point> >& binrule,
+                      //binary_rule<Segment<T,Point>,Segment<T,Point> >& binrule = binary_rule<Segment<T,Point>,Segment<T,Point> >(),
+                      real epsilon = M_EPSILON
                       ) 
   {
     // first we remove the segments that need to be removed and then 
@@ -247,13 +248,14 @@ public:
     s!=send;
     s++)
     {
-      add((*s), binrule);
+      add((*s), binrule, epsilon);
     }
   }
   
   inline void add(Segment<T,Point>* S,
-                  binary_rule<Segment<T,Point>,Segment<T,Point> >& binrule
-                  //binary_rule<Segment<T,Point>,Segment<T,Point> >& binrule = binary_rule<Segment<T,Point>, Segment<T,Point> >()
+                  binary_rule<Segment<T,Point>,Segment<T,Point> >& binrule,
+                  //binary_rule<Segment<T,Point>,Segment<T,Point> >& binrule = binary_rule<Segment<T,Point>, Segment<T,Point> >(),
+                  real epsilon
                   )
   {
     real t,u;
@@ -298,7 +300,7 @@ public:
       if(S->CommonVertex(*currentS, CP))
         continue; // the two edges have a common vertex->no need to check
       
-	  if(GeomUtils::intersect2dSeg2dSegParametric(v0, v1, v2, v3, t, u) == GeomUtils::DO_INTERSECT)
+	  if(GeomUtils::intersect2dSeg2dSegParametric(v0, v1, v2, v3, t, u, epsilon) == GeomUtils::DO_INTERSECT)
       {
         // create the intersection
         Intersection<Segment<T,Point> > * inter = new Intersection<Segment<T,Point> >(S,t,currentS,u);

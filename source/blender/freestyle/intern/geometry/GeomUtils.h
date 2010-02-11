@@ -94,7 +94,8 @@ namespace GeomUtils {
   intersection_test intersect2dSeg2dSegParametric(const Vec2r& p1, const Vec2r& p2, // first segment
 						  const Vec2r& p3, const Vec2r& p4, // second segment
 						  real& t,                          // I = P1 + t * P1P2)
-						  real& u);                         // I = P3 + u * P3P4
+						  real& u,                          // I = P3 + u * P3P4
+                          real epsilon = M_EPSILON);
 
   /*! check whether a 2D segment intersect a 2D region or not */
   LIB_GEOMETRY_EXPORT

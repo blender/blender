@@ -152,7 +152,8 @@ namespace GeomUtils {
 						  const Vec2r& p3,
 						  const Vec2r& p4,
 						  real& t,
-						  real& u) {
+						  real& u,
+                          real epsilon) {
     real a1, a2, b1, b2, c1, c2; // Coefficients of line eqns
     real r1, r2, r3, r4;         // 'Sign' values
     real denom, num;             // Intermediate values
@@ -189,7 +190,7 @@ namespace GeomUtils {
 
     // Line segments intersect: compute intersection point.
     denom = a1 * b2 - a2 * b1;
-    if (fabs(denom) < M_EPSILON)
+    if (fabs(denom) < epsilon)
       return (COLINEAR);
     
     real d1, d2, e1;

@@ -911,7 +911,7 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
 
     Vec3r evt((*sv)->point2D());
     silhouette_binary_rule sbr;
-    SL.process(evt, vsegments, sbr);
+    SL.process(evt, vsegments, sbr, epsilon);
 
     if(progressBarDisplay) {  
       counter--;
