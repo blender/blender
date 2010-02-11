@@ -650,7 +650,6 @@ public:
 		for (i = 0; i < me->totface; i++) {
 			MFace *fa = &me->mface[i];
 			Face f;
-			Normal n;
 			unsigned int *nn = &f.v1;
 			unsigned int *vv = &fa->v1;
 
@@ -658,10 +657,12 @@ public:
 			v = fa->v4 == 0 ? 3 : 4;
 
 			if (!(fa->flag & ME_SMOOTH)) {
+				Normal n;
 				if (v == 4)
 					normal_quad_v3(&n.x, vert[fa->v1].co, vert[fa->v2].co, vert[fa->v3].co, vert[fa->v4].co);
 				else
 					normal_tri_v3(&n.x, vert[fa->v1].co, vert[fa->v2].co, vert[fa->v3].co);
+				nor.push_back(n);
 			}
 
 			for (j = 0; j < v; j++) {
@@ -681,7 +682,6 @@ public:
 					vv++;
 				}
 				else {
-					nor.push_back(n);
 					*nn = nor.size() - 1;
 				}
 				nn++;
