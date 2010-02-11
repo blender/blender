@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\ikplugin;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include;..\..\..\source\blender\render\extern\include"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\imbuf;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\blenlib;..\..\..\source\blender\blenkernel;..\..\..\source\blender\ikplugin;..\..\..\source\blender\windowmanager;..\..\..\source\blender\editors\include;..\..\..\source\blender\gpu;..\..\..\source\blender\render\extern\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;GAMEBLENDER=1"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
