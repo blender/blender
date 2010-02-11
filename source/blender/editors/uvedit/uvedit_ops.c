@@ -1037,9 +1037,9 @@ static int align_exec(bContext *C, wmOperator *op)
 void UV_OT_align(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[] = {
-		{'a', "ALIGN_AUTO", 0, "Align Auto", "Automatically choose the axis on which there is most alignment already."},
-		{'x', "ALIGN_X", 0, "Align X", "Align UVs on X axis."},
-		{'y', "ALIGN_Y", 0, "Align Y", "Align UVs on Y axis."},
+		{'a', "ALIGN_AUTO", 0, "Align Auto", "Automatically choose the axis on which there is most alignment already"},
+		{'x', "ALIGN_X", 0, "Align X", "Align UVs on X axis"},
+		{'y', "ALIGN_Y", 0, "Align Y", "Align UVs on Y axis"},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */

@@ -1173,8 +1173,8 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 	but= uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
 						   editortype_pup(), xco, yco, XIC+10, YIC, 
 						   &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
-						   "Displays Current Editor Type. "
-						   "Click for menu of available types.");
+						   "Displays current editor type. "
+						   "Click for menu of available types");
 	uiButSetFunc(but, spacefunc, NULL, NULL);
 	
 	return xco + XIC + 14;

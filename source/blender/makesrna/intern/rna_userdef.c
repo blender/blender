@@ -2312,7 +2312,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_mipmaps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_MIPMAP);
-	RNA_def_property_ui_text(prop, "Mipmaps", "Scale textures for the 3D View (looks nicer but uses more memory and slows image reloading.)");
+	RNA_def_property_ui_text(prop, "Mipmaps", "Scale textures for the 3D View (looks nicer but uses more memory and slows image reloading)");
 
 	prop= RNA_def_property(srna, "use_vbos", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_VBO);
@@ -2470,7 +2470,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "emulate_3_button_mouse", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_TWOBUTTONMOUSE);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_userdef_emulate_set");
-	RNA_def_property_ui_text(prop, "Emulate 3 Button Mouse", "Emulates Middle Mouse with Alt+LeftMouse (doesnt work with Left Mouse Select option.)");
+	RNA_def_property_ui_text(prop, "Emulate 3 Button Mouse", "Emulates Middle Mouse with Alt+LeftMouse (doesnt work with Left Mouse Select option)");
 
 	prop= RNA_def_property(srna, "emulate_numpad", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_NONUMPAD);

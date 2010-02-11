@@ -1366,8 +1366,8 @@ EnumPropertyItem graphkeys_handle_type_items[] = {
 	{HD_VECT, "VECTOR", 0, "Vector", ""},
 	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
 	{0, "", 0, "", ""},
-	{HD_AUTO, "AUTO", 0, "Auto", "Handles that are automatically adjusted upon moving the keyframe. Whole curve."},
-	{HD_AUTO_ANIM, "ANIM_CLAMPED", 0, "Auto Clamped", "Auto handles clamped to not overshoot. Whole curve."},
+	{HD_AUTO, "AUTO", 0, "Auto", "Handles that are automatically adjusted upon moving the keyframe. Whole curve"},
+	{HD_AUTO_ANIM, "ANIM_CLAMPED", 0, "Auto Clamped", "Auto handles clamped to not overshoot. Whole curve"},
 	{0, NULL, 0, NULL, NULL}};
 
 /* ------------------- */

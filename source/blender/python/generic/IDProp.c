@@ -614,21 +614,21 @@ PyObject* BPy_IDGroup_Get(BPy_IDProperty *self, PyObject *args)
 
 static struct PyMethodDef BPy_IDGroup_methods[] = {
 	{"pop", (PyCFunction)BPy_IDGroup_Pop, METH_O,
-		"pop an item from the group; raises KeyError if the item doesn't exist."},
+		"pop an item from the group; raises KeyError if the item doesn't exist"},
 	{"iteritems", (PyCFunction)BPy_IDGroup_IterItems, METH_NOARGS,
-		"iterate through the items in the dict; behaves like dictionary method iteritems."},
+		"iterate through the items in the dict; behaves like dictionary method iteritems"},
 	{"keys", (PyCFunction)BPy_IDGroup_GetKeys, METH_NOARGS,
-		"get the keys associated with this group as a list of strings."},
+		"get the keys associated with this group as a list of strings"},
 	{"values", (PyCFunction)BPy_IDGroup_GetValues, METH_NOARGS,
-		"get the values associated with this group."},
+		"get the values associated with this group"},
 	{"items", (PyCFunction)BPy_IDGroup_GetItems, METH_NOARGS,
-		"get the items associated with this group."},
+		"get the items associated with this group"},
 	{"update", (PyCFunction)BPy_IDGroup_Update, METH_O,
-		"updates the values in the group with the values of another or a dict."},
+		"updates the values in the group with the values of another or a dict"},
 	{"get", (PyCFunction)BPy_IDGroup_Get, METH_VARARGS,
-		"idprop.get(k[,d]) -> idprop[k] if k in idprop, else d.  d defaults to None."},
+		"idprop.get(k[,d]) -> idprop[k] if k in idprop, else d.  d defaults to None"},
 	{"convert_to_pyobject", (PyCFunction)BPy_IDGroup_ConvertToPy, METH_NOARGS,
-		"return a purely python version of the group."},
+		"return a purely python version of the group"},
 	{0, NULL, 0, NULL}
 };
 
@@ -761,7 +761,7 @@ static PyObject *BPy_IDArray_ConvertToPy(BPy_IDArray *self)
 
 static PyMethodDef BPy_IDArray_methods[] = {
 	{"convert_to_pyobject", (PyCFunction)BPy_IDArray_ConvertToPy, METH_NOARGS,
-		"return a purely python version of the group."},
+		"return a purely python version of the group"},
 	{0, NULL, 0, NULL}
 };
 

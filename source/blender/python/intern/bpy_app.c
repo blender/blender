@@ -49,16 +49,16 @@ static PyTypeObject BlenderAppType;
 
 static PyStructSequence_Field app_info_fields[] = {
 	{"version", "The Blender version as a tuple of 3 numbers. eg. (2, 50, 11)"},
-	{"version_string", "The Blender version formatted as a string."},
+	{"version_string", "The Blender version formatted as a string"},
 	{"home", "The blender home directory, normally matching $HOME"},
-	{"binary_path", "The location of blenders executable, useful for utilities that spawn new instances."},
-	{"debug", "Boolean, set when blender is running in debug mode (started with -d)."},
+	{"binary_path", "The location of blenders executable, useful for utilities that spawn new instances"},
+	{"debug", "Boolean, set when blender is running in debug mode (started with -d)"},
 
 	/* buildinfo */
-	{"build_date", "The date this blender instance was built.."},
-	{"build_time", "The time this blender instance was built."},
-	{"build_revision", "The subversion revision this blender instance was built with."},
-	{"build_platform", "The platform this blender instance was built for."},
+	{"build_date", "The date this blender instance was built"},
+	{"build_time", "The time this blender instance was built"},
+	{"build_revision", "The subversion revision this blender instance was built with"},
+	{"build_platform", "The platform this blender instance was built for"},
 	{"build_type", "The type of build (Release, Debug)"},
 	{0}
 };
