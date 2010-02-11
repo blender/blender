@@ -1469,8 +1469,8 @@ static void rna_def_modifier_meshdeform(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 	static EnumPropertyItem prop_mode_items[] = {
-		{0, "VOLUME", 0, "Volume", "Bind to volume inside cage mesh."},
-		{1, "SURFACE", 0, "Surface", "Bind to surface of cage mesh."},
+		{0, "VOLUME", 0, "Volume", "Bind to volume inside cage mesh"},
+		{1, "SURFACE", 0, "Surface", "Bind to surface of cage mesh"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "MeshDeformModifier", "Modifier");
@@ -1739,9 +1739,9 @@ static void rna_def_modifier_bevel(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_limit_method_items[] = {
-		{0, "NONE", 0, "None", "Bevel the entire mesh by a constant amount."},
-		{BME_BEVEL_ANGLE, "ANGLE", 0, "Angle", "Only bevel edges with sharp enough angles between faces."},
-		{BME_BEVEL_WEIGHT, "WEIGHT", 0, "Weight", "Use bevel weights to determine how much bevel is applied; apply them separately in vert/edge select mode."},
+		{0, "NONE", 0, "None", "Bevel the entire mesh by a constant amount"},
+		{BME_BEVEL_ANGLE, "ANGLE", 0, "Angle", "Only bevel edges with sharp enough angles between faces"},
+		{BME_BEVEL_WEIGHT, "WEIGHT", 0, "Weight", "Use bevel weights to determine how much bevel is applied; apply them separately in vert/edge select mode"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_edge_weight_method_items[] = {

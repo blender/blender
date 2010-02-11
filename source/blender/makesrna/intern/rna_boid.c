@@ -45,24 +45,24 @@
 #include "WM_types.h"
 
 EnumPropertyItem boidrule_type_items[] ={
-	{eBoidRuleType_Goal, "GOAL", 0, "Goal", "Go to assigned object or loudest assigned signal source."},
-	{eBoidRuleType_Avoid, "AVOID", 0, "Avoid", "Get away from assigned object or loudest assigned signal source."},
-	{eBoidRuleType_AvoidCollision, "AVOID_COLLISION", 0, "Avoid Collision", "Monoeuver to avoid collisions with other boids and deflector objects in near future."},
-	{eBoidRuleType_Separate, "SEPARATE", 0, "Separate", "Keep from going through other boids."},
-	{eBoidRuleType_Flock, "FLOCK", 0, "Flock", "Move to center of neighbors and match their velocity."},
-	{eBoidRuleType_FollowLeader, "FOLLOW_LEADER", 0, "Follow Leader", "Follow a boid or assigned object."},
-	{eBoidRuleType_AverageSpeed, "AVERAGE_SPEED", 0, "Average Speed", "Maintain speed, flight level or wander."},
-	{eBoidRuleType_Fight, "FIGHT", 0, "Fight", "Go to closest enemy and attack when in range."},
-	//{eBoidRuleType_Protect, "PROTECT", 0, "Protect", "Go to enemy closest to target and attack when in range."},
-	//{eBoidRuleType_Hide, "HIDE", 0, "Hide", "Find a deflector move to it's other side from closest enemy."},
-	//{eBoidRuleType_FollowPath, "FOLLOW_PATH", 0, "Follow Path", "Move along a assigned curve or closest curve in a group."},
-	//{eBoidRuleType_FollowWall, "FOLLOW_WALL", 0, "Follow Wall", "Move next to a deflector object's in direction of it's tangent."},
+	{eBoidRuleType_Goal, "GOAL", 0, "Goal", "Go to assigned object or loudest assigned signal source"},
+	{eBoidRuleType_Avoid, "AVOID", 0, "Avoid", "Get away from assigned object or loudest assigned signal source"},
+	{eBoidRuleType_AvoidCollision, "AVOID_COLLISION", 0, "Avoid Collision", "Maneuver to avoid collisions with other boids and deflector objects in near future"},
+	{eBoidRuleType_Separate, "SEPARATE", 0, "Separate", "Keep from going through other boids"},
+	{eBoidRuleType_Flock, "FLOCK", 0, "Flock", "Move to center of neighbors and match their velocity"},
+	{eBoidRuleType_FollowLeader, "FOLLOW_LEADER", 0, "Follow Leader", "Follow a boid or assigned object"},
+	{eBoidRuleType_AverageSpeed, "AVERAGE_SPEED", 0, "Average Speed", "Maintain speed, flight level or wander"},
+	{eBoidRuleType_Fight, "FIGHT", 0, "Fight", "Go to closest enemy and attack when in range"},
+	//{eBoidRuleType_Protect, "PROTECT", 0, "Protect", "Go to enemy closest to target and attack when in range"},
+	//{eBoidRuleType_Hide, "HIDE", 0, "Hide", "Find a deflector move to it's other side from closest enemy"},
+	//{eBoidRuleType_FollowPath, "FOLLOW_PATH", 0, "Follow Path", "Move along a assigned curve or closest curve in a group"},
+	//{eBoidRuleType_FollowWall, "FOLLOW_WALL", 0, "Follow Wall", "Move next to a deflector object's in direction of it's tangent"},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem boidruleset_type_items[] ={
-	{eBoidRulesetType_Fuzzy, "FUZZY", 0, "Fuzzy", "Rules are gone through top to bottom. Only the first rule that effect above fuzziness threshold is evaluated."},
-	{eBoidRulesetType_Random, "RANDOM", 0, "Random", "A random rule is selected for each boid."},
-	{eBoidRulesetType_Average, "AVERAGE", 0, "Average", "All rules are averaged."},
+	{eBoidRulesetType_Fuzzy, "FUZZY", 0, "Fuzzy", "Rules are gone through top to bottom. Only the first rule that effect above fuzziness threshold is evaluated"},
+	{eBoidRulesetType_Random, "RANDOM", 0, "Random", "A random rule is selected for each boid"},
+	{eBoidRulesetType_Average, "AVERAGE", 0, "Average", "All rules are averaged"},
 	{0, NULL, 0, NULL, NULL}};
 
 

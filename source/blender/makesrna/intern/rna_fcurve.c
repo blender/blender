@@ -572,8 +572,8 @@ static void rna_def_fmodifier_cycles(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_type_items[] = {
-		{FCM_EXTRAPOLATE_NONE, "NONE", 0, "No Cycles", "Don't do anything."},
-		{FCM_EXTRAPOLATE_CYCLIC, "REPEAT", 0, "Repeat Motion", "Repeat keyframe range as-is."},
+		{FCM_EXTRAPOLATE_NONE, "NONE", 0, "No Cycles", "Don't do anything"},
+		{FCM_EXTRAPOLATE_CYCLIC, "REPEAT", 0, "Repeat Motion", "Repeat keyframe range as-is"},
 		{FCM_EXTRAPOLATE_CYCLIC_OFFSET, "REPEAT_OFFSET", 0, "Repeat with Offset", "Repeat keyframe range, but with offset based on gradient between values"},
 		{FCM_EXTRAPOLATE_MIRROR, "MIRROR", 0, "Repeat Mirrored", "Alternate between forward and reverse playback of keyframe range"},
 		{0, NULL, 0, NULL, NULL}};

@@ -708,8 +708,8 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] = {
-		{ENV_CUBE, "CUBE", 0, "Cube", "Use environment map with six cube sides."},
-		{ENV_PLANE, "PLANE", 0, "Plane", "Only one side is rendered, with Z axis pointing in direction of image."},
+		{ENV_CUBE, "CUBE", 0, "Cube", "Use environment map with six cube sides"},
+		{ENV_PLANE, "PLANE", 0, "Plane", "Only one side is rendered, with Z axis pointing in direction of image"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "EnvironmentMap", NULL);
@@ -1422,10 +1422,10 @@ static void rna_def_texture_voronoi(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_coloring_items[] = {
 		/* XXX: OK names / descriptions? */
-		{TEX_INTENSITY, "INTENSITY", 0, "Intensity", "Only calculate intensity."},
-		{TEX_COL1, "POSITION", 0, "Position", "Color cells by position."},
+		{TEX_INTENSITY, "INTENSITY", 0, "Intensity", "Only calculate intensity"},
+		{TEX_COL1, "POSITION", 0, "Position", "Color cells by position"},
 		{TEX_COL2, "POSITION_OUTLINE", 0, "Position and Outline", "Use position plus an outline based on F2-F.1"},
-		{TEX_COL3, "POSITION_OUTLINE_INTENSITY", 0, "Position, Outline, and Intensity", "Multiply position and outline by intensity."},
+		{TEX_COL3, "POSITION_OUTLINE_INTENSITY", 0, "Position, Outline, and Intensity", "Multiply position and outline by intensity"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "VoronoiTexture", "Texture");
@@ -1705,7 +1705,7 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem interpolation_type_items[] = {
-		{TEX_VD_NEARESTNEIGHBOR, "NEREASTNEIGHBOR", 0, "Nearest Neighbor", "No interpolation, fast but blocky and low quality."},
+		{TEX_VD_NEARESTNEIGHBOR, "NEREASTNEIGHBOR", 0, "Nearest Neighbor", "No interpolation, fast but blocky and low quality"},
 		{TEX_VD_LINEAR, "TRILINEAR", 0, "Linear", "Good smoothness and speed"},
 		{TEX_VD_QUADRATIC, "QUADRATIC", 0, "Quadratic", "Mid-range quality and speed"},
 		{TEX_VD_TRICUBIC_CATROM, "TRICUBIC_CATROM", 0, "Cubic Catmull-Rom", "High quality interpolation, but slower"},
@@ -1727,9 +1727,9 @@ static void rna_def_texture_voxeldata(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem smoked_type_items[] = {
-		{TEX_VD_SMOKEDENSITY, "SMOKEDENSITY", 0, "Density", "Use smoke density as texture data."},
-		{TEX_VD_SMOKEHEAT, "SMOKEHEAT", 0, "Heat", "Use smoke heat as texture data. Values from -2.0 to 2.0 are used."},
-		{TEX_VD_SMOKEVEL, "SMOKEVEL", 0, "Velocity", "Use smoke velocity as texture data."},
+		{TEX_VD_SMOKEDENSITY, "SMOKEDENSITY", 0, "Density", "Use smoke density as texture data"},
+		{TEX_VD_SMOKEHEAT, "SMOKEHEAT", 0, "Heat", "Use smoke heat as texture data. Values from -2.0 to 2.0 are used"},
+		{TEX_VD_SMOKEVEL, "SMOKEVEL", 0, "Velocity", "Use smoke velocity as texture data"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "VoxelData", NULL);

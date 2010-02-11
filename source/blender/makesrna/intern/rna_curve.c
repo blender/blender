@@ -738,7 +738,7 @@ static void rna_def_curve(BlenderRNA *brna)
 
 	static const EnumPropertyItem curve_axis_items[]= {
 		{0, "2D", 0, "2D", "Clamp the Z axis of of the curve"},
-		{CU_3D, "3D", 0, "3D", "Allow editing on the Z axis of this curve, also alows tilt and curve radius to be used."},
+		{CU_3D, "3D", 0, "3D", "Allow editing on the Z axis of this curve, also alows tilt and curve radius to be used"},
 		{0, NULL, 0, NULL, NULL}};
 			
 	srna= RNA_def_struct(brna, "Curve", "ID");

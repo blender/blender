@@ -700,19 +700,19 @@ static void rna_def_armature_edit_bones(BlenderRNA *brna, PropertyRNA *cprop)
 	func= RNA_def_function(srna, "new", "rna_Armature_edit_bone_new");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new bone.");
-	parm= RNA_def_string(func, "name", "Object", 0, "", "New name for the bone.");
+	parm= RNA_def_string(func, "name", "Object", 0, "", "New name for the bone");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	/* return type */
-	parm= RNA_def_pointer(func, "bone", "EditBone", "", "Newly created edit bone.");
+	parm= RNA_def_pointer(func, "bone", "EditBone", "", "Newly created edit bone");
 	RNA_def_function_return(func, parm);
 
 	/* remove target */
 	func= RNA_def_function(srna, "remove", "rna_Armature_edit_bone_remove");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_function_ui_description(func, "Remove an existing bone from the armature.");
+	RNA_def_function_ui_description(func, "Remove an existing bone from the armature");
 	/* target to remove*/
-	parm= RNA_def_pointer(func, "bone", "EditBone", "", "EditBone to remove.");
+	parm= RNA_def_pointer(func, "bone", "EditBone", "", "EditBone to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
@@ -722,19 +722,19 @@ static void rna_def_armature(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_drawtype_items[] = {
-		{ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Display bones as octahedral shape (default)."},
-		{ARM_LINE, "STICK", 0, "Stick", "Display bones as simple 2D lines with dots."},
+		{ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Display bones as octahedral shape (default)"},
+		{ARM_LINE, "STICK", 0, "Stick", "Display bones as simple 2D lines with dots"},
 		{ARM_B_BONE, "BBONE", 0, "B-Bone", "Display bones as boxes, showing subdivision and B-Splines"},
-		{ARM_ENVELOPE, "ENVELOPE", 0, "Envelope", "Display bones as extruded spheres, showing defomation influence volume."},
+		{ARM_ENVELOPE, "ENVELOPE", 0, "Envelope", "Display bones as extruded spheres, showing defomation influence volume"},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_ghost_type_items[] = {
-		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Frame", "Display Ghosts of poses within a fixed number of frames around the current frame."},
-		{ARM_GHOST_RANGE, "RANGE", 0, "In Range", "Display Ghosts of poses within specified range."},
-		{ARM_GHOST_KEYS, "KEYS", 0, "On Keyframes", "Display Ghosts of poses on Keyframes."},
+		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Frame", "Display Ghosts of poses within a fixed number of frames around the current frame"},
+		{ARM_GHOST_RANGE, "RANGE", 0, "In Range", "Display Ghosts of poses within specified range"},
+		{ARM_GHOST_KEYS, "KEYS", 0, "On Keyframes", "Display Ghosts of poses on Keyframes"},
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_pose_position_items[]= {
-		{0, "POSE", 0, "Pose Position", "Show armature in posed state."},
-		{ARM_RESTPOS, "REST", 0, "Rest Position", "Show Armature in binding pose state. No posing possible."},
+		{0, "POSE", 0, "Pose Position", "Show armature in posed state"},
+		{ARM_RESTPOS, "REST", 0, "Rest Position", "Show Armature in binding pose state. No posing possible"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	srna= RNA_def_struct(brna, "Armature", "ID");

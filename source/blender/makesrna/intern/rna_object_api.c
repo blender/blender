@@ -417,15 +417,15 @@ void RNA_api_object(StructRNA *srna)
 	PropertyRNA *parm;
 
 	static EnumPropertyItem mesh_type_items[] = {
-		{0, "PREVIEW", 0, "Preview", "Apply modifier preview settings."},
-		{1, "RENDER", 0, "Render", "Apply modifier render settings."},
+		{0, "PREVIEW", 0, "Preview", "Apply modifier preview settings"},
+		{1, "RENDER", 0, "Render", "Apply modifier render settings"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem assign_mode_items[] = {
-		{WEIGHT_REPLACE, "REPLACE", 0, "Replace", "Replace."}, /* TODO: more meaningful descriptions */
-		{WEIGHT_ADD, "ADD", 0, "Add", "Add."},
-		{WEIGHT_SUBTRACT, "SUBTRACT", 0, "Subtract", "Subtract."},
+		{WEIGHT_REPLACE, "REPLACE", 0, "Replace", "Replace"}, /* TODO: more meaningful descriptions */
+		{WEIGHT_ADD, "ADD", 0, "Add", "Add"},
+		{WEIGHT_SUBTRACT, "SUBTRACT", 0, "Subtract", "Subtract"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

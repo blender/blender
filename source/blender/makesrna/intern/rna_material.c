@@ -37,17 +37,17 @@
 #include "WM_types.h"
 
 static EnumPropertyItem prop_texture_coordinates_items[] = {
-{TEXCO_GLOB, "GLOBAL", 0, "Global", "Uses global coordinates for the texture coordinates."},
-{TEXCO_OBJECT, "OBJECT", 0, "Object", "Uses linked object's coordinates for texture coordinates."},
-{TEXCO_UV, "UV", 0, "UV", "Uses UV coordinates for texture coordinates."},
-{TEXCO_ORCO, "ORCO", 0, "Generated", "Uses the original undeformed coordinates of the object."},
-{TEXCO_STRAND, "STRAND", 0, "Strand", "Uses normalized strand texture coordinate (1D)."},
-{TEXCO_STICKY, "STICKY", 0, "Sticky", "Uses mesh's sticky coordinates for the texture coordinates."},
-{TEXCO_WINDOW, "WINDOW", 0, "Window", "Uses screen coordinates as texture coordinates."},
-{TEXCO_NORM, "NORMAL", 0, "Normal", "Uses normal vector as texture coordinates."},
-{TEXCO_REFL, "REFLECTION", 0, "Reflection", "Uses reflection vector as texture coordinates."},
-{TEXCO_STRESS, "STRESS", 0, "Stress", "Uses the difference of edge lengths compared to original coordinates of the mesh."},
-{TEXCO_TANGENT, "TANGENT", 0, "Tangent", "Uses the optional tangent vector as texture coordinates."},
+{TEXCO_GLOB, "GLOBAL", 0, "Global", "Uses global coordinates for the texture coordinates"},
+{TEXCO_OBJECT, "OBJECT", 0, "Object", "Uses linked object's coordinates for texture coordinates"},
+{TEXCO_UV, "UV", 0, "UV", "Uses UV coordinates for texture coordinates"},
+{TEXCO_ORCO, "ORCO", 0, "Generated", "Uses the original undeformed coordinates of the object"},
+{TEXCO_STRAND, "STRAND", 0, "Strand", "Uses normalized strand texture coordinate (1D)"},
+{TEXCO_STICKY, "STICKY", 0, "Sticky", "Uses mesh's sticky coordinates for the texture coordinates"},
+{TEXCO_WINDOW, "WINDOW", 0, "Window", "Uses screen coordinates as texture coordinates"},
+{TEXCO_NORM, "NORMAL", 0, "Normal", "Uses normal vector as texture coordinates"},
+{TEXCO_REFL, "REFLECTION", 0, "Reflection", "Uses reflection vector as texture coordinates"},
+{TEXCO_STRESS, "STRESS", 0, "Stress", "Uses the difference of edge lengths compared to original coordinates of the mesh"},
+{TEXCO_TANGENT, "TANGENT", 0, "Tangent", "Uses the optional tangent vector as texture coordinates"},
 {0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -283,10 +283,10 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_mapping_items[] = {
-		{MTEX_FLAT, "FLAT", 0, "Flat", "Maps X and Y coordinates directly."},
-		{MTEX_CUBE, "CUBE", 0, "Cube", "Maps using the normal vector."},
-		{MTEX_TUBE, "TUBE", 0, "Tube", "Maps with Z as central axis."},
-		{MTEX_SPHERE, "SPHERE", 0, "Sphere", "Maps with Z as central axis."},
+		{MTEX_FLAT, "FLAT", 0, "Flat", "Maps X and Y coordinates directly"},
+		{MTEX_CUBE, "CUBE", 0, "Cube", "Maps using the normal vector"},
+		{MTEX_TUBE, "TUBE", 0, "Tube", "Maps with Z as central axis"},
+		{MTEX_SPHERE, "SPHERE", 0, "Sphere", "Maps with Z as central axis"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem prop_x_mapping_items[] = {
@@ -1475,14 +1475,14 @@ void RNA_def_material(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] = {
-		{MA_TYPE_SURFACE, "SURFACE", 0, "Surface", "Render object as a surface."},
-		{MA_TYPE_WIRE, "WIRE", 0, "Wire", "Render the edges of faces as wires (not supported in ray tracing)."},
-		{MA_TYPE_VOLUME, "VOLUME", 0, "Volume", "Render object as a volume."},
-		{MA_TYPE_HALO, "HALO", 0, "Halo", "Render object as halo particles."},
+		{MA_TYPE_SURFACE, "SURFACE", 0, "Surface", "Render object as a surface"},
+		{MA_TYPE_WIRE, "WIRE", 0, "Wire", "Render the edges of faces as wires (not supported in ray tracing)"},
+		{MA_TYPE_VOLUME, "VOLUME", 0, "Volume", "Render object as a volume"},
+		{MA_TYPE_HALO, "HALO", 0, "Halo", "Render object as halo particles"},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem transparency_items[] = {
-		{MA_ZTRANSP, "Z_TRANSPARENCY", 0, "Z Transparency", "Use alpha buffer for transparent faces."},
-		{MA_RAYTRANSP, "RAYTRACE", 0, "Raytrace", "Use raytracing for transparent refraction rendering."},
+		{MA_ZTRANSP, "Z_TRANSPARENCY", 0, "Z Transparency", "Use alpha buffer for transparent faces"},
+		{MA_RAYTRANSP, "RAYTRACE", 0, "Raytrace", "Use raytracing for transparent refraction rendering"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Material", "ID");

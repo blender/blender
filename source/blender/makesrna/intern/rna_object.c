@@ -1431,7 +1431,7 @@ static void rna_def_object(BlenderRNA *brna)
 		
 	// XXX: this RNA enum define is currently duplicated for objects, since there is some text here which is not applicable
 	static EnumPropertyItem prop_rotmode_items[] = {
-		{ROT_MODE_QUAT, "QUATERNION", 0, "Quaternion (WXYZ)", "No Gimbal Lock."},
+		{ROT_MODE_QUAT, "QUATERNION", 0, "Quaternion (WXYZ)", "No Gimbal Lock"},
 		{ROT_MODE_XYZ, "XYZ", 0, "XYZ Euler", "XYZ Rotation Order. Prone to Gimbal Lock. (Default)"},
 		{ROT_MODE_XZY, "XZY", 0, "XZY Euler", "XZY Rotation Order. Prone to Gimbal Lock"},
 		{ROT_MODE_YXZ, "YXZ", 0, "YXZ Euler", "YXZ Rotation Order. Prone to Gimbal Lock"},

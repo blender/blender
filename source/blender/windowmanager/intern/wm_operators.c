@@ -788,9 +788,9 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 {
 	PropertyRNA *prop;
 
-	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "File Path", "Path to file.");
-	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file.");
-	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Directory of the file.");
+	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "File Path", "Path to file");
+	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file");
+	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Directory of the file");
 
 	if (action == FILE_SAVE) {
 		prop= RNA_def_boolean(ot->srna, "check_existing", 1, "Check Existing", "Check and warn on overwriting existing files");
@@ -817,7 +817,7 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
 	prop= RNA_def_int(ot->srna, "filemode", type, FILE_LOADLIB, FILE_SPECIAL, 
-		"File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file.",
+		"File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file",
 		FILE_LOADLIB, FILE_SPECIAL);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
@@ -843,7 +843,7 @@ void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
 	if(extend)
-		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first.");
+		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 
@@ -1366,7 +1366,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPENFILE);
 
-	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file.");
+	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file");
 }
 
 /* **************** link/append *************** */
@@ -1524,11 +1524,11 @@ static void WM_OT_link_append(wmOperatorType *ot)
 
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB, FILE_OPENFILE);
 	
-	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending.");
-	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects.");
-	RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer.");
-	RNA_def_boolean(ot->srna, "instance_groups", 1, "Instance Groups", "Create instances for each group as a DupliGroup.");
-	RNA_def_boolean(ot->srna, "relative_paths", 1, "Relative Paths", "Store the library path as a relative path to current .blend file.");
+	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending");
+	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects");
+	RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer");
+	RNA_def_boolean(ot->srna, "instance_groups", 1, "Instance Groups", "Create instances for each group as a DupliGroup");
+	RNA_def_boolean(ot->srna, "relative_paths", 1, "Relative Paths", "Store the library path as a relative path to current .blend file");
 
 	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
 }	
@@ -1690,8 +1690,8 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	ot->poll= WM_operator_winactive;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE);
-	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
-	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory.");
+	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
+	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
 }
 
 /* *************** save file directly ******** */
@@ -1739,8 +1739,8 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 	ot->poll= NULL;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE);
-	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
-	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory.");
+	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
+	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
 }
 
 

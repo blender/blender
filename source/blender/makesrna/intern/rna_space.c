@@ -1923,7 +1923,7 @@ static void rna_def_space_node(BlenderRNA *brna)
 
 	static EnumPropertyItem tree_type_items[] = {
 		{NTREE_SHADER, "MATERIAL", ICON_MATERIAL, "Material", "Material nodes"},
-		{NTREE_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture nodes."},
+		{NTREE_TEXTURE, "TEXTURE", ICON_TEXTURE, "Texture", "Texture nodes"},
 		{NTREE_COMPOSIT, "COMPOSITING", ICON_RENDERLAYERS, "Compositing", "Compositing nodes"},
 		{0, NULL, 0, NULL, NULL}};
 

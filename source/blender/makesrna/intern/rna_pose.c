@@ -594,8 +594,8 @@ static void rna_def_bone_group(BlenderRNA *brna)
 }
 
 static EnumPropertyItem prop_iksolver_items[] = {
-	{IKSOLVER_LEGACY, "LEGACY", 0, "Legacy", "Original IK solver."},
-	{IKSOLVER_ITASC, "ITASC", 0, "iTaSC", "Multi constraint, stateful IK solver."},
+	{IKSOLVER_LEGACY, "LEGACY", 0, "Legacy", "Original IK solver"},
+	{IKSOLVER_ITASC, "ITASC", 0, "iTaSC", "Multi constraint, stateful IK solver"},
 	{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem prop_solver_items[] = {
@@ -658,7 +658,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 		{ROT_MODE_YZX, "YZX", 0, "YZX Euler", "YZX Rotation Order. Prone to Gimbal Lock"},
 		{ROT_MODE_ZXY, "ZXY", 0, "ZXY Euler", "ZXY Rotation Order. Prone to Gimbal Lock"},
 		{ROT_MODE_ZYX, "ZYX", 0, "ZYX Euler", "ZYX Rotation Order. Prone to Gimbal Lock"},
-		{ROT_MODE_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle", "Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector."},
+		{ROT_MODE_AXISANGLE, "AXIS_ANGLE", 0, "Axis Angle", "Axis Angle (W+XYZ). Defines a rotation around some axis defined by 3D-Vector"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static float default_quat[4] = {1,0,0,0};	/* default quaternion values */
@@ -1021,13 +1021,13 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 static void rna_def_pose_itasc(BlenderRNA *brna)
 {
 	static const EnumPropertyItem prop_itasc_mode_items[]= {
-		{0, "ANIMATION", 0, "Animation", "Stateless solver computing pose starting from current action and non-IK constraints."},
-		{ITASC_SIMULATION, "SIMULATION", 0, "Simulation", "Statefull solver running in real-time context and ignoring actions and non-IK constraints."},
+		{0, "ANIMATION", 0, "Animation", "Stateless solver computing pose starting from current action and non-IK constraints"},
+		{ITASC_SIMULATION, "SIMULATION", 0, "Simulation", "Statefull solver running in real-time context and ignoring actions and non-IK constraints"},
 		{0, NULL, 0, NULL, NULL}};
 	static const EnumPropertyItem prop_itasc_reiteration_items[]= {
-		{0, "NEVER", 0, "Never", "The solver does not reiterate, not even on first frame (starts from rest pose)."},
-		{ITASC_INITIAL_REITERATION, "INITIAL", 0, "Initial", "The solver reiterates (converges) on the first frame but not on subsequent frame."},
-		{ITASC_INITIAL_REITERATION|ITASC_REITERATION, "ALWAYS", 0, "Always", "The solver reiterates (converges) on all frames."},
+		{0, "NEVER", 0, "Never", "The solver does not reiterate, not even on first frame (starts from rest pose)"},
+		{ITASC_INITIAL_REITERATION, "INITIAL", 0, "Initial", "The solver reiterates (converges) on the first frame but not on subsequent frame"},
+		{ITASC_INITIAL_REITERATION|ITASC_REITERATION, "ALWAYS", 0, "Always", "The solver reiterates (converges) on all frames"},
 		{0, NULL, 0, NULL, NULL}};
 
 	StructRNA *srna;

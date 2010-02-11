@@ -52,10 +52,10 @@
 #include "BLI_threads.h"
 
 EnumPropertyItem snap_target_items[] = {
-	{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target."},
-	{SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap center onto target."},
-	{SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target."},
-	{SCE_SNAP_TARGET_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target."},
+	{SCE_SNAP_TARGET_CLOSEST, "CLOSEST", 0, "Closest", "Snap closest point onto target"},
+	{SCE_SNAP_TARGET_CENTER, "CENTER", 0, "Center", "Snap center onto target"},
+	{SCE_SNAP_TARGET_MEDIAN, "MEDIAN", 0, "Median", "Snap median onto target"},
+	{SCE_SNAP_TARGET_ACTIVE, "ACTIVE", 0, "Active", "Snap active onto target"},
 	{0, NULL, 0, NULL, NULL}};
 	
 EnumPropertyItem proportional_falloff_items[] ={
@@ -77,17 +77,17 @@ EnumPropertyItem proportional_editing_items[] = {
 
 /* keep for operators, not used here */
 EnumPropertyItem mesh_select_mode_items[] = {
-	{SCE_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode."},
-	{SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode."},
-	{SCE_SELECT_FACE, "FACE", ICON_FACESEL, "Face", "Face selection mode."},
+	{SCE_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode"},
+	{SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode"},
+	{SCE_SELECT_FACE, "FACE", ICON_FACESEL, "Face", "Face selection mode"},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem snap_element_items[] = {
-	{SCE_SNAP_MODE_INCREMENT, "INCREMENT", ICON_SNAP_INCREMENT, "Increment", "Snap to increments of grid."},
-	{SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices."},
-	{SCE_SNAP_MODE_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges."},
-	{SCE_SNAP_MODE_FACE, "FACE", ICON_SNAP_FACE, "Face", "Snap to faces."},
-	{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume."},
+	{SCE_SNAP_MODE_INCREMENT, "INCREMENT", ICON_SNAP_INCREMENT, "Increment", "Snap to increments of grid"},
+	{SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices"},
+	{SCE_SNAP_MODE_EDGE, "EDGE", ICON_SNAP_EDGE, "Edge", "Snap to edges"},
+	{SCE_SNAP_MODE_FACE, "FACE", ICON_SNAP_FACE, "Face", "Snap to faces"},
+	{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume"},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -722,10 +722,10 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem uv_select_mode_items[] = {
-		{UV_SELECT_VERTEX, "VERTEX", ICON_UV_VERTEXSEL, "Vertex", "Vertex selection mode."},
-		{UV_SELECT_EDGE, "EDGE", ICON_UV_EDGESEL, "Edge", "Edge selection mode."},
-		{UV_SELECT_FACE, "FACE", ICON_UV_FACESEL, "Face", "Face selection mode."},
-		{UV_SELECT_ISLAND, "ISLAND", ICON_UV_ISLANDSEL, "Island", "Island selection mode."},
+		{UV_SELECT_VERTEX, "VERTEX", ICON_UV_VERTEXSEL, "Vertex", "Vertex selection mode"},
+		{UV_SELECT_EDGE, "EDGE", ICON_UV_EDGESEL, "Edge", "Edge selection mode"},
+		{UV_SELECT_FACE, "FACE", ICON_UV_FACESEL, "Face", "Face selection mode"},
+		{UV_SELECT_ISLAND, "ISLAND", ICON_UV_ISLANDSEL, "Island", "Island selection mode"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem auto_key_items[] = {
@@ -734,16 +734,16 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem retarget_roll_items[] = {
-		{SK_RETARGET_ROLL_NONE, "NONE", 0, "None", "Don't adjust roll."},
-		{SK_RETARGET_ROLL_VIEW, "VIEW", 0, "View", "Roll bones to face the view."},
-		{SK_RETARGET_ROLL_JOINT, "JOINT", 0, "Joint", "Roll bone to original joint plane offset."},
+		{SK_RETARGET_ROLL_NONE, "NONE", 0, "None", "Don't adjust roll"},
+		{SK_RETARGET_ROLL_VIEW, "VIEW", 0, "View", "Roll bones to face the view"},
+		{SK_RETARGET_ROLL_JOINT, "JOINT", 0, "Joint", "Roll bone to original joint plane offset"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem sketch_convert_items[] = {
-		{SK_CONVERT_CUT_FIXED, "FIXED", 0, "Fixed", "Subdivide stroke in fixed number of bones."},
-		{SK_CONVERT_CUT_LENGTH, "LENGTH", 0, "Length", "Subdivide stroke in bones of specific length."},
-		{SK_CONVERT_CUT_ADAPTATIVE, "ADAPTIVE", 0, "Adaptive", "Subdivide stroke adaptively, with more subdivision in curvier parts."},
-		{SK_CONVERT_RETARGET, "RETARGET", 0, "Retarget", "Retarget template bone chain to stroke."},
+		{SK_CONVERT_CUT_FIXED, "FIXED", 0, "Fixed", "Subdivide stroke in fixed number of bones"},
+		{SK_CONVERT_CUT_LENGTH, "LENGTH", 0, "Length", "Subdivide stroke in bones of specific length"},
+		{SK_CONVERT_CUT_ADAPTATIVE, "ADAPTIVE", 0, "Adaptive", "Subdivide stroke adaptively, with more subdivision in curvier parts"},
+		{SK_CONVERT_RETARGET, "RETARGET", 0, "Retarget", "Retarget template bone chain to stroke"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem edge_tag_items[] = {
@@ -1304,9 +1304,9 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem material_items[] ={
-		{GAME_MAT_TEXFACE, "TEXTURE_FACE", 0, "Texture Face", "Single texture face materials."},
-		{GAME_MAT_MULTITEX, "MULTITEXTURE", 0, "Multitexture", "Multitexture materials."},
-		{GAME_MAT_GLSL, "GLSL", 0, "GLSL", "OpenGL shading language shaders."},
+		{GAME_MAT_TEXFACE, "TEXTURE_FACE", 0, "Texture Face", "Single texture face materials"},
+		{GAME_MAT_MULTITEX, "MULTITEXTURE", 0, "Multitexture", "Multitexture materials"},
+		{GAME_MAT_GLSL, "GLSL", 0, "GLSL", "OpenGL shading language shaders"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SceneGameData", NULL);
@@ -1631,7 +1631,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	static EnumPropertyItem raytrace_structure_items[] = {
 		{R_RAYSTRUCTURE_AUTO, "AUTO", 0, "Auto", ""},
-		{R_RAYSTRUCTURE_OCTREE, "OCTREE", 0, "Octree", "Use old Octree structure."},
+		{R_RAYSTRUCTURE_OCTREE, "OCTREE", 0, "Octree", "Use old Octree structure"},
 		{R_RAYSTRUCTURE_BLIBVH, "BLIBVH", 0, "BLI BVH", "Use BLI K-Dop BVH.c"},
 		{R_RAYSTRUCTURE_VBVH, "VBVH", 0, "vBVH", ""},
 		{R_RAYSTRUCTURE_SIMD_SVBVH, "SIMD_SVBVH", 0, "SIMD SVBVH", ""},
@@ -2581,13 +2581,13 @@ void RNA_def_scene(BlenderRNA *brna)
 	FunctionRNA *func;
 	
 	static EnumPropertyItem audio_distance_model_items[] = {
-		{0, "NONE", 0, "None", "No distance attenuation."},
-		{1, "INVERSE", 0, "Inverse", "Inverse distance model."},
-		{2, "INVERSE_CLAMPED", 0, "Inverse Clamped", "Inverse distance model with clamping."},
-		{3, "LINEAR", 0, "Linear", "Linear distance model."},
-		{4, "LINEAR_CLAMPED", 0, "Linear Clamped", "Linear distance model with clamping."},
-		{5, "EXPONENT", 0, "Exponent", "Exponent distance model."},
-		{6, "EXPONENT_CLAMPED", 0, "Exponent Clamped", "Exponent distance model with clamping."},
+		{0, "NONE", 0, "None", "No distance attenuation"},
+		{1, "INVERSE", 0, "Inverse", "Inverse distance model"},
+		{2, "INVERSE_CLAMPED", 0, "Inverse Clamped", "Inverse distance model with clamping"},
+		{3, "LINEAR", 0, "Linear", "Linear distance model"},
+		{4, "LINEAR_CLAMPED", 0, "Linear Clamped", "Linear distance model with clamping"},
+		{5, "EXPONENT", 0, "Exponent", "Exponent distance model"},
+		{6, "EXPONENT_CLAMPED", 0, "Exponent Clamped", "Exponent distance model with clamping"},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* Struct definition */

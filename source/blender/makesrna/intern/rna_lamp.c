@@ -148,9 +148,9 @@ static void rna_def_lamp_mtex(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_texture_coordinates_items[] = {
-		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Uses global coordinates for the texture coordinates."},
-		{TEXCO_VIEW, "VIEW", 0, "View", "Uses view coordinates for the texture coordinates."},
-		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Uses linked object's coordinates for texture coordinates."},
+		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Uses global coordinates for the texture coordinates"},
+		{TEXCO_VIEW, "VIEW", 0, "View", "Uses view coordinates for the texture coordinates"},
+		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Uses linked object's coordinates for texture coordinates"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "LampTextureSlot", "TextureSlot");
@@ -324,11 +324,11 @@ static void rna_def_lamp(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] = {
-		{LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source."},
-		{LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source."},
-		{LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source."},
-		{LA_HEMI, "HEMI", 0, "Hemi", "180 degree constant light source."},
-		{LA_AREA, "AREA", 0, "Area", "Directional area light source."},
+		{LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source"},
+		{LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source"},
+		{LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source"},
+		{LA_HEMI, "HEMI", 0, "Hemi", "180 degree constant light source"},
+		{LA_AREA, "AREA", 0, "Area", "Directional area light source"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "Lamp", "ID");
@@ -432,13 +432,13 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 
 	static EnumPropertyItem prop_shadow_items[] = {
 		{0, "NOSHADOW", 0, "No Shadow", ""},
-		{LA_SHAD_RAY, "RAY_SHADOW", 0, "Ray Shadow", "Use ray tracing for shadow."},
+		{LA_SHAD_RAY, "RAY_SHADOW", 0, "Ray Shadow", "Use ray tracing for shadow"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_spot_shadow_items[] = {
 		{0, "NOSHADOW", 0, "No Shadow", ""},
-		{LA_SHAD_BUF, "BUFFER_SHADOW", 0, "Buffer Shadow", "Lets spotlight produce shadows using shadow buffer."},
-		{LA_SHAD_RAY, "RAY_SHADOW", 0, "Ray Shadow", "Use ray tracing for shadow."},
+		{LA_SHAD_BUF, "BUFFER_SHADOW", 0, "Buffer Shadow", "Lets spotlight produce shadows using shadow buffer"},
+		{LA_SHAD_RAY, "RAY_SHADOW", 0, "Ray Shadow", "Use ray tracing for shadow"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_ray_sampling_method_items[] = {
@@ -583,22 +583,22 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_shadbuftype_items[] = {
-		{LA_SHADBUF_REGULAR	, "REGULAR", 0, "Classical", "Classic shadow buffer."},
-		{LA_SHADBUF_HALFWAY, "HALFWAY", 0, "Classic-Halfway", "Regular buffer, averaging the closest and 2nd closest Z value to reducing bias artifaces."},
-		{LA_SHADBUF_IRREGULAR, "IRREGULAR", 0, "Irregular", "Irregular buffer produces sharp shadow always, but it doesn't show up for raytracing."},
-		{LA_SHADBUF_DEEP, "DEEP", 0, "Deep", "Deep shadow buffer supports transparency and better filtering, at the cost of more memory usage and processing time."},
+		{LA_SHADBUF_REGULAR	, "REGULAR", 0, "Classical", "Classic shadow buffer"},
+		{LA_SHADBUF_HALFWAY, "HALFWAY", 0, "Classic-Halfway", "Regular buffer, averaging the closest and 2nd closest Z value to reducing bias artifaces"},
+		{LA_SHADBUF_IRREGULAR, "IRREGULAR", 0, "Irregular", "Irregular buffer produces sharp shadow always, but it doesn't show up for raytracing"},
+		{LA_SHADBUF_DEEP, "DEEP", 0, "Deep", "Deep shadow buffer supports transparency and better filtering, at the cost of more memory usage and processing time"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_shadbuffiltertype_items[] = {
-		{LA_SHADBUF_BOX	, "BOX", 0, "Box", "Apply the Box filter to shadow buffer samples."},
-		{LA_SHADBUF_TENT, "TENT", 0, "Tent", "Apply the Tent Filter to shadow buffer samples."},
-		{LA_SHADBUF_GAUSS, "GAUSS", 0, "Gauss", "Apply the Gauss filter to shadow buffer samples."},
+		{LA_SHADBUF_BOX	, "BOX", 0, "Box", "Apply the Box filter to shadow buffer samples"},
+		{LA_SHADBUF_TENT, "TENT", 0, "Tent", "Apply the Tent Filter to shadow buffer samples"},
+		{LA_SHADBUF_GAUSS, "GAUSS", 0, "Gauss", "Apply the Gauss filter to shadow buffer samples"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem prop_numbuffer_items[] = {
-		{1, "BUFFERS_1", 0, "1", "Only one buffer rendered."},
-		{4, "BUFFERS_4", 0, "4", "Renders 4 buffers for better AA, this quadruples memory usage."},
-		{9, "BUFFERS_9", 0, "9", "Renders 9 buffers for better AA, this uses nine times more memory."},
+		{1, "BUFFERS_1", 0, "1", "Only one buffer rendered"},
+		{4, "BUFFERS_4", 0, "4", "Renders 4 buffers for better AA, this quadruples memory usage"},
+		{9, "BUFFERS_9", 0, "9", "Renders 9 buffers for better AA, this uses nine times more memory"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "SpotLamp", "Lamp");

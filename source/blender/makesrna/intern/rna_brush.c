@@ -88,14 +88,14 @@ static void rna_def_brush(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_blend_items[] = {
-		{IMB_BLEND_MIX, "MIX", 0, "Mix", "Use mix blending mode while painting."},
-		{IMB_BLEND_ADD, "ADD", 0, "Add", "Use add blending mode while painting."},
-		{IMB_BLEND_SUB, "SUB", 0, "Subtract", "Use subtract blending mode while painting."},
-		{IMB_BLEND_MUL, "MUL", 0, "Multiply", "Use multiply blending mode while painting."},
-		{IMB_BLEND_LIGHTEN, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting."},
-		{IMB_BLEND_DARKEN, "DARKEN", 0, "Darken", "Use darken blending mode while painting."},
-		{IMB_BLEND_ERASE_ALPHA, "ERASE_ALPHA", 0, "Erase Alpha", "Erase alpha while painting."},
-		{IMB_BLEND_ADD_ALPHA, "ADD_ALPHA", 0, "Add Alpha", "Add alpha while painting."},
+		{IMB_BLEND_MIX, "MIX", 0, "Mix", "Use mix blending mode while painting"},
+		{IMB_BLEND_ADD, "ADD", 0, "Add", "Use add blending mode while painting"},
+		{IMB_BLEND_SUB, "SUB", 0, "Subtract", "Use subtract blending mode while painting"},
+		{IMB_BLEND_MUL, "MUL", 0, "Multiply", "Use multiply blending mode while painting"},
+		{IMB_BLEND_LIGHTEN, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting"},
+		{IMB_BLEND_DARKEN, "DARKEN", 0, "Darken", "Use darken blending mode while painting"},
+		{IMB_BLEND_ERASE_ALPHA, "ERASE_ALPHA", 0, "Erase Alpha", "Erase alpha while painting"},
+		{IMB_BLEND_ADD_ALPHA, "ADD_ALPHA", 0, "Add Alpha", "Add alpha while painting"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem brush_sculpt_tool_items[] = {
@@ -110,13 +110,13 @@ static void rna_def_brush(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem brush_vertexpaint_tool_items[] = {
-		{0, "MIX", 0, "Mix", "Use mix blending mode while painting."},
-		{1, "ADD", 0, "Add", "Use add blending mode while painting."},
-		{2, "SUB", 0, "Subtract", "Use subtract blending mode while painting."},
-		{3, "MUL", 0, "Multiply", "Use multiply blending mode while painting."},
+		{0, "MIX", 0, "Mix", "Use mix blending mode while painting"},
+		{1, "ADD", 0, "Add", "Use add blending mode while painting"},
+		{2, "SUB", 0, "Subtract", "Use subtract blending mode while painting"},
+		{3, "MUL", 0, "Multiply", "Use multiply blending mode while painting"},
 		{4, "BLUR", 0, "Blur", "Blur the color with surrounding values"},
-		{5, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting."},
-		{6, "DARKEN", 0, "Darken", "Use darken blending mode while painting."},
+		{5, "LIGHTEN", 0, "Lighten", "Use lighten blending mode while painting"},
+		{6, "DARKEN", 0, "Darken", "Use darken blending mode while painting"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem brush_imagepaint_tool_items[] = {

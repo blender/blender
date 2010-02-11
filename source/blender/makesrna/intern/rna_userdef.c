@@ -211,8 +211,8 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem font_kerning_style[] = {
-		{0, "UNFITTED", 0, "Unfitted", "Use scaled but un-grid-fitted kerning distances."},
-		{1, "DEFAULT", 0, "Default", "Use scaled and grid-fitted kerning distances."},
+		{0, "UNFITTED", 0, "Unfitted", "Use scaled but un-grid-fitted kerning distances"},
+		{1, "DEFAULT", 0, "Default", "Use scaled and grid-fitted kerning distances"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna= RNA_def_struct(brna, "ThemeFontStyle", NULL);
@@ -1717,11 +1717,11 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 static void rna_def_userdef_view(BlenderRNA *brna)
 {
 	static EnumPropertyItem timecode_styles[] = {
-		{USER_TIMECODE_MINIMAL, "MINIMAL", 0, "Minimal Info", "Most compact representation. Uses '+' as separator for sub-second frame numbers, with left and right truncation of the timecode as necessary."},
-		{USER_TIMECODE_SMPTE_FULL, "SMPTE", 0, "SMPTE (Full)", "Full SMPTE timecode. Format is HH:MM:SS:FF."},
-		{USER_TIMECODE_SMPTE_MSF, "SMPTE_COMPACT", 0, "SMPTE (Compact)", "SMPTE timecode showing minutes, seconds, and frames only. Hours are also shown if necessary, but not by default."},
-		{USER_TIMECODE_MILLISECONDS, "MILLISECONDS", 0, "Compact with Milliseconds", "Similar to SMPTE (Compact), except that instead of frames, milliseconds are shown instead."},
-		{USER_TIMECODE_SECONDS_ONLY, "SECONDS_ONLY", 0, "Only Seconds", "Direct conversion of frame numbers to seconds."},
+		{USER_TIMECODE_MINIMAL, "MINIMAL", 0, "Minimal Info", "Most compact representation. Uses '+' as separator for sub-second frame numbers, with left and right truncation of the timecode as necessary"},
+		{USER_TIMECODE_SMPTE_FULL, "SMPTE", 0, "SMPTE (Full)", "Full SMPTE timecode. Format is HH:MM:SS:FF"},
+		{USER_TIMECODE_SMPTE_MSF, "SMPTE_COMPACT", 0, "SMPTE (Compact)", "SMPTE timecode showing minutes, seconds, and frames only. Hours are also shown if necessary, but not by default"},
+		{USER_TIMECODE_MILLISECONDS, "MILLISECONDS", 0, "Compact with Milliseconds", "Similar to SMPTE (Compact), except that instead of frames, milliseconds are shown instead"},
+		{USER_TIMECODE_SECONDS_ONLY, "SECONDS_ONLY", 0, "Only Seconds", "Direct conversion of frame numbers to seconds"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	PropertyRNA *prop;
@@ -1929,8 +1929,8 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static const EnumPropertyItem material_link_items[]= {
-		{0, "OBDATA", 0, "ObData", "Toggle whether the material is linked to object data or the object block."},
-		{USER_MAT_ON_OB, "OBJECT", 0, "Object", "Toggle whether the material is linked to object data or the object block."},
+		{0, "OBDATA", 0, "ObData", "Toggle whether the material is linked to object data or the object block"},
+		{USER_MAT_ON_OB, "OBJECT", 0, "Object", "Toggle whether the material is linked to object data or the object block"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static const EnumPropertyItem object_align_items[]= {
@@ -2124,54 +2124,54 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_device_items[] = {
-		{0, "NONE", 0, "None", "Null device - there will be no audio output."},
+		{0, "NONE", 0, "None", "Null device - there will be no audio output"},
 #ifdef WITH_SDL
-		{1, "SDL", 0, "SDL", "SDL device - simple direct media layer, recommended for sequencer usage."},
+		{1, "SDL", 0, "SDL", "SDL device - simple direct media layer, recommended for sequencer usage"},
 #endif
 #ifdef WITH_OPENAL
-		{2, "OPENAL", 0, "OpenAL", "OpenAL device - supports 3D audio, recommended for game engine usage."},
+		{2, "OPENAL", 0, "OpenAL", "OpenAL device - supports 3D audio, recommended for game engine usage"},
 #endif
 #ifdef WITH_JACK
-		{3, "JACK", 0, "Jack", "Jack device - open source pro audio, recommended for pro audio users."},
+		{3, "JACK", 0, "Jack", "Jack device - open source pro audio, recommended for pro audio users"},
 #endif
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_rate_items[] = {
-//		{8000, "RATE_8000", 0, "8 kHz", "Set audio sampling rate to 8000 samples per second."},
-//		{11025, "RATE_11025", 0, "11.025 kHz", "Set audio sampling rate to 11025 samples per second."},
-//		{16000, "RATE_16000", 0, "16 kHz", "Set audio sampling rate to 16000 samples per second."},
-//		{22050, "RATE_22050", 0, "22.05 kHz", "Set audio sampling rate to 22050 samples per second."},
-//		{32000, "RATE_32000", 0, "32 kHz", "Set audio sampling rate to 32000 samples per second."},
-		{44100, "RATE_44100", 0, "44.1 kHz", "Set audio sampling rate to 44100 samples per second."},
-		{48000, "RATE_48000", 0, "48 kHz", "Set audio sampling rate to 48000 samples per second."},
-//		{88200, "RATE_88200", 0, "88.2 kHz", "Set audio sampling rate to 88200 samples per second."},
-		{96000, "RATE_96000", 0, "96 kHz", "Set audio sampling rate to 96000 samples per second."},
-		{192000, "RATE_192000", 0, "192 kHz", "Set audio sampling rate to 192000 samples per second."},
+//		{8000, "RATE_8000", 0, "8 kHz", "Set audio sampling rate to 8000 samples per second"},
+//		{11025, "RATE_11025", 0, "11.025 kHz", "Set audio sampling rate to 11025 samples per second"},
+//		{16000, "RATE_16000", 0, "16 kHz", "Set audio sampling rate to 16000 samples per second"},
+//		{22050, "RATE_22050", 0, "22.05 kHz", "Set audio sampling rate to 22050 samples per second"},
+//		{32000, "RATE_32000", 0, "32 kHz", "Set audio sampling rate to 32000 samples per second"},
+		{44100, "RATE_44100", 0, "44.1 kHz", "Set audio sampling rate to 44100 samples per second"},
+		{48000, "RATE_48000", 0, "48 kHz", "Set audio sampling rate to 48000 samples per second"},
+//		{88200, "RATE_88200", 0, "88.2 kHz", "Set audio sampling rate to 88200 samples per second"},
+		{96000, "RATE_96000", 0, "96 kHz", "Set audio sampling rate to 96000 samples per second"},
+		{192000, "RATE_192000", 0, "192 kHz", "Set audio sampling rate to 192000 samples per second"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_format_items[] = {
-		{0x01, "U8", 0, "8-bit Unsigned", "Set audio sample format to 8 bit unsigned integer."},
-		{0x12, "S16", 0, "16-bit Signed", "Set audio sample format to 16 bit signed integer."},
-		{0x13, "S24", 0, "24-bit Signed", "Set audio sample format to 24 bit signed integer."},
-		{0x14, "S32", 0, "32-bit Signed", "Set audio sample format to 32 bit signed integer."},
-		{0x24, "FLOAT", 0, "32-bit Float", "Set audio sample format to 32 bit float."},
-		{0x28, "DOUBLE", 0, "64-bit Float", "Set audio sample format to 64 bit float."},
+		{0x01, "U8", 0, "8-bit Unsigned", "Set audio sample format to 8 bit unsigned integer"},
+		{0x12, "S16", 0, "16-bit Signed", "Set audio sample format to 16 bit signed integer"},
+		{0x13, "S24", 0, "24-bit Signed", "Set audio sample format to 24 bit signed integer"},
+		{0x14, "S32", 0, "32-bit Signed", "Set audio sample format to 32 bit signed integer"},
+		{0x24, "FLOAT", 0, "32-bit Float", "Set audio sample format to 32 bit float"},
+		{0x28, "DOUBLE", 0, "64-bit Float", "Set audio sample format to 64 bit float"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem audio_channel_items[] = {
-		{1, "MONO", 0, "Mono", "Set audio channels to mono."},
-		{2, "STEREO", 0, "Stereo", "Set audio channels to stereo."},
-		{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels."},
-		{6, "SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound."},
-		{8, "SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound."},
+		{1, "MONO", 0, "Mono", "Set audio channels to mono"},
+		{2, "STEREO", 0, "Stereo", "Set audio channels to stereo"},
+		{4, "SURROUND4", 0, "4 Channels", "Set audio channels to 4 channels"},
+		{6, "SURROUND51", 0, "5.1 Surround", "Set audio channels to 5.1 surround sound"},
+		{8, "SURROUND71", 0, "7.1 Surround", "Set audio channels to 7.1 surround sound"},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem draw_method_items[] = {
-		{USER_DRAW_AUTOMATIC, "AUTOMATIC", 0, "Automatic", "Automatically set based on graphics card and driver."},
-		{USER_DRAW_TRIPLE, "TRIPLE_BUFFER", 0, "Triple Buffer", "Use a third buffer for minimal redraws at the cost of more memory."},
-		{USER_DRAW_OVERLAP, "OVERLAP", 0, "Overlap", "Redraw all overlapping regions, minimal memory usage but more redraws."},
-		{USER_DRAW_OVERLAP_FLIP, "OVERLAP_FLIP", 0, "Overlap Flip", "Redraw all overlapping regions, minimal memory usage but more redraws (for graphics drivers that do flipping)."},
-		{USER_DRAW_FULL, "FULL", 0, "Full", "Do a full redraw each time, slow, only use for reference or when all else fails."},
+		{USER_DRAW_AUTOMATIC, "AUTOMATIC", 0, "Automatic", "Automatically set based on graphics card and driver"},
+		{USER_DRAW_TRIPLE, "TRIPLE_BUFFER", 0, "Triple Buffer", "Use a third buffer for minimal redraws at the cost of more memory"},
+		{USER_DRAW_OVERLAP, "OVERLAP", 0, "Overlap", "Redraw all overlapping regions, minimal memory usage but more redraws"},
+		{USER_DRAW_OVERLAP_FLIP, "OVERLAP_FLIP", 0, "Overlap Flip", "Redraw all overlapping regions, minimal memory usage but more redraws (for graphics drivers that do flipping)"},
+		{USER_DRAW_FULL, "FULL", 0, "Full", "Do a full redraw each time, slow, only use for reference or when all else fails"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem color_picker_types[] = {
@@ -2399,24 +2399,24 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 	StructRNA *srna;
 
 	static EnumPropertyItem select_mouse_items[] = {
-		{USER_LMOUSESELECT, "LEFT", 0, "Left", "Use left Mouse Button for selection."},
-		{0, "RIGHT", 0, "Right", "Use Right Mouse Button for selection."},
+		{USER_LMOUSESELECT, "LEFT", 0, "Left", "Use left Mouse Button for selection"},
+		{0, "RIGHT", 0, "Right", "Use Right Mouse Button for selection"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem view_rotation_items[] = {
-		{0, "TURNTABLE", 0, "Turntable", "Use turntable style rotation in the viewport."},
-		{USER_TRACKBALL, "TRACKBALL", 0, "Trackball", "Use trackball style rotation in the viewport."},
+		{0, "TURNTABLE", 0, "Turntable", "Use turntable style rotation in the viewport"},
+		{USER_TRACKBALL, "TRACKBALL", 0, "Trackball", "Use trackball style rotation in the viewport"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem view_zoom_styles[] = {
-		{USER_ZOOM_CONT, "CONTINUE", 0, "Continue", "Old style zoom, continues while moving mouse up or down."},
-		{USER_ZOOM_DOLLY, "DOLLY", 0, "Dolly", "Zooms in and out based on vertical mouse movement."},
-		{USER_ZOOM_SCALE, "SCALE", 0, "Scale", "Zooms in and out like scaling the view, mouse movements relative to center."},
+		{USER_ZOOM_CONT, "CONTINUE", 0, "Continue", "Old style zoom, continues while moving mouse up or down"},
+		{USER_ZOOM_DOLLY, "DOLLY", 0, "Dolly", "Zooms in and out based on vertical mouse movement"},
+		{USER_ZOOM_SCALE, "SCALE", 0, "Scale", "Zooms in and out like scaling the view, mouse movements relative to center"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem view_zoom_axes[] = {
-		{0,						"VERTICAL", 0, "Vertical", "Zooms in and out based on vertical mouse movement."},
-		{USER_ZOOM_DOLLY_HORIZ, "HORIZONTAL", 0, "Horizontal", "Zooms in and out based on horizontal mouse movement."},
+		{0,						"VERTICAL", 0, "Vertical", "Zooms in and out based on vertical mouse movement"},
+		{USER_ZOOM_DOLLY_HORIZ, "HORIZONTAL", 0, "Horizontal", "Zooms in and out based on horizontal mouse movement"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	srna= RNA_def_struct(brna, "UserPreferencesInput", NULL);

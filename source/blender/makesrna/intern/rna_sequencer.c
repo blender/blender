@@ -1103,9 +1103,9 @@ static void rna_def_transform(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static const EnumPropertyItem interpolation_items[]= {
-		{0, "NONE", 0, "None", "No interpolation."},
-		{1, "BILINEAR", 0, "Bilinear", "Bilinear interpolation."},
-		{2, "BICUBIC", 0, "Bicubic", "Bicubic interpolation."},
+		{0, "NONE", 0, "None", "No interpolation"},
+		{1, "BILINEAR", 0, "Bilinear", "Bilinear interpolation"},
+		{2, "BICUBIC", 0, "Bicubic", "Bicubic interpolation"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

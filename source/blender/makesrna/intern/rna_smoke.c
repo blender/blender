@@ -118,8 +118,8 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 				{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem smoke_cache_comp_items[] = {
-		{SM_CACHE_LIGHT, "CACHELIGHT", 0, "Light", "Fast but not so effective compression."},
-		{SM_CACHE_HEAVY, "CACHEHEAVY", 0, "Heavy", "Effective but slow compression."},
+		{SM_CACHE_LIGHT, "CACHELIGHT", 0, "Light", "Fast but not so effective compression"},
+		{SM_CACHE_HEAVY, "CACHEHEAVY", 0, "Heavy", "Effective but slow compression"},
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "SmokeDomainSettings", NULL);
