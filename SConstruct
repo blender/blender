@@ -188,8 +188,16 @@ opts.Update(env)
 if not env['BF_FANCY']:
 	B.bc.disable()
 
+
+# remove install dir so old and new files are not mixed.
+if not env['WITHOUT_BF_INSTALL']:
+    if os.path.isdir(env['BF_INSTALLDIR']):
+        print B.bc.OKGREEN + "Clearing installation directory%s: %s" % (B.bc.ENDC, os.path.abspath(env['BF_INSTALLDIR']))
+        shutil.rmtree(env['BF_INSTALLDIR'])
+
+
 SetOption('num_jobs', int(env['BF_NUMJOBS']))
-print "Build with %d parallel jobs" % (GetOption('num_jobs'))
+print B.bc.OKGREEN + "Build with parallel jobs%s: %s" % (B.bc.ENDC, GetOption('num_jobs'))
 
 # BLENDERPATH is a unix only option to enable typical style paths this is
 # spesifically a data-dir, which is used a lot but cant replace BF_INSTALLDIR
@@ -199,12 +207,6 @@ if env['WITH_BF_FHS']:
 	BLENDERPATH = os.path.join(env['BF_INSTALLDIR'], 'share', 'blender', env['BF_VERSION'])
 else:
 	BLENDERPATH = env['BF_INSTALLDIR']
-
-# disable elbeem (fluidsim) compilation?
-if env['BF_NO_ELBEEM'] == 1:
-	env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
-	env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
-	env['CCFLAGS'].append('-DDISABLE_ELBEEM')
 
 if env['WITH_BF_OPENMP'] == 1:
 		if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
@@ -319,6 +321,12 @@ if 'blenderlite' in B.targets:
 		if k not in B.arguments:
 			env[k] = v
 
+# disable elbeem (fluidsim) compilation?
+if env['BF_NO_ELBEEM'] == 1:
+	env['CPPFLAGS'].append('-DDISABLE_ELBEEM')
+	env['CXXFLAGS'].append('-DDISABLE_ELBEEM')
+	env['CCFLAGS'].append('-DDISABLE_ELBEEM')
+
 if env['WITH_BF_SDL'] == False and env['OURPLATFORM'] in ('win32-vc', 'win32-ming', 'win64-vc'):
 	env['PLATFORM_LINKFLAGS'].remove('/ENTRY:mainCRTStartup')
 	env['PLATFORM_LINKFLAGS'].append('/ENTRY:main')
@@ -394,7 +402,7 @@ else:
 	if toolset=='msvc':
 		B.msvc_hack(env)
 
-print B.bc.HEADER+'Building in '+B.bc.ENDC+B.root_build_dir
+print B.bc.HEADER+'Building in: ' + B.bc.ENDC + os.path.abspath(B.root_build_dir)
 env.SConsignFile(B.root_build_dir+'scons-signatures')
 B.init_lib_dict()
 
