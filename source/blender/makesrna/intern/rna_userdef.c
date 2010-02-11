@@ -46,11 +46,17 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
 #include "DNA_object_types.h"
-// #include "GPU_draw.h"
+#include "GPU_draw.h"
 
 static void rna_userdef_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	WM_main_add_notifier(NC_WINDOW, NULL);
+}
+
+static void rna_userdef_mipmap_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
+	rna_userdef_update(bmain, scene, ptr);
 }
 
 #if 0
@@ -2314,10 +2320,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "glalphaclip");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Clip Alpha", "Clip alpha below this threshold in the 3D textured view");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop= RNA_def_property(srna, "use_mipmaps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_MIPMAP);
 	RNA_def_property_ui_text(prop, "Mipmaps", "Scale textures for the 3D View (looks nicer but uses more memory and slows image reloading)");
+	RNA_def_property_update(prop, 0, "rna_userdef_mipmap_update");
 
 	prop= RNA_def_property(srna, "use_vbos", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflags", USER_DISABLE_VBO);
@@ -2331,6 +2339,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "glreslimit");
 	RNA_def_property_enum_items(prop, gl_texture_clamp_items);
 	RNA_def_property_ui_text(prop, "GL Texture Limit", "Limit the texture size to save graphics memory");
+	RNA_def_property_update(prop, 0, "rna_userdef_mipmap_update");
 
 	prop= RNA_def_property(srna, "texture_time_out", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "textimeout");
@@ -2346,6 +2355,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "wmdrawmethod");
 	RNA_def_property_enum_items(prop, draw_method_items);
 	RNA_def_property_ui_text(prop, "Window Draw Method", "Drawing method used by the window manager");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop= RNA_def_property(srna, "audio_mixing_buffer", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mixbufsize");
