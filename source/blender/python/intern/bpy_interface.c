@@ -38,10 +38,8 @@
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
 
-#include "bpy_app.h"
+#include "bpy.h"
 #include "bpy_rna.h"
-#include "bpy_props.h"
-#include "bpy_operator.h"
 #include "bpy_util.h"
 
 #ifndef WIN32
@@ -55,10 +53,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_path_util.h"
 #include "BLI_storage.h"
 #include "BLI_fileops.h"
 #include "BLI_string.h"
+#include "BLI_path_util.h"
 
 #include "BKE_context.h"
 #include "BKE_text.h"
@@ -68,18 +66,12 @@
 #include "BPY_extern.h"
 
 #include "../generic/bpy_internal_import.h" // our own imports
-/* external util modules */
-
-#include "../generic/Mathutils.h"
-#include "../generic/Geometry.h"
-#include "../generic/BGL.h"
-#include "../generic/IDProp.h"
 
 /* for internal use, when starting and ending python scripts */
 
 /* incase a python script triggers another python call, stop bpy_context_clear from invalidating */
 static int py_call_level= 0;
-
+BPy_StructRNA *bpy_context_module= NULL; /* for fast access */
 
 // only for tests
 #define TIME_PY_RUN
@@ -148,80 +140,12 @@ void bpy_context_clear(bContext *C, PyGILState_STATE *gilstate)
 	}
 }
 
-static void bpy_import_test(char *modname)
-{
-	PyObject *mod= PyImport_ImportModuleLevel(modname, NULL, NULL, NULL, 0);
-	if(mod) {
-		Py_DECREF(mod);
-	}
-	else {
-		PyErr_Print();
-		PyErr_Clear();
-	}	
-}
-
 void BPY_free_compiled_text( struct Text *text )
 {
 	if( text->compiled ) {
 		Py_DECREF( ( PyObject * ) text->compiled );
 		text->compiled = NULL;
 	}
-}
-
-/*****************************************************************************
-* Description: Creates the bpy module and adds it to sys.modules for importing
-*****************************************************************************/
-static BPy_StructRNA *bpy_context_module= NULL; /* for fast access */
-static void bpy_init_modules( void )
-{
-	PyObject *mod;
-
-	/* Needs to be first since this dir is needed for future modules */
-	char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
-	if(modpath) {
-		PyObject *sys_path= PySys_GetObject("path"); /* borrow */
-		PyObject *py_modpath= PyUnicode_FromString(modpath);
-		PyList_Insert(sys_path, 0, py_modpath); /* add first */
-		Py_DECREF(py_modpath);
-	}
-	
-	/* stand alone utility modules not related to blender directly */
-	Geometry_Init();
-	Mathutils_Init();
-	BGL_Init();
-	IDProp_Init_Types();
-
-
-	mod = PyModule_New("_bpy");
-
-	/* add the module so we can import it */
-	PyDict_SetItemString(PySys_GetObject("modules"), "_bpy", mod);
-	Py_DECREF(mod);
-
-	/* run first, initializes rna types */
-	BPY_rna_init();
-
-	PyModule_AddObject( mod, "types", BPY_rna_types() ); /* needs to be first so bpy_types can run */
-	bpy_import_test("bpy_types");
-	PyModule_AddObject( mod, "data", BPY_rna_module() ); /* imports bpy_types by running this */
-	bpy_import_test("bpy_types");
-	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
-	PyModule_AddObject( mod, "props", BPY_rna_props() );
-	PyModule_AddObject( mod, "ops", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
-	PyModule_AddObject( mod, "app", BPY_app_struct() );
-
-	/* bpy context */
-	{
-		bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
-
-		RNA_pointer_create(NULL, &RNA_Context, NULL, &bpy_context_module->ptr);
-		bpy_context_module->freeptr= 0;
-
-		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
-	}
-
-	/* add our own modules dir, this is a python package */
-	bpy_import_test("bpy");
 }
 
 void BPY_update_modules( void )
@@ -357,7 +281,7 @@ void BPY_start_python( int argc, char **argv )
 	
 	
 	/* bpy.* and lets us import it */
-	bpy_init_modules(); 
+	BPy_init_modules();
 
 	{ /* our own import and reload functions */
 		PyObject *item;
