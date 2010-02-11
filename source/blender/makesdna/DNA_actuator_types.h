@@ -50,7 +50,7 @@ typedef struct bAddObjectActuator {
 
 typedef struct bActionActuator {								
 	struct bAction *act;	/* Pointer to action */				
-	short	type, flag;		/* Playback type */					
+	short	type, flag;		/* Playback type */  // not in use
 	int	sta, end;		/* Start & End frames */			
 	char	name[32];		/* For property-driven playback */	
 	char	frameProp[32];	/* Set this property to the actions current frame */
@@ -58,7 +58,7 @@ typedef struct bActionActuator {
 	short	priority;		/* Execution priority */
 	short	end_reset;	/* Ending the actuator (negative pulse) wont reset the the action to its starting frame */
 	short	strideaxis;		/* Displacement axis */
-	float	stridelength;	/* Displacement incurred by cycle */
+	float	stridelength;	/* Displacement incurred by cycle */ // not in use
 } bActionActuator;												
 
 typedef struct bSoundActuator {
@@ -158,31 +158,12 @@ typedef struct bRandomActuator {
 } bRandomActuator;
 
 typedef struct bMessageActuator {
-	/**
-	 * Send to all objects with this propertyname. Empty to broadcast.
-	 */
-	char toPropName[32];
-
-	/**
-	 * (Possible future use) pointer to a single destination object.
-	 */
-	struct Object *toObject;
-
-	/**
-	 * Message Subject to send.
-	 */
-	char subject[32];
-
-	/**
-	 * bodyType is either 'User defined text' or PropName
-	 */
-	short bodyType, pad1;
+	char toPropName[32];	/* Send to all objects with this propertyname. Empty to broadcast. */
+	struct Object *toObject;/* (Possible future use) pointer to a single destination object. */
+	char subject[32];		/* Message Subject to send. */
+	short bodyType, pad1;	/* bodyType is either 'User defined text' or PropName */
 	int pad2;
-
-	/**
-	 * Either User Defined Text or our PropName to send value of
-	 */
-	char body[32];
+	char body[32];			/* Either User Defined Text or our PropName to send value of */
 } bMessageActuator;
 
 typedef struct bGameActuator {
@@ -408,13 +389,20 @@ typedef struct FreeCamera {
 #define ACT_EDOB_LOCAL_LINV		2
 #define ACT_EDOB_LOCAL_ANGV		4
 
-
 /* editObjectActuator->flag */
 #define ACT_TRACK_3D			1
 
 /* editObjectActuator->flag for replace mesh actuator */
 #define ACT_EDOB_REPLACE_MESH_NOGFX		2 /* use for replace mesh actuator */
 #define ACT_EDOB_REPLACE_MESH_PHYS		4
+
+/* editObjectActuator->dyn_operation */
+#define ACT_EDOB_RESTORE_DYN	0
+#define ACT_EDOB_SUSPEND_DYN	1
+#define ACT_EDOB_ENABLE_RB		2
+#define ACT_EDOB_DISABLE_RB		3
+#define ACT_EDOB_SET_MASS		4
+
 
 /* SceneActuator->type */
 #define ACT_SCENE_RESTART		0
