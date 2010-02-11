@@ -1041,6 +1041,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 							GPU_buffer_free(buffer,0);
 						}
 					}
+					numdata = 0;
 					start = curface;
 					prevdraw = dodraw;
 					dodraw = setMaterial(matnr = new_matnr, &gattribs);
