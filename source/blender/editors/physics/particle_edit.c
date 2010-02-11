@@ -205,7 +205,7 @@ static PTCacheEdit *pe_get_current(Scene *scene, Object *ob, int create)
 	ListBase pidlist;
 	PTCacheID *pid;
 
-	if(pset==NULL || pset->object==NULL)
+	if(pset==NULL || ob==NULL)
 		return NULL;
 
 	pset->scene = scene;
