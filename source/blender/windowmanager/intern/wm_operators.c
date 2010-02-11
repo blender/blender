@@ -1247,7 +1247,7 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 	ot->poll= wm_search_menu_poll;
 }
 
-static int wm_call_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int wm_call_menu_exec(bContext *C, wmOperator *op)
 {
 	char idname[BKE_ST_MAXNAME];
 	RNA_string_get(op->ptr, "name", idname);
@@ -1262,7 +1262,7 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 	ot->name= "Call Menu";
 	ot->idname= "WM_OT_call_menu";
 
-	ot->invoke= wm_call_menu_invoke;
+	ot->exec= wm_call_menu_exec;
 
 	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, "Name", "Name of the menu");
 }

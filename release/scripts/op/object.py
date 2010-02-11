@@ -75,6 +75,27 @@ class SelectPattern(bpy.types.Operator):
         row.prop(props, "extend")
 
 
+class SelectCamera(bpy.types.Operator):
+    '''Select object matching a naming pattern.'''
+    bl_idname = "object.select_camera"
+    bl_label = "Select Camera"
+    bl_register = True
+    bl_undo = True
+
+    def poll(self, context):
+        return context.scene.camera is not None
+
+    def execute(self, context):
+        scene = context.scene
+        camera = scene.camera
+        if camera.name not in scene.objects:
+            self.report({'WARNING'}, "Active camera is not in this scene")
+
+        context.scene.objects.active = camera
+        camera.selected = True
+        return {'FINISHED'}
+
+
 class SubdivisionSet(bpy.types.Operator):
     '''Sets a Subdivision Surface Level (1-5)'''
 
@@ -450,6 +471,7 @@ class MakeDupliFace(bpy.types.Operator):
 
 
 bpy.types.register(SelectPattern)
+bpy.types.register(SelectCamera)
 bpy.types.register(SubdivisionSet)
 bpy.types.register(ShapeTransfer)
 bpy.types.register(JoinUVs)
