@@ -2313,7 +2313,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			draw_dm_face_normals(scene, cageDM);
 		}
 		if(me->drawflag & ME_DRAW_VNORMALS) {
-			UI_ThemeColor(TH_NORMAL);
+			UI_ThemeColor(TH_VNORMAL);
 			draw_dm_vert_normals(scene, cageDM);
 		}
 

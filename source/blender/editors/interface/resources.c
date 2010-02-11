@@ -293,6 +293,8 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= &ts->facedot_size; break;
 			case TH_NORMAL:
 				cp= ts->normal; break;
+			case TH_VNORMAL:
+				cp= ts->vertex_normal; break;
 			case TH_BONE_SOLID:
 				cp= ts->bone_solid; break;
 			case TH_BONE_POSE:
@@ -486,6 +488,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tv3d.face,       0, 0, 0, 18);
 	SETCOL(btheme->tv3d.face_select, 255, 133, 0, 60);
 	SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
+	SETCOL(btheme->tv3d.vertex_normal, 0x23, 0x61, 0xDD, 255);
 	SETCOL(btheme->tv3d.face_dot, 255, 133, 0, 255);
 	btheme->tv3d.facedot_size= 4;
 	SETCOL(btheme->tv3d.cframe, 0x60, 0xc0,	 0x40, 255);
@@ -983,6 +986,9 @@ void init_userdef_do_versions(void)
 			}
 			if(btheme->tv3d.normal[3]==0) {
 				SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
+			}
+			if(btheme->tv3d.vertex_normal[3]==0) {
+				SETCOL(btheme->tv3d.vertex_normal, 0x23, 0x61, 0xDD, 255);
 			}
 			if(btheme->tv3d.face_dot[3]==0) {
 				SETCOL(btheme->tv3d.face_dot, 255, 138, 48, 255);

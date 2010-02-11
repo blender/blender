@@ -653,6 +653,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "vertex")
             col.prop(v3d, "face", slider=True)
             col.prop(v3d, "normal")
+            col.prop(v3d, "vertex_normal")
             col.prop(v3d, "bone_solid")
             col.prop(v3d, "bone_pose")
             #col.prop(v3d, "edge") Doesn't seem to work
