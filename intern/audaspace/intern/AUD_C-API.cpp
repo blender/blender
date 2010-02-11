@@ -113,7 +113,7 @@ int AUD_init(AUD_DeviceType device, AUD_DeviceSpecs specs, int buffersize)
 #endif
 #ifdef WITH_JACK
 		case AUD_JACK_DEVICE:
-			dev = new AUD_JackDevice(specs);
+			dev = new AUD_JackDevice(specs, buffersize);
 			break;
 #endif
 		default:
