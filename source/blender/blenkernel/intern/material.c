@@ -188,7 +188,7 @@ void init_material(Material *ma)
 	ma->vol.ms_diff = 1.f;
 	ma->vol.ms_intensity = 1.f;
 	
-	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RAYBIAS|MA_TANGENT_STR|MA_ZTRANSP;
+	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RAYBIAS|MA_TANGENT_STR|MA_ZTRANSP|MA_APPROX_OCCLUSION;
 
 	ma->preview = NULL;
 }

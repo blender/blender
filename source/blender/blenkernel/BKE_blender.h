@@ -43,7 +43,7 @@ struct bContext;
 struct ReportList;
 
 #define BLENDER_VERSION			250
-#define BLENDER_SUBVERSION		16
+#define BLENDER_SUBVERSION		17
 
 #define BLENDER_MINVERSION		250
 #define BLENDER_MINSUBVERSION	0

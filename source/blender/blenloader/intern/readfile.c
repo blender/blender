@@ -10563,10 +10563,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
-	/* put 2.50 compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 17)) {
 		Scene *sce;
 		Sequence *seq;
+		Material *ma;
 
 		/* initialize to sane default so toggling on border shows something */
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
@@ -10586,6 +10586,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 			SEQ_END
 		}
+
+		for(ma = main->mat.first; ma; ma=ma->id.next)
+			if(ma->mode & MA_TRACEBLE)
+				ma->shade_flag |= MA_APPROX_OCCLUSION;
 
 		/* sequencer changes */
 		{
@@ -10619,6 +10623,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		} /* sequencer changes */
+	}
+
+	/* put 2.50 compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

@@ -1648,6 +1648,11 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_SHADBUF);
 	RNA_def_property_ui_text(prop, "Cast Buffer Shadows", "Allow this material to cast shadows from shadow buffer lamps");
 	RNA_def_property_update(prop, 0, "rna_Material_update");
+
+	prop= RNA_def_property(srna, "cast_approximate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "shade_flag", MA_APPROX_OCCLUSION);
+	RNA_def_property_ui_text(prop, "Cast Approximate", "Allow this material to cast shadows when using approximate ambient occlusion.");
+	RNA_def_property_update(prop, 0, "rna_Material_update");
 	
 	prop= RNA_def_property(srna, "tangent_shading", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", MA_TANGENT_V);

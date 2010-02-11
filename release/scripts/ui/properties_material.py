@@ -334,7 +334,7 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel):
         sub = col.column()
         sub.active = (not mat.ray_shadow_bias)
         sub.prop(mat, "shadow_ray_bias", text="Ray Bias")
-
+        col.prop(mat, "cast_approximate")
 
 class MATERIAL_PT_diffuse(MaterialButtonsPanel):
     bl_label = "Diffuse"

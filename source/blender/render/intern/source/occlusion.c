@@ -629,6 +629,7 @@ static OcclusionTree *occ_tree_build(Render *re)
 	OcclusionTree *tree;
 	ObjectInstanceRen *obi;
 	ObjectRen *obr;
+	Material *ma;
 	VlakRen *vlr= NULL;
 	int a, b, c, totface;
 
@@ -640,7 +641,9 @@ static OcclusionTree *occ_tree_build(Render *re)
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
 			else vlr++;
 
-			if((vlr->mat->mode & MA_TRACEBLE) && (vlr->mat->material_type == MA_TYPE_SURFACE))
+			ma= vlr->mat;
+
+			if((ma->shade_flag & MA_APPROX_OCCLUSION) && (ma->material_type == MA_TYPE_SURFACE))
 				totface++;
 		}
 	}
@@ -677,7 +680,9 @@ static OcclusionTree *occ_tree_build(Render *re)
 			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak;
 			else vlr++;
 
-			if((vlr->mat->mode & MA_TRACEBLE) && (vlr->mat->material_type == MA_TYPE_SURFACE)) {
+			ma= vlr->mat;
+
+			if((ma->shade_flag & MA_APPROX_OCCLUSION) && (ma->material_type == MA_TYPE_SURFACE)) {
 				tree->face[b].obi= c;
 				tree->face[b].facenr= a;
 				tree->occlusion[b]= 1.0f;
