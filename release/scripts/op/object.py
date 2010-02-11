@@ -23,7 +23,7 @@ from bpy.props import *
 
 
 class SelectPattern(bpy.types.Operator):
-    '''Select object matching a naming pattern.'''
+    '''Select object matching a naming pattern'''
     bl_idname = "object.select_pattern"
     bl_label = "Select Pattern"
     bl_register = True
@@ -76,7 +76,7 @@ class SelectPattern(bpy.types.Operator):
 
 
 class SelectCamera(bpy.types.Operator):
-    '''Select object matching a naming pattern.'''
+    '''Select object matching a naming pattern'''
     bl_idname = "object.select_camera"
     bl_label = "Select Camera"
     bl_register = True
@@ -161,7 +161,7 @@ class SubdivisionSet(bpy.types.Operator):
 
 
 class ShapeTransfer(bpy.types.Operator):
-    '''Copy another selected objects active shape to this one by applying the relative offsets.'''
+    '''Copy another selected objects active shape to this one by applying the relative offsets'''
 
     bl_idname = "object.shape_key_transfer"
     bl_label = "Transfer Shape Key"

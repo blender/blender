@@ -75,7 +75,7 @@ from bpy.props import *
 
 
 class AddTorus(bpy.types.Operator):
-    '''Add a torus mesh.'''
+    '''Add a torus mesh'''
     bl_idname = "mesh.primitive_torus_add"
     bl_label = "Add Torus"
     bl_register = True

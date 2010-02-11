@@ -80,9 +80,9 @@ from bpy.props import *
 
 
 class RandomizeLocRotSize(bpy.types.Operator):
-    '''Randomize objects loc/rot/scale.'''
-    bl_idname = "object.randomize_locrotsize"
-    bl_label = "Randomize Loc Rot Size"
+    '''Randomize objects loc/rot/scale'''
+    bl_idname = "object.randomize_transform"
+    bl_label = "Randomize Transform"
     bl_register = True
     bl_undo = True
 
@@ -141,6 +141,6 @@ bpy.types.register(RandomizeLocRotSize)
 def menu_func(self, context):
     if context.mode == 'OBJECT':
         self.layout.operator(RandomizeLocRotSize.bl_idname,
-        text="Randomize Loc Rot Size")
+        text="Randomize Transform")
 
 bpy.types.VIEW3D_MT_transform.append(menu_func)

@@ -583,7 +583,7 @@ def metarig_template():
 
 
 class AddHuman(bpy.types.Operator):
-    '''Add an advanced human metarig base.'''
+    '''Add an advanced human metarig base'''
     bl_idname = "object.armature_human_advanced_add"
     bl_label = "Add Humanoid (advanced metarig)"
     bl_register = True

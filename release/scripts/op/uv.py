@@ -23,7 +23,7 @@ from bpy.props import *
 
 
 class ExportUVLayout(bpy.types.Operator):
-    '''Export the Mesh as SVG.'''
+    '''Export the Mesh as SVG'''
 
     bl_idname = "uv.export_layout"
     bl_label = "Export UV Layout"
@@ -34,8 +34,8 @@ class ExportUVLayout(bpy.types.Operator):
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
     export_all = BoolProperty(name="All UV's", description="Export all UVs in this mesh (not just the visible ones)", default=False)
     mode = EnumProperty(items=(
-                        ('SVG', "Scalable Vector Graphic (.svg)", "Export the UV layout to a vector SVG file."),
-                        ('EPS', "Encapsulate PostScript (.eps)", "Export the UV layout to a vector EPS file.")),
+                        ('SVG', "Scalable Vector Graphic (.svg)", "Export the UV layout to a vector SVG file"),
+                        ('EPS', "Encapsulate PostScript (.eps)", "Export the UV layout to a vector EPS file")),
                 name="Format",
                 description="File format to export the UV layout to",
                 default='SVG')
