@@ -168,7 +168,7 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	ED_vgroup_give_array(ob_from->data, &dvert_array_from, &dvert_tot_from);
 	ED_vgroup_give_array(ob->data, &dvert_array, &dvert_tot);
 
-	if(ob==ob_from || dvert_tot==0 || (dvert_tot != dvert_tot_from))
+	if(ob==ob_from || dvert_tot==0 || (dvert_tot != dvert_tot_from) || dvert_array_from==NULL || dvert_array==NULL)
 		return 0;
 
 	/* do the copy */
