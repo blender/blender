@@ -205,7 +205,7 @@ typedef struct ThemeSpace {
 	char console_output[4], console_input[4], console_info[4], console_error[4]; // Console 
 	
 	char vertex_size, facedot_size;
-	char bpad[2]; 
+	char bpad[6];
 
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
 	char syntaxv[4], syntaxc[4];
