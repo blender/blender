@@ -881,9 +881,8 @@ static void uv_from_view_bounds(float target[2], float source[3], float rotmat[4
 	target[1] = pv[2];
 }
 
-static void uv_from_camera(float camsize, float xasp, float yasp, float target[2], float source[3], float rotmat[4][4], float cammat[4][4], int persp)
+static void uv_from_camera(float camsize, float camangle, float xasp, float yasp, float target[2], float source[3], float rotmat[4][4], float cammat[4][4], int persp, int pano)
 {
-
 	float pv4[4];
 
 	copy_v3_v3(pv4, source);
@@ -895,15 +894,31 @@ static void uv_from_camera(float camsize, float xasp, float yasp, float target[2
 	/* cammat is the inverse camera matrix */
 	mul_m4_v4(cammat, pv4);
 
-	if (pv4[2]==0.0f) pv4[2]=0.00001f; /* don't allow div by 0 */
-
-	if (persp&&CAM_ORTHO) {
-		target[0]=((pv4[0]/camsize)*xasp)+0.5f;
-		target[1]=((pv4[1]/camsize)*yasp)+0.5f;
+	if(pano) {
+		float angle= atan2f(pv4[0], -pv4[2]) / (M_PI * 2.0); /* angle around the camera */
+		if (persp & CAM_ORTHO) {
+			target[0] = angle; /* no correct method here, just map to  0-1 */
+			target[1] = pv4[1] / camsize;
+		}
+		else {
+			float vec2d[2]= {pv4[0], pv4[2]}; /* 2D position from the camera */
+			target[0] = angle * (M_PI / camangle);
+			target[1] = pv4[1] / (len_v2(vec2d) * camsize);
+		}
+		target[0]+= 0.5f; /* aspect is ignored for now */
+		target[1]+= 0.5f;
 	}
 	else {
-		target[0]=((-pv4[0]*(camsize/pv4[2])*xasp)/2)+0.5;
-		target[1]=((-pv4[1]*(camsize/pv4[2])*yasp)/2)+0.5;
+		if (pv4[2]==0.0f) pv4[2]=0.00001f; /* don't allow div by 0 */
+
+		if (persp & CAM_ORTHO) {
+			target[0]=((pv4[0]/camsize)*xasp)+0.5f;
+			target[1]=((pv4[1]/camsize)*yasp)+0.5f;
+		}
+		else {
+			target[0]=((-pv4[0]*((1.0f/camsize)/pv4[2])*xasp)/2)+0.5;
+			target[1]=((-pv4[1]*((1.0f/camsize)/pv4[2])*yasp)/2)+0.5;
+		}
 	}
 }
 
@@ -961,7 +976,7 @@ static int from_view_exec(bContext *C, wmOperator *op)
 	EditFace *efa;
 	MTFace *tf;
 	float invmat[4][4],rotmat[4][4];
-	float xasp, yasp, camsize;
+	float xasp, yasp, camsize, camangle;
 
 	/* add uvs if they don't exist yet */
 	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
@@ -990,14 +1005,18 @@ static int from_view_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if (camera) {
+		int pano = camera->flag & CAM_PANORAMA;
+		camangle= DEG2RAD(camera->angle)/2.0f;
+
 		if (camera->type==CAM_PERSP) {
-			camsize=1/tan(DEG2RAD(camera->angle)/2.0f); /* calcs ez as distance from camera plane to viewer */
+			camsize= tanf(camangle); /* calcs ez as distance from camera plane to viewer */
 		}
 		else {
 			camsize=camera->ortho_scale;
 		}
 
 		if (invert_m4_m4(invmat, v3d->camera->obmat)) {
+			/* normal projection */
 			copy_m4_m4(rotmat, obedit->obmat);
 
 			/* also make aspect ratio adjustment factors */
@@ -1014,11 +1033,11 @@ static int from_view_exec(bContext *C, wmOperator *op)
 				if(efa->f & SELECT) {
 					tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
-					uv_from_camera(camsize, xasp, yasp, tf->uv[0], efa->v1->co, rotmat, invmat, camera->type);
-					uv_from_camera(camsize, xasp, yasp, tf->uv[1], efa->v2->co, rotmat, invmat, camera->type);
-					uv_from_camera(camsize, xasp, yasp, tf->uv[2], efa->v3->co, rotmat, invmat, camera->type);
+					uv_from_camera(camsize, camangle, xasp, yasp, tf->uv[0], efa->v1->co, rotmat, invmat, camera->type, pano);
+					uv_from_camera(camsize, camangle, xasp, yasp, tf->uv[1], efa->v2->co, rotmat, invmat, camera->type, pano);
+					uv_from_camera(camsize, camangle, xasp, yasp, tf->uv[2], efa->v3->co, rotmat, invmat, camera->type, pano);
 					if(efa->v4)
-						uv_from_camera(camsize, xasp, yasp, tf->uv[3], efa->v4->co, rotmat, invmat, camera->type);
+						uv_from_camera(camsize, camangle, xasp, yasp, tf->uv[3], efa->v4->co, rotmat, invmat, camera->type, pano);
 				}
 			}
 		}
