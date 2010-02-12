@@ -127,23 +127,20 @@ def write(filename, scene, ob, \
         vertexColors = False
 
     if faceUV:
-        active_uv_layer = None
-        for lay in mesh.uv_textures:
-            if lay.active:
-                active_uv_layer = lay.data
-                break
+        active_uv_layer = mesh.active_uv_texture
         if not active_uv_layer:
             EXPORT_UV = False
             faceUV = None
+        else:
+            active_uv_layer = active_uv_layer.data
 
     if vertexColors:
-        active_col_layer = None
-        for lay in mesh.vertex_colors:
-            if lay.active:
-                active_col_layer = lay.data
+        active_col_layer = mesh.active_vertex_color
         if not active_col_layer:
             EXPORT_COLORS = False
             vertexColors = None
+        else:
+            active_col_layer = active_col_layer.data
 
     # incase
     color = uvcoord = uvcoord_key = normal = normal_key = None
