@@ -65,21 +65,25 @@ class VIEW3D_HT_header(bpy.types.Header):
             row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=2, icon='FACESEL')
         '''
 
+        if obj:
+            # Particle edit
+            if obj.mode == 'PARTICLE_EDIT':
+                row.prop(toolsettings.particle_edit, "selection_mode", text="", expand=True, toggle=True)
 
-        # Particle edit
-        if obj and obj.mode == 'PARTICLE_EDIT':
-            row.prop(toolsettings.particle_edit, "selection_mode", text="", expand=True, toggle=True)
+            # Occlude geometry
+            if view.viewport_shading in ('SOLID', 'SHADED', 'TEXTURED') and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
+                row.prop(view, "occlude_geometry", text="")
 
-        # Occlude geometry
-        if obj and view.viewport_shading in ('SOLID', 'SHADED', 'TEXTURED') and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
-            row.prop(view, "occlude_geometry", text="")
-
-        # Proportional editing
-        if obj and obj.mode in ('OBJECT', 'EDIT', 'PARTICLE_EDIT'):
-            row = layout.row(align=True)
-            row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
-            if toolsettings.proportional_editing != 'DISABLED':
-                row.prop(toolsettings, "proportional_editing_falloff", text="", icon_only=True)
+            # Proportional editing
+            if obj.mode in ('OBJECT', 'EDIT', 'PARTICLE_EDIT'):
+                row = layout.row(align=True)
+                row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
+                if toolsettings.proportional_editing != 'DISABLED':
+                    row.prop(toolsettings, "proportional_editing_falloff", text="", icon_only=True)
+            
+            # paint save
+            if mode_string == 'PAINT_TEXTURE':
+                row.operator("image.save_dirty", text="Save Edited")
 
         # Snap
         row = layout.row(align=True)
