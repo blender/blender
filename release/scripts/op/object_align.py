@@ -19,13 +19,65 @@
 # <pep8 compliant>
 
 import bpy
+from Mathutils import Vector
 
 
 def align_objects(align_x, align_y, align_z, relative_to):
 
-    from Mathutils import Vector
-
     cursor = bpy.context.scene.cursor_location
+
+    # Selection BB
+
+    Left_Up_Front_SEL = [[],[],[]]
+    Right_Down_Back_SEL = [[],[],[]]
+    
+    flag_first = True
+    
+    for obj in bpy.context.selected_objects:
+            
+        bb_world = [obj.matrix * Vector(v[:]) for v in obj.bound_box]
+        
+        Left_Up_Front = bb_world[1]
+        Right_Down_Back = bb_world[7]
+
+
+        if flag_first:
+            flag_first = False
+    
+            Left_Up_Front_SEL[0] = Left_Up_Front[0]
+            Left_Up_Front_SEL[1] = Left_Up_Front[1]
+            Left_Up_Front_SEL[2] = Left_Up_Front[2]
+    
+            Right_Down_Back_SEL[0] = Right_Down_Back[0]
+            Right_Down_Back_SEL[1] = Right_Down_Back[1]
+            Right_Down_Back_SEL[2] = Right_Down_Back[2]
+    
+        else:
+            # X axis
+            if Left_Up_Front[0] < Left_Up_Front_SEL[0]:
+                Left_Up_Front_SEL[0] = Left_Up_Front[0]
+            # Y axis
+            if Left_Up_Front[1] < Left_Up_Front_SEL[1]:
+                Left_Up_Front_SEL[1] = Left_Up_Front[1]
+            # Z axis
+            if Left_Up_Front[2] > Left_Up_Front_SEL[2]:
+                Left_Up_Front_SEL[2] = Left_Up_Front[2]
+    
+            # X axis
+            if Right_Down_Back[0] > Right_Down_Back_SEL[0]:
+                Right_Down_Back_SEL[0] = Right_Down_Back[0]
+            # Y axis
+            if Right_Down_Back[1] > Right_Down_Back_SEL[1]:
+                Right_Down_Back_SEL[1] = Right_Down_Back[1]
+            # Z axis
+            if Right_Down_Back[2] < Right_Down_Back_SEL[2]:
+                Right_Down_Back_SEL[2] = Right_Down_Back[2]
+    
+    center_sel_x = ( Left_Up_Front_SEL[0] + Right_Down_Back_SEL[0] ) / 2
+    center_sel_y = ( Left_Up_Front_SEL[1] + Right_Down_Back_SEL[1] ) / 2
+    center_sel_z = ( Left_Up_Front_SEL[2] + Right_Down_Back_SEL[2] ) / 2
+
+    # End Selection BB
 
     for obj in bpy.context.selected_objects:
         
@@ -47,11 +99,13 @@ def align_objects(align_x, align_y, align_z, relative_to):
 
             if relative_to == 'OPT_1':
                 loc_x = obj_x
-
+            
             elif relative_to == 'OPT_2':
-                print (cursor[0])
                 loc_x = obj_x + cursor[0]
-                
+            
+            elif relative_to == 'OPT_3':
+                loc_x = obj_x + center_sel_x
+            
             obj.location[0] = loc_x
 
 
@@ -61,11 +115,13 @@ def align_objects(align_x, align_y, align_z, relative_to):
 
             if relative_to == 'OPT_1':
                 loc_y = obj_y
-
+            
             elif relative_to == 'OPT_2':
-                print (cursor[1])
                 loc_y = obj_y + cursor[1]
-                
+            
+            elif relative_to == 'OPT_3':
+                loc_y = obj_y + center_sel_y
+            
             obj.location[1] = loc_y
 
 
@@ -75,18 +131,19 @@ def align_objects(align_x, align_y, align_z, relative_to):
 
             if relative_to == 'OPT_1':
                 loc_z = obj_z
-
+            
             elif relative_to == 'OPT_2':
-                print (cursor[2])
                 loc_z = obj_z + cursor[2]
-                
+            
+            elif relative_to == 'OPT_3':
+                loc_z = obj_z + center_sel_z
+            
             obj.location[2] = loc_z
 
 
 from bpy.props import *
 
-
-class TestCrap(bpy.types.Operator):
+class AlignObjects(bpy.types.Operator):
     '''Align Objects'''
     bl_idname = "object.align"
     bl_label = "Align Objets"
@@ -94,11 +151,12 @@ class TestCrap(bpy.types.Operator):
     bl_undo = True
 
     relative_to = bpy.props.EnumProperty(items=(
-            ('OPT_1', "Scene Origin", "blahblah"),
-            ('OPT_2', "3D Cursor", "blahblah")
+            ('OPT_1', "Scene Origin", ""),
+            ('OPT_2', "3D Cursor", ""),
+            ('OPT_3', "Selection", "")
             ),
         name="Relative To:",
-        description="blahbkah",
+        description="",
         default='OPT_1')
     
     align_x = BoolProperty(name="Align X",
@@ -122,11 +180,11 @@ class TestCrap(bpy.types.Operator):
         return {'FINISHED'}
 
 
-bpy.types.register(TestCrap)
+bpy.types.register(AlignObjects)
 
 def menu_func(self, context):
     if context.mode == 'OBJECT':
-        self.layout.operator(TestCrap.bl_idname,
+        self.layout.operator(AlignObjects.bl_idname,
         text="Align Objects")
 
 bpy.types.VIEW3D_MT_transform.append(menu_func)
