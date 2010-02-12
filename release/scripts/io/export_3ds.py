@@ -1060,8 +1060,8 @@ def save_3ds(filename, context):
         # make a kf object node for the object:
         kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
         '''
-# 		if not blender_mesh.users:
-        bpy.data.meshes.remove(blender_mesh)
+        if not blender_mesh.users:
+            bpy.data.meshes.remove(blender_mesh)
 # 		blender_mesh.verts = None
 
         i+=i
