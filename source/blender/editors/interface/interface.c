@@ -1189,6 +1189,12 @@ void ui_get_but_vectorf(uiBut *but, float *vec)
 		float *fp= (float *)but->poin;
 		VECCOPY(vec, fp);
 	}
+    else {
+        if (but->editvec==NULL) {
+            fprintf(stderr, "ui_get_but_vectorf: can't get color, should never happen\n");
+            vec[0]= vec[1]= vec[2]= 0.0f;
+        }
+    }
 }
 
 /* for buttons pointing to color for example */
@@ -2096,6 +2102,15 @@ void ui_check_but(uiBut *but)
 			strncpy(but->drawstr+2, but->str, UI_MAX_DRAW_STR-2);
 		}
 		break;
+
+	case HSVCUBE:
+	case HSVCIRCLE:
+		{
+			float rgb[3];
+			ui_get_but_vectorf(but, rgb);
+			rgb_to_hsv(rgb[0], rgb[1], rgb[2], but->hsv, but->hsv+1, but->hsv+2);
+		}
+		break;
 	default:
 		strncpy(but->drawstr, but->str, UI_MAX_DRAW_STR);
 		
@@ -2360,13 +2375,6 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 				but->str[slen+1]= 0;
 			}
 		}
-	}
-	
-	if(ELEM(but->type, HSVCUBE, HSVCIRCLE)) { /* hsv buttons temp storage */
-		float rgb[3];
-		ui_get_but_vectorf(but, rgb);
-
-		rgb_to_hsv(rgb[0], rgb[1], rgb[2], but->hsv, but->hsv+1, but->hsv+2);
 	}
 
 	if((block->flag & UI_BLOCK_LOOP) || ELEM7(but->type, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM, SEARCH_MENU))
