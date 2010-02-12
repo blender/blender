@@ -2481,9 +2481,8 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		
 		if(sad->flag & ANIMPLAY_FLAG_JUMPED)
 			sound_seek_scene(C);
-
+		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
-
 		ED_update_for_newframe(C, 1);
 		
 		for(sa= screen->areabase.first; sa; sa= sa->next) {
@@ -2496,6 +2495,12 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 						ED_region_tag_redraw(ar);
 			}
 		}
+		
+		/* update frame rate info too 
+		 * NOTE: this may not be accurate enough, since we might need this after modifiers/etc. 
+		 * have been calculated instead of just before updates have been done?
+		 */
+		ED_refresh_viewport_fps(C);
 		
 		/* recalculate the timestep for the timer now that we've finished calculating this,
 		 * since the frames-per-second value may have been changed

@@ -107,7 +107,9 @@ void	ED_screen_new_window(struct bContext *C, struct rcti *position, int type);
 
 /* anim */
 void	ED_update_for_newframe(const struct bContext *C, int mute);
+void 	ED_refresh_viewport_fps(struct bContext *C);
 
+/* screen keymaps */
 void	ED_operatortypes_screen(void);
 void	ED_keymap_screen(struct wmKeyConfig *keyconf);
 

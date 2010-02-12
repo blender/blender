@@ -29,6 +29,8 @@
 #ifndef ED_SCREEN_TYPES_H__
 #define ED_SCREEN_TYPES_H__
 
+/* ----------------------------------------------------- */
+
 /* for animplayer */
 typedef struct ScreenAnimData {
 	ARegion *ar;		/* do not read from this, only for comparing if region exists */
@@ -49,6 +51,21 @@ enum {
 	ANIMPLAY_FLAG_NO_SYNC		= (1<<3),
 };
 
+/* ----------------------------------------------------- */
+
+#define REDRAW_FRAME_AVERAGE 8
+
+/* for playback framerate info 
+ * stored during runtime as scene->fps_info
+ */
+typedef struct ScreenFrameRateInfo {
+	double redrawtime;
+	double lredrawtime;
+	float redrawtimes_fps[REDRAW_FRAME_AVERAGE];
+	short redrawtime_index;
+} ScreenFrameRateInfo;
+
+/* ----------------------------------------------------- */
 
 /* for editing areas/regions */
 typedef struct AZone {

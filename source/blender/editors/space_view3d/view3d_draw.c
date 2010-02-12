@@ -74,6 +74,7 @@
 #include "BIF_glutil.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 #include "BLF_api.h"
 
 #include "ED_armature.h"
@@ -82,6 +83,7 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_screen_types.h"
 #include "ED_util.h"
 #include "ED_transform.h"
 #include "ED_types.h"
@@ -1989,6 +1991,57 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	glPopMatrix();
 }
 
+/* NOTE: the info that this uses is updated in ED_refresh_viewport_fps(), 
+ * which currently gets called during SCREEN_OT_animation_step.
+ */
+static void draw_viewport_fps(Scene *scene, ARegion *ar)
+{
+	ScreenFrameRateInfo *fpsi= scene->fps_info;
+	float fps;
+	char printable[16];
+	int i, tot;
+	
+	if (!fpsi || !fpsi->lredrawtime || !fpsi->redrawtime)
+		return;
+	
+	printable[0] = '\0';
+	
+#if 0
+	/* this is too simple, better do an average */
+	fps = (float)(1.0/(fpsi->lredrawtime-fpsi->redrawtime))
+#else
+	fpsi->redrawtimes_fps[fpsi->redrawtime_index] = (float)(1.0/(fpsi->lredrawtime-fpsi->redrawtime));
+	
+	for (i=0, tot=0, fps=0.0f ; i < REDRAW_FRAME_AVERAGE ; i++) {
+		if (fpsi->redrawtimes_fps[i]) {
+			fps += fpsi->redrawtimes_fps[i];
+			tot++;
+		}
+	}
+	if (tot) {
+		fpsi->redrawtime_index = (fpsi->redrawtime_index + 1) % REDRAW_FRAME_AVERAGE;
+		
+		//fpsi->redrawtime_index++;
+		//if (fpsi->redrawtime >= REDRAW_FRAME_AVERAGE)
+		//	fpsi->redrawtime = 0;
+		
+		fps = fps / tot;
+	}
+#endif
+	
+	/* is this more then half a frame behind? */
+	if (fps+0.5 < FPS) {
+		UI_ThemeColor(TH_REDALERT);
+		sprintf(printable, "fps: %.2f", (float)fps);
+	} 
+	else {
+		UI_ThemeColor(TH_TEXT_HI);
+		sprintf(printable, "fps: %i", (int)(fps+0.5));
+	}
+	
+	BLF_draw_default(22,  ar->winy-17, 0.0f, printable);
+}
+
 void view3d_main_area_draw(const bContext *C, ARegion *ar)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -2176,8 +2229,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	else	
 		draw_view_icon(rv3d);
 	
-	/* XXX removed viewport fps */
-	if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
+	if((U.uiflag & USER_SHOW_FPS) && (CTX_wm_screen(C)->animtimer)) {
+		draw_viewport_fps(scene, ar);
+	}
+	else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
 		draw_viewport_name(ar, v3d);
 	}
 	if (grid_unit) { /* draw below the viewport name */

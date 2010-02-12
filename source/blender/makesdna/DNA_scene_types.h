@@ -761,6 +761,8 @@ typedef struct Scene {
 	void *sound_scene;
 	void *sound_scene_handle;
 	
+	void *fps_info;	 				/* (runtime) info/cache used for presenting playback framerate info to the user */
+	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
 	short dagisvalid, dagflags;

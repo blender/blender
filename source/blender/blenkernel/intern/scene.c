@@ -159,6 +159,7 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 		scen->obedit= NULL;
 		scen->toolsettings= MEM_dupallocN(sce->toolsettings);
 		scen->stats= NULL;
+		scen->fps_info= NULL;
 
 		ts= scen->toolsettings;
 		if(ts) {
@@ -318,6 +319,8 @@ void free_scene(Scene *sce)
 
 	if(sce->stats)
 		MEM_freeN(sce->stats);
+	if(sce->fps_info)
+		MEM_freeN(sce->fps_info);
 
 	sound_destroy_scene(sce);
 }

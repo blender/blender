@@ -1614,6 +1614,32 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
 	}
 }
 
+/* update frame rate info for viewport drawing */
+void ED_refresh_viewport_fps(bContext *C)
+{
+	wmTimer *animtimer= CTX_wm_screen(C)->animtimer;
+	Scene *scene= CTX_data_scene(C);
+	
+	/* is anim playback running? */
+	if (animtimer && (U.uiflag & USER_SHOW_FPS)) {
+		ScreenFrameRateInfo *fpsi= scene->fps_info;
+		
+		/* if there isn't any info, init it first */
+		if (fpsi == NULL)
+			fpsi= scene->fps_info= MEM_callocN(sizeof(ScreenFrameRateInfo), "refresh_viewport_fps fps_info");
+		
+		/* update the values */
+		fpsi->redrawtime= fpsi->lredrawtime;
+		fpsi->lredrawtime= animtimer->ltime;
+	}
+	else {	
+		/* playback stopped or shouldn't be running */
+		if (scene->fps_info)
+			MEM_freeN(scene->fps_info);
+		scene->fps_info= NULL;
+	}
+}
+
 /* redraws: uses defines from stime->redraws 
  * enable: 1 - forward on, -1 - backwards on, 0 - off
  */
