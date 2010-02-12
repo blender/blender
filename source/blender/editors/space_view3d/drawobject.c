@@ -129,6 +129,7 @@
 #define CHECK_OB_DRAWFACEDOT(sce, vd, dt) \
 (	(sce->toolsettings->selectmode & SCE_SELECT_FACE) && \
 	(vd->drawtype<=OB_SOLID) && \
+	(G.f & G_BACKBUFSEL)==0 && \
 	(((vd->drawtype==OB_SOLID) && (dt>=OB_SOLID) && (vd->flag2 & V3D_SOLID_TEX) && (vd->flag & V3D_ZBUF_SELECT)) == 0) \
 	)
 
