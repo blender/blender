@@ -81,7 +81,7 @@ EnumPropertyItem property_subtype_array_items[] = {
 static PyObject *bpy_prop_deferred_return(void *func, PyObject *kw)
 {
 	PyObject *ret = PyTuple_New(2);
-	PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr(func, NULL));
+	PyTuple_SET_ITEM(ret, 0, PyCapsule_New(func, NULL, NULL));
 	PyTuple_SET_ITEM(ret, 1, kw);
 	Py_INCREF(kw);
 	return ret;

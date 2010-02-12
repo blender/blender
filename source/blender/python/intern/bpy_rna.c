@@ -699,7 +699,7 @@ static PyObject *pyrna_func_to_py(BPy_DummyPointerRNA *pyrna, FunctionRNA *func)
 	PyTuple_SET_ITEM(self, 0, (PyObject *)pyrna);
 	Py_INCREF(pyrna);
 
-	PyTuple_SET_ITEM(self, 1, PyCObject_FromVoidPtr((void *)func, NULL));
+	PyTuple_SET_ITEM(self, 1, PyCapsule_New((void *)func, NULL, NULL));
 	
 	ret= PyCFunction_New(&func_meth, self);
 	Py_DECREF(self);
@@ -2849,7 +2849,7 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 {
 	/* Note, both BPy_StructRNA and BPy_PropertyRNA can be used here */
 	PointerRNA *self_ptr= &(((BPy_DummyPointerRNA *)PyTuple_GET_ITEM(self, 0))->ptr);
-	FunctionRNA *self_func=  PyCObject_AsVoidPtr(PyTuple_GET_ITEM(self, 1));
+	FunctionRNA *self_func=  PyCapsule_GetPointer(PyTuple_GET_ITEM(self, 1), NULL);
 
 	PointerRNA funcptr;
 	ParameterList parms;
@@ -3278,7 +3278,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	RNA_pointer_create(NULL, &RNA_Struct, srna, &ptr);
 	item = pyrna_struct_CreatePyObject(&ptr);
 
-	//item = PyCObject_FromVoidPtr(srna, NULL);
+	//item = PyCapsule_New(srna, NULL, NULL);
 	PyDict_SetItemString(((PyTypeObject *)newclass)->tp_dict, "bl_rna", item);
 	Py_DECREF(item);
 	/* done with rna instance */
@@ -3694,8 +3694,8 @@ StructRNA *srna_from_self(PyObject *self)
 	if(self==NULL) {
 		return NULL;
 	}
-	else if (PyCObject_Check(self)) {
-		return PyCObject_AsVoidPtr(self);
+	else if (PyCapsule_CheckExact(self)) {
+		return PyCapsule_GetPointer(self, NULL);
 	}
 	else if (PyType_Check(self)==0) {
 		return NULL;
@@ -3715,15 +3715,15 @@ static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key
 		PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
 		PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
 
-		if(PyArg_ParseTuple(item, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
+		if(PyArg_ParseTuple(item, "O!O!", &PyCapsule_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
 
 			if(*_PyUnicode_AsString(key)=='_') {
 				PyErr_Format(PyExc_ValueError, "StructRNA \"%.200s\" registration error: %.200s could not register because the property starts with an '_'\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
 				Py_DECREF(dummy_args);
 				return -1;
 			}
-			pyfunc = PyCObject_AsVoidPtr(py_func_ptr);
-			py_srna_cobject = PyCObject_FromVoidPtr(srna, NULL);
+			pyfunc = PyCapsule_GetPointer(py_func_ptr, NULL);
+			py_srna_cobject = PyCapsule_New(srna, NULL, NULL);
 
 			/* not 100% nice :/, modifies the dict passed, should be ok */
 			PyDict_SetItemString(py_kw, "attr", key);
