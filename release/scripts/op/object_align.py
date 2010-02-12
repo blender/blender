@@ -21,9 +21,11 @@
 import bpy
 
 
-def align_objects(align_x, align_y, align_z):
+def align_objects(align_x, align_y, align_z, relative_to):
 
     from Mathutils import Vector
+
+    cursor = bpy.context.scene.cursor_location
 
     for obj in bpy.context.selected_objects:
         
@@ -36,13 +38,49 @@ def align_objects(align_x, align_y, align_z):
         center_x = ( Left_Up_Front[0] + Right_Down_Back[0] ) / 2
         center_y = ( Left_Up_Front[1] + Right_Down_Back[1] ) / 2
         center_z = ( Left_Up_Front[2] + Right_Down_Back[2] ) / 2
+
+        obj_loc = obj.location
     
         if align_x:
-            obj.location[0] = obj.location[0] - center_x
+
+            obj_x = obj_loc[0] - center_x
+
+            if relative_to == 'OPT_1':
+                loc_x = obj_x
+
+            elif relative_to == 'OPT_2':
+                print (cursor[0])
+                loc_x = obj_x + cursor[0]
+                
+            obj.location[0] = loc_x
+
+
         if align_y:
-            obj.location[1] = obj.location[1] - center_y
+
+            obj_y = obj_loc[1] - center_y
+
+            if relative_to == 'OPT_1':
+                loc_y = obj_y
+
+            elif relative_to == 'OPT_2':
+                print (cursor[1])
+                loc_y = obj_y + cursor[1]
+                
+            obj.location[1] = loc_y
+
+
         if align_z:
-            obj.location[2] = obj.location[2] - center_z
+
+            obj_z = obj_loc[2] - center_z
+
+            if relative_to == 'OPT_1':
+                loc_z = obj_z
+
+            elif relative_to == 'OPT_2':
+                print (cursor[2])
+                loc_z = obj_z + cursor[2]
+                
+            obj.location[2] = loc_z
 
 
 from bpy.props import *
@@ -54,6 +92,14 @@ class TestCrap(bpy.types.Operator):
     bl_label = "Align Objets"
     bl_register = True
     bl_undo = True
+
+    relative_to = bpy.props.EnumProperty(items=(
+            ('OPT_1', "Scene Origin", "blahblah"),
+            ('OPT_2', "3D Cursor", "blahblah")
+            ),
+        name="Relative To:",
+        description="blahbkah",
+        default='OPT_1')
     
     align_x = BoolProperty(name="Align X",
         description="Align in the X axis", default=False)
@@ -66,11 +112,12 @@ class TestCrap(bpy.types.Operator):
 
     def execute(self, context):
     
-        align_X = self.properties.align_x
-        align_Y = self.properties.align_y
-        align_Z = self.properties.align_z
+        relative_to = self.properties.relative_to
+        align_x = self.properties.align_x
+        align_y = self.properties.align_y
+        align_z = self.properties.align_z
 
-        align_objects(align_x, align_y, align_z)
+        align_objects(align_x, align_y, align_z, relative_to)
 
         return {'FINISHED'}
 
