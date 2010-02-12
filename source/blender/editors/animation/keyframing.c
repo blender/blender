@@ -222,10 +222,12 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 {
 	int i= 0;
 	
+	/* are there already keyframes? */
 	if (fcu->bezt) {
 		short replace = -1;
 		i = binarysearch_bezt_index(fcu->bezt, bezt->vec[1][0], fcu->totvert, &replace);
 		
+		/* replace an existing keyframe? */
 		if (replace) {			
 			/* sanity check: 'i' may in rare cases exceed arraylen */
 			if ((i >= 0) && (i < fcu->totvert)) {
@@ -252,6 +254,7 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 				}
 			}
 		}
+		/* keyframing modes allow to not replace keyframe */
 		else if ((flag & INSERTKEY_REPLACE) == 0) {
 			/* insert new - if we're not restricted to replacing keyframes only */
 			BezTriple *newb= MEM_callocN((fcu->totvert+1)*sizeof(BezTriple), "beztriple");
@@ -270,15 +273,26 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 			/* replace (+ free) old with new, only if necessary to do so */
 			MEM_freeN(fcu->bezt);
 			fcu->bezt= newb;
-				
+			
 			fcu->totvert++;
 		}
 	}
-	else {
-		// TODO: need to check for old sample-data now...
+	/* no keyframes already, but can only add if...
+	 *	1) keyframing modes say that keyframes can only be replaced, so adding new ones won't know
+	 *	2) there are no samples on the curve
+	 *		// NOTE: maybe we may want to allow this later when doing samples -> bezt conversions, 
+	 *		// but for now, having both is asking for trouble
+	 */
+	else if ((flag & INSERTKEY_REPLACE)==0 && (fcu->fpt==NULL)) {
+		/* create new keyframes array */
 		fcu->bezt= MEM_callocN(sizeof(BezTriple), "beztriple");
 		*(fcu->bezt)= *bezt;
 		fcu->totvert= 1;
+	}
+	/* cannot add anything */
+	else {
+		/* return error code -1 to prevent any misunderstandings */
+		return -1;
 	}
 	
 	

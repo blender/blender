@@ -130,7 +130,6 @@ class TIME_MT_frame(bpy.types.Menu):
         layout.separator()
 
         sub = layout.row()
-        #sub.active = tools.enable_auto_key
         sub.menu("TIME_MT_autokey")
 
 
@@ -164,8 +163,6 @@ class TIME_MT_autokey(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         tools = context.tool_settings
-
-        layout.active = tools.enable_auto_key
 
         layout.prop_enum(tools, "autokey_mode", 'ADD_REPLACE_KEYS')
         layout.prop_enum(tools, "autokey_mode", 'REPLACE_KEYS')
