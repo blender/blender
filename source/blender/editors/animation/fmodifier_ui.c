@@ -594,7 +594,7 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 	PointerRNA ptr;
 	
 	/* init the RNA-pointer */
-	RNA_pointer_create(id, &RNA_FModifierFunctionGenerator, fcm, &ptr);
+	RNA_pointer_create(id, &RNA_FModifier, fcm, &ptr);
 	
 	/* draw header */
 	{
