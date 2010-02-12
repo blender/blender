@@ -976,6 +976,21 @@ void ViewMapBuilder::ComputeSweepLineIntersections(ViewMap *ioViewMap, real epsi
     if((Tb < -epsilon) || (Tb > 1+epsilon))
         cerr << "Warning: 3D intersection out of range for edge " << fB->vertexA()->getId() << " - " << fB->vertexB()->getId() << endl;
 
+#if 0
+    if((Ta < -epsilon) || (Ta > 1+epsilon) || (Tb < -epsilon) || (Tb > 1+epsilon)) {
+        printf("ta %.12e\n", ta);
+        printf("tb %.12e\n", tb);
+        printf("a1 %e, %e -- b1 %e, %e\n", a1[0], a1[1], b1[0], b1[1]);
+        printf("a2 %e, %e -- b2 %e, %e\n", a2[0], a2[1], b2[0], b2[1]);
+        if((Ta < -epsilon) || (Ta > 1+epsilon))
+            printf("Ta %.12e\n", Ta);
+        if((Tb < -epsilon) || (Tb > 1+epsilon))
+            printf("Tb %.12e\n", Tb);
+        printf("A1 %e, %e, %e -- B1 %e, %e, %e\n", A1[0], A1[1], A1[2], B1[0], B1[1], B1[2]);
+        printf("A2 %e, %e, %e -- B2 %e, %e, %e\n", A2[0], A2[1], A2[2], B2[0], B2[1], B2[2]);
+    }
+#endif
+
     TVertex * tvertex = ioViewMap->CreateTVertex(Vec3r(A1 + Ta*(A2-A1)), Vec3r(a1 + ta*(a2-a1)), fA, 
                                                  Vec3r(B1 + Tb*(B2-B1)), Vec3r(b1 + tb*(b2-b1)), fB, id);
      

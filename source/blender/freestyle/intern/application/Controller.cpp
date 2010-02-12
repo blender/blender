@@ -97,6 +97,7 @@ Controller::Controller()
   _ProgressBar = new ProgressBar;
   _SceneNumFaces = 0;
   _minEdgeSize = DBL_MAX;
+  _EPSILON = 1e-6;
   _bboxDiag = 0;
   
   _ViewMap = 0;
@@ -210,12 +211,7 @@ int Controller::LoadMesh(Render *re, SceneRenderLayer* srl)
   if(loader.minEdgeSize() < _minEdgeSize)
     {
       _minEdgeSize = loader.minEdgeSize();
-      _EPSILON = _minEdgeSize*1e-6;
-      if(_EPSILON < DBL_MIN)
-	_EPSILON = 0.0;
     }
-
-  cout << "Epsilon computed : " << _EPSILON << endl;
 
   // DEBUG
   // ScenePrettyPrinter spp;
