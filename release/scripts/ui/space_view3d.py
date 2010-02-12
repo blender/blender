@@ -1203,19 +1203,113 @@ class VIEW3D_MT_edit_mesh_selection_mode(bpy.types.Menu):
         prop.value = "(False, False, True)"
         prop.path = "tool_settings.mesh_selection_mode"
 
+
 class VIEW3D_MT_edit_mesh_extrude(bpy.types.Menu):
     bl_label = "Extrude"
 
+    @staticmethod
+    def extrude_options(context):
+        mesh = context.object.data
+        selection_mode = context.tool_settings.mesh_selection_mode
+
+        totface = mesh.total_face_sel
+        totedge = mesh.total_edge_sel
+        totvert = mesh.total_vert_sel
+        
+        if selection_mode[0]: # vert
+            if totvert == 0:
+                return ()
+            elif totvert == 1:
+                return (3,)
+            elif totedge == 0:
+                return (3,)
+            elif totface == 0:
+                return (2, 3)
+            elif totface == 1:
+                return (0, 2, 3)
+            else:
+                return (0, 1, 2, 3)
+        elif selection_mode[1]: # edge
+            if totedge == 0:
+                return ()
+            elif totedge == 1:
+                return (2,)
+            elif totface == 0:
+                return (2,)
+            elif totface == 1:
+                return (0, 2)
+            else:
+                return (0, 1, 2)
+        elif selection_mode[2]: # face
+            if totface == 0:
+                return ()
+            elif totface == 1:
+                return (0,)
+            else:
+                return (0, 1)
+        
+        # should never get here
+        return ()
+
     def draw(self, context):
         layout = self.layout
-        
         layout.operator_context = 'INVOKE_REGION_WIN'
         
-        layout.operator("mesh.extrude_region_move", text="Region")
-        layout.operator("mesh.extrude_faces_move", text="Individual Faces")
-        layout.operator("mesh.extrude_edges_move", text="Edges Only")
-        layout.operator("mesh.extrude_vertices_move", text="Vertices Only")
+        region_menu = lambda: layout.operator("mesh.extrude_region_move", text="Region")
+        face_menu = lambda: layout.operator("mesh.extrude_faces_move", text="Individual Faces")
+        edge_menu = lambda: layout.operator("mesh.extrude_edges_move", text="Edges Only")
+        vert_menu = lambda: layout.operator("mesh.extrude_vertices_move", text="Vertices Only")
+        
+        menu_funcs = region_menu, face_menu, edge_menu, vert_menu
+        
+        for i in self.extrude_options(context):
+            func = menu_funcs[i]
+            func()
 
+class VIEW3D_OT_edit_mesh_extrude_individual_move(bpy.types.Operator):
+    bl_label = "Extrude Individual and Move"
+    bl_idname = "view3d.edit_mesh_extrude_individual_move"
+
+    def execute(self, context):
+        mesh = context.object.data
+        selection_mode = context.tool_settings.mesh_selection_mode
+
+        totface = mesh.total_face_sel
+        totedge = mesh.total_edge_sel
+        totvert = mesh.total_vert_sel
+        
+        if selection_mode[2] and totface == 1:
+            return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate = {"constraint_orientation":"NORMAL", "constraint_axis":[False, False, True]})
+        elif selection_mode[2] and totface > 1:
+            return bpy.ops.mesh.extrude_faces_move('INVOKE_REGION_WIN')
+        elif selection_mode[1] and totedge >= 1: 
+            return bpy.ops.mesh.extrude_edges_move('INVOKE_REGION_WIN')
+        else: 
+            return bpy.ops.mesh.extrude_vertices_move('INVOKE_REGION_WIN')
+    
+    def invoke(self, context, event):
+        return self.execute(context)
+
+class VIEW3D_OT_edit_mesh_extrude_move(bpy.types.Operator):
+    bl_label = "Extrude and Move"
+    bl_idname = "view3d.edit_mesh_extrude_move"
+
+    def execute(self, context):
+        mesh = context.object.data
+
+        totface = mesh.total_face_sel
+        totedge = mesh.total_edge_sel
+        totvert = mesh.total_vert_sel
+        
+        if totface >= 1 or totvert == 1:
+            return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate = {"constraint_orientation":"NORMAL", "constraint_axis":[False, False, True]})
+        elif totedge == 1: 
+            return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate = {"constraint_orientation":"NORMAL", "constraint_axis":[True, True, False]})
+        else:
+            return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN')
+    
+    def invoke(self, context, event):
+        return self.execute(context)
 
 class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
     bl_label = "Vertices"
@@ -1987,6 +2081,9 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
             rna_prop_ui.draw(self.layout, context, member, False)
 
 
+bpy.types.register(VIEW3D_OT_edit_mesh_extrude_move) # detects constraints setup and extrude region
+bpy.types.register(VIEW3D_OT_edit_mesh_extrude_individual_move) 
+
 bpy.types.register(VIEW3D_HT_header) # Header
 
 bpy.types.register(VIEW3D_MT_view) #View Menus
@@ -2050,7 +2147,7 @@ bpy.types.register(VIEW3D_MT_edit_mesh_edges)
 bpy.types.register(VIEW3D_MT_edit_mesh_faces)
 bpy.types.register(VIEW3D_MT_edit_mesh_normals)
 bpy.types.register(VIEW3D_MT_edit_mesh_showhide)
-bpy.types.register(VIEW3D_MT_edit_mesh_extrude)
+bpy.types.register(VIEW3D_MT_edit_mesh_extrude) # use with VIEW3D_OT_edit_mesh_extrude_menu
 
 bpy.types.register(VIEW3D_MT_edit_curve)
 bpy.types.register(VIEW3D_MT_edit_curve_ctrlpoints)
