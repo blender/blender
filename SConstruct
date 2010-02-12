@@ -190,10 +190,13 @@ if not env['BF_FANCY']:
 
 
 # remove install dir so old and new files are not mixed.
+# NOTE: only do the scripts directory for now, otherwise is too disruptive for developers
+# TODO: perhaps we need an option (off by default) to not do this altogether...
 if not env['WITHOUT_BF_INSTALL']:
-    if os.path.isdir(env['BF_INSTALLDIR']):
-        print B.bc.OKGREEN + "Clearing installation directory%s: %s" % (B.bc.ENDC, os.path.abspath(env['BF_INSTALLDIR']))
-        shutil.rmtree(env['BF_INSTALLDIR'])
+    scriptsDir = env['BF_INSTALLDIR']+os.sep+'.blender'+os.sep+'scripts'
+    if os.path.isdir(scriptsDir):
+        print B.bc.OKGREEN + "Clearing installed scripts directory%s: %s" % (B.bc.ENDC, os.path.abspath(scriptsDir))
+        shutil.rmtree(scriptsDir)
 
 
 SetOption('num_jobs', int(env['BF_NUMJOBS']))
