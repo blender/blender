@@ -877,6 +877,14 @@ public:
 	static PyObject*	pyattr_get_worldScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_localScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_localScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_worldLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_worldLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_localLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_localLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_worldAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_worldAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_localAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_localAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);	
 	static PyObject*	pyattr_get_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
