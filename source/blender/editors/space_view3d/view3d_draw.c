@@ -1728,7 +1728,12 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 		v3d->transp= FALSE;
 	}
 	
+	if(rv3d->rflag & RV3D_CLIPPING)
+		view3d_clr_clipping();
+	
 	v3d->zbuf = zbuf;
+	if(!v3d->zbuf) glDisable(GL_DEPTH_TEST);
+
 	U.glalphaclip = glalphaclip;
 	v3d->flag = flag;
 	U.obcenter_dia= obcenter_dia;
