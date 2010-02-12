@@ -72,7 +72,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	}
 	
 	if(context_str) {
-		if(RNA_enum_value_from_id(operator_context_items, context_str, &operator_ret)==0) {
+		if(RNA_enum_value_from_id(operator_context_items, context_str, &context)==0) {
 			char *enum_str= BPy_enum_as_string(operator_context_items);
 			PyErr_Format(PyExc_TypeError, "Calling operator \"bpy.ops.%s\" error, expected a string enum in (%.200s)", opname, enum_str);
 			MEM_freeN(enum_str);
