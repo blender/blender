@@ -4079,7 +4079,10 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, s->sima? &s->sima->iuser: NULL);
 	
 	/* verify that we can paint and set canvas */
-	if(ima->packedfile && ima->rr) {
+	if(ima==NULL) {
+		return 0;
+	}
+	else if(ima->packedfile && ima->rr) {
 		s->warnpackedfile = ima->id.name + 2;
 		return 0;
 	}	
@@ -4087,7 +4090,7 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 		s->warnmultifile = ima->id.name + 2;
 		return 0;
 	}
-	else if(!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))
+	else if(!ibuf || !(ibuf->rect || ibuf->rect_float))
 		return 0;
 
 	s->image= ima;
@@ -4410,7 +4413,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	else {
 		pop->s.image = pop->s.sima->image;
 
-		if(!imapaint_canvas_set(&pop->s, pop->s.sima->image)) {
+		if(!imapaint_canvas_set(&pop->s, pop->s.image)) {
 			if(pop->s.warnmultifile)
 				BKE_report(op->reports, RPT_WARNING, "Image requires 4 color channels to paint");
 			if(pop->s.warnpackedfile)
