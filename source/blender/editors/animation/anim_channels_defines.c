@@ -386,7 +386,10 @@ static short acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListEle
 static void acf_summary_color(bAnimContext *ac, bAnimListElem *ale, float *color)
 {
 	// FIXME: hardcoded color - same as the 'action' line in NLA
-	glColor3f(0.8f, 0.2f, 0.0f);	// reddish color 
+		// reddish color 
+	color[0] = 0.8f;
+	color[1] = 0.2f;
+	color[2] = 0.0f;
 }
 
 /* backdrop for summary widget */
