@@ -70,9 +70,24 @@ static PyStructSequence_Desc app_info_desc = {
 	10
 };
 
+static char *strip_quotes(char *buf, const char *input)
+{
+	int i;
+	strcpy(buf, input);
+	if(buf[0]=='\0') return buf;
+	while(buf[1] && (buf[0]=='"' || buf[0]=='\'')) buf++;
+	if(buf[0]=='\0') return buf;
+	i= strlen(buf) - 1;
+	while(i>=0 && (buf[i]=='"' || buf[i]=='\'')) i--;
+	buf[i+1]= '\0';
+
+	return buf;
+}
+
 static PyObject *make_app_info(void)
 {
 	extern char bprogname[]; /* argv[0] from creator.c */
+	char buf[256];
 
 	PyObject *app_info;
 	int pos = 0;
@@ -84,8 +99,8 @@ static PyObject *make_app_info(void)
 
 #define SetIntItem(flag) \
 	PyStructSequence_SET_ITEM(app_info, pos++, PyLong_FromLong(flag))
-#define SetStrItem(flag) \
-	PyStructSequence_SET_ITEM(app_info, pos++, PyUnicode_FromString(flag))
+#define SetStrItem(str) \
+	PyStructSequence_SET_ITEM(app_info, pos++, PyUnicode_FromString(str))
 #define SetObjItem(obj) \
 	PyStructSequence_SET_ITEM(app_info, pos++, obj)
 
@@ -96,11 +111,11 @@ static PyObject *make_app_info(void)
 	SetObjItem(PyBool_FromLong(G.f & G_DEBUG));
 
 	/* build info */
-	SetStrItem(build_date);
-	SetStrItem(build_time);
-	SetStrItem(build_rev);
-	SetStrItem(build_platform);
-	SetStrItem(build_type);
+	SetStrItem(strip_quotes(buf, build_date));
+	SetStrItem(strip_quotes(buf, build_time));
+	SetStrItem(strip_quotes(buf, build_rev));
+	SetStrItem(strip_quotes(buf, build_platform));
+	SetStrItem(strip_quotes(buf, build_type));
 
 #undef SetIntItem
 #undef SetStrItem
