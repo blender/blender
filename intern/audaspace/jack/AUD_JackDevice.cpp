@@ -160,9 +160,6 @@ AUD_JackDevice::AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize)
 
 	m_specs.rate = (AUD_SampleRate)jack_get_sample_rate(m_client);
 
-	buffersize /= 256;
-	buffersize *= m_specs.rate;
-	buffersize /= 4 * sizeof(sample_t);
 	buffersize *= sizeof(sample_t);
 	m_ringbuffers = new jack_ringbuffer_t*[specs.channels]; AUD_NEW("jack_buffers")
 	for(unsigned int i = 0; i < specs.channels; i++)
