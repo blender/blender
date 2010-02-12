@@ -990,6 +990,22 @@ static char *rna_MeshStringProperty_path(PointerRNA *ptr)
 	return rna_CustomDataData_path(ptr, "string_layers", CD_MCOL);
 }
 
+static int rna_Mesh_tot_vert_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	return me->edit_mesh ? me->edit_mesh->totvertsel : 0;
+}
+static int rna_Mesh_tot_edge_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	return me->edit_mesh ? me->edit_mesh->totedgesel: 0;
+}
+static int rna_Mesh_tot_face_get(PointerRNA *ptr)
+{
+	Mesh *me= (Mesh*)ptr->id.data;
+	return me->edit_mesh ? me->edit_mesh->totfacesel : 0;
+}
+
 #else
 
 static void rna_def_mvert_group(BlenderRNA *brna)
@@ -1808,6 +1824,23 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Paint Mask", "Face selection masking for painting");
 	RNA_def_property_ui_icon(prop, ICON_FACESEL_HLT, 0);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+
+
+	/* readonly editmesh info - use for extrude menu */
+	prop= RNA_def_property(srna, "total_vert_sel", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_Mesh_tot_vert_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Selected Vert Total", "Selected vertex count in editmode");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "total_edge_sel", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_Mesh_tot_edge_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Selected Edge Total", "Selected edge count in editmode");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "total_face_sel", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_Mesh_tot_face_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Selected Face Total", "Selected face count in editmode");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	/* pointers */
 	rna_def_animdata_common(srna);
