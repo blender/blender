@@ -2109,6 +2109,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 				/* apply first click */
 				gesture_circle_apply(C, op);
 				gesture->mode= 1;
+				wm_gesture_tag_redraw(C);
 			}
 			break;
 
