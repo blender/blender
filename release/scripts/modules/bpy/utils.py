@@ -180,7 +180,6 @@ def script_paths(*args):
                 scripts.append(path)
 
     if not args:
-        print(scripts)
         return scripts
 
     subdir = _os.path.join(*args)
