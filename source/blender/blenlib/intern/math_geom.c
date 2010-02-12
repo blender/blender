@@ -1873,7 +1873,7 @@ void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2,
 			negate_v3(tang);
 	}
 	else {
-		tang[0]= tang[1]= tang[0]=  0.0;
+		tang[0]= tang[1]= tang[2]=  0.0;
 	}
 }
 
