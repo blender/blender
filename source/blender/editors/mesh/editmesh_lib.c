@@ -1556,6 +1556,7 @@ short extrudeflag_vert(Object *obedit, EditMesh *em, short flag, float *nor, int
 			v1= addvertlist(em, 0, NULL);
 			
 			VECCOPY(v1->co, eve->co);
+			VECCOPY(v1->no, eve->no);
 			v1->f= eve->f;
 			eve->f-= flag;
 			eve->tmp.v = v1;
