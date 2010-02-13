@@ -69,7 +69,10 @@ static void rna_Material_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Material *ma= ptr->id.data;
 
 	DAG_id_flush_update(&ma->id, 0);
-	WM_main_add_notifier(NC_MATERIAL|ND_SHADING, ma);
+	if(scene->gm.matmode == GAME_MAT_GLSL)
+		WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ma);
+	else
+		WM_main_add_notifier(NC_MATERIAL|ND_SHADING, ma);
 }
 
 static void rna_Material_draw_update(Main *bmain, Scene *scene, PointerRNA *ptr)

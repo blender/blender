@@ -89,6 +89,7 @@
 #include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 
@@ -294,6 +295,7 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int en
 	ED_object_base_init_transform(C, BASACT, loc, rot);
 
 	DAG_scene_sort(scene);
+	ED_render_id_flush_update(G.main, ob->data);
 
 	if(enter_editmode)
 		ED_object_enter_editmode(C, EM_IGNORE_LAYER);
@@ -1628,13 +1630,16 @@ static Base *object_add_duplicate_internal(Scene *scene, Base *base, int dupflag
 Base *ED_object_add_duplicate(Scene *scene, Base *base, int dupflag)
 {
 	Base *basen;
+	Object *ob;
 
 	clear_id_newpoins();
 	clear_sca_new_poins();	/* sensor/contr/act */
 	
 	basen= object_add_duplicate_internal(scene, base, dupflag);
+	ob= basen->object;
 	
 	DAG_scene_sort(scene);
+	ED_render_id_flush_update(G.main, ob->data);
 	
 	return basen;
 }
@@ -1660,6 +1665,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 		if(BASACT==base)
 			ED_base_object_activate(C, basen);
 		
+		ED_render_id_flush_update(G.main, basen->object->data);
 	}
 	CTX_DATA_END;
 
