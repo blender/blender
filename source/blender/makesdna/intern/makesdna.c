@@ -699,7 +699,7 @@ static int calculate_structlens(int firststruct)
 				for(b=0; b<structpoin[1]; b++, sp+=2) {
 					type= sp[0];
 					cp= names[sp[1]];
-					
+
 					namelen= (int) strlen(cp);
 					/* is it a pointer or function pointer? */
 					if(cp[0]=='*' || cp[1]=='*') {
@@ -729,6 +729,10 @@ static int calculate_structlens(int firststruct)
 						len += sizeof(void *) * mul;
 						alphalen += 8 * mul;
 
+					} else if(cp[0]=='[') {
+						/* parsing can cause names "var" and "[3]" to be found for "float var [3]" ... */
+						printf("Parse error in struct, invalid member name: %s %s\n", types[structtype], cp);
+						dna_error = 1;
 					} else if( typelens[type] ) {
 						/* has the name an extra length? (array) */
 						mul= 1;
