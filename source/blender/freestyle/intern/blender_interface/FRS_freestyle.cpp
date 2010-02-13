@@ -121,6 +121,9 @@ extern "C" {
 		controller->Clear();
 
 		// load mesh
+        re->i.infostr= "Freestyle: Mesh loading";
+		re->stats_draw(re->sdh, &re->i);
+        re->i.infostr= NULL;
 		if( controller->LoadMesh(re, srl) ) // returns if scene cannot be loaded or if empty
 			return;
         if( re->test_break(re->tbh) )
@@ -156,6 +159,9 @@ extern "C" {
 		cout << "Suggestive contour dkr epsilon : " << controller->getSuggestiveContourKrDerivativeEpsilon() << endl;
 
 		// compute view map
+        re->i.infostr= "Freestyle: View map creation";
+		re->stats_draw(re->sdh, &re->i);
+        re->i.infostr= NULL;
 		controller->ComputeViewMap();
 	}
 	
@@ -245,6 +251,9 @@ extern "C" {
 				if( controller->_ViewMap ) {
 					
 					// render strokes					
+                    re->i.infostr= "Freestyle: Stroke rendering";
+		            re->stats_draw(re->sdh, &re->i);
+                	re->i.infostr= NULL;
 					controller->DrawStrokes();
 					freestyle_render = controller->RenderStrokes(re);
 					controller->CloseFile();
