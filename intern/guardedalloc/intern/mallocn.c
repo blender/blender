@@ -305,9 +305,9 @@ void *MEM_mallocN(unsigned int len, const char *str)
 			memset(memh+1, 255, len);
 
 #ifdef DEBUG_MEMCOUNTER
-		memh->_count= _mallocn_count++;
 		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
 			memcount_raise("MEM_mallocN");
+		memh->_count= _mallocn_count++;
 #endif
 		return (++memh);
 	}
@@ -330,9 +330,9 @@ void *MEM_callocN(unsigned int len, const char *str)
 		make_memhead_header(memh, len, str);
 		mem_unlock_thread();
 #ifdef DEBUG_MEMCOUNTER
-		memh->_count= _mallocn_count++;
 		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
 			memcount_raise("MEM_callocN");
+		memh->_count= _mallocn_count++;
 #endif
 		return (++memh);
 	}
@@ -372,9 +372,9 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 		mmap_in_use += len;
 		mem_unlock_thread();
 #ifdef DEBUG_MEMCOUNTER
-		memh->_count= _mallocn_count++;
 		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
 			memcount_raise("MEM_mapallocN");
+		memh->_count= _mallocn_count++;
 #endif
 		return (++memh);
 	}

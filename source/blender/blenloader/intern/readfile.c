@@ -5307,7 +5307,7 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, char *allocna
 
 	while(bhead && bhead->code==DATA) {
 		void *data;
-#if 0		
+#if 0
 		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
 		short *sp= fd->filesdna->structs[bhead->SDNAnr];
 		char *allocname = fd->filesdna->types[ sp[0] ];
@@ -5315,8 +5315,9 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, char *allocna
 		
 		strcpy(tmp, allocname);
 		data= read_struct(fd, bhead, tmp);
-#endif
+#else
 		data= read_struct(fd, bhead, allocname);
+#endif
 		
 		if (data) {
 			oldnewmap_insert(fd->datamap, bhead->old, data, 0);

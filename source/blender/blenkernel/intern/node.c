@@ -57,6 +57,7 @@
 #include "BKE_texture.h"
 #include "BKE_text.h"
 #include "BKE_utildefines.h"
+#include "BKE_animsys.h" /* BKE_free_animdata only */
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -1343,6 +1344,8 @@ void ntreeFreeTree(bNodeTree *ntree)
 	
 	ntreeEndExecTree(ntree);	/* checks for if it is still initialized */
 	
+	BKE_free_animdata((ID *)ntree);
+
 	BLI_freelistN(&ntree->links);	/* do first, then unlink_node goes fast */
 	
 	for(node= ntree->nodes.first; node; node= next) {
