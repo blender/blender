@@ -408,7 +408,7 @@ def read_opts(cfg, args):
         (BoolVariable('BF_SPLIT_SRC', 'Split src lib into several chunks if true', False)),
         (BoolVariable('WITHOUT_BF_INSTALL', 'dont install if true', False)),
         (BoolVariable('WITHOUT_BF_PYTHON_INSTALL', 'dont install Python modules if true', False)),
-        (BoolVariable('WITHOUT_BF_OVERWRITE_INSTALL', 'dont remove existing files before breating the new install directory (set to False when making packages for others)', False)),
+        (BoolVariable('WITHOUT_BF_OVERWRITE_INSTALL', 'dont remove existing files before breating the new install directory (set to False when making packages for others)', True)),
         (BoolVariable('BF_FANCY', 'Enable fancy output if true', True)),
         (BoolVariable('BF_QUIET', 'Enable silent output if true', True)),
         (BoolVariable('BF_LINE_OVERWRITE', 'Enable overwriting of compile line in BF_QUIET mode if true', False)),
