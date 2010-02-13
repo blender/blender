@@ -372,6 +372,9 @@ int BKE_read_file(bContext *C, char *dir, void *unused, ReportList *reports)
 	BlendFileData *bfd;
 	int retval= 1;
 
+	if(strstr(dir, ".B25.blend")==0) /* dont print user-pref loading */
+		printf("read blend: %s\n", dir);
+
 	bfd= BLO_read_from_file(dir, reports);
 	if (bfd) {
 		if(bfd->user) retval= 2;
