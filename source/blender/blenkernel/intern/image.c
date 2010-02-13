@@ -1656,6 +1656,10 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 	unsigned short numlen;
 	char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
 	
+	/* XXX temp stuff? */
+	if(ima->lastframe != frame)
+		ima->tpageflag |= IMA_TPAGE_REFRESH;
+
 	ima->lastframe= frame;
 
 	BLI_stringdec(ima->name, head, tail, &numlen);
@@ -2034,6 +2038,11 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 		if(ima->type==IMA_TYPE_IMAGE) {
 			frame= iuser?iuser->framenr:ima->lastframe;
 			ibuf= image_get_ibuf(ima, 0, frame);
+			
+			/* XXX temp stuff? */
+			if(ima->lastframe != frame)
+				ima->tpageflag |= IMA_TPAGE_REFRESH;
+			ima->lastframe = frame;
 		}
 		else if(ima->type==IMA_TYPE_MULTILAYER) {
 			frame= iuser?iuser->framenr:ima->lastframe;

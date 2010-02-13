@@ -960,7 +960,7 @@ static void do_material_tex(GPUShadeInput *shi)
 			rgbnor = 0;
 
 			if(tex && tex->type == TEX_IMAGE && tex->ima) {
-				GPU_link(mat, "mtex_image", texco, GPU_image(tex->ima, NULL), &tin, &trgb, &tnor);
+				GPU_link(mat, "mtex_image", texco, GPU_image(tex->ima, &tex->iuser), &tin, &trgb, &tnor);
 				rgbnor= TEX_RGB;
 
 				if(tex->imaflag & TEX_USEALPHA)

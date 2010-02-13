@@ -997,6 +997,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, int type)
 		input->source = GPU_SOURCE_TEX;
 
 		input->ima = link->ptr1;
+		input->iuser = link->ptr2;
 		input->textarget = GL_TEXTURE_2D;
 		input->textype = GPU_TEX2D;
 		MEM_freeN(link);

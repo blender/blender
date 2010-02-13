@@ -392,7 +392,7 @@ static void gpu_verify_reflection(Image *ima)
 	}
 }
 
-int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare, int mipmap)
+int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int tfmode, int compare, int mipmap)
 {
 	ImBuf *ibuf = NULL;
 	unsigned int *bind = NULL;
@@ -444,7 +444,7 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare, int mipmap
 		return 0;
 
 	/* check if we have a valid image buffer */
-	ibuf= BKE_image_get_ibuf(ima, NULL);
+	ibuf= BKE_image_get_ibuf(ima, iuser);
 
 	if(ibuf==NULL)
 		return 0;
@@ -453,6 +453,12 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare, int mipmap
 	if ((ibuf->rect==NULL) && ibuf->rect_float)
 		IMB_rect_from_float(ibuf);
 
+	/* currently, tpage refresh is used by ima sequences */
+	if(ima->tpageflag & IMA_TPAGE_REFRESH) {
+		GPU_free_image(ima);
+		ima->tpageflag &= ~IMA_TPAGE_REFRESH;
+	}
+	
 	if(GTS.tilemode) {
 		/* tiled mode */
 		if(ima->repbind==0) gpu_make_repbind(ima);
@@ -585,7 +591,7 @@ int GPU_set_tpage(MTFace *tface, int mipmap)
 	gpu_verify_alpha_mode(tface);
 	gpu_verify_reflection(ima);
 
-	if(GPU_verify_image(ima, tface->tile, tface->mode, 1, mipmap)) {
+	if(GPU_verify_image(ima, NULL, tface->tile, tface->mode, 1, mipmap)) {
 		GTS.curtile= GTS.tile;
 		GTS.curima= GTS.ima;
 		GTS.curtilemode= GTS.tilemode;

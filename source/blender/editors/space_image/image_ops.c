@@ -37,6 +37,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -44,7 +45,9 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -1839,20 +1842,26 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 /******************** TODO ********************/
 
 /* XXX notifier? */
-#if 0
+
 /* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
-void BIF_image_update_frame(void)
+
+void ED_image_update_frame(const bContext *C)
 {
+	Main *mainp = CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
 	Tex *tex;
 	
 	/* texture users */
-	for(tex= G.main->tex.first; tex; tex= tex->id.next) {
-		if(tex->type==TEX_IMAGE && tex->ima)
-			if(ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
+	for(tex= mainp->tex.first; tex; tex= tex->id.next) {
+		if(tex->type==TEX_IMAGE && tex->ima) {
+			if(ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				if(tex->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_calc_imanr(&tex->iuser, scene->r.cfra, 0);
-		
+					BKE_image_user_calc_frame(&tex->iuser, scene->r.cfra, 0);
+			}
+		}
 	}
+	
+#if 0
 	/* image window, compo node users */
 	if(G.curscreen) {
 		ScrArea *sa;
@@ -1861,12 +1870,12 @@ void BIF_image_update_frame(void)
 				View3D *v3d= sa->spacedata.first;
 				if(v3d->bgpic)
 					if(v3d->bgpic->iuser.flag & IMA_ANIM_ALWAYS)
-						BKE_image_user_calc_imanr(&v3d->bgpic->iuser, scene->r.cfra, 0);
+						BKE_image_user_calc_frame(&v3d->bgpic->iuser, scene->r.cfra, 0);
 			}
 			else if(sa->spacetype==SPACE_IMAGE) {
 				SpaceImage *sima= sa->spacedata.first;
 				if(sima->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_calc_imanr(&sima->iuser, scene->r.cfra, 0);
+					BKE_image_user_calc_frame(&sima->iuser, scene->r.cfra, 0);
 			}
 			else if(sa->spacetype==SPACE_NODE) {
 				SpaceNode *snode= sa->spacedata.first;
@@ -1878,14 +1887,15 @@ void BIF_image_update_frame(void)
 							ImageUser *iuser= node->storage;
 							if(ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
 								if(iuser->flag & IMA_ANIM_ALWAYS)
-									BKE_image_user_calc_imanr(iuser, scene->r.cfra, 0);
+									BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
 						}
 					}
 				}
 			}
 		}
 	}
-}
 #endif
+}
+
 
 
