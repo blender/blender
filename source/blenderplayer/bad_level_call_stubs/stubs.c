@@ -321,3 +321,9 @@ int CSG_PerformBooleanOperation(
 	CSG_FaceIteratorDescriptor		obBFaces,
 	CSG_VertexIteratorDescriptor	obBVertices)
 	{ return 0;}
+
+const char * build_date= "";
+const char * build_time= "";
+const char * build_rev= "";
+const char * build_platform= "";
+const char * build_type= "";
