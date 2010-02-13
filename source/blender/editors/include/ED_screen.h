@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -107,7 +107,9 @@ void	ED_screen_new_window(struct bContext *C, struct rcti *position, int type);
 
 /* anim */
 void	ED_update_for_newframe(const struct bContext *C, int mute);
+void 	ED_refresh_viewport_fps(struct bContext *C);
 
+/* screen keymaps */
 void	ED_operatortypes_screen(void);
 void	ED_keymap_screen(struct wmKeyConfig *keyconf);
 

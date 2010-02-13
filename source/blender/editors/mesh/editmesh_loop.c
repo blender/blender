@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2004 by Blender Foundation.
  * All rights reserved.
@@ -718,7 +718,7 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	PropertyRNA *prop;
 	
 	ot->name= "Knife Cut";
-	ot->description= "Cut selected edges and faces into parts.";
+	ot->description= "Cut selected edges and faces into parts";
 	ot->idname= "MESH_OT_knife_cut";
 	
 	ot->invoke= WM_gesture_lines_invoke;

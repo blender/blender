@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
@@ -39,7 +39,7 @@ SET(SRC
 		../../../../intern/guardedalloc/intern/mallocn.c
 		../../../../intern/guardedalloc/intern/mmap_win.c)
 
-INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../ikplugin ../../windowmanager ../../editors/include ../../imbuf ../../render/extern/include .)
+INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../ikplugin ../../windowmanager ../../editors/include ../../gpu ../../imbuf ../../render/extern/include .)
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 
 IF(WITH_PYTHON)

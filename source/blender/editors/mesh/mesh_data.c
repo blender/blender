@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -300,7 +300,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add UV Texture";
-	ot->description= "Add UV texture layer.";
+	ot->description= "Add UV texture layer";
 	ot->idname= "MESH_OT_uv_texture_add";
 	
 	/* api callbacks */
@@ -388,7 +388,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove UV Texture";
-	ot->description= "Remove UV texture layer.";
+	ot->description= "Remove UV texture layer";
 	ot->idname= "MESH_OT_uv_texture_remove";
 	
 	/* api callbacks */
@@ -417,7 +417,7 @@ void MESH_OT_vertex_color_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Vertex Color";
-	ot->description= "Add vertex color layer.";
+	ot->description= "Add vertex color layer";
 	ot->idname= "MESH_OT_vertex_color_add";
 	
 	/* api callbacks */
@@ -443,7 +443,7 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Vertex Color";
-	ot->description= "Remove vertex color layer.";
+	ot->description= "Remove vertex color layer";
 	ot->idname= "MESH_OT_vertex_color_remove";
 	
 	/* api callbacks */
@@ -478,7 +478,7 @@ void MESH_OT_sticky_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Sticky";
-	ot->description= "Add sticky UV texture layer.";
+	ot->description= "Add sticky UV texture layer";
 	ot->idname= "MESH_OT_sticky_add";
 	
 	/* api callbacks */
@@ -510,7 +510,7 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Sticky";
-	ot->description= "Remove sticky UV texture layer.";
+	ot->description= "Remove sticky UV texture layer";
 	ot->idname= "MESH_OT_sticky_remove";
 	
 	/* api callbacks */

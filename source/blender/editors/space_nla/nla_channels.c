@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -437,7 +437,7 @@ void NLA_OT_tracks_add (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Track(s)";
 	ot->idname= "NLA_OT_tracks_add";
-	ot->description= "Add NLA-Tracks above/after the selected tracks.";
+	ot->description= "Add NLA-Tracks above/after the selected tracks";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_add_tracks_exec;
@@ -493,7 +493,7 @@ void NLA_OT_delete_tracks (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Delete Tracks";
 	ot->idname= "NLA_OT_delete_tracks";
-	ot->description= "Delete selected NLA-Tracks and the strips they contain.";
+	ot->description= "Delete selected NLA-Tracks and the strips they contain";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_delete_tracks_exec;

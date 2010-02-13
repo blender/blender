@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -267,7 +267,7 @@ void SEQUENCER_OT_select_all_toggle(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "(De)Select All";
 	ot->idname= "SEQUENCER_OT_select_all_toggle";
-	ot->description="Select or deselect all strips.";
+	ot->description="Select or deselect all strips";
 	
 	/* api callbacks */
 	ot->exec= sequencer_deselect_exec;
@@ -309,7 +309,7 @@ void SEQUENCER_OT_select_inverse(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Inverse";
 	ot->idname= "SEQUENCER_OT_select_inverse";
-	ot->description="Select unselected strips.";
+	ot->description="Select unselected strips";
 	
 	/* api callbacks */
 	ot->exec= sequencer_select_inverse_exec;
@@ -521,7 +521,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Activate/Select";
 	ot->idname= "SEQUENCER_OT_select";
-	ot->description="Select a strip (last selected becomes the \"active strip\").";
+	ot->description="Select a strip (last selected becomes the \"active strip\")";
 	
 	/* api callbacks */
 	ot->invoke= sequencer_select_invoke;
@@ -884,7 +884,7 @@ void SEQUENCER_OT_select_border(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Border Select";
 	ot->idname= "SEQUENCER_OT_select_border";
-	ot->description="Enable border select mode.";
+	ot->description="Enable border select mode";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;

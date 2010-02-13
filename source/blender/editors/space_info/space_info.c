@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -175,6 +175,9 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data == ND_SPACE_INFO)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
 	}
 	
 }

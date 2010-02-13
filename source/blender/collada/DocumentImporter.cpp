@@ -1290,30 +1290,12 @@ private:
 		me->totvert = mesh->getPositions().getFloatValues()->getCount() / 3;
 		me->mvert = (MVert*)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
 
-		const COLLADAFW::MeshVertexData& pos = mesh->getPositions();
+		COLLADAFW::MeshVertexData& pos = mesh->getPositions();
 		MVert *mvert;
-		int i, j;
+		int i;
 
-		for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
-			j = i * 3;
-
-			if (pos.getType() == COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT) {
-				const float *array = pos.getFloatValues()->getData();
-				mvert->co[0] = array[j];
-				mvert->co[1] = array[j + 1];
-				mvert->co[2] = array[j + 2];
-			}
-			else if (pos.getType() == COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE){
-				const double *array = pos.getDoubleValues()->getData();
-				mvert->co[0] = (float)array[j];
-				mvert->co[1] = (float)array[j + 1];
-				mvert->co[2] = (float)array[j + 2];
-			}
-			else {
-				fprintf(stderr, "Cannot read vertex positions: unknown data type.\n");
-				break;
-			}
-		}
+		for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++)
+			get_vector(mvert->co, pos, i);
 	}
 	
 	int triangulate_poly(unsigned int *indices, int totvert, MVert *verts, std::vector<unsigned int>& tri)
@@ -1436,6 +1418,9 @@ private:
 
 		COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
 
+		bool has_normals = mesh->hasNormals();
+		COLLADAFW::MeshVertexData& nor = mesh->getNormals();
+
 		for (i = 0; i < prim_arr.getCount(); i++) {
 			
  			COLLADAFW::MeshPrimitive *mp = prim_arr[i];
@@ -1443,6 +1428,7 @@ private:
 			// faces
 			size_t prim_totface = mp->getFaceCount();
 			unsigned int *indices = mp->getPositionIndices().getData();
+			unsigned int *nind = mp->getNormalIndices().getData();
 			int j, k;
 			int type = mp->getPrimitiveType();
 			int index = 0;
@@ -1473,6 +1459,13 @@ private:
 					}
 
 					test_index_face(mface, &me->fdata, face_index, 3);
+
+					if (has_normals) {
+						if (!flat_face(nind, nor, 3))
+							mface->flag |= ME_SMOOTH;
+
+						nind += 3;
+					}
 					
 					index += 3;
 					mface++;
@@ -1502,6 +1495,13 @@ private:
 						}
 
 						test_index_face(mface, &me->fdata, face_index, vcount);
+
+						if (has_normals) {
+							if (!flat_face(nind, nor, vcount))
+								mface->flag |= ME_SMOOTH;
+
+							nind += vcount;
+						}
 						
 						mface++;
 						face_index++;
@@ -1535,6 +1535,15 @@ private:
 							}
 
 							test_index_face(mface, &me->fdata, face_index, 3);
+
+							if (has_normals) {
+								unsigned int utri[3] = {tri[v], tri[v + 1], tri[v + 2]};
+
+								if (!flat_face(utri, nor, 3))
+									mface->flag |= ME_SMOOTH;
+
+								nind += 3;
+							}
 							
 							mface++;
 							face_index++;
@@ -1551,6 +1560,56 @@ private:
 		}
 
 		geom_uid_mat_mapping_map[mesh->getUniqueId()] = mat_prim_map;
+	}
+
+	void get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i)
+	{
+		i *= 3;
+
+		switch(arr.getType()) {
+		case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
+			{
+				COLLADAFW::ArrayPrimitiveType<float>* values = arr.getFloatValues();
+				if (values->empty()) return;
+
+				v[0] = (*values)[i++];
+				v[1] = (*values)[i++];
+				v[2] = (*values)[i];
+			}
+			break;
+		case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
+			{
+				COLLADAFW::ArrayPrimitiveType<double>* values = arr.getDoubleValues();
+				if (values->empty()) return;
+
+				v[0] = (float)(*values)[i++];
+				v[1] = (float)(*values)[i++];
+				v[2] = (float)(*values)[i];
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	bool flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor, int count)
+	{
+		float a[3], b[3];
+
+		get_vector(a, nor, *nind++);
+		normalize_v3(a);
+
+		for (int i = 1; i < count; i++, nind++) {
+			get_vector(b, nor, *nind);
+			normalize_v3(b);
+
+			float dp = dot_v3v3(a, b);
+
+			if (dp < 0.99999f || dp > 1.00001f)
+				return false;
+		}
+
+		return true;
 	}
 
 public:

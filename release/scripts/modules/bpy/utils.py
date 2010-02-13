@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -27,6 +27,7 @@ import bpy as _bpy
 import os as _os
 import sys as _sys
 
+from _bpy import home_paths
 
 def load_scripts(reload_scripts=False, refresh_scripts=False):
     import traceback
@@ -171,15 +172,12 @@ def script_paths(*args):
 
     # add user scripts dir
     user_script_path = _bpy.context.user_preferences.filepaths.python_scripts_directory
-
-    if not user_script_path:
-        # XXX - WIN32 needs checking, perhaps better call a blender internal function.
-        user_script_path = _os.path.join(_os.path.expanduser("~"), ".blender", "scripts")
-
-    user_script_path = _os.path.normpath(user_script_path)
-
-    if user_script_path not in scripts and _os.path.isdir(user_script_path):
-        scripts.append(user_script_path)
+    
+    for path in home_paths("scripts") + (user_script_path, ):
+        if path:
+            path = _os.path.normpath(path)
+            if path not in scripts and _os.path.isdir(path):
+                scripts.append(path)
 
     if not args:
         return scripts
@@ -190,7 +188,7 @@ def script_paths(*args):
         path_subdir = _os.path.join(path, subdir)
         if _os.path.isdir(path_subdir):
             script_paths.append(path_subdir)
-
+    print(script_paths)
     return script_paths
 
 

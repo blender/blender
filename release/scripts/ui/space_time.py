@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -130,7 +130,6 @@ class TIME_MT_frame(bpy.types.Menu):
         layout.separator()
 
         sub = layout.row()
-        #sub.active = tools.enable_auto_key
         sub.menu("TIME_MT_autokey")
 
 
@@ -164,8 +163,6 @@ class TIME_MT_autokey(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         tools = context.tool_settings
-
-        layout.active = tools.enable_auto_key
 
         layout.prop_enum(tools, "autokey_mode", 'ADD_REPLACE_KEYS')
         layout.prop_enum(tools, "autokey_mode", 'REPLACE_KEYS')

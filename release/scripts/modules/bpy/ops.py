@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -26,19 +26,6 @@ op_dir = ops_module.dir
 op_call = ops_module.call
 op_as_string = ops_module.as_string
 op_get_rna = ops_module.get_rna
-
-# Keep in sync with WM_types.h
-context_dict = {
-    'INVOKE_DEFAULT': 0,
-    'INVOKE_REGION_WIN': 1,
-    'INVOKE_AREA': 2,
-    'INVOKE_SCREEN': 3,
-    'EXEC_DEFAULT': 4,
-    'EXEC_REGION_WIN': 5,
-    'EXEC_AREA': 6,
-    'EXEC_SCREEN': 7,
-}
-
 
 class bpy_ops(object):
     '''
@@ -161,16 +148,10 @@ class bpy_ops_submodule_op(object):
                 else:
                     C_exec = args[0]
 
-            try:
-                context = context_dict[C_exec]
-            except:
-                raise ValueError("Expected a single context argument in: " + \
-                 str(list(context_dict.keys())))
-
             if len(args) == 2:
                 C_dict = args[1]
 
-            ret = op_call(self.idname_py(), C_dict, kw, context)
+            ret = op_call(self.idname_py(), C_dict, kw, C_exec)
 
         else:
             ret = op_call(self.idname_py(), C_dict, kw)

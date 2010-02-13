@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -129,6 +129,7 @@
 #define CHECK_OB_DRAWFACEDOT(sce, vd, dt) \
 (	(sce->toolsettings->selectmode & SCE_SELECT_FACE) && \
 	(vd->drawtype<=OB_SOLID) && \
+	(G.f & G_BACKBUFSEL)==0 && \
 	(((vd->drawtype==OB_SOLID) && (dt>=OB_SOLID) && (vd->flag2 & V3D_SOLID_TEX) && (vd->flag & V3D_ZBUF_SELECT)) == 0) \
 	)
 
@@ -2313,7 +2314,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 			draw_dm_face_normals(scene, cageDM);
 		}
 		if(me->drawflag & ME_DRAW_VNORMALS) {
-			UI_ThemeColor(TH_NORMAL);
+			UI_ThemeColor(TH_VNORMAL);
 			draw_dm_vert_normals(scene, cageDM);
 		}
 

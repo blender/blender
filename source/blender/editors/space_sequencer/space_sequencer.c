@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -320,6 +320,14 @@ static int movie_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	return 0;
 }
 
+static int sound_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	if(drag->type==WM_DRAG_PATH)
+		if(ELEM(drag->icon, ICON_FILE_SOUND, ICON_FILE_BLANK))	/* rule might not work? */
+			return 1;
+	return 0;
+}
+
 static void sequencer_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	/* copy drag path to properties */
@@ -333,6 +341,7 @@ static void sequencer_dropboxes(void)
 	
 	WM_dropbox_add(lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy);
 	WM_dropbox_add(lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy);
+	WM_dropbox_add(lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy);
 }
 
 /* ************* end drop *********** */

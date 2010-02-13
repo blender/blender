@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -152,7 +152,7 @@ void ANIM_OT_keying_set_add (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Empty Keying Set";
 	ot->idname= "ANIM_OT_keying_set_add";
-	ot->description= "Add a new (empty) Keying Set to the active Scene.";
+	ot->description= "Add a new (empty) Keying Set to the active Scene";
 	
 	/* callbacks */
 	ot->exec= add_default_keyingset_exec;
@@ -195,7 +195,7 @@ void ANIM_OT_keying_set_remove (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Removed Active Keying Set";
 	ot->idname= "ANIM_OT_keying_set_remove";
-	ot->description= "Remove the active Keying Set.";
+	ot->description= "Remove the active Keying Set";
 	
 	/* callbacks */
 	ot->exec= remove_active_keyingset_exec;
@@ -286,7 +286,7 @@ void ANIM_OT_keying_set_path_remove (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Active Keying Set Path";
 	ot->idname= "ANIM_OT_keying_set_path_remove";
-	ot->description= "Remove active Path from active Keying Set.";
+	ot->description= "Remove active Path from active Keying Set";
 	
 	/* callbacks */
 	ot->exec= remove_active_ks_path_exec;

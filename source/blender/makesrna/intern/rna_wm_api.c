@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -368,7 +368,7 @@ void RNA_api_keymap(StructRNA *srna)
 	func= RNA_def_function(srna, "item_from_id", "WM_keymap_item_find_id");
 	parm= RNA_def_property(func, "id", PROP_INT, PROP_NONE);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	RNA_def_property_ui_text(parm, "id", "ID of the item.");
+	RNA_def_property_ui_text(parm, "id", "ID of the item");
 	parm= RNA_def_pointer(func, "item", "KeyMapItem", "Item", "");
 	RNA_def_function_return(func, parm);
 

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Campbell Barton
  *
@@ -83,7 +83,7 @@ static void rna_def_group_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "GroupObjects");
 	srna= RNA_def_struct(brna, "GroupObjects", NULL);
 	RNA_def_struct_sdna(srna, "Group");
-	RNA_def_struct_ui_text(srna, "Group Objects", "Collection of group objects.");
+	RNA_def_struct_ui_text(srna, "Group Objects", "Collection of group objects");
 
 	/* add object */
 	func= RNA_def_function(srna, "link", "rna_Group_objects_link");
@@ -109,24 +109,24 @@ void RNA_def_group(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Group", "ID");
-	RNA_def_struct_ui_text(srna, "Group", "Group of Object datablocks.");
+	RNA_def_struct_ui_text(srna, "Group", "Group of Object datablocks");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP);
 
 	prop= RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "dupli_ofs");
-	RNA_def_property_ui_text(prop, "Dupli Offset", "Offset from the origin to use when instancing as DupliGroup.");
+	RNA_def_property_ui_text(prop, "Dupli Offset", "Offset from the origin to use when instancing as DupliGroup");
 	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
 
 	prop= RNA_def_property(srna, "layer", PROP_BOOLEAN, PROP_LAYER);
 	RNA_def_property_boolean_sdna(prop, NULL, "layer", 1);
 	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Dupli Layers", "Layers visible when this groups is instanced as a dupli.");
+	RNA_def_property_ui_text(prop, "Dupli Layers", "Layers visible when this groups is instanced as a dupli");
 
 
 	prop= RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "gobject", NULL);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_ui_text(prop, "Objects", "A collection of this groups objects.");
+	RNA_def_property_ui_text(prop, "Objects", "A collection of this groups objects");
 	RNA_def_property_collection_funcs(prop, 0, 0, 0, "rna_Group_objects_get", 0, 0, 0);
 
 	rna_def_group_objects(brna, prop);

@@ -15,7 +15,7 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program; if not, write to the Free Software  Foundation,
-* Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
 * The Original Code is Copyright (C) 2006 Blender Foundation.
 * All rights reserved.
@@ -1021,7 +1021,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 		char *varray = 0;
 		int numdata = 0, elementsize = 0, offset;
 		int start = 0, numfaces = 0, prevdraw = 0, curface = 0;
-		GPUAttrib datatypes[32];
+		GPUAttrib datatypes[GPU_MAX_ATTRIB]; /* TODO, messing up when switching materials many times - [#21056]*/
 		memset(&attribs, 0, sizeof(attribs));
 
 		GPU_vertex_setup(dm);
@@ -1041,6 +1041,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 							GPU_buffer_free(buffer,0);
 						}
 					}
+					numdata = 0;
 					start = curface;
 					prevdraw = dodraw;
 					dodraw = setMaterial(matnr = new_matnr, &gattribs);
@@ -1086,6 +1087,12 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 								dm->drawObject->legacy = 1;
 								return;
 							}
+						}
+						else {
+							/* if the buffer was set, dont use it again.
+							 * prevdraw was assumed true but didnt run so set to false - [#21036] */
+							prevdraw= 0;
+							buffer= NULL;
 						}
 					}
 				}

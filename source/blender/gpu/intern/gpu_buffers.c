@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -974,8 +974,8 @@ void GPU_buffer_copy_uv( DerivedMesh *dm, float *varray, int *index, int *redir,
 GPUBuffer *GPU_buffer_uv( DerivedMesh *dm )
 {
 	DEBUG_VBO("GPU_buffer_uv\n");
-	if( DM_get_face_data_layer(dm, CD_MTFACE) != 0 )
-		return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*2*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_uv);
+	if( DM_get_face_data_layer(dm, CD_MTFACE) != 0 ) /* was sizeof(float)*2 but caused buffer overrun  */
+		return GPU_buffer_setup( dm, dm->drawObject, sizeof(float)*3*dm->drawObject->nelements, GL_ARRAY_BUFFER_ARB, 0, GPU_buffer_copy_uv);
 	else
 		return 0;
 }

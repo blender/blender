@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -321,6 +321,18 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 	}
 }
 
+static int fcu_test_selected(FCurve *fcu)
+{
+	BezTriple *bezt;
+	int i;
+
+	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
+		if (BEZSELECTED(bezt)) return 1;
+	}
+
+	return 0;
+}
+
 /* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
@@ -407,7 +419,11 @@ void recalcData(TransInfo *t)
 		/* now test if there is a need to re-sort */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			FCurve *fcu= (FCurve *)ale->key_data;
-			
+
+			/* ignore unselected fcurves */
+			if(!fcu_test_selected(fcu))
+				continue;
+
 			// fixme: only do this for selected verts...
 			ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYSEL|ANIM_UNITCONV_SELVERTS|ANIM_UNITCONV_RESTORE);
 			

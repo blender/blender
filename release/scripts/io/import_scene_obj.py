@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -46,7 +46,7 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
@@ -1594,7 +1594,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
     # disabled this option because in old code a handler for it disabled SPLIT* params, it's not passed to load_obj
     # KEEP_VERT_ORDER = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
     ROTATE_X90 = BoolProperty(name="-X90", description="Rotate X 90.", default= True)
-    CLAMP_SIZE = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.01, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
+    CLAMP_SIZE = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
     POLYGROUPS = BoolProperty(name="Poly Groups", description="Import OBJ groups as vertex groups.", default= True)
     IMAGE_SEARCH = BoolProperty(name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default= True)
 

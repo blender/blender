@@ -37,7 +37,7 @@ VarStruct varstr[]= {
 	{ NUMSLI|FLO, "Hi T:",  0.75, 0.0, 1.0,
 	  "Saturation Highlights Thres"}, 
 	{ TOG|INT,	"Debug", 0.0,	0.0,	1.0,   
-	  "Show curves as overlay."}, 
+	  "Show curves as overlay"}, 
 };
 
 typedef struct Cast {

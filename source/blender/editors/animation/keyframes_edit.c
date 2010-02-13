@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation
  *
@@ -97,7 +97,7 @@ short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc 
 		return 0;
 	
 	/* set the F-Curve into the editdata so that it can be accessed */
- 	if(bed) {
+ 	if (bed) {
  		bed->fcu= fcu;
  		bed->curIndex= 0;
  	}
@@ -109,8 +109,9 @@ short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc 
 		 */
 		if (bezt_ok) {
 			for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
+				if (bed) bed->curIndex= i;
+				
 				/* Only operate on this BezTriple if it fullfills the criteria of the validation func */
-				if(bed) bed->curIndex= i;
 				if (bezt_ok(bed, bezt)) {
 					/* Exit with return-code '1' if function returns positive
 					 * This is useful if finding if some BezTriple satisfies a condition.
@@ -121,17 +122,18 @@ short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc 
 		}
 		else {
 			for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
+				if (bed) bed->curIndex= i;
+				
 				/* Exit with return-code '1' if function returns positive
 				 * This is useful if finding if some BezTriple satisfies a condition.
 				 */
-				if(bed) bed->curIndex= i;
 				if (bezt_cb(bed, bezt)) return 1;
 			}
 		}
 	 }
 	
 	/* unset the F-Curve from the editdata now that it's done */
- 	if(bed) {
+ 	if (bed) {
  		bed->fcu= NULL;
  		bed->curIndex= 0;
  	}

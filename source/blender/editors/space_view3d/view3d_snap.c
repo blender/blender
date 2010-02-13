@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -555,7 +555,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Selection to Grid";
-	ot->description= "Snap selected item(s) to nearest grid node.";
+	ot->description= "Snap selected item(s) to nearest grid node";
 	ot->idname= "VIEW3D_OT_snap_selected_to_grid";
 	
 	/* api callbacks */
@@ -680,7 +680,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Selection to Cursor";
-	ot->description= "Snap selected item(s) to cursor.";
+	ot->description= "Snap selected item(s) to cursor";
 	ot->idname= "VIEW3D_OT_snap_selected_to_cursor";
 	
 	/* api callbacks */
@@ -717,7 +717,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Cursor to Grid";
-	ot->description= "Snap cursor to nearest grid node.";
+	ot->description= "Snap cursor to nearest grid node";
 	ot->idname= "VIEW3D_OT_snap_cursor_to_grid";
 	
 	/* api callbacks */
@@ -824,7 +824,7 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Cursor to Selected";
-	ot->description= "Snap cursor to center of selected item(s)."; 
+	ot->description= "Snap cursor to center of selected item(s)"; 
 	ot->idname= "VIEW3D_OT_snap_cursor_to_selected";
 	
 	/* api callbacks */
@@ -875,7 +875,7 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Cursor to Active";
-	ot->description= "Snap cursor to active item.";
+	ot->description= "Snap cursor to active item";
 	ot->idname= "VIEW3D_OT_snap_cursor_to_active";
 	
 	/* api callbacks */
@@ -1072,7 +1072,7 @@ void VIEW3D_OT_snap_selected_to_center(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Snap Selection to Center";
-	ot->description= "Snap selected items to selections geometric center.";
+	ot->description= "Snap selected items to selections geometric center";
 	ot->idname= "VIEW3D_OT_snap_selected_to_center";
 	
 	/* api callbacks */

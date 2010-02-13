@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -196,15 +196,16 @@ typedef struct ThemeSpace {
 	char face[4], face_select[4];	// solid faces
 	char face_dot[4];				// selected color
 	char normal[4];
+	char vertex_normal[4];
 	char bone_solid[4], bone_pose[4];
 	char strip[4], strip_select[4];
 	char cframe[4];
 	char ds_channel[4], ds_subchannel[4]; // dopesheet
 	
-	char console_output[4], console_input[4], console_info[4], console_error[4]; // Console 
+	char console_output[4], console_input[4], console_info[4], console_error[4];
 	
 	char vertex_size, facedot_size;
-	char bpad[2]; 
+	char bpad[6];
 
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
 	char syntaxv[4], syntaxc[4];

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -471,6 +471,7 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 		ale->data= data;
 		ale->type= datatype;
 			// XXX what is the point of the owner data?
+			// xxx try and use this to simplify the problem of finding whether parent channels are working...
 		ale->owner= owner;
 		ale->ownertype= ownertype;
 		
@@ -875,7 +876,6 @@ static FCurve *animdata_filter_fcurve_next (bDopeSheet *ads, FCurve *first, bAct
 			/* only work with this channel and its subchannels if it is editable */
 			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_FCU(fcu)) {
 				/* only include this curve if selected in a way consistent with the filtering requirements */
-				// FIXME: the first selection test is buggered, and works wrong for sel+curvesonly filtering
 				if ( ANIMCHANNEL_SELOK(SEL_FCU(fcu)) && ANIMCHANNEL_SELEDITOK(SEL_FCU(fcu)) ) {
 					/* only include if this curve is active */
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
@@ -930,27 +930,59 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 	// TODO: in future, should we expect to need nested groups?
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		FCurve *first_fcu;
+		int filter_gmode;
 		
 		/* store reference to last channel of group */
 		if (agrp->channels.last) 
 			lastchan= agrp->channels.last;
 		
-		/* get the first F-Curve in this group we can start to use, 
-		 * and if there isn't any F-Curve to start from, then don't 
-		 * this group at all...
-		 *
-		 * exceptions for when we might not care whether there's anything inside this group or not
-		 *	- if we're interested in channels and their selections, in which case group channel should get considered too
-		 *	  even if all its sub channels are hidden...
-		 */
-		first_fcu = animdata_filter_fcurve_next(ads, agrp->channels.first, agrp, filter_mode, owner_id);
 		
-		if ( (filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) ||
-			 (first_fcu) ) 
+		/* make a copy of filtering flags for use by the sub-channels of this group */
+		filter_gmode= filter_mode;
+		
+		/* if we care about the selection status of the channels, 
+		 * but the group isn't expanded...
+		 */
+		if ( (filter_mode & (ANIMFILTER_SEL|ANIMFILTER_UNSEL)) &&	/* care about selection status */
+			 (EXPANDED_AGRP(agrp)==0) )								/* group isn't expanded */
 		{
+			/* if the group itself isn't selected appropriately, we shouldn't consider it's children either */
+			if (ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) == 0)
+				continue;
+			
+			/* if we're still here, then the selection status of the curves within this group should not matter,
+			 * since this creates too much overhead for animators (i.e. making a slow workflow)
+			 *
+			 * Tools affected by this at time of coding (2010 Feb 09):
+			 *	- inserting keyframes on selected channels only
+			 *	- pasting keyframes
+			 *	- creating ghost curves in Graph Editor
+			 */
+			filter_gmode &= ~(ANIMFILTER_SEL|ANIMFILTER_UNSEL);
+		}
+		
+		
+		/* get the first F-Curve in this group we can start to use, and if there isn't any F-Curve to start from,  
+		 * then don't use this group at all...
+		 *
+		 * NOTE: use filter_gmode here not filter_mode, since there may be some flags we shouldn't consider under certain circumstances
+		 */
+		first_fcu = animdata_filter_fcurve_next(ads, agrp->channels.first, agrp, filter_gmode, owner_id);
+		
+		/* Bug note: 
+		 * 	Selecting open group to toggle visbility of the group, where the F-Curves of the group are not suitable 
+		 *	for inclusion due to their selection status (vs visibility status of bones/etc., as is usually the case),
+		 *	will not work, since the group gets skipped. However, fixing this can easily reintroduce the bugs whereby
+		 * 	hidden groups (due to visibility status of bones/etc.) that were selected before becoming invisible, can
+		 *	easily get deleted accidentally as they'd be included in the list filtered for that purpose.
+		 *
+		 * 	So, for now, best solution is to just leave this note here, and hope to find a solution at a later date.
+		 *	-- Joshua Leung, 2010 Feb 10
+		 */
+		if (first_fcu) {
 			/* add this group as a channel first */
 			if ((filter_mode & ANIMFILTER_CHANNELS) || !(filter_mode & ANIMFILTER_CURVESONLY)) {
-				/* check if filtering by selection */
+				/* filter selection of channel specially here again, since may be open and not subject to previous test */
 				if ( ANIMCHANNEL_SELOK(SEL_AGRP(agrp)) ) {
 					ale= make_new_animlistelem(agrp, ANIMTYPE_GROUP, NULL, ANIMTYPE_NONE, owner_id);
 					if (ale) {
@@ -971,7 +1003,6 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 				 *	- group is expanded
 				 *	- we just need the F-Curves present
 				 */
-				// FIXME: checking if groups are expanded is only valid if in one or other modes
 				if ( (!(filter_mode & ANIMFILTER_VISIBLE) || EXPANDED_AGRP(agrp)) || (filter_mode & ANIMFILTER_CURVESONLY) ) 
 				{
 					/* for the Graph Editor, curves may be set to not be visible in the view to lessen clutter,
@@ -981,7 +1012,8 @@ static int animdata_filter_action (bAnimContext *ac, ListBase *anim_data, bDopeS
 					if ( !(filter_mode & ANIMFILTER_CURVEVISIBLE) || !(agrp->flag & AGRP_NOTVISIBLE) )
 					{
 						if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
-							items += animdata_filter_fcurves(anim_data, ads, first_fcu, agrp, owner, ownertype, filter_mode, owner_id);
+							/* NOTE: filter_gmode is used here, not standard filter_mode, since there may be some flags that shouldn't apply */
+							items += animdata_filter_fcurves(anim_data, ads, first_fcu, agrp, owner, ownertype, filter_gmode, owner_id);
 						}
 					}
 				}

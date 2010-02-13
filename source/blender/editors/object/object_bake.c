@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2004 by Blender Foundation
  * All rights reserved.
@@ -141,7 +141,7 @@ static void init_bake_internal(BakeRender *bkr, bContext *C)
 	bkr->sa= biggest_image_area(CTX_wm_screen(C)); /* can be NULL */
 	bkr->scene= scene;
 	bkr->actob= (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT : NULL;
-	bkr->re= RE_NewRender("_Bake View_");
+	bkr->re= RE_NewRender("_Bake View_", RE_SLOT_DEFAULT);
 
 	if(scene->r.bake_mode==RE_BAKE_AO) {
 		/* If raytracing or AO is disabled, switch it on temporarily for baking. */
@@ -332,7 +332,7 @@ void OBJECT_OT_bake_image(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Bake";
-	ot->description= "Bake image textures of selected objects.";
+	ot->description= "Bake image textures of selected objects";
 	ot->idname= "OBJECT_OT_bake_image";
 
 	/* api callbacks */

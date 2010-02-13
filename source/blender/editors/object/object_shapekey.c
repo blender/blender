@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -310,7 +310,7 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Shape Keys";
-	ot->description= "Clear weights for all shape keys.";
+	ot->description= "Clear weights for all shape keys";
 	ot->idname= "OBJECT_OT_shape_key_clear";
 	
 	/* api callbacks */

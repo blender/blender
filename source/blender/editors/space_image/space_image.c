@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -472,6 +472,8 @@ void image_operatortypes(void)
 	WM_operatortype_append(IMAGE_OT_pack);
 	WM_operatortype_append(IMAGE_OT_unpack);
 
+	WM_operatortype_append(IMAGE_OT_cycle_render_slot);
+
 	WM_operatortype_append(IMAGE_OT_sample);
 	WM_operatortype_append(IMAGE_OT_curves_point_set);
 
@@ -493,6 +495,8 @@ void image_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "IMAGE_OT_save_as", F3KEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_properties", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "IMAGE_OT_scopes", PKEY, KM_PRESS, 0, 0);
+
+	WM_keymap_add_item(keymap, "IMAGE_OT_cycle_render_slot", JKEY, KM_PRESS, 0, 0);
 	
 	keymap= WM_keymap_find(keyconf, "Image", SPACE_IMAGE, 0);
 	

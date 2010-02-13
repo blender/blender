@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -2049,7 +2049,6 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		Scene *sce= seq->scene;// *oldsce= scene;
 		Render *re;
 		RenderResult rres;
-		char scenename[64];
 		int have_seq= FALSE;
 		int sce_valid= FALSE;
 
@@ -2093,11 +2092,10 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 
 			oldcfra = seq->scene->r.cfra;
 
-			if(rendering) {
-				BLI_strncpy(scenename, sce->id.name+2, 64);
-				strcpy(sce->id.name+2, " do_build_seq_ibuf");
-			}
-			re= RE_NewRender(sce->id.name);
+			if(rendering)
+				re= RE_NewRender(" do_build_seq_ibuf", RE_SLOT_DEFAULT);
+			else
+				re= RE_NewRender(sce->id.name, RE_SLOT_VIEW);
 			
 			/* prevent eternal loop */
 			doseq= scene->r.scemode & R_DOSEQ;
@@ -2105,9 +2103,6 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			
 			RE_BlenderFrame(re, sce, NULL,
 					seq->sfra+se->nr+seq->anim_startofs);
-			
-			if(rendering)
-				BLI_strncpy(sce->id.name+2, scenename, 64);
 			
 			RE_AcquireResultImage(re, &rres);
 			
@@ -2503,13 +2498,17 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 		TStripElem* se2 = give_tstripelem(seq_arr[i], cfra);
 
 		float facf = seq->blend_opacity / 100.0;
-	
+
 		int early_out = sh.early_out(seq, facf, facf);
+
 		switch (early_out) {
 		case 0: {
 			int x= se2->ibuf->x;
 			int y= se2->ibuf->y;
 			int swap_input = FALSE;
+
+			if(se1->ibuf_comp == NULL)
+				continue;
 
 			if (se1->ibuf_comp->rect_float ||
 			    se2->ibuf->rect_float) {
@@ -2573,7 +2572,8 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 		}
 		case 1: {
 			se2->ibuf_comp = se1->ibuf;
-			IMB_refImBuf(se2->ibuf_comp);
+			if(se2->ibuf_comp)
+				IMB_refImBuf(se2->ibuf_comp);
 
 			break;
 		}

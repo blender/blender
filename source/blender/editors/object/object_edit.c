@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -209,7 +209,7 @@ void OBJECT_OT_restrictview_clear(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Clear Restrict View";
-	ot->description = "Reveal the object by setting the restrictview flag.";
+	ot->description = "Reveal the object by setting the restrictview flag";
 	ot->idname= "OBJECT_OT_restrictview_clear";
 	
 	/* api callbacks */
@@ -261,7 +261,7 @@ void OBJECT_OT_restrictview_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Restrict View";
-	ot->description = "Hide the object by setting the restrictview flag.";
+	ot->description = "Hide the object by setting the restrictview flag";
 	ot->idname= "OBJECT_OT_restrictview_set";
 	
 	/* api callbacks */
@@ -514,7 +514,7 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Toggle Editmode";
-	ot->description = "Toggle object's editmode.";
+	ot->description = "Toggle object's editmode";
 	ot->idname= "OBJECT_OT_editmode_toggle";
 	
 	/* api callbacks */
@@ -1666,7 +1666,7 @@ void OBJECT_OT_paths_calculate (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Calculate Object Paths";
 	ot->idname= "OBJECT_OT_paths_calculate";
-	ot->description= "Calculate paths for the selected bones.";
+	ot->description= "Calculate paths for the selected bones";
 	
 	/* api callbacks */
 	ot->exec= object_calculate_paths_exec;
@@ -1711,7 +1711,7 @@ void OBJECT_OT_paths_clear (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clear Object Paths";
 	ot->idname= "OBJECT_OT_paths_clear";
-	ot->description= "Clear path caches for selected bones.";
+	ot->description= "Clear path caches for selected bones";
 	
 	/* api callbacks */
 	ot->exec= object_clear_paths_exec;
@@ -2068,7 +2068,7 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set Object Mode";
-	ot->description = "Sets the object interaction mode.";
+	ot->description = "Sets the object interaction mode";
 	ot->idname= "OBJECT_OT_mode_set";
 	
 	/* api callbacks */

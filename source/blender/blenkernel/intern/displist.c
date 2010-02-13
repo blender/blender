@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -321,9 +321,9 @@ static Render *fastshade_get_render(Scene *scene)
 	/* XXX ugly global still, but we can't do preview while rendering */
 	if(G.rendering==0) {
 		
-		Render *re= RE_GetRender("_Shade View_");
+		Render *re= RE_GetRender("_Shade View_", RE_SLOT_DEFAULT);
 		if(re==NULL) {
-			re= RE_NewRender("_Shade View_");
+			re= RE_NewRender("_Shade View_", RE_SLOT_DEFAULT);
 		
 			RE_Database_Baking(re, scene, 0, 0);	/* 0= no faces */
 		}
@@ -337,7 +337,7 @@ static Render *fastshade_get_render(Scene *scene)
 /* called on file reading */
 void fastshade_free_render(void)
 {
-	Render *re= RE_GetRender("_Shade View_");
+	Render *re= RE_GetRender("_Shade View_", RE_SLOT_DEFAULT);
 	
 	if(re) {
 		RE_Database_Free(re);

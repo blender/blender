@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -160,6 +160,7 @@ enum {
 	TH_FACE,
 	TH_FACE_SELECT,
 	TH_NORMAL,
+	TH_VNORMAL,
 	TH_FACE_DOT,
 	TH_FACEDOT_SIZE,
 	TH_CFRAME,

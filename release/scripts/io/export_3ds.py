@@ -13,7 +13,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -48,7 +48,7 @@ from the lib3ds project (http://lib3ds.sourceforge.net/) sourcecode.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
@@ -1060,8 +1060,8 @@ def save_3ds(filename, context):
         # make a kf object node for the object:
         kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
         '''
-# 		if not blender_mesh.users:
-        bpy.data.meshes.remove(blender_mesh)
+        if not blender_mesh.users:
+            bpy.data.meshes.remove(blender_mesh)
 # 		blender_mesh.verts = None
 
         i+=i

@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -2370,7 +2370,11 @@ static char tab_to_spaces[] = "    ";
 
 static void txt_convert_tab_to_spaces (Text *text)
 {
-	char *sb = &tab_to_spaces[text->curl->len % TXT_TABSIZE];
+	/* sb aims to pad adjust the tab-width needed so that the right number of spaces
+	 * is added so that the indention of the line is the right width (i.e. aligned
+	 * to multiples of TXT_TABSIZE)
+	 */
+	char *sb = &tab_to_spaces[text->curc % TXT_TABSIZE];
 	txt_insert_buf(text, sb);
 }
 

@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -928,7 +928,11 @@ class ExportOBJ(bpy.types.Operator):
 
     def execute(self, context):
 
-        do_export(self.properties.path, context,
+        path = self.properties.path
+        if not path.lower().endswith(".obj"):
+            path += ".obj"
+
+        do_export(path, context,
                   EXPORT_TRI=self.properties.use_triangles,
                   EXPORT_EDGES=self.properties.use_edges,
                   EXPORT_NORMALS=self.properties.use_normals,

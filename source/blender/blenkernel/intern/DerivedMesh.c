@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -1771,6 +1771,22 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 					add_weight_mcol_dm(ob, dm);
+
+				/* constructive modifiers need to have an origindex
+				 * otherwise they wont have anywhere to copy the data from */
+				if(needMapping) {
+					int *index, i;
+					DM_add_vert_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
+					DM_add_edge_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
+					DM_add_face_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
+
+					index = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
+					for(i=0; i<dm->numVertData; i++) *index++= i;
+					index = DM_get_edge_data_layer(dm, CD_ORIGINDEX);
+					for(i=0; i<dm->numEdgeData; i++) *index++= i;
+					index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
+					for(i=0; i<dm->numFaceData; i++) *index++= i;
+				}
 			}
 
 			/* create an orco derivedmesh in parallel */
@@ -2109,9 +2125,9 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 	Object *obact = scene->basact?scene->basact->object:NULL;
 	int editing = paint_facesel_test(ob);
 	/* weight paint and face select need original indicies because of selection buffer drawing */
-	int needMapping = (ob==obact) && (editing || (ob->mode & OB_MODE_WEIGHT_PAINT) || paint_facesel_test(ob));
+	int needMapping = (ob==obact) && (editing || (ob->mode & OB_MODE_WEIGHT_PAINT) || editing);
 	float min[3], max[3];
-	
+
 	clear_mesh_caches(ob);
 
 	mesh_calc_modifiers(scene, ob, NULL, &ob->derivedDeform,

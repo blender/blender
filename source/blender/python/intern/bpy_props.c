@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Campbell Barton
  *
@@ -81,7 +81,7 @@ EnumPropertyItem property_subtype_array_items[] = {
 static PyObject *bpy_prop_deferred_return(void *func, PyObject *kw)
 {
 	PyObject *ret = PyTuple_New(2);
-	PyTuple_SET_ITEM(ret, 0, PyCObject_FromVoidPtr(func, NULL));
+	PyTuple_SET_ITEM(ret, 0, PyCapsule_New(func, NULL, NULL));
 	PyTuple_SET_ITEM(ret, 1, kw);
 	Py_INCREF(kw);
 	return ret;

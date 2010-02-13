@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -4217,6 +4217,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->dagisvalid = 0;
 	sce->obedit= NULL;
 	sce->stats= 0;
+	sce->fps_info= NULL;
 
 	sound_create_scene(sce);
 
@@ -10568,10 +10569,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
-	/* put 2.50 compatibility code here until next subversion bump */
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 17)) {
 		Scene *sce;
 		Sequence *seq;
+		Material *ma;
 
 		/* initialize to sane default so toggling on border shows something */
 		for(sce = main->scene.first; sce; sce = sce->id.next) {
@@ -10591,6 +10592,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 			SEQ_END
 		}
+
+		for(ma = main->mat.first; ma; ma=ma->id.next)
+			if(ma->mode & MA_TRACEBLE)
+				ma->shade_flag |= MA_APPROX_OCCLUSION;
 
 		/* sequencer changes */
 		{
@@ -10624,6 +10629,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		} /* sequencer changes */
+	}
+
+	/* put 2.50 compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

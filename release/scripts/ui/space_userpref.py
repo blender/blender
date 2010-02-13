@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -660,6 +660,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "vertex")
             col.prop(v3d, "face", slider=True)
             col.prop(v3d, "normal")
+            col.prop(v3d, "vertex_normal")
             col.prop(v3d, "bone_solid")
             col.prop(v3d, "bone_pose")
             #col.prop(v3d, "edge") Doesn't seem to work
@@ -956,6 +957,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             prefs = theme.console
 
             col = split.column()
+            col.prop(prefs, "back")
             col.prop(prefs, "header")
 
             col = split.column()
@@ -1366,7 +1368,7 @@ from bpy.props import *
 
 
 class WM_OT_keyconfig_test(bpy.types.Operator):
-    "Test keyconfig for conflicts."
+    "Test keyconfig for conflicts"
     bl_idname = "wm.keyconfig_test"
     bl_label = "Test Key Configuration for Conflicts"
 
@@ -1502,13 +1504,13 @@ def _string_value(value):
 
 
 class WM_OT_keyconfig_import(bpy.types.Operator):
-    "Import key configuration from a python script."
+    "Import key configuration from a python script"
     bl_idname = "wm.keyconfig_import"
     bl_label = "Import Key Configuration..."
 
-    path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
-    filename = bpy.props.StringProperty(name="File Name", description="Name of the file.")
-    directory = bpy.props.StringProperty(name="Directory", description="Directory of the file.")
+    path = bpy.props.StringProperty(name="File Path", description="File path to write file to")
+    filename = bpy.props.StringProperty(name="File Name", description="Name of the file")
+    directory = bpy.props.StringProperty(name="Directory", description="Directory of the file")
     filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
@@ -1517,11 +1519,11 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
 
     def execute(self, context):
         if not self.properties.path:
-            raise Exception("File path not set.")
+            raise Exception("File path not set")
 
         f = open(self.properties.path, "r")
         if not f:
-            raise Exception("Could not open file.")
+            raise Exception("Could not open file")
 
         name_pattern = re.compile("^kc = wm.add_keyconfig\('(.*)'\)$")
 
@@ -1561,24 +1563,24 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
 
 
 class WM_OT_keyconfig_export(bpy.types.Operator):
-    "Export key configuration to a python script."
+    "Export key configuration to a python script"
     bl_idname = "wm.keyconfig_export"
     bl_label = "Export Key Configuration..."
 
-    path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
-    filename = bpy.props.StringProperty(name="File Name", description="Name of the file.")
-    directory = bpy.props.StringProperty(name="Directory", description="Directory of the file.")
+    path = bpy.props.StringProperty(name="File Path", description="File path to write file to")
+    filename = bpy.props.StringProperty(name="File Name", description="Name of the file")
+    directory = bpy.props.StringProperty(name="Directory", description="Directory of the file")
     filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
     filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
     filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
         if not self.properties.path:
-            raise Exception("File path not set.")
+            raise Exception("File path not set")
 
         f = open(self.properties.path, "w")
         if not f:
-            raise Exception("Could not open file.")
+            raise Exception("Could not open file")
 
         wm = context.manager
         kc = wm.active_keyconfig
@@ -1647,7 +1649,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 
 
 class WM_OT_keymap_edit(bpy.types.Operator):
-    "Edit key map."
+    "Edit key map"
     bl_idname = "wm.keymap_edit"
     bl_label = "Edit Key Map"
 
@@ -1659,11 +1661,11 @@ class WM_OT_keymap_edit(bpy.types.Operator):
 
 
 class WM_OT_keymap_restore(bpy.types.Operator):
-    "Restore key map(s)."
+    "Restore key map(s)"
     bl_idname = "wm.keymap_restore"
     bl_label = "Restore Key Map(s)"
 
-    all = BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default.")
+    all = BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default")
 
     def execute(self, context):
         wm = context.manager
@@ -1679,7 +1681,7 @@ class WM_OT_keymap_restore(bpy.types.Operator):
 
 
 class WM_OT_keyitem_restore(bpy.types.Operator):
-    "Restore key map item."
+    "Restore key map item"
     bl_idname = "wm.keyitem_restore"
     bl_label = "Restore Key Map Item"
 
@@ -1696,7 +1698,7 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
 
 
 class WM_OT_keyitem_add(bpy.types.Operator):
-    "Add key map item."
+    "Add key map item"
     bl_idname = "wm.keyitem_add"
     bl_label = "Add Key Map Item"
 
@@ -1720,7 +1722,7 @@ class WM_OT_keyitem_add(bpy.types.Operator):
 
 
 class WM_OT_keyitem_remove(bpy.types.Operator):
-    "Remove key map item."
+    "Remove key map item"
     bl_idname = "wm.keyitem_remove"
     bl_label = "Remove Key Map Item"
 
@@ -1735,7 +1737,7 @@ class WM_OT_keyitem_remove(bpy.types.Operator):
 
 
 class WM_OT_keyconfig_remove(bpy.types.Operator):
-    "Remove key config."
+    "Remove key config"
     bl_idname = "wm.keyconfig_remove"
     bl_label = "Remove Key Config"
 

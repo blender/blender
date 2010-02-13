@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -665,7 +665,7 @@ static int render_frame(int argc, char **argv, void *data)
 
 		if (argc > 1) {
 			int frame = atoi(argv[1]);
-			Render *re = RE_NewRender(scene->id.name);
+			Render *re = RE_NewRender(scene->id.name, RE_SLOT_DEFAULT);
 			ReportList reports;
 
 			BKE_reports_init(&reports, RPT_PRINT);
@@ -689,7 +689,7 @@ static int render_animation(int argc, char **argv, void *data)
 	bContext *C = data;
 	if (CTX_data_scene(C)) {
 		Scene *scene= CTX_data_scene(C);
-		Render *re= RE_NewRender(scene->id.name);
+		Render *re= RE_NewRender(scene->id.name, RE_SLOT_DEFAULT);
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
 		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);

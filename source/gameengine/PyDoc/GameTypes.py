@@ -3878,6 +3878,24 @@ class KX_Scene(PyObjectPlus):
 		
 		@rtype: L{KX_GameObject}
 		"""
+		
+	def end():
+		"""
+		Removes the scene from the game.
+		"""
+		
+	def restart():
+		"""
+		Restarts the scene.
+		"""
+		
+	def replace(scene):
+		"""
+		Replaces this scene with another one.
+		
+		@param scene: The name of the scene to replace this scene with.
+		@type scene: string
+		"""
 	
 	def get(key, default=None):
 		"""

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -611,6 +611,8 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			break;
 		case NC_SCREEN:
 			if(wmn->data == ND_GPENCIL)	
+				ED_region_tag_redraw(ar);
+			else if(wmn->data==ND_ANIMPLAY)
 				ED_region_tag_redraw(ar);
 			break;
 	}

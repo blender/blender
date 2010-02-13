@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2004 by Blender Foundation.
  * All rights reserved.
@@ -228,7 +228,7 @@ void MESH_OT_dupli_extrude_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate or Extrude at 3D Cursor";
-	ot->description= "Duplicate and extrude selected vertices, edges or faces towards 3D Cursor.";
+	ot->description= "Duplicate and extrude selected vertices, edges or faces towards 3D Cursor";
 	ot->idname= "MESH_OT_dupli_extrude_cursor";
 	
 	/* api callbacks */
@@ -359,7 +359,7 @@ void MESH_OT_fgon_make(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make F-gon";
-	ot->description= "Make fgon from selected faces.";
+	ot->description= "Make fgon from selected faces";
 	ot->idname= "MESH_OT_fgon_make";
 	
 	/* api callbacks */
@@ -391,7 +391,7 @@ void MESH_OT_fgon_clear(struct wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear F-gon";
-	ot->description= "Clear fgon from selected face.";
+	ot->description= "Clear fgon from selected face";
 	ot->idname= "MESH_OT_fgon_clear";
 	
 	/* api callbacks */
@@ -803,7 +803,7 @@ void MESH_OT_edge_face_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Edge/Face";
-	ot->description= "Add an edge or face to selected.";
+	ot->description= "Add an edge or face to selected";
 	ot->idname= "MESH_OT_edge_face_add";
 	
 	/* api callbacks */
@@ -1323,7 +1323,7 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Plane";
-	ot->description= "Construct a filled planar mesh with 4 vertices.";
+	ot->description= "Construct a filled planar mesh with 4 vertices";
 	ot->idname= "MESH_OT_primitive_plane_add";
 	
 	/* api callbacks */
@@ -1355,7 +1355,7 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Cube";
-	ot->description= "Construct a cube mesh.";
+	ot->description= "Construct a cube mesh";
 	ot->idname= "MESH_OT_primitive_cube_add";
 	
 	/* api callbacks */
@@ -1389,7 +1389,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Circle";
-	ot->description= "Construct a circle mesh.";
+	ot->description= "Construct a circle mesh";
 	ot->idname= "MESH_OT_primitive_circle_add";
 	
 	/* api callbacks */
@@ -1429,7 +1429,7 @@ void MESH_OT_primitive_tube_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Tube";
-	ot->description= "Construct a tube mesh.";
+	ot->description= "Construct a tube mesh";
 	ot->idname= "MESH_OT_primitive_tube_add";
 	
 	/* api callbacks */
@@ -1469,7 +1469,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Cone";
-	ot->description= "Construct a conic mesh (ends filled).";
+	ot->description= "Construct a conic mesh (ends filled)";
 	ot->idname= "MESH_OT_primitive_cone_add";
 	
 	/* api callbacks */
@@ -1509,7 +1509,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Grid";
-	ot->description= "Construct a grid mesh.";
+	ot->description= "Construct a grid mesh";
 	ot->idname= "MESH_OT_primitive_grid_add";
 	
 	/* api callbacks */
@@ -1546,7 +1546,7 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Monkey";
-	ot->description= "Construct a Suzanne mesh.";
+	ot->description= "Construct a Suzanne mesh";
 	ot->idname= "MESH_OT_primitive_monkey_add";
 	
 	/* api callbacks */
@@ -1580,7 +1580,7 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add UV Sphere";
-	ot->description= "Construct a UV sphere mesh.";
+	ot->description= "Construct a UV sphere mesh";
 	ot->idname= "MESH_OT_primitive_uv_sphere_add";
 	
 	/* api callbacks */
@@ -1593,7 +1593,7 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 	
 	/* props */
 	RNA_def_int(ot->srna, "segments", 32, INT_MIN, INT_MAX, "Segments", "", 3, 500);
-	RNA_def_int(ot->srna, "rings", 24, INT_MIN, INT_MAX, "Rings", "", 3, 500);
+	RNA_def_int(ot->srna, "rings", 16, INT_MIN, INT_MAX, "Rings", "", 3, 500);
 	RNA_def_float(ot->srna, "size", 1.0f, 0.0, FLT_MAX, "Size", "", 0.001, 100.00);
 
 	ED_object_add_generic_props(ot, TRUE);
@@ -1618,7 +1618,7 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Ico Sphere";
-	ot->description= "Construct an Icosphere mesh.";
+	ot->description= "Construct an Icosphere mesh";
 	ot->idname= "MESH_OT_primitive_ico_sphere_add";
 	
 	/* api callbacks */
@@ -1666,7 +1666,7 @@ void MESH_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate";
-	ot->description= "Duplicate selected vertices, edges or faces.";
+	ot->description= "Duplicate selected vertices, edges or faces";
 	ot->idname= "MESH_OT_duplicate";
 	
 	/* api callbacks */

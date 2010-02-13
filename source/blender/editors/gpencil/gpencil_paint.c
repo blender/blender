@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008, Blender Foundation, Joshua Leung
  * This is a new part of Blender
@@ -1510,7 +1510,7 @@ void GPENCIL_OT_draw (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Grease Pencil Draw";
 	ot->idname= "GPENCIL_OT_draw";
-	ot->description= "Make annotations on the active data.";
+	ot->description= "Make annotations on the active data";
 	
 	/* api callbacks */
 	ot->exec= gpencil_draw_exec;

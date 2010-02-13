@@ -336,6 +336,10 @@
 				Name="internal"
 				>
 				<File
+					RelativePath="..\..\..\source\blender\python\intern\bpy.c"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_app.c"
 					>
 				</File>

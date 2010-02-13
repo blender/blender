@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -1173,8 +1173,8 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 	but= uiDefIconTextButC(block, ICONTEXTROW, 0, ICON_VIEW3D, 
 						   editortype_pup(), xco, yco, XIC+10, YIC, 
 						   &(sa->butspacetype), 1.0, SPACEICONMAX, 0, 0, 
-						   "Displays Current Editor Type. "
-						   "Click for menu of available types.");
+						   "Displays current editor type. "
+						   "Click for menu of available types");
 	uiButSetFunc(but, spacefunc, NULL, NULL);
 	
 	return xco + XIC + 14;

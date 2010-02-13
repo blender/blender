@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -144,7 +144,7 @@ void OBJECT_OT_select_by_type(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select By Type";
-	ot->description = "Select all visible objects that are of a type.";
+	ot->description = "Select all visible objects that are of a type";
 	ot->idname= "OBJECT_OT_select_by_type";
 	
 	/* api callbacks */
@@ -305,7 +305,7 @@ void OBJECT_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Linked";
-	ot->description = "Select all visible objects that are linked.";
+	ot->description = "Select all visible objects that are linked";
 	ot->idname= "OBJECT_OT_select_linked";
 	
 	/* api callbacks */
@@ -606,7 +606,7 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Grouped";
-	ot->description = "Select all visible objects grouped by various properties.";
+	ot->description = "Select all visible objects grouped by various properties";
 	ot->idname= "OBJECT_OT_select_grouped";
 	
 	/* api callbacks */
@@ -655,7 +655,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "select by layer";
-	ot->description = "Select all visible objects on a layer.";
+	ot->description = "Select all visible objects on a layer";
 	ot->idname= "OBJECT_OT_select_by_layer";
 	
 	/* api callbacks */
@@ -694,7 +694,7 @@ void OBJECT_OT_select_inverse(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Select Inverse";
-	ot->description = "Invert selection of all visible objects.";
+	ot->description = "Invert selection of all visible objects";
 	ot->idname= "OBJECT_OT_select_inverse";
 	
 	/* api callbacks */
@@ -755,7 +755,7 @@ void OBJECT_OT_select_all(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "deselect all";
-	ot->description = "Change selection of all visible objects in scene.";
+	ot->description = "Change selection of all visible objects in scene";
 	ot->idname= "OBJECT_OT_select_all";
 	
 	/* api callbacks */
@@ -1015,7 +1015,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select Random";
-	ot->description = "Set select on random visible objects.";
+	ot->description = "Set select on random visible objects";
 	ot->idname= "OBJECT_OT_select_random";
 	
 	/* api callbacks */

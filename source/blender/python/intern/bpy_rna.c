@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Campbell Barton
  *
@@ -389,7 +389,7 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	
 	RNA_property_enum_items(BPy_GetContext(), ptr, prop, &item, NULL, &free);
 	if(item) {
-		result= (char*)BPy_enum_as_string(item);
+		result= BPy_enum_as_string(item);
 	}
 	else {
 		result= "";
@@ -400,6 +400,7 @@ static char *pyrna_enum_as_string(PointerRNA *ptr, PropertyRNA *prop)
 	
 	return result;
 }
+
 
 static int pyrna_string_to_enum(PyObject *item, PointerRNA *ptr, PropertyRNA *prop, int *val, const char *error_prefix)
 {
@@ -698,7 +699,7 @@ static PyObject *pyrna_func_to_py(BPy_DummyPointerRNA *pyrna, FunctionRNA *func)
 	PyTuple_SET_ITEM(self, 0, (PyObject *)pyrna);
 	Py_INCREF(pyrna);
 
-	PyTuple_SET_ITEM(self, 1, PyCObject_FromVoidPtr((void *)func, NULL));
+	PyTuple_SET_ITEM(self, 1, PyCapsule_New((void *)func, NULL, NULL));
 	
 	ret= PyCFunction_New(&func_meth, self);
 	Py_DECREF(self);
@@ -2599,7 +2600,7 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 {
 	/* Try get values from a collection */
 	PyObject *ret;
-	PyObject *iter;
+	PyObject *iter= NULL;
 	
 	if(RNA_property_array_check(&self->ptr, self->prop)) {
 		int len= pyrna_prop_array_length(self);
@@ -2614,9 +2615,13 @@ PyObject *pyrna_prop_iter(BPy_PropertyRNA *self)
 	}
 	
 	
-	/* we know this is a list so no need to PyIter_Check */
-	iter = PyObject_GetIter(ret);
-	Py_DECREF(ret);
+	/* we know this is a list so no need to PyIter_Check
+	 * otherwise it could be NULL (unlikely) if conversion failed */
+	if(ret) {
+		iter = PyObject_GetIter(ret);
+		Py_DECREF(ret);
+	}
+
 	return iter;
 }
 
@@ -2844,7 +2849,7 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 {
 	/* Note, both BPy_StructRNA and BPy_PropertyRNA can be used here */
 	PointerRNA *self_ptr= &(((BPy_DummyPointerRNA *)PyTuple_GET_ITEM(self, 0))->ptr);
-	FunctionRNA *self_func=  PyCObject_AsVoidPtr(PyTuple_GET_ITEM(self, 1));
+	FunctionRNA *self_func=  PyCapsule_GetPointer(PyTuple_GET_ITEM(self, 1), NULL);
 
 	PointerRNA funcptr;
 	ParameterList parms;
@@ -3273,7 +3278,7 @@ static void pyrna_subtype_set_rna(PyObject *newclass, StructRNA *srna)
 	RNA_pointer_create(NULL, &RNA_Struct, srna, &ptr);
 	item = pyrna_struct_CreatePyObject(&ptr);
 
-	//item = PyCObject_FromVoidPtr(srna, NULL);
+	//item = PyCapsule_New(srna, NULL, NULL);
 	PyDict_SetItemString(((PyTypeObject *)newclass)->tp_dict, "bl_rna", item);
 	Py_DECREF(item);
 	/* done with rna instance */
@@ -3689,8 +3694,8 @@ StructRNA *srna_from_self(PyObject *self)
 	if(self==NULL) {
 		return NULL;
 	}
-	else if (PyCObject_Check(self)) {
-		return PyCObject_AsVoidPtr(self);
+	else if (PyCapsule_CheckExact(self)) {
+		return PyCapsule_GetPointer(self, NULL);
 	}
 	else if (PyType_Check(self)==0) {
 		return NULL;
@@ -3710,15 +3715,15 @@ static int deferred_register_prop(StructRNA *srna, PyObject *item, PyObject *key
 		PyObject *py_func_ptr, *py_kw, *py_srna_cobject, *py_ret;
 		PyObject *(*pyfunc)(PyObject *, PyObject *, PyObject *);
 
-		if(PyArg_ParseTuple(item, "O!O!", &PyCObject_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
+		if(PyArg_ParseTuple(item, "O!O!", &PyCapsule_Type, &py_func_ptr, &PyDict_Type, &py_kw)) {
 
 			if(*_PyUnicode_AsString(key)=='_') {
 				PyErr_Format(PyExc_ValueError, "StructRNA \"%.200s\" registration error: %.200s could not register because the property starts with an '_'\n", RNA_struct_identifier(srna), _PyUnicode_AsString(key));
 				Py_DECREF(dummy_args);
 				return -1;
 			}
-			pyfunc = PyCObject_AsVoidPtr(py_func_ptr);
-			py_srna_cobject = PyCObject_FromVoidPtr(srna, NULL);
+			pyfunc = PyCapsule_GetPointer(py_func_ptr, NULL);
+			py_srna_cobject = PyCapsule_New(srna, NULL, NULL);
 
 			/* not 100% nice :/, modifies the dict passed, should be ok */
 			PyDict_SetItemString(py_kw, "attr", key);

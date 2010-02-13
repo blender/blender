@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -1611,6 +1611,32 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
 	/* otherwise just tile the area again */
 	else {
 		ed_screen_fullarea(C, win, sa);
+	}
+}
+
+/* update frame rate info for viewport drawing */
+void ED_refresh_viewport_fps(bContext *C)
+{
+	wmTimer *animtimer= CTX_wm_screen(C)->animtimer;
+	Scene *scene= CTX_data_scene(C);
+	
+	/* is anim playback running? */
+	if (animtimer && (U.uiflag & USER_SHOW_FPS)) {
+		ScreenFrameRateInfo *fpsi= scene->fps_info;
+		
+		/* if there isn't any info, init it first */
+		if (fpsi == NULL)
+			fpsi= scene->fps_info= MEM_callocN(sizeof(ScreenFrameRateInfo), "refresh_viewport_fps fps_info");
+		
+		/* update the values */
+		fpsi->redrawtime= fpsi->lredrawtime;
+		fpsi->lredrawtime= animtimer->ltime;
+	}
+	else {	
+		/* playback stopped or shouldn't be running */
+		if (scene->fps_info)
+			MEM_freeN(scene->fps_info);
+		scene->fps_info= NULL;
 	}
 }
 

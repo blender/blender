@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Joseph Eagar, Campbell Barton
  *
@@ -49,14 +49,14 @@ typedef struct BPy_IDGroup_Iter {
 } BPy_IDGroup_Iter;
 
 PyObject *BPy_Wrap_IDProperty(struct ID *id, struct IDProperty *prop, struct IDProperty *parent);
-PyObject *BPy_Wrap_GetKeys(IDProperty *prop);
-PyObject *BPy_Wrap_GetValues(ID *id, IDProperty *prop);
-PyObject *BPy_Wrap_GetItems(ID *id, IDProperty *prop);
-int BPy_Wrap_SetMapItem(IDProperty *prop, PyObject *key, PyObject *val);
+PyObject *BPy_Wrap_GetKeys(struct IDProperty *prop);
+PyObject *BPy_Wrap_GetValues(struct ID *id, struct IDProperty *prop);
+PyObject *BPy_Wrap_GetItems(struct ID *id, struct IDProperty *prop);
+int BPy_Wrap_SetMapItem(struct IDProperty *prop, PyObject *key, PyObject *val);
 
 
-PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop );
-char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObject *ob);
+PyObject *BPy_IDGroup_WrapData(struct ID *id, struct IDProperty *prop );
+char *BPy_IDProperty_Map_ValidateAndCreate(char *name, struct IDProperty *group, PyObject *ob);
 
 void IDProp_Init_Types(void);
 

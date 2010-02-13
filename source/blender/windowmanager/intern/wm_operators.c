@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -788,9 +788,9 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 {
 	PropertyRNA *prop;
 
-	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "File Path", "Path to file.");
-	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file.");
-	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Directory of the file.");
+	RNA_def_string_file_path(ot->srna, "path", "", FILE_MAX, "File Path", "Path to file");
+	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file");
+	RNA_def_string_dir_path(ot->srna, "directory", "", FILE_MAX, "Directory", "Directory of the file");
 
 	if (action == FILE_SAVE) {
 		prop= RNA_def_boolean(ot->srna, "check_existing", 1, "Check Existing", "Check and warn on overwriting existing files");
@@ -817,7 +817,7 @@ void WM_operator_properties_filesel(wmOperatorType *ot, int filter, short type, 
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
 	prop= RNA_def_int(ot->srna, "filemode", type, FILE_LOADLIB, FILE_SPECIAL, 
-		"File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file.",
+		"File Browser Mode", "The setting for the file browser mode to load a .blend file, a library or a special file",
 		FILE_LOADLIB, FILE_SPECIAL);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
@@ -843,7 +843,7 @@ void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
 	RNA_def_int(ot->srna, "ymax", 0, INT_MIN, INT_MAX, "Y Max", "", INT_MIN, INT_MAX);
 
 	if(extend)
-		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first.");
+		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 
@@ -1028,7 +1028,7 @@ static void WM_OT_debug_menu(wmOperatorType *ot)
 {
 	ot->name= "Debug Menu";
 	ot->idname= "WM_OT_debug_menu";
-	ot->description= "Open a popup to set the debug level.";
+	ot->description= "Open a popup to set the debug level";
 	
 	ot->invoke= wm_debug_menu_invoke;
 	ot->exec= wm_debug_menu_exec;
@@ -1247,7 +1247,7 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 	ot->poll= wm_search_menu_poll;
 }
 
-static int wm_call_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
+static int wm_call_menu_exec(bContext *C, wmOperator *op)
 {
 	char idname[BKE_ST_MAXNAME];
 	RNA_string_get(op->ptr, "name", idname);
@@ -1262,7 +1262,7 @@ static void WM_OT_call_menu(wmOperatorType *ot)
 	ot->name= "Call Menu";
 	ot->idname= "WM_OT_call_menu";
 
-	ot->invoke= wm_call_menu_invoke;
+	ot->exec= wm_call_menu_exec;
 
 	RNA_def_string(ot->srna, "name", "", BKE_ST_MAXNAME, "Name", "Name of the menu");
 }
@@ -1285,7 +1285,7 @@ static void WM_OT_window_duplicate(wmOperatorType *ot)
 {
 	ot->name= "Duplicate Window";
 	ot->idname= "WM_OT_window_duplicate";
-	ot->description="Duplicate the current Blender window.";
+	ot->description="Duplicate the current Blender window";
 		
 	ot->exec= wm_window_duplicate_op;
 	ot->poll= wm_operator_winactive_normal;
@@ -1295,7 +1295,7 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 {
 	ot->name= "Save User Settings";
 	ot->idname= "WM_OT_save_homefile";
-	ot->description="Make the current file the default .blend file.";
+	ot->description="Make the current file the default .blend file";
 		
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_write_homefile;
@@ -1306,7 +1306,7 @@ static void WM_OT_read_homefile(wmOperatorType *ot)
 {
 	ot->name= "Reload Start-Up File";
 	ot->idname= "WM_OT_read_homefile";
-	ot->description="Open the default file (doesn't save the current file).";
+	ot->description="Open the default file (doesn't save the current file)";
 	
 	ot->invoke= WM_operator_confirm;
 	ot->exec= WM_read_homefile;
@@ -1358,7 +1358,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Open Blender File";
 	ot->idname= "WM_OT_open_mainfile";
-	ot->description="Open a Blender file.";
+	ot->description="Open a Blender file";
 	
 	ot->invoke= wm_open_mainfile_invoke;
 	ot->exec= wm_open_mainfile_exec;
@@ -1366,7 +1366,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPENFILE);
 
-	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file.");
+	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file");
 }
 
 /* **************** link/append *************** */
@@ -1524,11 +1524,11 @@ static void WM_OT_link_append(wmOperatorType *ot)
 
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_LOADLIB, FILE_OPENFILE);
 	
-	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending.");
-	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects.");
-	RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer.");
-	RNA_def_boolean(ot->srna, "instance_groups", 1, "Instance Groups", "Create instances for each group as a DupliGroup.");
-	RNA_def_boolean(ot->srna, "relative_paths", 1, "Relative Paths", "Store the library path as a relative path to current .blend file.");
+	RNA_def_boolean(ot->srna, "link", 1, "Link", "Link the objects or datablocks rather than appending");
+	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects");
+	RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer");
+	RNA_def_boolean(ot->srna, "instance_groups", 1, "Instance Groups", "Create instances for each group as a DupliGroup");
+	RNA_def_boolean(ot->srna, "relative_paths", 1, "Relative Paths", "Store the library path as a relative path to current .blend file");
 
 	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
 }	
@@ -1558,7 +1558,7 @@ static void WM_OT_recover_last_session(wmOperatorType *ot)
 {
 	ot->name= "Recover Last Session";
 	ot->idname= "WM_OT_recover_last_session";
-	ot->description="Open the last closed file (\"quit.blend\").";
+	ot->description="Open the last closed file (\"quit.blend\")";
 	
 	ot->exec= wm_recover_last_session_exec;
 	ot->poll= WM_operator_winactive;
@@ -1601,7 +1601,7 @@ static void WM_OT_recover_auto_save(wmOperatorType *ot)
 {
 	ot->name= "Recover Auto Save";
 	ot->idname= "WM_OT_recover_auto_save";
-	ot->description="Open an automatically saved file to recover it.";
+	ot->description="Open an automatically saved file to recover it";
 	
 	ot->exec= wm_recover_auto_save_exec;
 	ot->invoke= wm_recover_auto_save_invoke;
@@ -1683,15 +1683,15 @@ static void WM_OT_save_as_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Save As Blender File";
 	ot->idname= "WM_OT_save_as_mainfile";
-	ot->description="Save the current file in the desired location.";
+	ot->description="Save the current file in the desired location";
 	
 	ot->invoke= wm_save_as_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= WM_operator_winactive;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE);
-	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
-	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory.");
+	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
+	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
 }
 
 /* *************** save file directly ******** */
@@ -1732,15 +1732,15 @@ static void WM_OT_save_mainfile(wmOperatorType *ot)
 {
 	ot->name= "Save Blender File";
 	ot->idname= "WM_OT_save_mainfile";
-	ot->description="Save the current Blender file.";
+	ot->description="Save the current Blender file";
 	
 	ot->invoke= wm_save_mainfile_invoke;
 	ot->exec= wm_save_as_mainfile_exec;
 	ot->poll= NULL;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_SAVE);
-	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file.");
-	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory.");
+	RNA_def_boolean(ot->srna, "compress", 0, "Compress", "Write compressed .blend file");
+	RNA_def_boolean(ot->srna, "relative_remap", 0, "Remap Relative", "Remap relative paths when saving in a different directory");
 }
 
 
@@ -1849,7 +1849,7 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 {
 	ot->name= "Toggle Fullscreen";
 	ot->idname= "WM_OT_window_fullscreen_toggle";
-	ot->description="Toggle the current window fullscreen.";
+	ot->description="Toggle the current window fullscreen";
 
 	ot->exec= wm_window_fullscreen_toggle_op;
 	ot->poll= WM_operator_winactive;
@@ -1868,7 +1868,7 @@ static void WM_OT_exit_blender(wmOperatorType *ot)
 {
 	ot->name= "Exit Blender";
 	ot->idname= "WM_OT_exit_blender";
-	ot->description= "Quit Blender.";
+	ot->description= "Quit Blender";
 
 	ot->invoke= WM_operator_confirm;
 	ot->exec= wm_exit_blender_op;
@@ -2109,6 +2109,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, wmEvent *event)
 				/* apply first click */
 				gesture_circle_apply(C, op);
 				gesture->mode= 1;
+				wm_gesture_tag_redraw(C);
 			}
 			break;
 
@@ -2132,7 +2133,7 @@ void WM_OT_circle_gesture(wmOperatorType *ot)
 {
 	ot->name= "Circle Gesture";
 	ot->idname= "WM_OT_circle_gesture";
-	ot->description="Enter rotate mode with a circular gesture.";
+	ot->description="Enter rotate mode with a circular gesture";
 	
 	ot->invoke= WM_gesture_circle_invoke;
 	ot->modal= WM_gesture_circle_modal;
@@ -2352,7 +2353,7 @@ void WM_OT_lasso_gesture(wmOperatorType *ot)
 	
 	ot->name= "Lasso Gesture";
 	ot->idname= "WM_OT_lasso_gesture";
-	ot->description="Select objects within the lasso as you move the pointer.";
+	ot->description="Select objects within the lasso as you move the pointer";
 	
 	ot->invoke= WM_gesture_lasso_invoke;
 	ot->modal= WM_gesture_lasso_modal;
@@ -2706,7 +2707,7 @@ static void WM_OT_redraw_timer(wmOperatorType *ot)
 	
 	ot->name= "Redraw Timer";
 	ot->idname= "WM_OT_redraw_timer";
-	ot->description="Simple redraw timer to test the speed of updating the interface.";
+	ot->description="Simple redraw timer to test the speed of updating the interface";
 	
 	ot->invoke= WM_menu_invoke;
 	ot->exec= redraw_timer_exec;
@@ -2729,7 +2730,7 @@ static void WM_OT_memory_statistics(wmOperatorType *ot)
 {
 	ot->name= "Memory Statistics";
 	ot->idname= "WM_OT_memory_statistics";
-	ot->description= "Print memory statistics to the console.";
+	ot->description= "Print memory statistics to the console";
 	
 	ot->exec= memory_statistics_exec;
 }

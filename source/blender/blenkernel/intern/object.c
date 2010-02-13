@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -579,6 +579,7 @@ void unlink_object(Scene *scene, Object *ob)
 		if(sce->id.lib==NULL) {
 			if(sce->camera==ob) sce->camera= NULL;
 			if(sce->toolsettings->skgen_template==ob) sce->toolsettings->skgen_template = NULL;
+			if(sce->toolsettings->particle.object==ob) sce->toolsettings->particle.object= NULL;
 
 #ifdef DURIAN_CAMERA_SWITCH
 			{

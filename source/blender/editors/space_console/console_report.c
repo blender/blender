@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -114,7 +114,7 @@ void CONSOLE_OT_report_replay(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Replay Operators";
-    ot->description= "Replay selected reports.";
+    ot->description= "Replay selected reports";
 	ot->idname= "CONSOLE_OT_report_replay";
 
 	/* api callbacks */
@@ -161,7 +161,7 @@ void CONSOLE_OT_select_pick(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Select report";
-    ot->description= "Select reports by index.";
+    ot->description= "Select reports by index";
 	ot->idname= "CONSOLE_OT_select_pick";
 
 	/* api callbacks */
@@ -215,7 +215,7 @@ void CONSOLE_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "(De)Select All";
-    ot->description= "(de)select all reports.";
+    ot->description= "(de)select all reports";
 	ot->idname= "CONSOLE_OT_select_all_toggle";
 
 	/* api callbacks */
@@ -308,7 +308,7 @@ void CONSOLE_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-    ot->description= "Toggle border selection.";
+    ot->description= "Toggle border selection";
 	ot->idname= "CONSOLE_OT_select_border";
 
 	/* api callbacks */
@@ -358,7 +358,7 @@ void CONSOLE_OT_report_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete Reports";
-    ot->description= "Delete selected reports.";
+    ot->description= "Delete selected reports";
 	ot->idname= "CONSOLE_OT_report_delete";
 
 	/* api callbacks */
@@ -403,7 +403,7 @@ void CONSOLE_OT_report_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy Reports to Clipboard";
-    ot->description= "Copy selected reports to Clipboard.";
+    ot->description= "Copy selected reports to Clipboard";
 	ot->idname= "CONSOLE_OT_report_copy";
 
 	/* api callbacks */

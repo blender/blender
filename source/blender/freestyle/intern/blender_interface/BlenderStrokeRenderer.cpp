@@ -336,7 +336,7 @@ Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
 	freestyle_scene->r.imtype = R_PNG;
 	
     // Pass 1 - render only the alpha component
-	freestyle_render = RE_NewRender(freestyle_scene->id.name);
+	freestyle_render = RE_NewRender(freestyle_scene->id.name, RE_SLOT_DEFAULT);
 	RE_BlenderFrame( freestyle_render, freestyle_scene, NULL, 1);
 
     // save the alpha component of the render into a buffer
@@ -378,7 +378,7 @@ Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
 	}
 
     // Pass 2 - render the RGB components
-	freestyle_render = RE_NewRender(freestyle_scene->id.name);
+	freestyle_render = RE_NewRender(freestyle_scene->id.name, RE_SLOT_DEFAULT);
     RE_BlenderFrame( freestyle_render, freestyle_scene, NULL, 1);
 
     // merge the saved alpha component into the 2nd render

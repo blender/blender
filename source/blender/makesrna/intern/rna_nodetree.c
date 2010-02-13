@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Blender Foundation (2008), Nathan Letwory, Robin Allen
  *
@@ -1226,14 +1226,14 @@ static void def_cmp_diff_matte(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "t1");
 	RNA_def_property_float_funcs(prop, NULL, "rna_Matte_t1_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Tolerance", "Color distances below this threshold are keyed.");
+	RNA_def_property_ui_text(prop, "Tolerance", "Color distances below this threshold are keyed");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t2");
 	RNA_def_property_float_funcs(prop, NULL, "rna_Matte_t2_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Falloff", "Color distances below this additional threshold are partially keyed.");
+	RNA_def_property_ui_text(prop, "Falloff", "Color distances below this additional threshold are partially keyed");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -1272,14 +1272,14 @@ static void def_cmp_distance_matte(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "t1");
 	RNA_def_property_float_funcs(prop, NULL, "rna_Matte_t1_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Tolerance", "Color distances below this threshold are keyed.");
+	RNA_def_property_ui_text(prop, "Tolerance", "Color distances below this threshold are keyed");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t2");
 	RNA_def_property_float_funcs(prop, NULL, "rna_Matte_t2_set", NULL);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Falloff", "Color distances below this additional threshold are partially keyed.");
+	RNA_def_property_ui_text(prop, "Falloff", "Color distances below this additional threshold are partially keyed");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -1843,7 +1843,7 @@ static void def_cmp_lensdist(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "projector", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "proj", 1);
-	RNA_def_property_ui_text(prop, "Projector", "Enable/disable projector mode. Effect is applied in horizontal direction only.");
+	RNA_def_property_ui_text(prop, "Projector", "Enable/disable projector mode. Effect is applied in horizontal direction only");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "jitter", PROP_BOOLEAN, PROP_NONE);
@@ -2009,7 +2009,7 @@ static void rna_def_shader_node(BlenderRNA *brna)
 	alloc_node_type_items(shader_node_type_items, Category_ShaderNode);
 
 	srna = RNA_def_struct(brna, "ShaderNode", "Node");
-	RNA_def_struct_ui_text(srna, "Shader Node", "Material shader node.");
+	RNA_def_struct_ui_text(srna, "Shader Node", "Material shader node");
 	RNA_def_struct_sdna(srna, "bNode");
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
@@ -2082,13 +2082,13 @@ static void rna_def_node_socket_value(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "Socket name.");
+	RNA_def_property_ui_text(prop, "Name", "Socket name");
 	RNA_def_struct_name_property(srna, prop);
 	
 	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "ns.vec");
 	RNA_def_property_array(prop, 1);
-	RNA_def_property_ui_text(prop, "Default Value", "Default value of the socket when no link is attached.");
+	RNA_def_property_ui_text(prop, "Default Value", "Default value of the socket when no link is attached");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeSocket_update");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_NodeSocket_defvalue_range");
 }
@@ -2106,13 +2106,13 @@ static void rna_def_node_socket_vector(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "Socket name.");
+	RNA_def_property_ui_text(prop, "Name", "Socket name");
 	RNA_def_struct_name_property(srna, prop);
 	
 	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "ns.vec");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Default Value", "Default value of the socket when no link is attached.");
+	RNA_def_property_ui_text(prop, "Default Value", "Default value of the socket when no link is attached");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeSocket_update");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_NodeSocket_defvalue_range");
 }
@@ -2130,13 +2130,13 @@ static void rna_def_node_socket_rgba(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Name", "Socket name.");
+	RNA_def_property_ui_text(prop, "Name", "Socket name");
 	RNA_def_struct_name_property(srna, prop);
 	
 	prop = RNA_def_property(srna, "default_value", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "ns.vec");
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_ui_text(prop, "Default Value", "Default value of the socket when no link is attached.");
+	RNA_def_property_ui_text(prop, "Default Value", "Default value of the socket when no link is attached");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_NodeSocket_update");
 	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_NodeSocket_defvalue_range");
 }
@@ -2147,7 +2147,7 @@ static void rna_def_node(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "Node", NULL);
-	RNA_def_struct_ui_text(srna, "Node", "Node in a node tree.");
+	RNA_def_struct_ui_text(srna, "Node", "Node in a node tree");
 	RNA_def_struct_sdna(srna, "bNode");
 	RNA_def_struct_ui_icon(srna, ICON_NODE);
 	RNA_def_struct_refine_func(srna, "rna_Node_refine");
@@ -2161,7 +2161,7 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Name", "Node name.");
+	RNA_def_property_ui_text(prop, "Name", "Node name");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update_name");
 	
@@ -2182,7 +2182,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna = RNA_def_struct(brna, "NodeTree", "ID");
-	RNA_def_struct_ui_text(srna, "Node Tree", "Node tree consisting of linked nodes used for materials, textures and compositing.");
+	RNA_def_struct_ui_text(srna, "Node Tree", "Node tree consisting of linked nodes used for materials, textures and compositing");
 	RNA_def_struct_sdna(srna, "bNodeTree");
 	RNA_def_struct_ui_icon(srna, ICON_NODETREE);
 	

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -74,6 +74,7 @@
 #include "BIF_glutil.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 #include "BLF_api.h"
 
 #include "ED_armature.h"
@@ -82,6 +83,7 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_screen_types.h"
 #include "ED_util.h"
 #include "ED_transform.h"
 #include "ED_types.h"
@@ -1726,7 +1728,12 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 		v3d->transp= FALSE;
 	}
 	
+	if(rv3d->rflag & RV3D_CLIPPING)
+		view3d_clr_clipping();
+	
 	v3d->zbuf = zbuf;
+	if(!v3d->zbuf) glDisable(GL_DEPTH_TEST);
+
 	U.glalphaclip = glalphaclip;
 	v3d->flag = flag;
 	U.obcenter_dia= obcenter_dia;
@@ -1989,6 +1996,57 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	glPopMatrix();
 }
 
+/* NOTE: the info that this uses is updated in ED_refresh_viewport_fps(), 
+ * which currently gets called during SCREEN_OT_animation_step.
+ */
+static void draw_viewport_fps(Scene *scene, ARegion *ar)
+{
+	ScreenFrameRateInfo *fpsi= scene->fps_info;
+	float fps;
+	char printable[16];
+	int i, tot;
+	
+	if (!fpsi || !fpsi->lredrawtime || !fpsi->redrawtime)
+		return;
+	
+	printable[0] = '\0';
+	
+#if 0
+	/* this is too simple, better do an average */
+	fps = (float)(1.0/(fpsi->lredrawtime-fpsi->redrawtime))
+#else
+	fpsi->redrawtimes_fps[fpsi->redrawtime_index] = (float)(1.0/(fpsi->lredrawtime-fpsi->redrawtime));
+	
+	for (i=0, tot=0, fps=0.0f ; i < REDRAW_FRAME_AVERAGE ; i++) {
+		if (fpsi->redrawtimes_fps[i]) {
+			fps += fpsi->redrawtimes_fps[i];
+			tot++;
+		}
+	}
+	if (tot) {
+		fpsi->redrawtime_index = (fpsi->redrawtime_index + 1) % REDRAW_FRAME_AVERAGE;
+		
+		//fpsi->redrawtime_index++;
+		//if (fpsi->redrawtime >= REDRAW_FRAME_AVERAGE)
+		//	fpsi->redrawtime = 0;
+		
+		fps = fps / tot;
+	}
+#endif
+	
+	/* is this more then half a frame behind? */
+	if (fps+0.5 < FPS) {
+		UI_ThemeColor(TH_REDALERT);
+		sprintf(printable, "fps: %.2f", (float)fps);
+	} 
+	else {
+		UI_ThemeColor(TH_TEXT_HI);
+		sprintf(printable, "fps: %i", (int)(fps+0.5));
+	}
+	
+	BLF_draw_default(22,  ar->winy-17, 0.0f, printable);
+}
+
 void view3d_main_area_draw(const bContext *C, ARegion *ar)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -2121,8 +2179,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		view3d_update_depths(ar, v3d);
 	}
 	
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
-	
 //	REEB_draw();
 	
 //	if(scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
@@ -2130,6 +2186,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* Transp and X-ray afterdraw stuff */
 	view3d_draw_transp(scene, ar, v3d);
 	view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
+	
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	
 	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
 		view3d_update_depths(ar, v3d);
@@ -2176,8 +2234,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	else	
 		draw_view_icon(rv3d);
 	
-	/* XXX removed viewport fps */
-	if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
+	if((U.uiflag & USER_SHOW_FPS) && (CTX_wm_screen(C)->animtimer)) {
+		draw_viewport_fps(scene, ar);
+	}
+	else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
 		draw_viewport_name(ar, v3d);
 	}
 	if (grid_unit) { /* draw below the viewport name */

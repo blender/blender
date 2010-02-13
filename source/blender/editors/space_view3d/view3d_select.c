@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -784,7 +784,7 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_select_lasso(wmOperatorType *ot)
 {
 	ot->name= "Lasso Select";
-	ot->description= "Select items using lasso selection.";
+	ot->description= "Select items using lasso selection";
 	ot->idname= "VIEW3D_OT_select_lasso";
 	
 	ot->invoke= WM_gesture_lasso_invoke;
@@ -1704,7 +1704,7 @@ void VIEW3D_OT_select_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Border Select";
-	ot->description= "Select items using border selection.";
+	ot->description= "Select items using border selection";
 	ot->idname= "VIEW3D_OT_select_border";
 	
 	/* api callbacks */
@@ -1770,7 +1770,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Activate/Select";
-	ot->description= "Activate/select item(s).";
+	ot->description= "Activate/select item(s)";
 	ot->idname= "VIEW3D_OT_select";
 	
 	/* api callbacks */
@@ -2100,7 +2100,7 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 void VIEW3D_OT_select_circle(wmOperatorType *ot)
 {
 	ot->name= "Circle Select";
-	ot->description= "Select items using circle selection.";
+	ot->description= "Select items using circle selection";
 	ot->idname= "VIEW3D_OT_select_circle";
 	
 	ot->invoke= WM_gesture_circle_invoke;

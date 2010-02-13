@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -103,7 +103,7 @@ void SOUND_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Open Sound";
-	ot->description= "Load a sound file.";
+	ot->description= "Load a sound file";
 	ot->idname= "SOUND_OT_open";
 
 	/* api callbacks */
@@ -154,7 +154,7 @@ void SOUND_OT_pack(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Pack Sound";
-	ot->description= "Pack the sound into the current blend file.";
+	ot->description= "Pack the sound into the current blend file";
 	ot->idname= "SOUND_OT_pack";
 
 	/* api callbacks */
@@ -270,7 +270,7 @@ void SOUND_OT_unpack(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Unpack Sound";
-	ot->description= "Unpack the sound to the samples filename.";
+	ot->description= "Unpack the sound to the samples filename";
 	ot->idname= "SOUND_OT_unpack";
 
 	/* api callbacks */

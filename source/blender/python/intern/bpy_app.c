@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Campbell Barton
  *
@@ -49,16 +49,16 @@ static PyTypeObject BlenderAppType;
 
 static PyStructSequence_Field app_info_fields[] = {
 	{"version", "The Blender version as a tuple of 3 numbers. eg. (2, 50, 11)"},
-	{"version_string", "The Blender version formatted as a string."},
+	{"version_string", "The Blender version formatted as a string"},
 	{"home", "The blender home directory, normally matching $HOME"},
-	{"binary_path", "The location of blenders executable, useful for utilities that spawn new instances."},
-	{"debug", "Boolean, set when blender is running in debug mode (started with -d)."},
+	{"binary_path", "The location of blenders executable, useful for utilities that spawn new instances"},
+	{"debug", "Boolean, set when blender is running in debug mode (started with -d)"},
 
 	/* buildinfo */
-	{"build_date", "The date this blender instance was built.."},
-	{"build_time", "The time this blender instance was built."},
-	{"build_revision", "The subversion revision this blender instance was built with."},
-	{"build_platform", "The platform this blender instance was built for."},
+	{"build_date", "The date this blender instance was built"},
+	{"build_time", "The time this blender instance was built"},
+	{"build_revision", "The subversion revision this blender instance was built with"},
+	{"build_platform", "The platform this blender instance was built for"},
 	{"build_type", "The type of build (Release, Debug)"},
 	{0}
 };
@@ -70,9 +70,24 @@ static PyStructSequence_Desc app_info_desc = {
 	10
 };
 
+static char *strip_quotes(char *buf, const char *input)
+{
+	int i;
+	strcpy(buf, input);
+	if(buf[0]=='\0') return buf;
+	while(buf[1] && (buf[0]=='"' || buf[0]=='\'')) buf++;
+	if(buf[0]=='\0') return buf;
+	i= strlen(buf) - 1;
+	while(i>=0 && (buf[i]=='"' || buf[i]=='\'')) i--;
+	buf[i+1]= '\0';
+
+	return buf;
+}
+
 static PyObject *make_app_info(void)
 {
 	extern char bprogname[]; /* argv[0] from creator.c */
+	char buf[256];
 
 	PyObject *app_info;
 	int pos = 0;
@@ -84,8 +99,8 @@ static PyObject *make_app_info(void)
 
 #define SetIntItem(flag) \
 	PyStructSequence_SET_ITEM(app_info, pos++, PyLong_FromLong(flag))
-#define SetStrItem(flag) \
-	PyStructSequence_SET_ITEM(app_info, pos++, PyUnicode_FromString(flag))
+#define SetStrItem(str) \
+	PyStructSequence_SET_ITEM(app_info, pos++, PyUnicode_FromString(str))
 #define SetObjItem(obj) \
 	PyStructSequence_SET_ITEM(app_info, pos++, obj)
 
@@ -96,11 +111,11 @@ static PyObject *make_app_info(void)
 	SetObjItem(PyBool_FromLong(G.f & G_DEBUG));
 
 	/* build info */
-	SetStrItem(build_date);
-	SetStrItem(build_time);
-	SetStrItem(build_rev);
-	SetStrItem(build_platform);
-	SetStrItem(build_type);
+	SetStrItem(strip_quotes(buf, build_date));
+	SetStrItem(strip_quotes(buf, build_time));
+	SetStrItem(strip_quotes(buf, build_rev));
+	SetStrItem(strip_quotes(buf, build_platform));
+	SetStrItem(strip_quotes(buf, build_type));
 
 #undef SetIntItem
 #undef SetStrItem

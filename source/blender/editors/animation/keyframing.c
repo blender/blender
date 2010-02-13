@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -222,10 +222,12 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 {
 	int i= 0;
 	
+	/* are there already keyframes? */
 	if (fcu->bezt) {
 		short replace = -1;
 		i = binarysearch_bezt_index(fcu->bezt, bezt->vec[1][0], fcu->totvert, &replace);
 		
+		/* replace an existing keyframe? */
 		if (replace) {			
 			/* sanity check: 'i' may in rare cases exceed arraylen */
 			if ((i >= 0) && (i < fcu->totvert)) {
@@ -252,6 +254,7 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 				}
 			}
 		}
+		/* keyframing modes allow to not replace keyframe */
 		else if ((flag & INSERTKEY_REPLACE) == 0) {
 			/* insert new - if we're not restricted to replacing keyframes only */
 			BezTriple *newb= MEM_callocN((fcu->totvert+1)*sizeof(BezTriple), "beztriple");
@@ -270,15 +273,26 @@ int insert_bezt_fcurve (FCurve *fcu, BezTriple *bezt, short flag)
 			/* replace (+ free) old with new, only if necessary to do so */
 			MEM_freeN(fcu->bezt);
 			fcu->bezt= newb;
-				
+			
 			fcu->totvert++;
 		}
 	}
-	else {
-		// TODO: need to check for old sample-data now...
+	/* no keyframes already, but can only add if...
+	 *	1) keyframing modes say that keyframes can only be replaced, so adding new ones won't know
+	 *	2) there are no samples on the curve
+	 *		// NOTE: maybe we may want to allow this later when doing samples -> bezt conversions, 
+	 *		// but for now, having both is asking for trouble
+	 */
+	else if ((flag & INSERTKEY_REPLACE)==0 && (fcu->fpt==NULL)) {
+		/* create new keyframes array */
 		fcu->bezt= MEM_callocN(sizeof(BezTriple), "beztriple");
 		*(fcu->bezt)= *bezt;
 		fcu->totvert= 1;
+	}
+	/* cannot add anything */
+	else {
+		/* return error code -1 to prevent any misunderstandings */
+		return -1;
 	}
 	
 	
@@ -1096,7 +1110,7 @@ void ANIM_OT_keyframe_insert (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Insert Keyframe";
 	ot->idname= "ANIM_OT_keyframe_insert";
-	ot->description= "Insert keyframes on the current frame for all properties in the specified Keying Set.";
+	ot->description= "Insert keyframes on the current frame for all properties in the specified Keying Set";
 	
 	/* callbacks */
 	ot->exec= insert_key_exec; 
@@ -1283,7 +1297,7 @@ void ANIM_OT_keyframe_delete (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Delete Keyframe";
 	ot->idname= "ANIM_OT_keyframe_delete";
-	ot->description= "Delete keyframes on the current frame for all properties in the specified Keying Set.";
+	ot->description= "Delete keyframes on the current frame for all properties in the specified Keying Set";
 	
 	/* callbacks */
 	ot->exec= delete_key_exec; 
@@ -1427,8 +1441,8 @@ static int insert_key_button_exec (bContext *C, wmOperator *op)
 		/* send updates */
 		DAG_ids_flush_update(0);
 		
-		/* for now, only send ND_KEYS for KeyingSets */
-		WM_event_add_notifier(C, ND_KEYS, NULL);
+		/* send notifiers that keyframes have been changed */
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	}
 	
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
@@ -1493,12 +1507,12 @@ static int delete_key_button_exec (bContext *C, wmOperator *op)
 	}
 	
 	
-	if(success) {
+	if (success) {
 		/* send updates */
 		DAG_ids_flush_update(0);
 		
-		/* for now, only send ND_KEYS for KeyingSets */
-		WM_event_add_notifier(C, ND_KEYS, NULL);
+		/* send notifiers that keyframes have been changed */
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	}
 	
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;

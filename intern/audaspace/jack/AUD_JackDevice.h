@@ -31,6 +31,7 @@
 class AUD_Buffer;
 
 #include <jack.h>
+#include <ringbuffer.h>
 
 /**
  * This device plays back through Jack.
@@ -53,6 +54,8 @@ private:
 	 */
 	AUD_Buffer* m_buffer;
 
+	AUD_Buffer* m_deinterleavebuf;
+
 	/**
 	 * Whether the device is valid.
 	 */
@@ -72,6 +75,21 @@ private:
 	 */
 	static int jack_mix(jack_nframes_t length, void *data);
 
+	static void* runThread(void* device);
+
+	void updateRingBuffers();
+
+	jack_ringbuffer_t** m_ringbuffers;
+
+	/**
+	 * The streaming thread.
+	 */
+	pthread_t m_thread;
+
+	pthread_mutex_t m_lock;
+
+	pthread_cond_t m_condition;
+
 protected:
 	virtual void playing(bool playing);
 
@@ -81,7 +99,7 @@ public:
 	 * \param specs The wanted audio specification, where only the channel count is important.
 	 * \exception AUD_Exception Thrown if the audio device cannot be opened.
 	 */
-	AUD_JackDevice(AUD_DeviceSpecs specs);
+	AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
 
 	/**
 	 * Closes the Jack client.

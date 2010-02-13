@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -169,6 +169,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_vertex_group_select);
 	WM_operatortype_append(OBJECT_OT_vertex_group_deselect);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy_to_linked);
+	WM_operatortype_append(OBJECT_OT_vertex_group_copy_to_selected);
 	WM_operatortype_append(OBJECT_OT_vertex_group_copy);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize);
 	WM_operatortype_append(OBJECT_OT_vertex_group_normalize_all);

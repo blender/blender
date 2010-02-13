@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 by Blender Foundation.
  * All rights reserved.
@@ -69,6 +69,7 @@ BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk, int use_sysmall
 	pool->pchunk = pchunk;	
 	pool->csize = esize * pchunk;
 	pool->chunks.first = pool->chunks.last = NULL;
+	pool->totused= 0;
 	
 	maxchunks = tote / pchunk + 1;
 	

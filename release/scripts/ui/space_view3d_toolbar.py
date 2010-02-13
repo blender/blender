@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -155,6 +155,7 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel):
             mesh = context.active_object.data
             col = layout.column(align=True)
             col.prop(mesh, "use_mirror_x")
+            col.prop(context.tool_settings, "edge_path_mode")
 
 # ********** default tools for editmode_curve ****************
 
@@ -896,7 +897,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         row = sub.row()
         row.active = (settings.brush.imagepaint_tool == 'CLONE')
 
-        row.prop(ipaint, "use_clone_layer", text="Clone")
+        row.prop(ipaint, "use_clone_layer", text="Layer")
         row.menu("VIEW3D_MT_tools_projectpaint_clone", text=context.active_object.data.uv_texture_clone.name)
 
         sub = col.column()

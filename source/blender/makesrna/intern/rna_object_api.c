@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -417,15 +417,15 @@ void RNA_api_object(StructRNA *srna)
 	PropertyRNA *parm;
 
 	static EnumPropertyItem mesh_type_items[] = {
-		{0, "PREVIEW", 0, "Preview", "Apply modifier preview settings."},
-		{1, "RENDER", 0, "Render", "Apply modifier render settings."},
+		{0, "PREVIEW", 0, "Preview", "Apply modifier preview settings"},
+		{1, "RENDER", 0, "Render", "Apply modifier render settings"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem assign_mode_items[] = {
-		{WEIGHT_REPLACE, "REPLACE", 0, "Replace", "Replace."}, /* TODO: more meaningful descriptions */
-		{WEIGHT_ADD, "ADD", 0, "Add", "Add."},
-		{WEIGHT_SUBTRACT, "SUBTRACT", 0, "Subtract", "Subtract."},
+		{WEIGHT_REPLACE, "REPLACE", 0, "Replace", "Replace"}, /* TODO: more meaningful descriptions */
+		{WEIGHT_ADD, "ADD", 0, "Add", "Add"},
+		{WEIGHT_SUBTRACT, "SUBTRACT", 0, "Subtract", "Subtract"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

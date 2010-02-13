@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -311,9 +311,10 @@ short ANIM_animdata_context_getdata(bAnimContext *ac);
 
 /* flag-setting behaviour */
 typedef enum eAnimChannels_SetFlag {
-	ACHANNEL_SETFLAG_CLEAR = 0,
-	ACHANNEL_SETFLAG_ADD,
-	ACHANNEL_SETFLAG_TOGGLE
+	ACHANNEL_SETFLAG_CLEAR = 0,		/* turn off */
+	ACHANNEL_SETFLAG_ADD,			/* turn on */
+	ACHANNEL_SETFLAG_INVERT,		/* on->off, off->on */
+	ACHANNEL_SETFLAG_TOGGLE,		/* some on -> all off // all on */
 } eAnimChannels_SetFlag;
 
 /* types of settings for AnimChannels */
@@ -329,6 +330,10 @@ typedef enum eAnimChannel_Settings {
 
 /* Drawing, mouse handling, and flag setting behaviour... */
 typedef struct bAnimChannelType {
+	/* type data */
+		/* name of the channel type, for debugging */
+	char *channel_type_name;
+	
 	/* drawing */
 		/* get RGB color that is used to draw the majority of the backdrop */
 	void (*get_backdrop_color)(bAnimContext *ac, bAnimListElem *ale, float *color);
@@ -360,6 +365,9 @@ typedef struct bAnimChannelType {
 
 /* Get typeinfo for the given channel */
 bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale);
+
+/* Print debugging info about a given channel */
+void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level);
 
 /* Draw the given channel */
 void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc);
@@ -497,24 +505,24 @@ void ANIM_unit_mapping_apply_fcurve(struct Scene *scene, struct ID *id, struct F
 
 /* set/clear/toggle macro 
  *	- channel - channel with a 'flag' member that we're setting
- *	- smode - 0=clear, 1=set, 2=toggle
+ *	- smode - 0=clear, 1=set, 2=invert
  *	- sflag - bitflag to set
  */
 #define ACHANNEL_SET_FLAG(channel, smode, sflag) \
 	{ \
-		if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(channel)->flag ^= (sflag); \
+		if (smode == ACHANNEL_SETFLAG_INVERT) 	(channel)->flag ^= (sflag); \
 		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag |= (sflag); \
 		else 									(channel)->flag &= ~(sflag); \
 	}
 	
 /* set/clear/toggle macro, where the flag is negative 
  *	- channel - channel with a 'flag' member that we're setting
- *	- smode - 0=clear, 1=set, 2=toggle
+ *	- smode - 0=clear, 1=set, 2=invert
  *	- sflag - bitflag to set
  */
 #define ACHANNEL_SET_FLAG_NEG(channel, smode, sflag) \
 	{ \
-		if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(channel)->flag ^= (sflag); \
+		if (smode == ACHANNEL_SETFLAG_INVERT) 	(channel)->flag ^= (sflag); \
 		else if (smode == ACHANNEL_SETFLAG_ADD) (channel)->flag &= ~(sflag); \
 		else 									(channel)->flag |= (sflag); \
 	}

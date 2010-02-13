@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Blender Foundation (2008).
  *
@@ -650,7 +650,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		/* define some builtin properties */
 		prop= RNA_def_property(&srna->cont, "rna_properties", PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_flag(prop, PROP_BUILTIN);
-		RNA_def_property_ui_text(prop, "Properties", "RNA property collection.");
+		RNA_def_property_ui_text(prop, "Properties", "RNA property collection");
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Property");
@@ -668,7 +668,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		prop= RNA_def_property(&srna->cont, "rna_type", PROP_POINTER, PROP_NONE);
 		RNA_def_property_flag(prop, PROP_HIDDEN);
-		RNA_def_property_ui_text(prop, "RNA", "RNA type definition.");
+		RNA_def_property_ui_text(prop, "RNA", "RNA type definition");
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Struct");
@@ -1703,6 +1703,7 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 			else {
 				dp->dnalengthstructname= structname;
 				dp->dnalengthname= lengthpropname;
+				prop->totarraylength= 0;
 			}
 
 			cprop->next= (PropCollectionNextFunc)"rna_iterator_array_next";

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 by Blender Foundation
  * All rights reserved.
@@ -135,7 +135,7 @@ static int logic_properties(bContext *C, wmOperator *op)
 void LOGIC_OT_properties(wmOperatorType *ot)
 {
 	ot->name= "Properties";
-	ot->description= "Toggle display properties panel.";
+	ot->description= "Toggle display properties panel";
 	ot->idname= "LOGIC_OT_properties";
 	
 	ot->exec= logic_properties;

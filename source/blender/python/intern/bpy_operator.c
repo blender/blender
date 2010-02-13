@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Campbell Barton
  *
@@ -48,8 +48,9 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	int error_val = 0;
 	PointerRNA ptr;
 	int operator_ret= OPERATOR_CANCELLED;
-	
+
 	char		*opname;
+	char		*context_str= NULL;
 	PyObject	*kw= NULL; /* optional args */
 	PyObject	*context_dict= NULL; /* optional args */
 	PyObject	*context_dict_back;
@@ -60,7 +61,7 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
 	bContext *C = BPy_GetContext();
 	
-	if (!PyArg_ParseTuple(args, "sO|O!i:_bpy.ops.call", &opname, &context_dict, &PyDict_Type, &kw, &context))
+	if (!PyArg_ParseTuple(args, "sO|O!s:_bpy.ops.call", &opname, &context_dict, &PyDict_Type, &kw, &context_str))
 		return NULL;
 
 	ot= WM_operatortype_exists(opname);
@@ -70,6 +71,15 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 		return NULL;
 	}
 	
+	if(context_str) {
+		if(RNA_enum_value_from_id(operator_context_items, context_str, &context)==0) {
+			char *enum_str= BPy_enum_as_string(operator_context_items);
+			PyErr_Format(PyExc_TypeError, "Calling operator \"bpy.ops.%s\" error, expected a string enum in (%.200s)", opname, enum_str);
+			MEM_freeN(enum_str);
+			return NULL;
+		}
+	}
+
 	if(!PyDict_Check(context_dict))
 		context_dict= NULL;
 

@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
@@ -111,13 +111,18 @@
 /* ********* globals ******** */
 
 /* here we store all renders */
-static struct ListBase RenderList= {NULL, NULL};
+static struct {
+	ListBase renderlist;
+
+	/* render slots */
+	int viewslot, renderingslot;
+
+	/* commandline thread override */
+	int threads;
+} RenderGlobal = {{NULL, NULL}, 0, 0, -1}; 
 
 /* hardcopy of current render, used while rendering for speed */
 Render R;
-
-/* commandline thread override */
-static int commandline_threads= -1;
 
 /* ********* alloc and free ******** */
 
@@ -231,11 +236,11 @@ static void push_render_result(Render *re)
 /* if scemode is R_SINGLE_LAYER, at end of rendering, merge the both render results */
 static void pop_render_result(Render *re)
 {
-	
 	if(re->result==NULL) {
 		printf("pop render result error; no current result!\n");
 		return;
 	}
+
 	if(re->pushedresult) {
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
@@ -993,13 +998,35 @@ static void read_render_result(Render *re, int sample)
 
 /* *************************************************** */
 
-Render *RE_GetRender(const char *name)
+void RE_SetViewSlot(int slot)
+{
+	RenderGlobal.viewslot = slot;
+}
+
+int RE_GetViewSlot(void)
+{
+	return RenderGlobal.viewslot;
+}
+
+static int re_get_slot(int slot)
+{
+	if(slot == RE_SLOT_VIEW)
+		return RenderGlobal.viewslot;
+	else if(slot == RE_SLOT_RENDERING)
+		return (G.rendering)? RenderGlobal.renderingslot: RenderGlobal.viewslot;
+
+	return slot;
+}
+
+Render *RE_GetRender(const char *name, int slot)
 {
 	Render *re;
+
+	slot= re_get_slot(slot);
 	
 	/* search for existing renders */
-	for(re= RenderList.first; re; re= re->next) {
-		if(strncmp(re->name, name, RE_MAXNAME)==0) {
+	for(re= RenderGlobal.renderlist.first; re; re= re->next) {
+		if(strncmp(re->name, name, RE_MAXNAME)==0 && re->slot==slot) {
 			break;
 		}
 	}
@@ -1130,24 +1157,26 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
 	RE_ReleaseResultImage(re);
 }
 
-
 RenderStats *RE_GetStats(Render *re)
 {
 	return &re->i;
 }
 
-Render *RE_NewRender(const char *name)
+Render *RE_NewRender(const char *name, int slot)
 {
 	Render *re;
+
+	slot= re_get_slot(slot);
 	
 	/* only one render per name exists */
-	re= RE_GetRender(name);
+	re= RE_GetRender(name, slot);
 	if(re==NULL) {
 		
 		/* new render data struct */
 		re= MEM_callocN(sizeof(Render), "new render");
-		BLI_addtail(&RenderList, re);
+		BLI_addtail(&RenderGlobal.renderlist, re);
 		strncpy(re->name, name, RE_MAXNAME);
+		re->slot= slot;
 		BLI_rw_mutex_init(&re->resultmutex);
 	}
 	
@@ -1182,15 +1211,15 @@ void RE_FreeRender(Render *re)
 	RE_FreeRenderResult(re->result);
 	RE_FreeRenderResult(re->pushedresult);
 	
-	BLI_remlink(&RenderList, re);
+	BLI_remlink(&RenderGlobal.renderlist, re);
 	MEM_freeN(re);
 }
 
 /* exit blender */
 void RE_FreeAllRender(void)
 {
-	while(RenderList.first) {
-		RE_FreeRender(RenderList.first);
+	while(RenderGlobal.renderlist.first) {
+		RE_FreeRender(RenderGlobal.renderlist.first);
 	}
 }
 
@@ -2194,7 +2223,7 @@ static void do_render_fields_blur_3d(Render *re)
 */
 static void render_scene(Render *re, Scene *sce, int cfra)
 {
-	Render *resc= RE_NewRender(sce->id.name);
+	Render *resc= RE_NewRender(sce->id.name, RE_SLOT_RENDERING);
 	int winx= re->winx, winy= re->winy;
 	
 	sce->r.cfra= cfra;
@@ -2321,7 +2350,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			Render *re1;
 			
 			tag_scenes_for_render(re);
-			for(re1= RenderList.first; re1; re1= re1->next) {
+			for(re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
 				if(re1->scene->id.flag & LIB_DOIT)
 					if(re1->r.scemode & R_FULL_SAMPLE)
 						read_render_result(re1, sample);
@@ -2348,6 +2377,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			float *col= rres.rectf + 4*y*re->rectx;
 				
 			for(x=0; x<re->rectx; x++, rf+=4, col+=4) {
+				/* clamping to 1.0 is needed for correct AA */
 				if(col[0]<0.0f) col[0]=0.0f; else if(col[0] > 1.0f) col[0]= 1.0f;
 				if(col[1]<0.0f) col[1]=0.0f; else if(col[1] > 1.0f) col[1]= 1.0f;
 				if(col[2]<0.0f) col[2]=0.0f; else if(col[2] > 1.0f) col[2]= 1.0f;
@@ -2483,7 +2513,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 static void renderresult_stampinfo(Scene *scene)
 {
 	RenderResult rres;
-	Render *re= RE_GetRender(scene->id.name);
+	Render *re= RE_GetRender(scene->id.name, RE_SLOT_RENDERING);
 
 	/* this is the basic trick to get the displayed float or char rect from render result */
 	RE_AcquireResultImage(re, &rres);
@@ -2792,8 +2822,9 @@ static int render_initialize_from_scene(Render *re, Scene *scene, SceneRenderLay
 void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, int frame)
 {
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
-	G.rendering= 1;
+	RenderGlobal.renderingslot= re->slot;
 	re->result_ok= 0;
+	G.rendering= 1;
 	
 	scene->r.cfra= frame;
 	
@@ -2802,8 +2833,9 @@ void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, int frame)
 	}
 	
 	/* UGLY WARNING */
-	G.rendering= 0;
 	re->result_ok= 1;
+	G.rendering= 0;
+	RenderGlobal.renderingslot= RenderGlobal.viewslot;
 }
 
 static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports)
@@ -2907,6 +2939,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra, Repo
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
+	RenderGlobal.renderingslot= re->slot;
 	re->result_ok= 0;
 	
 	if(BKE_imtype_is_movie(scene->r.imtype))
@@ -3003,6 +3036,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra, Repo
 	/* UGLY WARNING */
 	G.rendering= 0;
 	re->result_ok= 1;
+	RenderGlobal.renderingslot= RenderGlobal.viewslot;
 }
 
 /* note; repeated win/disprect calc... solve that nicer, also in compo */
@@ -3036,9 +3070,9 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 		scene= scenode;
 	
 	/* get render: it can be called from UI with draw callbacks */
-	re= RE_GetRender(scene->id.name);
+	re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
 	if(re==NULL)
-		re= RE_NewRender(scene->id.name);
+		re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
 	RE_InitState(re, NULL, &scene->r, NULL, winx, winy, &disprect);
 	re->scene= scene;
 	
@@ -3048,9 +3082,9 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 void RE_set_max_threads(int threads)
 {
 	if (threads==0) {
-		commandline_threads = BLI_system_thread_count();
+		RenderGlobal.threads = BLI_system_thread_count();
 	} else if(threads>=1 && threads<=BLENDER_MAX_THREADS) {
-		commandline_threads= threads;
+		RenderGlobal.threads= threads;
 	} else {
 		printf("Error, threads has to be in range 0-%d\n", BLENDER_MAX_THREADS);
 	}
@@ -3058,9 +3092,9 @@ void RE_set_max_threads(int threads)
 
 void RE_init_threadcount(Render *re) 
 {
-        if(commandline_threads >= 1) { /* only set as an arg in background mode */
-		re->r.threads= MIN2(commandline_threads, BLENDER_MAX_THREADS);
-	} else if ((re->r.mode & R_FIXED_THREADS)==0 || commandline_threads == 0) { /* Automatic threads */
+	if(RenderGlobal.threads >= 1) { /* only set as an arg in background mode */
+		re->r.threads= MIN2(RenderGlobal.threads, BLENDER_MAX_THREADS);
+	} else if ((re->r.mode & R_FIXED_THREADS)==0 || RenderGlobal.threads == 0) { /* Automatic threads */
 		re->r.threads = BLI_system_thread_count();
 	}
 }

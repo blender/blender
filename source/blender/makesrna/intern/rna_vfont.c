@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Blender Foundation (2008), Juho Vepsäläinen
  *
@@ -41,7 +41,7 @@ void RNA_def_vfont(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	srna= RNA_def_struct(brna, "VectorFont", "ID");
-	RNA_def_struct_ui_text(srna, "Vector Font", "Vector font for Text objects.");
+	RNA_def_struct_ui_text(srna, "Vector Font", "Vector font for Text objects");
 	RNA_def_struct_sdna(srna, "VFont");
 	RNA_def_struct_ui_icon(srna, ICON_FILE_FONT);
 

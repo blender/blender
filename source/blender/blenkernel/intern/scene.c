@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -161,6 +161,7 @@ Scene *copy_scene(Main *bmain, Scene *sce, int type)
 		scen->obedit= NULL;
 		scen->toolsettings= MEM_dupallocN(sce->toolsettings);
 		scen->stats= NULL;
+		scen->fps_info= NULL;
 
 		ts= scen->toolsettings;
 		if(ts) {
@@ -325,6 +326,8 @@ void free_scene(Scene *sce)
 
 	if(sce->stats)
 		MEM_freeN(sce->stats);
+	if(sce->fps_info)
+		MEM_freeN(sce->fps_info);
 
 	sound_destroy_scene(sce);
 }

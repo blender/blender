@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -23,7 +23,7 @@ from bpy.props import *
 
 
 class SelectPattern(bpy.types.Operator):
-    '''Select object matching a naming pattern.'''
+    '''Select object matching a naming pattern'''
     bl_idname = "object.select_pattern"
     bl_label = "Select Pattern"
     bl_register = True
@@ -73,6 +73,27 @@ class SelectPattern(bpy.types.Operator):
         row = layout.row()
         row.prop(props, "case_sensitive")
         row.prop(props, "extend")
+
+
+class SelectCamera(bpy.types.Operator):
+    '''Select object matching a naming pattern'''
+    bl_idname = "object.select_camera"
+    bl_label = "Select Camera"
+    bl_register = True
+    bl_undo = True
+
+    def poll(self, context):
+        return context.scene.camera is not None
+
+    def execute(self, context):
+        scene = context.scene
+        camera = scene.camera
+        if camera.name not in scene.objects:
+            self.report({'WARNING'}, "Active camera is not in this scene")
+
+        context.scene.objects.active = camera
+        camera.selected = True
+        return {'FINISHED'}
 
 
 class SubdivisionSet(bpy.types.Operator):
@@ -140,7 +161,7 @@ class SubdivisionSet(bpy.types.Operator):
 
 
 class ShapeTransfer(bpy.types.Operator):
-    '''Copy another selected objects active shape to this one by applying the relative offsets.'''
+    '''Copy another selected objects active shape to this one by applying the relative offsets'''
 
     bl_idname = "object.shape_key_transfer"
     bl_label = "Transfer Shape Key"
@@ -379,11 +400,79 @@ class JoinUVs(bpy.types.Operator):
         self._main(context)
         return {'FINISHED'}
 
-if __name__ == "__main__":
-    bpy.ops.uv.simple_operator()
+class MakeDupliFace(bpy.types.Operator):
+    '''Make linked objects into dupli-faces'''
+    bl_idname = "object.make_dupli_face"
+    bl_label = "Make DupliFace"
+
+    def poll(self, context):
+        obj = context.active_object
+        return (obj and obj.type == 'MESH')
+
+    def _main(self, context):
+        from Mathutils import Vector
+        from math import sqrt
+
+        SCALE_FAC = 0.01
+        offset = 0.5 * SCALE_FAC
+        base_tri = Vector(-offset, -offset, 0.0), Vector(offset, -offset, 0.0), Vector(offset, offset, 0.0), Vector(-offset, offset, 0.0)
+
+        def matrix_to_quat(matrix):
+            # scale = matrix.median_scale
+            trans = matrix.translation_part()
+            rot = matrix.rotation_part() # also contains scale
+            
+            return [(rot * b) + trans for b in base_tri]
+        scene = bpy.context.scene
+        linked = {}
+        for obj in bpy.context.selected_objects:
+            data = obj.data
+            if data:
+                linked.setdefault(data, []).append(obj)
+
+        for data, objects in linked.items():
+            face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix) for axis in v]
+            faces = list(range(int(len(face_verts) / 3)))
+
+            mesh = bpy.data.meshes.new(data.name + "_dupli")
+
+            mesh.add_geometry(int(len(face_verts) / 3), 0, int(len(face_verts) / (4 * 3)))
+            mesh.verts.foreach_set("co", face_verts)
+            mesh.faces.foreach_set("verts_raw", faces)
+            mesh.update() # generates edge data
+
+            # pick an object to use 
+            obj = objects[0]
+
+            ob_new = bpy.data.objects.new(mesh.name, 'MESH')
+            ob_new.data = mesh
+            base = scene.objects.link(ob_new)
+            base.layers[:] = obj.layers
+            
+            ob_inst = bpy.data.objects.new(data.name, obj.type)
+            ob_inst.data = data
+            base = scene.objects.link(ob_inst)
+            base.layers[:] = obj.layers
+            
+            for obj in objects:
+                scene.objects.unlink(obj)
+            
+            ob_new.dupli_type = 'FACES'
+            ob_inst.parent = ob_new
+            ob_new.use_dupli_faces_scale = True
+            ob_new.dupli_faces_scale = 1.0 / SCALE_FAC
+
+    def execute(self, context):
+        self._main(context)
+        return {'FINISHED'}
+
+# if __name__ == "__main__":
+#     bpy.ops.uv.simple_operator()
 
 
 bpy.types.register(SelectPattern)
+bpy.types.register(SelectCamera)
 bpy.types.register(SubdivisionSet)
 bpy.types.register(ShapeTransfer)
 bpy.types.register(JoinUVs)
+bpy.types.register(MakeDupliFace)
