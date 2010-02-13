@@ -42,9 +42,7 @@ SET(SRC
 INCLUDE_DIRECTORIES(../../../../intern/guardedalloc .. ../../makesdna ../../blenkernel ../../blenlib ../../ikplugin ../../windowmanager ../../editors/include ../../gpu ../../imbuf ../../render/extern/include .)
 FILE(GLOB INC_FILES ../*.h ../../makesdna/*.h)
 
-IF(WITH_PYTHON)
-
-ELSE(WITH_PYTHON)
+IF(NOT WITH_PYTHON)
 	ADD_DEFINITIONS(-DDISABLE_PYTHON)
 ENDIF(WITH_PYTHON)
 
@@ -103,9 +101,9 @@ ADD_EXECUTABLE(makesrna ${SRC} ${INC_FILES})
 TARGET_LINK_LIBRARIES(makesrna bf_dna)
 
 # Output rna_*_gen.c
+# note (linux only): with crashes try add this after COMMAND: valgrind --leak-check=full --track-origins=yes
 ADD_CUSTOM_COMMAND(
 	OUTPUT ${GENSRC}
-	# with crashes try add this after COMMAND: valgrind --leak-check=full --track-origins=yes 
 	COMMAND ${CMAKE_BINARY_DIR}/bin/${CMAKE_CFG_INTDIR}/makesrna ${CMAKE_CURRENT_BINARY_DIR}/
 	DEPENDS makesrna
 )
@@ -115,4 +113,3 @@ SET(SRC rna_access.c ${GENSRC})
 BLENDERLIB(bf_rna "${SRC}" "${INC}")
 
 MESSAGE(STATUS "Configuring makesrna")
-
