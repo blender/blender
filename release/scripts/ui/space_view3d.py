@@ -1216,37 +1216,49 @@ class VIEW3D_MT_edit_mesh_extrude(bpy.types.Menu):
         totedge = mesh.total_edge_sel
         totvert = mesh.total_vert_sel
         
-        if selection_mode[0]: # vert
-            if totvert == 0:
-                return ()
-            elif totvert == 1:
-                return (3,)
-            elif totedge == 0:
-                return (3,)
-            elif totface == 0:
-                return (2, 3)
-            elif totface == 1:
-                return (0, 2, 3)
-            else:
-                return (0, 1, 2, 3)
-        elif selection_mode[1]: # edge
-            if totedge == 0:
-                return ()
-            elif totedge == 1:
-                return (2,)
-            elif totface == 0:
-                return (2,)
-            elif totface == 1:
-                return (0, 2)
-            else:
-                return (0, 1, 2)
-        elif selection_mode[2]: # face
-            if totface == 0:
-                return ()
-            elif totface == 1:
-                return (0,)
-            else:
-                return (0, 1)
+        # the following is dependent on selection modes
+        # we don't really want that
+#        if selection_mode[0]: # vert
+#            if totvert == 0:
+#                return ()
+#            elif totvert == 1:
+#                return (3,)
+#            elif totedge == 0:
+#                return (3,)
+#            elif totface == 0:
+#                return (2, 3)
+#            elif totface == 1:
+#                return (0, 2, 3)
+#            else:
+#                return (0, 1, 2, 3)
+#        elif selection_mode[1]: # edge
+#            if totedge == 0:
+#                return ()
+#            elif totedge == 1:
+#                return (2,)
+#            elif totface == 0:
+#                return (2,)
+#            elif totface == 1:
+#                return (0, 2)
+#            else:
+#                return (0, 1, 2)
+#        elif selection_mode[2]: # face
+#            if totface == 0:
+#                return ()
+#            elif totface == 1:
+#                return (0,)
+#            else:
+#                return (0, 1)
+
+        if totvert == 0:
+            return ()
+        elif totedge == 0:
+            return (0,3)
+        elif totface == 0:
+            return (0,2,3)
+        else:
+            return (0,1,2,3)
+        
         
         # should never get here
         return ()
@@ -1255,10 +1267,17 @@ class VIEW3D_MT_edit_mesh_extrude(bpy.types.Menu):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
         
-        region_menu = lambda: layout.operator("mesh.extrude_region_move", text="Region")
-        face_menu = lambda: layout.operator("mesh.extrude_faces_move", text="Individual Faces")
-        edge_menu = lambda: layout.operator("mesh.extrude_edges_move", text="Edges Only")
-        vert_menu = lambda: layout.operator("mesh.extrude_vertices_move", text="Vertices Only")
+        def region_menu(): 
+            layout.operator("view3d.edit_mesh_extrude_move_normal", text="Region")
+        
+        def face_menu():
+            layout.operator("mesh.extrude_faces_move", text="Individual Faces")
+        
+        def edge_menu():
+            layout.operator("mesh.extrude_edges_move", text="Edges Only")
+        
+        def vert_menu():
+            layout.operator("mesh.extrude_vertices_move", text="Vertices Only")
         
         menu_funcs = region_menu, face_menu, edge_menu, vert_menu
         
@@ -1267,6 +1286,7 @@ class VIEW3D_MT_edit_mesh_extrude(bpy.types.Menu):
             func()
 
 class VIEW3D_OT_edit_mesh_extrude_individual_move(bpy.types.Operator):
+    "Extrude individual elements and move"
     bl_label = "Extrude Individual and Move"
     bl_idname = "view3d.edit_mesh_extrude_individual_move"
 
@@ -1291,8 +1311,9 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(bpy.types.Operator):
         return self.execute(context)
 
 class VIEW3D_OT_edit_mesh_extrude_move(bpy.types.Operator):
-    bl_label = "Extrude and Move"
-    bl_idname = "view3d.edit_mesh_extrude_move"
+    "Extrude and move along normals"
+    bl_label = "Extrude and Move on Normals"
+    bl_idname = "view3d.edit_mesh_extrude_move_normal"
 
     def execute(self, context):
         mesh = context.object.data
