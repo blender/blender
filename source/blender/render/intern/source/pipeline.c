@@ -1877,7 +1877,8 @@ static void do_render_3d(Render *re)
 	
 	/* Freestyle  */
 	if( re->r.mode & R_EDGE_FRS && re->r.renderer==R_INTERN)
-		FRS_add_Freestyle(re);
+		if(!re->test_break(re->tbh))
+			FRS_add_Freestyle(re);
 		
 	/* free all render verts etc */
 	RE_Database_Free(re);

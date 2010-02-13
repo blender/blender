@@ -123,6 +123,8 @@ extern "C" {
 		// load mesh
 		if( controller->LoadMesh(re, srl) ) // returns if scene cannot be loaded or if empty
 			return;
+        if( re->test_break(re->tbh) )
+            return;
 		
 		// add style modules
 		FreestyleConfig* config = &srl->freestyleConfig;
@@ -233,6 +235,11 @@ extern "C" {
 				//   - set parameters
 				//   - compute view map
 				prepare(re, srl);
+
+                if( re->test_break(re->tbh) ) {
+					controller->CloseFile();
+                    break;
+                }
 
 				// render and composite Freestyle result
 				if( controller->_ViewMap ) {
