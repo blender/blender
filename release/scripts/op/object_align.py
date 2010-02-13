@@ -26,8 +26,6 @@ def align_objects(align_x, align_y, align_z, relative_to):
 
     cursor = bpy.context.scene.cursor_location
 
-    # Selection BB
-
     Left_Up_Front_SEL = [[],[],[]]
     Right_Down_Back_SEL = [[],[],[]]
     
@@ -40,6 +38,15 @@ def align_objects(align_x, align_y, align_z, relative_to):
         Left_Up_Front = bb_world[1]
         Right_Down_Back = bb_world[7]
 
+        # Active Center
+
+        if obj == bpy.context.active_object:
+            
+            center_active_x = ( Left_Up_Front[0] + Right_Down_Back[0] ) / 2
+            center_active_y = ( Left_Up_Front[1] + Right_Down_Back[1] ) / 2
+            center_active_z = ( Left_Up_Front[2] + Right_Down_Back[2] ) / 2
+
+        # Selection Center
 
         if flag_first:
             flag_first = False
@@ -77,7 +84,7 @@ def align_objects(align_x, align_y, align_z, relative_to):
     center_sel_y = ( Left_Up_Front_SEL[1] + Right_Down_Back_SEL[1] ) / 2
     center_sel_z = ( Left_Up_Front_SEL[2] + Right_Down_Back_SEL[2] ) / 2
 
-    # End Selection BB
+    # Main Loop
 
     for obj in bpy.context.selected_objects:
         
@@ -105,6 +112,9 @@ def align_objects(align_x, align_y, align_z, relative_to):
             
             elif relative_to == 'OPT_3':
                 loc_x = obj_x + center_sel_x
+
+            elif relative_to == 'OPT_4':
+                loc_x = obj_x + center_active_x
             
             obj.location[0] = loc_x
 
@@ -121,6 +131,9 @@ def align_objects(align_x, align_y, align_z, relative_to):
             
             elif relative_to == 'OPT_3':
                 loc_y = obj_y + center_sel_y
+
+            elif relative_to == 'OPT_4':
+                loc_y = obj_y + center_active_y
             
             obj.location[1] = loc_y
 
@@ -137,6 +150,9 @@ def align_objects(align_x, align_y, align_z, relative_to):
             
             elif relative_to == 'OPT_3':
                 loc_z = obj_z + center_sel_z
+
+            elif relative_to == 'OPT_4':
+                loc_z = obj_z + center_active_z
             
             obj.location[2] = loc_z
 
@@ -153,7 +169,8 @@ class AlignObjects(bpy.types.Operator):
     relative_to = bpy.props.EnumProperty(items=(
             ('OPT_1', "Scene Origin", ""),
             ('OPT_2', "3D Cursor", ""),
-            ('OPT_3', "Selection", "")
+            ('OPT_3', "Selection", ""),
+            ('OPT_4', "Active", "")
             ),
         name="Relative To:",
         description="",
