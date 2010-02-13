@@ -295,7 +295,8 @@ Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot, int en
 	ED_object_base_init_transform(C, BASACT, loc, rot);
 
 	DAG_scene_sort(scene);
-	ED_render_id_flush_update(G.main, ob->data);
+	if(ob->data) /* could be an empty */
+		ED_render_id_flush_update(G.main, ob->data);
 
 	if(enter_editmode)
 		ED_object_enter_editmode(C, EM_IGNORE_LAYER);
