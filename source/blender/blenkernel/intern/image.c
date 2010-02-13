@@ -2033,6 +2033,10 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 	if(ima->source==IMA_SRC_MOVIE) {
 		frame= iuser?iuser->framenr:ima->lastframe;
 		ibuf= image_get_ibuf(ima, 0, frame);
+		/* XXX temp stuff? */
+		if(ima->lastframe != frame)
+			ima->tpageflag |= IMA_TPAGE_REFRESH;
+		ima->lastframe = frame;
 	}
 	else if(ima->source==IMA_SRC_SEQUENCE) {
 		if(ima->type==IMA_TYPE_IMAGE) {
