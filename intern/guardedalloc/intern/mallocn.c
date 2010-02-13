@@ -48,6 +48,23 @@
 
 #include "MEM_guardedalloc.h"
 
+/* Only for debugging:
+ * lets you count the allocations so as to find the allocator of unfreed memory
+ * in situations where the leak is pradictable */
+
+// #define DEBUG_MEMCOUNTER
+
+#ifdef DEBUG_MEMCOUNTER
+#define DEBUG_MEMCOUNTER_ERROR_VAL 0 /* set this to the value that isnt being freed */
+static int _mallocn_count = 0;
+
+/* breakpoint here */
+static void memcount_raise(const char *name)
+{
+	fprintf(stderr, "%s: memcount-leak, %d\n", name, _mallocn_count);
+}
+#endif
+
 /* --------------------------------------------------------------------- */
 /* Data definition                                                       */
 /* --------------------------------------------------------------------- */
@@ -71,6 +88,9 @@ typedef struct MemHead {
 	const char * nextname;
 	int tag2;
 	int mmap;	/* if true, memory was mmapped */
+#ifdef DEBUG_MEMCOUNTER
+	int _count;
+#endif
 } MemHead;
 
 typedef struct MemTail {
@@ -283,6 +303,12 @@ void *MEM_mallocN(unsigned int len, const char *str)
 		mem_unlock_thread();
 		if(malloc_debug_memset && len)
 			memset(memh+1, 255, len);
+
+#ifdef DEBUG_MEMCOUNTER
+		memh->_count= _mallocn_count++;
+		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
+			memcount_raise("MEM_mallocN");
+#endif
 		return (++memh);
 	}
 	mem_unlock_thread();
@@ -303,6 +329,11 @@ void *MEM_callocN(unsigned int len, const char *str)
 	if(memh) {
 		make_memhead_header(memh, len, str);
 		mem_unlock_thread();
+#ifdef DEBUG_MEMCOUNTER
+		memh->_count= _mallocn_count++;
+		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
+			memcount_raise("MEM_callocN");
+#endif
 		return (++memh);
 	}
 	mem_unlock_thread();
@@ -340,6 +371,11 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 		memh->mmap= 1;
 		mmap_in_use += len;
 		mem_unlock_thread();
+#ifdef DEBUG_MEMCOUNTER
+		memh->_count= _mallocn_count++;
+		if(_mallocn_count==DEBUG_MEMCOUNTER_ERROR_VAL)
+			memcount_raise("MEM_mapallocN");
+#endif
 		return (++memh);
 	}
 	else {
@@ -453,7 +489,11 @@ static void MEM_printmemlist_internal( int pydict )
 		if (pydict) {
 			fprintf(stderr, "{'len':%i, 'name':'''%s''', 'pointer':'%p'},\\\n", membl->len, membl->name, membl+1);
 		} else {
+#ifdef DEBUG_MEMCOUNTER
+			print_error("%s len: %d %p, count: %d\n",membl->name,membl->len, membl+1, membl->_count);
+#else
 			print_error("%s len: %d %p\n",membl->name,membl->len, membl+1);
+#endif
 		}
 		if(membl->next)
 			membl= MEMNEXT(membl->next);
