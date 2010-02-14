@@ -195,6 +195,9 @@ static void world_changed(Main *bmain, World *wo)
 
 void ED_render_id_flush_update(Main *bmain, ID *id)
 {
+	if(!id)
+		return;
+
 	switch(GS(id->name)) {
 		case ID_MA:
 			material_changed(bmain, (Material*)id);
