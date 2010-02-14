@@ -358,7 +358,7 @@ void BKE_userdef_free(void)
 	BLI_freelistN(&U.uifonts);
 	BLI_freelistN(&U.themes);
 	BLI_freelistN(&U.keymaps);
-	
+	BLI_freelistN(&U.extensions);
 }
 
 /* returns:

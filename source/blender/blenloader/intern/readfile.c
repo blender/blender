@@ -10685,6 +10685,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	link_list(fd, &user->themes);
 	link_list(fd, &user->keymaps);
+	link_list(fd, &user->extensions);
 
 	for(keymap=user->keymaps.first; keymap; keymap=keymap->next) {
 		keymap->modal_items= NULL;

@@ -542,6 +542,7 @@ static void write_userdef(WriteData *wd)
 	bTheme *btheme;
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
+	bExtension *bext;
 
 	writestruct(wd, USER, "UserDef", 1, &U);
 
@@ -558,6 +559,9 @@ static void write_userdef(WriteData *wd)
 				IDP_WriteProperty(kmi->properties, wd);
 		}
 	}
+
+	for(bext= U.extensions.first; bext; bext=bext->next)
+		writestruct(wd, DATA, "bExtension", 1, bext);
 }
 
 static void write_boid_state(WriteData *wd, BoidState *state)

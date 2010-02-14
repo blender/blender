@@ -4254,6 +4254,10 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class)
 	/* call unregister */
 	unreg(C, srna); /* calls bpy_class_free, this decref's py_class */
 
+	// odd, this doesnt seem to be needed but no idea why since its not removed, campbell
+	// printf("%d\n", PyDict_DelItemString(((PyTypeObject *)py_class)->tp_dict, "bl_rna"));
+	// PyErr_Clear();
+
 	Py_RETURN_NONE;
 }
 

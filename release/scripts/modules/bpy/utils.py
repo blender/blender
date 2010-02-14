@@ -29,6 +29,52 @@ import sys as _sys
 
 from _bpy import home_paths
 
+
+def _test_import(module_name, loaded_modules):
+    import traceback
+    import time
+    if module_name in loaded_modules:
+        return None
+    if "." in module_name:
+        print("Ignoring '%s', can't import files containing multiple periods." % module_name)
+        return None
+
+    try:
+        t = time.time()
+        ret = __import__(module_name)
+        if _bpy.app.debug:
+            print("time %s %.4f" % (module_name, time.time() - t))
+        return ret
+    except:
+        traceback.print_exc()
+        return None
+
+
+def modules_from_path(path, loaded_modules):
+    """
+    Load all modules in a path and return them as a list.
+    """
+    import traceback
+    import time
+    
+    modules = []
+    
+    for f in sorted(_os.listdir(path)):
+        if f.endswith(".py"):
+            # python module
+            mod = _test_import(f[0:-3], loaded_modules)
+        elif ("." not in f) and (_os.path.isfile(_os.path.join(path, f, "__init__.py"))):
+            # python package
+            mod = _test_import(f, loaded_modules)
+        else:
+            mod = None
+        
+        if mod:
+            modules.append(mod)
+    
+    return modules
+
+
 def load_scripts(reload_scripts=False, refresh_scripts=False):
     import traceback
     import time
@@ -37,29 +83,28 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     loaded_modules = set()
 
-    def test_import(module_name):
-        if module_name in loaded_modules:
-            return None
-        if "." in module_name:
-            print("Ignoring '%s', can't import files containing multiple periods." % module_name)
-            return None
-
-        try:
-            t = time.time()
-            ret = __import__(module_name)
-            if _bpy.app.debug:
-                print("time %s %.4f" % (module_name, time.time() - t))
-            return ret
-        except:
-            traceback.print_exc()
-            return None
+    def sys_path_ensure(path):
+        if path not in _sys.path: # reloading would add twice
+            _sys.path.insert(0, path)
 
     def test_reload(module):
         try:
             return reload(module)
         except:
             traceback.print_exc()
+    
+    def test_register(mod):
+        if reload_scripts and mod:
+            print("Reloading:", mod)
+            mod = test_reload(mod)
 
+        if mod:
+            register = getattr(mod, "register", None)
+            if register:
+                register()
+            else:
+                print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
+    
     if reload_scripts:
         # reload modules that may not be directly included
         for type_class_name in dir(_bpy.types):
@@ -83,28 +128,21 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 if refresh_scripts and path in _sys.path:
                     continue
 
-                if path not in _sys.path: # reloading would add twice
-                    _sys.path.insert(0, path)
-                for f in sorted(_os.listdir(path)):
-                    if f.endswith(".py"):
-                        # python module
-                        mod = test_import(f[0:-3])
-                    elif ("." not in f) and (_os.path.isfile(_os.path.join(path, f, "__init__.py"))):
-                        # python package
-                        mod = test_import(f)
-                    else:
-                        mod = None
+                sys_path_ensure(path)
+                
+                for mod in modules_from_path(path, loaded_modules):
+                    test_register(mod)
 
-                    if reload_scripts and mod:
-                        print("Reloading:", mod)
-                        mod = test_reload(mod)
-
-                    if mod:
-                        register = getattr(mod, "register", None)
-                        if register:
-                            register()
-                        else:
-                            print("\nWarning! '%s%s%s' has no register function, this is now a requirement for registerable scripts." % (path, _os.sep, f))
+    
+    # load extensions
+    used_ext = {ext.module for ext in _bpy.context.user_preferences.extensions}    
+    paths = script_paths("extensions")
+    for path in paths:
+        sys_path_ensure(path)
+    
+    for module_name in sorted(used_ext):
+        mod = _test_import(module_name, loaded_modules)
+        test_register(mod)
 
 
     if _bpy.app.debug:
@@ -196,7 +234,7 @@ def script_paths(*args):
         path_subdir = _os.path.join(path, subdir)
         if _os.path.isdir(path_subdir):
             script_paths.append(path_subdir)
-    print(script_paths)
+
     return script_paths
 
 
