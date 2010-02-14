@@ -56,7 +56,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     def test_reload(module):
         try:
-            reload(module)
+            return reload(module)
         except:
             traceback.print_exc()
 
@@ -97,7 +97,15 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
                     if reload_scripts and mod:
                         print("Reloading:", mod)
-                        test_reload(mod)
+                        mod = test_reload(mod)
+
+                    if mod:
+                        register = getattr(mod, "register", None)
+                        if register:
+                            register()
+                        else:
+                            print("\nWarning! '%s%s%s' has no register function, this is now a requirement for registerable scripts." % (path, _os.sep, f))
+
 
     if _bpy.app.debug:
         print("Time %.4f" % (time.time() - t_main))

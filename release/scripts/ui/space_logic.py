@@ -46,4 +46,17 @@ class LOGIC_PT_properties(bpy.types.Panel):
             row.prop(prop, "debug", text="", toggle=True, icon='INFO')
             row.operator("object.game_property_remove", text="", icon='X').index = i
 
-bpy.types.register(LOGIC_PT_properties)
+
+classes = [
+    LOGIC_PT_properties]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

@@ -729,4 +729,17 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "width", slider=True)
         col.prop(md, "narrowness", slider=True)
 
-bpy.types.register(DATA_PT_modifiers)
+
+classes = [
+    DATA_PT_modifiers]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

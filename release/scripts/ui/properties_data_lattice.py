@@ -96,7 +96,19 @@ class DATA_PT_lattice(DataButtonsPanel):
         layout.prop(lat, "outside")
 
 
-bpy.types.register(DATA_PT_context_lattice)
-bpy.types.register(DATA_PT_lattice)
+classes = [
+    DATA_PT_context_lattice,
+    DATA_PT_lattice,
 
-bpy.types.register(DATA_PT_custom_props_lattice)
+    DATA_PT_custom_props_lattice]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

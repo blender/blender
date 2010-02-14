@@ -383,13 +383,25 @@ class DATA_PT_textboxes(DataButtonsPanel):
             col.prop(box, "y", text="Y")
 
 
-bpy.types.register(DATA_PT_context_curve)
-bpy.types.register(DATA_PT_shape_curve)
-bpy.types.register(DATA_PT_geometry_curve)
-bpy.types.register(DATA_PT_pathanim)
-bpy.types.register(DATA_PT_active_spline)
-bpy.types.register(DATA_PT_font)
-bpy.types.register(DATA_PT_paragraph)
-bpy.types.register(DATA_PT_textboxes)
+classes = [
+    DATA_PT_context_curve,
+    DATA_PT_shape_curve,
+    DATA_PT_geometry_curve,
+    DATA_PT_pathanim,
+    DATA_PT_active_spline,
+    DATA_PT_font,
+    DATA_PT_paragraph,
+    DATA_PT_textboxes,
 
-bpy.types.register(DATA_PT_custom_props_curve)
+    DATA_PT_custom_props_curve]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

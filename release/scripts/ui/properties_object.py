@@ -305,13 +305,25 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.active = (ob.parent is not None)
 
 
-bpy.types.register(OBJECT_PT_context_object)
-bpy.types.register(OBJECT_PT_transform)
-bpy.types.register(OBJECT_PT_transform_locks)
-bpy.types.register(OBJECT_PT_relations)
-bpy.types.register(OBJECT_PT_groups)
-bpy.types.register(OBJECT_PT_display)
-bpy.types.register(OBJECT_PT_duplication)
-bpy.types.register(OBJECT_PT_animation)
+classes = [
+    OBJECT_PT_context_object,
+    OBJECT_PT_transform,
+    OBJECT_PT_transform_locks,
+    OBJECT_PT_relations,
+    OBJECT_PT_groups,
+    OBJECT_PT_display,
+    OBJECT_PT_duplication,
+    OBJECT_PT_animation,
 
-bpy.types.register(OBJECT_PT_custom_props)
+    OBJECT_PT_custom_props]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

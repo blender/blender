@@ -1348,14 +1348,6 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         #print("runtime", time.time() - start)
 
-bpy.types.register(USERPREF_HT_header)
-bpy.types.register(USERPREF_PT_tabs)
-bpy.types.register(USERPREF_PT_interface)
-bpy.types.register(USERPREF_PT_theme)
-bpy.types.register(USERPREF_PT_edit)
-bpy.types.register(USERPREF_PT_system)
-bpy.types.register(USERPREF_PT_file)
-bpy.types.register(USERPREF_PT_input)
 
 from bpy.props import *
 
@@ -1755,12 +1747,34 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
         wm.remove_keyconfig(keyconfig)
         return {'FINISHED'}
 
-bpy.types.register(WM_OT_keyconfig_export)
-bpy.types.register(WM_OT_keyconfig_import)
-bpy.types.register(WM_OT_keyconfig_test)
-bpy.types.register(WM_OT_keyconfig_remove)
-bpy.types.register(WM_OT_keymap_edit)
-bpy.types.register(WM_OT_keymap_restore)
-bpy.types.register(WM_OT_keyitem_add)
-bpy.types.register(WM_OT_keyitem_remove)
-bpy.types.register(WM_OT_keyitem_restore)
+
+classes = [
+    USERPREF_HT_header,
+    USERPREF_PT_tabs,
+    USERPREF_PT_interface,
+    USERPREF_PT_theme,
+    USERPREF_PT_edit,
+    USERPREF_PT_system,
+    USERPREF_PT_file,
+    USERPREF_PT_input,
+
+    WM_OT_keyconfig_export,
+    WM_OT_keyconfig_import,
+    WM_OT_keyconfig_test,
+    WM_OT_keyconfig_remove,
+    WM_OT_keymap_edit,
+    WM_OT_keymap_restore,
+    WM_OT_keyitem_add,
+    WM_OT_keyitem_remove,
+    WM_OT_keyitem_restore]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

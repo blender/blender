@@ -466,13 +466,23 @@ class MakeDupliFace(bpy.types.Operator):
         self._main(context)
         return {'FINISHED'}
 
-# if __name__ == "__main__":
-#     bpy.ops.uv.simple_operator()
+
+classes = [
+    SelectPattern,
+    SelectCamera,
+    SubdivisionSet,
+    ShapeTransfer,
+    JoinUVs,
+    MakeDupliFace]
 
 
-bpy.types.register(SelectPattern)
-bpy.types.register(SelectCamera)
-bpy.types.register(SubdivisionSet)
-bpy.types.register(ShapeTransfer)
-bpy.types.register(JoinUVs)
-bpy.types.register(MakeDupliFace)
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+

@@ -570,20 +570,33 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
         layout.template_curve_mapping(brush, "curve")
         layout.operator_menu_enum("brush.curve_preset", property="shape")
 
-bpy.types.register(IMAGE_MT_view)
-bpy.types.register(IMAGE_MT_select)
-bpy.types.register(IMAGE_MT_image)
-bpy.types.register(IMAGE_MT_uvs_showhide)
-bpy.types.register(IMAGE_MT_uvs_transform)
-bpy.types.register(IMAGE_MT_uvs_snap)
-bpy.types.register(IMAGE_MT_uvs_mirror)
-bpy.types.register(IMAGE_MT_uvs_weldalign)
-bpy.types.register(IMAGE_MT_uvs)
-bpy.types.register(IMAGE_HT_header)
-bpy.types.register(IMAGE_PT_image_properties)
-bpy.types.register(IMAGE_PT_paint)
-bpy.types.register(IMAGE_PT_paint_stroke)
-bpy.types.register(IMAGE_PT_paint_curve)
-bpy.types.register(IMAGE_PT_game_properties)
-bpy.types.register(IMAGE_PT_view_properties)
-bpy.types.register(IMAGE_PT_view_histogram)
+
+classes = [
+    IMAGE_MT_view,
+    IMAGE_MT_select,
+    IMAGE_MT_image,
+    IMAGE_MT_uvs_showhide,
+    IMAGE_MT_uvs_transform,
+    IMAGE_MT_uvs_snap,
+    IMAGE_MT_uvs_mirror,
+    IMAGE_MT_uvs_weldalign,
+    IMAGE_MT_uvs,
+    IMAGE_HT_header,
+    IMAGE_PT_image_properties,
+    IMAGE_PT_paint,
+    IMAGE_PT_paint_stroke,
+    IMAGE_PT_paint_curve,
+    IMAGE_PT_game_properties,
+    IMAGE_PT_view_properties,
+    IMAGE_PT_view_histogram]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

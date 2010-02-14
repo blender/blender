@@ -1623,11 +1623,16 @@ class IMPORT_OT_obj(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-bpy.types.register(IMPORT_OT_obj)
-
-
 menu_func = lambda self, context: self.layout.operator(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)...")
-menu_item = bpy.types.INFO_MT_file_import.append(menu_func)
+
+
+def register():
+    bpy.types.register(IMPORT_OT_obj)
+    bpy.types.INFO_MT_file_export.append(menu_func)
+    
+def unregister():
+    bpy.types.unregister(IMPORT_OT_obj)
+    bpy.types.INFO_MT_file_export.remove(menu_func)
 
 
 # NOTES (all line numbers refer to 2.4x import_obj.py, not this file)

@@ -41,4 +41,9 @@ class SaveDirty(bpy.types.Operator):
                     image.save(path=path)
         return {'FINISHED'}
 
-bpy.types.register(SaveDirty)
+
+def register():
+    bpy.types.register(SaveDirty)
+
+def unregister():
+    bpy.types.unregister(SaveDirty)

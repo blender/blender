@@ -238,9 +238,22 @@ class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):
         domain = context.smoke.domain_settings
         effector_weights_ui(self, context, domain.effector_weights)
 
-bpy.types.register(PHYSICS_PT_smoke)
-bpy.types.register(PHYSICS_PT_smoke_field_weights)
-bpy.types.register(PHYSICS_PT_smoke_cache)
-bpy.types.register(PHYSICS_PT_smoke_highres)
-bpy.types.register(PHYSICS_PT_smoke_groups)
-bpy.types.register(PHYSICS_PT_smoke_cache_highres)
+
+classes = [
+    PHYSICS_PT_smoke,
+    PHYSICS_PT_smoke_field_weights,
+    PHYSICS_PT_smoke_cache,
+    PHYSICS_PT_smoke_highres,
+    PHYSICS_PT_smoke_groups,
+    PHYSICS_PT_smoke_cache_highres]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

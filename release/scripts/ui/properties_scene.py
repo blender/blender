@@ -215,21 +215,10 @@ class SCENE_PT_simplify(SceneButtonsPanel):
             col = split.column()
         col.prop(rd, "simplify_shadow_samples", text="Shadow Samples")
         col.prop(rd, "simplify_ao_sss", text="AO and SSS")
-        
-        
 
-bpy.types.register(SCENE_PT_scene)
-bpy.types.register(SCENE_PT_unit)
-bpy.types.register(SCENE_PT_keying_sets)
-bpy.types.register(SCENE_PT_keying_set_paths)
-bpy.types.register(SCENE_PT_physics)
-bpy.types.register(SCENE_PT_simplify)
-
-bpy.types.register(SCENE_PT_custom_props)
-
-################################
 
 from bpy.props import *
+
 
 class ANIM_OT_keying_set_export(bpy.types.Operator):
     "Export Keying Set to a python script."
@@ -340,4 +329,17 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
-bpy.types.register(ANIM_OT_keying_set_export)
+
+classes = [
+    ANIM_OT_keying_set_export]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

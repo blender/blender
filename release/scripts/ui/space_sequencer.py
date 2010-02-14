@@ -665,21 +665,34 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
         col.prop(st, "draw_overexposed") # text="Zebra"
         col.prop(st, "draw_safe_margin")
 
-bpy.types.register(SEQUENCER_HT_header) # header/menu classes
-bpy.types.register(SEQUENCER_MT_view)
-bpy.types.register(SEQUENCER_MT_view_toggle)
-bpy.types.register(SEQUENCER_MT_select)
-bpy.types.register(SEQUENCER_MT_marker)
-bpy.types.register(SEQUENCER_MT_add)
-bpy.types.register(SEQUENCER_MT_add_effect)
-bpy.types.register(SEQUENCER_MT_strip)
 
-bpy.types.register(SEQUENCER_PT_edit) # sequencer panels
-bpy.types.register(SEQUENCER_PT_effect)
-bpy.types.register(SEQUENCER_PT_input)
-bpy.types.register(SEQUENCER_PT_sound)
-bpy.types.register(SEQUENCER_PT_scene)
-bpy.types.register(SEQUENCER_PT_filter)
-bpy.types.register(SEQUENCER_PT_proxy)
+classes = [
+    SEQUENCER_HT_header, # header/menu classes
+    SEQUENCER_MT_view,
+    SEQUENCER_MT_view_toggle,
+    SEQUENCER_MT_select,
+    SEQUENCER_MT_marker,
+    SEQUENCER_MT_add,
+    SEQUENCER_MT_add_effect,
+    SEQUENCER_MT_strip,
 
-bpy.types.register(SEQUENCER_PT_view) # view panels
+    SEQUENCER_PT_edit, # sequencer panels
+    SEQUENCER_PT_effect,
+    SEQUENCER_PT_input,
+    SEQUENCER_PT_sound,
+    SEQUENCER_PT_scene,
+    SEQUENCER_PT_filter,
+    SEQUENCER_PT_proxy,
+
+    SEQUENCER_PT_view] # view panels
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

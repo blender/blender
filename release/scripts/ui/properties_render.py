@@ -624,16 +624,28 @@ class RENDER_PT_bake(RenderButtonsPanel):
         sub.prop(rd, "bake_bias")
 
 
-bpy.types.register(RENDER_MT_presets)
-bpy.types.register(RENDER_PT_render)
-bpy.types.register(RENDER_PT_layers)
-bpy.types.register(RENDER_PT_dimensions)
-bpy.types.register(RENDER_PT_antialiasing)
-bpy.types.register(RENDER_PT_motion_blur)
-bpy.types.register(RENDER_PT_shading)
-bpy.types.register(RENDER_PT_output)
-bpy.types.register(RENDER_PT_encoding)
-bpy.types.register(RENDER_PT_performance)
-bpy.types.register(RENDER_PT_post_processing)
-bpy.types.register(RENDER_PT_stamp)
-bpy.types.register(RENDER_PT_bake)
+classes = [
+    RENDER_MT_presets,
+    RENDER_PT_render,
+    RENDER_PT_layers,
+    RENDER_PT_dimensions,
+    RENDER_PT_antialiasing,
+    RENDER_PT_motion_blur,
+    RENDER_PT_shading,
+    RENDER_PT_output,
+    RENDER_PT_encoding,
+    RENDER_PT_performance,
+    RENDER_PT_post_processing,
+    RENDER_PT_stamp,
+    RENDER_PT_bake]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

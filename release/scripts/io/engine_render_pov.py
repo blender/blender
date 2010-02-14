@@ -854,7 +854,6 @@ class PovrayRender(bpy.types.RenderEngine):
 
         self._cleanup()
 
-bpy.types.register(PovrayRender)
 
 # Use some of the existing buttons.
 import properties_render
@@ -944,4 +943,18 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel):
             col = split.column()
             col.prop(scene, "pov_radio_always_sample")
 
-bpy.types.register(RENDER_PT_povray_radiosity)
+
+classes = [
+    PovrayRender,
+    RENDER_PT_povray_radiosity]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

@@ -99,6 +99,19 @@ class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
         col.operator("outliner.drivers_add_selected")
         col.operator("outliner.drivers_delete_selected")
 
-bpy.types.register(OUTLINER_HT_header)
-bpy.types.register(OUTLINER_MT_view)
-bpy.types.register(OUTLINER_MT_edit_datablocks)
+
+classes = [
+    OUTLINER_HT_header,
+    OUTLINER_MT_view,
+    OUTLINER_MT_edit_datablocks]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

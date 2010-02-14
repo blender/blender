@@ -754,5 +754,18 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
         for con in context.pose_bone.constraints:
             self.draw_constraint(context, con)
 
-bpy.types.register(OBJECT_PT_constraints)
-bpy.types.register(BONE_PT_constraints)
+
+classes = [
+    OBJECT_PT_constraints,
+    BONE_PT_constraints]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

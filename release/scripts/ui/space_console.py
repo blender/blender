@@ -198,15 +198,27 @@ class ConsoleLanguage(bpy.types.Operator):
         return {'FINISHED'}
 
 
-bpy.types.register(CONSOLE_HT_header)
-bpy.types.register(CONSOLE_MT_console)
-bpy.types.register(CONSOLE_MT_report)
-bpy.types.register(CONSOLE_MT_language)
+classes = [
+    CONSOLE_HT_header,
+    CONSOLE_MT_console,
+    CONSOLE_MT_report,
+    CONSOLE_MT_language,
 
-# Stubs that call the language operators
-bpy.types.register(ConsoleExec)
-bpy.types.register(ConsoleAutocomplete)
-bpy.types.register(ConsoleBanner)
+    # Stubs that call the language operators
+    ConsoleExec,
+    ConsoleAutocomplete,
+    ConsoleBanner,
 
-# Set the language and call the banner
-bpy.types.register(ConsoleLanguage)
+    # Set the language and call the banner
+    ConsoleLanguage]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

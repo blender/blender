@@ -191,9 +191,21 @@ class DOPESHEET_MT_key_transform(bpy.types.Menu):
         layout.operator("transform.resize", text="Scale")
 
 
-bpy.types.register(DOPESHEET_HT_header) # header/menu classes
-bpy.types.register(DOPESHEET_MT_view)
-bpy.types.register(DOPESHEET_MT_select)
-bpy.types.register(DOPESHEET_MT_channel)
-bpy.types.register(DOPESHEET_MT_key)
-bpy.types.register(DOPESHEET_MT_key_transform)
+classes = [
+    DOPESHEET_HT_header, # header/menu classes
+    DOPESHEET_MT_view,
+    DOPESHEET_MT_select,
+    DOPESHEET_MT_channel,
+    DOPESHEET_MT_key,
+    DOPESHEET_MT_key_transform]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

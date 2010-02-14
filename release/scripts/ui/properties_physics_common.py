@@ -210,3 +210,10 @@ def basic_force_field_falloff_ui(self, context, field):
     sub = col.column()
     sub.active = field.use_max_distance
     sub.prop(field, "maximum_distance", text="Distance")
+
+
+def register():
+    pass
+
+def unregister():
+    pass

@@ -150,8 +150,20 @@ class DATA_PT_camera_display(DataButtonsPanel):
         sub.prop(cam, "passepartout_alpha", text="Alpha", slider=True)
 
 
-bpy.types.register(DATA_PT_context_camera)
-bpy.types.register(DATA_PT_camera)
-bpy.types.register(DATA_PT_camera_display)
+classes = [
+    DATA_PT_context_camera,
+    DATA_PT_camera,
+    DATA_PT_camera_display,
 
-bpy.types.register(DATA_PT_custom_props_camera)
+    DATA_PT_custom_props_camera]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

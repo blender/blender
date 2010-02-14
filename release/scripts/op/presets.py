@@ -158,7 +158,20 @@ class AddPresetSunSky(AddPresetBase):
     preset_subdir = "sunsky"
 
 
-bpy.types.register(AddPresetRender)
-bpy.types.register(AddPresetSSS)
-bpy.types.register(AddPresetCloth)
-bpy.types.register(AddPresetSunSky)
+classes = [
+    AddPresetRender,
+    AddPresetSSS,
+    AddPresetCloth,
+    AddPresetSunSky]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+

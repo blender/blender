@@ -3435,7 +3435,7 @@ class ExportFBX(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-bpy.types.register(ExportFBX)
+
 
 # if __name__ == "__main__":
 # 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
@@ -3467,4 +3467,11 @@ def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".fbx")
     self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX...").path = default_path
 
-menu_item = bpy.types.INFO_MT_file_export.append(menu_func)
+
+def register():
+    bpy.types.register(ExportFBX)
+    bpy.types.INFO_MT_file_export.append(menu_func)
+    
+def unregister():
+    bpy.types.unregister(ExportFBX)
+    bpy.types.INFO_MT_file_export.remove(menu_func)

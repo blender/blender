@@ -167,8 +167,20 @@ class TIME_MT_autokey(bpy.types.Menu):
         layout.prop_enum(tools, "autokey_mode", 'ADD_REPLACE_KEYS')
         layout.prop_enum(tools, "autokey_mode", 'REPLACE_KEYS')
 
-bpy.types.register(TIME_HT_header)
-bpy.types.register(TIME_MT_view)
-bpy.types.register(TIME_MT_frame)
-bpy.types.register(TIME_MT_autokey)
-bpy.types.register(TIME_MT_playback)
+classes = [
+    TIME_HT_header,
+    TIME_MT_view,
+    TIME_MT_frame,
+    TIME_MT_autokey,
+    TIME_MT_playback]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

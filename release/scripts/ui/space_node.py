@@ -139,7 +139,20 @@ class NODE_MT_node(bpy.types.Menu):
 
         layout.operator("node.show_cyclic_dependencies")
 
-bpy.types.register(NODE_HT_header)
-bpy.types.register(NODE_MT_view)
-bpy.types.register(NODE_MT_select)
-bpy.types.register(NODE_MT_node)
+
+classes = [
+    NODE_HT_header,
+    NODE_MT_view,
+    NODE_MT_select,
+    NODE_MT_node]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

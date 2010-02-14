@@ -159,9 +159,21 @@ class NLA_MT_edit_transform(bpy.types.Menu):
         layout.operator("transform.resize", text="Scale")
 
 
-bpy.types.register(NLA_HT_header) # header/menu classes
-bpy.types.register(NLA_MT_view)
-bpy.types.register(NLA_MT_select)
-bpy.types.register(NLA_MT_edit)
-bpy.types.register(NLA_MT_add)
-bpy.types.register(NLA_MT_edit_transform)
+classes = [
+    NLA_HT_header, # header/menu classes
+    NLA_MT_view,
+    NLA_MT_select,
+    NLA_MT_edit,
+    NLA_MT_add,
+    NLA_MT_edit_transform]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

@@ -998,19 +998,32 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
         row.prop_object(psys, "vertex_group_field", ob, "vertex_groups", text="Field")
         row.prop(psys, "vertex_group_field_negate", text="")
 
-bpy.types.register(PARTICLE_PT_context_particles)
-bpy.types.register(PARTICLE_PT_hair_dynamics)
-bpy.types.register(PARTICLE_PT_cache)
-bpy.types.register(PARTICLE_PT_emission)
-bpy.types.register(PARTICLE_PT_velocity)
-bpy.types.register(PARTICLE_PT_rotation)
-bpy.types.register(PARTICLE_PT_physics)
-bpy.types.register(PARTICLE_PT_boidbrain)
-bpy.types.register(PARTICLE_PT_render)
-bpy.types.register(PARTICLE_PT_draw)
-bpy.types.register(PARTICLE_PT_children)
-bpy.types.register(PARTICLE_PT_field_weights)
-bpy.types.register(PARTICLE_PT_force_fields)
-bpy.types.register(PARTICLE_PT_vertexgroups)
 
-bpy.types.register(PARTICLE_PT_custom_props)
+classes = [
+    PARTICLE_PT_context_particles,
+    PARTICLE_PT_hair_dynamics,
+    PARTICLE_PT_cache,
+    PARTICLE_PT_emission,
+    PARTICLE_PT_velocity,
+    PARTICLE_PT_rotation,
+    PARTICLE_PT_physics,
+    PARTICLE_PT_boidbrain,
+    PARTICLE_PT_render,
+    PARTICLE_PT_draw,
+    PARTICLE_PT_children,
+    PARTICLE_PT_field_weights,
+    PARTICLE_PT_force_fields,
+    PARTICLE_PT_vertexgroups,
+
+    PARTICLE_PT_custom_props]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

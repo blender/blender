@@ -228,10 +228,23 @@ class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel):
         cloth = context.cloth.settings
         effector_weights_ui(self, context, cloth.effector_weights)
 
-bpy.types.register(CLOTH_MT_presets)
 
-bpy.types.register(PHYSICS_PT_cloth)
-bpy.types.register(PHYSICS_PT_cloth_cache)
-bpy.types.register(PHYSICS_PT_cloth_collision)
-bpy.types.register(PHYSICS_PT_cloth_stiffness)
-bpy.types.register(PHYSICS_PT_cloth_field_weights)
+classes = [
+    CLOTH_MT_presets,
+
+    PHYSICS_PT_cloth,
+    PHYSICS_PT_cloth_cache,
+    PHYSICS_PT_cloth_collision,
+    PHYSICS_PT_cloth_stiffness,
+    PHYSICS_PT_cloth_field_weights]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

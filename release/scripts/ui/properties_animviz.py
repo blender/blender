@@ -157,8 +157,19 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel):
         col.operator("pose.paths_clear", text="Clear Paths")
 
 
+classes = [
+    OBJECT_PT_motion_paths,
+    DATA_PT_motion_paths]
 
-#bpy.types.register(OBJECT_PT_onion_skinning)
-#bpy.types.register(DATA_PT_onion_skinning)
-bpy.types.register(OBJECT_PT_motion_paths)
-bpy.types.register(DATA_PT_motion_paths)
+# OBJECT_PT_onion_skinning
+# DATA_PT_onion_skinning
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

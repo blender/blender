@@ -196,15 +196,16 @@ class ExportUVLayout(bpy.types.Operator):
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
-# Register the operator
-bpy.types.register(ExportUVLayout)
-
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".svg")
     self.layout.operator(ExportUVLayout.bl_idname).path = default_path
 
-bpy.types.IMAGE_MT_uvs.append(menu_func)
 
-#if __name__ == "__main__":
-#    bpy.ops.uv.export_layout(path="/home/ideasman42/foo.svg")
+def register():
+    bpy.types.register(ExportUVLayout)
+    bpy.types.IMAGE_MT_uvs.append(menu_func)
+
+def unreguster():
+    bpy.types.unregister(ExportUVLayout)
+    bpy.types.IMAGE_MT_uvs.remove(menu_func)

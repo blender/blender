@@ -448,9 +448,9 @@ class _GenericUI:
 
         if draw_funcs is None:
 
-            def draw_ls(*args):
+            def draw_ls(self, context):
                 for func in draw_ls._draw_funcs:
-                    func(*args)
+                    func(self, context)
 
             draw_funcs = draw_ls._draw_funcs = [cls.draw]
             cls.draw = draw_ls
@@ -468,6 +468,12 @@ class _GenericUI:
         """Prepend a draw function to this menu, takes the same arguments as the menus draw function."""
         draw_funcs = cls._dyn_ui_initialize()
         draw_funcs.insert(0, draw_func)
+
+    @classmethod
+    def remove(cls, draw_func):
+        """Remove a draw function that has been added to this menu"""
+        draw_funcs = cls._dyn_ui_initialize()
+        draw_funcs.remove(draw_func)
 
 
 class Panel(StructRNA, _GenericUI):

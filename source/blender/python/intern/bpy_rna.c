@@ -3881,7 +3881,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 				Py_DECREF(py_arg_count);
 
 				if (arg_count != func_arg_count) {
-					PyErr_Format( PyExc_AttributeError, "expected %.200s, %.200s class \"%.200s\" function to have %d args", class_type, py_class_name, RNA_function_identifier(func), func_arg_count);
+					PyErr_Format( PyExc_AttributeError, "expected %.200s, %.200s class \"%.200s\" function to have %d args, found %d", class_type, py_class_name, RNA_function_identifier(func), func_arg_count, arg_count);
 					return -1;
 				}
 			}
@@ -4164,6 +4164,11 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 	StructRNA *srna_new;
 	PyObject *item;
 	const char *identifier= "";
+
+    if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")) {
+		PyErr_SetString(PyExc_AttributeError, "Alredy registered as a subclass.");
+		return NULL;
+    }
 
 	srna= pyrna_struct_as_srna(py_class);
 	if(srna==NULL)

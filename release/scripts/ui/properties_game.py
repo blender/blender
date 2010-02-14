@@ -196,10 +196,6 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
         col.prop(game, "collision_compound", text="Compound")
 
 
-bpy.types.register(PHYSICS_PT_game_physics)
-bpy.types.register(PHYSICS_PT_game_collision_bounds)
-
-
 class RenderButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -386,13 +382,6 @@ class RENDER_PT_game_sound(RenderButtonsPanel):
         layout.prop(scene, "speed_of_sound", text="Speed")
         layout.prop(scene, "doppler_factor")
 
-bpy.types.register(RENDER_PT_game)
-bpy.types.register(RENDER_PT_game_player)
-bpy.types.register(RENDER_PT_game_stereo)
-bpy.types.register(RENDER_PT_game_shading)
-bpy.types.register(RENDER_PT_game_performance)
-bpy.types.register(RENDER_PT_game_sound)
-
 
 class WorldButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
@@ -521,7 +510,30 @@ class WORLD_PT_game_physics(WorldButtonsPanel):
             col.label(text="Logic Steps:")
             col.prop(gs, "logic_step_max", text="Max")
 
-bpy.types.register(WORLD_PT_game_context_world)
-bpy.types.register(WORLD_PT_game_world)
-bpy.types.register(WORLD_PT_game_mist)
-bpy.types.register(WORLD_PT_game_physics)
+
+classes = [
+    PHYSICS_PT_game_physics,
+    PHYSICS_PT_game_collision_bounds,
+
+    RENDER_PT_game,
+    RENDER_PT_game_player,
+    RENDER_PT_game_stereo,
+    RENDER_PT_game_shading,
+    RENDER_PT_game_performance,
+    RENDER_PT_game_sound,
+
+    WORLD_PT_game_context_world,
+    WORLD_PT_game_world,
+    WORLD_PT_game_mist,
+    WORLD_PT_game_physics]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

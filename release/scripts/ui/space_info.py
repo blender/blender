@@ -293,18 +293,6 @@ class INFO_MT_help(bpy.types.Menu):
         layout.operator("help.python_api", icon='URL')
         layout.operator("help.operator_cheat_sheet")
 
-bpy.types.register(INFO_HT_header)
-bpy.types.register(INFO_MT_file)
-bpy.types.register(INFO_MT_file_open_recent)
-bpy.types.register(INFO_MT_file_import)
-bpy.types.register(INFO_MT_file_export)
-bpy.types.register(INFO_MT_file_external_data)
-bpy.types.register(INFO_MT_add)
-bpy.types.register(INFO_MT_mesh_add)
-bpy.types.register(INFO_MT_armature_add)
-bpy.types.register(INFO_MT_game)
-bpy.types.register(INFO_MT_render)
-bpy.types.register(INFO_MT_help)
 
 # Help operators
 
@@ -397,12 +385,38 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
         self.report({'INFO'}, "See OperatorList.txt textblock")
         return {'FINISHED'}
 
-bpy.types.register(HELP_OT_manual)
-bpy.types.register(HELP_OT_release_logs)
-bpy.types.register(HELP_OT_blender_website)
-bpy.types.register(HELP_OT_blender_eshop)
-bpy.types.register(HELP_OT_developer_community)
-bpy.types.register(HELP_OT_user_community)
-bpy.types.register(HELP_OT_report_bug)
-bpy.types.register(HELP_OT_python_api)
-bpy.types.register(HELP_OT_operator_cheat_sheet)
+
+classes = [
+    INFO_HT_header,
+    INFO_MT_file,
+    INFO_MT_file_open_recent,
+    INFO_MT_file_import,
+    INFO_MT_file_export,
+    INFO_MT_file_external_data,
+    INFO_MT_add,
+    INFO_MT_mesh_add,
+    INFO_MT_armature_add,
+    INFO_MT_game,
+    INFO_MT_render,
+    INFO_MT_help,
+
+    HELP_OT_manual,
+    HELP_OT_release_logs,
+    HELP_OT_blender_website,
+    HELP_OT_blender_eshop,
+    HELP_OT_developer_community,
+    HELP_OT_user_community,
+    HELP_OT_report_bug,
+    HELP_OT_python_api,
+    HELP_OT_operator_cheat_sheet]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

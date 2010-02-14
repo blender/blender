@@ -600,14 +600,17 @@ class AddHuman(bpy.types.Operator):
         bpy.ops.object.mode_set(mode=mode_orig)
         return {'FINISHED'}
 
-# Register the operator
-bpy.types.register(AddHuman)
 
 # Add to a menu
 menu_func = (lambda self, context: self.layout.operator(AddHuman.bl_idname,
                     icon='OUTLINER_OB_ARMATURE', text="Human (Meta-Rig)"))
 
-bpy.types.INFO_MT_armature_add.append(menu_func)
 
-if __name__ == "__main__":
-    bpy.ops.mesh.armature_human_advanced_add()
+def register():
+    bpy.types.register(AddHuman)
+    bpy.types.INFO_MT_armature_add.append(menu_func)
+
+def unregister():
+    bpy.types.unregister(AddHuman)
+    bpy.types.INFO_MT_armature_add.remove(menu_func)
+

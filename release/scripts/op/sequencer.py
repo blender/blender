@@ -70,7 +70,12 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
             self.report({'ERROR'}, "The selected strips don't overlap.")
             return {'CANCELLED'}
 
-bpy.types.register(SequencerCrossfadeSounds)
+
+def register():
+    bpy.types.register(SequencerCrossfadeSounds)
+
+def unregister():
+    bpy.types.unregister(SequencerCrossfadeSounds)
 
 if __name__ == "__main__":
     bpy.ops.sequencer.crossfade_sounds()

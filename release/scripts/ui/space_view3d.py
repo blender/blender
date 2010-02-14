@@ -2101,105 +2101,115 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
             # Draw with no edit button
             rna_prop_ui.draw(self.layout, context, member, False)
 
+classes = [
+    VIEW3D_OT_edit_mesh_extrude_move, # detects constraints setup and extrude region
+    VIEW3D_OT_edit_mesh_extrude_individual_move,
 
-bpy.types.register(VIEW3D_OT_edit_mesh_extrude_move) # detects constraints setup and extrude region
-bpy.types.register(VIEW3D_OT_edit_mesh_extrude_individual_move) 
+    VIEW3D_HT_header, # Header
 
-bpy.types.register(VIEW3D_HT_header) # Header
+    VIEW3D_MT_view, #View Menus
+    VIEW3D_MT_view_navigation,
+    VIEW3D_MT_view_align,
+    VIEW3D_MT_view_align_selected,
+    VIEW3D_MT_view_cameras,
 
-bpy.types.register(VIEW3D_MT_view) #View Menus
-bpy.types.register(VIEW3D_MT_view_navigation)
-bpy.types.register(VIEW3D_MT_view_align)
-bpy.types.register(VIEW3D_MT_view_align_selected)
-bpy.types.register(VIEW3D_MT_view_cameras)
+    VIEW3D_MT_select_object, # Select Menus
+    VIEW3D_MT_select_pose,
+    VIEW3D_MT_select_particle,
+    VIEW3D_MT_select_edit_mesh,
+    VIEW3D_MT_select_edit_curve,
+    VIEW3D_MT_select_edit_surface,
+    VIEW3D_MT_select_edit_metaball,
+    VIEW3D_MT_select_edit_lattice,
+    VIEW3D_MT_select_edit_armature,
+    VIEW3D_MT_select_face, # XXX todo
 
-bpy.types.register(VIEW3D_MT_select_object) # Select Menus
-bpy.types.register(VIEW3D_MT_select_pose)
-bpy.types.register(VIEW3D_MT_select_particle)
-bpy.types.register(VIEW3D_MT_select_edit_mesh)
-bpy.types.register(VIEW3D_MT_select_edit_curve)
-bpy.types.register(VIEW3D_MT_select_edit_surface)
-bpy.types.register(VIEW3D_MT_select_edit_metaball)
-bpy.types.register(VIEW3D_MT_select_edit_lattice)
-bpy.types.register(VIEW3D_MT_select_edit_armature)
-bpy.types.register(VIEW3D_MT_select_face) # XXX todo
+    VIEW3D_MT_transform, # Object/Edit Menus
+    VIEW3D_MT_mirror, # Object/Edit Menus
+    VIEW3D_MT_snap, # Object/Edit Menus
+    VIEW3D_MT_uv_map, # Edit Menus
 
-bpy.types.register(VIEW3D_MT_transform) # Object/Edit Menus
-bpy.types.register(VIEW3D_MT_mirror) # Object/Edit Menus
-bpy.types.register(VIEW3D_MT_snap) # Object/Edit Menus
-bpy.types.register(VIEW3D_MT_uv_map) # Edit Menus
+    VIEW3D_MT_object, # Object Menu
+    VIEW3D_MT_object_apply,
+    VIEW3D_MT_object_clear,
+    VIEW3D_MT_object_parent,
+    VIEW3D_MT_object_track,
+    VIEW3D_MT_object_group,
+    VIEW3D_MT_object_constraints,
+    VIEW3D_MT_object_showhide,
+    VIEW3D_MT_make_single_user,
+    VIEW3D_MT_make_links,
 
-bpy.types.register(VIEW3D_MT_object) # Object Menu
-bpy.types.register(VIEW3D_MT_object_apply)
-bpy.types.register(VIEW3D_MT_object_clear)
-bpy.types.register(VIEW3D_MT_object_parent)
-bpy.types.register(VIEW3D_MT_object_track)
-bpy.types.register(VIEW3D_MT_object_group)
-bpy.types.register(VIEW3D_MT_object_constraints)
-bpy.types.register(VIEW3D_MT_object_showhide)
-bpy.types.register(VIEW3D_MT_make_single_user)
-bpy.types.register(VIEW3D_MT_make_links)
+    VIEW3D_MT_hook,
+    VIEW3D_MT_vertex_group,
 
-bpy.types.register(VIEW3D_MT_hook)
-bpy.types.register(VIEW3D_MT_vertex_group)
+    VIEW3D_MT_sculpt, # Sculpt Menu
+    VIEW3D_MT_paint_vertex,
+    VIEW3D_MT_paint_weight,
 
-bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
-bpy.types.register(VIEW3D_MT_paint_vertex)
-bpy.types.register(VIEW3D_MT_paint_weight)
+    VIEW3D_MT_particle, # Particle Menu
+    VIEW3D_MT_particle_specials,
+    VIEW3D_MT_particle_showhide,
 
-bpy.types.register(VIEW3D_MT_particle)# Particle Menu
-bpy.types.register(VIEW3D_MT_particle_specials)
-bpy.types.register(VIEW3D_MT_particle_showhide)
+    VIEW3D_MT_pose, # POSE Menu
+    VIEW3D_MT_pose_transform,
+    VIEW3D_MT_pose_pose,
+    VIEW3D_MT_pose_motion,
+    VIEW3D_MT_pose_group,
+    VIEW3D_MT_pose_ik,
+    VIEW3D_MT_pose_constraints,
+    VIEW3D_MT_pose_showhide,
 
-bpy.types.register(VIEW3D_MT_pose) # POSE Menu
-bpy.types.register(VIEW3D_MT_pose_transform)
-bpy.types.register(VIEW3D_MT_pose_pose)
-bpy.types.register(VIEW3D_MT_pose_motion)
-bpy.types.register(VIEW3D_MT_pose_group)
-bpy.types.register(VIEW3D_MT_pose_ik)
-bpy.types.register(VIEW3D_MT_pose_constraints)
-bpy.types.register(VIEW3D_MT_pose_showhide)
+    VIEW3D_MT_edit_mesh,
+    VIEW3D_MT_edit_mesh_specials, # Only as a menu for keybindings
+    VIEW3D_MT_edit_mesh_selection_mode, # Only as a menu for keybindings
+    VIEW3D_MT_edit_mesh_vertices,
+    VIEW3D_MT_edit_mesh_edges,
+    VIEW3D_MT_edit_mesh_faces,
+    VIEW3D_MT_edit_mesh_normals,
+    VIEW3D_MT_edit_mesh_showhide,
+    VIEW3D_MT_edit_mesh_extrude, # use with VIEW3D_OT_edit_mesh_extrude_menu
 
-bpy.types.register(VIEW3D_MT_edit_mesh)
-bpy.types.register(VIEW3D_MT_edit_mesh_specials) # Only as a menu for keybindings
-bpy.types.register(VIEW3D_MT_edit_mesh_selection_mode) # Only as a menu for keybindings
-bpy.types.register(VIEW3D_MT_edit_mesh_vertices)
-bpy.types.register(VIEW3D_MT_edit_mesh_edges)
-bpy.types.register(VIEW3D_MT_edit_mesh_faces)
-bpy.types.register(VIEW3D_MT_edit_mesh_normals)
-bpy.types.register(VIEW3D_MT_edit_mesh_showhide)
-bpy.types.register(VIEW3D_MT_edit_mesh_extrude) # use with VIEW3D_OT_edit_mesh_extrude_menu
+    VIEW3D_MT_edit_curve,
+    VIEW3D_MT_edit_curve_ctrlpoints,
+    VIEW3D_MT_edit_curve_segments,
+    VIEW3D_MT_edit_curve_specials,
+    VIEW3D_MT_edit_curve_showhide,
 
-bpy.types.register(VIEW3D_MT_edit_curve)
-bpy.types.register(VIEW3D_MT_edit_curve_ctrlpoints)
-bpy.types.register(VIEW3D_MT_edit_curve_segments)
-bpy.types.register(VIEW3D_MT_edit_curve_specials)
-bpy.types.register(VIEW3D_MT_edit_curve_showhide)
+    VIEW3D_MT_edit_surface,
 
-bpy.types.register(VIEW3D_MT_edit_surface)
+    VIEW3D_MT_edit_text,
+    VIEW3D_MT_edit_text_chars,
 
-bpy.types.register(VIEW3D_MT_edit_text)
-bpy.types.register(VIEW3D_MT_edit_text_chars)
+    VIEW3D_MT_edit_meta,
+    VIEW3D_MT_edit_meta_showhide,
 
-bpy.types.register(VIEW3D_MT_edit_meta)
-bpy.types.register(VIEW3D_MT_edit_meta_showhide)
+    VIEW3D_MT_edit_lattice,
 
-bpy.types.register(VIEW3D_MT_edit_lattice)
+    VIEW3D_MT_edit_armature,
+    VIEW3D_MT_edit_armature_parent,
+    VIEW3D_MT_edit_armature_roll,
 
-bpy.types.register(VIEW3D_MT_edit_armature)
-bpy.types.register(VIEW3D_MT_edit_armature_parent)
-bpy.types.register(VIEW3D_MT_edit_armature_roll)
+    VIEW3D_MT_armature_specials, # Only as a menu for keybindings
 
-bpy.types.register(VIEW3D_MT_armature_specials) # Only as a menu for keybindings
+   # Panels
+    VIEW3D_PT_3dview_properties,
+    VIEW3D_PT_3dview_display,
+    VIEW3D_PT_3dview_name,
+    VIEW3D_PT_3dview_meshdisplay,
+    VIEW3D_PT_3dview_curvedisplay,
+    VIEW3D_PT_background_image,
+    VIEW3D_PT_transform_orientations,
+    VIEW3D_PT_etch_a_ton,
+    VIEW3D_PT_context_properties]
 
- # Panels
-bpy.types.register(VIEW3D_PT_3dview_properties)
-bpy.types.register(VIEW3D_PT_3dview_display)
-bpy.types.register(VIEW3D_PT_3dview_name)
-bpy.types.register(VIEW3D_PT_3dview_meshdisplay)
-bpy.types.register(VIEW3D_PT_3dview_curvedisplay)
-bpy.types.register(VIEW3D_PT_background_image)
-bpy.types.register(VIEW3D_PT_transform_orientations)
-bpy.types.register(VIEW3D_PT_etch_a_ton)
 
-bpy.types.register(VIEW3D_PT_context_properties)
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

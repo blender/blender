@@ -135,8 +135,21 @@ class DATA_PT_metaball_element(DataButtonsPanel):
             col.prop(metaelem, "size_x", text="X")
             col.prop(metaelem, "size_y", text="Y")
 
-bpy.types.register(DATA_PT_context_metaball)
-bpy.types.register(DATA_PT_metaball)
-bpy.types.register(DATA_PT_metaball_element)
 
-bpy.types.register(DATA_PT_custom_props_metaball)
+classes = [
+    DATA_PT_context_metaball,
+    DATA_PT_metaball,
+    DATA_PT_metaball_element,
+
+    DATA_PT_custom_props_metaball]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

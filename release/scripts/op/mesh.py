@@ -173,10 +173,20 @@ class MeshMirrorUV(bpy.types.Operator):
 
         return {'FINISHED'}
 
-# Register the operator
-bpy.types.register(MeshSelectInteriorFaces)
-bpy.types.register(MeshMirrorUV)
 
-if __name__ == "__main__":
-    # bpy.ops.mesh.faces_select_interior()
-    bpy.ops.mesh.faces_miror_uv()
+# Register the operator
+classes = [
+    MeshSelectInteriorFaces,
+    MeshMirrorUV]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+

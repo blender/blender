@@ -280,10 +280,23 @@ class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel):
 
         effector_weights_ui(self, context, softbody.effector_weights)
 
-bpy.types.register(PHYSICS_PT_softbody)
-bpy.types.register(PHYSICS_PT_softbody_cache)
-bpy.types.register(PHYSICS_PT_softbody_goal)
-bpy.types.register(PHYSICS_PT_softbody_edge)
-bpy.types.register(PHYSICS_PT_softbody_collision)
-bpy.types.register(PHYSICS_PT_softbody_solver)
-bpy.types.register(PHYSICS_PT_softbody_field_weights)
+
+classes = [
+    PHYSICS_PT_softbody,
+    PHYSICS_PT_softbody_cache,
+    PHYSICS_PT_softbody_goal,
+    PHYSICS_PT_softbody_edge,
+    PHYSICS_PT_softbody_collision,
+    PHYSICS_PT_softbody_solver,
+    PHYSICS_PT_softbody_field_weights]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

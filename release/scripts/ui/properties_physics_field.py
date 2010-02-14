@@ -242,5 +242,18 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
             col.label(text="Force Fields:")
             col.prop(settings, "absorption", text="Absorption")
 
-bpy.types.register(PHYSICS_PT_field)
-bpy.types.register(PHYSICS_PT_collision)
+
+classes = [
+    PHYSICS_PT_field,
+    PHYSICS_PT_collision]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

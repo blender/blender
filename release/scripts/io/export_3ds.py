@@ -1136,11 +1136,17 @@ class Export3DS(bpy.types.Operator):
     def poll(self, context): # Poll isnt working yet
         return context.active_object != None
 
-bpy.types.register(Export3DS)
 
 # Add to a menu
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".3ds")
     self.layout.operator(Export3DS.bl_idname, text="Autodesk 3DS...").path = default_path
 
-bpy.types.INFO_MT_file_export.append(menu_func)
+
+def register():
+    bpy.types.register(Export3DS)
+    bpy.types.INFO_MT_file_export.append(menu_func)
+
+def unregister():
+    bpy.types.unregister(Export3DS)
+    bpy.types.INFO_MT_file_export.remove(menu_func)

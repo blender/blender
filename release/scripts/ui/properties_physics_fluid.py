@@ -291,7 +291,20 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel):
         col.prop(fluid, "tracer_particles")
         col.prop(fluid, "generate_particles")
 
-bpy.types.register(PHYSICS_PT_fluid)
-bpy.types.register(PHYSICS_PT_domain_gravity)
-bpy.types.register(PHYSICS_PT_domain_boundary)
-bpy.types.register(PHYSICS_PT_domain_particles)
+
+classes = [
+    PHYSICS_PT_fluid,
+    PHYSICS_PT_domain_gravity,
+    PHYSICS_PT_domain_boundary,
+    PHYSICS_PT_domain_particles]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

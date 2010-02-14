@@ -895,7 +895,12 @@ class BvhImporter(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-bpy.types.register(BvhImporter)
-
 menu_func = lambda self, context: self.layout.operator(BvhImporter.bl_idname, text="Motion Capture (.bvh)...")
-bpy.types.INFO_MT_file_import.append(menu_func)
+
+def register():
+    bpy.types.register(BvhImporter)
+    bpy.types.INFO_MT_file_export.append(menu_func)
+    
+def unregister():
+    bpy.types.unregister(BvhImporter)
+    bpy.types.INFO_MT_file_export.remove(menu_func)

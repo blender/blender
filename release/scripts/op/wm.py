@@ -418,26 +418,38 @@ class WM_OT_reload_scripts(bpy.types.Operator):
         return {'FINISHED'}
 
 
-bpy.types.register(MESH_OT_delete_edgeloop)
-
-bpy.types.register(WM_OT_context_set_boolean)
-bpy.types.register(WM_OT_context_set_int)
-bpy.types.register(WM_OT_context_set_float)
-bpy.types.register(WM_OT_context_set_string)
-bpy.types.register(WM_OT_context_set_enum)
-bpy.types.register(WM_OT_context_set_value)
-bpy.types.register(WM_OT_context_toggle)
-bpy.types.register(WM_OT_context_toggle_enum)
-bpy.types.register(WM_OT_context_cycle_enum)
-bpy.types.register(WM_OT_context_cycle_int)
-
-bpy.types.register(WM_OT_doc_view)
-bpy.types.register(WM_OT_doc_edit)
-
-bpy.types.register(WM_OT_reload_scripts)
-
-# experemental!
 import rna_prop_ui
-bpy.types.register(rna_prop_ui.WM_OT_properties_edit)
-bpy.types.register(rna_prop_ui.WM_OT_properties_add)
-bpy.types.register(rna_prop_ui.WM_OT_properties_remove)
+
+classes = [
+    MESH_OT_delete_edgeloop,
+
+    WM_OT_context_set_boolean,
+    WM_OT_context_set_int,
+    WM_OT_context_set_float,
+    WM_OT_context_set_string,
+    WM_OT_context_set_enum,
+    WM_OT_context_set_value,
+    WM_OT_context_toggle,
+    WM_OT_context_toggle_enum,
+    WM_OT_context_cycle_enum,
+    WM_OT_context_cycle_int,
+
+    WM_OT_doc_view,
+    WM_OT_doc_edit,
+
+    WM_OT_reload_scripts,
+
+    # experemental!
+    rna_prop_ui.WM_OT_properties_edit,
+    rna_prop_ui.WM_OT_properties_add,
+    rna_prop_ui.WM_OT_properties_remove]
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

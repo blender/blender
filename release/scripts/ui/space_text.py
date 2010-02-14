@@ -273,14 +273,27 @@ class TEXT_MT_edit(bpy.types.Menu):
 
         layout.menu("TEXT_MT_edit_to3d")
 
-bpy.types.register(TEXT_HT_header)
-bpy.types.register(TEXT_PT_properties)
-bpy.types.register(TEXT_PT_find)
-bpy.types.register(TEXT_MT_text)
-bpy.types.register(TEXT_MT_templates)
-bpy.types.register(TEXT_MT_format)
-bpy.types.register(TEXT_MT_edit)
-bpy.types.register(TEXT_MT_edit_view)
-bpy.types.register(TEXT_MT_edit_select)
-bpy.types.register(TEXT_MT_edit_markers)
-bpy.types.register(TEXT_MT_edit_to3d)
+
+classes = [
+    TEXT_HT_header,
+    TEXT_PT_properties,
+    TEXT_PT_find,
+    TEXT_MT_text,
+    TEXT_MT_templates,
+    TEXT_MT_format,
+    TEXT_MT_edit,
+    TEXT_MT_edit_view,
+    TEXT_MT_edit_select,
+    TEXT_MT_edit_markers,
+    TEXT_MT_edit_to3d]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

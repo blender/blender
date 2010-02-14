@@ -391,15 +391,27 @@ class DATA_PT_falloff_curve(DataButtonsPanel):
         self.layout.template_curve_mapping(lamp, "falloff_curve")
 
 
-bpy.types.register(LAMP_MT_sunsky_presets)
+classes = [
+    LAMP_MT_sunsky_presets,
 
-bpy.types.register(DATA_PT_context_lamp)
-bpy.types.register(DATA_PT_preview)
-bpy.types.register(DATA_PT_lamp)
-bpy.types.register(DATA_PT_falloff_curve)
-bpy.types.register(DATA_PT_area)
-bpy.types.register(DATA_PT_spot)
-bpy.types.register(DATA_PT_shadow)
-bpy.types.register(DATA_PT_sunsky)
+    DATA_PT_context_lamp,
+    DATA_PT_preview,
+    DATA_PT_lamp,
+    DATA_PT_falloff_curve,
+    DATA_PT_area,
+    DATA_PT_spot,
+    DATA_PT_shadow,
+    DATA_PT_sunsky,
 
-bpy.types.register(DATA_PT_custom_props_lamp)
+    DATA_PT_custom_props_lamp]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

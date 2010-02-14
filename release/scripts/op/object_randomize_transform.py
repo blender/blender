@@ -134,13 +134,17 @@ class RandomizeLocRotSize(bpy.types.Operator):
         return {'FINISHED'}
 
 
-# Register the operator
-bpy.types.register(RandomizeLocRotSize)
-
-
 def menu_func(self, context):
     if context.mode == 'OBJECT':
         self.layout.operator(RandomizeLocRotSize.bl_idname,
         text="Randomize Transform")
 
-bpy.types.VIEW3D_MT_transform.append(menu_func)
+
+def register():
+    bpy.types.register(RandomizeLocRotSize)
+    bpy.types.VIEW3D_MT_transform.append(menu_func)
+
+def unregister():
+    bpy.types.unregister(RandomizeLocRotSize)
+    bpy.types.VIEW3D_MT_transform.remove(menu_func)
+

@@ -55,7 +55,11 @@ class DiscontFilterOp(bpy.types.Operator):
         main(context)
         return {'FINISHED'}
 
-bpy.types.register(DiscontFilterOp)
+def register():
+    bpy.types.register(DiscontFilterOp)
+
+def unregister():
+    bpy.types.unregister(DiscontFilterOp)
 
 if __name__ == "__main__":
     bpy.ops.graph.discont_filter()

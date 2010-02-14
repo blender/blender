@@ -76,3 +76,10 @@ def banner(context):
     sc.prompt = os.getcwd() + PROMPT
 
     return {'FINISHED'}
+
+
+def register():
+    pass
+
+def unregister():
+    pass

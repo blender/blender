@@ -327,24 +327,37 @@ class INFO_MT_armature_metarig_add(bpy.types.Menu):
             text = bpy.utils.display_name(submodule_type)
             layout.operator("pose.metarig_sample_add", text=text, icon='OUTLINER_OB_ARMATURE').metarig_type = submodule_type
 
-bpy.types.register(DATA_PT_template)
+classes = [
+    DATA_PT_template,
 
-bpy.types.register(PoseTemplateSettings)
-bpy.types.register(PoseTemplate)
+    PoseTemplateSettings,
+    PoseTemplate,
 
-bpy.types.register(Reload)
-bpy.types.register(Generate)
-bpy.types.register(Validate)
-bpy.types.register(Sample)
-bpy.types.register(Graph)
-bpy.types.register(AsScript)
+    Reload,
+    Generate,
+    Validate,
+    Sample,
+    Graph,
+    AsScript,
 
-bpy.types.register(ActiveAssign)
-bpy.types.register(ActiveClear)
+    ActiveAssign,
+    ActiveClear,
 
+    INFO_MT_armature_metarig_add]
 
-bpy.types.register(INFO_MT_armature_metarig_add)
-
-import space_info
 menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
-space_info.INFO_MT_armature_add.append(menu_func)
+import space_info # ensure the menu is loaded first
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+    space_info.INFO_MT_armature_add.append(menu_func)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+ 
+    bpy.types.INFO_MT_armature_add.remove(menu_func)

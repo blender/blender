@@ -956,29 +956,42 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel):
         col.prop(pd, "turbulence_depth")
         col.prop(pd, "turbulence_strength")
 
-bpy.types.register(TEXTURE_PT_context_texture)
-bpy.types.register(TEXTURE_PT_preview)
 
-bpy.types.register(TEXTURE_PT_clouds) # Texture Type Panels
-bpy.types.register(TEXTURE_PT_wood)
-bpy.types.register(TEXTURE_PT_marble)
-bpy.types.register(TEXTURE_PT_magic)
-bpy.types.register(TEXTURE_PT_blend)
-bpy.types.register(TEXTURE_PT_stucci)
-bpy.types.register(TEXTURE_PT_image)
-bpy.types.register(TEXTURE_PT_image_sampling)
-bpy.types.register(TEXTURE_PT_image_mapping)
-bpy.types.register(TEXTURE_PT_plugin)
-bpy.types.register(TEXTURE_PT_envmap)
-bpy.types.register(TEXTURE_PT_musgrave)
-bpy.types.register(TEXTURE_PT_voronoi)
-bpy.types.register(TEXTURE_PT_distortednoise)
-bpy.types.register(TEXTURE_PT_voxeldata)
-bpy.types.register(TEXTURE_PT_pointdensity)
-bpy.types.register(TEXTURE_PT_pointdensity_turbulence)
+classes = [
+    TEXTURE_PT_context_texture,
+    TEXTURE_PT_preview,
 
-bpy.types.register(TEXTURE_PT_colors)
-bpy.types.register(TEXTURE_PT_mapping)
-bpy.types.register(TEXTURE_PT_influence)
+    TEXTURE_PT_clouds, # Texture Type Panels
+    TEXTURE_PT_wood,
+    TEXTURE_PT_marble,
+    TEXTURE_PT_magic,
+    TEXTURE_PT_blend,
+    TEXTURE_PT_stucci,
+    TEXTURE_PT_image,
+    TEXTURE_PT_image_sampling,
+    TEXTURE_PT_image_mapping,
+    TEXTURE_PT_plugin,
+    TEXTURE_PT_envmap,
+    TEXTURE_PT_musgrave,
+    TEXTURE_PT_voronoi,
+    TEXTURE_PT_distortednoise,
+    TEXTURE_PT_voxeldata,
+    TEXTURE_PT_pointdensity,
+    TEXTURE_PT_pointdensity_turbulence,
 
-bpy.types.register(TEXTURE_PT_custom_props)
+    TEXTURE_PT_colors,
+    TEXTURE_PT_mapping,
+    TEXTURE_PT_influence,
+
+    TEXTURE_PT_custom_props]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

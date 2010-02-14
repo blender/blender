@@ -253,12 +253,22 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel):
                 row.prop(itasc, "dampmax", text="Damp", slider=True)
                 row.prop(itasc, "dampeps", text="Eps", slider=True)
 
+classes = [
+    DATA_PT_context_arm,
+    DATA_PT_skeleton,
+    DATA_PT_display,
+    DATA_PT_bone_groups,
+    DATA_PT_ghost,
+    DATA_PT_iksolver_itasc,
 
-bpy.types.register(DATA_PT_context_arm)
-bpy.types.register(DATA_PT_skeleton)
-bpy.types.register(DATA_PT_display)
-bpy.types.register(DATA_PT_bone_groups)
-bpy.types.register(DATA_PT_ghost)
-bpy.types.register(DATA_PT_iksolver_itasc)
+    DATA_PT_custom_props_arm]
 
-bpy.types.register(DATA_PT_custom_props_arm)
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)

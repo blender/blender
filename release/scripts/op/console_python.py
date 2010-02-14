@@ -196,3 +196,9 @@ def banner(context):
     console.locals["C"] = bpy.context
 
     return {'FINISHED'}
+
+def register():
+    pass
+
+def unregister():
+    pass
