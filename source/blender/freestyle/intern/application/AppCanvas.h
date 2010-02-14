@@ -46,6 +46,13 @@ public:
 
   /*! modifiers */
   void setViewer(AppView *iViewer) ;
+
+  // soc
+  void setPassDiffuse(float *p) {_pass_diffuse = p;}
+  void setPassZ(float *p) {_pass_z = p;}
+private:
+  float *_pass_diffuse;
+  float *_pass_z;
 };
 
 

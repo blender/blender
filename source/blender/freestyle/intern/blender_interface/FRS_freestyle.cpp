@@ -157,6 +157,17 @@ extern "C" {
 		cout << "Redges and valleys : " << (controller->getComputeRidgesAndValleysFlag() ? "enabled" : "disabled") << endl;
 		cout << "Suggestive contours : " << (controller->getComputeSuggestiveContoursFlag() ? "enabled" : "disabled") << endl;
 		cout << "Suggestive contour dkr epsilon : " << controller->getSuggestiveContourKrDerivativeEpsilon() << endl;
+		cout << endl;
+
+        // set diffuse and z depth passes
+        RenderLayer *rl = RE_GetRenderLayer(re->result, srl->name);
+        float *diffuse = RE_RenderLayerGetPass(rl, SCE_PASS_DIFFUSE);
+        float *z = RE_RenderLayerGetPass(rl, SCE_PASS_Z);
+        controller->setPassDiffuse(diffuse);
+        controller->setPassZ(z);
+        cout << "Passes :" << endl;
+        cout << "  Diffuse = " << (diffuse ? "enabled" : "disabled") << endl;
+        cout << "  Z = " << (z ? "enabled" : "disabled") << endl;
 
 		// compute view map
         re->i.infostr= "Freestyle: View map creation";

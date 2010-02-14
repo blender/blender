@@ -109,20 +109,48 @@ void AppCanvas::Erase()
 
 // Abstract
 
-#include "../image/GaussianFilter.h"
 void AppCanvas::readColorPixels(int x,int y,int w, int h, RGBImage& oImage) const
 {
-  //static unsigned number = 0;
   float *rgb = new float[3*w*h];
-  //_pViewer->readPixels(x,y,w,h,AppGLWidget::RGB,rgb);
+  memset(rgb, 0, sizeof(float) * 3 * w * h);
+  if (_pass_diffuse) {
+    int rectx = width(), recty = height();
+    int i, ii, j, jj;
+    for (j = 0; j < h; j++) {
+      jj = y + j;
+      if (jj < 0 || jj >= recty)
+        continue;
+      for (i = 0; i < w; i++) {
+        ii = x + i;
+        if (ii < 0 || ii >= rectx)
+          continue;
+        memcpy(rgb + (w * j + i) * 3, _pass_diffuse + (rectx * jj + ii) * 3, sizeof(float) * 3);
+      }
+    }
+  }
   oImage.setArray(rgb, width(), height(), w,h, x, y, false);
 }
 
 void AppCanvas::readDepthPixels(int x,int y,int w, int h, GrayImage& oImage) const
 {
-  float *rgb = new float[w*h];
-  //_pViewer->readPixels(x,y,w,h,AppGLWidget::DEPTH,rgb);
-  oImage.setArray(rgb, width(), height(), w,h, x, y, false);
+  float *z = new float[w*h];
+  memset(z, 0, sizeof(float) * w * h);
+  if (_pass_z) {
+    int rectx = width(), recty = height();
+    int i, ii, j, jj;
+    for (j = 0; j < h; j++) {
+      jj = y + j;
+      if (jj < 0 || jj >= recty)
+        continue;
+      for (i = 0; i < w; i++) {
+        ii = x + i;
+        if (ii < 0 || ii >= rectx)
+          continue;
+        z[w * j + i] = _pass_z[rectx * jj + ii];
+      }
+    }
+  }
+  oImage.setArray(z, width(), height(), w,h, x, y, false);
 }
 
 void AppCanvas::RenderStroke(Stroke *iStroke) {

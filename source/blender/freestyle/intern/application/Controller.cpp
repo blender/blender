@@ -176,6 +176,20 @@ void Controller::setView(AppView *iView)
   _Canvas->setViewer(_pView);
 }
 
+void Controller::setPassDiffuse(float *pass)
+{
+  AppCanvas *app_canvas = dynamic_cast<AppCanvas *>(_Canvas);
+  assert(app_canvas != 0);
+  app_canvas->setPassDiffuse(pass);
+}
+
+void Controller::setPassZ(float *pass)
+{
+  AppCanvas *app_canvas = dynamic_cast<AppCanvas *>(_Canvas);
+  assert(app_canvas != 0);
+  app_canvas->setPassZ(pass);
+}
+
 void Controller::setContext(bContext *C)
 {
   PythonInterpreter* py_inter = dynamic_cast<PythonInterpreter*>(_inter);
