@@ -2432,7 +2432,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "fg_stamp");
 	RNA_def_property_array(prop, 4);
 	RNA_def_property_range(prop,0.0,1.0);
-	RNA_def_property_ui_text(prop, "Stamp Foreground", "Stamp text color");
+	RNA_def_property_ui_text(prop, "Stamp Text Color", "Color to use for stamp text");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop= RNA_def_property(srna, "stamp_background", PROP_FLOAT, PROP_COLOR);

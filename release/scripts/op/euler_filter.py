@@ -44,10 +44,7 @@ def main(context):
             cleanupEulCurve(f)
 
 class DiscontFilterOp(bpy.types.Operator):
-    """
-    Fixes the most common causes of gimbal lock in the fcurves of
-    the active bone.
-    """
+    """Fixes the most common causes of gimbal lock in the fcurves of the active bone"""
     bl_idname = "graph.discont_filter"
     bl_label = "Filter out discontinuities in the active fcurves"
 
