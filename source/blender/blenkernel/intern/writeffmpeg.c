@@ -94,7 +94,7 @@ static uint8_t* video_buffer = 0;
 static int video_buffersize = 0;
 
 static uint8_t* audio_input_buffer = 0;
-static int audio_input_frame_size = 0;
+static int audio_input_samples = 0;
 static uint8_t* audio_output_buffer = 0;
 static int audio_outbuf_size = 0;
 static double audio_time = 0.0f;
@@ -135,14 +135,14 @@ static int write_audio_frame(void)
 	av_init_packet(&pkt);
 	pkt.size = 0;
 
-	AUD_readDevice(audio_mixdown_device, audio_input_buffer, audio_input_frame_size);
-	audio_time += (double) audio_input_frame_size / (double) c->sample_rate;
+	AUD_readDevice(audio_mixdown_device, audio_input_buffer, audio_input_samples);
+	audio_time += (double) audio_input_samples / (double) c->sample_rate;
 
 	pkt.size = avcodec_encode_audio(c, audio_output_buffer,
 					audio_outbuf_size,
 					(short*) audio_input_buffer);
 
-	if(pkt.size <= 0)
+	if(pkt.size < 0)
 	{
 		// XXX error("Error writing audio packet");
 		return -1;
@@ -599,16 +599,20 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	audio_outbuf_size = FF_MIN_BUFFER_SIZE;
 
+	if((c->codec_id >= CODEC_ID_PCM_S16LE) && (c->codec_id <= CODEC_ID_PCM_DVD))
+		audio_input_samples = audio_outbuf_size * 8 / c->bits_per_coded_sample / c->channels;
+	else
+	{
+		audio_input_samples = c->frame_size;
+		if(c->frame_size * c->channels * sizeof(int16_t) * 4 > audio_outbuf_size)
+			audio_outbuf_size = c->frame_size * c->channels * sizeof(int16_t) * 4;
+	}
+
 	audio_output_buffer = (uint8_t*)MEM_mallocN(
 		audio_outbuf_size, "FFMPEG audio encoder input buffer");
 
-	if((c->codec_id >= CODEC_ID_PCM_S16LE) && (c->codec_id <= CODEC_ID_PCM_DVD))
-		audio_input_frame_size = audio_outbuf_size * 8 / c->bits_per_coded_sample / c->channels;
-	else
-		audio_input_frame_size = c->frame_size;
-
 	audio_input_buffer = (uint8_t*)MEM_mallocN(
-		audio_input_frame_size * c->channels * sizeof(int16_t),
+		audio_input_samples * c->channels * sizeof(int16_t),
 		"FFMPEG audio encoder output buffer");
 
 	audio_time = 0.0f;
