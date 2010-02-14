@@ -3925,6 +3925,9 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	if(!sim.psmd->dm)
 		return;
 
+	/* execute drivers only, as animation has already been done */
+	BKE_animsys_evaluate_animdata(&psys->part->id, psys->part->adt, cfra, ADT_RECALC_DRIVERS);
+
 	if(psys->recalc & PSYS_RECALC_TYPE)
 		psys_changed_type(&sim);
 	else if(psys->recalc & PSYS_RECALC_PHYS)
