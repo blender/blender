@@ -138,7 +138,7 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void BUTTONS_OT_file_browse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "File Browse";
+	ot->name= "Accept";
 	ot->description="Open a file browser";
 	ot->idname= "BUTTONS_OT_file_browse";
 	
