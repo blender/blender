@@ -521,7 +521,7 @@ IF(APPLE)
 	SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
 
 	SET(FFMPEG ${LIBDIR}/ffmpeg)
-	SET(FFMPEG_INC ${CMAKE_SOURCE_DIR}/extern/ffmpeg)
+	SET(FFMPEG_INC ${FFMPEG}/include)
 	SET(FFMPEG_LIB avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore)
 	SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 
