@@ -4085,7 +4085,13 @@ static void bpy_class_free(void *pyob_ptr)
 
 	gilstate = PyGILState_Ensure();
 
-	PyDict_Clear(((PyTypeObject*)self)->tp_dict);
+	// breaks re-registering classes
+	// PyDict_Clear(((PyTypeObject*)self)->tp_dict);
+	//
+	// remove the rna attribute instead.
+	PyDict_DelItemString(((PyTypeObject *)self)->tp_dict, "bl_rna");
+	if(PyErr_Occurred())
+		PyErr_Clear();
 
 	if(G.f&G_DEBUG) {
 		if(self->ob_refcnt > 1) {
@@ -4166,7 +4172,7 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 	const char *identifier= "";
 
     if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")) {
-		PyErr_SetString(PyExc_AttributeError, "Alredy registered as a subclass.");
+		PyErr_SetString(PyExc_AttributeError, "bpy.types.register(): already registered as a subclass.");
 		return NULL;
     }
 
@@ -4178,7 +4184,7 @@ PyObject *pyrna_basetype_register(PyObject *self, PyObject *py_class)
 	reg= RNA_struct_register(srna);
 
 	if(!reg) {
-		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (no register supported).");
+		PyErr_SetString(PyExc_ValueError, "bpy.types.register(): expected a Type subclassed from a registerable rna type (no register supported).");
 		return NULL;
 	}
 	
@@ -4236,6 +4242,11 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class)
 	StructUnregisterFunc unreg;
 	StructRNA *srna;
 
+    /*if(PyDict_GetItemString(((PyTypeObject*)py_class)->tp_dict, "bl_rna")==NULL) {
+		PyErr_SetString(PyExc_ValueError, "bpy.types.unregister(): not a registered as a subclass.");
+		return NULL;
+    }*/
+
 	srna= pyrna_struct_as_srna(py_class);
 	if(srna==NULL)
 		return NULL;
@@ -4244,7 +4255,7 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class)
 	unreg= RNA_struct_unregister(srna);
 
 	if(!unreg) {
-		PyErr_SetString(PyExc_AttributeError, "expected a Type subclassed from a registerable rna type (no unregister supported).");
+		PyErr_SetString(PyExc_ValueError, "bpy.types.unregister(): expected a Type subclassed from a registerable rna type (no unregister supported).");
 		return NULL;
 	}
 	
@@ -4254,10 +4265,9 @@ PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *py_class)
 	/* call unregister */
 	unreg(C, srna); /* calls bpy_class_free, this decref's py_class */
 
-	// odd, this doesnt seem to be needed but no idea why since its not removed, campbell
-	// printf("%d\n", PyDict_DelItemString(((PyTypeObject *)py_class)->tp_dict, "bl_rna"));
-	// PyErr_Clear();
+	PyDict_DelItemString(((PyTypeObject *)py_class)->tp_dict, "bl_rna");
+	if(PyErr_Occurred())
+		PyErr_Clear(); //return NULL;
 
 	Py_RETURN_NONE;
 }
-

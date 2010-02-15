@@ -1406,7 +1406,6 @@ class WM_OT_extension_enable(bpy.types.Operator):
         
         try:
             mod = __import__(module_name)
-            reload(mod) # FIXME: workaround for the same class not registering twice properly
             mod.register()
         except:
             traceback.print_exc()
@@ -1428,7 +1427,6 @@ class WM_OT_extension_disable(bpy.types.Operator):
         try:
             mod = __import__(module_name)
             mod.unregister()
-            reload(mod) # FIXME: workaround for the same class not registering twice properly
         except:
             traceback.print_exc()
         
