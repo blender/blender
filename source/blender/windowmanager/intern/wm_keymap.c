@@ -480,7 +480,7 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C, const char *op
 					ar= BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 				
 				if(ar)
-					found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, hotkey, compare_props, keymap_r);
+					found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, compare_props, hotkey, keymap_r);
 			}
 		}
 		else if(ELEM(opcontext, WM_OP_EXEC_REGION_CHANNELS, WM_OP_INVOKE_REGION_CHANNELS)) {
@@ -488,18 +488,18 @@ static wmKeyMapItem *wm_keymap_item_find_props(const bContext *C, const char *op
 					ar= BKE_area_find_region_type(sa, RGN_TYPE_CHANNELS);
 				
 				if(ar)
-					found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, hotkey, compare_props, keymap_r);
+					found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, compare_props, hotkey, keymap_r);
 		}
 		else if(ELEM(opcontext, WM_OP_EXEC_REGION_PREVIEW, WM_OP_INVOKE_REGION_PREVIEW)) {
 			if (!(ar && ar->regiontype == RGN_TYPE_PREVIEW))
 					ar= BKE_area_find_region_type(sa, RGN_TYPE_PREVIEW);
 				
 				if(ar)
-					found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, hotkey, compare_props, keymap_r);
+					found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, compare_props, hotkey, keymap_r);
 		}
 		else {
 			if(ar)
-				found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, hotkey, compare_props, keymap_r);
+				found= wm_keymap_item_find_handlers(C, &ar->handlers, opname, opcontext, properties, compare_props, hotkey, keymap_r);
 		}
 	}
 	
@@ -511,7 +511,7 @@ static wmKeyMapItem *wm_keymap_item_find(const bContext *C, const char *opname, 
 	wmKeyMapItem *found= wm_keymap_item_find_props(C, opname, opcontext, properties, 1, hotkey, keymap_r);
 
 	if(!found)
-		found= wm_keymap_item_find_props(C, opname, opcontext, properties, 0, hotkey, keymap_r);
+		found= wm_keymap_item_find_props(C, opname, opcontext, NULL, 0, hotkey, keymap_r);
 
 	return found;
 }
