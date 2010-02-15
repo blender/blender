@@ -1215,3 +1215,12 @@ void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	}
 }
 
+GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
+{
+
+}
+
+GHOST_TUns8* GHOST_SystemX11::getUserDir() const
+{
+
+}

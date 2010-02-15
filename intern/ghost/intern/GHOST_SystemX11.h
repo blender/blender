@@ -227,6 +227,20 @@ public:
 	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
 	/**
+	 * Determine the base dir in which shared resources are located. It will first try to use
+	 * "unpack and run" path, then look for properly installed path, not including versioning.
+	 * @return Unsigned char string pointing to system dir (eg /usr/share/blender/).
+	 */
+	GHOST_TUns8* getSystemDir() const;
+
+	/**
+	 * Determine the base dir in which user configuration is stored, not including versioning.
+	 * If needed, it will create the base directory.
+	 * @return Unsigned char string pointing to user dir (eg ~/.blender/).
+	 */
+	GHOST_TUns8* getUserDir() const;
+
+	/**
 	 * Atom used for ICCCM, WM-spec and Motif.
 	 * We only need get this atom at the start, it's relative
 	 * to the display not the window and are public for every
