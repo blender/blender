@@ -1105,10 +1105,12 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 		/* is ntree part of library? */
 		for(newtree=G.main->nodetree.first; newtree; newtree= newtree->id.next)
 			if(newtree==ntree) break;
-		if(newtree)
+		if(newtree) {
 			newtree= copy_libblock(ntree);
-		else
+		} else {
 			newtree= MEM_dupallocN(ntree);
+			copy_libblock_data(&newtree->id, &ntree->id); /* copy animdata and ID props */
+		}
 		newtree->nodes.first= newtree->nodes.last= NULL;
 		newtree->links.first= newtree->links.last= NULL;
 	}
