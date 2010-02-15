@@ -27,8 +27,6 @@ extern "C" {
 
 #include "RE_pipeline.h"
 
-#include "renderpipeline.h"
-
 #ifdef __cplusplus
 }
 #endif
@@ -217,9 +215,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 		mesh->mface = (MFace*) CustomData_add_layer( &mesh->fdata, CD_MFACE, CD_CALLOC, NULL, mesh->totface);
 		
 		// colors allocation  - me.vertexColors = True
-		MCol* alphas = (MCol *) CustomData_add_layer_named( &mesh->fdata, CD_MCOL, CD_CALLOC, NULL, mesh->totface, "A" );
-		MCol* colors = (MCol *) CustomData_add_layer_named( &mesh->fdata, CD_MCOL, CD_CALLOC, NULL, mesh->totface, "RGB" );
-		mesh->mcol = alphas;
+		mesh->mcol = (MCol *) CustomData_add_layer( &mesh->fdata, CD_MCOL, CD_CALLOC, NULL, mesh->totface );
 
 		////////////////////
 		//  Data copy
@@ -227,6 +223,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 		
 		MVert* vertices = mesh->mvert;
 		MFace* faces = mesh->mface;
+		MCol* colors = mesh->mcol;
 		
 	    v[0] = strip_vertices.begin();
 	    v[1] = v[0]; ++(v[1]);
@@ -283,37 +280,25 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 				color[1] = svRep[1]->color();
 				color[2] = svRep[2]->color();
 
-				colors->a = 0;
 				colors->r = (short)(255.0f*(color[0])[2]);
 				colors->g = (short)(255.0f*(color[0])[1]);
 				colors->b = (short)(255.0f*(color[0])[0]);
-				alphas->a = 0;
-				alphas->r = 0;
-				alphas->g = 0;
-				alphas->b = (short)(255.0f*svRep[0]->alpha());
-				++colors; ++alphas;
+				colors->a = (short)(255.0f*svRep[0]->alpha());
+				++colors;
 				
-				colors->a = 0;
 				colors->r = (short)(255.0f*(color[1])[2]);
 				colors->g = (short)(255.0f*(color[1])[1]);
 				colors->b = (short)(255.0f*(color[1])[0]);
-				alphas->a = 0;
-				alphas->r = 0;
-				alphas->g = 0;
-				alphas->b = (short)(255.0f*svRep[1]->alpha());
-				++colors; ++alphas;
+				colors->a = (short)(255.0f*svRep[1]->alpha());
+				++colors;
 				
-				colors->a = 0;
 				colors->r = (short)(255.0f*(color[2])[2]);
 				colors->g = (short)(255.0f*(color[2])[1]);
 				colors->b = (short)(255.0f*(color[2])[0]);
-				alphas->a = 0;
-				alphas->r = 0;
-				alphas->g = 0;
-				alphas->b = (short)(255.0f*svRep[2]->alpha());
-				++colors; ++alphas;
+				colors->a = (short)(255.0f*svRep[2]->alpha());
+				++colors;
 
-				++faces; ++vertices; ++colors; ++alphas;
+				++faces; ++vertices; ++colors;
 				++vertex_index;
 			}
 			++v[0]; ++v[1]; ++v[2];
@@ -325,80 +310,13 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 }
 
 Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
-    Render* freestyle_render;
-    RenderLayer *rl;
-    float *rectf, *alpha;
-	int x, y, rectx, recty;
-	
 	freestyle_scene->r.mode &= ~( R_EDGE_FRS | R_SHADOW | R_SSS | R_PANORAMA | R_ENVMAP | R_MBLUR );
 	freestyle_scene->r.scemode &= ~( R_SINGLE_LAYER );
 	freestyle_scene->r.planes = R_PLANES32;
 	freestyle_scene->r.imtype = R_PNG;
 	
-    // Pass 1 - render only the alpha component
-	freestyle_render = RE_NewRender(freestyle_scene->id.name, RE_SLOT_DEFAULT);
+	Render *freestyle_render = RE_NewRender(freestyle_scene->id.name, RE_SLOT_DEFAULT);
+
 	RE_BlenderFrame( freestyle_render, freestyle_scene, NULL, 1);
-
-    // save the alpha component of the render into a buffer
-	rl = render_get_active_layer( freestyle_render, freestyle_render->result );
-    if (!rl || rl->rectf == NULL) {
-        cout << "Cannot find Freestyle result image" << endl;
-    	RE_FreeRender(freestyle_render);
-        return NULL;
-    }
-	rectf = rl->rectf;
-	rectx = re->rectx;
-	recty = re->recty;
-    alpha = new float[rectx * recty];
-    for (y = 0; y < recty; y++)
-        for (x = 0; x < rectx; x++)
-            alpha[rectx * y + x] = rectf[4 * (rectx * y + x)];
-
-	RE_FreeRender(freestyle_render);
-
-    // replace the mesh vertex colors
-    LinkData *link = (LinkData *)objects.first;
-    while (link) {
-		Object *ob = (Object *)link->data;
-        if (ob->type == OB_MESH) {
-        	Mesh *mesh = (Mesh *)ob->data;
-            int index = CustomData_get_named_layer_index(&mesh->fdata, CD_MCOL, "A");
-            if (index < 0) {
-                cout << "Cannot find mesh MCol layer (A)" << endl;
-                goto error;
-            }
-            CustomData_free_layer(&mesh->fdata, CD_MCOL, mesh->totface, index);
-        	mesh->mcol = (MCol *)CustomData_get_layer_named(&mesh->fdata, CD_MCOL, "RGB");
-            if (!mesh->mcol) {
-                cout << "Cannot find mesh MCol layer (RGB)" << endl;
-                goto error;
-            }
-		}
-        link = link->next;
-	}
-
-    // Pass 2 - render the RGB components
-	freestyle_render = RE_NewRender(freestyle_scene->id.name, RE_SLOT_DEFAULT);
-    RE_BlenderFrame( freestyle_render, freestyle_scene, NULL, 1);
-
-    // merge the saved alpha component into the 2nd render
-	rl = render_get_active_layer( freestyle_render, freestyle_render->result );
-    if (!rl || rl->rectf == NULL) {
-        cout << "Cannot find Freestyle result image" << endl;
-    	RE_FreeRender(freestyle_render);
-        goto error;
-    }
-	rectf = rl->rectf;
-    for (y = 0; y < recty; y++)
-        for (x = 0; x < rectx; x++)
-            rectf[4 * (rectx * y + x) + 3] = alpha[rectx * y + x];
-
-    delete [] alpha;
-
-    return freestyle_render;
-
-error:
-    delete [] alpha;
-
-    return NULL;
+	return freestyle_render;
 }
