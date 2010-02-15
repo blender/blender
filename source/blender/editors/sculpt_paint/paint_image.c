@@ -144,6 +144,11 @@ typedef struct ImagePaintPartialRedraw {
 	int enabled;
 } ImagePaintPartialRedraw;
 
+typedef struct ImagePaintRegion {
+	int destx, desty;
+	int srcx, srcy;
+	int width, height;
+} ImagePaintRegion;
 
 /* ProjectionPaint defines */
 
@@ -3981,10 +3986,68 @@ static void imapaint_lift_soften(ImBuf *ibuf, ImBuf *ibufb, int *pos, short toru
 	}
 }
 
+static void imapaint_set_region(ImagePaintRegion *region, int destx, int desty, int srcx, int srcy, int width, int height)
+{
+	region->destx= destx;
+	region->desty= desty;
+	region->srcx= srcx;
+	region->srcy= srcy;
+	region->width= width;
+	region->height= height;
+}
+
+static int imapaint_torus_split_region(ImagePaintRegion region[4], ImBuf *dbuf, ImBuf *sbuf)
+{
+	int destx= region->destx;
+	int desty= region->desty;
+	int srcx= region->srcx;
+	int srcy= region->srcy;
+	int width= region->width;
+	int height= region->height;
+	int origw, origh, w, h, tot= 0;
+
+	/* convert destination and source coordinates to be within image */
+	destx = destx % dbuf->x;
+	if (destx < 0) destx += dbuf->x;
+	desty = desty % dbuf->y;
+	if (desty < 0) desty += dbuf->y;
+	srcx = srcx % sbuf->x;
+	if (srcx < 0) srcx += sbuf->x;
+	srcy = srcy % sbuf->y;
+	if (srcy < 0) srcy += sbuf->y;
+
+	/* clip width of blending area to destination imbuf, to avoid writing the
+	   same pixel twice */
+	origw = w = (width > dbuf->x)? dbuf->x: width;
+	origh = h = (height > dbuf->y)? dbuf->y: height;
+
+	/* clip within image */
+	IMB_rectclip(dbuf, sbuf, &destx, &desty, &srcx, &srcy, &w, &h);
+	imapaint_set_region(&region[tot++], destx, desty, srcx, srcy, w, h);
+
+	/* do 3 other rects if needed */
+	if (w < origw)
+		imapaint_set_region(&region[tot++], (destx+w)%dbuf->x, desty, (srcx+w)%sbuf->x, srcy, origw-w, h);
+	if (h < origh)
+		imapaint_set_region(&region[tot++], destx, (desty+h)%dbuf->y, srcx, (srcy+h)%sbuf->y, w, origh-h);
+	if ((w < origw) && (h < origh))
+		imapaint_set_region(&region[tot++], (destx+w)%dbuf->x, (desty+h)%dbuf->y, (srcx+w)%sbuf->x, (srcy+h)%sbuf->y, origw-w, origh-h);
+	
+	return tot;
+}
+
 static void imapaint_lift_smear(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 {
-	IMB_rectblend_torus(ibufb, ibuf, 0, 0, pos[0], pos[1],
-		ibufb->x, ibufb->y, IMB_BLEND_COPY_RGB);
+	ImagePaintRegion region[4];
+	int a, tot;
+
+	imapaint_set_region(region, 0, 0, pos[0], pos[1], ibufb->x, ibufb->y);
+	tot= imapaint_torus_split_region(region, ibuf, ibufb);
+
+	for(a=0; a<tot; a++)
+		IMB_rectblend(ibufb, ibuf, region[a].destx, region[a].desty,
+			region[a].srcx, region[a].srcy,
+			region[a].width, region[a].height, IMB_BLEND_COPY_RGB);
 }
 
 static ImBuf *imapaint_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
@@ -4014,12 +4077,14 @@ static void imapaint_convert_brushco(ImBuf *ibufb, float *pos, int *ipos)
 static int imapaint_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *pos)
 {
 	ImagePaintState *s= ((ImagePaintState*)state);
-	ImBuf *clonebuf= NULL;
+	ImBuf *clonebuf= NULL, *frombuf;
+	ImagePaintRegion region[4];
 	short torus= s->brush->flag & BRUSH_TORUS;
 	short blend= s->blend;
 	float *offset= s->brush->clone.offset;
 	float liftpos[2];
 	int bpos[2], blastpos[2], bliftpos[2];
+	int a, tot;
 
 	imapaint_convert_brushco(ibufb, pos, bpos);
 
@@ -4042,16 +4107,29 @@ static int imapaint_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *p
 		clonebuf= imapaint_lift_clone(s->clonecanvas, ibufb, bliftpos);
 	}
 
-	imapaint_dirty_region(s->image, s->canvas, bpos[0], bpos[1], ibufb->x, ibufb->y);
+	frombuf= (clonebuf)? clonebuf: ibufb;
+
+	if(torus) {
+		imapaint_set_region(region, bpos[0], bpos[1], 0, 0, frombuf->x, frombuf->y);
+		tot= imapaint_torus_split_region(region, s->canvas, frombuf);
+	}
+	else {
+		imapaint_set_region(region, bpos[0], bpos[1], 0, 0, frombuf->x, frombuf->y);
+		tot= 1;
+	}
 
 	/* blend into canvas */
-	if(torus)
-		IMB_rectblend_torus(s->canvas, (clonebuf)? clonebuf: ibufb,
-			bpos[0], bpos[1], 0, 0, ibufb->x, ibufb->y, blend);
-	else
-		IMB_rectblend(s->canvas, (clonebuf)? clonebuf: ibufb,
-			bpos[0], bpos[1], 0, 0, ibufb->x, ibufb->y, blend);
-			
+	for(a=0; a<tot; a++) {
+		imapaint_dirty_region(s->image, s->canvas,
+			region[a].destx, region[a].desty,
+			region[a].width, region[a].height);
+		
+		IMB_rectblend(s->canvas, frombuf,
+			region[a].destx, region[a].desty,
+			region[a].srcx, region[a].srcy,
+			region[a].width, region[a].height, blend);
+	}
+
 	if(clonebuf) IMB_freeImBuf(clonebuf);
 
 	return 1;

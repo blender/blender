@@ -443,45 +443,6 @@ void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx,
 	}
 }
 
-void IMB_rectblend_torus(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
-	int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode)
-{
-	int origw, origh, w, h;
-
-	if (dbuf->x == 0 || dbuf->y == 0 || sbuf->x == 0 || sbuf->y == 0)
-		return;
-
-	/* convert destination and source coordinates too be withing image */
-	destx = destx % dbuf->x;
-	if (destx < 0) destx += dbuf->x;
-	desty = desty % dbuf->y;
-	if (desty < 0) desty += dbuf->y;
-	srcx = srcx % sbuf->x;
-	if (srcx < 0) srcx += sbuf->x;
-	srcy = srcy % sbuf->y;
-	if (srcy < 0) srcy += sbuf->y;
-
-	/* clip width of blending area to destination imbuf, to avoid writing the
-	   same pixel twice */
-	origw = w = (width > dbuf->x)? dbuf->x: width;
-	origh = h = (height > dbuf->y)? dbuf->y: height;
-
-	/* clip and blend */
-	IMB_rectclip(dbuf, sbuf, &destx, &desty, &srcx, &srcy, &w, &h);
-	IMB_rectblend(dbuf, sbuf, destx, desty, srcx, srcy, w, h, mode);
-
-	/* do 3 other rects if needed */
-	if (w < origw)
-		IMB_rectblend(dbuf, sbuf, (destx+w)%dbuf->x, desty, (srcx+w)%sbuf->x, srcy,
-			origw-w, h, mode);
-	if (h < origh)
-		IMB_rectblend(dbuf, sbuf, destx, (desty+h)%dbuf->y, srcx, (srcy+h)%sbuf->y,
-			w, origh-h, mode);
-	if ((w < origw) && (h < origh))
-		IMB_rectblend(dbuf, sbuf, (destx+w)%dbuf->x, (desty+h)%dbuf->y,
-			(srcx+w)%sbuf->x, (srcy+h)%sbuf->y, origw-w, origh-h, mode);
-}
-
 /* fill */
 
 void IMB_rectfill(struct ImBuf *drect, float col[4])
