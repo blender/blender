@@ -309,7 +309,10 @@ class ActiveClear(bpy.types.Operator):
 
     def execute(self, context):
         scene = context.scene
-        del context.active_pose_bone["type"]
+        try:
+            del context.active_pose_bone["type"]
+        except:
+            return {'CANCELLED'}
         return {'FINISHED'}
 
 
