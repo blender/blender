@@ -231,7 +231,7 @@ from bpy.props import *
 class AlignObjects(bpy.types.Operator):
     '''Align Objects'''
     bl_idname = "object.align"
-    bl_label = "Align Objets"
+    bl_label = "Align Objects"
     bl_register = True
     bl_undo = True
 
