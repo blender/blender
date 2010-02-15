@@ -876,7 +876,7 @@ from bpy.props import *
 
 
 class BvhImporter(bpy.types.Operator):
-    '''Load a Wavefront OBJ File.'''
+    '''Load a OBJ Motion Capture File'''
     bl_idname = "import_anim.bvh"
     bl_label = "Import BVH"
 
@@ -895,7 +895,7 @@ class BvhImporter(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-menu_func = lambda self, context: self.layout.operator(BvhImporter.bl_idname, text="Motion Capture (.bvh)...")
+menu_func = lambda self, context: self.layout.operator(BvhImporter.bl_idname, text="Motion Capture (.bvh)")
 
 def register():
     bpy.types.register(BvhImporter)

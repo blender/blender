@@ -142,7 +142,7 @@ class INFO_MT_file_import(bpy.types.Menu):
 
     def draw(self, context):
         if "collada_import" in dir(bpy.ops.wm):
-            self.layout.operator("wm.collada_import", text="COLLADA (.dae)...")
+            self.layout.operator("wm.collada_import", text="COLLADA (.dae)")
 
 
 class INFO_MT_file_export(bpy.types.Menu):
@@ -151,7 +151,7 @@ class INFO_MT_file_export(bpy.types.Menu):
 
     def draw(self, context):
         if "collada_export" in dir(bpy.ops.wm):
-            self.layout.operator("wm.collada_export", text="COLLADA (.dae)...")
+            self.layout.operator("wm.collada_export", text="COLLADA (.dae)")
 
 
 class INFO_MT_file_external_data(bpy.types.Menu):
@@ -161,7 +161,7 @@ class INFO_MT_file_external_data(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("file.pack_all", text="Pack into .blend file")
-        layout.operator("file.unpack_all", text="Unpack into Files...")
+        layout.operator("file.unpack_all", text="Unpack into Files")
 
         layout.separator()
 

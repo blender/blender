@@ -961,7 +961,7 @@ class ExportOBJ(bpy.types.Operator):
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".obj")
-    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)...").path = default_path
+    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)").path = default_path
 
 
 def register():

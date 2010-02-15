@@ -646,73 +646,73 @@ BoolProperty = bpy.types.Scene.BoolProperty
 # Not a real pov option, just to know if we should write
 BoolProperty(attr="pov_radio_enable",
                 name="Enable Radiosity",
-                description="Enable povrays radiosity calculation.",
+                description="Enable povrays radiosity calculation",
                 default=False)
 BoolProperty(attr="pov_radio_display_advanced",
                 name="Advanced Options",
-                description="Show advanced options.",
+                description="Show advanced options",
                 default=False)
 
 # Real pov options
 FloatProperty(attr="pov_radio_adc_bailout",
                 name="ADC Bailout",
-                description="The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results.",
+                description="The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results",
                 min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default=0.01)
 
 BoolProperty(attr="pov_radio_always_sample",
                 name="Always Sample",
-                description="Only use the data from the pretrace step and not gather any new samples during the final radiosity pass..",
+                description="Only use the data from the pretrace step and not gather any new samples during the final radiosity pass",
                 default=True)
 
 FloatProperty(attr="pov_radio_brightness",
                 name="Brightness",
-                description="Ammount objects are brightened before being returned upwards to the rest of the system.",
+                description="Amount objects are brightened before being returned upwards to the rest of the system",
                 min=0.0, max=1000.0, soft_min=0.0, soft_max=10.0, default=1.0)
 
 IntProperty(attr="pov_radio_count",
                 name="Ray Count",
-                description="number of rays that are sent out whenever a new radiosity value has to be calculated.",
+                description="Number of rays that are sent out whenever a new radiosity value has to be calculated",
                 min=1, max=1600, default=35)
 
 FloatProperty(attr="pov_radio_error_bound",
                 name="Error Bound",
-                description="one of the two main speed/quality tuning values, lower values are more accurate.",
+                description="One of the two main speed/quality tuning values, lower values are more accurate",
                 min=0.0, max=1000.0, soft_min=0.1, soft_max=10.0, default=1.8)
 
 FloatProperty(attr="pov_radio_gray_threshold",
                 name="Gray Threshold",
-                description="one of the two main speed/quality tuning values, lower values are more accurate.",
+                description="One of the two main speed/quality tuning values, lower values are more accurate",
                 min=0.0, max=1.0, soft_min=0, soft_max=1, default=0.0)
 
 FloatProperty(attr="pov_radio_low_error_factor",
                 name="Low Error Factor",
-                description="If you calculate just enough samples, but no more, you will get an image which has slightly blotchy lighting.",
+                description="If you calculate just enough samples, but no more, you will get an image which has slightly blotchy lighting",
                 min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=0.5)
 
 # max_sample - not available yet
 BoolProperty(attr="pov_radio_media",
                 name="Media",
-                description="Radiosity estimation can be affected by media.",
+                description="Radiosity estimation can be affected by media",
                 default=False)
 
 FloatProperty(attr="pov_radio_minimum_reuse",
                 name="Minimum Reuse",
-                description="Fraction of the screen width which sets the minimum radius of reuse for each sample point (At values higher than 2% expect errors).",
+                description="Fraction of the screen width which sets the minimum radius of reuse for each sample point (At values higher than 2% expect errors)",
                 min=0.0, max=1.0, soft_min=0.1, soft_max=0.1, default=0.015)
 
 IntProperty(attr="pov_radio_nearest_count",
                 name="Nearest Count",
-                description="Number of old ambient values blended together to create a new interpolated value.",
+                description="Number of old ambient values blended together to create a new interpolated value",
                 min=1, max=20, default=5)
 
 BoolProperty(attr="pov_radio_normal",
                 name="Normals",
-                description="Radiosity estimation can be affected by normals.",
+                description="Radiosity estimation can be affected by normals",
                 default=False)
 
 IntProperty(attr="pov_radio_recursion_limit",
                 name="Recursion Limit",
-                description="how many recursion levels are used to calculate the diffuse inter-reflection.",
+                description="how many recursion levels are used to calculate the diffuse inter-reflection",
                 min=1, max=20, default=3)
 
 

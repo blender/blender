@@ -1574,7 +1574,7 @@ else:
 from bpy.props import *
 
 class IMPORT_OT_obj(bpy.types.Operator):
-    '''Load a Wavefront OBJ File.'''
+    '''Load a Wavefront OBJ File'''
     bl_idname = "import_scene.obj"
     bl_label = "Import OBJ"
 
@@ -1623,7 +1623,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-menu_func = lambda self, context: self.layout.operator(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)...")
+menu_func = lambda self, context: self.layout.operator(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)")
 
 
 def register():

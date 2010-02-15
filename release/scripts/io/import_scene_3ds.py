@@ -1032,7 +1032,7 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-menu_func = lambda self, context: self.layout.operator(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)...")
+menu_func = lambda self, context: self.layout.operator(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)")
 
 
 def register():

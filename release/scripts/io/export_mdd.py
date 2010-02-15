@@ -146,7 +146,7 @@ from bpy.props import *
 
 
 class ExportMDD(bpy.types.Operator):
-    '''Animated mesh to MDD vertex keyframe file.'''
+    '''Animated mesh to MDD vertex keyframe file'''
     bl_idname = "export.mdd"
     bl_label = "Export MDD"
 
@@ -184,7 +184,7 @@ class ExportMDD(bpy.types.Operator):
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".mdd")
-    self.layout.operator(ExportMDD.bl_idname, text="Vertex Keyframe Animation (.mdd)...").path = default_path
+    self.layout.operator(ExportMDD.bl_idname, text="Lightwave Point Cache (.mdd)").path = default_path
 
 
 def register():
