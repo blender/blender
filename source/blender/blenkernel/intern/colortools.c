@@ -143,6 +143,7 @@ void curvemapping_free(CurveMapping *cumap)
 		for(a=0; a<CM_TOT; a++) {
 			if(cumap->cm[a].curve) MEM_freeN(cumap->cm[a].curve);
 			if(cumap->cm[a].table) MEM_freeN(cumap->cm[a].table);
+			if(cumap->cm[a].premultable) MEM_freeN(cumap->cm[a].premultable);
 		}
 		MEM_freeN(cumap);
 	}
@@ -159,6 +160,8 @@ CurveMapping *curvemapping_copy(CurveMapping *cumap)
 				cumapn->cm[a].curve= MEM_dupallocN(cumap->cm[a].curve);
 			if(cumap->cm[a].table) 
 				cumapn->cm[a].table= MEM_dupallocN(cumap->cm[a].table);
+			if(cumap->cm[a].premultable) 
+				cumapn->cm[a].premultable= MEM_dupallocN(cumap->cm[a].premultable);
 		}
 		return cumapn;
 	}
