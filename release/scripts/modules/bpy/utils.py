@@ -74,6 +74,9 @@ def modules_from_path(path, loaded_modules):
     
     return modules
 
+_loaded = [] # store loaded modules for reloading.
+_bpy_types = __import__("bpy_types") # keep for comparisons, never ever reload this.
+
 
 def load_scripts(reload_scripts=False, refresh_scripts=False):
     import traceback
@@ -82,18 +85,31 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     t_main = time.time()
 
     loaded_modules = set()
+    
+    if refresh_scripts:
+        original_modules = _sys.modules.values()
 
     def sys_path_ensure(path):
         if path not in _sys.path: # reloading would add twice
             _sys.path.insert(0, path)
 
-    def test_reload(module):
+    def test_reload(mod):
+        # reloading this causes internal errors
+        # because the classes from this module are stored internally
+        # possibly to refresh internal references too but for now, best not to.
+        if mod == _bpy_types:
+            return mod
+
         try:
-            return reload(module)
+            return reload(mod)
         except:
             traceback.print_exc()
     
     def test_register(mod):
+
+        if refresh_scripts and mod in original_modules:
+            return
+
         if reload_scripts and mod:
             print("Reloading:", mod)
             mod = test_reload(mod)
@@ -104,6 +120,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 register()
             else:
                 print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
+            _loaded.append(mod)
     
     if reload_scripts:
         # reload modules that may not be directly included
@@ -117,23 +134,26 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         for module_name in loaded_modules:
             print("Reloading:", module_name)
             test_reload(_sys.modules[module_name])
+            
+        # loop over and unload all scripts
+        _loaded.reverse()
+        for mod in _loaded:
+            func = getattr(mod, "unregister", None)
+            if func:
+                func()
+        _loaded[:] = []
+
 
     for base_path in script_paths():
         for path_subdir in ("", "ui", "op", "io", "cfg"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
-
-                # needed to load scripts after the users script path changes
-                # we should also support a full reload but since this is now unstable it can be postponed.
-                if refresh_scripts and path in _sys.path:
-                    continue
-
                 sys_path_ensure(path)
-                
+
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
 
-    
+
     # load extensions
     used_ext = {ext.module for ext in _bpy.context.user_preferences.extensions}    
     paths = script_paths("extensions")

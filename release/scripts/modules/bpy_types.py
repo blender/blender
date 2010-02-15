@@ -473,7 +473,10 @@ class _GenericUI:
     def remove(cls, draw_func):
         """Remove a draw function that has been added to this menu"""
         draw_funcs = cls._dyn_ui_initialize()
-        draw_funcs.remove(draw_func)
+        try:
+            draw_funcs.remove(draw_func)
+        except:
+            pass
 
 
 class Panel(StructRNA, _GenericUI):
