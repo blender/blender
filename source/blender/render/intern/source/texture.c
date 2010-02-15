@@ -1881,7 +1881,7 @@ void do_material_tex(ShadeInput *shi)
 						// for the uv case, use the same value for both du/dv,
 						// since individually scaling the normal derivatives makes them useless...
 						du = MIN2(du, dv);
-						idu = (du < 1e-6f) ? bf : (bf/du);
+						idu = (du < 1e-5f) ? bf : (bf/du);
 
 						// +u val
 						tco[0] = co[0] + dudnu*du;
@@ -1902,8 +1902,8 @@ void do_material_tex(ShadeInput *shi)
 					else {
 						float tu[3] = {nu[0], nu[1], nu[2]}, tv[3] = {nv[0], nv[1], nv[2]};
 
-						idu = (du < 1e-6f) ? bf : (bf/du);
-						idv = (dv < 1e-6f) ? bf : (bf/dv);
+						idu = (du < 1e-5f) ? bf : (bf/du);
+						idv = (dv < 1e-5f) ? bf : (bf/dv);
 
 						if ((mtex->texco == TEXCO_ORCO) && shi->obr && shi->obr->ob) {
 							mul_mat3_m4_v3(shi->obr->ob->imat, tu);
