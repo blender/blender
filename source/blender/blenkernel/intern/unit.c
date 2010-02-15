@@ -24,8 +24,8 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <math.h>
 
-#include "BLI_math.h"
 #include "BLI_winstuff.h"
 
 #define TEMP_STR_SIZE 256
@@ -33,7 +33,7 @@
 #define SEP_CHR		'#'
 #define SEP_STR		"#"
 
-#define EUL 0.000001
+#define EPS 0.000001
 
 
 /* define a single unit */
@@ -118,7 +118,7 @@ static struct bUnitCollection buNaturalTimeCollecton = {buNaturalTimeDef, 3, 0, 
 
 
 static struct bUnitDef buNaturalRotDef[] = {
-	{"degree", "degrees",			"°", NULL, "Degrees",		M_PI/180.f, 0.0,	B_UNIT_DEF_NONE},
+	{"degree", "degrees",			"°", NULL, "Degrees",		M_PI/180.0, 0.0,	B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };
 static struct bUnitCollection buNaturalRotCollection = {buNaturalRotDef, 0, 0, sizeof(buNaturalRotDef)/sizeof(bUnitDef)};
@@ -152,7 +152,7 @@ static bUnitDef *unit_best_fit(double value, bUnitCollection *usys, bUnitDef *un
 		if(suppress && (unit->flag & B_UNIT_DEF_SUPPRESS))
 			continue;
 
-		if (value_abs >= unit->scalar*(1.0-EUL)) /* scale down scalar so 1cm doesnt convert to 10mm because of float error */
+		if (value_abs >= unit->scalar*(1.0-EPS)) /* scale down scalar so 1cm doesnt convert to 10mm because of float error */
 			return unit;
 	}
 

@@ -1253,7 +1253,11 @@ int ui_is_but_unit(uiBut *but)
 	
 	if (scene->unit.flag & USER_UNIT_ROT_RADIANS && unit_type == PROP_UNIT_ROTATION)
 		return 0;
-		
+	
+	/* for now disable time unit conversion */	
+	if (unit_type == PROP_UNIT_TIME)
+		return 0;
+
 	if (scene->unit.system == USER_UNIT_NONE) {
 	   if (unit_type != PROP_UNIT_ROTATION)
 			return 0;
