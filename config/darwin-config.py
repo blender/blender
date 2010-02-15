@@ -30,8 +30,6 @@ elif cmd_res[0]=='9':
 elif cmd_res[0]=='10':
 	MAC_CUR_VER='10.6'
 
-BF_PYTHON_VERSION = '3.1'
-
 if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
 	USE_QTKIT=True # Carbon quicktime is not available for 64bit
 
@@ -81,50 +79,19 @@ else:
 
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
-FFMPEG_PRECOMPILED = True
-if FFMPEG_PRECOMPILED:
-	# use precompiled ffmpeg in /lib
-	BF_FFMPEG = LIBDIR + '/ffmpeg'
-	BF_FFMPEG_INC = "#extern/ffmpeg"
-	BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-	BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore'
-else:
-	# use ffmpeg in extern
-	BF_FFMPEG = "#extern/ffmpeg"
-	BF_FFMPEG_INC = '${BF_FFMPEG}'
-	if USE_SDK==True:
-		BF_FFMPEG_EXTRA = '-isysroot '+MACOSX_SDK+' -mmacosx-version-min='+MAC_MIN_VERS
-	BF_XVIDCORE_CONFIG = '--disable-assembly --disable-mmx'	# currently causes errors, even with yasm installed
-	BF_X264_CONFIG = '--disable-pthread --disable-asm'
+BF_FFMPEG = LIBDIR + '/ffmpeg'
+BF_FFMPEG_INC = "${BF_FFMPEG}/include"
+BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
+BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore'
 
-if BF_PYTHON_VERSION=='3.1':
-	# python 3.1 uses precompiled libraries in bf svn /lib by default
-
-	BF_PYTHON = LIBDIR + '/python'
-	BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
-	# BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
-	BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
-	BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
-	# BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
-else:
-	# python 2.5 etc. uses built-in framework
-
-	# python.org libs install in /library we want to use that for 2.5 
-	#
-	# if you want py2.5 on leopard without installing
-	# change value to BF_PYTHON = '/Library/Frameworks/Python.framework/Versions/'
-	# BEWARE: in that case it will work only on leopard
-
-	BF_PYTHON = '/System/Library/Frameworks/Python.framework/Versions/'
-
-	BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}'
-	BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
-	BF_PYTHON_LIB = ''
-	BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config'
-	BF_PYTHON_LINKFLAGS = ['-u','_PyMac_Error','-framework','System','-framework','Python']
-	if MAC_CUR_VER=='10.3' or  MAC_CUR_VER=='10.4':
-		BF_PYTHON_LINKFLAGS = ['-u', '__dummy']+BF_PYTHON_LINKFLAGS
-
+# python 3.1 uses precompiled libraries in bf svn /lib by default
+BF_PYTHON_VERSION = '3.1'
+BF_PYTHON = LIBDIR + '/python'
+BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
+# BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
+BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
+BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
+# BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
 	
 WITH_BF_OPENAL = True
 #different lib must be used  following version of gcc
