@@ -331,7 +331,7 @@ static int console_text_main__internal(struct SpaceConsole *sc, struct ARegion *
 			BLF_draw(cl->line);
 
 			/* cursor */
-			console_line_color(fg, CONSOLE_LINE_ERROR); /* lazy */
+			UI_GetThemeColor3ubv(TH_CONSOLE_CURSOR, (char *)fg);
 			glColor3ub(fg[0], fg[1], fg[2]);
 			glRecti(xy[0]+(cwidth*cl->cursor) -1, xy[1]-2, xy[0]+(cwidth*cl->cursor) +1, xy[1]+sc->lheight-2);
 

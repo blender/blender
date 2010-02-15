@@ -202,7 +202,7 @@ typedef struct ThemeSpace {
 	char cframe[4];
 	char ds_channel[4], ds_subchannel[4]; // dopesheet
 	
-	char console_output[4], console_input[4], console_info[4], console_error[4];
+	char console_output[4], console_input[4], console_info[4], console_error[4], console_cursor[4];
 	
 	char vertex_size, facedot_size;
 	char bpad[6];

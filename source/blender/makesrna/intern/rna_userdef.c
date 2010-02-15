@@ -1003,6 +1003,12 @@ static void rna_def_userdef_theme_space_console(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Line Error", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop= RNA_def_property(srna, "cursor", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "console_cursor");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Cursor", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_theme_space_info(BlenderRNA *brna)

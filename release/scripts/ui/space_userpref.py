@@ -958,6 +958,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(prefs, "line_input")
             col.prop(prefs, "line_info")
             col.prop(prefs, "line_error")
+            col.prop(prefs, "cursor")
 
 
 class USERPREF_PT_file(bpy.types.Panel):
