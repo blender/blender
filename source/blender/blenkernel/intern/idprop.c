@@ -385,6 +385,49 @@ IDProperty *IDP_CopyGroup(IDProperty *prop)
 	return newp;
 }
 
+/* use for syncing proxies.
+ * When values name and types match, copy the values, else ignore */
+void IDP_SyncGroupValues(IDProperty *dest, IDProperty *src)
+{
+	IDProperty *loop, *prop;
+	for (prop=src->data.group.first; prop; prop=prop->next) {
+		for (loop=dest->data.group.first; loop; loop=loop->next) {
+			if (BSTR_EQ(loop->name, prop->name)) {
+				int copy_done= 0;
+
+				if(prop->type==loop->type) {
+
+					switch (prop->type) {
+						case IDP_INT:
+						case IDP_FLOAT:
+						case IDP_DOUBLE:
+							loop->data= prop->data;
+							copy_done= 1;
+							break;
+						case IDP_GROUP:
+							IDP_SyncGroupValues(loop, prop);
+							copy_done= 1;
+							break;
+						default:
+						{
+							IDProperty *tmp= loop;
+							IDProperty *copy= IDP_CopyProperty(prop);
+
+							BLI_insertlinkafter(&dest->data.group, loop, copy);
+							BLI_remlink(&dest->data.group, tmp);
+							loop = copy;
+
+							IDP_FreeProperty(tmp);
+							MEM_freeN(tmp);
+						}
+					}
+				}
+				break;
+			}
+		}
+	}
+}
+
 /*
  replaces all properties with the same name in a destination group from a source group.
 */

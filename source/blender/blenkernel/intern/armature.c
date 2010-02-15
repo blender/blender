@@ -1529,8 +1529,14 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			pchanw.path= NULL;
 			
 			/* this is freed so copy a copy, else undo crashes */
-			if(pchanw.prop)
+			if(pchanw.prop) {
 				pchanw.prop= IDP_CopyProperty(pchanw.prop);
+
+				/* use the values from the the existing props */
+				if(pchan->prop) {
+					IDP_SyncGroupValues(pchanw.prop, pchan->prop);
+				}
+			}
 
 			/* constraints - proxy constraints are flushed... local ones are added after 
 			 *	1. extract constraints not from proxy (CONSTRAINT_PROXY_LOCAL) from pchan's constraints
@@ -1570,6 +1576,25 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			/* always copy custom shape */
 			pchan->custom= pchanp->custom;
 			pchan->custom_tx= pchanp->custom_tx;
+
+			/* ID-Property Syncing */
+			{
+				IDProperty *prop_orig= pchan->prop;
+				if(pchanp->prop) {
+					pchan->prop= IDP_CopyProperty(pchanp->prop);
+					if(prop_orig) {
+						/* copy existing values across when types match */
+						IDP_SyncGroupValues(pchan->prop, prop_orig);
+					}
+				}
+				else {
+					pchan->prop= NULL;
+				}
+				if (prop_orig) {
+					IDP_FreeProperty(prop_orig);
+					MEM_freeN(prop_orig);
+				}
+			}
 		}
 	}
 }
