@@ -88,7 +88,7 @@ GPUBufferPool *GPU_buffer_pool_new()
 
 void GPU_buffer_pool_free(GPUBufferPool *pool)
 {
-	int i;
+	int i, index;
 
 	DEBUG_VBO("GPU_buffer_pool_free\n");
 
@@ -101,13 +101,18 @@ void GPU_buffer_pool_free(GPUBufferPool *pool)
 		pool->start += MAX_FREE_GPU_BUFFERS;
 
 	for( i = 0; i < pool->size; i++ ) {
-		if( useVBOs ) {
-			glDeleteBuffersARB( 1, &pool->buffers[(pool->start+i)%MAX_FREE_GPU_BUFFERS]->id );
+		index = (pool->start+i)%MAX_FREE_GPU_BUFFERS;
+		if( pool->buffers[index] != 0 ) {
+			if( useVBOs ) {
+				glDeleteBuffersARB( 1, &pool->buffers[index]->id );
+			}
+			else {
+				MEM_freeN( pool->buffers[index]->pointer );
+			}
+			MEM_freeN(pool->buffers[index]);
+		} else {
+			DEBUG_VBO("Why are we accessing a null buffer?\n");
 		}
-		else {
-			MEM_freeN( pool->buffers[(pool->start+i)%MAX_FREE_GPU_BUFFERS]->pointer );
-		}
-		MEM_freeN(pool->buffers[(pool->start+i)%MAX_FREE_GPU_BUFFERS]);
 	}
 	MEM_freeN(pool);
 }
@@ -120,9 +125,12 @@ void GPU_buffer_pool_remove( int index, GPUBufferPool *pool )
 
 	while( pool->start < 0 )
 		pool->start += MAX_FREE_GPU_BUFFERS;
-	for( i = index; i < pool->size-1; i++ ) {
+	for( i = index; i < pool->size; i++ ) {
 		pool->buffers[(pool->start+i)%MAX_FREE_GPU_BUFFERS] = pool->buffers[(pool->start+i+1)%MAX_FREE_GPU_BUFFERS];
 	}
+	if( pool->size < MAX_FREE_GPU_BUFFERS )
+		pool->buffers[(pool->start+pool->size)%MAX_FREE_GPU_BUFFERS] = 0;
+
 	pool->size--;
 }
 
@@ -138,15 +146,20 @@ void GPU_buffer_pool_delete_last( GPUBufferPool *pool )
 	last = pool->start+pool->size-1;
 	while( last < 0 )
 		last += MAX_FREE_GPU_BUFFERS;
-	last = (last+MAX_FREE_GPU_BUFFERS)%MAX_FREE_GPU_BUFFERS;
+	last = last%MAX_FREE_GPU_BUFFERS;
 
-	if( useVBOs ) {
-		glDeleteBuffersARB(1,&pool->buffers[last]->id);
-		MEM_freeN( pool->buffers[last] );
-	}
-	else {
-		MEM_freeN( pool->buffers[last]->pointer );
-		MEM_freeN( pool->buffers[last] );
+	if( pool->buffers[last] != 0 ) {
+		if( useVBOs ) {
+			glDeleteBuffersARB(1,&pool->buffers[last]->id);
+			MEM_freeN( pool->buffers[last] );
+		}
+		else {
+			MEM_freeN( pool->buffers[last]->pointer );
+			MEM_freeN( pool->buffers[last] );
+		}
+		pool->buffers[last] = 0;
+	} else {
+		DEBUG_VBO("Why are we accessing a null buffer?\n");
 	}
 	pool->size--;
 }
@@ -234,15 +247,15 @@ void GPU_buffer_free( GPUBuffer *buffer, GPUBufferPool *pool )
 
 	while( pool->start < 0 )
 		pool->start += MAX_FREE_GPU_BUFFERS;
-	place = (pool->start-1 + MAX_FREE_GPU_BUFFERS)%MAX_FREE_GPU_BUFFERS;
 
 	/* free the last used buffer in the queue if no more space */
 	if( pool->size == MAX_FREE_GPU_BUFFERS ) {
 		GPU_buffer_pool_delete_last( pool );
 	}
 
+	place = (pool->start + pool->size)%MAX_FREE_GPU_BUFFERS;
+
 	pool->size++;
-	pool->start = place;
 	pool->buffers[place] = buffer;
 }
 
