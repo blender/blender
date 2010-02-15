@@ -117,7 +117,10 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         if mod:
             register = getattr(mod, "register", None)
             if register:
-                register()
+                try:
+                    register()
+                except:
+                    traceback.print_exc()
             else:
                 print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
             _loaded.append(mod)
@@ -138,9 +141,12 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         # loop over and unload all scripts
         _loaded.reverse()
         for mod in _loaded:
-            func = getattr(mod, "unregister", None)
-            if func:
-                func()
+            unregister = getattr(mod, "unregister", None)
+            if unregister:
+                try:
+                    unregister()
+                except:
+                    traceback.print_exc()
         _loaded[:] = []
 
 
