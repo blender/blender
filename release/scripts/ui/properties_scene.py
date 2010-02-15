@@ -331,6 +331,15 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
 
 
 classes = [
+    SCENE_PT_scene,
+    SCENE_PT_unit,
+    SCENE_PT_keying_sets,
+    SCENE_PT_keying_set_paths,
+    SCENE_PT_physics,
+    SCENE_PT_simplify,
+    
+    SCENE_PT_custom_props,
+
     ANIM_OT_keying_set_export]
 
 
