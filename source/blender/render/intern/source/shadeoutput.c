@@ -1588,7 +1588,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shi->r= shi->vcol[0];
 			shi->g= shi->vcol[1];
 			shi->b= shi->vcol[2];
-			if(ma->mode & (MA_FACETEXTURE_ALPHA))
+			if((ma->mode & (MA_FACETEXTURE_ALPHA)) || ma->vcol_alpha)
 				shi->alpha= shi->vcol[3];
 		}
 		if(ma->texco)

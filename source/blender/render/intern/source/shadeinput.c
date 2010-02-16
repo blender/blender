@@ -1049,6 +1049,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			shi->actcol= obr->actmcol;
 
 			if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP)) {
+				float alpha[8];
 				for (i=0; (mcol=RE_vlakren_get_mcol(obr, vlr, i, &name, 0)); i++) {
 					ShadeInputCol *scol= &shi->col[i];
 					char *cp1, *cp2, *cp3;
@@ -1063,13 +1064,15 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					scol->col[0]= (l*((float)cp3[3]) - u*((float)cp1[3]) - v*((float)cp2[3]))/255.0f;
 					scol->col[1]= (l*((float)cp3[2]) - u*((float)cp1[2]) - v*((float)cp2[2]))/255.0f;
 					scol->col[2]= (l*((float)cp3[1]) - u*((float)cp1[1]) - v*((float)cp2[1]))/255.0f;
+
+					alpha[i]= (l*((float)cp3[0]) - u*((float)cp1[0]) - v*((float)cp2[0]))/255.0f;
 				}
 
 				if(shi->totcol) {
 					shi->vcol[0]= shi->col[shi->actcol].col[0];
 					shi->vcol[1]= shi->col[shi->actcol].col[1];
 					shi->vcol[2]= shi->col[shi->actcol].col[2];
-					shi->vcol[3]= 1.0f;
+					shi->vcol[3]= shi->mat->vcol_alpha ? alpha[shi->actcol] : 1.0f;
 				}
 				else {
 					shi->vcol[0]= 0.0f;

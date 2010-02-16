@@ -158,7 +158,7 @@ typedef struct Material {
 	short sss_flag, sss_preset;
 
 	int mapto_textured;	/* render-time cache to optimise texture lookups */
-	int pad4;
+	short vcol_alpha, pad4;
 
 	ListBase gpumaterial;		/* runtime */
 } Material;

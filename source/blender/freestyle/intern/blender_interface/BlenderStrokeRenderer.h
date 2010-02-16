@@ -37,8 +37,11 @@ protected:
 	Scene* freestyle_scene;
 	Material* material;
 	ListBase objects;
+	float _z, _z_delta;
 
 	void store_object(Object *ob) const;
+
+	float get_stroke_vertex_z(void) const;
 };
 
 #endif // BLENDERSTROKERENDERER_H

@@ -62,6 +62,14 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re)
 	Camera* camera = (Camera *) object_camera->data;
 	camera->type = CAM_ORTHO;
 	camera->ortho_scale = max(width,height);
+    camera->clipsta = 0.1f;
+    camera->clipend = 100.0f;
+
+    _z_delta = 0.00001f;
+    _z = camera->clipsta + _z_delta;
+
+    // test
+    //_z = 999.90f; _z_delta = 0.01f;
 	
 	object_camera->loc[0] = 0.5 * width;
 	object_camera->loc[1] = 0.5 * height;
@@ -74,7 +82,9 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render* re)
 	// Material
 	material = add_material("stroke_material");
 	material->mode |= MA_VERTEXCOLP;
+	material->mode |= MA_TRANSP;
 	material->mode |= MA_SHLESS;
+	material->vcol_alpha = 1;
 }
 
 BlenderStrokeRenderer::~BlenderStrokeRenderer(){
@@ -123,6 +133,15 @@ void BlenderStrokeRenderer::store_object(Object *ob) const {
 	LinkData *link = (LinkData *)MEM_callocN(sizeof(LinkData), "temporary object" );
 	link->data = ob;
 	BLI_addhead(const_cast<ListBase *>(&objects), link);
+}
+
+float BlenderStrokeRenderer::get_stroke_vertex_z(void) const {
+    float z = _z;
+    BlenderStrokeRenderer *self = const_cast<BlenderStrokeRenderer *>(this);
+    if (!(_z < _z_delta * 100000.0f))
+        self->_z_delta *= 10.0f;
+    self->_z += _z_delta;
+    return -z;
 }
 
 void BlenderStrokeRenderer::RenderStrokeRep(StrokeRep *iStrokeRep) const{
@@ -252,13 +271,13 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 					// first vertex
 					vertices->co[0] = svRep[0]->point2d()[0];
 					vertices->co[1] = svRep[0]->point2d()[1];
-					vertices->co[2] = 0.0;
+					vertices->co[2] = get_stroke_vertex_z();
 					++vertices;
 					
 					// second vertex
 					vertices->co[0] = svRep[1]->point2d()[0];
 					vertices->co[1] = svRep[1]->point2d()[1];
-					vertices->co[2] = 0.0;
+					vertices->co[2] = get_stroke_vertex_z();
 					++vertices;
 				}
 				visible = true;
@@ -266,7 +285,7 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 				// vertex
 				vertices->co[0] = svRep[2]->point2d()[0];
 				vertices->co[1] = svRep[2]->point2d()[1];
-				vertices->co[2] = 0.0;
+				vertices->co[2] = get_stroke_vertex_z();
 				
 				// faces
 				faces->v1 = vertex_index - 2;
@@ -310,6 +329,11 @@ void BlenderStrokeRenderer::RenderStrokeRepBasic(StrokeRep *iStrokeRep) const{
 }
 
 Render* BlenderStrokeRenderer::RenderScene( Render *re ) {
+    Camera *camera = (Camera *)freestyle_scene->camera->data;
+    if (camera->clipend < _z)
+        camera->clipend = _z + _z_delta * 100.0f;
+    //cout << "clipsta " << camera->clipsta << ", clipend " << camera->clipend << endl;
+
 	freestyle_scene->r.mode &= ~( R_EDGE_FRS | R_SHADOW | R_SSS | R_PANORAMA | R_ENVMAP | R_MBLUR );
 	freestyle_scene->r.scemode &= ~( R_SINGLE_LAYER );
 	freestyle_scene->r.planes = R_PLANES32;
