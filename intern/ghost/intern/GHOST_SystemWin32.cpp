@@ -1097,10 +1097,10 @@ void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
 GHOST_TUns8* GHOST_SystemWin32::getSystemDir() const
 {
-
+	return NULL;
 }
 
 GHOST_TUns8* GHOST_SystemWin32::getUserDir() const
 {
-
+	return NULL;
 }

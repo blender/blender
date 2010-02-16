@@ -24,6 +24,9 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#ifdef WIN32
+#define _USE_MATH_DEFINES
+#endif
 #include <math.h>
 
 #include "BLI_winstuff.h"
