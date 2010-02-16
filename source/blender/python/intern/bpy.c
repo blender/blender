@@ -39,9 +39,16 @@
 #include "../generic/Geometry.h"
 #include "../generic/BGL.h"
 #include "../generic/IDProp.h"
- 
-/* todo, make nice syntax for sphinx */
-static char bpy_home_paths_doc[] = "home_paths(subfolder), return 3 paths to blender home directories (system, local, user), strings will be empty when not found.";
+
+static char bpy_home_paths_doc[] =
+".. function:: home_paths(subfolder)\n"
+"\n"
+"   return 3 paths to blender home directories.\n"
+"\n"
+"   :arg subfolder: The name of a subfolder to find within the blenders home directory.\n"
+"   :type subfolder: string\n"
+"   :return: (system, local, user) strings will be empty when not found.\n"
+"   :rtype: tuple of strigs\n";
 
 PyObject *bpy_home_paths(PyObject *self, PyObject *args)
 {

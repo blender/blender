@@ -55,6 +55,13 @@ def _test_import(module_name, loaded_modules):
 def modules_from_path(path, loaded_modules):
     """
     Load all modules in a path and return them as a list.
+
+    :arg path: this path is scanned for scripts and packages.
+    :type path: string
+    :arg loaded_modules: alredy loaded module names, files matching these names will be ignored.
+    :type loaded_modules: set
+    :return: all loaded modules.
+    :rtype: list
     """
     import traceback
     import time
@@ -81,6 +88,14 @@ _bpy_types = __import__("bpy_types") # keep for comparisons, never ever reload t
 
 
 def load_scripts(reload_scripts=False, refresh_scripts=False):
+    """
+    Load scripts and run each modules register function.
+    
+    :arg reload_scripts: Causes all scripts to have their unregister method called before loading.
+    :type reload_scripts: bool
+    :arg refresh_scripts: only load scripts which are not already loaded as modules.
+    :type refresh_scripts: bool
+    """
     import traceback
     import time
 
