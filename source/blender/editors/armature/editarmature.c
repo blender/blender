@@ -3012,6 +3012,9 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
+	/* updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, obedit);
+	
 	/* free points */
 	BLI_freelistN(&points);
 	
