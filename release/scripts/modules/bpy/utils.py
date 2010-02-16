@@ -39,16 +39,18 @@ def _test_import(module_name, loaded_modules):
         print("Ignoring '%s', can't import files containing multiple periods." % module_name)
         return None
 
+    t = time.time()
     try:
-        t = time.time()
-        ret = __import__(module_name)
-        if _bpy.app.debug:
-            print("time %s %.4f" % (module_name, time.time() - t))
-        return ret
+        mod = __import__(module_name)
     except:
         traceback.print_exc()
         return None
 
+    if _bpy.app.debug:
+        print("time %s %.4f" % (module_name, time.time() - t))
+    
+    loaded_modules.add(mod.__name__) # should match mod.__name__ too
+    return mod
 
 def modules_from_path(path, loaded_modules):
     """
@@ -134,7 +136,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             if module_name and module_name != "bpy.types": # hard coded for C types
                 loaded_modules.add(module_name)
 
-        for module_name in loaded_modules:
+        # sorting isnt needed but rather it be pradictable
+        for module_name in sorted(loaded_modules):
             print("Reloading:", module_name)
             test_reload(_sys.modules[module_name])
             
