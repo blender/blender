@@ -5605,7 +5605,7 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 		return;
 	}
 	
-	re= RE_NewRender("_make sticky_", RE_SLOT_DEFAULT);
+	re= RE_NewRender("_make sticky_");
 	RE_InitState(re, NULL, &scene->r, NULL, scene->r.xsch, scene->r.ysch, NULL);
 	
 	/* use renderdata and camera to set viewplane */

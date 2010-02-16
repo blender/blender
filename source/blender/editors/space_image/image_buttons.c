@@ -538,12 +538,12 @@ static char *slot_menu()
 	char *str;
 	int a, slot;
 	
-	str= MEM_callocN(RE_SLOT_MAX*32, "menu slots");
+	str= MEM_callocN(IMA_MAX_RENDER_SLOT*32, "menu slots");
 	
 	strcpy(str, "Slot %t");
 	a= strlen(str);
 
-	for(slot=0; slot<RE_SLOT_MAX; slot++)
+	for(slot=0; slot<IMA_MAX_RENDER_SLOT; slot++)
 		a += sprintf(str+a, "|Slot %d %%x%d", slot+1, slot);
 	
 	return str;
@@ -617,7 +617,6 @@ static void image_multi_cb(bContext *C, void *rr_v, void *iuser_v)
 {
 	ImageUser *iuser= iuser_v;
 
-	RE_SetViewSlot(iuser->menunr);
 	BKE_image_multilayer_index(rr_v, iuser); 
 	WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
 }
@@ -718,7 +717,7 @@ static void image_user_change(bContext *C, void *iuser_v, void *unused)
 }
 #endif
 
-static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, ImageUser *iuser, int w, int render)
+static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, ImageUser *iuser, int w, short *render_slot)
 {
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiBut *but;
@@ -734,10 +733,9 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, Image
 	wmenu3= (3*w)/6;
 	
 	/* menu buts */
-	if(render) {
+	if(render_slot) {
 		strp= slot_menu();
-		iuser->menunr= RE_GetViewSlot();
-		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu1, 20, &iuser->menunr, 0,0,0,0, "Select Slot");
+		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu1, 20, render_slot, 0,0,0,0, "Select Slot");
 		uiButSetFunc(but, image_multi_cb, rr, iuser);
 		MEM_freeN(strp);
 	}
@@ -756,7 +754,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, Image
 	}
 }
 
-static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr, ImageUser *iuser, int render)
+static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr, ImageUser *iuser, short *render_slot)
 {
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiLayout *row;
@@ -777,7 +775,7 @@ static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr,
 	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_RIGHT,	0,0,18,20, NULL, 0, 0, 0, 0, "Next Layer");
 	uiButSetFunc(but, image_multi_inclay_cb, rr, iuser);
 
-	uiblock_layer_pass_buttons(row, rr, iuser, 230, render);
+	uiblock_layer_pass_buttons(row, rr, iuser, 230, render_slot);
 
 	/* decrease, increase arrows */
 	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_LEFT,	0,0,17,20, NULL, 0, 0, 0, 0, "Previous Pass");
@@ -886,9 +884,9 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 			}
 			else if(ima->type==IMA_TYPE_R_RESULT) {
 				/* browse layer/passes */
-				Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
+				Render *re= RE_GetRender(scene->id.name);
 				RenderResult *rr= RE_AcquireResultRead(re);
-				uiblock_layer_pass_arrow_buttons(layout, rr, iuser, 1);
+				uiblock_layer_pass_arrow_buttons(layout, rr, iuser, &ima->render_slot);
 				RE_ReleaseResult(re);
 			}
 		}
@@ -915,7 +913,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 
 			/* multilayer? */
 			if(ima->type==IMA_TYPE_MULTILAYER && ima->rr) {
-				uiblock_layer_pass_arrow_buttons(layout, ima->rr, iuser, 0);
+				uiblock_layer_pass_arrow_buttons(layout, ima->rr, iuser, NULL);
 			}
 			else if(ima->source != IMA_SRC_GENERATED) {
 				if(compact == 0) {
@@ -995,7 +993,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 	/* render layers and passes */
 	if(ima && iuser) {
 		rr= BKE_image_acquire_renderresult(scene, ima);
-		uiblock_layer_pass_buttons(layout, rr, iuser, 160, ima->type==IMA_TYPE_R_RESULT);
+		uiblock_layer_pass_buttons(layout, rr, iuser, 160, (ima->type==IMA_TYPE_R_RESULT)? &ima->render_slot: NULL);
 		BKE_image_release_renderresult(scene, ima);
 	}
 }

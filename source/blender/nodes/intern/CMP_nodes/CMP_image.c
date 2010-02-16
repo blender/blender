@@ -346,7 +346,7 @@ void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
    Scene *sce= (Scene *)node->id;
-   Render *re= (sce)? RE_GetRender(sce->id.name, RE_SLOT_RENDERING): NULL;
+   Render *re= (sce)? RE_GetRender(sce->id.name): NULL;
    RenderData *rd= data;
    RenderResult *rr= NULL;
 

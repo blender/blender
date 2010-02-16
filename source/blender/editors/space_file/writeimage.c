@@ -114,14 +114,14 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 	
 	if(overwrite) {
 		if(scene->r.imtype==R_MULTILAYER) {
-			Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
+			Render *re= RE_GetRender(scene->id.name);
 			RenderResult *rr= RE_AcquireResultRead(re);
 			if(rr) 
 				RE_WriteRenderResult(rr, str, scene->r.quality);
 			RE_ReleaseResult(re);
 		}
 		else {
-			Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
+			Render *re= RE_GetRender(scene->id.name);
 			RenderResult rres;
 			ImBuf *ibuf;
 			
@@ -235,7 +235,7 @@ void BIF_save_rendered_image(char *name)
 /* calls fileselect */
 void BIF_save_rendered_image_fs(Scene *scene)
 {
-	Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
+	Render *re= RE_GetRender(scene->id.name);
 	RenderResult rres;
 	
 	RE_AcquireResultImage(re, &rres);

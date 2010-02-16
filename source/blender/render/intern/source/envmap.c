@@ -108,7 +108,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	Render *envre;
 	int cuberes;
 	
-	envre= RE_NewRender("Envmap", RE_SLOT_DEFAULT);
+	envre= RE_NewRender("Envmap");
 	
 	env->lastsize= re->r.size;
 	cuberes = (env->cuberes * re->r.size) / 100;
