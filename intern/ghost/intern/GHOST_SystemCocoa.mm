@@ -1737,12 +1737,60 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	[pool drain];
 }
 
+#pragma mark Base directories retrieval
+
 GHOST_TUns8* GHOST_SystemCocoa::getSystemDir() const
 {
-
+	static GHOST_TUns8 tempPath[512] = "";
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSFileManager *fileManager;
+	NSString *basePath;
+	NSArray *paths;
+	
+	paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSLocalDomainMask, YES);
+	
+	if ([paths count] > 0)
+		basePath = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"Blender"];
+	else { //Fall back to standard unix path in case of issue
+		basePath = @"/usr/share/blender";
+	}
+	
+	/* Ensure path exists, creates it if needed */
+	fileManager = [NSFileManager defaultManager];
+	if (![fileManager fileExistsAtPath:basePath isDirectory:NULL]) {
+		[fileManager createDirectoryAtPath:basePath attributes:nil];
+	}
+	
+	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
+	
+	[pool drain];
+	return tempPath;
 }
 
 GHOST_TUns8* GHOST_SystemCocoa::getUserDir() const
 {
+	static GHOST_TUns8 tempPath[512] = "";
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSFileManager *fileManager;
+	NSString *basePath;
+	NSArray *paths;
 
+	paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+
+	if ([paths count] > 0)
+		basePath = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"Blender"];
+	else { //Fall back to HOME in case of issue
+		basePath = [NSHomeDirectory() stringByAppendingPathComponent:@".blender"];
+	}
+	
+	/* Ensure path exists, creates it if needed */
+	fileManager = [NSFileManager defaultManager];
+	if (![fileManager fileExistsAtPath:basePath isDirectory:NULL]) {
+		[fileManager createDirectoryAtPath:basePath attributes:nil];
+	}
+	
+	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
+	
+	[pool drain];
+	return tempPath;
 }
