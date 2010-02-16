@@ -397,17 +397,6 @@ enum {
 #endif
 @end 
 
-@interface NSEvent(SnowLeopardEvents)
-/* modifier keys currently down.  This returns the state of devices combined
- with synthesized events at the moment, independent of which events
- have been delivered via the event stream. */
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
-+ (unsigned int)modifierFlags; //NSUInteger is defined only from 10.5
-#else
-+ (NSUInteger)modifierFlags;
-#endif
-@end
-
 #endif
 
 
@@ -945,21 +934,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	}
 	else m_needDelayedApplicationBecomeActiveEventProcessing = false;
 
-#ifdef MAC_OS_X_VERSION_10_6
-	modifiers = [NSEvent modifierFlags];
-#else
-	//If build against an older SDK, check if running on 10.6 to use the correct function
-	if ([NSEvent respondsToSelector:@selector(modifierFlags)]) {
-		modifiers = [NSEvent modifierFlags];
-	}
-	else {
-		//TODO: need to find a better workaround for the missing cocoa "getModifierFlag" function in 10.4/10.5
-		modifiers = 0;
-	}
-#endif
-	
-	/* Discard erroneous 10.6 modifiers values reported when switching back from spaces */
-	if ((modifiers & NSDeviceIndependentModifierFlagsMask) == 0xb00000) modifiers = 0;
+	modifiers = [[[NSApplication sharedApplication] currentEvent] modifierFlags];
 	
 	if ((modifiers & NSShiftKeyMask) != (m_modifierMask & NSShiftKeyMask)) {
 		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSShiftKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
