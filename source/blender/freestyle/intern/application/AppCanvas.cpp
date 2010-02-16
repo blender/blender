@@ -120,7 +120,7 @@ void AppCanvas::readColorPixels(int x,int y,int w, int h, RGBImage& oImage) cons
 		int recty = _pass_z.height;
 		float xfac = ((float)rectx) / ((float)xsch);
 		float yfac = ((float)recty) / ((float)ysch);
-		printf("readColorPixels %d x %d @ (%d, %d) in %d x %d -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch, rectx, recty, (int)(xfac * 100.0f));
+		//printf("readColorPixels %d x %d @ (%d, %d) in %d x %d -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch, rectx, recty, (int)(xfac * 100.0f));
 		int ii, jj;
 		for (int j = 0; j < h; j++) {
 			jj = (int)((y + j) * yfac);
@@ -148,7 +148,7 @@ void AppCanvas::readDepthPixels(int x,int y,int w, int h, GrayImage& oImage) con
 		int recty = _pass_z.height;
 		float xfac = ((float)rectx) / ((float)xsch);
 		float yfac = ((float)recty) / ((float)ysch);
-		printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch, rectx, recty, (int)(xfac * 100.0f));
+		//printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch, rectx, recty, (int)(xfac * 100.0f));
 		int ii, jj;
 		for (int j = 0; j < h; j++) {
 			jj = (int)((y + j) * yfac);
