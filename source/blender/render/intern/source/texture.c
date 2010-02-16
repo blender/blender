@@ -1322,7 +1322,7 @@ int multitex_nodes(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, 
 			}
 			
 			do_2d_mapping(&localmtex, texvec_l, NULL, NULL, dxt_l, dyt_l);
-			rgbnor= multitex(tex, texvec, dxt, dyt, osatex, texres, thread, which_output);
+			rgbnor= multitex(tex, texvec, dxt_l, dyt_l, osatex, texres, thread, which_output);
 		}
 
 		return rgbnor;

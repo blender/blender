@@ -3143,8 +3143,6 @@ static void render_startjob(void *rjv, short *stop, short *do_update)
 	pthread_setspecific (gomp_tls_key, thread_tls_data);
 #endif
 
-	BKE_image_backup_render(rj->scene, rj->image);
-
 	if(rj->anim)
 		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
 	else
@@ -3258,6 +3256,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* get a render result image, and make sure it is empty */
 	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
+	BKE_image_backup_render(rj->scene, ima);
 	rj->image= ima;
 	
 	/* setup new render */
