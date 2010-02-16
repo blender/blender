@@ -204,24 +204,27 @@ Material *add_material(char *name)
 	return ma;	
 }
 
-Material *copy_material(Material *ma)
+static Material *copy_material_intern(Material *ma, int for_render)
 {
 	Material *man;
 	int a;
 	
 	man= copy_libblock(ma);
+	if(for_render)
+		BLI_remlink(&G.main->mat, man);
 	
+	if(!for_render) {
 #if 0 // XXX old animation system
-	id_us_plus((ID *)man->ipo);
+		id_us_plus((ID *)man->ipo);
 #endif // XXX old animation system
-	id_us_plus((ID *)man->group);
-	
+		id_us_plus((ID *)man->group);
+	}
 	
 	for(a=0; a<MAX_MTEX; a++) {
 		if(ma->mtex[a]) {
 			man->mtex[a]= MEM_mallocN(sizeof(MTex), "copymaterial");
 			memcpy(man->mtex[a], ma->mtex[a], sizeof(MTex));
-			id_us_plus((ID *)man->mtex[a]->tex);
+			if(!for_render) id_us_plus((ID *)man->mtex[a]->tex);
 		}
 	}
 	
@@ -237,6 +240,16 @@ Material *copy_material(Material *ma)
 	man->gpumaterial.first= man->gpumaterial.last= NULL;
 	
 	return man;
+}
+
+Material *copy_material_for_render(Material *ma)
+{
+	return copy_material_intern(ma, 1);
+}
+
+Material *copy_material(Material *ma)
+{
+	return copy_material_intern(ma, 0);
 }
 
 void make_local_material(Material *ma)

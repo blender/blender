@@ -236,7 +236,7 @@ static void image_free_buffers(Image *ima)
 	
 	if(ima->anim) IMB_free_anim(ima->anim);
 	ima->anim= NULL;
-
+	
 	if(ima->rr) {
 		RE_FreeRenderResult(ima->rr);
 		ima->rr= NULL;
@@ -250,8 +250,6 @@ static void image_free_buffers(Image *ima)
 /* called by library too, do not free ima itself */
 void free_image(Image *ima)
 {
-	int a;
-
 	image_free_buffers(ima);
 	if (ima->packedfile) {
 		freePackedFile(ima->packedfile);
@@ -262,11 +260,9 @@ void free_image(Image *ima)
 	if (ima->preview) {
 		BKE_previewimg_free(&ima->preview);
 	}
-	for(a=0; a<IMA_MAX_RENDER_SLOT; a++) {
-		if(ima->renders[a]) {
-			RE_FreeRenderResult(ima->renders[a]);
-			ima->renders[a]= NULL;
-		}
+	if (ima->render_text) {
+		MEM_freeN(ima->render_text);
+		ima->render_text= NULL;
 	}
 }
 
@@ -1092,7 +1088,7 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 
 	{
-		Render *re= RE_GetRender(scene->id.name);
+		Render *re= RE_GetRender(scene->id.name, RE_SLOT_RENDERING);
 		RenderStats *stats= re ? RE_GetStats(re):NULL;
 
 		if (stats && (scene->r.stamp & R_STAMP_RENDERTIME)) {
@@ -1598,48 +1594,20 @@ RenderPass *BKE_image_multilayer_index(RenderResult *rr, ImageUser *iuser)
 	return rpass;
 }
 
-RenderResult *BKE_image_acquire_renderresult(Scene *scene, Image *ima)
+RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, Image *ima)
 {
-	if(ima->rr) {
+	if(ima->rr)
 		return ima->rr;
-	}
-	else if(ima->type==IMA_TYPE_R_RESULT) {
-		if(ima->render_slot == ima->last_render_slot)
-			return RE_AcquireResultRead(RE_GetRender(scene->id.name));
-		else
-			return ima->renders[ima->render_slot];
-	}
-	else
-		return NULL;
+	else if(ima->type==IMA_TYPE_R_RESULT)
+		return RE_AcquireResultRead(RE_GetRender(scene->id.name, RE_SLOT_VIEW));
+	return NULL;
 }
 
-void BKE_image_release_renderresult(Scene *scene, Image *ima)
+void BKE_image_release_renderresult(struct Scene *scene, Image *ima)
 {
 	if(ima->rr);
-	else if(ima->type==IMA_TYPE_R_RESULT) {
-		if(ima->render_slot == ima->last_render_slot)
-			RE_ReleaseResult(RE_GetRender(scene->id.name));
-	}
-}
-
-void BKE_image_backup_render(Scene *scene, Image *ima)
-{
-	/* called right before rendering, ima->renders contains render
-	   result pointers for everything but the current render */
-	Render *re= RE_GetRender(scene->id.name);
-	int slot= ima->render_slot, last= ima->last_render_slot;
-
-	if(slot != last) {
-		if(ima->renders[slot]) {
-			RE_FreeRenderResult(ima->renders[slot]);
-			ima->renders[slot]= NULL;
-		}
-
-		ima->renders[last]= NULL;
-		RE_SwapResult(re, &ima->renders[last]);
-	}
-
-	ima->last_render_slot= slot;
+	else if(ima->type==IMA_TYPE_R_RESULT)
+		RE_ReleaseResult(RE_GetRender(scene->id.name, RE_SLOT_VIEW));
 }
 
 /* after imbuf load, openexr type can return with a exrhandle open */
@@ -1949,26 +1917,17 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 {
 	Render *re= NULL;
 	RenderResult *rr= NULL;
-	int from_render= (ima->render_slot == ima->last_render_slot);
 	
 	/* if we the caller is not going to release the lock, don't give the image */
 	if(!lock_r)
 		return NULL;
 
 	if(iuser && iuser->scene) {
-		re= RE_GetRender(iuser->scene->id.name);
+		re= RE_GetRender(iuser->scene->id.name, RE_SLOT_VIEW);
+		rr= RE_AcquireResultRead(re);
 
-		/* for the last render we get result for Render itself,
-		   for others a RenderResult is stored in the Image */
-		if(from_render) {
-			rr= RE_AcquireResultRead(re);
-			/* release is done in BKE_image_release_ibuf using lock_r */
-			*lock_r= re;
-		}
-		else {
-			rr= ima->renders[ima->render_slot];
-			*lock_r= NULL;
-		}
+		/* release is done in BKE_image_release_ibuf using lock_r */
+		*lock_r= re;
 	}
 
 	if(rr==NULL)
@@ -1996,15 +1955,9 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		channels= 4;
 		layer= (iuser)? iuser->layer: 0;
 		pass= (iuser)? iuser->pass: 0;
-
-		memset(&rres, 0, sizeof(rres));
 		
 		/* this gives active layer, composite or seqence result */
-		if(from_render)
-			RE_AcquireResultImage(RE_GetRender(iuser->scene->id.name), &rres);
-		else if(rr)
-			rres= *rr;
-
+		RE_AcquireResultImage(RE_GetRender(iuser->scene->id.name, RE_SLOT_VIEW), &rres);
 		rect= (unsigned int *)rres.rect32;
 		rectf= rres.rectf;
 		rectz= rres.rectz;
@@ -2059,15 +2012,13 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 			ibuf->flags |= IB_zbuffloat;
 			ibuf->dither= dither;
 
-			if(from_render)
-				RE_ReleaseResultImage(re);
+			RE_ReleaseResultImage(re);
 
 			ima->ok= IMA_OK_LOADED;
 			return ibuf;
 		}
 
-		if(from_render)
-			RE_ReleaseResultImage(re);
+		RE_ReleaseResultImage(re);
 	}
 	
 	return NULL;

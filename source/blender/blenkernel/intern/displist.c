@@ -321,9 +321,9 @@ static Render *fastshade_get_render(Scene *scene)
 	/* XXX ugly global still, but we can't do preview while rendering */
 	if(G.rendering==0) {
 		
-		Render *re= RE_GetRender("_Shade View_");
+		Render *re= RE_GetRender("_Shade View_", RE_SLOT_DEFAULT);
 		if(re==NULL) {
-			re= RE_NewRender("_Shade View_");
+			re= RE_NewRender("_Shade View_", RE_SLOT_DEFAULT);
 		
 			RE_Database_Baking(re, scene, 0, 0);	/* 0= no faces */
 		}
@@ -337,7 +337,7 @@ static Render *fastshade_get_render(Scene *scene)
 /* called on file reading */
 void fastshade_free_render(void)
 {
-	Render *re= RE_GetRender("_Shade View_");
+	Render *re= RE_GetRender("_Shade View_", RE_SLOT_DEFAULT);
 	
 	if(re) {
 		RE_Database_Free(re);

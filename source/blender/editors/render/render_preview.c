@@ -474,7 +474,7 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 		}
 	}
 
-	re= RE_GetRender(name);
+	re= RE_GetRender(name, RE_SLOT_DEFAULT);
 	RE_AcquireResultImage(re, &rres);
 
 	if(rres.rectf) {
@@ -702,7 +702,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 		ri->status= 0;
 		
 		sprintf(name, "View3dPreview %p", sa);
-		re= ri->re= RE_NewRender(name);
+		re= ri->re= RE_NewRender(name, RE_SLOT_DEFAULT);
 		//RE_display_draw_cb(re, view3d_previewrender_progress);
 		//RE_stats_draw_cb(re, view3d_previewrender_stats);
 		//RE_test_break_cb(re, qtest);
@@ -884,17 +884,24 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	char name[32];
 	int sizex;
 
+	if(GS(id->name) == ID_MA)
+		id= (ID*)copy_material_for_render((Material*)id);
+
 	/* get the stuff from the builtin preview dbase */
 	sce= preview_prepare_scene(sp->scene, id, idtype, sp); // XXX sizex
-	if(sce==NULL) return;
+	if(sce==NULL) {
+		if(GS(id->name) == ID_MA)
+			free_material((Material*)id);
+		return;
+	}
 	
 	if(!split || first) sprintf(name, "Preview %p", sp->owner);
 	else sprintf(name, "SecondPreview %p", sp->owner);
-	re= RE_GetRender(name);
+	re= RE_GetRender(name, RE_SLOT_DEFAULT);
 	
 	/* full refreshed render from first tile */
 	if(re==NULL)
-		re= RE_NewRender(name);
+		re= RE_NewRender(name, RE_SLOT_DEFAULT);
 		
 	/* sce->r gets copied in RE_InitState! */
 	sce->r.scemode &= ~(R_MATNODE_PREVIEW|R_TEXNODE_PREVIEW);
@@ -954,6 +961,9 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 
 	/* unassign the pointers, reset vars */
 	preview_prepare_scene(sp->scene, NULL, GS(id->name), NULL);
+
+	if(GS(id->name) == ID_MA)
+		free_material((Material*)id);
 }
 
 /* runs inside thread for material and icons */

@@ -72,12 +72,9 @@ typedef struct Image {
 	/* sources from: */
 	struct anim *anim;
 	struct RenderResult *rr;
-
-	struct RenderResult *renders[8]; /* IMA_MAX_RENDER_SLOT */
-	short render_slot, last_render_slot;
 	
 	short ok, flag;
-	short source, type;
+	short source, type, pad, pad1;
 	int lastframe;
 
 	/* texture page */
@@ -90,13 +87,14 @@ typedef struct Image {
 	struct PackedFile * packedfile;
 	struct PreviewImage * preview;
 
-	/* game engine tile animation */
+	/* not saved in file, statistics for render result */
+	char *render_text;
+	
 	float lastupdate;
 	int lastused;
 	short animspeed;
 	
-	/* for generated images */
-	short gen_x, gen_y, gen_type;
+	short gen_x, gen_y, gen_type;	/* for generated images */
 	
 	/* display aspect - for UV editing images resized for faster openGL display */
 	float aspx, aspy;
@@ -126,9 +124,9 @@ typedef struct Image {
 
 /* ima->type and ima->source moved to BKE_image.h, for API */
 
-/* render */
-#define IMA_MAX_RENDER_TEXT		512
-#define IMA_MAX_RENDER_SLOT		8
+/* render_text maxlen */
+#define IMA_RW_MAXTEXT           512
+
 
 #endif
 

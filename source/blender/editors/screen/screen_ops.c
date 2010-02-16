@@ -2894,23 +2894,18 @@ static void screen_set_image_output(bContext *C, int mx, int my)
 static int screen_render_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Render *re= RE_GetRender(scene->id.name);
-	Image *ima;
+	Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
 	
 	if(re==NULL) {
-		re= RE_NewRender(scene->id.name);
+		re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
 	}
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
-
-	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
-	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
-	BKE_image_backup_render(scene, ima);
-
+	
 	if(RNA_boolean_get(op->ptr, "animation"))
 		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
 	else
 		RE_BlenderFrame(re, scene, NULL, scene->r.cfra);
-
+	
 	// no redraw needed, we leave state as we entered it
 	ED_update_for_newframe(C, 1);
 	
@@ -2939,7 +2934,7 @@ static void render_freejob(void *rjv)
 	MEM_freeN(rj);
 }
 
-/* str is IMA_MAX_RENDER_TEXT in size */
+/* str is IMA_RW_MAXTEXT in size */
 static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 {
 	char info_time_str[32];	// used to be extern to header_info.c
@@ -2980,7 +2975,7 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 		spos+= sprintf(spos, "| %s ", rs->infostr);
 	
 	/* very weak... but 512 characters is quite safe */
-	if(spos >= str+IMA_MAX_RENDER_TEXT)
+	if(spos >= str+IMA_RW_MAXTEXT)
 		if (G.f & G_DEBUG)
 			printf("WARNING! renderwin text beyond limit \n");
 	
@@ -2989,17 +2984,12 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 {
 	RenderJob *rj= rjv;
-	RenderResult *rr;
 	
-	rr= RE_AcquireResultRead(rj->re);
-
 	/* malloc OK here, stats_draw is not in tile threads */
-	if(rr->text==NULL)
-		rr->text= MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext");
+	if(rj->image->render_text==NULL)
+		rj->image->render_text= MEM_callocN(IMA_RW_MAXTEXT, "rendertext");
 	
-	make_renderinfo_string(rs, rj->scene, rr->text);
-
-	RE_ReleaseResult(rj->re);
+	make_renderinfo_string(rs, rj->scene, rj->image->render_text);
 	
 	/* make jobs timer to send notifier */
 	*(rj->do_update)= 1;
@@ -3256,15 +3246,14 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* get a render result image, and make sure it is empty */
 	ima= BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result");
 	BKE_image_signal(ima, NULL, IMA_SIGNAL_FREE);
-	BKE_image_backup_render(rj->scene, ima);
 	rj->image= ima;
 	
 	/* setup new render */
-	re= RE_NewRender(scene->id.name);
+	re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
 	RE_test_break_cb(re, rj, render_breakjob);
 	RE_display_draw_cb(re, rj, image_rect_update);
 	RE_stats_draw_cb(re, rj, image_renderinfo_cb);
-
+	
 	rj->re= re;
 	G.afbreek= 0;
 	
@@ -3422,7 +3411,7 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	oglrender->iuser.ok= 1;
 	
 	/* create render and render result */
-	oglrender->re= RE_NewRender(scene->id.name);
+	oglrender->re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
 	RE_InitState(oglrender->re, NULL, &scene->r, NULL, sizex, sizey, NULL);
 	
 	rr= RE_AcquireResultWrite(oglrender->re);

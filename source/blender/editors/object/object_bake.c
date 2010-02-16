@@ -141,7 +141,7 @@ static void init_bake_internal(BakeRender *bkr, bContext *C)
 	bkr->sa= biggest_image_area(CTX_wm_screen(C)); /* can be NULL */
 	bkr->scene= scene;
 	bkr->actob= (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT : NULL;
-	bkr->re= RE_NewRender("_Bake View_");
+	bkr->re= RE_NewRender("_Bake View_", RE_SLOT_DEFAULT);
 
 	if(scene->r.bake_mode==RE_BAKE_AO) {
 		/* If raytracing or AO is disabled, switch it on temporarily for baking. */

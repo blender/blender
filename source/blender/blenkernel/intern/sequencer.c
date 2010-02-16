@@ -2149,9 +2149,9 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			oldcfra = seq->scene->r.cfra;
 
 			if(rendering)
-				re= RE_NewRender(" do_build_seq_ibuf");
+				re= RE_NewRender(" do_build_seq_ibuf", RE_SLOT_DEFAULT);
 			else
-				re= RE_NewRender(sce->id.name);
+				re= RE_NewRender(sce->id.name, RE_SLOT_VIEW);
 			
 			/* prevent eternal loop */
 			doseq= scene->r.scemode & R_DOSEQ;

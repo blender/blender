@@ -77,6 +77,8 @@ int material_in_material(struct Material *parmat, struct Material *mat);
 
 void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col);
 
+struct Material *copy_material_for_render(struct Material *ma);
+
 /* copy/paste */
 void clear_matcopybuf(void);
 void free_matcopybuf(void);

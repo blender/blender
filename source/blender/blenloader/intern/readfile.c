@@ -1191,7 +1191,6 @@ void blo_make_image_pointer_map(FileData *fd, Main *oldmain)
 {
 	Image *ima= oldmain->image.first;
 	Scene *sce= oldmain->scene.first;
-	int a;
 	
 	fd->imamap= oldnewmap_new();
 	
@@ -1201,9 +1200,6 @@ void blo_make_image_pointer_map(FileData *fd, Main *oldmain)
 			oldnewmap_insert(fd->imamap, ibuf, ibuf, 0);
 		if(ima->gputexture)
 			oldnewmap_insert(fd->imamap, ima->gputexture, ima->gputexture, 0);
-		for(a=0; a<IMA_MAX_RENDER_SLOT; a++)
-			if(ima->renders[a])
-				oldnewmap_insert(fd->imamap, ima->renders[a], ima->renders[a], 0);
 	}
 	for(; sce; sce= sce->id.next) {
 		if(sce->nodetree) {
@@ -1221,7 +1217,7 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 	OldNew *entry= fd->imamap->entries;
 	Image *ima= oldmain->image.first;
 	Scene *sce= oldmain->scene.first;
-	int i, a;
+	int i;
 	
 	/* used entries were restored, so we put them to zero */
 	for (i=0; i<fd->imamap->nentries; i++, entry++) {
@@ -1243,8 +1239,6 @@ void blo_end_image_pointer_map(FileData *fd, Main *oldmain)
 		}
 
 		ima->gputexture= newimaadr(fd, ima->gputexture);
-		for(a=0; a<IMA_MAX_RENDER_SLOT; a++)
-			ima->renders[a]= newimaadr(fd, ima->renders[a]);
 	}
 	for(; sce; sce= sce->id.next) {
 		if(sce->nodetree) {
@@ -2666,8 +2660,7 @@ static void direct_link_image(FileData *fd, Image *ima)
 	ima->anim= NULL;
 	ima->rr= NULL;
 	ima->repbind= NULL;
-	memset(ima->renders, 0, sizeof(ima->renders));
-	ima->last_render_slot= ima->render_slot;
+	ima->render_text= newdataadr(fd, ima->render_text);
 	
 	ima->packedfile = direct_link_packedfile(fd, ima->packedfile);
 	ima->preview = direct_link_preview_image(fd, ima->preview);
