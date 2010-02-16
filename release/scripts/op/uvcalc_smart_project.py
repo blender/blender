@@ -1147,3 +1147,7 @@ def register():
 def unregister():
     bpy.types.unregister(SmartProject)
     bpy.types.VIEW3D_MT_uv_map.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+

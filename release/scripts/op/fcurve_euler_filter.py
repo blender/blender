@@ -62,4 +62,5 @@ def unregister():
     bpy.types.unregister(DiscontFilterOp)
 
 if __name__ == "__main__":
-    bpy.ops.graph.discont_filter()
+    register()
+

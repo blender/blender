@@ -169,3 +169,7 @@ def register():
 def unregister():
     bpy.types.unregister(AddTorus)
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+

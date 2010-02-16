@@ -1150,3 +1150,7 @@ def register():
 def unregister():
     bpy.types.unregister(Export3DS)
     bpy.types.INFO_MT_file_export.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+

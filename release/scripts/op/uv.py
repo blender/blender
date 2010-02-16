@@ -209,3 +209,7 @@ def register():
 def unreguster():
     bpy.types.unregister(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+

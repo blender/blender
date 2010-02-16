@@ -364,3 +364,7 @@ def unregister():
         unregister(cls)
  
     bpy.types.INFO_MT_armature_add.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+

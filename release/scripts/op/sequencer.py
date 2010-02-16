@@ -78,4 +78,5 @@ def unregister():
     bpy.types.unregister(SequencerCrossfadeSounds)
 
 if __name__ == "__main__":
-    bpy.ops.sequencer.crossfade_sounds()
+    register()
+

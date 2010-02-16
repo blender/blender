@@ -181,3 +181,6 @@ def register():
 def unregister():
     bpy.types.unregister(VertexPaintDirt)
 
+if __name__ == "__main__":
+    register()
+

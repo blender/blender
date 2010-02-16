@@ -47,3 +47,7 @@ def register():
 
 def unregister():
     bpy.types.unregister(SaveDirty)
+
+if __name__ == "__main__":
+    register()
+

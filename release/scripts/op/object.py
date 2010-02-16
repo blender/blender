@@ -486,3 +486,6 @@ def unregister():
     for cls in classes:
         unregister(cls)
 
+if __name__ == "__main__":
+    register()
+

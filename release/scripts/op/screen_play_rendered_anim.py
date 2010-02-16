@@ -120,3 +120,7 @@ def register():
 
 def unregister():
     bpy.types.unregister(PlayRenderedAnim)
+
+if __name__ == "__main__":
+    register()
+

@@ -1647,3 +1647,7 @@ def unregister():
 # bitmask won't work? - 132
 # uses operator bpy.ops.OBJECT_OT_select_all() to deselect all (not necessary?)
 # uses bpy.sys.time()
+
+if __name__ == "__main__":
+    register()
+

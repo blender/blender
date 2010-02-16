@@ -148,3 +148,6 @@ def unregister():
     bpy.types.unregister(RandomizeLocRotSize)
     bpy.types.VIEW3D_MT_transform.remove(menu_func)
 
+if __name__ == "__main__":
+    register()
+

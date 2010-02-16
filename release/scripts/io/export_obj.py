@@ -980,3 +980,6 @@ def unregister():
 # - all scenes export
 # + normals calculation
 
+if __name__ == "__main__":
+    register()
+
