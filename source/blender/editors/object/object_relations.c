@@ -302,12 +302,23 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int make_proxy_exec (bContext *C, wmOperator *op)
 {
-	Object *ob, *gob= CTX_data_active_object(C);
-	GroupObject *go= BLI_findlink(&gob->dup_group->gobject, RNA_enum_get(op->ptr, "type"));
+	Object *ob, *gob;
+	GroupObject *go;
 	Scene *scene= CTX_data_scene(C);
-	ob= go->ob;
 	
-	if (ob) {
+	if(!(gob=CTX_data_active_object(C))) {
+		BKE_report(op->reports, RPT_ERROR, "No active object");
+		return OPERATOR_CANCELLED;
+	} else if(gob->dup_group==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Active obhect has no dupligroup");
+		return OPERATOR_CANCELLED;
+	} else if(!(go= BLI_findlink(&gob->dup_group->gobject, RNA_enum_get(op->ptr, "type")))) {
+		BKE_report(op->reports, RPT_ERROR, "Active objects dupligroup could not be found");
+		return OPERATOR_CANCELLED;
+	} else if (!(ob= go->ob)) {
+		BKE_report(op->reports, RPT_ERROR, "Group has no object to make the proxy with");
+		return OPERATOR_CANCELLED;
+	} else {
 		Object *newob;
 		Base *newbase, *oldbase= BASACT;
 		char name[32];
@@ -338,10 +349,6 @@ static int make_proxy_exec (bContext *C, wmOperator *op)
 		DAG_scene_sort(scene);
 		DAG_id_flush_update(&newob->id, OB_RECALC);
 		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, newob);
-	}
-	else {
-		BKE_report(op->reports, RPT_ERROR, "No object to make proxy for");
-		return OPERATOR_CANCELLED;
 	}
 	
 	return OPERATOR_FINISHED;
