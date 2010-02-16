@@ -91,7 +91,7 @@ class ExpDesc
 {
 public:
 	// constructor a destructor
-	ExpDesc (ExceptionID & exp, char * desc, RESULT hres = S_OK);
+	ExpDesc (ExceptionID & exp, const char * desc, RESULT hres = S_OK);
 	~ExpDesc (void);
 
 	// comparision function
@@ -132,7 +132,7 @@ private:
 	// result
 	RESULT m_hRslt;
 	// description
-	char * m_description;
+	const char * m_description;
 
 	// not allowed
 	ExpDesc (const ExpDesc & obj) : m_expID (ErrNotFound) {}
@@ -157,9 +157,9 @@ public:
 	virtual const char * what(void);
 
 	// debug version of constructor
-	Exception (ExceptionID & expID, RESULT rslt, char * fil, int lin);
+	Exception (ExceptionID & expID, RESULT rslt, const char * fil, int lin);
 	// set source file and line of exception
-	void setFileLine (char * fil, int lin);
+	void setFileLine (const char * fil, int lin);
 
 	// get description in string
 	std::string & getDesc (void) throw() { return m_desc; }
@@ -174,7 +174,7 @@ public:
 	static std::string m_lastError;
 
 	/// log file name
-	static char * m_logFile;
+	static const char * m_logFile;
 
 protected:
 	// exception identification

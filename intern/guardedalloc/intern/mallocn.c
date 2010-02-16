@@ -135,7 +135,7 @@ static volatile uintptr_t mem_in_use= 0, mmap_in_use= 0;
 
 static volatile struct localListBase _membase;
 static volatile struct localListBase *membase = &_membase;
-static void (*error_callback)(char *) = NULL;
+static void (*error_callback)(const char *) = NULL;
 static void (*thread_lock_callback)(void) = NULL;
 static void (*thread_unlock_callback)(void) = NULL;
 
@@ -197,7 +197,7 @@ int MEM_check_memory_integrity()
 }
 
 
-void MEM_set_error_callback(void (*func)(char *))
+void MEM_set_error_callback(void (*func)(const char *))
 {
 	error_callback = func;
 }

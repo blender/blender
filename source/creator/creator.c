@@ -1053,7 +1053,7 @@ static void error_cb(char *err)
 	printf("%s\n", err);	/* XXX do this in WM too */
 }
 
-static void mem_error_cb(char *errorStr)
+static void mem_error_cb(const char *errorStr)
 {
 	fputs(errorStr, stderr);
 	fflush(stderr);

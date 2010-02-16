@@ -47,6 +47,12 @@
 #include <config.h>
 #endif
 
+static void mem_error_cb(const char *errorStr)
+{
+	fprintf(stderr, "%s", errorStr);
+	fflush(stderr);
+}
+
 int main (int argc, char *argv[])
 {
 	int verbose       = 0;
@@ -75,7 +81,7 @@ int main (int argc, char *argv[])
 	/* Round one, do a normal allocation, and free the blocks again.     */
 	/* ----------------------------------------------------------------- */
 	/* flush mem lib output to stderr */
-	MEM_set_error_callback(stderr);
+	MEM_set_error_callback(mem_error_cb);
 	
 	for (i = 0; i < NUM_BLOCKS; i++) {
 		int blocksize = 10000;
