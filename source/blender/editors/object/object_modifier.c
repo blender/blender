@@ -819,6 +819,11 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 	Object *ob= ptr.id.data, *secondob= NULL;
 	MultiresModifierData *mmd= ptr.data;
 
+	if(ob->derivedFinal == NULL || ob->derivedFinal->type != DM_TYPE_CCGDM) {
+		BKE_report(op->reports, RPT_ERROR, "Active objects multires is disabled, can't reshape multires data.");
+		return OPERATOR_CANCELLED;
+	}
+
 	CTX_DATA_BEGIN(C, Object*, selob, selected_editable_objects) {
 		if(selob->type == OB_MESH && selob != ob) {
 			secondob= selob;
