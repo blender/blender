@@ -1754,6 +1754,13 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 				phys_ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 		}
 	}
+
+	/* Add the object to the scene's logic manager */
+	to->GetLogicManager()->RegisterGameObjectName(gameobj->GetName(), gameobj);
+	to->GetLogicManager()->RegisterGameObj(gameobj->GetBlenderObject(), gameobj);
+
+	for (int i=0; i<gameobj->GetMeshCount(); ++i)
+		to->GetLogicManager()->RegisterGameMeshName(gameobj->GetMesh(i)->GetName(), gameobj->GetBlenderObject());
 }
 
 bool KX_Scene::MergeScene(KX_Scene *other)
@@ -1823,7 +1830,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 		//SCA_EventManager *evtmgr;
 		SCA_EventManager *evtmgr_other;
 
-		for(int i= 0; i < evtmgrs.size(); i++) {
+		for(unsigned int i= 0; i < evtmgrs.size(); i++) {
 			evtmgr_other= logicmgr_other->FindEventManager(evtmgrs[i]->GetType());
 
 			if(evtmgr_other) /* unlikely but possible one scene has a joystick and not the other */

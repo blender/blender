@@ -884,9 +884,16 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	char name[32];
 	int sizex;
 
+	if(GS(id->name) == ID_MA)
+		id= (ID*)copy_material_for_render((Material*)id);
+
 	/* get the stuff from the builtin preview dbase */
 	sce= preview_prepare_scene(sp->scene, id, idtype, sp); // XXX sizex
-	if(sce==NULL) return;
+	if(sce==NULL) {
+		if(GS(id->name) == ID_MA)
+			free_material((Material*)id);
+		return;
+	}
 	
 	if(!split || first) sprintf(name, "Preview %p", sp->owner);
 	else sprintf(name, "SecondPreview %p", sp->owner);
@@ -954,6 +961,9 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 
 	/* unassign the pointers, reset vars */
 	preview_prepare_scene(sp->scene, NULL, GS(id->name), NULL);
+
+	if(GS(id->name) == ID_MA)
+		free_material((Material*)id);
 }
 
 /* runs inside thread for material and icons */

@@ -1031,11 +1031,22 @@ class IMPORT_OT_autodesk_3ds(bpy.types.Operator):
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
-bpy.types.register(IMPORT_OT_autodesk_3ds)
 
-menu_func = lambda self, context: self.layout.operator(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)...")
-bpy.types.INFO_MT_file_import.append(menu_func)
+menu_func = lambda self, context: self.layout.operator(IMPORT_OT_autodesk_3ds.bl_idname, text="3D Studio (.3ds)")
+
+
+def register():
+    bpy.types.register(IMPORT_OT_autodesk_3ds)
+    bpy.types.INFO_MT_file_import.append(menu_func)
+    
+def unregister():
+    bpy.types.unregister(IMPORT_OT_autodesk_3ds)
+    bpy.types.INFO_MT_file_import.remove(menu_func)
 
 # NOTES:
 # why add 1 extra vertex? and remove it when done? - "Answer - eekadoodle - would need to re-order UV's without this since face order isnt always what we give blender, BMesh will solve :D"
 # disabled scaling to size, this requires exposing bb (easy) and understanding how it works (needs some time)
+
+if __name__ == "__main__":
+    register()
+

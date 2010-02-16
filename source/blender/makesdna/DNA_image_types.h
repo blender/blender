@@ -118,8 +118,9 @@ typedef struct Image {
 #define IMA_TWINANIM		2
 #define IMA_COLCYCLE		4	/* Depreciated */
 #define IMA_MIPMAP_COMPLETE 8   /* all mipmap levels in OpenGL texture set? */
-#define IMA_CLAMP_U		16 
-#define IMA_CLAMP_V		32
+#define IMA_CLAMP_U			16 
+#define IMA_CLAMP_V			32
+#define IMA_TPAGE_REFRESH	64
 
 /* ima->type and ima->source moved to BKE_image.h, for API */
 

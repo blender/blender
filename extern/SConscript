@@ -7,12 +7,6 @@ SConscript(['glew/SConscript'])
 if env['WITH_BF_BULLET']:
     SConscript(['bullet2/src/SConscript'])
 
-if env['WITH_BF_FFMPEG'] and env['BF_FFMPEG_LIB'] == '':
-    SConscript(['x264/SConscript'])
-    SConscript(['libmp3lame/SConscript'])
-    SConscript(['xvidcore/SConscript'])
-    SConscript(['ffmpeg/SConscript'])
-
 if env['WITH_BF_OPENJPEG'] and env['BF_OPENJPEG_LIB'] == '':
     SConscript(['libopenjpeg/SConscript'])
 

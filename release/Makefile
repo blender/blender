@@ -91,9 +91,8 @@ package: version makedirs
 
 install: package
 	@#echo "****> Install text"
-	@cp text/blender.html $(DISTDIR)
+	@cp text/readme.html $(DISTDIR)
 	@cp text/*.txt $(DISTDIR)
-	@cp text/*.pdf $(DISTDIR)
     ifeq ($(FREEDESKTOP), true)
 	@#echo "****> Install freedesktop icons"
 	@mkdir $(DISTDIR)/icons

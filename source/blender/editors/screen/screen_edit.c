@@ -51,6 +51,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 
@@ -1761,6 +1762,9 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	if(scene->use_nodes && scene->nodetree)
 		ntreeCompositTagAnimated(scene->nodetree);
 	
+	/* update animated image textures for gpu, etc */
+	ED_image_update_frame(C);
+	
 	/* update animated texture nodes */
 	{
 		Tex *tex;
@@ -1769,6 +1773,7 @@ void ED_update_for_newframe(const bContext *C, int mute)
 				ntreeTexTagAnimated( tex->nodetree );
 			}
 	}
+	
 }
 
 

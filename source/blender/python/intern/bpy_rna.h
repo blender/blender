@@ -32,6 +32,8 @@
 
 extern PyTypeObject pyrna_struct_Type;
 extern PyTypeObject pyrna_prop_Type;
+extern PyTypeObject pyrna_prop_array_Type;
+extern PyTypeObject pyrna_prop_collection_Type;
 
 #define BPy_StructRNA_Check(v)			(PyObject_TypeCheck(v, &pyrna_struct_Type))
 #define BPy_StructRNA_CheckExact(v)		(Py_TYPE(v) == &pyrna_struct_Type)

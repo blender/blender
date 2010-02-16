@@ -262,7 +262,7 @@ static int report_missing_files_exec(bContext *C, wmOperator *op)
 void FILE_OT_report_missing_files(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Report Missing Files...";
+	ot->name= "Report Missing Files";
 	ot->idname= "FILE_OT_report_missing_files";
 	
 	/* api callbacks */
@@ -295,7 +295,7 @@ static int find_missing_files_invoke(bContext *C, wmOperator *op, wmEvent *event
 void FILE_OT_find_missing_files(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Find Missing Files...";
+	ot->name= "Find Missing Files";
 	ot->idname= "FILE_OT_find_missing_files";
 	
 	/* api callbacks */

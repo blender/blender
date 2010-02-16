@@ -51,5 +51,22 @@ class Buttons_MT_view(bpy.types.Menu):
         col = layout.column()
         col.prop(so, "panel_alignment", expand=True)
 
-bpy.types.register(Buttons_HT_header)
-bpy.types.register(Buttons_MT_view)
+
+classes = [
+    Buttons_HT_header,
+    Buttons_MT_view]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()
+

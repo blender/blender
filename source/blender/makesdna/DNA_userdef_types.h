@@ -203,9 +203,10 @@ typedef struct ThemeSpace {
 	char ds_channel[4], ds_subchannel[4]; // dopesheet
 	
 	char console_output[4], console_input[4], console_info[4], console_error[4];
+	char console_cursor[4];
 	
 	char vertex_size, facedot_size;
-	char bpad[6];
+	char bpad[2];
 
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
 	char syntaxv[4], syntaxc[4];
@@ -274,6 +275,12 @@ typedef struct bTheme {
 	
 } bTheme;
 
+/* for the moment only the name. may want to store options with this later */
+typedef struct bExtension {
+	struct bExtension *next, *prev;
+	char module[64];
+} bExtension;
+
 typedef struct SolidLight {
 	int flag, pad;
 	float col[4], spec[4], vec[4];
@@ -320,6 +327,7 @@ typedef struct UserDef {
 	struct ListBase uifonts;
 	struct ListBase uistyles;
 	struct ListBase keymaps;
+	struct ListBase extensions;
 	char keyconfigstr[64];
 	
 	short undosteps;
@@ -370,6 +378,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_SECTION_SYSTEM		3
 #define USER_SECTION_THEME		4
 #define USER_SECTION_INPUT		5
+#define USER_SECTION_EXTENSIONS	6
 
 /* flag */
 #define USER_AUTOSAVE			(1 << 0)

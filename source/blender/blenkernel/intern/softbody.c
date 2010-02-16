@@ -3486,7 +3486,9 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
 	sb= ob->soft;	/* can be created in renew_softbody() */
 	
 	/* weights from bpoints, same code used as for mesh vertices */
-	if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) {
+	/* if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) { 2.4x one*/
+	/* new! take the weights from lattice vertex anyhow */
+	if(ob->softflag & OB_SB_GOAL){
 		BodyPoint *bp= sb->bpoint;
 		BPoint *bpnt= lt->def;
 		float goalfac= ABS(sb->maxgoal - sb->mingoal);
@@ -3538,7 +3540,9 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 	bs= sb->bspring;
 	
 	/* weights from bpoints, same code used as for mesh vertices */
-	if((ob->softflag & OB_SB_GOAL) && sb->vertgroup)
+	/* if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) 2.4x hack*/
+	/* new! take the weights from curve vertex anyhow */
+	if(ob->softflag & OB_SB_GOAL) 
 		setgoal= 1;
 		
 	for(nu= cu->nurb.first; nu; nu= nu->next) {

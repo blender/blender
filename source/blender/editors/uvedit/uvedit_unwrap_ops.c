@@ -881,7 +881,18 @@ static void uv_from_view_bounds(float target[2], float source[3], float rotmat[4
 	target[1] = pv[2];
 }
 
-static void uv_from_camera(float camsize, float camangle, float xasp, float yasp, float target[2], float source[3], float rotmat[4][4], float cammat[4][4], int persp, int pano)
+typedef struct UvCameraInfo {
+	float camangle;
+	float camsize;
+	float xasp, yasp;
+	float shiftx, shifty;
+	float rotmat[4][4];
+	float caminv[4][4];
+	short do_persp, do_pano;
+} UvCameraInfo;
+
+//static void uv_from_camera(float camsize, float camangle, float xasp, float yasp, float target[2], float source[3], float rotmat[4][4], float caminv[4][4], int persp, int pano)
+static void uv_from_camera(UvCameraInfo *uci, float target[2], float source[3])
 {
 	float pv4[4];
 
@@ -889,37 +900,39 @@ static void uv_from_camera(float camsize, float camangle, float xasp, float yasp
 	pv4[3]= 1.0;
 
 	/* rotmat is the object matrix in this case */
-	mul_m4_v4(rotmat, pv4);
+	mul_m4_v4(uci->rotmat, pv4);
 
-	/* cammat is the inverse camera matrix */
-	mul_m4_v4(cammat, pv4);
+	/* caminv is the inverse camera matrix */
+	mul_m4_v4(uci->caminv, pv4);
 
-	if(pano) {
+	if(uci->do_pano) {
 		float angle= atan2f(pv4[0], -pv4[2]) / (M_PI * 2.0); /* angle around the camera */
-		if (persp & CAM_ORTHO) {
+		if (uci->do_persp==0) {
 			target[0] = angle; /* no correct method here, just map to  0-1 */
-			target[1] = pv4[1] / camsize;
+			target[1] = pv4[1] / uci->camsize;
 		}
 		else {
 			float vec2d[2]= {pv4[0], pv4[2]}; /* 2D position from the camera */
-			target[0] = angle * (M_PI / camangle);
-			target[1] = pv4[1] / (len_v2(vec2d) * camsize);
+			target[0] = angle * (M_PI / uci->camangle);
+			target[1] = pv4[1] / (len_v2(vec2d) * uci->camsize);
 		}
-		target[0]+= 0.5f; /* aspect is ignored for now */
-		target[1]+= 0.5f;
 	}
 	else {
 		if (pv4[2]==0.0f) pv4[2]=0.00001f; /* don't allow div by 0 */
 
-		if (persp & CAM_ORTHO) {
-			target[0]=((pv4[0]/camsize)*xasp)+0.5f;
-			target[1]=((pv4[1]/camsize)*yasp)+0.5f;
+		if (uci->do_persp==0) {
+			target[0]=(pv4[0]/uci->camsize) * uci->xasp;
+			target[1]=(pv4[1]/uci->camsize) * uci->yasp;
 		}
 		else {
-			target[0]=((-pv4[0]*((1.0f/camsize)/pv4[2])*xasp)/2)+0.5;
-			target[1]=((-pv4[1]*((1.0f/camsize)/pv4[2])*yasp)/2)+0.5;
+			target[0]=(-pv4[0]*((1.0f/uci->camsize)/pv4[2])*uci->xasp) / 2.0f;
+			target[1]=(-pv4[1]*((1.0f/uci->camsize)/pv4[2])*uci->yasp) / 2.0f;
 		}
 	}
+
+	/* adds camera shift + 0.5 */
+	target[0] += uci->shiftx;
+	target[1] += uci->shifty;
 }
 
 static void uv_from_view(ARegion *ar, float target[2], float source[3], float rotmat[4][4])
@@ -975,8 +988,7 @@ static int from_view_exec(bContext *C, wmOperator *op)
 	RegionView3D *rv3d= ar->regiondata;
 	EditFace *efa;
 	MTFace *tf;
-	float invmat[4][4],rotmat[4][4];
-	float xasp, yasp, camsize, camangle;
+	float rotmat[4][4];
 
 	/* add uvs if they don't exist yet */
 	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
@@ -1005,39 +1017,42 @@ static int from_view_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if (camera) {
-		int pano = camera->flag & CAM_PANORAMA;
-		camangle= DEG2RAD(camera->angle)/2.0f;
+		UvCameraInfo uci;
 
-		if (camera->type==CAM_PERSP) {
-			camsize= tanf(camangle); /* calcs ez as distance from camera plane to viewer */
-		}
-		else {
-			camsize=camera->ortho_scale;
-		}
+		uci.do_pano = (camera->flag & CAM_PANORAMA);
+		uci.do_persp = (camera->type==CAM_PERSP);
 
-		if (invert_m4_m4(invmat, v3d->camera->obmat)) {
+		uci.camangle= DEG2RAD(camera->angle)/2.0f;
+		uci.camsize=  uci.do_persp ?  uci.camsize= tanf(uci.camangle) : camera->ortho_scale;
+
+		if (invert_m4_m4(uci.caminv, v3d->camera->obmat)) {
+
 			/* normal projection */
-			copy_m4_m4(rotmat, obedit->obmat);
+			copy_m4_m4(uci.rotmat, obedit->obmat);
 
 			/* also make aspect ratio adjustment factors */
 			if (scene->r.xsch > scene->r.ysch) {
-				xasp=1;
-				yasp=(float)(scene->r.xsch)/(float)(scene->r.ysch);
+				uci.xasp= 1.0f;
+				uci.yasp= (float)(scene->r.xsch)/(float)(scene->r.ysch);
 			}
 			else {
-				xasp=(float)(scene->r.ysch)/(float)(scene->r.xsch);
-				yasp=1;
+				uci.xasp= (float)(scene->r.ysch)/(float)(scene->r.xsch);
+				uci.yasp= 1.0f;
 			}
 			
+			/* include 0.5f here to move the UVs into the center */
+			uci.shiftx = 0.5f - camera->shiftx;
+			uci.shifty = 0.5f - camera->shifty;
+
 			for(efa= em->faces.first; efa; efa= efa->next) {
 				if(efa->f & SELECT) {
 					tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 
-					uv_from_camera(camsize, camangle, xasp, yasp, tf->uv[0], efa->v1->co, rotmat, invmat, camera->type, pano);
-					uv_from_camera(camsize, camangle, xasp, yasp, tf->uv[1], efa->v2->co, rotmat, invmat, camera->type, pano);
-					uv_from_camera(camsize, camangle, xasp, yasp, tf->uv[2], efa->v3->co, rotmat, invmat, camera->type, pano);
+					uv_from_camera(&uci, tf->uv[0], efa->v1->co);
+					uv_from_camera(&uci, tf->uv[1], efa->v2->co);
+					uv_from_camera(&uci, tf->uv[2], efa->v3->co);
 					if(efa->v4)
-						uv_from_camera(camsize, camangle, xasp, yasp, tf->uv[3], efa->v4->co, rotmat, invmat, camera->type, pano);
+						uv_from_camera(&uci, tf->uv[3], efa->v4->co);
 				}
 			}
 		}

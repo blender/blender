@@ -381,7 +381,8 @@ NetRenderSettings.StringProperty( attr="path",
                 name="Path",
                 description="Path for temporary files",
                 maxlen = 128,
-                default = default_path)
+                default = default_path,
+                subtype='FILE_PATH')
 
 NetRenderSettings.StringProperty( attr="job_name",
                 name="Job name",

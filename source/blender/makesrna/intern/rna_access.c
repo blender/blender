@@ -1161,7 +1161,7 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 	else {
 		/* WARNING! This is so property drivers update the display!
 		 * not especially nice  */
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
+		DAG_id_flush_update(ptr->id.data, OB_RECALC);
 		WM_main_add_notifier(NC_WINDOW, NULL);
 	}
 

@@ -356,25 +356,36 @@ static int shape_key_move_exec(bContext *C, wmOperator *op)
 
 	if(key) {
 		KeyBlock *kb, *kb_other;
-		kb= BLI_findlink(&key->block, ob->shapenr-1);
+		int shapenr_act= ob->shapenr-1;
+		int shapenr_swap= shapenr_act + type;
+		kb= BLI_findlink(&key->block, shapenr_act);
+
+		if((type==-1 && kb->prev==NULL) || (type==1 && kb->next==NULL)) {
+			return OPERATOR_CANCELLED;
+		}
+
+		for(kb_other= key->block.first; kb_other; kb_other= kb_other->next) {
+			if(kb_other->relative == shapenr_act) {
+				kb_other->relative += type;
+			}
+			else if(kb_other->relative == shapenr_swap) {
+				kb_other->relative -= type;
+			}
+		}
 
 		if(type==-1) {
 			/* move back */
-			if(kb->prev) {
-				kb_other= kb->prev;
-				BLI_remlink(&key->block, kb);
-				BLI_insertlinkbefore(&key->block, kb_other, kb);
-				ob->shapenr--;
-			}
+			kb_other= kb->prev;
+			BLI_remlink(&key->block, kb);
+			BLI_insertlinkbefore(&key->block, kb_other, kb);
+			ob->shapenr--;
 		}
 		else {
 			/* move next */
-			if(kb->next) {
-				kb_other= kb->next;
-				BLI_remlink(&key->block, kb);
-				BLI_insertlinkafter(&key->block, kb_other, kb);
-				ob->shapenr++;
-			}
+			kb_other= kb->next;
+			BLI_remlink(&key->block, kb);
+			BLI_insertlinkafter(&key->block, kb_other, kb);
+			ob->shapenr++;
 		}
 	}
 

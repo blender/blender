@@ -358,7 +358,7 @@ void BKE_userdef_free(void)
 	BLI_freelistN(&U.uifonts);
 	BLI_freelistN(&U.themes);
 	BLI_freelistN(&U.keymaps);
-	
+	BLI_freelistN(&U.extensions);
 }
 
 /* returns:
@@ -371,6 +371,9 @@ int BKE_read_file(bContext *C, char *dir, void *unused, ReportList *reports)
 {
 	BlendFileData *bfd;
 	int retval= 1;
+
+	if(strstr(dir, ".B25.blend")==0) /* dont print user-pref loading */
+		printf("read blend: %s\n", dir);
 
 	bfd= BLO_read_from_file(dir, reports);
 	if (bfd) {
@@ -417,6 +420,7 @@ int BKE_read_file_from_memfile(bContext *C, MemFile *memfile, ReportList *report
 
 	return (bfd?1:0);
 }
+
 
 /* *****************  testing for break ************* */
 
@@ -705,5 +709,22 @@ void BKE_undo_save_quit(void)
 	
 	if(chunk) ; //XXX error("Unable to save %s, internal error", str);
 	else printf("Saved session recovery to %s\n", str);
+}
+
+/* sets curscene */
+Main *BKE_undo_get_main(Scene **scene)
+{
+	Main *mainp= NULL;
+	BlendFileData *bfd= BLO_read_from_memfile(G.main, G.sce, &curundo->memfile, NULL);
+	
+	if(bfd) {
+		mainp= bfd->main;
+		if(scene)
+			*scene= bfd->curscene;
+		
+		MEM_freeN(bfd);
+	}
+	
+	return mainp;
 }
 

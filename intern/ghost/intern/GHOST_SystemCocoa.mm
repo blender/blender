@@ -397,17 +397,6 @@ enum {
 #endif
 @end 
 
-@interface NSEvent(SnowLeopardEvents)
-/* modifier keys currently down.  This returns the state of devices combined
- with synthesized events at the moment, independent of which events
- have been delivered via the event stream. */
-#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
-+ (unsigned int)modifierFlags; //NSUInteger is defined only from 10.5
-#else
-+ (NSUInteger)modifierFlags;
-#endif
-@end
-
 #endif
 
 
@@ -945,21 +934,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleApplicationBecomeActiveEvent()
 	}
 	else m_needDelayedApplicationBecomeActiveEventProcessing = false;
 
-#ifdef MAC_OS_X_VERSION_10_6
-	modifiers = [NSEvent modifierFlags];
-#else
-	//If build against an older SDK, check if running on 10.6 to use the correct function
-	if ([NSEvent respondsToSelector:@selector(modifierFlags)]) {
-		modifiers = [NSEvent modifierFlags];
-	}
-	else {
-		//TODO: need to find a better workaround for the missing cocoa "getModifierFlag" function in 10.4/10.5
-		modifiers = 0;
-	}
-#endif
-	
-	/* Discard erroneous 10.6 modifiers values reported when switching back from spaces */
-	if ((modifiers & NSDeviceIndependentModifierFlagsMask) == 0xb00000) modifiers = 0;
+	modifiers = [[[NSApplication sharedApplication] currentEvent] modifierFlags];
 	
 	if ((modifiers & NSShiftKeyMask) != (m_modifierMask & NSShiftKeyMask)) {
 		pushEvent( new GHOST_EventKey(getMilliSeconds(), (modifiers & NSShiftKeyMask)?GHOST_kEventKeyDown:GHOST_kEventKeyUp, window, GHOST_kKeyLeftShift) );
@@ -1735,4 +1710,62 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	[pasteBoard setString:textToCopy forType:NSStringPboardType];
 	
 	[pool drain];
+}
+
+#pragma mark Base directories retrieval
+
+GHOST_TUns8* GHOST_SystemCocoa::getSystemDir() const
+{
+	static GHOST_TUns8 tempPath[512] = "";
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSFileManager *fileManager;
+	NSString *basePath;
+	NSArray *paths;
+	
+	paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSLocalDomainMask, YES);
+	
+	if ([paths count] > 0)
+		basePath = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"Blender"];
+	else { //Fall back to standard unix path in case of issue
+		basePath = @"/usr/share/blender";
+	}
+	
+	/* Ensure path exists, creates it if needed */
+	fileManager = [NSFileManager defaultManager];
+	if (![fileManager fileExistsAtPath:basePath isDirectory:NULL]) {
+		[fileManager createDirectoryAtPath:basePath attributes:nil];
+	}
+	
+	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
+	
+	[pool drain];
+	return tempPath;
+}
+
+GHOST_TUns8* GHOST_SystemCocoa::getUserDir() const
+{
+	static GHOST_TUns8 tempPath[512] = "";
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSFileManager *fileManager;
+	NSString *basePath;
+	NSArray *paths;
+
+	paths = NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES);
+
+	if ([paths count] > 0)
+		basePath = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"Blender"];
+	else { //Fall back to HOME in case of issue
+		basePath = [NSHomeDirectory() stringByAppendingPathComponent:@".blender"];
+	}
+	
+	/* Ensure path exists, creates it if needed */
+	fileManager = [NSFileManager defaultManager];
+	if (![fileManager fileExistsAtPath:basePath isDirectory:NULL]) {
+		[fileManager createDirectoryAtPath:basePath attributes:nil];
+	}
+	
+	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
+	
+	[pool drain];
+	return tempPath;
 }

@@ -122,7 +122,7 @@ extern "C" {
 	void MEM_printmemlist_stats(void);
 	
 	/** Set the callback function for error output. */
-	void MEM_set_error_callback(void (*func)(char *));
+	void MEM_set_error_callback(void (*func)(const char *));
 
 	/**
 	 * Are the start/end block markers still correct ?

@@ -171,6 +171,10 @@ class USERPREF_HT_header(bpy.types.Header):
             op.path = "keymap.py"
             op = layout.operator("wm.keyconfig_import", "Import Key Configuration...")
             op.path = "keymap.py"
+        elif userpref.active_section == 'EXTENSIONS':
+            layout.operator_context = 'INVOKE_DEFAULT'
+            op = layout.operator("wm.extension_install", "Install Extension...")
+            op.path = "*.py"
 
 
 class USERPREF_PT_tabs(bpy.types.Panel):
@@ -965,6 +969,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(prefs, "line_input")
             col.prop(prefs, "line_info")
             col.prop(prefs, "line_error")
+            col.prop(prefs, "cursor")
 
 
 class USERPREF_PT_file(bpy.types.Panel):
@@ -1355,16 +1360,150 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         #print("runtime", time.time() - start)
 
-bpy.types.register(USERPREF_HT_header)
-bpy.types.register(USERPREF_PT_tabs)
-bpy.types.register(USERPREF_PT_interface)
-bpy.types.register(USERPREF_PT_theme)
-bpy.types.register(USERPREF_PT_edit)
-bpy.types.register(USERPREF_PT_system)
-bpy.types.register(USERPREF_PT_file)
-bpy.types.register(USERPREF_PT_input)
+
+class USERPREF_PT_extensions(bpy.types.Panel):
+    bl_space_type = 'USER_PREFERENCES'
+    bl_label = "Extensions"
+    bl_region_type = 'WINDOW'
+    bl_show_header = False
+
+    def poll(self, context):
+        userpref = context.user_preferences
+        return (userpref.active_section == 'EXTENSIONS')
+
+    def _extension_list(self):
+        import sys
+        modules = []
+        loaded_modules = set()
+        paths = bpy.utils.script_paths("extensions")
+        # sys.path.insert(0, None)
+        for path in paths:
+            # sys.path[0] = path
+            modules.extend(bpy.utils.modules_from_path(path, loaded_modules))
+
+        # del sys.path[0]
+        return modules
+
+    def draw(self, context):
+        layout = self.layout
+
+        userpref = context.user_preferences
+        used_ext = {ext.module for ext in userpref.extensions}
+
+        col = layout.column()
+
+        for mod in self._extension_list():
+            box = col.box()
+            row = box.row()
+            text = mod.__doc__
+            if not text:
+                text = mod.__name__
+            row.label(text=text)
+            module_name = mod.__name__
+            row.operator("wm.extension_disable" if module_name in used_ext else "wm.extension_enable").module = module_name
+
 
 from bpy.props import *
+
+class WM_OT_extension_enable(bpy.types.Operator):
+    "Enable an extension"
+    bl_idname = "wm.extension_enable"
+    bl_label = "Enable Extension"
+
+    module = StringProperty(name="Module", description="Module name of the extension to enable")
+
+    def execute(self, context):
+        import traceback
+        ext = context.user_preferences.extensions.new()
+        module_name = self.properties.module
+        ext.module = module_name
+        
+        try:
+            mod = __import__(module_name)
+            mod.register()
+        except:
+            traceback.print_exc()
+
+        return {'FINISHED'}
+
+
+class WM_OT_extension_disable(bpy.types.Operator):
+    "Disable an extension"
+    bl_idname = "wm.extension_disable"
+    bl_label = "Disable Extension"
+
+    module = StringProperty(name="Module", description="Module name of the extension to disable")
+
+    def execute(self, context):
+        import traceback
+        module_name = self.properties.module
+
+        try:
+            mod = __import__(module_name)
+            mod.unregister()
+        except:
+            traceback.print_exc()
+        
+        extensions = context.user_preferences.extensions
+        ok = True
+        while ok: # incase its in more then once.
+            ok = False
+            for ext in extensions:
+                if ext.module == module_name:
+                    extensions.remove(ext)
+                    ok = True
+                    break
+
+        return {'FINISHED'}
+
+
+class WM_OT_extension_install(bpy.types.Operator):
+    "Install an extension"
+    bl_idname = "wm.extension_install"
+    bl_label = "Install Extension"
+
+    module = StringProperty(name="Module", description="Module name of the extension to disable")
+    
+    path = StringProperty(name="File Path", description="File path to write file to")
+    filename = StringProperty(name="File Name", description="Name of the file")
+    directory = StringProperty(name="Directory", description="Directory of the file")
+    filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
+    filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
+
+    def execute(self, context):
+        import traceback
+        pyfile = self.properties.path
+
+        paths = bpy.utils.script_paths("extensions")
+        path_dest = os.path.join(paths[-1], os.path.basename(pyfile))
+
+        if os.path.exists(path_dest):
+            self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
+            return {'CANCELLED'}
+        
+        if os.path.exists(path_dest):
+            self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
+            return {'CANCELLED'}
+
+        try:
+            shutil.copyfile(pyfile, path_dest)
+        except:
+            traceback.print_exc()
+            return {'CANCELLED'}
+
+        # TODO, should not be a warning.
+        # self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        paths = bpy.utils.script_paths("extensions")
+        if not paths:
+            self.report({'ERROR'}, "No 'extensions' path could be found in " + str(bpy.utils.script_paths()))
+            return {'CANCELLED'}
+        
+        wm = context.manager
+        wm.add_fileselect(self)
+        return {'RUNNING_MODAL'}
 
 
 class WM_OT_keyconfig_test(bpy.types.Operator):
@@ -1508,14 +1647,14 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
     bl_idname = "wm.keyconfig_import"
     bl_label = "Import Key Configuration..."
 
-    path = bpy.props.StringProperty(name="File Path", description="File path to write file to")
-    filename = bpy.props.StringProperty(name="File Name", description="Name of the file")
-    directory = bpy.props.StringProperty(name="Directory", description="Directory of the file")
-    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
-    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
-    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
+    path = StringProperty(name="File Path", description="File path to write file to")
+    filename = StringProperty(name="File Name", description="Name of the file")
+    directory = StringProperty(name="Directory", description="Directory of the file")
+    filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
+    filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
+    filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
-    keep_original = bpy.props.BoolProperty(name="Keep original", description="Keep original file after copying to configuration folder", default=True)
+    keep_original = BoolProperty(name="Keep original", description="Keep original file after copying to configuration folder", default=True)
 
     def execute(self, context):
         if not self.properties.path:
@@ -1567,12 +1706,12 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
     bl_idname = "wm.keyconfig_export"
     bl_label = "Export Key Configuration..."
 
-    path = bpy.props.StringProperty(name="File Path", description="File path to write file to")
-    filename = bpy.props.StringProperty(name="File Name", description="Name of the file")
-    directory = bpy.props.StringProperty(name="Directory", description="Directory of the file")
-    filter_folder = bpy.props.BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
-    filter_text = bpy.props.BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
-    filter_python = bpy.props.BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
+    path = StringProperty(name="File Path", description="File path to write file to")
+    filename = StringProperty(name="File Name", description="Name of the file")
+    directory = StringProperty(name="Directory", description="Directory of the file")
+    filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
+    filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
+    filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
 
     def execute(self, context):
         if not self.properties.path:
@@ -1762,12 +1901,43 @@ class WM_OT_keyconfig_remove(bpy.types.Operator):
         wm.remove_keyconfig(keyconfig)
         return {'FINISHED'}
 
-bpy.types.register(WM_OT_keyconfig_export)
-bpy.types.register(WM_OT_keyconfig_import)
-bpy.types.register(WM_OT_keyconfig_test)
-bpy.types.register(WM_OT_keyconfig_remove)
-bpy.types.register(WM_OT_keymap_edit)
-bpy.types.register(WM_OT_keymap_restore)
-bpy.types.register(WM_OT_keyitem_add)
-bpy.types.register(WM_OT_keyitem_remove)
-bpy.types.register(WM_OT_keyitem_restore)
+
+classes = [
+    USERPREF_HT_header,
+    USERPREF_PT_tabs,
+    USERPREF_PT_interface,
+    USERPREF_PT_theme,
+    USERPREF_PT_edit,
+    USERPREF_PT_system,
+    USERPREF_PT_file,
+    USERPREF_PT_input,
+    USERPREF_PT_extensions,
+    
+    WM_OT_extension_enable,
+    WM_OT_extension_disable,
+    WM_OT_extension_install,
+
+    WM_OT_keyconfig_export,
+    WM_OT_keyconfig_import,
+    WM_OT_keyconfig_test,
+    WM_OT_keyconfig_remove,
+    WM_OT_keymap_edit,
+    WM_OT_keymap_restore,
+    WM_OT_keyitem_add,
+    WM_OT_keyitem_remove,
+    WM_OT_keyitem_restore]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()
+

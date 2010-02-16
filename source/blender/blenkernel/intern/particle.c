@@ -60,6 +60,7 @@
 #include "BLI_threads.h"
 
 #include "BKE_anim.h"
+#include "BKE_animsys.h"
 
 #include "BKE_boids.h"
 #include "BKE_cloth.h"
@@ -254,7 +255,7 @@ void psys_enable_all(Object *ob)
 }
 int psys_in_edit_mode(Scene *scene, ParticleSystem *psys)
 {
-	return (scene->basact && (scene->basact->object->mode & OB_MODE_PARTICLE_EDIT) && psys==psys_get_current((scene->basact)->object) && (psys->edit || psys->pointcache->edit));
+	return (scene->basact && (scene->basact->object->mode & OB_MODE_PARTICLE_EDIT) && psys==psys_get_current((scene->basact)->object) && (psys->edit || psys->pointcache->edit) && !psys->renderdata);
 }
 static void psys_create_frand(ParticleSystem *psys)
 {
@@ -370,6 +371,7 @@ int psys_uses_gravity(ParticleSimulationData *sim)
 /************************************************/
 void psys_free_settings(ParticleSettings *part)
 {
+	BKE_free_animdata(&part->id);
 	free_partdeflect(part->pd);
 	free_partdeflect(part->pd2);
 

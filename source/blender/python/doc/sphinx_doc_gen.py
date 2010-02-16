@@ -447,6 +447,9 @@ def rna2sphinx(BASEPATH):
 
 
     for struct in structs.values():
+        # TODO, rna_info should filter these out!
+        if "_OT_" in struct.identifier:
+            continue
         write_struct(struct)
 
     # oeprators

@@ -653,7 +653,17 @@ static void id_copy_animdata(ID *id)
 	}
 }
 
-/* used everywhere in blenkernel and text.c */
+/* material nodes use this since they are not treated as libdata */
+void copy_libblock_data(ID *id, const ID *id_from)
+{
+	if (id_from->properties)
+		id->properties = IDP_CopyProperty(id_from->properties);
+
+	/* the duplicate should get a copy of the animdata */
+	id_copy_animdata(id);
+}
+
+/* used everywhere in blenkernel */
 void *copy_libblock(void *rt)
 {
 	ID *idn, *id;
@@ -679,10 +689,8 @@ void *copy_libblock(void *rt)
 	
 	id->newid= idn;
 	idn->flag |= LIB_NEW;
-	if (id->properties) idn->properties = IDP_CopyProperty(id->properties);
-	
-	/* the duplicate should get a copy of the animdata */
-	id_copy_animdata(idn);
+
+	copy_libblock_data(idn, id);
 	
 	return idn;
 }

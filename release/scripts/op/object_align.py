@@ -22,11 +22,9 @@ import bpy
 from Mathutils import Vector
 
 
-def align_objects(align_x, align_y, align_z, relative_to):
+def align_objects(align_x, align_y, align_z, align_mode, relative_to):
 
     cursor = bpy.context.scene.cursor_location
-
-    # Selection BB
 
     Left_Up_Front_SEL = [[],[],[]]
     Right_Down_Back_SEL = [[],[],[]]
@@ -40,6 +38,19 @@ def align_objects(align_x, align_y, align_z, relative_to):
         Left_Up_Front = bb_world[1]
         Right_Down_Back = bb_world[7]
 
+        # Active Center
+
+        if obj == bpy.context.active_object:
+            
+            center_active_x = ( Left_Up_Front[0] + Right_Down_Back[0] ) / 2
+            center_active_y = ( Left_Up_Front[1] + Right_Down_Back[1] ) / 2
+            center_active_z = ( Left_Up_Front[2] + Right_Down_Back[2] ) / 2
+
+            size_active_x = ( Right_Down_Back[0] -  Left_Up_Front[0] ) / 2
+            size_active_y = ( Right_Down_Back[1] - Left_Up_Front[1] ) / 2
+            size_active_z = ( Left_Up_Front[2] - Right_Down_Back[2] ) / 2
+
+        # Selection Center
 
         if flag_first:
             flag_first = False
@@ -77,7 +88,7 @@ def align_objects(align_x, align_y, align_z, relative_to):
     center_sel_y = ( Left_Up_Front_SEL[1] + Right_Down_Back_SEL[1] ) / 2
     center_sel_z = ( Left_Up_Front_SEL[2] + Right_Down_Back_SEL[2] ) / 2
 
-    # End Selection BB
+    # Main Loop
 
     for obj in bpy.context.selected_objects:
         
@@ -90,12 +101,39 @@ def align_objects(align_x, align_y, align_z, relative_to):
         center_x = ( Left_Up_Front[0] + Right_Down_Back[0] ) / 2
         center_y = ( Left_Up_Front[1] + Right_Down_Back[1] ) / 2
         center_z = ( Left_Up_Front[2] + Right_Down_Back[2] ) / 2
+        
+        positive_x = Right_Down_Back[0]
+        positive_y = Right_Down_Back[1]
+        positive_z = Left_Up_Front[2]
+        
+        negative_x = Left_Up_Front[0]
+        negative_y = Left_Up_Front[1]
+        negative_z = Right_Down_Back[2]
 
         obj_loc = obj.location
     
         if align_x:
 
-            obj_x = obj_loc[0] - center_x
+            # Align Mode
+
+            if relative_to == 'OPT_4': # Active relative
+                if align_mode == 'OPT_1':
+                    obj_x = obj_loc[0] - negative_x - size_active_x
+                
+                elif align_mode == 'OPT_3':
+                    obj_x = obj_loc[0] - positive_x + size_active_x
+            
+            else: # Everything else relative
+                if align_mode == 'OPT_1':
+                    obj_x = obj_loc[0] - negative_x
+                
+                elif align_mode == 'OPT_3':
+                    obj_x = obj_loc[0] - positive_x
+
+            if align_mode == 'OPT_2': # All relative
+                obj_x = obj_loc[0] - center_x
+
+            # Relative To
 
             if relative_to == 'OPT_1':
                 loc_x = obj_x
@@ -105,13 +143,35 @@ def align_objects(align_x, align_y, align_z, relative_to):
             
             elif relative_to == 'OPT_3':
                 loc_x = obj_x + center_sel_x
+
+            elif relative_to == 'OPT_4':
+                loc_x = obj_x + center_active_x
             
             obj.location[0] = loc_x
 
 
         if align_y:
 
-            obj_y = obj_loc[1] - center_y
+            # Align Mode
+
+            if relative_to == 'OPT_4': # Active relative
+                if align_mode == 'OPT_1':
+                    obj_y = obj_loc[1] - negative_y - size_active_y
+                
+                elif align_mode == 'OPT_3':
+                    obj_y = obj_loc[1] - positive_y + size_active_y
+            
+            else: # Everything else relative
+                if align_mode == 'OPT_1':
+                    obj_y = obj_loc[1] - negative_y
+                
+                elif align_mode == 'OPT_3':
+                    obj_y = obj_loc[1] - positive_y
+
+            if align_mode == 'OPT_2': # All relative
+                obj_y = obj_loc[1] - center_y
+
+            # Relative To
 
             if relative_to == 'OPT_1':
                 loc_y = obj_y
@@ -121,13 +181,35 @@ def align_objects(align_x, align_y, align_z, relative_to):
             
             elif relative_to == 'OPT_3':
                 loc_y = obj_y + center_sel_y
+
+            elif relative_to == 'OPT_4':
+                loc_y = obj_y + center_active_y
             
             obj.location[1] = loc_y
 
 
         if align_z:
 
-            obj_z = obj_loc[2] - center_z
+            # Align Mode
+
+            if relative_to == 'OPT_4': # Active relative
+                if align_mode == 'OPT_1':
+                    obj_z = obj_loc[2] - negative_z - size_active_z
+                
+                elif align_mode == 'OPT_3':
+                    obj_z = obj_loc[2] - positive_z + size_active_z
+            
+            else: # Everything else relative
+                if align_mode == 'OPT_1':
+                    obj_z = obj_loc[2] - negative_z
+                
+                elif align_mode == 'OPT_3':
+                    obj_z = obj_loc[2] - positive_z
+
+            if align_mode == 'OPT_2': # All relative
+                obj_z = obj_loc[2] - center_z
+
+            # Relative To
 
             if relative_to == 'OPT_1':
                 loc_z = obj_z
@@ -137,6 +219,9 @@ def align_objects(align_x, align_y, align_z, relative_to):
             
             elif relative_to == 'OPT_3':
                 loc_z = obj_z + center_sel_z
+
+            elif relative_to == 'OPT_4':
+                loc_z = obj_z + center_active_z
             
             obj.location[2] = loc_z
 
@@ -146,19 +231,29 @@ from bpy.props import *
 class AlignObjects(bpy.types.Operator):
     '''Align Objects'''
     bl_idname = "object.align"
-    bl_label = "Align Objets"
+    bl_label = "Align Objects"
     bl_register = True
     bl_undo = True
+
+    align_mode = bpy.props.EnumProperty(items=(
+            ('OPT_1', "Negative Sides", ""),
+            ('OPT_2', "Centers", ""),
+            ('OPT_3', "Positive Sides", "")
+            ),
+        name="Align Mode:",
+        description="",
+        default='OPT_2')
 
     relative_to = bpy.props.EnumProperty(items=(
             ('OPT_1', "Scene Origin", ""),
             ('OPT_2', "3D Cursor", ""),
-            ('OPT_3', "Selection", "")
+            ('OPT_3', "Selection", ""),
+            ('OPT_4', "Active", "")
             ),
         name="Relative To:",
         description="",
-        default='OPT_1')
-    
+        default='OPT_4')
+
     align_x = BoolProperty(name="Align X",
         description="Align in the X axis", default=False)
 
@@ -170,21 +265,31 @@ class AlignObjects(bpy.types.Operator):
 
     def execute(self, context):
     
+        align_mode = self.properties.align_mode
         relative_to = self.properties.relative_to
         align_x = self.properties.align_x
         align_y = self.properties.align_y
         align_z = self.properties.align_z
 
-        align_objects(align_x, align_y, align_z, relative_to)
+        align_objects(align_x, align_y, align_z, align_mode, relative_to)
 
         return {'FINISHED'}
 
-
-bpy.types.register(AlignObjects)
 
 def menu_func(self, context):
     if context.mode == 'OBJECT':
         self.layout.operator(AlignObjects.bl_idname,
         text="Align Objects")
 
-bpy.types.VIEW3D_MT_transform.append(menu_func)
+
+def register():
+    bpy.types.register(AlignObjects)
+    bpy.types.VIEW3D_MT_transform.append(menu_func)
+
+def unregister():
+    bpy.types.unregister(AlignObjects)
+    bpy.types.VIEW3D_MT_transform.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+

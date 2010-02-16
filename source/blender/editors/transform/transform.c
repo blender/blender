@@ -3469,6 +3469,9 @@ void initCurveShrinkFatten(TransInfo *t)
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 
+	t->flag |= T_NO_ZERO;
+	t->num.flag |= NUM_NO_ZERO;
+
 	t->flag |= T_NO_CONSTRAINT;
 }
 
@@ -3506,7 +3509,7 @@ int CurveShrinkFatten(TransInfo *t, short mval[2])
 		if(td->val) {
 			//*td->val= ratio;
 			*td->val= td->ival*ratio;
-			if (*td->val <= 0.0f) *td->val = 0.0001f;
+			if (*td->val <= 0.0f) *td->val = 0.001f;
 		}
 	}
 

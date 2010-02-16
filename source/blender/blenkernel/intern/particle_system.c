@@ -3925,6 +3925,9 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	if(!sim.psmd->dm)
 		return;
 
+	/* execute drivers only, as animation has already been done */
+	BKE_animsys_evaluate_animdata(&psys->part->id, psys->part->adt, cfra, ADT_RECALC_DRIVERS);
+
 	if(psys->recalc & PSYS_RECALC_TYPE)
 		psys_changed_type(&sim);
 	else if(psys->recalc & PSYS_RECALC_PHYS)
@@ -3942,6 +3945,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 
 		for(i=0; i<=psys->part->hair_step; i++){
 			hcfra=100.0f*(float)i/(float)psys->part->hair_step;
+			BKE_animsys_evaluate_animdata(&psys->part->id, psys->part->adt, hcfra, ADT_RECALC_ANIM);
 			system_step(&sim, hcfra);
 			save_hair(&sim, hcfra);
 		}

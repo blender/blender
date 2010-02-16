@@ -47,4 +47,20 @@ class DATA_PT_empty(DataButtonsPanel):
 
         layout.prop(ob, "empty_draw_size", text="Size")
 
-bpy.types.register(DATA_PT_empty)
+
+classes = [
+    DATA_PT_empty]
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()
+

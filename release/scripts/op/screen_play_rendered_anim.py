@@ -114,4 +114,13 @@ class PlayRenderedAnim(bpy.types.Operator):
 
         return('FINISHED',)
 
-bpy.types.register(PlayRenderedAnim)
+
+def register():
+    bpy.types.register(PlayRenderedAnim)
+
+def unregister():
+    bpy.types.unregister(PlayRenderedAnim)
+
+if __name__ == "__main__":
+    register()
+

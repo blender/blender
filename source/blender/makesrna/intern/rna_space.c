@@ -406,10 +406,11 @@ static void rna_SpaceImageEditor_histogram_update(Main *bmain, Scene *scene, Poi
 	void *lock;
 	
 	ibuf= ED_space_image_acquire_buffer(sima, &lock);
-	histogram_update(&sima->hist, ibuf);
+	if(ibuf) {
+		histogram_update(&sima->hist, ibuf);
+		WM_main_add_notifier(NC_IMAGE, sima->image);
+	}
 	ED_space_image_release_buffer(sima, lock);
-	
-	WM_main_add_notifier(NC_IMAGE, sima->image);
 }
 
 

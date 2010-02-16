@@ -1021,6 +1021,9 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 		char *varray = 0;
 		int numdata = 0, elementsize = 0, offset;
 		int start = 0, numfaces = 0, prevdraw = 0, curface = 0;
+		int i;
+
+		MFace *mf = mface;
 		GPUAttrib datatypes[GPU_MAX_ATTRIB]; /* TODO, messing up when switching materials many times - [#21056]*/
 		memset(&attribs, 0, sizeof(attribs));
 
@@ -1028,17 +1031,35 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 		GPU_normal_setup(dm);
 
 		if( !GPU_buffer_legacy(dm) ) {
-			for(a = 0; a < dm->numFaceData; a++, mface++) {
+			for( i = 0; i < dm->drawObject->nelements/3; i++ ) {
+
+				a = dm->drawObject->faceRemap[i];
+
+				mface = mf + a;
 				new_matnr = mface->mat_nr + 1;
 
 				if(new_matnr != matnr ) {
 					numfaces = curface - start;
 					if( numfaces > 0 ) {
-						if( prevdraw ) {
-							GPU_buffer_unlock(buffer);
-							GPU_interleaved_attrib_setup(buffer,datatypes,numdata);
+
+						if( dodraw ) {
+
+							if( numdata != 0 ) {
+
+								GPU_buffer_unlock(buffer);
+
+								GPU_interleaved_attrib_setup(buffer,datatypes,numdata);
+							}
+
 							glDrawArrays(GL_TRIANGLES,start*3,numfaces*3);
-							GPU_buffer_free(buffer,0);
+
+							if( numdata != 0 ) {
+
+								GPU_buffer_free(buffer,0);
+
+								buffer = 0;
+							}
+
 						}
 					}
 					numdata = 0;
@@ -1137,9 +1158,10 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 					}
 					for(b = 0; b < attribs.tottface; b++) {
 						MTFace *tf = &attribs.tface[b].array[a];
-						VECCOPY((float *)&varray[elementsize*curface*3+offset],tf->uv[0]);
-						VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize],tf->uv[1]);
-						VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize*2],tf->uv[2]);
+						VECCOPY2D((float *)&varray[elementsize*curface*3+offset],tf->uv[0]);
+						VECCOPY2D((float *)&varray[elementsize*curface*3+offset+elementsize],tf->uv[1]);
+
+						VECCOPY2D((float *)&varray[elementsize*curface*3+offset+elementsize*2],tf->uv[2]);
 						offset += sizeof(float)*2;
 					}
 					for(b = 0; b < attribs.totmcol; b++) {
@@ -1161,7 +1183,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 						tang = attribs.tang.array[a*4 + 1];
 						VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize], tang);
 						tang = attribs.tang.array[a*4 + 2];
-						VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize], tang);
+						VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize*2], tang);
 						offset += sizeof(float)*3;
 					}
 				}
@@ -1177,9 +1199,9 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 						}
 						for(b = 0; b < attribs.tottface; b++) {
 							MTFace *tf = &attribs.tface[b].array[a];
-							VECCOPY((float *)&varray[elementsize*curface*3+offset],tf->uv[2]);
-							VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize],tf->uv[3]);
-							VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize*2],tf->uv[0]);
+							VECCOPY2D((float *)&varray[elementsize*curface*3+offset],tf->uv[2]);
+							VECCOPY2D((float *)&varray[elementsize*curface*3+offset+elementsize],tf->uv[3]);
+							VECCOPY2D((float *)&varray[elementsize*curface*3+offset+elementsize*2],tf->uv[0]);
 							offset += sizeof(float)*2;
 						}
 						for(b = 0; b < attribs.totmcol; b++) {
@@ -1201,11 +1223,12 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 							tang = attribs.tang.array[a*4 + 3];
 							VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize], tang);
 							tang = attribs.tang.array[a*4 + 0];
-							VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize], tang);
+							VECCOPY((float *)&varray[elementsize*curface*3+offset+elementsize*2], tang);
 							offset += sizeof(float)*3;
 						}
 					}
 					curface++;
+					i++;
 				}
 			}
 			numfaces = curface - start;

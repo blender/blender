@@ -62,7 +62,8 @@ static void do_proc(float *result, TexParams *p, float *col1, float *col2, char 
 	else
 		texres.nor = NULL;
 	
-	textype = multitex_thread(tex, p->coord, p->dxt, p->dyt, 0, &texres, thread, 0);
+	textype = multitex_nodes(tex, p->co, p->dxt, p->dyt, p->osatex,
+		&texres, thread, 0, p->shi, p->mtex);
 	
 	if(is_normal)
 		return;

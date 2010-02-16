@@ -1112,7 +1112,7 @@ def save_3ds(filename, context):
 # # save_3ds('/test_b.3ds')
 from bpy.props import *
 class Export3DS(bpy.types.Operator):
-    '''Export to 3DS file format (.3ds).'''
+    '''Export to 3DS file format (.3ds)'''
     bl_idname = "export.autodesk_3ds"
     bl_label = 'Export 3DS'
 
@@ -1136,11 +1136,21 @@ class Export3DS(bpy.types.Operator):
     def poll(self, context): # Poll isnt working yet
         return context.active_object != None
 
-bpy.types.register(Export3DS)
 
 # Add to a menu
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".3ds")
-    self.layout.operator(Export3DS.bl_idname, text="Autodesk 3DS...").path = default_path
+    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)").path = default_path
 
-bpy.types.INFO_MT_file_export.append(menu_func)
+
+def register():
+    bpy.types.register(Export3DS)
+    bpy.types.INFO_MT_file_export.append(menu_func)
+
+def unregister():
+    bpy.types.unregister(Export3DS)
+    bpy.types.INFO_MT_file_export.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+

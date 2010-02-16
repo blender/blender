@@ -162,7 +162,7 @@ def autocomplete(context):
             line=current_line.line,
             cursor=current_line.current_character,
             namespace=console.locals,
-            private='-d' in sys.argv)
+            private=bpy.app.debug)
 
     # Now we need to copy back the line from blender back into the
     # text editor. This will change when we dont use the text editor
@@ -196,3 +196,13 @@ def banner(context):
     console.locals["C"] = bpy.context
 
     return {'FINISHED'}
+
+def register():
+    pass
+
+def unregister():
+    pass
+
+if __name__ == "__main__":
+    register()
+

@@ -243,8 +243,6 @@ void IMB_rectcpy(struct ImBuf *drect, struct ImBuf *srect, int destx,
 	int desty, int srcx, int srcy, int width, int height);
 void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
 	int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode);
-void IMB_rectblend_torus(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
-	int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode);
 
 /**
  * Return the length (in frames) of the given @a anim.

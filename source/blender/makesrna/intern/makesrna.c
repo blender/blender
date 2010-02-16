@@ -2590,7 +2590,7 @@ static int rna_preprocess(char *outfile)
 	return status;
 }
 
-static void mem_error_cb(char *errorStr)
+static void mem_error_cb(const char *errorStr)
 {
 	fprintf(stderr, "%s", errorStr);
 	fflush(stderr);

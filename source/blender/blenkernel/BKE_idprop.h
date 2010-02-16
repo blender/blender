@@ -82,6 +82,9 @@ void IDP_UnlinkID(struct IDProperty *prop);
 
 /*-------- Group Functions -------*/
 
+/* Sync values from one group to another, only where they match */
+void IDP_SyncGroupValues(struct IDProperty *dest, struct IDProperty *src);
+
 /*
  replaces all properties with the same name in a destination group from a source group.
 */

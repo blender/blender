@@ -767,7 +767,10 @@ static void ccgDM_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 	mf->v3 = getFaceIndex(ss, f, grid, x+1, y+1, edgeSize, gridSize);
 	mf->v4 = getFaceIndex(ss, f, grid, x+1, y+0, edgeSize, gridSize);
 
-	if(faceFlags) mf->flag = faceFlags[i*2];
+	if(faceFlags) {
+		mf->flag = faceFlags[i*2];
+		mf->mat_nr = faceFlags[i*2+1];
+	}
 	else mf->flag = ME_SMOOTH;
 }
 

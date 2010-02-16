@@ -194,6 +194,7 @@ void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_m
 void seq_update_sound(struct Scene* scene, struct Sequence *seq);
 void seq_update_muting(struct Scene* scene, struct Editing *ed);
 void seqbase_sound_reload(Scene *scene, ListBase *seqbase);
+void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
 void clear_scene_in_allseqs(struct Scene *sce);
 
 struct Sequence *get_seq_by_name(struct ListBase *seqbase, const char *name, int recursive);
@@ -227,8 +228,6 @@ typedef struct Sequence *(*SeqLoadFunc)(struct bContext *, ListBase *, struct Se
 struct Sequence *alloc_sequence(ListBase *lb, int cfra, int machine);
 
 void seq_load_apply(struct Scene *scene, struct Sequence *seq, struct SeqLoadInfo *seq_load);
-
-void seqUniqueName(ListBase *seqbasep, struct Sequence *seq);
 
 struct Sequence *sequencer_add_image_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 struct Sequence *sequencer_add_sound_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);

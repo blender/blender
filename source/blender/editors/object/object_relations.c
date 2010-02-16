@@ -303,9 +303,19 @@ static int make_proxy_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 static int make_proxy_exec (bContext *C, wmOperator *op)
 {
 	Object *ob, *gob= CTX_data_active_object(C);
-	GroupObject *go= BLI_findlink(&gob->dup_group->gobject, RNA_enum_get(op->ptr, "type"));
+	GroupObject *go;
 	Scene *scene= CTX_data_scene(C);
-	ob= go->ob;
+
+	if (gob->dup_group != NULL)
+	{
+		go= BLI_findlink(&gob->dup_group->gobject, RNA_enum_get(op->ptr, "type"));
+		ob= go->ob;
+	}
+	else
+	{
+		ob= gob;
+		gob = NULL;
+	}
 	
 	if (ob) {
 		Object *newob;

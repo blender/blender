@@ -70,18 +70,29 @@
 
 typedef struct TexCallData {
 	TexResult *target;
-	float *coord;
+	float *co;
 	float *dxt, *dyt;
+	int osatex;
 	char do_preview;
 	short thread;
 	short which_output;
 	int cfra;
+
+	ShadeInput *shi;
+	MTex *mtex;
 } TexCallData;
 
 typedef struct TexParams {
-	float *coord;
+	float *co;
 	float *dxt, *dyt;
+	float *previewco;
 	int cfra;
+	int osatex;
+
+	/* optional. we don't really want these here, but image
+	   textures need to do mapping & color correction */
+	ShadeInput *shi;
+	MTex *mtex;
 } TexParams;
 
 typedef void(*TexFn) (float *out, TexParams *params, bNode *node, bNodeStack **in, short thread);

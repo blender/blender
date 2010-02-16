@@ -3126,6 +3126,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 static void render_startjob(void *rjv, short *stop, short *do_update)
 {
 	RenderJob *rj= rjv;
+//	Main *mainp= BKE_undo_get_main(&rj->scene);
 	
 	rj->stop= stop;
 	rj->do_update= do_update;
@@ -3134,11 +3135,14 @@ static void render_startjob(void *rjv, short *stop, short *do_update)
 	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
 	pthread_setspecific (gomp_tls_key, thread_tls_data);
 #endif
-	
+
 	if(rj->anim)
 		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
 	else
 		RE_BlenderFrame(rj->re, rj->scene, rj->srl, rj->scene->r.cfra);
+	
+//	if(mainp)
+//		free_main(mainp);
 }
 
 /* called by render, check job 'stop' value or the global */

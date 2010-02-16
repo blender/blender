@@ -257,12 +257,12 @@ void BLI_uniquename(ListBase *list, void *vlink, const char defname[], char deli
 		return;
 
 	/* Strip off the suffix */
-	dot = strchr(GIVE_STRADDR(vlink, name_offs), delim);
+	dot = strrchr(GIVE_STRADDR(vlink, name_offs), delim);
 	if (dot)
 		*dot=0;
 	
 	for (number = 1; number <= 999; number++) {
-		BLI_snprintf(tempname, 128, "%s%c%03d", GIVE_STRADDR(vlink, name_offs), delim, number);
+		BLI_snprintf(tempname, sizeof(tempname), "%s%c%03d", GIVE_STRADDR(vlink, name_offs), delim, number);
 		
 		exists = 0;
 		for (link= list->first; link; link= link->next) {

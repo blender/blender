@@ -883,7 +883,7 @@ void space_view3d_listener(struct ScrArea *area, struct wmNotifier *wmn)
 		for (; bgpic; bgpic = bgpic->next) {
 			if (bgpic->ima) {
 				Scene *scene = wmn->reference;
-				BKE_image_user_calc_imanr(&bgpic->iuser, scene->r.cfra, 0);
+				BKE_image_user_calc_frame(&bgpic->iuser, scene->r.cfra, 0);
 			}
 		}
 	}

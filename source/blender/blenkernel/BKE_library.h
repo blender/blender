@@ -42,6 +42,7 @@ struct bContext;
 
 void *alloc_libblock(struct ListBase *lb, short type, const char *name);
 void *copy_libblock(void *rt);
+void copy_libblock_data(struct ID *id, const struct ID *id_from);
 
 void id_lib_extern(struct ID *id);
 void id_us_plus(struct ID *id);

@@ -64,4 +64,21 @@ class FILEBROWSER_HT_header(bpy.types.Header):
         row.prop(params, "filter_sound", text="")
         row.prop(params, "filter_text", text="")
 
-bpy.types.register(FILEBROWSER_HT_header)
+
+classes = [
+    FILEBROWSER_HT_header]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()
+

@@ -47,6 +47,7 @@ extern "C" {
  * @return True if @a rect is empty.
  */
 int  BLI_rcti_is_empty(struct rcti *rect);
+int  BLI_rctf_is_empty(struct rctf *rect);
 void BLI_init_rctf(struct rctf *rect, float xmin, float xmax, float ymin, float ymax);
 void BLI_init_rcti(struct rcti *rect, int xmin, int xmax, int ymin, int ymax);
 void BLI_translate_rctf(struct rctf *rect, float x, float y);

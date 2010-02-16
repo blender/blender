@@ -297,7 +297,7 @@ int DNA_struct_find_nr(SDNA *sdna, const char *str)
 static void init_structDNA(SDNA *sdna, int do_endian_swap)
 /* in sdna->data the data, now we convert that to something understandable */
 {
-	int *data, *verg;
+	int *data, *verg, gravity_fix= -1;
 	intptr_t nr;
 	short *sp;
 	char str[8], *cp;
@@ -330,6 +330,17 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 		cp= (char *)data;
 		while(nr<sdna->nr_names) {
 			sdna->names[nr]= cp;
+
+			/* "float gravity [3]" was parsed wrong giving both "gravity" and
+			   "[3]"  members. we rename "[3]", and later set the type of
+			   "gravity" to "void" so the offsets work out correct */
+			if(*cp == '[' && strcmp(cp, "[3]")==0) {
+				if(nr && strcmp(sdna->names[nr-1], "Cvi") == 0) {
+					sdna->names[nr]= "gravity[3]";
+					gravity_fix= nr;
+				}
+			}
+
 			while( *cp) cp++;
 			cp++;
 			nr++;
@@ -444,7 +455,7 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 			
 			nr++;
 		}
-		
+
 		/* finally pointerlen: use struct ListBase to test it, never change the size of it! */
 		sp= findstruct_name(sdna, "ListBase");
 		/* weird; i have no memory of that... I think I used sizeof(void *) before... (ton) */
@@ -457,6 +468,14 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 			/* well, at least sizeof(ListBase) is error proof! (ton) */
 		}
 		
+		/* second part of gravity problem, setting "gravity" type to void */
+		if(gravity_fix > -1) {
+			for(nr=0; nr<sdna->nr_structs; nr++) {
+				sp= sdna->structs[nr];
+				if(strcmp(sdna->types[sp[0]], "ClothSimSettings") == 0)
+					sp[10]= 9;
+			}
+		}
 	}
 }
 

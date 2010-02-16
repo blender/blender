@@ -1457,3 +1457,22 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 			fprintf(stderr, "failed to own primary\n");
 	}
 }
+
+GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
+{
+
+}
+
+GHOST_TUns8* GHOST_SystemX11::getUserDir() const
+{
+	char* path;
+	char* env = getenv("HOME");
+	if(env) {
+		path = (char*) malloc(strlen(env) + 10); // "/.blender/"
+		strcat(path, env);
+		strcat(path, "/,blender/");
+		return (GHOST_TUns8*) path;
+	} else {
+		return NULL;
+	}
+}

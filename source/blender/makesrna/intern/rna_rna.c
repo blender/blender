@@ -32,6 +32,16 @@
 
 #include "rna_internal.h"
 
+EnumPropertyItem property_type_items[] = {
+	{PROP_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
+	{PROP_INT, "INT", 0, "Integer", ""},
+	{PROP_FLOAT, "FLOAT", 0, "Float", ""},
+	{PROP_STRING, "STRING", 0, "String", ""},
+	{PROP_ENUM, "ENUM", 0, "Enumeration", ""},
+	{PROP_POINTER, "POINTER", 0, "Pointer", ""},
+	{PROP_COLLECTION, "COLLECTION", 0, "Collection", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 EnumPropertyItem property_unit_items[] = {
 	{PROP_UNIT_NONE, "NONE", 0, "None", ""},
 	{PROP_UNIT_LENGTH, "LENGTH", 0, "Length", ""},
@@ -907,15 +917,6 @@ static void rna_def_property(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	static EnumPropertyItem type_items[] = {
-		{PROP_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
-		{PROP_INT, "INT", 0, "Integer", ""},
-		{PROP_FLOAT, "FLOAT", 0, "Float", ""},
-		{PROP_STRING, "STRING", 0, "String", ""},
-		{PROP_ENUM, "ENUM", 0, "Enumeration", ""},
-		{PROP_POINTER, "POINTER", 0, "Pointer", ""},
-		{PROP_COLLECTION, "COLLECTION", 0, "Collection", ""},
-		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem subtype_items[] = {
 		{PROP_NONE, "NONE", 0, "None", ""},
 		{PROP_FILEPATH, "FILE_PATH", 0, "File Path", ""},
@@ -961,7 +962,7 @@ static void rna_def_property(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_enum_items(prop, type_items);
+	RNA_def_property_enum_items(prop, property_type_items);
 	RNA_def_property_enum_funcs(prop, "rna_Property_type_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Type", "Data type of the property");
 

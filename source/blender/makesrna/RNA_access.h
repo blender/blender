@@ -196,6 +196,7 @@ extern StructRNA RNA_EnumPropertyItem;
 extern StructRNA RNA_EnvironmentMap;
 extern StructRNA RNA_EnvironmentMapTexture;
 extern StructRNA RNA_Event;
+extern StructRNA RNA_Extension;
 extern StructRNA RNA_ExplodeModifier;
 extern StructRNA RNA_ExpressionController;
 extern StructRNA RNA_FCurve;

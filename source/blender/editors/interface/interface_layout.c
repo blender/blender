@@ -522,7 +522,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 		uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w-UI_UNIT_X, h);
 
 		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
-		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, "Browse for file or directory.");
+		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, "Browse for file or directory");
 	}
 	else if(subtype == PROP_DIRECTION) {
 		uiDefButR(block, BUT_NORMAL, 0, name, x, y, 100, 100, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);

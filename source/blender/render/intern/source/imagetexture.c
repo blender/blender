@@ -823,7 +823,7 @@ static int ibuf_get_color_clip_bilerp(float *col, ImBuf *ibuf, float u, float v,
 
 // anisotropic filters, data struct used instead of long line of (possibly unused) func args
 typedef struct afdata_t {
-	float *dxt, *dyt;
+	float dxt[2], dyt[2];
 	int intpol, extflag;
 	// feline only
 	float majrad, minrad, theta;
@@ -840,8 +840,8 @@ static void area_sample(TexResult* texr, ImBuf* ibuf, float fx, float fy, afdata
 	int xsam = (int)(0.5f*sqrtf(ux*ux + uy*uy) + 0.5f);
 	int ysam = (int)(0.5f*sqrtf(vx*vx + vy*vy) + 0.5f);
 	const int minsam = AFD->intpol ? 2 : 4;
-	xsam = xsam < minsam ? minsam : xsam;
-	ysam = ysam < minsam ? minsam : ysam;
+	xsam = CLAMPIS(xsam, minsam, ibuf->x*2);
+	ysam = CLAMPIS(ysam, minsam, ibuf->y*2);
 	xsd = 1.f / xsam;
 	ysd = 1.f / ysam;
 	texr->tr = texr->tg = texr->tb = texr->ta = 0.f;
@@ -1297,10 +1297,20 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, 
 		ibuf->rect += ibuf->x*ibuf->y;
 
 	// struct common data
-	AFD.dxt = dxt;
-	AFD.dyt = dyt;
+	copy_v2_v2(AFD.dxt, dxt);
+	copy_v2_v2(AFD.dyt, dyt);
 	AFD.intpol = intpol;
 	AFD.extflag = extflag;
+
+	// brecht: added stupid clamping here, large dx/dy can give very large
+	// filter sizes which take ages to render, it may be better to do this
+	// more intelligently later in the code .. probably it's not noticeable
+	if(AFD.dxt[0]*AFD.dxt[0] + AFD.dxt[1]*AFD.dxt[1] > 2.0f*2.0f) {
+		mul_v2_fl(AFD.dxt, 2.0f/len_v2(AFD.dxt));
+		mul_v2_fl(AFD.dyt, 2.0f/len_v2(AFD.dyt));
+	}
+	if(AFD.dyt[0]*AFD.dyt[0] + AFD.dyt[1]*AFD.dyt[1] > 2.0f*2.0f)
+		mul_v2_fl(AFD.dyt, 2.0f/len_v2(AFD.dyt));
 
 	// choice:
 	if (tex->imaflag & TEX_MIPMAP) {

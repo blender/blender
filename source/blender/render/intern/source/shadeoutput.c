@@ -1527,7 +1527,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 				lamp_get_shadow(lar, shi, inpr, shadfac, shi->depth);
 
 				ir+= 1.0f;
-				accum+= (1.0f-visifac) + (visifac)*shadfac[3];
+				accum+= (1.0f-visifac) + (visifac)*rgb_to_grayscale(shadfac)*shadfac[3];
 			}
 		}
 		if(ir>0.0f) {
@@ -1544,15 +1544,17 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 		if(R.wrld.mode & WO_AMB_OCC) {
 			f= R.wrld.aoenergy*shi->amb;
 
-			if(R.wrld.aomix==WO_AOADD)
-				shr->alpha += f*(1.0f - rgb_to_grayscale(shi->ao));
+			if(R.wrld.aomix==WO_AOADD) {
+				f= f*(1.0f - rgb_to_grayscale(shi->ao));
+				shr->alpha= (shr->alpha + f)*f;
+			}
 			else
 				shr->alpha= (1.0f - f)*shr->alpha + f*(1.0f - (1.0f - shr->alpha)*rgb_to_grayscale(shi->ao));
 		}
 
 		if(R.wrld.mode & WO_ENV_LIGHT) {
-			f= R.wrld.ao_env_energy*shi->amb;
-			shr->alpha += f*(1.0f - rgb_to_grayscale(shi->env));
+			f= R.wrld.ao_env_energy*shi->amb*(1.0f - rgb_to_grayscale(shi->env));
+			shr->alpha= (shr->alpha + f)*f;
 		}
 	}
 }

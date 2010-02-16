@@ -5312,7 +5312,7 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, char *allocna
 
 	while(bhead && bhead->code==DATA) {
 		void *data;
-#if 0		
+#if 0
 		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
 		short *sp= fd->filesdna->structs[bhead->SDNAnr];
 		char *allocname = fd->filesdna->types[ sp[0] ];
@@ -5320,8 +5320,9 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, char *allocna
 		
 		strcpy(tmp, allocname);
 		data= read_struct(fd, bhead, tmp);
-#endif
+#else
 		data= read_struct(fd, bhead, allocname);
+#endif
 		
 		if (data) {
 			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
@@ -10117,7 +10118,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				{
 					seq=sce->ed->seqbasep->first;
 					while(seq) {
-						seqUniqueName(sce->ed->seqbasep, seq);
+						seqbase_unique_name_recursive(&sce->ed->seqbase, seq);
 						seq=seq->next;
 					}
 				}
@@ -10689,6 +10690,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	link_list(fd, &user->themes);
 	link_list(fd, &user->keymaps);
+	link_list(fd, &user->extensions);
 
 	for(keymap=user->keymaps.first; keymap; keymap=keymap->next) {
 		keymap->modal_items= NULL;

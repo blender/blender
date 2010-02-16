@@ -958,16 +958,20 @@ class ExportOBJ(bpy.types.Operator):
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
-bpy.types.register(ExportOBJ)
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".obj")
-    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)...").path = default_path
+    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)").path = default_path
 
-menu_item = bpy.types.INFO_MT_file_export.append(menu_func)
 
-if __name__ == "__main__":
-    bpy.ops.EXPORT_OT_obj(filename="/tmp/test.obj")
+def register():
+    bpy.types.register(ExportOBJ)
+    bpy.types.INFO_MT_file_export.append(menu_func)
+    
+def unregister():
+    bpy.types.unregister(ExportOBJ)
+    bpy.types.INFO_MT_file_export.remove(menu_func)
+
 
 # CONVERSION ISSUES
 # - matrix problem
@@ -975,4 +979,7 @@ if __name__ == "__main__":
 # - NURBS - needs API additions
 # - all scenes export
 # + normals calculation
+
+if __name__ == "__main__":
+    register()
 

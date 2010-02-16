@@ -41,9 +41,11 @@ struct ListBase;
 struct MemFile;
 struct bContext;
 struct ReportList;
-
-#define BLENDER_VERSION			250
-#define BLENDER_SUBVERSION		17
+struct Scene;
+struct Main;
+	
+#define BLENDER_VERSION			251
+#define BLENDER_SUBVERSION		0
 
 #define BLENDER_MINVERSION		250
 #define BLENDER_MINSUBVERSION	0
@@ -70,6 +72,7 @@ extern void BKE_reset_undo(void);
 extern char *BKE_undo_menu_string(void);
 extern void BKE_undo_number(struct bContext *C, int nr);
 extern void BKE_undo_save_quit(void);
+extern struct Main *BKE_undo_get_main(struct Scene **scene);
 
 #ifdef __cplusplus
 }

@@ -48,6 +48,12 @@ int BLI_rcti_is_empty(rcti * rect)
 			(rect->ymax<=rect->ymin));
 }
 
+int BLI_rctf_is_empty(rctf * rect)
+{
+	return ((rect->xmax<=rect->xmin) ||
+			(rect->ymax<=rect->ymin));
+}
+
 int BLI_in_rcti(rcti * rect, int x, int y)
 {
 

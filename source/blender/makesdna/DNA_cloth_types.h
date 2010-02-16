@@ -47,10 +47,7 @@ typedef struct ClothSimSettings
 	float 	mingoal; 	/* see SB */
 	float	Cdis;		/* Mechanical damping of springs.		*/
 	float	Cvi;		/* Viscous/fluid damping.			*/
-	/* XXX the extra space here results in wrong DNA parsing,
-	 * and reconstruct fails and gives corrupt settings when
-	 * removing it because the old dna is wrong ... */
-	float	gravity [3];	/* Gravity/external force vector.		*/
+	float	gravity[3];	/* Gravity/external force vector.		*/
 	float	dt;		/* This is the duration of our time step, computed.	*/
 	float	mass;		/* The mass of the entire cloth.		*/
 	float	structural;	/* Structural spring stiffness.			*/
@@ -79,6 +76,7 @@ typedef struct ClothSimSettings
 	short	vgroup_struct;  /* vertex group for scaling structural stiffness */
 	short	presets; /* used for presets on GUI */
  	short 	reset;
+	int		pad;
 
 	struct EffectorWeights *effector_weights;
 } ClothSimSettings;

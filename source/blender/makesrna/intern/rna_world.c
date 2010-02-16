@@ -224,7 +224,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "aoenergy");
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_range(prop, 0, 1, 0.1, 2);
-	RNA_def_property_ui_text(prop, "Factor", "Factor for ambient occlusion blending blending");
+	RNA_def_property_ui_text(prop, "Factor", "Factor for ambient occlusion blending");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "ao_blend_mode", PROP_ENUM, PROP_NONE);
@@ -280,7 +280,7 @@ static void rna_def_lighting(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "passes", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ao_approx_passes");
 	RNA_def_property_range(prop, 0, 10);
-	RNA_def_property_ui_text(prop, "Passes", "Number of preprocessing passes to reduce overocclusion (for Approximate)");
+	RNA_def_property_ui_text(prop, "Passes", "Number of preprocessing passes to reduce overocclusion (for approximate ambient occlusion)");
 	RNA_def_property_update(prop, 0, "rna_World_update");
 
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);

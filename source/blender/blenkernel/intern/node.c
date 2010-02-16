@@ -57,6 +57,7 @@
 #include "BKE_texture.h"
 #include "BKE_text.h"
 #include "BKE_utildefines.h"
+#include "BKE_animsys.h" /* BKE_free_animdata only */
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -1104,10 +1105,12 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 		/* is ntree part of library? */
 		for(newtree=G.main->nodetree.first; newtree; newtree= newtree->id.next)
 			if(newtree==ntree) break;
-		if(newtree)
+		if(newtree) {
 			newtree= copy_libblock(ntree);
-		else
+		} else {
 			newtree= MEM_dupallocN(ntree);
+			copy_libblock_data(&newtree->id, &ntree->id); /* copy animdata and ID props */
+		}
 		newtree->nodes.first= newtree->nodes.last= NULL;
 		newtree->links.first= newtree->links.last= NULL;
 	}
@@ -1343,6 +1346,8 @@ void ntreeFreeTree(bNodeTree *ntree)
 	
 	ntreeEndExecTree(ntree);	/* checks for if it is still initialized */
 	
+	BKE_free_animdata((ID *)ntree);
+
 	BLI_freelistN(&ntree->links);	/* do first, then unlink_node goes fast */
 	
 	for(node= ntree->nodes.first; node; node= next) {

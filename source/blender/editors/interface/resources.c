@@ -353,6 +353,8 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->console_info; break;
 			case TH_CONSOLE_ERROR:
 				cp= ts->console_error; break;
+			case TH_CONSOLE_CURSOR:
+				cp= ts->console_cursor; break;
 
 			case TH_HANDLE_VERTEX:
 				cp= ts->handle_vertex;
@@ -622,6 +624,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tconsole.console_input, 255, 255, 255, 255);
 	SETCOL(btheme->tconsole.console_info, 0, 170, 0, 255);
 	SETCOL(btheme->tconsole.console_error, 220, 96, 96, 255);
+	SETCOL(btheme->tconsole.console_cursor, 220, 96, 96, 255);
 	
 
 	/* space sound */

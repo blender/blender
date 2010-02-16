@@ -47,7 +47,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 		params_from_cdata(&params, cdata);
 
 		tex_input_rgba(col, in[0], &params, cdata->thread);
-		tex_do_preview(node, params.coord, col);
+		tex_do_preview(node, params.previewco, col);
 	}
 }
 

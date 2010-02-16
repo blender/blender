@@ -282,9 +282,10 @@ static int ImageRender_init (PyObject * pySelf, PyObject * args, PyObject * kwds
 	// camera object
 	PyObject * camera;
 	// parameter keywords
-	static char *kwlist[] = {"sceneObj", "cameraObj", NULL};
+	static const char *kwlist[] = {"sceneObj", "cameraObj", NULL};
 	// get parameters
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO", kwlist, &scene, &camera))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO",
+		const_cast<char**>(kwlist), &scene, &camera))
 		return -1;
 	try
 	{
@@ -428,9 +429,10 @@ static int ImageMirror_init (PyObject * pySelf, PyObject * args, PyObject * kwds
     // material of the mirror
     short materialID = 0;
 	// parameter keywords
-	static char *kwlist[] = {"scene", "observer", "mirror", "material", NULL};
+	static const char *kwlist[] = {"scene", "observer", "mirror", "material", NULL};
 	// get parameters
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OOO|h", kwlist, &scene, &observer, &mirror, &materialID))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "OOO|h",
+		const_cast<char**>(kwlist), &scene, &observer, &mirror, &materialID))
 		return -1;
 	try
 	{
