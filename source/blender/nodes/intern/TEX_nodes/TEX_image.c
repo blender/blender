@@ -36,8 +36,8 @@ static bNodeSocketType outputs[]= {
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float x = p->coord[0];
-	float y = p->coord[1];
+	float x = p->co[0];
+	float y = p->co[1];
 	Image *ima= (Image *)node->id;
 	ImageUser *iuser= (ImageUser *)node->storage;
 	
@@ -69,7 +69,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			QUATCOPY( out, result );
 		}
 	}
-};
+}
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {

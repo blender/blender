@@ -191,8 +191,10 @@ typedef struct ShadeInput
 
 /* node shaders... */
 struct Tex;
+struct MTex;
 int	multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
-int	multitex_thread(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output);
+int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres,
+	short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex);
 
 /* shaded view and bake */
 struct Render;

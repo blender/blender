@@ -59,10 +59,10 @@ static float noise(int n) /* fast integer noise */
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float *coord = p->coord;
+	float *co = p->co;
 	
-	float x = coord[0];
-	float y = coord[1];
+	float x = co[0];
+	float y = co[1];
 	
 	int bricknum, rownum;
 	float offset = 0;

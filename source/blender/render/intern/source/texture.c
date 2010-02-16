@@ -716,20 +716,6 @@ static float voronoiTex(Tex *tex, float *texvec, TexResult *texres)
 
 /* ------------------------------------------------------------------------- */
 
-static int evalnodes(Tex *tex, float *texvec, float *dxt, float *dyt, TexResult *texres, short thread, short which_output)
-{
-	short rv = TEX_INT;
-	bNodeTree *nodes = tex->nodetree;
-	
-	ntreeTexExecTree(nodes, texres, texvec, dxt, dyt, thread, tex, which_output, R.r.cfra, (R.r.scemode & R_TEXNODE_PREVIEW) != 0);
-	
-	if(texres->nor) rv |= TEX_NOR;
-	rv |= TEX_RGB;
-	return rv;
-}
-
-/* ------------------------------------------------------------------------- */
-
 static int texnoise(Tex *tex, TexResult *texres)
 {
 	float div=3.0;
@@ -1182,8 +1168,8 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	texres->talpha= 0;	/* is set when image texture returns alpha (considered premul) */
 	
 	if(tex->use_nodes && tex->nodetree) {
-		if(osatex) retval = evalnodes(tex, texvec, dxt, dyt, texres, thread, which_output);
-		else retval = evalnodes(tex, texvec, NULL, NULL, texres, thread, which_output);
+		retval = ntreeTexExecTree(tex->nodetree, texres, texvec, dxt, dyt, osatex, thread,
+			tex, which_output, R.r.cfra, (R.r.scemode & R_TEXNODE_PREVIEW) != 0, NULL, NULL);
 	}
 	else
 	switch(tex->type) {
@@ -1288,46 +1274,83 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	return retval;
 }
 
-/* Warning, if the texres's values are not declared zero, check the return value to be sure
- * the color values are set before using the r/g/b values, otherwise you may use uninitialized values - Campbell */
-int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
-{
-	return multitex_thread(tex, texvec, dxt, dyt, osatex, texres, 0, 0);
-}
-
-int multitex_thread(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres, short thread, short which_output)
+/* this is called from the shader and texture nodes */
+int multitex_nodes(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres, short thread, short which_output, ShadeInput *shi, MTex *mtex)
 {
 	if(tex==NULL) {
 		memset(texres, 0, sizeof(TexResult));
 		return 0;
 	}
+
+	if(mtex)
+		which_output= mtex->which_output;
 	
-	/* Image requires 2d mapping conversion */
 	if(tex->type==TEX_IMAGE) {
-		MTex mtex;
-		float texvec_l[3], dxt_l[3], dyt_l[3];
-		
-		mtex.mapping= MTEX_FLAT;
-		mtex.tex= tex;
-		mtex.object= NULL;
-		mtex.texco= TEXCO_ORCO;
-		
-		VECCOPY(texvec_l, texvec);
-		if(dxt && dyt) {
-			VECCOPY(dxt_l, dxt);
-			VECCOPY(dyt_l, dyt);
+		int rgbnor;
+
+		if(mtex) {
+			/* we have mtex, use it for 2d mapping images only */
+			do_2d_mapping(mtex, texvec, shi->vlr, shi->facenor, dxt, dyt);
+			rgbnor= multitex(tex, texvec, dxt, dyt, osatex, texres, thread, which_output);
+
+			if(mtex->mapto & (MAP_COL+MAP_COLSPEC+MAP_COLMIR)) {
+				ImBuf *ibuf = BKE_image_get_ibuf(tex->ima, &tex->iuser);
+				
+				/* don't linearize float buffers, assumed to be linear */
+				if(ibuf && !(ibuf->rect_float) && R.r.color_mgt_flag & R_COLOR_MANAGEMENT)
+					srgb_to_linearrgb_v3_v3(&texres->tr, &texres->tr);
+			}
 		}
 		else {
-			dxt_l[0]= dxt_l[1]= dxt_l[2]= 0.0f;
-			dyt_l[0]= dyt_l[1]= dyt_l[2]= 0.0f;
+			/* we don't have mtex, do default flat 2d projection */
+			MTex localmtex;
+			float texvec_l[3], dxt_l[3], dyt_l[3];
+			
+			localmtex.mapping= MTEX_FLAT;
+			localmtex.tex= tex;
+			localmtex.object= NULL;
+			localmtex.texco= TEXCO_ORCO;
+			
+			VECCOPY(texvec_l, texvec);
+			if(dxt && dyt) {
+				VECCOPY(dxt_l, dxt);
+				VECCOPY(dyt_l, dyt);
+			}
+			else {
+				dxt_l[0]= dxt_l[1]= dxt_l[2]= 0.0f;
+				dyt_l[0]= dyt_l[1]= dyt_l[2]= 0.0f;
+			}
+			
+			do_2d_mapping(&localmtex, texvec_l, NULL, NULL, dxt_l, dyt_l);
+			rgbnor= multitex(tex, texvec, dxt, dyt, osatex, texres, thread, which_output);
 		}
-		
-		do_2d_mapping(&mtex, texvec_l, NULL, NULL, dxt_l, dyt_l);
 
-		return multitex(tex, texvec_l, dxt_l, dyt_l, osatex, texres, thread, which_output);
+		return rgbnor;
 	}
 	else
 		return multitex(tex, texvec, dxt, dyt, osatex, texres, thread, which_output);
+}
+
+/* this is called for surface shading */
+int multitex_mtex(ShadeInput *shi, MTex *mtex, float *texvec, float *dxt, float *dyt, TexResult *texres)
+{
+	Tex *tex= mtex->tex;
+
+	if(tex->use_nodes && tex->nodetree) {
+		/* stupid exception here .. but we have to pass shi and mtex to
+		   textures nodes for 2d mapping and color management for images */
+		return ntreeTexExecTree(tex->nodetree, texres, texvec, dxt, dyt, shi->osatex, shi->thread,
+			tex, mtex->which_output, R.r.cfra, (R.r.scemode & R_TEXNODE_PREVIEW) != 0, shi, mtex);
+	}
+	else
+		return multitex(mtex->tex, texvec, dxt, dyt, shi->osatex, texres, shi->thread, mtex->which_output);
+}
+
+/* Warning, if the texres's values are not declared zero, check the return value to be sure
+ * the color values are set before using the r/g/b values, otherwise you may use uninitialized values - Campbell */
+int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
+{
+	return multitex_nodes(tex, texvec, dxt, dyt, osatex, texres, 0, 0, NULL, NULL);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1874,7 +1897,7 @@ void do_material_tex(ShadeInput *shi)
 
 					// center, main return value
 					texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
-					rgbnor = multitex(tex, texvec, dxt, dyt, shi->osatex, &texres, shi->thread, mtex->which_output);
+					rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, &texres);
 					cd = fromrgb ? (texres.tr + texres.tg + texres.tb)*0.33333333f : texres.tin;
 
 					if (mtex->texco == TEXCO_UV) {
@@ -1888,7 +1911,7 @@ void do_material_tex(ShadeInput *shi)
 						tco[1] = co[1] + dvdnu*du;
 						tco[2] = 0.f;
 						texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
-						multitex(tex, texv, dxt, dyt, shi->osatex, &ttexr, shi->thread, mtex->which_output);
+						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
 						ud = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
 
 						// +v val
@@ -1896,7 +1919,7 @@ void do_material_tex(ShadeInput *shi)
 						tco[1] = co[1] + dvdnv*du;
 						tco[2] = 0.f;
 						texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
-						multitex(tex, texv, dxt, dyt, shi->osatex, &ttexr, shi->thread, mtex->which_output);
+						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
 						vd = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
 					}
 					else {
@@ -1927,7 +1950,7 @@ void do_material_tex(ShadeInput *shi)
 						tco[1] = co[1] + tu[1]*du;
 						tco[2] = co[2] + tu[2]*du;
 						texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
-						multitex(tex, texv, dxt, dyt, shi->osatex, &ttexr, shi->thread, mtex->which_output);
+						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
 						ud = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
 
 						// +v val
@@ -1935,7 +1958,7 @@ void do_material_tex(ShadeInput *shi)
 						tco[1] = co[1] + tv[1]*dv;
 						tco[2] = co[2] + tv[2]*dv;
 						texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
-						multitex(tex, texv, dxt, dyt, shi->osatex, &ttexr, shi->thread, mtex->which_output);
+						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
 						vd = idv*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
 					}
 
@@ -1956,12 +1979,12 @@ void do_material_tex(ShadeInput *shi)
 				}
 				else {
 					texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
-					rgbnor = multitex(tex, texvec, dxt, dyt, shi->osatex, &texres, shi->thread, mtex->which_output);
+					rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, &texres);
 				}
 			}
 			else {
 				texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
-				rgbnor = multitex(tex, texvec, dxt, dyt, shi->osatex, &texres, shi->thread, mtex->which_output);
+				rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, &texres);
 			}
 
 			/* texture output */

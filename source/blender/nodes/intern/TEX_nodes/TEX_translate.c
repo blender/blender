@@ -42,15 +42,15 @@ static bNodeSocketType outputs[]= {
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float offset[3], new_coord[3];
+	float offset[3], new_co[3];
 	TexParams np = *p;
-	np.coord = new_coord;
+	np.co = new_co;
 	
 	tex_input_vec(offset, in[1], p, thread);
 	
-	new_coord[0] = p->coord[0] + offset[0];
-	new_coord[1] = p->coord[1] + offset[1];
-	new_coord[2] = p->coord[2] + offset[2];
+	new_co[0] = p->co[0] + offset[0];
+	new_co[1] = p->co[1] + offset[1];
+	new_co[2] = p->co[2] + offset[2];
 	
 	tex_input_rgba(out, in[0], &np, thread);
 }

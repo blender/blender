@@ -35,48 +35,6 @@ static bNodeSocketType inputs[]= {
 	{ -1, 0, ""	}
 };
 
-static void osa(
-	void (*input_fn)(float *, bNodeStack *, TexParams *, short),
-	float *out,
-	bNodeStack *in,
-	TexParams *p,
-	short thread
-){
-	if(!p->dxt) {
-		input_fn(out, in, p, thread);
-	} else {
-		float sample[4] = {0};
-		float coord[3];
-		TexParams sp = *p;
-		int i;
-	
-		sp.coord = coord;
-		sp.dxt = sp.dyt = 0;
-		
-		QUATCOPY(out, sample);
-		
-		for(i=0; i<5; i++) {
-			VECCOPY(coord, p->coord);
-			
-			if(i < 4)
-			{
-				if(i % 2) VECADD(coord, coord, p->dxt);
-				if(i > 1) VECADD(coord, coord, p->dyt);
-			}
-			else
-			{
-				VECADDFAC(coord, coord, p->dxt, 0.5);
-				VECADDFAC(coord, coord, p->dyt, 0.5);
-			}
-			
-			input_fn(sample, in, &sp, thread);
-			
-			QUATADDFAC(out, out, sample, 0.2);
-		}
-	}
-}
-	
-
 /* applies to render pipeline */
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
@@ -91,7 +49,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 			tex_input_rgba(&target->tr, in[1], &params, cdata->thread);
 		else
 			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
-		tex_do_preview(node, params.coord, &target->tr);
+		tex_do_preview(node, params.co, &target->tr);
 	}
 	else {
 		/* 0 means don't care, so just use first */
@@ -99,14 +57,14 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 			TexParams params;
 			params_from_cdata(&params, cdata);
 			
-			osa(tex_input_rgba, &target->tr, in[0], &params, cdata->thread);
+			tex_input_rgba(&target->tr, in[0], &params, cdata->thread);
 		
 			target->tin = (target->tr + target->tg + target->tb) / 3.0f;
 			target->talpha = 1.0f;
 		
 			if(target->nor) {
 				if(in[1]->hasinput)
-					osa(tex_input_vec, target->nor, in[1], &params, cdata->thread);
+					tex_input_vec(target->nor, in[1], &params, cdata->thread);
 				else
 					target->nor = 0;
 			}
@@ -210,3 +168,4 @@ bNodeType tex_node_output= {
 	/* copystoragefunc */  copy,  
 	/* id              */  NULL
 };
+

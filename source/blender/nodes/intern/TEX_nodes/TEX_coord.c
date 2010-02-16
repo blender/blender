@@ -35,9 +35,9 @@ static bNodeSocketType outputs[]= {
 
 static void vectorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	out[0] = p->coord[0];
-	out[1] = p->coord[1];
-	out[2] = p->coord[2];
+	out[0] = p->co[0];
+	out[1] = p->co[1];
+	out[2] = p->co[2];
 }
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)

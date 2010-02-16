@@ -44,7 +44,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 {
 	static float red[] = {1,0,0,1};
 	static float white[] = {1,1,1,1};
-	float *coord = p->coord;
+	float *co = p->co;
 	
 	Tex *nodetex = (Tex *)node->id;
 	
@@ -52,7 +52,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		/* this node refers to its own texture tree! */
 		QUATCOPY(
 			out,
-			(fabs(coord[0] - coord[1]) < .01) ? white : red 
+			(fabs(co[0] - co[1]) < .01) ? white : red 
 		);
 	}
 	else if(nodetex) {
@@ -65,7 +65,8 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 		tex_input_rgba(col2, in[1], p, thread);
 		
 		texres.nor = nor;
-		textype = multitex_ext(nodetex, coord, 0, 0, 0, &texres);
+		textype = multitex_nodes(nodetex, co, p->dxt, p->dyt, p->osatex,
+			&texres, thread, 0, p->shi, p->mtex);
 		
 		if(textype & TEX_RGB) {
 			QUATCOPY(out, &texres.tr);

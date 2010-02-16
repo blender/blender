@@ -43,12 +43,12 @@ static bNodeSocketType outputs[]= {
 
 static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float coord1[3], coord2[3];
+	float co1[3], co2[3];
 
-	tex_input_vec(coord1, in[0], p, thread);
-	tex_input_vec(coord2, in[1], p, thread);
+	tex_input_vec(co1, in[0], p, thread);
+	tex_input_vec(co2, in[1], p, thread);
 
-	*out = len_v3v3(coord2, coord1);
+	*out = len_v3v3(co2, co1);
 }
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)

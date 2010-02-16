@@ -53,7 +53,7 @@ void tex_call_delegate(TexDelegate *dg, float *out, TexParams *params, short thr
 		dg->fn(out, params, dg->node, dg->in, thread);
 
 		if(dg->cdata->do_preview)
-			tex_do_preview(dg->node, params->coord, out);
+			tex_do_preview(dg->node, params->previewco, out);
 	}
 }
 
@@ -101,19 +101,23 @@ float tex_input_value(bNodeStack *in, TexParams *params, short thread)
 
 void params_from_cdata(TexParams *out, TexCallData *in)
 {
-	out->coord = in->coord;
+	out->co = in->co;
 	out->dxt = in->dxt;
 	out->dyt = in->dyt;
+	out->previewco = in->co;
+	out->osatex = in->osatex;
 	out->cfra = in->cfra;
+	out->shi = in->shi;
+	out->mtex = in->mtex;
 }
 
-void tex_do_preview(bNode *node, float *coord, float *col)
+void tex_do_preview(bNode *node, float *co, float *col)
 {
 	bNodePreview *preview= node->preview;
 
 	if(preview) {
-		int xs= ((coord[0] + 1.0f)*0.5f)*preview->xsize;
-		int ys= ((coord[1] + 1.0f)*0.5f)*preview->ysize;
+		int xs= ((co[0] + 1.0f)*0.5f)*preview->xsize;
+		int ys= ((co[1] + 1.0f)*0.5f)*preview->ysize;
 
 		nodeAddToPreview(node, col, xs, ys);
 	}
@@ -162,30 +166,40 @@ void ntreeTexCheckCyclics(struct bNodeTree *ntree)
 	}
 }
 
-void ntreeTexExecTree(
+int ntreeTexExecTree(
 	bNodeTree *nodes,
 	TexResult *texres,
-	float *coord,
+	float *co,
 	float *dxt, float *dyt,
+	int osatex,
 	short thread, 
 	Tex *tex, 
 	short which_output, 
 	int cfra,
-	int preview
+	int preview,
+	ShadeInput *shi,
+	MTex *mtex
 ){
-	TexResult dummy_texres;
 	TexCallData data;
-	
-	if(!texres) texres = &dummy_texres;
-	data.coord = coord;
+	int retval = TEX_INT;
+
+	data.co = co;
 	data.dxt = dxt;
 	data.dyt = dyt;
+	data.osatex = osatex;
 	data.target = texres;
 	data.do_preview = preview;
 	data.thread = thread;
 	data.which_output = which_output;
 	data.cfra= cfra;
+	data.mtex= mtex;
+	data.shi= shi;
 	
 	ntreeExecTree(nodes, &data, thread);
+
+	if(texres->nor) retval |= TEX_NOR;
+	retval |= TEX_RGB;
+
+	return retval;
 }
 
