@@ -1217,10 +1217,23 @@ void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
 GHOST_TUns8* GHOST_SystemCarbon::getSystemDir() const
 {
-
+	static GHOST_TUns8 sysPath[64];
+	
+	strcpy((char*)sysPath,"/Library/Application Support/Blender");
+	
+	return sysPath;
 }
 
 GHOST_TUns8* GHOST_SystemCarbon::getUserDir() const
 {
-
+	static char usrPath[512] = "";
+	char* env = getenv("HOME");
+	
+	if (env) {
+		strcpy(usrPath, env);
+		strcat(usrPath, "/Library/Application Support/Blender");
+		return (GHOST_TUns8*) usrPath;
+	}
+	else
+		return NULL;
 }
