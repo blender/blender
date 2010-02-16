@@ -513,7 +513,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	else
 		strcpy(seq->name+2, give_seqname(seq));
 
-	seqUniqueName(ed->seqbasep, seq);
+	seqbase_unique_name_recursive(&ed->seqbase, seq);
 
 	sh = get_sequence_effect(seq);
 

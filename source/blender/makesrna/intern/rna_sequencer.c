@@ -235,22 +235,10 @@ static int rna_Sequence_name_length(PointerRNA *ptr)
 static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene= (Scene*)ptr->id.data;
-//	Editing *ed= seq_give_editing(scene, FALSE);
 	Sequence *seq= (Sequence*)ptr->data;
-//	Sequence *iseq;
 	BLI_strncpy(seq->name+2, value, sizeof(seq->name)-2);
 
-	seqUniqueName(&scene->ed->seqbase, seq);
-
-	// TODO, unique name for all meta's
-	/*
-	SEQ_BEGIN(ed, iseq) {
-		if(iseq->seqbase.first)
-			seqUniqueName(&iseq->seqbase, seq);
-
-	}
-	SEQ_END
-	*/
+	seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
 }
 
 static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)

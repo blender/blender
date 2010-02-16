@@ -862,7 +862,7 @@ static Sequence *dupli_seq(struct Scene *scene, Sequence *seq)
 						" now...\n");
 	}
 
-	seqUniqueName(scene->ed->seqbasep, seqn);
+	seqbase_unique_name_recursive(&scene->ed->seqbase, seqn);
 
 	return seqn;
 }
@@ -1735,11 +1735,20 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	recurs_dupli_seq(scene, ed->seqbasep, &new, TRUE);
-	addlisttolist(ed->seqbasep, &new);
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+	if(new.first) {
+		Sequence * seq= new.first;
+		/* rely on the new list being added at the end */
+		addlisttolist(ed->seqbasep, &new);
 
-	return OPERATOR_FINISHED;
+		for( ; seq; seq= seq->next)
+			seqbase_unique_name_recursive(&ed->seqbase, seq);
+
+		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
 }
 
 static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1905,7 +1914,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 					shuffle_seq(ed->seqbasep, seq_new, scene);
 				}
 
-				seqUniqueName(scene->ed->seqbasep, seq_new);
+				seqbase_unique_name_recursive(&scene->ed->seqbase, seq_new);
 
 				cfra++;
 				start_ofs += step;
@@ -2069,7 +2078,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
 	seq_update_muting(scene, ed);
 
-	seqUniqueName(scene->ed->seqbasep, seqm);
+	seqbase_unique_name_recursive(&scene->ed->seqbase, seqm);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 

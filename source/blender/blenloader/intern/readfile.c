@@ -10120,7 +10120,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				{
 					seq=sce->ed->seqbasep->first;
 					while(seq) {
-						seqUniqueName(sce->ed->seqbasep, seq);
+						seqbase_unique_name_recursive(&sce->ed->seqbase, seq);
 						seq=seq->next;
 					}
 				}

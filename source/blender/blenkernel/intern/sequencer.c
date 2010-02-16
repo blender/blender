@@ -640,7 +640,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 		}
 
 		BLI_strncpy(seq->name+2, sce->id.name + 2, SEQ_NAME_MAXSTR-2);
-		seqUniqueName(scene->ed->seqbasep, seq);
+		seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
 		
 		seq->len= seq->scene->r.efra - seq->scene->r.sfra + 1;
 		seq->len -= seq->anim_startofs;
@@ -718,6 +718,62 @@ void clear_scene_in_allseqs(Scene *scene)
 			seqbase_recursive_apply(&scene_iter->ed->seqbase, clear_scene_in_allseqs_cb, scene);
 		}
 	}
+}
+
+typedef struct SeqUniqueInfo {
+	Sequence *seq;
+	char name_src[32];
+	char name_dest[32];
+	int count;
+	int match;
+} SeqUniqueInfo;
+
+/*
+static void seqbase_unique_name(ListBase *seqbasep, Sequence *seq)
+{
+	 BLI_uniquename(seqbasep, seq, "Sequence", '.', offsetof(Sequence, name), SEQ_NAME_MAXSTR);
+}*/
+
+static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
+{
+	Sequence *seq;
+	for(seq=seqbasep->first; seq; seq= seq->next) {
+		if (sui->seq != seq && strcmp(sui->name_dest, seq->name+2)==0) {
+			sprintf(sui->name_dest, "%.18s.%03d",  sui->name_src, sui->count++);
+			sui->match= 1; /* be sure to re-scan */
+		}
+	}
+}
+
+static int seqbase_unique_name_recursive_cb(Sequence *seq, void *arg_pt)
+{
+	if(seq->seqbase.first)
+		seqbase_unique_name(&seq->seqbase, (SeqUniqueInfo *)arg_pt);
+	return 1;
+}
+
+void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq)
+{
+	SeqUniqueInfo sui;
+	char *dot;
+	sui.seq= seq;
+	strcpy(sui.name_src, seq->name+2);
+	strcpy(sui.name_dest, seq->name+2);
+
+	/* Strip off the suffix */
+	if ((dot=strrchr(sui.name_src, '.')))
+		*dot= '\0';
+
+	sui.count= 1;
+	sui.match= 1; /* assume the worst to start the loop */
+
+	while(sui.match) {
+		sui.match= 0;
+		seqbase_unique_name(seqbasep, &sui);
+		seqbase_recursive_apply(seqbasep, seqbase_unique_name_recursive_cb, &sui);
+	}
+
+	strcpy(seq->name+2, sui.name_dest);
 }
 
 static char *give_seqname_by_type(int type)
@@ -3685,7 +3741,7 @@ void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 {
 	if(seq) {
 		strcpy(seq->name, seq_load->name);
-		seqUniqueName(scene->ed->seqbasep, seq);
+		seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
 
 		if(seq_load->flag & SEQ_LOAD_FRAME_ADVANCE) {
 			seq_load->start_frame += (seq->enddisp - seq->startdisp);
@@ -3728,11 +3784,6 @@ Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
 	return seq;
 }
 
-void seqUniqueName(ListBase *seqbasep, Sequence *seq)
-{
-	 BLI_uniquename(seqbasep, seq, "Sequence", '.', offsetof(Sequence, name), SEQ_NAME_MAXSTR);
-}
-
 /* NOTE: this function doesn't fill in image names */
 Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo *seq_load)
 {
@@ -3744,7 +3795,7 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	seq = alloc_sequence(seqbasep, seq_load->start_frame, seq_load->channel);
 	seq->type= SEQ_IMAGE;
 	BLI_strncpy(seq->name+2, "Image", SEQ_NAME_MAXSTR-2);
-	seqUniqueName(seqbasep, seq);
+	seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
 	
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
@@ -3793,7 +3844,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	seq->type= SEQ_SOUND;
 	seq->sound= sound;
 	BLI_strncpy(seq->name+2, "Sound", SEQ_NAME_MAXSTR-2);
-	seqUniqueName(seqbasep, seq);
+	seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
 
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
@@ -3837,7 +3888,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	seq->anim= an;
 	seq->anim_preseek = IMB_anim_get_preseek(an);
 	BLI_strncpy(seq->name+2, "Movie", SEQ_NAME_MAXSTR-2);
-	seqUniqueName(seqbasep, seq);
+	seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
 
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
