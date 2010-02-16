@@ -2654,6 +2654,9 @@ static struct PyMethodDef pyrna_prop_array_methods[] = {
 };
 
 static struct PyMethodDef pyrna_prop_collection_methods[] = {
+	{"foreach_get", (PyCFunction)pyrna_prop_foreach_get, METH_VARARGS, NULL},
+	{"foreach_set", (PyCFunction)pyrna_prop_foreach_set, METH_VARARGS, NULL},
+
 	{"keys", (PyCFunction)pyrna_prop_keys, METH_NOARGS, NULL},
 	{"items", (PyCFunction)pyrna_prop_items, METH_NOARGS,NULL},
 	{"values", (PyCFunction)pyrna_prop_values, METH_NOARGS, NULL},
