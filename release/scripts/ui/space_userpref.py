@@ -171,6 +171,10 @@ class USERPREF_HT_header(bpy.types.Header):
             op.path = "keymap.py"
             op = layout.operator("wm.keyconfig_import", "Import Key Configuration...")
             op.path = "keymap.py"
+        elif userpref.active_section == 'EXTENSIONS':
+            layout.operator_context = 'INVOKE_DEFAULT'
+            op = layout.operator("wm.extension_install", "Install Extension...")
+            op.path = "*.py"
 
 
 class USERPREF_PT_tabs(bpy.types.Panel):
@@ -1384,7 +1388,10 @@ class USERPREF_PT_extensions(bpy.types.Panel):
         for mod in self._extension_list():
             box = col.box()
             row = box.row()
-            row.label(text=mod.__doc__)
+            text = mod.__doc__
+            if not text:
+                text = mod.__name__
+            row.label(text=text)
             module_name = mod.__name__
             row.operator("wm.extension_disable" if module_name in used_ext else "wm.extension_enable").module = module_name
 
@@ -1441,6 +1448,55 @@ class WM_OT_extension_disable(bpy.types.Operator):
                     break
 
         return {'FINISHED'}
+
+
+class WM_OT_extension_install(bpy.types.Operator):
+    "Install an extension"
+    bl_idname = "wm.extension_install"
+    bl_label = "Install Extension"
+
+    module = StringProperty(name="Module", description="Module name of the extension to disable")
+    
+    path = StringProperty(name="File Path", description="File path to write file to")
+    filename = StringProperty(name="File Name", description="Name of the file")
+    directory = StringProperty(name="Directory", description="Directory of the file")
+    filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
+    filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
+
+    def execute(self, context):
+        import traceback
+        pyfile = self.properties.path
+
+        paths = bpy.utils.script_paths("extensions")
+        path_dest = os.path.join(paths[-1], os.path.basename(pyfile))
+
+        if os.path.exists(path_dest):
+            self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
+            return {'CANCELLED'}
+        
+        if os.path.exists(path_dest):
+            self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
+            return {'CANCELLED'}
+
+        try:
+            shutil.copyfile(pyfile, path_dest)
+        except:
+            traceback.print_exc()
+            return {'CANCELLED'}
+
+        # TODO, should not be a warning.
+        # self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        paths = bpy.utils.script_paths("extensions")
+        if not paths:
+            self.report({'ERROR'}, "No 'extensions' path could be found in " + str(bpy.utils.script_paths()))
+            return {'CANCELLED'}
+        
+        wm = context.manager
+        wm.add_fileselect(self)
+        return {'RUNNING_MODAL'}
 
 
 class WM_OT_keyconfig_test(bpy.types.Operator):
@@ -1852,6 +1908,7 @@ classes = [
     
     WM_OT_extension_enable,
     WM_OT_extension_disable,
+    WM_OT_extension_install,
 
     WM_OT_keyconfig_export,
     WM_OT_keyconfig_import,
