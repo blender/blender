@@ -82,8 +82,8 @@ extern "C" {
 
 	void init_view(Render* re){
 		float ycor = ((float)re->r.yasp) / ((float)re->r.xasp);
-		int width = re->scene->r.xsch;
-		int height = (int)(((float)re->scene->r.ysch) * ycor);
+		int width = re->r.xsch;
+		int height = (int)(((float)re->r.ysch) * ycor);
 		
 		freestyle_viewport[0] = freestyle_viewport[1] = 0;
 		freestyle_viewport[2] = width;
@@ -161,10 +161,19 @@ extern "C" {
 
         // set diffuse and z depth passes
         RenderLayer *rl = RE_GetRenderLayer(re->result, srl->name);
-        float *diffuse = RE_RenderLayerGetPass(rl, SCE_PASS_DIFFUSE);
-        float *z = RE_RenderLayerGetPass(rl, SCE_PASS_Z);
-        controller->setPassDiffuse(diffuse);
-        controller->setPassZ(z);
+		bool diffuse = false, z = false;
+		for (RenderPass *rpass = (RenderPass *)rl->passes.first; rpass; rpass = rpass->next) {
+			switch (rpass->passtype) {
+			case SCE_PASS_DIFFUSE:
+				controller->setPassDiffuse(rpass->rect, rpass->rectx, rpass->recty);
+				diffuse = true;
+				break;
+			case SCE_PASS_Z:
+				controller->setPassZ(rpass->rect, rpass->rectx, rpass->recty);
+				z = true;
+				break;
+			}
+		}
         cout << "Passes :" << endl;
         cout << "  Diffuse = " << (diffuse ? "enabled" : "disabled") << endl;
         cout << "  Z = " << (z ? "enabled" : "disabled") << endl;

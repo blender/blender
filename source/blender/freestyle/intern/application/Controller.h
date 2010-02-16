@@ -70,8 +70,8 @@ public:
   ~Controller() ;
   
   void setView(AppView *iView);
-  void setPassDiffuse(float *p);
-  void setPassZ(float *p);
+  void setPassDiffuse(float *buf, int width, int height);
+  void setPassZ(float *buf, int width, int height);
   void setContext(bContext *C);
 
   //soc

@@ -48,11 +48,21 @@ public:
   void setViewer(AppView *iViewer) ;
 
   // soc
-  void setPassDiffuse(float *p) {_pass_diffuse = p;}
-  void setPassZ(float *p) {_pass_z = p;}
+  void setPassDiffuse(float *buf, int width, int height) {
+      _pass_diffuse.buf = buf;
+      _pass_diffuse.width = width;
+      _pass_diffuse.height = height;
+  }
+  void setPassZ(float *buf, int width, int height) {
+      _pass_z.buf = buf;
+      _pass_z.width = width;
+      _pass_z.height = height;
+  }
 private:
-  float *_pass_diffuse;
-  float *_pass_z;
+    struct {
+        float *buf;
+        int width, height;
+    } _pass_diffuse, _pass_z;
 };
 
 

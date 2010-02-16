@@ -111,46 +111,58 @@ void AppCanvas::Erase()
 
 void AppCanvas::readColorPixels(int x,int y,int w, int h, RGBImage& oImage) const
 {
-  float *rgb = new float[3*w*h];
-  memset(rgb, 0, sizeof(float) * 3 * w * h);
-  if (_pass_diffuse) {
-    int rectx = width(), recty = height();
-    int i, ii, j, jj;
-    for (j = 0; j < h; j++) {
-      jj = y + j;
-      if (jj < 0 || jj >= recty)
-        continue;
-      for (i = 0; i < w; i++) {
-        ii = x + i;
-        if (ii < 0 || ii >= rectx)
-          continue;
-        memcpy(rgb + (w * j + i) * 3, _pass_diffuse + (rectx * jj + ii) * 3, sizeof(float) * 3);
-      }
-    }
-  }
-  oImage.setArray(rgb, width(), height(), w,h, x, y, false);
+	float *rgb = new float[3*w*h];
+	memset(rgb, 0, sizeof(float) * 3 * w * h);
+	int xsch = width();
+	int ysch = height();
+	if (_pass_diffuse.buf) {
+		int rectx = _pass_z.width;
+		int recty = _pass_z.height;
+		float xfac = ((float)rectx) / ((float)xsch);
+		float yfac = ((float)recty) / ((float)ysch);
+		printf("readColorPixels %d x %d @ (%d, %d) in %d x %d -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch, rectx, recty, (int)(xfac * 100.0f));
+		int ii, jj;
+		for (int j = 0; j < h; j++) {
+			jj = (int)((y + j) * yfac);
+			if (jj < 0 || jj >= recty)
+				continue;
+			for (int i = 0; i < w; i++) {
+				ii = (int)((x + i) * xfac);
+				if (ii < 0 || ii >= rectx)
+					continue;
+				memcpy(rgb + (w * j + i) * 3, _pass_diffuse.buf + (rectx * jj + ii) * 3, sizeof(float) * 3);
+			}
+		}
+	}
+	oImage.setArray(rgb, xsch, ysch, w, h, x, y, false);
 }
 
 void AppCanvas::readDepthPixels(int x,int y,int w, int h, GrayImage& oImage) const
 {
-  float *z = new float[w*h];
-  memset(z, 0, sizeof(float) * w * h);
-  if (_pass_z) {
-    int rectx = width(), recty = height();
-    int i, ii, j, jj;
-    for (j = 0; j < h; j++) {
-      jj = y + j;
-      if (jj < 0 || jj >= recty)
-        continue;
-      for (i = 0; i < w; i++) {
-        ii = x + i;
-        if (ii < 0 || ii >= rectx)
-          continue;
-        z[w * j + i] = _pass_z[rectx * jj + ii];
-      }
-    }
-  }
-  oImage.setArray(z, width(), height(), w,h, x, y, false);
+	float *z = new float[w*h];
+	memset(z, 0, sizeof(float) * w * h);
+	int xsch = width();
+	int ysch = height();
+	if (_pass_z.buf) {
+		int rectx = _pass_z.width;
+		int recty = _pass_z.height;
+		float xfac = ((float)rectx) / ((float)xsch);
+		float yfac = ((float)recty) / ((float)ysch);
+		printf("readDepthPixels %d x %d @ (%d, %d) in %d x %d -- %d x %d @ %d%%\n", w, h, x, y, xsch, ysch, rectx, recty, (int)(xfac * 100.0f));
+		int ii, jj;
+		for (int j = 0; j < h; j++) {
+			jj = (int)((y + j) * yfac);
+			if (jj < 0 || jj >= recty)
+				continue;
+			for (int i = 0; i < w; i++) {
+				ii = (int)((x + i) * xfac);
+				if (ii < 0 || ii >= rectx)
+					continue;
+				z[w * j + i] = _pass_z.buf[rectx * jj + ii];
+			}
+		}
+	}
+	oImage.setArray(z, xsch, ysch, w, h, x, y, false);
 }
 
 void AppCanvas::RenderStroke(Stroke *iStroke) {

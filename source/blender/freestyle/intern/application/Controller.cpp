@@ -176,18 +176,18 @@ void Controller::setView(AppView *iView)
   _Canvas->setViewer(_pView);
 }
 
-void Controller::setPassDiffuse(float *pass)
+void Controller::setPassDiffuse(float *buf, int width, int height)
 {
   AppCanvas *app_canvas = dynamic_cast<AppCanvas *>(_Canvas);
   assert(app_canvas != 0);
-  app_canvas->setPassDiffuse(pass);
+  app_canvas->setPassDiffuse(buf, width, height);
 }
 
-void Controller::setPassZ(float *pass)
+void Controller::setPassZ(float *buf, int width, int height)
 {
   AppCanvas *app_canvas = dynamic_cast<AppCanvas *>(_Canvas);
   assert(app_canvas != 0);
-  app_canvas->setPassZ(pass);
+  app_canvas->setPassZ(buf, width, height);
 }
 
 void Controller::setContext(bContext *C)
@@ -367,6 +367,9 @@ void Controller::CloseFile()
   _SceneNumFaces = 0;
   _minEdgeSize = DBL_MAX;
 
+  // soc: reset passes
+  setPassDiffuse(NULL, 0, 0);
+  setPassZ(NULL, 0, 0);
 }
 
 
@@ -867,4 +870,8 @@ void Controller::init_options(){
 
 	// soc: initialize canvas
 	_Canvas->init();
+
+	// soc: initialize passes
+	setPassDiffuse(NULL, 0, 0);
+	setPassZ(NULL, 0, 0);
 }
