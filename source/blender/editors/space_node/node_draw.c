@@ -205,7 +205,7 @@ static void node_update(const bContext *C, bNodeTree *ntree, bNode *node)
 
 	node->prvr.xmin= node->locx + NODE_DYS;
 	node->prvr.xmax= node->locx + node->width- NODE_DYS;
-	
+
 	/* preview rect? */
 	if(node->flag & NODE_PREVIEW) {
 		/* only recalculate size when there's a preview actually, otherwise we use stored result */
@@ -820,7 +820,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* preview */
 	if(node->flag & NODE_PREVIEW) {
 		BLI_lock_thread(LOCK_PREVIEW);
-		if(node->preview && node->preview->rect)
+		if(node->preview && node->preview->rect && !BLI_rctf_is_empty(&node->prvr))
 			node_draw_preview(node->preview, &node->prvr);
 		BLI_unlock_thread(LOCK_PREVIEW);
 	}
