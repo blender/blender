@@ -67,8 +67,8 @@ class TIME_HT_header(bpy.types.Header):
         row.operator("screen.frame_jump", text="", icon='FF').end = True
 
         row = layout.row(align=True)
-        row.prop(tools, "enable_auto_key", text="", toggle=True, icon='REC')
-        if screen.animation_playing and tools.enable_auto_key:
+        row.prop(tools, "use_auto_keying", text="", toggle=True, icon='REC')
+        if screen.animation_playing and tools.use_auto_keying:
             subsub = row.row()
             subsub.prop(tools, "record_with_nla", toggle=True)
 
