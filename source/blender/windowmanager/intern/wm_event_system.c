@@ -1208,6 +1208,10 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 							if(G.f & G_DEBUG)
 								wm_operator_print(handler->op);
 						
+						if(wm->op_undo_depth == 0)
+							if(handler->op->type->flag & OPTYPE_UNDO)
+								ED_undo_push_op(C, handler->op);
+
 						if(handler->op->reports->list.first) {
 
 							/* FIXME, temp setting window, this is really bad!
