@@ -88,7 +88,7 @@ GPUBufferPool *GPU_buffer_pool_new()
 
 void GPU_buffer_pool_free(GPUBufferPool *pool)
 {
-	int i, index;
+	int i;
 
 	DEBUG_VBO("GPU_buffer_pool_free\n");
 
@@ -97,21 +97,17 @@ void GPU_buffer_pool_free(GPUBufferPool *pool)
 	if( pool == 0 )
 		return;
 
-	while( pool->start < 0 )
-		pool->start += MAX_FREE_GPU_BUFFERS;
-
 	for( i = 0; i < pool->size; i++ ) {
-		index = (pool->start+i)%MAX_FREE_GPU_BUFFERS;
-		if( pool->buffers[index] != 0 ) {
+		if( pool->buffers[i] != 0 ) {
 			if( useVBOs ) {
-				glDeleteBuffersARB( 1, &pool->buffers[index]->id );
+				glDeleteBuffersARB( 1, &pool->buffers[i]->id );
 			}
 			else {
-				MEM_freeN( pool->buffers[index]->pointer );
+				MEM_freeN( pool->buffers[i]->pointer );
 			}
-			MEM_freeN(pool->buffers[index]);
+			MEM_freeN(pool->buffers[i]);
 		} else {
-			DEBUG_VBO("Why are we accessing a null buffer?\n");
+			ERROR_VBO("Why are we accessing a null buffer in GPU_buffer_pool_free?\n");
 		}
 	}
 	MEM_freeN(pool);
@@ -121,15 +117,17 @@ void GPU_buffer_pool_remove( int index, GPUBufferPool *pool )
 {
 	int i;
 
+	if( index >= pool->size || index < 0 ) {
+		ERROR_VBO("Wrong index, out of bounds in call to GPU_buffer_pool_remove");
+		return;
+	}
 	DEBUG_VBO("GPU_buffer_pool_remove\n");
 
-	while( pool->start < 0 )
-		pool->start += MAX_FREE_GPU_BUFFERS;
-	for( i = index; i < pool->size; i++ ) {
-		pool->buffers[(pool->start+i)%MAX_FREE_GPU_BUFFERS] = pool->buffers[(pool->start+i+1)%MAX_FREE_GPU_BUFFERS];
+	for( i = index; i < pool->size-1; i++ ) {
+		pool->buffers[i] = pool->buffers[i+1];
 	}
-	if( pool->size < MAX_FREE_GPU_BUFFERS )
-		pool->buffers[(pool->start+pool->size)%MAX_FREE_GPU_BUFFERS] = 0;
+	if( pool->size > 0 )
+		pool->buffers[pool->size-1] = 0;
 
 	pool->size--;
 }
@@ -140,13 +138,10 @@ void GPU_buffer_pool_delete_last( GPUBufferPool *pool )
 
 	DEBUG_VBO("GPU_buffer_pool_delete_last\n");
 
-	if( pool->size == 0 )
+	if( pool->size <= 0 )
 		return;
 
-	last = pool->start+pool->size-1;
-	while( last < 0 )
-		last += MAX_FREE_GPU_BUFFERS;
-	last = last%MAX_FREE_GPU_BUFFERS;
+	last = pool->size-1;
 
 	if( pool->buffers[last] != 0 ) {
 		if( useVBOs ) {
@@ -180,14 +175,10 @@ GPUBuffer *GPU_buffer_alloc( int size, GPUBufferPool *pool )
 		pool = globalPool;
 	}
 
-	while( pool->start < 0 )
-		pool->start += MAX_FREE_GPU_BUFFERS;
-
 	for( i = 0; i < pool->size; i++ ) {
-		int actuali = (pool->start+i)%MAX_FREE_GPU_BUFFERS;
-		cursize = pool->buffers[actuali]->size;
+		cursize = pool->buffers[i]->size;
 		if( cursize == size ) {
-			allocated = pool->buffers[actuali];
+			allocated = pool->buffers[i];
 			GPU_buffer_pool_remove(i,pool);
 			DEBUG_VBO("free buffer of exact size found\n");
 			return allocated;
@@ -195,7 +186,7 @@ GPUBuffer *GPU_buffer_alloc( int size, GPUBufferPool *pool )
 		/* smaller buffers won't fit data and buffers at least twice as big are a waste of memory */
 		else if( cursize > size && size > cursize/2 ) {
 			/* is it closer to the required size than the last appropriate buffer found. try to save memory */
-			if( bestfit == -1 || pool->buffers[(pool->start+bestfit)%MAX_FREE_GPU_BUFFERS]->size > cursize ) {
+			if( bestfit == -1 || pool->buffers[bestfit]->size > cursize ) {
 				bestfit = i;
 			}
 		}
@@ -223,10 +214,10 @@ GPUBuffer *GPU_buffer_alloc( int size, GPUBufferPool *pool )
 		}
 	}
 	else {
-		sprintf(buffer,"free buffer found. Wasted %d bytes\n", pool->buffers[(pool->start+bestfit)%MAX_FREE_GPU_BUFFERS]->size-size);
+		sprintf(buffer,"free buffer found. Wasted %d bytes\n", pool->buffers[bestfit]->size-size);
 		DEBUG_VBO(buffer);
 
-		allocated = pool->buffers[(pool->start+bestfit)%MAX_FREE_GPU_BUFFERS];
+		allocated = pool->buffers[bestfit];
 		GPU_buffer_pool_remove(bestfit,pool);
 	}
 	return allocated;
@@ -234,8 +225,7 @@ GPUBuffer *GPU_buffer_alloc( int size, GPUBufferPool *pool )
 
 void GPU_buffer_free( GPUBuffer *buffer, GPUBufferPool *pool )
 {
-	int place;
-
+	int i;
 	DEBUG_VBO("GPU_buffer_free\n");
 
 	if( buffer == 0 )
@@ -245,18 +235,16 @@ void GPU_buffer_free( GPUBuffer *buffer, GPUBufferPool *pool )
 	if( pool == 0 )
 		globalPool = GPU_buffer_pool_new();
 
-	while( pool->start < 0 )
-		pool->start += MAX_FREE_GPU_BUFFERS;
-
 	/* free the last used buffer in the queue if no more space */
 	if( pool->size == MAX_FREE_GPU_BUFFERS ) {
 		GPU_buffer_pool_delete_last( pool );
 	}
 
-	place = (pool->start + pool->size)%MAX_FREE_GPU_BUFFERS;
-
+	for( i =pool->size; i > 0; i-- ) {
+		pool->buffers[i] = pool->buffers[i-1];
+	}
+	pool->buffers[0] = buffer;
 	pool->size++;
-	pool->buffers[place] = buffer;
 }
 
 GPUDrawObject *GPU_drawobject_new( DerivedMesh *dm )
