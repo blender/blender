@@ -77,26 +77,23 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	ScrArea *sa= CTX_wm_area(C);
 	uiLayout *row= layout;
 	short nlaActive= ((sa) && (sa->spacetype==SPACE_NLA));
-
+	
 	/* more 'generic' filtering options */
-	if (nlaActive)
-		row= uiLayoutRow(layout, 1);
-
+	row= uiLayoutRow(layout, 1);
+	
 	uiItemR(row, "", 0, ptr, "only_selected", 0);
-
+	uiItemR(row, "", 0, ptr, "display_transforms", 0); // xxx: include in another position instead?
+	
 	if (nlaActive)
 		uiItemR(row, "", 0, ptr, "include_missing_nla", 0);
-
-	if (nlaActive)
-		row= layout;
-
+	
 	/* datatype based - only available datatypes are shown */
 	row= uiLayoutRow(layout, 1);
 
 	uiItemR(row, "", 0, ptr, "display_scene", 0);
 	uiItemR(row, "", 0, ptr, "display_world", 0);
 	uiItemR(row, "", 0, ptr, "display_node", 0);
-
+	
 	if (mainptr && mainptr->mesh.first)
 		uiItemR(row, "", 0, ptr, "display_mesh", 0);
 	if (mainptr && mainptr->key.first)

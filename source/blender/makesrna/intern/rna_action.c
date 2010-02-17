@@ -112,6 +112,12 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	
 	
 	/* General DataType Filtering Settings */
+	prop= RNA_def_property(srna, "display_transforms", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOOBJ);
+	RNA_def_property_ui_text(prop, "Display Transforms", "Include visualization of Object-level Animation data (mostly Transforms)");
+	RNA_def_property_ui_icon(prop, ICON_MANIPUL, 0); // XXX?
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	
 	prop= RNA_def_property(srna, "display_shapekeys", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOSHAPEKEYS);
 	RNA_def_property_ui_text(prop, "Display Shapekeys", "Include visualization of ShapeKey related Animation data");

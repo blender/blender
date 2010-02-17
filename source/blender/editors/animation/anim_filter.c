@@ -1667,7 +1667,7 @@ static int animdata_filter_dopesheet_ob (bAnimContext *ac, ListBase *anim_data, 
 		return items;
 	
 	/* Action, Drivers, or NLA */
-	if (ob->adt) {
+	if (ob->adt && !(ads->filterflag & ADS_FILTER_NOOBJ)) {
 		adt= ob->adt;
 		ANIMDATA_FILTER_CASES(ob,
 			{ /* AnimData blocks - do nothing... */ },
@@ -2168,19 +2168,22 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 				/* check filters for datatypes */
 					/* object */
 				actOk= 0;
+				if (!(ads->filterflag & ADS_FILTER_NOOBJ)) {
+					ANIMDATA_FILTER_CASES(ob, 
+						{
+							/* for the special AnimData blocks only case, we only need to add
+							 * the block if it is valid... then other cases just get skipped (hence ok=0)
+							 */
+							ANIMDATA_ADD_ANIMDATA(ob);
+							actOk=0;
+						},
+						actOk= 1;, 
+						actOk= 1;, 
+						actOk= 1;)
+				}
+				
 				keyOk= 0;
-				ANIMDATA_FILTER_CASES(ob, 
-					{
-						/* for the special AnimData blocks only case, we only need to add
-						 * the block if it is valid... then other cases just get skipped (hence ok=0)
-						 */
-						ANIMDATA_ADD_ANIMDATA(ob);
-						actOk=0;
-					},
-					actOk= 1;, 
-					actOk= 1;, 
-					actOk= 1;)
-				if (key) {
+				if ((key) && !(ads->filterflag & ADS_FILTER_NOSHAPEKEYS)) {
 					/* shapekeys */
 					ANIMDATA_FILTER_CASES(key, 
 						{
