@@ -187,7 +187,10 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     for module_name in sorted(used_ext):
         mod = _test_import(module_name, loaded_modules)
         test_register(mod)
-
+    
+    if reload_scripts:
+        import gc
+        print("gc.collect() -> %d" % gc.collect())
 
     if _bpy.app.debug:
         print("Time %.4f" % (time.time() - t_main))

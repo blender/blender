@@ -156,6 +156,7 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel):
             mesh = context.active_object.data
             col = layout.column(align=True)
             col.prop(mesh, "use_mirror_x")
+            col.prop(mesh, "use_mirror_topology")
             col.prop(context.tool_settings, "edge_path_mode")
 
 # ********** default tools for editmode_curve ****************
@@ -810,7 +811,9 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
 
         obj = context.weight_paint_object
         if obj.type == 'MESH':
-            col.prop(obj.data, "use_mirror_x")
+            mesh = obj.data
+            col.prop(mesh, "use_mirror_x")
+            col.prop(mesh, "use_mirror_topology")
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
 #		col.label(text="Gamma:")

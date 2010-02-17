@@ -104,14 +104,15 @@ static int pupmenu() {return 0;}
 void EM_cache_x_mirror_vert(struct Object *ob, struct EditMesh *em)
 {
 	EditVert *eve, *eve_mirror;
+	int index= 0;
 
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		eve->tmp.v= NULL;
 	}
 
-	for(eve= em->verts.first; eve; eve= eve->next) {
+	for(eve= em->verts.first; eve; eve= eve->next, index++) {
 		if(eve->tmp.v==NULL) {
-			eve_mirror = editmesh_get_x_mirror_vert(ob, em, eve->co);
+			eve_mirror = editmesh_get_x_mirror_vert(ob, em, eve, eve->co, index);
 			if(eve_mirror) {
 				eve->tmp.v= eve_mirror;
 				eve_mirror->tmp.v = eve;
@@ -4239,6 +4240,7 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 	float fvec[3];
 	int teller=0;
 	ModifierData *md;
+	int index;
 
 	/* count */
 	eve= em->verts.first;
@@ -4313,13 +4315,14 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 		eed= eed->next;
 	}
 
+	index= 0;
 	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & SELECT) {
 			if(eve->f1) {
 				
 				if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
-					eve_mir= editmesh_get_x_mirror_vert(obedit, em, eve->co);
+					eve_mir= editmesh_get_x_mirror_vert(obedit, em, eve, eve->co, index);
 				}
 				
 				adr = eve->tmp.p;
@@ -4352,6 +4355,7 @@ static int smooth_vertex(bContext *C, wmOperator *op)
 			}
 			eve->tmp.p= NULL;
 		}
+		index++;
 		eve= eve->next;
 	}
 	MEM_freeN(adror);
