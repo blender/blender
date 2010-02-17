@@ -99,7 +99,8 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Add:")
-        col.operator("wm.call_menu", text="Extrude").name = "VIEW3D_MT_edit_mesh_extrude"
+        col.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
+        col.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
         col.operator("mesh.subdivide")
         col.operator("mesh.loopcut_slide")
         col.operator("mesh.duplicate_move", text="Duplicate")
