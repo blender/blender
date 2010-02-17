@@ -59,6 +59,7 @@
 #include "BKE_mesh.h"
 #include "BKE_paint.h"
 #include "BKE_utildefines.h"
+#include "BKE_report.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1952,10 +1953,30 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 		name += DEF_GROUP_SIZE;
 	}
 
-	ED_vgroup_give_array(ob->data, &dvert, &dvert_tot);
-	while(dvert && dvert_tot--) {
-		defvert_remap(dvert, sort_map);
-		dvert++;
+	if(ob->mode == OB_MODE_EDIT) {
+		if(ob->type==OB_MESH) {
+			EditMesh *em = BKE_mesh_get_editmesh(ob->data);
+			EditVert *eve;
+
+			for(eve=em->verts.first; eve; eve=eve->next){
+				dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
+				if(dvert && dvert->totweight){
+					defvert_remap(dvert, sort_map);
+				}
+			}
+		}
+		else {
+			BKE_report(op->reports, RPT_ERROR, "Editmode lattice isnt supported yet.");
+			return OPERATOR_CANCELLED;
+		}
+	}
+	else {
+		ED_vgroup_give_array(ob->data, &dvert, &dvert_tot);
+		while(dvert && dvert_tot--) {
+			if(dvert->totweight)
+				defvert_remap(dvert, sort_map);
+			dvert++;
+		}
 	}
 
 	/* update users */
@@ -1965,6 +1986,8 @@ static int vertex_group_sort_exec(bContext *C, wmOperator *op)
 	sort_map_update[0]= 0;
 
 	vgroup_remap_update_users(ob, sort_map_update);
+
+	ob->actdef= sort_map_update[ob->actdef];
 
 	MEM_freeN(name_array);
 	MEM_freeN(sort_map_update);
