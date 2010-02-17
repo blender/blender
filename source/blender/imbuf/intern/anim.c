@@ -255,21 +255,9 @@ static int an_stringdec(char *string, char* kop, char *staart,unsigned short *nu
 }
 
 
-static void an_stringenc(char *string, char *kop, char *staart, 
-unsigned short numlen, int pic) {
-	char numstr[10];
-	unsigned short len,i;
-
-	len=sprintf(numstr,"%d",pic);
-
-	strcpy(string,kop);
-	for(i=len;i<numlen;i++){
-		strcat(string,"0");
-	}
-	strcat(string,numstr);
-	strcat(string,staart);
+static void an_stringenc(char *string, char *head, char *start, unsigned short numlen, int pic) {
+    BLI_stringenc(string, head, start, numlen, pic);
 }
-
 
 static void free_anim_avi (struct anim *anim) {
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
