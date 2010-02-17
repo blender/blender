@@ -1035,7 +1035,6 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		MEdge *medge;
 		EditMesh *em= me->edit_mesh;
 
-		mesh_topo_lookup_mode= ob->mode;
 
 		/* editmode*/
 		EditEdge *eed;
@@ -1046,6 +1045,7 @@ long mesh_mirrtopo_table(Object *ob, char mode)
 		MIRRHASH_TYPE *MirrTopoHash = NULL;
 		MIRRHASH_TYPE *MirrTopoHash_Prev = NULL;
 		MirrTopoPair *MirrTopoPairs;
+		mesh_topo_lookup_mode= ob->mode;
 
 		/* reallocate if needed */
 		if (mesh_topo_lookup) {
