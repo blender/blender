@@ -40,4 +40,8 @@ def register():
     pass # TODO
 
 def unregister():
-    pass # TODO
+    import bpy
+    bpy.types.unregister(ui.NetRenderJob)
+    bpy.types.unregister(ui.NetRenderSettings)
+    bpy.types.unregister(ui.NetRenderSlave)
+    
