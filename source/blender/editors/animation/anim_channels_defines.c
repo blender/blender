@@ -55,6 +55,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
 #include "DNA_userdef_types.h"
@@ -255,8 +256,9 @@ static short acf_generic_indention_flexible(bAnimContext *ac, bAnimListElem *ale
 	short indent= 0;
 	
 	if (ale->id) {
-		/* special exception for materials and particles */
-		if (ELEM(GS(ale->id->name),ID_MA,ID_PA))
+		/* special exception for materials, textures, and particles */
+		// xxx should tex use indention 2?
+		if (ELEM3(GS(ale->id->name),ID_MA,ID_PA,ID_TE))
 			indent++;
 	}
 	
@@ -290,8 +292,25 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
 	short offset= acf_generic_basic_offset(ac, ale);
 	
 	if (ale->id) {
+		/* special exception for textures */
+		if (GS(ale->id->name) == ID_TE) {
+			/* minimum offset */
+			offset += 21;
+			
+			/* special offset from owner type */
+			switch (ale->ownertype) {
+				case ANIMTYPE_DSMAT:
+					offset += 21;
+					break;
+					
+				case ANIMTYPE_DSLAM:
+				case ANIMTYPE_DSWOR:
+					offset += 14;
+					break;
+			}
+		}
 		/* special exception for materials and particles */
-		if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) 
+		else if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) 
 			offset += 21;
 			
 		/* if not in Action Editor mode, groupings must carry some offset too... */
@@ -329,13 +348,19 @@ static short acf_generic_none_setting_valid(bAnimContext *ac, bAnimListElem *ale
 static short acf_generic_dsexpand_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
 {
 	switch (setting) {
-		/* only expand supported */
+		/* only expand supported everywhere */
 		case ACHANNEL_SETTING_EXPAND:
 			return 1;
 			
-		 /* visible - only available in Graph Editor */
+		/* visible 
+		 * 	- only available in Graph Editor 
+		 *	- NOT available for 'filler' channels
+		 */
 		case ACHANNEL_SETTING_VISIBLE: 
-			return ((ac) && (ac->spacetype == SPACE_IPO));
+			if (ELEM3(ale->type, ANIMTYPE_FILLMATD, ANIMTYPE_FILLPARTD, ANIMTYPE_FILLTEXD))
+				return 0;
+			else
+				return ((ac) && (ac->spacetype == SPACE_IPO));
 			
 		default:
 			return 0;
@@ -1166,6 +1191,112 @@ static bAnimChannelType ACF_FILLPARTD=
 	acf_generic_dsexpand_setting_ptr		/* pointer for setting */
 };
 
+/* Textures Expander  ------------------------------------------- */
+
+/* offset for groups + grouped entities */
+static short acf_filltexd_offset(bAnimContext *ac, bAnimListElem *ale)
+{
+	short offset= acf_generic_basic_offset(ac, ale);
+	
+	if (ale->id) {
+		/* materials */
+		switch (GS(ale->id->name)) {
+			case ID_MA:
+				offset += 21;
+				break;
+				
+			case ID_LA:
+			case ID_WO:
+				offset += 14;
+				break;
+		}
+	}
+	
+	return offset;
+}
+
+// TODO: just get this from RNA?
+static int acf_filltexd_icon(bAnimListElem *ale)
+{
+	return ICON_TEXTURE_DATA;
+}
+
+static void acf_filltexd_name(bAnimListElem *ale, char *name)
+{
+	strcpy(name, "Textures");
+}
+
+/* get pointer to the setting (category only) */
+static void *acf_filltexd_setting_ptr(bAnimListElem *ale, int setting, short *type)
+{
+	ID *id= (ID *)ale->data;
+	
+	/* clear extra return data first */
+	*type= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+		{
+			switch (GS(id->name)) {
+				case ID_MA:
+				{
+					Material *ma= (Material *)id;
+					GET_ACF_FLAG_PTR(ma->flag);
+				}
+				
+				case ID_LA:
+				{
+					Lamp *la= (Lamp *)id;
+					GET_ACF_FLAG_PTR(la->flag);
+				}
+					
+				case ID_WO:
+				{
+					World *wo= (World *)id;
+					GET_ACF_FLAG_PTR(wo->flag);
+				}
+			}
+		}
+		
+		default: /* unsupported */
+			return NULL;
+	}
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_filltexd_setting_flag(bAnimContext *ac, int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			/* NOTE: the exact same flag must be used for other texture stack types too! */
+			return MA_DS_SHOW_TEXS;	
+		
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* particles expander type define */
+static bAnimChannelType ACF_FILLTEXD= 
+{
+	"Textures Filler",				/* type name */
+	
+	acf_generic_dataexpand_color,	/* backdrop color */
+	acf_generic_dataexpand_backdrop,/* backdrop */
+	acf_generic_indention_flexible,	/* indent level */
+	acf_filltexd_offset,			/* offset */
+	
+	acf_filltexd_name,				/* name */
+	acf_filltexd_icon,				/* icon */
+	
+	acf_generic_dsexpand_setting_valid,	/* has setting */	
+	acf_filltexd_setting_flag,			/* flag for setting */
+	acf_filltexd_setting_ptr			/* pointer for setting */
+};
+
 /* Material Expander  ------------------------------------------- */
 
 // TODO: just get this from RNA?
@@ -1322,6 +1453,101 @@ static bAnimChannelType ACF_DSLAM=
 	acf_generic_dataexpand_setting_valid,	/* has setting */
 	acf_dslam_setting_flag,					/* flag for setting */
 	acf_dslam_setting_ptr					/* pointer for setting */
+};
+
+/* Texture Expander  ------------------------------------------- */
+
+// TODO: just get this from RNA?
+static int acf_dstex_icon(bAnimListElem *ale)
+{
+	return ICON_TEXTURE_DATA;
+}
+
+/* offset for texture expanders */
+static short acf_dstex_offset(bAnimContext *ac, bAnimListElem *ale)
+{
+	short offset = 21;
+	
+	/* special offset from owner type */
+	// FIXME: too much now!
+	switch (ale->ownertype) {
+		case ANIMTYPE_DSMAT:
+			offset += 14;
+			
+		case ANIMTYPE_DSLAM:
+		case ANIMTYPE_DSWOR:
+			offset += 7;
+	}
+	
+	return offset;
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_dstex_setting_flag(bAnimContext *ac, int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return TEX_DS_EXPAND;
+			
+		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
+			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
+		
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_dstex_setting_ptr(bAnimListElem *ale, int setting, short *type)
+{
+	Tex *tex= (Tex *)ale->data;
+	
+	/* clear extra return data first */
+	*type= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			GET_ACF_FLAG_PTR(tex->flag);
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
+			if (tex->adt)
+				GET_ACF_FLAG_PTR(tex->adt->flag)
+			else
+				return NULL;	
+		
+		default: /* unsupported */
+			return NULL;
+	}
+}
+
+/* material expander type define */
+static bAnimChannelType ACF_DSTEX= 
+{
+	"Texture Data Expander",		/* type name */
+	
+	acf_generic_channel_color,		/* backdrop color */
+	acf_generic_channel_backdrop,	/* backdrop */
+	acf_generic_indention_0,		/* indent level */
+	acf_dstex_offset,				/* offset */
+	
+	acf_generic_idblock_name,		/* name */
+	acf_dstex_icon,					/* icon */
+	
+	acf_generic_dataexpand_setting_valid,	/* has setting */
+	acf_dstex_setting_flag,					/* flag for setting */
+	acf_dstex_setting_ptr					/* pointer for setting */
 };
 
 /* Camera Expander  ------------------------------------------- */
@@ -2260,6 +2486,7 @@ void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= &ACF_FILLDRIVERS; 	/* Drivers Expander */
 		animchannelTypeInfo[type++]= &ACF_FILLMATD; 	/* Materials Expander */
 		animchannelTypeInfo[type++]= &ACF_FILLPARTD; 	/* Particles Expander */
+		animchannelTypeInfo[type++]= &ACF_FILLTEXD;		/* Textures Expander */
 		
 		animchannelTypeInfo[type++]= &ACF_DSMAT;		/* Material Channel */
 		animchannelTypeInfo[type++]= &ACF_DSLAM;		/* Lamp Channel */
@@ -2272,6 +2499,7 @@ void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= &ACF_DSMBALL;		/* MetaBall Channel */
 		animchannelTypeInfo[type++]= &ACF_DSARM;		/* Armature Channel */
 		animchannelTypeInfo[type++]= &ACF_DSMESH;		/* Mesh Channel */
+		animchannelTypeInfo[type++]= &ACF_DSTEX;		/* Texture Channel */
 		
 		animchannelTypeInfo[type++]= &ACF_SHAPEKEY;		/* ShapeKey */
 		

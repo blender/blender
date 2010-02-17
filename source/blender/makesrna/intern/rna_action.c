@@ -142,6 +142,12 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_LAMP_DATA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
 	
+	prop= RNA_def_property(srna, "display_texture", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOTEX);
+	RNA_def_property_ui_text(prop, "Display Texture", "Include visualization of Texture related Animation data");
+	RNA_def_property_ui_icon(prop, ICON_TEXTURE_DATA, 0);
+	RNA_def_property_update(prop, NC_ANIMATION|ND_ANIMCHAN_EDIT, NULL);
+	
 	prop= RNA_def_property(srna, "display_curve", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOCUR);
 	RNA_def_property_ui_text(prop, "Display Curve", "Include visualization of Curve related Animation data");

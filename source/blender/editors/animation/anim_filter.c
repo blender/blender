@@ -71,6 +71,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
@@ -556,6 +557,35 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				ale->datatype= ALE_NONE;
 			}
 				break;
+			case ANIMTYPE_FILLTEXD:
+			{
+				ID *id= (ID *)data;
+				
+				switch (GS(id->name)) {
+					case ID_MA:
+					{
+						Material *ma= (Material *)id;
+						ale->flag= FILTER_TEX_MATC(ma);
+					}
+						break;
+					case ID_LA:
+					{
+						Lamp *la= (Lamp *)id;
+						ale->flag= FILTER_TEX_LAMC(la);
+					}
+						break;
+					case ID_WO:
+					{
+						World *wo= (World *)id;
+						ale->flag= FILTER_TEX_WORC(wo);
+					}
+						break;
+				}
+				
+				ale->key_data= NULL;
+				ale->datatype= ALE_NONE;
+			}
+				break;
 			
 			case ANIMTYPE_DSMAT:
 			{
@@ -680,6 +710,19 @@ bAnimListElem *make_new_animlistelem (void *data, short datatype, void *owner, s
 				AnimData *adt= part->adt;
 				
 				ale->flag= FILTER_PART_OBJD(part); 
+				
+				ale->key_data= (adt) ? adt->action : NULL;
+				ale->datatype= ALE_ACT;
+				
+				ale->adt= BKE_animdata_from_id(data);
+			}
+				break;
+			case ANIMTYPE_DSTEX:
+			{
+				Tex *tex= (Tex *)data;
+				AnimData *adt= tex->adt;
+				
+				ale->flag= FILTER_TEX_DATA(tex); 
 				
 				ale->key_data= (adt) ? adt->action : NULL;
 				ale->datatype= ALE_ACT;
@@ -1220,6 +1263,133 @@ static int animdata_filter_gpencil (ListBase *anim_data, bScreen *sc, int filter
 }
 #endif 
 
+/* NOTE: owner_id is either material, lamp, or world block, which is the direct owner of the texture stack in question */
+static int animdata_filter_dopesheet_texs (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, ID *owner_id, int filter_mode)
+{
+	ListBase texs = {NULL, NULL};
+	LinkData *ld;
+	MTex **mtex = NULL;
+	short expanded=0;
+	int ownertype = ANIMTYPE_NONE;
+	
+	bAnimListElem *ale=NULL;
+	int items=0, a=0;
+	
+	/* get datatype specific data first */
+	if (owner_id == NULL)
+		return 0;
+	
+	switch (GS(owner_id->name)) {
+		case ID_MA:
+		{
+			Material *ma= (Material *)owner_id;
+			
+			mtex= (MTex**)(&ma->mtex);
+			expanded= FILTER_TEX_MATC(ma);
+			ownertype= ANIMTYPE_DSMAT;
+		}
+			break;
+		case ID_LA:
+		{
+			Lamp *la= (Lamp *)owner_id;
+			
+			mtex= (MTex**)(&la->mtex);
+			expanded= FILTER_TEX_LAMC(la);
+			ownertype= ANIMTYPE_DSLAM;
+		}
+			break;
+		case ID_WO:
+		{
+			World *wo= (World *)owner_id;
+			
+			mtex= (MTex**)(&wo->mtex);
+			expanded= FILTER_TEX_WORC(wo);
+			ownertype= ANIMTYPE_DSWOR;
+		}
+			break;
+		default: 
+		{
+			/* invalid/unsupported option */
+			if (G.f & G_DEBUG)
+				printf("ERROR: unsupported owner_id (i.e. texture stack) for filter textures - %s \n", owner_id->name);
+			return 0;
+		}
+	}
+	
+	/* firstly check that we actuallly have some textures, by gathering all textures in a temp list */
+	for (a=0; a < MAX_MTEX; a++) {
+		Tex *tex= (mtex[a]) ? mtex[a]->tex : NULL;
+		short ok = 0;
+		
+		/* for now, if no texture returned, skip (this shouldn't confuse the user I hope) */
+		if (ELEM(NULL, tex, tex->adt)) 
+			continue;
+		
+		/* check if ok */
+		ANIMDATA_FILTER_CASES(tex, 
+			{ /* AnimData blocks - do nothing... */ },
+			ok=1;, 
+			ok=1;, 
+			ok=1;)
+		if (ok == 0) continue;
+		
+		/* make a temp list elem for this */
+		ld= MEM_callocN(sizeof(LinkData), "DopeSheet-TextureCache");
+		ld->data= tex;
+		BLI_addtail(&texs, ld);
+	}
+	
+	/* if there were no channels found, no need to carry on */
+	if (texs.first == NULL)
+		return 0;
+	
+	/* include textures-expand widget? */
+	if ((filter_mode & ANIMFILTER_CHANNELS) && !(filter_mode & ANIMFILTER_CURVESONLY)) {
+		ale= make_new_animlistelem(owner_id, ANIMTYPE_FILLTEXD, owner_id, ownertype, owner_id);
+		if (ale) {
+			BLI_addtail(anim_data, ale);
+			items++;
+		}
+	}
+	
+	/* add textures */
+	if ((expanded) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+		/* for each texture in cache, add channels  */
+		for (ld= texs.first; ld; ld= ld->next) {
+			Tex *tex= (Tex *)ld->data;
+			
+			/* include texture-expand widget? */
+			if (filter_mode & ANIMFILTER_CHANNELS) {
+				/* check if filtering by active status */
+				if ANIMCHANNEL_ACTIVEOK(tex) {
+					ale= make_new_animlistelem(tex, ANIMTYPE_DSTEX, owner_id, ownertype, owner_id);
+					if (ale) {
+						BLI_addtail(anim_data, ale);
+						items++;
+					}
+				}
+			}
+			
+			/* add texture's animation data
+			 * NOTE: for these, we make the owner/ownertype the material/lamp/etc. not the texture, otherwise the
+			 * drawing code cannot resolve the indention easily
+			 */
+			if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_TEX_DATA(tex) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+				ANIMDATA_FILTER_CASES(tex, 
+					{ /* AnimData blocks - do nothing... */ },
+					items += animdata_filter_nla(ac, anim_data, ads, tex->adt, filter_mode, owner_id, ownertype, (ID *)tex);, 
+					items += animdata_filter_fcurves(anim_data, ads, tex->adt->drivers.first, NULL, owner_id, ownertype, filter_mode, (ID *)tex);, 
+					items += animdata_filter_action(ac, anim_data, ads, tex->adt->action, filter_mode, owner_id, ownertype, (ID *)tex);)
+			}
+		}
+	}
+	
+	/* free cache */
+	BLI_freelistN(&texs);
+	
+	/* return the number of items added to the list */
+	return items;
+}
 
 static int animdata_filter_dopesheet_mats (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Base *base, int filter_mode)
 {
@@ -1254,6 +1424,7 @@ static int animdata_filter_dopesheet_mats (bAnimContext *ac, ListBase *anim_data
 	}
 	
 	/* if there were no channels found, no need to carry on */
+	// XXX: textures with no animated owner material won't work because of this...
 	if (mats.first == NULL)
 		return 0;
 	
@@ -1287,11 +1458,16 @@ static int animdata_filter_dopesheet_mats (bAnimContext *ac, ListBase *anim_data
 			
 			/* add material's animation data */
 			if (!(filter_mode & ANIMFILTER_VISIBLE) || FILTER_MAT_OBJD(ma) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+				/* material's animation data */
 				ANIMDATA_FILTER_CASES(ma, 
 					{ /* AnimData blocks - do nothing... */ },
 					items += animdata_filter_nla(ac, anim_data, ads, ma->adt, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);, 
 					items += animdata_filter_fcurves(anim_data, ads, ma->adt->drivers.first, NULL, ma, ANIMTYPE_DSMAT, filter_mode, (ID *)ma);, 
 					items += animdata_filter_action(ac, anim_data, ads, ma->adt->action, filter_mode, ma, ANIMTYPE_DSMAT, (ID *)ma);)
+					
+				/* textures */
+				if (!(ads->filterflag & ADS_FILTER_NOTEX))
+					items += animdata_filter_dopesheet_texs(ac, anim_data, ads, (ID *)ma, filter_mode);
 			}
 		}
 	}
@@ -1443,7 +1619,18 @@ static int animdata_filter_dopesheet_obdata (bAnimContext *ac, ListBase *anim_da
 			{ /* AnimData blocks - do nothing... */ },
 			items+= animdata_filter_nla(ac, anim_data, ads, iat->adt, filter_mode, iat, type, (ID *)iat);,
 			items+= animdata_filter_fcurves(anim_data, ads, adt->drivers.first, NULL, iat, type, filter_mode, (ID *)iat);, 
-			items += animdata_filter_action(ac, anim_data, ads, iat->adt->action, filter_mode, iat, type, (ID *)iat);)
+			items+= animdata_filter_action(ac, anim_data, ads, iat->adt->action, filter_mode, iat, type, (ID *)iat);)
+			
+		/* sub-data filtering... */
+		switch (ob->type) {
+			case OB_LAMP:	/* lamp - textures */
+			{
+				/* textures */
+				if (!(ads->filterflag & ADS_FILTER_NOTEX))
+					items += animdata_filter_dopesheet_texs(ac, anim_data, ads, ob->data, filter_mode);
+			}
+				break;
+		}
 	}
 	
 	/* return the number of items added to the list */
@@ -1788,6 +1975,13 @@ static int animdata_filter_dopesheet_scene (bAnimContext *ac, ListBase *anim_dat
 				}
 			}
 		)
+		
+		/* if expanded, check world textures too */
+		if (FILTER_WOR_SCED(wo) || (filter_mode & ANIMFILTER_CURVESONLY)) {
+			/* textures for world */
+			if (!(ads->filterflag & ADS_FILTER_NOTEX))
+				items += animdata_filter_dopesheet_texs(ac, anim_data, ads, (ID *)wo, filter_mode);
+		}
 	}
 	/* nodetree */
 	if ((ntree && ntree->adt) && !(ads->filterflag & ADS_FILTER_NONTREE)) {
@@ -2025,10 +2219,40 @@ static int animdata_filter_dopesheet (bAnimContext *ac, ListBase *anim_data, bDo
 								matOk= 1;, 
 								matOk= 1;, 
 								matOk= 1;)
-						}
+								
+							if (matOk) 
+								break;
 							
-						if (matOk) 
-							break;
+							/* textures? */
+							// TODO: make this a macro that is used in the other checks too
+							// NOTE: this has little use on its own, since the actual filtering still ignores if no anim on the data
+							if (!(ads->filterflag & ADS_FILTER_NOTEX)) {
+								int mtInd;
+								
+								for (mtInd= 0; mtInd < MAX_MTEX; mtInd++) {
+									MTex *mtex= ma->mtex[mtInd];
+									
+									if (mtex && mtex->tex) {
+										/* if texture has relevant animation data, break */
+										ANIMDATA_FILTER_CASES(mtex->tex, 
+											{
+												/* for the special AnimData blocks only case, we only need to add
+												 * the block if it is valid... then other cases just get skipped (hence ok=0)
+												 */
+												ANIMDATA_ADD_ANIMDATA(mtex->tex);
+												matOk=0;
+											},
+											matOk= 1;, 
+											matOk= 1;, 
+											matOk= 1;)
+											
+										if (matOk) 
+											break;
+									}
+								}
+							}
+							
+						}
 					}
 				}
 				

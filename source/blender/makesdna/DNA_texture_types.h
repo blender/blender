@@ -357,6 +357,7 @@ typedef struct TexMapping {
 #define TEX_REPEAT_XMIR		128
 #define TEX_REPEAT_YMIR		256
 #define TEX_FLAG_MASK		( TEX_COLORBAND | TEX_FLIPBLEND | TEX_NEGALPHA | TEX_CHECKER_ODD | TEX_CHECKER_EVEN | TEX_PRV_ALPHA | TEX_PRV_NOR | TEX_REPEAT_XMIR | TEX_REPEAT_YMIR ) 
+#define TEX_DS_EXPAND		512
 
 /* extend (starts with 1 because of backward comp.) */
 #define TEX_EXTEND		1

@@ -420,6 +420,7 @@ void free_texture(Tex *tex)
 	if(tex->env) BKE_free_envmap(tex->env);
 	if(tex->pd) BKE_free_pointdensity(tex->pd);
 	if(tex->vd) BKE_free_voxeldata(tex->vd);
+	BKE_free_animdata((struct ID *)tex);
 	BKE_previewimg_free(&tex->preview);
 	BKE_icon_delete((struct ID*)tex);
 	tex->id.icon_id = 0;

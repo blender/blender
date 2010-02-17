@@ -181,6 +181,11 @@ typedef struct Material {
 #define MA_IS_USED		1
 		/* for dopesheet */
 #define MA_DS_EXPAND	2
+		/* for dopesheet (texture stack expander)
+		 * NOTE: this must have the same value as other texture stacks, 
+		 * otherwise anim-editors will not read correctly
+		 */
+#define MA_DS_SHOW_TEXS	4
 
 /* mode (is int) */
 #define MA_TRACEBLE		1

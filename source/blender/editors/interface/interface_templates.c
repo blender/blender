@@ -105,6 +105,8 @@ void uiTemplateDopeSheetFilter(uiLayout *layout, bContext *C, PointerRNA *ptr)
 		uiItemR(row, "", 0, ptr, "display_material", 0);
 	if (mainptr && mainptr->lamp.first)
 		uiItemR(row, "", 0, ptr, "display_lamp", 0);
+	if (mainptr && mainptr->tex.first)
+		uiItemR(row, "", 0, ptr, "display_texture", 0);
 	if (mainptr && mainptr->camera.first)
 		uiItemR(row, "", 0, ptr, "display_camera", 0);
 	if (mainptr && mainptr->curve.first)

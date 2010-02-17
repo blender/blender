@@ -115,6 +115,10 @@ typedef struct Lamp {
 
 /* flag */
 #define LA_DS_EXPAND	1
+	/* NOTE: this must have the same value as MA_DS_SHOW_TEXS, 
+	 * otherwise anim-editors will not read correctly
+	 */
+#define LA_DS_SHOW_TEXS	4
 
 /* type */
 #define LA_LOCAL		0
