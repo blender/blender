@@ -3285,7 +3285,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 /* Helper function for createTransGraphEditData, which is reponsible for associating
  * source data with transform data
  */
-static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, float *loc, float *cent, short selected, short ishandle, short intvals, float iaspy)
+static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, float *loc, float *cent, short selected, short ishandle, short intvals)
 {
 	/* New location from td gets dumped onto the old-location of td2d, which then
 	 * gets copied to the actual data at td2d->loc2d (bezt->vec[n])
@@ -3296,20 +3296,20 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 	
 	if (adt) {
 		td2d->loc[0] = BKE_nla_tweakedit_remap(adt, loc[0], NLATIME_CONVERT_MAP);
-		td2d->loc[1] = loc[1] * iaspy;
+		td2d->loc[1] = loc[1];
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
 		td->loc = td2d->loc;
 		td->center[0] = BKE_nla_tweakedit_remap(adt, cent[0], NLATIME_CONVERT_MAP);
-		td->center[1] = cent[1] * iaspy;
+		td->center[1] = cent[1];
 		td->center[2] = 0.0f;
 		
 		VECCOPY(td->iloc, td->loc);
 	}
 	else {
 		td2d->loc[0] = loc[0];
-		td2d->loc[1] = loc[1] * iaspy;
+		td2d->loc[1] = loc[1];
 		td2d->loc[2] = 0.0f;
 		td2d->loc2d = loc;
 		
@@ -3340,13 +3340,6 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 	
 	unit_m3(td->mtx);
 	unit_m3(td->smtx);
-}
-
-static float UI_view2d_aspect_y(View2D *v2d)
-{
-	float viewx, viewy;
-	UI_view2d_region_to_view(v2d, 1, 1, &viewx, &viewy);
-	return -1.0 / (viewx / viewy);
 }
 
 static void createTransGraphEditData(bContext *C, TransInfo *t)
@@ -3454,12 +3447,6 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		FCurve *fcu= (FCurve *)ale->key_data;
 		short intvals= (fcu->flag & FCURVE_INT_VALUES);
 
-		float iaspy;
-		if(intvals)
-			iaspy= 1.0f;
-		else
-			iaspy= 1.0f/UI_view2d_aspect_y(v2d);
-
 		/* convert current-frame to action-time (slightly less accurate, espcially under
 		 * higher scaling ratios, but is faster than converting all points)
 		 */
@@ -3483,14 +3470,14 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 				/* only include handles if selected, irrespective of the interpolation modes */
 				if (bezt->f1 & SELECT) {
 					hdata = initTransDataCurveHandles(td, bezt);
-					bezt_to_transdata(td++, td2d++, adt, bezt->vec[0], bezt->vec[1], 1, 1, intvals, iaspy);
+					bezt_to_transdata(td++, td2d++, adt, bezt->vec[0], bezt->vec[1], 1, 1, intvals);
 				}
 				else
 					h1= 0;
 				if (bezt->f3 & SELECT) {
 					if (hdata==NULL)
 						hdata = initTransDataCurveHandles(td, bezt);
-					bezt_to_transdata(td++, td2d++, adt, bezt->vec[2], bezt->vec[1], 1, 1, intvals, iaspy);
+					bezt_to_transdata(td++, td2d++, adt, bezt->vec[2], bezt->vec[1], 1, 1, intvals);
 				}
 				else
 					h2= 0;
@@ -3505,7 +3492,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 								hdata = initTransDataCurveHandles(td, bezt);
 						}
 						
-						bezt_to_transdata(td++, td2d++, adt, bezt->vec[1], bezt->vec[1], 1, 0, intvals, iaspy);
+						bezt_to_transdata(td++, td2d++, adt, bezt->vec[1], bezt->vec[1], 1, 0, intvals);
 					}
 					
 					/* special hack (must be done after initTransDataCurveHandles(), as that stores handle settings to restore...):
@@ -3728,7 +3715,6 @@ void flushTransGraphData(TransInfo *t)
 	Scene *scene= t->scene;
 	double secf= FPS;
 	int a;
-	float aspy= UI_view2d_aspect_y(&t->ar->v2d);
 
 	/* flush to 2d vector from internally used 3d vector */
 	for (a=0, td= t->data, td2d=t->data2d; a<t->total; a++, td++, td2d++) {
@@ -3763,7 +3749,7 @@ void flushTransGraphData(TransInfo *t)
 		if (td->flag & TD_INTVALUES)
 			td2d->loc2d[1]= (float)((int)td2d->loc[1]);
 		else
-			td2d->loc2d[1]= td2d->loc[1] * aspy;
+			td2d->loc2d[1]= td2d->loc[1];
 	}
 }
 
