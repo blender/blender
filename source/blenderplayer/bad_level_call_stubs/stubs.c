@@ -47,6 +47,7 @@ void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, flo
 /* texture.c */
 int multitex_thread(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output) {return 0;}
 int multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres){return 0;}
+int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex) {return 0;}
 
 /* nodes */
 struct RenderResult *RE_GetResult(struct Render *re){return (struct RenderResult *) NULL;}
