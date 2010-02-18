@@ -110,12 +110,9 @@ WITH_BF_BINRELOC = True
 
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
-# BF_FFMPEG = '#extern/ffmpeg'
-# BF_FFMPEG_LIB = ''
-# Uncomment the following two lines to use system's ffmpeg
 BF_FFMPEG = '/usr'
 BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice'
-BF_FFMPEG_INC = '${BF_FFMPEG}'
+BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 
 # enable ogg, vorbis and theora in ffmpeg
