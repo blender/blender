@@ -1436,9 +1436,9 @@ int object_is_libdata(Object *ob)
 int object_data_is_libdata(Object *ob)
 {
 	if(!ob) return 0;
-	if(ob->proxy) return 0;
+	if(ob->proxy && (ob->data==NULL || ((ID *)ob->data)->lib==NULL)) return 0;
 	if(ob->id.lib) return 1;
-	if(!ob->data) return 0;
+	if(ob->data==NULL) return 0;
 	if(((ID *)ob->data)->lib) return 1;
 
 	return 0;
