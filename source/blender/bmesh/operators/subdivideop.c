@@ -235,9 +235,11 @@ static void bm_subdivide_multicut(BMesh *bm, BMEdge *edge, subdparams *params,
 		                     &newe, vsta, vend);
 		BMO_SetFlag(bm, v, SUBD_SPLIT);
 		BMO_SetFlag(bm, eed, SUBD_SPLIT);
+		BMO_SetFlag(bm, newe, SUBD_SPLIT);
 
 		BMO_SetFlag(bm, v, ELE_SPLIT);
 		BMO_SetFlag(bm, eed, ELE_SPLIT);
+		BMO_SetFlag(bm, newe, SUBD_SPLIT);
 	}
 }
 
@@ -848,7 +850,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 	/*go through and split edges*/
 	for (i=0; i<einput->len; i++) {
 		edge = ((BMEdge**)einput->data.p)[i];
-		bm_subdivide_multicut(bmesh, edge,&params, edge->v1, edge->v2);
+		bm_subdivide_multicut(bmesh, edge, &params, edge->v1, edge->v2);
 		//BM_Split_Edge_Multi(bmesh, edge, numcuts);
 	}
 
@@ -966,7 +968,7 @@ void esubdivide_exec(BMesh *bmesh, BMOperator *op)
 		         ELE_SPLIT, BM_ALL);
 	
 	BMO_Flag_To_Slot(bmesh, op, "geomout",
-		         ELE_INNER|ELE_SPLIT, BM_ALL);
+		         ELE_INNER|ELE_SPLIT|SUBD_SPLIT, BM_ALL);
 }
 
 /*editmesh-emulating function*/

@@ -3878,7 +3878,7 @@ static int knife_cut_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	if (bm->totvertsel < 2) {
-		error("No edges are selected to operate on");
+		//error("No edges are selected to operate on");
 		return OPERATOR_CANCELLED;;
 	}
 
@@ -4086,17 +4086,15 @@ void MESH_OT_beauty_fill(wmOperatorType *ot)
 
 static int quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 {
-#if 0
 	Object *obedit= CTX_data_edit_object(C);
 	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 
-	//convert_to_triface(em,0);
 	if (!EDBM_CallOpf(em, op, "triangulate faces=%hf", BM_SELECT))
 		return OPERATOR_CANCELLED;
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
-#endif
+
 	return OPERATOR_FINISHED;
 }
 
@@ -4116,17 +4114,27 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 
 static int tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 {
-#if 0
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
+	Scene *scene = CTX_data_scene(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	int dosharp, douvs, dovcols, domaterials;
+	float limit = RNA_float_get(op->ptr, "limit");
 
-	join_triangles(em);
+	dosharp = RNA_boolean_get(op->ptr, "sharp");
+	douvs = RNA_boolean_get(op->ptr, "uvs");
+	dovcols = RNA_boolean_get(op->ptr, "vcols");
+	domaterials = RNA_boolean_get(op->ptr, "materials");
+
+	if (!EDBM_CallOpf(em, op, 
+		"join_triangles faces=%hf limit=%f compare_sharp=%i compare_uvs=%i compare_vcols=%i compare_materials=%i", 
+		BM_SELECT, limit, dosharp, douvs, dovcols, domaterials)) 
+	{
+		return OPERATOR_CANCELLED;
+	}
 
 	DAG_id_flush_update(obedit->data, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
 
-	BKE_mesh_end_editmesh(obedit->data, em);
-#endif
 	return OPERATOR_FINISHED;
 }
 
@@ -4142,6 +4150,14 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_float(ot->srna, "limit", 40.0f, -180.0f, 180.0f, "Max Angle", "Angle Limit in Degrees", -180, 180.0f);
+	
+	RNA_def_boolean(ot->srna, "uvs", 0, "Compare UVs", "");
+	RNA_def_boolean(ot->srna, "vcols", 0, "Compare VCols", "");
+	RNA_def_boolean(ot->srna, "sharp", 0, "Compare Sharp", "");
+	RNA_def_boolean(ot->srna, "materials", 0, "Compare Materials", "");
+
 }
 
 static int edge_flip_exec(bContext *C, wmOperator *op)

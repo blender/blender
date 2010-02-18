@@ -285,20 +285,27 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
 
 static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 {
-#if 0
+	Object *obedit;
+	Mesh *me;
+	BMEditMesh *em;
+	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
-	float loc[3], rot[3];
+	int state;
 	
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	make_prim_init(C, &dia, mat, &state, loc, rot);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
-			PRIM_CYLINDER, RNA_int_get(op->ptr, "vertices"), 0, 0,
-			RNA_float_get(op->ptr, "radius"),
-			RNA_float_get(op->ptr, "depth"), 1, 
-			RNA_boolean_get(op->ptr, "cap_ends"));
-#endif
+	obedit = CTX_data_edit_object(C);
+	me = obedit->data;
+	em = me->edit_btmesh;
 
-	return OPERATOR_FINISHED;
+	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
+			"create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%i depth=%f mat=%m4", 
+			RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"), 
+			RNA_float_get(op->ptr, "radius"), (int)RNA_boolean_get(op->ptr, "cap_end"), RNA_float_get(op->ptr, "depth"), mat))
+		return OPERATOR_CANCELLED;
+	
+	make_prim_finish(C, &state, enter_editmode);
 }
 
 void MESH_OT_primitive_tube_add(wmOperatorType *ot)
@@ -327,19 +334,29 @@ void MESH_OT_primitive_tube_add(wmOperatorType *ot)
 
 static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 {
-#if 0
+	Object *obedit;
+	Mesh *me;
+	BMEditMesh *em;
+	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
-	float loc[3], rot[3];
+	int state;
 	
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	make_prim_init(C, &dia, mat, &state, loc, rot);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
-			PRIM_CONE, RNA_int_get(op->ptr, "vertices"), 0, 0,
-			RNA_float_get(op->ptr,"radius"), RNA_float_get(op->ptr, "depth"),
-			0, RNA_boolean_get(op->ptr, "cap_end"));
-#endif
+	obedit = CTX_data_edit_object(C);
+	me = obedit->data;
+	em = me->edit_btmesh;
 
-	return OPERATOR_FINISHED;
+	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
+			"create_cone segments=%i diameter1=%f diameter2=%f cap_ends=%i depth=%f mat=%m4", 
+			RNA_int_get(op->ptr, "vertices"), RNA_float_get(op->ptr, "radius"), 
+			0.0f, (int)RNA_boolean_get(op->ptr, "cap_end"), RNA_float_get(op->ptr, "depth"), mat))
+		return OPERATOR_CANCELLED;
+	
+	make_prim_finish(C, &state, enter_editmode);
+
+	return OPERATOR_FINISHED;	
 }
 
 void MESH_OT_primitive_cone_add(wmOperatorType *ot)
@@ -368,18 +385,30 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
 
 static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 {
-#if 0
+	Object *obedit;
+	Mesh *me;
+	BMEditMesh *em;
+	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
-	float loc[3], rot[3];
+	int state;
 	
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	make_prim_init(C, &dia, mat, &state, loc, rot);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
-			PRIM_GRID, RNA_int_get(op->ptr, "x_subdivisions"),
-			RNA_int_get(op->ptr, "y_subdivisions"), 0,
-			RNA_float_get(op->ptr,"size"), 0.0f, 0, 1);
-#endif
+	obedit = CTX_data_edit_object(C);
+	me = obedit->data;
+	em = me->edit_btmesh;
 
+	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
+			"create_grid xsegments=%i ysegments=%i size=%f mat=%m4",
+			RNA_int_get(op->ptr, "x_subdivisions"), 
+			RNA_int_get(op->ptr, "y_subdivisions"), 
+			RNA_float_get(op->ptr, "size"), mat))
+	{
+		return OPERATOR_CANCELLED;
+	}
+	
+	make_prim_finish(C, &state, enter_editmode);
 	return OPERATOR_FINISHED;
 }
 
@@ -408,16 +437,25 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
 
 static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 {
-#if 0
+	Object *obedit;
+	Mesh *me;
+	BMEditMesh *em;
+	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
-	float loc[3], rot[3];
+	int state;
 	
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	make_prim_init(C, &dia, mat, &state, loc, rot);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
-			PRIM_MONKEY, 0, 0, 2, 0.0f, 0.0f, 0, 0);
-#endif
+	obedit = CTX_data_edit_object(C);
+	me = obedit->data;
+	em = me->edit_btmesh;
 
+	if (!EDBM_CallAndSelectOpf(em, op, "vertout", "create_monkey mat=%m4", mat)) {
+		return OPERATOR_CANCELLED;
+	}
+	
+	make_prim_finish(C, &state, enter_editmode);
 	return OPERATOR_FINISHED;
 }
 
@@ -492,16 +530,28 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
 
 static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 {
-#if 0
+	Object *obedit;
+	Mesh *me;
+	BMEditMesh *em;
+	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
-	float loc[3], rot[3];
+	int state;
 	
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
+	make_prim_init(C, &dia, mat, &state, loc, rot);
 
-	make_prim_ext(C, loc, rot, enter_editmode,
-			PRIM_ICOSPHERE, 0, 0, RNA_int_get(op->ptr, "subdivisions"),
-			RNA_float_get(op->ptr,"size"), 0.0f, 0, 0);
-#endif
+	obedit = CTX_data_edit_object(C);
+	me = obedit->data;
+	em = me->edit_btmesh;
+
+	if (!EDBM_CallAndSelectOpf(em, op, "vertout", 
+			"create_icosphere subdivisions=%i diameter=%f mat=%m4", 
+			RNA_int_get(op->ptr, "subdivisions"),
+			RNA_float_get(op->ptr, "size"), mat)) {
+		return OPERATOR_CANCELLED;
+	}
+	
+	make_prim_finish(C, &state, enter_editmode);
 
 	return OPERATOR_FINISHED;	
 }

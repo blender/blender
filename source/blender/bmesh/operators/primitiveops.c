@@ -1,4 +1,4 @@
-#include "MEM_guardedalloc.h"
+#include "MEM_guardedalloc.h"-
 
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
@@ -11,6 +11,8 @@
 #include "BLI_ghash.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
+
+#include "ED_mesh.h"
 
 #include "bmesh.h"
 #include "mesh_intern.h"
@@ -350,6 +352,8 @@ void bmesh_create_uvsphere_exec(BMesh *bm, BMOperator *op)
 void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 {
 	BMVert *eva[12];
+	BMIter liter;
+	BMLoop *l;
 	float vec[3], mat[4][4], phi, phid;
 	float dia = BMO_Get_Float(op, "diameter");
 	int a, subdiv = BMO_Get_Int(op, "subdivisions");
@@ -371,15 +375,20 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	}
 
 	for(a=0;a<20;a++) {
-		BMFace *evtemp;
+		BMFace *eftemp;
 		BMVert *v1, *v2, *v3;
 
 		v1= eva[ icoface[a][0] ];
 		v2= eva[ icoface[a][1] ];
 		v3= eva[ icoface[a][2] ];
 
-		evtemp = BM_Make_QuadTri(bm, v1, v2, v3, NULL, NULL, 0);
-		BMO_SetFlag(bm, evtemp, FACE_MARK);
+		eftemp = BM_Make_QuadTri(bm, v1, v2, v3, NULL, NULL, 0);
+		
+		BM_ITER(l, &liter, bm, BM_LOOPS_OF_FACE, eftemp) {
+			BMO_SetFlag(bm, l->e, EDGE_MARK);
+		}
+
+		BMO_SetFlag(bm, eftemp, FACE_MARK);
 	}
 
 	dia*=200;
@@ -387,9 +396,12 @@ void bmesh_create_icosphere_exec(BMesh *bm, BMOperator *op)
 	for(a=1; a<subdiv; a++) {
 		BMOperator bmop;
 
-		BMO_InitOpf(bm, &bmop, "esubd edges=%he smooth=%f numcuts=%i gridfill=%i", EDGE_MARK, dia, 1, 1);
+		BMO_InitOpf(bm, &bmop, 
+			"esubd edges=%fe smooth=%f numcuts=%i gridfill=%i beauty=%i", 
+			EDGE_MARK, dia, 1, 1, B_SPHERE);
 		BMO_Exec_Op(bm, &bmop);
 		BMO_Flag_Buffer(bm, &bmop, "geomout", VERT_MARK, BM_VERT);
+		BMO_Flag_Buffer(bm, &bmop, "geomout", EDGE_MARK, BM_EDGE);
 		BMO_Finish_Op(bm, &bmop);
 	}
 
@@ -459,7 +471,7 @@ void bmesh_create_cone_exec(BMesh *bm, BMOperator *op)
 		BMO_SetFlag(bm, cent2, VERT_MARK);
 	}
 
-	for (a=0; a<segs; a++) {
+	for (a=0; a<segs; a++, phi+=phid) {
 		vec[0]= dia1*sin(phi);
 		vec[1]= dia1*cos(phi);
 		vec[2]= -depth;

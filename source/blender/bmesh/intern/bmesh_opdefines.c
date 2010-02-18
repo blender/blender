@@ -341,6 +341,27 @@ BMOpDefine def_makevert = {
 };
 
 /*
+  Join Triangles
+
+  Tries to intelligently join triangles according 
+  to various settings and stuff.
+
+  */
+BMOpDefine def_join_triangles= {
+	"join_triangles",
+	{{BMOP_OPSLOT_ELEMENT_BUF, "faces"}, //input geometry.
+	 {BMOP_OPSLOT_ELEMENT_BUF, "faceout"}, //joined faces
+	 {BMOP_OPSLOT_INT, "compare_sharp"},
+	 {BMOP_OPSLOT_INT, "compare_uvs"},
+	 {BMOP_OPSLOT_INT, "compare_vcols"},
+	 {BMOP_OPSLOT_INT, "compare_materials"},
+	 {BMOP_OPSLOT_FLT, "limit"},
+	 {0, /*null-terminating sentinel*/}},
+	bmesh_jointriangles_exec,
+	0,
+};
+
+/*
   Contextual Create
 
   This is basically fkey, it creates
@@ -685,9 +706,9 @@ BMOpDefine def_splitop = {
 };
 
 /*
-  Similar faces select
+  Similar faces search
 
-  Select similar faces (area/material/perimeter....).
+  Find similar faces (area/material/perimeter....).
 */
 BMOpDefine def_similarfaces = {
 	"similarfaces",
@@ -701,9 +722,9 @@ BMOpDefine def_similarfaces = {
 };
 
 /*
-  Similar edges select
+  Similar edges search
 
-  Select similar edges (length, direction, edge, seam,....).
+  Find similar edges (length, direction, edge, seam,....).
 */
 BMOpDefine def_similaredges = {
 	"similaredges",
@@ -717,9 +738,9 @@ BMOpDefine def_similaredges = {
 };
 
 /*
-  Similar vertices select
+  Similar vertices search
 
-  Select similar vertices (normal, face, vertex group,....).
+  Find similar vertices (normal, face, vertex group,....).
 */
 BMOpDefine def_similarverts = {
 	"similarverts",
@@ -783,9 +804,9 @@ BMOpDefine def_meshreversecolors = {
 };
 
 /*
-  Similar vertices select
+  Similar vertices search
 
-  Select similar vertices (normal, face, vertex group,....).
+  Find similar vertices (normal, face, vertex group,....).
 */
 BMOpDefine def_vertexshortestpath = {
 	"vertexshortestpath",
@@ -892,7 +913,7 @@ BMOpDefine def_create_cone = {
 	 {BMOP_OPSLOT_FLT, "depth"}, //distance between ends
 	 {BMOP_OPSLOT_MAT, "mat"}, //matrix to multiply the new geometry with--
 	 {0, /*null-terminating sentinel*/}},
-	bmesh_create_monkey_exec,
+	bmesh_create_cone_exec,
 	0,
 };
 
@@ -969,6 +990,7 @@ BMOpDefine *opdefines[] = {
 	&def_create_monkey,
 	&def_create_cone,
 	&def_create_cube,
+	&def_join_triangles,
 };
 
 int bmesh_total_ops = (sizeof(opdefines) / sizeof(void*));
