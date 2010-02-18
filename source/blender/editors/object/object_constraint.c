@@ -250,9 +250,10 @@ static void set_constraint_nth_target (bConstraint *con, Object *target, char su
 /* ------------- Constraint Sanity Testing ------------------- */
 
 /* checks validity of object pointers, and NULLs,
- * if Bone doesnt exist it sets the CONSTRAINT_DISABLE flag 
+ * if Bone doesnt exist it sets the CONSTRAINT_DISABLE flag.
+ * 'data' saves a bone name lookup.
  */
-static void test_constraints (Object *owner, const char substring[])
+static void test_constraints (Object *owner, const char substring[], void *data)
 {
 	bConstraint *curcon;
 	ListBase *conlist= NULL;
@@ -284,7 +285,7 @@ static void test_constraints (Object *owner, const char substring[])
 				Bone *bone;
 				bPoseChannel *chan;
 				
-				bone = get_named_bone( ((bArmature *)owner->data), substring );
+				bone = data ? data : get_named_bone( ((bArmature *)owner->data), substring );
 				chan = get_pose_channel(owner->pose, substring);
 				if (bone && chan) {
 					conlist = &chan->constraints;
@@ -436,14 +437,14 @@ static void test_bonelist_constraints (Object *owner, ListBase *list)
 	Bone *bone;
 
 	for (bone = list->first; bone; bone = bone->next) {
-		test_constraints(owner, bone->name);
+		test_constraints(owner, bone->name, (void *)bone);
 		test_bonelist_constraints(owner, &bone->childbase);
 	}
 }
 
 void object_test_constraints (Object *owner)
 {
-	test_constraints(owner, "");
+	test_constraints(owner, "", NULL);
 
 	if (owner->type==OB_ARMATURE) {
 		bArmature *arm= get_armature(owner);

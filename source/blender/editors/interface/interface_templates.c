@@ -886,7 +886,6 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr, int
 #define REDRAWACTION				4
 #define B_CONSTRAINT_TEST			5
 #define B_CONSTRAINT_CHANGETARGET	6
-#define B_CONSTRAINT_INF			7
 #define REMAKEIPO					8
 #define B_DIFF						9
 
@@ -901,11 +900,6 @@ void do_constraint_panels(bContext *C, void *arg, int event)
 		// XXX allqueue(REDRAWBUTSOBJECT, 0);
 		// XXX allqueue(REDRAWBUTSEDIT, 0);
 		break;  // no handling
-	case B_CONSTRAINT_INF:
-		/* influence; do not execute actions for 1 dag_flush */
-		if (ob->pose)
-			ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
-		break;
 	case B_CONSTRAINT_CHANGETARGET:
 		if (ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
 		DAG_scene_sort(scene);
@@ -914,9 +908,11 @@ void do_constraint_panels(bContext *C, void *arg, int event)
 		break;
 	}
 
-	object_test_constraints(ob);
-	
-	if(ob->pose) update_pose_constraint_flags(ob->pose);
+	// note: RNA updates now call this, commenting else it gets called twice.
+	// if there are problems because of this, then rna needs changed update functions.
+	// 
+	// object_test_constraints(ob);
+	// if(ob->pose) update_pose_constraint_flags(ob->pose);
 	
 	if(ob->type==OB_ARMATURE) DAG_id_flush_update(&ob->id, OB_RECALC_DATA|OB_RECALC_OB);
 	else DAG_id_flush_update(&ob->id, OB_RECALC_OB);
