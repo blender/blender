@@ -230,10 +230,20 @@ static void rna_Scene_layer_update(Main *bmain, Scene *unused, PointerRNA *ptr)
 	ED_view3d_scene_layers_update(bmain, scene);
 }
 
+static void rna_Scene_current_frame_set(PointerRNA *ptr, int value)
+{
+	Scene *data= (Scene*)ptr->data;
+	
+	/* if negative frames aren't allowed, then we can't use them */
+	FRAMENUMBER_MIN_CLAMP(value);
+	data->r.cfra= value;
+}
+
 static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
 {
 	Scene *data= (Scene*)ptr->data;
-	CLAMP(value, 1, data->r.efra);
+	/* MINFRAME not MINAFRAME, since some output formats can't taken negative frames */
+	CLAMP(value, MINFRAME, data->r.efra); 
 	data->r.sfra= value;
 }
 
@@ -2648,6 +2658,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "r.cfra");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
+	RNA_def_property_int_funcs(prop, NULL, "rna_Scene_current_frame_set", NULL);
 	RNA_def_property_ui_text(prop, "Current Frame", "");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE|ND_FRAME, "rna_Scene_frame_update");

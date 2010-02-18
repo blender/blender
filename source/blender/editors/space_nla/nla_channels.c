@@ -173,8 +173,6 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 					if (adt) adt->flag |= ADT_UI_SELECTED;
 				}
 				
-				/* xxx should be ED_base_object_activate(), but we need context pointer for that... */
-				//set_active_base(base);
 				if ((adt) && (adt->flag & ADT_UI_SELECTED))
 					adt->flag |= ADT_UI_ACTIVE;
 				
@@ -195,6 +193,8 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 		case ANIMTYPE_DSPART:
 		case ANIMTYPE_DSMBALL:
 		case ANIMTYPE_DSARM:
+		case ANIMTYPE_DSMESH:
+		case ANIMTYPE_DSTEX:
 		{
 			/* sanity checking... */
 			if (ale->adt) {

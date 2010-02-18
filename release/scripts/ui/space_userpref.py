@@ -338,6 +338,11 @@ class USERPREF_PT_edit(bpy.types.Panel):
         #col.prop(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
         col.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
         col.prop(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
+        col.separator()
+        col.separator()
+        col.separator()
+        col.label(text="Playback:")
+        col.prop(edit, "use_negative_frames")
 
         row.separator()
         row.separator()

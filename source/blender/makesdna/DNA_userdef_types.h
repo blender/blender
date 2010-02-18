@@ -405,6 +405,14 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_DRAGIMMEDIATE		(1 << 21)
 #define USER_DONT_DOSCRIPTLINKS	(1 << 22)
 #define USER_FILENOUI			(1 << 23)
+#define USER_NONEGFRAMES		(1 << 24)
+
+/* helper macro for checking frame clamping */
+#define FRAMENUMBER_MIN_CLAMP(cfra) \
+	{ \
+		if ((U.flag & USER_NONEGFRAMES) && (cfra < 0)) \
+			cfra = 0; \
+	}
 
 /* viewzom */
 #define USER_ZOOM_CONT			0

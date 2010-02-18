@@ -982,8 +982,8 @@ typedef struct Scene {
 #define MAXFRAME	300000
 #define MAXFRAMEF	300000.0f
 
-#define MINFRAME	1
-#define MINFRAMEF	1.0f
+#define MINFRAME	0
+#define MINFRAMEF	0.0f
 
 /* (minimum frame number for current-frame) */
 #define MINAFRAME	-300000
