@@ -1199,7 +1199,7 @@ DriverVar *driver_add_new_variable (ChannelDriver *driver)
 	
 	/* give the variable a 'unique' name */
 	strcpy(dvar->name, "var");
-	BLI_uniquename(&driver->variables, dvar, "var", '_', offsetof(DriverVar, name), 64);
+	BLI_uniquename(&driver->variables, dvar, "var", '_', offsetof(DriverVar, name), sizeof(dvar->name));
 	
 	/* set the default type to 'single prop' */
 	driver_change_variable_type(dvar, DVAR_TYPE_SINGLE_PROP);

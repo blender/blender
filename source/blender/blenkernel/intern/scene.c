@@ -947,8 +947,8 @@ void scene_add_render_layer(Scene *sce)
 //	int tot= 1 + BLI_countlist(&sce->r.layers);
 	
 	srl= MEM_callocN(sizeof(SceneRenderLayer), "new render layer");
-	sprintf(srl->name, "RenderLayer");
-	BLI_uniquename(&sce->r.layers, srl, "RenderLayer", '.', offsetof(SceneRenderLayer, name), 32);
+	strcpy(srl->name, "RenderLayer");
+	BLI_uniquename(&sce->r.layers, srl, "RenderLayer", '.', offsetof(SceneRenderLayer, name), sizeof(srl->name));
 	BLI_addtail(&sce->r.layers, srl);
 
 	/* note, this is also in render, pipeline.c, to make layer when scenedata doesnt have it */

@@ -748,7 +748,7 @@ void pose_add_group (Object *ob)
 	grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
 	strcpy(grp->name, "Group");
 	BLI_addtail(&pose->agroups, grp);
-	BLI_uniquename(&pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), 32);
+	BLI_uniquename(&pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), sizeof(grp->name));
 	
 	pose->active_group= BLI_countlist(&pose->agroups);
 }
