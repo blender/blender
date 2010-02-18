@@ -2429,13 +2429,17 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		else sync= (scene->audio.flag & AUDIO_SYNC);
 		
 		if(sync) {
-			/* skip frames */
-			int step = floor(wt->duration * FPS);
 			if(sad->flag & ANIMPLAY_FLAG_REVERSE) // XXX does this option work with audio?
+			{                                     // XXX - no
+				/* skip frames */
+				int step = floor(wt->duration * FPS);
 				scene->r.cfra -= step;
+				wt->duration -= ((float)step)/FPS;
+			}
 			else
-				scene->r.cfra += step;
-			wt->duration -= ((float)step)/FPS;
+			{
+				scene->r.cfra = floor(sound_sync_scene(scene) * FPS);
+			}
 		}
 		else {
 			/* one frame +/- */

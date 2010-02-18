@@ -394,6 +394,11 @@ void sound_seek_scene(struct bContext *C)
 	AUD_unlock();
 }
 
+float sound_sync_scene(struct Scene *scene)
+{
+	return AUD_getPosition(scene->sound_scene_handle);
+}
+
 int sound_read_sound_buffer(bSound* sound, float* buffer, int length)
 {
 	return AUD_readSound(sound->cache, buffer, length);
