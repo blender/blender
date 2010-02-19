@@ -862,20 +862,6 @@ static void scene_update_newframe(Scene *sce, unsigned int lay)
 {
 	Base *base;
 	Object *ob;
-	float ctime = frame_to_float(sce, sce->r.cfra); 
-	
-	if(sce->theDag==NULL)
-		DAG_scene_sort(sce);
-	
-	DAG_scene_update_flags(sce, lay);   // only stuff that moves or needs display still
-	
-	/* All 'standard' (i.e. without any dependencies) animation is handled here,
-	 * with an 'local' to 'macro' order of evaluation. This should ensure that
-	 * settings stored nestled within a hierarchy (i.e. settings in a Texture block
-	 * can be overridden by settings from Scene, which owns the Texture through a hierarchy 
-	 * such as Scene->World->MTex/Texture) can still get correctly overridden.
-	 */
-	BKE_animsys_evaluate_all_animation(G.main, ctime);
 	
 	for(base= sce->base.first; base; base= base->next) {
 		ob= base->object;
@@ -928,16 +914,37 @@ void scene_update_tagged(Scene *scene)
 /* applies changes right away, does all sets too */
 void scene_update_for_newframe(Scene *sce, unsigned int lay)
 {
-	Scene *scene= sce;
+	float ctime = frame_to_float(sce, sce->r.cfra);
+	Scene *sce_iter;
 	
 	/* clear animation overrides */
 	// XXX TODO...
-	
-	/* sets first, we allow per definition current scene to have dependencies on sets */
-	for(sce= sce->set; sce; sce= sce->set)
-		scene_update_newframe(sce, lay);
 
-	scene_update_newframe(scene, lay);
+	for(sce_iter= sce; sce_iter; sce_iter= sce_iter->set) {
+		if(sce_iter->theDag==NULL)
+			DAG_scene_sort(sce_iter);
+	}
+
+
+	/* Following 2 functions are recursive
+	 * so dont call within 'scene_update_newframe' */
+	DAG_scene_update_flags(sce, lay);   // only stuff that moves or needs display still
+
+	/* All 'standard' (i.e. without any dependencies) animation is handled here,
+	 * with an 'local' to 'macro' order of evaluation. This should ensure that
+	 * settings stored nestled within a hierarchy (i.e. settings in a Texture block
+	 * can be overridden by settings from Scene, which owns the Texture through a hierarchy
+	 * such as Scene->World->MTex/Texture) can still get correctly overridden.
+	 */
+	BKE_animsys_evaluate_all_animation(G.main, ctime);
+	/*...done with recusrive funcs */
+
+
+	/* sets first, we allow per definition current scene to have dependencies on sets */
+	for(sce_iter= sce->set; sce_iter; sce_iter= sce_iter->set)
+		scene_update_newframe(sce_iter, lay);
+
+	scene_update_newframe(sce, lay);
 }
 
 /* return default layer, also used to patch old files */

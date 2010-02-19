@@ -3436,6 +3436,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				if(ob->proxy->id.lib==NULL) {
 					ob->proxy->proxy_from= NULL;
 					ob->proxy= NULL;
+					printf("Proxy lost from  object %s lib %s\n", ob->id.name+2, ob->id.lib->name);
 				}
 				else {
 					/* this triggers object_update to always use a copy */
@@ -3450,11 +3451,14 @@ static void lib_link_object(FileData *fd, Main *main)
 			ob->data= newlibadr_us(fd, ob->id.lib, ob->data);
 			   
 			if(ob->data==NULL && poin!=NULL) {
+				if(ob->id.lib)
+					printf("Can't find obdata of %s lib %s\n", ob->id.name+2, ob->id.lib->name);
+				else
+					printf("Object %s lost data.\n", ob->id.name+2);
+
 				ob->type= OB_EMPTY;
 				warn= 1;
-				if(ob->id.lib) printf("Can't find obdata of %s lib %s\n", ob->id.name+2, ob->id.lib->name);
-				else printf("Object %s lost data.\n", ob->id.name+2);
-				
+
 				if(ob->pose) {
 					free_pose(ob->pose);
 					ob->pose= NULL;
