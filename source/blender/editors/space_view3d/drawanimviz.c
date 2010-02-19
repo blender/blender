@@ -220,7 +220,7 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 			/* only draw framenum if several consecutive highlighted points don't occur on same point */
 			if (i == 0) {
 				sprintf(str, "%d", (i+sfra));
-				view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0);
+				view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0, 0);
 			}
 			else if ((i > stepsize) && (i < len-stepsize)) { 
 				bMotionPathVert *mpvP = (mpv - stepsize);
@@ -228,7 +228,7 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 				
 				if ((equals_v3v3(mpv->co, mpvP->co)==0) || (equals_v3v3(mpv->co, mpvN->co)==0)) {
 					sprintf(str, "%d", (sfra+i));
-					view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0);
+					view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0, 0);
 				}
 			}
 		}
@@ -282,7 +282,7 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 					char str[32];
 					
 					sprintf(str, "%d", (sfra+i));
-					view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0);
+					view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0, 0);
 				}
 			}
 		}

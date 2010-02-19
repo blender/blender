@@ -107,8 +107,9 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 void drawaxes(float size, int flag, char drawtype);
 
 void view3d_cached_text_draw_begin(void);
-void view3d_cached_text_draw_add(float x, float y, float z, char *str, short xoffs);
+void view3d_cached_text_draw_add(float x, float y, float z, char *str, short xoffs, short flag);
 void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, float mat[][4]);
+#define V3D_CACHE_TEXT_ZBUF 1
 
 /* drawarmature.c */
 int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag);
