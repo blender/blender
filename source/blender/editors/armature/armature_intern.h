@@ -84,7 +84,8 @@ void ARMATURE_OT_bone_layers(struct wmOperatorType *ot);
 void POSE_OT_hide(struct wmOperatorType *ot);
 void POSE_OT_reveal(struct wmOperatorType *ot);
 
-void POSE_OT_apply(struct wmOperatorType *ot);
+void POSE_OT_armature_apply(struct wmOperatorType *ot);
+void POSE_OT_visual_transform_apply(struct wmOperatorType *ot);
 
 void POSE_OT_rot_clear(struct wmOperatorType *ot);
 void POSE_OT_loc_clear(struct wmOperatorType *ot);

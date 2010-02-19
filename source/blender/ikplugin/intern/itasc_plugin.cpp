@@ -1532,7 +1532,7 @@ static void execute_scene(Scene* blscene, IK_Scene* ikscene, bItasc* ikparam, fl
 		// in animation mode, we must get the bone position from action and constraints
 		for(i=0, ikchan=ikscene->channels; i<ikscene->numchan; i++, ++ikchan) {
 			if (!(ikchan->pchan->flag & POSE_DONE))
-				where_is_pose_bone(blscene, ikscene->blArmature, ikchan->pchan, ctime);
+				where_is_pose_bone(blscene, ikscene->blArmature, ikchan->pchan, ctime, 1);
 			// tell blender that this channel was controlled by IK, it's cleared on each where_is_pose()
 			ikchan->pchan->flag |= (POSE_DONE|POSE_CHAIN);
 			ikchan->jointValid = 0;

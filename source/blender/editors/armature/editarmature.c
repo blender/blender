@@ -637,15 +637,73 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_apply (wmOperatorType *ot)
+void POSE_OT_armature_apply (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Apply Pose as Rest Pose";
-	ot->idname= "POSE_OT_apply";
+	ot->idname= "POSE_OT_armature_apply";
 	ot->description= "Apply the current pose as the new rest pose";
 	
 	/* callbacks */
 	ot->exec= apply_armature_pose2bones_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+
+/* set the current pose as the restpose */
+static int pose_visual_transform_apply_exec (bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C); // must be active object, not edit-object
+
+	/* don't check if editmode (should be done by caller) */
+	if (ob->type!=OB_ARMATURE)
+		return OPERATOR_CANCELLED;
+
+	/* loop over all selected pchans
+	 *
+	 * TODO, loop over children before parents if multiple bones
+	 * at once are to be predictable*/
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones)
+	{
+		float delta_mat[4][4], imat[4][4], mat[4][4];
+
+		where_is_pose_bone(scene, ob, pchan, CFRA, 1);
+
+		copy_m4_m4(mat, pchan->pose_mat);
+
+		/* calculate pchan->pose_mat without loc/size/rot & constraints applied */
+		where_is_pose_bone(scene, ob, pchan, CFRA, 0);
+		invert_m4_m4(imat, pchan->pose_mat);
+		mul_m4_m4m4(delta_mat, mat, imat);
+
+		pchan_apply_mat4(pchan, delta_mat);
+
+		where_is_pose_bone(scene, ob, pchan, CFRA, 1);
+	}
+	CTX_DATA_END;
+
+	// ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_visual_transform_apply (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Apply Visual Transform to Pose";
+	ot->idname= "POSE_OT_visual_transform_apply";
+	ot->description= "Apply final constrained position of pose bones to their transform.";
+	
+	/* callbacks */
+	ot->exec= pose_visual_transform_apply_exec;
 	ot->poll= ED_operator_posemode;
 	
 	/* flags */

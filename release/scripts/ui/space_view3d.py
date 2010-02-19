@@ -990,8 +990,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("pose.apply")
-        layout.operator("pose.relax")
+        layout.menu("VIEW3D_MT_pose_apply")
 
         layout.separator()
 
@@ -1109,6 +1108,17 @@ class VIEW3D_MT_pose_constraints(bpy.types.Menu):
 
 class VIEW3D_MT_pose_showhide(VIEW3D_MT_showhide):
     _operator_name = "pose"
+
+
+class VIEW3D_MT_pose_apply(bpy.types.Menu):
+    bl_label = "Apply"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("pose.armature_apply")
+        layout.operator("pose.visual_transform_apply")
+
 
 # ********** Edit Menus, suffix from ob.type **********
 
@@ -2160,6 +2170,7 @@ classes = [
     VIEW3D_MT_pose_ik,
     VIEW3D_MT_pose_constraints,
     VIEW3D_MT_pose_showhide,
+    VIEW3D_MT_pose_apply,
 
     VIEW3D_MT_edit_mesh,
     VIEW3D_MT_edit_mesh_specials, # Only as a menu for keybindings

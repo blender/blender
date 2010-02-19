@@ -1682,6 +1682,7 @@ void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
 	}
 }
 
+/* see pchan_apply_mat4() for the equivalent 'pchan' function */
 void object_apply_mat4(Object *ob, float mat[][4])
 {
 	float mat3[3][3];

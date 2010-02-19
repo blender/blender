@@ -1266,8 +1266,36 @@ void armature_loc_pose_to_bone(bPoseChannel *pchan, float *inloc, float *outloc)
 	VECCOPY(outloc, nLocMat[3]);
 }
 
+
+/* Apply a 4x4 matrix to the pose bone,
+ * similar to object_apply_mat4()
+ */
+void pchan_apply_mat4(bPoseChannel *pchan, float mat[][4])
+{
+	/* location */
+	copy_v3_v3(pchan->loc, mat[3]);
+
+	/* scale */
+	mat4_to_size(pchan->size, mat);
+
+	/* rotation */
+	if (pchan->rotmode == ROT_MODE_AXISANGLE) {
+		float tmp_quat[4];
+
+		/* need to convert to quat first (in temp var)... */
+		mat4_to_quat(tmp_quat, mat);
+		quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, tmp_quat);
+	}
+	else if (pchan->rotmode == ROT_MODE_QUAT) {
+		mat4_to_quat(pchan->quat, mat);
+	}
+	else {
+		mat4_to_eulO(pchan->eul, pchan->rotmode, mat);
+	}
+}
+
 /* Remove rest-position effects from pose-transform for obtaining
- * 'visual' transformation of pose-channel. 
+ * 'visual' transformation of pose-channel.
  * (used by the Visual-Keyframing stuff)
  */
 void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float arm_mat[][4])
@@ -1895,7 +1923,7 @@ static void splineik_evaluate_bone(tSplineIK_Tree *tree, Scene *scene, Object *o
 	float splineVec[3], scaleFac, radius=1.0f;
 	
 	/* firstly, calculate the bone matrix the standard way, since this is needed for roll control */
-	where_is_pose_bone(scene, ob, pchan, ctime);
+	where_is_pose_bone(scene, ob, pchan, ctime, 1);
 	
 	VECCOPY(poseHead, pchan->pose_head);
 	VECCOPY(poseTail, pchan->pose_tail);
@@ -2263,8 +2291,10 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 
 
 /* The main armature solver, does all constraints excluding IK */
-/* pchan is validated, as having bone and parent pointer */
-void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float ctime)
+/* pchan is validated, as having bone and parent pointer
+ * 'do_extra': when zero skips loc/size/rot, constraints and strip modifiers.
+ */
+void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float ctime, int do_extra)
 {
 	Bone *bone, *parbone;
 	bPoseChannel *parchan;
@@ -2276,8 +2306,9 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 	parchan= pchan->parent;
 	
 	/* this gives a chan_mat with actions (ipos) results */
-	chan_calc_mat(pchan);
-	
+	if(do_extra)	chan_calc_mat(pchan);
+	else			unit_m4(pchan->chan_mat);
+
 	/* construct the posemat based on PoseChannels, that we do before applying constraints */
 	/* pose_mat(b)= pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b) */
 	
@@ -2342,32 +2373,34 @@ void where_is_pose_bone(Scene *scene, Object *ob, bPoseChannel *pchan, float cti
 			add_v3_v3v3(pchan->pose_mat[3], pchan->pose_mat[3], ob->pose->cyclic_offset);
 	}
 	
-	/* do NLA strip modifiers - i.e. curve follow */
-	do_strip_modifiers(scene, ob, bone, pchan);
-	
-	/* Do constraints */
-	if (pchan->constraints.first) {
-		bConstraintOb *cob;
+	if(do_extra) {
+		/* do NLA strip modifiers - i.e. curve follow */
+		do_strip_modifiers(scene, ob, bone, pchan);
 		
-		/* make a copy of location of PoseChannel for later */
-		VECCOPY(vec, pchan->pose_mat[3]);
-		
-		/* prepare PoseChannel for Constraint solving 
-		 * - makes a copy of matrix, and creates temporary struct to use 
-		 */
-		cob= constraints_make_evalob(scene, ob, pchan, CONSTRAINT_OBTYPE_BONE);
-		
-		/* Solve PoseChannel's Constraints */
-		solve_constraints(&pchan->constraints, cob, ctime);	// ctime doesnt alter objects
-		
-		/* cleanup after Constraint Solving 
-		 * - applies matrix back to pchan, and frees temporary struct used
-		 */
-		constraints_clear_evalob(cob);
-		
-		/* prevent constraints breaking a chain */
-		if(pchan->bone->flag & BONE_CONNECTED) {
-			VECCOPY(pchan->pose_mat[3], vec);
+		/* Do constraints */
+		if (pchan->constraints.first) {
+			bConstraintOb *cob;
+
+			/* make a copy of location of PoseChannel for later */
+			VECCOPY(vec, pchan->pose_mat[3]);
+
+			/* prepare PoseChannel for Constraint solving
+			 * - makes a copy of matrix, and creates temporary struct to use
+			 */
+			cob= constraints_make_evalob(scene, ob, pchan, CONSTRAINT_OBTYPE_BONE);
+
+			/* Solve PoseChannel's Constraints */
+			solve_constraints(&pchan->constraints, cob, ctime);	// ctime doesnt alter objects
+
+			/* cleanup after Constraint Solving
+			 * - applies matrix back to pchan, and frees temporary struct used
+			 */
+			constraints_clear_evalob(cob);
+
+			/* prevent constraints breaking a chain */
+			if(pchan->bone->flag & BONE_CONNECTED) {
+				VECCOPY(pchan->pose_mat[3], vec);
+			}
 		}
 	}
 	
@@ -2439,7 +2472,7 @@ void where_is_pose (Scene *scene, Object *ob)
 			}
 			/* 5. otherwise just call the normal solver */
 			else if(!(pchan->flag & POSE_DONE)) {
-				where_is_pose_bone(scene, ob, pchan, ctime);
+				where_is_pose_bone(scene, ob, pchan, ctime, 1);
 			}
 		}
 		/* 6. release the IK tree */
