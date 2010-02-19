@@ -1143,6 +1143,11 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	if(scene_to->id.lib) {
+		BKE_report(op->reports, RPT_ERROR, "Can't link objects into a linked scene");
+		return OPERATOR_CANCELLED;
+	}
+
 	CTX_DATA_BEGIN(C, Base*, base, selected_bases)
 	{
 		if(!object_in_scene(base->object, scene_to)) {
