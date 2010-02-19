@@ -62,11 +62,11 @@ public:
   inline real minEdgeSize() {return _minEdgeSize;}
 
 protected:
-	void insertShapeNode(ObjectRen *obr, int id);
-	int countClippedFaces(VertRen *v1, VertRen *v2, VertRen *v3, int clipped[3]);
-	void clipLine(VertRen *v1, VertRen *v2, float c[3], float z);
-	void clipTriangle(int numTris, float triCoords[][3], VertRen *v1, VertRen *v2, VertRen *v3, int clip[3]);
-	void addTriangle(struct LoaderState *state, float v1[3], float v2[3], float v3[3]);
+	void insertShapeNode(ObjectInstanceRen *obi, int id);
+	int countClippedFaces(float v1[3], float v2[3], float v3[3], int clip[3]);
+	void clipLine(float v1[3], float v2[3], float c[3], float z);
+	void clipTriangle(int numTris, float triCoords[][3], float v1[3], float v2[3], float v3[3], int clip[3]);
+	void addTriangle(struct LoaderState *ls, float v1[3], float v2[3], float v3[3]);
 
 protected:
 	Render* _re;
