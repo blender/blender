@@ -31,6 +31,19 @@
 /* internal exports only */
 struct wmOperatorType;
 
+struct bContext;
+struct Scene;
+struct Object;
+struct bAction;
+struct bPoseChannel;
+
+struct bArmature;
+struct EditBone;
+
+struct ListBase;
+struct LinkData;
+
+/* ******************************************************* */
 /* editarmature.c operators */
 void ARMATURE_OT_bone_primitive_add(struct wmOperatorType *ot);
 
@@ -119,7 +132,39 @@ void SKETCH_OT_cancel_stroke(struct wmOperatorType *ot);
 void SKETCH_OT_select(struct wmOperatorType *ot);
 
 /* ******************************************************* */
+/* Pose Tool Utilities (for PoseLib, Pose Sliding, etc.) */
+/* poseUtils.c */
+
+/* Temporary data linking PoseChannels with the F-Curves they affect */
+typedef struct tPChanFCurveLink {
+	struct tPChanFCurveLink *next, *prev;
+	
+	ListBase fcurves;			/* F-Curves for this PoseChannel (wrapped with LinkData) */
+	struct bPoseChannel *pchan;	/* Pose Channel which data is attached to */
+	
+	char *pchan_path;			/* RNA Path to this Pose Channel (needs to be freed when we're done) */
+	
+		// TODO: need to include axis-angle here at some stage
+	float oldloc[3];			/* transform values at start of operator (to be restored before each modal step) */
+	float oldrot[3];
+	float oldscale[3];
+	float oldquat[4];
+} tPChanFCurveLink;
+
+/* ----------- */
+
+void poseAnim_mapping_get(struct bContext *C, ListBase *pfLinks, struct Object *ob, struct bAction *act);
+void poseAnim_mapping_free(ListBase *pfLinks);
+
+void poseAnim_mapping_refresh(struct bContext *C, struct Scene *scene, struct Object *ob);
+void poseAnim_mapping_reset(ListBase *pfLinks);
+void poseAnim_mapping_autoKeyframe(struct bContext *C, struct Scene *scene, struct Object *ob, ListBase *pfLinks, float cframe);
+
+LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, char *path);
+
+/* ******************************************************* */
 /* PoseLib */
+/* poselib.c */
 
 void POSELIB_OT_pose_add(struct wmOperatorType *ot);
 void POSELIB_OT_pose_remove(struct wmOperatorType *ot);
@@ -128,6 +173,7 @@ void POSELIB_OT_browse_interactive(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* Pose Sliding Tools */
+/* poseSlide.c */
 
 void POSE_OT_push(struct wmOperatorType *ot);
 void POSE_OT_relax(struct wmOperatorType *ot);
@@ -135,9 +181,6 @@ void POSE_OT_breakdown(struct wmOperatorType *ot);
 
 /* ******************************************************* */
 /* editarmature.c */
-struct bArmature;
-struct EditBone;
-struct ListBase;
 
 EditBone *make_boneList(struct ListBase *edbo, struct ListBase *bones, struct EditBone *parent, struct Bone *actBone);
 void BIF_sk_selectStroke(struct bContext *C, short mval[2], short extend);

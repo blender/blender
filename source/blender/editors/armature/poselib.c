@@ -83,9 +83,6 @@
 
 /* ******* XXX ********** */
 
-static void BIF_undo_push() {}
-static void error() {}
-
 static void action_set_activemarker() {}
 
 /* ************************************************************* */
@@ -221,7 +218,7 @@ void poselib_validate_act (bAction *act)
 	
 	/* validate action and poselib */
 	if (act == NULL)  {
-		error("No Action to validate");
+		//error("No Action to validate");
 		return;
 	}
 	
@@ -233,6 +230,7 @@ void poselib_validate_act (bAction *act)
 	/* for each key, make sure there is a correspnding pose */
 	for (ak= keys.first; ak; ak= ak->next) {
 		/* check if any pose matches this */
+		// TODO: don't go looking through the list like this every time...
 		for (marker= act->markers.first; marker; marker= marker->next) {
 			if (IS_EQ(marker->frame, ak->cfra)) {
 				marker->flag = -1;
@@ -270,7 +268,7 @@ void poselib_validate_act (bAction *act)
 	/* free temp memory */
 	BLI_freelistN((ListBase *)&keys);
 	
-	BIF_undo_push("PoseLib Validate Action");
+	//BIF_undo_push("PoseLib Validate Action");
 }
 
 /* ************************************************************* */
@@ -627,18 +625,18 @@ typedef struct tPoseLib_PreviewData {
 	bAction *act;			/* poselib to use */
 	TimeMarker *marker;		/* 'active' pose */
 	
+	int selcount;			/* number of selected elements to work on */
+	int totcount;			/* total number of elements to work on */
+	
 	short state;			/* state of main loop */
 	short redraw;			/* redraw/update settings during main loop */
 	short flag;				/* flags for various settings */
 	
-	int selcount;			/* number of selected elements to work on */
-	int totcount;			/* total number of elements to work on */
-	
-	char headerstr[200];	/* Info-text to print in header */
-	
+	short search_cursor;	/* position of cursor in searchstr (cursor occurs before the item at the nominated index) */
 	char searchstr[64];		/* (Part of) Name to search for to filter poses that get shown */
 	char searchold[64];		/* Previously set searchstr (from last loop run), so that we can detected when to rebuild searchp */
-	short search_cursor;	/* position of cursor in searchstr (cursor occurs before the item at the nominated index) */
+	
+	char headerstr[200];	/* Info-text to print in header */
 } tPoseLib_PreviewData;
 
 /* defines for tPoseLib_PreviewData->state values */
@@ -1512,5 +1510,8 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* properties */	
-	RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
+		// TODO: make the pose_index into a proper enum instead of a cryptic int...
+	ot->prop= RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
+		// XXX: percentage vs factor?
+	RNA_def_float_factor(ot->srna, "blend_factor", 1.0f, 0.0f, 1.0f, "Blend Factor", "Amount that the pose is applied on top of the existing poses", 0.0f, 1.0f);
 }

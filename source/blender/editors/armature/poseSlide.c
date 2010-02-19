@@ -108,10 +108,6 @@ typedef struct tPoseSlideOp {
 	ListBase pfLinks;	/* links between posechannels and f-curves  */
 	DLRBT_Tree keys;	/* binary tree for quicker searching for keyframes (when applicable) */
 	
-	KeyingSet *ks_loc;	/* builtin KeyingSet for keyframing locations */
-	KeyingSet *ks_rot;	/* builtin KeyingSet for keyframing rotations */
-	KeyingSet *ks_scale;/* builtin KeyingSet for keyframing scale */
-	
 	int cframe;			/* current frame number */
 	int prevFrame;		/* frame before current frame (blend-from) */
 	int nextFrame;		/* frame after current frame (blend-to) */
@@ -128,21 +124,6 @@ typedef enum ePoseSlide_Modes {
 	POSESLIDE_RELAX,			/* soften the pose... */
 	POSESLIDE_BREAKDOWN,		/* slide between the endpoint poses, finding a 'soft' spot */
 } ePoseSlide_Modes;
-
-/* Temporary data linking PoseChannels with the F-Curves they affect */
-typedef struct tPChanFCurveLink {
-	struct tPChanFCurveLink *next, *prev;
-	
-	ListBase fcurves;		/* F-Curves for this PoseChannel */
-	bPoseChannel *pchan;	/* Pose Channel which data is attached to */
-	
-	char *pchan_path;		/* RNA Path to this Pose Channel (needs to be freed when we're done) */
-	
-	float oldloc[3];		/* transform values at start of operator (to be restored before each modal step) */
-	float oldrot[3];
-	float oldscale[3];
-	float oldquat[4];
-} tPChanFCurveLink;
 
 /* ------------------------------------ */
 
@@ -178,45 +159,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 	/* for each Pose-Channel which gets affected, get the F-Curves for that channel 
 	 * and set the relevant transform flags...
 	 */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
-	{
-		ListBase curves = {NULL, NULL};
-		int transFlags = action_get_item_transforms(act, pso->ob, pchan, &curves);
-		
-		pchan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
-		
-		/* check if any transforms found... */
-		if (transFlags) {
-			/* make new linkage data */
-			tPChanFCurveLink *pfl= MEM_callocN(sizeof(tPChanFCurveLink), "tPChanFCurveLink");
-			PointerRNA ptr;
-			
-			pfl->fcurves= curves;
-			pfl->pchan= pchan;
-			
-			/* get the RNA path to this pchan - this needs to be freed! */
-			RNA_pointer_create((ID *)pso->ob, &RNA_PoseBone, pchan, &ptr);
-			pfl->pchan_path= RNA_path_from_ID_to_struct(&ptr);
-			
-			/* add linkage data to operator data */
-			BLI_addtail(&pso->pfLinks, pfl);
-			
-			/* set pchan's transform flags */
-			if (transFlags & ACT_TRANS_LOC)
-				pchan->flag |= POSE_LOC;
-			if (transFlags & ACT_TRANS_ROT)
-				pchan->flag |= POSE_ROT;
-			if (transFlags & ACT_TRANS_SCALE)
-				pchan->flag |= POSE_SIZE;
-				
-			/* store current transforms */
-			VECCOPY(pfl->oldloc, pchan->loc);
-			VECCOPY(pfl->oldrot, pchan->eul);
-			VECCOPY(pfl->oldscale, pchan->size);
-			QUATCOPY(pfl->oldquat, pchan->quat);
-		}
-	}
-	CTX_DATA_END;
+	poseAnim_mapping_get(C, &pso->pfLinks, pso->ob, act);
 	
 	/* set depsgraph flags */
 		/* make sure the lock is set OK, unlock can be accidentally saved? */
@@ -227,11 +170,6 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 	 * to the caller of this (usually only invoke() will do it, to make things more efficient).
 	 */
 	BLI_dlrbTree_init(&pso->keys);
-	
-	/* get builtin KeyingSets */
-	pso->ks_loc= ANIM_builtin_keyingset_get_named(NULL, "Location");
-	pso->ks_rot= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
-	pso->ks_scale= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
 	
 	/* return status is whether we've got all the data we were requested to get */
 	return 1;
@@ -244,21 +182,8 @@ static void pose_slide_exit (bContext *C, wmOperator *op)
 	
 	/* if data exists, clear its data and exit */
 	if (pso) {
-		tPChanFCurveLink *pfl, *pfln=NULL;
-		
 		/* free the temp pchan links and their data */
-		for (pfl= pso->pfLinks.first; pfl; pfl= pfln) {
-			pfln= pfl->next;
-			
-			/* free list of F-Curve reference links */
-			BLI_freelistN(&pfl->fcurves);
-			
-			/* free pchan RNA Path */
-			MEM_freeN(pfl->pchan_path);
-			
-			/* free link itself */
-			BLI_freelinkN(&pso->pfLinks, pfl);
-		}
+		poseAnim_mapping_free(&pso->pfLinks);
 		
 		/* free RB-BST for keyframes (if it contained data) */
 		BLI_dlrbTree_free(&pso->keys);
@@ -276,36 +201,8 @@ static void pose_slide_exit (bContext *C, wmOperator *op)
 /* helper for apply() / reset() - refresh the data */
 static void pose_slide_refresh (bContext *C, tPoseSlideOp *pso)
 {
-	/* old optimize trick... this enforces to bypass the depgraph 
-	 *	- note: code copied from transform_generics.c -> recalcData()
-	 */
-	// FIXME: shouldn't this use the builtin stuff?
-	if ((pso->arm->flag & ARM_DELAYDEFORM)==0)
-		DAG_id_flush_update(&pso->ob->id, OB_RECALC_DATA);  /* sets recalc flags */
-	else
-		where_is_pose(pso->scene, pso->ob);
-	
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, pso->ob);
-}
-
-/* helper for apply() callabcks - find the next F-Curve with matching path... */
-static LinkData *find_next_fcurve_link (ListBase *fcuLinks, LinkData *prev, char *path)
-{
-	LinkData *first= (prev)? prev->next : (fcuLinks)? fcuLinks->first : NULL;
-	LinkData *ld;
-	
-	/* check each link to see if the linked F-Curve has a matching path */
-	for (ld= first; ld; ld= ld->next) {
-		FCurve *fcu= (FCurve *)ld->data;
-		
-		/* check if paths match */
-		if (strcmp(path, fcu->rna_path) == 0)
-			return ld;
-	}	
-	
-	/* none found */
-	return NULL;
+	/* wrapper around the generic version, allowing us to add some custom stuff later still */
+	poseAnim_mapping_refresh(C, pso->scene, pso->ob);
 }
 
 /* helper for apply() - perform sliding for some 3-element vector */
@@ -322,7 +219,7 @@ static void pose_slide_apply_vec3 (tPoseSlideOp *pso, tPChanFCurveLink *pfl, flo
 	cframe= (float)pso->cframe;
 	
 	/* using this path, find each matching F-Curve for the variables we're interested in */
-	while ( (ld= find_next_fcurve_link(&pfl->fcurves, ld, path)) ) {
+	while ( (ld= poseAnim_mapping_getNextFCurve(&pfl->fcurves, ld, path)) ) {
 		FCurve *fcu= (FCurve *)ld->data;
 		float sVal, eVal;
 		float w1, w2;
@@ -422,7 +319,7 @@ static void pose_slide_apply_quat (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 	cframe= (float)pso->cframe;
 	
 	/* using this path, find each matching F-Curve for the variables we're interested in */
-	while ( (ld= find_next_fcurve_link(&pfl->fcurves, ld, path)) ) {
+	while ( (ld= poseAnim_mapping_getNextFCurve(&pfl->fcurves, ld, path)) ) {
 		FCurve *fcu= (FCurve *)ld->data;
 		
 		/* assign this F-Curve to one of the relevant pointers... */
@@ -551,48 +448,15 @@ static void pose_slide_apply (bContext *C, wmOperator *op, tPoseSlideOp *pso)
 /* perform autokeyframing after changes were made + confirmed */
 static void pose_slide_autoKeyframe (bContext *C, tPoseSlideOp *pso)
 {
-	/* insert keyframes as necessary if autokeyframing */
-	if (autokeyframe_cfra_can_key(pso->scene, &pso->ob->id)) {
-		bCommonKeySrc cks;
-		ListBase dsources = {&cks, &cks};
-		tPChanFCurveLink *pfl;
-		
-		/* init common-key-source for use by KeyingSets */
-		memset(&cks, 0, sizeof(bCommonKeySrc));
-		cks.id= &pso->ob->id;
-		
-		/* iterate over each pose-channel affected, applying the changes */
-		for (pfl= pso->pfLinks.first; pfl; pfl= pfl->next) {
-			bPoseChannel *pchan= pfl->pchan;
-			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-			cks.pchan= pchan;
-			
-			/* insert keyframes */
-			if (pchan->flag & POSE_LOC)
-				modify_keyframes(pso->scene, &dsources, NULL, pso->ks_loc, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
-			if (pchan->flag & POSE_ROT)
-				modify_keyframes(pso->scene, &dsources, NULL, pso->ks_rot, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
-			if (pchan->flag & POSE_SIZE)
-				modify_keyframes(pso->scene, &dsources, NULL, pso->ks_scale, MODIFYKEY_MODE_INSERT, (float)pso->cframe);
-		}
-	}
+	/* wrapper around the generic call */
+	poseAnim_mapping_autoKeyframe(C, pso->scene, pso->ob, &pso->pfLinks, (float)pso->cframe);
 }
 
 /* reset changes made to current pose */
 static void pose_slide_reset (bContext *C, tPoseSlideOp *pso)
 {
-	tPChanFCurveLink *pfl;
-	
-	/* iterate over each pose-channel affected, restoring all channels to their original values */
-	for (pfl= pso->pfLinks.first; pfl; pfl= pfl->next) {
-		bPoseChannel *pchan= pfl->pchan;
-		
-		/* just copy all the values over regardless of whether they changed or not */
-		VECCOPY(pchan->loc, pfl->oldloc);
-		VECCOPY(pchan->eul, pfl->oldrot);
-		VECCOPY(pchan->size, pfl->oldscale);
-		QUATCOPY(pchan->quat, pfl->oldquat);
-	}
+	/* wrapper around the generic call, so that custom stuff can be added later */
+	poseAnim_mapping_reset(&pso->pfLinks);
 }
 
 /* ------------------------------------ */
