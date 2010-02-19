@@ -574,6 +574,19 @@ const struct ListBase *RNA_struct_defined_properties(StructRNA *srna)
 
 FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 {
+#if 1
+	FunctionRNA *func;
+	StructRNA *type;
+	for(type= ptr->type; type; type= type->base) {
+		for(func= type->functions.first; func; func= func->cont.next) {
+			if(strcmp(func->identifier, identifier)==0)
+				return func;
+		}
+	}
+	return NULL;
+
+	/* funcitonal but slow */
+#else
 	PointerRNA tptr;
 	PropertyRNA *iterprop;
 	FunctionRNA *func;
@@ -592,6 +605,7 @@ FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 	RNA_PROP_END;
 
 	return func;
+#endif
 }
 
 const struct ListBase *RNA_struct_defined_functions(StructRNA *srna)
