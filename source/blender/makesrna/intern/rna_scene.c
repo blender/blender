@@ -704,6 +704,32 @@ static void rna_Scene_simplify_update(Main *bmain, Scene *scene, PointerRNA *ptr
 	WM_main_add_notifier(NC_GEOM|ND_DATA, NULL);
 }
 
+static int rna_Scene_sync_mode_get(PointerRNA *ptr)
+{
+	Scene *scene= (Scene*)ptr->data;
+	if(scene->audio.flag & AUDIO_SYNC)
+		return AUDIO_SYNC;
+	return scene->flag & SCE_FRAME_DROP;
+}
+
+static void rna_Scene_sync_mode_set(PointerRNA *ptr, int value)
+{
+	Scene *scene= (Scene*)ptr->data;
+
+	if(value == AUDIO_SYNC)
+		scene->audio.flag |= AUDIO_SYNC;
+	else if(value == SCE_FRAME_DROP)
+	{
+		scene->audio.flag &= ~AUDIO_SYNC;
+		scene->flag |= SCE_FRAME_DROP;
+	}
+	else
+	{
+		scene->audio.flag &= ~AUDIO_SYNC;
+		scene->flag &= ~SCE_FRAME_DROP;
+	}
+}
+
 #else
 
 static void rna_def_transform_orientation(BlenderRNA *brna)
@@ -2600,6 +2626,12 @@ void RNA_def_scene(BlenderRNA *brna)
 		{6, "EXPONENT_CLAMPED", 0, "Exponent Clamped", "Exponent distance model with clamping"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem sync_mode_items[] = {
+		{0, "NONE", 0, "No Sync", "Do not sync, play every frame"},
+		{SCE_FRAME_DROP, "FRAME_DROP", 0, "Frame Dropping", "Drop frames if playback is too slow"},
+		{AUDIO_SYNC, "AUDIO_SYNC", 0, "AV-sync", "Sync to audio playback, dropping frames"},
+		{0, NULL, 0, NULL, NULL}};
+
 	/* Struct definition */
 	srna= RNA_def_struct(brna, "Scene", "ID");
 	RNA_def_struct_ui_text(srna, "Scene", "Scene consisting objects and defining time and render related settings");
@@ -2725,7 +2757,19 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "NLA TweakMode", "Indicates whether there is any action referenced by NLA being edited. Strictly read-only");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_GRAPH, NULL);
 	
-	
+	/* Frame dropping flag for playback and sync enum */
+	prop= RNA_def_property(srna, "frame_drop", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_FRAME_DROP);
+	RNA_def_property_ui_text(prop, "Frame Dropping", "Play back dropping frames if frame display is too slow");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop= RNA_def_property(srna, "sync_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_funcs(prop, "rna_Scene_sync_mode_get", "rna_Scene_sync_mode_set", NULL);
+	RNA_def_property_enum_items(prop, sync_mode_items);
+	RNA_def_property_ui_text(prop, "Sync Mode", "How to sync playback");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+
 	/* Nodes (Compositing) */
 	prop= RNA_def_property(srna, "nodetree", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Node Tree", "Compositing node tree");

@@ -47,7 +47,7 @@ enum {
 	ANIMPLAY_FLAG_JUMPED		= (1<<1),
 		/* drop frames as needed to maintain framerate */
 	ANIMPLAY_FLAG_SYNC			= (1<<2),
-		/* don't drop frames (and ignore AUDIO_SYNC flag) */
+		/* don't drop frames (and ignore SCE_FRAME_DROP flag) */
 	ANIMPLAY_FLAG_NO_SYNC		= (1<<3),
 };
 

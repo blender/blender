@@ -1067,6 +1067,7 @@ typedef struct Scene {
 #define SCE_DS_SELECTED			(1<<0)
 #define SCE_DS_COLLAPSED		(1<<1)
 #define SCE_NLA_EDIT_ON			(1<<2)
+#define SCE_FRAME_DROP			(1<<3)
 
 
 	/* return flag next_object function */

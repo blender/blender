@@ -2426,23 +2426,30 @@ static int screen_animation_step(bContext *C, wmOperator *op, wmEvent *event)
 		/* sync, don't sync, or follow scene setting */
 		if(sad->flag & ANIMPLAY_FLAG_SYNC) sync= 1;
 		else if(sad->flag & ANIMPLAY_FLAG_NO_SYNC) sync= 0;
-		else sync= (scene->audio.flag & AUDIO_SYNC);
+		else sync= (scene->flag & SCE_FRAME_DROP);
 		
-		if(sync) {
-			/* skip frames */
-			int step = floor(wt->duration * FPS);
-			if(sad->flag & ANIMPLAY_FLAG_REVERSE) // XXX does this option work with audio?
-				scene->r.cfra -= step;
-			else
-				scene->r.cfra += step;
-			wt->duration -= ((float)step)/FPS;
+		if((scene->audio.flag & AUDIO_SYNC) && !(sad->flag & ANIMPLAY_FLAG_REVERSE))
+		{
+			scene->r.cfra = floor(sound_sync_scene(scene) * FPS);
 		}
-		else {
-			/* one frame +/- */
-			if(sad->flag & ANIMPLAY_FLAG_REVERSE)
-				scene->r.cfra--;
-			else
-				scene->r.cfra++;
+		else
+		{
+			if(sync) {
+				int step = floor(wt->duration * FPS);
+				/* skip frames */
+				if(sad->flag & ANIMPLAY_FLAG_REVERSE)
+					scene->r.cfra -= step;
+				else
+					scene->r.cfra += step;
+				wt->duration -= ((float)step)/FPS;
+			}
+			else {
+				/* one frame +/- */
+				if(sad->flag & ANIMPLAY_FLAG_REVERSE)
+					scene->r.cfra--;
+				else
+					scene->r.cfra++;
+			}
 		}
 		
 		/* reset 'jumped' flag before checking if we need to jump... */

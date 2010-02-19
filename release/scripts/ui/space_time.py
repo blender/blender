@@ -72,7 +72,7 @@ class TIME_HT_header(bpy.types.Header):
             subsub = row.row()
             subsub.prop(tools, "record_with_nla", toggle=True)
 
-        layout.prop(scene, "sync_audio", text="AV-sync", toggle=True, icon='SPEAKER')
+        layout.prop(scene, "sync_mode", text="")
 
         layout.separator()
 
@@ -152,6 +152,7 @@ class TIME_MT_playback(bpy.types.Menu):
 
         layout.separator()
 
+        layout.prop(scene, "frame_drop", text="Frame Dropping")
         layout.prop(scene, "sync_audio", text="AV-sync", icon='SPEAKER')
         layout.prop(scene, "mute_audio")
         layout.prop(scene, "scrub_audio")
