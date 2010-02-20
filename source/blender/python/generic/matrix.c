@@ -217,7 +217,7 @@ static PyObject *Matrix_toQuat(MatrixObject * self)
 	
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if(self->colSize < 3 || self->rowSize < 3 || (self->colSize != self->rowSize)) {
-		PyErr_SetString(PyExc_AttributeError, "Matrix.toQuat(): inappropriate matrix size - expects 3x3 or 4x4 matrix");
+		PyErr_SetString(PyExc_AttributeError, "Matrix.to_quat(): inappropriate matrix size - expects 3x3 or 4x4 matrix");
 		return NULL;
 	} 
 	if(self->colSize == 3){
@@ -228,12 +228,15 @@ static PyObject *Matrix_toQuat(MatrixObject * self)
 	
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
+
 /*---------------------------Matrix.toEuler() --------------------*/
 static char Matrix_toEuler_doc[] =
-".. method:: to_euler(euler_compat)\n"
+".. method:: to_euler(order, euler_compat)\n"
 "\n"
 "   Return an Euler representation of the rotation matrix (3x3 or 4x4 matrix only).\n"
 "\n"
+"   :arg order: Optional rotation order argument in ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX'].\n"
+"   :type order: string\n"
 "   :arg euler_compat: Optional euler argument the new euler will be made compatible with (no axis flipping between them). Useful for converting a series of matrices to animation curves.\n"
 "   :type euler_compat: :class:`Euler`\n"
 "   :return: Euler representation of the matrix.\n"
@@ -241,53 +244,55 @@ static char Matrix_toEuler_doc[] =
 
 PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 {
+	char *order_str= NULL;
+	short order= 0;
 	float eul[3], eul_compatf[3];
 	EulerObject *eul_compat = NULL;
-#ifdef USE_MATHUTILS_DEG
-	int x;
-#endif
+
+	float tmat[3][3];
+	float (*mat)[3];
 	
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
-	if(!PyArg_ParseTuple(args, "|O!:toEuler", &euler_Type, &eul_compat))
+	if(!PyArg_ParseTuple(args, "|sO!:to_euler", &order_str, &euler_Type, &eul_compat))
 		return NULL;
 	
 	if(eul_compat) {
 		if(!BaseMath_ReadCallback(eul_compat))
 			return NULL;
 
-#ifdef USE_MATHUTILS_DEG
-		for(x = 0; x < 3; x++) {
-			eul_compatf[x] = eul_compat->eul[x] * ((float)Py_PI / 180);
-		}
-#else
 		VECCOPY(eul_compatf, eul_compat->eul);
-#endif
 	}
 	
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if(self->colSize ==3 && self->rowSize ==3) {
-		if(eul_compat)	mat3_to_compatible_eul( eul, eul_compatf,(float (*)[3])*self->matrix);
-		else			mat3_to_eul( eul,(float (*)[3])*self->matrix);
+		mat= (float (*)[3])self->matrix;
 	}else if (self->colSize ==4 && self->rowSize ==4) {
-		float tempmat3[3][3];
-		copy_m3_m4(tempmat3, (float (*)[4])*self->matrix);
-		mat3_to_eul( eul,tempmat3);
-		if(eul_compat)	mat3_to_compatible_eul( eul, eul_compatf,tempmat3);
-		else			mat3_to_eul( eul,tempmat3);
-		
+		copy_m3_m4(tmat, (float (*)[4])*self->matrix);
+		mat= tmat;
 	}else {
-		PyErr_SetString(PyExc_AttributeError, "Matrix.toEuler(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
+		PyErr_SetString(PyExc_AttributeError, "Matrix.to_euler(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
 		return NULL;
 	}
-#ifdef USE_MATHUTILS_DEG
-	/*have to convert to degrees*/
-	for(x = 0; x < 3; x++) {
-		eul[x] *= (float) (180 / Py_PI);
+
+	if(order_str) {
+		order= euler_order_from_string(order_str, "Matrix.to_euler()");
+
+		if(order < 0)
+			return NULL;
 	}
-#endif
-	return newEulerObject(eul, Py_NEW, NULL);
+
+	if(eul_compat) {
+		if(order == 0)	mat3_to_compatible_eul( eul, eul_compatf, mat);
+		else			mat3_to_compatible_eulO(eul, eul_compatf, order, mat);
+	}
+	else {
+		if(order == 0)	mat3_to_eul(eul, mat);
+		else			mat3_to_eulO(eul, order, mat);
+	}
+
+	return newEulerObject(eul, order, Py_NEW, NULL);
 }
 /*---------------------------Matrix.resize4x4() ------------------*/
 static char Matrix_Resize4x4_doc[] =
@@ -367,21 +372,15 @@ static char Matrix_TranslationPart_doc[] =
 
 PyObject *Matrix_TranslationPart(MatrixObject * self)
 {
-	float vec[4];
-	
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
 	
 	if(self->colSize < 3 || self->rowSize < 4){
-		PyErr_SetString(PyExc_AttributeError, "Matrix.translationPart: inappropriate matrix size");
+		PyErr_SetString(PyExc_AttributeError, "Matrix.translation_part(): inappropriate matrix size");
 		return NULL;
 	}
 
-	vec[0] = self->matrix[3][0];
-	vec[1] = self->matrix[3][1];
-	vec[2] = self->matrix[3][2];
-
-	return newVectorObject(vec, 3, Py_NEW, NULL);
+	return newVectorObject(self->matrix[3], 3, Py_NEW, NULL);
 }
 /*---------------------------Matrix.rotationPart() ---------------*/
 static char Matrix_RotationPart_doc[] =
@@ -403,7 +402,7 @@ PyObject *Matrix_RotationPart(MatrixObject * self)
 		return NULL;
 
 	if(self->colSize < 3 || self->rowSize < 3){
-		PyErr_SetString(PyExc_AttributeError, "Matrix.rotationPart: inappropriate matrix size\n");
+		PyErr_SetString(PyExc_AttributeError, "Matrix.rotation_part(): inappropriate matrix size\n");
 		return NULL;
 	}
 
@@ -444,7 +443,7 @@ PyObject *Matrix_scalePart(MatrixObject * self)
 	else if(self->colSize == 3 && self->rowSize == 3)
 		copy_m3_m3(mat, (float (*)[3])*self->matrix);
 	else {
-		PyErr_SetString(PyExc_AttributeError, "Matrix.scalePart(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
+		PyErr_SetString(PyExc_AttributeError, "Matrix.scale_part(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
 		return NULL;
 	}
 	/* functionality copied from editobject.c apply_obmat */

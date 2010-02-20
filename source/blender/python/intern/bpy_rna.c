@@ -65,6 +65,11 @@ static Py_ssize_t pyrna_prop_collection_length( BPy_PropertyRNA *self );
 /* bpyrna vector/euler/quat callbacks */
 static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
 
+/* not used yet but may want to use the subtype below */
+#define MATHUTILS_CB_SUBTYPE_EUL 0
+#define MATHUTILS_CB_SUBTYPE_VEC 1
+#define MATHUTILS_CB_SUBTYPE_QUAT 2
+
 static int mathutils_rna_generic_check(BPy_PropertyRNA *self)
 {
 	return self->prop?1:0;
@@ -181,7 +186,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 					RNA_property_float_get_array(ptr, prop, ((VectorObject *)ret)->vec);
 				}
 				else {
-					PyObject *vec_cb= newVectorObject_cb(ret, len, mathutils_rna_array_cb_index, FALSE);
+					PyObject *vec_cb= newVectorObject_cb(ret, len, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_VEC);
 					Py_DECREF(ret); /* the vector owns now */
 					ret= vec_cb; /* return the vector instead */
 				}
@@ -215,11 +220,11 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 		case PROP_QUATERNION:
 			if(len==3) { /* euler */
 				if(is_thick) {
-					ret= newEulerObject(NULL, Py_NEW, NULL);
+					ret= newEulerObject(NULL, 0, Py_NEW, NULL); // TODO, get order from RNA
 					RNA_property_float_get_array(ptr, prop, ((EulerObject *)ret)->eul);
 				}
 				else {
-					PyObject *eul_cb= newEulerObject_cb(ret, mathutils_rna_array_cb_index, FALSE);
+					PyObject *eul_cb= newEulerObject_cb(ret, 0, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_EUL); // TODO, get order from RNA
 					Py_DECREF(ret); /* the matrix owns now */
 					ret= eul_cb; /* return the matrix instead */
 				}
@@ -230,7 +235,7 @@ PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
 					RNA_property_float_get_array(ptr, prop, ((QuaternionObject *)ret)->quat);
 				}
 				else {
-					PyObject *quat_cb= newQuaternionObject_cb(ret, mathutils_rna_array_cb_index, FALSE);
+					PyObject *quat_cb= newQuaternionObject_cb(ret, mathutils_rna_array_cb_index, MATHUTILS_CB_SUBTYPE_QUAT);
 					Py_DECREF(ret); /* the matrix owns now */
 					ret= quat_cb; /* return the matrix instead */
 				}

@@ -2876,7 +2876,7 @@ Takes:  {''')
                                 context_bone_anim_vecs = []
                                 prev_eul = None
                                 for mtx in context_bone_anim_mats:
-                                    if prev_eul:	prev_eul = mtx[1].to_euler(prev_eul)
+                                    if prev_eul:	prev_eul = mtx[1].to_euler('XYZ', prev_eul)
                                     else:			prev_eul = mtx[1].to_euler()
                                     context_bone_anim_vecs.append(eulerRadToDeg(prev_eul))
 # 									context_bone_anim_vecs.append(prev_eul)

@@ -34,10 +34,12 @@
 
 //-----------------------------METHODS------------------------------
 static char Quaternion_ToEuler_doc[] =
-".. method:: to_euler(euler_compat)\n"
+".. method:: to_euler(order, euler_compat)\n"
 "\n"
 "   Return Euler representation of the quaternion.\n"
 "\n"
+"   :arg order: Optional rotation order argument in ['XYZ', 'XZY', 'YXZ', 'YZX', 'ZXY', 'ZYX'].\n"
+"   :type order: string\n"
 "   :arg euler_compat: Optional euler argument the new euler will be made compatible with (no axis flipping between them). Useful for converting a series of matrices to animation curves.\n"
 "   :type euler_compat: :class:`Euler`\n"
 "   :return: Euler representation of the quaternion.\n"
@@ -46,13 +48,22 @@ static char Quaternion_ToEuler_doc[] =
 static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 {
 	float eul[3];
+	char *order_str= NULL;
+	short order= 0;
 	EulerObject *eul_compat = NULL;
 	
-	if(!PyArg_ParseTuple(args, "|O!:toEuler", &euler_Type, &eul_compat))
+	if(!PyArg_ParseTuple(args, "|sO!:to_euler", &order_str, &euler_Type, &eul_compat))
 		return NULL;
 	
 	if(!BaseMath_ReadCallback(self))
 		return NULL;
+
+	if(order_str) {
+		order= euler_order_from_string(order_str, "Matrix.to_euler()");
+
+		if(order < 0)
+			return NULL;
+	}
 
 	if(eul_compat) {
 		float mat[3][3];
@@ -60,36 +71,17 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 		if(!BaseMath_ReadCallback(eul_compat))
 			return NULL;
 		
-		quat_to_mat3( mat,self->quat);
+		quat_to_mat3(mat, self->quat);
 
-#ifdef USE_MATHUTILS_DEG
-		{
-			float  eul_compatf[3];
-			int x;
-
-			for(x = 0; x < 3; x++) {
-				eul_compatf[x] = eul_compat->eul[x] * ((float)Py_PI / 180);
-			}
-			mat3_to_compatible_eul( eul, eul_compatf,mat);
-		}
-#else
-		mat3_to_compatible_eul( eul, eul_compat->eul,mat);
-#endif
+		if(order == 0)	mat3_to_compatible_eul(eul, eul_compat->eul, mat);
+		else			mat3_to_compatible_eulO(eul, order, eul_compat->eul, mat);
 	}
 	else {
-		quat_to_eul( eul,self->quat);
+		if(order == 0)	quat_to_eul(eul, self->quat);
+		else			quat_to_eulO(eul, order, self->quat);
 	}
 	
-#ifdef USE_MATHUTILS_DEG
-	{
-		int x;
-
-		for(x = 0; x < 3; x++) {
-			eul[x] *= (180 / (float)Py_PI);
-		}
-	}
-#endif
-	return newEulerObject(eul, Py_NEW, NULL);
+	return newEulerObject(eul, order, Py_NEW, NULL);
 }
 //----------------------------Quaternion.toMatrix()------------------
 static char Quaternion_ToMatrix_doc[] =
@@ -218,8 +210,8 @@ static PyObject *Quaternion_Slerp(QuaternionObject *self, PyObject *args)
 	QuaternionObject *value;
 	float quat[4], fac;
 
-	if(!PyArg_ParseTuple(args, "O!f", &quaternion_Type, &value, &fac)) {
-		PyErr_SetString(PyExc_TypeError, "Mathutils.Slerp(): expected Quaternion types and float");
+	if(!PyArg_ParseTuple(args, "O!f:slerp", &quaternion_Type, &value, &fac)) {
+		PyErr_SetString(PyExc_TypeError, "quat.slerp(): expected Quaternion types and float");
 		return NULL;
 	}
 
@@ -227,7 +219,7 @@ static PyObject *Quaternion_Slerp(QuaternionObject *self, PyObject *args)
 		return NULL;
 
 	if(fac > 1.0f || fac < 0.0f) {
-		PyErr_SetString(PyExc_AttributeError, "Mathutils.Slerp(): interpolation factor must be between 0.0 and 1.0");
+		PyErr_SetString(PyExc_AttributeError, "quat.slerp(): interpolation factor must be between 0.0 and 1.0");
 		return NULL;
 	}
 
@@ -698,12 +690,7 @@ static PyObject *Quaternion_getMagnitude( QuaternionObject * self, void *type )
 
 static PyObject *Quaternion_getAngle( QuaternionObject * self, void *type )
 {
-	double ang = self->quat[0];
-	ang = 2 * (saacos(ang));
-#ifdef USE_MATHUTILS_DEG
-	ang *= (180 / Py_PI);
-#endif
-	return PyFloat_FromDouble(ang);
+	return PyFloat_FromDouble(2.0 * (saacos(self->quat[0])));
 }
 
 static PyObject *Quaternion_getAxisVec( QuaternionObject * self, void *type )
@@ -815,11 +802,7 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 	}
 
 	if(size == 3) //calculate the quat based on axis/angle
-#ifdef USE_MATHUTILS_DEG
-		axis_angle_to_quat(quat, quat, angle * (Py_PI / 180));
-#else
 		axis_angle_to_quat(quat, quat, angle);
-#endif
 
 	return newQuaternionObject(quat, Py_NEW, NULL);
 }
