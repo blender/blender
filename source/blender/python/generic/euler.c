@@ -32,6 +32,7 @@
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 
+#include "BLO_sys_types.h"
 
 //----------------------------------Mathutils.Euler() -------------------
 //makes a new euler for you to play with

@@ -33,8 +33,6 @@
 
 #include <Python.h>
 
-#include "BLO_sys_types.h"
-
 #include "vector.h"
 #include "matrix.h"
 #include "quat.h"
