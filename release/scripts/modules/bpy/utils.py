@@ -167,9 +167,15 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     traceback.print_exc()
         _loaded[:] = []
 
-
+    unix_scripts = _os.path.expanduser("~/.blender/scripts")
     for base_path in script_paths():
         for path_subdir in ("", "ui", "op", "io", "cfg"):
+
+            # temp workaround
+            if not path_subdir and unix_scripts == base_path:
+                # print("skipping", base_path)
+                continue
+
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
                 sys_path_ensure(path)
