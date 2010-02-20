@@ -167,15 +167,8 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     traceback.print_exc()
         _loaded[:] = []
 
-    unix_scripts = _os.path.expanduser("~/.blender/scripts")
-    for base_path in script_paths():
-        for path_subdir in ("", "ui", "op", "io", "cfg"):
-
-            # temp workaround
-            if not path_subdir and unix_scripts == base_path:
-                # print("skipping", base_path)
-                continue
-
+    for base_path in script_paths(user = False):
+        for path_subdir in ("ui", "op", "io", "cfg"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
                 sys_path_ensure(path)
@@ -183,6 +176,15 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
 
+    user_path = user_script_path()
+    if user_path:
+        for path_subdir in ("", "ui", "op", "io", "cfg"):
+            path = _os.path.join(user_path, path_subdir)
+            if _os.path.isdir(path):
+                sys_path_ensure(path)
+    
+                for mod in modules_from_path(path, loaded_modules):
+                    test_register(mod)
 
     # load extensions
     used_ext = {ext.module for ext in _bpy.context.user_preferences.extensions}    
@@ -230,7 +232,7 @@ def clean_name(name, replace="_"):
     """
     Returns a name with characters replaced that may cause problems under various circumstances, such as writing to a file.
     All characters besides A-Z/a-z, 0-9 are replaced with "_"
-    or the replace argumet if defined.
+    or the replace argument if defined.
     """
     for ch in _unclean_chars:
         name = name.replace(ch, replace)
@@ -260,8 +262,16 @@ def display_name(name):
 _scripts = _os.path.join(_os.path.dirname(__file__), _os.path.pardir, _os.path.pardir)
 _scripts = (_os.path.normpath(_scripts), )
 
+def user_script_path():
+    path = _bpy.context.user_preferences.filepaths.python_scripts_directory
+        
+    if path:
+        path = _os.path.normpath(path)
+        return path
+    else:
+        return None
 
-def script_paths(*args):
+def script_paths(subdir = None, user = True):
     """
     Returns a list of valid script paths from the home directory and user preferences.
 
@@ -270,18 +280,20 @@ def script_paths(*args):
     scripts = list(_scripts)
 
     # add user scripts dir
-    user_script_path = _bpy.context.user_preferences.filepaths.python_scripts_directory
-    
+    if user:
+        user_script_path = _bpy.context.user_preferences.filepaths.python_scripts_directory
+    else:
+        user_script_path = None
+        
     for path in home_paths("scripts") + (user_script_path, ):
         if path:
             path = _os.path.normpath(path)
             if path not in scripts and _os.path.isdir(path):
                 scripts.append(path)
 
-    if not args:
+    if not subdir:
         return scripts
 
-    subdir = _os.path.join(*args)
     script_paths = []
     for path in scripts:
         path_subdir = _os.path.join(path, subdir)
