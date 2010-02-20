@@ -31,6 +31,7 @@
 #define TRANSFORM_H
 
 #include "ED_transform.h"
+#include "ED_numinput.h"
 
 #include "DNA_listBase.h"
 
@@ -68,14 +69,6 @@ typedef struct NDofInput {
 	float	factor[3];
 } NDofInput;
 
-typedef struct NumInput {
-    short  idx;
-    short  idx_max;
-    short  flag;        /* Different flags to indicate different behaviors                                */
-    char   inv[3];      /* If the value is inverted or not                                                */
-    float  val[3];      /* Direct value of the input                                                      */
-    int    ctrl[3];     /* Control to indicate what to do with the numbers that are typed                 */
-} NumInput ;
 
 /*
 	The ctrl value has different meaning:
@@ -333,13 +326,6 @@ typedef struct TransInfo {
 
 
 /* ******************** Macros & Prototypes *********************** */
-
-/* NUMINPUT FLAGS */
-#define NUM_NULL_ONE		2
-#define NUM_NO_NEGATIVE		4
-#define	NUM_NO_ZERO			8
-#define NUM_NO_FRACTION		16
-#define	NUM_AFFECT_ALL		32
 
 /* NDOFINPUT FLAGS */
 #define NDOF_INIT			1
@@ -678,17 +664,6 @@ void calculatePropRatio(TransInfo *t);
 
 void getViewVector(TransInfo *t, float coord[3], float vec[3]);
 
-/*********************** NumInput ********************************/
-
-void initNumInput(NumInput *n);
-void outputNumInput(NumInput *n, char *str);
-short hasNumInput(NumInput *n);
-void applyNumInput(NumInput *n, float *vec);
-char handleNumInput(NumInput *n, struct wmEvent *event, float increment);
-
-#define TFM_MODAL_INCREMENT_UP   18
-#define TFM_MODAL_INCREMENT_DOWN 19
-
 /*********************** NDofInput ********************************/
 
 void initNDofInput(NDofInput *n);
@@ -733,5 +708,3 @@ int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
 void freeSlideVerts(TransInfo *t);
 
 #endif
-
-

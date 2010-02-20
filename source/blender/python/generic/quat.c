@@ -74,7 +74,7 @@ static PyObject *Quaternion_ToEuler(QuaternionObject * self, PyObject *args)
 		quat_to_mat3(mat, self->quat);
 
 		if(order == 0)	mat3_to_compatible_eul(eul, eul_compat->eul, mat);
-		else			mat3_to_compatible_eulO(eul, order, eul_compat->eul, mat);
+		else			mat3_to_compatible_eulO(eul, eul_compat->eul, order, mat);
 	}
 	else {
 		if(order == 0)	quat_to_eul(eul, self->quat);
