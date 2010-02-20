@@ -32,6 +32,7 @@ SET(INC
 	../../../intern/string
 	../../../source/gameengine/Expressions 
 	../../../source/gameengine/SceneGraph
+	../../../intern/guardedalloc
 	../../../intern/moto/include
 	../../../source/gameengine/Rasterizer
 )

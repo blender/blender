@@ -30,6 +30,7 @@ SET(INC
 	.
 	../../../../source/kernel/gen_system
 	../../../../intern/string
+	../../../../intern/guardedalloc
 	../../../../intern/moto/include
 	../../../../source/gameengine/Ketsji
 	../../../../source/gameengine/GameLogic
