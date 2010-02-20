@@ -267,9 +267,9 @@ PyObject *Matrix_toEuler(MatrixObject * self, PyObject *args)
 	
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if(self->colSize ==3 && self->rowSize ==3) {
-		mat= (float (*)[3])self->matrix;
+		mat= (float (*)[3]) *self->matrix;
 	}else if (self->colSize ==4 && self->rowSize ==4) {
-		copy_m3_m4(tmat, (float (*)[4])*self->matrix);
+		copy_m3_m4(tmat, (float (*)[4]) *self->matrix);
 		mat= tmat;
 	}else {
 		PyErr_SetString(PyExc_AttributeError, "Matrix.to_euler(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
