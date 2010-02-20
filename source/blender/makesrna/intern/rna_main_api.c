@@ -78,7 +78,7 @@ Camera *rna_Main_cameras_new(Main *bmain, char* name)
 }
 void rna_Main_cameras_remove(Main *bmain, ReportList *reports, struct Camera *camera)
 {
-	if(ID_REAL_USERS(camera) == 0)
+	if(ID_REAL_USERS(camera) <= 0)
 		free_libblock(&bmain->camera, camera);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Camera \"%s\" must have zero users to be removed, found %d.", camera->id.name+2, ID_REAL_USERS(camera));
@@ -129,7 +129,7 @@ void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *ob
 	  # don't do this since ob is already freed!
 	  bpy.data.remove_object(ob)
 	*/
-	if(ID_REAL_USERS(object) == 0)
+	if(ID_REAL_USERS(object) <= 0)
 		free_libblock(&bmain->object, object);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" must have zero users to be removed, found %d.", object->id.name+2, ID_REAL_USERS(object));
@@ -141,7 +141,7 @@ struct Material *rna_Main_materials_new(Main *bmain, char* name)
 }
 void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct Material *material)
 {
-	if(ID_REAL_USERS(material) == 0)
+	if(ID_REAL_USERS(material) <= 0)
 		free_libblock(&bmain->mat, material);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Material \"%s\" must have zero users to be removed, found %d.", material->id.name+2, ID_REAL_USERS(material));
@@ -157,7 +157,7 @@ Mesh *rna_Main_meshes_new(Main *bmain, char* name)
 }
 void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 {
-	if(ID_REAL_USERS(mesh) == 0)
+	if(ID_REAL_USERS(mesh) <= 0)
 		free_libblock(&bmain->mesh, mesh);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Mesh \"%s\" must have zero users to be removed, found %d.", mesh->id.name+2, ID_REAL_USERS(mesh));
@@ -173,7 +173,7 @@ Lamp *rna_Main_lamps_new(Main *bmain, char* name)
 }
 void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 {
-	if(ID_REAL_USERS(lamp) == 0)
+	if(ID_REAL_USERS(lamp) <= 0)
 		free_libblock(&bmain->lamp, lamp);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Lamp \"%s\" must have zero users to be removed, found %d.", lamp->id.name+2, ID_REAL_USERS(lamp));
@@ -189,7 +189,7 @@ Tex *rna_Main_textures_new(Main *bmain, char* name)
 }
 void rna_Main_textures_remove(Main *bmain, ReportList *reports, struct Tex *tex)
 {
-	if(ID_REAL_USERS(tex) == 0)
+	if(ID_REAL_USERS(tex) <= 0)
 		free_libblock(&bmain->tex, tex);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Texture \"%s\" must have zero users to be removed, found %d.", tex->id.name+2, ID_REAL_USERS(tex));
@@ -234,7 +234,7 @@ bArmature *rna_Main_armatures_new(Main *bmain, char* name)
 }
 void rna_Main_armatures_remove(Main *bmain, ReportList *reports, bArmature *arm)
 {
-	if(ID_REAL_USERS(arm) == 0)
+	if(ID_REAL_USERS(arm) <= 0)
 		free_libblock(&bmain->armature, arm);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Armature \"%s\" must have zero users to be removed, found %d.", arm->id.name+2, ID_REAL_USERS(arm));
@@ -251,7 +251,7 @@ bAction *rna_Main_actions_new(Main *bmain, char* name)
 }
 void rna_Main_actions_remove(Main *bmain, ReportList *reports, bAction *act)
 {
-	if(ID_REAL_USERS(act) == 0)
+	if(ID_REAL_USERS(act) <= 0)
 		free_libblock(&bmain->action, act);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Action \"%s\" must have zero users to be removed, found %d.", act->id.name+2, ID_REAL_USERS(act));
