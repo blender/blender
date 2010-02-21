@@ -251,6 +251,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\include\ED_numinput.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\include\ED_object.h"
 				>
 			</File>
@@ -597,6 +601,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\util\editmode_undo.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\util\numinput.c"
 				>
 			</File>
 			<File
@@ -1164,10 +1172,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\editors\transform\transform_numinput.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\editors\transform\transform_ops.c"
 				>
 			</File>
@@ -1285,6 +1289,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\editors\armature\poseSlide.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\armature\poseUtils.c"
 				>
 			</File>
 			<File
