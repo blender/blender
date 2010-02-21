@@ -190,7 +190,7 @@ def read_bvh(context, file_path, ROT_MODE='XYZ', GLOBAL_SCALE=1.0):
             rest_tail = Vector( GLOBAL_SCALE*float(file_lines[lineIdx][1]), GLOBAL_SCALE*float(file_lines[lineIdx][2]), GLOBAL_SCALE*float(file_lines[lineIdx][3]))
 
             bvh_nodes_serial[-1].rest_tail_world = bvh_nodes_serial[-1].rest_head_world + rest_tail
-            bvh_nodes_serial[-1].rest_tail_local = rest_tail
+            bvh_nodes_serial[-1].rest_tail_local = bvh_nodes_serial[-1].rest_head_local + rest_tail
 
 
             # Just so we can remove the Parents in a uniform way- End end never has kids
@@ -269,7 +269,7 @@ def read_bvh(context, file_path, ROT_MODE='XYZ', GLOBAL_SCALE=1.0):
                 bvh_node.rest_tail_local = Vector(bvh_node.rest_head_local)
             elif len(bvh_node.children)==1:
                 bvh_node.rest_tail_world = Vector(bvh_node.children[0].rest_head_world)
-                bvh_node.rest_tail_local = Vector(bvh_node.children[0].rest_head_local)
+                bvh_node.rest_tail_local = bvh_node.rest_head_local + bvh_node.children[0].rest_head_local
             else:
                 # allow this, see above
                 #if not bvh_node.children:
