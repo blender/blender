@@ -2923,12 +2923,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil datablock");
 
-	/* Freestyle */
-	prop= RNA_def_property(srna, "freestyle_current_layer_number", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "freestyle_current_layer_number");
-	RNA_def_property_ui_text(prop, "Freestyle Current Layer Number", "Number of current layers in Freestyle.");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
-	
 	/* Transform Orientations */
 	prop= RNA_def_property(srna, "orientations", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "transform_spaces", NULL);

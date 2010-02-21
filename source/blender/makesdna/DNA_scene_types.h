@@ -792,11 +792,6 @@ typedef struct Scene {
 
 	/* Physics simulation settings */
 	struct PhysicsSettings physics_settings;
-	
-	/* Freestyle */
-	short freestyle_current_layer_number;
-	short pad[3];
-	
 } Scene;
 
 
