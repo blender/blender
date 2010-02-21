@@ -4607,8 +4607,20 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 				/* only insert into available channels? */
 				else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 					if (act) {
-						for (fcu= act->curves.first; fcu; fcu= fcu->next)
-							insert_keyframe(id, act, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+						for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+							/* only insert keyframes for this F-Curve if it affects the current bone */
+							if (strstr(fcu->rna_path, "bones")) {
+								char *pchanName= BLI_getQuotedStr(fcu->rna_path, "bones[");
+								
+								/* only if bone name matches too... 
+								 * NOTE: this will do constraints too, but those are ok to do here too?
+								 */
+								if (pchanName && strcmp(pchanName, pchan->name) == 0) 
+									insert_keyframe(id, act, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+									
+								if (pchanName) MEM_freeN(pchanName);
+							}
+						}
 					}
 				}
 				/* only insert keyframe if needed? */

@@ -307,8 +307,10 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 		
 		/* for realtime animation record - send notifiers recognised by animation editors */
+		// XXX: is this notifier a lame duck?
 		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene))
 			WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
+		
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		//SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
@@ -341,7 +343,13 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 static void viewRedrawPost(TransInfo *t)
 {
 	ED_area_headerprint(t->sa, NULL);
-
+	
+	if(t->spacetype == SPACE_VIEW3D) {
+		/* if autokeying is enabled, send notifiers that keyframes were added */
+		if (IS_AUTOKEY_ON(t->scene))
+			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	}
+	
 #if 0 // TRANSFORM_FIX_ME
 	if(t->spacetype==SPACE_VIEW3D) {
 		allqueue(REDRAWBUTSOBJECT, 0);
