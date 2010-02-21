@@ -307,8 +307,10 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 		
 		/* for realtime animation record - send notifiers recognised by animation editors */
+		// XXX: is this notifier a lame duck?
 		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene))
 			WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
+		
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		//SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
@@ -341,7 +343,13 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 static void viewRedrawPost(TransInfo *t)
 {
 	ED_area_headerprint(t->sa, NULL);
-
+	
+	if(t->spacetype == SPACE_VIEW3D) {
+		/* if autokeying is enabled, send notifiers that keyframes were added */
+		if (IS_AUTOKEY_ON(t->scene))
+			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	}
+	
 #if 0 // TRANSFORM_FIX_ME
 	if(t->spacetype==SPACE_VIEW3D) {
 		allqueue(REDRAWBUTSOBJECT, 0);
@@ -496,8 +504,8 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_CONS_OFF, "CONS_OFF", 0, "Remove Constraints", ""},
 	{TFM_MODAL_ADD_SNAP, "ADD_SNAP", 0, "Add Snap Point", ""},
 	{TFM_MODAL_REMOVE_SNAP, "REMOVE_SNAP", 0, "Remove Last Snap Point", ""},
-	{TFM_MODAL_INCREMENT_UP, "INCREMENT_UP", 0, "Numinput Increment Up", ""},
-	{TFM_MODAL_INCREMENT_DOWN, "INCREMENT_DOWN", 0, "Numinput Increment Down", ""},
+	{NUM_MODAL_INCREMENT_UP, "INCREMENT_UP", 0, "Numinput Increment Up", ""},
+	{NUM_MODAL_INCREMENT_DOWN, "INCREMENT_DOWN", 0, "Numinput Increment Down", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -525,8 +533,8 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, 0, 0, TFM_MODAL_ADD_SNAP);
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, KM_ALT, 0, TFM_MODAL_REMOVE_SNAP);
 
-	WM_modalkeymap_add_item(keymap, UPARROWKEY, KM_PRESS, 0, 0, TFM_MODAL_INCREMENT_UP);
-	WM_modalkeymap_add_item(keymap, DOWNARROWKEY, KM_PRESS, 0, 0, TFM_MODAL_INCREMENT_DOWN);
+	WM_modalkeymap_add_item(keymap, UPARROWKEY, KM_PRESS, 0, 0, NUM_MODAL_INCREMENT_UP);
+	WM_modalkeymap_add_item(keymap, DOWNARROWKEY, KM_PRESS, 0, 0, NUM_MODAL_INCREMENT_DOWN);
 
 	return keymap;
 }
@@ -2955,8 +2963,13 @@ int Rotation(TransInfo *t, short mval[2])
 	
 	snapGrid(t, &final);
 	
-	if (t->con.applyRot) {
+	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
 		t->con.applyRot(t, NULL, t->axis, &final);
+	} else {
+		/* reset axis if constraint is not set */
+		VECCOPY(t->axis, t->viewinv[2]);
+		mul_v3_fl(t->axis, -1.0f);
+		normalize_v3(t->axis);
 	}
 	
 	applySnapping(t, &final);

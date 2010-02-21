@@ -187,10 +187,10 @@ FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], 
 				grp= MEM_callocN(sizeof(bActionGroup), "bActionGroup");
 				
 				grp->flag = AGRP_SELECTED;
-				BLI_snprintf(grp->name, 64, group);
-				
+				strncpy(grp->name, group, sizeof(grp->name));
+
 				BLI_addtail(&act->groups, grp);
-				BLI_uniquename(&act->groups, grp, "Group", '.', offsetof(bActionGroup, name), 64);
+				BLI_uniquename(&act->groups, grp, "Group", '.', offsetof(bActionGroup, name), sizeof(grp->name));
 			}
 			
 			/* add F-Curve to group */

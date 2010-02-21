@@ -1609,7 +1609,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Mesh", "ID");
-	RNA_def_struct_ui_text(srna, "Mesh", "Mesh datablock to define geometric surfaces");
+	RNA_def_struct_ui_text(srna, "Mesh", "Mesh datablock defining geometric surfaces");
 	RNA_def_struct_ui_icon(srna, ICON_MESH_DATA);
 
 	prop= RNA_def_property(srna, "verts", PROP_COLLECTION, PROP_NONE);
@@ -1818,6 +1818,10 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_Z);
 	RNA_def_property_ui_text(prop, "Z Mirror", "Z Axis mirror editing");
 	 */
+
+	prop= RNA_def_property(srna, "use_mirror_topology", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_TOPO);
+	RNA_def_property_ui_text(prop, "Topology Mirror", "Use topology based mirroring");
 
 	prop= RNA_def_property(srna, "use_paint_mask", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_PAINT_MASK);

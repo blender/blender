@@ -173,7 +173,7 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 
 class INFO_MT_mesh_add(bpy.types.Menu):
     bl_idname = "INFO_MT_mesh_add"
-    bl_label = "Add Mesh"
+    bl_label = "Mesh"
 
     def draw(self, context):
         layout = self.layout

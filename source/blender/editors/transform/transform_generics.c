@@ -955,6 +955,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->animtimer= CTX_wm_screen(C)->animtimer;
 		
 		/* turn manipulator off during transform */
+		// FIXME: but don't do this when USING the manipulator...
 		if (t->flag & T_MODAL) {
 			t->twtype = v3d->twtype;
 			v3d->twtype = 0;

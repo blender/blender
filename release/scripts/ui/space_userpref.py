@@ -345,6 +345,11 @@ class USERPREF_PT_edit(bpy.types.Panel):
         #col.prop(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
         col.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
         col.prop(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
+        col.separator()
+        col.separator()
+        col.separator()
+        col.label(text="Playback:")
+        col.prop(edit, "use_negative_frames")
 
         row.separator()
         row.separator()
@@ -356,19 +361,19 @@ class USERPREF_PT_edit(bpy.types.Panel):
 
         col.separator()
 
-        col.label(text="New F-Curve Defaults:")
-        col.prop(edit, "new_interpolation_type", text="Interpolation")
-        col.prop(edit, "insertkey_xyz_to_rgb", text="XYZ to RGB")
-
-        col.separator()
-
-        col.prop(edit, "auto_keying_enable", text="Auto Keyframing:")
+        col.prop(edit, "use_auto_keying", text="Auto Keyframing:")
 
         sub = col.column()
 
-        sub.active = edit.auto_keying_enable
+        # sub.active = edit.use_auto_keying # incorrect, timeline can enable
         sub.prop(edit, "auto_keyframe_insert_keyingset", text="Only Insert for Keying Set")
         sub.prop(edit, "auto_keyframe_insert_available", text="Only Insert Available")
+
+        col.separator()
+
+        col.label(text="New F-Curve Defaults:")
+        col.prop(edit, "new_interpolation_type", text="Interpolation")
+        col.prop(edit, "insertkey_xyz_to_rgb", text="XYZ to RGB")
 
         col.separator()
         col.separator()

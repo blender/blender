@@ -170,18 +170,10 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 		}
 	}
 
-#ifdef USE_MATHUTILS_DEG
-	/* Clamp to -360:360 */
-	while (angle<-360.0f)
-		angle+=360.0;
-	while (angle>360.0f)
-		angle-=360.0;
-#else
 	while (angle<-(Py_PI*2))
 		angle+=(Py_PI*2);
 	while (angle>(Py_PI*2))
 		angle-=(Py_PI*2);
-#endif
 	
 	if(matSize != 2 && matSize != 3 && matSize != 4) {
 		PyErr_SetString(PyExc_AttributeError, "Mathutils.RotationMatrix(): can only return a 2x2 3x3 or 4x4 matrix\n");
@@ -205,10 +197,6 @@ static PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 			return NULL;
 		
 	}
-#ifdef USE_MATHUTILS_DEG
-	//convert to radians
-	angle = angle * (float) (Py_PI / 180);
-#endif
 
 	/* check for valid vector/axis above */
 	if(vec) {

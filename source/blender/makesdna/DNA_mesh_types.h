@@ -124,6 +124,8 @@ typedef struct TFace {
 #define ME_EDIT_MIRROR_Z (1 << 2) // unused so far
 
 #define ME_EDIT_PAINT_MASK (1 << 3)
+#define ME_EDIT_MIRROR_TOPO (1 << 4) // unused so far
+
 
 /* me->flag */
 #define ME_ISDONE		1

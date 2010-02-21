@@ -635,6 +635,8 @@ void extrude_mesh(Scene *scene, Object *obedit, EditMesh *em, wmOperator *op, sh
 	else if(type==3) transmode= extrudeflag_edges_indiv(em, SELECT, nor);
 	else transmode= extrudeflag_face_indiv(em, SELECT, nor);
 
+	EM_stats_update(em);
+
 	if(transmode==0) {
 		BKE_report(op->reports, RPT_ERROR, "Not a valid selection for extrude");
 	}

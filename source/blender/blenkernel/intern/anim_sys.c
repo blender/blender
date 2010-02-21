@@ -604,7 +604,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	ks= MEM_callocN(sizeof(KeyingSet), "KeyingSet");
 	
 	if (name)
-		BLI_snprintf(ks->name, 64, name);
+		strncpy(ks->name, name, sizeof(ks->name));
 	else
 		strcpy(ks->name, "KeyingSet");
 	
@@ -615,7 +615,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	BLI_addtail(list, ks);
 	
 	/* make sure KeyingSet has a unique name (this helps with identification) */
-	BLI_uniquename(list, ks, "KeyingSet", '.', offsetof(KeyingSet, name), 64);
+	BLI_uniquename(list, ks, "KeyingSet", '.', offsetof(KeyingSet, name), sizeof(ks->name));
 	
 	/* return new KeyingSet for further editing */
 	return ks;

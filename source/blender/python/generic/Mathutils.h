@@ -32,12 +32,11 @@
 #define EXPP_Mathutils_H
 
 #include <Python.h>
+
 #include "vector.h"
 #include "matrix.h"
 #include "quat.h"
 #include "euler.h"
-
-/* #define USE_MATHUTILS_DEG - for backwards compat */
 
 /* Can cast different mathutils types to this, use for generic funcs */
 

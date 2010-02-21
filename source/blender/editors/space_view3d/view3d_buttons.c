@@ -502,13 +502,13 @@ static void act_vert_def(Object *ob, EditVert **eve, MDeformVert **dvert)
 	*dvert= NULL;
 }
 
-static void editvert_mirror_update(Object *ob, EditVert *eve, int def_nr)
+static void editvert_mirror_update(Object *ob, EditVert *eve, int def_nr, int index)
 {
 	Mesh *me= ob->data;
 	EditMesh *em = BKE_mesh_get_editmesh(me);
 	EditVert *eve_mirr;
 
-	eve_mirr= editmesh_get_x_mirror_vert(ob, em, eve->co);
+	eve_mirr= editmesh_get_x_mirror_vert(ob, em, eve, eve->co, index);
 
 	if(eve_mirr && eve_mirr != eve) {
 		MDeformVert *dvert_src= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
@@ -541,7 +541,7 @@ static void vgroup_adjust_active(Object *ob, int def_nr)
 
 	if(dvert_act) {
 		if(((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_X)
-			editvert_mirror_update(ob, eve_act, def_nr);
+			editvert_mirror_update(ob, eve_act, def_nr, -1);
 	}
 }
 
@@ -560,15 +560,16 @@ static void vgroup_copy_active_to_sel(Object *ob)
 		EditMesh *em = BKE_mesh_get_editmesh(me);
 		EditVert *eve;
 		MDeformVert *dvert;
+		int index= 0;
 
-		for(eve= em->verts.first; eve; eve= eve->next) {
+		for(eve= em->verts.first; eve; eve= eve->next, index++) {
 			if(eve->f & SELECT && eve != eve_act) {
 				dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 				if(dvert) {
 					defvert_copy(dvert, dvert_act);
 
 					if(me->editflag & ME_EDIT_MIRROR_X)
-						editvert_mirror_update(ob, eve, -1);
+						editvert_mirror_update(ob, eve, -1, index);
 
 				}
 			}
@@ -594,6 +595,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, int def_nr)
 		MDeformWeight *dw;
 		float act_weight = -1.0f;
 		int i;
+		int index= 0;
 
 		for(i=0, dw=dvert_act->dw; i < dvert_act->totweight; i++, dw++) {
 			if(def_nr == dw->def_nr) {
@@ -605,7 +607,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, int def_nr)
 		if(act_weight < -0.5f)
 			return;
 
-		for(eve= em->verts.first; eve; eve= eve->next) {
+		for(eve= em->verts.first; eve; eve= eve->next, index++) {
 			if(eve->f & SELECT && eve != eve_act) {
 				dvert= CustomData_em_get(&em->vdata, eve->data, CD_MDEFORMVERT);
 				if(dvert) {
@@ -614,7 +616,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, int def_nr)
 							dw->weight= act_weight;
 
 							if(me->editflag & ME_EDIT_MIRROR_X)
-								editvert_mirror_update(ob, eve, -1);
+								editvert_mirror_update(ob, eve, -1, index);
 
 							break;
 						}
@@ -624,7 +626,7 @@ static void vgroup_copy_active_to_sel_single(Object *ob, int def_nr)
 		}
 
 		if(me->editflag & ME_EDIT_MIRROR_X)
-			editvert_mirror_update(ob, eve_act, -1);
+			editvert_mirror_update(ob, eve_act, -1, -1);
 
 	}
 }
@@ -642,7 +644,7 @@ static void vgroup_normalize_active(Object *ob)
 	defvert_normalize(dvert_act);
 
 	if(((Mesh *)ob->data)->editflag & ME_EDIT_MIRROR_X)
-		editvert_mirror_update(ob, eve_act, -1);
+		editvert_mirror_update(ob, eve_act, -1, -1);
 
 
 

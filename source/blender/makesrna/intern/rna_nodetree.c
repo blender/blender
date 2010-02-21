@@ -1175,6 +1175,7 @@ static void def_cmp_output_file(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Quality", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
+		// TODO: should these be limited to the extents of the each other so that no cross-over occurs?
 	prop = RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "sfra");
 	RNA_def_property_range(prop, MINFRAMEF, MAXFRAMEF);

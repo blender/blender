@@ -67,6 +67,7 @@
 #include "ED_screen.h"
 #include "ED_types.h"
 #include "ED_util.h"
+#include "ED_numinput.h"
 
 /* ************* Marker API **************** */
 
@@ -407,6 +408,7 @@ typedef struct MarkerMove {
 	ListBase *markers;
 	int event_type;		/* store invoke-event, to verify */
 	int *oldframe, evtx, firstx;
+	NumInput num;
 } MarkerMove;
 
 /* copy selection to temp buffer */
@@ -430,6 +432,10 @@ static int ed_marker_move_init(bContext *C, wmOperator *op)
 	mm->slink= CTX_wm_space_data(C);
 	mm->markers= markers;
 	mm->oldframe= MEM_callocN(totmark*sizeof(int), "MarkerMove oldframe");
+
+	initNumInput(&mm->num);
+	mm->num.idx_max = 0; /* one axis */
+	mm->num.flag |= NUM_NO_FRACTION;
 	
 	for (a=0, marker= markers->first; marker; marker= marker->next) {
 		if (marker->flag & SELECT) {
@@ -518,6 +524,8 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			ed_marker_move_cancel(C, op);
 			return OPERATOR_CANCELLED;
 		
+		case RETKEY:
+		case PADENTER:
 		case LEFTMOUSE:
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
@@ -529,6 +537,9 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 			
 			break;
 		case MOUSEMOVE:
+			if(hasNumInput(&mm->num))
+				break;
+
 			dx= v2d->mask.xmax-v2d->mask.xmin;
 			dx= (v2d->cur.xmax-v2d->cur.xmin)/dx;
 			
@@ -600,6 +611,26 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 				WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 				ED_area_headerprint(CTX_wm_area(C), str);
 			}
+	}
+
+	if(evt->val==KM_PRESS) {
+		float vec[3];
+		char str_tx[256];
+
+		if (handleNumInput(&mm->num, evt, 1.0))
+		{
+			applyNumInput(&mm->num, vec);
+			outputNumInput(&mm->num, str_tx);
+
+			RNA_int_set(op->ptr, "frames", vec[0]);
+			ed_marker_move_apply(C, op);
+			// ed_marker_header_update(C, op, str, (int)vec[0]);
+			// strcat(str, str_tx);
+			sprintf(str, "Marker offset %s", str_tx);
+			ED_area_headerprint(CTX_wm_area(C), str);
+
+			WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
+		}
 	}
 
 	return OPERATOR_RUNNING_MODAL;

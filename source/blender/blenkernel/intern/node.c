@@ -909,7 +909,7 @@ void nodeAddSockets(bNode *node, bNodeType *ntype)
 /* Find the first available, non-duplicate name for a given node */
 void nodeUniqueName(bNodeTree *ntree, bNode *node)
 {
-	BLI_uniquename(&ntree->nodes, node, "Node", '.', offsetof(bNode, name), 32);
+	BLI_uniquename(&ntree->nodes, node, "Node", '.', offsetof(bNode, name), sizeof(node->name));
 }
 
 bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)

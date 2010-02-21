@@ -574,6 +574,19 @@ const struct ListBase *RNA_struct_defined_properties(StructRNA *srna)
 
 FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 {
+#if 1
+	FunctionRNA *func;
+	StructRNA *type;
+	for(type= ptr->type; type; type= type->base) {
+		for(func= type->functions.first; func; func= func->cont.next) {
+			if(strcmp(func->identifier, identifier)==0)
+				return func;
+		}
+	}
+	return NULL;
+
+	/* funcitonal but slow */
+#else
 	PointerRNA tptr;
 	PropertyRNA *iterprop;
 	FunctionRNA *func;
@@ -592,6 +605,7 @@ FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 	RNA_PROP_END;
 
 	return func;
+#endif
 }
 
 const struct ListBase *RNA_struct_defined_functions(StructRNA *srna)
@@ -907,6 +921,44 @@ void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *soft
 
 	*step= fprop->step;
 	*precision= (float)fprop->precision;
+}
+
+int RNA_property_float_clamp(PointerRNA *ptr, PropertyRNA *prop, float *value)
+{
+	float min, max;
+
+	RNA_property_float_range(ptr, prop, &min, &max);
+
+	if(*value < min) {
+		*value= min;
+		return -1;
+	}
+	else if(*value > max) {
+		*value= max;
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+int RNA_property_int_clamp(PointerRNA *ptr, PropertyRNA *prop, int *value)
+{
+	int min, max;
+
+	RNA_property_int_range(ptr, prop, &min, &max);
+
+	if(*value < min) {
+		*value= min;
+		return -1;
+	}
+	else if(*value > max) {
+		*value= max;
+		return 1;
+	}
+	else {
+		return 0;
+	}
 }
 
 /* this is the max length including \0 terminator */

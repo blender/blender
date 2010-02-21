@@ -700,6 +700,42 @@ class VIEW3D_MT_object_clear(bpy.types.Menu):
         layout.operator("object.origin_clear", text="Origin")
 
 
+class VIEW3D_MT_object_specials(bpy.types.Menu):
+    bl_label = "Specials"
+
+    def poll(self, context):
+        # add more special types
+        obj = context.object
+        return bool(obj and obj.type == 'LAMP')
+
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+        if obj and obj.type == 'LAMP':
+            layout.operator_context = 'INVOKE_REGION_WIN'
+
+            props = layout.operator("wm.context_modal_mouse", text="Spot Size")
+            props.path_iter = "selected_editable_objects"
+            props.path_item = "data.spot_size"
+            props.input_scale = 0.01
+            
+            props = layout.operator("wm.context_modal_mouse", text="Distance")
+            props.path_iter = "selected_editable_objects"
+            props.path_item = "data.distance"
+            props.input_scale = 0.1
+            
+            props = layout.operator("wm.context_modal_mouse", text="Clip Start")
+            props.path_iter = "selected_editable_objects"
+            props.path_item = "data.shadow_buffer_clip_start"
+            props.input_scale = 0.05
+            
+            props = layout.operator("wm.context_modal_mouse", text="Clip End")
+            props.path_iter = "selected_editable_objects"
+            props.path_item = "data.shadow_buffer_clip_end"
+            props.input_scale = 0.05
+
+
 class VIEW3D_MT_object_apply(bpy.types.Menu):
     bl_label = "Apply"
 
@@ -990,8 +1026,7 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("pose.apply")
-        layout.operator("pose.relax")
+        layout.menu("VIEW3D_MT_pose_apply")
 
         layout.separator()
 
@@ -1110,6 +1145,17 @@ class VIEW3D_MT_pose_constraints(bpy.types.Menu):
 class VIEW3D_MT_pose_showhide(VIEW3D_MT_showhide):
     _operator_name = "pose"
 
+
+class VIEW3D_MT_pose_apply(bpy.types.Menu):
+    bl_label = "Apply"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("pose.armature_apply")
+        layout.operator("pose.visual_transform_apply")
+
+
 # ********** Edit Menus, suffix from ob.type **********
 
 
@@ -1136,7 +1182,8 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("wm.call_menu", text="Extrude").name = "VIEW3D_MT_edit_mesh_extrude"
+        layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
+        layout.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
         layout.operator("mesh.duplicate_move")
         layout.operator("mesh.delete", text="Delete...")
 
@@ -2130,6 +2177,7 @@ classes = [
     VIEW3D_MT_uv_map, # Edit Menus
 
     VIEW3D_MT_object, # Object Menu
+    VIEW3D_MT_object_specials,
     VIEW3D_MT_object_apply,
     VIEW3D_MT_object_clear,
     VIEW3D_MT_object_parent,
@@ -2159,6 +2207,7 @@ classes = [
     VIEW3D_MT_pose_ik,
     VIEW3D_MT_pose_constraints,
     VIEW3D_MT_pose_showhide,
+    VIEW3D_MT_pose_apply,
 
     VIEW3D_MT_edit_mesh,
     VIEW3D_MT_edit_mesh_specials, # Only as a menu for keybindings

@@ -2000,12 +2000,6 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 
 	fly->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
 
-
-	/* we have to rely on events to give proper mousecoords after a warp_pointer */
-//XXX2.5	warp_pointer(cent_orig[0], cent_orig[1]);
-	//fly->mval[0]= (fly->sa->winx)/2;
-	//fly->mval[1]= (fly->sa->winy)/2;
-
 	fly->mval[0] = event->x - fly->ar->winrct.xmin;
 	fly->mval[1] = event->y - fly->ar->winrct.ymin;
 
@@ -2578,7 +2572,7 @@ static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 	if(event->type==TIMER && event->customdata == fly->timer)
 		flyApply(fly);
 
-	if(fly->redraw) {;
+	if(fly->redraw) {
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 

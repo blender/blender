@@ -873,8 +873,18 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		bConstraint *con, *pcon;
+		
+		/* remove track-object for old track */
 		ob->track= NULL;
 		ob->recalc |= OB_RECALC;
+		
+		/* also remove all tracking constraints */
+		for (con= ob->constraints.last; con; con= pcon) {
+			pcon= con->prev;
+			if (ELEM3(con->type, CONSTRAINT_TYPE_TRACKTO, CONSTRAINT_TYPE_LOCKTRACK, CONSTRAINT_TYPE_DAMPTRACK))
+				remove_constraint(&ob->constraints, con);
+		}
 		
 		if(type == 1)
 			ED_object_apply_obmat(ob);
@@ -883,6 +893,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 
 	DAG_ids_flush_update(0);
 	DAG_scene_sort(CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -909,9 +920,10 @@ void OBJECT_OT_track_clear(wmOperatorType *ot)
 /************************** Make Track Operator *****************************/
 
 static EnumPropertyItem prop_make_track_types[] = {
-	{1, "TRACKTO", 0, "TrackTo Constraint", ""},
-	{2, "LOCKTRACK", 0, "LockTrack Constraint", ""},
-	{3, "OLDTRACK", 0, "Old Track", ""},
+	{1, "DAMPTRACK", 0, "Damped Track Constraint", ""},
+	{2, "TRACKTO", 0, "Track To Constraint", ""},
+	{3, "LOCKTRACK", 0, "Lock Track Constraint", ""},
+	{4, "OLDTRACK", 0, "Old Track", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -923,6 +935,25 @@ static int track_set_exec(bContext *C, wmOperator *op)
 	int type= RNA_enum_get(op->ptr, "type");
 	
 	if(type == 1) {
+		bConstraint *con;
+		bDampTrackConstraint *data;
+
+		CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+			if(ob!=obact) {
+				con = add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_DAMPTRACK);
+
+				data = con->data;
+				data->tar = obact;
+				ob->recalc |= OB_RECALC;
+				
+				/* Lamp and Camera track differently by default */
+				if (ob->type == OB_LAMP || ob->type == OB_CAMERA)
+					data->trackflag = TRACK_nZ;
+			}
+		}
+		CTX_DATA_END;
+	}
+	else if(type == 2) {
 		bConstraint *con;
 		bTrackToConstraint *data;
 
@@ -943,7 +974,7 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
-	else if(type == 2) {
+	else if(type == 3) {
 		bConstraint *con;
 		bLockTrackConstraint *data;
 
@@ -973,8 +1004,10 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
+	
 	DAG_scene_sort(scene);
 	DAG_ids_flush_update(0);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1140,6 +1173,11 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 
 	if(scene_to == CTX_data_scene(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't link objects into the same scene");
+		return OPERATOR_CANCELLED;
+	}
+
+	if(scene_to->id.lib) {
+		BKE_report(op->reports, RPT_ERROR, "Can't link objects into a linked scene");
 		return OPERATOR_CANCELLED;
 	}
 

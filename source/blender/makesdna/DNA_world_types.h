@@ -186,6 +186,10 @@ typedef struct World {
 
 /* flag */
 #define WO_DS_EXPAND	(1<<0)
+	/* NOTE: this must have the same value as MA_DS_SHOW_TEXS, 
+	 * otherwise anim-editors will not read correctly
+	 */
+#define WO_DS_SHOW_TEXS	(1<<2)
 
 #endif
 

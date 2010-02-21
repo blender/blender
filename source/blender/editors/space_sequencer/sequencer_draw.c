@@ -653,6 +653,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	struct ImBuf *ibuf;
 	struct View2D *v2d = &ar->v2d;
 	int rectx, recty;
+	float viewrectx, viewrecty;
 	int free_ibuf = 0;
 	static int recursive= 0;
 	float render_size = 0.0;
@@ -670,14 +671,23 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		return;
 	}
 
-	rectx= (render_size*(float)scene->r.xsch)/100.0f+0.5f;
-	recty= (render_size*(float)scene->r.ysch)/100.0f+0.5f;
+	viewrectx = (render_size*(float)scene->r.xsch)/100.0f;
+	viewrecty = (render_size*(float)scene->r.ysch)/100.0f;
+
+	rectx = viewrectx + 0.5f;
+	recty = viewrecty + 0.5f;
+
+	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		viewrectx *= (float)scene->r.xasp / (float)scene->r.yasp;
+		viewrectx /= proxy_size / 100.0;
+		viewrecty /= proxy_size / 100.0;
+	}
 
 	/* XXX TODO: take color from theme */
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	UI_view2d_totRect_set(v2d, rectx, recty);
+	UI_view2d_totRect_set(v2d, viewrectx + 0.5f, viewrecty + 0.5f);
 	UI_view2d_curRect_validate(v2d);
 
 	/* BIG PROBLEM: the give_ibuf_seq() can call a rendering, which in turn calls redraws...

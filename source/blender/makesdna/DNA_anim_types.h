@@ -445,7 +445,6 @@ typedef enum eFCurve_Flags {
 	FCURVE_INT_VALUES		= (1<<11),
 		/* curve can only have certain discrete-number values (no interpolation at all, for enums/booleans) */
 	FCURVE_DISCRETE_VALUES	= (1<<12),
-	
 } eFCurve_Flags;
 
 /* extrapolation modes (only simple value 'extending') */

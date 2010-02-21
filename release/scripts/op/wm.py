@@ -297,6 +297,91 @@ doc_new = StringProperty(name="Edit Description",
         description="", maxlen=1024, default="")
 
 
+
+class WM_OT_context_modal_mouse(bpy.types.Operator):
+    '''Adjust arbitrary values with mouse input'''
+    bl_idname = "wm.context_modal_mouse"
+    bl_label = "Context Modal Mouse"
+    
+    path_iter = StringProperty(description="The path relative to the context, must point to an iterable.")
+    path_item = StringProperty(description="The path from each iterable to the value (int or float)")
+    input_scale = FloatProperty(default=0.01, description="Scale the mouse movement by this value before applying the delta")
+    invert = BoolProperty(default=False, description="Invert the mouse input")
+    initial_x = IntProperty(options={'HIDDEN'})
+
+    _values = {}
+
+    def _values_store(self, context):
+        path_iter = self.properties.path_iter
+        path_item = self.properties.path_item
+
+        self._values.clear()
+        values = self._values
+
+        for item in getattr(context, path_iter):
+            try:
+                value_orig = eval("item." + path_item)
+            except:
+                continue
+            
+            # check this can be set, maybe this is library data.
+            try:
+                exec("item.%s = %s" % (path_item, value_orig))
+            except:
+                continue
+
+            values[item] = value_orig
+
+
+    def _values_delta(self, delta):
+        delta *= self.properties.input_scale
+        if self.properties.invert:
+            delta = -delta
+
+        path_item = self.properties.path_item
+        for item, value_orig in self._values.items():
+            exec("item.%s = %s" % (path_item, value_orig + delta))
+
+    def _values_restore(self):
+        path_item = self.properties.path_item
+        for item, value_orig in self._values.items():
+            exec("item.%s = %s" % (path_item, value_orig))
+
+        self._values.clear()
+        
+    def _values_clear(self):
+        self._values.clear()
+
+    def modal(self, context, event):
+        event_type = event.type
+
+        if event_type == 'MOUSEMOVE':
+            delta = event.mouse_x - self.properties.initial_x
+            self._values_delta(delta)
+
+        elif 'LEFTMOUSE' == event_type:
+            self._values_clear()
+            return {'FINISHED'}
+
+        elif event_type in ('RIGHTMOUSE', 'ESCAPE'):
+            self._values_restore()
+            return {'FINISHED'}
+            
+        return {'RUNNING_MODAL'}
+
+    def invoke(self, context, event):
+        self._values_store(context)
+
+        if not self._values:
+            self.report({'WARNING'}, "Nothing to operate on: %s[ ].%s" % (self.properties.path_iter, self.properties.path_item))
+            return {'CANCELLED'}
+        else:
+            self.properties.initial_x = event.mouse_x
+
+            context.manager.add_modal_handler(self)
+            return {'RUNNING_MODAL'}
+
+
 class WM_OT_doc_view(bpy.types.Operator):
     '''Load online reference docs'''
     bl_idname = "wm.doc_view"
@@ -433,6 +518,7 @@ classes = [
     WM_OT_context_toggle_enum,
     WM_OT_context_cycle_enum,
     WM_OT_context_cycle_int,
+    WM_OT_context_modal_mouse,
 
     WM_OT_doc_view,
     WM_OT_doc_edit,

@@ -164,6 +164,10 @@ def autocomplete(context):
             namespace=console.locals,
             private=bpy.app.debug)
 
+    # Separate automplete output by command prompts
+    if scrollback != '':
+        bpy.ops.console.scrollback_append(text=sc.prompt + current_line.line, type='INPUT')  
+
     # Now we need to copy back the line from blender back into the
     # text editor. This will change when we dont use the text editor
     # anymore

@@ -81,6 +81,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	
 	/* set the new frame number */
 	CFRA= RNA_int_get(op->ptr, "frame");
+	FRAMENUMBER_MIN_CLAMP(CFRA);
 	
 	/* do updates */
 	sound_seek_scene(C);

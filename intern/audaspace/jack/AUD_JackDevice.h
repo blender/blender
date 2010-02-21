@@ -33,6 +33,8 @@ class AUD_Buffer;
 #include <jack.h>
 #include <ringbuffer.h>
 
+typedef void (*AUD_syncFunction)(void*, int, float);
+
 /**
  * This device plays back through Jack.
  */
@@ -56,6 +58,8 @@ private:
 
 	AUD_Buffer* m_deinterleavebuf;
 
+	jack_ringbuffer_t** m_ringbuffers;
+
 	/**
 	 * Whether the device is valid.
 	 */
@@ -75,20 +79,40 @@ private:
 	 */
 	static int jack_mix(jack_nframes_t length, void *data);
 
-	static void* runThread(void* device);
-
-	void updateRingBuffers();
-
-	jack_ringbuffer_t** m_ringbuffers;
+	static int jack_sync(jack_transport_state_t state, jack_position_t* pos, void* data);
 
 	/**
-	 * The streaming thread.
+	 * Last Jack Transport playing state.
 	 */
-	pthread_t m_thread;
+	bool m_playing;
 
-	pthread_mutex_t m_lock;
+	/**
+	 * Syncronisation state.
+	 */
+	int m_sync;
 
-	pthread_cond_t m_condition;
+	/**
+	 * External syncronisation callback function.
+	 */
+	AUD_syncFunction m_syncFunc;
+
+	/**
+	 * Data for the sync function.
+	 */
+	void* m_syncFuncData;
+
+	/**
+	 * The mixing thread.
+	 */
+	pthread_t m_mixingThread;
+
+	pthread_mutex_t m_mixingLock;
+
+	pthread_cond_t m_mixingCondition;
+
+	static void* runMixingThread(void* device);
+
+	void updateRingBuffers();
 
 protected:
 	virtual void playing(bool playing);
@@ -105,6 +129,13 @@ public:
 	 * Closes the Jack client.
 	 */
 	virtual ~AUD_JackDevice();
+
+	void startPlayback();
+	void stopPlayback();
+	void seekPlayback(float time);
+	void setSyncCallback(AUD_syncFunction sync, void* data);
+	float getPlaybackPosition();
+	bool doesPlayback();
 };
 
 #endif //AUD_JACKDEVICE

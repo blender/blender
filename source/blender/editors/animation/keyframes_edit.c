@@ -642,6 +642,7 @@ static short snap_bezier_nearmarker(BeztEditData *bed, BezTriple *bezt)
 static short snap_bezier_horizontal(BeztEditData *bed, BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT) {
+		// XXX currently this snaps both handles to the nearest horizontal value, but perhaps user just wants to level out handles instead?
 		bezt->vec[0][1]= bezt->vec[2][1]= (float)floor(bezt->vec[1][1] + 0.5f);
 		if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
 		if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;

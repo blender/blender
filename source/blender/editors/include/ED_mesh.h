@@ -78,7 +78,7 @@ struct rcti;
 /* meshtools.c */
 
 intptr_t	mesh_octree_table(struct Object *ob, struct EditMesh *em, float *co, char mode);
-struct EditVert   *editmesh_get_x_mirror_vert(struct Object *ob, struct EditMesh *em, float *co);
+struct EditVert   *editmesh_get_x_mirror_vert(struct Object *ob, struct EditMesh *em, struct EditVert *eve, float *co, int index);
 int			mesh_get_x_mirror_vert(struct Object *ob, int index);
 int			*mesh_get_x_mirror_faces(struct Object *ob, struct EditMesh *em);
 

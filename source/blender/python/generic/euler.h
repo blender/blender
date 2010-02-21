@@ -45,6 +45,8 @@ typedef struct {
 	unsigned char wrapped;		/* wrapped data type? */
 	/* end BaseMathObject */
 
+	unsigned char order;		/* rotation order */
+
 } EulerObject;
 
 /*struct data contains a pointer to the actual data that the
@@ -53,7 +55,10 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *newEulerObject( float *eul, int type, PyTypeObject *base_type);
-PyObject *newEulerObject_cb(PyObject *cb_user, int cb_type, int cb_subtype);
+PyObject *newEulerObject( float *eul, short order, int type, PyTypeObject *base_type);
+PyObject *newEulerObject_cb(PyObject *cb_user, short order, int cb_type, int cb_subtype);
+
+short euler_order_from_string(const char *str, const char *error_prefix);
+
 
 #endif				/* EXPP_euler_h */

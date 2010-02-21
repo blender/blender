@@ -526,6 +526,7 @@ typedef enum eDopeSheet_FilterFlag {
 		/* datatype-based filtering */
 	ADS_FILTER_NOSHAPEKEYS 		= (1<<6),
 	ADS_FILTER_NOMESH			= (1<<7),
+	ADS_FILTER_NOOBJ			= (1<<8),	/* for animdata on object level, if we only want to concentrate on materials/etc. */
 	// NOTE: there are a few more spaces for datablock filtering here...
 	ADS_FILTER_NOCAM			= (1<<10),
 	ADS_FILTER_NOMAT			= (1<<11),
@@ -537,6 +538,7 @@ typedef enum eDopeSheet_FilterFlag {
 	ADS_FILTER_NOMBA			= (1<<17),
 	ADS_FILTER_NOARM			= (1<<18),
 	ADS_FILTER_NONTREE			= (1<<19),
+	ADS_FILTER_NOTEX			= (1<<20),
 	
 		/* NLA-specific filters */
 	ADS_FILTER_NLA_NOACT		= (1<<25),	/* if the AnimData block has no NLA data, don't include to just show Action-line */
