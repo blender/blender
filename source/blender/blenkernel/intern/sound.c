@@ -41,10 +41,10 @@ static int force_device = -1;
 
 static void sound_sync_callback(void* data, int mode, float time)
 {
-	struct Main* main = (struct Main*)data;
+	struct Main* bmain = (struct Main*)data;
 	struct Scene* scene;
 
-	scene = main->scene.first;
+	scene = bmain->scene.first;
 	while(scene)
 	{
 		if(scene->audio.flag & AUDIO_SYNC)
@@ -78,7 +78,7 @@ void sound_force_device(int device)
 	force_device = device;
 }
 
-void sound_init(struct Main *main)
+void sound_init(struct Main *bmain)
 {
 	AUD_DeviceSpecs specs;
 	int device, buffersize;
@@ -106,7 +106,10 @@ void sound_init(struct Main *main)
 
 	if(!AUD_init(device, specs, buffersize))
 		AUD_init(AUD_NULL_DEVICE, specs, buffersize);
-	AUD_setSyncCallback(sound_sync_callback, main);
+		
+#ifdef WITH_JACK
+	AUD_setSyncCallback(sound_sync_callback, bmain);
+#endif
 }
 
 void sound_exit()
@@ -114,7 +117,7 @@ void sound_exit()
 	AUD_exit();
 }
 
-struct bSound* sound_new_file(struct Main *main, char* filename)
+struct bSound* sound_new_file(struct Main *bmain, char* filename)
 {
 	bSound* sound = NULL;
 
@@ -122,21 +125,21 @@ struct bSound* sound_new_file(struct Main *main, char* filename)
 	int len;
 
 	strcpy(str, filename);
-	BLI_convertstringcode(str, main->name);
+	BLI_convertstringcode(str, bmain->name);
 
 	len = strlen(filename);
 	while(len > 0 && filename[len-1] != '/' && filename[len-1] != '\\')
 		len--;
 
-	sound = alloc_libblock(&main->sound, ID_SO, filename+len);
+	sound = alloc_libblock(&bmain->sound, ID_SO, filename+len);
 	strcpy(sound->name, filename);
 // XXX unused currently	sound->type = SOUND_TYPE_FILE;
 
-	sound_load(main, sound);
+	sound_load(bmain, sound);
 
 	if(!sound->playback_handle)
 	{
-		free_libblock(&main->sound, sound);
+		free_libblock(&bmain->sound, sound);
 		sound = NULL;
 	}
 
@@ -225,7 +228,7 @@ void sound_delete_cache(struct bSound* sound)
 	}
 }
 
-void sound_load(struct Main *main, struct bSound* sound)
+void sound_load(struct Main *bmain, struct bSound* sound)
 {
 	if(sound)
 	{
@@ -255,7 +258,7 @@ void sound_load(struct Main *main, struct bSound* sound)
 			if(sound->id.lib)
 				path = sound->id.lib->filename;
 			else
-				path = main ? main->name : G.sce;
+				path = bmain ? bmain->name : G.sce;
 
 			BLI_convertstringcode(fullpath, path);
 

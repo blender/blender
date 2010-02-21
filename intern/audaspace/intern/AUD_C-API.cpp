@@ -805,14 +805,14 @@ float AUD_getSequencerPosition(AUD_Handle* handle)
 	}
 }
 
+#ifdef WITH_JACK
 void AUD_setSyncCallback(AUD_syncFunction function, void* data)
 {
-#ifdef WITH_JACK
 	AUD_JackDevice* device = dynamic_cast<AUD_JackDevice*>(AUD_device);
 	if(device)
 		device->setSyncCallback(function, data);
-#endif
 }
+#endif
 
 int AUD_doesPlayback()
 {

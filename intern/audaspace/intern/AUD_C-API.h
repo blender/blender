@@ -392,7 +392,9 @@ extern void AUD_seekSequencer(AUD_Handle* handle, float time);
 
 extern float AUD_getSequencerPosition(AUD_Handle* handle);
 
+#ifdef WITH_JACK
 extern void AUD_setSyncCallback(AUD_syncFunction function, void* data);
+#endif
 
 extern int AUD_doesPlayback();
 
