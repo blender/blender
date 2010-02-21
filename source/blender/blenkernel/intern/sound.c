@@ -39,6 +39,26 @@
 
 static int force_device = -1;
 
+static void sound_sync_callback(void* data, int mode, float time)
+{
+	struct Main* main = (struct Main*)data;
+	struct Scene* scene;
+
+	scene = main->scene.first;
+	while(scene)
+	{
+		if(scene->audio.flag & AUDIO_SYNC)
+		{
+			if(mode)
+				sound_play_scene(scene);
+			else
+				sound_stop_scene(scene);
+			AUD_seek(scene->sound_scene_handle, time);
+		}
+		scene = scene->id.next;
+	}
+}
+
 int sound_define_from_str(char *str)
 {
 	if (BLI_strcaseeq(str, "NULL"))
@@ -58,7 +78,7 @@ void sound_force_device(int device)
 	force_device = device;
 }
 
-void sound_init()
+void sound_init(struct Main *main)
 {
 	AUD_DeviceSpecs specs;
 	int device, buffersize;
@@ -86,6 +106,7 @@ void sound_init()
 
 	if(!AUD_init(device, specs, buffersize))
 		AUD_init(AUD_NULL_DEVICE, specs, buffersize);
+	AUD_setSyncCallback(sound_sync_callback, main);
 }
 
 void sound_exit()
@@ -353,14 +374,24 @@ void sound_start_play_scene(struct Scene *scene)
 
 void sound_play_scene(struct Scene *scene)
 {
+	AUD_Status status;
 	AUD_lock();
 
-	if(!scene->sound_scene_handle || AUD_getStatus(scene->sound_scene_handle) == AUD_STATUS_INVALID)
+	status = AUD_getStatus(scene->sound_scene_handle);
+
+	if(status == AUD_STATUS_INVALID)
 		sound_start_play_scene(scene);
 
-	AUD_seek(scene->sound_scene_handle, CFRA / FPS);
 	AUD_setLoop(scene->sound_scene_handle, -1, -1);
-	AUD_resume(scene->sound_scene_handle);
+
+	if(status != AUD_STATUS_PLAYING)
+	{
+		AUD_seek(scene->sound_scene_handle, CFRA / FPS);
+		AUD_resume(scene->sound_scene_handle);
+	}
+
+	if(scene->audio.flag & AUDIO_SYNC)
+		AUD_startPlayback();
 
 	AUD_unlock();
 }
@@ -368,15 +399,21 @@ void sound_play_scene(struct Scene *scene)
 void sound_stop_scene(struct Scene *scene)
 {
 	AUD_pause(scene->sound_scene_handle);
+
+	if(scene->audio.flag & AUDIO_SYNC)
+		AUD_stopPlayback();
 }
 
 void sound_seek_scene(struct bContext *C)
 {
 	struct Scene *scene = CTX_data_scene(C);
+	AUD_Status status;
 
 	AUD_lock();
 
-	if(!scene->sound_scene_handle || AUD_getStatus(scene->sound_scene_handle) == AUD_STATUS_INVALID)
+	status = AUD_getStatus(scene->sound_scene_handle);
+
+	if(status == AUD_STATUS_INVALID)
 	{
 		sound_start_play_scene(scene);
 		AUD_pause(scene->sound_scene_handle);
@@ -385,21 +422,43 @@ void sound_seek_scene(struct bContext *C)
 	if(scene->audio.flag & AUDIO_SCRUB && !CTX_wm_screen(C)->animtimer)
 	{
 		AUD_setLoop(scene->sound_scene_handle, -1, 1 / FPS);
-		AUD_seek(scene->sound_scene_handle, CFRA / FPS);
+		if(scene->audio.flag & AUDIO_SYNC)
+			AUD_seekSequencer(scene->sound_scene_handle, CFRA / FPS);
+		else
+			AUD_seek(scene->sound_scene_handle, CFRA / FPS);
 		AUD_resume(scene->sound_scene_handle);
 	}
 	else
-		AUD_seek(scene->sound_scene_handle, CFRA / FPS);
+	{
+		if(scene->audio.flag & AUDIO_SYNC)
+			AUD_seekSequencer(scene->sound_scene_handle, CFRA / FPS);
+		else
+		{
+			if(status == AUD_STATUS_PLAYING)
+				AUD_seek(scene->sound_scene_handle, CFRA / FPS);
+		}
+	}
 
 	AUD_unlock();
 }
 
 float sound_sync_scene(struct Scene *scene)
 {
-	return AUD_getPosition(scene->sound_scene_handle);
+	if(scene->audio.flag & AUDIO_SYNC)
+		return AUD_getSequencerPosition(scene->sound_scene_handle);
+	else
+		return AUD_getPosition(scene->sound_scene_handle);
 }
 
-int sound_read_sound_buffer(bSound* sound, float* buffer, int length)
+int sound_scene_playing(struct Scene *scene)
+{
+	if(scene->audio.flag & AUDIO_SYNC)
+		return AUD_doesPlayback();
+	else
+		return -1;
+}
+
+int sound_read_sound_buffer(struct bSound* sound, float* buffer, int length)
 {
 	return AUD_readSound(sound->cache, buffer, length);
 }

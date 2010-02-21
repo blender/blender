@@ -52,6 +52,7 @@ typedef struct
 	typedef void AUD_Device;
 	typedef void AUD_SequencerEntry;
 	typedef float (*AUD_volumeFunction)(void*, void*, float);
+	typedef void (*AUD_syncFunction)(void*, int, float);
 #endif
 
 /**
@@ -382,6 +383,18 @@ extern void AUD_muteSequencer(AUD_Sound* sequencer, AUD_SequencerEntry* entry,
 						  char mute);
 
 extern int AUD_readSound(AUD_Sound* sound, sample_t* buffer, int length);
+
+extern void AUD_startPlayback();
+
+extern void AUD_stopPlayback();
+
+extern void AUD_seekSequencer(AUD_Handle* handle, float time);
+
+extern float AUD_getSequencerPosition(AUD_Handle* handle);
+
+extern void AUD_setSyncCallback(AUD_syncFunction function, void* data);
+
+extern int AUD_doesPlayback();
 
 #ifdef __cplusplus
 }

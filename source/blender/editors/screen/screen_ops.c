@@ -2537,11 +2537,11 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 /* ****************** anim player, starts or ends timer ***************** */
 
 /* toggle operator */
-static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
+int ED_screen_animation_play(bContext *C, int sync, int mode)
 {
 	bScreen *screen= CTX_wm_screen(C);
 	struct Scene* scene = CTX_data_scene(C);
-	
+
 	if(screen->animtimer) {
 		/* stop playback now */
 		ED_screen_animation_timer(C, 0, 0, 0);
@@ -2549,43 +2549,50 @@ static int screen_animation_play(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	else {
 		ScrArea *sa= CTX_wm_area(C);
-		int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
-		int sync= -1;
+
 		if(mode == 1) // XXX only play audio forwards!?
 			sound_play_scene(scene);
-		
-		if(RNA_property_is_set(op->ptr, "sync"))
-			sync= (RNA_boolean_get(op->ptr, "sync"));
-		
+
 		/* timeline gets special treatment since it has it's own menu for determining redraws */
 		if ((sa) && (sa->spacetype == SPACE_TIME)) {
 			SpaceTime *stime= (SpaceTime *)sa->spacedata.first;
-			
+
 			ED_screen_animation_timer(C, stime->redraws, sync, mode);
-			
+
 			/* update region if TIME_REGION was set, to leftmost 3d window */
 			ED_screen_animation_timer_update(screen, stime->redraws);
 		}
 		else {
 			int redraws = TIME_REGION|TIME_ALL_3D_WIN;
-			
+
 			/* XXX - would like a better way to deal with this situation - Campbell */
-			if((sa) && (sa->spacetype == SPACE_SEQ)) {
+			if((!sa) || (sa->spacetype == SPACE_SEQ)) {
 				redraws |= TIME_SEQ;
 			}
-			
+
 			ED_screen_animation_timer(C, redraws, sync, mode);
-			
+
 			if(screen->animtimer) {
 				wmTimer *wt= screen->animtimer;
 				ScreenAnimData *sad= wt->customdata;
-				
+
 				sad->ar= CTX_wm_region(C);
 			}
 		}
 	}
-	
+
 	return OPERATOR_FINISHED;
+}
+
+static int screen_animation_play_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	int mode= (RNA_boolean_get(op->ptr, "reverse")) ? -1 : 1;
+	int sync= -1;
+
+	if(RNA_property_is_set(op->ptr, "sync"))
+		sync= (RNA_boolean_get(op->ptr, "sync"));
+
+	return ED_screen_animation_play(C, sync, mode);
 }
 
 static void SCREEN_OT_animation_play(wmOperatorType *ot)
@@ -2596,12 +2603,12 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 	ot->idname= "SCREEN_OT_animation_play";
 	
 	/* api callbacks */
-	ot->invoke= screen_animation_play;
+	ot->invoke= screen_animation_play_invoke;
 	
 	ot->poll= ED_operator_screenactive;
 	
 	RNA_def_boolean(ot->srna, "reverse", 0, "Play in Reverse", "Animation is played backwards");
-	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate and stay in sync with audio.");
+	RNA_def_boolean(ot->srna, "sync", 0, "Sync", "Drop frames to maintain framerate");
 }
 
 static int screen_animation_cancel(bContext *C, wmOperator *op, wmEvent *event)
@@ -2619,7 +2626,7 @@ static int screen_animation_cancel(bContext *C, wmOperator *op, wmEvent *event)
 		WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 		
 		/* call the other "toggling" operator to clean up now */
-		return screen_animation_play(C, op, event);
+		return screen_animation_play_invoke(C, op, event);
 	}
 	
 	return OPERATOR_PASS_THROUGH;

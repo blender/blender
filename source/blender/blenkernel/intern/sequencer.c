@@ -614,7 +614,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 		}
 		seq->strip->len = seq->len;
 	} else if (seq->type == SEQ_SOUND) {
-		seq->len = AUD_getInfo(seq->sound->playback_handle).length * FPS;
+		seq->len = ceil(AUD_getInfo(seq->sound->playback_handle).length * FPS);
 		seq->len -= seq->anim_startofs;
 		seq->len -= seq->anim_endofs;
 		if (seq->len < 0) {
@@ -3848,7 +3848,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	/* basic defaults */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
-	strip->len = seq->len = (int) (info.length * FPS);
+	strip->len = seq->len = ceil(info.length * FPS);
 	strip->us= 1;
 
 	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");

@@ -176,7 +176,7 @@ static PointerRNA rna_UserDef_system_get(PointerRNA *ptr)
 
 static void rna_UserDef_audio_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	sound_init();
+	sound_init(bmain);
 }
 
 static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRNA *ptr)

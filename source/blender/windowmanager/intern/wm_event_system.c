@@ -50,6 +50,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_sound.h"
 
 #include "ED_fileselect.h"
 #include "ED_info.h"
@@ -1530,6 +1531,28 @@ void wm_event_do_handlers(bContext *C)
 		
 		if( win->screen==NULL )
 			wm_event_free_all(win);
+		else
+		{
+			if(win->screen->scene)
+			{
+				int playing = sound_scene_playing(win->screen->scene);
+				if(playing != -1)
+				{
+					if(((playing == 1) && (!win->screen->animtimer)) || ((playing == 0) && (win->screen->animtimer)))
+					{
+						CTX_wm_window_set(C, win);
+						CTX_wm_screen_set(C, win->screen);
+						CTX_data_scene_set(C, win->screen->scene);
+
+						ED_screen_animation_play(C, -1, 1);
+
+						CTX_data_scene_set(C, NULL);
+						CTX_wm_screen_set(C, NULL);
+						CTX_wm_window_set(C, NULL);
+					}
+				}
+			}
+		}
 		
 		while( (event= win->queue.first) ) {
 			int action = WM_HANDLER_CONTINUE;
