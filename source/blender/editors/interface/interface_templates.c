@@ -449,6 +449,9 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 		else {
 			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_DELETE));
+
+			if(RNA_property_flag(template->prop) & PROP_NEVER_NULL)
+				uiButSetFlag(but, UI_BUT_DISABLED);
 		}
 
 		if((idfrom && idfrom->lib))
