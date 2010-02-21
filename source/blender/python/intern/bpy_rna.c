@@ -62,6 +62,7 @@ static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyRNA *self, Pointer
 static Py_ssize_t pyrna_prop_array_length(BPy_PropertyRNA *self);
 static Py_ssize_t pyrna_prop_collection_length( BPy_PropertyRNA *self );
 
+
 /* bpyrna vector/euler/quat callbacks */
 static int mathutils_rna_array_cb_index= -1; /* index for our callbacks */
 
@@ -88,7 +89,7 @@ static int mathutils_rna_vector_set(BPy_PropertyRNA *self, int subtype, float *v
 {
 	if(self->prop==NULL)
 		return 0;
-
+	/* TODO, clamp */
 	RNA_property_float_set_array(&self->ptr, self->prop, vec_to);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
@@ -108,6 +109,7 @@ static int mathutils_rna_vector_set_index(BPy_PropertyRNA *self, int subtype, fl
 	if(self->prop==NULL)
 		return 0;
 
+	RNA_property_float_clamp(&self->ptr, self->prop, &vec_to[index]);
 	RNA_property_float_set_index(&self->ptr, self->prop, index, vec_to[index]);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
@@ -138,7 +140,7 @@ static int mathutils_rna_matrix_set(BPy_PropertyRNA *self, int subtype, float *m
 {
 	if(self->prop==NULL)
 		return 0;
-
+	/* can ignore clamping here */
 	RNA_property_float_set_array(&self->ptr, self->prop, mat_to);
 	RNA_property_update(BPy_GetContext(), &self->ptr, self->prop);
 	return 1;
@@ -804,6 +806,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, v
 				PyErr_Format(PyExc_TypeError, "%.200s expected an int type", error_prefix);
 				return -1;
 			} else {
+				RNA_property_int_clamp(ptr, prop, &param);
 				if(data)	*((int*)data)= param;
 				else		RNA_property_int_set(ptr, prop, param);
 			}
@@ -816,6 +819,7 @@ int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, v
 				PyErr_Format(PyExc_TypeError, "%.200s expected a float type", error_prefix);
 				return -1;
 			} else {
+				RNA_property_float_clamp(ptr, prop, (float *)&param);
 				if(data)	*((float*)data)= param;
 				else		RNA_property_float_set(ptr, prop, param);
 			}
@@ -1029,6 +1033,7 @@ static int pyrna_py_to_prop_index(BPy_PropertyRNA *self, int index, PyObject *va
 					PyErr_SetString(PyExc_TypeError, "expected an int type");
 					ret = -1;
 				} else {
+					RNA_property_int_clamp(ptr, prop, &param);
 					RNA_property_int_set_index(ptr, prop, index, param);
 				}
 				break;
@@ -1040,6 +1045,7 @@ static int pyrna_py_to_prop_index(BPy_PropertyRNA *self, int index, PyObject *va
 					PyErr_SetString(PyExc_TypeError, "expected a float type");
 					ret = -1;
 				} else {
+					RNA_property_float_clamp(ptr, prop, &param);
 					RNA_property_float_set_index(ptr, prop, index, param);
 				}
 				break;
@@ -1303,14 +1309,21 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, in
 		case PROP_FLOAT:
 		{
 			float values_stack[PYRNA_STACK_ARRAY];
-			float *values;
+			float *values, fval;
+
+			float min, max;
+			RNA_property_float_range(ptr, prop, &min, &max);
+
 			if(length > PYRNA_STACK_ARRAY)	{	values= values_alloc= PyMem_MALLOC(sizeof(float) * length); }
 			else							{	values= values_stack; }
 			if(start != 0 || stop != length) /* partial assignment? - need to get the array */
 				RNA_property_float_get_array(ptr, prop, values);
 			
-			for(count=start; count<stop; count++)
-				values[count] = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, count-start));
+			for(count=start; count<stop; count++) {
+				fval = PyFloat_AsDouble(PySequence_Fast_GET_ITEM(value, count-start));
+				CLAMP(fval, min, max);
+				values[count] = fval;
+			}
 
 			if(PyErr_Occurred())	ret= -1;
 			else					RNA_property_float_set_array(ptr, prop, values);
@@ -1336,15 +1349,22 @@ static int prop_subscript_ass_array_slice(PointerRNA *ptr, PropertyRNA *prop, in
 		case PROP_INT:
 		{
 			int values_stack[PYRNA_STACK_ARRAY];
-			int *values;
+			int *values, ival;
+
+			int min, max;
+			RNA_property_int_range(ptr, prop, &min, &max);
+
 			if(length > PYRNA_STACK_ARRAY)	{	values= values_alloc= PyMem_MALLOC(sizeof(int) * length); }
 			else							{	values= values_stack; }
 
 			if(start != 0 || stop != length) /* partial assignment? - need to get the array */
 				RNA_property_int_get_array(ptr, prop, values);
 
-			for(count=start; count<stop; count++)
-				values[count] = PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, count-start));
+			for(count=start; count<stop; count++) {
+				ival = PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, count-start));
+				CLAMP(ival, min, max);
+				values[count] = ival;
+			}
 
 			if(PyErr_Occurred())	ret= -1;
 			else					RNA_property_int_set_array(ptr, prop, values);

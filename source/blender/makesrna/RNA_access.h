@@ -648,6 +648,9 @@ void RNA_property_int_ui_range(PointerRNA *ptr, PropertyRNA *prop, int *softmin,
 void RNA_property_float_range(PointerRNA *ptr, PropertyRNA *prop, float *hardmin, float *hardmax);
 void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *softmin, float *softmax, float *step, float *precision);
 
+int RNA_property_float_clamp(PointerRNA *ptr, PropertyRNA *prop, float *value);
+int RNA_property_int_clamp(PointerRNA *ptr, PropertyRNA *prop, int *value);
+
 int RNA_enum_identifier(EnumPropertyItem *item, const int value, const char **identifier);
 int RNA_enum_bitflag_identifiers(EnumPropertyItem *item, const int value, const char **identifier);
 int RNA_enum_name(EnumPropertyItem *item, const int value, const char **name);
