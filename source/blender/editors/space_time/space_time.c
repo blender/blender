@@ -318,6 +318,7 @@ static void time_header_area_listener(ARegion *ar, wmNotifier *wmn)
 			switch (wmn->data) {
 				case ND_FRAME:
 				case ND_KEYINGSET:
+				case ND_RENDER_OPTIONS:
 					ED_region_tag_redraw(ar);
 				break;
 			}

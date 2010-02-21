@@ -1609,7 +1609,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "Mesh", "ID");
-	RNA_def_struct_ui_text(srna, "Mesh", "Mesh datablock to define geometric surfaces");
+	RNA_def_struct_ui_text(srna, "Mesh", "Mesh datablock defining geometric surfaces");
 	RNA_def_struct_ui_icon(srna, ICON_MESH_DATA);
 
 	prop= RNA_def_property(srna, "verts", PROP_COLLECTION, PROP_NONE);
