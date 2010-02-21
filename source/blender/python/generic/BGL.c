@@ -36,9 +36,6 @@
 #include <GL/glew.h>
 #include "MEM_guardedalloc.h"
 
-static int type_size( int type );
-static Buffer *make_buffer( int type, int ndimensions, int *dimensions );
-
 static char Method_Buffer_doc[] =
 	"(type, dimensions, [template]) - Create a new Buffer object\n\n\
 (type) - The format to store data in\n\
@@ -82,7 +79,7 @@ static PyObject *Buffer_dimensions( PyObject * self );
 static PyObject *Buffer_getattr( PyObject * self, char *name );
 static PyObject *Buffer_repr( PyObject * self );
 
-PyTypeObject buffer_Type = {
+PyTypeObject BGL_bufferType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	"buffer",		/*tp_name */
 	sizeof( Buffer ),	/*tp_basicsize */
@@ -120,7 +117,7 @@ static PyObject *Method_##funcname (PyObject *self, PyObject *args) {\
 /* #endif */
 
 /********/
-static int type_size(int type)
+int BGL_typeSize(int type)
 {
 	switch (type) {
 		case GL_BYTE: 
@@ -137,7 +134,7 @@ static int type_size(int type)
 	return -1;
 }
 
-static Buffer *make_buffer(int type, int ndimensions, int *dimensions)
+Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuffer)
 {
 	Buffer *buffer;
 	void *buf= NULL;
@@ -147,39 +144,49 @@ static Buffer *make_buffer(int type, int ndimensions, int *dimensions)
 	for (i=0; i<ndimensions; i++) 
 		length*= dimensions[i];
  
-	size= type_size(type);
+	size= BGL_typeSize(type);
  
 	buf= MEM_mallocN(length*size, "Buffer buffer");
- 
-	buffer= (Buffer *) PyObject_NEW(Buffer, &buffer_Type);
+
+	buffer= (Buffer *) PyObject_NEW(Buffer, &BGL_bufferType);
 	buffer->parent= NULL;
 	buffer->ndimensions= ndimensions;
-	buffer->dimensions= dimensions;
+	buffer->dimensions= MEM_mallocN(ndimensions*sizeof(int), "Buffer dimensions");
+	memcpy(buffer->dimensions, dimensions, ndimensions*sizeof(int));
 	buffer->type= type;
 	buffer->buf.asvoid= buf;
  
-	for (i= 0; i<length; i++) {
-		if (type==GL_BYTE) 
-			buffer->buf.asbyte[i]= 0;
-		else if (type==GL_SHORT) 
-			buffer->buf.asshort[i]= 0;
-		else if (type==GL_INT) 
-			buffer->buf.asint[i]= 0;
-		else if (type==GL_FLOAT) 
-		    buffer->buf.asfloat[i]= 0.0f;
-		else if (type==GL_DOUBLE)
-			buffer->buf.asdouble[i]= 0.0;
+	if (initbuffer) {
+		memcpy(buffer->buf.asvoid, initbuffer, length*size);
+	} else {
+		memset(buffer->buf.asvoid, 0, length*size);
+		/*
+		for (i= 0; i<length; i++) {
+			if (type==GL_BYTE) 
+				buffer->buf.asbyte[i]= 0;
+			else if (type==GL_SHORT) 
+				buffer->buf.asshort[i]= 0;
+			else if (type==GL_INT) 
+				buffer->buf.asint[i]= 0;
+			else if (type==GL_FLOAT) 
+				buffer->buf.asfloat[i]= 0.0f;
+			else if (type==GL_DOUBLE)
+				buffer->buf.asdouble[i]= 0.0;
+		}
+		*/
 	}
 	return buffer;
 }
 
+#define MAX_DIMENSIONS	256
 static PyObject *Method_Buffer (PyObject *self, PyObject *args)
 {
 	PyObject *length_ob= NULL, *template= NULL;
 	Buffer *buffer;
+	int dimensions[MAX_DIMENSIONS];
 	
 	int i, type;
-	int *dimensions = 0, ndimensions = 0;
+	int ndimensions = 0;
 	
 	if (!PyArg_ParseTuple(args, "iO|O", &type, &length_ob, &template)) {
 		PyErr_SetString(PyExc_AttributeError, "expected an int and one or two PyObjects");
@@ -192,11 +199,13 @@ static PyObject *Method_Buffer (PyObject *self, PyObject *args)
 
 	if (PyNumber_Check(length_ob)) {
 		ndimensions= 1;
-		dimensions= MEM_mallocN(ndimensions*sizeof(int), "Buffer dimensions");
 		dimensions[0]= PyLong_AsLong(length_ob);
 	} else if (PySequence_Check(length_ob)) {
 		ndimensions= PySequence_Length(length_ob);
-		dimensions= MEM_mallocN(ndimensions*sizeof(int), "Buffer dimensions");
+		if (ndimensions > MAX_DIMENSIONS) {
+			PyErr_SetString(PyExc_AttributeError, "too many dimensions, max is 256");
+			return NULL;
+		}
 		for (i=0; i<ndimensions; i++) {
 			PyObject *ob= PySequence_GetItem(length_ob, i);
 
@@ -206,7 +215,7 @@ static PyObject *Method_Buffer (PyObject *self, PyObject *args)
 		}
 	}
 	
-	buffer= make_buffer(type, ndimensions, dimensions);
+	buffer= BGL_MakeBuffer(type, ndimensions, dimensions, NULL);
 	if (template && ndimensions) {
 		if (Buffer_ass_slice((PyObject *) buffer, 0, dimensions[0], template)) {
 			Py_DECREF(buffer);
@@ -250,9 +259,9 @@ static PyObject *Buffer_item(PyObject *self, int i)
 		for (j=1; j<buf->ndimensions; j++) {
 			length*= buf->dimensions[j];
 		}
-		size= type_size(buf->type);
+		size= BGL_typeSize(buf->type);
 
-		newbuf= (Buffer *) PyObject_NEW(Buffer, &buffer_Type);
+		newbuf= (Buffer *) PyObject_NEW(Buffer, &BGL_bufferType);
     
 		Py_INCREF(self);
 		newbuf->parent= self;
@@ -1104,7 +1113,7 @@ PyObject *BGL_Init(void)
 	PyDict_SetItemString(PySys_GetObject("modules"), BGL_module_def.m_name, mod);
 	dict= PyModule_GetDict(mod);
 	
-	if( PyType_Ready( &buffer_Type) < 0)
+	if( PyType_Ready( &BGL_bufferType) < 0)
 		return NULL; /* should never happen */
 
 #define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, item=PyLong_FromLong((int)x)); Py_DECREF(item)

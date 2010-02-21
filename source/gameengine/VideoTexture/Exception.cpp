@@ -202,6 +202,8 @@ void registerAllExceptions(void)
     errNFoundDesc.registerDesc();
     MaterialNotAvailDesc.registerDesc();
     ImageSizesNotMatchDesc.registerDesc();
+    ImageHasExportsDesc.registerDesc();
+	InvalidColorChannelDesc.registerDesc();
     SceneInvalidDesc.registerDesc();
     CameraInvalidDesc.registerDesc();
     ObserverInvalidDesc.registerDesc();

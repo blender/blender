@@ -365,6 +365,7 @@ static PyGetSetDef imageRenderGetSets[] =
 	{(char*)"alpha", (getter)ImageViewport_getAlpha, (setter)ImageViewport_setAlpha, (char*)"use alpha in texture", NULL},
 	{(char*)"whole", (getter)ImageViewport_getWhole, (setter)ImageViewport_setWhole, (char*)"use whole viewport to render", NULL},
 	// attributes from ImageBase class
+	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)",	NULL},
@@ -395,7 +396,7 @@ PyTypeObject ImageRenderType =
 	0,                         /*tp_str*/
 	0,                         /*tp_getattro*/
 	0,                         /*tp_setattro*/
-	0,                         /*tp_as_buffer*/
+	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"Image source from render",       /* tp_doc */
 	0,		               /* tp_traverse */
@@ -526,6 +527,7 @@ static PyGetSetDef imageMirrorGetSets[] =
 	{(char*)"alpha", (getter)ImageViewport_getAlpha, (setter)ImageViewport_setAlpha, (char*)"use alpha in texture", NULL},
 	{(char*)"whole", (getter)ImageViewport_getWhole, (setter)ImageViewport_setWhole, (char*)"use whole viewport to render", NULL},
 	// attributes from ImageBase class
+	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)",	NULL},
@@ -729,7 +731,7 @@ PyTypeObject ImageMirrorType =
 	0,                         /*tp_str*/
 	0,                         /*tp_getattro*/
 	0,                         /*tp_setattro*/
-	0,                         /*tp_as_buffer*/
+	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"Image source from mirror",       /* tp_doc */
 	0,		               /* tp_traverse */

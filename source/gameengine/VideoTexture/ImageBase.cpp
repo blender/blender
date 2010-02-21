@@ -21,6 +21,10 @@ http://www.gnu.org/copyleft/lesser.txt.
 */
 
 #include "ImageBase.h"
+extern "C" {
+#include "BGL.h"
+}
+#include "GL/glew.h"
 
 #include <vector>
 #include <string.h>
@@ -32,7 +36,9 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #include "Exception.h"
 
-
+#if (defined(WIN32) || defined(WIN64)) && !defined(FREE_WINDOWS)
+#define strcasecmp	_stricmp
+#endif
 
 // ImageBase class implementation
 
@@ -42,6 +48,7 @@ m_avail(false), m_scale(false), m_scaleChange(false), m_flip(false),
 m_staticSources(staticSrc), m_pyfilter(NULL)
 {
 	m_size[0] = m_size[1] = 0;
+	m_exports = 0;
 }
 
 
@@ -161,6 +168,11 @@ void ImageBase::setFilter (PyFilter * filt)
 	m_pyfilter = filt;
 }
 
+ExceptionID ImageHasExports;
+ExceptionID InvalidColorChannel;
+
+ExpDesc ImageHasExportsDesc (ImageHasExports, "Image has exported buffers, cannot resize");
+ExpDesc InvalidColorChannelDesc (InvalidColorChannel, "Invalid or too many color channels specified. At most 4 values within R, G, B, A, 0, 1");
 
 // initialize image data
 void ImageBase::init (short width, short height)
@@ -175,6 +187,9 @@ void ImageBase::init (short width, short height)
 	// if sizes differ
 	if (width != m_size[0] || height != m_size[1])
 	{
+		if (m_exports > 0)
+			THRWEXCP(ImageHasExports,S_OK);
+
 		// new buffer size
 		unsigned int newSize = width * height;
 		// if new buffer is larger than previous
@@ -352,6 +367,12 @@ void Image_dealloc (PyImage * self)
 	// release object attributes
 	if (self->m_image != NULL)
 	{
+		if (self->m_image->m_exports > 0)
+		{
+			PyErr_SetString(PyExc_SystemError,
+				            "deallocated Image object has exported buffers");
+			PyErr_Print();
+		}
 		// if release requires deleting of object, do it
 		if (self->m_image->release())
 			delete self->m_image;
@@ -360,17 +381,88 @@ void Image_dealloc (PyImage * self)
 }
 
 // get image data
-PyObject * Image_getImage (PyImage * self, void * closure)
+PyObject * Image_getImage (PyImage * self, char * mode)
 {
 	try
 	{
-		// get image
 		unsigned int * image = self->m_image->getImage();
-		return Py_BuildValue("s#", image, self->m_image->getBuffSize());
+		if (image) 
+		{
+			// build BGL buffer
+			int dimensions = self->m_image->getBuffSize();
+			Buffer * buffer;
+			if (mode == NULL || !strcasecmp(mode, "RGBA"))
+			{
+				buffer = BGL_MakeBuffer( GL_BYTE, 1, &dimensions, image);
+			}
+			else 
+			{
+				int i, c, ncolor, pixels;
+				int offset[4];
+				unsigned char *s, *d;
+				// scan the mode to get the channels requested, no more than 4
+				for (i=ncolor=0; mode[i] != 0 && ncolor < 4; i++)
+				{
+					switch (toupper(mode[i]))
+					{
+					case 'R':
+						offset[ncolor++] = 0;
+						break;
+					case 'G':
+						offset[ncolor++] = 1;
+						break;
+					case 'B':
+						offset[ncolor++] = 2;
+						break;
+					case 'A':
+						offset[ncolor++] = 3;
+						break;
+					case '0':
+						offset[ncolor++] = -1;
+						break;
+					case '1':
+						offset[ncolor++] = -2;
+						break;
+					// if you add more color code, change the switch further down
+					default:
+						THRWEXCP(InvalidColorChannel,S_OK);
+					}
+				}
+				if (mode[i] != 0) {
+					THRWEXCP(InvalidColorChannel,S_OK);
+				}
+				// first get the number of pixels
+				pixels = dimensions / 4;
+				// multiple by the number of channels, each is one byte
+				dimensions = pixels * ncolor;
+				// get an empty buffer
+				buffer = BGL_MakeBuffer( GL_BYTE, 1, &dimensions, NULL);
+				// and fill it
+				for (i=0, d=(unsigned char*)buffer->buf.asbyte, s=(unsigned char*)image; 
+					 i<pixels; 
+					 ++i, d+=ncolor, s+=4)
+				{
+					for (c=0; c<ncolor; c++)
+					{
+						switch (offset[c])
+						{
+						case 0: d[c] = s[0]; break;
+						case 1: d[c] = s[1]; break;
+						case 2: d[c] = s[2]; break;
+						case 3: d[c] = s[3]; break;
+						case -1: d[c] = 0; break;
+						case -2: d[c] = 0xFF; break;
+						}
+					}
+				}
+			}
+			return (PyObject*)buffer;
+		}
 	}
 	catch (Exception & exp)
 	{
 		exp.report();
+		return NULL;
 	}
 	Py_RETURN_NONE;
 }
@@ -533,3 +625,73 @@ int Image_setFilter (PyImage * self, PyObject * value, void * closure)
 	// return success
 	return 0;
 }
+PyObject * Image_valid(PyImage * self, void * closure)
+{
+	if (self->m_image->isImageAvailable())
+	{
+		Py_RETURN_TRUE;
+	}
+	else
+	{
+		Py_RETURN_FALSE;
+	}
+}
+
+int Image_getbuffer(PyImage *self, Py_buffer *view, int flags)
+{
+	unsigned int * image;
+    int ret;
+
+	try
+	{
+		// can throw in case of resize
+		image = self->m_image->getImage();
+	}
+	catch (Exception & exp)
+	{
+		// cannot return -1, this creates a crash in Python, for now we will just return an empty buffer
+		//exp.report();
+		//return -1;
+		goto error;
+	}
+
+	if (!image)
+	{
+		// same remark, see above
+		//PyErr_SetString(PyExc_BufferError, "Image buffer is not available");
+		//return -1;
+		goto error;
+	}
+    if (view == NULL) 
+	{
+        self->m_image->m_exports++;
+        return 0;
+    }
+    ret = PyBuffer_FillInfo(view, (PyObject*)self, image, self->m_image->getBuffSize(), 0, flags);
+    if (ret >= 0)
+        self->m_image->m_exports++;
+    return ret;
+
+error:
+	// Return a empty buffer to avoid a crash in Python 3.1
+	// The bug is fixed in Python SVN 77916, as soon as the python revision used by Blender is
+	// updated, you can simply return -1 and set the error
+	static char* buf = "";
+    ret = PyBuffer_FillInfo(view, (PyObject*)self, buf, 0, 0, flags);
+    if (ret >= 0)
+        self->m_image->m_exports++;
+    return ret;
+	
+}
+
+void Image_releaseBuffer(PyImage *self, Py_buffer *buffer)
+{
+	self->m_image->m_exports--;
+}
+
+PyBufferProcs imageBufferProcs = 
+{
+	(getbufferproc)Image_getbuffer,
+	(releasebufferproc)Image_releaseBuffer
+};
+

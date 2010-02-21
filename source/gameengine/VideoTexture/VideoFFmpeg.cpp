@@ -723,14 +723,8 @@ void VideoFFmpeg::setFrameRate (float rate)
 
 
 // image calculation
-void VideoFFmpeg::calcImage (unsigned int texId, double ts)
-{
-	loadFrame(ts);
-}
-
-
 // load frame from video
-void VideoFFmpeg::loadFrame (double ts)
+void VideoFFmpeg::calcImage (unsigned int texId, double ts)
 {
 	if (m_status == SourcePlaying)
 	{
@@ -1162,6 +1156,7 @@ static PyGetSetDef videoGetSets[] =
 	{(char*)"repeat", (getter)Video_getRepeat, (setter)Video_setRepeat, (char*)"repeat count, -1 for infinite repeat", NULL},
 	{(char*)"framerate", (getter)Video_getFrameRate, (setter)Video_setFrameRate, (char*)"frame rate", NULL},
 	// attributes from ImageBase class
+	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
@@ -1193,7 +1188,7 @@ PyTypeObject VideoFFmpegType =
 	0,                         /*tp_str*/
 	0,                         /*tp_getattro*/
 	0,                         /*tp_setattro*/
-	0,                         /*tp_as_buffer*/
+	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"FFmpeg video source",       /* tp_doc */
 	0,		               /* tp_traverse */
@@ -1282,6 +1277,7 @@ static PyGetSetDef imageGetSets[] =
 { // methods from VideoBase class
 	{(char*)"status", (getter)Video_getStatus, NULL, (char*)"video status", NULL},
 	// attributes from ImageBase class
+	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
@@ -1311,7 +1307,7 @@ PyTypeObject ImageFFmpegType =
 	0,                         /*tp_str*/
 	0,                         /*tp_getattro*/
 	0,                         /*tp_setattro*/
-	0,                         /*tp_as_buffer*/
+	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"FFmpeg image source",       /* tp_doc */
 	0,		               /* tp_traverse */

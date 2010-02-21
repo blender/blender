@@ -200,6 +200,8 @@ protected:
 
 extern ExpDesc MaterialNotAvailDesc;
 extern ExpDesc ImageSizesNotMatchDesc;
+extern ExpDesc ImageHasExportsDesc;
+extern ExpDesc InvalidColorChannelDesc;
 extern ExpDesc SceneInvalidDesc;
 extern ExpDesc CameraInvalidDesc;
 extern ExpDesc ObserverInvalidDesc;

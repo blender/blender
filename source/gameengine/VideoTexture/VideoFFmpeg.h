@@ -159,9 +159,6 @@ protected:
 	/// image calculation
 	virtual void calcImage (unsigned int texId, double ts);
 
-	/// load frame from video
-	void loadFrame (double ts);
-
 	/// set actual position
 	void setPositions (void);
 

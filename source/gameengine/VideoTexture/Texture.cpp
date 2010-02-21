@@ -455,7 +455,7 @@ PyTypeObject TextureType =
 	0,                         /*tp_str*/
 	0,                         /*tp_getattro*/
 	0,                         /*tp_setattro*/
-	0,                         /*tp_as_buffer*/
+	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"Texture objects",       /* tp_doc */
 	0,		               /* tp_traverse */
