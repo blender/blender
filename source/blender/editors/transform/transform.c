@@ -2963,8 +2963,13 @@ int Rotation(TransInfo *t, short mval[2])
 	
 	snapGrid(t, &final);
 	
-	if (t->con.applyRot) {
+	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
 		t->con.applyRot(t, NULL, t->axis, &final);
+	} else {
+		/* reset axis if constraint is not set */
+		VECCOPY(t->axis, t->viewinv[2]);
+		mul_v3_fl(t->axis, -1.0f);
+		normalize_v3(t->axis);
 	}
 	
 	applySnapping(t, &final);
