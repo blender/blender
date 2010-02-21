@@ -151,6 +151,11 @@ static void rna_Operator_enum_search_invoke(bContext *C, wmOperator *op)
 	
 }
 
+static int rna_event_add_modal_handler(struct bContext *C, struct wmOperator *operator)
+{
+	return WM_event_add_modal_handler(C, operator) != NULL;
+}
+
 #else
 
 static void rna_generic_op_invoke(FunctionRNA *func, int use_event, int use_ret)
@@ -191,6 +196,12 @@ void RNA_api_wm(StructRNA *srna)
 	func= RNA_def_function(srna, "remove_keyconfig", "WM_keyconfig_remove");
 	parm= RNA_def_pointer(func, "keyconfig", "KeyConfig", "Key Configuration", "Removed key configuration.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "add_modal_handler", "rna_event_add_modal_handler");
+	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "operator", "Operator", "", "Operator to call.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	RNA_def_function_return(func, RNA_def_boolean(func, "handle", 1, "", ""));
 
 	/* invoke functions, for use with python */
 	func= RNA_def_function(srna, "invoke_props_popup", "WM_operator_props_popup");
@@ -244,6 +255,16 @@ void RNA_api_operator(StructRNA *srna)
 	/* invoke */
 	func= RNA_def_function(srna, "invoke", NULL);
 	RNA_def_function_ui_description(func, "Invoke the operator.");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_pointer(func, "event", "Event", "", "");
+
+	parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", ""); // better name?
+	RNA_def_property_flag(parm, PROP_ENUM_FLAG);
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "modal", NULL); /* same as invoke */
+	RNA_def_function_ui_description(func, "Modal operator function.");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_pointer(func, "event", "Event", "", "");

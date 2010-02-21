@@ -683,6 +683,31 @@ static int operator_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	return result;
 }
 
+/* same as invoke */
+static int operator_modal(bContext *C, wmOperator *op, wmEvent *event)
+{
+	PointerRNA opr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	int result;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, op->type->ext.srna, op, &opr);
+	func= RNA_struct_find_function(&opr, "modal");
+
+	RNA_parameter_list_create(&list, &opr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	RNA_parameter_set_lookup(&list, "event", &event);
+	op->type->ext.call(&opr, func, &list);
+
+	RNA_parameter_get_lookup(&list, "result", &ret);
+	result= *(int*)ret;
+
+	RNA_parameter_list_free(&list);
+
+	return result;
+}
+
 static void operator_draw(bContext *C, wmOperator *op)
 {
 	PointerRNA opr;
@@ -711,7 +736,7 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 	wmOperatorType dummyot = {0};
 	wmOperator dummyop= {0};
 	PointerRNA dummyotr;
-	int have_function[4];
+	int have_function[5];
 
 	/* setup dummy operator & operator type to store static properties in */
 	dummyop.type= &dummyot;
@@ -762,7 +787,8 @@ static StructRNA *rna_Operator_register(const bContext *C, ReportList *reports, 
 	dummyot.pyop_poll=	(have_function[0])? operator_poll: NULL;
 	dummyot.exec=		(have_function[1])? operator_exec: NULL;
 	dummyot.invoke=		(have_function[2])? operator_invoke: NULL;
-	dummyot.ui=			(have_function[3])? operator_draw: NULL;
+	dummyot.modal=		(have_function[3])? operator_modal: NULL;
+	dummyot.ui=			(have_function[4])? operator_draw: NULL;
 
 	WM_operatortype_append_ptr(operator_wrapper, (void *)&dummyot);
 
