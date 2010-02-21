@@ -981,7 +981,7 @@ static void test_scriptpoin_but(struct bContext *C, char *name, ID **idpp)
 
 static void test_actionpoin_but(struct bContext *C, char *name, ID **idpp)
 {
-	*idpp= BLI_findstring(&CTX_data_main(C)->text, name, offsetof(ID, name) + 2);
+	*idpp= BLI_findstring(&CTX_data_main(C)->action, name, offsetof(ID, name) + 2);
 	if(*idpp)
 		id_us_plus(*idpp);
 }
