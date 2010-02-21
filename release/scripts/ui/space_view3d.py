@@ -700,6 +700,42 @@ class VIEW3D_MT_object_clear(bpy.types.Menu):
         layout.operator("object.origin_clear", text="Origin")
 
 
+class VIEW3D_MT_object_specials(bpy.types.Menu):
+    bl_label = "Specials"
+
+    def poll(self, context):
+        # add more special types
+        obj = context.object
+        return bool(obj and obj.type == 'LAMP')
+
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+        if obj and obj.type == 'LAMP':
+            layout.operator_context = 'INVOKE_REGION_WIN'
+
+            props = layout.operator("wm.context_modal_mouse", text="Spot Size")
+            props.path_iter = "selected_editable_objects"
+            props.path_item = "data.spot_size"
+            props.input_scale = 0.01
+            
+            props = layout.operator("wm.context_modal_mouse", text="Distance")
+            props.path_iter = "selected_editable_objects"
+            props.path_item = "data.distance"
+            props.input_scale = 0.1
+            
+            props = layout.operator("wm.context_modal_mouse", text="Clip Start")
+            props.path_iter = "selected_editable_objects"
+            props.path_item = "data.shadow_buffer_clip_start"
+            props.input_scale = 0.05
+            
+            props = layout.operator("wm.context_modal_mouse", text="Clip End")
+            props.path_iter = "selected_editable_objects"
+            props.path_item = "data.shadow_buffer_clip_end"
+            props.input_scale = 0.05
+
+
 class VIEW3D_MT_object_apply(bpy.types.Menu):
     bl_label = "Apply"
 
@@ -2141,6 +2177,7 @@ classes = [
     VIEW3D_MT_uv_map, # Edit Menus
 
     VIEW3D_MT_object, # Object Menu
+    VIEW3D_MT_object_specials,
     VIEW3D_MT_object_apply,
     VIEW3D_MT_object_clear,
     VIEW3D_MT_object_parent,
