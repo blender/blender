@@ -873,8 +873,16 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
+		/* remove track-object for old track */
 		ob->track= NULL;
 		ob->recalc |= OB_RECALC;
+		
+		/* also remove all Track To constraints 
+		 * TODO: 
+		 *	- do we only want to do the last instance (use 1 as last arg instead)
+		 *	- also, what about other forms of tracking?
+		 */
+		remove_constraints_type(&ob->constraints, CONSTRAINT_TYPE_TRACKTO, 0);
 		
 		if(type == 1)
 			ED_object_apply_obmat(ob);
@@ -883,6 +891,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 
 	DAG_ids_flush_update(0);
 	DAG_scene_sort(CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -973,8 +982,10 @@ static int track_set_exec(bContext *C, wmOperator *op)
 		}
 		CTX_DATA_END;
 	}
+	
 	DAG_scene_sort(scene);
 	DAG_ids_flush_update(0);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 	
 	return OPERATOR_FINISHED;
 }

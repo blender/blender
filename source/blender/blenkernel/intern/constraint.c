@@ -3903,6 +3903,26 @@ int remove_constraint_index (ListBase *list, int index)
 		return 0;
 }
 
+/* Remove all the constraints of the specified type from the given constraint stack */
+void remove_constraints_type (ListBase *list, short type, short last_only)
+{
+	bConstraint *con, *conp;
+	
+	if (list == NULL)
+		return;
+	
+	/* remove from the end of the list to make it faster to find the last instance */
+	for (con= list->last; con; con= conp) {
+		conp= con->prev;
+		
+		if (con->type == type) {
+			remove_constraint(list, con);
+			if (last_only) 
+				return;
+		}
+	}
+}
+
 /* ......... */
 
 /* Creates a new constraint, initialises its data, and returns it */
@@ -4061,9 +4081,6 @@ void copy_constraints (ListBase *dst, const ListBase *src)
 		
 		/* make a new copy of the constraint's data */
 		con->data = MEM_dupallocN(con->data);
-		
-		// NOTE: depreceated... old animation system
-		id_us_plus((ID *)con->ipo);
 		
 		/* only do specific constraints if required */
 		if (cti) {
