@@ -2190,7 +2190,9 @@ static int ui_numedit_but_NUM(uiBut *but, uiHandleButtonData *data, float fac, i
 			}
 		}
 		else {
-			fac = 0.5; /* simple 2px == 1 */
+			if(softrange > 256)		fac= 1.0;		/* 1px == 1 */
+			else if(softrange > 32)	fac= 1.0/2.0;	/* 2px == 1 */
+			else					fac= 1.0/16.0;	/* 16px == 1? */
 
 			temp= data->startvalue + ((mx - data->dragstartx) * fac);
 			temp= ui_numedit_apply_snap(temp, softmin, softmax, snap);
