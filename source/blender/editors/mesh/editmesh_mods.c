@@ -129,14 +129,15 @@ static void EM_select_mirrored(Object *obedit, EditMesh *em, int extend)
 	EM_cache_x_mirror_vert(obedit, em);
 
 	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f & SELECT && eve->tmp.v) {
+		if(eve->f & SELECT && eve->tmp.v && (eve->tmp.v != eve->tmp.v->tmp.v)) {
 			eve->tmp.v->f |= SELECT;
 
 			if(extend==FALSE)
 				eve->f &= ~SELECT;
 
 			/* remove the interference */
-			eve->tmp.v->tmp.v= eve->tmp.v= NULL;
+			eve->tmp.v->tmp.v= NULL;
+			eve->tmp.v= NULL;
 		}
 	}
 }
@@ -2899,7 +2900,7 @@ int select_mirror_exec(bContext *C, wmOperator *op)
 	int extend= RNA_boolean_get(op->ptr, "extend");
 
 	EM_select_mirrored(obedit, em, extend);
-
+	EM_selectmode_flush(em);
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
