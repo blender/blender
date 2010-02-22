@@ -285,7 +285,7 @@ static PyObject * plot (PyImage * self, PyObject * args)
 	{
 		getImageBuff(self)->plot((unsigned char*)bglBuffer->buf.asvoid, width, height, x, y, mode);
 	}
-	if (PyErr_Occurred)
+	if (PyErr_Occurred())
 		return NULL;
 	Py_RETURN_NONE;	
 }
