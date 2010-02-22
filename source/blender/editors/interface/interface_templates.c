@@ -157,16 +157,19 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 {
 	TemplateID *template= (TemplateID*)arg_template;
 	ListBase *lb= template->idlb;
-	ID *id;
+	ID *id, *id_from= template->ptr.id.data;
 	int iconid;
+	int flag= RNA_property_flag(template->prop);
 
 	/* ID listbase */
 	for(id= lb->first; id; id= id->next) {
-		if(BLI_strcasestr(id->name+2, str)) {
-			iconid= ui_id_icon_get((bContext*)C, id, 0);
+		if(!((flag & PROP_ID_SELF_CHECK) && id == id_from)) {
+			if(BLI_strcasestr(id->name+2, str)) {
+				iconid= ui_id_icon_get((bContext*)C, id, 0);
 
-			if(!uiSearchItemAdd(items, id->name+2, id, iconid))
-				break;
+				if(!uiSearchItemAdd(items, id->name+2, id, iconid))
+					break;
+			}
 		}
 	}
 }

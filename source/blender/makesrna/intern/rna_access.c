@@ -1937,8 +1937,12 @@ void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr
 	else {
 		PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
 
-		if(pprop->set && !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL))
+		if(		pprop->set &&
+				!((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL) &&
+				!((prop->flag & PROP_ID_SELF_CHECK) && ptr->id.data == ptr_value.id.data)
+		) {
 			pprop->set(ptr, ptr_value);
+		}
 	}
 }
 
