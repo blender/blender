@@ -418,8 +418,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
                                 uf.tex = True 
 
             # bmesh.transform(contextMatrix)
-            ob = bpy.data.objects.new(tempName, 'MESH')
-            ob.data = bmesh
+            ob = bpy.data.objects.new(tempName, bmesh)
             SCN.objects.link(ob)
 # 			ob = SCN_OBJECTS.new(bmesh, tempName)
             '''
@@ -638,8 +637,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
             x,y,z = struct.unpack('<3f', temp_data)
             new_chunk.bytes_read += STRUCT_SIZE_3FLOAT
 
-            ob = bpy.data.objects.new("Lamp", 'LAMP')
-            ob.data = bpy.data.lamps.new("Lamp")
+            ob = bpy.data.objects.new("Lamp", bpy.data.lamps.new("Lamp"))
             SCN.objects.link(ob)
 
             contextLamp[1]= ob.data

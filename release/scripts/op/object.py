@@ -447,13 +447,11 @@ class MakeDupliFace(bpy.types.Operator):
             # pick an object to use 
             obj = objects[0]
 
-            ob_new = bpy.data.objects.new(mesh.name, 'MESH')
-            ob_new.data = mesh
+            ob_new = bpy.data.objects.new(mesh.name, mesh)
             base = scene.objects.link(ob_new)
             base.layers[:] = obj.layers
             
-            ob_inst = bpy.data.objects.new(data.name, obj.type)
-            ob_inst.data = data
+            ob_inst = bpy.data.objects.new(data.name, data)
             base = scene.objects.link(ob_inst)
             base.layers[:] = obj.layers
             

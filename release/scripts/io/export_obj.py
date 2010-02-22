@@ -447,8 +447,7 @@ def write(filename, objects, scene,
                         break
 
                 if has_quads:
-                    newob = bpy.data.objects.new('temp_object', 'MESH')
-                    newob.data = me
+                    newob = bpy.data.objects.new('temp_object', me)
                     # if we forget to set Object.data - crash
                     scene.objects.link(newob)
                     newob.convert_to_triface(scene)

@@ -863,10 +863,8 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
     me.update()
 # 	me.calcNormals()
 
-    ob= bpy.data.objects.new("Mesh", 'MESH')
-    ob.data= me
+    ob= bpy.data.objects.new("Mesh", me)
     scn.objects.link(ob)
-# 	ob= scn.objects.new(me)
     new_objects.append(ob)
 
     # Create the vertex groups. No need to have the flag passed here since we test for the

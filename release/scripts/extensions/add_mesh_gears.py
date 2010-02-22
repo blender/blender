@@ -322,8 +322,7 @@ class AddGear(bpy.types.Operator):
 
         mesh.update()
         
-        ob_new = bpy.data.objects.new('Gear','MESH')
-        ob_new.data = mesh
+        ob_new = bpy.data.objects.new('Gear', mesh)
 
         tipgroup = ob_new.add_vertex_group('Tips')
         # for some reason the name does not 'stick' and we have to set it this way:
