@@ -4,7 +4,7 @@ LIBDIR = '${LCGDIR}'
 # enable ffmpeg  support
 WITH_BF_FFMPEG = False # -DWITH_FFMPEG
 BF_FFMPEG = LIBDIR +'/ffmpeg'
-BF_FFMPEG_INC = '${BF_FFMPEG}/include'
+BF_FFMPEG_INC = '${BF_FFMPEG}/include ${BF_FFMPEG}/include/msvc '
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 BF_FFMPEG_LIB = 'avformat-52.lib avcodec-51.lib avdevice-52.lib avutil-49.lib swscale-0.lib'
 
