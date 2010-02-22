@@ -1533,23 +1533,32 @@ void wm_event_do_handlers(bContext *C)
 			wm_event_free_all(win);
 		else
 		{
-			if(win->screen->scene)
+			Scene* scene = win->screen->scene;
+			if(scene)
 			{
 				int playing = sound_scene_playing(win->screen->scene);
 				if(playing != -1)
 				{
+					CTX_wm_window_set(C, win);
+					CTX_wm_screen_set(C, win->screen);
+					CTX_data_scene_set(C, scene);
 					if(((playing == 1) && (!win->screen->animtimer)) || ((playing == 0) && (win->screen->animtimer)))
 					{
-						CTX_wm_window_set(C, win);
-						CTX_wm_screen_set(C, win->screen);
-						CTX_data_scene_set(C, win->screen->scene);
-
 						ED_screen_animation_play(C, -1, 1);
-
-						CTX_data_scene_set(C, NULL);
-						CTX_wm_screen_set(C, NULL);
-						CTX_wm_window_set(C, NULL);
 					}
+					if(playing == 0)
+					{
+						int ncfra = floor(sound_sync_scene(scene) * FPS);
+						if(ncfra != scene->r.cfra)
+						{
+							scene->r.cfra = ncfra;
+							ED_update_for_newframe(C, 1);
+							WM_event_add_notifier(C, NC_WINDOW, NULL);
+						}
+					}
+					CTX_data_scene_set(C, NULL);
+					CTX_wm_screen_set(C, NULL);
+					CTX_wm_window_set(C, NULL);
 				}
 			}
 		}
