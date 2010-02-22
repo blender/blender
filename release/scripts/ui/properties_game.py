@@ -357,13 +357,13 @@ class RENDER_PT_game_performance(RenderButtonsPanel):
         col.prop(gs, "show_debug_properties", text="Debug Properties")
         col.prop(gs, "show_framerate_profile", text="Framerate and Profile")
         col.prop(gs, "show_physics_visualization", text="Physics Visualization")
-        col.prop(gs, "deprecation_warnings")
+        col.prop(gs, "use_deprecation_warnings")
 
         if wide_ui:
             col = split.column()
         col.label(text="Render:")
-        col.prop(gs, "all_frames")
-        col.prop(gs, "display_lists")
+        col.prop(gs, "use_frame_rate")
+        col.prop(gs, "use_display_lists")
 
 
 class RENDER_PT_game_sound(RenderButtonsPanel):

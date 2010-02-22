@@ -710,8 +710,8 @@ bool GPG_Application::startEngine(void)
 		// Set the animation playback rate for ipo's and actions
 		// the framerate below should patch with FPS macro defined in blendef.h
 		// Could be in StartEngine set the framerate, we need the scene to do this
-// XXX		m_ketsjiengine->SetAnimFrameRate( (((double) scene->r.frs_sec) / scene->r.frs_sec_base) );
-		
+		Scene *scene= startscene->GetBlenderScene(); // needed for macro
+		m_ketsjiengine->SetAnimFrameRate(FPS);
 	}
 	
 	if (!m_engineRunning)

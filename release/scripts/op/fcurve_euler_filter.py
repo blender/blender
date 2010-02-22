@@ -45,7 +45,7 @@ def main(context):
 
 class DiscontFilterOp(bpy.types.Operator):
     """Fixes the most common causes of gimbal lock in the fcurves of the active bone"""
-    bl_idname = "graph.discont_filter"
+    bl_idname = "graph.euler_filter"
     bl_label = "Filter out discontinuities in the active fcurves"
 
     def poll(self, context):
@@ -63,4 +63,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

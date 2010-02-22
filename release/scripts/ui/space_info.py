@@ -253,7 +253,8 @@ class INFO_MT_game(bpy.types.Menu):
         layout.prop(gs, "show_debug_properties")
         layout.prop(gs, "show_framerate_profile")
         layout.prop(gs, "show_physics_visualization")
-        layout.prop(gs, "deprecation_warnings")
+        layout.prop(gs, "use_deprecation_warnings")
+        layout.prop(gs, "use_animation_record")
 
 
 class INFO_MT_render(bpy.types.Menu):

@@ -1690,8 +1690,8 @@ void game_set_commmandline_options(GameData *gm)
 		test= (gm->flag & GAME_ENABLE_ALL_FRAMES);
 		SYS_WriteCommandLineInt(syshandle, "fixedtime", test);
 
-//		a= (G.fileflags & G_FILE_GAME_TO_IPO);
-//		SYS_WriteCommandLineInt(syshandle, "game2ipo", a);
+		test= (gm->flag & GAME_ENABLE_ANIMATION_RECORD);
+		SYS_WriteCommandLineInt(syshandle, "animation_record", test);
 
 		test= (gm->flag & GAME_IGNORE_DEPRECATION_WARNINGS);
 		SYS_WriteCommandLineInt(syshandle, "ignore_deprecation_warnings", test);

@@ -1639,47 +1639,81 @@ static PyObject *pyrna_struct_values(BPy_PropertyRNA *self)
 	return BPy_Wrap_GetValues(self->ptr.id.data, group);
 }
 
-static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args)
+/* internal use for insert and delete */
+int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *error_prefix,
+	char **path_full, int *index, float *cfra) /* return values */
 {
-	char *path, *path_full;
-	int index= -1; /* default to all */
-	float cfra = CTX_data_scene(BPy_GetContext())->r.cfra;
+	char *path;
 	PropertyRNA *prop;
-	PyObject *result;
 
-	if (!PyArg_ParseTuple(args, "s|if:keyframe_insert", &path, &index, &cfra))
-		return NULL;
-
-	if (self->ptr.data==NULL) {
-		PyErr_Format( PyExc_TypeError, "keyframe_insert, this struct has no data, cant be animated", path);
-		return NULL;
+	if (!PyArg_ParseTuple(args, "s|if", &path, &index, &cfra)) {
+		PyErr_Format(PyExc_TypeError, "%.200s: expected a string and optionally an int and float arguments", error_prefix);
+		return -1;
 	}
 
-	prop = RNA_struct_find_property(&self->ptr, path);
+	if (ptr->data==NULL) {
+		PyErr_Format(PyExc_TypeError, "%.200s: this struct has no data, can't be animated", error_prefix);
+		return -1;
+	}
+
+	prop = RNA_struct_find_property(ptr, path);
 
 	if (prop==NULL) {
-		PyErr_Format( PyExc_TypeError, "keyframe_insert, property \"%s\" not found", path);
-		return NULL;
+		PyErr_Format( PyExc_TypeError, "%.200s: property \"%s\" not found", error_prefix, path);
+		return -1;
 	}
 
-	if (!RNA_property_animateable(&self->ptr, prop)) {
-		PyErr_Format( PyExc_TypeError, "keyframe_insert, property \"%s\" not animatable", path);
-		return NULL;
+	if (!RNA_property_animateable(ptr, prop)) {
+		PyErr_Format( PyExc_TypeError, "%.200s: property \"%s\" not animatable", error_prefix, path);
+		return -1;
 	}
 
-	path_full= RNA_path_from_ID_to_property(&self->ptr, prop);
+	*path_full= RNA_path_from_ID_to_property(ptr, prop);
 
-	if (path_full==NULL) {
-		PyErr_Format( PyExc_TypeError, "keyframe_insert, could not make path to \"%s\"", path);
-		return NULL;
+	if (*path_full==NULL) {
+		PyErr_Format( PyExc_TypeError, "%.200s: could not make path to \"%s\"", error_prefix, path);
+		return -1;
 	}
 
-	result= PyBool_FromLong( insert_keyframe((ID *)self->ptr.id.data, NULL, NULL, path_full, index, cfra, 0));
+	if(*cfra==FLT_MAX)
+		*cfra= CTX_data_scene(BPy_GetContext())->r.cfra;
+
+	return 0; /* success */
+}
+
+static PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args)
+{
+	PyObject *result;
+	/* args, pyrna_struct_keyframe_parse handles these */
+	char *path_full= NULL;
+	int index= -1;
+	float cfra= FLT_MAX;
+
+	if(pyrna_struct_keyframe_parse(&self->ptr, args, "keyframe_insert", &path_full, &index, &cfra) == -1)
+		return NULL;
+
+	result= PyBool_FromLong(insert_keyframe((ID *)self->ptr.id.data, NULL, NULL, path_full, index, cfra, 0));
 	MEM_freeN(path_full);
 
 	return result;
 }
 
+static PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args)
+{
+	PyObject *result;
+	/* args, pyrna_struct_keyframe_parse handles these */
+	char *path_full= NULL;
+	int index= -1;
+	float cfra= FLT_MAX;
+
+	if(pyrna_struct_keyframe_parse(&self->ptr, args, "keyframe_delete", &path_full, &index, &cfra) == -1)
+		return NULL;
+
+	result= PyBool_FromLong(delete_keyframe((ID *)self->ptr.id.data, NULL, NULL, path_full, index, cfra, 0));
+	MEM_freeN(path_full);
+
+	return result;
+}
 
 static PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
 {
@@ -2659,6 +2693,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 
 	/* maybe this become and ID function */
 	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, NULL},
+//	{"keyframe_delete", (PyCFunction)pyrna_struct_keyframe_delete, METH_VARARGS, NULL}, // WIP
 	{"driver_add", (PyCFunction)pyrna_struct_driver_add, METH_VARARGS, NULL},
 	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, NULL},
 	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, NULL},

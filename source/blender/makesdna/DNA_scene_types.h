@@ -487,6 +487,7 @@ typedef struct GameData {
 #define GAME_GLSL_NO_NODES					(1 << 10)
 #define GAME_GLSL_NO_EXTRA_TEX				(1 << 11)
 #define GAME_IGNORE_DEPRECATION_WARNINGS	(1 << 12)
+#define GAME_ENABLE_ANIMATION_RECORD		(1 << 13)
 
 /* GameData.matmode */
 #define GAME_MAT_TEXFACE	0

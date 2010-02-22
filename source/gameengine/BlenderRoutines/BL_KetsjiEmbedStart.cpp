@@ -168,7 +168,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		bool usefixed = (SYS_GetCommandLineInt(syshandle, "fixedtime", 0) != 0);
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
-		bool game2ipo = (SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
+		bool animation_record = (SYS_GetCommandLineInt(syshandle, "animation_record", 0) != 0);
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
 		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
@@ -322,7 +322,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		if (blscene)
 		{
 			int startFrame = blscene->r.cfra;
-			ketsjiengine->SetGame2IpoMode(game2ipo,startFrame);
+			ketsjiengine->SetAnimRecordMode(animation_record, startFrame);
 			
 			// Quad buffered needs a special window.
 			if(blscene->gm.stereoflag == STEREO_ENABLED){
@@ -409,7 +409,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				// Set the animation playback rate for ipo's and actions
 				// the framerate below should patch with FPS macro defined in blendef.h
 				// Could be in StartEngine set the framerate, we need the scene to do this
-				ketsjiengine->SetAnimFrameRate( (((double) blscene->r.frs_sec) / blscene->r.frs_sec_base) );
+				ketsjiengine->SetAnimFrameRate(FPS);
 				
 				// the mainloop
 				printf("\nBlender Game Engine Started\n\n");
@@ -566,225 +566,4 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 	PyGILState_Release(gilstate);
 #endif
 
-}
-
-extern "C" void StartKetsjiShellSimulation(struct wmWindow *win,
-								 struct ARegion *ar,
-								 char* scenename,
-								 struct Main* maggie,
-								 int always_use_expand_framing)
-{
-    int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
-
-	Main* blenderdata = maggie;
-
-	RAS_Rect area_rect;
-	area_rect.SetLeft(ar->winrct.xmin);
-	area_rect.SetBottom(ar->winrct.ymin);
-	area_rect.SetRight(ar->winrct.xmax);
-	area_rect.SetTop(ar->winrct.ymax);
-
-	char* startscenename = scenename;
-	char pathname[FILE_MAXDIR+FILE_MAXFILE];
-	STR_String exitstring = "";
-
-	BLI_strncpy(pathname, blenderdata->name, sizeof(pathname));
-
-#ifndef DISABLE_PYTHON
-	// Acquire Python's GIL (global interpreter lock)
-	// so we can safely run Python code and API calls
-	PyGILState_STATE gilstate = PyGILState_Ensure();
-	PyObject *pyGlobalDict = PyDict_New(); /* python utility storage, spans blend file loading */
-#endif
-
-	bgl::InitExtensions(true);
-
-	do
-	{
-
-		// get some preferences
-		SYS_SystemHandle syshandle = SYS_GetSystem();
-		/*
-		bool properties	= (SYS_GetCommandLineInt(syshandle, "show_properties", 0) != 0);
-		bool usefixed = (SYS_GetCommandLineInt(syshandle, "fixedtime", 0) != 0);
-		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
-		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
-		*/
-		bool game2ipo = true;//(SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
-		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
-		bool usemat = false;
-
-		// create the canvas, rasterizer and rendertools
-		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, area_rect);
-		//canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
-		RAS_IRenderTools* rendertools = new KX_BlenderRenderTools();
-		RAS_IRasterizer* rasterizer = NULL;
-
-		if(displaylists) {
-			if (GLEW_VERSION_1_1)
-				rasterizer = new RAS_ListRasterizer(canvas, true, true);
-			else
-				rasterizer = new RAS_ListRasterizer(canvas);
-		}
-		else if (GLEW_VERSION_1_1)
-			rasterizer = new RAS_VAOpenGLRasterizer(canvas, false);
-		else
-			rasterizer = new RAS_OpenGLRasterizer(canvas);
-
-		// create the inputdevices
-		KX_BlenderKeyboardDevice* keyboarddevice = new KX_BlenderKeyboardDevice();
-		KX_BlenderMouseDevice* mousedevice = new KX_BlenderMouseDevice();
-
-		// create a networkdevice
-		NG_NetworkDeviceInterface* networkdevice = new
-			NG_LoopBackNetworkDeviceInterface();
-
-		// create a ketsji/blendersystem (only needed for timing and stuff)
-		KX_BlenderSystem* kxsystem = new KX_BlenderSystem();
-
-		// create the ketsjiengine
-		KX_KetsjiEngine* ketsjiengine = new KX_KetsjiEngine(kxsystem);
-
-		Scene *blscene = NULL;
-
-		blscene = (Scene*) maggie->scene.first;
-		for (Scene *sce= (Scene*) maggie->scene.first; sce; sce= (Scene*) sce->id.next)
-		{
-			if (startscenename == (sce->id.name+2))
-			{
-				blscene = sce;
-				break;
-			}
-		}
-
-        int cframe = 1, startFrame;
-		if (blscene)
-		{
-			cframe=blscene->r.cfra;
-			startFrame = blscene->r.sfra;
-			blscene->r.cfra=startFrame;
-			// update_for_newframe(); // XXX scene_update_for_newframe wont cut it!
-			ketsjiengine->SetGame2IpoMode(game2ipo,startFrame);
-		}
-
-		// Quad buffered needs a special window.
-		if(blscene->gm.stereoflag == STEREO_ENABLED){
-			if (blscene->gm.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
-				rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->gm.stereomode);
-		}
-		rasterizer->SetBackColor(blscene->gm.framing.col[0], blscene->gm.framing.col[1], blscene->gm.framing.col[2], 0.0f);
-
-		if (exitrequested != KX_EXIT_REQUEST_QUIT_GAME)
-		{
-			// create a scene converter, create and convert the startingscene
-			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie, ketsjiengine);
-			ketsjiengine->SetSceneConverter(sceneconverter);
-			sceneconverter->addInitFromFrame=true;
-			
-			if (always_use_expand_framing)
-				sceneconverter->SetAlwaysUseExpandFraming(true);
-
-			if(usemat)
-				sceneconverter->SetMaterials(true);
-
-			KX_Scene* startscene = new KX_Scene(keyboarddevice,
-				mousedevice,
-				networkdevice,
-				startscenename,
-				blscene);
-
-#ifndef DISABLE_PYTHON
-			// some python things
-			PyObject *gameLogic, *gameLogic_keys;
-			setupGamePython(ketsjiengine, startscene, blenderdata, pyGlobalDict, &gameLogic, &gameLogic_keys, 0, NULL);
-#endif // DISABLE_PYTHON
-
-			if (sceneconverter)
-			{
-				// convert and add scene
-				sceneconverter->ConvertScene(
-					startscene,
-					rendertools,
-					canvas);
-				ketsjiengine->AddScene(startscene);
-
-				// start the engine
-				ketsjiengine->StartEngine(false);
-				
-				ketsjiengine->SetUseFixedTime(true);
-				
-				ketsjiengine->SetTicRate(
-					(double) blscene->r.frs_sec /
-					(double) blscene->r.frs_sec_base);
-
-				// the mainloop
-				while ((blscene->r.cfra<=blscene->r.efra)&&(!exitrequested))
-				{
-                    printf("frame %i\n",blscene->r.cfra);
-                    // first check if we want to exit
-					exitrequested = ketsjiengine->GetExitCode();
-	
-					// kick the engine
-					ketsjiengine->NextFrame();
-				    blscene->r.cfra=blscene->r.cfra+1;
-				    // update_for_newframe(); // XXX scene_update_for_newframe wont cut it
-					
-				}
-				exitstring = ketsjiengine->GetExitString();
-			}
-			if (sceneconverter)
-			{
-				delete sceneconverter;
-				sceneconverter = NULL;
-			}
-		}
-		blscene->r.cfra=cframe;
-		// set the cursor back to normal
-		canvas->SetMouseState(RAS_ICanvas::MOUSE_NORMAL);
-
-		// clean up some stuff
-		if (ketsjiengine)
-		{
-			delete ketsjiengine;
-			ketsjiengine = NULL;
-		}
-		if (kxsystem)
-		{
-			delete kxsystem;
-			kxsystem = NULL;
-		}
-		if (networkdevice)
-		{
-			delete networkdevice;
-			networkdevice = NULL;
-		}
-		if (keyboarddevice)
-		{
-			delete keyboarddevice;
-			keyboarddevice = NULL;
-		}
-		if (mousedevice)
-		{
-			delete mousedevice;
-			mousedevice = NULL;
-		}
-		if (rasterizer)
-		{
-			delete rasterizer;
-			rasterizer = NULL;
-		}
-		if (rendertools)
-		{
-			delete rendertools;
-			rendertools = NULL;
-                }
-
-	} while (exitrequested == KX_EXIT_REQUEST_RESTART_GAME || exitrequested == KX_EXIT_REQUEST_START_OTHER_GAME);
-
-#ifndef DISABLE_PYTHON
-	Py_DECREF(pyGlobalDict);
-
-	// Release Python's GIL
-	PyGILState_Release(gilstate);
-#endif
 }
