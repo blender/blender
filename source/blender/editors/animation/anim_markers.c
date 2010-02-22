@@ -436,6 +436,7 @@ static int ed_marker_move_init(bContext *C, wmOperator *op)
 	initNumInput(&mm->num);
 	mm->num.idx_max = 0; /* one axis */
 	mm->num.flag |= NUM_NO_FRACTION;
+	mm->num.increment = 1.0f;
 	
 	for (a=0, marker= markers->first; marker; marker= marker->next) {
 		if (marker->flag & SELECT) {
@@ -617,7 +618,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 		float vec[3];
 		char str_tx[256];
 
-		if (handleNumInput(&mm->num, evt, 1.0))
+		if (handleNumInput(&mm->num, evt))
 		{
 			applyNumInput(&mm->num, vec);
 			outputNumInput(&mm->num, str_tx);
