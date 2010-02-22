@@ -508,7 +508,7 @@ IF(APPLE)
 
 	SET(ZLIB /usr)
 	SET(ZLIB_INC "${ZLIB}/include")
-	SET(ZLIB_LIBRARIES z)
+	SET(ZLIB_LIBRARIES z bz2)
 
 	SET(FREETYPE ${LIBDIR}/freetype)
 	SET(FREETYPE_INCLUDE_DIRS ${FREETYPE}/include ${FREETYPE}/include/freetype2)
@@ -522,7 +522,7 @@ IF(APPLE)
 
 	SET(FFMPEG ${LIBDIR}/ffmpeg)
 	SET(FFMPEG_INC ${FFMPEG}/include)
-	SET(FFMPEG_LIB avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore)
+	SET(FFMPEG_LIB avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg)
 	SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 
 	SET(LIBSAMPLERATE ${LIBDIR}/samplerate)

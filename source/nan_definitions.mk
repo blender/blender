@@ -109,7 +109,7 @@ ifndef CONFIG_GUESS
     else
       export NAN_FFMPEG ?= $(LCGDIR)/ffmpeg
       ifeq ($(OS), darwin)
-        export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a $(NAN_FFMPEG)/lib/libmp3lame.a $(NAN_FFMPEG)/lib/libx264.a $(NAN_FFMPEG)/lib/libxvidcore.a
+        export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a $(NAN_FFMPEG)/lib/libmp3lame.a $(NAN_FFMPEG)/lib/libx264.a $(NAN_FFMPEG)/lib/libxvidcore.a $(NAN_FFMPEG)/lib/libtheora.a $(NAN_FFMPEG)/lib/libtheoradec.a $(NAN_FFMPEG)/lib/libtheoraenc.a $(NAN_FFMPEG)/lib/libvorbis.a $(NAN_FFMPEG)/lib/libvorbisenc.a $(NAN_FFMPEG)/lib/libvorbisfile.a $(NAN_FFMPEG)/lib/libogg.a -lbz2
       else
         export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a
       endif
