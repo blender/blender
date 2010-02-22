@@ -456,8 +456,10 @@ extern UserDef U; /* from blenkernel blender.c */
 #define		AUTOKEY_MODE_NORMAL		3
 #define		AUTOKEY_MODE_EDITKEYS	5
 
-/* Auto-Keying flag */
-	/* U.autokey_flag (not strictly used when autokeying only - is also used when keyframing these days) */
+/* Auto-Keying flag
+ * U.autokey_flag (not strictly used when autokeying only - is also used when keyframing these days)
+ * note: AUTOKEY_FLAG_* is used with a macro, search for lines like IS_AUTOKEY_FLAG(INSERTAVAIL)
+ */
 #define		AUTOKEY_FLAG_INSERTAVAIL	(1<<0)
 #define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
