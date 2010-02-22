@@ -611,18 +611,6 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
 					'${BF_FFMPEG_LIBPATH}/avutil-50.dll',
 					'${BF_FFMPEG_LIBPATH}/swscale-0.dll']
 
-		if env['OURPLATFORM'] != 'linuxcross':
-			#
-			# TODO: Does it mean we haven't got support of this codecs if
-			#       we're using cross-compilation?
-			#       Or in case of native compilation this libraries are
-			#       unneccessary to?
-			#
-			dllsources += ['${LCGDIR}/ffmpeg/lib/libfaac-0.dll',
-							'${LCGDIR}/ffmpeg/lib/libfaad-2.dll',
-							'${LCGDIR}/ffmpeg/lib/libmp3lame-0.dll',
-							'${LCGDIR}/ffmpeg/lib/libx264-67.dll']
-
 	if env['WITH_BF_JACK']:
 		dllsources += ['${LCGDIR}/jack/lib/libjack.dll']
 	windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)
