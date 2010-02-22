@@ -208,17 +208,14 @@ Scene *KX_BlenderSceneConverter::GetBlenderSceneForName(const STR_String& name)
 	 * Find the specified scene by name, or the first
 	 * scene if nothing matches (shouldn't happen).
 	 */
-
-	for (sce= (Scene*) m_maggie->scene.first; sce; sce= (Scene*) sce->id.next)
-		if (name == (sce->id.name+2))
-			return sce;
+	if((sce= (Scene *)BLI_findstring(&m_maggie->scene, name.ReadPtr(), offsetof(ID, name) + 2)))
+		return sce;
 
 	for (vector<Main*>::iterator it=m_DynamicMaggie.begin(); !(it==m_DynamicMaggie.end()); it++) {
 		Main *main= *it;
 
-		for (sce= (Scene*) main->scene.first; sce; sce= (Scene*) sce->id.next)
-			if (name == (sce->id.name+2))
-				return sce;
+		if((sce= (Scene *)BLI_findstring(&main->scene, name.ReadPtr(), offsetof(ID, name) + 2)))
+			return sce;
 	}
 
 	return (Scene*)m_maggie->scene.first;

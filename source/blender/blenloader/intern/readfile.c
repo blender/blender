@@ -32,6 +32,7 @@
 #include <limits.h>
 #include <stdio.h> // for printf fopen fwrite fclose sprintf FILE
 #include <stdlib.h> // for getenv atoi
+#include <stddef.h> // for offsetof
 #include <fcntl.h> // for open
 #include <string.h> // for strrchr strncmp strstr
 #include <math.h> // for fabs
@@ -10882,20 +10883,9 @@ char *bhead_id_name(FileData *fd, BHead *bhead)
 
 static ID *is_yet_read(FileData *fd, Main *mainvar, BHead *bhead)
 {
-	ListBase *lb;
-	char *idname= bhead_id_name(fd, bhead);
-
-	lb= wich_libbase(mainvar, GS(idname));
-	
-	if(lb) {
-		ID *id= lb->first;
-		while(id) {
-			if( strcmp(id->name, idname)==0 ) 
-				return id;
-			id= id->next;
-		}
-	}
-	return NULL;
+	const char *idname= bhead_id_name(fd, bhead);
+	/* wich_libbase can be NULL, intentionally not using idname+2 */
+	return BLI_findstring(wich_libbase(mainvar, GS(idname)), idname, offsetof(ID, name));
 }
 
 static void expand_doit(FileData *fd, Main *mainvar, void *old)

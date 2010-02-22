@@ -316,22 +316,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				exitrequested = KX_EXIT_REQUEST_QUIT_GAME;
 			}
 		}
-		
-		Scene *blscene = NULL;
-		if (!bfd)
-		{
-			blscene = (Scene*) blenderdata->scene.first;
-			for (Scene *sce= (Scene*) blenderdata->scene.first; sce; sce= (Scene*) sce->id.next)
-			{
-				if (startscenename == (sce->id.name+2))
-				{
-					blscene = sce;
-					break;
-				}
-			}
-		} else {
-			blscene = bfd->curscene;
-		}
+
+		Scene *blscene= bfd ? bfd->curscene : (Scene *)BLI_findstring(&blenderdata->scene, startscenename, offsetof(ID, name) + 2);
 
 		if (blscene)
 		{
@@ -457,7 +443,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 							* should this really be?
 						*/
 						if (event->type==MOUSEMOVE) {
-							/* Note nice! XXX 2.5 event hack */
+							/* Note, not nice! XXX 2.5 event hack */
 							val = event->x - ar->winrct.xmin;
 							mousedevice->ConvertBlenderEvent(MOUSEX, val);
 							
