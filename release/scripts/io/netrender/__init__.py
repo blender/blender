@@ -44,4 +44,4 @@ def unregister():
     bpy.types.unregister(ui.NetRenderJob)
     bpy.types.unregister(ui.NetRenderSettings)
     bpy.types.unregister(ui.NetRenderSlave)
-    
+

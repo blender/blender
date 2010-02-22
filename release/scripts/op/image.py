@@ -45,9 +45,9 @@ class SaveDirty(bpy.types.Operator):
 def register():
     bpy.types.register(SaveDirty)
 
+
 def unregister():
     bpy.types.unregister(SaveDirty)
 
 if __name__ == "__main__":
     register()
-

@@ -41,7 +41,7 @@ def metarig_template():
     #bone.tail[:] = 0.0000, -0.0306, -0.0159
     #bone.roll = 0.0000
     #bone.connected = False
-    
+
     #bpy.ops.object.mode_set(mode='OBJECT')
     #pbone = obj.pose.bones['tail.01']
     #pbone['type'] = 'tail_spline_ik'
@@ -72,13 +72,13 @@ def main(obj, bone_definitions, base_names, options):
     bb = obj.data.bones
     eb = obj.data.edit_bones
     pb = obj.pose.bones
-    
+
     # Create bones for hinge/free
     # hinge 1 sticks with the parent
     # hinge 2 is the parent of the tail controls
     hinge1 = copy_bone_simple(arm, bone_definitions[0], "MCH-%s.hinge1" % base_names[bone_definitions[0]], parent=True).name
     hinge2 = copy_bone_simple(arm, bone_definitions[0], "MCH-%s.hinge2" % base_names[bone_definitions[0]], parent=False).name
-    
+
     # Create tail control bones
     bones = []
     i = 0
@@ -90,10 +90,10 @@ def main(obj, bone_definitions, base_names, options):
             eb[bone].local_location = False
         i = 1
         bones += [bone]
-    
-    
+
+
     bpy.ops.object.mode_set(mode='OBJECT')
-    
+
     # Rotation mode and axis locks
     for bone, org_bone in zip(bones, bone_definitions):
         pb[bone].rotation_mode = pb[org_bone].rotation_mode
@@ -102,7 +102,7 @@ def main(obj, bone_definitions, base_names, options):
         pb[bone].lock_rotation = tuple(pb[org_bone].lock_rotation)
         pb[bone].lock_rotation_w = pb[org_bone].lock_rotation_w
         pb[bone].lock_scale = tuple(pb[org_bone].lock_scale)
-    
+
     # Add custom properties
     pb[bones[0]]["hinge"] = 0.0
     prop = rna_idprop_ui_prop_get(pb[bones[0]], "hinge", create=True)
@@ -110,31 +110,31 @@ def main(obj, bone_definitions, base_names, options):
     prop["max"] = 1.0
     prop["soft_min"] = 0.0
     prop["soft_max"] = 1.0
-    
+
     pb[bones[0]]["free"] = 0.0
     prop = rna_idprop_ui_prop_get(pb[bones[0]], "free", create=True)
     prop["min"] = 0.0
     prop["max"] = 1.0
     prop["soft_min"] = 0.0
     prop["soft_max"] = 1.0
-    
+
     # Add constraints
     for bone, org_bone in zip(bones, bone_definitions):
         con = pb[org_bone].constraints.new('COPY_TRANSFORMS')
         con.target = obj
         con.subtarget = bone
-    
+
     con_f = pb[hinge2].constraints.new('COPY_LOCATION')
     con_f.target = obj
     con_f.subtarget = hinge1
-    
+
     con_h = pb[hinge2].constraints.new('COPY_TRANSFORMS')
     con_h.target = obj
     con_h.subtarget = hinge1
-    
+
     # Add drivers
     bone_path = pb[bones[0]].path_to_id()
-    
+
     driver_fcurve = con_f.driver_add("influence", 0)
     driver = driver_fcurve.driver
     driver.type = 'AVERAGE'
@@ -147,7 +147,7 @@ def main(obj, bone_definitions, base_names, options):
     mod.poly_order = 1
     mod.coefficients[0] = 1.0
     mod.coefficients[1] = -1.0
-    
+
     driver_fcurve = con_h.driver_add("influence", 0)
     driver = driver_fcurve.driver
     driver.type = 'AVERAGE'
@@ -160,7 +160,7 @@ def main(obj, bone_definitions, base_names, options):
     mod.poly_order = 1
     mod.coefficients[0] = 1.0
     mod.coefficients[1] = -1.0
-    
-    
+
+
     return None
-    
+

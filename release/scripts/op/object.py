@@ -336,7 +336,7 @@ class ShapeTransfer(bpy.types.Operator):
                 self.report({'ERROR'}, "Expected one other selected mesh object to copy from")
                 return {'CANCELLED'}
             ob_act, objects = objects[0], [ob_act]
-            
+
         if ob_act.type != 'MESH':
             self.report({'ERROR'}, "Other object is not a mesh.")
             return {'CANCELLED'}
@@ -344,7 +344,7 @@ class ShapeTransfer(bpy.types.Operator):
         if ob_act.active_shape_key is None:
             self.report({'ERROR'}, "Other object has no shape key")
             return {'CANCELLED'}
-        return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)        
+        return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)
 
 class JoinUVs(bpy.types.Operator):
     '''Copy UV Layout to objects with matching geometry'''
@@ -424,7 +424,7 @@ class MakeDupliFace(bpy.types.Operator):
             # scale = matrix.median_scale
             trans = matrix.translation_part()
             rot = matrix.rotation_part() # also contains scale
-            
+
             return [(rot * b) + trans for b in base_tri]
         scene = bpy.context.scene
         linked = {}
@@ -444,20 +444,20 @@ class MakeDupliFace(bpy.types.Operator):
             mesh.faces.foreach_set("verts_raw", faces)
             mesh.update() # generates edge data
 
-            # pick an object to use 
+            # pick an object to use
             obj = objects[0]
 
             ob_new = bpy.data.objects.new(mesh.name, mesh)
             base = scene.objects.link(ob_new)
             base.layers[:] = obj.layers
-            
+
             ob_inst = bpy.data.objects.new(data.name, data)
             base = scene.objects.link(ob_inst)
             base.layers[:] = obj.layers
-            
+
             for obj in objects:
                 scene.objects.unlink(obj)
-            
+
             ob_new.dupli_type = 'FACES'
             ob_inst.parent = ob_new
             ob_new.use_dupli_faces_scale = True

@@ -1627,7 +1627,7 @@ menu_func = lambda self, context: self.layout.operator(IMPORT_OT_obj.bl_idname, 
 def register():
     bpy.types.register(IMPORT_OT_obj)
     bpy.types.INFO_MT_file_import.append(menu_func)
-    
+
 def unregister():
     bpy.types.unregister(IMPORT_OT_obj)
     bpy.types.INFO_MT_file_import.remove(menu_func)

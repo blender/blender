@@ -27,6 +27,7 @@ op_call = ops_module.call
 op_as_string = ops_module.as_string
 op_get_rna = ops_module.get_rna
 
+
 class bpy_ops(object):
     '''
     Fake module like class.

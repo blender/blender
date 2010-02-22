@@ -152,6 +152,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -159,4 +160,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

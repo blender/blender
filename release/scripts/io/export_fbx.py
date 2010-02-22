@@ -3463,6 +3463,7 @@ class ExportFBX(bpy.types.Operator):
 # SMALL or COSMETICAL
 # - find a way to get blender version, and put it in bpy.util?, old was Blender.Get('version')
 
+
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".fbx")
     self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)").path = default_path
@@ -3471,11 +3472,11 @@ def menu_func(self, context):
 def register():
     bpy.types.register(ExportFBX)
     bpy.types.INFO_MT_file_export.append(menu_func)
-    
+
+
 def unregister():
     bpy.types.unregister(ExportFBX)
     bpy.types.INFO_MT_file_export.remove(menu_func)
 
 if __name__ == "__main__":
     register()
-

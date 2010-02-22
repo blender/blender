@@ -336,6 +336,7 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel):
         sub.prop(mat, "shadow_ray_bias", text="Ray Bias")
         col.prop(mat, "cast_approximate")
 
+
 class MATERIAL_PT_diffuse(MaterialButtonsPanel):
     bl_label = "Diffuse"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -947,6 +948,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -954,4 +956,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

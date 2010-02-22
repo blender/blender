@@ -28,7 +28,7 @@ class MESH_MT_vertex_group_specials(bpy.types.Menu):
 
     def draw(self, context):
         layout = self.layout
-        
+
         layout.operator("object.vertex_group_sort", icon='SORTALPHA')
         layout.operator("object.vertex_group_copy", icon='COPY_ID')
         layout.operator("object.vertex_group_copy_to_linked", icon='LINK_AREA')
@@ -227,7 +227,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             subsub.prop(ob, "shape_key_lock", text="")
             subsub.prop(kb, "mute", text="")
             sub.prop(ob, "shape_key_edit_mode", text="")
-            
+
             sub = row.row()
             sub.operator("object.shape_key_clear", icon='X', text="")
 
@@ -325,6 +325,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -332,4 +333,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

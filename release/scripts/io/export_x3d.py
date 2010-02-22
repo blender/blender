@@ -1251,7 +1251,7 @@ def menu_func(self, context):
 def register():
     bpy.types.register(ExportX3D)
     bpy.types.INFO_MT_file_export.append(menu_func)
-    
+
 def unregister():
     bpy.types.unregister(ExportX3D)
     bpy.types.INFO_MT_file_export.remove(menu_func)

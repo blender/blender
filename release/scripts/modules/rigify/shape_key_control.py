@@ -92,7 +92,7 @@ def main(obj, definitions, base_names, options):
         properties of a single bone.
         A different shape can be driven by the negative value of a transform as
         well by giving a comma-separated list of two shapes.
-    
+
         Required options:
             mesh:  name of mesh object(s) to add/get shapekeys to/from
                    (if multiple objects, make a comma-separated list)
@@ -105,15 +105,15 @@ def main(obj, definitions, base_names, options):
             scale_<x/y/z>_fac: default multiplier of the bone influence on the shape key
             shape_key_sliders:     comma-separated list of custom properties to create sliders out of for driving shape keys
             <custom_prop>:         for each property listed in shape_key_sliders, specify a shape key for it to drive
-            
+
     """
-    
+
     bpy.ops.object.mode_set(mode='EDIT')
     eb = obj.data.edit_bones
     pb = obj.pose.bones
 
     org_bone = definitions[0]
-    
+
     # Options
     req_options = ["mesh"]
     for option in req_options:
@@ -121,11 +121,11 @@ def main(obj, definitions, base_names, options):
             raise RigifyError("'%s' rig type requires a '%s' option (bone: %s)" % (RIG_TYPE, option, base_names[definitions[0]]))
 
     meshes = options["mesh"].replace(" ", "").split(",")
-    
+
     bone = copy_bone_simple(obj.data, org_bone, base_names[org_bone], parent=True).name
-    
+
     bpy.ops.object.mode_set(mode='OBJECT')
-    
+
     # Set rotation mode and axis locks
     pb[bone].rotation_mode = pb[org_bone].rotation_mode
     pb[bone].lock_location = tuple(pb[org_bone].lock_location)
@@ -133,7 +133,7 @@ def main(obj, definitions, base_names, options):
     pb[bone].lock_rotation_w = pb[org_bone].lock_rotation_w
     pb[bone].lock_rotations_4d = pb[org_bone].lock_rotations_4d
     pb[bone].lock_scale = tuple(pb[org_bone].lock_scale)
-    
+
     # List of rig options for specifying shape keys
     # Append '_fac' to the end for the name of the corresponding 'factor
     # default' option for that shape
@@ -146,7 +146,7 @@ def main(obj, definitions, base_names, options):
                          "scale_x",
                          "scale_y",
                          "scale_z"]
-                         
+
     driver_paths = {"loc_x":".location[0]",
                     "loc_y":".location[1]",
                     "loc_z":".location[2]",
@@ -159,13 +159,13 @@ def main(obj, definitions, base_names, options):
                     "scale_x":".scale[0]",
                     "scale_y":".scale[1]",
                     "scale_z":".scale[2]"}
-    
+
     # Create the shape keys and drivers for transforms
     shape_info = []
     for option in shape_key_options:
         if option in options:
             shape_names = options[option].replace(" ", "").split(",")
-            
+
             var_name = bone.replace(".","").replace("-","_") + "_" + option
             # Different RNA paths for euler vs quat
             if option in (shape_key_options[3:6]+shape_key_options[12:15]) \
@@ -173,12 +173,12 @@ def main(obj, definitions, base_names, options):
                 var_path = driver_paths['q' + option]
             else:
                 var_path = driver_paths[option]
-            
+
             if (option+"_fac") in options:
                 fac = options[option+"_fac"]
             else:
                 fac = 1.0
-            
+
             # Positive
             if shape_names[0] != "":
                 # Different expressions for loc/rot/scale and positive/negative
@@ -197,7 +197,7 @@ def main(obj, definitions, base_names, options):
                     expression = "(1.0 - " + var_name + ") * " + str(fac) + " * -2"
                 shape_name = shape_names[0]
                 create_shape_and_driver(obj, bone, meshes, shape_name, var_name, var_path, expression)
-                
+
             # Negative
             if shape_names[0] != "" and len(shape_names) > 1:
                 # Different expressions for loc/rot/scale and positive/negative
@@ -216,7 +216,7 @@ def main(obj, definitions, base_names, options):
                     expression = "(1.0 - " + var_name + ") * " + str(fac) + " * 2"
                 shape_name = shape_names[1]
                 create_shape_and_driver(obj, bone, meshes, shape_name, var_name, var_path, expression)
-    
+
     # Create the shape keys and drivers for custom-property sliders
     if "shape_key_sliders" in options:
         # Get the slider names
@@ -227,7 +227,7 @@ def main(obj, definitions, base_names, options):
             for slider_name in slider_names:
                 if slider_name in options:
                     shape_names = options[slider_name].replace(" ", "").split(",")
-                    
+
                     # Set up the custom property on the bone
                     prop = rna_idprop_ui_prop_get(pb[bone], slider_name, create=True)
                     pb[bone][slider_name] = 0.0
@@ -238,7 +238,7 @@ def main(obj, definitions, base_names, options):
                     if len(shape_names) > 1:
                         prop["min"] = -1.0
                         prop["soft_min"] = -1.0
-                        
+
                     # Add the shape drivers
                     # Positive
                     if shape_names[0] != "":
@@ -266,19 +266,19 @@ def main(obj, definitions, base_names, options):
                         expression = var_name + " * " + str(fac) + " * -1"
                         # Create the shape key driver
                         create_shape_and_driver(obj, bone, meshes, shape_name, var_name, var_path, expression)
-    
-    
+
+
     # Org bone copy transforms of control bone
     con = pb[org_bone].constraints.new('COPY_TRANSFORMS')
     con.target = obj
     con.subtarget = bone
-                
+
     return (None,)
 
 
 def create_shape_and_driver(obj, bone, meshes, shape_name, var_name, var_path, expression):
     """ Creates/gets a shape key and sets up a driver for it.
-    
+
         obj = armature object
         bone = driving bone name
         meshes = list of meshes to create the shapekey/driver on
@@ -289,16 +289,16 @@ def create_shape_and_driver(obj, bone, meshes, shape_name, var_name, var_path, e
     """
     pb = obj.pose.bones
     bpy.ops.object.mode_set(mode='OBJECT')
-    
+
     for mesh_name in meshes:
         mesh_obj = bpy.data.objects[mesh_name]
-        
+
         # Add/get the shape key
         shape = addget_shape_key(mesh_obj, name=shape_name)
-        
+
         # Add/get the shape key driver
         fcurve, a = addget_shape_key_driver(mesh_obj, name=shape_name)
-    
+
         # Set up the driver
         driver = fcurve.driver
         driver.type = 'SCRIPTED'
@@ -316,5 +316,5 @@ def create_shape_and_driver(obj, bone, meshes, shape_name, var_name, var_path, e
         var.targets[0].id_type = 'OBJECT'
         var.targets[0].id = obj
         var.targets[0].data_path = 'pose.bones["' + bone + '"]' + var_path
-        
-    
+
+

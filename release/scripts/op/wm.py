@@ -297,12 +297,11 @@ doc_new = StringProperty(name="Edit Description",
         description="", maxlen=1024, default="")
 
 
-
 class WM_OT_context_modal_mouse(bpy.types.Operator):
     '''Adjust arbitrary values with mouse input'''
     bl_idname = "wm.context_modal_mouse"
     bl_label = "Context Modal Mouse"
-    
+
     path_iter = StringProperty(description="The path relative to the context, must point to an iterable.")
     path_item = StringProperty(description="The path from each iterable to the value (int or float)")
     input_scale = FloatProperty(default=0.01, description="Scale the mouse movement by this value before applying the delta")
@@ -323,7 +322,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
                 value_orig = eval("item." + path_item)
             except:
                 continue
-            
+
             # check this can be set, maybe this is library data.
             try:
                 exec("item.%s = %s" % (path_item, value_orig))
@@ -332,11 +331,10 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
 
             values[item] = value_orig
 
-
     def _values_delta(self, delta):
         delta *= self.properties.input_scale
         if self.properties.invert:
-            delta = -delta
+            delta = - delta
 
         path_item = self.properties.path_item
         for item, value_orig in self._values.items():
@@ -348,7 +346,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
             exec("item.%s = %s" % (path_item, value_orig))
 
         self._values.clear()
-        
+
     def _values_clear(self):
         self._values.clear()
 
@@ -366,7 +364,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
         elif event_type in ('RIGHTMOUSE', 'ESCAPE'):
             self._values_restore()
             return {'FINISHED'}
-            
+
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
@@ -530,10 +528,12 @@ classes = [
     rna_prop_ui.WM_OT_properties_add,
     rna_prop_ui.WM_OT_properties_remove]
 
+
 def register():
     register = bpy.types.register
     for cls in classes:
         register(cls)
+
 
 def unregister():
     unregister = bpy.types.unregister
@@ -542,4 +542,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

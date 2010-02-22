@@ -102,7 +102,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel):
             col = row.column()
             col.prop(ks, "name")
             col.prop(ks, "absolute")
-            
+
             subcol = col.column()
             subcol.operator_context = 'INVOKE_DEFAULT'
             op = subcol.operator("anim.keying_set_export", text="Export to File")
@@ -208,7 +208,7 @@ class SCENE_PT_simplify(SceneButtonsPanel):
         col = split.column()
         col.prop(rd, "simplify_subdivision", text="Subdivision")
         col.prop(rd, "simplify_child_particles", text="Child Particles")
-        
+
         col.prop(rd, "simplify_triangulate")
 
         if wide_ui:
@@ -242,83 +242,83 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
 
         scene = context.scene
         ks = scene.active_keying_set
-        
-        
+
+
         f.write("# Keying Set: %s\n" % ks.name)
-        
+
         f.write("import bpy\n\n")
         f.write("scene= bpy.data.scenes[0]\n\n")
 
-        # Add KeyingSet and set general settings 
+        # Add KeyingSet and set general settings
         f.write("# Keying Set Level declarations\n")
         f.write("ks= scene.add_keying_set(name=\"%s\")\n" % ks.name)
-        
+
         if ks.absolute is False:
             f.write("ks.absolute = False\n")
         f.write("\n")
-        
+
         f.write("ks.insertkey_needed = %s\n" % ks.insertkey_needed)
         f.write("ks.insertkey_visual = %s\n" % ks.insertkey_visual)
         f.write("ks.insertkey_xyz_to_rgb = %s\n" % ks.insertkey_xyz_to_rgb)
         f.write("\n")
-        
-        
+
+
         # generate and write set of lookups for id's used in paths
         id_to_paths_cache = {} # cache for syncing ID-blocks to bpy paths + shorthands
-        
+
         for ksp in ks.paths:
             if ksp.id is None:
-                continue;
+                continue
             if ksp.id in id_to_paths_cache:
-                continue;
-                
+                continue
+
             # - idtype_list is used to get the list of id-datablocks from bpy.data.*
             #   since this info isn't available elsewhere
-            # - id.bl_rna.name gives a name suitable for UI, 
+            # - id.bl_rna.name gives a name suitable for UI,
             #   with a capitalised first letter, but we need
             #   the plural form that's all lower case
             idtype_list = ksp.id.bl_rna.name.lower() + "s"
             id_bpy_path = "bpy.data.%s[\"%s\"]" % (idtype_list, ksp.id.name)
-            
+
             # shorthand ID for the ID-block (as used in the script)
             short_id = "id_%d" % len(id_to_paths_cache)
-            
+
             # store this in the cache now
             id_to_paths_cache[ksp.id] = [short_id, id_bpy_path]
-            
+
         f.write("# ID's that are commonly used\n")
         for id_pair in id_to_paths_cache.values():
             f.write("%s = %s\n" % (id_pair[0], id_pair[1]))
         f.write("\n")
-        
-        
+
+
         # write paths
-        f.write("# Path Definitions\n") 
+        f.write("# Path Definitions\n")
         for ksp in ks.paths:
             f.write("ksp = ks.add_destination(")
-            
+
             # id-block + RNA-path
             if ksp.id:
                 # find the relevant shorthand from the cache
                 id_bpy_path = id_to_paths_cache[ksp.id][0]
             else:
-                id_bpy_path = "None" # XXX... 
+                id_bpy_path = "None" # XXX...
             f.write("%s, '%s'" % (id_bpy_path, ksp.data_path))
-            
+
             # array index settings (if applicable)
             if ksp.entire_array is False:
                 f.write(", entire_array=False, array_index=%d" % ksp.array_index)
-            
+
             # grouping settings (if applicable)
             # NOTE: the current default is KEYINGSET, but if this changes, change this code too
             if ksp.grouping == 'NAMED':
                 f.write(", grouping_method='%s', group_name=\"%s\"" % (ksp.grouping, ksp.group))
             elif ksp.grouping != 'KEYINGSET':
                 f.write(", grouping_method='%s'" % ksp.grouping)
-            
+
             # finish off
             f.write(")\n")
-        
+
         f.write("\n")
         f.close()
 
@@ -337,7 +337,7 @@ classes = [
     SCENE_PT_keying_set_paths,
     SCENE_PT_physics,
     SCENE_PT_simplify,
-    
+
     SCENE_PT_custom_props,
 
     ANIM_OT_keying_set_export]
@@ -348,6 +348,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -355,4 +356,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

@@ -351,6 +351,7 @@ classes = [
 menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
 import space_info # ensure the menu is loaded first
 
+
 def register():
     register = bpy.types.register
     for cls in classes:
@@ -358,13 +359,13 @@ def register():
 
     space_info.INFO_MT_armature_add.append(menu_func)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
         unregister(cls)
- 
+
     bpy.types.INFO_MT_armature_add.remove(menu_func)
 
 if __name__ == "__main__":
     register()
-

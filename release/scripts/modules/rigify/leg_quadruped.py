@@ -129,7 +129,7 @@ def ik(obj, bone_definition, base_names, options):
 
     # keep the foot_ik as the parent
     ik_chain.toe_e.connected = False
-    
+
     # Foot uses pose space, not local space, for translation
     ik_chain.foot_e.local_location = False
 

@@ -466,7 +466,6 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         self.space_template(layout, con, wide_ui)
 
-
     #def SCRIPT(self, context, layout, con):
 
     def ACTION(self, context, layout, con, wide_ui):
@@ -765,6 +764,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -772,4 +772,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

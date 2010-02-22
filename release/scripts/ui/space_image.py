@@ -520,6 +520,7 @@ class IMAGE_PT_paint(bpy.types.Panel):
                 col.prop(brush, "clone_image", text="Image")
                 col.prop(brush, "clone_alpha", text="Alpha")
 
+
 class IMAGE_PT_paint_stroke(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
@@ -549,6 +550,7 @@ class IMAGE_PT_paint_stroke(bpy.types.Panel):
         row.prop(brush, "use_spacing_pressure", toggle=True, text="")
 
         layout.prop(brush, "use_wrap")
+
 
 class IMAGE_PT_paint_curve(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -596,6 +598,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -603,4 +606,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

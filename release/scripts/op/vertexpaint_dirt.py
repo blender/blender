@@ -178,9 +178,9 @@ class VertexPaintDirt(bpy.types.Operator):
 def register():
     bpy.types.register(VertexPaintDirt)
 
+
 def unregister():
     bpy.types.unregister(VertexPaintDirt)
 
 if __name__ == "__main__":
     register()
-

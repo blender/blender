@@ -5,19 +5,19 @@ from Mathutils import *
 def main(context):
     def cleanupEulCurve(fcv):
         keys = []
-    
+
         for k in fcv.keyframe_points:
-            keys.append([k.handle1.copy(), k.co.copy(), k.handle2.copy()])   
+            keys.append([k.handle1.copy(), k.co.copy(), k.handle2.copy()])
         print(keys)
-    
+
         for i in range(len(keys)):
             cur = keys[i]
             prev = keys[i-1] if i > 0 else None
             next = keys[i+1] if i < len(keys)-1 else None
-    
+
             if prev == None:
                 continue
-            
+
             th = pi
             if abs(prev[1][1] - cur[1][1]) >= th: # more than 180 degree jump
                 fac = pi*2
@@ -31,13 +31,13 @@ def main(context):
                         cur[0][1] -= fac
                         cur[1][1] -= fac
                         cur[2][1] -= fac
-    
+
         for i in range(len(keys)):
             for x in range(2):
                fcv.keyframe_points[i].handle1[x] = keys[i][0][x]
                fcv.keyframe_points[i].co[x] = keys[i][1][x]
                fcv.keyframe_points[i].handle2[x] = keys[i][2][x]
-      
+
     flist = bpy.context.active_object.animation_data.action.fcurves
     for f in flist:
         if f.selected and f.data_path.endswith("rotation_euler"):

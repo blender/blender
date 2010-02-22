@@ -48,9 +48,10 @@ def _test_import(module_name, loaded_modules):
 
     if _bpy.app.debug:
         print("time %s %.4f" % (module_name, time.time() - t))
-    
+
     loaded_modules.add(mod.__name__) # should match mod.__name__ too
     return mod
+
 
 def modules_from_path(path, loaded_modules):
     """
@@ -65,9 +66,9 @@ def modules_from_path(path, loaded_modules):
     """
     import traceback
     import time
-    
+
     modules = []
-    
+
     for f in sorted(_os.listdir(path)):
         if f.endswith(".py"):
             # python module
@@ -77,10 +78,10 @@ def modules_from_path(path, loaded_modules):
             mod = _test_import(f, loaded_modules)
         else:
             mod = None
-        
+
         if mod:
             modules.append(mod)
-    
+
     return modules
 
 _loaded = [] # store loaded modules for reloading.
@@ -90,7 +91,7 @@ _bpy_types = __import__("bpy_types") # keep for comparisons, never ever reload t
 def load_scripts(reload_scripts=False, refresh_scripts=False):
     """
     Load scripts and run each modules register function.
-    
+
     :arg reload_scripts: Causes all scripts to have their unregister method called before loading.
     :type reload_scripts: bool
     :arg refresh_scripts: only load scripts which are not already loaded as modules.
@@ -102,7 +103,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
     t_main = time.time()
 
     loaded_modules = set()
-    
+
     if refresh_scripts:
         original_modules = _sys.modules.values()
 
@@ -121,7 +122,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             return reload(mod)
         except:
             traceback.print_exc()
-    
+
     def test_register(mod):
 
         if refresh_scripts and mod in original_modules:
@@ -141,7 +142,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             else:
                 print("\nWarning! '%s' has no register function, this is now a requirement for registerable scripts." % mod.__file__)
             _loaded.append(mod)
-    
+
     if reload_scripts:
         # reload modules that may not be directly included
         for type_class_name in dir(_bpy.types):
@@ -155,7 +156,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         for module_name in sorted(loaded_modules):
             print("Reloading:", module_name)
             test_reload(_sys.modules[module_name])
-            
+
         # loop over and unload all scripts
         _loaded.reverse()
         for mod in _loaded:
@@ -167,7 +168,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                     traceback.print_exc()
         _loaded[:] = []
 
-    for base_path in script_paths(user = False):
+    for base_path in script_paths(user=False):
         for path_subdir in ("ui", "op", "io", "cfg"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
@@ -182,20 +183,20 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
             path = _os.path.join(user_path, path_subdir)
             if _os.path.isdir(path):
                 sys_path_ensure(path)
-    
+
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
 
     # load extensions
-    used_ext = {ext.module for ext in _bpy.context.user_preferences.extensions}    
+    used_ext = {ext.module for ext in _bpy.context.user_preferences.extensions}
     paths = script_paths("extensions")
     for path in paths:
         sys_path_ensure(path)
-    
+
     for module_name in sorted(used_ext):
         mod = _test_import(module_name, loaded_modules)
         test_register(mod)
-    
+
     if reload_scripts:
         import gc
         print("gc.collect() -> %d" % gc.collect())
@@ -262,16 +263,18 @@ def display_name(name):
 _scripts = _os.path.join(_os.path.dirname(__file__), _os.path.pardir, _os.path.pardir)
 _scripts = (_os.path.normpath(_scripts), )
 
+
 def user_script_path():
     path = _bpy.context.user_preferences.filepaths.python_scripts_directory
-        
+
     if path:
         path = _os.path.normpath(path)
         return path
     else:
         return None
 
-def script_paths(subdir = None, user = True):
+
+def script_paths(subdir=None, user=True):
     """
     Returns a list of valid script paths from the home directory and user preferences.
 
@@ -284,7 +287,7 @@ def script_paths(subdir = None, user = True):
         user_script_path = _bpy.context.user_preferences.filepaths.python_scripts_directory
     else:
         user_script_path = None
-        
+
     for path in home_paths("scripts") + (user_script_path, ):
         if path:
             path = _os.path.normpath(path)

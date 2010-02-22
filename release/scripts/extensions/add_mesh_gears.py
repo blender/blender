@@ -50,7 +50,7 @@ for i in vertexgroup_vertex_indices:
 
 Now for some reason the name does not 'stick' and we have to set it this way:
 vertexgroup.name = 'NAME_OF_VERTEXGROUP'
-        
+
 Conversion to 2.50 also meant we could simply do away with our crude user interface.
 Just definining the appropriate properties in the AddGear() operator will display the
 properties in the Blender GUI with the added benefit of making it interactive: changing
@@ -65,7 +65,7 @@ we could no longer use deepcopy(zip(...)) but had to convert the zip object to a
 first.
 
 The code to actually implement the AddGear() function is mostly copied from add_mesh_torus()
-(distributed with Blender). 
+(distributed with Blender).
 
 Unresolved issues:
 
@@ -108,148 +108,148 @@ tv  = [13,14,15,29,30,31]   #vertices on a tooth
 spokefaces=((0,1,2,5),(2,3,4,7),(5,2,7,6),(5,6,9,8),(6,7,10,9),(11,8,13,12),(8,9,10,13),(13,10,15,14))
 
 def add_tooth(a,t,d,r,Ad,De,b,p,rack=0,crown=0.0):
-	"""
-	private function: calculate the vertex coords for a single side
-	section of a gear tooth. returns them as a list of lists.
-	"""
-	
-	A=[a,a+t/4,a+t/2,a+3*t/4,a+t]
-	C=[cos(i) for i in A] 
-	S=[sin(i) for i in A]
-	
-	Ra=r+Ad
-	Rd=r-De
-	Rb=Rd-b
-	
-	#Pressure angle calc
-	O =Ad*tan(p)
-	p =atan(O/Ra)
-	if r<0 : p = -p
-	
-	if rack :
-		S =[sin(t/4)*I for I in range(-2,3)]
-		Sp=[0,sin(-t/4+p),0,sin(t/4-p)]
+    """
+    private function: calculate the vertex coords for a single side
+    section of a gear tooth. returns them as a list of lists.
+    """
 
-		v=[(Rb,r*S[I],d) for I in range(5)]
-		v.extend([(Rd,r*S[I],d) for I in range(5)])
-		v.extend([(r,r*S[I],d) for I in range(1,4)])
-		v.extend([(Ra,r*Sp[I],d) for I in range(1,4)])
-		
-	else :
-		Cp=[0,cos(a+t/4+p),cos(a+t/2),cos(a+3*t/4-p)]
-		Sp=[0,sin(a+t/4+p),sin(a+t/2),sin(a+3*t/4-p)]
+    A=[a,a+t/4,a+t/2,a+3*t/4,a+t]
+    C=[cos(i) for i in A]
+    S=[sin(i) for i in A]
 
-		v=[(Rb*C[I],Rb*S[I],d) for I in range(5)]
-		v.extend([(Rd*C[I],Rd*S[I],d) for I in range(5)])
-		v.extend([(r*C[I],r*S[I],d+crown/3) for I in range(1,4)])
-		v.extend([(Ra*Cp[I],Ra*Sp[I],d+crown) for I in range(1,4)])
-		
-	return v
+    Ra=r+Ad
+    Rd=r-De
+    Rb=Rd-b
+
+    #Pressure angle calc
+    O =Ad*tan(p)
+    p =atan(O/Ra)
+    if r<0 : p = -p
+
+    if rack :
+        S =[sin(t/4)*I for I in range(-2,3)]
+        Sp=[0,sin(-t/4+p),0,sin(t/4-p)]
+
+        v=[(Rb,r*S[I],d) for I in range(5)]
+        v.extend([(Rd,r*S[I],d) for I in range(5)])
+        v.extend([(r,r*S[I],d) for I in range(1,4)])
+        v.extend([(Ra,r*Sp[I],d) for I in range(1,4)])
+
+    else :
+        Cp=[0,cos(a+t/4+p),cos(a+t/2),cos(a+3*t/4-p)]
+        Sp=[0,sin(a+t/4+p),sin(a+t/2),sin(a+3*t/4-p)]
+
+        v=[(Rb*C[I],Rb*S[I],d) for I in range(5)]
+        v.extend([(Rd*C[I],Rd*S[I],d) for I in range(5)])
+        v.extend([(r*C[I],r*S[I],d+crown/3) for I in range(1,4)])
+        v.extend([(Ra*Cp[I],Ra*Sp[I],d+crown) for I in range(1,4)])
+
+    return v
 
 def add_spoke2(a,t,d,r,De,b,s,w,l,gap=0,width=19):
-	"""
-	EXPERIMENTAL private function: calculate the vertex coords for a single side
-	section of a gearspoke. returns them as a list of lists.
-	"""
-	
-	Rd=r-De
-	Rb=Rd-b
-	Rl=Rb
-	
-	v  =[]
-	ef =[]
-	ef2=[]
-	sf =[]
-	if not gap :
-		for N in range(width,1,-2) :
-			ef.append(len(v))
-			ts = t/4
-			tm = a + 2*ts
-			te = asin(w/Rb)
-			td = te - ts
-			t4 = ts+td*(width-N)/(width-3.0)
-			A=[tm+(i-int(N/2))*t4 for i in range(N)]
-			C=[cos(i) for i in A] 
-			S=[sin(i) for i in A]
-			v.extend([ (Rb*I,Rb*J,d) for (I,J) in zip(C,S)])
-			ef2.append(len(v)-1)
-			Rb= Rb-s
-		n=0
-		for N in range(width,3,-2) :
-			sf.extend([(i+n,i+1+n,i+2+n,i+N+n) for i in range(0,N-1,2)])
-			sf.extend([(i+2+n,i+N+n,i+N+1+n,i+N+2+n) for i in range(0,N-3,2)])
-			n = n + N
-		
-	return v,ef,ef2,sf
+    """
+    EXPERIMENTAL private function: calculate the vertex coords for a single side
+    section of a gearspoke. returns them as a list of lists.
+    """
+
+    Rd=r-De
+    Rb=Rd-b
+    Rl=Rb
+
+    v  =[]
+    ef =[]
+    ef2=[]
+    sf =[]
+    if not gap :
+        for N in range(width,1,-2) :
+            ef.append(len(v))
+            ts = t/4
+            tm = a + 2*ts
+            te = asin(w/Rb)
+            td = te - ts
+            t4 = ts+td*(width-N)/(width-3.0)
+            A=[tm+(i-int(N/2))*t4 for i in range(N)]
+            C=[cos(i) for i in A]
+            S=[sin(i) for i in A]
+            v.extend([ (Rb*I,Rb*J,d) for (I,J) in zip(C,S)])
+            ef2.append(len(v)-1)
+            Rb= Rb-s
+        n=0
+        for N in range(width,3,-2) :
+            sf.extend([(i+n,i+1+n,i+2+n,i+N+n) for i in range(0,N-1,2)])
+            sf.extend([(i+2+n,i+N+n,i+N+1+n,i+N+2+n) for i in range(0,N-3,2)])
+            n = n + N
+
+    return v,ef,ef2,sf
 
 def add_gear(N,r,Ad,De,b,p,D=1,skew=0,conangle=0,rack=0,crown=0.0, spoke=0,spbevel=0.1,spwidth=0.2,splength=1.0,spresol=9):
-	"""
-	"""
-	worm	=0
-	if N<5 : (worm,N)=(N,24)
-	t	  =2*pi/N
-	if rack: N=1
-	p	    =rad(p)
-	conangle=rad(conangle)
-	skew	=rad(skew)
-	scale   = (r - 2*D*tan(conangle) )/r
-	
-	f =[]
-	v =[]
-	tg=[] #vertexgroup of top vertices.
-	vg=[] #vertexgroup of valley vertices
-	
-	
-	M=[0]
-	if worm : (M,skew,D)=(range(32),rad(11.25),D/2)
-	
-	for W in M:
-		fl=W*N*L*2
-		l=0	#number of vertices
-		for I in range(int(N)):
-			a=I*t
-			for(s,d,c,first) in ((W*skew,W*2*D-D,1,1),((W+1)*skew,W*2*D+D,scale,0)):
-				if worm and I%(int(N)/worm)!=0:
-					v.extend(add_tooth(a+s,t,d,r-De,0.0,0.0,b,p))
-				else:
-					v.extend(add_tooth(a+s,t,d,r*c,Ad*c,De*c,b*c,p,rack,crown))
-				if not worm or (W==0 and first) or (W==(len(M)-1) and not first) :	
-					f.extend([ [j+l+fl for j in i]for i in dc(faces)])
-				l += L
+    """
+    """
+    worm	=0
+    if N<5 : (worm,N)=(N,24)
+    t	  =2*pi/N
+    if rack: N=1
+    p	    =rad(p)
+    conangle=rad(conangle)
+    skew	=rad(skew)
+    scale   = (r - 2*D*tan(conangle) )/r
 
-			#print (len(f))
-			#print (dc(efc))
-			f.extend([ [j+I*L*2+fl for j in i] for i in dc(efc)])
-			#print (len(f))
-			tg.extend([i+I*L*2 for i in tv])
-			vg.extend([i+I*L*2 for i in vv])
-	# EXPERIMENTAL: add spokes
-	if not worm and spoke>0 :
-		fl=len(v)
-		for I in range(int(N)):
-			a=I*t
-			s=0 # for test
-			if I%spoke==0 :
-				for d in (-D,D) :
-					(sv,ef,ef2,sf) = add_spoke2(a+s,t,d,r*c,De*c,b*c,spbevel,spwidth,splength,0,spresol)
-					v.extend(sv)
-					f.extend([ [j+fl for j in i]for i in sf])
-					fl += len(sv)
-				d1 = fl-len(sv)
-				d2 = fl-2*len(sv)
-				f.extend([(i+d2,j+d2,j+d1,i+d1) for (i,j) in zip(ef[:-1],ef[1:])])
-				f.extend([(i+d2,j+d2,j+d1,i+d1) for (i,j) in zip(ef2[:-1],ef2[1:])])
-			else :
-				for d in (-D,D) :
-					(sv,ef,ef2,sf) = add_spoke2(a+s,t,d,r*c,De*c,b*c,spbevel,spwidth,splength,1,spresol)
-					v.extend(sv)
-					fl += len(sv)
-				d1 = fl-len(sv)
-				d2 = fl-2*len(sv)
-				#f.extend([(i+d2,i+1+d2,i+1+d1,i+d1) for (i) in (0,1,2,3)])
-				#f.extend([(i+d2,i+1+d2,i+1+d1,i+d1) for (i) in (5,6,7,8)])
-					
-	return flatten(v), flatten(f), tg, vg
+    f =[]
+    v =[]
+    tg=[] #vertexgroup of top vertices.
+    vg=[] #vertexgroup of valley vertices
+
+
+    M=[0]
+    if worm : (M,skew,D)=(range(32),rad(11.25),D/2)
+
+    for W in M:
+        fl=W*N*L*2
+        l=0	#number of vertices
+        for I in range(int(N)):
+            a=I*t
+            for(s,d,c,first) in ((W*skew,W*2*D-D,1,1),((W+1)*skew,W*2*D+D,scale,0)):
+                if worm and I%(int(N)/worm)!=0:
+                    v.extend(add_tooth(a+s,t,d,r-De,0.0,0.0,b,p))
+                else:
+                    v.extend(add_tooth(a+s,t,d,r*c,Ad*c,De*c,b*c,p,rack,crown))
+                if not worm or (W==0 and first) or (W==(len(M)-1) and not first) :
+                    f.extend([ [j+l+fl for j in i]for i in dc(faces)])
+                l += L
+
+            #print (len(f))
+            #print (dc(efc))
+            f.extend([ [j+I*L*2+fl for j in i] for i in dc(efc)])
+            #print (len(f))
+            tg.extend([i+I*L*2 for i in tv])
+            vg.extend([i+I*L*2 for i in vv])
+    # EXPERIMENTAL: add spokes
+    if not worm and spoke>0 :
+        fl=len(v)
+        for I in range(int(N)):
+            a=I*t
+            s=0 # for test
+            if I%spoke==0 :
+                for d in (-D,D) :
+                    (sv,ef,ef2,sf) = add_spoke2(a+s,t,d,r*c,De*c,b*c,spbevel,spwidth,splength,0,spresol)
+                    v.extend(sv)
+                    f.extend([ [j+fl for j in i]for i in sf])
+                    fl += len(sv)
+                d1 = fl-len(sv)
+                d2 = fl-2*len(sv)
+                f.extend([(i+d2,j+d2,j+d1,i+d1) for (i,j) in zip(ef[:-1],ef[1:])])
+                f.extend([(i+d2,j+d2,j+d1,i+d1) for (i,j) in zip(ef2[:-1],ef2[1:])])
+            else :
+                for d in (-D,D) :
+                    (sv,ef,ef2,sf) = add_spoke2(a+s,t,d,r*c,De*c,b*c,spbevel,spwidth,splength,1,spresol)
+                    v.extend(sv)
+                    fl += len(sv)
+                d1 = fl-len(sv)
+                d2 = fl-2*len(sv)
+                #f.extend([(i+d2,i+1+d2,i+1+d1,i+d1) for (i) in (0,1,2,3)])
+                #f.extend([(i+d2,i+1+d2,i+1+d1,i+d1) for (i) in (5,6,7,8)])
+
+    return flatten(v), flatten(f), tg, vg
 
 
 from bpy.props import *
@@ -307,7 +307,7 @@ class AddGear(bpy.types.Operator):
                                     crown=self.properties.crown)
 
         #print(len(verts_loc)/3,faces)
-        
+
         mesh = bpy.data.meshes.new("Gear")
 
         mesh.add_geometry(int(len(verts_loc) / 3), 0, int(len(faces) / 4))
@@ -321,7 +321,7 @@ class AddGear(bpy.types.Operator):
             ob.selected = False
 
         mesh.update()
-        
+
         ob_new = bpy.data.objects.new('Gear', mesh)
 
         tipgroup = ob_new.add_vertex_group('Tips')
@@ -329,13 +329,13 @@ class AddGear(bpy.types.Operator):
         tipgroup.name = 'Tips'
         for i in tip_vertices:
             ob_new.add_vertex_to_group(i, tipgroup, 1.0, 'ADD')
-            
+
         valleygroup = ob_new.add_vertex_group('Valleys')
         # for some reason the name does not 'stick' and we have to set it this way:
         valleygroup.name = 'Valleys'
         for i in valley_vertices:
             ob_new.add_vertex_to_group(i, valleygroup, 1.0, 'ADD')
-            
+
         scene.objects.link(ob_new)
         scene.objects.active = ob_new
         ob_new.selected = True
@@ -348,7 +348,7 @@ class AddGear(bpy.types.Operator):
         # unfortunately the next line wont get us back to object mode but bombs
         #bpy.ops.object.mode_set('OBJECT')
         #print(4,bpy.context.mode)
-                
+
         ob_new.location = tuple(context.scene.cursor_location)
 
         return {'FINISHED'}

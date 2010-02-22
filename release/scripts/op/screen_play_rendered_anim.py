@@ -112,11 +112,12 @@ class PlayRenderedAnim(bpy.types.Operator):
             pass
             #raise OSError("Couldn't find an external animation player.")
 
-        return('FINISHED',)
+        return {'FINISHED'}
 
 
 def register():
     bpy.types.register(PlayRenderedAnim)
+
 
 def unregister():
     bpy.types.unregister(PlayRenderedAnim)

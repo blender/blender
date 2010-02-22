@@ -1403,6 +1403,7 @@ class USERPREF_PT_extensions(bpy.types.Panel):
 
 from bpy.props import *
 
+
 class WM_OT_extension_enable(bpy.types.Operator):
     "Enable an extension"
     bl_idname = "wm.extension_enable"
@@ -1415,7 +1416,7 @@ class WM_OT_extension_enable(bpy.types.Operator):
         ext = context.user_preferences.extensions.new()
         module_name = self.properties.module
         ext.module = module_name
-        
+
         try:
             mod = __import__(module_name)
             mod.register()
@@ -1441,7 +1442,7 @@ class WM_OT_extension_disable(bpy.types.Operator):
             mod.unregister()
         except:
             traceback.print_exc()
-        
+
         extensions = context.user_preferences.extensions
         ok = True
         while ok: # incase its in more then once.
@@ -1461,7 +1462,7 @@ class WM_OT_extension_install(bpy.types.Operator):
     bl_label = "Install Extension"
 
     module = StringProperty(name="Module", description="Module name of the extension to disable")
-    
+
     path = StringProperty(name="File Path", description="File path to write file to")
     filename = StringProperty(name="File Name", description="Name of the file")
     directory = StringProperty(name="Directory", description="Directory of the file")
@@ -1478,7 +1479,7 @@ class WM_OT_extension_install(bpy.types.Operator):
         if os.path.exists(path_dest):
             self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
             return {'CANCELLED'}
-        
+
         if os.path.exists(path_dest):
             self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
             return {'CANCELLED'}
@@ -1498,7 +1499,7 @@ class WM_OT_extension_install(bpy.types.Operator):
         if not paths:
             self.report({'ERROR'}, "No 'extensions' path could be found in " + str(bpy.utils.script_paths()))
             return {'CANCELLED'}
-        
+
         wm = context.manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
@@ -1910,7 +1911,7 @@ classes = [
     USERPREF_PT_file,
     USERPREF_PT_input,
     USERPREF_PT_extensions,
-    
+
     WM_OT_extension_enable,
     WM_OT_extension_disable,
     WM_OT_extension_install,
@@ -1931,6 +1932,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -1938,4 +1940,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

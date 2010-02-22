@@ -222,7 +222,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
             col = split.column()
         col.label(text="Memory:")
         sub = col.column()
-        sub.enabled = not (rd.use_border or rd.full_sample) 
+        sub.enabled = not (rd.use_border or rd.full_sample)
         sub.prop(rd, "save_buffers")
         sub = col.column()
         sub.active = rd.use_compositing
@@ -419,7 +419,7 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         sub = layout.column()
 
         if rd.ffmpeg_format not in ('MP3'):
-          sub.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
+            sub.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
 
         sub.separator()
 
@@ -454,7 +454,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 
         col = split.column()
         col.row().prop(rd, "antialiasing_samples", expand=True)
-        sub = col.row() 
+        sub = col.row()
         sub.enabled = not rd.use_border
         sub.prop(rd, "full_sample")
 
@@ -462,7 +462,7 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
             col = split.column()
         col.prop(rd, "pixel_filter", text="")
         col.prop(rd, "filter_size", text="Size")
-        
+
 
 class RENDER_PT_motion_blur(RenderButtonsPanel):
     bl_label = "Full Sample Motion Blur"
@@ -482,6 +482,7 @@ class RENDER_PT_motion_blur(RenderButtonsPanel):
 
         row = layout.row()
         row.prop(rd, "motion_blur_samples")
+
 
 class RENDER_PT_dimensions(RenderButtonsPanel):
     bl_label = "Dimensions"
@@ -645,6 +646,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -652,4 +654,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

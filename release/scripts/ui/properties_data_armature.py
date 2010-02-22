@@ -263,10 +263,12 @@ classes = [
 
     DATA_PT_custom_props_arm]
 
+
 def register():
     register = bpy.types.register
     for cls in classes:
         register(cls)
+
 
 def unregister():
     unregister = bpy.types.unregister
@@ -275,4 +277,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

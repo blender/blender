@@ -23,9 +23,9 @@ This script imports Raw Triangle File format files to Blender.
 
 The raw triangle format is very simple; it has no verts or faces lists.
 It's just a simple ascii text file with the vertices of each triangle
-listed on each line. In addition, a line with 12 values will be 
-imported as a quad. This may be in conflict with some other 
-applications, which use a raw format, but this is how it was 
+listed on each line. In addition, a line with 12 values will be
+imported as a quad. This may be in conflict with some other
+applications, which use a raw format, but this is how it was
 implemented back in blender 2.42.
 
 Usage:<br>
@@ -65,8 +65,8 @@ def readMesh(filename, objName):
             return [(f1, f2, f3), (f4, f5, f6), (f7, f8, f9), (A, B, C)]
         else:
             return None
-        
-    
+
+
     faces = []
     for line in file.readlines():
         face = line_to_face(line)
@@ -100,7 +100,7 @@ def readMesh(filename, objName):
 
 def addMeshObj(mesh, objName):
     scn = bpy.context.scene
-    
+
     for o in scn.objects:
         o.selected = False
 
