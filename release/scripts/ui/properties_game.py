@@ -389,8 +389,8 @@ class WorldButtonsPanel(bpy.types.Panel):
     bl_context = "world"
 
     def poll(self, context):
-        rd = context.scene.render_data
-        return (rd.engine == 'BLENDER_GAME')
+        scene = context.scene
+        return (scene.render_data.engine == 'BLENDER_GAME') and (scene.world is not None)
 
 
 class WORLD_PT_game_context_world(WorldButtonsPanel):
