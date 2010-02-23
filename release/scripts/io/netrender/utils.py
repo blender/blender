@@ -197,12 +197,12 @@ def thumbnail(filename):
         return thumbname
 
     if bpy:
-        sce = bpy.data.scenes[0]
-        sce.render_data.file_format = "JPEG"
-        sce.render_data.quality = 90
+        scene = bpy.data.scenes[0] # FIXME, this is dodgy!
+        scene.render.file_format = "JPEG"
+        scene.render.quality = 90
         bpy.ops.image.open(path = filename)
         img = bpy.data.images[imagename]
-        img.save(thumbname, scene = sce)
+        img.save(thumbname, scene=scene)
 
         try:
             process = subprocess.Popen(["convert", thumbname, "-resize", "300x300", thumbname])

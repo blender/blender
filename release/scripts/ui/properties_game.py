@@ -29,7 +29,7 @@ class PhysicsButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         ob = context.active_object
-        rd = context.scene.render_data
+        rd = context.scene.render
         return ob and ob.game and (rd.engine == 'BLENDER_GAME')
 
 
@@ -166,7 +166,7 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
 
     def poll(self, context):
         game = context.object.game
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC')) and (rd.engine == 'BLENDER_GAME')
 
     def draw_header(self, context):
@@ -202,7 +202,7 @@ class RenderButtonsPanel(bpy.types.Panel):
     bl_context = "render"
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (rd.engine == 'BLENDER_GAME')
 
 
@@ -390,7 +390,7 @@ class WorldButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         scene = context.scene
-        return (scene.render_data.engine == 'BLENDER_GAME') and (scene.world is not None)
+        return (scene.render.engine == 'BLENDER_GAME') and (scene.world is not None)
 
 
 class WORLD_PT_game_context_world(WorldButtonsPanel):
@@ -398,7 +398,7 @@ class WORLD_PT_game_context_world(WorldButtonsPanel):
     bl_show_header = False
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (context.scene) and (rd.use_game_engine)
 
     def draw(self, context):

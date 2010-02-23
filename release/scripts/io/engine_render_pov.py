@@ -41,7 +41,7 @@ def write_pov(filename, scene=None, info_callback=None):
     if not scene:
         scene = bpy.data.scenes[0]
 
-    render = scene.render_data
+    render = scene.render
     world = scene.world
 
     def uniqueName(name, nameSeq):
@@ -602,7 +602,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
 def write_pov_ini(filename_ini, filename_pov, filename_image):
     scene = bpy.data.scenes[0]
-    render = scene.render_data
+    render = scene.render
 
     x = int(render.resolution_x * render.resolution_percentage * 0.01)
     y = int(render.resolution_y * render.resolution_percentage * 0.01)
@@ -785,7 +785,7 @@ class PovrayRender(bpy.types.RenderEngine):
         self.update_stats("", "POVRAY: Parsing File")
         self._render()
 
-        r = scene.render_data
+        r = scene.render
 
         # compute resolution
         x = int(r.resolution_x * r.resolution_percentage * 0.01)
@@ -889,7 +889,7 @@ class RenderButtonsPanel(bpy.types.Panel):
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (rd.use_game_engine == False) and (rd.engine in self.COMPAT_ENGINES)
 
 
@@ -906,7 +906,7 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
 
         layout.active = scene.pov_radio_enable
 

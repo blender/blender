@@ -36,7 +36,7 @@ class RenderButtonsPanel(bpy.types.Panel):
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (context.scene and rd.use_game_engine is False) and (rd.engine in self.COMPAT_ENGINES)
 
 
@@ -47,7 +47,7 @@ class RENDER_PT_render(RenderButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -71,7 +71,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
         wide_ui = context.region.width > narrowui
 
         row = layout.row()
@@ -176,7 +176,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -202,7 +202,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -246,7 +246,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -289,7 +289,7 @@ class RENDER_PT_output(RenderButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         layout.prop(rd, "output_path", text="")
@@ -355,7 +355,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 
         elif rd.file_format == 'QUICKTIME_CARBON':
             split = layout.split()
-            split.operator("scene.render_data_set_quicktime_codec")
+            split.operator("scene.render_set_quicktime_codec")
 
         elif rd.file_format == 'QUICKTIME_QTKIT':
             split = layout.split()
@@ -370,13 +370,13 @@ class RENDER_PT_encoding(RenderButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return rd.file_format in ('FFMPEG', 'XVID', 'H264', 'THEORA')
 
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -439,14 +439,14 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
 
         self.layout.prop(rd, "antialiasing", text="")
 
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
         layout.active = rd.antialiasing
 
@@ -470,14 +470,14 @@ class RENDER_PT_motion_blur(RenderButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
 
         self.layout.prop(rd, "motion_blur", text="")
 
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         layout.active = rd.motion_blur
 
         row = layout.row()
@@ -492,7 +492,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
         wide_ui = context.region.width > narrowui
 
         row = layout.row().split()
@@ -538,14 +538,14 @@ class RENDER_PT_stamp(RenderButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
 
         self.layout.prop(rd, "render_stamp", text="")
 
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         layout.active = rd.render_stamp
@@ -586,7 +586,7 @@ class RENDER_PT_bake(RenderButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         layout.operator("object.bake_image", icon='RENDER_STILL')

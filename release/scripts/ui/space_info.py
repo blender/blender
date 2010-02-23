@@ -28,7 +28,7 @@ class INFO_HT_header(bpy.types.Header):
 
         window = context.window
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
 
         row = layout.row(align=True)
         row.template_header()
@@ -263,7 +263,7 @@ class INFO_MT_render(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        # rd = context.scene.render_data
+        # rd = context.scene.render
 
         layout.operator("screen.render", text="Render Image", icon='RENDER_STILL')
         layout.operator("screen.render", text="Render Animation", icon='RENDER_ANIMATION').animation = True

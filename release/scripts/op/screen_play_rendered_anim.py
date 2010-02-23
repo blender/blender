@@ -68,8 +68,8 @@ class PlayRenderedAnim(bpy.types.Operator):
     bl_undo = False
 
     def execute(self, context):
-        sce = context.scene
-        rd = sce.render_data
+        scene = context.scene
+        rd = scene.render
         prefs = context.user_preferences
 
         preset = prefs.filepaths.animation_player_preset
@@ -86,7 +86,7 @@ class PlayRenderedAnim(bpy.types.Operator):
             file = ''.join([(c if file_b[i] == c else "#") for i, c in enumerate(file_a)])
         else:
             # works for movies and images
-            file = rd.frame_path(frame=sce.start_frame)
+            file = rd.frame_path(frame=scene.start_frame)
 
         cmd = [player_path]
         # extra options, fps controls etc.
@@ -97,7 +97,7 @@ class PlayRenderedAnim(bpy.types.Operator):
             opts = [file, "-playback_speed", str(rd.fps)]
             cmd.extend(opts)
         elif preset == 'FRAMECYCLER':
-            opts = [file, "%d-%d" % (sce.start_frame, sce.end_frame)]
+            opts = [file, "%d-%d" % (scene.start_frame, scene.end_frame)]
             cmd.extend(opts)
         elif preset == 'RV':
             opts = ["-fps", str(rd.fps), "-play", "[ %s ]" % file]

@@ -33,7 +33,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         ob = context.object
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 
 

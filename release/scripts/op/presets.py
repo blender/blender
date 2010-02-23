@@ -75,16 +75,16 @@ class AddPresetRender(AddPresetBase):
     name = AddPresetBase.name
 
     preset_values = [
-        "bpy.context.scene.render_data.resolution_x",
-        "bpy.context.scene.render_data.resolution_y",
-        "bpy.context.scene.render_data.pixel_aspect_x",
-        "bpy.context.scene.render_data.pixel_aspect_y",
-        "bpy.context.scene.render_data.fps",
-        "bpy.context.scene.render_data.fps_base",
-        "bpy.context.scene.render_data.resolution_percentage",
-        "bpy.context.scene.render_data.fields",
-        "bpy.context.scene.render_data.field_order",
-        "bpy.context.scene.render_data.fields_still",
+        "bpy.context.scene.render.resolution_x",
+        "bpy.context.scene.render.resolution_y",
+        "bpy.context.scene.render.pixel_aspect_x",
+        "bpy.context.scene.render.pixel_aspect_y",
+        "bpy.context.scene.render.fps",
+        "bpy.context.scene.render.fps_base",
+        "bpy.context.scene.render.resolution_percentage",
+        "bpy.context.scene.render.fields",
+        "bpy.context.scene.render.field_order",
+        "bpy.context.scene.render.fields_still",
     ]
 
     preset_subdir = "render"

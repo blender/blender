@@ -60,10 +60,10 @@ class NODE_HT_header(bpy.types.Header):
                 layout.prop(snode_id, "use_nodes")
 
         elif snode.tree_type == 'COMPOSITING':
-            snode_id = snode.id
+            scene = snode.id
 
-            layout.prop(snode_id, "use_nodes")
-            layout.prop(snode_id.render_data, "free_unused_nodes", text="Free Unused")
+            layout.prop(scene, "use_nodes")
+            layout.prop(scene.render, "free_unused_nodes", text="Free Unused")
             layout.prop(snode, "backdrop")
 
 

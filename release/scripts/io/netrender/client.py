@@ -201,7 +201,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
 
     def render_slave(self, scene):
-        slave.render_slave(self, scene.network_render, scene.render_data.threads)
+        slave.render_slave(self, scene.network_render, scene.render.threads)
 
     def render_client(self, scene):
         netsettings = scene.network_render
@@ -250,7 +250,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
                 conn.close()
                 return
 
-            r = scene.render_data
+            r = scene.render
             x= int(r.resolution_x*r.resolution_percentage*0.01)
             y= int(r.resolution_y*r.resolution_percentage*0.01)
 

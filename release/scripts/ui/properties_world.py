@@ -30,7 +30,7 @@ class WorldButtonsPanel(bpy.types.Panel):
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (context.world) and (not rd.use_game_engine) and (rd.engine in self.COMPAT_ENGINES)
 
 
@@ -48,7 +48,7 @@ class WORLD_PT_context_world(WorldButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (not rd.use_game_engine) and (rd.engine in self.COMPAT_ENGINES)
 
     def draw(self, context):

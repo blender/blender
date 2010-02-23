@@ -32,7 +32,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
     bl_context = "physics"
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (context.object) and (not rd.use_game_engine)
 
 
@@ -174,7 +174,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel):
 
     def poll(self, context):
         ob = context.object
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 
     def draw(self, context):

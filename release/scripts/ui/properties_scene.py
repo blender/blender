@@ -192,13 +192,13 @@ class SCENE_PT_simplify(SceneButtonsPanel):
 
     def draw_header(self, context):
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
         self.layout.prop(rd, "use_simplify", text="")
 
     def draw(self, context):
         layout = self.layout
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
         wide_ui = context.region.width > narrowui
 
         layout.active = rd.use_simplify

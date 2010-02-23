@@ -228,7 +228,7 @@ class x3d_class:
     '''
 
     def writeViewpoint(self, ob, mat, scene):
-        context = scene.render_data
+        context = scene.render
         # context = scene.render
         ratio = float(context.resolution_x)/float(context.resolution_y)
         # ratio = float(context.imageSizeY())/float(context.imageSizeX())

@@ -412,13 +412,13 @@ def write(filename, batch_objects = None, \
             # XXX don't know what to do with this, probably do the same? (Arystan)
             if BATCH_GROUP: #group
                 # group, so objects update properly, add a dummy scene.
-                sce = bpy.data.scenes.new()
-                sce.Layers = (1<<20) -1
-                bpy.data.scenes.active = sce
+                scene = bpy.data.scenes.new()
+                scene.Layers = (1<<20) -1
+                bpy.data.scenes.active = scene
                 for ob_base in data.objects:
-                    sce.objects.link(ob_base)
+                    scene.objects.link(ob_base)
 
-                sce.update(1)
+                scene.update(1)
 
                 # TODO - BUMMER! Armatures not in the group wont animate the mesh
 
@@ -450,8 +450,8 @@ def write(filename, batch_objects = None, \
 
             if BATCH_GROUP:
                 # remove temp group scene
-                bpy.data.remove_scene(sce)
-# 				bpy.data.scenes.unlink(sce)
+                bpy.data.remove_scene(scene)
+# 				bpy.data.scenes.unlink(scene)
 
         bpy.data.scenes.active = orig_sce
 
@@ -618,9 +618,9 @@ def write(filename, batch_objects = None, \
     except:
         return False
 
-    sce = context.scene
-# 	sce = bpy.data.scenes.active
-    world = sce.world
+    scene = context.scene
+# 	scene = bpy.data.scenes.active
+    world = scene.world
 
 
     # ---------------------------- Write the header first
@@ -983,10 +983,10 @@ def write(filename, batch_objects = None, \
         '''
         Write a blender camera
         '''
-        render = sce.render_data
+        render = scene.render
         width	= render.resolution_x
         height	= render.resolution_y
-# 		render = sce.render
+# 		render = scene.render
 # 		width	= render.sizeX
 # 		height	= render.sizeY
         aspect	= float(width)/height
@@ -2016,8 +2016,8 @@ def write(filename, batch_objects = None, \
     # if EXP_OBS_SELECTED is false, use sceens objects
     if not batch_objects:
         if EXP_OBS_SELECTED:	tmp_objects = context.selected_objects
-# 		if EXP_OBS_SELECTED:	tmp_objects = sce.objects.context
-        else:					tmp_objects = sce.objects
+# 		if EXP_OBS_SELECTED:	tmp_objects = scene.objects.context
+        else:					tmp_objects = scene.objects
     else:
         tmp_objects = batch_objects
 
@@ -2039,7 +2039,7 @@ def write(filename, batch_objects = None, \
 # 				ob_base.makeDisplayList()
 
             # This causes the makeDisplayList command to effect the mesh
-            sce.set_frame(sce.current_frame)
+            scene.set_frame(scene.current_frame)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
 
 
@@ -2214,7 +2214,7 @@ def write(filename, batch_objects = None, \
                     ob_base.make_display_list()
 # 					ob_base.makeDisplayList()
             # This causes the makeDisplayList command to effect the mesh
-            sce.set_frame(sce.current_frame)
+            scene.set_frame(scene.current_frame)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
 
     del tmp_ob_type, tmp_objects
@@ -2689,8 +2689,8 @@ Connections:  {''')
 
 
     # Needed for scene footer as well as animation
-    render = sce.render_data
-# 	render = sce.render
+    render = scene.render
+# 	render = scene.render
 
     # from the FBX sdk
     #define KTIME_ONE_SECOND        KTime (K_LONGLONG(46186158000))
@@ -2699,9 +2699,9 @@ Connections:  {''')
         return int(0.5 + ((t/fps) * 46186158000))
 
     fps = float(render.fps)
-    start =	sce.start_frame
+    start =	scene.start_frame
 # 	start =	render.sFrame
-    end =	sce.end_frame
+    end =	scene.end_frame
 # 	end =	render.eFrame
     if end < start: start, end = end, start
     if start==end: ANIM_ENABLE = False
@@ -2711,7 +2711,7 @@ Connections:  {''')
 
     if ANIM_ENABLE and [tmp for tmp in ob_anim_lists if tmp]:
 
-        frame_orig = sce.current_frame
+        frame_orig = scene.current_frame
 # 		frame_orig = Blender.Get('curframe')
 
         if ANIM_OPTIMIZE:
@@ -2812,7 +2812,7 @@ Takes:  {''')
                     if blenAction in my_bone.blenActionList:
                         ob.action = blenAction
                         # print '\t\tSetting Action!', blenAction
-                # sce.update(1)
+                # scene.update(1)
 
             file.write('\n\t\tFileName: "Default_Take.tak"') # ??? - not sure why this is needed
             file.write('\n\t\tLocalTime: %i,%i' % (fbx_time(act_start-1), fbx_time(act_end-1))) # ??? - not sure why this is needed
@@ -2832,7 +2832,7 @@ Takes:  {''')
             '''
             i = act_start
             while i <= act_end:
-                sce.set_frame(i)
+                scene.set_frame(i)
 # 				Blender.Set('curframe', i)
                 for ob_generic in ob_anim_lists:
                     for my_ob in ob_generic:
@@ -2971,7 +2971,7 @@ Takes:  {''')
 
         file.write('\n}')
 
-        sce.set_frame(frame_orig)
+        scene.set_frame(frame_orig)
 # 		Blender.Set('curframe', frame_orig)
 
     else:
