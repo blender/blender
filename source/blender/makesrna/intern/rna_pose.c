@@ -663,6 +663,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 		
 	static float default_quat[4] = {1,0,0,0};	/* default quaternion values */
 	static float default_axisAngle[4] = {0,0,1,0};	/* default axis-angle rotation values */
+	static float default_scale[3] = {1,1,1}; /* default scale values */
 	
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -722,6 +723,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_editable_array_func(prop, "rna_PoseChannel_scale_editable");
+	RNA_def_property_float_array_default(prop, default_scale);
 	RNA_def_property_ui_text(prop, "Scale", "");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable"); // XXX... disabled, since proxy-locked layers are currently used for ensuring proxy-syncing too
 	RNA_def_property_update(prop, NC_OBJECT|ND_POSE, "rna_Pose_update");
