@@ -1135,19 +1135,22 @@ int RNA_property_ui_icon(PropertyRNA *prop)
 
 int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 {
-	ID *id;
+	ID *id= ptr->id.data;
 	int flag;
 
 	prop= rna_ensure_property(prop);
-
-	if(prop->editable)
-		flag= prop->editable(ptr);
-	else
-		flag= prop->flag;
-	
-	id= ptr->id.data;
-
+	flag= prop->editable ? prop->editable(ptr) : prop->flag;
 	return (flag & PROP_EDITABLE) && (!id || !id->lib || (prop->flag & PROP_LIB_EXCEPTION));
+}
+
+int RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop)
+{
+	ID *id= ptr->id.data;
+	int flag;
+
+	prop= rna_ensure_property(prop);
+	flag= prop->editable ? prop->editable(ptr) : prop->flag;
+	return (flag & PROP_EDITABLE);
 }
 
 /* same as RNA_property_editable(), except this checks individual items in an array */
