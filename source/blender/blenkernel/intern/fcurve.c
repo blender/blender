@@ -801,13 +801,19 @@ typedef struct DriverVarTypeInfo {
 
 /* ......... */
 
+static ID *dtar_id_ensure_proxy_from(ID *id)
+{
+	if (id && GS(id->name)==ID_OB && ((Object *)id)->proxy_from)
+		return (ID *)(((Object *)id)->proxy_from);
+	return id;
+}
+
 /* Helper function to obtain a value using RNA from the specified source (for evaluating drivers) */
 static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
 	ID *id;
-	char *path;
 	int index;
 	float value= 0.0f;
 	
@@ -815,22 +821,22 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	if ELEM(NULL, driver, dtar)
 		return 0.0f;
 	
-	/* get RNA-pointer for the ID-block given in target */
-	RNA_id_pointer_create(dtar->id, &id_ptr);
-	id= dtar->id;
-	path= dtar->rna_path;
+	id= dtar_id_ensure_proxy_from(dtar->id);
 	
 	/* error check for missing pointer... */
 	// TODO: tag the specific target too as having issues
 	if (id == NULL) {
 		printf("Error: driver has an invalid target to use \n");
-		if (G.f & G_DEBUG) printf("\tpath = %s\n", path);
+		if (G.f & G_DEBUG) printf("\tpath = %s\n", dtar->rna_path);
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
 	}
+
+	/* get RNA-pointer for the ID-block given in target */
+	RNA_id_pointer_create(id, &id_ptr);
 	
 	/* get property to read from, and get value as appropriate */
-	if (RNA_path_resolve_full(&id_ptr, path, &ptr, &prop, &index)) {
+	if (RNA_path_resolve_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
 		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
 				if (RNA_property_array_length(&ptr, prop))
@@ -859,7 +865,7 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	}
 	else {
 		if (G.f & G_DEBUG)
-			printf("Driver Evaluation Error: cannot resolve target for %s -> %s \n", id->name, path);
+			printf("Driver Evaluation Error: cannot resolve target for %s -> %s \n", id->name, dtar->rna_path);
 		
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
@@ -871,14 +877,17 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 /* Helper function to obtain a pointer to a Pose Channel (for evaluating drivers) */
 static bPoseChannel *dtar_get_pchan_ptr (ChannelDriver *driver, DriverTarget *dtar)
 {
+	ID *id;
 	/* sanity check */
 	if ELEM(NULL, driver, dtar)
 		return NULL;
-		
+
+	id= dtar_id_ensure_proxy_from(dtar->id);
+
 	/* check if the ID here is a valid object */
-	if ((dtar->id) && GS(dtar->id->name)) {
-		Object *ob= (Object *)dtar->id;
-		
+	if (id && GS(id->name)) {
+		Object *ob= (Object *)id;
+
 		/* get pose, and subsequently, posechannel */
 		return get_pose_channel(ob->pose, dtar->pchan_name);
 	}
@@ -947,12 +956,12 @@ static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
 	DRIVER_TARGETS_USED_LOOPER(dvar)
 	{
 		/* get pointer to loc values to store in */
-		Object *ob= (Object *)dtar->id;
+		Object *ob= (Object *)dtar_id_ensure_proxy_from(dtar->id);
 		bPoseChannel *pchan;
 		float tmp_loc[3];
 		
 		/* check if this target has valid data */
-		if ((ob == NULL) || (GS(dtar->id->name) != ID_OB)) {
+		if ((ob == NULL) || (GS(ob->id.name) != ID_OB)) {
 			/* invalid target, so will not have enough targets */
 			driver->flag |= DRIVER_FLAG_INVALID;
 			return 0.0f;
@@ -1007,14 +1016,14 @@ static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
 static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 {
 	DriverTarget *dtar= &dvar->targets[0];
-	Object *ob= (Object *)dtar->id;
+	Object *ob= (Object *)dtar_id_ensure_proxy_from(dtar->id);
 	bPoseChannel *pchan;
 	float mat[4][4];
 	float eul[3] = {0.0f,0.0f,0.0f};
 	short useEulers=0, rotOrder=ROT_MODE_EUL;
 	
 	/* check if this target has valid data */
-	if ((ob == NULL) || (GS(dtar->id->name) != ID_OB)) {
+	if ((ob == NULL) || (GS(ob->id.name) != ID_OB)) {
 		/* invalid target, so will not have enough targets */
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
@@ -1281,7 +1290,7 @@ ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 float driver_get_variable_value (ChannelDriver *driver, DriverVar *dvar)
 {
 	DriverVarTypeInfo *dvti;
-	
+
 	/* sanity check */
 	if (ELEM(NULL, driver, dvar))
 		return 0.0f;

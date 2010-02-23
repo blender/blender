@@ -158,8 +158,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	int i;
 
 	/* sanity checks - should driver be executed? */
-	if ((driver == NULL) /*|| (G.f & G_DOSCRIPTLINKS)==0*/)
-		return result;
+	/*if (G.f & G_DOSCRIPTLINKS)==0) return result; */
 
 	/* get the py expression to be evaluated */
 	expr = driver->expression;
@@ -255,24 +254,20 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 
 	/* process the result */
 	if (retval == NULL) {
-		result = pydriver_error(driver);
-		PyGILState_Release(gilstate);
-		return result;
+		pydriver_error(driver);
+		result = 0.0f;
+	} else if((result= (float)PyFloat_AsDouble(retval)) == -1.0f && PyErr_Occurred()) {
+		pydriver_error(driver);
+		Py_DECREF(retval);
+		result = 0.0f;
+
 	}
-
-	result = (float)PyFloat_AsDouble(retval);
-	Py_DECREF(retval);
-
-	if ((result == -1) && PyErr_Occurred()) {
-		result = pydriver_error(driver);
-		PyGILState_Release(gilstate);
-		return result;
+	else {
+		/* all fine, make sure the "invalid expression" flag is cleared */
+		driver->flag &= ~DRIVER_FLAG_INVALID;
+		Py_DECREF(retval);
 	}
-
-	/* all fine, make sure the "invalid expression" flag is cleared */
-	driver->flag &= ~DRIVER_FLAG_INVALID;
 
 	PyGILState_Release(gilstate);
-
 	return result;
 }

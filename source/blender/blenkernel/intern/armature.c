@@ -1502,7 +1502,8 @@ void where_is_armature (bArmature *arm)
 	}
 }
 
-/* if bone layer is protected, copy the data from from->pose */
+/* if bone layer is protected, copy the data from from->pose
+ * when used with linked libraries this copies from the linked pose into the local pose */
 static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected)
 {
 	bPose *pose= ob->pose, *frompose= from->pose;
