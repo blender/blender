@@ -1145,7 +1145,6 @@ int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 
 int RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop)
 {
-	ID *id= ptr->id.data;
 	int flag;
 
 	prop= rna_ensure_property(prop);

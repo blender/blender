@@ -338,7 +338,10 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
 
         path_item = self.properties.path_item
         for item, value_orig in self._values.items():
-            exec("item.%s = %s" % (path_item, value_orig + delta))
+            if type(value_orig) == int:
+                exec("item.%s = int(%d)" % (path_item, round(value_orig + delta)))
+            else:
+                exec("item.%s = %f" % (path_item, value_orig + delta))
 
     def _values_restore(self):
         path_item = self.properties.path_item

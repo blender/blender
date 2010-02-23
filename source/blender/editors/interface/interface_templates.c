@@ -284,6 +284,10 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
 			memset(&idptr, 0, sizeof(idptr));
 			RNA_property_pointer_set(&template->ptr, template->prop, idptr);
 			RNA_property_update(C, &template->ptr, template->prop);
+
+			if(id && CTX_wm_window(C)->eventstate->shift) /* useful hidden functionality, */
+				id->us= 0;
+
 			break;
 		case UI_ID_FAKE_USER:
 			if(id) {
@@ -450,7 +454,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 			but= uiDefIconButO(block, BUT, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
 		}
 		else {
-			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+			but= uiDefIconBut(block, BUT, 0, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL, 0, 0, 0, 0, "Unlink datablock, Shift + Click to force removal on save");
 			uiButSetNFunc(but, template_id_cb, MEM_dupallocN(template), SET_INT_IN_POINTER(UI_ID_DELETE));
 
 			if(RNA_property_flag(template->prop) & PROP_NEVER_NULL)
