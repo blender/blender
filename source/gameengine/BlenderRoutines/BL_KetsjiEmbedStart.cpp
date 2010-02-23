@@ -172,6 +172,8 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 		bool displaylists = (SYS_GetCommandLineInt(syshandle, "displaylists", 0) != 0);
 		bool nodepwarnings = (SYS_GetCommandLineInt(syshandle, "ignore_deprecation_warnings", 0) != 0);
 		bool novertexarrays = (SYS_GetCommandLineInt(syshandle, "novertexarrays", 0) != 0);
+		if(animation_record) usefixed= true; /* override since you's always want fixed time for sim recording */
+
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(win, area_rect);
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
