@@ -805,27 +805,27 @@ static void rna_def_curve(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu");
-	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
 	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_ui_range(prop, 1, 64, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution U", "Surface resolution in U direction");
 	RNA_def_property_update(prop, 0, "rna_Curve_resolution_u_update_data");
 	
 	prop= RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv");
-	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_ui_range(prop, 1, 64, 1, 0);
 	RNA_def_property_range(prop, 1, INT_MAX);
 	RNA_def_property_ui_text(prop, "Resolution V", "Surface resolution in V direction");
 	RNA_def_property_update(prop, 0, "rna_Curve_resolution_v_update_data");
 	
 	prop= RNA_def_property(srna, "render_resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu_ren");
-	RNA_def_property_ui_range(prop, 0, 1024, 1, 0);
 	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_ui_range(prop, 1, 64, 1, 0);
 	RNA_def_property_ui_text(prop, "Render Resolution U", "Surface resolution in U direction used while rendering. Zero skips this property");
 	
 	prop= RNA_def_property(srna, "render_resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv_ren");
-	RNA_def_property_ui_range(prop, 0, 1024, 1, 0);
+	RNA_def_property_ui_range(prop, 1, 64, 1, 0);
 	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_ui_text(prop, "Render Resolution V", "Surface resolution in V direction used while rendering. Zero skips this property");
 	
@@ -965,13 +965,15 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "resolution_u", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolu");
-	RNA_def_property_range(prop, 1, 1024);
+	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_ui_range(prop, 1, 64, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution U", "Curve or Surface subdivisions per segment");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop= RNA_def_property(srna, "resolution_v", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "resolv");
-	RNA_def_property_range(prop, 1, 1024);
+	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_ui_range(prop, 1, 64, 1, 0);
 	RNA_def_property_ui_text(prop, "Resolution V", "Surface subdivisions per segment");
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
