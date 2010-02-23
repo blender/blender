@@ -207,6 +207,8 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		for (dvar= driver->variables.first, i=0; dvar; dvar= dvar->next) {
 			PyTuple_SET_ITEM(expr_vars, i++, PyUnicode_InternFromString(dvar->name));
 		}
+		
+		driver->flag &= ~DRIVER_FLAG_RENAMEVAR;
 	}
 	else {
 		expr_vars= PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 1);

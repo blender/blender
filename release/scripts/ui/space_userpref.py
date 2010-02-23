@@ -1689,7 +1689,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
 
         __import__(config_name)
 
-        wm = bpy.data.window_managers[0]
+        wm = bpy.context.manager
         wm.active_keyconfig = wm.keyconfigs[config_name]
 
         return {'FINISHED'}
@@ -1731,7 +1731,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         f.write("# Configuration %s\n" % name)
 
         f.write("import bpy\n\n")
-        f.write("wm = bpy.data.window_managers[0]\n")
+        f.write("wm = bpy.context.manager\n")
         f.write("kc = wm.add_keyconfig('%s')\n\n" % name)
 
         for km in kc.keymaps:
