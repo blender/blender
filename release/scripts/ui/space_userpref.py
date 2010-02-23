@@ -1614,27 +1614,10 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
 
 
 def _string_value(value):
-    result = ""
-    if isinstance(value, str):
-        if value != "":
-            result = "\'%s\'" % value
-    elif isinstance(value, bool):
-        if value:
-            result = "True"
-        else:
-            result = "False"
-    elif isinstance(value, float):
-        result = "%.10f" % value
-    elif isinstance(value, int):
-        result = "%d" % value
+    if isinstance(value, str) or isinstance(value, bool) or isinstance(value, float) or isinstance(value, int):
+        result = repr(value)
     elif getattr(value, '__len__', False):
-        if len(value):
-            result = "["
-            for i in range(0, len(value)):
-                result += _string_value(value[i])
-                if i != len(value)-1:
-                    result += ", "
-            result += "]"
+        repr(list(value))
     else:
         print("Export key configuration: can't write ", value)
 

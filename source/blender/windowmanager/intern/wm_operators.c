@@ -2997,7 +2997,11 @@ static EnumPropertyItem *rna_id_itemf(bContext *C, PointerRNA *ptr, int *free, I
 	return item;
 }
 
-/* can add more */
+/* can add more as needed */
+EnumPropertyItem *RNA_action_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->action.first : NULL);
+}
 EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->group.first : NULL);
