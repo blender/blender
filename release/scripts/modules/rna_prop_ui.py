@@ -179,9 +179,6 @@ class WM_OT_properties_edit(bpy.types.Operator):
         except:
             value_eval = value
 
-        if type(value_eval) == str:
-            value_eval = '"' + value_eval + '"'
-
         # First remove
         item = eval("context.%s" % path)
 
@@ -192,7 +189,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
 
 
         # Reassign
-        exec_str = "item['%s'] = %s" % (prop, value_eval)
+        exec_str = "item['%s'] = %s" % (prop, repr(value_eval))
         # print(exec_str)
         exec(exec_str)
         self._last_prop[:] = [prop]

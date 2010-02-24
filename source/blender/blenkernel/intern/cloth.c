@@ -545,7 +545,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		implicit_set_positions(clmd);
 		cache->flag |= PTCACHE_SIMULATION_VALID;
 	}
-	else if(ob->id.lib || (cache->flag & PTCACHE_BAKED)) {
+	else if( /*ob->id.lib ||*/ (cache->flag & PTCACHE_BAKED)) { /* 2.4x disabled lib, but this can be used in some cases, testing further - campbell */
 		/* if baked and nothing in cache, do nothing */
 		cache->flag &= ~PTCACHE_SIMULATION_VALID;
 		cache->simframe= 0;
