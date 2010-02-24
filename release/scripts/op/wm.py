@@ -364,7 +364,7 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
             self._values_clear()
             return {'FINISHED'}
 
-        elif event_type in ('RIGHTMOUSE', 'ESCAPE'):
+        elif event_type in ('RIGHTMOUSE', 'ESC'):
             self._values_restore()
             return {'FINISHED'}
 
