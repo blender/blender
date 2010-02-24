@@ -1689,8 +1689,8 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			
 			VECCOPY(verts[i].txold, id->X[i]);
 		}
-		
-		if(clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED)
+
+		if(clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED && clmd->clothObject->bvhtree)
 		{
 			float temp = clmd->sim_parms->stepsPerFrame;
 			/* not too nice hack, but collisions need this correction -jahka */
