@@ -353,15 +353,14 @@ static void latticeModifier_updateDepgraph(ModifierData *md, DagForest *forest, 
 
 static void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 {
-	md= md->next;
-	if(md) {
-		if(md->type==eModifierType_Armature) {
-			ArmatureModifierData *amd = (ArmatureModifierData*) md;
-			if(amd->multi)
-				amd->prevCos= MEM_dupallocN(vertexCos);
-		}
-		/* lattice/mesh modifier too */
+	while((md=md->next) && md->type==eModifierType_Armature) {
+		ArmatureModifierData *amd = (ArmatureModifierData*) md;
+		if(amd->multi && amd->prevCos==NULL)
+			amd->prevCos= MEM_dupallocN(vertexCos);
+		else
+			break;
 	}
+	/* lattice/mesh modifier too */
 }
 
 
