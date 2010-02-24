@@ -450,52 +450,28 @@ void selectswap_tface(Scene *scene)
 // XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
 
-int minmax_tface(Scene *scene, float *min, float *max)
+int minmax_tface(Scene *scene, Object *ob, float *min, float *max)
 {
-	Object *ob;
-	Mesh *me;
+	Mesh *me= get_mesh(ob);
 	MFace *mf;
-	MTFace *tf;
 	MVert *mv;
 	int a, ok=0;
-	float vec[3], bmat[3][3];
-	
-	ob = OBACT;
-	if (ob==0) return ok;
-	me= get_mesh(ob);
-	if(me==0 || me->mtface==0) return ok;
-	
-	copy_m3_m4(bmat, ob->obmat);
+	float vec[3];
+
+	if(me==NULL)
+		return ok;
 
 	mv= me->mvert;
 	mf= me->mface;
-	tf= me->mtface;
-	for (a=me->totface; a>0; a--, mf++, tf++) {
-		if (mf->flag & ME_HIDE || !(mf->flag & ME_FACE_SEL))
-			continue;
-
-		VECCOPY(vec, (mv+mf->v1)->co);
-		mul_m3_v3(bmat, vec);
-		add_v3_v3v3(vec, vec, ob->obmat[3]);
-		DO_MINMAX(vec, min, max);		
-
-		VECCOPY(vec, (mv+mf->v2)->co);
-		mul_m3_v3(bmat, vec);
-		add_v3_v3v3(vec, vec, ob->obmat[3]);
-		DO_MINMAX(vec, min, max);		
-
-		VECCOPY(vec, (mv+mf->v3)->co);
-		mul_m3_v3(bmat, vec);
-		add_v3_v3v3(vec, vec, ob->obmat[3]);
-		DO_MINMAX(vec, min, max);		
-
-		if (mf->v4) {
-			VECCOPY(vec, (mv+mf->v4)->co);
-			mul_m3_v3(bmat, vec);
-			add_v3_v3v3(vec, vec, ob->obmat[3]);
-			DO_MINMAX(vec, min, max);
+	for (a=me->totface; a>0; a--, mf++) {
+		if ((mf->flag & ME_HIDE || !(mf->flag & ME_FACE_SEL)) == 0) {
+			int i= mf->v4 ? 3:2;
+			do {
+				mul_v3_m4v3(vec, ob->obmat, (mv + (*(&mf->v1 + i)))->co);
+				DO_MINMAX(vec, min, max);
+			} while (i--);
+			ok= 1;
 		}
-		ok= 1;
 	}
 	return ok;
 }

@@ -1384,7 +1384,7 @@ static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview wi
 		}
 	}
 	else if (paint_facesel_test(ob)) {
-// XXX		ok= minmax_tface(min, max);
+		ok= minmax_tface(scene, ob, min, max);
 	}
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		ok= PE_minmax(scene, min, max);
@@ -1393,9 +1393,10 @@ static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview wi
 		Base *base= FIRSTBASE;
 		while(base) {
 			if(TESTBASE(v3d, base))  {
-				minmax_object(base->object, min, max);
+
 				/* account for duplis */
-				minmax_object_duplis(scene, base->object, min, max);
+				if (minmax_object_duplis(scene, base->object, min, max)==0)
+					minmax_object(base->object, min, max); /* use if duplis not found */
 
 				ok= 1;
 			}

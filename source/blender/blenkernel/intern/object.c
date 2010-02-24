@@ -2373,25 +2373,37 @@ void minmax_object(Object *ob, float *min, float *max)
 	}
 }
 
-/* TODO - use dupli objects bounding boxes */
-void minmax_object_duplis(Scene *scene, Object *ob, float *min, float *max)
+int minmax_object_duplis(Scene *scene, Object *ob, float *min, float *max)
 {
+	int ok= 0;
 	if ((ob->transflag & OB_DUPLI)==0) {
-		return;
+		return ok;
 	} else {
 		ListBase *lb;
 		DupliObject *dob;
 		
 		lb= object_duplilist(scene, ob);
 		for(dob= lb->first; dob; dob= dob->next) {
-			if(dob->no_draw);
-			else {
-				/* should really use bound box of dup object */
-				DO_MINMAX(dob->mat[3], min, max);
+			if(dob->no_draw == 0) {
+				BoundBox *bb= object_get_boundbox(dob->ob);
+
+				if(bb) {
+					int i;
+					for(i=0; i<8; i++) {
+						float vec[3];
+						mul_v3_m4v3(vec, dob->mat, bb->vec[i]);
+						DO_MINMAX(vec, min, max);
+						// print_v3(dob->ob->id.name, vec); // some dupligroups give odd results - campbell
+					}
+
+					ok= 1;
+				}
 			}
 		}
 		free_object_duplilist(lb);	/* does restore */
 	}
+
+	return ok;
 }
 
 
