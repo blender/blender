@@ -326,7 +326,7 @@ FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction
 }
 
 /* threshold for binary-searching keyframes - threshold here should be good enough for now, but should become userpref */
-#define BEZT_BINARYSEARCH_THRESH 	0.00001f
+#define BEZT_BINARYSEARCH_THRESH 	0.01f /* was 0.00001, but giving errors */
 
 /* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_fcurve)
  * Returns the index to insert at (data already at that index will be offset if replace is 0)
