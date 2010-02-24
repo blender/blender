@@ -1726,8 +1726,9 @@ static void rna_def_object(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "empty_draw_size", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "empty_drawsize");
-	RNA_def_property_range(prop, 0.01, 10.0);
-	RNA_def_property_ui_text(prop, "Empty Display Size", "Size of of display for empties in the viewport");
+	RNA_def_property_range(prop, 0.1f, 1000.0f);
+	RNA_def_property_ui_range(prop, 0.01, 100, 1, 1);
+	RNA_def_property_ui_text(prop, "Empty Display Size", "Size of display for empties in the viewport");
 	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	/* render */
