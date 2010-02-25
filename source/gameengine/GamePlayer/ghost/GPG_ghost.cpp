@@ -65,6 +65,7 @@ extern "C"
 #include "BLO_readfile.h"
 #include "BLO_readblenfile.h"
 #include "IMB_imbuf.h"
+#include "BKE_text.h"
 	
 	int GHOST_HACK_getFirstFile(char buf[]);
 	
@@ -197,9 +198,9 @@ void usage(const char* program)
 	printf("                             depending on the type of stereo you want\n\n");
 	printf("  -D: start player in dome mode\n");
 	printf("       --Optional parameters--\n");
-	printf("       angle = field of view in degrees\n");
-	printf("       tilt = tilt angle in degrees\n");
-	printf("       warpdata = a file to use for warping the image\n");	
+	printf("       angle    = field of view in degrees\n");
+	printf("       tilt     = tilt angle in degrees\n");
+	printf("       warpdata = a file to use for warping the image (absolute path)\n");	
 	printf("       mode: fisheye                (Fisheye)\n");
 	printf("             truncatedfront         (Front-Truncated)\n");
 	printf("             truncatedrear          (Rear-Truncated)\n");
@@ -326,6 +327,7 @@ int main(int argc, char** argv)
 	int domeTilt = -200;
 	int domeMode = 0;
 	char* domeWarp = NULL;
+	Text *domeText  = NULL;
 	int windowLeft = 100;
 	int windowTop = 100;
 	int windowWidth = 640;
@@ -615,7 +617,7 @@ int main(int argc, char** argv)
 				}
 				break;
 			default:
-				printf("Unkown argument: %s\n", argv[i++]);
+				printf("Unknown argument: %s\n", argv[i++]);
 				break;
 			}
 		}
@@ -786,8 +788,12 @@ int main(int argc, char** argv)
 								scene->gm.dome.mode = domeMode;
 							if (domeWarp)
 							{
-								printf("using external file as dome warping. Not implemented yet");
-								//scene->gm.dome.warptext
+								//XXX to do: convert relative to absolute path
+								domeText= add_text(domeWarp, "");
+								if(!domeText)
+									printf("error: invalid warpdata text file - %s\n", domeWarp);
+								else
+									scene->gm.dome.warptext = domeText;
 							}
 						}
 						
