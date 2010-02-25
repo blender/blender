@@ -404,13 +404,9 @@ static void setcameratoview3d(View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	float dvec[3];
 	float mat3[3][3];
-	
-	dvec[0]= rv3d->dist*rv3d->viewinv[2][0];
-	dvec[1]= rv3d->dist*rv3d->viewinv[2][1];
-	dvec[2]= rv3d->dist*rv3d->viewinv[2][2];
-	
-	VECCOPY(ob->loc, dvec);
-	sub_v3_v3v3(ob->loc, ob->loc, rv3d->ofs);
+
+	mul_v3_v3fl(dvec, rv3d->viewinv[2], rv3d->dist);
+	sub_v3_v3v3(ob->loc, dvec, rv3d->ofs);
 	rv3d->viewquat[0]= -rv3d->viewquat[0];
 
 	// quat_to_eul( ob->rot,rv3d->viewquat); // in 2.4x for xyz eulers only
@@ -602,9 +598,7 @@ void viewvector(RegionView3D *rv3d, float coord[3], float vec[3])
 		p2[3] = 1.0f;
 		mul_m4_v4(rv3d->viewmat, p2);
 
-		p2[0] = 2.0f * p2[0];
-		p2[1] = 2.0f * p2[1];
-		p2[2] = 2.0f * p2[2];
+		mul_v3_fl(p2, 2.0f);
 
 		mul_m4_v4(rv3d->viewinv, p2);
 
@@ -2612,10 +2606,9 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 	
 	if(axisidx > 0) alignaxis[axisidx-1]= 1.0;
 	else alignaxis[-axisidx-1]= -1.0;
-	
-	VECCOPY(norm, vec);
-	normalize_v3(norm);
-	
+
+	normalize_v3_v3(norm, vec);
+
 	angle= (float)acos(dot_v3v3(alignaxis, norm));
 	cross_v3_v3v3(axis, alignaxis, norm);
 	axis_angle_to_quat( new_quat,axis, -angle);
