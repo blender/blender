@@ -304,6 +304,8 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.prop(ob, "track_override_parent", text="Override Parent")
         row.active = (ob.parent is not None)
 
+# import generic panels from other files 
+from properties_animviz import OBJECT_PT_motion_paths, OBJECT_PT_onion_skinning
 
 classes = [
     OBJECT_PT_context_object,
@@ -314,6 +316,9 @@ classes = [
     OBJECT_PT_display,
     OBJECT_PT_duplication,
     OBJECT_PT_animation,
+    
+    OBJECT_PT_motion_paths,
+    #OBJECT_PT_onion_skinning,
 
     OBJECT_PT_custom_props]
 
