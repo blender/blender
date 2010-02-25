@@ -1120,7 +1120,10 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 		else				display_name= recent->filename;
 		uiItemStringO(col, display_name, ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
 	}
-
+	uiItemL(col, "Recovery", 0);
+	uiItemO(col, NULL, ICON_FILE_BLEND, "WM_OT_recover_last_session");
+	uiItemO(col, NULL, ICON_FILE_BLEND, "WM_OT_recover_auto_save");
+	
 	uiItemL(col, "", 0);
 
 	uiCenteredBoundsBlock(block, 0.0f);
