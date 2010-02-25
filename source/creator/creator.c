@@ -767,8 +767,14 @@ static int set_skip_frame(int argc, char **argv, void *data)
 
 static int run_python(int argc, char **argv, void *data)
 {
-	bContext *C = data;
 #ifndef DISABLE_PYTHON
+	bContext *C = data;
+
+	/* Make the path absolute because its needed for relative linked blends to be found */
+	char filename[FILE_MAXDIR + FILE_MAXFILE];
+	BLI_strncpy(filename, argv[1], sizeof(filename));
+	BLI_convertstringcwd(filename);
+
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
 		/* XXX, temp setting the WM is ugly, splash also does this :S */
@@ -778,13 +784,13 @@ static int run_python(int argc, char **argv, void *data)
 		if(wm->windows.first) {
 			CTX_wm_window_set(C, wm->windows.first);
 
-			BPY_run_python_script(C, argv[1], NULL, NULL); // use reports?
+			BPY_run_python_script(C, filename, NULL, NULL); // use reports?
 
 			CTX_wm_window_set(C, prevwin);
 		}
 		else {
 			fprintf(stderr, "Python script \"%s\" running with missing context data.\n", argv[1]);
-			BPY_run_python_script(C, argv[1], NULL, NULL); // use reports?
+			BPY_run_python_script(C, filename, NULL, NULL); // use reports?
 		}
 		return 1;
 	} else {
@@ -803,12 +809,11 @@ static int load_file(int argc, char **argv, void *data)
 
 	/* Make the path absolute because its needed for relative linked blends to be found */
 	char filename[FILE_MAXDIR + FILE_MAXFILE];
-
 	BLI_strncpy(filename, argv[0], sizeof(filename));
 	BLI_convertstringcwd(filename);
 
 	if (G.background) {
-		int retval = BKE_read_file(C, argv[0], NULL, NULL);
+		int retval = BKE_read_file(C, filename, NULL, NULL);
 
 		/*we successfully loaded a blend file, get sure that
 		pointcache works */
