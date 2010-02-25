@@ -2500,12 +2500,10 @@ static int flyApply(FlyInfo *fly)
 			interp_v3_v3v3(dvec, dvec_tmp, fly->dvec_prev, (1.0f/(1.0f+(time_redraw*5.0f))));
 
 			if (rv3d->persp==RV3D_CAMOB) {
-				if (v3d->camera->protectflag & OB_LOCK_LOCX)
-					dvec[0] = 0.0;
-				if (v3d->camera->protectflag & OB_LOCK_LOCY)
-					dvec[1] = 0.0;
-				if (v3d->camera->protectflag & OB_LOCK_LOCZ)
-					dvec[2] = 0.0;
+				Object *lock_ob= fly->root_parent ? fly->root_parent : fly->v3d->camera;
+				if (lock_ob->protectflag & OB_LOCK_LOCX) dvec[0] = 0.0;
+				if (lock_ob->protectflag & OB_LOCK_LOCY) dvec[1] = 0.0;
+				if (lock_ob->protectflag & OB_LOCK_LOCZ) dvec[2] = 0.0;
 			}
 
 			add_v3_v3v3(rv3d->ofs, rv3d->ofs, dvec);
@@ -2536,11 +2534,18 @@ static int flyApply(FlyInfo *fly)
 					mul_m4_m4m4(parent_mat, fly->root_parent->obmat, diff_mat);
 					object_apply_mat4(fly->root_parent, parent_mat);
 
-					where_is_object(scene, fly->root_parent);
+					// where_is_object(scene, fly->root_parent);
+
+					Object *up= v3d->camera->parent;
+					while(up) {
+						DAG_id_flush_update(&up->id, OB_RECALC_OB);
+						up= up->parent;
+					}
 
 					copy_m4_m4(prev_view_mat, view_mat);
 
 					id_key= &fly->root_parent->id;
+
 				}
 				else {
 					float view_mat[4][4];
