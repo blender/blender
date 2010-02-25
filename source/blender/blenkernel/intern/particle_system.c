@@ -1056,6 +1056,8 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 					cpa->num=-1;
 				}
 			}
+			/* dmcache must be updated for parent particles if children from faces is used */
+			psys_calc_dmcache(ob, finaldm, psys);
 
 			return 0;
 		}
