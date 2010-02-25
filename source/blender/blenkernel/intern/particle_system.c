@@ -3313,6 +3313,8 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			if(pa->alive==PARS_UNBORN
 				&& (part->flag & PART_UNBORN || cfra + psys->pointcache->step > pa->time))
 				reset_particle(sim, pa, dtime, cfra);
+			else if(part->phystype == PART_PHYS_NO)
+				reset_particle(sim, pa, dtime, cfra);
 
 			if(dfra>0.0 && ELEM(pa->alive,PARS_ALIVE,PARS_DYING)){
 				switch(part->phystype){
