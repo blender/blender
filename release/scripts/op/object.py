@@ -96,6 +96,48 @@ class SelectCamera(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class SelectHierarchy(bpy.types.Operator):
+    '''Select object relative to the active objects position in the hierarchy'''
+    bl_idname = "object.select_hierarchy"
+    bl_label = "Select Hierarchy"
+    bl_register = True
+    bl_undo = True
+
+    direction = EnumProperty(items=(
+                        ('PARENT', "Parent", ""),
+                        ('CHILD', "Child", "")),
+                name="Direction",
+                description="Direction to select in the hierarchy",
+                default='PARENT')
+
+    extend = BoolProperty(name="Extend", description="Extend the existing selection", default=False)
+
+    def poll(self, context):
+        return context.object
+
+    def execute(self, context):
+        obj = context.object
+        if self.properties.direction == 'PARENT':
+            parent = obj.parent
+            if not parent:
+                return {'CANCELLED'}
+            obj_act = parent
+        else:
+            children = obj.children
+            if len(children) != 1:
+                return {'CANCELLED'}
+            obj_act = children[0]
+
+        if not self.properties.extend:
+            # obj.selected = False
+            bpy.ops.object.select_all(action='DESELECT')
+
+        obj_act.selected = True
+        context.scene.objects.active = obj_act
+
+        return {'FINISHED'}
+
+
 class SubdivisionSet(bpy.types.Operator):
     '''Sets a Subdivision Surface Level (1-5)'''
 
@@ -471,6 +513,7 @@ class MakeDupliFace(bpy.types.Operator):
 classes = [
     SelectPattern,
     SelectCamera,
+    SelectHierarchy,
     SubdivisionSet,
     ShapeTransfer,
     JoinUVs,

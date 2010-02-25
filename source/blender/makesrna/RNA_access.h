@@ -809,6 +809,7 @@ void RNA_float_set_array(PointerRNA *ptr, const char *name, const float *values)
 
 int RNA_enum_get(PointerRNA *ptr, const char *name);
 void RNA_enum_set(PointerRNA *ptr, const char *name, int value);
+void RNA_enum_set_identifier(PointerRNA *ptr, const char *name, const char *id);
 int RNA_enum_is_equal(struct bContext *C, PointerRNA *ptr, const char *name, const char *enumname);
 
 /* lower level functions that donr use a PointerRNA */
