@@ -76,6 +76,7 @@
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_types.h"
+#include "ED_mesh.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -1384,7 +1385,7 @@ static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview wi
 		}
 	}
 	else if (paint_facesel_test(ob)) {
-		ok= minmax_tface(scene, ob, min, max);
+		ok= minmax_tface(ob, min, max);
 	}
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		ok= PE_minmax(scene, min, max);
@@ -1483,13 +1484,8 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			/* non camera center */
-			float *curs= give_cursor(scene, v3d);
 			float new_ofs[3];
-			
-			new_ofs[0]= -curs[0];
-			new_ofs[1]= -curs[1];
-			new_ofs[2]= -curs[2];
-			
+			negate_v3_v3(new_ofs, give_cursor(scene, v3d));
 			smooth_view(C, NULL, NULL, new_ofs, NULL, NULL, NULL);
 		}
 		

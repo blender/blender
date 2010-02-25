@@ -178,6 +178,7 @@ int face_select(struct bContext *C, struct Object *ob, short mval[2], int extend
 void face_borderselect(struct bContext *C, struct Object *ob, struct rcti *rect, int select, int extend);
 void selectall_tface(struct Object *ob, int action);
 void select_linked_tfaces(struct bContext *C, struct Object *ob, short mval[2], int mode);
+int minmax_tface(struct Object *ob, float *min, float *max);
 
 /* object_vgroup.c */
 

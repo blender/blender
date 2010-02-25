@@ -450,7 +450,7 @@ void selectswap_tface(Scene *scene)
 // XXX notifier!		object_tface_flags_changed(OBACT, 0);
 }
 
-int minmax_tface(Scene *scene, Object *ob, float *min, float *max)
+int minmax_tface(Object *ob, float *min, float *max)
 {
 	Mesh *me= get_mesh(ob);
 	MFace *mf;
