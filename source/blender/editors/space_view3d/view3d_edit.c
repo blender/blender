@@ -1407,7 +1407,9 @@ static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview wi
 		}
 	}
 
-	madd_v3_v3v3fl(new_ofs, min, max, -0.5f);
+	add_v3_v3v3(new_ofs, min, max);
+	mul_v3_fl(new_ofs, -0.5f);
+
 	new_dist = size;
 
 	/* correction for window aspect ratio */
