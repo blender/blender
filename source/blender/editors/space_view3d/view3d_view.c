@@ -1962,6 +1962,8 @@ typedef struct FlyInfo {
 	float rot_backup[4]; /* backup the views quat incase the user cancels flying in non camera mode. (quat for view, eul for camera) */
 	short persp_backup; /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
 
+	void *obtfm; /* backup the objects transform */
+
 	/* compare between last state */
 	double time_lastwheel; /* used to accelerate when using the mousewheel a lot */
 	double time_lastdraw; /* time between draws */
@@ -2047,11 +2049,11 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 
 		/* store the original camera loc and rot */
 		/* TODO. axis angle etc */
-		VECCOPY(fly->ofs_backup, ob_back->loc);
-		VECCOPY(fly->rot_backup, ob_back->rot);
+
+		fly->obtfm= object_tfm_backup(ob_back);
 
 		where_is_object(fly->scene, fly->v3d->camera);
-		VECCOPY(fly->rv3d->ofs, fly->v3d->camera->obmat[3]);
+		copy_v3_v3(fly->rv3d->ofs, fly->v3d->camera->obmat[3]);
 		mul_v3_fl(fly->rv3d->ofs, -1.0f); /*flip the vector*/
 
 		fly->rv3d->dist=0.0;
@@ -2098,9 +2100,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 			else				ob_back= fly->v3d->camera;
 
 			/* store the original camera loc and rot */
-			/* TODO. axis angle etc */
-			VECCOPY(ob_back->loc, fly->ofs_backup);
-			VECCOPY(ob_back->rot, fly->rot_backup);
+			object_tfm_restore(ob_back, fly->obtfm);
 
 			DAG_id_flush_update(&ob_back->id, OB_RECALC_OB);
 		} else {
@@ -2145,6 +2145,8 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	rv3d->rflag &= ~(RV3D_FLYMODE|RV3D_NAVIGATING);
 //XXX2.5	BIF_view3d_previewrender_signal(fly->sa, PR_DBASE|PR_DISPRECT); /* not working at the moment not sure why */
 
+	if(fly->obtfm)
+		MEM_freeN(fly->obtfm);
 
 	if(fly->state == FLY_CONFIRM) {
 		MEM_freeN(fly);
@@ -2507,15 +2509,17 @@ static int flyApply(FlyInfo *fly)
 			}
 
 			add_v3_v3v3(rv3d->ofs, rv3d->ofs, dvec);
-#if 0 //XXX2.5
+
+			/* todo, dynamic keys */
+#if 0
 			if (fly->zlock && fly->xlock)
-				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X  on/Z on,   Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
+				ED_area_headerprint(fly->ar, "FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X  on/Z on,   Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
 			else if (fly->zlock)
-				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X off/Z on,   Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
+				ED_area_headerprint(fly->ar, "FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X off/Z on,   Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
 			else if (fly->xlock)
-				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X  on/Z off,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
+				ED_area_headerprint(fly->ar, "FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X  on/Z off,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
 			else
-				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X off/Z off,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
+				ED_area_headerprint(fly->ar, "FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X off/Z off,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
 #endif
 
 			/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to the view */
