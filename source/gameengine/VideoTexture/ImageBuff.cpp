@@ -43,6 +43,41 @@ FilterRGB24 defFilter;
 // forward declaration;
 extern PyTypeObject ImageBuffType;
 
+static int ImageBuff_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+{
+	short width = -1;
+	short height = -1;
+	unsigned char color = 0;
+	PyObject *py_scale = Py_False;
+	ImageBuff *image;
+
+	PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+	// create source object
+	if (self->m_image != NULL) 
+		delete self->m_image;
+	image = new ImageBuff();
+	self->m_image = image;
+
+	if (PyArg_ParseTuple(args, "hh|bO!:ImageBuff", &width, &height, &color, &PyBool_Type, &py_scale)) 
+	{
+		// initialize image buffer
+		image->setScale(py_scale == Py_True);
+		image->clear(width, height, color);
+	}
+	else
+	{
+		// check if at least one argument was passed
+		if (width != -1 || height != -1)
+			// yes and they didn't match => it's an error
+			return -1;
+		// empty argument list is okay
+		PyErr_Clear();
+	}
+	// initialization succeded
+	return 0;
+
+}
+
 ImageBuff::~ImageBuff (void)
 {
 	if (m_imbuf)
@@ -70,6 +105,34 @@ void ImageBuff::load (unsigned char * img, short width, short height)
 	else
 		// otherwise use default filter
 		convImage(defFilter, img, orgSize);
+	// image is available
+	m_avail = true;
+}
+
+void ImageBuff::clear (short width, short height, unsigned char color)
+{
+	unsigned char *p;
+	int size;
+
+	// loading a new buffer implies to reset the imbuf if any, because the size may change
+	if (m_imbuf)
+	{
+		IMB_freeImBuf(m_imbuf);
+		m_imbuf = NULL;
+	}
+	// initialize image buffer
+	init(width, height);
+	// the width/height may be different due to scaling
+	size = (m_size[0] * m_size[1]);
+	// initialize memory with color for all channels
+	memset(m_image, color, size*4);
+	// and change the alpha channel
+	p = &((unsigned char*)m_image)[3];
+	for (size; size>0; size--)
+	{
+		*p = 0xFF;
+		p += 4;
+	}
 	// image is available
 	m_avail = true;
 }
@@ -348,7 +411,7 @@ PyTypeObject ImageBuffType =
 	0,                         /* tp_descr_get */
 	0,                         /* tp_descr_set */
 	0,                         /* tp_dictoffset */
-	(initproc)Image_init<ImageBuff>,     /* tp_init */
+	(initproc)ImageBuff_init,     /* tp_init */
 	0,                         /* tp_alloc */
 	Image_allocNew,           /* tp_new */
 };
