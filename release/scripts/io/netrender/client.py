@@ -113,14 +113,18 @@ def clientSendJob(conn, scene, anim = False):
     # LIBRARIES
     ###########################
     for lib in bpy.data.libraries:
-        job.addFile(bpy.utils.expandpath(lib.filename))
+        file_path = bpy.utils.expandpath(lib.filename)
+        if os.path.exists(file_path):
+            job.addFile(file_path)
 
     ###########################
     # IMAGES
     ###########################
     for image in bpy.data.images:
         if image.source == "FILE" and not image.packed_file:
-            job.addFile(bpy.utils.expandpath(image.filename))
+            file_path = bpy.utils.expandpath(image.filename)
+            if os.path.exists(file_path):
+                job.addFile(file_path)
 
     ###########################
     # FLUID + POINT CACHE
@@ -178,7 +182,6 @@ def clientSendJob(conn, scene, anim = False):
 def requestResult(conn, job_id, frame):
     conn.request("GET", renderURL(job_id, frame))
 
-@rnaType
 class NetworkRenderEngine(bpy.types.RenderEngine):
     bl_idname = 'NET_RENDER'
     bl_label = "Network Render"
