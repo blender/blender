@@ -38,7 +38,7 @@ class SaveDirty(bpy.types.Operator):
                     self.report({'WARNING'}, "Path used by more then one image: " + path)
                 else:
                     unique_paths.add(path)
-                    image.save(path=path)
+                    image.save()
         return {'FINISHED'}
 
 

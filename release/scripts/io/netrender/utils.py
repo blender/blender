@@ -202,7 +202,7 @@ def thumbnail(filename):
         scene.render.quality = 90
         bpy.ops.image.open(path = filename)
         img = bpy.data.images[imagename]
-        img.save(thumbname, scene=scene)
+        img.save_render(thumbname, scene=scene)
 
         try:
             process = subprocess.Popen(["convert", thumbname, "-resize", "300x300", thumbname])

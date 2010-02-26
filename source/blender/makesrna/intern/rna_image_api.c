@@ -37,15 +37,18 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_image.h"
+#include "BKE_packedFile.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
+
+#include "IMB_imbuf.h"
 
 #include "DNA_image_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 
-static void rna_Image_save(Image *image, bContext *C, ReportList *reports, char *path, Scene *scene)
+static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports, char *path, Scene *scene)
 {
 	ImBuf *ibuf;
 
@@ -74,6 +77,27 @@ static void rna_Image_save(Image *image, bContext *C, ReportList *reports, char 
 	}
 }
 
+static void rna_Image_save(Image *image, ReportList *reports)
+{
+	ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
+	if(ibuf) {
+		if(image->packedfile) {
+			if (writePackedFile(reports, image->name, image->packedfile, 0) != RET_OK) {
+				BKE_reportf(reports, RPT_ERROR, "Image \"%s\" could saved packed file to \"%s\"", image->id.name+2, image->name);
+			}
+		}
+		else if (IMB_saveiff(ibuf, image->name, ibuf->flags)) {
+			ibuf->userflags &= ~IB_BITMAPDIRTY;
+		}
+		else {
+			BKE_reportf(reports, RPT_ERROR, "Image \"%s\" could not be saved to \"%s\"", image->id.name+2, image->name);
+		}
+	}
+	else {
+		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name+2);
+	}
+}
+
 #else
 
 void RNA_api_image(StructRNA *srna)
@@ -81,12 +105,16 @@ void RNA_api_image(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	func= RNA_def_function(srna, "save", "rna_Image_save");
-	RNA_def_function_ui_description(func, "Save image to a specific path.");
+	func= RNA_def_function(srna, "save_render", "rna_Image_save_render");
+	RNA_def_function_ui_description(func, "Save image to a specific path using a scenes render settings.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_string(func, "path", "", 0, "", "Save path.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "scene", "Scene", "", "Scene to take image parameters from.");
+
+	func= RNA_def_function(srna, "save", "rna_Image_save");
+	RNA_def_function_ui_description(func, "Save image to its source path.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 }
 
 #endif

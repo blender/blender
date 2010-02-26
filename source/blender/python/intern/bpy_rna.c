@@ -2882,7 +2882,7 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 	ParameterIterator iter;
 	PropertyRNA *parm;
 	PyObject *ret, *item;
-	int i, args_len, parms_len, ret_len, flag, err= 0, kw_tot= 0, kw_arg;
+	int i, pyargs_len, pykw_len, parms_len, ret_len, flag, err= 0, kw_tot= 0, kw_arg;
 	const char *parm_id;
 
 	PropertyRNA *pret_single= NULL;
@@ -2904,16 +2904,17 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 	 * the same ID as the functions. */
 	RNA_pointer_create(self_ptr->id.data, &RNA_Function, self_func, &funcptr);
 
-	args_len= PyTuple_GET_SIZE(args);
+	pyargs_len= PyTuple_GET_SIZE(args);
+	pykw_len= kw ? PyDict_Size(kw) : 0;
 
 	RNA_parameter_list_create(&parms, self_ptr, self_func);
 	RNA_parameter_list_begin(&parms, &iter);
 	parms_len= RNA_parameter_list_size(&parms);
 	ret_len= 0;
 
-	if(args_len + (kw ? PyDict_Size(kw):0) > parms_len) {
+	if(pyargs_len + pykw_len > parms_len) {
 		RNA_parameter_list_end(&iter);
-		PyErr_Format(PyExc_TypeError, "%.200s.%.200s(): takes at most %d arguments, got %d", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), parms_len, args_len);
+		PyErr_Format(PyExc_TypeError, "%.200s.%.200s(): takes at most %d arguments, got %d", RNA_struct_identifier(self_ptr->type), RNA_function_identifier(self_func), parms_len, pyargs_len + pykw_len);
 		err= -1;
 	}
 
@@ -2936,7 +2937,7 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 		parm_id= RNA_property_identifier(parm);
 		item= NULL;
 
-		if ((i < args_len) && (flag & PROP_REQUIRED)) {
+		if ((i < pyargs_len) && (flag & PROP_REQUIRED)) {
 			item= PyTuple_GET_ITEM(args, i);
 			i++;
 
@@ -2987,7 +2988,7 @@ static PyObject * pyrna_func_call(PyObject *self, PyObject *args, PyObject *kw)
 	 * the if below is quick, checking if it passed less keyword args then we gave.
 	 * (Dont overwrite the error if we have one, otherwise can skip important messages and confuse with args)
 	 */
-	if(err == 0 && kw && (PyDict_Size(kw) > kw_tot)) {
+	if(err == 0 && kw && (pykw_len > kw_tot)) {
 		PyObject *key, *value;
 		Py_ssize_t pos = 0;
 
