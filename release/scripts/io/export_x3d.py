@@ -794,7 +794,7 @@ class x3d_class:
             pic = tex.image
 
             # using .expandpath just in case, os.path may not expect //
-            basename = os.path.basename(pic.get_abs_filename())
+            basename = os.path.basename(bpy.utils.expandpath(pic.filename))
 
             pic = alltextures[i].image
             # pic = alltextures[i].getImage()

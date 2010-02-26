@@ -1293,16 +1293,18 @@ def write(filename, batch_objects = None, \
         file.write('\n\t}')
 
     def copy_image(image):
-
-        rel = image.get_export_path(basepath, True)
-        base = os.path.basename(rel)
+        fn = bpy.utils.expandpath(image.filename)
+        fn_strip = os.path.basename(fn)
 
         if EXP_IMAGE_COPY:
-            absp = image.get_export_path(basepath, False)
-            if not os.path.exists(absp):
-                shutil.copy(image.get_abs_filename(), absp)
+            rel = fn_strip
+            fn_abs_dest = os.path.join(basepath, fn_strip)
+            if not os.path.exists(fn_abs_dest):
+                shutil.copy(fn, fn_abs_dest)
+        else:
+            rel = os.path.relpath(fn, basepath)
 
-        return (rel, base)
+        return (rel, fn_strip)
 
     # tex is an Image (Arystan)
     def write_video(texname, tex):

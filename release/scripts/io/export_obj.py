@@ -44,6 +44,7 @@ will be exported as mesh data.
 # import math
 import os
 import time
+import shutil
 
 import bpy
 import Mathutils
@@ -76,12 +77,15 @@ def write_mtl(scene, filename, copy_images):
     dest_dir = os.path.dirname(filename)
 
     def copy_image(image):
-        rel = image.get_export_path(dest_dir, True)
-
+        fn = bpy.utils.expandpath(image.filename)
+        fn_strip = os.path.basename(fn)
         if copy_images:
-            abspath = image.get_export_path(dest_dir, False)
-            if not os.path.exists(abs_path):
-                shutil.copy(image.get_abs_filename(), abs_path)
+            rel = fn_strip
+            fn_abs_dest = os.path.join(dest_dir, fn_strip)
+            if not os.path.exists(fn_abs_dest):
+                shutil.copy(fn, fn_abs_dest)
+        else:
+            rel = fn
 
         return rel
 

@@ -1435,9 +1435,9 @@ public:
 				
 				BLI_split_dirfile_basic(mfilename, dir, NULL);
 
-				BKE_get_image_export_path(image, dir, abs, sizeof(abs), rel, sizeof(rel));
+				BKE_rebase_path(abs, sizeof(abs), rel, sizeof(rel), G.sce, image->name, dir);
 
-				if (strlen(abs)) {
+				if (abs[0] != '\0') {
 
 					// make absolute source path
 					BLI_strncpy(src, image->name, sizeof(src));
