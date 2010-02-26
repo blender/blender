@@ -83,6 +83,23 @@ void BLI_dynstr_append(DynStr *ds, const char *cstr) {
 	ds->curlen+= cstrlen;
 }
 
+void BLI_dynstr_nappend(DynStr *ds, const char *cstr, int len) {
+	DynStrElem *dse= malloc(sizeof(*dse));
+	int cstrlen= strnlen(cstr, len);
+
+	dse->str= malloc(cstrlen+1);
+	memcpy(dse->str, cstr, cstrlen);
+	dse->str[cstrlen] = '\0';
+	dse->next= NULL;
+
+	if (!ds->last)
+		ds->last= ds->elems= dse;
+	else
+		ds->last= ds->last->next= dse;
+
+	ds->curlen+= cstrlen;
+}
+
 void BLI_dynstr_vappendf(DynStr *ds, const char *format, va_list args)
 {
 	char *message, fixedmessage[256];
