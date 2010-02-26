@@ -211,16 +211,16 @@ static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *p
 	rna_userdef_update(bmain, scene, ptr);
 }
 
-static bExtension *rna_userdef_extension_new(void)
+static bAddon *rna_userdef_addon_new(void)
 {
-	bExtension *bext= MEM_callocN(sizeof(bExtension), "bext");
-	BLI_addtail(&U.extensions, bext);
+	bAddon *bext= MEM_callocN(sizeof(bAddon), "bAddon");
+	BLI_addtail(&U.addons, bext);
 	return bext;
 }
 
-static void rna_userdef_extension_remove(bExtension *bext)
+static void rna_userdef_addon_remove(bAddon *bext)
 {
-	BLI_freelinkN(&U.extensions, bext);
+	BLI_freelinkN(&U.addons, bext);
 }
 
 
@@ -1687,14 +1687,14 @@ static void rna_def_userdef_themes(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Bone Color Sets", "");
 }
 
-static void rna_def_userdef_extensions(BlenderRNA *brna)
+static void rna_def_userdef_addon(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "Extension", NULL);
-	RNA_def_struct_sdna(srna, "bExtension");
-	RNA_def_struct_ui_text(srna, "Extension", "Python extensions to be loaded automatically");
+	srna= RNA_def_struct(brna, "Addon", NULL);
+	RNA_def_struct_sdna(srna, "bAddon");
+	RNA_def_struct_ui_text(srna, "Addon", "Python addons to be loaded automatically");
 
 	prop= RNA_def_property(srna, "module", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Module", "Module name");
@@ -1727,7 +1727,6 @@ static void rna_def_userdef_dothemes(BlenderRNA *brna)
 	rna_def_userdef_theme_space_logic(brna);
 	rna_def_userdef_theme_colorset(brna);
 	rna_def_userdef_themes(brna);
-	rna_def_userdef_extensions(brna);
 }
 
 static void rna_def_userdef_solidlight(BlenderRNA *brna)
@@ -2649,27 +2648,27 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Save Preview Images", "Enables automatic saving of preview images in the .blend file");
 }
 
-void rna_def_userdef_extension_collection(BlenderRNA *brna, PropertyRNA *cprop)
+void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "UserExtensions");
-	srna= RNA_def_struct(brna, "UserExtensions", NULL);
-	RNA_def_struct_ui_text(srna, "User Extensions", "Collection of extensions");
+	RNA_def_property_srna(cprop, "Addons");
+	srna= RNA_def_struct(brna, "Addons", NULL);
+	RNA_def_struct_ui_text(srna, "User Add-Ons", "Collection of add-ons");
 
-	func= RNA_def_function(srna, "new", "rna_userdef_extension_new");
+	func= RNA_def_function(srna, "new", "rna_userdef_addon_new");
 	RNA_def_function_flag(func, FUNC_NO_SELF);
-	RNA_def_function_ui_description(func, "Add a new camera to the main database");
+	RNA_def_function_ui_description(func, "Add a new addon");
 	/* return type */
-	parm= RNA_def_pointer(func, "extension", "Extension", "", "Extension datablock.");
+	parm= RNA_def_pointer(func, "addon", "Addon", "", "Addon datablock.");
 	RNA_def_function_return(func, parm);
 
-	func= RNA_def_function(srna, "remove", "rna_userdef_extension_remove");
+	func= RNA_def_function(srna, "remove", "rna_userdef_addon_remove");
 	RNA_def_function_flag(func, FUNC_NO_SELF);
-	RNA_def_function_ui_description(func, "Remove a camera from the current blendfile.");
-	parm= RNA_def_pointer(func, "extension", "Extension", "", "Extension to remove.");
+	RNA_def_function_ui_description(func, "Remove addon.");
+	parm= RNA_def_pointer(func, "addon", "Addon", "", "Addon to remove.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
@@ -2682,7 +2681,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 		{USER_SECTION_INTERFACE, "INTERFACE", 0, "Interface", ""},
 		{USER_SECTION_EDIT, "EDITING", 0, "Editing", ""},
 		{USER_SECTION_INPUT, "INPUT", 0, "Input", ""},
-		{USER_SECTION_EXTENSIONS, "EXTENSIONS", 0, "Extensions", ""},
+		{USER_SECTION_ADDONS, "ADDONS", 0, "Add-Ons", ""},
 		{USER_SECTION_THEME, "THEMES", 0, "Themes", ""},
 		{USER_SECTION_FILE, "FILES", 0, "File", ""},
 		{USER_SECTION_SYSTEM, "SYSTEM", 0, "System", ""},
@@ -2711,11 +2710,11 @@ void RNA_def_userdef(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ThemeStyle");
 	RNA_def_property_ui_text(prop, "Styles", "");
 	
-	prop= RNA_def_property(srna, "extensions", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "extensions", NULL);
-	RNA_def_property_struct_type(prop, "Extension");
-	RNA_def_property_ui_text(prop, "Extension", "");
-	rna_def_userdef_extension_collection(brna, prop);
+	prop= RNA_def_property(srna, "addons", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "addons", NULL);
+	RNA_def_property_struct_type(prop, "Addon");
+	RNA_def_property_ui_text(prop, "Addon", "");
+	rna_def_userdef_addon_collection(brna, prop);
 
 
 	/* nested structs */
@@ -2754,6 +2753,7 @@ void RNA_def_userdef(BlenderRNA *brna)
 	rna_def_userdef_input(brna);
 	rna_def_userdef_filepaths(brna);
 	rna_def_userdef_system(brna);
+	rna_def_userdef_addon(brna);
 	
 }
 

@@ -276,10 +276,10 @@ typedef struct bTheme {
 } bTheme;
 
 /* for the moment only the name. may want to store options with this later */
-typedef struct bExtension {
-	struct bExtension *next, *prev;
+typedef struct bAddon {
+	struct bAddon *next, *prev;
 	char module[64];
-} bExtension;
+} bAddon;
 
 typedef struct SolidLight {
 	int flag, pad;
@@ -327,7 +327,7 @@ typedef struct UserDef {
 	struct ListBase uifonts;
 	struct ListBase uistyles;
 	struct ListBase keymaps;
-	struct ListBase extensions;
+	struct ListBase addons;
 	char keyconfigstr[64];
 	
 	short undosteps;
@@ -378,7 +378,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_SECTION_SYSTEM		3
 #define USER_SECTION_THEME		4
 #define USER_SECTION_INPUT		5
-#define USER_SECTION_EXTENSIONS	6
+#define USER_SECTION_ADDONS 	6
 
 /* flag */
 #define USER_AUTOSAVE			(1 << 0)

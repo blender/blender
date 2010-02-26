@@ -171,9 +171,9 @@ class USERPREF_HT_header(bpy.types.Header):
             op.path = "keymap.py"
             op = layout.operator("wm.keyconfig_import", "Import Key Configuration...")
             op.path = "keymap.py"
-        elif userpref.active_section == 'EXTENSIONS':
+        elif userpref.active_section == 'ADDONS':
             layout.operator_context = 'INVOKE_DEFAULT'
-            op = layout.operator("wm.extension_install", "Install Extension...")
+            op = layout.operator("wm.addon_install", "Install Add-On...")
             op.path = "*.py"
 
 
@@ -1359,21 +1359,21 @@ class USERPREF_PT_input(bpy.types.Panel):
         #print("runtime", time.time() - start)
 
 
-class USERPREF_PT_extensions(bpy.types.Panel):
+class USERPREF_PT_addons(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = "Extensions"
+    bl_label = "Addons"
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
     def poll(self, context):
         userpref = context.user_preferences
-        return (userpref.active_section == 'EXTENSIONS')
+        return (userpref.active_section == 'ADDONS')
 
-    def _extension_list(self):
+    def _addon_list(self):
         import sys
         modules = []
         loaded_modules = set()
-        paths = bpy.utils.script_paths("extensions")
+        paths = bpy.utils.script_paths("addons")
         # sys.path.insert(0, None)
         for path in paths:
             # sys.path[0] = path
@@ -1386,11 +1386,11 @@ class USERPREF_PT_extensions(bpy.types.Panel):
         layout = self.layout
 
         userpref = context.user_preferences
-        used_ext = {ext.module for ext in userpref.extensions}
+        used_ext = {ext.module for ext in userpref.addons}
 
         col = layout.column()
 
-        for mod in self._extension_list():
+        for mod in self._addon_list():
             box = col.box()
             row = box.row()
             text = mod.__doc__
@@ -1398,22 +1398,22 @@ class USERPREF_PT_extensions(bpy.types.Panel):
                 text = mod.__name__
             row.label(text=text)
             module_name = mod.__name__
-            row.operator("wm.extension_disable" if module_name in used_ext else "wm.extension_enable").module = module_name
+            row.operator("wm.addon_disable" if module_name in used_ext else "wm.addon_enable").module = module_name
 
 
 from bpy.props import *
 
 
-class WM_OT_extension_enable(bpy.types.Operator):
-    "Enable an extension"
-    bl_idname = "wm.extension_enable"
-    bl_label = "Enable Extension"
+class WM_OT_addon_enable(bpy.types.Operator):
+    "Enable an addon"
+    bl_idname = "wm.addon_enable"
+    bl_label = "Enable Add-On"
 
-    module = StringProperty(name="Module", description="Module name of the extension to enable")
+    module = StringProperty(name="Module", description="Module name of the addon to enable")
 
     def execute(self, context):
         import traceback
-        ext = context.user_preferences.extensions.new()
+        ext = context.user_preferences.addons.new()
         module_name = self.properties.module
         ext.module = module_name
 
@@ -1426,12 +1426,12 @@ class WM_OT_extension_enable(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class WM_OT_extension_disable(bpy.types.Operator):
-    "Disable an extension"
-    bl_idname = "wm.extension_disable"
-    bl_label = "Disable Extension"
+class WM_OT_addon_disable(bpy.types.Operator):
+    "Disable an addon"
+    bl_idname = "wm.addon_disable"
+    bl_label = "Disable Add-On"
 
-    module = StringProperty(name="Module", description="Module name of the extension to disable")
+    module = StringProperty(name="Module", description="Module name of the addon to disable")
 
     def execute(self, context):
         import traceback
@@ -1443,25 +1443,25 @@ class WM_OT_extension_disable(bpy.types.Operator):
         except:
             traceback.print_exc()
 
-        extensions = context.user_preferences.extensions
+        addons = context.user_preferences.addons
         ok = True
         while ok: # incase its in more then once.
             ok = False
-            for ext in extensions:
+            for ext in addons:
                 if ext.module == module_name:
-                    extensions.remove(ext)
+                    addons.remove(ext)
                     ok = True
                     break
 
         return {'FINISHED'}
 
 
-class WM_OT_extension_install(bpy.types.Operator):
-    "Install an extension"
-    bl_idname = "wm.extension_install"
-    bl_label = "Install Extension"
+class WM_OT_addon_install(bpy.types.Operator):
+    "Install an addon"
+    bl_idname = "wm.addon_install"
+    bl_label = "Install Add-On"
 
-    module = StringProperty(name="Module", description="Module name of the extension to disable")
+    module = StringProperty(name="Module", description="Module name of the addon to disable")
 
     path = StringProperty(name="File Path", description="File path to write file to")
     filename = StringProperty(name="File Name", description="Name of the file")
@@ -1473,7 +1473,7 @@ class WM_OT_extension_install(bpy.types.Operator):
         import traceback
         pyfile = self.properties.path
 
-        paths = bpy.utils.script_paths("extensions")
+        paths = bpy.utils.script_paths("addons")
         path_dest = os.path.join(paths[-1], os.path.basename(pyfile))
 
         if os.path.exists(path_dest):
@@ -1495,9 +1495,9 @@ class WM_OT_extension_install(bpy.types.Operator):
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        paths = bpy.utils.script_paths("extensions")
+        paths = bpy.utils.script_paths("addons")
         if not paths:
-            self.report({'ERROR'}, "No 'extensions' path could be found in " + str(bpy.utils.script_paths()))
+            self.report({'ERROR'}, "No 'addons' path could be found in " + str(bpy.utils.script_paths()))
             return {'CANCELLED'}
 
         wm = context.manager
@@ -1893,11 +1893,11 @@ classes = [
     USERPREF_PT_system,
     USERPREF_PT_file,
     USERPREF_PT_input,
-    USERPREF_PT_extensions,
+    USERPREF_PT_addons,
 
-    WM_OT_extension_enable,
-    WM_OT_extension_disable,
-    WM_OT_extension_install,
+    WM_OT_addon_enable,
+    WM_OT_addon_disable,
+    WM_OT_addon_install,
 
     WM_OT_keyconfig_export,
     WM_OT_keyconfig_import,

@@ -187,9 +187,9 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
                 for mod in modules_from_path(path, loaded_modules):
                     test_register(mod)
 
-    # load extensions
-    used_ext = {ext.module for ext in _bpy.context.user_preferences.extensions}
-    paths = script_paths("extensions")
+    # load addons
+    used_ext = {ext.module for ext in _bpy.context.user_preferences.addons}
+    paths = script_paths("addons")
     for path in paths:
         sys_path_ensure(path)
 
