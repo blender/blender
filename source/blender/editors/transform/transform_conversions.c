@@ -1116,6 +1116,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td->loc = NULL;
 					td->ext = NULL;
+					td->ob = t->obedit;
 
 					td++;
 				}
@@ -1131,6 +1132,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td->loc = NULL;
 					td->ext = NULL;
+					td->ob = t->obedit;
 
 					td++;
 				}
@@ -1165,6 +1167,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					normalize_m3(td->axismtx);
 
 					td->ext = NULL;
+					td->ob = t->obedit;
 
 					td++;
 				}
@@ -1181,6 +1184,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					td->flag= TD_SELECTED;
 
 					td->ext = NULL;
+					td->ob = t->obedit;
 
 					td++;
 				}
@@ -1209,6 +1213,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td->ext = NULL;
 					td->val = NULL;
+					td->ob = t->obedit;
 
 					td++;
 				}
@@ -1231,6 +1236,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td->ext = NULL;
 					td->val = NULL;
+					td->ob = t->obedit;
 
 					td++;
 				}
