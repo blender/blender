@@ -880,7 +880,7 @@ int append_ffmpeg(RenderData *rd, int frame, int *pixels, int rectx, int recty, 
 		}
 	}
 
-	write_audio_frames(frame / (((double)rd->frs_sec) / rd->frs_sec_base));
+	write_audio_frames((frame - rd->sfra) / (((double)rd->frs_sec) / rd->frs_sec_base));
 
 	return success;
 }
