@@ -161,11 +161,9 @@ static void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *di
 	if (!ob) return;
 	
 	/* Offset */
-	if (ofs) {
-		VECCOPY(ofs, ob->obmat[3]);
-		mul_v3_fl(ofs, -1.0f); /*flip the vector*/
-	}
-	
+	if (ofs)
+		negate_v3_v3(ofs, ob->obmat[3]);
+
 	/* Quat */
 	if (quat) {
 		copy_m4_m4(bmat, ob->obmat);
@@ -2053,8 +2051,7 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 		fly->obtfm= object_tfm_backup(ob_back);
 
 		where_is_object(fly->scene, fly->v3d->camera);
-		copy_v3_v3(fly->rv3d->ofs, fly->v3d->camera->obmat[3]);
-		mul_v3_fl(fly->rv3d->ofs, -1.0f); /*flip the vector*/
+		negate_v3_v3(fly->rv3d->ofs, fly->v3d->camera->obmat[3]);
 
 		fly->rv3d->dist=0.0;
 	} else {
@@ -2527,6 +2524,8 @@ static int flyApply(FlyInfo *fly)
 				ID *id_key;
 				/* transform the parent or the camera? */
 				if(fly->root_parent) {
+                    Object *ob_update;
+                    
 					float view_mat[4][4];
 					float prev_view_imat[4][4];
 					float diff_mat[4][4];
@@ -2540,10 +2539,10 @@ static int flyApply(FlyInfo *fly)
 
 					// where_is_object(scene, fly->root_parent);
 
-					Object *up= v3d->camera->parent;
-					while(up) {
-						DAG_id_flush_update(&up->id, OB_RECALC_OB);
-						up= up->parent;
+					ob_update= v3d->camera->parent;
+					while(ob_update) {
+						DAG_id_flush_update(&ob_update->id, OB_RECALC_OB);
+						ob_update= ob_update->parent;
 					}
 
 					copy_m4_m4(prev_view_mat, view_mat);

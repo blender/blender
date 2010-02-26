@@ -334,8 +334,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 		VECCOPY(vod->ofs, rv3d->ofs);
 		/* If there's no selection, lastofs is unmodified and last value since static */
 		calculateTransformCenter(C, V3D_CENTROID, lastofs);
-		VECCOPY(vod->dyn_ofs, lastofs);
-		mul_v3_fl(vod->dyn_ofs, -1.0f);
+		negate_v3_v3(vod->dyn_ofs, lastofs);
 	}
 	else if (U.uiflag & USER_ORBIT_ZBUF) {
 

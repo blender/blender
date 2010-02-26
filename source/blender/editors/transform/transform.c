@@ -2718,8 +2718,7 @@ void initRotation(TransInfo *t)
 	if (t->flag & T_2D_EDIT)
 		t->flag |= T_NO_CONSTRAINT;
 
-	VECCOPY(t->axis, t->viewinv[2]);
-	mul_v3_fl(t->axis, -1.0f);
+	negate_v3_v3(t->axis, t->viewinv[2]);
 	normalize_v3(t->axis);
 }
 
@@ -2977,8 +2976,7 @@ int Rotation(TransInfo *t, short mval[2])
 		t->con.applyRot(t, NULL, t->axis, &final);
 	} else {
 		/* reset axis if constraint is not set */
-		VECCOPY(t->axis, t->viewinv[2]);
-		mul_v3_fl(t->axis, -1.0f);
+		negate_v3_v3(t->axis, t->viewinv[2]);
 		normalize_v3(t->axis);
 	}
 	

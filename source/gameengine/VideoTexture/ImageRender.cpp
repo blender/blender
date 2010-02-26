@@ -654,8 +654,7 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
     }
     // compute rotation matrix between local coord and mirror coord
     // to match camera orientation, we select mirror z = -normal, y = up, x = y x z
-    copy_v3_v3(mirrorMat[2], mirrorNormal);
-    mul_v3_fl(mirrorMat[2], -1.0f);
+    negate_v3_v3(mirrorMat[2], mirrorNormal);
     copy_v3_v3(mirrorMat[1], mirrorUp);
     cross_v3_v3v3(mirrorMat[0], mirrorMat[1], mirrorMat[2]);
     // transpose to make it a orientation matrix from local space to mirror space

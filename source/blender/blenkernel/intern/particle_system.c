@@ -1822,8 +1822,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		project_v3_v3v3(dvec, r_vel, pa->state.ave);
 		sub_v3_v3v3(mat[0], pa->state.ave, dvec);
 		normalize_v3(mat[0]);
-		VECCOPY(mat[2], r_vel);
-		mul_v3_fl(mat[2], -1.0f);
+		negate_v3_v3(mat[2], r_vel);
 		normalize_v3(mat[2]);
 		cross_v3_v3v3(mat[1], mat[2], mat[0]);
 		
