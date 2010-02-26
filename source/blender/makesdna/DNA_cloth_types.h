@@ -66,6 +66,8 @@ typedef struct ClothSimSettings
 	float	goalspring;
 	float	goalfrict;
 	float	velocity_smooth; /* smoothing of velocities for hair */
+	float	collider_friction; /* friction with colliders */
+
 	int 	stepsPerFrame;	/* Number of time steps per frame.		*/
 	int	flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
 	int	preroll;	/* How many frames of simulation to do before we start.	*/
@@ -76,7 +78,6 @@ typedef struct ClothSimSettings
 	short	vgroup_struct;  /* vertex group for scaling structural stiffness */
 	short	presets; /* used for presets on GUI */
  	short 	reset;
-	int		pad;
 
 	struct EffectorWeights *effector_weights;
 } ClothSimSettings;

@@ -1408,19 +1408,29 @@ typedef struct HairGridVert {
 	float velocity[3];
 	float density;
 } HairGridVert;
+#define HAIR_GRID_INDEX(vec, min, max, axis) (int)( (vec[axis] - min[axis]) / (max[axis] - min[axis]) * 9.99f );
 /* Smoothing of hair velocities:
  * adapted from
 		Volumetric Methods for Simulation and Rendering of Hair
 		by Lena Petrovic, Mark Henne and John Anderson
  *		Pixar Technical Memo #06-08, Pixar Animation Studios
  */
-static void hair_velocity_smoothing(float smoothfac, lfVector *lF, lfVector *lX, lfVector *lV, int numverts)
+static void hair_velocity_smoothing(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, int numverts)
 {
-	/* TODO: this is an initial implementation and should be made much better in due time */
+	/* TODO: This is an initial implementation and should be made much better in due time.
+	 * What should at least be implemented is a grid size parameter and a smoothing kernel
+	 * for bigger grids.
+	 */
 
 	/* 10x10x10 grid gives nice initial results */
 	HairGridVert grid[10][10][10];
+	HairGridVert colg[10][10][10];
+	ListBase *colliders = get_collider_cache(clmd->scene, NULL);
+	ColliderCache *col = NULL;
 	float gmin[3], gmax[3], density;
+	/* 2.0f is an experimental value that seems to give good results */
+	float smoothfac = 2.0f * clmd->sim_parms->velocity_smooth;
+	float collfac = 2.0f * clmd->sim_parms->collider_friction;
 	int	v = 0;
 	int	i = 0;
 	int	j = 0;
@@ -1439,21 +1449,56 @@ static void hair_velocity_smoothing(float smoothfac, lfVector *lF, lfVector *lX,
 				grid[i][j][k].velocity[1] = 0.0f;
 				grid[i][j][k].velocity[2] = 0.0f;
 				grid[i][j][k].density = 0.0f;
+
+				colg[i][j][k].velocity[0] = 0.0f;
+				colg[i][j][k].velocity[1] = 0.0f;
+				colg[i][j][k].velocity[2] = 0.0f;
+				colg[i][j][k].density = 0.0f;
 			}
 		}
 	}
 
 	/* gather velocities & density */
-	for(v = 0; v < numverts; v++) {
-		i = (int)( (lX[v][0] - gmin[0]) / (gmax[0] - gmin[0]) * 9.99f );
-		j = (int)( (lX[v][1] - gmin[1]) / (gmax[1] - gmin[1]) * 9.99f );
-		k = (int)( (lX[v][2] - gmin[2]) / (gmax[2] - gmin[2]) * 9.99f );
+	if(smoothfac > 0.0f) for(v = 0; v < numverts; v++) {
+		i = HAIR_GRID_INDEX(lX[v], gmin, gmax, 0);
+		j = HAIR_GRID_INDEX(lX[v], gmin, gmax, 1);
+		k = HAIR_GRID_INDEX(lX[v], gmin, gmax, 2);
 
 		grid[i][j][k].velocity[0] += lV[v][0];
 		grid[i][j][k].velocity[1] += lV[v][1];
 		grid[i][j][k].velocity[2] += lV[v][2];
 		grid[i][j][k].density += 1.0f;
 	}
+
+	/* gather colliders */
+	if(colliders && collfac > 0.0f) for(col = colliders->first; col; col = col->next)
+	{
+		MVert *loc0 = col->collmd->x;
+		MVert *loc1 = col->collmd->xnew;
+		float vel[3];
+
+		for(v=0; v<col->collmd->numverts; v++, loc0++, loc1++) {
+			i = HAIR_GRID_INDEX(loc1->co, gmin, gmax, 0);
+
+			if(i>=0 && i<10) {
+				j = HAIR_GRID_INDEX(loc1->co, gmin, gmax, 1);
+
+				if(j>=0 && j<10) {
+					k = HAIR_GRID_INDEX(loc1->co, gmin, gmax, 2);
+
+					if(k>=0 && k<10) {
+						VECSUB(vel, loc1->co, loc0->co);
+
+						colg[i][j][k].velocity[0] += vel[0];
+						colg[i][j][k].velocity[1] += vel[1];
+						colg[i][j][k].velocity[2] += vel[2];
+						colg[i][j][k].density += 1.0;
+					}
+				}
+			}
+		}
+	}
+	
 
 	/* divide velocity with density */
 	for(i = 0; i < 10; i++) {
@@ -1465,21 +1510,35 @@ static void hair_velocity_smoothing(float smoothfac, lfVector *lF, lfVector *lX,
 					grid[i][j][k].velocity[1] /= density;
 					grid[i][j][k].velocity[2] /= density;
 				}
+
+				density = colg[i][j][k].density;
+				if(density > 0.0f) {
+					colg[i][j][k].velocity[0] /= density;
+					colg[i][j][k].velocity[1] /= density;
+					colg[i][j][k].velocity[2] /= density;
+				}
 			}
 		}
 	}
 
 	/* calculate forces */
 	for(v = 0; v < numverts; v++) {
-		i = (int)( (lX[v][0] - gmin[0]) / (gmax[0] - gmin[0]) * 9.99f );
-		j = (int)( (lX[v][1] - gmin[1]) / (gmax[1] - gmin[1]) * 9.99f );
-		k = (int)( (lX[v][2] - gmin[2]) / (gmax[2] - gmin[2]) * 9.99f );
+		i = HAIR_GRID_INDEX(lX[v], gmin, gmax, 0);
+		j = HAIR_GRID_INDEX(lX[v], gmin, gmax, 1);
+		k = HAIR_GRID_INDEX(lX[v], gmin, gmax, 2);
 
-		/* 2.0f is an experimental value that seems to give good results */
-		lF[v][0] += 2.0f * smoothfac * (grid[i][j][k].velocity[0] - lV[v][0]);
-		lF[v][1] += 2.0f * smoothfac * (grid[i][j][k].velocity[1] - lV[v][1]);
-		lF[v][2] += 2.0f * smoothfac * (grid[i][j][k].velocity[2] - lV[v][2]);
+		lF[v][0] += smoothfac * (grid[i][j][k].velocity[0] - lV[v][0]);
+		lF[v][1] += smoothfac * (grid[i][j][k].velocity[1] - lV[v][1]);
+		lF[v][2] += smoothfac * (grid[i][j][k].velocity[2] - lV[v][2]);
+
+		if(colg[i][j][k].density > 0.0f) {
+			lF[v][0] += collfac * (colg[i][j][k].velocity[0] - lV[v][0]);
+			lF[v][1] += collfac * (colg[i][j][k].velocity[1] - lV[v][1]);
+			lF[v][2] += collfac * (colg[i][j][k].velocity[2] - lV[v][2]);
+		}
 	}
+
+	free_collider_cache(&colliders);
 }
 static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, fmatrix3x3 *M)
 {
@@ -1508,8 +1567,8 @@ static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF,
 
 	init_lfvector(lF, gravity, numverts);
 	
-	if(clmd->sim_parms->velocity_smooth > 0.0f)
-		hair_velocity_smoothing(clmd->sim_parms->velocity_smooth, lF, lX, lV, numverts);
+	if(clmd->sim_parms->velocity_smooth > 0.0f || clmd->sim_parms->collider_friction > 0.0f)
+		hair_velocity_smoothing(clmd, lF, lX, lV, numverts);
 
 	/* multiply lF with mass matrix
 	// force = mass * acceleration (in this case: gravity)
@@ -1579,6 +1638,36 @@ static void cloth_calc_force(ClothModifierData *clmd, float frame, lfVector *lF,
 				VECADDS(lF[mfaces[i].v4], lF[mfaces[i].v4], tmp, factor);
 			}
 		}
+
+		/* Hair has only edges */
+		if(cloth->numfaces == 0) {
+			ClothSpring *spring;
+			float edgevec[3]={0,0,0}; //edge vector
+			float edgeunnormal[3]={0,0,0}; // not-normalized-edge normal
+			float tmp[3]={0,0,0};
+			float factor = 0.01;
+
+			search = cloth->springs;
+			while(search) {
+				spring = search->link;
+				
+				if(spring->type == CLOTH_SPRING_TYPE_STRUCTURAL) {
+					VECSUB(edgevec, (float*)lX[spring->ij], (float*)lX[spring->kl]);
+
+					project_v3_v3v3(tmp, winvec[spring->ij], edgevec);
+					VECSUB(edgeunnormal, winvec[spring->ij], tmp);
+					/* hair doesn't stretch too much so we can use restlen pretty safely */
+					VECADDS(lF[spring->ij], lF[spring->ij], edgeunnormal, spring->restlen * factor);
+
+					project_v3_v3v3(tmp, winvec[spring->kl], edgevec);
+					VECSUB(edgeunnormal, winvec[spring->kl], tmp);
+					VECADDS(lF[spring->kl], lF[spring->kl], edgeunnormal, spring->restlen * factor);
+				}
+
+				search = search->next;
+			}
+		}
+
 		del_lfvector(winvec);
 	}
 		
