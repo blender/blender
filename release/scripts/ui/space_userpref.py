@@ -1471,24 +1471,37 @@ class WM_OT_addon_install(bpy.types.Operator):
 
     def execute(self, context):
         import traceback
+        import zipfile
         pyfile = self.properties.path
 
-        paths = bpy.utils.script_paths("addons")
-        path_dest = os.path.join(paths[-1], os.path.basename(pyfile))
+        path_addons = bpy.utils.script_paths("addons")[-1]
 
-        if os.path.exists(path_dest):
-            self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
-            return {'CANCELLED'}
+        #check to see if the file is in compressed format (.zip)
+        if zipfile.is_zipfile(pyfile):
+            try:
+                file_to_extract = zipfile.ZipFile(pyfile, 'r')
 
-        if os.path.exists(path_dest):
-            self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
-            return {'CANCELLED'}
+                #extract the file to "addons"
+                file_to_extract.extractall(path_addons)
+            
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
 
-        try:
-            shutil.copyfile(pyfile, path_dest)
-        except:
-            traceback.print_exc()
-            return {'CANCELLED'}
+        else:
+            path_dest = os.path.join(path_addons, os.path.basename(pyfile))
+
+            if os.path.exists(path_dest):
+                self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
+                return {'CANCELLED'}
+
+            #if not compressed file just copy into the addon path
+            try:
+                shutil.copyfile(pyfile, path_dest)
+
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
 
         # TODO, should not be a warning.
         # self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
