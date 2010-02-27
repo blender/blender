@@ -355,7 +355,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 			}
 				
 			/* add path to this setting */
-			BKE_keyingset_add_destination(ks, ptr.id.data, NULL, path, index, pflag, KSP_GROUP_KSNAME);
+			BKE_keyingset_add_path(ks, ptr.id.data, NULL, path, index, pflag, KSP_GROUP_KSNAME);
 			ks->active_path= BLI_countlist(&ks->paths);
 			success= 1;
 			
@@ -426,7 +426,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 			KS_Path *ksp;
 			
 			/* try to find a path matching this description */
-			ksp= BKE_keyingset_find_destination(ks, ptr.id.data, ks->name, path, index, KSP_GROUP_KSNAME);
+			ksp= BKE_keyingset_find_path(ks, ptr.id.data, ks->name, path, index, KSP_GROUP_KSNAME);
 			
 			if (ksp) {
 				/* just free it... */
@@ -1162,31 +1162,13 @@ static int keyingset_relative_get_templates (KeyingSet *ks)
 	return templates;
 }
 
-/* Check if context data is suitable for the given absolute Keying Set */
+/* Check if context data is suitable for the given Keying Set */
 short keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	
-	/* data retrieved from context depends on active editor */
-	if (sa == NULL) return 0;
-		
-	switch (sa->spacetype) {
-		case SPACE_VIEW3D:
-		{
-			Object *obact= CTX_data_active_object(C);
-			
-			/* if in posemode, check if 'pose-channels' requested for in KeyingSet */
-			if ((obact && obact->pose) && (obact->mode & OB_MODE_POSE)) {
-				/* check for posechannels */
-				
-			}
-			else {
-				/* check for selected object */
-				
-			}
-		}
-			break;
-	}
+	// TODO:
+	//	For 'relative' keyingsets (i.e. py-keyingsets), add a call here
+	//	which basically gets a listing of all the paths to be used for this
+	//	set.
 	
 	
 	return 1;

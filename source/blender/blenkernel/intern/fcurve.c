@@ -831,7 +831,7 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
 	}
-
+	
 	/* get RNA-pointer for the ID-block given in target */
 	RNA_id_pointer_create(id, &id_ptr);
 	
@@ -887,7 +887,7 @@ static bPoseChannel *dtar_get_pchan_ptr (ChannelDriver *driver, DriverTarget *dt
 	/* check if the ID here is a valid object */
 	if (id && GS(id->name)) {
 		Object *ob= (Object *)id;
-
+		
 		/* get pose, and subsequently, posechannel */
 		return get_pose_channel(ob->pose, dtar->pchan_name);
 	}

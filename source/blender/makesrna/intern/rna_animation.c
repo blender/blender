@@ -249,6 +249,7 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Path Index", "Current Keying Set index");
 	
 	/* Flags */
+		// XXX: depreceated
 	prop= RNA_def_property(srna, "builtin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYINGSET_BUILTIN);
