@@ -308,14 +308,11 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
     invert = BoolProperty(default=False, description="Invert the mouse input")
     initial_x = IntProperty(options={'HIDDEN'})
 
-    _values = {}
-
     def _values_store(self, context):
         path_iter = self.properties.path_iter
         path_item = self.properties.path_item
 
-        self._values.clear()
-        values = self._values
+        self._values = values = {}
 
         for item in getattr(context, path_iter):
             try:

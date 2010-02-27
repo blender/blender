@@ -164,10 +164,6 @@ class WM_OT_properties_edit(bpy.types.Operator):
     max = rna_max
     description = StringProperty(name="Tip", default="")
 
-    # the class instance is not persistant, need to store in the class
-    # not ideal but changes as the op runs.
-    _last_prop = ['']
-
     def execute(self, context):
         path = self.properties.path
         value = self.properties.value
@@ -209,7 +205,7 @@ class WM_OT_properties_edit(bpy.types.Operator):
 
     def invoke(self, context, event):
 
-        self._last_prop[:] = [self.properties.property]
+        self._last_prop = [self.properties.property]
 
         item = eval("context.%s" % self.properties.path)
 
