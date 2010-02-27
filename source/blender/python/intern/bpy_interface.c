@@ -557,24 +557,26 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 	PyObject *dict, *mod, *retval;
 	int error_ret = 0;
 	
-	if (!value || !expr || expr[0]=='\0') return -1;
-	
+	if (!value || !expr) return -1;
+
+	if(expr[0]=='\0') {
+		*value= 0.0;
+		return error_ret;
+	}
+
 	bpy_context_set(C, &gilstate);
 	
 	dict= CreateGlobalDictionary(C, NULL);
-	
-	/* import some modules: builtins,math*/
-	PyDict_SetItemString(dict, "__builtins__", PyEval_GetBuiltins());
 
 	mod = PyImport_ImportModule("math");
 	if (mod) {
 		PyDict_Merge(dict, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
-		
-		/* Only keep for backwards compat! - just import all math into root, they are standard */
-		PyDict_SetItemString(dict, "math", mod);
-		PyDict_SetItemString(dict, "m", mod);
 		Py_DECREF(mod);
-	} 
+	}
+	else { /* highly unlikely but possibly */
+		PyErr_Print();
+		PyErr_Clear();
+	}
 	
 	retval = PyRun_String(expr, Py_eval_input, dict, dict);
 	
