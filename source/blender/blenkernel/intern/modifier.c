@@ -4825,8 +4825,14 @@ static void castModifier_deformVerts(
 				     ModifierData *md, Object *ob, DerivedMesh *derivedData,
 	 float (*vertexCos)[3], int numVerts, int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *dm = get_dm(md->scene, ob, NULL, derivedData, NULL, 0);
+	DerivedMesh *dm = NULL;
 	CastModifierData *cmd = (CastModifierData *)md;
+
+	if (ob->type == OB_MESH) {
+		/* DerivedMesh is used only in case object is MESH */
+		/* so we could optimize modifier applying by skipping DM creation */
+		dm = get_dm(md->scene, ob, NULL, derivedData, NULL, 0);
+	}
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
 		castModifier_cuboid_do(cmd, ob, dm, vertexCos, numVerts);
