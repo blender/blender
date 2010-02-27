@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import sys, os
-import http, http.client, http.server, urllib, socket
+import http, http.client, http.server, urllib, socket, socketserver, threading
 import subprocess, shutil, time, hashlib
 import select # for select.error
 
@@ -860,7 +860,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             else: # invalid url
                 self.send_head(http.client.NO_CONTENT)
 
-class RenderMasterServer(http.server.HTTPServer):
+class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     def __init__(self, address, handler_class, path):
         super().__init__(address, handler_class)
         self.jobs = []
