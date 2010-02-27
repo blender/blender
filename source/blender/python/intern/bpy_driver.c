@@ -30,6 +30,7 @@
 
 #include "BPY_extern.h"
 #include "BKE_fcurve.h"
+#include "BKE_global.h"
 
 #include <Python.h>
 
@@ -164,6 +165,11 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	expr = driver->expression;
 	if ((expr == NULL) || (expr[0]=='\0'))
 		return result;
+
+	if(!(G.fileflags & G_DOSCRIPTLINKS)) {
+		printf("skipping driver '%s', automatic scripts are disabled\n", driver->expression);
+		return result;
+	}
 
 	gilstate = PyGILState_Ensure();
 

@@ -62,6 +62,7 @@
 #include "BKE_text.h"
 #include "BKE_context.h"
 #include "BKE_main.h"
+#include "BKE_global.h" /* only for script checking */
 
 #include "BPY_extern.h"
 
@@ -630,14 +631,19 @@ void BPY_load_user_modules(bContext *C)
 
 	for(text=CTX_data_main(C)->text.first; text; text= text->id.next) {
 		if(text->flags & TXT_ISSCRIPT && BLI_testextensie(text->id.name+2, ".py")) {
-			PyObject *module= bpy_text_import(text);
-
-			if (module==NULL) {
-				PyErr_Print();
-				PyErr_Clear();
+			if(!(G.fileflags & G_DOSCRIPTLINKS)) {
+				printf("scripts disabled for \"%s\", skipping '%s'\n", bmain->name, text->id.name+2);
 			}
 			else {
-				Py_DECREF(module);
+				PyObject *module= bpy_text_import(text);
+
+				if (module==NULL) {
+					PyErr_Print();
+					PyErr_Clear();
+				}
+				else {
+					Py_DECREF(module);
+				}
 			}
 		}
 	}

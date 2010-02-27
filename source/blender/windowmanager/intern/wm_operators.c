@@ -1326,10 +1326,17 @@ static void open_set_load_ui(wmOperator *op)
 		RNA_boolean_set(op->ptr, "load_ui", !(U.flag & USER_FILENOUI));
 }
 
+static void open_set_use_scripts(wmOperator *op)
+{
+	if(!RNA_property_is_set(op->ptr, "use_scripts"))
+		RNA_boolean_set(op->ptr, "use_scripts", (U.flag & USER_DONT_DOSCRIPTLINKS));
+}
+
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	RNA_string_set(op->ptr, "path", G.sce);
 	open_set_load_ui(op);
+	open_set_use_scripts(op);
 
 	WM_event_add_fileselect(C, op);
 
@@ -1342,11 +1349,17 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "path", path);
 	open_set_load_ui(op);
+	open_set_use_scripts(op);
 
 	if(RNA_boolean_get(op->ptr, "load_ui"))
 		G.fileflags &= ~G_FILE_NO_UI;
 	else
 		G.fileflags |= G_FILE_NO_UI;
+		
+	if(RNA_boolean_get(op->ptr, "use_scripts"))
+		G.fileflags |= G_DOSCRIPTLINKS;
+	else
+		G.fileflags &= ~G_DOSCRIPTLINKS;
 	
 	// XXX wm in context is not set correctly after WM_read_file -> crash
 	// do it before for now, but is this correct with multiple windows?
@@ -1370,6 +1383,7 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE|BLENDERFILE, FILE_BLENDER, FILE_OPENFILE);
 
 	RNA_def_boolean(ot->srna, "load_ui", 1, "Load UI", "Load user interface setup in the .blend file");
+	RNA_def_boolean(ot->srna, "use_scripts", 1, "Trusted Source", "Allow blend file execute scripts automatically, default available from system preferences");
 }
 
 /* **************** link/append *************** */
