@@ -347,12 +347,12 @@ static void rna_def_lamp(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
 	RNA_def_property_range(prop, 0, INT_MAX);
-	RNA_def_property_ui_range(prop, 0, 1000, 1, 2);
+	RNA_def_property_ui_range(prop, 0, 1000, 1, 3);
 	RNA_def_property_ui_text(prop, "Distance", "Falloff distance - the light is at half the original intensity at this point");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
 	prop= RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_ui_range(prop, 0, 10, 1, 2);
+	RNA_def_property_ui_range(prop, 0, 10, 1, 3);
 	RNA_def_property_ui_text(prop, "Energy", "Amount of light that the lamp emits");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
