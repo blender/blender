@@ -241,6 +241,10 @@ static void wm_init_userdef(bContext *C)
 	UI_init_userdef();
 	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
 	sound_init(CTX_data_main(C));
+
+	/* set the python auto-execute setting from user prefs */
+	if (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE)	G.f &= ~G_SCRIPT_AUTOEXEC;
+	else										G.f |=  G_SCRIPT_AUTOEXEC;
 }
 
 void WM_read_file(bContext *C, char *name, ReportList *reports)

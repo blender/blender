@@ -1329,7 +1329,7 @@ static void open_set_load_ui(wmOperator *op)
 static void open_set_use_scripts(wmOperator *op)
 {
 	if(!RNA_property_is_set(op->ptr, "use_scripts"))
-		RNA_boolean_set(op->ptr, "use_scripts", (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE));
+		RNA_boolean_set(op->ptr, "use_scripts", !(U.flag & USER_SCRIPT_AUTOEXEC_DISABLE));
 }
 
 static int wm_open_mainfile_invoke(bContext *C, wmOperator *op, wmEvent *event)
