@@ -1458,19 +1458,19 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	}
 }
 
-GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
+const GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
 {
-
+	return (GHOST_TUns8*)"/usr/share/blender";
 }
 
-GHOST_TUns8* GHOST_SystemX11::getUserDir() const
+const GHOST_TUns8* GHOST_SystemX11::getUserDir() const
 {
-	char* path;
+	static char path[256];
 	char* env = getenv("HOME");
 	if(env) {
-		path = (char*) malloc(strlen(env) + 10); // "/.blender/"
-		strcat(path, env);
-		strcat(path, "/,blender/");
+		strncpy(path, env, 245);
+		path[245]=0;
+		strcat(path, "/.blender/");
 		return (GHOST_TUns8*) path;
 	} else {
 		return NULL;

@@ -824,14 +824,14 @@ extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection);
  * "unpack and run" path, then look for properly installed path, not including versioning.
  * @return Unsigned char string pointing to system dir (eg /usr/share/blender/).
  */
-extern GHOST_TUns8* GHOST_getSystemDir();
+extern const GHOST_TUns8* GHOST_getSystemDir();
 
 /**
  * Determine the base dir in which user configuration is stored, not including versioning.
  * If needed, it will create the base directory.
  * @return Unsigned char string pointing to user dir (eg ~/.blender/).
  */
-extern GHOST_TUns8* GHOST_getUserDir();
+extern const GHOST_TUns8* GHOST_getUserDir();
 
 
 #ifdef __cplusplus
