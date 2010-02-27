@@ -87,7 +87,7 @@ static int bpy_pydriver_create_dict(void)
 	/* If there's a Blender text called pydrivers.py, import it.
 	 * Users can add their own functions to this module.
 	 */
-	if (G.f & G_DOSCRIPTLINKS) {
+	if (G.f & G_SCRIPT_AUTOEXEC) {
 		mod = importText("pydrivers"); /* can also use PyImport_Import() */
 		if (mod) {
 			PyDict_SetItemString(d, "pydrivers", mod);
@@ -159,14 +159,14 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	int i;
 
 	/* sanity checks - should driver be executed? */
-	/*if (G.f & G_DOSCRIPTLINKS)==0) return result; */
+	/*if (G.f & G_SCRIPT_AUTOEXEC)==0) return result; */
 
 	/* get the py expression to be evaluated */
 	expr = driver->expression;
 	if ((expr == NULL) || (expr[0]=='\0'))
 		return result;
 
-	if(!(G.fileflags & G_DOSCRIPTLINKS)) {
+	if(!(G.fileflags & G_SCRIPT_AUTOEXEC)) {
 		printf("skipping driver '%s', automatic scripts are disabled\n", driver->expression);
 		return result;
 	}

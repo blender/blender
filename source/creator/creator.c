@@ -301,7 +301,7 @@ static int end_arguments(int argc, char **argv, void *data)
 
 static int disable_python(int argc, char **argv, void *data)
 {
-	G.f &= ~G_DOSCRIPTLINKS;
+	G.f &= ~G_SCRIPT_AUTOEXEC;
 	return 0;
 }
 
@@ -951,7 +951,7 @@ int main(int argc, char **argv)
 
 	/* first test for background */
 
-	G.f |= G_DOSCRIPTLINKS; /* script links enabled by default */
+	G.f |= G_SCRIPT_AUTOEXEC; /* script links enabled by default */
 
 	ba = BLI_argsInit(argc, argv); /* skip binary path */
 	setupArguments(C, ba, &syshandle);

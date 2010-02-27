@@ -631,7 +631,7 @@ void BPY_load_user_modules(bContext *C)
 
 	for(text=CTX_data_main(C)->text.first; text; text= text->id.next) {
 		if(text->flags & TXT_ISSCRIPT && BLI_testextensie(text->id.name+2, ".py")) {
-			if(!(G.fileflags & G_DOSCRIPTLINKS)) {
+			if(!(G.fileflags & G_SCRIPT_AUTOEXEC)) {
 				printf("scripts disabled for \"%s\", skipping '%s'\n", bmain->name, text->id.name+2);
 			}
 			else {

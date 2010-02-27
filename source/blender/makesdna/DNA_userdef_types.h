@@ -403,7 +403,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_ADD_VIEWALIGNED	(1 << 19)
 #define USER_RELPATHS			(1 << 20)
 #define USER_DRAGIMMEDIATE		(1 << 21)
-#define USER_DONT_DOSCRIPTLINKS	(1 << 22)
+#define USER_SCRIPT_AUTOEXEC_DISABLE	(1 << 22)
 #define USER_FILENOUI			(1 << 23)
 #define USER_NONEGFRAMES		(1 << 24)
 
