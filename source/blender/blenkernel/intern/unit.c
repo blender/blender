@@ -170,7 +170,8 @@ static void unit_dual_convert(double value, bUnitCollection *usys,
 {
 	bUnitDef *unit= unit_best_fit(value, usys, NULL, 1);
 
-	*value_a= floor(value/unit->scalar) * unit->scalar;
+	if(value < 0.0) *value_a= -floor(-value/unit->scalar) * unit->scalar;
+	else			*value_a=  floor( value/unit->scalar) * unit->scalar;
 	*value_b= value - (*value_a);
 
 	*unit_a=	unit;
