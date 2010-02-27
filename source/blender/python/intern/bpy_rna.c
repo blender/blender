@@ -26,6 +26,7 @@
 #include "bpy_rna.h"
 #include "bpy_props.h"
 #include "bpy_util.h"
+#include "bpy_rna_callback.h"
 //#include "blendef.h"
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
@@ -2662,6 +2663,11 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"path_to_id", (PyCFunction)pyrna_struct_path_to_id, METH_VARARGS, NULL},
 	{"recast_type", (PyCFunction)pyrna_struct_recast_type, METH_NOARGS, NULL},
 	{"__dir__", (PyCFunction)pyrna_struct_dir, METH_NOARGS, NULL},
+
+	/* experemental */
+	{"callback_add", (PyCFunction)pyrna_callback_add, METH_VARARGS, NULL},
+	{"callback_remove", (PyCFunction)pyrna_callback_remove, METH_VARARGS, NULL},
+
 	{NULL, NULL, 0, NULL}
 };
 
