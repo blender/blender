@@ -84,6 +84,8 @@ PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 PyObject *pyrna_enum_bitfield_to_py(struct EnumPropertyItem *items, int value);
 int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_value, const char *error_prefix);
 
+int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value, const char *error_prefix);
+
 /* function for registering types */
 PyObject *pyrna_basetype_register(PyObject *self, PyObject *args);
 PyObject *pyrna_basetype_unregister(PyObject *self, PyObject *args);

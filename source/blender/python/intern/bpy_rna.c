@@ -155,6 +155,19 @@ Mathutils_Callback mathutils_rna_matrix_cb = {
 	(BaseMathSetIndexFunc)	NULL
 };
 
+/* same as RNA_enum_value_from_id but raises an exception  */
+int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value, const char *error_prefix)
+{
+	if(RNA_enum_value_from_id(item, identifier, value) == 0) {
+		char *enum_str= BPy_enum_as_string(item);
+		PyErr_Format(PyExc_TypeError, "%s: '%.200s' not found in (%s)", error_prefix, identifier, enum_str);
+		MEM_freeN(enum_str);
+		return -1;
+	}
+
+	return 0;
+}
+
 #define PROP_ALL_VECTOR_SUBTYPES PROP_TRANSLATION: case PROP_DIRECTION: case PROP_VELOCITY: case PROP_ACCELERATION: case PROP_XYZ: case PROP_XYZ|PROP_UNIT_LENGTH
 
 PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop)
@@ -478,13 +491,8 @@ int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_
 			PyErr_Format(PyExc_TypeError, "%.200s expected a string. found a %.200s", error_prefix, Py_TYPE(key)->tp_name);
 			return -1;
 		}
-
-		if(RNA_enum_value_from_id(items, param, &ret) == 0) {
-			char *enum_str= BPy_enum_as_string(items);
-			PyErr_Format(PyExc_TypeError, "%.200s \"%.200s\" not found in (%.200s)", error_prefix, param, enum_str);
-			MEM_freeN(enum_str);
+		if(pyrna_enum_value_from_id(items, param, &ret, error_prefix) < 0)
 			return -1;
-		}
 
 		flag |= ret;
 	}

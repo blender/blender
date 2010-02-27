@@ -66,19 +66,18 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
 	void *handle;
 
 	PyObject *cb_func, *cb_args;
-	char *cb_type= NULL;
-	int cb_type_enum;
+	char *cb_event_str= NULL;
+	int cb_event;
 
-	if (!PyArg_ParseTuple(args, "OO|s:callback_add", &cb_func, &cb_args, &cb_type))
+	if (!PyArg_ParseTuple(args, "OO|s:bpy_struct.callback_add", &cb_func, &cb_args, &cb_event_str))
 		return NULL;
 
 	if(RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
-		if(RNA_enum_value_from_id(region_draw_mode_items, cb_type, &cb_type_enum)==0) {
-			PyErr_SetString(PyExc_ValueError, "callbcak_add(): enum invalid type");
-			return NULL;
-		}
 
-		handle= ED_region_draw_cb_activate(((ARegion *)self->ptr.data)->type, cb_region_draw, (void *)args, cb_type_enum);
+		if(pyrna_enum_value_from_id(region_draw_mode_items, cb_event_str, &cb_event, "bpy_struct.callback_add()") < 0)
+			return NULL;
+
+		handle= ED_region_draw_cb_activate(((ARegion *)self->ptr.data)->type, cb_region_draw, (void *)args, cb_event);
 		Py_INCREF(args);
 	}
 	else {
