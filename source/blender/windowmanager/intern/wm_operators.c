@@ -1357,9 +1357,9 @@ static int wm_open_mainfile_exec(bContext *C, wmOperator *op)
 		G.fileflags |= G_FILE_NO_UI;
 		
 	if(RNA_boolean_get(op->ptr, "use_scripts"))
-		G.fileflags |= G_SCRIPT_AUTOEXEC;
+		G.f |= G_SCRIPT_AUTOEXEC;
 	else
-		G.fileflags &= ~G_SCRIPT_AUTOEXEC;
+		G.f &= ~G_SCRIPT_AUTOEXEC;
 	
 	// XXX wm in context is not set correctly after WM_read_file -> crash
 	// do it before for now, but is this correct with multiple windows?

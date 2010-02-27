@@ -166,7 +166,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	if ((expr == NULL) || (expr[0]=='\0'))
 		return result;
 
-	if(!(G.fileflags & G_SCRIPT_AUTOEXEC)) {
+	if(!(G.f & G_SCRIPT_AUTOEXEC)) {
 		printf("skipping driver '%s', automatic scripts are disabled\n", driver->expression);
 		return result;
 	}
