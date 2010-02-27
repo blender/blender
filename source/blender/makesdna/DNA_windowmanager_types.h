@@ -271,8 +271,9 @@ typedef struct wmOperator {
 	IDProperty *properties;		/* saved, user-settable properties */
 
 	/* runtime */
-	struct wmOperatorType *type;		/* operator type definition from idname */
+	struct wmOperatorType *type;/* operator type definition from idname */
 	void *customdata;			/* custom storage, only while operator runs */
+	void *py_instance;			/* python stores the class instance here */
 
 	struct PointerRNA *ptr;		/* rna pointer to access properties */
 	struct ReportList *reports;	/* errors and warnings storage */

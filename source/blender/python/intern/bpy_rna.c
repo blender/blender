@@ -4149,7 +4149,8 @@ extern void BPY_update_modules( void ); //XXX temp solution
 static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
 {
 	PyObject *args;
-	PyObject *ret= NULL, *py_class, *py_class_instance, *item, *parmitem;
+	PyObject *ret= NULL, *py_srna= NULL, *py_class, *py_class_instance= NULL, *parmitem;
+	void **py_class_instance_store= NULL;
 	PropertyRNA *parm;
 	ParameterIterator iter;
 	PointerRNA funcptr;
@@ -4165,23 +4166,49 @@ static int bpy_class_call(PointerRNA *ptr, FunctionRNA *func, ParameterList *par
 
 	py_class= RNA_struct_py_type_get(ptr->type);
 	
-	item = pyrna_struct_CreatePyObject(ptr);
-	if(item == NULL) {
+	/* exception, operators store their PyObjects for re-use */
+	if(ptr->data) {
+		if(RNA_struct_is_a(ptr->type, &RNA_Operator)) {
+			wmOperator *op= ptr->data;
+			if(op->py_instance) {
+				py_class_instance= op->py_instance;
+				Py_INCREF(py_class_instance);
+			}
+			else {
+				/* store the instance here once its created */
+				py_class_instance_store= &op->py_instance;
+			}
+		}
+	}
+	/* end exception */
+
+	if(py_class_instance==NULL)
+		py_srna= pyrna_struct_CreatePyObject(ptr);
+
+	if(py_class_instance) {
+		/* special case, instance is cached */
+	}
+	else if(py_srna == NULL) {
 		py_class_instance = NULL;
 	}
-	else if(item == Py_None) { /* probably wont ever happen but possible */
-		Py_DECREF(item);
+	else if(py_srna == Py_None) { /* probably wont ever happen but possible */
+		Py_DECREF(py_srna);
 		py_class_instance = NULL;
 	}
 	else {
 		args = PyTuple_New(1);
-		PyTuple_SET_ITEM(args, 0, item);
+		PyTuple_SET_ITEM(args, 0, py_srna);
 		py_class_instance = PyObject_Call(py_class, args, NULL);
 		Py_DECREF(args);
+
+		if(py_class_instance_store) {
+			*py_class_instance_store = py_class_instance;
+			Py_INCREF(py_class_instance);
+		}
 	}
 
 	if (py_class_instance) { /* Initializing the class worked, now run its invoke function */
-		item= PyObject_GetAttrString(py_class, RNA_function_identifier(func));
+		PyObject *item= PyObject_GetAttrString(py_class, RNA_function_identifier(func));
 //		flag= RNA_function_flag(func);
 
 		if(item) {
