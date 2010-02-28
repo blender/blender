@@ -270,7 +270,7 @@ void IMB_float_from_rect(struct ImBuf *ibuf)
 	
 	if(to==NULL) return;
 	if(tof==NULL) {
-		imb_addrectfloatImBuf(ibuf);
+		if (imb_addrectfloatImBuf(ibuf) == 0) return;
 		tof = ibuf->rect_float;
 	}
 	
