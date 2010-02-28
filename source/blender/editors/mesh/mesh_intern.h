@@ -97,6 +97,7 @@ extern int faceselectedAND(EditFace *efa, int flag);
 void EM_remove_selection(EditMesh *em, void *data, int type);
 void EM_clear_flag_all(EditMesh *em, int flag);
 void EM_set_flag_all(EditMesh *em, int flag);
+void EM_set_flag_all_selectmode(EditMesh *em, int flag);
 
 void EM_data_interp_from_verts(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *eve, float fac);
 void EM_data_interp_from_faces(EditMesh *em, EditFace *efa1, EditFace *efa2, EditFace *efan, int i1, int i2, int i3, int i4);

@@ -3382,12 +3382,12 @@ void EM_toggle_select_all(EditMesh *em) /* exported for UV */
 	if(EM_nvertices_selected(em))
 		EM_clear_flag_all(em, SELECT);
 	else 
-		EM_set_flag_all(em, SELECT);
+		EM_set_flag_all_selectmode(em, SELECT);
 }
 
 void EM_select_all(EditMesh *em)
 {
-	EM_set_flag_all(em, SELECT);
+	EM_set_flag_all_selectmode(em, SELECT);
 }
 
 void EM_deselect_all(EditMesh *em)
