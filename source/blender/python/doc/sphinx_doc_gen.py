@@ -333,7 +333,7 @@ def rna2sphinx(BASEPATH):
     del module
 
     import BLF as module
-    pymodule2sphinx(BASEPATH, "BLF", module, "Blender Font Drawing (BLF)")
+    pymodule2sphinx(BASEPATH, "blf", module, "Blender Font Drawing (blf)")
     del module
 
     if 0:

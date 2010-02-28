@@ -23,7 +23,7 @@
  */
 
 #include <Python.h>
-#include "BLF.h"
+#include "blf.h"
 
 #include "../../blenfont/BLF_api.h"
 
@@ -175,7 +175,7 @@ static char BLF_doc[] =
 
 static struct PyModuleDef BLF_module_def = {
 	PyModuleDef_HEAD_INIT,
-	"BLF",  /* m_name */
+	"blf",  /* m_name */
 	BLF_doc,  /* m_doc */
 	0,  /* m_size */
 	BLF_methods,  /* m_methods */

@@ -1,29 +1,29 @@
-import BGL
-import BLF
+import bgl
+import blf
 
 def draw_callback_px(self, context):
     print("mouse points", len(self.mouse_path))
 
     # draw some text
-    BLF.position(15, 30, 0)
-    BLF.size(20, 72)
-    BLF.draw("Hello Word " + str(len(self.mouse_path)))
+    blf.position(15, 30, 0)
+    blf.size(20, 72)
+    blf.draw("Hello Word " + str(len(self.mouse_path)))
 
     # 50% alpha, 2 pixel width line
-    BGL.glEnable(BGL.GL_BLEND)
-    BGL.glColor4f(0.0, 0.0, 0.0, 0.5)
-    BGL.glLineWidth(2)
+    bgl.glEnable(bgl.GL_BLEND)
+    bgl.glColor4f(0.0, 0.0, 0.0, 0.5)
+    bgl.glLineWidth(2)
 
-    BGL.glBegin(BGL.GL_LINE_STRIP)
+    bgl.glBegin(bgl.GL_LINE_STRIP)
     for x, y in self.mouse_path:
-        BGL.glVertex2i(x, y)
+        bgl.glVertex2i(x, y)
 
-    BGL.glEnd()
+    bgl.glEnd()
 
     # restore opengl defaults 
-    BGL.glLineWidth(1)
-    BGL.glDisable(BGL.GL_BLEND)
-    BGL.glColor4f(0.0, 0.0, 0.0, 1.0)
+    bgl.glLineWidth(1)
+    bgl.glDisable(bgl.GL_BLEND)
+    bgl.glColor4f(0.0, 0.0, 0.0, 1.0)
 
 
 class ModalDrawOperator(bpy.types.Operator):

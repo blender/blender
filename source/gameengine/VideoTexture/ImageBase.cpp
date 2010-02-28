@@ -22,7 +22,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #include "ImageBase.h"
 extern "C" {
-#include "BGL.h"
+#include "bgl.h"
 }
 #include "GL/glew.h"
 

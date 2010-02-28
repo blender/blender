@@ -190,7 +190,7 @@ def banner(context):
     add_scrollback("Execute:          Enter", 'OUTPUT')
     add_scrollback("Autocomplete:     Ctrl+Space", 'OUTPUT')
     add_scrollback("Ctrl +/-  Wheel:  Zoom", 'OUTPUT')
-    add_scrollback("Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, Mathutils, Geometry, BGL", 'OUTPUT')
+    add_scrollback("Builtin Modules: bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, bgl, blf, Mathutils, Geometry", 'OUTPUT')
     add_scrollback("", 'OUTPUT')
     add_scrollback("", 'OUTPUT')
     sc.prompt = PROMPT

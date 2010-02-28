@@ -37,8 +37,8 @@
  /* external util modules */
 #include "../generic/Mathutils.h"
 #include "../generic/Geometry.h"
-#include "../generic/BGL.h"
-#include "../generic/BLF.h"
+#include "../generic/bgl.h"
+#include "../generic/blf.h"
 #include "../generic/IDProp.h"
 
 static char bpy_home_paths_doc[] =
