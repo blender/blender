@@ -52,7 +52,7 @@ CPPFLAGS += -I$(NAN_ZLIB)/include
 
 CPPFLAGS += -I../../gpu
 
-CPPFLAGS += -I../../../intern/ghost
+CPPFLAGS += -I$(NAN_GHOST)/include
 
 ifdef NAN_PTHREADS
   CPPFLAGS += -I$(NAN_PTHREADS)/include
