@@ -1252,12 +1252,7 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 			result = EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->size, 1);
 			break;
 		case Py_NE:
-			result = EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->size, 1);
-			if (result == 0){
-				result = 1;
-			}else{
-				result = 0;
-			}
+			result = !EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->size, 1);
 			break;
 		case Py_GT:
 			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);

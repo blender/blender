@@ -557,25 +557,24 @@ static PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args)
 
 /* Utility functions */
 
-/*---------------------- EXPP_FloatsAreEqual -------------------------
-  Floating point comparisons 
-  floatStep = number of representable floats allowable in between
-   float A and float B to be considered equal. */
-int EXPP_FloatsAreEqual(float A, float B, int floatSteps)
-{
-	int a, b, delta;
-    assert(floatSteps > 0 && floatSteps < (4 * 1024 * 1024));
-    a = *(int*)&A;
-    if (a < 0)	
-		a = 0x80000000 - a;
-    b = *(int*)&B;
-    if (b < 0)	
-		b = 0x80000000 - b;
-    delta = abs(a - b);
-    if (delta <= floatSteps)	
-		return 1;
-    return 0;
+// LomontRRDCompare4, Ever Faster Float Comparisons by Randy Dillon
+#define SIGNMASK(i) (-(int)(((unsigned int)(i))>>31))
+
+int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
+{	// solid, fast routine across all platforms
+	// with constant time behavior
+	int ai = *(int *)(&af);
+	int bi = *(int *)(&bf);
+	int test = SIGNMASK(ai^bi);
+	int diff, v1, v2;
+
+	assert((0 == test) || (0xFFFFFFFF == test));
+	diff = (ai ^ (test & 0x7fffffff)) - bi;
+	v1 = maxDiff + diff;
+	v2 = maxDiff - diff;
+	return (v1|v2) >= 0;
 }
+
 /*---------------------- EXPP_VectorsAreEqual -------------------------
   Builds on EXPP_FloatsAreEqual to test vectors */
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps)
