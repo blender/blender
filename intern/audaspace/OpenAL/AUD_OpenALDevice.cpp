@@ -895,7 +895,7 @@ float AUD_OpenALDevice::getPosition(AUD_Handle* handle)
 		{
 			AUD_Specs specs = h->reader->getSpecs();
 			position += (h->reader->getPosition() - m_buffersize *
-									AUD_OPENAL_CYCLE_BUFFERS / specs.channels) /
+									AUD_OPENAL_CYCLE_BUFFERS) /
 					   (float)specs.rate;
 		}
 	}
