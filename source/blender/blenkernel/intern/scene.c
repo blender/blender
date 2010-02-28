@@ -364,6 +364,7 @@ Scene *add_scene(char *name)
 
 	sce->r.scemode= R_DOCOMP|R_DOSEQ|R_EXTENSION;
 	sce->r.stamp= R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_SCENE|R_STAMP_CAMERA|R_STAMP_RENDERTIME;
+	sce->r.stamp_font_id= 12;
 	
 	sce->r.threads= 1;
 
