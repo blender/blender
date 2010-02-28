@@ -863,10 +863,8 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
     me.update()
 # 	me.calcNormals()
 
-    ob= bpy.data.objects.new("Mesh", 'MESH')
-    ob.data= me
+    ob= bpy.data.objects.new("Mesh", me)
     scn.objects.link(ob)
-# 	ob= scn.objects.new(me)
     new_objects.append(ob)
 
     # Create the vertex groups. No need to have the flag passed here since we test for the
@@ -1629,7 +1627,7 @@ menu_func = lambda self, context: self.layout.operator(IMPORT_OT_obj.bl_idname, 
 def register():
     bpy.types.register(IMPORT_OT_obj)
     bpy.types.INFO_MT_file_import.append(menu_func)
-    
+
 def unregister():
     bpy.types.unregister(IMPORT_OT_obj)
     bpy.types.INFO_MT_file_import.remove(menu_func)

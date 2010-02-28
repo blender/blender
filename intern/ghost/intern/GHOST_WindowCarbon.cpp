@@ -136,14 +136,14 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
 								 &m_windowRef);
 		
 		if ( err != noErr) {
-			fprintf(stderr," error creating window %i \n",err);
+			fprintf(stderr," error creating window %i \n",(int)err);
 		} else {
 			
 			::SetWRefCon(m_windowRef,(SInt32)this);
 			setTitle(title);
 			err = InstallWindowEventHandler (m_windowRef, myWEventHandlerProc, GetEventTypeCount(kWEvents), kWEvents,NULL,NULL); 
 			if ( err != noErr) {
-				fprintf(stderr," error creating handler %i \n",err);
+				fprintf(stderr," error creating handler %i \n",(int)err);
 			} else {
 				//	::TransitionWindow (m_windowRef,kWindowZoomTransitionEffect,kWindowShowTransitionAction,NULL);
 				::ShowWindow(m_windowRef);

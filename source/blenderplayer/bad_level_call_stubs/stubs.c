@@ -88,6 +88,7 @@ int WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEv
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference){}
 void WM_main_add_notifier(unsigned int type, void *reference){}
 void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnamep){}
+struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op){return (struct wmEventHandler *)NULL;};
 void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone){}
 void object_test_constraints (struct Object *owner){}
 void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr){}
@@ -265,6 +266,7 @@ void WM_operator_bl_idname(char *to, const char *from){}
 void WM_operator_py_idname(char *to, const char *from){}
 void WM_operator_ui_popup(struct bContext *C, struct wmOperator *op, int width, int height){}
 short insert_keyframe (struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;}
+short delete_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;};
 char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args){return NULL;}
 struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return NULL;}
 struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return NULL;}
@@ -300,7 +302,7 @@ void smoke_get_index(void) {return;}
 void smoke_step(void) {return;}
 */
 
-char blender_path(){return (char) NULL;}
+char blender_path[] = "";
 
 /* CSG */
 struct CSG_BooleanOperation * CSG_NewBooleanFunction( void ){return (struct CSG_BooleanOperation *) NULL;}

@@ -2373,27 +2373,97 @@ void minmax_object(Object *ob, float *min, float *max)
 	}
 }
 
-/* TODO - use dupli objects bounding boxes */
-void minmax_object_duplis(Scene *scene, Object *ob, float *min, float *max)
+int minmax_object_duplis(Scene *scene, Object *ob, float *min, float *max)
 {
+	int ok= 0;
 	if ((ob->transflag & OB_DUPLI)==0) {
-		return;
+		return ok;
 	} else {
 		ListBase *lb;
 		DupliObject *dob;
 		
 		lb= object_duplilist(scene, ob);
 		for(dob= lb->first; dob; dob= dob->next) {
-			if(dob->no_draw);
-			else {
-				/* should really use bound box of dup object */
-				DO_MINMAX(dob->mat[3], min, max);
+			if(dob->no_draw == 0) {
+				BoundBox *bb= object_get_boundbox(dob->ob);
+
+				if(bb) {
+					int i;
+					for(i=0; i<8; i++) {
+						float vec[3];
+						mul_v3_m4v3(vec, dob->mat, bb->vec[i]);
+						DO_MINMAX(vec, min, max);
+					}
+
+					ok= 1;
+				}
 			}
 		}
 		free_object_duplilist(lb);	/* does restore */
 	}
+
+	return ok;
 }
 
+/* copied from DNA_object_types.h */
+typedef struct ObTfmBack {
+	float loc[3], dloc[3], orig[3];
+	float size[3], dsize[3];	/* scale and delta scale */
+	float rot[3], drot[3];		/* euler rotation */
+	float quat[4], dquat[4];	/* quaternion rotation */
+	float rotAxis[3], drotAxis[3];	/* axis angle rotation - axis part */
+	float rotAngle, drotAngle;	/* axis angle rotation - angle part */
+	float obmat[4][4];		/* final worldspace matrix with constraints & animsys applied */
+	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
+	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
+	float imat[4][4];	/* inverse matrix of 'obmat' for during render, old game engine, temporally: ipokeys of transform  */
+} ObTfmBack;
+
+void *object_tfm_backup(Object *ob)
+{
+	ObTfmBack *obtfm= MEM_mallocN(sizeof(ObTfmBack), "ObTfmBack");
+	copy_v3_v3(obtfm->loc, ob->loc);
+	copy_v3_v3(obtfm->dloc, ob->dloc);
+	copy_v3_v3(obtfm->orig, ob->orig);
+	copy_v3_v3(obtfm->size, ob->size);
+	copy_v3_v3(obtfm->dsize, ob->dsize);
+	copy_v3_v3(obtfm->rot, ob->rot);
+	copy_v3_v3(obtfm->drot, ob->drot);
+	copy_qt_qt(obtfm->quat, ob->quat);
+	copy_qt_qt(obtfm->dquat, ob->dquat);
+	copy_v3_v3(obtfm->rotAxis, ob->rotAxis);
+	copy_v3_v3(obtfm->drotAxis, ob->drotAxis);
+	obtfm->rotAngle= ob->rotAngle;
+	obtfm->drotAngle= ob->drotAngle;
+	copy_m4_m4(obtfm->obmat, ob->obmat);
+	copy_m4_m4(obtfm->parentinv, ob->parentinv);
+	copy_m4_m4(obtfm->constinv, ob->constinv);
+	copy_m4_m4(obtfm->imat, ob->imat);
+
+	return (void *)obtfm;
+}
+
+void object_tfm_restore(Object *ob, void *obtfm_pt)
+{
+	ObTfmBack *obtfm= (ObTfmBack *)obtfm_pt;
+	copy_v3_v3(ob->loc, obtfm->loc);
+	copy_v3_v3(ob->dloc, obtfm->dloc);
+	copy_v3_v3(ob->orig, obtfm->orig);
+	copy_v3_v3(ob->size, obtfm->size);
+	copy_v3_v3(ob->dsize, obtfm->dsize);
+	copy_v3_v3(ob->rot, obtfm->rot);
+	copy_v3_v3(ob->drot, obtfm->drot);
+	copy_qt_qt(ob->quat, obtfm->quat);
+	copy_qt_qt(ob->dquat, obtfm->dquat);
+	copy_v3_v3(ob->rotAxis, obtfm->rotAxis);
+	copy_v3_v3(ob->drotAxis, obtfm->drotAxis);
+	ob->rotAngle= obtfm->rotAngle;
+	ob->drotAngle= obtfm->drotAngle;
+	copy_m4_m4(ob->obmat, obtfm->obmat);
+	copy_m4_m4(ob->parentinv, obtfm->parentinv);
+	copy_m4_m4(ob->constinv, obtfm->constinv);
+	copy_m4_m4(ob->imat, obtfm->imat);
+}
 
 /* proxy rule: lib_object->proxy_from == the one we borrow from, only set temporal and cleared here */
 /*           local_object->proxy      == pointer to library object, saved in files and read */

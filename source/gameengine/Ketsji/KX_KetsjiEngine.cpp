@@ -154,7 +154,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_showBackground(false),
 	m_show_debug_properties(false),
 
-	m_game2ipo(false),
+	m_animation_record(false),
 
 	// Default behavior is to hide the cursor every frame.
 	m_hideCursor(false),
@@ -398,7 +398,7 @@ void KX_KetsjiEngine::StartEngine(bool clearIpo)
 		m_maxPhysicsFrame = 5;
 	}
 	
-	if (m_game2ipo)
+	if (m_animation_record)
 	{
 		m_sceneconverter->ResetPhysicsObjectsAnimationIpo(clearIpo);
 		m_sceneconverter->WritePhysicsObjectToAnimationIpo(m_currentFrame);
@@ -657,7 +657,7 @@ else
 				scene->UpdateParents(m_frameTime);
 			
 			
-				if (m_game2ipo)
+				if (m_animation_record)
 				{					
 					m_sceneconverter->WritePhysicsObjectToAnimationIpo(++m_currentFrame);
 				}
@@ -1334,7 +1334,7 @@ void KX_KetsjiEngine::StopEngine()
 	if (m_bInitialized)
 	{
 
-		if (m_game2ipo)
+		if (m_animation_record)
 		{
 //			printf("TestHandlesPhysicsObjectToAnimationIpo\n");
 			m_sceneconverter->TestHandlesPhysicsObjectToAnimationIpo();
@@ -1734,10 +1734,10 @@ void KX_KetsjiEngine::SetUseFixedTime(bool bUseFixedTime)
 }
 
 
-void	KX_KetsjiEngine::SetGame2IpoMode(bool game2ipo,int startFrame)
+void	KX_KetsjiEngine::SetAnimRecordMode(bool animation_record, int startFrame)
 {
-	m_game2ipo = game2ipo;
-	if (game2ipo)
+	m_animation_record = animation_record;
+	if (animation_record)
 	{
 		//when recording physics keyframes, always run at a fixed framerate
 		m_bFixedTime = true;

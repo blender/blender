@@ -49,6 +49,7 @@ extern StructRNA RNA_ActionConstraint;
 extern StructRNA RNA_ActionGroup;
 extern StructRNA RNA_Actuator;
 extern StructRNA RNA_ActuatorSensor;
+extern StructRNA RNA_Addon;
 extern StructRNA RNA_AlwaysSensor;
 extern StructRNA RNA_AndController;
 extern StructRNA RNA_AnimData;
@@ -196,7 +197,6 @@ extern StructRNA RNA_EnumPropertyItem;
 extern StructRNA RNA_EnvironmentMap;
 extern StructRNA RNA_EnvironmentMapTexture;
 extern StructRNA RNA_Event;
-extern StructRNA RNA_Extension;
 extern StructRNA RNA_ExplodeModifier;
 extern StructRNA RNA_ExpressionController;
 extern StructRNA RNA_FCurve;
@@ -374,11 +374,11 @@ extern StructRNA RNA_RenderEngine;
 extern StructRNA RNA_RenderLayer;
 extern StructRNA RNA_RenderPass;
 extern StructRNA RNA_RenderResult;
+extern StructRNA RNA_RenderSettings;
 extern StructRNA RNA_RGBANodeSocket;
 extern StructRNA RNA_RigidBodyJointConstraint;
 extern StructRNA RNA_Scene;
 extern StructRNA RNA_SceneGameData;
-extern StructRNA RNA_SceneRenderData;
 extern StructRNA RNA_SceneRenderLayer;
 extern StructRNA RNA_SceneSequence;
 extern StructRNA RNA_Screen;
@@ -665,6 +665,7 @@ StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 
 int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index);
+int RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop); /* without lib check, only checks the flag */
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop);
 int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
 
@@ -809,6 +810,7 @@ void RNA_float_set_array(PointerRNA *ptr, const char *name, const float *values)
 
 int RNA_enum_get(PointerRNA *ptr, const char *name);
 void RNA_enum_set(PointerRNA *ptr, const char *name, int value);
+void RNA_enum_set_identifier(PointerRNA *ptr, const char *name, const char *id);
 int RNA_enum_is_equal(struct bContext *C, PointerRNA *ptr, const char *name, const char *enumname);
 
 /* lower level functions that donr use a PointerRNA */

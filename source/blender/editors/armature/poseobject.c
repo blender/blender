@@ -52,6 +52,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_anim.h"
+#include "BKE_idprop.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -840,6 +841,15 @@ static bPose *g_posebuf = NULL;
 void free_posebuf(void) 
 {
 	if (g_posebuf) {
+		bPoseChannel *pchan;
+
+		for (pchan= g_posebuf->chanbase.first; pchan; pchan= pchan->next) {
+			if(pchan->prop) {
+				IDP_FreeProperty(pchan->prop);
+				MEM_freeN(pchan->prop);
+			}
+		}
+
 		/* was copied without constraints */
 		BLI_freelistN(&g_posebuf->chanbase);
 		MEM_freeN(g_posebuf);
@@ -891,7 +901,8 @@ void POSE_OT_copy (wmOperatorType *ot)
 /* Pointers to the builtin KeyingSets that we want to use */
 static KeyingSet *posePaste_ks_locrotscale = NULL;		/* the only keyingset we'll need */
 
-/* ---- */
+/* transform.h */
+extern void autokeyframe_pose_cb_func(struct bContext *C, struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode, short targetless_ik);
 
 static int pose_paste_exec (bContext *C, wmOperator *op)
 {
@@ -1002,31 +1013,53 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					}
 				}
 				
-				if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-					/* Set keys on pose
-					 *	- KeyingSet to use depends on rotation mode 
-					 *	(but that's handled by the templates code)  
-					 */
-					// TODO: for getting the KeyingSet used, we should really check which channels were affected
-					if (posePaste_ks_locrotscale == NULL)
-						posePaste_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-					
-					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-					cks.pchan= pchan;
-					
-					modify_keyframes(scene, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
-					
-					/* clear any unkeyed tags */
-					if (chan->bone)
-						chan->bone->flag &= ~BONE_UNKEYED;
+				/* ID property */
+				if(pchan->prop) {
+					IDP_FreeProperty(pchan->prop);
+					MEM_freeN(pchan->prop);
+					pchan->prop= NULL;
 				}
-				else {
-					/* add unkeyed tags */
-					if (chan->bone)
-						chan->bone->flag |= BONE_UNKEYED;
+
+				if(chan->prop) {
+					pchan->prop= IDP_CopyProperty(chan->prop);
+				}
+
+				/* auto key, TODO, fix up this INSERTAVAIL vs all other cases */
+				if (IS_AUTOKEY_FLAG(INSERTAVAIL) == 0) { /* deal with this case later */
+					if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+
+						/* Set keys on pose
+						 *	- KeyingSet to use depends on rotation mode
+						 *	(but that's handled by the templates code)
+						 */
+						// TODO: for getting the KeyingSet used, we should really check which channels were affected
+						if (posePaste_ks_locrotscale == NULL)
+							posePaste_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+
+						/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+						cks.pchan= pchan;
+
+						modify_keyframes(scene, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
+
+						/* clear any unkeyed tags */
+						if (chan->bone)
+							chan->bone->flag &= ~BONE_UNKEYED;
+					}
+					else {
+						/* add unkeyed tags */
+						if (chan->bone)
+							chan->bone->flag |= BONE_UNKEYED;
+					}
 				}
 			}
 		}
+	}
+
+	if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+		View3D *v3d= CTX_wm_view3d(C);
+		autokeyframe_pose_cb_func(C, scene, v3d, ob, TFM_TRANSLATION, 0);
+		autokeyframe_pose_cb_func(C, scene, v3d, ob, TFM_ROTATION, 0);
+		autokeyframe_pose_cb_func(C, scene, v3d, ob, TFM_TIME_SCALE, 0);
 	}
 
 	/* Update event for pose and deformation children */

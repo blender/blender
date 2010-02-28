@@ -681,23 +681,71 @@ static int copy_exec(bContext *C, wmOperator *op)
 	char *buf_str;
 	
 	ConsoleLine *cl;
-	
+	int sel[2];
+	int offset= 0;
+
+#if 0
+	/* copy whole file */
 	for(cl= sc->scrollback.first; cl; cl= cl->next) {
 		BLI_dynstr_append(buf_dyn, cl->line);
 		BLI_dynstr_append(buf_dyn, "\n");
+	}
+#endif
+
+	if(sc->sel_start == sc->sel_end)
+		return OPERATOR_CANCELLED;
+
+
+	for(cl= sc->scrollback.first; cl; cl= cl->next) {
+		offset += cl->len + 1;
+	}
+
+	if(offset==0)
+		return OPERATOR_CANCELLED;
+
+
+	offset -= 1;
+	sel[0]= offset - sc->sel_end;
+	sel[1]= offset - sc->sel_start;
+
+	for(cl= sc->scrollback.first; cl; cl= cl->next) {
+
+		int sta= MAX2(0, sel[0]);
+		int end= MIN2(cl->len, sel[1]);
+
+		if(sel[0] <= cl->len && sel[1] >= 0) {
+			int str_len= cl->len;
+
+			/* highly confusing but draws correctly */
+			if(sel[0] < 0 || sel[1] > str_len) {
+				if(sel[0] > 0) {
+					end= sta;
+					sta= 0;
+				}
+				if (sel[1] <= str_len) {
+					sta= end;
+					end= str_len;
+				}
+			}
+			/* end confusement */
+
+			SWAP(int, sta, end);
+			end= cl->len - end;
+			sta= cl->len - sta;
+
+			if(BLI_dynstr_get_len(buf_dyn))
+				BLI_dynstr_append(buf_dyn, "\n");
+
+			BLI_dynstr_nappend(buf_dyn, cl->line + sta, end - sta);
+		}
+
+		sel[0] -= cl->len + 1;
+		sel[1] -= cl->len + 1;
 	}
 
 	buf_str= BLI_dynstr_get_cstring(buf_dyn);
 	buf_len= BLI_dynstr_get_len(buf_dyn);
 	BLI_dynstr_free(buf_dyn);
-
-	/* hack for selection */
-#if 0
-	if(sc->sel_start != sc->sel_end) {
-		buf_str[buf_len - sc->sel_start]= '\0';
-		WM_clipboard_text_set(buf_str+(buf_len - sc->sel_end), 0);
-	}
-#endif
 	WM_clipboard_text_set(buf_str, 0);
 
 	MEM_freeN(buf_str);
@@ -723,11 +771,28 @@ static int paste_exec(bContext *C, wmOperator *op)
 	ConsoleLine *ci= console_history_verify(C);
 
 	char *buf_str= WM_clipboard_text_get(0);
+	char *buf_step, *buf_next;
 
 	if(buf_str==NULL)
 		return OPERATOR_CANCELLED;
 
-	console_line_insert(ci, buf_str); /* TODO - Multiline copy?? */
+	buf_next= buf_str;
+	buf_step= buf_str;
+
+	while((buf_next=buf_step) && buf_next[0] != '\0') {
+		buf_step= strchr(buf_next, '\n');
+		if(buf_step) {
+			*buf_step= '\0';
+			buf_step++;
+		}
+
+		if(buf_next != buf_str) {
+			WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL);
+			ci= console_history_verify(C);
+		}
+
+		console_line_insert(ci, buf_next);
+	}
 
 	MEM_freeN(buf_str);
 

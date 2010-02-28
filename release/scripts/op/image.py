@@ -38,16 +38,16 @@ class SaveDirty(bpy.types.Operator):
                     self.report({'WARNING'}, "Path used by more then one image: " + path)
                 else:
                     unique_paths.add(path)
-                    image.save(path=path)
+                    image.save()
         return {'FINISHED'}
 
 
 def register():
     bpy.types.register(SaveDirty)
 
+
 def unregister():
     bpy.types.unregister(SaveDirty)
 
 if __name__ == "__main__":
     register()
-

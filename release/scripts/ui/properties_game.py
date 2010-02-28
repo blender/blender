@@ -29,7 +29,7 @@ class PhysicsButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         ob = context.active_object
-        rd = context.scene.render_data
+        rd = context.scene.render
         return ob and ob.game and (rd.engine == 'BLENDER_GAME')
 
 
@@ -166,7 +166,7 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel):
 
     def poll(self, context):
         game = context.object.game
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (game.physics_type in ('DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC')) and (rd.engine == 'BLENDER_GAME')
 
     def draw_header(self, context):
@@ -202,7 +202,7 @@ class RenderButtonsPanel(bpy.types.Panel):
     bl_context = "render"
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (rd.engine == 'BLENDER_GAME')
 
 
@@ -357,13 +357,13 @@ class RENDER_PT_game_performance(RenderButtonsPanel):
         col.prop(gs, "show_debug_properties", text="Debug Properties")
         col.prop(gs, "show_framerate_profile", text="Framerate and Profile")
         col.prop(gs, "show_physics_visualization", text="Physics Visualization")
-        col.prop(gs, "deprecation_warnings")
+        col.prop(gs, "use_deprecation_warnings")
 
         if wide_ui:
             col = split.column()
         col.label(text="Render:")
-        col.prop(gs, "all_frames")
-        col.prop(gs, "display_lists")
+        col.prop(gs, "use_frame_rate")
+        col.prop(gs, "use_display_lists")
 
 
 class RENDER_PT_game_sound(RenderButtonsPanel):
@@ -389,8 +389,8 @@ class WorldButtonsPanel(bpy.types.Panel):
     bl_context = "world"
 
     def poll(self, context):
-        rd = context.scene.render_data
-        return (rd.engine == 'BLENDER_GAME')
+        scene = context.scene
+        return (scene.render.engine == 'BLENDER_GAME') and (scene.world is not None)
 
 
 class WORLD_PT_game_context_world(WorldButtonsPanel):
@@ -398,7 +398,7 @@ class WORLD_PT_game_context_world(WorldButtonsPanel):
     bl_show_header = False
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (context.scene) and (rd.use_game_engine)
 
     def draw(self, context):
@@ -533,6 +533,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -540,4 +541,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

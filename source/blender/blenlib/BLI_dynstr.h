@@ -60,6 +60,15 @@ DynStr*	BLI_dynstr_new					(void);
 	 */
 void	BLI_dynstr_append				(DynStr *ds, const char *cstr);
 
+/**
+ * Append a length clamped c-string to a DynStr.
+ *
+ * @param ds The DynStr to append to.
+ * @param cstr The c-string to append.
+ * @param len The maximum length of the c-string to copy.
+ */
+void	BLI_dynstr_nappend				(DynStr *ds, const char *cstr, int len);
+
 	/**
 	 * Append a c-string to a DynStr, but with formatting like printf.
 	 * 

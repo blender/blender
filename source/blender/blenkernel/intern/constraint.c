@@ -1947,7 +1947,7 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 		
 		/* only execute target calculation if allowed */
 #ifndef DISABLE_PYTHON
-		if (G.f & G_DOSCRIPTLINKS)
+		if (G.f & G_SCRIPT_AUTOEXEC)
 			BPY_pyconstraint_target(data, ct);
 #endif
 	}
@@ -1963,7 +1963,7 @@ static void pycon_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targ
 	bPythonConstraint *data= con->data;
 	
 	/* only evaluate in python if we're allowed to do so */
-	if ((G.f & G_DOSCRIPTLINKS)==0)  return;
+	if ((G.f & G_SCRIPT_AUTOEXEC)==0)  return;
 	
 /* currently removed, until I this can be re-implemented for multiple targets */
 #if 0

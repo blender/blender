@@ -10,7 +10,7 @@ incs += ' #source/gameengine/GameLogic #source/gameengine/SceneGraph #source/gam
 incs += ' #source/gameengine/Rasterizer/RAS_OpenGLRasterizer'
 incs += ' #source/gameengine/BlenderRoutines'
 incs += ' #source/blender/editors/include #source/blender/blenlib #source/blender/blenkernel'
-incs += ' #source/blender/makesdna #source/blender/imbuf #source/blender/python'
+incs += ' #source/blender/makesdna #source/blender/imbuf #source/blender/python #source/blender/python/generic'
 incs += ' #source/blender/gpu #source/kernel/gen_system #intern/string #intern/moto/include'
 incs += ' #intern/guardedalloc #extern/glew/include'
 

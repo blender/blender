@@ -182,8 +182,7 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
     try:
         obj = scene.objects[name]
     except KeyError:
-        obj = bpy.data.objects.new(name, type='ARMATURE')
-        obj.data = bpy.data.armatures.new(name)
+        obj = bpy.data.objects.new(name, bpy.data.armatures.new(name))
         scene.objects.link(obj)
 
     obj.data.pose_position = 'POSE'
@@ -487,9 +486,8 @@ def generate_test(context, metarig_type="", GENERATE_FINAL=True):
     scene = context.scene
 
     def create_empty_armature(name):
-        obj_new = bpy.data.objects.new(name, 'ARMATURE')
         armature = bpy.data.armatures.new(name)
-        obj_new.data = armature
+        obj_new = bpy.data.objects.new(name, armature)
         scene.objects.link(obj_new)
         scene.objects.active = obj_new
         for obj in scene.objects:

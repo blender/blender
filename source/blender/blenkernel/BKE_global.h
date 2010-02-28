@@ -113,7 +113,7 @@ typedef struct Global {
 /* #define G_FACESELECT	(1 <<  8) use (mesh->editflag & ME_EDIT_PAINT_MASK) */
 
 #define G_DEBUG			(1 << 12)
-#define G_DOSCRIPTLINKS (1 << 13)
+#define G_SCRIPT_AUTOEXEC (1 << 13)
 
 /* #define G_NOFROZEN	(1 << 17) also removed */
 #define G_GREASEPENCIL 	(1 << 17)

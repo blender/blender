@@ -1333,8 +1333,14 @@ void mat4_to_dquat(DualQuat *dq,float basemat[][4], float mat[][4])
 
 	if((determinant_m4(mat) < 0.0f) || len_v3(dscale) > 1e-4) {
 		/* extract R and S  */
-		mat4_to_quat(basequat,baseRS);
-		quat_to_mat4(baseR,basequat);
+		float tmp[4][4];
+
+		 /* extra orthogonalize, to avoid flipping with stretched bones */
+		copy_m4_m4(tmp, baseRS);
+		orthogonalize_m4(tmp, 1);
+		mat4_to_quat(basequat, tmp);
+
+		quat_to_mat4(baseR, basequat);
 		copy_v3_v3(baseR[3], baseRS[3]);
 
 		invert_m4_m4(baseinv, basemat);

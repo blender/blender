@@ -166,7 +166,7 @@ def autocomplete(context):
 
     # Separate automplete output by command prompts
     if scrollback != '':
-        bpy.ops.console.scrollback_append(text=sc.prompt + current_line.line, type='INPUT')  
+        bpy.ops.console.scrollback_append(text=sc.prompt + current_line.line, type='INPUT')
 
     # Now we need to copy back the line from blender back into the
     # text editor. This will change when we dont use the text editor
@@ -201,12 +201,14 @@ def banner(context):
 
     return {'FINISHED'}
 
+
 def register():
     pass
+
 
 def unregister():
     pass
 
+
 if __name__ == "__main__":
     register()
-

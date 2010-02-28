@@ -171,9 +171,9 @@ class USERPREF_HT_header(bpy.types.Header):
             op.path = "keymap.py"
             op = layout.operator("wm.keyconfig_import", "Import Key Configuration...")
             op.path = "keymap.py"
-        elif userpref.active_section == 'EXTENSIONS':
+        elif userpref.active_section == 'ADDONS':
             layout.operator_context = 'INVOKE_DEFAULT'
-            op = layout.operator("wm.extension_install", "Install Extension...")
+            op = layout.operator("wm.addon_install", "Install Add-On...")
             op.path = "*.py"
 
 
@@ -429,7 +429,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.prop(system, "dpi")
         col.prop(system, "frame_server_port")
         col.prop(system, "scrollback", text="Console Scrollback")
-        col.prop(system, "auto_run_python_scripts")
+        col.prop(system, "auto_execute_scripts")
 
         col.separator()
         col.separator()
@@ -1366,21 +1366,21 @@ class USERPREF_PT_input(bpy.types.Panel):
         #print("runtime", time.time() - start)
 
 
-class USERPREF_PT_extensions(bpy.types.Panel):
+class USERPREF_PT_addons(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
-    bl_label = "Extensions"
+    bl_label = "Addons"
     bl_region_type = 'WINDOW'
     bl_show_header = False
 
     def poll(self, context):
         userpref = context.user_preferences
-        return (userpref.active_section == 'EXTENSIONS')
+        return (userpref.active_section == 'ADDONS')
 
-    def _extension_list(self):
+    def _addon_list(self):
         import sys
         modules = []
         loaded_modules = set()
-        paths = bpy.utils.script_paths("extensions")
+        paths = bpy.utils.script_paths("addons")
         # sys.path.insert(0, None)
         for path in paths:
             # sys.path[0] = path
@@ -1393,11 +1393,11 @@ class USERPREF_PT_extensions(bpy.types.Panel):
         layout = self.layout
 
         userpref = context.user_preferences
-        used_ext = {ext.module for ext in userpref.extensions}
+        used_ext = {ext.module for ext in userpref.addons}
 
         col = layout.column()
 
-        for mod in self._extension_list():
+        for mod in self._addon_list():
             box = col.box()
             row = box.row()
             text = mod.__doc__
@@ -1405,24 +1405,25 @@ class USERPREF_PT_extensions(bpy.types.Panel):
                 text = mod.__name__
             row.label(text=text)
             module_name = mod.__name__
-            row.operator("wm.extension_disable" if module_name in used_ext else "wm.extension_enable").module = module_name
+            row.operator("wm.addon_disable" if module_name in used_ext else "wm.addon_enable").module = module_name
 
 
 from bpy.props import *
 
-class WM_OT_extension_enable(bpy.types.Operator):
-    "Enable an extension"
-    bl_idname = "wm.extension_enable"
-    bl_label = "Enable Extension"
 
-    module = StringProperty(name="Module", description="Module name of the extension to enable")
+class WM_OT_addon_enable(bpy.types.Operator):
+    "Enable an addon"
+    bl_idname = "wm.addon_enable"
+    bl_label = "Enable Add-On"
+
+    module = StringProperty(name="Module", description="Module name of the addon to enable")
 
     def execute(self, context):
         import traceback
-        ext = context.user_preferences.extensions.new()
+        ext = context.user_preferences.addons.new()
         module_name = self.properties.module
         ext.module = module_name
-        
+
         try:
             mod = __import__(module_name)
             mod.register()
@@ -1432,12 +1433,12 @@ class WM_OT_extension_enable(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class WM_OT_extension_disable(bpy.types.Operator):
-    "Disable an extension"
-    bl_idname = "wm.extension_disable"
-    bl_label = "Disable Extension"
+class WM_OT_addon_disable(bpy.types.Operator):
+    "Disable an addon"
+    bl_idname = "wm.addon_disable"
+    bl_label = "Disable Add-On"
 
-    module = StringProperty(name="Module", description="Module name of the extension to disable")
+    module = StringProperty(name="Module", description="Module name of the addon to disable")
 
     def execute(self, context):
         import traceback
@@ -1448,27 +1449,27 @@ class WM_OT_extension_disable(bpy.types.Operator):
             mod.unregister()
         except:
             traceback.print_exc()
-        
-        extensions = context.user_preferences.extensions
+
+        addons = context.user_preferences.addons
         ok = True
         while ok: # incase its in more then once.
             ok = False
-            for ext in extensions:
+            for ext in addons:
                 if ext.module == module_name:
-                    extensions.remove(ext)
+                    addons.remove(ext)
                     ok = True
                     break
 
         return {'FINISHED'}
 
 
-class WM_OT_extension_install(bpy.types.Operator):
-    "Install an extension"
-    bl_idname = "wm.extension_install"
-    bl_label = "Install Extension"
+class WM_OT_addon_install(bpy.types.Operator):
+    "Install an addon"
+    bl_idname = "wm.addon_install"
+    bl_label = "Install Add-On"
 
-    module = StringProperty(name="Module", description="Module name of the extension to disable")
-    
+    module = StringProperty(name="Module", description="Module name of the addon to disable")
+
     path = StringProperty(name="File Path", description="File path to write file to")
     filename = StringProperty(name="File Name", description="Name of the file")
     directory = StringProperty(name="Directory", description="Directory of the file")
@@ -1477,35 +1478,48 @@ class WM_OT_extension_install(bpy.types.Operator):
 
     def execute(self, context):
         import traceback
+        import zipfile
         pyfile = self.properties.path
 
-        paths = bpy.utils.script_paths("extensions")
-        path_dest = os.path.join(paths[-1], os.path.basename(pyfile))
+        path_addons = bpy.utils.script_paths("addons")[-1]
 
-        if os.path.exists(path_dest):
-            self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
-            return {'CANCELLED'}
-        
-        if os.path.exists(path_dest):
-            self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
-            return {'CANCELLED'}
+        #check to see if the file is in compressed format (.zip)
+        if zipfile.is_zipfile(pyfile):
+            try:
+                file_to_extract = zipfile.ZipFile(pyfile, 'r')
 
-        try:
-            shutil.copyfile(pyfile, path_dest)
-        except:
-            traceback.print_exc()
-            return {'CANCELLED'}
+                #extract the file to "addons"
+                file_to_extract.extractall(path_addons)
+            
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
+
+        else:
+            path_dest = os.path.join(path_addons, os.path.basename(pyfile))
+
+            if os.path.exists(path_dest):
+                self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
+                return {'CANCELLED'}
+
+            #if not compressed file just copy into the addon path
+            try:
+                shutil.copyfile(pyfile, path_dest)
+
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
 
         # TODO, should not be a warning.
         # self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
         return {'FINISHED'}
 
     def invoke(self, context, event):
-        paths = bpy.utils.script_paths("extensions")
+        paths = bpy.utils.script_paths("addons")
         if not paths:
-            self.report({'ERROR'}, "No 'extensions' path could be found in " + str(bpy.utils.script_paths()))
+            self.report({'ERROR'}, "No 'addons' path could be found in " + str(bpy.utils.script_paths()))
             return {'CANCELLED'}
-        
+
         wm = context.manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
@@ -1620,27 +1634,10 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
 
 
 def _string_value(value):
-    result = ""
-    if isinstance(value, str):
-        if value != "":
-            result = "\'%s\'" % value
-    elif isinstance(value, bool):
-        if value:
-            result = "True"
-        else:
-            result = "False"
-    elif isinstance(value, float):
-        result = "%.10f" % value
-    elif isinstance(value, int):
-        result = "%d" % value
+    if isinstance(value, str) or isinstance(value, bool) or isinstance(value, float) or isinstance(value, int):
+        result = repr(value)
     elif getattr(value, '__len__', False):
-        if len(value):
-            result = "["
-            for i in range(0, len(value)):
-                result += _string_value(value[i])
-                if i != len(value)-1:
-                    result += ", "
-            result += "]"
+        repr(list(value))
     else:
         print("Export key configuration: can't write ", value)
 
@@ -1695,7 +1692,7 @@ class WM_OT_keyconfig_import(bpy.types.Operator):
 
         __import__(config_name)
 
-        wm = bpy.data.window_managers[0]
+        wm = bpy.context.manager
         wm.active_keyconfig = wm.keyconfigs[config_name]
 
         return {'FINISHED'}
@@ -1737,7 +1734,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
         f.write("# Configuration %s\n" % name)
 
         f.write("import bpy\n\n")
-        f.write("wm = bpy.data.window_managers[0]\n")
+        f.write("wm = bpy.context.manager\n")
         f.write("kc = wm.add_keyconfig('%s')\n\n" % name)
 
         for km in kc.keymaps:
@@ -1916,11 +1913,11 @@ classes = [
     USERPREF_PT_system,
     USERPREF_PT_file,
     USERPREF_PT_input,
-    USERPREF_PT_extensions,
-    
-    WM_OT_extension_enable,
-    WM_OT_extension_disable,
-    WM_OT_extension_install,
+    USERPREF_PT_addons,
+
+    WM_OT_addon_enable,
+    WM_OT_addon_disable,
+    WM_OT_addon_install,
 
     WM_OT_keyconfig_export,
     WM_OT_keyconfig_import,
@@ -1938,6 +1935,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -1945,4 +1943,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

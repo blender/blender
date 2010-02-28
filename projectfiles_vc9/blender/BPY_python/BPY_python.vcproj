@@ -426,6 +426,10 @@
 			Filter="h;hpp;hxx;hm;inl"
 			>
 			<File
+				RelativePath="..\..\..\source\blender\python\generic\BGL.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\BPY_extern.h"
 				>
 			</File>

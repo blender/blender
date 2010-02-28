@@ -86,7 +86,8 @@ static PyObject * imageToArray (PyObject * self, PyObject *args)
 {
 	// parameter is Image object
 	PyObject * pyImg;
-	if (!PyArg_ParseTuple(args, "O:imageToArray", &pyImg) || !pyImageTypes.in(pyImg->ob_type))
+	char *mode = NULL;
+	if (!PyArg_ParseTuple(args, "O|s:imageToArray", &pyImg, &mode) || !pyImageTypes.in(pyImg->ob_type))
 	{
 		// if object is incorect, report error
 		PyErr_SetString(PyExc_TypeError, "VideoTexture.imageToArray(image): The value must be a image source object");
@@ -94,16 +95,7 @@ static PyObject * imageToArray (PyObject * self, PyObject *args)
 	}
 	// get image structure
 	PyImage * img = reinterpret_cast<PyImage*>(pyImg);
-	// create array object
-	unsigned int * imgBuff = img->m_image->getImage();
-	// if image is available, convert it to array
-	if (imgBuff != NULL)
-        // Nasty problem here: the image buffer is an array of integers 
-        // in the processor endian format. The user must take care of that in the script. 
-        // Need to find an elegant solution to this problem 
-        return Py_BuildValue("s#", imgBuff, img->m_image->getBuffSize());
-	// otherwise return None
-	Py_RETURN_NONE;
+	return Image_getImage(img, mode);
 }
 
 
@@ -113,7 +105,7 @@ static PyMethodDef moduleMethods[] =
 	{"materialID", getMaterialID, METH_VARARGS, "Gets object's Blender Material ID"},
 	{"getLastError", getLastError, METH_NOARGS, "Gets last error description"},
 	{"setLogFile", setLogFile, METH_VARARGS, "Sets log file name"},
-	{"imageToArray", imageToArray, METH_VARARGS, "get array from image source"},
+	{"imageToArray", imageToArray, METH_VARARGS, "get buffer from image source, color channels are selectable"},
 	{NULL}  /* Sentinel */
 };
 

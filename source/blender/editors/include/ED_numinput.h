@@ -33,6 +33,7 @@ typedef struct NumInput {
     char   inv[3];      /* If the value is inverted or not                                                */
     float  val[3];      /* Direct value of the input                                                      */
     int    ctrl[3];     /* Control to indicate what to do with the numbers that are typed                 */
+    float  increment;
 } NumInput ;
 
 /* NUMINPUT FLAGS */
@@ -48,7 +49,7 @@ void initNumInput(NumInput *n);
 void outputNumInput(NumInput *n, char *str);
 short hasNumInput(NumInput *n);
 void applyNumInput(NumInput *n, float *vec);
-char handleNumInput(NumInput *n, struct wmEvent *event, float increment);
+char handleNumInput(NumInput *n, struct wmEvent *event);
 
 #define NUM_MODAL_INCREMENT_UP   18
 #define NUM_MODAL_INCREMENT_DOWN 19

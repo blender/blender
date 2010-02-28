@@ -203,9 +203,9 @@ static int ptcache_write_particle(int index, void *psys_v, void **data)
 	ParticleData *pa = psys->particles + index;
 	BoidParticle *boid = (psys->part->phystype == PART_PHYS_BOIDS) ? pa->boid : NULL;
 	float times[3] = {pa->time, pa->dietime, pa->lifetime};
+	int step = psys->pointcache->step;
 
 	if(data[BPHYS_DATA_INDEX]) {
-		int step = psys->pointcache->step;
 		/* No need to store unborn or died particles */
 		if(pa->time - step > pa->state.time || pa->dietime + step < pa->state.time)
 			return 0;
@@ -222,7 +222,8 @@ static int ptcache_write_particle(int index, void *psys_v, void **data)
 	if(boid)
 		PTCACHE_DATA_FROM(data, BPHYS_DATA_BOIDS, &boid->data);
 
-	return 1;
+	/* return flag 1+1=2 for newly born particles to copy exact birth location to previously cached frame */
+	return 1 + (pa->state.time >= pa->time && pa->prev_state.time <= pa->time);
 }
 void BKE_ptcache_make_particle_key(ParticleKey *key, int index, void **data, float time)
 {
@@ -248,6 +249,10 @@ static void ptcache_read_particle(int index, void *psys_v, void **data, float fr
 	}
 
 	BKE_ptcache_make_particle_key(&pa->state, 0, data, cfra);
+
+	/* set frames cached before birth to birth time */
+	if(cfra < pa->time)
+		pa->state.time = pa->time;
 
 	if(data[BPHYS_DATA_SIZE])
 		PTCACHE_DATA_TO(data, BPHYS_DATA_SIZE, 0, &pa->size);
@@ -1148,6 +1153,9 @@ static PTCacheFile *ptcache_file_open(PTCacheID *pid, int mode, int cfra)
 	} else if (mode==PTCACHE_FILE_WRITE) {
 		BLI_make_existing_file(filename); /* will create the dir if needs be, same as //textures is created */
 		fp = fopen(filename, "wb");
+	} else if (mode==PTCACHE_FILE_UPDATE) {
+		BLI_make_existing_file(filename);
+		fp = fopen(filename, "rb+");
 	}
 
  	if (!fp)
@@ -1253,6 +1261,18 @@ static void ptcache_file_init_pointers(PTCacheFile *pf)
 	pf->cur[BPHYS_DATA_BOIDS] =		data_types & (1<<BPHYS_DATA_BOIDS) ?		&pf->data.boids	: NULL;
 }
 
+static void ptcache_file_seek_pointers(int index, PTCacheFile *pf)
+{
+	int i, size=0;
+	int data_types = pf->data_types;
+
+	for(i=0; i<BPHYS_TOT_DATA; i++)
+		size += pf->data_types & (1<<i) ? ptcache_data_size[i] : 0;
+
+	ptcache_file_init_pointers(pf);
+	/* size of default header + data up to index */
+	fseek(pf->fp, 8 + 3*sizeof(int) + index * size, SEEK_SET);
+}
 void BKE_ptcache_mem_init_pointers(PTCacheMem *pm)
 {
 	int data_types = pm->data_types;
@@ -1270,6 +1290,14 @@ void BKE_ptcache_mem_incr_pointers(PTCacheMem *pm)
 		if(pm->cur[i])
 			pm->cur[i] = (char*)pm->cur[i] + ptcache_data_size[i];
 	}
+}
+void BKE_ptcache_mem_seek_pointers(int index, PTCacheMem *pm)
+{
+	int data_types = pm->data_types;
+	int i;
+
+	for(i=0; i<BPHYS_TOT_DATA; i++)
+		pm->cur[i] = data_types & (1<<i) ? (char*)pm->data[i] + index * ptcache_data_size[i] : NULL;
 }
 static void ptcache_alloc_data(PTCacheMem *pm)
 {
@@ -1453,7 +1481,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 			else if(pid->read_header(pf2)) {
 				ptcache_file_init_pointers(pf2);
 				totpoint2 = pf2->totpoint;
-				index2 = pf->data_types & BPHYS_DATA_INDEX ? &pf2->data.index : &i;
+				index2 = pf2->data_types & BPHYS_DATA_INDEX ? &pf2->data.index : &i;
 			}
 		}
 		else {
@@ -1615,7 +1643,7 @@ int BKE_ptcache_read_cache(PTCacheID *pid, float cfra, float frs_sec)
 int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 {
 	PointCache *cache = pid->cache;
-	PTCacheFile *pf= NULL;
+	PTCacheFile *pf= NULL, *pf2= NULL;
 	int i;
 	int totpoint = pid->totpoint(pid->calldata);
 	int add = 0, overwrite = 0;
@@ -1625,7 +1653,7 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 		return 0;
 
 	if(cache->flag & PTCACHE_DISK_CACHE) {
-		int efra = cache->endframe;
+		int ofra, efra = cache->endframe;
 
 		if(cfra==0)
 			add = 1;
@@ -1636,7 +1664,6 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 			add = 1;
 		}
 		else {
-			int ofra;
 			/* find last cached frame */
 			while(efra > cache->startframe && !BKE_ptcache_id_exist(pid, efra))
 				efra--;
@@ -1679,11 +1706,36 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 			}
 			else
 				for(i=0; i<totpoint; i++) {
-					if(pid->write_elem && pid->write_elem(i, pid->calldata, pf->cur))
-						if(!ptcache_file_write_data(pf)) {
-							ptcache_file_close(pf);
-							return 0;
+					if(pid->write_elem) {
+						int write = pid->write_elem(i, pid->calldata, pf->cur);
+						if(write) {
+							if(!ptcache_file_write_data(pf)) {
+								ptcache_file_close(pf);
+								if(pf2) ptcache_file_close(pf2);
+								return 0;
+							}
+							/* newly born particles have to be copied to previous cached frame */
+							else if(overwrite && write == 2) {
+								if(!pf2) {
+									pf2 = ptcache_file_open(pid, PTCACHE_FILE_UPDATE, ofra);
+									if(!pf2) {
+										ptcache_file_close(pf);
+										return 0;
+									}
+									pf2->type = pid->type;
+									pf2->totpoint = totpoint;
+									pf2->data_types = pid->data_types;
+								}
+								ptcache_file_seek_pointers(i, pf2);
+								pid->write_elem(i, pid->calldata, pf2->cur);
+								if(!ptcache_file_write_data(pf2)) {
+									ptcache_file_close(pf);
+									ptcache_file_close(pf2);
+									return 0;
+								}
+							}
 						}
+					}
 				}
 		}
 	}
@@ -1728,8 +1780,19 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 			BKE_ptcache_mem_init_pointers(pm);
 
 			for(i=0; i<totpoint; i++) {
-				if(pid->write_elem && pid->write_elem(i, pid->calldata, pm->cur))
-					BKE_ptcache_mem_incr_pointers(pm);
+				if(pid->write_elem) {
+					int write = pid->write_elem(i, pid->calldata, pm->cur);
+					if(write) {
+						BKE_ptcache_mem_incr_pointers(pm);
+
+						/* newly born particles have to be copied to previous cached frame */
+						if(overwrite && write == 2) {
+							pm2 = cache->mem_cache.last;
+							BKE_ptcache_mem_seek_pointers(i, pm2);
+							pid->write_elem(i, pid->calldata, pm2->cur);
+						}
+					}
+				}
 			}
 			//ptcache_make_index_array(pm, pid->totpoint(pid->calldata));
 
@@ -1748,8 +1811,9 @@ int BKE_ptcache_write_cache(PTCacheID *pid, int cfra)
 			cache->flag |= PTCACHE_FRAMES_SKIPPED;
 	}
 	
-	if(pf)
-		ptcache_file_close(pf);
+	if(pf) ptcache_file_close(pf);
+
+	if(pf2) ptcache_file_close(pf2);
 
 	BKE_ptcache_update_info(pid);
 

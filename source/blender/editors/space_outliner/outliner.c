@@ -3977,14 +3977,14 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 					{
 						/* add a new path with the information obtained (only if valid) */
 						// TODO: what do we do with group name? for now, we don't supply one, and just let this use the KeyingSet name
-						BKE_keyingset_add_destination(ks, id, NULL, path, array_index, flag, groupmode);
+						BKE_keyingset_add_path(ks, id, NULL, path, array_index, flag, groupmode);
 						ks->active_path= BLI_countlist(&ks->paths);
 					}
 						break;
 					case KEYINGSET_EDITMODE_REMOVE:
 					{
 						/* find the relevant path, then remove it from the KeyingSet */
-						KS_Path *ksp= BKE_keyingset_find_destination(ks, id, NULL, path, array_index, groupmode);
+						KS_Path *ksp= BKE_keyingset_find_path(ks, id, NULL, path, array_index, groupmode);
 						
 						if (ksp) {
 							/* free path's data */

@@ -30,6 +30,7 @@
 #include <stdio.h>
 
 #include "RNA_define.h"
+#include "RNA_access.h"
 #include "RNA_types.h"
 #include "RNA_enum_types.h"
 
@@ -38,6 +39,7 @@
 #ifdef RNA_RUNTIME
 
 #include "BKE_main.h"
+#include "BKE_curve.h"
 #include "BKE_mesh.h"
 #include "BKE_armature.h"
 #include "BKE_library.h"
@@ -109,12 +111,54 @@ void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, struc
 	unlink_scene(bmain, scene, newscene);
 }
 
-Object *rna_Main_objects_new(Main *bmain, char* name, int type)
+Object *rna_Main_objects_new(Main *bmain, ReportList *reports, char* name, ID *data)
 {
-	Object *ob= add_only_object(type, name);
+	Object *ob;
+	int type= OB_EMPTY;
+	if(data) {
+		switch(GS(data->name)) {
+			case ID_ME:
+				type= OB_MESH;
+				break;
+			case ID_CU:
+				type= curve_type((struct Curve *)data);
+				break;
+			case ID_MB:
+				type= OB_MBALL;
+				break;
+			case ID_LA:
+				type= OB_LAMP;
+				break;
+			case ID_CA:
+				type= OB_CAMERA;
+				break;
+			case ID_LT:
+				type= OB_LATTICE;
+				break;
+			case ID_AR:
+				type= OB_ARMATURE;
+				break;
+			default:
+			{
+				const char *idname;
+				if(RNA_enum_id_from_value(id_type_items, GS(data->name), &idname) == 0)
+					idname= "UNKNOWN";
+
+				BKE_reportf(reports, RPT_ERROR, "ID type '%s' is not valid for a object.", idname);
+				return NULL;
+			}
+		}
+
+		data->us++;
+	}
+
+	ob= add_only_object(type, name);
 	ob->id.us--;
+
+	ob->data= data;
 	return ob;
 }
+
 void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *object)
 {
 	/*
@@ -337,10 +381,11 @@ void RNA_def_main_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_ui_text(srna, "Main Objects", "Collection of objects");
 
 	func= RNA_def_function(srna, "new", "rna_Main_objects_new");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add a new object to the main database");
 	parm= RNA_def_string(func, "name", "Object", 0, "", "New name for the datablock.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_enum(func, "type", object_type_items, 0, "", "Type of Object.");
+	parm= RNA_def_pointer(func, "object_data", "ID", "", "Object data or None for an empty object.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	/* return type */

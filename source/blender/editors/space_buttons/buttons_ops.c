@@ -38,6 +38,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_screen.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -75,6 +77,7 @@ void BUTTONS_OT_toolbox(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= toolbox_invoke;
+	ot->poll= ED_operator_buttons_active;
 }
 
 /********************** filebrowse operator *********************/

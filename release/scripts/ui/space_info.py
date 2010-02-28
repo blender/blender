@@ -28,7 +28,7 @@ class INFO_HT_header(bpy.types.Header):
 
         window = context.window
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
 
         row = layout.row(align=True)
         row.template_header()
@@ -253,7 +253,8 @@ class INFO_MT_game(bpy.types.Menu):
         layout.prop(gs, "show_debug_properties")
         layout.prop(gs, "show_framerate_profile")
         layout.prop(gs, "show_physics_visualization")
-        layout.prop(gs, "deprecation_warnings")
+        layout.prop(gs, "use_deprecation_warnings")
+        layout.prop(gs, "use_animation_record")
 
 
 class INFO_MT_render(bpy.types.Menu):
@@ -262,7 +263,7 @@ class INFO_MT_render(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        # rd = context.scene.render_data
+        # rd = context.scene.render
 
         layout.operator("screen.render", text="Render Image", icon='RENDER_STILL')
         layout.operator("screen.render", text="Render Animation", icon='RENDER_ANIMATION').animation = True
@@ -422,6 +423,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -429,4 +431,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

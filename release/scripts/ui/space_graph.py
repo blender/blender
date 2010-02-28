@@ -148,7 +148,7 @@ class GRAPH_MT_channel(bpy.types.Menu):
         layout.operator("anim.channels_collapse")
 
         layout.separator()
-        layout.operator("graph.discont_filter", text="Discontinuity (Euler) Filter")
+        layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
 
 
 class GRAPH_MT_key(bpy.types.Menu):
@@ -185,6 +185,7 @@ class GRAPH_MT_key(bpy.types.Menu):
         layout.operator("graph.copy")
         layout.operator("graph.paste")
 
+
 class GRAPH_MT_key_transform(bpy.types.Menu):
     bl_label = "Transform"
 
@@ -212,6 +213,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -219,4 +221,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

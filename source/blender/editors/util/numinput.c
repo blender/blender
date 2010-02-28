@@ -159,7 +159,7 @@ void applyNumInput(NumInput *n, float *vec)
 	}
 }
 
-char handleNumInput(NumInput *n, wmEvent *event, float increment)
+char handleNumInput(NumInput *n, wmEvent *event)
 {
 	float Val = 0;
 	short idx = n->idx, idx_max = n->idx_max;
@@ -170,13 +170,13 @@ char handleNumInput(NumInput *n, wmEvent *event, float increment)
 			if (!n->ctrl[idx])
 				n->ctrl[idx] = 1;
 
-	        n->val[idx] += increment;
+	        n->val[idx] += n->increment;
 			break;
 		case NUM_MODAL_INCREMENT_DOWN:
 			if (!n->ctrl[idx])
 				n->ctrl[idx] = 1;
 
-	        n->val[idx] -= increment;
+	        n->val[idx] -= n->increment;
 			break;
 		default:
 			return 0;
@@ -300,6 +300,8 @@ char handleNumInput(NumInput *n, wmEvent *event, float increment)
 		}
 	}
 	
+	printf("%f\n", n->val[idx]);
+
 	/* REDRAW SINCE NUMBERS HAVE CHANGED */
 	return 1;
 }

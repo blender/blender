@@ -304,6 +304,10 @@ void *VideoFFmpeg::cacheThread(void *data)
 	CachePacket *cachePacket;
 	bool endOfFile = false;
 	int frameFinished = 0;
+	double timeBase = av_q2d(video->m_formatCtx->streams[video->m_videoStream]->time_base);
+	int64_t startTs = video->m_formatCtx->streams[video->m_videoStream]->start_time;
+	if (startTs == AV_NOPTS_VALUE)
+		startTs = 0;
 
 	while (!video->m_stopThread)
 	{
@@ -390,7 +394,8 @@ void *VideoFFmpeg::cacheThread(void *data)
 							currentFrame->frame->data,
 							currentFrame->frame->linesize);
 						// move frame to queue, this frame is necessarily the next one
-						currentFrame->framePosition = ++video->m_curPosition;
+						video->m_curPosition = (long)((cachePacket->packet.dts-startTs) * (video->m_baseFrameRate*timeBase) + 0.5);
+						currentFrame->framePosition = video->m_curPosition;
 						pthread_mutex_lock(&video->m_cacheMutex);
 						BLI_addtail(&video->m_frameCacheBase, currentFrame);
 						pthread_mutex_unlock(&video->m_cacheMutex);
@@ -723,28 +728,23 @@ void VideoFFmpeg::setFrameRate (float rate)
 
 
 // image calculation
-void VideoFFmpeg::calcImage (unsigned int texId, double ts)
-{
-	loadFrame(ts);
-}
-
-
 // load frame from video
-void VideoFFmpeg::loadFrame (double ts)
+void VideoFFmpeg::calcImage (unsigned int texId, double ts)
 {
 	if (m_status == SourcePlaying)
 	{
 		// get actual time
 		double startTime = PIL_check_seconds_timer();
 		double actTime;
-		if (m_isFile && ts >= 0.0)
+		// timestamp passed from audio actuators can sometimes be slightly negative
+		if (m_isFile && ts >= -0.5)
 		{
 			// allow setting timestamp only when not streaming
 			actTime = ts;
-			if (m_eof && actTime * actFrameRate() < m_lastFrame) 
+			if (actTime * actFrameRate() < m_lastFrame) 
 			{
-				// user is asking to rewind while the playback is already finished in the cache.
-				// we must clean the cache otherwise the eof condition will prevent any further reading.
+				// user is asking to rewind, force a cache clear to make sure we will do a seek
+				// note that this does not decrement m_repeat if ts didn't reach m_range[1]
 				stopCache();
 			}
 		}
@@ -846,8 +846,9 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 	int frameFinished;
 	int posFound = 1;
 	bool frameLoaded = false;
-	long long targetTs = 0;
+	int64_t targetTs = 0;
 	CacheFrame *frame;
+	int64_t dts = 0;
 
 	if (m_cacheStarted)
 	{
@@ -881,6 +882,10 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 			{
 				return frame->frame;
 			}
+			if (frame->framePosition > position)
+				// this can happen after rewind if the seek didn't find the first frame
+				// the frame in the buffer is ahead of time, just leave it there
+				return NULL;
 			// this frame is not useful, release it
 			pthread_mutex_lock(&m_cacheMutex);
 			BLI_remlink(&m_frameCacheBase, frame);
@@ -888,6 +893,11 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 			pthread_mutex_unlock(&m_cacheMutex);
 		} while (true);
 	}
+	double timeBase = av_q2d(m_formatCtx->streams[m_videoStream]->time_base);
+	int64_t startTs = m_formatCtx->streams[m_videoStream]->start_time;
+	if (startTs == AV_NOPTS_VALUE)
+		startTs = 0;
+
 	// come here when there is no cache or cache has been stopped
 	// locate the frame, by seeking if necessary (seeking is only possible for files)
 	if (m_isFile)
@@ -907,7 +917,9 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 						m_frame, &frameFinished, 
 						packet.data, packet.size);
 					if (frameFinished)
-						m_curPosition++;
+					{
+						m_curPosition = (long)((packet.dts-startTs) * (m_baseFrameRate*timeBase) + 0.5);
+					}
 				}
 				av_free_packet(&packet);
 				if (position == m_curPosition+1)
@@ -917,16 +929,13 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 		// if the position is not in preseek, do a direct jump
 		if (position != m_curPosition + 1) 
 		{ 
-			double timeBase = av_q2d(m_formatCtx->streams[m_videoStream]->time_base);
 			int64_t pos = (int64_t)((position - m_preseek) / (m_baseFrameRate*timeBase));
-			int64_t startTs = m_formatCtx->streams[m_videoStream]->start_time;
 			int seekres;
 
 			if (pos < 0)
 				pos = 0;
 
-			if (startTs != AV_NOPTS_VALUE)
-				pos += startTs;
+			pos += startTs;
 
 			if (position <= m_curPosition || !m_eof)
 			{
@@ -958,9 +967,7 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 				}
 			}
 			// this is the timestamp of the frame we're looking for
-			targetTs = (int64_t)(position / (m_baseFrameRate * timeBase));
-			if (startTs != AV_NOPTS_VALUE)
-				targetTs += startTs;
+			targetTs = (int64_t)(position / (m_baseFrameRate * timeBase)) + startTs;
 
 			posFound = 0;
 			avcodec_flush_buffers(m_codecCtx);
@@ -984,14 +991,17 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 			avcodec_decode_video(m_codecCtx, 
 				m_frame, &frameFinished, 
 				packet.data, packet.size);
-
+			// remember dts to compute exact frame number
+			dts = packet.dts;
 			if (frameFinished && !posFound) 
 			{
-				if (packet.dts >= targetTs)
+				if (dts >= targetTs)
+				{
 					posFound = 1;
+				}
 			} 
 
-			if(frameFinished && posFound == 1) 
+			if (frameFinished && posFound == 1) 
 			{
 				AVFrame * input = m_frame;
 
@@ -1034,7 +1044,7 @@ AVFrame *VideoFFmpeg::grabFrame(long position)
 	m_eof = m_isFile && !frameLoaded;
 	if (frameLoaded)
 	{
-		m_curPosition = position;
+		m_curPosition = (long)((dts-startTs) * (m_baseFrameRate*timeBase) + 0.5);
 		if (m_isThreaded)
 		{
 			// normal case for file: first locate, then start cache
@@ -1162,6 +1172,7 @@ static PyGetSetDef videoGetSets[] =
 	{(char*)"repeat", (getter)Video_getRepeat, (setter)Video_setRepeat, (char*)"repeat count, -1 for infinite repeat", NULL},
 	{(char*)"framerate", (getter)Video_getFrameRate, (setter)Video_setFrameRate, (char*)"frame rate", NULL},
 	// attributes from ImageBase class
+	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
@@ -1193,7 +1204,7 @@ PyTypeObject VideoFFmpegType =
 	0,                         /*tp_str*/
 	0,                         /*tp_getattro*/
 	0,                         /*tp_setattro*/
-	0,                         /*tp_as_buffer*/
+	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"FFmpeg video source",       /* tp_doc */
 	0,		               /* tp_traverse */
@@ -1282,6 +1293,7 @@ static PyGetSetDef imageGetSets[] =
 { // methods from VideoBase class
 	{(char*)"status", (getter)Video_getStatus, NULL, (char*)"video status", NULL},
 	// attributes from ImageBase class
+	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
@@ -1311,7 +1323,7 @@ PyTypeObject ImageFFmpegType =
 	0,                         /*tp_str*/
 	0,                         /*tp_getattro*/
 	0,                         /*tp_setattro*/
-	0,                         /*tp_as_buffer*/
+	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"FFmpeg image source",       /* tp_doc */
 	0,		               /* tp_traverse */

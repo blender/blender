@@ -177,8 +177,16 @@ int ImageViewport_setWhole (PyImage * self, PyObject * value, void * closure)
 		PyErr_SetString(PyExc_TypeError, "The value must be a bool");
 		return -1;
 	}
-	// set whole
-	if (self->m_image != NULL) getImageViewport(self)->setWhole(value == Py_True);
+	try
+	{
+		// set whole, can throw in case of resize and buffer exports
+		if (self->m_image != NULL) getImageViewport(self)->setWhole(value == Py_True);
+	}
+	catch (Exception & exp)
+	{
+		exp.report();
+		return -1;
+	}
 	// success
 	return 0;
 }
@@ -257,7 +265,16 @@ int ImageViewport_setCaptureSize (PyImage * self, PyObject * value, void * closu
 		short(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 0))),
 			short(PyLong_AsSsize_t(PySequence_Fast_GET_ITEM(value, 1)))
 	};
-	getImageViewport(self)->setCaptureSize(size);
+	try
+	{
+		// can throw in case of resize and buffer exports
+		getImageViewport(self)->setCaptureSize(size);
+	}
+	catch (Exception & exp)
+	{
+		exp.report();
+		return -1;
+	}
 	// success
 	return 0;
 }
@@ -277,6 +294,7 @@ static PyGetSetDef imageViewportGetSets[] =
 	{(char*)"capsize", (getter)ImageViewport_getCaptureSize, (setter)ImageViewport_setCaptureSize, (char*)"size of viewport area being captured", NULL},
 	{(char*)"alpha", (getter)ImageViewport_getAlpha, (setter)ImageViewport_setAlpha, (char*)"use alpha in texture", NULL},
 	// attributes from ImageBase class
+	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
@@ -307,7 +325,7 @@ PyTypeObject ImageViewportType =
 	0,                         /*tp_str*/
 	0,                         /*tp_getattro*/
 	0,                         /*tp_setattro*/
-	0,                         /*tp_as_buffer*/
+	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"Image source from viewport",       /* tp_doc */
 	0,		               /* tp_traverse */

@@ -83,7 +83,7 @@ class RenderButtonsPanel(bpy.types.Panel):
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
 
 # Setting panel, use in the scene for now.
@@ -136,7 +136,7 @@ class RENDER_PT_network_slave_settings(RenderButtonsPanel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
         netsettings = scene.network_render
 
         layout.prop(netsettings, "slave_clear")

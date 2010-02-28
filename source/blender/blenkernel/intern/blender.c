@@ -291,8 +291,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	if (G.f & G_SWAP_EXCHANGE) bfd->globalf |= G_SWAP_EXCHANGE;
 	else bfd->globalf &= ~G_SWAP_EXCHANGE;
 
-	if ((U.flag & USER_DONT_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
-
 	G.f= bfd->globalf;
 
 	if (!G.background) {
@@ -358,7 +356,7 @@ void BKE_userdef_free(void)
 	BLI_freelistN(&U.uifonts);
 	BLI_freelistN(&U.themes);
 	BLI_freelistN(&U.keymaps);
-	BLI_freelistN(&U.extensions);
+	BLI_freelistN(&U.addons);
 }
 
 /* returns:

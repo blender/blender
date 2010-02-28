@@ -55,6 +55,7 @@
 /* File open options, for BKE_ptcache_file_open */
 #define PTCACHE_FILE_READ	0
 #define PTCACHE_FILE_WRITE	1
+#define PTCACHE_FILE_UPDATE	2
 
 /* PTCacheID types */
 #define PTCACHE_TYPE_SOFTBODY			0

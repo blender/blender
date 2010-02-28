@@ -39,7 +39,7 @@ class ExportUVLayout(bpy.types.Operator):
                 name="Format",
                 description="File format to export the UV layout to",
                 default='SVG')
-    
+
     def poll(self, context):
         obj = context.active_object
         return (obj and obj.type == 'MESH')
@@ -71,18 +71,18 @@ class ExportUVLayout(bpy.types.Operator):
         mesh = obj.data
         uv_layer = mesh.active_uv_texture.data
         uv_layer_len = len(uv_layer)
-        
+
         if not self.properties.export_all:
-            
+
             local_image = Ellipsis
 
             if context.tool_settings.uv_local_view:
                 space_data = self._space_image(context)
                 if space_data:
                     local_image = space_data.image
-            
+
             faces = mesh.faces
-            
+
             for i in range(uv_layer_len):
                 uv_elem = uv_layer[i]
                 # context checks
@@ -90,16 +90,13 @@ class ExportUVLayout(bpy.types.Operator):
                     #~ uv = uv_elem.uv
                     #~ if False not in uv_elem.uv_selected[:len(uv)]:
                     #~     yield (i, uv)
-                    
+
                     # just write what we see.
                     yield (i, uv_layer[i].uv)
         else:
             # all, simple
             for i in range(uv_layer_len):
                 yield (i, uv_layer[i].uv)
-        
-        
-        
 
     def execute(self, context):
         # for making an XML compatible string
@@ -116,7 +113,7 @@ class ExportUVLayout(bpy.types.Operator):
         faces = mesh.faces
 
         mode = self.properties.mode
-        
+
         file = open(self.properties.path, "w")
         fw = file.write
 
@@ -129,13 +126,13 @@ class ExportUVLayout(bpy.types.Operator):
             fw('     xmlns="http://www.w3.org/2000/svg" version="1.1">\n')
             desc = "%s, %s, %s (Blender %s)" % (basename(bpy.data.filename), obj.name, mesh.name, bpy.app.version_string)
             fw('<desc>%s</desc>\n' % escape(desc))
-    
+
             # svg colors
             fill_settings = []
             fill_default = 'fill="grey"'
             for mat in mesh.materials if mesh.materials else [None]:
                 if mat:
-                    fill_settings.append('fill="rgb(%d, %d, %d)"' % tuple(int(c*255) for c in mat.diffuse_color))
+                    fill_settings.append('fill="rgb(%d, %d, %d)"' % tuple(int(c * 255) for c in mat.diffuse_color))
                 else:
                     fill_settings.append(fill_default)
 
@@ -144,10 +141,10 @@ class ExportUVLayout(bpy.types.Operator):
                     fill = fill_settings[faces[i].material_index]
                 except IndexError:
                     fill = fill_default
-    
+
                 fw('<polygon %s fill-opacity="0.5" stroke="black" stroke-width="1px" \n' % fill)
                 fw('  points="')
-                
+
                 for j, uv in enumerate(uvs):
                     x, y = uv[0], 1.0 - uv[1]
                     fw('%.3f,%.3f ' % (x * image_width, y * image_height))
@@ -172,15 +169,15 @@ class ExportUVLayout(bpy.types.Operator):
             fw('1 setlinejoin\n')
             fw('1 setlinecap\n')
             fw('newpath\n')
-            
+
             for i, uvs in self._face_uv_iter(context):
                 for j, uv in enumerate(uvs):
                     x, y = uv[0], uv[1]
-                    if j==0:
+                    if j == 0:
                         fw('%.5f %.5f moveto\n' % (x * image_width, y * image_height))
                     else:
                         fw('%.5f %.5f lineto\n' % (x * image_width, y * image_height))
-            
+
             fw('closepath\n')
             fw('stroke\n')
             fw('showpage\n')
@@ -206,10 +203,10 @@ def register():
     bpy.types.register(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.append(menu_func)
 
+
 def unreguster():
     bpy.types.unregister(ExportUVLayout)
     bpy.types.IMAGE_MT_uvs.remove(menu_func)
 
 if __name__ == "__main__":
     register()
-

@@ -44,6 +44,8 @@ public:
 
 	/// load image from buffer
 	void load (unsigned char * img, short width, short height);
+	/// clear image with color set on RGB channels and 0xFF on alpha channel
+	void clear (short width, short height, unsigned char color);
 
 	/// plot image from extern RGBA buffer to image at position x,y using one of IMB_BlendMode
 	void plot (unsigned char * img, short width, short height, short x, short y, short mode);

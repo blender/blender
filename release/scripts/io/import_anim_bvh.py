@@ -295,7 +295,7 @@ def bvh_node_dict2objects(context, bvh_nodes, IMPORT_START_FRAME=1, IMPORT_LOOP=
     objects = []
 
     def add_ob(name):
-        ob = scn.objects.new('Empty')
+        ob = scn.objects.new('Empty', None)
         objects.append(ob)
         return ob
 
@@ -352,8 +352,7 @@ def bvh_node_dict2armature(context, bvh_nodes, ROT_MODE='XYZ', IMPORT_START_FRAM
     scn.set_frame(IMPORT_START_FRAME)
 
     arm_data = bpy.data.armatures.new("MyBVH")
-    arm_ob = bpy.data.objects.new("MyBVH", 'ARMATURE')
-    arm_ob.data = arm_data
+    arm_ob = bpy.data.objects.new("MyBVH", arm_data)
 
     scn.objects.link(arm_ob)
 

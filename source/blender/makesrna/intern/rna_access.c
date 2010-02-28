@@ -1135,19 +1135,21 @@ int RNA_property_ui_icon(PropertyRNA *prop)
 
 int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 {
-	ID *id;
+	ID *id= ptr->id.data;
 	int flag;
 
 	prop= rna_ensure_property(prop);
-
-	if(prop->editable)
-		flag= prop->editable(ptr);
-	else
-		flag= prop->flag;
-	
-	id= ptr->id.data;
-
+	flag= prop->editable ? prop->editable(ptr) : prop->flag;
 	return (flag & PROP_EDITABLE) && (!id || !id->lib || (prop->flag & PROP_LIB_EXCEPTION));
+}
+
+int RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop)
+{
+	int flag;
+
+	prop= rna_ensure_property(prop);
+	flag= prop->editable ? prop->editable(ptr) : prop->flag;
+	return (flag & PROP_EDITABLE);
 }
 
 /* same as RNA_property_editable(), except this checks individual items in an array */
@@ -1937,8 +1939,12 @@ void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr
 	else {
 		PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
 
-		if(pprop->set && !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL))
+		if(		pprop->set &&
+				!((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL) &&
+				!((prop->flag & PROP_ID_SELF_CHECK) && ptr->id.data == ptr_value.id.data)
+		) {
 			pprop->set(ptr, ptr_value);
+		}
 	}
 }
 
@@ -3287,6 +3293,20 @@ void RNA_enum_set(PointerRNA *ptr, const char *name, int value)
 		RNA_property_enum_set(ptr, prop, value);
 	else
 		printf("RNA_enum_set: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
+void RNA_enum_set_identifier(PointerRNA *ptr, const char *name, const char *id)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		int value;
+		if(RNA_property_enum_value(NULL, ptr, prop, id, &value))
+			RNA_property_enum_set(ptr, prop, value);
+		else
+			printf("RNA_enum_set_identifier: %s.%s has no enum id '%s'.\n", ptr->type->identifier, name, id);
+	} else
+		printf("RNA_enum_set_identifier: %s.%s not found.\n", ptr->type->identifier, name);
 }
 
 int RNA_enum_is_equal(bContext *C, PointerRNA *ptr, const char *name, const char *enumname)

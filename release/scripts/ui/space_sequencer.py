@@ -312,7 +312,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-        render_data = context.scene.render_data
+        render = context.scene.render
         strip = act_strip(context)
 
         split = layout.split(percentage=0.3)
@@ -348,7 +348,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         col.prop(strip, "start_frame")
         subrow = col.split(percentage=0.66)
         subrow.prop(strip, "length")
-        subrow.label(text="%.2f sec" % (strip.length / (render_data.fps / render_data.fps_base)))
+        subrow.label(text="%.2f sec" % (strip.length / (render.fps / render.fps_base)))
 
         col = layout.column(align=True)
         col.label(text="Offset:")
@@ -692,6 +692,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -699,4 +700,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

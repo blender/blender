@@ -29,7 +29,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         ob = context.object
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 
 
@@ -304,6 +304,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -311,4 +312,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

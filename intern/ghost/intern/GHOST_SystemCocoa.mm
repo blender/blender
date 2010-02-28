@@ -1714,7 +1714,7 @@ void GHOST_SystemCocoa::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 
 #pragma mark Base directories retrieval
 
-GHOST_TUns8* GHOST_SystemCocoa::getSystemDir() const
+const GHOST_TUns8* GHOST_SystemCocoa::getSystemDir() const
 {
 	static GHOST_TUns8 tempPath[512] = "";
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
@@ -1742,7 +1742,7 @@ GHOST_TUns8* GHOST_SystemCocoa::getSystemDir() const
 	return tempPath;
 }
 
-GHOST_TUns8* GHOST_SystemCocoa::getUserDir() const
+const GHOST_TUns8* GHOST_SystemCocoa::getUserDir() const
 {
 	static GHOST_TUns8 tempPath[512] = "";
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];

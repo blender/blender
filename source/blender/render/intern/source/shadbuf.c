@@ -986,8 +986,9 @@ static float readdeepvisibility(DeepSample *dsample, int tot, int z, int bias, f
 	if(a == 0)
 		return 1.0f; /* completely in front of all samples */
 
+	/* converting to float early here because ds->z - prevds->z can overflow */
 	prevds= ds-1;
-	t= (float)(z-bias - prevds->z)/(float)(ds->z - prevds->z);
+	t= ((float)(z-bias) - (float)prevds->z)/((float)ds->z - (float)prevds->z);
 	return t*ds->v + (1.0f-t)*prevds->v;
 }
 

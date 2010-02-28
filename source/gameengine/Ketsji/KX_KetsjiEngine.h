@@ -170,7 +170,7 @@ private:
 	bool					m_show_debug_properties;
 
 	/** record physics into keyframes */
-	bool					m_game2ipo;
+	bool					m_animation_record;
 
 	/** Hide cursor every frame? */
 	bool					m_hideCursor;
@@ -208,7 +208,7 @@ public:
 	PyObject*		GetPyNamespace(){return m_pythondictionary;};
 #endif
 	void			SetSceneConverter(KX_ISceneConverter* sceneconverter);
-	void			SetGame2IpoMode(bool game2ipo,int startFrame);
+	void			SetAnimRecordMode(bool animation_record, int startFrame);
 
 	RAS_IRasterizer*		GetRasterizer(){return m_rasterizer;};
 	RAS_ICanvas*		    GetCanvas(){return m_canvas;};

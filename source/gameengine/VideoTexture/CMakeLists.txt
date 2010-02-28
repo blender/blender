@@ -42,6 +42,7 @@ SET(INC
 	../../../source/blender/editors/include
 	../../../source/blender/imbuf
 	../../../source/blender/python
+	../../../source/blender/python/generic
 	../../../source/blender/gpu
 	../../../source/kernel/gen_system
 	../../../intern/string

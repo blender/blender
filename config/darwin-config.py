@@ -82,7 +82,8 @@ WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
 BF_FFMPEG = LIBDIR + '/ffmpeg'
 BF_FFMPEG_INC = "${BF_FFMPEG}/include"
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore'
+BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg bz2'
+#bz2 is a standard osx dynlib
 
 # python 3.1 uses precompiled libraries in bf svn /lib by default
 BF_PYTHON_VERSION = '3.1'

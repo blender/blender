@@ -190,7 +190,7 @@ def menu_func(self, context):
 def register():
     bpy.types.register(ExportMDD)
     bpy.types.INFO_MT_file_export.append(menu_func)
-    
+
 def unregister():
     bpy.types.unregister(ExportMDD)
     bpy.types.INFO_MT_file_export.remove(menu_func)

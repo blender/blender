@@ -276,10 +276,10 @@ typedef struct bTheme {
 } bTheme;
 
 /* for the moment only the name. may want to store options with this later */
-typedef struct bExtension {
-	struct bExtension *next, *prev;
+typedef struct bAddon {
+	struct bAddon *next, *prev;
 	char module[64];
-} bExtension;
+} bAddon;
 
 typedef struct SolidLight {
 	int flag, pad;
@@ -327,7 +327,7 @@ typedef struct UserDef {
 	struct ListBase uifonts;
 	struct ListBase uistyles;
 	struct ListBase keymaps;
-	struct ListBase extensions;
+	struct ListBase addons;
 	char keyconfigstr[64];
 	
 	short undosteps;
@@ -378,7 +378,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_SECTION_SYSTEM		3
 #define USER_SECTION_THEME		4
 #define USER_SECTION_INPUT		5
-#define USER_SECTION_EXTENSIONS	6
+#define USER_SECTION_ADDONS 	6
 
 /* flag */
 #define USER_AUTOSAVE			(1 << 0)
@@ -403,7 +403,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_ADD_VIEWALIGNED	(1 << 19)
 #define USER_RELPATHS			(1 << 20)
 #define USER_DRAGIMMEDIATE		(1 << 21)
-#define USER_DONT_DOSCRIPTLINKS	(1 << 22)
+#define USER_SCRIPT_AUTOEXEC_DISABLE	(1 << 22)
 #define USER_FILENOUI			(1 << 23)
 #define USER_NONEGFRAMES		(1 << 24)
 
@@ -456,8 +456,10 @@ extern UserDef U; /* from blenkernel blender.c */
 #define		AUTOKEY_MODE_NORMAL		3
 #define		AUTOKEY_MODE_EDITKEYS	5
 
-/* Auto-Keying flag */
-	/* U.autokey_flag (not strictly used when autokeying only - is also used when keyframing these days) */
+/* Auto-Keying flag
+ * U.autokey_flag (not strictly used when autokeying only - is also used when keyframing these days)
+ * note: AUTOKEY_FLAG_* is used with a macro, search for lines like IS_AUTOKEY_FLAG(INSERTAVAIL)
+ */
 #define		AUTOKEY_FLAG_INSERTAVAIL	(1<<0)
 #define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
 #define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)

@@ -4015,7 +4015,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, wmEvent *event)
 			if(event->alt)
 				ui_but_anim_remove_keyingset(C);
 			else
-				ui_but_anim_remove_keyingset(C);
+				ui_but_anim_add_keyingset(C);
 				
 			ED_region_tag_redraw(CTX_wm_region(C));
 			

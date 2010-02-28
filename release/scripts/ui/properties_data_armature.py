@@ -253,6 +253,9 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel):
                 row.prop(itasc, "dampmax", text="Damp", slider=True)
                 row.prop(itasc, "dampeps", text="Eps", slider=True)
 
+# import generic panels from other files 
+from properties_animviz import DATA_PT_motion_paths, DATA_PT_onion_skinning
+
 classes = [
     DATA_PT_context_arm,
     DATA_PT_skeleton,
@@ -261,12 +264,17 @@ classes = [
     DATA_PT_ghost,
     DATA_PT_iksolver_itasc,
 
+    DATA_PT_motion_paths,
+    #DATA_PT_onion_skinning,
+
     DATA_PT_custom_props_arm]
+
 
 def register():
     register = bpy.types.register
     for cls in classes:
         register(cls)
+
 
 def unregister():
     unregister = bpy.types.unregister
@@ -275,4 +283,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

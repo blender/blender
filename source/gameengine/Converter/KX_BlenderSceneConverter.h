@@ -43,7 +43,6 @@ class RAS_MeshObject;
 class RAS_IPolyMaterial;
 class BL_InterpolatorList;
 class BL_Material;
-struct IpoCurve;
 struct Main;
 struct Scene;
 
@@ -73,9 +72,6 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	bool					m_alwaysUseExpandFraming;
 	bool					m_usemat;
 	bool					m_useglslmat;
-
-	void localDel_ipoCurve ( IpoCurve * icu );
-//	struct Ipo* findIpoForName(char* objName);
 
 public:
 	KX_BlenderSceneConverter(

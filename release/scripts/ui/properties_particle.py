@@ -231,6 +231,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
         sub.prop(cloth, "mass")
         sub.prop(cloth, "bending_stiffness", text="Bending")
         sub.prop(cloth, "internal_friction", slider=True)
+        sub.prop(cloth, "collider_friction", slider=True)
 
         col = split.column()
 
@@ -1023,6 +1024,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -1030,4 +1032,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

@@ -809,7 +809,7 @@ OSStatus GHOST_SystemCarbon::handleTabletEvent(EventRef event)
 		}
 	err = noErr;
 	}
-
+	return err;
 }
 
 OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
@@ -1215,22 +1215,19 @@ void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	}
 }
 
-GHOST_TUns8* GHOST_SystemCarbon::getSystemDir() const
+const GHOST_TUns8* GHOST_SystemCarbon::getSystemDir() const
 {
-	static GHOST_TUns8 sysPath[64];
-	
-	strcpy((char*)sysPath,"/Library/Application Support/Blender");
-	
-	return sysPath;
+	return (GHOST_TUns8*)"/Library/Application Support/Blender";
 }
 
-GHOST_TUns8* GHOST_SystemCarbon::getUserDir() const
+const GHOST_TUns8* GHOST_SystemCarbon::getUserDir() const
 {
-	static char usrPath[512] = "";
+	static char usrPath[256] = "";
 	char* env = getenv("HOME");
 	
 	if (env) {
-		strcpy(usrPath, env);
+		strncpy(usrPath, env, 245);
+		usrPath[245]=0;
 		strcat(usrPath, "/Library/Application Support/Blender");
 		return (GHOST_TUns8*) usrPath;
 	}

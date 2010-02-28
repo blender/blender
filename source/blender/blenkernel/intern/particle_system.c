@@ -1056,6 +1056,8 @@ static int psys_threads_init_distribution(ParticleThread *threads, Scene *scene,
 					cpa->num=-1;
 				}
 			}
+			/* dmcache must be updated for parent particles if children from faces is used */
+			psys_calc_dmcache(ob, finaldm, psys);
 
 			return 0;
 		}
@@ -1820,8 +1822,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 		project_v3_v3v3(dvec, r_vel, pa->state.ave);
 		sub_v3_v3v3(mat[0], pa->state.ave, dvec);
 		normalize_v3(mat[0]);
-		VECCOPY(mat[2], r_vel);
-		mul_v3_fl(mat[2], -1.0f);
+		negate_v3_v3(mat[2], r_vel);
 		normalize_v3(mat[2]);
 		cross_v3_v3v3(mat[1], mat[2], mat[0]);
 		
@@ -3313,6 +3314,8 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 			if(pa->alive==PARS_UNBORN
 				&& (part->flag & PART_UNBORN || cfra + psys->pointcache->step > pa->time))
 				reset_particle(sim, pa, dtime, cfra);
+			else if(part->phystype == PART_PHYS_NO)
+				reset_particle(sim, pa, dtime, cfra);
 
 			if(dfra>0.0 && ELEM(pa->alive,PARS_ALIVE,PARS_DYING)){
 				switch(part->phystype){
@@ -3805,7 +3808,7 @@ static void system_step(ParticleSimulationData *sim, float cfra)
 					pa->alive = PARS_ALIVE;
 			}
 		}
-		else if(cfra != startframe && (sim->ob->id.lib || (cache->flag & PTCACHE_BAKED))) {
+		else if(cfra != startframe && ( /*sim->ob->id.lib ||*/ (cache->flag & PTCACHE_BAKED))) { /* 2.4x disabled lib, but this can be used in some cases, testing further - campbell */
 			psys_reset(psys, PSYS_RESET_CACHE_MISS);
 			psys->cfra=cfra;
 			psys->recalc = 0;

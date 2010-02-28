@@ -228,7 +228,7 @@ class x3d_class:
     '''
 
     def writeViewpoint(self, ob, mat, scene):
-        context = scene.render_data
+        context = scene.render
         # context = scene.render
         ratio = float(context.resolution_x)/float(context.resolution_y)
         # ratio = float(context.imageSizeY())/float(context.imageSizeX())
@@ -794,7 +794,7 @@ class x3d_class:
             pic = tex.image
 
             # using .expandpath just in case, os.path may not expect //
-            basename = os.path.basename(pic.get_abs_filename())
+            basename = os.path.basename(bpy.utils.expandpath(pic.filename))
 
             pic = alltextures[i].image
             # pic = alltextures[i].getImage()
@@ -1251,7 +1251,7 @@ def menu_func(self, context):
 def register():
     bpy.types.register(ExportX3D)
     bpy.types.INFO_MT_file_export.append(menu_func)
-    
+
 def unregister():
     bpy.types.unregister(ExportX3D)
     bpy.types.INFO_MT_file_export.remove(menu_func)

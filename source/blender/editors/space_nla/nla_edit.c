@@ -246,27 +246,6 @@ void NLA_OT_tweakmode_exit (wmOperatorType *ot)
 /* ******************** Add Action-Clip Operator ***************************** */
 /* Add a new Action-Clip strip to the active track (or the active block if no space in the track) */
 
-/* pop up menu allowing user to choose the action to use */
-// TODO: at some point, we may have to migrate to a search menu to manage the case where there are many actions
-static int nlaedit_add_actionclip_invoke (bContext *C, wmOperator *op, wmEvent *evt)
-{
-	Main *m= CTX_data_main(C);
-	bAction *act;
-	uiPopupMenu *pup;
-	uiLayout *layout;
-	
-	pup= uiPupMenuBegin(C, "Add Action Clip", 0);
-	layout= uiPupMenuLayout(pup);
-	
-	/* loop through Actions in Main database, adding as items in the menu */
-	for (act= m->action.first; act; act= act->id.next)
-		uiItemStringO(layout, act->id.name+2, 0, "NLA_OT_actionclip_add", "action", act->id.name+2);
-	uiItemS(layout);
-	
-	uiPupMenuEnd(C, pup);
-	
-	return OPERATOR_CANCELLED;
-}
 
 /* add the specified action as new strip */
 static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
@@ -277,9 +256,9 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
 	int filter, items;
-	
-	bAction *act = NULL;
-	char actname[20];
+
+	bAction *act;
+
 	float cfra;
 	
 	/* get editor data */
@@ -290,8 +269,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	cfra= (float)CFRA;
 		
 	/* get action to use */
-	RNA_string_get(op->ptr, "action", actname);
-	act= (bAction *)find_id("AC", actname);
+	act= BLI_findlink(&CTX_data_main(C)->action, RNA_enum_get(op->ptr, "type"));
 	
 	if (act == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No valid Action to add.");
@@ -350,13 +328,15 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 
 void NLA_OT_actionclip_add (wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name= "Add Action Strip";
 	ot->idname= "NLA_OT_actionclip_add";
 	ot->description= "Add an Action-Clip strip (i.e. an NLA Strip referencing an Action) to the active track";
 	
 	/* api callbacks */
-	ot->invoke= nlaedit_add_actionclip_invoke;
+	ot->invoke= WM_enum_search_invoke;
 	ot->exec= nlaedit_add_actionclip_exec;
 	ot->poll= nlaop_poll_tweakmode_off;
 	
@@ -365,7 +345,9 @@ void NLA_OT_actionclip_add (wmOperatorType *ot)
 	
 	/* props */
 		// TODO: this would be nicer as an ID-pointer...
-	ot->prop = RNA_def_string(ot->srna, "action", "", 19, "Action", "Name of Action to add as a new Action-Clip Strip.");
+	prop= RNA_def_enum(ot->srna, "type", DummyRNA_NULL_items, 0, "Type", "");
+	RNA_def_enum_funcs(prop, RNA_action_itemf);
+	ot->prop= prop;
 }
 
 /* ******************** Add Transition Operator ***************************** */

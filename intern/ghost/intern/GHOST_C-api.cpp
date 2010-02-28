@@ -855,13 +855,13 @@ void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection)
 	system->putClipboard(buffer, selection);
 }
 
-GHOST_TUns8* GHOST_getSystemDir()
+const GHOST_TUns8* GHOST_getSystemDir()
 {
 	GHOST_ISystem* system = GHOST_ISystem::getSystem();
 	return system->getSystemDir();
 }
 
-GHOST_TUns8* GHOST_getUserDir()
+const GHOST_TUns8* GHOST_getUserDir()
 {
 	GHOST_ISystem* system = GHOST_ISystem::getSystem();
 	return system->getUserDir();

@@ -96,6 +96,48 @@ class SelectCamera(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class SelectHierarchy(bpy.types.Operator):
+    '''Select object relative to the active objects position in the hierarchy'''
+    bl_idname = "object.select_hierarchy"
+    bl_label = "Select Hierarchy"
+    bl_register = True
+    bl_undo = True
+
+    direction = EnumProperty(items=(
+                        ('PARENT', "Parent", ""),
+                        ('CHILD', "Child", "")),
+                name="Direction",
+                description="Direction to select in the hierarchy",
+                default='PARENT')
+
+    extend = BoolProperty(name="Extend", description="Extend the existing selection", default=False)
+
+    def poll(self, context):
+        return context.object
+
+    def execute(self, context):
+        obj = context.object
+        if self.properties.direction == 'PARENT':
+            parent = obj.parent
+            if not parent:
+                return {'CANCELLED'}
+            obj_act = parent
+        else:
+            children = obj.children
+            if len(children) != 1:
+                return {'CANCELLED'}
+            obj_act = children[0]
+
+        if not self.properties.extend:
+            # obj.selected = False
+            bpy.ops.object.select_all(action='DESELECT')
+
+        obj_act.selected = True
+        context.scene.objects.active = obj_act
+
+        return {'FINISHED'}
+
+
 class SubdivisionSet(bpy.types.Operator):
     '''Sets a Subdivision Surface Level (1-5)'''
 
@@ -336,7 +378,7 @@ class ShapeTransfer(bpy.types.Operator):
                 self.report({'ERROR'}, "Expected one other selected mesh object to copy from")
                 return {'CANCELLED'}
             ob_act, objects = objects[0], [ob_act]
-            
+
         if ob_act.type != 'MESH':
             self.report({'ERROR'}, "Other object is not a mesh.")
             return {'CANCELLED'}
@@ -344,7 +386,7 @@ class ShapeTransfer(bpy.types.Operator):
         if ob_act.active_shape_key is None:
             self.report({'ERROR'}, "Other object has no shape key")
             return {'CANCELLED'}
-        return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)        
+        return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)
 
 class JoinUVs(bpy.types.Operator):
     '''Copy UV Layout to objects with matching geometry'''
@@ -424,7 +466,7 @@ class MakeDupliFace(bpy.types.Operator):
             # scale = matrix.median_scale
             trans = matrix.translation_part()
             rot = matrix.rotation_part() # also contains scale
-            
+
             return [(rot * b) + trans for b in base_tri]
         scene = bpy.context.scene
         linked = {}
@@ -444,22 +486,20 @@ class MakeDupliFace(bpy.types.Operator):
             mesh.faces.foreach_set("verts_raw", faces)
             mesh.update() # generates edge data
 
-            # pick an object to use 
+            # pick an object to use
             obj = objects[0]
 
-            ob_new = bpy.data.objects.new(mesh.name, 'MESH')
-            ob_new.data = mesh
+            ob_new = bpy.data.objects.new(mesh.name, mesh)
             base = scene.objects.link(ob_new)
             base.layers[:] = obj.layers
-            
-            ob_inst = bpy.data.objects.new(data.name, obj.type)
-            ob_inst.data = data
+
+            ob_inst = bpy.data.objects.new(data.name, data)
             base = scene.objects.link(ob_inst)
             base.layers[:] = obj.layers
-            
+
             for obj in objects:
                 scene.objects.unlink(obj)
-            
+
             ob_new.dupli_type = 'FACES'
             ob_inst.parent = ob_new
             ob_new.use_dupli_faces_scale = True
@@ -473,6 +513,7 @@ class MakeDupliFace(bpy.types.Operator):
 classes = [
     SelectPattern,
     SelectCamera,
+    SelectHierarchy,
     SubdivisionSet,
     ShapeTransfer,
     JoinUVs,

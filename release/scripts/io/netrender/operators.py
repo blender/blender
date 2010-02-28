@@ -372,7 +372,7 @@ class netclientdownload(bpy.types.Operator):
 
     def execute(self, context):
         netsettings = context.scene.network_render
-        rd = context.scene.render_data
+        rd = context.scene.render
 
         conn = clientConnection(netsettings.server_address, netsettings.server_port, self.report)
 

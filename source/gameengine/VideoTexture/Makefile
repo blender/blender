@@ -41,6 +41,7 @@ CPPFLAGS += -I$(NAN_GLEW)/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION) 
 CPPFLAGS += -I../../blender/python
+CPPFLAGS += -I../../blender/python/generic
 CPPFLAGS += -I$(NAN_STRING)/include    
 CPPFLAGS += -I$(NAN_MOTO)/include
 CPPFLAGS += -I../Rasterizer/RAS_OpenGLRasterizer

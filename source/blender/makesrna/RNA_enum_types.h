@@ -88,6 +88,7 @@ EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct Poin
 
 /* Generic functions, return an enum from library data, index is the position
  * in the linked list can add more for different types as needed */
+EnumPropertyItem *RNA_action_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 EnumPropertyItem *RNA_group_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 EnumPropertyItem *RNA_scene_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 

@@ -504,7 +504,6 @@ static PyObject* gPyAddScene(PyObject*, PyObject* args)
 {
 	char* name;
 	int overlay = 1;
-	KX_Scene* scene = NULL;
 	
 	if (!PyArg_ParseTuple(args, "s|i:addScene", &name , &overlay))
 		return NULL;

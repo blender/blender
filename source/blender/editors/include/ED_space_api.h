@@ -69,6 +69,7 @@ void *ED_region_draw_cb_activate(struct ARegionType *,
 								 void *custumdata, int type);
 void ED_region_draw_cb_draw(const struct bContext *, struct ARegion *, int);
 void ED_region_draw_cb_exit(struct ARegionType *, void *);
+void *ED_region_draw_cb_customdata(void *handle);
 
 #endif /* ED_SPACE_API_H */
 

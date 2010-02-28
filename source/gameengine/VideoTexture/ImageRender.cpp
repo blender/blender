@@ -365,6 +365,7 @@ static PyGetSetDef imageRenderGetSets[] =
 	{(char*)"alpha", (getter)ImageViewport_getAlpha, (setter)ImageViewport_setAlpha, (char*)"use alpha in texture", NULL},
 	{(char*)"whole", (getter)ImageViewport_getWhole, (setter)ImageViewport_setWhole, (char*)"use whole viewport to render", NULL},
 	// attributes from ImageBase class
+	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)",	NULL},
@@ -395,7 +396,7 @@ PyTypeObject ImageRenderType =
 	0,                         /*tp_str*/
 	0,                         /*tp_getattro*/
 	0,                         /*tp_setattro*/
-	0,                         /*tp_as_buffer*/
+	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"Image source from render",       /* tp_doc */
 	0,		               /* tp_traverse */
@@ -526,6 +527,7 @@ static PyGetSetDef imageMirrorGetSets[] =
 	{(char*)"alpha", (getter)ImageViewport_getAlpha, (setter)ImageViewport_setAlpha, (char*)"use alpha in texture", NULL},
 	{(char*)"whole", (getter)ImageViewport_getWhole, (setter)ImageViewport_setWhole, (char*)"use whole viewport to render", NULL},
 	// attributes from ImageBase class
+	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)",	NULL},
@@ -652,8 +654,7 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
     }
     // compute rotation matrix between local coord and mirror coord
     // to match camera orientation, we select mirror z = -normal, y = up, x = y x z
-    copy_v3_v3(mirrorMat[2], mirrorNormal);
-    mul_v3_fl(mirrorMat[2], -1.0f);
+    negate_v3_v3(mirrorMat[2], mirrorNormal);
     copy_v3_v3(mirrorMat[1], mirrorUp);
     cross_v3_v3v3(mirrorMat[0], mirrorMat[1], mirrorMat[2]);
     // transpose to make it a orientation matrix from local space to mirror space
@@ -729,7 +730,7 @@ PyTypeObject ImageMirrorType =
 	0,                         /*tp_str*/
 	0,                         /*tp_getattro*/
 	0,                         /*tp_setattro*/
-	0,                         /*tp_as_buffer*/
+	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"Image source from mirror",       /* tp_doc */
 	0,		               /* tp_traverse */
