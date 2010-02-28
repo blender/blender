@@ -1088,6 +1088,16 @@ static void rna_def_event(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "y");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Mouse Y Position", "The window relative horizontal location of the mouse");
+
+	prop= RNA_def_property(srna, "mouse_region_x", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "mval[0]");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mouse X Position", "The region relative vertical location of the mouse");
+
+	prop= RNA_def_property(srna, "mouse_region_y", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "mval[1]");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mouse Y Position", "The region relative horizontal location of the mouse");
 	
 	prop= RNA_def_property(srna, "mouse_prev_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "prevx");

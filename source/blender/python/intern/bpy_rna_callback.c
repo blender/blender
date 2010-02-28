@@ -32,12 +32,9 @@
 #include "BKE_context.h"
 #include "ED_space_api.h"
 
-EnumPropertyItem region_draw_mode_items[] = {
-	{REGION_DRAW_POST_VIEW, "POST_VIEW", 0, "Pose View", ""},
-	{REGION_DRAW_POST_PIXEL, "POST_PIXEL", 0, "Post Pixel", ""},
-	{REGION_DRAW_PRE_VIEW, "PRE_VIEW", 0, "Pre View", ""},
-	{0, NULL, 0, NULL, NULL}};
-
+/* use this to stop other capsules from being mis-used */
+#define RNA_CAPSULE_ID "RNA_HANDLE"
+#define RNA_CAPSULE_ID_INVALID "RNA_HANDLE_REMOVED"
 
 void cb_region_draw(const bContext *C, ARegion *ar, void *customdata)
 {
@@ -74,6 +71,12 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
 
 	if(RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
 
+		EnumPropertyItem region_draw_mode_items[] = {
+			{REGION_DRAW_POST_VIEW, "POST_VIEW", 0, "Pose View", ""},
+			{REGION_DRAW_POST_PIXEL, "POST_PIXEL", 0, "Post Pixel", ""},
+			{REGION_DRAW_PRE_VIEW, "PRE_VIEW", 0, "Pre View", ""},
+			{0, NULL, 0, NULL, NULL}};
+
 		if(pyrna_enum_value_from_id(region_draw_mode_items, cb_event_str, &cb_event, "bpy_struct.callback_add()") < 0)
 			return NULL;
 
@@ -81,24 +84,28 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
 		Py_INCREF(args);
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "callbcak_add(): type does not suppport cllbacks");
+		PyErr_SetString(PyExc_TypeError, "callback_add(): type does not suppport callbacks");
 		return NULL;
 	}
 
-	return PyCapsule_New((void *)handle, NULL, NULL);
+	return PyCapsule_New((void *)handle, RNA_CAPSULE_ID, NULL);
 }
 
 PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
 {
 	PyObject *py_handle;
-	PyObject *py_args;
 	void *handle;
 	void *customdata;
 
 	if (!PyArg_ParseTuple(args, "O!:callback_remove", &PyCapsule_Type, &py_handle))
 		return NULL;
 
-	handle= PyCapsule_GetPointer(py_handle, NULL);
+	handle= PyCapsule_GetPointer(py_handle, RNA_CAPSULE_ID);
+
+	if(handle==NULL) {
+		PyErr_SetString(PyExc_ValueError, "callback_remove(handle): NULL handle given, invalid or already removed.");
+		return NULL;
+	}
 
 	if(RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
 		customdata= ED_region_draw_cb_customdata(handle);
@@ -106,6 +113,9 @@ PyObject *pyrna_callback_remove(BPy_StructRNA *self, PyObject *args)
 
 		ED_region_draw_cb_exit(((ARegion *)self->ptr.data)->type, handle);
 	}
+
+	/* dont allow reuse */
+	PyCapsule_SetName(py_handle, RNA_CAPSULE_ID_INVALID);
 
 	Py_RETURN_NONE;
 }
