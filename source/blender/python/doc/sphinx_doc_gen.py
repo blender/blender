@@ -43,6 +43,9 @@ import bpy
 import rna_info
 reload(rna_info)
 
+EXAMPLE_SET = set()
+EXAMPLE_SET_USED = set()
+
 def range_str(val):
     if val < -10000000:	return '-inf'
     if val >  10000000:	return 'inf'
@@ -50,6 +53,16 @@ def range_str(val):
         return '%g'  % val
     else:
         return str(val)
+
+
+def write_example_ref(ident, fw, example_id, ext=".py"):
+    if example_id in EXAMPLE_SET:
+        fw("%s.. literalinclude:: ../examples/%s%s\n\n" % (ident, example_id, ext))
+        EXAMPLE_SET_USED.add(example_id)
+    else:
+        if bpy.app.debug:
+            print("\tskipping example:", example_id)
+
 
 def write_indented_lines(ident, fn, text, strip=True):
     if text is None:
@@ -152,6 +165,8 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         # Note, may contain sphinx syntax, dont mangle!
         fw(module.__doc__.strip())
         fw("\n\n")
+        
+    write_example_ref("", fw, module_name)
     
     # write members of the module
     # only tested with PyStructs which are not exactly modules
@@ -188,6 +203,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         if value.__doc__:
             write_indented_lines("   ", fw, value.__doc__, False)
             fw("\n")
+        write_example_ref("   ", fw, module_name + "." + attribute)
 
         for key in sorted(value.__dict__.keys()):
             if key.startswith("__"):
@@ -197,6 +213,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
                 if descr.__doc__:
                     fw("   .. attribute:: %s\n\n" % key)
                     write_indented_lines("   ", fw, descr.__doc__, False)
+                    write_example_ref("   ", fw, module_name + "." + attribute + "." + key)
                     fw("\n")
 
         for key in sorted(value.__dict__.keys()):
@@ -206,6 +223,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
             if type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
                 if descr.__doc__:
                     write_indented_lines("   ", fw, descr.__doc__, False)
+                    write_example_ref("   ", fw, module_name + "." + attribute + "." + key)
                     fw("\n")
             
         fw("\n\n")
@@ -501,14 +519,27 @@ if __name__ == '__main__':
 
         path_in = 'source/blender/python/doc/sphinx-in'
         path_out = 'source/blender/python/doc/sphinx-in'
+        path_examples = 'source/blender/python/doc/examples'
 
         shutil.rmtree(path_in, True)
         shutil.rmtree(path_out, True)
+        
+        for f in os.listdir(path_examples):
+            if f.endswith(".py"):
+                EXAMPLE_SET.add(os.path.splitext(f)[0])
+        
         rna2sphinx(path_in)
 
         # for fast module testing
         # os.system("rm source/blender/python/doc/sphinx-in/bpy.types.*.rst")
         # os.system("rm source/blender/python/doc/sphinx-in/bpy.ops.*.rst")
+        
+        EXAMPLE_SET_UNUSED = EXAMPLE_SET - EXAMPLE_SET_USED
+        if EXAMPLE_SET_UNUSED:
+            print("\nUnused examples found in '%s'..." % path_examples)
+            for f in EXAMPLE_SET_UNUSED:
+                print("    %s.py" % f)
+            print("  %d total\n" % len(EXAMPLE_SET_UNUSED))
 
     import sys
     sys.exit()

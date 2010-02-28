@@ -2129,9 +2129,7 @@ static struct PyMethodDef Vector_methods[] = {
 */
 
 static char vector_doc[] =
-"This object gives access to Vectors in Blender.\n"
-"\n"
-".. literalinclude:: ../examples/mathutils_vector.py\n";
+"This object gives access to Vectors in Blender.";
 
 PyTypeObject vector_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)

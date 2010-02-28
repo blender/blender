@@ -55,9 +55,7 @@
 
 //-------------------------DOC STRINGS ---------------------------
 static char M_Mathutils_doc[] =
-"This module provides access to matrices, eulers, quaternions and vectors.\n"
-"\n"
-".. literalinclude:: ../examples/mathutils.py\n";
+"This module provides access to matrices, eulers, quaternions and vectors.";
 
 //-----------------------------METHODS----------------------------
 //-----------------quat_rotation (internal)-----------
