@@ -107,11 +107,11 @@
 
 // from buildinfo.c
 #ifdef BUILD_DATE
-extern char * build_date;
-extern char * build_time;
-extern char * build_rev;
-extern char * build_platform;
-extern char * build_type;
+extern const char * build_date;
+extern const char * build_time;
+extern const char * build_rev;
+extern const char * build_platform;
+extern const char * build_type;
 #endif
 
 /*	Local Function prototypes */
