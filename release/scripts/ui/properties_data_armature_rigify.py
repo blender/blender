@@ -49,7 +49,7 @@ PoseTemplateSettings.BoolProperty(attr="generate_def_rig",
                 description="Create a copy of the metarig, constrainted by the generated rig",
                 default=False)
 
-bpy.types.Scene.PointerProperty(attr="pose_templates", type=PoseTemplateSettings, name="Network Render", description="Network Render Settings")
+bpy.types.Scene.PointerProperty(attr="pose_templates", type=PoseTemplateSettings, name="Pose Templates", description="Pose Template Settings")
 
 
 def metarig_templates():
