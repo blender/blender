@@ -270,6 +270,7 @@ def rna2sphinx(BASEPATH):
     fw("   bpy.props.rst\n\n")
     
     fw("   Mathutils.rst\n\n")
+    fw("   BLF.rst\n\n")
 
     file.close()
 
@@ -313,7 +314,9 @@ def rna2sphinx(BASEPATH):
     pymodule2sphinx(BASEPATH, "Mathutils", module, "Math Types & Utilities (Mathutils)")
     del module
 
-
+    import BLF as module
+    pymodule2sphinx(BASEPATH, "BLF", module, "Blender Font Drawing (BLF)")
+    del module
 
     if 0:
         filepath = os.path.join(BASEPATH, "bpy.rst")

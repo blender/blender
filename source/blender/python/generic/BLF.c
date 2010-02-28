@@ -48,7 +48,7 @@ static PyObject *py_blf_position(PyObject *self, PyObject *args)
 static char py_blf_size_doc[] =
 ".. function:: size(size, dpi)\n"
 "\n"
-"   Set the position for drawing text.\n"
+"   Set the size and dpi for drawing text.\n"
 "\n"
 "   :arg size: Point size of the font.\n"
 "   :type size: int\n"
@@ -90,12 +90,12 @@ static PyObject *py_blf_aspect(PyObject *self, PyObject *args)
 
 
 static char py_blf_blur_doc[] =
-".. function:: blur(aspect)\n"
+".. function:: blur(radius)\n"
 "\n"
 "   Set the blur radius for drawing text.\n"
 "\n"
-"   :arg blur: The radius for bluring text.\n"
-"   :type aspect: float\n";
+"   :arg radius: The radius for blurring text (in pixels).\n"
+"   :type radius: int\n";
 
 static PyObject *py_blf_blur(PyObject *self, PyObject *args)
 {
