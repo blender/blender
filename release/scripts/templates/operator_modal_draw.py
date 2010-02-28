@@ -1,7 +1,13 @@
 import BGL
+import BLF
 
 def draw_callback_px(self, context):
-    print("mouse points", len(self.mouse_path))    
+    print("mouse points", len(self.mouse_path))
+
+    # draw some text
+    BLF.position(15, 30, 0)
+    BLF.size(20, 72)
+    BLF.draw("Hello Word " + str(len(self.mouse_path)))
 
     # 50% alpha, 2 pixel width line
     BGL.glEnable(BGL.GL_BLEND)
@@ -22,8 +28,8 @@ def draw_callback_px(self, context):
 
 class ModalDrawOperator(bpy.types.Operator):
     '''Draw a line with the mouse'''
-    bl_idname = "object.modal_operator"
-    bl_label = "Simple Modal Operator"
+    bl_idname = "view3d.modal_operator"
+    bl_label = "Simple Modal View3D Operator"
 
     def modal(self, context, event):
         context.area.tag_redraw()

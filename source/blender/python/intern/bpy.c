@@ -38,6 +38,7 @@
 #include "../generic/Mathutils.h"
 #include "../generic/Geometry.h"
 #include "../generic/BGL.h"
+#include "../generic/BLF.h"
 #include "../generic/IDProp.h"
 
 static char bpy_home_paths_doc[] =
@@ -106,6 +107,7 @@ void BPy_init_modules( void )
 	Geometry_Init();
 	Mathutils_Init();
 	BGL_Init();
+	BLF_Init();
 	IDProp_Init_Types();
 
 
