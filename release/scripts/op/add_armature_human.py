@@ -586,8 +586,7 @@ class AddHuman(bpy.types.Operator):
     '''Add an advanced human metarig base'''
     bl_idname = "object.armature_human_advanced_add"
     bl_label = "Add Humanoid (advanced metarig)"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         bpy.ops.object.armature_add()

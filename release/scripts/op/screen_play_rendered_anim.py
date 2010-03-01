@@ -64,8 +64,7 @@ class PlayRenderedAnim(bpy.types.Operator):
     '''Plays back rendered frames/movies using an external player.'''
     bl_idname = "screen.play_rendered_anim"
     bl_label = "Play Rendered Animation"
-    bl_register = True
-    bl_undo = False
+    bl_options = {'REGISTER'}
 
     def execute(self, context):
         scene = context.scene

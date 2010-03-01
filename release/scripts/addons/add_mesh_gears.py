@@ -259,8 +259,7 @@ class AddGear(bpy.types.Operator):
     '''Add a gear mesh.'''
     bl_idname = "mesh.gear_add"
     bl_label = "Add Gear"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     number_of_teeth = IntProperty(name="Number of Teeth",
                                   description="Number of teeth on the gear",

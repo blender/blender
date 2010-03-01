@@ -78,8 +78,7 @@ class AddTorus(bpy.types.Operator):
     '''Add a torus mesh'''
     bl_idname = "mesh.primitive_torus_add"
     bl_label = "Add Torus"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     major_radius = FloatProperty(name="Major Radius",
             description="Radius from the origin to the center of the cross sections",

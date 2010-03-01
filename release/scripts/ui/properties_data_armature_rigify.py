@@ -252,8 +252,7 @@ class AsScript(bpy.types.Operator):
 
     bl_idname = "pose.metarig_to_script"
     bl_label = "Write Metarig to Script"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     path = StringProperty(name="File Path", description="File path used for exporting the Armature file", maxlen=1024, default="")
 

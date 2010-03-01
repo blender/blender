@@ -27,8 +27,7 @@ class ExportUVLayout(bpy.types.Operator):
 
     bl_idname = "uv.export_layout"
     bl_label = "Export UV Layout"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     path = StringProperty(name="File Path", description="File path used for exporting the SVG file", maxlen=1024, default="")
     check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})

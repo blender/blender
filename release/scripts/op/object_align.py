@@ -235,8 +235,7 @@ class AlignObjects(bpy.types.Operator):
     '''Align Objects'''
     bl_idname = "object.align"
     bl_label = "Align Objects"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     align_mode = bpy.props.EnumProperty(items=(
             ('OPT_1', "Negative Sides", ""),

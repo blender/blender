@@ -71,7 +71,7 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
 
 	if(RNA_struct_is_a(self->ptr.type, &RNA_Region)) {
 
-		EnumPropertyItem region_draw_mode_items[] = {
+		static EnumPropertyItem region_draw_mode_items[] = {
 			{REGION_DRAW_POST_VIEW, "POST_VIEW", 0, "Pose View", ""},
 			{REGION_DRAW_POST_PIXEL, "POST_PIXEL", 0, "Post Pixel", ""},
 			{REGION_DRAW_PRE_VIEW, "PRE_VIEW", 0, "Pre View", ""},

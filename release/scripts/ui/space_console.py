@@ -119,7 +119,6 @@ class ConsoleExec(bpy.types.Operator):
     '''Execute the current console line as a python expression'''
     bl_idname = "console.execute"
     bl_label = "Console Execute"
-    bl_register = False
 
     def execute(self, context):
         sc = context.space_data
@@ -138,7 +137,6 @@ class ConsoleAutocomplete(bpy.types.Operator):
     '''Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one'''
     bl_idname = "console.autocomplete"
     bl_label = "Console Autocomplete"
-    bl_register = False
 
     def poll(self, context):
         return context.space_data.console_type != 'REPORT'

@@ -252,6 +252,14 @@ EnumPropertyItem keymap_modifiers_items[] = {
 		{2, "SECOND", 0, "Second", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem operator_flag_items[] = {
+		{OPTYPE_REGISTER, "REGISTER", 0, "Register", ""},
+		{OPTYPE_UNDO, "UNDO", 0, "Undo", ""},
+		{OPTYPE_BLOCKING, "BLOCKING", 0, "Finished", ""},
+		{OPTYPE_MACRO, "MACRO", 0, "Macro", ""},
+		{OPTYPE_GRAB_POINTER, "GRAB_POINTER", 0, "Grab Pointer", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 EnumPropertyItem operator_return_items[] = {
 		{OPERATOR_RUNNING_MODAL, "RUNNING_MODAL", 0, "Running Modal", ""},
 		{OPERATOR_CANCELLED, "CANCELLED", 0, "Cancelled", ""},
@@ -924,13 +932,11 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "bl_register", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_REGISTER);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-
-	prop= RNA_def_property(srna, "bl_undo", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_UNDO);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	prop= RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type->flag");
+	RNA_def_property_enum_items(prop, operator_flag_items);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL|PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Options",  "Options for this operator type");
 
 	RNA_api_operator(srna);
 
@@ -981,13 +987,11 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "bl_register", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_REGISTER);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-
-	prop= RNA_def_property(srna, "bl_undo", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_UNDO);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	prop= RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type->flag");
+	RNA_def_property_enum_items(prop, operator_flag_items);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL|PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Options",  "Options for this operator type");
 
 	RNA_api_macro(srna);
 }
