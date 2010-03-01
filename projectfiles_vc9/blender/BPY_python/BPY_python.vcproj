@@ -388,7 +388,11 @@
 				Name="generic"
 				>
 				<File
-					RelativePath="..\..\..\source\blender\python\generic\BGL.c"
+					RelativePath="..\..\..\source\blender\python\generic\bgl.c"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\blf.c"
 					>
 				</File>
 				<File
@@ -429,10 +433,6 @@
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl"
 			>
-			<File
-				RelativePath="..\..\..\source\blender\python\generic\BGL.h"
-				>
-			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\BPY_extern.h"
 				>
@@ -478,6 +478,50 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\intern\bpy_util.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="generic"
+				>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\bgl.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\blf.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\bpy_internal_import.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\euler.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\Geometry.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\IDProp.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\Mathutils.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\matrix.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\quat.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\generic\vector.h"
 					>
 				</File>
 			</Filter>
