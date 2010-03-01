@@ -236,9 +236,19 @@ static void rna_Sequence_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene= (Scene*)ptr->id.data;
 	Sequence *seq= (Sequence*)ptr->data;
+	char oldname[32];
+	
+	/* make a copy of the old name first */
+	BLI_strncpy(oldname, seq->name+2, sizeof(seq->name)-2);
+	
+	/* copy the new name into the name slot */
 	BLI_strncpy(seq->name+2, value, sizeof(seq->name)-2);
-
+	
+	/* make sure the name is unique */
 	seqbase_unique_name_recursive(&scene->ed->seqbase, seq);
+	
+	/* fix all the animation data which may link to this */
+	BKE_all_animdata_fix_paths_rename("sequence_editor.sequences_all", oldname, seq->name+2);
 }
 
 static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
