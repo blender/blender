@@ -865,7 +865,7 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 		/* get action to add F-Curve+keyframe to */
 		act= verify_adt_action(id, 1);
 		
-		if(act==NULL) {
+		if (act == NULL) {
 			printf("Insert Key: Could not insert keyframe, as this type does not support animation data (ID = %s, Path = %s)\n", id->name, rna_path);
 			return 0;
 		}
@@ -936,7 +936,10 @@ short insert_keyframe (ID *id, bAction *act, const char group[], const char rna_
 short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag)
 {
 	AnimData *adt= BKE_animdata_from_id(id);
-	FCurve *fcu = NULL;
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	int array_index_max= array_index+1;
+	int ret= 0;
 	
 	/* sanity checks */
 	if ELEM(NULL, id, adt) {
@@ -944,45 +947,74 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 		return 0;
 	}	
 	
+	/* validate pointer first - exit if failure */
+	RNA_id_pointer_create(id, &id_ptr);
+	if ((RNA_path_resolve(&id_ptr, rna_path, &ptr, &prop) == 0) || (prop == NULL)) {
+		printf("Delete Key: Could not delete keyframe, as RNA Path is invalid for the given ID (ID = %s, Path = %s)\n", id->name, rna_path);
+		return 0;
+	}
+	
 	/* get F-Curve
 	 * Note: here is one of the places where we don't want new Action + F-Curve added!
 	 * 		so 'add' var must be 0
 	 */
 	if (act == NULL) {
-		/* if no action is provided, use the default one attached to this ID-block */
-		act= adt->action;
+		/* if no action is provided, use the default one attached to this ID-block 
+		 * 	- if it doesn't exist, then we're out of options...
+		 */
+		if (adt->action) {
+			act= adt->action;
+			
+			/* apply NLA-mapping to frame to use (if applicable) */
+			cfra= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP); 
+		}
+		else {
+			printf("ERROR: no Action to delete keyframes from for ID = %s \n", id->name);
+			return 0;
+		}
+	}
+	
+#if 0
+	/* apply special time tweaking */
+		// XXX check on this stuff...
+	if (GS(id->name) == ID_OB) {
+		//Object *ob= (Object *)id;
 		
-		/* apply NLA-mapping to frame to use (if applicable) */
-		cfra= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP); 
+		/* ancient time-offset cruft */
+		//if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
+		//	/* actually frametofloat calc again! */
+		//	cfra-= give_timeoffset(ob)*scene->r.framelen;
+		//}
 	}
-	/* we don't check the validity of the path here yet, but it should be ok... */
-	fcu= verify_fcurve(act, group, rna_path, array_index, 0);
+#endif
 	
-	/* check if F-Curve exists and/or whether it can be edited */
-	if ELEM(NULL, act, fcu) {
-		printf("ERROR: no F-Curve and/or Action to delete keyframe from \n");
-		return 0;
-	}
-	if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ) {
-		if (G.f & G_DEBUG)
-			printf("WARNING: not inserting keyframe for locked F-Curve \n");
-		return 0;
+	/* key entire array convenience method */
+	if (array_index == -1) { 
+		array_index= 0;
+		array_index_max= RNA_property_array_length(&ptr, prop);
+		
+		/* for single properties, increase max_index so that the property itself gets included,
+		 * but don't do this for standard arrays since that can cause corruption issues 
+		 * (extra unused curves)
+		 */
+		if (array_index_max == array_index)
+			array_index_max++;
 	}
 	
-	/* it should be fine to continue now... */
-	{
+	/* will only loop once unless the array index was -1 */
+	for (; array_index < array_index_max; array_index++) {
+		FCurve *fcu= verify_fcurve(act, group, rna_path, array_index, 0);
 		short found = -1;
 		int i;
 		
-		/* apply special time tweaking */
-		if (GS(id->name) == ID_OB) {
-			//Object *ob= (Object *)id;
+		/* check if F-Curve exists and/or whether it can be edited */
+		if (fcu == NULL)
+			continue;
 			
-			/* ancient time-offset cruft */
-			//if ( (ob->ipoflag & OB_OFFS_OB) && (give_timeoffset(ob)) ) {
-			//	/* actually frametofloat calc again! */
-			//	cfra-= give_timeoffset(ob)*scene->r.framelen;
-			//}
+		if ( (fcu->flag & FCURVE_PROTECTED) || ((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) ) {
+			if (G.f & G_DEBUG)
+				printf("WARNING: not inserting keyframe for locked F-Curve \n");
+			continue;
 		}
 		
 		/* try to find index of beztriple to get rid of */
@@ -996,12 +1028,12 @@ short delete_keyframe (ID *id, bAction *act, const char group[], const char rna_
 				ANIM_fcurve_delete_from_animdata(NULL, adt, fcu);
 			
 			/* return success */
-			return 1;
+			ret++;
 		}
 	}
 	
-	/* return failure */
-	return 0;
+	/* return success/failure */
+	return ret;
 }
 
 /* ******************************************* */
