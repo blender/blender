@@ -69,7 +69,7 @@ void RNA_api_keyingset(StructRNA *srna)
 	PropertyRNA *parm;
 	
 	/* Add Destination */
-	func= RNA_def_function(srna, "add_destination", "rna_KeyingSet_add_path");
+	func= RNA_def_function(srna, "add_path", "rna_KeyingSet_add_path");
 	RNA_def_function_ui_description(func, "Add a new destination for the Keying Set.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 		/* ID-block for target */

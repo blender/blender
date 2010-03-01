@@ -402,7 +402,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 /* function that sets the given matrix based on given vertex group in mesh */
 static void contarget_get_mesh_mat (Scene *scene, Object *ob, char *substring, float mat[][4])
 {
-	DerivedMesh *dm;
+	DerivedMesh *dm = NULL;
 	Mesh *me= ob->data;
 	EditMesh *em = BKE_mesh_get_editmesh(me);
 	float vec[3] = {0.0f, 0.0f, 0.0f}, tvec[3];

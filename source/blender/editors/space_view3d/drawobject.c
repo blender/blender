@@ -351,7 +351,7 @@ void drawaxes(float size, int flag, char drawtype)
 			float v2[3]= {0.0, 0.0, 0.0};
 			
 			glBegin(GL_LINES);
-
+			
 			v1[axis]= size;
 			v2[axis]= -size;
 			glVertex3fv(v1);
@@ -417,7 +417,7 @@ void drawaxes(float size, int flag, char drawtype)
 			int arrow_axis= (axis==0)?1:0;
 			
 			glBegin(GL_LINES);
-
+			
 			v2[axis]= size;
 			glVertex3fv(v1);
 			glVertex3fv(v2);
@@ -430,7 +430,7 @@ void drawaxes(float size, int flag, char drawtype)
 			v1[arrow_axis]= size*0.125;
 			glVertex3fv(v1);
 			glVertex3fv(v2);
-
+			
 			glEnd();
 				
 			v2[axis]+= size*0.125;
