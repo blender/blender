@@ -1026,9 +1026,7 @@ static void do_material_tex(GPUShadeInput *shi)
 
 			if(!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && (mtex->mapto & MAP_NORM)) {
 				if((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP)) {
-					tex->norfac = mtex->norfac;
-
-					if(tex->norfac < 0.0f)
+					if(mtex->norfac < 0.0f)
 						GPU_link(mat, "mtex_negate_texnormal", tnor, &tnor);
 
 					if(mtex->normapspace == MTEX_NSPACE_TANGENT)
