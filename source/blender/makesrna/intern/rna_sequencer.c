@@ -35,6 +35,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_sequencer.h"
 
 #include "MEM_guardedalloc.h"

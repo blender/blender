@@ -2130,42 +2130,57 @@ static void splineik_execute_tree(Scene *scene, Object *ob, bPoseChannel *pchan_
 
 /* ********************** THE POSE SOLVER ******************* */
 
-
-/* loc/rot/size to mat4 */
-/* used in constraint.c too */
-void chan_calc_mat(bPoseChannel *chan)
+/* loc/rot/size to given mat4 */
+void pchan_to_mat4(bPoseChannel *pchan, float chan_mat[4][4])
 {
 	float smat[3][3];
 	float rmat[3][3];
 	float tmat[3][3];
 	
 	/* get scaling matrix */
-	size_to_mat3( smat,chan->size);
+	size_to_mat3(smat, pchan->size);
 	
 	/* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
-	if (chan->rotmode > 0) {
+	if (pchan->rotmode > 0) {
 		/* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation orders) */
-		eulO_to_mat3( rmat,chan->eul, chan->rotmode);
+		eulO_to_mat3(rmat, pchan->eul, pchan->rotmode);
 	}
-	else if (chan->rotmode == ROT_MODE_AXISANGLE) {
+	else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 		/* axis-angle - not really that great for 3D-changing orientations */
-		axis_angle_to_mat3( rmat,chan->rotAxis, chan->rotAngle);
+		axis_angle_to_mat3(rmat, pchan->rotAxis, pchan->rotAngle);
 	}
 	else {
 		/* quats are normalised before use to eliminate scaling issues */
-		normalize_qt(chan->quat); // TODO: do this with local vars only!
-		quat_to_mat3( rmat,chan->quat);
+		float quat[4];
+		
+		/* NOTE: we now don't normalise the stored values anymore, since this was kindof evil in some cases
+		 * but if this proves to be too problematic, switch back to the old system of operating directly on 
+		 * the stored copy
+		 */
+		QUATCOPY(quat, pchan->quat);
+		normalize_qt(quat);
+		quat_to_mat3(rmat, quat);
 	}
 	
 	/* calculate matrix of bone (as 3x3 matrix, but then copy the 4x4) */
 	mul_m3_m3m3(tmat, rmat, smat);
-	copy_m4_m3(chan->chan_mat, tmat);
+	copy_m4_m3(chan_mat, tmat);
 	
 	/* prevent action channels breaking chains */
 	/* need to check for bone here, CONSTRAINT_TYPE_ACTION uses this call */
-	if ((chan->bone==NULL) || !(chan->bone->flag & BONE_CONNECTED)) {
-		VECCOPY(chan->chan_mat[3], chan->loc);
+	if ((pchan->bone==NULL) || !(pchan->bone->flag & BONE_CONNECTED)) {
+		VECCOPY(chan_mat[3], pchan->loc);
 	}
+}
+
+/* loc/rot/size to mat4 */
+/* used in constraint.c too */
+void chan_calc_mat(bPoseChannel *pchan)
+{
+	/* this is just a wrapper around the copy of this function which calculates the matrix 
+	 * and stores the result in any given channel
+	 */
+	pchan_to_mat4(pchan, pchan->chan_mat);
 }
 
 /* NLA strip modifiers */
