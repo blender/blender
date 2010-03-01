@@ -5125,6 +5125,18 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				//	cl->line= newdataadr(fd, cl->line);
 				
 			}
+			else if(sl->spacetype==SPACE_FILE) {
+				SpaceFile *sfile= (SpaceFile *)sl;
+				
+				/* this sort of info is probably irrelevant for reloading...
+				 * plus, it isn't saved to files yet!
+				 */
+				sfile->folders_prev= sfile->folders_next= NULL;
+				sfile->files= NULL;
+				sfile->layout= NULL;
+				sfile->op= NULL;
+				sfile->params= NULL;
+			}
 		}
 		
 		sa->actionzones.first= sa->actionzones.last= NULL;
