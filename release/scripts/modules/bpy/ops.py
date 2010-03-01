@@ -159,7 +159,12 @@ class bpy_ops_submodule_op(object):
 
         if 'FINISHED' in ret:
             import bpy
-            bpy.context.scene.update()
+            scene = bpy.context.scene
+            if scene: # None in backgroud mode
+                scene.update()
+            else:
+                for scene in bpy.data.scenes:
+                    scene.update()
 
         return ret
 
