@@ -2839,6 +2839,16 @@ void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, int frame)
 	RenderGlobal.renderingslot= RenderGlobal.viewslot;
 }
 
+void RE_RenderFreestyleStrokes(Render *re, Scene *scene)
+{
+	re->result_ok= 0;
+	scene->r.cfra= 1;
+	if(render_initialize_from_scene(re, scene, NULL, 0, 0)) {
+		do_render_all_options(re);
+	}
+	re->result_ok= 1;
+}
+
 static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports)
 {
 	char name[FILE_MAX];
