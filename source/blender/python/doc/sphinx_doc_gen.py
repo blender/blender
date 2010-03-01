@@ -245,8 +245,8 @@ def rna2sphinx(BASEPATH):
     filepath = os.path.join(BASEPATH, "conf.py")
     file = open(filepath, "w")
     fw = file.write
-    
-    
+
+
     version_string = bpy.app.version_string.split("(")[0]
     if bpy.app.build_revision != "Unknown":
         version_string = version_string + " r" + bpy.app.build_revision
@@ -254,8 +254,10 @@ def rna2sphinx(BASEPATH):
     fw("project = 'Blender 3D'\n")
     # fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
-    fw("version = '%s'\n" % version_string)
-    fw("release = '%s'\n" % version_string)
+    fw("version = '%s - UNSTABLE API'\n" % version_string)
+    fw("release = '%s - UNSTABLE API'\n" % version_string)
+    # not helpful since the source us generated, adds to upload size.
+    fw("html_copy_source = False\n")
     fw("\n")
     # needed for latex, pdf gen
     fw("latex_documents = [ ('contents', 'contents.tex', 'Blender Index', 'Blender Foundation', 'manual'), ]\n")
@@ -275,6 +277,21 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw("An introduction to blender and python can be found at <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>\n")
     fw("\n")
+    fw(".. warning:: The Python API in Blender is **UNSTABLE**, It should only be used for testing, any script written now may break in future releases.\n")
+    fw("   \n")
+    fw("   The following areas are subject to change.\n")
+    fw("      * operator names and arguments\n")
+    fw("      * function calls with the data api (any function calls with values accessed from bpy.data), including functions for importing and exporting meshes\n")
+    fw("      * class registration (Operator, Panels, Menus, Headers)\n")
+    fw("      * modules: bpy.props, blf)\n")
+    fw("      * members in the bpy.context have to be reviewed\n")
+    fw("      * python defined modal operators, especially drawing callbacks are highly experemental\n")
+    fw("   \n")
+    fw("   These parts of the API are relatively stable and are unlikely to change significantly\n")
+    fw("      * data API, access to attributes of blender data such as mesh verts, material color, timeline frames and scene objects\n")
+    fw("      * user interface functions for defining buttons, creation of menus, headers, panels\n")
+    fw("      * modules: bgl, Mathutils and Geometry\n")
+    fw("\n")
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
     fw("   bpy.ops.rst\n\n")
@@ -288,10 +305,8 @@ def rna2sphinx(BASEPATH):
     fw("   bpy.props.rst\n\n")
     
     fw("   Mathutils.rst\n\n")
-    fw("   BLF.rst\n\n")
-
+    fw("   blf.rst\n\n")
     file.close()
-
 
 
     # internal modules
@@ -332,7 +347,7 @@ def rna2sphinx(BASEPATH):
     pymodule2sphinx(BASEPATH, "Mathutils", module, "Math Types & Utilities (Mathutils)")
     del module
 
-    import BLF as module
+    import blf as module
     pymodule2sphinx(BASEPATH, "blf", module, "Blender Font Drawing (blf)")
     del module
 
