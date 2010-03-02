@@ -408,7 +408,7 @@ static void stats_string(Scene *scene)
 	}
 	else {
 		s += sprintf(s, "Ve:%d | Fa:%d | Ob:%d-%d | La:%d%s",
-			stats->totvert, stats->totface, stats->totobj, stats->totobjsel, stats->totlamp, memstr);
+			stats->totvert, stats->totface, stats->totobjsel, stats->totobj, stats->totlamp, memstr);
 	}
 
 	if(ob)
