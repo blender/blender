@@ -384,6 +384,11 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func= RNA_def_function(srna, "template_header_3D", "uiTemplateHeader3D");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	
+	func= RNA_def_function(srna, "template_reports_banner", "uiTemplateReportsBanner");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "operator", "Operator", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 
 

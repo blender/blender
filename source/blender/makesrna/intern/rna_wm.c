@@ -339,6 +339,12 @@ static int rna_Operator_name_length(PointerRNA *ptr)
 	return strlen(op->type->name);
 }
 
+static int rna_Operator_has_reports_get(PointerRNA *ptr)
+{
+	wmOperator *op= (wmOperator*)ptr->data;
+	return (op->reports && op->reports->list.first);
+}
+
 static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
 {
 	wmOperator *op= (wmOperator*)ptr->data;
@@ -912,7 +918,12 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
 	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
-
+	
+	prop= RNA_def_property(srna, "has_reports", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* this is 'virtual' property */
+	RNA_def_property_boolean_funcs(prop, "rna_Operator_has_reports_get", NULL);
+	RNA_def_property_ui_text(prop, "Has Reports", "Operator has a set of reports (warnings and errors) from last execution");
+	
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "UILayout");
 
