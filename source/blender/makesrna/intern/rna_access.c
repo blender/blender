@@ -2080,7 +2080,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 
 		item= IDP_New(IDP_GROUP, val, "");
 		IDP_AppendArray(idprop, item);
-		IDP_FreeProperty(item);
+		// IDP_FreeProperty(item); // IDP_AppendArray does a shallow copy (memcpy), only free memory 
 		MEM_freeN(item);
 	}
 	else if(prop->flag & PROP_IDPROPERTY) {
@@ -2094,7 +2094,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 
 			item= IDP_New(IDP_GROUP, val, "");
 			IDP_AppendArray(idprop, item);
-			IDP_FreeProperty(item);
+			// IDP_FreeProperty(item); // IDP_AppendArray does a shallow copy (memcpy), only free memory
 			MEM_freeN(item);
 		}
 	}
