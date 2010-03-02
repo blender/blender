@@ -38,6 +38,7 @@
 #include "DNA_view2d_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_object_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -302,6 +303,16 @@ static void draw_marker(View2D *v2d, TimeMarker *marker, int cfra, int flag)
 				y= 17.0f;
 			}
 		}
+
+#ifdef DURIAN_CAMERA_SWITCH
+		if(marker->camera && marker->camera->restrictflag & OB_RESTRICT_RENDER) {
+			float col[4];
+			glGetFloatv(GL_CURRENT_COLOR, col);
+			col[3]= 0.4;
+			glColor4fv(col);
+		}
+#endif
+
 		UI_DrawString(x, y, marker->name);
 	}
 	
