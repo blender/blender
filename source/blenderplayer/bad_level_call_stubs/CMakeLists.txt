@@ -26,6 +26,11 @@
 
 FILE(GLOB SRC stubs.c)
 
+IF(WITH_BUILDINFO)
+	ADD_DEFINITIONS(-DBUILD_DATE)
+	FILE(GLOB SRC ${SRC} ../../creator/buildinfo.c)
+ENDIF(WITH_BUILDINFO)
+
 SET(INC 
 	.
 	.. 

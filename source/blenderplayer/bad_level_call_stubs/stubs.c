@@ -94,6 +94,9 @@ void object_test_constraints (struct Object *owner){}
 void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr){}
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con){}
 void ED_node_composit_default(struct Scene *sce){}
+void *ED_region_draw_cb_activate(struct ARegionType *art, void(*draw)(const struct bContext *, struct ARegion *, void *), void *custumdata, int type){return 0;}
+void *ED_region_draw_cb_customdata(void *handle){return 0;}
+void ED_region_draw_cb_exit(struct ARegionType *art, void *handle){}
 
 struct EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, struct EditBone *ebo){return (struct EditBone *) NULL;}
 struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name){return (struct EditBone*) NULL;}
@@ -324,9 +327,3 @@ int CSG_PerformBooleanOperation(
 	CSG_FaceIteratorDescriptor		obBFaces,
 	CSG_VertexIteratorDescriptor	obBVertices)
 	{ return 0;}
-
-const char * build_date= "";
-const char * build_time= "";
-const char * build_rev= "";
-const char * build_platform= "";
-const char * build_type= "";
