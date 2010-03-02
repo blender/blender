@@ -254,7 +254,7 @@ static int idp_sequence_type(PyObject *seq)
 				return -1;
 			}
 		}
-		else if (PyMapping_Check(item)) { /*do nothing */
+		else if (PyMapping_Check(item)) {
 			if(i != 0 && (type != IDP_IDPARRAY)) { /* mixed dict/int */
 				Py_DECREF(item);
 				return -1;
