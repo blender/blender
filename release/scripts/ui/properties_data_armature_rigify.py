@@ -49,7 +49,7 @@ PoseTemplateSettings.BoolProperty(attr="generate_def_rig",
                 description="Create a copy of the metarig, constrainted by the generated rig",
                 default=False)
 
-bpy.types.Scene.PointerProperty(attr="pose_templates", type=PoseTemplateSettings, name="Network Render", description="Network Render Settings")
+bpy.types.Scene.PointerProperty(attr="pose_templates", type=PoseTemplateSettings, name="Pose Templates", description="Pose Template Settings")
 
 
 def metarig_templates():
@@ -252,8 +252,7 @@ class AsScript(bpy.types.Operator):
 
     bl_idname = "pose.metarig_to_script"
     bl_label = "Write Metarig to Script"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     path = StringProperty(name="File Path", description="File path used for exporting the Armature file", maxlen=1024, default="")
 

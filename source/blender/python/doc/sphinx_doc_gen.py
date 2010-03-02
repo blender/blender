@@ -43,6 +43,9 @@ import bpy
 import rna_info
 reload(rna_info)
 
+EXAMPLE_SET = set()
+EXAMPLE_SET_USED = set()
+
 def range_str(val):
     if val < -10000000:	return '-inf'
     if val >  10000000:	return 'inf'
@@ -50,6 +53,16 @@ def range_str(val):
         return '%g'  % val
     else:
         return str(val)
+
+
+def write_example_ref(ident, fw, example_id, ext=".py"):
+    if example_id in EXAMPLE_SET:
+        fw("%s.. literalinclude:: ../examples/%s%s\n\n" % (ident, example_id, ext))
+        EXAMPLE_SET_USED.add(example_id)
+    else:
+        if bpy.app.debug:
+            print("\tskipping example:", example_id)
+
 
 def write_indented_lines(ident, fn, text, strip=True):
     if text is None:
@@ -152,6 +165,8 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         # Note, may contain sphinx syntax, dont mangle!
         fw(module.__doc__.strip())
         fw("\n\n")
+        
+    write_example_ref("", fw, module_name)
     
     # write members of the module
     # only tested with PyStructs which are not exactly modules
@@ -188,6 +203,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
         if value.__doc__:
             write_indented_lines("   ", fw, value.__doc__, False)
             fw("\n")
+        write_example_ref("   ", fw, module_name + "." + attribute)
 
         for key in sorted(value.__dict__.keys()):
             if key.startswith("__"):
@@ -197,6 +213,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
                 if descr.__doc__:
                     fw("   .. attribute:: %s\n\n" % key)
                     write_indented_lines("   ", fw, descr.__doc__, False)
+                    write_example_ref("   ", fw, module_name + "." + attribute + "." + key)
                     fw("\n")
 
         for key in sorted(value.__dict__.keys()):
@@ -206,6 +223,7 @@ def pymodule2sphinx(BASEPATH, module_name, module, title):
             if type(descr) == MethodDescriptorType: # GetSetDescriptorType, GetSetDescriptorType's are not documented yet
                 if descr.__doc__:
                     write_indented_lines("   ", fw, descr.__doc__, False)
+                    write_example_ref("   ", fw, module_name + "." + attribute + "." + key)
                     fw("\n")
             
         fw("\n\n")
@@ -227,8 +245,8 @@ def rna2sphinx(BASEPATH):
     filepath = os.path.join(BASEPATH, "conf.py")
     file = open(filepath, "w")
     fw = file.write
-    
-    
+
+
     version_string = bpy.app.version_string.split("(")[0]
     if bpy.app.build_revision != "Unknown":
         version_string = version_string + " r" + bpy.app.build_revision
@@ -236,8 +254,10 @@ def rna2sphinx(BASEPATH):
     fw("project = 'Blender 3D'\n")
     # fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
-    fw("version = '%s'\n" % version_string)
-    fw("release = '%s'\n" % version_string)
+    fw("version = '%s - UNSTABLE API'\n" % version_string)
+    fw("release = '%s - UNSTABLE API'\n" % version_string)
+    # not helpful since the source us generated, adds to upload size.
+    fw("html_copy_source = False\n")
     fw("\n")
     # needed for latex, pdf gen
     fw("latex_documents = [ ('contents', 'contents.tex', 'Blender Index', 'Blender Foundation', 'manual'), ]\n")
@@ -257,6 +277,21 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw("An introduction to blender and python can be found at <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>\n")
     fw("\n")
+    fw(".. warning:: The Python API in Blender is **UNSTABLE**, It should only be used for testing, any script written now may break in future releases.\n")
+    fw("   \n")
+    fw("   The following areas are subject to change.\n")
+    fw("      * operator names and arguments\n")
+    fw("      * function calls with the data api (any function calls with values accessed from bpy.data), including functions for importing and exporting meshes\n")
+    fw("      * class registration (Operator, Panels, Menus, Headers)\n")
+    fw("      * modules: bpy.props, blf)\n")
+    fw("      * members in the bpy.context have to be reviewed\n")
+    fw("      * python defined modal operators, especially drawing callbacks are highly experemental\n")
+    fw("   \n")
+    fw("   These parts of the API are relatively stable and are unlikely to change significantly\n")
+    fw("      * data API, access to attributes of blender data such as mesh verts, material color, timeline frames and scene objects\n")
+    fw("      * user interface functions for defining buttons, creation of menus, headers, panels\n")
+    fw("      * modules: bgl, Mathutils and Geometry\n")
+    fw("\n")
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n\n")
     fw("   bpy.ops.rst\n\n")
@@ -270,9 +305,8 @@ def rna2sphinx(BASEPATH):
     fw("   bpy.props.rst\n\n")
     
     fw("   Mathutils.rst\n\n")
-
+    fw("   blf.rst\n\n")
     file.close()
-
 
 
     # internal modules
@@ -313,7 +347,9 @@ def rna2sphinx(BASEPATH):
     pymodule2sphinx(BASEPATH, "Mathutils", module, "Math Types & Utilities (Mathutils)")
     del module
 
-
+    import blf as module
+    pymodule2sphinx(BASEPATH, "blf", module, "Blender Font Drawing (blf)")
+    del module
 
     if 0:
         filepath = os.path.join(BASEPATH, "bpy.rst")
@@ -498,14 +534,27 @@ if __name__ == '__main__':
 
         path_in = 'source/blender/python/doc/sphinx-in'
         path_out = 'source/blender/python/doc/sphinx-in'
+        path_examples = 'source/blender/python/doc/examples'
 
         shutil.rmtree(path_in, True)
         shutil.rmtree(path_out, True)
+        
+        for f in os.listdir(path_examples):
+            if f.endswith(".py"):
+                EXAMPLE_SET.add(os.path.splitext(f)[0])
+        
         rna2sphinx(path_in)
 
         # for fast module testing
         # os.system("rm source/blender/python/doc/sphinx-in/bpy.types.*.rst")
         # os.system("rm source/blender/python/doc/sphinx-in/bpy.ops.*.rst")
+        
+        EXAMPLE_SET_UNUSED = EXAMPLE_SET - EXAMPLE_SET_USED
+        if EXAMPLE_SET_UNUSED:
+            print("\nUnused examples found in '%s'..." % path_examples)
+            for f in EXAMPLE_SET_UNUSED:
+                print("    %s.py" % f)
+            print("  %d total\n" % len(EXAMPLE_SET_UNUSED))
 
     import sys
     sys.exit()

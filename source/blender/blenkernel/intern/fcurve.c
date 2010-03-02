@@ -50,7 +50,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
-
+#include "BKE_armature.h"
 #include "BKE_curve.h" 
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -1041,8 +1041,12 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 			useEulers = 1;
 		}
 		
-		if (dtar->flag & DTAR_FLAG_LOCALSPACE)
-			copy_m4_m4(mat, pchan->chan_mat);
+		if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
+			/* specially calculate local matrix, since chan_mat is not valid 
+			 * since it stores delta transform of pose_mat so that deforms work
+			 */
+			pchan_to_mat4(pchan, mat);
+		}
 		else
 			mul_m4_m4m4(mat, pchan->pose_mat, ob->obmat);
 	}

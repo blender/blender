@@ -1252,12 +1252,7 @@ static PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 			result = EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->size, 1);
 			break;
 		case Py_NE:
-			result = EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->size, 1);
-			if (result == 0){
-				result = 1;
-			}else{
-				result = 0;
-			}
+			result = !EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->size, 1);
 			break;
 		case Py_GT:
 			lenA = vec_magnitude_nosqrt(vecA->vec, vecA->size);
@@ -2129,9 +2124,7 @@ static struct PyMethodDef Vector_methods[] = {
 */
 
 static char vector_doc[] =
-"This object gives access to Vectors in Blender.\n"
-"\n"
-".. literalinclude:: ../examples/mathutils_vector.py\n";
+"This object gives access to Vectors in Blender.";
 
 PyTypeObject vector_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)

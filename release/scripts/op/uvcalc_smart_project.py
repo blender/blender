@@ -1115,9 +1115,7 @@ class SmartProject(bpy.types.Operator):
     '''This script projection unwraps the selected faces of a mesh. it operates on all selected mesh objects, and can be used unwrap selected faces, or all faces.'''
     bl_idname = "uv.smart_project"
     bl_label = "Smart UV Project"
-
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     angle_limit = FloatProperty(name="Angle Limit",
             description="lower for more projection groups, higher for less distortion.",

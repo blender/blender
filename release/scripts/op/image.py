@@ -24,8 +24,7 @@ class SaveDirty(bpy.types.Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "image.save_dirty"
     bl_label = "Save Dirty"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
         unique_paths = set()

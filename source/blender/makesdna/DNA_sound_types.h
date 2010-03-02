@@ -59,7 +59,7 @@ typedef struct bSound {
 	/**
 	 * The path to the sound file.
 	 */
-	char name[160];
+	char name[240];
 
 	/**
 	 * The packed file.

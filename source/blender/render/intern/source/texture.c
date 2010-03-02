@@ -1311,18 +1311,18 @@ int multitex_nodes(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, 
 			localmtex.object= NULL;
 			localmtex.texco= TEXCO_ORCO;
 			
-			VECCOPY(texvec_l, texvec);
+			copy_v3_v3(texvec_l, texvec);
 			if(dxt && dyt) {
-				VECCOPY(dxt_l, dxt);
-				VECCOPY(dyt_l, dyt);
+				copy_v3_v3(dxt_l, dxt);
+				copy_v3_v3(dyt_l, dyt);
 			}
 			else {
-				dxt_l[0]= dxt_l[1]= dxt_l[2]= 0.0f;
-				dyt_l[0]= dyt_l[1]= dyt_l[2]= 0.0f;
+				zero_v3(dxt_l);
+				zero_v3(dyt_l);
 			}
 			
 			do_2d_mapping(&localmtex, texvec_l, NULL, NULL, dxt_l, dyt_l);
-			rgbnor= multitex(tex, texvec, dxt_l, dyt_l, osatex, texres, thread, which_output);
+			rgbnor= multitex(tex, texvec_l, dxt_l, dyt_l, osatex, texres, thread, which_output);
 		}
 
 		return rgbnor;
@@ -2119,19 +2119,18 @@ void do_material_tex(ShadeInput *shi)
 			}
 			if( (mtex->mapto & MAP_NORM) ) {
 				if(texres.nor) {
-					tex->norfac= mtex->norfac;
+					float norfac= mtex->norfac;
 					
 					/* we need to code blending modes for normals too once.. now 1 exception hardcoded */
 					
 					if ((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP)) {
 						/* qdn: for normalmaps, to invert the normalmap vector,
 						   it is better to negate x & y instead of subtracting the vector as was done before */
-						tex->norfac = mtex->norfac;
-						if (tex->norfac < 0.0f) {
+						if (norfac < 0.0f) {
 							texres.nor[0] = -texres.nor[0];
 							texres.nor[1] = -texres.nor[1];
 						}
-						fact = Tnor*fabs(tex->norfac);
+						fact = Tnor*fabs(norfac);
 						if (fact>1.f) fact = 1.f;
 						facm = 1.f-fact;
 						if(mtex->normapspace == MTEX_NSPACE_TANGENT) {
@@ -2179,15 +2178,15 @@ void do_material_tex(ShadeInput *shi)
 							float nor[3], dot;
 	
 							if(shi->mat->mode & MA_TANGENT_V) {
-								shi->tang[0]+= Tnor*tex->norfac*texres.nor[0];
-								shi->tang[1]+= Tnor*tex->norfac*texres.nor[1];
-								shi->tang[2]+= Tnor*tex->norfac*texres.nor[2];
+								shi->tang[0]+= Tnor*norfac*texres.nor[0];
+								shi->tang[1]+= Tnor*norfac*texres.nor[1];
+								shi->tang[2]+= Tnor*norfac*texres.nor[2];
 							}
 	
 							/* prevent bump to become negative normal */
-							nor[0]= Tnor*tex->norfac*texres.nor[0];
-							nor[1]= Tnor*tex->norfac*texres.nor[1];
-							nor[2]= Tnor*tex->norfac*texres.nor[2];
+							nor[0]= Tnor*norfac*texres.nor[0];
+							nor[1]= Tnor*norfac*texres.nor[1];
+							nor[2]= Tnor*norfac*texres.nor[2];
 							
 							dot= 0.5f + 0.5f*INPR(nor, shi->vn);
 							
@@ -2212,11 +2211,11 @@ void do_material_tex(ShadeInput *shi)
 				/* Now that most textures offer both Nor and Intensity, allow  */
 				/* both to work, and let user select with slider.   */
 				if(texres.nor) {
-					tex->norfac= mtex->norfac;
+					float norfac= mtex->norfac;
 
-					shi->displace[0]+= 0.2f*Tnor*tex->norfac*texres.nor[0];
-					shi->displace[1]+= 0.2f*Tnor*tex->norfac*texres.nor[1];
-					shi->displace[2]+= 0.2f*Tnor*tex->norfac*texres.nor[2];
+					shi->displace[0]+= 0.2f*Tnor*norfac*texres.nor[0];
+					shi->displace[1]+= 0.2f*Tnor*norfac*texres.nor[1];
+					shi->displace[2]+= 0.2f*Tnor*norfac*texres.nor[2];
 				}
 				
 				if(rgbnor & TEX_RGB) {

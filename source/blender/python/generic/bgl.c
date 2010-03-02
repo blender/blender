@@ -32,7 +32,7 @@
  * implementation.  The BGL submodule "wraps" OpenGL functions and constants,
  * allowing script writers to make OpenGL calls in their Python scripts. */
 
-#include "BGL.h" /*This must come first */
+#include "bgl.h" /*This must come first */
 #include <GL/glew.h>
 #include "MEM_guardedalloc.h"
 
@@ -1095,7 +1095,7 @@ static struct PyMethodDef BGL_methods[] = {
 
 static struct PyModuleDef BGL_module_def = {
 	PyModuleDef_HEAD_INIT,
-	"BGL",  /* m_name */
+	"bgl",  /* m_name */
 	0,  /* m_doc */
 	0,  /* m_size */
 	BGL_methods,  /* m_methods */

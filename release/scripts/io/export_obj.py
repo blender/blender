@@ -513,7 +513,7 @@ def write(filename, objects, scene,
                 # XXX update
                 tface = me.active_uv_texture.data
 
-                face_index_pairs.sort(key=lambda a: (a[0].material_index, tface[a[1]].image, a[0].smooth))
+                face_index_pairs.sort(key=lambda a: (a[0].material_index, hash(tface[a[1]].image), a[0].smooth))
             elif len(materials) > 1:
                 face_index_pairs.sort(key = lambda a: (a[0].material_index, a[0].smooth))
             else:

@@ -471,27 +471,16 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
             return False
 
         return strip.type in ('MOVIE', 'IMAGE')
-
+        
+    def draw_filename(self, context):
+        pass
+        
     def draw(self, context):
         layout = self.layout
 
         strip = act_strip(context)
 
-        split = layout.split(percentage=0.2)
-        col = split.column()
-        col.label(text="Path:")
-        col = split.column()
-        col.prop(strip, "directory", text="")
-
-        # Current element for the filename
-
-        elem = strip.getStripElem(context.scene.current_frame)
-        if elem:
-            split = layout.split(percentage=0.2)
-            col = split.column()
-            col.label(text="File:")
-            col = split.column()
-            col.prop(elem, "filename", text="") # strip.elements[0] could be a fallback
+        self.draw_filename(context)
 
         layout.prop(strip, "use_translation", text="Image Offset:")
         if strip.transform:
@@ -513,6 +502,64 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
         col.label(text="Trim Duration:")
         col.prop(strip, "animation_start_offset", text="Start")
         col.prop(strip, "animation_end_offset", text="End")
+        
+class SEQUENCER_PT_input_movie(SEQUENCER_PT_input):
+    bl_label = "Strip Input"
+
+    def poll(self, context):
+        if not self.has_sequencer(context):
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
+        return strip.type == 'MOVIE'
+
+    def draw_filename(self, context):
+        layout = self.layout
+
+        strip = act_strip(context)
+
+        split = layout.split(percentage=0.2)
+        col = split.column()
+        col.label(text="Path:")
+        col = split.column()
+        col.prop(strip, "filepath", text="")
+
+class SEQUENCER_PT_input_image(SEQUENCER_PT_input):
+    bl_label = "Strip Input"
+
+    def poll(self, context):
+        if not self.has_sequencer(context):
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
+        return strip.type == 'IMAGE'
+
+    def draw_filename(self, context):
+        layout = self.layout
+
+        strip = act_strip(context)
+
+        split = layout.split(percentage=0.2)
+        col = split.column()
+        col.label(text="Path:")
+        col = split.column()
+        col.prop(strip, "directory", text="")
+
+        # Current element for the filename
+
+        elem = strip.getStripElem(context.scene.current_frame)
+        if elem:
+            split = layout.split(percentage=0.2)
+            col = split.column()
+            col.label(text="File:")
+            col = split.column()
+            col.prop(elem, "filename", text="") # strip.elements[0] could be a fallback
 
 
 class SEQUENCER_PT_sound(SequencerButtonsPanel):
@@ -536,7 +583,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         layout.template_ID(strip, "sound", open="sound.open")
 
         layout.separator()
-        layout.prop(strip.sound, "filename", text="")
+        layout.prop(strip.sound, "filepath", text="")
 
         row = layout.row()
         if strip.sound.packed_file:
@@ -678,7 +725,8 @@ classes = [
 
     SEQUENCER_PT_edit, # sequencer panels
     SEQUENCER_PT_effect,
-    SEQUENCER_PT_input,
+    SEQUENCER_PT_input_movie,
+    SEQUENCER_PT_input_image,
     SEQUENCER_PT_sound,
     SEQUENCER_PT_scene,
     SEQUENCER_PT_filter,

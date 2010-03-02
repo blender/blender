@@ -581,7 +581,8 @@ static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, int do_endian_swap)
 
 	if (bhead4->code != ENDB) {
 
-		// why is this here ??
+		//perform a endian swap on 64bit pointers, otherwise the pointer might map to zero
+		//0x0000000000000000000012345678 would become 0x12345678000000000000000000000000
 		if (do_endian_swap) {
 			SWITCH_LONGINT(bhead8->old);
 		}
@@ -5129,6 +5130,18 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				//for(cl= sconsole->history.first; cl; cl= cl->next)
 				//	cl->line= newdataadr(fd, cl->line);
 				
+			}
+			else if(sl->spacetype==SPACE_FILE) {
+				SpaceFile *sfile= (SpaceFile *)sl;
+				
+				/* this sort of info is probably irrelevant for reloading...
+				 * plus, it isn't saved to files yet!
+				 */
+				sfile->folders_prev= sfile->folders_next= NULL;
+				sfile->files= NULL;
+				sfile->layout= NULL;
+				sfile->op= NULL;
+				sfile->params= NULL;
 			}
 		}
 		

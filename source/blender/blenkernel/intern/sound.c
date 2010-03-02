@@ -132,7 +132,7 @@ struct bSound* sound_new_file(struct Main *bmain, char* filename)
 		len--;
 
 	sound = alloc_libblock(&bmain->sound, ID_SO, filename+len);
-	strcpy(sound->name, filename);
+	BLI_strncpy(sound->name, filename, FILE_MAX);
 // XXX unused currently	sound->type = SOUND_TYPE_FILE;
 
 	sound_load(bmain, sound);

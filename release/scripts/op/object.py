@@ -26,8 +26,7 @@ class SelectPattern(bpy.types.Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "object.select_pattern"
     bl_label = "Select Pattern"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     pattern = StringProperty(name="Pattern", description="Name filter using '*' and '?' wildcard chars", maxlen=32, default="*")
     case_sensitive = BoolProperty(name="Case Sensitive", description="Do a case sensitive compare", default=False)
@@ -79,8 +78,7 @@ class SelectCamera(bpy.types.Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "object.select_camera"
     bl_label = "Select Camera"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     def poll(self, context):
         return context.scene.camera is not None
@@ -100,8 +98,7 @@ class SelectHierarchy(bpy.types.Operator):
     '''Select object relative to the active objects position in the hierarchy'''
     bl_idname = "object.select_hierarchy"
     bl_label = "Select Hierarchy"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     direction = EnumProperty(items=(
                         ('PARENT', "Parent", ""),
@@ -143,8 +140,7 @@ class SubdivisionSet(bpy.types.Operator):
 
     bl_idname = "object.subdivision_set"
     bl_label = "Subdivision Set"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     level = IntProperty(name="Level",
             default=1, min=-100, max=100, soft_min=-6, soft_max=6)
@@ -207,8 +203,7 @@ class ShapeTransfer(bpy.types.Operator):
 
     bl_idname = "object.shape_key_transfer"
     bl_label = "Transfer Shape Key"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     mode = EnumProperty(items=(
                         ('OFFSET', "Offset", "Apply the relative positional offset"),

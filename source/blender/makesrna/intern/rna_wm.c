@@ -252,6 +252,14 @@ EnumPropertyItem keymap_modifiers_items[] = {
 		{2, "SECOND", 0, "Second", ""},
 		{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem operator_flag_items[] = {
+		{OPTYPE_REGISTER, "REGISTER", 0, "Register", ""},
+		{OPTYPE_UNDO, "UNDO", 0, "Undo", ""},
+		{OPTYPE_BLOCKING, "BLOCKING", 0, "Finished", ""},
+		{OPTYPE_MACRO, "MACRO", 0, "Macro", ""},
+		{OPTYPE_GRAB_POINTER, "GRAB_POINTER", 0, "Grab Pointer", ""},
+		{0, NULL, 0, NULL, NULL}};
+
 EnumPropertyItem operator_return_items[] = {
 		{OPERATOR_RUNNING_MODAL, "RUNNING_MODAL", 0, "Running Modal", ""},
 		{OPERATOR_CANCELLED, "CANCELLED", 0, "Cancelled", ""},
@@ -329,6 +337,12 @@ static int rna_Operator_name_length(PointerRNA *ptr)
 {
 	wmOperator *op= (wmOperator*)ptr->data;
 	return strlen(op->type->name);
+}
+
+static int rna_Operator_has_reports_get(PointerRNA *ptr)
+{
+	wmOperator *op= (wmOperator*)ptr->data;
+	return (op->reports && op->reports->list.first);
 }
 
 static PointerRNA rna_Operator_properties_get(PointerRNA *ptr)
@@ -904,7 +918,12 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "OperatorProperties");
 	RNA_def_property_ui_text(prop, "Properties", "");
 	RNA_def_property_pointer_funcs(prop, "rna_Operator_properties_get", NULL, NULL);
-
+	
+	prop= RNA_def_property(srna, "has_reports", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* this is 'virtual' property */
+	RNA_def_property_boolean_funcs(prop, "rna_Operator_has_reports_get", NULL);
+	RNA_def_property_ui_text(prop, "Has Reports", "Operator has a set of reports (warnings and errors) from last execution");
+	
 	prop= RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "UILayout");
 
@@ -924,13 +943,11 @@ static void rna_def_operator(BlenderRNA *brna)
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "bl_register", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_REGISTER);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-
-	prop= RNA_def_property(srna, "bl_undo", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_UNDO);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	prop= RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type->flag");
+	RNA_def_property_enum_items(prop, operator_flag_items);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL|PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Options",  "Options for this operator type");
 
 	RNA_api_operator(srna);
 
@@ -981,13 +998,11 @@ static void rna_def_macro_operator(BlenderRNA *brna)
 	RNA_def_property_string_maxlength(prop, 1024); /* else it uses the pointer size! */
 	RNA_def_property_flag(prop, PROP_REGISTER);
 
-	prop= RNA_def_property(srna, "bl_register", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_REGISTER);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-
-	prop= RNA_def_property(srna, "bl_undo", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "type->flag", OPTYPE_UNDO);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	prop= RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "type->flag");
+	RNA_def_property_enum_items(prop, operator_flag_items);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL|PROP_ENUM_FLAG);
+	RNA_def_property_ui_text(prop, "Options",  "Options for this operator type");
 
 	RNA_api_macro(srna);
 }
@@ -1088,6 +1103,16 @@ static void rna_def_event(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "y");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Mouse Y Position", "The window relative horizontal location of the mouse");
+
+	prop= RNA_def_property(srna, "mouse_region_x", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "mval[0]");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mouse X Position", "The region relative vertical location of the mouse");
+
+	prop= RNA_def_property(srna, "mouse_region_y", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "mval[1]");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mouse Y Position", "The region relative horizontal location of the mouse");
 	
 	prop= RNA_def_property(srna, "mouse_prev_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "prevx");

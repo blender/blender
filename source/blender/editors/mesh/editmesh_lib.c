@@ -63,6 +63,26 @@ editmesh_lib: generic (no UI, no menus) operations/evaluators for editmesh data
 
 #include "mesh_intern.h"
 
+/* Helpers for EM_set_flag_all_selectmode */
+#define SET_EVE_FLAG(eve, flag) \
+	if (eve->h==0) { \
+		if (flag & SELECT && !(eve->f & SELECT)) { \
+			++selvert; \
+		} \
+		eve->f |= flag; \
+	}
+
+#define SET_EED_FLAG(eed, flag) \
+	if (eed->h==0) { \
+		if (flag & SELECT && !(eed->f & SELECT)) { \
+			++seledge; \
+		} \
+		eed->f |= flag; \
+		SET_EVE_FLAG(eed->v1, flag); \
+		SET_EVE_FLAG(eed->v2, flag); \
+	}
+
+
 /* ****************** stats *************** */
 
 int EM_nfaces_selected(EditMesh *em)
@@ -500,6 +520,70 @@ void EM_set_flag_all(EditMesh *em, int flag)
 	}
 }
 
+void EM_set_flag_all_selectmode(EditMesh *em, int flag)
+{
+ 	EditVert *eve;
+ 	EditEdge *eed;
+ 	EditFace *efa;
+
+	int selvert= 0, seledge= 0, selface= 0;
+
+	if (em->selectmode & SCE_SELECT_VERTEX) {
+		/* If vertex select mode enabled all the data could be affected */
+		for (eve= em->verts.first; eve; eve= eve->next) if(eve->h==0) eve->f |= flag;
+		for (eed= em->edges.first; eed; eed= eed->next) if(eed->h==0) eed->f |= flag;
+		for (efa= em->faces.first; efa; efa= efa->next) if(efa->h==0) efa->f |= flag;
+
+		if (flag & SELECT) {
+			selvert= em->totvert;
+			seledge= em->totedge;
+			selface= em->totface;
+		}
+	} else if (em->selectmode & SCE_SELECT_EDGE) {
+		/* If edge select mode is enabled we should affect on all edges, faces and */
+		/* vertices, connected to them */
+
+		for (eed= em->edges.first; eed; eed= eed->next) {
+			SET_EED_FLAG(eed, flag)
+		}
+
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->h==0) {
+				efa->f |= flag;
+
+				if (flag & SELECT) {
+					++selface;
+				}
+			}
+		}
+	} else if (em->selectmode & SCE_SELECT_FACE) {
+		/* No vertex and edge select mode, only face selection */
+		/* In face select mode only edges and vertices belongs to faces should be affected */
+
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->h==0) {
+				efa->f |= flag;
+				SET_EED_FLAG(efa->e1, flag);
+				SET_EED_FLAG(efa->e2, flag);
+				SET_EED_FLAG(efa->e3, flag);
+
+				if (efa->e4) {
+					SET_EED_FLAG(efa->e4, flag);
+				}
+
+				if (flag & SELECT) {
+					++selface;
+				}
+			}
+		}
+	}
+
+	if(flag & SELECT) {
+		em->totvertsel= selvert;
+		em->totedgesel= seledge;
+		em->totfacesel= selface;
+ 	}
+ }
 /* flush for changes in vertices only */
 void EM_deselect_flush(EditMesh *em)
 {

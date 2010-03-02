@@ -242,9 +242,7 @@ class FollowActiveQuads(bpy.types.Operator):
     '''Follow UVs from active quads along continuous face loops'''
     bl_idname = "uv.follow_active_quads"
     bl_label = "Follow Active Quads"
-
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     mode = bpy.props.EnumProperty(items=(("EVEN", "Even", "Space all UVs evently"), ("LENGTH", "Length", "Average space UVs edge length of each loop")),
                         name="Edge Length Mode",

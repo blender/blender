@@ -2663,7 +2663,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 
 	/* maybe this become and ID function */
 	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, NULL},
-//	{"keyframe_delete", (PyCFunction)pyrna_struct_keyframe_delete, METH_VARARGS, NULL}, // WIP
+	{"keyframe_delete", (PyCFunction)pyrna_struct_keyframe_delete, METH_VARARGS, NULL},
 	{"driver_add", (PyCFunction)pyrna_struct_driver_add, METH_VARARGS, NULL},
 	{"is_property_set", (PyCFunction)pyrna_struct_is_property_set, METH_VARARGS, NULL},
 	{"is_property_hidden", (PyCFunction)pyrna_struct_is_property_hidden, METH_VARARGS, NULL},

@@ -687,6 +687,7 @@ void uiTemplateRunningJobs(uiLayout *layout, struct bContext *C);
 void uiTemplateOperatorSearch(uiLayout *layout);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
 void uiTemplateTextureImage(uiLayout *layout, struct bContext *C, struct Tex *tex);
+void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C, struct wmOperator *op);
 
 void uiTemplateList(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *activeptr, char *activeprop, int rows, int maxrows, int type);
 

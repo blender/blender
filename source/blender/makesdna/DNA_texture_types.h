@@ -236,7 +236,7 @@ typedef struct Tex {
 	int frames, offset, sfra;
 	
 	float checkerdist, nabla;
-	float norfac;
+	float pad1;
 	
 	struct ImageUser iuser;
 	

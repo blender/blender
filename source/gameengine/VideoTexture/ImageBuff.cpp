@@ -34,7 +34,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 extern "C" {
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-#include "BGL.h"
+#include "bgl.h"
 };
 
 // default filter

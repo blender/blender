@@ -859,8 +859,7 @@ void drawLine(TransInfo *t, float *center, float *dir, char axis, short options)
 		setlinestyle(0);
 		glBegin(GL_LINE_STRIP);
 			glVertex3fv(v1);
-			glVertex3fv(center);
-//			glVertex3fv(v2);
+			glVertex3fv(v2);
 		glEnd();
 		
 		glPopMatrix();

@@ -83,8 +83,7 @@ class RandomizeLocRotSize(bpy.types.Operator):
     '''Randomize objects loc/rot/scale'''
     bl_idname = "object.randomize_transform"
     bl_label = "Randomize Transform"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     random_seed = IntProperty(name="Random Seed",
         description="Seed value for the random generator",

@@ -2271,7 +2271,7 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 		else if(report->type >= RPT_WARNING)
 			BLI_dynstr_appendf(ds, "Warning %%i%d%%t|%s", ICON_ERROR, report->message);
 		else if(report->type >= RPT_INFO)
-			BLI_dynstr_appendf(ds, "Info %%t|%s", report->message);
+			BLI_dynstr_appendf(ds, "Info %%i%d%%t|%s", ICON_INFO, report->message);
 	}
 
 	str= BLI_dynstr_get_cstring(ds);

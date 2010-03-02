@@ -25,7 +25,12 @@ class INFO_HT_header(bpy.types.Header):
 
     def draw(self, context):
         layout = self.layout
-
+        
+        wm = context.manager
+        if wm and len(wm.operators):
+            last_op = wm.operators[-1]
+        else:
+            last_op = None
         window = context.window
         scene = context.scene
         rd = scene.render
@@ -58,11 +63,14 @@ class INFO_HT_header(bpy.types.Header):
 
         layout.separator()
 
-        layout.template_operator_search()
         layout.template_running_jobs()
+        
+        if last_op and last_op.has_reports:
+            layout.template_reports_banner(last_op)
+        else:
+            layout.label(text=scene.statistics())
 
-        layout.label(text=scene.statistics())
-
+        # XXX: this should be right-aligned to the RHS of the region
         layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER', text="")
 
 

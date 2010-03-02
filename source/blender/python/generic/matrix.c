@@ -1335,9 +1335,7 @@ static struct PyMethodDef Matrix_methods[] = {
 
 /*------------------PY_OBECT DEFINITION--------------------------*/
 static char matrix_doc[] =
-"This object gives access to Matrices in Blender.\n"
-"\n"
-".. literalinclude:: ../examples/mathutils_matrix.py\n";
+"This object gives access to Matrices in Blender.";
 
 PyTypeObject matrix_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)

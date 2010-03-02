@@ -1478,6 +1478,19 @@ static void view3d_draw_transp(Scene *scene, ARegion *ar, View3D *v3d)
 	draw_dupli_objects_color was added because when drawing set dupli's
 	we need to force the color
  */
+
+#if 0
+int dupli_ob_sort(void *arg1, void *arg2)
+{
+	void *p1= ((DupliObject *)arg1)->ob;
+	void *p2= ((DupliObject *)arg2)->ob;
+	int val = 0;
+	if (p1 < p2)		val = -1;
+	else if (p1 > p2)	val = 1;
+	return val;
+}
+#endif
+
 static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int color)
 {	
 	RegionView3D *rv3d= ar->regiondata;
@@ -1493,6 +1506,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	
 	tbase.flag= OB_FROMDUPLI|base->flag;
 	lb= object_duplilist(scene, base->object);
+	// BLI_sortlist(lb, dupli_ob_sort); // might be nice to have if we have a dupli list with mixed objects.
 	
 	for(dob= lb->first; dob; dob= dob->next) {
 		if(dob->no_draw);
@@ -1520,7 +1534,12 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			if(use_displist == -1) {
 				
 				/* lamp drawing messes with matrices, could be handled smarter... but this works */
-				if(dob->ob->type==OB_LAMP || dob->type==OB_DUPLIGROUP || !(bb_tmp= object_get_boundbox(dob->ob)))
+
+				/* note, since this was added, its checked dob->type==OB_DUPLIGROUP
+				 * however this is very slow, it was probably needed for the NLA
+				 * offset feature (used in group-duplicate.blend but no longer works in 2.5)
+				 * so for now it should be ok to - campbell */
+				if(dob->ob->type==OB_LAMP || (dob->type==OB_DUPLIGROUP && dob->animated) || !(bb_tmp= object_get_boundbox(dob->ob)))
 					use_displist= 0;
 				else {
 					bb= *bb_tmp; /* must make a copy  */

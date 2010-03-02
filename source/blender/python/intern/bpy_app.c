@@ -32,17 +32,11 @@
 #include "structseq.h"
 
 #ifdef BUILD_DATE
-extern char * build_date;
-extern char * build_time;
-extern char * build_rev;
-extern char * build_platform;
-extern char * build_type;
-#else
-static char * build_date = "Unknown";
-static char * build_time = "Unknown";
-static char * build_rev = "Unknown";
-static char * build_platform = "Unknown";
-static char * build_type = "Unknown";
+extern const char * build_date;
+extern const char * build_time;
+extern const char * build_rev;
+extern const char * build_platform;
+extern const char * build_type;
 #endif
 
 static PyTypeObject BlenderAppType;
@@ -111,11 +105,19 @@ static PyObject *make_app_info(void)
 	SetObjItem(PyBool_FromLong(G.f & G_DEBUG));
 
 	/* build info */
+#ifdef BUILD_DATE
 	SetStrItem(strip_quotes(buf, build_date));
 	SetStrItem(strip_quotes(buf, build_time));
 	SetStrItem(strip_quotes(buf, build_rev));
 	SetStrItem(strip_quotes(buf, build_platform));
 	SetStrItem(strip_quotes(buf, build_type));
+#else
+	SetStrItem(strip_quotes(buf, "Unknown"));
+	SetStrItem(strip_quotes(buf, "Unknown"));
+	SetStrItem(strip_quotes(buf, "Unknown"));
+	SetStrItem(strip_quotes(buf, "Unknown"));
+	SetStrItem(strip_quotes(buf, "Unknown"));
+#endif
 
 #undef SetIntItem
 #undef SetStrItem

@@ -2484,4 +2484,45 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 		uiDefIconTextBut(block, BUT, B_STOPANIM, ICON_CANCEL, "Anim Player", 0,0,100,UI_UNIT_Y, NULL, 0.0f, 0.0f, 0, 0, "Stop animation playback");
 }
 
+/************************* Reports for Last Operator Template **************************/
+
+void uiTemplateReportsBanner(uiLayout *layout, bContext *C, wmOperator *op)
+{
+	ReportList *reports = op->reports;
+	uiLayout *box;
+	
+	/* sanity checks */
+	if (ELEM(NULL, op, reports)) {
+		printf("uiTemplateReportsBanner: no operator with reports!\n");
+		return;
+	}
+	
+	/* make a box around the report to make it stand out */
+	box = uiLayoutBox(layout);
+	uiLayoutSetScaleY(box, 0.48); /* experimentally determined value to reduce execessive padding... */
+	
+	/* if more than one report, we need to show the popup when user clicks on the temp label... */
+	if (reports->list.first != reports->list.last) {
+		int numReports = BLI_countlist(&reports->list);
+		char buf[64];
+		
+		// XXX: we need uiItem* to return uiBut pointer so that we can use it to set callbacks
+		// used to call uiPupMenuReports... as alternative, we could fall back to the "old ways"
+		//sprintf(buf, "Last Operator had %d errors. Click to see more...", numReports);
+		sprintf(buf, "Last Operator had %d errors", numReports);
+		uiItemL(box, buf, ICON_INFO);
+	}
+	else {
+		/* single report, so show report directly */
+		// XXX: what if the report is too long? should we truncate the text?
+		Report *report= (Report *)reports->list.first;
+		
+		if(report->type >= RPT_ERROR)
+			uiItemL(box, report->message, ICON_ERROR);
+		else if(report->type >= RPT_WARNING)
+			uiItemL(box, report->message, ICON_ERROR);
+		else if(report->type >= RPT_INFO)
+			uiItemL(box, report->message, ICON_INFO);
+	}
+}
 

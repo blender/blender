@@ -37,7 +37,8 @@
  /* external util modules */
 #include "../generic/Mathutils.h"
 #include "../generic/Geometry.h"
-#include "../generic/BGL.h"
+#include "../generic/bgl.h"
+#include "../generic/blf.h"
 #include "../generic/IDProp.h"
 
 #include "BPy_Freestyle.h"
@@ -108,6 +109,7 @@ void BPy_init_modules( void )
 	Geometry_Init();
 	Mathutils_Init();
 	BGL_Init();
+	BLF_Init();
 	IDProp_Init_Types();
 	Freestyle_Init();
 

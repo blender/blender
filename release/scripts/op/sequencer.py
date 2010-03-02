@@ -25,8 +25,7 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
 
     bl_idname = "sequencer.crossfade_sounds"
     bl_label = "Crossfade sounds"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     def poll(self, context):
         if context.scene and context.scene.sequence_editor and context.scene.sequence_editor.active_strip:
