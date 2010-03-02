@@ -51,6 +51,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -68,6 +69,7 @@
 #include "ED_types.h"
 #include "ED_util.h"
 #include "ED_numinput.h"
+#include "ED_object.h"
 
 /* ************* Marker API **************** */
 
@@ -778,7 +780,7 @@ static void select_timeline_marker_frame(ListBase *markers, int frame, unsigned 
 	}
 }
 
-static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
+static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 {
 	ListBase *markers= context_get_markers(C);
 	View2D *v2d= UI_view2d_fromcontext(C);
@@ -800,6 +802,35 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
 	else
 		select_timeline_marker_frame(markers, cfra, 0);
 	
+#ifdef DURIAN_CAMERA_SWITCH
+
+	if(camera) {
+		Scene *scene= CTX_data_scene(C);
+		TimeMarker *marker;
+		int sel;
+
+		if (!extend)
+			scene_deselect_all(scene);
+
+		for (marker= markers->first; marker; marker= marker->next) {
+			if(marker->frame==cfra) {
+				sel= (marker->flag & SELECT);
+				break;
+			}
+		}
+
+		for (marker= markers->first; marker; marker= marker->next) {
+			if(marker->camera) {
+				if(marker->frame==cfra) {
+					ED_base_object_select(object_in_scene(marker->camera, scene), sel);
+				}
+			}
+		}
+
+		WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
+	}
+#endif
+
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);
 
 	/* allowing tweaks */
@@ -809,7 +840,11 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend)
 static int ed_marker_select_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 {
 	short extend= RNA_boolean_get(op->ptr, "extend");
-	return ed_marker_select(C, evt, extend);
+	short camera= 0;
+#ifdef DURIAN_CAMERA_SWITCH
+	camera= RNA_boolean_get(op->ptr, "camera");
+#endif
+	return ed_marker_select(C, evt, extend, camera);
 }
 
 static void MARKER_OT_select(wmOperatorType *ot)
@@ -827,6 +862,9 @@ static void MARKER_OT_select(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "extend the selection");
+#ifdef DURIAN_CAMERA_SWITCH
+	RNA_def_boolean(ot->srna, "camera", 0, "Camera", "Select the camera");
+#endif
 }
 
 /* *************************** border select markers **************** */
@@ -1133,12 +1171,23 @@ void ED_operatortypes_marker(void)
 void ED_marker_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Markers", 0, 0);
+	wmKeyMapItem *kmi;
 	
 	WM_keymap_verify_item(keymap, "MARKER_OT_add", MKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_move", EVT_TWEAK_S, KM_ANY, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_duplicate", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
 	RNA_boolean_set(WM_keymap_add_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", 1);
+
+#ifdef DURIAN_CAMERA_SWITCH
+	kmi= WM_keymap_add_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "camera", 1);
+
+	kmi= WM_keymap_add_item(keymap, "MARKER_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "extend", 1);
+	RNA_boolean_set(kmi->ptr, "camera", 1);
+#endif
+	
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "MARKER_OT_delete", XKEY, KM_PRESS, 0, 0);
