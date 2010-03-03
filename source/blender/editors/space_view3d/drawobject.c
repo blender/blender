@@ -3383,6 +3383,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		glMultMatrixf(mat);
 	}
 
+	/* needed for text display */
+	invert_m4_m4(ob->imat, ob->obmat);
+
 	totpart=psys->totpart;
 
 	//if(part->flag&PART_GLOB_TIME)
@@ -3694,6 +3697,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 				}
 
 				if((part->draw & PART_DRAW_NUM || part->draw & PART_DRAW_HEALTH) && !(G.f & G_RENDER_SHADOW)){
+					float vec_txt[3];
 					char *val_pos= val;
 					val[0]= '\0';
 
@@ -3705,7 +3709,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 					/* in path drawing state.co is the end point */
 					/* use worldspace beause object matrix is alredy applied */
-					view3d_cached_text_draw_add(state.co[0],  state.co[1],  state.co[2], val, 10, V3D_CACHE_TEXT_WORLDSPACE);
+					mul_v3_m4v3(vec_txt, ob->imat, state.co);
+					view3d_cached_text_draw_add(vec_txt[0],  vec_txt[1],  vec_txt[2], val, 10, V3D_CACHE_TEXT_WORLDSPACE);
 				}
 			}
 		}
