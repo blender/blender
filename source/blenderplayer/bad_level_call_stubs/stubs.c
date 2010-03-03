@@ -32,6 +32,51 @@
 #include "DNA_listBase.h"
 #include "RNA_types.h"
 
+struct ARegion;
+struct ARegionType;
+struct Base;
+struct CSG_FaceIteratorDescriptor;
+struct CSG_VertexIteratorDescriptor;
+struct ColorBand;
+struct CurveMapping;
+struct EditBone;
+struct EditMesh;
+struct ID;
+struct ImBuf;
+struct Image;
+struct ImageUser;
+struct LOD_Decimation_Info;
+struct MTex;
+struct Main;
+struct Material;
+struct MenuType;
+struct Mesh;
+struct ModifierData;
+struct NodeBlurData;
+struct Object;
+struct Render;
+struct RenderEngine;
+struct RenderLayer;
+struct RenderResult;
+struct ScrArea;
+struct ShadeInput;
+struct ShadeResult;
+struct SpaceImage;
+struct Tex;
+struct TexResult;
+struct Text;
+struct bAction;
+struct bArmature;
+struct bConstraint;
+struct bNode;
+struct bPoseChannel;
+struct uiLayout;
+struct wmEvent;
+struct wmKeyConfig;
+struct wmKeyMap;
+struct wmOperator;
+struct wmWindowManager;
+
 /*new render funcs */
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype) {return NULL;}
 float RE_filter_value(int type, float x) {return 0.0f;}
@@ -235,6 +280,7 @@ void uiTemplateImage(struct uiLayout *layout, struct bContext *C, struct Pointer
 void uiTemplateDopeSheetFilter(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr){}
 void uiTemplateColorWheel(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider){}
 void uiTemplateHistogram(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand){}
+void uiTemplateReportsBanner(struct uiLayout *layout, struct bContext *C, struct wmOperator *op){}
 
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h){return (struct RenderResult *) NULL;}

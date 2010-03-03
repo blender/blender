@@ -26,7 +26,8 @@
  * a script writer should never directly access this module */
  
 #include <Python.h>
- 
+
+#include "bpy_util.h" 
 #include "bpy_rna.h"
 #include "bpy_app.h"
 #include "bpy_props.h"

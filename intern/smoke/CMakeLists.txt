@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC ${PNG_INC} ${ZLIB_INC} intern ../../extern/bullet2/src ../memutil ../guardealloc)
+SET(INC ${ZLIB_INC} intern ../../extern/bullet2/src ../memutil ../guardealloc)
 
 FILE(GLOB SRC intern/*.cpp)
 
