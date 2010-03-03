@@ -817,6 +817,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 
 	if(camera) {
 		Scene *scene= CTX_data_scene(C);
+		Base *base;
 		TimeMarker *marker;
 		int sel;
 
@@ -833,7 +834,12 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 		for (marker= markers->first; marker; marker= marker->next) {
 			if(marker->camera) {
 				if(marker->frame==cfra) {
-					ED_base_object_select(object_in_scene(marker->camera, scene), sel);
+					base= object_in_scene(marker->camera, scene);
+					if(base) {
+						ED_base_object_select(base, sel);
+						if(sel)
+							ED_base_object_activate(C, base);
+					}
 				}
 			}
 		}
