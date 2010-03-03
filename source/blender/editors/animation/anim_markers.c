@@ -819,7 +819,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 		Scene *scene= CTX_data_scene(C);
 		Base *base;
 		TimeMarker *marker;
-		int sel;
+		int sel= 0;
 
 		if (!extend)
 			scene_deselect_all(scene);

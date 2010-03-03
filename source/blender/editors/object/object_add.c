@@ -1348,9 +1348,6 @@ static int convert_exec(bContext *C, wmOperator *op)
 				}
 				
 				mball_to_mesh(&ob->disp, ob1->data);
-				
-				/* So we can see the wireframe */
-				BASACT= basen; // XXX hm
 			}
 			else
 				continue;
@@ -1362,7 +1359,9 @@ static int convert_exec(bContext *C, wmOperator *op)
 		if(basen) {
 			if(ob == obact) {
 				ED_base_object_activate(C, basen);
-				basact = basen;
+
+				/* store new active base to update BASACT */
+				basact= basen;
 			}
 
 			basen= NULL;
@@ -1382,12 +1381,13 @@ static int convert_exec(bContext *C, wmOperator *op)
 	if(!keep_original)
 		DAG_scene_sort(scene);
 
-	/* texspace and normals */
-	if(!basen) BASACT= NULL; // XXX base;
-
 // XXX	ED_object_enter_editmode(C, 0);
 // XXX	exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
-	BASACT= basact;
+
+	if (basact) {
+		/* active base was changed */
+		BASACT= basact;
+	}
 
 	DAG_scene_sort(scene);
 	WM_event_add_notifier(C, NC_SCENE|NC_OBJECT|ND_DRAW, scene); /* is NC_SCENE needed ? */
