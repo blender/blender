@@ -24,7 +24,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-SET(INC ${ZLIB_INC} extern)
+SET(INC ${ZLIB_INC} ${PNG_INC} extern)
 
 FILE(GLOB SRC intern/*.cpp)
 

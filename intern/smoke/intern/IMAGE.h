@@ -74,12 +74,17 @@ template < class T > inline float MIN3V( T vec) {
 //////////////////////////////////////////////////////////////////////
 // PNG, POV-Ray, and PBRT output functions
 //////////////////////////////////////////////////////////////////////
+#ifndef NOPNG
 #ifdef WIN32
 #include "png.h"
 #else
 #include <png.h>
 #endif
+#endif // NOPNG
 
+/*
+  NOTE when someone decided to uncomment the following code, please remember to put it between #ifndef NOPNG #endif
+*/
 namespace IMAGE {
 	/*
   static int writePng(const char *fileName, unsigned char **rowsp, int w, int h)
