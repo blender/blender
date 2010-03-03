@@ -544,7 +544,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 	
 	/* project first and test */
 	for(vos= strings->first; vos; vos= vos->next) {
-		if(mat)
+		if(mat && !(vos->flag & V3D_CACHE_TEXT_WORLDSPACE))
 			mul_m4_v3(mat, vos->vec);
 		view3d_project_short_clip(ar, vos->vec, vos->mval, 0);
 		if(vos->mval[0]!=IS_CLIPPED)
@@ -3693,22 +3693,19 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					setlinestyle(0);
 				}
 
-				if((part->draw&PART_DRAW_NUM || part->draw&PART_DRAW_HEALTH) && !(G.f & G_RENDER_SHADOW)){
+				if((part->draw & PART_DRAW_NUM || part->draw & PART_DRAW_HEALTH) && !(G.f & G_RENDER_SHADOW)){
+					char *val_pos= val;
 					val[0]= '\0';
-					
+
 					if(part->draw&PART_DRAW_NUM)
-						sprintf(val, " %i", a);
+						val_pos += sprintf(val, "%i", a);
 
-					if(part->draw&PART_DRAW_NUM && part->draw&PART_DRAW_HEALTH)
-						strcat(val, ":");
+					if((part->draw & PART_DRAW_HEALTH) && a < totpart && part->phystype==PART_PHYS_BOIDS)
+						sprintf(val_pos, (val_pos==val) ? "%.2f" : ":%.2f", pa_health);
 
-					if(part->draw&PART_DRAW_HEALTH && a < totpart && part->phystype==PART_PHYS_BOIDS) {
-						char tval[8];
-						sprintf(tval, " %.2f", pa_health);
-						strcat(val, tval);
-					}
 					/* in path drawing state.co is the end point */
-					view3d_cached_text_draw_add(state.co[0],  state.co[1],  state.co[2], val, 0, 0);
+					/* use worldspace beause object matrix is alredy applied */
+					view3d_cached_text_draw_add(state.co[0],  state.co[1],  state.co[2], val, 10, V3D_CACHE_TEXT_WORLDSPACE);
 				}
 			}
 		}
