@@ -33,9 +33,10 @@
 
 #ifdef WIN32
 #include <windows.h>
-#endif
-
 #include "png.h"
+#else
+#include <png.h>
+#endif
 
 #include "RAS_IPolygonMaterial.h"
 #include "GPC_Canvas.h"

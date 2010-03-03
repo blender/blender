@@ -67,6 +67,7 @@ SET(INC
 	../../../../source/blender/gpu
 	../../../../extern/glew/include
 	${PYTHON_INC}
+	${PNG_INC}
 	${ZLIB_INC}
 )
 
