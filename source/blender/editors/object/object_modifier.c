@@ -318,6 +318,10 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
 				medge++;
 			}
+			else {
+				/* cheap trick to select the roots */
+				mvert->flag |= SELECT;
+			}
 		}
 	}
 
@@ -332,6 +336,10 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 				medge->v2=cvert;
 				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
 				medge++;
+			}
+			else {
+				/* cheap trick to select the roots */
+				mvert->flag |= SELECT;
 			}
 		}
 	}
