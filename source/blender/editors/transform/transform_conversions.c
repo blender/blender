@@ -2912,7 +2912,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 
 	/* allocate memory for the cache */
 	// TODO: investigate using BezTriple columns instead?
-	if (fcu->totvert == 0)
+	if (fcu->totvert == 0 || fcu->bezt==NULL)
 		return;
 	selcache= MEM_callocN(sizeof(float)*fcu->totvert, "FCurveSelFrameNums");
 	len= 0;

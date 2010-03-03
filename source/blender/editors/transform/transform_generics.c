@@ -323,10 +323,13 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 
 static int fcu_test_selected(FCurve *fcu)
 {
-	BezTriple *bezt;
+	BezTriple *bezt= fcu->bezt;
 	int i;
 
-	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
+	if(bezt==NULL) /* ignore baked */
+		return 0;
+
+	for (i=0; i < fcu->totvert; i++, bezt++) {
 		if (BEZSELECTED(bezt)) return 1;
 	}
 

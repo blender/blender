@@ -372,6 +372,9 @@ void sample_fcurve (FCurve *fcu)
 	tempFrameValCache *value_cache, *fp;
 	int sfra, range;
 	int i, n, nIndex;
+
+	if(fcu->bezt==NULL) /* ignore baked */
+		return NULL;
 	
 	/* find selected keyframes... once pair has been found, add keyframes  */
 	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
