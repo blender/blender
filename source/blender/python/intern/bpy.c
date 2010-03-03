@@ -91,7 +91,7 @@ static void bpy_import_test(char *modname)
 *****************************************************************************/
 void BPy_init_modules( void )
 {
-    extern BPy_StructRNA *bpy_context_module;
+	extern BPy_StructRNA *bpy_context_module;
 	PyObject *mod;
 
 	/* Needs to be first since this dir is needed for future modules */
@@ -129,11 +129,11 @@ void BPy_init_modules( void )
 	PyModule_AddObject( mod, "app", BPY_app_struct() );
 
 	/* bpy context */
-    bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
-    RNA_pointer_create(NULL, &RNA_Context, NULL, &bpy_context_module->ptr);
-    bpy_context_module->freeptr= 0;
-    PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
-    
+	bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
+	RNA_pointer_create(NULL, &RNA_Context, BPy_GetContext(), &bpy_context_module->ptr);
+	bpy_context_module->freeptr= 0;
+	PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
+
 	/* utility func's that have nowhere else to go */
 	PyModule_AddObject(mod, meth_bpy_home_paths->ml_name, (PyObject *)PyCFunction_New(meth_bpy_home_paths, NULL));
 
