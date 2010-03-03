@@ -379,13 +379,3 @@ void KX_BlenderRenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
 		}
 	}
 }
-
-void KX_BlenderRenderTools::Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
-{
-	m_filtermanager.EnableFilter(propNames, gameObj, filtermode, pass, text);
-}
-
-void KX_BlenderRenderTools::Render2DFilters(RAS_ICanvas* canvas)
-{
-	m_filtermanager.RenderFilters(canvas);
-}

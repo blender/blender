@@ -433,13 +433,3 @@ void GPC_RenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
 	}
 }
 
-void GPC_RenderTools::Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
-{
-	m_filtermanager.EnableFilter(propNames, gameObj, filtermode, pass, text);
-}
-
-void GPC_RenderTools::Render2DFilters(RAS_ICanvas* canvas)
-{
-	m_filtermanager.RenderFilters(canvas);
-}
-

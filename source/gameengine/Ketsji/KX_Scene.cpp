@@ -1842,6 +1842,16 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 	return true;
 }
 
+void KX_Scene::Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
+{
+	m_filtermanager.EnableFilter(propNames, gameObj, filtermode, pass, text);
+}
+
+void KX_Scene::Render2DFilters(RAS_ICanvas* canvas)
+{
+	m_filtermanager.RenderFilters(canvas);
+}
+
 //----------------------------------------------------------------------------
 //Python
 

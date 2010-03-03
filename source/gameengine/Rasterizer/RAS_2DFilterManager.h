@@ -28,6 +28,7 @@
 #ifndef __RAS_I2DFILTER
 #define __RAS_I2DFILTER
 
+#include "RAS_ICanvas.h"
 #define MAX_RENDER_PASS	100
 
 #ifdef WITH_CXX_GUARDEDALLOC

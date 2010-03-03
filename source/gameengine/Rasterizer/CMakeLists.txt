@@ -31,6 +31,7 @@ SET(INC
 	../../../source/kernel/gen_system
 	../../../source/blender/makesdna
 	../../../source/gameengine/SceneGraph
+	../../../source/gameengine/Ketsji
 	../../../intern/string
 	../../../intern/moto/include
 	../../../extern/glew/include
