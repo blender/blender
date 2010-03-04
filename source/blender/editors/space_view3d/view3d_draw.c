@@ -1491,12 +1491,27 @@ int dupli_ob_sort(void *arg1, void *arg2)
 }
 #endif
 
+
+static int draw_dupli_objects_step(DupliObject **dob_prev, DupliObject **dob, DupliObject **dob_next)
+{
+	(*dob_prev) = (*dob);
+	(*dob) = (*dob_next);
+
+	if((*dob_next)) {
+		(*dob_next) = (*dob_next)->next;
+		while((*dob_next) && (*dob_next)->no_draw) {
+			(*dob_next)= (*dob_next)->next;
+		}
+	}
+
+	return (*dob) != NULL;
+}
+
 static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int color)
-{	
+{
 	RegionView3D *rv3d= ar->regiondata;
 	ListBase *lb;
-	DupliObject *dob;
-	Object *ob_prev= NULL;
+	DupliObject *dob_prev= NULL, *dob= NULL, *dob_next= NULL;
 	Base tbase;
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist=0;
@@ -1509,78 +1524,82 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	lb= object_duplilist(scene, base->object);
 	// BLI_sortlist(lb, dupli_ob_sort); // might be nice to have if we have a dupli list with mixed objects.
 	
-	for(dob= lb->first; dob; dob= dob->next) {
-		if(dob->no_draw);
-		else {
-			tbase.object= dob->ob;
-			
-			/* extra service: draw the duplicator in drawtype of parent */
-			/* MIN2 for the drawtype to allow bounding box objects in groups for lods */
-			dt= tbase.object->dt;	tbase.object->dt= MIN2(tbase.object->dt, base->object->dt);
-			dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
-			
-			/* negative scale flag has to propagate */
-			transflag= tbase.object->transflag;
-			if(base->object->transflag & OB_NEG_SCALE)
-				tbase.object->transflag ^= OB_NEG_SCALE;
-			
-			UI_ThemeColorBlend(color, TH_BACK, 0.5);
-			
-			/* generate displist, test for new object */
-			if(use_displist==1 && ob_prev != dob->ob) {
-				use_displist= -1;
+	dob_next= lb->first;
+	while(dob_next && dob_next->no_draw) {
+		dob_next= dob_next->next;
+	}
+
+	while(draw_dupli_objects_step(&dob_prev, &dob, &dob_next)) {
+		tbase.object= dob->ob;
+
+		/* extra service: draw the duplicator in drawtype of parent */
+		/* MIN2 for the drawtype to allow bounding box objects in groups for lods */
+		dt= tbase.object->dt;	tbase.object->dt= MIN2(tbase.object->dt, base->object->dt);
+		dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
+
+		/* negative scale flag has to propagate */
+		transflag= tbase.object->transflag;
+		if(base->object->transflag & OB_NEG_SCALE)
+			tbase.object->transflag ^= OB_NEG_SCALE;
+
+		UI_ThemeColorBlend(color, TH_BACK, 0.5);
+
+		/* generate displist, test for new object */
+		if(dob_prev && dob_prev->ob != dob->ob) {
+			if(use_displist==1)
 				glDeleteLists(displist, 1);
-			}
-			/* generate displist */
-			if(use_displist == -1) {
 
-				/* note, since this was added, its checked dob->type==OB_DUPLIGROUP
-				 * however this is very slow, it was probably needed for the NLA
-				 * offset feature (used in group-duplicate.blend but no longer works in 2.5)
-				 * so for now it should be ok to - campbell */
+			use_displist= -1;
+		}
 
-				if(		(dob->next==NULL) || /* if this is the last no need  to make a displist */
-						(dob->ob->type == OB_LAMP) || /* lamp drawing messes with matrices, could be handled smarter... but this works */
-						(dob->type == OB_DUPLIGROUP && dob->animated) ||
-						!(bb_tmp= object_get_boundbox(dob->ob))
-				) {
-					use_displist= 0;
-				}
-				else {
-					bb= *bb_tmp; /* must make a copy  */
+		/* generate displist */
+		if(use_displist == -1) {
 
-					/* disable boundbox check for list creation */
-					object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
-					/* need this for next part of code */
-					unit_m4(dob->ob->obmat);	/* obmat gets restored */
-					
-					displist= glGenLists(1);
-					glNewList(displist, GL_COMPILE);
-					draw_object(scene, ar, v3d, &tbase, DRAW_CONSTCOLOR);
-					glEndList();
-					
-					use_displist= 1;
-					object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
-				}
-			}
-			if(use_displist) {
-				glMultMatrixf(dob->mat);
-				if(boundbox_clip(rv3d, dob->mat, &bb))
-					glCallList(displist);
-				glLoadMatrixf(rv3d->viewmat);
+			/* note, since this was added, its checked dob->type==OB_DUPLIGROUP
+			 * however this is very slow, it was probably needed for the NLA
+			 * offset feature (used in group-duplicate.blend but no longer works in 2.5)
+			 * so for now it should be ok to - campbell */
+
+			if(		(dob_next==NULL || dob_next->ob != dob->ob) || /* if this is the last no need  to make a displist */
+					(dob->ob->type == OB_LAMP) || /* lamp drawing messes with matrices, could be handled smarter... but this works */
+					(dob->type == OB_DUPLIGROUP && dob->animated) ||
+					!(bb_tmp= object_get_boundbox(dob->ob))
+			) {
+				// printf("draw_dupli_objects_color: skipping displist for %s\n", dob->ob->id.name+2);
+				use_displist= 0;
 			}
 			else {
-				copy_m4_m4(dob->ob->obmat, dob->mat);
-				draw_object(scene, ar, v3d, &tbase, DRAW_CONSTCOLOR);
-			}
-			
-			tbase.object->dt= dt;
-			tbase.object->dtx= dtx;
-			tbase.object->transflag= transflag;
+				// printf("draw_dupli_objects_color: using displist for %s\n", dob->ob->id.name+2);
+				bb= *bb_tmp; /* must make a copy  */
 
-			/* record the last object drawn since dob->prev isn't reliable due to no_draw option */
-			ob_prev= dob->ob;
+				/* disable boundbox check for list creation */
+				object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
+				/* need this for next part of code */
+				unit_m4(dob->ob->obmat);	/* obmat gets restored */
+
+				displist= glGenLists(1);
+				glNewList(displist, GL_COMPILE);
+				draw_object(scene, ar, v3d, &tbase, DRAW_CONSTCOLOR);
+				glEndList();
+
+				use_displist= 1;
+				object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
+			}
 		}
+		if(use_displist) {
+			glMultMatrixf(dob->mat);
+			if(boundbox_clip(rv3d, dob->mat, &bb))
+				glCallList(displist);
+			glLoadMatrixf(rv3d->viewmat);
+		}
+		else {
+			copy_m4_m4(dob->ob->obmat, dob->mat);
+			draw_object(scene, ar, v3d, &tbase, DRAW_CONSTCOLOR);
+		}
+
+		tbase.object->dt= dt;
+		tbase.object->dtx= dtx;
+		tbase.object->transflag= transflag;
 	}
 	
 	/* Transp afterdraw disabled, afterdraw only stores base pointers, and duplis can be same obj */
@@ -1869,7 +1888,7 @@ static CustomDataMask get_viewedit_datamask(bScreen *screen, Scene *scene, Objec
 			}
 			if((view->drawtype == OB_TEXTURE) || ((view->drawtype == OB_SOLID) && (view->flag2 & V3D_SOLID_TEX))) {
 				mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
-				
+
 				if(scene->gm.matmode == GAME_MAT_GLSL)
 					mask |= CD_MASK_ORCO;
 			}
@@ -2089,7 +2108,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	/* from now on all object derived meshes check this */
 	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
-	
+
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows(scene, v3d);
@@ -2150,7 +2169,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_set_clipping(rv3d);
-	
+
 	/* draw set first */
 	if(scene->set) {
 		for(SETLOOPER(scene->set, base)) {
@@ -2171,7 +2190,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* extra service in layerbuttons, showing used layers */
 	v3d->lay_used = 0;
-	
+
 	/* then draw not selected and the duplis, but skip editmode object */
 	for(base= scene->base.first; base; base= base->next) {
 		v3d->lay_used |= base->lay;
