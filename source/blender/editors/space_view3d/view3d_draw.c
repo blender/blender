@@ -1496,6 +1496,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	RegionView3D *rv3d= ar->regiondata;
 	ListBase *lb;
 	DupliObject *dob;
+	Object *ob_prev= NULL;
 	Base tbase;
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist=0;
@@ -1526,21 +1527,25 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			UI_ThemeColorBlend(color, TH_BACK, 0.5);
 			
 			/* generate displist, test for new object */
-			if(use_displist==1 && dob->prev && dob->prev->ob!=dob->ob) {
+			if(use_displist==1 && ob_prev != dob->ob) {
 				use_displist= -1;
 				glDeleteLists(displist, 1);
 			}
 			/* generate displist */
 			if(use_displist == -1) {
-				
-				/* lamp drawing messes with matrices, could be handled smarter... but this works */
 
 				/* note, since this was added, its checked dob->type==OB_DUPLIGROUP
 				 * however this is very slow, it was probably needed for the NLA
 				 * offset feature (used in group-duplicate.blend but no longer works in 2.5)
 				 * so for now it should be ok to - campbell */
-				if(dob->ob->type==OB_LAMP || (dob->type==OB_DUPLIGROUP && dob->animated) || !(bb_tmp= object_get_boundbox(dob->ob)))
+
+				if(		(dob->next==NULL) || /* if this is the last no need  to make a displist */
+						(dob->ob->type == OB_LAMP) || /* lamp drawing messes with matrices, could be handled smarter... but this works */
+						(dob->type == OB_DUPLIGROUP && dob->animated) ||
+						!(bb_tmp= object_get_boundbox(dob->ob))
+				) {
 					use_displist= 0;
+				}
 				else {
 					bb= *bb_tmp; /* must make a copy  */
 
@@ -1572,6 +1577,9 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			tbase.object->dt= dt;
 			tbase.object->dtx= dtx;
 			tbase.object->transflag= transflag;
+
+			/* record the last object drawn since dob->prev isn't reliable due to no_draw option */
+			ob_prev= dob->ob;
 		}
 	}
 	
