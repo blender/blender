@@ -4645,18 +4645,41 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 }
 
 
+#define MIRROR_THRESH	1.0f
+
 int select_mirror_exec(bContext *C, wmOperator *op)
 {
-#if 0
+	
 	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMBVHTree *tree = BMBVH_NewBVH(em);
+	BMVert *v1, *v2;
+	BMIter iter;
 	int extend= RNA_boolean_get(op->ptr, "extend");
+	float mirror_co[3];
 
-	EM_select_mirrored(obedit, em, extend);
+	BM_ITER(v1, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (!BM_TestHFlag(v1, BM_SELECT) || BM_TestHFlag(v1, BM_HIDDEN))
+			BMINDEX_SET(v1, 0);
+		else BMINDEX_SET(v1, 1);
+	}
+
+	if (!extend)
+		EDBM_clear_flag_all(em, BM_SELECT);
+
+	BM_ITER(v1, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (!BMINDEX_GET(v1) || BM_TestHFlag(v1, BM_HIDDEN))
+			continue;
+
+		VECCOPY(mirror_co, v1->co);
+		mirror_co[0] *= -1.0f;
+
+		v2 = BMBVH_FindClosestVertTopo(tree, mirror_co, MIRROR_THRESH, v1);
+		if (v2 && !BM_TestHFlag(v2, BM_HIDDEN))
+			BM_Select(em->bm, v2, 1);
+	}
 
 	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-#endif
 	return OPERATOR_FINISHED;
 }
 
@@ -4676,130 +4699,4 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
 
 	/* props */
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
-}
-
-static int select_sharp_edges_exec(bContext *C, wmOperator *op)
-{
-	/* Find edges that have exactly two neighboring faces,
-	* check the angle between those faces, and if angle is
-	* small enough, select the edge
-	*/
-}
-
-void MESH_OT_edges_select_sharp(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Sharp Edges";
-	ot->description= "Marked selected edges as sharp.";
-	ot->idname= "MESH_OT_edges_select_sharp";
-	
-	/* api callbacks */
-	ot->exec= select_sharp_edges_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_float(ot->srna, "sharpness", 0.01f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
-}
-
-static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
-{
-#if 0
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	
-	select_linked_flat_faces(em, op, RNA_float_get(op->ptr, "sharpness"));
-	
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-	return OPERATOR_FINISHED;
-#endif
-}
-
-void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Linked Flat Faces";
-	ot->description= "Select linked faces by angle.";
-	ot->idname= "MESH_OT_faces_select_linked_flat";
-	
-	/* api callbacks */
-	ot->exec= select_linked_flat_faces_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_float(ot->srna, "sharpness", 0.0f, 0.0f, FLT_MAX, "sharpness", "", 0.0f, 180.0f);
-}
-
-static int select_non_manifold_exec(bContext *C, wmOperator *op)
-{
-#if 0
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	
-	select_non_manifold(em, op);
-	
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-
-	BKE_mesh_end_editmesh(obedit->data, em);
-	return OPERATOR_FINISHED;
-#endif
-}
-
-void MESH_OT_select_non_manifold(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Non Manifold";
-	ot->description= "Select all non-manifold vertices or edges.";
-	ot->idname= "MESH_OT_select_non_manifold";
-	
-	/* api callbacks */
-	ot->exec= select_non_manifold_exec;
-	ot->poll= ED_operator_editmesh;
-	
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-static int mesh_select_random_exec(bContext *C, wmOperator *op)
-{
-#if 0
-	Object *obedit= CTX_data_edit_object(C);
-	EditMesh *em= BKE_mesh_get_editmesh(((Mesh *)obedit->data));
-	
-	if(!RNA_boolean_get(op->ptr, "extend"))
-		EM_deselect_all(em);
-	
-	selectrandom_mesh(em, RNA_float_get(op->ptr, "percent")/100.0f);
-		
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
-	
-	BKE_mesh_end_editmesh(obedit->data, em);
-#endif
-	return OPERATOR_FINISHED;	
-}
-
-void MESH_OT_select_random(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Select Random";
-	ot->description= "Randomly select vertices.";
-	ot->idname= "MESH_OT_select_random";
-
-	/* api callbacks */
-	ot->exec= mesh_select_random_exec;
-	ot->poll= ED_operator_editmesh;
-
-	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	/* props */
-	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
-	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
 }

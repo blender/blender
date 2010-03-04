@@ -2073,3 +2073,251 @@ int EM_view3d_poll(bContext *C)
 		return 1;
 	return 0;
 }
+
+
+static int select_sharp_edges_exec(bContext *C, wmOperator *op)
+{
+	/* Find edges that have exactly two neighboring faces,
+	* check the angle between those faces, and if angle is
+	* small enough, select the edge
+	*/
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMIter iter;
+	BMEdge *e;
+	BLI_array_declare(stack);
+	BMLoop *l1, *l2;
+	float sharp = RNA_float_get(op->ptr, "sharpness"), angle;
+
+	sharp = (sharp * M_PI) / 180.0;
+
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (BM_TestHFlag(e, BM_HIDDEN) || !e->loop)
+			continue;
+
+		l1 = e->loop;
+		l2 = l1->radial.next->data;
+
+		if (l1 == l2)
+			continue;
+
+		/* edge has exactly two neighboring faces, check angle */
+		angle = saacos(l1->f->no[0]*l2->f->no[0]+l1->f->no[1]*l2->f->no[1]+l1->f->no[2]*l2->f->no[2]);
+
+		if (fabs(angle) < sharp) {
+			BM_Select(em->bm, e, 1);
+		}
+
+	}
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_edges_select_sharp(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Sharp Edges";
+	ot->description= "Marked selected edges as sharp.";
+	ot->idname= "MESH_OT_edges_select_sharp";
+	
+	/* api callbacks */
+	ot->exec= select_sharp_edges_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_float(ot->srna, "sharpness", 1.0f, 0.01f, FLT_MAX, "sharpness", "", 1.0f, 180.0f);
+}
+
+static int select_linked_flat_faces_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMIter iter, liter, liter2;
+	BMFace *f, **stack = NULL;
+	BLI_array_declare(stack);
+	BMLoop *l, *l2;
+	float sharp = RNA_float_get(op->ptr, "sharpness");
+	int i;
+
+	sharp = (sharp * M_PI) / 180.0;
+
+	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		BMINDEX_SET(f, 0);
+	}
+
+	BM_ITER(f, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+		if (BM_TestHFlag(f, BM_HIDDEN) || !BM_TestHFlag(f, BM_SELECT) || BMINDEX_GET(f))
+			continue;
+
+		BLI_array_empty(stack);
+		i = 1;
+
+		BLI_array_growone(stack);
+		stack[i-1] = f;
+
+		while (i) {
+			f = stack[i-1];
+			i--;
+
+			BM_Select(em->bm, f, 1);
+
+			BMINDEX_SET(f, 1);
+
+			BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, f) {
+				BM_ITER(l2, &liter2, em->bm, BM_LOOPS_OF_LOOP, l) {
+					float angle;
+
+					if (BMINDEX_GET(l2->f) || BM_TestHFlag(l2->f, BM_HIDDEN))
+						continue;
+
+					/* edge has exactly two neighboring faces, check angle */
+					angle = saacos(f->no[0]*l2->f->no[0]+f->no[1]*l2->f->no[1]+f->no[2]*l2->f->no[2]);
+
+					/* invalidate: edge too sharp */
+					if (fabs(angle) < sharp) {
+						BLI_array_growone(stack);
+						stack[i] = l2->f;
+						i++;
+					}
+				}
+			}
+		}
+	}
+
+	BLI_array_free(stack);
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Linked Flat Faces";
+	ot->description= "Select linked faces by angle.";
+	ot->idname= "MESH_OT_faces_select_linked_flat";
+	
+	/* api callbacks */
+	ot->exec= select_linked_flat_faces_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_float(ot->srna, "sharpness", 1.0f, 0.01f, FLT_MAX, "sharpness", "", 1.0f, 180.0f);
+}
+
+static int select_non_manifold_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMVert *v;
+	BMEdge *e;
+	BMIter iter;
+
+	/* Selects isolated verts, and edges that do not have 2 neighboring
+	 * faces
+	 */
+	
+	if(em->selectmode==SCE_SELECT_FACE) {
+		BKE_report(op->reports, RPT_ERROR, "Doesn't work in face selection mode");
+		return OPERATOR_CANCELLED;
+	}
+	
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		if (!BM_TestHFlag(em->bm, BM_HIDDEN) && BM_Nonmanifold_Vert(em->bm, v))
+			BM_Select(em->bm, v, 1);
+	}
+	
+	BM_ITER(e, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+		if (!BM_TestHFlag(em->bm, BM_HIDDEN) && BM_Nonmanifold_Edge(em->bm, e))
+			BM_Select(em->bm, e, 1);
+	}
+
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_select_non_manifold(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Non Manifold";
+	ot->description= "Select all non-manifold vertices or edges.";
+	ot->idname= "MESH_OT_select_non_manifold";
+	
+	/* api callbacks */
+	ot->exec= select_non_manifold_exec;
+	ot->poll= ED_operator_editmesh;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int mesh_select_random_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit= CTX_data_edit_object(C);
+	BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
+	BMVert *eve;
+	BMEdge *eed;
+	BMFace *efa;
+	BMIter iter;
+	float randfac =  RNA_float_get(op->ptr, "percent")/100.0f;
+
+	BLI_srand( BLI_rand() ); /* random seed */
+	
+	if(!RNA_boolean_get(op->ptr, "extend"))
+		EDBM_clear_flag_all(em, BM_SELECT);
+
+	if(em->selectmode & SCE_SELECT_VERTEX) {
+		BM_ITER(eve, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			if (!BM_TestHFlag(eve, BM_HIDDEN) && BLI_frand() < randfac)
+				BM_Select(em->bm, eve, 1);
+		}
+		EDBM_selectmode_flush(em);
+	}
+	else if(em->selectmode & SCE_SELECT_EDGE) {
+		BM_ITER(eed, &iter, em->bm, BM_EDGES_OF_MESH, NULL) {
+			if (!BM_TestHFlag(eed, BM_HIDDEN) && BLI_frand() < randfac)
+				BM_Select(em->bm, eed, 1);
+		}
+		EDBM_selectmode_flush(em);
+	}
+	else {
+		BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
+			if (!BM_TestHFlag(efa, BM_HIDDEN) && BLI_frand() < randfac)
+				BM_Select(em->bm, efa, 1);
+		}
+		EDBM_selectmode_flush(em);
+	}
+	
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
+	
+	return OPERATOR_FINISHED;	
+}
+
+void MESH_OT_select_random(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Select Random";
+	ot->description= "Randomly select vertices.";
+	ot->idname= "MESH_OT_select_random";
+
+	/* api callbacks */
+	ot->exec= mesh_select_random_exec;
+	ot->poll= ED_operator_editmesh;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* props */
+	RNA_def_float_percentage(ot->srna, "percent", 50.f, 0.0f, 100.0f, "Percent", "Percentage of elements to select randomly.", 0.f, 100.0f);
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend Selection", "Extend selection instead of deselecting everything first.");
+}
