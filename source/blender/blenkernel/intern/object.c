@@ -2787,8 +2787,8 @@ void object_camera_matrix(
 		pixsize= cam->ortho_scale/viewfac;
 	}
 	else {
-		if(rd->xasp*winx >= rd->yasp*winy)	viewfac= (winx*(*lens))/32.0;
-		else								viewfac= (*ycor) * (winy*(*lens))/32.0;
+		if(rd->xasp*winx >= rd->yasp*winy)	viewfac= ((*lens) * winx)/32.0;
+		else								viewfac= (*ycor) * ((*lens) * winy)/32.0;
 		pixsize= (*clipsta) / viewfac;
 	}
 
@@ -2801,20 +2801,20 @@ void object_camera_matrix(
 
 	if(field_second) {
 		if(rd->mode & R_ODDFIELD) {
-			viewplane->ymin-= .5 * (*ycor);
-			viewplane->ymax-= .5 * (*ycor);
+			viewplane->ymin-= 0.5 * (*ycor);
+			viewplane->ymax-= 0.5 * (*ycor);
 		}
 		else {
-			viewplane->ymin+= .5* (*ycor);
-			viewplane->ymax+= .5* (*ycor);
+			viewplane->ymin+= 0.5 * (*ycor);
+			viewplane->ymax+= 0.5 * (*ycor);
 		}
 	}
 	/* the window matrix is used for clipping, and not changed during OSA steps */
 	/* using an offset of +0.5 here would give clip errors on edges */
-	viewplane->xmin= pixsize*(viewplane->xmin);
-	viewplane->xmax= pixsize*(viewplane->xmax);
-	viewplane->ymin= pixsize*(viewplane->ymin);
-	viewplane->ymax= pixsize*(viewplane->ymax);
+	viewplane->xmin *= pixsize;
+	viewplane->xmax *= pixsize;
+	viewplane->ymin *= pixsize;
+	viewplane->ymax *= pixsize;
 
 	(*viewdx)= pixsize;
 	(*viewdy)= (*ycor) * pixsize;

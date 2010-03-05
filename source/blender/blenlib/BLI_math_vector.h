@@ -147,8 +147,8 @@ void print_v2(char *str, float a[2]);
 void print_v3(char *str, float a[3]);
 void print_v4(char *str, float a[4]);
 
-MINLINE void normal_short_to_float_v3(float r[3], short n[3]);
-MINLINE void normal_float_to_short_v3(short r[3], float n[3]);
+MINLINE void normal_short_to_float_v3(float r[3], const short n[3]);
+MINLINE void normal_float_to_short_v3(short r[3], const float n[3]);
 
 void minmax_v3_v3v3(float r[3], float min[3], float max[3]);
 
