@@ -805,6 +805,7 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	int matrix_dimsize[]= {4, 4};
 
 	static EnumPropertyItem viewport_shading_items[] = {
 		{OB_BOUNDBOX, "BOUNDBOX", ICON_BBOX, "Bounding Box", "Display the object's local bounding boxes only"},
@@ -1044,6 +1045,18 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_BOXCLIP);
 	RNA_def_property_ui_text(prop, "Clip", "Clip objects based on what's visible in other side views");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_Region3DView_quadview_update");
+	
+	prop= RNA_def_property(srna, "perspective_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "persmat");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX: for now, it's too risky for users to do this
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_ui_text(prop, "Perspective Matrix", "Current perspective matrix of the 3D region");
+	
+	prop= RNA_def_property(srna, "view_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "viewmat");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX: for now, it's too risky for users to do this
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_ui_text(prop, "View Matrix", "Current view matrix of the 3D region");
 }
 
 static void rna_def_space_buttons(BlenderRNA *brna)
