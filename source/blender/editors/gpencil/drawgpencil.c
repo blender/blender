@@ -684,7 +684,7 @@ void draw_gpencil_2dimage (bContext *C, ImBuf *ibuf)
 			zoom= (float)(SEQ_ZOOM_FAC(sseq->zoom));
 			if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 				/* XXX sequencer zoom should store it? */
-				zoomx = zoom; //  * ((float)G.scene->r.xasp / (float)G.scene->r.yasp);
+				zoomx = zoom; //  * (G.scene->r.xasp / G.scene->r.yasp);
 				zoomy = zoom;
 			} 
 			else

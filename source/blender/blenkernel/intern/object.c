@@ -2715,6 +2715,115 @@ int object_insert_ptcache(Object *ob)
 	return i;
 }
 
+/* 'lens' may be set for envmap only */
+void object_camera_matrix(
+		RenderData *rd, Object *camera, int winx, int winy, short field_second,
+		float winmat[][4], rctf *viewplane, float *clipsta, float *clipend, float *lens, float *ycor,
+		float *viewdx, float *viewdy
+) {
+	Camera *cam=NULL;
+	float pixsize;
+	float shiftx=0.0, shifty=0.0, winside, viewfac;
+
+	/* question mark */
+	(*ycor)= rd->yasp / rd->xasp;
+	if(rd->mode & R_FIELDS)
+		(*ycor) *= 2.0f;
+
+	if(camera->type==OB_CAMERA) {
+		cam= camera->data;
+
+		if(cam->type==CAM_ORTHO) rd->mode |= R_ORTHO;
+		if(cam->flag & CAM_PANORAMA) rd->mode |= R_PANORAMA;
+
+		/* solve this too... all time depending stuff is in convertblender.c?
+		 * Need to update the camera early because it's used for projection matrices
+		 * and other stuff BEFORE the animation update loop is done
+		 * */
+#if 0 // XXX old animation system
+		if(cam->ipo) {
+			calc_ipo(cam->ipo, frame_to_float(re->scene, re->r.cfra));
+			execute_ipo(&cam->id, cam->ipo);
+		}
+#endif // XXX old animation system
+		shiftx=cam->shiftx;
+		shifty=cam->shifty;
+		(*lens)= cam->lens;
+		(*clipsta)= cam->clipsta;
+		(*clipend)= cam->clipend;
+	}
+	else if(camera->type==OB_LAMP) {
+		Lamp *la= camera->data;
+		float fac= cos( M_PI*la->spotsize/360.0 );
+		float phi= acos(fac);
+
+		(*lens)= 16.0*fac/sin(phi);
+		if((*lens)==0.0f)
+			(*lens)= 35.0;
+		(*clipsta)= la->clipsta;
+		(*clipend)= la->clipend;
+	}
+	else {	/* envmap exception... */;
+		if((*lens)==0.0f)
+			(*lens)= 16.0;
+
+		if((*clipsta)==0.0f || (*clipend)==0.0f) {
+			(*clipsta)= 0.1f;
+			(*clipend)= 1000.0f;
+		}
+	}
+
+	/* ortho only with camera available */
+	if(cam && rd->mode & R_ORTHO) {
+		if(rd->xasp*winx >= rd->yasp*winy) {
+			viewfac= winx;
+		}
+		else {
+			viewfac= (*ycor) * winy;
+		}
+		/* ortho_scale == 1.0 means exact 1 to 1 mapping */
+		pixsize= cam->ortho_scale/viewfac;
+	}
+	else {
+		if(rd->xasp*winx >= rd->yasp*winy)	viewfac= (winx*(*lens))/32.0;
+		else								viewfac= (*ycor) * (winy*(*lens))/32.0;
+		pixsize= (*clipsta) / viewfac;
+	}
+
+	/* viewplane fully centered, zbuffer fills in jittered between -.5 and +.5 */
+	winside= MAX2(winx, winy);
+	viewplane->xmin= -0.5f*(float)winx + shiftx*winside;
+	viewplane->ymin= -0.5f*(*ycor)*(float)winy + shifty*winside;
+	viewplane->xmax=  0.5f*(float)winx + shiftx*winside;
+	viewplane->ymax=  0.5f*(*ycor)*(float)winy + shifty*winside;
+
+	if(field_second) {
+		if(rd->mode & R_ODDFIELD) {
+			viewplane->ymin-= .5 * (*ycor);
+			viewplane->ymax-= .5 * (*ycor);
+		}
+		else {
+			viewplane->ymin+= .5* (*ycor);
+			viewplane->ymax+= .5* (*ycor);
+		}
+	}
+	/* the window matrix is used for clipping, and not changed during OSA steps */
+	/* using an offset of +0.5 here would give clip errors on edges */
+	viewplane->xmin= pixsize*(viewplane->xmin);
+	viewplane->xmax= pixsize*(viewplane->xmax);
+	viewplane->ymin= pixsize*(viewplane->ymin);
+	viewplane->ymax= pixsize*(viewplane->ymax);
+
+	(*viewdx)= pixsize;
+	(*viewdy)= (*ycor) * pixsize;
+
+	if(rd->mode & R_ORTHO)
+		orthographic_m4(winmat, viewplane->xmin, viewplane->xmax, viewplane->ymin, viewplane->ymax, *clipsta, *clipend);
+	else
+		perspective_m4(winmat, viewplane->xmin, viewplane->xmax, viewplane->ymin, viewplane->ymax, *clipsta, *clipend);
+
+}
+
 #if 0
 static int pc_findindex(ListBase *listbase, int index)
 {

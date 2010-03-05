@@ -2237,7 +2237,7 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *op)
 	imgheight= (scene->r.size*scene->r.ysch)/100;
 
 	/* Apply aspect, dosnt need to be that accurate */
-	imgwidth= (int)(imgwidth * ((float)scene->r.xasp / (float)scene->r.yasp));
+	imgwidth= (int)(imgwidth * (scene->r.xasp / scene->r.yasp));
 
 	if (((imgwidth >= width) || (imgheight >= height)) &&
 		((width > 0) && (height > 0))) {

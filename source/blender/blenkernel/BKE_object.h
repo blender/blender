@@ -45,6 +45,7 @@ struct SoftBody;
 struct BulletSoftBody;
 struct Group;
 struct bAction;
+struct RenderData;
 
 void clear_workob(struct Object *workob);
 void what_does_parent(struct Scene *scene, struct Object *ob, struct Object *workob);
@@ -128,6 +129,10 @@ int object_insert_ptcache(struct Object *ob);
 // void object_delete_ptcache(struct Object *ob, int index);
 struct KeyBlock *object_insert_shape_key(struct Scene *scene, struct Object *ob, char *name, int from_mix);
 
+void object_camera_matrix(
+		struct RenderData *rd, struct Object *camera, int winx, int winy, short field_second,
+		float winmat[][4], struct rctf *viewplane, float *clipsta, float *clipend, float *lens, float *ycor,
+		float *viewdx, float *viewdy);
 
 #ifdef __cplusplus
 }

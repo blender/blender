@@ -678,7 +678,7 @@ void draw_image_seq(const bContext* C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	recty = viewrecty + 0.5f;
 
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-		viewrectx *= (float)scene->r.xasp / (float)scene->r.yasp;
+		viewrectx *= scene->r.xasp / scene->r.yasp;
 		viewrectx /= proxy_size / 100.0;
 		viewrecty /= proxy_size / 100.0;
 	}

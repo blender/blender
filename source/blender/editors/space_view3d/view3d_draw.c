@@ -854,7 +854,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 static void view3d_get_viewborder_size(Scene *scene, ARegion *ar, float size_r[2])
 {
 	float winmax= MAX2(ar->winx, ar->winy);
-	float aspect= (float) (scene->r.xsch*scene->r.xasp)/(scene->r.ysch*scene->r.yasp);
+	float aspect= (scene->r.xsch*scene->r.xasp) / (scene->r.ysch*scene->r.yasp);
 	
 	if(aspect>1.0) {
 		size_r[0]= winmax;
