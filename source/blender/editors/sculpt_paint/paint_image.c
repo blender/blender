@@ -3534,6 +3534,18 @@ static void blend_color_mix_float(float *cp, const float *cp1, const float *cp2,
 	cp[3]= mfac*cp1[3] + fac*cp2[3];
 }
 
+static void blend_color_mix_rgb(unsigned char *cp, const unsigned char *cp1, const unsigned char *cp2, const int fac)
+{
+	/* this and other blending modes previously used >>8 instead of /255. both
+	   are not equivalent (>>8 is /256), and the former results in rounding
+	   errors that can turn colors black fast after repeated blending */
+	const int mfac= 255-fac;
+
+	cp[0]= (mfac*cp1[0]+fac*cp2[0])/255;
+	cp[1]= (mfac*cp1[1]+fac*cp2[1])/255;
+	cp[2]= (mfac*cp1[2]+fac*cp2[2])/255;
+}
+
 static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask)
 {
 	if (ps->is_airbrush==0 && mask < 1.0f) {
@@ -3785,7 +3797,8 @@ static void *do_projectpaint_thread(void *ph_v)
 						else {
 							/* reprojection! */
 							bicubic_interpolation_color(ps->reproject_ibuf, projPixel->newColor.ch, NULL, projPixel->projCoSS[0], projPixel->projCoSS[1]);
-							blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask*255));
+							if(projPixel->newColor.ch[3])
+								blend_color_mix_rgb(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (mask*projPixel->newColor.ch[3]));
 						}
 					}
 					/* done painting */
@@ -5353,6 +5366,11 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 
 	ps.source= PROJ_SRC_CAM;
 
+	scene->toolsettings->imapaint.flag |= IMAGEPAINT_DRAWING;
+
+	undo_paint_push_begin(UNDO_PAINT_IMAGE, "Image Paint",
+		image_undo_restore, image_undo_free);
+
 	/* allocate and initialize spacial data structures */
 	project_paint_begin(&ps);
 
@@ -5378,6 +5396,8 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	}
 
 	project_paint_end(&ps);
+
+	scene->toolsettings->imapaint.flag &= ~IMAGEPAINT_DRAWING;
 
 	return OPERATOR_FINISHED;
 }
