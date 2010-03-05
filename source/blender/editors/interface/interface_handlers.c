@@ -1052,7 +1052,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	/* colorband (not supported by system clipboard) */
 	else if(but->type==BUT_COLORBAND) {
 		if(mode=='c') {
-			if(but->poin)
+			if(but->poin==NULL)
 				return;
 
 			memcpy(&but_copypaste_coba, but->poin, sizeof(ColorBand));
