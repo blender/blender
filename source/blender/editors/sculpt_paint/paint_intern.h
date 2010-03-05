@@ -93,6 +93,7 @@ void PAINT_OT_sample_color(struct wmOperatorType *ot);
 void PAINT_OT_clone_cursor_set(struct wmOperatorType *ot);
 void PAINT_OT_texture_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_texture_paint_radial_control(struct wmOperatorType *ot);
+void PAINT_OT_camera_project(struct wmOperatorType *ot);
 
 /* paint_utils.c */
 int imapaint_pick_face(struct ViewContext *vc, struct Mesh *me, int *mval, unsigned int *index);

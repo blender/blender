@@ -81,10 +81,6 @@ class VIEW3D_HT_header(bpy.types.Header):
                 if toolsettings.proportional_editing != 'DISABLED':
                     row.prop(toolsettings, "proportional_editing_falloff", text="", icon_only=True)
 
-            # paint save
-            if mode_string == 'PAINT_TEXTURE':
-                row.operator("image.save_dirty", text="Save Edited")
-
         # Snap
         row = layout.row(align=True)
         row.prop(toolsettings, "snap", text="")

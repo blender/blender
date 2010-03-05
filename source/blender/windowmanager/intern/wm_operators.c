@@ -3023,6 +3023,10 @@ EnumPropertyItem *RNA_group_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->group.first : NULL);
 }
+EnumPropertyItem *RNA_image_itemf(bContext *C, PointerRNA *ptr, int *free)
+{
+	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->image.first : NULL);
+}
 EnumPropertyItem *RNA_scene_itemf(bContext *C, PointerRNA *ptr, int *free)
 {
 	return rna_id_itemf(C, ptr, free, C ? (ID *)CTX_data_main(C)->scene.first : NULL);

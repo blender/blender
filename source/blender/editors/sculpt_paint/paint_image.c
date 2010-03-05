@@ -65,6 +65,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
+#include "BKE_object.h"
 #include "BKE_brush.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -94,6 +95,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "GPU_draw.h"
 
@@ -184,6 +186,9 @@ typedef struct ImagePaintRegion {
 #define PROJ_FACE_NOSEAM3	1<<6
 #define PROJ_FACE_NOSEAM4	1<<7
 
+#define PROJ_SRC_VIEW		1
+#define PROJ_SRC_CAM		2
+
 /* a slightly scaled down face is used to get fake 3D location for edge pixels in the seams
  * as this number approaches  1.0f the likelihood increases of float precision errors where
  * it is occluded by an adjacent face */
@@ -218,6 +223,7 @@ typedef struct ProjPaintState {
 	RegionView3D *rv3d;
 	ARegion *ar;
 	Scene *scene;
+	int source; /* PROJ_SRC_**** */
 
 	Brush *brush;
 	short tool, blend;
@@ -259,6 +265,7 @@ typedef struct ProjPaintState {
 	float screenMax[2]; 
 	float screen_width;			/* Calculated from screenMin & screenMax */
 	float screen_height;
+	int winx, winy;				/* from the carea or from the projection render */
 	
 	/* options for projection painting */
 	int do_layer_clone;
@@ -286,6 +293,10 @@ typedef struct ProjPaintState {
 	float viewPos[3];			/* View location in object relative 3D space, so can compare to verts  */
 	float clipsta, clipend;
 	
+	/* reproject vars */
+	ImBuf *reproject_ibuf;
+
+
 	/* threads */
 	int thread_tot;
 	int bucketMin[2];
@@ -742,6 +753,7 @@ static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *buc
 	int face_index;
 	int isect_ret;
 	float w[3]; /* not needed when clipping */
+	const short do_clip= ps->rv3d ? ps->rv3d->rflag & RV3D_CLIPPING : 0;
 	
 	/* we could return 0 for 1 face buckets, as long as this function assumes
 	 * that the point its testing is only every originated from an existing face */
@@ -751,14 +763,14 @@ static int project_bucket_point_occluded(const ProjPaintState *ps, LinkNode *buc
 
 		if (orig_face != face_index) {
 			mf = ps->dm_mface + face_index;
-			if(ps->rv3d->rflag & RV3D_CLIPPING)
+			if(do_clip)
 				isect_ret = project_paint_occlude_ptv_clip(ps, mf, pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v2], ps->screenCoords[mf->v3], 0);
 			else
 				isect_ret = project_paint_occlude_ptv(pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v2], ps->screenCoords[mf->v3], w, ps->is_ortho);
 
 			/* Note, if isect_ret==-1 then we dont want to test the other side of the quad */
 			if (isect_ret==0 && mf->v4) {
-				if(ps->rv3d->rflag & RV3D_CLIPPING)
+				if(do_clip)
 					isect_ret = project_paint_occlude_ptv_clip(ps, mf, pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v3], ps->screenCoords[mf->v4], 1);
 				else
 					isect_ret = project_paint_occlude_ptv(pixelScreenCo, ps->screenCoords[mf->v1], ps->screenCoords[mf->v3], ps->screenCoords[mf->v4], w, ps->is_ortho);
@@ -2199,6 +2211,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	int uv_clip_tot;
 	const short is_ortho = ps->is_ortho;
 	const short do_backfacecull = ps->do_backfacecull;
+	const short do_clip= ps->rv3d ? ps->rv3d->rflag & RV3D_CLIPPING : 0;
 	
 	vCo[0] = ps->dm_mvert[mf->v1].co;
 	vCo[1] = ps->dm_mvert[mf->v2].co;
@@ -2298,7 +2311,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						else			screen_px_from_persp(uv, v1coSS, v2coSS, v3coSS, uv1co, uv2co, uv3co, pixelScreenCo, w);
 						
 						/* a pitty we need to get the worldspace pixel location here */
-						if(ps->rv3d->rflag & RV3D_CLIPPING) {
+						if(do_clip) {
 							interp_v3_v3v3v3(wco, ps->dm_mvert[ (*(&mf->v1 + i1)) ].co, ps->dm_mvert[ (*(&mf->v1 + i2)) ].co, ps->dm_mvert[ (*(&mf->v1 + i3)) ].co, w);
 							if(view3d_test_clipping(ps->rv3d, wco, 1)) {
 								continue; /* Watch out that no code below this needs to run */
@@ -2479,8 +2492,8 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 										if (!is_ortho) {
 											pixelScreenCo[3] = 1.0f;
 											mul_m4_v4((float(*)[4])ps->projectMat, pixelScreenCo); /* cast because of const */
-											pixelScreenCo[0] = (float)(ps->ar->winx/2.0f)+(ps->ar->winx/2.0f)*pixelScreenCo[0]/pixelScreenCo[3];	
-											pixelScreenCo[1] = (float)(ps->ar->winy/2.0f)+(ps->ar->winy/2.0f)*pixelScreenCo[1]/pixelScreenCo[3];
+											pixelScreenCo[0] = (float)(ps->winx/2.0f)+(ps->winx/2.0f)*pixelScreenCo[0]/pixelScreenCo[3];
+											pixelScreenCo[1] = (float)(ps->winy/2.0f)+(ps->winy/2.0f)*pixelScreenCo[1]/pixelScreenCo[3];
 											pixelScreenCo[2] = pixelScreenCo[2]/pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
 										}
 										
@@ -2513,7 +2526,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											}
 											
 											/* a pitty we need to get the worldspace pixel location here */
-											if(ps->rv3d->rflag & RV3D_CLIPPING) {
+											if(do_clip) {
 												if (side)	interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v3].co, ps->dm_mvert[mf->v4].co, w);
 												else		interp_v3_v3v3v3(wco, ps->dm_mvert[mf->v1].co, ps->dm_mvert[mf->v2].co, ps->dm_mvert[mf->v3].co, w);
 
@@ -2768,6 +2781,7 @@ static void project_paint_begin(ProjPaintState *ps)
 	
 	float (*projScreenCo)[4]; /* Note, we could have 4D vectors are only needed for */
 	float projMargin;
+
 	/* Image Vars - keep track of images we have used */
 	LinkNode *image_LinkList = NULL;
 	LinkNode *node;
@@ -2786,7 +2800,8 @@ static void project_paint_begin(ProjPaintState *ps)
 	
 	/* ---- end defines ---- */
 	
-	ED_view3d_local_clipping(ps->rv3d, ps->ob->obmat); /* faster clipping lookups */
+	if(ps->source==PROJ_SRC_VIEW)
+		ED_view3d_local_clipping(ps->rv3d, ps->ob->obmat); /* faster clipping lookups */
 
 	/* paint onto the derived mesh */
 	
@@ -2796,7 +2811,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		ps->dm_release= FALSE;
 	}
 	else {
-		ps->dm = mesh_get_derived_final(ps->scene, ps->ob, ps->v3d->customdata_mask);
+		ps->dm = mesh_get_derived_final(ps->scene, ps->ob, ps->v3d->customdata_mask | CD_MASK_MTFACE);
 		ps->dm_release= TRUE;
 	}
 	
@@ -2861,43 +2876,80 @@ static void project_paint_begin(ProjPaintState *ps)
 	ps->viewDir[1] = 0.0f;
 	ps->viewDir[2] = 1.0f;
 	
-	view3d_get_object_project_mat(ps->rv3d, ps->ob, ps->projectMat);
-	
-	/* viewDir - object relative */
-	invert_m4_m4(ps->ob->imat, ps->ob->obmat);
-	copy_m3_m4(mat, ps->rv3d->viewinv);
-	mul_m3_v3(mat, ps->viewDir);
-	copy_m3_m4(mat, ps->ob->imat);
-	mul_m3_v3(mat, ps->viewDir);
-	normalize_v3(ps->viewDir);
-	
-	/* viewPos - object relative */
-	VECCOPY(ps->viewPos, ps->rv3d->viewinv[3]);
-	copy_m3_m4(mat, ps->ob->imat);
-	mul_m3_v3(mat, ps->viewPos);
-	add_v3_v3v3(ps->viewPos, ps->viewPos, ps->ob->imat[3]);
-	
-	{	/* only use these for running 'get_view3d_viewplane' */
+	{
 		rctf viewplane;
-		
-		ps->is_ortho = get_view3d_viewplane(ps->v3d, ps->rv3d, ps->ar->winx, ps->ar->winy, &viewplane, &ps->clipsta, &ps->clipend, NULL);
-		
-		//printf("%f %f\n", ps->clipsta, ps->clipend);
-		if (ps->is_ortho) { /* only needed for ortho */
-			float fac = 2.0f / (ps->clipend - ps->clipsta);  
-			ps->clipsta *= fac;
-			ps->clipend *= fac;
-		}
-		else {
-			/* TODO - can we even adjust for clip start/end? */
-		}
-		
-	}
-	
-	ps->is_airbrush = (ps->brush->flag & BRUSH_AIRBRUSH) ? 1 : 0;
-	
-	ps->is_texbrush = (ps->brush->mtex.tex) ? 1 : 0;
+		float viewmat[4][4];
+		float viewinv[4][4];
 
+		invert_m4_m4(ps->ob->imat, ps->ob->obmat);
+
+		if(ps->source==PROJ_SRC_VIEW) {
+			ps->winx= ps->ar->winx;
+			ps->winy= ps->ar->winy;
+
+			copy_m4_m4(viewmat, ps->rv3d->viewmat);
+			copy_m4_m4(viewinv, ps->rv3d->viewinv);
+
+			view3d_get_object_project_mat(ps->rv3d, ps->ob, ps->projectMat);
+
+			ps->is_ortho= get_view3d_viewplane(ps->v3d, ps->rv3d, ps->winx, ps->winy, &viewplane, &ps->clipsta, &ps->clipend, NULL);
+
+			//printf("%f %f\n", ps->clipsta, ps->clipend);
+			if (ps->is_ortho) { /* only needed for ortho */
+				float fac = 2.0f / (ps->clipend - ps->clipsta);
+				ps->clipsta *= fac;
+				ps->clipend *= fac;
+			}
+			else {
+				/* TODO - can we even adjust for clip start/end? */
+			}
+		}
+		else if (ps->source==PROJ_SRC_CAM) {
+			Object *camera= ps->scene->camera;
+			rctf viewplane;
+			float winmat[4][4];
+			float vmat[4][4];
+
+			/* dont actually use these */
+			float _viewdx, _viewdy, _ycor, _lens=0.0f;
+
+
+			ps->winx= ps->reproject_ibuf->x;
+			ps->winy= ps->reproject_ibuf->y;
+
+			/* viewmat & viewinv */
+			copy_m4_m4(viewinv, ps->scene->camera->obmat);
+			normalize_m4(viewinv);
+			invert_m4_m4(viewmat, viewinv);
+
+			/* camera winmat */
+			object_camera_matrix(&ps->scene->r, camera, ps->winx, ps->winy, 0,
+					winmat, &viewplane, &ps->clipsta, &ps->clipend,
+					&_lens, &_ycor, &_viewdx, &_viewdy);
+
+
+			/* same as view3d_get_object_project_mat */
+			mul_m4_m4m4(vmat, ps->ob->obmat, viewmat);
+			mul_m4_m4m4(ps->projectMat, vmat, winmat);
+
+			ps->is_ortho= (ps->scene->r.mode & R_ORTHO) ? 1 : 0;
+		}
+
+
+		/* viewDir - object relative */
+		invert_m4_m4(ps->ob->imat, ps->ob->obmat);
+		copy_m3_m4(mat, viewinv);
+		mul_m3_v3(mat, ps->viewDir);
+		copy_m3_m4(mat, ps->ob->imat);
+		mul_m3_v3(mat, ps->viewDir);
+		normalize_v3(ps->viewDir);
+		
+		/* viewPos - object relative */
+		VECCOPY(ps->viewPos, viewinv[3]);
+		copy_m3_m4(mat, ps->ob->imat);
+		mul_m3_v3(mat, ps->viewPos);
+		add_v3_v3v3(ps->viewPos, ps->viewPos, ps->ob->imat[3]);
+	}
 	
 	/* calculate vert screen coords
 	 * run this early so we can calculate the x/y resolution of our bucket rect */
@@ -2908,13 +2960,14 @@ static void project_paint_begin(ProjPaintState *ps)
 	
 	if (ps->is_ortho) {
 		for(a=0; a < ps->dm_totvert; a++, projScreenCo++) {
-			VECCOPY((*projScreenCo), ps->dm_mvert[a].co);
-			mul_m4_v3(ps->projectMat, (*projScreenCo));
+			mul_v3_m4v3((*projScreenCo), ps->projectMat, ps->dm_mvert[a].co);
 			
 			/* screen space, not clamped */
-			(*projScreenCo)[0] = (float)(ps->ar->winx/2.0f)+(ps->ar->winx/2.0f)*(*projScreenCo)[0];
-			(*projScreenCo)[1] = (float)(ps->ar->winy/2.0f)+(ps->ar->winy/2.0f)*(*projScreenCo)[1];
+			(*projScreenCo)[0] = (float)(ps->winx/2.0f)+(ps->winx/2.0f)*(*projScreenCo)[0];
+			(*projScreenCo)[1] = (float)(ps->winy/2.0f)+(ps->winy/2.0f)*(*projScreenCo)[1];
 			DO_MINMAX2((*projScreenCo), ps->screenMin, ps->screenMax);
+
+			// VECCOPY(ps->dm_mvert[a].co, *projScreenCo) // HACK
 		}
 	}
 	else {
@@ -2927,8 +2980,8 @@ static void project_paint_begin(ProjPaintState *ps)
 			
 			if ((*projScreenCo)[3] > ps->clipsta) {
 				/* screen space, not clamped */
-				(*projScreenCo)[0] = (float)(ps->ar->winx/2.0f)+(ps->ar->winx/2.0f)*(*projScreenCo)[0]/(*projScreenCo)[3];
-				(*projScreenCo)[1] = (float)(ps->ar->winy/2.0f)+(ps->ar->winy/2.0f)*(*projScreenCo)[1]/(*projScreenCo)[3];
+				(*projScreenCo)[0] = (float)(ps->winx/2.0f)+(ps->winx/2.0f)*(*projScreenCo)[0]/(*projScreenCo)[3];
+				(*projScreenCo)[1] = (float)(ps->winy/2.0f)+(ps->winy/2.0f)*(*projScreenCo)[1]/(*projScreenCo)[3];
 				(*projScreenCo)[2] = (*projScreenCo)[2]/(*projScreenCo)[3]; /* Use the depth for bucket point occlusion */
 				DO_MINMAX2((*projScreenCo), ps->screenMin, ps->screenMax);
 			}
@@ -2952,14 +3005,23 @@ static void project_paint_begin(ProjPaintState *ps)
 	ps->screenMax[1] += projMargin;
 	ps->screenMin[1] -= projMargin;
 	
+	if(ps->source==PROJ_SRC_VIEW) {
 #ifdef PROJ_DEBUG_WINCLIP
-	CLAMP(ps->screenMin[0], -ps->brush->size, ps->ar->winx + ps->brush->size);
-	CLAMP(ps->screenMax[0], -ps->brush->size, ps->ar->winx + ps->brush->size);
+		CLAMP(ps->screenMin[0], -ps->brush->size, ps->winx + ps->brush->size);
+		CLAMP(ps->screenMax[0], -ps->brush->size, ps->winx + ps->brush->size);
 
-	CLAMP(ps->screenMin[1], -ps->brush->size, ps->ar->winy + ps->brush->size);
-	CLAMP(ps->screenMax[1], -ps->brush->size, ps->ar->winy + ps->brush->size);
+		CLAMP(ps->screenMin[1], -ps->brush->size, ps->winy + ps->brush->size);
+		CLAMP(ps->screenMax[1], -ps->brush->size, ps->winy + ps->brush->size);
 #endif
-	
+	}
+	else if (ps->source==PROJ_SRC_CAM) {
+		ps->screenMin[0]= 0;
+		ps->screenMax[0]= ps->winx;
+
+		ps->screenMin[1]= 0;
+		ps->screenMax[1]= ps->winy;
+	}
+
 	/* only for convenience */
 	ps->screen_width  = ps->screenMax[0] - ps->screenMin[0];
 	ps->screen_height = ps->screenMax[1] - ps->screenMin[1];
@@ -3166,8 +3228,8 @@ static void project_paint_begin_clone(ProjPaintState *ps, int mouse[2])
 		
 		projCo[3] = 1.0f;
 		mul_m4_v4(ps->projectMat, projCo);
-		ps->cloneOffset[0] = mouse[0] - ((float)(ps->ar->winx/2.0f)+(ps->ar->winx/2.0f)*projCo[0]/projCo[3]);
-		ps->cloneOffset[1] = mouse[1] - ((float)(ps->ar->winy/2.0f)+(ps->ar->winy/2.0f)*projCo[1]/projCo[3]);
+		ps->cloneOffset[0] = mouse[0] - ((float)(ps->winx/2.0f)+(ps->winx/2.0f)*projCo[0]/projCo[3]);
+		ps->cloneOffset[1] = mouse[1] - ((float)(ps->winy/2.0f)+(ps->winy/2.0f)*projCo[1]/projCo[3]);
 	}	
 }	
 
@@ -3365,30 +3427,43 @@ static int project_image_refresh_tagged(ProjPaintState *ps)
 /* run this per painting onto each mouse location */
 static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 {
-	float min_brush[2], max_brush[2];
-	float size_half = ((float)ps->brush->size) * 0.5f;
-	
-	/* so we dont have a bucket bounds that is way too small to paint into */
-	// if (size_half < 1.0f) size_half = 1.0f; // this dosnt work yet :/
-	
-	min_brush[0] = mval_f[0] - size_half;
-	min_brush[1] = mval_f[1] - size_half;
-	
-	max_brush[0] = mval_f[0] + size_half;
-	max_brush[1] = mval_f[1] + size_half;
-	
-	/* offset to make this a valid bucket index */
-	project_paint_bucket_bounds(ps, min_brush, max_brush, ps->bucketMin, ps->bucketMax);
-	
-	/* mouse outside the model areas? */
-	if (ps->bucketMin[0]==ps->bucketMax[0] || ps->bucketMin[1]==ps->bucketMax[1]) {
-		return 0;
+	if(ps->source==PROJ_SRC_VIEW) {
+		float min_brush[2], max_brush[2];
+		float size_half = ((float)ps->brush->size) * 0.5f;
+
+		/* so we dont have a bucket bounds that is way too small to paint into */
+		// if (size_half < 1.0f) size_half = 1.0f; // this dosnt work yet :/
+
+		min_brush[0] = mval_f[0] - size_half;
+		min_brush[1] = mval_f[1] - size_half;
+
+		max_brush[0] = mval_f[0] + size_half;
+		max_brush[1] = mval_f[1] + size_half;
+
+		/* offset to make this a valid bucket index */
+		project_paint_bucket_bounds(ps, min_brush, max_brush, ps->bucketMin, ps->bucketMax);
+
+		/* mouse outside the model areas? */
+		if (ps->bucketMin[0]==ps->bucketMax[0] || ps->bucketMin[1]==ps->bucketMax[1]) {
+			return 0;
+		}
+
+		ps->context_bucket_x = ps->bucketMin[0];
+		ps->context_bucket_y = ps->bucketMin[1];
 	}
-	
-	ps->context_bucket_x = ps->bucketMin[0];
-	ps->context_bucket_y = ps->bucketMin[1];
+	else { /* PROJ_SRC_CAM */
+		ps->bucketMin[0]= 0;
+		ps->bucketMin[1]= 0;
+
+		ps->bucketMax[0]= ps->buckets_x;
+		ps->bucketMax[1]= ps->buckets_y;
+
+		ps->context_bucket_x = 0;
+		ps->context_bucket_y = 0;
+	}
 	return 1;
 }
+
 
 static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf *bucket_bounds, const float mval[2])
 {
@@ -3403,7 +3478,9 @@ static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf 
 			/* use bucket_bounds for project_bucket_isect_circle and project_bucket_init*/
 			project_bucket_bounds(ps, ps->context_bucket_x, ps->context_bucket_y, bucket_bounds);
 			
-			if (project_bucket_isect_circle(ps->context_bucket_x, ps->context_bucket_y, mval, ps->brush->size * ps->brush->size, bucket_bounds)) {
+			if (	(ps->source==PROJ_SRC_CAM) ||
+					project_bucket_isect_circle(ps->context_bucket_x, ps->context_bucket_y, mval, ps->brush->size * ps->brush->size, bucket_bounds)
+			) {
 				*bucket_index = ps->context_bucket_x + (ps->context_bucket_y * ps->buckets_x);
 				ps->context_bucket_x++;
 				
@@ -3622,8 +3699,14 @@ static void *do_projectpaint_thread(void *ph_v)
 			dist_nosqrt = Vec2Lenf_nosqrt(projPixel->projCoSS, pos);
 			
 			/*if (dist < s->brush->size) {*/ /* correct but uses a sqrtf */
-			if (dist_nosqrt < brush_size_sqared && (dist=sqrtf(dist_nosqrt)) < size_half) {
-				falloff = brush_curve_strength_clamp(ps->brush, dist, size_half);
+			if (	ps->source==PROJ_SRC_CAM ||
+					(dist_nosqrt < brush_size_sqared && (dist=sqrtf(dist_nosqrt)) < size_half)) {
+
+				if(ps->source==PROJ_SRC_CAM)
+					falloff = 1.0f;
+				else
+					falloff = brush_curve_strength_clamp(ps->brush, dist, size_half);
+
 				if (falloff > 0.0f) {
 					if (ps->is_texbrush) {
 						brush_sample_tex(ps->brush, projPixel->projCoSS, rgba);
@@ -3673,29 +3756,36 @@ static void *do_projectpaint_thread(void *ph_v)
 						last_partial_redraw_cell->y2 = MAX2(last_partial_redraw_cell->y2, projPixel->y_px+1);
 						
 						
-						switch(tool) {
-						case PAINT_TOOL_CLONE:
-							if (is_floatbuf) {
-								if (((ProjPixelClone *)projPixel)->clonepx.f[3]) {
-									do_projectpaint_clone_f(ps, projPixel, rgba, alpha, mask);
+						if(ps->source==PROJ_SRC_VIEW) {
+							switch(tool) {
+							case PAINT_TOOL_CLONE:
+								if (is_floatbuf) {
+									if (((ProjPixelClone *)projPixel)->clonepx.f[3]) {
+										do_projectpaint_clone_f(ps, projPixel, rgba, alpha, mask);
+									}
 								}
-							}
-							else {
-								if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) { 
-									do_projectpaint_clone(ps, projPixel, rgba, alpha, mask);
+								else {
+									if (((ProjPixelClone*)projPixel)->clonepx.ch[3]) {
+										do_projectpaint_clone(ps, projPixel, rgba, alpha, mask);
+									}
 								}
+								break;
+							case PAINT_TOOL_SMEAR:
+								sub_v2_v2v2(co, projPixel->projCoSS, pos_ofs);
+
+								if (is_floatbuf)	do_projectpaint_smear_f(ps, projPixel, rgba, alpha, mask, smearArena, &smearPixels_f, co);
+								else				do_projectpaint_smear(ps, projPixel, rgba, alpha, mask, smearArena, &smearPixels, co);
+								break;
+							default:
+								if (is_floatbuf)	do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask);
+								else				do_projectpaint_draw(ps, projPixel, rgba, alpha, mask);
+								break;
 							}
-							break;
-						case PAINT_TOOL_SMEAR:
-							sub_v2_v2v2(co, projPixel->projCoSS, pos_ofs);
-							
-							if (is_floatbuf)	do_projectpaint_smear_f(ps, projPixel, rgba, alpha, mask, smearArena, &smearPixels_f, co);
-							else				do_projectpaint_smear(ps, projPixel, rgba, alpha, mask, smearArena, &smearPixels, co);
-							break;
-						default:
-							if (is_floatbuf)	do_projectpaint_draw_f(ps, projPixel, rgba, alpha, mask);
-							else				do_projectpaint_draw(ps, projPixel, rgba, alpha, mask);
-							break;
+						}
+						else {
+							/* reprojection! */
+							bicubic_interpolation_color(ps->reproject_ibuf, projPixel->newColor.ch, NULL, projPixel->projCoSS[0], projPixel->projCoSS[1]);
+							blend_color_mix(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (int)(mask*255));
 						}
 					}
 					/* done painting */
@@ -4434,18 +4524,18 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 	ToolSettings *settings= scene->toolsettings;
 	Brush *brush;
 
+	/* these can be NULL */
 	ps->v3d= CTX_wm_view3d(C);
 	ps->rv3d= CTX_wm_region_view3d(C);
 	ps->ar= CTX_wm_region(C);
+
 	ps->scene= scene;
-
 	ps->ob= ob; /* allow override of active object */
-
 
 	/* setup projection painting data */
 	ps->do_backfacecull = (settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE) ? 0 : 1;
 	ps->do_occlude = (settings->imapaint.flag & IMAGEPAINT_PROJECT_XRAY) ? 0 : 1;
-	ps->do_mask_normal = (settings->imapaint.flag & IMAGEPAINT_PROJECT_FLAT) ? 0 : 1;;
+	ps->do_mask_normal = (settings->imapaint.flag & IMAGEPAINT_PROJECT_FLAT) ? 0 : 1;
 
 	if (ps->tool == PAINT_TOOL_CLONE)
 		ps->do_layer_clone = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE);
@@ -4479,6 +4569,9 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 	ps->brush = brush;
 	ps->tool = brush->imagepaint_tool;
 	ps->blend = brush->blend;
+
+	ps->is_airbrush = (brush->flag & BRUSH_AIRBRUSH) ? 1 : 0;
+	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
 }
 
 static int texture_paint_init(bContext *C, wmOperator *op)
@@ -4538,6 +4631,8 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 
 		/* initialize all data from the context */
 		project_state_init(C, OBACT, &pop->ps);
+
+		pop->ps.source= PROJ_SRC_VIEW;
 
 		if (pop->ps.ob==NULL || !(pop->ps.ob->lay & pop->ps.v3d->lay))
 			return 0;
@@ -5217,4 +5312,93 @@ void PAINT_OT_texture_paint_radial_control(wmOperatorType *ot)
 int facemask_paint_poll(bContext *C)
 {
 	return paint_facesel_test(CTX_data_active_object(C));
+}
+
+/* use project paint to re-apply an image */
+static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
+{
+	Image *image= BLI_findlink(&CTX_data_main(C)->image, RNA_enum_get(op->ptr, "image"));
+
+	Scene *scene= CTX_data_scene(C);
+	ProjPaintState ps;
+
+	memset(&ps, 0, sizeof(ps));
+
+	project_state_init(C, OBACT, &ps);
+
+	if(scene->camera==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No active camera set.");
+		return OPERATOR_CANCELLED;
+	}
+
+	if(image==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Image could not be found.");
+		return OPERATOR_CANCELLED;
+	}
+
+	ps.reproject_ibuf= BKE_image_get_ibuf(image, NULL);
+	if(ps.reproject_ibuf==NULL || ps.reproject_ibuf->rect==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Image data could not be found.");
+		return OPERATOR_CANCELLED;
+	}
+
+	/* override */
+	ps.is_texbrush= 0;
+	ps.is_airbrush= 1;
+	ps.brush->alpha= 1.0;
+	ps.brush->size= 32; /* cover the whole image */
+
+
+	ps.tool= PAINT_TOOL_DRAW;
+
+	ps.source= PROJ_SRC_CAM;
+
+	/* allocate and initialize spacial data structures */
+	project_paint_begin(&ps);
+
+	if(ps.dm==NULL) {
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		float pos[2]= {0.0, 0.0};
+		float lastpos[2]= {0.0, 0.0};
+		int a;
+
+		for (a=0; a < ps.image_tot; a++)
+			partial_redraw_array_init(ps.projImages[a].partRedrawRect);
+
+		project_paint_op(&ps, NULL, lastpos, pos);
+
+		project_image_refresh_tagged(&ps);
+
+		for (a=0; a < ps.image_tot; a++) {
+			GPU_free_image(ps.projImages[a].ima);
+			WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ps.projImages[a].ima);
+		}
+	}
+
+	project_paint_end(&ps);
+
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_camera_project(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name= "Camera Project";
+	ot->idname= "PAINT_OT_camera_project";
+	ot->description= "Project an edited render from the active camera back onto the object";
+
+	/* api callbacks */
+	ot->invoke= WM_enum_search_invoke;
+	ot->exec= texture_paint_camera_project_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	prop= RNA_def_enum(ot->srna, "image", DummyRNA_NULL_items, 0, "Image", "");
+	RNA_def_enum_funcs(prop, RNA_image_itemf);
+	ot->prop= prop;
 }

@@ -121,6 +121,7 @@ void ED_operatortypes_paint(void)
 	WM_operatortype_append(PAINT_OT_sample_color);
 	WM_operatortype_append(PAINT_OT_grab_clone);
 	WM_operatortype_append(PAINT_OT_clone_cursor_set);
+	WM_operatortype_append(PAINT_OT_camera_project);
 
 	/* weight */
 	WM_operatortype_append(PAINT_OT_weight_paint_toggle);
