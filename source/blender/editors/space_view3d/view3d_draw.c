@@ -2227,8 +2227,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 //	REEB_draw();
 	
-//	if(scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
-	
 	/* Transp and X-ray afterdraw stuff */
 	view3d_draw_transp(scene, ar, v3d);
 	view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
