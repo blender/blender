@@ -730,6 +730,22 @@ static void rna_Scene_sync_mode_set(PointerRNA *ptr, int value)
 	}
 }
 
+static int rna_GameSettings_auto_start_get(PointerRNA *ptr)
+{
+	if (G.fileflags & G_FILE_AUTOPLAY)
+		return 1;
+
+	return 0;
+}
+
+static void rna_GameSettings_auto_start_set(PointerRNA *ptr, int value)
+{
+	if(value)
+		G.fileflags |= G_FILE_AUTOPLAY;
+	else
+		G.fileflags &= ~G_FILE_AUTOPLAY;
+}
+
 #else
 
 static void rna_def_transform_orientation(BlenderRNA *brna)
@@ -1542,6 +1558,10 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GAME_ENABLE_ANIMATION_RECORD);
 	RNA_def_property_ui_text(prop, "Record Animation", "Record animation to fcurves");
 
+	prop= RNA_def_property(srna, "auto_start", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_GameSettings_auto_start_get", "rna_GameSettings_auto_start_set");
+	RNA_def_property_ui_text(prop, "Auto Start", "Automatically start game at load time");
+	
 	/* materials */
 	prop= RNA_def_property(srna, "material_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "matmode");

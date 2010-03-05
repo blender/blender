@@ -1037,8 +1037,14 @@ int main(int argc, char **argv)
 		WM_exit(C);
 	}
 
-	if(!G.background && !G.file_loaded)
-		WM_init_splash(C);
+	else {
+		if(G.fileflags & G_FILE_AUTOPLAY){
+			WM_init_game(C);
+		}
+
+		else if(!G.file_loaded)
+			WM_init_splash(C);
+	}
 
 	WM_main(C);
 

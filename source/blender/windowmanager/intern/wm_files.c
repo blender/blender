@@ -523,6 +523,9 @@ void WM_write_file(bContext *C, char *target, int fileflags, ReportList *reports
 		if(fileflags & G_FILE_COMPRESS) G.fileflags |= G_FILE_COMPRESS;
 		else G.fileflags &= ~G_FILE_COMPRESS;
 		
+		if(fileflags & G_FILE_AUTOPLAY) G.fileflags |= G_FILE_AUTOPLAY;
+		else G.fileflags &= ~G_FILE_AUTOPLAY;
+
 		writeBlog();
 	}
 
@@ -544,7 +547,7 @@ int WM_write_homefile(bContext *C, wmOperator *op)
 	BLI_make_file_string("/", tstr, BLI_gethome(), ".B25.blend");
 	
 	/*  force save as regular blend file */
-	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_LOCK | G_FILE_SIGN);
+	fileflags = G.fileflags & ~(G_FILE_COMPRESS | G_FILE_AUTOPLAY | G_FILE_LOCK | G_FILE_SIGN);
 
 	BLO_write_file(CTX_data_main(C), tstr, fileflags, op->reports);
 	
@@ -612,7 +615,7 @@ void wm_autosave_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 	wm_autosave_location(filename);
 
 	/*  force save as regular blend file */
-	fileflags = G.fileflags & ~(G_FILE_COMPRESS|G_FILE_LOCK|G_FILE_SIGN);
+	fileflags = G.fileflags & ~(G_FILE_COMPRESS|G_FILE_AUTOPLAY |G_FILE_LOCK|G_FILE_SIGN);
 
 	/* no error reporting to console */
 	BLO_write_file(CTX_data_main(C), filename, fileflags, NULL);

@@ -181,6 +181,20 @@ void WM_init_splash(bContext *C)
 	}
 }
 
+void WM_init_game(bContext *C)
+{
+	//XXX copied from WM_init_splash we may not even need those "window" related code
+	//XXX not working yet, it fails at the game_start_operator pool (it needs an area)
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmWindow *prevwin= CTX_wm_window(C);
+	
+	if(wm->windows.first) {
+		CTX_wm_window_set(C, wm->windows.first);
+		WM_operator_name_call(C, "VIEW3D_OT_game_start", WM_OP_EXEC_DEFAULT, NULL);
+		CTX_wm_window_set(C, prevwin);
+	}
+}
+
 /* free strings of open recent files */
 static void free_openrecent(void)
 {
