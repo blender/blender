@@ -4427,21 +4427,72 @@ static void paint_redraw(bContext *C, ImagePaintState *s, int final)
 	}
 }
 
+/* initialize project paint settings from context */
+static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
+{
+	Scene *scene= CTX_data_scene(C);
+	ToolSettings *settings= scene->toolsettings;
+	Brush *brush;
+
+	ps->v3d= CTX_wm_view3d(C);
+	ps->rv3d= CTX_wm_region_view3d(C);
+	ps->ar= CTX_wm_region(C);
+	ps->scene= scene;
+
+	ps->ob= ob; /* allow override of active object */
+
+
+	/* setup projection painting data */
+	ps->do_backfacecull = (settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE) ? 0 : 1;
+	ps->do_occlude = (settings->imapaint.flag & IMAGEPAINT_PROJECT_XRAY) ? 0 : 1;
+	ps->do_mask_normal = (settings->imapaint.flag & IMAGEPAINT_PROJECT_FLAT) ? 0 : 1;;
+
+	if (ps->tool == PAINT_TOOL_CLONE)
+		ps->do_layer_clone = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE);
+
+	ps->do_layer_stencil = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL) ? 1 : 0;
+	ps->do_layer_stencil_inv = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) ? 1 : 0;
+
+
+#ifndef PROJ_DEBUG_NOSEAMBLEED
+	ps->seam_bleed_px = settings->imapaint.seam_bleed; /* pixel num to bleed */
+#endif
+
+	if(ps->do_mask_normal) {
+		ps->normal_angle_inner = settings->imapaint.normal_angle;
+		ps->normal_angle = (ps->normal_angle_inner + 90.0f) * 0.5f;
+	}
+	else {
+		ps->normal_angle_inner= ps->normal_angle= settings->imapaint.normal_angle;
+	}
+
+	ps->normal_angle_inner *=	M_PI_2 / 90;
+	ps->normal_angle *=			M_PI_2 / 90;
+	ps->normal_angle_range = ps->normal_angle - ps->normal_angle_inner;
+
+	if(ps->normal_angle_range <= 0.0f)
+		ps->do_mask_normal = 0; /* no need to do blending */
+
+
+	/* brush */
+	brush= paint_brush(&settings->imapaint.paint);
+	ps->brush = brush;
+	ps->tool = brush->imagepaint_tool;
+	ps->blend = brush->blend;
+}
+
 static int texture_paint_init(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	ToolSettings *settings= scene->toolsettings;
-	PaintOperation *pop;
-	Brush *brush;
+	Brush *brush= paint_brush(&settings->imapaint.paint);
+	PaintOperation *pop= MEM_callocN(sizeof(PaintOperation), "PaintOperation"); /* caller frees */
 
-	pop= MEM_callocN(sizeof(PaintOperation), "PaintOperation");
 	pop->first= 1;
 	op->customdata= pop;
 	
 	/* initialize from context */
 	if(CTX_wm_region_view3d(C)) {
-		pop->ps.v3d= CTX_wm_view3d(C);
-		pop->ps.rv3d= CTX_wm_region_view3d(C);
 		pop->mode= PAINT_MODE_3D;
 
 		if(!(settings->imapaint.flag & IMAGEPAINT_PROJECT_DISABLE))
@@ -4455,38 +4506,19 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	}
 
 	pop->s.scene= scene;
-	pop->ps.scene= scene;
 	pop->s.screen= CTX_wm_screen(C);
-	pop->ps.ar= CTX_wm_region(C);
-
-	/* intialize brush */
-	brush= paint_brush(&settings->imapaint.paint);
-	if(!brush)
-		return 0;
 
 	pop->s.brush = brush;
 	pop->s.tool = brush->imagepaint_tool;
 	if(pop->mode == PAINT_MODE_3D && (pop->s.tool == PAINT_TOOL_CLONE))
 		pop->s.tool = PAINT_TOOL_DRAW;
-	pop->s.blend = pop->s.brush->blend;
-	
-	if(pop->mode == PAINT_MODE_3D_PROJECT) {
-		pop->ps.brush = pop->s.brush;
-		pop->ps.tool = pop->s.tool;
-		pop->ps.blend = pop->s.blend;
-
-		pop->brush_size_orig = pop->ps.brush->size; /* not nice hack because 1 size brushes always fail with projection paint */
-	}
+	pop->s.blend = brush->blend;
+	pop->brush_size_orig= brush->size;
 
 	if(pop->mode != PAINT_MODE_2D) {
-		pop->ps.ob = pop->s.ob = OBACT;
-		if (!pop->s.ob || !(pop->s.ob->lay & pop->ps.v3d->lay)) return 0;
+		pop->s.ob = OBACT;
 		pop->s.me = get_mesh(pop->s.ob);
 		if (!pop->s.me) return 0;
-
-		/* Dont allow brush size below 2 */
-		if (pop->ps.brush && pop->ps.brush->size<=1)
-			pop->ps.brush->size = 2;
 	}
 	else {
 		pop->s.image = pop->s.sima->image;
@@ -4500,40 +4532,21 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 			return 0;
 		}
 	}
-	
+
 	/* note, if we have no UVs on the derived mesh, then we must return here */
 	if(pop->mode == PAINT_MODE_3D_PROJECT) {
-		/* setup projection painting data */
-		pop->ps.do_backfacecull = (settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE) ? 0 : 1;
-		pop->ps.do_occlude = (settings->imapaint.flag & IMAGEPAINT_PROJECT_XRAY) ? 0 : 1;
-		pop->ps.do_mask_normal = (settings->imapaint.flag & IMAGEPAINT_PROJECT_FLAT) ? 0 : 1;;
-		
-		if (pop->ps.tool == PAINT_TOOL_CLONE)
-			pop->ps.do_layer_clone = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE);
-		
-		pop->ps.do_layer_stencil = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL) ? 1 : 0;
-		pop->ps.do_layer_stencil_inv = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_STENCIL_INV) ? 1 : 0;
-		
-		
-#ifndef PROJ_DEBUG_NOSEAMBLEED
-		pop->ps.seam_bleed_px = settings->imapaint.seam_bleed; /* pixel num to bleed */
-#endif
 
-		if(pop->ps.do_mask_normal) {
-			pop->ps.normal_angle_inner = settings->imapaint.normal_angle;
-			pop->ps.normal_angle = (pop->ps.normal_angle_inner + 90.0f) * 0.5f;
-		}
-		else {
-			pop->ps.normal_angle_inner= pop->ps.normal_angle= settings->imapaint.normal_angle;
-		}
+		/* initialize all data from the context */
+		project_state_init(C, OBACT, &pop->ps);
 
-		pop->ps.normal_angle_inner *=	M_PI_2 / 90;
-		pop->ps.normal_angle *=			M_PI_2 / 90;
-		pop->ps.normal_angle_range = pop->ps.normal_angle - pop->ps.normal_angle_inner;
-		
-		if(pop->ps.normal_angle_range <= 0.0f)
-			pop->ps.do_mask_normal = 0; /* no need to do blending */
+		if (pop->ps.ob==NULL || !(pop->ps.ob->lay & pop->ps.v3d->lay))
+			return 0;
 
+		/* Dont allow brush size below 2 */
+		if (brush->size <= 1)
+			brush->size = 2;
+
+		/* allocate and initialize spacial data structures */
 		project_paint_begin(&pop->ps);
 		
 		if(pop->ps.dm==NULL)
@@ -5205,4 +5218,3 @@ int facemask_paint_poll(bContext *C)
 {
 	return paint_facesel_test(CTX_data_active_object(C));
 }
-
