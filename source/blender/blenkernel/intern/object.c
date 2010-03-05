@@ -2725,6 +2725,8 @@ void object_camera_matrix(
 	float pixsize;
 	float shiftx=0.0, shifty=0.0, winside, viewfac;
 
+	rd->mode &= ~R_ORTHO;
+
 	/* question mark */
 	(*ycor)= rd->yasp / rd->xasp;
 	if(rd->mode & R_FIELDS)
