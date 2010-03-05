@@ -1051,6 +1051,7 @@ static ChannelDriver *idriver_to_cdriver (IpoDriver *idriver)
 				if (idriver->name[0])
 					BLI_strncpy(dtar->pchan_name, idriver->name, 32);
 				dtar->transChan= adrcode_to_dtar_transchan(idriver->adrcode);
+				dtar->flag |= DTAR_FLAG_LOCALSPACE; /* old drivers took local space */
 			}
 		}
 		else { /* Object */
