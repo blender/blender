@@ -450,7 +450,7 @@ void RE_SetCamera(Render *re, Object *camera)
 	Camera *cam=NULL;
 	rctf viewplane;
 	float pixsize, clipsta, clipend;
-	float lens, shiftx=0.0, shifty=0.0, winside;
+	float lens, shiftx=0.0, shifty=0.0, winside, viewfac;
 	
 	/* question mark */
 	re->ycor= ( (float)re->r.yasp)/( (float)re->r.xasp);
@@ -507,23 +507,23 @@ void RE_SetCamera(Render *re, Object *camera)
 	/* ortho only with camera available */
 	if(cam && (re->r.mode & R_ORTHO)) {
 		if( (re->r.xasp*re->winx) >= (re->r.yasp*re->winy) ) {
-			re->viewfac= re->winx;
+			viewfac= re->winx;
 		}
 		else {
-			re->viewfac= re->ycor*re->winy;
+			viewfac= re->ycor*re->winy;
 		}
 		/* ortho_scale == 1.0 means exact 1 to 1 mapping */
-		pixsize= cam->ortho_scale/re->viewfac;
+		pixsize= cam->ortho_scale/viewfac;
 	}
 	else {
 		if( (re->r.xasp*re->winx) >= (re->r.yasp*re->winy) ) {
-			re->viewfac= (re->winx*lens)/32.0;
+			viewfac= (re->winx*lens)/32.0;
 		}
 		else {
-			re->viewfac= re->ycor*(re->winy*lens)/32.0;
+			viewfac= re->ycor*(re->winy*lens)/32.0;
 		}
 		
-		pixsize= clipsta/re->viewfac;
+		pixsize= clipsta/viewfac;
 	}
 	
 	/* viewplane fully centered, zbuffer fills in jittered between -.5 and +.5 */
