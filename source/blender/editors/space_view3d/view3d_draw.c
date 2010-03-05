@@ -1492,26 +1492,18 @@ int dupli_ob_sort(void *arg1, void *arg2)
 #endif
 
 
-static int draw_dupli_objects_step(DupliObject **dob_prev, DupliObject **dob, DupliObject **dob_next)
+static DupliObject *dupli_step(DupliObject *dob)
 {
-	(*dob_prev) = (*dob);
-	(*dob) = (*dob_next);
-
-	if((*dob_next)) {
-		(*dob_next) = (*dob_next)->next;
-		while((*dob_next) && (*dob_next)->no_draw) {
-			(*dob_next)= (*dob_next)->next;
-		}
-	}
-
-	return (*dob) != NULL;
+	while(dob && dob->no_draw)
+		dob= dob->next;
+	return dob;
 }
 
 static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int color)
 {
 	RegionView3D *rv3d= ar->regiondata;
 	ListBase *lb;
-	DupliObject *dob_prev= NULL, *dob= NULL, *dob_next= NULL;
+	DupliObject *dob_prev= NULL, *dob, *dob_next;
 	Base tbase;
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist=0;
@@ -1523,13 +1515,11 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	tbase.flag= OB_FROMDUPLI|base->flag;
 	lb= object_duplilist(scene, base->object);
 	// BLI_sortlist(lb, dupli_ob_sort); // might be nice to have if we have a dupli list with mixed objects.
-	
-	dob_next= lb->first;
-	while(dob_next && dob_next->no_draw) {
-		dob_next= dob_next->next;
-	}
 
-	while(draw_dupli_objects_step(&dob_prev, &dob, &dob_next)) {
+	dob=dupli_step(lb->first);
+	if(dob) dob_next= dupli_step(dob->next);
+
+	for( ; dob ; dob_prev= dob, dob= dob_next, dob_next= dob_next ? dupli_step(dob_next->next) : NULL) {
 		tbase.object= dob->ob;
 
 		/* extra service: draw the duplicator in drawtype of parent */
