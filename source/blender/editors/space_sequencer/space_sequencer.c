@@ -110,44 +110,44 @@ void ED_sequencer_update_view(bContext *C, int view)
 
 	switch (view) {
 		case SEQ_VIEW_SEQUENCE:
-			if (ar_main->flag & RGN_FLAG_HIDDEN) {
+			if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
 				ar_main->flag &= ~RGN_FLAG_HIDDEN;
 				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
 			}
-			if (!(ar_preview->flag & RGN_FLAG_HIDDEN)) {
+			if (ar_preview && !(ar_preview->flag & RGN_FLAG_HIDDEN)) {
 				ar_preview->flag |= RGN_FLAG_HIDDEN;
 				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
 				WM_event_remove_handlers(C, &ar_preview->handlers);
 			}
-			ar_main->alignment= RGN_ALIGN_NONE;
-			ar_preview->alignment= RGN_ALIGN_NONE;
+			if (ar_main) ar_main->alignment= RGN_ALIGN_NONE;
+			if (ar_preview) ar_preview->alignment= RGN_ALIGN_NONE;
 			break;
 		case SEQ_VIEW_PREVIEW:
-			if (!(ar_main->flag & RGN_FLAG_HIDDEN)) {
+			if (ar_main && !(ar_main->flag & RGN_FLAG_HIDDEN)) {
 				ar_main->flag |= RGN_FLAG_HIDDEN;
 				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
 				WM_event_remove_handlers(C, &ar_main->handlers);
 			}
-			if (ar_preview->flag & RGN_FLAG_HIDDEN) {
+			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
 				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
 				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
 				ar_preview->v2d.cur = ar_preview->v2d.tot;
 			}
-			ar_main->alignment= RGN_ALIGN_NONE;
-			ar_preview->alignment= RGN_ALIGN_NONE;
+			if (ar_main) ar_main->alignment= RGN_ALIGN_NONE;
+			if (ar_preview) ar_preview->alignment= RGN_ALIGN_NONE;
 			break;
 		case SEQ_VIEW_SEQUENCE_PREVIEW:
-			if (ar_main->flag & RGN_FLAG_HIDDEN) {
+			if (ar_main && (ar_main->flag & RGN_FLAG_HIDDEN)) {
 				ar_main->flag &= ~RGN_FLAG_HIDDEN;
 				ar_main->v2d.flag &= ~V2D_IS_INITIALISED;
 			}
-			if (ar_preview->flag & RGN_FLAG_HIDDEN) {
+			if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
 				ar_preview->flag &= ~RGN_FLAG_HIDDEN;
 				ar_preview->v2d.flag &= ~V2D_IS_INITIALISED;
 				ar_preview->v2d.cur = ar_preview->v2d.tot;
 			}
-			ar_main->alignment= RGN_ALIGN_NONE;
-			ar_preview->alignment= RGN_ALIGN_TOP;
+			if (ar_main) ar_main->alignment= RGN_ALIGN_NONE;
+			if (ar_preview) ar_preview->alignment= RGN_ALIGN_TOP;
 			break;
 	}
 
