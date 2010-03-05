@@ -163,25 +163,8 @@ static DerivedMesh *get_dm(Scene *scene, Object *ob, EditMesh *em, DerivedMesh *
 			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
 	}
 	else if(ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)) {
-		Object *tmpobj;
-		Curve *tmpcu;
-
 		if(is_last_displist(ob)) {
-			/* copies object and modifiers (but not the data) */
-			tmpobj= copy_object(ob);
-			tmpcu = (Curve *)tmpobj->data;
-			tmpcu->id.us--;
-
-			/* copies the data */
-			tmpobj->data = copy_curve((Curve *) ob->data);
-
-			makeDispListCurveTypes(scene, tmpobj, 1);
-			nurbs_to_mesh(tmpobj);
-
-			dm = CDDM_from_mesh((Mesh*)(tmpobj->data), tmpobj);
-			//CDDM_calc_normals(dm);
-
-			free_libblock_us(&G.main->object, tmpobj);
+			dm= CDDM_from_curve(ob);
 		}
 	}
 
@@ -8605,7 +8588,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsMesh
 				| eModifierTypeFlag_SupportsMapping
 				| eModifierTypeFlag_SupportsEditmode
-				| eModifierTypeFlag_EnableInEditmode;
+				| eModifierTypeFlag_EnableInEditmode
+				| eModifierTypeFlag_AcceptsCVs;
 		mti->initData = subsurfModifier_initData;
 		mti->copyData = subsurfModifier_copyData;
 		mti->freeData = subsurfModifier_freeData;
@@ -8635,7 +8619,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsMesh
 				| eModifierTypeFlag_SupportsMapping
 				| eModifierTypeFlag_SupportsEditmode
-				| eModifierTypeFlag_EnableInEditmode;
+				| eModifierTypeFlag_EnableInEditmode
+				| eModifierTypeFlag_AcceptsCVs;
 		mti->initData = arrayModifier_initData;
 		mti->copyData = arrayModifier_copyData;
 		mti->foreachObjectLink = arrayModifier_foreachObjectLink;
@@ -8648,7 +8633,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsMesh
 				| eModifierTypeFlag_SupportsMapping
 				| eModifierTypeFlag_SupportsEditmode
-				| eModifierTypeFlag_EnableInEditmode;
+				| eModifierTypeFlag_EnableInEditmode
+				| eModifierTypeFlag_AcceptsCVs;
 		mti->initData = mirrorModifier_initData;
 		mti->copyData = mirrorModifier_copyData;
 		mti->foreachObjectLink = mirrorModifier_foreachObjectLink;
@@ -8659,6 +8645,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(EdgeSplit);
 		mti->type = eModifierTypeType_Constructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_AcceptsCVs
 				| eModifierTypeFlag_SupportsMapping
 				| eModifierTypeFlag_SupportsEditmode
 				| eModifierTypeFlag_EnableInEditmode;
@@ -8956,6 +8943,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Solidify);
 		mti->type = eModifierTypeType_Constructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
+				| eModifierTypeFlag_AcceptsCVs
 				| eModifierTypeFlag_SupportsMapping
 				| eModifierTypeFlag_SupportsEditmode
 				| eModifierTypeFlag_EnableInEditmode;

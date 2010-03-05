@@ -70,6 +70,8 @@ int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex,
 struct Mesh *get_mesh(struct Object *ob);
 void set_mesh(struct Object *ob, struct Mesh *me);
 void mball_to_mesh(struct ListBase *lb, struct Mesh *me);
+int nurbs_to_mdata(struct Object *ob, struct MVert **allvert, int *_totvert,
+	struct MEdge **alledge, int *_totedge, struct MFace **allface, int *_totface);
 void nurbs_to_mesh(struct Object *ob);
 void mesh_to_curve(struct Scene *scene, struct Object *ob);
 void free_dverts(struct MDeformVert *dvert, int totvert);

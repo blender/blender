@@ -418,24 +418,29 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 	} 
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-		Curve *cu = ob->data;
+		Curve *cu;
 		int numVerts;
 		float (*vertexCos)[3];
-		
-		
+
+		if (mti->type==eModifierTypeType_Constructive) {
+			BKE_report(reports, RPT_ERROR, "Cannot apply constructive modifiers on curve");
+			return 0;
+		}
+
+		cu = ob->data;
 		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tesselated/bevel vertices");
-		
+
 		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md, 0))) {
 			BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
 			return 0;
 		}
-		
+
 		vertexCos = curve_getVertexCos(cu, &cu->nurb, &numVerts);
 		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
 		curve_applyVertexCos(cu, &cu->nurb, vertexCos);
 
 		MEM_freeN(vertexCos);
-		
+
 		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 	else {

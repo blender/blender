@@ -54,6 +54,9 @@ struct DerivedMesh *CDDM_from_mesh(struct Mesh *mesh, struct Object *ob);
 /* creates a CDDerivedMesh from the given EditMesh */
 struct DerivedMesh *CDDM_from_editmesh(struct EditMesh *em, struct Mesh *me);
 
+/* creates a CDDerivedMesh from the given curve object */
+struct DerivedMesh *CDDM_from_curve(struct Object *ob);
+
 /* Copies the given DerivedMesh with verts, faces & edges stored as
  * custom element data.
  */

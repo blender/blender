@@ -2620,7 +2620,117 @@ static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar,
 	return orcoret;
 }
 
-static void init_render_surf(Render *re, ObjectRen *obr)
+static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
+	int timeoffset, float *orco, float mat[4][4])
+{
+	Object *ob= obr->ob;
+	int a, a1, end, totvert, vertofs;
+	VertRen *ver;
+	VlakRen *vlr;
+	Curve *cu;
+	MVert *mvert = NULL;
+	MFace *mface;
+	Material *ma;
+
+	mvert= dm->getVertArray(dm);
+	totvert= dm->getNumVerts(dm);
+
+	if ELEM(ob->type, OB_FONT, OB_CURVE) {
+		cu= ob->data;
+	}
+
+	for(a=0; a<totvert; a++, mvert++) {
+		ver= RE_findOrAddVert(obr, obr->totvert++);
+		VECCOPY(ver->co, mvert->co);
+		mul_m4_v3(mat, ver->co);
+
+		if(orco) {
+			ver->orco= orco;
+			orco+=3;
+		}
+	}
+
+	if(!timeoffset) {
+		/* store customdata names, because DerivedMesh is freed */
+		RE_set_customdata_names(obr, &dm->faceData);
+
+		/* still to do for keys: the correct local texture coordinate */
+
+		/* faces in order of color blocks */
+		vertofs= obr->totvert - totvert;
+		for(a1=0; (a1<ob->totcol || (a1==0 && ob->totcol==0)); a1++) {
+
+			ma= give_render_material(re, ob, a1+1);
+			end= dm->getNumFaces(dm);
+			mface= dm->getFaceArray(dm);
+
+			for(a=0; a<end; a++, mface++) {
+				int v1, v2, v3, v4, flag;
+
+				if( mface->mat_nr==a1 ) {
+					float len;
+
+					v1= mface->v1;
+					v2= mface->v2;
+					v3= mface->v3;
+					v4= mface->v4;
+					flag= mface->flag & ME_SMOOTH;
+
+					vlr= RE_findOrAddVlak(obr, obr->totvlak++);
+					vlr->v1= RE_findOrAddVert(obr, vertofs+v1);
+					vlr->v2= RE_findOrAddVert(obr, vertofs+v2);
+					vlr->v3= RE_findOrAddVert(obr, vertofs+v3);
+					if(v4) vlr->v4= RE_findOrAddVert(obr, vertofs+v4);
+					else vlr->v4= 0;
+
+					/* render normals are inverted in render */
+					if(vlr->v4)
+						len= normal_quad_v3( vlr->n,vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co);
+					else
+						len= normal_tri_v3( vlr->n,vlr->v3->co, vlr->v2->co, vlr->v1->co);
+
+					vlr->mat= ma;
+					vlr->flag= flag;
+					if(cu &&(cu->flag & ME_NOPUNOFLIP)) {
+						vlr->flag |= R_NOPUNOFLIP;
+					}
+					vlr->ec= 0; /* mesh edges rendered separately */
+
+					if(len==0) obr->totvlak--;
+					else {
+						CustomDataLayer *layer;
+						MTFace *mtface, *mtf;
+						MCol *mcol, *mc;
+						int index, mtfn= 0, mcn= 0;
+						char *name;
+
+						for(index=0; index<dm->faceData.totlayer; index++) {
+							layer= &dm->faceData.layers[index];
+							name= layer->name;
+
+							if(layer->type == CD_MTFACE && mtfn < MAX_MTFACE) {
+								mtf= RE_vlakren_get_tface(obr, vlr, mtfn++, &name, 1);
+								mtface= (MTFace*)layer->data;
+								*mtf= mtface[a];
+							}
+							else if(layer->type == CD_MCOL && mcn < MAX_MCOL) {
+								mc= RE_vlakren_get_mcol(obr, vlr, mcn++, &name, 1);
+								mcol= (MCol*)layer->data;
+								memcpy(mc, &mcol[a*4], sizeof(MCol)*4);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		/* Normals */
+		calc_vertexnormals(re, obr, 0, 0);
+	}
+
+}
+
+static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
 	Nurb *nu=0;
@@ -2630,6 +2740,7 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 	Material **matar;
 	float *orco=NULL, *orcobase=NULL, mat[4][4];
 	int a, totmat, need_orco=0;
+	DerivedMesh *dm;
 
 	cu= ob->data;
 	nu= cu->nurb.first;
@@ -2651,19 +2762,34 @@ static void init_render_surf(Render *re, ObjectRen *obr)
 
 	if(ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
 
-	if(need_orco) orcobase= orco= get_object_orco(re, ob);
+	dm= ob->derivedFinal;
+	if (ob->derivedFinal) {
+		if(need_orco) {
+			orco= makeOrcoDispList(re->scene, ob, 1);
+			if(orco) {
+				set_object_orco(re, ob, orco);
+			}
+		}
 
-	displist.first= displist.last= 0;
-	makeDispListSurf(re->scene, ob, &displist, 1, 0);
+		init_render_dm(dm, re, obr, timeoffset, orco, mat);
+	} else {
+		if(need_orco) {
+			orcobase= orco= get_object_orco(re, ob);
+		}
 
-	/* walk along displaylist and create rendervertices/-faces */
-	for(dl=displist.first; dl; dl=dl->next) {
-		/* watch out: u ^= y, v ^= x !! */
-		if(dl->type==DL_SURF)
-			orco+= 3*dl_surf_to_renderdata(obr, dl, matar, orco, mat);
+		displist.first= displist.last= 0;
+		makeDispListSurf(re->scene, ob, &displist, 1, 0);
+
+		/* walk along displaylist and create rendervertices/-faces */
+		for(dl=displist.first; dl; dl=dl->next) {
+			/* watch out: u ^= y, v ^= x !! */
+			if(dl->type==DL_SURF)
+				orco+= 3*dl_surf_to_renderdata(obr, dl, matar, orco, mat);
+		}
+
+		freedisplist(&displist);
 	}
 
-	freedisplist(&displist);
 	MEM_freeN(matar);
 }
 
@@ -2674,6 +2800,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	VertRen *ver;
 	VlakRen *vlr;
 	DispList *dl;
+	DerivedMesh *dm;
 	ListBase olddl={NULL, NULL};
 	Material **matar;
 	float len, *data, *fp, *orco=NULL, *orcobase= NULL;
@@ -2687,11 +2814,11 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 	/* no modifier call here, is in makedisp */
 
-	if(cu->resolu_ren) 
+	if(cu->resolu_ren)
 		SWAP(ListBase, olddl, cu->disp);
 	
 	/* test displist */
-	if(cu->disp.first==NULL) 
+	if(cu->disp.first==NULL)
 		makeDispListCurveTypes(re->scene, ob, 0);
 	dl= cu->disp.first;
 	if(cu->disp.first==NULL) return;
@@ -2710,89 +2837,49 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 			need_orco= 1;
 	}
 
-	if(need_orco) orcobase=orco= get_object_orco(re, ob);
-
-	dl= cu->disp.first;
-	while(dl) {
-		if(dl->type==DL_INDEX3) {
-			int *index;
-
-			startvert= obr->totvert;
-			data= dl->verts;
-
-			n[0]= ob->imat[0][2];
-			n[1]= ob->imat[1][2];
-			n[2]= ob->imat[2][2];
-			normalize_v3(n);
-
-			for(a=0; a<dl->nr; a++, data+=3) {
-				ver= RE_findOrAddVert(obr, obr->totvert++);
-				VECCOPY(ver->co, data);
-
-				/* flip normal if face is backfacing, also used in face loop below */
-				if(ver->co[2] < 0.0) {
-					VECCOPY(ver->n, n);
-					ver->flag = 1;
-				}
-				else {
-					ver->n[0]= -n[0]; ver->n[1]= -n[1]; ver->n[2]= -n[2];
-					ver->flag = 0;
-				}
-
-				mul_m4_v3(mat, ver->co);
-				
-				if (orco) {
-					ver->orco = orco;
-					orco += 3;
-				}
-			}
-			
-			if(timeoffset==0) {
-				startvlak= obr->totvlak;
-				index= dl->index;
-				for(a=0; a<dl->parts; a++, index+=3) {
-
-					vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-					vlr->v1= RE_findOrAddVert(obr, startvert+index[0]);
-					vlr->v2= RE_findOrAddVert(obr, startvert+index[1]);
-					vlr->v3= RE_findOrAddVert(obr, startvert+index[2]);
-					vlr->v4= NULL;
-					
-					if(vlr->v1->flag) {
-						VECCOPY(vlr->n, n);
-					}
-					else {
-						vlr->n[0]= -n[0]; vlr->n[1]= -n[1]; vlr->n[2]= -n[2];
-					}
-					
-					vlr->mat= matar[ dl->col ];
-					vlr->flag= 0;
-					if( (cu->flag & CU_NOPUNOFLIP) ) {
-						vlr->flag |= R_NOPUNOFLIP;
-					}
-					vlr->ec= 0;
-				}
+	dm= ob->derivedFinal;
+	if (dm) {
+		if(need_orco) {
+			orco= makeOrcoDispList(re->scene, ob, 1);
+			if(orco) {
+				set_object_orco(re, ob, orco);
 			}
 		}
-		else if (dl->type==DL_SURF) {
-			
-			/* cyclic U means an extruded full circular curve, we skip bevel splitting then */
-			if (dl->flag & DL_CYCL_U) {
-				orco+= 3*dl_surf_to_renderdata(obr, dl, matar, orco, mat);
-			}
-			else {
-				int p1,p2,p3,p4;
 
-				fp= dl->verts;
+		init_render_dm(dm, re, obr, timeoffset, orco, mat);
+	} else {
+		if(need_orco) {
+		  orcobase=orco= get_object_orco(re, ob);
+		}
+
+		dl= cu->disp.first;
+		while(dl) {
+			if(dl->type==DL_INDEX3) {
+				int *index;
+
 				startvert= obr->totvert;
-				nr= dl->nr*dl->parts;
+				data= dl->verts;
 
-				while(nr--) {
+				n[0]= ob->imat[0][2];
+				n[1]= ob->imat[1][2];
+				n[2]= ob->imat[2][2];
+				normalize_v3(n);
+
+				for(a=0; a<dl->nr; a++, data+=3) {
 					ver= RE_findOrAddVert(obr, obr->totvert++);
-						
-					VECCOPY(ver->co, fp);
+					VECCOPY(ver->co, data);
+
+					/* flip normal if face is backfacing, also used in face loop below */
+					if(ver->co[2] < 0.0) {
+						VECCOPY(ver->n, n);
+						ver->flag = 1;
+					}
+					else {
+						ver->n[0]= -n[0]; ver->n[1]= -n[1]; ver->n[2]= -n[2];
+						ver->flag = 0;
+					}
+
 					mul_m4_v3(mat, ver->co);
-					fp+= 3;
 
 					if (orco) {
 						ver->orco = orco;
@@ -2800,86 +2887,140 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 					}
 				}
 
-				if(dl->bevelSplitFlag || timeoffset==0) {
+				if(timeoffset==0) {
 					startvlak= obr->totvlak;
+					index= dl->index;
+					for(a=0; a<dl->parts; a++, index+=3) {
 
-					for(a=0; a<dl->parts; a++) {
+						vlr= RE_findOrAddVlak(obr, obr->totvlak++);
+						vlr->v1= RE_findOrAddVert(obr, startvert+index[0]);
+						vlr->v2= RE_findOrAddVert(obr, startvert+index[1]);
+						vlr->v3= RE_findOrAddVert(obr, startvert+index[2]);
+						vlr->v4= NULL;
 
-						frontside= (a >= dl->nr/2);
-						
-						if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
-							break;
-						
-						p1+= startvert;
-						p2+= startvert;
-						p3+= startvert;
-						p4+= startvert;
-
-						for(; b<dl->nr; b++) {
-							vlr= RE_findOrAddVlak(obr, obr->totvlak++);
-							vlr->v1= RE_findOrAddVert(obr, p2);
-							vlr->v2= RE_findOrAddVert(obr, p1);
-							vlr->v3= RE_findOrAddVert(obr, p3);
-							vlr->v4= RE_findOrAddVert(obr, p4);
-							vlr->ec= ME_V2V3+ME_V3V4;
-							if(a==0) vlr->ec+= ME_V1V2;
-
-							vlr->flag= dl->rt;
-
-							/* this is not really scientific: the vertices
-								* 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
-								* front and backside treated different!!
-								*/
-
-							if(frontside)
-								normal_tri_v3( vlr->n,vlr->v2->co, vlr->v3->co, vlr->v4->co);
-							else 
-								normal_tri_v3( vlr->n,vlr->v1->co, vlr->v2->co, vlr->v3->co);
-
-							vlr->mat= matar[ dl->col ];
-
-							p4= p3;
-							p3++;
-							p2= p1;
-							p1++;
+						if(vlr->v1->flag) {
+							VECCOPY(vlr->n, n);
 						}
-					}
+						else {
+							vlr->n[0]= -n[0]; vlr->n[1]= -n[1]; vlr->n[2]= -n[2];
+						}
 
-					if (dl->bevelSplitFlag) {
-						for(a=0; a<dl->parts-1+!!(dl->flag&DL_CYCL_V); a++)
-							if(dl->bevelSplitFlag[a>>5]&(1<<(a&0x1F)))
-								split_v_renderfaces(obr, startvlak, startvert, dl->parts, dl->nr, a, dl->flag&DL_CYCL_V, dl->flag&DL_CYCL_U);
-					}
-
-					/* vertex normals */
-					for(a= startvlak; a<obr->totvlak; a++) {
-						vlr= RE_findOrAddVlak(obr, a);
-
-						add_v3_v3v3(vlr->v1->n, vlr->v1->n, vlr->n);
-						add_v3_v3v3(vlr->v3->n, vlr->v3->n, vlr->n);
-						add_v3_v3v3(vlr->v2->n, vlr->v2->n, vlr->n);
-						add_v3_v3v3(vlr->v4->n, vlr->v4->n, vlr->n);
-					}
-					for(a=startvert; a<obr->totvert; a++) {
-						ver= RE_findOrAddVert(obr, a);
-						len= normalize_v3(ver->n);
-						if(len==0.0) ver->flag= 1;	/* flag abuse, its only used in zbuf now  */
-						else ver->flag= 0;
-					}
-					for(a= startvlak; a<obr->totvlak; a++) {
-						vlr= RE_findOrAddVlak(obr, a);
-						if(vlr->v1->flag) VECCOPY(vlr->v1->n, vlr->n);
-						if(vlr->v2->flag) VECCOPY(vlr->v2->n, vlr->n);
-						if(vlr->v3->flag) VECCOPY(vlr->v3->n, vlr->n);
-						if(vlr->v4->flag) VECCOPY(vlr->v4->n, vlr->n);
+						vlr->mat= matar[ dl->col ];
+						vlr->flag= 0;
+						if( (cu->flag & CU_NOPUNOFLIP) ) {
+							vlr->flag |= R_NOPUNOFLIP;
+						}
+						vlr->ec= 0;
 					}
 				}
 			}
-		}
+			else if (dl->type==DL_SURF) {
 
-		dl= dl->next;
+				/* cyclic U means an extruded full circular curve, we skip bevel splitting then */
+				if (dl->flag & DL_CYCL_U) {
+					orco+= 3*dl_surf_to_renderdata(obr, dl, matar, orco, mat);
+				}
+				else {
+					int p1,p2,p3,p4;
+
+					fp= dl->verts;
+					startvert= obr->totvert;
+					nr= dl->nr*dl->parts;
+
+					while(nr--) {
+						ver= RE_findOrAddVert(obr, obr->totvert++);
+
+						VECCOPY(ver->co, fp);
+						mul_m4_v3(mat, ver->co);
+						fp+= 3;
+
+						if (orco) {
+							ver->orco = orco;
+							orco += 3;
+						}
+					}
+
+					if(dl->bevelSplitFlag || timeoffset==0) {
+						startvlak= obr->totvlak;
+
+						for(a=0; a<dl->parts; a++) {
+
+							frontside= (a >= dl->nr/2);
+
+							if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
+								break;
+
+							p1+= startvert;
+							p2+= startvert;
+							p3+= startvert;
+							p4+= startvert;
+
+							for(; b<dl->nr; b++) {
+								vlr= RE_findOrAddVlak(obr, obr->totvlak++);
+								vlr->v1= RE_findOrAddVert(obr, p2);
+								vlr->v2= RE_findOrAddVert(obr, p1);
+								vlr->v3= RE_findOrAddVert(obr, p3);
+								vlr->v4= RE_findOrAddVert(obr, p4);
+								vlr->ec= ME_V2V3+ME_V3V4;
+								if(a==0) vlr->ec+= ME_V1V2;
+
+								vlr->flag= dl->rt;
+
+								/* this is not really scientific: the vertices
+									* 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
+									* front and backside treated different!!
+									*/
+
+								if(frontside)
+									normal_tri_v3( vlr->n,vlr->v2->co, vlr->v3->co, vlr->v4->co);
+								else
+									normal_tri_v3( vlr->n,vlr->v1->co, vlr->v2->co, vlr->v3->co);
+
+								vlr->mat= matar[ dl->col ];
+
+								p4= p3;
+								p3++;
+								p2= p1;
+								p1++;
+							}
+						}
+
+						if (dl->bevelSplitFlag) {
+							for(a=0; a<dl->parts-1+!!(dl->flag&DL_CYCL_V); a++)
+								if(dl->bevelSplitFlag[a>>5]&(1<<(a&0x1F)))
+									split_v_renderfaces(obr, startvlak, startvert, dl->parts, dl->nr, a, dl->flag&DL_CYCL_V, dl->flag&DL_CYCL_U);
+						}
+
+						/* vertex normals */
+						for(a= startvlak; a<obr->totvlak; a++) {
+							vlr= RE_findOrAddVlak(obr, a);
+
+							add_v3_v3v3(vlr->v1->n, vlr->v1->n, vlr->n);
+							add_v3_v3v3(vlr->v3->n, vlr->v3->n, vlr->n);
+							add_v3_v3v3(vlr->v2->n, vlr->v2->n, vlr->n);
+							add_v3_v3v3(vlr->v4->n, vlr->v4->n, vlr->n);
+						}
+						for(a=startvert; a<obr->totvert; a++) {
+							ver= RE_findOrAddVert(obr, a);
+							len= normalize_v3(ver->n);
+							if(len==0.0) ver->flag= 1;	/* flag abuse, its only used in zbuf now  */
+							else ver->flag= 0;
+						}
+						for(a= startvlak; a<obr->totvlak; a++) {
+							vlr= RE_findOrAddVlak(obr, a);
+							if(vlr->v1->flag) VECCOPY(vlr->v1->n, vlr->n);
+							if(vlr->v2->flag) VECCOPY(vlr->v2->n, vlr->n);
+							if(vlr->v3->flag) VECCOPY(vlr->v3->n, vlr->n);
+							if(vlr->v4->flag) VECCOPY(vlr->v4->n, vlr->n);
+						}
+					}
+				}
+			}
+
+			dl= dl->next;
+		}
 	}
-	
+
 	/* not very elegant... but we want original displist in UI */
 	if(cu->resolu_ren) {
 		freedisplist(&cu->disp);
@@ -2917,12 +3058,12 @@ static void to_edgesort(struct edgesort *ed, int i1, int i2, int v1, int v2, int
 static int vergedgesort(const void *v1, const void *v2)
 {
 	const struct edgesort *x1=v1, *x2=v2;
-	
+
 	if( x1->v1 > x2->v1) return 1;
 	else if( x1->v1 < x2->v1) return -1;
 	else if( x1->v2 > x2->v2) return 1;
 	else if( x1->v2 < x2->v2) return -1;
-	
+
 	return 0;
 }
 
@@ -2933,14 +3074,14 @@ static struct edgesort *make_mesh_edge_lookup(DerivedMesh *dm, int *totedgesort)
 	struct edgesort *edsort, *ed;
 	unsigned int *mcol=NULL;
 	int a, totedge=0, totface;
-	
+
 	mface= dm->getFaceArray(dm);
 	totface= dm->getNumFaces(dm);
 	tface= dm->getFaceDataArray(dm, CD_MTFACE);
 	mcol= dm->getFaceDataArray(dm, CD_MCOL);
-	
+
 	if(mcol==NULL && tface==NULL) return NULL;
-	
+
 	/* make sorted table with edges and face indices in it */
 	for(a= totface, mf= mface; a>0; a--, mf++) {
 		if(mf->v4) totedge+=4;
@@ -2949,9 +3090,9 @@ static struct edgesort *make_mesh_edge_lookup(DerivedMesh *dm, int *totedgesort)
 
 	if(totedge==0)
 		return NULL;
-	
+
 	ed= edsort= MEM_callocN(totedge*sizeof(struct edgesort), "edgesort");
-	
+
 	for(a=0, mf=mface; a<totface; a++, mf++) {
 		to_edgesort(ed++, 0, 1, mf->v1, mf->v2, a);
 		to_edgesort(ed++, 1, 2, mf->v2, mf->v3, a);
@@ -2962,9 +3103,9 @@ static struct edgesort *make_mesh_edge_lookup(DerivedMesh *dm, int *totedgesort)
 		else if(mf->v3)
 			to_edgesort(ed++, 2, 3, mf->v3, mf->v1, a);
 	}
-	
+
 	qsort(edsort, totedge, sizeof(struct edgesort), vergedgesort);
-	
+
 	*totedgesort= totedge;
 
 	return edsort;
@@ -2978,7 +3119,7 @@ static void use_mesh_edge_lookup(ObjectRen *obr, DerivedMesh *dm, MEdge *medge, 
 	MCol *mcol, *mc;
 	int index, mtfn, mcn;
 	char *name;
-	
+
 	if(medge->v1 < medge->v2) {
 		ed.v1= medge->v1;
 		ed.v2= medge->v2;
@@ -2987,7 +3128,7 @@ static void use_mesh_edge_lookup(ObjectRen *obr, DerivedMesh *dm, MEdge *medge, 
 		ed.v1= medge->v2;
 		ed.v2= medge->v1;
 	}
-	
+
 	edp= bsearch(&ed, edgetable, totedge, sizeof(struct edgesort), vergedgesort);
 
 	/* since edges have different index ordering, we have to duplicate mcol and tface */
@@ -3036,17 +3177,17 @@ static void init_camera_inside_volumes(Render *re)
 			if (obi->obr == vo->obr) {
 				if (point_inside_volume_objectinstance(re, obi, co)) {
 					MatInside *mi;
-					
+
 					mi = MEM_mallocN(sizeof(MatInside), "camera inside material");
 					mi->ma = vo->ma;
 					mi->obi = obi;
-					
+
 					BLI_addtail(&(re->render_volumes_inside), mi);
 				}
 			}
 		}
 	}
-	
+
 	/* debug {
 	MatInside *m;
 	for (m=re->render_volumes_inside.first; m; m=m->next) {
@@ -3058,12 +3199,12 @@ static void init_camera_inside_volumes(Render *re)
 static void add_volume(Render *re, ObjectRen *obr, Material *ma)
 {
 	struct VolumeOb *vo;
-	
+
 	vo = MEM_mallocN(sizeof(VolumeOb), "volume object");
-	
+
 	vo->ma = ma;
 	vo->obr = obr;
-	
+
 	BLI_addtail(&re->volumes, vo);
 }
 
@@ -4291,7 +4432,7 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 		if ELEM(ob->type, OB_FONT, OB_CURVE)
 			init_render_curve(re, obr, timeoffset);
 		else if(ob->type==OB_SURF)
-			init_render_surf(re, obr);
+			init_render_surf(re, obr, timeoffset);
 		else if(ob->type==OB_MESH)
 			init_render_mesh(re, obr, timeoffset);
 		else if(ob->type==OB_MBALL)
@@ -4299,7 +4440,7 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 	}
 
 	finalize_render_object(re, obr, timeoffset);
-	
+
 	re->totvert += obr->totvert;
 	re->totvlak += obr->totvlak;
 	re->tothalo += obr->tothalo;

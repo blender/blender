@@ -1585,6 +1585,36 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 	return dm;
 }
 
+DerivedMesh *CDDM_from_curve(Object *ob)
+{
+	DerivedMesh *dm;
+	CDDerivedMesh *cddm;
+	MVert *allvert;
+	MEdge *alledge;
+	MFace *allface;
+	int totvert, totedge, totface;
+
+	if (nurbs_to_mdata (ob, &allvert, &totvert, &alledge, &totedge, &allface, &totface) != 0) {
+		/* Error initializing mdata. This often happens when curve is empty */
+		return CDDM_new(0, 0, 0);
+	}
+
+	dm = CDDM_new(totvert, totedge, totface);
+	dm->deformedOnly = 1;
+
+	cddm = (CDDerivedMesh*)dm;
+
+	memcpy(cddm->mvert, allvert, totvert*sizeof(MVert));
+	memcpy(cddm->medge, alledge, totedge*sizeof(MEdge));
+	memcpy(cddm->mface, allface, totface*sizeof(MFace));
+
+	MEM_freeN(allvert);
+	MEM_freeN(alledge);
+	MEM_freeN(allface);
+
+	return dm;
+}
+
 DerivedMesh *CDDM_copy(DerivedMesh *source)
 {
 	CDDerivedMesh *cddm = cdDM_create("CDDM_copy cddm");

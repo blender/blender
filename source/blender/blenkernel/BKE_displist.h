@@ -102,5 +102,8 @@ void fastshade_free_render(void);
 
 float calc_taper(struct Scene *scene, struct Object *taperobj, int cur, int tot);
 
+/* add Orco layer to the displist object which has got derived mesh and return orco */
+float *makeOrcoDispList(struct Scene *scene, struct Object *ob, int forRender);
+
 #endif
 

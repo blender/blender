@@ -65,6 +65,7 @@
 #include "BKE_displist.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_object.h"
 #include "BKE_world.h"
 #include "BKE_mesh.h"
@@ -1209,7 +1210,7 @@ void makeDispListMBall(Scene *scene, Object *ob)
 	boundbox_displist(ob);
 }
 
-static ModifierData *curve_get_tesselate_point(Object *ob, int forRender, int editmode)
+static ModifierData *curve_get_tesselate_point(Scene *scene, Object *ob, int forRender, int editmode)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	ModifierData *preTesselatePoint;
@@ -1222,10 +1223,7 @@ static ModifierData *curve_get_tesselate_point(Object *ob, int forRender, int ed
 
 	preTesselatePoint = NULL;
 	for (; md; md=md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
-		if ((md->mode & required_mode) != required_mode) continue;
-		if (mti->isDisabled && mti->isDisabled(md, forRender)) continue;
+		if (!modifier_isEnabled(scene, md, required_mode)) continue;
 
 		if (ELEM3(md->type, eModifierType_Hook, eModifierType_Softbody, eModifierType_MeshDeform)) {
 			preTesselatePoint  = md;
@@ -1251,7 +1249,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 	if(forRender) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
 
-	preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
+	preTesselatePoint = curve_get_tesselate_point(scene, ob, forRender, editmode);
 	
 	if(editmode) required_mode |= eModifierMode_Editmode;
 
@@ -1312,16 +1310,21 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	DispList *dl;
 	int required_mode;
 	int editmode = (!forRender && cu->editnurb);
+	DerivedMesh *dm= NULL, *ndm;
 
 	if(forRender) required_mode = eModifierMode_Render;
 	else required_mode = eModifierMode_Realtime;
 
-	preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
+	preTesselatePoint = curve_get_tesselate_point(scene, ob, forRender, editmode);
 	
 	if(editmode) required_mode |= eModifierMode_Editmode;
 
 	if (preTesselatePoint) {
 		md = preTesselatePoint->next;
+	}
+
+	if (ob->derivedFinal) {
+		ob->derivedFinal->release (ob->derivedFinal);
 	}
 
 	for (; md; md=md->next) {
@@ -1331,39 +1334,83 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 		
 		if ((md->mode & required_mode) != required_mode) continue;
 		if (mti->isDisabled && mti->isDisabled(md, forRender)) continue;
-		if (mti->type!=eModifierTypeType_OnlyDeform && mti->type!=eModifierTypeType_DeformOrConstruct) continue;
+		if (mti->type!=eModifierTypeType_OnlyDeform &&
+			mti->type!=eModifierTypeType_DeformOrConstruct &&
+			mti->type!=eModifierTypeType_Constructive) continue;
 
 		/* need to put all verts in 1 block for curve deform */
-		if(md->type==eModifierType_Curve) {
-			float *allverts, *fp;
+		/* we also need all verts in 1 block for derived mesh creation when handling constructive modifiers */
+		if(md->type==eModifierType_Curve || mti->type==eModifierTypeType_Constructive) {
+			float *allverts = NULL, *fp;
 			int totvert= 0;
-			
-			for (dl=dispbase->first; dl; dl=dl->next)
-				totvert+= (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr;
-			
-			fp= allverts= MEM_mallocN(totvert*sizeof(float)*3, "temp vert");
-			for (dl=dispbase->first; dl; dl=dl->next) {
-				int offs= 3 * ((dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
-				memcpy(fp, dl->verts, sizeof(float) * offs);
-				fp+= offs;
+
+			if (md->type==eModifierType_Curve ||
+				(mti->type==eModifierTypeType_Constructive && !dm)) {
+				for (dl=dispbase->first; dl; dl=dl->next)
+					totvert+= (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr;
+
+				fp= allverts= MEM_mallocN(totvert*sizeof(float)*3, "temp vert");
+				for (dl=dispbase->first; dl; dl=dl->next) {
+					int offs= 3 * ((dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
+					memcpy(fp, dl->verts, sizeof(float) * offs);
+					fp+= offs;
+				}
 			}
-			
-			mti->deformVerts(md, ob, NULL, (float(*)[3]) allverts, totvert, forRender, editmode);
-			
-			fp= allverts;
-			for (dl=dispbase->first; dl; dl=dl->next) {
-				int offs= 3 * ((dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
-				memcpy(dl->verts, fp, sizeof(float) * offs);
-				fp+= offs;
+
+			if (mti->type==eModifierTypeType_Constructive) {
+				if (!dm) {
+					dm= CDDM_from_curve(ob);
+					/*
+					 * TODO: Maybe we should apply deformedVerts?
+					 *       But for now it causes invalid working of SoftBody modifier
+					 */
+					CDDM_apply_vert_coords(dm, (float(*)[3]) allverts);
+					CDDM_calc_normals(dm);
+				}
+
+				ndm = mti->applyModifier(md, ob, dm, forRender, editmode);
+
+				if (dm && dm != ndm) /* Modifier  */
+					dm->release (dm);
+				dm = ndm;
+			} else {
+				mti->deformVerts(md, ob, NULL, (float(*)[3]) allverts, totvert, forRender, editmode);
 			}
-			MEM_freeN(allverts);
+
+			if (allverts) {
+				fp= allverts;
+				for (dl=dispbase->first; dl; dl=dl->next) {
+					int offs= 3 * ((dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
+					memcpy(dl->verts, fp, sizeof(float) * offs);
+					fp+= offs;
+				}
+				MEM_freeN(allverts);
+			}
 		}
 		else {
-			for (dl=dispbase->first; dl; dl=dl->next) {
-				mti->deformVerts(md, ob, NULL, (float(*)[3]) dl->verts, (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr, forRender, editmode);
+			if (dm) {
+				float (*deformedVerts)[3] = NULL;
+				int numVerts;
+
+				numVerts = dm->getNumVerts(dm);
+				deformedVerts =
+					MEM_mallocN(sizeof(*deformedVerts) * numVerts, "dfmv");
+				dm->getVertCos(dm, deformedVerts);
+
+				mti->deformVerts(md, ob, dm, deformedVerts, numVerts, forRender, editmode);
+
+				CDDM_apply_vert_coords(dm, deformedVerts);
+
+				MEM_freeN(deformedVerts);
+			} else {
+				for (dl=dispbase->first; dl; dl=dl->next) {
+					mti->deformVerts(md, ob, dm, (float(*)[3]) dl->verts, (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr, forRender, editmode);
+				}
 			}
 		}
 	}
+
+	ob->derivedFinal = dm;
 
 	if (deformedVerts) {
 		curve_applyVertexCos(ob->data, nurb, originalVerts);
@@ -1400,6 +1447,109 @@ static void displist_surf_indices(DispList *dl)
 		}
 	}
 	
+}
+
+static DerivedMesh *create_orco_dm(Scene *scene, Object *ob)
+{
+	DerivedMesh *dm;
+	float (*orco)[3];
+
+	dm= CDDM_from_curve(ob);
+	orco= (float(*)[3])make_orco_curve(scene, ob);
+
+	CDDM_apply_vert_coords(dm, orco);
+	CDDM_calc_normals(dm);
+	MEM_freeN(orco);
+
+	return dm;
+}
+
+static void add_orco_dm(Scene *scene, Object *ob, DerivedMesh *dm, DerivedMesh *orcodm)
+{
+	float (*orco)[3], (*layerorco)[3];
+	int totvert, a;
+	Curve *cu= ob->data;
+
+	totvert= dm->getNumVerts(dm);
+
+	if(orcodm) {
+		orco= MEM_callocN(sizeof(float)*3*totvert, "dm orco");
+
+		if(orcodm->getNumVerts(orcodm) == totvert)
+			orcodm->getVertCos(orcodm, orco);
+		else
+			dm->getVertCos(dm, orco);
+	}
+	else {
+		orco= (float(*)[3])make_orco_curve(scene, ob);
+	}
+
+	for(a=0; a<totvert; a++) {
+		float *co = orco[a];
+		co[0] = (co[0]-cu->loc[0])/cu->size[0];
+		co[1] = (co[1]-cu->loc[1])/cu->size[1];
+		co[2] = (co[2]-cu->loc[2])/cu->size[2];
+	}
+
+	if((layerorco = DM_get_vert_data_layer(dm, CD_ORCO))) {
+		memcpy(layerorco, orco, sizeof(float)*totvert);
+		MEM_freeN(orco);
+	}
+	else
+		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, orco);
+}
+
+static void curve_calc_orcodm(Scene *scene, Object *ob, int forRender)
+{
+	/* this function represents logic of mesh's orcodm calculation */
+	/* for displist-based objects */
+
+	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	ModifierData *preTesselatePoint;
+	Curve *cu= ob->data;
+	int required_mode;
+	int editmode = (!forRender && cu->editnurb);
+	DerivedMesh *dm= ob->derivedFinal, *ndm, *orcodm= NULL;
+
+	if(forRender) required_mode = eModifierMode_Render;
+	else required_mode = eModifierMode_Realtime;
+
+	preTesselatePoint = curve_get_tesselate_point(scene, ob, forRender, editmode);
+
+	if(editmode) required_mode |= eModifierMode_Editmode;
+
+	if (preTesselatePoint) {
+		md = preTesselatePoint->next;
+	}
+
+	for (; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		md->scene= scene;
+
+		if ((md->mode & required_mode) != required_mode) continue;
+		if (mti->isDisabled && mti->isDisabled(md, forRender)) continue;
+		if (mti->type!=eModifierTypeType_Constructive) continue;
+
+		if(!orcodm)
+			orcodm= create_orco_dm(scene, ob);
+
+		ndm = mti->applyModifier(md, ob, orcodm, forRender, 0);
+
+		if(ndm) {
+			/* if the modifier returned a new dm, release the old one */
+			if(orcodm && orcodm != ndm) {
+				orcodm->release(orcodm);
+			}
+			orcodm = ndm;
+		}
+	}
+
+	/* add an orco layer if needed */
+	add_orco_dm(scene, ob, dm, orcodm);
+
+	if(orcodm)
+		orcodm->release(orcodm);
 }
 
 void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase, int forRender, int forOrco)
@@ -1643,8 +1793,31 @@ void makeDispListCurveTypes(Scene *scene, Object *ob, int forOrco)
 		if(!forOrco) curve_calc_modifiers_post(scene, ob, &cu->disp, 0, originalVerts, deformedVerts);
 		tex_space_curve(cu);
 	}
-	
-	boundbox_displist(ob);
+
+	if (ob->derivedFinal) {
+		DM_set_object_boundbox (ob, ob->derivedFinal);
+	} else {
+		boundbox_displist (ob);
+	}
+}
+
+/* add Orco layer to the displist object which has got derived mesh and return orco */
+/* XXX: is it good place to keep this function here? */
+float *makeOrcoDispList(Scene *scene, Object *ob, int forRender) {
+	float *orco;
+	DerivedMesh *dm= ob->derivedFinal;
+
+	if (!dm->getVertDataArray(dm, CD_ORCO)) {
+		curve_calc_orcodm(scene, ob, forRender);
+	}
+
+	orco= dm->getVertDataArray(dm, CD_ORCO);
+
+	if(orco) {
+		orco= MEM_dupallocN(orco);
+	}
+
+	return orco;
 }
 
 void imagestodisplist(void)
@@ -1667,7 +1840,7 @@ static void boundbox_displist(Object *ob)
 		Curve *cu= ob->data;
 		int doit= 0;
 
-		if(cu->bb==0) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");	
+		if(cu->bb==0) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");
 		bb= cu->bb;
 		
 		dl= cu->disp.first;

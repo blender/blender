@@ -2289,7 +2289,7 @@ BoundBox *object_get_boundbox(Object *ob)
 		bb = mesh_get_bb(ob);
 	}
 	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		bb= ( (Curve *)ob->data )->bb;
+		bb= ob->bb ? ob->bb : ( (Curve *)ob->data )->bb;
 	}
 	else if(ob->type==OB_MBALL) {
 		bb= ob->bb;
