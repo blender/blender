@@ -191,7 +191,7 @@ Text *add_empty_text(char *name)
 
 	ta->nlines=1;
 	ta->flags= TXT_ISDIRTY | TXT_ISMEM;
-	if(U.flag & USER_TXT_TABSTOSPACES)
+	if((U.flag & USER_TXT_TABSTOSPACES_DISABLE)==0)
 		ta->flags |= TXT_TABSTOSPACES;
 
 	ta->lines.first= ta->lines.last= NULL;
@@ -357,7 +357,7 @@ Text *add_text(char *file, const char *relpath)
 	ta->markers.first= ta->markers.last= NULL;
 	ta->curl= ta->sell= NULL;
 
-	if(U.flag & USER_TXT_TABSTOSPACES)
+	if((U.flag & USER_TXT_TABSTOSPACES_DISABLE)==0)
 		ta->flags= TXT_TABSTOSPACES;
 
 	fseek(fp, 0L, SEEK_END);
