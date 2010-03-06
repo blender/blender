@@ -2347,6 +2347,14 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 	return def;
 }
 
+static PyObject *pyrna_struct_as_pointer(BPy_StructRNA *self)
+{
+	if(self->ptr.data)
+		return PyCapsule_New(self->ptr.data, RNA_struct_identifier(self->ptr.type), NULL);
+
+	Py_RETURN_NONE;
+}
+
 static PyObject *pyrna_prop_get(BPy_PropertyRNA *self, PyObject *args)
 {
 	PointerRNA newptr;
@@ -2660,6 +2668,8 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"items", (PyCFunction)pyrna_struct_items, METH_NOARGS, NULL},
 
 	{"get", (PyCFunction)pyrna_struct_get, METH_VARARGS, NULL},
+
+	{"as_pointer", (PyCFunction)pyrna_struct_as_pointer, METH_NOARGS, NULL},
 
 	/* maybe this become and ID function */
 	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, NULL},
