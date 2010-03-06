@@ -3738,8 +3738,10 @@ static void *do_projectpaint_thread(void *ph_v)
 				projPixel = (ProjPixel *)node->link;
 
 				bicubic_interpolation_color(ps->reproject_ibuf, projPixel->newColor.ch, NULL, projPixel->projCoSS[0], projPixel->projCoSS[1]);
-				if(projPixel->newColor.ch[3])
+				if(projPixel->newColor.ch[3]) {
+					mask = ((float)projPixel->mask)/65535.0f;
 					blend_color_mix_rgb(projPixel->pixel.ch_pt,  projPixel->origColor.ch, projPixel->newColor.ch, (mask*projPixel->newColor.ch[3]));
+				}
 			}
 		}
 		else {
