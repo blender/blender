@@ -1038,7 +1038,7 @@ int main(int argc, char **argv)
 	}
 
 	else {
-		if(G.fileflags & G_FILE_AUTOPLAY){
+		if((G.fileflags & (G_FILE_AUTOPLAY | G_SCRIPT_AUTOEXEC)){
 			WM_init_game(C);
 		}
 

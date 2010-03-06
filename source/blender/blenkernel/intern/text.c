@@ -190,7 +190,9 @@ Text *add_empty_text(char *name)
     init_undo_text(ta);
 
 	ta->nlines=1;
-	ta->flags= TXT_ISDIRTY | TXT_ISMEM | TXT_TABSTOSPACES;
+	ta->flags= TXT_ISDIRTY | TXT_ISMEM;
+	if(U.flag & USER_TXT_TABSTOSPACES)
+		ta->flags |= TXT_TABSTOSPACES;
 
 	ta->lines.first= ta->lines.last= NULL;
 	ta->markers.first= ta->markers.last= NULL;
@@ -354,9 +356,10 @@ Text *add_text(char *file, const char *relpath)
 	ta->lines.first= ta->lines.last= NULL;
 	ta->markers.first= ta->markers.last= NULL;
 	ta->curl= ta->sell= NULL;
-	
-	ta->flags= TXT_TABSTOSPACES;
-	
+
+	if(U.flag & USER_TXT_TABSTOSPACES)
+		ta->flags= TXT_TABSTOSPACES;
+
 	fseek(fp, 0L, SEEK_END);
 	len= ftell(fp);
 	fseek(fp, 0L, SEEK_SET);	

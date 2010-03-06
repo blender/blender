@@ -423,6 +423,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.prop(system, "frame_server_port")
         col.prop(system, "scrollback", text="Console Scrollback")
         col.prop(system, "auto_execute_scripts")
+        col.prop(system, "tabs_as_spaces")
 
         col.separator()
         col.separator()
