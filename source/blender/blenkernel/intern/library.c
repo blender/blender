@@ -1093,15 +1093,16 @@ static ID *is_dupid(ListBase *lb, ID *id, char *name)
  * id is NULL;
  */
 
-int check_for_dupid(ListBase *lb, ID *id, char *name)
+static int check_for_dupid(ListBase *lb, ID *id, char *name)
 {
 	ID *idtest;
 	int nr= 0, nrtest, a;
 	const int maxtest=32;
 	char left[32], leftest[32], in_use[32];
-	
+
 	/* make sure input name is terminated properly */
-	if( strlen(name) > 21 ) name[21]= 0;
+	/* if( strlen(name) > 21 ) name[21]= 0; */
+	/* removed since this is only ever called from one place - campbell */
 
 	while (1) {
 
@@ -1184,27 +1185,29 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 {
 	int result;
 	char name[22];
-	
+
 	/* if library, don't rename */
 	if(id->lib) return 0;
 
 	/* if no libdata given, look up based on ID */
 	if(lb==NULL) lb= wich_libbase(G.main, GS(id->name));
 
-	if(tname==0) {	/* if no name given, use name of current ID */
-		strncpy(name, id->name+2, 21);
-		result= strlen(id->name+2);
-	}
-	else { /* else make a copy (tname args can be const) */
-		strncpy(name, tname, 21);
-		result= strlen(tname);
-	}
+	/* if no name given, use name of current ID
+	 * else make a copy (tname args can be const) */
+	if(tname==NULL)
+		tname= id->name+2;
 
-	/* if result > 21, strncpy don't put the final '\0' to name. */
-	if( result >= 21 ) name[21]= 0;
+	strncpy(name, tname, sizeof(name)-1);
 
-	result = check_for_dupid( lb, id, name );
-	strcpy( id->name+2, name );
+	/* if result > 21, strncpy don't put the final '\0' to name.
+	 * easier to assign each time then to check if its needed */
+	name[sizeof(name)-1]= 0;
+
+	if(name[0] == '\0')
+		strcpy(name, ID_FALLBACK_NAME);
+
+	result = check_for_dupid(lb, id, name);
+	strcpy(id->name+2, name);
 
 	/* This was in 2.43 and previous releases
 	 * however all data in blender should be sorted, not just duplicate names
@@ -1393,7 +1396,7 @@ void text_idbutton(struct ID *id, char *text)
 void rename_id(ID *id, char *name)
 {
 	ListBase *lb;
-	
+
 	strncpy(id->name+2, name, 21);
 	lb= wich_libbase(G.main, GS(id->name) );
 	

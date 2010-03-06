@@ -126,7 +126,7 @@ static unsigned int *screenshot(bContext *C, int *dumpsx, int *dumpsy, int fscre
 
 	if (*dumpsx && *dumpsy) {
 		
-		dumprect= MEM_mallocN(sizeof(int) * dumpsx[0] * dumpsy[0], "dumprect");
+		dumprect= MEM_mallocN(sizeof(int) * (*dumpsx) * (*dumpsy), "dumprect");
 		glReadBuffer(GL_FRONT);
 		glReadPixels(x, y, *dumpsx, *dumpsy, GL_RGBA, GL_UNSIGNED_BYTE, dumprect);
 		glFinish();

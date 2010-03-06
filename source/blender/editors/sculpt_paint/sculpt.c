@@ -252,9 +252,7 @@ void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 #endif
 
 	view3d_calculate_clipping(bb, planes, &mats, &rect);
-
-	for(i = 0; i < 16; ++i)
-		((float*)planes)[i] = -((float*)planes)[i];
+	mul_m4_fl(planes, -1.0f);
 
 	MEM_freeN(bb);
 
