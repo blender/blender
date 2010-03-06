@@ -280,6 +280,11 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Filename", "Image/Movie file name");
 	RNA_def_property_update(prop, NC_IMAGE|ND_DISPLAY, "rna_Image_reload_update");
 
+	/* eek. this is horrible but needed so we can save to a new name without blanking the data :( */
+	prop= RNA_def_property(srna, "filename_raw", PROP_STRING, PROP_FILEPATH);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_ui_text(prop, "Filename", "Image/Movie file name (without data refreshing)");
+
 	prop= RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, image_source_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Image_source_itemf");

@@ -906,10 +906,15 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
 
         sub = col.column()
         sub.prop(ipaint, "seam_bleed")
-
+        
+        row = col.row(align=True)
+        row.operator("image.project_edit", text="View Edit")
+        row.operator("image.project_apply", text="Apply")
+        
         sub = col.column()
-        col.operator("image.save_dirty", text="Save Edited")
-        col.operator("paint.project_image")
+        sub.operator("paint.project_image")
+        
+        sub.operator("image.save_dirty", text="Save Edited")
 
 
 class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):

@@ -40,6 +40,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
+#include "BKE_global.h" /* grr: G.sce */
 
 #include "IMB_imbuf.h"
 
@@ -84,12 +85,21 @@ static void rna_Image_save(Image *image, ReportList *reports)
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
 	if(ibuf) {
+		char filename[FILE_MAXDIR + FILE_MAXFILE];
+		BLI_strncpy(filename, image->name, sizeof(filename));
+		BLI_convertstringcode(filename, G.sce);
+
 		if(image->packedfile) {
 			if (writePackedFile(reports, image->name, image->packedfile, 0) != RET_OK) {
 				BKE_reportf(reports, RPT_ERROR, "Image \"%s\" could saved packed file to \"%s\"", image->id.name+2, image->name);
 			}
 		}
-		else if (IMB_saveiff(ibuf, image->name, ibuf->flags)) {
+		else if (IMB_saveiff(ibuf, filename, ibuf->flags)) {
+			image->type= IMA_TYPE_IMAGE;
+
+			if(image->source==IMA_SRC_GENERATED)
+				image->source= IMA_SRC_FILE;
+
 			ibuf->userflags &= ~IB_BITMAPDIRTY;
 		}
 		else {
