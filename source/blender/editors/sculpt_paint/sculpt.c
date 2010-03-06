@@ -230,7 +230,6 @@ void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 {
 	BoundBox *bb = MEM_callocN(sizeof(BoundBox), "sculpt boundbox");
 	bglMats mats;
-	int i;
 	rcti rect;
 
 	view3d_get_transformation(ar, rv3d, ob, &mats);

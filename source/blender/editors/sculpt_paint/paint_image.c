@@ -64,6 +64,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
+#include "BKE_idprop.h"
 #include "BKE_object.h"
 #include "BKE_brush.h"
 #include "BKE_global.h"
@@ -76,6 +77,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_report.h"
 #include "BKE_depsgraph.h"
+#include "BKE_library.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -186,7 +188,12 @@ typedef struct ImagePaintRegion {
 #define PROJ_FACE_NOSEAM4	1<<7
 
 #define PROJ_SRC_VIEW		1
-#define PROJ_SRC_CAM		2
+#define PROJ_SRC_IMAGE_CAM	2
+#define PROJ_SRC_IMAGE_VIEW	3
+
+#define PROJ_VIEW_DATA_ID "view_data"
+#define PROJ_VIEW_DATA_SIZE (4*4 + 4*4 + 3) /* viewmat + winmat + clipsta + clipend + is_ortho */
+
 
 /* a slightly scaled down face is used to get fake 3D location for edge pixels in the seams
  * as this number approaches  1.0f the likelihood increases of float precision errors where
@@ -293,6 +300,7 @@ typedef struct ProjPaintState {
 	float clipsta, clipend;
 	
 	/* reproject vars */
+	Image *reproject_image;
 	ImBuf *reproject_ibuf;
 
 
@@ -2770,6 +2778,19 @@ static void project_paint_delayed_face_init(ProjPaintState *ps, const MFace *mf,
 #endif
 }
 
+static int project_paint_view_clip(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
+{
+	int orth= get_view3d_cliprange(v3d, rv3d, clipsta, clipend);
+
+	if (orth) { /* only needed for ortho */
+		float fac = 2.0f / ((*clipend) - (*clipsta));
+		*clipsta *= fac;
+		*clipend *= fac;
+	}
+
+	return orth;
+}
+
 /* run once per stroke before projection painting */
 static void project_paint_begin(ProjPaintState *ps)
 {	
@@ -2806,8 +2827,8 @@ static void project_paint_begin(ProjPaintState *ps)
 	/* paint onto the derived mesh */
 	
 	/* Workaround for subsurf selection, try the display mesh first */
-	if (ps->source==PROJ_SRC_CAM) {
-		/* using render mesh */
+	if (ps->source==PROJ_SRC_IMAGE_CAM) {
+		/* using render mesh, assume only camera was rendered from */
 		ps->dm = mesh_create_derived_render(ps->scene, ps->ob, ps->v3d->customdata_mask | CD_MASK_MTFACE);
 		ps->dm_release= TRUE;
 	}
@@ -2882,13 +2903,13 @@ static void project_paint_begin(ProjPaintState *ps)
 	ps->viewDir[2] = 1.0f;
 	
 	{
-		rctf viewplane;
 		float viewmat[4][4];
 		float viewinv[4][4];
 
 		invert_m4_m4(ps->ob->imat, ps->ob->obmat);
 
 		if(ps->source==PROJ_SRC_VIEW) {
+			/* normal drawing */
 			ps->winx= ps->ar->winx;
 			ps->winy= ps->ar->winy;
 
@@ -2897,47 +2918,55 @@ static void project_paint_begin(ProjPaintState *ps)
 
 			view3d_get_object_project_mat(ps->rv3d, ps->ob, ps->projectMat);
 
-			ps->is_ortho= get_view3d_viewplane(ps->v3d, ps->rv3d, ps->winx, ps->winy, &viewplane, &ps->clipsta, &ps->clipend, NULL);
-
-			//printf("%f %f\n", ps->clipsta, ps->clipend);
-			if (ps->is_ortho) { /* only needed for ortho */
-				float fac = 2.0f / (ps->clipend - ps->clipsta);
-				ps->clipsta *= fac;
-				ps->clipend *= fac;
-			}
-			else {
-				/* TODO - can we even adjust for clip start/end? */
-			}
+			ps->is_ortho= project_paint_view_clip(ps->v3d, ps->rv3d, &ps->clipsta, &ps->clipend);
 		}
-		else if (ps->source==PROJ_SRC_CAM) {
-			Object *camera= ps->scene->camera;
-			rctf viewplane;
+		else {
+			/* reprojection */
 			float winmat[4][4];
 			float vmat[4][4];
-
-			/* dont actually use these */
-			float _viewdx, _viewdy, _ycor, _lens=0.0f;
-
 
 			ps->winx= ps->reproject_ibuf->x;
 			ps->winy= ps->reproject_ibuf->y;
 
-			/* viewmat & viewinv */
-			copy_m4_m4(viewinv, ps->scene->camera->obmat);
-			normalize_m4(viewinv);
-			invert_m4_m4(viewmat, viewinv);
+			if (ps->source==PROJ_SRC_IMAGE_VIEW) {
+				/* image stores camera data, tricky */
+				IDProperty *idgroup= IDP_GetProperties(&ps->reproject_image->id, 0);
+				IDProperty *view_data= IDP_GetPropertyFromGroup(idgroup, PROJ_VIEW_DATA_ID);
 
-			/* camera winmat */
-			object_camera_matrix(&ps->scene->r, camera, ps->winx, ps->winy, 0,
-					winmat, &viewplane, &ps->clipsta, &ps->clipend,
-					&_lens, &_ycor, &_viewdx, &_viewdy);
+				float *array= (float *)IDP_Array(view_data);
 
+				/* use image array, written when creating image */
+				memcpy(winmat, array, sizeof(winmat)); array += sizeof(winmat)/sizeof(float);
+				memcpy(viewmat, array, sizeof(viewmat)); array += sizeof(viewmat)/sizeof(float);
+				ps->clipsta= array[0];
+				ps->clipend= array[1];
+				ps->is_ortho= array[2] ? 1:0;
+
+				invert_m4_m4(viewinv, viewmat);
+			}
+			else if (ps->source==PROJ_SRC_IMAGE_CAM) {
+				Object *camera= ps->scene->camera;
+
+				/* dont actually use these */
+				float _viewdx, _viewdy, _ycor, _lens=0.0f;
+				rctf _viewplane;
+
+				/* viewmat & viewinv */
+				copy_m4_m4(viewinv, ps->scene->camera->obmat);
+				normalize_m4(viewinv);
+				invert_m4_m4(viewmat, viewinv);
+
+				/* camera winmat */
+				object_camera_matrix(&ps->scene->r, camera, ps->winx, ps->winy, 0,
+						winmat, &_viewplane, &ps->clipsta, &ps->clipend,
+						&_lens, &_ycor, &_viewdx, &_viewdy);
+
+				ps->is_ortho= (ps->scene->r.mode & R_ORTHO) ? 1 : 0;
+			}
 
 			/* same as view3d_get_object_project_mat */
 			mul_m4_m4m4(vmat, ps->ob->obmat, viewmat);
 			mul_m4_m4m4(ps->projectMat, vmat, winmat);
-
-			ps->is_ortho= (ps->scene->r.mode & R_ORTHO) ? 1 : 0;
 		}
 
 
@@ -3016,7 +3045,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		CLAMP(ps->screenMax[1], -ps->brush->size, ps->winy + ps->brush->size);
 #endif
 	}
-	else if (ps->source==PROJ_SRC_CAM) {
+	else { /* reprojection, use bounds */
 		ps->screenMin[0]= 0;
 		ps->screenMax[0]= ps->winx;
 
@@ -3449,7 +3478,7 @@ static int project_bucket_iter_init(ProjPaintState *ps, const float mval_f[2])
 		ps->context_bucket_x = ps->bucketMin[0];
 		ps->context_bucket_y = ps->bucketMin[1];
 	}
-	else { /* PROJ_SRC_CAM */
+	else { /* reproject: PROJ_SRC_* */
 		ps->bucketMin[0]= 0;
 		ps->bucketMin[1]= 0;
 
@@ -3476,7 +3505,7 @@ static int project_bucket_iter_next(ProjPaintState *ps, int *bucket_index, rctf 
 			/* use bucket_bounds for project_bucket_isect_circle and project_bucket_init*/
 			project_bucket_bounds(ps, ps->context_bucket_x, ps->context_bucket_y, bucket_bounds);
 			
-			if (	(ps->source==PROJ_SRC_CAM) ||
+			if (	(ps->source != PROJ_SRC_VIEW) ||
 					project_bucket_isect_circle(ps->context_bucket_x, ps->context_bucket_y, mval, ps->brush->size * ps->brush->size, bucket_bounds)
 			) {
 				*bucket_index = ps->context_bucket_x + (ps->context_bucket_y * ps->buckets_x);
@@ -3701,7 +3730,7 @@ static void *do_projectpaint_thread(void *ph_v)
 			project_bucket_init(ps, thread_index, bucket_index, &bucket_bounds);
 		}
 
-		if(ps->source==PROJ_SRC_CAM) {
+		if(ps->source != PROJ_SRC_VIEW) {
 
 			/* Re-Projection, simple, no brushes! */
 			
@@ -5331,6 +5360,8 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	Scene *scene= CTX_data_scene(C);
 	ProjPaintState ps;
 	int orig_brush_size;
+	IDProperty *idgroup;
+	IDProperty *view_data= NULL;
 
 	memset(&ps, 0, sizeof(ps));
 
@@ -5351,7 +5382,9 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	ps.reproject_image= image;
 	ps.reproject_ibuf= BKE_image_get_ibuf(image, NULL);
+
 	if(ps.reproject_ibuf==NULL || ps.reproject_ibuf->rect==NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Image data could not be found.");
 		return OPERATOR_CANCELLED;
@@ -5363,9 +5396,27 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	orig_brush_size= ps.brush->size;
 	ps.brush->size= 32; /* cover the whole image */
 
-	ps.tool= PAINT_TOOL_DRAW;
+	ps.tool= PAINT_TOOL_DRAW; /* so pixels are initialized with minimal info */
 
-	ps.source= PROJ_SRC_CAM;
+	idgroup= IDP_GetProperties(&image->id, 0);
+	if(idgroup) {
+		view_data= IDP_GetPropertyFromGroup(idgroup, PROJ_VIEW_DATA_ID);
+
+		/* type check to make sure its ok */
+		if(view_data->len != PROJ_VIEW_DATA_SIZE || view_data->type != IDP_ARRAY || view_data->subtype != IDP_FLOAT) {
+			BKE_report(op->reports, RPT_ERROR, "Image project data invalid.");
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+
+	if(view_data) {
+		/* image has stored view projection info */
+		ps.source= PROJ_SRC_IMAGE_VIEW;
+	}
+	else {
+		ps.source= PROJ_SRC_IMAGE_CAM;
+	}
 
 	scene->toolsettings->imapaint.flag |= IMAGEPAINT_DRAWING;
 
@@ -5405,13 +5456,13 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void PAINT_OT_camera_project(wmOperatorType *ot)
+void PAINT_OT_project_image(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name= "Camera Project";
-	ot->idname= "PAINT_OT_camera_project";
+	ot->name= "Project Image";
+	ot->idname= "PAINT_OT_project_image";
 	ot->description= "Project an edited render from the active camera back onto the object";
 
 	/* api callbacks */
@@ -5424,4 +5475,82 @@ void PAINT_OT_camera_project(wmOperatorType *ot)
 	prop= RNA_def_enum(ot->srna, "image", DummyRNA_NULL_items, 0, "Image", "");
 	RNA_def_enum_funcs(prop, RNA_image_itemf);
 	ot->prop= prop;
+}
+
+static Image *ED_region_image(ARegion *ar, char *filename)
+{
+	int x= ar->winrct.xmin;
+	int y= ar->winrct.ymin;
+	int w= ar->winrct.xmax-x;
+	int h= ar->winrct.ymax-y;
+
+	if (h && w) {
+		float color[] = {0, 0, 0, 1};
+		Image *image = BKE_add_image_size(w, h, filename, 0, 0, color);
+		ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
+
+		glReadBuffer(GL_FRONT);
+		glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+		glFinish();
+		glReadBuffer(GL_BACK);
+
+		return image;
+	}
+
+	return NULL;
+}
+
+static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	Image *image;
+	char filename[FILE_MAX];
+	RNA_string_get(op->ptr, "filename", filename);
+
+	image= ED_region_image(ar, filename);
+
+	if(image) {
+		/* now for the trickyness. store the view projection here!
+		 * reprojection will reuse this */
+		View3D *v3d= CTX_wm_view3d(C);
+		RegionView3D *rv3d= CTX_wm_region_view3d(C);
+
+		IDPropertyTemplate val;
+		IDProperty *idgroup= IDP_GetProperties(&image->id, 1);
+		IDProperty *view_data;
+		int orth;
+		float *array;
+
+		val.array.len = PROJ_VIEW_DATA_SIZE;
+		val.array.type = IDP_FLOAT;
+		view_data = IDP_New(IDP_ARRAY, val, PROJ_VIEW_DATA_ID);
+
+		array= (float *)IDP_Array(view_data);
+		memcpy(array, rv3d->winmat, sizeof(rv3d->winmat)); array += sizeof(rv3d->winmat)/sizeof(float);
+		memcpy(array, rv3d->viewmat, sizeof(rv3d->viewmat)); array += sizeof(rv3d->viewmat)/sizeof(float);
+		orth= project_paint_view_clip(v3d, rv3d, &array[0], &array[1]);
+		array[2]= orth ? 1.0f : 0.0f;
+
+		IDP_AddToGroup(idgroup, view_data);
+
+		rename_id(&image->id, "image_view");
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_image_from_view(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Image from View";
+	ot->idname= "PAINT_OT_image_from_view";
+	ot->description= "Make an image from the current 3D view for re-projection";
+
+	/* api callbacks */
+	ot->exec= texture_paint_image_from_view_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER;
+
+	RNA_def_string_file_name(ot->srna, "filename", "", FILE_MAX, "File Name", "Name of the file");
 }

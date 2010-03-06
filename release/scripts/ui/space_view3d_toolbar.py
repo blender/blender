@@ -909,7 +909,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
 
         sub = col.column()
         col.operator("image.save_dirty", text="Save Edited")
-        col.operator("paint.camera_project")
+        col.operator("paint.project_image")
 
 
 class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):
