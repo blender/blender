@@ -20,6 +20,7 @@
 
 import bpy
 
+
 class SaveDirty(bpy.types.Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "image.save_dirty"

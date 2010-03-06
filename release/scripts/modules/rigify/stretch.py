@@ -48,10 +48,9 @@ bool_map = {0:False, 1:True,
             "no":False, "yes":True,
             "No":False, "Yes":True}
 
+
 def metarig_definition(obj, orig_bone_name):
     return (orig_bone_name,)
-
-
 
 
 def main(obj, bone_definition, base_names, options):
@@ -108,4 +107,3 @@ def main(obj, bone_definition, base_names, options):
         con.volume = 'NO_VOLUME'
 
     return tuple()
-

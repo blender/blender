@@ -25,7 +25,7 @@ class INFO_HT_header(bpy.types.Header):
 
     def draw(self, context):
         layout = self.layout
-        
+
         wm = context.manager
         if wm and len(wm.operators):
             last_op = wm.operators[-1]
@@ -64,7 +64,7 @@ class INFO_HT_header(bpy.types.Header):
         layout.separator()
 
         layout.template_running_jobs()
-        
+
         if last_op and last_op.has_reports:
             layout.template_reports_banner(last_op)
         else:

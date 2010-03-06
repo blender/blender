@@ -227,7 +227,7 @@ def ik(obj, bone_definition, base_names, options):
     con = ik_chain.shin_p.constraints.new('IK')
     con.chain_length = 2
     con.iterations = 500
-    con.pole_angle = -pi/2
+    con.pole_angle = -pi / 2.0
     con.use_tail = True
     con.use_stretch = True
     con.use_target = True
@@ -265,7 +265,7 @@ def ik(obj, bone_definition, base_names, options):
 
     # last step setup layers
     if "ik_layer" in options:
-        layer = [n==options["ik_layer"] for n in range(0,32)]
+        layer = [n == options["ik_layer"] for n in range(0, 32)]
     else:
         layer = list(mt_chain.thigh_b.layer)
     for attr in ik_chain.attr_names:
@@ -368,7 +368,7 @@ def fk(obj, bone_definition, base_names, options):
 
     # last step setup layers
     if "fk_layer" in options:
-        layer = [n==options["fk_layer"] for n in range(0,32)]
+        layer = [n == options["fk_layer"] for n in range(0, 32)]
     else:
         layer = list(mt_chain.thigh_b.layer)
     for attr in fk_chain.attr_names:
@@ -499,4 +499,3 @@ def main(obj, bone_definition, base_names, options):
 
     bpy.ops.object.mode_set(mode='OBJECT')
     blend_bone_list(obj, bone_definition + [None], bones_fk, bones_ik, target_bone=bones_ik[6], target_prop="ik", blend_default=1.0)
-

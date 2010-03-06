@@ -25,7 +25,7 @@
 # origonal model the mdd was Baked out from their will be Strange
 # behavior
 #
-# vertex animation to ShapeKeys with ipo  and gives the frame a value of 1.0 
+# vertex animation to ShapeKeys with ipo  and gives the frame a value of 1.0
 # A modifier to read mdd files would be Ideal but thats for another day :)
 #
 # Please send any fixes,updates,bugs to Slow67_at_Gmail.com
@@ -36,15 +36,15 @@ from struct import unpack
 
 
 def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
-    
+
     print('\n\nimporting mdd "%s"' % filepath)
-    
+
     bpy.ops.object.mode_set(mode='OBJECT')
 
     file = open(filepath, 'rb')
     frames, points = unpack(">2i", file.read(8))
     time = unpack((">%df" % frames), file.read(frames * 4))
-    
+
     print('\tpoints:%d frames:%d' % (points,frames))
 
     # If target object doesn't have Basis shape key, create it.
@@ -58,18 +58,18 @@ def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
     scene.current_frame = PREF_START_FRAME
 
     def UpdateMesh(ob, fr):
-    
+
         # Insert new shape key
         new_shapekey = ob.add_shape_key()
         new_shapekey.name = ("frame_%.4d" % fr)
         new_shapekey_name = new_shapekey.name
-            
+
         ob.active_shape_key_index = len(ob.data.shape_keys.keys)-1
         index = len(ob.data.shape_keys.keys)-1
         ob.shape_key_lock = True
-            
+
         verts = ob.data.shape_keys.keys[ len(ob.data.shape_keys.keys)-1 ].data
-        
+
 
         for v in verts:
             # 12 is the size of 3 floats
@@ -77,7 +77,7 @@ def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
             v.co[:] = x,z,y
         #me.update()
         ob.shape_key_lock = False
-    
+
 
         # insert keyframes
         shape_keys = ob.data.shape_keys
@@ -94,12 +94,12 @@ def mdd_import(filepath, ob, scene, PREF_START_FRAME=0, PREF_JUMP=1):
         ob.data.shape_keys.keys[index].value = 0.0
         shape_keys.keys[len(ob.data.shape_keys.keys)-1].keyframe_insert("value")
 
-        ob.data.update()       
+        ob.data.update()
 
 
     for i in range(frames):
         UpdateMesh(ob, i)
-    
+
 
 from bpy.props import *
 
@@ -148,7 +148,7 @@ def menu_func(self, context):
 def register():
     bpy.types.register(importMDD)
     bpy.types.INFO_MT_file_import.append(menu_func)
-    
+
 def unregister():
     bpy.types.unregister(importMDD)
     bpy.types.INFO_MT_file_import.remove(menu_func)

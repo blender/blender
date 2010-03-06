@@ -1483,7 +1483,7 @@ class WM_OT_addon_install(bpy.types.Operator):
 
                 #extract the file to "addons"
                 file_to_extract.extractall(path_addons)
-            
+
             except:
                 traceback.print_exc()
                 return {'CANCELLED'}

@@ -471,10 +471,10 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
             return False
 
         return strip.type in ('MOVIE', 'IMAGE')
-        
+
     def draw_filename(self, context):
         pass
-        
+
     def draw(self, context):
         layout = self.layout
 
@@ -502,7 +502,8 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
         col.label(text="Trim Duration:")
         col.prop(strip, "animation_start_offset", text="Start")
         col.prop(strip, "animation_end_offset", text="End")
-        
+
+
 class SEQUENCER_PT_input_movie(SEQUENCER_PT_input):
     bl_label = "Strip Input"
 
@@ -526,6 +527,7 @@ class SEQUENCER_PT_input_movie(SEQUENCER_PT_input):
         col.label(text="Path:")
         col = split.column()
         col.prop(strip, "filepath", text="")
+
 
 class SEQUENCER_PT_input_image(SEQUENCER_PT_input):
     bl_label = "Strip Input"

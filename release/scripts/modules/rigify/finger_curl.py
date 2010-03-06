@@ -215,8 +215,8 @@ def main(obj, bone_definition, base_names, options):
 
     # Set up bones for hinge
     if make_hinge:
-        socket = copy_bone_simple(arm, org_f1, "MCH-socket_"+control, parent=True).name
-        hinge = copy_bone_simple(arm, eb[org_f1].parent.name, "MCH-hinge_"+control).name
+        socket = copy_bone_simple(arm, org_f1, "MCH-socket_" + control, parent=True).name
+        hinge = copy_bone_simple(arm, eb[org_f1].parent.name, "MCH-hinge_" + control).name
 
         eb[control].connected = False
         eb[control].parent = eb[hinge]
@@ -343,7 +343,7 @@ def main(obj, bone_definition, base_names, options):
 
     # Last step setup layers
     if "ex_layer" in options:
-        layer = [n==options["ex_layer"] for n in range(0,32)]
+        layer = [n == options["ex_layer"] for n in range(0, 32)]
     else:
         layer = list(arm.bones[bone_definition[0]].layer)
     for bone_name in [f1, f2, f3]:

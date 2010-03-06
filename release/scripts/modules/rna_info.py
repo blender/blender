@@ -338,7 +338,7 @@ def _GetInfoRNA(bl_rna, cls, parent_id=''):
     key = parent_id, bl_rna.identifier
     try:
         return cls.global_lookup[key]
-    except:
+    except KeyError:
         instance = cls.global_lookup[key] = cls(bl_rna)
         return instance
 
@@ -367,7 +367,6 @@ def BuildRNAInfo():
     rna_children_dict = {}	# store all rna_structs nested from here
     rna_references_dict = {}	# store a list of rna path strings that reference this type
     rna_functions_dict = {}	# store all functions directly in this type (not inherited)
-    rna_words = set()
 
     def rna_id_ignore(rna_id):
         if rna_id == "rna_type":
@@ -512,7 +511,7 @@ def BuildRNAInfo():
 
                 try:
                     rna_prop_ptr = rna_prop.fixed_type
-                except:
+                except AttributeError:
                     rna_prop_ptr = None
 
                 # Does this property point to me?

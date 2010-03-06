@@ -20,6 +20,7 @@
 
 import bpy
 
+
 class SequencerCrossfadeSounds(bpy.types.Operator):
     '''Do crossfading volume animation of two selected sound strips.'''
 
@@ -73,9 +74,9 @@ class SequencerCrossfadeSounds(bpy.types.Operator):
 def register():
     bpy.types.register(SequencerCrossfadeSounds)
 
+
 def unregister():
     bpy.types.unregister(SequencerCrossfadeSounds)
 
 if __name__ == "__main__":
     register()
-

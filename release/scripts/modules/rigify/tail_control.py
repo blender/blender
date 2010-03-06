@@ -163,4 +163,3 @@ def main(obj, bone_definitions, base_names, options):
 
 
     return None
-

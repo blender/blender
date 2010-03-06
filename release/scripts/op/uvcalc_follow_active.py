@@ -266,10 +266,10 @@ def register():
     bpy.types.register(FollowActiveQuads)
     bpy.types.VIEW3D_MT_uv_map.append(menu_func)
 
+
 def unregister():
     bpy.types.unregister(FollowActiveQuads)
     bpy.types.VIEW3D_MT_uv_map.remove(menu_func)
 
 if __name__ == "__main__":
     register()
-

@@ -371,7 +371,9 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
         self._values_store(context)
 
         if not self._values:
-            self.report({'WARNING'}, "Nothing to operate on: %s[ ].%s" % (self.properties.path_iter, self.properties.path_item))
+            self.report({'WARNING'}, "Nothing to operate on: %s[ ].%s" %
+                    (self.properties.path_iter, self.properties.path_item))
+
             return {'CANCELLED'}
         else:
             self.properties.initial_x = event.mouse_x
