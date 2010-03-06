@@ -450,6 +450,7 @@ int RE_rayobject_intersect(RayObject *r, Isect *i)
 		return r->api->raycast( r, i );
 	}
 	else assert(0);
+    return 0; /* wont reach this, quiet compilers */
 }
 
 void RE_rayobject_add(RayObject *r, RayObject *o)

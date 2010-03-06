@@ -2627,7 +2627,7 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 	int a, a1, end, totvert, vertofs;
 	VertRen *ver;
 	VlakRen *vlr;
-	Curve *cu;
+	Curve *cu= NULL;
 	MVert *mvert = NULL;
 	MFace *mface;
 	Material *ma;
