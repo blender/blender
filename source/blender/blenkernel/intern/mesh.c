@@ -966,9 +966,9 @@ void nurbs_to_mesh(Object *ob)
 		me->totface= totface;
 		me->totedge= totedge;
 
-		me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_REFERENCE, allvert, me->totvert);
-		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_REFERENCE, allface, me->totface);
-		me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_REFERENCE, alledge, me->totedge);
+		me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, allvert, me->totvert);
+		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, allface, me->totface);
+		me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, alledge, me->totedge);
 
 		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 	} else {
