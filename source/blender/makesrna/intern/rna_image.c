@@ -26,6 +26,7 @@
 
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -140,6 +141,23 @@ static EnumPropertyItem *rna_Image_source_itemf(bContext *C, PointerRNA *ptr, in
 	*free= 1;
 
 	return item;
+}
+
+static int rna_Image_file_format_get(PointerRNA *ptr)
+{
+	Image *image= (Image*)ptr->data;
+	ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
+	return BKE_ftype_to_imtype(ibuf ? ibuf->ftype : 0);
+}
+
+static void rna_Image_file_format_set(PointerRNA *ptr, int value)
+{
+	Image *image= (Image*)ptr->data;
+	if(BKE_imtype_is_movie(value) == 0) { /* should be able to throw an error here */
+		ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
+		if(ibuf)
+			ibuf->ftype= BKE_imtype_to_ftype(value);
+	}
 }
 
 static int rna_Image_has_data_get(PointerRNA *ptr)
@@ -284,6 +302,11 @@ static void rna_def_image(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "filename_raw", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_ui_text(prop, "Filename", "Image/Movie file name (without data refreshing)");
+
+	prop= RNA_def_property(srna, "file_format", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, image_type_items);
+	RNA_def_property_enum_funcs(prop, "rna_Image_file_format_get", "rna_Image_file_format_set", NULL);
+	RNA_def_property_ui_text(prop, "File Format", "Format used for re-saving this file");
 
 	prop= RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, image_source_items);

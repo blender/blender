@@ -90,6 +90,53 @@ EnumPropertyItem snap_element_items[] = {
 	{SCE_SNAP_MODE_VOLUME, "VOLUME", ICON_SNAP_VOLUME, "Volume", "Snap to volume"},
 	{0, NULL, 0, NULL, NULL}};
 
+EnumPropertyItem image_type_items[] = {
+	{0, "", 0, "Image", NULL},
+	{R_PNG, "PNG", ICON_FILE_IMAGE, "PNG", ""},
+	{R_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", ""},
+#ifdef WITH_OPENJPEG
+	{R_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", ""},
+#endif
+	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", ""},
+	{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", ""},
+	{R_RAWTGA, "RAWTARGA", ICON_FILE_IMAGE, "Targa Raw", ""},
+	//{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""}, // XXX not yet implemented
+	{R_HAMX, "HAMX", ICON_FILE_IMAGE, "HamX", ""},
+	{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", ""},
+	{0, "", 0, " ", NULL},
+#ifdef WITH_OPENEXR
+	{R_OPENEXR, "OPENEXR", ICON_FILE_IMAGE, "OpenEXR", ""},
+	{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", ""},
+#endif
+	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},	// XXX only with G.have_libtiff
+	{R_RADHDR, "RADHDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
+	{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", ""},
+	{R_DPX, "DPX", ICON_FILE_IMAGE, "DPX", ""},
+	{0, "", 0, "Movie", NULL},
+	{R_AVIRAW, "AVIRAW", ICON_FILE_MOVIE, "AVI Raw", ""},
+	{R_AVIJPEG, "AVIJPEG", ICON_FILE_MOVIE, "AVI JPEG", ""},
+#ifdef _WIN32
+	{R_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", ""},
+#endif
+#ifdef WITH_QUICKTIME
+#	ifdef USE_QTKIT
+	{R_QUICKTIME, "QUICKTIME_QTKIT", ICON_FILE_MOVIE, "QuickTime", ""},
+#	else
+	{R_QUICKTIME, "QUICKTIME_CARBON", ICON_FILE_MOVIE, "QuickTime", ""},
+#	endif
+#endif
+#ifdef __sgi
+	{R_MOVIE, "MOVIE", ICON_FILE_MOVIE, "Movie", ""},
+#endif
+#ifdef WITH_FFMPEG
+	{R_H264, "H264", ICON_FILE_MOVIE, "H.264", ""},
+	{R_XVID, "XVID", ICON_FILE_MOVIE, "Xvid", ""},
+	{R_THEORA, "THEORA", ICON_FILE_MOVIE, "Ogg Theora", ""},
+	{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "FFMpeg", ""},
+#endif
+	{R_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", ""},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
@@ -1711,53 +1758,6 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	static EnumPropertyItem threads_mode_items[] = {
 		{0, "THREADS_AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
 		{R_FIXED_THREADS, "THREADS_FIXED", 0, "Fixed", "Manually determine the number of threads"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static EnumPropertyItem image_type_items[] = {
-		{0, "", 0, "Image", NULL},
-		{R_PNG, "PNG", ICON_FILE_IMAGE, "PNG", ""},
-		{R_JPEG90, "JPEG", ICON_FILE_IMAGE, "JPEG", ""},
-#ifdef WITH_OPENJPEG
-		{R_JP2, "JPEG2000", ICON_FILE_IMAGE, "JPEG 2000", ""},
-#endif		
-		{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", ""},
-		{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", ""},
-		{R_RAWTGA, "RAWTARGA", ICON_FILE_IMAGE, "Targa Raw", ""},
-		//{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""}, // XXX not yet implemented
-		{R_HAMX, "HAMX", ICON_FILE_IMAGE, "HamX", ""},
-		{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", ""},
-		{0, "", 0, " ", NULL},
-#ifdef WITH_OPENEXR
-		{R_OPENEXR, "OPENEXR", ICON_FILE_IMAGE, "OpenEXR", ""},
-		{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", ""},
-#endif
-		{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},	// XXX only with G.have_libtiff
-		{R_RADHDR, "RADHDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
-		{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", ""},
-		{R_DPX, "DPX", ICON_FILE_IMAGE, "DPX", ""},
-		{0, "", 0, "Movie", NULL},
-		{R_AVIRAW, "AVIRAW", ICON_FILE_MOVIE, "AVI Raw", ""},
-		{R_AVIJPEG, "AVIJPEG", ICON_FILE_MOVIE, "AVI JPEG", ""},
-#ifdef _WIN32
-		{R_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", ""},
-#endif
-#ifdef WITH_QUICKTIME
-#	ifdef USE_QTKIT
-		{R_QUICKTIME, "QUICKTIME_QTKIT", ICON_FILE_MOVIE, "QuickTime", ""},
-#	else
-		{R_QUICKTIME, "QUICKTIME_CARBON", ICON_FILE_MOVIE, "QuickTime", ""},
-#	endif
-#endif
-#ifdef __sgi
-		{R_MOVIE, "MOVIE", ICON_FILE_MOVIE, "Movie", ""},
-#endif
-#ifdef WITH_FFMPEG
-		{R_H264, "H264", ICON_FILE_MOVIE, "H.264", ""},
-		{R_XVID, "XVID", ICON_FILE_MOVIE, "Xvid", ""},
-		{R_THEORA, "THEORA", ICON_FILE_MOVIE, "Ogg Theora", ""},
-		{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "FFMpeg", ""},
-#endif
-		{R_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 #ifdef WITH_OPENEXR	
