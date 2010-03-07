@@ -3242,6 +3242,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 	/* we always make body points */
 	sb= ob->soft;	
 	bp= sb->bpoint;
+	/* should go to sb->scratch  so we can pick it up at frame level thanks_a_TON*/
 	goalfac= ABS(sb->maxgoal - sb->mingoal);
 	
 	for(a=0; a<me->totvert; a++, bp++) {
@@ -3251,13 +3252,19 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		which can be done by caller but still .. i'd like it to go this way 
 		*/ 
 		
-		if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) {
+		if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) { /* even this is a deprecated evil hack */
+		   /* I'd like to have it  .. if (sb->namedVG_Goal[0]) */
+
 			get_scalar_from_vertexgroup(ob, a,(short) (sb->vertgroup-1), &bp->goal);
 			/* do this always, regardless successfull read from vertex group */
-			bp->goal= sb->mingoal + bp->goal*goalfac;
+			/* this is where '2.5 every thing is animateable' goes wrong in the first place thanks_a_TON */
+			/* don't ask me for evidence .. i might track to the very commit */
+			/* 1st coding action to take : move this to frame level */
+			/* reads: leave the bp->goal as it was read from vertex group / or default .. we will need it at per frame call */
+			bp->goal= sb->mingoal + bp->goal*goalfac; /* do not do here thanks_a_TON */
 		}
 		/* a little ad hoc changing the goal control to be less *sharp* */
-		bp->goal = (float)pow(bp->goal, 4.0f);
+		bp->goal = (float)pow(bp->goal, 4.0f);/* do not do here thanks_a_TON */
 			
 		/* to proove the concept
 		this would enable per vertex *mass painting*
