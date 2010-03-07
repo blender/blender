@@ -30,7 +30,7 @@ def image_editor_guess(context):
         system = platform.system()
 
         if system == 'Windows':
-            image_editor = "startfile" # not tested!
+            image_editor = "start" # not tested!
         elif system == 'Darwin':
             image_editor = "open"
         else:
