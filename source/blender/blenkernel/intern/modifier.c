@@ -8599,7 +8599,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 
 		mti = INIT_TYPE(Build);
 		mti->type = eModifierTypeType_Nonconstructive;
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh |
+				eModifierTypeFlag_AcceptsCVs;
 		mti->initData = buildModifier_initData;
 		mti->copyData = buildModifier_copyData;
 		mti->dependsOnTime = buildModifier_dependsOnTime;

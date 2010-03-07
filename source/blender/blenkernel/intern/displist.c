@@ -1329,23 +1329,23 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 
 	for (; md; md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-		
+
+		/* modifier depends on derived mesh and has got valid applyModifier call */
+		int dmApplyMod = mti->type==eModifierTypeType_Constructive ||
+			mti->type==eModifierTypeType_Nonconstructive;
+
 		md->scene= scene;
-		
+
 		if ((md->mode & required_mode) != required_mode) continue;
 		if (mti->isDisabled && mti->isDisabled(md, forRender)) continue;
-		if (mti->type!=eModifierTypeType_OnlyDeform &&
-			mti->type!=eModifierTypeType_DeformOrConstruct &&
-			mti->type!=eModifierTypeType_Constructive) continue;
 
 		/* need to put all verts in 1 block for curve deform */
-		/* we also need all verts in 1 block for derived mesh creation when handling constructive modifiers */
-		if(md->type==eModifierType_Curve || mti->type==eModifierTypeType_Constructive) {
+		/* we also need all verts in 1 block for derived mesh creation */
+		if(md->type==eModifierType_Curve || dmApplyMod) {
 			float *allverts = NULL, *fp;
 			int totvert= 0;
 
-			if (md->type==eModifierType_Curve ||
-				(mti->type==eModifierTypeType_Constructive && !dm)) {
+			if (md->type==eModifierType_Curve || (dmApplyMod && !dm)) {
 				for (dl=dispbase->first; dl; dl=dl->next)
 					totvert+= (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr;
 
@@ -1357,7 +1357,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 				}
 			}
 
-			if (mti->type==eModifierTypeType_Constructive) {
+			if (dmApplyMod) {
 				if (!dm) {
 					dm= CDDM_from_curve(ob);
 					/*
