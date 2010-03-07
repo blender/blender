@@ -369,6 +369,12 @@ static int rna_RenderSettings_threads_get(PointerRNA *ptr)
 		return BLI_system_thread_count();
 }
 
+static int rna_RenderSettings_is_movie_fomat_get(PointerRNA *ptr)
+{
+	RenderData *rd= (RenderData*)ptr->data;
+	return BKE_imtype_is_movie(rd->imtype);
+}
+
 static int rna_RenderSettings_save_buffers_get(PointerRNA *ptr)
 {
 	RenderData *rd= (RenderData*)ptr->data;
@@ -2320,6 +2326,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Extension", "The file extension used for saving renders");
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop= RNA_def_property(srna, "is_movie_format", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_RenderSettings_is_movie_fomat_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Movie Format", "When true the format is a movie");
 
 	prop= RNA_def_property(srna, "free_image_textures", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_FREE_IMAGE);

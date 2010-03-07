@@ -2564,6 +2564,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 		{2, "DJV", 0, "Djv", "Open source frame player: http://djv.sourceforge.net"},
 		{3, "FRAMECYCLER", 0, "FrameCycler", "Frame player from IRIDAS"},
 		{4, "RV", 0, "rv", "Frame player from Tweak Software"},
+		{5, "MPLAYER", 0, "MPlayer", "Media player for video & png/jpeg/sgi image sequences"},
 		{50, "CUSTOM", 0, "Custom", "Custom animation player executable path"},
 		{0, NULL, 0, NULL, NULL}};
 	
