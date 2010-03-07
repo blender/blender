@@ -1191,11 +1191,36 @@ static int convert_poll(bContext *C)
 	return (!scene->id.lib && obact && scene->obedit != obact && (obact->flag & SELECT) && !(obact->id.lib));
 }
 
+/* Helper for convert_exec */
+static Base *duplibase_for_convert(Scene *scene, Base *base, Object *ob)
+{
+	Object *obn;
+	Base *basen;
+
+	if (ob == NULL) {
+		ob= base->object;
+	}
+
+	obn= copy_object(ob);
+	obn->recalc |= OB_RECALC;
+
+	basen= MEM_mallocN(sizeof(Base), "duplibase");
+	*basen= *base;
+	BLI_addhead(&scene->base, basen);	/* addhead: otherwise eternal loop */
+	basen->object= obn;
+	basen->flag |= SELECT;
+	obn->flag |= SELECT;
+	base->flag &= ~SELECT;
+	ob->flag &= ~SELECT;
+
+	return basen;
+}
+
 static int convert_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Base *basen=NULL, *basact=NULL, *basedel=NULL;
-	Object *ob, *ob1, *obact= CTX_data_active_object(C);
+	Object *ob, *ob1, *newob, *obact= CTX_data_active_object(C);
 	DerivedMesh *dm;
 	Curve *cu;
 	Nurb *nu;
@@ -1203,7 +1228,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	Mesh *me;
 	int target= RNA_enum_get(op->ptr, "target");
 	int keep_original= RNA_boolean_get(op->ptr, "keep_original");
-	int a;
+	int a, mballConverted= 0;
 	
 	/* don't forget multiple users! */
 
@@ -1216,67 +1241,86 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		ob= base->object;
-		
-		if(ob->flag & OB_DONE)
-			continue;
+
+		if(ob->flag & OB_DONE) {
+			if (ob->type != target) {
+				base->flag &= ~SELECT;
+				ob->flag &= ~SELECT;
+			}
+		}
 		else if (ob->type==OB_MESH && target == OB_CURVE) {
 			ob->flag |= OB_DONE;
 
-			ob1= copy_object(ob);
-			ob1->recalc |= OB_RECALC;
+			if (keep_original) {
+				basen= duplibase_for_convert(scene, base, NULL);
+				newob= basen->object;
 
-			basen= MEM_mallocN(sizeof(Base), "duplibase");
-			*basen= *base;
-			BLI_addhead(&scene->base, basen);	/* addhead: otherwise eternal loop */
-			basen->object= ob1;
-			basen->flag |= SELECT;
-			base->flag &= ~SELECT;
-			ob->flag &= ~SELECT;
+				/* decrement original mesh's usage count  */
+				me= newob->data;
+				me->id.us--;
 
-			mesh_to_curve(scene, ob1);
+				/* make a new copy of the mesh */
+				newob->data= copy_mesh(me);
+			} else {
+				newob = ob;
+			}
 
-			if(ob1->type==OB_CURVE)
-				object_free_modifiers(ob1);	/* after derivedmesh calls! */
+			mesh_to_curve(scene, newob);
+
+			if(newob->type==OB_CURVE)
+				object_free_modifiers(newob);	/* after derivedmesh calls! */
 		}
 		else if(ob->type==OB_MESH && ob->modifiers.first) { /* converting a mesh with no modifiers causes a segfault */
 			ob->flag |= OB_DONE;
-			basedel = base;
 
-			ob1= copy_object(ob);
-			ob1->recalc |= OB_RECALC;
+			if (keep_original) {
+				basen= duplibase_for_convert(scene, base, NULL);
+				newob= basen->object;
 
-			basen= MEM_mallocN(sizeof(Base), "duplibase");
-			*basen= *base;
-			BLI_addhead(&scene->base, basen);	/* addhead: otherwise eternal loop */
-			basen->object= ob1;
-			basen->flag |= SELECT;
-			base->flag &= ~SELECT;
-			ob->flag &= ~SELECT;
+				/* decrement original mesh's usage count  */
+				me= newob->data;
+				me->id.us--;
 
-			/* decrement original mesh's usage count  */
-			me= ob1->data;
-			me->id.us--;
-
-			/* make a new copy of the mesh */
-			ob1->data= copy_mesh(me);
+				/* make a new copy of the mesh */
+				newob->data= copy_mesh(me);
+			} else {
+				newob = ob;
+			}
 
 			/* make new mesh data from the original copy */
 			/* note: get the mesh from the original, not from the copy in some
 			 * cases this doesnt give correct results (when MDEF is used for eg)
 			 */
-			dm= mesh_get_derived_final(scene, ob, CD_MASK_MESH);
+			dm= mesh_get_derived_final(scene, newob, CD_MASK_MESH);
 			/* dm= mesh_create_derived_no_deform(ob1, NULL);	this was called original (instead of get_derived). man o man why! (ton) */
 
-			DM_to_mesh(dm, ob1->data);
+			DM_to_mesh(dm, newob->data);
 
 			dm->release(dm);
-			object_free_modifiers(ob1);	/* after derivedmesh calls! */
+			object_free_modifiers(newob);	/* after derivedmesh calls! */
 		}
 		else if(ob->type==OB_FONT) {
 			ob->flag |= OB_DONE;
 
-			ob->type= OB_CURVE;
-			cu= ob->data;
+			if (keep_original) {
+				basen= duplibase_for_convert(scene, base, NULL);
+				newob= basen->object;
+
+				/* decrement original curve's usage count  */
+				((Curve *)newob->data)->id.us--;
+
+				/* make a new copy of the curve */
+				newob->data= copy_curve(ob->data);
+			} else {
+				newob= ob;
+			}
+
+			cu= newob->data;
+
+			if (!cu->disp.first)
+				makeDispListCurveTypes(scene, newob, 0);
+
+			newob->type= OB_CURVE;
 
 			if(cu->vfont) {
 				cu->vfont->id.us--;
@@ -1293,13 +1337,16 @@ static int convert_exec(bContext *C, wmOperator *op)
 			if(cu->vfontbi) {
 				cu->vfontbi->id.us--;
 				cu->vfontbi= 0;
-			}					
-			/* other users */
-			if(cu->id.us>1) {
-				for(ob1= G.main->object.first; ob1; ob1=ob1->id.next) {
-					if(ob1->data==cu) {
-						ob1->type= OB_CURVE;
-						ob1->recalc |= OB_RECALC;
+			}
+
+			if (!keep_original) {
+				/* other users */
+				if(cu->id.us>1) {
+					for(ob1= G.main->object.first; ob1; ob1=ob1->id.next) {
+						if(ob1->data==ob->data) {
+							ob1->type= OB_CURVE;
+							ob1->recalc |= OB_RECALC;
+						}
 					}
 				}
 			}
@@ -1308,46 +1355,76 @@ static int convert_exec(bContext *C, wmOperator *op)
 				nu->charidx= 0;
 
 			if(target == OB_MESH)
-				curvetomesh(scene, ob);
+				curvetomesh(scene, newob);
 		}
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			ob->flag |= OB_DONE;
 
-			if(target == OB_MESH)
-				curvetomesh(scene, ob);
+			if(target == OB_MESH) {
+				if (keep_original) {
+					basen= duplibase_for_convert(scene, base, NULL);
+					newob= basen->object;
+
+					/* decrement original curve's usage count  */
+					((Curve *)newob->data)->id.us--;
+
+					/* make a new copy of the curve */
+					newob->data= copy_curve(ob->data);
+				} else {
+					newob= ob;
+				}
+
+				curvetomesh(scene, newob);
+			}
 		}
 		else if(ob->type==OB_MBALL) {
-			ob= find_basis_mball(scene, ob);
-			
-			if(ob->disp.first && !(ob->flag & OB_DONE)) {
+			Object *baseob;
+
+			if (target != OB_MESH) {
 				ob->flag |= OB_DONE;
-				basedel = base;
+				continue;
+			}
 
-				ob1= copy_object(ob);
-				ob1->recalc |= OB_RECALC;
+			base->flag &= ~SELECT;
+			ob->flag &= ~SELECT;
 
-				basen= MEM_mallocN(sizeof(Base), "duplibase");
-				*basen= *base;
-				BLI_addhead(&scene->base, basen);	/* addhead: otherwise eternal loop */
-				basen->object= ob1;
-				basen->flag |= SELECT;
-				basedel->flag &= ~SELECT;
-				ob->flag &= ~SELECT;
-				
-				mb= ob1->data;
+			baseob= find_basis_mball(scene, ob);
+
+			if (ob != baseob) {
+				/* if motherball is converting it would be marked as done later */
+				ob->flag |= OB_DONE;
+			}
+
+			if (!baseob->disp.first) {
+				makeDispListMBall(scene, baseob);
+			}
+
+			if(!(baseob->flag & OB_DONE)) {
+				baseob->flag |= OB_DONE;
+
+				basen= duplibase_for_convert(scene, base, baseob);
+				newob= basen->object;
+
+				mb= newob->data;
 				mb->id.us--;
-				
-				ob1->data= add_mesh("Mesh");
-				ob1->type= OB_MESH;
-				
-				me= ob1->data;
+
+				newob->data= add_mesh("Mesh");
+				newob->type= OB_MESH;
+
+				me= newob->data;
 				me->totcol= mb->totcol;
-				if(ob1->totcol) {
+				if(newob->totcol) {
 					me->mat= MEM_dupallocN(mb->mat);
-					for(a=0; a<ob1->totcol; a++) id_us_plus((ID *)me->mat[a]);
+					for(a=0; a<newob->totcol; a++) id_us_plus((ID *)me->mat[a]);
 				}
-				
-				mball_to_mesh(&ob->disp, ob1->data);
+
+				mball_to_mesh(&baseob->disp, newob->data);
+
+				if (obact->type == OB_MBALL) {
+					basact= basen;
+				}
+
+				mballConverted= 1;
 			}
 			else
 				continue;
@@ -1358,8 +1435,6 @@ static int convert_exec(bContext *C, wmOperator *op)
 		/* If the original object is active then make this object active */
 		if(basen) {
 			if(ob == obact) {
-				ED_base_object_activate(C, basen);
-
 				/* store new active base to update BASACT */
 				basact= basen;
 			}
@@ -1376,23 +1451,36 @@ static int convert_exec(bContext *C, wmOperator *op)
 		}
 	}
 	CTX_DATA_END;
-	
-	/* delete object should renew depsgraph */
-	if(!keep_original)
+
+	if(!keep_original) {
+		if (mballConverted) {
+			Base *base= scene->base.first, *tmpbase;
+			while (base) {
+				ob= base->object;
+				tmpbase= base;
+				base= base->next;
+
+				if (ob->type == OB_MBALL) {
+					ED_base_object_free_and_unlink(scene, tmpbase);
+				}
+			}
+		}
+
+		/* delete object should renew depsgraph */
 		DAG_scene_sort(scene);
+	}
 
 // XXX	ED_object_enter_editmode(C, 0);
 // XXX	exit_editmode(C, EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 
 	if (basact) {
 		/* active base was changed */
+		ED_base_object_activate(C, basact);
 		BASACT= basact;
 	}
 
 	DAG_scene_sort(scene);
 	WM_event_add_notifier(C, NC_SCENE|NC_OBJECT|ND_DRAW, scene); /* is NC_SCENE needed ? */
-
-
 
 	return OPERATOR_FINISHED;
 }

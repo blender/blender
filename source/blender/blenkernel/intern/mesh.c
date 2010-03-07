@@ -1036,7 +1036,7 @@ void mesh_to_curve(Scene *scene, Object *ob)
 	int totedge = dm->getNumEdges(dm);
 	int totface = dm->getNumFaces(dm);
 	int totedges = 0;
-	int i;
+	int i, needsFree = 0;
 
 	/* only to detect edge polylines */
 	EdgeHash *eh = BLI_edgehash_new();
@@ -1176,9 +1176,17 @@ void mesh_to_curve(Scene *scene, Object *ob)
 		((Mesh *)ob->data)->id.us--;
 		ob->data= cu;
 		ob->type= OB_CURVE;
+
+		/* curve objects can't contain DM in usual cases, we could free memory */
+		needsFree= 1;
 	}
 
+	dm->needsFree = needsFree;
 	dm->release(dm);
+
+	if (needsFree) {
+		ob->derivedFinal = NULL;
+	}
 }
 
 void mesh_delete_material_index(Mesh *me, int index)
