@@ -22,6 +22,7 @@ import bpy
 import sys as py_sys
 platform = py_sys.platform
 
+
 class SaveDirty(bpy.types.Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "image.save_dirty"
@@ -55,8 +56,13 @@ class ProjectEdit(bpy.types.Operator):
         import subprocess
 
         EXT = "tga" # until we have a way to save as another format!
-        EDITOR = "gimp" # until we have a way to set a default image edior            
-
+        if platform == 'win32':
+            EDITOR = "C:\\Program Files\\GIMP-2.7\\bin\\gimp-2.7.exe"
+        elif platform == 'darwin':
+            EDITOR = "open"
+        else:
+            EDITOR = "gimp" # until we have a way to set a default image edior            
+        
         for image in bpy.data.images:
             image.tag = True
 
