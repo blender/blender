@@ -72,7 +72,7 @@ class ProjectEdit(bpy.types.Operator):
         import os
         import subprocess
 
-        EXT = "tga" # until we have a way to save as another format!
+        EXT = "png" # could be made an option but for now ok
         image_editor = image_editor_guess(context)
 
         for image in bpy.data.images:
@@ -114,6 +114,7 @@ class ProjectEdit(bpy.types.Operator):
         ProjectEdit._proj_hack[0] = image_new.name
         
         image_new.filename_raw = filename_final # TODO, filename raw is crummy
+        image_new.file_format = 'PNG'
         image_new.save()
         
         subprocess.Popen([image_editor, bpy.utils.expandpath(filename_final)])
