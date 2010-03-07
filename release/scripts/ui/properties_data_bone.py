@@ -257,6 +257,9 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel):
         pchan = ob.pose.bones[bone.name]
         wide_ui = context.region.width > narrowui
 
+        row = layout.row()
+        row.prop(ob.pose, "ik_solver")
+
         split = layout.split(percentage=0.25)
         split.prop(pchan, "ik_dof_x", text="X")
         split.active = pchan.has_ik

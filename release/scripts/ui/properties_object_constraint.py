@@ -97,12 +97,12 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         split = layout.split(percentage=0.33)
         col = split.column()
-        col.prop(con, "tail")
-        col.prop(con, "stretch")
+        col.prop(con, "use_tail")
+        col.prop(con, "use_stretch")
 
         col = split.column()
         col.prop(con, "chain_length")
-        col.prop(con, "targetless")
+        col.prop(con, "use_target")
 
     def CHILD_OF(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)
@@ -205,10 +205,10 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         row.label(text="Axis Ref:")
         row.prop(con, "axis_reference", expand=True)
         split = layout.split(percentage=0.33)
-        split.row().prop(con, "position")
+        split.row().prop(con, "use_position")
         row = split.row()
         row.prop(con, "weight", text="Weight", slider=True)
-        row.active = con.position
+        row.active = con.use_position
         split = layout.split(percentage=0.33)
         row = split.row()
         row.label(text="Lock:")
@@ -219,7 +219,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         split.active = con.use_position
 
         split = layout.split(percentage=0.33)
-        split.row().prop(con, "rotation")
+        split.row().prop(con, "use_rotation")
         row = split.row()
         row.prop(con, "orient_weight", text="Weight", slider=True)
         row.active = con.use_rotation
