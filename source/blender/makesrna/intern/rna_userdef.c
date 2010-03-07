@@ -2624,6 +2624,10 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "temporary_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "tempdir");
 	RNA_def_property_ui_text(prop, "Temporary Directory", "The directory for storing temporary save files");
+
+	prop= RNA_def_property(srna, "image_editor", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "image_editor");
+	RNA_def_property_ui_text(prop, "Image Editor", "Path to an image editor");
 	
 	prop= RNA_def_property(srna, "animation_player", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "anim_player");

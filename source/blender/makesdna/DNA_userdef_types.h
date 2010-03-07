@@ -297,6 +297,7 @@ typedef struct UserDef {
 	char plugseqdir[160];
 	char pythondir[160];
 	char sounddir[160];
+	char image_editor[240];	// FILE_MAX length
 	char anim_player[240];	// FILE_MAX length
 	int anim_player_preset;
 	

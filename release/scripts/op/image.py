@@ -19,8 +19,24 @@
 # <pep8 compliant>
 
 import bpy
-import sys as py_sys
-platform = py_sys.platform
+
+
+def image_editor_guess(context):
+    image_editor = context.user_preferences.filepaths.image_editor
+
+    # use image editor in the preferences when available.
+    if not image_editor:
+        import platform
+        system = platform.system()
+
+        if system == 'Windows':
+            image_editor = "startfile" # not tested!
+        elif system == 'Darwin':
+            image_editor = "open"
+        else:
+            image_editor = "gimp"
+
+    return image_editor
 
 
 class SaveDirty(bpy.types.Operator):
@@ -44,25 +60,21 @@ class SaveDirty(bpy.types.Operator):
         return {'FINISHED'}
 
 
-_proj_hack = [""]
 class ProjectEdit(bpy.types.Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "image.project_edit"
     bl_label = "Project Edit"
     bl_options = {'REGISTER'}
+    
+    _proj_hack = [""]
 
     def execute(self, context):
         import os
         import subprocess
 
         EXT = "tga" # until we have a way to save as another format!
-        if platform == 'win32':
-            EDITOR = "C:\\Program Files\\GIMP-2.7\\bin\\gimp-2.7.exe"
-        elif platform == 'darwin':
-            EDITOR = "open"
-        else:
-            EDITOR = "gimp" # until we have a way to set a default image edior            
-        
+        image_editor = image_editor_guess(context)
+
         for image in bpy.data.images:
             image.tag = True
 
@@ -99,12 +111,12 @@ class ProjectEdit(bpy.types.Operator):
             i += 1
         
         image_new.name = os.path.basename(filename_final)
-        _proj_hack[0] = image_new.name
+        ProjectEdit._proj_hack[0] = image_new.name
         
         image_new.filename_raw = filename_final # TODO, filename raw is crummy
         image_new.save()
         
-        subprocess.Popen([EDITOR, bpy.utils.expandpath(filename_final)])
+        subprocess.Popen([image_editor, bpy.utils.expandpath(filename_final)])
         
         return {'FINISHED'}
 
@@ -116,10 +128,10 @@ class ProjectApply(bpy.types.Operator):
     bl_options = {'REGISTER'}
 
     def execute(self, context):
-        image_name = _proj_hack[0] # TODO, deal with this nicer
+        image_name = ProjectEdit._proj_hack[0] # TODO, deal with this nicer
 
         try:
-            image = bpy.data.images[_proj_hack[0]]
+            image = bpy.data.images[image_name]
         except KeyError:
             self.report({'ERROR'}, "Could not find image '%s'" % image_name)
             return {'CANCELLED'}

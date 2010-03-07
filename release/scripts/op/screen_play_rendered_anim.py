@@ -30,13 +30,14 @@ import os
 
 def guess_player_path(preset):
     import platform
+    system = platform.system()
 
     if preset == 'BLENDER24':
         player_path = "blender"
 
-        if platform.system() == 'Darwin':
+        if system == 'Darwin':
             test_path = "/Applications/blender 2.49.app/Contents/MacOS/blender"
-        elif platform.system() == 'Windows':
+        elif system == 'Windows':
             test_path = "/Program Files/Blender Foundation/Blender/blender.exe"
 
             if os.path.exists(test_path):
@@ -45,7 +46,7 @@ def guess_player_path(preset):
     elif preset == 'DJV':
         player_path = "djv_view"
 
-        if platform.system() == 'Darwin':
+        if system == 'Darwin':
             test_path = '/Applications/djv-0.8.2.app/Contents/Resources/bin/djv_view'
             if os.path.exists(test_path):
                 player_path = test_path
