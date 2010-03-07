@@ -19,7 +19,8 @@
 # <pep8 compliant>
 
 import bpy
-
+import sys as py_sys
+platform = py_sys.platform
 
 class SaveDirty(bpy.types.Operator):
     '''Select object matching a naming pattern'''
