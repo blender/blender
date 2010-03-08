@@ -883,6 +883,9 @@ static int multires_save_external_exec(bContext *C, wmOperator *op)
 	Mesh *me= (ob)? ob->data: op->customdata;
 	char path[FILE_MAX];
 
+	if(!me)
+		return OPERATOR_CANCELLED;
+
 	if(CustomData_external_test(&me->fdata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 	
@@ -925,7 +928,7 @@ void OBJECT_OT_multires_save_external(wmOperatorType *ot)
 	ot->description= "Save displacements to an external file";
 	ot->idname= "OBJECT_OT_multires_save_external";
 
-	ot->poll= multires_poll;
+	// XXX modifier no longer in context after file browser .. ot->poll= multires_poll;
 	ot->exec= multires_save_external_exec;
 	ot->invoke= multires_save_external_invoke;
 	
