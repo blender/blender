@@ -1285,6 +1285,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				newob->data= copy_mesh(me);
 			} else {
 				newob = ob;
+				ob->recalc |= OB_RECALC;
 			}
 
 			/* make new mesh data from the original copy */
