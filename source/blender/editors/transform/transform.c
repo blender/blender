@@ -3004,7 +3004,8 @@ int Rotation(TransInfo *t, short mval[2])
 		sprintf(str, "Rot: %.2f%s %s", 180.0*final/M_PI, t->con.text, t->proptext);
 	}
 	
-	t->values[0] = final;
+	// fixes [#21433] but breaks, typical local axis rotation - campbell
+	// t->values[0] = final;
 
 	vec_rot_to_mat3( mat, t->axis, final);
 	
