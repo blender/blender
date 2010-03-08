@@ -275,18 +275,18 @@ class INFO_MT_render(bpy.types.Menu):
 
         # rd = context.scene.render
 
-        layout.operator("screen.render", text="Render Image", icon='RENDER_STILL')
-        layout.operator("screen.render", text="Render Animation", icon='RENDER_ANIMATION').animation = True
+        layout.operator("render.render", text="Render Image", icon='RENDER_STILL')
+        layout.operator("render.render", text="Render Animation", icon='RENDER_ANIMATION').animation = True
 
         layout.separator()
 
-        layout.operator("screen.opengl_render", text="OpenGL Render Image")
-        layout.operator("screen.opengl_render", text="OpenGL Render Animation").animation = True
+        layout.operator("render.opengl", text="OpenGL Render Image")
+        layout.operator("render.opengl", text="OpenGL Render Animation").animation = True
 
         layout.separator()
 
-        layout.operator("screen.render_view_show")
-        layout.operator("screen.play_rendered_anim")
+        layout.operator("render.view_show")
+        layout.operator("render.play_rendered_anim")
 
 
 class INFO_MT_help(bpy.types.Menu):

@@ -96,8 +96,8 @@ class VIEW3D_HT_header(bpy.types.Header):
 
         # OpenGL render
         row = layout.row(align=True)
-        row.operator("screen.opengl_render", text="", icon='RENDER_STILL')
-        props = row.operator("screen.opengl_render", text="", icon='RENDER_ANIMATION')
+        row.operator("render.opengl", text="", icon='RENDER_STILL')
+        props = row.operator("render.opengl", text="", icon='RENDER_ANIMATION')
         props.animation = True
 
         # Pose

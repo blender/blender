@@ -64,5 +64,13 @@ void ED_operatortypes_render(void)
 #endif
 	
 	WM_operatortype_append(TEXTURE_OT_slot_move);
+
+	/* render_internal.c */
+	WM_operatortype_append(RENDER_OT_view_show);
+	WM_operatortype_append(RENDER_OT_render);
+	WM_operatortype_append(RENDER_OT_view_cancel);
+
+	/* render_opengl.c */
+	WM_operatortype_append(RENDER_OT_opengl);
 }
 

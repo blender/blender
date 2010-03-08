@@ -527,10 +527,10 @@ static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, Point
 	scn_ptr = RNA_pointer_get(ptr, "scene");
 	RNA_string_get(&scn_ptr, "name", scene_name);
 	
-	WM_operator_properties_create(&op_ptr, "SCREEN_OT_render");
+	WM_operator_properties_create(&op_ptr, "RENDER_OT_render");
 	RNA_string_set(&op_ptr, "layer", layer_name);
 	RNA_string_set(&op_ptr, "scene", scene_name);
-	uiItemFullO(row, "", ICON_RENDER_STILL, "SCREEN_OT_render", op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
+	uiItemFullO(row, "", ICON_RENDER_STILL, "RENDER_OT_render", op_ptr.data, WM_OP_INVOKE_DEFAULT, 0);
 
 }
 

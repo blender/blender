@@ -188,8 +188,8 @@ class RENDER_PT_network_job(RenderButtonsPanel):
             layout.operator("render.netclientsend", icon='FILE_BLEND')
             if netsettings.job_id:
                 row = layout.row()
-                row.operator("screen.render", text="Get Image", icon='RENDER_STILL')
-                row.operator("screen.render", text="Get Animation", icon='RENDER_ANIMATION').animation = True
+                row.operator("render.render", text="Get Image", icon='RENDER_STILL')
+                row.operator("render.render", text="Get Animation", icon='RENDER_ANIMATION').animation = True
 
         split = layout.split(percentage=0.3)
 
