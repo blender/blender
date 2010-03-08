@@ -100,6 +100,42 @@ class WM_OT_context_set_int(bpy.types.Operator): # same as enum
     execute = execute_context_assign
 
 
+class WM_OT_context_scale_int(bpy.types.Operator): # same as enum
+    '''Scale an int context value.'''
+    bl_idname = "wm.context_scale_int"
+    bl_label = "Context Set"
+    bl_options = {'UNDO'}
+
+    path = rna_path_prop
+    value = FloatProperty(name="Value", description="Assign value", default=1.0)
+    always_step = BoolProperty(name="Always Step",
+        description="Always adjust the value by a minimum of 1 when 'value' is not 1.0.",
+        default=True)
+
+    def execute(self, context):
+        if context_path_validate(context, self.properties.path) is Ellipsis:
+            return {'PASS_THROUGH'}
+
+        value = self.properties.value
+        path = self.properties.path
+
+        if value == 1.0: # nothing to do
+            return {'CANCELLED'}
+
+        if getattr(self.properties, "always_step", False):
+            if value > 1.0:
+                add = "1"
+                func = "max"
+            else:
+                add = "-1"
+                func = "min"
+            exec("context.%s = %s(round(context.%s * value), context.%s + %s)" % (path, func, path, path, add))
+        else:
+            exec("context.%s *= value" % self.properties.path)
+
+        return {'FINISHED'}
+
+
 class WM_OT_context_set_float(bpy.types.Operator): # same as enum
     '''Set a context value.'''
     bl_idname = "wm.context_set_float"
@@ -510,6 +546,7 @@ classes = [
 
     WM_OT_context_set_boolean,
     WM_OT_context_set_int,
+    WM_OT_context_scale_int,
     WM_OT_context_set_float,
     WM_OT_context_set_string,
     WM_OT_context_set_enum,

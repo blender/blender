@@ -184,15 +184,13 @@ static void ed_keymap_paint_brush_size(wmKeyMap *keymap, const char *path)
 {
 	wmKeyMapItem *kmi;
 	
-	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", LEFTBRACKETKEY, KM_PRESS, 0, 0);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_scale_int", LEFTBRACKETKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "path", path);
-	RNA_int_set(kmi->ptr, "value", -20);
-	RNA_boolean_set(kmi->ptr, "relative", 1);
+	RNA_float_set(kmi->ptr, "value", 0.9);
 	
-	kmi= WM_keymap_add_item(keymap, "WM_OT_context_set_int", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
+	kmi= WM_keymap_add_item(keymap, "WM_OT_context_scale_int", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "path", path);
-	RNA_int_set(kmi->ptr, "value", 20);
-	RNA_boolean_set(kmi->ptr, "relative", 1);
+	RNA_float_set(kmi->ptr, "value", 10.0/9.0); // 1.1111....
 }	
 
 void ED_keymap_paint(wmKeyConfig *keyconf)
