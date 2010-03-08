@@ -807,7 +807,7 @@ int scene_marker_tfm_extend(Scene *scene, int delta, int flag, int frame, char s
 
 	for (marker= scene->markers.first; marker; marker= marker->next) {
 		if ((marker->flag & flag) == flag) {
-			if((side=='L' && marker->frame < frame) || (side=='R' && marker->frame > frame)) {
+			if((side=='L' && marker->frame < frame) || (side=='R' && marker->frame >= frame)) {
 				marker->frame += delta;
 				tot++;
 			}

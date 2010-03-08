@@ -785,6 +785,25 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 	}
 	
+	/* Sync marker support */
+	if((select_mode==SELECT_ADD) && (ac->spacetype==SPACE_ACTION) && ELEM(leftright, ACTKEYS_LRSEL_LEFT, ACTKEYS_LRSEL_RIGHT)) {
+		SpaceAction *saction= ac->sa->spacedata.first;
+		if (saction && saction->flag & SACTION_MARKERS_MOVE) {
+			TimeMarker *marker;
+
+			for (marker= scene->markers.first; marker; marker= marker->next) {
+				if(	((leftright == ACTKEYS_LRSEL_LEFT) && marker->frame < CFRA) ||
+					((leftright == ACTKEYS_LRSEL_RIGHT) && marker->frame >= CFRA)
+				) {
+					marker->flag |= SELECT;
+				}
+				else {
+					marker->flag &= ~SELECT;
+				}
+			}
+		}
+	}
+
 	/* Cleanup */
 	BLI_freelistN(&anim_data);
 }
