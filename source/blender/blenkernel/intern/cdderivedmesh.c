@@ -57,6 +57,7 @@
 #include "DNA_object_fluidsim.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_curve_types.h" /* for Curve */
 
 #include "MEM_guardedalloc.h"
 
@@ -1587,6 +1588,11 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 
 DerivedMesh *CDDM_from_curve(Object *ob)
 {
+	return CDDM_from_curve_customDB(ob, &((Curve *)ob->data)->disp);
+}
+
+DerivedMesh *CDDM_from_curve_customDB(Object *ob, ListBase *dispbase)
+{
 	DerivedMesh *dm;
 	CDDerivedMesh *cddm;
 	MVert *allvert;
@@ -1594,7 +1600,8 @@ DerivedMesh *CDDM_from_curve(Object *ob)
 	MFace *allface;
 	int totvert, totedge, totface;
 
-	if (nurbs_to_mdata (ob, &allvert, &totvert, &alledge, &totedge, &allface, &totface) != 0) {
+	if (nurbs_to_mdata_customdb(ob, dispbase, &allvert, &totvert, &alledge,
+		&totedge, &allface, &totface) != 0) {
 		/* Error initializing mdata. This often happens when curve is empty */
 		return CDDM_new(0, 0, 0);
 	}

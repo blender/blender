@@ -746,7 +746,16 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 
 /* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
 /* return non-zero on error */
-int nurbs_to_mdata(Object *ob, MVert **allvert, int *_totvert,
+int nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
+	MEdge **alledge, int *totedge, MFace **allface, int *totface)
+{
+	return nurbs_to_mdata_customdb(ob, &((Curve *)ob->data)->disp,
+		allvert, totvert, alledge, totedge, allface, totface);
+}
+
+/* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
+/* use specified dispbase  */
+int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int *_totvert,
 	MEdge **alledge, int *_totedge, MFace **allface, int *_totface)
 {
 	DispList *dl;
@@ -760,7 +769,7 @@ int nurbs_to_mdata(Object *ob, MVert **allvert, int *_totvert,
 	cu= ob->data;
 
 	/* count */
-	dl= cu->disp.first;
+	dl= dispbase->first;
 	while(dl) {
 		if(dl->type==DL_SEGM) {
 			totvert+= dl->parts*dl->nr;
@@ -796,7 +805,7 @@ int nurbs_to_mdata(Object *ob, MVert **allvert, int *_totvert,
 	/* verts and faces */
 	vertcount= 0;
 
-	dl= cu->disp.first;
+	dl= dispbase->first;
 	while(dl) {
 		int smooth= dl->rt & CU_SMOOTH ? 1 : 0;
 

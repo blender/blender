@@ -2735,12 +2735,12 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 	Object *ob= obr->ob;
 	Nurb *nu=0;
 	Curve *cu;
-	ListBase displist;
+	ListBase displist= {NULL, NULL};
 	DispList *dl;
 	Material **matar;
 	float *orco=NULL, *orcobase=NULL, mat[4][4];
 	int a, totmat, need_orco=0;
-	DerivedMesh *dm;
+	DerivedMesh *dm= NULL;
 
 	cu= ob->data;
 	nu= cu->nurb.first;
@@ -2762,23 +2762,22 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 
 	if(ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
 
-	dm= ob->derivedFinal;
-	if (ob->derivedFinal) {
+	makeDispListSurf(re->scene, ob, &displist, &dm, 1, 0);
+
+	if (dm) {
 		if(need_orco) {
-			orco= makeOrcoDispList(re->scene, ob, 1);
+			orco= makeOrcoDispList(re->scene, ob, dm, 1);
 			if(orco) {
 				set_object_orco(re, ob, orco);
 			}
 		}
 
 		init_render_dm(dm, re, obr, timeoffset, orco, mat);
+		dm->release(dm);
 	} else {
 		if(need_orco) {
 			orcobase= orco= get_object_orco(re, ob);
 		}
-
-		displist.first= displist.last= 0;
-		makeDispListSurf(re->scene, ob, &displist, 1, 0);
 
 		/* walk along displaylist and create rendervertices/-faces */
 		for(dl=displist.first; dl; dl=dl->next) {
@@ -2786,9 +2785,9 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 			if(dl->type==DL_SURF)
 				orco+= 3*dl_surf_to_renderdata(obr, dl, matar, orco, mat);
 		}
-
-		freedisplist(&displist);
 	}
+
+	freedisplist(&displist);
 
 	MEM_freeN(matar);
 }
@@ -2800,8 +2799,8 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	VertRen *ver;
 	VlakRen *vlr;
 	DispList *dl;
-	DerivedMesh *dm;
-	ListBase olddl={NULL, NULL};
+	DerivedMesh *dm = NULL;
+	ListBase disp={NULL, NULL};
 	Material **matar;
 	float len, *data, *fp, *orco=NULL, *orcobase= NULL;
 	float n[3], mat[4][4];
@@ -2812,16 +2811,9 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	if(ob->type==OB_FONT && cu->str==NULL) return;
 	else if(ob->type==OB_CURVE && cu->nurb.first==NULL) return;
 
-	/* no modifier call here, is in makedisp */
-
-	if(cu->resolu_ren)
-		SWAP(ListBase, olddl, cu->disp);
-	
-	/* test displist */
-	if(cu->disp.first==NULL)
-		makeDispListCurveTypes(re->scene, ob, 0);
-	dl= cu->disp.first;
-	if(cu->disp.first==NULL) return;
+	makeDispListCurveTypes_forRender(re->scene, ob, &disp, &dm, 0);
+	dl= disp.first;
+	if(dl==NULL) return;
 	
 	mul_m4_m4m4(mat, ob->obmat, re->viewmat);
 	invert_m4_m4(ob->imat, mat);
@@ -2837,22 +2829,21 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 			need_orco= 1;
 	}
 
-	dm= ob->derivedFinal;
 	if (dm) {
 		if(need_orco) {
-			orco= makeOrcoDispList(re->scene, ob, 1);
+			orco= makeOrcoDispList(re->scene, ob, dm, 1);
 			if(orco) {
 				set_object_orco(re, ob, orco);
 			}
 		}
 
 		init_render_dm(dm, re, obr, timeoffset, orco, mat);
+		dm->release(dm);
 	} else {
 		if(need_orco) {
 		  orcobase=orco= get_object_orco(re, ob);
 		}
 
-		dl= cu->disp.first;
 		while(dl) {
 			if(dl->type==DL_INDEX3) {
 				int *index;
@@ -3021,11 +3012,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 		}
 	}
 
-	/* not very elegant... but we want original displist in UI */
-	if(cu->resolu_ren) {
-		freedisplist(&cu->disp);
-		SWAP(ListBase, olddl, cu->disp);
-	}
+	freedisplist(&disp);
 
 	MEM_freeN(matar);
 }
