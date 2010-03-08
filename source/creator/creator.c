@@ -230,6 +230,9 @@ static int print_help(int argc, char **argv, void *data)
 
 	printf ("\nMisc options:\n");
 	printf ("  -d\t\tTurn debugging on\n");
+	printf ("    \t\t * prints every operator call and their arguments\n");
+	printf ("    \t\t * disables mouse grab (to interact with a debugger in some cases)\n");
+	printf ("    \t\t * keeps python sys.stdin rather then setting it to None\n");
 	printf ("  -nojoystick\tDisable joystick support\n");
 	printf ("  -noglsl\tDisable GLSL shading\n");
 	printf ("  -noaudio\tForce sound system to None\n");
