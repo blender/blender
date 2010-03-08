@@ -1780,7 +1780,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 	
 	ob= node->ob;
 	if(ob && (ob->recalc & OB_RECALC)) {
-		all_layer= ob->lay;
+		all_layer= node->scelay;
 
 		/* got an object node that changes, now check relations */
 		for(itA = node->child; itA; itA= itA->next) {
@@ -1935,7 +1935,7 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 	   they ared still used for rendering or setting the camera view */
 	if(sce->camera) {
 		node= dag_get_node(sce->theDag, sce->camera);
-		node->scelay= lay;
+		node->scelay |= lay;
 	}
 
 #ifdef DURIAN_CAMERA_SWITCH
@@ -1945,7 +1945,7 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 		for(m= sce->markers.first; m; m= m->next) {
 			if(m->camera) {
 				node= dag_get_node(sce->theDag, m->camera);
-				node->scelay= lay;
+				node->scelay |= lay;
 			}
 		}
 	}
