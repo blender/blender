@@ -1155,7 +1155,6 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 	origstr= MEM_callocN(sizeof(char)*data->maxlen, "ui_textedit origstr");
 	
 	BLI_strncpy(origstr, but->drawstr, data->maxlen);
-	but->pos= strlen(origstr)-but->ofs;
 	
 	/* XXX solve generic */
 	if(but->type==NUM || but->type==NUMSLI)
@@ -1166,16 +1165,33 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 			startx += 16;
 	}
 	
-	/* XXX does not take zoom level into account */
-	while((BLF_width(origstr+but->ofs) + startx) > x) {
-		if (but->pos <= 0) break;
-		but->pos--;
-		origstr[but->pos+but->ofs] = 0;
+	/* mouse dragged outside the widget to the left */
+	if (x < startx && but->ofs > 0) {	
+		int i= but->ofs;
+
+		origstr[but->ofs] = 0;
+		
+		while (i > 0) {
+			i--;
+			if (BLF_width(origstr+i) > (startx - x)*0.25) break;	// 0.25 == scale factor for less sensitivity
+		}
+		but->ofs = i;
+		but->pos = but->ofs;
+	}
+	/* mouse inside the widget */
+	else if (x >= startx) {
+		but->pos= strlen(origstr)-but->ofs;
+		
+		/* XXX does not take zoom level into account */
+		while (startx + BLF_width(origstr+but->ofs) > x) {
+			if (but->pos <= 0) break;
+			but->pos--;
+			origstr[but->pos+but->ofs] = 0;
+		}		
+		but->pos += but->ofs;
+		if(but->pos<0) but->pos= 0;
 	}
 	
-	but->pos += but->ofs;
-	if(but->pos<0) but->pos= 0;
-
 	MEM_freeN(origstr);
 }
 
