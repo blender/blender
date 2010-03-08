@@ -335,19 +335,17 @@ if not quickie and do_clean:
 			else: # remove file
 				print "remove file %s"%(B.root_build_dir+entry)
 				os.remove(B.root_build_dir+entry)
-		for confile in ['extern/ffmpeg/config.mak', 'extern/x264/config.mak',
-				'extern/xvidcore/build/generic/platform.inc', 'extern/ffmpeg/include']:
-			if os.path.exists(confile):
-				print "clean file %s"%confile
-				if os.path.isdir(confile):
-					for root, dirs, files in os.walk(confile):
-						for name in files:
-							os.remove(os.path.join(root, name))
-				else:
-					os.remove(confile)
-		print B.bc.OKGREEN+'...done'+B.bc.ENDC
-	else:
-		print B.bc.HEADER+'Already Clean, nothing to do.'+B.bc.ENDC
+	for confile in ['extern/ffmpeg/config.mak', 'extern/x264/config.mak',
+			'extern/xvidcore/build/generic/platform.inc', 'extern/ffmpeg/include']:
+		if os.path.exists(confile):
+			print "clean file %s"%confile
+			if os.path.isdir(confile):
+				for root, dirs, files in os.walk(confile):
+					for name in files:
+						os.remove(os.path.join(root, name))
+			else:
+				os.remove(confile)
+	print B.bc.OKGREEN+'...done'+B.bc.ENDC
 	Exit()
 
 if not os.path.isdir ( B.root_build_dir):
@@ -402,7 +400,7 @@ thestatlibs, thelibincs = B.setup_staticlibs(env)
 thesyslibs = B.setup_syslibs(env)
 
 if 'blender' in B.targets or not env['WITH_BF_NOBLENDER']:
-	env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist, [], thestatlibs + thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
+	env.BlenderProg(B.root_build_dir, "blender", dobj + mainlist + thestatlibs, [], thesyslibs, [B.root_build_dir+'/lib'] + thelibincs, 'blender')
 if env['WITH_BF_PLAYER']:
 	playerlist = B.create_blender_liblist(env, 'player')
 	playerlist += B.create_blender_liblist(env, 'intern')
