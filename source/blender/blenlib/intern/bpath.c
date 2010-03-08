@@ -290,7 +290,7 @@ static void seq_setpath(struct BPathIterator *bpi, char *path) {
 	
 	if (SEQ_HAS_PATH(seq)) {
 		if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE) {
-			BLI_split_dirfile_basic(path, seq->strip->dir, seq->strip->stripdata->name);
+			BLI_split_dirfile(path, seq->strip->dir, seq->strip->stripdata->name);
 		} else {
 			/* simple case */
 			BLI_strncpy(seq->strip->dir, path, sizeof(seq->strip->dir));
@@ -673,7 +673,7 @@ void findMissingFiles(char *basepath, char *str) {
 	
 	//XXX waitcursor( 1 );
 	
-	BLI_split_dirfile_basic(str, dirname, NULL);
+	BLI_split_dirfile(str, dirname, NULL);
 	
 	BLI_bpathIterator_init(&bpi, basepath);
 	
@@ -694,7 +694,7 @@ void findMissingFiles(char *basepath, char *str) {
 				/* can the dir be opened? */
 				filesize = -1;
 				recur_depth = 0;
-				BLI_split_dirfile_basic(filepath, NULL, filename); /* the file to find */
+				BLI_split_dirfile(filepath, NULL, filename); /* the file to find */
 				
 				findFileRecursive(filename_new, dirname, filename, &filesize, &recur_depth);
 				if (filesize == -1) { /* could not open dir */

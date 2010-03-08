@@ -92,6 +92,7 @@ class ProjectEdit(bpy.types.Operator):
         
         filename = os.path.basename(bpy.data.filename)
         filename = os.path.splitext(filename)[0]
+        # filename = bpy.utils.clean_name(filename) # fixes <memory> rubbish, needs checking
 
         if filename.startswith("."): # TODO, have a way to check if the file is saved, assuem .B25.blend
             filename = os.path.join(os.path.dirname(bpy.data.filename), filename)

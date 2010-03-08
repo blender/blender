@@ -247,7 +247,7 @@ int reopen_text(Text *text)
 	
 	BLI_strncpy(str, text->name, FILE_MAXDIR+FILE_MAXFILE);
 	BLI_convertstringcode(str, G.sce);
-	BLI_split_dirfile_basic(str, NULL, sfile);
+	BLI_split_dirfile(str, NULL, sfile);
 	
 	fp= fopen(str, "r");
 	if(fp==NULL) return 0;
@@ -345,7 +345,7 @@ Text *add_text(char *file, const char *relpath)
 	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
 	if (relpath) /* can be NULL (bg mode) */
 		BLI_convertstringcode(str, relpath);
-	BLI_split_dirfile_basic(str, NULL, sfile);
+	BLI_split_dirfile(str, NULL, sfile);
 	
 	fp= fopen(str, "r");
 	if(fp==NULL) return NULL;

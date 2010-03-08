@@ -37,23 +37,15 @@
 #include "BLI_editVert.h"
 #include "BLI_dlrbTree.h"
 
-#include "DNA_armature_types.h"
-#include "DNA_image_types.h"
-#include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_meta_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_blender.h"
-#include "BKE_colortools.h"
+#include "BKE_object.h"
 #include "BKE_context.h"
-#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
@@ -62,7 +54,6 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
-#include "BKE_sound.h"
 #include "BKE_writeavi.h"
 
 #include "WM_api.h"
@@ -180,7 +171,6 @@ static int screen_opengl_render_init(bContext *C, wmOperator *op)
 	sizex= (scene->r.size*scene->r.xsch)/100;
 	sizey= (scene->r.size*scene->r.ysch)/100;
 
-	view3d_operator_needs_opengl(C);
 	ofs= GPU_offscreen_create(sizex, sizey);
 
 	if(!ofs) {
@@ -468,3 +458,6 @@ void RENDER_OT_opengl(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "animation", 0, "Animation", "");
 }
+
+/* function for getting an opengl buffer from a View3D, used by sequencer */
+// extern void *sequencer_view3d_cb;

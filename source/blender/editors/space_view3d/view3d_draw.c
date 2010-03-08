@@ -95,6 +95,7 @@
 
 #include "GPU_draw.h"
 #include "GPU_material.h"
+#include "GPU_extensions.h"
 
 #include "view3d_intern.h"	// own include
 
@@ -2030,6 +2031,48 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	ar->winy= bwiny;
 
 	glPopMatrix();
+}
+
+/* utility func for ED_view3d_draw_offscreen */
+ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, int sizex, int sizey)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	ImBuf *ibuf;
+	GPUOffScreen *ofs;
+
+	/* bind */
+	ofs= GPU_offscreen_create(sizex, sizey);
+	if(ofs == NULL)
+		return NULL;
+
+	GPU_offscreen_bind(ofs);
+
+	/* render 3d view */
+	if(rv3d->persp==RV3D_CAMOB && v3d->camera) {
+		float winmat[4][4];
+		float _clipsta, _clipend, _lens, _yco, _dx, _dy;
+		rctf _viewplane;
+
+		object_camera_matrix(&scene->r, v3d->camera, sizex, sizey, 0, winmat, &_viewplane, &_clipsta, &_clipend, &_lens, &_yco, &_dx, &_dy);
+
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat);
+	}
+	else {
+		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, NULL);
+	}
+
+	/* read in pixels & stamp */
+	ibuf= IMB_allocImBuf(sizex, sizey, 24, IB_rect, 0);
+	glReadPixels(0, 0, sizex, sizey, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+
+	//if((scene->r.stamp & R_STAMP_ALL) && (scene->r.stamp & R_STAMP_DRAW))
+	//	BKE_stamp_buf(scene, NULL, rr->rectf, rr->rectx, rr->recty, 4);
+
+	/* unbind */
+	GPU_offscreen_unbind(ofs);
+	GPU_offscreen_free(ofs);
+
+	return ibuf;
 }
 
 /* NOTE: the info that this uses is updated in ED_refresh_viewport_fps(), 

@@ -351,6 +351,9 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "normal_angle", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_range(prop, 0, 90);
 	RNA_def_property_ui_text(prop, "Angle", "Paint most on faces pointing towards the view acording to this angle");
+
+	prop= RNA_def_int_array(srna, "screen_grab_size", 2, NULL, 0, 0, "screen_grab_size", "Size to capture the image for re-projecting", 0, 0);
+	RNA_def_property_range(prop, 512, 16384);
 }
 
 static void rna_def_particle_edit(BlenderRNA *brna)

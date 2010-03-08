@@ -1433,7 +1433,7 @@ public:
 				char src[FILE_MAX];
 				char dir[FILE_MAX];
 				
-				BLI_split_dirfile_basic(mfilename, dir, NULL);
+				BLI_split_dirfile(mfilename, dir, NULL);
 
 				BKE_rebase_path(abs, sizeof(abs), rel, sizeof(rel), G.sce, image->name, dir);
 

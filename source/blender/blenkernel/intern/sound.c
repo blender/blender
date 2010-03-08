@@ -39,6 +39,7 @@
 
 static int force_device = -1;
 
+#ifdef WITH_JACK
 static void sound_sync_callback(void* data, int mode, float time)
 {
 	struct Main* bmain = (struct Main*)data;
@@ -58,6 +59,7 @@ static void sound_sync_callback(void* data, int mode, float time)
 		scene = scene->id.next;
 	}
 }
+#endif
 
 int sound_define_from_str(char *str)
 {

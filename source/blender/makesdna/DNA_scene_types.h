@@ -521,6 +521,9 @@ typedef struct ImagePaintSettings {
 	
 	/* for projection painting only */
 	short seam_bleed, normal_angle;
+	short screen_grab_size[2]; /* capture size for re-projection */
+
+	int pad1;
 
 	void *paintcursor;			/* wm handle */
 } ImagePaintSettings;

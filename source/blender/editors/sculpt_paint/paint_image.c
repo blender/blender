@@ -5479,37 +5479,21 @@ void PAINT_OT_project_image(wmOperatorType *ot)
 	ot->prop= prop;
 }
 
-static Image *ED_region_image(ARegion *ar, char *filename)
-{
-	int x= ar->winrct.xmin;
-	int y= ar->winrct.ymin;
-	int w= ar->winrct.xmax-x;
-	int h= ar->winrct.ymax-y;
-
-	if (h && w) {
-		float color[] = {0, 0, 0, 1};
-		Image *image = BKE_add_image_size(w, h, filename, 0, 0, color);
-		ImBuf *ibuf= BKE_image_get_ibuf(image, NULL);
-
-		glReadBuffer(GL_FRONT);
-		glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-		glFinish();
-		glReadBuffer(GL_BACK);
-
-		return image;
-	}
-
-	return NULL;
-}
-
 static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 {
-	ARegion *ar= CTX_wm_region(C);
 	Image *image;
+	ImBuf *ibuf;
 	char filename[FILE_MAX];
+
+	Scene *scene= CTX_data_scene(C);
+	ToolSettings *settings= scene->toolsettings;
+	int w= settings->imapaint.screen_grab_size[0];
+	int h= settings->imapaint.screen_grab_size[1];
+
 	RNA_string_get(op->ptr, "filename", filename);
 
-	image= ED_region_image(ar, filename);
+	ibuf= ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h);
+	image= BKE_add_image_imbuf(ibuf);
 
 	if(image) {
 		/* now for the trickyness. store the view projection here!

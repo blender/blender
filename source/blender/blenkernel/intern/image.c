@@ -563,10 +563,8 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 /* adds new image block, creates ImBuf and initializes color */
 Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4])
 {
-	Image *ima;
-	
 	/* on save, type is changed to FILE in editsima.c */
-	ima= image_alloc(name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
+	Image *ima= image_alloc(name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
 	
 	if (ima) {
 		ImBuf *ibuf;
@@ -579,6 +577,23 @@ Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short
 		ibuf= add_ibuf_size(width, height, name, floatbuf, uvtestgrid, color);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 		
+		ima->ok= IMA_OK_LOADED;
+	}
+
+	return ima;
+}
+
+/* creates an image image owns the imbuf passed */
+Image *BKE_add_image_imbuf(ImBuf *ibuf)
+{
+	/* on save, type is changed to FILE in editsima.c */
+	char filename[sizeof(ibuf->name)];
+	BLI_split_dirfile(ibuf->name, NULL, filename);
+	Image *ima= image_alloc(filename, IMA_SRC_FILE, IMA_TYPE_IMAGE);
+
+	if (ima) {
+		BLI_strncpy(ima->name, ibuf->name, FILE_MAX);
+		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 		ima->ok= IMA_OK_LOADED;
 	}
 

@@ -910,6 +910,8 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         row = col.row(align=True)
         row.operator("image.project_edit", text="View Edit")
         row.operator("image.project_apply", text="Apply")
+
+        col.prop(ipaint, "screen_grab_size", text="")
         
         sub = col.column()
         sub.operator("paint.project_image")

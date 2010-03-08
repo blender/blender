@@ -319,7 +319,7 @@ static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 	Sequence *seq= (Sequence*)(ptr->data);
 	char dir[FILE_MAX], name[FILE_MAX];
 
-	BLI_split_dirfile_basic(value, dir, name);
+	BLI_split_dirfile(value, dir, name);
 	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
 	BLI_strncpy(seq->strip->stripdata->name, name, sizeof(seq->strip->stripdata->name));
 }
@@ -347,7 +347,7 @@ static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
 	Sequence *seq= (Sequence*)(ptr->data);
 	char dir[FILE_MAX], name[FILE_MAX];
 
-	BLI_split_dirfile_basic(value, dir, name);
+	BLI_split_dirfile(value, dir, name);
 	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
 	BLI_strncpy(seq->strip->stripdata->name, name, sizeof(seq->strip->stripdata->name));
 }
@@ -357,7 +357,7 @@ static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 	StripElem *elem= (StripElem*)(ptr->data);
 	char name[FILE_MAX];
 
-	BLI_split_dirfile_basic(value, NULL, name);
+	BLI_split_dirfile(value, NULL, name);
 	BLI_strncpy(elem->name, name, sizeof(elem->name));
 }
 

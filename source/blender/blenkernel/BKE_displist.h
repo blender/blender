@@ -62,6 +62,7 @@ struct Material;
 struct Bone;
 struct Mesh;
 struct EditMesh;
+struct DerivedMesh;
 
 /* used for curves, nurbs, mball, importing */
 typedef struct DispList {
