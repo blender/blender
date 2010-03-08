@@ -617,6 +617,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel):
         strip = act_strip(context)
 
         layout.template_ID(strip, "scene")
+        layout.prop(strip, "use_opengl")
 
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):

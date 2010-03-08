@@ -920,6 +920,12 @@ static void rna_def_scene(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Scene", "Scene that this sequence uses");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+	
+
+	prop= RNA_def_property(srna, "use_opengl", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_SCENE_OPENGL);
+	RNA_def_property_ui_text(prop, "Use OpenGL", "Use OpenGL preview rather then rendering the scene");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);

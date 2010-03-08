@@ -2031,6 +2031,8 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	ar->winy= bwiny;
 
 	glPopMatrix();
+
+	glColor4ub(255, 255, 255, 255); // XXX, without this the sequencer flickers with opengl draw enabled, need to find out why - campbell
 }
 
 /* utility func for ED_view3d_draw_offscreen */
@@ -2074,6 +2076,47 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 
 	return ibuf;
 }
+
+/* creates own 3d views, used by the sequencer */
+ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height)
+{
+	View3D v3d;
+	ARegion ar;
+	RegionView3D rv3d;
+
+	memset(&v3d, 0, sizeof(v3d));
+	memset(&ar, 0, sizeof(ar));
+	memset(&rv3d, 0, sizeof(rv3d));
+
+	/* connect data */
+	v3d.regionbase.first= v3d.regionbase.last= &ar;
+	ar.regiondata= &rv3d;
+	ar.regiontype= RGN_TYPE_WINDOW;
+
+	v3d.camera= scene->camera;
+	v3d.lay= scene->lay;
+	v3d.drawtype = OB_SOLID; /* should be able to configure */
+
+	rv3d.persp= RV3D_CAMOB;
+
+	copy_m4_m4(rv3d.viewinv, v3d.camera->obmat);
+	normalize_m4(rv3d.viewinv);
+	invert_m4_m4(rv3d.viewmat, rv3d.viewinv);
+
+	{
+		float _yco, _dx, _dy;
+		rctf _viewplane;
+		object_camera_matrix(&scene->r, v3d.camera, width, height, 0, rv3d.winmat, &_viewplane, &v3d.near, &v3d.far, &v3d.lens, &_yco, &_dx, &_dy);
+	}
+
+	mul_m4_m4m4(rv3d.persmat, rv3d.viewmat, rv3d.winmat);
+	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
+
+	return ED_view3d_draw_offscreen_imbuf(scene, &v3d, &ar, width, height);
+
+	// seq_view3d_cb(scene, cfra, render_size, seqrectx, seqrecty);
+}
+
 
 /* NOTE: the info that this uses is updated in ED_refresh_viewport_fps(), 
  * which currently gets called during SCREEN_OT_animation_step.

@@ -5515,7 +5515,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 		memcpy(array, rv3d->winmat, sizeof(rv3d->winmat)); array += sizeof(rv3d->winmat)/sizeof(float);
 		memcpy(array, rv3d->viewmat, sizeof(rv3d->viewmat)); array += sizeof(rv3d->viewmat)/sizeof(float);
 		orth= project_paint_view_clip(v3d, rv3d, &array[0], &array[1]);
-		array[2]= orth ? 1.0f : 0.0f;
+		array[2]= orth ? 1.0f : 0.0f; /* using float for a bool is dodgy but since its an extra member in the array... easier then adding a single bool prop */
 
 		IDP_AddToGroup(idgroup, view_data);
 

@@ -587,9 +587,11 @@ Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short
 Image *BKE_add_image_imbuf(ImBuf *ibuf)
 {
 	/* on save, type is changed to FILE in editsima.c */
+	Image *ima;
 	char filename[sizeof(ibuf->name)];
+
 	BLI_split_dirfile(ibuf->name, NULL, filename);
-	Image *ima= image_alloc(filename, IMA_SRC_FILE, IMA_TYPE_IMAGE);
+	ima= image_alloc(filename, IMA_SRC_FILE, IMA_TYPE_IMAGE);
 
 	if (ima) {
 		BLI_strncpy(ima->name, ibuf->name, FILE_MAX);

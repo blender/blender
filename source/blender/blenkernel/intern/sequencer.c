@@ -39,6 +39,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -46,6 +47,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
+#include "BKE_scene.h"
 #include "RNA_access.h"
 #include "RE_pipeline.h"
 
@@ -1938,6 +1940,8 @@ static void check_limiter_refcount_comp(const char * func, TStripElem *se)
 static TStripElem* do_build_seq_array_recursively(Scene *scene,
 				ListBase *seqbasep, int cfra, int chanshown, int render_size);
 
+extern ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height);
+
 static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int cfra,
 			      int build_proxy_run, int render_size)
 {
@@ -2130,47 +2134,52 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		
 		if (!sce_valid) {
 			se->ok = STRIPELEM_FAILED;
-		} else if (se->ibuf==NULL && sce_valid) {
-			int do_opengl= 0;
-			if(do_opengl && have_seq==0 && (sequencer_view3d_cb!=NULL)) {
+		}
+		else if (se->ibuf==NULL && sce_valid) {
+			int frame= seq->sfra + se->nr + seq->anim_startofs;
+			int oldcfra = seq->scene->r.cfra;
+
+			/* Hack! This function can be called from do_render_seq(), in that case
+			   the seq->scene can already have a Render initialized with same name,
+			   so we have to use a default name. (compositor uses scene name to
+			   find render).
+			   However, when called from within the UI (image preview in sequencer)
+			   we do want to use scene Render, that way the render result is defined
+			   for display in render/imagewindow
+
+			   Hmm, don't see, why we can't do that all the time,
+			   and since G.rendering is uhm, gone... (Peter)
+			*/
+
+			int rendering = 1;
+			int doseq;
+
+			/* prevent eternal loop */
+			doseq= scene->r.scemode & R_DOSEQ;
+			scene->r.scemode &= ~R_DOSEQ;
+
+			seq->scene->r.cfra= frame;
+
+			if(G.background==0 && (seq->flag & SEQ_USE_SCENE_OPENGL) && have_seq==0) {
 				/* opengl offscreen render */
 
-				/* sequencer_view3d_cb */
-				// void (*seq_view3d_cb)(Scene *, int, int, int, int)= sequencer_view3d_cb;
-
-				// seq_view3d_cb(scene, cfra, render_size, seqrectx, seqrecty);
+#ifdef DURIAN_CAMERA_SWITCH
+				Object *camera= scene_find_camera_switch(seq->scene);
+				if(camera)
+					seq->scene->camera= camera;
+#endif
+				scene_update_for_newframe(seq->scene, seq->scene->lay);
+				se->ibuf= ED_view3d_draw_offscreen_imbuf_simple(seq->scene, seqrectx, seqrecty); // BAD LEVEL CALL! DONT ALLOW THIS FOR MORE THEN A FEW DAYS, USE A CALLBACK!!! - campell
 			}
 			else {
 				RenderResult rres;
-				int oldcfra;
-				/* Hack! This function can be called from do_render_seq(), in that case
-				   the seq->scene can already have a Render initialized with same name,
-				   so we have to use a default name. (compositor uses scene name to
-				   find render).
-				   However, when called from within the UI (image preview in sequencer)
-				   we do want to use scene Render, that way the render result is defined
-				   for display in render/imagewindow
-
-				   Hmm, don't see, why we can't do that all the time,
-				   and since G.rendering is uhm, gone... (Peter)
-				*/
-
-				int rendering = 1;
-				int doseq;
-
-				oldcfra = seq->scene->r.cfra;
 
 				if(rendering)
 					re= RE_NewRender(" do_build_seq_ibuf", RE_SLOT_DEFAULT);
 				else
 					re= RE_NewRender(sce->id.name, RE_SLOT_VIEW);
 
-				/* prevent eternal loop */
-				doseq= scene->r.scemode & R_DOSEQ;
-				scene->r.scemode &= ~R_DOSEQ;
-
-				RE_BlenderFrame(re, sce, NULL,
-						seq->sfra+se->nr+seq->anim_startofs);
+				RE_BlenderFrame(re, sce, NULL, frame);
 
 				RE_AcquireResultImage(re, &rres);
 
@@ -2189,12 +2198,12 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 				RE_ReleaseResultImage(re);
 
 				// BIF_end_render_callbacks();
-
-				/* restore */
-				scene->r.scemode |= doseq;
-			
-				seq->scene->r.cfra = oldcfra;
 			}
+			
+			/* restore */
+			scene->r.scemode |= doseq;
+
+			seq->scene->r.cfra = oldcfra;
 
 			copy_to_ibuf_still(seq, se);
 
