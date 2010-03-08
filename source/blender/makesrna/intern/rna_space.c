@@ -1457,6 +1457,10 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Realtime Updates", "When transforming keyframes, changes to the animation data are flushed to other views");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
 
+	prop= RNA_def_property(srna, "use_marker_sync", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_MARKERS_MOVE);
+	RNA_def_property_ui_text(prop, "Sync Markers", "Sync Markers with keyframe edits");
+
 	/* dopesheet */
 	prop= RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "DopeSheet");

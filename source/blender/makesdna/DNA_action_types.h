@@ -597,6 +597,8 @@ typedef enum eSAction_Flag {
 	SACTION_TEMP_NEEDCHANSYNC = (1<<9),
 		/* don't perform realtime updates */
 	SACTION_NOREALTIMEUPDATES =	(1<<10),
+		/* move markers as well as keyframes */
+	SACTION_MARKERS_MOVE = (1<<11),
 } eSAction_Flag;	
 
 /* SpaceAction Mode Settings */

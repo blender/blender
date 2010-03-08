@@ -70,6 +70,8 @@ struct Object *scene_find_camera_switch(struct Scene *scene); // DURIAN_CAMERA_S
 
 char *scene_find_marker_name(struct Scene *scene, int frame);
 char *scene_find_last_marker_name(struct Scene *scene, int frame);
+int scene_marker_tfm_translate(struct Scene *scene, int delta, int flag);
+int scene_marker_tfm_extend(struct Scene *scene, int delta, int flag, int frame, char side);
 
 struct Base *scene_add_base(struct Scene *sce, struct Object *ob);
 void scene_deselect_all(struct Scene *sce);
