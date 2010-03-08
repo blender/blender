@@ -1229,7 +1229,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	int target= RNA_enum_get(op->ptr, "target");
 	int keep_original= RNA_boolean_get(op->ptr, "keep_original");
 	int a, mballConverted= 0;
-	
+
 	/* don't forget multiple users! */
 
 	/* reset flags */
@@ -1478,6 +1478,8 @@ static int convert_exec(bContext *C, wmOperator *op)
 		/* active base was changed */
 		ED_base_object_activate(C, basact);
 		BASACT= basact;
+	} else if (BASACT->object->flag & OB_DONE) {
+		WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, BASACT->object);
 	}
 
 	DAG_scene_sort(scene);
