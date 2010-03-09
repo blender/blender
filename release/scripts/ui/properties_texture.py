@@ -23,6 +23,16 @@ from rna_prop_ui import PropertyPanel
 narrowui = 180
 
 
+class TEXTURE_MT_specials(bpy.types.Menu):
+    bl_label = "Texture Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("material.mtex_copy", icon='COPYDOWN')
+        layout.operator("material.mtex_paste", icon='PASTEDOWN')
+
+
 def active_node_mat(mat):
     if mat:
         mat_node = mat.active_node_material
@@ -103,6 +113,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
             col = row.column(align=True)
             col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
             col.operator("texture.slot_move", text="", icon='TRIA_DOWN').type = 'DOWN'
+            col.menu("TEXTURE_MT_specials", icon='DOWNARROW_HLT', text="")
 
         if wide_ui:
             split = layout.split(percentage=0.65)
@@ -958,6 +969,8 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel):
 
 
 classes = [
+    TEXTURE_MT_specials,
+
     TEXTURE_PT_context_texture,
     TEXTURE_PT_preview,
 

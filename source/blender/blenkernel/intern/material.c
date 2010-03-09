@@ -1247,6 +1247,7 @@ static short matcopied=0;
 void clear_matcopybuf(void)
 {
 	memset(&matcopybuf, 0, sizeof(Material));
+	matcopied= 0;
 }
 
 void free_matcopybuf(void)
@@ -1273,6 +1274,8 @@ void free_matcopybuf(void)
 		matcopybuf.nodetree= NULL;
 	}
 //	default_mtex(&mtexcopybuf);
+
+	matcopied= 0;
 }
 
 void copy_matcopybuf(Material *ma)
@@ -1345,4 +1348,71 @@ void paste_matcopybuf(Material *ma)
 	BIF_undo_push("Paste material settings");
 	scrarea_queue_winredraw(curarea);
 	*/
+}
+
+
+static short mtexcopied=0; /* must be reset on file load */
+static MTex mtexcopybuf;
+
+void clear_mat_mtex_copybuf(void)
+{	/* use for file reload */
+	mtexcopied= 0;
+}
+
+void copy_mat_mtex_copybuf(ID *id)
+{
+	MTex **mtex= NULL;
+
+	switch(GS(id->name)) {
+	case ID_MA:
+		mtex= &(((Material *)id)->mtex[(int)((Material *)id)->texact]);
+		break;
+	case ID_LA:
+		// la->mtex[(int)la->texact] // TODO
+		break;
+	case ID_WO:
+		// mtex= wrld->mtex[(int)wrld->texact]; // TODO
+		break;
+	}
+
+	if(mtex && *mtex) {
+		memcpy(&mtexcopybuf, *mtex, sizeof(MTex));
+		mtexcopied= 1;
+	}
+	else {
+		mtexcopied= 0;
+	}
+}
+
+void paste_mat_mtex_copybuf(ID *id)
+{
+	MTex **mtex= NULL;
+
+	if(mtexcopied == 0 || mtexcopybuf.tex==NULL)
+		return;
+
+	switch(GS(id->name)) {
+	case ID_MA:
+		mtex= &(((Material *)id)->mtex[(int)((Material *)id)->texact]);
+		break;
+	case ID_LA:
+		// la->mtex[(int)la->texact] // TODO
+		break;
+	case ID_WO:
+		// mtex= wrld->mtex[(int)wrld->texact]; // TODO
+		break;
+	}
+
+	if(mtex) {
+		if(*mtex==NULL) {
+			*mtex= MEM_mallocN(sizeof(MTex), "mtex copy");
+		}
+		else if((*mtex)->tex) {
+			(*mtex)->tex->id.us--;
+		}
+
+		memcpy(*mtex, &mtexcopybuf, sizeof(MTex));
+
+		id_us_plus((ID *)mtexcopybuf.tex);
+	}
 }

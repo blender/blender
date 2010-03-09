@@ -820,3 +820,59 @@ void MATERIAL_OT_paste(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+static int copy_material_mtex_exec(bContext *C, wmOperator *op)
+{
+	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+
+	if(ma==NULL)
+		return OPERATOR_CANCELLED;
+
+	copy_mat_mtex_copybuf(&ma->id);
+
+	WM_event_add_notifier(C, NC_MATERIAL, ma);
+
+	return OPERATOR_FINISHED;
+}
+
+void MATERIAL_OT_mtex_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Material Texture Settings";
+	ot->idname= "MATERIAL_OT_mtex_copy";
+	ot->description="Copy the material texture settings and nodes";
+
+	/* api callbacks */
+	ot->exec= copy_material_mtex_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int paste_material_mtex_exec(bContext *C, wmOperator *op)
+{
+	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+
+	if(ma==NULL)
+		return OPERATOR_CANCELLED;
+
+	paste_mat_mtex_copybuf(&ma->id);
+
+	WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, ma);
+
+	return OPERATOR_FINISHED;
+}
+
+void MATERIAL_OT_mtex_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste Material Texture Settings";
+	ot->idname= "MATERIAL_OT_mtex_paste";
+	ot->description="Copy the material texture settings and nodes";
+
+	/* api callbacks */
+	ot->exec= paste_material_mtex_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}

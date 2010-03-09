@@ -54,6 +54,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_packedFile.h"
 #include "BKE_sequencer.h" /* free seq clipboard */
+#include "BKE_material.h" /* clear_matcopybuf */
 
 #include "BLI_blenlib.h"
 
@@ -154,8 +155,9 @@ void WM_init(bContext *C, int argc, char **argv)
 		UI_init();
 	}
 	
-	//	clear_matcopybuf(); /* XXX */
-	
+	clear_matcopybuf();
+	clear_mat_mtex_copybuf();
+
 	//	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	
 //	init_node_butfuncs();
