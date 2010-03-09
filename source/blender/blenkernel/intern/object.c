@@ -64,6 +64,7 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
@@ -110,6 +111,7 @@
 #include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_sequencer.h"
 #include "BKE_softbody.h"
 
 #include "LBM_fluidsim.h"
@@ -591,7 +593,16 @@ void unlink_object(Scene *scene, Object *ob)
 				}
 			}
 #endif
+			if(sce->ed) {
+				Sequence *seq;
+				SEQ_BEGIN(sce->ed, seq)
+					if(seq->scene_camera==ob) {
+						seq->scene_camera= NULL;
+					}
+				SEQ_END
+			}
 		}
+
 		sce= sce->id.next;
 	}
 	

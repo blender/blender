@@ -149,6 +149,8 @@ typedef struct Sequence {
 
 	struct Ipo *ipo;	// xxx depreceated... old animation system
 	struct Scene *scene;
+	struct Object *scene_camera; /* override scene camera */
+
 	struct anim *anim;
 	float effect_fader;
 	float speed_fader;

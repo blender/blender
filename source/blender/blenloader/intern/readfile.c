@@ -4143,6 +4143,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 			SEQ_BEGIN(sce->ed, seq) {
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 				if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
+				if(seq->scene_camera) seq->scene_camera= newlibadr(fd, sce->id.lib, seq->scene_camera);
 				if(seq->sound) {
 					seq->scene_sound = NULL;
 					if(seq->type == SEQ_HD_SOUND)
@@ -11572,6 +11573,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 
 		SEQ_BEGIN(sce->ed, seq) {
 			if(seq->scene) expand_doit(fd, mainvar, seq->scene);
+			if(seq->scene_camera) expand_doit(fd, mainvar, seq->scene_camera);
 			if(seq->sound) expand_doit(fd, mainvar, seq->sound);
 		}
 		SEQ_END

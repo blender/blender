@@ -438,39 +438,46 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 {
 	rctf rect;
 	char str[32 + FILE_MAXDIR+FILE_MAXFILE];
+	const char *name= seq->name+2;
 	
-	if(seq->name[2]) {
-		sprintf(str, "%d | %s: %s", seq->len, give_seqname(seq), seq->name+2);
-	}
-	else{
-		if(seq->type == SEQ_META) {
-			sprintf(str, "%d | %s", seq->len, give_seqname(seq));
-		}
-		else if(seq->type == SEQ_SCENE) {
-			if(seq->scene) sprintf(str, "%d | %s: %s", seq->len, give_seqname(seq), seq->scene->id.name+2);
-			else sprintf(str, "%d | %s", seq->len, give_seqname(seq));
-			
-		}
-		else if(seq->type == SEQ_IMAGE) {
-			sprintf(str, "%d | %s%s", seq->len, seq->strip->dir, seq->strip->stripdata->name);
-		}
-		else if(seq->type & SEQ_EFFECT) {
-			int can_float = (seq->type != SEQ_PLUGIN)
-				|| (seq->plugin && seq->plugin->version >= 4);
+	if(name[0]=='\0')
+		name= give_seqname(seq);
 
-			if(seq->seq3!=seq->seq2 && seq->seq1!=seq->seq3)
-				sprintf(str, "%d | %s: %d>%d (use %d)%s", seq->len, give_seqname(seq), seq->seq1->machine, seq->seq2->machine, seq->seq3->machine, can_float ? "" : " No float, upgrade plugin!");
-			else if (seq->seq1 && seq->seq2)
-				sprintf(str, "%d | %s: %d>%d%s", seq->len, give_seqname(seq), seq->seq1->machine, seq->seq2->machine, can_float ? "" : " No float, upgrade plugin!");
-			else 
-				sprintf(str, "%d | %s", seq->len, give_seqname(seq));
+	if(seq->type == SEQ_META) {
+		sprintf(str, "%d | %s", seq->len, name);
+	}
+	else if(seq->type == SEQ_SCENE) {
+		if(seq->scene) {
+			if(seq->scene_camera) {
+				sprintf(str, "%d | %s: %s (%s)", seq->len, name, seq->scene->id.name+2, ((ID *)seq->scene_camera)->name+2);
+			} else {
+				sprintf(str, "%d | %s: %s", seq->len, name, seq->scene->id.name+2);
+			}
 		}
-		else if (seq->type == SEQ_SOUND) {
-			sprintf(str, "%d | %s", seq->len, seq->sound->name);
+		else {
+			sprintf(str, "%d | %s", seq->len, name);
 		}
-		else if (seq->type == SEQ_MOVIE) {
-			sprintf(str, "%d | %s%s", seq->len, seq->strip->dir, seq->strip->stripdata->name);
-		}
+
+	}
+	else if(seq->type == SEQ_IMAGE) {
+		sprintf(str, "%d | %s%s", seq->len, seq->strip->dir, seq->strip->stripdata->name);
+	}
+	else if(seq->type & SEQ_EFFECT) {
+		int can_float = (seq->type != SEQ_PLUGIN)
+			|| (seq->plugin && seq->plugin->version >= 4);
+
+		if(seq->seq3!=seq->seq2 && seq->seq1!=seq->seq3)
+			sprintf(str, "%d | %s: %d>%d (use %d)%s", seq->len, name, seq->seq1->machine, seq->seq2->machine, seq->seq3->machine, can_float ? "" : " No float, upgrade plugin!");
+		else if (seq->seq1 && seq->seq2)
+			sprintf(str, "%d | %s: %d>%d%s", seq->len, name, seq->seq1->machine, seq->seq2->machine, can_float ? "" : " No float, upgrade plugin!");
+		else
+			sprintf(str, "%d | %s", seq->len, name);
+	}
+	else if (seq->type == SEQ_SOUND) {
+		sprintf(str, "%d | %s", seq->len, seq->sound->name);
+	}
+	else if (seq->type == SEQ_MOVIE) {
+		sprintf(str, "%d | %s%s", seq->len, seq->strip->dir, seq->strip->stripdata->name);
 	}
 	
 	if(seq->flag & SELECT){

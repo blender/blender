@@ -617,6 +617,10 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel):
         strip = act_strip(context)
 
         layout.template_ID(strip, "scene")
+
+        layout.label(text="Camera Override")
+        layout.template_ID(strip, "scene_camera")
+
         layout.prop(strip, "use_opengl")
 
 
