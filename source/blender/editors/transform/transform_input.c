@@ -225,6 +225,8 @@ void InputAngle(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 	double dx3 = mval[0] - mi->imval[0];
 	double dy3 = mval[1] - mi->imval[1];
 
+	double *angle = mi->data;
+
 	/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
 	double deler = ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
 		/ (2.0 * (A*B?A*B:1.0));
@@ -266,7 +268,11 @@ void InputAngle(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 		mi->imval[1] = mval[1];
 	}
 
-	output[0] += dphi;
+	*angle += dphi;
+
+	printf("angle %.3f\n", *angle);
+
+	output[0] = *angle;
 }
 
 void initMouseInput(TransInfo *t, MouseInput *mi, int center[2], short mval[2])
@@ -279,6 +285,8 @@ void initMouseInput(TransInfo *t, MouseInput *mi, int center[2], short mval[2])
 
 	mi->imval[0] = mval[0];
 	mi->imval[1] = mval[1];
+
+	mi->post = NULL;
 }
 
 static void calcSpringFactor(MouseInput *mi)
@@ -314,6 +322,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 		t->helpline = HLP_SPRING;
 		break;
 	case INPUT_ANGLE:
+		mi->data = MEM_callocN(sizeof(double), "angle accumulator");
 		mi->apply = InputAngle;
 		t->helpline = HLP_ANGLE;
 		break;
@@ -354,11 +363,21 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 	applyMouseInput(t, mi, mi->imval, t->values);
 }
 
+void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *, float [3]))
+{
+	mi->post = post;
+}
+
 void applyMouseInput(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 {
 	if (mi->apply != NULL)
 	{
 		mi->apply(t, mi, mval, output);
+	}
+
+	if (mi->post)
+	{
+		mi->post(t, output);
 	}
 }
 

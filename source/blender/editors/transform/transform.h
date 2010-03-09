@@ -234,6 +234,7 @@ typedef struct TransData {
 
 typedef struct MouseInput {
 	void	(*apply)(struct TransInfo *, struct MouseInput *, short [2], float [3]);
+	void	(*post)(struct TransInfo *, float [3]);
 
     short   imval[2];       	/* initial mouse position                */
 	char	precision;
@@ -632,6 +633,7 @@ int handleMouseInput(struct TransInfo *t, struct MouseInput *mi, struct wmEvent 
 void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, short mval[2], float output[3]);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, short start[2], short end[2]);
+void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *, float [3]));
 
 /*********************** Generics ********************************/
 

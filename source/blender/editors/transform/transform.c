@@ -2064,6 +2064,16 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 
 /* ************************** WARP *************************** */
 
+void postInputWarp(TransInfo *t, float values[3])
+{
+	mul_v3_fl(values, (float)(M_PI * 2));
+
+	if (t->customData) /* non-null value indicates reversed input */
+	{
+		negate_v3(values);
+	}
+}
+
 void initWarp(TransInfo *t)
 {
 	float max[3], min[3];
@@ -2073,13 +2083,14 @@ void initWarp(TransInfo *t)
 	t->transform = Warp;
 	t->handleEvent = handleEventWarp;
 	
+	setInputPostFct(&t->mouse, postInputWarp);
 	initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_RATIO);
 	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
-	t->snap[1] = 5.0f;
-	t->snap[2] = 1.0f;
+	t->snap[1] = 5.0f / 180 * M_PI;
+	t->snap[2] = 1.0f / 180 * M_PI;
 	
 	t->num.increment = 1.0f;
 
@@ -2154,13 +2165,8 @@ int Warp(TransInfo *t, short mval[2])
 	mul_m4_v3(t->viewmat, cursor);
 	sub_v3_v3v3(cursor, cursor, t->viewmat[3]);
 	
-	/* amount of degrees for warp */
-	circumfac = 360.0f * t->values[0];
-	
-	if (t->customData) /* non-null value indicates reversed input */
-	{
-		circumfac *= -1;
-	}
+	/* amount of radians for warp */
+	circumfac = t->values[0];
 	
 	snapGrid(t, &circumfac);
 	applyNumInput(&t->num, &circumfac);
@@ -2172,13 +2178,17 @@ int Warp(TransInfo *t, short mval[2])
 		outputNumInput(&(t->num), c);
 		
 		sprintf(str, "Warp: %s", c);
+
+		circumfac = circumfac / 180 * M_PI;
 	}
 	else {
 		/* default header print */
-		sprintf(str, "Warp: %.3f", circumfac);
+		sprintf(str, "Warp: %.3f", circumfac * 180 / M_PI);
 	}
 	
-	circumfac*= (float)(-M_PI/360.0);
+	t->values[0] = circumfac;
+
+	circumfac /= 2; /* only need 180 on each side to make 360 */
 	
 	for(i = 0; i < t->total; i++, td++) {
 		float loc[3];
@@ -2225,12 +2235,18 @@ int Warp(TransInfo *t, short mval[2])
 
 /* ************************** SHEAR *************************** */
 
+void postInputShear(TransInfo *t, float values[3])
+{
+	mul_v3_fl(values, 0.05f);
+}
+
 void initShear(TransInfo *t)
 {
 	t->mode = TFM_SHEAR;
 	t->transform = Shear;
 	t->handleEvent = handleEventShear;
 	
+	setInputPostFct(&t->mouse, postInputShear);
 	initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_ABSOLUTE);
 	
 	t->idx_max = 0;
@@ -2281,7 +2297,7 @@ int Shear(TransInfo *t, short mval[2])
 	copy_m3_m4(persmat, t->viewmat);
 	invert_m3_m3(persinv, persmat);
 	
-	value = 0.05f * t->values[0];
+	value = t->values[0];
 	
 	snapGrid(t, &value);
 	
@@ -2652,6 +2668,8 @@ int ToSphere(TransInfo *t, short mval[2])
 	else if (ratio > 1)
 		ratio = 1.0f;
 	
+	t->values[0] = ratio;
+
 	/* header print for NumInput */
 	if (hasNumInput(&t->num)) {
 		char c[20];
@@ -2696,11 +2714,19 @@ int ToSphere(TransInfo *t, short mval[2])
 /* ************************** ROTATION *************************** */
 
 
+void postInputRotation(TransInfo *t, float values[3])
+{
+	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
+		t->con.applyRot(t, NULL, t->axis, values);
+	}
+}
+
 void initRotation(TransInfo *t)
 {
 	t->mode = TFM_ROTATION;
 	t->transform = Rotation;
 	
+	setInputPostFct(&t->mouse, postInputRotation);
 	initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
 	
 	t->ndof.axis = 16;
@@ -2973,7 +2999,7 @@ int Rotation(TransInfo *t, short mval[2])
 	snapGrid(t, &final);
 	
 	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
-		t->con.applyRot(t, NULL, t->axis, &final);
+		t->con.applyRot(t, NULL, t->axis, NULL);
 	} else {
 		/* reset axis if constraint is not set */
 		negate_v3_v3(t->axis, t->viewinv[2]);
@@ -3004,14 +3030,9 @@ int Rotation(TransInfo *t, short mval[2])
 		sprintf(str, "Rot: %.2f%s %s", 180.0*final/M_PI, t->con.text, t->proptext);
 	}
 	
-	// fixes [#21433] but breaks, typical local axis rotation - campbell
-	// t->values[0] = final;
+	t->values[0] = final;
 
 	vec_rot_to_mat3( mat, t->axis, final);
-	
-	// TRANSFORM_FIX_ME
-//	t->values[0] = final;		// used in manipulator
-//	copy_m3_m3(t->mat, mat);	// used in manipulator
 	
 	applyRotation(t, final, t->axis);
 	
@@ -5521,6 +5542,7 @@ int TimeSlide(TransInfo *t, short mval[2])
 	UI_view2d_region_to_view(v2d, t->imval[0], t->imval[0], &sval[0], &sval[1]);
 
 	/* t->values[0] stores cval[0], which is the current mouse-pointer location (in frames) */
+	// XXX Need to be able to repeat this
 	t->values[0] = cval[0];
 
 	/* handle numeric-input stuff */
