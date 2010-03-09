@@ -5489,8 +5489,14 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	ToolSettings *settings= scene->toolsettings;
 	int w= settings->imapaint.screen_grab_size[0];
 	int h= settings->imapaint.screen_grab_size[1];
+	int maxsize;
 
 	RNA_string_get(op->ptr, "filename", filename);
+
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxsize);
+
+	if(w > maxsize) w= maxsize;
+	if(h > maxsize) h= maxsize;
 
 	ibuf= ED_view3d_draw_offscreen_imbuf(CTX_data_scene(C), CTX_wm_view3d(C), CTX_wm_region(C), w, h);
 	image= BKE_add_image_imbuf(ibuf);

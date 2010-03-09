@@ -270,8 +270,6 @@ void InputAngle(TransInfo *t, MouseInput *mi, short mval[2], float output[3])
 
 	*angle += dphi;
 
-	printf("angle %.3f\n", *angle);
-
 	output[0] = *angle;
 }
 
