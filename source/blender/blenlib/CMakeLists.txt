@@ -44,6 +44,10 @@ IF(WIN32)
 	SET(INC ${INC} ${PTHREADS_INC})
 ENDIF(WIN32)
 
+IF(WITH_OPENMP)
+		ADD_DEFINITIONS(-DPARALLEL=1)
+ENDIF(WITH_OPENMP)
+
 BLENDERLIB(bf_blenlib "${SRC}" "${INC}")
 #if env['OURPLATFORM'] == 'linux2':
 #    cflags='-pthread'

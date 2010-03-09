@@ -83,12 +83,6 @@
 #define KM_MODAL_STEP10		3
 #define KM_MODAL_STEP10_OFF	4
 
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
-/* ************** libgomp (Apple gcc 4.2.1) TLS bug workaround *************** */
-#include <pthread.h>
-extern pthread_key_t gomp_tls_key;
-static void *thread_tls_data;
-#endif
 /* ************** Exported Poll tests ********************** */
 
 int ED_operator_regionactive(bContext *C)

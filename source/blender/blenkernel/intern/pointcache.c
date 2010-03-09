@@ -88,13 +88,6 @@
   #include "BLI_winstuff.h"
 #endif
 
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
-/* ************** libgomp (Apple gcc 4.2.1) TLS bug workaround *************** */
-#include <pthread.h>
-extern pthread_key_t gomp_tls_key;
-static void *thread_tls_data;
-#endif
-
 #define PTCACHE_DATA_FROM(data, type, from)		if(data[type]) { memcpy(data[type], from, ptcache_data_size[type]); }
 #define PTCACHE_DATA_TO(data, type, index, to)	if(data[type]) { memcpy(to, (char*)data[type] + (index ? index * ptcache_data_size[type] : 0), ptcache_data_size[type]); }
 
@@ -2375,11 +2368,6 @@ typedef struct {
 static void *ptcache_make_cache_thread(void *ptr) {
 	ptcache_make_cache_data *data = (ptcache_make_cache_data*)ptr;
 
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
-	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
-	pthread_setspecific (gomp_tls_key, thread_tls_data);
-#endif
-	
 	for(; (*data->cfra_ptr <= data->endframe) && !data->break_operation; *data->cfra_ptr+=data->step)
 		scene_update_for_newframe(data->scene, data->scene->lay);
 
@@ -2497,10 +2485,6 @@ void BKE_ptcache_make_cache(PTCacheBaker* baker)
 	thread_data.thread_ended = FALSE;
 	old_progress = -1;
 	
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
-	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
-	thread_tls_data = pthread_getspecific(gomp_tls_key);
-#endif
 	BLI_init_threads(&threads, ptcache_make_cache_thread, 1);
 	BLI_insert_thread(&threads, (void*)&thread_data);
 	
