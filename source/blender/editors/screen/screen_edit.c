@@ -1715,7 +1715,7 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	Scene *scene= CTX_data_scene(C);
 	
 #ifdef DURIAN_CAMERA_SWITCH
-	void *camera= scene_find_camera_switch(scene);
+	void *camera= scene_camera_switch_find(scene);
 	if(camera && scene->camera != camera) {
 
 		if(camera && scene->camera && (camera != scene->camera)) {

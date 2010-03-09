@@ -292,10 +292,8 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	if(oglrender->rv3d->persp==RV3D_CAMOB && oglrender->v3d->camera && oglrender->v3d->scenelock) {
 		/* since scene_update_for_newframe() is used rather
 		 * then ED_update_for_newframe() the camera needs to be set */
-		Object *camera= scene_find_camera_switch(scene);
-
-		if(camera)
-			oglrender->v3d->camera= scene->camera= camera;
+		if(scene_camera_switch_update(scene))
+			oglrender->v3d->camera= scene->camera;
 	}
 
 	/* render into offscreen buffer */

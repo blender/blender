@@ -30,28 +30,30 @@
 
 /* ********* exports for space_view3d/ module ********** */
 struct ARegion;
-struct BoundBox;
-struct View3D;
-struct RegionView3D;
-struct ViewContext;
-struct bglMats;
-struct BPoint;
-struct Nurb;
+struct bContext;
 struct BezTriple;
-struct EditVert;
+struct bglMats;
+struct BoundBox;
+struct BPoint;
 struct EditEdge;
 struct EditFace;
+struct EditVert;
 struct ImBuf;
-struct Scene;
-struct bContext;
 struct Main;
+struct Nurb;
+struct Object;
 struct rcti;
+struct RegionView3D;
+struct Scene;
+struct View3D;
+struct ViewContext;
+
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
 typedef struct ViewContext {
 	Scene *scene;
-	Object *obact;
-	Object *obedit;
+	struct Object *obact;
+	struct Object *obedit;
 	struct ARegion *ar;
 	struct View3D *v3d;
 	struct RegionView3D *rv3d;

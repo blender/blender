@@ -722,7 +722,7 @@ Object *scene_find_camera(Scene *sc)
 }
 
 #ifdef DURIAN_CAMERA_SWITCH
-Object *scene_find_camera_switch(Scene *scene)
+Object *scene_camera_switch_find(Scene *scene)
 {
 	TimeMarker *m;
 	int cfra = scene->r.cfra;
@@ -742,6 +742,18 @@ Object *scene_find_camera_switch(Scene *scene)
 	return camera;
 }
 #endif
+
+int scene_camera_switch_update(Scene *scene)
+{
+#ifdef DURIAN_CAMERA_SWITCH
+	Object *camera= scene_camera_switch_find(scene);
+	if(camera) {
+		scene->camera= camera;
+		return 1;
+	}
+#endif
+	return 0;
+}
 
 char *scene_find_marker_name(Scene *scene, int frame)
 {

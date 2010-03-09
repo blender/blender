@@ -81,7 +81,7 @@ static int seqrecty= 0;
 #define SELECT 1
 ListBase seqbase_clipboard;
 int seqbase_clipboard_frame;
-void *sequencer_view3d_cb= NULL; /* NULL in background mode */
+SequencerDrawView sequencer_view3d_cb= NULL; /* NULL in background mode */
 
 
 void printf_strip(Sequence *seq)
@@ -1940,8 +1940,6 @@ static void check_limiter_refcount_comp(const char * func, TStripElem *se)
 static TStripElem* do_build_seq_array_recursively(Scene *scene,
 				ListBase *seqbasep, int cfra, int chanshown, int render_size);
 
-extern ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height);
-
 static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int cfra,
 			      int build_proxy_run, int render_size)
 {
@@ -2160,16 +2158,12 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 
 			seq->scene->r.cfra= frame;
 
-			if(G.background==0 && (seq->flag & SEQ_USE_SCENE_OPENGL) && have_seq==0) {
+			if(sequencer_view3d_cb && (seq->flag & SEQ_USE_SCENE_OPENGL) && have_seq==0) {
 				/* opengl offscreen render */
 
-#ifdef DURIAN_CAMERA_SWITCH
-				Object *camera= scene_find_camera_switch(seq->scene);
-				if(camera)
-					seq->scene->camera= camera;
-#endif
+				scene_camera_switch_update(seq->scene);
 				scene_update_for_newframe(seq->scene, seq->scene->lay);
-				se->ibuf= ED_view3d_draw_offscreen_imbuf_simple(seq->scene, seqrectx, seqrecty); // BAD LEVEL CALL! DONT ALLOW THIS FOR MORE THEN A FEW DAYS, USE A CALLBACK!!! - campell
+				se->ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty);
 			}
 			else {
 				RenderResult rres;

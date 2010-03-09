@@ -233,6 +233,10 @@ struct Sequence *sequencer_add_image_strip(struct bContext *C, ListBase *seqbase
 struct Sequence *sequencer_add_sound_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 struct Sequence *sequencer_add_movie_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 
+/* view3d draw callback, run when not in background view */
+typedef struct ImBuf *(*SequencerDrawView)(struct Scene *, int, int);
+extern SequencerDrawView sequencer_view3d_cb;
+
 /* copy/paste */
 extern ListBase seqbase_clipboard;
 extern int seqbase_clipboard_frame;
