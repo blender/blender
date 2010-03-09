@@ -719,6 +719,9 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceImage *sima= CTX_wm_space_image(C);
 	char *path= (sima && sima->image)? sima->image->name: U.textudir;
 
+	if(!RNA_property_is_set(op->ptr, "relative_path"))
+		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+
 	if(RNA_property_is_set(op->ptr, "path"))
 		return open_exec(C, op);
 	
@@ -745,6 +748,8 @@ void IMAGE_OT_open(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE);
+
+	RNA_def_boolean(ot->srna, "relative_path", 0, "Relative Path", "Load image with relative path to current .blend file");
 }
 
 /******************** replace image operator ********************/
@@ -804,19 +809,18 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 
 /* assumes name is FILE_MAX */
 /* ima->name and ibuf->name should end up the same */
-static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOperator *op, char *name)
+static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOperator *op, char *path)
 {
 	Image *ima= ED_space_image(sima);
 	void *lock;
 	ImBuf *ibuf= ED_space_image_acquire_buffer(sima, &lock);
-	int len;
 
-	if (ibuf) {	
-		BLI_convertstringcode(name, G.sce);
-		BLI_convertstringframe(name, scene->r.cfra, 0);
+	if (ibuf) {
+		int relative= RNA_boolean_get(op->ptr, "relative_path");
+		BLI_convertstringcode(path, G.sce);
 		
 		if(scene->r.scemode & R_EXTENSION)  {
-			BKE_add_image_extension(name, sima->imtypenr);
+			BKE_add_image_extension(path, sima->imtypenr);
 		}
 		
 		/* enforce user setting for RGB or RGBA, but skip BW */
@@ -830,10 +834,13 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 		if(sima->imtypenr==R_MULTILAYER) {
 			RenderResult *rr= BKE_image_acquire_renderresult(scene, ima);
 			if(rr) {
-				RE_WriteRenderResult(rr, name, scene->r.quality);
-				
-				BLI_strncpy(ima->name, name, sizeof(ima->name));
-				BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
+				RE_WriteRenderResult(rr, path, scene->r.quality);
+
+				if(relative)
+					BLI_makestringcode(G.sce, path); /* only after saving */
+
+				BLI_strncpy(ima->name, path, sizeof(ima->name));
+				BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
 				
 				/* should be function? nevertheless, saving only happens here */
 				for(ibuf= ima->ibufs.first; ibuf; ibuf= ibuf->next)
@@ -844,9 +851,14 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 				BKE_report(op->reports, RPT_ERROR, "Did not write, no Multilayer Image");
 			BKE_image_release_renderresult(scene, ima);
 		}
-		else if (BKE_write_ibuf(scene, ibuf, name, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
-			BLI_strncpy(ima->name, name, sizeof(ima->name));
-			BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
+		else if (BKE_write_ibuf(scene, ibuf, path, sima->imtypenr, scene->r.subimtype, scene->r.quality)) {
+			char *name;
+
+			if(relative)
+				BLI_makestringcode(G.sce, path); /* only after saving */
+
+			BLI_strncpy(ima->name, path, sizeof(ima->name));
+			BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
 			
 			ibuf->userflags &= ~IB_BITMAPDIRTY;
 			
@@ -871,13 +883,13 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 				ima->type= IMA_TYPE_IMAGE;
 			}
 			
+			name = BLI_last_slash(path);
+
 			/* name image as how we saved it */
-			len= strlen(name);
-			while (len > 0 && name[len - 1] != '/' && name[len - 1] != '\\') len--;
-			rename_id(&ima->id, name+len);
+			rename_id(&ima->id, name ? name + 1 : path);
 		} 
 		else
-			BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", name);
+			BKE_reportf(op->reports, RPT_ERROR, "Couldn't write image: %s", path);
 
 		WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, sima->image);
 
@@ -913,6 +925,9 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	ImBuf *ibuf;
 	void *lock;
 
+	if(!RNA_property_is_set(op->ptr, "relative_path"))
+		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+
 	if(RNA_property_is_set(op->ptr, "path"))
 		return save_as_exec(C, op);
 	
@@ -928,6 +943,8 @@ static int save_as_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			sima->imtypenr= R_MULTILAYER;
 		else if(ima->type==IMA_TYPE_R_RESULT)
 			sima->imtypenr= scene->r.imtype;
+		else if (ima->source == IMA_SRC_GENERATED)
+			sima->imtypenr= R_PNG;
 		else
 			sima->imtypenr= BKE_ftype_to_imtype(ibuf->ftype);
 
@@ -966,6 +983,8 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	/* properties */
 	RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_SAVE);
+
+	RNA_def_boolean(ot->srna, "relative_path", 0, "Relative Path", "Save image with relative path to current .blend file");
 }
 
 /******************** save image operator ********************/

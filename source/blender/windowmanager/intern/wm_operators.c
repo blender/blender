@@ -1390,6 +1390,9 @@ static void WM_OT_open_mainfile(wmOperatorType *ot)
 
 static int wm_link_append_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
+	if(!RNA_property_is_set(op->ptr, "relative_path"))
+		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+
 	if(RNA_property_is_set(op->ptr, "path")) {
 		return WM_operator_call(C, op);
 	} 
@@ -1407,7 +1410,7 @@ static short wm_link_append_flag(wmOperator *op)
 
 	if(RNA_boolean_get(op->ptr, "autoselect")) flag |= FILE_AUTOSELECT;
 	if(RNA_boolean_get(op->ptr, "active_layer")) flag |= FILE_ACTIVELAY;
-	if(RNA_boolean_get(op->ptr, "relative_paths")) flag |= FILE_STRINGCODE;
+	if(RNA_boolean_get(op->ptr, "relative_path")) flag |= FILE_STRINGCODE;
 	if(RNA_boolean_get(op->ptr, "link")) flag |= FILE_LINK;
 	if(RNA_boolean_get(op->ptr, "instance_groups")) flag |= FILE_GROUP_INSTANCE;
 	return flag;
@@ -1545,7 +1548,7 @@ static void WM_OT_link_append(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "autoselect", 1, "Select", "Select the linked objects");
 	RNA_def_boolean(ot->srna, "active_layer", 1, "Active Layer", "Put the linked objects on the active layer");
 	RNA_def_boolean(ot->srna, "instance_groups", 1, "Instance Groups", "Create instances for each group as a DupliGroup");
-	RNA_def_boolean(ot->srna, "relative_paths", 1, "Relative Paths", "Store the library path as a relative path to current .blend file");
+	RNA_def_boolean(ot->srna, "relative_path", 1, "Relative Paths", "Store the library path as a relative path to current .blend file");
 
 	RNA_def_collection_runtime(ot->srna, "files", &RNA_OperatorFileListElement, "Files", "");
 }	
