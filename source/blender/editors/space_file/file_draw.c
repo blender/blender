@@ -238,7 +238,7 @@ static void draw_tile(int sx, int sy, int width, int height, int colorid, int sh
 {	
 	UI_ThemeColorShade(colorid, shade);
 	uiSetRoundBox(15);	
-	uiRoundBox(sx, sy - height, sx + width, sy, 6);
+	uiRoundBox(sx, sy - height, sx + width, sy, 5);
 }
 
 #define FILE_SHORTEN_END				0
@@ -548,10 +548,10 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			if (params->active_file == i) {
 				if (file->flags & ACTIVE) colorid= TH_HILITE;
 				else colorid = TH_BACK;
-				draw_tile(sx, sy-3, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,20);
+				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,20);
 			} else if (file->flags & ACTIVE) {
 				colorid = TH_HILITE;
-				draw_tile(sx, sy-3, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
+				draw_tile(sx, sy-1, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
 			} 
 		}
 		uiSetRoundBox(0);
