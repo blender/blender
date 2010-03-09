@@ -712,14 +712,14 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 	int hastranslation = 0;
 	int total = 0;
 
-	for(pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
-		if(bone->layer & arm->layer) {
-			if((bone->flag & BONE_SELECTED) && !(ob->proxy && pchan->bone->layer & arm->layer_protected))
+		if ((bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+			if ((bone->flag & BONE_SELECTED) && !(ob->proxy && pchan->bone->layer & arm->layer_protected))
 				bone->flag |= BONE_TRANSFORM;
 			else
 				bone->flag &= ~BONE_TRANSFORM;
-
+			
 			bone->flag &= ~BONE_HINGE_CHILD_TRANSFORM;
 			bone->flag &= ~BONE_TRANSFORM_CHILD;
 		}
@@ -1068,7 +1068,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 	t->total = 0;
 	for (ebo = edbo->first; ebo; ebo = ebo->next)
 	{
-		if(ebo->layer & arm->layer)
+		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) 
 		{
 			if (t->mode==TFM_BONESIZE)
 			{
@@ -1101,7 +1101,8 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 	{
 		ebo->oldlength = ebo->length;	// length==0.0 on extrude, used for scaling radius of bone points
 
-		if(ebo->layer & arm->layer) {
+		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) 
+		{
 			if (t->mode==TFM_BONE_ENVELOPE)
 			{
 				if (ebo->flag & BONE_ROOTSEL)

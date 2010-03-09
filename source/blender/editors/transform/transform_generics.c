@@ -326,7 +326,7 @@ static int fcu_test_selected(FCurve *fcu)
 	BezTriple *bezt= fcu->bezt;
 	int i;
 
-	if(bezt==NULL) /* ignore baked */
+	if (bezt==NULL) /* ignore baked */
 		return 0;
 
 	for (i=0; i < fcu->totvert; i++, bezt++) {
@@ -422,11 +422,11 @@ void recalcData(TransInfo *t)
 		/* now test if there is a need to re-sort */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			FCurve *fcu= (FCurve *)ale->key_data;
-
+			
 			/* ignore unselected fcurves */
-			if(!fcu_test_selected(fcu))
+			if (!fcu_test_selected(fcu))
 				continue;
-
+			
 			// fixme: only do this for selected verts...
 			ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYSEL|ANIM_UNITCONV_SELVERTS|ANIM_UNITCONV_RESTORE);
 			
@@ -442,7 +442,6 @@ void recalcData(TransInfo *t)
 			 */
 			if ((sipo->flag & SIPO_NOREALTIMEUPDATES) == 0)
 				ANIM_list_elem_update(t->scene, ale);
-
 		}
 		
 		/* do resort and other updates? */
@@ -1111,7 +1110,7 @@ void postTrans (bContext *C, TransInfo *t)
 	if (t->data) {
 		int a;
 		
-		/* since ipokeys are optional on objects, we mallocced them per trans-data */
+		/* free data malloced per trans-data */
 		for(a=0, td= t->data; a<t->total; a++, td++) {
 			if (td->flag & TD_BEZTRIPLE) 
 				MEM_freeN(td->hdata);
