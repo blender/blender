@@ -56,6 +56,15 @@ static EnumPropertyItem particle_edit_hair_brush_items[] = {
 
 #include "ED_particle.h"
 
+static EnumPropertyItem particle_edit_disconnected_hair_brush_items[] = {
+	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush"},
+	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs"},
+	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth hairs"},
+	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", "Make hairs longer or shorter"},
+	{PE_BRUSH_CUT, "CUT", 0, "Cut", "Cut hairs"},
+	{PE_BRUSH_WEIGHT, "WEIGHT", 0, "Weight", "Weight hair particles"},
+	{0, NULL, 0, NULL, NULL}};
+
 static EnumPropertyItem particle_edit_cache_brush_items[] = {
 	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush"},
 	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb paths"},
@@ -126,8 +135,12 @@ static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *pt
 	Object *ob= (scene->basact)? scene->basact->object: NULL;
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	
-	if(edit && edit->psys)
-		return particle_edit_hair_brush_items;
+	if(edit && edit->psys) {
+		if(edit->psys->flag & PSYS_GLOBAL_HAIR)
+			return particle_edit_disconnected_hair_brush_items;
+		else
+			return particle_edit_hair_brush_items;
+	}
 
 	return particle_edit_cache_brush_items;
 }
