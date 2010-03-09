@@ -54,6 +54,8 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 			
 			ibuf->rect_float= cbuf->rect;
 			ibuf->dither= rd->dither_intensity;
+			ibuf->profile = IB_PROFILE_LINEAR_RGB;
+			
 			if(in[1]->data) {
 				CompBuf *zbuf= in[1]->data;
 				if(zbuf->type==CB_VAL && zbuf->x==cbuf->x && zbuf->y==cbuf->y) {
