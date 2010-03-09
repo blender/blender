@@ -2188,6 +2188,12 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* shadow buffers, before we setup matrices */
 	if(draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows(scene, v3d);
+	
+	/* reset default OpenGL lights if needed (i.e. after preferences have been altered) */
+	if (rv3d->rflag & RV3D_GPULIGHT_UPDATE) {
+		rv3d->rflag &= ~RV3D_GPULIGHT_UPDATE;
+		GPU_default_lights();
+	}
 
 	/* clear background */
 	UI_GetThemeColor3fv(TH_BACK, col);

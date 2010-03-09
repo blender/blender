@@ -229,6 +229,7 @@ typedef struct View3D {
 #define RV3D_FLYMODE				2
 #define RV3D_CLIPPING				4
 #define RV3D_NAVIGATING				8
+#define RV3D_GPULIGHT_UPDATE		16
 
 /* RegionView3d->viewlock */
 #define RV3D_LOCKED			1

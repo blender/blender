@@ -57,6 +57,8 @@
 
 #include "BIF_gl.h"
 
+#include "GPU_draw.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -602,8 +604,13 @@ static void view3d_main_area_listener(ARegion *ar, wmNotifier *wmn)
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_SPACE:
-			if(wmn->data == ND_SPACE_VIEW3D)
+			if(wmn->data == ND_SPACE_VIEW3D) {
+				if (wmn->subtype == NS_VIEW3D_GPU) {
+					RegionView3D *rv3d= ar->regiondata;
+					rv3d->rflag |= RV3D_GPULIGHT_UPDATE;
+				}
 				ED_region_tag_redraw(ar);
+			}
 			break;
 		case NC_ID:
 			if(wmn->action == NA_RENAME)

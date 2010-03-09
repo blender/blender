@@ -201,12 +201,9 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 	rna_userdef_update(bmain, scene, ptr);
 }
 
-// XXX - todo, this is not accessible from here and it only works when the userprefs are in the same window.
-// extern int GPU_default_lights(void);
 static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	// GPU_default_lights();
-	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D|NS_VIEW3D_GPU, NULL);
 	rna_userdef_update(bmain, scene, ptr);
 }
 
