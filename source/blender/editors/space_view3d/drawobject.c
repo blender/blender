@@ -5704,7 +5704,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			(ob!=scene->obedit)	
 	  ) {
 		ParticleSystem *psys;
-		PTCacheEdit *edit = PE_get_current(scene, ob);
 
 		if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
 		//glDepthMask(GL_FALSE);
@@ -5715,9 +5714,11 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 			/* run this so that possible child particles get cached */
-			if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT)
+			if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
+				PTCacheEdit *edit = PE_create_current(scene, ob);
 				if(edit && edit->psys == psys)
 					draw_update_ptcache_edit(scene, ob, edit);
+			}
 
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
 		}
@@ -5737,7 +5738,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	  ) {
 
 		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
-			PTCacheEdit *edit = PE_get_current(scene, ob);
+			PTCacheEdit *edit = PE_create_current(scene, ob);
 			if(edit) {
 				glLoadMatrixf(rv3d->viewmat);
 				draw_ptcache_edit(scene, v3d, rv3d, ob, edit, dt);
