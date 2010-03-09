@@ -592,7 +592,7 @@ int file_exec(bContext *C, wmOperator *exec_op)
 
 		if(RNA_struct_find_property(op->ptr, "relative_path"))
 			if(RNA_boolean_get(op->ptr, "relative_path"))
-				BLI_makestringcode(G.sce, name);
+				BLI_path_rel(name, G.sce);
 
 		RNA_string_set(op->ptr, "path", name);
 		

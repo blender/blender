@@ -270,7 +270,7 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	short a;
 	char *start, *eind;
 	if (relabase) {
-		BLI_convertstringcode(dir, relabase);
+		BLI_path_abs(dir, relabase);
 	} else {
 		if (dir[0]=='/' && dir[1]=='/') {
 			if (dir[2]== '\0') {
@@ -369,7 +369,7 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 }
 
 
-void BLI_makestringcode(const char *relfile, char *file)
+void BLI_path_rel(char *file, const char *relfile)
 {
 	char * p;
 	char * q;
@@ -542,7 +542,7 @@ static void ensure_digits(char *path, int digits)
 	}
 }
 
-int BLI_convertstringframe(char *path, int frame, int digits)
+int BLI_path_frame(char *path, int frame, int digits)
 {
 	int ch_sta, ch_end;
 
@@ -559,7 +559,7 @@ int BLI_convertstringframe(char *path, int frame, int digits)
 	return 0;
 }
 
-int BLI_convertstringframe_range(char *path, int sta, int end, int digits)
+int BLI_path_frame_range(char *path, int sta, int end, int digits)
 {
 	int ch_sta, ch_end;
 
@@ -576,7 +576,7 @@ int BLI_convertstringframe_range(char *path, int sta, int end, int digits)
 	return 0;
 }
 
-int BLI_convertstringcode(char *path, const char *basepath)
+int BLI_path_abs(char *path, const char *basepath)
 {
 	int wasrelative = (strncmp(path, "//", 2)==0);
 	char tmp[FILE_MAX];
@@ -677,7 +677,7 @@ int BLI_convertstringcode(char *path, const char *basepath)
  * Should only be done with command line paths.
  * this is NOT somthing blenders internal paths support like the // prefix
  */
-int BLI_convertstringcwd(char *path)
+int BLI_path_cwd(char *path)
 {
 	int wasrelative = 1;
 	int filelen = strlen(path);
@@ -1249,7 +1249,7 @@ int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char
 	BLI_strncpy(path, src_dir, sizeof(path));
 
 	/* expand "//" in filename and get absolute path */
-	BLI_convertstringcode(path, base_dir);
+	BLI_path_abs(path, base_dir);
 
 	/* get the directory part */
 	BLI_split_dirfile(path, dir, base);

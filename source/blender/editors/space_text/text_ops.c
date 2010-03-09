@@ -420,7 +420,7 @@ static void txt_write_file(Text *text, ReportList *reports)
 	char file[FILE_MAXDIR+FILE_MAXFILE];
 	
 	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(file, G.sce);
+	BLI_path_abs(file, G.sce);
 	
 	fp= fopen(file, "w");
 	if(fp==NULL) {
@@ -2542,7 +2542,7 @@ int text_file_modified(Text *text)
 		return 0;
 
 	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(file, G.sce);
+	BLI_path_abs(file, G.sce);
 
 	if(!BLI_exists(file))
 		return 2;
@@ -2570,7 +2570,7 @@ static void text_ignore_modified(Text *text)
 	if(!text || !text->name) return;
 
 	BLI_strncpy(file, text->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(file, G.sce);
+	BLI_path_abs(file, G.sce);
 
 	if(!BLI_exists(file)) return;
 

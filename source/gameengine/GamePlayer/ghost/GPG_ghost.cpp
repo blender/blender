@@ -681,7 +681,7 @@ int main(int argc, char** argv)
 
 				get_filename(argc_py_clamped, argv, filename);
 				if(filename[0])
-					BLI_convertstringcwd(filename);
+					BLI_path_cwd(filename);
 				
 				do
 				{
@@ -695,7 +695,7 @@ int main(int argc, char** argv)
 						
 						// base the actuator filename relative to the last file
 						strcpy(basedpath, exitstring.Ptr());
-						BLI_convertstringcode(basedpath, pathname);
+						BLI_path_abs(basedpath, pathname);
 						
 						bfd = load_game_data(basedpath);
 
@@ -706,7 +706,7 @@ int main(int argc, char** argv)
 							strcpy(temppath, "//");
 							strcat(temppath, basedpath);
 				
-							BLI_convertstringcode(temppath, pathname);
+							BLI_path_abs(temppath, pathname);
 							bfd = load_game_data(temppath);
 						}
 					}

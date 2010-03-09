@@ -209,7 +209,7 @@ static PyObject* gPyExpandPath(PyObject*, PyObject* args)
 		return NULL;
 
 	BLI_strncpy(expanded, filename, FILE_MAXDIR + FILE_MAXFILE);
-	BLI_convertstringcode(expanded, gp_GamePythonPath);
+	BLI_path_abs(expanded, gp_GamePythonPath);
 	return PyUnicode_FromString(expanded);
 }
 
@@ -471,7 +471,7 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 	
 	if (searchpath) {
 		BLI_strncpy(cpath, searchpath, FILE_MAXDIR + FILE_MAXFILE);
-		BLI_convertstringcode(cpath, gp_GamePythonPath);
+		BLI_path_abs(cpath, gp_GamePythonPath);
 	} else {
 		/* Get the dir only */
 		BLI_split_dirfile(gp_GamePythonPath, cpath, NULL);
@@ -1787,7 +1787,7 @@ static void initPySysObjects__append(PyObject *sys_path, char *filename)
 	char expanded[FILE_MAXDIR + FILE_MAXFILE];
 	
 	BLI_split_dirfile(filename, expanded, NULL); /* get the dir part of filename only */
-	BLI_convertstringcode(expanded, gp_GamePythonPath); /* filename from lib->filename is (always?) absolute, so this may not be needed but it wont hurt */
+	BLI_path_abs(expanded, gp_GamePythonPath); /* filename from lib->filename is (always?) absolute, so this may not be needed but it wont hurt */
 	BLI_cleanup_file(gp_GamePythonPath, expanded); /* Dont use BLI_cleanup_dir because it adds a slash - BREAKS WIN32 ONLY */
 	item= PyUnicode_FromString(expanded);
 	

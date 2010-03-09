@@ -80,7 +80,7 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 		RNA_string_get(op->ptr, "path", path);
 	
 		strcpy(G.ima, path);
-		BLI_convertstringcode(path, G.sce);
+		BLI_path_abs(path, G.sce);
 		
 		/* BKE_add_image_extension() checks for if extension was already set */
 		if(scene->r.scemode & R_EXTENSION) 

@@ -586,7 +586,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 	if (seq->type != SEQ_SCENE && seq->type != SEQ_META &&
 	    seq->type != SEQ_IMAGE) {
 		BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
-		BLI_convertstringcode(str, G.sce);
+		BLI_path_abs(str, G.sce);
 	}
 
 	if (seq->type == SEQ_IMAGE) {
@@ -1247,7 +1247,7 @@ static int seq_proxy_get_fname(Scene *scene, Sequence * seq, int cfra, char * na
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
 		BLI_join_dirfile(name, dir, seq->strip->proxy->file);
-		BLI_convertstringcode(name, G.sce);
+		BLI_path_abs(name, G.sce);
 
 		return TRUE;
 	}
@@ -1276,8 +1276,8 @@ static int seq_proxy_get_fname(Scene *scene, Sequence * seq, int cfra, char * na
 			 render_size);
 	}
 
-	BLI_convertstringcode(name, G.sce);
-	BLI_convertstringframe(name, frameno, 0);
+	BLI_path_abs(name, G.sce);
+	BLI_path_frame(name, frameno, 0);
 
 
 	strcat(name, ".jpg");
@@ -2044,7 +2044,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		if(se->ok == STRIPELEM_OK && se->ibuf == 0) {
 			StripElem * s_elem = give_stripelem(seq, cfra);
 			BLI_join_dirfile(name, seq->strip->dir, s_elem->name);
-			BLI_convertstringcode(name, G.sce);
+			BLI_path_abs(name, G.sce);
 			if (!build_proxy_run) {
 				se->ibuf = seq_proxy_fetch(scene, seq, cfra, render_size);
 			}
@@ -2078,7 +2078,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			if (se->ibuf == 0) {
 				if(seq->anim==0) {
 					BLI_join_dirfile(name, seq->strip->dir, seq->strip->stripdata->name);
-					BLI_convertstringcode(name, G.sce);
+					BLI_path_abs(name, G.sce);
 					
 					seq->anim = openanim(
 						name, IB_rect | 

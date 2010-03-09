@@ -2120,8 +2120,8 @@ static void load_backbuffer(Render *re)
 		char name[256];
 		
 		strcpy(name, re->r.backbuf);
-		BLI_convertstringcode(name, G.sce);
-		BLI_convertstringframe(name, re->r.cfra, 0);
+		BLI_path_abs(name, G.sce);
+		BLI_path_frame(name, re->r.cfra, 0);
 		
 		if(re->backbuf) {
 			re->backbuf->id.us--;

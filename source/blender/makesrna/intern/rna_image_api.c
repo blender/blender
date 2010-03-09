@@ -87,7 +87,7 @@ static void rna_Image_save(Image *image, ReportList *reports)
 	if(ibuf) {
 		char filename[FILE_MAXDIR + FILE_MAXFILE];
 		BLI_strncpy(filename, image->name, sizeof(filename));
-		BLI_convertstringcode(filename, G.sce);
+		BLI_path_abs(filename, G.sce);
 
 		if(image->packedfile) {
 			if (writePackedFile(reports, image->name, image->packedfile, 0) != RET_OK) {

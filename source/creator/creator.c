@@ -776,7 +776,7 @@ static int run_python(int argc, char **argv, void *data)
 	/* Make the path absolute because its needed for relative linked blends to be found */
 	char filename[FILE_MAXDIR + FILE_MAXFILE];
 	BLI_strncpy(filename, argv[1], sizeof(filename));
-	BLI_convertstringcwd(filename);
+	BLI_path_cwd(filename);
 
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
@@ -813,7 +813,7 @@ static int load_file(int argc, char **argv, void *data)
 	/* Make the path absolute because its needed for relative linked blends to be found */
 	char filename[FILE_MAXDIR + FILE_MAXFILE];
 	BLI_strncpy(filename, argv[0], sizeof(filename));
-	BLI_convertstringcwd(filename);
+	BLI_path_cwd(filename);
 
 	if (G.background) {
 		int retval = BKE_read_file(C, filename, NULL, NULL);

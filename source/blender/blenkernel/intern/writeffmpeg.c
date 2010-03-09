@@ -789,7 +789,7 @@ void filepath_ffmpeg(char* string, RenderData* rd) {
 	if (!string || !exts) return;
 
 	strcpy(string, rd->pic);
-	BLI_convertstringcode(string, G.sce);
+	BLI_path_abs(string, G.sce);
 
 	BLI_make_existing_file(string);
 
@@ -810,7 +810,7 @@ void filepath_ffmpeg(char* string, RenderData* rd) {
 	if (!*fe) {
 		strcat(string, autosplit);
 
-		BLI_convertstringframe_range(string, rd->sfra, rd->efra, 4);
+		BLI_path_frame_range(string, rd->sfra, rd->efra, 4);
 		strcat(string, *exts);
 	} else {
 		*(string + strlen(string) - strlen(*fe)) = 0;

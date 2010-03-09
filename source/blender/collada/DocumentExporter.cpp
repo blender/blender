@@ -1441,7 +1441,7 @@ public:
 
 					// make absolute source path
 					BLI_strncpy(src, image->name, sizeof(src));
-					BLI_convertstringcode(src, G.sce);
+					BLI_path_abs(src, G.sce);
 
 					// make dest directory if it doesn't exist
 					BLI_make_existing_file(abs);

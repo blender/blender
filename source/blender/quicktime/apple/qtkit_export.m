@@ -166,7 +166,7 @@ void filepath_qt(char *string, RenderData *rd) {
 		if (strchr(string, '#')==NULL)
 			strcat(string, "####"); /* 4 numbers */
 
-		BLI_convertstringframe_range(string, rd->sfra, rd->efra, 4);
+		BLI_path_frame_range(string, rd->sfra, rd->efra, 4);
 		strcat(string, ".mov");
 	}
 }

@@ -494,7 +494,7 @@ void filepath_qt(char *string, RenderData *rd) {
 	if (string==0) return;
 
 	strcpy(string, rd->pic);
-	BLI_convertstringcode(string, G.sce);
+	BLI_path_abs(string, G.sce);
 
 	BLI_make_existing_file(string);
 

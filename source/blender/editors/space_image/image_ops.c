@@ -817,7 +817,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 
 	if (ibuf) {
 		int relative= RNA_boolean_get(op->ptr, "relative_path");
-		BLI_convertstringcode(path, G.sce);
+		BLI_path_abs(path, G.sce);
 		
 		if(scene->r.scemode & R_EXTENSION)  {
 			BKE_add_image_extension(path, sima->imtypenr);
@@ -837,7 +837,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 				RE_WriteRenderResult(rr, path, scene->r.quality);
 
 				if(relative)
-					BLI_makestringcode(G.sce, path); /* only after saving */
+					BLI_path_rel(path, G.sce); /* only after saving */
 
 				BLI_strncpy(ima->name, path, sizeof(ima->name));
 				BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
@@ -855,7 +855,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 			char *name;
 
 			if(relative)
-				BLI_makestringcode(G.sce, path); /* only after saving */
+				BLI_path_rel(path, G.sce); /* only after saving */
 
 			BLI_strncpy(ima->name, path, sizeof(ima->name));
 			BLI_strncpy(ibuf->name, path, sizeof(ibuf->name));
@@ -1094,7 +1094,7 @@ static int save_sequence_exec(bContext *C, wmOperator *op)
 			char name[FILE_MAX];
 			BLI_strncpy(name, ibuf->name, sizeof(name));
 			
-			BLI_convertstringcode(name, G.sce);
+			BLI_path_abs(name, G.sce);
 
 			if(0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
 				BKE_reportf(op->reports, RPT_ERROR, "Could not write image %s.", name);

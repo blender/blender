@@ -136,7 +136,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 				BLI_cleanup_dir(G.sce, params->dir);	
 			} else { 
 				/* if operator has path set, use it, otherwise keep the last */
-				BLI_convertstringcode(name, G.sce);
+				BLI_path_abs(name, G.sce);
 				BLI_split_dirfile(name, dir, file);
 				BLI_strncpy(params->file, file, sizeof(params->file));
 				BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */

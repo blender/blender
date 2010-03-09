@@ -5210,7 +5210,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 		 * relative to the blend file since indirectly linked libs will be relative to their direct linked library */
 		if (strncmp(lib->name, "//", 2)==0) { /* if this is relative to begin with? */
 			strncpy(lib->name, lib->filename, sizeof(lib->name));
-			BLI_makestringcode(basepath, lib->name);
+			BLI_path_rel(lib->name, basepath);
 		}
 	}
 }
@@ -9614,7 +9614,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					{
 						char str[FILE_MAX];
 						BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
-						BLI_convertstringcode(str, G.sce);
+						BLI_path_abs(str, G.sce);
 						seq->sound = sound_new_file(main, str);
 					}
 				}
@@ -11957,13 +11957,13 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	read_libraries(*fd, &(*fd)->mainlist);
 
 	/* make the lib path relative if required */
-	if(flag & FILE_STRINGCODE) {
+	if(flag & FILE_RELPATH) {
 
 		/* use the full path, this could have been read by other library even */
 		BLI_strncpy(mainl->curlib->name, mainl->curlib->filename, sizeof(mainl->curlib->name));
 		
 		/* uses current .blend file as reference */
-		BLI_makestringcode(G.sce, mainl->curlib->name);
+		BLI_path_rel(mainl->curlib->name, G.sce);
 	}
 
 	blo_join_main(&(*fd)->mainlist);

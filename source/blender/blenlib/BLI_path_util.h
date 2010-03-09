@@ -96,12 +96,12 @@ int BLI_has_parent(char *path);
 	 * @a framenum The framenumber to replace the frame code with.
 	 * @retval Returns true if the path was relative (started with "//").
 	 */
-int BLI_convertstringcode(char *path, const char *basepath);
-int BLI_convertstringframe(char *path, int frame, int digits);
-int BLI_convertstringframe_range(char *path, int sta, int end, int digits);
-int BLI_convertstringcwd(char *path);
+int BLI_path_abs(char *path, const char *basepath);
+int BLI_path_frame(char *path, int frame, int digits);
+int BLI_path_frame_range(char *path, int sta, int end, int digits);
+int BLI_path_cwd(char *path);
 
-void BLI_makestringcode(const char *relfile, char *file);
+void BLI_path_rel(char *file, const char *relfile);
 
 	/**
 	 * Change every @a from in @a string into @a to. The

@@ -137,9 +137,9 @@ void BLI_bpathIterator_getPathExpanded( struct BPathIterator *bpi, char *path_ex
 	libpath = BLI_bpathIterator_getLib(bpi);
 	
 	if (libpath) { /* check the files location relative to its library path */
-		BLI_convertstringcode(path_expanded, libpath);
+		BLI_path_abs(path_expanded, libpath);
 	} else { /* local data, use the blend files path */
-		BLI_convertstringcode(path_expanded, bpi->base_path);
+		BLI_path_abs(path_expanded, bpi->base_path);
 	}
 }
 char* BLI_bpathIterator_getLib( struct BPathIterator *bpi) {
@@ -533,7 +533,7 @@ void makeFilesRelative(char *basepath, ReportList *reports) {
 				/* Important BLI_cleanup_dir runs before the path is made relative
 				 * because it wont work for paths that start with "//../" */ 
 				BLI_cleanup_file(bpi.base_path, filepath_relative); /* fix any /foo/../foo/ */
-				BLI_makestringcode(bpi.base_path, filepath_relative);
+				BLI_path_rel(filepath_relative, bpi.base_path);
 				/* be safe and check the length */
 				if (BLI_bpathIterator_getPathMaxLen(&bpi) <= strlen(filepath_relative)) {
 					bpath_as_report(&bpi, "couldn't make path relative (too long)", reports);
@@ -709,7 +709,7 @@ void findMissingFiles(char *basepath, char *str) {
 					} else {
 						/* copy the found path into the old one */
 						if (G.relbase_valid)
-							BLI_makestringcode(bpi.base_path, filename_new);
+							BLI_path_rel(filename_new, bpi.base_path);
 						
 						BLI_bpathIterator_setPath( &bpi, filename_new );
 					}

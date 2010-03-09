@@ -283,7 +283,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 			// to the first file but that makes no sense, relative paths in
 			// blend files should be relative to that file, not some other file
 			// that happened to be loaded first
-			BLI_convertstringcode(basedpath, pathname);
+			BLI_path_abs(basedpath, pathname);
 			bfd = load_game_data(basedpath);
 			
 			// if it wasn't loaded, try it forced relative
@@ -294,7 +294,7 @@ extern "C" void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *c
 				strcpy(temppath, "//");
 				strcat(temppath, basedpath);
 				
-				BLI_convertstringcode(temppath, pathname);
+				BLI_path_abs(temppath, pathname);
 				bfd = load_game_data(temppath);
 			}
 			

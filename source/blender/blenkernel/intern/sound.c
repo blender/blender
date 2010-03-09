@@ -127,7 +127,7 @@ struct bSound* sound_new_file(struct Main *bmain, char* filename)
 	int len;
 
 	strcpy(str, filename);
-	BLI_convertstringcode(str, bmain->name);
+	BLI_path_abs(str, bmain->name);
 
 	len = strlen(filename);
 	while(len > 0 && filename[len-1] != '/' && filename[len-1] != '\\')
@@ -262,7 +262,7 @@ void sound_load(struct Main *bmain, struct bSound* sound)
 			else
 				path = bmain ? bmain->name : G.sce;
 
-			BLI_convertstringcode(fullpath, path);
+			BLI_path_abs(fullpath, path);
 
 			/* but we need a packed file then */
 			if (pf)
