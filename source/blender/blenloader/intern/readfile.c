@@ -10647,6 +10647,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* put 2.50 compatibility code here until next subversion bump */
 	{
+		Brush *brush;
+		
+		for (brush= main->brush.first; brush; brush= brush->id.next) {
+			if (brush->curve) brush->curve->preset = CURVE_PRESET_SMOOTH;
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

@@ -239,7 +239,7 @@ void curvemap_insert(CurveMap *cuma, float x, float y)
 	cuma->curve= cmp;
 }
 
-void curvemap_reset(CurveMap *cuma, rctf *clipr, CurveMappingPreset preset)
+void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset)
 {
 	if(cuma->curve)
 		MEM_freeN(cuma->curve);
@@ -249,6 +249,7 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, CurveMappingPreset preset)
 		case CURVE_PRESET_SHARP: cuma->totpoint= 3; break;
 		case CURVE_PRESET_SMOOTH: cuma->totpoint= 4; break;
 		case CURVE_PRESET_MAX: cuma->totpoint= 2; break;
+		case CURVE_PRESET_MID9: cuma->totpoint= 9;
 	}
 
 	cuma->curve= MEM_callocN(cuma->totpoint*sizeof(CurveMapPoint), "curve points");
@@ -286,6 +287,15 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, CurveMappingPreset preset)
 			cuma->curve[1].x= 1;
 			cuma->curve[1].y= 1;
 			break;
+		case CURVE_PRESET_MID9:
+			{
+				int i;
+				for (i=0; i < cuma->totpoint; i++)
+				{
+					cuma->curve[i].x= i / ((float)cuma->totpoint-1);
+					cuma->curve[i].y= 0.5;
+				}
+			}
 	}
 	
 	if(cuma->table) {
