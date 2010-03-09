@@ -143,7 +143,7 @@ void makeqtstring (RenderData *rd, char *string) {
 	char txt[64];
 
 	strcpy(string, rd->pic);
-	BLI_convertstringcode(string, G.sce);
+	BLI_path_abs(string, G.sce);
 
 	BLI_make_existing_file(string);
 
@@ -157,7 +157,7 @@ void filepath_qt(char *string, RenderData *rd) {
 	if (string==NULL) return;
 	
 	strcpy(string, rd->pic);
-	BLI_convertstringcode(string, G.sce);
+	BLI_path_abs(string, G.sce);
 	
 	BLI_make_existing_file(string);
 	
