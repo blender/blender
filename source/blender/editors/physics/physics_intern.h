@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 by Janne Karhu.
  * All rights reserved.
@@ -50,6 +50,7 @@ void PARTICLE_OT_reveal(struct wmOperatorType *ot);
 void PARTICLE_OT_rekey(struct wmOperatorType *ot);
 void PARTICLE_OT_subdivide(struct wmOperatorType *ot);
 void PARTICLE_OT_remove_doubles(struct wmOperatorType *ot);
+void PARTICLE_OT_weight_set(struct wmOperatorType *ot);
 void PARTICLE_OT_delete(struct wmOperatorType *ot);
 void PARTICLE_OT_mirror(struct wmOperatorType *ot);
 

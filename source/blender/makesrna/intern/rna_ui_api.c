@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -79,7 +79,7 @@ static void api_ui_item_common(FunctionRNA *func)
 
 	prop= RNA_def_property(func, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, icon_items);
-	RNA_def_property_ui_text(prop, "Icon", "Override automatic icon of the item.");
+	RNA_def_property_ui_text(prop, "Icon", "Override automatic icon of the item");
 
 }
 
@@ -299,10 +299,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm= RNA_def_string(func, "text", "", 0, "", "Custom label to display in UI.");
 	
 	func= RNA_def_function(srna, "template_modifier", "uiTemplateModifier");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm= RNA_def_pointer(func, "data", "Modifier", "", "Modifier data.");
 	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
 	parm= RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in.");
 	RNA_def_function_return(func, parm);
+	RNA_def_boolean(func, "compact", 0, "", "Show a smaller version of the template, split on two lines.");
 
 	func= RNA_def_function(srna, "template_constraint", "uiTemplateConstraint");
 	parm= RNA_def_pointer(func, "data", "Constraint", "", "Constraint data.");
@@ -326,6 +328,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_rna_common(func);
 	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
 	
+	func= RNA_def_function(srna, "template_histogram", "uiTemplateHistogram");
+	api_ui_item_rna_common(func);
+	RNA_def_boolean(func, "expand", 0, "", "Expand button to show more detail.");
+	
 	func= RNA_def_function(srna, "template_layers", "uiTemplateLayers");
 	api_ui_item_rna_common(func);
 	parm= RNA_def_pointer(func, "used_layers_data", "AnyType", "", "Data from which to take property.");
@@ -338,6 +344,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func= RNA_def_function(srna, "template_color_wheel", "uiTemplateColorWheel");
 	api_ui_item_rna_common(func);
 	RNA_def_boolean(func, "value_slider", 0, "", "Display the value slider to the right of the color wheel");
+	RNA_def_boolean(func, "lock", 0, "", "Lock the color wheel display to value 1.0 regardless of actual color");
 	
 	func= RNA_def_function(srna, "template_triColorSet", "uiTemplateTriColorSet");
 	api_ui_item_rna_common(func);
@@ -377,6 +384,11 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func= RNA_def_function(srna, "template_header_3D", "uiTemplateHeader3D");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	
+	func= RNA_def_function(srna, "template_reports_banner", "uiTemplateReportsBanner");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm= RNA_def_pointer(func, "operator", "Operator", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 
 

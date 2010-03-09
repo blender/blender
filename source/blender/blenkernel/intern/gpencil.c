@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008, Blender Foundation
  * This is a new part of Blender
@@ -194,7 +194,7 @@ bGPDlayer *gpencil_layer_addnew (bGPdata *gpd)
 	
 	/* auto-name */
 	sprintf(gpl->info, "GP_Layer");
-	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info[0]), 128);
+	BLI_uniquename(&gpd->layers, gpl, "GP_Layer", '.', offsetof(bGPDlayer, info[0]), sizeof(gpl->info));
 	
 	/* make this one the active one */
 	gpencil_layer_setactive(gpd, gpl);

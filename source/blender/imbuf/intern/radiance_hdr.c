@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright
  * All rights reserved.
@@ -283,7 +283,7 @@ static int fwritecolrs(FILE* file, int width, int channels, unsigned char* ibufs
 	putc(2, file);
 	putc((unsigned char)(width >> 8), file);
 	putc((unsigned char)(width & 255), file);
-	/* put components seperately */
+	/* put components separately */
 	for (i=0;i<4;i++) {
 		for (j=0;j<width;j+=cnt) {	/* find next run */
 			for (beg=j;beg<width;beg+=cnt) {

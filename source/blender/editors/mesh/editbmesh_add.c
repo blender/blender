@@ -125,13 +125,13 @@ static float new_primitive_matrix(bContext *C, float *loc, float *rot, float pri
 /* ********* add primitive operators ************* */
 
 static void make_prim_init(bContext *C, float *dia, float mat[][4], 
-						   int *state, float *loc, float *rot)
+						   int *state, float *loc, float *rot, int layer)
 {
 	Object *obedit= CTX_data_edit_object(C);
 
 	*state = 0;
 	if(obedit==NULL || obedit->type!=OB_MESH) {
-		obedit= ED_object_add_type(C, OB_MESH, loc, rot, FALSE);
+		obedit= ED_object_add_type(C, OB_MESH, loc, rot, FALSE, layer);
 		
 		/* create editmode */
 		ED_object_enter_editmode(C, EM_DO_UNDO|EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
@@ -164,9 +164,10 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
+	int layer;
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
-	make_prim_init(C, &dia, mat, &state, loc, rot);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -208,10 +209,10 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
-
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
-
-	make_prim_init(C, &dia, mat, &state, loc, rot);
+	int layer;
+	
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit= CTX_data_edit_object(C);
 	me = obedit->data;
@@ -291,9 +292,10 @@ static int add_primitive_tube_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
+	int layer;
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
-	make_prim_init(C, &dia, mat, &state, loc, rot);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -340,9 +342,10 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
+	int layer;
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
-	make_prim_init(C, &dia, mat, &state, loc, rot);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -391,9 +394,10 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
+	int layer;
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
-	make_prim_init(C, &dia, mat, &state, loc, rot);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -443,9 +447,10 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
+	int layer;
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
-	make_prim_init(C, &dia, mat, &state, loc, rot);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -486,9 +491,10 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
+	int layer;
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
-	make_prim_init(C, &dia, mat, &state, loc, rot);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;
@@ -536,9 +542,10 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3], mat[4][4], dia;
 	int enter_editmode;
 	int state;
+	int layer;
 	
-	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode);
-	make_prim_init(C, &dia, mat, &state, loc, rot);
+	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
+	make_prim_init(C, &dia, mat, &state, loc, rot, layer);
 
 	obedit = CTX_data_edit_object(C);
 	me = obedit->data;

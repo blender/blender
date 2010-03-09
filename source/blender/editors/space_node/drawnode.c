@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -94,54 +94,13 @@
 
 #include "node_intern.h"
 
-/* ****************** GENERAL CALLBACKS FOR NODES ***************** */
-
-#if 0
-/* XXX not used yet, make compiler happy :) */
-static void node_group_alone_cb(bContext *C, void *node_v, void *unused_v)
-{
-	bNode *node= node_v;
-	
-	nodeCopyGroup(node);
-
-	// allqueue(REDRAWNODE, 0);
-}
 
 /* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
 
-static void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
+void node_buts_group(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiBlock *block= uiLayoutAbsoluteBlock(layout);
-	bNode *node= ptr->data;
-	rctf *butr= &node->butr;
-
-	if(node->id) {
-		uiBut *bt;
-		short width;
-		
-		uiBlockBeginAlign(block);
-		
-		/* name button */
-		width= (short)(butr->xmax-butr->xmin - (node->id->us>1?19.0f:0.0f));
-		bt= uiDefBut(block, TEX, B_NOP, "NT:",
-					 (short)butr->xmin, (short)butr->ymin, width, 19, 
-					 node->id->name+2, 0.0, 19.0, 0, 0, "NodeTree name");
-		uiButSetFunc(bt, node_ID_title_cb, node, NULL);
-		
-		/* user amount */
-		if(node->id->us>1) {
-			char str1[32];
-			sprintf(str1, "%d", node->id->us);
-			bt= uiDefBut(block, BUT, B_NOP, str1, 
-						 (short)butr->xmax-19, (short)butr->ymin, 19, 19, 
-						 NULL, 0, 0, 0, 0, "Displays number of users.");
-			uiButSetFunc(bt, node_group_alone_cb, node, NULL);
-		}
-		
-		uiBlockEndAlign(block);
-	}	
+	uiTemplateIDBrowse(layout, C, ptr, "nodetree", NULL, NULL, "");
 }
-#endif
 
 static void node_buts_value(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
@@ -166,7 +125,7 @@ static void node_buts_rgb(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	RNA_property_collection_lookup_int(ptr, prop, 0, &sockptr);
 	
 	col = uiLayoutColumn(layout, 0);
-	uiTemplateColorWheel(col, &sockptr, "default_value", 1);
+	uiTemplateColorWheel(col, &sockptr, "default_value", 1, 0);
 	uiItemR(col, "", 0, &sockptr, "default_value", 0);
 }
 
@@ -954,6 +913,56 @@ static void node_composit_buts_view_levels(uiLayout *layout, bContext *C, Pointe
 	uiItemR(layout, NULL, 0, ptr, "channel", UI_ITEM_R_EXPAND);
 }
 
+static void node_composit_buts_colorbalance(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiLayout *split, *col, *row;
+	
+	uiItemR(layout, NULL, 0, ptr, "correction_formula", 0);
+	
+	if (RNA_enum_get(ptr, "correction_formula")== 0) {
+	
+		split = uiLayoutSplit(layout, 0, 0);
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "lift", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "lift", 0);
+		
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "gamma", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "gamma", 0);
+		
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "gain", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "gain", 0);
+
+	} else {
+		
+		split = uiLayoutSplit(layout, 0, 0);
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "offset", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "offset", 0);
+		
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "power", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "power", 0);
+		
+		col = uiLayoutColumn(split, 0);
+		uiTemplateColorWheel(col, ptr, "slope", 1, 1);
+		row = uiLayoutRow(col, 0);
+		uiItemR(row, NULL, 0, ptr, "slope", 0);
+	}
+
+}
+
+static void node_composit_buts_huecorrect(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiTemplateCurveMapping(layout, ptr, "mapping", 'h', 0, 0);
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -1083,8 +1092,14 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_PREMULKEY:
 			ntype->uifunc= node_composit_buts_premulkey;
 			break;
-      case CMP_NODE_VIEW_LEVELS:
+		case CMP_NODE_VIEW_LEVELS:
 			ntype->uifunc=node_composit_buts_view_levels;
+ 			break;
+		case CMP_NODE_COLORBALANCE:
+			ntype->uifunc=node_composit_buts_colorbalance;
+ 			break;
+		case CMP_NODE_HUECORRECT:
+			ntype->uifunc=node_composit_buts_huecorrect;
  			break;
 		default:
 			ntype->uifunc= NULL;
@@ -1256,8 +1271,11 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 		if(ibuf) {
 			float x, y; 
 			
-			wmPushMatrix();
-			
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+
 			/* somehow the offset has to be calculated inverse */
 			
 			glaDefine2DArea(&ar->winrct);
@@ -1278,7 +1296,10 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 			if(ibuf->rect)
 				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 			
-			wmPopMatrix();
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
 		}
 
 		BKE_image_release_ibuf(ima, lock);

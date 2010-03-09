@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -1256,8 +1256,8 @@ static void cgdm_getFinalFace(DerivedMesh *dm, int faceNum, MFace *mf)
 	if(faceFlags) {
 		mf->flag = faceFlags[i*2];
 		mf->mat_nr = faceFlags[i*2+1];
-	} else 
-		mf->flag = ME_SMOOTH;
+	}
+	else mf->flag = ME_SMOOTH;
 }
 
 static void cgdm_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
@@ -1308,7 +1308,6 @@ static void cgdm_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 		for(x = 1; x < edgeSize - 1; x++, i++) {
 			vd= ccgSubSurf_getEdgeData(ss, e, x);
 			copy_v3_v3(mvert[i].co, vd->co);
-			/* TODO CCGSubsurf does not set these */
 			normal_float_to_short_v3(mvert[i].no, vd->no);
 		}
 	}
@@ -1872,6 +1871,21 @@ void ccgDM_glNormalFast(float *a, float *b, float *c, float *d)
 	glNormal3fv(no);
 }
 
+static void ccgdm_pbvh_update(CCGDerivedMesh *ccgdm)
+{
+	if(ccgdm->pbvh) {
+		CCGFace **faces;
+		int totface;
+
+		BLI_pbvh_get_grid_updates(ccgdm->pbvh, 1, (void***)&faces, &totface);
+		if(totface) {
+			ccgSubSurf_updateFromFaces(ccgdm->ss, 0, faces, totface);
+			ccgSubSurf_updateNormals(ccgdm->ss, faces, totface);
+			MEM_freeN(faces);
+		}
+	}
+}
+
 	/* Only used by non-editmesh types */
 static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)[4], int fast, int (*setMaterial)(int, void *attribs)) {
 	CCGDerivedMesh *cgdm = (CCGDerivedMesh*) dm;
@@ -1881,24 +1895,17 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, float (*partial_redraw_planes)
 	char *faceFlags = cgdm->faceFlags;
 	int step = (fast)? gridSize-1: 1;
 
+	ccgdm_pbvh_update(cgdm);
 	if(cgdm->pbvh && cgdm->multires.mmd && !fast) {
-		CCGFace **faces;
-		int totface;
-		
-		BLI_pbvh_get_grid_updates(cgdm->pbvh, 1, (void***)&faces, &totface);
-		if(totface) {
-			ccgSubSurf_updateFromFaces(ss, 0, faces, totface);
-			ccgSubSurf_updateNormals(ss, faces, totface);
-			MEM_freeN(faces);
+		if(dm->numFaceData) {
+			/* should be per face */
+			if(!setMaterial(faceFlags[1]+1, NULL))
+				return;
+
+			glShadeModel((faceFlags[0] & ME_SMOOTH)? GL_SMOOTH: GL_FLAT);
+			BLI_pbvh_draw(cgdm->pbvh, partial_redraw_planes, NULL);
+			glShadeModel(GL_FLAT);
 		}
-
-		/* should be per face */
-		if(faceFlags && faceFlags[0] & ME_SMOOTH)
-			glShadeModel(GL_SMOOTH);
-
-		BLI_pbvh_draw(cgdm->pbvh, partial_redraw_planes, NULL);
-
-		glShadeModel(GL_FLAT);
 
 		return;
 	}
@@ -1981,6 +1988,8 @@ static void cgdm_drawMappedFacesGLSL(DerivedMesh *dm, int (*setMaterial)(int, vo
 	int transp, orig_transp, new_transp;
 	char *faceFlags = cgdm->faceFlags;
 	int a, b, i, doDraw, numVerts, matnr, new_matnr, totface;
+
+	ccgdm_pbvh_update(cgdm);
 
 	doDraw = 0;
 	numVerts = 0;
@@ -2136,6 +2145,8 @@ static void cgdm_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned cha
 	unsigned char *cp1, *cp2;
 	int useTwoSide=1;
 
+	ccgdm_pbvh_update(cgdm);
+
 	cp1= col1;
 	if(col2) {
 		cp2= col2;
@@ -2205,6 +2216,8 @@ static void cgdm_drawFacesTex_common(DerivedMesh *dm,
 	char *faceFlags = cgdm->faceFlags;
 	int i, totface, flag, gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
+
+	ccgdm_pbvh_update(cgdm);
 
 	if(!mcol)
 		mcol = dm->getTessFaceDataArray(dm, CD_MCOL);
@@ -3322,7 +3335,9 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	CCGDerivedMesh *result = NULL;
 
 	if(editMode) {
-		smd->emCache = _getSubSurf(smd->emCache, smd->levels, useAging, 0,
+		int levels= (smd->modifier.scene)? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels): smd->levels;
+
+		smd->emCache = _getSubSurf(smd->emCache, levels, useAging, 0,
 		                           useSimple);
 		ss_sync_from_derivedmesh(smd->emCache, dm, vertCos, useSimple);
 
@@ -3332,9 +3347,8 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	} else if(useRenderParams) {
 		/* Do not use cache in render mode. */
 		CCGSubSurf *ss;
-		int levels;
-		
-		levels= smd->renderLevels; // XXX get_render_subsurf_level(&scene->r, smd->renderLevels);
+		int levels= (smd->modifier.scene)? get_render_subsurf_level(&smd->modifier.scene->r, smd->renderLevels): smd->renderLevels;
+
 		if(levels == 0)
 			return dm;
 		
@@ -3349,6 +3363,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	} else {
 		int useIncremental = 1; //(smd->flags & eSubsurfModifierFlag_Incremental);
 		int useAging = smd->flags & eSubsurfModifierFlag_DebugIncr;
+		int levels= (smd->modifier.scene)? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels): smd->levels;
 		CCGSubSurf *ss;
 		
 		/* It is quite possible there is a much better place to do this. It
@@ -3365,7 +3380,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		}
 
 		if(useIncremental && isFinalCalc) {
-			smd->mCache = ss = _getSubSurf(smd->mCache, smd->levels,
+			smd->mCache = ss = _getSubSurf(smd->mCache, levels,
 			                               useAging, 0, useSimple);
 
 			ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
@@ -3379,7 +3394,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 				smd->mCache = NULL;
 			}
 
-			ss = _getSubSurf(NULL, smd->levels, 0, 1, useSimple);
+			ss = _getSubSurf(NULL, levels, 0, 1, useSimple);
 			ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
 
 			result = getCCGDerivedMesh(ss, drawInteriorEdges, useSubsurfUv, dm);

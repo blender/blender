@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -153,6 +153,9 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				break;
 			case SPACE_USERPREF:
 				ts= &btheme->tuserpref;
+				break;
+			case SPACE_CONSOLE:
+				ts= &btheme->tconsole;
 				break;
 			case SPACE_TIME:
 				ts= &btheme->ttime;
@@ -290,6 +293,8 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= &ts->facedot_size; break;
 			case TH_NORMAL:
 				cp= ts->normal; break;
+			case TH_VNORMAL:
+				cp= ts->vertex_normal; break;
 			case TH_BONE_SOLID:
 				cp= ts->bone_solid; break;
 			case TH_BONE_POSE:
@@ -340,6 +345,17 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case TH_SEQ_META:
 				cp= ts->meta; break;
 				
+			case TH_CONSOLE_OUTPUT:
+				cp= ts->console_output; break;
+			case TH_CONSOLE_INPUT:
+				cp= ts-> console_input; break;
+			case TH_CONSOLE_INFO:
+				cp= ts->console_info; break;
+			case TH_CONSOLE_ERROR:
+				cp= ts->console_error; break;
+			case TH_CONSOLE_CURSOR:
+				cp= ts->console_cursor; break;
+
 			case TH_HANDLE_VERTEX:
 				cp= ts->handle_vertex;
 				break;
@@ -356,11 +372,15 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 			case TH_DOPESHEET_CHANNELSUBOB:
 				cp= ts->ds_subchannel;
 				break;	
+
 			case TH_PIN:
 				cp= ts->pin; break;
 			case TH_PIN_OPAC:
 				cp= &ts->pin_opac; break;
-				
+					
+			case TH_PREVIEW_BACK:
+				cp= ts->preview_back;
+				break;	
 			}
 		}
 	}
@@ -411,6 +431,7 @@ static void ui_theme_init_new(bTheme *btheme)
 	ui_theme_init_new_do(&btheme->tnode);
 	ui_theme_init_new_do(&btheme->tlogic);
 	ui_theme_init_new_do(&btheme->tuserpref);
+	ui_theme_init_new_do(&btheme->tconsole);
 	
 }
 
@@ -474,6 +495,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tv3d.face,       0, 0, 0, 18);
 	SETCOL(btheme->tv3d.face_select, 255, 133, 0, 60);
 	SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
+	SETCOL(btheme->tv3d.vertex_normal, 0x23, 0x61, 0xDD, 255);
 	SETCOL(btheme->tv3d.face_dot, 255, 133, 0, 255);
 	btheme->tv3d.facedot_size= 4;
 	SETCOL(btheme->tv3d.cframe, 0x60, 0xc0,	 0x40, 255);
@@ -563,6 +585,7 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tima.face,   255, 255, 255, 10);
 	SETCOL(btheme->tima.face_select, 255, 133, 0, 60);
 	SETCOL(btheme->tima.editmesh_active, 255, 255, 255, 128);
+	SETCOLF(btheme->tima.preview_back, 	0.45, 0.45, 0.45, 1.0);
 
 	/* space imageselect */
 	btheme->timasel= btheme->tv3d;
@@ -601,6 +624,16 @@ void ui_theme_init_userdef(void)
 	/* space user preferences */
 	btheme->tuserpref= btheme->tv3d;
 	SETCOLF(btheme->tuserpref.back, 0.45, 0.45, 0.45, 1.0);
+	
+	/* space console */
+	btheme->tconsole= btheme->tv3d;
+	SETCOL(btheme->tconsole.back, 0, 0, 0, 255);
+	SETCOL(btheme->tconsole.console_output, 96, 128, 255, 255);
+	SETCOL(btheme->tconsole.console_input, 255, 255, 255, 255);
+	SETCOL(btheme->tconsole.console_info, 0, 170, 0, 255);
+	SETCOL(btheme->tconsole.console_error, 220, 96, 96, 255);
+	SETCOL(btheme->tconsole.console_cursor, 220, 96, 96, 255);
+	
 
 	/* space sound */
 	btheme->tsnd= btheme->tv3d;
@@ -965,6 +998,9 @@ void init_userdef_do_versions(void)
 			}
 			if(btheme->tv3d.normal[3]==0) {
 				SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
+			}
+			if(btheme->tv3d.vertex_normal[3]==0) {
+				SETCOL(btheme->tv3d.vertex_normal, 0x23, 0x61, 0xDD, 255);
 			}
 			if(btheme->tv3d.face_dot[3]==0) {
 				SETCOL(btheme->tv3d.face_dot, 255, 138, 48, 255);
@@ -1337,6 +1373,11 @@ void init_userdef_do_versions(void)
 				strcpy(km->idname, "Property Editor");
 		}
 	}
+	if (G.main->versionfile < 250 || (G.main->versionfile == 250 && G.main->subversionfile < 16)) {
+		if(U.wmdrawmethod == USER_DRAW_TRIPLE)
+			U.wmdrawmethod = USER_DRAW_AUTOMATIC;
+	}
+
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {
@@ -1354,6 +1395,13 @@ void init_userdef_do_versions(void)
 	}
 	if (U.anim_player_preset == 0) {
 		U.anim_player_preset =1 ;
+	}
+	if (U.scrcastfps == 0) {
+		U.scrcastfps = 10;
+		U.scrcastwait = 50;
+	}
+	if (U.v2d_min_gridsize == 0) {
+		U.v2d_min_gridsize= 35;
 	}
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */

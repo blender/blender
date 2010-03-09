@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation
  *
@@ -89,45 +89,61 @@
  */
 short ANIM_fcurve_keys_bezier_loop(BeztEditData *bed, FCurve *fcu, BeztEditFunc bezt_ok, BeztEditFunc bezt_cb, FcuEditFunc fcu_cb) 
 {
-    BezTriple *bezt;
-	int b;
+ 	BezTriple *bezt;
+ 	int i;
 	
 	/* sanity check */
 	if (ELEM(NULL, fcu, fcu->bezt))
 		return 0;
 	
+	/* set the F-Curve into the editdata so that it can be accessed */
+ 	if (bed) {
+ 		bed->fcu= fcu;
+ 		bed->curIndex= 0;
+ 	}
+	
 	/* if function to apply to bezier curves is set, then loop through executing it on beztriples */
-    if (bezt_cb) {
+ 	if (bezt_cb) {
 		/* if there's a validation func, include that check in the loop 
 		 * (this is should be more efficient than checking for it in every loop)
 		 */
 		if (bezt_ok) {
-			for (b=0, bezt=fcu->bezt; b < fcu->totvert; b++, bezt++) {
+			for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
+				if (bed) bed->curIndex= i;
+				
 				/* Only operate on this BezTriple if it fullfills the criteria of the validation func */
 				if (bezt_ok(bed, bezt)) {
 					/* Exit with return-code '1' if function returns positive
 					 * This is useful if finding if some BezTriple satisfies a condition.
 					 */
-			        if (bezt_cb(bed, bezt)) return 1;
+					if (bezt_cb(bed, bezt)) return 1;
 				}
 			}
 		}
 		else {
-			for (b=0, bezt=fcu->bezt; b < fcu->totvert; b++, bezt++) {
+			for (bezt=fcu->bezt, i=0; i < fcu->totvert; bezt++, i++) {
+				if (bed) bed->curIndex= i;
+				
 				/* Exit with return-code '1' if function returns positive
 				 * This is useful if finding if some BezTriple satisfies a condition.
 				 */
-		        if (bezt_cb(bed, bezt)) return 1;
+				if (bezt_cb(bed, bezt)) return 1;
 			}
 		}
-    }
+	 }
+	
+	/* unset the F-Curve from the editdata now that it's done */
+ 	if (bed) {
+ 		bed->fcu= NULL;
+ 		bed->curIndex= 0;
+ 	}
 
-    /* if fcu_cb (F-Curve post-editing callback) has been specified then execute it */
-    if (fcu_cb)
-        fcu_cb(fcu);
+	/* if fcu_cb (F-Curve post-editing callback) has been specified then execute it */
+	if (fcu_cb)
+		fcu_cb(fcu);
 	
 	/* done */	
-    return 0;
+	return 0;
 }
 
 /* -------------------------------- Further Abstracted (Not Exposed Directly) ----------------------------- */
@@ -219,7 +235,7 @@ static short ob_keys_bezier_loop(BeztEditData *bed, Object *ob, BeztEditFunc bez
 	if ((ob->totcol) && !(filterflag & ADS_FILTER_NOMAT)) {
 		int a;
 		
-		for (a=0; a < ob->totcol; a++) {
+		for (a=1; a <= ob->totcol; a++) {
 			Material *ma= give_current_material(ob, a);
 			
 			/* there might not be a material */
@@ -626,6 +642,7 @@ static short snap_bezier_nearmarker(BeztEditData *bed, BezTriple *bezt)
 static short snap_bezier_horizontal(BeztEditData *bed, BezTriple *bezt)
 {
 	if (bezt->f2 & SELECT) {
+		// XXX currently this snaps both handles to the nearest horizontal value, but perhaps user just wants to level out handles instead?
 		bezt->vec[0][1]= bezt->vec[2][1]= (float)floor(bezt->vec[1][1] + 0.5f);
 		if ((bezt->h1==HD_AUTO) || (bezt->h1==HD_VECT)) bezt->h1= HD_ALIGN;
 		if ((bezt->h2==HD_AUTO) || (bezt->h2==HD_VECT)) bezt->h2= HD_ALIGN;
@@ -753,8 +770,8 @@ BeztEditFunc ANIM_editkeyframes_mirror(short type)
 static short set_bezier_auto(BeztEditData *bed, BezTriple *bezt) 
 {
 	if((bezt->f1  & SELECT) || (bezt->f3 & SELECT)) {
-		if (bezt->f1 & SELECT) bezt->h1= 1; /* the secret code for auto */
-		if (bezt->f3 & SELECT) bezt->h2= 1;
+		if (bezt->f1 & SELECT) bezt->h1= HD_AUTO; /* the secret code for auto */
+		if (bezt->f3 & SELECT) bezt->h2= HD_AUTO;
 		
 		/* if the handles are not of the same type, set them
 		 * to type free
@@ -786,6 +803,8 @@ static short set_bezier_vector(BeztEditData *bed, BezTriple *bezt)
 }
 
 /* Queries if the handle should be set to 'free' or 'align' */
+// NOTE: this was used for the 'toggle free/align' option
+//		currently this isn't used, but may be restored later
 static short bezier_isfree(BeztEditData *bed, BezTriple *bezt) 
 {
 	if ((bezt->f1 & SELECT) && (bezt->h1)) return 1;
@@ -809,13 +828,15 @@ static short set_bezier_free(BeztEditData *bed, BezTriple *bezt)
 	return 0;
 }
 
-/* Set all Bezier Handles to a single type */
+/* Set all selected Bezier Handles to a single type */
 // calchandles_fcurve
 BeztEditFunc ANIM_editkeyframes_handles(short code)
 {
 	switch (code) {
 		case HD_AUTO: /* auto */
+		case HD_AUTO_ANIM: /* auto clamped */
 			return set_bezier_auto;
+			
 		case HD_VECT: /* vector */
 			return set_bezier_vector;
 		case HD_FREE: /* free */
@@ -823,7 +844,7 @@ BeztEditFunc ANIM_editkeyframes_handles(short code)
 		case HD_ALIGN: /* align */
 			return set_bezier_align;
 		
-		default: /* free or align? */
+		default: /* check for toggle free or align? */
 			return bezier_isfree;
 	}
 }
@@ -949,3 +970,123 @@ BeztEditFunc ANIM_editkeyframes_select(short selectmode)
 			return select_bezier_add;
 	}
 }
+
+/* ******************************************* */
+/* Selection Maps */
+
+/* Selection maps are simply fancy names for char arrays that store on/off
+ * info for whether the selection status. The main purpose for these is to
+ * allow extra info to be tagged to the keyframes without influencing their
+ * values or having to be removed later.
+ */
+
+/* ----------- */
+
+static short selmap_build_bezier_more(BeztEditData *bed, BezTriple *bezt)
+{
+	FCurve *fcu= bed->fcu;
+	char *map= bed->data;
+	int i= bed->curIndex;
+	
+	/* if current is selected, just make sure it stays this way */
+	if (BEZSELECTED(bezt)) {
+		map[i]= 1;
+		return 0;
+	}
+	
+	/* if previous is selected, that means that selection should extend across */
+	if (i > 0) {
+		BezTriple *prev= bezt - 1;
+		
+		if (BEZSELECTED(prev)) {
+			map[i]= 1;
+			return 0;
+		}
+	}
+	
+	/* if next is selected, that means that selection should extend across */
+	if (i < (fcu->totvert-1)) {
+		BezTriple *next= bezt + 1;
+		
+		if (BEZSELECTED(next)) {
+			map[i]= 1;
+			return 0;
+		}
+	}
+	
+	return 0;
+}
+
+static short selmap_build_bezier_less(BeztEditData *bed, BezTriple *bezt)
+{
+	FCurve *fcu= bed->fcu;
+	char *map= bed->data;
+	int i= bed->curIndex;
+	
+	/* if current is selected, check the left/right keyframes
+	 * since it might need to be deselected (but otherwise no)
+	 */
+	if (BEZSELECTED(bezt)) {
+		/* if previous is not selected, we're on the tip of an iceberg */
+		if (i > 0) {
+			BezTriple *prev= bezt - 1;
+			
+			if (BEZSELECTED(prev) == 0)
+				return 0;
+		}
+		else if (i == 0) {
+			/* current keyframe is selected at an endpoint, so should get deselected */
+			return 0;
+		}
+		
+		/* if next is not selected, we're on the tip of an iceberg */
+		if (i < (fcu->totvert-1)) {
+			BezTriple *next= bezt + 1;
+			
+			if (BEZSELECTED(next) == 0)
+				return 0;
+		}
+		else if (i == (fcu->totvert-1)) {
+			/* current keyframe is selected at an endpoint, so should get deselected */
+			return 0;
+		}
+		
+		/* if we're still here, that means that keyframe should remain untouched */
+		map[i]= 1;
+	}
+	
+	return 0;
+}
+
+/* Get callback for building selection map */
+BeztEditFunc ANIM_editkeyframes_buildselmap(short mode)
+{
+	switch (mode) {
+		case SELMAP_LESS: /* less */
+			return selmap_build_bezier_less;
+		
+		case SELMAP_MORE: /* more */
+		default:
+			return selmap_build_bezier_more;
+	}
+}
+
+/* ----------- */
+
+/* flush selection map values to the given beztriple */
+short bezt_selmap_flush(BeztEditData *bed, BezTriple *bezt)
+{
+	char *map= bed->data;
+	short on= map[bed->curIndex];
+	
+	/* select or deselect based on whether the map allows it or not */
+	if (on) {
+		BEZ_SEL(bezt);
+	}
+	else {
+		BEZ_DESEL(bezt);
+	}
+	
+	return 0;
+}
+

@@ -4,7 +4,7 @@ LCGDIR = os.getcwd()+"/../lib/irix-6.5-mips"
 LIBDIR = LCGDIR
 
 BF_PYTHON = LCGDIR+'/python'
-BF_PYTHON_VERSION = '2.5'
+BF_PYTHON_VERSION = '3.1'
 WITH_BF_STATICPYTHON = 'true'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'

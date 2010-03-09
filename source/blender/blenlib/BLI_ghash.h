@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -37,14 +37,10 @@
 #include "string.h"
 
 #include "BKE_utildefines.h"
+#include "MEM_guardedalloc.h"
 
 #include "BLI_mempool.h"
 #include "BLI_blenlib.h"
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 typedef unsigned int	(*GHashHashFP)		(void *key);
 typedef int				(*GHashCmpFP)		(void *a, void *b);
@@ -74,11 +70,6 @@ typedef struct GHashIterator {
 
 GHash* BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp);
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
-
-//BM_INLINE void	BLI_ghash_insert	(GHash *gh, void *key, void *val);
-//BM_INLINE int		BLI_ghash_remove	(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp);
-//BM_INLINE void*	BLI_ghash_lookup	(GHash *gh, void *key);
-//BM_INLINE int		BLI_ghash_haskey	(GHash *gh, void *key);
 
 int		BLI_ghash_size		(GHash *gh);
 
@@ -152,7 +143,7 @@ unsigned int	BLI_ghashutil_inthash	(void *ptr);
 int				BLI_ghashutil_intcmp(void *a, void *b);
 
 /*begin of macro-inlined functions*/
-unsigned int hashsizes[];
+extern unsigned int hashsizes[];
 
 #if 0
 #define BLI_ghash_insert(gh, _k, _v){\
@@ -190,12 +181,12 @@ BM_INLINE void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 	e->next= gh->buckets[hash];
 	gh->buckets[hash]= e;
 	
-	if (++gh->nentries>gh->nbuckets*3) {
+	if (++gh->nentries>(float)gh->nbuckets/2) {
 		Entry *e, **old= gh->buckets;
 		int i, nold= gh->nbuckets;
 		
 		gh->nbuckets= hashsizes[++gh->cursize];
-		gh->buckets= (Entry**)malloc(gh->nbuckets*sizeof(*gh->buckets));
+		gh->buckets= (Entry**)MEM_mallocN(gh->nbuckets*sizeof(*gh->buckets), "buckets");
 		memset(gh->buckets, 0, gh->nbuckets*sizeof(*gh->buckets));
 		
 		for (i=0; i<nold; i++) {
@@ -210,7 +201,7 @@ BM_INLINE void BLI_ghash_insert(GHash *gh, void *key, void *val) {
 			}
 		}
 		
-		free(old);
+		MEM_freeN(old);
 	}
 }
 

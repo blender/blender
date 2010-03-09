@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) Blender Foundation
  * All rights reserved.
@@ -109,9 +109,9 @@ static void *thread_tls_data;
 /* XXX */
 /* from header info.c */
 static int start_progress_bar(void) {return 0;};
-static void end_progress_bar(void) {};
+static void end_progress_bar(wmWindow *win) {WM_cursor_restore(win);};
 static void waitcursor(int val) {};
-static int progress_bar(float done, char *busy_info) {return 0;}
+static int progress_bar(wmWindow *win, float done, char *busy_info) { WM_timecursor(win,done*100); return 0;}
 static int pupmenu() {return 0;}
 /* XXX */
 
@@ -1060,7 +1060,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *ob)
 		{
 			int done = 0;
 			float noFramesf = (float)noFrames;
-			float percentdone = 0.0;
+			float percentdone = 0.0, oldpercentdone = -1.0;
 			int lastRedraw = -1;
 			
 			g_break= 0;
@@ -1075,11 +1075,15 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *ob)
 				
 				// lukep we add progress bar as an interim mesure
 				percentdone = globalBakeFrame / noFramesf;
-				sprintf(busy_mess, "baking fluids %d / %d       |||", globalBakeFrame, (int) noFramesf);
-				progress_bar(percentdone, busy_mess );
+				if (percentdone != oldpercentdone) {
+					sprintf(busy_mess, "baking fluids %d / %d       |||", globalBakeFrame, (int) noFramesf);
+					percentdone = percentdone < 0.0 ? 0.0:percentdone;
+					progress_bar(CTX_wm_window(C), percentdone, busy_mess );
+					oldpercentdone = percentdone;
+				}
 				
-				// longer delay to prevent frequent redrawing
-				PIL_sleep_ms(2000);
+				//XXX no more need for longer delay to prevent frequent redrawing
+				PIL_sleep_ms(200);
 				
 				BLI_lock_thread(LOCK_CUSTOM1);
 				if(globalBakeState != 0) done = 1; // 1=ok, <0=error/abort
@@ -1121,7 +1125,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *ob)
 #endif
 				} // redraw
 			}
-			end_progress_bar();
+			end_progress_bar(CTX_wm_window(C));
 		}
 		BLI_end_threads(&threads);
 	} // El'Beem API init, thread creation 
@@ -1213,7 +1217,7 @@ void FLUID_OT_bake(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Fluid Simulation Bake";
-	ot->description= "Bake fluid simulation.";
+	ot->description= "Bake fluid simulation";
 	ot->idname= "FLUID_OT_bake";
 	
 	/* api callbacks */

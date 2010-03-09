@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) Blender Foundation
  *
@@ -94,7 +94,7 @@
  * drawing components for some F-Curve (fcu)
  *	- selected F-Curves should be more visible than partially visible ones
  */
-#define drawFCurveFade(fcu) ( ((fcu)->flag & FCURVE_SELECTED)? 1.0f : 0.5f )
+#define drawFCurveFade(fcu) ( ((fcu)->flag & FCURVE_SELECTED)? 1.0f : 0.25f )
 
 /* set the colour for some point from some value given packed into an int 
  *	- intV: integer value containing color info packed into an int
@@ -163,7 +163,7 @@ static void draw_fcurve_modifier_controls_envelope (FCurve *fcu, FModifier *fcm,
 /* Points ---------------- */
 
 /* helper func - draw keyframe vertices only for an F-Curve */
-static void draw_fcurve_vertices_keyframes (FCurve *fcu, View2D *v2d, short edit, short sel)
+static void draw_fcurve_vertices_keyframes (bAnimContext *ac, FCurve *fcu, View2D *v2d, short edit, short sel)
 {
 	BezTriple *bezt= fcu->bezt;
 	const float fac= 0.05f * (v2d->cur.xmax - v2d->cur.xmin);
@@ -235,7 +235,7 @@ static void draw_fcurve_handle_control (float x, float y, float xscale, float ys
 }
 
 /* helper func - draw handle vertices only for an F-Curve (if it is not protected) */
-static void draw_fcurve_vertices_handles (SpaceIpo *sipo, FCurve *fcu, View2D *v2d, short sel)
+static void draw_fcurve_vertices_handles (bAnimContext *ac, SpaceIpo *sipo, FCurve *fcu, View2D *v2d, short sel)
 {
 	BezTriple *bezt= fcu->bezt;
 	BezTriple *prevbezt = NULL;
@@ -300,7 +300,7 @@ static void set_fcurve_vertex_color (SpaceIpo *sipo, FCurve *fcu, short sel)
 }
 
 
-void draw_fcurve_vertices (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
+static void draw_fcurve_vertices (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, FCurve *fcu, int do_handles)
 {
 	View2D *v2d= &ar->v2d;
 	
@@ -314,37 +314,51 @@ void draw_fcurve_vertices (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	
 	/* draw the two handles first (if they're shown, the curve doesn't have just a single keyframe, and the curve is being edited) */
-	if ((fcu->flag & FCURVE_PROTECTED)==0 && (fcu->flag & FCURVE_INT_VALUES)==0 && 
-		(sipo->flag & SIPO_NOHANDLES)==0 && (fcu->totvert > 1)) 
+	if (do_handles)
 	{
 		set_fcurve_vertex_color(sipo, fcu, 0);
-		draw_fcurve_vertices_handles(sipo, fcu, v2d, 0);
+		draw_fcurve_vertices_handles(ac, sipo, fcu, v2d, 0);
 		
 		set_fcurve_vertex_color(sipo, fcu, 1);
-		draw_fcurve_vertices_handles(sipo, fcu, v2d, 1);
+		draw_fcurve_vertices_handles(ac, sipo, fcu, v2d, 1);
 	}
 		
 	/* draw keyframes over the handles */
 	set_fcurve_vertex_color(sipo, fcu, 0);
-	draw_fcurve_vertices_keyframes(fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), 0);
+	draw_fcurve_vertices_keyframes(ac, fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), 0);
 	
 	set_fcurve_vertex_color(sipo, fcu, 1);
-	draw_fcurve_vertices_keyframes(fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), 1);
+	draw_fcurve_vertices_keyframes(ac, fcu, v2d, !(fcu->flag & FCURVE_PROTECTED), 1);
 	
 	glPointSize(1.0f);
 }
 
 /* Handles ---------------- */
 
-/* draw lines for F-Curve handles only (this is only done in EditMode) */
-static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
+static int draw_fcurve_handles_check(SpaceIpo *sipo, FCurve *fcu)
+{
+	/* don't draw handle lines if handles are not to be shown */
+	if (	(sipo->flag & SIPO_NOHANDLES) || /* handles shouldn't be shown anywhere */
+			(fcu->flag & FCURVE_PROTECTED) || /* keyframes aren't editable */
+			(fcu->flag & FCURVE_INT_VALUES) || /* editing the handles here will cause weird/incorrect interpolation issues */
+			((fcu->grp) && (fcu->grp->flag & AGRP_PROTECTED)) || /* group that curve belongs to is not editable */
+			(fcu->totvert <= 1) /* do not show handles if there is only 1 keyframe, otherwise they all clump together in an ugly ball */
+		) 
+	{
+		return 0;
+	} 
+	else 
+	{
+		return 1;
+	}
+}
+
+/* draw lines for F-Curve handles only (this is only done in EditMode)
+ * note: draw_fcurve_handles_check must be checked before running this. */
+static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 {
 	extern unsigned int nurbcol[];
 	int sel, b;
-	
-	/* don't draw handle lines if handles are not shown */
-	if ((sipo->flag & SIPO_NOHANDLES) || (fcu->flag & FCURVE_PROTECTED) || (fcu->flag & FCURVE_INT_VALUES))
-		return;
 	
 	/* a single call to GL_LINES here around these calls should be sufficient to still
 	 * get separate line segments, but which aren't wrapped with GL_LINE_STRIP everytime we
@@ -416,7 +430,7 @@ static void draw_fcurve_handles (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 		}
 	}
 	
-	glEnd(); // GL_LINES
+	glEnd(); // GL_LINES 
 }
 
 /* Samples ---------------- */
@@ -458,7 +472,7 @@ static void draw_fcurve_sample_control (float x, float y, float xscale, float ys
 }
 
 /* helper func - draw keyframe vertices only for an F-Curve */
-static void draw_fcurve_samples (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
+static void draw_fcurve_samples (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 {
 	FPoint *first, *last;
 	float hsize, xscale, yscale;
@@ -491,22 +505,20 @@ static void draw_fcurve_samples (SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 
 /* Curve ---------------- */
 
-/* minimum pixels per gridstep 
- * XXX: defined in view2d.c - must keep these in sync or relocate to View2D header!
- */
-#define MINGRIDSTEP 	35
-
 /* helper func - just draw the F-Curve by sampling the visible region (for drawing curves with modifiers) */
-static void draw_fcurve_curve (FCurve *fcu, SpaceIpo *sipo, View2D *v2d, View2DGrid *grid)
+static void draw_fcurve_curve (bAnimContext *ac, ID *id, FCurve *fcu, SpaceIpo *sipo, View2D *v2d, View2DGrid *grid)
 {
 	ChannelDriver *driver;
 	float samplefreq, ctime;
 	float stime, etime;
+	float unitFac;
 	
 	/* disable any drivers temporarily */
 	driver= fcu->driver;
 	fcu->driver= NULL;
 	
+	/* compute unit correction factor */
+	unitFac= ANIM_unit_mapping_get_factor(ac->scene, id, fcu, 0);
 	
 	/* Note about sampling frequency:
 	 * 	Ideally, this is chosen such that we have 1-2 pixels = 1 segment
@@ -520,10 +532,10 @@ static void draw_fcurve_curve (FCurve *fcu, SpaceIpo *sipo, View2D *v2d, View2DG
 	 *	loop (i.e. too close to FLT_EPSILON), fall back to default of 0.001
 	 */
 		/* grid->dx is the first float in View2DGrid struct, so just cast to float pointer, and use it
-		 * It represents the number of 'frames' between gridlines, but we divide by MINGRIDSTEP to get pixels-steps
+		 * It represents the number of 'frames' between gridlines, but we divide by U.v2d_min_gridsize to get pixels-steps
 		 */
 		// TODO: perhaps we should have 1.0 frames as upper limit so that curves don't get too distorted?
-	samplefreq= *((float *)grid) / MINGRIDSTEP;
+	samplefreq= *((float *)grid) / U.v2d_min_gridsize;
 	if (IS_EQ(samplefreq, 0)) samplefreq= 0.001f;
 	
 	
@@ -532,11 +544,14 @@ static void draw_fcurve_curve (FCurve *fcu, SpaceIpo *sipo, View2D *v2d, View2DG
 	etime= v2d->cur.xmax;
 	
 	
-	/* at each sampling interval, add a new vertex */
+	/* at each sampling interval, add a new vertex 
+	 *	- apply the unit correction factor to the calculated values so that 
+	 *	  the displayed values appear correctly in the viewport
+	 */
 	glBegin(GL_LINE_STRIP);
 	
 	for (ctime= stime; ctime <= etime; ctime += samplefreq)
-		glVertex2f( ctime, evaluate_fcurve(fcu, ctime) );
+		glVertex2f( ctime, evaluate_fcurve(fcu, ctime)*unitFac );
 	
 	glEnd();
 	
@@ -545,7 +560,7 @@ static void draw_fcurve_curve (FCurve *fcu, SpaceIpo *sipo, View2D *v2d, View2DG
 }
 
 /* helper func - draw a samples-based F-Curve */
-static void draw_fcurve_curve_samples (FCurve *fcu, View2D *v2d)
+static void draw_fcurve_curve_samples (bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d)
 {
 	FPoint *prevfpt= fcu->fpt;
 	FPoint *fpt= prevfpt + 1;
@@ -553,6 +568,9 @@ static void draw_fcurve_curve_samples (FCurve *fcu, View2D *v2d)
 	int b= fcu->totvert-1;
 	
 	glBegin(GL_LINE_STRIP);
+	
+	/* apply unit mapping */
+	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, 0);
 	
 	/* extrapolate to left? - left-side of view comes before first keyframe? */
 	if (prevfpt->vec[0] > v2d->cur.xmin) {
@@ -612,11 +630,14 @@ static void draw_fcurve_curve_samples (FCurve *fcu, View2D *v2d)
 		glVertex2fv(v);
 	}
 	
+	/* unapply unit mapping */
+	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, ANIM_UNITCONV_RESTORE);
+	
 	glEnd();
 }
 
 /* helper func - draw one repeat of an F-Curve */
-static void draw_fcurve_curve_bezts (FCurve *fcu, View2D *v2d, View2DGrid *grid)
+static void draw_fcurve_curve_bezts (bAnimContext *ac, ID *id, FCurve *fcu, View2D *v2d, View2DGrid *grid)
 {
 	BezTriple *prevbezt= fcu->bezt;
 	BezTriple *bezt= prevbezt+1;
@@ -627,6 +648,9 @@ static void draw_fcurve_curve_bezts (FCurve *fcu, View2D *v2d, View2DGrid *grid)
 	int resol;
 	
 	glBegin(GL_LINE_STRIP);
+	
+	/* apply unit mapping */
+	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, 0);
 	
 	/* extrapolate to left? */
 	if (prevbezt->vec[1][0] > v2d->cur.xmin) {
@@ -759,12 +783,17 @@ static void draw_fcurve_curve_bezts (FCurve *fcu, View2D *v2d, View2DGrid *grid)
 		glVertex2fv(v1);
 	}
 	
+	/* unapply unit mapping */
+	ANIM_unit_mapping_apply_fcurve(ac->scene, id, fcu, ANIM_UNITCONV_RESTORE);
+	
 	glEnd();
 } 
 
 /* Public Curve-Drawing API  ---------------- */
 
-/* Draw the 'ghost' F-Curves (i.e. snapshots of the curve) */
+/* Draw the 'ghost' F-Curves (i.e. snapshots of the curve) 
+ * NOTE: unit mapping has already been applied to the values, so do not try and apply again
+ */
 void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGrid *grid)
 {
 	FCurve *fcu;
@@ -786,7 +815,7 @@ void graph_draw_ghost_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, Vie
 		glColor4f(fcu->color[0], fcu->color[1], fcu->color[2], 0.5f);
 		
 		/* simply draw the stored samples */
-		draw_fcurve_curve_samples(fcu, &ar->v2d);
+		draw_fcurve_curve_samples(ac, NULL, fcu, &ar->v2d);
 	}
 	
 	/* restore settings */
@@ -859,14 +888,14 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				/* draw a curve affected by modifiers or only allowed to have integer values 
 				 * by sampling it at various small-intervals over the visible region 
 				 */
-				draw_fcurve_curve(fcu, sipo, &ar->v2d, grid);
+				draw_fcurve_curve(ac, ale->id, fcu, sipo, &ar->v2d, grid);
 			}
 			else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
 				/* just draw curve based on defined data (i.e. no modifiers) */
 				if (fcu->bezt)
-					draw_fcurve_curve_bezts(fcu, &ar->v2d, grid);
+					draw_fcurve_curve_bezts(ac, ale->id, fcu, &ar->v2d, grid);
 				else if (fcu->fpt)
-					draw_fcurve_curve_samples(fcu, &ar->v2d);
+					draw_fcurve_curve_samples(ac, ale->id, fcu, &ar->v2d);
 			}
 			
 			/* restore settings */
@@ -891,18 +920,28 @@ void graph_draw_curves (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, View2DGri
 				}
 			}
 			else if ( ((fcu->bezt) || (fcu->fpt)) && (fcu->totvert) ) { 
+				/* apply unit mapping */
+				ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, fcu, 0);
+				
 				if (fcu->bezt) {
-					/* only draw handles/vertices on keyframes */
-					glEnable(GL_BLEND);
-						draw_fcurve_handles(sipo, ar, fcu);
-					glDisable(GL_BLEND);
+					int do_handles = draw_fcurve_handles_check(sipo, fcu);
 					
-					draw_fcurve_vertices(sipo, ar, fcu);
+					if (do_handles) {
+						/* only draw handles/vertices on keyframes */
+						glEnable(GL_BLEND);
+						draw_fcurve_handles(ac, sipo, ar, fcu);
+						glDisable(GL_BLEND);
+					}
+					
+					draw_fcurve_vertices(ac, sipo, ar, fcu, do_handles);
 				}
 				else {
 					/* samples: only draw two indicators at either end as indicators */
-					draw_fcurve_samples(sipo, ar, fcu);
+					draw_fcurve_samples(ac, sipo, ar, fcu);
 				}
+				
+				/* unapply unit mapping */
+				ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, fcu, ANIM_UNITCONV_RESTORE);
 			}
 		}
 		

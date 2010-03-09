@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -109,7 +109,7 @@ typedef struct wmWindowManager {
 	
 	int initialized;		/* set on file read */
 	short file_saved;		/* indicator whether data was saved */
-	short pad;
+	short op_undo_depth;	/* operator stack depth to avoid nested undo pushes */
 	
 	ListBase operators;		/* operator registry */
 	
@@ -120,6 +120,8 @@ typedef struct wmWindowManager {
 	ListBase jobs;			/* threaded jobs manager */
 	
 	ListBase paintcursors;	/* extra overlay cursors to draw, like circles */
+	
+	ListBase drags;			/* active dragged items */
 	
 	ListBase keyconfigs;				/* known key configurations */
 	struct wmKeyConfig *defaultconf;	/* default configuration, not saved */
@@ -257,9 +259,7 @@ typedef struct wmKeyConfig {
 } wmKeyConfig;
 
 /* wmKeyConfig.flag */
-#define KEYCONF_TWOBUTTONMOUSE	(1 << 1)
-#define KEYCONF_LMOUSESELECT	(1 << 2)
-#define KEYCONF_NONUMPAD		(1 << 3)
+#define KEYCONF_USER			(1 << 1)
 
 /* this one is the operator itself, stored in files for macros etc */
 /* operator + operatortype should be able to redo entirely, but for different contextes */
@@ -271,8 +271,9 @@ typedef struct wmOperator {
 	IDProperty *properties;		/* saved, user-settable properties */
 
 	/* runtime */
-	struct wmOperatorType *type;		/* operator type definition from idname */
+	struct wmOperatorType *type;/* operator type definition from idname */
 	void *customdata;			/* custom storage, only while operator runs */
+	void *py_instance;			/* python stores the class instance here */
 
 	struct PointerRNA *ptr;		/* rna pointer to access properties */
 	struct ReportList *reports;	/* errors and warnings storage */
@@ -290,6 +291,8 @@ typedef struct wmOperator {
 #define OPERATOR_FINISHED		4
 /* add this flag if the event should pass through */
 #define OPERATOR_PASS_THROUGH	8
+/* in case operator got executed outside WM code... like via fileselect */
+#define OPERATOR_HANDLED		16
 
 /* wmOperator flag */
 #define OP_GRAB_POINTER			1

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation
  * All rights reserved.
@@ -1319,11 +1319,11 @@ void shade_samples_do_AO(ShadeSample *ssamp)
 	if(!(R.r.mode & R_RAYTRACE) && !(R.wrld.ao_gather_method == WO_AOGATHER_APPROX))
 		return;
 	
-	if(R.wrld.mode & WO_AMB_OCC) {
+	if(R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) {
 		shi= &ssamp->shi[0];
 
-		if(((shi->passflag & SCE_PASS_COMBINED) && (shi->combinedflag & SCE_PASS_AO))
-			|| (shi->passflag & SCE_PASS_AO))
+		if(((shi->passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
+			|| (shi->passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
 			for(sample=0, shi= ssamp->shi; sample<ssamp->tot; shi++, sample++)
 				if(!(shi->mode & MA_SHLESS))
 					ambient_occlusion(shi);		/* stores in shi->ao[] */
@@ -1415,6 +1415,10 @@ int shade_samples(ShadeSample *ssamp, PixStr *ps, int x, int y)
 				shade_input_set_shade_texco(shi);
 				shade_input_do_shade(shi, shr);
 			}
+		}
+		else if(shi->passflag & SCE_PASS_Z) {
+			for(samp=0; samp<ssamp->tot; samp++, shi++, shr++)
+				shr->z= -shi->co[2];
 		}
 		
 		return 1;

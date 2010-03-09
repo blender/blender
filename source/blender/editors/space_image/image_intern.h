@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -44,6 +44,7 @@ struct bNodeTree;
 
 /* space_image.c */
 struct ARegion *image_has_buttons_region(struct ScrArea *sa);
+struct ARegion *image_has_scope_region(struct ScrArea *sa);
 
 /* image_header.c */
 void image_header_buttons(const struct bContext *C, struct ARegion *ar);
@@ -76,6 +77,8 @@ void IMAGE_OT_save_sequence(struct wmOperatorType *ot);
 void IMAGE_OT_pack(struct wmOperatorType *ot);
 void IMAGE_OT_unpack(struct wmOperatorType *ot);
 
+void IMAGE_OT_cycle_render_slot(struct wmOperatorType *ot);
+
 void IMAGE_OT_sample(struct wmOperatorType *ot);
 void IMAGE_OT_curves_point_set(struct wmOperatorType *ot);
 
@@ -88,6 +91,7 @@ void draw_uvedit_main(struct SpaceImage *sima, struct ARegion *ar, struct Scene 
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
 void image_buttons_register(struct ARegionType *art);
 void IMAGE_OT_properties(struct wmOperatorType *ot);
+void IMAGE_OT_scopes(struct wmOperatorType *ot);
 
 #endif /* ED_IMAGE_INTERN_H */
 

@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -904,7 +904,9 @@ MT_Matrix4x4 RAS_OpenGLRasterizer::GetFrustumMatrix(
 
 			// if Rasterizer.setFocalLength is not called we use the camera focallength
 			if (!m_setfocallength)
-				m_focallength = focallength;
+				// if focallength is null we use a value known to be reasonable
+				m_focallength = (focallength == 0.f) ? m_eyeseparation * 30.0
+					: focallength;
 
 			near_div_focallength = frustnear / m_focallength;
 			offset = 0.5 * m_eyeseparation * near_div_focallength;

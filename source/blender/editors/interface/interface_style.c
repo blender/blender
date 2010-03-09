@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -291,8 +291,10 @@ void uiStyleInit(void)
 				font->blf_id= BLF_load_mem("default", (unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size);
 		}
 
-		if (font->blf_id == -1)
-			printf("uiStyleInit error, no fonts available\n");
+		if (font->blf_id == -1) {
+			if (G.f & G_DEBUG)
+				printf("uiStyleInit error, no fonts available\n");
+		}
 		else {
 			BLF_set(font->blf_id);
 			/* ? just for speed to initialize?

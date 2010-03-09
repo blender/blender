@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -76,6 +76,7 @@
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_types.h"
+#include "ED_mesh.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -109,9 +110,7 @@ static void view3d_boxview_clip(ScrArea *sa)
 
 					if(ar->winx>ar->winy) y1= ar->winy*rv3d->dist/ar->winx;
 					else y1= rv3d->dist;
-
-					ofs[0]= rv3d->ofs[0];
-					ofs[1]= rv3d->ofs[1];
+					copy_v2_v2(ofs, rv3d->ofs);
 				}
 				else if(ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) {
 					ofs[2]= rv3d->ofs[2];
@@ -162,6 +161,8 @@ static void view3d_boxview_clip(ScrArea *sa)
 			if(rv3d->viewlock & RV3D_BOXCLIP) {
 				rv3d->rflag |= RV3D_CLIPPING;
 				memcpy(rv3d->clip, clip, sizeof(clip));
+				if(rv3d->clipbb) MEM_freeN(rv3d->clipbb);
+				rv3d->clipbb= MEM_dupallocN(bb);
 			}
 		}
 	}
@@ -225,6 +226,34 @@ void view3d_boxview_copy(ScrArea *sa, ARegion *ar)
 		}
 	}
 	view3d_boxview_clip(sa);
+}
+
+void ED_view3d_quadview_update(ScrArea *sa, ARegion *ar)
+{
+	RegionView3D *rv3d= ar->regiondata;
+	short viewlock;
+
+	/* this function copies flags from the first of the 3 other quadview
+	   regions to the 2 other, so it assumes this is the region whose
+	   properties are always being edited, weak */
+	viewlock= rv3d->viewlock;
+
+	if((viewlock & RV3D_LOCKED)==0)
+		viewlock= 0;
+	else if((viewlock & RV3D_BOXVIEW)==0)
+		viewlock &= ~RV3D_BOXCLIP;
+
+	for(; ar; ar= ar->prev) {
+		if(ar->alignment==RGN_ALIGN_QSPLIT) {
+			rv3d= ar->regiondata;
+			rv3d->viewlock= viewlock;
+		}
+	}
+
+	if(rv3d->viewlock & RV3D_BOXVIEW)
+		view3d_boxview_copy(sa, sa->regionbase.last);
+
+	ED_area_tag_redraw(sa);
 }
 
 /* ************************** init for view ops **********************************/
@@ -305,8 +334,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 		VECCOPY(vod->ofs, rv3d->ofs);
 		/* If there's no selection, lastofs is unmodified and last value since static */
 		calculateTransformCenter(C, V3D_CENTROID, lastofs);
-		VECCOPY(vod->dyn_ofs, lastofs);
-		mul_v3_fl(vod->dyn_ofs, -1.0f);
+		negate_v3_v3(vod->dyn_ofs, lastofs);
 	}
 	else if (U.uiflag & USER_ORBIT_ZBUF) {
 
@@ -341,8 +369,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 				closest_to_line_v3(dvec, vod->dyn_ofs, my_pivot, my_origin);
 				vod->dist0 = rv3d->dist = len_v3v3(my_pivot, dvec);
 
-				negate_v3(dvec);
-				VECCOPY(rv3d->ofs, dvec);
+				negate_v3_v3(rv3d->ofs, dvec);
 			}
 			negate_v3(vod->dyn_ofs);
 			VECCOPY(vod->ofs, rv3d->ofs);
@@ -453,7 +480,7 @@ enum {
 void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 {
 	static EnumPropertyItem modal_items[] = {
-	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Cancel", ""},
+	{VIEW_MODAL_CONFIRM,	"CONFIRM", 0, "Confirm", ""},
 
 	{VIEWROT_MODAL_AXIS_SNAP_ENABLE,	"AXIS_SNAP_ENABLE", 0, "Enable Axis Snap", ""},
 	{VIEWROT_MODAL_AXIS_SNAP_DISABLE,	"AXIS_SNAP_DISABLE", 0, "Disable Axis Snap", ""},
@@ -517,11 +544,8 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 			* dragged. */
 		phi = si * M_PI / 2.0;
 
-		si= sin(phi);
 		q1[0]= cos(phi);
-		q1[1]*= si;
-		q1[2]*= si;
-		q1[3]*= si;
+		mul_v3_fl(q1+1, sin(phi));
 		mul_qt_qtqt(rv3d->viewquat, q1, vod->oldquat);
 
 		if (vod->use_dyn_ofs) {
@@ -539,7 +563,7 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 	}
 	else {
 		/* New turntable view code by John Aughey */
-		float si, phi, q1[4];
+		float phi, q1[4];
 		float m[3][3];
 		float m_inv[3][3];
 		float xvec[3] = {1,0,0};
@@ -559,11 +583,8 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 		/* Perform the up/down rotation */
 		phi = sensitivity * -(y - vod->oldy);
-		si = sin(phi);
 		q1[0] = cos(phi);
-		q1[1] = si * xvec[0];
-		q1[2] = si * xvec[1];
-		q1[3] = si * xvec[2];
+		mul_v3_v3fl(q1+1, xvec, sin(phi));
 		mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
 
 		if (vod->use_dyn_ofs) {
@@ -604,12 +625,10 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 
 			if ((dot_v3v3(snapmat[0], viewmat[0]) > thres) &&
 				(dot_v3v3(snapmat[1], viewmat[1]) > thres) &&
-				(dot_v3v3(snapmat[2], viewmat[2]) > thres)){
-
-				QUATCOPY(rv3d->viewquat, snapquats[i]);
-
-				rv3d->view = view;
-
+				(dot_v3v3(snapmat[2], viewmat[2]) > thres)
+			) {
+				copy_qt_qt(rv3d->viewquat, snapquats[i]);
+				rv3d->view= view;
 				break;
 			}
 		}
@@ -736,7 +755,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Rotate view";
-	ot->description = "Rotate the view.";
+	ot->description = "Rotate the view";
 	ot->idname= "VIEW3D_OT_rotate";
 
 	/* api callbacks */
@@ -879,7 +898,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Move view";
-	ot->description = "Move the view.";
+	ot->description = "Move the view";
 	ot->idname= "VIEW3D_OT_move";
 
 	/* api callbacks */
@@ -938,18 +957,15 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 		vb[0] = ar->winx;
 		vb[1] = ar->winy;
 
-		tpos[0] = -rv3d->ofs[0];
-		tpos[1] = -rv3d->ofs[1];
-		tpos[2] = -rv3d->ofs[2];
+		negate_v3_v3(tpos, rv3d->ofs);
 
 		/* Project cursor position into 3D space */
 		initgrabz(rv3d, tpos[0], tpos[1], tpos[2]);
 		window_to_3d_delta(ar, dvec, mouseloc[0]-vb[0]/2, mouseloc[1]-vb[1]/2);
 
 		/* Calculate view target position for dolly */
-		tvec[0] = -(tpos[0] + dvec[0]);
-		tvec[1] = -(tpos[1] + dvec[1]);
-		tvec[2] = -(tpos[2] + dvec[2]);
+		add_v3_v3v3(tvec, tpos, dvec);
+		negate_v3(tvec);
 
 		/* Offset to target position and dolly */
 		new_dist = rv3d->dist * dfac;
@@ -958,11 +974,7 @@ static void view_zoom_mouseloc(ARegion *ar, float dfac, int mx, int my)
 		rv3d->dist = new_dist;
 
 		/* Calculate final offset */
-		dvec[0] = tvec[0] + dvec[0] * dfac;
-		dvec[1] = tvec[1] + dvec[1] * dfac;
-		dvec[2] = tvec[2] + dvec[2] * dfac;
-
-		VECCOPY(rv3d->ofs, dvec);
+		madd_v3_v3v3fl(rv3d->ofs, tvec, dvec, dfac);
 	} else {
 		rv3d->dist *= dfac;
 	}
@@ -1047,6 +1059,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* execute the events */
 	if (event->type == TIMER && event->customdata == vod->timer) {
+		/* continuous zoom */
 		event_code= VIEW_APPLY;
 	}
 	else if(event->type==MOUSEMOVE) {
@@ -1117,6 +1130,8 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 
 	request_depth_update(CTX_wm_region_view3d(C));
 	ED_region_tag_redraw(CTX_wm_region(C));
+	
+	viewops_data_free(C, op);
 
 	return OPERATOR_FINISHED;
 }
@@ -1133,6 +1148,8 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	}
 
 	if(delta) {
+		/* makes op->customdata */
+		viewops_data_create(C, op, event);
 		viewzoom_exec(C, op);
 	}
 	else {
@@ -1163,8 +1180,11 @@ static int viewzoom_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_FINISHED;
 		}
 		else {
-			vod->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
-			vod->timer_lastdraw= PIL_check_seconds_timer();
+			if(U.viewzoom == USER_ZOOM_CONT) {
+				/* needs a timer to continue redrawing */
+				vod->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+				vod->timer_lastdraw= PIL_check_seconds_timer();
+			}
 
 			/* add temp handler */
 			WM_event_add_modal_handler(C, op);
@@ -1180,7 +1200,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom view";
-	ot->description = "Zoom in/out in the view.";
+	ot->description = "Zoom in/out in the view";
 	ot->idname= "VIEW3D_OT_zoom";
 
 	/* api callbacks */
@@ -1265,6 +1285,8 @@ static int viewhome_exec(bContext *C, wmOperator *op) /* was view3d_home() in 2.
 
 	if(rv3d->viewlock & RV3D_BOXVIEW)
 		view3d_boxview_copy(CTX_wm_area(C), ar);
+		
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 
 	return OPERATOR_FINISHED;
 }
@@ -1273,7 +1295,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View All";
-	ot->description = "View all objects in scene.";
+	ot->description = "View all objects in scene";
 	ot->idname= "VIEW3D_OT_view_all";
 
 	/* api callbacks */
@@ -1286,7 +1308,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "");
 }
 
-static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview without local!, was centerview() in 2.4x */
+static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview without local!, was centerview() in 2.4x */
 {
 	ARegion *ar= CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -1295,7 +1317,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	Object *ob= OBACT;
 	Object *obedit= CTX_data_edit_object(C);
 	float size, min[3], max[3], afm[3];
-	int ok=0;
+	int ok=0, ok_dist=1;
 
 	/* SMOOTHVIEW */
 	float new_ofs[3];
@@ -1344,7 +1366,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 		}
 	}
 	else if (paint_facesel_test(ob)) {
-// XXX		ok= minmax_tface(min, max);
+		ok= minmax_tface(ob, min, max);
 	}
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		ok= PE_minmax(scene, min, max);
@@ -1353,9 +1375,10 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 		Base *base= FIRSTBASE;
 		while(base) {
 			if(TESTBASE(v3d, base))  {
-				minmax_object(base->object, min, max);
+
 				/* account for duplis */
-				minmax_object_duplis(scene, base->object, min, max);
+				if (minmax_object_duplis(scene, base->object, min, max)==0)
+					minmax_object(base->object, min, max); /* use if duplis not found */
 
 				ok= 1;
 			}
@@ -1365,19 +1388,26 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 
 	if(ok==0) return OPERATOR_FINISHED;
 
-	afm[0]= (max[0]-min[0]);
-	afm[1]= (max[1]-min[1]);
-	afm[2]= (max[2]-min[2]);
+	sub_v3_v3v3(afm, max, min);
 	size= MAX3(afm[0], afm[1], afm[2]);
-	/* perspective should be a bit farther away to look nice */
-	if(rv3d->persp==RV3D_ORTHO)
-		size*= 0.7;
 
-	if(size <= v3d->near*1.5f) size= v3d->near*1.5f;
+	if(rv3d->persp==RV3D_ORTHO) {
+		if(size < 0.0001f) { /* if its a sinble point. dont even re-scale */
+			ok_dist= 0;
+		}
+		else {
+			/* perspective should be a bit farther away to look nice */
+			size*= 0.7f;
+		}
+	}
+	else {
+		if(size <= v3d->near*1.5f) {
+			size= v3d->near*1.5f;
+		}
+	}
 
-	new_ofs[0]= -(min[0]+max[0])/2.0f;
-	new_ofs[1]= -(min[1]+max[1])/2.0f;
-	new_ofs[2]= -(min[2]+max[2])/2.0f;
+	add_v3_v3v3(new_ofs, min, max);
+	mul_v3_fl(new_ofs, -0.5f);
 
 	new_dist = size;
 
@@ -1393,7 +1423,7 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 		smooth_view(C, v3d->camera, NULL, new_ofs, NULL, &new_dist, NULL);
 	}
 	else {
-		smooth_view(C, NULL, NULL, new_ofs, NULL, &new_dist, NULL);
+		smooth_view(C, NULL, NULL, new_ofs, NULL, ok_dist ? &new_dist : NULL, NULL);
 	}
 
 // XXX	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
@@ -1403,16 +1433,16 @@ static int viewcenter_exec(bContext *C, wmOperator *op) /* like a localview with
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_view_center(wmOperatorType *ot)
+void VIEW3D_OT_view_selected(wmOperatorType *ot)
 {
 
 	/* identifiers */
 	ot->name= "View Selected";
-	ot->description = "Move the view to the selection center.";
-	ot->idname= "VIEW3D_OT_view_center";
+	ot->description = "Move the view to the selection center";
+	ot->idname= "VIEW3D_OT_view_selected";
 
 	/* api callbacks */
-	ot->exec= viewcenter_exec;
+	ot->exec= viewselected_exec;
 	ot->poll= ED_operator_view3d_active;
 
 	/* flags */
@@ -1432,13 +1462,8 @@ static int viewcenter_cursor_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			/* non camera center */
-			float *curs= give_cursor(scene, v3d);
 			float new_ofs[3];
-			
-			new_ofs[0]= -curs[0];
-			new_ofs[1]= -curs[1];
-			new_ofs[2]= -curs[2];
-			
+			negate_v3_v3(new_ofs, give_cursor(scene, v3d));
 			smooth_view(C, NULL, NULL, new_ofs, NULL, NULL, NULL);
 		}
 		
@@ -1453,7 +1478,7 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Center View to Cursor";
-	ot->description= "Centers the view so that the cursor is in the middle of the view.";
+	ot->description= "Centers the view so that the cursor is in the middle of the view";
 	ot->idname= "VIEW3D_OT_view_center_cursor";
 	
 	/* api callbacks */
@@ -1526,7 +1551,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Set Render Border";
-	ot->description = "Set the boundries of the border render and enables border render .";
+	ot->description = "Set the boundries of the border render and enables border render ";
 	ot->idname= "VIEW3D_OT_render_border";
 
 	/* api callbacks */
@@ -1656,9 +1681,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 			new_ofs[2] = -p[2];
 		} else {
 			/* We cant use the depth, fallback to the old way that dosnt set the center depth */
-			new_ofs[0] = rv3d->ofs[0];
-			new_ofs[1] = rv3d->ofs[1];
-			new_ofs[2] = rv3d->ofs[2];
+			copy_v3_v3(new_ofs, rv3d->ofs);
 
 			initgrabz(rv3d, -new_ofs[0], -new_ofs[1], -new_ofs[2]);
 
@@ -1700,7 +1723,7 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Border Zoom";
-	ot->description = "Zoom in the view to the nearest object contained in the border.";
+	ot->description = "Zoom in the view to the nearest object contained in the border";
 	ot->idname= "VIEW3D_OT_zoom_border";
 
 	/* api callbacks */
@@ -1854,10 +1877,14 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 				/* lastview -  */
 
 				if(rv3d->persp != RV3D_CAMOB) {
-					/* store settings of current view before allowing overwriting with camera view */
-					QUATCOPY(rv3d->lviewquat, rv3d->viewquat);
-					rv3d->lview= rv3d->view;
-					rv3d->lpersp= rv3d->persp;
+
+					if (!rv3d->smooth_timer) {
+						/* store settings of current view before allowing overwriting with camera view
+						 * only if we're not currently in a view transition */
+						QUATCOPY(rv3d->lviewquat, rv3d->viewquat);
+						rv3d->lview= rv3d->view;
+						rv3d->lpersp= rv3d->persp;
+					}
 
 	#if 0
 					if(G.qual==LR_ALTKEY) {
@@ -1904,7 +1931,7 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View numpad";
-	ot->description = "Set the view.";
+	ot->description = "Set the view";
 	ot->idname= "VIEW3D_OT_viewnumpad";
 
 	/* api callbacks */
@@ -1928,7 +1955,7 @@ static EnumPropertyItem prop_view_orbit_items[] = {
 static int vieworbit_exec(bContext *C, wmOperator *op)
 {
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
-	float phi, si, q1[4], new_quat[4];
+	float phi, q1[4], new_quat[4];
 	int orbitdir;
 
 	orbitdir = RNA_enum_get(op->ptr, "type");
@@ -1937,6 +1964,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 
 		if(rv3d->persp != RV3D_CAMOB) {
 			if(orbitdir == V3D_VIEW_STEPLEFT || orbitdir == V3D_VIEW_STEPRIGHT) {
+				float si;
 				/* z-axis */
 				phi= (float)(M_PI/360.0)*U.pad_rot_angle;
 				if(orbitdir == V3D_VIEW_STEPRIGHT) phi= -phi;
@@ -1954,11 +1982,8 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 				normalize_v3(q1+1);
 				phi= (float)(M_PI/360.0)*U.pad_rot_angle;
 				if(orbitdir == V3D_VIEW_STEPDOWN) phi= -phi;
-				si= (float)sin(phi);
 				q1[0]= (float)cos(phi);
-				q1[1]*= si;
-				q1[2]*= si;
-				q1[3]*= si;
+				mul_v3_fl(q1+1, sin(phi));
 				mul_qt_qtqt(new_quat, rv3d->viewquat, q1);
 				rv3d->view= 0;
 			}
@@ -1974,7 +1999,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View Orbit";
-	ot->description = "Orbit the view.";
+	ot->description = "Orbit the view";
 	ot->idname= "VIEW3D_OT_view_orbit";
 
 	/* api callbacks */
@@ -2024,7 +2049,7 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View Pan";
-	ot->description = "Pan the view.";
+	ot->description = "Pan the view";
 	ot->idname= "VIEW3D_OT_view_pan";
 
 	/* api callbacks */
@@ -2056,7 +2081,7 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "View Persp/Ortho";
-	ot->description = "Switch the current view from perspective/orthographic.";
+	ot->description = "Switch the current view from perspective/orthographic";
 	ot->idname= "VIEW3D_OT_view_persportho";
 
 	/* api callbacks */
@@ -2067,7 +2092,82 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
+/* ******************** add background image operator **************** */
 
+static int add_background_image_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d= CTX_wm_view3d(C);
+
+	BGpic *bgpic= MEM_callocN(sizeof(BGpic), "Background Image");
+	bgpic->size= 5.0;
+	bgpic->blend= 0.5;
+	bgpic->iuser.fie_ima= 2;
+	bgpic->iuser.ok= 1;
+	bgpic->view= 0; /* 0 for all */
+
+	BLI_addtail(&v3d->bgpicbase, bgpic);
+
+	//ED_region_tag_redraw(v3d);
+
+	return OPERATOR_FINISHED;
+}
+
+static int add_background_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	return add_background_image_exec(C, op);
+}
+
+void VIEW3D_OT_add_background_image(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Add Background Image";
+	ot->description= "Add a new background image";
+	ot->idname = "VIEW3D_OT_add_background_image";
+
+	/* api callbacks */
+	ot->invoke = add_background_image_invoke;
+	ot->exec   = add_background_image_exec;
+	ot->poll   = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag   = 0;
+}
+
+/* ***** remove image operator ******* */
+static int remove_background_image_exec(bContext *C, wmOperator *op)
+{
+	BGpic *bgpic_rem = CTX_data_pointer_get_type(C, "bgpic", &RNA_BackgroundImage).data;
+	View3D *vd = CTX_wm_view3d(C);
+	int index = RNA_int_get(op->ptr, "index");
+
+	bgpic_rem = BLI_findlink(&vd->bgpicbase, index);
+	if(bgpic_rem) {
+		BLI_remlink(&vd->bgpicbase, bgpic_rem);
+		if(bgpic_rem->ima) bgpic_rem->ima->id.us--;
+		MEM_freeN(bgpic_rem);
+	}
+
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, vd);
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_remove_background_image(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Remove Background Image";
+	ot->description= "Remove a background image from the 3D view";
+	ot->idname = "VIEW3D_OT_remove_background_image";
+
+	/* api callbacks */
+	ot->exec   = remove_background_image_exec;
+	ot->poll   = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag   = 0;
+
+	RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Background image index to remove ", 0, INT_MAX);
+}
 /* ********************* set clipping operator ****************** */
 
 static void calc_clipping_plane(float clip[6][4], BoundBox *clipbb)
@@ -2154,7 +2254,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Clipping Border";
-	ot->description = "Set the view clipping border.";
+	ot->description = "Set the view clipping border";
 	ot->idname= "VIEW3D_OT_clip_border";
 
 	/* api callbacks */
@@ -2199,9 +2299,19 @@ static int set_3dcursor_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	initgrabz(rv3d, fp[0], fp[1], fp[2]);
 
 	if(mval[0]!=IS_CLIPPED) {
+		short depth_used = 0;
 
-		window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
-		sub_v3_v3v3(fp, fp, dvec);
+		if (U.uiflag & USER_ORBIT_ZBUF) { /* maybe this should be accessed some other way */
+			short mval_depth[2] = {mx, my};
+			view3d_operator_needs_opengl(C);
+			if (view_autodist(scene, ar, v3d, mval_depth, fp))
+				depth_used= 1;
+		}
+
+		if(depth_used==0) {
+			window_to_3d_delta(ar, dvec, mval[0]-mx, mval[1]-my);
+			sub_v3_v3v3(fp, fp, dvec);
+		}
 	}
 	else {
 
@@ -2229,7 +2339,7 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Set 3D Cursor";
-	ot->description = "Set the location of the 3D cursor.";
+	ot->description = "Set the location of the 3D cursor";
 	ot->idname= "VIEW3D_OT_cursor3d";
 
 	/* api callbacks */
@@ -2271,7 +2381,7 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "3D Manipulator";
-	ot->description = "Manipulate selected item by axis.";
+	ot->description = "Manipulate selected item by axis";
 	ot->idname= "VIEW3D_OT_manipulator";
 
 	/* api callbacks */
@@ -2283,7 +2393,40 @@ void VIEW3D_OT_manipulator(wmOperatorType *ot)
 	RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
 }
 
+static int enable_manipulator_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	View3D *v3d = CTX_wm_view3d(C);
 
+	v3d->twtype=0;
+	
+	if (RNA_boolean_get(op->ptr, "translate"))
+		v3d->twtype |= V3D_MANIP_TRANSLATE;
+	if (RNA_boolean_get(op->ptr, "rotate"))
+		v3d->twtype |= V3D_MANIP_ROTATE;
+	if (RNA_boolean_get(op->ptr, "scale"))
+		v3d->twtype |= V3D_MANIP_SCALE;
+		
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_enable_manipulator(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Enable 3D Manipulator";
+	ot->description = "Enable the transform manipulator for use";
+	ot->idname= "VIEW3D_OT_enable_manipulator";
+	
+	/* api callbacks */
+	ot->invoke= enable_manipulator_invoke;
+	ot->poll= ED_operator_view3d_active;
+	
+	/* rna later */
+	RNA_def_boolean(ot->srna, "translate", 0, "Translate", "Enable the translate manipulator");
+	RNA_def_boolean(ot->srna, "rotate", 0, "Rotate", "Enable the rotate manipulator");
+	RNA_def_boolean(ot->srna, "scale", 0, "Scale", "Enable the scale manipulator");
+}
 
 /* ************************* below the line! *********************** */
 
@@ -2643,7 +2786,7 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 	float xvec[3] = {1,0,0};
 	float yvec[3] = {0,-1,0};
 	float zvec[3] = {0,0,1};
-	float phi, si;
+	float phi;
 	float q1[4];
 	float obofs[3];
 	float reverse;
@@ -2792,11 +2935,8 @@ void viewmoveNDOF(Scene *scene, ARegion *ar, View3D *v3d, int mode)
 
     /* Perform the up/down rotation */
     phi = sbadjust * rsens * /*0.5f * */ fval[3]; /* spin vertically half as fast as horizontally */
-    si = sin(phi);
     q1[0] = cos(phi);
-    q1[1] = si * xvec[0];
-    q1[2] = si * xvec[1];
-    q1[3] = si * xvec[2];
+    mul_v3_v3fl(q1+1, xvec, sin(phi));
     mul_qt_qtqt(rv3d->viewquat, rv3d->viewquat, q1);
 
     if (use_sel) {

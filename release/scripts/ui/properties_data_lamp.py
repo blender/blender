@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -21,6 +21,13 @@ import bpy
 from rna_prop_ui import PropertyPanel
 
 narrowui = 180
+
+
+class LAMP_MT_sunsky_presets(bpy.types.Menu):
+    bl_label = "Render Presets"
+    preset_subdir = "sunsky"
+    preset_operator = "script.python_file_run"
+    draw = bpy.types.Menu.draw_preset
 
 
 class DataButtonsPanel(bpy.types.Panel):
@@ -129,16 +136,19 @@ class DATA_PT_sunsky(DataButtonsPanel):
         lamp = context.lamp.sky
         wide_ui = context.region.width > narrowui
 
-        layout.prop(lamp, "sky")
+        row = layout.row(align=True)
+        row.prop(lamp, "use_sky")
+        row.menu("LAMP_MT_sunsky_presets", text="Presets")
+        row.operator("lamp.sunsky_preset_add", text="Add")
 
         row = layout.row()
-        row.active = lamp.sky or lamp.atmosphere
+        row.active = lamp.use_sky or lamp.use_atmosphere
         row.prop(lamp, "atmosphere_turbidity", text="Turbidity")
 
         split = layout.split()
 
         col = split.column()
-        col.active = lamp.sky
+        col.active = lamp.use_sky
         col.label(text="Blending:")
         sub = col.column()
         sub.prop(lamp, "sky_blend_type", text="")
@@ -151,7 +161,7 @@ class DATA_PT_sunsky(DataButtonsPanel):
 
         if wide_ui:
             col = split.column()
-        col.active = lamp.sky
+        col.active = lamp.use_sky
         col.label(text="Horizon:")
         sub = col.column()
         sub.prop(lamp, "horizon_brightness", text="Brightness")
@@ -165,19 +175,19 @@ class DATA_PT_sunsky(DataButtonsPanel):
 
         layout.separator()
 
-        layout.prop(lamp, "atmosphere")
+        layout.prop(lamp, "use_atmosphere")
 
         split = layout.split()
 
         col = split.column()
-        col.active = lamp.atmosphere
+        col.active = lamp.use_atmosphere
         col.label(text="Intensity:")
         col.prop(lamp, "sun_intensity", text="Sun")
         col.prop(lamp, "atmosphere_distance_factor", text="Distance")
 
         if wide_ui:
             col = split.column()
-        col.active = lamp.atmosphere
+        col.active = lamp.use_atmosphere
         col.label(text="Scattering:")
         sub = col.column(align=True)
         sub.prop(lamp, "atmosphere_inscattering", slider=True, text="Inscattering")
@@ -352,6 +362,7 @@ class DATA_PT_spot(DataButtonsPanel):
         sub.prop(lamp, "spot_size", text="Size")
         sub.prop(lamp, "spot_blend", text="Blend", slider=True)
         col.prop(lamp, "square")
+        col.prop(lamp, "show_cone")
 
         if wide_ui:
             col = split.column()
@@ -380,13 +391,31 @@ class DATA_PT_falloff_curve(DataButtonsPanel):
         self.layout.template_curve_mapping(lamp, "falloff_curve")
 
 
-bpy.types.register(DATA_PT_context_lamp)
-bpy.types.register(DATA_PT_preview)
-bpy.types.register(DATA_PT_lamp)
-bpy.types.register(DATA_PT_falloff_curve)
-bpy.types.register(DATA_PT_area)
-bpy.types.register(DATA_PT_spot)
-bpy.types.register(DATA_PT_shadow)
-bpy.types.register(DATA_PT_sunsky)
+classes = [
+    LAMP_MT_sunsky_presets,
 
-bpy.types.register(DATA_PT_custom_props_lamp)
+    DATA_PT_context_lamp,
+    DATA_PT_preview,
+    DATA_PT_lamp,
+    DATA_PT_falloff_curve,
+    DATA_PT_area,
+    DATA_PT_spot,
+    DATA_PT_shadow,
+    DATA_PT_sunsky,
+
+    DATA_PT_custom_props_lamp]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

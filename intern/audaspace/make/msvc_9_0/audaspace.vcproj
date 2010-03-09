@@ -466,6 +466,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\intern\AUD_SequencerFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_SequencerFactory.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_SequencerReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\intern\AUD_SequencerReader.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\intern\AUD_SinusFactory.cpp"
 				>
 			</File>

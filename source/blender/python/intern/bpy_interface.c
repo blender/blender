@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Michel Selten, Willian P. Germano, Stephen Swaney,
  * Chris Keith, Chris Want, Ken Hughes, Campbell Barton
@@ -38,9 +38,8 @@
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
 
+#include "bpy.h"
 #include "bpy_rna.h"
-#include "bpy_operator.h"
-#include "bpy_ui.h"
 #include "bpy_util.h"
 
 #ifndef WIN32
@@ -54,33 +53,26 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_path_util.h"
 #include "BLI_storage.h"
 #include "BLI_fileops.h"
 #include "BLI_string.h"
+#include "BLI_path_util.h"
 
-#include "BKE_blender.h"
 #include "BKE_context.h"
 #include "BKE_text.h"
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_global.h" /* only for script checking */
 
 #include "BPY_extern.h"
 
 #include "../generic/bpy_internal_import.h" // our own imports
-/* external util modules */
-
-#include "../generic/Mathutils.h"
-#include "../generic/Geometry.h"
-#include "../generic/BGL.h"
-#include "../generic/IDProp.h"
 
 /* for internal use, when starting and ending python scripts */
 
 /* incase a python script triggers another python call, stop bpy_context_clear from invalidating */
 static int py_call_level= 0;
-
+BPy_StructRNA *bpy_context_module= NULL; /* for fast access */
 
 // only for tests
 #define TIME_PY_RUN
@@ -149,93 +141,12 @@ void bpy_context_clear(bContext *C, PyGILState_STATE *gilstate)
 	}
 }
 
-static void bpy_import_test(char *modname)
-{
-	PyObject *mod= PyImport_ImportModuleLevel(modname, NULL, NULL, NULL, 0);
-	if(mod) {
-		Py_DECREF(mod);
-	}
-	else {
-		PyErr_Print();
-		PyErr_Clear();
-	}	
-}
-
 void BPY_free_compiled_text( struct Text *text )
 {
 	if( text->compiled ) {
 		Py_DECREF( ( PyObject * ) text->compiled );
 		text->compiled = NULL;
 	}
-}
-
-/*****************************************************************************
-* Description: Creates the bpy module and adds it to sys.modules for importing
-*****************************************************************************/
-static BPy_StructRNA *bpy_context_module= NULL; /* for fast access */
-static void bpy_init_modules( void )
-{
-	PyObject *mod;
-
-	/* Needs to be first since this dir is needed for future modules */
-	char *modpath= BLI_gethome_folder("scripts/modules", BLI_GETHOME_ALL);
-	if(modpath) {
-		PyObject *sys_path= PySys_GetObject("path"); /* borrow */
-		PyObject *py_modpath= PyUnicode_FromString(modpath);
-		PyList_Insert(sys_path, 0, py_modpath); /* add first */
-		Py_DECREF(py_modpath);
-	}
-	
-	/* stand alone utility modules not related to blender directly */
-	Geometry_Init();
-	Mathutils_Init();
-	BGL_Init();
-	IDProp_Init_Types();
-
-
-	mod = PyModule_New("_bpy");
-
-	/* add the module so we can import it */
-	PyDict_SetItemString(PySys_GetObject("modules"), "_bpy", mod);
-	Py_DECREF(mod);
-
-	/* run first, initializes rna types */
-	BPY_rna_init();
-
-	PyModule_AddObject( mod, "types", BPY_rna_types() ); /* needs to be first so bpy_types can run */
-	bpy_import_test("bpy_types");
-	PyModule_AddObject( mod, "data", BPY_rna_module() ); /* imports bpy_types by running this */
-	bpy_import_test("bpy_types");
-	/* PyModule_AddObject( mod, "doc", BPY_rna_doc() ); */
-	PyModule_AddObject( mod, "props", BPY_rna_props() );
-	PyModule_AddObject( mod, "ops", BPY_operator_module() ); /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
-	PyModule_AddObject( mod, "ui", BPY_ui_module() ); // XXX very experimental, consider this a test, especially PyCObject is not meant to be permanent
-
-
-
-	/* bpy context */
-	{
-		bpy_context_module= ( BPy_StructRNA * ) PyObject_NEW( BPy_StructRNA, &pyrna_struct_Type );
-		RNA_pointer_create(NULL, &RNA_Context, NULL, &bpy_context_module->ptr);
-
-		PyModule_AddObject(mod, "context", (PyObject *)bpy_context_module);
-	}
-
-	/* blender info that wont change at runtime, add into _bpy */
-	{
-		extern char bprogname[]; /* argv[0] from creator.c */
-
-		PyObject *mod_dict= PyModule_GetDict(mod);
-		char tmpstr[256];
-		PyModule_AddStringConstant(mod, "_HOME",  BLI_gethome());
-		PyDict_SetItemString(mod_dict, "_VERSION", Py_BuildValue("(iii)", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION));
-		sprintf(tmpstr, "%d.%02d (sub %d)", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
-		PyModule_AddStringConstant(mod, "_VERSION_STR",  tmpstr);
-		PyModule_AddStringConstant(mod, "_BINPATH",  bprogname);
-	}
-
-	/* add our own modules dir, this is a python package */
-	bpy_import_test("bpy");
 }
 
 void BPY_update_modules( void )
@@ -374,7 +285,7 @@ void BPY_start_python( int argc, char **argv )
 	
 	
 	/* bpy.* and lets us import it */
-	bpy_init_modules(); 
+	BPy_init_modules();
 
 	{ /* our own import and reload functions */
 		PyObject *item;
@@ -469,11 +380,11 @@ int BPY_run_python_script( bContext *C, const char *fn, struct Text *text, struc
 
 			fclose(fp);
 
-			pystring= malloc(strlen(fn) + 32);
+			pystring= MEM_mallocN(strlen(fn) + 32, "pystring");
 			pystring[0]= '\0';
 			sprintf(pystring, "exec(open(r'%s').read())", fn);
 			py_result = PyRun_String( pystring, Py_file_input, py_dict, py_dict );
-			free(pystring);
+			MEM_freeN(pystring);
 #else
 			py_result = PyRun_File(fp, fn, Py_file_input, py_dict, py_dict);
 			fclose(fp);
@@ -649,24 +560,26 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 	PyObject *dict, *mod, *retval;
 	int error_ret = 0;
 	
-	if (!value || !expr || expr[0]=='\0') return -1;
-	
+	if (!value || !expr) return -1;
+
+	if(expr[0]=='\0') {
+		*value= 0.0;
+		return error_ret;
+	}
+
 	bpy_context_set(C, &gilstate);
 	
 	dict= CreateGlobalDictionary(C, NULL);
-	
-	/* import some modules: builtins,math*/
-	PyDict_SetItemString(dict, "__builtins__", PyEval_GetBuiltins());
 
 	mod = PyImport_ImportModule("math");
 	if (mod) {
 		PyDict_Merge(dict, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
-		
-		/* Only keep for backwards compat! - just import all math into root, they are standard */
-		PyDict_SetItemString(dict, "math", mod);
-		PyDict_SetItemString(dict, "m", mod);
 		Py_DECREF(mod);
-	} 
+	}
+	else { /* highly unlikely but possibly */
+		PyErr_Print();
+		PyErr_Clear();
+	}
 	
 	retval = PyRun_String(expr, Py_eval_input, dict, dict);
 	
@@ -723,14 +636,19 @@ void BPY_load_user_modules(bContext *C)
 
 	for(text=CTX_data_main(C)->text.first; text; text= text->id.next) {
 		if(text->flags & TXT_ISSCRIPT && BLI_testextensie(text->id.name+2, ".py")) {
-			PyObject *module= bpy_text_import(text);
-
-			if (module==NULL) {
-				PyErr_Print();
-				PyErr_Clear();
+			if(!(G.f & G_SCRIPT_AUTOEXEC)) {
+				printf("scripts disabled for \"%s\", skipping '%s'\n", bmain->name, text->id.name+2);
 			}
 			else {
-				Py_DECREF(module);
+				PyObject *module= bpy_text_import(text);
+
+				if (module==NULL) {
+					PyErr_Print();
+					PyErr_Clear();
+				}
+				else {
+					Py_DECREF(module);
+				}
 			}
 		}
 	}
@@ -793,7 +711,7 @@ int BPY_context_get(bContext *C, const char *member, bContextDataResult *result)
 		if (item)	printf("Context '%s' not a valid type\n", member);
 		else		printf("Context '%s' not found\n", member);
 	}
-	else if (G.f & G_DEBUG) {
+	else {
 		printf("Context '%s' found\n", member);
 	}
 

@@ -6,6 +6,7 @@ sources = env.Glob('*.cpp') + env.Glob('Joystick/*.cpp')
 incs = '. #/source/kernel/gen_system #/intern/string'
 incs += ' #/source/gameengine/Expressions #/intern/moto/include'
 incs += ' #/source/gameengine/Rasterizer #/source/gameengine/SceneGraph'
+incs += ' #/source/gameengine/Ketsji'
 
 defs = []
 

@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -155,7 +155,7 @@ void animviz_free_motionpath(bMotionPath *mpath)
 
 /* ------------------- */
 
-/* Setup motion paths for the given data 
+/* Setup motion paths for the given data
  *	- scene: current scene (for frame ranges, etc.)
  *	- ob: object to add paths for (must be provided)
  *	- pchan: posechannel to add paths for (optional; if not provided, object-paths are assumed)
@@ -227,8 +227,10 @@ typedef struct MPathTarget {
 
 /* ........ */
 
-/* get list of motion paths to be baked (assumes the list is ready to be used) */
-static void motionpaths_get_bake_targets(Object *ob, ListBase *targets)
+/* get list of motion paths to be baked for the given object
+ * 	- assumes the given list is ready to be used
+ */
+void animviz_get_object_motionpaths(Object *ob, ListBase *targets)
 {
 	MPathTarget *mpt;
 	
@@ -261,6 +263,8 @@ static void motionpaths_get_bake_targets(Object *ob, ListBase *targets)
 	}
 }
 
+/* ........ */
+
 /* perform baking for the targets on the current frame */
 static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 {
@@ -271,8 +275,10 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 		bMotionPath *mpath= mpt->mpath;
 		bMotionPathVert *mpv;
 		
-		/* current frame must be within the range the cache works for */
-		if (IN_RANGE(CFRA, mpath->start_frame, mpath->end_frame) == 0)
+		/* current frame must be within the range the cache works for 
+		 *	- is inclusive of the first frame, but not the last otherwise we get buffer overruns
+		 */
+		if ((CFRA < mpath->start_frame) || (CFRA >= mpath->end_frame))
 			continue;
 		
 		/* get the relevant cache vert to write to */
@@ -298,36 +304,30 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 	}
 }
 
-/* ........ */
-
 /* Perform baking of the given object's and/or its bones' transforms to motion paths 
  *	- scene: current scene
  *	- ob: object whose flagged motionpaths should get calculated
  *	- recalc: whether we need to 
  */
 // TODO: include reports pointer?
-void animviz_calc_motionpaths(Scene *scene, Object *ob)
+void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 {
-	ListBase targets = {NULL, NULL};
 	MPathTarget *mpt;
 	int sfra, efra;
 	int cfra;
 	
-	/* sanity checks */
-	if (ob == NULL)
-		return;
-		
-	/* get motion paths to affect */
-	motionpaths_get_bake_targets(ob, &targets);
-	
-	if (targets.first == NULL) 
+	/* sanity check */
+	if (ELEM(NULL, targets, targets->first))
 		return;
 	
 	/* set frame values */
 	cfra = CFRA;
 	sfra = efra = cfra;
 	
-	for (mpt= targets.first; mpt; mpt= mpt->next) {
+	// TODO: this method could be improved...
+	//	1) max range for standard baking
+	//	2) minimum range for recalc baking (i.e. between keyfames, but how?)
+	for (mpt= targets->first; mpt; mpt= mpt->next) {
 		/* try to increase area to do (only as much as needed) */
 		sfra= MIN2(sfra, mpt->mpath->start_frame);
 		efra= MAX2(efra, mpt->mpath->end_frame);
@@ -341,23 +341,29 @@ void animviz_calc_motionpaths(Scene *scene, Object *ob)
 		 * 	  that doesn't force complete update, but for now, this is the
 		 *	  most accurate way!
 		 */
-		scene_update_for_newframe(scene, ob->lay); // XXX is the layer flag too restrictive?
+		scene_update_for_newframe(scene, scene->lay); // XXX this is the best way we can get anything moving
 		
 		/* perform baking for targets */
-		motionpaths_calc_bake_targets(scene, &targets);
+		motionpaths_calc_bake_targets(scene, targets);
 	}
 	
 	/* reset original environment */
 	CFRA= cfra;
-	scene_update_for_newframe(scene, ob->lay); // XXX is the layer flag too restrictive?
+	scene_update_for_newframe(scene, scene->lay); // XXX this is the best way we can get anything moving
 	
-		// TODO: make an API call for this too?
-	ob->avs.recalc &= ~ANIMVIZ_RECALC_PATHS;
-	if (ob->pose)
-		ob->pose->avs.recalc &= ~ANIMVIZ_RECALC_PATHS;
-	
-	/* free temp data */
-	BLI_freelistN(&targets);
+	/* clear recalc flags from targets */
+	for (mpt= targets->first; mpt; mpt= mpt->next) {
+		bAnimVizSettings *avs;
+		
+		/* get pointer to animviz settings for each target */
+		if (mpt->pchan)
+			avs= &mpt->ob->pose->avs;
+		else	
+			avs= &mpt->ob->avs;
+		
+		/* clear the flag requesting recalculation of targets */
+		avs->recalc &= ~ANIMVIZ_RECALC_PATHS;
+	}
 }
 
 /* ******************************************************************** */
@@ -1074,7 +1080,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 	ParticleCacheKey *cache;
 	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size=0.0;
-	float (*obmat)[4], (*oldobmat)[4];
+	float (*obmat)[4], (*oldobmat)[4], recurs_mat[4][4];
 	int lay, a, b, counter, hair = 0;
 	int totpart, totchild, totgroup=0, pa_num;
 
@@ -1090,6 +1096,10 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 	if(!psys_check_enabled(par, psys))
 		return;
+	
+	/* particles are already in world space, don't want the object mat twice */
+	if(par_space_mat)
+		mul_m4_m4m4(recurs_mat, psys->imat, par_space_mat);
 
 	ctime = bsystem_time(scene, par, (float)scene->r.cfra, 0.0);
 
@@ -1234,7 +1244,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					mul_m4_m4m4(tmat, oblist[b]->obmat, pamat);
 					mul_mat3_m4_fl(tmat, size*scale);
 					if(par_space_mat)
-						mul_m4_m4m4(mat, tmat, par_space_mat);
+						mul_m4_m4m4(mat, tmat, recurs_mat);
 					else
 						copy_m4_m4(mat, tmat);
 
@@ -1260,7 +1270,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 					VECADD(tmat[3], tmat[3], vec);
 
 				if(par_space_mat)
-					mul_m4_m4m4(mat, tmat, par_space_mat);
+					mul_m4_m4m4(mat, tmat, recurs_mat);
 				else
 					copy_m4_m4(mat, tmat);
 

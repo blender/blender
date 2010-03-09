@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -851,22 +851,11 @@ void bglPolygonOffset(float viewdist, float dist)
 	}
 }
 
-int is_a_really_crappy_intel_card(void)
-{
-	static int well_is_it= -1;
-
-		/* Do you understand the implication? Do you? */
-	if (well_is_it==-1)
-		well_is_it= (strcmp((char*) glGetString(GL_VENDOR), "Intel Inc.") == 0);
-
-	return well_is_it;
-}
-
 void bglFlush(void) 
 {
 	glFlush();
 #ifdef __APPLE__
-//	if(is_a_really_crappy_intel_card())
+//	if(GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_MAC, GPU_DRIVER_OFFICIAL))
 // XXX		myswapbuffers(); //hack to get mac intel graphics to show frontbuffer
 #endif
 }

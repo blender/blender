@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Campbell Barton
  *
@@ -78,5 +78,5 @@ void BPy_SetContext(struct bContext *C);
 extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate);
 extern void bpy_context_clear(struct bContext *C, PyGILState_STATE *gilstate);
 
-
+int BPyAsPrimitiveArray(void *array, PyObject *value, int length, PyTypeObject *type, char *error_prefix);
 #endif

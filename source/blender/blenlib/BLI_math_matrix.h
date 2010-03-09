@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -147,6 +147,9 @@ void loc_quat_size_to_mat4(float R[4][4],
 
 void blend_m3_m3m3(float R[3][3], float A[3][3], float B[3][3], float t);
 void blend_m4_m4m4(float R[4][4], float A[4][4], float B[4][4], float t);
+
+int is_negative_m3(float mat[3][3]);
+int is_negative_m4(float mat[4][4]);
 
 /*********************************** Other ***********************************/
 

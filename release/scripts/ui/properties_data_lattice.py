@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -96,7 +96,23 @@ class DATA_PT_lattice(DataButtonsPanel):
         layout.prop(lat, "outside")
 
 
-bpy.types.register(DATA_PT_context_lattice)
-bpy.types.register(DATA_PT_lattice)
+classes = [
+    DATA_PT_context_lattice,
+    DATA_PT_lattice,
 
-bpy.types.register(DATA_PT_custom_props_lattice)
+    DATA_PT_custom_props_lattice]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007, Blender Foundation
  * This is a new part of Blender
@@ -64,6 +64,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -81,9 +82,6 @@
 #include "armature_intern.h"
 
 /* ******* XXX ********** */
-
-static void BIF_undo_push() {}
-static void error() {}
 
 static void action_set_activemarker() {}
 
@@ -220,7 +218,7 @@ void poselib_validate_act (bAction *act)
 	
 	/* validate action and poselib */
 	if (act == NULL)  {
-		error("No Action to validate");
+		//error("No Action to validate");
 		return;
 	}
 	
@@ -232,6 +230,7 @@ void poselib_validate_act (bAction *act)
 	/* for each key, make sure there is a correspnding pose */
 	for (ak= keys.first; ak; ak= ak->next) {
 		/* check if any pose matches this */
+		// TODO: don't go looking through the list like this every time...
 		for (marker= act->markers.first; marker; marker= marker->next) {
 			if (IS_EQ(marker->frame, ak->cfra)) {
 				marker->flag = -1;
@@ -269,7 +268,7 @@ void poselib_validate_act (bAction *act)
 	/* free temp memory */
 	BLI_freelistN((ListBase *)&keys);
 	
-	BIF_undo_push("PoseLib Validate Action");
+	//BIF_undo_push("PoseLib Validate Action");
 }
 
 /* ************************************************************* */
@@ -372,7 +371,7 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* validate name */
-	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), 64);
+	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), sizeof(marker->name));
 	
 	/* init common-key-source for use by KeyingSets */
 	memset(&cks, 0, sizeof(bCommonKeySrc));
@@ -431,6 +430,10 @@ static EnumPropertyItem *poselib_stored_pose_itemf(bContext *C, PointerRNA *ptr,
 	EnumPropertyItem *item= NULL, item_tmp;
 	int totitem= 0;
 	int i= 0;
+
+	if (C==NULL) {
+		return DummyRNA_DEFAULT_items;
+	}
 
 	memset(&item_tmp, 0, sizeof(item_tmp));
 	
@@ -500,9 +503,6 @@ static int poselib_remove_exec (bContext *C, wmOperator *op)
 void POSELIB_OT_pose_remove (wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	static EnumPropertyItem prop_poses_dummy_types[] = {
-		{0, NULL, 0, NULL, NULL}
-	};
 	
 	/* identifiers */
 	ot->name= "PoseLib Remove Pose";
@@ -518,8 +518,9 @@ void POSELIB_OT_pose_remove (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* properties */
-	prop= RNA_def_enum(ot->srna, "pose", prop_poses_dummy_types, 0, "Pose", "The pose to remove");
-		RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
+	prop= RNA_def_enum(ot->srna, "pose", DummyRNA_DEFAULT_items, 0, "Pose", "The pose to remove");
+	RNA_def_enum_funcs(prop, poselib_stored_pose_itemf);
+	ot->prop= prop;
 }
 
 static int poselib_rename_invoke (bContext *C, wmOperator *op, wmEvent *evt)
@@ -575,7 +576,7 @@ static int poselib_rename_exec (bContext *C, wmOperator *op)
 	
 	/* copy name and validate it */
 	BLI_strncpy(marker->name, newname, sizeof(marker->name));
-	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), 64);
+	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), sizeof(marker->name));
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -624,18 +625,18 @@ typedef struct tPoseLib_PreviewData {
 	bAction *act;			/* poselib to use */
 	TimeMarker *marker;		/* 'active' pose */
 	
+	int selcount;			/* number of selected elements to work on */
+	int totcount;			/* total number of elements to work on */
+	
 	short state;			/* state of main loop */
 	short redraw;			/* redraw/update settings during main loop */
 	short flag;				/* flags for various settings */
 	
-	int selcount;			/* number of selected elements to work on */
-	int totcount;			/* total number of elements to work on */
-	
-	char headerstr[200];	/* Info-text to print in header */
-	
+	short search_cursor;	/* position of cursor in searchstr (cursor occurs before the item at the nominated index) */
 	char searchstr[64];		/* (Part of) Name to search for to filter poses that get shown */
 	char searchold[64];		/* Previously set searchstr (from last loop run), so that we can detected when to rebuild searchp */
-	short search_cursor;	/* position of cursor in searchstr (cursor occurs before the item at the nominated index) */
+	
+	char headerstr[200];	/* Info-text to print in header */
 } tPoseLib_PreviewData;
 
 /* defines for tPoseLib_PreviewData->state values */
@@ -900,7 +901,7 @@ static void poselib_preview_apply (bContext *C, wmOperator *op)
 	}
 	
 	/* request drawing of view + clear redraw flag */
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM|ND_POSE, pld->ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, pld->ob);
 	pld->redraw= PL_PREVIEW_NOREDRAW;
 }
 
@@ -1302,7 +1303,8 @@ static void poselib_preview_init_data (bContext *C, wmOperator *op)
 		if (pld->act->markers.first) {
 			/* just use first one then... */
 			pld->marker= pld->act->markers.first;
-			if (pose_index > -2) printf("PoseLib had no active pose\n");
+			if (pose_index > -2) 
+				BKE_report(op->reports, RPT_WARNING, "PoseLib had no active pose");
 		}
 		else {
 			BKE_report(op->reports, RPT_ERROR, "PoseLib has no poses to preview/apply");
@@ -1508,5 +1510,8 @@ void POSELIB_OT_browse_interactive (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
 	
 	/* properties */	
-	RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
+		// TODO: make the pose_index into a proper enum instead of a cryptic int...
+	ot->prop= RNA_def_int(ot->srna, "pose_index", -1, -2, INT_MAX, "Pose", "Index of the pose to apply (-2 for no change to pose, -1 for poselib active pose)", 0, INT_MAX);
+		// XXX: percentage vs factor?
+	RNA_def_float_factor(ot->srna, "blend_factor", 1.0f, 0.0f, 1.0f, "Blend Factor", "Amount that the pose is applied on top of the existing poses", 0.0f, 1.0f);
 }

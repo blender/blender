@@ -12,14 +12,13 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
 
 import bpy
-from rigify import get_layer_dict
 from rigify_utils import copy_bone_simple, get_side_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 
@@ -104,16 +103,16 @@ def deform(obj, definitions, base_names, options):
 
         # Create deform bone.
         bone = copy_bone_simple(obj.data, org_bone_name, "DEF-%s" % base_names[org_bone_name], parent=True)
-        
+
         # Store name before leaving edit mode
         bone_name = bone.name
-        
+
         # Leave edit mode
         bpy.ops.object.mode_set(mode='OBJECT')
-        
+
         # Get the pose bone
         bone = obj.pose.bones[bone_name]
-        
+
         # Constrain to the original bone
         # XXX. Todo, is this needed if the bone is connected to its parent?
         con = bone.constraints.new('COPY_TRANSFORMS')
@@ -141,7 +140,7 @@ def main(obj, bone_definition, base_names, options):
     offset = (pinky_ebone.head - ring_ebone.head)
 
     control_ebone.translate(offset)
-    
+
     deform(obj, bone_definition, base_names, options)
 
     bpy.ops.object.mode_set(mode='OBJECT')
@@ -152,6 +151,7 @@ def main(obj, bone_definition, base_names, options):
 
     control_pbone.rotation_mode = 'YZX'
     control_pbone.lock_rotation = False, True, True
+    control_pbone.lock_location = True, True, True
 
     driver_fcurves = pinky_pbone.driver_add("rotation_euler")
 
@@ -163,6 +163,8 @@ def main(obj, bone_definition, base_names, options):
     prop = rna_idprop_ui_prop_get(control_pbone, "spread", create=True)
     prop["soft_min"] = -1.0
     prop["soft_max"] = 1.0
+    prop["min"] = -1.0
+    prop["max"] = 1.0
 
 
     # *****
@@ -246,15 +248,15 @@ def main(obj, bone_definition, base_names, options):
         # NOTE: the direction of the Z rotation depends on which side the palm is on.
         # we could do a simple side-of-x test but better to work out the direction
         # the hand is facing.
-        from Mathutils import Vector, AngleBetweenVecs
+        from Mathutils import Vector
         from math import degrees
         child_pbone_01 = obj.pose.bones[children[0]].bone
         child_pbone_02 = obj.pose.bones[children[1]].bone
 
         rel_vec = child_pbone_01.head - child_pbone_02.head
-        x_vec = child_pbone_01.matrix.rotationPart() * Vector(1.0, 0.0, 0.0)
+        x_vec = child_pbone_01.matrix.rotation_part() * Vector(1.0, 0.0, 0.0)
 
-        return degrees(AngleBetweenVecs(rel_vec, x_vec)) > 90.0
+        return degrees(rel_vec.angle(x_vec)) > 90.0
 
     if x_direction(): # flip
         driver.expression = "-(%s)" % driver.expression

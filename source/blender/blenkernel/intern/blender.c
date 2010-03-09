@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -102,76 +102,6 @@ ListBase WMlist= {NULL, NULL};
 short ENDIAN_ORDER;
 
 char versionstr[48]= "";
-
-/* ************************************************ */
-/* pushpop facility: to store data temporally, FIFO! */
-
-ListBase ppmain={0, 0};
-
-typedef struct PushPop {
-	struct PushPop *next, *prev;
-	void *data;
-	int len;
-} PushPop;
-
-void pushdata(void *data, int len)
-{
-	PushPop *pp;
-	
-	pp= MEM_mallocN(sizeof(PushPop), "pushpop");
-	BLI_addtail(&ppmain, pp);
-	pp->data= MEM_mallocN(len, "pushpop");
-	pp->len= len;
-	memcpy(pp->data, data, len);
-}
-
-void popfirst(void *data)
-{
-	PushPop *pp;
-	
-	pp= ppmain.first;
-	if(pp) {
-		memcpy(data, pp->data, pp->len);
-		BLI_remlink(&ppmain, pp);
-		MEM_freeN(pp->data);
-		MEM_freeN(pp);
-	}
-	else printf("error in popfirst\n");
-}
-
-void poplast(void *data)
-{
-	PushPop *pp;
-	
-	pp= ppmain.last;
-	if(pp) {
-		memcpy(data, pp->data, pp->len);
-		BLI_remlink(&ppmain, pp);
-		MEM_freeN(pp->data);
-		MEM_freeN(pp);
-	}
-	else printf("error in poplast\n");
-}
-
-void free_pushpop()
-{
-	PushPop *pp;
-
-	pp= ppmain.first;
-	while(pp) {
-		BLI_remlink(&ppmain, pp);
-		MEM_freeN(pp->data);
-		MEM_freeN(pp);
-	}	
-}
-
-void pushpop_test()
-{
-	if(ppmain.first) printf("pushpop not empty\n");
-	free_pushpop();
-}
-
-
 
 /* ********** free ********** */
 
@@ -278,7 +208,6 @@ static void clean_paths(Main *main)
 
 static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename) 
 {
-	Object *ob;
 	bScreen *curscreen= NULL;
 	Scene *curscene= NULL;
 	int recover;
@@ -362,8 +291,6 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	if (G.f & G_SWAP_EXCHANGE) bfd->globalf |= G_SWAP_EXCHANGE;
 	else bfd->globalf &= ~G_SWAP_EXCHANGE;
 
-	if ((U.flag & USER_DONT_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
-
 	G.f= bfd->globalf;
 
 	if (!G.background) {
@@ -374,8 +301,9 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	if(G.main->versionfile < 250)
 		do_versions_ipos_to_animato(G.main); // XXX fixme... complicated versionpatching
 	
-	/* in case of autosave or quit.blend, use original filename instead */
-	if(recover && bfd->filename[0])
+	/* in case of autosave or quit.blend, use original filename instead
+	 * use relbase_valid to make sure the file is saved, else we get <memory2> in the filename */
+	if(recover && bfd->filename[0] && G.relbase_valid)
 		filename= bfd->filename;
 	
 	/* these are the same at times, should never copy to the same location */
@@ -387,14 +315,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	/* baseflags, groups, make depsgraph, etc */
 	set_scene_bg(CTX_data_scene(C));
 
-	/* last stage of do_versions actually, that sets recalc flags for recalc poses */
-	for(ob= G.main->object.first; ob; ob= ob->id.next) {
-		if(ob->type==OB_ARMATURE)
-			if(ob->recalc) object_handle_update(CTX_data_scene(C), ob);
-	}
-	
-	/* now tag update flags, to ensure deformers get calculated on redraw */
-	DAG_scene_update_flags(CTX_data_scene(C), CTX_data_scene(C)->lay);
+	DAG_on_load_update();
 	
 	MEM_freeN(bfd);
 }
@@ -435,7 +356,7 @@ void BKE_userdef_free(void)
 	BLI_freelistN(&U.uifonts);
 	BLI_freelistN(&U.themes);
 	BLI_freelistN(&U.keymaps);
-	
+	BLI_freelistN(&U.addons);
 }
 
 /* returns:
@@ -448,6 +369,9 @@ int BKE_read_file(bContext *C, char *dir, void *unused, ReportList *reports)
 {
 	BlendFileData *bfd;
 	int retval= 1;
+
+	if(strstr(dir, ".B25.blend")==0) /* dont print user-pref loading */
+		printf("read blend: %s\n", dir);
 
 	bfd= BLO_read_from_file(dir, reports);
 	if (bfd) {
@@ -494,6 +418,7 @@ int BKE_read_file_from_memfile(bContext *C, MemFile *memfile, ReportList *report
 
 	return (bfd?1:0);
 }
+
 
 /* *****************  testing for break ************* */
 
@@ -788,5 +713,22 @@ void BKE_undo_save(char *fname)
 	
 	if(chunk) ; //XXX error("Unable to save %s, internal error", fname);
 	else printf("Saved session recovery to %s\n", fname);
+}
+
+/* sets curscene */
+Main *BKE_undo_get_main(Scene **scene)
+{
+	Main *mainp= NULL;
+	BlendFileData *bfd= BLO_read_from_memfile(G.main, G.sce, &curundo->memfile, NULL);
+	
+	if(bfd) {
+		mainp= bfd->main;
+		if(scene)
+			*scene= bfd->curscene;
+		
+		MEM_freeN(bfd);
+	}
+	
+	return mainp;
 }
 

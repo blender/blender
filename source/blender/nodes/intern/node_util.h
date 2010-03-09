@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -38,5 +38,16 @@ extern void node_free_standard_storage(struct bNode *node);
 extern void node_copy_curves(struct bNode *orig_node, struct bNode *new_node);
 extern void node_copy_standard_storage(struct bNode *orig_node, struct bNode *new_node);
 
+#endif
+
+// this is needed for inlining behaviour
+#if defined _WIN32
+#   define DO_INLINE __inline
+#elif defined (__sgi)
+#   define DO_INLINE
+#elif defined (__sun) || defined (__sun__)
+#   define DO_INLINE
+#else
+#   define DO_INLINE static inline
 #endif
 

@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -855,3 +855,14 @@ void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection)
 	system->putClipboard(buffer, selection);
 }
 
+const GHOST_TUns8* GHOST_getSystemDir()
+{
+	GHOST_ISystem* system = GHOST_ISystem::getSystem();
+	return system->getSystemDir();
+}
+
+const GHOST_TUns8* GHOST_getUserDir()
+{
+	GHOST_ISystem* system = GHOST_ISystem::getSystem();
+	return system->getUserDir();
+}

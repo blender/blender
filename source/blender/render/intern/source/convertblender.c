@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -1701,7 +1701,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			if(re->r.mode & R_SPEED)
 				dosurfacecache= 1;
-			else if((re->wrld.mode & WO_AMB_OCC) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
+			else if((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
 				if(ma->amb != 0.0f)
 					dosurfacecache= 1;
 
@@ -2405,7 +2405,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
 		ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
 		normalize_v3(ver->n);
-		//if(ob->transflag & OB_NEG_SCALE) mul_v3_fl(ver->n. -1.0);
+		//if(ob->transflag & OB_NEG_SCALE) negate_v3(ver->n);
 		
 		if(need_orco) ver->orco= orco;
 	}
@@ -3407,7 +3407,7 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 	/* bias is percentage, made 2x larger because of correction for angle of incidence */
 	/* when a ray is closer to parallel of a face, bias value is increased during render */
 	shb->bias= (0.02*lar->bias)*0x7FFFFFFF;
-	shb->bias= shb->bias*(100/re->r.size);
+	shb->bias= shb->bias;
 	
 	/* halfway method (average of first and 2nd z) reduces bias issues */
 	if(ELEM(lar->buftype, LA_SHADBUF_HALFWAY, LA_SHADBUF_DEEP))
@@ -3811,7 +3811,7 @@ void init_render_world(Render *re)
 			while(re->wrld.aosamp*re->wrld.aosamp < re->osa) 
 				re->wrld.aosamp++;
 		if(!(re->r.mode & R_RAYTRACE) && (re->wrld.ao_gather_method == WO_AOGATHER_RAYTRACE))
-			re->wrld.mode &= ~WO_AMB_OCC;
+			re->wrld.mode &= ~(WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT);
 	}
 	else {
 		memset(&re->wrld, 0, sizeof(World));
@@ -4098,7 +4098,8 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 				/* Baking lets us define a quad split order */
 				split_quads(obr, re->r.bake_quad_split);
 			} else {
-				check_non_flat_quads(obr);
+				if((re->r.simplify_flag & R_SIMPLE_NO_TRIANGULATE) == 0)
+					check_non_flat_quads(obr);
 			}
 			
 			set_fullsample_flag(re, obr);
@@ -4849,7 +4850,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	if(re->r.mode & R_RAYTRACE) {
 		init_render_qmcsampler(re);
 
-		if(re->wrld.mode & WO_AMB_OCC)
+		if(re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT))
 			if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
 				init_ao_sphere(&re->wrld);
 	}
@@ -4925,7 +4926,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0, 1);
 		
 		/* Occlusion */
-		if((re->wrld.mode & WO_AMB_OCC) && !re->test_break(re->tbh))
+		if((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && !re->test_break(re->tbh))
 			if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
 				if(re->r.renderer==R_INTERN)
 					if(re->r.mode & R_SHADOW)
@@ -5537,7 +5538,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	if(re->r.mode & R_RAYTRACE) {
 		init_render_qmcsampler(re);
 		
-		if(re->wrld.mode & WO_AMB_OCC)
+		if(re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT))
 			if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
 				init_ao_sphere(&re->wrld);
 	}
@@ -5569,7 +5570,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 			makeraytree(re);
 	
 	/* occlusion */
-	if((re->wrld.mode & WO_AMB_OCC) && !re->test_break(re->tbh))
+	if((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && !re->test_break(re->tbh))
 		if(re->wrld.ao_gather_method == WO_AOGATHER_APPROX)
 			if(re->r.mode & R_SHADOW)
 				make_occ_tree(re);
@@ -5604,7 +5605,7 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 		return;
 	}
 	
-	re= RE_NewRender("_make sticky_");
+	re= RE_NewRender("_make sticky_", RE_SLOT_DEFAULT);
 	RE_InitState(re, NULL, &scene->r, NULL, scene->r.xsch, scene->r.ysch, NULL);
 	
 	/* use renderdata and camera to set viewplane */

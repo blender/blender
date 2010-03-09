@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -51,6 +51,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_image.h"
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 
@@ -468,6 +469,7 @@ static void screen_copy(bScreen *to, bScreen *from)
 		sa->spacedata.first= sa->spacedata.last= NULL;
 		sa->regionbase.first= sa->regionbase.last= NULL;
 		sa->actionzones.first= sa->actionzones.last= NULL;
+		sa->handlers.first= sa->handlers.last= NULL;
 		
 		area_copy_data(sa, saf, 0);
 	}
@@ -1125,7 +1127,13 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 	screen->winid= 0;
 	
 	/* before deleting the temp screen or we get invalid access */
-	CTX_wm_window_set(C, prevwin);
+	if (prevwin->screen->full != SCREENTEMP) {
+		/* use previous window if possible */
+		CTX_wm_window_set(C, prevwin);
+	} else {
+		/* none otherwise */
+		CTX_wm_window_set(C, NULL);
+	}
 	
 	/* if temp screen, delete it */
 	if(screen->full == SCREENTEMP) {
@@ -1271,7 +1279,13 @@ void ED_screen_set(bContext *C, bScreen *sc)
 	
 	if (oldscreen != sc) {
 		wmTimer *wt= oldscreen->animtimer;
-		
+		ScrArea *sa;
+
+		/* remove handlers referencing areas in old screen */
+		for(sa = oldscreen->areabase.first; sa; sa = sa->next) {
+			WM_event_remove_area_handler(&win->modalhandlers, sa);
+		}
+
 		/* we put timer to sleep, so screen_exit has to think there's no timer */
 		oldscreen->animtimer= NULL;
 		if(wt)
@@ -1461,7 +1475,8 @@ ScrArea *ed_screen_fullarea(bContext *C, wmWindow *win, ScrArea *sa)
 			for(old= sc->areabase.first; old; old= old->next) 
 				if(old->full) break;
 			if(old==NULL) {
-				printf("something wrong in areafullscreen\n"); 
+				if (G.f & G_DEBUG)
+					printf("something wrong in areafullscreen\n"); 
 				return NULL;
 			}
 			    // old feature described below (ton)
@@ -1600,6 +1615,32 @@ void ED_screen_full_restore(bContext *C, ScrArea *sa)
 	}
 }
 
+/* update frame rate info for viewport drawing */
+void ED_refresh_viewport_fps(bContext *C)
+{
+	wmTimer *animtimer= CTX_wm_screen(C)->animtimer;
+	Scene *scene= CTX_data_scene(C);
+	
+	/* is anim playback running? */
+	if (animtimer && (U.uiflag & USER_SHOW_FPS)) {
+		ScreenFrameRateInfo *fpsi= scene->fps_info;
+		
+		/* if there isn't any info, init it first */
+		if (fpsi == NULL)
+			fpsi= scene->fps_info= MEM_callocN(sizeof(ScreenFrameRateInfo), "refresh_viewport_fps fps_info");
+		
+		/* update the values */
+		fpsi->redrawtime= fpsi->lredrawtime;
+		fpsi->lredrawtime= animtimer->ltime;
+	}
+	else {	
+		/* playback stopped or shouldn't be running */
+		if (scene->fps_info)
+			MEM_freeN(scene->fps_info);
+		scene->fps_info= NULL;
+	}
+}
+
 /* redraws: uses defines from stime->redraws 
  * enable: 1 - forward on, -1 - backwards on, 0 - off
  */
@@ -1721,6 +1762,9 @@ void ED_update_for_newframe(const bContext *C, int mute)
 	if(scene->use_nodes && scene->nodetree)
 		ntreeCompositTagAnimated(scene->nodetree);
 	
+	/* update animated image textures for gpu, etc */
+	ED_image_update_frame(C);
+	
 	/* update animated texture nodes */
 	{
 		Tex *tex;
@@ -1729,6 +1773,7 @@ void ED_update_for_newframe(const bContext *C, int mute)
 				ntreeTexTagAnimated( tex->nodetree );
 			}
 	}
+	
 }
 
 

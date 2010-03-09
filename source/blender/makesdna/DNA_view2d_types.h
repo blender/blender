@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -124,9 +124,12 @@ typedef struct View2D {
 #define V2D_SCROLL_SCALE_VERTICAL	(1<<5)
 	/* scale markings - horizontal */	
 #define V2D_SCROLL_SCALE_HORIZONTAL	(1<<6)
-	/* disable draw temporary */
+	/* induce hiding of scrollbars - set by region drawing in response to size of region */
 #define V2D_SCROLL_VERTICAL_HIDE	(1<<7)		
 #define V2D_SCROLL_HORIZONTAL_HIDE	(1<<8)
+	/* scrollbar extends beyond its available window - set when calculating scrollbars for drawing */
+#define V2D_SCROLL_VERTICAL_FULLR 	(1<<9)	
+#define V2D_SCROLL_HORIZONTAL_FULLR (1<<10)	
 
 /* scroll_ui, activate flag for drawing */
 #define V2D_SCROLL_H_ACTIVE			(1<<0)

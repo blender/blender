@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -68,9 +68,10 @@ class GRAPH_MT_view(bpy.types.Menu):
 
         layout.column()
 
-        layout.separator()
         layout.operator("graph.properties", icon='MENU_PANEL')
+        layout.separator()
 
+        layout.prop(st, "realtime_updates")
         layout.prop(st, "show_cframe_indicator")
         layout.prop(st, "show_cursor")
         layout.prop(st, "show_sliders")
@@ -121,12 +122,18 @@ class GRAPH_MT_select(bpy.types.Menu):
         layout.operator("graph.select_column", text="Columns on Selected Markers").mode = 'MARKERS_COLUMN'
         layout.operator("graph.select_column", text="Between Selected Markers").mode = 'MARKERS_BETWEEN'
 
+        layout.separator()
+        layout.operator("graph.select_more")
+        layout.operator("graph.select_less")
+
 
 class GRAPH_MT_channel(bpy.types.Menu):
     bl_label = "Channel"
 
     def draw(self, context):
         layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_CHANNELS'
 
         layout.column()
         layout.operator("anim.channels_setting_toggle")
@@ -139,6 +146,9 @@ class GRAPH_MT_channel(bpy.types.Menu):
         layout.separator()
         layout.operator("anim.channels_expand")
         layout.operator("anim.channels_collapse")
+
+        layout.separator()
+        layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")
 
 
 class GRAPH_MT_key(bpy.types.Menu):
@@ -189,9 +199,25 @@ class GRAPH_MT_key_transform(bpy.types.Menu):
         layout.operator("transform.resize", text="Scale")
 
 
-bpy.types.register(GRAPH_HT_header) # header/menu classes
-bpy.types.register(GRAPH_MT_view)
-bpy.types.register(GRAPH_MT_select)
-bpy.types.register(GRAPH_MT_channel)
-bpy.types.register(GRAPH_MT_key)
-bpy.types.register(GRAPH_MT_key_transform)
+classes = [
+    GRAPH_HT_header, # header/menu classes
+    GRAPH_MT_view,
+    GRAPH_MT_select,
+    GRAPH_MT_channel,
+    GRAPH_MT_key,
+    GRAPH_MT_key_transform]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

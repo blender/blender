@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation
  * All rights reserved.
@@ -770,7 +770,7 @@ static void preOrthoFront(int ortho, float twmat[][4], int axis)
 		copy_m4_m4(omat, twmat);
 		orthogonalize_m4(omat, axis);
 		glPushMatrix();
-		wmMultMatrix(omat);
+		glMultMatrixf(omat);
 		glFrontFace( is_mat4_flipped(omat)?GL_CW:GL_CCW);
 	}
 }
@@ -867,15 +867,15 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 		copy_m4_m4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
 		// XXX mul_m4_m3m4(matt, t->mat, rv3d->twmat);
 		if (ortho) {
-		wmMultMatrix(matt);
-		glFrontFace( is_mat4_flipped(matt)?GL_CW:GL_CCW);
-	}
+			glMultMatrixf(matt);
+			glFrontFace( is_mat4_flipped(matt)?GL_CW:GL_CCW);
+		}
 	}
 	else {
 		if (ortho) {
-		glFrontFace( is_mat4_flipped(rv3d->twmat)?GL_CW:GL_CCW);
-		wmMultMatrix(rv3d->twmat);
-	}
+			glFrontFace( is_mat4_flipped(rv3d->twmat)?GL_CW:GL_CCW);
+			glMultMatrixf(rv3d->twmat);
+		}
 	}
 
 	/* axes */
@@ -1031,7 +1031,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 	}
 
 	/* restore */
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 	gluDeleteQuadric(qobj);
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
@@ -1133,11 +1133,11 @@ static void draw_manipulator_scale(View3D *v3d, RegionView3D *rv3d, int moving, 
 
 		copy_m4_m4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
 		// XXX mul_m4_m3m4(matt, t->mat, rv3d->twmat);
-		wmMultMatrix(matt);
+		glMultMatrixf(matt);
 		glFrontFace( is_mat4_flipped(matt)?GL_CW:GL_CCW);
 	}
 	else {
-		wmMultMatrix(rv3d->twmat);
+		glMultMatrixf(rv3d->twmat);
 		glFrontFace( is_mat4_flipped(rv3d->twmat)?GL_CW:GL_CCW);
 	}
 
@@ -1182,7 +1182,7 @@ static void draw_manipulator_scale(View3D *v3d, RegionView3D *rv3d, int moving, 
 	}
 
 	/* restore */
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 	glFrontFace(GL_CCW);
@@ -1243,7 +1243,7 @@ static void draw_manipulator_translate(View3D *v3d, RegionView3D *rv3d, int movi
 	glPopMatrix();
 
 	/* and now apply matrix, we move to local matrix drawing */
-	wmMultMatrix(rv3d->twmat);
+	glMultMatrixf(rv3d->twmat);
 
 	/* axis */
 	glLoadName(-1);
@@ -1284,7 +1284,7 @@ static void draw_manipulator_translate(View3D *v3d, RegionView3D *rv3d, int movi
 	}
 
 	gluDeleteQuadric(qobj);
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
@@ -1339,10 +1339,10 @@ static void draw_manipulator_rotate_cyl(View3D *v3d, RegionView3D *rv3d, int mov
 		// XXX 		if (t->flag & T_USES_MANIPULATOR) {
 		// XXX 			mul_m4_m3m4(matt, t->mat, rv3d->twmat);
 		// XXX }
-		wmMultMatrix(matt);
+		glMultMatrixf(matt);
 	}
 	else {
-		wmMultMatrix(rv3d->twmat);
+		glMultMatrixf(rv3d->twmat);
 	}
 
 	glFrontFace( is_mat4_flipped(rv3d->twmat)?GL_CW:GL_CCW);
@@ -1386,7 +1386,7 @@ static void draw_manipulator_rotate_cyl(View3D *v3d, RegionView3D *rv3d, int mov
 	/* restore */
 
 	gluDeleteQuadric(qobj);
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 
 	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 

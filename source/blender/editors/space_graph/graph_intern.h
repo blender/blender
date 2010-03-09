@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -63,6 +63,8 @@ void graph_header_buttons(const bContext *C, struct ARegion *ar);
 void GRAPH_OT_select_all_toggle(struct wmOperatorType *ot);
 void GRAPH_OT_select_border(struct wmOperatorType *ot);
 void GRAPH_OT_select_column(struct wmOperatorType *ot);
+void GRAPH_OT_select_more(struct wmOperatorType *ot);
+void GRAPH_OT_select_less(struct wmOperatorType *ot);
 void GRAPH_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */

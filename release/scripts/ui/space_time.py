@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -67,12 +67,12 @@ class TIME_HT_header(bpy.types.Header):
         row.operator("screen.frame_jump", text="", icon='FF').end = True
 
         row = layout.row(align=True)
-        row.prop(tools, "enable_auto_key", text="", toggle=True, icon='REC')
-        if screen.animation_playing and tools.enable_auto_key:
+        row.prop(tools, "use_auto_keying", text="", toggle=True, icon='REC')
+        if screen.animation_playing and tools.use_auto_keying:
             subsub = row.row()
             subsub.prop(tools, "record_with_nla", toggle=True)
 
-        layout.prop(scene, "sync_audio", text="Realtime", toggle=True, icon='SPEAKER')
+        layout.prop(scene, "sync_mode", text="")
 
         layout.separator()
 
@@ -114,7 +114,13 @@ class TIME_MT_frame(bpy.types.Menu):
         layout.operator("marker.duplicate", text="Duplicate Marker")
         layout.operator("marker.move", text="Grab/Move Marker")
         layout.operator("marker.delete", text="Delete Marker")
-        layout.label(text="ToDo: Name Marker")
+
+        # it was ok for riscos... ok TODO, operator
+        for marker in context.scene.timeline_markers:
+            if marker.selected:
+                layout.separator()
+                layout.prop(marker, "name", text="", icon='MARKER_HLT')
+                break
 
         layout.separator()
 
@@ -124,7 +130,6 @@ class TIME_MT_frame(bpy.types.Menu):
         layout.separator()
 
         sub = layout.row()
-        #sub.active = tools.enable_auto_key
         sub.menu("TIME_MT_autokey")
 
 
@@ -147,7 +152,8 @@ class TIME_MT_playback(bpy.types.Menu):
 
         layout.separator()
 
-        layout.prop(scene, "sync_audio", text="Realtime Playback", icon='SPEAKER')
+        layout.prop(scene, "frame_drop", text="Frame Dropping")
+        layout.prop(scene, "sync_audio", text="AV-sync", icon='SPEAKER')
         layout.prop(scene, "mute_audio")
         layout.prop(scene, "scrub_audio")
 
@@ -159,13 +165,27 @@ class TIME_MT_autokey(bpy.types.Menu):
         layout = self.layout
         tools = context.tool_settings
 
-        layout.active = tools.enable_auto_key
-
         layout.prop_enum(tools, "autokey_mode", 'ADD_REPLACE_KEYS')
         layout.prop_enum(tools, "autokey_mode", 'REPLACE_KEYS')
 
-bpy.types.register(TIME_HT_header)
-bpy.types.register(TIME_MT_view)
-bpy.types.register(TIME_MT_frame)
-bpy.types.register(TIME_MT_autokey)
-bpy.types.register(TIME_MT_playback)
+classes = [
+    TIME_HT_header,
+    TIME_MT_view,
+    TIME_MT_frame,
+    TIME_MT_autokey,
+    TIME_MT_playback]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

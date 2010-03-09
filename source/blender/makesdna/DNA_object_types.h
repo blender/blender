@@ -19,7 +19,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -135,15 +135,15 @@ typedef struct Object {
 	
 	/* rot en drot have to be together! (transform('r' en 's')) */
 	float loc[3], dloc[3], orig[3];
-	float size[3], dsize[3];
+	float size[3], dsize[3];	/* scale and delta scale */
 	float rot[3], drot[3];		/* euler rotation */
 	float quat[4], dquat[4];	/* quaternion rotation */
 	float rotAxis[3], drotAxis[3];	/* axis angle rotation - axis part */
 	float rotAngle, drotAngle;	/* axis angle rotation - angle part */
-	float obmat[4][4];
+	float obmat[4][4];		/* final worldspace matrix with constraints & animsys applied */
 	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
 	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
-	float imat[4][4];	/* for during render, old game engine, temporally: ipokeys of transform  */
+	float imat[4][4];	/* inverse matrix of 'obmat' for during render, old game engine, temporally: ipokeys of transform  */
 	
 	unsigned int lay;				/* copy of Base */
 	
@@ -196,7 +196,7 @@ typedef struct Object {
     
 	float bbsize[3];
 	short index;			/* custom index, for renderpasses */
-	unsigned short actdef;	/* current deformation group */
+	unsigned short actdef;	/* current deformation group, note: index starts at 1 */
 	float col[4];			/* object color, adjusted via IPO's only */
 	/**
 	 * Settings for game objects
@@ -334,6 +334,7 @@ extern Object workob;
 #define OB_DUPLIFACES_SCALE	1024
 #define OB_DUPLIPARTS		2048
 #define OB_RENDER_DUPLI		4096
+#define OB_NO_CONSTRAINTS	8192 /* runtime constraints disable */
 
 /* (short) ipoflag */
 	// XXX depreceated - old animation system crap

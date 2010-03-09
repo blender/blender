@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -586,7 +586,7 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 		if (!m_networkdevice)
 			goto initFailed;
 			
-		sound_init();
+		sound_init(m_maggie);
 
 		// create a ketsjisystem (only needed for timing and stuff)
 		m_kxsystem = new GPG_System (m_system);
@@ -710,8 +710,8 @@ bool GPG_Application::startEngine(void)
 		// Set the animation playback rate for ipo's and actions
 		// the framerate below should patch with FPS macro defined in blendef.h
 		// Could be in StartEngine set the framerate, we need the scene to do this
-// XXX		m_ketsjiengine->SetAnimFrameRate( (((double) scene->r.frs_sec) / scene->r.frs_sec_base) );
-		
+		Scene *scene= startscene->GetBlenderScene(); // needed for macro
+		m_ketsjiengine->SetAnimFrameRate(FPS);
 	}
 	
 	if (!m_engineRunning)

@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -30,6 +30,10 @@
 #define _GHOST_EVENT_DRAGNDROP_H_
 
 #include "GHOST_Event.h"
+extern "C" {
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+};
 
 /**
  * Drag & drop event
@@ -55,7 +59,7 @@
  * <br>Currently supported object types :
  * <li>UTF-8 string
  * <li>array of strings representing filenames (GHOST_TStringArray)
- * <li>bitmap image
+ * <li>bitmap ImBuf
  */
 class GHOST_EventDragnDrop : public GHOST_Event
 {
@@ -89,7 +93,7 @@ public:
 		
 		switch (m_dragnDropEventData.dataType) {
 			case GHOST_kDragnDropTypeBitmap:
-				//Not currently implemented
+				IMB_freeImBuf((ImBuf*)m_dragnDropEventData.data);
 				break;
 			case GHOST_kDragnDropTypeFilenames:
 			{

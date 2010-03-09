@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -1074,7 +1074,7 @@ int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, SK_Strok
 		DepthPeel *p1, *p2;
 		float *last_p = NULL;
 		float dist = FLT_MAX;
-		float p[3];
+		float p[3] = {0};
 		float size = 0;
 		float mvalf[2];
 

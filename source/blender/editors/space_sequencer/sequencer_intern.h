@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -48,7 +48,7 @@ struct ARegion *sequencer_has_buttons_region(struct ScrArea *sa);
 
 /* sequencer_draw.c */
 void draw_timeline_seq(const struct bContext *C, struct ARegion *ar);
-void draw_image_seq(struct Scene *scene, struct ARegion *ar, struct SpaceSeq *sseq);
+void draw_image_seq(const struct bContext* C, struct Scene *scene,struct  ARegion *ar, struct SpaceSeq *sseq);
 
 void seq_reset_imageofs(struct SpaceSeq *sseq);
 

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Blender Foundation (2008).
  *
@@ -47,11 +47,11 @@ void RNA_def_packedfile(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna= RNA_def_struct(brna, "PackedFile", NULL);
-	RNA_def_struct_ui_text(srna, "Packed File", "External file packed into the .blend file.");
+	RNA_def_struct_ui_text(srna, "Packed File", "External file packed into the .blend file");
 
 	prop= RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Size", "Size of packed file in bytes.");
+	RNA_def_property_ui_text(prop, "Size", "Size of packed file in bytes");
 
 }
 

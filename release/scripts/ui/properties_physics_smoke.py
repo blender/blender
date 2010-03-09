@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -33,7 +33,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         ob = context.object
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 
 
@@ -80,6 +80,8 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel):
                 col = split.column()
                 col.label(text="Resolution:")
                 col.prop(domain, "maxres", text="Divisions")
+                col.label(text="Particle:")
+                col.prop(domain, "initial_velocity", text="Initial Velocity")
 
                 if wide_ui:
                     col = split.column()
@@ -155,6 +157,13 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel):
         return md and (md.smoke_type == 'TYPE_DOMAIN')
 
     def draw(self, context):
+        layout = self.layout
+
+        domain = context.smoke.domain_settings
+
+        layout.label(text="Compression:")
+        layout.prop(domain, "smoke_cache_comp", expand=True)
+
         md = context.smoke.domain_settings
         cache = md.point_cache_low
 
@@ -203,6 +212,14 @@ class PHYSICS_PT_smoke_cache_highres(PhysicButtonsPanel):
         return md and (md.smoke_type == 'TYPE_DOMAIN') and md.domain_settings.highres
 
     def draw(self, context):
+        layout = self.layout
+
+        domain = context.smoke.domain_settings
+
+        layout.label(text="Compression:")
+        layout.prop(domain, "smoke_cache_high_comp", expand=True)
+
+
         md = context.smoke.domain_settings
         cache = md.point_cache_high
 
@@ -221,9 +238,26 @@ class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel):
         domain = context.smoke.domain_settings
         effector_weights_ui(self, context, domain.effector_weights)
 
-bpy.types.register(PHYSICS_PT_smoke)
-bpy.types.register(PHYSICS_PT_smoke_field_weights)
-bpy.types.register(PHYSICS_PT_smoke_cache)
-bpy.types.register(PHYSICS_PT_smoke_highres)
-bpy.types.register(PHYSICS_PT_smoke_groups)
-bpy.types.register(PHYSICS_PT_smoke_cache_highres)
+
+classes = [
+    PHYSICS_PT_smoke,
+    PHYSICS_PT_smoke_field_weights,
+    PHYSICS_PT_smoke_cache,
+    PHYSICS_PT_smoke_highres,
+    PHYSICS_PT_smoke_groups,
+    PHYSICS_PT_smoke_cache_highres]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

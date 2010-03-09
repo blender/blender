@@ -6,6 +6,7 @@
 
 #include "CCGSubSurf.h"
 
+#include "MEM_guardedalloc.h"
 #include "BLO_sys_types.h" // for intptr_t support
 
 #ifdef _MSC_VER
@@ -467,12 +468,10 @@ static void *_edge_getCo(CCGEdge *e, int lvl, int x, int dataSize) {
 	int levelBase = lvl + (1<<lvl) - 1;
 	return &EDGE_getLevelData(e)[dataSize*(levelBase + x)];
 }
-#if 0
 static float *_edge_getNo(CCGEdge *e, int lvl, int x, int dataSize, int normalDataOffset) {
 	int levelBase = lvl + (1<<lvl) - 1;
 	return (float*) &EDGE_getLevelData(e)[dataSize*(levelBase + x) + normalDataOffset];
 }
-#endif
 static void *_edge_getCoVert(CCGEdge *e, CCGVert *v, int lvl, int x, int dataSize) {
 	int levelBase = lvl + (1<<lvl) - 1;
 	if (v==e->v0) {
@@ -534,6 +533,12 @@ static CCG_INLINE void *_face_getIECo(CCGFace *f, int lvl, int S, int x, int lev
 	int spacing = 1<<(levels-lvl);
 	byte *gridBase = FACE_getCenterData(f) + dataSize*(1 + S*(maxGridSize + maxGridSize*maxGridSize));
 	return &gridBase[dataSize*x*spacing];
+}
+static CCG_INLINE void *_face_getIENo(CCGFace *f, int lvl, int S, int x, int levels, int dataSize, int normalDataOffset) {
+	int maxGridSize = 1 + (1<<(levels-1));
+	int spacing = 1<<(levels-lvl);
+	byte *gridBase = FACE_getCenterData(f) + dataSize*(1 + S*(maxGridSize + maxGridSize*maxGridSize));
+	return &gridBase[dataSize*x*spacing + normalDataOffset];
 }
 static CCG_INLINE void *_face_getIFCo(CCGFace *f, int lvl, int S, int x, int y, int levels, int dataSize) {
 	int maxGridSize = 1 + (1<<(levels-1));
@@ -685,8 +690,8 @@ void ccgSubSurf_free(CCGSubSurf *ss) {
 		_ehash_free(ss->oldEMap, (EHEntryFreeFP) _edge_free, ss);
 		_ehash_free(ss->oldVMap, (EHEntryFreeFP) _vert_free, ss);
 
-		CCGSUBSURF_free(ss, ss->tempVerts);
-		CCGSUBSURF_free(ss, ss->tempEdges);
+		MEM_freeN(ss->tempVerts);
+		MEM_freeN(ss->tempEdges);
 	}
 
 	CCGSUBSURF_free(ss, ss->r);
@@ -811,8 +816,8 @@ CCGError ccgSubSurf_initFullSync(CCGSubSurf *ss) {
 	ss->numGrids = 0;
 
 	ss->lenTempArrays = 12;
-	ss->tempVerts = CCGSUBSURF_alloc(ss, sizeof(*ss->tempVerts)*ss->lenTempArrays);
-	ss->tempEdges = CCGSUBSURF_alloc(ss, sizeof(*ss->tempEdges)*ss->lenTempArrays);
+	ss->tempVerts = MEM_mallocN(sizeof(*ss->tempVerts)*ss->lenTempArrays, "CCGSubsurf tempVerts");
+	ss->tempEdges = MEM_mallocN(sizeof(*ss->tempEdges)*ss->lenTempArrays, "CCGSubsurf tempEdges");
 
 	ss->syncState = eSyncState_Vert;
 
@@ -1002,10 +1007,9 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 	int j, k, topologyChanged = 0;
 
 	if (numVerts>ss->lenTempArrays) {
-		int oldLen = ss->lenTempArrays;
 		ss->lenTempArrays = (numVerts<ss->lenTempArrays*2)?ss->lenTempArrays*2:numVerts;
-		ss->tempVerts = CCGSUBSURF_realloc(ss, ss->tempVerts, sizeof(*ss->tempVerts)*ss->lenTempArrays, sizeof(*ss->tempVerts)*oldLen);
-		ss->tempEdges = CCGSUBSURF_realloc(ss, ss->tempEdges, sizeof(*ss->tempEdges)*ss->lenTempArrays, sizeof(*ss->tempEdges)*oldLen);
+		ss->tempVerts = MEM_reallocN(ss->tempVerts, sizeof(*ss->tempVerts)*ss->lenTempArrays);
+		ss->tempEdges = MEM_reallocN(ss->tempEdges, sizeof(*ss->tempEdges)*ss->lenTempArrays);
 	}
 
 	if (ss->syncState==eSyncState_Partial) {
@@ -1120,8 +1124,8 @@ CCGError ccgSubSurf_processSync(CCGSubSurf *ss) {
 		_ehash_free(ss->oldFMap, (EHEntryFreeFP) _face_unlinkMarkAndFree, ss);
 		_ehash_free(ss->oldEMap, (EHEntryFreeFP) _edge_unlinkMarkAndFree, ss);
 		_ehash_free(ss->oldVMap, (EHEntryFreeFP) _vert_free, ss);
-		CCGSUBSURF_free(ss, ss->tempEdges);
-		CCGSUBSURF_free(ss, ss->tempVerts);
+		MEM_freeN(ss->tempEdges);
+		MEM_freeN(ss->tempVerts);
 
 		ss->lenTempArrays = 0;
 
@@ -1139,8 +1143,11 @@ CCGError ccgSubSurf_processSync(CCGSubSurf *ss) {
 	return eCCGError_None;
 }
 
+#define VERT_getNo(e, lvl)					_vert_getNo(e, lvl, vertDataSize, normalDataOffset)
+#define EDGE_getNo(e, lvl, x)				_edge_getNo(e, lvl, x, vertDataSize, normalDataOffset)
 #define FACE_getIFNo(f, lvl, S, x, y)		_face_getIFNo(f, lvl, S, x, y, subdivLevels, vertDataSize, normalDataOffset)
 #define FACE_calcIFNo(f, lvl, S, x, y, no)	_face_calcIFNo(f, lvl, S, x, y, no, subdivLevels, vertDataSize)
+#define FACE_getIENo(f, lvl, S, x)			_face_getIENo(f, lvl, S, x, subdivLevels, vertDataSize, normalDataOffset)
 static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 	CCGVert **effectedV, CCGEdge **effectedE, CCGFace **effectedF,
 	int numEffectedV, int numEffectedE, int numEffectedF) {
@@ -1304,6 +1311,26 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
 					}
 				}
 			}
+
+			VertDataCopy((float*)((byte*)FACE_getCenterData(f) + normalDataOffset),
+				FACE_getIFNo(f, lvl, S, 0, 0));
+
+			for (x=1; x<gridSize-1; x++)
+				NormCopy(FACE_getIENo(f, lvl, S, x),
+					FACE_getIFNo(f, lvl, S, x, 0));
+		}
+	}
+
+	for (ptrIdx=0; ptrIdx<numEffectedE; ptrIdx++) {
+		CCGEdge *e = (CCGEdge*) effectedE[ptrIdx];
+
+		if (e->numFaces) {
+			CCGFace *f = e->faces[0];
+			int x;
+
+			for (x=0; x<edgeSize; x++)
+				NormCopy(EDGE_getNo(e, lvl, x),
+					_face_getIFNoEdge(f, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset));
 		}
 	}
 }
@@ -1664,8 +1691,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 
 		#pragma omp critical
 		{
-			q = CCGSUBSURF_alloc(ss, ss->meshIFC.vertDataSize);
-			r = CCGSUBSURF_alloc(ss, ss->meshIFC.vertDataSize);
+			q = MEM_mallocN(ss->meshIFC.vertDataSize, "CCGSubsurf q");
+			r = MEM_mallocN(ss->meshIFC.vertDataSize, "CCGSubsurf r");
 		}
 
 		#pragma omp for schedule(static)
@@ -1754,8 +1781,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 
 		#pragma omp critical
 		{
-			CCGSUBSURF_free(ss, q);
-			CCGSUBSURF_free(ss, r);
+			MEM_freeN(q);
+			MEM_freeN(r);
 		}
 	}
 
@@ -1810,9 +1837,9 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 	int curLvl, nextLvl;
 	void *q = ss->q, *r = ss->r;
 
-	effectedV = CCGSUBSURF_alloc(ss, sizeof(*effectedV)*ss->vMap->numEntries);
-	effectedE = CCGSUBSURF_alloc(ss, sizeof(*effectedE)*ss->eMap->numEntries);
-	effectedF = CCGSUBSURF_alloc(ss, sizeof(*effectedF)*ss->fMap->numEntries);
+	effectedV = MEM_mallocN(sizeof(*effectedV)*ss->vMap->numEntries, "CCGSubsurf effectedV");
+	effectedE = MEM_mallocN(sizeof(*effectedE)*ss->eMap->numEntries, "CCGSubsurf effectedE");
+	effectedF = MEM_mallocN(sizeof(*effectedF)*ss->fMap->numEntries, "CCGSubsurf effectedF");
 	numEffectedV = numEffectedE = numEffectedF = 0;
 	for (i=0; i<ss->vMap->curSize; i++) {
 		CCGVert *v = (CCGVert*) ss->vMap->buckets[i];
@@ -2070,9 +2097,9 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 		e->flags = 0;
 	}
 
-	CCGSUBSURF_free(ss, effectedF);
-	CCGSUBSURF_free(ss, effectedE);
-	CCGSUBSURF_free(ss, effectedV);
+	MEM_freeN(effectedF);
+	MEM_freeN(effectedE);
+	MEM_freeN(effectedV);
 }
 
 static void ccgSubSurf__allFaces(CCGSubSurf *ss, CCGFace ***faces, int *numFaces, int *freeFaces)
@@ -2081,7 +2108,7 @@ static void ccgSubSurf__allFaces(CCGSubSurf *ss, CCGFace ***faces, int *numFaces
 	int i, num;
 
 	if(!*faces) {
-		array = CCGSUBSURF_alloc(ss, sizeof(*array)*ss->fMap->numEntries);
+		array = MEM_mallocN(sizeof(*array)*ss->fMap->numEntries, "CCGSubsurf allFaces");
 		num = 0;
 		for (i=0; i<ss->fMap->curSize; i++) {
 			CCGFace *f = (CCGFace*) ss->fMap->buckets[i];
@@ -2104,8 +2131,8 @@ static void ccgSubSurf__effectedFaceNeighbours(CCGSubSurf *ss, CCGFace **faces, 
 	CCGEdge **arrayE;
 	int numV, numE, i, j;
 
-	arrayV = CCGSUBSURF_alloc(ss, sizeof(*arrayV)*ss->vMap->numEntries);
-	arrayE = CCGSUBSURF_alloc(ss, sizeof(*arrayE)*ss->eMap->numEntries);
+	arrayV = MEM_mallocN(sizeof(*arrayV)*ss->vMap->numEntries, "CCGSubsurf arrayV");
+	arrayE = MEM_mallocN(sizeof(*arrayE)*ss->eMap->numEntries, "CCGSubsurf arrayV");
 	numV = numE = 0;
 
 	for (i=0; i<numFaces; i++) {
@@ -2183,7 +2210,7 @@ CCGError ccgSubSurf_updateFromFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF
 		}
 	}
 
-	if(freeF) CCGSUBSURF_free(ss, effectedF);
+	if(freeF) MEM_freeN(effectedF);
 
 	return eCCGError_None;
 }
@@ -2225,7 +2252,7 @@ CCGError ccgSubSurf_updateToFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, 
 		}
 	}
 
-	if(freeF) CCGSUBSURF_free(ss, effectedF);
+	if(freeF) MEM_freeN(effectedF);
 
 	return eCCGError_None;
 }
@@ -2270,9 +2297,8 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 		VertDataZero(FACE_getCenterData(f));
 
 		for (S=0; S<f->numVerts; S++)
-			if (FACE_getEdges(f)[S]->flags&Edge_eEffected)
-				for (x=0; x<gridSize; x++)
-					VertDataZero(FACE_getIECo(f, lvl, S, x));
+			for (x=0; x<gridSize; x++)
+				VertDataZero(FACE_getIECo(f, lvl, S, x));
 
 		for (S=0; S<f->numVerts; S++) {
 			int prevS = (S+f->numVerts-1)%f->numVerts;
@@ -2284,10 +2310,8 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 				VertDataAdd(VERT_getCo(FACE_getVerts(f)[S], lvl), FACE_getIFCo(f, lvl, S, cornerIdx, cornerIdx));
 
 			for (x=1; x<gridSize-1; x++) {
-				if (FACE_getEdges(f)[S]->flags&Edge_eEffected)
-					VertDataAdd(FACE_getIECo(f, lvl, S, x), FACE_getIFCo(f, lvl, S, x, 0));
-				if (FACE_getEdges(f)[prevS]->flags&Edge_eEffected)
-					VertDataAdd(FACE_getIECo(f, lvl, prevS, x), FACE_getIFCo(f, lvl, S, 0, x));
+				VertDataAdd(FACE_getIECo(f, lvl, S, x), FACE_getIFCo(f, lvl, S, x, 0));
+				VertDataAdd(FACE_getIECo(f, lvl, prevS, x), FACE_getIFCo(f, lvl, S, 0, x));
 			}
 
 			for (x=0; x<gridSize-1; x++) {
@@ -2324,9 +2348,8 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 		VertDataMulN(FACE_getCenterData(f), 1.0f/f->numVerts);
 
 		for (S=0; S<f->numVerts; S++)
-			if (FACE_getEdges(f)[S]->flags&Edge_eEffected)
-				for (x=1; x<gridSize-1; x++)
-					VertDataMulN(FACE_getIECo(f, lvl, S, x), 0.5f);
+			for (x=1; x<gridSize-1; x++)
+				VertDataMulN(FACE_getIECo(f, lvl, S, x), 0.5f);
 
 		for (S=0; S<f->numVerts; S++) {
 			int prevS = (S+f->numVerts-1)%f->numVerts;
@@ -2359,9 +2382,9 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 	for (i=0; i<numEffectedF; i++)
 		effectedF[i]->flags = 0;
 
-	CCGSUBSURF_free(ss, effectedE);
-	CCGSUBSURF_free(ss, effectedV);
-	if(freeF) CCGSUBSURF_free(ss, effectedF);
+	MEM_freeN(effectedE);
+	MEM_freeN(effectedV);
+	if(freeF) MEM_freeN(effectedF);
 
 	return eCCGError_None;
 }
@@ -2388,9 +2411,9 @@ CCGError ccgSubSurf_updateNormals(CCGSubSurf *ss, CCGFace **effectedF, int numEf
 	for (i=0; i<numEffectedF; i++)
 		effectedF[i]->flags = 0;
 
-	CCGSUBSURF_free(ss, effectedE);
-	CCGSUBSURF_free(ss, effectedV);
-	if(freeF) CCGSUBSURF_free(ss, effectedF);
+	MEM_freeN(effectedE);
+	MEM_freeN(effectedV);
+	if(freeF) MEM_freeN(effectedF);
 
 	return eCCGError_None;
 }
@@ -2422,9 +2445,9 @@ CCGError ccgSubSurf_updateLevels(CCGSubSurf *ss, int lvl, CCGFace **effectedF, i
 	for (i=0; i<numEffectedF; i++)
 		effectedF[i]->flags = 0;
 
-	CCGSUBSURF_free(ss, effectedE);
-	CCGSUBSURF_free(ss, effectedV);
-	if(freeF) CCGSUBSURF_free(ss, effectedF);
+	MEM_freeN(effectedE);
+	MEM_freeN(effectedV);
+	if(freeF) MEM_freeN(effectedF);
 
 	return eCCGError_None;
 }

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -183,7 +183,7 @@ static SpaceLink *logic_duplicate(SpaceLink *sl)
 void logic_operatortypes(void)
 {
 	WM_operatortype_append(LOGIC_OT_properties);
-
+	WM_operatortype_append(LOGIC_OT_links_cut);
 }
 
 void logic_keymap(struct wmKeyConfig *keyconf)
@@ -191,6 +191,7 @@ void logic_keymap(struct wmKeyConfig *keyconf)
 	wmKeyMap *keymap= WM_keymap_find(keyconf, "Logic Editor", SPACE_LOGIC, 0);
 	
 	WM_keymap_add_item(keymap, "LOGIC_OT_properties", NKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "LOGIC_OT_links_cut", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 }
 
 static void logic_refresh(const bContext *C, ScrArea *sa)
@@ -356,7 +357,7 @@ void ED_spacetype_logic(void)
 	/* regions: listview/buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype logic region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= 220; // XXX
+	art->prefsizex= 220; // XXX
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_FRAMES;
 	art->listener= logic_listener;
 	art->init= logic_buttons_area_init;
@@ -368,7 +369,7 @@ void ED_spacetype_logic(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype logic region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->init= logic_header_area_init;
 	art->draw= logic_header_area_draw;

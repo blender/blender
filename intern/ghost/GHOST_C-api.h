@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -818,6 +818,21 @@ extern GHOST_TUns8* GHOST_getClipboard(int selection);
  * @param	set the selection instead, X11 only feature
  */
 extern void GHOST_putClipboard(GHOST_TInt8 *buffer, int selection);
+
+/**
+ * Determine the base dir in which shared resources are located. It will first try to use
+ * "unpack and run" path, then look for properly installed path, not including versioning.
+ * @return Unsigned char string pointing to system dir (eg /usr/share/blender/).
+ */
+extern const GHOST_TUns8* GHOST_getSystemDir();
+
+/**
+ * Determine the base dir in which user configuration is stored, not including versioning.
+ * If needed, it will create the base directory.
+ * @return Unsigned char string pointing to user dir (eg ~/.blender/).
+ */
+extern const GHOST_TUns8* GHOST_getUserDir();
+
 
 #ifdef __cplusplus
 }

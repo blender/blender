@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -115,11 +115,23 @@ bAnimListElem *get_active_fcurve_channel (bAnimContext *ac)
 /* check if any FModifiers to draw controls for  - fcm is 'active' modifier 
  * used for the polling callbacks + also for drawing
  */
+// TODO: restructure these tests
+// TODO: maybe for now, just allow editing always for now...
 short fcurve_needs_draw_fmodifier_controls (FCurve *fcu, FModifier *fcm)
 {
 	/* don't draw if there aren't any modifiers at all */
 	if (fcu->modifiers.first == NULL) 
 		return 0;
+	
+	/* if only one modifier 
+	 *	- don't draw if it is muted or disabled 
+	 *	- set it as the active one if no active one is present 
+	 */
+	if (fcu->modifiers.first == fcu->modifiers.last) {
+		fcm= fcu->modifiers.first;
+		if (fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) 
+			return 0;
+	}
 	
 	/* if there's an active modifier - don't draw if it doesn't drastically
 	 * alter the curve...
@@ -134,13 +146,6 @@ short fcurve_needs_draw_fmodifier_controls (FCurve *fcu, FModifier *fcm)
 			case FMODIFIER_TYPE_NOISE:
 				return 0;
 		}
-	}
-	
-	/* if only one modifier - don't draw if it is muted or disabled */
-	if (fcu->modifiers.first == fcu->modifiers.last) {
-		fcm= fcu->modifiers.first;
-		if (fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) 
-			return 0;
 	}
 	
 	/* if only active modifier - don't draw if it is muted or disabled */
@@ -224,10 +229,10 @@ int graphop_editable_keyframes_poll (bContext *C)
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return 0;
 	
-	/* loop over the editable (selected + editable) F-Curves, and see if they're suitable
+	/* loop over the editable F-Curves, and see if they're suitable
 	 * stopping on the first successful match
 	 */
-	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
 	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	if (items == 0) 
 		return 0;

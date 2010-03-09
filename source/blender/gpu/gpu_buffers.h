@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -40,6 +40,12 @@
 #define DEBUG_VBO(X)
 #else
 #define DEBUG_VBO(X)
+#endif
+
+#ifdef _DEBUG
+#define ERROR_VBO(X) printf(X)
+#else
+#define ERROR_VBO(X)
 #endif
 
 struct DerivedMesh;
@@ -64,10 +70,6 @@ typedef struct GPUBuffer
 typedef struct GPUBufferPool
 {
 	int size;	/* number of allocated buffers stored */
-	int start;	/* for a queue like structure */
-				/* when running out of space for storing buffers,
-				the last one used will be thrown away */
-
 	GPUBuffer* buffers[MAX_FREE_GPU_BUFFERS];
 } GPUBufferPool;
 

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -118,7 +118,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Location";
-	ot->description = "Clear the object's location.";
+	ot->description = "Clear the object's location";
 	ot->idname= "OBJECT_OT_location_clear";
 	
 	/* api callbacks */
@@ -182,7 +182,7 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 				}
 				else {
 					/* perform clamping using euler form (3-components) */
-					float eul[3], oldeul[3], quat1[4];
+					float eul[3], oldeul[3], quat1[4] = {0};
 					
 					if (ob->rotmode == ROT_MODE_QUAT) {
 						QUATCOPY(quat1, ob->quat);
@@ -257,7 +257,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Rotation";
-	ot->description = "Clear the object's rotation.";
+	ot->description = "Clear the object's rotation";
 	ot->idname= "OBJECT_OT_rotation_clear";
 	
 	/* api callbacks */
@@ -318,7 +318,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Scale";
-	ot->description = "Clear the object's scale.";
+	ot->description = "Clear the object's scale";
 	ot->idname= "OBJECT_OT_scale_clear";
 	
 	/* api callbacks */
@@ -362,7 +362,7 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Origin";
-	ot->description = "Clear the object's origin.";
+	ot->description = "Clear the object's origin";
 	ot->idname= "OBJECT_OT_origin_clear";
 	
 	/* api callbacks */
@@ -412,7 +412,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		if(ob->type==OB_MESH) {
 			me= ob->data;
 			
-			if(me->id.us>1) {
+			if(ID_REAL_USERS(me) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user mesh, doing nothing.");
 				return OPERATOR_CANCELLED;
 			}
@@ -420,7 +420,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		else if(ob->type==OB_ARMATURE) {
 			arm= ob->data;
 			
-			if(arm->id.us>1) {
+			if(ID_REAL_USERS(arm) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user armature, doing nothing.");
 				return OPERATOR_CANCELLED;
 			}
@@ -428,7 +428,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		else if(ELEM(ob->type, OB_CURVE, OB_SURF)) {
 			cu= ob->data;
 			
-			if(cu->id.us>1) {
+			if(ID_REAL_USERS(cu) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user curve, doing nothing.");
 				return OPERATOR_CANCELLED;
 			}
@@ -573,7 +573,7 @@ void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Apply Visual Transform";
-	ot->description = "Apply the object's visual transformation to its data.";
+	ot->description = "Apply the object's visual transformation to its data";
 	ot->idname= "OBJECT_OT_visual_transform_apply";
 	
 	/* api callbacks */
@@ -593,7 +593,7 @@ void OBJECT_OT_location_apply(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Apply Location";
-	ot->description = "Apply the object's location to its data.";
+	ot->description = "Apply the object's location to its data";
 	ot->idname= "OBJECT_OT_location_apply";
 	
 	/* api callbacks */
@@ -613,7 +613,7 @@ void OBJECT_OT_scale_apply(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Apply Scale";
-	ot->description = "Apply the object's scale to its data.";
+	ot->description = "Apply the object's scale to its data";
 	ot->idname= "OBJECT_OT_scale_apply";
 	
 	/* api callbacks */
@@ -633,7 +633,7 @@ void OBJECT_OT_rotation_apply(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Apply Rotation";
-	ot->description = "Apply the object's rotation to its data.";
+	ot->description = "Apply the object's rotation to its data";
 	ot->idname= "OBJECT_OT_rotation_apply";
 	
 	/* api callbacks */
@@ -983,7 +983,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				
 				if (arm->id.lib) {
 					tot_lib_error++;
-				} else if(arm->id.us>1) {
+				} else if(ID_REAL_USERS(arm) > 1) {
 					/*BKE_report(op->reports, RPT_ERROR, "Can't apply to a multi user armature");
 					return;*/
 					tot_multiuser_arm_error++;
@@ -1039,6 +1039,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
-	RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_set_center_types, 0, "Type", "");
+
 }
 

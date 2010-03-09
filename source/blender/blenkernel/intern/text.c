@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -150,6 +150,13 @@ int txt_get_undostate(void)
 	return undoing;
 }
 
+static void init_undo_text(Text *text)
+{
+	text->undo_pos= -1;
+	text->undo_len= TXT_INIT_UNDO;
+	text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
+}
+
 void free_text(Text *text)
 {
 	TextLine *tmp;
@@ -180,12 +187,10 @@ Text *add_empty_text(char *name)
 	
 	ta->name= NULL;
 
-	ta->undo_pos= -1;
-	ta->undo_len= TXT_INIT_UNDO;
-	ta->undo_buf= MEM_mallocN(ta->undo_len, "undo buf");
-		
+    init_undo_text(ta);
+
 	ta->nlines=1;
-	ta->flags= TXT_ISDIRTY | TXT_ISMEM;
+	ta->flags= TXT_ISDIRTY | TXT_ISMEM | TXT_TABSTOSPACES;
 
 	ta->lines.first= ta->lines.last= NULL;
 	ta->markers.first= ta->markers.last= NULL;
@@ -259,9 +264,7 @@ int reopen_text(Text *text)
 
 	/* clear undo buffer */
 	MEM_freeN(text->undo_buf);
-	text->undo_pos= -1;
-	text->undo_len= TXT_INIT_UNDO;
-	text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
+	init_undo_text(text);
 	
 	fseek(fp, 0L, SEEK_END);
 	len= ftell(fp);
@@ -352,6 +355,8 @@ Text *add_text(char *file, const char *relpath)
 	ta->markers.first= ta->markers.last= NULL;
 	ta->curl= ta->sell= NULL;
 	
+	ta->flags= TXT_TABSTOSPACES;
+	
 	fseek(fp, 0L, SEEK_END);
 	len= ftell(fp);
 	fseek(fp, 0L, SEEK_SET);	
@@ -359,9 +364,7 @@ Text *add_text(char *file, const char *relpath)
 	ta->name= MEM_mallocN(strlen(file)+1, "text_name");
 	strcpy(ta->name, file);
 
-	ta->undo_pos= -1;
-	ta->undo_len= TXT_INIT_UNDO;
-	ta->undo_buf= MEM_mallocN(ta->undo_len, "undo buf");
+	init_undo_text(ta);
 	
 	buffer= MEM_mallocN(len, "text_buffer");
 	// under windows fread can return less then len bytes because
@@ -428,9 +431,15 @@ Text *copy_text(Text *ta)
 	
 	tan= copy_libblock(ta);
 	
-	tan->name= MEM_mallocN(strlen(ta->name)+1, "text_name");
-	strcpy(tan->name, ta->name);
-	
+	/* file name can be NULL */
+	if(ta->name) {
+		tan->name= MEM_mallocN(strlen(ta->name)+1, "text_name");
+		strcpy(tan->name, ta->name);
+	}
+	else {
+		tan->name= NULL;
+	}
+
 	tan->flags = ta->flags | TXT_ISDIRTY;
 	
 	tan->lines.first= tan->lines.last= NULL;
@@ -457,6 +466,8 @@ Text *copy_text(Text *ta)
 
 	tan->curl= tan->sell= tan->lines.first;
 	tan->curc= tan->selc= 0;
+
+	init_undo_text(tan);
 
 	return tan;
 }
@@ -1399,9 +1410,7 @@ static int max_undo_test(Text *text, int x)
 		if(text->undo_len*2 > TXT_MAX_UNDO) {
 			/* XXX error("Undo limit reached, buffer cleared\n"); */
 			MEM_freeN(text->undo_buf);
-			text->undo_len= TXT_INIT_UNDO;
-			text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
-			text->undo_pos=-1;
+			init_undo_text(text);
 			return 0;
 		} else {
 			void *tmp= text->undo_buf;
@@ -2361,7 +2370,11 @@ static char tab_to_spaces[] = "    ";
 
 static void txt_convert_tab_to_spaces (Text *text)
 {
-	char *sb = &tab_to_spaces[text->curl->len % TXT_TABSIZE];
+	/* sb aims to pad adjust the tab-width needed so that the right number of spaces
+	 * is added so that the indention of the line is the right width (i.e. aligned
+	 * to multiples of TXT_TABSIZE)
+	 */
+	char *sb = &tab_to_spaces[text->curc % TXT_TABSIZE];
 	txt_insert_buf(text, sb);
 }
 
@@ -2380,7 +2393,7 @@ int txt_add_char (Text *text, char add)
 	}
 	
 	/* insert spaces rather then tabs */
-	if (add == '\t') {
+	if (add == '\t' && text->flags & TXT_TABSTOSPACES) {
 		txt_convert_tab_to_spaces(text);
 		return 1;
 	}
@@ -2460,13 +2473,18 @@ void indent(Text *text)
 {
 	int len, num;
 	char *tmp;
-	/* char *addtab = "\t";
-	int tablen = 1; */
+
+	char *add = "\t";
+	int indentlen = 1;
+	
 	/* hardcoded: TXT_TABSIZE = 4 spaces: */
 	int spaceslen = TXT_TABSIZE;
-	/* hardcoded: use spaces: */
-	char *add = tab_to_spaces;
-	int indentlen = spaceslen; 
+
+	/* insert spaces rather then tabs */
+	if (text->flags & TXT_TABSTOSPACES){
+		add = tab_to_spaces;
+		indentlen = spaceslen;
+	}
 	
 	if (!text) return;
 	if (!text->curl) return;
@@ -2517,11 +2535,17 @@ void indent(Text *text)
 void unindent(Text *text)
 {
 	int num = 0;
-	/* char *rmtab = "\t"; */
-	char *remove = tab_to_spaces;
-	/* int indenttab = 1; */
-	int indentspaces = TXT_TABSIZE;
-	int indent = indentspaces;
+	char *remove = "\t";
+	int indent = 1;
+	
+	/* hardcoded: TXT_TABSIZE = 4 spaces: */
+	int spaceslen = TXT_TABSIZE;
+
+	/* insert spaces rather then tabs */
+	if (text->flags & TXT_TABSTOSPACES){
+		remove = tab_to_spaces;
+		indent = spaceslen;
+	}
 
 	if (!text) return;
 	if (!text->curl) return;

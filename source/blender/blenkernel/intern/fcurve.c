@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -50,7 +50,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
-
+#include "BKE_armature.h"
 #include "BKE_curve.h" 
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -284,9 +284,49 @@ int list_find_data_fcurves (ListBase *dst, ListBase *src, const char *dataPrefix
 	return matches;
 }
 
+FCurve *rna_get_fcurve(PointerRNA *ptr, PropertyRNA *prop, int rnaindex, bAction **action, int *driven)
+{
+	FCurve *fcu= NULL;
+	
+	*driven= 0;
+	
+	/* there must be some RNA-pointer + property combon */
+	if(prop && ptr->id.data && RNA_property_animateable(ptr, prop)) {
+		AnimData *adt= BKE_animdata_from_id(ptr->id.data);
+		char *path;
+		
+		if(adt) {
+			if((adt->action && adt->action->curves.first) || (adt->drivers.first)) {
+				/* XXX this function call can become a performance bottleneck */
+				path= RNA_path_from_ID_to_property(ptr, prop);
+				
+				if(path) {
+					/* animation takes priority over drivers */
+					if(adt->action && adt->action->curves.first)
+						fcu= list_find_fcurve(&adt->action->curves, path, rnaindex);
+					
+					/* if not animated, check if driven */
+					if(!fcu && (adt->drivers.first)) {
+						fcu= list_find_fcurve(&adt->drivers, path, rnaindex);
+						
+						if(fcu)
+							*driven= 1;
+					}
+					
+					if(fcu && action)
+						*action= adt->action;
+					
+					MEM_freeN(path);
+				}
+			}
+		}
+	}
+	
+	return fcu;
+}
 
 /* threshold for binary-searching keyframes - threshold here should be good enough for now, but should become userpref */
-#define BEZT_BINARYSEARCH_THRESH 	0.00001f
+#define BEZT_BINARYSEARCH_THRESH 	0.01f /* was 0.00001, but giving errors */
 
 /* Binary search algorithm for finding where to insert BezTriple. (for use by insert_bezt_fcurve)
  * Returns the index to insert at (data already at that index will be offset if replace is 0)
@@ -761,13 +801,19 @@ typedef struct DriverVarTypeInfo {
 
 /* ......... */
 
+static ID *dtar_id_ensure_proxy_from(ID *id)
+{
+	if (id && GS(id->name)==ID_OB && ((Object *)id)->proxy_from)
+		return (ID *)(((Object *)id)->proxy_from);
+	return id;
+}
+
 /* Helper function to obtain a value using RNA from the specified source (for evaluating drivers) */
 static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 {
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop;
 	ID *id;
-	char *path;
 	int index;
 	float value= 0.0f;
 	
@@ -775,22 +821,22 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	if ELEM(NULL, driver, dtar)
 		return 0.0f;
 	
-	/* get RNA-pointer for the ID-block given in target */
-	RNA_id_pointer_create(dtar->id, &id_ptr);
-	id= dtar->id;
-	path= dtar->rna_path;
+	id= dtar_id_ensure_proxy_from(dtar->id);
 	
 	/* error check for missing pointer... */
 	// TODO: tag the specific target too as having issues
 	if (id == NULL) {
 		printf("Error: driver has an invalid target to use \n");
-		if (G.f & G_DEBUG) printf("\tpath = %s\n", path);
+		if (G.f & G_DEBUG) printf("\tpath = %s\n", dtar->rna_path);
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
 	}
 	
+	/* get RNA-pointer for the ID-block given in target */
+	RNA_id_pointer_create(id, &id_ptr);
+	
 	/* get property to read from, and get value as appropriate */
-	if (RNA_path_resolve_full(&id_ptr, path, &ptr, &prop, &index)) {
+	if (RNA_path_resolve_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
 		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
 				if (RNA_property_array_length(&ptr, prop))
@@ -819,7 +865,7 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 	}
 	else {
 		if (G.f & G_DEBUG)
-			printf("Driver Evaluation Error: cannot resolve target for %s -> %s \n", id->name, path);
+			printf("Driver Evaluation Error: cannot resolve target for %s -> %s \n", id->name, dtar->rna_path);
 		
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
@@ -831,13 +877,16 @@ static float dtar_get_prop_val (ChannelDriver *driver, DriverTarget *dtar)
 /* Helper function to obtain a pointer to a Pose Channel (for evaluating drivers) */
 static bPoseChannel *dtar_get_pchan_ptr (ChannelDriver *driver, DriverTarget *dtar)
 {
+	ID *id;
 	/* sanity check */
 	if ELEM(NULL, driver, dtar)
 		return NULL;
-		
+
+	id= dtar_id_ensure_proxy_from(dtar->id);
+
 	/* check if the ID here is a valid object */
-	if ((dtar->id) && GS(dtar->id->name)) {
-		Object *ob= (Object *)dtar->id;
+	if (id && GS(id->name)) {
+		Object *ob= (Object *)id;
 		
 		/* get pose, and subsequently, posechannel */
 		return get_pose_channel(ob->pose, dtar->pchan_name);
@@ -907,12 +956,12 @@ static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
 	DRIVER_TARGETS_USED_LOOPER(dvar)
 	{
 		/* get pointer to loc values to store in */
-		Object *ob= (Object *)dtar->id;
+		Object *ob= (Object *)dtar_id_ensure_proxy_from(dtar->id);
 		bPoseChannel *pchan;
 		float tmp_loc[3];
 		
 		/* check if this target has valid data */
-		if ((ob == NULL) || (GS(dtar->id->name) != ID_OB)) {
+		if ((ob == NULL) || (GS(ob->id.name) != ID_OB)) {
 			/* invalid target, so will not have enough targets */
 			driver->flag |= DRIVER_FLAG_INVALID;
 			return 0.0f;
@@ -967,13 +1016,14 @@ static float dvar_eval_locDiff (ChannelDriver *driver, DriverVar *dvar)
 static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 {
 	DriverTarget *dtar= &dvar->targets[0];
-	Object *ob= (Object *)dtar->id;
+	Object *ob= (Object *)dtar_id_ensure_proxy_from(dtar->id);
 	bPoseChannel *pchan;
 	float mat[4][4];
-	short rotOrder = 0;
+	float eul[3] = {0.0f,0.0f,0.0f};
+	short useEulers=0, rotOrder=ROT_MODE_EUL;
 	
 	/* check if this target has valid data */
-	if ((ob == NULL) || (GS(dtar->id->name) != ID_OB)) {
+	if ((ob == NULL) || (GS(ob->id.name) != ID_OB)) {
 		/* invalid target, so will not have enough targets */
 		driver->flag |= DRIVER_FLAG_INVALID;
 		return 0.0f;
@@ -985,16 +1035,28 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 	/* check if object or bone, and get transform matrix accordingly */
 	if (pchan) {
 		/* bone */
-		rotOrder= (pchan->rotmode > 0) ? pchan->rotmode : ROT_MODE_EUL;
+		if (pchan->rotmode > 0) {
+			VECCOPY(eul, pchan->eul);
+			rotOrder= pchan->rotmode;
+			useEulers = 1;
+		}
 		
-		if (dtar->flag & DTAR_FLAG_LOCALSPACE)
-			copy_m4_m4(mat, pchan->chan_mat);
+		if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
+			/* specially calculate local matrix, since chan_mat is not valid 
+			 * since it stores delta transform of pose_mat so that deforms work
+			 */
+			pchan_to_mat4(pchan, mat);
+		}
 		else
 			mul_m4_m4m4(mat, pchan->pose_mat, ob->obmat);
 	}
 	else {
 		/* object */
-		rotOrder= (ob->rotmode > 0) ? ob->rotmode : ROT_MODE_EUL;
+		if (ob->rotmode > 0) {
+			VECCOPY(eul, ob->rot);
+			rotOrder= ob->rotmode;
+			useEulers = 1;
+		}
 		
 		if (dtar->flag & DTAR_FLAG_LOCALSPACE)
 			object_to_mat4(ob, mat);
@@ -1015,10 +1077,10 @@ static float dvar_eval_transChan (ChannelDriver *driver, DriverVar *dvar)
 		return scale[dtar->transChan - DTAR_TRANSCHAN_SCALEX];
 	}
 	else if (dtar->transChan >= DTAR_TRANSCHAN_ROTX) {
-		/* extract euler rotation, and choose the right axis */
-		float eul[3];
+		/* extract euler rotation (if needed), and choose the right axis */
+		if ((dtar->flag & DTAR_FLAG_LOCALSPACE)==0 || (useEulers == 0))
+			mat4_to_eulO(eul, rotOrder, mat);
 		
-		mat4_to_eulO(eul, rotOrder, mat);
 		return eul[dtar->transChan - DTAR_TRANSCHAN_ROTX];
 	}
 	else {
@@ -1150,7 +1212,7 @@ DriverVar *driver_add_new_variable (ChannelDriver *driver)
 	
 	/* give the variable a 'unique' name */
 	strcpy(dvar->name, "var");
-	BLI_uniquename(&driver->variables, dvar, "var", '_', offsetof(DriverVar, name), 64);
+	BLI_uniquename(&driver->variables, dvar, "var", '_', offsetof(DriverVar, name), sizeof(dvar->name));
 	
 	/* set the default type to 'single prop' */
 	driver_change_variable_type(dvar, DVAR_TYPE_SINGLE_PROP);
@@ -1205,6 +1267,7 @@ ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 		
 	/* copy all data */
 	ndriver= MEM_dupallocN(driver);
+	ndriver->expr_comp= NULL;
 	
 	/* copy variables */
 	ndriver->variables.first= ndriver->variables.last= NULL;
@@ -1231,20 +1294,23 @@ ChannelDriver *fcurve_copy_driver (ChannelDriver *driver)
 float driver_get_variable_value (ChannelDriver *driver, DriverVar *dvar)
 {
 	DriverVarTypeInfo *dvti;
-	
+
 	/* sanity check */
 	if (ELEM(NULL, driver, dvar))
 		return 0.0f;
 	
 	/* call the relevant callbacks to get the variable value 
-	 * using the variable type info
+	 * using the variable type info, storing the obtained value
+	 * in dvar->curval so that drivers can be debugged
 	 */
 	dvti= get_dvar_typeinfo(dvar->type);
 	
 	if (dvti && dvti->get_value)
-		return dvti->get_value(driver, dvar);
+		dvar->curval= dvti->get_value(driver, dvar);
 	else
-		return 0.0f;
+		dvar->curval= 0.0f;
+	
+	return dvar->curval;
 }
 
 /* Evaluate an Channel-Driver to get a 'time' value to use instead of "evaltime"
@@ -1267,12 +1333,12 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			if (driver->variables.first == driver->variables.last) {
 				/* just one target, so just use that */
 				dvar= driver->variables.first;
-				return driver_get_variable_value(driver, dvar);
+				driver->curval= driver_get_variable_value(driver, dvar);
 			}
 			else {
 				/* more than one target, so average the values of the targets */
-				int tot = 0;
 				float value = 0.0f;
+				int tot = 0;
 				
 				/* loop through targets, adding (hopefully we don't get any overflow!) */
 				for (dvar= driver->variables.first; dvar; dvar=dvar->next) {
@@ -1282,10 +1348,9 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 				
 				/* perform operations on the total if appropriate */
 				if (driver->type == DRIVER_TYPE_AVERAGE)
-					return (value / (float)tot);
+					driver->curval= (value / (float)tot);
 				else
-					return value;
-				
+					driver->curval= value;
 			}
 		}
 			break;
@@ -1319,6 +1384,9 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 					value= tmp_val;
 				}
 			}
+			
+			/* store value in driver */
+			driver->curval= value;
 		}
 			break;
 			
@@ -1329,13 +1397,15 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			if ( (driver->expression[0] == '\0') ||
 				 (driver->flag & DRIVER_FLAG_INVALID) )
 			{
-				return 0.0f;
+				driver->curval= 0.0f;
 			}
-			
-			/* this evaluates the expression using Python,and returns its result:
-			 * 	- on errors it reports, then returns 0.0f
-			 */
-			return BPY_pydriver_eval(driver);
+			else
+			{
+				/* this evaluates the expression using Python,and returns its result:
+				 * 	- on errors it reports, then returns 0.0f
+				 */
+				driver->curval= BPY_pydriver_eval(driver);
+			}
 #endif /* DISABLE_PYTHON*/
 		}
 			break;
@@ -1346,12 +1416,11 @@ static float evaluate_driver (ChannelDriver *driver, float evaltime)
 			 *	This is currently used as the mechanism which allows animated settings to be able
 			 * 	to be changed via the UI.
 			 */
-			return driver->curval;
 		}
 	}
 	
-	/* return 0.0f, as couldn't find relevant data to use */
-	return 0.0f;
+	/* return value for driver */
+	return driver->curval;
 }
 
 /* ***************************** Curve Calculations ********************************* */
@@ -1658,9 +1727,13 @@ static float fcurve_eval_keyframes (FCurve *fcu, BezTriple *bezts, float evaltim
 	{
 		/* evaltime occurs somewhere in the middle of the curve */
 		for (a=0; prevbezt && bezt && (a < fcu->totvert-1); a++, prevbezt=bezt, bezt++) 
-		{  
+		{
+			/* use if the key is directly on the frame, rare cases this is needed else we get 0.0 instead. */
+			if(fabs(bezt->vec[1][0] - evaltime) < SMALL_NUMBER) {
+				cvalue= bezt->vec[1][1];
+			}
 			/* evaltime occurs within the interval defined by these two keyframes */
-			if ((prevbezt->vec[1][0] <= evaltime) && (bezt->vec[1][0] >= evaltime)) 
+			else if ((prevbezt->vec[1][0] <= evaltime) && (bezt->vec[1][0] >= evaltime))
 			{
 				/* value depends on interpolation mode */
 				if ((prevbezt->ipo == BEZT_IPO_CONST) || (fcu->flag & FCURVE_DISCRETE_VALUES))

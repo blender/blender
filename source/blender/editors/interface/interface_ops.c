@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -227,7 +227,7 @@ void UI_OT_copy_data_path_button(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Data Path";
 	ot->idname= "UI_OT_copy_data_path_button";
-	ot->description= "Copy the RNA data path for this property to the clipboard.";
+	ot->description= "Copy the RNA data path for this property to the clipboard";
 
 	/* callbacks */
 	ot->exec= copy_data_path_button_exec;
@@ -367,7 +367,7 @@ void UI_OT_copy_to_selected_button(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy To Selected";
 	ot->idname= "UI_OT_copy_to_selected_button";
-	ot->description= "Copy property from this object to selected objects or bones.";
+	ot->description= "Copy property from this object to selected objects or bones";
 
 	/* callbacks */
 	ot->poll= copy_to_selected_button_poll;

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -162,15 +162,14 @@ static void console_main_area_draw(const bContext *C, ARegion *ar)
 	SpaceConsole *sc= CTX_wm_space_console(C);
 	View2D *v2d= &ar->v2d;
 	View2DScrollers *scrollers;
-	//float col[3];
+	float col[3];
 	
 	if((sc->type==CONSOLE_TYPE_PYTHON) && (sc->scrollback.first==NULL))
 		WM_operator_name_call((bContext *)C, "CONSOLE_OT_banner", WM_OP_EXEC_DEFAULT, NULL);
 
 	/* clear and setup matrix */
-	//UI_GetThemeColor3fv(TH_BACK, col);
-	//glClearColor(col[0], col[1], col[2], 0.0);
-	glClearColor(0, 0, 0, 1.0);
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	console_update_rect(C, ar);
@@ -366,7 +365,7 @@ void ED_spacetype_console(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype console region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
 	
 	art->init= console_header_area_init;

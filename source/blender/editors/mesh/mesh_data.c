@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -46,6 +46,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_report.h"
@@ -63,6 +64,7 @@
 
 #include "ED_mesh.h"
 #include "ED_object.h"
+#include "ED_uvedit.h"
 #include "ED_view3d.h"
 
 #include "RE_render_ext.h"
@@ -304,7 +306,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add UV Texture";
-	ot->description= "Add UV texture layer.";
+	ot->description= "Add UV texture layer";
 	ot->idname= "MESH_OT_uv_texture_add";
 	
 	/* api callbacks */
@@ -313,6 +315,68 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene= CTX_data_scene(C);
+	Base *base= ED_view3d_give_base_under_cursor(C, event->mval);
+	Image *ima;
+	Mesh *me;
+	Object *obedit;
+	int exitmode= 0;
+	char name[32];
+	
+	/* check input variables */
+	RNA_string_get(op->ptr, "name", name);
+	ima= (Image *)find_id("IM", name);
+	if(base==NULL || base->object->type!=OB_MESH || ima==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Not a Mesh or no Image.");
+		return OPERATOR_CANCELLED;
+	}
+	
+	/* put mesh in editmode */
+
+	obedit= base->object;
+	me= obedit->data;
+	if(me->edit_btmesh==NULL) {
+		EDBM_MakeEditBMesh(scene->toolsettings, scene, obedit);
+		exitmode= 1;
+	}
+
+	if(me->edit_btmesh==NULL)
+		return OPERATOR_CANCELLED;
+	
+	ED_uvedit_assign_image(scene, obedit, ima, NULL);
+
+	if(exitmode) {
+		EDBM_LoadEditBMesh(scene, obedit);
+		EDBM_FreeEditBMesh(me->edit_btmesh);
+		MEM_freeN(me->edit_btmesh);
+		me->edit_btmesh= NULL;
+	}
+
+	WM_event_add_notifier(C, NC_GEOM|ND_DATA, obedit->data);
+	
+	return OPERATOR_FINISHED;
+}
+
+void MESH_OT_drop_named_image(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Assign Image to UV Texture";
+	ot->description= "Assigns Image to active UV layer, or creates a UV layer";
+	ot->idname= "MESH_OT_drop_named_image";
+	
+	/* api callbacks */
+	ot->poll= layers_poll;
+	ot->invoke= drop_named_image_invoke;
+	
+	/* flags */
+	ot->flag= OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_string(ot->srna, "name", "Image", 24, "Name", "Image name to assign.");
 }
 
 static int uv_texture_remove_exec(bContext *C, wmOperator *op)
@@ -330,7 +394,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove UV Texture";
-	ot->description= "Remove UV texture layer.";
+	ot->description= "Remove UV texture layer";
 	ot->idname= "MESH_OT_uv_texture_remove";
 	
 	/* api callbacks */
@@ -359,7 +423,7 @@ void MESH_OT_vertex_color_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Vertex Color";
-	ot->description= "Add vertex color layer.";
+	ot->description= "Add vertex color layer";
 	ot->idname= "MESH_OT_vertex_color_add";
 	
 	/* api callbacks */
@@ -385,7 +449,7 @@ void MESH_OT_vertex_color_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Vertex Color";
-	ot->description= "Remove vertex color layer.";
+	ot->description= "Remove vertex color layer";
 	ot->idname= "MESH_OT_vertex_color_remove";
 	
 	/* api callbacks */
@@ -420,7 +484,7 @@ void MESH_OT_sticky_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Add Sticky";
-	ot->description= "Add sticky UV texture layer.";
+	ot->description= "Add sticky UV texture layer";
 	ot->idname= "MESH_OT_sticky_add";
 	
 	/* api callbacks */
@@ -452,7 +516,7 @@ void MESH_OT_sticky_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Remove Sticky";
-	ot->description= "Remove sticky UV texture layer.";
+	ot->description= "Remove sticky UV texture layer";
 	ot->idname= "MESH_OT_sticky_remove";
 	
 	/* api callbacks */

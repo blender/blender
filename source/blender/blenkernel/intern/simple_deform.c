@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) Blender Foundation.
  * All rights reserved.
@@ -149,7 +149,7 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 	float smd_limit[2], smd_factor;
 	SpaceTransform *transf = NULL, tmp_transf;
 	void (*simpleDeform_callback)(const float factor, const float dcut[3], float *co) = NULL;	//Mode callback
-	int vgroup = get_named_vertexgroup_num(ob, smd->vgroup_name);
+	int vgroup = defgroup_name_index(ob, smd->vgroup_name);
 	MDeformVert *dvert = NULL;
 
 	//Safe-check
@@ -227,7 +227,7 @@ void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, s
 
 	for(i=0; i<numVerts; i++)
 	{
-		float weight = vertexgroup_get_vertex_weight(dvert, i, vgroup);
+		float weight = defvert_array_find_weight_safe(dvert, i, vgroup);
 
 		if(weight != 0.0f)
 		{

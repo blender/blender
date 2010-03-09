@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -31,6 +31,8 @@
 #include <algorithm>
 #include <vector>
 #include <queue>
+
+#include "BKE_global.h"
 
 #ifdef _WIN32
 #define INFINITY FLT_MAX // in mingw math.h: (1.0F/0.0F). This generates compile error, though.
@@ -516,7 +518,7 @@ struct VBVH_optimalPackSIMD
 			if(num == 0) { num++; first = true; }
 			
 			calc_costs(node);
-			if(first) printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize );
+			if((G.f & G_DEBUG) && first) printf("expected cost = %f (%d)\n", node->cut_cost[0], node->best_cutsize );
 			node->optimize();
 		}
 		return node;		

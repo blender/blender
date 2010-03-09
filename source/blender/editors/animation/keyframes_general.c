@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation
  * All rights reserved.
@@ -100,6 +100,9 @@ void delete_fcurve_keys(FCurve *fcu)
 {
 	int i;
 	
+    if(fcu->bezt==NULL) /* ignore baked curves */
+        return;
+    
 	/* Delete selected BezTriples */
 	for (i=0; i < fcu->totvert; i++) {
 		if (fcu->bezt[i].f2 & SELECT) {
@@ -369,6 +372,9 @@ void sample_fcurve (FCurve *fcu)
 	tempFrameValCache *value_cache, *fp;
 	int sfra, range;
 	int i, n, nIndex;
+
+	if(fcu->bezt==NULL) /* ignore baked */
+		return;
 	
 	/* find selected keyframes... once pair has been found, add keyframes  */
 	for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {

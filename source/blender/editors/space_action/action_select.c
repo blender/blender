@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation
  *
@@ -186,7 +186,7 @@ void ACTION_OT_select_all_toggle (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select All";
 	ot->idname= "ACTION_OT_select_all_toggle";
-	ot->description= "Toggle selection of all keyframes.";
+	ot->description= "Toggle selection of all keyframes";
 	
 	/* api callbacks */
 	ot->exec= actkeys_deselectall_exec;
@@ -196,7 +196,7 @@ void ACTION_OT_select_all_toggle (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
+	ot->prop= RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
 }
 
 /* ******************** Border Select Operator **************************** */
@@ -347,7 +347,7 @@ void ACTION_OT_select_border(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Border Select";
 	ot->idname= "ACTION_OT_select_border";
-	ot->description= "Select all keyframes within the specified region.";
+	ot->description= "Select all keyframes within the specified region";
 	
 	/* api callbacks */
 	ot->invoke= WM_border_select_invoke;
@@ -362,7 +362,7 @@ void ACTION_OT_select_border(wmOperatorType *ot)
 	/* rna */
 	WM_operator_properties_gesture_border(ot, FALSE);
 	
-	RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
+	ot->prop= RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 }
 
 /* ******************** Column Select Operator **************************** */
@@ -416,7 +416,7 @@ static void markers_selectkeys_between (bAnimContext *ac)
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		AnimData *adt= ANIM_nla_mapping_get(ac, ale);
 		
-		if (adt) {	
+		if (adt) {
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
 			ANIM_fcurve_keys_bezier_loop(&bed, ale->key_data, ok_cb, select_cb, NULL);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
@@ -561,7 +561,7 @@ void ACTION_OT_select_column (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select All";
 	ot->idname= "ACTION_OT_select_column";
-	ot->description= "Select all keyframes on the specified frame(s).";
+	ot->description= "Select all keyframes on the specified frame(s)";
 	
 	/* api callbacks */
 	ot->exec= actkeys_columnselect_exec;
@@ -571,7 +571,119 @@ void ACTION_OT_select_column (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
+	ot->prop= RNA_def_enum(ot->srna, "mode", prop_column_select_types, 0, "Mode", "");
+}
+
+/* ******************** Select More/Less Operators *********************** */
+
+/* Common code to perform selection */
+static void select_moreless_action_keys (bAnimContext *ac, short mode)
+{
+	ListBase anim_data= {NULL, NULL};
+	bAnimListElem *ale;
+	int filter;
+	
+	BeztEditData bed;
+	BeztEditFunc build_cb;
+	
+	
+	/* init selmap building data */
+	build_cb= ANIM_editkeyframes_buildselmap(mode);
+	memset(&bed, 0, sizeof(BeztEditData)); 
+	
+	/* loop through all of the keys and select additional keyframes based on these */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		FCurve *fcu= (FCurve *)ale->key_data;
+		
+		/* only continue if F-Curve has keyframes */
+		if (fcu->bezt == NULL)
+			continue;
+		
+		/* build up map of whether F-Curve's keyframes should be selected or not */
+		bed.data= MEM_callocN(fcu->totvert, "selmap actEdit more");
+		ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, build_cb, NULL);
+		
+		/* based on this map, adjust the selection status of the keyframes */
+		ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, bezt_selmap_flush, NULL);
+		
+		/* free the selmap used here */
+		MEM_freeN(bed.data);
+		bed.data= NULL;
+	}
+	
+	/* Cleanup */
+	BLI_freelistN(&anim_data);
+}
+
+/* ----------------- */
+
+static int actkeys_select_more_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* perform select changes */
+	select_moreless_action_keys(&ac, SELMAP_MORE);
+	
+	/* set notifier that keyframe selection has changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_select_more (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select More";
+	ot->idname= "ACTION_OT_select_more";
+	ot->description = "Select keyframes beside already selected ones";
+	
+	/* api callbacks */
+	ot->exec= actkeys_select_more_exec;
+	ot->poll= ED_operator_action_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
+}
+
+/* ----------------- */
+
+static int actkeys_select_less_exec (bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* perform select changes */
+	select_moreless_action_keys(&ac, SELMAP_LESS);
+	
+	/* set notifier that keyframe selection has changed */
+	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_SELECT, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void ACTION_OT_select_less (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Less";
+	ot->idname= "ACTION_OT_select_less";
+	ot->description = "Deselect keyframes on ends of selection islands";
+	
+	/* api callbacks */
+	ot->exec= actkeys_select_less_exec;
+	ot->poll= ED_operator_action_active;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER/*|OPTYPE_UNDO*/;
 }
 
 /* ******************** Mouse-Click Select Operator *********************** */
@@ -633,7 +745,7 @@ static void actkeys_mselect_leftright (bAnimContext *ac, short leftright, short 
 		select_mode= SELECT_ADD;
 		
 		/* deselect all other channels and keyframes */
-		ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 		deselect_action_keys(ac, 0, SELECT_SUBTRACT);
 	}
 	
@@ -872,7 +984,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 		/* highlight channel clicked on */
 		if (ELEM(ac->datatype, ANIMCONT_ACTION, ANIMCONT_DOPESHEET)) {
 			/* deselect all other channels first */
-			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 			
 			/* Highlight Action-Group or F-Curve? */
 			if (ale && ale->data) {
@@ -891,7 +1003,7 @@ static void mouse_action_keys (bAnimContext *ac, int mval[2], short select_mode,
 			}
 		}
 		else if (ac->datatype == ANIMCONT_GPENCIL) {
-			ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 			
 			/* Highlight gpencil layer */
 			//gpl->flag |= GP_LAYER_SELECT;
@@ -984,7 +1096,7 @@ void ACTION_OT_clickselect (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mouse Select Keys";
 	ot->idname= "ACTION_OT_clickselect";
-	ot->description= "Select keyframes by clicking on them.";
+	ot->description= "Select keyframes by clicking on them";
 	
 	/* api callbacks - absolutely no exec() this yet... */
 	ot->invoke= actkeys_clickselect_invoke;

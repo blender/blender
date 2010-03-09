@@ -89,7 +89,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -242,8 +242,6 @@ void IMB_rectclip(struct ImBuf *dbuf, struct ImBuf *sbuf, int *destx,
 void IMB_rectcpy(struct ImBuf *drect, struct ImBuf *srect, int destx,
 	int desty, int srcx, int srcy, int width, int height);
 void IMB_rectblend(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
-	int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode);
-void IMB_rectblend_torus(struct ImBuf *dbuf, struct ImBuf *sbuf, int destx, 
 	int desty, int srcx, int srcy, int width, int height, IMB_BlendMode mode);
 
 /**

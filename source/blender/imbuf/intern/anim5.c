@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -532,6 +532,8 @@ struct ImBuf * anim5_fetchibuf(struct anim * anim) {
 	ibuf = IMB_dupImBuf(anim->ibuf1);
 	planes_to_rect(ibuf, anim->ib_flags);
 
+	ibuf->profile = IB_PROFILE_SRGB;
+	
 	return(ibuf);
 }
 

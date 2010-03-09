@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -275,7 +275,7 @@ void applyProject(TransInfo *t)
 			
 			project_float(t->ar, iloc, mval);
 			
-			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.target))
+			if (snapObjectsTransform(t, mval, &dist, loc, no, t->tsnap.modeSelect))
 			{
 //				if(t->flag & (T_EDIT|T_POSE)) {
 //					mul_m4_v3(imat, loc);
@@ -381,7 +381,7 @@ void initSnappingMode(TransInfo *t)
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
 			(obedit != NULL && ELEM3(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVE)) ) // Temporary limited to edit mode meshes, armature, curves
 		{
-			if (t->flag & T_PROP_EDIT)
+			if ((t->flag & T_PROP_EDIT) || t->tsnap.project) /* also exclude edit for project, for now */
 			{
 				t->tsnap.modeSelect = SNAP_NOT_OBEDIT;
 			}
@@ -1593,9 +1593,10 @@ int snapObjects(Scene *scene, View3D *v3d, ARegion *ar, Object *obedit, float mv
 	 *
 	 * To solve that problem, we do it first as an exception. 
 	 * */
-	if(BASACT->object && BASACT->object->mode & OB_MODE_PARTICLE_EDIT)
+	base= BASACT;
+	if(base && base->object && base->object->mode & OB_MODE_PARTICLE_EDIT)
 	{
-		Object *ob = BASACT->object;
+		Object *ob = base->object;
 		retval |= snapObject(scene, ar, ob, 0, ob->obmat, ray_start, ray_normal, mval, loc, no, dist, &depth);
 	}
 	

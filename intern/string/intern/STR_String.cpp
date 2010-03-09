@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -39,6 +39,9 @@
 #include <stdlib.h> 
 #include <ctype.h>
 #include <string.h>
+#if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__) || defined (_AIX)
+#include <strings.h>
+#endif
 #include "STR_String.h"
 
 /*-------------------------------------------------------------------------------------------------

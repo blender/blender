@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -58,6 +58,17 @@ GSQueue *BLI_gsqueue_new(int elem_size)
 int BLI_gsqueue_is_empty(GSQueue *gq)
 {
 	return (gq->head==NULL);
+}
+
+int BLI_gsqueue_size(GSQueue *gq)
+{ 
+	GSQueueElem *elem;
+	int size= 0;
+
+	for(elem=gq->head; elem; elem=elem->next)
+		size++;
+	
+	return size;
 }
 
 void BLI_gsqueue_peek(GSQueue *gq, void *item_r)

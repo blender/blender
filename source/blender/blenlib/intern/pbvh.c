@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -345,6 +345,8 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 		node->vert_indices[ndx] =
 			GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(iter));
 	}
+
+	BLI_ghashIterator_free(iter);
 
 	for(i = 0; i < totface*4; ++i)
 		if(node->face_vert_indices[i] < 0)
@@ -1006,6 +1008,8 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 	    BLI_ghashIterator_step(hiter), ++i)
 		faces[i]= BLI_ghashIterator_getKey(hiter);
 
+	BLI_ghashIterator_free(hiter);
+
 	BLI_ghash_free(map, NULL, NULL);
 
 	*totface= tot;
@@ -1244,8 +1248,8 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 	return hit;
 }
 
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
+//#include "BIF_gl.h"
+//#include "BIF_glutil.h"
 
 void BLI_pbvh_node_draw(PBVHNode *node, void *data)
 {

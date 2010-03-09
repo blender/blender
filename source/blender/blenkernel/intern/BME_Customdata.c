@@ -22,7 +22,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2004 Blender Foundation.
  * All rights reserved.
@@ -83,8 +83,8 @@ void BME_CD_Create(BME_CustomData *data, BME_CustomDataInit *init, int initalloc
 	/*alloc our layers*/
 	if(data->totlayer){
 		/*alloc memory*/
-		data->layers = MEM_callocN(sizeof(BME_CustomDataLayer)*data->totlayer, "BMesh Custom Data Layers");
-		data->pool = BLI_mempool_create(data->totsize, initalloc, initalloc);
+		data->layers = MEM_callocN(sizeof(BME_CustomDataLayer)*data->totlayer, "BMesh Custom Data Layers", 1);
+		data->pool = BLI_mempool_create(data->totsize, initalloc, initalloc, 1);
 		/*initialize layer data*/
 		for(i=0; i < BME_CD_NUMTYPES; i++){
 			if(init->layout[i]){

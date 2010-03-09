@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -32,6 +32,7 @@
 #include <limits.h>
 #include <stdio.h> // for printf fopen fwrite fclose sprintf FILE
 #include <stdlib.h> // for getenv atoi
+#include <stddef.h> // for offsetof
 #include <fcntl.h> // for open
 #include <string.h> // for strrchr strncmp strstr
 #include <math.h> // for fabs
@@ -581,7 +582,8 @@ static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, int do_endian_swap)
 
 	if (bhead4->code != ENDB) {
 
-		// why is this here ??
+		//perform a endian swap on 64bit pointers, otherwise the pointer might map to zero
+		//0x0000000000000000000012345678 would become 0x12345678000000000000000000000000
 		if (do_endian_swap) {
 			SWITCH_LONGINT(bhead8->old);
 		}
@@ -1781,6 +1783,8 @@ static void direct_link_fcurves(FileData *fd, ListBase *list)
 		if (fcu->driver) {
 			ChannelDriver *driver= fcu->driver;
 			DriverVar *dvar;
+
+			driver->expr_comp= NULL;
 			
 			/* relink variables, targets and their paths */
 			link_list(fd, &driver->variables);
@@ -2101,7 +2105,7 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 			if(ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				direct_link_curvemapping(fd, node->storage);
 			else if(ntree->type==NTREE_COMPOSIT) {
-				if( ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB))
+				if( ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT))
 					direct_link_curvemapping(fd, node->storage);
 				else if(ELEM3(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER))
 					((ImageUser *)node->storage)->ok= 1;
@@ -2136,10 +2140,24 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 
 /* ************ READ ARMATURE ***************** */
 
+/* temp struct used to transport needed info to lib_link_constraint_cb() */
+typedef struct tConstraintLinkData {
+	FileData *fd;
+	ID *id;
+} tConstraintLinkData;
+/* callback function used to relink constraint ID-links */
+static void lib_link_constraint_cb(bConstraint *con, ID **idpoin, void *userdata)
+{
+	tConstraintLinkData *cld= (tConstraintLinkData *)userdata;
+	*idpoin = newlibadr(cld->fd, cld->id->lib, *idpoin);
+}
+
 static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 {
+	tConstraintLinkData cld;
 	bConstraint *con;
-
+	
+	/* legacy fixes */
 	for (con = conlist->first; con; con=con->next) {
 		/* patch for error introduced by changing constraints (dunno how) */
 		/* if con->data type changes, dna cannot resolve the pointer! (ton) */
@@ -2148,185 +2166,49 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 		}
 		/* own ipo, all constraints have it */
 		con->ipo= newlibadr_us(fd, id->lib, con->ipo); // XXX depreceated - old animation system
-		
-		switch (con->type) {
-		case CONSTRAINT_TYPE_PYTHON:
-			{
-				bPythonConstraint *data= (bPythonConstraint*)con->data;
-				bConstraintTarget *ct;
-				
-				for (ct= data->targets.first; ct; ct= ct->next)
-					ct->tar = newlibadr(fd, id->lib, ct->tar);
-					
-				data->text = newlibadr(fd, id->lib, data->text);
-				//IDP_LibLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-			}
-			break;
-		case CONSTRAINT_TYPE_ACTION:
-			{
-				bActionConstraint *data;
-				data= ((bActionConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-				data->act = newlibadr(fd, id->lib, data->act);
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCLIKE:
-			{
-				bLocateLikeConstraint *data;
-				data= ((bLocateLikeConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_ROTLIKE:
-			{
-				bRotateLikeConstraint *data;
-				data= ((bRotateLikeConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_SIZELIKE:
-			{
-				bSizeLikeConstraint *data;
-				data= ((bSizeLikeConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_KINEMATIC:
-			{
-				bKinematicConstraint *data;
-				data = ((bKinematicConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-				data->poletar = newlibadr(fd, id->lib, data->poletar);
-				con->lin_error = 0.f;
-				con->rot_error = 0.f;
-			}
-			break;
-		case CONSTRAINT_TYPE_TRACKTO:
-			{
-				bTrackToConstraint *data;
-				data = ((bTrackToConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_MINMAX:
-			{
-				bMinMaxConstraint *data;
-				data = ((bMinMaxConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCKTRACK:
-			{
-				bLockTrackConstraint *data;
-				data= ((bLockTrackConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_FOLLOWPATH:
-			{
-				bFollowPathConstraint *data;
-				data= ((bFollowPathConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_STRETCHTO:
-			{
-				bStretchToConstraint *data;
-				data= ((bStretchToConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-			{
-				bRigidBodyJointConstraint *data;
-				data= ((bRigidBodyJointConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_CLAMPTO:
-			{
-				bClampToConstraint *data;
-				data= ((bClampToConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_CHILDOF:
-			{
-				bChildOfConstraint *data;
-				data= ((bChildOfConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_TRANSFORM:
-			{
-				bTransformConstraint *data;
-				data= ((bTransformConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_DISTLIMIT:
-			{
-				bDistLimitConstraint *data;
-				data= ((bDistLimitConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_SHRINKWRAP:
-			{
-				bShrinkwrapConstraint *data;
-				data= ((bShrinkwrapConstraint*)con->data);
-				data->target = newlibadr(fd, id->lib, data->target);
-			}
-			break;
-		case CONSTRAINT_TYPE_DAMPTRACK:
-			{
-				bDampTrackConstraint *data;
-				data= ((bDampTrackConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_SPLINEIK:
-			{
-				bSplineIKConstraint *data;
-				data= ((bSplineIKConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_TRANSLIKE:
-			{
-				bTransLikeConstraint *data;
-				data= ((bTransLikeConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_NULL:
-			break;
-		}
 	}
+	
+	/* relink all ID-blocks used by the constraints */
+	cld.fd= fd;
+	cld.id= id;
+	
+	id_loop_constraints(conlist, lib_link_constraint_cb, &cld);
 }
 
 static void direct_link_constraints(FileData *fd, ListBase *lb)
 {
-	bConstraint *cons;
+	bConstraint *con;
 
 	link_list(fd, lb);
-	for (cons=lb->first; cons; cons=cons->next) {
-		cons->data = newdataadr(fd, cons->data);
+	for (con=lb->first; con; con=con->next) {
+		con->data = newdataadr(fd, con->data);
 		
-		if (cons->type == CONSTRAINT_TYPE_PYTHON) {
-			bPythonConstraint *data= cons->data;
-			
-			link_list(fd, &data->targets);
-			
-			data->prop = newdataadr(fd, data->prop);
-			if (data->prop)
-				IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		switch (con->type) {
+			case CONSTRAINT_TYPE_PYTHON:
+			{
+				bPythonConstraint *data= con->data;
+				
+				link_list(fd, &data->targets);
+				
+				data->prop = newdataadr(fd, data->prop);
+				if (data->prop)
+					IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			}
+				break;
+			case CONSTRAINT_TYPE_SPLINEIK:
+			{
+				bSplineIKConstraint *data= con->data;
+				
+				data->points= newdataadr(fd, data->points);
+			}
+				break;
+			case CONSTRAINT_TYPE_KINEMATIC:
+			{
+				con->lin_error = 0.f;
+				con->rot_error = 0.f;
+			}
+				break;
 		}
-		else if (cons->type == CONSTRAINT_TYPE_SPLINEIK) {
-			bSplineIKConstraint *data= cons->data;
-			
-			data->points= newdataadr(fd, data->points);
-	}
 	}
 }
 
@@ -3196,6 +3078,13 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 				pt->ob=newlibadr(fd, id->lib, pt->ob);
 
 			psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
+
+			if(psys->clmd) {
+				/* XXX - from reading existing code this seems correct but intended usage of
+				 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
+				psys->clmd->point_cache= psys->pointcache;
+				psys->clmd->ptcaches.first= psys->clmd->ptcaches.last= NULL;
+			}
 		}
 		else {
 			/* particle modifier must be removed before particle system */
@@ -3339,6 +3228,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 			/*Link ID Properties -- and copy this comment EXACTLY for easy finding
 			of library blocks that implement this.*/
 			if (me->id.properties) IDP_LibLinkProperty(me->id.properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			if (me->adt) lib_link_animdata(fd, &me->id, me->adt);
 
 			/* this check added for python created meshes */
 			if(me->mat) {
@@ -3566,6 +3456,9 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->mloopuv= newdataadr(fd, mesh->mloopuv);
 	mesh->mtpoly= newdataadr(fd, mesh->mtpoly);
 
+	mesh->adt= newdataadr(fd, mesh->adt);
+	direct_link_animdata(fd, mesh->adt);
+
 	/* Partial-mesh visibility (do this before using totvert, totface, or totedge!) */
 	mesh->pv= newdataadr(fd, mesh->pv);
 	if(mesh->pv) {
@@ -3723,6 +3616,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				if(ob->proxy->id.lib==NULL) {
 					ob->proxy->proxy_from= NULL;
 					ob->proxy= NULL;
+					printf("Proxy lost from  object %s lib %s\n", ob->id.name+2, ob->id.lib->name);
 				}
 				else {
 					/* this triggers object_update to always use a copy */
@@ -3737,11 +3631,14 @@ static void lib_link_object(FileData *fd, Main *main)
 			ob->data= newlibadr_us(fd, ob->id.lib, ob->data);
 			   
 			if(ob->data==NULL && poin!=NULL) {
+				if(ob->id.lib)
+					printf("Can't find obdata of %s lib %s\n", ob->id.name+2, ob->id.lib->name);
+				else
+					printf("Object %s lost data.\n", ob->id.name+2);
+
 				ob->type= OB_EMPTY;
 				warn= 1;
-				if(ob->id.lib) printf("Can't find obdata of %s lib %s\n", ob->id.name+2, ob->id.lib->name);
-				else printf("Object %s lost data.\n", ob->id.name+2);
-				
+
 				if(ob->pose) {
 					free_pose(ob->pose);
 					ob->pose= NULL;
@@ -4425,14 +4322,14 @@ static void lib_link_scene(FileData *fd, Main *main)
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 				if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
 				if(seq->sound) {
-					seq->sound_handle= NULL;
+					seq->scene_sound = NULL;
 					if(seq->type == SEQ_HD_SOUND)
 						seq->type = SEQ_SOUND;
 					else
 						seq->sound= newlibadr(fd, sce->id.lib, seq->sound);
 					if (seq->sound) {
 						seq->sound->id.us++;
-						seq->sound_handle= sound_new_handle(sce, seq->sound, seq->startdisp, seq->enddisp, seq->startofs);
+						seq->scene_sound = sound_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs);
 					}
 				}
 				seq->anim= 0;
@@ -4448,7 +4345,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 #endif
 
 			if(sce->ed)
-				seq_update_muting(sce->ed);
+				seq_update_muting(sce, sce->ed);
 			
 			if(sce->nodetree) {
 				lib_link_ntree(fd, &sce->id, sce->nodetree);
@@ -4503,8 +4400,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->dagisvalid = 0;
 	sce->obedit= NULL;
 	sce->stats= 0;
+	sce->fps_info= NULL;
 
-	memset(&sce->sound_handles, 0, sizeof(sce->sound_handles));
+	sound_create_scene(sce);
 
 	/* set users to one by default, not in lib-link, this will increase it for compo nodes */
 	sce->id.us= 1;
@@ -4712,9 +4610,11 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->defaultconf= NULL;
 
 	wm->jobs.first= wm->jobs.last= NULL;
+	wm->drags.first= wm->drags.last= NULL;
 	
 	wm->windrawable= NULL;
 	wm->initialized= 0;
+	wm->op_undo_depth= 0;
 }
 
 static void lib_link_windowmanager(FileData *fd, Main *main)
@@ -4808,12 +4708,20 @@ static void lib_link_screen(FileData *fd, Main *main)
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_VIEW3D) {
 						View3D *v3d= (View3D*) sl;
+						BGpic *bgpic = NULL;
 						
 						v3d->camera= newlibadr(fd, sc->id.lib, v3d->camera);
 						v3d->ob_centre= newlibadr(fd, sc->id.lib, v3d->ob_centre);
 						
+						/* should be do_versions but not easy adding into the listbase */
 						if(v3d->bgpic) {
-							v3d->bgpic->ima= newlibadr_us(fd, sc->id.lib, v3d->bgpic->ima);
+							v3d->bgpic= newlibadr(fd, sc->id.lib, v3d->bgpic);
+							BLI_addtail(&v3d->bgpicbase, bgpic);
+							v3d->bgpic= NULL;
+						}
+
+						for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
+							bgpic->ima= newlibadr_us(fd, sc->id.lib, bgpic->ima);
 						}
 						if(v3d->localvd) {
 							v3d->localvd->camera= newlibadr(fd, sc->id.lib, v3d->localvd->camera);
@@ -4821,9 +4729,12 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_IPO) {
 						SpaceIpo *sipo= (SpaceIpo *)sl;
+						bDopeSheet *ads= sipo->ads;
 						
-						if(sipo->ads)
-							sipo->ads->source= newlibadr(fd, sc->id.lib, sipo->ads->source);
+						if (ads) {
+							ads->source= newlibadr(fd, sc->id.lib, ads->source);
+							ads->filter_grp= newlibadr(fd, sc->id.lib, ads->filter_grp);
+						}
 					}
 					else if(sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *)sl;
@@ -4854,8 +4765,14 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if(sl->spacetype==SPACE_ACTION) {
 						SpaceAction *saction= (SpaceAction *)sl;
+						bDopeSheet *ads= &saction->ads;
+						
+						if (ads) {
+							ads->source= newlibadr(fd, sc->id.lib, ads->source);
+							ads->filter_grp= newlibadr(fd, sc->id.lib, ads->filter_grp);
+						}
+						
 						saction->action = newlibadr(fd, sc->id.lib, saction->action);
-						saction->ads.source= newlibadr(fd, sc->id.lib, saction->ads.source);
 					}
 					else if(sl->spacetype==SPACE_IMAGE) {
 						SpaceImage *sima= (SpaceImage *)sl;
@@ -4863,7 +4780,13 @@ static void lib_link_screen(FileData *fd, Main *main)
 						sima->image= newlibadr_us(fd, sc->id.lib, sima->image);
 					}
 					else if(sl->spacetype==SPACE_NLA){
-						/* SpaceNla *snla= (SpaceNla *)sl;	*/
+						SpaceNla *snla= (SpaceNla *)sl;
+						bDopeSheet *ads= snla->ads;
+						
+						if (ads) {
+							ads->source= newlibadr(fd, sc->id.lib, ads->source);
+							ads->filter_grp= newlibadr(fd, sc->id.lib, ads->filter_grp);
+						}
 					}
 					else if(sl->spacetype==SPACE_TEXT) {
 						SpaceText *st= (SpaceText *)sl;
@@ -4975,10 +4898,14 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 	
 	
 	for(sc= newmain->screen.first; sc; sc= sc->id.next) {
-		
+		Scene *oldscene= sc->scene;
+
 		sc->scene= restore_pointer_by_name(newmain, (ID *)sc->scene, 1);
 		if(sc->scene==NULL)
 			sc->scene= curscene;
+
+		/* keep cursor location through undo */
+		copy_v3_v3(sc->scene->cursor, oldscene->cursor);
 
 		sa= sc->areabase.first;
 		while(sa) {
@@ -4987,14 +4914,15 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 			for (sl= sa->spacedata.first; sl; sl= sl->next) {
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
+					BGpic *bgpic;
 					
 					v3d->camera= restore_pointer_by_name(newmain, (ID *)v3d->camera, 1);
 					if(v3d->camera==NULL)
 						v3d->camera= sc->scene->camera;
 					v3d->ob_centre= restore_pointer_by_name(newmain, (ID *)v3d->ob_centre, 1);
 					
-					if(v3d->bgpic) {
-						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima, 1);
+					for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next) {
+						bgpic->ima= restore_pointer_by_name(newmain, (ID *)bgpic->ima, 1);
 					}
 					if(v3d->localvd) {
 						/*Base *base;*/
@@ -5021,20 +4949,15 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					
 				}
 				else if(sl->spacetype==SPACE_IPO) {
-					/* XXX animato */
-#if 0
 					SpaceIpo *sipo= (SpaceIpo *)sl;
-
-					sipo->ipo= restore_pointer_by_name(newmain, (ID *)sipo->ipo, 0);
-					if(sipo->blocktype==ID_SEQ) 
-						sipo->from= (ID *)find_sequence_from_ipo_helper(newmain, sipo->ipo);
-					else 
-						sipo->from= restore_pointer_by_name(newmain, (ID *)sipo->from, 0);
+					bDopeSheet *ads= sipo->ads;
 					
-					// not free sipo->ipokey, creates dependency with src/
-					if(sipo->editipo) MEM_freeN(sipo->editipo);
-					sipo->editipo= NULL;
-#endif
+					if (ads) {
+						ads->source= restore_pointer_by_name(newmain, (ID *)ads->source, 1);
+						
+						if (ads->filter_grp)
+							ads->filter_grp= restore_pointer_by_name(newmain, (ID *)ads->filter_grp, 0);
+					}
 				}
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
@@ -5058,8 +4981,12 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				}
 				else if(sl->spacetype==SPACE_ACTION) {
 					SpaceAction *saction= (SpaceAction *)sl;
+					
 					saction->action = restore_pointer_by_name(newmain, (ID *)saction->action, 1);
 					saction->ads.source= restore_pointer_by_name(newmain, (ID *)saction->ads.source, 1);
+
+					if (saction->ads.filter_grp)
+						saction->ads.filter_grp= restore_pointer_by_name(newmain, (ID *)saction->ads.filter_grp, 0);
 				}
 				else if(sl->spacetype==SPACE_IMAGE) {
 					SpaceImage *sima= (SpaceImage *)sl;
@@ -5067,7 +4994,15 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					sima->image= restore_pointer_by_name(newmain, (ID *)sima->image, 1);
 				}
 				else if(sl->spacetype==SPACE_NLA){
-					/* SpaceNla *snla= (SpaceNla *)sl;	*/
+					SpaceNla *snla= (SpaceNla *)sl;
+					bDopeSheet *ads= snla->ads;
+					
+					if (ads) {
+						ads->source= restore_pointer_by_name(newmain, (ID *)ads->source, 1);
+						
+						if (ads->filter_grp)
+							ads->filter_grp= restore_pointer_by_name(newmain, (ID *)ads->filter_grp, 0);
+					}
 				}
 				else if(sl->spacetype==SPACE_TEXT) {
 					SpaceText *st= (SpaceText *)sl;
@@ -5267,10 +5202,22 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 
 			if (sl->spacetype==SPACE_VIEW3D) {
 				View3D *v3d= (View3D*) sl;
-				v3d->bgpic= newdataadr(fd, v3d->bgpic);
+				BGpic *bgpic;
+
 				v3d->flag |= V3D_INVALID_BACKBUF;
-				if(v3d->bgpic)
-					v3d->bgpic->iuser.ok= 1;
+
+				link_list(fd, &(v3d->bgpicbase));
+
+				/* should be do_versions except this doesnt fit well there */
+				if(v3d->bgpic) {
+					bgpic= newdataadr(fd, v3d->bgpic);
+					BLI_addtail(&v3d->bgpicbase, bgpic);
+					v3d->bgpic= NULL;
+				}
+
+				for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next)
+					bgpic->iuser.ok= 1;
+
 				if(v3d->gpd) {
 					v3d->gpd= newdataadr(fd, v3d->gpd);
 					direct_link_gpencil(fd, v3d->gpd);
@@ -5357,6 +5304,18 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				//	cl->line= newdataadr(fd, cl->line);
 				
 			}
+			else if(sl->spacetype==SPACE_FILE) {
+				SpaceFile *sfile= (SpaceFile *)sl;
+				
+				/* this sort of info is probably irrelevant for reloading...
+				 * plus, it isn't saved to files yet!
+				 */
+				sfile->folders_prev= sfile->folders_next= NULL;
+				sfile->files= NULL;
+				sfile->layout= NULL;
+				sfile->op= NULL;
+				sfile->params= NULL;
+			}
 		}
 		
 		sa->actionzones.first= sa->actionzones.last= NULL;
@@ -5438,6 +5397,7 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 static void direct_link_sound(FileData *fd, bSound *sound)
 {
 	sound->handle = NULL;
+	sound->playback_handle = NULL;
 
 	sound->packedfile = direct_link_packedfile(fd, sound->packedfile);
 	sound->newpackedfile = direct_link_packedfile(fd, sound->newpackedfile);
@@ -5543,7 +5503,7 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, char *allocna
 
 	while(bhead && bhead->code==DATA) {
 		void *data;
-#if 0		
+#if 0
 		/* XXX DUMB DEBUGGING OPTION TO GIVE NAMES for guarded malloc errors */		
 		short *sp= fd->filesdna->structs[bhead->SDNAnr];
 		char *allocname = fd->filesdna->types[ sp[0] ];
@@ -5551,8 +5511,9 @@ static BHead *read_data_into_oldnewmap(FileData *fd, BHead *bhead, char *allocna
 		
 		strcpy(tmp, allocname);
 		data= read_struct(fd, bhead, tmp);
-#endif
+#else
 		data= read_struct(fd, bhead, allocname);
+#endif
 		
 		if (data) {
 			oldnewmap_insert(fd->datamap, bhead->old, data, 0);
@@ -6159,6 +6120,29 @@ static void area_add_header_region(ScrArea *sa, ListBase *lb)
 	ar->v2d.flag = (V2D_PIXELOFS_X|V2D_PIXELOFS_Y);
 }
 
+static void sequencer_init_preview_region(ARegion* ar)
+{
+	// XXX a bit ugly still, copied from space_sequencer
+	/* NOTE: if you change values here, also change them in space_sequencer.c, sequencer_new */
+	ar->regiontype= RGN_TYPE_PREVIEW;
+	ar->alignment= RGN_ALIGN_TOP;
+	ar->flag |= RGN_FLAG_HIDDEN;
+	ar->v2d.keepzoom= V2D_KEEPASPECT | V2D_KEEPZOOM;
+	ar->v2d.minzoom= 0.00001f;
+	ar->v2d.maxzoom= 100000.0f;
+	ar->v2d.tot.xmin= -960.0f; /* 1920 width centered */
+	ar->v2d.tot.ymin= -540.0f; /* 1080 height centered */
+	ar->v2d.tot.xmax= 960.0f;
+	ar->v2d.tot.ymax= 540.0f;
+	ar->v2d.min[0]= 0.0f;
+	ar->v2d.min[1]= 0.0f;
+	ar->v2d.max[0]= 12000.0f;
+	ar->v2d.max[1]= 12000.0f;
+	ar->v2d.cur= ar->v2d.tot;
+	ar->v2d.align= V2D_ALIGN_FREE; // (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_NEG_Y);
+	ar->v2d.keeptot= V2D_KEEPTOT_FREE;
+}
+
 /* 2.50 patch */
 static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 {
@@ -6200,6 +6184,14 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				ar->alignment= RGN_ALIGN_LEFT;
 				ar->v2d.scroll= V2D_SCROLL_BOTTOM;
 				ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+				
+					// for some reason, some files still don't get this auto
+				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+				BLI_addtail(lb, ar);
+				ar->regiontype= RGN_TYPE_UI;
+				ar->alignment= RGN_ALIGN_RIGHT;
+				ar->v2d.scroll= V2D_SCROLL_RIGHT;
+				ar->v2d.flag = RGN_FLAG_HIDDEN;
 				break;
 				
 			case SPACE_NODE:
@@ -6231,9 +6223,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				}
 				ar= MEM_callocN(sizeof(ARegion), "preview area for sequencer");
 				BLI_insertlinkbefore(lb, ar_main, ar);
-				ar->regiontype= RGN_TYPE_PREVIEW;
-				ar->alignment= RGN_ALIGN_TOP;
-				ar->flag |= RGN_FLAG_HIDDEN;
+				sequencer_init_preview_region(ar);
 				break;
 			case SPACE_VIEW3D:
 				/* toolbar */
@@ -6324,7 +6314,13 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				/* init mainarea view2d */
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
-								
+				
+				ar->v2d.min[0]= FLT_MIN;
+				ar->v2d.min[1]= FLT_MIN;
+				
+				ar->v2d.max[0]= MAXFRAMEF;
+				ar->v2d.max[1]= FLT_MAX;
+				
 				//ar->v2d.flag |= V2D_IS_INITIALISED;
 				break;
 			}
@@ -6343,6 +6339,9 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 				SpaceNla *snla= (SpaceNla *)sl;
 				memcpy(&ar->v2d, &snla->v2d, sizeof(View2D));
 				
+				ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
+				ar->v2d.tot.ymax= 0.0f;
+				
 				ar->v2d.scroll |= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 				ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 				ar->v2d.align = V2D_ALIGN_NO_POS_Y;
@@ -6353,7 +6352,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 			{
 				/* we totally reinit the view for the Action Editor, as some old instances had some weird cruft set */
 				ar->v2d.tot.xmin= -20.0f;
-				ar->v2d.tot.ymin= (float)(-sa->winy);
+				ar->v2d.tot.ymin= (float)(-sa->winy)/3.0f;
 				ar->v2d.tot.xmax= (float)((sa->winx > 120)? (sa->winx) : 120);
 				ar->v2d.tot.ymax= 0.0f;
 				
@@ -6363,7 +6362,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
  				ar->v2d.min[1]= 0.0f;
 				
 				ar->v2d.max[0]= MAXFRAMEF;
- 				ar->v2d.max[1]= 10000.0f;
+ 				ar->v2d.max[1]= FLT_MAX;
 			 	
 				ar->v2d.minzoom= 0.01f;
 				ar->v2d.maxzoom= 50;
@@ -6575,6 +6574,34 @@ static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
 				mtex->colfac= (neg & LAMAP_COL)? -colfac: colfac;
 			else if(idtype == ID_WO)
 				mtex->colfac= (neg & WOMAP_HORIZ)? -colfac: colfac;
+		}
+	}
+}
+
+static void do_version_constraints_radians_degrees_250(ListBase *lb)
+{
+	bConstraint *con;
+
+	for	(con=lb->first; con; con=con->next) {
+		if(con->type==CONSTRAINT_TYPE_RIGIDBODYJOINT) {
+			bRigidBodyJointConstraint *data = con->data;
+			data->axX *= M_PI/180.0;
+			data->axY *= M_PI/180.0;
+			data->axZ *= M_PI/180.0;
+		}
+		else if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+			bKinematicConstraint *data = con->data;
+			data->poleangle *= M_PI/180.0;
+		}
+		else if(con->type==CONSTRAINT_TYPE_ROTLIMIT) {
+			bRotLimitConstraint *data = con->data;
+
+			data->xmin *= M_PI/180.0;
+			data->xmax *= M_PI/180.0;
+			data->ymin *= M_PI/180.0;
+			data->ymax *= M_PI/180.0;
+			data->zmin *= M_PI/180.0;
+			data->zmax *= M_PI/180.0;
 		}
 	}
 }
@@ -7905,10 +7932,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 			if(ob->soft && ob->soft->vertgroup==0) {
-				bDeformGroup *locGroup = get_named_vertexgroup(ob, "SOFTGOAL");
+				bDeformGroup *locGroup = defgroup_find_name(ob, "SOFTGOAL");
 				if(locGroup){
 					/* retrieve index for that group */
-					ob->soft->vertgroup =  1 + get_defgroup_num(ob, locGroup); 
+					ob->soft->vertgroup =  1 + defgroup_find_index(ob, locGroup); 
 				}
 			}
 		}
@@ -8528,8 +8555,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							((SpaceImage *)sl)->iuser.fie_ima= 2;
 						else if(sl->spacetype==SPACE_VIEW3D) {
 							View3D *v3d= (View3D *)sl;
-							if(v3d->bgpic)
-								v3d->bgpic->iuser.fie_ima= 2;
+							BGpic *bgpic;
+							for(bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next)
+								bgpic->iuser.fie_ima= 2;
 						}
 					}
 				}
@@ -8593,7 +8621,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for(curdef= ob->defbase.first; curdef; curdef=curdef->next) {
 				/* replace an empty-string name with unique name */
 				if (curdef->name[0] == '\0') {
-					unique_vertexgroup_name(curdef, ob);
+					defgroup_unique_name(curdef, ob);
 				}
 			}
 
@@ -9713,6 +9741,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bSound *sound;
 		Sequence *seq;
 		bActuator *act;
+		int a;
 
 		for(sound = main->sound.first; sound; sound = sound->id.next)
 		{
@@ -9763,7 +9792,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						char str[FILE_MAX];
 						BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
 						BLI_convertstringcode(str, G.sce);
-						BLI_convertstringframe(str, scene->r.cfra);
 						seq->sound = sound_new_file(main, str);
 					}
 				}
@@ -9786,6 +9814,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(ma= main->mat.first; ma; ma= ma->id.next) {
 			if(ma->nodetree && strlen(ma->nodetree->id.name)==0)
 				strcpy(ma->nodetree->id.name, "NTShader Nodetree");
+			
+			/* which_output 0 is now "not specified" */
+			for(a=0; a<MAX_MTEX; a++) {
+				if(ma->mtex[a]) {
+					tx= newlibadr(fd, lib, ma->mtex[a]->tex);
+					if(tx && tx->use_nodes)
+						ma->mtex[a]->which_output++;
+				}
+			}
 		}
 		/* and composit trees */
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
@@ -9808,8 +9845,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		/* and texture trees */
 		for(tx= main->tex.first; tx; tx= tx->id.next) {
-			if(tx->nodetree && strlen(tx->nodetree->id.name)==0)
-				strcpy(tx->nodetree->id.name, "NTTexture Nodetree");
+			bNode *node;
+
+			if(tx->nodetree) {
+				if(strlen(tx->nodetree->id.name)==0)
+					strcpy(tx->nodetree->id.name, "NTTexture Nodetree");
+
+				/* which_output 0 is now "not specified" */
+				for(node=tx->nodetree->nodes.first; node; node=node->next)
+					if(node->type == TEX_NODE_OUTPUT)
+						node->custom1++;
+			}
 		}
 		
 		/* copy standard draw flag to meshes(used to be global, is not available here) */
@@ -10256,12 +10302,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 				if(sce->r.frame_step==0)
 					sce->r.frame_step= 1;
+				if (sce->r.mblur_samples==0)
+					sce->r.mblur_samples = sce->r.osa;
 				
 				if(sce->ed && sce->ed->seqbasep)
 				{
 					seq=sce->ed->seqbasep->first;
 					while(seq) {
-						seqUniqueName(sce->ed->seqbasep, seq);
+						seqbase_unique_name_recursive(&sce->ed->seqbase, seq);
 						seq=seq->next;
 					}
 				}
@@ -10314,7 +10362,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			Scene *sce=main->scene.first;
 			Material *ma=main->mat.first;
 			World *wo=main->world.first;
-			int convert=0;
+			Tex *tex=main->tex.first;
+			int i, convert=0;
 			
 			/* convert to new color management system:
 			 while previously colors were stored as srgb, 
@@ -10330,11 +10379,37 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			
 			if (convert) {
 				while(ma) {
+					if (ma->ramp_col) {
+						ColorBand *band = (ColorBand *)ma->ramp_col;
+						for (i=0; i<band->tot; i++) {
+							CBData *data = band->data + i;
+							srgb_to_linearrgb_v3_v3(&data->r, &data->r);
+						}
+					}
+					if (ma->ramp_spec) {
+						ColorBand *band = (ColorBand *)ma->ramp_spec;
+						for (i=0; i<band->tot; i++) {
+							CBData *data = band->data + i;
+							srgb_to_linearrgb_v3_v3(&data->r, &data->r);
+						}
+					}
+					
 					srgb_to_linearrgb_v3_v3(&ma->r, &ma->r);
 					srgb_to_linearrgb_v3_v3(&ma->specr, &ma->specr);
 					srgb_to_linearrgb_v3_v3(&ma->mirr, &ma->mirr);
 					srgb_to_linearrgb_v3_v3(ma->sss_col, ma->sss_col);
 					ma=ma->id.next;
+				}
+				
+				while(tex) {
+					if (tex->coba) {
+						ColorBand *band = (ColorBand *)tex->coba;
+						for (i=0; i<band->tot; i++) {
+							CBData *data = band->data + i;
+							srgb_to_linearrgb_v3_v3(&data->r, &data->r);
+						}
+					}
+					tex=tex->id.next;
 				}
 				
 				while(wo) {
@@ -10445,7 +10520,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								break;
 						}
 
-						if (ar) {
+						if (ar && (ar->regiontype == RGN_TYPE_PREVIEW)) {
 							SpaceType *st= BKE_spacetype_from_id(SPACE_SEQ);
 							BKE_area_region_free(st, ar);
 							BLI_freelinkN(regionbase, ar);
@@ -10490,9 +10565,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							}
 							ar= MEM_callocN(sizeof(ARegion), "preview area for sequencer");
 							BLI_insertlinkbefore(regionbase, ar_main, ar);
-							ar->regiontype= RGN_TYPE_PREVIEW;
-							ar->alignment= RGN_ALIGN_TOP;
-							ar->flag |= RGN_FLAG_HIDDEN;
+							sequencer_init_preview_region(ar);
 						}
 					}
 				}
@@ -10500,9 +10573,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* put 2.50 compatibility code here until next subversion bump */
-
-	if (1) {
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 12))
+	{
 		Scene *sce;
 		Object *ob;
 		Brush *brush;
@@ -10532,9 +10604,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					
 					avs->ghost_sf= arm->ghostsf;
 					avs->ghost_ef= arm->ghostef;
+					if ((avs->ghost_sf == avs->ghost_ef) && (avs->ghost_sf == 0)) {
+						avs->ghost_sf= 1;
+						avs->ghost_ef= 100;
+					}
 					
 						/* type */
-					avs->ghost_type= arm->ghosttype;
+					if (arm->ghostep == 0)
+						avs->ghost_type= GHOST_TYPE_NONE;
+					else
+						avs->ghost_type= arm->ghosttype + 1;
 					
 						/* stepsize */
 					avs->ghost_step= arm->ghostsize;
@@ -10545,9 +10624,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						/* ranges */
 					avs->path_bc= arm->pathbc;
 					avs->path_ac= arm->pathac;
+					if ((avs->path_bc == avs->path_ac) && (avs->path_bc == 0))
+						avs->path_bc= avs->path_ac= 10;
 					
 					avs->path_sf= arm->pathsf;
 					avs->path_ef= arm->pathef;
+					if ((avs->path_sf == avs->path_ef) && (avs->path_sf == 0)) {
+						avs->path_sf= 1;
+						avs->path_ef= 250;
+					}
 					
 						/* flags */
 					if (arm->pathflag & ARM_PATH_FNUMS)
@@ -10570,6 +10655,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if (avs->path_step == 0)
 						avs->path_step= 1;
 				}
+				else
+					animviz_settings_init(&ob->pose->avs);
 			}
 		}
 		
@@ -10585,11 +10672,163 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->vol.ms_intensity = 1.f;	
 			}
 		}
+	}
+	
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 13)) {
+		/* NOTE: if you do more conversion, be sure to do it outside of this and
+		   increase subversion again, otherwise it will not be correct */
+		Object *ob;
 		
+		/* convert degrees to radians for internal use */
+		for (ob=main->object.first; ob; ob=ob->id.next) {
+			bPoseChannel *pchan;
+
+			do_version_constraints_radians_degrees_250(&ob->constraints);
+
+			if (ob->pose) {
+				for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+					pchan->limitmin[0] *= M_PI/180.0;
+					pchan->limitmin[1] *= M_PI/180.0;
+					pchan->limitmin[2] *= M_PI/180.0;
+					pchan->limitmax[0] *= M_PI/180.0;
+					pchan->limitmax[1] *= M_PI/180.0;
+					pchan->limitmax[2] *= M_PI/180.0;
+
+					do_version_constraints_radians_degrees_250(&pchan->constraints);
+				}
+			}
+		}
+	}
+	
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 14)) {
+		/* fix for bad View2D extents for Animation Editors */
+		bScreen *screen;
+		ScrArea *sa;
+		SpaceLink *sl;
+		
+		for (screen= main->screen.first; screen; screen= screen->id.next) {
+			for (sa= screen->areabase.first; sa; sa= sa->next) {
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					ListBase *regionbase;
+					ARegion *ar;
+					
+					if (sl == sa->spacedata.first)
+						regionbase = &sa->regionbase;
+					else
+						regionbase = &sl->regionbase;
+						
+					if (ELEM(sl->spacetype, SPACE_ACTION, SPACE_NLA)) {
+						for (ar = (ARegion*)regionbase->first; ar; ar = ar->next) {
+							if (ar->regiontype == RGN_TYPE_WINDOW) {
+								ar->v2d.cur.ymax= ar->v2d.tot.ymax= 0.0f;
+								ar->v2d.cur.ymin= ar->v2d.tot.ymin= (float)(-sa->winy) / 3.0f;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 15)) {
+		World *wo;
+		Material *ma;
+
+		/* ambient default from 0.5f to 1.0f */
+		for(ma= main->mat.first; ma; ma=ma->id.next)
+			ma->amb *= 2.0f;
+
+		for(wo= main->world.first; wo; wo=wo->id.next) {
+			/* ao splitting into ao/env/indirect */
+			wo->ao_env_energy= wo->aoenergy;
+			wo->aoenergy= 1.0f;
+
+			if(wo->ao_indirect_bounces == 0)
+				wo->ao_indirect_bounces= 1;
+			else
+				wo->mode |= WO_INDIRECT_LIGHT;
+
+			if(wo->aomix == WO_AOSUB)
+				wo->ao_env_energy= -wo->ao_env_energy;
+			else if(wo->aomix == WO_AOADDSUB)
+				wo->mode |= WO_AMB_OCC;
+
+			wo->aomix= WO_AOMUL;
+
+			/* ambient default from 0.5f to 1.0f */
+			mul_v3_fl(&wo->ambr, 0.5f);
+			wo->ao_env_energy *= 0.5f;
+		}
+	}
+	
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 17)) {
+		Scene *sce;
+		Sequence *seq;
+		Material *ma;
+
+		/* initialize to sane default so toggling on border shows something */
+		for(sce = main->scene.first; sce; sce = sce->id.next) {
+			if(sce->r.border.xmin == 0.0f && sce->r.border.ymin == 0.0f &&
+			   sce->r.border.xmax == 0.0f && sce->r.border.ymax == 0.0f) {
+				sce->r.border.xmin= 0.0f;
+				sce->r.border.ymin= 0.0f;
+				sce->r.border.xmax= 1.0f;
+				sce->r.border.ymax= 1.0f;
+			}
+
+			if((sce->r.ffcodecdata.flags & FFMPEG_MULTIPLEX_AUDIO) == 0)
+				sce->r.ffcodecdata.audio_codec = 0x0; // CODEC_ID_NONE
+
+			SEQ_BEGIN(sce->ed, seq) {
+				seq->volume = 1.0f;
+			}
+			SEQ_END
+		}
+
+		for(ma = main->mat.first; ma; ma=ma->id.next)
+			if(ma->mode & MA_TRACEBLE)
+				ma->shade_flag |= MA_APPROX_OCCLUSION;
+
+		/* sequencer changes */
+		{
+			bScreen *screen;
+			ScrArea *sa;
+			SpaceLink *sl;
+
+			for(screen= main->screen.first; screen; screen= screen->id.next) {
+				for(sa= screen->areabase.first; sa; sa= sa->next) {
+					for(sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_SEQ) {
+							ARegion *ar_preview;
+							ListBase *regionbase;
+
+							if (sl == sa->spacedata.first) {
+								regionbase = &sa->regionbase;
+							} else {
+								regionbase = &sl->regionbase;
+							}
+
+							ar_preview = (ARegion*)regionbase->first;
+							for (; ar_preview; ar_preview = ar_preview->next) {
+								if (ar_preview->regiontype == RGN_TYPE_PREVIEW)
+									break;
+							}
+							if (ar_preview && (ar_preview->regiontype == RGN_TYPE_PREVIEW)) {
+								sequencer_init_preview_region(ar_preview);
+							}
+						}
+					}
+				}
+			}
+		} /* sequencer changes */
+	}
+
+	/* put 2.50 compatibility code here until next subversion bump */
+	{
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
-	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
+	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
 	/* don't forget to set version number in blender.c! */
 }
@@ -10642,6 +10881,7 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	link_list(fd, &user->themes);
 	link_list(fd, &user->keymaps);
+	link_list(fd, &user->addons);
 
 	for(keymap=user->keymaps.first; keymap; keymap=keymap->next) {
 		keymap->modal_items= NULL;
@@ -10834,20 +11074,9 @@ char *bhead_id_name(FileData *fd, BHead *bhead)
 
 static ID *is_yet_read(FileData *fd, Main *mainvar, BHead *bhead)
 {
-	ListBase *lb;
-	char *idname= bhead_id_name(fd, bhead);
-
-	lb= wich_libbase(mainvar, GS(idname));
-	
-	if(lb) {
-		ID *id= lb->first;
-		while(id) {
-			if( strcmp(id->name, idname)==0 ) 
-				return id;
-			id= id->next;
-		}
-	}
-	return NULL;
+	const char *idname= bhead_id_name(fd, bhead);
+	/* wich_libbase can be NULL, intentionally not using idname+2 */
+	return BLI_findstring(wich_libbase(mainvar, GS(idname)), idname, offsetof(ID, name));
 }
 
 static void expand_doit(FileData *fd, Main *mainvar, void *old)
@@ -10869,7 +11098,8 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 
 				if(id==NULL) {
 					read_libblock(fd, ptr, bhead, LIB_READ+LIB_INDIRECT, NULL);
-					if(G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
+					// commented because this can print way too much
+					// if(G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
 					
 					/* for outliner dependency only */
 					ptr->curlib->parent= mainvar->curlib;
@@ -10884,7 +11114,8 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					/*oldnewmap_insert(fd->libmap, bhead->old, id, 1);*/
 					
 					change_idid_adr_fd(fd, bhead->old, id);
-					if(G.f & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
+					// commented because this can print way too much
+					// if(G.f & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
 				}
 				
 				MEM_freeN(lib);
@@ -10899,7 +11130,8 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 				/* this is actually only needed on UI call? when ID was already read before, and another append
 				   happens which invokes same ID... in that case the lookup table needs this entry */
 				oldnewmap_insert(fd->libmap, bhead->old, id, 1);
-				if(G.f & G_DEBUG) printf("expand: already read %s\n", id->name);
+                // commented because this can print way too much
+				// if(G.f & G_DEBUG) printf("expand: already read %s\n", id->name);
 			}
 		}
 	}
@@ -11223,148 +11455,33 @@ static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 	}
 }
 
+/* temp struct used to transport needed info to expand_constraint_cb() */
+typedef struct tConstraintExpandData {
+	FileData *fd;
+	Main *mainvar;
+} tConstraintExpandData;
+/* callback function used to expand constraint ID-links */
+static void expand_constraint_cb(bConstraint *con, ID **idpoin, void *userdata)
+{
+	tConstraintExpandData *ced= (tConstraintExpandData *)userdata;
+	expand_doit(ced->fd, ced->mainvar, *idpoin);
+}
+
 static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 {
+	tConstraintExpandData ced;
 	bConstraint *curcon;
-
+	
+	/* relink all ID-blocks used by the constraints */
+	ced.fd= fd;
+	ced.mainvar= mainvar;
+	
+	id_loop_constraints(lb, expand_constraint_cb, &ced);
+	
+	/* depreceated manual expansion stuff */
 	for (curcon=lb->first; curcon; curcon=curcon->next) {
-		
 		if (curcon->ipo)
 			expand_doit(fd, mainvar, curcon->ipo); // XXX depreceated - old animation system
-		
-		switch (curcon->type) {
-		case CONSTRAINT_TYPE_NULL:
-			break;
-		case CONSTRAINT_TYPE_PYTHON:
-			{
-				bPythonConstraint *data = (bPythonConstraint*)curcon->data;
-				bConstraintTarget *ct;
-				
-				for (ct= data->targets.first; ct; ct= ct->next)
-					expand_doit(fd, mainvar, ct->tar);
-				
-				expand_doit(fd, mainvar, data->text);
-			}
-			break;
-		case CONSTRAINT_TYPE_ACTION:
-			{
-				bActionConstraint *data = (bActionConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-				expand_doit(fd, mainvar, data->act);
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCLIKE:
-			{
-				bLocateLikeConstraint *data = (bLocateLikeConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_ROTLIKE:
-			{
-				bRotateLikeConstraint *data = (bRotateLikeConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_SIZELIKE:
-			{
-				bSizeLikeConstraint *data = (bSizeLikeConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_KINEMATIC:
-			{
-				bKinematicConstraint *data = (bKinematicConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-				expand_doit(fd, mainvar, data->poletar);
-			}
-			break;
-		case CONSTRAINT_TYPE_TRACKTO:
-			{
-				bTrackToConstraint *data = (bTrackToConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_MINMAX:
-			{
-				bMinMaxConstraint *data = (bMinMaxConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCKTRACK:
-			{
-				bLockTrackConstraint *data = (bLockTrackConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_FOLLOWPATH:
-			{
-				bFollowPathConstraint *data = (bFollowPathConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_STRETCHTO:
-			{
-				bStretchToConstraint *data = (bStretchToConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-			{
-				bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_CLAMPTO:
-			{
-				bClampToConstraint *data = (bClampToConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_CHILDOF:
-			{
-				bChildOfConstraint *data = (bChildOfConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_TRANSFORM:
-			{
-				bTransformConstraint *data = (bTransformConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_DISTLIMIT:	
-			{
-				bDistLimitConstraint *data = (bDistLimitConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_SHRINKWRAP:
-			{
-				bShrinkwrapConstraint *data = (bShrinkwrapConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->target);
-			}
-			break;
-		case CONSTRAINT_TYPE_DAMPTRACK:
-			{
-				bDampTrackConstraint *data = (bDampTrackConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_SPLINEIK:
-			{
-				bSplineIKConstraint *data = (bSplineIKConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_TRANSLIKE:
-			{
-				bTransLikeConstraint *data = (bTransLikeConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-			}
-			break;
-		default:
-			break;
-		}
 	}
 }
 
@@ -12004,7 +12121,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	Main *mainvar= CTX_data_main(C);
 	Scene *scene= CTX_data_scene(C);
 
-	/* make main consistant */
+	/* make main consistent */
 	expand_main(*fd, mainl);
 
 	/* do this when expand found other libs */

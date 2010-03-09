@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Blender Foundation (2008).
  *
@@ -36,6 +36,7 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
@@ -189,6 +190,30 @@ PointerRNA rna_pointer_inherit_refine(PointerRNA *ptr, StructRNA *type, void *da
 		memset(&result, 0, sizeof(result));
 	
 	return result;
+}
+
+/**/
+void RNA_pointer_recast(PointerRNA *ptr, PointerRNA *r_ptr)
+{
+#if 0 // works but this case if covered by more general code below.
+	if(RNA_struct_is_ID(ptr->type)) {
+		/* simple case */
+		RNA_id_pointer_create(ptr->id.data, r_ptr);
+	}
+	else
+#endif
+	{
+		StructRNA *base;
+		PointerRNA t_ptr;
+		*r_ptr= *ptr; /* initialize as the same incase cant recast */
+
+		for(base=ptr->type->base; base; base=base->base) {
+			t_ptr= rna_pointer_inherit_refine(ptr, base, ptr->data);
+			if(t_ptr.type && t_ptr.type != ptr->type) {
+				*r_ptr= t_ptr;
+			}
+		}
+	}
 }
 
 /* ID Properties */
@@ -549,6 +574,19 @@ const struct ListBase *RNA_struct_defined_properties(StructRNA *srna)
 
 FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 {
+#if 1
+	FunctionRNA *func;
+	StructRNA *type;
+	for(type= ptr->type; type; type= type->base) {
+		for(func= type->functions.first; func; func= func->cont.next) {
+			if(strcmp(func->identifier, identifier)==0)
+				return func;
+		}
+	}
+	return NULL;
+
+	/* funcitonal but slow */
+#else
 	PointerRNA tptr;
 	PropertyRNA *iterprop;
 	FunctionRNA *func;
@@ -567,6 +605,7 @@ FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 	RNA_PROP_END;
 
 	return func;
+#endif
 }
 
 const struct ListBase *RNA_struct_defined_functions(StructRNA *srna)
@@ -884,6 +923,44 @@ void RNA_property_float_ui_range(PointerRNA *ptr, PropertyRNA *prop, float *soft
 	*precision= (float)fprop->precision;
 }
 
+int RNA_property_float_clamp(PointerRNA *ptr, PropertyRNA *prop, float *value)
+{
+	float min, max;
+
+	RNA_property_float_range(ptr, prop, &min, &max);
+
+	if(*value < min) {
+		*value= min;
+		return -1;
+	}
+	else if(*value > max) {
+		*value= max;
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+int RNA_property_int_clamp(PointerRNA *ptr, PropertyRNA *prop, int *value)
+{
+	int min, max;
+
+	RNA_property_int_range(ptr, prop, &min, &max);
+
+	if(*value < min) {
+		*value= min;
+		return -1;
+	}
+	else if(*value > max) {
+		*value= max;
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
 /* this is the max length including \0 terminator */
 int RNA_property_string_maxlength(PropertyRNA *prop)
 {
@@ -918,15 +995,25 @@ EnumPropertyItem DummyRNA_NULL_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+/* Reuse for dynamic types with default value */
+EnumPropertyItem DummyRNA_DEFAULT_items[] = {
+	{0, "DEFAULT", 0, "Default", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 void RNA_property_enum_items(bContext *C, PointerRNA *ptr, PropertyRNA *prop, EnumPropertyItem **item, int *totitem, int *free)
 {
 	EnumPropertyRNA *eprop= (EnumPropertyRNA*)rna_ensure_property(prop);
 
 	*free= 0;
 
-	if(eprop->itemf && C) {
+	if(eprop->itemf && (C != NULL || (prop->flag & PROP_ENUM_NO_CONTEXT))) {
 		int tot= 0;
-		*item= eprop->itemf(C, ptr, free);
+
+		if (prop->flag & PROP_ENUM_NO_CONTEXT)
+			*item= eprop->itemf(NULL, ptr, free);
+		else
+			*item= eprop->itemf(C, ptr, free);
 
 		if(totitem) {
 			if(*item) {
@@ -1048,21 +1135,21 @@ int RNA_property_ui_icon(PropertyRNA *prop)
 
 int RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 {
-	ID *id;
+	ID *id= ptr->id.data;
 	int flag;
 
 	prop= rna_ensure_property(prop);
+	flag= prop->editable ? prop->editable(ptr) : prop->flag;
+	return (flag & PROP_EDITABLE) && (!id || !id->lib || (prop->flag & PROP_LIB_EXCEPTION));
+}
 
-	if(prop->editable)
-		flag= prop->editable(ptr);
-	else
-		flag= prop->flag;
-	
-	id= ptr->id.data;
+int RNA_property_editable_flag(PointerRNA *ptr, PropertyRNA *prop)
+{
+	int flag;
 
-	/* with this, libdata is not animated by its own library fcurves, FIXME */
-//	return (flag & PROP_EDITABLE) && (!id || !id->lib || (flag & PROP_LIB_EXCEPTION));
-	return (flag & PROP_EDITABLE) ? 1:0;
+	prop= rna_ensure_property(prop);
+	flag= prop->editable ? prop->editable(ptr) : prop->flag;
+	return (flag & PROP_EDITABLE);
 }
 
 /* same as RNA_property_editable(), except this checks individual items in an array */
@@ -1072,35 +1159,32 @@ int RNA_property_editable_index(PointerRNA *ptr, PropertyRNA *prop, int index)
 	int flag;
 
 	prop= rna_ensure_property(prop);
+
+	flag= prop->flag;
 	
-	/* if there is no function to do this for a given index, 
-	 * just resort to doing this on the whole array
-	 */
-	if (prop->itemeditable == NULL)
-		return RNA_property_editable(ptr, prop);
-		
-	flag= prop->itemeditable(ptr, index);
+	if(prop->editable)
+		flag &= prop->editable(ptr);
+
+	if (prop->itemeditable)
+		flag &= prop->itemeditable(ptr, index);
+
 	id= ptr->id.data;
-	/* with this, libdata is not animated by its own library fcurves, FIXME */
-//	return (flag & PROP_EDITABLE) && (!id || !id->lib || (flag & PROP_LIB_EXCEPTION));
-	return (flag & PROP_EDITABLE) ? 1:0;
+
+	return (flag & PROP_EDITABLE) && (!id || !id->lib || (prop->flag & PROP_LIB_EXCEPTION));
 }
 
 int RNA_property_animateable(PointerRNA *ptr, PropertyRNA *prop)
 {
-	int flag;
-
+	/* check that base ID-block can support animation data */
+	if (!id_type_can_have_animdata(ptr->id.data))
+		return 0;
+	
 	prop= rna_ensure_property(prop);
 
-	if(!(prop->flag & PROP_ANIMATEABLE))
+	if(!(prop->flag & PROP_ANIMATABLE))
 		return 0;
 
-	if(prop->editable)
-		flag= prop->editable(ptr);
-	else
-		flag= prop->flag;
-
-	return (flag & PROP_EDITABLE);
+	return (prop->flag & PROP_EDITABLE);
 }
 
 int RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
@@ -1131,7 +1215,7 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 	else {
 		/* WARNING! This is so property drivers update the display!
 		 * not especially nice  */
-		DAG_id_flush_update(ptr->id.data, OB_RECALC_OB);
+		DAG_id_flush_update(ptr->id.data, OB_RECALC);
 		WM_main_add_notifier(NC_WINDOW, NULL);
 	}
 
@@ -1745,6 +1829,36 @@ void RNA_property_string_set(PointerRNA *ptr, PropertyRNA *prop, const char *val
 	}
 }
 
+void RNA_property_string_get_default(PointerRNA *ptr, PropertyRNA *prop, char *value)
+{
+	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
+	strcpy(value, sprop->defaultvalue);
+}
+
+char *RNA_property_string_get_default_alloc(PointerRNA *ptr, PropertyRNA *prop, char *fixedbuf, int fixedlen)
+{
+	char *buf;
+	int length;
+
+	length= RNA_property_string_default_length(ptr, prop);
+
+	if(length+1 < fixedlen)
+		buf= fixedbuf;
+	else
+		buf= MEM_callocN(sizeof(char)*(length+1), "RNA_string_get_alloc");
+
+	RNA_property_string_get_default(ptr, prop, buf);
+
+	return buf;
+}
+
+/* this is the length without \0 terminator */
+int RNA_property_string_default_length(PointerRNA *ptr, PropertyRNA *prop)
+{
+	StringPropertyRNA *sprop= (StringPropertyRNA*)prop;
+	return strlen(sprop->defaultvalue);
+}
+
 int RNA_property_enum_get(PointerRNA *ptr, PropertyRNA *prop)
 {
 	EnumPropertyRNA *eprop= (EnumPropertyRNA*)prop;
@@ -1825,8 +1939,12 @@ void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr
 	else {
 		PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop;
 
-		if(pprop->set && !((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL))
+		if(		pprop->set &&
+				!((prop->flag & PROP_NEVER_NULL) && ptr_value.data == NULL) &&
+				!((prop->flag & PROP_ID_SELF_CHECK) && ptr->id.data == ptr_value.id.data)
+		) {
 			pprop->set(ptr, ptr_value);
+		}
 	}
 }
 
@@ -1962,7 +2080,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 
 		item= IDP_New(IDP_GROUP, val, "");
 		IDP_AppendArray(idprop, item);
-		IDP_FreeProperty(item);
+		// IDP_FreeProperty(item); // IDP_AppendArray does a shallow copy (memcpy), only free memory 
 		MEM_freeN(item);
 	}
 	else if(prop->flag & PROP_IDPROPERTY) {
@@ -1976,7 +2094,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 
 			item= IDP_New(IDP_GROUP, val, "");
 			IDP_AppendArray(idprop, item);
-			IDP_FreeProperty(item);
+			// IDP_FreeProperty(item); // IDP_AppendArray does a shallow copy (memcpy), only free memory
 			MEM_freeN(item);
 		}
 	}
@@ -2216,6 +2334,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 		case PROP_RAW_INT: ((int*)raw.array)[a] = (int)var; break; \
 		case PROP_RAW_FLOAT: ((float*)raw.array)[a] = (float)var; break; \
 		case PROP_RAW_DOUBLE: ((double*)raw.array)[a] = (double)var; break; \
+		default: break; \
 	} \
 }
 
@@ -3176,6 +3295,20 @@ void RNA_enum_set(PointerRNA *ptr, const char *name, int value)
 		printf("RNA_enum_set: %s.%s not found.\n", ptr->type->identifier, name);
 }
 
+void RNA_enum_set_identifier(PointerRNA *ptr, const char *name, const char *id)
+{
+	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
+
+	if(prop) {
+		int value;
+		if(RNA_property_enum_value(NULL, ptr, prop, id, &value))
+			RNA_property_enum_set(ptr, prop, value);
+		else
+			printf("RNA_enum_set_identifier: %s.%s has no enum id '%s'.\n", ptr->type->identifier, name, id);
+	} else
+		printf("RNA_enum_set_identifier: %s.%s not found.\n", ptr->type->identifier, name);
+}
+
 int RNA_enum_is_equal(bContext *C, PointerRNA *ptr, const char *name, const char *enumname)
 {
 	PropertyRNA *prop= RNA_struct_find_property(ptr, name);
@@ -3587,7 +3720,7 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, 
 
 	/* allocate data */
 	for(parm= func->cont.properties.first; parm; parm= parm->next)
-		tot+= rna_parameter_size(parm);
+		tot+= rna_parameter_size_alloc(parm);
 
 	parms->data= MEM_callocN(tot, "RNA_parameter_list_create");
 	parms->func= func;
@@ -3628,7 +3761,11 @@ ParameterList *RNA_parameter_list_create(ParameterList *parms, PointerRNA *ptr, 
 			}
 		}
 
-		data= ((char*)data) + size;
+		/* set length to 0 */
+		if (parm->flag & PROP_DYNAMIC)
+			*((int *)(((char *)data) + size))= 0;
+
+		data= ((char*)data) + rna_parameter_size_alloc(parm);
 	}
 
 	return parms;
@@ -3650,7 +3787,7 @@ void RNA_parameter_list_free(ParameterList *parms)
 				MEM_freeN(array);
 		}
 
-		tot+= rna_parameter_size(parm);
+		tot+= rna_parameter_size_alloc(parm);
 	}
 
 	MEM_freeN(parms->data);
@@ -3676,7 +3813,7 @@ void RNA_parameter_list_begin(ParameterList *parms, ParameterIterator *iter)
 	iter->offset= 0;
 
 	if(iter->valid) {
-		iter->size= rna_parameter_size(iter->parm);
+		iter->size= rna_parameter_size_alloc(iter->parm);
 		iter->data= (((char*)iter->parms->data)+iter->offset);
 		ptype= RNA_property_type(iter->parm);
 	}
@@ -3691,7 +3828,7 @@ void RNA_parameter_list_next(ParameterIterator *iter)
 	iter->valid= iter->parm != NULL;
 
 	if(iter->valid) {
-		iter->size= rna_parameter_size(iter->parm);
+		iter->size= rna_parameter_size_alloc(iter->parm);
 		iter->data= (((char*)iter->parms->data)+iter->offset);
 		ptype= RNA_property_type(iter->parm);
 	}
@@ -3760,6 +3897,51 @@ void RNA_parameter_set_lookup(ParameterList *parms, const char *identifier, void
 
 	if(parm)
 		RNA_parameter_set(parms, parm, value);
+}
+
+int RNA_parameter_length_get(ParameterList *parms, PropertyRNA *parm)
+{
+	ParameterIterator iter;
+	int len= 0;
+
+	RNA_parameter_list_begin(parms, &iter);
+
+	for(; iter.valid; RNA_parameter_list_next(&iter))
+		if(iter.parm==parm)
+			break;
+
+	if(iter.valid)
+		len= RNA_parameter_length_get_data(parms, parm, iter.data);
+
+	RNA_parameter_list_end(&iter);
+
+	return len;
+}
+
+void RNA_parameter_length_set(ParameterList *parms, PropertyRNA *parm, int length)
+{
+	ParameterIterator iter;
+
+	RNA_parameter_list_begin(parms, &iter);
+
+	for(; iter.valid; RNA_parameter_list_next(&iter))
+		if(iter.parm==parm)
+			break;
+
+	if(iter.valid)
+		RNA_parameter_length_set_data(parms, parm, iter.data, length);
+
+	RNA_parameter_list_end(&iter);
+}
+
+int RNA_parameter_length_get_data(ParameterList *parms, PropertyRNA *parm, void *data)
+{
+	return *((int *)(((char *)data) + rna_parameter_size(parm)));
+}
+
+void RNA_parameter_length_set_data(ParameterList *parms, PropertyRNA *parm, void *data, int length)
+{
+	*((int *)(((char *)data) + rna_parameter_size(parm)))= length;
 }
 
 int RNA_function_call(bContext *C, ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms)
@@ -4006,7 +4188,7 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 			retdata= iter.data;
 			continue;
 		}
-		else if (flag & PROP_RETURN) {
+		else if (flag & PROP_OUTPUT) {
 			continue;
 		}
 
@@ -4236,8 +4418,15 @@ int RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index)
 			return 1;
 		}
 		
+		case PROP_STRING:
+		{
+			char *value= RNA_property_string_get_default_alloc(ptr, prop, NULL, 0);
+			RNA_property_string_set(ptr, prop, value);
+			MEM_freeN(value);
+			return 1;
+		}
+		
 		//case PROP_POINTER:
-		//case PROP_STRING:
 		default: 
 			// FIXME: many of the other types such as strings and pointers need this implemented too!
 			return 0;

@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -41,40 +41,35 @@
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
 
-/* XXX disabled until RNA allows returning arrays */
-#if 0
 /* return frame range of all curves (min, max) or (0, 1) if there are no keys */
-int *rna_Action_get_frame_range(bAction *act, int *ret_length)
+void rna_Action_get_frame_range(bAction *act, int **frame_range, int *length_r)
 {
 	int *ret;
 	float start, end;
 
 	calc_action_range(act, &start, &end, 1);
 
-	*ret_length= 2;
-	ret= MEM_callocN(*ret_length * sizeof(int), "rna_Action_get_frame_range");
+	*length_r= 2;
+	ret= MEM_callocN(*length_r * sizeof(int), "rna_Action_get_frame_range");
 
 	ret[0]= (int)start;
 	ret[1]= (int)end;
-	
-	return ret;
+
+	*frame_range= ret;
 }
-#endif
 
 #else
 
 void RNA_api_action(StructRNA *srna)
 {
-#if 0
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
 	func= RNA_def_function(srna, "get_frame_range", "rna_Action_get_frame_range");
 	RNA_def_function_ui_description(func, "Get action frame range as a (min, max) tuple.");
 	parm= RNA_def_int_array(func, "frame_range", 1, NULL, 0, 0, "", "Action frame range.", 0, 0);
-	RNA_def_property_flag(parm, PROP_DYNAMIC_ARRAY);
-	RNA_def_function_return(func, parm);
-#endif
+	RNA_def_property_flag(parm, PROP_DYNAMIC);
+	RNA_def_function_output(func, parm);
 }
 
 #endif

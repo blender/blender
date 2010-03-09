@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Willian P. Germano, Campbell Barton
  *
@@ -30,6 +30,7 @@
 
 #include "BPY_extern.h"
 #include "BKE_fcurve.h"
+#include "BKE_global.h"
 
 #include <Python.h>
 
@@ -86,7 +87,7 @@ static int bpy_pydriver_create_dict(void)
 	/* If there's a Blender text called pydrivers.py, import it.
 	 * Users can add their own functions to this module.
 	 */
-	if (G.f & G_DOSCRIPTLINKS) {
+	if (G.f & G_SCRIPT_AUTOEXEC) {
 		mod = importText("pydrivers"); /* can also use PyImport_Import() */
 		if (mod) {
 			PyDict_SetItemString(d, "pydrivers", mod);
@@ -158,13 +159,17 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	int i;
 
 	/* sanity checks - should driver be executed? */
-	if ((driver == NULL) /*|| (G.f & G_DOSCRIPTLINKS)==0*/)
-		return result;
+	/*if (G.f & G_SCRIPT_AUTOEXEC)==0) return result; */
 
 	/* get the py expression to be evaluated */
 	expr = driver->expression;
 	if ((expr == NULL) || (expr[0]=='\0'))
 		return result;
+
+	if(!(G.f & G_SCRIPT_AUTOEXEC)) {
+		printf("skipping driver '%s', automatic scripts are disabled\n", driver->expression);
+		return result;
+	}
 
 	gilstate = PyGILState_Ensure();
 
@@ -207,6 +212,8 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		for (dvar= driver->variables.first, i=0; dvar; dvar= dvar->next) {
 			PyTuple_SET_ITEM(expr_vars, i++, PyUnicode_InternFromString(dvar->name));
 		}
+		
+		driver->flag &= ~DRIVER_FLAG_RENAMEVAR;
 	}
 	else {
 		expr_vars= PyTuple_GET_ITEM(((PyObject *)driver->expr_comp), 1);
@@ -253,24 +260,20 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 
 	/* process the result */
 	if (retval == NULL) {
-		result = pydriver_error(driver);
-		PyGILState_Release(gilstate);
-		return result;
+		pydriver_error(driver);
+		result = 0.0f;
+	} else if((result= (float)PyFloat_AsDouble(retval)) == -1.0f && PyErr_Occurred()) {
+		pydriver_error(driver);
+		Py_DECREF(retval);
+		result = 0.0f;
+
 	}
-
-	result = (float)PyFloat_AsDouble(retval);
-	Py_DECREF(retval);
-
-	if ((result == -1) && PyErr_Occurred()) {
-		result = pydriver_error(driver);
-		PyGILState_Release(gilstate);
-		return result;
+	else {
+		/* all fine, make sure the "invalid expression" flag is cleared */
+		driver->flag &= ~DRIVER_FLAG_INVALID;
+		Py_DECREF(retval);
 	}
-
-	/* all fine, make sure the "invalid expression" flag is cleared */
-	driver->flag &= ~DRIVER_FLAG_INVALID;
 
 	PyGILState_Release(gilstate);
-
 	return result;
 }

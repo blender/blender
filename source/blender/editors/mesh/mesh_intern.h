@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -150,6 +150,7 @@ extern int faceselectedAND(EditFace *efa, int flag);
 void EM_remove_selection(EditMesh *em, void *data, int type);
 void EM_clear_flag_all(EditMesh *em, int flag);
 void EM_set_flag_all(EditMesh *em, int flag);
+void EM_set_flag_all_selectmode(EditMesh *em, int flag);
 
 void EM_data_interp_from_verts(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *eve, float fac);
 void EM_data_interp_from_faces(EditMesh *em, EditFace *efa1, EditFace *efa2, EditFace *efan, int i1, int i2, int i3, int i4);
@@ -252,7 +253,7 @@ extern EditVert *findnearestvert(struct ViewContext *vc, int *dist, short sel, s
 
 void join_triangles(EditMesh *em);
 int removedoublesflag(EditMesh *em, short flag, short automerge, float limit);		/* return amount */
-void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beauty, int numcuts, int seltype);
+void esubdivideflag(Object *obedit, EditMesh *em, int flag, float smooth, float fractal, int beautify, int numcuts, int seltype);
 int EdgeSlide(EditMesh *em, struct wmOperator *op, short immediate, float imperc);
 
 void MESH_OT_merge(struct wmOperatorType *ot);
@@ -263,7 +264,7 @@ void MESH_OT_spin(struct wmOperatorType *ot);
 void MESH_OT_screw(struct wmOperatorType *ot);
 
 void MESH_OT_fill(struct wmOperatorType *ot);
-void MESH_OT_beauty_fill(struct wmOperatorType *ot);
+void MESH_OT_beautify_fill(struct wmOperatorType *ot);
 void MESH_OT_quads_convert_to_tris(struct wmOperatorType *ot);
 void MESH_OT_tris_convert_to_quads(struct wmOperatorType *ot);
 void MESH_OT_edge_flip(struct wmOperatorType *ot);
@@ -291,7 +292,7 @@ void MESH_OT_rip(struct wmOperatorType *ot);
 void MESH_OT_shape_propagate_to_all(struct wmOperatorType *ot);
 void MESH_OT_blend_from_shape(struct wmOperatorType *ot);
 
-/* ******************* mesh_layers.c */
+/* ******************* mesh_data.c */
 
 void MESH_OT_uv_texture_add(struct wmOperatorType *ot);
 void MESH_OT_uv_texture_remove(struct wmOperatorType *ot);
@@ -299,6 +300,7 @@ void MESH_OT_vertex_color_add(struct wmOperatorType *ot);
 void MESH_OT_vertex_color_remove(struct wmOperatorType *ot);
 void MESH_OT_sticky_add(struct wmOperatorType *ot);
 void MESH_OT_sticky_remove(struct wmOperatorType *ot);
+void MESH_OT_drop_named_image(struct wmOperatorType *ot);
 
 /* ************* bmesh_tools.c ***********/
 void MESH_OT_vert_connect(struct wmOperatorType *ot);

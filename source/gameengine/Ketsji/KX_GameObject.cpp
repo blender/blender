@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -811,6 +811,11 @@ void KX_GameObject::SetObjectColor(const MT_Vector4& rgbavec)
 	m_objectColor = rgbavec;
 }
 
+const MT_Vector4& KX_GameObject::GetObjectColor()
+{
+	return m_objectColor;
+}
+
 void KX_GameObject::AlignAxisToVect(const MT_Vector3& dir, int axis, float fac)
 {
 	MT_Matrix3x3 orimat;
@@ -1238,6 +1243,11 @@ void KX_GameObject::Relink(GEN_Map<GEN_HashedPtr, void*> *map_parameter)
 #define MATHUTILS_VEC_CB_SCALE_LOCAL 3
 #define MATHUTILS_VEC_CB_SCALE_GLOBAL 4
 #define MATHUTILS_VEC_CB_INERTIA_LOCAL 5
+#define MATHUTILS_VEC_CB_OBJECT_COLOR 6
+#define MATHUTILS_VEC_CB_LINVEL_LOCAL 7
+#define MATHUTILS_VEC_CB_LINVEL_GLOBAL 8
+#define MATHUTILS_VEC_CB_ANGVEL_LOCAL 9
+#define MATHUTILS_VEC_CB_ANGVEL_GLOBAL 10
 
 static int mathutils_kxgameob_vector_cb_index= -1; /* index for our callbacks */
 
@@ -1273,6 +1283,26 @@ static int mathutils_kxgameob_vector_get(PyObject *self_v, int subtype, float *v
 			if(!self->GetPhysicsController()) return 0;
 			self->GetPhysicsController()->GetLocalInertia().getValue(vec_from);
 			break;
+		case MATHUTILS_VEC_CB_OBJECT_COLOR:
+			self->GetObjectColor().getValue(vec_from);
+			break;
+		case MATHUTILS_VEC_CB_LINVEL_LOCAL:
+			if(!self->GetPhysicsController()) return 0;
+			self->GetLinearVelocity(true).getValue(vec_from);
+			break;
+		case MATHUTILS_VEC_CB_LINVEL_GLOBAL:
+			if(!self->GetPhysicsController()) return 0;
+			self->GetLinearVelocity(false).getValue(vec_from);
+			break;
+		case MATHUTILS_VEC_CB_ANGVEL_LOCAL:
+			if(!self->GetPhysicsController()) return 0;
+			self->GetAngularVelocity(true).getValue(vec_from);
+			break;
+		case MATHUTILS_VEC_CB_ANGVEL_GLOBAL:
+			if(!self->GetPhysicsController()) return 0;
+			self->GetAngularVelocity(false).getValue(vec_from);
+			break;
+			
 	}
 	
 	return 1;
@@ -1301,6 +1331,21 @@ static int mathutils_kxgameob_vector_set(PyObject *self_v, int subtype, float *v
 			break;
 		case MATHUTILS_VEC_CB_INERTIA_LOCAL:
 			/* read only */
+			break;
+		case MATHUTILS_VEC_CB_OBJECT_COLOR:
+			self->SetObjectColor(MT_Vector4(vec_to));
+			break;
+		case MATHUTILS_VEC_CB_LINVEL_LOCAL:
+			self->setLinearVelocity(MT_Point3(vec_to),true);
+			break;
+		case MATHUTILS_VEC_CB_LINVEL_GLOBAL:
+			self->setLinearVelocity(MT_Point3(vec_to),false);
+			break;
+		case MATHUTILS_VEC_CB_ANGVEL_LOCAL:
+			self->setAngularVelocity(MT_Point3(vec_to),true);
+			break;
+		case MATHUTILS_VEC_CB_ANGVEL_GLOBAL:
+			self->setAngularVelocity(MT_Point3(vec_to),false);
 			break;
 	}
 	
@@ -1472,9 +1517,16 @@ PyAttributeDef KX_GameObject::Attributes[] = {
 	KX_PYATTRIBUTE_RW_FUNCTION("worldPosition",	KX_GameObject, pyattr_get_worldPosition,    pyattr_set_worldPosition),
 	KX_PYATTRIBUTE_RW_FUNCTION("localScale",	KX_GameObject, pyattr_get_localScaling,	pyattr_set_localScaling),
 	KX_PYATTRIBUTE_RO_FUNCTION("worldScale",	KX_GameObject, pyattr_get_worldScaling),
+	KX_PYATTRIBUTE_RW_FUNCTION("linearVelocity", KX_GameObject, pyattr_get_localLinearVelocity, pyattr_set_worldLinearVelocity),
+	KX_PYATTRIBUTE_RW_FUNCTION("localLinearVelocity", KX_GameObject, pyattr_get_localLinearVelocity, pyattr_set_localLinearVelocity),
+	KX_PYATTRIBUTE_RW_FUNCTION("worldLinearVelocity", KX_GameObject, pyattr_get_worldLinearVelocity, pyattr_set_worldLinearVelocity),
+	KX_PYATTRIBUTE_RW_FUNCTION("angularVelocity", KX_GameObject, pyattr_get_localAngularVelocity, pyattr_set_worldAngularVelocity),
+	KX_PYATTRIBUTE_RW_FUNCTION("localAngularVelocity", KX_GameObject, pyattr_get_localAngularVelocity, pyattr_set_localAngularVelocity),
+	KX_PYATTRIBUTE_RW_FUNCTION("worldAngularVelocity", KX_GameObject, pyattr_get_worldAngularVelocity, pyattr_set_worldAngularVelocity),
 	KX_PYATTRIBUTE_RO_FUNCTION("children",	KX_GameObject, pyattr_get_children),
 	KX_PYATTRIBUTE_RO_FUNCTION("childrenRecursive",	KX_GameObject, pyattr_get_children_recursive),
 	KX_PYATTRIBUTE_RO_FUNCTION("attrDict",	KX_GameObject, pyattr_get_attrDict),
+	KX_PYATTRIBUTE_RW_FUNCTION("color", KX_GameObject, pyattr_get_obcolor, pyattr_set_obcolor),
 	
 	/* Experemental, dont rely on these yet */
 	KX_PYATTRIBUTE_RO_FUNCTION("sensors",		KX_GameObject, pyattr_get_sensors),
@@ -1963,6 +2015,96 @@ int KX_GameObject::pyattr_set_localScaling(void *self_v, const KX_PYATTRIBUTE_DE
 	return PY_SET_ATTR_SUCCESS;
 }
 
+
+PyObject* KX_GameObject::pyattr_get_worldLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+#ifdef USE_MATHUTILS
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_LINVEL_GLOBAL);
+#else
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return PyObjectFrom(GetLinearVelocity(false));
+#endif
+}
+
+int KX_GameObject::pyattr_set_worldLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	MT_Vector3 velocity;
+	if (!PyVecTo(value, velocity))
+		return PY_SET_ATTR_FAIL;
+
+	self->setLinearVelocity(velocity, false);
+
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject* KX_GameObject::pyattr_get_localLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+#ifdef USE_MATHUTILS
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_LINVEL_LOCAL);
+#else
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return PyObjectFrom(GetLinearVelocity(true));
+#endif
+}
+
+int KX_GameObject::pyattr_set_localLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	MT_Vector3 velocity;
+	if (!PyVecTo(value, velocity))
+		return PY_SET_ATTR_FAIL;
+
+	self->setLinearVelocity(velocity, true);
+
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject* KX_GameObject::pyattr_get_worldAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+#ifdef USE_MATHUTILS
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_ANGVEL_GLOBAL);
+#else
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return PyObjectFrom(GetAngularVelocity(false));
+#endif
+}
+
+int KX_GameObject::pyattr_set_worldAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	MT_Vector3 velocity;
+	if (!PyVecTo(value, velocity))
+		return PY_SET_ATTR_FAIL;
+
+	self->setAngularVelocity(velocity, false);
+
+	return PY_SET_ATTR_SUCCESS;
+}
+
+PyObject* KX_GameObject::pyattr_get_localAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+#ifdef USE_MATHUTILS
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 3, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_ANGVEL_LOCAL);
+#else
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return PyObjectFrom(GetAngularVelocity(true));
+#endif
+}
+
+int KX_GameObject::pyattr_set_localAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	MT_Vector3 velocity;
+	if (!PyVecTo(value, velocity))
+		return PY_SET_ATTR_FAIL;
+
+	self->setAngularVelocity(velocity, true);
+
+	return PY_SET_ATTR_SUCCESS;
+}
+
+
 PyObject* KX_GameObject::pyattr_get_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
@@ -2033,7 +2175,28 @@ PyObject* KX_GameObject::pyattr_get_meshes(void *self_v, const KX_PYATTRIBUTE_DE
 	return meshes;
 }
 
-/* experemental! */
+PyObject* KX_GameObject::pyattr_get_obcolor(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+#ifdef USE_MATHUTILS
+	return newVectorObject_cb(BGE_PROXY_FROM_REF(self_v), 4, mathutils_kxgameob_vector_cb_index, MATHUTILS_VEC_CB_OBJECT_COLOR);
+#else
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	return PyObjectFrom(self->GetObjectColor());
+#endif
+}
+
+int KX_GameObject::pyattr_set_obcolor(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value)
+{
+	KX_GameObject* self= static_cast<KX_GameObject*>(self_v);
+	MT_Vector4 obcolor;
+	if (!PyVecTo(value, obcolor))
+		return PY_SET_ATTR_FAIL;
+
+	self->SetObjectColor(obcolor);
+	return PY_SET_ATTR_SUCCESS;
+}
+
+/* These are experimental! */
 PyObject* KX_GameObject::pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {
 	return KX_PythonSeq_CreatePyObject((static_cast<KX_GameObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_SENSORS);
@@ -2048,6 +2211,7 @@ PyObject* KX_GameObject::pyattr_get_actuators(void *self_v, const KX_PYATTRIBUTE
 {
 	return KX_PythonSeq_CreatePyObject((static_cast<KX_GameObject*>(self_v))->m_proxy, KX_PYGENSEQ_OB_TYPE_ACTUATORS);
 }
+/* End experimental */
 
 PyObject* KX_GameObject::pyattr_get_children(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
 {

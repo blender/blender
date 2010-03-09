@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -20,6 +20,7 @@
 import bpy
 
 narrowui = 180
+narrowmod = 260
 
 
 class DataButtonsPanel(bpy.types.Panel):
@@ -36,14 +37,12 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
         ob = context.object
         wide_ui = context.region.width > narrowui
+        compact_mod = context.region.width < narrowmod
 
-        row = layout.row()
-        row.operator_menu_enum("object.modifier_add", "type")
-        if wide_ui:
-            row.label()
+        layout.operator_menu_enum("object.modifier_add", "type")
 
         for md in ob.modifiers:
-            box = layout.template_modifier(md)
+            box = layout.template_modifier(md, compact=compact_mod)
             if box:
                 # match enum type to our functions, avoids a lookup table.
                 getattr(self, md.type)(box, ob, md, wide_ui)
@@ -352,10 +351,11 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "mode", text="")
         if wide_ui:
             col = split.column()
-        col.label(text="Vertex Group:")
         if md.mode == 'ARMATURE':
+            col.label(text="Armature:")
             col.prop(md, "armature", text="")
         elif md.mode == 'VERTEX_GROUP':
+            col.label(text="Vertex Group:")
             col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
 
         sub = col.column()
@@ -603,22 +603,22 @@ class DATA_PT_modifiers(DataButtonsPanel):
 
     def SOLIDIFY(self, layout, ob, md, wide_ui):
         layout.prop(md, "offset")
-        
+
         split = layout.split()
-        
+
         col = split.column()
         col.label(text="Crease:")
-        col.prop(md, "edge_crease_inner",text="Inner")
+        col.prop(md, "edge_crease_inner", text="Inner")
         col.prop(md, "edge_crease_outer", text="Outer")
         col.prop(md, "edge_crease_rim", text="Rim")
-        
+
         if wide_ui:
             col = split.column()
             col.label()
         col.prop(md, "use_rim")
         col.prop(md, "use_even_offset")
         col.prop(md, "use_quality_normals")
-        
+
         # col = layout.column()
         # col.label(text="Vertex Group:")
         # col.prop_object(md, "vertex_group", ob, "vertex_groups", text="")
@@ -729,4 +729,21 @@ class DATA_PT_modifiers(DataButtonsPanel):
         col.prop(md, "width", slider=True)
         col.prop(md, "narrowness", slider=True)
 
-bpy.types.register(DATA_PT_modifiers)
+
+classes = [
+    DATA_PT_modifiers]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

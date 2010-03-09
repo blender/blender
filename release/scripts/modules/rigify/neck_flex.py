@@ -12,14 +12,14 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
 
 import bpy
-from rigify import RigifyError, get_layer_dict
+from rigify import RigifyError
 from rigify_utils import bone_class_instance, copy_bone_simple
 from rna_prop_ui import rna_idprop_ui_prop_get
 
@@ -106,16 +106,16 @@ def deform(obj, definitions, base_names, options):
 
         # Create deform bone.
         bone = copy_bone_simple(obj.data, org_bone_name, "DEF-%s" % base_names[org_bone_name], parent=True)
-        
+
         # Store name before leaving edit mode
         bone_name = bone.name
-        
+
         # Leave edit mode
         bpy.ops.object.mode_set(mode='OBJECT')
-        
+
         # Get the pose bone
         bone = obj.pose.bones[bone_name]
-        
+
         # Constrain to the original bone
         # XXX. Todo, is this needed if the bone is connected to its parent?
         con = bone.constraints.new('COPY_TRANSFORMS')
@@ -212,6 +212,9 @@ def main(obj, bone_definition, base_names, options):
     mt_chain.update()
     ex_chain.update()
     ex.update()
+
+    # Axis locks
+    ex.head_ctrl_p.lock_location = True, True, True
 
     # Simple one off constraints, no drivers
     con = ex.head_ctrl_p.constraints.new('COPY_LOCATION')
@@ -320,8 +323,8 @@ def main(obj, bone_definition, base_names, options):
         con = orig_neck_p.constraints.new('COPY_ROTATION')
         con.target = obj
         con.subtarget = neck_p.name
-    
-    
+
+
     # Set the head control's custom shape to use the last
     # org neck bone for its transform
     ex.head_ctrl_p.custom_shape_transform = obj.pose.bones[bone_definition[len(bone_definition)-1]]
@@ -336,11 +339,11 @@ def main(obj, bone_definition, base_names, options):
         getattr(ex_chain, attr + "_b").layer = layer
     for attr in ex.attr_names:
         getattr(ex, attr + "_b").layer = layer
-    
+
     layer = list(arm.bones[bone_definition[1]].layer)
     ex.head_ctrl_b.layer = layer
 
 
     # no blending the result of this
     return None
-    
+

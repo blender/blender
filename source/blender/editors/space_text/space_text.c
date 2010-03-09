@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -126,14 +126,6 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_TEXT:
 			if(!wmn->reference || wmn->reference == st->text) {
 				ED_area_tag_redraw(sa);
-
-				if(wmn->data == ND_CURSOR || wmn->action == NA_EDITED) {
-					ARegion *ar;
-
-					for(ar=sa->regionbase.first; ar; ar= ar->next)
-						if(ar->regiontype==RGN_TYPE_WINDOW)
-							text_update_cursor_moved(st, ar);
-				}
 
 				if(wmn->action == NA_EDITED)
 					if(st->text)
@@ -280,8 +272,6 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", HOMEKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_BEGIN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", ENDKEY, KM_PRESS, 0, 0)->ptr, "type", LINE_END);
 	
-	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_BEGIN);
-	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", RIGHTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_END);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", EKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", LINE_END);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", EKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0)->ptr, "type", LINE_END);
 	RNA_enum_set(WM_keymap_add_item(keymap, "TEXT_OT_move", LEFTARROWKEY, KM_PRESS, 0, 0)->ptr, "type", PREV_CHAR);
@@ -321,6 +311,7 @@ static void text_keymap(struct wmKeyConfig *keyconf)
 	RNA_int_set(WM_keymap_add_item(keymap, "TEXT_OT_scroll", WHEELDOWNMOUSE, KM_PRESS, 0, 0)->ptr, "lines", 1);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_line_break", RETKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "TEXT_OT_line_break", PADENTER, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "TEXT_OT_line_number", KM_TEXTINPUT, KM_ANY, KM_ANY, 0);
 	WM_keymap_add_item(keymap, "TEXT_OT_insert", KM_TEXTINPUT, KM_ANY, KM_ANY, 0); // last!
@@ -443,7 +434,7 @@ void ED_spacetype_text(void)
 	/* regions: properties */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= UI_COMPACT_PANEL_WIDTH;
+	art->prefsizex= UI_COMPACT_PANEL_WIDTH;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
 	
 	art->init= text_properties_area_init;
@@ -453,7 +444,7 @@ void ED_spacetype_text(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype text region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
 	
 	art->init= text_header_area_init;

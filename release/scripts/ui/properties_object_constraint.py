@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -460,12 +460,11 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         layout.prop(con, "use_offset")
 
         self.space_template(layout, con, wide_ui)
-		
+
     def COPY_TRANSFORMS(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)
 
         self.space_template(layout, con, wide_ui)
-		
 
     #def SCRIPT(self, context, layout, con):
 
@@ -566,7 +565,7 @@ class ConstraintButtonsPanel(bpy.types.Panel):
         if wide_ui:
             row.label(text="Min/Max:")
         row.prop(con, "floor_location", expand=True)
-		
+
         self.space_template(layout, con, wide_ui)
 
     def RIGID_BODY_JOINT(self, context, layout, con, wide_ui):
@@ -730,13 +729,10 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-        ob = context.object
-        wide_ui = context.region.width > narrowui
 
-        row = layout.row()
-        row.operator_menu_enum("object.constraint_add", "type")
-        if wide_ui:
-            row.label()
+        ob = context.object
+
+        layout.operator_menu_enum("object.constraint_add", "type")
 
         for con in ob.constraints:
             self.draw_constraint(context, con)
@@ -747,23 +743,32 @@ class BONE_PT_constraints(ConstraintButtonsPanel):
     bl_context = "bone_constraint"
 
     def poll(self, context):
-        ob = context.object
-        return (ob and ob.type == 'ARMATURE' and context.bone)
+        return (context.pose_bone)
 
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
-        pchan = ob.pose.bones[context.bone.name]
-        wide_ui = context.region.width > narrowui
+        layout.operator_menu_enum("pose.constraint_add", "type")
 
-        row = layout.row()
-        row.operator_menu_enum("pose.constraint_add", "type")
-        if wide_ui:
-            row.label()
-
-        for con in pchan.constraints:
+        for con in context.pose_bone.constraints:
             self.draw_constraint(context, con)
 
-bpy.types.register(OBJECT_PT_constraints)
-bpy.types.register(BONE_PT_constraints)
+
+classes = [
+    OBJECT_PT_constraints,
+    BONE_PT_constraints]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

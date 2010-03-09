@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -41,7 +41,7 @@
 
 #include "BKE_animsys.h"
 
-static void rna_KeyingSet_add_destination(KeyingSet *keyingset, ReportList *reports, 
+static void rna_KeyingSet_add_path(KeyingSet *keyingset, ReportList *reports, 
 		ID *id, char rna_path[], int array_index, int entire_array,
 		int grouping_method, char group_name[])
 {
@@ -53,11 +53,11 @@ static void rna_KeyingSet_add_destination(KeyingSet *keyingset, ReportList *repo
 	
 	/* if data is valid, call the API function for this */
 	if (keyingset) {
-		BKE_keyingset_add_destination(keyingset, id, group_name, rna_path, array_index, flag, grouping_method);
+		BKE_keyingset_add_path(keyingset, id, group_name, rna_path, array_index, flag, grouping_method);
 		keyingset->active_path= BLI_countlist(&keyingset->paths); 
 	}
 	else {
-		BKE_report(reports, RPT_ERROR, "Keying Set Destination could not be added.");
+		BKE_report(reports, RPT_ERROR, "Keying Set Path could not be added.");
 	}
 }
 
@@ -69,7 +69,7 @@ void RNA_api_keyingset(StructRNA *srna)
 	PropertyRNA *parm;
 	
 	/* Add Destination */
-	func= RNA_def_function(srna, "add_destination", "rna_KeyingSet_add_destination");
+	func= RNA_def_function(srna, "add_path", "rna_KeyingSet_add_path");
 	RNA_def_function_ui_description(func, "Add a new destination for the Keying Set.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 		/* ID-block for target */

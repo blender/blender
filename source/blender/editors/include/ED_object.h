@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -82,17 +82,22 @@ void ED_object_enter_editmode(struct bContext *C, int flag);
 void ED_object_location_from_view(struct bContext *C, float *loc);
 void ED_object_rotation_from_view(struct bContext *C, float *rot);
 void ED_object_base_init_transform(struct bContext *C, struct Base *base, float *loc, float *rot);
+float ED_object_new_primitive_matrix(struct bContext *C, float *loc, float *rot, float primmat[][4]);
 
 void ED_object_add_generic_props(struct wmOperatorType *ot, int do_editmode);
 int ED_object_add_generic_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-void ED_object_add_generic_get_opts(struct wmOperator *op, float *loc, float *rot, int *enter_editmode);
-struct Object *ED_object_add_type(struct bContext *C, int type, float *loc, float *rot, int enter_editmode);
+void ED_object_add_generic_get_opts(struct wmOperator *op, float *loc, float *rot, int *enter_editmode, unsigned int *layer);
+struct Object *ED_object_add_type(struct bContext *C, int type, float *loc, float *rot, int enter_editmode, unsigned int layer);
 
 void ED_object_single_users(struct Scene *scene, int full);
 
 /* cleanup */
 int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);
+
+/* object motion paths */
+void ED_objects_clear_paths(struct bContext *C, struct Scene *scene);
+void ED_objects_recalculate_paths(struct bContext *C, struct Scene *scene);
 
 /* constraints */
 struct ListBase *get_active_constraints(struct Object *ob);
@@ -101,7 +106,6 @@ struct bConstraint *get_active_constraint(struct Object *ob);
 
 void object_test_constraints(struct Object *ob);
 
-void ED_object_constraint_rename(struct Object *ob, struct bConstraint *con, char *oldname);
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con);
 void ED_object_constraint_update(struct Object *ob);
 void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob);

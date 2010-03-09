@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -44,14 +44,14 @@ def init_file():
 
 def init_data(netsettings):
     init_file()
-    
+
     if netrender.init_data:
         netrender.init_data = False
 
         netsettings.active_slave_index = 0
         while(len(netsettings.slaves) > 0):
             netsettings.slaves.remove(0)
-                
+
         netsettings.active_blacklisted_slave_index = 0
         while(len(netsettings.slaves_blacklist) > 0):
             netsettings.slaves_blacklist.remove(0)
@@ -59,18 +59,18 @@ def init_data(netsettings):
         netsettings.active_job_index = 0
         while(len(netsettings.jobs) > 0):
             netsettings.jobs.remove(0)
-            
+
 def verify_address(netsettings):
     init_file()
 
     if netrender.init_address:
         netrender.init_address = False
-        
+
         try:
             conn = clientConnection(netsettings.server_address, netsettings.server_port, scan = False)
         except:
             conn = None
-        
+
         if conn:
             conn.close()
         else:
@@ -83,7 +83,7 @@ class RenderButtonsPanel(bpy.types.Panel):
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (rd.use_game_engine==False) and (rd.engine in self.COMPAT_ENGINES)
 
 # Setting panel, use in the scene for now.
@@ -97,7 +97,7 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
 
         scene = context.scene
         netsettings = scene.network_render
-        
+
         verify_address(netsettings)
 
         layout.prop(netsettings, "mode", expand=True)
@@ -106,13 +106,13 @@ class RENDER_PT_network_settings(RenderButtonsPanel):
             layout.operator("render.netclientstart", icon='PLAY')
 
         layout.prop(netsettings, "path")
-        
+
         split = layout.split(percentage=0.7)
-        
+
         col = split.column()
         col.label(text="Server Adress:")
         col.prop(netsettings, "server_address", text="")
-            
+
         col = split.column()
         col.label(text="Port:")
         col.prop(netsettings, "server_port", text="")
@@ -136,7 +136,7 @@ class RENDER_PT_network_slave_settings(RenderButtonsPanel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
         netsettings = scene.network_render
 
         layout.prop(netsettings, "slave_clear")
@@ -145,7 +145,7 @@ class RENDER_PT_network_slave_settings(RenderButtonsPanel):
         layout.prop(rd, "threads_mode", expand=True)
         sub = layout.column()
         sub.enabled = rd.threads_mode == 'THREADS_FIXED'
-        sub.prop(rd, "threads")        
+        sub.prop(rd, "threads")
 @rnaType
 class RENDER_PT_network_master_settings(RenderButtonsPanel):
     bl_label = "Master Settings"
@@ -164,7 +164,7 @@ class RENDER_PT_network_master_settings(RenderButtonsPanel):
 
         layout.prop(netsettings, "master_broadcast")
         layout.prop(netsettings, "master_clear")
-        
+
 @rnaType
 class RENDER_PT_network_job(RenderButtonsPanel):
     bl_label = "Job Settings"
@@ -182,7 +182,7 @@ class RENDER_PT_network_job(RenderButtonsPanel):
         netsettings = scene.network_render
 
         verify_address(netsettings)
-        
+
         if netsettings.server_address != "[default]":
             layout.operator("render.netclientanim", icon='RENDER_ANIMATION')
             layout.operator("render.netclientsend", icon='FILE_BLEND')
@@ -190,17 +190,17 @@ class RENDER_PT_network_job(RenderButtonsPanel):
                 row = layout.row()
                 row.operator("screen.render", text="Get Image", icon='RENDER_STILL')
                 row.operator("screen.render", text="Get Animation", icon='RENDER_ANIMATION').animation = True
-                
+
         split = layout.split(percentage=0.3)
-        
+
         col = split.column()
         col.label(text="Name:")
         col.label(text="Category:")
-        
+
         col = split.column()
         col.prop(netsettings, "job_name", text="")
         col.prop(netsettings, "job_category", text="")
-        
+
         row = layout.row()
         row.prop(netsettings, "priority")
         row.prop(netsettings, "chunks")
@@ -381,7 +381,8 @@ NetRenderSettings.StringProperty( attr="path",
                 name="Path",
                 description="Path for temporary files",
                 maxlen = 128,
-                default = default_path)
+                default = default_path,
+                subtype='FILE_PATH')
 
 NetRenderSettings.StringProperty( attr="job_name",
                 name="Job name",

@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -81,6 +81,7 @@ void				filelist_hideparent(struct FileList* filelist, short hide);
 
 struct ListBase *	folderlist_new();
 void				folderlist_free(struct ListBase* folderlist);
+struct ListBase	*	folderlist_duplicate(ListBase* folderlist);
 void				folderlist_popdir(struct ListBase* folderlist, char *dir);
 void				folderlist_pushdir(struct ListBase* folderlist, const char *dir);
 int					folderlist_clear_next(struct SpaceFile* sfile);

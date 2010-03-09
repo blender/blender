@@ -895,117 +895,6 @@ void MESH_OT_extrude_faces_indiv(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mirror", 0, "Mirror Editing", "");
 }
 
-int extrude_menu_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	Object *obedit= CTX_data_edit_object(C);
-	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
-	uiPopupMenu *pup;
-	uiLayout *layout;
-
-	if(em->selectmode & SCE_SELECT_VERTEX) {
-		if(em->bm->totvertsel==0) {
-			return OPERATOR_CANCELLED;
-		} else if(em->bm->totvertsel==1) {
-			WM_operator_name_call(C, "MESH_OT_extrude_verts_indiv", WM_OP_INVOKE_REGION_WIN, op->ptr);
-		} else if(em->bm->totedgesel==0) {
-			WM_operator_name_call(C, "MESH_OT_extrude_verts_indiv", WM_OP_INVOKE_REGION_WIN, op->ptr);
-		} else if(em->bm->totfacesel==0) {
-			// pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
-			pup= uiPupMenuBegin(C, "Extrude", 0);
-			layout= uiPupMenuLayout(pup);
-			uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
-			
-			uiItemO(layout, "Only Edges", 0, "MESH_OT_extrude_edges_indiv");
-			uiItemO(layout, "Only Verts", 0, "MESH_OT_extrude_verts_indiv");
-			
-			uiPupMenuEnd(C, pup);
-		} else if(em->bm->totfacesel==1) {
-			// pupmenu("Extrude %t|Region %x1|Only Edges%x3|Only Vertices%x4");
-			pup= uiPupMenuBegin(C, "Extrude", 0);
-			layout= uiPupMenuLayout(pup);
-			uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
-			
-			uiItemO(layout, "Region", 0, "MESH_OT_extrude_region");
-			uiItemO(layout, "Only Edges", 0, "MESH_OT_extrude_edges_indiv");
-			uiItemO(layout, "Only Verts", 0, "MESH_OT_extrude_verts_indiv");
-			
-			uiPupMenuEnd(C, pup);
-		} else  {
-			// pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
-			pup= uiPupMenuBegin(C, "Extrude", 0);
-			layout= uiPupMenuLayout(pup);
-			uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
-			
-			uiItemO(layout, "Region", 0, "MESH_OT_extrude_region");
-			uiItemO(layout, "Individual Faces", 0, "MESH_OT_extrude_faces_indiv");
-			uiItemO(layout, "Only Edges", 0, "MESH_OT_extrude_edges_indiv");
-			uiItemO(layout, "Only Verts", 0, "MESH_OT_extrude_verts_indiv");
-			
-			uiPupMenuEnd(C, pup);
-		}
-	} else if (em->selectmode & SCE_SELECT_EDGE) {
-		if (em->bm->totedge==0)
-			return OPERATOR_CANCELLED;
-		else if (em->bm->totedgesel==1)
-			WM_operator_name_call(C, "MESH_OT_extrude_edges_indiv", WM_OP_INVOKE_REGION_WIN, op->ptr);
-		else if (em->bm->totfacesel==0) {
-			WM_operator_name_call(C, "MESH_OT_extrude_edges_indiv", WM_OP_INVOKE_REGION_WIN, op->ptr);
-		} else if (em->bm->totfacesel==1) {
-			// pupmenu("Extrude %t|Region %x1|Only Edges%x3");
-			pup= uiPupMenuBegin(C, "Extrude", 0);
-			layout= uiPupMenuLayout(pup);
-			uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
-			
-			uiItemO(layout, "Region", 0, "MESH_OT_extrude_region");
-			uiItemO(layout, "Only Edges", 0, "MESH_OT_extrude_edges_indiv");
-			
-			uiPupMenuEnd(C, pup);
-		} else {
-			// pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
-			pup= uiPupMenuBegin(C, "Extrude", 0);
-			layout= uiPupMenuLayout(pup);
-			uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
-			
-			uiItemO(layout, "Region", 0, "MESH_OT_extrude_region");
-			uiItemO(layout, "Individual Faces", 0, "MESH_OT_extrude_faces_indiv");
-			uiItemO(layout, "Only Edges", 0, "MESH_OT_extrude_edges_indiv");
-			
-			uiPupMenuEnd(C, pup);
-		}
-
-	} else if (em->selectmode & SCE_SELECT_FACE) {
-		if (em->bm->totfacesel==0)
-			return OPERATOR_CANCELLED;
-		else if (em->bm->totfacesel==1)
-			WM_operator_name_call(C, "MESH_OT_extrude_region", WM_OP_INVOKE_REGION_WIN, op->ptr);
-		else {
-			// pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
-			pup= uiPupMenuBegin(C, "Extrude", 0);
-			layout= uiPupMenuLayout(pup);
-			uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
-			
-			uiItemO(layout, "Region", 0, "MESH_OT_extrude_region");
-			uiItemO(layout, "Individual Faces", 0, "MESH_OT_extrude_faces_indiv");
-			
-			uiPupMenuEnd(C, pup);
-		}
-	}
-
-	return OPERATOR_CANCELLED;
-}
-
-void MESH_OT_extrude(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name= "Extrude";
-	ot->description= "Extrude selected vertices, edges or faces.";
-	ot->idname= "MESH_OT_extrude";
-	
-	/* api callbacks */
-	ot->invoke= extrude_menu_invoke;
-	ot->poll= ED_operator_editmesh;
-}
-
 /* ******************** (de)select all operator **************** */
 
 void EDBM_toggle_select_all(BMEditMesh *em) /* exported for UV */
@@ -4068,11 +3957,11 @@ static int beauty_fill_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_beauty_fill(wmOperatorType *ot)
+void MESH_OT_beautify_fill(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Beauty Fill";
-	ot->idname= "MESH_OT_beauty_fill";
+	ot->name= "Beautify Fill";
+	ot->idname= "MESH_OT_beautify_fill";
 
 	/* api callbacks */
 	ot->exec= beauty_fill_exec;

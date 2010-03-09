@@ -15,7 +15,7 @@
 * 
 * You should have received a copy of the GNU General Public License
 * along with this program; if not, write to the Free Software Foundation,
-* Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 * 
 * The Original Code is Copyright (C) 2006-2007 Blender Foundation.
 * All rights reserved.
@@ -49,6 +49,7 @@
 
 #include "BKE_icons.h"
 #include "BKE_utildefines.h"
+#include "BKE_global.h" /* only for G.background test */
 
 #include "BLO_sys_types.h" // for intptr_t support
 
@@ -217,7 +218,7 @@ void BKE_icon_changed(int id)
 {
 	Icon* icon = 0;
 	
-	if (!id) return;
+	if (!id || G.background) return;
 
 	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(id));
 	
@@ -239,7 +240,7 @@ int BKE_icon_getid(struct ID* id)
 {
 	Icon* new_icon = 0;
 
-	if (!id)
+	if (!id || G.background)
 		return 0;
 
 	if (id->icon_id)

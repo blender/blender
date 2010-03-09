@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -55,6 +55,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
 #include "DNA_userdef_types.h"
@@ -255,8 +256,9 @@ static short acf_generic_indention_flexible(bAnimContext *ac, bAnimListElem *ale
 	short indent= 0;
 	
 	if (ale->id) {
-		/* special exception for materials and particles */
-		if (ELEM(GS(ale->id->name),ID_MA,ID_PA))
+		/* special exception for materials, textures, and particles */
+		// xxx should tex use indention 2?
+		if (ELEM3(GS(ale->id->name),ID_MA,ID_PA,ID_TE))
 			indent++;
 	}
 	
@@ -290,8 +292,25 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
 	short offset= acf_generic_basic_offset(ac, ale);
 	
 	if (ale->id) {
+		/* special exception for textures */
+		if (GS(ale->id->name) == ID_TE) {
+			/* minimum offset */
+			offset += 21;
+			
+			/* special offset from owner type */
+			switch (ale->ownertype) {
+				case ANIMTYPE_DSMAT:
+					offset += 21;
+					break;
+					
+				case ANIMTYPE_DSLAM:
+				case ANIMTYPE_DSWOR:
+					offset += 14;
+					break;
+			}
+		}
 		/* special exception for materials and particles */
-		if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) 
+		else if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) 
 			offset += 21;
 			
 		/* if not in Action Editor mode, groupings must carry some offset too... */
@@ -329,13 +348,19 @@ static short acf_generic_none_setting_valid(bAnimContext *ac, bAnimListElem *ale
 static short acf_generic_dsexpand_setting_valid(bAnimContext *ac, bAnimListElem *ale, int setting)
 {
 	switch (setting) {
-		/* only expand supported */
+		/* only expand supported everywhere */
 		case ACHANNEL_SETTING_EXPAND:
 			return 1;
 			
-		 /* visible - only available in Graph Editor */
+		/* visible 
+		 * 	- only available in Graph Editor 
+		 *	- NOT available for 'filler' channels
+		 */
 		case ACHANNEL_SETTING_VISIBLE: 
-			return ((ac) && (ac->spacetype == SPACE_IPO));
+			if (ELEM3(ale->type, ANIMTYPE_FILLMATD, ANIMTYPE_FILLPARTD, ANIMTYPE_FILLTEXD))
+				return 0;
+			else
+				return ((ac) && (ac->spacetype == SPACE_IPO));
 			
 		default:
 			return 0;
@@ -386,7 +411,10 @@ static short acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListEle
 static void acf_summary_color(bAnimContext *ac, bAnimListElem *ale, float *color)
 {
 	// FIXME: hardcoded color - same as the 'action' line in NLA
-	glColor3f(0.8f, 0.2f, 0.0f);	// reddish color 
+		// reddish color 
+	color[0] = 0.8f;
+	color[1] = 0.2f;
+	color[2] = 0.0f;
 }
 
 /* backdrop for summary widget */
@@ -429,7 +457,7 @@ static short acf_summary_setting_valid(bAnimContext *ac, bAnimListElem *ale, int
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_summary_setting_flag(int setting, short *neg)
+static int acf_summary_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	if (setting == ACHANNEL_SETTING_EXPAND) {
 		/* expanded */
@@ -468,6 +496,8 @@ static void *acf_summary_setting_ptr(bAnimListElem *ale, int setting, short *typ
 /* all animation summary (DopeSheet only) type define */
 static bAnimChannelType ACF_SUMMARY = 
 {
+	"Summary",							/* type name */
+
 	acf_summary_color,					/* backdrop color */
 	acf_summary_backdrop,				/* backdrop */
 	acf_generic_indention_0,			/* indent level */
@@ -512,7 +542,7 @@ static short acf_scene_setting_valid(bAnimContext *ac, bAnimListElem *ale, int s
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_scene_setting_flag(int setting, short *neg)
+static int acf_scene_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -567,6 +597,8 @@ static void *acf_scene_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* scene type define */
 static bAnimChannelType ACF_SCENE = 
 {
+	"Scene",						/* type name */
+
 	acf_generic_root_color,			/* backdrop color */
 	acf_generic_root_backdrop,		/* backdrop */
 	acf_generic_indention_0,		/* indent level */
@@ -631,7 +663,7 @@ static short acf_object_setting_valid(bAnimContext *ac, bAnimListElem *ale, int 
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_object_setting_flag(int setting, short *neg)
+static int acf_object_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -687,6 +719,8 @@ static void *acf_object_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* object type define */
 static bAnimChannelType ACF_OBJECT = 
 {
+	"Object",						/* type name */
+	
 	acf_generic_root_color,			/* backdrop color */
 	acf_generic_root_backdrop,		/* backdrop */
 	acf_generic_indention_0,		/* indent level */
@@ -754,7 +788,7 @@ static short acf_group_setting_valid(bAnimContext *ac, bAnimListElem *ale, int s
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_group_setting_flag(int setting, short *neg)
+static int acf_group_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -764,7 +798,15 @@ static int acf_group_setting_flag(int setting, short *neg)
 			return AGRP_SELECTED;
 			
 		case ACHANNEL_SETTING_EXPAND: /* expanded */
-			return AGRP_EXPANDED;
+		{
+			/* NOTE: Graph Editor uses a different flag to everywhere else for this,
+			 * allowing different collapsing of groups there, since sharing the flag
+			 * proved to be a hazard for workflows...
+			 */
+			return (ac->spacetype == SPACE_IPO) ? 
+						AGRP_EXPANDED_G :	/* Graph Editor case */
+						AGRP_EXPANDED;		/* DopeSheet and elsewhere */
+		}
 			
 		case ACHANNEL_SETTING_MUTE: /* muted */
 			return AGRP_MUTED;
@@ -794,6 +836,8 @@ static void *acf_group_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* group type define */
 static bAnimChannelType ACF_GROUP = 
 {
+	"Group",						/* type name */
+	
 	acf_group_color,				/* backdrop color */
 	acf_group_backdrop,				/* backdrop */
 	acf_generic_indention_0,		/* indent level */
@@ -842,7 +886,7 @@ static short acf_fcurve_setting_valid(bAnimContext *ac, bAnimListElem *ale, int 
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fcurve_setting_flag(int setting, short *neg)
+static int acf_fcurve_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -878,6 +922,8 @@ static void *acf_fcurve_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* fcurve type define */
 static bAnimChannelType ACF_FCURVE = 
 {
+	"F-Curve",						/* type name */
+	
 	acf_generic_channel_color,		/* backdrop color */
 	acf_generic_channel_backdrop,	/* backdrop */
 	acf_generic_indention_flexible,	/* indent level */		// xxx rename this to f-curves only?
@@ -914,7 +960,7 @@ static short acf_fillactd_setting_valid(bAnimContext *ac, bAnimListElem *ale, in
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fillactd_setting_flag(int setting, short *neg)
+static int acf_fillactd_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -960,6 +1006,8 @@ static void *acf_fillactd_setting_ptr(bAnimListElem *ale, int setting, short *ty
 /* object action expander type define */
 static bAnimChannelType ACF_FILLACTD = 
 {
+	"Ob-Action Filler",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1001,7 +1049,7 @@ static short acf_filldrivers_setting_valid(bAnimContext *ac, bAnimListElem *ale,
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_filldrivers_setting_flag(int setting, short *neg)
+static int acf_filldrivers_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1036,6 +1084,8 @@ static void *acf_filldrivers_setting_ptr(bAnimListElem *ale, int setting, short 
 /* drivers expander type define */
 static bAnimChannelType ACF_FILLDRIVERS = 
 {
+	"Drivers Filler",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1063,7 +1113,7 @@ static void acf_fillmatd_name(bAnimListElem *ale, char *name)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fillmatd_setting_flag(int setting, short *neg)
+static int acf_fillmatd_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1080,6 +1130,8 @@ static int acf_fillmatd_setting_flag(int setting, short *neg)
 /* materials expander type define */
 static bAnimChannelType ACF_FILLMATD= 
 {
+	"Materials Filler",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1107,7 +1159,7 @@ static void acf_fillpartd_name(bAnimListElem *ale, char *name)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_fillpartd_setting_flag(int setting, short *neg)
+static int acf_fillpartd_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1124,6 +1176,8 @@ static int acf_fillpartd_setting_flag(int setting, short *neg)
 /* particles expander type define */
 static bAnimChannelType ACF_FILLPARTD= 
 {
+	"Particles Filler",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1135,6 +1189,112 @@ static bAnimChannelType ACF_FILLPARTD=
 	acf_generic_dsexpand_setting_valid,	/* has setting */
 	acf_fillpartd_setting_flag,				/* flag for setting */
 	acf_generic_dsexpand_setting_ptr		/* pointer for setting */
+};
+
+/* Textures Expander  ------------------------------------------- */
+
+/* offset for groups + grouped entities */
+static short acf_filltexd_offset(bAnimContext *ac, bAnimListElem *ale)
+{
+	short offset= acf_generic_basic_offset(ac, ale);
+	
+	if (ale->id) {
+		/* materials */
+		switch (GS(ale->id->name)) {
+			case ID_MA:
+				offset += 21;
+				break;
+				
+			case ID_LA:
+			case ID_WO:
+				offset += 14;
+				break;
+		}
+	}
+	
+	return offset;
+}
+
+// TODO: just get this from RNA?
+static int acf_filltexd_icon(bAnimListElem *ale)
+{
+	return ICON_TEXTURE_DATA;
+}
+
+static void acf_filltexd_name(bAnimListElem *ale, char *name)
+{
+	strcpy(name, "Textures");
+}
+
+/* get pointer to the setting (category only) */
+static void *acf_filltexd_setting_ptr(bAnimListElem *ale, int setting, short *type)
+{
+	ID *id= (ID *)ale->data;
+	
+	/* clear extra return data first */
+	*type= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+		{
+			switch (GS(id->name)) {
+				case ID_MA:
+				{
+					Material *ma= (Material *)id;
+					GET_ACF_FLAG_PTR(ma->flag);
+				}
+				
+				case ID_LA:
+				{
+					Lamp *la= (Lamp *)id;
+					GET_ACF_FLAG_PTR(la->flag);
+				}
+					
+				case ID_WO:
+				{
+					World *wo= (World *)id;
+					GET_ACF_FLAG_PTR(wo->flag);
+				}
+			}
+		}
+		
+		default: /* unsupported */
+			return NULL;
+	}
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_filltexd_setting_flag(bAnimContext *ac, int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			/* NOTE: the exact same flag must be used for other texture stack types too! */
+			return MA_DS_SHOW_TEXS;	
+		
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* particles expander type define */
+static bAnimChannelType ACF_FILLTEXD= 
+{
+	"Textures Filler",				/* type name */
+	
+	acf_generic_dataexpand_color,	/* backdrop color */
+	acf_generic_dataexpand_backdrop,/* backdrop */
+	acf_generic_indention_flexible,	/* indent level */
+	acf_filltexd_offset,			/* offset */
+	
+	acf_filltexd_name,				/* name */
+	acf_filltexd_icon,				/* icon */
+	
+	acf_generic_dsexpand_setting_valid,	/* has setting */	
+	acf_filltexd_setting_flag,			/* flag for setting */
+	acf_filltexd_setting_ptr			/* pointer for setting */
 };
 
 /* Material Expander  ------------------------------------------- */
@@ -1152,7 +1312,7 @@ static short acf_dsmat_offset(bAnimContext *ac, bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsmat_setting_flag(int setting, short *neg)
+static int acf_dsmat_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1204,6 +1364,8 @@ static void *acf_dsmat_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* material expander type define */
 static bAnimChannelType ACF_DSMAT= 
 {
+	"Material Data Expander",		/* type name */
+	
 	acf_generic_channel_color,		/* backdrop color */
 	acf_generic_channel_backdrop,	/* backdrop */
 	acf_generic_indention_0,		/* indent level */
@@ -1226,7 +1388,7 @@ static int acf_dslam_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dslam_setting_flag(int setting, short *neg)
+static int acf_dslam_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1278,6 +1440,8 @@ static void *acf_dslam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* lamp expander type define */
 static bAnimChannelType ACF_DSLAM= 
 {
+	"Lamp Expander",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1291,6 +1455,101 @@ static bAnimChannelType ACF_DSLAM=
 	acf_dslam_setting_ptr					/* pointer for setting */
 };
 
+/* Texture Expander  ------------------------------------------- */
+
+// TODO: just get this from RNA?
+static int acf_dstex_icon(bAnimListElem *ale)
+{
+	return ICON_TEXTURE_DATA;
+}
+
+/* offset for texture expanders */
+static short acf_dstex_offset(bAnimContext *ac, bAnimListElem *ale)
+{
+	short offset = 21;
+	
+	/* special offset from owner type */
+	// FIXME: too much now!
+	switch (ale->ownertype) {
+		case ANIMTYPE_DSMAT:
+			offset += 14;
+			
+		case ANIMTYPE_DSLAM:
+		case ANIMTYPE_DSWOR:
+			offset += 7;
+	}
+	
+	return offset;
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_dstex_setting_flag(bAnimContext *ac, int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return TEX_DS_EXPAND;
+			
+		case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
+			return ADT_NLA_EVAL_OFF;
+			
+		case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
+			*neg= 1;
+			return ADT_CURVES_NOT_VISIBLE;
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return ADT_UI_SELECTED;
+		
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_dstex_setting_ptr(bAnimListElem *ale, int setting, short *type)
+{
+	Tex *tex= (Tex *)ale->data;
+	
+	/* clear extra return data first */
+	*type= 0;
+	
+	switch (setting) {
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			GET_ACF_FLAG_PTR(tex->flag);
+			
+		case ACHANNEL_SETTING_SELECT: /* selected */
+		case ACHANNEL_SETTING_MUTE: /* muted (for NLA only) */
+		case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
+			if (tex->adt)
+				GET_ACF_FLAG_PTR(tex->adt->flag)
+			else
+				return NULL;	
+		
+		default: /* unsupported */
+			return NULL;
+	}
+}
+
+/* material expander type define */
+static bAnimChannelType ACF_DSTEX= 
+{
+	"Texture Data Expander",		/* type name */
+	
+	acf_generic_channel_color,		/* backdrop color */
+	acf_generic_channel_backdrop,	/* backdrop */
+	acf_generic_indention_0,		/* indent level */
+	acf_dstex_offset,				/* offset */
+	
+	acf_generic_idblock_name,		/* name */
+	acf_dstex_icon,					/* icon */
+	
+	acf_generic_dataexpand_setting_valid,	/* has setting */
+	acf_dstex_setting_flag,					/* flag for setting */
+	acf_dstex_setting_ptr					/* pointer for setting */
+};
+
 /* Camera Expander  ------------------------------------------- */
 
 // TODO: just get this from RNA?
@@ -1300,7 +1559,7 @@ static int acf_dscam_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dscam_setting_flag(int setting, short *neg)
+static int acf_dscam_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1352,6 +1611,8 @@ static void *acf_dscam_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* camera expander type define */
 static bAnimChannelType ACF_DSCAM= 
 {
+	"Camera Expander",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1384,7 +1645,7 @@ static int acf_dscur_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dscur_setting_flag(int setting, short *neg)
+static int acf_dscur_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1436,6 +1697,8 @@ static void *acf_dscur_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* curve expander type define */
 static bAnimChannelType ACF_DSCUR= 
 {
+	"Curve Expander",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1458,7 +1721,7 @@ static int acf_dsskey_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsskey_setting_flag(int setting, short *neg)
+static int acf_dsskey_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1510,6 +1773,8 @@ static void *acf_dsskey_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* shapekey expander type define */
 static bAnimChannelType ACF_DSSKEY= 
 {
+	"Shape Key Expander",			/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1532,7 +1797,7 @@ static int acf_dswor_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dswor_setting_flag(int setting, short *neg)
+static int acf_dswor_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1584,6 +1849,8 @@ static void *acf_dswor_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* world expander type define */
 static bAnimChannelType ACF_DSWOR= 
 {
+	"World Expander",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1606,7 +1873,7 @@ static int acf_dspart_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dspart_setting_flag(int setting, short *neg)
+static int acf_dspart_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1658,6 +1925,8 @@ static void *acf_dspart_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* particle expander type define */
 static bAnimChannelType ACF_DSPART= 
 {
+	"Particle Data Expander",		/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1680,7 +1949,7 @@ static int acf_dsmball_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsmball_setting_flag(int setting, short *neg)
+static int acf_dsmball_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1732,6 +2001,8 @@ static void *acf_dsmball_setting_ptr(bAnimListElem *ale, int setting, short *typ
 /* metaball expander type define */
 static bAnimChannelType ACF_DSMBALL= 
 {
+	"Metaball Expander",			/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1754,7 +2025,7 @@ static int acf_dsarm_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsarm_setting_flag(int setting, short *neg)
+static int acf_dsarm_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1806,6 +2077,8 @@ static void *acf_dsarm_setting_ptr(bAnimListElem *ale, int setting, short *type)
 /* metaball expander type define */
 static bAnimChannelType ACF_DSARM= 
 {
+	"Armature Expander",			/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */
@@ -1828,7 +2101,7 @@ static int acf_dsntree_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsntree_setting_flag(int setting, short *neg)
+static int acf_dsntree_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1880,6 +2153,8 @@ static void *acf_dsntree_setting_ptr(bAnimListElem *ale, int setting, short *typ
 /* node tree expander type define */
 static bAnimChannelType ACF_DSNTREE= 
 {
+	"Node Tree Expander",			/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */		// XXX this only works for compositing
@@ -1902,7 +2177,7 @@ static int acf_dsmesh_icon(bAnimListElem *ale)
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_dsmesh_setting_flag(int setting, short *neg)
+static int acf_dsmesh_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -1954,6 +2229,8 @@ static void *acf_dsmesh_setting_ptr(bAnimListElem *ale, int setting, short *type
 /* node tree expander type define */
 static bAnimChannelType ACF_DSMESH= 
 {
+	"Mesh Expander",				/* type name */
+	
 	acf_generic_dataexpand_color,	/* backdrop color */
 	acf_generic_dataexpand_backdrop,/* backdrop */
 	acf_generic_indention_1,		/* indent level */		// XXX this only works for compositing
@@ -2000,7 +2277,7 @@ static short acf_shapekey_setting_valid(bAnimContext *ac, bAnimListElem *ale, in
 }
 
 /* get the appropriate flag(s) for the setting when it is valid  */
-static int acf_shapekey_setting_flag(int setting, short *neg)
+static int acf_shapekey_setting_flag(bAnimContext *ac, int setting, short *neg)
 {
 	/* clear extra return data first */
 	*neg= 0;
@@ -2042,6 +2319,8 @@ static void *acf_shapekey_setting_ptr(bAnimListElem *ale, int setting, short *ty
 /* shapekey expander type define */
 static bAnimChannelType ACF_SHAPEKEY= 
 {
+	"Shape Key",					/* type name */
+	
 	acf_generic_channel_color,		/* backdrop color */
 	acf_generic_channel_backdrop,	/* backdrop */
 	acf_generic_indention_0,		/* indent level */
@@ -2066,7 +2345,7 @@ static void dummy_olddraw_gpencil ()
 		case ANIMTYPE_GPDATABLOCK: /* gpencil datablock */
 		{
 			bGPdata *gpd = (bGPdata *)ale->data;
-			ScrArea *sa = (ScrArea *)ale->owner;
+			ScrArea *sa = (ScrArea *)ale->owner; // XXX depreceated...
 			
 			indent = 0;
 			group= 3;
@@ -2207,6 +2486,7 @@ void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= &ACF_FILLDRIVERS; 	/* Drivers Expander */
 		animchannelTypeInfo[type++]= &ACF_FILLMATD; 	/* Materials Expander */
 		animchannelTypeInfo[type++]= &ACF_FILLPARTD; 	/* Particles Expander */
+		animchannelTypeInfo[type++]= &ACF_FILLTEXD;		/* Textures Expander */
 		
 		animchannelTypeInfo[type++]= &ACF_DSMAT;		/* Material Channel */
 		animchannelTypeInfo[type++]= &ACF_DSLAM;		/* Lamp Channel */
@@ -2219,6 +2499,7 @@ void ANIM_init_channel_typeinfo_data (void)
 		animchannelTypeInfo[type++]= &ACF_DSMBALL;		/* MetaBall Channel */
 		animchannelTypeInfo[type++]= &ACF_DSARM;		/* Armature Channel */
 		animchannelTypeInfo[type++]= &ACF_DSMESH;		/* Mesh Channel */
+		animchannelTypeInfo[type++]= &ACF_DSTEX;		/* Texture Channel */
 		
 		animchannelTypeInfo[type++]= &ACF_SHAPEKEY;		/* ShapeKey */
 		
@@ -2252,6 +2533,36 @@ bAnimChannelType *ANIM_channel_get_typeinfo (bAnimListElem *ale)
 
 /* --------------------------- */
 
+/* Print debug info string for the given channel */
+void ANIM_channel_debug_print_info (bAnimListElem *ale, short indent_level)
+{
+	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
+	
+	/* print indents */
+	for (; indent_level > 0; indent_level--)
+		printf("  ");
+	
+	/* print info */
+	if (acf) {
+		char name[256]; /* hopefully this will be enough! */
+		
+		/* get UI name */
+		if (acf->name)
+			acf->name(ale, name);
+		else
+			sprintf(name, "<No name>");
+			
+		/* print type name + ui name */
+		printf("ChanType: <%s> Name: \"%s\"\n", acf->channel_type_name, name);
+	}
+	else if (ale)
+		printf("ChanType: <Unknown - %d>\n", ale->type);
+	else
+		printf("<Invalid channel - NULL>\n");
+}
+
+/* --------------------------- */
+
 /* Check if some setting for a channel is enabled 
  * Returns: 1 = On, 0 = Off, -1 = Invalid
  */
@@ -2267,7 +2578,7 @@ short ANIM_channel_setting_get (bAnimContext *ac, bAnimListElem *ale, int settin
 		int flag;
 		void *ptr;
 		
-		flag= acf->setting_flag(setting, &negflag);
+		flag= acf->setting_flag(ac, setting, &negflag);
 		ptr= acf->setting_ptr(ale, setting, &ptrsize);
 		
 		/* check if flag is enabled */
@@ -2318,12 +2629,12 @@ short ANIM_channel_setting_get (bAnimContext *ac, bAnimListElem *ale, int settin
 #define ACF_SETTING_SET(sval, sflag, smode) \
 	{\
 		if (negflag) {\
-			if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(sval) ^= (sflag); \
+			if (smode == ACHANNEL_SETFLAG_INVERT) 	(sval) ^= (sflag); \
 			else if (smode == ACHANNEL_SETFLAG_ADD) (sval) &= ~(sflag); \
 			else 									(sval) |= (sflag); \
 		} \
 		else {\
-			if (smode == ACHANNEL_SETFLAG_TOGGLE) 	(sval) ^= (sflag); \
+			if (smode == ACHANNEL_SETFLAG_INVERT) 	(sval) ^= (sflag); \
 			else if (smode == ACHANNEL_SETFLAG_ADD) (sval) |= (sflag); \
 			else 									(sval) &= ~(sflag); \
 		}\
@@ -2345,7 +2656,7 @@ void ANIM_channel_setting_set (bAnimContext *ac, bAnimListElem *ale, int setting
 		int flag;
 		void *ptr;
 		
-		flag= acf->setting_flag(setting, &negflag);
+		flag= acf->setting_flag(ac, setting, &negflag);
 		ptr= acf->setting_ptr(ale, setting, &ptrsize);
 		
 		/* check if flag is enabled */
@@ -2691,7 +3002,7 @@ static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChan
 	uiBut *but = NULL;
 	
 	/* get the flag and the pointer to that flag */
-	flag= acf->setting_flag(setting, &negflag);
+	flag= acf->setting_flag(ac, setting, &negflag);
 	ptr= acf->setting_ptr(ale, setting, &ptrsize);
 	enabled= ANIM_channel_setting_get(ac, ale, setting);
 	

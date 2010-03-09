@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -26,9 +26,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#define _USE_MATH_DEFINES
-#include <math.h>
-
 #include "DNA_screen_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"
@@ -38,6 +35,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"	/* lasso tessellation */
+#include "BLI_math.h"
 #include "BLI_scanfill.h"	/* lasso tessellation */
 
 #include "BKE_context.h"
@@ -103,10 +101,23 @@ wmGesture *WM_gesture_new(bContext *C, wmEvent *event, int type)
 
 void WM_gesture_end(bContext *C, wmGesture *gesture)
 {
-	BLI_remlink(&CTX_wm_window(C)->gesture, gesture);
+	wmWindow *win= CTX_wm_window(C);
+	
+	if(win->tweak==gesture)
+		win->tweak= NULL;
+	BLI_remlink(&win->gesture, gesture);
 	MEM_freeN(gesture->customdata);
 	MEM_freeN(gesture);
 }
+
+void WM_gestures_remove(bContext *C)
+{
+	wmWindow *win= CTX_wm_window(C);
+	
+	while(win->gesture.first)
+		WM_gesture_end(C, win->gesture.first);
+}
+
 
 /* tweak and line gestures */
 #define TWEAK_THRESHOLD		10
@@ -214,7 +225,7 @@ static void wm_gesture_draw_circle(wmWindow *win, wmGesture *gt)
 
 static void draw_filled_lasso(wmGesture *gt)
 {
-	EditVert *v, *lastv=NULL, *firstv=NULL;
+	EditVert *v=NULL, *lastv=NULL, *firstv=NULL;
 	EditEdge *e;
 	EditFace *efa;
 	short *lasso= (short *)gt->customdata;
@@ -230,21 +241,24 @@ static void draw_filled_lasso(wmGesture *gt)
         if (firstv==NULL) firstv = v;
 	}
 	
-	BLI_addfilledge(firstv, v);
-	BLI_edgefill(0, 0);
+	/* highly unlikely this will fail, but could crash if (gt->points == 0) */
+	if(firstv) {
+		BLI_addfilledge(firstv, v);
+		BLI_edgefill(0, 0);
 	
-	glEnable(GL_BLEND);
-	glColor4f(1.0, 1.0, 1.0, 0.05);
-	glBegin(GL_TRIANGLES);
-	for (efa = fillfacebase.first; efa; efa=efa->next) {
-		glVertex2f(efa->v1->co[0], efa->v1->co[1]);
-		glVertex2f(efa->v2->co[0], efa->v2->co[1]);
-		glVertex2f(efa->v3->co[0], efa->v3->co[1]);
+		glEnable(GL_BLEND);
+		glColor4f(1.0, 1.0, 1.0, 0.05);
+		glBegin(GL_TRIANGLES);
+		for (efa = fillfacebase.first; efa; efa=efa->next) {
+			glVertex2f(efa->v1->co[0], efa->v1->co[1]);
+			glVertex2f(efa->v2->co[0], efa->v2->co[1]);
+			glVertex2f(efa->v3->co[0], efa->v3->co[1]);
+		}
+		glEnd();
+		glDisable(GL_BLEND);
+	
+		BLI_end_edgefill();
 	}
-	glEnd();
-	glDisable(GL_BLEND);
-	
-	BLI_end_edgefill();
 }
 
 static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt)
@@ -304,7 +318,6 @@ void wm_gesture_draw(wmWindow *win)
 	for(; gt; gt= gt->next) {
 		/* all in subwindow space */
 		wmSubWindowSet(win, gt->swinid);
-		wmOrthoPixelSpace();
 		
 		if(gt->type==WM_GESTURE_RECT)
 			wm_gesture_draw_rect(win, gt);
@@ -336,4 +349,5 @@ void wm_gesture_tag_redraw(bContext *C)
 	if(ar && win->drawmethod != USER_DRAW_TRIPLE)
 		ED_region_tag_redraw(ar);
 }
+
 

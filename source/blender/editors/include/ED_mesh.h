@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -149,6 +149,7 @@ void EDBM_set_flag_all(struct BMEditMesh *em, int flag);
 
 /* meshtools.c */
 
+/*these functinos are all deprecated, use stuff in editbmesh_bvh.h instead*/
 intptr_t	mesh_octree_table(struct Object *ob, struct BMEditMesh *em, float *co, char mode);
 struct BMVert   *editmesh_get_x_mirror_vert(struct Object *ob, struct BMEditMesh *em, float *co);
 int			mesh_get_x_mirror_vert(struct Object *ob, int index);
@@ -206,6 +207,7 @@ void		EM_selectmode_set(struct EditMesh *em);
 void		EM_select_flush(struct EditMesh *em);
 void		EM_convertsel(struct EditMesh *em, short oldmode, short selectmode);
 void		EM_validate_selections(struct EditMesh *em);
+void		EM_selectmode_to_scene(struct Scene *scene, struct Object *obedit);
 
 			/* exported to transform */
 int			EM_get_actSelection(struct EditMesh *em, struct EditSelection *ese);
@@ -244,6 +246,7 @@ int face_select(struct bContext *C, struct Object *ob, short mval[2], int extend
 void face_borderselect(struct bContext *C, struct Object *ob, struct rcti *rect, int select, int extend);
 void selectall_tface(struct Object *ob, int action);
 void select_linked_tfaces(struct bContext *C, struct Object *ob, short mval[2], int mode);
+int minmax_tface(struct Object *ob, float *min, float *max);
 
 /* object_vgroup.c */
 
@@ -256,13 +259,12 @@ struct bDeformGroup		*ED_vgroup_add_name(struct Object *ob, char *name);
 void					ED_vgroup_select_by_name(struct Object *ob, char *name);
 void					ED_vgroup_data_create(struct ID *id);
 int						ED_vgroup_give_array(struct ID *id, struct MDeformVert **dvert_arr, int *dvert_tot);
+int						ED_vgroup_copy_array(struct Object *ob, struct Object *ob_from);
+void					ED_vgroup_mirror(struct Object *ob, int mirror_weights, int flip_vgroups);
 
 void		ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *dg, int vertnum,  float weight, int assignmode);
 void		ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 float		ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
-
-struct MDeformWeight	*ED_vgroup_weight_verify(struct MDeformVert *dv, int defgroup);
-struct MDeformWeight	*ED_vgroup_weight_get(struct MDeformVert *dv, int defgroup);
 
 /**
  * findnearestvert

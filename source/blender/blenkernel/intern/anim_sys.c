@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -60,8 +60,8 @@
 
 /* Getter/Setter -------------------------------------------- */
 
-/* Internal utility to check if ID can have AnimData */
-static short id_has_animdata (ID *id)
+/* Check if ID can have AnimData */
+short id_type_can_have_animdata (ID *id)
 {
 	/* sanity check */
 	if (id == NULL)
@@ -99,7 +99,7 @@ AnimData *BKE_animdata_from_id (ID *id)
 	 * types that do to be of type IdAdtTemplate, and extract the
 	 * AnimData that way
 	 */
-	if (id_has_animdata(id)) {
+	if (id_type_can_have_animdata(id)) {
 		IdAdtTemplate *iat= (IdAdtTemplate *)id;
 		return iat->adt;
 	}
@@ -117,7 +117,7 @@ AnimData *BKE_id_add_animdata (ID *id)
 	 * types that do to be of type IdAdtTemplate, and add the AnimData
 	 * to it using the template
 	 */
-	if (id_has_animdata(id)) {
+	if (id_type_can_have_animdata(id)) {
 		IdAdtTemplate *iat= (IdAdtTemplate *)id;
 		
 		/* check if there's already AnimData, in which case, don't add */
@@ -145,7 +145,7 @@ void BKE_free_animdata (ID *id)
 	/* Only some ID-blocks have this info for now, so we cast the 
 	 * types that do to be of type IdAdtTemplate
 	 */
-	if (id_has_animdata(id)) {
+	if (id_type_can_have_animdata(id)) {
 		IdAdtTemplate *iat= (IdAdtTemplate *)id;
 		AnimData *adt= iat->adt;
 		
@@ -422,10 +422,54 @@ void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, c
 	MEM_freeN(newN);
 }
 
+/* Whole Database Ops -------------------------------------------- */
+
+/* apply the given callback function on all data in main database */
+void BKE_animdata_main_cb (Main *main, ID_AnimData_Edit_Callback func, void *user_data)
+{
+	ID *id;
+
+#define ANIMDATA_IDS_CB(first) \
+	for (id= first; id; id= id->next) { \
+		AnimData *adt= BKE_animdata_from_id(id); \
+		if (adt) func(id, adt, user_data); \
+	}
+
+	ANIMDATA_IDS_CB(main->nodetree.first);	/* nodes */
+	ANIMDATA_IDS_CB(main->tex.first);		/* textures */
+	ANIMDATA_IDS_CB(main->lamp.first);		/* lamps */
+	ANIMDATA_IDS_CB(main->mat.first);		/* materials */
+	ANIMDATA_IDS_CB(main->camera.first);	/* cameras */
+	ANIMDATA_IDS_CB(main->key.first);		/* shapekeys */
+	ANIMDATA_IDS_CB(main->mball.first);		/* metaballs */
+	ANIMDATA_IDS_CB(main->curve.first);		/* curves */
+	ANIMDATA_IDS_CB(main->armature.first);	/* armatures */
+	ANIMDATA_IDS_CB(main->mesh.first);		/* meshes */
+	ANIMDATA_IDS_CB(main->particle.first);	/* particles */
+	ANIMDATA_IDS_CB(main->object.first);	/* objects */
+	ANIMDATA_IDS_CB(main->world.first);		/* worlds */
+
+	/* scenes */
+	for (id= main->scene.first; id; id= id->next) {
+		AnimData *adt= BKE_animdata_from_id(id);
+		Scene *scene= (Scene *)id;
+		
+		/* do compositing nodes first (since these aren't included in main tree) */
+		if (scene->nodetree) {
+			AnimData *adt2= BKE_animdata_from_id((ID *)scene->nodetree);
+			if (adt2) func(id, adt2, user_data);
+		}
+		
+		/* now fix scene animation data as per normal */
+		if (adt) func((ID *)id, adt, user_data);
+	}
+}
+
 /* Fix all RNA-Paths throughout the database (directly access the Global.main version)
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
  * 		i.e. pose.bones["Bone"]
  */
+/* TODO: use BKE_animdata_main_cb for looping over all data  */
 void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newName)
 {
 	Main *mainptr= G.main;
@@ -503,7 +547,7 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 
 /* Find the first path that matches the given criteria */
 // TODO: do we want some method to perform partial matches too?
-KS_Path *BKE_keyingset_find_destination (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, int group_mode)
+KS_Path *BKE_keyingset_find_path (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, int group_mode)
 {
 	KS_Path *ksp;
 	
@@ -560,7 +604,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	ks= MEM_callocN(sizeof(KeyingSet), "KeyingSet");
 	
 	if (name)
-		BLI_snprintf(ks->name, 64, name);
+		strncpy(ks->name, name, sizeof(ks->name));
 	else
 		strcpy(ks->name, "KeyingSet");
 	
@@ -571,7 +615,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	BLI_addtail(list, ks);
 	
 	/* make sure KeyingSet has a unique name (this helps with identification) */
-	BLI_uniquename(list, ks, "KeyingSet", '.', offsetof(KeyingSet, name), 64);
+	BLI_uniquename(list, ks, "KeyingSet", '.', offsetof(KeyingSet, name), sizeof(ks->name));
 	
 	/* return new KeyingSet for further editing */
 	return ks;
@@ -580,7 +624,7 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 /* Add a destination to a KeyingSet. Nothing is returned for now...
  * Checks are performed to ensure that destination is appropriate for the KeyingSet in question
  */
-void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode)
+void BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode)
 {
 	KS_Path *ksp;
 	
@@ -599,7 +643,7 @@ void BKE_keyingset_add_destination (KeyingSet *ks, ID *id, const char group_name
 	}
 	
 	/* don't add if there is already a matching KS_Path in the KeyingSet */
-	if (BKE_keyingset_find_destination(ks, id, group_name, rna_path, array_index, groupmode)) {
+	if (BKE_keyingset_find_path(ks, id, group_name, rna_path, array_index, groupmode)) {
 		if (G.f & G_DEBUG)
 			printf("ERROR: destination already exists in Keying Set \n");
 		return;
@@ -733,26 +777,20 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 			switch (RNA_property_type(prop)) 
 			{
 				case PROP_BOOLEAN:
-					if (RNA_property_array_length(&new_ptr, prop)) {
-						if (RNA_property_editable_index(&new_ptr, prop, array_index))
-							RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
-					}
+					if (RNA_property_array_length(&new_ptr, prop))
+						RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_boolean_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_INT:
-					if (RNA_property_array_length(&new_ptr, prop)){
-						if (RNA_property_editable_index(&new_ptr, prop, array_index))
-							RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
-					}
+					if (RNA_property_array_length(&new_ptr, prop))
+						RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_int_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_FLOAT:
-					if (RNA_property_array_length(&new_ptr, prop)) {
-						if (RNA_property_editable_index(&new_ptr, prop, array_index))
-							RNA_property_float_set_index(&new_ptr, prop, array_index, value);
-					}
+					if (RNA_property_array_length(&new_ptr, prop))
+						RNA_property_float_set_index(&new_ptr, prop, array_index, value);
 					else
 						RNA_property_float_set(&new_ptr, prop, value);
 					break;
@@ -1476,26 +1514,20 @@ void nladata_flush_channels (ListBase *channels)
 		switch (RNA_property_type(prop)) 
 		{
 			case PROP_BOOLEAN:
-				if (RNA_property_array_length(ptr, prop)) {
-					if (RNA_property_editable_index(ptr, prop, array_index))
-						RNA_property_boolean_set_index(ptr, prop, array_index, (int)value);
-				}
+				if (RNA_property_array_length(ptr, prop))
+					RNA_property_boolean_set_index(ptr, prop, array_index, (int)value);
 				else
 					RNA_property_boolean_set(ptr, prop, (int)value);
 				break;
 			case PROP_INT:
-				if (RNA_property_array_length(ptr, prop)) {
-					if (RNA_property_editable_index(ptr, prop, array_index))
-						RNA_property_int_set_index(ptr, prop, array_index, (int)value);
-				}
+				if (RNA_property_array_length(ptr, prop))
+					RNA_property_int_set_index(ptr, prop, array_index, (int)value);
 				else
 					RNA_property_int_set(ptr, prop, (int)value);
 				break;
 			case PROP_FLOAT:
-				if (RNA_property_array_length(ptr, prop)) {
-					if (RNA_property_editable_index(ptr, prop, array_index))
-						RNA_property_float_set_index(ptr, prop, array_index, value);
-				}
+				if (RNA_property_array_length(ptr, prop))
+					RNA_property_float_set_index(ptr, prop, array_index, value);
 				else
 					RNA_property_float_set(ptr, prop, value);
 				break;

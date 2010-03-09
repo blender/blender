@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Martin Poirier
  *
@@ -822,9 +822,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
  				quat_to_mat4( mat,ml_sel->quat);
 
 				VECCOPY(normal, mat[2]);
-				VECCOPY(plane, mat[1]);
 
-				mul_v3_fl(plane, -1.0);
+				negate_v3_v3(plane, mat[1]);
 				
 				result = ORIENTATION_NORMAL;
 			}
@@ -892,7 +891,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 					add_v3_v3v3(plane, plane, pchan->pose_mat[1]);
 				}
 			}
-			mul_v3_fl(plane, -1.0);
+			negate_v3(plane);
 			
 			/* we need the transpose of the inverse for a normal... */
 			copy_m3_m4(imat, ob->obmat);

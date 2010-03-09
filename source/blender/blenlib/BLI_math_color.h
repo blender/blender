@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -59,6 +59,8 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv);
 unsigned int rgb_to_cpack(float r, float g, float b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 
+float rgb_to_grayscale(float rgb[3]);
+
 /***************** Profile Transformations ********************/
 
 void gamma_correct(float *c, float gamma);
@@ -73,6 +75,10 @@ void linearrgb_to_srgb_v3_v3(float *col_to, float *col_from);
 
 int constrain_rgb(float *r, float *g, float *b);
 void minmax_rgb(short c[3]);
+	
+/***************** lift/gamma/gain / ASC-CDL conversion *****************/
+
+void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power);
 
 void rgb_byte_to_float(char *in, float *out);
 void rgb_float_to_byte(float *in, char *out);

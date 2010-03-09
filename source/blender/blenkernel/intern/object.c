@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -580,6 +580,7 @@ void unlink_object(Scene *scene, Object *ob)
 		if(sce->id.lib==NULL) {
 			if(sce->camera==ob) sce->camera= NULL;
 			if(sce->toolsettings->skgen_template==ob) sce->toolsettings->skgen_template = NULL;
+			if(sce->toolsettings->particle.object==ob) sce->toolsettings->particle.object= NULL;
 
 #ifdef DURIAN_CAMERA_SWITCH
 			{
@@ -1146,8 +1147,8 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	}
 
 	if(psys->clmd) {
-		ClothModifierData *nclmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
-		modifier_copyData((ModifierData*)psys->clmd, (ModifierData*)nclmd);
+		psysn->clmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
+		modifier_copyData((ModifierData*)psys->clmd, (ModifierData*)psysn->clmd);
 		psys->hair_in_dm = psys->hair_out_dm = NULL;
 	}
 
@@ -1164,6 +1165,12 @@ ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 	psysn->renderdata = NULL;
 	
 	psysn->pointcache= BKE_ptcache_copy_list(&psysn->ptcaches, &psys->ptcaches);
+
+	/* XXX - from reading existing code this seems correct but intended usage of
+	 * pointcache should /w cloth should be added in 'ParticleSystem' - campbell */
+	if(psysn->clmd) {
+		psysn->clmd->point_cache= psysn->pointcache;
+	}
 
 	id_us_plus((ID *)psysn->part);
 
@@ -1287,7 +1294,7 @@ Object *copy_object(Object *ob)
 		if(ob->type==OB_ARMATURE)
 			armature_rebuild_pose(obn, obn->data);
 	}
-	copy_defgroups(&obn->defbase, &ob->defbase);
+	defgroup_copy_list(&obn->defbase, &ob->defbase);
 	copy_constraints(&obn->constraints, &ob->constraints);
 
 	obn->mode = 0;
@@ -1430,9 +1437,9 @@ int object_is_libdata(Object *ob)
 int object_data_is_libdata(Object *ob)
 {
 	if(!ob) return 0;
-	if(ob->proxy) return 0;
+	if(ob->proxy && (ob->data==NULL || ((ID *)ob->data)->lib==NULL)) return 0;
 	if(ob->id.lib) return 1;
-	if(!ob->data) return 0;
+	if(ob->data==NULL) return 0;
 	if(((ID *)ob->data)->lib) return 1;
 
 	return 0;
@@ -1452,6 +1459,38 @@ static void armature_set_id_extern(Object *ob)
 			id_lib_extern((ID *)pchan->custom);
 	}
 			
+}
+
+void object_copy_proxy_drivers(Object *ob, Object *target)
+{
+	if ((target->adt) && (target->adt->drivers.first)) {
+		FCurve *fcu;
+		
+		/* add new animdata block */
+		if(!ob->adt)
+			ob->adt= BKE_id_add_animdata(&ob->id);
+		
+		/* make a copy of all the drivers (for now), then correct any links that need fixing */
+		free_fcurves(&ob->adt->drivers);
+		copy_fcurves(&ob->adt->drivers, &target->adt->drivers);
+		
+		for (fcu= ob->adt->drivers.first; fcu; fcu= fcu->next) {
+			ChannelDriver *driver= fcu->driver;
+			DriverVar *dvar;
+			
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				/* all drivers */
+				DRIVER_TARGETS_LOOPER(dvar) 
+				{
+					if ((Object *)dtar->id == target)
+						dtar->id= (ID *)ob;
+					else
+						id_lib_extern((ID *)dtar->id);
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
+		}
+	}
 }
 
 /* proxy rule: lib_object->proxy_from == the one we borrow from, set temporally while object_update */
@@ -1490,33 +1529,8 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	copy_m4_m4(ob->parentinv, target->parentinv);
 	
 	/* copy animdata stuff - drivers only for now... */
-	if ((target->adt) && (target->adt->drivers.first)) {
-		FCurve *fcu;
-		
-		/* add new animdata block */
-		ob->adt= BKE_id_add_animdata(&ob->id);
-		
-		/* make a copy of all the drivers (for now), then correct any links that need fixing */
-		copy_fcurves(&ob->adt->drivers, &target->adt->drivers);
-		
-		for (fcu= ob->adt->drivers.first; fcu; fcu= fcu->next) {
-			ChannelDriver *driver= fcu->driver;
-			DriverVar *dvar;
-			
-			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
-				/* all drivers */
-				DRIVER_TARGETS_LOOPER(dvar) 
-				{
-					if ((Object *)dtar->id == target)
-						dtar->id= (ID *)ob;
-					else
-						id_lib_extern((ID *)dtar->id);
-				}
-				DRIVER_TARGETS_LOOPER_END
-			}
-		}
-	}
-	
+	object_copy_proxy_drivers(ob, target);
+
 	/* skip constraints? */
 	// FIXME: this is considered by many as a bug
 	
@@ -1669,6 +1683,7 @@ void object_mat3_to_rot(Object *ob, float mat[][3], int use_compat)
 	}
 }
 
+/* see pchan_apply_mat4() for the equivalent 'pchan' function */
 void object_apply_mat4(Object *ob, float mat[][4])
 {
 	float mat3[3][3];
@@ -1842,17 +1857,16 @@ static void give_parvert(Object *par, int nr, float *vec)
 			DerivedMesh *dm = par->derivedFinal;
 			
 			if(dm) {
-				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
+				MVert *mvert= dm->getVertArray(dm);
 				int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
-				float co[3];
+				int i, count = 0, vindex, numVerts = dm->getNumVerts(dm);
 
 				/* get the average of all verts with (original index == nr) */
-				for(i = 0; i < numVerts; ++i) {
-					vindex= (index)? *index: i;
+				for(i = 0; i < numVerts; i++) {
+					vindex= (index)? index[i]: i;
 
 					if(vindex == nr) {
-						dm->getVertCo(dm, i, co);
-						add_v3_v3v3(vec, vec, co);
+						add_v3_v3v3(vec, vec, mvert[i].co);
 						count++;
 					}
 				}
@@ -1977,9 +1991,8 @@ void set_no_parent_ipo(int val)
 void where_is_object_time(Scene *scene, Object *ob, float ctime)
 {
 	float *fp1, *fp2, slowmat[4][4] = MAT4_UNITY;
-	float stime=ctime, fac1, fac2, vec[3];
+	float stime=ctime, fac1, fac2;
 	int a;
-	int pop; 
 	
 	/* new version: correct parent+vertexparent and track+parent */
 	/* this one only calculates direct attached parent and track */
@@ -1998,21 +2011,19 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 		
 		/* hurms, code below conflicts with depgraph... (ton) */
 		/* and even worse, it gives bad effects for NLA stride too (try ctime != par->ctime, with MBlur) */
-		pop= 0;
 		if(no_parent_ipo==0 && stime != par->ctime) {
 			// only for ipo systems? 
-			pushdata(par, sizeof(Object));
-			pop= 1;
+			Object tmp= *par;
 			
 			if(par->proxy_from);	// was a copied matrix, no where_is! bad...
 			else where_is_object_time(scene, par, ctime);
+
+			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
+
+			*par= tmp;
 		}
-		
-		solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
-		
-		if(pop) {
-			poplast(par);
-		}
+		else
+			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
 		
 		if(ob->partype & PARSLOW) {
 			// include framerate
@@ -2038,7 +2049,7 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	}
 
 	/* solve constraints */
-	if (ob->constraints.first) {
+	if (ob->constraints.first && !(ob->flag & OB_NO_CONSTRAINTS)) {
 		bConstraintOb *cob;
 		
 		cob= constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
@@ -2050,9 +2061,8 @@ void where_is_object_time(Scene *scene, Object *ob, float ctime)
 	}
 	
 	/* set negative scale flag in object */
-	cross_v3_v3v3(vec, ob->obmat[0], ob->obmat[1]);
-	if( dot_v3v3(vec, ob->obmat[2]) < 0.0 ) ob->transflag |= OB_NEG_SCALE;
-	else ob->transflag &= ~OB_NEG_SCALE;
+	if(is_negative_m4(ob->obmat))	ob->transflag |= OB_NEG_SCALE;
+	else							ob->transflag &= ~OB_NEG_SCALE;
 }
 
 static void solve_parenting (Scene *scene, Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul)
@@ -2366,27 +2376,97 @@ void minmax_object(Object *ob, float *min, float *max)
 	}
 }
 
-/* TODO - use dupli objects bounding boxes */
-void minmax_object_duplis(Scene *scene, Object *ob, float *min, float *max)
+int minmax_object_duplis(Scene *scene, Object *ob, float *min, float *max)
 {
+	int ok= 0;
 	if ((ob->transflag & OB_DUPLI)==0) {
-		return;
+		return ok;
 	} else {
 		ListBase *lb;
 		DupliObject *dob;
 		
 		lb= object_duplilist(scene, ob);
 		for(dob= lb->first; dob; dob= dob->next) {
-			if(dob->no_draw);
-			else {
-				/* should really use bound box of dup object */
-				DO_MINMAX(dob->mat[3], min, max);
+			if(dob->no_draw == 0) {
+				BoundBox *bb= object_get_boundbox(dob->ob);
+
+				if(bb) {
+					int i;
+					for(i=0; i<8; i++) {
+						float vec[3];
+						mul_v3_m4v3(vec, dob->mat, bb->vec[i]);
+						DO_MINMAX(vec, min, max);
+					}
+
+					ok= 1;
+				}
 			}
 		}
 		free_object_duplilist(lb);	/* does restore */
 	}
+
+	return ok;
 }
 
+/* copied from DNA_object_types.h */
+typedef struct ObTfmBack {
+	float loc[3], dloc[3], orig[3];
+	float size[3], dsize[3];	/* scale and delta scale */
+	float rot[3], drot[3];		/* euler rotation */
+	float quat[4], dquat[4];	/* quaternion rotation */
+	float rotAxis[3], drotAxis[3];	/* axis angle rotation - axis part */
+	float rotAngle, drotAngle;	/* axis angle rotation - angle part */
+	float obmat[4][4];		/* final worldspace matrix with constraints & animsys applied */
+	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
+	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
+	float imat[4][4];	/* inverse matrix of 'obmat' for during render, old game engine, temporally: ipokeys of transform  */
+} ObTfmBack;
+
+void *object_tfm_backup(Object *ob)
+{
+	ObTfmBack *obtfm= MEM_mallocN(sizeof(ObTfmBack), "ObTfmBack");
+	copy_v3_v3(obtfm->loc, ob->loc);
+	copy_v3_v3(obtfm->dloc, ob->dloc);
+	copy_v3_v3(obtfm->orig, ob->orig);
+	copy_v3_v3(obtfm->size, ob->size);
+	copy_v3_v3(obtfm->dsize, ob->dsize);
+	copy_v3_v3(obtfm->rot, ob->rot);
+	copy_v3_v3(obtfm->drot, ob->drot);
+	copy_qt_qt(obtfm->quat, ob->quat);
+	copy_qt_qt(obtfm->dquat, ob->dquat);
+	copy_v3_v3(obtfm->rotAxis, ob->rotAxis);
+	copy_v3_v3(obtfm->drotAxis, ob->drotAxis);
+	obtfm->rotAngle= ob->rotAngle;
+	obtfm->drotAngle= ob->drotAngle;
+	copy_m4_m4(obtfm->obmat, ob->obmat);
+	copy_m4_m4(obtfm->parentinv, ob->parentinv);
+	copy_m4_m4(obtfm->constinv, ob->constinv);
+	copy_m4_m4(obtfm->imat, ob->imat);
+
+	return (void *)obtfm;
+}
+
+void object_tfm_restore(Object *ob, void *obtfm_pt)
+{
+	ObTfmBack *obtfm= (ObTfmBack *)obtfm_pt;
+	copy_v3_v3(ob->loc, obtfm->loc);
+	copy_v3_v3(ob->dloc, obtfm->dloc);
+	copy_v3_v3(ob->orig, obtfm->orig);
+	copy_v3_v3(ob->size, obtfm->size);
+	copy_v3_v3(ob->dsize, obtfm->dsize);
+	copy_v3_v3(ob->rot, obtfm->rot);
+	copy_v3_v3(ob->drot, obtfm->drot);
+	copy_qt_qt(ob->quat, obtfm->quat);
+	copy_qt_qt(ob->dquat, obtfm->dquat);
+	copy_v3_v3(ob->rotAxis, obtfm->rotAxis);
+	copy_v3_v3(ob->drotAxis, obtfm->drotAxis);
+	ob->rotAngle= obtfm->rotAngle;
+	ob->drotAngle= obtfm->drotAngle;
+	copy_m4_m4(ob->obmat, obtfm->obmat);
+	copy_m4_m4(ob->parentinv, obtfm->parentinv);
+	copy_m4_m4(ob->constinv, obtfm->constinv);
+	copy_m4_m4(ob->imat, obtfm->imat);
+}
 
 /* proxy rule: lib_object->proxy_from == the one we borrow from, only set temporal and cleared here */
 /*           local_object->proxy      == pointer to library object, saved in files and read */

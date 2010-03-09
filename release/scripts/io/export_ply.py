@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -42,7 +42,7 @@ Only one mesh can be exported at a time.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 # Vector rounding se we can use as keys
 #
 # Updated on Aug 11, 2008 by Campbell Barton
@@ -127,23 +127,20 @@ def write(filename, scene, ob, \
         vertexColors = False
 
     if faceUV:
-        active_uv_layer = None
-        for lay in mesh.uv_textures:
-            if lay.active:
-                active_uv_layer = lay.data
-                break
+        active_uv_layer = mesh.active_uv_texture
         if not active_uv_layer:
             EXPORT_UV = False
             faceUV = None
+        else:
+            active_uv_layer = active_uv_layer.data
 
     if vertexColors:
-        active_col_layer = None
-        for lay in mesh.vertex_colors:
-            if lay.active:
-                active_col_layer = lay.data
+        active_col_layer = mesh.active_vertex_color
         if not active_col_layer:
             EXPORT_COLORS = False
             vertexColors = None
+        else:
+            active_col_layer = active_col_layer.data
 
     # incase
     color = uvcoord = uvcoord_key = normal = normal_key = None
@@ -275,6 +272,7 @@ class ExportPLY(bpy.types.Operator):
 
 
     path = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen=1024, default="")
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
     use_modifiers = BoolProperty(name="Apply Modifiers", description="Apply Modifiers to the exported mesh", default=True)
     use_normals = BoolProperty(name="Normals", description="Export Normals for smooth and hard shaded faces", default=True)
     use_uvs = BoolProperty(name="UVs", description="Exort the active UV layer", default=True)
@@ -315,15 +313,19 @@ class ExportPLY(bpy.types.Operator):
         row.prop(props, "use_colors")
 
 
-bpy.types.register(ExportPLY)
-
-
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".ply")
-    self.layout.operator(ExportPLY.bl_idname, text="Stanford (.ply)...").path = default_path
+    self.layout.operator(ExportPLY.bl_idname, text="Stanford (.ply)").path = default_path
 
-bpy.types.INFO_MT_file_export.append(menu_func)
+
+def register():
+    bpy.types.register(ExportPLY)
+    bpy.types.INFO_MT_file_export.append(menu_func)
+
+
+def unregister():
+    bpy.types.unregister(ExportPLY)
+    bpy.types.INFO_MT_file_export.remove(menu_func)
 
 if __name__ == "__main__":
-    bpy.ops.export.ply(path="/tmp/test.ply")
-
+    register()

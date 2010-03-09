@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -69,7 +69,7 @@ static int time_set_sfra_exec (bContext *C, wmOperator *op)
 	if (PEFRA < frame) frame= PEFRA;
 		
 	/* if Preview Range is defined, set the 'start' frame for that */
-	if (scene->r.psfra)
+	if (PRVRANGEON)
 		scene->r.psfra= frame;
 	else
 		scene->r.sfra= frame;
@@ -84,7 +84,7 @@ void TIME_OT_start_frame_set (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Start Frame";
 	ot->idname= "TIME_OT_start_frame_set";
-	ot->description="Set the start frame.";
+	ot->description="Set the start frame";
 	
 	/* api callbacks */
 	ot->exec= time_set_sfra_exec;
@@ -109,7 +109,7 @@ static int time_set_efra_exec (bContext *C, wmOperator *op)
 	if (PSFRA > frame) frame= PSFRA;
 		
 	/* if Preview Range is defined, set the 'end' frame for that */
-	if (scene->r.pefra)
+	if (PRVRANGEON)
 		scene->r.pefra= frame;
 	else
 		scene->r.efra= frame;
@@ -124,7 +124,7 @@ void TIME_OT_end_frame_set (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set End Frame";
 	ot->idname= "TIME_OT_end_frame_set";
-	ot->description="Set the end frame.";
+	ot->description="Set the end frame";
 	
 	/* api callbacks */
 	ot->exec= time_set_efra_exec;

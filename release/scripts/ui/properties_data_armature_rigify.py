@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -49,7 +49,7 @@ PoseTemplateSettings.BoolProperty(attr="generate_def_rig",
                 description="Create a copy of the metarig, constrainted by the generated rig",
                 default=False)
 
-bpy.types.Scene.PointerProperty(attr="pose_templates", type=PoseTemplateSettings, name="Network Render", description="Network Render Settings")
+bpy.types.Scene.PointerProperty(attr="pose_templates", type=PoseTemplateSettings, name="Pose Templates", description="Pose Template Settings")
 
 
 def metarig_templates():
@@ -252,8 +252,7 @@ class AsScript(bpy.types.Operator):
 
     bl_idname = "pose.metarig_to_script"
     bl_label = "Write Metarig to Script"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     path = StringProperty(name="File Path", description="File path used for exporting the Armature file", maxlen=1024, default="")
 
@@ -309,7 +308,10 @@ class ActiveClear(bpy.types.Operator):
 
     def execute(self, context):
         scene = context.scene
-        del context.active_pose_bone["type"]
+        try:
+            del context.active_pose_bone["type"]
+        except:
+            return {'CANCELLED'}
         return {'FINISHED'}
 
 
@@ -327,24 +329,42 @@ class INFO_MT_armature_metarig_add(bpy.types.Menu):
             text = bpy.utils.display_name(submodule_type)
             layout.operator("pose.metarig_sample_add", text=text, icon='OUTLINER_OB_ARMATURE').metarig_type = submodule_type
 
-bpy.types.register(DATA_PT_template)
+classes = [
+    DATA_PT_template,
 
-bpy.types.register(PoseTemplateSettings)
-bpy.types.register(PoseTemplate)
+    PoseTemplateSettings,
+    PoseTemplate,
 
-bpy.types.register(Reload)
-bpy.types.register(Generate)
-bpy.types.register(Validate)
-bpy.types.register(Sample)
-bpy.types.register(Graph)
-bpy.types.register(AsScript)
+    Reload,
+    Generate,
+    Validate,
+    Sample,
+    Graph,
+    AsScript,
 
-bpy.types.register(ActiveAssign)
-bpy.types.register(ActiveClear)
+    ActiveAssign,
+    ActiveClear,
 
+    INFO_MT_armature_metarig_add]
 
-bpy.types.register(INFO_MT_armature_metarig_add)
-
-import space_info
 menu_func = (lambda self, context: self.layout.menu("INFO_MT_armature_metarig_add", icon='OUTLINER_OB_ARMATURE'))
-space_info.INFO_MT_armature_add.append(menu_func)
+import space_info # ensure the menu is loaded first
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+    space_info.INFO_MT_armature_add.append(menu_func)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+    bpy.types.INFO_MT_armature_add.remove(menu_func)
+
+if __name__ == "__main__":
+    register()

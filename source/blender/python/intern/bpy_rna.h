@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Campbell Barton
  *
@@ -32,6 +32,8 @@
 
 extern PyTypeObject pyrna_struct_Type;
 extern PyTypeObject pyrna_prop_Type;
+extern PyTypeObject pyrna_prop_array_Type;
+extern PyTypeObject pyrna_prop_collection_Type;
 
 #define BPy_StructRNA_Check(v)			(PyObject_TypeCheck(v, &pyrna_struct_Type))
 #define BPy_StructRNA_CheckExact(v)		(Py_TYPE(v) == &pyrna_struct_Type)
@@ -70,24 +72,19 @@ PyObject *BPY_rna_module( void );
 void	  BPY_update_rna_module( void );
 /*PyObject *BPY_rna_doc( void );*/
 PyObject *BPY_rna_types( void );
-PyObject *BPY_rna_props( void );
 
 PyObject *pyrna_struct_CreatePyObject( PointerRNA *ptr );
 PyObject *pyrna_prop_CreatePyObject( PointerRNA *ptr, PropertyRNA *prop );
 
 /* operators also need this to set args */
-int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyObject *value, const char *error_prefix);
+int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, void *data, PyObject *value, const char *error_prefix);
 int pyrna_pydict_to_props(PointerRNA *ptr, PyObject *kw, int all_args, const char *error_prefix);
 PyObject * pyrna_prop_to_py(PointerRNA *ptr, PropertyRNA *prop);
 
-/* functions for setting up new props - experemental */
-PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw);
-PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw);
+PyObject *pyrna_enum_bitfield_to_py(struct EnumPropertyItem *items, int value);
+int pyrna_set_to_enum_bitfield(EnumPropertyItem *items, PyObject *value, int *r_value, const char *error_prefix);
+
+int pyrna_enum_value_from_id(EnumPropertyItem *item, const char *identifier, int *value, const char *error_prefix);
 
 /* function for registering types */
 PyObject *pyrna_basetype_register(PyObject *self, PyObject *args);
@@ -100,11 +97,11 @@ void pyrna_alloc_types(void);
 void pyrna_free_types(void);
 
 /* primitive type conversion */
-int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, char *param_data, PyObject *py, const char *error_prefix);
+int pyrna_py_to_array(PointerRNA *ptr, PropertyRNA *prop, ParameterList *parms, char *param_data, PyObject *py, const char *error_prefix);
 int pyrna_py_to_array_index(PointerRNA *ptr, PropertyRNA *prop, int arraydim, int arrayoffset, int index, PyObject *py, const char *error_prefix);
 
 PyObject *pyrna_py_from_array(PointerRNA *ptr, PropertyRNA *prop);
-PyObject *pyrna_py_from_array_index(BPy_PropertyRNA *self, int index);
+PyObject *pyrna_py_from_array_index(BPy_PropertyRNA *self, PointerRNA *ptr, PropertyRNA *prop, int index);
 PyObject *pyrna_math_object_from_array(PointerRNA *ptr, PropertyRNA *prop);
 int pyrna_array_contains_py(PointerRNA *ptr, PropertyRNA *prop, PyObject *value);
 

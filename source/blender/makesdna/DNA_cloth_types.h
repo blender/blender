@@ -15,7 +15,7 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program; if not, write to the Free Software Foundation,
-* Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
 * The Original Code is Copyright (C) 2006 by NaN Holding BV.
 * All rights reserved.
@@ -47,10 +47,7 @@ typedef struct ClothSimSettings
 	float 	mingoal; 	/* see SB */
 	float	Cdis;		/* Mechanical damping of springs.		*/
 	float	Cvi;		/* Viscous/fluid damping.			*/
-	/* XXX the extra space here results in wrong DNA parsing,
-	 * and reconstruct fails and gives corrupt settings when
-	 * removing it because the old dna is wrong ... */
-	float	gravity [3];	/* Gravity/external force vector.		*/
+	float	gravity[3];	/* Gravity/external force vector.		*/
 	float	dt;		/* This is the duration of our time step, computed.	*/
 	float	mass;		/* The mass of the entire cloth.		*/
 	float	structural;	/* Structural spring stiffness.			*/
@@ -69,6 +66,8 @@ typedef struct ClothSimSettings
 	float	goalspring;
 	float	goalfrict;
 	float	velocity_smooth; /* smoothing of velocities for hair */
+	float	collider_friction; /* friction with colliders */
+
 	int 	stepsPerFrame;	/* Number of time steps per frame.		*/
 	int	flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
 	int	preroll;	/* How many frames of simulation to do before we start.	*/

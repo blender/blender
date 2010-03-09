@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -210,3 +210,14 @@ def basic_force_field_falloff_ui(self, context, field):
     sub = col.column()
     sub.active = field.use_max_distance
     sub.prop(field, "maximum_distance", text="Distance")
+
+
+def register():
+    pass
+
+
+def unregister():
+    pass
+
+if __name__ == "__main__":
+    register()

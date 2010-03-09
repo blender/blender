@@ -21,7 +21,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -60,7 +60,7 @@ typedef struct Global {
 	/* strings of recent opend files */
 	struct ListBase recent_files;
         
-	short afbreek, moving;
+	short afbreek, moving, file_loaded;
 	short background;
 	short winpos, displaymode;	/* used to be in Render */
 	short rendering;			/* to indicate render is busy, prevent renderwindow events etc */
@@ -113,7 +113,7 @@ typedef struct Global {
 /* #define G_FACESELECT	(1 <<  8) use (mesh->editflag & ME_EDIT_PAINT_MASK) */
 
 #define G_DEBUG			(1 << 12)
-#define G_DOSCRIPTLINKS (1 << 13)
+#define G_SCRIPT_AUTOEXEC (1 << 13)
 
 /* #define G_NOFROZEN	(1 << 17) also removed */
 #define G_GREASEPENCIL 	(1 << 17)

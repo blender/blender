@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -277,7 +277,13 @@ int add_name(char *str)
 	if((str[0]==0) /*  || (str[1]==0) */) return -1;
 
 	if (str[0] == '(' && str[1] == '*') {
-		if (debugSDNA > 3) printf("\t\t\t\t*** Function pointer found\n");
+		/* we handle function pointer and special array cases here, e.g.
+		   void (*function)(...) and float (*array)[..]. the array case
+		   name is still converted to (array*)() though because it is that
+		   way in old dna too, and works correct with elementsize() */
+		int isfuncptr = (strchr(str+1, '(')) != NULL;
+
+		if (debugSDNA > 3) printf("\t\t\t\t*** Function pointer or multidim array pointer found\n");
 		/* functionpointer: transform the type (sometimes) */
 		i = 0;
 		j = 0;
@@ -302,7 +308,15 @@ int add_name(char *str)
 		if (debugSDNA > 3) printf("seen %c ( %d) \n", str[j], str[j]); 
 		if (debugSDNA > 3) printf("special after offset %d\n", j); 
 				
-		if (str[j] == 0 ) {
+		if (!isfuncptr) {
+			/* multidimensional array pointer case */
+			if(str[j] == 0) {
+				if (debugSDNA > 3) printf("offsetting for multidim array pointer\n");
+			}
+			else
+				printf("Error during tokening multidim array pointer\n");
+		}
+		else if (str[j] == 0 ) {
 			if (debugSDNA > 3) printf("offsetting for space\n"); 
 			/* get additional offset */
 			k = 0;
@@ -685,7 +699,7 @@ static int calculate_structlens(int firststruct)
 				for(b=0; b<structpoin[1]; b++, sp+=2) {
 					type= sp[0];
 					cp= names[sp[1]];
-					
+
 					namelen= (int) strlen(cp);
 					/* is it a pointer or function pointer? */
 					if(cp[0]=='*' || cp[1]=='*') {
@@ -715,6 +729,10 @@ static int calculate_structlens(int firststruct)
 						len += sizeof(void *) * mul;
 						alphalen += 8 * mul;
 
+					} else if(cp[0]=='[') {
+						/* parsing can cause names "var" and "[3]" to be found for "float var [3]" ... */
+						printf("Parse error in struct, invalid member name: %s %s\n", types[structtype], cp);
+						dna_error = 1;
 					} else if( typelens[type] ) {
 						/* has the name an extra length? (array) */
 						mul= 1;
@@ -1050,10 +1068,10 @@ int make_structDNA(char *baseDirectory, FILE *file)
 
 /* ************************* END MAKE DNA ********************** */
 
-static void make_bad_file(char *file)
+static void make_bad_file(char *file, int line)
 {
 	FILE *fp= fopen(file, "w");
-	fprintf(fp, "ERROR! Cannot make correct DNA.c file, STUPID!\n");
+	fprintf(fp, "#error \"Error! can't make correct DNA.c file from %s:%d, STUPID!\"\n", __FILE__, line);
 	fclose(fp);
 }
 
@@ -1087,7 +1105,7 @@ int main(int argc, char ** argv)
 			if (make_structDNA(baseDirectory, file)) {
 				// error
 				fclose(file);
-				make_bad_file(argv[1]);
+				make_bad_file(argv[1], __LINE__);
 				return_status = 1;
 			} else {
 				fprintf(file, "};\n");

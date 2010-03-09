@@ -69,4 +69,6 @@ CPPFLAGS += -I$(NAN_STRING)/include
 CPPFLAGS += -I$(NAN_MEMUTIL)/include
 CPPFLAGS += -I..
 CPPFLAGS += -I$(OPENGL_HEADERS)
+CPPFLAGS += -I../../../source/blender/imbuf
+CPPFLAGS += -I../../../source/blender/makesdna
 

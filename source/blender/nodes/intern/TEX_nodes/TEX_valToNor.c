@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -41,29 +41,29 @@ static bNodeSocketType outputs[]= {
 
 static void normalfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float new_coord[3];
-	float *coord = p->coord;
+	float new_co[3];
+	float *co = p->co;
 
 	float nabla = tex_input_value(in[1], p, thread);	
 	float val;
 	float nor[3];
 	
 	TexParams np = *p;
-	np.coord = new_coord;
+	np.co = new_co;
 
 	val = tex_input_value(in[0], p, thread);
 
-	new_coord[0] = coord[0] + nabla;
-	new_coord[1] = coord[1];
-	new_coord[2] = coord[2];
+	new_co[0] = co[0] + nabla;
+	new_co[1] = co[1];
+	new_co[2] = co[2];
 	nor[0] = tex_input_value(in[0], &np, thread);
 
-	new_coord[0] = coord[0];
-	new_coord[1] = coord[1] + nabla;
+	new_co[0] = co[0];
+	new_co[1] = co[1] + nabla;
 	nor[1] = tex_input_value(in[0], &np, thread);
 	
-	new_coord[1] = coord[1];
-	new_coord[2] = coord[2] + nabla;
+	new_co[1] = co[1];
+	new_co[2] = co[2] + nabla;
 	nor[2] = tex_input_value(in[0], &np, thread);
 
 	out[0] = val-nor[0];

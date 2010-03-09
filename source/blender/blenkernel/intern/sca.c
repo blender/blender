@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -139,7 +139,7 @@ void init_sensor(bSensor *sens)
 		break;
 	case SENS_MOUSE:
 		ms=sens->data= MEM_callocN(sizeof(bMouseSensor), "mousesens");
-		//XXX ms->type= LEFTMOUSE;
+		ms->type= 1; // LEFTMOUSE workaround because Mouse Sensor types enum starts in 1
 		break;
 	case SENS_COLLISION:
 		sens->data= MEM_callocN(sizeof(bCollisionSensor), "colsens");

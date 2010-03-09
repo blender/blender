@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -76,6 +76,12 @@ void end_render_materials(void);
 int material_in_material(struct Material *parmat, struct Material *mat);
 
 void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col);
+
+/* copy/paste */
+void clear_matcopybuf(void);
+void free_matcopybuf(void);
+void copy_matcopybuf(struct Material *ma);
+void paste_matcopybuf(struct Material *ma);
 
 #ifdef __cplusplus
 }

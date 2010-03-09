@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -35,6 +35,7 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "DNA_anim_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
@@ -43,8 +44,11 @@
 #include "DNA_text_types.h"
 #include "DNA_scene_types.h"
 
+#include "RNA_access.h"
+
 #include "BKE_blender.h"
 #include "BKE_colortools.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -53,6 +57,7 @@
 #include "BKE_texture.h"
 #include "BKE_text.h"
 #include "BKE_utildefines.h"
+#include "BKE_animsys.h" /* BKE_free_animdata only */
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -904,7 +909,7 @@ void nodeAddSockets(bNode *node, bNodeType *ntype)
 /* Find the first available, non-duplicate name for a given node */
 void nodeUniqueName(bNodeTree *ntree, bNode *node)
 {
-	BLI_uniquename(&ntree->nodes, node, "Node", '.', offsetof(bNode, name), 32);
+	BLI_uniquename(&ntree->nodes, node, "Node", '.', offsetof(bNode, name), sizeof(node->name));
 }
 
 bNode *nodeAddNodeType(bNodeTree *ntree, int type, bNodeTree *ngroup, ID *id)
@@ -1100,10 +1105,12 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 		/* is ntree part of library? */
 		for(newtree=G.main->nodetree.first; newtree; newtree= newtree->id.next)
 			if(newtree==ntree) break;
-		if(newtree)
+		if(newtree) {
 			newtree= copy_libblock(ntree);
-		else
+		} else {
 			newtree= MEM_dupallocN(ntree);
+			copy_libblock_data(&newtree->id, &ntree->id); /* copy animdata and ID props */
+		}
 		newtree->nodes.first= newtree->nodes.last= NULL;
 		newtree->links.first= newtree->links.last= NULL;
 	}
@@ -1339,6 +1346,8 @@ void ntreeFreeTree(bNodeTree *ntree)
 	
 	ntreeEndExecTree(ntree);	/* checks for if it is still initialized */
 	
+	BKE_free_animdata((ID *)ntree);
+
 	BLI_freelistN(&ntree->links);	/* do first, then unlink_node goes fast */
 	
 	for(node= ntree->nodes.first; node; node= next) {
@@ -1947,7 +1956,7 @@ static void composit_begin_exec(bNodeTree *ntree, int is_group)
 			}
 		}
 		/* cannot initialize them while using in threads */
-		if(ELEM3(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB)) {
+		if(ELEM4(node->type, CMP_NODE_TIME, CMP_NODE_CURVE_VEC, CMP_NODE_CURVE_RGB, CMP_NODE_HUECORRECT)) {
 			curvemapping_initialize(node->storage);
 			if(node->type==CMP_NODE_CURVE_RGB)
 				curvemapping_premultiply(node->storage, 0);
@@ -2865,6 +2874,54 @@ void ntreeCompositTagRender(Scene *curscene)
 	}
 }
 
+static int node_animation_properties(bNodeTree *ntree, bNode *node)
+{
+	bNodeSocket *sock;
+	const ListBase *lb;
+	Link *link;
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	
+	/* check to see if any of the node's properties have fcurves */
+	RNA_pointer_create((ID *)ntree, &RNA_Node, node, &ptr);
+	lb = RNA_struct_defined_properties(ptr.type);
+	
+	for (link=lb->first; link; link=link->next) {
+		int driven, len=1, index;
+		prop = (PropertyRNA *)link;
+		
+		if (RNA_property_array_check(&ptr, prop))
+			len = RNA_property_array_length(&ptr, prop);
+		
+		for (index=0; index<len; index++) {
+			if (rna_get_fcurve(&ptr, prop, index, NULL, &driven)) {
+				NodeTagChanged(ntree, node);
+				return 1;
+			}
+		}
+	}
+	
+	/* now check node sockets */
+	for (sock = node->inputs.first; sock; sock=sock->next) {
+		int driven, len=1, index;
+		
+		RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
+		prop = RNA_struct_find_property(&ptr, "default_value");
+		
+		if (RNA_property_array_check(&ptr, prop))
+			len = RNA_property_array_length(&ptr, prop);
+		
+		for (index=0; index<len; index++) {
+			if (rna_get_fcurve(&ptr, prop, index, NULL, &driven)) {
+				NodeTagChanged(ntree, node);
+				return 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 /* tags nodes that have animation capabilities */
 int ntreeCompositTagAnimated(bNodeTree *ntree)
 {
@@ -2874,6 +2931,10 @@ int ntreeCompositTagAnimated(bNodeTree *ntree)
 	if(ntree==NULL) return 0;
 	
 	for(node= ntree->nodes.first; node; node= node->next) {
+		
+		tagged = node_animation_properties(ntree, node);
+		
+		/* otherwise always tag these node types */
 		if(node->type==CMP_NODE_IMAGE) {
 			Image *ima= (Image *)node->id;
 			if(ima && ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
@@ -2983,6 +3044,8 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_invert);
 	nodeRegisterType(ntypelist, &cmp_node_alphaover);
 	nodeRegisterType(ntypelist, &cmp_node_zcombine);
+	nodeRegisterType(ntypelist, &cmp_node_colorbalance);
+	nodeRegisterType(ntypelist, &cmp_node_huecorrect);
 	
 	nodeRegisterType(ntypelist, &cmp_node_normal);
 	nodeRegisterType(ntypelist, &cmp_node_curve_vec);

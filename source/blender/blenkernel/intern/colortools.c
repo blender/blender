@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -143,6 +143,7 @@ void curvemapping_free(CurveMapping *cumap)
 		for(a=0; a<CM_TOT; a++) {
 			if(cumap->cm[a].curve) MEM_freeN(cumap->cm[a].curve);
 			if(cumap->cm[a].table) MEM_freeN(cumap->cm[a].table);
+			if(cumap->cm[a].premultable) MEM_freeN(cumap->cm[a].premultable);
 		}
 		MEM_freeN(cumap);
 	}
@@ -159,6 +160,8 @@ CurveMapping *curvemapping_copy(CurveMapping *cumap)
 				cumapn->cm[a].curve= MEM_dupallocN(cumap->cm[a].curve);
 			if(cumap->cm[a].table) 
 				cumapn->cm[a].table= MEM_dupallocN(cumap->cm[a].table);
+			if(cumap->cm[a].premultable) 
+				cumapn->cm[a].premultable= MEM_dupallocN(cumap->cm[a].premultable);
 		}
 		return cumapn;
 	}
@@ -791,8 +794,7 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	
 	pix_in= ibuf->rect_float;
 	pix_out= tmpbuf->rect_float;
-//	pixc= (char *)ibuf->rect;
-	
+
 	if(ibuf->channels)
 		stride= ibuf->channels;
 	
@@ -817,7 +819,6 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	IMB_rect_from_float(tmpbuf);
 	SWAP(unsigned int *, tmpbuf->rect, ibuf->rect);
 	IMB_freeImBuf(tmpbuf);
-	
 	
 	curvemapping_premultiply(cumap, 1);
 }
@@ -878,3 +879,91 @@ void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
 	}
 }
 
+/* ***************** Histogram **************** */
+
+DO_INLINE int get_bin_float(float f)
+{
+	int bin= (int)(f*255);
+
+	/* note: clamp integer instead of float to avoid problems with NaN */
+	CLAMP(bin, 0, 255);
+	
+	//return (int) (((f + 0.25) / 1.5) * 255);
+	
+	return bin;
+}
+
+
+void histogram_update(Histogram *hist, ImBuf *ibuf)
+{
+	int x, y, n;
+	double div;
+	float *rf;
+	unsigned char *rc;
+	unsigned int *bin_r, *bin_g, *bin_b;
+	
+	if (hist->ok == 1 ) return;
+	
+	if (hist->xmax == 0.f) hist->xmax = 1.f;
+	if (hist->ymax == 0.f) hist->ymax = 1.f;
+	
+	/* hmmmm */
+	if (!(ELEM(ibuf->channels, 3, 4))) return;
+	
+	hist->channels = 3;
+	
+	bin_r = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	bin_g = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	bin_b = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	
+	if (ibuf->rect_float) {
+		hist->x_resolution = 256;
+		
+		/* divide into bins */
+		rf = ibuf->rect_float;
+		for (y = 0; y < ibuf->y; y++) {
+			for (x = 0; x < ibuf->x; x++) {
+				bin_r[ get_bin_float(rf[0]) ] += 1;
+				bin_g[ get_bin_float(rf[1]) ] += 1;
+				bin_b[ get_bin_float(rf[2]) ] += 1;
+				rf+= ibuf->channels;
+			}
+		}
+	}
+	else if (ibuf->rect) {
+		hist->x_resolution = 256;
+		
+		rc = (unsigned char *)ibuf->rect;
+		for (y = 0; y < ibuf->y; y++) {
+			for (x = 0; x < ibuf->x; x++) {
+				bin_r[ rc[0] ] += 1;
+				bin_g[ rc[1] ] += 1;
+				bin_b[ rc[2] ] += 1;
+				rc += ibuf->channels;
+			}
+		}
+	}
+	
+	/* convert to float */
+	n=0;
+	for (x=0; x<256; x++) {
+		if (bin_r[x] > n)
+			n = bin_r[x];
+		if (bin_g[x] > n)
+			n = bin_g[x];
+		if (bin_b[x] > n)
+			n = bin_b[x];
+	}
+	div = 1.f/(double)n;
+	for (x=0; x<256; x++) {
+		hist->data_r[x] = bin_r[x] * div;
+		hist->data_g[x] = bin_g[x] * div;
+		hist->data_b[x] = bin_b[x] * div;
+	}
+	
+	MEM_freeN(bin_r);
+	MEM_freeN(bin_g);
+	MEM_freeN(bin_b);
+	
+	hist->ok=1;
+}

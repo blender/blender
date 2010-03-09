@@ -12,15 +12,15 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
 
 import bpy
-from rigify import get_layer_dict, RigifyError
-from rigify_utils import bone_class_instance, copy_bone_simple
+from rigify import RigifyError
+from rigify_utils import copy_bone_simple
 
 METARIG_NAMES = tuple()
 RIG_TYPE = "stretch"
@@ -65,7 +65,7 @@ def main(obj, bone_definition, base_names, options):
         raise RigifyError("'%s' rig type 'to' parameter must be a string (bone: %s)" % (RIG_TYPE, base_names[bone_definition[0]]))
     if ("ORG-" + options["to"]) not in obj.data.bones:
         raise RigifyError("'%s' rig type 'to' parameter must name a bone in the metarig (bone: %s)" % (RIG_TYPE, base_names[bone_definition[0]]))
-    
+
     preserve_volume = None
     # Check optional parameter
     if "preserve_volume" in options:
@@ -73,14 +73,14 @@ def main(obj, bone_definition, base_names, options):
             preserve_volume = bool_map[options["preserve_volume"]]
         except KeyError:
             preserve_volume = False
-    
+
     eb = obj.data.edit_bones
     bb = obj.data.bones
     pb = obj.pose.bones
-        
+
     bpy.ops.object.mode_set(mode='EDIT')
     arm = obj.data
-    
+
     mbone1 = bone_definition[0]
     mbone2 = "ORG-" + options["to"]
 
@@ -90,14 +90,14 @@ def main(obj, bone_definition, base_names, options):
     bone_e.tail = eb[mbone2].head
     bone = bone_e.name
 
-    
+
     bpy.ops.object.mode_set(mode='OBJECT')
 
     # Constraints
     con = pb[bone].constraints.new('DAMPED_TRACK')
     con.target = obj
     con.subtarget = mbone2
-    
+
     con = pb[bone].constraints.new('STRETCH_TO')
     con.target = obj
     con.subtarget = mbone2

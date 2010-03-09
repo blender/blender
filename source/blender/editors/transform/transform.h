@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -31,6 +31,7 @@
 #define TRANSFORM_H
 
 #include "ED_transform.h"
+#include "ED_numinput.h"
 
 #include "DNA_listBase.h"
 
@@ -69,14 +70,6 @@ typedef struct NDofInput {
 	float	factor[3];
 } NDofInput;
 
-typedef struct NumInput {
-    short  idx;
-    short  idx_max;
-    short  flag;        /* Different flags to indicate different behaviors                                */
-    char   inv[3];      /* If the value is inverted or not                                                */
-    float  val[3];      /* Direct value of the input                                                      */
-    int    ctrl[3];     /* Control to indicate what to do with the numbers that are typed                 */
-} NumInput ;
 
 /*
 	The ctrl value has different meaning:
@@ -336,6 +329,7 @@ typedef struct TransInfo {
 	struct wmTimer *animtimer;
     short       mval[2];        /* current mouse position               */
     struct Object   *obedit;
+    void		*draw_handle_apply;
     void		*draw_handle_view;
     void		*draw_handle_pixel;
     void		*draw_handle_cursor;
@@ -343,13 +337,6 @@ typedef struct TransInfo {
 
 
 /* ******************** Macros & Prototypes *********************** */
-
-/* NUMINPUT FLAGS */
-#define NUM_NULL_ONE		2
-#define NUM_NO_NEGATIVE		4
-#define	NUM_NO_ZERO			8
-#define NUM_NO_FRACTION		16
-#define	NUM_AFFECT_ALL		32
 
 /* NDOFINPUT FLAGS */
 #define NDOF_INIT			1
@@ -359,6 +346,12 @@ typedef struct TransInfo {
 #define TRANS_RUNNING	1
 #define TRANS_CONFIRM	2
 #define TRANS_CANCEL	3
+
+/* transinfo->redraw */
+#define TREDRAW_NOTHING  	0
+#define TREDRAW_HARD		1
+#define TREDRAW_SOFT		2
+
 
 /* transinfo->flag */
 #define T_OBJECT		(1 << 0)
@@ -451,7 +444,7 @@ void TRANSFORM_OT_transform(struct wmOperatorType *ot);
 int initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event, int mode);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
 int  transformEvent(TransInfo *t, struct wmEvent *event);
-void transformApply(struct bContext *C, TransInfo *t);
+void transformApply(const struct bContext *C, TransInfo *t);
 int  transformEnd(struct bContext *C, TransInfo *t);
 
 void setTransformViewMatrices(TransInfo *t);
@@ -682,14 +675,6 @@ void calculatePropRatio(TransInfo *t);
 
 void getViewVector(TransInfo *t, float coord[3], float vec[3]);
 
-/*********************** NumInput ********************************/
-
-void initNumInput(NumInput *n);
-void outputNumInput(NumInput *n, char *str);
-short hasNumInput(NumInput *n);
-void applyNumInput(NumInput *n, float *vec);
-char handleNumInput(NumInput *n, struct wmEvent *event);
-
 /*********************** NDofInput ********************************/
 
 void initNDofInput(NDofInput *n);
@@ -734,5 +719,3 @@ int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
 void freeSlideVerts(TransInfo *t);
 
 #endif
-
-

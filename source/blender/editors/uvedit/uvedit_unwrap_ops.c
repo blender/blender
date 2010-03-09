@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -702,14 +702,14 @@ static void uv_map_transform(bContext *C, wmOperator *op, float center[3], float
 static void uv_transform_properties(wmOperatorType *ot, int radius)
 {
 	static EnumPropertyItem direction_items[]= {
-		{VIEW_ON_EQUATOR, "VIEW_ON_EQUATOR", 0, "View on Equator", "3D view is on the equator."},
-		{VIEW_ON_POLES, "VIEW_ON_POLES", 0, "View on Poles", "3D view is on the poles."},
-		{ALIGN_TO_OBJECT, "ALIGN_TO_OBJECT", 0, "Align to Object", "Align according to object transform."},
+		{VIEW_ON_EQUATOR, "VIEW_ON_EQUATOR", 0, "View on Equator", "3D view is on the equator"},
+		{VIEW_ON_POLES, "VIEW_ON_POLES", 0, "View on Poles", "3D view is on the poles"},
+		{ALIGN_TO_OBJECT, "ALIGN_TO_OBJECT", 0, "Align to Object", "Align according to object transform"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem align_items[]= {
-		{POLAR_ZX, "POLAR_ZX", 0, "Polar ZX", "Polar 0 is X."},
-		{POLAR_ZY, "POLAR_ZY", 0, "Polar ZY", "Polar 0 is Y."},
+		{POLAR_ZX, "POLAR_ZX", 0, "Polar ZX", "Polar 0 is X"},
+		{POLAR_ZY, "POLAR_ZY", 0, "Polar ZY", "Polar 0 is Y"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -910,30 +910,58 @@ static void uv_from_view_bounds(float target[2], float source[3], float rotmat[4
 	target[1] = pv[2];
 }
 
-static void uv_from_camera(float camsize, float xasp, float yasp, float target[2], float source[3], float rotmat[4][4], float cammat[4][4], int persp)
-{
+typedef struct UvCameraInfo {
+	float camangle;
+	float camsize;
+	float xasp, yasp;
+	float shiftx, shifty;
+	float rotmat[4][4];
+	float caminv[4][4];
+	short do_persp, do_pano;
+} UvCameraInfo;
 
+//static void uv_from_camera(float camsize, float camangle, float xasp, float yasp, float target[2], float source[3], float rotmat[4][4], float caminv[4][4], int persp, int pano)
+static void uv_from_camera(UvCameraInfo *uci, float target[2], float source[3])
+{
 	float pv4[4];
 
 	copy_v3_v3(pv4, source);
 	pv4[3]= 1.0;
 
 	/* rotmat is the object matrix in this case */
-	mul_m4_v4(rotmat, pv4);
+	mul_m4_v4(uci->rotmat, pv4);
 
-	/* cammat is the inverse camera matrix */
-	mul_m4_v4(cammat, pv4);
+	/* caminv is the inverse camera matrix */
+	mul_m4_v4(uci->caminv, pv4);
 
-	if (pv4[2]==0.0f) pv4[2]=0.00001f; /* don't allow div by 0 */
-
-	if (persp&&CAM_ORTHO) {
-		target[0]=((pv4[0]/camsize)*xasp)+0.5f;
-		target[1]=((pv4[1]/camsize)*yasp)+0.5f;
+	if(uci->do_pano) {
+		float angle= atan2f(pv4[0], -pv4[2]) / (M_PI * 2.0); /* angle around the camera */
+		if (uci->do_persp==0) {
+			target[0] = angle; /* no correct method here, just map to  0-1 */
+			target[1] = pv4[1] / uci->camsize;
+		}
+		else {
+			float vec2d[2]= {pv4[0], pv4[2]}; /* 2D position from the camera */
+			target[0] = angle * (M_PI / uci->camangle);
+			target[1] = pv4[1] / (len_v2(vec2d) * uci->camsize);
+		}
 	}
 	else {
-		target[0]=((-pv4[0]*(camsize/pv4[2])*xasp)/2)+0.5;
-		target[1]=((-pv4[1]*(camsize/pv4[2])*yasp)/2)+0.5;
+		if (pv4[2]==0.0f) pv4[2]=0.00001f; /* don't allow div by 0 */
+
+		if (uci->do_persp==0) {
+			target[0]=(pv4[0]/uci->camsize) * uci->xasp;
+			target[1]=(pv4[1]/uci->camsize) * uci->yasp;
+		}
+		else {
+			target[0]=(-pv4[0]*((1.0f/uci->camsize)/pv4[2])*uci->xasp) / 2.0f;
+			target[1]=(-pv4[1]*((1.0f/uci->camsize)/pv4[2])*uci->yasp) / 2.0f;
+		}
 	}
+
+	/* adds camera shift + 0.5 */
+	target[0] += uci->shiftx;
+	target[1] += uci->shifty;
 }
 
 static void uv_from_view(ARegion *ar, float target[2], float source[3], float rotmat[4][4])
@@ -985,13 +1013,13 @@ static int from_view_exec(bContext *C, wmOperator *op)
 	Camera *camera= NULL;
 	BMEditMesh *em= ((Mesh*)obedit->data)->edit_btmesh;
 	ARegion *ar = CTX_wm_region(C);
+	View3D *v3d= CTX_wm_view3d(C);
 	RegionView3D *rv3d= CTX_wm_region_view3d(C);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
-	float invmat[4][4],rotmat[4][4];
-	float xasp, yasp, camsize;
+	float rotmat[4][4];
 
 	/* add uvs if they don't exist yet */
 	if(!ED_uvedit_ensure_uvs(C, scene, obedit)) {
@@ -999,8 +1027,8 @@ static int from_view_exec(bContext *C, wmOperator *op)
 	}
 
 	/* establish the camera object, so we can default to view mapping if anything is wrong with it */
-	if ((rv3d->persp==RV3D_CAMOB) && (scene->camera) && (scene->camera->type==OB_CAMERA)) {
-		camera=scene->camera->data;
+	if ((rv3d->persp==RV3D_CAMOB) && (v3d->camera) && (v3d->camera->type==OB_CAMERA)) {
+		camera= v3d->camera->data;
 	}
 
 	if(RNA_boolean_get(op->ptr, "orthographic")) {
@@ -1017,34 +1045,41 @@ static int from_view_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else if (camera) {
-		
-		if (camera->type==CAM_PERSP) {
-			camsize=1/tan(DEG2RAD(camera->angle)/2.0f); /* calcs ez as distance from camera plane to viewer */
-		}
-		else {
-			camsize=camera->ortho_scale;
-		}
+		UvCameraInfo uci;
 
-		if (invert_m4_m4(invmat,scene->camera->obmat)) {
-			copy_m4_m4(rotmat, obedit->obmat);
+		uci.do_pano = (camera->flag & CAM_PANORAMA);
+		uci.do_persp = (camera->type==CAM_PERSP);
+
+		uci.camangle= DEG2RAD(camera->angle)/2.0f;
+		uci.camsize=  uci.do_persp ?  uci.camsize= tanf(uci.camangle) : camera->ortho_scale;
+
+		if (invert_m4_m4(uci.caminv, v3d->camera->obmat)) {
+
+			/* normal projection */
+			copy_m4_m4(uci.rotmat, obedit->obmat);
 
 			/* also make aspect ratio adjustment factors */
 			if (scene->r.xsch > scene->r.ysch) {
-				xasp=1;
-				yasp=(float)(scene->r.xsch)/(float)(scene->r.ysch);
+				uci.xasp= 1.0f;
+				uci.yasp= (float)(scene->r.xsch)/(float)(scene->r.ysch);
 			}
 			else {
-				xasp=(float)(scene->r.ysch)/(float)(scene->r.xsch);
-				yasp=1;
+				uci.xasp= (float)(scene->r.ysch)/(float)(scene->r.xsch);
+				uci.yasp= 1.0f;
 			}
 			
+
+			/* include 0.5f here to move the UVs into the center */
+			uci.shiftx = 0.5f - camera->shiftx;
+			uci.shifty = 0.5f - camera->shifty;
+
 			BM_ITER(efa, &iter, em->bm, BM_FACES_OF_MESH, NULL) {
 				if (!BM_TestHFlag(efa, BM_SELECT))
 					continue;
 
 				BM_ITER(l, &liter, em->bm, BM_LOOPS_OF_FACE, efa) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					uv_from_camera(camsize, xasp, yasp, luv->uv, l->v->co, rotmat, invmat, camera->type);
+					uv_from_camera(&uci, luv->uv, l->v->co);
 				}
 			}
 		}

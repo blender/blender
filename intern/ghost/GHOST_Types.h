@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -173,7 +173,8 @@ typedef enum {
 	GHOST_kEventDraggingUpdated,
 	GHOST_kEventDraggingExited,
 	GHOST_kEventDraggingDropDone,
-	GHOST_kEventDraggingDropOnIcon,
+	
+	GHOST_kEventOpenMainFile, // Needed for Cocoa to open double-clicked .blend file at startup
 
 	GHOST_kEventTimer,
 
@@ -204,6 +205,7 @@ typedef enum {
 	GHOST_kStandardCursorTopRightCorner,
 	GHOST_kStandardCursorBottomRightCorner,
 	GHOST_kStandardCursorBottomLeftCorner,
+	GHOST_kStandardCursorCopy,
 	GHOST_kStandardCursorCustom, 
 	GHOST_kStandardCursorNumCursors, 
 	GHOST_kStandardCursorPencil

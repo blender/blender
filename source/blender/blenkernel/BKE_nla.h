@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -83,6 +83,7 @@ struct NlaStrip *BKE_nlastrip_find_active(struct NlaTrack *nlt);
 void BKE_nlastrip_set_active(struct AnimData *adt, struct NlaStrip *strip);
 
 short BKE_nlastrip_within_bounds(struct NlaStrip *strip, float min, float max);
+void BKE_nlastrip_recalculate_bounds(struct NlaStrip *strip);
 
 void BKE_nlastrip_validate_name(struct AnimData *adt, struct NlaStrip *strip);
 

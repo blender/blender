@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -148,26 +148,14 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 		}
 		break;
 
-	case GHOST_kEventDraggingDropOnIcon:
+	case GHOST_kEventOpenMainFile:
 		{
-			GHOST_TEventDragnDropData* dragnDropData = (GHOST_TEventDragnDropData*)((GHOST_IEvent*)event)->getData();
-			std::cout << "GHOST_kEventDraggingDropOnIcon, dragged object type : " << dragnDropData->dataType;
-			switch (dragnDropData->dataType) {
-				case GHOST_kDragnDropTypeString:
-					std::cout << " string received = " << (char*)dragnDropData->data;
-					break;
-				case GHOST_kDragnDropTypeFilenames:
-				{
-					GHOST_TStringArray *strArray = (GHOST_TStringArray*)dragnDropData->data;
-					int i;
-					std::cout << "\nReceived " << strArray->count << " filenames";
-					for (i=0;i<strArray->count;i++)
-						std::cout << " Filename #" << i << ": " << strArray->strings[i];
-				}
-					break;
-				default:
-					break;
-			}
+			GHOST_TEventDataPtr eventData = ((GHOST_IEvent*)event)->getData();
+			
+			if (eventData)
+				std::cout << "GHOST_kEventOpenMainFile for path : " << (char*)eventData;
+			else
+				std::cout << "GHOST_kEventOpenMainFile with no path specified!!";
 		}
 		break;
 			

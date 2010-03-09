@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -145,28 +145,12 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
         var.targets[0].id = obj
         var.targets[0].data_path = driver_path
 
-    def blend_location(new_pbone, from_bone_name, to_bone_name):
-        con = new_pbone.constraints.new('COPY_LOCATION')
+    def blend_transforms(new_pbone, from_bone_name, to_bone_name):
+        con = new_pbone.constraints.new('COPY_TRANSFORMS')
         con.target = obj
         con.subtarget = from_bone_name
 
-        con = new_pbone.constraints.new('COPY_LOCATION')
-        con.target = obj
-        con.subtarget = to_bone_name
-
-        fcurve = con.driver_add("influence", 0)
-        driver = fcurve.driver
-        driver.type = 'AVERAGE'
-        fcurve.modifiers.remove(0) # grr dont need a modifier
-
-        blend_target(driver)
-
-    def blend_rotation(new_pbone, from_bone_name, to_bone_name):
-        con = new_pbone.constraints.new('COPY_ROTATION')
-        con.target = obj
-        con.subtarget = from_bone_name
-
-        con = new_pbone.constraints.new('COPY_ROTATION')
+        con = new_pbone.constraints.new('COPY_TRANSFORMS')
         con.target = obj
         con.subtarget = to_bone_name
 
@@ -187,12 +171,7 @@ def blend_bone_list(obj, apply_bones, from_bones, to_bones, target_bone=None, ta
 
         new_pbone = obj.pose.bones[new_bone_name]
 
-        # if the bone is connected or its location is totally locked then dont add location blending.
-        if not (new_pbone.bone.connected or (False not in new_pbone.lock_location)):
-            blend_location(new_pbone, from_bone_name, to_bone_name)
-
-        if not (False not in new_pbone.lock_rotation): # TODO. 4D chech?
-            blend_rotation(new_pbone, from_bone_name, to_bone_name)
+        blend_transforms(new_pbone, from_bone_name, to_bone_name)
 
 
 def add_pole_target_bone(obj, base_bone_name, name, mode='CROSS'):
@@ -225,8 +204,8 @@ def add_pole_target_bone(obj, base_bone_name, name, mode='CROSS'):
         offset.length = distance
     elif mode == 'ZAVERAGE':
         # between both bones Z axis
-        z_axis_a = base_ebone.matrix.copy().rotationPart() * Vector(0.0, 0.0, -1.0)
-        z_axis_b = parent_ebone.matrix.copy().rotationPart() * Vector(0.0, 0.0, -1.0)
+        z_axis_a = base_ebone.matrix.copy().rotation_part() * Vector(0.0, 0.0, -1.0)
+        z_axis_b = parent_ebone.matrix.copy().rotation_part() * Vector(0.0, 0.0, -1.0)
         offset = (z_axis_a + z_axis_b).normalize() * distance
     else:
         # preset axis
@@ -294,8 +273,8 @@ def write_meta_rig(obj, func_name="metarig_template"):
     for bone_name in bones:
         bone = arm.edit_bones[bone_name]
         code.append("    bone = arm.edit_bones.new('%s')" % bone.name)
-        code.append("    bone.head[:] = %.4f, %.4f, %.4f" % bone.head.toTuple(4))
-        code.append("    bone.tail[:] = %.4f, %.4f, %.4f" % bone.tail.toTuple(4))
+        code.append("    bone.head[:] = %.4f, %.4f, %.4f" % bone.head.to_tuple(4))
+        code.append("    bone.tail[:] = %.4f, %.4f, %.4f" % bone.tail.to_tuple(4))
         code.append("    bone.roll = %.4f" % bone.roll)
         code.append("    bone.connected = %s" % str(bone.connected))
         if bone.parent:
@@ -340,10 +319,11 @@ def bone_class_instance(obj, slots, name="BoneContainer"):
     there are also utility functions for manipulating all members.
     '''
 
+    attr_names = tuple(slots) # dont modify the original
+
     if len(slots) != len(set(slots)):
         raise Exception("duplicate entries found %s" % attr_names)
 
-    attr_names = tuple(slots) # dont modify the original
     slots = list(slots) # dont modify the original
     for i in range(len(slots)):
         member = slots[i]

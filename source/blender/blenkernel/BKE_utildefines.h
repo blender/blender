@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -230,5 +230,13 @@ extern "C" {
 }
 #endif
 
+/*little macro so inline keyword works*/
+#if defined(_MSC_VER)
+#define BM_INLINE static __forceinline
+#else
+#define BM_INLINE static inline __attribute((always_inline))
 #endif
 
+#define BMEMSET(mem, val, size) {unsigned int _i; char *_c = (char*) mem; for (_i=0; _i<size; _i++) *_c++ = val;}
+
+#endif

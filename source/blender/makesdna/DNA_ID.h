@@ -19,7 +19,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -197,6 +197,8 @@ typedef struct PreviewImage {
 #define ID_NLA		MAKE_ID2('N', 'L')
 			/* fluidsim Ipo */
 #define ID_FLUIDSIM	MAKE_ID2('F', 'S')
+
+#define ID_REAL_USERS(id) (((ID *)id)->us - ((((ID *)id)->flag & LIB_FAKEUSER) ? 1:0))
 
 /* id->flag: set frist 8 bits always at zero while reading */
 #define LIB_LOCAL		0

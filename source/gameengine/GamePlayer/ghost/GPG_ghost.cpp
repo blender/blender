@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -65,6 +65,7 @@ extern "C"
 #include "BLO_readfile.h"
 #include "BLO_readblenfile.h"
 #include "IMB_imbuf.h"
+#include "BKE_text.h"
 	
 	int GHOST_HACK_getFirstFile(char buf[]);
 	
@@ -195,6 +196,17 @@ void usage(const char* program)
 	printf("                   anaglyph         (Red-Blue glasses)\n");
 	printf("                   vinterlace       (Vertical interlace for autostereo display)\n");
 	printf("                             depending on the type of stereo you want\n\n");
+	printf("  -D: start player in dome mode\n");
+	printf("       --Optional parameters--\n");
+	printf("       angle    = field of view in degrees\n");
+	printf("       tilt     = tilt angle in degrees\n");
+	printf("       warpdata = a file to use for warping the image (absolute path)\n");	
+	printf("       mode: fisheye                (Fisheye)\n");
+	printf("             truncatedfront         (Front-Truncated)\n");
+	printf("             truncatedrear          (Rear-Truncated)\n");
+	printf("             cubemap                (Cube Map)\n");
+	printf("             sphericalpanoramic     (Spherical Panoramic)\n");
+	printf("                             depending on the type of dome you are using\n\n");
 #ifndef _WIN32
 	printf("  -i: parent windows ID \n\n");
 #endif
@@ -310,6 +322,12 @@ int main(int argc, char** argv)
 	RAS_IRasterizer::StereoMode stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
 	bool stereoWindow = false;
 	bool stereoParFound = false;
+	int stereoFlag = STEREO_NOSTEREO;
+	int domeFov = -1;
+	int domeTilt = -200;
+	int domeMode = 0;
+	char* domeWarp = NULL;
+	Text *domeText  = NULL;
 	int windowLeft = 100;
 	int windowTop = 100;
 	int windowWidth = 640;
@@ -525,30 +543,31 @@ int main(int argc, char** argv)
 						stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
 					
 					// only the hardware pageflip method needs a stereo window
-					if(!strcmp(argv[i], "hwpageflip")) {
+					else if(!strcmp(argv[i], "hwpageflip")) {
 						stereomode = RAS_IRasterizer::RAS_STEREO_QUADBUFFERED;
 						stereoWindow = true;
 					}
-					if(!strcmp(argv[i], "syncdoubling"))
+					else if(!strcmp(argv[i], "syncdoubling"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_ABOVEBELOW;
 					
-					if(!strcmp(argv[i], "anaglyph"))
+					else if(!strcmp(argv[i], "anaglyph"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_ANAGLYPH;
 					
-					if(!strcmp(argv[i], "sidebyside"))
+					else if(!strcmp(argv[i], "sidebyside"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_SIDEBYSIDE;
 					
-					if(!strcmp(argv[i], "vinterlace"))
+					else if(!strcmp(argv[i], "vinterlace"))
 						stereomode = RAS_IRasterizer::RAS_STEREO_VINTERLACE;
 					
 #if 0
 					// future stuff
-					if(strcmp(argv[i], "stencil")
+					else if(!strcmp(argv[i], "stencil")
 						stereomode = RAS_STEREO_STENCIL;
 #endif
 					
 					i++;
 					stereoParFound = true;
+					stereoFlag = STEREO_ENABLED;
 				}
 				else
 				{
@@ -556,8 +575,49 @@ int main(int argc, char** argv)
 					printf("error: too few options for stereo argument.\n");
 				}
 				break;
+			case 'D':
+				stereoFlag = STEREO_DOME;
+				stereomode = RAS_IRasterizer::RAS_STEREO_DOME;
+				i++;
+				if ((i + 1) < argc)
+				{
+					if(!strcmp(argv[i], "angle")){
+						i++;
+						domeFov = atoi(argv[i++]);
+					}
+					if(!strcmp(argv[i], "tilt")){
+						i++;
+						domeTilt = atoi(argv[i++]);
+					}
+					if(!strcmp(argv[i], "warpdata")){
+						i++;
+						domeWarp = argv[i++];
+					}
+					if(!strcmp(argv[i], "mode")){
+						i++;
+						if(!strcmp(argv[i], "fisheye"))
+							domeMode = DOME_FISHEYE;
+							
+						else if(!strcmp(argv[i], "truncatedfront"))
+							domeMode = DOME_TRUNCATED_FRONT;
+							
+						else if(!strcmp(argv[i], "truncatedrear"))
+							domeMode = DOME_TRUNCATED_REAR;
+							
+						else if(!strcmp(argv[i], "cubemap"))
+							domeMode = DOME_ENVMAP;
+							
+						else if(!strcmp(argv[i], "sphericalpanoramic"))
+							domeMode = DOME_PANORAM_SPH;
+
+						else
+							printf("error: %s is not a valid dome mode.\n", argv[i]);
+					}
+					i++;
+				}
+				break;
 			default:
-				printf("Unkown argument: %s\n", argv[i++]);
+				printf("Unknown argument: %s\n", argv[i++]);
 				break;
 			}
 		}
@@ -712,6 +772,28 @@ int main(int argc, char** argv)
 								stereomode = (RAS_IRasterizer::StereoMode) scene->gm.stereomode;
 								if (stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 									stereoWindow = true;
+							}
+						}
+						else
+							scene->gm.stereoflag = STEREO_ENABLED;
+
+						if (stereoFlag == STEREO_DOME){
+							stereomode = RAS_IRasterizer::RAS_STEREO_DOME;
+							scene->gm.stereoflag = STEREO_DOME;
+							if (domeFov > 89)
+								scene->gm.dome.angle = domeFov;
+							if (domeTilt > -180)
+								scene->gm.dome.tilt = domeTilt;
+							if (domeMode > 0)
+								scene->gm.dome.mode = domeMode;
+							if (domeWarp)
+							{
+								//XXX to do: convert relative to absolute path
+								domeText= add_text(domeWarp, "");
+								if(!domeText)
+									printf("error: invalid warpdata text file - %s\n", domeWarp);
+								else
+									scene->gm.dome.warptext = domeText;
 							}
 						}
 						

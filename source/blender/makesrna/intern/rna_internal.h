@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Blender Foundation (2008).
  *
@@ -331,6 +331,7 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 /* Functions */
 
 int rna_parameter_size(struct PropertyRNA *parm);
+int rna_parameter_size_alloc(struct PropertyRNA *parm);
 
 #endif /* RNA_INTERNAL_H */
 

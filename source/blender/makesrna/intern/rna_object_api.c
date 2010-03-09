@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -343,7 +343,7 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 	}
 
 	Mesh *me = (Mesh*)ob->data;
-	int group_index = get_defgroup_num(ob, group);
+	int group_index = defgroup_find_index(ob, group);
 	if (group_index == -1) {
 		BKE_report(reports, RPT_ERROR, "No deform groups assigned to mesh.");
 		return;
@@ -417,15 +417,15 @@ void RNA_api_object(StructRNA *srna)
 	PropertyRNA *parm;
 
 	static EnumPropertyItem mesh_type_items[] = {
-		{0, "PREVIEW", 0, "Preview", "Apply modifier preview settings."},
-		{1, "RENDER", 0, "Render", "Apply modifier render settings."},
+		{0, "PREVIEW", 0, "Preview", "Apply modifier preview settings"},
+		{1, "RENDER", 0, "Render", "Apply modifier render settings"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	static EnumPropertyItem assign_mode_items[] = {
-		{WEIGHT_REPLACE, "REPLACE", 0, "Replace", "Replace."}, /* TODO: more meaningful descriptions */
-		{WEIGHT_ADD, "ADD", 0, "Add", "Add."},
-		{WEIGHT_SUBTRACT, "SUBTRACT", 0, "Subtract", "Subtract."},
+		{WEIGHT_REPLACE, "REPLACE", 0, "Replace", "Replace"}, /* TODO: more meaningful descriptions */
+		{WEIGHT_ADD, "ADD", 0, "Add", "Add"},
+		{WEIGHT_SUBTRACT, "SUBTRACT", 0, "Subtract", "Subtract"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -497,13 +497,13 @@ void RNA_api_object(StructRNA *srna)
 	/* return location and normal */
 	parm= RNA_def_float_vector(func, "location", 3, NULL, -FLT_MAX, FLT_MAX, "Location", "The hit location of this ray cast", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
-	RNA_def_function_return_mark(func, parm);
+	RNA_def_function_output(func, parm);
 	parm= RNA_def_float_vector(func, "normal", 3, NULL, -FLT_MAX, FLT_MAX, "Normal", "The face normal at the ray cast hit location", -1e4, 1e4);
 	RNA_def_property_flag(parm, PROP_THICK_WRAP);
-	RNA_def_function_return_mark(func, parm);
+	RNA_def_function_output(func, parm);
 	
 	parm= RNA_def_int(func, "index", 0, 0, 0, "", "The face index, -1 when no intersection is found.", 0, 0);
-	RNA_def_function_return_mark(func, parm);
+	RNA_def_function_output(func, parm);
 
 	
 	/* DAG */

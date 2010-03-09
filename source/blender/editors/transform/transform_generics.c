@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -323,6 +323,21 @@ static void animrecord_check_state (Scene *scene, ID *id, wmTimer *animtimer)
 	}
 }
 
+static int fcu_test_selected(FCurve *fcu)
+{
+	BezTriple *bezt= fcu->bezt;
+	int i;
+
+	if(bezt==NULL) /* ignore baked */
+		return 0;
+
+	for (i=0; i < fcu->totvert; i++, bezt++) {
+		if (BEZSELECTED(bezt)) return 1;
+	}
+
+	return 0;
+}
+
 /* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
@@ -337,6 +352,7 @@ void recalcData(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		Scene *scene= t->scene;
+		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
 		
 		bAnimContext ac;
 		ListBase anim_data = {NULL, NULL};
@@ -360,10 +376,14 @@ void recalcData(TransInfo *t)
 		filter= (ANIMFILTER_VISIBLE | ANIMFILTER_ANIMDATA);
 		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 		
-		/* just tag these animdata-blocks to recalc, assuming that some data there changed */
-		for (ale= anim_data.first; ale; ale= ale->next) {
-			/* set refresh tags for objects using this animation */
-			ANIM_list_elem_update(t->scene, ale);
+		/* just tag these animdata-blocks to recalc, assuming that some data there changed 
+		 * BUT only do this if realtime updates are enabled
+		 */
+		if ((saction->flag & SACTION_NOREALTIMEUPDATES) == 0) {
+			for (ale= anim_data.first; ale; ale= ale->next) {
+				/* set refresh tags for objects using this animation */
+				ANIM_list_elem_update(t->scene, ale);
+			}
 		}
 		
 		/* now free temp channels */
@@ -371,6 +391,7 @@ void recalcData(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		Scene *scene;
+		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
 		
 		ListBase anim_data = {NULL, NULL};
 		bAnimContext ac;
@@ -403,15 +424,27 @@ void recalcData(TransInfo *t)
 		/* now test if there is a need to re-sort */
 		for (ale= anim_data.first; ale; ale= ale->next) {
 			FCurve *fcu= (FCurve *)ale->key_data;
+
+			/* ignore unselected fcurves */
+			if(!fcu_test_selected(fcu))
+				continue;
+
+			// fixme: only do this for selected verts...
+			ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYSEL|ANIM_UNITCONV_SELVERTS|ANIM_UNITCONV_RESTORE);
+			
 			
 			/* watch it: if the time is wrong: do not correct handles yet */
 			if (test_time_fcurve(fcu))
 				dosort++;
 			else
 				calchandles_fcurve(fcu);
-				
-			/* set refresh tags for objects using this animation */
-			ANIM_list_elem_update(t->scene, ale);
+			
+			/* set refresh tags for objects using this animation,
+			 * BUT only if realtime updates are enabled  
+			 */
+			if ((sipo->flag & SIPO_NOREALTIMEUPDATES) == 0)
+				ANIM_list_elem_update(t->scene, ale);
+
 		}
 		
 		/* do resort and other updates? */
@@ -441,8 +474,11 @@ void recalcData(TransInfo *t)
 			if (tdn->handle == 0)
 				continue;
 			
-			/* set refresh tags for objects using this animation */
-			ANIM_id_update(t->scene, tdn->id);
+			/* set refresh tags for objects using this animation,
+			 * BUT only if realtime updates are enabled  
+			 */
+			if ((snla->flag & SNLA_NOREALTIMEUPDATES) == 0)
+				ANIM_id_update(t->scene, tdn->id);
 			
 			/* if cancelling transform, just write the values without validating, then move on */
 			if (t->state == TRANS_CANCEL) {
@@ -765,16 +801,6 @@ void recalcData(TransInfo *t)
 		else {
 			int i;
 			
-			for(base= FIRSTBASE; base; base= base->next) {
-				Object *ob= base->object;
-				
-				/* this flag is from depgraph, was stored in initialize phase, handled in drawview.c */
-				if(base->flag & BA_HAS_RECALC_OB)
-					ob->recalc |= OB_RECALC_OB;
-				if(base->flag & BA_HAS_RECALC_DATA)
-					ob->recalc |= OB_RECALC_DATA;
-			}
-				
 			for (i = 0; i < t->total; i++) {
 				TransData *td = t->data + i;
 				Object *ob = td->ob;
@@ -795,11 +821,10 @@ void recalcData(TransInfo *t)
 					autokeyframe_ob_cb_func(NULL, t->scene, (View3D *)t->view, ob, t->mode);
 				}
 				
-				/* proxy exception */
-				if(ob->proxy)
-					ob->proxy->recalc |= ob->recalc;
-				if(ob->proxy_group)
-					group_tag_recalc(ob->proxy_group->dup_group);
+				/* sets recalc flags fully, instead of flushing existing ones 
+				 * otherwise proxies don't function correctly
+				 */
+				DAG_id_flush_update(&ob->id, OB_RECALC);  
 			}
 		}
 		
@@ -936,6 +961,7 @@ int initTransInfo (bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->animtimer= CTX_wm_screen(C)->animtimer;
 
 		/* turn manipulator off during transform */
+		// FIXME: but don't do this when USING the manipulator...
 		if (t->flag & T_MODAL) {
 			t->twtype = v3d->twtype;
 			v3d->twtype = 0;
@@ -1071,6 +1097,8 @@ void postTrans (bContext *C, TransInfo *t)
 
 	if (t->draw_handle_view)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_view);
+	if (t->draw_handle_apply)
+		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_apply);
 	if (t->draw_handle_pixel)
 		ED_region_draw_cb_exit(t->ar->type, t->draw_handle_pixel);
 	if (t->draw_handle_cursor)
@@ -1446,7 +1474,11 @@ void calculatePropRatio(TransInfo *t)
 			else {
 				/* Use rdist for falloff calculations, it is the real distance */
 				td->flag &= ~TD_NOACTION;
-				dist= (t->prop_size-td->rdist)/t->prop_size;
+
+				if (connected)
+					dist= (t->prop_size-td->dist)/t->prop_size;
+				else
+					dist= (t->prop_size-td->rdist)/t->prop_size;
 
 				/*
 				 * Clamp to positive numbers.

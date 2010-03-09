@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -39,6 +39,7 @@
 #define EVT_DATA_TABLET		1
 #define EVT_DATA_GESTURE	2
 #define EVT_DATA_TIMER		3
+#define EVT_DATA_LISTBASE	4
 
 /* tablet active, matches GHOST_TTabletMode */
 #define EVT_TABLET_NONE		0
@@ -265,6 +266,8 @@
 /* event->type */
 #define EVT_BUT_OPEN	0x5021
 #define EVT_MODAL_MAP	0x5022
+#define EVT_DROP		0x5023
+#define EVT_BUT_CANCEL	0x5024
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
 #define GESTURE_MODAL_CANCEL		1

@@ -99,11 +99,13 @@ extern "C"
 #include <float.h>
 
 // #define COLLADA_DEBUG
-#define ARMATURE_TEST
+
+// creates empties for each imported bone on layer 2, for debugging
+// #define ARMATURE_TEST
 
 char *CustomData_get_layer_name(const struct CustomData *data, int type, int n);
 
-const char *primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type)
+static const char *primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type)
 {
 	using namespace COLLADAFW;
 	
@@ -129,7 +131,8 @@ const char *primTypeToStr(COLLADAFW::MeshPrimitive::PrimitiveType type)
 	}
 	return "UNKNOWN";
 }
-const char *geomTypeToStr(COLLADAFW::Geometry::GeometryType type)
+
+static const char *geomTypeToStr(COLLADAFW::Geometry::GeometryType type)
 {
 	switch (type) {
 	case COLLADAFW::Geometry::GEO_TYPE_MESH:
@@ -146,7 +149,7 @@ const char *geomTypeToStr(COLLADAFW::Geometry::GeometryType type)
 
 // works for COLLADAFW::Node, COLLADAFW::Geometry
 template<class T>
-const char *get_dae_name(T *node)
+static const char *get_dae_name(T *node)
 {
 	const std::string& name = node->getName();
 	return name.size() ? name.c_str() : node->getOriginalId().c_str();
@@ -154,13 +157,13 @@ const char *get_dae_name(T *node)
 
 // use this for retrieving bone names, since these must be unique
 template<class T>
-const char *get_joint_name(T *node)
+static const char *get_joint_name(T *node)
 {
 	const std::string& id = node->getOriginalId();
 	return id.size() ? id.c_str() : node->getName().c_str();
 }
 
-float get_float_value(const COLLADAFW::FloatOrDoubleArray& array, int index)
+static float get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigned int index)
 {
 	if (index >= array.getValuesCount())
 		return 0.0f;
@@ -197,7 +200,7 @@ public:
 
 		unit_m4(mat);
 		
-		for (int i = 0; i < node->getTransformations().getCount(); i++) {
+		for (unsigned int i = 0; i < node->getTransformations().getCount(); i++) {
 
 			COLLADAFW::Transformation *tm = node->getTransformations()[i];
 			COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
@@ -406,7 +409,7 @@ private:
 
 			// cannot transfer data for FloatOrDoubleArray, copy values manually
 			const COLLADAFW::FloatOrDoubleArray& weight = skin->getWeights();
-			for (int i = 0; i < weight.getValuesCount(); i++)
+			for (unsigned int i = 0; i < weight.getValuesCount(); i++)
 				weights.push_back(get_float_value(weight, i));
 
 			unit_converter->dae_matrix_to_mat4(bind_shape_matrix, skin->getBindShapeMatrix());
@@ -438,7 +441,7 @@ private:
 			controller_uid = co->getUniqueId();
 
 			const COLLADAFW::UniqueIdArray& joint_uids = co->getJoints();
-			for (int i = 0; i < joint_uids.getCount(); i++) {
+			for (unsigned int i = 0; i < joint_uids.getCount(); i++) {
 				joint_data[i].joint_uid = joint_uids[i];
 
 				// // store armature pointer
@@ -489,7 +492,7 @@ private:
 			}
 
 			COLLADAFW::NodePointerArray& children = node->getChildNodes();
-			for (int i = 0; i < children.getCount(); i++) {
+			for (unsigned int i = 0; i < children.getCount(); i++) {
 				if (this->uses_joint(children[i]))
 					return true;
 			}
@@ -543,9 +546,9 @@ private:
 
 			// get def group by index with BLI_findlink
 
-			for (int vertex = 0, weight = 0; vertex < joints_per_vertex.getCount(); vertex++) {
+			for (unsigned int vertex = 0, weight = 0; vertex < joints_per_vertex.getCount(); vertex++) {
 
-				int limit = weight + joints_per_vertex[vertex];
+				unsigned int limit = weight + joints_per_vertex[vertex];
 				for ( ; weight < limit; weight++) {
 					int joint = joint_indices[weight], joint_weight = weight_indices[weight];
 
@@ -677,7 +680,7 @@ private:
 		}
 
 		COLLADAFW::NodePointerArray& children = node->getChildNodes();
-		for (int i = 0; i < children.getCount(); i++) {
+		for (unsigned int i = 0; i < children.getCount(); i++) {
 			create_bone(skin, children[i], bone, children.getCount(), mat, arm);
 		}
 
@@ -942,7 +945,7 @@ public:
 		// at this stage we get vertex influence info that should go into me->verts and ob->defbase
 		// there's no info to which object this should be long so we associate it with skin controller data UID
 
-		// don't forget to call unique_vertexgroup_name before we copy
+		// don't forget to call defgroup_unique_name before we copy
 
 		// controller data uid -> [armature] -> joint data, 
 		// [mesh object]
@@ -953,7 +956,7 @@ public:
 
 		// store join inv bind matrix to use it later in armature construction
 		const COLLADAFW::Matrix4Array& inv_bind_mats = data->getInverseBindMatrices();
-		for (int i = 0; i < data->getJointsCount(); i++) {
+		for (unsigned int i = 0; i < data->getJointsCount(); i++) {
 			skin.add_joint(inv_bind_mats[i]);
 		}
 
@@ -1243,11 +1246,10 @@ private:
 	bool is_nice_mesh(COLLADAFW::Mesh *mesh)
 	{
 		COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
-		int i;
 
 		const char *name = get_dae_name(mesh);
 		
-		for (i = 0; i < prim_arr.getCount(); i++) {
+		for (unsigned i = 0; i < prim_arr.getCount(); i++) {
 			
 			COLLADAFW::MeshPrimitive *mp = prim_arr[i];
 			COLLADAFW::MeshPrimitive::PrimitiveType type = mp->getPrimitiveType();
@@ -1260,7 +1262,7 @@ private:
 				COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons*)mp;
 				COLLADAFW::Polygons::VertexCountArray& vca = mpvc->getGroupedVerticesVertexCountArray();
 				
-				for(int j = 0; j < vca.getCount(); j++){
+				for(unsigned int j = 0; j < vca.getCount(); j++){
 					int count = vca[j];
 					if (count < 3) {
 						fprintf(stderr, "Primitive %s in %s has at least one face with vertex count < 3\n",
@@ -1290,30 +1292,12 @@ private:
 		me->totvert = mesh->getPositions().getFloatValues()->getCount() / 3;
 		me->mvert = (MVert*)CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
 
-		const COLLADAFW::MeshVertexData& pos = mesh->getPositions();
+		COLLADAFW::MeshVertexData& pos = mesh->getPositions();
 		MVert *mvert;
-		int i, j;
+		int i;
 
-		for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++) {
-			j = i * 3;
-
-			if (pos.getType() == COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT) {
-				const float *array = pos.getFloatValues()->getData();
-				mvert->co[0] = array[j];
-				mvert->co[1] = array[j + 1];
-				mvert->co[2] = array[j + 2];
-			}
-			else if (pos.getType() == COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE){
-				const double *array = pos.getDoubleValues()->getData();
-				mvert->co[0] = (float)array[j];
-				mvert->co[1] = (float)array[j + 1];
-				mvert->co[2] = (float)array[j + 2];
-			}
-			else {
-				fprintf(stderr, "Cannot read vertex positions: unknown data type.\n");
-				break;
-			}
-		}
+		for (i = 0, mvert = me->mvert; i < me->totvert; i++, mvert++)
+			get_vector(mvert->co, pos, i);
 	}
 	
 	int triangulate_poly(unsigned int *indices, int totvert, MVert *verts, std::vector<unsigned int>& tri)
@@ -1369,7 +1353,7 @@ private:
 	int count_new_tris(COLLADAFW::Mesh *mesh, Mesh *me)
 	{
 		COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
-		int i, j;
+		unsigned int i;
 		int tottri = 0;
 		
 		for (i = 0; i < prim_arr.getCount(); i++) {
@@ -1385,7 +1369,7 @@ private:
 				COLLADAFW::Polygons *mpvc =	(COLLADAFW::Polygons*)mp;
 				COLLADAFW::Polygons::VertexCountArray& vcounta = mpvc->getGroupedVerticesVertexCountArray();
 				
-				for (j = 0; j < prim_totface; j++) {
+				for (unsigned int j = 0; j < prim_totface; j++) {
 					int vcount = vcounta[j];
 					
 					if (vcount > 4) {
@@ -1405,14 +1389,14 @@ private:
 	// TODO: import uv set names
 	void read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris)
 	{
-		int i;
+		unsigned int i;
 		
 		// allocate faces
 		me->totface = mesh->getFacesCount() + new_tris;
 		me->mface = (MFace*)CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
 		
 		// allocate UV layers
-		int totuvset = mesh->getUVCoords().getInputInfosArray().getCount();
+		unsigned int totuvset = mesh->getUVCoords().getInputInfosArray().getCount();
 
 		for (i = 0; i < totuvset; i++) {
 			CustomData_add_layer(&me->fdata, CD_MTFACE, CD_CALLOC, NULL, me->totface);
@@ -1436,6 +1420,9 @@ private:
 
 		COLLADAFW::MeshPrimitiveArray& prim_arr = mesh->getMeshPrimitives();
 
+		bool has_normals = mesh->hasNormals();
+		COLLADAFW::MeshVertexData& nor = mesh->getNormals();
+
 		for (i = 0; i < prim_arr.getCount(); i++) {
 			
  			COLLADAFW::MeshPrimitive *mp = prim_arr[i];
@@ -1443,7 +1430,8 @@ private:
 			// faces
 			size_t prim_totface = mp->getFaceCount();
 			unsigned int *indices = mp->getPositionIndices().getData();
-			int j, k;
+			unsigned int *nind = mp->getNormalIndices().getData();
+			unsigned int j, k;
 			int type = mp->getPrimitiveType();
 			int index = 0;
 			
@@ -1473,6 +1461,13 @@ private:
 					}
 
 					test_index_face(mface, &me->fdata, face_index, 3);
+
+					if (has_normals) {
+						if (!flat_face(nind, nor, 3))
+							mface->flag |= ME_SMOOTH;
+
+						nind += 3;
+					}
 					
 					index += 3;
 					mface++;
@@ -1502,6 +1497,13 @@ private:
 						}
 
 						test_index_face(mface, &me->fdata, face_index, vcount);
+
+						if (has_normals) {
+							if (!flat_face(nind, nor, vcount))
+								mface->flag |= ME_SMOOTH;
+
+							nind += vcount;
+						}
 						
 						mface++;
 						face_index++;
@@ -1528,18 +1530,28 @@ private:
 
 							set_face_indices(mface, tri_indices, false);
 							
-							for (int l = 0; l < totuvset; l++) {
+							for (unsigned int l = 0; l < totuvset; l++) {
 								// get mtface by face index and uv set index
 								MTFace *mtface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, l);
 								set_face_uv(&mtface[face_index], uvs, l, *index_list_array[l], uv_indices);
 							}
 
 							test_index_face(mface, &me->fdata, face_index, 3);
+
+							if (has_normals) {
+								unsigned int ntri[3] = {nind[tri[v]], nind[tri[v + 1]], nind[tri[v + 2]]};
+
+								if (!flat_face(ntri, nor, 3))
+									mface->flag |= ME_SMOOTH;
+							}
 							
 							mface++;
 							face_index++;
 							prim.totface++;
 						}
+
+						if (has_normals)
+							nind += vcount;
 					}
 
 					index += vcount;
@@ -1553,6 +1565,58 @@ private:
 		geom_uid_mat_mapping_map[mesh->getUniqueId()] = mat_prim_map;
 	}
 
+	void get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i)
+	{
+		i *= 3;
+
+		switch(arr.getType()) {
+		case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
+			{
+				COLLADAFW::ArrayPrimitiveType<float>* values = arr.getFloatValues();
+				if (values->empty()) return;
+
+				v[0] = (*values)[i++];
+				v[1] = (*values)[i++];
+				v[2] = (*values)[i];
+			}
+			break;
+		case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
+			{
+				COLLADAFW::ArrayPrimitiveType<double>* values = arr.getDoubleValues();
+				if (values->empty()) return;
+
+				v[0] = (float)(*values)[i++];
+				v[1] = (float)(*values)[i++];
+				v[2] = (float)(*values)[i];
+			}
+			break;
+		default:
+			break;
+		}
+	}
+
+	bool flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor, int count)
+	{
+		float a[3], b[3];
+
+		get_vector(a, nor, *nind);
+		normalize_v3(a);
+
+		nind++;
+
+		for (int i = 1; i < count; i++, nind++) {
+			get_vector(b, nor, *nind);
+			normalize_v3(b);
+
+			float dp = dot_v3v3(a, b);
+
+			if (dp < 0.99999f || dp > 1.00001f)
+				return false;
+		}
+
+		return true;
+	}
+
 public:
 
 	MeshImporter(ArmatureImporter *arm, Scene *sce) : scene(sce), armature_importer(arm) {}
@@ -1564,15 +1628,13 @@ public:
 		return NULL;
 	}
 	
-	MTex *assign_textures_to_uvlayer(COLLADAFW::InstanceGeometry::TextureCoordinateBinding &ctexture,
+	MTex *assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBinding &ctexture,
 									 Mesh *me, TexIndexTextureArrayMap& texindex_texarray_map,
 									 MTex *color_texture)
 	{
-		
-		COLLADAFW::TextureMapId texture_index = ctexture.textureMapId;
-		
-		char *uvname = CustomData_get_layer_name(&me->fdata, CD_MTFACE, ctexture.setIndex);
-		
+		COLLADAFW::TextureMapId texture_index = ctexture.getTextureMapId();
+		char *uvname = CustomData_get_layer_name(&me->fdata, CD_MTFACE, ctexture.getSetIndex());
+
 		if (texindex_texarray_map.find(texture_index) == texindex_texarray_map.end()) {
 			
 			fprintf(stderr, "Cannot find texture array by texture index.\n");
@@ -1595,7 +1657,7 @@ public:
 		return color_texture;
 	}
 	
-	MTFace *assign_material_to_geom(COLLADAFW::InstanceGeometry::MaterialBinding cmaterial,
+	MTFace *assign_material_to_geom(COLLADAFW::MaterialBinding cmaterial,
 									std::map<COLLADAFW::UniqueId, Material*>& uid_material_map,
 									Object *ob, const COLLADAFW::UniqueId *geom_uid, 
 									MTex **color_texture, char *layername, MTFace *texture_face,
@@ -1614,7 +1676,7 @@ public:
 		Material *ma = uid_material_map[ma_uid];
 		assign_material(ob, ma, ob->totcol + 1);
 		
-		COLLADAFW::InstanceGeometry::TextureCoordinateBindingArray& tex_array = 
+		COLLADAFW::TextureCoordinateBindingArray& tex_array = 
 			cmaterial.getTextureCoordinateBindingArray();
 		TexIndexTextureArrayMap texindex_texarray_map = material_texture_mapping_map[ma];
 		unsigned int i;
@@ -1714,7 +1776,7 @@ public:
 		MTFace *texture_face = NULL;
 		MTex *color_texture = NULL;
 		
-		COLLADAFW::InstanceGeometry::MaterialBindingArray& mat_array = 
+		COLLADAFW::MaterialBindingArray& mat_array =
 			geom->getMaterialBindings();
 		
 		// loop through geom's materials
@@ -1818,7 +1880,7 @@ private:
 		// COLLADAFW::FloatOrDoubleArray& outtan = curve->getOutTangentValues();
 		float fps = (float)FPS;
 		size_t dim = curve->getOutDimension();
-		int i;
+		unsigned int i;
 
 		std::vector<FCurve*>& fcurves = curve_map[curve->getUniqueId()];
 
@@ -1867,7 +1929,7 @@ private:
 				//fcu->totvert = curve->getKeyCount();
 				
 				// create beztriple for each key
-				for (int j = 0; j < curve->getKeyCount(); j++) {
+				for (unsigned int j = 0; j < curve->getKeyCount(); j++) {
 					BezTriple bez;
 					memset(&bez, 0, sizeof(BezTriple));
 
@@ -1901,92 +1963,12 @@ private:
 
 	void fcurve_deg_to_rad(FCurve *cu)
 	{
-		for (int i = 0; i < cu->totvert; i++) {
+		for (unsigned int i = 0; i < cu->totvert; i++) {
 			// TODO convert handles too
 			cu->bezt[i].vec[1][1] *= M_PI / 180.0f;
 		}
 	}
 
-#if 0
-	void make_fcurves_from_animation(COLLADAFW::AnimationCurve *curve,
-									 COLLADAFW::FloatOrDoubleArray& input,
-									 COLLADAFW::FloatOrDoubleArray& output,
-									 COLLADAFW::FloatOrDoubleArray& intan,
-									 COLLADAFW::FloatOrDoubleArray& outtan, size_t dim, float fps)
-	{
-		int i;
-		// char *path = "location";
-		std::vector<FCurve*>& fcurves = curve_map[curve->getUniqueId()];
-
-		if (dim == 1) {
-			// create fcurve
-			FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
-
-			fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
-			// fcu->rna_path = BLI_strdupn(path, strlen(path));
-			fcu->array_index = 0;
-			//fcu->totvert = curve->getKeyCount();
-			
-			// create beztriple for each key
-			for (i = 0; i < curve->getKeyCount(); i++) {
-				BezTriple bez;
-				memset(&bez, 0, sizeof(BezTriple));
-				// intangent
-				bez.vec[0][0] = get_float_value(intan, i + i) * fps;
-				bez.vec[0][1] = get_float_value(intan, i + i + 1);
-				// input, output
-				bez.vec[1][0] = get_float_value(input, i) * fps;
-				bez.vec[1][1] = get_float_value(output, i);
-				// outtangent
-				bez.vec[2][0] = get_float_value(outtan, i + i) * fps;
-				bez.vec[2][1] = get_float_value(outtan, i + i + 1);
-				
-				bez.ipo = U.ipo_new; /* use default interpolation mode here... */
-				bez.f1 = bez.f2 = bez.f3 = SELECT;
-				bez.h1 = bez.h2 = HD_AUTO;
-				insert_bezt_fcurve(fcu, &bez, 0);
-				calchandles_fcurve(fcu);
-			}
-
-			fcurves.push_back(fcu);
-		}
-		else if(dim == 3) {
-			for (i = 0; i < dim; i++ ) {
-				// create fcurve
-				FCurve *fcu = (FCurve*)MEM_callocN(sizeof(FCurve), "FCurve");
-				
-				fcu->flag = (FCURVE_VISIBLE|FCURVE_AUTO_HANDLES|FCURVE_SELECTED);
-				// fcu->rna_path = BLI_strdupn(path, strlen(path));
-				fcu->array_index = 0;
-				//fcu->totvert = curve->getKeyCount();
-				
-				// create beztriple for each key
-				for (int j = 0; j < curve->getKeyCount(); j++) {
-					BezTriple bez;
-					memset(&bez, 0, sizeof(BezTriple));
-					// intangent
-					bez.vec[0][0] = get_float_value(intan, j * 6 + i + i) * fps;
-					bez.vec[0][1] = get_float_value(intan, j * 6 + i + i + 1);
-					// input, output
-					bez.vec[1][0] = get_float_value(input, j) * fps; 
-					bez.vec[1][1] = get_float_value(output, j * 3 + i);
-					// outtangent
-					bez.vec[2][0] = get_float_value(outtan, j * 6 + i + i) * fps;
-					bez.vec[2][1] = get_float_value(outtan, j * 6 + i + i + 1);
-
-					bez.ipo = U.ipo_new; /* use default interpolation mode here... */
-					bez.f1 = bez.f2 = bez.f3 = SELECT;
-					bez.h1 = bez.h2 = HD_AUTO;
-					insert_bezt_fcurve(fcu, &bez, 0);
-					calchandles_fcurve(fcu);
-				}
-
-				fcurves.push_back(fcu);
-			}
-		}
-	}
-#endif
-	
 	void add_fcurves_to_object(Object *ob, std::vector<FCurve*>& curves, char *rna_path, int array_index, Animation *animated)
 	{
 		bAction *act;
@@ -2343,18 +2325,11 @@ public:
 	// prerequisites:
 	// animlist_map - map animlist id -> animlist
 	// curve_map - map anim id -> curve(s)
-#ifdef ARMATURE_TEST
 	Object *translate_animation(COLLADAFW::Node *node,
 								std::map<COLLADAFW::UniqueId, Object*>& object_map,
 								std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 								COLLADAFW::Transformation::TransformationType tm_type,
 								Object *par_job = NULL)
-#else
-	void translate_animation(COLLADAFW::Node *node,
-							 std::map<COLLADAFW::UniqueId, Object*>& object_map,
-							 std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
-							 COLLADAFW::Transformation::TransformationType tm_type)
-#endif
 	{
 		bool is_rotation = tm_type == COLLADAFW::Transformation::ROTATE;
 		bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
@@ -2364,11 +2339,7 @@ public:
 
 		if (!ob) {
 			fprintf(stderr, "cannot find Object for Node with id=\"%s\"\n", node->getOriginalId().c_str());
-#ifdef ARMATURE_TEST
 			return NULL;
-#else
-			return;
-#endif
 		}
 
 		// frames at which to sample
@@ -2377,9 +2348,7 @@ public:
 		// for each <rotate>, <translate>, etc. there is a separate Transformation
 		const COLLADAFW::TransformationPointerArray& tms = node->getTransformations();
 
-		std::vector<FCurve*> old_curves;
-
-		int i;
+		unsigned int i;
 
 		// find frames at which to sample plus convert all keys to radians
 		for (i = 0; i < tms.getCount(); i++) {
@@ -2394,7 +2363,7 @@ public:
 					const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
 
 					if (bindings.getCount()) {
-						for (int j = 0; j < bindings.getCount(); j++) {
+						for (unsigned int j = 0; j < bindings.getCount(); j++) {
 							std::vector<FCurve*>& curves = curve_map[bindings[j].animation];
 							bool xyz = ((type == COLLADAFW::Transformation::TRANSLATE || type == COLLADAFW::Transformation::SCALE) && bindings[j].animationClass == COLLADAFW::AnimationList::POSITION_XYZ);
 
@@ -2407,7 +2376,7 @@ public:
 									if (is_rotation)
 										fcurve_deg_to_rad(fcu);
 
-									for (int k = 0; k < fcu->totvert; k++) {
+									for (unsigned int k = 0; k < fcu->totvert; k++) {
 										float fra = fcu->bezt[k].vec[1][0];
 										if (std::find(frames.begin(), frames.end(), fra) == frames.end())
 											frames.push_back(fra);
@@ -2415,11 +2384,8 @@ public:
 								}
 							}
 							else {
-								fprintf(stderr, "expected 1 or 3 curves, got %u\n", curves.size());
+								fprintf(stderr, "expected %d curves, got %u\n", xyz ? 3 : 1, curves.size());
 							}
-
-							for (std::vector<FCurve*>::iterator it = curves.begin(); it != curves.end(); it++)
-								old_curves.push_back(*it);
 						}
 					}
 				}
@@ -2441,11 +2407,7 @@ public:
 			Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
 			if (!bone) {
 				fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
-#ifdef ARMATURE_TEST
 				return NULL;
-#else
-				return;
-#endif
 			}
 
 			unit_m4(rest);
@@ -2455,18 +2417,15 @@ public:
 
 		char rna_path[200];
 
+		Object *job = NULL;
+
 #ifdef ARMATURE_TEST
-		Object *job = get_joint_object(root, node, par_job);
 		FCurve *job_curves[4];
+		job = get_joint_object(root, node, par_job);
 #endif
 
-		if (frames.size() == 0) {
-#ifdef ARMATURE_TEST
+		if (frames.size() == 0)
 			return job;
-#else
-			return;
-#endif
-		}
 
 		const char *tm_str = NULL;
 		switch (tm_type) {
@@ -2480,11 +2439,7 @@ public:
 			tm_str = "location";
 			break;
 		default:
-#ifdef ARMATURE_TEST
 			return job;
-#else
-			return;
-#endif
 		}
 
 		if (is_joint) {
@@ -2498,12 +2453,14 @@ public:
 
 		// new curves
 		FCurve *newcu[4];
-		int totcu = is_rotation ? 4 : 3;
+		unsigned int totcu = is_rotation ? 4 : 3;
 
 		for (i = 0; i < totcu; i++) {
 			newcu[i] = create_fcurve(i, rna_path);
+
 #ifdef ARMATURE_TEST
-			job_curves[i] = create_fcurve(i, tm_str);
+			if (is_joint)
+				job_curves[i] = create_fcurve(i, tm_str);
 #endif
 		}
 
@@ -2585,19 +2542,6 @@ public:
 		verify_adt_action((ID*)&ob->id, 1);
 
 		ListBase *curves = &ob->adt->action->curves;
-		// no longer needed
-#if 0
-		// remove old curves
-		for (std::vector<FCurve*>::iterator it = old_curves.begin(); it != old_curves.end(); it++) {
-			if (is_joint)
-				action_groups_remove_channel(ob->adt->action, *it);
-			else
-				BLI_remlink(curves, *it);
-
-			// std::remove(unused_curves.begin(), unused_curves.end(), *it);
-			// free_fcurve(*it);
-		}
-#endif
 
 		// add curves
 		for (i = 0; i < totcu; i++) {
@@ -2622,9 +2566,7 @@ public:
 			}
 		}
 
-#ifdef ARMATURE_TEST
 		return job;
-#endif
 	}
 
 	// internal, better make it private
@@ -2636,7 +2578,7 @@ public:
 
 		unit_m4(mat);
 
-		for (int i = 0; i < tms.getCount(); i++) {
+		for (unsigned int i = 0; i < tms.getCount(); i++) {
 			COLLADAFW::Transformation *tm = tms[i];
 			COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
 			float m[4][4];
@@ -2678,7 +2620,7 @@ public:
 			const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
 
 			if (bindings.getCount()) {
-				for (int j = 0; j < bindings.getCount(); j++) {
+				for (unsigned int j = 0; j < bindings.getCount(); j++) {
 					std::vector<FCurve*>& curves = curve_map[bindings[j].animation];
 					COLLADAFW::AnimationList::AnimationClass animclass = bindings[j].animationClass;
 					COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
@@ -2794,7 +2736,7 @@ public:
 		}
 
 		COLLADAFW::NodePointerArray& children = node->getChildNodes();
-		for (int i = 0; i < children.getCount(); i++) {
+		for (unsigned int i = 0; i < children.getCount(); i++) {
 			if (calc_joint_parent_mat_rest(mat, m, children[i], end))
 				return true;
 		}
@@ -3008,14 +2950,13 @@ public:
 		for (std::vector<const COLLADAFW::VisualScene*>::iterator it = vscenes.begin(); it != vscenes.end(); it++) {
 			const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 
-			for (int i = 0; i < roots.getCount(); i++)
+			for (unsigned int i = 0; i < roots.getCount(); i++)
 				translate_anim_recursive(roots[i]);
 		}
 
 	}
 
 
-#ifdef ARMATURE_TEST
 	void translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW::Node *par = NULL, Object *parob = NULL)
 	{
 		if (par && par->getType() == COLLADAFW::Node::JOINT) {
@@ -3032,20 +2973,17 @@ public:
 			COLLADAFW::Transformation::TRANSLATE
 		};
 
-		int i;
+		unsigned int i;
 		Object *ob;
 
 		for (i = 0; i < 3; i++)
 			ob = anim_importer.translate_animation(node, object_map, root_map, types[i]);
 
 		COLLADAFW::NodePointerArray &children = node->getChildNodes();
-		for (int i = 0; i < children.getCount(); i++) {
+		for (i = 0; i < children.getCount(); i++) {
 			translate_anim_recursive(children[i], node, ob);
 		}
 	}
-#else
-
-#endif
 
 	/** When this method is called, the writer must write the global document asset.
 		@return The writer should return true, if writing succeeded, false otherwise.*/
@@ -3130,7 +3068,7 @@ public:
 				ob = create_lamp_object(lamp[0], ob, sce);
 			}
 			else if (controller.getCount() != 0) {
-				COLLADAFW::InstanceController *geom = (COLLADAFW::InstanceController*)controller[0];
+				COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry*)controller[0];
 				ob = mesh_importer.create_mesh_object(node, geom, true, uid_material_map, material_texture_mapping_map);
 			}
 			// XXX instance_node is not supported yet
@@ -3164,7 +3102,7 @@ public:
 
 		// if node has child nodes write them
 		COLLADAFW::NodePointerArray &child_nodes = node->getChildNodes();
-		for (int i = 0; i < child_nodes.getCount(); i++) {	
+		for (unsigned int i = 0; i < child_nodes.getCount(); i++) {	
 			write_node(child_nodes[i], node, sce, ob);
 		}
 	}
@@ -3190,7 +3128,7 @@ public:
 		Scene *sce = CTX_data_scene(mContext);
 		const COLLADAFW::NodePointerArray& roots = visualScene->getRootNodes();
 
-		for (int i = 0; i < roots.getCount(); i++) {
+		for (unsigned int i = 0; i < roots.getCount(); i++) {
 			write_node(roots[i], NULL, sce, NULL);
 		}
 
@@ -3284,7 +3222,6 @@ public:
 		
 		int i = 0;
 		COLLADAFW::Color col;
-		COLLADAFW::Texture ctex;
 		MTex *mtex = NULL;
 		TexIndexTextureArrayMap texindex_texarray_map;
 		
@@ -3298,7 +3235,7 @@ public:
 		}
 		// texture
 		else if (ef->getDiffuse().isTexture()) {
-			ctex = ef->getDiffuse().getTexture(); 
+			COLLADAFW::Texture ctex = ef->getDiffuse().getTexture(); 
 			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_COL;
@@ -3316,7 +3253,7 @@ public:
 		}
 		// texture
 		else if (ef->getAmbient().isTexture()) {
-			ctex = ef->getAmbient().getTexture(); 
+			COLLADAFW::Texture ctex = ef->getAmbient().getTexture(); 
 			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_AMB; 
@@ -3333,7 +3270,7 @@ public:
 		}
 		// texture
 		else if (ef->getSpecular().isTexture()) {
-			ctex = ef->getSpecular().getTexture(); 
+			COLLADAFW::Texture ctex = ef->getSpecular().getTexture(); 
 			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_SPEC; 
@@ -3350,7 +3287,7 @@ public:
 		}
 		// texture
 		else if (ef->getReflective().isTexture()) {
-			ctex = ef->getReflective().getTexture(); 
+			COLLADAFW::Texture ctex = ef->getReflective().getTexture(); 
 			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_REF; 
@@ -3365,7 +3302,7 @@ public:
 		}
 		// texture
 		else if (ef->getEmission().isTexture()) {
-			ctex = ef->getEmission().getTexture(); 
+			COLLADAFW::Texture ctex = ef->getEmission().getTexture(); 
 			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
 			if (mtex != NULL) {
 				mtex->mapto = MAP_EMIT; 

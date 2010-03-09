@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -390,6 +390,16 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 
 	if(but->rnaprop) {
+		int unit_type = RNA_SUBTYPE_UNIT(RNA_property_subtype(but->rnaprop));
+		
+		if (unit_type == PROP_UNIT_ROTATION) {
+			if (RNA_property_type(but->rnaprop) == PROP_FLOAT) {
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Radians: %f", RNA_property_float_get_index(&but->rnapoin, but->rnaprop, but->rnaindex));
+				data->linedark[data->totline]= 1;
+				data->totline++;
+			}
+		}
+		
 		if(but->flag & UI_BUT_DRIVEN) {
 			if(ui_but_anim_expression_get(but, buf, sizeof(buf))) {
 				/* expression */
@@ -435,7 +445,6 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* set font, get bb */
 	data->fstyle= style->widget; /* copy struct */
 	data->fstyle.align= UI_STYLE_TEXT_CENTER;
-	ui_fontscale(&data->fstyle.points, aspect);
 	uiStyleFontSet(&data->fstyle);
 
 	h= BLF_height(data->lines[0]);
@@ -447,13 +456,12 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	}
 
 	fontw *= aspect;
-	fonth *= aspect;
 
 	ar->regiondata= data;
 
 	data->toth= fonth;
-	data->lineh= h*aspect;
-	data->spaceh= 5*aspect;
+	data->lineh= h;
+	data->spaceh= 5;
 
 	/* compute position */
 	ofsx= (but->block->panel)? but->block->panel->ofsx: 0;
@@ -462,7 +470,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	x1f= (but->x1+but->x2)/2.0f + ofsx - 16.0f*aspect;
 	x2f= x1f + fontw + 16.0f*aspect;
 	y2f= but->y1 + ofsy - 15.0f*aspect;
-	y1f= y2f - fonth - 10.0f*aspect;
+	y1f= y2f - fonth*aspect - 15.0f*aspect;
 	
 	/* copy to int, gets projected if possible too */
 	x1= x1f; y1= y1f; x2= x2f; y2= y2f; 
@@ -494,8 +502,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		}
 	}
 	if(y1 < 0) {
-		y1 += 56*aspect;
-		y2 += 56*aspect;
+		y1 += 56;
+		y2 += 56;
 	}
 
 	/* widget rect, in region coords */
@@ -1339,7 +1347,7 @@ uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut
 		saferct= MEM_callocN(sizeof(uiSafetyRct), "uiSafetyRct");
 		saferct->safety= block->safety;
 		BLI_addhead(&block->saferct, saferct);
-		block->flag |= UI_BLOCK_POPUP;
+		block->flag |= UI_BLOCK_POPUP|UI_BLOCK_NUMSELECT;
 	}
 
 	/* the block and buttons were positioned in window space as in 2.4x, now
@@ -1698,7 +1706,7 @@ static void circle_picker(uiBlock *block, PointerRNA *ptr, const char *propname)
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, -1, 0.0, 0.0, 9, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "", PICKER_W+PICKER_SPACE,0,PICKER_BAR,PICKER_H, ptr, propname, -1, 0.0, 0.0, UI_GRAD_V_ALT, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
@@ -1713,7 +1721,7 @@ static void square_picker(uiBlock *block, PointerRNA *ptr, const char *propname,
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 	
 	/* value */
-	uiDefButR(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, propname, -1, 0.0, 0.0, bartype, 0, "");
+	bt= uiDefButR(block, HSVCUBE, 0, "",		0, 0, PICKER_TOTAL_W, PICKER_BAR, ptr, propname, -1, 0.0, 0.0, bartype, 0, "");
 	uiButSetFunc(bt, do_picker_rna_cb, bt, NULL);
 }
 
@@ -1746,13 +1754,13 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 			circle_picker(block, ptr, propname);
 			break;
 		case USER_CP_SQUARE_SV:
-			square_picker(block, ptr, propname, 0);
+			square_picker(block, ptr, propname, UI_GRAD_SV);
 			break;
 		case USER_CP_SQUARE_HS:
-			square_picker(block, ptr, propname, 1);
+			square_picker(block, ptr, propname, UI_GRAD_HS);
 			break;
 		case USER_CP_SQUARE_HV:
-			square_picker(block, ptr, propname, 2);
+			square_picker(block, ptr, propname, UI_GRAD_HV);
 			break;
 	}
 	
@@ -1867,6 +1875,19 @@ uiBlock *ui_block_func_COL(bContext *C, uiPopupBlockHandle *handle, void *arg_bu
 
 /************************ Popup Menu Memory ****************************/
 
+static int ui_popup_string_hash(char *str)
+{
+	/* sometimes button contains hotkey, sometimes not, strip for proper compare */
+	int hash;
+	char *delimit= strchr(str, '|');
+
+	if(delimit) *delimit= 0;
+	hash= BLI_ghashutil_strhash(str);
+	if(delimit) *delimit= '|';
+
+	return hash;
+}
+
 static int ui_popup_menu_hash(char *str)
 {
 	return BLI_ghashutil_strhash(str);
@@ -1875,7 +1896,7 @@ static int ui_popup_menu_hash(char *str)
 /* but == NULL read, otherwise set */
 uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but)
 {
-	static char mem[256], first=1;
+	static int mem[256], first=1;
 	int hash= block->puphash;
 	
 	if(first) {
@@ -1886,12 +1907,16 @@ uiBut *ui_popup_menu_memory(uiBlock *block, uiBut *but)
 
 	if(but) {
 		/* set */
-		mem[hash & 255 ]= BLI_findindex(&block->buttons, but);
+		mem[hash & 255 ]= ui_popup_string_hash(but->str);
 		return NULL;
 	}
 	else {
 		/* get */
-		return BLI_findlink(&block->buttons, mem[hash & 255]);
+		for(but=block->buttons.first; but; but=but->next)
+			if(ui_popup_string_hash(but->str) == mem[hash & 255])
+				return but;
+
+		return NULL;
 	}
 }
 
@@ -1916,7 +1941,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	ScrArea *sa;
 	ARegion *ar;
 	uiPopupMenu *pup= arg_pup;
-	int offset, direction, minwidth, flip;
+	int offset[2], direction, minwidth, width, height, flip;
 
 	if(pup->menu_func) {
 		pup->block->handle= handle;
@@ -1952,7 +1977,7 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 	block->direction= direction;
 
-	uiBlockLayoutResolve(block, NULL, NULL);
+	uiBlockLayoutResolve(block, &width, &height);
 
 	uiBlockSetFlag(block, UI_BLOCK_MOVEMOUSE_QUIT);
 	
@@ -1961,17 +1986,27 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 		uiBlockSetDirection(block, direction);
 
 		/* offset the mouse position, possibly based on earlier selection */
-		offset= 1.5*MENU_BUTTON_HEIGHT;
+		if((block->flag & UI_BLOCK_POPUP_MEMORY) &&
+			(bt= ui_popup_menu_memory(block, NULL))) {
+			/* position mouse on last clicked item, at 0.8*width of the
+			   button, so it doesn't overlap the text too much, also note
+			   the offset is negative because we are inverse moving the
+			   block to be under the mouse */
+			offset[0]= -(bt->x1 + 0.8f*(bt->x2 - bt->x1));
+			offset[1]= -(bt->y1 + 0.5f*MENU_BUTTON_HEIGHT);
+		}
+		else {
+			/* position mouse at 0.8*width of the button and below the tile
+			   on the first item */
+			offset[0]= 0;
+			for(bt=block->buttons.first; bt; bt=bt->next)
+				offset[0]= MIN2(offset[0], -(bt->x1 + 0.8f*(bt->x2 - bt->x1)));
 
-		if(block->flag & UI_BLOCK_POPUP_MEMORY) {
-			bt= ui_popup_menu_memory(block, NULL);
-
-			if(bt)
-				offset= -bt->y1 - 0.5f*MENU_BUTTON_HEIGHT;
+			offset[1]= 1.5*MENU_BUTTON_HEIGHT;
 		}
 
 		block->minbounds= minwidth;
-		uiMenuPopupBoundsBlock(block, 1, 20, offset);
+		uiMenuPopupBoundsBlock(block, 1, offset[0], offset[1]);
 	}
 	else {
 		/* for a header menu we set the direction automatic */
@@ -2236,11 +2271,12 @@ void uiPupMenuReports(bContext *C, ReportList *reports)
 		else if(report->type >= RPT_WARNING)
 			BLI_dynstr_appendf(ds, "Warning %%i%d%%t|%s", ICON_ERROR, report->message);
 		else if(report->type >= RPT_INFO)
-			BLI_dynstr_appendf(ds, "Info %%t|%s", report->message);
+			BLI_dynstr_appendf(ds, "Info %%i%d%%t|%s", ICON_INFO, report->message);
 	}
 
 	str= BLI_dynstr_get_cstring(ds);
-	ui_popup_menu_create(C, NULL, NULL, NULL, NULL, str);
+	if(str[0] != '\0')
+		ui_popup_menu_create(C, NULL, NULL, NULL, NULL, str);
 	MEM_freeN(str);
 
 	BLI_dynstr_free(ds);

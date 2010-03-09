@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -64,6 +64,7 @@ void paint_cursor_start(struct bContext *C, int (*poll)(struct bContext *C));
 
 /* paint_vertex.c */
 int weight_paint_poll(struct bContext *C);
+int weight_paint_mode_poll(struct bContext *C);
 int vertex_paint_poll(struct bContext *C);
 int vertex_paint_mode_poll(struct bContext *C);
 
@@ -74,6 +75,7 @@ void PAINT_OT_weight_paint_toggle(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_weight_paint(struct wmOperatorType *ot);
 void PAINT_OT_weight_set(struct wmOperatorType *ot);
+void PAINT_OT_weight_from_bones(struct wmOperatorType *ot);
 
 void PAINT_OT_vertex_paint_radial_control(struct wmOperatorType *ot);
 void PAINT_OT_vertex_paint_toggle(struct wmOperatorType *ot);

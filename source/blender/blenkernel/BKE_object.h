@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -67,6 +67,7 @@ void object_link_modifiers(struct Object *ob, struct Object *from);
 void object_free_modifiers(struct Object *ob);
 
 void object_make_proxy(struct Object *ob, struct Object *target, struct Object *gob);
+void object_copy_proxy_drivers(struct Object *ob, struct Object *target);
 
 void unlink_object(struct Scene *scene, struct Object *ob);
 int exist_object(struct Object *obtest);
@@ -111,9 +112,12 @@ void boundbox_set_from_min_max(struct BoundBox *bb, float min[3], float max[3]);
 struct BoundBox *object_get_boundbox(struct Object *ob);
 void object_boundbox_flag(struct Object *ob, int flag, int set);
 void minmax_object(struct Object *ob, float *min, float *max);
-void minmax_object_duplis(struct Scene *scene, struct Object *ob, float *min, float *max);
+int minmax_object_duplis(struct Scene *scene, struct Object *ob, float *min, float *max);
 void solve_tracking (struct Object *ob, float targetmat[][4]);
 int ray_hit_boundbox(struct BoundBox *bb, float ray_start[3], float ray_normal[3]);
+
+void *object_tfm_backup(struct Object *ob);
+void object_tfm_restore(struct Object *ob, void *obtfm_pt);
 
 void object_handle_update(struct Scene *scene, struct Object *ob);
 

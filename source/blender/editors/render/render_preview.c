@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) Blender Foundation.
  * All rights reserved.
@@ -99,6 +99,13 @@
 #define PR_YMIN		5
 #define PR_XMAX		200
 #define PR_YMAX		195
+
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+/* ************** libgomp (Apple gcc 4.2.1) TLS bug workaround *************** */
+#include <pthread.h>
+extern pthread_key_t gomp_tls_key;
+static void *thread_tls_data;
+#endif
 
 /* XXX */
 static int qtest() {return 0;}
@@ -474,7 +481,7 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 		}
 	}
 
-	re= RE_GetRender(name);
+	re= RE_GetRender(name, RE_SLOT_DEFAULT);
 	RE_AcquireResultImage(re, &rres);
 
 	if(rres.rectf) {
@@ -483,10 +490,7 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 			newrect->xmax= MAX2(newrect->xmax, rect->xmin + rres.rectx + offx);
 			newrect->ymax= MAX2(newrect->ymax, rect->ymin + rres.recty);
 
-			glPushMatrix();
-			glTranslatef(offx, 0, 0);
-			glaDrawPixelsSafe_to32(rect->xmin, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, gamma_correct);
-			glPopMatrix();
+			glaDrawPixelsSafe_to32(rect->xmin+offx, rect->ymin, rres.rectx, rres.recty, rres.rectx, rres.rectf, gamma_correct);
 
 			RE_ReleaseResultImage(re);
 			return 1;
@@ -705,7 +709,7 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 		ri->status= 0;
 		
 		sprintf(name, "View3dPreview %p", sa);
-		re= ri->re= RE_NewRender(name);
+		re= ri->re= RE_NewRender(name, RE_SLOT_DEFAULT);
 		//RE_display_draw_cb(re, view3d_previewrender_progress);
 		//RE_stats_draw_cb(re, view3d_previewrender_stats);
 		//RE_test_break_cb(re, qtest);
@@ -893,11 +897,11 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	
 	if(!split || first) sprintf(name, "Preview %p", sp->owner);
 	else sprintf(name, "SecondPreview %p", sp->owner);
-	re= RE_GetRender(name);
+	re= RE_GetRender(name, RE_SLOT_DEFAULT);
 	
 	/* full refreshed render from first tile */
 	if(re==NULL)
-		re= RE_NewRender(name);
+		re= RE_NewRender(name, RE_SLOT_DEFAULT);
 		
 	/* sce->r gets copied in RE_InitState! */
 	sce->r.scemode &= ~(R_MATNODE_PREVIEW|R_TEXNODE_PREVIEW);
@@ -1101,6 +1105,11 @@ static void common_preview_startjob(void *customdata, short *stop, short *do_upd
 {
 	ShaderPreview *sp= customdata;
 
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
+	pthread_setspecific (gomp_tls_key, thread_tls_data);
+#endif
+	
 	if(sp->pr_method == PR_ICON_RENDER)
 		icon_preview_startjob(customdata, stop, do_update);
 	else
@@ -1130,7 +1139,12 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	WM_jobs_customdata(steve, sp, shader_preview_free);
 	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
 	WM_jobs_callbacks(steve, common_preview_startjob, NULL, NULL);
-	
+
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
+	thread_tls_data = pthread_getspecific(gomp_tls_key);
+#endif
+		
 	WM_jobs_start(CTX_wm_manager(C), steve);
 }
 
@@ -1156,6 +1170,11 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	WM_jobs_customdata(steve, sp, shader_preview_free);
 	WM_jobs_timer(steve, 0.1, NC_MATERIAL, NC_MATERIAL);
 	WM_jobs_callbacks(steve, common_preview_startjob, NULL, shader_preview_updatejob);
+	
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
+	thread_tls_data = pthread_getspecific(gomp_tls_key);
+#endif
 	
 	WM_jobs_start(CTX_wm_manager(C), steve);
 }

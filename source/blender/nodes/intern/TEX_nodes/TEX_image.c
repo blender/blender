@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
@@ -36,8 +36,8 @@ static bNodeSocketType outputs[]= {
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float x = p->coord[0];
-	float y = p->coord[1];
+	float x = p->co[0];
+	float y = p->co[1];
 	Image *ima= (Image *)node->id;
 	ImageUser *iuser= (ImageUser *)node->storage;
 	
@@ -69,7 +69,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			QUATCOPY( out, result );
 		}
 	}
-};
+}
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {

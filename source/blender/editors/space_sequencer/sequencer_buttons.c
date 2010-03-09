@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 by Blender Foundation
  * All rights reserved.
@@ -122,7 +122,7 @@ void SEQUENCER_OT_properties(wmOperatorType *ot)
 {
 	ot->name= "Properties";
 	ot->idname= "SEQUENCER_OT_properties";
-	ot->description= "Open sequencer properties panel.";
+	ot->description= "Open sequencer properties panel";
 	
 	ot->exec= sequencer_properties;
 	ot->poll= ED_operator_sequencer_active;

@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -1530,7 +1530,7 @@ static void execute_scene(Scene* blscene, IK_Scene* ikscene, bItasc* ikparam, fl
 		// in animation mode, we must get the bone position from action and constraints
 		for(i=0, ikchan=ikscene->channels; i<ikscene->numchan; i++, ++ikchan) {
 			if (!(ikchan->pchan->flag & POSE_DONE))
-				where_is_pose_bone(blscene, ikscene->blArmature, ikchan->pchan, ctime);
+				where_is_pose_bone(blscene, ikscene->blArmature, ikchan->pchan, ctime, 1);
 			// tell blender that this channel was controlled by IK, it's cleared on each where_is_pose()
 			ikchan->pchan->flag |= (POSE_DONE|POSE_CHAIN);
 			ikchan->jointValid = 0;

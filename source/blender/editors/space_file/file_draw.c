@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -99,12 +99,6 @@ enum {
 static void do_file_buttons(bContext *C, void *arg, int event)
 {
 	switch(event) {
-		case B_FS_EXEC:
-			file_exec(C, NULL);	/* file_ops.c */
-			break;
-		case B_FS_CANCEL:
-			file_cancel_exec(C, NULL); /* file_ops.c */
-			break;
 		case B_FS_PARENT:
 			file_parent_exec(C, NULL); /* file_ops.c */
 			break;
@@ -133,7 +127,6 @@ static void do_file_buttons(bContext *C, void *arg, int event)
 void file_draw_buttons(const bContext *C, ARegion *ar)
 {
 	/* Button layout. */
-	const int min_x      = 10;
 	const int max_x      = ar->winx - 10;
 	const int line1_y    = IMASEL_BUTTONS_HEIGHT/2 + IMASEL_BUTTONS_MARGIN*2;
 	const int line2_y    = IMASEL_BUTTONS_MARGIN;
@@ -148,6 +141,7 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	char  name[20];
 	int loadbutton;
 	int fnumbuttons;
+	int min_x       = 10;
 	int available_w = max_x - min_x;
 	int line1_w     = available_w;
 	int line2_w     = available_w;
@@ -156,11 +150,20 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 	uiBlock*          block;
 	SpaceFile*        sfile  = CTX_wm_space_file(C);
 	FileSelectParams* params = ED_fileselect_get_params(sfile);
+	ARegion*		  artmp;
 	
 	/* Initialize UI block. */
 	sprintf(name, "win %p", ar);
 	block = uiBeginBlock(C, ar, name, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_file_buttons, NULL);
+
+	/* exception to make space for collapsed region icon */
+	for (artmp=CTX_wm_area(C)->regionbase.first; artmp; artmp=artmp->next) {
+		if (artmp->regiontype == RGN_TYPE_CHANNELS && artmp->flag & RGN_FLAG_HIDDEN) {
+			min_x += 16;
+			available_w -= 16;
+		}
+	}
 	
 	/* Is there enough space for the execute / cancel buttons? */
 	loadbutton = UI_GetStringWidth(sfile->params->title) + btn_margin;
@@ -204,25 +207,26 @@ void file_draw_buttons(const bContext *C, ARegion *ar)
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMOUT,
 		        min_x + line2_w + separator, line2_y, 
 		        btn_fn_w, btn_h, 
-		        "Decrement the filename number.");    
+		        "Decrement the filename number");    
 		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", -1); 
 	
 		but = uiDefIconButO(block, BUT, "FILE_OT_filenum", 0, ICON_ZOOMIN, 
 		        min_x + line2_w + separator + btn_fn_w, line2_y, 
 		        btn_fn_w, btn_h, 
-		        "Increment the filename number.");    
+		        "Increment the filename number");    
 		RNA_int_set(uiButGetOperatorPtrRNA(but), "increment", 1); 
 		uiBlockEndAlign(block);
 	}
 	
 	/* Execute / cancel buttons. */
 	if(loadbutton) {
-		uiDefBut(block, BUT, B_FS_EXEC, params->title, 
-		  max_x - loadbutton, line1_y, loadbutton, btn_h, 
-		  params->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, params->title);
-		uiDefBut(block, BUT, B_FS_CANCEL, "Cancel", 
-		  max_x - loadbutton, line2_y, loadbutton, btn_h, 
-		  params->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "Cancel.");
+		
+		uiDefButO(block, BUT, "FILE_OT_execute", WM_OP_EXEC_REGION_WIN, params->title,
+			max_x - loadbutton, line1_y, loadbutton, btn_h, 
+			params->title);
+		uiDefButO(block, BUT, "FILE_OT_cancel", WM_OP_EXEC_REGION_WIN, "Cancel",
+			max_x - loadbutton, line2_y, loadbutton, btn_h, 
+			"Cancel");
 	}
 	
 	uiEndBlock(C, block);
@@ -316,8 +320,9 @@ static int get_file_icon(struct direntry *file)
 		return ICON_FILE_BLANK;
 }
 
-static void file_draw_icon(int sx, int sy, int icon, int width, int height)
+static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon, int width, int height)
 {
+	uiBut *but;
 	float x,y;
 	float alpha=1.0f;
 	
@@ -325,10 +330,9 @@ static void file_draw_icon(int sx, int sy, int icon, int width, int height)
 	y = (float)(sy-height);
 	
 	if (icon == ICON_FILE_BLANK) alpha = 0.375f;
-	
-	glEnable(GL_BLEND);
-	
-	UI_icon_draw_aspect(x, y, icon, 1.f, alpha);
+		
+	but= uiDefIconBut(block, LABEL, 0, icon, x, y, width, height, NULL, 0.0, 0.0, 0, 0, "");
+	uiButSetDragPath(but, path);
 }
 
 
@@ -360,62 +364,67 @@ void file_calc_previews(const bContext *C, ARegion *ar)
 	UI_view2d_totRect_set(v2d, sfile->layout->width, sfile->layout->height+V2D_SCROLL_HEIGHT);
 }
 
-static void file_draw_preview(int sx, int sy, ImBuf *imb, FileLayout *layout, short dropshadow)
+static void file_draw_preview(uiBlock *block, struct direntry *file, int sx, int sy, ImBuf *imb, FileLayout *layout, short dropshadow)
 {
 	if (imb) {
-			float fx, fy;
-			float dx, dy;
-			int xco, yco;
-			float scaledx, scaledy;
-			float scale;
-			int ex, ey;
-
-			if ( (imb->x > layout->prv_w) || (imb->y > layout->prv_h) ) {
-				if (imb->x > imb->y) {
-					scaledx = (float)layout->prv_w;
-					scaledy =  ( (float)imb->y/(float)imb->x )*layout->prv_w;
-					scale = scaledx/imb->x;
-				}
-				else {
-					scaledy = (float)layout->prv_h;
-					scaledx =  ( (float)imb->x/(float)imb->y )*layout->prv_h;
-					scale = scaledy/imb->y;
-				}
-			} else {
-				scaledx = (float)imb->x;
-				scaledy = (float)imb->y;
-				scale = 1.0;
+		uiBut *but;
+		float fx, fy;
+		float dx, dy;
+		int xco, yco;
+		float scaledx, scaledy;
+		float scale;
+		int ex, ey;
+		
+		if ( (imb->x > layout->prv_w) || (imb->y > layout->prv_h) ) {
+			if (imb->x > imb->y) {
+				scaledx = (float)layout->prv_w;
+				scaledy =  ( (float)imb->y/(float)imb->x )*layout->prv_w;
+				scale = scaledx/imb->x;
 			}
-			ex = (int)scaledx;
-			ey = (int)scaledy;
-			fx = ((float)layout->prv_w - (float)ex)/2.0f;
-			fy = ((float)layout->prv_h - (float)ey)/2.0f;
-			dx = (fx + 0.5f + layout->prv_border_x);
-			dy = (fy + 0.5f - layout->prv_border_y);
-			xco = (float)sx + dx;
-			yco = (float)sy - layout->prv_h + dy;
-
-			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
-			
-			/* shadow */
-			if (dropshadow)
-				uiDrawBoxShadow(220, xco, yco, xco + ex, yco + ey);
-			
-			glEnable(GL_BLEND);
-			
-			/* the image */
-			glColor4f(1.0, 1.0, 1.0, 1.0);
-			glaDrawPixelsTexScaled(xco, yco, imb->x, imb->y, GL_UNSIGNED_BYTE, imb->rect, scale, scale);
-			
-			/* border */
-			if (dropshadow) {
-				glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-				fdrawbox(xco, yco, xco + ex, yco + ey);
+			else {
+				scaledy = (float)layout->prv_h;
+				scaledx =  ( (float)imb->x/(float)imb->y )*layout->prv_h;
+				scale = scaledy/imb->y;
 			}
-			
-			glDisable(GL_BLEND);
-			imb = 0;
+		} else {
+			scaledx = (float)imb->x;
+			scaledy = (float)imb->y;
+			scale = 1.0;
 		}
+		ex = (int)scaledx;
+		ey = (int)scaledy;
+		fx = ((float)layout->prv_w - (float)ex)/2.0f;
+		fy = ((float)layout->prv_h - (float)ey)/2.0f;
+		dx = (fx + 0.5f + layout->prv_border_x);
+		dy = (fy + 0.5f - layout->prv_border_y);
+		xco = (float)sx + dx;
+		yco = (float)sy - layout->prv_h + dy;
+		
+		glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+		
+		/* shadow */
+		if (dropshadow)
+			uiDrawBoxShadow(220, xco, yco, xco + ex, yco + ey);
+		
+		glEnable(GL_BLEND);
+		
+		/* the image */
+		glColor4f(1.0, 1.0, 1.0, 1.0);
+		glaDrawPixelsTexScaled(xco, yco, imb->x, imb->y, GL_UNSIGNED_BYTE, imb->rect, scale, scale);
+		
+		/* border */
+		if (dropshadow) {
+			glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+			fdrawbox(xco, yco, xco + ex, yco + ey);
+		}
+		
+		/* dragregion */
+		but= uiDefBut(block, LABEL, 0, "", xco, yco, ex, ey, NULL, 0.0, 0.0, 0, 0, "");
+		uiButSetDragImage(but, file->path, get_file_icon(file), imb, scale);
+		
+		glDisable(GL_BLEND);
+		imb = 0;
+	}
 }
 
 static void renamebutton_cb(bContext *C, void *arg1, char *oldname)
@@ -487,6 +496,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 	struct FileList* files = sfile->files;
 	struct direntry *file;
 	ImBuf *imb;
+	uiBlock *block = uiBeginBlock(C, ar, "FileNames", UI_EMBOSS);
 	int numfiles;
 	int numfiles_layout;
 	int colorid = 0;
@@ -518,18 +528,33 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 		file = filelist_file(files, i);	
 		
+		UI_ThemeColor4(TH_TEXT);
+
+		spos = ( FILE_IMGDISPLAY == params->display ) ? sx : sx + ICON_DEFAULT_WIDTH + 4;
+
+		sw = file_string_width(file->relname);
+		if (file->flags & EDITING) {
+			int but_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : layout->column_widths[COLUMN_NAME];
+
+			uiBut *but = uiDefBut(block, TEX, 1, "", spos, sy-layout->tile_h-3, 
+				but_width, layout->textheight*2, file->relname, 1.0f, (float)FILE_MAX,0,0,"");
+			uiButSetRenameFunc(but, renamebutton_cb, file);
+			if ( 0 == uiButActiveOnly(C, block, but)) {
+				file->flags &= ~EDITING;
+			}
+		}
+
 		if (!(file->flags & EDITING)) {
 			if (params->active_file == i) {
 				if (file->flags & ACTIVE) colorid= TH_HILITE;
 				else colorid = TH_BACK;
-				draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h+layout->tile_border_y, colorid,20);
+				draw_tile(sx, sy-3, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,20);
 			} else if (file->flags & ACTIVE) {
 				colorid = TH_HILITE;
-				draw_tile(sx-2, sy-3, layout->tile_w+2, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
+				draw_tile(sx, sy-3, layout->tile_w+4, sfile->layout->tile_h+layout->tile_border_y, colorid,0);
 			} 
 		}
-
-		spos = sx;
+		uiSetRoundBox(0);
 
 		if ( FILE_IMGDISPLAY == params->display ) {
 			if ( (file->flags & IMAGEFILE) /* || (file->flags & MOVIEFILE) */) {			
@@ -542,33 +567,17 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				is_icon = 1;
 			}
 			
-			file_draw_preview(sx, sy, imb, layout, !is_icon && (file->flags & IMAGEFILE));
+			file_draw_preview(block, file, sx, sy, imb, layout, !is_icon && (file->flags & IMAGEFILE));
 
 		} else {
-				file_draw_icon(spos, sy-3, get_file_icon(file), ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
-				spos += ICON_DEFAULT_WIDTH + 4;
+			file_draw_icon(block, file->path, sx, sy-3, get_file_icon(file), ICON_DEFAULT_WIDTH, ICON_DEFAULT_WIDTH);
 		}
 
 		UI_ThemeColor4(TH_TEXT);
-
-		sw = file_string_width(file->relname);
-		if (file->flags & EDITING) {
-			int but_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : layout->column_widths[COLUMN_NAME];
-			uiBlock *block = uiBeginBlock(C, ar, "FileName", UI_EMBOSS);
-			uiBut *but = uiDefBut(block, TEX, 1, "", spos, sy-layout->tile_h-3, 
-				but_width, layout->textheight*2, file->relname, 1.0f, (float)FILE_MAX,0,0,"");
-			uiButSetRenameFunc(but, renamebutton_cb, file);
-			if ( 0 == uiButActiveOnly(C, block, but)) {
-				file->flags &= ~EDITING;
-			}
-			uiEndBlock(C, block);
-			uiDrawBlock(C, block);
-		} else {
+		if (!(file->flags & EDITING))  {
 			float name_width = (FILE_IMGDISPLAY == params->display) ? layout->tile_w : sw;
 			file_draw_string(spos, sy, file->relname, name_width, layout->tile_h, FILE_SHORTEN_END);
 		}
-
-		uiSetRoundBox(0);
 
 		if (params->display == FILE_SHORTDISPLAY) {
 			spos += layout->column_widths[COLUMN_NAME] + 12;
@@ -615,8 +624,14 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		}
 	}
 
+	/* XXX this timer is never removed, cause smooth view operator
+	   to get executed all the time after closing file browser */
 	if (!sfile->loadimage_timer)
 		sfile->loadimage_timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frames/sec. */
+	
+	uiEndBlock(C, block);
+	uiDrawBlock(C, block);
+
 }
 
 

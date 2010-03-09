@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -68,47 +68,6 @@
 
 #define HEADER_HEIGHT 18
 
-#if 0
-static int image_preview_active(SpaceImage *sima, Scene *scene, float *xim, float *yim)
-{
-	/* only when compositor shows, and image handler set */
-	if(sima->image && sima->image->type==IMA_TYPE_COMPOSITE) {
-		/* XXX panels .. */
-#if 0
-		short a;
-	
-		for(a=0; a<SPACE_MAXHANDLER; a+=2) {
-			if(sima->blockhandler[a] == IMAGE_HANDLER_PREVIEW) {
-				if(xim) *xim= (scene->r.size*scene->r.xsch)/100;
-				if(yim) *yim= (scene->r.size*scene->r.ysch)/100;
-				return 1;
-			}
-		}
-#endif
-	}
-	return 0;
-}
-#endif
-
-/* are there curves? curves visible? and curves do something? */
-static int image_curves_active(SpaceImage *sima)
-{
-	if(sima->cumap) {
-		if(curvemapping_RGBA_does_something(sima->cumap)) {
-			/* XXX panels .. */
-#if 0
-			short a;
-			for(a=0; a<SPACE_MAXHANDLER; a+=2) {
-				if(sima->blockhandler[a] == IMAGE_HANDLER_CURVES)
-					return 1;
-			}
-#endif
-		}
-	}
-
-	return 0;
-}
-
 static void image_verify_buffer_float(SpaceImage *sima, Image *ima, ImBuf *ibuf, int color_manage)
 {
 	/* detect if we need to redo the curve map.
@@ -120,18 +79,13 @@ static void image_verify_buffer_float(SpaceImage *sima, Image *ima, ImBuf *ibuf,
 
 	if(ibuf->rect_float) {
 		if(ibuf->rect==NULL) {
-			if(image_curves_active(sima)) {
-				curvemapping_do_ibuf(sima->cumap, ibuf);
+			if (color_manage) {
+					if (ima && ima->source == IMA_SRC_VIEWER)
+						ibuf->profile = IB_PROFILE_LINEAR_RGB;
+			} else {
+				ibuf->profile = IB_PROFILE_NONE;
 			}
-			else {
-				if (color_manage) {
-						if (ima && ima->source == IMA_SRC_VIEWER)
-							ibuf->profile = IB_PROFILE_LINEAR_RGB;
-				} else {
-					ibuf->profile = IB_PROFILE_NONE;
-				}
-				IMB_rect_from_float(ibuf);
-			}
+			IMB_rect_from_float(ibuf);
 		}
 	}
 }
@@ -625,7 +579,7 @@ static void draw_image_paint_helpers(SpaceImage *sima, ARegion *ar, Scene *scene
 
 	brush= paint_brush(&scene->toolsettings->imapaint.paint);
 
-	if(brush && (scene->toolsettings->imapaint.tool == PAINT_TOOL_CLONE)) {
+	if(brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE)) {
 		/* this is not very efficient, but glDrawPixels doesn't allow
 		   drawing with alpha */
 		clonerect= get_alpha_clone_image(scene, &w, &h);
@@ -701,7 +655,7 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	/* render info */
 	if(ibuf && ima && show_render)
 		draw_render_info(ima, ar);
-
+	
 	/* XXX integrate this code */
 #if 0
 	if(ibuf) {

@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -392,7 +392,6 @@ Image *BKE_add_image_file(const char *name, int frame)
 	
 	BLI_strncpy(str, name, sizeof(str));
 	BLI_convertstringcode(str, G.sce);
-	BLI_convertstringframe(str, frame);
 	
 	/* exists? */
 	file= open(str, O_BINARY|O_RDONLY);
@@ -404,7 +403,6 @@ Image *BKE_add_image_file(const char *name, int frame)
 		if(ima->source!=IMA_SRC_VIEWER && ima->source!=IMA_SRC_GENERATED) {
 			BLI_strncpy(strtest, ima->name, sizeof(ima->name));
 			BLI_convertstringcode(strtest, G.sce);
-			BLI_convertstringframe(strtest, frame);
 			
 			if( strcmp(strtest, str)==0 ) {
 				if(ima->anim==NULL || ima->id.us==0) {
@@ -725,17 +723,6 @@ void BKE_image_print_memlist(void)
 	}
 }
 
-/* frees all ibufs used by any image datablocks */
-void BKE_image_free_image_ibufs(void)
-{
-	Image *ima;
-	
-	for(ima= G.main->image.first; ima; ima= ima->id.next) {
-		image_free_buffers(ima);
-	}
-	
-}
-
 void BKE_image_free_all_textures(void)
 {
 	Tex *tex;
@@ -1024,9 +1011,9 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 	
 	if (scene->r.stamp & R_STAMP_MARKER) {
-		TimeMarker *marker = NULL; // XXX get_frame_marker(scene->r.cfra);
+		char *name = scene_find_last_marker_name(scene, CFRA);
 	
-		if (marker) strcpy(text, marker->name);
+		if (name)	strcpy(text, name);
 		else 		strcpy(text, "<none>");
 		
 		if (do_prefix)		sprintf(stamp_data->marker, "Marker %s", text);
@@ -1101,7 +1088,7 @@ static void stampdata(Scene *scene, StampData *stamp_data, int do_prefix)
 	}
 
 	{
-		Render *re= RE_GetRender(scene->id.name);
+		Render *re= RE_GetRender(scene->id.name, RE_SLOT_RENDERING);
 		RenderStats *stats= re ? RE_GetStats(re):NULL;
 
 		if (stats && (scene->r.stamp & R_STAMP_RENDERTIME)) {
@@ -1423,15 +1410,9 @@ int BKE_write_ibuf(Scene *scene, ImBuf *ibuf, char *name, int imtype, int subimt
 void BKE_makepicstring(char *string, char *base, int frame, int imtype, int use_ext)
 {
 	if (string==NULL) return;
-
 	BLI_strncpy(string, base, FILE_MAX - 10);	/* weak assumption */
-	
-	/* if we dont have any #'s to insert numbers into, use 4 numbers by default */
-	if (strchr(string, '#')==NULL)
-		strcat(string, "####"); /* 4 numbers */
-	
 	BLI_convertstringcode(string, G.sce);
-	BLI_convertstringframe(string, frame);
+	BLI_convertstringframe(string, frame, 4);
 
 	if(use_ext)
 		BKE_add_image_extension(string, imtype);
@@ -1449,7 +1430,10 @@ struct anim *openanim(char *name, int flags)
 
 	ibuf = IMB_anim_absolute(anim, 0);
 	if (ibuf == NULL) {
-		printf("not an anim; %s\n", name);
+		if(BLI_exists(name))
+			printf("not an anim: %s\n", name);
+		else
+			printf("anim file doesn't exist: %s\n", name);
 		IMB_free_anim(anim);
 		return(0);
 	}
@@ -1480,7 +1464,7 @@ struct anim *openanim(char *name, int flags)
 */
 
 
-/* forces existance of 1 Image for renderout or nodes, returns Image */
+/* forces existence of 1 Image for renderout or nodes, returns Image */
 /* name is only for default, when making new one */
 Image *BKE_image_verify_viewer(int type, const char *name)
 {
@@ -1615,7 +1599,7 @@ RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, Image *ima)
 	if(ima->rr)
 		return ima->rr;
 	else if(ima->type==IMA_TYPE_R_RESULT)
-		return RE_AcquireResultRead(RE_GetRender(scene->id.name));
+		return RE_AcquireResultRead(RE_GetRender(scene->id.name, RE_SLOT_VIEW));
 	return NULL;
 }
 
@@ -1623,7 +1607,7 @@ void BKE_image_release_renderresult(struct Scene *scene, Image *ima)
 {
 	if(ima->rr);
 	else if(ima->type==IMA_TYPE_R_RESULT)
-		RE_ReleaseResult(RE_GetRender(scene->id.name));
+		RE_ReleaseResult(RE_GetRender(scene->id.name, RE_SLOT_VIEW));
 }
 
 /* after imbuf load, openexr type can return with a exrhandle open */
@@ -1672,6 +1656,10 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 	unsigned short numlen;
 	char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
 	
+	/* XXX temp stuff? */
+	if(ima->lastframe != frame)
+		ima->tpageflag |= IMA_TPAGE_REFRESH;
+
 	ima->lastframe= frame;
 
 	BLI_stringdec(ima->name, head, tail, &numlen);
@@ -1682,8 +1670,6 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 		BLI_convertstringcode(name, ima->id.lib->filename);
 	else
 		BLI_convertstringcode(name, G.sce);
-	
-	BLI_convertstringframe(name, frame); /* TODO - should this be here? */
 	
 	/* read ibuf */
 	ibuf = IMB_loadiffname(name, IB_rect|IB_multilayer);
@@ -1846,7 +1832,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		else
 			BLI_convertstringcode(str, G.sce);
 		
-		BLI_convertstringframe(str, cfra);
+		BLI_convertstringframe(str, cfra, 0);
 		
 		/* read ibuf */
 		ibuf = IMB_loadiffname(str, IB_rect|IB_multilayer|IB_imginfo);
@@ -1937,7 +1923,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		return NULL;
 
 	if(iuser && iuser->scene) {
-		re= RE_GetRender(iuser->scene->id.name);
+		re= RE_GetRender(iuser->scene->id.name, RE_SLOT_VIEW);
 		rr= RE_AcquireResultRead(re);
 
 		/* release is done in BKE_image_release_ibuf using lock_r */
@@ -1961,7 +1947,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 	}
 	else {
 		RenderResult rres;
-		float *rectf;
+		float *rectf, *rectz;
 		unsigned int *rect;
 		float dither;
 		int channels, layer, pass;
@@ -1971,9 +1957,10 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		pass= (iuser)? iuser->pass: 0;
 		
 		/* this gives active layer, composite or seqence result */
-		RE_AcquireResultImage(RE_GetRender(iuser->scene->id.name), &rres);
+		RE_AcquireResultImage(RE_GetRender(iuser->scene->id.name, RE_SLOT_VIEW), &rres);
 		rect= (unsigned int *)rres.rect32;
 		rectf= rres.rectf;
+		rectz= rres.rectz;
 		dither= iuser->scene->r.dither_intensity;
 
 		/* get compo/seq result by default */
@@ -1981,18 +1968,24 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 		else if(rr->layers.first) {
 			RenderLayer *rl= BLI_findlink(&rr->layers, layer-(rr->rectf?1:0));
 			if(rl) {
+				RenderPass *rpass;
+
 				/* there's no combined pass, is in renderlayer itself */
 				if(pass==0) {
 					rectf= rl->rectf;
 				}
 				else {
-					RenderPass *rpass= BLI_findlink(&rl->passes, pass-1);
+					rpass= BLI_findlink(&rl->passes, pass-1);
 					if(rpass) {
 						channels= rpass->channels;
 						rectf= rpass->rect;
 						dither= 0.0f; /* don't dither passes */
 					}
 				}
+
+				for(rpass= rl->passes.first; rpass; rpass= rpass->next)
+					if(rpass->passtype == SCE_PASS_Z)
+						rectz= rpass->rect;
 			}
 		}
 		
@@ -2015,7 +2008,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_
 			ibuf->rect_float= rectf;
 			ibuf->flags |= IB_rectfloat;
 			ibuf->channels= channels;
-			ibuf->zbuf_float= rres.rectz;
+			ibuf->zbuf_float= rectz;
 			ibuf->flags |= IB_zbuffloat;
 			ibuf->dither= dither;
 
@@ -2040,11 +2033,20 @@ static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame
 	if(ima->source==IMA_SRC_MOVIE) {
 		frame= iuser?iuser->framenr:ima->lastframe;
 		ibuf= image_get_ibuf(ima, 0, frame);
+		/* XXX temp stuff? */
+		if(ima->lastframe != frame)
+			ima->tpageflag |= IMA_TPAGE_REFRESH;
+		ima->lastframe = frame;
 	}
 	else if(ima->source==IMA_SRC_SEQUENCE) {
 		if(ima->type==IMA_TYPE_IMAGE) {
 			frame= iuser?iuser->framenr:ima->lastframe;
 			ibuf= image_get_ibuf(ima, 0, frame);
+			
+			/* XXX temp stuff? */
+			if(ima->lastframe != frame)
+				ima->tpageflag |= IMA_TPAGE_REFRESH;
+			ima->lastframe = frame;
 		}
 		else if(ima->type==IMA_TYPE_MULTILAYER) {
 			frame= iuser?iuser->framenr:ima->lastframe;
@@ -2211,7 +2213,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	return BKE_image_acquire_ibuf(ima, iuser, NULL);
 }
 
-void BKE_image_user_calc_imanr(ImageUser *iuser, int cfra, int fieldnr)
+void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
 {
 	int imanr, len;
 	
@@ -2258,104 +2260,3 @@ void BKE_image_user_calc_imanr(ImageUser *iuser, int cfra, int fieldnr)
 		if(iuser->ok==0) iuser->ok= 1;
 	}
 }
-
-/*
-  Produce image export path.
-
-  Fails returning 0 if image filename is empty or if destination path
-  matches image path (i.e. both are the same file).
-
-  Trailing slash in dest_dir is optional.
-
-  Logic:
-
-  - if an image is "below" current .blend file directory, rebuild the
-    same dir structure in dest_dir
-
-  For example //textures/foo/bar.png becomes
-  [dest_dir]/textures/foo/bar.png.
-
-  - if an image is not "below" current .blend file directory,
-  disregard it's path and copy it in the same directory where 3D file
-  goes.
-
-  For example //../foo/bar.png becomes [dest_dir]/bar.png.
-
-  This logic will help ensure that all image paths are relative and
-  that a user gets his images in one place. It'll also provide
-  consistent behaviour across exporters.
- */
-int BKE_get_image_export_path(struct Image *im, const char *dest_dir, char *abs, int abs_size, char *rel, int rel_size)
-{
-	char path[FILE_MAX];
-	char dir[FILE_MAX];
-	char base[FILE_MAX];
-	char blend_dir[FILE_MAX];	/* directory, where current .blend file resides */
-	char dest_path[FILE_MAX];
-	char rel_dir[FILE_MAX];
-	int len;
-
-	if (abs)
-		abs[0]= 0;
-
-	if (rel)
-		rel[0]= 0;
-
-	BLI_split_dirfile_basic(G.sce, blend_dir, NULL);
-
-	if (!strlen(im->name)) {
-		if (G.f & G_DEBUG) printf("Invalid image type.\n");
-		return 0;
-	}
-
-	BLI_strncpy(path, im->name, sizeof(path));
-
-	/* expand "//" in filename and get absolute path */
-	BLI_convertstringcode(path, G.sce);
-
-	/* get the directory part */
-	BLI_split_dirfile_basic(path, dir, base);
-
-	len= strlen(blend_dir);
-
-	rel_dir[0] = 0;
-
-	/* if image is "below" current .blend file directory */
-	if (!strncmp(path, blend_dir, len)) {
-
-		/* if image is _in_ current .blend file directory */
-		if (!strcmp(dir, blend_dir)) {
-			BLI_join_dirfile(dest_path, dest_dir, base);
-		}
-		/* "below" */
-		else {
-			/* rel = image_path_dir - blend_dir */
-			BLI_strncpy(rel_dir, dir + len, sizeof(rel_dir));
-
-			BLI_join_dirfile(dest_path, dest_dir, rel_dir);
-			BLI_join_dirfile(dest_path, dest_path, base);
-		}
-			
-	}
-	/* image is out of current directory */
-	else {
-		BLI_join_dirfile(dest_path, dest_dir, base);
-	}
-
-	if (abs)
-		BLI_strncpy(abs, dest_path, abs_size);
-
-	if (rel) {
-		strncat(rel, rel_dir, rel_size);
-		strncat(rel, base, rel_size);
-	}
-
-	/* return 2 if src=dest */
-	if (!strcmp(path, dest_path)) {
-		if (G.f & G_DEBUG) printf("%s and %s are the same file\n", path, dest_path);
-		return 2;
-	}
-
-	return 1;
-}
-

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -191,7 +191,7 @@ void TEXT_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New";
 	ot->idname= "TEXT_OT_new";
-	ot->description= "Create a new text data block.";
+	ot->description= "Create a new text data block";
 	
 	/* api callbacks */
 	ot->exec= new_exec;
@@ -278,7 +278,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Open";
 	ot->idname= "TEXT_OT_open";
-	ot->description= "Open a new text data block.";
+	ot->description= "Open a new text data block";
 
 	/* api callbacks */
 	ot->exec= open_exec;
@@ -287,7 +287,7 @@ void TEXT_OT_open(wmOperatorType *ot)
 	ot->poll= text_new_poll;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_OPENFILE);
 }
 
 /******************* reload operator *********************/
@@ -307,6 +307,7 @@ static int reload_exec(bContext *C, wmOperator *op)
 #endif
 
 	text_update_edited(text);
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -317,7 +318,7 @@ void TEXT_OT_reload(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Reload";
 	ot->idname= "TEXT_OT_reload";
-	ot->description= "Reload active text data block from its file.";
+	ot->description= "Reload active text data block from its file";
 	
 	/* api callbacks */
 	ot->exec= reload_exec;
@@ -337,10 +338,12 @@ static int unlink_exec(bContext *C, wmOperator *op)
 	if(st) {
 		if(text->id.prev) {
 			st->text = text->id.prev;
+			text_update_cursor_moved(C);
 			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
 		}
 		else if(text->id.next) {
 			st->text = text->id.next;
+			text_update_cursor_moved(C);
 			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
 		}
 	}
@@ -357,7 +360,7 @@ void TEXT_OT_unlink(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Unlink";
 	ot->idname= "TEXT_OT_unlink";
-	ot->description= "Unlink active text data block.";
+	ot->description= "Unlink active text data block";
 	
 	/* api callbacks */
 	ot->exec= unlink_exec;
@@ -378,6 +381,7 @@ static int make_internal_exec(bContext *C, wmOperator *op)
 		text->name= NULL;
 	}
 
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -388,7 +392,7 @@ void TEXT_OT_make_internal(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Make Internal";
 	ot->idname= "TEXT_OT_make_internal";
-	ot->description= "Make active text file internal.";
+	ot->description= "Make active text file internal";
 
 	/* api callbacks */
 	ot->exec= make_internal_exec;
@@ -447,6 +451,7 @@ static int save_exec(bContext *C, wmOperator *op)
 
 	txt_write_file(text, op->reports);
 
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -457,7 +462,7 @@ void TEXT_OT_save(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Save";
 	ot->idname= "TEXT_OT_save";
-	ot->description= "Save active text data block.";
+	ot->description= "Save active text data block";
 
 	/* api callbacks */
 	ot->exec= save_exec;
@@ -482,6 +487,7 @@ static int save_as_exec(bContext *C, wmOperator *op)
 
 	txt_write_file(text, op->reports);
 
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -513,7 +519,7 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Save As";
 	ot->idname= "TEXT_OT_save_as";
-	ot->description= "Save active text file with options.";
+	ot->description= "Save active text file with options";
 	
 	/* api callbacks */
 	ot->exec= save_as_exec;
@@ -521,7 +527,7 @@ void TEXT_OT_save_as(wmOperatorType *ot)
 	ot->poll= text_edit_poll;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|TEXTFILE|PYSCRIPTFILE, FILE_SPECIAL, FILE_SAVE);
 }
 
 /******************* run script operator *********************/
@@ -557,7 +563,7 @@ void TEXT_OT_run_script(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Run Script";
 	ot->idname= "TEXT_OT_run_script";
-	ot->description= "Run active script.";
+	ot->description= "Run active script";
 	
 	/* api callbacks */
 	ot->poll= run_script_poll;
@@ -613,7 +619,7 @@ void TEXT_OT_refresh_pyconstraints(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Refresh PyConstraints";
 	ot->idname= "TEXT_OT_refresh_pyconstraints";
-	ot->description= "Refresh all pyconstraints.";
+	ot->description= "Refresh all pyconstraints";
 	
 	/* api callbacks */
 	ot->exec= refresh_pyconstraints_exec;
@@ -720,7 +726,7 @@ static int paste_exec(bContext *C, wmOperator *op)
 
 	MEM_freeN(buf);
 
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	/* run the script while editing, evil but useful */
@@ -735,7 +741,7 @@ void TEXT_OT_paste(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Paste";
 	ot->idname= "TEXT_OT_paste";
-	ot->description= "Paste text from clipboard.";
+	ot->description= "Paste text from clipboard";
 	
 	/* api callbacks */
 	ot->exec= paste_exec;
@@ -773,7 +779,7 @@ void TEXT_OT_copy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy";
 	ot->idname= "TEXT_OT_copy";
-	ot->description= "Copy selected text to clipboard.";
+	ot->description= "Copy selected text to clipboard";
 
 	/* api callbacks */
 	ot->exec= copy_exec;
@@ -789,7 +795,7 @@ static int cut_exec(bContext *C, wmOperator *op)
 	txt_copy_clipboard(text);
 	txt_delete_selected(text);
 
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	/* run the script while editing, evil but useful */
@@ -804,7 +810,7 @@ void TEXT_OT_cut(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Cut";
 	ot->idname= "TEXT_OT_cut";
-	ot->description= "Cut selected text to clipboard.";
+	ot->description= "Cut selected text to clipboard";
 	
 	/* api callbacks */
 	ot->exec= cut_exec;
@@ -826,7 +832,7 @@ static int indent_exec(bContext *C, wmOperator *op)
 
 	text_update_edited(text);
 
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -837,7 +843,7 @@ void TEXT_OT_indent(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Indent";
 	ot->idname= "TEXT_OT_indent";
-	ot->description= "Indent selected text.";
+	ot->description= "Indent selected text";
 	
 	/* api callbacks */
 	ot->exec= indent_exec;
@@ -856,7 +862,7 @@ static int unindent_exec(bContext *C, wmOperator *op)
 
 		text_update_edited(text);
 
-		WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+		text_update_cursor_moved(C);
 		WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 		return OPERATOR_FINISHED;
@@ -870,7 +876,7 @@ void TEXT_OT_unindent(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Unindent";
 	ot->idname= "TEXT_OT_unindent";
-	ot->description= "Unindent selected text.";
+	ot->description= "Unindent selected text";
 	
 	/* api callbacks */
 	ot->exec= unindent_exec;
@@ -897,7 +903,7 @@ static int line_break_exec(bContext *C, wmOperator *op)
 		text_update_line_edited(text, text->curl);
 	}
 
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_CANCELLED;
@@ -908,7 +914,7 @@ void TEXT_OT_line_break(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Line Break";
 	ot->idname= "TEXT_OT_line_break";
-	ot->description= "Insert line break at cursor position.";
+	ot->description= "Insert line break at cursor position";
 	
 	/* api callbacks */
 	ot->exec= line_break_exec;
@@ -926,6 +932,7 @@ static int comment_exec(bContext *C, wmOperator *op)
 		comment(text);
 		text_update_edited(text);
 
+		text_update_cursor_moved(C);
 		WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 		return OPERATOR_FINISHED;
 	}
@@ -938,7 +945,7 @@ void TEXT_OT_comment(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Comment";
 	ot->idname= "TEXT_OT_comment";
-	ot->description= "Convert selected text to comment.";
+	ot->description= "Convert selected text to comment";
 	
 	/* api callbacks */
 	ot->exec= comment_exec;
@@ -956,6 +963,7 @@ static int uncomment_exec(bContext *C, wmOperator *op)
 		uncomment(text);
 		text_update_edited(text);
 
+		text_update_cursor_moved(C);
 		WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 		return OPERATOR_FINISHED;
@@ -969,7 +977,7 @@ void TEXT_OT_uncomment(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Uncomment";
 	ot->idname= "TEXT_OT_uncomment";
-	ot->description= "Convert selected comment to text.";
+	ot->description= "Convert selected comment to text";
 	
 	/* api callbacks */
 	ot->exec= uncomment_exec;
@@ -1097,7 +1105,7 @@ static int convert_whitespace_exec(bContext *C, wmOperator *op)
 	}
 
 	text_update_edited(text);
-
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -1108,7 +1116,7 @@ void TEXT_OT_convert_whitespace(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Convert Whitespace";
 	ot->idname= "TEXT_OT_convert_whitespace";
-	ot->description= "Convert whitespaces by type.";
+	ot->description= "Convert whitespaces by type";
 	
 	/* api callbacks */
 	ot->exec= convert_whitespace_exec;
@@ -1126,6 +1134,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 
 	txt_sel_all(text);
 
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -1136,7 +1145,7 @@ void TEXT_OT_select_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select All";
 	ot->idname= "TEXT_OT_select_all";
-	ot->description= "Select all text.";
+	ot->description= "Select all text";
 	
 	/* api callbacks */
 	ot->exec= select_all_exec;
@@ -1151,6 +1160,7 @@ static int select_line_exec(bContext *C, wmOperator *op)
 
 	txt_sel_line(text);
 
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -1161,7 +1171,7 @@ void TEXT_OT_select_line(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Line";
 	ot->idname= "TEXT_OT_select_line";
-	ot->description= "Select text by line.";
+	ot->description= "Select text by line";
 	
 	/* api clinebacks */
 	ot->exec= select_line_exec;
@@ -1186,6 +1196,7 @@ static int previous_marker_exec(bContext *C, wmOperator *op)
 		txt_move_to(text, mrk->lineno, mrk->end, 1);
 	}
 
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -1196,7 +1207,7 @@ void TEXT_OT_previous_marker(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Previous Marker";
 	ot->idname= "TEXT_OT_previous_marker";
-	ot->description= "Move to previous marker.";
+	ot->description= "Move to previous marker";
 	
 	/* api callbacks */
 	ot->exec= previous_marker_exec;
@@ -1221,6 +1232,7 @@ static int next_marker_exec(bContext *C, wmOperator *op)
 		txt_move_to(text, mrk->lineno, mrk->end, 1);
 	}
 
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -1246,6 +1258,7 @@ static int clear_all_markers_exec(bContext *C, wmOperator *op)
 
 	txt_clear_markers(text, 0, 0);
 
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -1256,7 +1269,7 @@ void TEXT_OT_markers_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clear All Markers";
 	ot->idname= "TEXT_OT_markers_clear";
-	ot->description= "Clear all markers.";
+	ot->description= "Clear all markers";
 	
 	/* api callbacks */
 	ot->exec= clear_all_markers_exec;
@@ -1519,7 +1532,7 @@ static int move_cursor(bContext *C, int type, int select)
 			break;
 	}
 
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -1537,7 +1550,7 @@ void TEXT_OT_move(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Cursor";
 	ot->idname= "TEXT_OT_move";
-	ot->description= "Move cursor to position type.";
+	ot->description= "Move cursor to position type";
 	
 	/* api callbacks */
 	ot->exec= move_exec;
@@ -1561,7 +1574,7 @@ void TEXT_OT_move_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Select";
 	ot->idname= "TEXT_OT_move_select";
-	ot->description= "Make selection from current cursor position to new cursor position type.";
+	ot->description= "Make selection from current cursor position to new cursor position type";
 	
 	/* api callbacks */
 	ot->exec= move_select_exec;
@@ -1584,6 +1597,7 @@ static int jump_exec(bContext *C, wmOperator *op)
 
 	txt_move_toline(text, line-1, 0);
 
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 
 	return OPERATOR_FINISHED;
@@ -1594,7 +1608,7 @@ void TEXT_OT_jump(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Jump";
 	ot->idname= "TEXT_OT_jump";
-	ot->description= "Jump cursor to line.";
+	ot->description= "Jump cursor to line";
 	
 	/* api callbacks */
 	ot->invoke=  WM_operator_props_popup;
@@ -1630,7 +1644,7 @@ static int delete_exec(bContext *C, wmOperator *op)
 
 	text_update_line_edited(text, text->curl);
 
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	/* run the script while editing, evil but useful */
@@ -1645,7 +1659,7 @@ void TEXT_OT_delete(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Delete";
 	ot->idname= "TEXT_OT_delete";
-	ot->description= "Delete text by cursor position.";
+	ot->description= "Delete text by cursor position";
 	
 	/* api callbacks */
 	ot->exec= delete_exec;
@@ -1671,7 +1685,7 @@ void TEXT_OT_overwrite_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Overwrite";
 	ot->idname= "TEXT_OT_overwrite_toggle";
-	ot->description= "Toggle overwrite while typing.";
+	ot->description= "Toggle overwrite while typing";
 	
 	/* api callbacks */
 	ot->exec= toggle_overwrite_exec;
@@ -1839,7 +1853,7 @@ void TEXT_OT_scroll(wmOperatorType *ot)
       scroll_bar. Both do basically the same thing (aside 
       from keymaps).*/
 	ot->idname= "TEXT_OT_scroll";
-	ot->description= "Scroll text screen.";
+	ot->description= "Scroll text screen";
 	
 	/* api callbacks */
 	ot->exec= scroll_exec;
@@ -1868,7 +1882,8 @@ static int scroll_bar_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		return scroll_exec(C, op);
 	
 	/* verify we are in the right zone */
-	if(!(mval[0]>ar->winx-20 && mval[0]<ar->winx-2 && mval[1]>2 && mval[1]<ar->winy))
+	if(!(mval[0]>ar->winx-TXT_SCROLL_WIDTH && mval[0]<ar->winx-TXT_SCROLL_SPACE
+		&& mval[1]>TXT_SCROLL_SPACE && mval[1]<ar->winy))
 		return OPERATOR_PASS_THROUGH;
 
 	tsc= MEM_callocN(sizeof(TextScroll), "TextScroll");
@@ -1891,7 +1906,7 @@ void TEXT_OT_scroll_bar(wmOperatorType *ot)
       scroll. Both do basically the same thing (aside 
       from keymaps).*/
 	ot->idname= "TEXT_OT_scroll_bar";
-	ot->description= "Scroll text screen.";
+	ot->description= "Scroll text screen";
 	
 	/* api callbacks */
 	ot->invoke= scroll_bar_invoke;
@@ -2057,6 +2072,7 @@ static void set_cursor_apply(bContext *C, wmOperator *op, wmEvent *event)
 
 		set_cursor_to_pos(st, ar, event->mval[0], event->mval[1]<0?0:ar->winy, 1);
 
+		text_update_cursor_moved(C);
 		WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
 	} 
 	else if(!st->wordwrap && (event->mval[0]<0 || event->mval[0]>ar->winx)) {
@@ -2065,12 +2081,14 @@ static void set_cursor_apply(bContext *C, wmOperator *op, wmEvent *event)
 		
 		set_cursor_to_pos(st, ar, event->mval[0], event->mval[1], 1);
 		
+		text_update_cursor_moved(C);
 		WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
 		// XXX PIL_sleep_ms(10);
 	} 
 	else {
 		set_cursor_to_pos(st, ar, event->mval[0], event->mval[1], 1);
 
+		text_update_cursor_moved(C);
 		WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
 
 		scu->old[0]= event->mval[0];
@@ -2098,6 +2116,7 @@ static void set_cursor_exit(bContext *C, wmOperator *op)
 	if(scu->sell!=linep2 || scu->selc!=charp2)
 		txt_undo_add_toop(st->text, UNDO_STO, scu->sell, scu->selc, linep2, charp2);
 
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, st->text);
 
 	MEM_freeN(scu);
@@ -2167,7 +2186,7 @@ void TEXT_OT_cursor_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Cursor";
 	ot->idname= "TEXT_OT_cursor_set";
-	ot->description= "Set cursor selection.";
+	ot->description= "Set cursor selection";
 	
 	/* api callbacks */
 	ot->invoke= set_cursor_invoke;
@@ -2210,6 +2229,7 @@ static int line_number_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	txt_move_toline(text, jump_to-1, 0);
 	last_jump= time;
 
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 
 	return OPERATOR_FINISHED;
@@ -2220,7 +2240,7 @@ void TEXT_OT_line_number(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Line Number";
 	ot->idname= "TEXT_OT_line_number";
-	ot->description= "The current line number.";
+	ot->description= "The current line number";
 	
 	/* api callbacks */
 	ot->invoke= line_number_invoke;
@@ -2255,7 +2275,7 @@ static int insert_exec(bContext *C, wmOperator *op)
 
 	text_update_line_edited(text, text->curl);
 
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 
 	return OPERATOR_FINISHED;
@@ -2289,7 +2309,7 @@ void TEXT_OT_insert(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Insert";
 	ot->idname= "TEXT_OT_insert";
-	ot->description= "Insert text at cursor position.";
+	ot->description= "Insert text at cursor position";
 	
 	/* api callbacks */
 	ot->exec= insert_exec;
@@ -2338,6 +2358,7 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 						MEM_freeN(text->curl->format);
 						text->curl->format= NULL;
 					}
+					text_update_cursor_moved(C);
 					WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 				}
 				else if(mode==TEXT_MARK_ALL) {
@@ -2350,6 +2371,7 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 					}
 
 					txt_add_marker(text, text->curl, text->curc, text->selc, color, TMARK_GRP_FINDALL, TMARK_EDITALL);
+					text_update_cursor_moved(C);
 					WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 				}
 			}
@@ -2359,6 +2381,7 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 
 		/* Find next */
 		if(txt_find_string(text, st->findstr, flags & ST_FIND_WRAP)) {
+			text_update_cursor_moved(C);
 			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 		}
 		else if(flags & ST_FIND_ALL) {
@@ -2369,6 +2392,7 @@ static int find_and_replace(bContext *C, wmOperator *op, short mode)
 			else
 				text= st->text= G.main->text.first;
 			txt_move_toline(text, 0, 0);
+			text_update_cursor_moved(C);
 			WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
 			first= 1;
 		}
@@ -2391,7 +2415,7 @@ void TEXT_OT_find(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Find";
 	ot->idname= "TEXT_OT_find";
-	ot->description= "Find specified text.";
+	ot->description= "Find specified text";
 	
 	/* api callbacks */
 	ot->exec= find_exec;
@@ -2410,7 +2434,7 @@ void TEXT_OT_replace(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Replace";
 	ot->idname= "TEXT_OT_replace";
-	ot->description= "Replace text with the specified text.";
+	ot->description= "Replace text with the specified text";
 
 	/* api callbacks */
 	ot->exec= replace_exec;
@@ -2429,7 +2453,7 @@ void TEXT_OT_mark_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mark All";
 	ot->idname= "TEXT_OT_mark_all";
-	ot->description= "Mark all specified text.";
+	ot->description= "Mark all specified text";
 	
 	/* api callbacks */
 	ot->exec= mark_all_exec;
@@ -2459,7 +2483,7 @@ void TEXT_OT_find_set_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Find Set Selected";
 	ot->idname= "TEXT_OT_find_set_selected";
-	ot->description= "Find specified text and set as selected.";
+	ot->description= "Find specified text and set as selected";
 	
 	/* api callbacks */
 	ot->exec= find_set_selected_exec;
@@ -2486,7 +2510,7 @@ void TEXT_OT_replace_set_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Replace Set Selected";
 	ot->idname= "TEXT_OT_replace_set_selected";
-	ot->description= "Replace text with specified text and set as selected.";
+	ot->description= "Replace text with specified text and set as selected";
 	
 	/* api callbacks */
 	ot->exec= replace_set_selected_exec;
@@ -2621,7 +2645,7 @@ void TEXT_OT_resolve_conflict(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Resolve Conflict";
 	ot->idname= "TEXT_OT_resolve_conflict";
-	ot->description= "When external text is out of sync, resolve the conflict.";
+	ot->description= "When external text is out of sync, resolve the conflict";
 
 	/* api callbacks */
 	ot->exec= resolve_conflict_exec;
@@ -2649,7 +2673,7 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "To 3D Object";
 	ot->idname= "TEXT_OT_to_3d_object";
-	ot->description= "Create 3d text object from active text data block.";
+	ot->description= "Create 3d text object from active text data block";
 	
 	/* api callbacks */
 	ot->exec= to_3d_object_exec;
@@ -2679,7 +2703,7 @@ void ED_text_undo_step(bContext *C, int step)
 
 	text_update_edited(text);
 
-	WM_event_add_notifier(C, NC_TEXT|ND_CURSOR, text);
+	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT|NA_EDITED, text);
 }
 

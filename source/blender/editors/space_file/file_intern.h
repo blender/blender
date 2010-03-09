@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -72,7 +72,7 @@ void FILE_OT_filenum(struct wmOperatorType *ot);
 void FILE_OT_delete(struct wmOperatorType *ot);
 void FILE_OT_rename(struct wmOperatorType *ot);
 
-int file_exec(bContext *C, struct wmOperator *unused);
+int file_exec(bContext *C, struct wmOperator *exec_op);
 int file_cancel_exec(bContext *C, struct wmOperator *unused);
 int file_parent_exec(bContext *C, struct wmOperator *unused);
 int file_previous_exec(bContext *C, struct wmOperator *unused);

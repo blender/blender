@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -113,6 +113,7 @@ struct Render
 {
 	struct Render *next, *prev;
 	char name[RE_MAXNAME];
+	int slot;
 	
 	/* state settings */
 	short flag, osa, ok, result_ok;
@@ -161,6 +162,7 @@ struct Render
 	/* samples */
 	SampleTables *samples;
 	float jit[32][2];
+	float mblur_jit[32][2];
 	ListBase *qmcsamplers;
 	
 	/* shadow counter, detect shadow-reuse for shaders */
@@ -399,6 +401,7 @@ typedef struct StrandSurface {
 	float (*co)[3];
 	/* for occlusion caching */
 	float (*ao)[3];
+	float (*env)[3];
 	float (*indirect)[3];
 	/* for speedvectors */
 	float (*prevco)[3], (*nextco)[3];

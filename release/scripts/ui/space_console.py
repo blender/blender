@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -116,10 +116,9 @@ def add_scrollback(text, text_type):
 
 
 class ConsoleExec(bpy.types.Operator):
-    '''Execute the current console line as a python expression.'''
+    '''Execute the current console line as a python expression'''
     bl_idname = "console.execute"
     bl_label = "Console Execute"
-    bl_register = False
 
     def execute(self, context):
         sc = context.space_data
@@ -135,11 +134,9 @@ class ConsoleExec(bpy.types.Operator):
 
 
 class ConsoleAutocomplete(bpy.types.Operator):
-    '''Evaluate the namespace up until the cursor and give a list of
-    options or complete the name if there is only one.'''
+    '''Evaluate the namespace up until the cursor and give a list of options or complete the name if there is only one'''
     bl_idname = "console.autocomplete"
     bl_label = "Console Autocomplete"
-    bl_register = False
 
     def poll(self, context):
         return context.space_data.console_type != 'REPORT'
@@ -199,15 +196,31 @@ class ConsoleLanguage(bpy.types.Operator):
         return {'FINISHED'}
 
 
-bpy.types.register(CONSOLE_HT_header)
-bpy.types.register(CONSOLE_MT_console)
-bpy.types.register(CONSOLE_MT_report)
-bpy.types.register(CONSOLE_MT_language)
+classes = [
+    CONSOLE_HT_header,
+    CONSOLE_MT_console,
+    CONSOLE_MT_report,
+    CONSOLE_MT_language,
 
-# Stubs that call the language operators
-bpy.types.register(ConsoleExec)
-bpy.types.register(ConsoleAutocomplete)
-bpy.types.register(ConsoleBanner)
+    # Stubs that call the language operators
+    ConsoleExec,
+    ConsoleAutocomplete,
+    ConsoleBanner,
 
-# Set the language and call the banner
-bpy.types.register(ConsoleLanguage)
+    # Set the language and call the banner
+    ConsoleLanguage]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

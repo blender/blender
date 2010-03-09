@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -67,6 +67,9 @@ void unlink_scene(struct Main *bmain, struct Scene *sce, struct Scene *newsce);
 int next_object(struct Scene *scene, int val, struct Base **base, struct Object **ob);
 struct Object *scene_find_camera(struct Scene *sc);
 struct Object *scene_find_camera_switch(struct Scene *scene); // DURIAN_CAMERA_SWITCH
+
+char *scene_find_marker_name(struct Scene *scene, int frame);
+char *scene_find_last_marker_name(struct Scene *scene, int frame);
 
 struct Base *scene_add_base(struct Scene *sce, struct Object *ob);
 void scene_deselect_all(struct Scene *sce);

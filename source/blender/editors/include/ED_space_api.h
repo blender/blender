@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -62,12 +62,14 @@ void ED_file_exit(void);
 
 #define REGION_DRAW_POST_VIEW	0
 #define REGION_DRAW_POST_PIXEL	1
+#define REGION_DRAW_PRE_VIEW	2
 
 void *ED_region_draw_cb_activate(struct ARegionType *, 
 								 void	(*draw)(const struct bContext *, struct ARegion *, void *),
 								 void *custumdata, int type);
 void ED_region_draw_cb_draw(const struct bContext *, struct ARegion *, int);
 void ED_region_draw_cb_exit(struct ARegionType *, void *);
+void *ED_region_draw_cb_customdata(void *handle);
 
 #endif /* ED_SPACE_API_H */
 

@@ -250,6 +250,16 @@ int EDBM_CallOpfSilent(BMEditMesh *em, char *fmt, ...)
 	return EDBM_FinishOp(em, &bmop, NULL, 0);
 }
 
+void EDBM_selectmode_to_scene(Scene *scene, Object *obedit)
+{
+	BMEditMesh *em = ((Mesh*)obedit->data)->edit_btmesh;
+
+	if (!em)
+		return;
+
+	scene->toolsettings->selectmode = em->selectmode;
+}
+
 void EDBM_MakeEditBMesh(ToolSettings *ts, Scene *scene, Object *ob)
 {
 	Mesh *me = ob->data;

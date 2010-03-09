@@ -15,7 +15,7 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program; if not, write to the Free Software  Foundation,
-* Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
 * The Original Code is Copyright (C) 2006 Blender Foundation.
 * All rights reserved.
@@ -2159,7 +2159,7 @@ void CustomData_from_bmeshpoly(CustomData *fdata, CustomData *pdata, CustomData 
 
 
 void CustomData_bmesh_init_pool(CustomData *data, int allocsize){
-	if(data->totlayer)data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize);
+	if(data->totlayer)data->pool = BLI_mempool_create(data->totsize, allocsize, allocsize, 1);
 }
 
 void CustomData_bmesh_merge(CustomData *source, CustomData *dest, 
@@ -2721,8 +2721,10 @@ void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int
 	customdata_external_filename(filename, id, external);
 
 	cdf= cdf_create(CDF_TYPE_MESH);
-	if(!cdf_read_open(cdf, filename))
+	if(!cdf_read_open(cdf, filename)) {
+		fprintf(stderr, "Failed to read %s layer from %s.\n", layerType_getName(layer->type), filename);
 		return;
+	}
 
 	for(i=0; i<data->totlayer; i++) {
 		layer = &data->layers[i];
@@ -2762,6 +2764,7 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 	if(!external)
 		return;
 
+	/* test if there is anything to write */
 	for(i=0; i<data->totlayer; i++) {
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
@@ -2774,7 +2777,9 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 	if(!update)
 		return;
 
+	/* make sure data is read before we try to write */
 	CustomData_external_read(data, id, mask, totelem);
+	customdata_external_filename(filename, id, external);
 
 	cdf= cdf_create(CDF_TYPE_MESH);
 
@@ -2782,14 +2787,22 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 		layer = &data->layers[i];
 		typeInfo = layerType_getInfo(layer->type);
 
-		if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->filesize)
-			cdf_layer_add(cdf, layer->type, layer->name,
-				typeInfo->filesize(cdf, layer->data, totelem));
+		if((layer->flag & CD_FLAG_EXTERNAL) && typeInfo->filesize) {
+			if(layer->flag & CD_FLAG_IN_MEMORY) {
+				cdf_layer_add(cdf, layer->type, layer->name,
+					typeInfo->filesize(cdf, layer->data, totelem));
+			}
+			else {
+				cdf_free(cdf);
+				return; /* read failed for a layer! */
+			}
+		}
 	}
 
-	customdata_external_filename(filename, id, external);
-	if(!cdf_write_open(cdf, filename))
+	if(!cdf_write_open(cdf, filename)) {
+		fprintf(stderr, "Failed to open %s for writing.\n", filename);
 		return;
+	}
 
 	for(i=0; i<data->totlayer; i++) {
 		layer = &data->layers[i];
@@ -2808,6 +2821,7 @@ void CustomData_external_write(CustomData *data, ID *id, CustomDataMask mask, in
 	}
 
 	if(i != data->totlayer) {
+		fprintf(stderr, "Failed to write data to %s.\n", filename);
 		cdf_free(cdf);
 		return;
 	}

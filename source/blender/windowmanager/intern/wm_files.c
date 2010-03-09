@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -109,11 +109,13 @@ static void writeBlog(void);
 static void wm_window_match_init(bContext *C, ListBase *wmlist)
 {
 	wmWindowManager *wm= G.main->wm.first;
-	wmWindow *win;
+	wmWindow *win, *active_win;
 	
 	*wmlist= G.main->wm;
 	G.main->wm.first= G.main->wm.last= NULL;
 	
+	active_win = CTX_wm_window(C);
+
 	/* first wrap up running stuff */
 	/* code copied from wm_init_exit.c */
 	for(wm= wmlist->first; wm; wm= wm->id.next) {
@@ -129,6 +131,9 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 		}
 	}
 	
+	/* reset active window */
+	CTX_wm_window_set(C, active_win);
+
 	ED_editors_exit(C);
 	
 return;	
@@ -231,11 +236,15 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 }
 
 /* in case UserDef was read, we re-initialize all, and do versioning */
-static void wm_init_userdef()
+static void wm_init_userdef(bContext *C)
 {
 	UI_init_userdef();
 	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
-	sound_init();
+	sound_init(CTX_data_main(C));
+
+	/* set the python auto-execute setting from user prefs */
+	if (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE)	G.f &= ~G_SCRIPT_AUTOEXEC;
+	else										G.f |=  G_SCRIPT_AUTOEXEC;
 }
 
 void WM_read_file(bContext *C, char *name, ReportList *reports)
@@ -264,7 +273,7 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 		
 // XXX		mainwindow_set_filename_to_title(G.main->name);
 
-		if(retval==2) wm_init_userdef();	// in case a userdef is read from regular .blend
+		if(retval==2) wm_init_userdef(C);	// in case a userdef is read from regular .blend
 		
 		if (retval!=0) {
 			G.relbase_valid = 1;
@@ -279,9 +288,10 @@ void WM_read_file(bContext *C, char *name, ReportList *reports)
 //		refresh_interface_font();
 
 		CTX_wm_window_set(C, NULL); /* exits queues */
-
+#ifndef DISABLE_PYTHON
 		/* run any texts that were loaded in and flagged as modules */
 		BPY_load_user_modules(C);
+#endif
 	}
 	else if(retval==1)
 		BKE_write_undo(C, "Import file");
@@ -332,7 +342,7 @@ int WM_read_homefile(bContext *C, wmOperator *op)
 
 	strcpy(G.sce, scestr); /* restore */
 	
-	wm_init_userdef();
+	wm_init_userdef(C);
 	
 	/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
 	if (!G.background) GPU_default_lights();
@@ -369,11 +379,11 @@ void read_Blog(void)
 	G.recent_files.first = G.recent_files.last = NULL;
 
 	/* read list of recent opend files from .Blog to memory */
-	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next, num++) {
+	for (l= lines, num= 0; l && (num<U.recent_files); l= l->next) {
 		line = l->link;
-		if (!BLI_streq(line, "")) {
+		if (line[0] && BLI_exists(line)) {
 			if (num==0) 
-				strcpy(G.sce, line);
+				strcpy(G.sce, line); /* note: this seems highly dodgy since the file isnt actually read. please explain. - campbell */
 			
 			recent = (RecentFile*)MEM_mallocN(sizeof(RecentFile),"RecentFile");
 			BLI_addtail(&(G.recent_files), recent);
@@ -381,6 +391,7 @@ void read_Blog(void)
 			recent->filename[0] = '\0';
 			
 			strcpy(recent->filename, line);
+			num++;
 		}
 	}
 

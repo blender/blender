@@ -26,9 +26,11 @@
 #ifndef AUD_MIXER
 #define AUD_MIXER
 
+#define AUD_MIXER_RESAMPLER AUD_SRCResampleFactory
+
 #include "AUD_ConverterFunctions.h"
 class AUD_ConverterFactory;
-class AUD_SRCResampleFactory;
+class AUD_MIXER_RESAMPLER;
 class AUD_ChannelMapperFactory;
 class AUD_Buffer;
 class AUD_IReader;
@@ -37,6 +39,7 @@ class AUD_IReader;
 struct AUD_MixerBuffer
 {
 	sample_t* buffer;
+	int start;
 	int length;
 	float volume;
 };
@@ -53,7 +56,7 @@ private:
 	/**
 	 * The resampling factory that resamples all readers for superposition.
 	 */
-	AUD_SRCResampleFactory* m_resampler;
+	AUD_MIXER_RESAMPLER* m_resampler;
 
 	/**
 	 * The channel mapper factory that maps all readers for superposition.
@@ -99,6 +102,12 @@ public:
 	AUD_IReader* prepare(AUD_IReader* reader);
 
 	/**
+	 * Returns the target specification for superposing.
+	 * \return The target specification.
+	 */
+	AUD_DeviceSpecs getSpecs();
+
+	/**
 	 * Sets the target specification for superposing.
 	 * \param specs The target specification.
 	 */
@@ -111,7 +120,7 @@ public:
 	 * \param length The length of the buffer in samples.
 	 * \param volume The mixing volume. Must be a value between 0.0 and 1.0.
 	 */
-	void add(sample_t* buffer, int length, float volume);
+	void add(sample_t* buffer, int start, int length, float volume);
 
 	/**
 	 * Superposes all added buffers into an output buffer.

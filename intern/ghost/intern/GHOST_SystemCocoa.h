@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -214,6 +214,20 @@ public:
 	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
 
 	/**
+	 * Determine the base dir in which shared resources are located. It will first try to use
+	 * "unpack and run" path, then look for properly installed path, not including versioning.
+	 * @return Unsigned char string pointing to system dir (eg /usr/share/blender/).
+	 */
+	virtual const GHOST_TUns8* getSystemDir() const;
+
+	/**
+	 * Determine the base dir in which user configuration is stored, not including versioning.
+	 * If needed, it will create the base directory.
+	 * @return Unsigned char string pointing to user dir (eg ~/.blender/).
+	 */
+	virtual const GHOST_TUns8* getUserDir() const;
+
+	/**
      * Handles a window event. Called by GHOST_WindowCocoa window delegate
      * @param eventType The type of window event
 	 * @param window The window on which the event occured
@@ -264,6 +278,9 @@ protected:
 	/** Event has been processed directly by Cocoa and has sent a ghost event to be dispatched */
 	bool m_outsideLoopEventProcessed;
 	
+	/** Raised window is not yet known by the window manager, so delay application become active event handling */
+	bool m_needDelayedApplicationBecomeActiveEventProcessing;
+	
 	/** Mouse buttons state */
 	GHOST_TUns32 m_pressedMouseButtons;
 	
@@ -277,6 +294,12 @@ protected:
 	 * Needed because cocoa event delta cursor move takes setCursorPosition changes too.
 	 */
 	GHOST_TInt32 m_cursorDelta_x, m_cursorDelta_y;
+	
+	/** Multitouch trackpad availability */
+	bool m_hasMultiTouchTrackpad;
+	
+	/** Multitouch gesture in progress, useful to distinguish trackpad from mouse scroll events */
+	bool m_isGestureInProgress;
 };
 
 #endif // _GHOST_SYSTEM_COCOA_H_

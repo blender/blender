@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -179,7 +179,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel):
                 if wide_ui:
                     col = split.column()
                 col.prop(group, "dupli_offset", text="")
-                
+
                 prop = col.operator("wm.context_set_value", text="From Cursor")
                 prop.path = "object.group_users[%d].dupli_offset" % index
                 prop.value = value
@@ -304,14 +304,35 @@ class OBJECT_PT_animation(ObjectButtonsPanel):
         row.prop(ob, "track_override_parent", text="Override Parent")
         row.active = (ob.parent is not None)
 
+# import generic panels from other files 
+from properties_animviz import OBJECT_PT_motion_paths, OBJECT_PT_onion_skinning
 
-bpy.types.register(OBJECT_PT_context_object)
-bpy.types.register(OBJECT_PT_transform)
-bpy.types.register(OBJECT_PT_transform_locks)
-bpy.types.register(OBJECT_PT_relations)
-bpy.types.register(OBJECT_PT_groups)
-bpy.types.register(OBJECT_PT_display)
-bpy.types.register(OBJECT_PT_duplication)
-bpy.types.register(OBJECT_PT_animation)
+classes = [
+    OBJECT_PT_context_object,
+    OBJECT_PT_transform,
+    OBJECT_PT_transform_locks,
+    OBJECT_PT_relations,
+    OBJECT_PT_groups,
+    OBJECT_PT_display,
+    OBJECT_PT_duplication,
+    OBJECT_PT_animation,
+    
+    OBJECT_PT_motion_paths,
+    #OBJECT_PT_onion_skinning,
 
-bpy.types.register(OBJECT_PT_custom_props)
+    OBJECT_PT_custom_props]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

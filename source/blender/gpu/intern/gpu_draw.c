@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -392,7 +392,7 @@ static void gpu_verify_reflection(Image *ima)
 	}
 }
 
-int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare, int mipmap)
+int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int tfmode, int compare, int mipmap)
 {
 	ImBuf *ibuf = NULL;
 	unsigned int *bind = NULL;
@@ -444,7 +444,7 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare, int mipmap
 		return 0;
 
 	/* check if we have a valid image buffer */
-	ibuf= BKE_image_get_ibuf(ima, NULL);
+	ibuf= BKE_image_get_ibuf(ima, iuser);
 
 	if(ibuf==NULL)
 		return 0;
@@ -453,6 +453,12 @@ int GPU_verify_image(Image *ima, int tftile, int tfmode, int compare, int mipmap
 	if ((ibuf->rect==NULL) && ibuf->rect_float)
 		IMB_rect_from_float(ibuf);
 
+	/* currently, tpage refresh is used by ima sequences */
+	if(ima->tpageflag & IMA_TPAGE_REFRESH) {
+		GPU_free_image(ima);
+		ima->tpageflag &= ~IMA_TPAGE_REFRESH;
+	}
+	
 	if(GTS.tilemode) {
 		/* tiled mode */
 		if(ima->repbind==0) gpu_make_repbind(ima);
@@ -585,7 +591,7 @@ int GPU_set_tpage(MTFace *tface, int mipmap)
 	gpu_verify_alpha_mode(tface);
 	gpu_verify_reflection(ima);
 
-	if(GPU_verify_image(ima, tface->tile, tface->mode, 1, mipmap)) {
+	if(GPU_verify_image(ima, NULL, tface->tile, tface->mode, 1, mipmap)) {
 		GTS.curtile= GTS.tile;
 		GTS.curima= GTS.ima;
 		GTS.curtilemode= GTS.tilemode;
@@ -1314,7 +1320,9 @@ void GPU_state_init(void)
 	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
 
-	glDisable(GL_MULTISAMPLE_ARB);
+	/* calling this makes drawing very slow when AA is not set up in ghost
+	   on Linux/NVIDIA.
+	glDisable(GL_MULTISAMPLE); */
 }
 
 /* debugging aid */

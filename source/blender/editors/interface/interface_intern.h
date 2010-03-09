@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -46,6 +46,7 @@ struct uiLayout;
 struct bContextStore;
 struct Scene;
 struct ID;
+struct ImBuf;
 
 /* ****************** general defines ************** */
 
@@ -93,7 +94,7 @@ typedef enum {
 
 
 #define UI_MAX_DRAW_STR	400
-#define UI_MAX_NAME_STR	64
+#define UI_MAX_NAME_STR	128
 #define UI_ARRAY	29
 
 /* panel limits */
@@ -226,8 +227,14 @@ struct uiBut {
 	int opcontext;
 	struct IDProperty *opproperties;
 	struct PointerRNA *opptr;
+	
+	/* Draggable data, type is WM_DRAG_... */
+	int dragtype;
+	void *dragpoin;
+	struct ImBuf *imb;
+	float imb_scale;
 
-		/* active button data */
+	/* active button data */
 	struct uiHandleButtonData *active;
 
 	char *editstr;
@@ -318,6 +325,8 @@ typedef struct uiSafetyRct {
 
 /* interface.c */
 
+extern void ui_delete_linkline(uiLinkLine *line, uiBut *but);
+
 extern int ui_translate_buttons(void);
 extern int ui_translate_menus(void);
 extern int ui_translate_tooltips(void);
@@ -342,6 +351,8 @@ extern void ui_hsvcircle_vals_from_pos(float *valrad, float *valdist, rcti *rect
 extern void ui_get_but_string(uiBut *but, char *str, int maxlen);
 extern int ui_set_but_string(struct bContext *C, uiBut *but, const char *str);
 extern int ui_get_but_string_max_length(uiBut *but);
+
+extern void ui_set_but_default(struct bContext *C, uiBut *but);
 
 extern void ui_set_but_soft_range(uiBut *but, double value);
 
@@ -426,11 +437,13 @@ extern void gl_round_box(int mode, float minx, float miny, float maxx, float max
 extern void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadetop, float shadedown);
 extern void gl_round_box_vertical_shade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight);
 
+void ui_draw_gradient(rcti *rect, float *rgb, int type, float alpha);
+
+void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_COLORBAND(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_NORMAL(uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_CURVE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
 void ui_draw_but_IMAGE(ARegion *ar, uiBut *but, struct uiWidgetColors *wcol, rcti *rect);
-
 
 /* interface_handlers.c */
 extern void ui_button_activate_do(struct bContext *C, struct ARegion *ar, uiBut *but);
@@ -441,6 +454,7 @@ extern int ui_button_is_active(struct ARegion *ar);
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 void ui_draw_search_back(struct uiStyle *style, uiBlock *block, rcti *rect);
+int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol);
 void ui_draw_link_bezier(rcti *rect);
 
 extern void ui_draw_but(const struct bContext *C, ARegion *ar, struct uiStyle *style, uiBut *but, rcti *rect);
@@ -481,7 +495,7 @@ void ui_but_anim_add_keyingset(struct bContext *C);
 void ui_but_anim_remove_keyingset(struct bContext *C);
 int ui_but_anim_expression_get(uiBut *but, char *str, int maxlen);
 int ui_but_anim_expression_set(uiBut *but, const char *str);
-void ui_but_anim_autokey(uiBut *but, struct Scene *scene, float cfra);
+void ui_but_anim_autokey(struct bContext *C, uiBut *but, struct Scene *scene, float cfra);
 
 #endif
 

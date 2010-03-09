@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -44,6 +44,7 @@ will be exported as mesh data.
 # import math
 import os
 import time
+import shutil
 
 import bpy
 import Mathutils
@@ -76,12 +77,15 @@ def write_mtl(scene, filename, copy_images):
     dest_dir = os.path.dirname(filename)
 
     def copy_image(image):
-        rel = image.get_export_path(dest_dir, True)
-
+        fn = bpy.utils.expandpath(image.filename)
+        fn_strip = os.path.basename(fn)
         if copy_images:
-            abspath = image.get_export_path(dest_dir, False)
-            if not os.path.exists(abs_path):
-                shutil.copy(image.get_abs_filename(), abs_path)
+            rel = fn_strip
+            fn_abs_dest = os.path.join(dest_dir, fn_strip)
+            if not os.path.exists(fn_abs_dest):
+                shutil.copy(fn, fn_abs_dest)
+        else:
+            rel = fn
 
         return rel
 
@@ -134,7 +138,7 @@ def write_mtl(scene, filename, copy_images):
 # 			file.write('map_Kd %s\n' % img.filename.split('\\')[-1].split('/')[-1]) # Diffuse mapping image
 
         elif mat: # No face image. if we havea material search for MTex image.
-            for mtex in mat.textures:
+            for mtex in mat.texture_slots:
                 if mtex and mtex.texture.type == 'IMAGE':
                     try:
                         filename = copy_image(mtex.texture.image)
@@ -176,7 +180,7 @@ def copy_images(dest_dir):
 
         # Get MTex images
         if mat:
-            for mtex in mat.textures:
+            for mtex in mat.texture_slots:
                 if mtex and mtex.texture.type == 'IMAGE':
                     image_tex = mtex.texture.image
                     if image_tex:
@@ -370,7 +374,7 @@ def write(filename, objects, scene,
         file.write('mtllib %s\n' % ( mtlfilename.split('\\')[-1].split('/')[-1] ))
 
     if EXPORT_ROTX90:
-        mat_xrot90= Mathutils.RotationMatrix(-math.pi/2, 4, 'x')
+        mat_xrot90= Mathutils.RotationMatrix(-math.pi/2, 4, 'X')
 
     # Initialize totals, these are updated each object
     totverts = totuvco = totno = 1
@@ -447,8 +451,7 @@ def write(filename, objects, scene,
                         break
 
                 if has_quads:
-                    newob = bpy.data.objects.new('temp_object', 'MESH')
-                    newob.data = me
+                    newob = bpy.data.objects.new('temp_object', me)
                     # if we forget to set Object.data - crash
                     scene.objects.link(newob)
                     newob.convert_to_triface(scene)
@@ -510,7 +513,7 @@ def write(filename, objects, scene,
                 # XXX update
                 tface = me.active_uv_texture.data
 
-                face_index_pairs.sort(key=lambda a: (a[0].material_index, tface[a[1]].image, a[0].smooth))
+                face_index_pairs.sort(key=lambda a: (a[0].material_index, hash(tface[a[1]].image), a[0].smooth))
             elif len(materials) > 1:
                 face_index_pairs.sort(key = lambda a: (a[0].material_index, a[0].smooth))
             else:
@@ -563,6 +566,7 @@ def write(filename, objects, scene,
 
                     tface = uv_layer.data[f_index]
 
+                    # workaround, since tface.uv iteration is wrong atm
                     uvs = tface.uv
                     # uvs = [tface.uv1, tface.uv2, tface.uv3]
 
@@ -896,6 +900,7 @@ class ExportOBJ(bpy.types.Operator):
     # to the class instance from the operator settings before calling.
 
     path = StringProperty(name="File Path", description="File path used for exporting the OBJ file", maxlen= 1024, default= "")
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     # context group
     use_selection = BoolProperty(name="Selection Only", description="", default= False)
@@ -926,7 +931,11 @@ class ExportOBJ(bpy.types.Operator):
 
     def execute(self, context):
 
-        do_export(self.properties.path, context,
+        path = self.properties.path
+        if not path.lower().endswith(".obj"):
+            path += ".obj"
+
+        do_export(path, context,
                   EXPORT_TRI=self.properties.use_triangles,
                   EXPORT_EDGES=self.properties.use_edges,
                   EXPORT_NORMALS=self.properties.use_normals,
@@ -952,16 +961,20 @@ class ExportOBJ(bpy.types.Operator):
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
-bpy.types.register(ExportOBJ)
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".obj")
-    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)...").path = default_path
+    self.layout.operator(ExportOBJ.bl_idname, text="Wavefront (.obj)").path = default_path
 
-menu_item = bpy.types.INFO_MT_file_export.append(menu_func)
 
-if __name__ == "__main__":
-    bpy.ops.EXPORT_OT_obj(filename="/tmp/test.obj")
+def register():
+    bpy.types.register(ExportOBJ)
+    bpy.types.INFO_MT_file_export.append(menu_func)
+
+def unregister():
+    bpy.types.unregister(ExportOBJ)
+    bpy.types.INFO_MT_file_export.remove(menu_func)
+
 
 # CONVERSION ISSUES
 # - matrix problem
@@ -969,4 +982,7 @@ if __name__ == "__main__":
 # - NURBS - needs API additions
 # - all scenes export
 # + normals calculation
+
+if __name__ == "__main__":
+    register()
 

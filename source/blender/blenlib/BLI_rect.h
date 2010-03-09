@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -47,6 +47,7 @@ extern "C" {
  * @return True if @a rect is empty.
  */
 int  BLI_rcti_is_empty(struct rcti *rect);
+int  BLI_rctf_is_empty(struct rctf *rect);
 void BLI_init_rctf(struct rctf *rect, float xmin, float xmax, float ymin, float ymax);
 void BLI_init_rcti(struct rcti *rect, int xmin, int xmax, int ymin, int ymax);
 void BLI_translate_rctf(struct rctf *rect, float x, float y);

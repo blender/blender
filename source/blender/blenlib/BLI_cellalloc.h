@@ -40,10 +40,11 @@
 	-joeedh sep. 17 2009
 */
 
-//BMESH_TODO: kill this library before merging with trunk
+//BMESH_TODO: kill this library before merging with trunk.  it's evil! -joeedh
 void *BLI_cellalloc_malloc(long size, char *tag);
 void *BLI_cellalloc_calloc(long size, char *tag);
 void BLI_cellalloc_free(void *mem);
 void BLI_cellalloc_printleaks(void);
 int BLI_cellalloc_get_totblock(void);
 void BLI_cellalloc_destroy(void);
+void *BLI_cellalloc_dupalloc(void *mem);

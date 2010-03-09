@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -108,6 +108,8 @@ static int panel_aligned(ScrArea *sa, ARegion *ar)
 		return BUT_VERTICAL;
 	else if(sa->spacetype==SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
 		return BUT_VERTICAL;
+	else if(sa->spacetype==SPACE_IMAGE && ar->regiontype == RGN_TYPE_PREVIEW)
+		return BUT_VERTICAL; 
 	else if(ELEM3(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS))
 		return BUT_VERTICAL;
 	
@@ -129,6 +131,8 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 				return 1;
 	}
 	else if(ar->regiontype==RGN_TYPE_UI)
+		return 1;
+	else if(sa->spacetype==SPACE_IMAGE && ar->regiontype == RGN_TYPE_PREVIEW)
 		return 1;
 	else if(sa->spacetype==SPACE_FILE && ar->regiontype == RGN_TYPE_CHANNELS)
 		return 1;

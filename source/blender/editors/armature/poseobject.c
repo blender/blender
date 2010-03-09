@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -51,6 +51,8 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_anim.h"
+#include "BKE_idprop.h"
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -92,8 +94,6 @@
 static int pupmenu() {return 0;}
 static void error() {};
 static void BIF_undo_push() {}
-static void countall() {}
-static void autokeyframe_pose_cb_func() {}
 /* ************* XXX *************** */
 
 /* This function is used to indicate that a bone is selected and needs keyframes inserted */
@@ -200,6 +200,7 @@ int ED_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 }
 
 /* ********************************************** */
+/* Motion Paths */
 
 /* For the object with pose/action: update paths for those that have got them
  * This should selectively update paths that exist...
@@ -208,120 +209,25 @@ int ED_pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
  */
 void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 {
-	bArmature *arm;
-	bPoseChannel *pchan;
-	Base *base;
-	float *fp;
-	int cfra;
-	int sfra, efra;
+	ListBase targets = {NULL, NULL};
 	
-	/* sanity checks */
-	if ELEM(NULL, ob, ob->pose)
-		return;
-	arm= ob->data;
+	/* set flag to force recalc, then grab the relevant bones to target */
+	ob->pose->avs.recalc |= ANIMVIZ_RECALC_PATHS;
+	animviz_get_object_motionpaths(ob, &targets);
 	
-	/* set frame values */
-	cfra = CFRA;
-	sfra = efra = cfra; 
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
-			if (pchan->path) {
-				/* if the pathsf and pathef aren't initialised, abort! */
-				// XXX can now have negative frames, so this check needs improvement
-				if (ELEM(0, pchan->pathsf, pchan->pathef))	
-					return;
-				
-				/* try to increase area to do (only as much as needed) */
-				sfra= MIN2(sfra, pchan->pathsf);
-				efra= MAX2(efra, pchan->pathef);
-			}
-		}
-	}
-	if (efra <= sfra) return;
-	
-	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
-	if ((ob->recalc & OB_RECALC)==0) {
-		ob->recalc |= OB_RECALC;
-		DAG_id_update_flags(&ob->id);
-	}
-	else
-		DAG_id_update_flags(&ob->id);
-	
-	/* calculate path over requested range */
-	for (CFRA=sfra; CFRA<=efra; CFRA++) {
-		/* do all updates */
-		for (base= FIRSTBASE; base; base= base->next) {
-			if (base->object->recalc) {
-				int temp= base->object->recalc;
-				
-				if (base->object->adt)
-					BKE_animsys_evaluate_animdata(&base->object->id, base->object->adt, (float)CFRA, ADT_RECALC_ALL);
-				
-				/* update object */
-				object_handle_update(scene, base->object);
-				base->object->recalc= temp;
-			}
-		}
-		
-		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
-				if (pchan->path) {
-					/* only update if:
-					 *	- in range of this pchan's existing path
-					 *	- ... insert evil filtering/optimising conditions here...
-					 */
-					if (IN_RANGE(CFRA, pchan->pathsf, pchan->pathef)) {
-						fp= pchan->path+3*(CFRA-sfra);
-						
-						if (arm->pathflag & ARM_PATH_HEADS) { 
-							VECCOPY(fp, pchan->pose_head);
-						}
-						else {
-							VECCOPY(fp, pchan->pose_tail);
-						}
-						
-						mul_m4_v3(ob->obmat, fp);
-					}
-				}
-			}
-		}
-	}
-	
-	/* reset flags */
-	CFRA= cfra;
-	ob->pose->flag &= ~POSE_RECALCPATHS;
-	
-	/* flush one final time - to restore to the original state */
-	for (base= FIRSTBASE; base; base= base->next) {
-		if (base->object->recalc) {
-			int temp= base->object->recalc;
-			
-			if (base->object->adt)
-				BKE_animsys_evaluate_animdata(&base->object->id, base->object->adt, (float)CFRA, ADT_RECALC_ALL);
-			
-			object_handle_update(scene, base->object);
-			base->object->recalc= temp;
-		}
-	}
+	/* recalculate paths, then free */
+	animviz_calc_motionpaths(scene, &targets);
+	BLI_freelistN(&targets);
 }
-
-/* --------- */
 
 /* For the object with pose/action: create path curves for selected bones 
  * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
  */
 static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
 {
-	wmWindow *win= CTX_wm_window(C);
 	ScrArea *sa= CTX_wm_area(C);
 	Scene *scene= CTX_data_scene(C);
 	Object *ob;
-	bArmature *arm;
-	bPoseChannel *pchan;
-	Base *base;
-	float *fp;
-	int cfra;
-	int sfra, efra;
 	
 	/* since this call may also be used from the buttons window, we need to check for where to get the object */
 	if (sa->spacetype == SPACE_BUTS) 
@@ -329,109 +235,20 @@ static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
 	else
 		ob= CTX_data_active_object(C);
 		
-	/* only continue if there's an object */
-	if ELEM(NULL, ob, ob->pose)
+	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
-	arm= ob->data;
 	
-	/* version patch for older files here (do_versions patch too complicated) */
-	if ((arm->pathsf == 0) || (arm->pathef == 0)) {
-		arm->pathsf = SFRA;
-		arm->pathef = EFRA;
+	/* set up path data for bones being calculated */
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
+	{
+		/* verify makes sure that the selected bone has a bone with the appropriate settings */
+		animviz_verify_motionpaths(scene, ob, pchan);
 	}
-	if (arm->pathsize == 0) {
-		arm->pathsize = 1;
-	}
+	CTX_DATA_END;
 	
-	/* get frame values to use */
-	cfra= CFRA;
-	sfra = arm->pathsf;
-	efra = arm->pathef;
-	
-	if (efra <= sfra) {
-		BKE_report(op->reports, RPT_ERROR, "Can't calculate paths when pathlen <= 0");
-		return OPERATOR_CANCELLED;
-	}
-	
-	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
-	if ((ob->recalc & OB_RECALC)==0) {
-		ob->recalc |= OB_RECALC;
-		DAG_id_update_flags(&ob->id);
-	}
-	else
-		DAG_id_update_flags(&ob->id);
-	
-	/* alloc the path cache arrays */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
-			if (arm->layer & pchan->bone->layer) {
-				pchan->pathlen= efra-sfra+1;
-				pchan->pathsf= sfra;
-				pchan->pathef= efra+1;
-				if (pchan->path)
-					MEM_freeN(pchan->path);
-				pchan->path= MEM_callocN(3*pchan->pathlen*sizeof(float), "pchan path");
-			}
-		}
-	}
-	
-	/* step through frame range sampling the values */
-	for (CFRA=sfra; CFRA<=efra; CFRA++) {
-		/* for each frame we calculate, update time-cursor... (may be too slow) */
-		WM_timecursor(win, CFRA);
-		
-		/* do all updates */
-		for (base= FIRSTBASE; base; base= base->next) {
-			if (base->object->recalc) {
-				int temp= base->object->recalc;
-				
-				if (base->object->adt)
-					BKE_animsys_evaluate_animdata(&base->object->id, base->object->adt, (float)CFRA, ADT_RECALC_ALL);
-				
-				object_handle_update(scene, base->object);
-				base->object->recalc= temp;
-			}
-		}
-		
-		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
-				if (arm->layer & pchan->bone->layer) {
-					if (pchan->path) {
-						fp= pchan->path+3*(CFRA-sfra);
-						
-						if (arm->pathflag & ARM_PATH_HEADS) { 
-							VECCOPY(fp, pchan->pose_head);
-						}
-						else {
-							VECCOPY(fp, pchan->pose_tail);
-						}
-						
-						mul_m4_v3(ob->obmat, fp);
-					}
-				}
-			}
-		}
-	}
-	
-	/* restore original cursor */
-	WM_cursor_restore(win);
-	
-	/* reset current frame, and clear flags */
-	CFRA= cfra;
-	ob->pose->flag &= ~POSE_RECALCPATHS;
-	
-	/* flush one final time - to restore to the original state */
-	for (base= FIRSTBASE; base; base= base->next) {
-		if (base->object->recalc) {
-			int temp= base->object->recalc;
-			
-			if (base->object->adt)
-				BKE_animsys_evaluate_animdata(&base->object->id, base->object->adt, (float)CFRA, ADT_RECALC_ALL);
-			
-			object_handle_update(scene, base->object);
-			base->object->recalc= temp;
-		}
-	}
+	/* calculate the bones that now have motionpaths... */
+	// TODO: only make for the selected bones?
+	ED_pose_recalculate_paths(C, scene, ob);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
@@ -444,7 +261,7 @@ void POSE_OT_paths_calculate (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Calculate Bone Paths";
 	ot->idname= "POSE_OT_paths_calculate";
-	ot->description= "Calculate paths for the selected bones.";
+	ot->description= "Calculate paths for the selected bones";
 	
 	/* api callbacks */
 	ot->exec= pose_calculate_paths_exec;
@@ -464,12 +281,12 @@ void ED_pose_clear_paths(Object *ob)
 	if ELEM(NULL, ob, ob->pose)
 		return;
 	
-	/* free the path blocks */
+	/* free the motionpath blocks */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
-			if (pchan->path) {
-				MEM_freeN(pchan->path);
-				pchan->path= NULL;
+			if (pchan->mpath) {
+				animviz_free_motionpath(pchan->mpath);
+				pchan->mpath= NULL;
 			}
 		}
 	}
@@ -491,7 +308,7 @@ static int pose_clear_paths_exec (bContext *C, wmOperator *op)
 	if ELEM(NULL, ob, ob->pose)
 		return OPERATOR_CANCELLED;
 	
-	/* for now, just call the API function for this (which is shared with backend functions) */
+	/* use the backend function for this */
 	ED_pose_clear_paths(ob);
 	
 	/* notifiers for updates */
@@ -505,7 +322,7 @@ void POSE_OT_paths_clear (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Clear Bone Paths";
 	ot->idname= "POSE_OT_paths_clear";
-	ot->description= "Clear path caches for selected bones.";
+	ot->description= "Clear path caches for selected bones";
 	
 	/* api callbacks */
 	ot->exec= pose_clear_paths_exec;
@@ -517,88 +334,43 @@ void POSE_OT_paths_clear (wmOperatorType *ot)
 
 /* ******************* Select Constraint Target Operator ************* */
 
-// XXX this function is to be removed when the other stuff is recoded
-void pose_select_constraint_target(Scene *scene)
-{
-	Object *obedit= scene->obedit; // XXX context
-	Object *ob= OBACT;
-	bArmature *arm= ob->data;
-	bPoseChannel *pchan;
-	bConstraint *con;
-	
-	/* paranoia checks */
-	if (!ob && !ob->pose) return;
-	if (ob==obedit || (ob->mode & OB_MODE_POSE)==0) return;
-	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (arm->layer & pchan->bone->layer) {
-			if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) {
-				for (con= pchan->constraints.first; con; con= con->next) {
-					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
-					ListBase targets = {NULL, NULL};
-					bConstraintTarget *ct;
-					
-					if (cti && cti->get_constraint_targets) {
-						cti->get_constraint_targets(con, &targets);
-						
-						for (ct= targets.first; ct; ct= ct->next) {
-							if ((ct->tar == ob) && (ct->subtarget[0])) {
-								bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
-								if((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE))
-									pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-							}
-						}
-						
-						if (cti->flush_constraint_targets)
-							cti->flush_constraint_targets(con, &targets, 1);
-					}
-				}
-			}
-		}
-	}
-	
-	BIF_undo_push("Select constraint target");
-
-}
-
 static int pose_select_constraint_target_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= ob->data;
-	bPoseChannel *pchan;
 	bConstraint *con;
 	int found= 0;
 	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (arm->layer & pchan->bone->layer) {
-			if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) {
-				for (con= pchan->constraints.first; con; con= con->next) {
-					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
-					ListBase targets = {NULL, NULL};
-					bConstraintTarget *ct;
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+	{
+		if ((pchan->bone->flag & BONE_SELECTED) || (pchan->bone == arm->act_bone)) {
+			for (con= pchan->constraints.first; con; con= con->next) {
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+				ListBase targets = {NULL, NULL};
+				bConstraintTarget *ct;
+				
+				if (cti && cti->get_constraint_targets) {
+					cti->get_constraint_targets(con, &targets);
 					
-					if (cti && cti->get_constraint_targets) {
-						cti->get_constraint_targets(con, &targets);
-						
-						for (ct= targets.first; ct; ct= ct->next) {
-							if ((ct->tar == ob) && (ct->subtarget[0])) {
-								bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
-								if((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
-									pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-									found= 1;
-								}
+					for (ct= targets.first; ct; ct= ct->next) {
+						if ((ct->tar == ob) && (ct->subtarget[0])) {
+							bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
+							if((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
+								pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+								found= 1;
 							}
 						}
-						
-						if (cti->flush_constraint_targets)
-							cti->flush_constraint_targets(con, &targets, 1);
 					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(con, &targets, 1);
 				}
 			}
 		}
 	}
+	CTX_DATA_END;
 
-	if(!found)
+	if (!found)
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
@@ -626,24 +398,22 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	bArmature *arm= ob->data;
-	bPoseChannel *pchan;
 	Bone *curbone, *pabone, *chbone;
 	int direction = RNA_enum_get(op->ptr, "direction");
 	int add_to_sel = RNA_boolean_get(op->ptr, "extend");
 	int found= 0;
 	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+	{
 		curbone= pchan->bone;
 		
-		if ((arm->layer & curbone->layer) && (curbone->flag & BONE_UNSELECTABLE)==0) {
+		if ((curbone->flag & BONE_UNSELECTABLE)==0) {
 			if (curbone == arm->act_bone) {
 				if (direction == BONE_SELECT_PARENT) {
-				
 					if (pchan->parent == NULL) continue;
 					else pabone= pchan->parent->bone;
 					
 					if ((arm->layer & pabone->layer) && !(pabone->flag & BONE_HIDDEN_P)) {
-						
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						pabone->flag |= BONE_SELECTED;
 						arm->act_bone= pabone;
@@ -651,13 +421,12 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 						found= 1;
 						break;
 					}
-				} else { // BONE_SELECT_CHILD
-				
+				} 
+				else { /* direction == BONE_SELECT_CHILD */
 					if (pchan->child == NULL) continue;
 					else chbone = pchan->child->bone;
 					
 					if ((arm->layer & chbone->layer) && !(chbone->flag & BONE_HIDDEN_P)) {
-					
 						if (!add_to_sel) curbone->flag &= ~BONE_SELECTED;
 						chbone->flag |= BONE_SELECTED;
 						arm->act_bone= chbone;
@@ -669,8 +438,9 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
+	CTX_DATA_END;
 
-	if(!found)
+	if (found == 0)
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_notifier(C, NC_OBJECT|ND_BONE_SELECT, ob);
@@ -698,12 +468,171 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items,
-				 BONE_SELECT_PARENT, "Direction", "");
+	ot->prop= RNA_def_enum(ot->srna, "direction", direction_items, BONE_SELECT_PARENT, "Direction", "");
 	RNA_def_boolean(ot->srna, "extend", 0, "Add to Selection", "");
 	
 }
 
+/* ******************* select grouped operator ************* */
+
+static short pose_select_same_group (bContext *C, Object *ob, short extend)
+{
+	bArmature *arm= (ob)? ob->data : NULL;
+	bPose *pose= (ob)? ob->pose : NULL;
+	char *group_flags;
+	int numGroups = 0;
+	short changed=0, tagged=0;
+	
+	/* sanity checks */
+	if (ELEM3(NULL, ob, pose, arm))
+		return 0;
+		
+	/* count the number of groups */
+	numGroups= BLI_countlist(&pose->agroups);
+	if (numGroups == 0)
+		return 0;
+		
+	/* alloc a small array to keep track of the groups to use 
+	 * 	- each cell stores on/off state for whether group should be used
+	 *	- size is numGroups + 1, since index=0 is used for no-group
+	 */
+	group_flags= MEM_callocN(numGroups+1, "pose_select_same_group");
+	
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+	{
+		/* keep track of group as group to use later? */
+		if ((pchan->bone->flag & BONE_SELECTED) || (pchan->bone == arm->act_bone)) {
+			group_flags[pchan->agrp_index] = 1;
+			tagged= 1;
+		}
+		
+		/* deselect all bones before selecting new ones? */
+		if ((extend == 0) && (pchan->bone->flag & BONE_UNSELECTABLE)==0)
+			pchan->bone->flag &= ~BONE_SELECTED;
+	}
+	CTX_DATA_END;
+	
+	/* small optimisation: only loop through bones a second time if there are any groups tagged */
+	if (tagged) {
+		/* only if group matches (and is not selected or current bone) */
+		CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+		{
+			if ((pchan->bone->flag & BONE_UNSELECTABLE)==0) {
+				/* check if the group used by this bone is counted */
+				if (group_flags[pchan->agrp_index]) {
+					pchan->bone->flag |= BONE_SELECTED;
+					changed= 1;
+				}
+			}
+		}
+		CTX_DATA_END;
+	}
+	
+	/* free temp info */
+	MEM_freeN(group_flags);
+	
+	return changed;
+}
+
+static short pose_select_same_layer (bContext *C, Object *ob, short extend)
+{
+	bPose *pose= (ob)? ob->pose : NULL;
+	bArmature *arm= (ob)? ob->data : NULL;
+	short changed= 0;
+	int layers= 0;
+	
+	if (ELEM3(NULL, ob, pose, arm))
+		return 0;
+	
+	/* figure out what bones are selected */
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+	{
+		/* keep track of layers to use later? */
+		if ((pchan->bone->flag & BONE_SELECTED) || (pchan->bone == arm->act_bone))
+			layers |= pchan->bone->layer;
+			
+		/* deselect all bones before selecting new ones? */
+		if ((extend == 0) && (pchan->bone->flag & BONE_UNSELECTABLE)==0)
+			pchan->bone->flag &= ~BONE_SELECTED;
+	}
+	CTX_DATA_END;
+	if (layers == 0) 
+		return 0;
+		
+	/* select bones that are on same layers as layers flag */
+	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
+	{
+		/* if bone is on a suitable layer, and the bone can have its selection changed, select it */
+		if ((layers & pchan->bone->layer) && (pchan->bone->flag & BONE_UNSELECTABLE)==0) {
+			pchan->bone->flag |= BONE_SELECTED;
+			changed= 1;
+		}
+	}
+	CTX_DATA_END;
+	
+	return changed;
+}
+
+
+static int pose_select_grouped_exec (bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_active_object(C);
+	short extend= RNA_boolean_get(op->ptr, "extend");
+	short changed = 0;
+	
+	/* sanity check */
+	if (ELEM(NULL, ob, ob->pose))
+		return OPERATOR_CANCELLED;
+		
+	/* selection types 
+	 * NOTE: for the order of these, see the enum in POSE_OT_select_grouped()
+	 */
+	switch (RNA_enum_get(op->ptr, "type")) {
+		case 1: /* group */
+			changed= pose_select_same_group(C, ob, extend);
+			break;
+		default: /* layer */
+			changed= pose_select_same_layer(C, ob, extend);
+			break;
+	}
+	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
+	
+	/* report done status */
+	if (changed)
+		return OPERATOR_FINISHED;
+	else
+		return OPERATOR_CANCELLED;
+}
+
+void POSE_OT_select_grouped (wmOperatorType *ot)
+{
+	static EnumPropertyItem prop_select_grouped_types[] = {
+		{0, "LAYER", 0, "Layer", "Shared layers"},
+		{1, "GROUP", 0, "Group", "Shared group"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name= "Select Grouped";
+	ot->description = "Select all visible bones grouped by various properties";
+	ot->idname= "POSE_OT_select_grouped";
+	
+	/* api callbacks */
+	ot->invoke= WM_menu_invoke;
+	ot->exec= pose_select_grouped_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first.");
+	ot->prop= RNA_def_enum(ot->srna, "type", prop_select_grouped_types, 0, "Type", "");
+}
+
+/* ********************************************** */
 
 void pose_copy_menu(Scene *scene)
 {
@@ -912,6 +841,15 @@ static bPose *g_posebuf = NULL;
 void free_posebuf(void) 
 {
 	if (g_posebuf) {
+		bPoseChannel *pchan;
+
+		for (pchan= g_posebuf->chanbase.first; pchan; pchan= pchan->next) {
+			if(pchan->prop) {
+				IDP_FreeProperty(pchan->prop);
+				MEM_freeN(pchan->prop);
+			}
+		}
+
 		/* was copied without constraints */
 		BLI_freelistN(&g_posebuf->chanbase);
 		MEM_freeN(g_posebuf);
@@ -948,7 +886,7 @@ void POSE_OT_copy (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Pose";
 	ot->idname= "POSE_OT_copy";
-	ot->description= "Copies the current pose of the selected bones to copy/paste buffer.";
+	ot->description= "Copies the current pose of the selected bones to copy/paste buffer";
 	
 	/* api callbacks */
 	ot->exec= pose_copy_exec;
@@ -963,7 +901,8 @@ void POSE_OT_copy (wmOperatorType *ot)
 /* Pointers to the builtin KeyingSets that we want to use */
 static KeyingSet *posePaste_ks_locrotscale = NULL;		/* the only keyingset we'll need */
 
-/* ---- */
+/* transform.h */
+extern void autokeyframe_pose_cb_func(struct bContext *C, struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode, short targetless_ik);
 
 static int pose_paste_exec (bContext *C, wmOperator *op)
 {
@@ -1074,31 +1013,53 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					}
 				}
 				
-				if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-					/* Set keys on pose
-					 *	- KeyingSet to use depends on rotation mode 
-					 *	(but that's handled by the templates code)  
-					 */
-					// TODO: for getting the KeyingSet used, we should really check which channels were affected
-					if (posePaste_ks_locrotscale == NULL)
-						posePaste_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-					
-					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-					cks.pchan= pchan;
-					
-					modify_keyframes(scene, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
-					
-					/* clear any unkeyed tags */
-					if (chan->bone)
-						chan->bone->flag &= ~BONE_UNKEYED;
+				/* ID property */
+				if(pchan->prop) {
+					IDP_FreeProperty(pchan->prop);
+					MEM_freeN(pchan->prop);
+					pchan->prop= NULL;
 				}
-				else {
-					/* add unkeyed tags */
-					if (chan->bone)
-						chan->bone->flag |= BONE_UNKEYED;
+
+				if(chan->prop) {
+					pchan->prop= IDP_CopyProperty(chan->prop);
+				}
+
+				/* auto key, TODO, fix up this INSERTAVAIL vs all other cases */
+				if (IS_AUTOKEY_FLAG(INSERTAVAIL) == 0) { /* deal with this case later */
+					if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+
+						/* Set keys on pose
+						 *	- KeyingSet to use depends on rotation mode
+						 *	(but that's handled by the templates code)
+						 */
+						// TODO: for getting the KeyingSet used, we should really check which channels were affected
+						if (posePaste_ks_locrotscale == NULL)
+							posePaste_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+
+						/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+						cks.pchan= pchan;
+
+						modify_keyframes(scene, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
+
+						/* clear any unkeyed tags */
+						if (chan->bone)
+							chan->bone->flag &= ~BONE_UNKEYED;
+					}
+					else {
+						/* add unkeyed tags */
+						if (chan->bone)
+							chan->bone->flag |= BONE_UNKEYED;
+					}
 				}
 			}
 		}
+	}
+
+	if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
+		View3D *v3d= CTX_wm_view3d(C);
+		autokeyframe_pose_cb_func(C, scene, v3d, ob, TFM_TRANSLATION, 0);
+		autokeyframe_pose_cb_func(C, scene, v3d, ob, TFM_ROTATION, 0);
+		autokeyframe_pose_cb_func(C, scene, v3d, ob, TFM_TIME_SCALE, 0);
 	}
 
 	/* Update event for pose and deformation children */
@@ -1114,7 +1075,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	}
 	
 	/* notifiers for updates */
-	WM_event_add_notifier(C, NC_OBJECT|ND_POSE|ND_TRANSFORM, ob);
+	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
 	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL); // XXX not really needed, but here for completeness...
 
 	return OPERATOR_FINISHED;
@@ -1125,7 +1086,7 @@ void POSE_OT_paste (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Paste Pose";
 	ot->idname= "POSE_OT_paste";
-	ot->description= "Pastes the stored pose on to the current pose.";
+	ot->description= "Pastes the stored pose on to the current pose";
 	
 	/* api callbacks */
 	ot->exec= pose_paste_exec;
@@ -1136,31 +1097,6 @@ void POSE_OT_paste (wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_boolean(ot->srna, "flipped", 0, "Flipped on X-Axis", "");
-}
-
-/* ********************************************** */
-
-/* context weightpaint and deformer in posemode */
-void pose_adds_vgroups(Scene *scene, Object *meshobj, int heatweights)
-{
-// XXX	extern VPaint Gwp;         /* from vpaint */
-	Object *poseobj= modifiers_isDeformedByArmature(meshobj);
-
-	if(poseobj==NULL || (poseobj->mode & OB_MODE_POSE)==0) {
-		error("The active object must have a deforming armature in pose mode");
-		return;
-	}
-
-// XXX	add_verts_to_dgroups(meshobj, poseobj, heatweights, ((Mesh *)(meshobj->data))->editflag & ME_EDIT_MIRROR_X);
-
-	if(heatweights)
-		BIF_undo_push("Apply Bone Heat Weights to Vertex Groups");
-	else
-		BIF_undo_push("Apply Bone Envelopes to Vertex Groups");
-
-	
-	// and all its relations
-	DAG_id_flush_update(&meshobj->id, OB_RECALC_DATA);
 }
 
 /* ********************************************** */
@@ -1195,7 +1131,7 @@ void POSE_OT_group_add (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Bone Group";
 	ot->idname= "POSE_OT_group_add";
-	ot->description= "Add a new bone group.";
+	ot->description= "Add a new bone group";
 	
 	/* api callbacks */
 	ot->exec= pose_group_add_exec;
@@ -1235,7 +1171,7 @@ void POSE_OT_group_remove (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Bone Group";
 	ot->idname= "POSE_OT_group_remove";
-	ot->description= "Removes the active bone group.";
+	ot->description= "Removes the active bone group";
 	
 	/* api callbacks */
 	ot->exec= pose_group_remove_exec;
@@ -1351,7 +1287,7 @@ void POSE_OT_group_assign (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Selected to Bone Group";
 	ot->idname= "POSE_OT_group_assign";
-	ot->description= "Add selected bones to the chosen bone group.";
+	ot->description= "Add selected bones to the chosen bone group";
 	
 	/* api callbacks */
 	ot->invoke= pose_groups_menu_invoke;
@@ -1387,14 +1323,14 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *op)
 	pose= ob->pose;
 	arm= ob->data;
 	
-	/* add selected bones to ungroup then */
+	/* find selected bones to remove from all bone groups */
 	// NOTE: unfortunately, we cannot use the context-iterators here, since they might not be defined...
 	// CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
 	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
 		/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
 		// NOTE: sync this view3d_context() in space_view3d.c
 		if ((pchan->bone) && (arm->layer & pchan->bone->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
-			if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) {
+			if ((pchan->bone->flag & BONE_SELECTED) || (pchan->bone == arm->act_bone)) {
 				if (pchan->agrp_index) {
 					pchan->agrp_index= 0;
 					done= 1;
@@ -1418,7 +1354,7 @@ void POSE_OT_group_unassign (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Selected from Bone Groups";
 	ot->idname= "POSE_OT_group_unassign";
-	ot->description= "Add selected bones from all bone groups";
+	ot->description= "Remove selected bones from all bone groups";
 	
 	/* api callbacks */
 	ot->exec= pose_group_unassign_exec;
@@ -1426,95 +1362,6 @@ void POSE_OT_group_unassign (wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-static short pose_select_same_group (Object *ob)
-{
-	bPose *pose= (ob)? ob->pose : NULL;
-	bArmature *arm= (ob)? ob->data : NULL;
-	bPoseChannel *pchan, *chan;
-	short changed= 0;
-	
-	if (ELEM3(NULL, ob, pose, arm))
-		return 0;
-	
-	/* loop in loop... bad and slow! */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (arm->layer & pchan->bone->layer) {
-			if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) {
-				
-				/* only if group matches (and is not selected or current bone) */
-				for (chan= ob->pose->chanbase.first; chan; chan= chan->next) {
-					if (arm->layer & chan->bone->layer) {
-						if (pchan->agrp_index == chan->agrp_index) {
-							chan->bone->flag |= BONE_SELECTED;
-							changed= 1;
-						}
-					}
-				}
-				
-			}
-		}
-	}
-	
-	return changed;
-}
-
-static short pose_select_same_layer (Object *ob)
-{
-	bPose *pose= (ob)? ob->pose : NULL;
-	bArmature *arm= (ob)? ob->data : NULL;
-	bPoseChannel *pchan;
-	int layers= 0, changed= 0;
-	
-	if (ELEM3(NULL, ob, pose, arm))
-		return 0;
-	
-	/* figure out what bones are selected */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (arm->layer & pchan->bone->layer) {
-			if (pchan->bone->flag & BONE_SELECTED || pchan->bone == arm->act_bone) {
-				layers |= pchan->bone->layer;
-			}
-		}
-	}
-	if (layers == 0) 
-		return 0;
-		
-	/* select bones that are on same layers as layers flag */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (arm->layer & pchan->bone->layer) {
-			if (layers & pchan->bone->layer) {
-				pchan->bone->flag |= BONE_SELECTED;
-				changed= 1;
-			}
-		}
-	}
-	
-	return changed;
-}
-
-void pose_select_grouped (Scene *scene, short nr)
-{
-	short changed = 0;
-	
-	if (nr == 1) 		changed= pose_select_same_group(OBACT);
-	else if (nr == 2)	changed= pose_select_same_layer(OBACT);
-	
-	if (changed) {
-		countall();
-		BIF_undo_push("Select Grouped");
-	}
-}
-
-/* Shift-G in 3D-View while in PoseMode */
-void pose_select_grouped_menu (Scene *scene)
-{
-	short nr;
-	
-	/* here we go */
-	nr= pupmenu("Select Grouped%t|In Same Group%x1|In Same Layer%x2");
-	pose_select_grouped(scene, nr);
 }
 
 /* ********************************************** */
@@ -1553,7 +1400,7 @@ void POSE_OT_flip_names (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Flip Names";
 	ot->idname= "POSE_OT_flip_names";
-	ot->description= "Flips (and corrects) the names of selected bones.";
+	ot->description= "Flips (and corrects) the names of selected bones";
 	
 	/* api callbacks */
 	ot->exec= pose_flip_names_exec;
@@ -1606,7 +1453,7 @@ void POSE_OT_autoside_names (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "AutoName by Axis";
 	ot->idname= "POSE_OT_autoside_names";
-	ot->description= "Automatically renames the selected bones according to which side of the target axis they fall on.";
+	ot->description= "Automatically renames the selected bones according to which side of the target axis they fall on";
 	
 	/* api callbacks */
 	ot->invoke= WM_menu_invoke;
@@ -1617,7 +1464,7 @@ void POSE_OT_autoside_names (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	/* settings */
-	RNA_def_enum(ot->srna, "axis", axis_items, 0, "Axis", "Axis tag names with.");
+	ot->prop= RNA_def_enum(ot->srna, "axis", axis_items, 0, "Axis", "Axis tag names with.");
 }
 
 /* ********************************************** */
@@ -1713,7 +1560,7 @@ void POSE_OT_armature_layers (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Change Armature Layers";
 	ot->idname= "POSE_OT_armature_layers";
-	ot->description= "Change the visible armature layers.";
+	ot->description= "Change the visible armature layers";
 	
 	/* callbacks */
 	ot->invoke= pose_armature_layers_invoke;
@@ -1732,7 +1579,7 @@ void ARMATURE_OT_armature_layers (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Change Armature Layers";
 	ot->idname= "ARMATURE_OT_armature_layers";
-	ot->description= "Change the visible armature layers.";
+	ot->description= "Change the visible armature layers";
 	
 	/* callbacks */
 	ot->invoke= pose_armature_layers_invoke;
@@ -1806,7 +1653,7 @@ void POSE_OT_bone_layers (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Change Bone Layers";
 	ot->idname= "POSE_OT_bone_layers";
-	ot->description= "Change the layers that the selected bones belong to.";
+	ot->description= "Change the layers that the selected bones belong to";
 	
 	/* callbacks */
 	ot->invoke= pose_bone_layers_invoke;
@@ -1880,7 +1727,7 @@ void ARMATURE_OT_bone_layers (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Change Bone Layers";
 	ot->idname= "ARMATURE_OT_bone_layers";
-	ot->description= "Change the layers that the selected bones belong to.";
+	ot->description= "Change the layers that the selected bones belong to";
 	
 	/* callbacks */
 	ot->invoke= armature_bone_layers_invoke;
@@ -1896,30 +1743,80 @@ void ARMATURE_OT_bone_layers (wmOperatorType *ot)
 
 /* ********************************************** */
 
-/* for use in insertkey, ensure rotation goes other way around */
-void pose_flipquats(Scene *scene)
+static int pose_flip_quats_exec (bContext *C, wmOperator *op)
 {
-	Object *ob = OBACT;
-	bArmature *arm= ob->data;
-	bPoseChannel *pchan;
+	Scene *scene= CTX_data_scene(C);
+	Object *ob= CTX_data_active_object(C);
 	
-	if(ob->pose==NULL)
-		return;
+	bCommonKeySrc cks;
+	ListBase dsources = {&cks, &cks};
 	
-	/* find sel bones */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED) && (pchan->bone->layer & arm->layer)) {
+	/* init common-key-source for use by KeyingSets */
+	memset(&cks, 0, sizeof(bCommonKeySrc));
+	cks.id= &ob->id;
+	
+	/* loop through all selected pchans, flipping and keying (as needed) */
+	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
+	{
+		/* only if bone is using quaternion rotation */
+		if (pchan->rotmode == ROT_MODE_QUAT) {
 			/* quaternions have 720 degree range */
 			pchan->quat[0]= -pchan->quat[0];
 			pchan->quat[1]= -pchan->quat[1];
 			pchan->quat[2]= -pchan->quat[2];
 			pchan->quat[3]= -pchan->quat[3];
+			
+			/* perform auto-keying 
+			 * NOTE: paths don't need recalculation here, since the orientations shouldn't have changed
+			 */
+			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+				/* Set keys on pose
+				 *	- KeyingSet to use depends on rotation mode 
+				 *	(but that's handled by the templates code)  
+				 */
+				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+				
+				/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
+				cks.pchan= pchan;
+				
+				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				
+				/* clear any unkeyed tags */
+				if (pchan->bone)
+					pchan->bone->flag &= ~BONE_UNKEYED;
+			}
+			else {
+				/* add unkeyed tags */
+				if (pchan->bone)
+					pchan->bone->flag |= BONE_UNKEYED;
+			}
 		}
 	}
+	CTX_DATA_END;
 	
-	/* do autokey */
-	autokeyframe_pose_cb_func(ob, TFM_ROTATION, 0);
+	/* notifiers and updates */
+	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, ob);
+	
+	return OPERATOR_FINISHED;
 }
+
+void POSE_OT_quaternions_flip (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Flip Quats";
+	ot->idname= "POSE_OT_quaternions_flip";
+	ot->description= "Flip quaternion values to achieve desired rotations, while maintaining the same orientations";
+	
+	/* callbacks */
+	ot->exec= pose_flip_quats_exec;
+	ot->poll= ED_operator_posemode;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ********************************************** */
 
 /* context: active channel */
 void pose_special_editmenu(Scene *scene)

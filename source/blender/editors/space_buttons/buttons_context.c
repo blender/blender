@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -35,6 +35,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -47,6 +48,7 @@
 
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_action.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
@@ -273,6 +275,40 @@ static int buttons_context_path_bone(ButsContextPath *path)
 	return 0;
 }
 
+static int buttons_context_path_pose_bone(ButsContextPath *path)
+{
+	PointerRNA *ptr= &path->ptr[path->len-1];
+
+	/* if we already have a (pinned) PoseBone, we're done */
+	if(RNA_struct_is_a(ptr->type, &RNA_PoseBone)) {
+		return 1;
+	}
+
+	/* if we have an armature, get the active bone */
+	if(buttons_context_path_object(path)) {
+		Object *ob= path->ptr[path->len-1].data;
+		bArmature *arm= ob->data; /* path->ptr[path->len-1].data - works too */
+
+		if(ob->type != OB_ARMATURE || arm->edbo) {
+			return 0;
+		}
+		else {
+			if(arm->act_bone) {
+				bPoseChannel *pchan= get_pose_channel(ob->pose, arm->act_bone->name);
+				if(pchan) {
+					RNA_pointer_create(&ob->id, &RNA_PoseBone, pchan, &path->ptr[path->len]);
+					path->len++;
+					return 1;
+				}
+			}
+		}
+	}
+
+	/* no path to a bone possible */
+	return 0;
+}
+
+
 static int buttons_context_path_particle(ButsContextPath *path)
 {
 	Object *ob;
@@ -332,15 +368,16 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 	World *wo;
 	Tex *tex;
 	PointerRNA *ptr= &path->ptr[path->len-1];
+	int orig_len = path->len;
 
 	/* if we already have a (pinned) texture, we're done */
 	if(RNA_struct_is_a(ptr->type, &RNA_Texture)) {
 		return 1;
 	}
 	/* try brush */
-	else if((path->flag & SB_BRUSH_TEX) && buttons_context_path_brush(C, path)) {
+	if((path->flag & SB_BRUSH_TEX) && buttons_context_path_brush(C, path)) {
 		br= path->ptr[path->len-1].data;
-
+		
 		if(br) {
 			tex= give_current_brush_texture(br);
 
@@ -350,7 +387,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		}
 	}
 	/* try world */
-	else if((path->flag & SB_WORLD_TEX) && buttons_context_path_world(path)) {
+	if((path->flag & SB_WORLD_TEX) && buttons_context_path_world(path)) {
 		wo= path->ptr[path->len-1].data;
 
 		if(wo && GS(wo->id.name)==ID_WO) {
@@ -362,7 +399,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		}
 	}
 	/* try material */
-	else if(buttons_context_path_material(path)) {
+	if(buttons_context_path_material(path)) {
 		ma= path->ptr[path->len-1].data;
 
 		if(ma) {
@@ -374,7 +411,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		}
 	}
 	/* try lamp */
-	else if(buttons_context_path_data(path, OB_LAMP)) {
+	if(buttons_context_path_data(path, OB_LAMP)) {
 		la= path->ptr[path->len-1].data;
 
 		if(la) {
@@ -385,7 +422,19 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 			return 1;
 		}
 	}
-	/* TODO: material nodes */
+	/* try brushes again in case of no material, lamp, etc */
+	path->len = orig_len;
+	if(buttons_context_path_brush(C, path)) {
+		br= path->ptr[path->len-1].data;
+		
+		if(br) {
+			tex= give_current_brush_texture(br);
+			
+			RNA_id_pointer_create(&tex->id, &path->ptr[path->len]);
+			path->len++;
+			return 1;
+		}
+	}
 
 	/* no path to a texture possible */
 	return 0;
@@ -447,10 +496,12 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found= buttons_context_path_texture(C, path);
 			break;
 		case BCONTEXT_BONE:
-		case BCONTEXT_BONE_CONSTRAINT:
 			found= buttons_context_path_bone(path);
 			if(!found)
 				found= buttons_context_path_data(path, OB_ARMATURE);
+			break;
+		case BCONTEXT_BONE_CONSTRAINT:
+			found= buttons_context_path_pose_bone(path);
 			break;
 		default:
 			found= 0;
@@ -458,6 +509,32 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	}
 
 	return found;
+}
+
+static int buttons_shading_context(const bContext *C, int mainb)
+{
+	Object *ob= CTX_data_active_object(C);
+
+	if(ELEM3(mainb, BCONTEXT_MATERIAL, BCONTEXT_WORLD, BCONTEXT_TEXTURE))
+		return 1;
+	if(mainb == BCONTEXT_DATA && ob && ELEM(ob->type, OB_LAMP, OB_CAMERA))
+		return 1;
+	
+	return 0;
+}
+
+static int buttons_shading_new_context(const bContext *C, int flag, int mainb)
+{
+	Object *ob= CTX_data_active_object(C);
+
+	if(flag & (1 << BCONTEXT_MATERIAL))
+		return BCONTEXT_MATERIAL;
+	else if(ob && ELEM(ob->type, OB_LAMP, OB_CAMERA) && (flag & (1 << BCONTEXT_DATA)))
+		return BCONTEXT_DATA;
+	else if(flag & (1 << BCONTEXT_WORLD))
+		return BCONTEXT_WORLD;
+	
+	return BCONTEXT_RENDER;
 }
 
 void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
@@ -497,7 +574,11 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 
 	/* in case something becomes invalid, change */
 	if((flag & (1 << sbuts->mainb)) == 0) {
-		if(flag & BCONTEXT_OBJECT) {
+		if(sbuts->flag & SB_SHADING_CONTEXT) {
+			/* try to keep showing shading related buttons */
+			sbuts->mainb= buttons_shading_new_context(C, flag, sbuts->mainb);
+		}
+		else if(flag & BCONTEXT_OBJECT) {
 			sbuts->mainb= BCONTEXT_OBJECT;
 		}
 		else {
@@ -519,6 +600,11 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 			sbuts->mainb= BCONTEXT_SCENE;
 	}
 
+	if(buttons_shading_context(C, sbuts->mainb))
+		sbuts->flag |= SB_SHADING_CONTEXT;
+	else
+		sbuts->flag &= ~SB_SHADING_CONTEXT;
+
 	sbuts->pathflag= flag;
 }
 
@@ -537,7 +623,7 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		static const char *dir[] = {
 			"world", "object", "mesh", "armature", "lattice", "curve",
 			"meta_ball", "lamp", "camera", "material", "material_slot",
-			"texture", "texture_slot", "bone", "edit_bone", "particle_system", "particle_system_editable",
+			"texture", "texture_slot", "bone", "edit_bone", "pose_bone", "particle_system", "particle_system_editable",
 			"cloth", "soft_body", "fluid", "smoke", "collision", "brush", NULL};
 
 		CTX_data_dir_set(result, dir);
@@ -599,13 +685,29 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 
 		return 1;
 	}
+	else if(CTX_data_equals(member, "texture_node")) {
+		PointerRNA *ptr;
+
+		if((ptr=get_pointer_type(path, &RNA_Material))) {
+			Material *ma= ptr->data;
+
+			if(ma) {
+				bNode *node= give_current_material_texture_node(ma);
+				CTX_data_pointer_set(result, &ma->id, &RNA_Node, node);
+			}
+		}
+
+		return 1;
+	}
 	else if(CTX_data_equals(member, "texture_slot")) {
 		PointerRNA *ptr;
 
 		if((ptr=get_pointer_type(path, &RNA_Material))) {
-			Material *ma= ptr->data; /* should this be made a different option? */
-			Material *ma_node= give_node_material(ma);
-			ma= ma_node?ma_node:ma;
+			Material *ma= ptr->data;
+
+			/* if we have a node material, get slot from material in material node */
+			if(ma && ma->use_nodes && ma->nodetree)
+				ma= give_node_material(ma);
 
 			if(ma)
 				CTX_data_pointer_set(result, &ma->id, &RNA_MaterialTextureSlot, ma->mtex[(int)ma->texact]);
@@ -637,6 +739,10 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	}
 	else if(CTX_data_equals(member, "edit_bone")) {
 		set_pointer_type(path, result, &RNA_EditBone);
+		return 1;
+	}
+	else if(CTX_data_equals(member, "pose_bone")) {
+		set_pointer_type(path, result, &RNA_PoseBone);
 		return 1;
 	}
 	else if(CTX_data_equals(member, "particle_system")) {
@@ -758,7 +864,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 
 	block= uiLayoutGetBlock(row);
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	but= uiDefIconButBitC(block, ICONTOG, SB_PIN_CONTEXT, 0, ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag, 0, 0, 0, 0, "Follow context or keep fixed datablock displayed.");
+	but= uiDefIconButBitC(block, ICONTOG, SB_PIN_CONTEXT, 0, ICON_UNPINNED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &sbuts->flag, 0, 0, 0, 0, "Follow context or keep fixed datablock displayed");
 	uiButSetFunc(but, pin_cb, NULL, NULL);
 
 	for(a=0; a<path->len; a++) {
@@ -773,10 +879,10 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 
 			if(name) {
 				if(!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE) && ptr->type == &RNA_Scene)
-					uiItemL(row, "", icon); /* save some space */
+					uiItemLDrag(row, ptr, "", icon); /* save some space */
 				else
-					uiItemL(row, name, icon);
-
+					uiItemLDrag(row, ptr, name, icon);
+								 
 				if(name != namebuf)
 					MEM_freeN(name);
 			}

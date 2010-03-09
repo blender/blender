@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
@@ -50,7 +50,7 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 		RenderData *rd= data;
 		
 		if(scene && (rd->scemode & R_DOCOMP)) {
-			Render *re= RE_GetRender(scene->id.name);
+			Render *re= RE_GetRender(scene->id.name, RE_SLOT_RENDERING);
 			RenderResult *rr= RE_AcquireResultWrite(re); 
 			if(rr) {
 				CompBuf *outbuf, *zbuf=NULL;

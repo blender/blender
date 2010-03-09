@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -310,7 +310,7 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear Shape Keys";
-	ot->description= "Clear weights for all shape keys.";
+	ot->description= "Clear weights for all shape keys";
 	ot->idname= "OBJECT_OT_shape_key_clear";
 	
 	/* api callbacks */
@@ -356,25 +356,36 @@ static int shape_key_move_exec(bContext *C, wmOperator *op)
 
 	if(key) {
 		KeyBlock *kb, *kb_other;
-		kb= BLI_findlink(&key->block, ob->shapenr-1);
+		int shapenr_act= ob->shapenr-1;
+		int shapenr_swap= shapenr_act + type;
+		kb= BLI_findlink(&key->block, shapenr_act);
+
+		if((type==-1 && kb->prev==NULL) || (type==1 && kb->next==NULL)) {
+			return OPERATOR_CANCELLED;
+		}
+
+		for(kb_other= key->block.first; kb_other; kb_other= kb_other->next) {
+			if(kb_other->relative == shapenr_act) {
+				kb_other->relative += type;
+			}
+			else if(kb_other->relative == shapenr_swap) {
+				kb_other->relative -= type;
+			}
+		}
 
 		if(type==-1) {
 			/* move back */
-			if(kb->prev) {
-				kb_other= kb->prev;
-				BLI_remlink(&key->block, kb);
-				BLI_insertlinkbefore(&key->block, kb_other, kb);
-				ob->shapenr--;
-			}
+			kb_other= kb->prev;
+			BLI_remlink(&key->block, kb);
+			BLI_insertlinkbefore(&key->block, kb_other, kb);
+			ob->shapenr--;
 		}
 		else {
 			/* move next */
-			if(kb->next) {
-				kb_other= kb->next;
-				BLI_remlink(&key->block, kb);
-				BLI_insertlinkafter(&key->block, kb_other, kb);
-				ob->shapenr++;
-			}
+			kb_other= kb->next;
+			BLI_remlink(&key->block, kb);
+			BLI_insertlinkafter(&key->block, kb_other, kb);
+			ob->shapenr++;
 		}
 	}
 

@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -31,6 +31,8 @@
  
 #ifndef __WINSTUFF_H__
 #define __WINSTUFF_H__
+
+#ifdef _WIN32
 
 #ifndef FREE_WINDOWS
 #pragma warning(once: 4761 4305 4244 4018)
@@ -137,6 +139,8 @@ int BLI_getInstallationDir(char *str);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif /* __WINSTUFF_H__ */

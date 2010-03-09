@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2004 Blender Foundation.
  * All rights reserved.
@@ -28,8 +28,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef BKE_SEQUENCE_H
-#define BKE_SEQUENCE_H
+#ifndef BKE_SEQUENCER_H
+#define BKE_SEQUENCER_H
 
 struct Editing;
 struct Sequence;
@@ -76,8 +76,6 @@ void seq_array(struct Editing *ed, struct Sequence ***seqarray, int *tot, int us
 		} \
 		seq_end(&iter); \
 	}
-
-#endif
 
 
 /* Wipe effect */
@@ -152,8 +150,8 @@ struct ImBuf *give_ibuf_seq(struct Scene *scene, int rectx, int recty, int cfra,
 struct ImBuf *give_ibuf_seq_threaded(struct Scene *scene, int rectx, int recty, int cfra, int chanshown, int render_size);
 struct ImBuf *give_ibuf_seq_direct(struct Scene *scene, int rectx, int recty, int cfra, int render_size, struct Sequence *seq);
 void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown, int render_size);
-void calc_sequence(struct Sequence *seq);
-void calc_sequence_disp(struct Sequence *seq);
+void calc_sequence(struct Scene *scene, struct Sequence *seq);
+void calc_sequence_disp(struct Scene *scene, struct Sequence *seq);
 void new_tstripdata(struct Sequence *seq);
 void reload_sequence_new_file(struct Scene *scene, struct Sequence * seq);
 void sort_seq(struct Scene *scene);
@@ -193,9 +191,10 @@ int shuffle_seq_time(ListBase * seqbasep, struct Scene *evil_scene);
 int seqbase_isolated_sel_check(struct ListBase *seqbase);
 void free_imbuf_seq(struct Scene *scene, struct ListBase * seqbasep, int check_mem_usage);
 
-void seq_update_sound(struct Sequence *seq);
-void seq_update_muting(struct Editing *ed);
+void seq_update_sound(struct Scene* scene, struct Sequence *seq);
+void seq_update_muting(struct Scene* scene, struct Editing *ed);
 void seqbase_sound_reload(Scene *scene, ListBase *seqbase);
+void seqbase_unique_name_recursive(ListBase *seqbasep, struct Sequence *seq);
 void clear_scene_in_allseqs(struct Scene *sce);
 
 struct Sequence *get_seq_by_name(struct ListBase *seqbase, const char *name, int recursive);
@@ -206,6 +205,7 @@ void active_seq_set(struct Scene *scene, struct Sequence *seq);
 /* api for adding new sequence strips */
 typedef struct SeqLoadInfo {
 	int start_frame;
+	int end_frame;
 	int channel;
 	int flag;	/* use sound, replace sel */
 	int type;
@@ -229,8 +229,6 @@ struct Sequence *alloc_sequence(ListBase *lb, int cfra, int machine);
 
 void seq_load_apply(struct Scene *scene, struct Sequence *seq, struct SeqLoadInfo *seq_load);
 
-void seqUniqueName(ListBase *seqbasep, struct Sequence *seq);
-
 struct Sequence *sequencer_add_image_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 struct Sequence *sequencer_add_sound_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
 struct Sequence *sequencer_add_movie_strip(struct bContext *C, ListBase *seqbasep, struct SeqLoadInfo *seq_load);
@@ -238,3 +236,5 @@ struct Sequence *sequencer_add_movie_strip(struct bContext *C, ListBase *seqbase
 /* copy/paste */
 extern ListBase seqbase_clipboard;
 extern int seqbase_clipboard_frame;
+
+#endif // BKE_SEQUENCER_H

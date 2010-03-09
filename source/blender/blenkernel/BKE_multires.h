@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 by Nicholas Bishop
  * All rights reserved.
@@ -40,6 +40,7 @@ struct Object;
 void multires_mark_as_modified(struct Object *ob);
 
 void multires_force_update(struct Object *ob);
+void multires_force_render_update(struct Object *ob);
 
 struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*,
 	int local_mmd, struct DerivedMesh*, struct Object *, int, int);

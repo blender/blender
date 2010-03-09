@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -262,7 +262,7 @@ static int report_missing_files_exec(bContext *C, wmOperator *op)
 void FILE_OT_report_missing_files(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Report Missing Files...";
+	ot->name= "Report Missing Files";
 	ot->idname= "FILE_OT_report_missing_files";
 	
 	/* api callbacks */
@@ -295,7 +295,7 @@ static int find_missing_files_invoke(bContext *C, wmOperator *op, wmEvent *event
 void FILE_OT_find_missing_files(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "Find Missing Files...";
+	ot->name= "Find Missing Files";
 	ot->idname= "FILE_OT_find_missing_files";
 	
 	/* api callbacks */
@@ -306,5 +306,5 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE);
 }

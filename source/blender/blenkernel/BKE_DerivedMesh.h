@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -641,8 +641,8 @@ void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct BMEditMesh *
 
 /* returns an array of deform matrices for crazyspace correction, and the
    number of modifiers left */
-int editbmesh_get_first_deform_matrices(struct Object *, struct BMEditMesh *em, float (**deformmats)[3][3],
-                                       float (**deformcos)[3]);
+int editbmesh_get_first_deform_matrices(struct Scene *, struct Object *, struct EditMesh *em,
+                                       float (**deformmats)[3][3], float (**deformcos)[3]);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);
 

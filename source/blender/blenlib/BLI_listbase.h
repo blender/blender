@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -45,6 +45,7 @@ void BLI_insertlink(struct ListBase *listbase, void *vprevlink, void *vnewlink);
 void *BLI_findlink(struct ListBase *listbase, int number);
 int BLI_findindex(struct ListBase *listbase, void *vlink);
 void *BLI_findstring(struct ListBase *listbase, const char *id, int offset);
+int BLI_findstringindex(struct ListBase *listbase, const char *id, int offset);
 void BLI_freelistN(struct ListBase *listbase);
 void BLI_addtail(struct ListBase *listbase, void *vlink);
 void BLI_remlink(struct ListBase *listbase, void *vlink);

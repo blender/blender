@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -64,6 +64,14 @@ char *BLI_strdupn(const char *str, int len);
 	 * @param src Source string to copy
 	 * @param maxncpy Maximum number of characters to copy (generally
 	 *   the size of dst)
+	 * @retval Returns dst
+	 */
+char *BLI_strdupcat(const char *str1, const char *str2);
+
+	/**
+	 * Appends the two strings, and returns new mallocN'ed string
+	 * @param str1 first string for copy
+	 * @param str2 second string for append
 	 * @retval Returns dst
 	 */
 char *BLI_strncpy(char *dst, const char *src, int maxncpy);
@@ -120,6 +128,7 @@ char *BLI_strcasestr(const char *s, const char *find);
 int BLI_strcasecmp(const char *s1, const char *s2);
 int BLI_strncasecmp(const char *s1, const char *s2, int n);
 int BLI_natstrcmp(const char *s1, const char *s2);
+size_t BLI_strnlen(const char *str, size_t maxlen);
 
 void BLI_timestr(double _time, char *str); /* time var is global */
 

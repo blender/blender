@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -44,7 +44,7 @@ http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
@@ -146,7 +146,7 @@ def eulerRadToDeg(eul):
 mtx4_identity = Mathutils.Matrix()
 
 # testing
-mtx_x90		= Mathutils.RotationMatrix( math.pi/2, 3, 'x') # used
+mtx_x90		= Mathutils.RotationMatrix( math.pi/2, 3, 'X') # used
 #mtx_x90n	= RotationMatrix(-90, 3, 'x')
 #mtx_y90	= RotationMatrix( 90, 3, 'y')
 #mtx_y90n	= RotationMatrix(-90, 3, 'y')
@@ -154,11 +154,11 @@ mtx_x90		= Mathutils.RotationMatrix( math.pi/2, 3, 'x') # used
 #mtx_z90n	= RotationMatrix(-90, 3, 'z')
 
 #mtx4_x90	= RotationMatrix( 90, 4, 'x')
-mtx4_x90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'x') # used
+mtx4_x90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'X') # used
 #mtx4_y90	= RotationMatrix( 90, 4, 'y')
-mtx4_y90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'y') # used
-mtx4_z90	= Mathutils.RotationMatrix( math.pi/2, 4, 'z') # used
-mtx4_z90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'z') # used
+mtx4_y90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'Y') # used
+mtx4_z90	= Mathutils.RotationMatrix( math.pi/2, 4, 'Z') # used
+mtx4_z90n	= Mathutils.RotationMatrix(-math.pi/2, 4, 'Z') # used
 
 # def strip_path(p):
 # 	return p.split('\\')[-1].split('/')[-1]
@@ -412,13 +412,13 @@ def write(filename, batch_objects = None, \
             # XXX don't know what to do with this, probably do the same? (Arystan)
             if BATCH_GROUP: #group
                 # group, so objects update properly, add a dummy scene.
-                sce = bpy.data.scenes.new()
-                sce.Layers = (1<<20) -1
-                bpy.data.scenes.active = sce
+                scene = bpy.data.scenes.new()
+                scene.Layers = (1<<20) -1
+                bpy.data.scenes.active = scene
                 for ob_base in data.objects:
-                    sce.objects.link(ob_base)
+                    scene.objects.link(ob_base)
 
-                sce.update(1)
+                scene.update(1)
 
                 # TODO - BUMMER! Armatures not in the group wont animate the mesh
 
@@ -450,8 +450,8 @@ def write(filename, batch_objects = None, \
 
             if BATCH_GROUP:
                 # remove temp group scene
-                bpy.data.remove_scene(sce)
-# 				bpy.data.scenes.unlink(sce)
+                bpy.data.remove_scene(scene)
+# 				bpy.data.scenes.unlink(scene)
 
         bpy.data.scenes.active = orig_sce
 
@@ -524,7 +524,7 @@ def write(filename, batch_objects = None, \
                 self.__pose_bone.tail.copy() )
             '''
 
-            self.__anim_poselist[f] = self.__pose_bone.pose_matrix.copy()
+            self.__anim_poselist[f] = self.__pose_bone.matrix.copy()
 # 			self.__anim_poselist[f] = self.__pose_bone.poseMatrix.copy()
 
         # get pose from frame.
@@ -590,9 +590,9 @@ def write(filename, batch_objects = None, \
         def getAnimParRelMatrixRot(self, frame):
             type = self.blenObject.type
             if self.fbxParent:
-                matrix_rot = (((self.__anim_poselist[frame] * GLOBAL_MATRIX) * (self.fbxParent.__anim_poselist[frame] * GLOBAL_MATRIX).invert())).rotationPart()
+                matrix_rot = (((self.__anim_poselist[frame] * GLOBAL_MATRIX) * (self.fbxParent.__anim_poselist[frame] * GLOBAL_MATRIX).invert())).rotation_part()
             else:
-                matrix_rot = (self.__anim_poselist[frame] * GLOBAL_MATRIX).rotationPart()
+                matrix_rot = (self.__anim_poselist[frame] * GLOBAL_MATRIX).rotation_part()
 
             # Lamps need to be rotated
             if type =='LAMP':
@@ -600,7 +600,7 @@ def write(filename, batch_objects = None, \
             elif type =='CAMERA':
 # 			elif ob and type =='Camera':
                 y = Mathutils.Vector(0,1,0) * matrix_rot
-                matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, 'r', y)
+                matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, y)
 
             return matrix_rot
 
@@ -618,9 +618,9 @@ def write(filename, batch_objects = None, \
     except:
         return False
 
-    sce = context.scene
-# 	sce = bpy.data.scenes.active
-    world = sce.world
+    scene = context.scene
+# 	scene = bpy.data.scenes.active
+    world = scene.world
 
 
     # ---------------------------- Write the header first
@@ -676,11 +676,11 @@ def write(filename, batch_objects = None, \
 # 				par_matrix = mtx4_z90 * parent.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
                 matrix = matrix * par_matrix.copy().invert()
 
-            matrix_rot =	matrix.rotationPart()
+            matrix_rot =	matrix.rotation_part()
 
-            loc =			tuple(matrix.translationPart())
-            scale =			tuple(matrix.scalePart())
-            rot =			tuple(matrix_rot.toEuler())
+            loc =			tuple(matrix.translation_part())
+            scale =			tuple(matrix.scale_part())
+            rot =			tuple(matrix_rot.to_euler())
 
         else:
             # This is bad because we need the parent relative matrix from the fbx parent (if we have one), dont use anymore
@@ -692,20 +692,20 @@ def write(filename, batch_objects = None, \
             #	matrix = matrix_scale * matrix
 
             if matrix:
-                loc = tuple(matrix.translationPart())
-                scale = tuple(matrix.scalePart())
+                loc = tuple(matrix.translation_part())
+                scale = tuple(matrix.scale_part())
 
-                matrix_rot = matrix.rotationPart()
+                matrix_rot = matrix.rotation_part()
                 # Lamps need to be rotated
                 if ob and ob.type =='Lamp':
                     matrix_rot = mtx_x90 * matrix_rot
-                    rot = tuple(matrix_rot.toEuler())
+                    rot = tuple(matrix_rot.to_euler())
                 elif ob and ob.type =='Camera':
                     y = Mathutils.Vector(0,1,0) * matrix_rot
-                    matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, 'r', y)
-                    rot = tuple(matrix_rot.toEuler())
+                    matrix_rot = matrix_rot * Mathutils.RotationMatrix(math.pi/2, 3, y)
+                    rot = tuple(matrix_rot.to_euler())
                 else:
-                    rot = tuple(matrix_rot.toEuler())
+                    rot = tuple(matrix_rot.to_euler())
             else:
                 if not loc:
                     loc = 0,0,0
@@ -983,10 +983,10 @@ def write(filename, batch_objects = None, \
         '''
         Write a blender camera
         '''
-        render = sce.render_data
+        render = scene.render
         width	= render.resolution_x
         height	= render.resolution_y
-# 		render = sce.render
+# 		render = scene.render
 # 		width	= render.sizeX
 # 		height	= render.sizeY
         aspect	= float(width)/height
@@ -998,7 +998,7 @@ def write(filename, batch_objects = None, \
         loc, rot, scale, matrix, matrix_rot = write_object_props(my_cam.blenObject, None, my_cam.parRelMatrix())
 
         file.write('\n\t\t\tProperty: "Roll", "Roll", "A+",0')
-        file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % data.angle)
+        file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % math.degrees(data.angle))
         file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1')
         file.write('\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1')
         file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
@@ -1131,7 +1131,7 @@ def write(filename, batch_objects = None, \
         else:
             do_light = 1
 
-        scale = abs(GLOBAL_MATRIX.scalePart()[0]) # scale is always uniform in this case
+        scale = abs(GLOBAL_MATRIX.scale_part()[0]) # scale is always uniform in this case
 
         file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
         file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",1')
@@ -1142,7 +1142,7 @@ def write(filename, batch_objects = None, \
         file.write('\n\t\t\tProperty: "Color", "Color", "A+",1,1,1')
         file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy*100, 200))) # clamp below 200
         if light.type == 'SPOT':
-            file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spot_size * scale))
+            file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % math.degrees(light.spot_size))
 # 		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spotSize * scale))
         file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
         file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.color))
@@ -1293,16 +1293,18 @@ def write(filename, batch_objects = None, \
         file.write('\n\t}')
 
     def copy_image(image):
-
-        rel = image.get_export_path(basepath, True)
-        base = os.path.basename(rel)
+        fn = bpy.utils.expandpath(image.filename)
+        fn_strip = os.path.basename(fn)
 
         if EXP_IMAGE_COPY:
-            absp = image.get_export_path(basepath, False)
-            if not os.path.exists(absp):
-                shutil.copy(image.get_abs_filename(), absp)
+            rel = fn_strip
+            fn_abs_dest = os.path.join(basepath, fn_strip)
+            if not os.path.exists(fn_abs_dest):
+                shutil.copy(fn, fn_abs_dest)
+        else:
+            rel = os.path.relpath(fn, basepath)
 
-        return (rel, base)
+        return (rel, fn_strip)
 
     # tex is an Image (Arystan)
     def write_video(texname, tex):
@@ -1751,9 +1753,10 @@ def write(filename, batch_objects = None, \
                 ii = 0 # Count how many UVs we write
 
                 for uf in uvlayer.data:
-# 				for f in me.faces:
+#               for f in me.faces:
+                    # workaround, since uf.uv iteration is wrong atm
                     for uv in uf.uv:
-# 					for uv in f.uv:
+#                   for uv in f.uv:
                         if i==-1:
                             file.write('%.6f,%.6f' % tuple(uv))
                             i=0
@@ -2015,8 +2018,8 @@ def write(filename, batch_objects = None, \
     # if EXP_OBS_SELECTED is false, use sceens objects
     if not batch_objects:
         if EXP_OBS_SELECTED:	tmp_objects = context.selected_objects
-# 		if EXP_OBS_SELECTED:	tmp_objects = sce.objects.context
-        else:					tmp_objects = sce.objects
+# 		if EXP_OBS_SELECTED:	tmp_objects = scene.objects.context
+        else:					tmp_objects = scene.objects
     else:
         tmp_objects = batch_objects
 
@@ -2024,11 +2027,11 @@ def write(filename, batch_objects = None, \
         # This is needed so applying modifiers dosnt apply the armature deformation, its also needed
         # ...so mesh objects return their rest worldspace matrix when bone-parents are exported as weighted meshes.
         # set every armature to its rest, backup the original values so we done mess up the scene
-        ob_arms_orig_rest = [arm.rest_position for arm in bpy.data.armatures]
+        ob_arms_orig_rest = [arm.pose_position for arm in bpy.data.armatures]
 # 		ob_arms_orig_rest = [arm.restPosition for arm in bpy.data.armatures]
 
         for arm in bpy.data.armatures:
-            arm.rest_position = True
+            arm.pose_position = 'REST'
 # 			arm.restPosition = True
 
         if ob_arms_orig_rest:
@@ -2038,7 +2041,7 @@ def write(filename, batch_objects = None, \
 # 				ob_base.makeDisplayList()
 
             # This causes the makeDisplayList command to effect the mesh
-            sce.set_frame(sce.current_frame)
+            scene.set_frame(scene.current_frame)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
 
 
@@ -2203,7 +2206,7 @@ def write(filename, batch_objects = None, \
     if EXP_ARMATURE:
         # now we have the meshes, restore the rest arm position
         for i, arm in enumerate(bpy.data.armatures):
-            arm.rest_position = ob_arms_orig_rest[i]
+            arm.pose_position = ob_arms_orig_rest[i]
 # 			arm.restPosition = ob_arms_orig_rest[i]
 
         if ob_arms_orig_rest:
@@ -2213,7 +2216,7 @@ def write(filename, batch_objects = None, \
                     ob_base.make_display_list()
 # 					ob_base.makeDisplayList()
             # This causes the makeDisplayList command to effect the mesh
-            sce.set_frame(sce.current_frame)
+            scene.set_frame(scene.current_frame)
 # 			Blender.Set('curframe', Blender.Get('curframe'))
 
     del tmp_ob_type, tmp_objects
@@ -2688,8 +2691,8 @@ Connections:  {''')
 
 
     # Needed for scene footer as well as animation
-    render = sce.render_data
-# 	render = sce.render
+    render = scene.render
+# 	render = scene.render
 
     # from the FBX sdk
     #define KTIME_ONE_SECOND        KTime (K_LONGLONG(46186158000))
@@ -2698,9 +2701,9 @@ Connections:  {''')
         return int(0.5 + ((t/fps) * 46186158000))
 
     fps = float(render.fps)
-    start =	sce.start_frame
+    start =	scene.start_frame
 # 	start =	render.sFrame
-    end =	sce.end_frame
+    end =	scene.end_frame
 # 	end =	render.eFrame
     if end < start: start, end = end, start
     if start==end: ANIM_ENABLE = False
@@ -2710,7 +2713,7 @@ Connections:  {''')
 
     if ANIM_ENABLE and [tmp for tmp in ob_anim_lists if tmp]:
 
-        frame_orig = sce.current_frame
+        frame_orig = scene.current_frame
 # 		frame_orig = Blender.Get('curframe')
 
         if ANIM_OPTIMIZE:
@@ -2811,7 +2814,7 @@ Takes:  {''')
                     if blenAction in my_bone.blenActionList:
                         ob.action = blenAction
                         # print '\t\tSetting Action!', blenAction
-                # sce.update(1)
+                # scene.update(1)
 
             file.write('\n\t\tFileName: "Default_Take.tak"') # ??? - not sure why this is needed
             file.write('\n\t\tLocalTime: %i,%i' % (fbx_time(act_start-1), fbx_time(act_end-1))) # ??? - not sure why this is needed
@@ -2831,7 +2834,7 @@ Takes:  {''')
             '''
             i = act_start
             while i <= act_end:
-                sce.set_frame(i)
+                scene.set_frame(i)
 # 				Blender.Set('curframe', i)
                 for ob_generic in ob_anim_lists:
                     for my_ob in ob_generic:
@@ -2865,18 +2868,18 @@ Takes:  {''')
                         # ----------------
                         for TX_LAYER, TX_CHAN in enumerate('TRS'): # transform, rotate, scale
 
-                            if		TX_CHAN=='T':	context_bone_anim_vecs = [mtx[0].translationPart()	for mtx in context_bone_anim_mats]
-                            elif	TX_CHAN=='S':	context_bone_anim_vecs = [mtx[0].scalePart()		for mtx in context_bone_anim_mats]
+                            if		TX_CHAN=='T':	context_bone_anim_vecs = [mtx[0].translation_part()	for mtx in context_bone_anim_mats]
+                            elif	TX_CHAN=='S':	context_bone_anim_vecs = [mtx[0].scale_part()		for mtx in context_bone_anim_mats]
                             elif	TX_CHAN=='R':
                                 # Was....
-                                # elif 	TX_CHAN=='R':	context_bone_anim_vecs = [mtx[1].toEuler()			for mtx in context_bone_anim_mats]
+                                # elif 	TX_CHAN=='R':	context_bone_anim_vecs = [mtx[1].to_euler()			for mtx in context_bone_anim_mats]
                                 #
                                 # ...but we need to use the previous euler for compatible conversion.
                                 context_bone_anim_vecs = []
                                 prev_eul = None
                                 for mtx in context_bone_anim_mats:
-                                    if prev_eul:	prev_eul = mtx[1].toEuler(prev_eul)
-                                    else:			prev_eul = mtx[1].toEuler()
+                                    if prev_eul:	prev_eul = mtx[1].to_euler('XYZ', prev_eul)
+                                    else:			prev_eul = mtx[1].to_euler()
                                     context_bone_anim_vecs.append(eulerRadToDeg(prev_eul))
 # 									context_bone_anim_vecs.append(prev_eul)
 
@@ -2970,7 +2973,7 @@ Takes:  {''')
 
         file.write('\n}')
 
-        sce.set_frame(frame_orig)
+        scene.set_frame(frame_orig)
 # 		Blender.Set('curframe', frame_orig)
 
     else:
@@ -3197,9 +3200,9 @@ def fbx_ui():
 
     Draw.BeginAlign()
     GLOBALS['_SCALE'] =		Draw.Number('Scale:',	EVENT_NONE, x+20, y+120, 140, 20, GLOBALS['_SCALE'].val,	0.01, 1000.0, 'Scale all data, (Note! some imports dont support scaled armatures)')
-    GLOBALS['_XROT90'] =	Draw.Toggle('Rot X90',	EVENT_NONE, x+160, y+120, 60, 20, GLOBALS['_XROT90'].val,		'Rotate all objects 90 degrese about the X axis')
-    GLOBALS['_YROT90'] =	Draw.Toggle('Rot Y90',	EVENT_NONE, x+220, y+120, 60, 20, GLOBALS['_YROT90'].val,		'Rotate all objects 90 degrese about the Y axis')
-    GLOBALS['_ZROT90'] =	Draw.Toggle('Rot Z90',	EVENT_NONE, x+280, y+120, 60, 20, GLOBALS['_ZROT90'].val,		'Rotate all objects 90 degrese about the Z axis')
+    GLOBALS['_XROT90'] =	Draw.Toggle('Rot X90',	EVENT_NONE, x+160, y+120, 60, 20, GLOBALS['_XROT90'].val,		'Rotate all objects 90 degrees about the X axis')
+    GLOBALS['_YROT90'] =	Draw.Toggle('Rot Y90',	EVENT_NONE, x+220, y+120, 60, 20, GLOBALS['_YROT90'].val,		'Rotate all objects 90 degrees about the Y axis')
+    GLOBALS['_ZROT90'] =	Draw.Toggle('Rot Z90',	EVENT_NONE, x+280, y+120, 60, 20, GLOBALS['_ZROT90'].val,		'Rotate all objects 90 degrees about the Z axis')
     Draw.EndAlign()
 
     y -= 35
@@ -3362,13 +3365,14 @@ class ExportFBX(bpy.types.Operator):
 
 
     path = StringProperty(name="File Path", description="File path used for exporting the FBX file", maxlen= 1024, default="")
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     EXP_OBS_SELECTED = BoolProperty(name="Selected Objects", description="Export selected objects on visible layers", default=True)
 # 	EXP_OBS_SCENE = BoolProperty(name="Scene Objects", description="Export all objects in this scene", default=True)
     TX_SCALE = FloatProperty(name="Scale", description="Scale all data, (Note! some imports dont support scaled armatures)", min=0.01, max=1000.0, soft_min=0.01, soft_max=1000.0, default=1.0)
-    TX_XROT90 = BoolProperty(name="Rot X90", description="Rotate all objects 90 degrese about the X axis", default=True)
-    TX_YROT90 = BoolProperty(name="Rot Y90", description="Rotate all objects 90 degrese about the Y axis", default=False)
-    TX_ZROT90 = BoolProperty(name="Rot Z90", description="Rotate all objects 90 degrese about the Z axis", default=False)
+    TX_XROT90 = BoolProperty(name="Rot X90", description="Rotate all objects 90 degrees about the X axis", default=True)
+    TX_YROT90 = BoolProperty(name="Rot Y90", description="Rotate all objects 90 degrees about the Y axis", default=False)
+    TX_ZROT90 = BoolProperty(name="Rot Z90", description="Rotate all objects 90 degrees about the Z axis", default=False)
     EXP_EMPTY = BoolProperty(name="Empties", description="Export empty objects", default=True)
     EXP_CAMERA = BoolProperty(name="Cameras", description="Export camera objects", default=True)
     EXP_LAMP = BoolProperty(name="Lamps", description="Export lamp objects", default=True)
@@ -3433,7 +3437,7 @@ class ExportFBX(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-bpy.types.register(ExportFBX)
+
 
 # if __name__ == "__main__":
 # 	bpy.ops.EXPORT_OT_ply(filename="/tmp/test.ply")
@@ -3461,8 +3465,20 @@ bpy.types.register(ExportFBX)
 # SMALL or COSMETICAL
 # - find a way to get blender version, and put it in bpy.util?, old was Blender.Get('version')
 
+
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".fbx")
-    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX...").path = default_path
+    self.layout.operator(ExportFBX.bl_idname, text="Autodesk FBX (.fbx)").path = default_path
 
-menu_item = bpy.types.INFO_MT_file_export.append(menu_func)
+
+def register():
+    bpy.types.register(ExportFBX)
+    bpy.types.INFO_MT_file_export.append(menu_func)
+
+
+def unregister():
+    bpy.types.unregister(ExportFBX)
+    bpy.types.INFO_MT_file_export.remove(menu_func)
+
+if __name__ == "__main__":
+    register()

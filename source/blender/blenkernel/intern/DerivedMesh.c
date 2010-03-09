@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -1860,7 +1860,7 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos)[3],
                                 DerivedMesh **deform_r, DerivedMesh **final_r,
                                 int useRenderParams, int useDeform,
-                                int needMapping, CustomDataMask dataMask, int index)
+                                int needMapping, CustomDataMask dataMask, int index, int useCache)
 {
 	Mesh *me = ob->data;
 	ModifierData *firstmd, *md;
@@ -1881,7 +1881,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	/* we always want to keep original indices */
 	dataMask |= CD_MASK_ORIGINDEX;
 
-	datamasks = modifiers_calcDataMasks(ob, md, dataMask, required_mode);
+	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
 	curr = datamasks;
 
 	if(deform_r) *deform_r = NULL;
@@ -1897,7 +1897,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 			md->scene= scene;
 			
-			if(!modifier_isEnabled(md, required_mode)) continue;
+			if(!modifier_isEnabled(scene, md, required_mode)) continue;
 			if(useDeform < 0 && mti->dependsOnTime && mti->dependsOnTime(md)) continue;
 
 			if(mti->type == eModifierTypeType_OnlyDeform) {
@@ -1946,7 +1946,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 		md->scene= scene;
 		
-		if(!modifier_isEnabled(md, required_mode)) continue;
+		if(!modifier_isEnabled(scene, md, required_mode)) continue;
 		if(mti->type == eModifierTypeType_OnlyDeform && !useDeform) continue;
 		if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
 			modifier_setError(md, "Modifier requires original data, bad stack position.");
@@ -2007,8 +2007,24 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 					CDDM_calc_normals(dm);
 				}
 
-				if(dataMask & CD_MASK_WEIGHT_MCOL)
+				if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 					add_weight_mcol_dm(ob, dm);
+
+				/* constructive modifiers need to have an origindex
+				 * otherwise they wont have anywhere to copy the data from */
+				if(needMapping) {
+					int *index, i;
+					DM_add_vert_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
+					DM_add_edge_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
+					DM_add_face_layer(dm, CD_ORIGINDEX, CD_CALLOC, NULL);
+
+					index = DM_get_vert_data_layer(dm, CD_ORIGINDEX);
+					for(i=0; i<dm->numVertData; i++) *index++= i;
+					index = DM_get_edge_data_layer(dm, CD_ORIGINDEX);
+					for(i=0; i<dm->numEdgeData; i++) *index++= i;
+					index = DM_get_face_data_layer(dm, CD_ORIGINDEX);
+					for(i=0; i<dm->numFaceData; i++) *index++= i;
+				}
 			}
 
 			/* create an orco derivedmesh in parallel */
@@ -2036,7 +2052,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
 					DM_add_tessface_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
 
-			ndm = mti->applyModifier(md, ob, dm, useRenderParams, !inputVertexCos);
+			ndm = mti->applyModifier(md, ob, dm, useRenderParams, useCache);
 
 			if(ndm) {
 				/* if the modifier returned a new dm, release the old one */
@@ -2072,6 +2088,9 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 		CDDM_apply_vert_coords(finaldm, deformedVerts);
 		CDDM_calc_normals(finaldm);
+
+		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
+			add_weight_mcol_dm(ob, finaldm);
 	} else if(dm) {
 		finaldm = dm;
 	} else {
@@ -2082,7 +2101,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 			CDDM_calc_normals(finaldm);
 		}
 
-		if(dataMask & CD_MASK_WEIGHT_MCOL)
+		if((dataMask & CD_MASK_WEIGHT_MCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT))
 			add_weight_mcol_dm(ob, finaldm);
 	}
 
@@ -2122,12 +2141,12 @@ static float (*editbmesh_getVertexCos(BMEditMesh *em, int *numVerts_r))[3]
 	return cos;
 }
 
-static int editbmesh_modifier_is_enabled(ModifierData *md, DerivedMesh *dm)
+static int editbmesh_modifier_is_enabled(Scene *scene, ModifierData *md, DerivedMesh *dm)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
-	if(!modifier_isEnabled(md, required_mode)) return 0;
+	if(!modifier_isEnabled(scene, md, required_mode)) return 0;
 	if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
 		modifier_setError(md, "Modifier requires original data, bad stack position.");
 		return 0;
@@ -2144,7 +2163,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	float (*deformedVerts)[3] = NULL;
 	CustomDataMask mask;
 	DerivedMesh *dm, *orcodm = NULL;
-	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(ob, NULL, 1);
+	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	LinkNode *datamasks, *curr;
 	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 
@@ -2160,7 +2179,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 	/* we always want to keep original indices */
 	dataMask |= CD_MASK_ORIGINDEX;
 
-	datamasks = modifiers_calcDataMasks(ob, md, dataMask, required_mode);
+	datamasks = modifiers_calcDataMasks(scene, ob, md, dataMask, required_mode);
 
 	curr = datamasks;
 	for(i = 0; md; i++, md = md->next, curr = curr->next) {
@@ -2168,7 +2187,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 		md->scene= scene;
 		
-		if(!editbmesh_modifier_is_enabled(md, dm))
+		if(!editbmesh_modifier_is_enabled(scene, md, dm))
 			continue;
 
 		/* add an orco layer if needed by this modifier */
@@ -2346,14 +2365,15 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	Object *obact = scene->basact?scene->basact->object:NULL;
 	int editing = paint_facesel_test(ob);
-	int needMapping = editing && (ob==obact);
+	/* weight paint and face select need original indicies because of selection buffer drawing */
+	int needMapping = (ob==obact) && (editing || (ob->mode & OB_MODE_WEIGHT_PAINT) || editing);
 	float min[3], max[3];
-	
+
 	clear_mesh_caches(ob);
 
 	mesh_calc_modifiers(scene, ob, NULL, &ob->derivedDeform,
 						&ob->derivedFinal, 0, 1,
-						needMapping, dataMask, -1);
+						needMapping, dataMask, -1, 1);
 
 	INIT_MINMAX(min, max);
 
@@ -2366,7 +2386,6 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 	ob->derivedFinal->needsFree = 0;
 	ob->derivedDeform->needsFree = 0;
 	ob->lastDataMask = dataMask;
-
 }
 
 static void editbmesh_build_data(Scene *scene, Object *obedit, BMEditMesh *em, CustomDataMask dataMask)
@@ -2440,7 +2459,7 @@ DerivedMesh *mesh_create_derived_render(Scene *scene, Object *ob, CustomDataMask
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 1, 1, 0, dataMask, -1);
+	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 1, 1, 0, dataMask, -1, 0);
 
 	return final;
 }
@@ -2449,7 +2468,7 @@ DerivedMesh *mesh_create_derived_index_render(Scene *scene, Object *ob, CustomDa
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 1, 1, 0, dataMask, index);
+	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 1, 1, 0, dataMask, index, 0);
 
 	return final;
 }
@@ -2458,7 +2477,7 @@ DerivedMesh *mesh_create_derived_view(Scene *scene, Object *ob, CustomDataMask d
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 0, 1, 0, dataMask, -1);
+	mesh_calc_modifiers(scene, ob, NULL, NULL, &final, 0, 1, 0, dataMask, -1, 0);
 
 	return final;
 }
@@ -2468,7 +2487,7 @@ DerivedMesh *mesh_create_derived_no_deform(Scene *scene, Object *ob, float (*ver
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, 0, 0, dataMask, -1);
+	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, 0, 0, dataMask, -1, 0);
 
 	return final;
 }
@@ -2478,7 +2497,7 @@ DerivedMesh *mesh_create_derived_no_virtual(Scene *scene, Object *ob, float (*ve
 {
 	DerivedMesh *final;
 	
-	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, -1, 0, dataMask, -1);
+	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 0, -1, 0, dataMask, -1, 0);
 
 	return final;
 }
@@ -2489,7 +2508,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(Scene *scene, Object *ob,
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 1, 0, 0, dataMask, -1);
+	mesh_calc_modifiers(scene, ob, vertCos, NULL, &final, 1, 0, 0, dataMask, -1, 0);
 
 	return final;
 }
@@ -2586,12 +2605,12 @@ float *mesh_get_mapped_verts_nors(Scene *scene, Object *ob)
 
 /* ********* crazyspace *************** */
 
-int editbmesh_get_first_deform_matrices(Object *ob, BMEditMesh *em, float (**deformmats)[3][3], float (**deformcos)[3])
+int editbmesh_get_first_deform_matrices(Scene *scene, Object *ob, BMEditMesh *em, float (**deformmats)[3][3], float (**deformcos)[3])
 {
 	ModifierData *md;
 	DerivedMesh *dm;
 	int i, a, numleft = 0, numVerts = 0;
-	int cageIndex = modifiers_getCageIndex(ob, NULL, 1);
+	int cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	float (*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
 
 	modifiers_clearErrors(ob);
@@ -2605,7 +2624,7 @@ int editbmesh_get_first_deform_matrices(Object *ob, BMEditMesh *em, float (**def
 	for(i = 0; md && i <= cageIndex; i++, md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if(!editbmesh_modifier_is_enabled(md, dm))
+		if(!editbmesh_modifier_is_enabled(scene, md, dm))
 			continue;
 
 		if(mti->type==eModifierTypeType_OnlyDeform && mti->deformMatricesEM) {
@@ -2626,7 +2645,7 @@ int editbmesh_get_first_deform_matrices(Object *ob, BMEditMesh *em, float (**def
 	}
 
 	for(; md && i <= cageIndex; md = md->next, i++)
-		if(editbmesh_modifier_is_enabled(md, dm) && modifier_isCorrectableDeformed(md))
+		if(editbmesh_modifier_is_enabled(scene, md, dm) && modifier_isCorrectableDeformed(md))
 			numleft++;
 
 	if(dm)

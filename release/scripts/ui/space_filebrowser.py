@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -64,4 +64,21 @@ class FILEBROWSER_HT_header(bpy.types.Header):
         row.prop(params, "filter_sound", text="")
         row.prop(params, "filter_text", text="")
 
-bpy.types.register(FILEBROWSER_HT_header)
+
+classes = [
+    FILEBROWSER_HT_header]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -193,7 +193,7 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 	bool stereoVisual, const GHOST_TUns16 numOfAASamples, const GHOST_TEmbedderWindowID parentWindow )
 {
 	GHOST_Window* window = 0;
-	window = new GHOST_WindowWin32 (this, title, left, top, width, height, state, type, stereoVisual);
+	window = new GHOST_WindowWin32 (this, title, left, top, width, height, state, type, stereoVisual, numOfAASamples);
 	if (window) {
 		if (window->getValid()) {
 			// Store the pointer to the window
@@ -202,8 +202,18 @@ GHOST_IWindow* GHOST_SystemWin32::createWindow(
 //			}
 		}
 		else {
+			// An invalid window could be one that was used to test for AA
+			GHOST_Window *other_window = ((GHOST_WindowWin32*)window)->getNextWindow();
+
 			delete window;
 			window = 0;
+			
+			// If another window is found, let the wm know about that one, but not the old one
+			if (other_window)
+			{
+				m_windowManager->addWindow(other_window);
+				window = other_window;
+			}
 		}
 	}
 	return window;
@@ -655,7 +665,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						case VK_CONTROL:
 						case VK_MENU:
 							if (!system->m_separateLeftRightInitialized) {
-								// Check whether this system supports seperate left and right keys
+								// Check whether this system supports separate left and right keys
 								switch (wParam) {
 									case VK_SHIFT:
 										system->m_separateLeftRight = 
@@ -1085,3 +1095,12 @@ void GHOST_SystemWin32::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	}
 }
 
+const GHOST_TUns8* GHOST_SystemWin32::getSystemDir() const
+{
+	return NULL;
+}
+
+const GHOST_TUns8* GHOST_SystemWin32::getUserDir() const
+{
+	return NULL;
+}

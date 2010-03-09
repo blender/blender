@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -28,6 +28,8 @@
 
 #ifndef ED_SCREEN_TYPES_H__
 #define ED_SCREEN_TYPES_H__
+
+/* ----------------------------------------------------- */
 
 /* for animplayer */
 typedef struct ScreenAnimData {
@@ -45,10 +47,25 @@ enum {
 	ANIMPLAY_FLAG_JUMPED		= (1<<1),
 		/* drop frames as needed to maintain framerate */
 	ANIMPLAY_FLAG_SYNC			= (1<<2),
-		/* don't drop frames (and ignore AUDIO_SYNC flag) */
+		/* don't drop frames (and ignore SCE_FRAME_DROP flag) */
 	ANIMPLAY_FLAG_NO_SYNC		= (1<<3),
 };
 
+/* ----------------------------------------------------- */
+
+#define REDRAW_FRAME_AVERAGE 8
+
+/* for playback framerate info 
+ * stored during runtime as scene->fps_info
+ */
+typedef struct ScreenFrameRateInfo {
+	double redrawtime;
+	double lredrawtime;
+	float redrawtimes_fps[REDRAW_FRAME_AVERAGE];
+	short redrawtime_index;
+} ScreenFrameRateInfo;
+
+/* ----------------------------------------------------- */
 
 /* for editing areas/regions */
 typedef struct AZone {

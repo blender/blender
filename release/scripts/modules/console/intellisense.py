@@ -30,7 +30,7 @@ import re
 # regular expressions to find out which completer we need
 
 # line which starts with an import statement
-RE_MODULE = re.compile('^import|from.+')
+RE_MODULE = re.compile('^import(\s|$)|from.+')
 
 # The following regular expression means an 'unquoted' word
 RE_UNQUOTED_WORD = re.compile(

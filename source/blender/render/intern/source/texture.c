@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -92,7 +92,7 @@ void init_render_texture(Render *re, Tex *tex)
 	
 	/* imap test */
 	if(tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-		BKE_image_user_calc_imanr(&tex->iuser, cfra, re?re->flag & R_SEC_FIELD:0);
+		BKE_image_user_calc_frame(&tex->iuser, cfra, re?re->flag & R_SEC_FIELD:0);
 	}
 	
 	if(tex->type==TEX_PLUGIN) {
@@ -716,20 +716,6 @@ static float voronoiTex(Tex *tex, float *texvec, TexResult *texres)
 
 /* ------------------------------------------------------------------------- */
 
-static int evalnodes(Tex *tex, float *texvec, float *dxt, float *dyt, TexResult *texres, short thread, short which_output)
-{
-	short rv = TEX_INT;
-	bNodeTree *nodes = tex->nodetree;
-	
-	ntreeTexExecTree(nodes, texres, texvec, dxt, dyt, thread, tex, which_output, R.r.cfra, (R.r.scemode & R_TEXNODE_PREVIEW) != 0);
-	
-	if(texres->nor) rv |= TEX_NOR;
-	rv |= TEX_RGB;
-	return rv;
-}
-
-/* ------------------------------------------------------------------------- */
-
 static int texnoise(Tex *tex, TexResult *texres)
 {
 	float div=3.0;
@@ -1182,8 +1168,8 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	texres->talpha= 0;	/* is set when image texture returns alpha (considered premul) */
 	
 	if(tex->use_nodes && tex->nodetree) {
-		if(osatex) retval = evalnodes(tex, texvec, dxt, dyt, texres, thread, which_output);
-		else retval = evalnodes(tex, texvec, NULL, NULL, texres, thread, which_output);
+		retval = ntreeTexExecTree(tex->nodetree, texres, texvec, dxt, dyt, osatex, thread,
+			tex, which_output, R.r.cfra, (R.r.scemode & R_TEXNODE_PREVIEW) != 0, NULL, NULL);
 	}
 	else
 	switch(tex->type) {
@@ -1288,46 +1274,83 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	return retval;
 }
 
-/* Warning, if the texres's values are not declared zero, check the return value to be sure
- * the color values are set before using the r/g/b values, otherwise you may use uninitialized values - Campbell */
-int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
-{
-	return multitex_thread(tex, texvec, dxt, dyt, osatex, texres, 0, 0);
-}
-
-int multitex_thread(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres, short thread, short which_output)
+/* this is called from the shader and texture nodes */
+int multitex_nodes(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres, short thread, short which_output, ShadeInput *shi, MTex *mtex)
 {
 	if(tex==NULL) {
 		memset(texres, 0, sizeof(TexResult));
 		return 0;
 	}
+
+	if(mtex)
+		which_output= mtex->which_output;
 	
-	/* Image requires 2d mapping conversion */
 	if(tex->type==TEX_IMAGE) {
-		MTex mtex;
-		float texvec_l[3], dxt_l[3], dyt_l[3];
-		
-		mtex.mapping= MTEX_FLAT;
-		mtex.tex= tex;
-		mtex.object= NULL;
-		mtex.texco= TEXCO_ORCO;
-		
-		VECCOPY(texvec_l, texvec);
-		if(dxt && dyt) {
-			VECCOPY(dxt_l, dxt);
-			VECCOPY(dyt_l, dyt);
+		int rgbnor;
+
+		if(mtex) {
+			/* we have mtex, use it for 2d mapping images only */
+			do_2d_mapping(mtex, texvec, shi->vlr, shi->facenor, dxt, dyt);
+			rgbnor= multitex(tex, texvec, dxt, dyt, osatex, texres, thread, which_output);
+
+			if(mtex->mapto & (MAP_COL+MAP_COLSPEC+MAP_COLMIR)) {
+				ImBuf *ibuf = BKE_image_get_ibuf(tex->ima, &tex->iuser);
+				
+				/* don't linearize float buffers, assumed to be linear */
+				if(ibuf && !(ibuf->rect_float) && R.r.color_mgt_flag & R_COLOR_MANAGEMENT)
+					srgb_to_linearrgb_v3_v3(&texres->tr, &texres->tr);
+			}
 		}
 		else {
-			dxt_l[0]= dxt_l[1]= dxt_l[2]= 0.0f;
-			dyt_l[0]= dyt_l[1]= dyt_l[2]= 0.0f;
+			/* we don't have mtex, do default flat 2d projection */
+			MTex localmtex;
+			float texvec_l[3], dxt_l[3], dyt_l[3];
+			
+			localmtex.mapping= MTEX_FLAT;
+			localmtex.tex= tex;
+			localmtex.object= NULL;
+			localmtex.texco= TEXCO_ORCO;
+			
+			copy_v3_v3(texvec_l, texvec);
+			if(dxt && dyt) {
+				copy_v3_v3(dxt_l, dxt);
+				copy_v3_v3(dyt_l, dyt);
+			}
+			else {
+				zero_v3(dxt_l);
+				zero_v3(dyt_l);
+			}
+			
+			do_2d_mapping(&localmtex, texvec_l, NULL, NULL, dxt_l, dyt_l);
+			rgbnor= multitex(tex, texvec_l, dxt_l, dyt_l, osatex, texres, thread, which_output);
 		}
-		
-		do_2d_mapping(&mtex, texvec_l, NULL, NULL, dxt_l, dyt_l);
 
-		return multitex(tex, texvec_l, dxt_l, dyt_l, osatex, texres, thread, which_output);
+		return rgbnor;
 	}
 	else
 		return multitex(tex, texvec, dxt, dyt, osatex, texres, thread, which_output);
+}
+
+/* this is called for surface shading */
+int multitex_mtex(ShadeInput *shi, MTex *mtex, float *texvec, float *dxt, float *dyt, TexResult *texres)
+{
+	Tex *tex= mtex->tex;
+
+	if(tex->use_nodes && tex->nodetree) {
+		/* stupid exception here .. but we have to pass shi and mtex to
+		   textures nodes for 2d mapping and color management for images */
+		return ntreeTexExecTree(tex->nodetree, texres, texvec, dxt, dyt, shi->osatex, shi->thread,
+			tex, mtex->which_output, R.r.cfra, (R.r.scemode & R_TEXNODE_PREVIEW) != 0, shi, mtex);
+	}
+	else
+		return multitex(mtex->tex, texvec, dxt, dyt, shi->osatex, texres, shi->thread, mtex->which_output);
+}
+
+/* Warning, if the texres's values are not declared zero, check the return value to be sure
+ * the color values are set before using the r/g/b values, otherwise you may use uninitialized values - Campbell */
+int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
+{
+	return multitex_nodes(tex, texvec, dxt, dyt, osatex, texres, 0, 0, NULL, NULL);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1739,7 +1762,7 @@ void do_material_tex(ShadeInput *shi)
 					// NOTE: test for shi->obr->ob here, since vlr/obr/obi can be 'fake' when called from fastshade(), another reason to move it..
 					// NOTE: shi->v1 is NULL when called from displace_render_vert, assigning verts in this case is not trivial because the shi quad face side is not know.
 					if ((mtex->texflag & MTEX_NEW_BUMP) && shi->obr && shi->obr->ob && shi->v1) {
-						if(mtex->mapto & (MAP_NORM|MAP_DISPLACE|MAP_WARP)) {
+						if(mtex->mapto & (MAP_NORM|MAP_DISPLACE|MAP_WARP) && !((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP))) {
 							MTFace* tf = RE_vlakren_get_tface(shi->obr, shi->vlr, i, NULL, 0);
 							int j1 = shi->i1, j2 = shi->i2, j3 = shi->i3;
 
@@ -1832,11 +1855,11 @@ void do_material_tex(ShadeInput *shi)
 					nunvdone= 1;
 				}
 
-				if(texres.nor) {
+				if(texres.nor && !((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP))) {
 					TexResult ttexr = {0, 0, 0, 0, 0, texres.talpha, NULL};	// temp TexResult
 					float tco[3], texv[3], cd, ud, vd, du, dv, idu, idv;
 					const int fromrgb = ((tex->type == TEX_IMAGE) || ((tex->flag & TEX_COLORBAND)!=0));
-					const float bf = 0.04f*Tnor*mtex->norfac;
+					const float bf = 0.04f*Tnor*stencilTin*mtex->norfac;
 					// disable internal bump eval
 					float* nvec = texres.nor;
 					texres.nor = NULL;
@@ -1874,21 +1897,21 @@ void do_material_tex(ShadeInput *shi)
 
 					// center, main return value
 					texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
-					rgbnor = multitex(tex, texvec, dxt, dyt, shi->osatex, &texres, shi->thread, mtex->which_output);
+					rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, &texres);
 					cd = fromrgb ? (texres.tr + texres.tg + texres.tb)*0.33333333f : texres.tin;
 
 					if (mtex->texco == TEXCO_UV) {
 						// for the uv case, use the same value for both du/dv,
 						// since individually scaling the normal derivatives makes them useless...
 						du = MIN2(du, dv);
-						idu = (du < 1e-6f) ? bf : (bf/du);
+						idu = (du < 1e-5f) ? bf : (bf/du);
 
 						// +u val
 						tco[0] = co[0] + dudnu*du;
 						tco[1] = co[1] + dvdnu*du;
 						tco[2] = 0.f;
 						texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
-						multitex(tex, texv, dxt, dyt, shi->osatex, &ttexr, shi->thread, mtex->which_output);
+						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
 						ud = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
 
 						// +v val
@@ -1896,14 +1919,14 @@ void do_material_tex(ShadeInput *shi)
 						tco[1] = co[1] + dvdnv*du;
 						tco[2] = 0.f;
 						texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
-						multitex(tex, texv, dxt, dyt, shi->osatex, &ttexr, shi->thread, mtex->which_output);
+						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
 						vd = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
 					}
 					else {
 						float tu[3] = {nu[0], nu[1], nu[2]}, tv[3] = {nv[0], nv[1], nv[2]};
 
-						idu = (du < 1e-6f) ? bf : (bf/du);
-						idv = (dv < 1e-6f) ? bf : (bf/dv);
+						idu = (du < 1e-5f) ? bf : (bf/du);
+						idv = (dv < 1e-5f) ? bf : (bf/dv);
 
 						if ((mtex->texco == TEXCO_ORCO) && shi->obr && shi->obr->ob) {
 							mul_mat3_m4_v3(shi->obr->ob->imat, tu);
@@ -1927,7 +1950,7 @@ void do_material_tex(ShadeInput *shi)
 						tco[1] = co[1] + tu[1]*du;
 						tco[2] = co[2] + tu[2]*du;
 						texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
-						multitex(tex, texv, dxt, dyt, shi->osatex, &ttexr, shi->thread, mtex->which_output);
+						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
 						ud = idu*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
 
 						// +v val
@@ -1935,7 +1958,7 @@ void do_material_tex(ShadeInput *shi)
 						tco[1] = co[1] + tv[1]*dv;
 						tco[2] = co[2] + tv[2]*dv;
 						texco_mapping(shi, tex, mtex, tco, dx, dy, texv, dxt, dyt);
-						multitex(tex, texv, dxt, dyt, shi->osatex, &ttexr, shi->thread, mtex->which_output);
+						multitex_mtex(shi, mtex, texv, dxt, dyt, &ttexr);
 						vd = idv*(cd - (fromrgb ? (ttexr.tr + ttexr.tg + ttexr.tb)*0.33333333f : ttexr.tin));
 					}
 
@@ -1956,12 +1979,12 @@ void do_material_tex(ShadeInput *shi)
 				}
 				else {
 					texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
-					rgbnor = multitex(tex, texvec, dxt, dyt, shi->osatex, &texres, shi->thread, mtex->which_output);
+					rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, &texres);
 				}
 			}
 			else {
 				texco_mapping(shi, tex, mtex, co, dx, dy, texvec, dxt, dyt);
-				rgbnor = multitex(tex, texvec, dxt, dyt, shi->osatex, &texres, shi->thread, mtex->which_output);
+				rgbnor = multitex_mtex(shi, mtex, texvec, dxt, dyt, &texres);
 			}
 
 			/* texture output */
@@ -2096,19 +2119,18 @@ void do_material_tex(ShadeInput *shi)
 			}
 			if( (mtex->mapto & MAP_NORM) ) {
 				if(texres.nor) {
-					tex->norfac= mtex->norfac;
+					float norfac= mtex->norfac;
 					
 					/* we need to code blending modes for normals too once.. now 1 exception hardcoded */
 					
 					if ((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP)) {
 						/* qdn: for normalmaps, to invert the normalmap vector,
 						   it is better to negate x & y instead of subtracting the vector as was done before */
-						tex->norfac = mtex->norfac;
-						if (tex->norfac < 0.0f) {
+						if (norfac < 0.0f) {
 							texres.nor[0] = -texres.nor[0];
 							texres.nor[1] = -texres.nor[1];
 						}
-						fact = Tnor*tex->norfac;
+						fact = Tnor*fabs(norfac);
 						if (fact>1.f) fact = 1.f;
 						facm = 1.f-fact;
 						if(mtex->normapspace == MTEX_NSPACE_TANGENT) {
@@ -2156,15 +2178,15 @@ void do_material_tex(ShadeInput *shi)
 							float nor[3], dot;
 	
 							if(shi->mat->mode & MA_TANGENT_V) {
-								shi->tang[0]+= Tnor*tex->norfac*texres.nor[0];
-								shi->tang[1]+= Tnor*tex->norfac*texres.nor[1];
-								shi->tang[2]+= Tnor*tex->norfac*texres.nor[2];
+								shi->tang[0]+= Tnor*norfac*texres.nor[0];
+								shi->tang[1]+= Tnor*norfac*texres.nor[1];
+								shi->tang[2]+= Tnor*norfac*texres.nor[2];
 							}
 	
 							/* prevent bump to become negative normal */
-							nor[0]= Tnor*tex->norfac*texres.nor[0];
-							nor[1]= Tnor*tex->norfac*texres.nor[1];
-							nor[2]= Tnor*tex->norfac*texres.nor[2];
+							nor[0]= Tnor*norfac*texres.nor[0];
+							nor[1]= Tnor*norfac*texres.nor[1];
+							nor[2]= Tnor*norfac*texres.nor[2];
 							
 							dot= 0.5f + 0.5f*INPR(nor, shi->vn);
 							
@@ -2189,11 +2211,11 @@ void do_material_tex(ShadeInput *shi)
 				/* Now that most textures offer both Nor and Intensity, allow  */
 				/* both to work, and let user select with slider.   */
 				if(texres.nor) {
-					tex->norfac= mtex->norfac;
+					float norfac= mtex->norfac;
 
-					shi->displace[0]+= 0.2f*Tnor*tex->norfac*texres.nor[0];
-					shi->displace[1]+= 0.2f*Tnor*tex->norfac*texres.nor[1];
-					shi->displace[2]+= 0.2f*Tnor*tex->norfac*texres.nor[2];
+					shi->displace[0]+= 0.2f*Tnor*norfac*texres.nor[0];
+					shi->displace[1]+= 0.2f*Tnor*norfac*texres.nor[1];
+					shi->displace[2]+= 0.2f*Tnor*norfac*texres.nor[2];
 				}
 				
 				if(rgbnor & TEX_RGB) {

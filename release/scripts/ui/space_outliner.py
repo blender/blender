@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -99,6 +99,23 @@ class OUTLINER_MT_edit_datablocks(bpy.types.Menu):
         col.operator("outliner.drivers_add_selected")
         col.operator("outliner.drivers_delete_selected")
 
-bpy.types.register(OUTLINER_HT_header)
-bpy.types.register(OUTLINER_MT_view)
-bpy.types.register(OUTLINER_MT_edit_datablocks)
+
+classes = [
+    OUTLINER_HT_header,
+    OUTLINER_MT_view,
+    OUTLINER_MT_edit_datablocks]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

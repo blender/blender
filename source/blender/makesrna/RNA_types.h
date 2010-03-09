@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Blender Foundation (2008).
  *
@@ -90,7 +90,7 @@ typedef enum PropertyUnit {
 
 #define RNA_ENUM_BITFLAG_SIZE 32
 
-/* also update rna_property_subtypename when you change this */
+/* also update enums in bpy_props.c when adding items here */
 typedef enum PropertySubType {
 	PROP_NONE = 0,
 
@@ -125,6 +125,7 @@ typedef enum PropertySubType {
 	PROP_LAYER_MEMBER = 41
 } PropertySubType;
 
+/* Make sure enums are updated with thses */
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
@@ -140,7 +141,7 @@ typedef enum PropertyFlag {
 	 * other input, be it animation curves, expressions, ..
 	 * properties are animateable by default except for pointers
 	 * and collections */
-	PROP_ANIMATEABLE = 1<<1,
+	PROP_ANIMATABLE = 1<<1,
 
 	/* icon */
 	PROP_ICONS_CONSECUTIVE = 1<<12,
@@ -150,7 +151,7 @@ typedef enum PropertyFlag {
 
 	/* function paramater flags */
 	PROP_REQUIRED = 1<<2,
-	PROP_RETURN = 1<<3,
+	PROP_OUTPUT = 1<<3,
 	PROP_RNAPTR = 1<<11,
 	/* registering */
 	PROP_REGISTER = 1<<4,
@@ -187,7 +188,8 @@ typedef enum PropertyFlag {
 	PROP_RAW_ACCESS = 1<<13,
 	PROP_RAW_ARRAY = 1<<14,
 	PROP_FREE_POINTERS = 1<<15,
-	PROP_DYNAMIC = 1<<17 /* for dynamic arrays, and retvals of type string */
+	PROP_DYNAMIC = 1<<17, /* for dynamic arrays, and retvals of type string */
+	PROP_ENUM_NO_CONTEXT = 1<<18 /* for enum that shouldn't be contextual */
 } PropertyFlag;
 
 typedef struct CollectionPropertyIterator {
@@ -266,6 +268,7 @@ typedef enum FunctionFlag {
 	FUNC_NO_SELF = 1, /* for static functions */
 	FUNC_USE_CONTEXT = 2,
 	FUNC_USE_REPORTS = 4,
+	FUNC_USE_SELF_ID = 2048,
 
 	/* registering */
 	FUNC_REGISTER = 8,
@@ -333,6 +336,9 @@ typedef struct ExtensionRNA {
 #define MainLamps Main
 #define MainObjects Main
 #define MainTexts Main
+#define MainActions Main
+#define MainGroups Main
+#define MainTextures Main
 
 #ifdef __cplusplus
 }

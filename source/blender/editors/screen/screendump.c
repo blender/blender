@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -38,6 +38,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -174,7 +175,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	
 	ot->flag= 0;
 	
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_SAVE);
 	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
 }
 
@@ -226,7 +227,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 	int cfra= 1;
 	
 	/* we need this as local variables for renderdata */
-	rd.frs_sec= 10;
+	rd.frs_sec= U.scrcastfps;
 	rd.frs_sec_base= 1.0f;
 	
 	if(BKE_imtype_is_movie(rd.imtype)) {
@@ -248,9 +249,10 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 		if(sj->dumprect) {
 			
 			if(mh) {
-				if(mh->append_movie(&rd, cfra, (int *)sj->dumprect, sj->dumpsx, sj->dumpsy, &sj->reports))
-					printf("Append frame %d\n", cfra);
-				else
+				if(mh->append_movie(&rd, cfra, (int *)sj->dumprect, sj->dumpsx, sj->dumpsy, &sj->reports)) {
+					BKE_reportf(&sj->reports, RPT_INFO, "Appended frame: %d", cfra);
+					printf("Appended frame %d\n", cfra);
+				} else
 					break;
 			}
 			else {
@@ -265,9 +267,13 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 				
 				if(ok==0) {
 					printf("Write error: cannot save %s\n", name);
+					BKE_reportf(&sj->reports, RPT_INFO, "Write error: cannot save %s\n", name);
 					break;
 				}
-				else printf("Saved: %s\n", name);
+				else {
+					printf("Saved file: %s\n", name);
+					BKE_reportf(&sj->reports, RPT_INFO, "Saved file: %s", name);
+				}
 				
                 /* imbuf knows which rects are not part of ibuf */
 				IMB_freeImBuf(ibuf);	
@@ -279,14 +285,16 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update)
 			*do_update= 1;
 			
 			cfra++;
+
 		}
 		else 
-			PIL_sleep_ms(50);
+			PIL_sleep_ms(U.scrcastwait);
 	}
 	
 	if(mh)
 		mh->end_movie();
-	printf("screencast job stopped\n");
+
+	BKE_report(&sj->reports, RPT_INFO, "Screencast job stopped");
 }
 
 static int screencast_exec(bContext *C, wmOperator *op)

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -46,7 +46,7 @@
 /***/
 
 unsigned int hashsizes[]= {
-	1, 3, 5, 11, 17, 37, 67, 131, 257, 521, 1031, 2053, 4099, 8209, 
+	5, 11, 17, 37, 67, 131, 257, 521, 1031, 2053, 4099, 8209, 
 	16411, 32771, 65537, 131101, 262147, 524309, 1048583, 2097169, 
 	4194319, 8388617, 16777259, 33554467, 67108879, 134217757, 
 	268435459
@@ -60,13 +60,13 @@ GHash *BLI_ghash_new(GHashHashFP hashfp, GHashCmpFP cmpfp) {
 	GHash *gh= MEM_mallocN(sizeof(*gh), "GHash");
 	gh->hashfp= hashfp;
 	gh->cmpfp= cmpfp;
-	gh->entrypool = BLI_mempool_create(sizeof(Entry), 1024, 1024);
+	gh->entrypool = BLI_mempool_create(sizeof(Entry), 64, 64, 1);
 
 	gh->cursize= 0;
 	gh->nentries= 0;
 	gh->nbuckets= hashsizes[gh->cursize];
 	
-	gh->buckets= malloc(gh->nbuckets*sizeof(*gh->buckets));
+	gh->buckets= MEM_mallocN(gh->nbuckets*sizeof(*gh->buckets), "buckets");
 	memset(gh->buckets, 0, gh->nbuckets*sizeof(*gh->buckets));
 	
 	return gh;
@@ -98,7 +98,7 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 		}
 	}
 	
-	free(gh->buckets);
+	MEM_freeN(gh->buckets);
 	BLI_mempool_destroy(gh->entrypool);
 	gh->buckets = 0;
 	gh->nentries = 0;
@@ -109,7 +109,7 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 /***/
 
 GHashIterator *BLI_ghashIterator_new(GHash *gh) {
-	GHashIterator *ghi= malloc(sizeof(*ghi));
+	GHashIterator *ghi= MEM_mallocN(sizeof(*ghi), "ghash iterator");
 	ghi->gh= gh;
 	ghi->curEntry= NULL;
 	ghi->curBucket= -1;
@@ -133,7 +133,7 @@ void BLI_ghashIterator_init(GHashIterator *ghi, GHash *gh) {
 	}
 }
 void BLI_ghashIterator_free(GHashIterator *ghi) {
-	free(ghi);
+	MEM_freeN(ghi);
 }
 
 void *BLI_ghashIterator_getKey(GHashIterator *ghi) {

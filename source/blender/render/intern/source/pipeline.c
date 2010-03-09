@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
@@ -108,13 +108,18 @@
 /* ********* globals ******** */
 
 /* here we store all renders */
-static struct ListBase RenderList= {NULL, NULL};
+static struct {
+	ListBase renderlist;
+
+	/* render slots */
+	int viewslot, renderingslot;
+
+	/* commandline thread override */
+	int threads;
+} RenderGlobal = {{NULL, NULL}, 0, 0, -1}; 
 
 /* hardcopy of current render, used while rendering for speed */
 Render R;
-
-/* commandline thread override */
-static int commandline_threads= -1;
 
 /* ********* alloc and free ******** */
 
@@ -228,11 +233,11 @@ static void push_render_result(Render *re)
 /* if scemode is R_SINGLE_LAYER, at end of rendering, merge the both render results */
 static void pop_render_result(Render *re)
 {
-	
 	if(re->result==NULL) {
 		printf("pop render result error; no current result!\n");
 		return;
 	}
+
 	if(re->pushedresult) {
 		BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 
@@ -309,6 +314,12 @@ static char *get_pass_name(int passtype, int channel)
 		if(channel==2) return "Color.B";
 		return "Color.A";
 	}
+	if(passtype == SCE_PASS_EMIT) {
+		if(channel==-1) return "Emit";
+		if(channel==0) return "Emit.R";
+		if(channel==1) return "Emit.G";
+		return "Emit.B";
+	}
 	if(passtype == SCE_PASS_DIFFUSE) {
 		if(channel==-1) return "Diffuse";
 		if(channel==0) return "Diffuse.R";
@@ -332,6 +343,18 @@ static char *get_pass_name(int passtype, int channel)
 		if(channel==0) return "AO.R";
 		if(channel==1) return "AO.G";
 		return "AO.B";
+	}
+	if(passtype == SCE_PASS_ENVIRONMENT) {
+		if(channel==-1) return "Environment";
+		if(channel==0) return "Environment.R";
+		if(channel==1) return "Environment.G";
+		return "Environment.B";
+	}
+	if(passtype == SCE_PASS_INDIRECT) {
+		if(channel==-1) return "Indirect";
+		if(channel==0) return "Indirect.R";
+		if(channel==1) return "Indirect.G";
+		return "Indirect.B";
 	}
 	if(passtype == SCE_PASS_REFLECT) {
 		if(channel==-1) return "Reflect";
@@ -390,6 +413,9 @@ static int passtype_from_name(char *str)
 	if(strcmp(str, "Color")==0)
 		return SCE_PASS_RGBA;
 
+	if(strcmp(str, "Emit")==0)
+		return SCE_PASS_EMIT;
+
 	if(strcmp(str, "Diffuse")==0)
 		return SCE_PASS_DIFFUSE;
 
@@ -401,6 +427,12 @@ static int passtype_from_name(char *str)
 	
 	if(strcmp(str, "AO")==0)
 		return SCE_PASS_AO;
+
+	if(strcmp(str, "Environment")==0)
+		return SCE_PASS_ENVIRONMENT;
+
+	if(strcmp(str, "Indirect")==0)
+		return SCE_PASS_INDIRECT;
 
 	if(strcmp(str, "Reflect")==0)
 		return SCE_PASS_REFLECT;
@@ -572,12 +604,18 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_UV);
 		if(srl->passflag  & SCE_PASS_RGBA)
 			render_layer_add_pass(rr, rl, 4, SCE_PASS_RGBA);
+		if(srl->passflag  & SCE_PASS_EMIT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_EMIT);
 		if(srl->passflag  & SCE_PASS_DIFFUSE)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_DIFFUSE);
 		if(srl->passflag  & SCE_PASS_SPEC)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_SPEC);
 		if(srl->passflag  & SCE_PASS_AO)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_AO);
+		if(srl->passflag  & SCE_PASS_ENVIRONMENT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_ENVIRONMENT);
+		if(srl->passflag  & SCE_PASS_INDIRECT)
+			render_layer_add_pass(rr, rl, 3, SCE_PASS_INDIRECT);
 		if(srl->passflag  & SCE_PASS_SHADOW)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_SHADOW);
 		if(srl->passflag  & SCE_PASS_REFLECT)
@@ -956,13 +994,35 @@ static void read_render_result(Render *re, int sample)
 
 /* *************************************************** */
 
-Render *RE_GetRender(const char *name)
+void RE_SetViewSlot(int slot)
+{
+	RenderGlobal.viewslot = slot;
+}
+
+int RE_GetViewSlot(void)
+{
+	return RenderGlobal.viewslot;
+}
+
+static int re_get_slot(int slot)
+{
+	if(slot == RE_SLOT_VIEW)
+		return RenderGlobal.viewslot;
+	else if(slot == RE_SLOT_RENDERING)
+		return (G.rendering)? RenderGlobal.renderingslot: RenderGlobal.viewslot;
+
+	return slot;
+}
+
+Render *RE_GetRender(const char *name, int slot)
 {
 	Render *re;
+
+	slot= re_get_slot(slot);
 	
 	/* search for existing renders */
-	for(re= RenderList.first; re; re= re->next) {
-		if(strncmp(re->name, name, RE_MAXNAME)==0) {
+	for(re= RenderGlobal.renderlist.first; re; re= re->next) {
+		if(strncmp(re->name, name, RE_MAXNAME)==0 && re->slot==slot) {
 			break;
 		}
 	}
@@ -1093,24 +1153,26 @@ void RE_ResultGet32(Render *re, unsigned int *rect)
 	RE_ReleaseResultImage(re);
 }
 
-
 RenderStats *RE_GetStats(Render *re)
 {
 	return &re->i;
 }
 
-Render *RE_NewRender(const char *name)
+Render *RE_NewRender(const char *name, int slot)
 {
 	Render *re;
+
+	slot= re_get_slot(slot);
 	
 	/* only one render per name exists */
-	re= RE_GetRender(name);
+	re= RE_GetRender(name, slot);
 	if(re==NULL) {
 		
 		/* new render data struct */
 		re= MEM_callocN(sizeof(Render), "new render");
-		BLI_addtail(&RenderList, re);
+		BLI_addtail(&RenderGlobal.renderlist, re);
 		strncpy(re->name, name, RE_MAXNAME);
+		re->slot= slot;
 		BLI_rw_mutex_init(&re->resultmutex);
 	}
 	
@@ -1145,15 +1207,15 @@ void RE_FreeRender(Render *re)
 	RE_FreeRenderResult(re->result);
 	RE_FreeRenderResult(re->pushedresult);
 	
-	BLI_remlink(&RenderList, re);
+	BLI_remlink(&RenderGlobal.renderlist, re);
 	MEM_freeN(re);
 }
 
 /* exit blender */
 void RE_FreeAllRender(void)
 {
-	while(RenderList.first) {
-		RE_FreeRender(RenderList.first);
+	while(RenderGlobal.renderlist.first) {
+		RE_FreeRender(RenderGlobal.renderlist.first);
 	}
 }
 
@@ -1194,6 +1256,13 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 #ifdef WITH_OPENEXR
 	if(re->r.scemode & R_FULL_SAMPLE)
 		re->r.scemode |= R_EXR_TILE_FILE;	/* enable automatic */
+
+	/* Until use_border is made compatible with save_buffers/full_sample, render without the later instead of not rendering at all.*/
+	if(re->r.mode & R_BORDER) 
+	{
+		re->r.scemode &= ~(R_EXR_TILE_FILE|R_FULL_SAMPLE);
+	}
+
 #else
 	/* can't do this without openexr support */
 	re->r.scemode &= ~(R_EXR_TILE_FILE|R_FULL_SAMPLE);
@@ -1896,20 +1965,20 @@ static void do_render_blur_3d(Render *re)
 {
 	RenderResult *rres;
 	float blurfac;
-	int blur= re->r.osa;
+	int blur= re->r.mblur_samples;
 	
 	/* create accumulation render result */
 	rres= new_render_result(re, &re->disprect, 0, RR_USEMEM);
 	
 	/* do the blur steps */
 	while(blur--) {
-		set_mblur_offs( re->r.blurfac*((float)(re->r.osa-blur))/(float)re->r.osa );
+		set_mblur_offs( re->r.blurfac*((float)(re->r.mblur_samples-blur))/(float)re->r.mblur_samples );
 		
-		re->i.curblur= re->r.osa-blur;	/* stats */
+		re->i.curblur= re->r.mblur_samples-blur;	/* stats */
 		
 		do_render_3d(re);
 		
-		blurfac= 1.0f/(float)(re->r.osa-blur);
+		blurfac= 1.0f/(float)(re->r.mblur_samples-blur);
 		
 		merge_renderresult_blur(rres, re->result, blurfac, re->r.alphamode & R_ALPHAKEY);
 		if(re->test_break(re->tbh)) break;
@@ -2022,7 +2091,6 @@ static void do_render_fields_3d(Render *re)
 
 	BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
 	re->result= new_render_result(re, &re->disprect, 0, RR_USEMEM);
-	RE_FreeRenderResult(rr1);
 
 	if(rr2) {
 		if(re->r.mode & R_ODDFIELD)
@@ -2032,6 +2100,8 @@ static void do_render_fields_3d(Render *re)
 		
 		RE_FreeRenderResult(rr2);
 	}
+
+	RE_FreeRenderResult(rr1);
 	
 	re->i.curfield= 0;	/* stats */
 	
@@ -2051,7 +2121,7 @@ static void load_backbuffer(Render *re)
 		
 		strcpy(name, re->r.backbuf);
 		BLI_convertstringcode(name, G.sce);
-		BLI_convertstringframe(name, re->r.cfra);
+		BLI_convertstringframe(name, re->r.cfra, 0);
 		
 		if(re->backbuf) {
 			re->backbuf->id.us--;
@@ -2145,7 +2215,7 @@ static void do_render_fields_blur_3d(Render *re)
 */
 static void render_scene(Render *re, Scene *sce, int cfra)
 {
-	Render *resc= RE_NewRender(sce->id.name);
+	Render *resc= RE_NewRender(sce->id.name, RE_SLOT_RENDERING);
 	int winx= re->winx, winy= re->winy;
 	
 	sce->r.cfra= cfra;
@@ -2272,7 +2342,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			Render *re1;
 			
 			tag_scenes_for_render(re);
-			for(re1= RenderList.first; re1; re1= re1->next) {
+			for(re1= RenderGlobal.renderlist.first; re1; re1= re1->next) {
 				if(re1->scene->id.flag & LIB_DOIT)
 					if(re1->r.scemode & R_FULL_SAMPLE)
 						read_render_result(re1, sample);
@@ -2299,6 +2369,7 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 			float *col= rres.rectf + 4*y*re->rectx;
 				
 			for(x=0; x<re->rectx; x++, rf+=4, col+=4) {
+				/* clamping to 1.0 is needed for correct AA */
 				if(col[0]<0.0f) col[0]=0.0f; else if(col[0] > 1.0f) col[0]= 1.0f;
 				if(col[1]<0.0f) col[1]=0.0f; else if(col[1] > 1.0f) col[1]= 1.0f;
 				if(col[2]<0.0f) col[2]=0.0f; else if(col[2] > 1.0f) col[2]= 1.0f;
@@ -2366,6 +2437,7 @@ void RE_MergeFullSample(Render *re, Scene *sce, bNodeTree *ntree)
 static void do_render_composite_fields_blur_3d(Render *re)
 {
 	bNodeTree *ntree= re->scene->nodetree;
+	int update_newframe=0;
 	
 	/* INIT seeding, compositor can use random texture */
 	BLI_srandom(re->r.cfra);
@@ -2375,6 +2447,9 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		ntreeFreeCache(ntree);
 		
 		do_render_fields_blur_3d(re);
+	} else {
+		/* scene render process already updates animsys */
+		update_newframe = 1;
 	}
 	
 	/* swap render result */
@@ -2403,10 +2478,14 @@ static void do_render_composite_fields_blur_3d(Render *re)
 					R.sdh= re->sdh;
 					R.stats_draw= re->stats_draw;
 					
+					if (update_newframe)
+						scene_update_for_newframe(re->scene, re->scene->lay);
+					
 					if(re->r.scemode & R_FULL_SAMPLE) 
 						do_merge_fullsample(re, ntree);
-					else
+					else {
 						ntreeCompositExecTree(ntree, &re->r, G.background==0);
+					}
 					
 					ntree->stats_draw= NULL;
 					ntree->test_break= NULL;
@@ -2426,7 +2505,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 static void renderresult_stampinfo(Scene *scene)
 {
 	RenderResult rres;
-	Render *re= RE_GetRender(scene->id.name);
+	Render *re= RE_GetRender(scene->id.name, RE_SLOT_RENDERING);
 
 	/* this is the basic trick to get the displayed float or char rect from render result */
 	RE_AcquireResultImage(re, &rres);
@@ -2564,10 +2643,6 @@ static int is_rendering_allowed(Render *re)
 		if(re->r.border.xmax <= re->r.border.xmin || 
 		   re->r.border.ymax <= re->r.border.ymin) {
 			re->error(re->erh, "No border area selected.");
-			return 0;
-		}
-		if(re->r.scemode & (R_EXR_TILE_FILE|R_FULL_SAMPLE)) {
-			re->error(re->erh, "Border render and Buffer-save not supported yet");
 			return 0;
 		}
 	}
@@ -2739,8 +2814,9 @@ static int render_initialize_from_scene(Render *re, Scene *scene, SceneRenderLay
 void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, int frame)
 {
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
-	G.rendering= 1;
+	RenderGlobal.renderingslot= re->slot;
 	re->result_ok= 0;
+	G.rendering= 1;
 	
 	scene->r.cfra= frame;
 	
@@ -2749,8 +2825,9 @@ void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, int frame)
 	}
 	
 	/* UGLY WARNING */
-	G.rendering= 0;
 	re->result_ok= 1;
+	G.rendering= 0;
+	RenderGlobal.renderingslot= RenderGlobal.viewslot;
 }
 
 static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, ReportList *reports)
@@ -2795,9 +2872,18 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 			
 			/* float factor for random dither, imbuf takes care of it */
 			ibuf->dither= scene->r.dither_intensity;
-			/* gamma correct to sRGB color space */
-			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-				ibuf->profile = IB_PROFILE_SRGB;
+			
+			/* prepare to gamma correct to sRGB color space */
+			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) {
+				/* sequence editor can generate 8bpc render buffers */
+				if (ibuf->rect) {
+					ibuf->profile = IB_PROFILE_SRGB;
+					if (ELEM(scene->r.imtype, R_OPENEXR, R_RADHDR))
+						IMB_float_from_rect(ibuf);
+				} else {				
+					ibuf->profile = IB_PROFILE_LINEAR_RGB;
+				}
+			}
 
 			ok= BKE_write_ibuf(scene, ibuf, name, scene->r.imtype, scene->r.subimtype, scene->r.quality);
 			
@@ -2845,6 +2931,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra, Repo
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
+	RenderGlobal.renderingslot= re->slot;
 	re->result_ok= 0;
 	
 	if(BKE_imtype_is_movie(scene->r.imtype))
@@ -2941,6 +3028,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra, Repo
 	/* UGLY WARNING */
 	G.rendering= 0;
 	re->result_ok= 1;
+	RenderGlobal.renderingslot= RenderGlobal.viewslot;
 }
 
 /* note; repeated win/disprect calc... solve that nicer, also in compo */
@@ -2974,9 +3062,9 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 		scene= scenode;
 	
 	/* get render: it can be called from UI with draw callbacks */
-	re= RE_GetRender(scene->id.name);
+	re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
 	if(re==NULL)
-		re= RE_NewRender(scene->id.name);
+		re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
 	RE_InitState(re, NULL, &scene->r, NULL, winx, winy, &disprect);
 	re->scene= scene;
 	
@@ -2986,9 +3074,9 @@ void RE_ReadRenderResult(Scene *scene, Scene *scenode)
 void RE_set_max_threads(int threads)
 {
 	if (threads==0) {
-		commandline_threads = BLI_system_thread_count();
+		RenderGlobal.threads = BLI_system_thread_count();
 	} else if(threads>=1 && threads<=BLENDER_MAX_THREADS) {
-		commandline_threads= threads;
+		RenderGlobal.threads= threads;
 	} else {
 		printf("Error, threads has to be in range 0-%d\n", BLENDER_MAX_THREADS);
 	}
@@ -2996,9 +3084,9 @@ void RE_set_max_threads(int threads)
 
 void RE_init_threadcount(Render *re) 
 {
-        if(commandline_threads >= 1) { /* only set as an arg in background mode */
-		re->r.threads= MIN2(commandline_threads, BLENDER_MAX_THREADS);
-	} else if ((re->r.mode & R_FIXED_THREADS)==0 || commandline_threads == 0) { /* Automatic threads */
+	if(RenderGlobal.threads >= 1) { /* only set as an arg in background mode */
+		re->r.threads= MIN2(RenderGlobal.threads, BLENDER_MAX_THREADS);
+	} else if ((re->r.mode & R_FIXED_THREADS)==0 || RenderGlobal.threads == 0) { /* Automatic threads */
 		re->r.threads = BLI_system_thread_count();
 	}
 }

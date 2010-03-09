@@ -94,7 +94,7 @@ void *BLI_cellalloc_malloc(long size, char *tag)
 	}
 
 	if (!pools[slot]) {
-		pools[slot] = BLI_mempool_create(slot, 1, 128);
+		pools[slot] = BLI_mempool_create(slot, 1, 128, 1);
 	}
 
 	memh = BLI_mempool_alloc(pools[slot]);
@@ -143,6 +143,31 @@ void BLI_cellalloc_free(void *mem)
 	} else {
 		printf("Error in BLI_cellalloc: attempt to free corrupted block.\n");
 	}
+}
+
+void *BLI_cellalloc_dupalloc(void *mem)
+{
+	MemHeader *memh = mem;
+	void *tmp;
+	int slot;
+
+#ifdef USE_GUARDEDALLOC
+	MEM_freeN(mem);
+	return;
+#endif
+	if (!memh)
+		return;
+
+	memh--;
+	if (memh->idcheck != MEMIDCHECK) {
+		printf("Error in BLI_cellalloc: attempt to free invalid block.\n");
+		return;
+	}
+
+	tmp = BLI_cellalloc_malloc(memh->size, memh->tag);
+	memcpy(tmp, mem, memh->size);
+
+	return tmp;
 }
 
 void BLI_cellalloc_printleaks(void)

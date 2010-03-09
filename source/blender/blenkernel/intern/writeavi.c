@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -121,18 +121,16 @@ static int sframe;
 
 static void filepath_avi (char *string, RenderData *rd)
 {
-	char txt[64];
-
-	if (string==0) return;
+	if (string==NULL) return;
 
 	strcpy(string, rd->pic);
 	BLI_convertstringcode(string, G.sce);
 
 	BLI_make_existing_file(string);
 
-	if (BLI_strcasecmp(string + strlen(string) - 4, ".avi")) {
-		sprintf(txt, "%04d_%04d.avi", (rd->sfra) , (rd->efra) );
-		strcat(string, txt);
+	if (!BLI_testextensie(string, ".avi")) {
+		BLI_convertstringframe_range(string, rd->sfra, rd->efra, 4);
+		strcat(string, ".avi");
 	}
 }
 

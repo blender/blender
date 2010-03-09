@@ -76,6 +76,8 @@ public:
 
 	void	setOptimizedBvh(btOptimizedBvh* bvh, const btVector3& localScaling=btVector3(1,1,1));
 
+	void    buildOptimizedBvh();
+
 	bool	usesQuantizedAabbCompression() const
 	{
 		return	m_useQuantizedAabbCompression;

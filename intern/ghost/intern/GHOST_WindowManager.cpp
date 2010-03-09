@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -192,6 +192,18 @@ std::vector<GHOST_IWindow *> &GHOST_WindowManager::getWindows()
 	return m_windows;
 }
 
+
+GHOST_IWindow* GHOST_WindowManager::getWindowAssociatedWithOSWindow(void* osWindow)
+{
+	std::vector<GHOST_IWindow*>::iterator iter;
+
+	for (iter = m_windows.begin(); iter != m_windows.end(); iter++) {
+		if ((*iter)->getOSWindow() == osWindow)
+			return *iter;
+	}
+	
+	return NULL;
+}
 
 bool GHOST_WindowManager::getAnyModifiedState()
 {

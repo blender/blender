@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 by Janne Karhu.
  * All rights reserved.
@@ -61,6 +61,7 @@
 #include "BLI_cellalloc.h"
 
 #include "BKE_anim.h"
+#include "BKE_animsys.h"
 
 #include "BKE_boids.h"
 #include "BKE_cloth.h"
@@ -255,7 +256,7 @@ void psys_enable_all(Object *ob)
 }
 int psys_in_edit_mode(Scene *scene, ParticleSystem *psys)
 {
-	return (scene->basact && (scene->basact->object->mode & OB_MODE_PARTICLE_EDIT) && psys==psys_get_current((scene->basact)->object) && (psys->edit || psys->pointcache->edit));
+	return (scene->basact && (scene->basact->object->mode & OB_MODE_PARTICLE_EDIT) && psys==psys_get_current((scene->basact)->object) && (psys->edit || psys->pointcache->edit) && !psys->renderdata);
 }
 static void psys_create_frand(ParticleSystem *psys)
 {
@@ -371,6 +372,7 @@ int psys_uses_gravity(ParticleSimulationData *sim)
 /************************************************/
 void psys_free_settings(ParticleSettings *part)
 {
+	BKE_free_animdata(&part->id);
 	free_partdeflect(part->pd);
 	free_partdeflect(part->pd2);
 
@@ -1001,12 +1003,7 @@ static float interpolate_particle_value(float v1, float v2, float v3, float v4, 
 	
 	return value;
 }
-static void weighted_particle_vector(float *v1, float *v2, float *v3, float *v4, float *weights, float *vec)
-{
-	vec[0]= weights[0]*v1[0] + weights[1]*v2[0] + weights[2]*v3[0] + weights[3]*v4[0];
-	vec[1]= weights[0]*v1[1] + weights[1]*v2[1] + weights[2]*v3[1] + weights[3]*v4[1];
-	vec[2]= weights[0]*v1[2] + weights[1]*v2[2] + weights[2]*v3[2] + weights[3]*v4[2];
-}
+
 void psys_interpolate_particle(short type, ParticleKey keys[4], float dt, ParticleKey *result, int velocity)
 {
 	float t[4];
@@ -1017,19 +1014,19 @@ void psys_interpolate_particle(short type, ParticleKey keys[4], float dt, Partic
 	else {
 		key_curve_position_weights(dt, t, type);
 
-		weighted_particle_vector(keys[0].co, keys[1].co, keys[2].co, keys[3].co, t, result->co);
+		interp_v3_v3v3v3v3(result->co, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
 
 		if(velocity){
 			float temp[3];
 
 			if(dt>0.999f){
 				key_curve_position_weights(dt-0.001f, t, type);
-				weighted_particle_vector(keys[0].co, keys[1].co, keys[2].co, keys[3].co, t, temp);
+				interp_v3_v3v3v3v3(temp, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
 				VECSUB(result->vel, result->co, temp);
 			}
 			else{
 				key_curve_position_weights(dt+0.001f, t, type);
-				weighted_particle_vector(keys[0].co, keys[1].co, keys[2].co, keys[3].co, t, temp);
+				interp_v3_v3v3v3v3(temp, keys[0].co, keys[1].co, keys[2].co, keys[3].co, t);
 				VECSUB(result->vel, temp, result->co);
 			}
 		}
@@ -1311,46 +1308,33 @@ void psys_interpolate_face(MVert *mvert, MFace *mface, MTFace *tface, float (*or
 	float tuv[4][2];
 	float *o1, *o2, *o3, *o4;
 
-	v1= (mvert+mface->v1)->co;
-	v2= (mvert+mface->v2)->co;
-	v3= (mvert+mface->v3)->co;
-	VECCOPY(n1,(mvert+mface->v1)->no);
-	VECCOPY(n2,(mvert+mface->v2)->no);
-	VECCOPY(n3,(mvert+mface->v3)->no);
-	normalize_v3(n1);
-	normalize_v3(n2);
-	normalize_v3(n3);
+	v1= mvert[mface->v1].co;
+	v2= mvert[mface->v2].co;
+	v3= mvert[mface->v3].co;
+
+	normal_short_to_float_v3(n1, mvert[mface->v1].no);
+	normal_short_to_float_v3(n2, mvert[mface->v2].no);
+	normal_short_to_float_v3(n3, mvert[mface->v3].no);
 
 	if(mface->v4) {
-		v4= (mvert+mface->v4)->co;
-		VECCOPY(n4,(mvert+mface->v4)->no);
-		normalize_v3(n4);
+		v4= mvert[mface->v4].co;
+		normal_short_to_float_v3(n4, mvert[mface->v4].no);
 		
-		vec[0]= w[0]*v1[0] + w[1]*v2[0] + w[2]*v3[0] + w[3]*v4[0];
-		vec[1]= w[0]*v1[1] + w[1]*v2[1] + w[2]*v3[1] + w[3]*v4[1];
-		vec[2]= w[0]*v1[2] + w[1]*v2[2] + w[2]*v3[2] + w[3]*v4[2];
+		interp_v3_v3v3v3v3(vec, v1, v2, v3, v4, w);
 
 		if(nor){
-			if(mface->flag & ME_SMOOTH){
-				nor[0]= w[0]*n1[0] + w[1]*n2[0] + w[2]*n3[0] + w[3]*n4[0];
-				nor[1]= w[0]*n1[1] + w[1]*n2[1] + w[2]*n3[1] + w[3]*n4[1];
-				nor[2]= w[0]*n1[2] + w[1]*n2[2] + w[2]*n3[2] + w[3]*n4[2];
-			}
+			if(mface->flag & ME_SMOOTH)
+				interp_v3_v3v3v3v3(nor, n1, n2, n3, n4, w);
 			else
 				normal_quad_v3(nor,v1,v2,v3,v4);
 		}
 	}
 	else {
-		vec[0]= w[0]*v1[0] + w[1]*v2[0] + w[2]*v3[0];
-		vec[1]= w[0]*v1[1] + w[1]*v2[1] + w[2]*v3[1];
-		vec[2]= w[0]*v1[2] + w[1]*v2[2] + w[2]*v3[2];
-		
+		interp_v3_v3v3v3(vec, v1, v2, v3, w);
+
 		if(nor){
-			if(mface->flag & ME_SMOOTH){
-				nor[0]= w[0]*n1[0] + w[1]*n2[0] + w[2]*n3[0];
-				nor[1]= w[0]*n1[1] + w[1]*n2[1] + w[2]*n3[1];
-				nor[2]= w[0]*n1[2] + w[1]*n2[2] + w[2]*n3[2];
-			}
+			if(mface->flag & ME_SMOOTH)
+				interp_v3_v3v3v3(nor, n1, n2, n3, w);
 			else
 				normal_tri_v3(nor,v1,v2,v3);
 		}
@@ -1411,17 +1395,14 @@ void psys_interpolate_face(MVert *mvert, MFace *mface, MTFace *tface, float (*or
 
 			if(mface->v4) {
 				o4= orcodata[mface->v4];
-				orco[0]= w[0]*o1[0] + w[1]*o2[0] + w[2]*o3[0] + w[3]*o4[0];
-				orco[1]= w[0]*o1[1] + w[1]*o2[1] + w[2]*o3[1] + w[3]*o4[1];
-				orco[2]= w[0]*o1[2] + w[1]*o2[2] + w[2]*o3[2] + w[3]*o4[2];
+
+				interp_v3_v3v3v3v3(orco, o1, o2, o3, o4, w);
 
 				if(ornor)
 					normal_quad_v3( ornor,o1, o2, o3, o4);
 			}
 			else {
-				orco[0]= w[0]*o1[0] + w[1]*o2[0] + w[2]*o3[0];
-				orco[1]= w[0]*o1[1] + w[1]*o2[1] + w[2]*o3[1];
-				orco[2]= w[0]*o1[2] + w[1]*o2[2] + w[2]*o3[2];
+				interp_v3_v3v3v3(orco, o1, o2, o3, w);
 
 				if(ornor)
 					normal_tri_v3( ornor,o1, o2, o3);
@@ -2848,7 +2829,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra)
 			do_particle_interpolation(psys, p, pa, t, frs_sec, &pind, &result);
 
 			/* dynamic hair is in object space */
-			/* keyed and baked are allready in global space */
+			/* keyed and baked are already in global space */
 			if(hair_dm)
 				mul_m4_v3(sim->ob->obmat, result.co);
 			else if(!keyed && !baked && !(psys->flag & PSYS_GLOBAL_HAIR))
@@ -2989,12 +2970,21 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 
 	frs_sec = (psys || edit->pid.flag & PTCACHE_VEL_PER_SEC) ? 25.0f : 1.0f;
 
-	sel_col[0] = (float)edit->sel_col[0] / 255.0f;
-	sel_col[1] = (float)edit->sel_col[1] / 255.0f;
-	sel_col[2] = (float)edit->sel_col[2] / 255.0f;
-	nosel_col[0] = (float)edit->nosel_col[0] / 255.0f;
-	nosel_col[1] = (float)edit->nosel_col[1] / 255.0f;
-	nosel_col[2] = (float)edit->nosel_col[2] / 255.0f;
+	if(pset->brushtype == PE_BRUSH_WEIGHT){
+		/* use weight painting colors now... */
+#if 0
+		sel_col[0] = sel_col[1] = sel_col[2] = 1.0f;
+		nosel_col[0] = nosel_col[1] = nosel_col[2] = 0.0f;
+#endif
+	}
+	else{
+		sel_col[0] = (float)edit->sel_col[0] / 255.0f;
+		sel_col[1] = (float)edit->sel_col[1] / 255.0f;
+		sel_col[2] = (float)edit->sel_col[2] / 255.0f;
+		nosel_col[0] = (float)edit->nosel_col[0] / 255.0f;
+		nosel_col[1] = (float)edit->nosel_col[1] / 255.0f;
+		nosel_col[2] = (float)edit->nosel_col[2] / 255.0f;
+	}
 
 	/*---first main loop: create all actual particles' paths---*/
 	for(i=0; i<totpart; i++, pa+=pa?1:0, point++){
@@ -3008,6 +2998,14 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 		pind.epoint = point;
 		pind.bspline = psys ? (psys->part->flag & PART_HAIR_BSPLINE) : 0;
 		pind.dm = NULL;
+
+
+		/* should init_particle_interpolation set this ? */
+		if(pset->brushtype==PE_BRUSH_WEIGHT){
+			pind.hkey[0] = NULL;
+			pind.hkey[1] = pa->hair;
+		}
+
 
 		memset(cache[i], 0, sizeof(*cache[i])*(steps+1));
 
@@ -3041,7 +3039,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 
 			do_particle_interpolation(psys, i, pa, t, frs_sec, &pind, &result);
 
-			 /* non-hair points are allready in global space */
+			 /* non-hair points are already in global space */
 			if(psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 				mul_m4_v3(hairmat, result.co);
 
@@ -3097,22 +3095,37 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 			ca->vel[1] = 1.0f;
 
 			/* selection coloring in edit mode */
-			if((ekey + (pind.ekey[0] - point->keys))->flag & PEK_SELECT){
-				if((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT){
-					VECCOPY(ca->col, sel_col);
-				}
-				else{
-					keytime = (t - (*pind.ekey[0]->time))/((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
-					interp_v3_v3v3(ca->col, sel_col, nosel_col, keytime);
-				}
+			if(pset->brushtype==PE_BRUSH_WEIGHT){
+				if(k==0)
+					weight_to_rgb(pind.hkey[1]->weight, ca->col, ca->col+1, ca->col+2);
+				else if(k >= steps - 1)
+					weight_to_rgb(pind.hkey[0]->weight, ca->col, ca->col+1, ca->col+2);
+				else
+					weight_to_rgb((1.0f - keytime) * pind.hkey[0]->weight + keytime * pind.hkey[1]->weight, ca->col, ca->col+1, ca->col+2);
+
+				/* at the moment this is only used for weight painting.
+				 * will need to move out of this check if its used elsewhere. */
+				pind.hkey[0] = pind.hkey[1];
+				pind.hkey[1]++;
 			}
-			else{
-				if((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT){
-					keytime = (t - (*pind.ekey[0]->time))/((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
-					interp_v3_v3v3(ca->col, nosel_col, sel_col, keytime);
+			else {
+				if((ekey + (pind.ekey[0] - point->keys))->flag & PEK_SELECT){
+					if((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT){
+						VECCOPY(ca->col, sel_col);
+					}
+					else{
+						keytime = (t - (*pind.ekey[0]->time))/((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
+						interp_v3_v3v3(ca->col, sel_col, nosel_col, keytime);
+					}
 				}
 				else{
-					VECCOPY(ca->col, nosel_col);
+					if((ekey + (pind.ekey[1] - point->keys))->flag & PEK_SELECT){
+						keytime = (t - (*pind.ekey[0]->time))/((*pind.ekey[1]->time) - (*pind.ekey[0]->time));
+						interp_v3_v3v3(ca->col, nosel_col, sel_col, keytime);
+					}
+					else{
+						VECCOPY(ca->col, nosel_col);
+					}
 				}
 			}
 
@@ -3857,7 +3870,9 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 		pind.cache = cached ? psys->pointcache : NULL;
 		pind.epoint = NULL;
 		pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
-		pind.dm = psys->hair_out_dm;
+		/* pind.dm disabled in editmode means we dont get effectors taken into
+		 * account when subdividing for instance */
+		pind.dm = psys_in_edit_mode(sim->scene, psys) ? NULL : psys->hair_out_dm;
 		init_particle_interpolation(sim->ob, psys, pa, &pind);
 		do_particle_interpolation(psys, p, pa, t, frs_sec, &pind, state);
 

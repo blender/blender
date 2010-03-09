@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -82,13 +82,16 @@ extern "C"
 #include "MEM_guardedalloc.h"
 //XXX #include "BSE_editipo.h"
 //XXX #include "BSE_editipo_types.h"
-#include "DNA_ipo_types.h"
+// #include "DNA_ipo_types.h"
 #include "BKE_global.h"
+#include "BKE_animsys.h"
 #include "BKE_library.h"
 #include "BKE_ipo.h" // eval_icu
 #include "BKE_material.h" // copy_material
 #include "BKE_mesh.h" // copy_mesh
 #include "DNA_space_types.h"
+#include "DNA_anim_types.h"
+#include "../../blender/editors/include/ED_keyframing.h"
 }
 
 /* Only for dynamic loading and merging */
@@ -208,17 +211,14 @@ Scene *KX_BlenderSceneConverter::GetBlenderSceneForName(const STR_String& name)
 	 * Find the specified scene by name, or the first
 	 * scene if nothing matches (shouldn't happen).
 	 */
-
-	for (sce= (Scene*) m_maggie->scene.first; sce; sce= (Scene*) sce->id.next)
-		if (name == (sce->id.name+2))
-			return sce;
+	if((sce= (Scene *)BLI_findstring(&m_maggie->scene, name.ReadPtr(), offsetof(ID, name) + 2)))
+		return sce;
 
 	for (vector<Main*>::iterator it=m_DynamicMaggie.begin(); !(it==m_DynamicMaggie.end()); it++) {
 		Main *main= *it;
 
-		for (sce= (Scene*) main->scene.first; sce; sce= (Scene*) sce->id.next)
-			if (name == (sce->id.name+2))
-				return sce;
+		if((sce= (Scene *)BLI_findstring(&main->scene, name.ReadPtr(), offsetof(ID, name) + 2)))
+			return sce;
 	}
 
 	return (Scene*)m_maggie->scene.first;
@@ -624,55 +624,10 @@ void KX_BlenderSceneConverter::RegisterWorldInfo(
 	m_worldinfos.push_back(pair<KX_Scene*,KX_WorldInfo*>(m_currentScene,worldinfo));
 }
 
-/*
- * When deleting an IPO curve from Python, check if the IPO is being
- * edited and if so clear the pointer to the old curve.
- */
-void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu )
-{
-#if 0 //XXX
-	if (!G.sipo)
-		return;
-
-	int i;
-	EditIpo *ei= (EditIpo *)G.sipo->editipo;
-	if (!ei) return;
-
-	for(i=0; i<G.sipo->totipo; i++, ei++) {
-                if ( ei->icu == icu ) {
-			ei->flag &= ~(IPO_SELECT | IPO_EDIT);
-			ei->icu= 0;
-			return;
-		}
-	}
-#endif
-}
-
 //quick hack
 extern "C"
 {
-	Ipo *add_ipo( char *name, int idcode );
-	//XXX char *getIpoCurveName( IpoCurve * icu );
-	//XXX struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, char *, int);
-	//XXX void testhandles_ipocurve(struct IpoCurve *icu);
-	void insert_vert_icu(struct IpoCurve *, float, float, short);
-	float eval_icu(struct IpoCurve *icu, float ipotime);
-	//void mat3_to_eul( float *eul,float tmat[][3]);
 	void mat3_to_compatible_eul( float *eul, float *oldrot,float mat[][3]);
-}
-
-IpoCurve* findIpoCurve(IpoCurve* first, const char* searchName)
-{
-	IpoCurve* icu1;
-	for( icu1 = first; icu1; icu1 = icu1->next ) 
-	{
-		/*XXX char* curveName = getIpoCurveName( icu1 );
-		if( !strcmp( curveName, searchName) )
-		{
-			return icu1;
-		}*/
-	}
-	return 0;
 }
 
 void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
@@ -698,6 +653,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 				Object* blenderObject = gameObj->GetBlenderObject();
 				if (blenderObject)
 				{
+#if 0
 					//erase existing ipo's
 					Ipo* ipo = blenderObject->ipo;//findIpoForName(blenderObject->id.name+2);
 					if (ipo)
@@ -731,11 +687,7 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo(bool clearIpo)
 						blenderObject->ipo = ipo;
 
 					}
-				
-					
-
-					
-
+#endif
 				}
 			}
 
@@ -814,8 +766,28 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
 				
 				Object* blenderObject = gameObj->GetBlenderObject();
-				if (blenderObject && blenderObject->ipo)
+
+				if(blenderObject->adt==NULL)
+					BKE_id_add_animdata(&blenderObject->id);
+
+				if (blenderObject && blenderObject->adt)
 				{
+					const MT_Point3& position = gameObj->NodeGetWorldPosition();
+					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
+					const MT_Matrix3x3& orn = gameObj->NodeGetWorldOrientation();
+
+					position.getValue(blenderObject->loc);
+
+					float tmat[3][3];
+					for (int r=0;r<3;r++)
+						for (int c=0;c<3;c++)
+							tmat[r][c] = orn[c][r];
+
+					mat3_to_compatible_eul(blenderObject->rot, blenderObject->rot, tmat);
+
+					insert_keyframe(&blenderObject->id, NULL, NULL, "location", -1, frameNumber, INSERTKEY_FAST);
+					insert_keyframe(&blenderObject->id, NULL, NULL, "rotation_euler", -1, frameNumber, INSERTKEY_FAST);
+
 #if 0
 					const MT_Point3& position = gameObj->NodeGetWorldPosition();
 					//const MT_Vector3& scale = gameObj->NodeGetWorldScaling();

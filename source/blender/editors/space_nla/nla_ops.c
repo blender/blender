@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -156,6 +156,8 @@ void nla_operatortypes(void)
 	
 	WM_operatortype_append(NLA_OT_move_up);
 	WM_operatortype_append(NLA_OT_move_down);
+	
+	WM_operatortype_append(NLA_OT_action_sync_length);
 	
 	WM_operatortype_append(NLA_OT_apply_scale);
 	WM_operatortype_append(NLA_OT_clear_scale);

@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -84,6 +84,8 @@ typedef struct SpaceType {
 	void		(*operatortypes)(void);
 	/* add default items to WM keymap */
 	void		(*keymap)(struct wmKeyConfig *);
+	/* on startup, define dropboxes for spacetype+regions */
+	void		(*dropboxes)(void);
 
 	/* return context data */
 	int			(*context)(const struct bContext *, const char*, struct bContextDataResult *);
@@ -93,7 +95,7 @@ typedef struct SpaceType {
 	
 	/* tool shelf definitions */
 	ListBase toolshelf;
-	
+		
 	/* read and write... */
 	
 	/* default keymaps to add */
@@ -142,6 +144,8 @@ typedef struct ARegionType {
 	
 	/* hardcoded constraints, smaller than these values region is not visible */
 	int			minsizex, minsizey;
+	/* when new region opens (region prefsizex/y are zero then */
+	int			prefsizex, prefsizey;
 	/* default keymaps to add */
 	int			keymapflag;
 } ARegionType;
@@ -229,6 +233,8 @@ void BKE_spacedata_copyfirst(ListBase *lb1, ListBase *lb2);
 struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);
 void	BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
 void	BKE_screen_area_free(struct ScrArea *sa);
+
+struct ARegion *BKE_area_find_region_type(struct ScrArea *sa, int type);
 
 /* screen */
 void free_screen(struct bScreen *sc); 

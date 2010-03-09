@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -33,7 +33,7 @@ struct wmKeyConfig;
 void ED_operatortypes_metaball(void);
 void ED_keymap_metaball(struct wmKeyConfig *keyconf);
 
-struct MetaElem *add_metaball_primitive(struct bContext *C, int type, int newname);
+struct MetaElem *add_metaball_primitive(struct bContext *C, float mat[4][4], int type, int newname);
 
 int mouse_mball(struct bContext *C, short mval[2], int extend);
 

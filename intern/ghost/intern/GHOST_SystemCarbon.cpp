@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -809,7 +809,7 @@ OSStatus GHOST_SystemCarbon::handleTabletEvent(EventRef event)
 		}
 	err = noErr;
 	}
-
+	return err;
 }
 
 OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
@@ -1215,3 +1215,22 @@ void GHOST_SystemCarbon::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	}
 }
 
+const GHOST_TUns8* GHOST_SystemCarbon::getSystemDir() const
+{
+	return (GHOST_TUns8*)"/Library/Application Support/Blender";
+}
+
+const GHOST_TUns8* GHOST_SystemCarbon::getUserDir() const
+{
+	static char usrPath[256] = "";
+	char* env = getenv("HOME");
+	
+	if (env) {
+		strncpy(usrPath, env, 245);
+		usrPath[245]=0;
+		strcat(usrPath, "/Library/Application Support/Blender");
+		return (GHOST_TUns8*) usrPath;
+	}
+	else
+		return NULL;
+}

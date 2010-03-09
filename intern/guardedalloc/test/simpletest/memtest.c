@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -47,6 +47,12 @@
 #include <config.h>
 #endif
 
+static void mem_error_cb(const char *errorStr)
+{
+	fprintf(stderr, "%s", errorStr);
+	fflush(stderr);
+}
+
 int main (int argc, char *argv[])
 {
 	int verbose       = 0;
@@ -75,7 +81,7 @@ int main (int argc, char *argv[])
 	/* Round one, do a normal allocation, and free the blocks again.     */
 	/* ----------------------------------------------------------------- */
 	/* flush mem lib output to stderr */
-	MEM_set_error_callback(stderr);
+	MEM_set_error_callback(mem_error_cb);
 	
 	for (i = 0; i < NUM_BLOCKS; i++) {
 		int blocksize = 10000;

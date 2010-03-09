@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -488,7 +488,7 @@ void vol_shade_one_lamp(struct ShadeInput *shi, float *co, LampRen *lar, float *
 
 	if (ELEM(lar->type, LA_SUN, LA_HEMI))
 		VECCOPY(lv, lar->vec);
-	mul_v3_fl(lv, -1.0f);
+	negate_v3(lv);
 	
 	if (shi->mat->vol.shade_type == MA_VOL_SHADE_SHADOWED) {
 		mul_v3_fl(lacol, vol_get_shadow(shi, lar, co));

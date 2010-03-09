@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this shader; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -38,6 +38,7 @@ extern "C" {
 #endif
 
 struct Image;
+struct ImageUser;
 struct MTFace;
 struct Object;
 struct Scene;
@@ -113,7 +114,7 @@ void GPU_paint_set_mipmap(int mipmap);
 void GPU_paint_update_image(struct Image *ima, int x, int y, int w, int h, int mipmap);
 void GPU_update_images_framechange(void);
 int GPU_update_image_time(struct Image *ima, double time);
-int GPU_verify_image(struct Image *ima, int tftile, int tfmode, int compare, int mipmap);
+int GPU_verify_image(struct Image *ima, struct ImageUser *iuser, int tftile, int tfmode, int compare, int mipmap);
 void GPU_free_image(struct Image *ima);
 void GPU_free_images(void);
 

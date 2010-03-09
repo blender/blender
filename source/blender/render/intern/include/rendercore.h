@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -99,7 +99,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi);
 
 extern void ray_shadow(ShadeInput *, LampRen *, float *);
 extern void ray_trace(ShadeInput *, ShadeResult *);
-extern void ray_ao(ShadeInput *, float *);
+extern void ray_ao(ShadeInput *, float *, float *);
 extern void init_jitter_plane(LampRen *lar);
 extern void init_ao_sphere(struct World *wrld);
 extern void init_render_qmcsampler(Render *re);

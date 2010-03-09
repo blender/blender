@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -518,6 +518,22 @@ static void image_panel_preview(ScrArea *sa, short cntrl)	// IMAGE_HANDLER_PREVI
 
 /* ********************* callbacks for standard image buttons *************** */
 
+static char *slot_menu()
+{
+	char *str;
+	int a, slot;
+	
+	str= MEM_callocN(RE_SLOT_MAX*32, "menu slots");
+	
+	strcpy(str, "Slot %t");
+	a= strlen(str);
+
+	for(slot=0; slot<RE_SLOT_MAX; slot++)
+		a += sprintf(str+a, "|Slot %d %%x%d", slot+1, slot);
+	
+	return str;
+}
+
 static char *layer_menu(RenderResult *rr, short *curlay)
 {
 	RenderLayer *rl;
@@ -577,14 +593,17 @@ static void set_frames_cb(bContext *C, void *ima_v, void *iuser_v)
 	
 	if(ima->anim) {
 		iuser->frames = IMB_anim_get_duration(ima->anim);
-		BKE_image_user_calc_imanr(iuser, scene->r.cfra, 0);
+		BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
 	}
 }
 
 /* 5 layer button callbacks... */
 static void image_multi_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
-	BKE_image_multilayer_index(rr_v, iuser_v); 
+	ImageUser *iuser= iuser_v;
+
+	RE_SetViewSlot(iuser->menunr);
+	BKE_image_multilayer_index(rr_v, iuser); 
 	WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
 }
 static void image_multi_inclay_cb(bContext *C, void *rr_v, void *iuser_v) 
@@ -684,34 +703,45 @@ static void image_user_change(bContext *C, void *iuser_v, void *unused)
 }
 #endif
 
-static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, ImageUser *iuser, int w)
+static void uiblock_layer_pass_buttons(uiLayout *layout, RenderResult *rr, ImageUser *iuser, int w, int render)
 {
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiBut *but;
 	RenderLayer *rl= NULL;
-	int wmenu1, wmenu2;
+	int wmenu1, wmenu2, wmenu3;
 	char *strp;
 
 	uiLayoutRow(layout, 1);
 
 	/* layer menu is 1/3 larger than pass */
-	wmenu1= (3*w)/5;
-	wmenu2= (2*w)/5;
+	wmenu1= (2*w)/5;
+	wmenu2= (3*w)/5;
+	wmenu3= (3*w)/6;
 	
 	/* menu buts */
-	strp= layer_menu(rr, &iuser->layer);
-	but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu1, 20, &iuser->layer, 0,0,0,0, "Select Layer");
-	uiButSetFunc(but, image_multi_cb, rr, iuser);
-	MEM_freeN(strp);
-	
-	rl= BLI_findlink(&rr->layers, iuser->layer - (rr->rectf?1:0)); /* fake compo layer, return NULL is meant to be */
-	strp= pass_menu(rl, &iuser->pass);
-	but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu2, 20, &iuser->pass, 0,0,0,0, "Select Pass");
-	uiButSetFunc(but, image_multi_cb, rr, iuser);
-	MEM_freeN(strp);	
+	if(render) {
+		strp= slot_menu();
+		iuser->menunr= RE_GetViewSlot();
+		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu1, 20, &iuser->menunr, 0,0,0,0, "Select Slot");
+		uiButSetFunc(but, image_multi_cb, rr, iuser);
+		MEM_freeN(strp);
+	}
+
+	if(rr) {
+		strp= layer_menu(rr, &iuser->layer);
+		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu2, 20, &iuser->layer, 0,0,0,0, "Select Layer");
+		uiButSetFunc(but, image_multi_cb, rr, iuser);
+		MEM_freeN(strp);
+		
+		rl= BLI_findlink(&rr->layers, iuser->layer - (rr->rectf?1:0)); /* fake compo layer, return NULL is meant to be */
+		strp= pass_menu(rl, &iuser->pass);
+		but= uiDefButS(block, MENU, 0, strp,					0, 0, wmenu3, 20, &iuser->pass, 0,0,0,0, "Select Pass");
+		uiButSetFunc(but, image_multi_cb, rr, iuser);
+		MEM_freeN(strp);	
+	}
 }
 
-static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr, ImageUser *iuser) 
+static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr, ImageUser *iuser, int render)
 {
 	uiBlock *block= uiLayoutGetBlock(layout);
 	uiLayout *row;
@@ -732,7 +762,7 @@ static void uiblock_layer_pass_arrow_buttons(uiLayout *layout, RenderResult *rr,
 	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_RIGHT,	0,0,18,20, NULL, 0, 0, 0, 0, "Next Layer");
 	uiButSetFunc(but, image_multi_inclay_cb, rr, iuser);
 
-	uiblock_layer_pass_buttons(row, rr, iuser, 230);
+	uiblock_layer_pass_buttons(row, rr, iuser, 230, render);
 
 	/* decrease, increase arrows */
 	but= uiDefIconBut(block, BUT, 0, ICON_TRIA_LEFT,	0,0,17,20, NULL, 0, 0, 0, 0, "Previous Pass");
@@ -841,9 +871,9 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 			}
 			else if(ima->type==IMA_TYPE_R_RESULT) {
 				/* browse layer/passes */
-				Render *re= RE_GetRender(scene->id.name);
+				Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
 				RenderResult *rr= RE_AcquireResultRead(re);
-				uiblock_layer_pass_arrow_buttons(layout, rr, iuser);
+				uiblock_layer_pass_arrow_buttons(layout, rr, iuser, 1);
 				RE_ReleaseResult(re);
 			}
 		}
@@ -870,29 +900,33 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, char *propn
 
 			/* multilayer? */
 			if(ima->type==IMA_TYPE_MULTILAYER && ima->rr) {
-				uiblock_layer_pass_arrow_buttons(layout, ima->rr, iuser);
+				uiblock_layer_pass_arrow_buttons(layout, ima->rr, iuser, 0);
 			}
 			else if(ima->source != IMA_SRC_GENERATED) {
-				ibuf= BKE_image_acquire_ibuf(ima, iuser, &lock);
-				image_info(ima, ibuf, str);
-				BKE_image_release_ibuf(ima, lock);
-				uiItemL(layout, str, 0);
+				if(compact == 0) {
+					ibuf= BKE_image_acquire_ibuf(ima, iuser, &lock);
+					image_info(ima, ibuf, str);
+					BKE_image_release_ibuf(ima, lock);
+					uiItemL(layout, str, 0);
+				}
 			}
 			
 			if(ima->source != IMA_SRC_GENERATED) {
-				uiItemS(layout);
+				if(compact == 0) { /* background image view doesnt need these */
+					uiItemS(layout);
 
-				split= uiLayoutSplit(layout, 0, 0);
+					split= uiLayoutSplit(layout, 0, 0);
 
-				col= uiLayoutColumn(split, 0);
-				uiItemR(col, NULL, 0, &imaptr, "fields", 0);
-				row= uiLayoutRow(col, 0);
-				uiItemR(row, NULL, 0, &imaptr, "field_order", UI_ITEM_R_EXPAND);
-				uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "fields"));
+					col= uiLayoutColumn(split, 0);
+					uiItemR(col, NULL, 0, &imaptr, "fields", 0);
+					row= uiLayoutRow(col, 0);
+					uiItemR(row, NULL, 0, &imaptr, "field_order", UI_ITEM_R_EXPAND);
+					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "fields"));
 
-				col= uiLayoutColumn(split, 0);
-				uiItemR(col, NULL, 0, &imaptr, "antialias", 0);
-				uiItemR(col, NULL, 0, &imaptr, "premultiply", 0);
+					col= uiLayoutColumn(split, 0);
+					uiItemR(col, NULL, 0, &imaptr, "antialias", 0);
+					uiItemR(col, NULL, 0, &imaptr, "premultiply", 0);
+				}
 			}
 
 			if(ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
@@ -946,10 +980,7 @@ void uiTemplateImageLayers(uiLayout *layout, bContext *C, Image *ima, ImageUser 
 	/* render layers and passes */
 	if(ima && iuser) {
 		rr= BKE_image_acquire_renderresult(scene, ima);
-
-		if(rr)
-			uiblock_layer_pass_buttons(layout, rr, iuser, 160);
-
+		uiblock_layer_pass_buttons(layout, rr, iuser, 160, ima->type==IMA_TYPE_R_RESULT);
 		BKE_image_release_renderresult(scene, ima);
 	}
 }
@@ -1021,5 +1052,26 @@ void IMAGE_OT_properties(wmOperatorType *ot)
 	ot->flag= 0;
 }
 
+static int image_scopes(bContext *C, wmOperator *op)
+{
+	ScrArea *sa= CTX_wm_area(C);
+	ARegion *ar= image_has_scope_region(sa);
+	
+	if(ar)
+		ED_region_toggle_hidden(C, ar);
+	
+	return OPERATOR_FINISHED;
+}
 
+void IMAGE_OT_scopes(wmOperatorType *ot)
+{
+	ot->name= "Scopes";
+	ot->idname= "IMAGE_OT_scopes";
+	
+	ot->exec= image_scopes;
+	ot->poll= ED_operator_image_active;
+	
+	/* flags */
+	ot->flag= 0;
+}
 

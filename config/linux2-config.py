@@ -110,12 +110,9 @@ WITH_BF_BINRELOC = True
 
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
-BF_FFMPEG = '#extern/ffmpeg'
-BF_FFMPEG_LIB = ''
-# Uncomment the following two lines to use system's ffmpeg
-# BF_FFMPEG = '/usr'
-# BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice'
-BF_FFMPEG_INC = '${BF_FFMPEG}'
+BF_FFMPEG = '/usr'
+BF_FFMPEG_LIB = 'avformat avcodec swscale avutil avdevice'
+BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
 
 # enable ogg, vorbis and theora in ffmpeg
@@ -156,7 +153,8 @@ BF_COLLADA = '#source/blender/collada'
 BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
 BF_OPENCOLLADA = '/usr'
-BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre Buffer ftoa'
+BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}'
+BF_OPENCOLLADA_LIB = 'OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = '${BF_OPENCOLLADA}/lib'
 BF_PCRE = ''
 BF_PCRE_LIB = 'pcre'

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -1166,7 +1166,7 @@ static int meshdeform_intersect(MeshDeformBind *mdb, Isect *isec)
 	mface= mdb->cagedm->getTessFaceArray(mdb->cagedm);
 	totface= mdb->cagedm->getNumTessFaces(mdb->cagedm);
 
-	VECADDFAC( end, isec->start, isec->vec, isec->labda );
+	add_v3_v3v3(end, isec->start, isec->vec);
 
 	for(f=0; f<totface; f++, mface++) {
 		copy_v3_v3(face[0], mdb->cagecos[mface->v1]);
@@ -1670,7 +1670,6 @@ static void meshdeform_matrix_solve(MeshDeformBind *mdb)
 				for(b=0; b<mdb->totvert; b++) {
 					if(mdb->inside[b]) {
 						copy_v3_v3(vec, mdb->vertexcos[b]);
-						mul_m4_v3(mdb->cagemat, vec);
 						gridvec[0]= (vec[0] - mdb->min[0] - mdb->halfwidth[0])/mdb->width[0];
 						gridvec[1]= (vec[1] - mdb->min[1] - mdb->halfwidth[1])/mdb->width[1];
 						gridvec[2]= (vec[2] - mdb->min[2] - mdb->halfwidth[2])/mdb->width[2];
@@ -1781,7 +1780,6 @@ static void harmonic_coordinates_bind(Scene *scene, MeshDeformModifierData *mmd,
 	totinside= 0;
 	for(a=0; a<mdb->totvert; a++) {
 		copy_v3_v3(vec, mdb->vertexcos[a]);
-		mul_m4_v3(mdb->cagemat, vec);
 		mdb->inside[a]= meshdeform_inside_cage(mdb, vec);
 		if(mdb->inside[a])
 			totinside++;

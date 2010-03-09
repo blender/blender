@@ -30,8 +30,6 @@ elif cmd_res[0]=='9':
 elif cmd_res[0]=='10':
 	MAC_CUR_VER='10.6'
 
-BF_PYTHON_VERSION = '3.1'
-
 if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'ppc64':
 	USE_QTKIT=True # Carbon quicktime is not available for 64bit
 
@@ -73,55 +71,29 @@ LIBDIR = '${LCGDIR}'
 ###################          Dependency settings           ##################
 #############################################################################
 
+#Defaults openMP to true if compiler (currently only gcc 4.2) handles it
+if CC == 'gcc-4.2':
+    WITH_BF_OPENMP = True  # multithreading for fluids, cloth and smoke
+else:
+    WITH_BF_OPENMP = False
+
 # enable ffmpeg  support
 WITH_BF_FFMPEG = True  # -DWITH_FFMPEG
-FFMPEG_PRECOMPILED = True
-if FFMPEG_PRECOMPILED:
-	# use precompiled ffmpeg in /lib
-	BF_FFMPEG = LIBDIR + '/ffmpeg'
-	BF_FFMPEG_INC = "#extern/ffmpeg"
-	BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-	BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore'
-else:
-	# use ffmpeg in extern
-	BF_FFMPEG = "#extern/ffmpeg"
-	BF_FFMPEG_INC = '${BF_FFMPEG}'
-	if USE_SDK==True:
-		BF_FFMPEG_EXTRA = '-isysroot '+MACOSX_SDK+' -mmacosx-version-min='+MAC_MIN_VERS
-	BF_XVIDCORE_CONFIG = '--disable-assembly --disable-mmx'	# currently causes errors, even with yasm installed
-	BF_X264_CONFIG = '--disable-pthread --disable-asm'
+BF_FFMPEG = LIBDIR + '/ffmpeg'
+BF_FFMPEG_INC = "${BF_FFMPEG}/include"
+BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
+BF_FFMPEG_LIB = 'avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg bz2'
+#bz2 is a standard osx dynlib
 
-if BF_PYTHON_VERSION=='3.1':
-	# python 3.1 uses precompiled libraries in bf svn /lib by default
-
-	BF_PYTHON = LIBDIR + '/python'
-	BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
-	# BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
-	BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
-	BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
-	# BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
-else:
-	# python 2.5 etc. uses built-in framework
-
-	# python.org libs install in /library we want to use that for 2.5 
-	#
-	# if you want py2.5 on leopard without installing
-	# change value to BF_PYTHON = '/Library/Frameworks/Python.framework/Versions/'
-	# BEWARE: in that case it will work only on leopard
-
-	BF_PYTHON = '/System/Library/Frameworks/Python.framework/Versions/'
-
-	BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}'
-	BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
-	BF_PYTHON_LIB = ''
-	BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config'
-	BF_PYTHON_LINKFLAGS = ['-u','_PyMac_Error','-framework','System','-framework','Python']
-	if MAC_CUR_VER=='10.3' or  MAC_CUR_VER=='10.4':
-		BF_PYTHON_LINKFLAGS = ['-u', '__dummy']+BF_PYTHON_LINKFLAGS
-
+# python 3.1 uses precompiled libraries in bf svn /lib by default
+BF_PYTHON_VERSION = '3.1'
+BF_PYTHON = LIBDIR + '/python'
+BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
+# BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
+BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}'
+BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib/python${BF_PYTHON_VERSION}'
+# BF_PYTHON_LINKFLAGS = ['-u', '_PyMac_Error', '-framework', 'System']
 	
-WITH_BF_OPENMP = '0'  # multithreading for fluids, cloth and smoke ( only works with ICC atm )
-
 WITH_BF_OPENAL = True
 #different lib must be used  following version of gcc
 # for gcc 3.3
@@ -264,7 +236,7 @@ BF_COLLADA_INC = '${BF_COLLADA}'
 BF_COLLADA_LIB = 'bf_collada'
 BF_OPENCOLLADA = LIBDIR + '/opencollada'
 BF_OPENCOLLADA_INC = '${BF_OPENCOLLADA}/include'
-BF_OPENCOLLADA_LIB = 'OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2'
+BF_OPENCOLLADA_LIB = 'OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2 buffer ftoa'
 BF_OPENCOLLADA_LIBPATH = LIBDIR + '/opencollada'
 BF_PCRE = LIBDIR + '/opencollada'
 BF_PCRE_LIB = 'pcre'
@@ -274,7 +246,10 @@ BF_PCRE_LIBPATH = '${BF_PCRE}/lib'
 #BF_EXPAT_LIBPATH = '/usr/lib'
 
 #Ray trace optimization
-WITH_BF_RAYOPTIMIZATION = False
+if MACOSX_ARCHITECTURE == 'x86_64' or MACOSX_ARCHITECTURE == 'i386':
+    WITH_BF_RAYOPTIMIZATION = True
+else:
+    WITH_BF_RAYOPTIMIZATION = False
 if MACOSX_ARCHITECTURE == 'i386':
     BF_RAYOPTIMIZATION_SSE_FLAGS = ['-msse']
 elif MACOSX_ARCHITECTURE == 'x86_64':
@@ -321,13 +296,14 @@ if MAC_MIN_VERS == '10.3':
 	
 if USE_SDK==True:
 	SDK_FLAGS=['-isysroot', MACOSX_SDK,'-mmacosx-version-min='+MAC_MIN_VERS,'-arch',MACOSX_ARCHITECTURE]	
-	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-syslibroot '+MACOSX_SDK,'-arch',MACOSX_ARCHITECTURE]+PLATFORM_LINKFLAGS
+	PLATFORM_LINKFLAGS = ['-mmacosx-version-min='+MAC_MIN_VERS,'-Wl','-isysroot',MACOSX_SDK,'-arch',MACOSX_ARCHITECTURE]+PLATFORM_LINKFLAGS
 	CCFLAGS=SDK_FLAGS+CCFLAGS
 	CXXFLAGS=SDK_FLAGS+CXXFLAGS
-	
+
+#Intel Macs are CoreDuo and Up	
 if MACOSX_ARCHITECTURE == 'i386' or MACOSX_ARCHITECTURE == 'x86_64':
-	REL_CFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3']
-	REL_CCFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3']
+	REL_CFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
+	REL_CCFLAGS = ['-O2','-ftree-vectorize','-msse','-msse2','-msse3','-mfpmath=sse']
 else:
 	CFLAGS = CFLAGS+['-fno-strict-aliasing']
 	CCFLAGS =  CCFLAGS+['-fno-strict-aliasing']
@@ -335,20 +311,14 @@ else:
 	REL_CFLAGS = ['-O2']
 	REL_CCFLAGS = ['-O2']
 
-# add -mssse3 for intel 64bit archs
+# Intel 64bit Macs are Core2Duo and up
 if MACOSX_ARCHITECTURE == 'x86_64':
-	REL_CFLAGS = REL_CFLAGS+['-mssse3']
-	REL_CCFLAGS = REL_CCFLAGS+['-mssse3']
-
-##BF_DEPEND = True
-##
-##AR = ar
-##ARFLAGS = ruv
-##ARFLAGSQUIET = ru
-##
-#C_WARN = ['-Wdeclaration-after-statement']
+	REL_CFLAGS = REL_CFLAGS+['-march=core2','-mssse3','-with-tune=core2','-enable-threads']
+	REL_CCFLAGS = REL_CCFLAGS+['-march=core2','-mssse3','-with-tune=core2','-enable-threads']
 
 CC_WARN = ['-Wall']
+C_WARN = ['-Wno-char-subscripts', '-Wpointer-arith', '-Wcast-align', '-Wdeclaration-after-statement', '-Wno-unknown-pragmas']
+CXX_WARN = ['-Wno-invalid-offsetof', '-Wno-sign-compare']
 
 ##FIX_STUBS_WARNINGS = -Wno-unused
 

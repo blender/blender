@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -42,6 +42,9 @@ void OBJECT_OT_material_slot_copy(struct wmOperatorType *ot);
 void MATERIAL_OT_new(struct wmOperatorType *ot);
 void TEXTURE_OT_new(struct wmOperatorType *ot);
 void WORLD_OT_new(struct wmOperatorType *ot);
+
+void MATERIAL_OT_copy(struct wmOperatorType *ot);
+void MATERIAL_OT_paste(struct wmOperatorType *ot);
 
 void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);

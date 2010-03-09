@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -34,8 +34,11 @@ struct ChannelDriver;
 struct DriverVar;
 struct DriverTarget;
 
+struct bAction;
 struct BezTriple;
 struct StructRNA;
+struct PointerRNA;
+struct PropertyRNA;
 
 #include "DNA_curve_types.h"
 
@@ -190,6 +193,9 @@ struct FCurve *id_data_find_fcurve(ID *id, void *data, struct StructRNA *type, c
  *	e.g.  numMatches = list_find_data_fcurves(matches, &act->curves, "pose.bones[", "MyFancyBone");
  */
 int list_find_data_fcurves(ListBase *dst, ListBase *src, const char *dataPrefix, const char *dataName);
+
+/* find an f-curve based on an rna property */
+struct FCurve *rna_get_fcurve(struct PointerRNA *ptr, struct PropertyRNA *prop, int rnaindex, struct bAction **action, int *driven);
 
 /* Binary search algorithm for finding where to 'insert' BezTriple with given frame number.
  * Returns the index to insert at (data already at that index will be offset if replace is 0)

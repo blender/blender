@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -113,14 +113,18 @@ def clientSendJob(conn, scene, anim = False):
     # LIBRARIES
     ###########################
     for lib in bpy.data.libraries:
-        job.addFile(bpy.utils.expandpath(lib.filename))
+        file_path = bpy.utils.expandpath(lib.filename)
+        if os.path.exists(file_path):
+            job.addFile(file_path)
 
     ###########################
     # IMAGES
     ###########################
     for image in bpy.data.images:
         if image.source == "FILE" and not image.packed_file:
-            job.addFile(bpy.utils.expandpath(image.filename))
+            file_path = bpy.utils.expandpath(image.filename)
+            if os.path.exists(file_path):
+                job.addFile(file_path)
 
     ###########################
     # FLUID + POINT CACHE
@@ -201,7 +205,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
 
 
     def render_slave(self, scene):
-        slave.render_slave(self, scene.network_render, scene.render_data.threads)
+        slave.render_slave(self, scene.network_render, scene.render.threads)
 
     def render_client(self, scene):
         netsettings = scene.network_render
@@ -250,7 +254,7 @@ class NetworkRenderEngine(bpy.types.RenderEngine):
                 conn.close()
                 return
 
-            r = scene.render_data
+            r = scene.render
             x= int(r.resolution_x*r.resolution_percentage*0.01)
             y= int(r.resolution_y*r.resolution_percentage*0.01)
 

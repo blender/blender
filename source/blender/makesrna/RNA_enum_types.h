@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Blender Foundation (2008).
  *
@@ -33,6 +33,7 @@ extern EnumPropertyItem id_type_items[];
 
 /* use in cases where only dynamic types are used */
 extern EnumPropertyItem DummyRNA_NULL_items[];
+extern EnumPropertyItem DummyRNA_DEFAULT_items[];
 
 extern EnumPropertyItem object_mode_items[];
 
@@ -64,6 +65,8 @@ extern EnumPropertyItem operator_return_items[];
 
 extern EnumPropertyItem brush_sculpt_tool_items[];
 
+extern EnumPropertyItem texture_type_items[];
+
 extern EnumPropertyItem unpack_method_items[];
 
 extern EnumPropertyItem object_type_items[];
@@ -72,7 +75,12 @@ extern EnumPropertyItem space_type_items[];
 
 extern EnumPropertyItem keymap_propvalue_items[];
 
+extern EnumPropertyItem operator_context_items[];
+
 extern EnumPropertyItem wm_report_items[];
+
+extern EnumPropertyItem property_type_items[];
+extern EnumPropertyItem property_unit_items[];
 
 struct bContext;
 struct PointerRNA;
@@ -80,6 +88,7 @@ EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct Poin
 
 /* Generic functions, return an enum from library data, index is the position
  * in the linked list can add more for different types as needed */
+EnumPropertyItem *RNA_action_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 EnumPropertyItem *RNA_group_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 EnumPropertyItem *RNA_scene_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 

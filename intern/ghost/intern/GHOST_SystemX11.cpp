@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -1455,5 +1455,24 @@ void GHOST_SystemX11::putClipboard(GHOST_TInt8 *buffer, bool selection) const
 	
 		if (owner != m_window)
 			fprintf(stderr, "failed to own primary\n");
+	}
+}
+
+const GHOST_TUns8* GHOST_SystemX11::getSystemDir() const
+{
+	return (GHOST_TUns8*)"/usr/share/blender";
+}
+
+const GHOST_TUns8* GHOST_SystemX11::getUserDir() const
+{
+	static char path[256];
+	char* env = getenv("HOME");
+	if(env) {
+		strncpy(path, env, 245);
+		path[245]=0;
+		strcat(path, "/.blender/");
+		return (GHOST_TUns8*) path;
+	} else {
+		return NULL;
 	}
 }

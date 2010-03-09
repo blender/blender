@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -719,7 +719,7 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 	for(pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
 		if(bone->layer & arm->layer) {
-			if(bone->flag & BONE_SELECTED)
+			if((bone->flag & BONE_SELECTED) && !(ob->proxy && pchan->bone->layer & arm->layer_protected))
 				bone->flag |= BONE_TRANSFORM;
 			else
 				bone->flag &= ~BONE_TRANSFORM;
@@ -1121,6 +1121,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td->loc = NULL;
 					td->ext = NULL;
+					td->ob = t->obedit;
 
 					td++;
 				}
@@ -1136,6 +1137,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td->loc = NULL;
 					td->ext = NULL;
+					td->ob = t->obedit;
 
 					td++;
 				}
@@ -1170,6 +1172,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					normalize_m3(td->axismtx);
 
 					td->ext = NULL;
+					td->ob = t->obedit;
 
 					td++;
 				}
@@ -1186,6 +1189,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 					td->flag= TD_SELECTED;
 
 					td->ext = NULL;
+					td->ob = t->obedit;
 
 					td++;
 				}
@@ -1214,6 +1218,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td->ext = NULL;
 					td->val = NULL;
+					td->ob = t->obedit;
 
 					td++;
 				}
@@ -1236,6 +1241,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 
 					td->ext = NULL;
 					td->val = NULL;
+					td->ob = t->obedit;
 
 					td++;
 				}
@@ -1804,27 +1810,62 @@ void flushTransParticles(TransInfo *t)
 /* ********************* mesh ****************** */
 
 /* proportional distance based on connectivity  */
-#define E_VEC(a)	(vectors + (3 * (a)->tmp.l))
-#define E_NEAR(a)	(nears[((a)->tmp.l)])
 #define THRESHOLD	0.0001f
-static void editmesh_set_connectivity_distance(EditMesh *em, int total, float *vectors, EditVert **nears)
+
+static int connectivity_edge(float mtx[][3], EditVert *v1, EditVert *v2)
+{
+	float edge_vec[3];
+	float edge_len;
+	int done = 0;
+
+	sub_v3_v3v3(edge_vec, v1->co, v2->co);
+	mul_m3_v3(mtx, edge_vec);
+
+	edge_len = len_v3(edge_vec);
+
+	if (v1->f2 + v2->f2 == 4)
+		return 0;
+
+	if (v1->f2) {
+		if (v2->f2) {
+			if (v2->tmp.fp + edge_len + THRESHOLD < v1->tmp.fp) {
+				v1->tmp.fp = v2->tmp.fp + edge_len;
+				done = 1;
+			} else if (v1->tmp.fp + edge_len + THRESHOLD < v2->tmp.fp) {
+				v2->tmp.fp = v1->tmp.fp + edge_len;
+				done = 1;
+			}
+		}
+		else {
+			v2->f2 = 1;
+			v2->tmp.fp = v1->tmp.fp + edge_len;
+			done = 1;
+		}
+	}
+	else if (v2->f2) {
+		v1->f2 = 1;
+		v1->tmp.fp = v2->tmp.fp + edge_len;
+		done = 1;
+	}
+
+	return done;
+}
+
+static void editmesh_set_connectivity_distance(EditMesh *em, float mtx[][3])
 {
 	EditVert *eve;
 	EditEdge *eed;
-	int i= 0, done= 1;
+	EditFace *efa;
+	int done= 1;
 
 	/* f2 flag is used for 'selection' */
 	/* tmp.l is offset on scratch array   */
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->h==0) {
-			eve->tmp.l = i++;
+			eve->tmp.fp = 0;
 
 			if(eve->f & SELECT) {
 				eve->f2= 2;
-				E_NEAR(eve) = eve;
-				E_VEC(eve)[0] = 0.0f;
-				E_VEC(eve)[1] = 0.0f;
-				E_VEC(eve)[2] = 0.0f;
 			}
 			else {
 				eve->f2 = 0;
@@ -1844,75 +1885,15 @@ static void editmesh_set_connectivity_distance(EditMesh *em, int total, float *v
 
 		for(eed= em->edges.first; eed; eed= eed->next) {
 			if(eed->h==0) {
-				EditVert *v1= eed->v1, *v2= eed->v2;
-				float *vec2 = E_VEC(v2);
-				float *vec1 = E_VEC(v1);
+				done |= connectivity_edge(mtx, eed->v1, eed->v2);
+			}
+		}
 
-				if (v1->f2 + v2->f2 == 4)
-					continue;
-
-				if (v1->f2) {
-					if (v2->f2) {
-						float nvec[3];
-						float len1 = len_v3(vec1);
-						float len2 = len_v3(vec2);
-						float lenn;
-						/* for v2 if not selected */
-						if (v2->f2 != 2) {
-							sub_v3_v3v3(nvec, v2->co, E_NEAR(v1)->co);
-							lenn = len_v3(nvec);
-							/* 1 < n < 2 */
-							if (lenn - len1 > THRESHOLD && len2 - lenn > THRESHOLD) {
-								VECCOPY(vec2, nvec);
-								E_NEAR(v2) = E_NEAR(v1);
-								done = 1;
-							}
-							/* n < 1 < 2 */
-							else if (len2 - len1 > THRESHOLD && len1 - lenn > THRESHOLD) {
-								VECCOPY(vec2, vec1);
-								E_NEAR(v2) = E_NEAR(v1);
-								done = 1;
-							}
-						}
-						/* for v1 if not selected */
-						if (v1->f2 != 2) {
-							sub_v3_v3v3(nvec, v1->co, E_NEAR(v2)->co);
-							lenn = len_v3(nvec);
-							/* 2 < n < 1 */
-							if (lenn - len2 > THRESHOLD && len1 - lenn > THRESHOLD) {
-								VECCOPY(vec1, nvec);
-								E_NEAR(v1) = E_NEAR(v2);
-								done = 1;
-							}
-							/* n < 2 < 1 */
-							else if (len1 - len2 > THRESHOLD && len2 - lenn > THRESHOLD) {
-								VECCOPY(vec1, vec2);
-								E_NEAR(v1) = E_NEAR(v2);
-								done = 1;
-							}
-						}
-					}
-					else {
-						v2->f2 = 1;
-						sub_v3_v3v3(vec2, v2->co, E_NEAR(v1)->co);
-						/* 2 < 1 */
-						if (len_v3(vec1) - len_v3(vec2) > THRESHOLD) {
-							VECCOPY(vec2, vec1);
-						}
-						E_NEAR(v2) = E_NEAR(v1);
-						done = 1;
-					}
-				}
-				else if (v2->f2) {
-					v1->f2 = 1;
-					sub_v3_v3v3(vec1, v1->co, E_NEAR(v2)->co);
-					/* 2 < 1 */
-					if (len_v3(vec2) - len_v3(vec1) > THRESHOLD) {
-						VECCOPY(vec1, vec2);
-					}
-					E_NEAR(v1) = E_NEAR(v2);
-					done = 1;
-				}
+		/* do internal edges for quads */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->v4) {
+				done |= connectivity_edge(mtx, efa->v1, efa->v3);
+				done |= connectivity_edge(mtx, efa->v2, efa->v4);
 			}
 		}
 	}
@@ -2175,20 +2156,27 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 	BMVert **nears = NULL;
 	BMIter iter;
 	BMVert *eve_act = NULL;
-	float *vectors = NULL, *mappedcos = NULL, *quats= NULL;
+	float *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
+	float *vectors=NULL;
 	int count=0, countsel=0, a, totleft, *selstate = NULL;
 	BLI_array_declare(selstate);
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror = 0;
+	short selectmode = ts->selectmode;
 
 	if (t->flag & T_MIRROR)
 	{
 		mirror = 1;
 	}
 
+	/* edge slide forces edge select */
+	if (t->mode == TFM_EDGE_SLIDE) {
+		selectmode = SCE_SELECT_EDGE;
+	}
+
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
-	if(ts->selectmode & SCE_SELECT_VERTEX) {
+	if(selectmode & SCE_SELECT_VERTEX) {
 		BM_ITER(eve, &iter, bm, BM_VERTS_OF_MESH, NULL) {
 			if(!BM_TestHFlag(eve, BM_HIDDEN) && BM_TestHFlag(eve, BM_SELECT))
 				BMINDEX_SET(eve, SELECT);
@@ -2196,7 +2184,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				BMINDEX_SET(eve, 0);
 		}
 	}
-	else if(ts->selectmode & SCE_SELECT_EDGE) {
+	else if(selectmode & SCE_SELECT_EDGE) {
 		BMEdge *eed;
 
 		eve = BMIter_New(&iter, bm, BM_VERTS_OF_MESH, NULL);
@@ -2263,6 +2251,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		nears = (BMVert**)MEM_mallocN(t->total * sizeof(BMVert*), "scratch nears");
 	}
 	else t->total = countsel;
+
 	tob= t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
 
 	copy_m3_m4(mtx, t->obedit->obmat);
@@ -2272,11 +2261,12 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 	/* detect CrazySpace [tm] */
 	if(propmode==0) {
-		if(modifiers_getCageIndex(t->obedit, NULL, 1)>=0) {
+		if(modifiers_getCageIndex(t->scene, t->obedit, NULL, 1)>=0) {
 			if(modifiers_isCorrectableDeformed(t->scene, t->obedit)) {
 				/* check if we can use deform matrices for modifier from the
 				   start up to stack, they are more accurate than quats */
-				totleft= editbmesh_get_first_deform_matrices(t->obedit, em, &defmats, &defcos);
+
+				totleft= editbmesh_get_first_deform_matrices(t->scene, t->obedit, em, &defmats, &defcos);
 
 				/* if we still have more modifiers, also do crazyspace
 				   correction with quats, relative to the coordinates after
@@ -2330,10 +2320,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 					this has to do with edge connectivity
 					PEP mode, I think. -joeedh
 					if (eve->f2) {
-						float vec[3];
-						VECCOPY(vec, E_VEC(eve));
-						mul_m3_v3(mtx, vec);
-						tob->dist= len_v3(vec);
+						tob->dist= eve->tmp.fp;
 					}
 					else {*/
 						tob->flag |= TD_NOTCONNECTED;
@@ -2373,8 +2360,10 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 				//BMESH_TODO
 				//if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
-				//	EditVert *vmir= editmesh_get_x_mirror_vert(t->obedit, em, tob->iloc);	/* initializes octree on first call */
-				//	if(vmir != eve) tob->extra = vmir;
+				//	BMVert *vmir= editmesh_get_x_mirror_vert(t->obedit, em, eve, tob->iloc, a);	/* initializes octree on first call */
+				//	if(vmir != eve) {
+				//		tob->extra = vmir;
+				//	}
 				//}
 				tob++;
 			}
@@ -2393,10 +2382,6 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		}
 	}
 	
-	if (propmode) {
-		MEM_freeN(vectors);
-		MEM_freeN(nears);
-	}
 
 	/* crazy space free */
 	if(quats)
@@ -2477,10 +2462,10 @@ void flushTransSeq(TransInfo *t)
 				/* Calculate this strip and all nested strips
 				 * children are ALWAYS transformed first
 				 * so we dont need to do this in another loop. */
-				calc_sequence(seq);
+				calc_sequence(t->scene, seq);
 			}
 			else {
-				calc_sequence_disp(seq);
+				calc_sequence_disp(t->scene, seq);
 			}
 		}
 		seq_prev= seq;
@@ -2512,7 +2497,7 @@ void flushTransSeq(TransInfo *t)
 
 		while(seq) {
 			if (seq->type == SEQ_META && seq->flag & SELECT)
-				calc_sequence(seq);
+				calc_sequence(t->scene, seq);
 			seq= seq->next;
 		}
 	}
@@ -3012,7 +2997,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 
 	/* allocate memory for the cache */
 	// TODO: investigate using BezTriple columns instead?
-	if (fcu->totvert == 0)
+	if (fcu->totvert == 0 || fcu->bezt==NULL)
 		return;
 	selcache= MEM_callocN(sizeof(float)*fcu->totvert, "FCurveSelFrameNums");
 	len= 0;
@@ -3552,7 +3537,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		AnimData *adt= ANIM_nla_mapping_get(&ac, ale);
 		FCurve *fcu= (FCurve *)ale->key_data;
 		short intvals= (fcu->flag & FCURVE_INT_VALUES);
-		
+
 		/* convert current-frame to action-time (slightly less accurate, espcially under
 		 * higher scaling ratios, but is faster than converting all points)
 		 */
@@ -3564,6 +3549,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		/* F-Curve may not have any keyframes */
 		if (fcu->bezt == NULL)
 			continue;
+		
+		ANIM_unit_mapping_apply_fcurve(ac.scene, ale->id, ale->key_data, ANIM_UNITCONV_ONLYSEL|ANIM_UNITCONV_SELVERTS);
 		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		for (i=0, bezt= fcu->bezt; i < fcu->totvert; i++, bezt++) {
@@ -3819,7 +3806,7 @@ void flushTransGraphData(TransInfo *t)
 	Scene *scene= t->scene;
 	double secf= FPS;
 	int a;
-	
+
 	/* flush to 2d vector from internally used 3d vector */
 	for (a=0, td= t->data, td2d=t->data2d; a<t->total; a++, td++, td2d++) {
 		AnimData *adt= (AnimData *)td->extra; /* pointers to relevant AnimData blocks are stored in the td->extra pointers */
@@ -4211,9 +4198,9 @@ static void freeSeqData(TransInfo *t)
 			for(seq= seqbasep->first; seq; seq= seq->next) {
 				/* We might want to build a list of effects that need to be updated during transform */
 				if(seq->type & SEQ_EFFECT) {
-					if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(seq);
-					else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
-					else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
+					if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(t->scene, seq);
+					else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(t->scene, seq);
+					else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(t->scene, seq);
 				}
 			}
 
@@ -4224,7 +4211,7 @@ static void freeSeqData(TransInfo *t)
 			for(a=0; a<t->total; a++, td++) {
 				seq= ((TransDataSeq *)td->extra)->seq;
 				if ((seq != seq_prev) && (seq->depth==0)) {
-					calc_sequence_disp(seq);
+					calc_sequence_disp(t->scene, seq);
 				}
 				seq_prev= seq;
 			}
@@ -4300,7 +4287,6 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *track;
-	ListBase fakecons = {NULL, NULL};
 	float obmtx[3][3];
 	short constinv;
 	short skip_invert = 0;
@@ -4326,18 +4312,13 @@ static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *
 		track= ob->track;
 		ob->track= NULL;
 		
-		if (constinv == 0) {
-			fakecons.first = ob->constraints.first;
-			fakecons.last = ob->constraints.last;
-			ob->constraints.first = ob->constraints.last = NULL;
-		}
+		if (constinv == 0)
+			ob->transflag |= OB_NO_CONSTRAINTS; /* where_is_object_time checks this */
 		
 		where_is_object(t->scene, ob);
 		
-		if (constinv == 0) {
-			ob->constraints.first = fakecons.first;
-			ob->constraints.last = fakecons.last;
-		}
+		if (constinv == 0)
+			ob->transflag &= ~OB_NO_CONSTRAINTS;
 		
 		ob->track= track;
 	}
@@ -4676,7 +4657,6 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 {
 	ID *id= &ob->id;
 	AnimData *adt= ob->adt;
-	bArmature *arm= ob->data;
 	bAction	*act= (adt) ? adt->action : NULL;
 	bPose	*pose= ob->pose;
 	bPoseChannel *pchan;
@@ -4718,8 +4698,20 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 				/* only insert into available channels? */
 				else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 					if (act) {
-						for (fcu= act->curves.first; fcu; fcu= fcu->next)
-							insert_keyframe(id, act, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+						for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+							/* only insert keyframes for this F-Curve if it affects the current bone */
+							if (strstr(fcu->rna_path, "bones")) {
+								char *pchanName= BLI_getQuotedStr(fcu->rna_path, "bones[");
+								
+								/* only if bone name matches too... 
+								 * NOTE: this will do constraints too, but those are ok to do here too?
+								 */
+								if (pchanName && strcmp(pchanName, pchan->name) == 0) 
+									insert_keyframe(id, act, ((fcu->grp)?(fcu->grp->name):(NULL)), fcu->rna_path, fcu->array_index, cfra, flag);
+									
+								if (pchanName) MEM_freeN(pchanName);
+							}
+						}
 					}
 				}
 				/* only insert keyframe if needed? */
@@ -4784,8 +4776,8 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 		/* do the bone paths 
 		 * NOTE: only do this when there is context info
 		 */
-		if (C && (arm->pathflag & ARM_PATH_ACFRA)) {
-			//pose_clear_paths(ob); // XXX for now, don't need to clear
+		if (C && (ob->pose->avs.path_type == MOTIONPATH_TYPE_ACFRA)) {
+			//ED_pose_clear_paths(C, ob); // XXX for now, don't need to clear
 			ED_pose_recalculate_paths(C, scene, ob);
 		}
 	}
@@ -4811,7 +4803,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	Object *ob;
 //	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
-	short duplicate= (t->undostr && strstr(t->undostr, "Duplicate")) ? 1 : 0;
+	short duplicate= (t->undostr && strstr(t->undostr, "Duplicate")) ? 1 : 0; /* see bugreport #21229 for reasons for this data */
 	
 	/* early out when nothing happened */
 	if (t->total == 0 || t->mode == TFM_DUMMY)
@@ -5039,7 +5031,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		;
 	}
 	else { /* Objects */
-		int i;
+		int i, recalcObPaths=0;
 
 		for (i = 0; i < t->total; i++) {
 			TransData *td = t->data + i;
@@ -5072,8 +5064,20 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				DAG_id_flush_update(&ob->id, OB_RECALC_OB);
 
 			/* Set autokey if necessary */
-			if (!cancelled)
+			if (!cancelled) {
 				autokeyframe_ob_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode);
+				
+				if (ob->avs.path_type == MOTIONPATH_TYPE_ACFRA)
+					recalcObPaths= 1;
+			}
+		}
+		
+		/* recalculate motion paths for objects (if necessary) 
+		 * NOTE: only do this when there is context info
+		 */
+		if (C && recalcObPaths) {
+			//ED_objects_clear_paths(C); // XXX for now, don't need to clear
+			ED_objects_recalculate_paths(C, t->scene);
 		}
 	}
 

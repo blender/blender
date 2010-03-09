@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -102,6 +102,9 @@ World *add_world(char *name)
 	wrld->aodist= 10.0f;
 	wrld->aosamp= 5;
 	wrld->aoenergy= 1.0f;
+	wrld->ao_env_energy= 1.0f;
+	wrld->ao_indirect_energy= 1.0f;
+	wrld->ao_indirect_bounces= 1;
 	wrld->aobias= 0.05f;
 	wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;	
 	wrld->ao_approx_error= 0.25f;

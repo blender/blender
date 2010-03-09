@@ -19,7 +19,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -59,12 +59,13 @@ void BLI_make_existing_file(char *name);
 void BLI_split_dirfile(char *string, char *dir, char *file);
 void BLI_split_dirfile_basic(const char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
+int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char *base_dir, const char *src_dir, const char *dest_dir);
 void BLI_getlastdir(const char* dir, char *last, int maxlen);
 int BLI_testextensie(const char *str, const char *ext);
 void BLI_uniquename(struct ListBase *list, void *vlink, const char defname[], char delim, short name_offs, short len);
 void BLI_newname(char * name, int add);
-int BLI_stringdec(char *string, char *kop, char *start, unsigned short *numlen);
-void BLI_stringenc(char *string, char *kop, char *start, unsigned short numlen, int pic);
+int BLI_stringdec(char *string, char *head, char *start, unsigned short *numlen);
+void BLI_stringenc(char *string, char *head, char *start, unsigned short numlen, int pic);
 void BLI_splitdirstring(char *di,char *fi);
 
 /* make sure path separators conform to system one */
@@ -97,7 +98,8 @@ int BLI_has_parent(char *path);
 	 * @retval Returns true if the path was relative (started with "//").
 	 */
 int BLI_convertstringcode(char *path, const char *basepath);
-int BLI_convertstringframe(char *path, int frame);
+int BLI_convertstringframe(char *path, int frame, int digits);
+int BLI_convertstringframe_range(char *path, int sta, int end, int digits);
 int BLI_convertstringcwd(char *path);
 
 void BLI_makestringcode(const char *relfile, char *file);

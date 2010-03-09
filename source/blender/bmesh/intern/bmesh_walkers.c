@@ -212,7 +212,7 @@ void BMW_Init(BMWalker *walker, BMesh *bm, int type, int searchmask, int flag)
 		default:
 			break;
 	}
-	walker->stack = BLI_mempool_create(size, 100, 100);
+	walker->stack = BLI_mempool_create(size, 100, 100, 1);
 	walker->currentstate = NULL;
 }
 

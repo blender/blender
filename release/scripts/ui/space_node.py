@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -60,10 +60,10 @@ class NODE_HT_header(bpy.types.Header):
                 layout.prop(snode_id, "use_nodes")
 
         elif snode.tree_type == 'COMPOSITING':
-            snode_id = snode.id
+            scene = snode.id
 
-            layout.prop(snode_id, "use_nodes")
-            layout.prop(snode_id.render_data, "free_unused_nodes", text="Free Unused")
+            layout.prop(scene, "use_nodes")
+            layout.prop(scene.render, "free_unused_nodes", text="Free Unused")
             layout.prop(snode, "backdrop")
 
 
@@ -120,7 +120,7 @@ class NODE_MT_node(bpy.types.Menu):
 
         layout.separator()
         layout.operator("node.link_make")
-        layout.operator("node.link_make", text="Make and Replace Links").replace=True
+        layout.operator("node.link_make", text="Make and Replace Links").replace = True
 
         layout.separator()
         layout.operator("node.group_edit")
@@ -139,7 +139,24 @@ class NODE_MT_node(bpy.types.Menu):
 
         layout.operator("node.show_cyclic_dependencies")
 
-bpy.types.register(NODE_HT_header)
-bpy.types.register(NODE_MT_view)
-bpy.types.register(NODE_MT_select)
-bpy.types.register(NODE_MT_node)
+
+classes = [
+    NODE_HT_header,
+    NODE_MT_view,
+    NODE_MT_select,
+    NODE_MT_node]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

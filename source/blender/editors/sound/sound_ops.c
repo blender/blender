@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -74,12 +74,12 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	sound = sound_new_file(CTX_data_main(C), path);
 
-	if (sound==NULL || sound->handle == NULL) {
+	if (sound==NULL || sound->playback_handle == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Unsupported audio format");
 		return OPERATOR_CANCELLED;
 	}
 
-	info = AUD_getInfo(sound->handle);
+	info = AUD_getInfo(sound->playback_handle);
 
 	if (info.specs.channels == AUD_CHANNELS_INVALID) {
 		sound_delete(C, sound);
@@ -103,7 +103,7 @@ void SOUND_OT_open(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Open Sound";
-	ot->description= "Load a sound file.";
+	ot->description= "Load a sound file";
 	ot->idname= "SOUND_OT_open";
 
 	/* api callbacks */
@@ -114,7 +114,7 @@ void SOUND_OT_open(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE);
 	RNA_def_boolean(ot->srna, "cache", FALSE, "Cache", "Cache the sound in memory.");
 }
 
@@ -154,7 +154,7 @@ void SOUND_OT_pack(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Pack Sound";
-	ot->description= "Pack the sound into the current blend file.";
+	ot->description= "Pack the sound into the current blend file";
 	ot->idname= "SOUND_OT_pack";
 
 	/* api callbacks */
@@ -270,7 +270,7 @@ void SOUND_OT_unpack(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Unpack Sound";
-	ot->description= "Unpack the sound to the samples filename.";
+	ot->description= "Unpack the sound to the samples filename";
 	ot->idname= "SOUND_OT_unpack";
 
 	/* api callbacks */

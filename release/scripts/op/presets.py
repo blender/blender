@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -49,7 +49,11 @@ class AddPresetBase(bpy.types.Operator):
         file_preset = open(os.path.join(target_path, filename), 'w')
 
         for rna_path in self.preset_values:
-            file_preset.write("%s = %s\n" % (rna_path, eval(rna_path)))
+            value = eval(rna_path)
+            if type(value) == str:
+                value = "'%s'" % value
+
+            file_preset.write("%s = %s\n" % (rna_path, value))
 
         file_preset.close()
 
@@ -65,26 +69,29 @@ class AddPresetBase(bpy.types.Operator):
 
 
 class AddPresetRender(AddPresetBase):
-    '''Add a Render Preset.'''
+    '''Add a Render Preset'''
     bl_idname = "render.preset_add"
     bl_label = "Add Render Preset"
     name = AddPresetBase.name
 
     preset_values = [
-        "bpy.context.scene.render_data.resolution_x",
-        "bpy.context.scene.render_data.resolution_y",
-        "bpy.context.scene.render_data.pixel_aspect_x",
-        "bpy.context.scene.render_data.pixel_aspect_y",
-        "bpy.context.scene.render_data.fps",
-        "bpy.context.scene.render_data.fps_base",
-        "bpy.context.scene.render_data.resolution_percentage",
+        "bpy.context.scene.render.resolution_x",
+        "bpy.context.scene.render.resolution_y",
+        "bpy.context.scene.render.pixel_aspect_x",
+        "bpy.context.scene.render.pixel_aspect_y",
+        "bpy.context.scene.render.fps",
+        "bpy.context.scene.render.fps_base",
+        "bpy.context.scene.render.resolution_percentage",
+        "bpy.context.scene.render.fields",
+        "bpy.context.scene.render.field_order",
+        "bpy.context.scene.render.fields_still",
     ]
 
     preset_subdir = "render"
 
 
 class AddPresetSSS(AddPresetBase):
-    '''Add a Subsurface Scattering Preset.'''
+    '''Add a Subsurface Scattering Preset'''
     bl_idname = "material.sss_preset_add"
     bl_label = "Add SSS Preset"
     name = AddPresetBase.name
@@ -109,7 +116,7 @@ class AddPresetSSS(AddPresetBase):
 
 
 class AddPresetCloth(AddPresetBase):
-    '''Add a Cloth Preset.'''
+    '''Add a Cloth Preset'''
     bl_idname = "cloth.preset_add"
     bl_label = "Add Cloth Preset"
     name = AddPresetBase.name
@@ -125,6 +132,49 @@ class AddPresetCloth(AddPresetBase):
 
     preset_subdir = "cloth"
 
-bpy.types.register(AddPresetRender)
-bpy.types.register(AddPresetSSS)
-bpy.types.register(AddPresetCloth)
+
+class AddPresetSunSky(AddPresetBase):
+    '''Add a Sky & Atmosphere Preset'''
+    bl_idname = "lamp.sunsky_preset_add"
+    bl_label = "Add Sunsky Preset"
+    name = AddPresetBase.name
+
+    preset_values = [
+        "bpy.context.object.data.sky.atmosphere_turbidity",
+        "bpy.context.object.data.sky.sky_blend_type",
+        "bpy.context.object.data.sky.sky_blend",
+        "bpy.context.object.data.sky.horizon_brightness",
+        "bpy.context.object.data.sky.spread",
+        "bpy.context.object.data.sky.sky_color_space",
+        "bpy.context.object.data.sky.sky_exposure",
+        "bpy.context.object.data.sky.sun_brightness",
+        "bpy.context.object.data.sky.sun_size",
+        "bpy.context.object.data.sky.backscattered_light",
+        "bpy.context.object.data.sky.sun_intensity",
+        "bpy.context.object.data.sky.atmosphere_inscattering",
+        "bpy.context.object.data.sky.atmosphere_extinction",
+    ]
+
+    preset_subdir = "sunsky"
+
+
+classes = [
+    AddPresetRender,
+    AddPresetSSS,
+    AddPresetCloth,
+    AddPresetSunSky]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

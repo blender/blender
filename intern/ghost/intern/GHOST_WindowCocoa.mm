@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -72,6 +72,8 @@ extern "C" {
 - (void)windowDidResignKey:(NSNotification *)notification;
 - (void)windowDidExpose:(NSNotification *)notification;
 - (void)windowDidResize:(NSNotification *)notification;
+- (void)windowDidMove:(NSNotification *)notification;
+- (void)windowWillMove:(NSNotification *)notification;
 @end
 
 @implementation CocoaWindowDelegate : NSObject
@@ -99,6 +101,16 @@ extern "C" {
 - (void)windowDidExpose:(NSNotification *)notification
 {
 	systemCocoa->handleWindowEvent(GHOST_kEventWindowUpdate, associatedWindow);
+}
+
+- (void)windowDidMove:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowMove, associatedWindow);
+}
+
+- (void)windowWillMove:(NSNotification *)notification
+{
+	systemCocoa->handleWindowEvent(GHOST_kEventWindowMove, associatedWindow);
 }
 
 - (void)windowDidResize:(NSNotification *)notification
@@ -170,7 +182,7 @@ extern "C" {
 	NSPoint mouseLocation = [sender draggingLocation];
 	
 	systemCocoa->handleDraggingEvent(GHOST_kEventDraggingUpdated, m_draggedObjectType, associatedWindow, mouseLocation.x, mouseLocation.y, nil);
-	return NSDragOperationCopy;
+	return associatedWindow->canAcceptDragOperation()?NSDragOperationCopy:NSDragOperationNone;
 }
 
 - (void)draggingExited:(id < NSDraggingInfo >)sender
@@ -191,11 +203,16 @@ extern "C" {
 {
 	NSPoint mouseLocation = [sender draggingLocation];
 	NSPasteboard *draggingPBoard = [sender draggingPasteboard];
+	NSImage *droppedImg;
 	id data;
 	
 	switch (m_draggedObjectType) {
 		case GHOST_kDragnDropTypeBitmap:
-			data = [draggingPBoard dataForType:NSTIFFPboardType];
+			if([NSImage canInitWithPasteboard:draggingPBoard]) {
+				droppedImg = [[NSImage alloc]initWithPasteboard:draggingPBoard];
+				data = droppedImg; //[draggingPBoard dataForType:NSTIFFPboardType];
+			}
+			else return NO;
 			break;
 		case GHOST_kDragnDropTypeFilenames:
 			data = [draggingPBoard propertyListForType:NSFilenamesPboardType];
@@ -324,6 +341,11 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	// Pixel Format Attributes for the windowed NSOpenGLContext
 	i=0;
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
+	
+	// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object’s flushBuffer
+	// needed for 'Draw Overlap' drawing method
+	pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore; 
+	
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
 	//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
 	
@@ -354,6 +376,11 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	if (pixelFormat == nil) {
 		i=0;
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
+		
+		// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object’s flushBuffer
+		// needed for 'Draw Overlap' drawing method
+		pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore;
+		
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFAAccelerated;
 		//pixelFormatAttrsWindow[i++] = NSOpenGLPFAAllowOfflineRenderers,;   // Removed to allow 10.4 builds, and 2 GPUs rendering is not used anyway
 		
@@ -443,6 +470,10 @@ bool GHOST_WindowCocoa::getValid() const
 	return (m_window != 0);
 }
 
+void* GHOST_WindowCocoa::getOSWindow() const
+{
+	return (void*)m_window;
+}
 
 void GHOST_WindowCocoa::setTitle(const STR_String& title)
 {
@@ -823,6 +854,8 @@ GHOST_TSuccess GHOST_WindowCocoa::setModifiedState(bool isUnsavedChanges)
 
 GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setOrder(): window invalid")
     if (order == GHOST_kWindowOrderTop) {
 		[m_window makeKeyAndOrderFront:nil];
@@ -838,6 +871,8 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 			[[windowsList objectAtIndex:0] makeKeyAndOrderFront:nil];
 		}
     }
+	
+	[pool drain];
     return GHOST_kSuccess;
 }
 
@@ -1042,6 +1077,7 @@ void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 			case GHOST_kStandardCursorTopRightCorner:
 			case GHOST_kStandardCursorBottomRightCorner:
 			case GHOST_kStandardCursorBottomLeftCorner:
+			case GHOST_kStandardCursorCopy:
 			case GHOST_kStandardCursorDefault:
 			default:
 				tmpCursor = [NSCursor arrowCursor];
@@ -1073,6 +1109,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 		//No need to perform grab without warp as it is always on in OS X
 		if(mode != GHOST_kGrabNormal) {
 			GHOST_TInt32 x_old,y_old;
+			NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 			m_systemCocoa->getCursorPosition(x_old,y_old);
 			screenToClient(x_old, y_old, m_cursorGrabInitPos[0], m_cursorGrabInitPos[1]);
@@ -1083,8 +1120,13 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 				setWindowCursorVisibility(false);
 			}
 			
+			//Make window key if it wasn't to get the mouse move events
+			[m_window makeKeyWindow];
+			
 			//Dissociate cursor position even for warp mode, to allow mouse acceleration to work even when warping the cursor
 			err = CGAssociateMouseAndMouseCursorPosition(false) == kCGErrorSuccess ? GHOST_kSuccess : GHOST_kFailure;
+			
+			[pool drain];
 		}
 	}
 	else {

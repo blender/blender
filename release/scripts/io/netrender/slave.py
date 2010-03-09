@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -217,11 +217,11 @@ def render_slave(engine, netsettings, threads):
                             # send image back to server
 
                             filename = JOB_PREFIX + "%06d" % frame.number + ".exr"
-                            
+
                             # thumbnail first
                             if netsettings.slave_thumb:
                                 thumbname = thumbnail(filename)
-                                
+
                                 f = open(thumbname, 'rb')
                                 conn.request("PUT", "/thumb", f, headers=headers)
                                 f.close()
@@ -232,7 +232,7 @@ def render_slave(engine, netsettings, threads):
                             f.close()
                             if conn.getresponse().status == http.client.NO_CONTENT:
                                 continue
-                            
+
                         elif job.type == netrender.model.JOB_PROCESS:
                             conn.request("PUT", "/render", headers=headers)
                             if conn.getresponse().status == http.client.NO_CONTENT:
@@ -255,7 +255,7 @@ def render_slave(engine, netsettings, threads):
                         break
 
         conn.close()
-        
+
         if netsettings.slave_clear:
             clearSlave(NODE_PREFIX)
 

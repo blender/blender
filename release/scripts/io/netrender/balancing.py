@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -24,7 +24,7 @@ import netrender.model
 class RatingRule:
     def __init__(self):
         self.enabled = True
-        
+
     def rate(self, job):
         return 0
 
@@ -58,7 +58,7 @@ class Balancer:
         for rule in self.exceptions:
             if id(rule) == rule_id:
                 return rule
-        
+
         return None
 
     def addRule(self, rule):
@@ -129,7 +129,7 @@ class NewJobPriority(PriorityRule):
     def __init__(self, limit = 1):
         super().__init__()
         self.limit = limit
-    
+
     def setLimit(self, value):
         self.limit = int(value)
 
@@ -175,7 +175,7 @@ class ExcludeSlavesLimit(ExclusionRule):
 
     def setLimit(self, value):
         self.limit = float(value)
-        
+
     def str_limit(self):
         return "more than %.0f%% of all slaves" % (self.limit * 100)
 

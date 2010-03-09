@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -30,17 +30,18 @@ class IMAGE_MT_view(bpy.types.Menu):
 
         sima = context.space_data
         # uv = sima.uv_editor
-        settings = context.tool_settings
+        toolsettings = context.tool_settings
 
         show_uvedit = sima.show_uvedit
 
         layout.operator("image.properties", icon='MENU_PANEL')
+        layout.operator("image.scopes", icon='MENU_PANEL')
 
         layout.separator()
 
         layout.prop(sima, "update_automatically")
         if show_uvedit:
-            layout.prop(settings, "uv_local_view") # Numpad /
+            layout.prop(toolsettings, "uv_local_view") # Numpad /
 
         layout.separator()
 
@@ -201,7 +202,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
         sima = context.space_data
         uv = sima.uv_editor
-        settings = context.tool_settings
+        toolsettings = context.tool_settings
 
         layout.prop(uv, "snap_to_pixels")
         layout.prop(uv, "constrain_to_image_bounds")
@@ -219,6 +220,7 @@ class IMAGE_MT_uvs(bpy.types.Menu):
         layout.operator("uv.average_islands_scale")
         layout.operator("uv.minimize_stretch")
         layout.operator("uv.stitch")
+        layout.operator("mesh.faces_miror_uv")
 
         layout.separator()
 
@@ -229,8 +231,8 @@ class IMAGE_MT_uvs(bpy.types.Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(settings, "proportional_editing")
-        layout.prop_menu_enum(settings, "proportional_editing_falloff")
+        layout.prop_menu_enum(toolsettings, "proportional_editing")
+        layout.prop_menu_enum(toolsettings, "proportional_editing_falloff")
 
         layout.separator()
 
@@ -246,7 +248,7 @@ class IMAGE_HT_header(bpy.types.Header):
         sima = context.space_data
         ima = sima.image
         iuser = sima.image_user
-        settings = context.tool_settings
+        toolsettings = context.tool_settings
 
         # show_render = sima.show_render
         # show_paint = sima.show_paint
@@ -278,22 +280,25 @@ class IMAGE_HT_header(bpy.types.Header):
             uvedit = sima.uv_editor
 
             layout.prop(uvedit, "pivot", text="", icon_only=True)
-            layout.prop(settings, "uv_sync_selection", text="")
+            layout.prop(toolsettings, "uv_sync_selection", text="")
 
-            if settings.uv_sync_selection:
-                layout.prop(settings, "mesh_selection_mode", text="", expand=True)
+            if toolsettings.uv_sync_selection:
+                row = layout.row(align=True)
+                row.prop(toolsettings, "mesh_selection_mode", text="", index=0, icon='VERTEXSEL')
+                row.prop(toolsettings, "mesh_selection_mode", text="", index=1, icon='EDGESEL')
+                row.prop(toolsettings, "mesh_selection_mode", text="", index=2, icon='FACESEL')
             else:
-                layout.prop(settings, "uv_selection_mode", text="", expand=True)
+                layout.prop(toolsettings, "uv_selection_mode", text="", expand=True)
                 layout.prop(uvedit, "sticky_selection_mode", text="", icon_only=True)
 
             row = layout.row(align=True)
-            row.prop(settings, "proportional_editing", text="", icon_only=True)
-            if settings.proportional_editing != 'DISABLED':
-                row.prop(settings, "proportional_editing_falloff", text="", icon_only=True)
+            row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
+            if toolsettings.proportional_editing != 'DISABLED':
+                row.prop(toolsettings, "proportional_editing_falloff", text="", icon_only=True)
 
             row = layout.row(align=True)
-            row.prop(settings, "snap", text="")
-            row.prop(settings, "snap_element", text="", icon_only=True)
+            row.prop(toolsettings, "snap", text="")
+            row.prop(toolsettings, "snap_element", text="", icon_only=True)
 
             # mesh = context.edit_object.data
             # row.prop_object(mesh, "active_uv_layer", mesh, "uv_textures")
@@ -344,7 +349,7 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
     bl_label = "Game Properties"
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         sima = context.space_data
         return (sima and sima.image) and (rd.engine == 'BLENDER_GAME')
 
@@ -383,6 +388,23 @@ class IMAGE_PT_game_properties(bpy.types.Panel):
         col.prop(ima, "mapping", expand=True)
 
 
+class IMAGE_PT_view_histogram(bpy.types.Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'PREVIEW'
+    bl_label = "Histogram"
+
+    def poll(self, context):
+        sima = context.space_data
+        return (sima and sima.image)
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+
+        layout.template_histogram(sima, "histogram")
+
+
 class IMAGE_PT_view_properties(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
@@ -413,6 +435,7 @@ class IMAGE_PT_view_properties(bpy.types.Panel):
             col.prop(sima, "draw_repeated", text="Repeat")
             if show_uvedit:
                 col.prop(uvedit, "normalized_coordinates", text="Normalized")
+
         elif show_uvedit:
             col.label(text="Coordinates:")
             col.prop(uvedit, "normalized_coordinates", text="Normalized")
@@ -454,24 +477,24 @@ class IMAGE_PT_paint(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
 
-        settings = context.tool_settings.image_paint
-        brush = settings.brush
+        toolsettings = context.tool_settings.image_paint
+        brush = toolsettings.brush
         wide_ui = context.region.width > narrowui
 
         col = layout.split().column()
         row = col.row()
-        row.template_list(settings, "brushes", settings, "active_brush_index", rows=2)
+        row.template_list(toolsettings, "brushes", toolsettings, "active_brush_index", rows=2)
 
-        col.template_ID(settings, "brush", new="brush.add")
+        col.template_ID(toolsettings, "brush", new="brush.add")
 
         if wide_ui:
             sub = layout.row(align=True)
         else:
             sub = layout.column(align=True)
-        sub.prop_enum(settings, "tool", 'DRAW')
-        sub.prop_enum(settings, "tool", 'SOFTEN')
-        sub.prop_enum(settings, "tool", 'CLONE')
-        sub.prop_enum(settings, "tool", 'SMEAR')
+        sub.prop_enum(brush, "imagepaint_tool", 'DRAW')
+        sub.prop_enum(brush, "imagepaint_tool", 'SOFTEN')
+        sub.prop_enum(brush, "imagepaint_tool", 'CLONE')
+        sub.prop_enum(brush, "imagepaint_tool", 'SMEAR')
 
         if brush:
             col = layout.column()
@@ -492,6 +515,11 @@ class IMAGE_PT_paint(bpy.types.Panel):
 
             col.prop(brush, "blend", text="Blend")
 
+            if brush.imagepaint_tool == 'CLONE':
+                col.separator()
+                col.prop(brush, "clone_image", text="Image")
+                col.prop(brush, "clone_alpha", text="Alpha")
+
 
 class IMAGE_PT_paint_stroke(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -501,14 +529,14 @@ class IMAGE_PT_paint_stroke(bpy.types.Panel):
 
     def poll(self, context):
         sima = context.space_data
-        settings = context.tool_settings.image_paint
-        return sima.show_paint and settings.brush
+        toolsettings = context.tool_settings.image_paint
+        return sima.show_paint and toolsettings.brush
 
     def draw(self, context):
         layout = self.layout
 
-        settings = context.tool_settings.image_paint
-        brush = settings.brush
+        toolsettings = context.tool_settings.image_paint
+        brush = toolsettings.brush
 
         layout.prop(brush, "use_airbrush")
         col = layout.column()
@@ -521,6 +549,8 @@ class IMAGE_PT_paint_stroke(bpy.types.Panel):
         row.prop(brush, "spacing", text="Distance", slider=True)
         row.prop(brush, "use_spacing_pressure", toggle=True, text="")
 
+        layout.prop(brush, "use_wrap")
+
 
 class IMAGE_PT_paint_curve(bpy.types.Panel):
     bl_space_type = 'IMAGE_EDITOR'
@@ -530,31 +560,49 @@ class IMAGE_PT_paint_curve(bpy.types.Panel):
 
     def poll(self, context):
         sima = context.space_data
-        settings = context.tool_settings.image_paint
-        return sima.show_paint and settings.brush
+        toolsettings = context.tool_settings.image_paint
+        return sima.show_paint and toolsettings.brush
 
     def draw(self, context):
         layout = self.layout
 
-        settings = context.tool_settings.image_paint
-        brush = settings.brush
+        toolsettings = context.tool_settings.image_paint
+        brush = toolsettings.brush
 
         layout.template_curve_mapping(brush, "curve")
         layout.operator_menu_enum("brush.curve_preset", property="shape")
 
-bpy.types.register(IMAGE_MT_view)
-bpy.types.register(IMAGE_MT_select)
-bpy.types.register(IMAGE_MT_image)
-bpy.types.register(IMAGE_MT_uvs_showhide)
-bpy.types.register(IMAGE_MT_uvs_transform)
-bpy.types.register(IMAGE_MT_uvs_snap)
-bpy.types.register(IMAGE_MT_uvs_mirror)
-bpy.types.register(IMAGE_MT_uvs_weldalign)
-bpy.types.register(IMAGE_MT_uvs)
-bpy.types.register(IMAGE_HT_header)
-bpy.types.register(IMAGE_PT_image_properties)
-bpy.types.register(IMAGE_PT_paint)
-bpy.types.register(IMAGE_PT_paint_stroke)
-bpy.types.register(IMAGE_PT_paint_curve)
-bpy.types.register(IMAGE_PT_game_properties)
-bpy.types.register(IMAGE_PT_view_properties)
+
+classes = [
+    IMAGE_MT_view,
+    IMAGE_MT_select,
+    IMAGE_MT_image,
+    IMAGE_MT_uvs_showhide,
+    IMAGE_MT_uvs_transform,
+    IMAGE_MT_uvs_snap,
+    IMAGE_MT_uvs_mirror,
+    IMAGE_MT_uvs_weldalign,
+    IMAGE_MT_uvs,
+    IMAGE_HT_header,
+    IMAGE_PT_image_properties,
+    IMAGE_PT_paint,
+    IMAGE_PT_paint_stroke,
+    IMAGE_PT_paint_curve,
+    IMAGE_PT_game_properties,
+    IMAGE_PT_view_properties,
+    IMAGE_PT_view_histogram]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

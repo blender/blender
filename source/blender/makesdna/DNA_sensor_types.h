@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -98,6 +98,7 @@ typedef struct bDelaySensor {
 typedef struct bCollisionSensor {
 	char name[32];          /* property name */
 	char materialName[32];  /* material      */
+	// struct Material *ma; // XXX remove materialName
 	short damptimer, damp;
 	short mode;             /* flag to choose material or property */
  	short pad2;
@@ -121,6 +122,7 @@ typedef struct bRaySensor {
 	float range;
 	char propname[32];
 	char matname[32];
+	//struct Material *ma; // XXX remove materialName
 	short mode;
 	short pad1;
 	int axisflag;

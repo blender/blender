@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -59,6 +59,7 @@
 #include "BKE_animsys.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -109,7 +110,8 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 	ale= BLI_findlink(&anim_data, channel_index);
 	if (ale == NULL) {
 		/* channel not found */
-		printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
+		if (G.f & G_DEBUG)
+			printf("Error: animation channel (index = %d) not found in mouse_anim_channels() \n", channel_index);
 		
 		BLI_freelistN(&anim_data);
 		return 0;
@@ -171,8 +173,6 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 					if (adt) adt->flag |= ADT_UI_SELECTED;
 				}
 				
-				/* xxx should be ED_base_object_activate(), but we need context pointer for that... */
-				//set_active_base(base);
 				if ((adt) && (adt->flag & ADT_UI_SELECTED))
 					adt->flag |= ADT_UI_ACTIVE;
 				
@@ -193,6 +193,8 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 		case ANIMTYPE_DSPART:
 		case ANIMTYPE_DSMBALL:
 		case ANIMTYPE_DSARM:
+		case ANIMTYPE_DSMESH:
+		case ANIMTYPE_DSTEX:
 		{
 			/* sanity checking... */
 			if (ale->adt) {
@@ -203,7 +205,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 				}
 				else {
 					/* select AnimData block by itself */
-					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 					ale->adt->flag |= ADT_UI_SELECTED;
 				}
 				
@@ -262,7 +264,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 				}
 				else {
 					/* select F-Curve by itself */
-					ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 					nlt->flag |= NLATRACK_SELECTED;
 				}
 				
@@ -277,7 +279,7 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			break;
 		case ANIMTYPE_NLAACTION:
 		{
-			AnimData *adt= BKE_animdata_from_id(ale->owner); /* this won't crash, right? */
+			AnimData *adt= BKE_animdata_from_id(ale->id);
 			
 			if (x >= (v2d->cur.xmax-NLACHANNEL_BUTTON_WIDTH)) {
 				if (nlaedit_is_tweakmode_on(ac) == 0) {
@@ -298,7 +300,8 @@ static int mouse_nla_channels (bAnimContext *ac, float x, int channel_index, sho
 			break;
 			
 		default:
-			printf("Error: Invalid channel type in mouse_nla_channels() \n");
+			if (G.f & G_DEBUG)
+				printf("Error: Invalid channel type in mouse_nla_channels() \n");
 	}
 	
 	/* free channels */
@@ -434,7 +437,7 @@ void NLA_OT_tracks_add (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Track(s)";
 	ot->idname= "NLA_OT_tracks_add";
-	ot->description= "Add NLA-Tracks above/after the selected tracks.";
+	ot->description= "Add NLA-Tracks above/after the selected tracks";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_add_tracks_exec;
@@ -490,7 +493,7 @@ void NLA_OT_delete_tracks (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Delete Tracks";
 	ot->idname= "NLA_OT_delete_tracks";
-	ot->description= "Delete selected NLA-Tracks and the strips they contain.";
+	ot->description= "Delete selected NLA-Tracks and the strips they contain";
 	
 	/* api callbacks */
 	ot->exec= nlaedit_delete_tracks_exec;

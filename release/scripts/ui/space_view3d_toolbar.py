@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -99,7 +99,8 @@ class VIEW3D_PT_tools_meshedit(View3DPanel):
 
         col = layout.column(align=True)
         col.label(text="Add:")
-        col.operator("mesh.extrude_move")
+        col.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
+        col.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
         col.operator("mesh.subdivide")
         col.operator("mesh.loopcut_slide")
         col.operator("mesh.duplicate_move", text="Duplicate")
@@ -155,6 +156,8 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel):
             mesh = context.active_object.data
             col = layout.column(align=True)
             col.prop(mesh, "use_mirror_x")
+            col.prop(mesh, "use_mirror_topology")
+            col.prop(context.tool_settings, "edge_path_mode")
 
 # ********** default tools for editmode_curve ****************
 
@@ -500,13 +503,13 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             row = col.row()
 
             if context.sculpt_object and brush:
-                defaulttools = 8
+                defaultbrushes = 8
             elif context.texture_paint_object and brush:
-                defaulttools = 4
+                defaultbrushes = 4
             else:
-                defaulttools = 2
+                defaultbrushes = 7
 
-            row.template_list(settings, "brushes", settings, "active_brush_index", rows=2, maxrows=defaulttools)
+            row.template_list(settings, "brushes", settings, "active_brush_index", rows=2, maxrows=defaultbrushes)
 
             col.template_ID(settings, "brush", new="brush.add")
 
@@ -533,6 +536,7 @@ class VIEW3D_PT_tools_brush(PaintPanel):
                 layout.prop(brush, "length_mode", expand=True)
             elif settings.tool == 'PUFF':
                 layout.prop(brush, "puff_mode", expand=True)
+                layout.prop(brush, "use_puff_volume")
 
         # Sculpt Mode #
 
@@ -643,21 +647,23 @@ class VIEW3D_PT_tools_brush_texture(PaintPanel):
         settings = self.paint_settings(context)
         brush = settings.brush
         tex_slot = brush.texture_slot
-        
+
         col = layout.column()
-        
+
         col.template_ID_preview(brush, "texture", new="texture.new", rows=2, cols=4)
-        
+
         col.row().prop(tex_slot, "map_mode", expand=True)
-        
+
+
 class VIEW3D_PT_tools_brush_tool(PaintPanel):
     bl_label = "Tool"
     bl_default_closed = True
 
     def poll(self, context):
         settings = self.paint_settings(context)
-        return (settings and settings.brush and (context.sculpt_object or
-                             context.texture_paint_object))
+        return (settings and settings.brush and
+            (context.sculpt_object or context.texture_paint_object or
+            context.vertex_paint_object or context.weight_paint_object))
 
     def draw(self, context):
         layout = self.layout
@@ -672,10 +678,13 @@ class VIEW3D_PT_tools_brush_tool(PaintPanel):
         if context.sculpt_object:
             col.prop(brush, "sculpt_tool", expand=True)
         elif context.texture_paint_object:
-            col.prop_enum(settings, "tool", 'DRAW')
-            col.prop_enum(settings, "tool", 'SOFTEN')
-            col.prop_enum(settings, "tool", 'CLONE')
-            col.prop_enum(settings, "tool", 'SMEAR')
+            col.prop(brush, "imagepaint_tool", expand=True)
+            #col.prop_enum(settings, "tool", 'DRAW')
+            #col.prop_enum(settings, "tool", 'SOFTEN')
+            #col.prop_enum(settings, "tool", 'CLONE')
+            #col.prop_enum(settings, "tool", 'SMEAR')
+        elif context.vertex_paint_object or context.weight_paint_object:
+            col.prop(brush, "vertexpaint_tool", expand=True)
 
 
 class VIEW3D_PT_tools_brush_stroke(PaintPanel):
@@ -779,7 +788,6 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel):
         layout = self.layout
 
         col = layout.column()
-        # col.label(text="Blend:")
         col.operator("object.vertex_group_normalize_all", text="Normalize All")
         col.operator("object.vertex_group_normalize", text="Normalize")
         col.operator("object.vertex_group_invert", text="Invert")
@@ -797,15 +805,15 @@ class VIEW3D_PT_tools_weightpaint_options(View3DPanel):
         wpaint = context.tool_settings.weight_paint
 
         col = layout.column()
-        col.label(text="Blend:")
-        col.prop(wpaint, "mode", text="")
         col.prop(wpaint, "all_faces")
         col.prop(wpaint, "normals")
         col.prop(wpaint, "spray")
 
         obj = context.weight_paint_object
         if obj.type == 'MESH':
-            col.prop(obj.data, "use_mirror_x")
+            mesh = obj.data
+            col.prop(mesh, "use_mirror_x")
+            col.prop(mesh, "use_mirror_topology")
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
 #		col.label(text="Gamma:")
@@ -829,8 +837,7 @@ class VIEW3D_PT_tools_vertexpaint(View3DPanel):
         vpaint = context.tool_settings.vertex_paint
 
         col = layout.column()
-        col.label(text="Blend:")
-        col.prop(vpaint, "mode", text="")
+        #col.prop(vpaint, "mode", text="")
         col.prop(vpaint, "all_faces")
         col.prop(vpaint, "normals")
         col.prop(vpaint, "spray")
@@ -849,7 +856,7 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
     bl_label = "Project Paint"
 
     def poll(self, context):
-        return context.tool_settings.image_paint.tool != 'SMEAR'
+        return context.tool_settings.image_paint.brush.imagepaint_tool != 'SMEAR'
 
     def draw_header(self, context):
         ipaint = context.tool_settings.image_paint
@@ -892,36 +899,35 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         col = layout.column()
         sub = col.column()
         row = sub.row()
-        row.active = (settings.tool == 'CLONE')
+        row.active = (settings.brush.imagepaint_tool == 'CLONE')
 
-        row.prop(ipaint, "use_clone_layer", text="Clone")
+        row.prop(ipaint, "use_clone_layer", text="Layer")
         row.menu("VIEW3D_MT_tools_projectpaint_clone", text=context.active_object.data.uv_texture_clone.name)
 
         sub = col.column()
         sub.prop(ipaint, "seam_bleed")
 
-    class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):
-        bl_label = "Clone Layer"
 
-        def draw(self, context):
-            layout = self.layout
-            for i, tex in enumerate(context.active_object.data.uv_textures):
-                prop = layout.operator("wm.context_set_int", text=tex.name)
-                prop.path = "active_object.data.uv_texture_clone_index"
-                prop.value = i
+class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):
+    bl_label = "Clone Layer"
 
-    class VIEW3D_MT_tools_projectpaint_stencil(bpy.types.Menu):
-        bl_label = "Mask Layer"
+    def draw(self, context):
+        layout = self.layout
+        for i, tex in enumerate(context.active_object.data.uv_textures):
+            prop = layout.operator("wm.context_set_int", text=tex.name)
+            prop.path = "active_object.data.uv_texture_clone_index"
+            prop.value = i
 
-        def draw(self, context):
-            layout = self.layout
-            for i, tex in enumerate(context.active_object.data.uv_textures):
-                prop = layout.operator("wm.context_set_int", text=tex.name)
-                prop.path = "active_object.data.uv_texture_stencil_index"
-                prop.value = i
 
-    bpy.types.register(VIEW3D_MT_tools_projectpaint_clone)
-    bpy.types.register(VIEW3D_MT_tools_projectpaint_stencil)
+class VIEW3D_MT_tools_projectpaint_stencil(bpy.types.Menu):
+    bl_label = "Mask Layer"
+
+    def draw(self, context):
+        layout = self.layout
+        for i, tex in enumerate(context.active_object.data.uv_textures):
+            prop = layout.operator("wm.context_set_int", text=tex.name)
+            prop.path = "active_object.data.uv_texture_stencil_index"
+            prop.value = i
 
 
 class VIEW3D_PT_tools_particlemode(View3DPanel):
@@ -987,26 +993,47 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
         sub.active = pe.fade_time
         sub.prop(pe, "fade_frames", slider=True)
 
-bpy.types.register(VIEW3D_PT_tools_weightpaint)
-bpy.types.register(VIEW3D_PT_tools_objectmode)
-bpy.types.register(VIEW3D_PT_tools_meshedit)
-bpy.types.register(VIEW3D_PT_tools_meshedit_options)
-bpy.types.register(VIEW3D_PT_tools_curveedit)
-bpy.types.register(VIEW3D_PT_tools_surfaceedit)
-bpy.types.register(VIEW3D_PT_tools_textedit)
-bpy.types.register(VIEW3D_PT_tools_armatureedit)
-bpy.types.register(VIEW3D_PT_tools_armatureedit_options)
-bpy.types.register(VIEW3D_PT_tools_mballedit)
-bpy.types.register(VIEW3D_PT_tools_latticeedit)
-bpy.types.register(VIEW3D_PT_tools_posemode)
-bpy.types.register(VIEW3D_PT_tools_posemode_options)
-bpy.types.register(VIEW3D_PT_tools_brush)
-bpy.types.register(VIEW3D_PT_tools_brush_texture)
-bpy.types.register(VIEW3D_PT_tools_brush_tool)
-bpy.types.register(VIEW3D_PT_tools_brush_stroke)
-bpy.types.register(VIEW3D_PT_tools_brush_curve)
-bpy.types.register(VIEW3D_PT_sculpt_options)
-bpy.types.register(VIEW3D_PT_tools_vertexpaint)
-bpy.types.register(VIEW3D_PT_tools_weightpaint_options)
-bpy.types.register(VIEW3D_PT_tools_projectpaint)
-bpy.types.register(VIEW3D_PT_tools_particlemode)
+
+classes = [
+    VIEW3D_PT_tools_weightpaint,
+    VIEW3D_PT_tools_objectmode,
+    VIEW3D_PT_tools_meshedit,
+    VIEW3D_PT_tools_meshedit_options,
+    VIEW3D_PT_tools_curveedit,
+    VIEW3D_PT_tools_surfaceedit,
+    VIEW3D_PT_tools_textedit,
+    VIEW3D_PT_tools_armatureedit,
+    VIEW3D_PT_tools_armatureedit_options,
+    VIEW3D_PT_tools_mballedit,
+    VIEW3D_PT_tools_latticeedit,
+    VIEW3D_PT_tools_posemode,
+    VIEW3D_PT_tools_posemode_options,
+    VIEW3D_PT_tools_brush,
+    VIEW3D_PT_tools_brush_texture,
+    VIEW3D_PT_tools_brush_tool,
+    VIEW3D_PT_tools_brush_stroke,
+    VIEW3D_PT_tools_brush_curve,
+    VIEW3D_PT_sculpt_options,
+    VIEW3D_PT_tools_vertexpaint,
+    VIEW3D_PT_tools_weightpaint_options,
+
+    VIEW3D_PT_tools_projectpaint,
+    VIEW3D_MT_tools_projectpaint_clone,
+    VIEW3D_MT_tools_projectpaint_stencil,
+
+    VIEW3D_PT_tools_particlemode]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

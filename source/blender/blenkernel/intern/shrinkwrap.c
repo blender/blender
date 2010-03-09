@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) Blender Foundation.
  * All rights reserved.
@@ -185,7 +185,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	{
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
-		float weight = vertexgroup_get_vertex_weight(calc->dvert, i, calc->vgroup);
+		float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 		if(weight == 0.0f) continue;
 
 
@@ -357,7 +357,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, struct S
 		{
 			float *co = calc->vertexCos[i];
 			float tmp_co[3], tmp_no[3];
-			float weight = vertexgroup_get_vertex_weight(calc->dvert, i, calc->vgroup);
+			float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 
 			if(weight == 0.0f) continue;
 
@@ -448,7 +448,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	{
 		float *co = calc->vertexCos[i];
 		float tmp_co[3];
-		float weight = vertexgroup_get_vertex_weight(calc->dvert, i, calc->vgroup);
+		float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 		if(weight == 0.0f) continue;
 
 		//Convert the vertex to tree coordinates
@@ -520,7 +520,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object
 	calc.vertexCos = vertexCos;
 
 	//DeformVertex
-	calc.vgroup = get_named_vertexgroup_num(calc.ob, calc.smd->vgroup_name);
+	calc.vgroup = defgroup_name_index(calc.ob, calc.smd->vgroup_name);
 	if(dm)
 	{
 		calc.dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
@@ -546,7 +546,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Scene *scene, Object
 
 
 
-	calc.vgroup = get_named_vertexgroup_num(calc.ob, smd->vgroup_name);
+	calc.vgroup = defgroup_name_index(calc.ob, smd->vgroup_name);
 
 	if(dm != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT)
 	{

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation
  * All rights reserved.
@@ -289,19 +289,19 @@ ImBuf* IMB_thumb_create(const char* dir, const char* file, ThumbSize size, Thumb
 		} else {
 			if (THB_SOURCE_IMAGE == source) {
 				BLI_getwdN(wdir);
-				chdir(dir);
+				if(chdir(dir) != 0) return 0;
 				img = IMB_loadiffname(file, IB_rect | IB_imginfo);
 				if (img != NULL) {
 					stat(file, &info);
 					sprintf(mtime, "%ld", info.st_mtime);
 					sprintf(cwidth, "%d", img->x);
 					sprintf(cheight, "%d", img->y);
-					chdir(wdir);
 				}
+				if(chdir(wdir) != 0) /* unlikely to happen, just silence warning */;
 			} else if (THB_SOURCE_MOVIE == source) {
 				struct anim * anim = NULL;
 				BLI_getwdN(wdir);
-				chdir(dir);
+				if(chdir(dir) != 0) return 0;
 				anim = IMB_open_anim(file, IB_rect | IB_imginfo);
 				if (anim != NULL) {
 					img = IMB_anim_absolute(anim, 0);
@@ -315,7 +315,7 @@ ImBuf* IMB_thumb_create(const char* dir, const char* file, ThumbSize size, Thumb
 				}
 				stat(file, &info);
 				sprintf(mtime, "%ld", info.st_mtime);
-				chdir(wdir);
+				if(chdir(wdir) != 0) /* unlikely to happen, just silence warning */;
 			}
 			if (!img) return 0;		
 

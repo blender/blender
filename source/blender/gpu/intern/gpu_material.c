@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
@@ -960,7 +960,7 @@ static void do_material_tex(GPUShadeInput *shi)
 			rgbnor = 0;
 
 			if(tex && tex->type == TEX_IMAGE && tex->ima) {
-				GPU_link(mat, "mtex_image", texco, GPU_image(tex->ima, NULL), &tin, &trgb, &tnor);
+				GPU_link(mat, "mtex_image", texco, GPU_image(tex->ima, &tex->iuser), &tin, &trgb, &tnor);
 				rgbnor= TEX_RGB;
 
 				if(tex->imaflag & TEX_USEALPHA)
@@ -1026,9 +1026,7 @@ static void do_material_tex(GPUShadeInput *shi)
 
 			if(!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && (mtex->mapto & MAP_NORM)) {
 				if((tex->type==TEX_IMAGE) && (tex->imaflag & TEX_NORMALMAP)) {
-					tex->norfac = mtex->norfac;
-
-					if(tex->norfac < 0.0f)
+					if(mtex->norfac < 0.0f)
 						GPU_link(mat, "mtex_negate_texnormal", tnor, &tnor);
 
 					if(mtex->normapspace == MTEX_NSPACE_TANGENT)

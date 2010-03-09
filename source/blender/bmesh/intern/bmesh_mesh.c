@@ -102,13 +102,13 @@ BMesh *BM_Make_Mesh(int allocsize[4])
 	/*allocate the structure*/
 	BMesh *bm = MEM_callocN(sizeof(BMesh),"BM");
 	/*allocate the memory pools for the mesh elements*/
-	bm->vpool = BLI_mempool_create(sizeof(BMVert), allocsize[0], allocsize[0]);
-	bm->epool = BLI_mempool_create(sizeof(BMEdge), allocsize[1], allocsize[1]);
-	bm->lpool = BLI_mempool_create(sizeof(BMLoop), allocsize[2], allocsize[2]);
-	bm->ppool = BLI_mempool_create(sizeof(BMFace), allocsize[3], allocsize[3]);
+	bm->vpool = BLI_mempool_create(sizeof(BMVert), allocsize[0], allocsize[0], 1);
+	bm->epool = BLI_mempool_create(sizeof(BMEdge), allocsize[1], allocsize[1], 1);
+	bm->lpool = BLI_mempool_create(sizeof(BMLoop), allocsize[2], allocsize[2], 1);
+	bm->ppool = BLI_mempool_create(sizeof(BMFace), allocsize[3], allocsize[3], 1);
 
 	/*allocate one flag pool that we dont get rid of.*/
-	bm->flagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512);
+	bm->flagpool = BLI_mempool_create(sizeof(BMFlagLayer), 512, 512, 1);
 	bm->totflags = 1;
 
 	return bm;

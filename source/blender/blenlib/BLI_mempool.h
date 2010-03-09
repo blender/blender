@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -39,7 +39,7 @@ extern "C"
 struct BLI_mempool;
 typedef struct BLI_mempool BLI_mempool;
 
-BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk);
+BLI_mempool *BLI_mempool_create(int esize, int tote, int pchunk, int use_sysmalloc);
 void *BLI_mempool_alloc(BLI_mempool *pool);
 void *BLI_mempool_calloc(BLI_mempool *pool);
 void BLI_mempool_free(BLI_mempool *pool, void *addr);

@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -161,7 +161,9 @@ typedef struct Sequence {
 	ListBase seqbase;	/* list of strips for metastrips */
 
 	struct bSound *sound;	/* the linked "bSound" object */
-	struct SoundHandle *sound_handle;
+	void *scene_sound;
+	float volume, pad;
+
 	float level, pan;	/* level in dB (0=full), pan -1..1 */
 	int scenenr;          /* for scene selection */
 	float strobe;

@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -56,7 +56,7 @@ Known issues:<br>
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
 #
@@ -81,7 +81,7 @@ from export_3ds import create_derived_objects, free_derived_objects
 
 #
 DEG2RAD=0.017453292519943295
-MATWORLD= Mathutils.RotationMatrix(-90, 4, 'x')
+MATWORLD= Mathutils.RotationMatrix(-90, 4, 'X')
 
 ####################################
 # Global Variables
@@ -228,7 +228,7 @@ class x3d_class:
     '''
 
     def writeViewpoint(self, ob, mat, scene):
-        context = scene.render_data
+        context = scene.render
         # context = scene.render
         ratio = float(context.resolution_x)/float(context.resolution_y)
         # ratio = float(context.imageSizeY())/float(context.imageSizeX())
@@ -239,8 +239,8 @@ class x3d_class:
         # get the camera location, subtract 90 degress from X to orient like X3D does
         # mat = ob.matrixWorld - mat is now passed!
 
-        loc = self.rotatePointForVRML(mat.translationPart())
-        rot = mat.toEuler()
+        loc = self.rotatePointForVRML(mat.translation_part())
+        rot = mat.to_euler()
         rot = (((rot[0]-90)), rot[1], rot[2])
         # rot = (((rot[0]-90)*DEG2RAD), rot[1]*DEG2RAD, rot[2]*DEG2RAD)
         nRot = self.rotatePointForVRML( rot )
@@ -291,7 +291,7 @@ class x3d_class:
 
         # compute cutoff and beamwidth
         intensity=min(lamp.energy/1.75,1.0)
-        beamWidth=((lamp.spot_size*math.pi)/180.0)*.37;
+        beamWidth=lamp.spot_size * 0.37;
         # beamWidth=((lamp.spotSize*math.pi)/180.0)*.37;
         cutOffAngle=beamWidth*1.3
 
@@ -300,8 +300,8 @@ class x3d_class:
         # note -dz seems to equal om[3][1]
         # note  dy seems to equal om[3][2]
 
-        #location=(ob.matrixWorld*MATWORLD).translationPart() # now passed
-        location=(mtx*MATWORLD).translationPart()
+        #location=(ob.matrixWorld*MATWORLD).translation_part() # now passed
+        location=(mtx*MATWORLD).translation_part()
 
         radius = lamp.distance*math.cos(beamWidth)
         # radius = lamp.dist*math.cos(beamWidth)
@@ -346,8 +346,8 @@ class x3d_class:
             ambi = 0
             ambientIntensity = 0
 
-        # location=(ob.matrixWorld*MATWORLD).translationPart() # now passed
-        location= (mtx*MATWORLD).translationPart()
+        # location=(ob.matrixWorld*MATWORLD).translation_part() # now passed
+        location= (mtx*MATWORLD).translation_part()
 
         self.file.write("<PointLight DEF=\"%s\" " % safeName)
         self.file.write("ambientIntensity=\"%s\" " % (round(ambientIntensity,self.cp)))
@@ -364,8 +364,8 @@ class x3d_class:
             return
         else:
             dx,dy,dz = self.computeDirection(mtx)
-            # location=(ob.matrixWorld*MATWORLD).translationPart()
-            location=(mtx*MATWORLD).translationPart()
+            # location=(ob.matrixWorld*MATWORLD).translation_part()
+            location=(mtx*MATWORLD).translation_part()
             self.writeIndented("<%s\n" % obname,1)
             self.writeIndented("direction=\"%s %s %s\"\n" % (round(dx,3),round(dy,3),round(dz,3)))
             self.writeIndented("location=\"%s %s %s\"\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
@@ -448,9 +448,9 @@ class x3d_class:
         # mtx = ob.matrixWorld * MATWORLD # mtx is now passed
         mtx = mtx * MATWORLD
 
-        loc= mtx.translationPart()
-        sca= mtx.scalePart()
-        quat = mtx.toQuat()
+        loc= mtx.translation_part()
+        sca= mtx.scale_part()
+        quat = mtx.to_quat()
         rot= quat.axis
 
         self.writeIndented('<Transform DEF="%s" translation="%.6f %.6f %.6f" scale="%.6f %.6f %.6f" rotation="%.6f %.6f %.6f %.6f">\n' % \
@@ -616,6 +616,7 @@ class x3d_class:
 
         for face in mesh.active_uv_texture.data:
         # for face in mesh.faces:
+            # workaround, since tface.uv iteration is wrong atm
             uvs = face.uv
             # uvs = [face.uv1, face.uv2, face.uv3, face.uv4] if face.verts[3] else [face.uv1, face.uv2, face.uv3]
 
@@ -625,6 +626,7 @@ class x3d_class:
                 texCoordList.append(uv)
                 j=j+1
             texIndexList.append(-1)
+
         if self.writingtexture == 0:
             self.file.write("\n\t\t\ttexCoordIndex=\"")
             texIndxStr=""
@@ -792,7 +794,7 @@ class x3d_class:
             pic = tex.image
 
             # using .expandpath just in case, os.path may not expect //
-            basename = os.path.basename(pic.get_abs_filename())
+            basename = os.path.basename(bpy.utils.expandpath(pic.filename))
 
             pic = alltextures[i].image
             # pic = alltextures[i].getImage()
@@ -1046,7 +1048,7 @@ class x3d_class:
     def computeDirection(self, mtx):
         x,y,z=(0,-1.0,0) # point down
 
-        ax,ay,az = (mtx*MATWORLD).toEuler()
+        ax,ay,az = (mtx*MATWORLD).to_euler()
 
         # ax *= DEG2RAD
         # ay *= DEG2RAD
@@ -1225,11 +1227,11 @@ class ExportX3D(bpy.types.Operator):
     # List of operator properties, the attributes will be assigned
     # to the class instance from the operator settings before calling.
     path = StringProperty(name="File Path", description="File path used for exporting the X3D file", maxlen= 1024, default= "")
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
-    apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object.", default=True)
+    apply_modifiers = BoolProperty(name="Apply Modifiers", description="Use transformed mesh data from each object", default=True)
     triangulate = BoolProperty(name="Triangulate", description="Triangulate quads.", default=False)
-    compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install.", default=False)
-
+    compress = BoolProperty(name="Compress", description="GZip the resulting file, requires a full python install", default=False)
 
     def execute(self, context):
         x3d_export(self.properties.path, context, self.properties.apply_modifiers, self.properties.triangulate, self.properties.compress)
@@ -1240,14 +1242,23 @@ class ExportX3D(bpy.types.Operator):
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
 
-bpy.types.register(ExportX3D)
-
 
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".x3d")
-    self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)...").path = default_path
+    self.layout.operator(ExportX3D.bl_idname, text="X3D Extensible 3D (.x3d)").path = default_path
 
-bpy.types.INFO_MT_file_export.append(menu_func)
+
+def register():
+    bpy.types.register(ExportX3D)
+    bpy.types.INFO_MT_file_export.append(menu_func)
+
+def unregister():
+    bpy.types.unregister(ExportX3D)
+    bpy.types.INFO_MT_file_export.remove(menu_func)
 
 # NOTES
 # - blender version is hardcoded
+
+if __name__ == "__main__":
+    register()
+

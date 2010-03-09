@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -181,7 +181,7 @@ int RE_rayobjectcontrol_test_break(RayObjectControl *c);
 #include <time.h>
 
 #define BENCH(a,name)	\
-	do {			\
+	{			\
 		double _t1, _t2;				\
 		struct timeval _tstart, _tend;	\
 		clock_t _clock_init = clock();	\
@@ -191,7 +191,7 @@ int RE_rayobjectcontrol_test_break(RayObjectControl *c);
 		_t1 = ( double ) _tstart.tv_sec + ( double ) _tstart.tv_usec/ ( 1000*1000 );	\
 		_t2 = ( double )   _tend.tv_sec + ( double )   _tend.tv_usec/ ( 1000*1000 );	\
 		printf("BENCH:%s: %fs (real) %fs (cpu)\n", #name, _t2-_t1, (float)(clock()-_clock_init)/CLOCKS_PER_SEC);\
-	} while(0)
+	}
 #else
 
 #define BENCH(a,name)	(a)

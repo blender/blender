@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -74,6 +74,7 @@
 #include "BIF_glutil.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 #include "BLF_api.h"
 
 #include "ED_armature.h"
@@ -82,6 +83,7 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_screen_types.h"
 #include "ED_util.h"
 #include "ED_transform.h"
 #include "ED_types.h"
@@ -738,7 +740,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 	char *printable = NULL;
 	
 	if (v3d->localvd) {
-		printable = malloc(strlen(name) + strlen(" (Local)_")); /* '_' gives space for '\0' */
+		printable = MEM_mallocN(strlen(name) + strlen(" (Local)_"), "viewport_name"); /* '_' gives space for '\0' */
 												 strcpy(printable, name);
 												 strcat(printable, " (Local)");
 	} else {
@@ -751,29 +753,8 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d)
 	}
 
 	if (v3d->localvd) {
-		free(printable);
+		MEM_freeN(printable);
 	}
-}
-
-
-static char *get_cfra_marker_name(Scene *scene)
-{
-	ListBase *markers= &scene->markers;
-	TimeMarker *m1, *m2;
-	
-	/* search through markers for match */
-	for (m1=markers->first, m2=markers->last; m1 && m2; m1=m1->next, m2=m2->prev) {
-		if (m1->frame==CFRA)
-			return m1->name;
-		
-		if (m1 == m2)
-			break;		
-		
-		if (m2->frame==CFRA)
-			return m2->name;
-	}
-	
-	return NULL;
 }
 
 /* draw info beside axes in bottom left-corner: 
@@ -785,7 +766,7 @@ static void draw_selected_name(Scene *scene, Object *ob, View3D *v3d)
 	short offset=30;
 	
 	/* get name of marker on current frame (if available) */
-	markern= get_cfra_marker_name(scene);
+	markern= scene_find_marker_name(scene, CFRA);
 	
 	/* check if there is an object */
 	if(ob) {
@@ -1312,106 +1293,116 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 	ImBuf *ibuf= NULL;
 	float vec[4], fac, asp, zoomx, zoomy;
 	float x1, y1, x2, y2, cx, cy;
-	
-	bgpic= v3d->bgpic;
-	if(bgpic==NULL) return;
-	
-	ima= bgpic->ima;
-	
-	if(ima)
-		ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
-	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL) ) 
-		return;
-	if(ibuf->channels!=4)
-		return;
-	if(ibuf->rect==NULL)
-		IMB_rect_from_float(ibuf);
-	
-	if(rv3d->persp==2) {
-		rctf vb;
-		
-		calc_viewborder(scene, ar, v3d, &vb);
-		
-		x1= vb.xmin;
-		y1= vb.ymin;
-		x2= vb.xmax;
-		y2= vb.ymax;
-	}
-	else {
-		float sco[2];
-		
-		/* calc window coord */
-		initgrabz(rv3d, 0.0, 0.0, 0.0);
-		window_to_3d_delta(ar, vec, 1, 0);
-		fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
-		fac= 1.0/fac;
-		
-		asp= ( (float)ibuf->y)/(float)ibuf->x;
-		
-		vec[0] = vec[1] = vec[2] = 0.0;
-		view3d_project_float(ar, vec, sco, rv3d->persmat);
-		cx = sco[0];
-		cy = sco[1];
-		
-		x1=  cx+ fac*(bgpic->xof-bgpic->size);
-		y1=  cy+ asp*fac*(bgpic->yof-bgpic->size);
-		x2=  cx+ fac*(bgpic->xof+bgpic->size);
-		y2=  cy+ asp*fac*(bgpic->yof+bgpic->size);
-	}
-	
-	/* complete clip? */
-	
-	if(x2 < 0 ) return;
-	if(y2 < 0 ) return;
-	if(x1 > ar->winx ) return;
-	if(y1 > ar->winy ) return;
-	
-	zoomx= (x2-x1)/ibuf->x;
-	zoomy= (y2-y1)/ibuf->y;
-	
-	/* for some reason; zoomlevels down refuses to use GL_ALPHA_SCALE */
-	if(zoomx < 1.0f || zoomy < 1.0f) {
-		float tzoom= MIN2(zoomx, zoomy);
-		int mip= 0;
-		
-		if(ibuf->mipmap[0]==NULL)
-			IMB_makemipmap(ibuf, 0, 0);
-		
-		while(tzoom < 1.0f && mip<8 && ibuf->mipmap[mip]) {
-			tzoom*= 2.0f;
-			zoomx*= 2.0f;
-			zoomy*= 2.0f;
-			mip++;
-		}
-		if(mip>0)
-			ibuf= ibuf->mipmap[mip-1];
-	}
-	
-	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
-	glDepthMask(0);
-	
-	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
-	
-	/* need to use wm push/pop matrix because ED_region_pixelspace
-	   uses the wm functions too, otherwise gets out of sync */
-	wmPushMatrix();
-	ED_region_pixelspace(ar);
-	
-	glEnable(GL_BLEND);
-	
-	glPixelZoom(zoomx, zoomy);
-	glColor4f(1.0, 1.0, 1.0, 1.0-bgpic->blend);
-	glaDrawPixelsTex(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
-	
-	glPixelZoom(1.0, 1.0);
-	glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
-	
-	wmPopMatrix();
-	
-	glDisable(GL_BLEND);
 
-	glDepthMask(1);
-	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+
+	for ( bgpic= v3d->bgpicbase.first; bgpic; bgpic= bgpic->next ) {
+
+		if(	(bgpic->view == 0) || /* zero for any */
+			(bgpic->view & (1<<rv3d->view)) || /* check agaist flags */
+			(rv3d->persp==RV3D_CAMOB && bgpic->view == (1<<RV3D_VIEW_CAMERA))
+		) {
+			ima= bgpic->ima;
+			if(ima==NULL)
+				continue;
+			BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
+			ibuf= BKE_image_get_ibuf(ima, &bgpic->iuser);
+			if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL) )
+				continue;
+			if(ibuf->channels!=4)
+				continue;
+			if(ibuf->rect==NULL)
+				IMB_rect_from_float(ibuf);
+
+			if(rv3d->persp==RV3D_CAMOB) {
+				rctf vb;
+
+				calc_viewborder(scene, ar, v3d, &vb);
+
+				x1= vb.xmin;
+				y1= vb.ymin;
+				x2= vb.xmax;
+				y2= vb.ymax;
+			}
+			else {
+				float sco[2];
+
+				/* calc window coord */
+				initgrabz(rv3d, 0.0, 0.0, 0.0);
+				window_to_3d_delta(ar, vec, 1, 0);
+				fac= MAX3( fabs(vec[0]), fabs(vec[1]), fabs(vec[1]) );
+				fac= 1.0/fac;
+
+				asp= ( (float)ibuf->y)/(float)ibuf->x;
+
+				vec[0] = vec[1] = vec[2] = 0.0;
+				view3d_project_float(ar, vec, sco, rv3d->persmat);
+				cx = sco[0];
+				cy = sco[1];
+
+				x1=  cx+ fac*(bgpic->xof-bgpic->size);
+				y1=  cy+ asp*fac*(bgpic->yof-bgpic->size);
+				x2=  cx+ fac*(bgpic->xof+bgpic->size);
+				y2=  cy+ asp*fac*(bgpic->yof+bgpic->size);
+			}
+
+			/* complete clip? */
+
+			if(x2 < 0 ) continue;
+			if(y2 < 0 ) continue;
+			if(x1 > ar->winx ) continue;
+			if(y1 > ar->winy ) continue;
+
+			zoomx= (x2-x1)/ibuf->x;
+			zoomy= (y2-y1)/ibuf->y;
+
+			/* for some reason; zoomlevels down refuses to use GL_ALPHA_SCALE */
+			if(zoomx < 1.0f || zoomy < 1.0f) {
+				float tzoom= MIN2(zoomx, zoomy);
+				int mip= 0;
+
+				if(ibuf->mipmap[0]==NULL)
+					IMB_makemipmap(ibuf, 0, 0);
+
+				while(tzoom < 1.0f && mip<8 && ibuf->mipmap[mip]) {
+					tzoom*= 2.0f;
+					zoomx*= 2.0f;
+					zoomy*= 2.0f;
+					mip++;
+				}
+				if(mip>0)
+					ibuf= ibuf->mipmap[mip-1];
+			}
+
+			if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+			glDepthMask(0);
+
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+
+			glMatrixMode(GL_PROJECTION);
+			glPushMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPushMatrix();
+			ED_region_pixelspace(ar);
+
+			glPixelZoom(zoomx, zoomy);
+			glColor4f(1.0, 1.0, 1.0, 1.0-bgpic->blend);
+			glaDrawPixelsTex(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+
+			glPixelZoom(1.0, 1.0);
+			glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
+
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+			glPopMatrix();
+
+			glDisable(GL_BLEND);
+
+			glDepthMask(1);
+			if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+		}
+	}
 }
 
 /* ****************** View3d afterdraw *************** */
@@ -1487,13 +1478,26 @@ static void view3d_draw_transp(Scene *scene, ARegion *ar, View3D *v3d)
 	draw_dupli_objects_color was added because when drawing set dupli's
 	we need to force the color
  */
+
+#if 0
+int dupli_ob_sort(void *arg1, void *arg2)
+{
+	void *p1= ((DupliObject *)arg1)->ob;
+	void *p2= ((DupliObject *)arg2)->ob;
+	int val = 0;
+	if (p1 < p2)		val = -1;
+	else if (p1 > p2)	val = 1;
+	return val;
+}
+#endif
+
 static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int color)
 {	
 	RegionView3D *rv3d= ar->regiondata;
 	ListBase *lb;
 	DupliObject *dob;
 	Base tbase;
-	BoundBox *bb= NULL;
+	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist=0;
 	short transflag, use_displist= -1;	/* -1 is initialize */
 	char dt, dtx;
@@ -1502,6 +1506,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	
 	tbase.flag= OB_FROMDUPLI|base->flag;
 	lb= object_duplilist(scene, base->object);
+	// BLI_sortlist(lb, dupli_ob_sort); // might be nice to have if we have a dupli list with mixed objects.
 	
 	for(dob= lb->first; dob; dob= dob->next) {
 		if(dob->no_draw);
@@ -1529,14 +1534,19 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			if(use_displist == -1) {
 				
 				/* lamp drawing messes with matrices, could be handled smarter... but this works */
-				if(dob->ob->type==OB_LAMP || dob->type==OB_DUPLIGROUP)
+
+				/* note, since this was added, its checked dob->type==OB_DUPLIGROUP
+				 * however this is very slow, it was probably needed for the NLA
+				 * offset feature (used in group-duplicate.blend but no longer works in 2.5)
+				 * so for now it should be ok to - campbell */
+				if(dob->ob->type==OB_LAMP || (dob->type==OB_DUPLIGROUP && dob->animated) || !(bb_tmp= object_get_boundbox(dob->ob)))
 					use_displist= 0;
 				else {
+					bb= *bb_tmp; /* must make a copy  */
+
 					/* disable boundbox check for list creation */
 					object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
 					/* need this for next part of code */
-					bb= object_get_boundbox(dob->ob);
-					
 					unit_m4(dob->ob->obmat);	/* obmat gets restored */
 					
 					displist= glGenLists(1);
@@ -1549,10 +1559,10 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 				}
 			}
 			if(use_displist) {
-				wmMultMatrix(dob->mat);
-				if(boundbox_clip(rv3d, dob->mat, bb))
+				glMultMatrixf(dob->mat);
+				if(boundbox_clip(rv3d, dob->mat, &bb))
 					glCallList(displist);
-				wmLoadMatrix(rv3d->viewmat);
+				glLoadMatrixf(rv3d->viewmat);
 			}
 			else {
 				copy_m4_m4(dob->ob->obmat, dob->mat);
@@ -1631,7 +1641,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 
 	v3d->zbuf= TRUE;
 	glEnable(GL_DEPTH_TEST);
@@ -1667,7 +1677,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 	
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 //	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
 	
 	if(rv3d->rflag & RV3D_CLIPPING) {
@@ -1737,7 +1747,12 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (* func)(void *))
 		v3d->transp= FALSE;
 	}
 	
+	if(rv3d->rflag & RV3D_CLIPPING)
+		view3d_clr_clipping();
+	
 	v3d->zbuf = zbuf;
+	if(!v3d->zbuf) glDisable(GL_DEPTH_TEST);
+
 	U.glalphaclip = glalphaclip;
 	v3d->flag = flag;
 	U.obcenter_dia= obcenter_dia;
@@ -1903,10 +1918,9 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 	
 	/* set for opengl */
 	glMatrixMode(GL_PROJECTION);
-	wmLoadMatrix(rv3d->winmat);
-
+	glLoadMatrixf(rv3d->winmat);
 	glMatrixMode(GL_MODELVIEW);
-	wmLoadMatrix(rv3d->viewmat);
+	glLoadMatrixf(rv3d->viewmat);
 }
 
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, int winy, float viewmat[][4], float winmat[][4])
@@ -2001,6 +2015,57 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar, int winx, 
 	glPopMatrix();
 }
 
+/* NOTE: the info that this uses is updated in ED_refresh_viewport_fps(), 
+ * which currently gets called during SCREEN_OT_animation_step.
+ */
+static void draw_viewport_fps(Scene *scene, ARegion *ar)
+{
+	ScreenFrameRateInfo *fpsi= scene->fps_info;
+	float fps;
+	char printable[16];
+	int i, tot;
+	
+	if (!fpsi || !fpsi->lredrawtime || !fpsi->redrawtime)
+		return;
+	
+	printable[0] = '\0';
+	
+#if 0
+	/* this is too simple, better do an average */
+	fps = (float)(1.0/(fpsi->lredrawtime-fpsi->redrawtime))
+#else
+	fpsi->redrawtimes_fps[fpsi->redrawtime_index] = (float)(1.0/(fpsi->lredrawtime-fpsi->redrawtime));
+	
+	for (i=0, tot=0, fps=0.0f ; i < REDRAW_FRAME_AVERAGE ; i++) {
+		if (fpsi->redrawtimes_fps[i]) {
+			fps += fpsi->redrawtimes_fps[i];
+			tot++;
+		}
+	}
+	if (tot) {
+		fpsi->redrawtime_index = (fpsi->redrawtime_index + 1) % REDRAW_FRAME_AVERAGE;
+		
+		//fpsi->redrawtime_index++;
+		//if (fpsi->redrawtime >= REDRAW_FRAME_AVERAGE)
+		//	fpsi->redrawtime = 0;
+		
+		fps = fps / tot;
+	}
+#endif
+	
+	/* is this more then half a frame behind? */
+	if (fps+0.5 < FPS) {
+		UI_ThemeColor(TH_REDALERT);
+		sprintf(printable, "fps: %.2f", (float)fps);
+	} 
+	else {
+		UI_ThemeColor(TH_TEXT_HI);
+		sprintf(printable, "fps: %i", (int)(fps+0.5));
+	}
+	
+	BLF_draw_default(22,  ar->winy-17, 0.0f, printable);
+}
+
 void view3d_main_area_draw(const bContext *C, ARegion *ar)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -2013,7 +2078,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	int retopo= 0, sculptparticle= 0;
 	Object *obact = OBACT;
 	char *grid_unit= NULL;
-	
+
 	/* from now on all object derived meshes check this */
 	v3d->customdata_mask= get_viewedit_datamask(CTX_wm_screen(C), scene, obact);
 	
@@ -2029,6 +2094,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, NULL, NULL);
 
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
+
 	if(rv3d->rflag & RV3D_CLIPPING)
 		view3d_draw_clipping(rv3d);
 	
@@ -2041,8 +2108,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		v3d->zbuf= FALSE;
 
 	/* enables anti-aliasing for 3D view drawing */
-	if (!(U.gameflags & USER_DISABLE_AA))
-		glEnable(GL_MULTISAMPLE_ARB);
+	/*if (!(U.gameflags & USER_DISABLE_AA))
+		glEnable(GL_MULTISAMPLE_ARB);*/
 	
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	rv3d->gridview= v3d->grid;
@@ -2056,7 +2123,7 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 								  star_stuff_term_func);
 				}
 			}
-			if(v3d->flag & V3D_DISPBGPIC) draw_bgpic(scene, ar, v3d);
+			if(v3d->flag & V3D_DISPBGPICS) draw_bgpic(scene, ar, v3d);
 		}
 	}
 	else {
@@ -2064,11 +2131,11 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		drawgrid(&scene->unit, ar, v3d, &grid_unit);
 		/* XXX make function? replaces persp(1) */
 		glMatrixMode(GL_PROJECTION);
-		wmLoadMatrix(rv3d->winmat);
+		glLoadMatrixf(rv3d->winmat);
 		glMatrixMode(GL_MODELVIEW);
-		wmLoadMatrix(rv3d->viewmat);
+		glLoadMatrixf(rv3d->viewmat);
 		
-		if(v3d->flag & V3D_DISPBGPIC) {
+		if(v3d->flag & V3D_DISPBGPICS) {
 			draw_bgpic(scene, ar, v3d);
 		}
 	}
@@ -2131,8 +2198,6 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		view3d_update_depths(ar, v3d);
 	}
 	
-	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
-	
 //	REEB_draw();
 	
 //	if(scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
@@ -2140,6 +2205,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	/* Transp and X-ray afterdraw stuff */
 	view3d_draw_transp(scene, ar, v3d);
 	view3d_draw_xray(scene, ar, v3d, 1);	// clears zbuffer if it is used!
+	
+	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	
 	if(!retopo && sculptparticle && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
 		view3d_update_depths(ar, v3d);
@@ -2151,8 +2218,8 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	BIF_draw_manipulator(C);
 	
 	/* Disable back anti-aliasing */
-	if (!(U.gameflags & USER_DISABLE_AA))
-		glDisable(GL_MULTISAMPLE_ARB);
+	/*if (!(U.gameflags & USER_DISABLE_AA))
+		glDisable(GL_MULTISAMPLE_ARB);*/
 
 	if(v3d->zbuf) {
 		v3d->zbuf= FALSE;
@@ -2186,8 +2253,10 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	else	
 		draw_view_icon(rv3d);
 	
-	/* XXX removed viewport fps */
-	if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
+	if((U.uiflag & USER_SHOW_FPS) && (CTX_wm_screen(C)->animtimer)) {
+		draw_viewport_fps(scene, ar);
+	}
+	else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
 		draw_viewport_name(ar, v3d);
 	}
 	if (grid_unit) { /* draw below the viewport name */

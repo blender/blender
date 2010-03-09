@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -41,21 +41,6 @@ struct Ipo;
 struct PackedFile;
 struct SpaceLink;
 
-// runtime only - no saving
-typedef struct SoundHandle {
-	struct SoundHandle *next, *prev;
-	struct bSound *source;
-	void *handle;
-	int state;
-	int startframe;
-	int endframe;
-	int frameskip;
-	int mute;
-	int changed;
-	float volume;
-	float pad;
-} SoundHandle;
-
 typedef struct Sound3D
 {
 	float min_gain;
@@ -74,7 +59,7 @@ typedef struct bSound {
 	/**
 	 * The path to the sound file.
 	 */
-	char name[160];
+	char name[240];
 
 	/**
 	 * The packed file.
@@ -98,19 +83,21 @@ typedef struct bSound {
 	float max_gain;
 	float distance;
 	int flags;
+	int pad;
 
 /**	currently	int type;
 	struct bSound *child_sound;*/
 
 	/**
-	 * Whether the sound has been changed and must be restarted if playing.
-	 */
-	int changed;
-
-	/**
 	 * The audaspace handle for cache.
 	 */
 	void *cache;
+
+	/**
+	 * The audaspace handle that should actually be played back.
+	 * Should be cache if cache != NULL; otherwise it's handle
+	 */
+	void *playback_handle;
 
 /**	XXX unused currently	// SOUND_TYPE_LIMITER
 	float start, end;*/

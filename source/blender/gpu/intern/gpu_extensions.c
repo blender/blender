@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -71,7 +71,19 @@ static struct GPUGlobal {
 	GLuint currentfb;
 	int glslsupport;
 	int extdisabled;
+	GPUDeviceType device;
+	GPUOSType os;
+	GPUDriverType driver;
 } GG = {1, 0, 0, 0};
+
+/* GPU Types */
+
+int GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
+{
+	return (GG.device & device) && (GG.os & os) && (GG.driver & driver);
+}
+
+/* GPU Extensions */
 
 void GPU_extensions_disable()
 {
@@ -80,6 +92,8 @@ void GPU_extensions_disable()
 
 void GPU_extensions_init()
 {
+	const char *vendor, *renderer;
+
 	glewInit();
 
 	/* glewIsSupported("GL_VERSION_2_0") */
@@ -91,6 +105,54 @@ void GPU_extensions_init()
 	if (!GLEW_ARB_multitexture) GG.glslsupport = 0;
 	if (!GLEW_ARB_vertex_shader) GG.glslsupport = 0;
 	if (!GLEW_ARB_fragment_shader) GG.glslsupport = 0;
+
+	vendor = (const char*)glGetString(GL_VENDOR);
+	renderer = (const char*)glGetString(GL_RENDERER);
+
+	if(strstr(vendor, "ATI")) {
+		GG.device = GPU_DEVICE_ATI;
+		GG.driver = GPU_DRIVER_OFFICIAL;
+	}
+	else if(strstr(vendor, "NVIDIA")) {
+		GG.device = GPU_DEVICE_NVIDIA;
+		GG.driver = GPU_DRIVER_OFFICIAL;
+	}
+	else if(strstr(vendor, "Intel") || strstr(renderer, "Mesa DRI Intel")) {
+		GG.device = GPU_DEVICE_INTEL;
+		GG.driver = GPU_DRIVER_OFFICIAL;
+	}
+	else if(strstr(renderer, "Mesa DRI R")) {
+		GG.device = GPU_DEVICE_ATI;
+		GG.driver = GPU_DRIVER_OPENSOURCE;
+	}
+	else if(strstr(renderer, "Nouveau")) {
+		GG.device = GPU_DEVICE_NVIDIA;
+		GG.driver = GPU_DRIVER_OPENSOURCE;
+	}
+	else if(strstr(vendor, "Mesa")) {
+		GG.device = GPU_DEVICE_SOFTWARE;
+		GG.driver = GPU_DRIVER_SOFTWARE;
+	}
+	else if(strstr(vendor, "Microsoft")) {
+		GG.device = GPU_DEVICE_SOFTWARE;
+		GG.driver = GPU_DRIVER_SOFTWARE;
+	}
+	else if(strstr(renderer, "Apple Software Renderer")) {
+		GG.device = GPU_DEVICE_SOFTWARE;
+		GG.driver = GPU_DRIVER_SOFTWARE;
+	}
+	else {
+		GG.device = GPU_DEVICE_UNKNOWN;
+		GG.driver = GPU_DRIVER_UNKNOWN;
+	}
+
+	GG.os = GPU_OS_UNIX;
+#ifdef _WIN32
+	GG.os = GPU_OS_WIN;
+#endif
+#ifdef __APPLE__
+	GG.os = GPU_OS_MAC;
+#endif
 }
 
 int GPU_glsl_support()
@@ -102,10 +164,8 @@ int GPU_non_power_of_two_support()
 {
 	/* Exception for buggy ATI/Apple driver in Mac OS X 10.5/10.6,
 	 * they claim to support this but can cause system freeze */
-#ifdef __APPLE__
-	if(strcmp(glGetString(GL_VENDOR), "ATI Technologies Inc.") == 0)
+	if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_MAC, GPU_DRIVER_OFFICIAL))
 		return 0;
-#endif
 
 	return GLEW_ARB_texture_non_power_of_two;
 }
@@ -372,6 +432,13 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int depth, float *fpixels)
 	GPU_print_error("3D glTexImage3D");
 
 	if (fpixels) {
+		if(!GPU_non_power_of_two_support() && (w != tex->w || h != tex->h || depth != tex->depth)) {
+			/* clear first to avoid unitialized pixels */
+			float *zero= MEM_callocN(sizeof(float)*tex->w*tex->h*tex->depth, "zero");
+			glTexSubImage3D(tex->target, 0, 0, 0, 0, tex->w, tex->h, tex->depth, format, type, zero);
+			MEM_freeN(zero);
+		}
+
 		glTexSubImage3D(tex->target, 0, 0, 0, 0, w, h, depth, format, type, fpixels);
 		GPU_print_error("3D glTexSubImage3D");
 	}
@@ -404,7 +471,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, double time, 
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &lastbindcode);
 
 	GPU_update_image_time(ima, time);
-	bindcode = GPU_verify_image(ima, 0, 0, 0, mipmap);
+	bindcode = GPU_verify_image(ima, iuser, 0, 0, 0, mipmap);
 
 	if(ima->gputexture) {
 		ima->gputexture->bindcode = bindcode;

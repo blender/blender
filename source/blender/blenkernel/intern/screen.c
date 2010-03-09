@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -334,5 +334,21 @@ unsigned int BKE_screen_visible_layers(bScreen *screen, Scene *scene)
 		return scene->lay;
 
 	return layer;
+}
+
+/* ***************** Utilities ********************** */
+
+/* Find a region of the specified type from the given area */
+ARegion *BKE_area_find_region_type(ScrArea *sa, int type)
+{
+	if (sa) {
+		ARegion *ar;
+		
+		for (ar=sa->regionbase.first; ar; ar= ar->next) {
+			if (ar->regiontype == type)
+				return ar;
+		}
+	}
+	return NULL;
 }
 

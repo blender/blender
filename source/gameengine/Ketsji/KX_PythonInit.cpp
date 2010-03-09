@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -40,7 +40,7 @@ extern "C" {
 	#include "bpy_internal_import.h"  /* from the blender python api, but we want to import text too! */
 	#include "Mathutils.h" // Blender.Mathutils module copied here so the blenderlayer can use.
 	#include "Geometry.h" // Blender.Geometry module copied here so the blenderlayer can use.
-	#include "BGL.h"
+	#include "bgl.h"
 
 	#include "marshal.h" /* python header for loading/saving dicts */
 }
@@ -333,14 +333,13 @@ static PyObject* gPyLoadGlobalDict(PyObject*)
 	Py_RETURN_NONE;
 }
 
-
 static char gPySendMessage_doc[] = 
 "sendMessage(subject, [body, to, from])\n\
 sends a message in same manner as a message actuator\
 subject = Subject of the message\
 body = Message body\
 to = Name of object to send the message to\
-from = Name of object to sned the string from";
+from = Name of object to send the string from";
 
 static PyObject* gPySendMessage(PyObject*, PyObject* args)
 {
@@ -494,6 +493,24 @@ static PyObject* gPyGetBlendFileList(PyObject*, PyObject* args)
 	
     closedir(dp);
     return list;
+}
+
+static char gPyAddScene_doc[] = 
+"addScene(name, [overlay])\n\
+adds a scene to the game engine\n\
+name = Name of the scene\n\
+overlay = Overlay or underlay";
+static PyObject* gPyAddScene(PyObject*, PyObject* args)
+{
+	char* name;
+	int overlay = 1;
+	
+	if (!PyArg_ParseTuple(args, "s|i:addScene", &name , &overlay))
+		return NULL;
+	
+	gp_KetsjiEngine->ConvertAndAddScene(name, (overlay != 0));
+
+	Py_RETURN_NONE;
 }
 
 static const char *gPyGetCurrentScene_doc =
@@ -722,15 +739,11 @@ static struct PyMethodDef game_methods[] = {
 	{"saveGlobalDict", (PyCFunction)gPySaveGlobalDict, METH_NOARGS, (const char *)gPySaveGlobalDict_doc},
 	{"loadGlobalDict", (PyCFunction)gPyLoadGlobalDict, METH_NOARGS, (const char *)gPyLoadGlobalDict_doc},
 	{"sendMessage", (PyCFunction)gPySendMessage, METH_VARARGS, (const char *)gPySendMessage_doc},
-	{"getCurrentController",
-	(PyCFunction) SCA_PythonController::sPyGetCurrentController,
-	METH_NOARGS, SCA_PythonController::sPyGetCurrentController__doc__},
-	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene,
-	METH_NOARGS, gPyGetCurrentScene_doc},
-	{"getSceneList", (PyCFunction) gPyGetSceneList,
-	METH_NOARGS, (const char *)gPyGetSceneList_doc},
-	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat,
-	METH_NOARGS, (const char *)gPyGetRandomFloat_doc},
+	{"getCurrentController", (PyCFunction) SCA_PythonController::sPyGetCurrentController, METH_NOARGS, SCA_PythonController::sPyGetCurrentController__doc__},
+	{"getCurrentScene", (PyCFunction) gPyGetCurrentScene, METH_NOARGS, gPyGetCurrentScene_doc},
+	{"getSceneList", (PyCFunction) gPyGetSceneList, METH_NOARGS, (const char *)gPyGetSceneList_doc},
+	{"addScene", (PyCFunction)gPyAddScene, METH_VARARGS, (const char *)gPyAddScene_doc},
+	{"getRandomFloat",(PyCFunction) gPyGetRandomFloat, METH_NOARGS, (const char *)gPyGetRandomFloat_doc},
 	{"setGravity",(PyCFunction) gPySetGravity, METH_O, (const char *)"set Gravitation"},
 	{"getSpectrum",(PyCFunction) gPyGetSpectrum, METH_NOARGS, (const char *)"get audio spectrum"},
 	{"stopDSP",(PyCFunction) gPyStopDSP, METH_VARARGS, (const char *)"stop using the audio dsp (for performance reasons)"},
@@ -1406,7 +1419,13 @@ PyObject* initGameLogic(KX_KetsjiEngine *engine, KX_Scene* scene) // quick hack 
 	KX_MACRO_addTypesToDict(d, KX_STATE28, (1<<27));
 	KX_MACRO_addTypesToDict(d, KX_STATE29, (1<<28));
 	KX_MACRO_addTypesToDict(d, KX_STATE30, (1<<29));
-
+	
+	/* All Sensors */
+	KX_MACRO_addTypesToDict(d, KX_SENSOR_JUST_ACTIVATED, SCA_ISensor::KX_SENSOR_JUST_ACTIVATED);
+	KX_MACRO_addTypesToDict(d, KX_SENSOR_ACTIVE, SCA_ISensor::KX_SENSOR_ACTIVE);
+	KX_MACRO_addTypesToDict(d, KX_SENSOR_JUST_DEACTIVATED, SCA_ISensor::KX_SENSOR_JUST_DEACTIVATED);
+	KX_MACRO_addTypesToDict(d, KX_SENSOR_INACTIVE, SCA_ISensor::KX_SENSOR_INACTIVE);
+	
 	/* Radar Sensor */
 	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_POS_X, KX_RadarSensor::KX_RADAR_AXIS_POS_X);
 	KX_MACRO_addTypesToDict(d, KX_RADAR_AXIS_POS_Y, KX_RadarSensor::KX_RADAR_AXIS_POS_Y);
@@ -1603,7 +1622,7 @@ PyObject *KXpy_import(PyObject *self, PyObject *args)
 	/* quick hack for GamePython modules 
 		TODO: register builtin modules properly by ExtendInittab */
 	if (!strcmp(name, "GameLogic") || !strcmp(name, "GameKeys") || !strcmp(name, "PhysicsConstraints") ||
-		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils") || !strcmp(name, "BGL") || !strcmp(name, "Geometry")) {
+		!strcmp(name, "Rasterizer") || !strcmp(name, "Mathutils") || !strcmp(name, "bgl") || !strcmp(name, "Geometry")) {
 		return PyImport_ImportModuleEx(name, globals, locals, fromlist);
 	}
 	

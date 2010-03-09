@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -64,7 +64,7 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 			
 			if(in[0]->datatype==NS_OSA_VECTORS) {
 				float *fp= in[0]->data;
-				retval= multitex_thread((Tex *)node->id, vec, fp, fp+3, shi->osatex, &texres, thread, which_output);
+				retval= multitex_nodes((Tex *)node->id, vec, fp, fp+3, shi->osatex, &texres, thread, which_output, NULL, NULL);
 			}
 			else if(in[0]->datatype==NS_OSA_VALUES) {
 				float *fp= in[0]->data;
@@ -72,14 +72,14 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 				
 				dxt[0]= fp[0]; dxt[1]= dxt[2]= 0.0f;
 				dyt[0]= fp[1]; dyt[1]= dyt[2]= 0.0f;
-				retval= multitex_thread((Tex *)node->id, vec, dxt, dyt, shi->osatex, &texres, thread, which_output);
+				retval= multitex_nodes((Tex *)node->id, vec, dxt, dyt, shi->osatex, &texres, thread, which_output, NULL, NULL);
 			}
 			else
-				retval= multitex_thread((Tex *)node->id, vec, NULL, NULL, 0, &texres, thread, which_output);
+				retval= multitex_nodes((Tex *)node->id, vec, NULL, NULL, 0, &texres, thread, which_output, NULL, NULL);
 		}
 		else {
 			VECCOPY(vec, shi->lo);
-			retval= multitex_thread((Tex *)node->id, vec, NULL, NULL, 0, &texres, thread, which_output);
+			retval= multitex_nodes((Tex *)node->id, vec, NULL, NULL, 0, &texres, thread, which_output, NULL, NULL);
 		}
 		
 		/* stupid exception */

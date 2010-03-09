@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation
  * All rights reserved.
@@ -86,8 +86,8 @@ void shade_lamp_loop(struct ShadeInput *shi, struct ShadeResult *shr);
 
 void shade_color(struct ShadeInput *shi, ShadeResult *shr);
 
-void ambient_occlusion_to_diffuse(struct ShadeInput *shi, float *diff);
 void ambient_occlusion(struct ShadeInput *shi);
+void environment_lighting_apply(struct ShadeInput *shi, struct ShadeResult *shr);
 
 ListBase *get_lights(struct ShadeInput *shi);
 float lamp_get_visibility(struct LampRen *lar, float *co, float *lv, float *dist);

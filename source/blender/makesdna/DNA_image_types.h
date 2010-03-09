@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -118,8 +118,9 @@ typedef struct Image {
 #define IMA_TWINANIM		2
 #define IMA_COLCYCLE		4	/* Depreciated */
 #define IMA_MIPMAP_COMPLETE 8   /* all mipmap levels in OpenGL texture set? */
-#define IMA_CLAMP_U		16 
-#define IMA_CLAMP_V		32
+#define IMA_CLAMP_U			16 
+#define IMA_CLAMP_V			32
+#define IMA_TPAGE_REFRESH	64
 
 /* ima->type and ima->source moved to BKE_image.h, for API */
 

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -81,6 +81,9 @@ void IDP_LinkID(struct IDProperty *prop, ID *id);
 void IDP_UnlinkID(struct IDProperty *prop);
 
 /*-------- Group Functions -------*/
+
+/* Sync values from one group to another, only where they match */
+void IDP_SyncGroupValues(struct IDProperty *dest, struct IDProperty *src);
 
 /*
  replaces all properties with the same name in a destination group from a source group.

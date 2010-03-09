@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -160,6 +160,12 @@ public:
 	{
 		return m_state;
 	}
+	
+	/** get the previous state of the sensor: positive or negative */
+	bool GetPrevState()
+	{
+		return m_prev_state;
+	}
 
 	/** Resume sensing. */
 	void Resume();
@@ -178,8 +184,17 @@ public:
 	
 	static PyObject*	pyattr_get_triggered(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_positive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_status(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int          pyattr_check_level(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int          pyattr_check_tap(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	
+	enum SensorStatus {
+		KX_SENSOR_INACTIVE = 0,
+		KX_SENSOR_JUST_ACTIVATED,
+		KX_SENSOR_ACTIVE,
+		KX_SENSOR_JUST_DEACTIVATED
+	
+	};
 #endif // DISABLE_PYTHON
 };
 

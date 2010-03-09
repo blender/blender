@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -70,18 +70,29 @@
 
 typedef struct TexCallData {
 	TexResult *target;
-	float *coord;
+	float *co;
 	float *dxt, *dyt;
+	int osatex;
 	char do_preview;
 	short thread;
 	short which_output;
 	int cfra;
+
+	ShadeInput *shi;
+	MTex *mtex;
 } TexCallData;
 
 typedef struct TexParams {
-	float *coord;
+	float *co;
 	float *dxt, *dyt;
+	float *previewco;
 	int cfra;
+	int osatex;
+
+	/* optional. we don't really want these here, but image
+	   textures need to do mapping & color correction */
+	ShadeInput *shi;
+	MTex *mtex;
 } TexParams;
 
 typedef void(*TexFn) (float *out, TexParams *params, bNode *node, bNodeStack **in, short thread);

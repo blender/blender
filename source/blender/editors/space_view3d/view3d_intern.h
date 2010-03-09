@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -73,14 +73,17 @@ void VIEW3D_OT_move(struct wmOperatorType *ot);
 void VIEW3D_OT_rotate(struct wmOperatorType *ot);
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
-void VIEW3D_OT_view_center(struct wmOperatorType *ot);
+void VIEW3D_OT_view_selected(struct wmOperatorType *ot);
 void VIEW3D_OT_view_center_cursor(struct wmOperatorType *ot);
 void VIEW3D_OT_view_pan(struct wmOperatorType *ot);
 void VIEW3D_OT_view_persportho(struct wmOperatorType *ot);
+void VIEW3D_OT_add_background_image(struct wmOperatorType *ot);
+void VIEW3D_OT_remove_background_image(struct wmOperatorType *ot);
 void VIEW3D_OT_view_orbit(struct wmOperatorType *ot);
 void VIEW3D_OT_clip_border(struct wmOperatorType *ot);
 void VIEW3D_OT_cursor3d(struct wmOperatorType *ot);
 void VIEW3D_OT_manipulator(struct wmOperatorType *ot);
+void VIEW3D_OT_enable_manipulator(struct wmOperatorType *ot);
 void VIEW3D_OT_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 void VIEW3D_OT_drawtype(struct wmOperatorType *ot);
@@ -104,8 +107,10 @@ void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, Objec
 void drawaxes(float size, int flag, char drawtype);
 
 void view3d_cached_text_draw_begin(void);
-void view3d_cached_text_draw_add(float x, float y, float z, char *str, short xoffs);
+void view3d_cached_text_draw_add(float x, float y, float z, char *str, short xoffs, short flag);
 void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, float mat[][4]);
+#define V3D_CACHE_TEXT_ZBUF 1
+#define V3D_CACHE_TEXT_WORLDSPACE 2
 
 /* drawarmature.c */
 int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag);
@@ -161,8 +166,8 @@ void VIEW3D_OT_properties(struct wmOperatorType *ot);
 void view3d_buttons_register(struct ARegionType *art);
 
 /* view3d_toolbar.c */
-void VIEW3D_OT_toolbar(struct wmOperatorType *ot);
-void view3d_toolbar_register(struct ARegionType *art);
+void VIEW3D_OT_toolshelf(struct wmOperatorType *ot);
+void view3d_toolshelf_register(struct ARegionType *art);
 void view3d_tool_props_register(struct ARegionType *art);
 
 /* view3d_snap.c */
@@ -172,6 +177,7 @@ void VIEW3D_OT_snap_selected_to_grid(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_selected_to_cursor(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_selected_to_center(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_grid(struct wmOperatorType *ot);
+void VIEW3D_OT_snap_cursor_to_center(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_selected(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_active(struct wmOperatorType *ot);
 

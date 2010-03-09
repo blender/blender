@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -122,7 +122,7 @@ static int node_select_exec(bContext *C, wmOperator *op)
 
 	/* WATCH THIS, there are a few other ways to change the active material */
 	if(node) {
-		if (node->id && GS(node->id->name)== ID_MA) {
+		if (node->id && ELEM(GS(node->id->name), ID_MA, ID_TE)) {
 			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, node->id);
 		}
 	}
@@ -280,7 +280,7 @@ void NODE_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select/Deselect All";
-	ot->description = "(De)select all nodes.";
+	ot->description = "(De)select all nodes";
 	ot->idname = "NODE_OT_select_all";
 	
 	/* api callbacks */
@@ -320,7 +320,7 @@ void NODE_OT_select_linked_to(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Linked To";
-	ot->description = "Select nodes linked to the selected ones.";
+	ot->description = "Select nodes linked to the selected ones";
 	ot->idname = "NODE_OT_select_linked_to";
 	
 	/* api callbacks */
@@ -360,7 +360,7 @@ void NODE_OT_select_linked_from(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Linked From";
-	ot->description = "Select nodes linked from the selected ones.";
+	ot->description = "Select nodes linked from the selected ones";
 	ot->idname = "NODE_OT_select_linked_from";
 	
 	/* api callbacks */

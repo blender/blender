@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Jonathan Merritt.
  *
@@ -85,30 +85,42 @@ void libtiff_loadlibtiff(void)
 	if (libtiff != NULL)  return;
 	libtiff = PIL_dynlib_open("/usr/local/lib/libtiff.3.dylib");
 	if (libtiff != NULL)  return;
+	libtiff = PIL_dynlib_open("/usr/local/lib/libtiff.4.dylib");
+	if (libtiff != NULL)  return;
 	//inside the blender app package contents/resources
 	libtiff = PIL_dynlib_open("@executable_path/../resources/libtiff.dylib");
 	if (libtiff != NULL)  return;
 	libtiff = PIL_dynlib_open("@executable_path/../resources/libtiff.3.dylib");
+	if (libtiff != NULL)  return;
+	libtiff = PIL_dynlib_open("@executable_path/../resources/libtiff.4.dylib");
 	if (libtiff != NULL)  return;
 	//inside the blender app package contents/frameworks
 	libtiff = PIL_dynlib_open("@executable_path/../frameworks/libtiff.dylib");
 	if (libtiff != NULL)  return;
 	libtiff = PIL_dynlib_open("@executable_path/../frameworks/libtiff.3.dylib");
 	if (libtiff != NULL)  return;
+	libtiff = PIL_dynlib_open("@executable_path/../frameworks/libtiff.4.dylib");
+	if (libtiff != NULL)  return;
 	//along side the blender app package
 	libtiff = PIL_dynlib_open("@executable_path/../../../libtiff.dylib");
 	if (libtiff != NULL)  return;
 	libtiff = PIL_dynlib_open("@executable_path/../../../libtiff.3.dylib");
+	if (libtiff != NULL)  return;
+	libtiff = PIL_dynlib_open("@executable_path/../../../libtiff.4.dylib");
 	if (libtiff != NULL)  return;
 	//inside the blender app package contents/MacOS
 	libtiff = PIL_dynlib_open("@executable_path/libtiff.dylib");
 	if (libtiff != NULL)  return;
 	libtiff = PIL_dynlib_open("@executable_path/libtiff.3.dylib");
 	if (libtiff != NULL)  return;
+	libtiff = PIL_dynlib_open("@executable_path/libtiff.4.dylib");
+	if (libtiff != NULL)  return;
 #else
 	libtiff = PIL_dynlib_open("libtiff.so");
 	if (libtiff != NULL)  return;
 	libtiff = PIL_dynlib_open("libtiff.so.3");
+	if (libtiff != NULL)  return;
+	libtiff = PIL_dynlib_open("libtiff.so.4");
 	if (libtiff != NULL)  return;
 	libtiff = PIL_dynlib_open("libtiff.dll");
 	if (libtiff != NULL)  return;
@@ -116,8 +128,14 @@ void libtiff_loadlibtiff(void)
 	if (libtiff != NULL)  return;
 	libtiff = PIL_dynlib_open("/usr/lib/libtiff.so.3");
 	if (libtiff != NULL)  return;
+	libtiff = PIL_dynlib_open("/usr/lib/libtiff.so.4");
+	if (libtiff != NULL)  return;
 #ifdef __x86_64__
+	libtiff = PIL_dynlib_open("/usr/lib64/libtiff.so");
+	if (libtiff != NULL)  return;
 	libtiff = PIL_dynlib_open("/usr/lib64/libtiff.so.3");
+	if (libtiff != NULL)  return;
+	libtiff = PIL_dynlib_open("/usr/lib64/libtiff.so.4");
 	if (libtiff != NULL)  return;
 #endif
 	libtiff = PIL_dynlib_open("/usr/local/lib/libtiff.so");

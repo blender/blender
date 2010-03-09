@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -69,9 +69,11 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol);
 void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage);
 
+void node_buts_group(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
+
 /* node_edit.c */
 void node_tree_from_ID(ID *id, bNodeTree **ntree, bNodeTree **edittree, int *treetype);
-void snode_handle_recalc(bContext *C, SpaceNode *snode);
+void snode_notify(bContext *C, SpaceNode *snode);
 bNode *next_node(bNodeTree *ntree);
 bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float locy);
 void snode_set_context(SpaceNode *snode, Scene *scene);

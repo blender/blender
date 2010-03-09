@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -442,7 +442,7 @@ static void mouse_nla_strips (bContext *C, bAnimContext *ac, int mval[2], short 
 		deselect_nla_strips(ac, 0, SELECT_SUBTRACT);
 		
 		/* deselect all other channels first */
-		ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 		
 		/* Highlight NLA-Track */
 		if (ale->type == ANIMTYPE_NLATRACK) {	
@@ -492,7 +492,7 @@ static void nlaedit_mselect_leftright (bContext *C, bAnimContext *ac, short left
 		select_mode= SELECT_ADD;
 		
 		/* deselect all other channels and keyframes */
-		ANIM_deselect_anim_channels(ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+		ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
 		deselect_nla_strips(ac, 0, SELECT_SUBTRACT);
 	}
 	

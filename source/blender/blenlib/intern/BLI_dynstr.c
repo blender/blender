@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -75,6 +75,23 @@ void BLI_dynstr_append(DynStr *ds, const char *cstr) {
 	memcpy(dse->str, cstr, cstrlen+1);
 	dse->next= NULL;
 	
+	if (!ds->last)
+		ds->last= ds->elems= dse;
+	else
+		ds->last= ds->last->next= dse;
+
+	ds->curlen+= cstrlen;
+}
+
+void BLI_dynstr_nappend(DynStr *ds, const char *cstr, int len) {
+	DynStrElem *dse= malloc(sizeof(*dse));
+	int cstrlen= BLI_strnlen(cstr, len);
+
+	dse->str= malloc(cstrlen+1);
+	memcpy(dse->str, cstr, cstrlen);
+	dse->str[cstrlen] = '\0';
+	dse->next= NULL;
+
 	if (!ds->last)
 		ds->last= ds->elems= dse;
 	else

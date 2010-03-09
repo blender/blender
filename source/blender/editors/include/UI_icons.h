@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -539,7 +539,7 @@ DEF_ICON(ICON_MOD_EXPLODE)
 DEF_ICON(ICON_MOD_FLUIDSIM)
 DEF_ICON(ICON_MOD_MULTIRES)
 DEF_ICON(ICON_MOD_SMOKE)
-DEF_ICON(ICON_BLANK158)
+DEF_ICON(ICON_MOD_SOLIDIFY)
 DEF_ICON(ICON_BLANK159)
 DEF_ICON(ICON_BLANK160)
 DEF_ICON(ICON_BLANK161)

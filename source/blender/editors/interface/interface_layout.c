@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Blender Foundation 2009.
  *
@@ -522,7 +522,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, char *name, i
 		uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w-UI_UNIT_X, h);
 
 		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
-		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, "Browse for file or directory.");
+		but= uiDefIconButO(block, BUT, "BUTTONS_OT_file_browse", WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, "Browse for file or directory");
 	}
 	else if(subtype == PROP_DIRECTION) {
 		uiDefButR(block, BUT_NORMAL, 0, name, x, y, 100, 100, ptr, RNA_property_identifier(prop), index, 0, 0, -1, -1, NULL);
@@ -1321,7 +1321,7 @@ void uiItemM(uiLayout *layout, bContext *C, char *name, int icon, char *menuname
 }
 
 /* label item */
-void uiItemL(uiLayout *layout, char *name, int icon)
+static uiBut *uiItemL_(uiLayout *layout, char *name, int icon)
 {
 	uiBlock *block= layout->root->block;
 	uiBut *but;
@@ -1342,7 +1342,24 @@ void uiItemL(uiLayout *layout, char *name, int icon)
 		but= uiDefIconBut(block, LABEL, 0, icon, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 	else
 		but= uiDefBut(block, LABEL, 0, (char*)name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+	
+	return but;
 }
+
+void uiItemL(uiLayout *layout, char *name, int icon)
+{
+	uiItemL_(layout, name, icon);
+}
+
+void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, char *name, int icon)
+{
+	uiBut *but= uiItemL_(layout, name, icon);
+
+	if(ptr && ptr->type)
+		if(RNA_struct_is_ID(ptr->type))
+			uiButSetDragID(but, ptr->id.data);
+}
+
 
 /* value item */
 void uiItemV(uiLayout *layout, char *name, int icon, int argval)

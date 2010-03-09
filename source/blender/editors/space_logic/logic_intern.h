@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -50,6 +50,7 @@ void logic_header_buttons(const struct bContext *C, struct ARegion *ar);
 /* logic_buttons.c */
 void logic_buttons_register(struct ARegionType *art);
 void LOGIC_OT_properties(struct wmOperatorType *ot);
+void LOGIC_OT_links_cut(struct wmOperatorType *ot);
 
 /* logic_window.c */
 void logic_buttons(struct bContext *C, struct ARegion *ar);

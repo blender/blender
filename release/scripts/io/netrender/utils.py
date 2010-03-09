@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -104,7 +104,7 @@ def clientConnection(address, port, report = None, scan = True):
 #			else:
         if not scan:
             return None
-        
+
         address, port = clientScan()
         if address == "":
             return None
@@ -173,27 +173,47 @@ def prefixPath(prefix_directory, file_path, prefix_path):
 
     return full_path
 
+def getFileInfo(filepath, infos):
+    process = subprocess.Popen([sys.argv[0], "-b", "-noaudio", filepath, "-P", __file__, "--"] + infos, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout = bytes()
+    while process.poll() == None:
+        stdout += process.stdout.read(1024)
+
+    # read leftovers if needed
+    stdout += process.stdout.read()
+
+    stdout = str(stdout, encoding="utf8")
+
+    values = [eval(v[1:].strip()) for v in stdout.split("\n") if v.startswith("$")]
+
+    return values
+
 def thumbnail(filename):
     root = os.path.splitext(filename)[0]
     imagename = os.path.split(filename)[1]
     thumbname = root + ".jpg"
-    
+
     if os.path.exists(thumbname):
         return thumbname
-    
+
     if bpy:
-        sce = bpy.data.scenes[0]
-        sce.render_data.file_format = "JPEG"
-        sce.render_data.quality = 90
+        scene = bpy.data.scenes[0] # FIXME, this is dodgy!
+        scene.render.file_format = "JPEG"
+        scene.render.quality = 90
         bpy.ops.image.open(path = filename)
         img = bpy.data.images[imagename]
-        img.save(thumbname, scene = sce)
-        
+        img.save_render(thumbname, scene=scene)
+
         try:
             process = subprocess.Popen(["convert", thumbname, "-resize", "300x300", thumbname])
-            process.wait()                                        
+            process.wait()
             return thumbname
         except:
             pass
 
     return None
+
+if __name__ == "__main__":
+    import bpy
+    for info in sys.argv[7:]:
+        print("$", eval(info))

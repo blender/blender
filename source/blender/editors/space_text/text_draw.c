@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -43,6 +43,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_suggestions.h"
@@ -455,10 +456,11 @@ def wrap(line, view_width, wrap_chars):
 
 int wrap_width(SpaceText *st, ARegion *ar)
 {
+	int winx= ar->winx - TXT_SCROLL_WIDTH;
 	int x, max;
 	
 	x= st->showlinenrs ? TXT_OFFSET + TEXTXLOC : TXT_OFFSET;
-	max= (ar->winx-x)/st->cwidth;
+	max= (winx-x)/st->cwidth;
 	return max>8 ? max : 8;
 }
 
@@ -1208,7 +1210,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	TextLine *tmp;
 	rcti scroll;
 	char linenr[12];
-	int i, x, y, linecount= 0;
+	int i, x, y, winx, linecount= 0;
 
 	/* if no text, nothing to do */
 	if(!text)
@@ -1251,6 +1253,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		x= TXT_OFFSET;
 	}
 	y= ar->winy-st->lheight;
+	winx= ar->winx - TXT_SCROLL_WIDTH;
 
 	/* draw cursor */
 	draw_cursor(st, ar);
@@ -1278,7 +1281,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 
 		if(st->wordwrap) {
 			/* draw word wrapped text */
-			int lines = text_draw_wrapped(st, tmp->line, x, y, ar->winx-x, tmp->format);
+			int lines = text_draw_wrapped(st, tmp->line, x, y, winx-x, tmp->format);
 			y -= lines*st->lheight;
 		}
 		else {
@@ -1311,10 +1314,21 @@ void text_update_character_width(SpaceText *st)
 
 /* Moves the view to the cursor location,
   also used to make sure the view isnt outside the file */
-void text_update_cursor_moved(SpaceText *st, ARegion *ar)
+void text_update_cursor_moved(bContext *C)
 {
+	ScrArea *sa= CTX_wm_area(C);
+	SpaceText *st= CTX_wm_space_text(C);
 	Text *text= st->text;
-	int i, x;
+	ARegion *ar;
+	int i, x, winx= 0;
+
+	if(!st) return;
+
+	for(ar=sa->regionbase.first; ar; ar= ar->next)
+		if(ar->regiontype==RGN_TYPE_WINDOW)
+			winx= ar->winx;
+	
+	winx -= TXT_SCROLL_WIDTH;
 
 	if(!text || !text->curl) return;
 
@@ -1330,8 +1344,8 @@ void text_update_cursor_moved(SpaceText *st, ARegion *ar)
 	else {
 		x= text_draw(st, text->sell->line, st->left, text->selc, 0, 0, 0, NULL);
 
-		if(x==0 || x>ar->winx)
-			st->left= text->curc-0.5*(ar->winx)/st->cwidth;
+		if(x==0 || x>winx)
+			st->left= text->curc-0.5*winx/st->cwidth;
 	}
 
 	if(st->top < 0) st->top= 0;

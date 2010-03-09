@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -37,6 +37,7 @@ int tot_hints    = 0;
 #include "RE_raytrace.h"
 #include "BLI_memarena.h"
 #include "MEM_guardedalloc.h"
+#include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BLI_math.h"
 
@@ -145,10 +146,13 @@ void bfree(VBVHTree *tree)
 {
 	if(tot_pushup + tot_pushdown + tot_hints + tot_moves)
 	{
-		printf("tot pushups: %d\n", tot_pushup);
-		printf("tot pushdowns: %d\n", tot_pushdown);
-		printf("tot moves: %d\n", tot_moves);
-		printf("tot hints created: %d\n", tot_hints);
+		if(G.f & G_DEBUG) {
+			printf("tot pushups: %d\n", tot_pushup);
+			printf("tot pushdowns: %d\n", tot_pushdown);
+			printf("tot moves: %d\n", tot_moves);
+			printf("tot hints created: %d\n", tot_hints);
+		}
+
 		tot_pushup = 0;
 		tot_pushdown = 0;
 		tot_hints = 0;

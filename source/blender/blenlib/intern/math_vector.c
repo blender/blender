@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -69,7 +69,7 @@ void interp_v3_v3v3v3(float p[3], const float v1[3], const float v2[3], const fl
 }
 
 /* weight 3 vectors,
- * 'w' must be unit length but is not a vector, just 3 weights */
+ * 'w' must be unit length but is not a vector, just 4 weights */
 void interp_v3_v3v3v3v3(float p[3], const float v1[3], const float v2[3], const float v3[3], const float v4[3], const float w[4])
 {
 	p[0] = v1[0]*w[0] + v2[0]*w[1] + v3[0]*w[2] + v4[0]*w[3];
@@ -82,50 +82,6 @@ void mid_v3_v3v3(float *v, float *v1, float *v2)
 	v[0]= 0.5f*(v1[0] + v2[0]);
 	v[1]= 0.5f*(v1[1] + v2[1]);
 	v[2]= 0.5f*(v1[2] + v2[2]);
-}
-
-/********************************* Comparison ********************************/
-
-int is_zero_v3(float *v)
-{
-	return (v[0] == 0 && v[1] == 0 && v[2] == 0);
-}
-
-int equals_v3v3(float *v1, float *v2)
-{
-	return ((v1[0]==v2[0]) && (v1[1]==v2[1]) && (v1[2]==v2[2]));
-}
-
-int compare_v3v3(float *v1, float *v2, float limit)
-{
-	if(fabs(v1[0]-v2[0])<limit)
-		if(fabs(v1[1]-v2[1])<limit)
-			if(fabs(v1[2]-v2[2])<limit)
-				return 1;
-
-	return 0;
-}
-
-int compare_len_v3v3(float *v1, float *v2, float limit)
-{
-    float x,y,z;
-
-	x=v1[0]-v2[0];
-	y=v1[1]-v2[1];
-	z=v1[2]-v2[2];
-
-	return ((x*x + y*y + z*z) < (limit*limit));
-}
-
-int compare_v4v4(float *v1, float *v2, float limit)
-{
-	if(fabs(v1[0]-v2[0])<limit)
-		if(fabs(v1[1]-v2[1])<limit)
-			if(fabs(v1[2]-v2[2])<limit)
-				if(fabs(v1[3]-v2[3])<limit)
-					return 1;
-
-	return 0;
 }
 
 /********************************** Angles ***********************************/
@@ -296,8 +252,6 @@ void reflect_v3_v3v3(float *out, float *v1, float *v2)
 
 	copy_v3_v3(vec, v1);
 	copy_v3_v3(normal, v2);
-
-	normalize_v3(normal);
 
 	dot2 = 2 * dot_v3v3(vec, normal);
 

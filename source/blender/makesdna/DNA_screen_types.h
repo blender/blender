@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -60,8 +60,8 @@ typedef struct bScreen {
 	short do_refresh;					/* notifier for scale screen, changed screen, etc */
 	short do_draw_gesture;				/* notifier for gesture draw. */
 	short do_draw_paintcursor;			/* notifier for paint cursor draw. */
+	short do_draw_drag;					/* notifier for dragging draw. */
 	short swap;							/* indicator to survive swap-exchange systems */
-	short pad;
 	
 	short mainwin;						/* screensize subwindow, for screenedges and global menus */
 	short subwinactive;					/* active subwindow */
@@ -148,11 +148,11 @@ typedef struct ARegion {
 	short alignment;			/* how it should split */
 	short flag;					/* hide, ... */
 	
-	float fsize;				/* current split size in float */
+	float fsize;				/* current split size in float (unused) */
+	short sizex, sizey;			/* current split size in pixels (if zero it uses regiontype) */
 	
 	short do_draw;				/* private, cached notifier events */
 	short swap;					/* private, indicator to survive swap-exchange */
-	int pad1;
 	
 	struct ARegionType *type;	/* callbacks for this region type */
 	

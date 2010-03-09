@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -37,6 +37,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -44,7 +45,9 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
@@ -704,7 +707,8 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	// XXX other users?
 	BKE_image_signal(ima, (sima)? &sima->iuser: NULL, IMA_SIGNAL_RELOAD);
-
+	WM_event_add_notifier(C, NC_IMAGE|NA_EDITED, ima);
+	
 	MEM_freeN(op->customdata);
 
 	return OPERATOR_FINISHED;
@@ -740,7 +744,7 @@ void IMAGE_OT_open(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE);
 }
 
 /******************** replace image operator ********************/
@@ -793,7 +797,7 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE);
 }
 
 /******************** save image as operator ********************/
@@ -809,7 +813,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, Scene *scene, wmOpera
 
 	if (ibuf) {	
 		BLI_convertstringcode(name, G.sce);
-		BLI_convertstringframe(name, scene->r.cfra);
+		BLI_convertstringframe(name, scene->r.cfra, 0);
 		
 		if(scene->r.scemode & R_EXTENSION)  {
 			BKE_add_image_extension(name, sima->imtypenr);
@@ -961,7 +965,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
-	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_SAVE);
 }
 
 /******************** save image operator ********************/
@@ -1078,7 +1082,7 @@ static int save_sequence_exec(bContext *C, wmOperator *op)
 				break;
 			}
 
-			printf("Saved: %s\n", ibuf->name);
+			BKE_reportf(op->reports, RPT_INFO, "Saved: %s\n", ibuf->name);
 			ibuf->userflags &= ~IB_BITMAPDIRTY;
 		}
 	}
@@ -1790,23 +1794,74 @@ void IMAGE_OT_record_composite(wmOperatorType *ot)
 	ot->poll= space_image_poll;
 }
 
+/********************* cycle render slot operator *********************/
+
+static int cycle_render_slot_poll(bContext *C)
+{
+	Image *ima= CTX_data_edit_image(C);
+
+	return (ima && ima->type == IMA_TYPE_R_RESULT);
+}
+
+static int cycle_render_slot_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene= CTX_data_scene(C);
+	int a, slot, cur= RE_GetViewSlot();
+
+	for(a=1; a<RE_SLOT_MAX; a++) {
+		slot= (cur+a)%RE_SLOT_MAX;
+
+		if(RE_GetRender(scene->id.name, slot)) {
+			RE_SetViewSlot(slot);
+			break;
+		}
+	}
+
+	if(a == RE_SLOT_MAX)
+		RE_SetViewSlot((cur == 1)? 0: 1);
+
+	WM_event_add_notifier(C, NC_IMAGE|ND_DRAW, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Cycle Render Slot";
+	ot->idname= "IMAGE_OT_cycle_render_slot";
+	
+	/* api callbacks */
+	ot->exec= cycle_render_slot_exec;
+	ot->poll= cycle_render_slot_poll;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 /******************** TODO ********************/
 
 /* XXX notifier? */
-#if 0
+
 /* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
-void BIF_image_update_frame(void)
+
+void ED_image_update_frame(const bContext *C)
 {
+	Main *mainp = CTX_data_main(C);
+	Scene *scene= CTX_data_scene(C);
 	Tex *tex;
 	
 	/* texture users */
-	for(tex= G.main->tex.first; tex; tex= tex->id.next) {
-		if(tex->type==TEX_IMAGE && tex->ima)
-			if(ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
+	for(tex= mainp->tex.first; tex; tex= tex->id.next) {
+		if(tex->type==TEX_IMAGE && tex->ima) {
+			if(ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				if(tex->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_calc_imanr(&tex->iuser, scene->r.cfra, 0);
-		
+					BKE_image_user_calc_frame(&tex->iuser, scene->r.cfra, 0);
+			}
+		}
 	}
+	
+#if 0
 	/* image window, compo node users */
 	if(G.curscreen) {
 		ScrArea *sa;
@@ -1815,12 +1870,12 @@ void BIF_image_update_frame(void)
 				View3D *v3d= sa->spacedata.first;
 				if(v3d->bgpic)
 					if(v3d->bgpic->iuser.flag & IMA_ANIM_ALWAYS)
-						BKE_image_user_calc_imanr(&v3d->bgpic->iuser, scene->r.cfra, 0);
+						BKE_image_user_calc_frame(&v3d->bgpic->iuser, scene->r.cfra, 0);
 			}
 			else if(sa->spacetype==SPACE_IMAGE) {
 				SpaceImage *sima= sa->spacedata.first;
 				if(sima->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_calc_imanr(&sima->iuser, scene->r.cfra, 0);
+					BKE_image_user_calc_frame(&sima->iuser, scene->r.cfra, 0);
 			}
 			else if(sa->spacetype==SPACE_NODE) {
 				SpaceNode *snode= sa->spacedata.first;
@@ -1832,13 +1887,15 @@ void BIF_image_update_frame(void)
 							ImageUser *iuser= node->storage;
 							if(ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
 								if(iuser->flag & IMA_ANIM_ALWAYS)
-									BKE_image_user_calc_imanr(iuser, scene->r.cfra, 0);
+									BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
 						}
 					}
 				}
 			}
 		}
 	}
-}
 #endif
+}
+
+
 

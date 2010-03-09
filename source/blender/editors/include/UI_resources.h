@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -160,6 +160,7 @@ enum {
 	TH_FACE,
 	TH_FACE_SELECT,
 	TH_NORMAL,
+	TH_VNORMAL,
 	TH_FACE_DOT,
 	TH_FACEDOT_SIZE,
 	TH_CFRAME,
@@ -184,6 +185,12 @@ enum {
 	TH_NODE_CONVERTOR,
 	TH_NODE_GROUP,
 	
+	TH_CONSOLE_OUTPUT,
+	TH_CONSOLE_INPUT,
+	TH_CONSOLE_INFO,
+	TH_CONSOLE_ERROR,
+	TH_CONSOLE_CURSOR,
+	
 	TH_SEQ_MOVIE,
 	TH_SEQ_IMAGE,
 	TH_SEQ_SCENE,
@@ -205,6 +212,8 @@ enum {
 
 	TH_PIN,
 	TH_PIN_OPAC,
+	
+	TH_PREVIEW_BACK,
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 

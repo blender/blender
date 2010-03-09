@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 by the Blender Foundation.
  * All rights reserved.
@@ -1479,8 +1479,9 @@ static void draw_pose_dofs(Object *ob)
 									float amin[3], amax[3];
 									
 									for (i=0; i<3; i++) {
-										amin[i]= (float)sin(pchan->limitmin[i]*M_PI/360.0);
-										amax[i]= (float)sin(pchan->limitmax[i]*M_PI/360.0);
+										/* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
+										amin[i]= (float)sin(pchan->limitmin[i]*0.5f);
+										amax[i]= (float)sin(pchan->limitmax[i]*0.5f);
 									}
 									
 									glScalef(1.0f, -1.0f, 1.0f);
@@ -1498,15 +1499,16 @@ static void draw_pose_dofs(Object *ob)
 							
 							/* arcs */
 							if (pchan->ikflag & BONE_IK_ZLIMIT) {
-								theta= 0.5f*(pchan->limitmin[2]+pchan->limitmax[2]);
+								/* OpenGL requires rotations in degrees; so we're taking the average angle here */
+								theta= 0.5f*(pchan->limitmin[2]+pchan->limitmax[2]) * (float)(180.0f/M_PI);
 								glRotatef(theta, 0.0f, 0.0f, 1.0f);
 								
 								glColor3ub(50, 50, 255);	// blue, Z axis limit
 								glBegin(GL_LINE_STRIP);
 								for (a=-16; a<=16; a++) {
-									float fac= ((float)a)/16.0f;
+									float fac= ((float)a)/16.0f * 0.5f; /* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
 									
-									phi= fac * (float)(M_PI/360.0f) * (pchan->limitmax[2] - pchan->limitmin[2]);
+									phi= fac * (pchan->limitmax[2] - pchan->limitmin[2]);
 									
 									i= (a == -16) ? 0 : 1;
 									corner[i][0]= (float)sin(phi);
@@ -1520,14 +1522,15 @@ static void draw_pose_dofs(Object *ob)
 							}					
 							
 							if (pchan->ikflag & BONE_IK_XLIMIT) {
-								theta= 0.5f * (pchan->limitmin[0] + pchan->limitmax[0]);
+							/* OpenGL requires rotations in degrees; so we're taking the average angle here */
+								theta= 0.5f*(pchan->limitmin[0] + pchan->limitmax[0]) * (float)(180.0f/M_PI);
 								glRotatef(theta, 1.0f, 0.0f, 0.0f);
 								
 								glColor3ub(255, 50, 50);	// Red, X axis limit
 								glBegin(GL_LINE_STRIP);
 								for (a=-16; a<=16; a++) {
-									float fac= ((float)a)/16.0f;
-									phi= (float)(0.5*M_PI) + fac * (float)(M_PI/360.0f) * (pchan->limitmax[0] - pchan->limitmin[0]);
+									float fac= ((float)a)/16.0f * 0.5f; /* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
+									phi= (float)(0.5*M_PI) + fac * (pchan->limitmax[0] - pchan->limitmin[0]);
 									
 									i= (a == -16) ? 2 : 3;
 									corner[i][0]= 0.0f;
@@ -1581,7 +1584,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 	/* precalc inverse matrix for drawing screen aligned */
 	if (arm->drawtype==ARM_ENVELOPE) {
 		/* precalc inverse matrix for drawing screen aligned */
-		wmGetMatrix(smat);
+		copy_m4_m4(smat, rv3d->viewmatob);
 		mul_mat3_m4_fl(smat, 1.0f/len_v3(ob->obmat[0]));
 		invert_m4_m4(imat, smat);
 		
@@ -1636,8 +1639,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					if ( (bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)) )
 						flag &= ~BONE_CONNECTED;
 					
-					/* set temporary flag for drawing bone as active */
-					if (bone == arm->act_bone)
+					/* set temporary flag for drawing bone as active, but only if selected */
+					if ((bone == arm->act_bone) && (bone->flag & BONE_SELECTED))
 						flag |= BONE_DRAW_ACTIVE;
 					
 					/* set color-set to use */
@@ -1721,8 +1724,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 							if ((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
 								flag &= ~BONE_CONNECTED;
 								
-							/* set temporary flag for drawing bone as active */
-							if (bone == arm->act_bone)
+							/* set temporary flag for drawing bone as active, but only if selected */
+							if ((bone == arm->act_bone) && (bone->flag & BONE_SELECTED))
 								flag |= BONE_DRAW_ACTIVE;
 							
 							draw_custom_bone(scene, v3d, rv3d, pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
@@ -1816,8 +1819,8 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 					if ((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
 						flag &= ~BONE_CONNECTED;
 					
-					/* set temporary flag for drawing bone as active */
-					if (bone == arm->act_bone)
+					/* set temporary flag for drawing bone as active, but only if selected */
+					if ((bone == arm->act_bone) && (bone->flag & BONE_SELECTED))
 						flag |= BONE_DRAW_ACTIVE;
 					
 					/* extra draw service for pose mode */
@@ -1886,7 +1889,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 						/* 	Draw names of bone 	*/
 						if (arm->flag & ARM_DRAWNAMES) {
 							mid_v3_v3v3(vec, pchan->pose_head, pchan->pose_tail);
-							view3d_cached_text_draw_add(vec[0], vec[1], vec[2], pchan->name, 10);
+							view3d_cached_text_draw_add(vec[0], vec[1], vec[2], pchan->name, 10, 0);
 						}	
 						
 						/*	Draw additional axes on the bone tail  */
@@ -1941,7 +1944,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	/* envelope (deform distance) */
 	if(arm->drawtype==ARM_ENVELOPE) {
 		/* precalc inverse matrix for drawing screen aligned */
-		wmGetMatrix(smat);
+		copy_m4_m4(smat, rv3d->viewmatob);
 		mul_mat3_m4_fl(smat, 1.0f/len_v3(ob->obmat[0]));
 		invert_m4_m4(imat, smat);
 		
@@ -1980,8 +1983,8 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 					if ( (eBone->parent) && ((eBone->parent->flag & BONE_HIDDEN_A) || (eBone->parent->layer & arm->layer)==0) )
 						flag &= ~BONE_CONNECTED;
 						
-					/* set temporary flag for drawing bone as active */
-					if (eBone == arm->act_edbone)
+					/* set temporary flag for drawing bone as active, but only if selected */
+					if ((eBone == arm->act_edbone) && (eBone->flag & BONE_SELECTED))
 						flag |= BONE_DRAW_ACTIVE;
 					
 					if (arm->drawtype==ARM_ENVELOPE)
@@ -2019,8 +2022,8 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 				if ( (eBone->parent) && ((eBone->parent->flag & BONE_HIDDEN_A) || (eBone->parent->layer & arm->layer)==0) )
 					flag &= ~BONE_CONNECTED;
 					
-				/* set temporary flag for drawing bone as active */
-				if (eBone == arm->act_edbone)
+				/* set temporary flag for drawing bone as active, but only if selected */
+				if ((eBone == arm->act_edbone) && (eBone->flag & BONE_SELECTED))
 					flag |= BONE_DRAW_ACTIVE;
 				
 				if (arm->drawtype == ARM_ENVELOPE) {
@@ -2083,7 +2086,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 						if (arm->flag & ARM_DRAWNAMES) {
 							mid_v3_v3v3(vec, eBone->head, eBone->tail);
 							glRasterPos3fv(vec);
-							view3d_cached_text_draw_add(vec[0], vec[1], vec[2], eBone->name, 10);
+							view3d_cached_text_draw_add(vec[0], vec[1], vec[2], eBone->name, 10, 0);
 						}					
 						/*	Draw additional axes */
 						if (arm->flag & ARM_DRAWAXES) {
@@ -2118,200 +2121,21 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
  */
 static void draw_pose_paths(Scene *scene, View3D *v3d, ARegion *ar, Object *ob)
 {
-	RegionView3D *rv3d= ar->regiondata;
-	AnimData *adt= BKE_animdata_from_id(&ob->id);
+	bAnimVizSettings *avs= &ob->pose->avs;
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
-	ActKeyColumn *ak;
-	DLRBT_Tree keys;
-	float *fp, *fp_start;
-	int a, stepsize;
-	int sfra, efra, len;
 	
-	if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	/* setup drawing environment for paths */
+	draw_motion_paths_init(scene, v3d, ar);
 	
-	glPushMatrix();
-	glLoadMatrixf(rv3d->viewmat);
-	
-	/* version patch here - cannot access frame info from file reading */
-	if (arm->pathsize == 0) arm->pathsize= 1;
-	stepsize = arm->pathsize;
-	
+	/* draw paths where they exist and they releated bone is visible */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (pchan->bone->layer & arm->layer) {
-			if (pchan->path) {
-				/* version patch here - cannot access frame info from file reading */
-				if ((pchan->pathsf == 0) || (pchan->pathef == 0)) {
-					pchan->pathsf= SFRA;
-					pchan->pathef= EFRA;
-				}
-				
-				/* get frame ranges */
-				if (arm->pathflag & ARM_PATH_ACFRA) {
-					int sind;
-					
-					/* With "Around Current", we only choose frames from around 
-					 * the current frame to draw. However, this range is still 
-					 * restricted by the limits of the original path.
-					 */
-					sfra= CFRA - arm->pathbc;
-					efra= CFRA + arm->pathac;
-					if (sfra < pchan->pathsf) sfra= pchan->pathsf;
-					if (efra > pchan->pathef) efra= pchan->pathef;
-					
-					len= efra - sfra;
-					
-					sind= sfra - pchan->pathsf;
-					fp_start= (pchan->path + (3*sind));
-				}
-				else {
-					sfra= pchan->pathsf;
-					efra = sfra + pchan->pathlen;
-					len = pchan->pathlen;
-					fp_start = pchan->path;
-				}
-				
-				/* draw curve-line of path */
-				glShadeModel(GL_SMOOTH);
-				
-				glBegin(GL_LINE_STRIP); 				
-				for (a=0, fp=fp_start; a<len; a++, fp+=3) {
-					float intensity; /* how faint */
-					
-					/* set color
-					 * 	- more intense for active/selected bones, less intense for unselected bones
-					 * 	- black for before current frame, green for current frame, blue for after current frame
-					 * 	- intensity decreases as distance from current frame increases
-					 */
-					#define SET_INTENSITY(A, B, C, min, max) (((1.0f - ((C - B) / (C - A))) * (max-min)) + min) 
-					if ((a+sfra) < CFRA) {
-						/* black - before cfra */
-						if (pchan->bone->flag & BONE_SELECTED) {
-							// intensity= 0.5f;
-							intensity = SET_INTENSITY(sfra, a, CFRA, 0.25f, 0.75f);
-						}
-						else {
-							//intensity= 0.8f;
-							intensity = SET_INTENSITY(sfra, a, CFRA, 0.68f, 0.92f);
-						}
-						UI_ThemeColorBlend(TH_WIRE, TH_BACK, intensity);
-					}
-					else if ((a+sfra) > CFRA) {
-						/* blue - after cfra */
-						if (pchan->bone->flag & BONE_SELECTED) {
-							//intensity = 0.5f;
-							intensity = SET_INTENSITY(CFRA, a, efra, 0.25f, 0.75f);
-						}
-						else {
-							//intensity = 0.8f;
-							intensity = SET_INTENSITY(CFRA, a, efra, 0.68f, 0.92f);
-						}
-						UI_ThemeColorBlend(TH_BONE_POSE, TH_BACK, intensity);
-					}
-					else {
-						/* green - on cfra */
-						if (pchan->bone->flag & BONE_SELECTED) {
-							intensity= 0.5f;
-						}
-						else {
-							intensity= 0.99f;
-						}
-						UI_ThemeColorBlendShade(TH_CFRAME, TH_BACK, intensity, 10);
-					}	
-					
-					/* draw a vertex with this color */ 
-					glVertex3fv(fp);
-				}
-				
-				glEnd();
-				glShadeModel(GL_FLAT);
-				
-				glPointSize(1.0);
-				
-				/* draw little black point at each frame
-				 * NOTE: this is not really visible/noticable
-				 */
-				glBegin(GL_POINTS);
-				for (a=0, fp=fp_start; a<len; a++, fp+=3) 
-					glVertex3fv(fp);
-				glEnd();
-				
-				/* Draw little white dots at each framestep value */
-				UI_ThemeColor(TH_TEXT_HI);
-				glBegin(GL_POINTS);
-				for (a=0, fp=fp_start; a<len; a+=stepsize, fp+=(stepsize*3)) 
-					glVertex3fv(fp);
-				glEnd();
-				
-				/* Draw frame numbers at each framestep value */
-				if (arm->pathflag & ARM_PATH_FNUMS) {
-					for (a=0, fp=fp_start; a<len; a+=stepsize, fp+=(stepsize*3)) {
-						char str[32];
-						
-						/* only draw framenum if several consecutive highlighted points don't occur on same point */
-						if (a == 0) {
-							sprintf(str, "%d", (a+sfra));
-							view3d_cached_text_draw_add(fp[0], fp[1], fp[2], str, 0);
-						}
-						else if ((a > stepsize) && (a < len-stepsize)) { 
-							if ((equals_v3v3(fp, fp-(stepsize*3))==0) || (equals_v3v3(fp, fp+(stepsize*3))==0)) {
-								sprintf(str, "%d", (a+sfra));
-								view3d_cached_text_draw_add(fp[0], fp[1], fp[2], str, 0);
-							}
-						}
-					}
-				}
-				
-				/* Keyframes - dots and numbers */
-				if (arm->pathflag & ARM_PATH_KFRAS) {
-					/* build list of all keyframes in active action for pchan */
-					BLI_dlrbTree_init(&keys);
-					
-					if (adt) {
-						bActionGroup *agrp= action_groups_find_named(adt->action, pchan->name);
-						if (agrp) {
-							agroup_to_keylist(adt, agrp, &keys, NULL);
-							BLI_dlrbTree_linkedlist_sync(&keys);
-						}
-					}
-					
-					/* Draw slightly-larger yellow dots at each keyframe */
-					UI_ThemeColor(TH_VERTEX_SELECT);
-					glPointSize(5.0f);
-					
-					glBegin(GL_POINTS);
-					for (a=0, fp=fp_start; a<len; a++, fp+=3) {
-						for (ak= keys.first; ak; ak= ak->next) {
-							if (ak->cfra == (a+sfra))
-								glVertex3fv(fp);
-						}
-					}
-					glEnd();
-					
-					glPointSize(1.0f);
-					
-					/* Draw frame numbers of keyframes  */
-					if ((arm->pathflag & ARM_PATH_FNUMS) || (arm->pathflag & ARM_PATH_KFNOS)) {
-						for(a=0, fp=fp_start; a<len; a++, fp+=3) {
-							for (ak= keys.first; ak; ak= ak->next) {
-								if (ak->cfra == (a+sfra)) {
-									char str[32];
-									
-									sprintf(str, "%d", (a+sfra));
-									view3d_cached_text_draw_add(fp[0], fp[1], fp[2], str, 0);
-								}
-							}
-						}
-					}
-					
-					BLI_dlrbTree_free(&keys);
-				}
-			}
-		}
+		if ((pchan->bone->layer & arm->layer) && (pchan->mpath))
+			draw_motion_path_instance(scene, v3d, ar, ob, pchan, avs, pchan->mpath);
 	}
 	
-	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-	glPopMatrix();
+	/* cleanup after drawing */
+	draw_motion_paths_cleanup(scene, v3d, ar);
 }
 
 
@@ -2529,7 +2353,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	
 	/* draw from darkest blend to lowest */
 	for(cur= stepsize; cur<range; cur+=stepsize) {
-		ctime= cur - (float)fmod(cfrao, stepsize);	/* ensures consistant stepping */
+		ctime= cur - (float)fmod(cfrao, stepsize);	/* ensures consistent stepping */
 		colfac= ctime/range;
 		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0*sqrt(colfac)));
 		
@@ -2544,7 +2368,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			}
 		}
 		
-		ctime= cur + (float)fmod((float)cfrao, stepsize) - stepsize+1.0f;	/* ensures consistant stepping */
+		ctime= cur + (float)fmod((float)cfrao, stepsize) - stepsize+1.0f;	/* ensures consistent stepping */
 		colfac= ctime/range;
 		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0*sqrt(colfac)));
 		

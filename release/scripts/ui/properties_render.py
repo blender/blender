@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -36,7 +36,7 @@ class RenderButtonsPanel(bpy.types.Panel):
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (context.scene and rd.use_game_engine is False) and (rd.engine in self.COMPAT_ENGINES)
 
 
@@ -47,7 +47,7 @@ class RENDER_PT_render(RenderButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -71,7 +71,7 @@ class RENDER_PT_layers(RenderButtonsPanel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
         wide_ui = context.region.width > narrowui
 
         row = layout.row()
@@ -137,11 +137,11 @@ class RENDER_PT_layers(RenderButtonsPanel):
         col.prop(rl, "pass_uv")
         col.prop(rl, "pass_mist")
         col.prop(rl, "pass_object_index")
+        col.prop(rl, "pass_color")
 
         if wide_ui:
             col = split.column()
         col.label()
-        col.prop(rl, "pass_color")
         col.prop(rl, "pass_diffuse")
         row = col.row()
         row.prop(rl, "pass_specular")
@@ -150,8 +150,17 @@ class RENDER_PT_layers(RenderButtonsPanel):
         row.prop(rl, "pass_shadow")
         row.prop(rl, "pass_shadow_exclude", text="", icon='X')
         row = col.row()
+        row.prop(rl, "pass_emit")
+        row.prop(rl, "pass_emit_exclude", text="", icon='X')
+        row = col.row()
         row.prop(rl, "pass_ao")
         row.prop(rl, "pass_ao_exclude", text="", icon='X')
+        row = col.row()
+        row.prop(rl, "pass_environment")
+        row.prop(rl, "pass_environment_exclude", text="", icon='X')
+        row = col.row()
+        row.prop(rl, "pass_indirect")
+        row.prop(rl, "pass_indirect_exclude", text="", icon='X')
         row = col.row()
         row.prop(rl, "pass_reflection")
         row.prop(rl, "pass_reflection_exclude", text="", icon='X')
@@ -167,7 +176,7 @@ class RENDER_PT_shading(RenderButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -193,7 +202,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -213,8 +222,8 @@ class RENDER_PT_performance(RenderButtonsPanel):
             col = split.column()
         col.label(text="Memory:")
         sub = col.column()
+        sub.enabled = not (rd.use_border or rd.full_sample)
         sub.prop(rd, "save_buffers")
-        sub.enabled = not rd.full_sample
         sub = col.column()
         sub.active = rd.use_compositing
         sub.prop(rd, "free_image_textures")
@@ -237,7 +246,7 @@ class RENDER_PT_post_processing(RenderButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -280,7 +289,7 @@ class RENDER_PT_output(RenderButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         layout.prop(rd, "output_path", text="")
@@ -346,7 +355,7 @@ class RENDER_PT_output(RenderButtonsPanel):
 
         elif rd.file_format == 'QUICKTIME_CARBON':
             split = layout.split()
-            split.operator("scene.render_data_set_quicktime_codec")
+            split.operator("scene.render_set_quicktime_codec")
 
         elif rd.file_format == 'QUICKTIME_QTKIT':
             split = layout.split()
@@ -361,13 +370,13 @@ class RENDER_PT_encoding(RenderButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return rd.file_format in ('FFMPEG', 'XVID', 'H264', 'THEORA')
 
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -407,11 +416,11 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         col.prop(rd, "ffmpeg_packetsize", text="Packet Size")
 
         # Audio:
-        layout.prop(rd, "ffmpeg_multiplex_audio", text="Audio")
-
         sub = layout.column()
-        sub.active = rd.ffmpeg_multiplex_audio
-        sub.prop(rd, "ffmpeg_audio_codec", text="Codec")
+
+        if rd.ffmpeg_format not in ('MP3'):
+            sub.prop(rd, "ffmpeg_audio_codec", text="Audio Codec")
+
         sub.separator()
 
         split = sub.split()
@@ -430,14 +439,14 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
 
         self.layout.prop(rd, "antialiasing", text="")
 
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
         layout.active = rd.antialiasing
 
@@ -445,12 +454,34 @@ class RENDER_PT_antialiasing(RenderButtonsPanel):
 
         col = split.column()
         col.row().prop(rd, "antialiasing_samples", expand=True)
-        col.prop(rd, "full_sample")
+        sub = col.row()
+        sub.enabled = not rd.use_border
+        sub.prop(rd, "full_sample")
 
         if wide_ui:
             col = split.column()
         col.prop(rd, "pixel_filter", text="")
         col.prop(rd, "filter_size", text="Size")
+
+
+class RENDER_PT_motion_blur(RenderButtonsPanel):
+    bl_label = "Full Sample Motion Blur"
+    bl_default_closed = True
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
+
+    def draw_header(self, context):
+        rd = context.scene.render
+
+        self.layout.prop(rd, "motion_blur", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+        layout.active = rd.motion_blur
+
+        row = layout.row()
+        row.prop(rd, "motion_blur_samples")
 
 
 class RENDER_PT_dimensions(RenderButtonsPanel):
@@ -461,7 +492,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
         wide_ui = context.region.width > narrowui
 
         row = layout.row().split()
@@ -507,14 +538,14 @@ class RENDER_PT_stamp(RenderButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw_header(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
 
         self.layout.prop(rd, "render_stamp", text="")
 
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         layout.active = rd.render_stamp
@@ -555,16 +586,16 @@ class RENDER_PT_bake(RenderButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        rd = context.scene.render_data
+        rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
         layout.operator("object.bake_image", icon='RENDER_STILL')
-        
+
         if wide_ui:
             layout.prop(rd, "bake_type")
         else:
             layout.prop(rd, "bake_type", text="")
-        
+
         if rd.bake_type == 'NORMALS':
             if wide_ui:
                 layout.prop(rd, "bake_normal_space")
@@ -572,19 +603,19 @@ class RENDER_PT_bake(RenderButtonsPanel):
                 layout.prop(rd, "bake_normal_space", text="")
         elif rd.bake_type in ('DISPLACEMENT', 'AO'):
             layout.prop(rd, "bake_normalized")
-        
+
         # col.prop(rd, "bake_aa_mode")
         # col.prop(rd, "bake_enable_aa")
-        
+
         layout.separator()
-        
+
         split = layout.split()
 
         col = split.column()
         col.prop(rd, "bake_clear")
         col.prop(rd, "bake_margin")
         col.prop(rd, "bake_quad_split", text="Split")
-        
+
         if wide_ui:
             col = split.column()
         col.prop(rd, "bake_active")
@@ -593,16 +624,33 @@ class RENDER_PT_bake(RenderButtonsPanel):
         sub.prop(rd, "bake_distance")
         sub.prop(rd, "bake_bias")
 
-        
-bpy.types.register(RENDER_MT_presets)
-bpy.types.register(RENDER_PT_render)
-bpy.types.register(RENDER_PT_layers)
-bpy.types.register(RENDER_PT_dimensions)
-bpy.types.register(RENDER_PT_antialiasing)
-bpy.types.register(RENDER_PT_shading)
-bpy.types.register(RENDER_PT_output)
-bpy.types.register(RENDER_PT_encoding)
-bpy.types.register(RENDER_PT_performance)
-bpy.types.register(RENDER_PT_post_processing)
-bpy.types.register(RENDER_PT_stamp)
-bpy.types.register(RENDER_PT_bake)
+
+classes = [
+    RENDER_MT_presets,
+    RENDER_PT_render,
+    RENDER_PT_layers,
+    RENDER_PT_dimensions,
+    RENDER_PT_antialiasing,
+    RENDER_PT_motion_blur,
+    RENDER_PT_shading,
+    RENDER_PT_output,
+    RENDER_PT_encoding,
+    RENDER_PT_performance,
+    RENDER_PT_post_processing,
+    RENDER_PT_stamp,
+    RENDER_PT_bake]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

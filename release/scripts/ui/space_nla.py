@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -58,6 +58,8 @@ class NLA_MT_view(bpy.types.Menu):
         layout.operator("nla.properties", icon='MENU_PANEL')
 
         layout.separator()
+
+        layout.prop(st, "realtime_updates")
         layout.prop(st, "show_cframe_indicator")
 
         layout.operator("anim.time_toggle", text="Show Frames" if st.show_seconds else "Show Seconds")
@@ -157,9 +159,25 @@ class NLA_MT_edit_transform(bpy.types.Menu):
         layout.operator("transform.resize", text="Scale")
 
 
-bpy.types.register(NLA_HT_header) # header/menu classes
-bpy.types.register(NLA_MT_view)
-bpy.types.register(NLA_MT_select)
-bpy.types.register(NLA_MT_edit)
-bpy.types.register(NLA_MT_add)
-bpy.types.register(NLA_MT_edit_transform)
+classes = [
+    NLA_HT_header, # header/menu classes
+    NLA_MT_view,
+    NLA_MT_select,
+    NLA_MT_edit,
+    NLA_MT_add,
+    NLA_MT_edit_transform]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -258,8 +258,8 @@ NlaTrack *add_nlatrack (AnimData *adt, NlaTrack *prev)
 	BKE_nlatrack_set_active(&adt->nla_tracks, nlt);
 	
 	/* must have unique name, but we need to seed this */
-	sprintf(nlt->name, "NlaTrack");
-	BLI_uniquename(&adt->nla_tracks, nlt, "NlaTrack", '.', offsetof(NlaTrack, name), 64);
+	strcpy(nlt->name, "NlaTrack");
+	BLI_uniquename(&adt->nla_tracks, nlt, "NlaTrack", '.', offsetof(NlaTrack, name), sizeof(nlt->name));
 	
 	/* return the new track */
 	return nlt;
@@ -369,14 +369,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 			return strip->end - scale*(cframe - strip->actstart);
 		}
 		else if (mode == NLATIME_CONVERT_UNMAP) {
-			int repeatsNum = (int)((cframe - strip->start) / (actlength * scale));
-			
-			/* this method doesn't clip the values to lie within the action range only 
-			 *	- the '(repeatsNum * actlength * scale)' compensates for the fmod(...)
-			 *	- the fmod(...) works in the same way as for eval 
-			 */
-			return strip->actend - (repeatsNum * actlength * scale) 
-					- (fmod(cframe - strip->start, actlength*scale) / scale);
+			return strip->actend - (strip->end - cframe) / scale;	
 		}
 		else /* if (mode == NLATIME_CONVERT_EVAL) */{
 			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {
@@ -399,14 +392,7 @@ static float nlastrip_get_frame_actionclip (NlaStrip *strip, float cframe, short
 			return strip->start + scale*(cframe - strip->actstart);
 		}
 		else if (mode == NLATIME_CONVERT_UNMAP) {
-			int repeatsNum = (int)((cframe - strip->start) / (actlength * scale));
-			
-			/* this method doesn't clip the values to lie within the action range only 
-			 *	- the '(repeatsNum * actlength * scale)' compensates for the fmod(...)
-			 *	- the fmod(...) works in the same way as for eval 
-			 */
-			return strip->actstart + (repeatsNum * actlength * scale) 
-					+ (fmod(cframe - strip->start, actlength*scale) / scale);
+			return strip->actstart + (cframe - strip->start) / scale;
 		}
 		else /* if (mode == NLATIME_CONVERT_EVAL) */{
 			if (IS_EQ(cframe, strip->end) && IS_EQ(strip->repeat, ((int)strip->repeat))) {
@@ -1047,6 +1033,31 @@ short BKE_nlastrip_within_bounds (NlaStrip *strip, float min, float max)
 	
 	/* should be ok! */
 	return 1;
+}
+
+/* Recalculate the start and end frames for the current strip, after changing
+ * the extents of the action or the mapping (repeats or scale factor) info
+ */
+void BKE_nlastrip_recalculate_bounds (NlaStrip *strip)
+{
+	float actlen, mapping;
+	
+	/* sanity checks
+	 *	- must have a strip
+	 *	- can only be done for action clips
+	 */
+	if ((strip == NULL) || (strip->type != NLASTRIP_TYPE_CLIP))
+		return;
+		
+	/* calculate new length factors */
+	actlen= strip->actend - strip->actstart;
+	if (IS_EQ(actlen, 0.0f)) actlen= 1.0f;
+	
+	mapping= strip->scale * strip->repeat;
+	
+	/* adjust endpoint of strip in response to this */
+	if (IS_EQ(mapping, 0.0f) == 0)
+		strip->end = (actlen * mapping) + strip->start;
 }
 
 /* Is the given NLA-strip the first one to occur for the given AnimData block */

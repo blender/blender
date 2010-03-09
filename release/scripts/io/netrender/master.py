@@ -12,12 +12,12 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
 import sys, os
-import http, http.client, http.server, urllib, socket
+import http, http.client, http.server, urllib, socket, socketserver, threading
 import subprocess, shutil, time, hashlib
 import select # for select.error
 
@@ -76,6 +76,12 @@ class MRenderJob(netrender.model.RenderJob):
         self.save_path = ""
         self.files = [MRenderFile(rfile.filepath, rfile.index, rfile.start, rfile.end) for rfile in job_info.files]
 
+        self.resolution = None
+
+    def initInfo(self):
+        if not self.resolution:
+            self.resolution = tuple(getFileInfo(self.files[0].filepath, ["bpy.context.scene.render.resolution_x", "bpy.context.scene.render.resolution_y", "bpy.context.scene.render.resolution_percentage"]))
+
     def save(self):
         if self.save_path:
             f = open(self.save_path + "job.txt", "w")
@@ -98,6 +104,7 @@ class MRenderJob(netrender.model.RenderJob):
                 return False
 
         self.start()
+        self.initInfo()
         return True
 
     def testFinished(self):
@@ -106,11 +113,11 @@ class MRenderJob(netrender.model.RenderJob):
                 break
         else:
             self.status = JOB_FINISHED
-            
+
     def pause(self, status = None):
         if self.status not in {JOB_PAUSED, JOB_QUEUED}:
-            return 
-        
+            return
+
         if status == None:
             self.status = JOB_PAUSED if self.status == JOB_QUEUED else JOB_QUEUED
         elif status:
@@ -231,7 +238,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             if match:
                 job_id = match.groups()[0]
                 frame_number = int(match.groups()[1])
-                
+
                 job = self.server.getJobID(job_id)
 
                 if job:
@@ -242,9 +249,9 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             self.send_head(http.client.ACCEPTED)
                         elif frame.status == DONE:
                             self.server.stats("", "Sending result to client")
-                            
+
                             filename = job.save_path + "%04d" % frame_number + ".exr"
-                            
+
                             f = open(filename, 'rb')
                             self.send_head(content = "image/x-exr")
                             shutil.copyfileobj(f, self.wfile)
@@ -278,7 +285,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                             self.send_head(http.client.ACCEPTED)
                         elif frame.status == DONE:
                             filename = job.save_path + "%04d" % frame_number + ".exr"
-                            
+
                             thumbname = thumbnail(filename)
 
                             if thumbname:
@@ -520,7 +527,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                         rule.setLimit(limit)
                 except:
                     pass # invalid type
-                        
+
             self.send_head()
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path == "/balance_enable":
@@ -530,7 +537,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
                 rule = self.server.balancer.ruleByID(rule_id)
                 if rule:
                     rule.enabled = enabled
-                        
+
             self.send_head()
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
         elif self.path.startswith("/cancel"):
@@ -538,13 +545,13 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
             if match:
                 length = int(self.headers['content-length'])
-                
+
                 if length > 0:
                     info_map = eval(str(self.rfile.read(length), encoding='utf8'))
                     clear = info_map.get("clear", False)
                 else:
                     clear = False
-                
+
                 job_id = match.groups()[0]
 
                 job = self.server.getJobID(job_id)
@@ -565,13 +572,13 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
 
             if match:
                 length = int(self.headers['content-length'])
-                
+
                 if length > 0:
                     info_map = eval(str(self.rfile.read(length), encoding='utf8'))
                     status = info_map.get("status", None)
                 else:
                     status = None
-                
+
                 job_id = match.groups()[0]
 
                 job = self.server.getJobID(job_id)
@@ -590,7 +597,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
         elif self.path == "/clear":
             # cancel all jobs
             length = int(self.headers['content-length'])
-            
+
             if length > 0:
                 info_map = eval(str(self.rfile.read(length), encoding='utf8'))
                 clear = info_map.get("clear", False)
@@ -853,7 +860,7 @@ class RenderHandler(http.server.BaseHTTPRequestHandler):
             else: # invalid url
                 self.send_head(http.client.NO_CONTENT)
 
-class RenderMasterServer(http.server.HTTPServer):
+class RenderMasterServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
     def __init__(self, address, handler_class, path):
         super().__init__(address, handler_class)
         self.jobs = []
@@ -956,10 +963,10 @@ class RenderMasterServer(http.server.HTTPServer):
     def removeJob(self, job, clear_files = False):
         self.jobs.remove(job)
         self.jobs_map.pop(job.id)
-        
+
         if clear_files:
             shutil.rmtree(job.save_path)
-        
+
         for slave in self.slaves:
             if slave.job == job:
                 slave.job = None

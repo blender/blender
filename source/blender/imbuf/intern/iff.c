@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -198,16 +198,16 @@ unsigned short imb_update_iff(int file, int code)
 	if (code == 0) return (TRUE);
 
 	filelen-=4;
-	lseek(file,4L,1);
+	if(lseek(file,4L,1) == -1) return (FALSE);
 
 	while (filelen>0){		/* seek BODY */
-		read(file, buf, 8);
+		if(read(file, buf, 8) != 8) return (FALSE);
 		filelen -= 8;
 		if (buf[0] == code) break;
 		
 		skip = (BIG_LONG(buf[1]) + 1) & ~1;
 		filelen -= skip;
-		lseek(file, skip, 1);
+		if(lseek(file, skip, 1) == -1) return (FALSE);
 	}
 	if (filelen <= 0) {
 		printf("update_iff: couldn't find chunk\n");

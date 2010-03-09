@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software  Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 by Nicholas Bishop
  * All rights reserved.
@@ -50,6 +50,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
 
@@ -84,27 +85,22 @@ MultiresModifierData *find_multires_modifier(Object *ob)
 static int multires_get_level(Object *ob, MultiresModifierData *mmd, int render)
 {
 	if(render)
-		return mmd->renderlvl;
+		return (mmd->modifier.scene)? get_render_subsurf_level(&mmd->modifier.scene->r, mmd->renderlvl): mmd->renderlvl;
 	else if(ob->mode == OB_MODE_SCULPT)
 		return mmd->sculptlvl;
 	else
-		return mmd->lvl;
+		return (mmd->modifier.scene)? get_render_subsurf_level(&mmd->modifier.scene->r, mmd->lvl): mmd->lvl;
 }
 
 static void multires_set_tot_level(Object *ob, MultiresModifierData *mmd, int lvl)
 {
 	mmd->totlvl = lvl;
 
-	if(ob->mode != OB_MODE_SCULPT) {
-		mmd->lvl = MAX2(mmd->lvl, lvl);
-		CLAMP(mmd->lvl, 0, mmd->totlvl);
-	}
+	if(ob->mode != OB_MODE_SCULPT)
+		mmd->lvl = CLAMPIS(MAX2(mmd->lvl, lvl), 0, mmd->totlvl);
 
-	mmd->sculptlvl = MAX2(mmd->sculptlvl, lvl);
-	CLAMP(mmd->sculptlvl, 0, mmd->totlvl);
-
-	mmd->renderlvl = MAX2(mmd->renderlvl, lvl);
-	CLAMP(mmd->renderlvl, 0, mmd->totlvl);
+	mmd->sculptlvl = CLAMPIS(MAX2(mmd->sculptlvl, lvl), 0, mmd->totlvl);
+	mmd->renderlvl = CLAMPIS(MAX2(mmd->renderlvl, lvl), 0, mmd->totlvl);
 }
 
 static void multires_dm_mark_as_modified(DerivedMesh *dm)
@@ -121,11 +117,18 @@ void multires_mark_as_modified(Object *ob)
 
 void multires_force_update(Object *ob)
 {
+
 	if(ob && ob->derivedFinal) {
 		ob->derivedFinal->needsFree =1;
 		ob->derivedFinal->release(ob->derivedFinal);
 		ob->derivedFinal = NULL;
 	}
+}
+
+void multires_force_render_update(Object *ob)
+{
+	if(ob && (ob->mode & OB_MODE_SCULPT) && modifiers_findByType(ob, eModifierType_Multires))
+		multires_force_update(ob);
 }
 
 /* XXX */

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -67,6 +67,8 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACTION_OT_select_all_toggle);
 	WM_operatortype_append(ACTION_OT_select_border);
 	WM_operatortype_append(ACTION_OT_select_column);
+	WM_operatortype_append(ACTION_OT_select_more);
+	WM_operatortype_append(ACTION_OT_select_less);
 	
 		/* editing */
 	WM_operatortype_append(ACTION_OT_snap);
@@ -121,6 +123,11 @@ static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_CFRA);
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_COLUMN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_BETWEEN);
+	
+		/* select more/less */
+	WM_keymap_add_item(keymap, "ACTION_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "ACTION_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
+	
 	
 	/* action_edit.c */
 		/* snap - current frame to selected keys */

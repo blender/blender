@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -212,7 +212,7 @@ bNode *editnode_get_active(bNodeTree *ntree)
 		return nodeGetActive(ntree);
 }
 
-void snode_handle_recalc(bContext *C, SpaceNode *snode)
+void snode_notify(bContext *C, SpaceNode *snode)
 {
 	if(snode->treetype==NTREE_SHADER)
 		WM_event_add_notifier(C, NC_MATERIAL|ND_NODES, snode->id);
@@ -242,7 +242,8 @@ void ED_node_shader_default(Material *ma)
 	
 	/* but lets check it anyway */
 	if(ma->nodetree) {
-		printf("error in shader initialize\n");
+		if (G.f & G_DEBUG)
+			printf("error in shader initialize\n");
 		return;
 	}
 	
@@ -272,7 +273,8 @@ void ED_node_composit_default(Scene *sce)
 	
 	/* but lets check it anyway */
 	if(sce->nodetree) {
-		printf("error in composit initialize\n");
+		if (G.f & G_DEBUG)
+			printf("error in composite initialize\n");
 		return;
 	}
 	
@@ -306,7 +308,8 @@ void ED_node_texture_default(Tex *tx)
 	
 	/* but lets check it anyway */
 	if(tx->nodetree) {
-		printf("error in texture initialize\n");
+		if (G.f & G_DEBUG)
+			printf("error in texture initialize\n");
 		return;
 	}
 	
@@ -430,12 +433,12 @@ void node_set_active(SpaceNode *snode, bNode *node)
 	if(node->type!=NODE_GROUP) {
 		/* tree specific activate calls */
 		if(snode->treetype==NTREE_SHADER) {
-			// XXX
-#if 0
-			
 			/* when we select a material, active texture is cleared, for buttons */
 			if(node->id && GS(node->id->name)==ID_MA)
 				nodeClearActiveID(snode->edittree, ID_TE);
+
+			// XXX
+#if 0
 			if(node->id)
 				; // XXX BIF_preview_changed(-1);	/* temp hack to force texture preview to update */
 			
@@ -569,7 +572,7 @@ void NODE_OT_group_edit(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Edit Group";
-	ot->description = "Edit node group.";
+	ot->description = "Edit node group";
 	ot->idname = "NODE_OT_group_edit";
 	
 	/* api callbacks */
@@ -615,7 +618,7 @@ void NODE_OT_group_ungroup(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Ungroup";
-	ot->description = "Ungroup selected nodes.";
+	ot->description = "Ungroup selected nodes";
 	ot->idname = "NODE_OT_group_ungroup";
 	
 	/* api callbacks */
@@ -964,10 +967,10 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 	/* check if we click in a socket */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		
-		rect.xmin = snode->mx - NODE_SOCKSIZE+3;
-		rect.ymin = snode->my - NODE_SOCKSIZE+3;
-		rect.xmax = rect.xmin + 2*NODE_SOCKSIZE+6;
-		rect.ymax = rect.ymin + 2*NODE_SOCKSIZE+6;
+		rect.xmin = snode->mx - (NODE_SOCKSIZE+4);
+		rect.ymin = snode->my - (NODE_SOCKSIZE+4);
+		rect.xmax = snode->mx + (NODE_SOCKSIZE+4);
+		rect.ymax = snode->my + (NODE_SOCKSIZE+4);
 		
 		if (!(node->flag & NODE_HIDDEN)) {
 			/* extra padding inside and out - allow dragging on the text areas too */
@@ -1118,7 +1121,7 @@ static bNodeSocket *best_socket_input(bNodeTree *ntree, bNode *node, int num, in
 {
 	bNodeSocket *sock;
 	int socktype, maxtype=0;
-	int a;
+	int a = 0;
 	
 	for (sock=node->inputs.first; sock; sock=sock->next) {
 		maxtype = MAX2(sock->type, maxtype);
@@ -1239,7 +1242,7 @@ bNode *node_add_node(SpaceNode *snode, Scene *scene, int type, float locx, float
 		node_set_active(snode, node);
 		
 		if(snode->nodetree->type==NTREE_COMPOSIT) {
-			if(ELEM3(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS))
+			if(ELEM4(node->type, CMP_NODE_R_LAYERS, CMP_NODE_COMPOSITE, CMP_NODE_DEFOCUS, CMP_NODE_OUTPUT_FILE))
 				node->id = &scene->id;
 			
 			ntreeCompositForceHidden(snode->edittree, scene);
@@ -1268,7 +1271,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 	
 	ntreeSolveOrder(snode->edittree);
 	node_tree_verify_groups(snode->nodetree);
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 
 	return OPERATOR_FINISHED;
 }
@@ -1277,7 +1280,7 @@ void NODE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Duplicate Nodes";
-	ot->description = "Duplicate the nodes.";
+	ot->description = "Duplicate the nodes";
 	ot->idname= "NODE_OT_duplicate";
 	
 	/* api callbacks */
@@ -1407,7 +1410,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 			
 			ntreeSolveOrder(snode->edittree);
 			node_tree_verify_groups(snode->nodetree);
-			snode_handle_recalc(C, snode);
+			snode_notify(C, snode);
 			
 			MEM_freeN(op->customdata);
 			op->customdata= NULL;
@@ -1525,7 +1528,7 @@ static int node_make_link_exec(bContext *C, wmOperator *op)
 	snode_autoconnect(snode, 0, replace);
 
 	node_tree_verify_groups(snode->nodetree);
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1534,7 +1537,7 @@ void NODE_OT_link_make(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Make Links";
-	ot->description= "Makes a link between selected output in input sockets.";
+	ot->description= "Makes a link between selected output in input sockets";
 	ot->idname= "NODE_OT_link_make";
 	
 	/* callbacks */
@@ -1597,7 +1600,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		
 		ntreeSolveOrder(snode->edittree);
 		node_tree_verify_groups(snode->nodetree);
-		snode_handle_recalc(C, snode);
+		snode_notify(C, snode);
 		
 		return OPERATOR_FINISHED;
 	}
@@ -1652,13 +1655,13 @@ void node_read_renderlayers(SpaceNode *snode)
 		}
 	}
 	
-	// XXX			snode_handle_recalc(snode);
+	// XXX			snode_notify(snode);
 }
 
 void node_read_fullsamplelayers(SpaceNode *snode)
 {
 	Scene *curscene= NULL; // XXX
-	Render *re= RE_NewRender(curscene->id.name);
+	Render *re= RE_NewRender(curscene->id.name, RE_SLOT_VIEW);
 
 	WM_cursor_wait(1);
 
@@ -1733,7 +1736,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 		ntreeSolveOrder(snode->nodetree);
 	}
 	
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1742,7 +1745,7 @@ void NODE_OT_group_make(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Group";
-	ot->description = "Make group from selected nodes.";
+	ot->description = "Make group from selected nodes";
 	ot->idname = "NODE_OT_group_make";
 	
 	/* api callbacks */
@@ -1782,7 +1785,7 @@ static int node_hide_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1791,7 +1794,7 @@ void NODE_OT_hide(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Hide";
-	ot->description= "Toggle hiding of the nodes.";
+	ot->description= "Toggle hiding of the nodes";
 	ot->idname= "NODE_OT_hide";
 	
 	/* callbacks */
@@ -1817,11 +1820,12 @@ static int node_mute_exec(bContext *C, wmOperator *op)
 		if(node->flag & SELECT) {
 			if(node->inputs.first && node->outputs.first) {
 				node->flag ^= NODE_MUTED;
+				NodeTagChanged(snode->edittree, node);
 			}
 		}
 	}
 	
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1830,7 +1834,7 @@ void NODE_OT_mute(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mute";
-	ot->description= "Toggle muting of the nodes.";
+	ot->description= "Toggle muting of the nodes";
 	ot->idname= "NODE_OT_mute";
 	
 	/* callbacks */
@@ -1860,7 +1864,7 @@ static int node_delete_exec(bContext *C, wmOperator *op)
 	
 	node_tree_verify_groups(snode->nodetree);
 
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1869,7 +1873,7 @@ void NODE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
-	ot->description = "Delete selected nodes.";
+	ot->description = "Delete selected nodes";
 	ot->idname= "NODE_OT_delete";
 	
 	/* api callbacks */
@@ -1888,7 +1892,7 @@ static int node_show_cycles_exec(bContext *C, wmOperator *op)
 	
 	/* this is just a wrapper around this call... */
 	ntreeSolveOrder(snode->edittree);
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1897,7 +1901,7 @@ void NODE_OT_show_cyclic_dependencies(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Show Cyclic Dependencies";
-	ot->description= "Sort the nodes and show the cyclic dependencies between the nodes.";
+	ot->description= "Sort the nodes and show the cyclic dependencies between the nodes";
 	ot->idname= "NODE_OT_show_cyclic_dependencies";
 	
 	/* callbacks */

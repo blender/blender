@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -346,8 +346,8 @@ void draw_volume(Scene *scene, ARegion *ar, View3D *v3d, Base *base, GPUTexture 
 	glGetBooleanv(GL_BLEND, (GLboolean *)&gl_blend);
 	glGetBooleanv(GL_DEPTH_TEST, (GLboolean *)&gl_depth);
 
-	wmLoadMatrix(rv3d->viewmat);
-	// wmMultMatrix(ob->obmat);	
+	glLoadMatrixf(rv3d->viewmat);
+	// glMultMatrixf(ob->obmat);	
 
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);

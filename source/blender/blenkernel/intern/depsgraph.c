@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2004 Blender Foundation.
  * All rights reserved.
@@ -29,12 +29,9 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef _WIN32
-#include "BLI_winstuff.h"
-#endif
-
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_winstuff.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
@@ -809,7 +806,7 @@ DagNode * dag_find_node (DagForest *forest,void * fob)
 
 static int ugly_hack_sorry= 1;	// prevent type check
 
-/* no checking of existance, use dag_find_node first or dag_get_node */
+/* no checking of existence, use dag_find_node first or dag_get_node */
 DagNode * dag_add_node (DagForest *forest, void * fob)
 {
 	DagNode *node;
@@ -2212,6 +2209,50 @@ void DAG_ids_flush_update(int time)
 
 	if(sce)
 		DAG_scene_flush_update(sce, lay, time);
+}
+
+void DAG_on_load_update(void)
+{
+	Main *bmain= G.main;
+	Scene *scene, *sce;
+	Base *base;
+	Object *ob;
+	Group *group;
+	GroupObject *go;
+	unsigned int lay;
+
+	dag_current_scene_layers(bmain, &scene, &lay);
+
+	if(scene) {
+		/* derivedmeshes and displists are not saved to file so need to be
+		   remade, tag them so they get remade in the scene update loop,
+		   note armature poses or object matrices are preserved and do not
+		   require updates, so we skip those */
+		for(SETLOOPER(scene, base)) {
+			ob= base->object;
+
+			if(base->lay & lay) {
+				if(ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
+					ob->recalc |= OB_RECALC_DATA;
+				if(ob->dup_group) 
+					ob->dup_group->id.flag |= LIB_DOIT;
+			}
+		}
+
+		for(group= G.main->group.first; group; group= group->id.next) {
+			if(group->id.flag & LIB_DOIT) {
+				for(go= group->gobject.first; go; go= go->next) {
+					if(ELEM5(go->ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL))
+						go->ob->recalc |= OB_RECALC_DATA;
+				}
+				
+				group->id.flag &= ~LIB_DOIT;
+			}
+		}
+
+		/* now tag update flags, to ensure deformers get calculated on redraw */
+		DAG_scene_update_flags(scene, lay);
+	}
 }
 
 void DAG_id_flush_update(ID *id, short flag)

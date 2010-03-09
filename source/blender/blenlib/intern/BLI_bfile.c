@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 by Stichting Blender Foundation.
  * All rights reserved.
@@ -46,6 +46,8 @@
 #include "BLI_storage.h"
 #include "BLI_bfile.h"
 
+#include "GHOST_C-api.h"
+
 /* Internal bfile classification flags */
 #define BCF_OPEN     (0)
 #define BCF_FOPEN    (1<<0)
@@ -53,6 +55,11 @@
 #define BCF_WRITE    (1<<2)
 #define BCF_AT_END   (1<<3)
 #define BCF_DISCARD  (1<<4)
+
+/* Standard files names */
+#define LAST_SESSION_FILE "last-session"
+#define ENVIRONMENT_FILE "environment"
+
 
 /* Declaration of internal functions */
 void chomp(char* line);
@@ -221,19 +228,6 @@ void BLI_bfile_set_error(BFILE *bfile, int error) {
 }
 
 
-#if defined(WIN32)
- #define LAST_SESSION_FILE "%HOME%\\Blender\\last-session FIXME FIXME FIXME"
- #define ENVIRONMENT_FILE "FIXME"
- #define SHARED_DIRECTORY "FIXME TOO"
-#elif defined(OSX)
- #define LAST_SESSION_FILE "${HOME}/Library/Application Support/Blender/last-session"
- #define ENVIRONMENT_FILE "${HOME}/Library/Application Support/Blender/${BLENDER_VERSION}/environment"
- #define SHARED_DIRECTORY "/Library/Application Support/Blender"
-#else
- #define LAST_SESSION_FILE "${HOME}/.blender/last-session"
- #define ENVIRONMENT_FILE "${HOME}/.blender/${BLENDER_VERSION}/environment"
- #define SHARED_DIRECTORY "/usr/share/blender"
-#endif
 void BLI_bfile_init_vars() {
 	char file[MAXPATHLEN];
 	char temp[MAXPATHLEN];
@@ -249,10 +243,12 @@ void BLI_bfile_init_vars() {
 	if(BLI_exist(temp)) {
 		BLI_setenv_if_new("BLENDER_SHARE", dirname(bprogname));
 	} else {
-		BLI_setenv_if_new("BLENDER_SHARE", SHARED_DIRECTORY);
+		BLI_setenv_if_new("BLENDER_SHARE", (const char*)GHOST_getSystemDir());
 	}
 
-	expand_envvars(LAST_SESSION_FILE, file);
+	strcpy(file, (const char*)GHOST_getUserDir());
+	BLI_add_slash(file);
+	strcat(file, LAST_SESSION_FILE);
 	fp = fopen(file, "r");
 	/* 1st line, read previous version */
 	if (fp && (fscanf(fp, "%3c\n", temp) == 1)) {
@@ -283,7 +279,9 @@ void BLI_bfile_init_vars() {
 	}
 
 	/* Load vars from user and system files */
-	expand_envvars(ENVIRONMENT_FILE, file);
+	strcpy(file, (const char *)GHOST_getUserDir());
+	BLI_add_slash(file);
+	strcat(file, ENVIRONMENT_FILE);
 	init_vars_from_file(file);
 	sprintf(temp, "/%d/environment", BLENDER_VERSION);
 	BLI_make_file_string("/", file, getenv("BLENDER_SHARE"), temp);

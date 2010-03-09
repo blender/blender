@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
@@ -62,7 +62,7 @@ static void node_composit_exec_output_file(void *data, bNode *node, bNodeStack *
 				}
 			}
 			
-			BKE_makepicstring(string, nif->name, rd->cfra, nif->imtype, ((Scene *)node->id)->r.scemode & R_EXTENSION);
+			BKE_makepicstring(string, nif->name, rd->cfra, nif->imtype, (rd->scemode & R_EXTENSION));
 			
 			if(0 == BKE_write_ibuf((Scene *)node->id, ibuf, string, nif->imtype, nif->subimtype, nif->imtype==R_OPENEXR?nif->codec:nif->quality))
 				printf("Cannot save Node File Output to %s\n", string);

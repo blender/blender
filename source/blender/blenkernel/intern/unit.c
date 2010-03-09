@@ -14,29 +14,29 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Campbell Barton
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#ifdef WIN32
+#define _USE_MATH_DEFINES
+#endif
 #include <math.h>
 
-#if defined(WIN32) && (!(defined snprintf))
-#define snprintf _snprintf
-#endif
+#include "BLI_winstuff.h"
 
 #define TEMP_STR_SIZE 256
 
 #define SEP_CHR		'#'
 #define SEP_STR		"#"
 
-#define EUL 0.000001
+#define EPS 0.000001
 
 
 /* define a single unit */
@@ -119,11 +119,18 @@ static struct bUnitDef buNaturalTimeDef[] = {
 };
 static struct bUnitCollection buNaturalTimeCollecton = {buNaturalTimeDef, 3, 0, sizeof(buNaturalTimeDef)/sizeof(bUnitDef)};
 
+
+static struct bUnitDef buNaturalRotDef[] = {
+	{"degree", "degrees",			"°", NULL, "Degrees",		M_PI/180.0, 0.0,	B_UNIT_DEF_NONE},
+	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
+};
+static struct bUnitCollection buNaturalRotCollection = {buNaturalRotDef, 0, 0, sizeof(buNaturalRotDef)/sizeof(bUnitDef)};
+
 #define UNIT_SYSTEM_MAX 3
 static struct bUnitCollection *bUnitSystems[][8] = {
-	{0,0,0,0,0,0,0,0},
-	{0,&buMetricLenCollecton, 0,0,0,0, &buNaturalTimeCollecton,0}, /* metric */
-	{0,&buImperialLenCollecton, 0,0,0,0, &buNaturalTimeCollecton,0}, /* imperial */
+	{0,0,0,0,0,&buNaturalRotCollection,&buNaturalTimeCollecton,0},
+	{0,&buMetricLenCollecton, 0,0,0, &buNaturalRotCollection, &buNaturalTimeCollecton,0}, /* metric */
+	{0,&buImperialLenCollecton, 0,0,0,&buNaturalRotCollection, &buNaturalTimeCollecton,0}, /* imperial */
 	{0,0,0,0,0,0,0,0}
 };
 
@@ -148,7 +155,7 @@ static bUnitDef *unit_best_fit(double value, bUnitCollection *usys, bUnitDef *un
 		if(suppress && (unit->flag & B_UNIT_DEF_SUPPRESS))
 			continue;
 
-		if (value_abs >= unit->scalar*(1.0-EUL)) /* scale down scalar so 1cm doesnt convert to 10mm because of float error */
+		if (value_abs >= unit->scalar*(1.0-EPS)) /* scale down scalar so 1cm doesnt convert to 10mm because of float error */
 			return unit;
 	}
 
@@ -163,7 +170,7 @@ static void unit_dual_convert(double value, bUnitCollection *usys,
 {
 	bUnitDef *unit= unit_best_fit(value, usys, NULL, 1);
 
-	*value_a= floor(value/unit->scalar) * unit->scalar;
+	*value_a=  (value < 0.0 ? ceil:floor)(value/unit->scalar) * unit->scalar;
 	*value_b= value - (*value_a);
 
 	*unit_a=	unit;
@@ -451,23 +458,25 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 		bUnitCollection *usys_iter;
 		int system_iter;
 
-		for(system_iter= 1; system_iter<UNIT_SYSTEM_MAX; system_iter++) {
+		for(system_iter= 0; system_iter<UNIT_SYSTEM_MAX; system_iter++) {
 			if (system_iter != system) {
 				usys_iter= unit_get_system(system_iter, type);
-				for(unit= usys_iter->units; unit->name; unit++) {
+				if (usys_iter) {
+					for(unit= usys_iter->units; unit->name; unit++) {
 
-					if((unit->flag & B_UNIT_DEF_SUPPRESS) == 0) {
-						int ofs = 0;
-						/* incase there are multiple instances */
-						while((ofs=unit_replace(str+ofs, len_max-ofs, str_tmp, scale_pref, unit)))
-							change= 1;
+						if((unit->flag & B_UNIT_DEF_SUPPRESS) == 0) {
+							int ofs = 0;
+							/* incase there are multiple instances */
+							while((ofs=unit_replace(str+ofs, len_max-ofs, str_tmp, scale_pref, unit)))
+								change= 1;
+						}
 					}
 				}
 			}
 		}
 	}
 	unit= NULL;
-
+	
 	if(change==0) {
 		/* no units given so infer a unit from the previous string or default */
 		if(str_prev) {
@@ -482,8 +491,9 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 			}
 		}
 
-		if(unit==NULL)
+		if(unit==NULL || unit->name == NULL)
 			unit= unit_default(usys);
+
 
 		/* add the unit prefix and re-run, use brackets incase there was an expression given */
 		if(snprintf(str_tmp, sizeof(str_tmp), "(%s)%s", str, unit->name) < sizeof(str_tmp)) {
@@ -530,7 +540,6 @@ int bUnit_ReplaceString(char *str, int len_max, char *str_prev, double scale_pre
 		}
 	}
 
-	// printf("replace %s\n", str);
 	return change;
 }
 

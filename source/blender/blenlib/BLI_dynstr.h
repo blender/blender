@@ -23,7 +23,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -59,6 +59,15 @@ DynStr*	BLI_dynstr_new					(void);
 	 * @param cstr The c-string to append.
 	 */
 void	BLI_dynstr_append				(DynStr *ds, const char *cstr);
+
+/**
+ * Append a length clamped c-string to a DynStr.
+ *
+ * @param ds The DynStr to append to.
+ * @param cstr The c-string to append.
+ * @param len The maximum length of the c-string to copy.
+ */
+void	BLI_dynstr_nappend				(DynStr *ds, const char *cstr, int len);
 
 	/**
 	 * Append a c-string to a DynStr, but with formatting like printf.

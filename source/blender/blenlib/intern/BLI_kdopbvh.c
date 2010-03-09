@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 by NaN Holding BV.
  * All rights reserved.
@@ -196,14 +196,14 @@ int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, int *max_
 // http://ralphunden.net/content/tutorials/a-guide-to-introsort/
 // and he derived it from the SUN STL 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
-static int size_threshold = 16;
+//static int size_threshold = 16;
 /*
 * Common methods for all algorithms
 */
-static int floor_lg(int a)
+/*static int floor_lg(int a)
 {
 	return (int)(floor(log(a)/log(2)));
-}
+}*/
 
 /*
 * Insertion sort algorithm
@@ -243,6 +243,7 @@ static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode * x, int axis)
 /*
 * Heapsort algorithm
 */
+#if 0
 static void bvh_downheap(BVHNode **a, int i, int n, int lo, int axis)
 {
 	BVHNode * d = a[lo+i-1];
@@ -274,6 +275,7 @@ static void bvh_heapsort(BVHNode **a, int lo, int hi, int axis)
 		bvh_downheap(a, 1,i-1,lo, axis);
 	}
 }
+#endif
 
 static BVHNode *bvh_medianof3(BVHNode **a, int lo, int mid, int hi, int axis) // returns Sortable
 {
@@ -1502,7 +1504,8 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 
 	//ray-bv is really fast.. and simple tests revealed its worth to test it
 	//before calling the ray-primitive functions
-	float dist = fast_ray_nearest_hit(data, node);
+	/* XXX: temporary solution for particles untill fast_ray_nearest_hit supports ray.radius */
+	float dist = (data->ray.radius > 0.0f) ? ray_nearest_hit(data, node->bv) : fast_ray_nearest_hit(data, node);
 	if(dist >= data->hit.dist) return;
 
 	if(node->totnode == 0)

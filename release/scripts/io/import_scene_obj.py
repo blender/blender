@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -46,7 +46,7 @@ Note, This loads mesh objects and materials only, nurbs and curves are not suppo
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
@@ -367,8 +367,9 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     #==================================================================================#
     def load_material_image(blender_material, context_material_name, imagepath, type):
 
-        texture= bpy.data.add_texture(type)
+        texture= bpy.data.textures.new(type)
         texture.type= 'IMAGE'
+        texture = texture.recast_type() # Workaround for limitation in rna api.
 # 		texture= bpy.data.textures.new(type)
 # 		texture.setType('Image')
 
@@ -440,8 +441,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
     #Create new materials
     for name in unique_materials: # .keys()
         if name != None:
-            unique_materials[name]= bpy.data.add_material(name)
-# 			unique_materials[name]= bpy.data.materials.new(name)
+            unique_materials[name]= bpy.data.materials.new(name)
             unique_material_images[name]= None, False # assign None to all material images to start with, add to later.
 
     unique_materials[None]= None
@@ -482,7 +482,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
                         context_material.specular_hardness = int((float(line_split[1])*0.51))
 # 						context_material.setHardness( int((float(line_split[1])*0.51)) )
                     elif line_lower.startswith('ni'): # Refraction index
-                        context_material.ior = max(1, min(float(line_split[1]), 3))
+                        context_material.raytrace_transparency.ior = max(1, min(float(line_split[1]), 3))
 # 						context_material.setIOR( max(1, min(float(line_split[1]), 3))) # Between 1 and 3
                     elif line_lower.startswith('d') or line_lower.startswith('tr'):
                         context_material.alpha = float(line_split[1])
@@ -863,10 +863,8 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
     me.update()
 # 	me.calcNormals()
 
-    ob= bpy.data.objects.new("Mesh", 'MESH')
-    ob.data= me
+    ob= bpy.data.objects.new("Mesh", me)
     scn.objects.link(ob)
-# 	ob= scn.objects.new(me)
     new_objects.append(ob)
 
     # Create the vertex groups. No need to have the flag passed here since we test for the
@@ -1574,7 +1572,7 @@ else:
 from bpy.props import *
 
 class IMPORT_OT_obj(bpy.types.Operator):
-    '''Load a Wavefront OBJ File.'''
+    '''Load a Wavefront OBJ File'''
     bl_idname = "import_scene.obj"
     bl_label = "Import OBJ"
 
@@ -1594,7 +1592,7 @@ class IMPORT_OT_obj(bpy.types.Operator):
     # disabled this option because in old code a handler for it disabled SPLIT* params, it's not passed to load_obj
     # KEEP_VERT_ORDER = BoolProperty(name="Keep Vert Order", description="Keep vert and face order, disables split options, enable for morph targets", default= True)
     ROTATE_X90 = BoolProperty(name="-X90", description="Rotate X 90.", default= True)
-    CLAMP_SIZE = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.01, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
+    CLAMP_SIZE = FloatProperty(name="Clamp Scale", description="Clamp the size to this maximum (Zero to Disable)", min=0.0, max=1000.0, soft_min=0.0, soft_max=1000.0, default=0.0)
     POLYGROUPS = BoolProperty(name="Poly Groups", description="Import OBJ groups as vertex groups.", default= True)
     IMAGE_SEARCH = BoolProperty(name="Image Search", description="Search subdirs for any assosiated images (Warning, may be slow)", default= True)
 
@@ -1623,11 +1621,16 @@ class IMPORT_OT_obj(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 
-bpy.types.register(IMPORT_OT_obj)
+menu_func = lambda self, context: self.layout.operator(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)")
 
 
-menu_func = lambda self, context: self.layout.operator(IMPORT_OT_obj.bl_idname, text="Wavefront (.obj)...")
-menu_item = bpy.types.INFO_MT_file_import.append(menu_func)
+def register():
+    bpy.types.register(IMPORT_OT_obj)
+    bpy.types.INFO_MT_file_import.append(menu_func)
+
+def unregister():
+    bpy.types.unregister(IMPORT_OT_obj)
+    bpy.types.INFO_MT_file_import.remove(menu_func)
 
 
 # NOTES (all line numbers refer to 2.4x import_obj.py, not this file)
@@ -1642,3 +1645,7 @@ menu_item = bpy.types.INFO_MT_file_import.append(menu_func)
 # bitmask won't work? - 132
 # uses operator bpy.ops.OBJECT_OT_select_all() to deselect all (not necessary?)
 # uses bpy.sys.time()
+
+if __name__ == "__main__":
+    register()
+

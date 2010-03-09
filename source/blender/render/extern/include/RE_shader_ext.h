@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 by Blender Foundation
  * All rights reserved.
@@ -49,10 +49,13 @@ typedef struct ShadeResult
 	float combined[4];
 	float col[4];
 	float alpha, mist, z;
+	float emit[3];
 	float diff[3];		/* no ramps, shadow, etc */
 	float spec[3];
 	float shad[3];
 	float ao[3];
+	float env[3];
+	float indirect[3];
 	float refl[3];
 	float refr[3];
 	float nor[3];
@@ -153,7 +156,7 @@ typedef struct ShadeInput
 	float dxstrand, dystrand;
 	
 	/* AO is a pre-process now */
-	float ao[3], indirect[3];
+	float ao[3], indirect[3], env[3];
 	
 	int xs, ys;				/* pixel to be rendered */
 	int mask;				/* subsample mask */
@@ -188,8 +191,10 @@ typedef struct ShadeInput
 
 /* node shaders... */
 struct Tex;
+struct MTex;
 int	multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres);
-int	multitex_thread(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output);
+int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres,
+	short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex);
 
 /* shaded view and bake */
 struct Render;

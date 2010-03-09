@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Martin Poirier
  *
@@ -186,12 +186,12 @@ float rollBoneByQuatAligned(EditBone *bone, float old_up_axis[3], float qrot[4],
 	
 	if (dot_v3v3(new_up_axis, x_axis) < 0)
 	{
-		mul_v3_fl(x_axis, -1);
+		negate_v3(x_axis);
 	}
 	
 	if (dot_v3v3(new_up_axis, z_axis) < 0)
 	{
-		mul_v3_fl(z_axis, -1);
+		negate_v3(z_axis);
 	}
 	
 	if (angle_normalized_v3v3(x_axis, new_up_axis) < angle_normalized_v3v3(z_axis, new_up_axis))

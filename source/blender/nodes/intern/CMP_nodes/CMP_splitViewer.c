@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
@@ -65,7 +65,7 @@ static void node_composit_exec_splitviewer(void *data, bNode *node, bNodeStack *
 		buf1= typecheck_compbuf(in[0]->data, CB_RGBA);
 		buf2= typecheck_compbuf(in[1]->data, CB_RGBA);
 		
-		BKE_image_user_calc_imanr(node->storage, rd->cfra, 0);
+		BKE_image_user_calc_frame(node->storage, rd->cfra, 0);
 		
 		/* always returns for viewer image, but we check nevertheless */
 		ibuf= BKE_image_get_ibuf(ima, node->storage);

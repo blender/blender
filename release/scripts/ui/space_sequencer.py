@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -123,7 +123,9 @@ class SEQUENCER_MT_view(bpy.types.Menu):
         if (st.view_type == 'SEQUENCER') or (st.view_type == 'SEQUENCER_PREVIEW'):
             layout.operator("sequencer.view_all", text='View all Sequences')
         if (st.view_type == 'PREVIEW') or (st.view_type == 'SEQUENCER_PREVIEW'):
+            layout.operator_context = 'INVOKE_REGION_PREVIEW'
             layout.operator("sequencer.view_all_preview", text='Fit preview in window')
+            layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("sequencer.view_selected")
 
         layout.prop(st, "draw_frames")
@@ -310,7 +312,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        render = context.scene.render
         strip = act_strip(context)
 
         split = layout.split(percentage=0.3)
@@ -344,7 +346,9 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         col.enabled = not strip.lock
         col.prop(strip, "channel")
         col.prop(strip, "start_frame")
-        col.prop(strip, "length")
+        subrow = col.split(percentage=0.66)
+        subrow.prop(strip, "length")
+        subrow.label(text="%.2f sec" % (strip.length / (render.fps / render.fps_base)))
 
         col = layout.column(align=True)
         col.label(text="Offset:")
@@ -467,27 +471,16 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
             return False
 
         return strip.type in ('MOVIE', 'IMAGE')
-
+        
+    def draw_filename(self, context):
+        pass
+        
     def draw(self, context):
         layout = self.layout
 
         strip = act_strip(context)
 
-        split = layout.split(percentage=0.2)
-        col = split.column()
-        col.label(text="Path:")
-        col = split.column()
-        col.prop(strip, "directory", text="")
-
-        # Current element for the filename
-
-        elem = strip.getStripElem(context.scene.current_frame)
-        if elem:
-            split = layout.split(percentage=0.2)
-            col = split.column()
-            col.label(text="File:")
-            col = split.column()
-            col.prop(elem, "filename", text="") # strip.elements[0] could be a fallback
+        self.draw_filename(context)
 
         layout.prop(strip, "use_translation", text="Image Offset:")
         if strip.transform:
@@ -509,6 +502,64 @@ class SEQUENCER_PT_input(SequencerButtonsPanel):
         col.label(text="Trim Duration:")
         col.prop(strip, "animation_start_offset", text="Start")
         col.prop(strip, "animation_end_offset", text="End")
+        
+class SEQUENCER_PT_input_movie(SEQUENCER_PT_input):
+    bl_label = "Strip Input"
+
+    def poll(self, context):
+        if not self.has_sequencer(context):
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
+        return strip.type == 'MOVIE'
+
+    def draw_filename(self, context):
+        layout = self.layout
+
+        strip = act_strip(context)
+
+        split = layout.split(percentage=0.2)
+        col = split.column()
+        col.label(text="Path:")
+        col = split.column()
+        col.prop(strip, "filepath", text="")
+
+class SEQUENCER_PT_input_image(SEQUENCER_PT_input):
+    bl_label = "Strip Input"
+
+    def poll(self, context):
+        if not self.has_sequencer(context):
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
+        return strip.type == 'IMAGE'
+
+    def draw_filename(self, context):
+        layout = self.layout
+
+        strip = act_strip(context)
+
+        split = layout.split(percentage=0.2)
+        col = split.column()
+        col.label(text="Path:")
+        col = split.column()
+        col.prop(strip, "directory", text="")
+
+        # Current element for the filename
+
+        elem = strip.getStripElem(context.scene.current_frame)
+        if elem:
+            split = layout.split(percentage=0.2)
+            col = split.column()
+            col.label(text="File:")
+            col = split.column()
+            col.prop(elem, "filename", text="") # strip.elements[0] could be a fallback
 
 
 class SEQUENCER_PT_sound(SequencerButtonsPanel):
@@ -532,7 +583,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         layout.template_ID(strip, "sound", open="sound.open")
 
         layout.separator()
-        layout.prop(strip.sound, "filename", text="")
+        layout.prop(strip.sound, "filepath", text="")
 
         row = layout.row()
         if strip.sound.packed_file:
@@ -661,21 +712,39 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output):
         col.prop(st, "draw_overexposed") # text="Zebra"
         col.prop(st, "draw_safe_margin")
 
-bpy.types.register(SEQUENCER_HT_header) # header/menu classes
-bpy.types.register(SEQUENCER_MT_view)
-bpy.types.register(SEQUENCER_MT_view_toggle)
-bpy.types.register(SEQUENCER_MT_select)
-bpy.types.register(SEQUENCER_MT_marker)
-bpy.types.register(SEQUENCER_MT_add)
-bpy.types.register(SEQUENCER_MT_add_effect)
-bpy.types.register(SEQUENCER_MT_strip)
 
-bpy.types.register(SEQUENCER_PT_edit) # sequencer panels
-bpy.types.register(SEQUENCER_PT_effect)
-bpy.types.register(SEQUENCER_PT_input)
-bpy.types.register(SEQUENCER_PT_sound)
-bpy.types.register(SEQUENCER_PT_scene)
-bpy.types.register(SEQUENCER_PT_filter)
-bpy.types.register(SEQUENCER_PT_proxy)
+classes = [
+    SEQUENCER_HT_header, # header/menu classes
+    SEQUENCER_MT_view,
+    SEQUENCER_MT_view_toggle,
+    SEQUENCER_MT_select,
+    SEQUENCER_MT_marker,
+    SEQUENCER_MT_add,
+    SEQUENCER_MT_add_effect,
+    SEQUENCER_MT_strip,
 
-bpy.types.register(SEQUENCER_PT_view) # view panels
+    SEQUENCER_PT_edit, # sequencer panels
+    SEQUENCER_PT_effect,
+    SEQUENCER_PT_input_movie,
+    SEQUENCER_PT_input_image,
+    SEQUENCER_PT_sound,
+    SEQUENCER_PT_scene,
+    SEQUENCER_PT_filter,
+    SEQUENCER_PT_proxy,
+
+    SEQUENCER_PT_view] # view panels
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

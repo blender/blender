@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation
  * All rights reserved.
@@ -994,41 +994,69 @@ void ambient_occlusion(ShadeInput *shi)
 	if((R.wrld.ao_gather_method == WO_AOGATHER_APPROX) && shi->mat->amb!=0.0f)
 		sample_occ(&R, shi);
 	else if((R.r.mode & R_RAYTRACE) && shi->mat->amb!=0.0f)
-		ray_ao(shi, shi->ao);
+		ray_ao(shi, shi->ao, shi->env);
 	else
 		shi->ao[0]= shi->ao[1]= shi->ao[2]= 1.0f;
 }
 
 
 /* wrld mode was checked for */
-void ambient_occlusion_to_diffuse(ShadeInput *shi, float *diff)
+static void ambient_occlusion_apply(ShadeInput *shi, ShadeResult *shr)
 {
-	if((R.r.mode & R_RAYTRACE) || R.wrld.ao_gather_method == WO_AOGATHER_APPROX) {
-		if(shi->amb!=0.0f) {
-			float f= R.wrld.aoenergy*shi->amb;
+	float f= R.wrld.aoenergy;
+	float tmp[3], tmpspec[3];
 
-			if (R.wrld.aomix==WO_AOADDSUB) {
-				diff[0] = 2.0f*shi->ao[0]-1.0f;
-				diff[1] = 2.0f*shi->ao[1]-1.0f;
-				diff[2] = 2.0f*shi->ao[2]-1.0f;
-			}
-			else if (R.wrld.aomix==WO_AOSUB) {
-				diff[0] = shi->ao[0]-1.0f;
-				diff[1] = shi->ao[1]-1.0f;
-				diff[2] = shi->ao[2]-1.0f;
-			}
-			else {
-				VECCOPY(diff, shi->ao);
-			}
-			
-			VECMUL(diff, f);
-			madd_v3_v3fl(diff, shi->indirect, R.wrld.ao_indirect_energy*shi->amb);
-		}
-		else
-			diff[0]= diff[1]= diff[2]= 0.0f;
+	if(!((R.r.mode & R_RAYTRACE) || R.wrld.ao_gather_method == WO_AOGATHER_APPROX))
+		return;
+	if(f == 0.0f)
+		return;
+
+	if(R.wrld.aomix==WO_AOADD) {
+		shr->combined[0] += shi->ao[0]*shi->r*shi->refl*f;
+		shr->combined[1] += shi->ao[1]*shi->g*shi->refl*f;
+		shr->combined[2] += shi->ao[2]*shi->b*shi->refl*f;
 	}
-	else
-		diff[0]= diff[1]= diff[2]= 0.0f;
+	else if(R.wrld.aomix==WO_AOMUL) {
+		mul_v3_v3v3(tmp, shr->combined, shi->ao);
+		mul_v3_v3v3(tmpspec, shr->spec, shi->ao);
+
+		if(f == 1.0f) {
+			copy_v3_v3(shr->combined, tmp);
+			copy_v3_v3(shr->spec, tmpspec);
+		}
+		else {
+			interp_v3_v3v3(shr->combined, shr->combined, tmp, f);
+			interp_v3_v3v3(shr->spec, shr->spec, tmpspec, f);
+		}
+	}
+}
+
+void environment_lighting_apply(ShadeInput *shi, ShadeResult *shr)
+{
+	float f= R.wrld.ao_env_energy*shi->amb;
+
+	if(!((R.r.mode & R_RAYTRACE) || R.wrld.ao_gather_method == WO_AOGATHER_APPROX))
+		return;
+	if(f == 0.0f)
+		return;
+	
+	shr->combined[0] += shi->env[0]*shi->r*shi->refl*f;
+	shr->combined[1] += shi->env[1]*shi->g*shi->refl*f;
+	shr->combined[2] += shi->env[2]*shi->b*shi->refl*f;
+}
+
+static void indirect_lighting_apply(ShadeInput *shi, ShadeResult *shr)
+{
+	float f= R.wrld.ao_indirect_energy;
+
+	if(!((R.r.mode & R_RAYTRACE) || R.wrld.ao_gather_method == WO_AOGATHER_APPROX))
+		return;
+	if(f == 0.0f)
+		return;
+
+	shr->combined[0] += shi->indirect[0]*shi->r*shi->refl*f;
+	shr->combined[1] += shi->indirect[1]*shi->g*shi->refl*f;
+	shr->combined[2] += shi->indirect[2]*shi->b*shi->refl*f;
 }
 
 /* result written in shadfac */
@@ -1480,7 +1508,7 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 				lamp_get_shadow(lar, shi, inpr, shadfac, shi->depth);
 
 				ir+= 1.0f;
-				accum+= (1.0f-visifac) + (visifac)*shadfac[3];
+				accum+= (1.0f-visifac) + (visifac)*rgb_to_grayscale(shadfac)*shadfac[3];
 			}
 		}
 		if(ir>0.0f) {
@@ -1491,22 +1519,23 @@ static void shade_lamp_loop_only_shadow(ShadeInput *shi, ShadeResult *shr)
 	}
 	
 	/* quite disputable this...  also note it doesn't mirror-raytrace */	
-	if((R.wrld.mode & WO_AMB_OCC) && shi->amb!=0.0f) {
+	if((R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT)) && shi->amb!=0.0f) {
 		float f;
 		
-		f= 1.0f - shi->ao[0];
-		f= R.wrld.aoenergy*f*shi->amb;
-		
-		if(R.wrld.aomix==WO_AOADD) {
-			shr->alpha += f;
-			shr->alpha *= f;
+		if(R.wrld.mode & WO_AMB_OCC) {
+			f= R.wrld.aoenergy*shi->amb;
+
+			if(R.wrld.aomix==WO_AOADD) {
+				f= f*(1.0f - rgb_to_grayscale(shi->ao));
+				shr->alpha= (shr->alpha + f)*f;
+			}
+			else
+				shr->alpha= (1.0f - f)*shr->alpha + f*(1.0f - (1.0f - shr->alpha)*rgb_to_grayscale(shi->ao));
 		}
-		else if(R.wrld.aomix==WO_AOSUB) {
-			shr->alpha += f;
-		}
-		else {
-			shr->alpha *= f;
-			shr->alpha += f;
+
+		if(R.wrld.mode & WO_ENV_LIGHT) {
+			f= R.wrld.ao_env_energy*shi->amb*(1.0f - rgb_to_grayscale(shi->env));
+			shr->alpha= (shr->alpha + f)*f;
 		}
 	}
 }
@@ -1581,25 +1610,26 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	}
 
 	if( (ma->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))== MA_VERTEXCOL ) {	// vertexcolor light
-		shr->diff[0]= shi->r*(shi->emit+shi->vcol[0]);
-		shr->diff[1]= shi->g*(shi->emit+shi->vcol[1]);
-		shr->diff[2]= shi->b*(shi->emit+shi->vcol[2]);
+		shr->emit[0]= shi->r*(shi->emit+shi->vcol[0]);
+		shr->emit[1]= shi->g*(shi->emit+shi->vcol[1]);
+		shr->emit[2]= shi->b*(shi->emit+shi->vcol[2]);
 	}
 	else {
-		shr->diff[0]= shi->r*shi->emit;
-		shr->diff[1]= shi->g*shi->emit;
-		shr->diff[2]= shi->b*shi->emit;
+		shr->emit[0]= shi->r*shi->emit;
+		shr->emit[1]= shi->g*shi->emit;
+		shr->emit[2]= shi->b*shi->emit;
 	}
-	VECCOPY(shr->shad, shr->diff);
 	
 	/* AO pass */
-	if(R.wrld.mode & WO_AMB_OCC) {
-		if(((passflag & SCE_PASS_COMBINED) && (shi->combinedflag & SCE_PASS_AO))
-			|| (passflag & SCE_PASS_AO)) {
+	if(R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) {
+		if(((passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
+			|| (passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT))) {
 			/* AO was calculated for scanline already */
 			if(shi->depth)
 				ambient_occlusion(shi);
 			VECCOPY(shr->ao, shi->ao);
+			VECCOPY(shr->env, shi->env); // XXX multiply
+			VECCOPY(shr->indirect, shi->indirect); // XXX multiply
 		}
 	}
 	
@@ -1708,6 +1738,19 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	/* from now stuff everything in shr->combined: ambient, AO, radio, ramps, exposure */
 	if(!(ma->sss_flag & MA_DIFF_SSS) || !sss_pass_done(&R, ma)) {
+		/* add AO in combined? */
+		if(R.wrld.mode & WO_AMB_OCC)
+			if(shi->combinedflag & SCE_PASS_AO)
+				ambient_occlusion_apply(shi, shr);
+
+		if(R.wrld.mode & WO_ENV_LIGHT)
+			if(shi->combinedflag & SCE_PASS_ENVIRONMENT)
+				environment_lighting_apply(shi, shr);
+
+		if(R.wrld.mode & WO_INDIRECT_LIGHT)
+			if(shi->combinedflag & SCE_PASS_INDIRECT)
+				indirect_lighting_apply(shi, shr);
+		
 		shr->combined[0]+= shi->ambr;
 		shr->combined[1]+= shi->ambg;
 		shr->combined[2]+= shi->ambb;
@@ -1718,22 +1761,6 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shr->combined[1]+= shi->g*shi->amb*shi->rad[1];
 			shr->combined[2]+= shi->b*shi->amb*shi->rad[2];
 		}*/
-		
-		/* add AO in combined? */
-		if(R.wrld.mode & WO_AMB_OCC) {
-			if(shi->combinedflag & SCE_PASS_AO) {
-				float aodiff[3];
-				ambient_occlusion_to_diffuse(shi, aodiff);
-				
-				shr->combined[0] += shi->r*aodiff[0];
-				shr->combined[1] += shi->g*aodiff[1];
-				shr->combined[2] += shi->b*aodiff[2];
-				
-				if (shr->combined[0] < 0.f) shr->combined[0]= 0.f;
-				if (shr->combined[1] < 0.f) shr->combined[1]= 0.f;
-				if (shr->combined[2] < 0.f) shr->combined[2]= 0.f;
-			}
-		}
 		
 		if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(shr->combined, shi);
 	}
@@ -1756,10 +1783,12 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			
 	}
 	
-	/* and add spec */
+	/* and add emit and spec */
+	if(shi->combinedflag & SCE_PASS_EMIT)
+		VECADD(shr->combined, shr->combined, shr->emit);
 	if(shi->combinedflag & SCE_PASS_SPEC)
 		VECADD(shr->combined, shr->combined, shr->spec);
-
+	
 	/* modulate by the object color */
 	if((ma->shade_flag & MA_OBCOLOR) && shi->obr->ob) {
 		if(!(ma->sss_flag & MA_DIFF_SSS) || !sss_pass_done(&R, ma)) {

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -479,7 +479,7 @@ static void reload_sound_strip(Scene *scene, char *name)
 		seqact->strip= seq->strip;
 
 		seqact->len= seq->len;
-		calc_sequence(seqact);
+		calc_sequence(scene, seqact);
 
 		seq->strip= 0;
 		seq_free_sequence(scene, seq);
@@ -519,7 +519,7 @@ static void reload_image_strip(Scene *scene, char *name)
 		seqact->strip= seq->strip;
 
 		seqact->len= seq->len;
-		calc_sequence(seqact);
+		calc_sequence(scene, seqact);
 
 		seq->strip= 0;
 		seq_free_sequence(scene, seq);
@@ -791,34 +791,12 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 static Sequence *dupli_seq(struct Scene *scene, Sequence *seq)
 {
 	Sequence *seqn = MEM_dupallocN(seq);
-	// XXX animato: ID *id;
 
 	seq->tmp = seqn;
-		
 	seqn->strip= MEM_dupallocN(seq->strip);
 
-	// XXX animato
-#if 0
-	if (seqn->ipo) {
-		if (U.dupflag & USER_DUP_IPO) {
-			id= (ID *)seqn->ipo;
-			seqn->ipo= copy_ipo(seqn->ipo);
-			/* we don't need to decrease the number
-			 * of the ipo because we never increase it,
-			 * for example, adduplicate need decrease
-			 * the number but only because copy_object
-			 * call id_us_plus for the ipo block and
-			 * single_ipo_users only work if id->us > 1.
-			 *
-			 * need call ipo_idnew here, for drivers ??
-			 * - Diego
-			 */
-		}
-		else
-			seqn->ipo->id.us++;
-	}
-#endif
-
+	// XXX: add F-Curve duplication stuff?
+		
 	seqn->strip->tstripdata = 0;
 	seqn->strip->tstripdata_startstill = 0;
 	seqn->strip->tstripdata_endstill = 0;
@@ -857,8 +835,8 @@ static Sequence *dupli_seq(struct Scene *scene, Sequence *seq)
 	} else if(seq->type == SEQ_SOUND) {
 		seqn->strip->stripdata =
 				MEM_dupallocN(seq->strip->stripdata);
-		if(seq->sound_handle)
-			seqn->sound_handle = sound_new_handle(scene, seqn->sound, seq->sound_handle->startframe, seq->sound_handle->endframe, seq->sound_handle->frameskip);
+		if(seq->scene_sound)
+			seqn->scene_sound = sound_add_scene_sound(scene, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
 
 		seqn->sound->id.us++;
 	} else if(seq->type == SEQ_IMAGE) {
@@ -884,7 +862,7 @@ static Sequence *dupli_seq(struct Scene *scene, Sequence *seq)
 						" now...\n");
 	}
 
-	seqUniqueName(scene->ed->seqbasep, seqn);
+	seqbase_unique_name_recursive(&scene->ed->seqbase, seqn);
 
 	return seqn;
 }
@@ -983,7 +961,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 	}
 	
 	reload_sequence_new_file(scene, seq);
-	calc_sequence(seq);
+	calc_sequence(scene, seq);
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
@@ -1022,7 +1000,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence * seq, int cutframe)
 		}
 		
 		reload_sequence_new_file(scene, seqn);
-		calc_sequence(seqn);
+		calc_sequence(scene, seqn);
 	}
 	return seqn;
 }
@@ -1072,7 +1050,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 		}
 	}
 	
-	calc_sequence(seq);
+	calc_sequence(scene, seq);
 
 	if (!skip_dup) {
 		/* Duplicate AFTER the first change */
@@ -1107,7 +1085,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence * seq, int cutframe)
 			seqn->startstill = 0;
 		}
 		
-		calc_sequence(seqn);
+		calc_sequence(scene, seqn);
 	}
 	return seqn;
 }
@@ -1161,7 +1139,7 @@ int insert_gap(Scene *scene, int gap, int cfra)
 	SEQP_BEGIN(ed, seq) {
 		if(seq->startdisp >= cfra) {
 			seq->start+= gap;
-			calc_sequence(seq);
+			calc_sequence(scene, seq);
 			done= 1;
 		}
 	}
@@ -1336,7 +1314,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 				}
 				seq_tx_handle_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
 			}
-			calc_sequence(seq);
+			calc_sequence(scene, seq);
 		}
 	}
 	SEQ_END
@@ -1351,11 +1329,11 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 		}
 		else if(seq->type & SEQ_EFFECT) {
 			if(seq->seq1 && (seq->seq1->flag & SELECT)) 
-				calc_sequence(seq);
+				calc_sequence(scene, seq);
 			else if(seq->seq2 && (seq->seq2->flag & SELECT)) 
-				calc_sequence(seq);
+				calc_sequence(scene, seq);
 			else if(seq->seq3 && (seq->seq3->flag & SELECT)) 
-				calc_sequence(seq);
+				calc_sequence(scene, seq);
 		}
 	}
 	SEQ_END;
@@ -1385,7 +1363,7 @@ void SEQUENCER_OT_snap(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Snap strips";
 	ot->idname= "SEQUENCER_OT_snap";
-	ot->description="Frame where selected strips will be snapped.";
+	ot->description="Frame where selected strips will be snapped";
 	
 	/* api callbacks */
 	ot->invoke= sequencer_snap_invoke;
@@ -1425,7 +1403,7 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	seq_update_muting(ed);
+	seq_update_muting(scene, ed);
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1436,7 +1414,7 @@ void SEQUENCER_OT_mute(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Mute Strips";
 	ot->idname= "SEQUENCER_OT_mute";
-	ot->description="Mute selected strips.";
+	ot->description="Mute selected strips";
 	
 	/* api callbacks */
 	ot->exec= sequencer_mute_exec;
@@ -1476,7 +1454,7 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	seq_update_muting(ed);
+	seq_update_muting(scene, ed);
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 	
 	return OPERATOR_FINISHED;
@@ -1487,7 +1465,7 @@ void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "UnMute Strips";
 	ot->idname= "SEQUENCER_OT_unmute";
-	ot->description="UnMute unselected rather than selected strips.";
+	ot->description="UnMute unselected rather than selected strips";
 	
 	/* api callbacks */
 	ot->exec= sequencer_unmute_exec;
@@ -1527,7 +1505,7 @@ void SEQUENCER_OT_lock(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Lock Strips";
 	ot->idname= "SEQUENCER_OT_lock";
-	ot->description="Lock the active strip so that it can't be transformed.";
+	ot->description="Lock the active strip so that it can't be transformed";
 	
 	/* api callbacks */
 	ot->exec= sequencer_lock_exec;
@@ -1564,7 +1542,7 @@ void SEQUENCER_OT_unlock(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "UnLock Strips";
 	ot->idname= "SEQUENCER_OT_unlock";
-	ot->description="Unlock the active strip so that it can't be transformed.";
+	ot->description="Unlock the active strip so that it can't be transformed";
 	
 	/* api callbacks */
 	ot->exec= sequencer_unlock_exec;
@@ -1601,7 +1579,7 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Reload Strips";
 	ot->idname= "SEQUENCER_OT_reload";
-	ot->description="Reload strips in the sequencer.";
+	ot->description="Reload strips in the sequencer";
 	
 	/* api callbacks */
 	ot->exec= sequencer_reload_exec;
@@ -1623,8 +1601,6 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *op)
 
 	free_imbuf_seq(scene, &ed->seqbase, FALSE);
 
-	seqbase_sound_reload(scene, &ed->seqbase);
-
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
@@ -1635,7 +1611,7 @@ void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Refresh Sequencer";
 	ot->idname= "SEQUENCER_OT_refresh_all";
-	ot->description="Refresh the sequencer editor.";
+	ot->description="Refresh the sequencer editor";
 	
 	/* api callbacks */
 	ot->exec= sequencer_refresh_all_exec;
@@ -1731,7 +1707,7 @@ void SEQUENCER_OT_cut(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Cut Strips";
 	ot->idname= "SEQUENCER_OT_cut";
-	ot->description="Cut the selected strips.";
+	ot->description="Cut the selected strips";
 	
 	/* api callbacks */
 	ot->invoke= sequencer_cut_invoke;
@@ -1759,11 +1735,20 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	recurs_dupli_seq(scene, ed->seqbasep, &new, TRUE);
-	addlisttolist(ed->seqbasep, &new);
 
-	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+	if(new.first) {
+		Sequence * seq= new.first;
+		/* rely on the new list being added at the end */
+		addlisttolist(ed->seqbasep, &new);
 
-	return OPERATOR_FINISHED;
+		for( ; seq; seq= seq->next)
+			seqbase_unique_name_recursive(&ed->seqbase, seq);
+
+		WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
 }
 
 static int sequencer_add_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *event)
@@ -1782,7 +1767,7 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Duplicate";
 	ot->idname= "SEQUENCER_OT_duplicate";
-	ot->description="Duplicate the selected strips.";
+	ot->description="Duplicate the selected strips";
 	
 	/* api callbacks */
 	ot->invoke= sequencer_add_duplicate_invoke;
@@ -1840,7 +1825,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 	/* updates lengths etc */
 	seq= ed->seqbasep->first;
 	while(seq) {
-		calc_sequence(seq);
+		calc_sequence(scene, seq);
 		seq= seq->next;
 	}
 
@@ -1848,7 +1833,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 	ms= ed->metastack.last;
 	while(ms) {
 		ms->parseq->strip->len= 0;		/* force new alloc */
-		calc_sequence(ms->parseq);
+		calc_sequence(scene, ms->parseq);
 		ms= ms->prev;
 	}
 
@@ -1864,7 +1849,7 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Erase Strips";
 	ot->idname= "SEQUENCER_OT_delete";
-	ot->description="Erase selected strips from the sequencer.";
+	ot->description="Erase selected strips from the sequencer";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -1923,13 +1908,13 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				/* new stripdata */
 				strip_new->stripdata= se_new= MEM_callocN(sizeof(StripElem)*1, "stripelem");
 				strncpy(se_new->name, se->name, FILE_MAXFILE-1);
-				calc_sequence(seq_new);
+				calc_sequence(scene, seq_new);
 				seq_new->flag &= ~SEQ_OVERLAP;
 				if (seq_test_overlap(ed->seqbasep, seq_new)) {
 					shuffle_seq(ed->seqbasep, seq_new, scene);
 				}
 
-				seqUniqueName(scene->ed->seqbasep, seq_new);
+				seqbase_unique_name_recursive(&scene->ed->seqbase, seq_new);
 
 				cfra++;
 				start_ofs += step;
@@ -1956,7 +1941,7 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Separate Images";
 	ot->idname= "SEQUENCER_OT_images_separate";
-	ot->description="On image sequences strips, it return a strip for each image.";
+	ot->description="On image sequences strips, it return a strip for each image";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_props_popup;
@@ -2011,7 +1996,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
 
 		/* recalc all: the meta can have effects connected to it */
 		for(seq= ed->seqbasep->first; seq; seq= seq->next)
-			calc_sequence(seq);
+			calc_sequence(scene, seq);
 
 		active_seq_set(scene, ms->parseq);
 
@@ -2022,7 +2007,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *op)
 
 	}
 
-	seq_update_muting(ed);
+	seq_update_muting(scene, ed);
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
 	return OPERATOR_FINISHED;
@@ -2033,7 +2018,7 @@ void SEQUENCER_OT_meta_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Toggle Meta Strip";
 	ot->idname= "SEQUENCER_OT_meta_toggle";
-	ot->description="Toggle a metastrip (to edit enclosed strips).";
+	ot->description="Toggle a metastrip (to edit enclosed strips)";
 	
 	/* api callbacks */
 	ot->exec= sequencer_meta_toggle_exec;
@@ -2081,7 +2066,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 		seq= next;
 	}
 	seqm->machine= channel_max;
-	calc_sequence(seqm);
+	calc_sequence(scene, seqm);
 
 	seqm->strip= MEM_callocN(sizeof(Strip), "metastrip");
 	seqm->strip->len= seqm->len;
@@ -2091,9 +2076,9 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
 	if( seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm, scene);
 
-	seq_update_muting(ed);
+	seq_update_muting(scene, ed);
 
-	seqUniqueName(scene->ed->seqbasep, seqm);
+	seqbase_unique_name_recursive(&scene->ed->seqbase, seqm);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
@@ -2105,7 +2090,7 @@ void SEQUENCER_OT_meta_make(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Make Meta Strip";
 	ot->idname= "SEQUENCER_OT_meta_make";
-	ot->description="Group selected strips into a metastrip.";
+	ot->description="Group selected strips into a metastrip";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -2165,7 +2150,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *op)
 	SEQ_END;
 
 	sort_seq(scene);
-	seq_update_muting(ed);
+	seq_update_muting(scene, ed);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_SEQUENCER, scene);
 
@@ -2177,7 +2162,7 @@ void SEQUENCER_OT_meta_separate(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "UnMeta Strip";
 	ot->idname= "SEQUENCER_OT_meta_separate";
-	ot->description="Put the contents of a metastrip back in the sequencer.";
+	ot->description="Put the contents of a metastrip back in the sequencer";
 	
 	/* api callbacks */
 	ot->invoke= WM_operator_confirm;
@@ -2211,7 +2196,7 @@ void SEQUENCER_OT_view_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "View All";
 	ot->idname= "SEQUENCER_OT_view_all";
-	ot->description="View all the strips in the sequencer.";
+	ot->description="View all the strips in the sequencer";
 	
 	/* api callbacks */
 	ot->exec= sequencer_view_all_exec;
@@ -2225,14 +2210,20 @@ void SEQUENCER_OT_view_all(wmOperatorType *ot)
 /* view_all operator */
 static int sequencer_view_all_preview_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	//bScreen *sc= CTX_wm_screen(C);
+	bScreen *sc= CTX_wm_screen(C);
 	ScrArea *area= CTX_wm_area(C);
+#if 0
 	ARegion *ar= CTX_wm_region(C);
 	SpaceSeq *sseq= area->spacedata.first;
-	//View2D *v2d= UI_view2d_fromcontext(C);
+	Scene *scene= CTX_data_scene(C);
+#endif
+	View2D *v2d= UI_view2d_fromcontext(C);
 
-
+	v2d->cur= v2d->tot;
+	UI_view2d_curRect_validate(v2d);
+	UI_view2d_sync(sc, area, v2d, V2D_LOCK_COPY);
+	
+#if 0
 	/* Like zooming on an image view */
 	float zoomX, zoomY;
 	int width, height, imgwidth, imgheight;
@@ -2261,6 +2252,7 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *op)
 	else {
 		sseq->zoom= 1.0f;
 	}
+#endif
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 	return OPERATOR_FINISHED;
@@ -2271,7 +2263,7 @@ void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "View All";
 	ot->idname= "SEQUENCER_OT_view_all_preview";
-	ot->description="Zoom preview to fit in the area.";
+	ot->description="Zoom preview to fit in the area";
 	
 	/* api callbacks */
 	ot->exec= sequencer_view_all_preview_exec;
@@ -2308,7 +2300,7 @@ void SEQUENCER_OT_view_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "View Toggle";
 	ot->idname= "SEQUENCER_OT_view_toggle";
-	ot->description="Toggle between sequencer views (sequence, preview, both).";
+	ot->description="Toggle between sequencer views (sequence, preview, both)";
 	
 	/* api callbacks */
 	ot->exec= sequencer_view_toggle_exec;
@@ -2388,7 +2380,7 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "View Selected";
 	ot->idname= "SEQUENCER_OT_view_selected";
-	ot->description="Zoom the sequencer on the selected strips.";
+	ot->description="Zoom the sequencer on the selected strips";
 	
 	/* api callbacks */
 	ot->exec= sequencer_view_selected_exec;
@@ -2474,7 +2466,7 @@ void SEQUENCER_OT_next_edit(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Next Edit";
 	ot->idname= "SEQUENCER_OT_next_edit";
-	ot->description="Move frame to next edit point.";
+	ot->description="Move frame to next edit point";
 	
 	/* api callbacks */
 	ot->exec= sequencer_next_edit_exec;
@@ -2504,7 +2496,7 @@ void SEQUENCER_OT_previous_edit(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Previous Edit";
 	ot->idname= "SEQUENCER_OT_previous_edit";
-	ot->description="Move frame to previous edit point.";
+	ot->description="Move frame to previous edit point";
 	
 	/* api callbacks */
 	ot->exec= sequencer_previous_edit_exec;
@@ -2516,15 +2508,16 @@ void SEQUENCER_OT_previous_edit(wmOperatorType *ot)
 	/* properties */
 }
 
-static void swap_sequence(Sequence* seqa, Sequence* seqb)
+static void swap_sequence(Scene* scene, Sequence* seqa, Sequence* seqb)
 {
 	int gap = seqb->startdisp - seqa->enddisp;
 	seqb->start = seqa->start;
-	calc_sequence(seqb);
+	calc_sequence(scene, seqb);
 	seqa->start = seqb->enddisp + gap;
-	calc_sequence(seqa);
+	calc_sequence(scene, seqa);
 }
 
+#if 0
 static Sequence* sequence_find_parent(Scene* scene, Sequence* child)
 {
 	Editing *ed= seq_give_editing(scene, FALSE);
@@ -2539,9 +2532,10 @@ static Sequence* sequence_find_parent(Scene* scene, Sequence* child)
 			break;
 		}
 	}
-	return parent;
 
+	return parent;
 }
+#endif
 
 static int sequencer_swap_exec(bContext *C, wmOperator *op)
 {
@@ -2566,17 +2560,17 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 
 		switch (side) {
 			case SEQ_SIDE_LEFT: 
-				swap_sequence(seq, active_seq);
+				swap_sequence(scene, seq, active_seq);
 				break;
 			case SEQ_SIDE_RIGHT: 
-				swap_sequence(active_seq, seq);
+				swap_sequence(scene, active_seq, seq);
 				break;
 		}
 
 		// XXX - should be a generic function
 		for(iseq= scene->ed->seqbasep->first; iseq; iseq= iseq->next) {
 			if((iseq->type & SEQ_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
-				calc_sequence(iseq);
+				calc_sequence(scene, iseq);
 			}
 		}
 
@@ -2607,7 +2601,7 @@ void SEQUENCER_OT_swap(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Swap Strip";
 	ot->idname= "SEQUENCER_OT_swap";
-	ot->description="Swap active strip with strip to the left.";
+	ot->description="Swap active strip with strip to the left";
 	
 	/* api callbacks */
 	ot->exec= sequencer_swap_exec;
@@ -2657,7 +2651,7 @@ void SEQUENCER_OT_rendersize(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Render Size";
 	ot->idname= "SEQUENCER_OT_rendersize";
-	ot->description="Set render size and aspect from active sequence.";
+	ot->description="Set render size and aspect from active sequence";
 	
 	/* api callbacks */
 	ot->exec= sequencer_rendersize_exec;
@@ -2677,9 +2671,9 @@ static void seq_del_sound(Scene *scene, Sequence *seq)
 			seq_del_sound(scene, iseq);
 		}
 	}
-	else if(seq->sound_handle) {
-		sound_delete_handle(scene, seq->sound_handle);
-		seq->sound_handle= NULL;
+	else if(seq->scene_sound) {
+		sound_remove_scene_sound(scene, seq->scene_sound);
+		seq->scene_sound = NULL;
 	}
 }
 
@@ -2728,19 +2722,19 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 	/* properties */
 }
 
-static void seq_offset(Sequence *seq, int ofs)
+static void seq_offset(Scene *scene, Sequence *seq, int ofs)
 {
 	if(seq->type == SEQ_META) {
 		Sequence *iseq;
 		for(iseq= seq->seqbase.first; iseq; iseq= iseq->next) {
-			seq_offset(iseq, ofs);
+			seq_offset(scene, iseq, ofs);
 		}
 	}
 	else {
 		seq->start += ofs;
 	}
 
-	calc_sequence_disp(seq);
+	calc_sequence_disp(scene, seq);
 }
 
 static int sequencer_paste_exec(bContext *C, wmOperator *op)
@@ -2759,7 +2753,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
 	/* transform pasted strips before adding */
 	if(ofs) {
 		for(iseq= new.first; iseq; iseq= iseq->next) {
-			seq_offset(iseq, ofs);
+			seq_offset(scene, iseq, ofs);
 		}
 	}
 

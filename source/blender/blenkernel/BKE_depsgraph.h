@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2004 Blender Foundation.
  * All rights reserved.
@@ -103,6 +103,8 @@ void	DAG_scene_sort(struct Scene *sce);
 void	DAG_scene_update_flags(struct Scene *sce, unsigned int lay);
 		/* flushes all recalc flags in objects down the dependency tree */
 void	DAG_scene_flush_update(struct Scene *sce, unsigned int lay, int time);
+		/* tag objects for update on file load */
+void	DAG_on_load_update(void);
 
 		/* flag all IDs that need recalc because they're animated, influencing
 		   this ID only. only for objects currently */

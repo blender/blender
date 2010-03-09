@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -338,6 +338,9 @@ public:
 	SetObjectColor(
 		const MT_Vector4& rgbavec
 	);
+
+		const MT_Vector4&
+	GetObjectColor();
 
 
 		void 
@@ -874,6 +877,14 @@ public:
 	static PyObject*	pyattr_get_worldScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_localScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_localScaling(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_worldLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_worldLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_localLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_localLinearVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_worldAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_worldAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static PyObject*	pyattr_get_localAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_localAngularVelocity(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);	
 	static PyObject*	pyattr_get_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int			pyattr_set_timeOffset(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static PyObject*	pyattr_get_state(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
@@ -882,6 +893,8 @@ public:
 	static PyObject*	pyattr_get_children(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_children_recursive(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject*	pyattr_get_attrDict(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject*	pyattr_get_obcolor(void *selv_v, const KX_PYATTRIBUTE_DEF *attrdef);
+	static int			pyattr_set_obcolor(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	
 	/* Experemental! */
 	static PyObject*	pyattr_get_sensors(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);

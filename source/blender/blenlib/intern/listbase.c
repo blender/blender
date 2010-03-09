@@ -19,7 +19,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -361,6 +361,27 @@ void *BLI_findstring(ListBase *listbase, const char *id, int offset)
 	}
 
 	return NULL;
+}
+
+int BLI_findstringindex(ListBase *listbase, const char *id, int offset)
+{
+	Link *link= NULL;
+	const char *id_iter;
+	int i= 0;
+
+	if (listbase == NULL) return -1;
+
+	link= listbase->first;
+	while (link) {
+		id_iter= ((const char *)link) + offset;
+
+		if(id[0] == id_iter[0] && strcmp(id, id_iter)==0)
+			return i;
+		i++;
+		link= link->next;
+	}
+
+	return -1;
 }
 
 void BLI_duplicatelist(ListBase *list1, const ListBase *list2)

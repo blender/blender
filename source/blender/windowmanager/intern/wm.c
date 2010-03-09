@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -54,6 +54,7 @@
 #include "wm.h"
 
 #include "ED_screen.h"
+#include "BPY_extern.h"
 
 #include "RNA_types.h"
 
@@ -63,6 +64,12 @@
 
 void WM_operator_free(wmOperator *op)
 {
+	if(op->py_instance) {
+		/* do this first incase there are any __del__ functions or
+		 * similar that use properties */
+		BPY_DECREF(op->py_instance);
+	}
+
 	if(op->ptr) {
 		op->properties= op->ptr->data;
 		MEM_freeN(op->ptr);
@@ -190,11 +197,10 @@ void WM_keymap_init(bContext *C)
 		/* create default key config */
 		wm_window_keymap(wm->defaultconf);
 		ED_spacetypes_keymap(wm->defaultconf);
+		WM_keyconfig_userdef(wm);
 
 		wm->initialized |= WM_INIT_KEYMAP;
 	}
-
-	WM_keyconfig_userdef(wm);
 }
 
 void WM_check(bContext *C)
@@ -298,6 +304,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	BLI_freelistN(&wm->queue);
 	
 	BLI_freelistN(&wm->paintcursors);
+	BLI_freelistN(&wm->drags);
 	BKE_reports_clear(&wm->reports);
 	
 	if(C && CTX_wm_manager(C)==wm) CTX_wm_manager_set(C, NULL);

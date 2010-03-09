@@ -12,14 +12,13 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
 
 import bpy
-from rigify import get_layer_dict
 from rigify_utils import bone_class_instance, copy_bone_simple
 
 METARIG_NAMES = ("cpy",)
@@ -50,28 +49,28 @@ def deform(obj, definitions, base_names, options):
 
     # Create deform bone.
     bone = copy_bone_simple(obj.data, definitions[0], "DEF-%s" % base_names[definitions[0]], parent=True)
-    
+
     # Store name before leaving edit mode
     bone_name = bone.name
-    
+
     # Leave edit mode
     bpy.ops.object.mode_set(mode='OBJECT')
-    
+
     # Get the pose bone
     bone = obj.pose.bones[bone_name]
-    
+
     # Constrain to the original bone
     con = bone.constraints.new('COPY_TRANSFORMS')
     con.name = "copy_loc"
     con.target = obj
     con.subtarget = definitions[0]
-    
+
     return (bone_name,)
 
 
 def control(obj, definitions, base_names, options):
     bpy.ops.object.mode_set(mode='EDIT')
-    
+
     arm = obj.data
     mt = bone_class_instance(obj, METARIG_NAMES)
     mt.cpy = definitions[0]
@@ -97,10 +96,10 @@ def control(obj, definitions, base_names, options):
     cp.cpy_p.lock_rotation = tuple(mt.cpy_p.lock_rotation)
     cp.cpy_p.lock_rotation_w = mt.cpy_p.lock_rotation_w
     cp.cpy_p.lock_scale = tuple(mt.cpy_p.lock_scale)
-    
+
     # Layers
     cp.cpy_b.layer = list(mt.cpy_b.layer)
-    
+
     return (mt.cpy,)
 
 

@@ -13,7 +13,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -28,6 +28,7 @@
 #ifndef __RAS_I2DFILTER
 #define __RAS_I2DFILTER
 
+#include "RAS_ICanvas.h"
 #define MAX_RENDER_PASS	100
 
 #ifdef WITH_CXX_GUARDEDALLOC

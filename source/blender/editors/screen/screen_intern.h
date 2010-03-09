@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -59,6 +59,9 @@ void ed_screen_context(const bContext *C, const char *member, bContextDataResult
 /* screendump.c */
 void SCREEN_OT_screenshot(struct wmOperatorType *ot);
 void SCREEN_OT_screencast(struct wmOperatorType *ot);
+
+/* partial updates, much faster then drawing everything, ton is away so allow easy undo'ing - campbell */
+#define WM_FAST_DRAW
 
 #endif /* ED_SCREEN_INTERN_H */
 

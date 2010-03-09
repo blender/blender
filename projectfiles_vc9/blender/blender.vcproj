@@ -176,7 +176,7 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\lib\windows\sdl\lib;..\..\..\lib\windows\ode\lib;..\..\..\lib\windows\zlib\lib;..\..\..\lib\windows\png\lib;..\..\..\lib\windows\jpeg\lib;..\..\..\lib\windows\pthreads\lib;..\..\..\lib\windows\tiff\lib;..\..\..\lib\windows\gettext\lib;..\..\..\lib\windows\freetype\lib;..\..\..\lib\windows\python\lib;..\..\..\lib\windows\openal\lib;..\..\..\lib\windows\openexr\lib_vs2008;..\..\..\lib\windows\QTDevWin\Libraries;..\..\..\lib\windows\ffmpeg\lib;..\..\..\build\msvc_9\libs\intern\debug;..\..\..\build\msvc_9\libs\extern\debug;..\..\..\lib\windows\samplerate\lib;..\..\..\lib\windows\sndfile\lib;..\..\..\lib\windows\opencollada\lib"
 				IgnoreAllDefaultLibraries="false"
-				IgnoreDefaultLibraryNames="libc.lib;libcmt.lib;libcmtd.lib"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="..\..\..\build\msvc_9\libs\debug\blender.pdb"
 				SubSystem="1"

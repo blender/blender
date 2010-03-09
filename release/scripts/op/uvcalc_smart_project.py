@@ -15,7 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
@@ -936,7 +936,7 @@ def main(context, island_margin, projection_limit):
         # Initialize projectVecs
         if USER_VIEW_INIT:
             # Generate Projection
-            projectVecs = [Vector(Window.GetViewVector()) * ob.matrixWorld.copy().invert().rotationPart()] # We add to this allong the way
+            projectVecs = [Vector(Window.GetViewVector()) * ob.matrixWorld.copy().invert().rotation_part()] # We add to this allong the way
         else:
             projectVecs = []
 
@@ -1115,9 +1115,7 @@ class SmartProject(bpy.types.Operator):
     '''This script projection unwraps the selected faces of a mesh. it operates on all selected mesh objects, and can be used unwrap selected faces, or all faces.'''
     bl_idname = "uv.smart_project"
     bl_label = "Smart UV Project"
-
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     angle_limit = FloatProperty(name="Angle Limit",
             description="lower for more projection groups, higher for less distortion.",
@@ -1134,13 +1132,20 @@ class SmartProject(bpy.types.Operator):
         main(context, self.properties.island_margin, self.properties.angle_limit)
         return {'FINISHED'}
 
-bpy.types.register(SmartProject)
 
 # Add to a menu
 menu_func = (lambda self, context: self.layout.operator(SmartProject.bl_idname,
                                         text="Smart Project"))
 
-bpy.types.VIEW3D_MT_uv_map.append(menu_func)
 
-if __name__ == '__main__':
-    bpy.ops.uv.smart_project()
+def register():
+    bpy.types.register(SmartProject)
+    bpy.types.VIEW3D_MT_uv_map.append(menu_func)
+
+
+def unregister():
+    bpy.types.unregister(SmartProject)
+    bpy.types.VIEW3D_MT_uv_map.remove(menu_func)
+
+if __name__ == "__main__":
+    register()

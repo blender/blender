@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
@@ -27,6 +27,7 @@
 FILE(GLOB SRC */*.c)
 
 SET(INC ../windowmanager
+<<<<<<< .working
   ../editors/include
   ../../../intern/guardedalloc ../../../intern/memutil
   ../blenlib ../makesdna ../makesrna ../blenkernel
@@ -40,6 +41,21 @@ SET(INC ../windowmanager
   ../gpu
   ../blenfont
   ${SDL_INC}
+=======
+	../editors/include ../editors/interface
+	../../../intern/guardedalloc ../../../intern/memutil
+	../blenlib ../makesdna ../makesrna ../blenkernel
+	../include ../imbuf ../render/extern/include
+	../../../intern/bsp/extern
+	../../../intern/decimation/extern ../blenloader ../python
+	../../kernel/gen_system ../readstreamglue
+	../../../intern/elbeem/extern
+	../../../intern/ghost ../../../intern/opennl/extern ../../../extern/glew/include ../../../intern/smoke/extern
+	../../../intern/audaspace/intern
+	../nodes
+	../gpu
+	../blenfont
+>>>>>>> .merge-right.r27259
 	../ikplugin
 )
 

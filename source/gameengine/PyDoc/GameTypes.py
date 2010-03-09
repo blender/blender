@@ -142,6 +142,11 @@ class SCA_ISensor(SCA_ILogicBrick):
 	@type triggered: boolean
 	@ivar positive: True if this sensor brick is in a positive state. (read-only)
 	@type positive: boolean
+	@ivar status: The status of the sensor. (read-only)
+		KX_SENSOR_INACTIVE, KX_SENSOR_JUST_ACTIVATED, 
+		KX_SENSOR_ACTIVE, KX_SENSOR_JUST_DEACTIVATED
+		Note: this convenient attribute combines the values of triggered and positive attributes
+	@type status: int from 0-3.
 	"""
 	
 	def reset():
@@ -1524,6 +1529,8 @@ class KX_GameObject(SCA_IObject):
 	@ivar visible: visibility flag.
 		- note: Game logic will still run for invisible objects.
 	@type visible: boolean
+	@ivar color: The object color of the object
+	@type color: list [r, g, b, a]
 	@ivar occlusion: occlusion capability flag.
 	@type occlusion: boolean
 	@ivar position: The object's position. 
@@ -3870,6 +3877,24 @@ class KX_Scene(PyObjectPlus):
 		@type time: int
 		
 		@rtype: L{KX_GameObject}
+		"""
+		
+	def end():
+		"""
+		Removes the scene from the game.
+		"""
+		
+	def restart():
+		"""
+		Restarts the scene.
+		"""
+		
+	def replace(scene):
+		"""
+		Replaces this scene with another one.
+		
+		@param scene: The name of the scene to replace this scene with.
+		@type scene: string
 		"""
 	
 	def get(key, default=None):

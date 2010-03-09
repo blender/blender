@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
@@ -79,14 +79,16 @@ OPTION(WITH_LZMA          "Enable best LZMA compression, used for pointcache" ON
 OPTION(WITH_CXX_GUARDEDALLOC "Enable GuardedAlloc for C++ memory allocation" OFF)
 OPTION(WITH_BUILDINFO     "Include extra build details" ON)
 OPTION(WITH_INSTALL       "Install accompanying scripts and language files needed to run blender" ON)
-OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	OFF)
+OPTION(WITH_OPENCOLLADA		"Enable OpenCollada Support (http://www.opencollada.org/)"	ON)
 
 # Unix defaults to OpenMP On
-IF (UNIX)
+IF(UNIX AND NOT APPLE)
 	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" ON)
-ELSE(UNIX)
+ELSE()
 	OPTION(WITH_OPENMP        "Enable OpenMP (has to be supported by the compiler)" OFF)
-ENDIF(UNIX)
+ENDIF()
+
+OPTION(WITH_RAYOPTIMIZATION	"Enable use of SIMD (SSE) optimizations for the raytracer" OFF) 
 
 IF (APPLE)
 	OPTION(WITH_COCOA	  "Use Cocoa framework instead of deprecated Carbon" ON)
@@ -217,7 +219,7 @@ IF(UNIX AND NOT APPLE)
 	IF (WITH_OPENCOLLADA)
 		SET(OPENCOLLADA /usr/local/opencollada CACHE FILEPATH "OpenCollada Directory")
 		SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-		SET(OPENCOLLADA_LIB OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre ftoa Buffer)
+		SET(OPENCOLLADA_LIB OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre ftoa buffer)
 		SET(OPENCOLLADA_INC ${OPENCOLLADA})
 		SET(PCRE /usr CACHE FILEPATH "PCRE Directory")
 		SET(PCRE_LIBPATH ${PCRE}/lib)
@@ -248,7 +250,7 @@ IF(UNIX AND NOT APPLE)
 	SET(PLATFORM_LINKFLAGS "-pthread")
 
 	# Better warnings
-	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement")
+	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
 	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
 	INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR} ${PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} )
@@ -274,15 +276,10 @@ IF(WIN32)
 	SET(PYTHON_LIB python31)
 	SET(PYTHON_LIBPATH ${PYTHON}/lib)
 
-	IF(CMAKE_CL_64)
-		SET(WITH_OPENAL OFF)
-	ELSE(CMAKE_CL_64)
-		#SET(WITH_OPENAL ON)
-		SET(OPENAL ${LIBDIR}/openal)
-		SET(OPENAL_INCLUDE_DIR ${OPENAL}/include)
-		SET(OPENAL_LIBRARY wrap_oal)
-		SET(OPENAL_LIBPATH ${OPENAL}/lib)
-	ENDIF(CMAKE_CL_64)
+	SET(OPENAL ${LIBDIR}/openal)
+	SET(OPENAL_INCLUDE_DIR ${OPENAL}/include)
+	SET(OPENAL_LIBRARY wrap_oal)
+	SET(OPENAL_LIBPATH ${OPENAL}/lib)
 
 	IF(WITH_JACK)
 		SET(JACK ${LIBDIR}/jack)
@@ -414,7 +411,7 @@ IF(WIN32)
 	SET(OPENCOLLADA ${LIBDIR}/opencollada)
 	SET(OPENCOLLADA_INC ${OPENCOLLADA}/include)
 	SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-	SET(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2 )
+	SET(OPENCOLLADA_LIB OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils OpenCOLLADAStreamWriter MathMLSolver GeneratedSaxParser UTF xml2 buffer ftoa)
 	#pcre is bundled with openCollada
 	#SET(PCRE ${LIBDIR}/pcre)
 	#SET(PCRE_LIBPATH ${PCRE}/lib)
@@ -506,7 +503,7 @@ IF(APPLE)
 
 	SET(ZLIB /usr)
 	SET(ZLIB_INC "${ZLIB}/include")
-	SET(ZLIB_LIBRARIES z)
+	SET(ZLIB_LIBRARIES z bz2)
 
 	SET(FREETYPE ${LIBDIR}/freetype)
 	SET(FREETYPE_INCLUDE_DIRS ${FREETYPE}/include ${FREETYPE}/include/freetype2)
@@ -519,8 +516,8 @@ IF(APPLE)
 	SET(OPENEXR_LIBPATH ${OPENEXR}/lib)
 
 	SET(FFMPEG ${LIBDIR}/ffmpeg)
-	SET(FFMPEG_INC ${CMAKE_SOURCE_DIR}/extern/ffmpeg)
-	SET(FFMPEG_LIB avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore)
+	SET(FFMPEG_INC ${FFMPEG}/include)
+	SET(FFMPEG_LIB avcodec avdevice avformat avutil mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg)
 	SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
 
 	SET(LIBSAMPLERATE ${LIBDIR}/samplerate)
@@ -558,7 +555,7 @@ IF(APPLE)
 		SET(OPENCOLLADA ${LIBDIR}/opencollada)
 		SET(OPENCOLLADA_INC ${OPENCOLLADA}/include)
 		SET(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib)
-		SET(OPENCOLLADA_LIB "OpenCOLLADASaxFrameworkLoader -lOpenCOLLADAFramework -lOpenCOLLADABaseUtils -lOpenCOLLADAStreamWriter -lMathMLSolver -lGeneratedSaxParser -lUTF -lxml2" )
+		SET(OPENCOLLADA_LIB "OpenCOLLADASaxFrameworkLoader -lOpenCOLLADAFramework -lOpenCOLLADABaseUtils -lOpenCOLLADAStreamWriter -lMathMLSolver -lGeneratedSaxParser -lUTF -lxml2 -lbuffer -lftoa" )
 		#pcre is bundled with openCollada
 		#SET(PCRE ${LIBDIR}/pcre)
 		#SET(PCRE_LIBPATH ${PCRE}/lib)
@@ -601,7 +598,7 @@ IF(APPLE)
 	ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES "i386")
 
 	# Better warnings
-	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement")
+	SET(C_WARNINGS "-Wall -Wno-char-subscripts -Wpointer-arith -Wcast-align -Wdeclaration-after-statement -Wno-unknown-pragmas")
 	SET(CXX_WARNINGS "-Wall -Wno-invalid-offsetof -Wno-sign-compare")
 
 ENDIF(APPLE)
@@ -687,4 +684,3 @@ ADD_SUBDIRECTORY(source/creator)
 IF(WITH_PLAYER)
 	ADD_SUBDIRECTORY(source/blenderplayer)
 ENDIF(WITH_PLAYER)
-

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -299,6 +299,18 @@ typedef struct NodeTonemap {
 typedef struct NodeLensDist {
 	short jit, proj, fit, pad;
 } NodeLensDist;
+
+typedef struct NodeColorBalance {
+	/* for processing */
+	float slope[3];
+	float offset[3];
+	float power[3];
+	
+	/* for ui representation */
+	float lift[3];
+	float gamma[3];
+	float gain[3];
+} NodeColorBalance;
 
 /* TEX_output */
 typedef struct TexNodeOutput {

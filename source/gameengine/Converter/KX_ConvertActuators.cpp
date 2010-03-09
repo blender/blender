@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -394,7 +394,7 @@ void BL_ConvertActuators(char* maggiename,
 										"\" has no sound datablock." << std::endl;
 					}
 					else
-						snd_sound = sound->cache ? sound->cache : sound->handle;
+						snd_sound = sound->playback_handle;
 					KX_SoundActuator* tmpsoundact =
 						new KX_SoundActuator(gameobj,
 						snd_sound,
@@ -969,7 +969,7 @@ void BL_ConvertActuators(char* maggiename,
 			}
             
 			tmp = new SCA_2DFilterActuator(gameobj, filtermode, _2dfilter->flag,
-				_2dfilter->float_arg,_2dfilter->int_arg,ketsjiEngine->GetRasterizer(),rendertools);
+				_2dfilter->float_arg,_2dfilter->int_arg,ketsjiEngine->GetRasterizer(),scene);
 
 			if (_2dfilter->text)
 			{

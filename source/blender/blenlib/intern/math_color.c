@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -384,5 +384,25 @@ int constrain_rgb(float *r, float *g, float *b)
     }
 
     return 0;                         /* Color within RGB gamut */
+}
+
+float rgb_to_grayscale(float rgb[3])
+{
+	return 0.3f*rgb[0] + 0.58f*rgb[1] + 0.12f*rgb[2];
+}
+
+/* ********************************* lift/gamma/gain / ASC-CDL conversion ********************************* */
+
+void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power)
+{
+	int c;
+	for(c=0; c<3; c++) {
+		offset[c]= lift[c]*gain[c];
+		slope[c]=  gain[c]*(1.0f-lift[c]);
+		if(gamma[c] == 0)
+			power[c]= FLT_MAX;
+		else
+			power[c]= 1.0f/gamma[c];
+	}
 }
 

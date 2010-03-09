@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
@@ -94,8 +94,8 @@ ifeq ($(OS),darwin)
     CCFLAGS += -arch $(MACOSX_ARCHITECTURE) #-isysroot $(MACOSX_SDK) -mmacosx-version-min=$(MACOSX_MIN_VERS)
 
     ifeq ($(MACOSX_ARCHITECTURE), $(findstring $(MACOSX_ARCHITECTURE), "i386 x86_64"))
-        REL_CFLAGS += -O2 -ftree-vectorize -msse -msse2 -msse3
-        REL_CCFLAGS += -O2 -ftree-vectorize -msse -msse2 -msse3
+        REL_CFLAGS += -ftree-vectorize -msse -msse2 -msse3
+        REL_CCFLAGS += -ftree-vectorize -msse -msse2 -msse3
     endif
 
     ifeq ($(MACOSX_ARCHITECTURE), x86_64)

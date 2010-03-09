@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -50,7 +50,7 @@ typedef struct bAddObjectActuator {
 
 typedef struct bActionActuator {								
 	struct bAction *act;	/* Pointer to action */				
-	short	type, flag;		/* Playback type */					
+	short	type, flag;		/* Playback type */  // not in use
 	int	sta, end;		/* Start & End frames */			
 	char	name[32];		/* For property-driven playback */	
 	char	frameProp[32];	/* Set this property to the actions current frame */
@@ -58,18 +58,18 @@ typedef struct bActionActuator {
 	short	priority;		/* Execution priority */
 	short	end_reset;	/* Ending the actuator (negative pulse) wont reset the the action to its starting frame */
 	short	strideaxis;		/* Displacement axis */
-	float	stridelength;	/* Displacement incurred by cycle */
+	float	stridelength;	/* Displacement incurred by cycle */ // not in use
 } bActionActuator;												
 
 typedef struct bSoundActuator {
 	short flag, sndnr;
-	int sta, end;
-	short pad1[2];
+	int pad1, pad2;
+	short pad3[2];
 	float volume, pitch;
 	struct bSound *sound;
 	struct Sound3D sound3D;
-	short type, makecopy;
-	short copymade, pad2[1];
+	short type, pad4;
+	short pad5, pad6[1];
 } bSoundActuator;
 
 typedef struct bEditObjectActuator {
@@ -86,23 +86,23 @@ typedef struct bEditObjectActuator {
 } bEditObjectActuator;
 
 typedef struct bSceneActuator {
-	short type, flag;
+	short type, pad1;
 	int pad;
 	struct Scene *scene;
 	struct Object *camera;
 } bSceneActuator;
 
 typedef struct bPropertyActuator {
-	int flag, type;
+	int pad, type;
 	char name[32], value[32];
-	struct Object *ob;
+	struct Object *ob; // not in use anymore
 } bPropertyActuator;
 
 typedef struct bObjectActuator {
 	short flag, type, otype;
 	short damping;
 	float forceloc[3], forcerot[3];
-	float loc[3], rot[3];
+	float pad[3], pad1[3];
 	float dloc[3], drot[3];
 	float linearvelocity[3], angularvelocity[3];
 	struct Object *reference;
@@ -114,16 +114,16 @@ typedef struct bIpoActuator {
 	char name[32];
 	char frameProp[32];	/* Set this property to the actions current frame */
 	
-	short pad1, cur, butsta, butend;
+	short pad1, pad2, pad3, pad4;
 	
 } bIpoActuator;
 
 typedef struct bCameraActuator {
 	struct Object *ob;
 	float height, min, max;
-	float fac;
-	short flag, axis;
-	float visifac;
+	float pad;
+	short pad1, axis;
+	float pad2;
 } bCameraActuator ;
 
 typedef struct bConstraintActuator {
@@ -158,31 +158,12 @@ typedef struct bRandomActuator {
 } bRandomActuator;
 
 typedef struct bMessageActuator {
-	/**
-	 * Send to all objects with this propertyname. Empty to broadcast.
-	 */
-	char toPropName[32];
-
-	/**
-	 * (Possible future use) pointer to a single destination object.
-	 */
-	struct Object *toObject;
-
-	/**
-	 * Message Subject to send.
-	 */
-	char subject[32];
-
-	/**
-	 * bodyType is either 'User defined text' or PropName
-	 */
-	short bodyType, pad1;
+	char toPropName[32];	/* Send to all objects with this propertyname. Empty to broadcast. */
+	struct Object *toObject;/* (Possible future use) pointer to a single destination object. */
+	char subject[32];		/* Message Subject to send. */
+	short bodyType, pad1;	/* bodyType is either 'User defined text' or PropName */
 	int pad2;
-
-	/**
-	 * Either User Defined Text or our PropName to send value of
-	 */
-	char body[32];
+	char body[32];			/* Either User Defined Text or our PropName to send value of */
 } bMessageActuator;
 
 typedef struct bGameActuator {
@@ -408,13 +389,20 @@ typedef struct FreeCamera {
 #define ACT_EDOB_LOCAL_LINV		2
 #define ACT_EDOB_LOCAL_ANGV		4
 
-
 /* editObjectActuator->flag */
 #define ACT_TRACK_3D			1
 
 /* editObjectActuator->flag for replace mesh actuator */
 #define ACT_EDOB_REPLACE_MESH_NOGFX		2 /* use for replace mesh actuator */
 #define ACT_EDOB_REPLACE_MESH_PHYS		4
+
+/* editObjectActuator->dyn_operation */
+#define ACT_EDOB_RESTORE_DYN	0
+#define ACT_EDOB_SUSPEND_DYN	1
+#define ACT_EDOB_ENABLE_RB		2
+#define ACT_EDOB_DISABLE_RB		3
+#define ACT_EDOB_SET_MASS		4
+
 
 /* SceneActuator->type */
 #define ACT_SCENE_RESTART		0
@@ -502,6 +490,12 @@ typedef struct FreeCamera {
 #define ACT_ARM_SETWEIGHT	4
 /* update this define if more type are addedd */
 #define ACT_ARM_MAXTYPE		4
+
+/* stateactuator->type */
+#define ACT_STATE_SET		0
+#define ACT_STATE_ADD		1
+#define ACT_STATE_REMOVE	2
+#define ACT_STATE_CHANGE	3
 
 #endif
 

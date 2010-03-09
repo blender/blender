@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -103,11 +103,15 @@ public:
 	KX_PYMETHOD_DOC_NOARGS(KX_SoundActuator, pauseSound);
 	KX_PYMETHOD_DOC_NOARGS(KX_SoundActuator, stopSound);
 
+	static int pyattr_set_3d_property(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
+	static int pyattr_set_audposition(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static int pyattr_set_gain(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static int pyattr_set_pitch(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static int pyattr_set_rollOffFactor(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 	static int pyattr_set_type(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
+	static PyObject* pyattr_get_3d_property(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
+	static PyObject* pyattr_get_audposition(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject* pyattr_get_gain(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject* pyattr_get_pitch(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);
 	static PyObject* pyattr_get_rollOffFactor(void *self, const struct KX_PYATTRIBUTE_DEF *attrdef);

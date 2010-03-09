@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -97,7 +97,8 @@ static void do_nla_region_buttons(bContext *C, void *arg, int event)
 	}
 	
 	/* default for now */
-	WM_event_add_notifier(C, NC_SCENE|NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, NULL);
 }
 
 static int nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_ptr, PointerRNA *strip_ptr)
@@ -363,6 +364,7 @@ static void nla_panel_actclip(const bContext *C, Panel *pa)
 		uiItemL(column, "Action Extents:", 0);
 		uiItemR(column, "Start Frame", 0, &strip_ptr, "action_start_frame", 0);
 		uiItemR(column, "End Frame", 0, &strip_ptr, "action_end_frame", 0);
+		uiItemO(column, NULL, 0, "NLA_OT_action_sync_length");
 		
 	/* action usage */
 	column= uiLayoutColumn(layout, 1);

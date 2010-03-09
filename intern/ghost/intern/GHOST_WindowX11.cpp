@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -35,7 +35,7 @@
 #include <X11/cursorfont.h>
 #include <X11/Xatom.h>
 
-#if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__)
+#if defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__) || defined (_AIX)
 #include <strings.h>
 #endif
 
@@ -1359,6 +1359,7 @@ getStandardCursor(
 	GtoX(GHOST_kStandardCursorBottomRightCorner, XC_bottom_right_corner); break;
 	GtoX(GHOST_kStandardCursorBottomLeftCorner, XC_bottom_left_corner); break;
 	GtoX(GHOST_kStandardCursorPencil, XC_pencil); break;
+	GtoX(GHOST_kStandardCursorCopy, XC_arrow); break;
 	default:
 		xcursor_id = 0;
 	}
@@ -1435,7 +1436,7 @@ setWindowCursorGrab(
 				setWindowCursorVisibility(false);
 
 		}
-		XGrabPointer(m_display, m_window, True, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+		XGrabPointer(m_display, m_window, False, ButtonPressMask| ButtonReleaseMask|PointerMotionMask, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	}
 	else {
 		if (m_cursorGrab==GHOST_kGrabHide) {

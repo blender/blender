@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -37,6 +37,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "ED_screen.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -75,6 +77,7 @@ void BUTTONS_OT_toolbox(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->invoke= toolbox_invoke;
+	ot->poll= ED_operator_buttons_active;
 }
 
 /********************** filebrowse operator *********************/
@@ -138,8 +141,8 @@ static int file_browse_invoke(bContext *C, wmOperator *op, wmEvent *event)
 void BUTTONS_OT_file_browse(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name= "File Browse";
-	ot->description="Open a file browser.";
+	ot->name= "Accept";
+	ot->description="Open a file browser";
 	ot->idname= "BUTTONS_OT_file_browse";
 	
 	/* api callbacks */
@@ -148,6 +151,6 @@ void BUTTONS_OT_file_browse(wmOperatorType *ot)
 	ot->cancel= file_browse_cancel;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE);
 }
 

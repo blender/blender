@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -56,7 +56,12 @@ int text_font_width(struct SpaceText *st, char *str);
 void text_update_line_edited(struct Text *text, struct TextLine *line);
 void text_update_edited(struct Text *text);
 void text_update_character_width(struct SpaceText *st);
-void text_update_cursor_moved(struct SpaceText *st, struct ARegion *ar);
+void text_update_cursor_moved(struct bContext *C);
+
+	/* TXT_OFFSET used to be 35 when the scrollbar was on the left... */
+#define TXT_OFFSET 15
+#define TXT_SCROLL_WIDTH 20
+#define TXT_SCROLL_SPACE 2
 
 #define TEXTXLOC		(st->cwidth * st->linenrs_tot)
 

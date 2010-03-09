@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -53,7 +53,9 @@ void animviz_free_motionpath_cache(struct bMotionPath *mpath);
 void animviz_free_motionpath(struct bMotionPath *mpath);
 
 struct bMotionPath *animviz_verify_motionpaths(struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan);
-void animviz_calc_motionpaths(struct Scene *scene, struct Object *ob);
+
+void animviz_get_object_motionpaths(Object *ob, ListBase *targets);
+void animviz_calc_motionpaths(struct Scene *scene, ListBase *targets);
 
 /* ---------------------------------------------------- */
 /* Curve Paths */

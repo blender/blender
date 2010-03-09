@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -128,10 +128,7 @@ struct Image *BKE_image_verify_viewer(int type, const char *name);
 void BKE_image_assign_ibuf(struct Image *ima, struct ImBuf *ibuf);
 
 /* called on frame change or before render */
-void BKE_image_user_calc_imanr(struct ImageUser *iuser, int cfra, int fieldnr);
-
-/* produce image export path */
-int BKE_get_image_export_path(struct Image *im, const char *dest_dir, char *abs, int abs_size, char *rel, int rel_size);
+void BKE_image_user_calc_frame(struct ImageUser *iuser, int cfra, int fieldnr);
 
 /* fix things in ImageUser when new image gets assigned */
 void BKE_image_user_new_image(struct Image *ima, struct ImageUser *iuser);
@@ -142,9 +139,6 @@ struct RenderPass *BKE_image_multilayer_index(struct RenderResult *rr, struct Im
 /* for multilayer images as well as for render-viewer */
 struct RenderResult *BKE_image_acquire_renderresult(struct Scene *scene, struct Image *ima);
 void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
-
-/* frees all ibufs used by any image datablocks */
-void	BKE_image_free_image_ibufs(void);
 	
 /* goes over all textures that use images */
 void	BKE_image_free_all_textures(void);

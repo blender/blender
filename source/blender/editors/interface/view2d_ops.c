@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -286,7 +286,7 @@ void VIEW2D_OT_pan(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Pan View";
-	ot->description= "Pan the view.";
+	ot->description= "Pan the view";
 	ot->idname= "VIEW2D_OT_pan";
 	
 	/* api callbacks */
@@ -336,7 +336,7 @@ void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Right";
-	ot->description= "Scroll the view right.";
+	ot->description= "Scroll the view right";
 	ot->idname= "VIEW2D_OT_scroll_right";
 	
 	/* api callbacks */
@@ -383,7 +383,7 @@ void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Left";
-	ot->description= "Scroll the view left.";
+	ot->description= "Scroll the view left";
 	ot->idname= "VIEW2D_OT_scroll_left";
 	
 	/* api callbacks */
@@ -429,7 +429,7 @@ void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Down";
-	ot->description= "Scroll the view down.";
+	ot->description= "Scroll the view down";
 	ot->idname= "VIEW2D_OT_scroll_down";
 	
 	/* api callbacks */
@@ -476,7 +476,7 @@ void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroll Up";
-	ot->description= "Scroll the view up.";
+	ot->description= "Scroll the view up";
 	ot->idname= "VIEW2D_OT_scroll_up";
 	
 	/* api callbacks */
@@ -505,7 +505,43 @@ void VIEW2D_OT_scroll_up(wmOperatorType *ot)
  */
 
 /* ------------------ 'Shared' stuff ------------------------ */
- 
+
+/* temp customdata for operator */
+typedef struct v2dViewZoomData {
+	View2D *v2d;			/* view2d we're operating in */
+	
+	int lastx, lasty;		/* previous x/y values of mouse in window */
+	float dx, dy;			/* running tally of previous delta values (for obtaining final zoom) */
+	float mx_2d, my_2d;		/* initial mouse location in v2d coords */
+} v2dViewZoomData;
+
+
+/* initialise panning customdata */
+static int view_zoomdrag_init(bContext *C, wmOperator *op)
+{
+	ARegion *ar= CTX_wm_region(C);
+	v2dViewZoomData *vzd;
+	View2D *v2d;
+	
+	/* regions now have v2d-data by default, so check for region */
+	if (ar == NULL)
+		return 0;
+	v2d= &ar->v2d;
+	
+	/* check that 2d-view is zoomable */
+	if ((v2d->keepzoom & V2D_LOCKZOOM_X) && (v2d->keepzoom & V2D_LOCKZOOM_Y))
+		return 0;
+	
+	/* set custom-data for operator */
+	vzd= MEM_callocN(sizeof(v2dViewZoomData), "v2dViewZoomData");
+	op->customdata= vzd;
+	
+	/* set pointers to owners */
+	vzd->v2d= v2d;
+	
+	return 1;
+}
+
 /* check if step-zoom can be applied */
 static int view_zoom_poll(bContext *C)
 {
@@ -528,6 +564,7 @@ static int view_zoom_poll(bContext *C)
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void view_zoomstep_apply(bContext *C, wmOperator *op)
 {
+	v2dViewZoomData *vzd= op->customdata;
 	ARegion *ar= CTX_wm_region(C);
 	View2D *v2d= &ar->v2d;
 	float dx, dy, facx, facy;
@@ -558,8 +595,17 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 				v2d->cur.xmax -= 2*dx;
 		}
 		else {
-			v2d->cur.xmin += dx;
-			v2d->cur.xmax -= dx;
+			if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+				float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / (v2d->cur.xmax-v2d->cur.xmin);
+				float mval_faci = 1.0 - mval_fac;
+				float ofs= (mval_fac * dx) - (mval_faci * dx);
+				v2d->cur.xmin += ofs + dx;
+				v2d->cur.xmax += ofs - dx;
+			}
+			else {
+				v2d->cur.xmin += dx;
+				v2d->cur.xmax -= dx;
+			}
 		}
 	}
 	if ((v2d->keepzoom & V2D_LOCKZOOM_Y)==0) {
@@ -573,8 +619,16 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 				v2d->cur.ymax -= 2*dy;
 		}
 		else {
-			v2d->cur.ymin += dy;
-			v2d->cur.ymax -= dy;
+			if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+				float mval_fac = (vzd->my_2d - v2d->cur.ymin) / (v2d->cur.ymax-v2d->cur.ymin);
+				float mval_faci = 1.0 - mval_fac;
+				float ofs= (mval_fac * dy) - (mval_faci * dy);
+				v2d->cur.ymin += ofs + dy;
+				v2d->cur.ymax += ofs - dy;
+			} else {
+				v2d->cur.ymin += dy;
+				v2d->cur.ymax -= dy;
+			}
 		}
 	}
 
@@ -588,6 +642,15 @@ static void view_zoomstep_apply(bContext *C, wmOperator *op)
 }
 
 /* --------------- Individual Operators ------------------- */
+
+/* cleanup temp customdata  */
+static void view_zoomstep_exit(bContext *C, wmOperator *op)
+{
+	if (op->customdata) {
+		MEM_freeN(op->customdata);
+		op->customdata= NULL;				
+	}
+}
 
 /* this operator only needs this single callback, where it calls the view_zoom_*() methods */
 static int view_zoomin_exec(bContext *C, wmOperator *op)
@@ -603,18 +666,39 @@ static int view_zoomin_exec(bContext *C, wmOperator *op)
 	/* apply movement, then we're done */
 	view_zoomstep_apply(C, op);
 	
+	view_zoomstep_exit(C, op);
+	
 	return OPERATOR_FINISHED;
+}
+
+static int view_zoomin_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	v2dViewZoomData *vzd;
+	
+	if (!view_zoomdrag_init(C, op))
+		return OPERATOR_PASS_THROUGH;
+	
+	vzd= op->customdata;
+	
+	if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+		ARegion *ar= CTX_wm_region(C);
+		UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, &vzd->mx_2d, &vzd->my_2d);
+	}
+	
+	return view_zoomin_exec(C, op);
 }
 
 void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom In";
-	ot->description= "Zoom in the view.";
+	ot->description= "Zoom in the view";
 	ot->idname= "VIEW2D_OT_zoom_in";
 	
 	/* api callbacks */
+	ot->invoke= view_zoomin_invoke;
 	ot->exec= view_zoomin_exec;
+	ot->poll= view_zoom_poll;
 	
 	/* operator is repeatable */
 	// ot->flag= OPTYPE_REGISTER;
@@ -623,9 +707,7 @@ void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
 	RNA_def_float(ot->srna, "zoomfacy", 0, -FLT_MAX, FLT_MAX, "Zoom Factor Y", "", -FLT_MAX, FLT_MAX);
 }
-
-
-
+	
 /* this operator only needs this single callback, where it callsthe view_zoom_*() methods */
 static int view_zoomout_exec(bContext *C, wmOperator *op)
 {
@@ -639,19 +721,40 @@ static int view_zoomout_exec(bContext *C, wmOperator *op)
 	
 	/* apply movement, then we're done */
 	view_zoomstep_apply(C, op);
+
+	view_zoomstep_exit(C, op);
 	
 	return OPERATOR_FINISHED;
+}
+
+static int view_zoomout_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	v2dViewZoomData *vzd;
+	
+	if (!view_zoomdrag_init(C, op))
+		return OPERATOR_PASS_THROUGH;
+
+	vzd= op->customdata;
+	
+	if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+		ARegion *ar= CTX_wm_region(C);
+		UI_view2d_region_to_view(&ar->v2d, event->x - ar->winrct.xmin, event->y - ar->winrct.ymin, &vzd->mx_2d, &vzd->my_2d);
+	}
+	
+	return view_zoomout_exec(C, op);
 }
 
 void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom Out";
-	ot->description= "Zoom out the view.";
+	ot->description= "Zoom out the view";
 	ot->idname= "VIEW2D_OT_zoom_out";
 	
 	/* api callbacks */
+	ot->invoke= view_zoomout_invoke;
 	ot->exec= view_zoomout_exec;
+	ot->poll= view_zoom_poll;
 	
 	/* operator is repeatable */
 	// ot->flag= OPTYPE_REGISTER;
@@ -669,43 +772,6 @@ void VIEW2D_OT_zoom_out(wmOperatorType *ot)
  *	In order to make sure this works, each operator must define the following RNA-Operator Props:
  *		deltax, deltay	- amounts to add to each side of the 'cur' rect
  */
- 
-/* ------------------ Shared 'core' stuff ---------------------- */
- 
-/* temp customdata for operator */
-typedef struct v2dViewZoomData {
-	View2D *v2d;			/* view2d we're operating in */
-	
-	int lastx, lasty;		/* previous x/y values of mouse in window */
-	float dx, dy;			/* running tally of previous delta values (for obtaining final zoom) */
-	float mx_2d, my_2d;		/* initial mouse location in v2d coords */
-} v2dViewZoomData;
- 
-/* initialise panning customdata */
-static int view_zoomdrag_init(bContext *C, wmOperator *op)
-{
-	ARegion *ar= CTX_wm_region(C);
-	v2dViewZoomData *vzd;
-	View2D *v2d;
-	
-	/* regions now have v2d-data by default, so check for region */
-	if (ar == NULL)
-		return 0;
-	v2d= &ar->v2d;
-	
-	/* check that 2d-view is zoomable */
-	if ((v2d->keepzoom & V2D_LOCKZOOM_X) && (v2d->keepzoom & V2D_LOCKZOOM_Y))
-		return 0;
-	
-	/* set custom-data for operator */
-	vzd= MEM_callocN(sizeof(v2dViewZoomData), "v2dViewZoomData");
-	op->customdata= vzd;
-	
-	/* set pointers to owners */
-	vzd->v2d= v2d;
-	
-	return 1;
-}
 
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void view_zoomdrag_apply(bContext *C, wmOperator *op)
@@ -938,7 +1004,7 @@ void VIEW2D_OT_zoom(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom View";
-	ot->description= "Zoom in/out the view.";
+	ot->description= "Zoom in/out the view";
 	ot->idname= "VIEW2D_OT_zoom";
 	
 	/* api callbacks */
@@ -1040,7 +1106,7 @@ void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Zoom to Border";
-	ot->description= "Zoom in the view to the nearest item contained in the border.";
+	ot->description= "Zoom in the view to the nearest item contained in the border";
 	ot->idname= "VIEW2D_OT_zoom_border";
 	
 	/* api callbacks */
@@ -1348,6 +1414,18 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		scroller_activate_init(C, op, event, in_scroller);
 		vsm= (v2dScrollerMove *)op->customdata;
 		
+		/* check if zoom zones are inappropriate (i.e. zoom widgets not shown), so cannot continue
+		 * NOTE: see view2d.c for latest conditions, and keep this in sync with that
+		 */
+		if (ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
+			if ( ((vsm->scroller=='h') && (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL)==0) ||
+				 ((vsm->scroller=='v') && (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL)==0) )
+			{
+				/* switch to bar (i.e. no scaling gets handled) */
+				vsm->zone= SCROLLHANDLE_BAR;
+			}
+		}
+		
 		/* check if zone is inappropriate (i.e. 'bar' but panning is banned), so cannot continue */
 		if (vsm->zone == SCROLLHANDLE_BAR) {
 			if ( ((vsm->scroller=='h') && (v2d->keepofs & V2D_LOCKOFS_X)) ||
@@ -1360,15 +1438,21 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				return OPERATOR_PASS_THROUGH;
 			}			
 		}
+		
 		/* zone is also inappropriate if scroller is not visible... */
-		if ( ((vsm->scroller=='h') && (v2d->scroll & V2D_SCROLL_HORIZONTAL_HIDE)) ||
-			 ((vsm->scroller=='v') && (v2d->scroll & V2D_SCROLL_VERTICAL_HIDE)) )
+		if ( ((vsm->scroller=='h') && (v2d->scroll & (V2D_SCROLL_HORIZONTAL_HIDE|V2D_SCROLL_HORIZONTAL_FULLR))) ||
+			 ((vsm->scroller=='v') && (v2d->scroll & (V2D_SCROLL_VERTICAL_HIDE|V2D_SCROLL_VERTICAL_FULLR))) )
 		{
+			/* free customdata initialised */
+			scroller_activate_exit(C, op);
+				
 			/* can't catch this event for ourselves, so let it go to someone else? */
+			// FIXME: still this doesn't fall through to the item_activate callback for the outliner...
 			return OPERATOR_PASS_THROUGH;
 		}
 		
-		if(vsm->scroller=='h')
+		/* activate the scroller */
+		if (vsm->scroller=='h')
 			v2d->scroll_ui |= V2D_SCROLL_H_ACTIVE;
 		else
 			v2d->scroll_ui |= V2D_SCROLL_V_ACTIVE;
@@ -1388,7 +1472,7 @@ void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Scroller Activate";
-	ot->description= "Scroll view by mouse click and drag.";
+	ot->description= "Scroll view by mouse click and drag";
 	ot->idname= "VIEW2D_OT_scroller_activate";
 
 	/* flags */
@@ -1455,7 +1539,7 @@ void VIEW2D_OT_reset(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Reset View";
-	ot->description= "Reset the view.";
+	ot->description= "Reset the view";
 	ot->idname= "VIEW2D_OT_reset";
 	
 	/* api callbacks */
@@ -1519,6 +1603,18 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_right", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_left", WHEELUPMOUSE, KM_PRESS, 0, 0);
 	
+	/* alternatives for page up/down to scroll */
+#if 0 // XXX disabled, since this causes conflicts with hotkeys in animation editors
+		/* scroll up/down may fall through to left/right */
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", PAGEDOWNKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", PAGEUPKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_right", PAGEDOWNKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_left", PAGEUPKEY, KM_PRESS, 0, 0);
+		/* shift for moving view left/right with page up/down */
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_right", PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_left", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0);
+#endif
+	
 	/* zoom - drag */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEZOOM, 0, 0, 0);
@@ -1535,6 +1631,8 @@ void UI_view2d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MOUSEPAN, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", PAGEDOWNKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", PAGEUPKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEZOOM, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_out", PADMINUS, KM_PRESS, 0, 0);

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -151,11 +151,11 @@ static SpaceLink *graph_new(const bContext *C)
 	
 	ar->v2d.cur= ar->v2d.tot;
 	
-	ar->v2d.min[0]= 0.001f;
-	ar->v2d.min[1]= 0.001f;
-	
+	ar->v2d.min[0]= FLT_MIN;
+	ar->v2d.min[1]= FLT_MIN;
+
 	ar->v2d.max[0]= MAXFRAMEF;
-	ar->v2d.max[1]= 50000.0f;
+	ar->v2d.max[1]= FLT_MAX;
 	
 	ar->v2d.scroll= (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
 	ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
@@ -462,6 +462,8 @@ static void graph_listener(ScrArea *sa, wmNotifier *wmn)
 					sipo->flag |= SIPO_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
 					break;
+				case ND_TRANSFORM:
+					break; /*do nothing*/					
 					
 				default: /* just redrawing the view will do */
 					ED_area_tag_redraw(sa);
@@ -614,7 +616,7 @@ void ED_spacetype_ipo(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->listener= graph_region_listener;
 	art->init= graph_header_area_init;
@@ -625,7 +627,7 @@ void ED_spacetype_ipo(void)
 	/* regions: channels */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->minsizex= 200+V2D_SCROLL_WIDTH; /* 200 is the 'standard', but due to scrollers, we want a bit more to fit the lock icons in */
+	art->prefsizex= 200+V2D_SCROLL_WIDTH; /* 200 is the 'standard', but due to scrollers, we want a bit more to fit the lock icons in */
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES;
 	art->listener= graph_region_listener;
 	art->init= graph_channel_area_init;
@@ -636,7 +638,7 @@ void ED_spacetype_ipo(void)
 	/* regions: UI buttons */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype graphedit region");
 	art->regionid = RGN_TYPE_UI;
-	art->minsizex= 200;
+	art->prefsizex= 200;
 	art->keymapflag= ED_KEYMAP_UI;
 	art->listener= graph_region_listener;
 	art->init= graph_buttons_area_init;

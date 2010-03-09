@@ -19,7 +19,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -42,6 +42,7 @@ struct bContext;
 
 void *alloc_libblock(struct ListBase *lb, short type, const char *name);
 void *copy_libblock(void *rt);
+void copy_libblock_data(struct ID *id, const struct ID *id_from);
 
 void id_lib_extern(struct ID *id);
 void id_us_plus(struct ID *id);

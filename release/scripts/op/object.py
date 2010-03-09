@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -23,11 +23,10 @@ from bpy.props import *
 
 
 class SelectPattern(bpy.types.Operator):
-    '''Select object matching a naming pattern.'''
+    '''Select object matching a naming pattern'''
     bl_idname = "object.select_pattern"
     bl_label = "Select Pattern"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     pattern = StringProperty(name="Pattern", description="Name filter using '*' and '?' wildcard chars", maxlen=32, default="*")
     case_sensitive = BoolProperty(name="Case Sensitive", description="Do a case sensitive compare", default=False)
@@ -75,13 +74,73 @@ class SelectPattern(bpy.types.Operator):
         row.prop(props, "extend")
 
 
+class SelectCamera(bpy.types.Operator):
+    '''Select object matching a naming pattern'''
+    bl_idname = "object.select_camera"
+    bl_label = "Select Camera"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def poll(self, context):
+        return context.scene.camera is not None
+
+    def execute(self, context):
+        scene = context.scene
+        camera = scene.camera
+        if camera.name not in scene.objects:
+            self.report({'WARNING'}, "Active camera is not in this scene")
+
+        context.scene.objects.active = camera
+        camera.selected = True
+        return {'FINISHED'}
+
+
+class SelectHierarchy(bpy.types.Operator):
+    '''Select object relative to the active objects position in the hierarchy'''
+    bl_idname = "object.select_hierarchy"
+    bl_label = "Select Hierarchy"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    direction = EnumProperty(items=(
+                        ('PARENT', "Parent", ""),
+                        ('CHILD', "Child", "")),
+                name="Direction",
+                description="Direction to select in the hierarchy",
+                default='PARENT')
+
+    extend = BoolProperty(name="Extend", description="Extend the existing selection", default=False)
+
+    def poll(self, context):
+        return context.object
+
+    def execute(self, context):
+        obj = context.object
+        if self.properties.direction == 'PARENT':
+            parent = obj.parent
+            if not parent:
+                return {'CANCELLED'}
+            obj_act = parent
+        else:
+            children = obj.children
+            if len(children) != 1:
+                return {'CANCELLED'}
+            obj_act = children[0]
+
+        if not self.properties.extend:
+            # obj.selected = False
+            bpy.ops.object.select_all(action='DESELECT')
+
+        obj_act.selected = True
+        context.scene.objects.active = obj_act
+
+        return {'FINISHED'}
+
+
 class SubdivisionSet(bpy.types.Operator):
     '''Sets a Subdivision Surface Level (1-5)'''
 
     bl_idname = "object.subdivision_set"
     bl_label = "Subdivision Set"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     level = IntProperty(name="Level",
             default=1, min=-100, max=100, soft_min=-6, soft_max=6)
@@ -102,20 +161,24 @@ class SubdivisionSet(bpy.types.Operator):
         def set_object_subd(obj):
             for mod in obj.modifiers:
                 if mod.type == 'MULTIRES':
-                    if level <= mod.total_levels:
-                        if obj.mode == 'SCULPT':
-                            if relative:
-                                mod.sculpt_levels += level
-                            else:
+                    if not relative:
+                        if level <= mod.total_levels:
+                            if obj.mode == 'SCULPT':
                                 if mod.sculpt_levels != level:
                                     mod.sculpt_levels = level
-                        elif obj.mode == 'OBJECT':
-                            if relative:
-                                mod.levels += level
-                            else:
+                            elif obj.mode == 'OBJECT':
                                 if mod.levels != level:
                                     mod.levels = level
-                    return
+                        return
+                    else:
+                        if obj.mode == 'SCULPT':
+                            if mod.sculpt_levels + level <= mod.total_levels:
+                                mod.sculpt_levels += level
+                        elif obj.mode == 'OBJECT':
+                            if mod.levels + level <= mod.total_levels:
+                                mod.levels += level
+                        return
+
                 elif mod.type == 'SUBSURF':
                     if relative:
                         mod.levels += level
@@ -135,28 +198,12 @@ class SubdivisionSet(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class Retopo(bpy.types.Operator):
-    '''TODO - doc'''
-
-    bl_idname = "object.retopology"
-    bl_label = "Retopology from Grease Pencil"
-    bl_register = True
-    bl_undo = True
-
-    def execute(self, context):
-        import retopo
-        reload(retopo)
-        retopo.main()
-        return {'FINISHED'}
-
-
 class ShapeTransfer(bpy.types.Operator):
-    '''Copy the active objects current shape to other selected objects with the same number of verts'''
+    '''Copy another selected objects active shape to this one by applying the relative offsets'''
 
     bl_idname = "object.shape_key_transfer"
     bl_label = "Transfer Shape Key"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     mode = EnumProperty(items=(
                         ('OFFSET', "Offset", "Apply the relative positional offset"),
@@ -171,6 +218,7 @@ class ShapeTransfer(bpy.types.Operator):
                 default=False)
 
     def _main(self, ob_act, objects, mode='OFFSET', use_clamp=False):
+
         def me_nos(verts):
             return [v.normal.copy() for v in verts]
 
@@ -181,6 +229,7 @@ class ShapeTransfer(bpy.types.Operator):
             me = ob.data
             key = ob.add_shape_key(from_mix=False)
             if len(me.shape_keys.keys) == 1:
+                key.name = "Basis"
                 key = ob.add_shape_key(from_mix=False) # we need a rest
             key.name = name
             ob.active_shape_key_index = len(me.shape_keys.keys) - 1
@@ -198,7 +247,8 @@ class ShapeTransfer(bpy.types.Operator):
         orig_shape_coords = me_cos(ob_act.active_shape_key.data)
 
         orig_normals = me_nos(me.verts)
-        orig_coords = me_cos(me.verts)
+        # orig_coords = me_cos(me.verts) # the actual mverts location isnt as relyable as the base shape :S
+        orig_coords = me_cos(me.shape_keys.keys[0].data)
 
         for ob_other in objects:
             me_other = ob_other.data
@@ -207,7 +257,10 @@ class ShapeTransfer(bpy.types.Operator):
                 continue
 
             target_normals = me_nos(me_other.verts)
-            target_coords = me_cos(me_other.verts)
+            if me_other.shape_keys:
+                target_coords = me_cos(me_other.shape_keys.keys[0].data)
+            else:
+                target_coords = me_cos(me_other.verts)
 
             ob_add_shape(ob_other, orig_key_name)
 
@@ -313,14 +366,165 @@ class ShapeTransfer(bpy.types.Operator):
     def execute(self, context):
         C = bpy.context
         ob_act = C.active_object
-        if ob_act.active_shape_key is None:
-            self.report({'ERROR'}, "Active object has no shape key")
-            return {'CANCELLED'}
         objects = [ob for ob in C.selected_editable_objects if ob != ob_act]
+
+        if 1: # swap from/to, means we cant copy to many at once.
+            if len(objects) != 1:
+                self.report({'ERROR'}, "Expected one other selected mesh object to copy from")
+                return {'CANCELLED'}
+            ob_act, objects = objects[0], [ob_act]
+
+        if ob_act.type != 'MESH':
+            self.report({'ERROR'}, "Other object is not a mesh.")
+            return {'CANCELLED'}
+
+        if ob_act.active_shape_key is None:
+            self.report({'ERROR'}, "Other object has no shape key")
+            return {'CANCELLED'}
         return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)
 
+class JoinUVs(bpy.types.Operator):
+    '''Copy UV Layout to objects with matching geometry'''
+    bl_idname = "object.join_uvs"
+    bl_label = "Join as UVs"
 
-bpy.types.register(SelectPattern)
-bpy.types.register(SubdivisionSet)
-bpy.types.register(Retopo)
-bpy.types.register(ShapeTransfer)
+    def poll(self, context):
+        obj = context.active_object
+        return (obj and obj.type == 'MESH')
+
+    def _main(self, context):
+        import array
+        obj = context.active_object
+        mesh = obj.data
+
+        is_editmode = (obj.mode == 'EDIT')
+        if is_editmode:
+            bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
+
+        if not mesh.active_uv_texture:
+            self.report({'WARNING'}, "Object: %s, Mesh: '%s' has no UVs\n" % (obj.name, mesh.name))
+        else:
+            len_faces = len(mesh.faces)
+
+            uv_array = array.array('f', [0.0] * 8) * len_faces # seems to be the fastest way to create an array
+            mesh.active_uv_texture.data.foreach_get("uv_raw", uv_array)
+
+            objects = context.selected_editable_objects[:]
+
+            for obj_other in objects:
+                if obj_other.type == 'MESH':
+                    obj_other.data.tag = False
+
+            for obj_other in objects:
+                if obj_other != obj and obj_other.type == 'MESH':
+                    mesh_other = obj_other.data
+                    if mesh_other != mesh:
+                        if mesh_other.tag == False:
+                            mesh_other.tag = True
+
+                            if len(mesh_other.faces) != len_faces:
+                                self.report({'WARNING'}, "Object: %s, Mesh: '%s' has %d faces, expected %d\n" % (obj_other.name, mesh_other.name, len(mesh_other.faces), len_faces))
+                            else:
+                                uv_other = mesh_other.active_uv_texture
+                                if not uv_other:
+                                    mesh_other.add_uv_texture() # should return the texture it adds
+                                    uv_other = mesh_other.active_uv_texture
+
+                                # finally do the copy
+                                uv_other.data.foreach_set("uv_raw", uv_array)
+
+        if is_editmode:
+            bpy.ops.object.mode_set(mode='EDIT', toggle=False)
+
+    def execute(self, context):
+        self._main(context)
+        return {'FINISHED'}
+
+class MakeDupliFace(bpy.types.Operator):
+    '''Make linked objects into dupli-faces'''
+    bl_idname = "object.make_dupli_face"
+    bl_label = "Make DupliFace"
+
+    def poll(self, context):
+        obj = context.active_object
+        return (obj and obj.type == 'MESH')
+
+    def _main(self, context):
+        from Mathutils import Vector
+        from math import sqrt
+
+        SCALE_FAC = 0.01
+        offset = 0.5 * SCALE_FAC
+        base_tri = Vector(-offset, -offset, 0.0), Vector(offset, -offset, 0.0), Vector(offset, offset, 0.0), Vector(-offset, offset, 0.0)
+
+        def matrix_to_quat(matrix):
+            # scale = matrix.median_scale
+            trans = matrix.translation_part()
+            rot = matrix.rotation_part() # also contains scale
+
+            return [(rot * b) + trans for b in base_tri]
+        scene = bpy.context.scene
+        linked = {}
+        for obj in bpy.context.selected_objects:
+            data = obj.data
+            if data:
+                linked.setdefault(data, []).append(obj)
+
+        for data, objects in linked.items():
+            face_verts = [axis for obj in objects for v in matrix_to_quat(obj.matrix) for axis in v]
+            faces = list(range(int(len(face_verts) / 3)))
+
+            mesh = bpy.data.meshes.new(data.name + "_dupli")
+
+            mesh.add_geometry(int(len(face_verts) / 3), 0, int(len(face_verts) / (4 * 3)))
+            mesh.verts.foreach_set("co", face_verts)
+            mesh.faces.foreach_set("verts_raw", faces)
+            mesh.update() # generates edge data
+
+            # pick an object to use
+            obj = objects[0]
+
+            ob_new = bpy.data.objects.new(mesh.name, mesh)
+            base = scene.objects.link(ob_new)
+            base.layers[:] = obj.layers
+
+            ob_inst = bpy.data.objects.new(data.name, data)
+            base = scene.objects.link(ob_inst)
+            base.layers[:] = obj.layers
+
+            for obj in objects:
+                scene.objects.unlink(obj)
+
+            ob_new.dupli_type = 'FACES'
+            ob_inst.parent = ob_new
+            ob_new.use_dupli_faces_scale = True
+            ob_new.dupli_faces_scale = 1.0 / SCALE_FAC
+
+    def execute(self, context):
+        self._main(context)
+        return {'FINISHED'}
+
+
+classes = [
+    SelectPattern,
+    SelectCamera,
+    SelectHierarchy,
+    SubdivisionSet,
+    ShapeTransfer,
+    JoinUVs,
+    MakeDupliFace]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()
+

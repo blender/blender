@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2004 Blender Foundation
  * All rights reserved.
@@ -52,6 +52,7 @@
 #include "BKE_utildefines.h"
 
 #include "ED_util.h"
+#include "ED_mesh.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -203,7 +204,6 @@ static void undo_clean_stack(bContext *C)
 {
 	UndoElem *uel, *next;
 	Object *obedit= CTX_data_edit_object(C);
-	int mixed= 0;
 	
 	/* global undo changes pointers, so we also allow identical names */
 	/* side effect: when deleting/renaming object and start editing new one with same name */
@@ -226,7 +226,9 @@ static void undo_clean_stack(bContext *C)
 		if(isvalid) 
 			uel->ob= obedit;
 		else {
-			mixed= 1;
+			if(uel == curundo)
+				curundo= NULL;
+
 			uel->freedata(uel->undodata);
 			BLI_freelinkN(&undobase, uel);
 		}
@@ -234,7 +236,7 @@ static void undo_clean_stack(bContext *C)
 		uel= next;
 	}
 	
-	if(mixed) curundo= undobase.last;
+	if(curundo == NULL) curundo= undobase.last;
 }
 
 /* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
@@ -268,6 +270,11 @@ void undo_editmode_step(bContext *C, int step)
 		}
 	}
 	
+	/* special case for editmesh, mode must be copied back to the scene */
+	if(obedit->type == OB_MESH) {
+		EDBM_selectmode_to_scene(CTX_data_scene(C), obedit);
+	}
+
 	DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 
 	/* XXX notifiers */

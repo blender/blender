@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -122,6 +122,8 @@
 
 #include "transform.h"
 
+void drawTransformApply(const struct bContext *C, struct ARegion *ar, void *arg);
+
 /* ************************** SPACE DEPENDANT CODE **************************** */
 
 void setTransformViewMatrices(TransInfo *t)
@@ -217,7 +219,7 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 
 		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
-	else if(ELEM(t->spacetype, SPACE_IPO, SPACE_NLA)) {
+	else if(ELEM3(t->spacetype, SPACE_IPO, SPACE_NLA, SPACE_ACTION)) {
 		int out[2] = {0, 0};
 
 		UI_view2d_view_to_region((View2D *)t->view, vec[0], vec[1], out, out+1);
@@ -297,7 +299,7 @@ void removeAspectRatio(TransInfo *t, float *vec)
 	}
 }
 
-static void viewRedrawForce(bContext *C, TransInfo *t)
+static void viewRedrawForce(const bContext *C, TransInfo *t)
 {
 	if (t->spacetype == SPACE_VIEW3D)
 	{
@@ -305,8 +307,10 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 		
 		/* for realtime animation record - send notifiers recognised by animation editors */
+		// XXX: is this notifier a lame duck?
 		if ((t->animtimer) && IS_AUTOKEY_ON(t->scene))
 			WM_event_add_notifier(C, NC_OBJECT|ND_KEYS, NULL);
+		
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		//SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
@@ -339,7 +343,13 @@ static void viewRedrawForce(bContext *C, TransInfo *t)
 static void viewRedrawPost(TransInfo *t)
 {
 	ED_area_headerprint(t->sa, NULL);
-
+	
+	if(t->spacetype == SPACE_VIEW3D) {
+		/* if autokeying is enabled, send notifiers that keyframes were added */
+		if (IS_AUTOKEY_ON(t->scene))
+			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	}
+	
 #if 0 // TRANSFORM_FIX_ME
 	if(t->spacetype==SPACE_VIEW3D) {
 		allqueue(REDRAWBUTSOBJECT, 0);
@@ -470,6 +480,8 @@ static void view_editmove(unsigned short event)
 #define TFM_MODAL_CONS_OFF		15
 #define TFM_MODAL_ADD_SNAP		16
 #define TFM_MODAL_REMOVE_SNAP	17
+/*	18 and 19 used by numinput, defined in transform.h
+ * */
 
 /* called in transform_ops.c, on each regeneration of keymaps */
 wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
@@ -492,6 +504,8 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	{TFM_MODAL_CONS_OFF, "CONS_OFF", 0, "Remove Constraints", ""},
 	{TFM_MODAL_ADD_SNAP, "ADD_SNAP", 0, "Add Snap Point", ""},
 	{TFM_MODAL_REMOVE_SNAP, "REMOVE_SNAP", 0, "Remove Last Snap Point", ""},
+	{NUM_MODAL_INCREMENT_UP, "INCREMENT_UP", 0, "Numinput Increment Up", ""},
+	{NUM_MODAL_INCREMENT_DOWN, "INCREMENT_DOWN", 0, "Numinput Increment Down", ""},
 	{0, NULL, 0, NULL, NULL}};
 	
 	wmKeyMap *keymap= WM_modalkeymap_get(keyconf, "Transform Modal Map");
@@ -519,6 +533,9 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, 0, 0, TFM_MODAL_ADD_SNAP);
 	WM_modalkeymap_add_item(keymap, AKEY, KM_PRESS, KM_ALT, 0, TFM_MODAL_REMOVE_SNAP);
 
+	WM_modalkeymap_add_item(keymap, UPARROWKEY, KM_PRESS, 0, 0, NUM_MODAL_INCREMENT_UP);
+	WM_modalkeymap_add_item(keymap, DOWNARROWKEY, KM_PRESS, 0, 0, NUM_MODAL_INCREMENT_DOWN);
+
 	return keymap;
 }
 
@@ -539,7 +556,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		t->mval[0] = event->x - t->ar->winrct.xmin;
 		t->mval[1] = event->y - t->ar->winrct.ymin;
 
-		t->redraw = 1;
+		t->redraw |= TREDRAW_SOFT;
 
 		if (t->state == TRANS_STARTING) {
 		    t->state = TRANS_RUNNING;
@@ -564,7 +581,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					restoreTransObjects(t);
 					initTranslation(t);
 					initSnapping(t, NULL); // need to reinit after mode change
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_ROTATE:
@@ -582,7 +599,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 						initRotation(t);
 					}
 					initSnapping(t, NULL); // need to reinit after mode change
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_RESIZE:
@@ -592,21 +609,21 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					restoreTransObjects(t);
 					initResize(t);
 					initSnapping(t, NULL); // need to reinit after mode change
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 				
 			case TFM_MODAL_SNAP_INV_ON:
 				t->modifiers |= MOD_SNAP_INVERT;
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 				break;
 			case TFM_MODAL_SNAP_INV_OFF:
 				t->modifiers &= ~MOD_SNAP_INVERT;
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 				break;
 			case TFM_MODAL_SNAP_TOGGLE:
 				t->modifiers ^= MOD_SNAP;
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 				break;
 			case TFM_MODAL_AXIS_X:
 				if ((t->flag & T_NO_CONSTRAINT)==0) {
@@ -621,7 +638,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 							setUserConstraint(t, t->current_orientation, (CON_AXIS0), "along %s X");
 						}
 					}
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_AXIS_Y:
@@ -637,7 +654,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 							setUserConstraint(t, t->current_orientation, (CON_AXIS1), "along %s Y");
 						}
 					}
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_AXIS_Z:
@@ -648,7 +665,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					else {
 						setUserConstraint(t, t->current_orientation, (CON_AXIS2), "along %s Z");
 					}
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_PLANE_X:
@@ -659,7 +676,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					else {
 						setUserConstraint(t, t->current_orientation, (CON_AXIS1|CON_AXIS2), "locking %s X");
 					}
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_PLANE_Y:
@@ -670,7 +687,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					else {
 						setUserConstraint(t, t->current_orientation, (CON_AXIS0|CON_AXIS2), "locking %s Y");
 					}
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_PLANE_Z:
@@ -681,27 +698,30 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					else {
 						setUserConstraint(t, t->current_orientation, (CON_AXIS0|CON_AXIS1), "locking %s Z");
 					}
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_CONS_OFF:
 				if ((t->flag & T_NO_CONSTRAINT)==0) {
 					stopConstraint(t);
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case TFM_MODAL_ADD_SNAP:
 				addSnapPoint(t);
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 				break;
 			case TFM_MODAL_REMOVE_SNAP:
 				removeSnapPoint(t);
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 				break;
 			default:
 				handled = 0;
 				break;
 		}
+
+		// Modal numinput events
+		t->redraw |= handleNumInput(&(t->num), event);
 	}
 	/* else do non-mapped events */
 	else if (event->val==KM_PRESS) {
@@ -713,7 +733,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			t->modifiers |= MOD_CONSTRAINT_PLANE;
-			t->redraw = 1;
+			t->redraw |= TREDRAW_HARD;
 			break;
 
 		case SPACEKEY:
@@ -761,7 +781,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 						postSelectConstraint(t);
 					}
 				}
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case ESCKEY:
@@ -778,7 +798,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				restoreTransObjects(t);
 				initTranslation(t);
 				initSnapping(t, NULL); // need to reinit after mode change
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case SKEY:
@@ -788,7 +808,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				restoreTransObjects(t);
 				initResize(t);
 				initSnapping(t, NULL); // need to reinit after mode change
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case RKEY:
@@ -806,7 +826,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					initRotation(t);
 				}
 				initSnapping(t, NULL); // need to reinit after mode change
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case CKEY:
@@ -818,7 +838,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			}
 			else {
 				stopConstraint(t);
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case XKEY:
@@ -847,7 +867,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1|CON_AXIS2), "locking %s X");
 					}
 				}
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case YKEY:
@@ -876,7 +896,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0|CON_AXIS2), "locking %s Y");
 					}
 				}
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case ZKEY:
@@ -897,14 +917,14 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					else if (t->modifiers & MOD_CONSTRAINT_PLANE)
 						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0|CON_AXIS1), "locking %s Z");
 				}
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case OKEY:
 			if (t->flag & T_PROP_EDIT && event->shift) {
 				t->prop_mode = (t->prop_mode + 1) % 6;
 				calculatePropRatio(t);
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 		case PADPLUSKEY:
@@ -975,7 +995,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				else
 				{
 					/* Otherwise, just redraw, NDof input was cancelled */
-					t->redraw = 1;
+					t->redraw |= TREDRAW_HARD;
 				}
 				break;
 			case NDOF_NOMOVE:
@@ -986,7 +1006,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				}
 				break;
 			case NDOF_REFRESH:
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 				break;
 			default:
 				handled = 0;
@@ -1003,14 +1023,14 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			t->modifiers &= ~MOD_CONSTRAINT_PLANE;
-			t->redraw = 1;
+			t->redraw |= TREDRAW_HARD;
 			break;
 
 		case MIDDLEMOUSE:
 			if ((t->flag & T_NO_CONSTRAINT)==0) {
 				t->modifiers &= ~MOD_CONSTRAINT_SELECT;
 				postSelectConstraint(t);
-				t->redraw = 1;
+				t->redraw |= TREDRAW_HARD;
 			}
 			break;
 //		case LEFTMOUSE:
@@ -1446,6 +1466,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		//calc_manipulator_stats(curarea);
 		initTransformOrientation(C, t);
 
+		t->draw_handle_apply = ED_region_draw_cb_activate(t->ar->type, drawTransformApply, t, REGION_DRAW_PRE_VIEW);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
 		//t->draw_handle_pixel = ED_region_draw_cb_activate(t->ar->type, drawTransformPixel, t, REGION_DRAW_POST_PIXEL);
 		t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), NULL, drawHelpline, t);
@@ -1617,16 +1638,18 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	return 1;
 }
 
-void transformApply(bContext *C, TransInfo *t)
+void transformApply(const bContext *C, TransInfo *t)
 {
-	if (t->redraw)
+	if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT)))
 	{
 		selectConstraint(t);
 		if (t->transform) {
 			t->transform(t, t->mval);  // calls recalcData()
 			viewRedrawForce(C, t);
 		}
-		t->redraw = 0;
+		t->redraw = TREDRAW_NOTHING;
+	} else if (t->redraw & TREDRAW_SOFT) {
+		viewRedrawForce(C, t);
 	}
 
 	/* If auto confirm is on, break after one pass */
@@ -1639,7 +1662,17 @@ void transformApply(bContext *C, TransInfo *t)
 	{
 		// TRANSFORM_FIX_ME
 		//do_screenhandlers(G.curscreen);
-		t->redraw = 1;
+		t->redraw |= TREDRAW_HARD;
+	}
+}
+
+void drawTransformApply(const struct bContext *C, struct ARegion *ar, void *arg)
+{
+	TransInfo *t = arg;
+
+	if (t->redraw & TREDRAW_SOFT) {
+		t->redraw |= TREDRAW_HARD;
+		transformApply(C, t);
 	}
 }
 
@@ -2048,6 +2081,8 @@ void initWarp(TransInfo *t)
 	t->snap[1] = 5.0f;
 	t->snap[2] = 1.0f;
 	
+	t->num.increment = 1.0f;
+
 	t->flag |= T_NO_CONSTRAINT;
 	
 	/* we need min/max in view space */
@@ -2204,6 +2239,8 @@ void initShear(TransInfo *t)
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	
+	t->num.increment = 0.1f;
+
 	t->flag |= T_NO_CONSTRAINT;
 }
 
@@ -2330,6 +2367,8 @@ void initResize(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
+
+	t->num.increment = t->snap[1];
 }
 
 static void headerResize(TransInfo *t, float vec[3], char *str) {
@@ -2581,6 +2620,8 @@ void initToSphere(TransInfo *t)
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	
+	t->num.increment = t->snap[1];
+
 	t->num.flag |= NUM_NULL_ONE | NUM_NO_NEGATIVE;
 	t->flag |= T_NO_CONSTRAINT;
 	
@@ -2672,11 +2713,12 @@ void initRotation(TransInfo *t)
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 	
+	t->num.increment = 1.0f;
+
 	if (t->flag & T_2D_EDIT)
 		t->flag |= T_NO_CONSTRAINT;
 
-	VECCOPY(t->axis, t->viewinv[2]);
-	mul_v3_fl(t->axis, -1.0f);
+	negate_v3_v3(t->axis, t->viewinv[2]);
 	normalize_v3(t->axis);
 }
 
@@ -2930,8 +2972,12 @@ int Rotation(TransInfo *t, short mval[2])
 	
 	snapGrid(t, &final);
 	
-	if (t->con.applyRot) {
+	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
 		t->con.applyRot(t, NULL, t->axis, &final);
+	} else {
+		/* reset axis if constraint is not set */
+		negate_v3_v3(t->axis, t->viewinv[2]);
+		normalize_v3(t->axis);
 	}
 	
 	applySnapping(t, &final);
@@ -2993,6 +3039,8 @@ void initTrackball(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
+
+	t->num.increment = 1.0f;
 
 	t->flag |= T_NO_CONSTRAINT;
 }
@@ -3111,6 +3159,8 @@ void initTranslation(TransInfo *t)
 		t->snap[0] = 0.0f;
 		t->snap[1] = t->snap[2] = 1.0f;
 	}
+
+	t->num.increment = t->snap[1];
 }
 
 static void headerTranslation(TransInfo *t, float vec[3], char *str) {
@@ -3301,6 +3351,8 @@ void initShrinkFatten(TransInfo *t)
 		t->snap[1] = 1.0f;
 		t->snap[2] = t->snap[1] * 0.1f;
 
+		t->num.increment = t->snap[1];
+
 		t->flag |= T_NO_CONSTRAINT;
 	}
 }
@@ -3375,6 +3427,8 @@ void initTilt(TransInfo *t)
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 
+	t->num.increment = t->snap[1];
+
 	t->flag |= T_NO_CONSTRAINT;
 }
 
@@ -3444,6 +3498,11 @@ void initCurveShrinkFatten(TransInfo *t)
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 
+	t->num.increment = t->snap[1];
+
+	t->flag |= T_NO_ZERO;
+	t->num.flag |= NUM_NO_ZERO;
+
 	t->flag |= T_NO_CONSTRAINT;
 }
 
@@ -3481,7 +3540,7 @@ int CurveShrinkFatten(TransInfo *t, short mval[2])
 		if(td->val) {
 			//*td->val= ratio;
 			*td->val= td->ival*ratio;
-			if (*td->val <= 0.0f) *td->val = 0.0001f;
+			if (*td->val <= 0.0f) *td->val = 0.001f;
 		}
 	}
 
@@ -3510,6 +3569,8 @@ void initPushPull(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = 1.0f;
 	t->snap[2] = t->snap[1] * 0.1f;
+
+	t->num.increment = t->snap[1];
 }
 
 
@@ -3597,6 +3658,8 @@ void initBevel(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
+
+	t->num.increment = t->snap[1];
 
 	/* DON'T KNOW WHY THIS IS NEEDED */
 	if (G.editBMesh->imval[0] == 0 && G.editBMesh->imval[1] == 0) {
@@ -3707,6 +3770,8 @@ void initBevelWeight(TransInfo *t)
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 
+	t->num.increment = t->snap[1];
+
 	t->flag |= T_NO_CONSTRAINT;
 }
 
@@ -3777,6 +3842,8 @@ void initCrease(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
+
+	t->num.increment = t->snap[1];
 
 	t->flag |= T_NO_CONSTRAINT;
 }
@@ -3852,6 +3919,8 @@ void initBoneSize(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
+
+	t->num.increment = t->snap[1];
 }
 
 static void headerBoneSize(TransInfo *t, float vec[3], char *str) {
@@ -3968,6 +4037,8 @@ void initBoneEnvelope(TransInfo *t)
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
 	
+	t->num.increment = t->snap[1];
+
 	t->flag |= T_NO_CONSTRAINT;
 }
 
@@ -4811,6 +4882,8 @@ void initEdgeSlide(TransInfo *t)
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 
+	t->num.increment = t->snap[1];
+
 	t->flag |= T_NO_CONSTRAINT;
 }
 
@@ -5000,6 +5073,8 @@ void initBoneRoll(TransInfo *t)
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 
+	t->num.increment = 1.0f;
+
 	t->flag |= T_NO_CONSTRAINT;
 }
 
@@ -5060,6 +5135,8 @@ void initBakeTime(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = 1.0f;
 	t->snap[2] = t->snap[1] * 0.1f;
+
+	t->num.increment = t->snap[1];
 }
 
 int BakeTime(TransInfo *t, short mval[2])
@@ -5277,6 +5354,8 @@ void initSeqSlide(TransInfo *t)
 	t->snap[0] = 0.0f;
 	t->snap[1] = floor(t->scene->r.frs_sec / t->scene->r.frs_sec_base);
 	t->snap[2] = 10.0f;
+
+	t->num.increment = t->snap[1];
 }
 
 static void headerSeqSlide(TransInfo *t, float val[2], char *str)
@@ -5356,37 +5435,37 @@ int SeqSlide(TransInfo *t, short mval[2])
 static short getAnimEdit_SnapMode(TransInfo *t)
 {
 	short autosnap= SACTSNAP_OFF;
-
-	/* currently, some of these are only for the action editor */
+	
 	if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-
+		
 		if (saction)
 			autosnap= saction->autosnap;
 	}
 	else if (t->spacetype == SPACE_IPO) {
 		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
-
+		
 		if (sipo)
 			autosnap= sipo->autosnap;
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
-
+		
 		if (snla)
 			autosnap= snla->autosnap;
 	}
 	else {
-		// TRANSFORM_FIX_ME This needs to use proper defines for t->modifiers
-//		// FIXME: this still toggles the modes...
-//		if (ctrl)
-//			autosnap= SACTSNAP_STEP;
-//		else if (shift)
-//			autosnap= SACTSNAP_FRAME;
-//		else if (alt)
-//			autosnap= SACTSNAP_MARKER;
-//		else
+		autosnap= SACTSNAP_OFF;
+	}
+	
+	/* toggle autosnap on/off 
+	 * 	- when toggling on, prefer nearest frame over 1.0 frame increments
+	 */
+	if (t->modifiers & MOD_SNAP_INVERT) {
+		if (autosnap)
 			autosnap= SACTSNAP_OFF;
+		else
+			autosnap= SACTSNAP_FRAME;
 	}
 
 	return autosnap;
@@ -5400,17 +5479,21 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 {
 	short drawtime;
 
-	/* currently, some of these are only for the action editor */
 	if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
-
+		
 		drawtime = (saction->flag & SACTION_DRAWTIME)? 1 : 0;
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		SpaceNla *snla= (SpaceNla *)t->sa->spacedata.first;
-
+		
 		drawtime = (snla->flag & SNLA_DRAWTIME)? 1 : 0;
 	}
+	else if (t->spacetype == SPACE_IPO) {
+		SpaceIpo *sipo= (SpaceIpo *)t->sa->spacedata.first;
+		
+		drawtime = (sipo->flag & SIPO_DRAWTIME)? 1 : 0;
+	}	
 	else {
 		drawtime = 0;
 	}
@@ -5488,6 +5571,8 @@ void initTimeTranslate(TransInfo *t)
 	/* initialise snap like for everything else */
 	t->snap[0] = 0.0f;
 	t->snap[1] = t->snap[2] = 1.0f;
+
+	t->num.increment = t->snap[1];
 }
 
 static void headerTimeTranslate(TransInfo *t, char *str)
@@ -5504,7 +5589,7 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 		const short doTime = getAnimEdit_DrawTime(t);
 		const double secf= FPS;
 		float val = t->values[0];
-
+		
 		/* apply snapping + frame->seconds conversions */
 		if (autosnap == SACTSNAP_STEP) {
 			if (doTime)
@@ -5516,8 +5601,11 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 			if (doTime)
 				val= val / secf;
 		}
-
-		sprintf(&tvec[0], "%.4f", val);
+		
+		if (autosnap == SACTSNAP_FRAME)
+			sprintf(&tvec[0], "%d.00 (%.4f)", (int)val, val);
+		else
+			sprintf(&tvec[0], "%.4f", val);
 	}
 
 	sprintf(str, "DeltaX: %s", &tvec[0]);
@@ -5631,6 +5719,8 @@ void initTimeSlide(TransInfo *t)
 	/* initialise snap like for everything else */
 	t->snap[0] = 0.0f;
 	t->snap[1] = t->snap[2] = 1.0f;
+
+	t->num.increment = t->snap[1];
 }
 
 static void headerTimeSlide(TransInfo *t, float sval, char *str)
@@ -5736,11 +5826,21 @@ int TimeSlide(TransInfo *t, short mval[2])
 
 void initTimeScale(TransInfo *t)
 {
+	int center[2];
+
 	t->mode = TFM_TIME_SCALE;
 	t->transform = TimeScale;
 
-	initMouseInputMode(t, &t->mouse, INPUT_NONE);
-	t->helpline = HLP_SPRING; /* set manually because we don't use a predefined input */
+	/* recalculate center2d to use CFRA and mouse Y, since that's
+	 * what is used in time scale */
+	t->center[0] = t->scene->r.cfra;
+	projectIntView(t, t->center, center);
+	center[1] = t->imval[1];
+
+	/* force a reinit with the center2d used here */
+	initMouseInput(t, &t->mouse, center, t->imval);
+
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING_FLIP);
 
 	t->flag |= T_NULL_ONE;
 	t->num.flag |= NUM_NULL_ONE;
@@ -5753,6 +5853,8 @@ void initTimeScale(TransInfo *t)
 	/* initialise snap like for everything else */
 	t->snap[0] = 0.0f;
 	t->snap[1] = t->snap[2] = 1.0f;
+
+	t->num.increment = t->snap[1];
 }
 
 static void headerTimeScale(TransInfo *t, char *str) {
@@ -5808,19 +5910,8 @@ static void applyTimeScale(TransInfo *t) {
 
 int TimeScale(TransInfo *t, short mval[2])
 {
-	float cval, sval;
-	float deltax, startx;
-	float width= 0.0f;
 	char str[200];
-
-	sval= t->imval[0];
-	cval= mval[0];
-
-	/* calculate scaling factor */
-	startx= sval-(width/2+(t->ar->winx)/2);
-	deltax= cval-(width/2+(t->ar->winx)/2);
-	t->values[0] = deltax / startx;
-
+	
 	/* handle numeric-input stuff */
 	t->vec[0] = t->values[0];
 	applyNumInput(&t->num, &t->vec[0]);

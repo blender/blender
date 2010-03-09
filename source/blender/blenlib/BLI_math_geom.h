@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -143,6 +143,9 @@ void perspective_m4(float mat[4][4], float left, float right,
 	float bottom, float top, float nearClip, float farClip);
 void orthographic_m4(float mat[4][4], float left, float right,
 	float bottom, float top, float nearClip, float farClip);
+
+int box_clip_bounds_m4(float boundbox[2][3],
+	float bounds[4], float winmat[4][4]);
 
 /********************************** Mapping **********************************/
 

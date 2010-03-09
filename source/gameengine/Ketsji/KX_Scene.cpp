@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -33,6 +33,7 @@
 #endif //WIN32
 
 #include "KX_Scene.h"
+#include "KX_PythonInit.h"
 #include "MT_assert.h"
 #include "KX_KetsjiEngine.h"
 #include "KX_BlenderMaterial.h"
@@ -1753,6 +1754,13 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 				phys_ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 		}
 	}
+
+	/* Add the object to the scene's logic manager */
+	to->GetLogicManager()->RegisterGameObjectName(gameobj->GetName(), gameobj);
+	to->GetLogicManager()->RegisterGameObj(gameobj->GetBlenderObject(), gameobj);
+
+	for (int i=0; i<gameobj->GetMeshCount(); ++i)
+		to->GetLogicManager()->RegisterGameMeshName(gameobj->GetMesh(i)->GetName(), gameobj->GetBlenderObject());
 }
 
 bool KX_Scene::MergeScene(KX_Scene *other)
@@ -1822,7 +1830,7 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 		//SCA_EventManager *evtmgr;
 		SCA_EventManager *evtmgr_other;
 
-		for(int i= 0; i < evtmgrs.size(); i++) {
+		for(unsigned int i= 0; i < evtmgrs.size(); i++) {
 			evtmgr_other= logicmgr_other->FindEventManager(evtmgrs[i]->GetType());
 
 			if(evtmgr_other) /* unlikely but possible one scene has a joystick and not the other */
@@ -1832,6 +1840,16 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 		}
 	}
 	return true;
+}
+
+void KX_Scene::Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
+{
+	m_filtermanager.EnableFilter(propNames, gameObj, filtermode, pass, text);
+}
+
+void KX_Scene::Render2DFilters(RAS_ICanvas* canvas)
+{
+	m_filtermanager.RenderFilters(canvas);
 }
 
 //----------------------------------------------------------------------------
@@ -1864,6 +1882,9 @@ PyTypeObject KX_Scene::Type = {
 
 PyMethodDef KX_Scene::Methods[] = {
 	KX_PYMETHODTABLE(KX_Scene, addObject),
+	KX_PYMETHODTABLE(KX_Scene, end),
+	KX_PYMETHODTABLE(KX_Scene, restart),
+	KX_PYMETHODTABLE(KX_Scene, replace),
 	
 	/* dict style access */
 	KX_PYMETHODTABLE(KX_Scene, get),
@@ -2098,7 +2119,8 @@ int KX_Scene::pyattr_set_drawing_callback_post(void *self_v, const KX_PYATTRIBUT
 PyAttributeDef KX_Scene::Attributes[] = {
 	KX_PYATTRIBUTE_RO_FUNCTION("name",				KX_Scene, pyattr_get_name),
 	KX_PYATTRIBUTE_RO_FUNCTION("objects",			KX_Scene, pyattr_get_objects),
-	KX_PYATTRIBUTE_RO_FUNCTION("objectsInactive",	KX_Scene, pyattr_get_objects_inactive),	KX_PYATTRIBUTE_RO_FUNCTION("lights",			KX_Scene, pyattr_get_lights),
+	KX_PYATTRIBUTE_RO_FUNCTION("objectsInactive",	KX_Scene, pyattr_get_objects_inactive),
+	KX_PYATTRIBUTE_RO_FUNCTION("lights",			KX_Scene, pyattr_get_lights),
 	KX_PYATTRIBUTE_RO_FUNCTION("cameras",			KX_Scene, pyattr_get_cameras),
 	KX_PYATTRIBUTE_RO_FUNCTION("lights",			KX_Scene, pyattr_get_lights),
 	KX_PYATTRIBUTE_RW_FUNCTION("active_camera",		KX_Scene, pyattr_get_active_camera, pyattr_set_active_camera),
@@ -2134,6 +2156,39 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 	// the object is added to the scene so we dont want python to own a reference
 	replica->Release();
 	return replica->GetProxy();
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, end,
+"end()\n"
+"Removes this scene from the game.\n")
+{
+	
+	KX_GetActiveEngine()->RemoveScene(m_sceneName);
+	
+	Py_RETURN_NONE;
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, restart,
+				   "restart()\n"
+				   "Restarts this scene.\n")
+{
+	KX_GetActiveEngine()->ReplaceScene(m_sceneName, m_sceneName);
+	
+	Py_RETURN_NONE;
+}
+
+KX_PYMETHODDEF_DOC(KX_Scene, replace,
+				   "replace(newScene)\n"
+				   "Replaces this scene with another one.\n")
+{
+	char* name;
+	
+	if (!PyArg_ParseTuple(args, "s:replace", &name))
+		return NULL;
+	
+	KX_GetActiveEngine()->ReplaceScene(m_sceneName, name);
+	
+	Py_RETURN_NONE;
 }
 
 /* Matches python dict.get(key, [default]) */

@@ -53,8 +53,11 @@ public:
 	/// release contained objects, if returns true, object should be deleted
 	virtual bool release (void);
 
+	/// is an image available
+	bool isImageAvailable(void)
+	{ return m_avail; }
 	/// get image
-	unsigned int * getImage (unsigned int texId = 0);
+	unsigned int * getImage (unsigned int texId = 0, double timestamp=-1.0);
 	/// get image size
 	short * getSize (void) { return m_size; }
 	/// get image buffer size
@@ -84,6 +87,9 @@ public:
 
 	/// calculate size (nearest power of 2)
 	static short calcSize (short size);
+
+	/// number of buffer pointing to m_image, public because not handled by this class
+	int m_exports;
 
 protected:
 	/// image buffer
@@ -123,7 +129,7 @@ protected:
 	bool checkSourceSizes (void);
 
 	/// calculate image from sources and set its availability
-	virtual void calcImage (unsigned int texId) {}
+	virtual void calcImage (unsigned int texId, double ts) {}
 
 	/// perform loop detection
 	bool loopDetect (ImageBase * img);
@@ -269,7 +275,7 @@ public:
 	void setSource (PyImage * source);
 
 	/// get image from source
-	unsigned int * getImage (void);
+	unsigned int * getImage (double ts=-1.0);
 	/// get buffered image
 	unsigned int * getImageBuf (void) { return m_image; }
 	/// refresh source
@@ -295,8 +301,6 @@ private:
 	ImageSource (void) {}
 };
 
-
-
 // list of python image types
 extern PyTypeList pyImageTypes;
 
@@ -320,7 +324,7 @@ PyObject * Image_allocNew (PyTypeObject * type, PyObject * args, PyObject * kwds
 void Image_dealloc (PyImage * self);
 
 // get image data
-PyObject * Image_getImage (PyImage * self, void * closure);
+PyObject * Image_getImage (PyImage * self, char * mode);
 // get image size
 PyObject * Image_getSize (PyImage * self, void * closure);
 // refresh image - invalidate current content
@@ -344,6 +348,9 @@ PyObject * Image_setSource (PyImage * self, PyObject * args);
 PyObject * Image_getFilter (PyImage * self, void * closure);
 // set pixel filter object
 int Image_setFilter (PyImage * self, PyObject * value, void * closure);
-
+// check if a buffer can be extracted
+PyObject * Image_valid(PyImage * self, void * closure);
+// for buffer access to PyImage objects
+extern PyBufferProcs imageBufferProcs;
 
 #endif

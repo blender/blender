@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -83,7 +83,7 @@ def get(handler):
 
     def endTable():
         output("</table>")
-        
+
     def checkbox(title, value, script=""):
         return """<input type="checkbox" title="%s" %s %s>""" % (title, "checked" if value else "", ("onclick=\"%s\"" % script) if script else "")
 
@@ -114,29 +114,29 @@ def get(handler):
         headerTable("type", "enabled", "description", "limit")
 
         for rule in handler.server.balancer.rules:
-            rowTable(   
+            rowTable(
                         "rating",
                         checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
                         rule,
-                        rule.str_limit() + 
+                        rule.str_limit() +
                         """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
                     )
 
         for rule in handler.server.balancer.priorities:
-            rowTable(   
+            rowTable(
                         "priority",
                         checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
                         rule,
-                        rule.str_limit() + 
+                        rule.str_limit() +
                         """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
                     )
 
         for rule in handler.server.balancer.exceptions:
-            rowTable(   
+            rowTable(
                         "exception",
                         checkbox("", rule.enabled, "balance_enable('%i', '%s')" % (id(rule), str(not rule.enabled))),
                         rule,
-                        rule.str_limit() + 
+                        rule.str_limit() +
                         """<button title="edit limit" onclick="balance_edit('%i', '%s');">edit</button>""" % (id(rule), str(rule.limit)) if hasattr(rule, "limit") else "&nbsp;"
                     )
 
@@ -215,6 +215,17 @@ def get(handler):
         job = handler.server.getJobID(job_id)
 
         if job:
+            output("<h2>Render Information</h2>")
+
+            job.initInfo()
+
+            startTable()
+
+            rowTable("resolution", "%ix%i at %i%%" % job.resolution)
+
+            endTable()
+
+
             output("<h2>Files</h2>")
 
             startTable()

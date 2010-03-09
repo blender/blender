@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -31,6 +31,7 @@
 #include <math.h>
 #include <float.h>
 
+#include "DNA_anim_types.h"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -70,6 +71,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_keyframing.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -104,9 +106,9 @@ void view3d_operator_needs_opengl(const bContext *C)
 		
 		wmSubWindowSet(CTX_wm_window(C), ar->swinid);
 		glMatrixMode(GL_PROJECTION);
-		wmLoadMatrix(rv3d->winmat);
+		glLoadMatrixf(rv3d->winmat);
 		glMatrixMode(GL_MODELVIEW);
-		wmLoadMatrix(rv3d->viewmat);
+		glLoadMatrixf(rv3d->viewmat);
 	}
 }
 
@@ -159,11 +161,9 @@ static void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *di
 	if (!ob) return;
 	
 	/* Offset */
-	if (ofs) {
-		VECCOPY(ofs, ob->obmat[3]);
-		mul_v3_fl(ofs, -1.0f); /*flip the vector*/
-	}
-	
+	if (ofs)
+		negate_v3_v3(ofs, ob->obmat[3]);
+
 	/* Quat */
 	if (quat) {
 		copy_m4_m4(bmat, ob->obmat);
@@ -282,9 +282,12 @@ void smooth_view(bContext *C, Object *oldcamera, Object *camera, float *ofs, flo
 				sms.orig_lens= v3d->lens;
 			}
 			/* grid draw as floor */
-			sms.orig_view= rv3d->view;
-			rv3d->view= 0;
-			
+			if((rv3d->viewlock & RV3D_LOCKED)==0) {
+				/* use existing if exists, means multiple calls to smooth view wont loose the original 'view' setting */
+				sms.orig_view= rv3d->sms ? rv3d->sms->orig_view : rv3d->view;
+				rv3d->view= 0;
+			}
+
 			/* ensure it shows correct */
 			if(sms.to_camera) rv3d->persp= RV3D_PERSP;
 
@@ -344,8 +347,11 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			rv3d->dist = sms->new_dist;
 			v3d->lens = sms->new_lens;
 		}
-		rv3d->view= sms->orig_view;
 		
+		if((rv3d->viewlock & RV3D_LOCKED)==0) {
+			rv3d->view= sms->orig_view;
+		}
+
 		MEM_freeN(rv3d->sms);
 		rv3d->sms= NULL;
 		
@@ -396,13 +402,9 @@ static void setcameratoview3d(View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	float dvec[3];
 	float mat3[3][3];
-	
-	dvec[0]= rv3d->dist*rv3d->viewinv[2][0];
-	dvec[1]= rv3d->dist*rv3d->viewinv[2][1];
-	dvec[2]= rv3d->dist*rv3d->viewinv[2][2];
-	
-	VECCOPY(ob->loc, dvec);
-	sub_v3_v3v3(ob->loc, ob->loc, rv3d->ofs);
+
+	mul_v3_v3fl(dvec, rv3d->viewinv[2], rv3d->dist);
+	sub_v3_v3v3(ob->loc, dvec, rv3d->ofs);
 	rv3d->viewquat[0]= -rv3d->viewquat[0];
 
 	// quat_to_eul( ob->rot,rv3d->viewquat); // in 2.4x for xyz eulers only
@@ -423,7 +425,7 @@ static int view3d_setcameratoview_exec(bContext *C, wmOperator *op)
 	setcameratoview3d(v3d, rv3d, v3d->camera);
 	rv3d->persp = RV3D_CAMOB;
 	
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, v3d->camera);
 	
 	return OPERATOR_FINISHED;
 
@@ -444,7 +446,7 @@ void VIEW3D_OT_setcameratoview(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Align Camera To View";
-	ot->description= "Set camera view to active view.";
+	ot->description= "Set camera view to active view";
 	ot->idname= "VIEW3D_OT_camera_to_view";
 	
 	/* api callbacks */
@@ -480,7 +482,7 @@ void VIEW3D_OT_setobjectascamera(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Set Active Object as Camera";
-	ot->description= "Set the active object as the active camera for this view or scene.";
+	ot->description= "Set the active object as the active camera for this view or scene";
 	ot->idname= "VIEW3D_OT_object_as_camera";
 	
 	/* api callbacks */
@@ -594,9 +596,7 @@ void viewvector(RegionView3D *rv3d, float coord[3], float vec[3])
 		p2[3] = 1.0f;
 		mul_m4_v4(rv3d->viewmat, p2);
 
-		p2[0] = 2.0f * p2[0];
-		p2[1] = 2.0f * p2[1];
-		p2[2] = 2.0f * p2[2];
+		mul_v3_fl(p2, 2.0f);
 
 		mul_m4_v4(rv3d->viewinv, p2);
 
@@ -1068,12 +1068,9 @@ void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect)		/* rect: for pick
 		else wmFrustum(x1, x2, y1, y2, clipsta, clipend);
 	}
 
-	/* not sure what this was for? (ton) */
-	glMatrixMode(GL_PROJECTION);
-	wmGetMatrix(rv3d->winmat);
-	glMatrixMode(GL_MODELVIEW);
+	/* update matrix in 3d view region */
+	glGetFloatv(GL_PROJECTION_MATRIX, (float*)rv3d->winmat);
 }
-
 
 static void obmat_to_viewmat(View3D *v3d, RegionView3D *rv3d, Object *ob, short smooth)
 {
@@ -1149,6 +1146,25 @@ static void view3d_viewlock(RegionView3D *rv3d)
 	}
 }
 
+/* give a 4x4 matrix from a perspective view, only needs viewquat, ofs and dist
+ * basically the same as...
+ *     rv3d->persp= RV3D_PERSP
+ *     setviewmatrixview3d(scene, v3d, rv3d);
+ *     setcameratoview3d(v3d, rv3d, v3d->camera);
+ * ...but less of a hassle
+ * */
+static void view3d_persp_mat4(RegionView3D *rv3d, float mat[][4])
+{
+	float qt[4], dvec[3];
+	copy_qt_qt(qt, rv3d->viewquat);
+	qt[0]= -qt[0];
+	quat_to_mat4(mat, qt);
+	mat[3][2] -= rv3d->dist;
+	translate_m4(mat, rv3d->ofs[0], rv3d->ofs[1], rv3d->ofs[2]);
+	mul_v3_v3fl(dvec, mat[2], -rv3d->dist);
+	sub_v3_v3v3(mat[3], dvec, rv3d->ofs);
+}
+
 /* dont set windows active in in here, is used by renderwin too */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 {
@@ -1199,6 +1215,7 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 	ARegion *ar= vc->ar;
 	rctf rect;
 	short code, hits;
+	char dt, dtx;
 	
 	G.f |= G_PICKSEL;
 	
@@ -1269,8 +1286,16 @@ short view3d_opengl_select(ViewContext *vc, unsigned int *buffer, unsigned int b
 							tbase.object= dob->ob;
 							copy_m4_m4(dob->ob->obmat, dob->mat);
 							
+							/* extra service: draw the duplicator in drawtype of parent */
+							/* MIN2 for the drawtype to allow bounding box objects in groups for lods */
+							dt= tbase.object->dt;	tbase.object->dt= MIN2(tbase.object->dt, base->object->dt);
+							dtx= tbase.object->dtx; tbase.object->dtx= base->object->dtx;
+
 							draw_object(scene, ar, v3d, &tbase, DRAW_PICKING|DRAW_CONSTCOLOR);
 							
+							tbase.object->dt= dt;
+							tbase.object->dtx= dtx;
+
 							copy_m4_m4(dob->ob->obmat, dob->omat);
 						}
 						free_object_duplilist(lb);
@@ -1596,7 +1621,7 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Local View";
-	ot->description= "Toggle display of selected object(s) separately and centered in view.";
+	ot->description= "Toggle display of selected object(s) separately and centered in view";
 	ot->idname= "VIEW3D_OT_localview";
 	
 	/* api callbacks */
@@ -1676,8 +1701,8 @@ void game_set_commmandline_options(GameData *gm)
 		test= (gm->flag & GAME_ENABLE_ALL_FRAMES);
 		SYS_WriteCommandLineInt(syshandle, "fixedtime", test);
 
-//		a= (G.fileflags & G_FILE_GAME_TO_IPO);
-//		SYS_WriteCommandLineInt(syshandle, "game2ipo", a);
+		test= (gm->flag & GAME_ENABLE_ANIMATION_RECORD);
+		SYS_WriteCommandLineInt(syshandle, "animation_record", test);
 
 		test= (gm->flag & GAME_IGNORE_DEPRECATION_WARNINGS);
 		SYS_WriteCommandLineInt(syshandle, "ignore_deprecation_warnings", test);
@@ -1733,7 +1758,7 @@ int ED_view3d_context_activate(bContext *C)
 	return 1;
 }
 
-static int game_engine_exec(bContext *C, wmOperator *unused)
+static int game_engine_exec(bContext *C, wmOperator *op)
 {
 #if GAMEBLENDER == 1
 	Scene *startscene = CTX_data_scene(C);
@@ -1787,11 +1812,13 @@ static int game_engine_exec(bContext *C, wmOperator *unused)
 	set_scene_bg(startscene);
 	//XXX scene_update_for_newframe(G.scene, G.scene->lay);
 	
-#else
-	printf("GameEngine Disabled\n");
-#endif
 	ED_area_tag_redraw(CTX_wm_area(C));
+
 	return OPERATOR_FINISHED;
+#else
+	BKE_report(op->reports, RPT_ERROR, "Game engine is disabled in this build.");
+	return OPERATOR_CANCELLED;
+#endif
 }
 
 void VIEW3D_OT_game_start(wmOperatorType *ot)
@@ -1799,7 +1826,7 @@ void VIEW3D_OT_game_start(wmOperatorType *ot)
 	
 	/* identifiers */
 	ot->name= "Start Game Engine";
-	ot->description= "Start game engine.";
+	ot->description= "Start game engine";
 	ot->idname= "VIEW3D_OT_game_start";
 	
 	/* api callbacks */
@@ -1924,11 +1951,16 @@ typedef struct FlyInfo {
 	float xlock_momentum, zlock_momentum; /* nicer dynamics */
 	float grid; /* world scale 1.0 default */
 
+	/* root most parent */
+	Object *root_parent;
+
 	/* backup values */
 	float dist_backup; /* backup the views distance since we use a zero dist for fly mode */
 	float ofs_backup[3]; /* backup the views offset incase the user cancels flying in non camera mode */
 	float rot_backup[4]; /* backup the views quat incase the user cancels flying in non camera mode. (quat for view, eul for camera) */
 	short persp_backup; /* remember if were ortho or not, only used for restoring the view if it was a ortho view */
+
+	void *obtfm; /* backup the objects transform */
 
 	/* compare between last state */
 	double time_lastwheel; /* used to accelerate when using the mousewheel a lot */
@@ -1984,12 +2016,6 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 
 	fly->timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
 
-
-	/* we have to rely on events to give proper mousecoords after a warp_pointer */
-//XXX2.5	warp_pointer(cent_orig[0], cent_orig[1]);
-	//fly->mval[0]= (fly->sa->winx)/2;
-	//fly->mval[1]= (fly->sa->winy)/2;
-
 	fly->mval[0] = event->x - fly->ar->winrct.xmin;
 	fly->mval[1] = event->y - fly->ar->winrct.ymin;
 
@@ -2009,20 +2035,25 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 	fly->persp_backup= fly->rv3d->persp;
 	fly->dist_backup= fly->rv3d->dist;
 	if (fly->rv3d->persp==RV3D_CAMOB) {
-		/* store the origoinal camera loc and rot */
-		VECCOPY(fly->ofs_backup, fly->v3d->camera->loc);
-		VECCOPY(fly->rot_backup, fly->v3d->camera->rot);
+		Object *ob_back;
+		if((fly->root_parent=fly->v3d->camera->parent)) {
+			while(fly->root_parent->parent)
+				fly->root_parent= fly->root_parent->parent;
+			ob_back= fly->root_parent;
+		}
+		else {
+			ob_back= fly->v3d->camera;
+		}
+
+		/* store the original camera loc and rot */
+		/* TODO. axis angle etc */
+
+		fly->obtfm= object_tfm_backup(ob_back);
 
 		where_is_object(fly->scene, fly->v3d->camera);
-		VECCOPY(fly->rv3d->ofs, fly->v3d->camera->obmat[3]);
-		mul_v3_fl(fly->rv3d->ofs, -1.0f); /*flip the vector*/
+		negate_v3_v3(fly->rv3d->ofs, fly->v3d->camera->obmat[3]);
 
 		fly->rv3d->dist=0.0;
-
-		/* used for recording */
-//XXX2.5		if(v3d->camera->ipoflag & OB_ACTION_OB)
-//XXX2.5			actname= "Object";
-
 	} else {
 		/* perspective or ortho */
 		if (fly->rv3d->persp==RV3D_ORTHO)
@@ -2037,6 +2068,10 @@ static int initFlyInfo (bContext *C, FlyInfo *fly, wmOperator *op, wmEvent *even
 		/*Done with correcting for the dist*/
 	}
 
+	
+	/* center the mouse, probably the UI mafia are against this but without its quite annoying */
+	WM_cursor_warp(CTX_wm_window(C), fly->ar->winrct.xmin + fly->ar->winx/2, fly->ar->winrct.ymin + fly->ar->winy/2);
+	
 	return 1;
 }
 
@@ -2057,10 +2092,14 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	if (fly->state == FLY_CANCEL) {
 	/* Revert to original view? */
 		if (fly->persp_backup==RV3D_CAMOB) { /* a camera view */
+			Object *ob_back;
+			if(fly->root_parent)ob_back= fly->root_parent;
+			else				ob_back= fly->v3d->camera;
 
-			VECCOPY(v3d->camera->loc, fly->ofs_backup);
-			VECCOPY(v3d->camera->rot, fly->rot_backup);
-			DAG_id_flush_update(&v3d->camera->id, OB_RECALC_OB);
+			/* store the original camera loc and rot */
+			object_tfm_restore(ob_back, fly->obtfm);
+
+			DAG_id_flush_update(&ob_back->id, OB_RECALC_OB);
 		} else {
 			/* Non Camera we need to reset the view back to the original location bacause the user canceled*/
 			QUATCOPY(rv3d->viewquat, fly->rot_backup);
@@ -2070,10 +2109,15 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	}
 	else if (fly->persp_backup==RV3D_CAMOB) {	/* camera */
 		float mat3[3][3];
-		copy_m3_m4(mat3, v3d->camera->obmat);
-		object_mat3_to_rot(v3d->camera, mat3, TRUE);
+		if(fly->root_parent) {
+			DAG_id_flush_update(&fly->root_parent->id, OB_RECALC_OB);
+		}
+		else {
+			copy_m3_m4(mat3, v3d->camera->obmat);
+			object_mat3_to_rot(v3d->camera, mat3, TRUE);
+			DAG_id_flush_update(&v3d->camera->id, OB_RECALC_OB);
+		}
 
-		DAG_id_flush_update(&v3d->camera->id, OB_RECALC_OB);
 #if 0 //XXX2.5
 		if (IS_AUTOKEY_MODE(NORMAL)) {
 			allqueue(REDRAWIPO, 0);
@@ -2098,6 +2142,8 @@ static int flyEnd(bContext *C, FlyInfo *fly)
 	rv3d->rflag &= ~(RV3D_FLYMODE|RV3D_NAVIGATING);
 //XXX2.5	BIF_view3d_previewrender_signal(fly->sa, PR_DBASE|PR_DISPRECT); /* not working at the moment not sure why */
 
+	if(fly->obtfm)
+		MEM_freeN(fly->obtfm);
 
 	if(fly->state == FLY_CONFIRM) {
 		MEM_freeN(fly);
@@ -2230,7 +2276,6 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 	}
 }
 
-//int fly_exec(bContext *C, wmOperator *op)
 static int flyApply(FlyInfo *fly)
 {
 	/*
@@ -2241,6 +2286,8 @@ static int flyApply(FlyInfo *fly)
 	View3D *v3d = fly->v3d;
 	ARegion *ar = fly->ar;
 	Scene *scene= fly->scene;
+
+	float prev_view_mat[4][4];
 
 	float mat[3][3], /* 3x3 copy of the view matrix so we can move allong the view axis */
 	dvec[3]={0,0,0}, /* this is the direction thast added to the view offset per redraw */
@@ -2257,12 +2304,9 @@ static int flyApply(FlyInfo *fly)
 	unsigned char
 	apply_rotation= 1; /* if the user presses shift they can look about without movinf the direction there looking*/
 
-	/* for recording */
-#if 0 //XXX2.5 todo, get animation recording working again.
-	int playing_anim = 0; //XXX has_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
-	int cfra = -1; /*so the first frame always has a key added */
-	char *actname="";
-#endif
+	if(fly->root_parent)
+		view3d_persp_mat4(rv3d, prev_view_mat);
+
 	/* the dist defines a vector that is infront of the offset
 	to rotate the view about.
 	this is no good for fly mode because we
@@ -2455,54 +2499,89 @@ static int flyApply(FlyInfo *fly)
 			interp_v3_v3v3(dvec, dvec_tmp, fly->dvec_prev, (1.0f/(1.0f+(time_redraw*5.0f))));
 
 			if (rv3d->persp==RV3D_CAMOB) {
-				if (v3d->camera->protectflag & OB_LOCK_LOCX)
-					dvec[0] = 0.0;
-				if (v3d->camera->protectflag & OB_LOCK_LOCY)
-					dvec[1] = 0.0;
-				if (v3d->camera->protectflag & OB_LOCK_LOCZ)
-					dvec[2] = 0.0;
+				Object *lock_ob= fly->root_parent ? fly->root_parent : fly->v3d->camera;
+				if (lock_ob->protectflag & OB_LOCK_LOCX) dvec[0] = 0.0;
+				if (lock_ob->protectflag & OB_LOCK_LOCY) dvec[1] = 0.0;
+				if (lock_ob->protectflag & OB_LOCK_LOCZ) dvec[2] = 0.0;
 			}
 
 			add_v3_v3v3(rv3d->ofs, rv3d->ofs, dvec);
-#if 0 //XXX2.5
-			if (fly->zlock && fly->xlock)
-				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X  on/Z on,   Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
-			else if (fly->zlock)
-				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X off/Z on,   Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
-			else if (fly->xlock)
-				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X  on/Z off,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
-			else
-				headerprint("FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X off/Z off,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
-#endif
 
-//XXX2.5			do_screenhandlers(G.curscreen); /* advance the next frame */
+			/* todo, dynamic keys */
+#if 0
+			if (fly->zlock && fly->xlock)
+				ED_area_headerprint(fly->ar, "FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X  on/Z on,   Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
+			else if (fly->zlock)
+				ED_area_headerprint(fly->ar, "FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X off/Z on,   Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
+			else if (fly->xlock)
+				ED_area_headerprint(fly->ar, "FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X  on/Z off,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
+			else
+				ED_area_headerprint(fly->ar, "FlyKeys  Speed:(+/- | Wheel),  Upright Axis:X off/Z off,  Slow:Shift,  Direction:WASDRF,  Ok:LMB,  Pan:MMB,  Cancel:RMB");
+#endif
 
 			/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to the view */
 			if (rv3d->persp==RV3D_CAMOB) {
-				rv3d->persp= RV3D_PERSP; /*set this so setviewmatrixview3d uses the ofs and quat instead of the camera */
-				setviewmatrixview3d(scene, v3d, rv3d);
-				setcameratoview3d(v3d, rv3d, v3d->camera);
-				rv3d->persp= RV3D_CAMOB;
-#if 0 //XXX2.5
-				/* record the motion */
-				if (IS_AUTOKEY_MODE(NORMAL) && (!playing_anim || cfra != G.scene->r.cfra)) {
-					cfra = G.scene->r.cfra;
+				ID *id_key;
+				/* transform the parent or the camera? */
+				if(fly->root_parent) {
+                    Object *ob_update;
+                    
+					float view_mat[4][4];
+					float prev_view_imat[4][4];
+					float diff_mat[4][4];
+					float parent_mat[4][4];
 
+					invert_m4_m4(prev_view_imat, prev_view_mat);
+					view3d_persp_mat4(rv3d, view_mat);
+					mul_m4_m4m4(diff_mat, prev_view_imat, view_mat);
+					mul_m4_m4m4(parent_mat, fly->root_parent->obmat, diff_mat);
+					object_apply_mat4(fly->root_parent, parent_mat);
+
+					// where_is_object(scene, fly->root_parent);
+
+					ob_update= v3d->camera->parent;
+					while(ob_update) {
+						DAG_id_flush_update(&ob_update->id, OB_RECALC_OB);
+						ob_update= ob_update->parent;
+					}
+
+					copy_m4_m4(prev_view_mat, view_mat);
+
+					id_key= &fly->root_parent->id;
+
+				}
+				else {
+					float view_mat[4][4];
+					view3d_persp_mat4(rv3d, view_mat);
+					object_apply_mat4(v3d->camera, view_mat);
+					id_key= &v3d->camera->id;
+				}
+
+				/* record the motion */
+				if (autokeyframe_cfra_can_key(scene, id_key)) {
+					bCommonKeySrc cks;
+					ListBase dsources = {&cks, &cks};
+					int cfra = CFRA;
+					
+					/* init common-key-source for use by KeyingSets */
+					memset(&cks, 0, sizeof(bCommonKeySrc));
+					cks.id= id_key;
+					
+					/* insert keyframes 
+					 *	1) on the first frame
+					 *	2) on each subsequent frame
+					 *		TODO: need to check in future that frame changed before doing this 
+					 */
 					if (fly->xlock || fly->zlock || moffset[0] || moffset[1]) {
-						insertkey(&v3d->camera->id, ID_OB, actname, NULL, OB_ROT_X, 0);
-						insertkey(&v3d->camera->id, ID_OB, actname, NULL, OB_ROT_Y, 0);
-						insertkey(&v3d->camera->id, ID_OB, actname, NULL, OB_ROT_Z, 0);
+						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
+						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 					if (fly->speed) {
-						insertkey(&v3d->camera->id, ID_OB, actname, NULL, OB_LOC_X, 0);
-						insertkey(&v3d->camera->id, ID_OB, actname, NULL, OB_LOC_Y, 0);
-						insertkey(&v3d->camera->id, ID_OB, actname, NULL, OB_LOC_Z, 0);
+						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
+						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 				}
-#endif
 			}
-//XXX2.5			scrarea_do_windraw(curarea);
-//XXX2.5			screen_swapbuffers();
 		} else
 			/*were not redrawing but we need to update the time else the view will jump */
 			fly->time_lastdraw= PIL_check_seconds_timer();
@@ -2565,7 +2644,7 @@ static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 	if(event->type==TIMER && event->customdata == fly->timer)
 		flyApply(fly);
 
-	if(fly->redraw) {;
+	if(fly->redraw) {
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 
@@ -2582,7 +2661,7 @@ void VIEW3D_OT_fly(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Fly Navigation";
-	ot->description= "Interactively fly around the scene.";
+	ot->description= "Interactively fly around the scene";
 	ot->idname= "VIEW3D_OT_fly";
 
 	/* api callbacks */
@@ -2605,10 +2684,9 @@ void view3d_align_axis_to_vector(View3D *v3d, RegionView3D *rv3d, int axisidx, f
 	
 	if(axisidx > 0) alignaxis[axisidx-1]= 1.0;
 	else alignaxis[-axisidx-1]= -1.0;
-	
-	VECCOPY(norm, vec);
-	normalize_v3(norm);
-	
+
+	normalize_v3_v3(norm, vec);
+
 	angle= (float)acos(dot_v3v3(alignaxis, norm));
 	cross_v3_v3v3(axis, alignaxis, norm);
 	axis_angle_to_quat( new_quat,axis, -angle);

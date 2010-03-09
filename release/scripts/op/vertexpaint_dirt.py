@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
@@ -148,8 +148,7 @@ class VertexPaintDirt(bpy.types.Operator):
 
     bl_idname = "mesh.vertex_paint_dirt"
     bl_label = "Dirty Vertex Colors"
-    bl_register = True
-    bl_undo = True
+    bl_options = {'REGISTER', 'UNDO'}
 
     blur_strength = FloatProperty(name="Blur Strength", description="Blur strength per iteration", default=1.0, min=0.01, max=1.0)
     blur_iterations = IntProperty(name="Blur Iterations", description="Number times to blur the colors. (higher blurs more)", default=1, min=0, max=40)
@@ -161,7 +160,7 @@ class VertexPaintDirt(bpy.types.Operator):
         obj = context.object
 
         if not obj or obj.type != 'MESH':
-            print('Error, no active mesh object, aborting.')
+            print('Error, no active mesh object, aborting')
             return('CANCELLED',)
 
         mesh = obj.data
@@ -174,7 +173,13 @@ class VertexPaintDirt(bpy.types.Operator):
 
         return('FINISHED',)
 
-bpy.types.register(VertexPaintDirt)
+
+def register():
+    bpy.types.register(VertexPaintDirt)
+
+
+def unregister():
+    bpy.types.unregister(VertexPaintDirt)
 
 if __name__ == "__main__":
-    bpy.ops.mesh.vertex_paint_dirt()
+    register()

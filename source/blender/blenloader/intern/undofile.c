@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2004 Blender Foundation
  * All rights reserved.
@@ -67,7 +67,7 @@ void BLO_free_memfile(MemFile *memfile)
 	memfile->size= 0;
 }
 
-/* to keep list of memfiles consistant, 'first' is always first in list */
+/* to keep list of memfiles consistent, 'first' is always first in list */
 /* result is that 'first' is being freed */
 void BLO_merge_memfile(MemFile *first, MemFile *second)
 {

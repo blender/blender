@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -748,7 +748,7 @@ void pose_add_group (Object *ob)
 	grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
 	strcpy(grp->name, "Group");
 	BLI_addtail(&pose->agroups, grp);
-	BLI_uniquename(&pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), 32);
+	BLI_uniquename(&pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), sizeof(grp->name));
 	
 	pose->active_group= BLI_countlist(&pose->agroups);
 }
@@ -1028,7 +1028,7 @@ void copy_pose_result(bPose *to, bPose *from)
 	bPoseChannel *pchanto, *pchanfrom;
 	
 	if(to==NULL || from==NULL) {
-		printf("pose result copy error\n"); // debug temp
+		printf("pose result copy error to:%p from:%p\n", to, from); // debug temp
 		return;
 	}
 

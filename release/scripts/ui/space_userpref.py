@@ -12,15 +12,20 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
 import bpy
+import os
+import re
+import shutil
 
-# General UI Theme Settings (User Interface)
+
 def ui_items_general(col, context):
+    """ General UI Theme Settings (User Interface)
+    """
     row = col.row()
     sub = row.column()
     sub.prop(context, "outline")
@@ -37,9 +42,10 @@ def ui_items_general(col, context):
     subsub.active = context.shaded
     subsub.prop(context, "shadetop")
     subsub.prop(context, "shadedown")
-    
+
     col.separator()
-    
+
+
 def opengl_lamp_buttons(column, lamp):
     split = column.split(percentage=0.1)
 
@@ -161,7 +167,14 @@ class USERPREF_HT_header(bpy.types.Header):
 
         if userpref.active_section == 'INPUT':
             layout.operator_context = 'INVOKE_DEFAULT'
-            layout.operator("wm.keyconfig_export", "Export Key Configuration...").path = "keymap.py"
+            op = layout.operator("wm.keyconfig_export", "Export Key Configuration...")
+            op.path = "keymap.py"
+            op = layout.operator("wm.keyconfig_import", "Import Key Configuration...")
+            op.path = "keymap.py"
+        elif userpref.active_section == 'ADDONS':
+            layout.operator_context = 'INVOKE_DEFAULT'
+            op = layout.operator("wm.addon_install", "Install Add-On...")
+            op.path = "*.py"
 
 
 class USERPREF_PT_tabs(bpy.types.Panel):
@@ -232,6 +245,13 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.prop(view, "auto_perspective")
         col.prop(view, "smooth_view")
         col.prop(view, "rotation_angle")
+
+        col.separator()
+        col.separator()
+
+        col.label(text="2D Viewports:")
+        col.prop(view, "view2d_grid_minimum_spacing", text="Minimum Grid Spacing")
+        col.prop(view, "timecode_style")
 
         row.separator()
         row.separator()
@@ -318,6 +338,11 @@ class USERPREF_PT_edit(bpy.types.Panel):
         #col.prop(edit, "grease_pencil_simplify_stroke", text="Simplify Stroke")
         col.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
         col.prop(edit, "grease_pencil_smooth_stroke", text="Smooth Stroke")
+        col.separator()
+        col.separator()
+        col.separator()
+        col.label(text="Playback:")
+        col.prop(edit, "use_negative_frames")
 
         row.separator()
         row.separator()
@@ -329,19 +354,19 @@ class USERPREF_PT_edit(bpy.types.Panel):
 
         col.separator()
 
-        col.label(text="New F-Curve Defaults:")
-        col.prop(edit, "new_interpolation_type", text="Interpolation")
-        col.prop(edit, "insertkey_xyz_to_rgb", text="XYZ to RGB")
-
-        col.separator()
-
-        col.prop(edit, "auto_keying_enable", text="Auto Keyframing:")
+        col.prop(edit, "use_auto_keying", text="Auto Keyframing:")
 
         sub = col.column()
 
-        sub.active = edit.auto_keying_enable
+        # sub.active = edit.use_auto_keying # incorrect, timeline can enable
         sub.prop(edit, "auto_keyframe_insert_keyingset", text="Only Insert for Keying Set")
         sub.prop(edit, "auto_keyframe_insert_available", text="Only Insert Available")
+
+        col.separator()
+
+        col.label(text="New F-Curve Defaults:")
+        col.prop(edit, "new_interpolation_type", text="Interpolation")
+        col.prop(edit, "insertkey_xyz_to_rgb", text="XYZ to RGB")
 
         col.separator()
         col.separator()
@@ -397,7 +422,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.prop(system, "dpi")
         col.prop(system, "frame_server_port")
         col.prop(system, "scrollback", text="Console Scrollback")
-        col.prop(system, "auto_run_python_scripts")
+        col.prop(system, "auto_execute_scripts")
 
         col.separator()
         col.separator()
@@ -417,6 +442,13 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.separator()
         col.separator()
 
+        col.label(text="Screencast:")
+        col.prop(system, "screencast_fps")
+        col.prop(system, "screencast_wait_time")
+        col.separator()
+        col.separator()
+        col.separator()
+
         #column = split.column()
         #colsplit = column.split(percentage=0.85)
 
@@ -430,7 +462,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         #col.separator()
 
         #col.prop(system, "use_textured_fonts")
-        
+
 
         # 2. Column
         column = split.column()
@@ -444,7 +476,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         #Anti-aliasing is disabled as it breaks broder/lasso select
         #col.prop(system, "use_antialiasing")
         col.label(text="Window Draw Method:")
-        col.row().prop(system, "window_draw_method", expand=True)
+        col.prop(system, "window_draw_method", text="")
         col.label(text="Textures:")
         col.prop(system, "gl_texture_limit", text="Limit Size")
         col.prop(system, "texture_time_out", text="Time Out")
@@ -457,7 +489,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.label(text="Sequencer:")
         col.prop(system, "prefetch_frames")
         col.prop(system, "memory_cache_limit")
-        
+
 
         # 3. Column
         column = split.column()
@@ -468,27 +500,27 @@ class USERPREF_PT_system(bpy.types.Panel):
         split.label()
         split.label(text="Colors:")
         split.label(text="Direction:")
-        
+
         lamp = system.solid_lights[0]
         opengl_lamp_buttons(column, lamp)
-        
+
         lamp = system.solid_lights[1]
         opengl_lamp_buttons(column, lamp)
-        
+
         lamp = system.solid_lights[2]
         opengl_lamp_buttons(column, lamp)
 
         column.separator()
         column.separator()
         column.separator()
-        
+
         column.label(text="Color Picker Type:")
         column.row().prop(system, "color_picker_type", text="")
-        
+
         column.separator()
         column.separator()
         column.separator()
-        
+
         column.prop(system, "use_weight_color_range", text="Custom Weight Paint Range")
         sub = column.column()
         sub.active = system.use_weight_color_range
@@ -514,7 +546,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
         split_themes.prop(theme, "theme_area", expand=True)
 
         split = split_themes.split()
-        
+
         if theme.theme_area == 'USER_INTERFACE':
             col = split.column()
 
@@ -630,6 +662,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "vertex")
             col.prop(v3d, "face", slider=True)
             col.prop(v3d, "normal")
+            col.prop(v3d, "vertex_normal")
             col.prop(v3d, "bone_solid")
             col.prop(v3d, "bone_pose")
             #col.prop(v3d, "edge") Doesn't seem to work
@@ -735,6 +768,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
 
             col = split.column()
             col.prop(image, "back")
+            col.prop(image, "scope_back")
             col.prop(image, "button")
 
             col = split.column()
@@ -921,6 +955,20 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col = split.column()
             col.prop(prefs, "header_text")
 
+        elif theme.theme_area == 'CONSOLE':
+            prefs = theme.console
+
+            col = split.column()
+            col.prop(prefs, "back")
+            col.prop(prefs, "header")
+
+            col = split.column()
+            col.prop(prefs, "line_output")
+            col.prop(prefs, "line_input")
+            col.prop(prefs, "line_info")
+            col.prop(prefs, "line_error")
+            col.prop(prefs, "cursor")
+
 
 class USERPREF_PT_file(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
@@ -1034,10 +1082,12 @@ class USERPREF_PT_input(bpy.types.Panel):
         row.label()
         row.label()
 
+        if km.modal:
+            row.label(text="", icon='LINKED')
         if km.user_defined:
-            row.operator("wm.keymap_restore", text="Restore")
+            op = row.operator("wm.keymap_restore", text="Restore")
         else:
-            row.operator("wm.keymap_edit", text="Edit")
+            op = row.operator("wm.keymap_edit", text="Edit")
 
         if km.children_expanded:
             if children:
@@ -1059,7 +1109,7 @@ class USERPREF_PT_input(bpy.types.Panel):
                 col = self.indented_layout(col, level + 1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.active = km.user_defined
-                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+                op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
 
             col.separator()
 
@@ -1072,11 +1122,9 @@ class USERPREF_PT_input(bpy.types.Panel):
                     self.draw_entry(kc, entry, col, level + 1)
 
     def draw_kmi(self, kc, km, kmi, layout, level):
-        layout.set_context_pointer("keyitem", kmi)
+        map_type = kmi.map_type
 
         col = self.indented_layout(layout, level)
-
-        col.enabled = km.user_defined
 
         if km.user_defined:
             col = col.column(align=True)
@@ -1084,11 +1132,14 @@ class USERPREF_PT_input(bpy.types.Panel):
         else:
             box = col.column()
 
-        split = box.split(percentage=0.4)
+        split = box.split(percentage=0.05)
 
         # header bar
         row = split.row()
         row.prop(kmi, "expanded", text="", no_bg=True)
+
+        row = split.row()
+        row.enabled = km.user_defined
         row.prop(kmi, "active", text="", no_bg=True)
 
         if km.modal:
@@ -1097,28 +1148,34 @@ class USERPREF_PT_input(bpy.types.Panel):
             row.label(text=kmi.name)
 
         row = split.row()
+        row.enabled = km.user_defined
         row.prop(kmi, "map_type", text="")
-        if kmi.map_type == 'KEYBOARD':
+        if map_type == 'KEYBOARD':
             row.prop(kmi, "type", text="", full_event=True)
-        elif kmi.map_type == 'MOUSE':
+        elif map_type == 'MOUSE':
             row.prop(kmi, "type", text="", full_event=True)
-        elif kmi.map_type == 'TWEAK':
+        elif map_type == 'TWEAK':
             subrow = row.row()
             subrow.prop(kmi, "type", text="")
             subrow.prop(kmi, "value", text="")
-        elif kmi.map_type == 'TIMER':
+        elif map_type == 'TIMER':
             row.prop(kmi, "type", text="")
         else:
             row.label()
 
-        row.operator("wm.keyitem_restore", text="", icon='BACK')
-        row.operator("wm.keyitem_remove", text="", icon='X')
+        if kmi.id:
+            op = row.operator("wm.keyitem_restore", text="", icon='BACK')
+            op.item_id = kmi.id
+        op = row.operator("wm.keyitem_remove", text="", icon='X')
+        op.item_id = kmi.id
 
         # Expanded, additional event settings
         if kmi.expanded:
             box = col.box()
 
-            if kmi.map_type not in ('TEXTINPUT', 'TIMER'):
+            box.enabled = km.user_defined
+
+            if map_type not in ('TEXTINPUT', 'TIMER'):
                 split = box.split(percentage=0.4)
                 sub = split.row()
 
@@ -1130,10 +1187,10 @@ class USERPREF_PT_input(bpy.types.Panel):
                 sub = split.column()
                 subrow = sub.row(align=True)
 
-                if kmi.map_type == 'KEYBOARD':
+                if map_type == 'KEYBOARD':
                     subrow.prop(kmi, "type", text="", event=True)
                     subrow.prop(kmi, "value", text="")
-                elif kmi.map_type == 'MOUSE':
+                elif map_type == 'MOUSE':
                     subrow.prop(kmi, "type", text="")
                     subrow.prop(kmi, "value", text="")
 
@@ -1146,20 +1203,30 @@ class USERPREF_PT_input(bpy.types.Panel):
                 subrow.prop(kmi, "oskey", text="Cmd")
                 subrow.prop(kmi, "key_modifier", text="", event=True)
 
+            def display_properties(properties, title=None):
+                box.separator()
+                if title:
+                    box.label(text=title)
+                flow = box.column_flow(columns=2)
+                for pname in dir(properties):
+                    if not properties.is_property_hidden(pname):
+                        value = eval("properties." + pname)
+                        if isinstance(value, bpy.types.OperatorProperties):
+                            display_properties(value, title=pname)
+                        else:
+                            flow.prop(properties, pname)
+
             # Operator properties
             props = kmi.properties
             if props is not None:
-                box.separator()
-                flow = box.column_flow(columns=2)
-                for pname in dir(props):
-                    if not props.is_property_hidden(pname):
-                        flow.prop(props, pname)
+                display_properties(props)
 
             # Modal key maps attached to this operator
             if not km.modal:
                 kmm = kc.find_keymap_modal(kmi.idname)
                 if kmm:
                     self.draw_km(kc, kmm, None, layout, level + 1)
+                    layout.set_context_pointer("keymap", km)
 
     def draw_input_prefs(self, inputs, layout):
         # General settings
@@ -1217,11 +1284,11 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         for km in kc.keymaps:
             km = km.active()
+            layout.set_context_pointer("keymap", km)
 
             filtered_items = [kmi for kmi in km.items if filter in kmi.name.lower()]
 
             if len(filtered_items) != 0:
-                layout.set_context_pointer("keymap", km)
                 col = layout.column()
 
                 row = col.row()
@@ -1231,9 +1298,9 @@ class USERPREF_PT_input(bpy.types.Panel):
                 row.label()
 
                 if km.user_defined:
-                    row.operator("wm.keymap_restore", text="Restore")
+                    op = row.operator("wm.keymap_restore", text="Restore")
                 else:
-                    row.operator("wm.keymap_edit", text="Edit")
+                    op = row.operator("wm.keymap_edit", text="Edit")
 
                 for kmi in filtered_items:
                     self.draw_kmi(kc, km, kmi, col, 1)
@@ -1242,7 +1309,7 @@ class USERPREF_PT_input(bpy.types.Panel):
                 col = self.indented_layout(layout, 1)
                 subcol = col.split(percentage=0.2).column()
                 subcol.active = km.user_defined
-                subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+                op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
 
     def draw_hierarchy(self, defkc, layout):
         for entry in KM_HIERARCHY:
@@ -1250,6 +1317,10 @@ class USERPREF_PT_input(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+
+        #import time
+
+        #start = time.time()
 
         userpref = context.user_preferences
         wm = context.manager
@@ -1270,10 +1341,13 @@ class USERPREF_PT_input(bpy.types.Panel):
 
         subsplit = sub.split()
         subcol = subsplit.column()
-        subcol.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="Configuration:")
+        row = subcol.row()
+        row.prop_object(wm, "active_keyconfig", wm, "keyconfigs", text="Configuration:")
 
-        subcol = subsplit.column()
-        subcol.prop(kc, "filter", icon="VIEWZOOM")
+        layout.set_context_pointer("keyconfig", wm.active_keyconfig)
+        row.operator("wm.keyconfig_remove", text="", icon='X')
+
+        row.prop(kc, "filter", icon="VIEWZOOM")
 
         col.separator()
 
@@ -1282,20 +1356,170 @@ class USERPREF_PT_input(bpy.types.Panel):
         else:
             self.draw_hierarchy(kc, col)
 
-bpy.types.register(USERPREF_HT_header)
-bpy.types.register(USERPREF_PT_tabs)
-bpy.types.register(USERPREF_PT_interface)
-bpy.types.register(USERPREF_PT_theme)
-bpy.types.register(USERPREF_PT_edit)
-bpy.types.register(USERPREF_PT_system)
-bpy.types.register(USERPREF_PT_file)
-bpy.types.register(USERPREF_PT_input)
+        #print("runtime", time.time() - start)
+
+
+class USERPREF_PT_addons(bpy.types.Panel):
+    bl_space_type = 'USER_PREFERENCES'
+    bl_label = "Addons"
+    bl_region_type = 'WINDOW'
+    bl_show_header = False
+
+    def poll(self, context):
+        userpref = context.user_preferences
+        return (userpref.active_section == 'ADDONS')
+
+    def _addon_list(self):
+        import sys
+        modules = []
+        loaded_modules = set()
+        paths = bpy.utils.script_paths("addons")
+        # sys.path.insert(0, None)
+        for path in paths:
+            # sys.path[0] = path
+            modules.extend(bpy.utils.modules_from_path(path, loaded_modules))
+
+        # del sys.path[0]
+        return modules
+
+    def draw(self, context):
+        layout = self.layout
+
+        userpref = context.user_preferences
+        used_ext = {ext.module for ext in userpref.addons}
+
+        col = layout.column()
+
+        for mod in self._addon_list():
+            box = col.box()
+            row = box.row()
+            text = mod.__doc__
+            if not text:
+                text = mod.__name__
+            row.label(text=text)
+            module_name = mod.__name__
+            row.operator("wm.addon_disable" if module_name in used_ext else "wm.addon_enable").module = module_name
+
 
 from bpy.props import *
 
 
+class WM_OT_addon_enable(bpy.types.Operator):
+    "Enable an addon"
+    bl_idname = "wm.addon_enable"
+    bl_label = "Enable Add-On"
+
+    module = StringProperty(name="Module", description="Module name of the addon to enable")
+
+    def execute(self, context):
+        import traceback
+        ext = context.user_preferences.addons.new()
+        module_name = self.properties.module
+        ext.module = module_name
+
+        try:
+            mod = __import__(module_name)
+            mod.register()
+        except:
+            traceback.print_exc()
+
+        return {'FINISHED'}
+
+
+class WM_OT_addon_disable(bpy.types.Operator):
+    "Disable an addon"
+    bl_idname = "wm.addon_disable"
+    bl_label = "Disable Add-On"
+
+    module = StringProperty(name="Module", description="Module name of the addon to disable")
+
+    def execute(self, context):
+        import traceback
+        module_name = self.properties.module
+
+        try:
+            mod = __import__(module_name)
+            mod.unregister()
+        except:
+            traceback.print_exc()
+
+        addons = context.user_preferences.addons
+        ok = True
+        while ok: # incase its in more then once.
+            ok = False
+            for ext in addons:
+                if ext.module == module_name:
+                    addons.remove(ext)
+                    ok = True
+                    break
+
+        return {'FINISHED'}
+
+
+class WM_OT_addon_install(bpy.types.Operator):
+    "Install an addon"
+    bl_idname = "wm.addon_install"
+    bl_label = "Install Add-On"
+
+    module = StringProperty(name="Module", description="Module name of the addon to disable")
+
+    path = StringProperty(name="File Path", description="File path to write file to")
+    filename = StringProperty(name="File Name", description="Name of the file")
+    directory = StringProperty(name="Directory", description="Directory of the file")
+    filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
+    filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
+
+    def execute(self, context):
+        import traceback
+        import zipfile
+        pyfile = self.properties.path
+
+        path_addons = bpy.utils.script_paths("addons")[-1]
+
+        #check to see if the file is in compressed format (.zip)
+        if zipfile.is_zipfile(pyfile):
+            try:
+                file_to_extract = zipfile.ZipFile(pyfile, 'r')
+
+                #extract the file to "addons"
+                file_to_extract.extractall(path_addons)
+            
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
+
+        else:
+            path_dest = os.path.join(path_addons, os.path.basename(pyfile))
+
+            if os.path.exists(path_dest):
+                self.report({'WARNING'}, "File already installed to '%s'\n" % path_dest)
+                return {'CANCELLED'}
+
+            #if not compressed file just copy into the addon path
+            try:
+                shutil.copyfile(pyfile, path_dest)
+
+            except:
+                traceback.print_exc()
+                return {'CANCELLED'}
+
+        # TODO, should not be a warning.
+        # self.report({'WARNING'}, "File installed to '%s'\n" % path_dest)
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        paths = bpy.utils.script_paths("addons")
+        if not paths:
+            self.report({'ERROR'}, "No 'addons' path could be found in " + str(bpy.utils.script_paths()))
+            return {'CANCELLED'}
+
+        wm = context.manager
+        wm.add_fileselect(self)
+        return {'RUNNING_MODAL'}
+
+
 class WM_OT_keyconfig_test(bpy.types.Operator):
-    "Test keyconfig for conflicts."
+    "Test keyconfig for conflicts"
     bl_idname = "wm.keyconfig_test"
     bl_label = "Test Key Configuration for Conflicts"
 
@@ -1324,15 +1548,21 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
 
             s.append(")\n")
 
+            def export_properties(prefix, properties):
+                for pname in dir(properties):
+                    if not properties.is_property_hidden(pname):
+                        value = eval("properties.%s" % pname)
+                        if isinstance(value, bpy.types.OperatorProperties):
+                            export_properties(prefix + "." + pname, value)
+                        elif properties.is_property_set(pname):
+                            value = _string_value(value)
+                            if value != "":
+                                s.append(prefix + ".%s = %s\n" % (pname, value))
+
             props = kmi.properties
 
             if props is not None:
-                for pname in dir(props):
-                    if props.is_property_set(pname) and not props.is_property_hidden(pname):
-                        value = eval("props.%s" % pname)
-                        value = _string_value(value)
-                        if value != "":
-                            s.append("kmi.properties.%s = %s\n" % (pname, value))
+                export_properties("kmi.properties", props)
 
             return "".join(s).strip()
 
@@ -1397,65 +1627,118 @@ class WM_OT_keyconfig_test(bpy.types.Operator):
 
 
 def _string_value(value):
-    result = ""
-    if isinstance(value, str):
-        if value != "":
-            result = "\'%s\'" % value
-    elif isinstance(value, bool):
-        if value:
-            result = "True"
-        else:
-            result = "False"
-    elif isinstance(value, float):
-        result = "%.10f" % value
-    elif isinstance(value, int):
-        result = "%d" % value
+    if isinstance(value, str) or isinstance(value, bool) or isinstance(value, float) or isinstance(value, int):
+        result = repr(value)
     elif getattr(value, '__len__', False):
-        if len(value):
-            result = "["
-            for i in range(0, len(value)):
-                result += _string_value(value[i])
-                if i != len(value)-1:
-                    result += ", "
-            result += "]"
+        repr(list(value))
     else:
         print("Export key configuration: can't write ", value)
 
     return result
 
 
-class WM_OT_keyconfig_export(bpy.types.Operator):
-    "Export key configuration to a python script."
-    bl_idname = "wm.keyconfig_export"
-    bl_label = "Export Key Configuration..."
+class WM_OT_keyconfig_import(bpy.types.Operator):
+    "Import key configuration from a python script"
+    bl_idname = "wm.keyconfig_import"
+    bl_label = "Import Key Configuration..."
 
-    path = bpy.props.StringProperty(name="File Path", description="File path to write file to.")
+    path = StringProperty(name="File Path", description="File path to write file to")
+    filename = StringProperty(name="File Name", description="Name of the file")
+    directory = StringProperty(name="Directory", description="Directory of the file")
+    filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
+    filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
+    filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
+
+    keep_original = BoolProperty(name="Keep original", description="Keep original file after copying to configuration folder", default=True)
 
     def execute(self, context):
         if not self.properties.path:
-            raise Exception("File path not set.")
+            raise Exception("File path not set")
+
+        f = open(self.properties.path, "r")
+        if not f:
+            raise Exception("Could not open file")
+
+        name_pattern = re.compile("^kc = wm.add_keyconfig\('(.*)'\)$")
+
+        for line in f.readlines():
+            match = name_pattern.match(line)
+
+            if match:
+                config_name = match.groups()[0]
+
+        f.close()
+
+        path = os.path.split(os.path.split(__file__)[0])[0] # remove ui/space_userpref.py
+        path = os.path.join(path, "cfg")
+
+        # create config folder if needed
+        if not os.path.exists(path):
+            os.mkdir(path)
+
+        path = os.path.join(path, config_name + ".py")
+
+        if self.properties.keep_original:
+            shutil.copy(self.properties.path, path)
+        else:
+            shutil.move(self.properties.path, path)
+
+        __import__(config_name)
+
+        wm = bpy.context.manager
+        wm.active_keyconfig = wm.keyconfigs[config_name]
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.manager
+        wm.add_fileselect(self)
+        return {'RUNNING_MODAL'}
+
+
+class WM_OT_keyconfig_export(bpy.types.Operator):
+    "Export key configuration to a python script"
+    bl_idname = "wm.keyconfig_export"
+    bl_label = "Export Key Configuration..."
+
+    path = StringProperty(name="File Path", description="File path to write file to")
+    filename = StringProperty(name="File Name", description="Name of the file")
+    directory = StringProperty(name="Directory", description="Directory of the file")
+    filter_folder = BoolProperty(name="Filter folders", description="", default=True, options={'HIDDEN'})
+    filter_text = BoolProperty(name="Filter text", description="", default=True, options={'HIDDEN'})
+    filter_python = BoolProperty(name="Filter python", description="", default=True, options={'HIDDEN'})
+
+    def execute(self, context):
+        if not self.properties.path:
+            raise Exception("File path not set")
 
         f = open(self.properties.path, "w")
         if not f:
-            raise Exception("Could not open file.")
+            raise Exception("Could not open file")
 
         wm = context.manager
         kc = wm.active_keyconfig
 
-        f.write('# Configuration %s\n' % kc.name)
+        if kc.name == 'Blender':
+            name = os.path.splitext(os.path.basename(self.properties.path))[0]
+        else:
+            name = kc.name
 
-        f.write("wm = bpy.data.windowmanagers[0]\n")
-        f.write("kc = wm.add_keyconfig(\'%s\')\n\n" % kc.name)
+        f.write("# Configuration %s\n" % name)
+
+        f.write("import bpy\n\n")
+        f.write("wm = bpy.context.manager\n")
+        f.write("kc = wm.add_keyconfig('%s')\n\n" % name)
 
         for km in kc.keymaps:
             km = km.active()
             f.write("# Map %s\n" % km.name)
-            f.write("km = kc.add_keymap(\'%s\', space_type=\'%s\', region_type=\'%s\', modal=%s)\n\n" % (km.name, km.space_type, km.region_type, km.modal))
+            f.write("km = kc.add_keymap('%s', space_type='%s', region_type='%s', modal=%s)\n\n" % (km.name, km.space_type, km.region_type, km.modal))
             for kmi in km.items:
                 if km.modal:
-                    f.write("kmi = km.add_modal_item(\'%s\', \'%s\', \'%s\'" % (kmi.propvalue, kmi.type, kmi.value))
+                    f.write("kmi = km.add_modal_item('%s', '%s', '%s'" % (kmi.propvalue, kmi.type, kmi.value))
                 else:
-                    f.write("kmi = km.add_item(\'%s\', \'%s\', \'%s\'" % (kmi.idname, kmi.type, kmi.value))
+                    f.write("kmi = km.add_item('%s', '%s', '%s'" % (kmi.idname, kmi.type, kmi.value))
                 if kmi.any:
                     f.write(", any=True")
                 else:
@@ -1468,18 +1751,24 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
                     if kmi.oskey:
                         f.write(", oskey=True")
                 if kmi.key_modifier and kmi.key_modifier != 'NONE':
-                    f.write(", key_modifier=\'%s\'" % kmi.key_modifier)
+                    f.write(", key_modifier='%s'" % kmi.key_modifier)
                 f.write(")\n")
+
+                def export_properties(prefix, properties):
+                    for pname in dir(properties):
+                        if not properties.is_property_hidden(pname):
+                            value = eval("properties.%s" % pname)
+                            if isinstance(value, bpy.types.OperatorProperties):
+                                export_properties(prefix + "." + pname, value)
+                            elif properties.is_property_set(pname):
+                                value = _string_value(value)
+                                if value != "":
+                                    f.write(prefix + ".%s = %s\n" % (pname, value))
 
                 props = kmi.properties
 
                 if props is not None:
-                    for pname in dir(props):
-                        if props.is_property_set(pname) and not props.is_property_hidden(pname):
-                            value = eval("props.%s" % pname)
-                            value = _string_value(value)
-                            if value != "":
-                                f.write("kmi.properties.%s = %s\n" % (pname, value))
+                    export_properties("kmi.properties", props)
 
             f.write("\n")
 
@@ -1494,7 +1783,7 @@ class WM_OT_keyconfig_export(bpy.types.Operator):
 
 
 class WM_OT_keymap_edit(bpy.types.Operator):
-    "Edit key map."
+    "Edit key map"
     bl_idname = "wm.keymap_edit"
     bl_label = "Edit Key Map"
 
@@ -1506,11 +1795,11 @@ class WM_OT_keymap_edit(bpy.types.Operator):
 
 
 class WM_OT_keymap_restore(bpy.types.Operator):
-    "Restore key map(s)."
+    "Restore key map(s)"
     bl_idname = "wm.keymap_restore"
     bl_label = "Restore Key Map(s)"
 
-    all = BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default.")
+    all = BoolProperty(attr="all", name="All Keymaps", description="Restore all keymaps to default")
 
     def execute(self, context):
         wm = context.manager
@@ -1526,19 +1815,16 @@ class WM_OT_keymap_restore(bpy.types.Operator):
 
 
 class WM_OT_keyitem_restore(bpy.types.Operator):
-    "Restore key map item."
+    "Restore key map item"
     bl_idname = "wm.keyitem_restore"
     bl_label = "Restore Key Map Item"
 
-    def poll(self, context):
-        kmi = context.keyitem
-        km = context.keymap
-        return km and kmi and kmi.id != 0
+    item_id = IntProperty(attr="item_id", name="Item Identifier", description="Identifier of the item to remove")
 
     def execute(self, context):
         wm = context.manager
-        kmi = context.keyitem
         km = context.keymap
+        kmi = km.item_from_id(self.properties.item_id)
 
         km.restore_item_to_default(kmi)
 
@@ -1546,7 +1832,7 @@ class WM_OT_keyitem_restore(bpy.types.Operator):
 
 
 class WM_OT_keyitem_add(bpy.types.Operator):
-    "Add key map item."
+    "Add key map item"
     bl_idname = "wm.keyitem_add"
     bl_label = "Add Key Map Item"
 
@@ -1570,21 +1856,83 @@ class WM_OT_keyitem_add(bpy.types.Operator):
 
 
 class WM_OT_keyitem_remove(bpy.types.Operator):
-    "Remove key map item."
+    "Remove key map item"
     bl_idname = "wm.keyitem_remove"
     bl_label = "Remove Key Map Item"
 
+    item_id = IntProperty(attr="item_id", name="Item Identifier", description="Identifier of the item to remove")
+
     def execute(self, context):
         wm = context.manager
-        kmi = context.keyitem
         km = context.keymap
+        kmi = km.item_from_id(self.properties.item_id)
         km.remove_item(kmi)
         return {'FINISHED'}
 
-bpy.types.register(WM_OT_keyconfig_export)
-bpy.types.register(WM_OT_keyconfig_test)
-bpy.types.register(WM_OT_keymap_edit)
-bpy.types.register(WM_OT_keymap_restore)
-bpy.types.register(WM_OT_keyitem_add)
-bpy.types.register(WM_OT_keyitem_remove)
-bpy.types.register(WM_OT_keyitem_restore)
+
+class WM_OT_keyconfig_remove(bpy.types.Operator):
+    "Remove key config"
+    bl_idname = "wm.keyconfig_remove"
+    bl_label = "Remove Key Config"
+
+    def poll(self, context):
+        wm = context.manager
+        return wm.active_keyconfig.user_defined
+
+    def execute(self, context):
+        wm = context.manager
+
+        keyconfig = wm.active_keyconfig
+
+        module = __import__(keyconfig.name)
+
+        os.remove(module.__file__)
+
+        compiled_path = module.__file__ + "c" # for .pyc
+
+        if os.path.exists(compiled_path):
+            os.remove(compiled_path)
+
+        wm.remove_keyconfig(keyconfig)
+        return {'FINISHED'}
+
+
+classes = [
+    USERPREF_HT_header,
+    USERPREF_PT_tabs,
+    USERPREF_PT_interface,
+    USERPREF_PT_theme,
+    USERPREF_PT_edit,
+    USERPREF_PT_system,
+    USERPREF_PT_file,
+    USERPREF_PT_input,
+    USERPREF_PT_addons,
+
+    WM_OT_addon_enable,
+    WM_OT_addon_disable,
+    WM_OT_addon_install,
+
+    WM_OT_keyconfig_export,
+    WM_OT_keyconfig_import,
+    WM_OT_keyconfig_test,
+    WM_OT_keyconfig_remove,
+    WM_OT_keymap_edit,
+    WM_OT_keymap_restore,
+    WM_OT_keyitem_add,
+    WM_OT_keyitem_remove,
+    WM_OT_keyitem_restore]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

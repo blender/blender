@@ -20,7 +20,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -55,10 +55,10 @@ BME_Mesh *BME_make_mesh(int allocsize[4])
 	/*allocate the structure*/
 	BME_Mesh *bm = MEM_callocN(sizeof(BME_Mesh),"BMesh");
 	/*allocate the memory pools for the mesh elements*/
-	bm->vpool = BLI_mempool_create(sizeof(BME_Vert), allocsize[0], allocsize[0]);
-	bm->epool = BLI_mempool_create(sizeof(BME_Edge), allocsize[1], allocsize[1]);
-	bm->lpool = BLI_mempool_create(sizeof(BME_Loop), allocsize[2], allocsize[2]);
-	bm->ppool = BLI_mempool_create(sizeof(BME_Poly), allocsize[3], allocsize[3]);
+	bm->vpool = BLI_mempool_create(sizeof(BME_Vert), allocsize[0], allocsize[0], 1);
+	bm->epool = BLI_mempool_create(sizeof(BME_Edge), allocsize[1], allocsize[1], 1);
+	bm->lpool = BLI_mempool_create(sizeof(BME_Loop), allocsize[2], allocsize[2], 1);
+	bm->ppool = BLI_mempool_create(sizeof(BME_Poly), allocsize[3], allocsize[3], 1);
 	return bm;
 }
 /*	

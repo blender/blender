@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -257,11 +257,15 @@ typedef struct bDampTrackConstraint {
 
 /* Follow Path constraints */
 typedef struct bFollowPathConstraint {
-	Object		*tar;	/* Must be path object */
-	float		offset; /* Offset in time on the path (in frame) */
+	Object		*tar;			/* Must be path object */
+	
+	float		offset; 		/* Offset in time on the path (in frames), when NOT using 'fixed position' */
+	float 		offset_fac;		/* Parametric offset factor defining position along path, when using 'fixed position' */
+	
 	int			followflag;
-	int			trackflag;
-	int			upflag;
+	
+	short		trackflag;
+	short		upflag;
 } bFollowPathConstraint;
 
 /* Stretch to constraint */

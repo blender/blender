@@ -100,7 +100,6 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 		AUD_SoftwareHandle* sound;
 		int len;
 		sample_t* buf;
-		int sample_size = AUD_DEVICE_SAMPLE_SIZE(m_specs);
 		std::list<AUD_SoftwareHandle*> stopSounds;
 
 		// for all sounds
@@ -116,7 +115,7 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 			len = length;
 			sound->reader->read(len, buf);
 
-			m_mixer->add(buf, len, sound->volume);
+			m_mixer->add(buf, 0, len, sound->volume);
 
 			// in case the end of the sound is reached
 			if(len < length)
@@ -127,12 +126,6 @@ void AUD_SoftwareDevice::mix(data_t* buffer, int length)
 					stopSounds.push_back(sound);
 			}
 		}
-
-		// fill with silence
-		if(m_specs.format == AUD_FORMAT_U8)
-			memset(buffer, 0x80, length * sample_size);
-		else
-			memset(buffer, 0, length * sample_size);
 
 		// superpose
 		m_mixer->superpose(buffer, length, m_volume);

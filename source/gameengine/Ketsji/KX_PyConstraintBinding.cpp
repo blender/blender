@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -443,7 +443,7 @@ static PyObject* gPyCreateConstraint(PyObject* self,
 			
 			PHY_IPhysicsController* physctrl = (PHY_IPhysicsController*) physicsid;
 			PHY_IPhysicsController* physctrl2 = (PHY_IPhysicsController*) physicsid2;
-			if (physctrl) //TODO:check for existance of this pointer!
+			if (physctrl) //TODO:check for existence of this pointer!
 			{
 				PHY_ConstraintType ct = (PHY_ConstraintType) constrainttype;
 				int constraintid =0;

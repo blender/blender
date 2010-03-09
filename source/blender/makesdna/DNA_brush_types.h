@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -65,8 +65,10 @@ typedef struct Brush {
 	float rgb[3];				/* color */
 	float alpha;				/* opacity */
 
-	char sculpt_tool;			/* active tool */
-	char pad2[3];
+	char sculpt_tool;			/* active sculpt tool */
+	char vertexpaint_tool;		/* active vertex/weight paint tool/blend mode */
+	char imagepaint_tool;		/* active image paint tool */
+	char pad2;
 } Brush;
 
 /* Brush.flag */

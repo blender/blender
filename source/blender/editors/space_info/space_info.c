@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -116,12 +116,16 @@ static SpaceLink *info_duplicate(SpaceLink *sl)
 /* add handlers, stuff you only do once or on area/region changes */
 static void info_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
-	ED_region_panels_init(wm, ar);
 }
 
 static void info_main_area_draw(const bContext *C, ARegion *ar)
 {
-	ED_region_panels(C, ar, 1, NULL, -1);
+	float col[3];
+	
+	/* clear and setup matrix */
+	UI_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 void info_operatortypes(void)
@@ -171,6 +175,9 @@ static void info_header_listener(ARegion *ar, wmNotifier *wmn)
 			if(wmn->data == ND_SPACE_INFO)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_ID:
+			if(wmn->action == NA_RENAME)
+				ED_region_tag_redraw(ar);
 	}
 	
 }
@@ -204,7 +211,8 @@ void ED_spacetype_info(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype info region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= HEADERY;
+	art->prefsizey= HEADERY;
+	
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	art->listener= info_header_listener;
 	art->init= info_header_area_init;

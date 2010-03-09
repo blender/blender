@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
@@ -31,8 +31,19 @@
 
 struct CurveMapping;
 struct CurveMap;
+struct Histogram;
 struct ImBuf;
 struct rctf;
+
+#if defined _WIN32
+#   define DO_INLINE __inline
+#elif defined (__sgi)
+#   define DO_INLINE
+#elif defined (__sun) || defined (__sun__)
+#   define DO_INLINE
+#else
+#   define DO_INLINE static inline
+#endif
 
 typedef enum CurveMappingPreset {
 	CURVE_PRESET_LINE,
@@ -70,6 +81,7 @@ void				curvemapping_initialize(struct CurveMapping *cumap);
 void				curvemapping_table_RGBA(struct CurveMapping *cumap, float **array, int *size);
 void				colorcorrection_do_ibuf(struct ImBuf *ibuf, const char *profile);
 
+void				histogram_update(struct Histogram *hist, struct ImBuf *ibuf);
 
 #endif
 

@@ -12,40 +12,37 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
 #
 # The Original Code is: all of this file.
 #
-# Contributor(s): Jacques Beaurain.
+# Contributor(s): Jacques Beaurainm, Campbell Barton
 #
 # ***** END GPL LICENSE BLOCK *****
 
+ADD_SUBDIRECTORY(generic)
+
 FILE(GLOB SRC intern/*.c)
-FILE(GLOB GENSRC generic/*.c)
 
 SET(INC 
-	. ../../../intern/guardedalloc ../blenlib ../makesdna ../makesrna
-	../blenkernel ../editors/include ../windowmanager ${PYTHON_INC}
-	../../../extern/glew/include
+	.
+	../blenlib
+	../makesdna
+	../makesrna
+	../blenkernel
+	../windowmanager
+	../editors/include
+	../../../intern/guardedalloc
+	${PYTHON_INC}
 )
 
-IF(WITH_OPENEXR)
-	ADD_DEFINITIONS(-DWITH_OPENEXR)
-ENDIF(WITH_OPENEXR)
-
-IF(WITH_QUICKTIME)
-	SET(INC ${INC} ${QUICKTIME_INC})
-	ADD_DEFINITIONS(-DWITH_QUICKTIME)
-ENDIF(WITH_QUICKTIME)
-
-IF(WITH_FFMPEG)
-	SET(INC ${INC} ${FFMPEG_INC})
-	ADD_DEFINITIONS(-DWITH_FFMPEG)
-ENDIF(WITH_FFMPEG)
+# only to check if buildinfo is available
+IF(WITH_BUILDINFO)
+	ADD_DEFINITIONS(-DBUILD_DATE)
+ENDIF(WITH_BUILDINFO)
 
 BLENDERLIB(bf_python "${SRC}" "${INC}")
-BLENDERLIB(bf_gen_python "${GENSRC}" "${INC}")
 

@@ -186,11 +186,12 @@ int Texture_init (Texture *self, PyObject *args, PyObject *kwds)
 	// texture object with shared texture ID
 	Texture * texObj = NULL;
 
-	static char *kwlist[] = {"gameObj", "materialID", "textureID", "textureObj", NULL};
+	static const char *kwlist[] = {"gameObj", "materialID", "textureID", "textureObj", NULL};
 
 	// get parameters
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|hhO!", kwlist, &obj, &matID,
-		&texID, &TextureType, &texObj))
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|hhO!",
+		const_cast<char**>(kwlist), &obj, &matID, &texID, &TextureType,
+		&texObj))
 		return -1; 
 
 	// if parameters are available
@@ -279,7 +280,9 @@ PyObject * Texture_refresh (Texture * self, PyObject * args)
 {
 	// get parameter - refresh source
 	PyObject * param;
-	if (!PyArg_ParseTuple(args, "O:refresh", &param) || !PyBool_Check(param))
+	double ts = -1.0;
+
+	if (!PyArg_ParseTuple(args, "O|d:refresh", &param, &ts) || !PyBool_Check(param))
 	{
 		// report error
 		PyErr_SetString(PyExc_TypeError, "The value must be a bool");
@@ -315,7 +318,7 @@ PyObject * Texture_refresh (Texture * self, PyObject * args)
 				}
 
 				// get texture
-				unsigned int * texture = self->m_source->m_image->getImage(self->m_actTex);
+				unsigned int * texture = self->m_source->m_image->getImage(self->m_actTex, ts);
 				// if texture is available
 				if (texture != NULL)
 				{
@@ -452,7 +455,7 @@ PyTypeObject TextureType =
 	0,                         /*tp_str*/
 	0,                         /*tp_getattro*/
 	0,                         /*tp_setattro*/
-	0,                         /*tp_as_buffer*/
+	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"Texture objects",       /* tp_doc */
 	0,		               /* tp_traverse */

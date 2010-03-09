@@ -31,6 +31,9 @@
 class AUD_Buffer;
 
 #include <jack.h>
+#include <ringbuffer.h>
+
+typedef void (*AUD_syncFunction)(void*, int, float);
 
 /**
  * This device plays back through Jack.
@@ -53,6 +56,10 @@ private:
 	 */
 	AUD_Buffer* m_buffer;
 
+	AUD_Buffer* m_deinterleavebuf;
+
+	jack_ringbuffer_t** m_ringbuffers;
+
 	/**
 	 * Whether the device is valid.
 	 */
@@ -72,6 +79,41 @@ private:
 	 */
 	static int jack_mix(jack_nframes_t length, void *data);
 
+	static int jack_sync(jack_transport_state_t state, jack_position_t* pos, void* data);
+
+	/**
+	 * Last Jack Transport playing state.
+	 */
+	bool m_playing;
+
+	/**
+	 * Syncronisation state.
+	 */
+	int m_sync;
+
+	/**
+	 * External syncronisation callback function.
+	 */
+	AUD_syncFunction m_syncFunc;
+
+	/**
+	 * Data for the sync function.
+	 */
+	void* m_syncFuncData;
+
+	/**
+	 * The mixing thread.
+	 */
+	pthread_t m_mixingThread;
+
+	pthread_mutex_t m_mixingLock;
+
+	pthread_cond_t m_mixingCondition;
+
+	static void* runMixingThread(void* device);
+
+	void updateRingBuffers();
+
 protected:
 	virtual void playing(bool playing);
 
@@ -81,12 +123,19 @@ public:
 	 * \param specs The wanted audio specification, where only the channel count is important.
 	 * \exception AUD_Exception Thrown if the audio device cannot be opened.
 	 */
-	AUD_JackDevice(AUD_DeviceSpecs specs);
+	AUD_JackDevice(AUD_DeviceSpecs specs, int buffersize = AUD_DEFAULT_BUFFER_SIZE);
 
 	/**
 	 * Closes the Jack client.
 	 */
 	virtual ~AUD_JackDevice();
+
+	void startPlayback();
+	void stopPlayback();
+	void seekPlayback(float time);
+	void setSyncCallback(AUD_syncFunction sync, void* data);
+	float getPlaybackPosition();
+	bool doesPlayback();
 };
 
 #endif //AUD_JACKDEVICE

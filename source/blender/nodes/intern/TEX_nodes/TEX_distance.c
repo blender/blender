@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -43,12 +43,12 @@ static bNodeSocketType outputs[]= {
 
 static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float coord1[3], coord2[3];
+	float co1[3], co2[3];
 
-	tex_input_vec(coord1, in[0], p, thread);
-	tex_input_vec(coord2, in[1], p, thread);
+	tex_input_vec(co1, in[0], p, thread);
+	tex_input_vec(co2, in[1], p, thread);
 
-	*out = len_v3v3(coord2, coord1);
+	*out = len_v3v3(co2, co1);
 }
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)

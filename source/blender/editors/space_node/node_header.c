@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -90,7 +90,7 @@ static void do_node_add(bContext *C, void *arg, int event)
 		if(node->flag & NODE_TEST) node->flag &= ~NODE_SELECT;
 	}
 		
-	snode_handle_recalc(C, snode);
+	snode_notify(C, snode);
 }
 
 static void node_auto_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)

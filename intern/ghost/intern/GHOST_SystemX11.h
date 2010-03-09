@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -225,6 +225,20 @@ public:
 	 * @param selection	Set the selection into the clipboard, X11 only feature
 	 */
 	void putClipboard(GHOST_TInt8 *buffer, bool selection) const;
+
+	/**
+	 * Determine the base dir in which shared resources are located. It will first try to use
+	 * "unpack and run" path, then look for properly installed path, not including versioning.
+	 * @return Unsigned char string pointing to system dir (eg /usr/share/blender/).
+	 */
+	const GHOST_TUns8* getSystemDir() const;
+
+	/**
+	 * Determine the base dir in which user configuration is stored, not including versioning.
+	 * If needed, it will create the base directory.
+	 * @return Unsigned char string pointing to user dir (eg ~/.blender/).
+	 */
+	const GHOST_TUns8* getUserDir() const;
 
 	/**
 	 * Atom used for ICCCM, WM-spec and Motif.

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -1730,6 +1730,43 @@ void lookat_m4(float mat[][4],float vx, float vy, float vz, float px, float py, 
 	translate_m4(mat,-vx,-vy,-vz);	/* translate viewpoint to origin */
 }
 
+int box_clip_bounds_m4(float boundbox[2][3], float bounds[4], float winmat[4][4])
+{
+	float mat[4][4], vec[4];
+	int a, fl, flag= -1;
+
+	copy_m4_m4(mat, winmat);
+
+	for(a=0; a<8; a++) {
+		vec[0]= (a & 1)? boundbox[0][0]: boundbox[1][0];
+		vec[1]= (a & 2)? boundbox[0][1]: boundbox[1][1];
+		vec[2]= (a & 4)? boundbox[0][2]: boundbox[1][2];
+		vec[3]= 1.0;
+		mul_m4_v4(mat, vec);
+
+		fl= 0;
+		if(bounds) {
+			if(vec[0] > bounds[1]*vec[3]) fl |= 1;
+			if(vec[0]< bounds[0]*vec[3]) fl |= 2;
+			if(vec[1] > bounds[3]*vec[3]) fl |= 4;
+			if(vec[1]< bounds[2]*vec[3]) fl |= 8;
+		}
+		else {
+			if(vec[0] < -vec[3]) fl |= 1;
+			if(vec[0] > vec[3]) fl |= 2;
+			if(vec[1] < -vec[3]) fl |= 4;
+			if(vec[1] > vec[3]) fl |= 8;
+		}
+		if(vec[2] < -vec[3]) fl |= 16;
+		if(vec[2] > vec[3]) fl |= 32;
+
+		flag &= fl;
+		if(flag==0) return 0;
+	}
+
+	return flag;
+}
+
 /********************************** Mapping **********************************/
 
 void map_to_tube(float *u, float *v,float x, float y, float z)
@@ -1811,28 +1848,33 @@ float *find_vertex_tangent(VertexTangent *vtang, float *uv)
 
 void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2, float *co3, float *n, float *tang)
 {
-	float tangv[3], ct[3], e1[3], e2[3], s1, t1, s2, t2, det;
+	float s1= uv2[0] - uv1[0];
+	float s2= uv3[0] - uv1[0];
+	float t1= uv2[1] - uv1[1];
+	float t2= uv3[1] - uv1[1];
 
-	s1= uv2[0] - uv1[0];
-	s2= uv3[0] - uv1[0];
-	t1= uv2[1] - uv1[1];
-	t2= uv3[1] - uv1[1];
-	det= 1.0f / (s1 * t2 - s2 * t1);
+	if(s1 && s2 && t1 && t2) { /* otherwise 'tang' becomes nan */
+		float tangv[3], ct[3], e1[3], e2[3], det;
+		det= 1.0f / (s1 * t2 - s2 * t1);
+
+		/* normals in render are inversed... */
+		sub_v3_v3v3(e1, co1, co2);
+		sub_v3_v3v3(e2, co1, co3);
+		tang[0] = (t2*e1[0] - t1*e2[0])*det;
+		tang[1] = (t2*e1[1] - t1*e2[1])*det;
+		tang[2] = (t2*e1[2] - t1*e2[2])*det;
+		tangv[0] = (s1*e2[0] - s2*e1[0])*det;
+		tangv[1] = (s1*e2[1] - s2*e1[1])*det;
+		tangv[2] = (s1*e2[2] - s2*e1[2])*det;
+		cross_v3_v3v3(ct, tang, tangv);
 	
-	/* normals in render are inversed... */
-	sub_v3_v3v3(e1, co1, co2);
-	sub_v3_v3v3(e2, co1, co3);
-	tang[0] = (t2*e1[0] - t1*e2[0])*det;
-	tang[1] = (t2*e1[1] - t1*e2[1])*det;
-	tang[2] = (t2*e1[2] - t1*e2[2])*det;
-	tangv[0] = (s1*e2[0] - s2*e1[0])*det;
-	tangv[1] = (s1*e2[1] - s2*e1[1])*det;
-	tangv[2] = (s1*e2[2] - s2*e1[2])*det;
-	cross_v3_v3v3(ct, tang, tangv);
-
-	/* check flip */
-	if ((ct[0]*n[0] + ct[1]*n[1] + ct[2]*n[2]) < 0.0f)
-		negate_v3(tang);
+		/* check flip */
+		if ((ct[0]*n[0] + ct[1]*n[1] + ct[2]*n[2]) < 0.0f)
+			negate_v3(tang);
+	}
+	else {
+		tang[0]= tang[1]= tang[2]=  0.0;
+	}
 }
 
 /********************************************************/

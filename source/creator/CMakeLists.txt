@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
@@ -408,6 +408,7 @@ IF(WIN32)
 			POST_BUILD
 			MAIN_DEPENDENCY blender
 			COMMAND copy /Y \"${WIN_LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\\"
+			COMMAND copy /Y \"${WIN_LIBDIR}\\release\\python31.zip\" \"${TARGETDIR}\\python31_d.zip\"
 			COMMAND copy /Y \"${WIN_LIBDIR}\\gettext\\lib\\gnu_gettext.dll\" \"${TARGETDIR}\\\"
 			COMMAND copy /Y \"${WIN_LIBDIR}\\png\\lib\\libpng.dll\" \"${TARGETDIR}\\\"
 			COMMAND copy /Y \"${WIN_LIBDIR}\\sdl\\lib\\SDL.dll\" \"${TARGETDIR}\\\"
@@ -494,7 +495,7 @@ IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	SET(BLENDER_LINK_LIBS ${BLENDER_LINK_LIBS} extern_binreloc)
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
-IF(UNIX)
+#IF(UNIX)
 <<<<<<< .working
   # Sort libraries
   SET(BLENDER_SORTED_LIBS
@@ -666,8 +667,8 @@ IF(UNIX)
 		ENDIF(REMLIB)
 	ENDFOREACH(SORTLIB)
 	TARGET_LINK_LIBRARIES(blender ${BLENDER_SORTED_LIBS})
-ELSE(UNIX)
-	TARGET_LINK_LIBRARIES(blender ${BLENDER_LINK_LIBS})
-ENDIF(UNIX)
+#ELSE(UNIX)
+#	TARGET_LINK_LIBRARIES(blender ${BLENDER_LINK_LIBS})
+#ENDIF(UNIX)
 
 SETUP_LIBLINKS(blender)

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -117,6 +117,7 @@
 #include "BKE_idprop.h"
 #include "BKE_particle.h"
 #include "BKE_gpencil.h"
+#include "BKE_fcurve.h"
 
 #define MAX_IDPUP		60	/* was 24 */
 
@@ -652,7 +653,17 @@ static void id_copy_animdata(ID *id)
 	}
 }
 
-/* used everywhere in blenkernel and text.c */
+/* material nodes use this since they are not treated as libdata */
+void copy_libblock_data(ID *id, const ID *id_from)
+{
+	if (id_from->properties)
+		id->properties = IDP_CopyProperty(id_from->properties);
+
+	/* the duplicate should get a copy of the animdata */
+	id_copy_animdata(id);
+}
+
+/* used everywhere in blenkernel */
 void *copy_libblock(void *rt)
 {
 	ID *idn, *id;
@@ -678,10 +689,8 @@ void *copy_libblock(void *rt)
 	
 	id->newid= idn;
 	idn->flag |= LIB_NEW;
-	if (id->properties) idn->properties = IDP_CopyProperty(id->properties);
-	
-	/* the duplicate should get a copy of the animdata */
-	id_copy_animdata(idn);
+
+	copy_libblock_data(idn, id);
 	
 	return idn;
 }
@@ -697,6 +706,30 @@ void set_free_windowmanager_cb(void (*func)(bContext *C, wmWindowManager *) )
 {
 	free_windowmanager_cb= func;
 }
+
+void animdata_dtar_clear_cb(ID *id, AnimData *adt, void *userdata)
+{
+	ChannelDriver *driver;
+	FCurve *fcu;
+
+	/* find the driver this belongs to and update it */
+	for (fcu=adt->drivers.first; fcu; fcu=fcu->next) {
+		driver= fcu->driver;
+		
+		if (driver) {
+			DriverVar *dvar;
+			for (dvar= driver->variables.first; dvar; dvar= dvar->next) {
+				DRIVER_TARGETS_USED_LOOPER(dvar) 
+				{
+					if (dtar->id == userdata)
+						dtar->id= NULL;
+				}
+				DRIVER_TARGETS_LOOPER_END
+			}
+		}
+	}
+}
+
 
 /* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
 void free_libblock(ListBase *lb, void *idv)
@@ -768,7 +801,7 @@ void free_libblock(ListBase *lb, void *idv)
 			sound_free((bSound*)id);
 			break;
 		case ID_GR:
-			free_group((Group *)id);
+			free_group_objects((Group *)id);
 			break;
 		case ID_AR:
 			free_armature((bArmature *)id);
@@ -798,9 +831,13 @@ void free_libblock(ListBase *lb, void *idv)
 		IDP_FreeProperty(id->properties);
 		MEM_freeN(id->properties);
 	}
-	BLI_remlink(lb, id);
-	MEM_freeN(id);
 
+	BLI_remlink(lb, id);
+
+	/* this ID may be a driver target! */
+	BKE_animdata_main_cb(G.main, animdata_dtar_clear_cb, (void *)id);
+
+	MEM_freeN(id);
 }
 
 void free_libblock_us(ListBase *lb, void *idv)		/* test users */

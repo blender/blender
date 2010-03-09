@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -724,7 +724,7 @@ static int snap_curs_to_grid(bContext *C, wmOperator *op)
 	curs[1]= gridf*floor(.5+curs[1]/gridf);
 	curs[2]= gridf*floor(.5+curs[2]/gridf);
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, scene);	// hrm
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);	// hrm
 	
 	return OPERATOR_FINISHED;
 }
@@ -830,7 +830,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, scene);	// hrm
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 	
 	return OPERATOR_FINISHED;
 }
@@ -881,7 +881,7 @@ static int snap_curs_to_active(bContext *C, wmOperator *op)
 		}
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_TRANSFORM, scene);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
 	return OPERATOR_FINISHED;
 }
 
@@ -1095,6 +1095,43 @@ void VIEW3D_OT_snap_selected_to_center(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
+
+
+/* **************************************************** */
+/*New Code - Snap Cursor to Center -*/
+static int snap_curs_to_center(bContext *C, wmOperator *op)
+{
+    Scene *scene= CTX_data_scene(C);
+    View3D *v3d= CTX_wm_view3d(C);
+    float *curs;
+    curs= give_cursor(scene, v3d);
+
+    curs[0]= 0.0;
+    curs[1]= 0.0;
+    curs[2]= 0.0;
+	
+    WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, v3d);
+	
+    return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
+{
+	
+	/* identifiers */
+	ot->name= "Snap Cursor to Center";
+	ot->description= "Snap cursor to the Center";
+	ot->idname= "VIEW3D_OT_snap_cursor_to_center";
+	
+    /* api callbacks */ 
+    ot->exec= snap_curs_to_center;
+   	ot->poll= ED_operator_view3d_active;
+	
+    /* flags */
+   	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* **************************************************** */
 
 
 int minmax_verts(Object *obedit, float *min, float *max)

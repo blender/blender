@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Blender Foundation (2009)
  *
@@ -35,6 +35,22 @@
 #include "UI_interface.h"
 
 #include "WM_types.h"
+
+/* see WM_types.h */
+EnumPropertyItem operator_context_items[] = {
+	{WM_OP_INVOKE_DEFAULT, "INVOKE_DEFAULT", 0, "Invoke Default", ""},
+	{WM_OP_INVOKE_REGION_WIN, "INVOKE_REGION_WIN", 0, "Invoke Region Window", ""},
+	{WM_OP_INVOKE_REGION_CHANNELS, "INVOKE_REGION_CHANNELS", 0, "Invoke Region Channels", ""},
+	{WM_OP_INVOKE_REGION_PREVIEW, "INVOKE_REGION_PREVIEW", 0, "Invoke Region Preview", ""},
+	{WM_OP_INVOKE_AREA, "INVOKE_AREA", 0, "Invoke Area", ""},
+	{WM_OP_INVOKE_SCREEN, "INVOKE_SCREEN", 0, "Invoke Screen", ""},
+	{WM_OP_EXEC_DEFAULT, "EXEC_DEFAULT", 0, "Exec Default", ""},
+	{WM_OP_EXEC_REGION_WIN, "EXEC_REGION_WIN", 0, "Exec Region Window", ""},
+	{WM_OP_EXEC_REGION_CHANNELS, "EXEC_REGION_CHANNELS", 0, "Exec Region Channels", ""},
+	{WM_OP_EXEC_REGION_PREVIEW, "EXEC_REGION_PREVIEW", 0, "Exec Region Preview", ""},
+	{WM_OP_EXEC_AREA, "EXEC_AREA", 0, "Exec Area", ""},
+	{WM_OP_EXEC_SCREEN, "EXEC_SCREEN", 0, "Exec Screen", ""},
+	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
 
@@ -517,24 +533,12 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 		{UI_LAYOUT_ALIGN_CENTER, "CENTER", 0, "Center", ""},
 		{UI_LAYOUT_ALIGN_RIGHT, "RIGHT", 0, "Right", ""},
 		{0, NULL, 0, NULL, NULL}};
-		
-	/* see WM_types.h */
-	static EnumPropertyItem operator_context_items[] = {
-		{WM_OP_INVOKE_DEFAULT, "INVOKE_DEFAULT", 0, "Invoke Default", ""},
-		{WM_OP_INVOKE_REGION_WIN, "INVOKE_REGION_WIN", 0, "Invoke Region Window", ""},
-		{WM_OP_INVOKE_AREA, "INVOKE_AREA", 0, "Invoke Area", ""},
-		{WM_OP_INVOKE_SCREEN, "INVOKE_SCREEN", 0, "Invoke Screen", ""},
-		{WM_OP_EXEC_DEFAULT, "EXEC_DEFAULT", 0, "Exec Default", ""},
-		{WM_OP_EXEC_REGION_WIN, "EXEC_REGION_WIN", 0, "Exec Region Window", ""},
-		{WM_OP_EXEC_AREA, "EXEC_AREA", 0, "Exec Area", ""},
-		{WM_OP_EXEC_SCREEN, "EXEC_SCREEN", 0, "Exec Screen", ""},
-		{0, NULL, 0, NULL, NULL}};
 	
 	/* layout */
 
 	srna= RNA_def_struct(brna, "UILayout", NULL);
 	RNA_def_struct_sdna(srna, "uiLayout");
-	RNA_def_struct_ui_text(srna, "UI Layout", "User interface layout in a panel or header.");
+	RNA_def_struct_ui_text(srna, "UI Layout", "User interface layout in a panel or header");
 
 	prop= RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_UILayout_active_get", "rna_UILayout_active_set");
@@ -577,7 +581,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "Panel", NULL);
-	RNA_def_struct_ui_text(srna, "Panel", "Panel containing buttons.");
+	RNA_def_struct_ui_text(srna, "Panel", "Panel containing buttons");
 	RNA_def_struct_sdna(srna, "Panel");
 	RNA_def_struct_refine_func(srna, "rna_Panel_refine");
 	RNA_def_struct_register_funcs(srna, "rna_Panel_register", "rna_Panel_unregister");
@@ -649,7 +653,7 @@ static void rna_def_header(BlenderRNA *brna)
 	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "Header", NULL);
-	RNA_def_struct_ui_text(srna, "Header", "Editor header containing buttons.");
+	RNA_def_struct_ui_text(srna, "Header", "Editor header containing buttons");
 	RNA_def_struct_sdna(srna, "Header");
 	RNA_def_struct_refine_func(srna, "rna_Header_refine");
 	RNA_def_struct_register_funcs(srna, "rna_Header_register", "rna_Header_unregister");
@@ -688,7 +692,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	FunctionRNA *func;
 	
 	srna= RNA_def_struct(brna, "Menu", NULL);
-	RNA_def_struct_ui_text(srna, "Menu", "Editor menu containing buttons.");
+	RNA_def_struct_ui_text(srna, "Menu", "Editor menu containing buttons");
 	RNA_def_struct_sdna(srna, "Menu");
 	RNA_def_struct_refine_func(srna, "rna_Menu_refine");
 	RNA_def_struct_register_funcs(srna, "rna_Menu_register", "rna_Menu_unregister");

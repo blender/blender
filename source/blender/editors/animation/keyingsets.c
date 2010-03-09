@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation, Joshua Leung
  * All rights reserved.
@@ -152,7 +152,7 @@ void ANIM_OT_keying_set_add (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Empty Keying Set";
 	ot->idname= "ANIM_OT_keying_set_add";
-	ot->description= "Add a new (empty) Keying Set to the active Scene.";
+	ot->description= "Add a new (empty) Keying Set to the active Scene";
 	
 	/* callbacks */
 	ot->exec= add_default_keyingset_exec;
@@ -195,7 +195,7 @@ void ANIM_OT_keying_set_remove (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Removed Active Keying Set";
 	ot->idname= "ANIM_OT_keying_set_remove";
-	ot->description= "Remove the active Keying Set.";
+	ot->description= "Remove the active Keying Set";
 	
 	/* callbacks */
 	ot->exec= remove_active_keyingset_exec;
@@ -227,6 +227,7 @@ static int add_empty_ks_path_exec (bContext *C, wmOperator *op)
 	ks->active_path= BLI_countlist(&ks->paths);
 	
 	ksp->groupmode= KSP_GROUP_KSNAME; // XXX?
+	ksp->idtype= ID_OB;
 	
 	return OPERATOR_FINISHED;
 }
@@ -285,7 +286,7 @@ void ANIM_OT_keying_set_path_remove (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Active Keying Set Path";
 	ot->idname= "ANIM_OT_keying_set_path_remove";
-	ot->description= "Remove active Path from active Keying Set.";
+	ot->description= "Remove active Path from active Keying Set";
 	
 	/* callbacks */
 	ot->exec= remove_active_ks_path_exec;
@@ -320,10 +321,8 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 		 */
 		flag |= KEYINGSET_ABSOLUTE;
 		
-		if (IS_AUTOKEY_FLAG(AUTOMATKEY)) 
-			keyingflag |= INSERTKEY_MATRIX;
-		if (IS_AUTOKEY_FLAG(INSERTNEEDED)) 
-			keyingflag |= INSERTKEY_NEEDED;
+		keyingflag |= ANIM_get_keyframing_flags(scene, 0);
+		
 		if (IS_AUTOKEY_FLAG(XYZ2RGB)) 
 			keyingflag |= INSERTKEY_XYZ2RGB;
 			
@@ -340,7 +339,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	uiAnimContextProperty(C, &ptr, &prop, &index);
 	
 	/* check if property is able to be added */
-	if (ptr.data && prop && RNA_property_animateable(ptr.data, prop)) {
+	if (ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
 		path= RNA_path_from_ID_to_property(&ptr, prop);
 		
 		if (path) {
@@ -356,7 +355,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 			}
 				
 			/* add path to this setting */
-			BKE_keyingset_add_destination(ks, ptr.id.data, NULL, path, index, pflag, KSP_GROUP_KSNAME);
+			BKE_keyingset_add_path(ks, ptr.id.data, NULL, path, index, pflag, KSP_GROUP_KSNAME);
 			ks->active_path= BLI_countlist(&ks->paths);
 			success= 1;
 			
@@ -427,7 +426,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 			KS_Path *ksp;
 			
 			/* try to find a path matching this description */
-			ksp= BKE_keyingset_find_destination(ks, ptr.id.data, ks->name, path, index, KSP_GROUP_KSNAME);
+			ksp= BKE_keyingset_find_path(ks, ptr.id.data, ks->name, path, index, KSP_GROUP_KSNAME);
 			
 			if (ksp) {
 				/* just free it... */
@@ -1163,31 +1162,13 @@ static int keyingset_relative_get_templates (KeyingSet *ks)
 	return templates;
 }
 
-/* Check if context data is suitable for the given absolute Keying Set */
+/* Check if context data is suitable for the given Keying Set */
 short keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
 {
-	ScrArea *sa= CTX_wm_area(C);
-	
-	/* data retrieved from context depends on active editor */
-	if (sa == NULL) return 0;
-		
-	switch (sa->spacetype) {
-		case SPACE_VIEW3D:
-		{
-			Object *obact= CTX_data_active_object(C);
-			
-			/* if in posemode, check if 'pose-channels' requested for in KeyingSet */
-			if ((obact && obact->pose) && (obact->mode & OB_MODE_POSE)) {
-				/* check for posechannels */
-				
-			}
-			else {
-				/* check for selected object */
-				
-			}
-		}
-			break;
-	}
+	// TODO:
+	//	For 'relative' keyingsets (i.e. py-keyingsets), add a call here
+	//	which basically gets a listing of all the paths to be used for this
+	//	set.
 	
 	
 	return 1;

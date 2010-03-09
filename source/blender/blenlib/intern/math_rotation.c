@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -327,6 +327,7 @@ void normalize_qt(float *q)
 	}
 }
 
+/* note: expects vectors to be normalized */
 void rotation_between_vecs_to_quat(float *q, const float v1[3], const float v2[3])
 {
 	float axis[3];
@@ -1051,7 +1052,7 @@ static RotOrderInfo rotOrders[]= {
 	{{1, 0, 2}, 1}, // YXZ
 	{{1, 2, 0}, 0}, // YZX
 	{{2, 0, 1}, 0}, // ZXY
-	{{2, 1, 0}, 1}  // ZYZ
+	{{2, 1, 0}, 1}  // ZYX
 };
 
 /* Get relevant pointer to rotation order set from the array 
@@ -1332,8 +1333,14 @@ void mat4_to_dquat(DualQuat *dq,float basemat[][4], float mat[][4])
 
 	if((determinant_m4(mat) < 0.0f) || len_v3(dscale) > 1e-4) {
 		/* extract R and S  */
-		mat4_to_quat(basequat,baseRS);
-		quat_to_mat4(baseR,basequat);
+		float tmp[4][4];
+
+		 /* extra orthogonalize, to avoid flipping with stretched bones */
+		copy_m4_m4(tmp, baseRS);
+		orthogonalize_m4(tmp, 1);
+		mat4_to_quat(basequat, tmp);
+
+		quat_to_mat4(baseR, basequat);
 		copy_v3_v3(baseR[3], baseRS[3]);
 
 		invert_m4_m4(baseinv, basemat);

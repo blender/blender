@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -32,6 +32,51 @@
 #include "DNA_listBase.h"
 #include "RNA_types.h"
 
+struct ARegion;
+struct ARegionType;
+struct Base;
+struct CSG_FaceIteratorDescriptor;
+struct CSG_VertexIteratorDescriptor;
+struct ColorBand;
+struct CurveMapping;
+struct EditBone;
+struct EditMesh;
+struct ID;
+struct ImBuf;
+struct Image;
+struct ImageUser;
+struct LOD_Decimation_Info;
+struct MTex;
+struct Main;
+struct Material;
+struct MenuType;
+struct Mesh;
+struct ModifierData;
+struct NodeBlurData;
+struct Object;
+struct Render;
+struct RenderEngine;
+struct RenderLayer;
+struct RenderResult;
+struct ScrArea;
+struct ShadeInput;
+struct ShadeResult;
+struct SpaceImage;
+struct Tex;
+struct TexResult;
+struct Text;
+struct bAction;
+struct bArmature;
+struct bConstraint;
+struct bNode;
+struct bPoseChannel;
+struct uiLayout;
+struct wmEvent;
+struct wmKeyConfig;
+struct wmKeyMap;
+struct wmOperator;
+struct wmWindowManager;
+
 /*new render funcs */
 float *RE_RenderLayerGetPass(struct RenderLayer *rl, int passtype) {return NULL;}
 float RE_filter_value(int type, float x) {return 0.0f;}
@@ -47,6 +92,7 @@ void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, flo
 /* texture.c */
 int multitex_thread(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output) {return 0;}
 int multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres){return 0;}
+int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, struct TexResult *texres, short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex) {return 0;}
 
 /* nodes */
 struct RenderResult *RE_GetResult(struct Render *re){return (struct RenderResult *) NULL;}
@@ -82,14 +128,20 @@ struct MenuType *WM_menutype_find(const char *idname, int quiet){return (struct 
 void WM_autosave_init(struct bContext *C){}
 void WM_jobs_stop_all(struct wmWindowManager *wm){}
 
+struct wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id){return (struct wmKeyMapItem *) NULL;}
+int WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event){return 0;}
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference){}
 void WM_main_add_notifier(unsigned int type, void *reference){}
 void ED_armature_bone_rename(struct bArmature *arm, char *oldnamep, char *newnamep){}
+struct wmEventHandler *WM_event_add_modal_handler(struct bContext *C, struct wmOperator *op){return (struct wmEventHandler *)NULL;};
 void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone){}
 void object_test_constraints (struct Object *owner){}
 void ED_object_parent(struct Object *ob, struct Object *par, int type, const char *substr){}
 void ED_object_constraint_set_active(struct Object *ob, struct bConstraint *con){}
 void ED_node_composit_default(struct Scene *sce){}
+void *ED_region_draw_cb_activate(struct ARegionType *art, void(*draw)(const struct bContext *, struct ARegion *, void *), void *custumdata, int type){return 0;}
+void *ED_region_draw_cb_customdata(void *handle){return 0;}
+void ED_region_draw_cb_exit(struct ARegionType *art, void *handle){}
 
 struct EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, struct EditBone *ebo){return (struct EditBone *) NULL;}
 struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, char *name){return (struct EditBone*) NULL;}
@@ -114,6 +166,8 @@ struct wmKeyMap *WM_keymap_add_item(struct wmKeyMap *keymap, char *idname, int t
 struct wmKeyMap *WM_keymap_copy_to_user(struct wmKeyMap *kemap){return (struct wmKeyMap *) NULL;} 
 struct wmKeyMap *WM_keymap_list_find(struct ListBase *lb, char *idname, int spaceid, int regionid){return (struct wmKeyMap *) NULL;}
 struct wmKeyConfig *WM_keyconfig_add(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
+struct wmKeyConfig *WM_keyconfig_add_user(struct wmWindowManager *wm, char *idname){return (struct wmKeyConfig *) NULL;}
+void WM_keyconfig_remove(struct wmWindowManager *wm, char *idname){}
 void WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
 void WM_keymap_restore_to_default(struct wmKeyMap *keymap){}
 void WM_keymap_restore_item_to_default(struct bContext *C, struct wmKeyMap *keymap, struct wmKeyMapItem *kmi){}
@@ -128,12 +182,15 @@ void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock){}
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **lock_r){return (struct ImBuf *) NULL;}
 char *ED_info_stats_string(struct Scene *scene){return NULL;}
 void ED_area_tag_redraw(struct ScrArea *sa){}
+void ED_area_tag_refresh(struct ScrArea *sa){}
 void ED_area_newspace(struct bContext *C, struct ScrArea *sa, int type){} 
 void WM_event_add_fileselect(struct bContext *C, struct wmOperator *op){}
+void WM_cursor_wait (int val) {}
 void ED_node_texture_default(struct Tex *tx){}
 void ED_node_changed_update(struct bContext *C, struct bNode *node){}
 void ED_view3d_scene_layers_update(struct Main *bmain, struct Scene *scene){}
 int ED_view3d_scene_layer_set(int lay, const int *values){return 0;}
+void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar){}
 int text_file_modified(struct Text *text){return 0;}
 void ED_node_shader_default(struct Material *ma){}
 void ED_screen_animation_timer_update(struct bContext *C, int redraws){}
@@ -222,6 +279,9 @@ void uiTemplateTextureImage(struct uiLayout *layout, struct bContext *C, struct 
 void uiTemplateImage(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, char *propname, struct PointerRNA *userptr, int compact){}
 void uiTemplateDopeSheetFilter(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr){}
 void uiTemplateColorWheel(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int value_slider){}
+void uiTemplateHistogram(struct uiLayout *layout, struct PointerRNA *ptr, char *propname, int expand){}
+void uiTemplateReportsBanner(struct uiLayout *layout, struct bContext *C, struct wmOperator *op){}
+
 /* rna render */
 struct RenderResult *RE_engine_begin_result(struct RenderEngine *engine, int x, int y, int w, int h){return (struct RenderResult *) NULL;}
 struct RenderResult *RE_AcquireResultRead(struct Render *re){return (struct RenderResult *) NULL;}
@@ -255,6 +315,7 @@ void WM_operator_bl_idname(char *to, const char *from){}
 void WM_operator_py_idname(char *to, const char *from){}
 void WM_operator_ui_popup(struct bContext *C, struct wmOperator *op, int width, int height){}
 short insert_keyframe (struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;}
+short delete_keyframe(struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag){return 0;};
 char *WM_operator_pystring(struct bContext *C, struct wmOperatorType *ot, struct PointerRNA *opptr, int all_args){return NULL;}
 struct wmKeyMapItem *WM_modalkeymap_add_item(struct wmKeyMap *km, int type, int val, int modifier, int keymodifier, int value){return NULL;}
 struct wmKeyMap *WM_modalkeymap_add(struct wmKeyConfig *keyconf, char *idname, EnumPropertyItem *items){return NULL;}
@@ -290,7 +351,7 @@ void smoke_get_index(void) {return;}
 void smoke_step(void) {return;}
 */
 
-char blender_path(){return NULL;}
+char blender_path[] = "";
 
 /* CSG */
 struct CSG_BooleanOperation * CSG_NewBooleanFunction( void ){return (struct CSG_BooleanOperation *) NULL;}

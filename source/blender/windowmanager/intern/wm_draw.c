@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -63,7 +63,8 @@
 #define WIN_FRONT_OK    2
 #define WIN_BOTH_OK		3
 
-/* ********************* drawing, swap ****************** */
+/* ******************* drawing, overlays *************** */
+
 
 static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 {
@@ -90,6 +91,8 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 		}
 	}
 }
+
+/* ********************* drawing, swap ****************** */
 
 static void wm_area_mark_invalid_backbuf(ScrArea *sa)
 {
@@ -177,12 +180,13 @@ static void wm_flush_regions_up(bScreen *screen, rcti *dirty)
 	}
 }
 
-static void wm_method_draw_overlap_all(bContext *C, wmWindow *win)
+static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 {
+	wmWindowManager *wm= CTX_wm_manager(C);
 	bScreen *screen= win->screen;
 	ScrArea *sa;
 	ARegion *ar;
-	int exchange= (G.f & G_SWAP_EXCHANGE);
+	static rcti rect= {0, 0, 0, 0};
 
 	/* flush overlapping regions */
 	if(screen->regionbase.first) {
@@ -203,6 +207,16 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win)
 				wm_flush_regions_down(screen, &ar->winrct);
 	}
 
+	/* flush drag item */
+	if(rect.xmin!=rect.xmax) {
+		wm_flush_regions_down(screen, &rect);
+		rect.xmin= rect.xmax = 0;
+	}
+	if(wm->drags.first) {
+		/* doesnt draw, fills rect with boundbox */
+		wm_drags_draw(C, win, &rect);
+	}
+	
 	/* draw marked area regions */
 	for(sa= screen->areabase.first; sa; sa= sa->next) {
 		CTX_wm_area_set(C, sa);
@@ -273,6 +287,11 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win)
 
 	if(screen->do_draw_gesture)
 		wm_gesture_draw(win);
+	
+	/* needs pixel coords in screen */
+	if(wm->drags.first) {
+		wm_drags_draw(C, win, NULL);
+	}
 }
 
 #if 0
@@ -380,7 +399,7 @@ static void wm_draw_triple_fail(bContext *C, wmWindow *win)
 	wm_draw_window_clear(win);
 
 	win->drawfail= 1;
-	wm_method_draw_overlap_all(C, win);
+	wm_method_draw_overlap_all(C, win, 0);
 }
 
 static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
@@ -607,6 +626,12 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 
 		wmSubWindowSet(win, screen->mainwin);
 	}
+	
+	/* needs pixel coords in screen */
+	if(wm->drags.first) {
+		wm_drags_draw(C, win, NULL);
+	}
+
 }
 
 /****************** main update call **********************/
@@ -625,6 +650,8 @@ static int wm_draw_update_test_window(wmWindow *win)
 		return 1;
 	if(win->screen->do_draw_paintcursor)
 		return 1;
+	if(win->screen->do_draw_drag)
+		return 1;
 	
 	for(ar= win->screen->regionbase.first; ar; ar= ar->next)
 		if(ar->swinid && ar->do_draw)
@@ -638,10 +665,27 @@ static int wm_draw_update_test_window(wmWindow *win)
 	return 0;
 }
 
+static int wm_automatic_draw_method(wmWindow *win)
+{
+	if(win->drawmethod == USER_DRAW_AUTOMATIC) {
+		/* ATI opensource driver is known to be very slow at this */
+		if(GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE))
+			return USER_DRAW_OVERLAP;
+		/* Windows software driver darkens color on each redraw */
+		else if(GPU_type_matches(GPU_DEVICE_SOFTWARE, GPU_OS_WIN, GPU_DRIVER_SOFTWARE))
+			return USER_DRAW_OVERLAP_FLIP;
+		else
+			return USER_DRAW_TRIPLE;
+	}
+	else
+		return win->drawmethod;
+}
+
 void wm_draw_update(bContext *C)
 {
 	wmWindowManager *wm= CTX_wm_manager(C);
 	wmWindow *win;
+	int drawmethod;
 	
 	for(win= wm->windows.first; win; win= win->next) {
 		if(win->drawmethod != U.wmdrawmethod) {
@@ -659,19 +703,22 @@ void wm_draw_update(bContext *C)
 			if(win->screen->do_refresh)
 				ED_screen_refresh(wm, win);
 
+			drawmethod= wm_automatic_draw_method(win);
+
 			if(win->drawfail)
-				wm_method_draw_overlap_all(C, win);
-			else if(win->drawmethod == USER_DRAW_FULL)
+				wm_method_draw_overlap_all(C, win, 0);
+			else if(drawmethod == USER_DRAW_FULL)
 				wm_method_draw_full(C, win);
-			else if(win->drawmethod == USER_DRAW_OVERLAP)
-				wm_method_draw_overlap_all(C, win);
-			/*else if(win->drawmethod == USER_DRAW_DAMAGE)
-				wm_method_draw_damage(C, win);*/
-			else // if(win->drawmethod == USER_DRAW_TRIPLE)
+			else if(drawmethod == USER_DRAW_OVERLAP)
+				wm_method_draw_overlap_all(C, win, 0);
+			else if(drawmethod == USER_DRAW_OVERLAP_FLIP)
+				wm_method_draw_overlap_all(C, win, 1);
+			else // if(drawmethod == USER_DRAW_TRIPLE)
 				wm_method_draw_triple(C, win);
 
 			win->screen->do_draw_gesture= 0;
 			win->screen->do_draw_paintcursor= 0;
+			win->screen->do_draw_drag= 0;
 		
 			wm_window_swap_buffers(win);
 
@@ -685,8 +732,9 @@ void wm_draw_window_clear(wmWindow *win)
 	bScreen *screen= win->screen;
 	ScrArea *sa;
 	ARegion *ar;
+	int drawmethod= wm_automatic_draw_method(win);
 
-	if(win->drawmethod == USER_DRAW_TRIPLE)
+	if(drawmethod == USER_DRAW_TRIPLE)
 		wm_draw_triple_free(win);
 
 	/* clear screen swap flags */
@@ -701,7 +749,9 @@ void wm_draw_window_clear(wmWindow *win)
 
 void wm_draw_region_clear(wmWindow *win, ARegion *ar)
 {
-	if(win->drawmethod == USER_DRAW_OVERLAP)
+	int drawmethod= wm_automatic_draw_method(win);
+
+	if(ELEM(drawmethod, USER_DRAW_OVERLAP, USER_DRAW_OVERLAP_FLIP))
 		wm_flush_regions_down(win->screen, &ar->winrct);
 
 	win->screen->do_draw= 1;

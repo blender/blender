@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -136,14 +136,14 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
 								 &m_windowRef);
 		
 		if ( err != noErr) {
-			fprintf(stderr," error creating window %i \n",err);
+			fprintf(stderr," error creating window %i \n",(int)err);
 		} else {
 			
 			::SetWRefCon(m_windowRef,(SInt32)this);
 			setTitle(title);
 			err = InstallWindowEventHandler (m_windowRef, myWEventHandlerProc, GetEventTypeCount(kWEvents), kWEvents,NULL,NULL); 
 			if ( err != noErr) {
-				fprintf(stderr," error creating handler %i \n",err);
+				fprintf(stderr," error creating handler %i \n",(int)err);
 			} else {
 				//	::TransitionWindow (m_windowRef,kWindowZoomTransitionEffect,kWindowShowTransitionAction,NULL);
 				::ShowWindow(m_windowRef);
@@ -635,6 +635,7 @@ void GHOST_WindowCarbon::loadCursor(bool visible, GHOST_TStandardCursor cursor) 
 		GCMAP( GHOST_kStandardCursorTopRightCorner,			kThemeArrowCursor);
 		GCMAP( GHOST_kStandardCursorBottomRightCorner,		kThemeArrowCursor);
 		GCMAP( GHOST_kStandardCursorBottomLeftCorner,		kThemeArrowCursor);
+		GCMAP( GHOST_kStandardCursorCopy,					kThemeCopyArrowCursor);
 		};
 #undef GCMAP
 

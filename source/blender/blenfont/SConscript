@@ -11,7 +11,7 @@ incs += ' ' + env['BF_GETTEXT_INC']
 
 defs = []
 
-if sys.platform == 'win32':
+if sys.platform == 'win32' or env['OURPLATFORM'] == 'linuxcross':
 	defs.append('_WIN32')
 	defs.append('USE_GETTEXT_DLL')
 

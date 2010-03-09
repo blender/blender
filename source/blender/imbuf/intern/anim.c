@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -255,21 +255,9 @@ static int an_stringdec(char *string, char* kop, char *staart,unsigned short *nu
 }
 
 
-static void an_stringenc(char *string, char *kop, char *staart, 
-unsigned short numlen, int pic) {
-	char numstr[10];
-	unsigned short len,i;
-
-	len=sprintf(numstr,"%d",pic);
-
-	strcpy(string,kop);
-	for(i=len;i<numlen;i++){
-		strcat(string,"0");
-	}
-	strcat(string,numstr);
-	strcat(string,staart);
+static void an_stringenc(char *string, char *head, char *start, unsigned short numlen, int pic) {
+    BLI_stringenc(string, head, start, numlen, pic);
 }
-
 
 static void free_anim_avi (struct anim *anim) {
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
@@ -504,6 +492,8 @@ static ImBuf * avi_fetchibuf (struct anim *anim, int position) {
 		MEM_freeN (tmp);
 	}
 
+	ibuf->profile = IB_PROFILE_SRGB;
+		
 	return ibuf;
 }
 
@@ -881,6 +871,8 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 		IMB_filtery(ibuf);
 	}
 
+	ibuf->profile = IB_PROFILE_SRGB;
+	
 	return(ibuf);
 }
 
@@ -1056,7 +1048,9 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 		if (ibuf == NULL) {
 			return (0);
 		}
+
 		IMB_freeImBuf(ibuf); /* ???? */
+		ibuf= NULL;
 	}
 
 	if (position < 0) return(0);
@@ -1069,6 +1063,7 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 			if (nextanim5(anim)) return (0);
 		}
 		ibuf = anim5_fetchibuf(anim);
+		ibuf->profile = IB_PROFILE_SRGB;
 		break;
 	case ANIM_SEQUENCE:
 		pic = an_stringdec(anim->first, head, tail, &digits);
@@ -1089,22 +1084,26 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 		if (ibuf) {
 			anim->curposition = position;
 			IMB_convert_rgba_to_abgr(ibuf);
+			ibuf->profile = IB_PROFILE_SRGB;
 		}
 		break;
 	case ANIM_AVI:
 		ibuf = avi_fetchibuf(anim, position);
-		if (ibuf) anim->curposition = position;
+		if (ibuf)
+			anim->curposition = position;
 		break;
 #ifdef WITH_QUICKTIME
 	case ANIM_QTIME:
 		ibuf = qtime_fetchibuf(anim, position);
-		if (ibuf) anim->curposition = position;
+		if (ibuf)
+			anim->curposition = position;
 		break;
 #endif
 #ifdef WITH_FFMPEG
 	case ANIM_FFMPEG:
 		ibuf = ffmpeg_fetchibuf(anim, position);
-		if (ibuf) anim->curposition = position;
+		if (ibuf)
+			anim->curposition = position;
 		filter_y = 0; /* done internally */
 		break;
 #endif

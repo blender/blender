@@ -184,6 +184,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesrna\intern\rna_animviz_gen.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesrna\intern\rna_armature_gen.c"
 				>
 			</File>

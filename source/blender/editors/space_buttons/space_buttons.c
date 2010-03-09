@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -256,9 +256,16 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 	switch(wmn->category) {
 		case NC_SCENE:
 			switch(wmn->data) {
-				case ND_FRAME:
 				case ND_RENDER_OPTIONS:
 					buttons_area_redraw(sa, BCONTEXT_RENDER);
+					break;
+				case ND_FRAME:
+					buttons_area_redraw(sa, BCONTEXT_RENDER);
+					buttons_area_redraw(sa, BCONTEXT_MATERIAL);
+					buttons_area_redraw(sa, BCONTEXT_TEXTURE);
+					buttons_area_redraw(sa, BCONTEXT_WORLD);
+					buttons_area_redraw(sa, BCONTEXT_DATA);
+					sbuts->preview= 1;
 					break;
 				case ND_OB_ACTIVE:
 					ED_area_tag_redraw(sa);
@@ -279,6 +286,7 @@ static void buttons_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_TRANSFORM:
 					buttons_area_redraw(sa, BCONTEXT_OBJECT);
 					break;
+				case ND_POSE:
 				case ND_BONE_ACTIVE:
 				case ND_BONE_SELECT:
 					buttons_area_redraw(sa, BCONTEXT_BONE);
@@ -395,7 +403,7 @@ void ED_spacetype_buttons(void)
 	/* regions: header */
 	art= MEM_callocN(sizeof(ARegionType), "spacetype buttons region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->minsizey= BUTS_HEADERY;
+	art->prefsizey= BUTS_HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
 	
 	art->init= buttons_header_area_init;

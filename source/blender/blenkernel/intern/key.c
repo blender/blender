@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -52,6 +52,7 @@
 #include "BKE_action.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
+#include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -1046,6 +1047,9 @@ static float *get_weights_array(Object *ob, char *vgroup)
 {
 	bDeformGroup *curdef;
 	MDeformVert *dvert= NULL;
+	BMEditMesh *em= NULL;
+	BMIter iter;
+	BMVert *eve;
 	int totvert= 0, index= 0;
 	
 	/* no vgroup string set? */
@@ -1056,6 +1060,9 @@ static float *get_weights_array(Object *ob, char *vgroup)
 		Mesh *me= ob->data;
 		dvert= me->dvert;
 		totvert= me->totvert;
+
+		if(me->edit_btmesh && me->edit_btmesh->bm->totvert == totvert)
+			em= me->edit_btmesh;
 	}
 	else if(ob->type==OB_LATTICE) {
 		Lattice *lt= ob->data;
@@ -1075,15 +1082,33 @@ static float *get_weights_array(Object *ob, char *vgroup)
 		int i, j;
 		
 		weights= MEM_callocN(totvert*sizeof(float), "weights");
-		
-		for (i=0; i < totvert; i++, dvert++) {
-			for(j=0; j<dvert->totweight; j++) {
-				if (dvert->dw[j].def_nr == index) {
-					weights[i]= dvert->dw[j].weight;
-					break;
+
+		if(em) {
+			eve = BMIter_New(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
+			for (i=0; eve; eve=BMIter_Step(&iter), i++) {
+				dvert= CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
+
+				if(dvert) {
+					for(j=0; j<dvert->totweight; j++) {
+						if(dvert->dw[j].def_nr == index) {
+							weights[i]= dvert->dw[j].weight;
+							break;
+						}
+					}
 				}
 			}
 		}
+		else {
+			for(i=0; i < totvert; i++, dvert++) {
+				for(j=0; j<dvert->totweight; j++) {
+					if(dvert->dw[j].def_nr == index) {
+						weights[i]= dvert->dw[j].weight;
+						break;
+					}
+				}
+			}
+		}
+
 		return weights;
 	}
 	return NULL;

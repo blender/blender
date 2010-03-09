@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2007 Blender Foundation.
  * All rights reserved.
@@ -33,9 +33,11 @@ struct wmEvent;
 struct wmWindowManager;
 struct uiLayout;
 struct wmOperator;
+struct ImBuf;
 
 #include "RNA_types.h"
 #include "DNA_listBase.h"
+#include "BKE_utildefines.h" /* FILE_MAX */
 
 /* exported types for WM */
 #include "wm_cursors.h"
@@ -56,11 +58,15 @@ enum {
 	/* if there's invoke, call it, otherwise exec */
 	WM_OP_INVOKE_DEFAULT,
 	WM_OP_INVOKE_REGION_WIN,
+	WM_OP_INVOKE_REGION_CHANNELS,
+	WM_OP_INVOKE_REGION_PREVIEW,
 	WM_OP_INVOKE_AREA,
 	WM_OP_INVOKE_SCREEN,
 	/* only call exec */
 	WM_OP_EXEC_DEFAULT,
 	WM_OP_EXEC_REGION_WIN,
+	WM_OP_EXEC_REGION_CHANNELS,
+	WM_OP_EXEC_REGION_PREVIEW,
 	WM_OP_EXEC_AREA,
 	WM_OP_EXEC_SCREEN
 };
@@ -106,7 +112,7 @@ typedef struct wmNotifier {
 	struct wmWindowManager *wm;
 	struct wmWindow *window;
 	
-	int swinid;
+	int swinid;			/* can't rely on this, notifiers can be added without context, swinid of 0 */
 	unsigned int category, data, subtype, action;
 	
 	void *reference;
@@ -142,6 +148,7 @@ typedef struct wmNotifier {
 #define	NC_GEOM				(16<<24)
 #define NC_NODE				(17<<24)
 #define NC_ID				(18<<24)
+#define NC_LOGIC			(19<<24)
 
 /* data type, 256 entries is enough, it can overlap */
 #define NOTE_DATA			0x00FF0000
@@ -157,6 +164,7 @@ typedef struct wmNotifier {
 #define ND_SCREENCAST		(3<<16)
 #define ND_ANIMPLAY			(4<<16)
 #define ND_GPENCIL			(5<<16)
+#define ND_EDITOR_CHANGED	(6<<16) /*sent to new editors after switching to them*/
 
 	/* NC_SCENE Scene */
 #define ND_SCENEBROWSE		(1<<16)
@@ -171,7 +179,7 @@ typedef struct wmNotifier {
 #define ND_RENDER_RESULT	(10<<16)
 #define ND_COMPO_RESULT		(11<<16)
 #define ND_KEYINGSET		(12<<16)
-#define ND_SCENEDELETE		(13<<16)
+#define ND_TOOLSETTINGS		(13<<16)
 #define ND_LAYER			(14<<16)
 #define	ND_SEQUENCER_SELECT	(15<<16)
 
@@ -241,6 +249,7 @@ typedef struct wmNotifier {
 #define ND_SPACE_NLA			(14<<16)
 #define ND_SPACE_SEQUENCER		(15<<16)
 #define ND_SPACE_NODE_VIEW		(16<<16)
+#define ND_SPACE_CHANGED		(17<<16) /*sent to a new editor type after it's replaced an old one*/
 
 /* subtype, 256 entries too */
 #define NOTE_SUBTYPE		0x0000FF00
@@ -390,6 +399,10 @@ typedef struct wmOperatorType {
 	/* rna for properties */
 	struct StructRNA *srna;
 
+	/* rna property to use for generic invoke functions.
+	 * menus, enum search... etc */
+	PropertyRNA *prop;
+
 	/* struct wmOperatorTypeMacro */
 	ListBase macro;
 
@@ -431,7 +444,51 @@ typedef struct wmReport {
 	char *message;
 } wmReport;
 
-/* *************** migrated stuff, clean later? ******************************** */
+/* *************** Drag and drop *************** */
+
+#define WM_DRAG_ID		0
+#define WM_DRAG_RNA		1
+#define WM_DRAG_PATH	2
+#define WM_DRAG_NAME	3
+#define WM_DRAG_VALUE	4
+
+/* note: structs need not exported? */
+
+typedef struct wmDrag {
+	struct wmDrag *next, *prev;
+	
+	int icon, type;					/* type, see WM_DRAG defines above */
+	void *poin;
+	char path[FILE_MAX];
+	double value;
+	
+	struct ImBuf *imb;						/* if no icon but imbuf should be drawn around cursor */
+	float scale;
+	short sx, sy;
+	
+	char opname[FILE_MAX];			/* if set, draws operator name*/
+} wmDrag;
+
+/* dropboxes are like keymaps, part of the screen/area/region definition */
+/* allocation and free is on startup and exit */
+typedef struct wmDropBox {
+	struct wmDropBox *next, *prev;
+	
+	/* test if the dropbox is active, then can print optype name */
+	int (*poll)(struct bContext *, struct wmDrag *, wmEvent *);
+
+	/* before exec, this copies drag info to wmDrop properties */
+	void (*copy)(struct wmDrag *, struct wmDropBox *);
+	
+	/* if poll survives, operator is called */
+	wmOperatorType *ot;				/* not saved in file, so can be pointer */
+
+	struct IDProperty *properties;			/* operator properties, assigned to ptr->data and can be written to a file */
+	struct PointerRNA *ptr;			/* rna pointer to access properties */
+
+} wmDropBox;
+
+/* *************** migrated stuff, clean later? ************** */
 
 typedef struct RecentFile {
 	struct RecentFile *next, *prev;

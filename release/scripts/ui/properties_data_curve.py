@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -180,11 +180,9 @@ class DATA_PT_pathanim(DataButtonsPanelCurve):
 
         layout.active = curve.use_path
 
-        row = layout.row()
+        col = layout.column()
         layout.prop(curve, "path_length", text="Frames")
-
-        if wide_ui:
-            row.label()
+        layout.prop(curve, "eval_time")
 
         split = layout.split()
 
@@ -283,7 +281,7 @@ class DATA_PT_font(DataButtonsPanel):
         wide_ui = context.region.width > narrowui
 
         layout.template_ID(text, "font", open="font.open", unlink="font.unlink")
-        
+
         #if wide_ui:
         #    layout.prop(text, "font")
         #else:
@@ -385,13 +383,29 @@ class DATA_PT_textboxes(DataButtonsPanel):
             col.prop(box, "y", text="Y")
 
 
-bpy.types.register(DATA_PT_context_curve)
-bpy.types.register(DATA_PT_shape_curve)
-bpy.types.register(DATA_PT_geometry_curve)
-bpy.types.register(DATA_PT_pathanim)
-bpy.types.register(DATA_PT_active_spline)
-bpy.types.register(DATA_PT_font)
-bpy.types.register(DATA_PT_paragraph)
-bpy.types.register(DATA_PT_textboxes)
+classes = [
+    DATA_PT_context_curve,
+    DATA_PT_shape_curve,
+    DATA_PT_geometry_curve,
+    DATA_PT_pathanim,
+    DATA_PT_active_spline,
+    DATA_PT_font,
+    DATA_PT_paragraph,
+    DATA_PT_textboxes,
 
-bpy.types.register(DATA_PT_custom_props_curve)
+    DATA_PT_custom_props_curve]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

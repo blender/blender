@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008, Blender Foundation, Joshua Leung
  * This is a new part of Blender
@@ -1456,6 +1456,16 @@ static int gpencil_draw_modal (bContext *C, wmOperator *op, wmEvent *event)
 			}
 			else {
 				/* not painting, so start stroke (this should be mouse-button down) */
+				
+				/* we must check that we're still within the area that we're set up to work from
+				 * otherwise we could crash (see bug #20586)
+				 */
+				if (CTX_wm_area(C) != p->sa) {
+					//printf("\t\t\tGP - wrong area execution abort! \n");
+					gpencil_draw_exit(C, op);
+					return OPERATOR_CANCELLED;
+				}
+				 
 				//printf("\t\tGP - start stroke \n");
 				p->status= GP_STATUS_PAINTING;
 				/* no break now, since we should immediately start painting */
@@ -1500,7 +1510,7 @@ void GPENCIL_OT_draw (wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Grease Pencil Draw";
 	ot->idname= "GPENCIL_OT_draw";
-	ot->description= "Make annotations on the active data.";
+	ot->description= "Make annotations on the active data";
 	
 	/* api callbacks */
 	ot->exec= gpencil_draw_exec;

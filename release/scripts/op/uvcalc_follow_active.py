@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -47,7 +47,7 @@ def extend(obj, operator, EXTEND_MODE):
         '''
         Takes 2 faces,
         Projects its extends its UV coords onto the face next to it.
-        Both faces must share an edge.
+        Both faces must share an edge
         '''
 
         def face_edge_vs(vi):
@@ -239,14 +239,12 @@ def main(context, operator):
 
 
 class FollowActiveQuads(bpy.types.Operator):
-    '''Follow UVs from active quads along continuous face loops.'''
+    '''Follow UVs from active quads along continuous face loops'''
     bl_idname = "uv.follow_active_quads"
     bl_label = "Follow Active Quads"
+    bl_options = {'REGISTER', 'UNDO'}
 
-    bl_register = True
-    bl_undo = True
-
-    mode = bpy.props.EnumProperty(items=(("EVEN", "Client", "Space all UVs evently"), ("LENGTH", "Length", "Average space UVs edge length of each loop.")),
+    mode = bpy.props.EnumProperty(items=(("EVEN", "Even", "Space all UVs evently"), ("LENGTH", "Length", "Average space UVs edge length of each loop")),
                         name="Edge Length Mode",
                         description="Method to space UV edge loops",
                         default="LENGTH")
@@ -259,11 +257,19 @@ class FollowActiveQuads(bpy.types.Operator):
         main(context, self)
         return {'FINISHED'}
 
-bpy.types.register(FollowActiveQuads)
 
 # Add to a menu
 menu_func = (lambda self, context: self.layout.operator(FollowActiveQuads.bl_idname))
-bpy.types.VIEW3D_MT_uv_map.append(menu_func)
 
-if __name__ == '__main__':
-    bpy.ops.uv.follow_active_quads()
+
+def register():
+    bpy.types.register(FollowActiveQuads)
+    bpy.types.VIEW3D_MT_uv_map.append(menu_func)
+
+def unregister():
+    bpy.types.unregister(FollowActiveQuads)
+    bpy.types.VIEW3D_MT_uv_map.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -1037,6 +1037,21 @@ void blend_m4_m4m4(float out[][4], float dst[][4], float src[][4], float srcweig
 	loc_quat_size_to_mat4(out, floc, fquat, fsize);
 }
 
+
+int is_negative_m3(float mat[][3])
+{
+	float vec[3];
+	cross_v3_v3v3(vec, mat[0], mat[1]);
+	return (dot_v3v3(vec, mat[2]) < 0.0f);
+}
+
+int is_negative_m4(float mat[][4])
+{
+	float vec[3];
+	cross_v3_v3v3(vec, mat[0], mat[1]);
+	return (dot_v3v3(vec, mat[2]) < 0.0f);
+}
+
 /* make a 4x4 matrix out of 3 transform components */
 /* matrices are made in the order: scale * rot * loc */
 // TODO: need to have a version that allows for rotation order...
@@ -1128,4 +1143,3 @@ void print_m4(char *str, float m[][4])
 	printf("%f %f %f %f\n",m[0][3],m[1][3],m[2][3],m[3][3]);
 	printf("\n");
 }
-

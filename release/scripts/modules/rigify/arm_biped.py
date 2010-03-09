@@ -12,15 +12,15 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
 
 import bpy
-from math import radians
-from rigify import RigifyError, get_layer_dict, ORG_PREFIX
+from math import radians, pi
+from rigify import RigifyError, ORG_PREFIX
 from rigify_utils import bone_class_instance, copy_bone_simple, add_pole_target_bone, add_stretch_to, blend_bone_list, get_side_name, get_base_name
 from rna_prop_ui import rna_idprop_ui_prop_get
 from Mathutils import Vector
@@ -162,7 +162,7 @@ def ik(obj, definitions, base_names, options):
     con.use_target = True
     con.use_rotation = False
     con.chain_length = 2
-    con.pole_angle = -90.0 # XXX, RAD2DEG
+    con.pole_angle = -pi/2
 
     # last step setup layers
     if "ik_layer" in options:
@@ -223,6 +223,7 @@ def fk(obj, definitions, base_names, options):
     fk_chain.forearm_p.rotation_mode = 'XYZ'
     fk_chain.forearm_p.lock_rotation = (False, True, True)
     fk_chain.hand_p.rotation_mode = 'ZXY'
+    fk_chain.arm_p.lock_location = True, True, True
 
     con = fk_chain.arm_p.constraints.new('COPY_LOCATION')
     con.target = obj
@@ -277,6 +278,13 @@ def fk(obj, definitions, base_names, options):
     fk_chain.forearm_b.layer = layer
     fk_chain.hand_b.layer    = layer
 
+    # Forearm was getting wrong roll somehow.  Hack to fix that.
+    bpy.ops.object.mode_set(mode='EDIT')
+    fk_chain.update()
+    mt.update()
+    fk_chain.forearm_e.roll = mt.forearm_e.roll
+    bpy.ops.object.mode_set(mode='OBJECT')
+
     bpy.ops.object.mode_set(mode='EDIT')
     return None, fk_chain.arm, fk_chain.forearm, fk_chain.hand
 
@@ -293,7 +301,7 @@ def deform(obj, definitions, base_names, options):
     center = uarm1.center
     uarm1.tail = center
     uarm2.head = center
-    
+
     # Create forearm bones: two bones, each half of the forearm.
     farm1 = copy_bone_simple(obj.data, definitions[2], "DEF-%s.01" % base_names[definitions[2]], parent=True)
     farm2 = copy_bone_simple(obj.data, definitions[2], "DEF-%s.02" % base_names[definitions[2]], parent=True)
@@ -303,16 +311,16 @@ def deform(obj, definitions, base_names, options):
     center = farm1.center
     farm1.tail = center
     farm2.head = center
-    
+
     # Create twist bone
     twist = copy_bone_simple(obj.data, definitions[2], "MCH-arm_twist")
     twist.connected = False
     twist.parent = obj.data.edit_bones[definitions[3]]
     twist.length /= 2
-    
+
     # Create hand bone
     hand = copy_bone_simple(obj.data, definitions[3], "DEF-%s" % base_names[definitions[3]], parent=True)
-    
+
     # Store names before leaving edit mode
     uarm1_name = uarm1.name
     uarm2_name = uarm2.name
@@ -320,10 +328,10 @@ def deform(obj, definitions, base_names, options):
     farm2_name = farm2.name
     twist_name = twist.name
     hand_name = hand.name
-    
+
     # Leave edit mode
     bpy.ops.object.mode_set(mode='OBJECT')
-    
+
     # Get the pose bones
     uarm1 = obj.pose.bones[uarm1_name]
     uarm2 = obj.pose.bones[uarm2_name]
@@ -331,40 +339,50 @@ def deform(obj, definitions, base_names, options):
     farm2 = obj.pose.bones[farm2_name]
     twist = obj.pose.bones[twist_name]
     hand = obj.pose.bones[hand_name]
-    
+
     # Upper arm constraints
     con = uarm1.constraints.new('DAMPED_TRACK')
     con.name = "trackto"
     con.target = obj
     con.subtarget = definitions[2]
-    
+
+    con = uarm1.constraints.new('COPY_SCALE')
+    con.name = "trackto"
+    con.target = obj
+    con.subtarget = definitions[1]
+
     con = uarm2.constraints.new('COPY_ROTATION')
     con.name = "copy_rot"
     con.target = obj
     con.subtarget = definitions[1]
-    
+
     # Forearm constraints
     con = farm1.constraints.new('COPY_ROTATION')
     con.name = "copy_rot"
     con.target = obj
     con.subtarget = definitions[2]
-    
+
+    con = farm1.constraints.new('COPY_SCALE')
+    con.name = "copy_rot"
+    con.target = obj
+    con.subtarget = definitions[2]
+
     con = farm2.constraints.new('COPY_ROTATION')
     con.name = "copy_rot"
     con.target = obj
     con.subtarget = twist.name
-    
+
     con = farm2.constraints.new('DAMPED_TRACK')
     con.name = "trackto"
     con.target = obj
     con.subtarget = definitions[3]
-    
+
     # Hand constraint
     con = hand.constraints.new('COPY_ROTATION')
     con.name = "copy_rot"
     con.target = obj
     con.subtarget = definitions[3]
-    
+
     bpy.ops.object.mode_set(mode='EDIT')
     return (uarm1_name, uarm2_name, farm1_name, farm2_name, hand_name)
 

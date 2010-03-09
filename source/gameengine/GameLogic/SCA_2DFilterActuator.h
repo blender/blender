@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -29,8 +29,8 @@
 #define __SCA_2DFILETRACTUATOR_H__
 
 #include "RAS_IRasterizer.h"
-#include "RAS_IRenderTools.h"
 #include "SCA_IActuator.h"
+#include "KX_Scene.h"
 
 class SCA_2DFilterActuator : public SCA_IActuator
 {
@@ -45,7 +45,7 @@ private:
 	int   m_int_arg;
 	STR_String	m_shaderText;
 	RAS_IRasterizer* m_rasterizer;
-	RAS_IRenderTools* m_rendertools;
+	KX_Scene* m_scene;
 
 public:
 
@@ -56,7 +56,7 @@ public:
 		float float_arg,
 		int int_arg,
 		RAS_IRasterizer* rasterizer,
-		RAS_IRenderTools* rendertools);
+		KX_Scene* scene);
 
 	void	SetShaderText(const char *text);
     virtual ~SCA_2DFilterActuator();

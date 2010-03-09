@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2005 Blender Foundation.
  * All rights reserved.
@@ -42,9 +42,9 @@ static bNodeSocketType outputs[]= {
 
 static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)
 {
-	float x  = p->coord[0];
-	float y  = p->coord[1];
-	float z  = p->coord[2];
+	float x  = p->co[0];
+	float y  = p->co[1];
+	float z  = p->co[2];
 	float sz = tex_input_value(in[2], p, thread);
 	
 	/* 0.00001  because of unit sized stuff */

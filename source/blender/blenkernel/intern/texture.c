@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -420,6 +420,7 @@ void free_texture(Tex *tex)
 	if(tex->env) BKE_free_envmap(tex->env);
 	if(tex->pd) BKE_free_pointdensity(tex->pd);
 	if(tex->vd) BKE_free_voxeldata(tex->vd);
+	BKE_free_animdata((struct ID *)tex);
 	BKE_previewimg_free(&tex->preview);
 	BKE_icon_delete((struct ID*)tex);
 	tex->id.icon_id = 0;
@@ -858,6 +859,14 @@ void set_current_lamp_texture(Lamp *la, Tex *newtex)
 	}
 }
 
+bNode *give_current_material_texture_node(Material *ma)
+{
+	if(ma && ma->use_nodes && ma->nodetree)
+		return nodeGetActiveID(ma->nodetree, ID_TE);
+	
+	return NULL;
+}
+
 Tex *give_current_material_texture(Material *ma)
 {
 	MTex *mtex= NULL;
@@ -865,6 +874,9 @@ Tex *give_current_material_texture(Material *ma)
 	bNode *node;
 	
 	if(ma && ma->use_nodes && ma->nodetree) {
+		/* first check texture, then material, this works together
+		   with a hack that clears the active ID flag for textures on
+		   making a material node active */
 		node= nodeGetActiveID(ma->nodetree, ID_TE);
 
 		if(node) {
@@ -877,6 +889,7 @@ Tex *give_current_material_texture(Material *ma)
 				ma= (Material*)node->id;
 		}
 	}
+
 	if(ma) {
 		mtex= ma->mtex[(int)(ma->texact)];
 		if(mtex) tex= mtex->tex;
@@ -1095,7 +1108,6 @@ PointDensity *BKE_add_pointdensity(void)
 	pd->coba = add_colorband(1);
 	pd->speed_scale = 1.0f;
 	pd->totpoints = 0;
-	pd->coba = add_colorband(1);
 	pd->object = NULL;
 	pd->psys = 0;
 	return pd;

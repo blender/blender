@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Blender Foundation (2008).
  *
@@ -478,7 +478,7 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 
 	if(srna->flag & STRUCT_RUNTIME) {
 		if(RNA_struct_py_type_get(srna)) {
-			fprintf(stderr, "StructRNA \"%s\" freed while holdng a python reference\n", srna->name);
+			fprintf(stderr, "StructRNA \"%s\" freed while holding a python reference\n", srna->name);
 		}
 	}
 
@@ -650,7 +650,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 		/* define some builtin properties */
 		prop= RNA_def_property(&srna->cont, "rna_properties", PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_flag(prop, PROP_BUILTIN);
-		RNA_def_property_ui_text(prop, "Properties", "RNA property collection.");
+		RNA_def_property_ui_text(prop, "Properties", "RNA property collection");
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Property");
@@ -668,7 +668,7 @@ StructRNA *RNA_def_struct(BlenderRNA *brna, const char *identifier, const char *
 
 		prop= RNA_def_property(&srna->cont, "rna_type", PROP_POINTER, PROP_NONE);
 		RNA_def_property_flag(prop, PROP_HIDDEN);
-		RNA_def_property_ui_text(prop, "RNA", "RNA type definition.");
+		RNA_def_property_ui_text(prop, "RNA", "RNA type definition");
 
 		if(DefRNA.preprocess) {
 			RNA_def_property_struct_type(prop, "Struct");
@@ -938,7 +938,7 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 		prop->flag= PROP_EDITABLE;
 	
 		if(type != PROP_STRING)
-			prop->flag |= PROP_ANIMATEABLE;
+			prop->flag |= PROP_ANIMATABLE;
 	}
 
 	if(DefRNA.preprocess) {
@@ -1703,6 +1703,7 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop, const char *structname,
 			else {
 				dp->dnalengthstructname= structname;
 				dp->dnalengthname= lengthpropname;
+				prop->totarraylength= 0;
 			}
 
 			cprop->next= (PropCollectionNextFunc)"rna_iterator_array_next";
@@ -2419,17 +2420,26 @@ FunctionRNA *RNA_def_function_runtime(StructRNA *srna, const char *identifier, C
 	return func;
 }
 
-/* C return value only!, multiple rna returns can be done with RNA_def_function_return_mark */
+/* C return value only!, multiple RNA returns can be done with RNA_def_function_output */
 void RNA_def_function_return(FunctionRNA *func, PropertyRNA *ret)
 {
+	if (ret->flag & PROP_DYNAMIC) {
+		fprintf(stderr, "RNA_def_function_return: %s.%s, dynamic values are not allowed as strict returns, use RNA_def_function_output instead.\n", func->identifier, ret->identifier);
+		return;
+	}
+	else if (ret->arraydimension) {
+		fprintf(stderr, "RNA_def_function_return: %s.%s, arrays are not allowed as strict returns, use RNA_def_function_output instead.\n", func->identifier, ret->identifier);
+		return;
+	}
+
 	func->c_ret= ret;
 
-	RNA_def_function_return_mark(func, ret);
+	RNA_def_function_output(func, ret);
 }
 
-void RNA_def_function_return_mark(FunctionRNA *func, PropertyRNA *ret)
+void RNA_def_function_output(FunctionRNA *func, PropertyRNA *ret)
 {
-	ret->flag|=PROP_RETURN;
+	ret->flag|= PROP_OUTPUT;
 }
 
 void RNA_def_function_flag(FunctionRNA *func, int flag)
@@ -2448,6 +2458,7 @@ int rna_parameter_size(PropertyRNA *parm)
 	int len= parm->totarraylength; /* only supports fixed length at the moment */
 
 	if(len > 0) {
+		/* XXX in other parts is mentioned that strings can be dynamic as well */
 		if (parm->flag & PROP_DYNAMIC)
 			return sizeof(void *);
 
@@ -2495,6 +2506,18 @@ int rna_parameter_size(PropertyRNA *parm)
 	}
 
 	return sizeof(void *);
+}
+
+/* this function returns the size of the memory allocated for the parameter,
+   useful for instance for memory alignment or for storing additional information */
+int rna_parameter_size_alloc(PropertyRNA *parm)
+{
+	int size = rna_parameter_size(parm);
+
+	if (parm->flag & PROP_DYNAMIC)
+		size+= sizeof(int);
+
+	return size;
 }
 
 /* Dynamic Enums */

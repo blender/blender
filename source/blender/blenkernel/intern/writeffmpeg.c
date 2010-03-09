@@ -15,7 +15,6 @@
  *
  */
 
-
 #ifdef WITH_FFMPEG
 #include <string.h>
 #include <stdio.h>
@@ -78,11 +77,10 @@ extern void do_init_ffmpeg();
 
 static int ffmpeg_type = 0;
 static int ffmpeg_codec = CODEC_ID_MPEG4;
-static int ffmpeg_audio_codec = CODEC_ID_MP2;
+static int ffmpeg_audio_codec = CODEC_ID_NONE;
 static int ffmpeg_video_bitrate = 1150;
 static int ffmpeg_audio_bitrate = 128;
 static int ffmpeg_gop_size = 12;
-static int ffmpeg_multiplex_audio = 1;
 static int ffmpeg_autosplit = 0;
 static int ffmpeg_autosplit_count = 0;
 
@@ -96,9 +94,10 @@ static uint8_t* video_buffer = 0;
 static int video_buffersize = 0;
 
 static uint8_t* audio_input_buffer = 0;
-static int audio_input_frame_size = 0;
+static int audio_input_samples = 0;
 static uint8_t* audio_output_buffer = 0;
 static int audio_outbuf_size = 0;
+static double audio_time = 0.0f;
 
 static AUD_Device* audio_mixdown_device = 0;
 
@@ -133,27 +132,39 @@ static int write_audio_frame(void)
 
 	c = get_codec_from_stream(audio_stream);
 
-	if(audio_mixdown_device)
-		AUD_readDevice(audio_mixdown_device, audio_input_buffer, audio_input_frame_size);
-
 	av_init_packet(&pkt);
+	pkt.size = 0;
+
+	AUD_readDevice(audio_mixdown_device, audio_input_buffer, audio_input_samples);
+	audio_time += (double) audio_input_samples / (double) c->sample_rate;
 
 	pkt.size = avcodec_encode_audio(c, audio_output_buffer,
-					audio_outbuf_size, 
+					audio_outbuf_size,
 					(short*) audio_input_buffer);
+
+	if(pkt.size < 0)
+	{
+		// XXX error("Error writing audio packet");
+		return -1;
+	}
+
 	pkt.data = audio_output_buffer;
+
+	if(c->coded_frame && c->coded_frame->pts != AV_NOPTS_VALUE)
+	{
 #ifdef FFMPEG_CODEC_TIME_BASE
-	pkt.pts = av_rescale_q(c->coded_frame->pts, 
-			       c->time_base, audio_stream->time_base);
+		pkt.pts = av_rescale_q(c->coded_frame->pts,
+					   c->time_base, audio_stream->time_base);
 #else
-	pkt.pts = c->coded_frame->pts;
+		pkt.pts = c->coded_frame->pts;
 #endif
-	fprintf(stderr, "Audio Frame PTS: %d\n", (int)pkt.pts);
+		fprintf(stderr, "Audio Frame PTS: %d\n", (int)pkt.pts);
+	}
 
 	pkt.stream_index = audio_stream->index;
 	pkt.flags |= PKT_FLAG_KEY;
 	if (av_interleaved_write_frame(outfile, &pkt) != 0) {
-		//XXX error("Error writing audio packet");
+		// XXX error("Error writing audio packet");
 		return -1;
 	}
 	return 0;
@@ -231,6 +242,14 @@ static const char** get_file_extensions(int format)
 	}
 	case FFMPEG_OGG: {
 		static const char * rv[] = { ".ogg", ".ogv", NULL };
+		return rv;
+	}
+	case FFMPEG_MP3: {
+		static const char * rv[] = { ".mp3", NULL };
+		return rv;
+	}
+	case FFMPEG_WAV: {
+		static const char * rv[] = { ".wav", NULL };
 		return rv;
 	}
 	default:
@@ -563,6 +582,7 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	c->sample_rate = rd->ffcodecdata.audio_mixrate;
 	c->bit_rate = ffmpeg_audio_bitrate*1000;
+	c->sample_fmt = SAMPLE_FMT_S16;
 	c->channels = 2;
 	codec = avcodec_find_encoder(c->codec_id);
 	if (!codec) {
@@ -577,39 +597,25 @@ static AVStream* alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 		return NULL;
 	}
 
-	/* FIXME: Should be user configurable */
-	if (ffmpeg_type == FFMPEG_DV) {
-		/* this is a hack around the poor ffmpeg dv multiplexer. */
-		/* only fixes PAL for now 
-		   (NTSC is a lot more complicated here...)! */
-		audio_outbuf_size = 7680;
-	} else {
-		audio_outbuf_size = 10000;
+	audio_outbuf_size = FF_MIN_BUFFER_SIZE;
+
+	if((c->codec_id >= CODEC_ID_PCM_S16LE) && (c->codec_id <= CODEC_ID_PCM_DVD))
+		audio_input_samples = audio_outbuf_size * 8 / c->bits_per_coded_sample / c->channels;
+	else
+	{
+		audio_input_samples = c->frame_size;
+		if(c->frame_size * c->channels * sizeof(int16_t) * 4 > audio_outbuf_size)
+			audio_outbuf_size = c->frame_size * c->channels * sizeof(int16_t) * 4;
 	}
+
 	audio_output_buffer = (uint8_t*)MEM_mallocN(
 		audio_outbuf_size, "FFMPEG audio encoder input buffer");
 
-       /* ugly hack for PCM codecs */
-
-	if (c->frame_size <= 1) {
-		audio_input_frame_size = audio_outbuf_size / c->channels;
-		switch(c->codec_id) {
-		case CODEC_ID_PCM_S16LE:
-		case CODEC_ID_PCM_S16BE:
-		case CODEC_ID_PCM_U16LE:
-		case CODEC_ID_PCM_U16BE:
-			audio_input_frame_size >>= 1;
-			break;
-		default:
-			break;
-		}
-	} else {
-		audio_input_frame_size = c->frame_size;
-	}
-
 	audio_input_buffer = (uint8_t*)MEM_mallocN(
-		audio_input_frame_size * sizeof(short) * c->channels, 
+		audio_input_samples * c->channels * sizeof(int16_t),
 		"FFMPEG audio encoder output buffer");
+
+	audio_time = 0.0f;
 
 	return st;
 }
@@ -629,8 +635,6 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	ffmpeg_video_bitrate = rd->ffcodecdata.video_bitrate;
 	ffmpeg_audio_bitrate = rd->ffcodecdata.audio_bitrate;
 	ffmpeg_gop_size = rd->ffcodecdata.gop_size;
-	ffmpeg_multiplex_audio = rd->ffcodecdata.flags
-		& FFMPEG_MULTIPLEX_AUDIO;
 	ffmpeg_autosplit = rd->ffcodecdata.flags
 		& FFMPEG_AUTOSPLIT_OUTPUT;
 	
@@ -641,12 +645,11 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	fprintf(stderr, "Starting output to %s(ffmpeg)...\n"
 		"  Using type=%d, codec=%d, audio_codec=%d,\n"
 		"  video_bitrate=%d, audio_bitrate=%d,\n"
-		"  gop_size=%d, multiplex=%d, autosplit=%d\n"
+		"  gop_size=%d, autosplit=%d\n"
 		"  render width=%d, render height=%d\n", 
 		name, ffmpeg_type, ffmpeg_codec, ffmpeg_audio_codec,
 		ffmpeg_video_bitrate, ffmpeg_audio_bitrate,
-		ffmpeg_gop_size, ffmpeg_multiplex_audio,
-		ffmpeg_autosplit, rectx, recty);
+		ffmpeg_gop_size, ffmpeg_autosplit, rectx, recty);
 	
 	exts = get_file_extensions(ffmpeg_type);
 	if (!exts) {
@@ -667,7 +670,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	
 	of->oformat = fmt;
 	of->packet_size= rd->ffcodecdata.mux_packet_size;
-	if (ffmpeg_multiplex_audio) {
+	if (ffmpeg_audio_codec != CODEC_ID_NONE) {
 		of->mux_rate = rd->ffcodecdata.mux_rate;
 	} else {
 		of->mux_rate = 0;
@@ -675,6 +678,8 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 
 	of->preload = (int)(0.5*AV_TIME_BASE);
 	of->max_delay = (int)(0.7*AV_TIME_BASE);
+
+	fmt->audio_codec = ffmpeg_audio_codec;
 
 	snprintf(of->filename, sizeof(of->filename), "%s", name);
 	/* set the codec to the user's selection */
@@ -703,6 +708,11 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	case FFMPEG_FLV:
 		fmt->video_codec = CODEC_ID_FLV1;
 		break;
+	case FFMPEG_MP3:
+		fmt->audio_codec = CODEC_ID_MP3;
+	case FFMPEG_WAV:
+		fmt->video_codec = CODEC_ID_NONE;
+		break;
 	case FFMPEG_MPEG4:
 	default:
 		fmt->video_codec = CODEC_ID_MPEG4;
@@ -723,30 +733,29 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 		}
 	}
 	
-	fmt->audio_codec = ffmpeg_audio_codec;
-
 	if (ffmpeg_type == FFMPEG_DV) {
 		fmt->audio_codec = CODEC_ID_PCM_S16LE;
-		if (ffmpeg_multiplex_audio && rd->ffcodecdata.audio_mixrate != 48000) {
+		if (ffmpeg_audio_codec != CODEC_ID_NONE && rd->ffcodecdata.audio_mixrate != 48000) {
 			BKE_report(reports, RPT_ERROR, "FFMPEG only supports 48khz / stereo audio for DV!");
 			return 0;
 		}
 	}
 	
-	video_stream = alloc_video_stream(rd, fmt->video_codec, of, rectx, recty);
-	printf("alloc video stream %p\n", video_stream);
-	if (!video_stream) {
-		BKE_report(reports, RPT_ERROR, "Error initializing video stream.");
-		return 0;
+	if (fmt->video_codec != CODEC_ID_NONE) {
+		video_stream = alloc_video_stream(rd, fmt->video_codec, of, rectx, recty);
+		printf("alloc video stream %p\n", video_stream);
+		if (!video_stream) {
+			BKE_report(reports, RPT_ERROR, "Error initializing video stream.");
+			return 0;
+		}
 	}
-	
-	if (ffmpeg_multiplex_audio) {
+
+	if (ffmpeg_audio_codec != CODEC_ID_NONE) {
 		audio_stream = alloc_audio_stream(rd, fmt->audio_codec, of);
 		if (!audio_stream) {
 			BKE_report(reports, RPT_ERROR, "Error initializing audio stream.");
 			return 0;
 		}
-		//XXX audiostream_play(SFRA, 0, 1);
 	}
 	if (av_set_parameters(of, NULL) < 0) {
 		BKE_report(reports, RPT_ERROR, "Error setting output parameters.");
@@ -772,15 +781,6 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 
 /* Get the output filename-- similar to the other output formats */
 void filepath_ffmpeg(char* string, RenderData* rd) {
-
-	// XXX quick define, solve!
-#define FILE_MAXDIR 256
-#define FILE_MAXFILE 126
-		
-	char txt[FILE_MAXDIR+FILE_MAXFILE];
-	// XXX
-#undef FILE_MAXDIR
-#undef FILE_MAXFILE
 	char autosplit[20];
 
 	const char ** exts = get_file_extensions(rd->ffcodecdata.type);
@@ -790,7 +790,6 @@ void filepath_ffmpeg(char* string, RenderData* rd) {
 
 	strcpy(string, rd->pic);
 	BLI_convertstringcode(string, G.sce);
-	BLI_convertstringframe(string, rd->cfra);
 
 	BLI_make_existing_file(string);
 
@@ -810,9 +809,9 @@ void filepath_ffmpeg(char* string, RenderData* rd) {
 
 	if (!*fe) {
 		strcat(string, autosplit);
-		sprintf(txt, "%04d_%04d%s", (rd->sfra), 
-			(rd->efra), *exts);
-		strcat(string, txt);
+
+		BLI_convertstringframe_range(string, rd->sfra, rd->efra, 4);
+		strcat(string, *exts);
 	} else {
 		*(string + strlen(string) - strlen(*fe)) = 0;
 		strcat(string, autosplit);
@@ -828,14 +827,14 @@ int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, Repo
 
 	success = start_ffmpeg_impl(rd, rectx, recty, reports);
 
-	if(ffmpeg_multiplex_audio && audio_stream)
+	if(audio_stream)
 	{
 		AVCodecContext* c = get_codec_from_stream(audio_stream);
 		AUD_DeviceSpecs specs;
 		specs.channels = c->channels;
 		specs.format = AUD_FORMAT_S16;
 		specs.rate = rd->ffcodecdata.audio_mixrate;
-		audio_mixdown_device = sound_mixdown(scene, specs, rd->sfra, rd->efra, rd->ffcodecdata.audio_volume);
+		audio_mixdown_device = sound_mixdown(scene, specs, rd->sfra, rd->ffcodecdata.audio_volume);
 	}
 
 	return success;
@@ -843,21 +842,13 @@ int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, Repo
 
 void end_ffmpeg(void);
 
-static void write_audio_frames()
+static void write_audio_frames(double to_pts)
 {
 	int finished = 0;
 
-	while (ffmpeg_multiplex_audio && !finished) {
-		double a_pts = ((double)audio_stream->pts.val 
-				* audio_stream->time_base.num 
-				/ audio_stream->time_base.den);
-		double v_pts = ((double)video_stream->pts.val 
-				* video_stream->time_base.num 
-				/ video_stream->time_base.den);
-		
-		if (a_pts < v_pts) {
-			write_audio_frame();
-		} else {
+	while (audio_stream && !finished) {
+		if((audio_time >= to_pts) ||
+		   (write_audio_frame())) {
 			finished = 1;
 		}
 	}
@@ -866,24 +857,30 @@ static void write_audio_frames()
 int append_ffmpeg(RenderData *rd, int frame, int *pixels, int rectx, int recty, ReportList *reports) 
 {
 	AVFrame* avframe;
-	int success;
+	int success = 1;
 
 	fprintf(stderr, "Writing frame %i, "
 		"render width=%d, render height=%d\n", frame,
 		rectx, recty);
 
-	write_audio_frames();
+// why is this done before writing the video frame and again at end_ffmpeg?
+//	write_audio_frames(frame / (((double)rd->frs_sec) / rd->frs_sec_base));
 
-	avframe= generate_video_frame((unsigned char*) pixels, reports);
-	success= (avframe && write_video_frame(rd, avframe, reports));
+	if(video_stream)
+	{
+		avframe= generate_video_frame((unsigned char*) pixels, reports);
+		success= (avframe && write_video_frame(rd, avframe, reports));
 
-	if (ffmpeg_autosplit) {
-		if (url_ftell(OUTFILE_PB) > FFMPEG_AUTOSPLIT_SIZE) {
-			end_ffmpeg();
-			ffmpeg_autosplit_count++;
-			success &= start_ffmpeg_impl(rd, rectx, recty, reports);
+		if (ffmpeg_autosplit) {
+			if (url_ftell(OUTFILE_PB) > FFMPEG_AUTOSPLIT_SIZE) {
+				end_ffmpeg();
+				ffmpeg_autosplit_count++;
+				success &= start_ffmpeg_impl(rd, rectx, recty, reports);
+			}
 		}
 	}
+
+	write_audio_frames((frame - rd->sfra) / (((double)rd->frs_sec) / rd->frs_sec_base));
 
 	return success;
 }
@@ -895,9 +892,9 @@ void end_ffmpeg(void)
 	
 	fprintf(stderr, "Closing ffmpeg...\n");
 
-	if (audio_stream && video_stream) {
+/*	if (audio_stream) { SEE UPPER
 		write_audio_frames();
-	}
+	}*/
 
 	if(audio_mixdown_device)
 	{
@@ -1269,8 +1266,8 @@ void ffmpeg_verify_image_type(RenderData *rd)
 		}
 	}
 
-	if(audio && rd->ffcodecdata.audio_codec <= 0) {
-		rd->ffcodecdata.audio_codec = CODEC_ID_MP2;
+	if(audio && rd->ffcodecdata.audio_codec < 0) {
+		rd->ffcodecdata.audio_codec = CODEC_ID_NONE;
 		rd->ffcodecdata.audio_bitrate = 128;
 	}
 }

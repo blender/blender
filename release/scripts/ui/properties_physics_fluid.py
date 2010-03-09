@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -29,7 +29,7 @@ class PhysicButtonsPanel(bpy.types.Panel):
 
     def poll(self, context):
         ob = context.object
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
 
 
@@ -291,7 +291,24 @@ class PHYSICS_PT_domain_particles(PhysicButtonsPanel):
         col.prop(fluid, "tracer_particles")
         col.prop(fluid, "generate_particles")
 
-bpy.types.register(PHYSICS_PT_fluid)
-bpy.types.register(PHYSICS_PT_domain_gravity)
-bpy.types.register(PHYSICS_PT_domain_boundary)
-bpy.types.register(PHYSICS_PT_domain_particles)
+
+classes = [
+    PHYSICS_PT_fluid,
+    PHYSICS_PT_domain_gravity,
+    PHYSICS_PT_domain_boundary,
+    PHYSICS_PT_domain_particles]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

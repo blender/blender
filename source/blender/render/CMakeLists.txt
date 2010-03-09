@@ -13,7 +13,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2006, Blender Foundation
 # All rights reserved.
@@ -53,6 +53,10 @@ IF(APPLE)
 		SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mfpmath=sse")
 	ENDIF(CMAKE_OSX_ARCHITECTURES MATCHES "i386" OR CMAKE_OSX_ARCHITECTURES MATCHES "x86_64")
 ENDIF(APPLE)
+
+IF(WITH_RAYOPTIMIZATION)
+	ADD_DEFINITIONS(-D__SSE__)
+ENDIF(WITH_RAYOPTIMIZATION)
 
 #TODO
 #if env['OURPLATFORM']=='linux2':

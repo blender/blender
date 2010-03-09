@@ -96,7 +96,6 @@ COMLIB += $(OCGDIR)/blender/nodes_cmp/$(DEBUG_DIR)libnodes_cmp.a
 COMLIB += $(OCGDIR)/blender/nodes_tex/$(DEBUG_DIR)libnodes_tex.a
 COMLIB += $(OCGDIR)/blender/nodes/$(DEBUG_DIR)libnodes.a
 COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
-COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
 COMLIB += $(OCGDIR)/blender/ikplugin/$(DEBUG_DIR)libikplugin.a
 COMLIB += $(NAN_IKSOLVER)/lib/$(DEBUG_DIR)libiksolver.a
 COMLIB += $(NAN_ITASC)/lib/$(DEBUG_DIR)libitasc.a
@@ -184,6 +183,8 @@ COMLIB += $(NAN_MEMUTIL)/lib/libmemutil.a
 COMLIB += $(NAN_PNG)/lib/libpng.a
 COMLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a # This was a PULIB up to circa r25248
 COMLIB += $(OCGDIR)/blender/gen_python/$(DEBUG_DIR)libgen_python.a
+COMLIB += $(OCGDIR)/blender/blenlib/$(DEBUG_DIR)libblenlib.a
+
 
 ifeq ($(WITH_QUICKTIME), true)
     COMLIB += $(OCGDIR)/blender/blenderqt/$(DEBUG_DIR)libblenderqt.a

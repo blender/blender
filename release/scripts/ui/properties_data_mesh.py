@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -21,6 +21,30 @@ import bpy
 from rna_prop_ui import PropertyPanel
 
 narrowui = 180
+
+
+class MESH_MT_vertex_group_specials(bpy.types.Menu):
+    bl_label = "Vertex Group Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.vertex_group_sort", icon='SORTALPHA')
+        layout.operator("object.vertex_group_copy", icon='COPY_ID')
+        layout.operator("object.vertex_group_copy_to_linked", icon='LINK_AREA')
+        layout.operator("object.vertex_group_copy_to_selected", icon='LINK_AREA')
+        layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT')
+
+
+class MESH_MT_shape_key_specials(bpy.types.Menu):
+    bl_label = "Shape Key Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("object.shape_key_transfer", icon='COPY_ID') # icon is not ideal
+        layout.operator("object.join_shapes", icon='COPY_ID') # icon is not ideal
+        layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT')
 
 
 class DataButtonsPanel(bpy.types.Panel):
@@ -121,10 +145,7 @@ class DATA_PT_vertex_groups(DataButtonsPanel):
         col = row.column(align=True)
         col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
         col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="")
-
-        col.operator("object.vertex_group_copy", icon='COPY_ID', text="")
-        if ob.data.users > 1:
-            col.operator("object.vertex_group_copy_to_linked", icon='LINK_AREA', text="")
+        col.menu("MESH_MT_vertex_group_specials", icon='DOWNARROW_HLT', text="")
 
         if group:
             row = layout.row()
@@ -155,12 +176,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
 
         ob = context.object
         key = ob.data.shape_keys
-        if key and len(key.keys):
-            # this is so that we get the active shapekey from the 
-            # shapekeys block, not from object data
-            kb = key.keys[ob.active_shape_key.name]
-        else:
-            kb = None
+        kb = ob.active_shape_key
         wide_ui = context.region.width > narrowui
 
         enable_edit = ob.mode != 'EDIT'
@@ -182,6 +198,7 @@ class DATA_PT_shape_keys(DataButtonsPanel):
         sub = col.column(align=True)
         sub.operator("object.shape_key_add", icon='ZOOMIN', text="")
         sub.operator("object.shape_key_remove", icon='ZOOMOUT', text="")
+        sub.menu("MESH_MT_shape_key_specials", icon='DOWNARROW_HLT', text="")
 
         if kb:
             col.separator()
@@ -211,11 +228,8 @@ class DATA_PT_shape_keys(DataButtonsPanel):
             subsub.prop(kb, "mute", text="")
             sub.prop(ob, "shape_key_edit_mode", text="")
 
-            sub = row.row(align=True)
-            sub.operator("object.shape_key_transfer", icon='COPY_ID', text="") # icon is not ideal
-            sub.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT', text="")
+            sub = row.row()
             sub.operator("object.shape_key_clear", icon='X', text="")
-
 
             row = layout.row()
             row.prop(kb, "name")
@@ -290,13 +304,32 @@ class DATA_PT_vertex_colors(DataButtonsPanel):
         if lay:
             layout.prop(lay, "name")
 
-bpy.types.register(DATA_PT_context_mesh)
-bpy.types.register(DATA_PT_normals)
-bpy.types.register(DATA_PT_settings)
-bpy.types.register(DATA_PT_vertex_groups)
-bpy.types.register(DATA_PT_shape_keys)
-bpy.types.register(DATA_PT_uv_texture)
-bpy.types.register(DATA_PT_vertex_colors)
 
-bpy.types.register(DATA_PT_custom_props_mesh)
+classes = [
+    MESH_MT_vertex_group_specials,
+    MESH_MT_shape_key_specials,
 
+    DATA_PT_context_mesh,
+    DATA_PT_normals,
+    DATA_PT_settings,
+    DATA_PT_vertex_groups,
+    DATA_PT_shape_keys,
+    DATA_PT_uv_texture,
+    DATA_PT_vertex_colors,
+
+    DATA_PT_custom_props_mesh]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

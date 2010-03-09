@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -387,13 +387,28 @@ class BONE_PT_deform(BoneButtonsPanel):
         col.label(text="Offset:")
         col.prop(bone, "cyclic_offset")
 
+classes = [
+    BONE_PT_context_bone,
+    BONE_PT_transform,
+    BONE_PT_transform_locks,
+    BONE_PT_relations,
+    BONE_PT_display,
+    BONE_PT_inverse_kinematics,
+    BONE_PT_deform,
 
-bpy.types.register(BONE_PT_context_bone)
-bpy.types.register(BONE_PT_transform)
-bpy.types.register(BONE_PT_transform_locks)
-bpy.types.register(BONE_PT_relations)
-bpy.types.register(BONE_PT_display)
-bpy.types.register(BONE_PT_inverse_kinematics)
-bpy.types.register(BONE_PT_deform)
+    BONE_PT_custom_props]
 
-bpy.types.register(BONE_PT_custom_props)
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

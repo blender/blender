@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
@@ -79,6 +79,17 @@ typedef struct CurveMapping {
 #define CUMA_PREMULLED			2
 #define CUMA_DRAW_CFRA			4
 #define CUMA_DRAW_SAMPLE		8
+
+typedef struct Histogram {
+	int channels;
+	int x_resolution;
+	float data_r[256];
+	float data_g[256];
+	float data_b[256];
+	float xmax, ymax;
+	int ok;
+	int flag;
+} Histogram;
 
 #endif
 

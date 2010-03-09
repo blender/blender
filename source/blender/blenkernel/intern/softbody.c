@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) Blender Foundation
  * All rights reserved.
@@ -1270,7 +1270,7 @@ static int sb_detect_face_collisionCached(float face_v1[3],float face_v2[3],floa
 						normalize_v3(d_nvect);	
 						if ( 
 							/* isect_line_tri_v3(nv1, nv3, face_v1, face_v2, face_v3, &t, NULL) ||
-							 we did that edge allready */
+							 we did that edge already */
 							isect_line_tri_v3(nv3, nv4, face_v1, face_v2, face_v3, &t, NULL) ||
 							isect_line_tri_v3(nv4, nv1, face_v1, face_v2, face_v3, &t, NULL) ){
 							Vec3PlusStVec(force,-0.5f,d_nvect);
@@ -2865,7 +2865,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	/* or heun ~ 2nd order runge-kutta steps, mode 1,2 */
 	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bp;
-	float dx[3],dv[3],aabbmin[3],aabbmax[3],cm[3]={0.0f,0.0f,0.0f};
+	float dx[3]={0},dv[3],aabbmin[3],aabbmax[3],cm[3]={0.0f,0.0f,0.0f};
 	float timeovermass/*,freezeloc=0.00001f,freezeforce=0.00000000001f*/;
 	float maxerrpos= 0.0f,maxerrvel = 0.0f;
 	int a,fuzzy=0;
@@ -3268,7 +3268,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 
 		if (sb->namedVG_Mass[0])
 		{
-			int grp= get_named_vertexgroup_num (ob,sb->namedVG_Mass);
+			int grp= defgroup_name_index (ob,sb->namedVG_Mass);
 			/* printf("VGN  %s %d \n",sb->namedVG_Mass,grp); */
 			if(grp > -1){
 				get_scalar_from_vertexgroup(ob, a,(short) (grp), &bp->mass);
@@ -3282,7 +3282,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 
 		if (sb->namedVG_Spring_K[0])
 		{
-			int grp= get_named_vertexgroup_num (ob,sb->namedVG_Spring_K);
+			int grp= defgroup_name_index (ob,sb->namedVG_Spring_K);
 			//printf("VGN  %s %d \n",sb->namedVG_Spring_K,grp); 
 			if(grp > -1){
 				get_scalar_from_vertexgroup(ob, a,(short) (grp), &bp->springweight);
@@ -3487,7 +3487,9 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
 	sb= ob->soft;	/* can be created in renew_softbody() */
 	
 	/* weights from bpoints, same code used as for mesh vertices */
-	if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) {
+	/* if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) { 2.4x one*/
+	/* new! take the weights from lattice vertex anyhow */
+	if(ob->softflag & OB_SB_GOAL){
 		BodyPoint *bp= sb->bpoint;
 		BPoint *bpnt= lt->def;
 		float goalfac= ABS(sb->maxgoal - sb->mingoal);
@@ -3539,7 +3541,9 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 	bs= sb->bspring;
 	
 	/* weights from bpoints, same code used as for mesh vertices */
-	if((ob->softflag & OB_SB_GOAL) && sb->vertgroup)
+	/* if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) 2.4x hack*/
+	/* new! take the weights from curve vertex anyhow */
+	if(ob->softflag & OB_SB_GOAL) 
 		setgoal= 1;
 		
 	for(nu= cu->nurb.first; nu; nu= nu->next) {

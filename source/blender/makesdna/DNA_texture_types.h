@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -184,7 +184,7 @@ typedef struct VoxelData {
 	short file_format;
 	short flag;
 	short extend;
-	short pad;
+	short smoked_type;
 	
 	struct Object *object; /* for rendering smoke sims */
 	float int_multiplier;	
@@ -236,7 +236,7 @@ typedef struct Tex {
 	int frames, offset, sfra;
 	
 	float checkerdist, nabla;
-	float norfac;
+	float pad1;
 	
 	struct ImageUser iuser;
 	
@@ -357,6 +357,7 @@ typedef struct TexMapping {
 #define TEX_REPEAT_XMIR		128
 #define TEX_REPEAT_YMIR		256
 #define TEX_FLAG_MASK		( TEX_COLORBAND | TEX_FLIPBLEND | TEX_NEGALPHA | TEX_CHECKER_ODD | TEX_CHECKER_EVEN | TEX_PRV_ALPHA | TEX_PRV_NOR | TEX_REPEAT_XMIR | TEX_REPEAT_YMIR ) 
+#define TEX_DS_EXPAND		512
 
 /* extend (starts with 1 because of backward comp.) */
 #define TEX_EXTEND		1
@@ -545,6 +546,11 @@ typedef struct TexMapping {
 #define TEX_VD_RAW_16BIT		2
 #define TEX_VD_IMAGE_SEQUENCE	3
 #define TEX_VD_SMOKE			4
+
+/* smoke data types */
+#define TEX_VD_SMOKEDENSITY		0
+#define TEX_VD_SMOKEHEAT		1
+#define TEX_VD_SMOKEVEL			2
 
 #endif
 

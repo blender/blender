@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) Blender Foundation
  * All rights reserved.
@@ -433,7 +433,7 @@ DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifie
 	}
 	
 	BLI_convertstringcode(targetDir, G.sce);
-	BLI_convertstringframe(targetDir, curFrame); // fixed #frame-no 
+	BLI_convertstringframe(targetDir, curFrame, 0); // fixed #frame-no 
 	
 	strcpy(targetFile,targetDir);
 	strcat(targetFile, ".bobj.gz");
@@ -562,6 +562,12 @@ void fluid_get_bb(MVert *mvert, int totvert, float obmat[][4],
 	float bbex=1.0, bbey=1.0, bbez=1.0;
 	int i;
 	float vec[3];
+
+	if(totvert == 0) {
+		zero_v3(start);
+		zero_v3(size);
+		return;
+	}
 
 	VECCOPY(vec, mvert[0].co); 
 	mul_m4_v3(obmat, vec);

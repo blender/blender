@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -134,7 +134,14 @@ public:
 	 * interface above for this,
 	 */
 	std::vector<GHOST_IWindow *> & getWindows();
-
+	
+	/**
+	 * Finds the window associated with an OS window object/handle
+	 * @param osWindow The OS window object/handle
+	 * @return The associated window, null if none corresponds
+	 */
+	virtual GHOST_IWindow* getWindowAssociatedWithOSWindow(void* osWindow);
+	
 	/**
 	 * Return true if any windows has a modified status
 	 * @return True if any window has unsaved changes

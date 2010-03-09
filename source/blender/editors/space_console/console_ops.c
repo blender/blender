@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -279,12 +279,12 @@ static int console_edit_poll(bContext *C)
 
 	return 1;
 }
-
+#if 0
 static int console_poll(bContext *C)
 {
 	return (CTX_wm_space_console(C) != NULL);
 }
-
+#endif
 
 /* static funcs for text editing */
 
@@ -362,7 +362,7 @@ void CONSOLE_OT_move(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Move Cursor";
-    ot->description= "Move cursor position.";
+    ot->description= "Move cursor position";
 	ot->idname= "CONSOLE_OT_move";
 	
 	/* api callbacks */
@@ -404,7 +404,7 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Insert";
-    ot->description= "Insert text at cursor position.";
+    ot->description= "Insert text at cursor position";
 	ot->idname= "CONSOLE_OT_insert";
 	
 	/* api callbacks */
@@ -469,7 +469,7 @@ void CONSOLE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Delete";
-    ot->description= "Delete text by cursor position.";
+    ot->description= "Delete text by cursor position";
 	ot->idname= "CONSOLE_OT_delete";
 	
 	/* api callbacks */
@@ -510,7 +510,7 @@ void CONSOLE_OT_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Clear";
-    ot->description= "Clear text by type.";
+    ot->description= "Clear text by type";
 	ot->idname= "CONSOLE_OT_clear";
 	
 	/* api callbacks */
@@ -569,7 +569,7 @@ void CONSOLE_OT_history_cycle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "History Cycle";
-    ot->description= "Cycle through history.";
+    ot->description= "Cycle through history";
 	ot->idname= "CONSOLE_OT_history_cycle";
 	
 	/* api callbacks */
@@ -614,7 +614,7 @@ void CONSOLE_OT_history_append(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "History Append";
-    ot->description= "Append history at cursor position.";
+    ot->description= "Append history at cursor position";
 	ot->idname= "CONSOLE_OT_history_append";
 	
 	/* api callbacks */
@@ -659,7 +659,7 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Scrollback Append";
-    ot->description= "Append scrollback text by type.";
+    ot->description= "Append scrollback text by type";
 	ot->idname= "CONSOLE_OT_scrollback_append";
 	
 	/* api callbacks */
@@ -681,23 +681,71 @@ static int copy_exec(bContext *C, wmOperator *op)
 	char *buf_str;
 	
 	ConsoleLine *cl;
-	
+	int sel[2];
+	int offset= 0;
+
+#if 0
+	/* copy whole file */
 	for(cl= sc->scrollback.first; cl; cl= cl->next) {
 		BLI_dynstr_append(buf_dyn, cl->line);
 		BLI_dynstr_append(buf_dyn, "\n");
+	}
+#endif
+
+	if(sc->sel_start == sc->sel_end)
+		return OPERATOR_CANCELLED;
+
+
+	for(cl= sc->scrollback.first; cl; cl= cl->next) {
+		offset += cl->len + 1;
+	}
+
+	if(offset==0)
+		return OPERATOR_CANCELLED;
+
+
+	offset -= 1;
+	sel[0]= offset - sc->sel_end;
+	sel[1]= offset - sc->sel_start;
+
+	for(cl= sc->scrollback.first; cl; cl= cl->next) {
+
+		int sta= MAX2(0, sel[0]);
+		int end= MIN2(cl->len, sel[1]);
+
+		if(sel[0] <= cl->len && sel[1] >= 0) {
+			int str_len= cl->len;
+
+			/* highly confusing but draws correctly */
+			if(sel[0] < 0 || sel[1] > str_len) {
+				if(sel[0] > 0) {
+					end= sta;
+					sta= 0;
+				}
+				if (sel[1] <= str_len) {
+					sta= end;
+					end= str_len;
+				}
+			}
+			/* end confusement */
+
+			SWAP(int, sta, end);
+			end= cl->len - end;
+			sta= cl->len - sta;
+
+			if(BLI_dynstr_get_len(buf_dyn))
+				BLI_dynstr_append(buf_dyn, "\n");
+
+			BLI_dynstr_nappend(buf_dyn, cl->line + sta, end - sta);
+		}
+
+		sel[0] -= cl->len + 1;
+		sel[1] -= cl->len + 1;
 	}
 
 	buf_str= BLI_dynstr_get_cstring(buf_dyn);
 	buf_len= BLI_dynstr_get_len(buf_dyn);
 	BLI_dynstr_free(buf_dyn);
-
-	/* hack for selection */
-#if 0
-	if(sc->sel_start != sc->sel_end) {
-		buf_str[buf_len - sc->sel_start]= '\0';
-		WM_clipboard_text_set(buf_str+(buf_len - sc->sel_end), 0);
-	}
-#endif
 	WM_clipboard_text_set(buf_str, 0);
 
 	MEM_freeN(buf_str);
@@ -708,7 +756,7 @@ void CONSOLE_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Copy to Clipboard";
-    ot->description= "Copy selected text to clipboard.";
+    ot->description= "Copy selected text to clipboard";
 	ot->idname= "CONSOLE_OT_copy";
 
 	/* api callbacks */
@@ -723,11 +771,28 @@ static int paste_exec(bContext *C, wmOperator *op)
 	ConsoleLine *ci= console_history_verify(C);
 
 	char *buf_str= WM_clipboard_text_get(0);
+	char *buf_step, *buf_next;
 
 	if(buf_str==NULL)
 		return OPERATOR_CANCELLED;
 
-	console_line_insert(ci, buf_str); /* TODO - Multiline copy?? */
+	buf_next= buf_str;
+	buf_step= buf_str;
+
+	while((buf_next=buf_step) && buf_next[0] != '\0') {
+		buf_step= strchr(buf_next, '\n');
+		if(buf_step) {
+			*buf_step= '\0';
+			buf_step++;
+		}
+
+		if(buf_next != buf_str) {
+			WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL);
+			ci= console_history_verify(C);
+		}
+
+		console_line_insert(ci, buf_next);
+	}
 
 	MEM_freeN(buf_str);
 
@@ -740,7 +805,7 @@ void CONSOLE_OT_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Paste from Clipboard";
-    ot->description= "Paste text from clipboard.";
+    ot->description= "Paste text from clipboard";
 	ot->idname= "CONSOLE_OT_paste";
 
 	/* api callbacks */
@@ -853,7 +918,7 @@ void CONSOLE_OT_select_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Set Selection";
 	ot->idname= "CONSOLE_OT_select_set";
-	ot->description= "Set the console selection.";
+	ot->description= "Set the console selection";
 
 	/* api callbacks */
 	ot->invoke= console_modal_select_invoke;

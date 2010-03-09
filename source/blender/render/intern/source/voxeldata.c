@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -57,29 +57,40 @@
 #include "texture.h"
 #include "voxeldata.h"
 
-void load_frame_blendervoxel(FILE *fp, float *F, int size, int frame, int offset)
+static int load_frame_blendervoxel(FILE *fp, float *F, int size, int frame, int offset)
 {	
-	fseek(fp,frame*size*sizeof(float)+offset,0);
-	fread(F,sizeof(float),size,fp);
+	if(fseek(fp,frame*size*sizeof(float)+offset,0) == -1)
+		return 0;
+	if(fread(F,sizeof(float),size,fp) != size)
+		return 0;
+	
+	return 1;
 }
 
-void load_frame_raw8(FILE *fp, float *F, int size, int frame)
+static int load_frame_raw8(FILE *fp, float *F, int size, int frame)
 {
 	char *tmp;
 	int i;
 	
 	tmp = (char *)MEM_mallocN(sizeof(char)*size, "temporary voxel file reading storage");
 	
-	fseek(fp,(frame-1)*size*sizeof(char),0);
-	fread(tmp, sizeof(char), size, fp);
+	if(fseek(fp,(frame-1)*size*sizeof(char),0) == -1) {
+		MEM_freeN(tmp);
+		return 0;
+	}
+	if(fread(tmp, sizeof(char), size, fp) != size) {
+		MEM_freeN(tmp);
+		return 0;
+	}
 	
 	for (i=0; i<size; i++) {
 		F[i] = (float)tmp[i] / 256.f;
 	}
 	MEM_freeN(tmp);
+	return 1;
 }
 
-void load_frame_image_sequence(Render *re, VoxelData *vd, Tex *tex)
+static void load_frame_image_sequence(Render *re, VoxelData *vd, Tex *tex)
 {
 	ImBuf *ibuf;
 	Image *ima = tex->ima;
@@ -133,26 +144,25 @@ void load_frame_image_sequence(Render *re, VoxelData *vd, Tex *tex)
 	}
 }
 
-void write_voxeldata_header(struct VoxelDataHeader *h, FILE *fp)
-{
-	fwrite(h,sizeof(struct VoxelDataHeader),1,fp);
-}
-
-void read_voxeldata_header(FILE *fp, struct VoxelData *vd)
+static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
 {
 	VoxelDataHeader *h=(VoxelDataHeader *)MEM_mallocN(sizeof(VoxelDataHeader), "voxel data header");
 	
 	rewind(fp);
-	fread(h,sizeof(VoxelDataHeader),1,fp);
+	if(fread(h,sizeof(VoxelDataHeader),1,fp) != 1) {
+		MEM_freeN(h);
+		return 0;
+	}
 	
 	vd->resol[0]=h->resolX;
 	vd->resol[1]=h->resolY;
 	vd->resol[2]=h->resolZ;
 
 	MEM_freeN(h);
+	return 1;
 }
 
-void init_frame_smoke(Render *re, VoxelData *vd, Tex *tex)
+static void init_frame_smoke(Render *re, VoxelData *vd, Tex *tex)
 {
 	Object *ob;
 	ModifierData *md;
@@ -165,21 +175,66 @@ void init_frame_smoke(Render *re, VoxelData *vd, Tex *tex)
 	if( (md = (ModifierData *)modifiers_findByType(ob, eModifierType_Smoke)) )
 	{
 		SmokeModifierData *smd = (SmokeModifierData *)md;
+
 		
 		if(smd->domain && smd->domain->fluid) {
 			
-			if (smd->domain->flags & MOD_SMOKE_HIGHRES) {
-				smoke_turbulence_get_res(smd->domain->wt, vd->resol);
-				vd->dataset = smoke_turbulence_get_density(smd->domain->wt);
-			} else {
+			if (vd->smoked_type == TEX_VD_SMOKEHEAT) {
+				int totRes;
+				float *heat;
+				int i;
+
 				VECCOPY(vd->resol, smd->domain->res);
-				vd->dataset = smoke_get_density(smd->domain->fluid);
+				totRes = (vd->resol[0])*(vd->resol[1])*(vd->resol[2]);
+
+				// scaling heat values from -2.0-2.0 to 0.0-1.0
+				vd->dataset = MEM_mapallocN(sizeof(float)*(totRes), "smoke data");
+
+
+				heat = smoke_get_heat(smd->domain->fluid);
+
+				for (i=0; i<totRes; i++)
+				{
+					vd->dataset[i] = (heat[i]+2.0f)/4.0f;
+				}
+
+				//vd->dataset = smoke_get_heat(smd->domain->fluid);
 			}
+			else if (vd->smoked_type == TEX_VD_SMOKEVEL) {
+				int totRes;
+				float *xvel, *yvel, *zvel;
+				int i;
+
+				VECCOPY(vd->resol, smd->domain->res);
+				totRes = (vd->resol[0])*(vd->resol[1])*(vd->resol[2]);
+
+				// scaling heat values from -2.0-2.0 to 0.0-1.0
+				vd->dataset = MEM_mapallocN(sizeof(float)*(totRes), "smoke data");
+
+				xvel = smoke_get_velocity_x(smd->domain->fluid);
+				yvel = smoke_get_velocity_y(smd->domain->fluid);
+				zvel = smoke_get_velocity_z(smd->domain->fluid);
+
+				for (i=0; i<totRes; i++)
+				{
+					vd->dataset[i] = sqrt(xvel[i]*xvel[i] + yvel[i]*yvel[i] + zvel[i]*zvel[i])*3.0f;
+				}
+
+			}
+			else {
+				if (smd->domain->flags & MOD_SMOKE_HIGHRES) {
+					smoke_turbulence_get_res(smd->domain->wt, vd->resol);
+					vd->dataset = smoke_turbulence_get_density(smd->domain->wt);
+				} else {
+					VECCOPY(vd->resol, smd->domain->res);
+					vd->dataset = smoke_get_density(smd->domain->fluid);
+				}
+			} // end of fluid condition
 		}
 	}
 }
 
-void cache_voxeldata(struct Render *re,Tex *tex)
+static void cache_voxeldata(struct Render *re,Tex *tex)
 {	
 	VoxelData *vd = tex->vd;
 	FILE *fp;
@@ -201,8 +256,12 @@ void cache_voxeldata(struct Render *re,Tex *tex)
 	fp = fopen(vd->source_path,"rb");
 	if (!fp) return;
 
-	if (vd->file_format == TEX_VD_BLENDERVOXEL)
-		read_voxeldata_header(fp, vd);
+	if (vd->file_format == TEX_VD_BLENDERVOXEL) {
+		if(!read_voxeldata_header(fp, vd)) {
+			fclose(fp);
+			return;
+		}
+	}
 	
 	size = (vd->resol[0])*(vd->resol[1])*(vd->resol[2]);
 	vd->dataset = MEM_mapallocN(sizeof(float)*size, "voxel dataset");
@@ -246,7 +305,8 @@ static void free_voxeldata_one(Render *re, Tex *tex)
 	VoxelData *vd = tex->vd;
 	
 	if (vd->dataset) {
-		MEM_freeN(vd->dataset);
+		if(vd->file_format != TEX_VD_SMOKE)
+			MEM_freeN(vd->dataset);
 		vd->dataset = NULL;
 	}
 }

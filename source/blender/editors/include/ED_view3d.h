@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -158,6 +158,9 @@ void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct AR
 	int winx, int winy, float viewmat[][4], float winmat[][4]);
 
 void view3d_clipping_local(struct RegionView3D *rv3d, float mat[][4]);
+
+Base *ED_view3d_give_base_under_cursor(struct bContext *C, short *mval);
+void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar);
 
 #endif /* ED_VIEW3D_H */
 

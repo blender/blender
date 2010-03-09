@@ -14,7 +14,7 @@
 *
 * You should have received a copy of the GNU General Public License
 * along with this program; if not, write to the Free Software  Foundation,
-* Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 *
 * The Original Code is Copyright (C) 2006 Blender Foundation.
 * All rights reserved.
@@ -55,6 +55,7 @@
 /* File open options, for BKE_ptcache_file_open */
 #define PTCACHE_FILE_READ	0
 #define PTCACHE_FILE_WRITE	1
+#define PTCACHE_FILE_UPDATE	2
 
 /* PTCacheID types */
 #define PTCACHE_TYPE_SOFTBODY			0
@@ -213,7 +214,7 @@ typedef struct PTCacheEdit {
 	struct ParticleSystem *psys;
 	struct ParticleData *particles;
 	struct KDTree *emitter_field;
-	float *emitter_cosnos;
+	float *emitter_cosnos; /* localspace face centers and normals (average of its verts), from the derived mesh */
 	int *mirror_cache;
 
 	struct ParticleCacheKey **pathcache;	/* path cache (runtime) */

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 by the Blender Foundation.
  * All rights reserved.
@@ -104,6 +104,7 @@ void draw_motion_paths_init(Scene *scene, View3D *v3d, ARegion *ar)
  * 	- assumes that the viewport has already been initialised properly
  *		i.e. draw_motion_paths_init() has been called
  */
+// FIXME: the text is still drawn in the wrong space - it includes the current transforms of the object still...
 void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar, 
 			Object *ob, bPoseChannel *pchan, bAnimVizSettings *avs, bMotionPath *mpath)
 {
@@ -219,7 +220,7 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 			/* only draw framenum if several consecutive highlighted points don't occur on same point */
 			if (i == 0) {
 				sprintf(str, "%d", (i+sfra));
-				view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0);
+				view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0, 0);
 			}
 			else if ((i > stepsize) && (i < len-stepsize)) { 
 				bMotionPathVert *mpvP = (mpv - stepsize);
@@ -227,7 +228,7 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 				
 				if ((equals_v3v3(mpv->co, mpvP->co)==0) || (equals_v3v3(mpv->co, mpvN->co)==0)) {
 					sprintf(str, "%d", (sfra+i));
-					view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0);
+					view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0, 0);
 				}
 			}
 		}
@@ -273,7 +274,7 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 		glPointSize(1.0f);
 		
 		/* Draw frame numbers of keyframes  */
-		if (avs->path_viewflag & (MOTIONPATH_VIEW_FNUMS|MOTIONPATH_VIEW_KFNOS)) {
+		if (avs->path_viewflag & MOTIONPATH_VIEW_FNUMS) {
 			for (i=0, mpv=mpv_start; i < len; i++, mpv++) {
 				float mframe= (float)(sfra + i);
 				
@@ -281,7 +282,7 @@ void draw_motion_path_instance(Scene *scene, View3D *v3d, ARegion *ar,
 					char str[32];
 					
 					sprintf(str, "%d", (sfra+i));
-					view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0);
+					view3d_cached_text_draw_add(mpv->co[0], mpv->co[1], mpv->co[2], str, 0, 0);
 				}
 			}
 		}
@@ -515,7 +516,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	
 	/* draw from darkest blend to lowest */
 	for(cur= stepsize; cur<range; cur+=stepsize) {
-		ctime= cur - (float)fmod(cfrao, stepsize);	/* ensures consistant stepping */
+		ctime= cur - (float)fmod(cfrao, stepsize);	/* ensures consistent stepping */
 		colfac= ctime/range;
 		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0*sqrt(colfac)));
 		
@@ -530,7 +531,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			}
 		}
 		
-		ctime= cur + (float)fmod((float)cfrao, stepsize) - stepsize+1.0f;	/* ensures consistant stepping */
+		ctime= cur + (float)fmod((float)cfrao, stepsize) - stepsize+1.0f;	/* ensures consistent stepping */
 		colfac= ctime/range;
 		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0*sqrt(colfac)));
 		

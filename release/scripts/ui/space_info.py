@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -25,10 +25,15 @@ class INFO_HT_header(bpy.types.Header):
 
     def draw(self, context):
         layout = self.layout
-
+        
+        wm = context.manager
+        if wm and len(wm.operators):
+            last_op = wm.operators[-1]
+        else:
+            last_op = None
         window = context.window
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
 
         row = layout.row(align=True)
         row.template_header()
@@ -58,11 +63,14 @@ class INFO_HT_header(bpy.types.Header):
 
         layout.separator()
 
-        layout.template_operator_search()
         layout.template_running_jobs()
+        
+        if last_op and last_op.has_reports:
+            layout.template_reports_banner(last_op)
+        else:
+            layout.label(text=scene.statistics())
 
-        layout.label(text=scene.statistics())
-
+        # XXX: this should be right-aligned to the RHS of the region
         layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER', text="")
 
 
@@ -83,13 +91,15 @@ class INFO_MT_file(bpy.types.Menu):
         layout.separator()
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_mainfile", text="Save", icon='FILE_TICK')
+        layout.operator("wm.save_mainfile", text="Save", icon='FILE_TICK').check_existing = False
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.save_as_mainfile", text="Save As...")
 
         layout.separator()
 
         layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
+
+        layout.operator_context = 'EXEC_AREA'
         layout.operator("wm.read_homefile", text="Load Factory Settings").factory = True
 
         layout.separator()
@@ -121,11 +131,18 @@ class INFO_MT_file_open_recent(bpy.types.Menu):
         import os
         layout = self.layout
         layout.operator_context = 'EXEC_AREA'
-        file = open(os.path.join(bpy.app.home, ".Blog"), "rU")
-        for line in file:
-            line = line.rstrip()
-            layout.operator("wm.open_mainfile", text=line, icon='FILE_BLEND').path = line
-        file.close()
+
+        path = os.path.join(bpy.app.home, ".Blog")
+
+        if os.path.isfile(path):
+            file = open(path, "rU")
+            for line in file:
+                line = line.rstrip()
+                layout.operator("wm.open_mainfile", text=line, icon='FILE_BLEND').path = line
+            file.close()
+        else:
+            layout.label(text='No recent files')
+
 
 class INFO_MT_file_import(bpy.types.Menu):
     bl_idname = "INFO_MT_file_import"
@@ -133,7 +150,7 @@ class INFO_MT_file_import(bpy.types.Menu):
 
     def draw(self, context):
         if "collada_import" in dir(bpy.ops.wm):
-            self.layout.operator("wm.collada_import", text="COLLADA (.dae)...")
+            self.layout.operator("wm.collada_import", text="COLLADA (.dae)")
 
 
 class INFO_MT_file_export(bpy.types.Menu):
@@ -142,7 +159,7 @@ class INFO_MT_file_export(bpy.types.Menu):
 
     def draw(self, context):
         if "collada_export" in dir(bpy.ops.wm):
-            self.layout.operator("wm.collada_export", text="COLLADA (.dae)...")
+            self.layout.operator("wm.collada_export", text="COLLADA (.dae)")
 
 
 class INFO_MT_file_external_data(bpy.types.Menu):
@@ -152,7 +169,7 @@ class INFO_MT_file_external_data(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("file.pack_all", text="Pack into .blend file")
-        layout.operator("file.unpack_all", text="Unpack into Files...")
+        layout.operator("file.unpack_all", text="Unpack into Files")
 
         layout.separator()
 
@@ -164,7 +181,7 @@ class INFO_MT_file_external_data(bpy.types.Menu):
 
 class INFO_MT_mesh_add(bpy.types.Menu):
     bl_idname = "INFO_MT_mesh_add"
-    bl_label = "Add Mesh"
+    bl_label = "Mesh"
 
     def draw(self, context):
         layout = self.layout
@@ -222,7 +239,11 @@ class INFO_MT_add(bpy.types.Menu):
         layout.operator_menu_enum("object.effector_add", "type", 'EMPTY', text="Force Field", icon='OUTLINER_OB_EMPTY')
         layout.separator()
 
-        layout.operator_menu_enum("object.group_instance_add", "type", text="Group Instance", icon='OUTLINER_OB_EMPTY')
+        if(len(bpy.data.groups) > 10):
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("object.group_instance_add", "type", text="Group Instance...", icon='OUTLINER_OB_EMPTY')
+        else:
+            layout.operator_menu_enum("object.group_instance_add", "type", text="Group Instance", icon='OUTLINER_OB_EMPTY')
 
 
 class INFO_MT_game(bpy.types.Menu):
@@ -240,7 +261,8 @@ class INFO_MT_game(bpy.types.Menu):
         layout.prop(gs, "show_debug_properties")
         layout.prop(gs, "show_framerate_profile")
         layout.prop(gs, "show_physics_visualization")
-        layout.prop(gs, "deprecation_warnings")
+        layout.prop(gs, "use_deprecation_warnings")
+        layout.prop(gs, "use_animation_record")
 
 
 class INFO_MT_render(bpy.types.Menu):
@@ -249,7 +271,7 @@ class INFO_MT_render(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
 
-        # rd = context.scene.render_data
+        # rd = context.scene.render
 
         layout.operator("screen.render", text="Render Image", icon='RENDER_STILL')
         layout.operator("screen.render", text="Render Animation", icon='RENDER_ANIMATION').animation = True
@@ -286,18 +308,6 @@ class INFO_MT_help(bpy.types.Menu):
         layout.operator("help.python_api", icon='URL')
         layout.operator("help.operator_cheat_sheet")
 
-bpy.types.register(INFO_HT_header)
-bpy.types.register(INFO_MT_file)
-bpy.types.register(INFO_MT_file_open_recent)
-bpy.types.register(INFO_MT_file_import)
-bpy.types.register(INFO_MT_file_export)
-bpy.types.register(INFO_MT_file_external_data)
-bpy.types.register(INFO_MT_add)
-bpy.types.register(INFO_MT_mesh_add)
-bpy.types.register(INFO_MT_armature_add)
-bpy.types.register(INFO_MT_game)
-bpy.types.register(INFO_MT_render)
-bpy.types.register(INFO_MT_help)
 
 # Help operators
 
@@ -363,7 +373,7 @@ class HELP_OT_python_api(HelpOperator):
     '''Reference for operator and data Python API'''
     bl_idname = "help.python_api"
     bl_label = "Python API Reference"
-    _url = 'http://www.blender.org/documentation/250PythonDoc/'
+    _url = 'http://www.blender.org/documentation/250PythonDoc/contents.html'
 
 
 class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
@@ -390,12 +400,42 @@ class HELP_OT_operator_cheat_sheet(bpy.types.Operator):
         self.report({'INFO'}, "See OperatorList.txt textblock")
         return {'FINISHED'}
 
-bpy.types.register(HELP_OT_manual)
-bpy.types.register(HELP_OT_release_logs)
-bpy.types.register(HELP_OT_blender_website)
-bpy.types.register(HELP_OT_blender_eshop)
-bpy.types.register(HELP_OT_developer_community)
-bpy.types.register(HELP_OT_user_community)
-bpy.types.register(HELP_OT_report_bug)
-bpy.types.register(HELP_OT_python_api)
-bpy.types.register(HELP_OT_operator_cheat_sheet)
+
+classes = [
+    INFO_HT_header,
+    INFO_MT_file,
+    INFO_MT_file_open_recent,
+    INFO_MT_file_import,
+    INFO_MT_file_export,
+    INFO_MT_file_external_data,
+    INFO_MT_add,
+    INFO_MT_mesh_add,
+    INFO_MT_armature_add,
+    INFO_MT_game,
+    INFO_MT_render,
+    INFO_MT_help,
+
+    HELP_OT_manual,
+    HELP_OT_release_logs,
+    HELP_OT_blender_website,
+    HELP_OT_blender_eshop,
+    HELP_OT_developer_community,
+    HELP_OT_user_community,
+    HELP_OT_report_bug,
+    HELP_OT_python_api,
+    HELP_OT_operator_cheat_sheet]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

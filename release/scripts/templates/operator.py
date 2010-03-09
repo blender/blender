@@ -19,6 +19,11 @@ class ExportSomeData(bpy.types.Operator):
     path = StringProperty(name="File Path", description="File path used for exporting the PLY file", maxlen= 1024, default= "")
     use_setting = BoolProperty(name="Example Boolean", description="Example Tooltip", default= True)
 
+    type = bpy.props.EnumProperty(items=(('OPT_A', "First Option", "Description one"), ('OPT_B', "Second Option", "Description two.")),
+                        name="Example Enum",
+                        description="Choose between two items",
+                        default='OPT_A')
+
     def poll(self, context):
         return context.active_object != None
 
@@ -39,11 +44,16 @@ class ExportSomeData(bpy.types.Operator):
             # File selector
             wm.add_fileselect(self) # will run self.execute()
             return {'RUNNING_MODAL'}
-        elif 0:
+        elif True:
+            # search the enum
+            wm.invoke_search_popup(self)
+            return {'RUNNING_MODAL'}
+        elif False:
             # Redo popup
             return wm.invoke_props_popup(self, event) #
-        elif 0:
+        elif False:
             return self.execute(context)
+
 
 
 bpy.types.register(ExportSomeData)
@@ -53,4 +63,4 @@ menu_func = lambda self, context: self.layout.operator("export.some_data", text=
 bpy.types.INFO_MT_file_export.append(menu_func)
 
 if __name__ == "__main__":
-    bpy.ops.export.some_data(path="/tmp/test.ply")
+    bpy.ops.export.some_data('INVOKE_DEFAULT', path="/tmp/test.ply")

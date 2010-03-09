@@ -18,7 +18,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -144,6 +144,11 @@ typedef struct ImagePaintPartialRedraw {
 	int enabled;
 } ImagePaintPartialRedraw;
 
+typedef struct ImagePaintRegion {
+	int destx, desty;
+	int srcx, srcy;
+	int width, height;
+} ImagePaintRegion;
 
 /* ProjectionPaint defines */
 
@@ -2840,7 +2845,17 @@ static void project_paint_begin(ProjPaintState *ps)
 		}
 	}
 	
-
+	/* when using subsurf or multires, mface arrays are thrown away, we need to keep a copy */
+	if(ps->dm->type != DM_TYPE_CDDM) {
+		ps->dm_mvert= MEM_dupallocN(ps->dm_mvert);
+		ps->dm_mface= MEM_dupallocN(ps->dm_mface);
+		/* looks like these are ok for now.*/
+		/*
+		ps->dm_mtface= MEM_dupallocN(ps->dm_mtface);
+		ps->dm_mtface_clone= MEM_dupallocN(ps->dm_mtface_clone);
+		ps->dm_mtface_stencil= MEM_dupallocN(ps->dm_mtface_stencil);
+		 */
+	}
 	
 	ps->viewDir[0] = 0.0f;
 	ps->viewDir[1] = 0.0f;
@@ -3266,6 +3281,18 @@ static void project_paint_end(ProjPaintState *ps)
 		BLI_memarena_free(ps->arena_mt[a]);
 	}
 	
+	/* copy for subsurf/multires, so throw away */
+	if(ps->dm->type != DM_TYPE_CDDM) {
+		if(ps->dm_mvert) MEM_freeN(ps->dm_mvert);
+		if(ps->dm_mface) MEM_freeN(ps->dm_mface);
+		/* looks like these dont need copying */
+		/*
+		if(ps->dm_mtface) MEM_freeN(ps->dm_mtface);
+		if(ps->dm_mtface_clone) MEM_freeN(ps->dm_mtface_clone);
+		if(ps->dm_mtface_stencil) MEM_freeN(ps->dm_mtface_stencil);
+		*/
+	}
+
 	if(ps->dm_release)
 		ps->dm->release(ps->dm);
 }
@@ -3556,7 +3583,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	rctf bucket_bounds;
 	
 	/* for smear only */
-	float pos_ofs[2];
+	float pos_ofs[2] = {0};
 	float co[2];
 	float mask = 1.0f; /* airbrush wont use mask */
 	unsigned short mask_short;
@@ -3959,10 +3986,68 @@ static void imapaint_lift_soften(ImBuf *ibuf, ImBuf *ibufb, int *pos, short toru
 	}
 }
 
+static void imapaint_set_region(ImagePaintRegion *region, int destx, int desty, int srcx, int srcy, int width, int height)
+{
+	region->destx= destx;
+	region->desty= desty;
+	region->srcx= srcx;
+	region->srcy= srcy;
+	region->width= width;
+	region->height= height;
+}
+
+static int imapaint_torus_split_region(ImagePaintRegion region[4], ImBuf *dbuf, ImBuf *sbuf)
+{
+	int destx= region->destx;
+	int desty= region->desty;
+	int srcx= region->srcx;
+	int srcy= region->srcy;
+	int width= region->width;
+	int height= region->height;
+	int origw, origh, w, h, tot= 0;
+
+	/* convert destination and source coordinates to be within image */
+	destx = destx % dbuf->x;
+	if (destx < 0) destx += dbuf->x;
+	desty = desty % dbuf->y;
+	if (desty < 0) desty += dbuf->y;
+	srcx = srcx % sbuf->x;
+	if (srcx < 0) srcx += sbuf->x;
+	srcy = srcy % sbuf->y;
+	if (srcy < 0) srcy += sbuf->y;
+
+	/* clip width of blending area to destination imbuf, to avoid writing the
+	   same pixel twice */
+	origw = w = (width > dbuf->x)? dbuf->x: width;
+	origh = h = (height > dbuf->y)? dbuf->y: height;
+
+	/* clip within image */
+	IMB_rectclip(dbuf, sbuf, &destx, &desty, &srcx, &srcy, &w, &h);
+	imapaint_set_region(&region[tot++], destx, desty, srcx, srcy, w, h);
+
+	/* do 3 other rects if needed */
+	if (w < origw)
+		imapaint_set_region(&region[tot++], (destx+w)%dbuf->x, desty, (srcx+w)%sbuf->x, srcy, origw-w, h);
+	if (h < origh)
+		imapaint_set_region(&region[tot++], destx, (desty+h)%dbuf->y, srcx, (srcy+h)%sbuf->y, w, origh-h);
+	if ((w < origw) && (h < origh))
+		imapaint_set_region(&region[tot++], (destx+w)%dbuf->x, (desty+h)%dbuf->y, (srcx+w)%sbuf->x, (srcy+h)%sbuf->y, origw-w, origh-h);
+	
+	return tot;
+}
+
 static void imapaint_lift_smear(ImBuf *ibuf, ImBuf *ibufb, int *pos)
 {
-	IMB_rectblend_torus(ibufb, ibuf, 0, 0, pos[0], pos[1],
-		ibufb->x, ibufb->y, IMB_BLEND_COPY_RGB);
+	ImagePaintRegion region[4];
+	int a, tot;
+
+	imapaint_set_region(region, 0, 0, pos[0], pos[1], ibufb->x, ibufb->y);
+	tot= imapaint_torus_split_region(region, ibuf, ibufb);
+
+	for(a=0; a<tot; a++)
+		IMB_rectblend(ibufb, ibuf, region[a].destx, region[a].desty,
+			region[a].srcx, region[a].srcy,
+			region[a].width, region[a].height, IMB_BLEND_COPY_RGB);
 }
 
 static ImBuf *imapaint_lift_clone(ImBuf *ibuf, ImBuf *ibufb, int *pos)
@@ -3992,12 +4077,14 @@ static void imapaint_convert_brushco(ImBuf *ibufb, float *pos, int *ipos)
 static int imapaint_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *pos)
 {
 	ImagePaintState *s= ((ImagePaintState*)state);
-	ImBuf *clonebuf= NULL;
+	ImBuf *clonebuf= NULL, *frombuf;
+	ImagePaintRegion region[4];
 	short torus= s->brush->flag & BRUSH_TORUS;
 	short blend= s->blend;
 	float *offset= s->brush->clone.offset;
 	float liftpos[2];
 	int bpos[2], blastpos[2], bliftpos[2];
+	int a, tot;
 
 	imapaint_convert_brushco(ibufb, pos, bpos);
 
@@ -4020,16 +4107,29 @@ static int imapaint_paint_op(void *state, ImBuf *ibufb, float *lastpos, float *p
 		clonebuf= imapaint_lift_clone(s->clonecanvas, ibufb, bliftpos);
 	}
 
-	imapaint_dirty_region(s->image, s->canvas, bpos[0], bpos[1], ibufb->x, ibufb->y);
+	frombuf= (clonebuf)? clonebuf: ibufb;
+
+	if(torus) {
+		imapaint_set_region(region, bpos[0], bpos[1], 0, 0, frombuf->x, frombuf->y);
+		tot= imapaint_torus_split_region(region, s->canvas, frombuf);
+	}
+	else {
+		imapaint_set_region(region, bpos[0], bpos[1], 0, 0, frombuf->x, frombuf->y);
+		tot= 1;
+	}
 
 	/* blend into canvas */
-	if(torus)
-		IMB_rectblend_torus(s->canvas, (clonebuf)? clonebuf: ibufb,
-			bpos[0], bpos[1], 0, 0, ibufb->x, ibufb->y, blend);
-	else
-		IMB_rectblend(s->canvas, (clonebuf)? clonebuf: ibufb,
-			bpos[0], bpos[1], 0, 0, ibufb->x, ibufb->y, blend);
-			
+	for(a=0; a<tot; a++) {
+		imapaint_dirty_region(s->image, s->canvas,
+			region[a].destx, region[a].desty,
+			region[a].width, region[a].height);
+		
+		IMB_rectblend(s->canvas, frombuf,
+			region[a].destx, region[a].desty,
+			region[a].srcx, region[a].srcy,
+			region[a].width, region[a].height, blend);
+	}
+
 	if(clonebuf) IMB_freeImBuf(clonebuf);
 
 	return 1;
@@ -4057,7 +4157,10 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, s->sima? &s->sima->iuser: NULL);
 	
 	/* verify that we can paint and set canvas */
-	if(ima->packedfile && ima->rr) {
+	if(ima==NULL) {
+		return 0;
+	}
+	else if(ima->packedfile && ima->rr) {
 		s->warnpackedfile = ima->id.name + 2;
 		return 0;
 	}	
@@ -4065,7 +4168,7 @@ static int imapaint_canvas_set(ImagePaintState *s, Image *ima)
 		s->warnmultifile = ima->id.name + 2;
 		return 0;
 	}
-	else if(!ima || !ibuf || !(ibuf->rect || ibuf->rect_float))
+	else if(!ibuf || !(ibuf->rect || ibuf->rect_float))
 		return 0;
 
 	s->image= ima;
@@ -4251,12 +4354,10 @@ static int image_paint_3d_poll(bContext *C)
 
 static int image_paint_2d_clone_poll(bContext *C)
 {
-	Scene *scene= CTX_data_scene(C);
-	ToolSettings *settings= scene->toolsettings;
 	Brush *brush= image_paint_brush(C);
 
 	if(!CTX_wm_region_view3d(C) && image_paint_poll(C))
-		if(brush && (settings->imapaint.tool == PAINT_TOOL_CLONE))
+		if(brush && (brush->imagepaint_tool == PAINT_TOOL_CLONE))
 			if(brush->clone.image)
 				return 1;
 	
@@ -4364,7 +4465,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 		return 0;
 
 	pop->s.brush = brush;
-	pop->s.tool = settings->imapaint.tool;
+	pop->s.tool = brush->imagepaint_tool;
 	if(pop->mode == PAINT_MODE_3D && (pop->s.tool == PAINT_TOOL_CLONE))
 		pop->s.tool = PAINT_TOOL_DRAW;
 	pop->s.blend = pop->s.brush->blend;
@@ -4403,7 +4504,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 	else {
 		pop->s.image = pop->s.sima->image;
 
-		if(!imapaint_canvas_set(&pop->s, pop->s.sima->image)) {
+		if(!imapaint_canvas_set(&pop->s, pop->s.image)) {
 			if(pop->s.warnmultifile)
 				BKE_report(op->reports, RPT_WARNING, "Image requires 4 color channels to paint");
 			if(pop->s.warnpackedfile)

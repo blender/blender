@@ -17,7 +17,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
@@ -109,7 +109,7 @@ ifndef CONFIG_GUESS
     else
       export NAN_FFMPEG ?= $(LCGDIR)/ffmpeg
       ifeq ($(OS), darwin)
-        export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a $(NAN_FFMPEG)/lib/libmp3lame.a $(NAN_FFMPEG)/lib/libx264.a $(NAN_FFMPEG)/lib/libxvidcore.a
+        export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a $(NAN_FFMPEG)/lib/libmp3lame.a $(NAN_FFMPEG)/lib/libx264.a $(NAN_FFMPEG)/lib/libxvidcore.a $(NAN_FFMPEG)/lib/libtheora.a $(NAN_FFMPEG)/lib/libtheoradec.a $(NAN_FFMPEG)/lib/libtheoraenc.a $(NAN_FFMPEG)/lib/libvorbis.a $(NAN_FFMPEG)/lib/libvorbisenc.a $(NAN_FFMPEG)/lib/libvorbisfile.a $(NAN_FFMPEG)/lib/libogg.a -lbz2
       else
         export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavdevice.a
       endif
@@ -155,7 +155,7 @@ ifndef CONFIG_GUESS
     export BF_OPENCOLLADA_INC ?= $(BF_OPENCOLLADA)/include
     export BF_OPENCOLLADA_LIBS ?= $(BF_OPENCOLLADA)/lib/libOpenCOLLADASaxFrameworkLoader.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADAFramework.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADABaseUtils.a $(BF_OPENCOLLADA)/lib/libOpenCOLLADAStreamWriter.a $(BF_OPENCOLLADA)/lib/libMathMLSolver.a $(BF_OPENCOLLADA)/lib/libGeneratedSaxParser.a $(BF_OPENCOLLADA)/lib/libUTF.a -lxml2
     export BF_PCRE ?= $(LCGDIR)/pcre
-    export BF_PCRE_LIBS ?= $(NAN_PCRE)/lib/libpcre.a
+    export BF_PCRE_LIBS ?= $(BF_PCRE)/lib/libpcre.a
   endif
 
 
@@ -266,7 +266,7 @@ ifndef CONFIG_GUESS
     export NAN_SAMPLERATE_LIBS ?= $(NAN_SAMPLERATE)/lib/libsamplerate.a 
 
     # enable building with Cocoa
-    export WITH_COCOA ?= true
+    export WITH_COCOA ?= false
     export USE_QTKIT ?= false
     # use cocoa and qtkit for 64bit builds
     ifeq (64, $(findstring 64, $(MACOSX_ARCHITECTURE)))
@@ -274,7 +274,7 @@ ifndef CONFIG_GUESS
         export USE_QTKIT = true
     endif
 
-    export NAN_PCRE = $(LCGDIR)/opencollada
+    export BF_PCRE = $(LCGDIR)/opencollada
 
   else
   ifeq ($(OS),freebsd)

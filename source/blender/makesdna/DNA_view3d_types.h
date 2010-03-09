@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -63,22 +63,27 @@ struct wmTimer;
  
 /* Background Picture in 3D-View */
 typedef struct BGpic {
+    struct BGpic *next, *prev;
+
     struct Image *ima;
 	struct ImageUser iuser;
     float xof, yof, size, blend;
+    short view;
+    short flag;
+    float pad2;
 } BGpic;
 
 /* ********************************* */
 
 typedef struct RegionView3D {
 	
-	float winmat[4][4];
-	float viewmat[4][4];
-	float viewinv[4][4];
-	float persmat[4][4];
-	float persinv[4][4];
+	float winmat[4][4];			/* GL_PROJECTION matrix */
+	float viewmat[4][4];		/* GL_MODELVIEW matrix */
+	float viewinv[4][4];		/* inverse of viewmat */
+	float persmat[4][4];		/* viewmat*winmat */
+	float persinv[4][4];		/* inverse of persmat */
 
-	/* local viewmat/persmat, multiplied with object matrix, while drawing */
+	/* viewmat/persmat multiplied with object matrix, while drawing and selection */
 	float viewmatob[4][4];
 	float persmatob[4][4];
 
@@ -140,7 +145,10 @@ typedef struct View3D {
 	short view;	/* XXX depricated */
 	
 	struct Object *camera, *ob_centre;
-	struct BGpic *bgpic;
+
+	struct ListBase bgpicbase;
+	struct BGpic *bgpic; /* deprecated, use bgpicbase, only kept for do_versions(...) */
+
 	struct View3D *localvd;
 	
 	char ob_centre_bone[32];		/* optional string for armature bone to define center */
@@ -197,7 +205,7 @@ typedef struct View3D {
 /* View3D->flag (short) */
 #define V3D_MODE			(16+32+64+128+256+512)
 #define V3D_DISPIMAGE		1
-#define V3D_DISPBGPIC		2
+#define V3D_DISPBGPICS		2
 #define V3D_HIDE_HELPLINES	4
 #define V3D_INVALID_BACKBUF	8
 #define V3D_EDITMODE		16
@@ -283,6 +291,9 @@ typedef struct View3D {
 #define V3D_DRAW_MANIPULATOR	2
 #define V3D_CALC_MANIPULATOR	4
 
+/* BGPic->flag */
+/* may want to use 1 for select ?*/
+#define V3D_BGPIC_EXPANDED		2
 
 #endif
 

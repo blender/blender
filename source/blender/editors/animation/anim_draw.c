@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -28,7 +28,6 @@
  
 #include <string.h>
 #include <stdio.h>
-#include <math.h>
 
 #include "DNA_anim_types.h"
 #include "DNA_action_types.h"
@@ -42,6 +41,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -62,6 +62,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "RNA_access.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -73,71 +75,147 @@
 extern void ui_rasterpos_safe(float x, float y, float aspect);
 
 /* *************************************************** */
+/* TIME CODE FORMATTING */
+
+/* Generate timecode/frame number string and store in the supplied string 
+ * 	- buffer: must be at least 13 chars long 
+ *	- power: special setting for View2D grid drawing, 
+ *	  used to specify how detailed we need to be
+ *	- timecodes: boolean specifying whether timecodes or
+ *	  frame numbers get drawn
+ *	- cfra: time in frames or seconds, consistent with the values shown by timecodes
+ */
+// TODO: have this in kernel instead under scene?
+void ANIM_timecode_string_from_frame (char *str, Scene *scene, int power, short timecodes, float cfra)
+{
+	if (timecodes) {
+		int hours=0, minutes=0, seconds=0, frames=0;
+		float raw_seconds= cfra;
+		char neg[2]= "";
+		
+		/* get cframes */
+		if (cfra < 0) {
+			/* correction for negative cfraues */
+			sprintf(neg, "-");
+			cfra = -cfra;
+		}
+		if (cfra >= 3600) {
+			/* hours */
+			/* XXX should we only display a single digit for hours since clips are 
+			 * 	   VERY UNLIKELY to be more than 1-2 hours max? However, that would 
+			 *	   go against conventions...
+			 */
+			hours= (int)cfra / 3600;
+			cfra= (float)fmod(cfra, 3600);
+		}
+		if (cfra >= 60) {
+			/* minutes */
+			minutes= (int)cfra / 60;
+			cfra= (float)fmod(cfra, 60);
+		}
+		if (power <= 0) {
+			/* seconds + frames
+			 *	Frames are derived from 'fraction' of second. We need to perform some additional rounding
+			 *	to cope with 'half' frames, etc., which should be fine in most cases
+			 */
+			seconds= (int)cfra;
+			frames= (int)floor( ((cfra - seconds) * FPS) + 0.5f );
+		}
+		else {
+			/* seconds (with pixel offset rounding) */
+			seconds= (int)floor(cfra + 0.375f);
+		}
+		
+		switch (U.timecode_style) {
+			case USER_TIMECODE_MINIMAL: 
+			{
+				/*	- In general, minutes and seconds should be shown, as most clips will be
+				 *	  within this length. Hours will only be included if relevant.
+				 *	- Only show frames when zoomed in enough for them to be relevant 
+				 *	  (using separator of '+' for frames).
+				 *	  When showing frames, use slightly different display to avoid confusion with mm:ss format
+				 */
+				if (power <= 0) {
+					/* include "frames" in display */
+					if (hours) sprintf(str, "%s%02d:%02d:%02d+%02d", neg, hours, minutes, seconds, frames);
+					else if (minutes) sprintf(str, "%s%02d:%02d+%02d", neg, minutes, seconds, frames);
+					else sprintf(str, "%s%d+%02d", neg, seconds, frames);
+				}
+				else {
+					/* don't include 'frames' in display */
+					if (hours) sprintf(str, "%s%02d:%02d:%02d", neg, hours, minutes, seconds);
+					else sprintf(str, "%s%02d:%02d", neg, minutes, seconds);
+				}
+			}
+				break;
+				
+			case USER_TIMECODE_SMPTE_MSF:
+			{
+				/* reduced SMPTE format that always shows minutes, seconds, frames. Hours only shown as needed. */
+				if (hours) sprintf(str, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
+				else sprintf(str, "%s%02d:%02d:%02d", neg, minutes, seconds, frames);
+			}
+				break;
+			
+			case USER_TIMECODE_MILLISECONDS:
+			{
+				/* reduced SMPTE. Instead of frames, milliseconds are shown */
+				int ms_dp= (power <= 0) ? (1 - power) : 1; /* precision of decimal part */
+				int s_pad= ms_dp+3;	/* to get 2 digit whole-number part for seconds display (i.e. 3 is for 2 digits + radix, on top of full length) */
+				
+				if (hours) sprintf(str, "%s%02d:%02d:%0*.*f", neg, hours, minutes, s_pad, ms_dp, cfra);
+				else sprintf(str, "%s%02d:%0*.*f", neg, minutes, s_pad,  ms_dp, cfra);
+			}
+				break;
+				
+			case USER_TIMECODE_SECONDS_ONLY:
+			{
+				/* only show the original seconds display */
+				/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
+				if (power <= 0) sprintf(str, "%.*f", 1-power, raw_seconds);
+				else sprintf(str, "%d", (int)floor(raw_seconds + 0.375f));
+			}
+				break;
+			
+			case USER_TIMECODE_SMPTE_FULL:
+			default:
+			{
+				/* full SMPTE format */
+				sprintf(str, "%s%02d:%02d:%02d:%02d", neg, hours, minutes, seconds, frames);
+			}
+				break;
+		}
+	}
+	else {
+		/* round to whole numbers if power is >= 1 (i.e. scale is coarse) */
+		if (power <= 0) sprintf(str, "%.*f", 1-power, cfra);
+		else sprintf(str, "%d", (int)floor(cfra + 0.375f));
+	}
+} 
+
+/* *************************************************** */
 /* CURRENT FRAME DRAWING */
 
 /* Draw current frame number in a little green box beside the current frame indicator */
 static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 {
 	float xscale, yscale, x, y;
-	char str[32];
+	char str[32] = "    t";	/* t is the character to start replacing from */
 	short slen;
 	
 	/* because the frame number text is subject to the same scaling as the contents of the view */
 	UI_view2d_getscale(v2d, &xscale, &yscale);
 	glScalef(1.0f/xscale, 1.0f, 1.0f);
 	
-	if (time) {
-		/* Timecode:
-		 *	- In general, minutes and seconds should be shown, as most clips will be
-		 *	  within this length. Hours will only be included if relevant.
-		 *	- Only show frames when zoomed in enough for them to be relevant 
-		 *	  (using separator of '!' for frames).
-		 *	  When showing frames, use slightly different display to avoid confusion with mm:ss format
-		 * TODO: factor into reusable function.
-		 * Meanwhile keep in sync:
-		 *	  source/blender/editors/animation/anim_draw.c
-		 *	  source/blender/editors/interface/view2d.c
-		 */
-		float val= FRA2TIME(CFRA);
-		int hours=0, minutes=0, seconds=0, frames=0;
-		char neg[2]= "";
-		
-		/* get values */
-		if (val < 0) {
-			/* correction for negative values */
-			sprintf(neg, "-");
-			val = -val;
-		}
-		if (val >= 3600) {
-			/* hours */
-			/* XXX should we only display a single digit for hours since clips are 
-			 * 	   VERY UNLIKELY to be more than 1-2 hours max? However, that would 
-			 *	   go against conventions...
-			 */
-			hours= (int)val / 3600;
-			val= (float)fmod(val, 3600);
-		}
-		if (val >= 60) {
-			/* minutes */
-			minutes= (int)val / 60;
-			val= (float)fmod(val, 60);
-		}
-		{
-			/* seconds + frames
-			 *	Frames are derived from 'fraction' of second. We need to perform some additional rounding
-			 *	to cope with 'half' frames, etc., which should be fine in most cases
-			 */
-			seconds= (int)val;
-			frames= (int)floor( ((val - seconds) * FPS) + 0.5f );
-		}
-		
-		/* print timecode to temp string buffer */
-		if (hours) sprintf(str, "   %s%02d:%02d:%02d!%02d", neg, hours, minutes, seconds, frames);
-		else if (minutes) sprintf(str, "   %s%02d:%02d!%02d", neg, minutes, seconds, frames);
-		else sprintf(str, "   %s%d!%02d", neg, seconds, frames);
-	}
-	else 
-		sprintf(str, "   %d", CFRA);
+	/* get timecode string 
+	 *	- padding on str-buf passed so that it doesn't sit on the frame indicator
+	 *	- power = 0, gives 'standard' behaviour for time
+	 *	  but power = 1 is required for frames (to get integer frames)
+	 */
+	if (time)
+		ANIM_timecode_string_from_frame(&str[4], scene, 0, time, FRA2TIME(cfra));
+	else	
+		ANIM_timecode_string_from_frame(&str[4], scene, 1, time, cfra);
 	slen= (short)UI_GetStringWidth(str) - 1;
 	
 	/* get starting coordinates for drawing */
@@ -215,7 +293,7 @@ void ANIM_draw_previewrange (const bContext *C, View2D *v2d)
 	Scene *scene= CTX_data_scene(C);
 	
 	/* only draw this if preview range is set */
-	if (scene->r.psfra) {
+	if (PRVRANGEON) {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
@@ -237,6 +315,7 @@ void ANIM_draw_previewrange (const bContext *C, View2D *v2d)
 /* NLA-MAPPING UTILITIES (required for drawing and also editing keyframes)  */
 
 /* Obtain the AnimData block providing NLA-mapping for the given channel (if applicable) */
+// TODO: do not supply return this if the animdata tells us that there is no mapping to perform
 AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
 {
 	/* sanity checks */
@@ -274,7 +353,7 @@ static short bezt_nlamapping_restore(BeztEditData *bed, BezTriple *bezt)
 static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
 {
 	/* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
-	AnimData *adt= (AnimData *)bed->data;
+	AnimData *adt= (AnimData*)bed->data;
 	short only_keys= (short)bed->i1;
 	
 	/* adjust BezTriple handles only if allowed to */
@@ -287,7 +366,6 @@ static short bezt_nlamapping_apply(BeztEditData *bed, BezTriple *bezt)
 	
 	return 0;
 }
-
 
 
 /* Apply/Unapply NLA mapping to all keyframes in the nominated F-Curve 
@@ -315,6 +393,108 @@ void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, s
 	
 	/* apply to F-Curve */
 	ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, map_cb, NULL);
+}
+
+/* *************************************************** */
+/* UNITS CONVERSION MAPPING (required for drawing and editing keyframes) */
+
+/* Get unit conversion factor for given ID + F-Curve */
+float ANIM_unit_mapping_get_factor (Scene *scene, ID *id, FCurve *fcu, short restore)
+{
+	/* sanity checks */
+	if (id && fcu && fcu->rna_path) 
+	{
+		PointerRNA ptr, id_ptr;
+		PropertyRNA *prop;
+		
+		/* get RNA property that F-Curve affects */
+		RNA_id_pointer_create(id, &id_ptr);
+		if (RNA_path_resolve(&id_ptr, fcu->rna_path, &ptr, &prop)) 
+		{
+			/* rotations: radians <-> degrees? */
+			if (RNA_SUBTYPE_UNIT(RNA_property_subtype(prop)) == PROP_UNIT_ROTATION)
+			{
+				/* if the radians flag is not set, default to using degrees which need conversions */
+				if ((scene) && (scene->unit.flag & USER_UNIT_ROT_RADIANS) == 0) {
+					if (restore)
+						return M_PI / 180.0f;	/* degrees to radians */
+					else
+						return 180.0f / M_PI;	/* radians to degrees */
+				}
+			}
+			
+			// TODO: other rotation types here as necessary
+		}
+	}
+	
+	/* no mapping needs to occur... */
+	return 1.0f;
+}
+
+/* ----------------------- */
+
+/* helper function for ANIM_unit_mapping_apply_fcurve -> mapping callback for unit mapping */
+static short bezt_unit_mapping_apply (BeztEditData *bed, BezTriple *bezt)
+{
+	/* mapping factor is stored in f1, flags are stored in i1 */
+	short only_keys= (bed->i1 & ANIM_UNITCONV_ONLYKEYS);
+	short sel_vs= (bed->i1 & ANIM_UNITCONV_SELVERTS);
+	float fac= bed->f1;
+	
+	/* adjust BezTriple handles only if allowed to */
+	if (only_keys == 0) {
+		if ((sel_vs==0) || (bezt->f1 & SELECT)) 
+			bezt->vec[0][1] *= fac;
+		if ((sel_vs==0) || (bezt->f3 & SELECT)) 
+			bezt->vec[2][1] *= fac;
+	}
+	
+	if ((sel_vs == 0) || (bezt->f2 & SELECT))
+		bezt->vec[1][1] *= fac;
+	
+	return 0;
+}
+
+/* Apply/Unapply units conversions to keyframes */
+void ANIM_unit_mapping_apply_fcurve (Scene *scene, ID *id, FCurve *fcu, short flag)
+{
+	BeztEditData bed;
+	BeztEditFunc sel_cb;
+	float fac;
+	
+	/* calculate mapping factor, and abort if nothing to change */
+	fac= ANIM_unit_mapping_get_factor(scene, id, fcu, (flag & ANIM_UNITCONV_RESTORE));
+	if (fac == 1.0f)
+		return;
+	
+	/* init edit data 
+	 *	- mapping factor is stored in f1
+	 *	- flags are stored in 'i1'
+	 */
+	memset(&bed, 0, sizeof(BeztEditData));
+	bed.f1= (float)fac;
+	bed.i1= (int)flag;
+	
+	/* only selected? */
+	if (flag & ANIM_UNITCONV_ONLYSEL)
+		sel_cb= ANIM_editkeyframes_ok(BEZT_OK_SELECTED);
+	else
+		sel_cb= NULL;
+	
+	/* apply to F-Curve */
+	ANIM_fcurve_keys_bezier_loop(&bed, fcu, sel_cb, bezt_unit_mapping_apply, NULL);
+	
+	// FIXME: loop here for samples should be generalised
+	// TODO: only sel?
+	if (fcu->fpt) {
+		FPoint *fpt;
+		int i;
+		
+		for (i=0, fpt=fcu->fpt; i < fcu->totvert; i++, fpt++) {
+			/* apply unit mapping */
+			fpt->vec[1] *= fac;
+		}
+	}
 }
 
 /* *************************************************** */

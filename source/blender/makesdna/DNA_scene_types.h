@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -170,23 +170,25 @@ typedef struct SceneRenderLayer {
 #define SCE_LAY_NEG_ZMASK	0x80000
 
 /* srl->passflag */
-#define SCE_PASS_COMBINED	1
-#define SCE_PASS_Z			2
-#define SCE_PASS_RGBA		4
-#define SCE_PASS_DIFFUSE	8
-#define SCE_PASS_SPEC		16
-#define SCE_PASS_SHADOW		32
-#define SCE_PASS_AO			64
-#define SCE_PASS_REFLECT	128
-#define SCE_PASS_NORMAL		256
-#define SCE_PASS_VECTOR		512
-#define SCE_PASS_REFRACT	1024
-#define SCE_PASS_INDEXOB	2048
-#define SCE_PASS_UV			4096
-#define SCE_PASS_RADIO		8192 /* Radio removed, can use for new GI? */
-#define SCE_PASS_MIST		16384
-
-#define SCE_PASS_RAYHITS	32768
+#define SCE_PASS_COMBINED		1
+#define SCE_PASS_Z				2
+#define SCE_PASS_RGBA			4
+#define SCE_PASS_DIFFUSE		8
+#define SCE_PASS_SPEC			16
+#define SCE_PASS_SHADOW			32
+#define SCE_PASS_AO				64
+#define SCE_PASS_REFLECT		128
+#define SCE_PASS_NORMAL			256
+#define SCE_PASS_VECTOR			512
+#define SCE_PASS_REFRACT		1024
+#define SCE_PASS_INDEXOB		2048
+#define SCE_PASS_UV				4096
+#define SCE_PASS_RADIO			8192 /* Radio removed, can use for new GI? */
+#define SCE_PASS_MIST			16384
+#define SCE_PASS_RAYHITS		32768
+#define SCE_PASS_EMIT			65536
+#define SCE_PASS_ENVIRONMENT	131072
+#define SCE_PASS_INDIRECT		262144
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
@@ -300,7 +302,10 @@ typedef struct RenderData {
 	
 	/* information on different layers to be rendered */
 	ListBase layers;
-	short actlay, pad;
+	short actlay;
+	
+	/* number of mblur samples */
+	short mblur_samples;
 	
 	/**
 	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
@@ -357,8 +362,9 @@ typedef struct RenderData {
 	float bg_stamp[4];
 
 	/* render simplify */
-	int simplify_subsurf;
-	int simplify_shadowsamples;
+	int simplify_flag;
+	short simplify_subsurf;
+	short simplify_shadowsamples;
 	float simplify_particles;
 	float simplify_aosss;
 
@@ -481,6 +487,7 @@ typedef struct GameData {
 #define GAME_GLSL_NO_NODES					(1 << 10)
 #define GAME_GLSL_NO_EXTRA_TEX				(1 << 11)
 #define GAME_IGNORE_DEPRECATION_WARNINGS	(1 << 12)
+#define GAME_ENABLE_ANIMATION_RECORD		(1 << 13)
 
 /* GameData.matmode */
 #define GAME_MAT_TEXFACE	0
@@ -510,7 +517,7 @@ typedef struct Paint {
 typedef struct ImagePaintSettings {
 	Paint paint;
 
-	short flag, tool;
+	short flag, pad;
 	
 	/* for projection painting only */
 	short seam_bleed, normal_angle;
@@ -521,6 +528,7 @@ typedef struct ImagePaintSettings {
 typedef struct ParticleBrushData {
 	short size, strength;	/* common settings */
 	short step, invert;		/* for specific brushes only */
+	int flag, pad;
 } ParticleBrushData;
 
 typedef struct ParticleEditSettings {
@@ -564,7 +572,7 @@ typedef struct Sculpt {
 typedef struct VPaint {
 	Paint paint;
 
-	short mode, flag;
+	short flag, pad;
 	int tot;							/* allocation size of prev buffers */
 	unsigned int *vpaint_prev;			/* previous mesh colors */
 	struct MDeformVert *wpaint_prev;	/* previous vertex weights */
@@ -751,7 +759,10 @@ typedef struct Scene {
 	ListBase markers;
 	ListBase transform_spaces;
 	
-	ListBase sound_handles;
+	void *sound_scene;
+	void *sound_scene_handle;
+	
+	void *fps_info;	 				/* (runtime) info/cache used for presenting playback framerate info to the user */
 	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
@@ -787,6 +798,10 @@ typedef struct Scene {
 #define R_BACKBUFANIM	2
 #define R_FRONTBUF		4
 #define R_FRONTBUFANIM	8
+
+/* flag */
+	/* use preview range */
+#define SCER_PRV_RANGE	(1<<0)
 
 /* mode (int now) */
 #define R_OSA			0x0001
@@ -959,14 +974,17 @@ typedef struct Scene {
 #define R_BAKE_SPACE_OBJECT	 2
 #define R_BAKE_SPACE_TANGENT 3
 
+/* simplify_flag */
+#define R_SIMPLE_NO_TRIANGULATE		1
+
 /* **************** SCENE ********************* */
 
 /* for general use */
 #define MAXFRAME	300000
 #define MAXFRAMEF	300000.0f
 
-#define MINFRAME	1
-#define MINFRAMEF	1.0f
+#define MINFRAME	0
+#define MINFRAMEF	0.0f
 
 /* (minimum frame number for current-frame) */
 #define MINAFRAME	-300000
@@ -990,8 +1008,9 @@ typedef struct Scene {
 #define	F_CFRA			((float)(scene->r.cfra))
 #define	SFRA			(scene->r.sfra)
 #define	EFRA			(scene->r.efra)
-#define PSFRA			((scene->r.psfra != 0)? (scene->r.psfra): (scene->r.sfra))
-#define PEFRA			((scene->r.psfra != 0)? (scene->r.pefra): (scene->r.efra))
+#define PRVRANGEON		(scene->r.flag & SCER_PRV_RANGE)
+#define PSFRA			((PRVRANGEON)? (scene->r.psfra): (scene->r.sfra))
+#define PEFRA			((PRVRANGEON)? (scene->r.pefra): (scene->r.efra))
 #define FRA2TIME(a)           ((((double) scene->r.frs_sec_base) * (a)) / scene->r.frs_sec)
 #define TIME2FRA(a)           ((((double) scene->r.frs_sec) * (a)) / scene->r.frs_sec_base)
 #define FPS                     (((double) scene->r.frs_sec) / scene->r.frs_sec_base)
@@ -1049,6 +1068,7 @@ typedef struct Scene {
 #define SCE_DS_SELECTED			(1<<0)
 #define SCE_DS_COLLAPSED		(1<<1)
 #define SCE_NLA_EDIT_ON			(1<<2)
+#define SCE_FRAME_DROP			(1<<3)
 
 
 	/* return flag next_object function */
@@ -1063,7 +1083,7 @@ typedef struct Scene {
 #define AUDIO_SYNC		2
 #define AUDIO_SCRUB		4
 
-#define FFMPEG_MULTIPLEX_AUDIO  1
+#define FFMPEG_MULTIPLEX_AUDIO  1 /* deprecated, you can choose none as audiocodec now */
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
 
 /* Paint.flags */
@@ -1136,9 +1156,13 @@ typedef enum SculptFlags {
 #define PE_BRUSH_PUFF		3
 #define PE_BRUSH_ADD		4
 #define PE_BRUSH_SMOOTH		5
+#define PE_BRUSH_WEIGHT		6
 
 /* this must equal ParticleEditSettings.brush array size */
 #define PE_TOT_BRUSH		6
+
+/* ParticleBrushData->flag */
+#define PE_BRUSH_DATA_PUFF_VOLUME 1
 
 /* tooksettings->particle edittype */
 #define PE_TYPE_PARTICLES	0
@@ -1211,6 +1235,7 @@ typedef enum SculptFlags {
 #define	USER_UNIT_IMPERIAL		2
 /* UnitSettings->flag */
 #define	USER_UNIT_OPT_SPLIT		1
+#define USER_UNIT_ROT_RADIANS	2
 
 
 #ifdef __cplusplus

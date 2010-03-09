@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -378,14 +378,4 @@ void KX_BlenderRenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
 			glFlush();
 		}
 	}
-}
-
-void KX_BlenderRenderTools::Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
-{
-	m_filtermanager.EnableFilter(propNames, gameObj, filtermode, pass, text);
-}
-
-void KX_BlenderRenderTools::Render2DFilters(RAS_ICanvas* canvas)
-{
-	m_filtermanager.RenderFilters(canvas);
 }

@@ -16,7 +16,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Campbell Barton
  *
@@ -32,6 +32,8 @@
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
 #include "bpy_util.h"
 
+#include "RNA_enum_types.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -45,8 +47,10 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	wmOperatorType *ot;
 	int error_val = 0;
 	PointerRNA ptr;
-	
+	int operator_ret= OPERATOR_CANCELLED;
+
 	char		*opname;
+	char		*context_str= NULL;
 	PyObject	*kw= NULL; /* optional args */
 	PyObject	*context_dict= NULL; /* optional args */
 	PyObject	*context_dict_back;
@@ -57,16 +61,25 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	// XXX Todo, work out a better solution for passing on context, could make a tuple from self and pack the name and Context into it...
 	bContext *C = BPy_GetContext();
 	
-	if (!PyArg_ParseTuple(args, "sO|O!i:_bpy.ops.call", &opname, &context_dict, &PyDict_Type, &kw, &context))
+	if (!PyArg_ParseTuple(args, "sO|O!s:_bpy.ops.call", &opname, &context_dict, &PyDict_Type, &kw, &context_str))
 		return NULL;
 
 	ot= WM_operatortype_exists(opname);
 
 	if (ot == NULL) {
-		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator \"%s\" could not be found", opname);
+		PyErr_Format( PyExc_SystemError, "Calling operator \"bpy.ops.%s\" error, could not be found", opname);
 		return NULL;
 	}
 	
+	if(context_str) {
+		if(RNA_enum_value_from_id(operator_context_items, context_str, &context)==0) {
+			char *enum_str= BPy_enum_as_string(operator_context_items);
+			PyErr_Format(PyExc_TypeError, "Calling operator \"bpy.ops.%s\" error, expected a string enum in (%.200s)", opname, enum_str);
+			MEM_freeN(enum_str);
+			return NULL;
+		}
+	}
+
 	if(!PyDict_Check(context_dict))
 		context_dict= NULL;
 
@@ -76,59 +89,57 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 	Py_XINCREF(context_dict); /* so we done loose it */
 
 	if(WM_operator_poll((bContext*)C, ot) == FALSE) {
-		PyErr_Format( PyExc_SystemError, "_bpy.ops.call: operator %.200s.poll() function failed, context is incorrect", opname);
+		PyErr_Format( PyExc_SystemError, "Operator bpy.ops.%.200s.poll() failed, context is incorrect", opname);
 		error_val= -1;
 	}
 	else {
-	/* WM_operator_properties_create(&ptr, opname); */
-	/* Save another lookup */
-	RNA_pointer_create(NULL, ot->srna, NULL, &ptr);
+		WM_operator_properties_create_ptr(&ptr, ot);
 
-	if(kw && PyDict_Size(kw))
-		error_val= pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");
+		if(kw && PyDict_Size(kw))
+			error_val= pyrna_pydict_to_props(&ptr, kw, 0, "Converting py args to operator properties: ");
 
 
-	if (error_val==0) {
-		ReportList *reports;
+		if (error_val==0) {
+			ReportList *reports;
 
-		reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
-		BKE_reports_init(reports, RPT_STORE);
+			reports= MEM_mallocN(sizeof(ReportList), "wmOperatorReportList");
+			BKE_reports_init(reports, RPT_STORE);
 
-		WM_operator_call_py(C, ot, context, &ptr, reports);
+			operator_ret= WM_operator_call_py(C, ot, context, &ptr, reports);
 
-		if(BPy_reports_to_error(reports))
-			error_val = -1;
+			if(BPy_reports_to_error(reports))
+				error_val = -1;
 
-		/* operator output is nice to have in the terminal/console too */
-		if(reports->list.first) {
-			char *report_str= BKE_reports_string(reports, 0); /* all reports */
+			/* operator output is nice to have in the terminal/console too */
+			if(reports->list.first) {
+				char *report_str= BKE_reports_string(reports, 0); /* all reports */
 	
-			if(report_str) {
-				PySys_WriteStdout("%s\n", report_str);
-				MEM_freeN(report_str);
+				if(report_str) {
+					PySys_WriteStdout("%s\n", report_str);
+					MEM_freeN(report_str);
+				}
+			}
+	
+			BKE_reports_clear(reports);
+			if ((reports->flag & RPT_FREE) == 0)
+			{
+				MEM_freeN(reports);
 			}
 		}
-	
-		BKE_reports_clear(reports);
-		if ((reports->flag & RPT_FREE) == 0)
-		{
-			MEM_freeN(reports);
-		}
-	}
 
-	WM_operator_properties_free(&ptr);
+		WM_operator_properties_free(&ptr);
 
 #if 0
-	/* if there is some way to know an operator takes args we should use this */
-	{
-		/* no props */
-		if (kw != NULL) {
-			PyErr_Format(PyExc_AttributeError, "Operator \"%s\" does not take any args", opname);
-			return NULL;
-		}
+		/* if there is some way to know an operator takes args we should use this */
+		{
+			/* no props */
+			if (kw != NULL) {
+				PyErr_Format(PyExc_AttributeError, "Operator \"%s\" does not take any args", opname);
+				return NULL;
+			}
 
-		WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL);
-	}
+			WM_operator_name_call(C, opname, WM_OP_EXEC_DEFAULT, NULL);
+		}
 #endif
 	}
 
@@ -140,7 +151,9 @@ static PyObject *pyop_call( PyObject * self, PyObject * args)
 		return NULL;
 	}
 
-	Py_RETURN_NONE;
+	/* return operator_ret as a bpy enum */
+	return pyrna_enum_bitfield_to_py(operator_return_items, operator_ret);
+
 }
 
 static PyObject *pyop_as_string( PyObject * self, PyObject * args)

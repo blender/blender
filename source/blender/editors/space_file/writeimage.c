@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -106,7 +106,6 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 
 	strcpy(str, name);
 	BLI_convertstringcode(str, G.sce);
-	BLI_convertstringframe(str, scene->r.cfra); /* TODO - is this even used? */
 
 	if (confirm)
 		overwrite = saveover(str);
@@ -115,14 +114,14 @@ static void save_rendered_image_cb_real(char *name, int confirm)
 	
 	if(overwrite) {
 		if(scene->r.imtype==R_MULTILAYER) {
-			Render *re= RE_GetRender(scene->id.name);
+			Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
 			RenderResult *rr= RE_AcquireResultRead(re);
 			if(rr) 
 				RE_WriteRenderResult(rr, str, scene->r.quality);
 			RE_ReleaseResult(re);
 		}
 		else {
-			Render *re= RE_GetRender(scene->id.name);
+			Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
 			RenderResult rres;
 			ImBuf *ibuf;
 			
@@ -236,7 +235,7 @@ void BIF_save_rendered_image(char *name)
 /* calls fileselect */
 void BIF_save_rendered_image_fs(Scene *scene)
 {
-	Render *re= RE_GetRender(scene->id.name);
+	Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
 	RenderResult rres;
 	
 	RE_AcquireResultImage(re, &rres);

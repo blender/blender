@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -459,6 +459,9 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 				col= shr->col;
 				pixsize= 4;
 				break;
+			case SCE_PASS_EMIT:
+				col= shr->emit;
+				break;
 			case SCE_PASS_DIFFUSE:
 				col= shr->diff;
 				break;
@@ -470,6 +473,12 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 				break;
 			case SCE_PASS_AO:
 				col= shr->ao;
+				break;
+			case SCE_PASS_ENVIRONMENT:
+				col= shr->env;
+				break;
+			case SCE_PASS_INDIRECT:
+				col= shr->indirect;
 				break;
 			case SCE_PASS_REFLECT:
 				col= shr->refl;
@@ -557,6 +566,9 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 				col= shr->col;
 				pixsize= 4;
 				break;
+			case SCE_PASS_EMIT:
+				col= shr->emit;
+				break;
 			case SCE_PASS_DIFFUSE:
 				col= shr->diff;
 				break;
@@ -568,6 +580,12 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 				break;
 			case SCE_PASS_AO:
 				col= shr->ao;
+				break;
+			case SCE_PASS_ENVIRONMENT:
+				col= shr->env;
+				break;
+			case SCE_PASS_INDIRECT:
+				col= shr->indirect;
 				break;
 			case SCE_PASS_REFLECT:
 				col= shr->refl;
@@ -1291,7 +1309,7 @@ void zbufshade_tile(RenderPart *pa)
 		
 		zbuffer_solid(pa, rl, NULL, NULL);
 		
-		if(!R.test_break(R.tbh)) {	/* NOTE: this if() is not consistant */
+		if(!R.test_break(R.tbh)) {	/* NOTE: this if() is not consistent */
 			
 			/* edges only for solid part, ztransp doesn't support it yet anti-aliased */
 			if(rl->layflag & SCE_LAY_EDGE) {
@@ -2117,10 +2135,13 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	if(bs->type==RE_BAKE_AO) {
 		ambient_occlusion(shi);
 
-		if(R.r.bake_flag & R_BAKE_NORMALIZE)
-			VECCOPY(shr.combined, shi->ao)
-		else
-			ambient_occlusion_to_diffuse(shi, shr.combined);
+		if(R.r.bake_flag & R_BAKE_NORMALIZE) {
+			copy_v3_v3(shr.combined, shi->ao);
+		}
+		else {
+			zero_v3(shr.combined);
+			environment_lighting_apply(shi, &shr);
+		}
 	}
 	else {
 		if (bs->type==RE_BAKE_SHADOW) /* Why do shadows set the color anyhow?, ignore material color for baking */

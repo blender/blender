@@ -13,7 +13,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -48,7 +48,7 @@ from the lib3ds project (http://lib3ds.sourceforge.net/) sourcecode.
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
@@ -460,7 +460,7 @@ class _3ds_chunk(object):
 def get_material_images(material):
     # blender utility func.
     if material:
-        return [s.texture.image for s in material.textures if s and s.texture.type == 'IMAGE' and s.texture.image]
+        return [s.texture.image for s in material.texture_slots if s and s.texture.type == 'IMAGE' and s.texture.image]
 
     return []
 # 	images = []
@@ -839,7 +839,7 @@ def make_track_chunk(ID, obj):
             track_chunk.add_variable("position", _3ds_point_3d(obj.getLocation()))
         elif ID==ROT_TRACK_TAG:
             # rotation (quaternion, angle first, followed by axis):
-            q = obj.getEuler().toQuat()
+            q = obj.getEuler().to_quat()
             track_chunk.add_variable("rotation", _3ds_point_4d((q.angle, q.axis[0], q.axis[1], q.axis[2])))
         elif ID==SCL_TRACK_TAG:
             # scale vector:
@@ -1060,8 +1060,8 @@ def save_3ds(filename, context):
         # make a kf object node for the object:
         kfdata.add_subchunk(make_kf_obj_node(ob, name_to_id))
         '''
-# 		if not blender_mesh.users:
-        bpy.data.meshes.remove(blender_mesh)
+        if not blender_mesh.users:
+            bpy.data.meshes.remove(blender_mesh)
 # 		blender_mesh.verts = None
 
         i+=i
@@ -1112,7 +1112,7 @@ def save_3ds(filename, context):
 # # save_3ds('/test_b.3ds')
 from bpy.props import *
 class Export3DS(bpy.types.Operator):
-    '''Export to 3DS file format (.3ds).'''
+    '''Export to 3DS file format (.3ds)'''
     bl_idname = "export.autodesk_3ds"
     bl_label = 'Export 3DS'
 
@@ -1122,7 +1122,7 @@ class Export3DS(bpy.types.Operator):
 
     # filename = StringProperty(name="File Name", description="File name used for exporting the 3DS file", maxlen= 1024, default= ""),
     path = StringProperty(name="File Path", description="File path used for exporting the 3DS file", maxlen= 1024, default= "")
-
+    check_existing = BoolProperty(name="Check Existing", description="Check and warn on overwriting existing files", default=True, options={'HIDDEN'})
 
     def execute(self, context):
         save_3ds(self.properties.path, context)
@@ -1136,11 +1136,21 @@ class Export3DS(bpy.types.Operator):
     def poll(self, context): # Poll isnt working yet
         return context.active_object != None
 
-bpy.types.register(Export3DS)
 
 # Add to a menu
 def menu_func(self, context):
     default_path = bpy.data.filename.replace(".blend", ".3ds")
-    self.layout.operator(Export3DS.bl_idname, text="Autodesk 3DS...").path = default_path
+    self.layout.operator(Export3DS.bl_idname, text="3D Studio (.3ds)").path = default_path
 
-bpy.types.INFO_MT_file_export.append(menu_func)
+
+def register():
+    bpy.types.register(Export3DS)
+    bpy.types.INFO_MT_file_export.append(menu_func)
+
+def unregister():
+    bpy.types.unregister(Export3DS)
+    bpy.types.INFO_MT_file_export.remove(menu_func)
+
+if __name__ == "__main__":
+    register()
+

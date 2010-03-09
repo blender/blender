@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -265,78 +265,81 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 	psys=((ParticleSystemModifierData *)md)->psys;
 	part= psys->part;
 
-	if(part->ren_as == PART_DRAW_GR || part->ren_as == PART_DRAW_OB) {
-		; // XXX make_object_duplilist_real(NULL);
+	if(part->ren_as != PART_DRAW_PATH || psys->pathcache == 0)
+		return 0;
+
+	totpart= psys->totcached;
+	totchild= psys->totchildcache;
+
+	if(totchild && (part->draw&PART_DRAW_PARENT)==0)
+		totpart= 0;
+
+	/* count */
+	cache= psys->pathcache;
+	for(a=0; a<totpart; a++) {
+		key= cache[a];
+		totvert+= key->steps+1;
+		totedge+= key->steps;
 	}
-	else {
-		if(part->ren_as != PART_DRAW_PATH || psys->pathcache == 0)
-			return 0;
 
-		totpart= psys->totcached;
-		totchild= psys->totchildcache;
+	cache= psys->childcache;
+	for(a=0; a<totchild; a++) {
+		key= cache[a];
+		totvert+= key->steps+1;
+		totedge+= key->steps;
+	}
 
-		if(totchild && (part->draw&PART_DRAW_PARENT)==0)
-			totpart= 0;
+	if(totvert==0) return 0;
 
-		/* count */
-		cache= psys->pathcache;
-		for(a=0; a<totpart; a++) {
-			key= cache[a];
-			totvert+= key->steps+1;
-			totedge+= key->steps;
-		}
+	/* add new mesh */
+	obn= add_object(scene, OB_MESH);
+	me= obn->data;
+	
+	me->totvert= totvert;
+	me->totedge= totedge;
+	
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
+	me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
+	
+	mvert= me->mvert;
+	medge= me->medge;
 
-		cache= psys->childcache;
-		for(a=0; a<totchild; a++) {
-			key= cache[a];
-			totvert+= key->steps+1;
-			totedge+= key->steps;
-		}
-
-		if(totvert==0) return 0;
-
-		/* add new mesh */
-		obn= add_object(scene, OB_MESH);
-		me= obn->data;
-		
-		me->totvert= totvert;
-		me->totedge= totedge;
-		
-		me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
-		me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
-		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, 0);
-		
-		mvert= me->mvert;
-		medge= me->medge;
-
-		/* copy coordinates */
-		cache= psys->pathcache;
-		for(a=0; a<totpart; a++) {
-			key= cache[a];
-			kmax= key->steps;
-			for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
-				VECCOPY(mvert->co,key->co);
-				if(k) {
-					medge->v1= cvert-1;
-					medge->v2= cvert;
-					medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
-					medge++;
-				}
+	/* copy coordinates */
+	cache= psys->pathcache;
+	for(a=0; a<totpart; a++) {
+		key= cache[a];
+		kmax= key->steps;
+		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
+			VECCOPY(mvert->co,key->co);
+			if(k) {
+				medge->v1= cvert-1;
+				medge->v2= cvert;
+				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+				medge++;
+			}
+			else {
+				/* cheap trick to select the roots */
+				mvert->flag |= SELECT;
 			}
 		}
+	}
 
-		cache=psys->childcache;
-		for(a=0; a<totchild; a++) {
-			key=cache[a];
-			kmax=key->steps;
-			for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
-				VECCOPY(mvert->co,key->co);
-				if(k) {
-					medge->v1=cvert-1;
-					medge->v2=cvert;
-					medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
-					medge++;
-				}
+	cache=psys->childcache;
+	for(a=0; a<totchild; a++) {
+		key=cache[a];
+		kmax=key->steps;
+		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
+			VECCOPY(mvert->co,key->co);
+			if(k) {
+				medge->v1=cvert-1;
+				medge->v2=cvert;
+				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
+				medge++;
+			}
+			else {
+				/* cheap trick to select the roots */
+				mvert->flag |= SELECT;
 			}
 		}
 	}
@@ -544,7 +547,7 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name= "Add Modifier";
-	ot->description = "Add a modifier to the active object.";
+	ot->description = "Add a modifier to the active object";
 	ot->idname= "OBJECT_OT_modifier_add";
 	
 	/* api callbacks */
@@ -558,6 +561,7 @@ void OBJECT_OT_modifier_add(wmOperatorType *ot)
 	/* properties */
 	prop= RNA_def_enum(ot->srna, "type", modifier_type_items, eModifierType_Subsurf, "Type", "");
 	RNA_def_enum_funcs(prop, modifier_add_itemf);
+	ot->prop= prop;
 }
 
 /************************ remove modifier operator *********************/
@@ -580,7 +584,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_modifier_remove(wmOperatorType *ot)
 {
 	ot->name= "Remove Modifier";
-	ot->description= "Remove a modifier from the active object.";
+	ot->description= "Remove a modifier from the active object";
 	ot->idname= "OBJECT_OT_modifier_remove";
 
 	ot->exec= modifier_remove_exec;
@@ -610,7 +614,7 @@ static int modifier_move_up_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_modifier_move_up(wmOperatorType *ot)
 {
 	ot->name= "Move Up Modifier";
-	ot->description= "Move modifier up in the stack.";
+	ot->description= "Move modifier up in the stack";
 	ot->idname= "OBJECT_OT_modifier_move_up";
 
 	ot->exec= modifier_move_up_exec;
@@ -640,7 +644,7 @@ static int modifier_move_down_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_modifier_move_down(wmOperatorType *ot)
 {
 	ot->name= "Move Down Modifier";
-	ot->description= "Move modifier down in the stack.";
+	ot->description= "Move modifier down in the stack";
 	ot->idname= "OBJECT_OT_modifier_move_down";
 
 	ot->exec= modifier_move_down_exec;
@@ -677,7 +681,7 @@ static EnumPropertyItem modifier_apply_as_items[] = {
 void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 {
 	ot->name= "Apply Modifier";
-	ot->description= "Apply modifier and remove from the stack.";
+	ot->description= "Apply modifier and remove from the stack";
 	ot->idname= "OBJECT_OT_modifier_apply";
 
 	//ot->invoke= WM_menu_invoke;
@@ -711,7 +715,7 @@ static int modifier_convert_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_modifier_convert(wmOperatorType *ot)
 {
 	ot->name= "Convert Modifier";
-	ot->description= "Convert particles to a mesh object.";
+	ot->description= "Convert particles to a mesh object";
 	ot->idname= "OBJECT_OT_modifier_convert";
 
 	ot->exec= modifier_convert_exec;
@@ -741,7 +745,7 @@ static int modifier_copy_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_modifier_copy(wmOperatorType *ot)
 {
 	ot->name= "Copy Modifier";
-	ot->description= "Duplicate modifier at the same position in the stack.";
+	ot->description= "Duplicate modifier at the same position in the stack";
 	ot->idname= "OBJECT_OT_modifier_copy";
 
 	ot->exec= modifier_copy_exec;
@@ -805,7 +809,7 @@ static int multires_subdivide_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_multires_subdivide(wmOperatorType *ot)
 {
 	ot->name= "Multires Subdivide";
-	ot->description= "Add a new level of subdivision.";
+	ot->description= "Add a new level of subdivision";
 	ot->idname= "OBJECT_OT_multires_subdivide";
 
 	ot->poll= multires_poll;
@@ -822,6 +826,11 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "modifier", &RNA_MultiresModifier);
 	Object *ob= ptr.id.data, *secondob= NULL;
 	MultiresModifierData *mmd= ptr.data;
+
+	if(ob->derivedFinal == NULL || ob->derivedFinal->type != DM_TYPE_CCGDM) {
+		BKE_report(op->reports, RPT_ERROR, "Active objects multires is disabled, can't reshape multires data.");
+		return OPERATOR_CANCELLED;
+	}
 
 	CTX_DATA_BEGIN(C, Object*, selob, selected_editable_objects) {
 		if(selob->type == OB_MESH && selob != ob) {
@@ -850,7 +859,7 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_multires_reshape(wmOperatorType *ot)
 {
 	ot->name= "Multires Reshape";
-	ot->description= "Copy vertex coordinates from other object.";
+	ot->description= "Copy vertex coordinates from other object";
 	ot->idname= "OBJECT_OT_multires_reshape";
 
 	ot->poll= multires_poll;
@@ -908,7 +917,7 @@ static int multires_save_external_invoke(bContext *C, wmOperator *op, wmEvent *e
 void OBJECT_OT_multires_save_external(wmOperatorType *ot)
 {
 	ot->name= "Multires Save External";
-	ot->description= "Save displacements to an external file.";
+	ot->description= "Save displacements to an external file";
 	ot->idname= "OBJECT_OT_multires_save_external";
 
 	ot->poll= multires_poll;
@@ -918,7 +927,7 @@ void OBJECT_OT_multires_save_external(wmOperatorType *ot)
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
-	WM_operator_properties_filesel(ot, FOLDERFILE|BTXFILE, FILE_SPECIAL);
+	WM_operator_properties_filesel(ot, FOLDERFILE|BTXFILE, FILE_SPECIAL, FILE_SAVE);
 }
 
 /****************** multires pack operator *********************/
@@ -941,7 +950,7 @@ static int multires_pack_external_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_multires_pack_external(wmOperatorType *ot)
 {
 	ot->name= "Multires Pack External";
-	ot->description= "Pack displacements from an external file.";
+	ot->description= "Pack displacements from an external file";
 	ot->idname= "OBJECT_OT_multires_pack_external";
 
 	ot->poll= multires_poll;
@@ -1015,7 +1024,7 @@ void OBJECT_OT_meshdeform_bind(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Mesh Deform Bind";
-	ot->description = "Bind mesh to cage in mesh deform modifier.";
+	ot->description = "Bind mesh to cage in mesh deform modifier";
 	ot->idname= "OBJECT_OT_meshdeform_bind";
 	
 	/* api callbacks */
@@ -1052,7 +1061,7 @@ static int explode_refresh_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_explode_refresh(wmOperatorType *ot)
 {
 	ot->name= "Explode Refresh";
-	ot->description= "Refresh data in the Explode modifier.";
+	ot->description= "Refresh data in the Explode modifier";
 	ot->idname= "OBJECT_OT_explode_refresh";
 
 	ot->exec= explode_refresh_exec;

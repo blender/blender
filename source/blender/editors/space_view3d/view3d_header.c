@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2004-2008 Blender Foundation.
  * All rights reserved.
@@ -188,6 +188,7 @@ static int layers_exec(bContext *C, wmOperator *op)
 			v3d->layact= 1;
 	}
 	else {
+		int bit;
 		nr--;
 
 		if(RNA_boolean_get(op->ptr, "extend")) {
@@ -195,21 +196,30 @@ static int layers_exec(bContext *C, wmOperator *op)
 				v3d->lay &= ~(1<<nr);
 			else
 				v3d->lay |= (1<<nr);
-		} else
+		} else {
 			v3d->lay = (1<<nr);
+
+			/* sanity check - when in editmode disallow switching the editmode layer off since its confusing
+			 * an alternative would be to always draw the editmode object. */
+			if(scene->obedit && (scene->obedit->lay & v3d->lay)==0) {
+				for(bit=0; bit<32; bit++) {
+					if(scene->obedit->lay & (1<<bit)) {
+						v3d->lay |= 1<<bit;
+						break;
+					}
+				}
+			}
+		}
 		
 		/* set active layer, ensure to always have one */
 		if(v3d->lay & (1<<nr))
 		   v3d->layact= 1<<nr;
 		else if((v3d->lay & v3d->layact)==0) {
-			int bit= 0;
-
-			while(bit<32) {
+			for(bit=0; bit<32; bit++) {
 				if(v3d->lay & (1<<bit)) {
 					v3d->layact= 1<<bit;
 					break;
 				}
-				bit++;
 			}
 		}
 	}
@@ -252,7 +262,7 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name= "Layers";
-	ot->description= "Toggle layer(s) visibility.";
+	ot->description= "Toggle layer(s) visibility";
 	ot->idname= "VIEW3D_OT_layers";
 	
 	/* api callbacks */
@@ -537,8 +547,8 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		/* Scene lock */
 		uiItemR(layout, "", 0, &v3dptr, "lock_camera_and_layers", UI_ITEM_R_ICON_ONLY);
 	}
-
-	/* selection modus */
+	
+	/* selection modus, dont use python for this since it cant do the toggle buttons with shift+click as well as clicking to set one. */
 	if(obedit && (obedit->type == OB_MESH)) {
 		BMEditMesh *em= ((Mesh *)obedit->data)->edit_btmesh;
 

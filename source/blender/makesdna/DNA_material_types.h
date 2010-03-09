@@ -17,7 +17,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -181,6 +181,11 @@ typedef struct Material {
 #define MA_IS_USED		1
 		/* for dopesheet */
 #define MA_DS_EXPAND	2
+		/* for dopesheet (texture stack expander)
+		 * NOTE: this must have the same value as other texture stacks, 
+		 * otherwise anim-editors will not read correctly
+		 */
+#define MA_DS_SHOW_TEXS	4
 
 /* mode (is int) */
 #define MA_TRACEBLE		1
@@ -234,6 +239,7 @@ typedef struct Material {
 /* shade_flag */
 #define MA_CUBIC			1
 #define MA_OBCOLOR			2
+#define MA_APPROX_OCCLUSION	4
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0

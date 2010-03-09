@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software Foundation,
-# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ***** END GPL LICENCE BLOCK *****
 
@@ -28,6 +28,7 @@ import bpy
 import subprocess
 import os
 import platform
+
 
 def guess_player_path(preset):
     if preset == 'BLENDER24':
@@ -63,12 +64,11 @@ class PlayRenderedAnim(bpy.types.Operator):
     '''Plays back rendered frames/movies using an external player.'''
     bl_idname = "screen.play_rendered_anim"
     bl_label = "Play Rendered Animation"
-    bl_register = True
-    bl_undo = False
+    bl_options = {'REGISTER'}
 
     def execute(self, context):
-        sce = context.scene
-        rd = sce.render_data
+        scene = context.scene
+        rd = scene.render
         prefs = context.user_preferences
 
         preset = prefs.filepaths.animation_player_preset
@@ -85,7 +85,7 @@ class PlayRenderedAnim(bpy.types.Operator):
             file = ''.join([(c if file_b[i] == c else "#") for i, c in enumerate(file_a)])
         else:
             # works for movies and images
-            file = rd.frame_path(frame=sce.start_frame)
+            file = rd.frame_path(frame=scene.start_frame)
 
         cmd = [player_path]
         # extra options, fps controls etc.
@@ -96,7 +96,7 @@ class PlayRenderedAnim(bpy.types.Operator):
             opts = [file, "-playback_speed", str(rd.fps)]
             cmd.extend(opts)
         elif preset == 'FRAMECYCLER':
-            opts = [file, "%d-%d" % (sce.start_frame, sce.end_frame)]
+            opts = [file, "%d-%d" % (scene.start_frame, scene.end_frame)]
             cmd.extend(opts)
         elif preset == 'RV':
             opts = ["-fps", str(rd.fps), "-play", "[ %s ]" % file]
@@ -111,6 +111,16 @@ class PlayRenderedAnim(bpy.types.Operator):
             pass
             #raise OSError("Couldn't find an external animation player.")
 
-        return('FINISHED',)
+        return {'FINISHED'}
 
-bpy.types.register(PlayRenderedAnim)
+
+def register():
+    bpy.types.register(PlayRenderedAnim)
+
+
+def unregister():
+    bpy.types.unregister(PlayRenderedAnim)
+
+if __name__ == "__main__":
+    register()
+

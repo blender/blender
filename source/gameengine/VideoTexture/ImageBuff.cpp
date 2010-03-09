@@ -26,7 +26,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <structmember.h>
 
 #include "ImageBuff.h"
-
+#include "Exception.h"
 #include "ImageBase.h"
 #include "FilterSource.h"
 
@@ -34,6 +34,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 extern "C" {
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "bgl.h"
 };
 
 // default filter
@@ -41,6 +42,41 @@ FilterRGB24 defFilter;
 
 // forward declaration;
 extern PyTypeObject ImageBuffType;
+
+static int ImageBuff_init (PyObject * pySelf, PyObject * args, PyObject * kwds)
+{
+	short width = -1;
+	short height = -1;
+	unsigned char color = 0;
+	PyObject *py_scale = Py_False;
+	ImageBuff *image;
+
+	PyImage * self = reinterpret_cast<PyImage*>(pySelf);
+	// create source object
+	if (self->m_image != NULL) 
+		delete self->m_image;
+	image = new ImageBuff();
+	self->m_image = image;
+
+	if (PyArg_ParseTuple(args, "hh|bO!:ImageBuff", &width, &height, &color, &PyBool_Type, &py_scale)) 
+	{
+		// initialize image buffer
+		image->setScale(py_scale == Py_True);
+		image->clear(width, height, color);
+	}
+	else
+	{
+		// check if at least one argument was passed
+		if (width != -1 || height != -1)
+			// yes and they didn't match => it's an error
+			return -1;
+		// empty argument list is okay
+		PyErr_Clear();
+	}
+	// initialization succeded
+	return 0;
+
+}
 
 ImageBuff::~ImageBuff (void)
 {
@@ -69,6 +105,34 @@ void ImageBuff::load (unsigned char * img, short width, short height)
 	else
 		// otherwise use default filter
 		convImage(defFilter, img, orgSize);
+	// image is available
+	m_avail = true;
+}
+
+void ImageBuff::clear (short width, short height, unsigned char color)
+{
+	unsigned char *p;
+	int size;
+
+	// loading a new buffer implies to reset the imbuf if any, because the size may change
+	if (m_imbuf)
+	{
+		IMB_freeImBuf(m_imbuf);
+		m_imbuf = NULL;
+	}
+	// initialize image buffer
+	init(width, height);
+	// the width/height may be different due to scaling
+	size = (m_size[0] * m_size[1]);
+	// initialize memory with color for all channels
+	memset(m_image, color, size*4);
+	// and change the alpha channel
+	p = &((unsigned char*)m_image)[3];
+	for (size; size>0; size--)
+	{
+		*p = 0xFF;
+		p += 4;
+	}
 	// image is available
 	m_avail = true;
 }
@@ -137,7 +201,7 @@ static bool testPyBuffer(Py_buffer* buffer, int width, int height, unsigned int 
 	} 
 	if (buffer->len != width*height*pixsize)
 	{
-		PyErr_SetString(PyExc_ValueError, "Buffer hasn't correct size");
+		PyErr_SetString(PyExc_ValueError, "Buffer hasn't the correct size");
 		return false;
 	} 
 	// multi dimension are ok as long as there is no hole in the memory
@@ -160,43 +224,91 @@ static bool testPyBuffer(Py_buffer* buffer, int width, int height, unsigned int 
 	return true;
 }
 
+static bool testBGLBuffer(Buffer* buffer, int width, int height, unsigned int pixsize)
+{
+	unsigned int size = BGL_typeSize(buffer->type);
+	for (int i=0; i<buffer->ndimensions; i++)
+	{
+		size *= buffer->dimensions[i];
+	}
+	if (size != width*height*pixsize)
+	{
+		PyErr_SetString(PyExc_ValueError, "Buffer hasn't the correct size");
+		return false;
+	} 
+	return true;
+}
+
+
 // load image
 static PyObject * load (PyImage * self, PyObject * args)
 {
 	// parameters: string image buffer, its size, width, height
 	Py_buffer buffer;
+	Buffer *bglBuffer;
 	short width;
 	short height;
+	unsigned int pixSize;
+
+	// calc proper buffer size
+	// use pixel size from filter
+	if (self->m_image->getFilter() != NULL)
+		pixSize = self->m_image->getFilter()->m_filter->firstPixelSize();
+	else
+		pixSize = defFilter.firstPixelSize();
+
 	// parse parameters
 	if (!PyArg_ParseTuple(args, "s*hh:load", &buffer, &width, &height))
 	{
-		// report error
-		return NULL;
+		PyErr_Clear();
+		// check if it is BGL buffer
+		if (!PyArg_ParseTuple(args, "O!hh:load", &BGL_bufferType, &bglBuffer, &width, &height))
+		{
+			// report error
+			return NULL;
+		}
+		else
+		{
+			if (testBGLBuffer(bglBuffer, width, height, pixSize))
+			{
+				try
+				{
+					// if correct, load image
+					getImageBuff(self)->load((unsigned char*)bglBuffer->buf.asvoid, width, height);
+				}
+				catch (Exception & exp)
+				{
+					exp.report();
+				}
+			}
+		}
 	}
-	// else check buffer size
 	else
 	{
-		// calc proper buffer size
-		unsigned int pixSize;
-		// use pixel size from filter
-		if (self->m_image->getFilter() != NULL)
-			pixSize = self->m_image->getFilter()->m_filter->firstPixelSize();
-		else
-			pixSize = defFilter.firstPixelSize();
 		// check if buffer size is correct
 		if (testPyBuffer(&buffer, width, height, pixSize))
 		{
-			// if correct, load image
-			getImageBuff(self)->load((unsigned char*)buffer.buf, width, height);
+			try 
+			{
+				// if correct, load image
+				getImageBuff(self)->load((unsigned char*)buffer.buf, width, height);
+			}
+			catch (Exception & exp)
+			{
+				exp.report();
+			}
 		}
 		PyBuffer_Release(&buffer);
 	}
+	if (PyErr_Occurred())
+		return NULL;
 	Py_RETURN_NONE;	
 }
 
 static PyObject * plot (PyImage * self, PyObject * args)
 {
 	PyImage * other;
+	Buffer* bglBuffer;
 	Py_buffer buffer;
 	//unsigned char * buff;
 	//unsigned int buffSize;
@@ -214,17 +326,31 @@ static PyObject * plot (PyImage * self, PyObject * args)
 			getImageBuff(self)->plot((unsigned char*)buffer.buf, width, height, x, y, mode);
 		}
 		PyBuffer_Release(&buffer);
+		if (PyErr_Occurred())
+			return NULL;
 		Py_RETURN_NONE;	
 	}
 	PyErr_Clear();
 	// try the other format
-	if (!PyArg_ParseTuple(args, "O!hh|h:plot", &ImageBuffType, &other, &x, &y, &mode))
+	if (PyArg_ParseTuple(args, "O!hh|h:plot", &ImageBuffType, &other, &x, &y, &mode))
 	{
-		PyErr_SetString(PyExc_TypeError, "Expecting ImageBuff or string,width,height as first arguments, postion x, y and mode and last arguments");
+		getImageBuff(self)->plot(getImageBuff(other), x, y, mode);
+		Py_RETURN_NONE;
+	}
+	PyErr_Clear();
+	// try the last format (BGL buffer)
+	if (!PyArg_ParseTuple(args, "O!hhhh|h:plot", &BGL_bufferType, &bglBuffer, &width, &height, &x, &y, &mode))
+	{
+		PyErr_SetString(PyExc_TypeError, "Expecting ImageBuff or Py buffer or BGL buffer as first argument; width, height next; postion x, y and mode as last arguments");
 		return NULL;
 	}
-	getImageBuff(self)->plot(getImageBuff(other), x, y, mode);
-	Py_RETURN_NONE;
+	if (testBGLBuffer(bglBuffer, width, height, 4))
+	{
+		getImageBuff(self)->plot((unsigned char*)bglBuffer->buf.asvoid, width, height, x, y, mode);
+	}
+	if (PyErr_Occurred())
+		return NULL;
+	Py_RETURN_NONE;	
 }
 
 // methods structure
@@ -237,6 +363,7 @@ static PyMethodDef imageBuffMethods[] =
 // attributes structure
 static PyGetSetDef imageBuffGetSets[] =
 {	// attributes from ImageBase class
+	{(char*)"valid", (getter)Image_valid, NULL, (char*)"bool to tell if an image is available", NULL},
 	{(char*)"image", (getter)Image_getImage, NULL, (char*)"image data", NULL},
 	{(char*)"size", (getter)Image_getSize, NULL, (char*)"image size", NULL},
 	{(char*)"scale", (getter)Image_getScale, (setter)Image_setScale, (char*)"fast scale of image (near neighbour)", NULL},
@@ -267,7 +394,7 @@ PyTypeObject ImageBuffType =
 	0,                         /*tp_str*/
 	0,                         /*tp_getattro*/
 	0,                         /*tp_setattro*/
-	0,                         /*tp_as_buffer*/
+	&imageBufferProcs,         /*tp_as_buffer*/
 	Py_TPFLAGS_DEFAULT,        /*tp_flags*/
 	"Image source from image buffer",       /* tp_doc */
 	0,		               /* tp_traverse */
@@ -284,7 +411,7 @@ PyTypeObject ImageBuffType =
 	0,                         /* tp_descr_get */
 	0,                         /* tp_descr_set */
 	0,                         /* tp_dictoffset */
-	(initproc)Image_init<ImageBuff>,     /* tp_init */
+	(initproc)ImageBuff_init,     /* tp_init */
 	0,                         /* tp_alloc */
 	Image_allocNew,           /* tp_new */
 };

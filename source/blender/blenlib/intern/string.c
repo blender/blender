@@ -19,7 +19,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -52,6 +52,19 @@ char *BLI_strdupn(const char *str, int len) {
 }
 char *BLI_strdup(const char *str) {
 	return BLI_strdupn(str, strlen(str));
+}
+
+char *BLI_strdupcat(const char *str1, const char *str2)
+{
+	int len;
+	char *n;
+	
+	len= strlen(str1)+strlen(str2);
+	n= MEM_mallocN(len+1, "strdupcat");
+	strcpy(n, str1);
+	strcat(n, str2);
+	
+	return n;
 }
 
 char *BLI_strncpy(char *dst, const char *src, int maxncpy) {
@@ -328,4 +341,11 @@ void BLI_timestr(double _time, char *str)
 	}
 	
 	str[11]=0;
+}
+
+/* determine the length of a fixed-size string */
+size_t BLI_strnlen(const char *str, size_t maxlen)
+{
+	const char *end = memchr(str, '\0', maxlen);
+	return end ? (size_t) (end - str) : maxlen;
 }

@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -231,6 +231,7 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel):
         sub.prop(cloth, "mass")
         sub.prop(cloth, "bending_stiffness", text="Bending")
         sub.prop(cloth, "internal_friction", slider=True)
+        sub.prop(cloth, "collider_friction", slider=True)
 
         col = split.column()
 
@@ -348,7 +349,8 @@ class PARTICLE_PT_rotation(ParticleButtonsPanel):
 
         sub = split.column()
 
-        sub.prop(part, "angular_velocity_factor", text="")
+        if part.angular_velocity_mode != 'NONE':
+            sub.prop(part, "angular_velocity_factor", text="")
 
 
 class PARTICLE_PT_physics(ParticleButtonsPanel):
@@ -997,19 +999,36 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel):
         row.prop_object(psys, "vertex_group_field", ob, "vertex_groups", text="Field")
         row.prop(psys, "vertex_group_field_negate", text="")
 
-bpy.types.register(PARTICLE_PT_context_particles)
-bpy.types.register(PARTICLE_PT_hair_dynamics)
-bpy.types.register(PARTICLE_PT_cache)
-bpy.types.register(PARTICLE_PT_emission)
-bpy.types.register(PARTICLE_PT_velocity)
-bpy.types.register(PARTICLE_PT_rotation)
-bpy.types.register(PARTICLE_PT_physics)
-bpy.types.register(PARTICLE_PT_boidbrain)
-bpy.types.register(PARTICLE_PT_render)
-bpy.types.register(PARTICLE_PT_draw)
-bpy.types.register(PARTICLE_PT_children)
-bpy.types.register(PARTICLE_PT_field_weights)
-bpy.types.register(PARTICLE_PT_force_fields)
-bpy.types.register(PARTICLE_PT_vertexgroups)
 
-bpy.types.register(PARTICLE_PT_custom_props)
+classes = [
+    PARTICLE_PT_context_particles,
+    PARTICLE_PT_hair_dynamics,
+    PARTICLE_PT_cache,
+    PARTICLE_PT_emission,
+    PARTICLE_PT_velocity,
+    PARTICLE_PT_rotation,
+    PARTICLE_PT_physics,
+    PARTICLE_PT_boidbrain,
+    PARTICLE_PT_render,
+    PARTICLE_PT_draw,
+    PARTICLE_PT_children,
+    PARTICLE_PT_field_weights,
+    PARTICLE_PT_force_fields,
+    PARTICLE_PT_vertexgroups,
+
+    PARTICLE_PT_custom_props]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

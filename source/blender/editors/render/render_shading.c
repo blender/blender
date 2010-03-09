@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2009 Blender Foundation.
  * All rights reserved.
@@ -196,6 +196,9 @@ static void world_changed(Main *bmain, World *wo)
 
 void ED_render_id_flush_update(Main *bmain, ID *id)
 {
+	if(!id)
+		return;
+
 	switch(GS(id->name)) {
 		case ID_MA:
 			material_changed(bmain, (Material*)id);
@@ -234,7 +237,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_add";
-	ot->description="Add a new material slot or duplicate the selected one.";
+	ot->description="Add a new material slot or duplicate the selected one";
 	
 	/* api callbacks */
 	ot->exec= material_slot_add_exec;
@@ -261,7 +264,7 @@ void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_remove";
-	ot->description="Remove the selected material slot.";
+	ot->description="Remove the selected material slot";
 	
 	/* api callbacks */
 	ot->exec= material_slot_remove_exec;
@@ -322,7 +325,7 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Assign Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_assign";
-	ot->description="Assign the material in the selected material slot to the selected vertices.";
+	ot->description="Assign the material in the selected material slot to the selected vertices";
 	
 	/* api callbacks */
 	ot->exec= material_slot_assign_exec;
@@ -407,7 +410,7 @@ void OBJECT_OT_material_slot_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Select Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_select";
-	ot->description="Select vertices assigned to the selected material slot.";
+	ot->description="Select vertices assigned to the selected material slot";
 	
 	/* api callbacks */
 	ot->exec= material_slot_select_exec;
@@ -426,7 +429,7 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Deselect Material Slot";
 	ot->idname= "OBJECT_OT_material_slot_deselect";
-	ot->description="Deselect vertices assigned to the selected material slot.";
+	ot->description="Deselect vertices assigned to the selected material slot";
 	
 	/* api callbacks */
 	ot->exec= material_slot_deselect_exec;
@@ -466,7 +469,7 @@ void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Copy Material to Others";
 	ot->idname= "OBJECT_OT_material_slot_copy";
-	ot->description="Copies materials to other selected objects.";
+	ot->description="Copies materials to other selected objects";
 
 	/* api callbacks */
 	ot->exec= material_slot_copy_exec;
@@ -512,7 +515,7 @@ void MATERIAL_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Material";
 	ot->idname= "MATERIAL_OT_new";
-	ot->description="Add a new material.";
+	ot->description="Add a new material";
 	
 	/* api callbacks */
 	ot->exec= new_material_exec;
@@ -558,7 +561,7 @@ void TEXTURE_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New Texture";
 	ot->idname= "TEXTURE_OT_new";
-	ot->description="Add a new texture.";
+	ot->description="Add a new texture";
 	
 	/* api callbacks */
 	ot->exec= new_texture_exec;
@@ -604,7 +607,7 @@ void WORLD_OT_new(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "New World";
 	ot->idname= "WORLD_OT_new";
-	ot->description= "Add a new world.";
+	ot->description= "Add a new world";
 	
 	/* api callbacks */
 	ot->exec= new_world_exec;
@@ -632,7 +635,7 @@ void SCENE_OT_render_layer_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Add Render Layer";
 	ot->idname= "SCENE_OT_render_layer_add";
-	ot->description="Add a render layer.";
+	ot->description="Add a render layer";
 	
 	/* api callbacks */
 	ot->exec= render_layer_add_exec;
@@ -678,7 +681,7 @@ void SCENE_OT_render_layer_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Remove Render Layer";
 	ot->idname= "SCENE_OT_render_layer_remove";
-	ot->description="Remove the selected render layer.";
+	ot->description="Remove the selected render layer";
 	
 	/* api callbacks */
 	ot->exec= render_layer_remove_exec;
@@ -752,7 +755,7 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 	/* identifiers */
 	ot->name= "Move Texture Slot";
 	ot->idname= "TEXTURE_OT_slot_move";
-	ot->description="Move texture slots up and down.";
+	ot->description="Move texture slots up and down";
 
 	/* api callbacks */
 	ot->exec= texture_slot_move;
@@ -761,4 +764,63 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "type", slot_move, 0, "Type", "");
+}
+
+
+
+/* material copy/paste */
+static int copy_material_exec(bContext *C, wmOperator *op)
+{
+	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+
+	if(ma==NULL)
+		return OPERATOR_CANCELLED;
+
+	copy_matcopybuf(ma);
+
+	WM_event_add_notifier(C, NC_MATERIAL, ma);
+
+	return OPERATOR_FINISHED;
+}
+
+void MATERIAL_OT_copy(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy Material";
+	ot->idname= "MATERIAL_OT_copy";
+	ot->description="Copy the material settings and nodes";
+
+	/* api callbacks */
+	ot->exec= copy_material_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int paste_material_exec(bContext *C, wmOperator *op)
+{
+	Material *ma= CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
+
+	if(ma==NULL)
+		return OPERATOR_CANCELLED;
+
+	paste_matcopybuf(ma);
+
+	WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING_DRAW, ma);
+
+	return OPERATOR_FINISHED;
+}
+
+void MATERIAL_OT_paste(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste Material";
+	ot->idname= "MATERIAL_OT_paste";
+	ot->description="Copy the material settings and nodes";
+
+	/* api callbacks */
+	ot->exec= paste_material_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -154,7 +154,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_showBackground(false),
 	m_show_debug_properties(false),
 
-	m_game2ipo(false),
+	m_animation_record(false),
 
 	// Default behavior is to hide the cursor every frame.
 	m_hideCursor(false),
@@ -334,6 +334,11 @@ void KX_KetsjiEngine::RenderDome()
 				
 				it++;
 			}
+			// Part of PostRenderScene()
+			m_rendertools->MotionBlur(m_rasterizer);
+			scene->Render2DFilters(m_canvas);
+			// no RunDrawingCallBacks
+			// no FlushDebugLines
 		}
 		m_dome->BindImages(i);
 	}	
@@ -362,11 +367,7 @@ void KX_KetsjiEngine::RenderDome()
 			1.0
 			);
 	}
-
 	m_dome->Draw();
-
-	// run the 2dfilters and motion blur once for all the scenes
-	PostRenderFrame();
 	EndFrame();
 }
 
@@ -398,7 +399,7 @@ void KX_KetsjiEngine::StartEngine(bool clearIpo)
 		m_maxPhysicsFrame = 5;
 	}
 	
-	if (m_game2ipo)
+	if (m_animation_record)
 	{
 		m_sceneconverter->ResetPhysicsObjectsAnimationIpo(clearIpo);
 		m_sceneconverter->WritePhysicsObjectToAnimationIpo(m_currentFrame);
@@ -657,7 +658,7 @@ else
 				scene->UpdateParents(m_frameTime);
 			
 			
-				if (m_game2ipo)
+				if (m_animation_record)
 				{					
 					m_sceneconverter->WritePhysicsObjectToAnimationIpo(++m_currentFrame);
 				}
@@ -859,6 +860,7 @@ void KX_KetsjiEngine::Render()
 			
 			it++;
 		}
+		PostRenderScene(scene);
 	}
 
 	// only one place that checks for stereo
@@ -908,6 +910,7 @@ void KX_KetsjiEngine::Render()
 				
 				it++;
 			}
+			PostRenderScene(scene);
 		}
 	} // if(m_rasterizer->Stereo())
 
@@ -1313,20 +1316,16 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	
 	if (scene->GetPhysicsEnvironment())
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
-	
-	m_rasterizer->FlushDebugLines();
-
-	//it's running once for every scene (i.e. overlay scenes have  it running twice). That's not the ideal.
-	PostRenderFrame();
-
-	// Run any post-drawing python callbacks
-	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
 }
-
-void KX_KetsjiEngine::PostRenderFrame()
+/*
+To run once per scene
+*/
+void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 {
-	m_rendertools->Render2DFilters(m_canvas);
 	m_rendertools->MotionBlur(m_rasterizer);
+	scene->Render2DFilters(m_canvas);
+	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
+	m_rasterizer->FlushDebugLines();
 }
 
 void KX_KetsjiEngine::StopEngine()
@@ -1334,7 +1333,7 @@ void KX_KetsjiEngine::StopEngine()
 	if (m_bInitialized)
 	{
 
-		if (m_game2ipo)
+		if (m_animation_record)
 		{
 //			printf("TestHandlesPhysicsObjectToAnimationIpo\n");
 			m_sceneconverter->TestHandlesPhysicsObjectToAnimationIpo();
@@ -1734,10 +1733,10 @@ void KX_KetsjiEngine::SetUseFixedTime(bool bUseFixedTime)
 }
 
 
-void	KX_KetsjiEngine::SetGame2IpoMode(bool game2ipo,int startFrame)
+void	KX_KetsjiEngine::SetAnimRecordMode(bool animation_record, int startFrame)
 {
-	m_game2ipo = game2ipo;
-	if (game2ipo)
+	m_animation_record = animation_record;
+	if (animation_record)
 	{
 		//when recording physics keyframes, always run at a fixed framerate
 		m_bFixedTime = true;

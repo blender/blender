@@ -180,7 +180,7 @@ void AUD_OpenALDevice::updateStreams()
 											 AUD_DEVICE_SAMPLE_SIZE(specs),
 											 specs.rate);
 
-								if(alGetError() != AL_NO_ERROR)
+								if((err = alGetError()) != AL_NO_ERROR)
 								{
 									sound->data_end = true;
 									break;
@@ -269,6 +269,20 @@ AUD_OpenALDevice::AUD_OpenALDevice(AUD_DeviceSpecs specs, int buffersize)
 	// it at least is able to play 16 bit stereo audio
 	specs.channels = AUD_CHANNELS_STEREO;
 	specs.format = AUD_FORMAT_S16;
+
+#if 0
+	if(alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE)
+	{
+		ALCchar* devices = const_cast<ALCchar*>(alcGetString(NULL, ALC_DEVICE_SPECIFIER));
+		printf("OpenAL devices (standard is: %s):\n", alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER));
+
+		while(*devices)
+		{
+			printf("%s\n", devices);
+			devices += strlen(devices) + 1;
+		}
+	}
+#endif
 
 	m_device = alcOpenDevice(NULL);
 
@@ -825,13 +839,14 @@ bool AUD_OpenALDevice::seek(AUD_Handle* handle, float position)
 
 			if(info != AL_PLAYING)
 			{
-				if(info != AL_STOPPED)
+				if(info == AL_PAUSED)
 					alSourceStop(alhandle->source);
 
-				alSourceUnqueueBuffers(alhandle->source,
-									   AUD_OPENAL_CYCLE_BUFFERS,
-									   alhandle->buffers);
-				if(alGetError() == AL_NO_ERROR)
+				alSourcei(alhandle->source, AL_BUFFER, 0);
+				alhandle->current = 0;
+
+				ALenum err;
+				if((err = alGetError()) == AL_NO_ERROR)
 				{
 					sample_t* buf;
 					int length;
@@ -875,11 +890,14 @@ float AUD_OpenALDevice::getPosition(AUD_Handle* handle)
 	if(isValid(handle))
 	{
 		AUD_OpenALHandle* h = (AUD_OpenALHandle*)handle;
-		if(h->isBuffered)
-			alGetSourcef(h->source, AL_SEC_OFFSET, &position);
-		else
-			position = h->reader->getPosition() /
-					   (float)h->reader->getSpecs().rate;
+		alGetSourcef(h->source, AL_SEC_OFFSET, &position);
+		if(!h->isBuffered)
+		{
+			AUD_Specs specs = h->reader->getSpecs();
+			position += (h->reader->getPosition() - m_buffersize *
+									AUD_OPENAL_CYCLE_BUFFERS) /
+					   (float)specs.rate;
+		}
 	}
 
 	unlock();

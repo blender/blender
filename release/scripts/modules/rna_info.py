@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -201,7 +201,7 @@ class InfoPropertyRNA:
             return "%s=%s" % (self.identifier, default)
         return self.identifier
 
-    def get_type_description(self, as_arg=False, class_fmt="%s"):
+    def get_type_description(self, as_ret=False, as_arg=False, class_fmt="%s"):
         type_str = ""
         if self.fixed_type is None:
             type_str += self.type
@@ -223,7 +223,9 @@ class InfoPropertyRNA:
 
             type_str += collection_str + (class_fmt % self.fixed_type.identifier)
 
-        if as_arg:
+        if as_ret:
+            pass
+        elif as_arg:
             if not self.is_required:
                 type_str += ", (optional)"
         else: # readonly is only useful for selfs, not args
@@ -261,7 +263,7 @@ class InfoFunctionRNA:
 
         for rna_prop in rna_func.parameters.values():
             prop = GetInfoPropertyRNA(rna_prop, parent_id)
-            if rna_prop.use_return:
+            if rna_prop.use_output:
                 self.return_values.append(prop)
             else:
                 self.args.append(prop)

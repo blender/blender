@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
@@ -46,6 +46,7 @@
 #include "RAS_Rect.h"
 
 #include "PyObjectPlus.h"
+#include "RAS_2DFilterManager.h"
 
 /**
  * @section Forward declarations
@@ -273,6 +274,7 @@ protected:
 
 	struct Scene* m_blenderScene;
 
+	RAS_2DFilterManager m_filtermanager;
 public:	
 	KX_Scene(class SCA_IInputDevice* keyboarddevice,
 		class SCA_IInputDevice* mousedevice,
@@ -535,12 +537,21 @@ public:
 	 */
 	void SetNodeTree(SG_Tree* root);
 
+	/**
+	* 2D Filters
+	*/
+	void Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text);
+	void Render2DFilters(RAS_ICanvas* canvas);
+
 #ifndef DISABLE_PYTHON
 	/* --------------------------------------------------------------------- */
 	/* Python interface ---------------------------------------------------- */
 	/* --------------------------------------------------------------------- */
 
 	KX_PYMETHOD_DOC(KX_Scene, addObject);
+	KX_PYMETHOD_DOC(KX_Scene, end);
+	KX_PYMETHOD_DOC(KX_Scene, restart);
+	KX_PYMETHOD_DOC(KX_Scene, replace);
 	KX_PYMETHOD_DOC(KX_Scene, get);
 
 	/* attributes */

@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2006 Blender Foundation.
  * All rights reserved.
@@ -198,7 +198,7 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **in, b
 		CompBuf *stackbuf= NULL;
 		
 		/* first set the right frame number in iuser */
-		BKE_image_user_calc_imanr(iuser, rd->cfra, 0);
+		BKE_image_user_calc_frame(iuser, rd->cfra, 0);
 		
 		/* force a load, we assume iuser index will be set OK anyway */
 		if(ima->type==IMA_TYPE_MULTILAYER)
@@ -346,7 +346,7 @@ void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
    Scene *sce= (Scene *)node->id;
-   Render *re= (sce)? RE_GetRender(sce->id.name): NULL;
+   Render *re= (sce)? RE_GetRender(sce->id.name, RE_SLOT_RENDERING): NULL;
    RenderData *rd= data;
    RenderResult *rr= NULL;
 

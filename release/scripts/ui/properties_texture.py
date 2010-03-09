@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -87,56 +87,49 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel):
 
     def draw(self, context):
         layout = self.layout
-
+        slot = context.texture_slot
+        node = context.texture_node
         space = context.space_data
         tex = context.texture
         wide_ui = context.region.width > narrowui
         idblock = context_tex_datablock(context)
-        tex_collection = space.pin_id == None and type(idblock) != bpy.types.Brush
-
-        
+        tex_collection = space.pin_id == None and type(idblock) != bpy.types.Brush and not node
 
         if tex_collection:
             row = layout.row()
 
-            row.template_list(idblock, "textures", idblock, "active_texture_index", rows=2)
+            row.template_list(idblock, "texture_slots", idblock, "active_texture_index", rows=2)
 
             col = row.column(align=True)
             col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
             col.operator("texture.slot_move", text="", icon='TRIA_DOWN').type = 'DOWN'
-        
+
         if wide_ui:
             split = layout.split(percentage=0.65)
             col = split.column()
         else:
             col = layout.column()
-            
+
         if tex_collection:
             col.template_ID(idblock, "active_texture", new="texture.new")
+        elif node:
+            col.template_ID(node, "texture", new="texture.new")
         elif idblock:
             col.template_ID(idblock, "texture", new="texture.new")
-        
+
         if space.pin_id:
             col.template_ID(space, "pin_id")
-        
+
         if wide_ui:
             col = split.column()
-        
-        if (not space.pin_id) and (
-            context.sculpt_object or
-            context.vertex_paint_object or
-            context.weight_paint_object or
-            context.texture_paint_object):
 
+        if not space.pin_id:
             col.prop(space, "brush_texture", text="Brush", toggle=True)
 
         if tex:
-            layout.prop(tex, "use_nodes")
-
             split = layout.split(percentage=0.2)
 
             if tex.use_nodes:
-                slot = context.texture_slot
 
                 if slot:
                     split.label(text="Output:")
@@ -288,7 +281,7 @@ class TEXTURE_PT_influence(TextureSlotPanel):
         idblock = context_tex_datablock(context)
         if type(idblock) == bpy.types.Brush:
             return False
-    
+
         return context.texture_slot
 
     def draw(self, context):
@@ -853,6 +846,9 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel):
             layout.prop(vd, "resolution")
         elif vd.file_format == 'SMOKE':
             layout.prop(vd, "domain_object")
+            layout.prop(vd, "smoke_data_type")
+        elif vd.file_format == 'IMAGE_SEQUENCE':
+            layout.template_image(tex, "image", tex.image_user)
 
         layout.prop(vd, "still")
         row = layout.row()
@@ -960,29 +956,46 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel):
         col.prop(pd, "turbulence_depth")
         col.prop(pd, "turbulence_strength")
 
-bpy.types.register(TEXTURE_PT_context_texture)
-bpy.types.register(TEXTURE_PT_preview)
 
-bpy.types.register(TEXTURE_PT_clouds) # Texture Type Panels
-bpy.types.register(TEXTURE_PT_wood)
-bpy.types.register(TEXTURE_PT_marble)
-bpy.types.register(TEXTURE_PT_magic)
-bpy.types.register(TEXTURE_PT_blend)
-bpy.types.register(TEXTURE_PT_stucci)
-bpy.types.register(TEXTURE_PT_image)
-bpy.types.register(TEXTURE_PT_image_sampling)
-bpy.types.register(TEXTURE_PT_image_mapping)
-bpy.types.register(TEXTURE_PT_plugin)
-bpy.types.register(TEXTURE_PT_envmap)
-bpy.types.register(TEXTURE_PT_musgrave)
-bpy.types.register(TEXTURE_PT_voronoi)
-bpy.types.register(TEXTURE_PT_distortednoise)
-bpy.types.register(TEXTURE_PT_voxeldata)
-bpy.types.register(TEXTURE_PT_pointdensity)
-bpy.types.register(TEXTURE_PT_pointdensity_turbulence)
+classes = [
+    TEXTURE_PT_context_texture,
+    TEXTURE_PT_preview,
 
-bpy.types.register(TEXTURE_PT_colors)
-bpy.types.register(TEXTURE_PT_mapping)
-bpy.types.register(TEXTURE_PT_influence)
+    TEXTURE_PT_clouds, # Texture Type Panels
+    TEXTURE_PT_wood,
+    TEXTURE_PT_marble,
+    TEXTURE_PT_magic,
+    TEXTURE_PT_blend,
+    TEXTURE_PT_stucci,
+    TEXTURE_PT_image,
+    TEXTURE_PT_image_sampling,
+    TEXTURE_PT_image_mapping,
+    TEXTURE_PT_plugin,
+    TEXTURE_PT_envmap,
+    TEXTURE_PT_musgrave,
+    TEXTURE_PT_voronoi,
+    TEXTURE_PT_distortednoise,
+    TEXTURE_PT_voxeldata,
+    TEXTURE_PT_pointdensity,
+    TEXTURE_PT_pointdensity_turbulence,
 
-bpy.types.register(TEXTURE_PT_custom_props)
+    TEXTURE_PT_colors,
+    TEXTURE_PT_mapping,
+    TEXTURE_PT_influence,
+
+    TEXTURE_PT_custom_props]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

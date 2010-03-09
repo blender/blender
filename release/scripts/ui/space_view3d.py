@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -30,7 +30,7 @@ class VIEW3D_HT_header(bpy.types.Header):
         mode_string = context.mode
         edit_object = context.edit_object
         obj = context.active_object
-        toolsettings = context.scene.tool_settings
+        toolsettings = context.tool_settings
 
         row = layout.row()
         row.template_header()
@@ -49,27 +49,41 @@ class VIEW3D_HT_header(bpy.types.Header):
             if edit_object:
                 sub.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
             elif obj:
-                if mode_string not in ('PAINT_WEIGHT', 'PAINT_TEXTURE'):
+                if mode_string not in ('PAINT_TEXTURE'):
                     sub.menu("VIEW3D_MT_%s" % mode_string.lower())
             else:
                 sub.menu("VIEW3D_MT_object")
 
         row.template_header_3D()
 
-        # Particle edit
-        if obj and obj.mode == 'PARTICLE_EDIT':
-            row.prop(toolsettings.particle_edit, "selection_mode", text="", expand=True, toggle=True)
+        # do in C for now since these buttons cant be both toggle AND exclusive.
+        '''
+        if obj and obj.mode == 'EDIT' and obj.type == 'MESH':
+            row_sub = row.row(align=True)
+            row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=0, icon='VERTEXSEL')
+            row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=1, icon='EDGESEL')
+            row_sub.prop(toolsettings, "mesh_selection_mode", text="", index=2, icon='FACESEL')
+        '''
 
-        # Occlude geometry
-        if obj and view.viewport_shading in ('SOLID', 'SHADED', 'TEXTURED') and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
-            row.prop(view, "occlude_geometry", text="")
+        if obj:
+            # Particle edit
+            if obj.mode == 'PARTICLE_EDIT':
+                row.prop(toolsettings.particle_edit, "selection_mode", text="", expand=True, toggle=True)
 
-        # Proportional editing
-        if obj and obj.mode in ('OBJECT', 'EDIT', 'PARTICLE_EDIT'):
-            row = layout.row(align=True)
-            row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
-            if toolsettings.proportional_editing != 'DISABLED':
-                row.prop(toolsettings, "proportional_editing_falloff", text="", icon_only=True)
+            # Occlude geometry
+            if view.viewport_shading in ('SOLID', 'SHADED', 'TEXTURED') and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
+                row.prop(view, "occlude_geometry", text="")
+
+            # Proportional editing
+            if obj.mode in ('OBJECT', 'EDIT', 'PARTICLE_EDIT'):
+                row = layout.row(align=True)
+                row.prop(toolsettings, "proportional_editing", text="", icon_only=True)
+                if toolsettings.proportional_editing != 'DISABLED':
+                    row.prop(toolsettings, "proportional_editing_falloff", text="", icon_only=True)
+
+            # paint save
+            if mode_string == 'PAINT_TEXTURE':
+                row.operator("image.save_dirty", text="Save Edited")
 
         # Snap
         row = layout.row(align=True)
@@ -186,6 +200,8 @@ class VIEW3D_MT_mirror(bpy.types.Menu):
             props.constraint_axis = (False, False, True)
             props.constraint_orientation = 'LOCAL'
 
+            layout.operator("object.vertex_group_mirror")
+
 
 class VIEW3D_MT_snap(bpy.types.Menu):
     bl_label = "Snap"
@@ -200,6 +216,7 @@ class VIEW3D_MT_snap(bpy.types.Menu):
         layout.separator()
 
         layout.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected")
+        layout.operator("view3d.snap_cursor_to_center", text="Cursor to Center")
         layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid")
         layout.operator("view3d.snap_cursor_to_active", text="Cursor to Active")
 
@@ -231,7 +248,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("view3d.properties", icon='MENU_PANEL')
-        layout.operator("view3d.toolbar", icon='MENU_PANEL')
+        layout.operator("view3d.toolshelf", icon='MENU_PANEL')
 
         layout.separator()
 
@@ -265,7 +282,7 @@ class VIEW3D_MT_view(bpy.types.Menu):
         layout.separator()
 
         layout.operator("view3d.localview", text="View Global/Local")
-        layout.operator("view3d.view_center")
+        layout.operator("view3d.view_selected")
         layout.operator("view3d.view_all")
 
         layout.separator()
@@ -313,7 +330,7 @@ class VIEW3D_MT_view_align(bpy.types.Menu):
 
         layout.operator("view3d.view_all", text="Center Cursor and View All").center = True
         layout.operator("view3d.camera_to_view", text="Align Active Camera to View")
-        layout.operator("view3d.view_center")
+        layout.operator("view3d.view_selected")
         layout.operator("view3d.view_center_cursor")
 
 
@@ -372,6 +389,7 @@ class VIEW3D_MT_select_object(bpy.types.Menu):
         layout.operator("object.select_mirror", text="Mirror")
         layout.operator("object.select_by_layer", text="Select All by Layer")
         layout.operator_menu_enum("object.select_by_type", "type", "", text="Select All by Type...")
+        layout.operator("object.select_camera", text="Select Camera")
 
         layout.separator()
 
@@ -410,6 +428,9 @@ class VIEW3D_MT_select_pose(bpy.types.Menu):
         props.extend = True
         props.direction = 'CHILD'
 
+        layout.separator()
+
+        layout.operator_menu_enum("pose.select_grouped", "type", text="Grouped")
         layout.operator("object.select_pattern", text="Select Pattern...")
 
 
@@ -639,10 +660,11 @@ class VIEW3D_MT_object(bpy.types.Menu):
         layout.separator()
 
         layout.operator("object.duplicate_move")
-        layout.operator("object.duplicate", text="Duplicate Linked").linked = True
+        layout.operator("object.duplicate_move_linked")
         layout.operator("object.delete", text="Delete...")
         layout.operator("object.proxy_make", text="Make Proxy...")
         layout.menu("VIEW3D_MT_make_links", text="Make Links...")
+        layout.operator("object.make_dupli_face", text="Make Dupliface...")
         layout.operator_menu_enum("object.make_local", "type", text="Make Local...")
         layout.menu("VIEW3D_MT_make_single_user")
 
@@ -655,7 +677,7 @@ class VIEW3D_MT_object(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("object.join_shapes")
+        layout.operator("object.join_uvs")
         layout.operator("object.join")
 
         layout.separator()
@@ -676,6 +698,42 @@ class VIEW3D_MT_object_clear(bpy.types.Menu):
         layout.operator("object.rotation_clear", text="Rotation")
         layout.operator("object.scale_clear", text="Scale")
         layout.operator("object.origin_clear", text="Origin")
+
+
+class VIEW3D_MT_object_specials(bpy.types.Menu):
+    bl_label = "Specials"
+
+    def poll(self, context):
+        # add more special types
+        obj = context.object
+        return bool(obj and obj.type == 'LAMP')
+
+    def draw(self, context):
+        layout = self.layout
+
+        obj = context.object
+        if obj and obj.type == 'LAMP':
+            layout.operator_context = 'INVOKE_REGION_WIN'
+
+            props = layout.operator("wm.context_modal_mouse", text="Spot Size")
+            props.path_iter = "selected_editable_objects"
+            props.path_item = "data.spot_size"
+            props.input_scale = 0.01
+
+            props = layout.operator("wm.context_modal_mouse", text="Distance")
+            props.path_iter = "selected_editable_objects"
+            props.path_item = "data.distance"
+            props.input_scale = 0.1
+
+            props = layout.operator("wm.context_modal_mouse", text="Clip Start")
+            props.path_iter = "selected_editable_objects"
+            props.path_item = "data.shadow_buffer_clip_start"
+            props.input_scale = 0.05
+
+            props = layout.operator("wm.context_modal_mouse", text="Clip End")
+            props.path_iter = "selected_editable_objects"
+            props.path_item = "data.shadow_buffer_clip_end"
+            props.input_scale = 0.05
 
 
 class VIEW3D_MT_object_apply(bpy.types.Menu):
@@ -777,7 +835,7 @@ class VIEW3D_MT_make_links(bpy.types.Menu):
         layout = self.layout
 
         layout.operator_menu_enum("object.make_links_scene", "type", text="Objects to Scene...")
-
+        layout.operator_menu_enum("marker.make_links_scene", "type", text="Markers to Scene...")
         layout.operator_enums("object.make_links_data", property="type") # inline
 
 
@@ -791,7 +849,6 @@ class VIEW3D_MT_paint_vertex(bpy.types.Menu):
         layout = self.layout
 
         layout.operator("paint.vertex_color_set")
-        layout.operator("paint.vertex_color_set", text="Set Selected Vertex Colors").selected = True
 
 
 class VIEW3D_MT_hook(bpy.types.Menu):
@@ -835,6 +892,25 @@ class VIEW3D_MT_vertex_group(bpy.types.Menu):
             layout.operator("object.vertex_group_remove", text="Remove Active Group")
             layout.operator("object.vertex_group_remove", text="Remove All Groups").all = True
 
+# ********** Weight paint menu **********
+
+
+class VIEW3D_MT_paint_weight(bpy.types.Menu):
+    bl_label = "Weights"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("paint.weight_from_bones", text="Assign Automatic From Bones").type = 'AUTOMATIC'
+        layout.operator("paint.weight_from_bones", text="Assign From Bone Envelopes").type = 'ENVELOPES'
+
+        layout.separator()
+
+        layout.operator("object.vertex_group_normalize_all", text="Normalize All")
+        layout.operator("object.vertex_group_normalize", text="Normalize")
+        layout.operator("object.vertex_group_invert", text="Invert")
+        layout.operator("object.vertex_group_clean", text="Clean")
+        layout.operator("object.vertex_group_levels", text="Levels")
 
 # ********** Sculpt menu **********
 
@@ -896,6 +972,7 @@ class VIEW3D_MT_particle(bpy.types.Menu):
             layout.operator("particle.subdivide")
 
         layout.operator("particle.rekey")
+        layout.operator("particle.weight_set")
 
         layout.separator()
 
@@ -948,8 +1025,11 @@ class VIEW3D_MT_pose(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("pose.apply")
         layout.operator("pose.relax")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_pose_apply")
 
         layout.separator()
 
@@ -976,6 +1056,8 @@ class VIEW3D_MT_pose(bpy.types.Menu):
         layout.operator("pose.autoside_names", text="AutoName Top/Bottom").axis = 'ZAXIS'
 
         layout.operator("pose.flip_names")
+
+        layout.operator("pose.quaternions_flip")
 
         layout.separator()
 
@@ -1066,6 +1148,17 @@ class VIEW3D_MT_pose_constraints(bpy.types.Menu):
 class VIEW3D_MT_pose_showhide(VIEW3D_MT_showhide):
     _operator_name = "pose"
 
+
+class VIEW3D_MT_pose_apply(bpy.types.Menu):
+    bl_label = "Apply"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("pose.armature_apply")
+        layout.operator("pose.visual_transform_apply")
+
+
 # ********** Edit Menus, suffix from ob.type **********
 
 
@@ -1092,7 +1185,8 @@ class VIEW3D_MT_edit_mesh(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("mesh.extrude_move")
+        layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
+        layout.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
         layout.operator("mesh.duplicate_move")
         layout.operator("mesh.delete", text="Delete...")
 
@@ -1158,6 +1252,136 @@ class VIEW3D_MT_edit_mesh_selection_mode(bpy.types.Menu):
         prop = layout.operator("wm.context_set_value", text="Face", icon='FACESEL')
         prop.value = "(False, False, True)"
         prop.path = "tool_settings.mesh_selection_mode"
+
+
+class VIEW3D_MT_edit_mesh_extrude(bpy.types.Menu):
+    bl_label = "Extrude"
+
+    @staticmethod
+    def extrude_options(context):
+        mesh = context.object.data
+        selection_mode = context.tool_settings.mesh_selection_mode
+
+        totface = mesh.total_face_sel
+        totedge = mesh.total_edge_sel
+        totvert = mesh.total_vert_sel
+
+        # the following is dependent on selection modes
+        # we don't really want that
+#        if selection_mode[0]: # vert
+#            if totvert == 0:
+#                return ()
+#            elif totvert == 1:
+#                return (3,)
+#            elif totedge == 0:
+#                return (3,)
+#            elif totface == 0:
+#                return (2, 3)
+#            elif totface == 1:
+#                return (0, 2, 3)
+#            else:
+#                return (0, 1, 2, 3)
+#        elif selection_mode[1]: # edge
+#            if totedge == 0:
+#                return ()
+#            elif totedge == 1:
+#                return (2,)
+#            elif totface == 0:
+#                return (2,)
+#            elif totface == 1:
+#                return (0, 2)
+#            else:
+#                return (0, 1, 2)
+#        elif selection_mode[2]: # face
+#            if totface == 0:
+#                return ()
+#            elif totface == 1:
+#                return (0,)
+#            else:
+#                return (0, 1)
+
+        if totvert == 0:
+            return ()
+        elif totedge == 0:
+            return (0, 3)
+        elif totface == 0:
+            return (0, 2, 3)
+        else:
+            return (0, 1, 2, 3)
+
+        # should never get here
+        return ()
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        def region_menu():
+            layout.operator("view3d.edit_mesh_extrude_move_normal", text="Region")
+
+        def face_menu():
+            layout.operator("mesh.extrude_faces_move", text="Individual Faces")
+
+        def edge_menu():
+            layout.operator("mesh.extrude_edges_move", text="Edges Only")
+
+        def vert_menu():
+            layout.operator("mesh.extrude_vertices_move", text="Vertices Only")
+
+        menu_funcs = region_menu, face_menu, edge_menu, vert_menu
+
+        for i in self.extrude_options(context):
+            func = menu_funcs[i]
+            func()
+
+
+class VIEW3D_OT_edit_mesh_extrude_individual_move(bpy.types.Operator):
+    "Extrude individual elements and move"
+    bl_label = "Extrude Individual and Move"
+    bl_idname = "view3d.edit_mesh_extrude_individual_move"
+
+    def execute(self, context):
+        mesh = context.object.data
+        selection_mode = context.tool_settings.mesh_selection_mode
+
+        totface = mesh.total_face_sel
+        totedge = mesh.total_edge_sel
+        totvert = mesh.total_vert_sel
+
+        if selection_mode[2] and totface == 1:
+            return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": "NORMAL", "constraint_axis": [False, False, True]})
+        elif selection_mode[2] and totface > 1:
+            return bpy.ops.mesh.extrude_faces_move('INVOKE_REGION_WIN')
+        elif selection_mode[1] and totedge >= 1:
+            return bpy.ops.mesh.extrude_edges_move('INVOKE_REGION_WIN')
+        else:
+            return bpy.ops.mesh.extrude_vertices_move('INVOKE_REGION_WIN')
+
+    def invoke(self, context, event):
+        return self.execute(context)
+
+
+class VIEW3D_OT_edit_mesh_extrude_move(bpy.types.Operator):
+    "Extrude and move along normals"
+    bl_label = "Extrude and Move on Normals"
+    bl_idname = "view3d.edit_mesh_extrude_move_normal"
+
+    def execute(self, context):
+        mesh = context.object.data
+
+        totface = mesh.total_face_sel
+        totedge = mesh.total_edge_sel
+        totvert = mesh.total_vert_sel
+
+        if totface >= 1 or totvert == 1:
+            return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": "NORMAL", "constraint_axis": [False, False, True]})
+        elif totedge == 1:
+            return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": "NORMAL", "constraint_axis": [True, True, False]})
+        else:
+            return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN')
+
+    def invoke(self, context, event):
+        return self.execute(context)
 
 
 class VIEW3D_MT_edit_mesh_vertices(bpy.types.Menu):
@@ -1242,7 +1466,7 @@ class VIEW3D_MT_edit_mesh_faces(bpy.types.Menu):
         # layout.operator("mesh.bevel")
         layout.operator("mesh.edge_face_add")
         layout.operator("mesh.fill")
-        layout.operator("mesh.beauty_fill")
+        layout.operator("mesh.beautify_fill")
         layout.operator("mesh.solidify")
 
         layout.separator()
@@ -1702,14 +1926,21 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         col.prop(gs, "material_mode", text="")
         col.prop(view, "textured_solid")
 
-# XXX - the Quad View options don't work yet
-#		layout.separator()
-#
-#		layout.operator("screen.region_foursplit", text="Toggle Quad View")
-#		col = layout.column()
-#		col.prop(view, "lock_rotation")
-#		col.prop(view, "box_preview")
-#		col.prop(view, "box_clip")
+        layout.separator()
+
+        region = view.region_quadview
+
+        layout.operator("screen.region_quadview", text="Toggle Quad View")
+
+        if region:
+            col = layout.column()
+            col.prop(region, "lock_rotation")
+            row = col.row()
+            row.enabled = region.lock_rotation
+            row.prop(region, "box_preview")
+            row = col.row()
+            row.enabled = region.lock_rotation and region.box_preview
+            row.prop(region, "box_clip")
 
 
 class VIEW3D_PT_3dview_meshdisplay(bpy.types.Panel):
@@ -1772,7 +2003,7 @@ class VIEW3D_PT_3dview_curvedisplay(bpy.types.Panel):
 class VIEW3D_PT_background_image(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Background Image"
+    bl_label = "Background Images"
     bl_default_closed = True
 
     def poll(self, context):
@@ -1784,27 +2015,37 @@ class VIEW3D_PT_background_image(bpy.types.Panel):
         layout = self.layout
         view = context.space_data
 
-        layout.prop(view, "display_background_image", text="")
+        layout.prop(view, "display_background_images", text="")
 
     def draw(self, context):
         layout = self.layout
 
         view = context.space_data
-        bg = view.background_image
 
-        if bg:
-            layout.active = view.display_background_image
+        col = layout.column()
+        col.operator("view3d.add_background_image", text="Add Image")
 
-            col = layout.column()
-            col.template_ID(bg, "image", open="image.open")
-            col.prop(bg, "size")
-            col.prop(bg, "transparency", slider=True)
+        for i, bg in enumerate(view.background_images):
+            layout.active = view.display_background_images
+            box = layout.box()
+            row = box.row(align=True)
+            row.prop(bg, "show_expanded", text="", no_bg=True)
+            row.label(text=getattr(bg.image, "name", "Not Set"))
+            row.operator("view3d.remove_background_image", text="", icon='X').index = i
 
+            box.prop(bg, "view_axis", text="Axis")
 
-            col = layout.column(align=True)
-            col.label(text="Offset:")
-            col.prop(bg, "offset_x", text="X")
-            col.prop(bg, "offset_y", text="Y")
+            if bg.show_expanded:
+                row = box.row()
+                row.template_ID(bg, "image", open="image.open")
+                if (bg.image):
+                    box.template_image(bg, "image", bg.image_user, compact=True)
+
+                    box.prop(bg, "transparency", slider=True)
+                    box.prop(bg, "size")
+                    row = box.row(align=True)
+                    row.prop(bg, "offset_x", text="X")
+                    row.prop(bg, "offset_y", text="Y")
 
 
 class VIEW3D_PT_transform_orientations(bpy.types.Panel):
@@ -1912,101 +2153,121 @@ class VIEW3D_PT_context_properties(bpy.types.Panel):
             # Draw with no edit button
             rna_prop_ui.draw(self.layout, context, member, False)
 
+classes = [
+    VIEW3D_OT_edit_mesh_extrude_move, # detects constraints setup and extrude region
+    VIEW3D_OT_edit_mesh_extrude_individual_move,
 
-bpy.types.register(VIEW3D_HT_header) # Header
+    VIEW3D_HT_header, # Header
 
-bpy.types.register(VIEW3D_MT_view) #View Menus
-bpy.types.register(VIEW3D_MT_view_navigation)
-bpy.types.register(VIEW3D_MT_view_align)
-bpy.types.register(VIEW3D_MT_view_align_selected)
-bpy.types.register(VIEW3D_MT_view_cameras)
+    VIEW3D_MT_view, #View Menus
+    VIEW3D_MT_view_navigation,
+    VIEW3D_MT_view_align,
+    VIEW3D_MT_view_align_selected,
+    VIEW3D_MT_view_cameras,
 
-bpy.types.register(VIEW3D_MT_select_object) # Select Menus
-bpy.types.register(VIEW3D_MT_select_pose)
-bpy.types.register(VIEW3D_MT_select_particle)
-bpy.types.register(VIEW3D_MT_select_edit_mesh)
-bpy.types.register(VIEW3D_MT_select_edit_curve)
-bpy.types.register(VIEW3D_MT_select_edit_surface)
-bpy.types.register(VIEW3D_MT_select_edit_metaball)
-bpy.types.register(VIEW3D_MT_select_edit_lattice)
-bpy.types.register(VIEW3D_MT_select_edit_armature)
-bpy.types.register(VIEW3D_MT_select_face) # XXX todo
+    VIEW3D_MT_select_object, # Select Menus
+    VIEW3D_MT_select_pose,
+    VIEW3D_MT_select_particle,
+    VIEW3D_MT_select_edit_mesh,
+    VIEW3D_MT_select_edit_curve,
+    VIEW3D_MT_select_edit_surface,
+    VIEW3D_MT_select_edit_metaball,
+    VIEW3D_MT_select_edit_lattice,
+    VIEW3D_MT_select_edit_armature,
+    VIEW3D_MT_select_face, # XXX todo
 
-bpy.types.register(VIEW3D_MT_transform) # Object/Edit Menus
-bpy.types.register(VIEW3D_MT_mirror) # Object/Edit Menus
-bpy.types.register(VIEW3D_MT_snap) # Object/Edit Menus
-bpy.types.register(VIEW3D_MT_uv_map) # Edit Menus
+    VIEW3D_MT_transform, # Object/Edit Menus
+    VIEW3D_MT_mirror, # Object/Edit Menus
+    VIEW3D_MT_snap, # Object/Edit Menus
+    VIEW3D_MT_uv_map, # Edit Menus
 
-bpy.types.register(VIEW3D_MT_object) # Object Menu
-bpy.types.register(VIEW3D_MT_object_apply)
-bpy.types.register(VIEW3D_MT_object_clear)
-bpy.types.register(VIEW3D_MT_object_parent)
-bpy.types.register(VIEW3D_MT_object_track)
-bpy.types.register(VIEW3D_MT_object_group)
-bpy.types.register(VIEW3D_MT_object_constraints)
-bpy.types.register(VIEW3D_MT_object_showhide)
-bpy.types.register(VIEW3D_MT_make_single_user)
-bpy.types.register(VIEW3D_MT_make_links)
+    VIEW3D_MT_object, # Object Menu
+    VIEW3D_MT_object_specials,
+    VIEW3D_MT_object_apply,
+    VIEW3D_MT_object_clear,
+    VIEW3D_MT_object_parent,
+    VIEW3D_MT_object_track,
+    VIEW3D_MT_object_group,
+    VIEW3D_MT_object_constraints,
+    VIEW3D_MT_object_showhide,
+    VIEW3D_MT_make_single_user,
+    VIEW3D_MT_make_links,
 
-bpy.types.register(VIEW3D_MT_hook)
-bpy.types.register(VIEW3D_MT_vertex_group)
+    VIEW3D_MT_hook,
+    VIEW3D_MT_vertex_group,
 
-bpy.types.register(VIEW3D_MT_sculpt) # Sculpt Menu
+    VIEW3D_MT_sculpt, # Sculpt Menu
+    VIEW3D_MT_paint_vertex,
+    VIEW3D_MT_paint_weight,
 
-bpy.types.register(VIEW3D_MT_paint_vertex)
+    VIEW3D_MT_particle, # Particle Menu
+    VIEW3D_MT_particle_specials,
+    VIEW3D_MT_particle_showhide,
 
-bpy.types.register(VIEW3D_MT_particle)# Particle Menu
-bpy.types.register(VIEW3D_MT_particle_specials)
-bpy.types.register(VIEW3D_MT_particle_showhide)
+    VIEW3D_MT_pose, # POSE Menu
+    VIEW3D_MT_pose_transform,
+    VIEW3D_MT_pose_pose,
+    VIEW3D_MT_pose_motion,
+    VIEW3D_MT_pose_group,
+    VIEW3D_MT_pose_ik,
+    VIEW3D_MT_pose_constraints,
+    VIEW3D_MT_pose_showhide,
+    VIEW3D_MT_pose_apply,
 
-bpy.types.register(VIEW3D_MT_pose) # POSE Menu
-bpy.types.register(VIEW3D_MT_pose_transform)
-bpy.types.register(VIEW3D_MT_pose_pose)
-bpy.types.register(VIEW3D_MT_pose_motion)
-bpy.types.register(VIEW3D_MT_pose_group)
-bpy.types.register(VIEW3D_MT_pose_ik)
-bpy.types.register(VIEW3D_MT_pose_constraints)
-bpy.types.register(VIEW3D_MT_pose_showhide)
+    VIEW3D_MT_edit_mesh,
+    VIEW3D_MT_edit_mesh_specials, # Only as a menu for keybindings
+    VIEW3D_MT_edit_mesh_selection_mode, # Only as a menu for keybindings
+    VIEW3D_MT_edit_mesh_vertices,
+    VIEW3D_MT_edit_mesh_edges,
+    VIEW3D_MT_edit_mesh_faces,
+    VIEW3D_MT_edit_mesh_normals,
+    VIEW3D_MT_edit_mesh_showhide,
+    VIEW3D_MT_edit_mesh_extrude, # use with VIEW3D_OT_edit_mesh_extrude_menu
 
-bpy.types.register(VIEW3D_MT_edit_mesh)
-bpy.types.register(VIEW3D_MT_edit_mesh_specials) # Only as a menu for keybindings
-bpy.types.register(VIEW3D_MT_edit_mesh_selection_mode) # Only as a menu for keybindings
-bpy.types.register(VIEW3D_MT_edit_mesh_vertices)
-bpy.types.register(VIEW3D_MT_edit_mesh_edges)
-bpy.types.register(VIEW3D_MT_edit_mesh_faces)
-bpy.types.register(VIEW3D_MT_edit_mesh_normals)
-bpy.types.register(VIEW3D_MT_edit_mesh_showhide)
+    VIEW3D_MT_edit_curve,
+    VIEW3D_MT_edit_curve_ctrlpoints,
+    VIEW3D_MT_edit_curve_segments,
+    VIEW3D_MT_edit_curve_specials,
+    VIEW3D_MT_edit_curve_showhide,
 
-bpy.types.register(VIEW3D_MT_edit_curve)
-bpy.types.register(VIEW3D_MT_edit_curve_ctrlpoints)
-bpy.types.register(VIEW3D_MT_edit_curve_segments)
-bpy.types.register(VIEW3D_MT_edit_curve_specials)
-bpy.types.register(VIEW3D_MT_edit_curve_showhide)
+    VIEW3D_MT_edit_surface,
 
-bpy.types.register(VIEW3D_MT_edit_surface)
+    VIEW3D_MT_edit_text,
+    VIEW3D_MT_edit_text_chars,
 
-bpy.types.register(VIEW3D_MT_edit_text)
-bpy.types.register(VIEW3D_MT_edit_text_chars)
+    VIEW3D_MT_edit_meta,
+    VIEW3D_MT_edit_meta_showhide,
 
-bpy.types.register(VIEW3D_MT_edit_meta)
-bpy.types.register(VIEW3D_MT_edit_meta_showhide)
+    VIEW3D_MT_edit_lattice,
 
-bpy.types.register(VIEW3D_MT_edit_lattice)
+    VIEW3D_MT_edit_armature,
+    VIEW3D_MT_edit_armature_parent,
+    VIEW3D_MT_edit_armature_roll,
 
-bpy.types.register(VIEW3D_MT_edit_armature)
-bpy.types.register(VIEW3D_MT_edit_armature_parent)
-bpy.types.register(VIEW3D_MT_edit_armature_roll)
+    VIEW3D_MT_armature_specials, # Only as a menu for keybindings
 
-bpy.types.register(VIEW3D_MT_armature_specials) # Only as a menu for keybindings
+   # Panels
+    VIEW3D_PT_3dview_properties,
+    VIEW3D_PT_3dview_display,
+    VIEW3D_PT_3dview_name,
+    VIEW3D_PT_3dview_meshdisplay,
+    VIEW3D_PT_3dview_curvedisplay,
+    VIEW3D_PT_background_image,
+    VIEW3D_PT_transform_orientations,
+    VIEW3D_PT_etch_a_ton,
+    VIEW3D_PT_context_properties]
 
- # Panels
-bpy.types.register(VIEW3D_PT_3dview_properties)
-bpy.types.register(VIEW3D_PT_3dview_display)
-bpy.types.register(VIEW3D_PT_3dview_name)
-bpy.types.register(VIEW3D_PT_3dview_meshdisplay)
-bpy.types.register(VIEW3D_PT_3dview_curvedisplay)
-bpy.types.register(VIEW3D_PT_background_image)
-bpy.types.register(VIEW3D_PT_transform_orientations)
-bpy.types.register(VIEW3D_PT_etch_a_ton)
 
-bpy.types.register(VIEW3D_PT_context_properties)
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()

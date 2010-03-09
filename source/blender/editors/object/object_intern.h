@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
@@ -69,6 +69,7 @@ void OBJECT_OT_make_single_user(struct wmOperatorType *ot);
 void OBJECT_OT_make_links_scene(struct wmOperatorType *ot);
 void OBJECT_OT_make_links_data(struct wmOperatorType *ot);
 void OBJECT_OT_move_to_layer(struct wmOperatorType *ot);
+void OBJECT_OT_drop_named_material(struct wmOperatorType *ot);
 
 /* object_edit.c */
 void OBJECT_OT_mode_set(struct wmOperatorType *ot);
@@ -79,6 +80,8 @@ void OBJECT_OT_restrictview_clear(struct wmOperatorType *ot);
 void OBJECT_OT_proxy_make(struct wmOperatorType *ot);
 void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
+void OBJECT_OT_paths_calculate(struct wmOperatorType *ot);
+void OBJECT_OT_paths_clear(struct wmOperatorType *ot);
 
 /* object_select.c */
 void OBJECT_OT_select_all(struct wmOperatorType *ot);
@@ -93,6 +96,7 @@ void OBJECT_OT_select_name(struct wmOperatorType *ot);
 
 /* object_add.c */
 void OBJECT_OT_add(struct wmOperatorType *ot);
+void OBJECT_OT_add_named(struct wmOperatorType *ot);
 void OBJECT_OT_curve_add(struct wmOperatorType *ot);
 void OBJECT_OT_surface_add(struct wmOperatorType *ot);
 void OBJECT_OT_metaball_add(struct wmOperatorType *ot);
@@ -180,6 +184,7 @@ void OBJECT_OT_vertex_group_remove_from(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_select(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_deselect(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy_to_linked(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_copy_to_selected(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_copy(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_normalize(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_normalize_all(struct wmOperatorType *ot);
@@ -187,7 +192,9 @@ void OBJECT_OT_vertex_group_levels(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_invert(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_blend(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_clean(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_set_active(struct wmOperatorType *ot);
+void OBJECT_OT_vertex_group_sort(struct wmOperatorType *ot);
 
 void OBJECT_OT_game_property_new(struct wmOperatorType *ot);
 void OBJECT_OT_game_property_remove(struct wmOperatorType *ot);

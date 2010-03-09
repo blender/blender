@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributors: Amorilia (amorilia@gamebox.net)
  *
@@ -80,6 +80,10 @@ struct ImBuf *imb_load_dds(unsigned char *mem, int size, int flags)
 
 	/* check if DDS is valid and supported */
 	if (!dds.isValid()) {
+		/* no need to print error here, just testing if it is a DDS */
+		if(flags & IB_test)
+			return (0);
+
 		printf("DDS: not valid; header follows\n");
 		dds.printInfo();
 		return(0);

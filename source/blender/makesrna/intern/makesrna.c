@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * Contributor(s): Blender Foundation (2008).
  *
@@ -43,6 +43,87 @@
 #define snprintf _snprintf
 #endif
 #endif
+
+/* Replace if different */
+#define TMP_EXT ".tmp"
+
+static int replace_if_different(char *tmpfile)
+{
+
+#define REN_IF_DIFF \
+	remove(orgfile); \
+	if(rename(tmpfile, orgfile) != 0) { \
+		fprintf(stderr, "%s:%d, rename error: \"%s\" -> \"%s\"\n", __FILE__, __LINE__, tmpfile, orgfile); \
+		return -1; \
+	} \
+	remove(tmpfile); \
+	return 1; \
+/* end REN_IF_DIFF */
+
+
+	FILE *fp_new, *fp_org;
+	int len_new, len_org;
+	char *arr_new, *arr_org;
+	int cmp;
+
+	char orgfile[4096];
+
+	strcpy(orgfile, tmpfile);
+	orgfile[strlen(orgfile) - strlen(TMP_EXT)] = '\0'; /* strip '.tmp' */
+
+	fp_org= fopen(orgfile, "rb");
+
+	if(fp_org==NULL) {
+		REN_IF_DIFF;
+	}
+
+	fp_new= fopen(tmpfile, "rb");
+
+	if(fp_new==NULL) {
+		/* shouldn't happen, just to be safe */
+		fprintf(stderr, "%s:%d, open error: \"%s\"\n", __FILE__, __LINE__, tmpfile);
+		return -1;
+	}
+
+	fseek(fp_new, 0L, SEEK_END); len_new = ftell(fp_new); fseek(fp_new, 0L, SEEK_SET);
+	fseek(fp_org, 0L, SEEK_END); len_org = ftell(fp_org); fseek(fp_org, 0L, SEEK_SET);
+
+
+	if(len_new != len_org) {
+		fclose(fp_new);
+		fclose(fp_org);
+		REN_IF_DIFF;
+	}
+
+	/* now compare the files... */
+	arr_new= MEM_mallocN(sizeof(char)*len_new, "rna_cmp_file_new");
+	arr_org= MEM_mallocN(sizeof(char)*len_org, "rna_cmp_file_org");
+
+	if(fread(arr_new, sizeof(char), len_new, fp_new) != len_new)
+		fprintf(stderr, "%s:%d, error reading file %s for comparison.\n", __FILE__, __LINE__, tmpfile);
+	if(fread(arr_org, sizeof(char), len_org, fp_org) != len_org)
+		fprintf(stderr, "%s:%d, error reading file %s for comparison.\n", __FILE__, __LINE__, orgfile);
+
+	fclose(fp_new);
+	fclose(fp_org);
+
+	cmp= memcmp(arr_new, arr_org, len_new);
+
+	MEM_freeN(arr_new);
+	MEM_freeN(arr_org);
+
+	if(cmp) {
+		REN_IF_DIFF;
+	}
+	else {
+		remove(tmpfile);
+		return 0;
+	}
+
+#undef REN_IF_DIFF
+}
+
+
 
 /* Sorting */
 
@@ -1211,13 +1292,14 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyDefRNA *dparm;
-	char *funcname, *ptrstr;
-	int first;
+	PropertyType type;
+	char *funcname, *ptrstr, *valstr;
+	int flag, pout, cptr, first;
 
 	srna= dsrna->srna;
 	func= dfunc->func;
 
-	if(func->flag & FUNC_REGISTER)
+	if(!dfunc->call)
 		return;
 
 	funcname= rna_alloc_function_name(srna->identifier, func->identifier, "call");
@@ -1228,25 +1310,39 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 	/* variable definitions */
 	if((func->flag & FUNC_NO_SELF)==0) {
+		if(func->flag & FUNC_USE_SELF_ID)
+			fprintf(f, "\tstruct ID *_selfid;\n");
+
 		if(dsrna->dnaname) fprintf(f, "\tstruct %s *_self;\n", dsrna->dnaname);
 		else fprintf(f, "\tstruct %s *_self;\n", srna->identifier);
 	}
 
 	dparm= dfunc->cont.properties.first;
 	for(; dparm; dparm= dparm->next) {
-		if(dparm->prop->arraydimension)
+		type = dparm->prop->type;
+		flag = dparm->prop->flag;
+		pout = (flag & PROP_OUTPUT);
+		cptr = ((type == PROP_POINTER) && !(flag & PROP_RNAPTR));
+
+		if(dparm->prop==func->c_ret)
+			ptrstr= cptr || dparm->prop->arraydimension ? "*" : "";
+		/* XXX only arrays and strings are allowed to be dynamic, is this checked anywhere? */
+		else if (cptr || (flag & PROP_DYNAMIC))
+			ptrstr= pout ? "**" : "*";
+		/* fixed size arrays and RNA pointers are pre-allocated on the ParameterList stack, pass a pointer to it */
+		else if (type == PROP_POINTER || dparm->prop->arraydimension)
 			ptrstr= "*";
-		else if(dparm->prop==func->c_ret)
-			ptrstr= ((dparm->prop->type == PROP_POINTER) && !(dparm->prop->flag & PROP_RNAPTR))? "*": "";
-		else if ((dparm->prop->flag & PROP_RETURN)) {
-			if ((dparm->prop->flag & PROP_THICK_WRAP) && (dparm->prop->type == PROP_STRING))
-				ptrstr= "";
-			else
-				ptrstr= ((dparm->prop->type == PROP_POINTER) && !(dparm->prop->flag & PROP_RNAPTR))? "**": "*";
-		} else
-			ptrstr= (dparm->prop->type == PROP_POINTER)? "*": "";
+		/* PROP_THICK_WRAP strings are pre-allocated on the ParameterList stack, but type name for string props is already char*, so leave empty */
+		else if (type == PROP_STRING && (flag & PROP_THICK_WRAP))
+			ptrstr= "";
+		else
+			ptrstr= pout ? "*" : "";
 
 		fprintf(f, "\t%s%s %s%s;\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, dparm->prop->identifier);
+
+		/* for dynamic parameters we pass an additional int for the length of the parameter */
+		if (flag & PROP_DYNAMIC)
+			fprintf(f, "\tint %s%s_len;\n", pout ? "*" : "", dparm->prop->identifier);
 	}
 
 	fprintf(f, "\tchar *_data");
@@ -1256,6 +1352,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 	/* assign self */
 	if((func->flag & FUNC_NO_SELF)==0) {
+		if(func->flag & FUNC_USE_SELF_ID)
+			fprintf(f, "\t_selfid= (struct ID*)_ptr->id.data;\n");
+
 		if(dsrna->dnaname) fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", dsrna->dnaname);
 		else fprintf(f, "\t_self= (struct %s *)_ptr->data;\n", srna->identifier);
 	}
@@ -1264,30 +1363,45 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 
 	dparm= dfunc->cont.properties.first;
 	for(; dparm; dparm= dparm->next) {
-		if ((dparm->prop->flag & PROP_RETURN))
-			ptrstr= "";
-		else
-			ptrstr= "*";
+		type = dparm->prop->type;
+		flag = dparm->prop->flag;
+		pout = (flag & PROP_OUTPUT);
+		cptr = ((type == PROP_POINTER) && !(flag & PROP_RNAPTR));
 
 		if(dparm->prop==func->c_ret)
 			fprintf(f, "\t_retdata= _data;\n");
-		else if(dparm->prop->arraydimension)
-			fprintf(f, "\t%s= ((%s%s*)_data);\n", dparm->prop->identifier, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
-		else if(dparm->prop->type == PROP_POINTER) {
-			if(dparm->prop->flag & PROP_RNAPTR)
-				fprintf(f, "\t%s= ((%s%s*)_data);\n", dparm->prop->identifier, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
-			else
-				fprintf(f, "\t%s= %s((%s%s**)_data);\n", dparm->prop->identifier, ptrstr, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
-		}
-		else {
-			if ((dparm->prop->flag & PROP_THICK_WRAP) && (dparm->prop->type == PROP_STRING))
-				fprintf(f, "\t%s= %s((%s%s)_data);\n", dparm->prop->identifier, ptrstr, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
-			else
-				fprintf(f, "\t%s= %s((%s%s*)_data);\n", dparm->prop->identifier, ptrstr, rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop));
+		else  {
+			if (cptr || (flag & PROP_DYNAMIC)) {
+				ptrstr= "**";
+				valstr= "*";
+			}
+			else if (type == PROP_POINTER || dparm->prop->arraydimension) {
+				ptrstr= "*";
+				valstr= "";
+			}
+			else if (type == PROP_STRING && (flag & PROP_THICK_WRAP)) {
+				ptrstr= "";
+				valstr= "";
+			}
+			else {
+				ptrstr= "*";
+				valstr= "*";
+			}
+
+			fprintf(f, "\t%s= ", dparm->prop->identifier);
+
+			if (!pout)
+				fprintf(f, "%s", valstr);
+
+			fprintf(f, "((%s%s%s)_data);\n", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr);
+
+			/* this must be kept in sync with RNA_parameter_length_get_data, we could just call the function directly, but this is faster */
+			if (flag & PROP_DYNAMIC)
+				fprintf(f, "\t%s_len= %s((int *)(_data+%d));\n", dparm->prop->identifier, pout ? "" : "*", rna_parameter_size(dparm->prop));
 		}
 
 		if(dparm->next)
-			fprintf(f, "\t_data+= %d;\n", rna_parameter_size(dparm->prop));
+			fprintf(f, "\t_data+= %d;\n", rna_parameter_size_alloc(dparm->prop));
 	}
 
 	if(dfunc->call) {
@@ -1299,6 +1413,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		first= 1;
 
 		if((func->flag & FUNC_NO_SELF)==0) {
+			if(func->flag & FUNC_USE_SELF_ID)
+				fprintf(f, "_selfid, ");
+
 			fprintf(f, "_self");
 			first= 0;
 		}
@@ -1324,6 +1441,9 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 			first= 0;
 
 			fprintf(f, "%s", dparm->prop->identifier);
+
+			if (dparm->prop->flag & PROP_DYNAMIC)
+				fprintf(f, ", %s_len", dparm->prop->identifier);
 		}
 
 		fprintf(f, ");\n");
@@ -1427,6 +1547,7 @@ static const char *rna_property_subtypename(PropertyType type)
 	switch(type) {
 		case PROP_NONE: return "PROP_NONE";
 		case PROP_FILEPATH: return "PROP_FILEPATH";
+		case PROP_FILENAME: return "PROP_FILENAME";
 		case PROP_DIRPATH: return "PROP_DIRPATH";
 		case PROP_UNSIGNED: return "PROP_UNSIGNED";
 		case PROP_PERCENTAGE: return "PROP_PERCENTAGE";
@@ -1565,7 +1686,8 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 	FunctionRNA *func;
 	PropertyDefRNA *dparm;
 	StructDefRNA *dsrna;
-	int first;
+	PropertyType type;
+	int flag, pout, cptr, first;
 	char *ptrstr;
 
 	dsrna= rna_find_struct_def(srna);
@@ -1596,6 +1718,9 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 
 	/* self, context and reports parameters */
 	if((func->flag & FUNC_NO_SELF)==0) {
+		if(func->flag & FUNC_USE_SELF_ID)
+			fprintf(f, "struct ID *_selfid, ");
+
 		if(dsrna->dnaname) fprintf(f, "struct %s *_self", dsrna->dnaname);
 		else fprintf(f, "struct %s *_self", srna->identifier);
 		first= 0;
@@ -1615,25 +1740,33 @@ static void rna_generate_static_parameter_prototypes(BlenderRNA *brna, StructRNA
 
 	/* defined parameters */
 	for(dparm= dfunc->cont.properties.first; dparm; dparm= dparm->next) {
+		type = dparm->prop->type;
+		flag = dparm->prop->flag;
+		pout = (flag & PROP_OUTPUT);
+		cptr = ((type == PROP_POINTER) && !(flag & PROP_RNAPTR));
+
 		if(dparm->prop==func->c_ret)
 			continue;
+
+		if (cptr || (flag & PROP_DYNAMIC))
+			ptrstr= pout ? "**" : "*";
+		else if (type == PROP_POINTER || dparm->prop->arraydimension)
+			ptrstr= "*";
+		else if (type == PROP_STRING && (flag & PROP_THICK_WRAP))
+			ptrstr= "";
+		else
+			ptrstr= pout ? "*" : "";
 
 		if(!first) fprintf(f, ", ");
 		first= 0;
 
-		if((dparm->prop->type == PROP_STRING && dparm->prop->flag & PROP_THICK_WRAP))
-			ptrstr= "";
-		else if(dparm->prop->flag & PROP_RETURN)
-			ptrstr= "*";
-		else
-			ptrstr= "";
-
-		if(dparm->prop->arraydimension)
+		if(!(flag & PROP_DYNAMIC) && dparm->prop->arraydimension)
 			fprintf(f, "%s%s %s[%d]", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), dparm->prop->identifier, dparm->prop->totarraylength);
-		else if(dparm->prop->type == PROP_POINTER)
-			fprintf(f, "%s%s *%s%s", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), (dparm->prop->flag & PROP_RNAPTR) ? "" : ptrstr, dparm->prop->identifier);
 		else
 			fprintf(f, "%s%s %s%s", rna_type_struct(dparm->prop), rna_parameter_type_name(dparm->prop), ptrstr, dparm->prop->identifier);
+
+		if (flag & PROP_DYNAMIC)
+			fprintf(f, ", int %s%s_len", pout ? "*" : "", dparm->prop->identifier);
 	}
 
 	fprintf(f, ");\n");
@@ -1643,16 +1776,19 @@ static void rna_generate_static_function_prototypes(BlenderRNA *brna, StructRNA 
 {
 	FunctionRNA *func;
 	FunctionDefRNA *dfunc;
-
-	fprintf(f, "/* Repeated prototypes to detect errors */\n\n");
+	int first= 1;
 
 	for(func= srna->functions.first; func; func= func->cont.next) {
-		if(func->flag & FUNC_REGISTER)
-			continue;
-
 		dfunc= rna_find_function_def(func);
-		if(dfunc->call)
+
+		if(dfunc->call) {
+			if(first) {
+				fprintf(f, "/* Repeated prototypes to detect errors */\n\n");
+				first= 0;
+			}
+
 			rna_generate_static_parameter_prototypes(brna, srna, dfunc, f);
+		}
 	}
 
 	fprintf(f, "\n");
@@ -2340,10 +2476,10 @@ static void rna_generate_header_cpp(BlenderRNA *brna, FILE *f)
 	fprintf(f, "}\n\n#endif /* __RNA_BLENDER_CPP_H__ */\n\n");
 }
 
-static void make_bad_file(char *file)
+static void make_bad_file(char *file, int line)
 {
 	FILE *fp= fopen(file, "w");
-	fprintf(fp, "ERROR! Cannot make correct RNA file, STUPID!\n");
+	fprintf(fp, "#error \"Error! can't make correct RNA file from %s:%d, STUPID!\"\n", __FILE__, line);
 	fclose(fp);
 }
 
@@ -2373,12 +2509,12 @@ static int rna_preprocess(char *outfile)
 
 	/* create RNA_blender_cpp.h */
 	strcpy(deffile, outfile);
-	strcat(deffile, "RNA_blender_cpp.h");
+	strcat(deffile, "RNA_blender_cpp.h" TMP_EXT);
 
 	status= (DefRNA.error != 0);
 
 	if(status) {
-		make_bad_file(deffile);
+		make_bad_file(deffile, __LINE__);
 	}
 	else {
 		file = fopen(deffile, "w");
@@ -2390,10 +2526,11 @@ static int rna_preprocess(char *outfile)
 		else {
 			rna_generate_header_cpp(brna, file);
 			fclose(file);
-
 			status= (DefRNA.error != 0);
 		}
 	}
+
+	replace_if_different(deffile);
 
 	rna_sort(brna);
 
@@ -2402,10 +2539,10 @@ static int rna_preprocess(char *outfile)
 		strcpy(deffile, outfile);
 		strcat(deffile, PROCESS_ITEMS[i].filename);
 		deffile[strlen(deffile)-2] = '\0';
-		strcat(deffile, "_gen.c");
+		strcat(deffile, "_gen.c" TMP_EXT);
 
 		if(status) {
-			make_bad_file(deffile);
+			make_bad_file(deffile, __LINE__);
 		}
 		else {
 			file = fopen(deffile, "w");
@@ -2417,18 +2554,19 @@ static int rna_preprocess(char *outfile)
 			else {
 				rna_generate(brna, file, PROCESS_ITEMS[i].filename, PROCESS_ITEMS[i].api_filename);
 				fclose(file);
-
 				status= (DefRNA.error != 0);
 			}
 		}
+
+		replace_if_different(deffile);
 	}
 
 	/* create RNA_blender.h */
 	strcpy(deffile, outfile);
-	strcat(deffile, "RNA_blender.h");
+	strcat(deffile, "RNA_blender.h" TMP_EXT);
 
 	if(status) {
-		make_bad_file(deffile);
+		make_bad_file(deffile, __LINE__);
 	}
 	else {
 		file = fopen(deffile, "w");
@@ -2440,10 +2578,11 @@ static int rna_preprocess(char *outfile)
 		else {
 			rna_generate_header(brna, file);
 			fclose(file);
-
 			status= (DefRNA.error != 0);
 		}
 	}
+
+	replace_if_different(deffile);
 
 	/* free RNA */
 	RNA_define_free(brna);
@@ -2452,7 +2591,7 @@ static int rna_preprocess(char *outfile)
 	return status;
 }
 
-static void mem_error_cb(char *errorStr)
+static void mem_error_cb(const char *errorStr)
 {
 	fprintf(stderr, "%s", errorStr);
 	fflush(stderr);

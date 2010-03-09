@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -41,7 +41,7 @@ def write_pov(filename, scene=None, info_callback=None):
     if not scene:
         scene = bpy.data.scenes[0]
 
-    render = scene.render_data
+    render = scene.render
     world = scene.world
 
     def uniqueName(name, nameSeq):
@@ -146,7 +146,7 @@ def write_pov(filename, scene=None, info_callback=None):
         file.write('\tup <0, 1, 0>\n')
         file.write('\tangle  %f \n' % (360.0 * atan(16.0 / camera.data.lens) / pi))
 
-        file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple([degrees(e) for e in matrix.rotationPart().toEuler()]))
+        file.write('\trotate  <%.6f, %.6f, %.6f>\n' % tuple([degrees(e) for e in matrix.rotation_part().to_euler()]))
         file.write('\ttranslate <%.6f, %.6f, %.6f>\n' % (matrix[3][0], matrix[3][1], matrix[3][2]))
         file.write('}\n')
 
@@ -169,8 +169,8 @@ def write_pov(filename, scene=None, info_callback=None):
                 file.write('\tspotlight\n')
 
                 # Falloff is the main radius from the centre line
-                file.write('\tfalloff %.2f\n' % (lamp.spot_size / 2.0)) # 1 TO 179 FOR BOTH
-                file.write('\tradius %.6f\n' % ((lamp.spot_size / 2.0) * (1.0 - lamp.spot_blend)))
+                file.write('\tfalloff %.2f\n' % (degrees(lamp.spot_size) / 2.0)) # 1 TO 179 FOR BOTH
+                file.write('\tradius %.6f\n' % ((degrees(lamp.spot_size) / 2.0) * (1.0 - lamp.spot_blend)))
 
                 # Blender does not have a tightness equivilent, 0 is most like blender default.
                 file.write('\ttightness 0\n') # 0:10f
@@ -602,7 +602,7 @@ def write_pov(filename, scene=None, info_callback=None):
 
 def write_pov_ini(filename_ini, filename_pov, filename_image):
     scene = bpy.data.scenes[0]
-    render = scene.render_data
+    render = scene.render
 
     x = int(render.resolution_x * render.resolution_percentage * 0.01)
     y = int(render.resolution_y * render.resolution_percentage * 0.01)
@@ -646,73 +646,73 @@ BoolProperty = bpy.types.Scene.BoolProperty
 # Not a real pov option, just to know if we should write
 BoolProperty(attr="pov_radio_enable",
                 name="Enable Radiosity",
-                description="Enable povrays radiosity calculation.",
+                description="Enable povrays radiosity calculation",
                 default=False)
 BoolProperty(attr="pov_radio_display_advanced",
                 name="Advanced Options",
-                description="Show advanced options.",
+                description="Show advanced options",
                 default=False)
 
 # Real pov options
 FloatProperty(attr="pov_radio_adc_bailout",
                 name="ADC Bailout",
-                description="The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results.",
+                description="The adc_bailout for radiosity rays. Use adc_bailout = 0.01 / brightest_ambient_object for good results",
                 min=0.0, max=1000.0, soft_min=0.0, soft_max=1.0, default=0.01)
 
 BoolProperty(attr="pov_radio_always_sample",
                 name="Always Sample",
-                description="Only use the data from the pretrace step and not gather any new samples during the final radiosity pass..",
+                description="Only use the data from the pretrace step and not gather any new samples during the final radiosity pass",
                 default=True)
 
 FloatProperty(attr="pov_radio_brightness",
                 name="Brightness",
-                description="Ammount objects are brightened before being returned upwards to the rest of the system.",
+                description="Amount objects are brightened before being returned upwards to the rest of the system",
                 min=0.0, max=1000.0, soft_min=0.0, soft_max=10.0, default=1.0)
 
 IntProperty(attr="pov_radio_count",
                 name="Ray Count",
-                description="number of rays that are sent out whenever a new radiosity value has to be calculated.",
+                description="Number of rays that are sent out whenever a new radiosity value has to be calculated",
                 min=1, max=1600, default=35)
 
 FloatProperty(attr="pov_radio_error_bound",
                 name="Error Bound",
-                description="one of the two main speed/quality tuning values, lower values are more accurate.",
+                description="One of the two main speed/quality tuning values, lower values are more accurate",
                 min=0.0, max=1000.0, soft_min=0.1, soft_max=10.0, default=1.8)
 
 FloatProperty(attr="pov_radio_gray_threshold",
                 name="Gray Threshold",
-                description="one of the two main speed/quality tuning values, lower values are more accurate.",
+                description="One of the two main speed/quality tuning values, lower values are more accurate",
                 min=0.0, max=1.0, soft_min=0, soft_max=1, default=0.0)
 
 FloatProperty(attr="pov_radio_low_error_factor",
                 name="Low Error Factor",
-                description="If you calculate just enough samples, but no more, you will get an image which has slightly blotchy lighting.",
+                description="If you calculate just enough samples, but no more, you will get an image which has slightly blotchy lighting",
                 min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, default=0.5)
 
 # max_sample - not available yet
 BoolProperty(attr="pov_radio_media",
                 name="Media",
-                description="Radiosity estimation can be affected by media.",
+                description="Radiosity estimation can be affected by media",
                 default=False)
 
 FloatProperty(attr="pov_radio_minimum_reuse",
                 name="Minimum Reuse",
-                description="Fraction of the screen width which sets the minimum radius of reuse for each sample point (At values higher than 2% expect errors).",
+                description="Fraction of the screen width which sets the minimum radius of reuse for each sample point (At values higher than 2% expect errors)",
                 min=0.0, max=1.0, soft_min=0.1, soft_max=0.1, default=0.015)
 
 IntProperty(attr="pov_radio_nearest_count",
                 name="Nearest Count",
-                description="Number of old ambient values blended together to create a new interpolated value.",
+                description="Number of old ambient values blended together to create a new interpolated value",
                 min=1, max=20, default=5)
 
 BoolProperty(attr="pov_radio_normal",
                 name="Normals",
-                description="Radiosity estimation can be affected by normals.",
+                description="Radiosity estimation can be affected by normals",
                 default=False)
 
 IntProperty(attr="pov_radio_recursion_limit",
                 name="Recursion Limit",
-                description="how many recursion levels are used to calculate the diffuse inter-reflection.",
+                description="how many recursion levels are used to calculate the diffuse inter-reflection",
                 min=1, max=20, default=3)
 
 
@@ -785,7 +785,7 @@ class PovrayRender(bpy.types.RenderEngine):
         self.update_stats("", "POVRAY: Parsing File")
         self._render()
 
-        r = scene.render_data
+        r = scene.render
 
         # compute resolution
         x = int(r.resolution_x * r.resolution_percentage * 0.01)
@@ -854,7 +854,6 @@ class PovrayRender(bpy.types.RenderEngine):
 
         self._cleanup()
 
-bpy.types.register(PovrayRender)
 
 # Use some of the existing buttons.
 import properties_render
@@ -890,7 +889,7 @@ class RenderButtonsPanel(bpy.types.Panel):
     # COMPAT_ENGINES must be defined in each subclass, external engines can add themselves here
 
     def poll(self, context):
-        rd = context.scene.render_data
+        rd = context.scene.render
         return (rd.use_game_engine == False) and (rd.engine in self.COMPAT_ENGINES)
 
 
@@ -907,7 +906,7 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel):
         layout = self.layout
 
         scene = context.scene
-        rd = scene.render_data
+        rd = scene.render
 
         layout.active = scene.pov_radio_enable
 
@@ -944,4 +943,22 @@ class RENDER_PT_povray_radiosity(RenderButtonsPanel):
             col = split.column()
             col.prop(scene, "pov_radio_always_sample")
 
-bpy.types.register(RENDER_PT_povray_radiosity)
+
+classes = [
+    PovrayRender,
+    RENDER_PT_povray_radiosity]
+
+
+def register():
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
+
+def unregister():
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
+
+if __name__ == "__main__":
+    register()
+

@@ -12,7 +12,7 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software Foundation,
-#  Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
 
@@ -127,8 +127,8 @@ def main(obj, bone_definition, base_names, options):
 
     delta_pbone.rotation_mode = 'XYZ'
 
-    rot = delta_pmatrix.invert().rotationPart() * child_pmatrix.rotationPart()
-    rot = rot.invert().toEuler()
+    rot = delta_pmatrix.invert().rotation_part() * child_pmatrix.rotation_part()
+    rot = rot.invert().to_euler()
 
     fcurve_drivers = delta_pbone.driver_add("rotation_euler", -1)
     for i, fcurve_driver in enumerate(fcurve_drivers):
@@ -141,7 +141,7 @@ def main(obj, bone_definition, base_names, options):
         mod.coefficients[1] = 0.0
 
     # tricky, find the transform to drive the bone to this location.
-    delta_head_offset = child_pmatrix.rotationPart() * (delta_phead - child_phead)
+    delta_head_offset = child_pmatrix.rotation_part() * (delta_phead - child_phead)
 
     fcurve_drivers = delta_pbone.driver_add("location", -1)
     for i, fcurve_driver in enumerate(fcurve_drivers):
