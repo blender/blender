@@ -3223,6 +3223,39 @@ static void springs_from_mesh(Object *ob)
 }
 
 
+
+/* helper functions for everything is animateble jow_go_for2_5 +++++++*/
+/* introducing them here, because i know: steps in properties  ( at frame timing )
+   will cause unwanted responses of the softbody system (which does inter frame calculations )
+   so first 'cure' would be: interpolate linear in time .. 
+   Q: why do i write this?
+   A: because it happend once, that some eger coder 'streamlined' code to fail.
+   We DO linear interpolation for goals .. and i think we should do on animated properties as well 
+*/
+static float _goalfac(SoftBody *sb)/*jow_go_for2_5 */
+{
+	if (sb){
+		return  ABS(sb->maxgoal - sb->mingoal);
+	}
+	printf("_goalfac failed! sb==NULL \n" );
+	return -9999.99f; /*using crude but spot able values some times helps debuggin */
+}
+
+
+static float _final_goal(SoftBody *sb,BodyPoint *bp)/*jow_go_for2_5 */
+{
+	float f = -1999.99f;
+	if (sb && bp){
+		if (bp->goal < 0.0f) return (0.0f);
+		f = pow(_goalfac(sb), 4.0f);
+		return (bp->goal *f);
+	}
+	printf("_final_goal failed! sb or bp ==NULL \n" );
+	return f; /*using crude but spot able values some times helps debuggin */
+}
+/* helper functions for everything is animateble jow_go_for2_5 ------*/
+
+
 /* makes totally fresh start situation */
 static void mesh_to_softbody(Scene *scene, Object *ob)
 {
@@ -3242,8 +3275,8 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 	/* we always make body points */
 	sb= ob->soft;	
 	bp= sb->bpoint;
-	/* should go to sb->scratch  so we can pick it up at frame level thanks_a_TON*/
-	goalfac= ABS(sb->maxgoal - sb->mingoal);
+	/*pick it from  _goalfac jow_go_for2_5*/
+	goalfac= _goalfac(sb);
 	
 	for(a=0; a<me->totvert; a++, bp++) {
 		/* get scalar values needed  *per vertex* from vertex group functions,
@@ -3257,14 +3290,13 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 
 			get_scalar_from_vertexgroup(ob, a,(short) (sb->vertgroup-1), &bp->goal);
 			/* do this always, regardless successfull read from vertex group */
-			/* this is where '2.5 every thing is animateable' goes wrong in the first place thanks_a_TON */
-			/* don't ask me for evidence .. i might track to the very commit */
+			/* this is where '2.5 every thing is animateable' goes wrong in the first place jow_go_for2_5 */
 			/* 1st coding action to take : move this to frame level */
 			/* reads: leave the bp->goal as it was read from vertex group / or default .. we will need it at per frame call */
-			bp->goal= sb->mingoal + bp->goal*goalfac; /* do not do here thanks_a_TON */
+			bp->goal= sb->mingoal + bp->goal*goalfac; /* do not do here jow_go_for2_5 */
 		}
 		/* a little ad hoc changing the goal control to be less *sharp* */
-		bp->goal = (float)pow(bp->goal, 4.0f);/* do not do here thanks_a_TON */
+		bp->goal = (float)pow(bp->goal, 4.0f);/* do not do here jow_go_for2_5 */
 			
 		/* to proove the concept
 		this would enable per vertex *mass painting*
