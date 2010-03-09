@@ -52,8 +52,10 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	tex_input_vec(scale, in[1], p, thread);
 
 	mul_v3_v3v3(new_co, p->co, scale);
-	mul_v3_v3v3(new_dxt, p->dxt, scale);
-	mul_v3_v3v3(new_dyt, p->dyt, scale);
+	if (p->osatex) {
+		mul_v3_v3v3(new_dxt, p->dxt, scale);
+		mul_v3_v3v3(new_dyt, p->dyt, scale);
+	}
 	
 	tex_input_rgba(out, in[0], &np, thread);
 }

@@ -72,8 +72,10 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	tex_input_vec(ax, in[2], p, thread);
 
 	rotate(new_co, a, ax, p->co);
-	rotate(new_dxt, a, ax, p->dxt);
-	rotate(new_dyt, a, ax, p->dyt);
+	if (p->osatex) {
+		rotate(new_dxt, a, ax, p->dxt);
+		rotate(new_dyt, a, ax, p->dyt);
+	}
 	
 	{
 		TexParams np = *p;
