@@ -614,11 +614,11 @@ static void write_pointcaches(WriteData *wd, ListBase *ptcaches)
 			for(; pm; pm=pm->next) {
 				writestruct(wd, DATA, "PTCacheMem", 1, pm);
 				if(pm->index_array)
-					writedata(wd, DATA, sizeof(int) * pm->totpoint, pm->index_array);
+					writedata(wd, DATA, MEM_allocN_len(pm->index_array), pm->index_array);
 				
 				for(i=0; i<BPHYS_TOT_DATA; i++) {
 					if(pm->data[i] && pm->data_types & (1<<i))
-						writedata(wd, DATA, BKE_ptcache_data_size(i) * pm->totpoint, pm->data[i]);
+						writedata(wd, DATA, MEM_allocN_len(pm->data[i]), pm->data[i]);
 				}
 			}
 		}
