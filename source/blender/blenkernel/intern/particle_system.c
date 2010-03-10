@@ -2720,6 +2720,12 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 
 	VECCOPY(col.co1, pa->prev_state.co);
 	VECCOPY(col.co2, pa->state.co);
+	
+	VECCOPY(col.ve1, pa->prev_state.vel);
+	VECCOPY(col.ve2, pa->state.vel);
+	mul_v3_fl(col.ve1, timestep * dfra);
+	mul_v3_fl(col.ve2, timestep * dfra);
+	
 	col.t = 0.0f;
 
 	/* override for boids */
@@ -2765,12 +2771,20 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 			int through = (BLI_frand() < pd->pdef_perm) ? 1 : 0;
 			float co[3]; /* point of collision */
 			float vec[3]; /* movement through collision */
-			float t = hit.dist/col.ray_len; /* time of collision between this iteration */
-			float dt = col.t + t * (1.0f - col.t); /* time of collision between frame change*/
+			float acc[3]; /* acceleration */
 
-			interp_v3_v3v3(co, col.co1, col.co2, t);
+			float x = hit.dist/col.ray_len; /* location of collision between this iteration */
+			float le = len_v3(col.ve1)/col.ray_len;
+			float ac = len_v3(col.ve2)/col.ray_len - le; /* (taking acceleration into account) */
+			float t = (-le + sqrt(le*le + 2*ac*x))/ac; /* time of collision between this iteration */
+			float dt = col.t + x * (1.0f - col.t); /* time of collision between frame change*/
+			float it = 1.0 - t;
+			
+			interp_v3_v3v3(co, col.co1, col.co2, x);
 			VECSUB(vec, col.co2, col.co1);
 
+			VECSUB(acc, col.ve2, col.ve1);
+			
 			mul_v3_fl(col.vel, 1.0f-col.t);
 
 			/* particle dies in collision */
@@ -2867,10 +2881,6 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 				/* combine components together again */
 				VECADD(vec, nor_vec, tan_vec);
 
-				/* calculate velocity from collision vector */
-				VECCOPY(vel, vec);
-				mul_v3_fl(vel, 1.0f/MAX2((timestep*dfra) * (1.0f - col.t), 0.00001));
-
 				/* make sure we don't hit the current face again */
 				VECADDFAC(co, co, col.nor, (through ? -0.0001f : 0.0001f));
 
@@ -2878,21 +2888,25 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 					BoidParticle *bpa = pa->boid;
 					if(bpa->data.mode == eBoidMode_OnLand || co[2] <= boid_z) {
 						co[2] = boid_z;
-						vel[2] = 0.0f;
+						vec[2] = 0.0f;
 					}
 				}
 
-				/* store state for reactors */
-				//VECCOPY(reaction_state.co, co);
-				//interp_v3_v3v3(reaction_state.vel, pa->prev_state.vel, pa->state.vel, dt);
-				//interp_qt_qtqt(reaction_state.rot, pa->prev_state.rot, pa->state.rot, dt);
-
 				/* set coordinates for next iteration */
-				VECCOPY(col.co1, co);
-				VECADDFAC(col.co2, co, vec, 1.0f - t);
-				col.t = dt;
+				
+				/* apply acceleration to final position, but make sure particle stays above surface */
+				madd_v3_v3v3fl(acc, vec, acc, it);
+				ac = dot_v3v3(acc, col.nor);
+				if((!through && ac < 0.0f) || (through && ac > 0.0f))
+					madd_v3_v3fl(acc, col.nor, -ac);
 
-				if(len_v3(vec) < 0.001 && len_v3(pa->state.vel) < 0.001) {
+				VECCOPY(col.co1, co);
+				VECADDFAC(col.co2, co, acc, it);
+
+				VECCOPY(col.ve1, vec);
+				VECCOPY(col.ve2, acc);
+
+				if(len_v3(vec) < 0.001 && len_v3v3(pa->state.co, pa->prev_state.co) < 0.001) {
 					/* kill speed to stop slipping */
 					VECCOPY(pa->state.vel,zerovec);
 					VECCOPY(pa->state.co, co);
@@ -2902,10 +2916,14 @@ static void deflect_particle(ParticleSimulationData *sim, int p, float dfra, flo
 				}
 				else {
 					VECCOPY(pa->state.co, col.co2);
+					mul_v3_v3fl(pa->state.vel, acc, 1.0f/MAX2((timestep*dfra) * (1.0f - col.t), 0.00001));
+					
 					/* Stickness to surface */
 					normalize_v3(nor_vec);
-					VECADDFAC(pa->state.vel, vel, nor_vec, -pd->pdef_stickness);
+					madd_v3_v3fl(pa->state.vel, nor_vec, -pd->pdef_stickness);
 				}
+
+				col.t = dt;
 			}
 			deflections++;
 

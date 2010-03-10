@@ -169,6 +169,7 @@ typedef struct ParticleCollision
 	float nor[3]; // normal at collision point
 	float vel[3]; // velocity of collision point
 	float co1[3], co2[3]; // ray start and end points
+	float ve1[3], ve2[3]; // particle velocities
 	float ray_len; // original length of co2-co1, needed for collision time evaluation
 	float t;	// time of previous collision, needed for substracting face velocity
 } ParticleCollision;
