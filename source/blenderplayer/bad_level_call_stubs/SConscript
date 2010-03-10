@@ -10,4 +10,7 @@ defs = ''
 if env['WITH_BF_INTERNATIONAL']:
     defs += 'WITH_FREETYPE2'
 
+if env['WITH_BF_GAMEENGINE']:
+	defs.append('GAMEBLENDER=1')
+
 env.BlenderLib ('blenkernel_blc', sources = Split(sources), includes=Split(incs), defines=Split(defs), libtype=['player'],priority=[220] )
