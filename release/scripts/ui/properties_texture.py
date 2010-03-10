@@ -356,7 +356,7 @@ class TEXTURE_PT_influence(TextureSlotPanel):
                 if wide_ui:
                     col = split.column()
                     col.label(text=" ")
-                factor_but(col, tex.map_alpha, "map_coloremission", "coloremission_factor", "Emission Color")
+                factor_but(col, tex.map_coloremission, "map_coloremission", "coloremission_factor", "Emission Color")
                 factor_but(col, tex.map_colortransmission, "map_colortransmission", "colortransmission_factor", "Transmission Color")
                 factor_but(col, tex.map_colorreflection, "map_colorreflection", "colorreflection_factor", "Reflection Color")
 
