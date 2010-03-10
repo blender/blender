@@ -118,6 +118,9 @@ void BM_SelectMode_Flush(BMesh *bm)
 
 void BM_Select_Vert(BMesh *bm, BMVert *v, int select)
 {
+	BMIter iter;
+	BMEdge *e;
+
 	if(select) {
 		if (!BM_TestHFlag(v, BM_SELECT)) bm->totvertsel += 1;
 		BM_SetHFlag(v, BM_SELECT);
@@ -125,6 +128,23 @@ void BM_Select_Vert(BMesh *bm, BMVert *v, int select)
 		if (BM_TestHFlag(v, BM_SELECT)) bm->totvertsel -= 1;
 		BM_ClearHFlag(v, BM_SELECT);
 	}
+
+	/*BMESH_TODO hrm, not sure if flushing here is such a good idea. . .
+	  but probably easier then calling a EDBM_Normalize_Selection after
+	  each tool?*/
+#if 0
+	BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
+		if (!BM_TestHFlag(e, BM_SELECT) && BM_TestHFlag(e->v1, BM_SELECT) 
+		                                && BM_TestHFlag(e->v2, BM_SELECT)) {
+			BM_SetHFlag(e, BM_SELECT);
+			bm->totedgesel += 1;
+		} else if (BM_TestHFlag(e, BM_SELECT) && (!BM_TestHFlag(e->v1, BM_SELECT) 
+		                                      || !BM_TestHFlag(e->v2, BM_SELECT))) {
+			BM_ClearHFlag(e, BM_SELECT);
+			bm->totedgesel -= 1;		
+		}
+	}
+#endif
 }
 
 /*

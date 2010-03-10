@@ -4139,7 +4139,7 @@ static BMLoop *get_next_loop(BMesh *bm, BMVert *v, BMLoop *l,
 			VECCOPY(vec, a);
 			return l;
 		} else {
-			sub_v3_v3v3(n, BM_OtherEdgeVert(l->e, l->v)->co, l->v->co);
+			sub_v3_v3v3(n, BM_OtherEdgeVert(l->e, v)->co, v->co);
 			add_v3_v3v3(a, a, n);
 			i += 1;
 		}
@@ -4243,8 +4243,6 @@ static int createSlideVerts(TransInfo *t)
 		if (!v)
 			break;
 
-		BMINDEX_SET(v, 0);
-
 		if (!v->edge)
 			continue;
 		
@@ -4256,8 +4254,6 @@ static int createSlideVerts(TransInfo *t)
 		/*first, rewind*/
 		numsel = 0;
 		do {
-			BMINDEX_SET(v, 0);
-
 			e = get_other_edge(bm, v, e);
 			if (!e) {
 				e = v->edge;
@@ -4271,6 +4267,8 @@ static int createSlideVerts(TransInfo *t)
 
 			v = BM_OtherEdgeVert(e, v);
 		} while (e != first->edge);
+
+		BMINDEX_SET(v, 0);
 
 		l1 = l2 = l = NULL;
 		l1 = e->loop;
@@ -4311,21 +4309,25 @@ static int createSlideVerts(TransInfo *t)
 			e1 = e;
 			e = get_other_edge(bm, v, e);
 			if (!e) {
+				//v2=v, v = BM_OtherEdgeVert(l1->e, v);
+
 				sv = tempsv + j + 1;
 				sv->v = v;
 				sv->origvert = *v;
 				
 				l = BM_OtherFaceLoop(l1->e, l1->f, v);
 				sv->up = BM_OtherEdgeVert(l->e, v);
+				sub_v3_v3v3(sv->upvec, BM_OtherEdgeVert(l->e, v)->co, v->co);
 
 				if (l2) {
 					l = BM_OtherFaceLoop(l2->e, l2->f, v);
 					sv->down = BM_OtherEdgeVert(l->e, v);
+					sub_v3_v3v3(sv->downvec, BM_OtherEdgeVert(l->e, v)->co, v->co);
 				}
 
 				BMINDEX_SET(v, 0);
 				BMINDEX_SET(v2, 0);
-
+				
 				j += 2;
 				break;
 			}
@@ -4902,7 +4904,7 @@ int doEdgeSlide(TransInfo *t, float perc)
 			add_v3_v3v3(sv->v->co, sv->origvert.co, vec);
 		} else {
 			VECCOPY(vec, sv->downvec);
-			mul_v3_fl(vec, perc);
+			mul_v3_fl(vec, -perc);
 			add_v3_v3v3(sv->v->co, sv->origvert.co, vec);
 		}
 	}

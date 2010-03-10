@@ -1006,6 +1006,23 @@ void BM_esubdivideflag(Object *obedit, BMesh *bm, int flag, float smooth,
 		ele = BMO_IterNew(&iter, bm, &op, "outinner", BM_EDGE|BM_VERT);
 		for (; ele; ele=BMO_IterStep(&iter)) {
 			BM_Select(bm, ele, 1);
+
+			if (ele->type == BM_VERT) {
+				BMEdge *e;
+				BMIter eiter;
+
+				BM_ITER(e, &eiter, bm, BM_EDGES_OF_VERT, ele) {
+					if (!BM_TestHFlag(e, BM_SELECT) && BM_TestHFlag(e->v1, BM_SELECT) 
+													&& BM_TestHFlag(e->v2, BM_SELECT)) {
+						BM_SetHFlag(e, BM_SELECT);
+						bm->totedgesel += 1;
+					} else if (BM_TestHFlag(e, BM_SELECT) && (!BM_TestHFlag(e->v1, BM_SELECT) 
+														  || !BM_TestHFlag(e->v2, BM_SELECT))) {
+						BM_ClearHFlag(e, BM_SELECT);
+						bm->totedgesel -= 1;		
+					}
+				}
+			}
 		}
 	}
 

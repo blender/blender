@@ -281,16 +281,17 @@ static void ringsel_find_edge(tringselOpData *lcd, const bContext *C, ARegion *a
 static void ringsel_finish(bContext *C, wmOperator *op)
 {
 	tringselOpData *lcd= op->customdata;
-	int cuts= RNA_int_get(op->ptr,"number_cuts");
+	int cuts= RNA_int_get(op->ptr, "number_cuts");
 
 	if (lcd->eed) {
 		edgering_sel(lcd, cuts, 1);
 		if (lcd->do_cut) {
 			BMEditMesh *em = lcd->em;
+
 			BM_esubdivideflag(lcd->ob, em->bm, BM_SELECT, 0.0f, 
 			                  0.0f, 0, cuts, SUBDIV_SELECT_LOOPCUT, 
 			                  SUBD_PATH, 0, 0);
-
+			
 			WM_event_add_notifier(C, NC_GEOM|ND_SELECT|ND_DATA, lcd->ob->data);
 			DAG_id_flush_update(lcd->ob->data, OB_RECALC_DATA);
 		}
