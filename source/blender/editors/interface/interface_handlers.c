@@ -1032,7 +1032,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 	}
 
 	/* text/string and ID data */
-	else if(ELEM(but->type, TEX, IDPOIN)) {
+	else if(ELEM3(but->type, TEX, IDPOIN, SEARCH_MENU)) {
 		uiHandleButtonData *data= but->active;
 
 		if(but->poin==NULL && but->rnapoin.data==NULL);
