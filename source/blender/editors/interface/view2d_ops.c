@@ -416,7 +416,7 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
 	
 	/* set RNA-Props */
 	RNA_int_set(op->ptr, "deltax", 0);
-	RNA_int_set(op->ptr, "deltay", -20);
+	RNA_int_set(op->ptr, "deltay", -40);
 	
 	/* apply movement, then we're done */
 	view_pan_apply(C, op);
@@ -463,7 +463,7 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
 	
 	/* set RNA-Props */
 	RNA_int_set(op->ptr, "deltax", 0);
-	RNA_int_set(op->ptr, "deltay", 20);
+	RNA_int_set(op->ptr, "deltay", 40);
 	
 	/* apply movement, then we're done */
 	view_pan_apply(C, op);
