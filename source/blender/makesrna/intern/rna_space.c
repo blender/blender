@@ -1838,7 +1838,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "do_filter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FILE_FILTER);
 	RNA_def_property_ui_text(prop, "Filter Files", "Enable filtering of files");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "hide_dot", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FILE_HIDE_DOT);
@@ -1855,51 +1855,50 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", IMAGEFILE);
 	RNA_def_property_ui_text(prop, "Filter Images", "Show image files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_IMAGE, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_blender", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", BLENDERFILE);
 	RNA_def_property_ui_text(prop, "Filter Blender", "Show .blend files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_BLEND, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_movie", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", MOVIEFILE);
 	RNA_def_property_ui_text(prop, "Filter Movies", "Show movie files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_MOVIE, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_script", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", PYSCRIPTFILE);
 	RNA_def_property_ui_text(prop, "Filter Script", "Show script files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_SCRIPT, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_font", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", FTFONTFILE);
 	RNA_def_property_ui_text(prop, "Filter Fonts", "Show font files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_FONT, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_sound", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", SOUNDFILE);
 	RNA_def_property_ui_text(prop, "Filter Sound", "Show sound files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_SOUND, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_text", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", TEXTFILE);
 	RNA_def_property_ui_text(prop, "Filter Text", "Show text files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_BLANK, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_folder", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", FOLDERFILE);
 	RNA_def_property_ui_text(prop, "Filter Folder", "Show folders");
 	RNA_def_property_ui_icon(prop, ICON_FILE_FOLDER, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
-	
 }
 
 static void rna_def_space_filebrowser(BlenderRNA *brna)

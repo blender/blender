@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h" // for stopping filebrowser thread on space change
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
@@ -50,6 +51,7 @@
 #include "ED_screen.h"
 #include "ED_screen_types.h"
 #include "ED_types.h"
+#include "ED_fileselect.h" 
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -1097,6 +1099,13 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type)
 void ED_area_prevspace(bContext *C, ScrArea *sa)
 {
 	SpaceLink *sl = (sa) ? sa->spacedata.first : CTX_wm_space_data(C);
+
+	/* Special handling of filebrowser to stop background thread for
+	   thumbnail creation - don't want to waste cpu resources if not showing
+	   the filebrowser */
+	if (sl->spacetype == SPACE_FILE) {
+		ED_fileselect_exit(C, (SpaceFile*)sl);
+	}
 
 	if(sl->next) {
 		/* workaround for case of double prevspace, render window

@@ -164,22 +164,22 @@ void to_hex_char(char* hexbytes, const unsigned char* bytes, int len)
 
 /** ----- end of adapted code from glib --- */
 
-static int uri_from_filename( const char *dir, const char *file, char *uri )
+static int uri_from_filename( const char *path, char *uri )
 {
 	char orig_uri[URI_MAX];	
-	const char* dirstart = dir;
+	const char* dirstart = path;
 	
 #ifdef WIN32
 	{
 		char vol[3];
 
 		BLI_strncpy(orig_uri, "file:///", FILE_MAX);
-		if (strlen(dir) < 2 && dir[1] != ':') {
+		if (strlen(path) < 2 && path[1] != ':') {
 			/* not a correct absolute path */
 			return 0;
 		}
 		/* on windows, using always uppercase drive/volume letter in uri */
-		vol[0] = (unsigned char)toupper(dir[0]);
+		vol[0] = (unsigned char)toupper(path[0]);
 		vol[1] = ':';
 		vol[2] = '\0';
 		strcat(orig_uri, vol);
@@ -189,7 +189,6 @@ static int uri_from_filename( const char *dir, const char *file, char *uri )
 	BLI_strncpy(orig_uri, "file://", FILE_MAX);
 #endif
 	strcat(orig_uri, dirstart);
-	strcat(orig_uri, file);
 	BLI_char_switch(orig_uri, '\\', '/');
 	
 #ifdef WITH_ICONV
@@ -242,14 +241,13 @@ void IMB_thumb_makedirs()
 }
 
 /* create thumbnail for file and returns new imbuf for thumbnail */
-ImBuf* IMB_thumb_create(const char* dir, const char* file, ThumbSize size, ThumbSource source)
+ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source)
 {
 	ImBuf *img = 0;
 	char uri[URI_MAX];
 	char desc[URI_MAX+22];
 	char tpath[FILE_MAX];
 	char tdir[FILE_MAX];
-	char wdir[FILE_MAX];
 	char temp[FILE_MAX];
 	char mtime[40];
 	char cwidth[40];
@@ -274,13 +272,13 @@ ImBuf* IMB_thumb_create(const char* dir, const char* file, ThumbSize size, Thumb
 			return 0; /* unknown size */
 	}
 
-	uri_from_filename(dir, file,uri);
+	uri_from_filename(path, uri);
 	thumbname_from_uri(uri, thumb);
 	if (get_thumb_dir(tdir, size)) {
 		BLI_snprintf(tpath, FILE_MAX, "%s%s", tdir, thumb);
 		thumb[8] = '\0'; /* shorten for tempname, not needed anymore */
 		BLI_snprintf(temp, FILE_MAX, "%sblender_%d_%s.png", tdir, abs(getpid()), thumb);
-		if (strncmp(thumb, dir, strlen(dir)) == 0) {
+		if (strncmp(path, tdir, strlen(tdir)) == 0) {
 			return NULL;
 		}
 		if (size == THB_FAIL) {
@@ -288,34 +286,28 @@ ImBuf* IMB_thumb_create(const char* dir, const char* file, ThumbSize size, Thumb
 			if (!img) return 0;
 		} else {
 			if (THB_SOURCE_IMAGE == source) {
-				BLI_getwdN(wdir);
-				if(chdir(dir) != 0) return 0;
-				img = IMB_loadiffname(file, IB_rect | IB_imginfo);
+				img = IMB_loadiffname(path, IB_rect | IB_imginfo);
 				if (img != NULL) {
-					stat(file, &info);
+					stat(path, &info);
 					sprintf(mtime, "%ld", info.st_mtime);
 					sprintf(cwidth, "%d", img->x);
 					sprintf(cheight, "%d", img->y);
 				}
-				if(chdir(wdir) != 0) /* unlikely to happen, just silence warning */;
 			} else if (THB_SOURCE_MOVIE == source) {
 				struct anim * anim = NULL;
-				BLI_getwdN(wdir);
-				if(chdir(dir) != 0) return 0;
-				anim = IMB_open_anim(file, IB_rect | IB_imginfo);
+				anim = IMB_open_anim(path, IB_rect | IB_imginfo);
 				if (anim != NULL) {
 					img = IMB_anim_absolute(anim, 0);
 					if (img == NULL) {
-						printf("not an anim; %s\n", file);
+						printf("not an anim; %s\n", path);
 					} else {
 						IMB_freeImBuf(img);
 						img = IMB_anim_previewframe(anim);						
 					}
 					IMB_free_anim(anim);
 				}
-				stat(file, &info);
+				stat(path, &info);
 				sprintf(mtime, "%ld", info.st_mtime);
-				if(chdir(wdir) != 0) /* unlikely to happen, just silence warning */;
 			}
 			if (!img) return 0;		
 
@@ -356,13 +348,13 @@ ImBuf* IMB_thumb_create(const char* dir, const char* file, ThumbSize size, Thumb
 }
 
 /* read thumbnail for file and returns new imbuf for thumbnail */
-ImBuf* IMB_thumb_read(const char* dir, const char* file, ThumbSize size)
+ImBuf* IMB_thumb_read(const char* path, ThumbSize size)
 {
 	char thumb[FILE_MAX];
 	char uri[FILE_MAX*3+8];
 	ImBuf *img = 0;
 
-	if (!uri_from_filename(dir, file,uri)) {
+	if (!uri_from_filename(path,uri)) {
 		return NULL;
 	}
 	if (thumbpath_from_uri(uri, thumb, size)) {		
@@ -373,16 +365,16 @@ ImBuf* IMB_thumb_read(const char* dir, const char* file, ThumbSize size)
 }
 
 /* delete all thumbs for the file */
-void IMB_thumb_delete(const char* dir, const char* file, ThumbSize size)
+void IMB_thumb_delete(const char* path, ThumbSize size)
 {
 	char thumb[FILE_MAX];
 	char uri[FILE_MAX*3+8];
 
-	if (!uri_from_filename(dir, file,uri)) {
+	if (!uri_from_filename(path ,uri)) {
 		return;
 	}
 	if (thumbpath_from_uri(uri, thumb, size)) {
-		if (strncmp(thumb, dir, strlen(dir)) == 0) {
+		if (strncmp(path, thumb, strlen(thumb)) == 0) {
 			return;
 		}
 		if (BLI_exists(thumb)) {
@@ -393,19 +385,17 @@ void IMB_thumb_delete(const char* dir, const char* file, ThumbSize size)
 
 
 /* create the thumb if necessary and manage failed and old thumbs */
-ImBuf* IMB_thumb_manage(const char* dir, const char* file, ThumbSize size, ThumbSource source)
+ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 {
-	char path[FILE_MAX];
 	char thumb[FILE_MAX];
 	char uri[FILE_MAX*3+8];
 	struct stat st;
 	ImBuf* img = NULL;
-
-	BLI_join_dirfile(path, dir, file);
+	
 	if (stat(path, &st)) {
 		return NULL;
 	}	
-	if (!uri_from_filename(dir, file,uri)) {
+	if (!uri_from_filename(path,uri)) {
 		return NULL;
 	}
 	if (thumbpath_from_uri(uri, thumb, THB_FAIL)) {
@@ -416,7 +406,7 @@ ImBuf* IMB_thumb_manage(const char* dir, const char* file, ThumbSize size, Thumb
 	}
 
 	if (thumbpath_from_uri(uri, thumb, size)) {
-		if (strncmp(thumb, dir, strlen(dir)) == 0) {
+		if (strncmp(path, thumb, strlen(thumb)) == 0) {
 			img = IMB_loadiffname(path, IB_rect);
 		} else {
 			img = IMB_loadiffname(thumb, IB_rect | IB_imginfo);
@@ -432,13 +422,13 @@ ImBuf* IMB_thumb_manage(const char* dir, const char* file, ThumbSize size, Thumb
 						/* recreate all thumbs */
 						IMB_freeImBuf(img);
 						img = 0;
-						IMB_thumb_delete(dir, file, THB_NORMAL);
-						IMB_thumb_delete(dir, file, THB_LARGE);
-						IMB_thumb_delete(dir, file, THB_FAIL);
-						img = IMB_thumb_create(dir, file, size, source);
+						IMB_thumb_delete(path, THB_NORMAL);
+						IMB_thumb_delete(path, THB_LARGE);
+						IMB_thumb_delete(path, THB_FAIL);
+						img = IMB_thumb_create(path, size, source);
 						if(!img){
 							/* thumb creation failed, write fail thumb */
-							img = IMB_thumb_create(dir, file, THB_FAIL, source);
+							img = IMB_thumb_create(path, THB_FAIL, source);
 							if (img) {
 								/* we don't need failed thumb anymore */
 								IMB_freeImBuf(img);
@@ -448,10 +438,10 @@ ImBuf* IMB_thumb_manage(const char* dir, const char* file, ThumbSize size, Thumb
 					}
 				}
 			} else {
-				img = IMB_thumb_create(dir, file, size, source);
+				img = IMB_thumb_create(path, size, source);
 				if(!img){
 					/* thumb creation failed, write fail thumb */
-					img = IMB_thumb_create(dir, file, THB_FAIL, source);
+					img = IMB_thumb_create(path, THB_FAIL, source);
 					if (img) {
 						/* we don't need failed thumb anymore */
 						IMB_freeImBuf(img);

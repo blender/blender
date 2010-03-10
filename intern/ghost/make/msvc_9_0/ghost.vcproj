@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\wintab\INCLUDE;..\..\..\..\..\build\msvc_9\extern\glew\include"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\wintab\INCLUDE;..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -197,7 +197,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\wintab\INCLUDE;..\..\..\..\..\build\msvc_9\extern\glew\include"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\wintab\INCLUDE;..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -273,7 +273,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\wintab\INCLUDE;..\..\..\..\..\build\msvc_9\extern\glew\include"
+				AdditionalIncludeDirectories="..\..;..\..\..\..\..\build\msvc_9\intern\string\include;..\..\..\..\..\lib\windows\wintab\INCLUDE;..\..\..\..\..\build\msvc_9\extern\glew\include;..\..\..\..\source\blender\imbuf;..\..\..\..\source\blender\makesdna"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"

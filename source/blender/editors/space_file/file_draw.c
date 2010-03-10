@@ -445,7 +445,7 @@ static void renamebutton_cb(bContext *C, void *arg1, char *oldname)
 		if (!BLI_exists(newname)) {
 			BLI_rename(orgname, newname);
 			/* to make sure we show what is on disk */
-			filelist_free(sfile->files);
+			ED_fileselect_clear(C, sfile);
 		} else {
 			BLI_strncpy(file->relname, oldname, strlen(oldname)+1);
 		}
@@ -557,9 +557,6 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		uiSetRoundBox(0);
 
 		if ( FILE_IMGDISPLAY == params->display ) {
-			if ( (file->flags & IMAGEFILE) /* || (file->flags & MOVIEFILE) */) {			
-				filelist_loadimage(files, i);
-			}
 			is_icon = 0;
 			imb = filelist_getimage(files, i);
 			if (!imb) {
@@ -624,11 +621,6 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		}
 	}
 
-	/* XXX this timer is never removed, cause smooth view operator
-	   to get executed all the time after closing file browser */
-	if (!sfile->loadimage_timer)
-		sfile->loadimage_timer= WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER1, 1.0/30.0);	/* max 30 frames/sec. */
-	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);
 
