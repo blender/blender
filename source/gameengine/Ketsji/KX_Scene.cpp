@@ -1754,6 +1754,9 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 				phys_ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 		}
 	}
+	/* If the object is a light, update it's scene */
+	if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_LIGHT)
+		((KX_LightObject*)gameobj)->UpdateScene(to);
 
 	/* Add the object to the scene's logic manager */
 	to->GetLogicManager()->RegisterGameObjectName(gameobj->GetName(), gameobj);
