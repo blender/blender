@@ -71,6 +71,7 @@ EnumPropertyItem property_subtype_array_items[] = {
 	{PROP_AXISANGLE, "AXISANGLE", 0, "Axis Angle", ""},
 	{PROP_XYZ, "XYZ", 0, "XYZ", ""},
 	{PROP_COLOR_GAMMA, "COLOR_GAMMA", 0, "Color Gamma", ""},
+	{PROP_LAYER, "LAYER", 0, "Layer", ""},
 
 	{PROP_NONE, "NONE", 0, "None", ""},
 	{0, NULL, 0, NULL, NULL}};
@@ -172,7 +173,7 @@ static char BPy_BoolVectorProperty_doc[] =
 "\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
-"   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'NONE'].\n"
+"   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string";
 PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
@@ -316,7 +317,7 @@ static char BPy_IntVectorProperty_doc[] =
 "\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
-"   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'NONE'].\n"
+"   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string";
 PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
@@ -472,7 +473,7 @@ static char BPy_FloatVectorProperty_doc[] =
 "\n"
 "   :arg options: Enumerator in ['HIDDEN', 'ANIMATABLE'].\n"
 "   :type options: set\n"
-"   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'NONE'].\n"
+"   :arg subtype: Enumerator in ['COLOR', 'TRANSLATION', 'DIRECTION', 'VELOCITY', 'ACCELERATION', 'MATRIX', 'EULER', 'QUATERNION', 'AXISANGLE', 'XYZ', 'COLOR_GAMMA', 'LAYER', 'NONE'].\n"
 "   :type subtype: string";
 PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
