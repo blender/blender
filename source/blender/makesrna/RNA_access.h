@@ -742,6 +742,7 @@ void RNA_property_pointer_remove(PointerRNA *ptr, PropertyRNA *prop);
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr);
 int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key);
 void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop);
+int RNA_property_collection_move(PointerRNA *ptr, PropertyRNA *prop, int key, int pos);
 
 /* copy/reset */
 int RNA_property_copy(PointerRNA *ptr, PointerRNA *fromptr, PropertyRNA *prop, int index);
