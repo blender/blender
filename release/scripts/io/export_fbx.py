@@ -1542,7 +1542,7 @@ def write(filename, batch_objects = None, \
         file.write('\n\t\tPolygonVertexIndex: ')
         i=-1
         for f in me.faces:
-            fi = f.verts
+            fi = [v for v in f.verts]
             # fi = [v_index for j, v_index in enumerate(f.verts) if v_index != 0 or j != 3]
 # 			fi = [v.index for v in f]
 
