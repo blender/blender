@@ -37,21 +37,29 @@
 #include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
+#include "BKE_global.h"
 #include "BKE_icons.h"
+#include "BKE_image.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_world.h"
 
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
+#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
@@ -763,6 +771,196 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 }
 
 
+
+/********************** environment map operators *********************/
+
+static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int imtype)
+{
+	ImBuf *ibuf;
+	int dx;
+	int retval;
+	
+	if(env->cube[1]==NULL) {
+		BKE_report(op->reports, RPT_ERROR, "There is no generated environment map available to save");
+		return OPERATOR_CANCELLED;
+	}
+	
+	dx= env->cube[1]->x;
+	
+	ibuf = IMB_allocImBuf(3*dx, 2*dx, 24, IB_rectfloat, 0);
+	
+	if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+		ibuf->profile = IB_PROFILE_LINEAR_RGB;
+	
+	IMB_rectcpy(ibuf, env->cube[0], 0, 0, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[1], dx, 0, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[2], 2*dx, 0, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[3], 0, dx, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[4], dx, dx, 0, 0, dx, dx);
+	IMB_rectcpy(ibuf, env->cube[5], 2*dx, dx, 0, 0, dx, dx);
+	
+	if (BKE_write_ibuf(scene, ibuf, str, imtype, scene->r.subimtype, scene->r.quality)) 
+		retval = OPERATOR_FINISHED;
+	else {
+		BKE_reportf(op->reports, RPT_ERROR, "Error saving environment map to %s.", str);
+		retval = OPERATOR_CANCELLED;
+	}
+	IMB_freeImBuf(ibuf);
+	ibuf = NULL;
+
+	return retval;
+}
+
+static int envmap_save_exec(bContext *C, wmOperator *op)
+{
+	Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+	Scene *scene = CTX_data_scene(C);
+	//int imtype = RNA_enum_get(op->ptr, "file_type");
+	int imtype = scene->r.imtype;
+	char path[FILE_MAX];
+	
+	RNA_string_get(op->ptr, "path", path);
+	
+	if(scene->r.scemode & R_EXTENSION)  {
+		BKE_add_image_extension(path, imtype);
+	}
+	
+	WM_cursor_wait(1);
+	
+	save_envmap(op, scene, tex->env, path, imtype);
+	
+	WM_cursor_wait(0);
+	
+	WM_event_add_notifier(C, NC_TEXTURE, tex);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int envmap_save_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	//Scene *scene= CTX_data_scene(C);
+	
+	if(!RNA_property_is_set(op->ptr, "relative_path"))
+		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
+	
+	if(RNA_property_is_set(op->ptr, "path"))
+		return envmap_save_exec(C, op);
+
+	//RNA_enum_set(op->ptr, "file_type", scene->r.imtype);
+	
+	RNA_string_set(op->ptr, "path", G.sce);
+	WM_event_add_fileselect(C, op);
+	
+	return OPERATOR_RUNNING_MODAL;
+}
+
+static int envmap_save_poll(bContext *C)
+{
+	Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+
+	if (!tex) 
+		return 0;
+	if (!tex->env || !tex->env->ok)
+		return 0;
+	if (tex->env->type==ENV_PLANE) 
+		return 0;
+	if (tex->env->cube[1]==NULL)
+		return 0;
+	
+	return 1;
+}
+
+void TEXTURE_OT_envmap_save(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Save Environment Map";
+	ot->idname= "TEXTURE_OT_envmap_save";
+	ot->description="Save the current generated Environment map to an image file";
+	
+	/* api callbacks */
+	ot->exec= envmap_save_exec;
+	ot->invoke= envmap_save_invoke;
+	ot->poll= envmap_save_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* properties */
+	//RNA_def_enum(ot->srna, "file_type", image_file_type_items, R_PNG, "File Type", "File type to save image as.");
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_SAVE);
+	
+	RNA_def_boolean(ot->srna, "relative_path", 0, "Relative Path", "Save image with relative path to current .blend file");
+}
+
+static int envmap_clear_exec(bContext *C, wmOperator *op)
+{
+	Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+	
+	BKE_free_envmapdata(tex->env);
+	
+	WM_event_add_notifier(C, NC_TEXTURE|NA_EDITED, tex);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int envmap_clear_poll(bContext *C)
+{
+	Tex *tex= CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+	
+	if (!tex) 
+		return 0;
+	if (!tex->env || !tex->env->ok)
+		return 0;
+	if (tex->env->cube[1]==NULL)
+		return 0;
+	
+	return 1;
+}
+
+void TEXTURE_OT_envmap_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear Environment Map";
+	ot->idname= "TEXTURE_OT_envmap_clear";
+	ot->description="Discard the environment map and free it from memory";
+	
+	/* api callbacks */
+	ot->exec= envmap_clear_exec;
+	ot->poll= envmap_clear_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int envmap_clear_all_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	Tex *tex;
+	
+	for (tex=bmain->tex.first; tex; tex=tex->id.next)
+		BKE_free_envmapdata(tex->env);
+	
+	WM_event_add_notifier(C, NC_TEXTURE|NA_EDITED, tex);
+	
+	return OPERATOR_FINISHED;
+}
+
+void TEXTURE_OT_envmap_clear_all(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Clear All Environment Maps";
+	ot->idname= "TEXTURE_OT_envmap_clear_all";
+	ot->description="Discard all environment maps in the .blend file and free them from memory";
+	
+	/* api callbacks */
+	ot->exec= envmap_clear_all_exec;
+	ot->poll= envmap_clear_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/********************** material operators *********************/
 
 /* material copy/paste */
 static int copy_material_exec(bContext *C, wmOperator *op)

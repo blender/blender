@@ -55,6 +55,9 @@ void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);
 
 void TEXTURE_OT_slot_move(struct wmOperatorType *ot);
+void TEXTURE_OT_envmap_save(struct wmOperatorType *ot);
+void TEXTURE_OT_envmap_clear(struct wmOperatorType *ot);
+void TEXTURE_OT_envmap_clear_all(struct wmOperatorType *ot);
 
 /* render_internal.c */
 void RENDER_OT_view_show(struct wmOperatorType *ot);

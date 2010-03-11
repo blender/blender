@@ -61,32 +61,6 @@ static int saveover() {return 0;}
 
 /* ------------------------------------------------------------------------- */
 
-
-void BIF_save_envmap(Scene *scene, EnvMap *env, char *str)
-{
-	ImBuf *ibuf;
-/*  	extern rectcpy(); */
-	int dx;
-	
-	/* all interactive stuff is handled in buttons.c */
-	if(env->cube[0]==NULL) return;
-		
-	dx= env->cube[0]->x;
-	ibuf= IMB_allocImBuf(3*dx, 2*dx, 24, IB_rect, 0);
-	
-	IMB_rectcpy(ibuf, env->cube[0], 0, 0, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[1], dx, 0, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[2], 2*dx, 0, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[3], 0, dx, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[4], dx, dx, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[5], 2*dx, dx, 0, 0, dx, dx);
-	
-	BKE_write_ibuf(scene, ibuf, str, scene->r.imtype, scene->r.subimtype, scene->r.quality);
-	IMB_freeImBuf(ibuf);
-}
-
-
-
 /* callback for fileselect to save rendered image, renderresult was checked to exist */
 static void save_rendered_image_cb_real(char *name, int confirm)
 {

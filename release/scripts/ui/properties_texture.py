@@ -33,6 +33,17 @@ class TEXTURE_MT_specials(bpy.types.Menu):
         layout.operator("material.mtex_paste", icon='PASTEDOWN')
 
 
+class TEXTURE_MT_envmap_specials(bpy.types.Menu):
+    bl_label = "Environment Map Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("texture.envmap_save", icon='IMAGEFILE')
+        layout.operator("texture.envmap_clear", icon='FILE_REFRESH')
+        layout.operator("texture.envmap_clear_all", icon='FILE_REFRESH')
+
+
 def active_node_mat(mat):
     if mat:
         mat_node = mat.active_node_material
@@ -587,6 +598,19 @@ class TEXTURE_PT_image(TextureTypePanel):
 
         layout.template_image(tex, "image", tex.image_user)
 
+def texture_filter_common(tex, layout):
+
+        layout.label(text="Filter:")
+        layout.prop(tex, "filter", text="")
+        if tex.mipmap and tex.filter in ('AREA', 'EWA', 'FELINE'):
+            if tex.filter == 'FELINE':
+                layout.prop(tex, "filter_probes", text="Probes")
+            else:
+                layout.prop(tex, "filter_eccentricity", text="Eccentricity")
+                
+        layout.prop(tex, "filter_size")
+        layout.prop(tex, "filter_size_minimum")
+        
 
 class TEXTURE_PT_image_sampling(TextureTypePanel):
     bl_label = "Image Sampling"
@@ -619,23 +643,14 @@ class TEXTURE_PT_image_sampling(TextureTypePanel):
         row.active = tex.normal_map
         row.prop(tex, "normal_space", text="")
 
-        col.label(text="Filter:")
-        col.prop(tex, "filter", text="")
-        col.prop(tex, "filter_size")
-        col.prop(tex, "filter_size_minimum")
         col.prop(tex, "mipmap")
-
         row = col.row()
         row.active = tex.mipmap
         row.prop(tex, "mipmap_gauss")
-
         col.prop(tex, "interpolation")
-        if tex.mipmap and tex.filter != 'DEFAULT':
-            if tex.filter == 'FELINE':
-                col.prop(tex, "filter_probes", text="Probes")
-            else:
-                col.prop(tex, "filter_eccentricity", text="Eccentricity")
 
+        texture_filter_common(tex, col)
+        
 
 class TEXTURE_PT_image_mapping(TextureTypePanel):
     bl_label = "Image Mapping"
@@ -714,10 +729,51 @@ class TEXTURE_PT_envmap(TextureTypePanel):
     def draw(self, context):
         layout = self.layout
 
-        # tex = context.texture
+        tex = context.texture
+        env = tex.environment_map
+        
+        wide_ui = context.region.width > narrowui
+        
+        row = layout.row()
+        row.prop(env, "source", expand=True)
+        row.menu("TEXTURE_MT_envmap_specials", icon='DOWNARROW_HLT', text="")
+        
+        if env.source == 'IMAGE_FILE':
+            layout.template_ID(tex, "image", open="image.open")
+            layout.template_image(tex, "image", tex.image_user, compact=True)
+        else:
+            layout.prop(env, "mapping")
+            if env.mapping == 'PLANE':
+                layout.prop(env, "zoom")
+            layout.prop(env, "viewpoint_object")
+            
+            split = layout.split()
+            
+            col = split.column()
+            col.prop(env, "ignore_layers")
+            col.prop(env, "resolution")
+            col.prop(env, "depth")
 
-        layout.label(text="Nothing yet")
+            if wide_ui:
+                col = split.column(align=True)
+            
+            col.label(text="Clipping:")
+            col.prop(env, "clip_start", text="Start")
+            col.prop(env, "clip_end", text="End")
 
+
+class TEXTURE_PT_envmap_sampling(TextureTypePanel):
+    bl_label = "Environment Map Sampling"
+    bl_default_closed = True
+    tex_type = 'ENVIRONMENT_MAP'
+
+    def draw(self, context):
+        layout = self.layout
+
+        tex = context.texture
+        
+        texture_filter_common(tex, layout)
+        
 
 class TEXTURE_PT_musgrave(TextureTypePanel):
     bl_label = "Musgrave"
@@ -970,6 +1026,7 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel):
 
 classes = [
     TEXTURE_MT_specials,
+    TEXTURE_MT_envmap_specials,
 
     TEXTURE_PT_context_texture,
     TEXTURE_PT_preview,
@@ -985,6 +1042,7 @@ classes = [
     TEXTURE_PT_image_mapping,
     TEXTURE_PT_plugin,
     TEXTURE_PT_envmap,
+    TEXTURE_PT_envmap_sampling,
     TEXTURE_PT_musgrave,
     TEXTURE_PT_voronoi,
     TEXTURE_PT_distortednoise,
