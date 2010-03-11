@@ -4688,9 +4688,11 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 		}
 		
 		/* do the bone paths 
-		 * NOTE: only do this when there is context info
+		 * 	- only do this when there is context info, since we need that to resolve
+		 *	  how to do the updates and so on...
+		 *	- do not calculate unless there are paths already to update...
 		 */
-		if (C && (ob->pose->avs.path_type == MOTIONPATH_TYPE_ACFRA)) {
+		if (C && (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
 			//ED_pose_clear_paths(C, ob); // XXX for now, don't need to clear
 			ED_pose_recalculate_paths(C, scene, ob);
 		}
@@ -4996,7 +4998,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			if (!cancelled) {
 				autokeyframe_ob_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode);
 				
-				if (ob->avs.path_type == MOTIONPATH_TYPE_ACFRA)
+				/* only calculate paths if there are paths to be recalculated */
+				if (ob->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)
 					recalcObPaths= 1;
 			}
 		}
