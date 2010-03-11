@@ -73,7 +73,7 @@ CompBuf *dupalloc_compbuf(CompBuf *cbuf)
 /* instead of reference counting, we create a list */
 CompBuf *pass_on_compbuf(CompBuf *cbuf)
 {
-	CompBuf *dupbuf= alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 0);
+	CompBuf *dupbuf= (cbuf)? alloc_compbuf(cbuf->x, cbuf->y, cbuf->type, 0): NULL;
 	CompBuf *lastbuf;
 	
 	if(dupbuf) {
