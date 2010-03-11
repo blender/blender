@@ -4,6 +4,7 @@ Import ('env')
 sources = env.Glob('*.c')
 
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../makesrna ../../imbuf'
-incs += ' ../../windowmanager #/intern/guardedalloc #/extern/glew/include'
+incs += ' ../../windowmanager ../../bmesh'
+incs += ' #/intern/guardedalloc #/extern/glew/include'
 
 env.BlenderLib ( 'bf_editors_animation', sources, Split(incs), [], libtype=['core'], priority=[125] )

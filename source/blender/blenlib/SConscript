@@ -5,7 +5,7 @@ sources = env.Glob('intern/*.c')
 
 cflags=''
 incs = '. ../makesdna ../blenkernel #/intern/guardedalloc #/intern/ghost ../editors/include ../gpu'
-incs += ' ../windowmanager #/extern/glew/include'
+incs += ' ../windowmanager ../bmesh #/extern/glew/include'
 
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_ZLIB_INC']

@@ -5,7 +5,7 @@ sources = env.Glob('intern/*.c')
 
 defs = [ 'GLEW_STATIC' ]
 
-incs = '../blenlib ../blenkernel ../makesdna ../include'
+incs = '../blenlib ../blenkernel ../makesdna ../include ../bmesh'
 incs += ' #/extern/glew/include #intern/guardedalloc #intern/smoke/extern ../imbuf .'
 
 incs += ' ' + env['BF_OPENGL_INC']
