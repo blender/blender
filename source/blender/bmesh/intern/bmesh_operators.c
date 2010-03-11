@@ -21,6 +21,20 @@ static void clear_flag_layer(BMesh *bm);
 static int bmesh_name_to_slotcode(BMOpDefine *def, char *name);
 static int bmesh_opname_to_opcode(char *opname);
 
+static char *bmop_error_messages[] = {
+       0,
+       "Self intersection error",
+       "Could not dissolve vert",
+       "Could not connect vertices",
+       "Could not traverse mesh",
+       "Could not dissolve faces",
+       "Could not dissolve vertices",
+       "Tesselation error",
+       "Can not deal with non-manifold geometry",
+       "Invalid selection",
+};
+
+
 /*operator slot type information - size of one element of the type given.*/
 const int BMOP_OPSLOT_TYPEINFO[] = {
 	0,
