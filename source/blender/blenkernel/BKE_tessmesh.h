@@ -57,6 +57,10 @@ typedef struct BMEditMesh {
 	/*Mesh structure this editmesh came from, if it came from one*/
 	struct Mesh *me;
 	struct Object *ob;
+
+	/*temp variables for x-mirror editing*/
+	int mirror_cdlayer;
+	int mirr_free_arrays;
 } BMEditMesh;
 
 void BMEdit_RecalcTesselation(BMEditMesh *tm);

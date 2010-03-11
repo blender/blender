@@ -254,6 +254,18 @@ void BM_add_data_layer(BMesh *bm, CustomData *data, int type)
 	if (olddata.layers) MEM_freeN(olddata.layers);
 }
 
+void BM_add_data_layer_named(BMesh *bm, CustomData *data, int type, char *name)
+{
+	CustomData olddata;
+
+	olddata= *data;
+	olddata.layers= (olddata.layers)? MEM_dupallocN(olddata.layers): NULL;
+	CustomData_add_layer_named(data, type, CD_DEFAULT, NULL, 0, name);
+
+	update_data_blocks(bm, &olddata, data);
+	if (olddata.layers) MEM_freeN(olddata.layers);
+}
+
 void BM_free_data_layer(BMesh *bm, CustomData *data, int type)
 {
 	CustomData olddata;

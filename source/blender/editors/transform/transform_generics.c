@@ -250,7 +250,6 @@ static void editbmesh_apply_to_mirror(TransInfo *t)
 {
 	TransData *td = t->data;
 	BMVert *eve;
-	BMIter iter;
 	int i;
 
 	for(i = 0 ; i < t->total; i++, td++) {

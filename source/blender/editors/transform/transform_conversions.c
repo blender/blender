@@ -2167,6 +2167,7 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 
 	if (t->flag & T_MIRROR)
 	{
+		EDBM_CacheMirrorVerts(em);
 		mirror = 1;
 	}
 
@@ -2359,12 +2360,12 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 				/* Mirror? */
 
 				//BMESH_TODO
-				//if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
-				//	BMVert *vmir= editmesh_get_x_mirror_vert(t->obedit, em, eve, tob->iloc, a);	/* initializes octree on first call */
-				//	if(vmir != eve) {
-				//		tob->extra = vmir;
-				//	}
-				//}
+				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
+					BMVert *vmir= EDBM_GetMirrorVert(em, eve); //t->obedit, em, eve, tob->iloc, a);
+					if(vmir && vmir != eve) {
+						tob->extra = vmir;
+					}
+				}
 				tob++;
 			}
 		}
@@ -2390,6 +2391,12 @@ static void createTransEditVerts(bContext *C, TransInfo *t)
 		MEM_freeN(defmats);
 
 	BLI_array_free(selstate);
+
+	if (t->flag & T_MIRROR)
+	{
+		EDBM_EndMirrorCache(em);
+		mirror = 1;
+	}
 }
 
 /* *** NODE EDITOR *** */

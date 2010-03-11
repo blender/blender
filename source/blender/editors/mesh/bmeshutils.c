@@ -73,6 +73,8 @@
 #include "BKE_report.h"
 #include "BKE_tessmesh.h"
 
+#include "bmesh.h"
+
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
@@ -86,8 +88,8 @@
 
 #include "UI_interface.h"
 
+#include "editbmesh_bvh.h"
 #include "mesh_intern.h"
-#include "bmesh.h"
 
 void EDBM_RecalcNormals(BMEditMesh *em)
 {
@@ -805,3 +807,91 @@ int EDBM_vertColorCheck(BMEditMesh *em)
 	return em && em->bm->totface && CustomData_has_layer(&em->bm->ldata, CD_MLOOPCOL);
 }
 
+
+void EDBM_CacheMirrorVerts(BMEditMesh *em)
+{
+	BMBVHTree *tree = BMBVH_NewBVH(em);
+	BMIter iter;
+	BMVert *v;
+	float invmat[4][4];
+	int li, i;
+
+	if (!em->vert_index) {
+		EDBM_init_index_arrays(em, 1, 0, 0);
+		em->mirr_free_arrays = 1;
+	}
+
+	if (!CustomData_get_layer_named(&em->bm->vdata, CD_PROP_INT, "__mirror_index")) {
+		BM_add_data_layer_named(em->bm, &em->bm->vdata, CD_PROP_INT, "__mirror_index");
+	}
+
+	li = CustomData_get_named_layer_index(&em->bm->vdata, CD_PROP_INT, "__mirror_index");
+	em->bm->vdata.layers[li].flag |= CD_FLAG_TEMPORARY;
+
+	/*multiply verts by object matrix, temporarily*/
+
+	i = 0;
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BMINDEX_SET(v, i);
+		i++;
+
+		if (em->ob) 
+			mul_m4_v3(em->ob->obmat, v->co);
+	}
+
+	BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+		BMVert *mirr;
+		int *idx = CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, li);
+		float co[3] = {-v->co[0], v->co[1], v->co[2]};
+
+		//temporary for testing, check for selection
+		if (!BM_TestHFlag(v, BM_SELECT))
+			continue;
+		
+		mirr = BMBVH_FindClosestVertTopo(tree, co, BM_SEARCH_MAXDIST, v);
+		if (mirr && mirr != v) {
+			*idx = BMINDEX_GET(mirr);
+			idx = CustomData_bmesh_get_layer_n(&em->bm->vdata,mirr->head.data, li);
+			*idx = BMINDEX_GET(v);
+		} else *idx = -1;
+	}
+
+	/*unmultiply by object matrix*/
+	if (em->ob) {
+		i = 0;
+		invert_m4_m4(invmat, em->ob->obmat);
+		BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+			BMINDEX_SET(v, i);
+			i++;
+
+			mul_m4_v3(invmat, v->co);
+		}
+
+		BMBVH_FreeBVH(tree);
+	}
+}
+
+BMVert *EDBM_GetMirrorVert(BMEditMesh *em, BMVert *v)
+{
+	int *mirr = CustomData_bmesh_get_layer_n(&em->bm->vdata, v->head.data, em->mirror_cdlayer);
+	
+	if (mirr && *mirr >=0 && *mirr < em->bm->totvert) {
+		if (!em->vert_index) {
+			printf("err: should only be called between "
+				"EDBM_CacheMirrorVerts and EDBM_EndMirrorCache");
+			return NULL;
+		}
+
+		return em->vert_index[*mirr];
+	}
+
+	return NULL;
+}
+
+void EDBM_EndMirrorCache(BMEditMesh *em)
+{
+	if (em->mirr_free_arrays) {
+		MEM_freeN(em->vert_index);
+		em->vert_index = NULL;
+	}
+}

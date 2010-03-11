@@ -936,7 +936,7 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	 layerSwap_mcol, layerDefault_mcol},
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 3 floats per normal vector */
-	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(float)*3, "vec3f", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(MFloatProperty), "MFloatProperty",1,"Float",NULL,NULL,NULL,NULL},
 	{sizeof(MIntProperty), "MIntProperty",1,"Int",NULL,NULL,NULL,NULL},

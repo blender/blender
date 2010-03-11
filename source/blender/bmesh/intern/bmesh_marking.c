@@ -128,35 +128,14 @@ void BM_Select_Vert(BMesh *bm, BMVert *v, int select)
 		if (BM_TestHFlag(v, BM_SELECT)) bm->totvertsel -= 1;
 		BM_ClearHFlag(v, BM_SELECT);
 	}
-
-	/*BMESH_TODO hrm, not sure if flushing here is such a good idea. . .
-	  but probably easier then calling a EDBM_Normalize_Selection after
-	  each tool?*/
-#if 0
-	BM_ITER(e, &iter, bm, BM_EDGES_OF_VERT, v) {
-		if (!BM_TestHFlag(e, BM_SELECT) && BM_TestHFlag(e->v1, BM_SELECT) 
-		                                && BM_TestHFlag(e->v2, BM_SELECT)) {
-			BM_SetHFlag(e, BM_SELECT);
-			bm->totedgesel += 1;
-		} else if (BM_TestHFlag(e, BM_SELECT) && (!BM_TestHFlag(e->v1, BM_SELECT) 
-		                                      || !BM_TestHFlag(e->v2, BM_SELECT))) {
-			BM_ClearHFlag(e, BM_SELECT);
-			bm->totedgesel -= 1;		
-		}
-	}
-#endif
 }
 
 /*
  * BMESH SELECT EDGE
  *
  * Changes selection state of a single edge
- * in a mesh. Note that this is actually not
- * 100 percent reliable. Deselecting an edge
- * will also deselect both its vertices
- * regardless of the selection state of
- * other edges incident upon it. Fixing this
- * issue breaks multi-select mode though...
+ * in a mesh. Note that this may not be
+ * 100 percent reliable.
  *
 */
 
@@ -165,7 +144,7 @@ void BM_Select_Edge(BMesh *bm, BMEdge *e, int select)
 	int candesel;
 	int testiso = 1;
 
-	/*I might move this logic to bmeshutils_mods.c, where it'd be invoked
+	/*I might move this logic to editors/mesh/bmesh_select.c, where it'd be invoked
 	  by the selection tools.  in that case, we'd still retain the checks
 	  for if an edge's verts can be deselected.*/
 

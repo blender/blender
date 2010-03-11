@@ -85,6 +85,28 @@ struct rcti;
 
 /* bmeshutils.c */
 
+/*x-mirror editing api.  usage:
+  
+  EDBM_CacheMirrorVerts(em);
+  ...
+  ...
+  BM_ITER(v, &iter, em->bm, BM_VERTS_OF_MESH, NULL) {
+     mirrorv = EDBM_GetMirrorVert(em, v);
+  }
+  ...
+  ...
+  EDBM_EndMirrorCache(em);
+ 
+  note: why do we only allow x axis mirror editing?
+  */
+void EDBM_CacheMirrorVerts(struct BMEditMesh *em);
+
+/*retrieves mirrored cache vert, or NULL if there isn't one.
+  note: calling this without ensuring the mirror cache state
+  is bad.*/
+struct BMVert *EDBM_GetMirrorVert(struct BMEditMesh *em, struct BMVert *v);
+void EDBM_EndMirrorCache(struct BMEditMesh *em);
+
 void EDBM_RecalcNormals(struct BMEditMesh *em);
 
 void EDBM_MakeEditBMesh(struct ToolSettings *ts, struct Scene *scene, struct Object *ob);

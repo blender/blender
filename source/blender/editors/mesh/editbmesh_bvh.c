@@ -325,7 +325,7 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2, int tag)
 	BLI_array_declare(stack2);
 	float vec1[3], vec2[3], minangle=FLT_MAX, w;
 	int lvl=1;
-	static int maxlevel = 8;
+	static int maxlevel = 3;
 
 	/*ok.  see how similar v is to v2, based on topological similaritys in the local
 	  topological neighborhood*/
@@ -409,17 +409,65 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2, int tag)
 		if (!s1->curl)
 			s1->curl = s1->cure->loop;
 		if (!s2->curl) {
+			float no1[3], no2[3], angle;
 			int wind1, wind2;
 			
 			s2->curl = s2->cure->loop;
 
 			/*find which of two possible faces to use*/
-			wind1 = winding(s1->v->co, s1->lastv->co, 
-				s1->v == s1->curl->v ? ((BMLoop*)s1->curl->head.prev->prev)->v->co : ((BMLoop*)s1->curl->head.next->next)->v->co);
+			l1 = BM_OtherFaceLoop(s1->curl->e, s1->curl->f, s1->lastv);
+			l2 = BM_OtherFaceLoop(s2->curl->e, s2->curl->f, s2->lastv);
 
-			wind2 = winding(s2->v->co, s2->lastv->co, 
-				s2->v == s2->curl->v ? ((BMLoop*)s2->curl->head.prev->prev)->v->co : ((BMLoop*)s2->curl->head.next->next)->v->co);
+			if (l1->v == s2->lastv) {
+				l1 = (BMLoop*) l1->head.next;
+				if (l1->v == s2->v)
+					l1 = (BMLoop*) l1->head.prev->prev;
+			} else if (l1->v == s2->v) {
+				l1 = (BMLoop*) l1->head.next;
+				if (l1->v == s2->lastv)
+					l1 = (BMLoop*) l1->head.prev->prev;
+			}
+
+			if (l2->v == s2->lastv) {
+				l2 = (BMLoop*) l2->head.next;
+				if (l2->v == s2->v)
+					l2 = (BMLoop*) l2->head.prev->prev;
+			} else if (l2->v == s2->v) {
+				l2 = (BMLoop*) l2->head.next;
+				if (l2->v == s2->lastv)
+					l2 = (BMLoop*) l2->head.prev->prev;
+			}
+
+			wind1 = winding(s1->v->co, s1->lastv->co, l1->v->co);
+
+			wind2 = winding(s2->v->co, s2->lastv->co, l2->v->co);
 			
+			/*if angle between the two adjacent faces is greater then 90 degrees,
+			  we need to flip wind2*/
+			l1 = l2;
+			l2 = s2->curl->radial.next->data;
+			l2 = BM_OtherFaceLoop(l2->e, l2->f, s2->lastv);
+			
+			if (l2->v == s2->lastv) {
+				l2 = (BMLoop*) l2->head.next;
+				if (l2->v == s2->v)
+					l2 = (BMLoop*) l2->head.prev->prev;
+			} else if (l2->v == s2->v) {
+				l2 = (BMLoop*) l2->head.next;
+				if (l2->v == s2->lastv)
+					l2 = (BMLoop*) l2->head.prev->prev;
+			}
+
+			normal_tri_v3(no1, s2->v->co, s2->lastv->co, l1->v->co);
+			normal_tri_v3(no2, s2->v->co, s2->lastv->co, l2->v->co);
+			
+			/*enforce identical winding as no1*/
+			mul_v3_fl(no2, -1.0);
+
+			angle = angle_v3v3(no1, no2);
+			if (angle > M_PI/2 - FLT_EPSILON*2)
+				wind2 = !wind2;
+
 			if (wind1 == wind2)
 				s2->curl = s2->curl->radial.next->data;
 		}
@@ -444,10 +492,10 @@ static float topo_compare(BMesh *bm, BMVert *v1, BMVert *v2, int tag)
 				/*repush the current stack item*/
 				lvl++;
 				
-				if (maxlevel % 2 == 0) {
+				//if (maxlevel % 2 == 0) {
 					BLI_ghash_insert(gh, v1, NULL);
 					BLI_ghash_insert(gh, v2, NULL);
-				}
+				//}
 
 				/*now push the child node*/
 				SPUSH(stack1, lvl, v1, lastv1, e1);
@@ -565,16 +613,12 @@ BMVert *BMBVH_FindClosestVertTopo(BMBVHTree *tree, float *co, float maxdist, BMV
 	VECCOPY(hit.co, co);
 	VECCOPY(tree->co, co);
 	hit.index = -1;
-	hit.dist = 10.0f;
+	hit.dist = maxdist;
 
 	tree->curw = FLT_MAX;
 	tree->curd = FLT_MAX;
 	tree->curv = NULL;
 	tree->curtag = 1;
-
-	BM_ITER(v, &iter, tree->bm, BM_VERTS_OF_MESH, NULL) {
-		BMINDEX_SET(v, 0);
-	}
 
 	tree->gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 
