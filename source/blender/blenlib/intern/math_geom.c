@@ -1852,10 +1852,12 @@ void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2,
 	float s2= uv3[0] - uv1[0];
 	float t1= uv2[1] - uv1[1];
 	float t2= uv3[1] - uv1[1];
+	float det= (s1 * t2 - s2 * t1);
 
-	if(s1 && s2 && t1 && t2) { /* otherwise 'tang' becomes nan */
-		float tangv[3], ct[3], e1[3], e2[3], det;
-		det= 1.0f / (s1 * t2 - s2 * t1);
+	if(det != 0.0f) { /* otherwise 'tang' becomes nan */
+		float tangv[3], ct[3], e1[3], e2[3];
+
+		det= 1.0f/det;
 
 		/* normals in render are inversed... */
 		sub_v3_v3v3(e1, co1, co2);

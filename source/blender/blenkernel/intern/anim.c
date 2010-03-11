@@ -208,6 +208,9 @@ bMotionPath *animviz_verify_motionpaths(Scene *scene, Object *ob, bPoseChannel *
 	/* allocate a cache */
 	mpath->points= MEM_callocN(sizeof(bMotionPathVert)*mpath->length, "bMotionPathVerts");
 	
+	/* tag viz settings as currently having some path(s) which use it */
+	avs->path_bakeflag |= MOTIONPATH_BAKE_HAS_PATHS;
+	
 	/* return it */
 	return mpath;
 }

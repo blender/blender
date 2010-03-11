@@ -1077,7 +1077,7 @@ static void gp_paint_initstroke (tGPsdata *p, short paintmode)
 				/* calculate zoom factor */
 				zoom= (float)(SEQ_ZOOM_FAC(sseq->zoom));
 				if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-					zoomx = zoom * ((float)p->scene->r.xasp / (float)p->scene->r.yasp);
+					zoomx = zoom * (p->scene->r.xasp / p->scene->r.yasp);
 					zoomy = zoom;
 				} 
 				else

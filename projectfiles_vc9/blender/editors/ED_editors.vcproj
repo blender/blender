@@ -1560,6 +1560,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\editors\render\render_internal.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\editors\render\render_opengl.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\editors\render\render_ops.c"
 				>
 			</File>

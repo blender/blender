@@ -2220,6 +2220,27 @@ static PyObject *pyrna_prop_remove(BPy_PropertyRNA *self, PyObject *value)
 	return ret;
 }
 
+static PyObject *pyrna_prop_move(BPy_PropertyRNA *self, PyObject *args)
+{
+	PyObject *ret;
+	int key=0, pos=0;
+
+	if (!PyArg_ParseTuple(args, "ii", &key, &pos)) {
+		PyErr_SetString( PyExc_TypeError, "bpy_prop_collection.move(): expected two ints as arguments");
+		return NULL;
+	}
+
+	if(!RNA_property_collection_move(&self->ptr, self->prop, key, pos)) {
+		PyErr_SetString( PyExc_TypeError, "bpy_prop_collection.move() not supported for this collection");
+		return NULL;
+	}
+
+	ret = Py_None;
+	Py_INCREF(ret);
+
+	return ret;
+}
+
 static PyObject *pyrna_struct_get_id_data(BPy_StructRNA *self)
 {
 	if(self->ptr.id.data) {
@@ -2345,6 +2366,14 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 
 	Py_INCREF(def);
 	return def;
+}
+
+static PyObject *pyrna_struct_as_pointer(BPy_StructRNA *self)
+{
+	if(self->ptr.data)
+		return PyCapsule_New(self->ptr.data, RNA_struct_identifier(self->ptr.type), NULL);
+
+	Py_RETURN_NONE;
 }
 
 static PyObject *pyrna_prop_get(BPy_PropertyRNA *self, PyObject *args)
@@ -2661,6 +2690,8 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 
 	{"get", (PyCFunction)pyrna_struct_get, METH_VARARGS, NULL},
 
+	{"as_pointer", (PyCFunction)pyrna_struct_as_pointer, METH_NOARGS, NULL},
+
 	/* maybe this become and ID function */
 	{"keyframe_insert", (PyCFunction)pyrna_struct_keyframe_insert, METH_VARARGS, NULL},
 	{"keyframe_delete", (PyCFunction)pyrna_struct_keyframe_delete, METH_VARARGS, NULL},
@@ -2704,6 +2735,7 @@ static struct PyMethodDef pyrna_prop_collection_methods[] = {
 	/* moved into a getset */
 	{"add", (PyCFunction)pyrna_prop_add, METH_NOARGS, NULL},
 	{"remove", (PyCFunction)pyrna_prop_remove, METH_O, NULL},
+	{"move", (PyCFunction)pyrna_prop_move, METH_VARARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 

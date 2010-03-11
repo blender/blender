@@ -303,6 +303,20 @@ void WM_jobs_stop(wmWindowManager *wm, void *owner)
 				steve->stop= 1;
 }
 
+/* actually terminate thread and job timer */
+void WM_jobs_kill(wmWindowManager *wm, void *owner)
+{
+	wmJob *steve;
+	
+	for(steve= wm->jobs.first; steve; steve= steve->next)
+		if(steve->owner==owner)
+			break;
+	
+	if (steve) 
+		wm_jobs_kill_job(wm, steve);
+}
+
+
 /* kill job entirely, also removes timer itself */
 void wm_jobs_timer_ended(wmWindowManager *wm, wmTimer *wt)
 {

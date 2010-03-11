@@ -2126,7 +2126,6 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 	int editing = paint_facesel_test(ob);
 	/* weight paint and face select need original indicies because of selection buffer drawing */
 	int needMapping = (ob==obact) && (editing || (ob->mode & OB_MODE_WEIGHT_PAINT) || editing);
-	float min[3], max[3];
 
 	clear_mesh_caches(ob);
 
@@ -2134,13 +2133,7 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 						&ob->derivedFinal, 0, 1,
 						needMapping, dataMask, -1, 1);
 
-	INIT_MINMAX(min, max);
-
-	ob->derivedFinal->getMinMax(ob->derivedFinal, min, max);
-
-	if(!ob->bb)
-		ob->bb= MEM_callocN(sizeof(BoundBox), "bb");
-	boundbox_set_from_min_max(ob->bb, min, max);
+	DM_set_object_boundbox (ob, ob->derivedFinal);
 
 	ob->derivedFinal->needsFree = 0;
 	ob->derivedDeform->needsFree = 0;
@@ -2149,8 +2142,6 @@ static void mesh_build_data(Scene *scene, Object *ob, CustomDataMask dataMask)
 
 static void editmesh_build_data(Scene *scene, Object *obedit, EditMesh *em, CustomDataMask dataMask)
 {
-	float min[3], max[3];
-
 	clear_mesh_caches(obedit);
 
 	if (em->derivedFinal) {
@@ -2167,16 +2158,9 @@ static void editmesh_build_data(Scene *scene, Object *obedit, EditMesh *em, Cust
 	}
 
 	editmesh_calc_modifiers(scene, obedit, em, &em->derivedCage, &em->derivedFinal, dataMask);
+	DM_set_object_boundbox (obedit, em->derivedFinal);
+
 	em->lastDataMask = dataMask;
-
-	INIT_MINMAX(min, max);
-
-	em->derivedFinal->getMinMax(em->derivedFinal, min, max);
-
-	if(!obedit->bb)
-		obedit->bb= MEM_callocN(sizeof(BoundBox), "bb");
-	boundbox_set_from_min_max(obedit->bb, min, max);
-
 	em->derivedFinal->needsFree = 0;
 	em->derivedCage->needsFree = 0;
 }
@@ -2624,3 +2608,17 @@ void DM_vertex_attributes_from_gpu(DerivedMesh *dm, GPUVertexAttribs *gattribs, 
 	}
 }
 
+/* Set object's bounding box based on DerivedMesh min/max data */
+void DM_set_object_boundbox(Object *ob, DerivedMesh *dm)
+{
+	float min[3], max[3];
+
+	INIT_MINMAX(min, max);
+
+	dm->getMinMax(dm, min, max);
+
+	if(!ob->bb)
+		ob->bb= MEM_callocN(sizeof(BoundBox), "bb");
+
+	boundbox_set_from_min_max(ob->bb, min, max);
+}

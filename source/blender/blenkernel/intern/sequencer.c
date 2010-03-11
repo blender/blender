@@ -39,6 +39,7 @@
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_anim_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_global.h"
 #include "BKE_image.h"
@@ -46,6 +47,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_fcurve.h"
 #include "BKE_utildefines.h"
+#include "BKE_scene.h"
 #include "RNA_access.h"
 #include "RE_pipeline.h"
 
@@ -79,6 +81,8 @@ static int seqrecty= 0;
 #define SELECT 1
 ListBase seqbase_clipboard;
 int seqbase_clipboard_frame;
+SequencerDrawView sequencer_view3d_cb= NULL; /* NULL in background mode */
+
 
 void printf_strip(Sequence *seq)
 {
@@ -582,7 +586,7 @@ void reload_sequence_new_file(Scene *scene, Sequence * seq)
 	if (seq->type != SEQ_SCENE && seq->type != SEQ_META &&
 	    seq->type != SEQ_IMAGE) {
 		BLI_join_dirfile(str, seq->strip->dir, seq->strip->stripdata->name);
-		BLI_convertstringcode(str, G.sce);
+		BLI_path_abs(str, G.sce);
 	}
 
 	if (seq->type == SEQ_IMAGE) {
@@ -1243,7 +1247,7 @@ static int seq_proxy_get_fname(Scene *scene, Sequence * seq, int cfra, char * na
 
 	if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
 		BLI_join_dirfile(name, dir, seq->strip->proxy->file);
-		BLI_convertstringcode(name, G.sce);
+		BLI_path_abs(name, G.sce);
 
 		return TRUE;
 	}
@@ -1272,8 +1276,8 @@ static int seq_proxy_get_fname(Scene *scene, Sequence * seq, int cfra, char * na
 			 render_size);
 	}
 
-	BLI_convertstringcode(name, G.sce);
-	BLI_convertstringframe(name, frameno, 0);
+	BLI_path_abs(name, G.sce);
+	BLI_path_frame(name, frameno, 0);
 
 
 	strcat(name, ".jpg");
@@ -2040,7 +2044,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		if(se->ok == STRIPELEM_OK && se->ibuf == 0) {
 			StripElem * s_elem = give_stripelem(seq, cfra);
 			BLI_join_dirfile(name, seq->strip->dir, s_elem->name);
-			BLI_convertstringcode(name, G.sce);
+			BLI_path_abs(name, G.sce);
 			if (!build_proxy_run) {
 				se->ibuf = seq_proxy_fetch(scene, seq, cfra, render_size);
 			}
@@ -2074,7 +2078,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			if (se->ibuf == 0) {
 				if(seq->anim==0) {
 					BLI_join_dirfile(name, seq->strip->dir, seq->strip->stripdata->name);
-					BLI_convertstringcode(name, G.sce);
+					BLI_path_abs(name, G.sce);
 					
 					seq->anim = openanim(
 						name, IB_rect | 
@@ -2103,8 +2107,6 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		}
 	} else if(seq->type == SEQ_SCENE) {	// scene can be NULL after deletions
 		Scene *sce= seq->scene;// *oldsce= scene;
-		Render *re;
-		RenderResult rres;
 		int have_seq= FALSE;
 		int sce_valid= FALSE;
 
@@ -2129,59 +2131,87 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 		
 		if (!sce_valid) {
 			se->ok = STRIPELEM_FAILED;
-		} else if (se->ibuf==NULL && sce_valid) {
-			int oldcfra;
+		}
+		else if (se->ibuf==NULL && sce_valid) {
+			int frame= seq->sfra + se->nr + seq->anim_startofs;
+			int oldcfra = seq->scene->r.cfra;
+			Object *oldcamera= seq->scene->camera;
+			ListBase oldmarkers;
+
 			/* Hack! This function can be called from do_render_seq(), in that case
-			   the seq->scene can already have a Render initialized with same name, 
+			   the seq->scene can already have a Render initialized with same name,
 			   so we have to use a default name. (compositor uses scene name to
 			   find render).
 			   However, when called from within the UI (image preview in sequencer)
 			   we do want to use scene Render, that way the render result is defined
-			   for display in render/imagewindow 
+			   for display in render/imagewindow
 
-			   Hmm, don't see, why we can't do that all the time, 
+			   Hmm, don't see, why we can't do that all the time,
 			   and since G.rendering is uhm, gone... (Peter)
 			*/
 
 			int rendering = 1;
 			int doseq;
 
-			oldcfra = seq->scene->r.cfra;
-
-			if(rendering)
-				re= RE_NewRender(" do_build_seq_ibuf", RE_SLOT_DEFAULT);
-			else
-				re= RE_NewRender(sce->id.name, RE_SLOT_VIEW);
-			
 			/* prevent eternal loop */
 			doseq= scene->r.scemode & R_DOSEQ;
 			scene->r.scemode &= ~R_DOSEQ;
-			
-			RE_BlenderFrame(re, sce, NULL,
-					seq->sfra+se->nr+seq->anim_startofs);
-			
-			RE_AcquireResultImage(re, &rres);
-			
-			if(rres.rectf) {
-				se->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat, 0);
-				memcpy(se->ibuf->rect_float, rres.rectf, 4*sizeof(float)*rres.rectx*rres.recty);
-				if(rres.rectz) {
-					addzbuffloatImBuf(se->ibuf);
-					memcpy(se->ibuf->zbuf_float, rres.rectz, sizeof(float)*rres.rectx*rres.recty);
-				}
-			} else if (rres.rect32) {
-				se->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect, 0);
-				memcpy(se->ibuf->rect, rres.rect32, 4*rres.rectx*rres.recty);
-			}
 
-			RE_ReleaseResultImage(re);
-			
-			// BIF_end_render_callbacks();
+			seq->scene->r.cfra= frame;
+			if(seq->scene_camera)	seq->scene->camera= seq->scene_camera;
+			else					scene_camera_switch_update(seq->scene);
+
+#ifdef DURIAN_CAMERA_SWITCH
+			/* stooping to new low's in hackyness :( */
+			oldmarkers= seq->scene->markers;
+			seq->scene->markers.first= seq->scene->markers.last= NULL;
+#endif
+
+			if(sequencer_view3d_cb && (seq->flag & SEQ_USE_SCENE_OPENGL) && (seq->scene == scene || have_seq==0)) {
+				/* opengl offscreen render */
+				scene_update_for_newframe(seq->scene, seq->scene->lay);
+				se->ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty);
+			}
+			else {
+				Render *re;
+				RenderResult rres;
+
+				if(rendering)
+					re= RE_NewRender(" do_build_seq_ibuf", RE_SLOT_DEFAULT);
+				else
+					re= RE_NewRender(sce->id.name, RE_SLOT_VIEW);
+
+				RE_BlenderFrame(re, sce, NULL, frame);
+
+				RE_AcquireResultImage(re, &rres);
+
+				if(rres.rectf) {
+					se->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rectfloat, 0);
+					memcpy(se->ibuf->rect_float, rres.rectf, 4*sizeof(float)*rres.rectx*rres.recty);
+					if(rres.rectz) {
+						addzbuffloatImBuf(se->ibuf);
+						memcpy(se->ibuf->zbuf_float, rres.rectz, sizeof(float)*rres.rectx*rres.recty);
+					}
+				} else if (rres.rect32) {
+					se->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect, 0);
+					memcpy(se->ibuf->rect, rres.rect32, 4*rres.rectx*rres.recty);
+				}
+
+				RE_ReleaseResultImage(re);
+
+				// BIF_end_render_callbacks();
+			}
 			
 			/* restore */
 			scene->r.scemode |= doseq;
-		
+
 			seq->scene->r.cfra = oldcfra;
+			seq->scene->camera= oldcamera;
+
+#ifdef DURIAN_CAMERA_SWITCH
+			/* stooping to new low's in hackyness :( */
+			seq->scene->markers= oldmarkers;
+#endif
 
 			copy_to_ibuf_still(seq, se);
 
@@ -3803,7 +3833,7 @@ Sequence *sequencer_add_image_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 	strip->len = seq->len = seq_load->len ? seq_load->len : 1;
 	strip->us= 1;
 	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
+	BLI_split_dirfile(seq_load->path, strip->dir, se->name);
 	
 	seq_load_apply(scene, seq, seq_load);
 
@@ -3853,7 +3883,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 
-	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
+	BLI_split_dirfile(seq_load->path, strip->dir, se->name);
 
 	seq->scene_sound = sound_add_scene_sound(scene, seq, seq_load->start_frame, seq_load->start_frame + strip->len, 0);
 
@@ -3897,7 +3927,7 @@ Sequence *sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 
 	strip->stripdata= se= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 
-	BLI_split_dirfile_basic(seq_load->path, strip->dir, se->name);
+	BLI_split_dirfile(seq_load->path, strip->dir, se->name);
 
 	calc_sequence_disp(scene, seq);
 

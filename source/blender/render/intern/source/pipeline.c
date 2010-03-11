@@ -2129,8 +2129,8 @@ static void load_backbuffer(Render *re)
 		char name[256];
 		
 		strcpy(name, re->r.backbuf);
-		BLI_convertstringcode(name, G.sce);
-		BLI_convertstringframe(name, re->r.cfra, 0);
+		BLI_path_abs(name, G.sce);
+		BLI_path_frame(name, re->r.cfra, 0);
 		
 		if(re->backbuf) {
 			re->backbuf->id.us--;
@@ -2593,11 +2593,7 @@ static void do_render_seq(Render * re)
 /* main loop: doing sequence + fields + blur + 3d render + compositing */
 static void do_render_all_options(Render *re)
 {
-#ifdef DURIAN_CAMERA_SWITCH
-	Object *camera= scene_find_camera_switch(re->scene);
-	if(camera)
-		re->scene->camera= camera;
-#endif
+	scene_camera_switch_update(re->scene);
 
 	re->i.starttime= PIL_check_seconds_timer();
 

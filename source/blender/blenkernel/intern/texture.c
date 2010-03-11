@@ -483,10 +483,10 @@ void default_tex(Tex *tex)
 	tex->vn_coltype = 0;
 
 	if (tex->env) {
-		tex->env->stype=ENV_STATIC;
+		tex->env->stype=ENV_ANIM;
 		tex->env->clipsta=0.1;
 		tex->env->clipend=100;
-		tex->env->cuberes=100;
+		tex->env->cuberes=600;
 		tex->env->depth=0;
 	}
 
@@ -1040,10 +1040,11 @@ EnvMap *BKE_add_envmap(void)
 	
 	env= MEM_callocN(sizeof(EnvMap), "envmap");
 	env->type= ENV_CUBE;
-	env->stype= ENV_STATIC;
+	env->stype= ENV_ANIM;
 	env->clipsta= 0.1;
 	env->clipend= 100.0;
-	env->cuberes= 100;
+	env->cuberes= 600;
+	env->viewscale = 0.5;
 	
 	return env;
 } 

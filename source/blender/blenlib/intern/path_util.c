@@ -270,7 +270,7 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 	short a;
 	char *start, *eind;
 	if (relabase) {
-		BLI_convertstringcode(dir, relabase);
+		BLI_path_abs(dir, relabase);
 	} else {
 		if (dir[0]=='/' && dir[1]=='/') {
 			if (dir[2]== '\0') {
@@ -369,7 +369,7 @@ void BLI_cleanup_file(const char *relabase, char *dir)
 }
 
 
-void BLI_makestringcode(const char *relfile, char *file)
+void BLI_path_rel(char *file, const char *relfile)
 {
 	char * p;
 	char * q;
@@ -542,7 +542,7 @@ static void ensure_digits(char *path, int digits)
 	}
 }
 
-int BLI_convertstringframe(char *path, int frame, int digits)
+int BLI_path_frame(char *path, int frame, int digits)
 {
 	int ch_sta, ch_end;
 
@@ -559,7 +559,7 @@ int BLI_convertstringframe(char *path, int frame, int digits)
 	return 0;
 }
 
-int BLI_convertstringframe_range(char *path, int sta, int end, int digits)
+int BLI_path_frame_range(char *path, int sta, int end, int digits)
 {
 	int ch_sta, ch_end;
 
@@ -576,7 +576,7 @@ int BLI_convertstringframe_range(char *path, int sta, int end, int digits)
 	return 0;
 }
 
-int BLI_convertstringcode(char *path, const char *basepath)
+int BLI_path_abs(char *path, const char *basepath)
 {
 	int wasrelative = (strncmp(path, "//", 2)==0);
 	char tmp[FILE_MAX];
@@ -677,7 +677,7 @@ int BLI_convertstringcode(char *path, const char *basepath)
  * Should only be done with command line paths.
  * this is NOT somthing blenders internal paths support like the // prefix
  */
-int BLI_convertstringcwd(char *path)
+int BLI_path_cwd(char *path)
 {
 	int wasrelative = 1;
 	int filelen = strlen(path);
@@ -1163,7 +1163,7 @@ int BLI_testextensie(const char *str, const char *ext)
  * - dosnt use CWD, or deal with relative paths.
  * - Only fill's in *dir and *file when they are non NULL
  * */
-void BLI_split_dirfile_basic(const char *string, char *dir, char *file)
+void BLI_split_dirfile(const char *string, char *dir, char *file)
 {
 	int lslash=0, i = 0;
 	for (i=0; string[i]!='\0'; i++) {
@@ -1181,128 +1181,6 @@ void BLI_split_dirfile_basic(const char *string, char *dir, char *file)
 	if (file) {
 		strcpy( file, string+lslash);
 	}
-}
-
-
-/* Warning,
- * - May modify 'string' variable
- * - May create the directory if it dosnt exist
- * if this is not needed use BLI_split_dirfile_basic(...)
- */
-void BLI_split_dirfile(char *string, char *dir, char *file)
-{
-	int a;
-#ifdef WIN32
-	int sl;
-	short is_relative = 0;
-	char path[FILE_MAX];
-#endif
-
-	dir[0]= 0;
-	file[0]= 0;
-
-#ifdef WIN32
-	BLI_strncpy(path, string, FILE_MAX);
-	BLI_char_switch(path, '/', '\\'); /* make sure we have a valid path format */
-	sl = strlen(path);
-	if (sl) {
-		int len;
-		if (path[0] == '/' || path[0] == '\\') { 
-			BLI_strncpy(dir, path, FILE_MAXDIR);
-			if (sl > 1 && path[0] == '\\' && path[1] == '\\') is_relative = 1;
-		} else if (sl > 2 && path[1] == ':' && path[2] == '\\') {
-			BLI_strncpy(dir, path, FILE_MAXDIR);
-		} else {
-			BLI_getwdN(dir);
-			strcat(dir,"\\");
-			strcat(dir,path);
-			BLI_strncpy(path,dir,FILE_MAXDIR+FILE_MAXFILE);
-		}
-		
-		// BLI_exist doesn't recognize a slashed dirname as a dir
-		//  check if a trailing slash exists, and remove it. Do not do this
-		//  when we are already at root. -jesterKing
-		a = strlen(dir);
-		if(a>=4 && dir[a-1]=='\\') dir[a-1] = 0;
-
-		if (is_relative) {
-			printf("WARNING: BLI_split_dirfile needs absolute dir\n");
-		}
-		else {
-			BLI_make_exist(dir);
-		}
-
-		if (S_ISDIR(BLI_exist(dir))) {
-
-			/* copy from end of string into file, to ensure filename itself isn't truncated 
-			if string is too long. (aphex) */
-
-			len = FILE_MAXFILE - strlen(path);
-
-			if (len < 0)
-				BLI_strncpy(file,path + abs(len),FILE_MAXFILE);
-			else
-				BLI_strncpy(file,path,FILE_MAXFILE);
-		    
-			if (strrchr(path,'\\')) {
-				BLI_strncpy(file,strrchr(path,'\\')+1,FILE_MAXFILE);
-			}
-			
-			if ( (a = strlen(dir)) ) {
-				if (dir[a-1] != '\\') strcat(dir,"\\");
-			}
-		}
-		else {
-			a = strlen(dir) - 1;
-			while(a>0 && dir[a] != '\\') a--;
-			dir[a + 1] = 0;
-			BLI_strncpy(file, path + strlen(dir),FILE_MAXFILE);
-		}
-
-	}
-	else {
-		/* defaulting to first valid drive hoping it's not empty CD and DVD drives */
-		get_default_root(dir);
-		file[0]=0;
-	}
-#else
-	if (strlen(string)) {
-		if (string[0] == '/') { 
-			strcpy(dir, string);
-		} else if (string[1] == ':' && string[2] == '\\') {
-			string+=2;
-			strcpy(dir, string);
-		} else {
-			BLI_getwdN(dir);
-			strcat(dir,"/");
-			strcat(dir,string);
-			strcpy((char *)string,dir);
-		}
-
-		BLI_make_exist(dir);
-			
-		if (S_ISDIR(BLI_exist(dir))) {
-			strcpy(file,string + strlen(dir));
-
-			if (strrchr(file,'/')) strcpy(file,strrchr(file,'/')+1);
-		
-			if ( (a = strlen(dir)) ) {
-				if (dir[a-1] != '/') strcat(dir,"/");
-			}
-		}
-		else {
-			a = strlen(dir) - 1;
-			while(dir[a] != '/') a--;
-			dir[a + 1] = 0;
-			strcpy(file, string + strlen(dir));
-		}
-	}
-	else {
-		BLI_getwdN(dir);
-		strcat(dir, "/");
-		file[0] = 0;
-	}
-#endif
 }
 
 /* simple appending of filename to dir, does not check for valid path! */
@@ -1363,7 +1241,7 @@ int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char
 	if (rel)
 		rel[0]= 0;
 
-	BLI_split_dirfile_basic(base_dir, blend_dir, NULL);
+	BLI_split_dirfile(base_dir, blend_dir, NULL);
 
 	if (src_dir[0]=='\0')
 		return 0;
@@ -1371,10 +1249,10 @@ int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char
 	BLI_strncpy(path, src_dir, sizeof(path));
 
 	/* expand "//" in filename and get absolute path */
-	BLI_convertstringcode(path, base_dir);
+	BLI_path_abs(path, base_dir);
 
 	/* get the directory part */
-	BLI_split_dirfile_basic(path, dir, base);
+	BLI_split_dirfile(path, dir, base);
 
 	len= strlen(blend_dir);
 

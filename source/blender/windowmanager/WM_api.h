@@ -57,6 +57,7 @@ void		WM_init				(struct bContext *C, int argc, char **argv);
 void		WM_exit				(struct bContext *C);
 void		WM_main				(struct bContext *C);
 
+void		WM_init_game		(struct bContext *C);
 void		WM_init_splash		(struct bContext *C);
 
 
@@ -308,6 +309,7 @@ void		WM_jobs_callbacks(struct wmJob *,
 
 void		WM_jobs_start(struct wmWindowManager *wm, struct wmJob *);
 void		WM_jobs_stop(struct wmWindowManager *wm, void *owner);
+void		WM_jobs_kill(struct wmWindowManager *wm, void *owner);
 void		WM_jobs_stop_all(struct wmWindowManager *wm);
 
 			/* clipboard */

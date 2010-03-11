@@ -136,7 +136,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 				BLI_cleanup_dir(G.sce, params->dir);	
 			} else { 
 				/* if operator has path set, use it, otherwise keep the last */
-				BLI_convertstringcode(name, G.sce);
+				BLI_path_abs(name, G.sce);
 				BLI_split_dirfile(name, dir, file);
 				BLI_strncpy(params->file, file, sizeof(params->file));
 				BLI_make_file_string(G.sce, params->dir, dir, ""); /* XXX needed ? - also solve G.sce */
@@ -391,15 +391,18 @@ FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar
 	return sfile->layout;
 }
 
-void file_change_dir(struct SpaceFile *sfile, int checkdir)
+void file_change_dir(bContext *C, int checkdir)
 {
+	SpaceFile *sfile= CTX_wm_space_file(C);
+
 	if (sfile->params) {
+
+		ED_fileselect_clear(C, sfile);
 
 		if(checkdir && BLI_is_dir(sfile->params->dir)==0) {
 			BLI_strncpy(sfile->params->dir, filelist_dir(sfile->files), sizeof(sfile->params->dir));
 			/* could return but just refresh the current dir */
 		}
-
 		filelist_setdir(sfile->files, sfile->params->dir);
 
 		if(folderlist_clear_next(sfile))
@@ -407,8 +410,6 @@ void file_change_dir(struct SpaceFile *sfile, int checkdir)
 
 		folderlist_pushdir(sfile->folders_prev, sfile->params->dir);
 
-		filelist_free(sfile->files);
-		sfile->params->active_file = -1;
 	}
 }
 
@@ -459,4 +460,18 @@ void autocomplete_directory(struct bContext *C, char *str, void *arg_v)
 			BLI_make_exist(str);
 		}
 	}
+}
+
+void ED_fileselect_clear(struct bContext *C, struct SpaceFile *sfile)
+{
+	thumbnails_stop(sfile->files, C);
+	filelist_freelib(sfile->files);
+	filelist_free(sfile->files);
+	sfile->params->active_file = -1;
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+}
+
+void ED_fileselect_exit(struct bContext *C, struct SpaceFile *sfile)
+{
+	thumbnails_stop(sfile->files, C);
 }

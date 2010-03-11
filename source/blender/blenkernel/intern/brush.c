@@ -237,7 +237,8 @@ void brush_curve_preset(Brush *b, /*CurveMappingPreset*/int preset)
 	cm = b->curve->cm;
 	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
 
-	curvemap_reset(cm, &b->curve->clipr, preset);
+	b->curve->preset = preset;
+	curvemap_reset(cm, &b->curve->clipr, b->curve->preset);
 	curvemapping_changed(b->curve, 0);
 }
 

@@ -55,6 +55,7 @@
 #include "BLI_winstuff.h"
 #endif
 
+#include "BKE_context.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -85,6 +86,9 @@
 
 #include "UI_interface.h"
 
+#include "WM_api.h"
+#include "WM_types.h"
+
 #include "filelist.h"
 
 /* Elubie: VERY, really very ugly and evil! Remove asap!!! */
@@ -100,11 +104,20 @@ struct FileList;
 
 typedef struct FileImage {
 	struct FileImage *next, *prev;
+	char path[FILE_MAX];
+	unsigned int flags;
 	int index;
-	short lock;
 	short done;
-	struct FileList* filelist;
+	ImBuf *img;
 } FileImage;
+
+typedef struct ThumbnailJob {
+	ListBase loadimages;
+	short *stop;
+	short *do_update;
+	struct FileList* filelist;
+	ReportList reports;
+} ThumbnailJob;
 
 typedef struct FileList
 {
@@ -124,8 +137,6 @@ typedef struct FileList
 
 	void (*read)(struct FileList *);
 
-	ListBase loadimages;
-	ListBase threads;
 } FileList;
 
 typedef struct FolderList
@@ -501,9 +512,6 @@ void filelist_free(struct FileList* filelist)
 		printf("Attempting to delete empty filelist.\n");
 		return;
 	}
-
-	BLI_end_threads(&filelist->threads);
-	BLI_freelistN(&filelist->loadimages);
 	
 	if (filelist->fidx) {
 		MEM_freeN(filelist->fidx);
@@ -566,123 +574,33 @@ void filelist_imgsize(struct FileList* filelist, short w, short h)
 	filelist->prv_h = h;
 }
 
-
-static void *exec_loadimages(void *list_v)
-{
-	FileImage* img = (FileImage*)list_v;
-	struct FileList *filelist = img->filelist;
-
-	ImBuf *imb = NULL;
-	int fidx = img->index;
-	
-	if ( filelist->filelist[fidx].flags & IMAGEFILE ) {				
-		imb = IMB_thumb_manage(filelist->dir, filelist->filelist[fidx].relname, THB_NORMAL, THB_SOURCE_IMAGE);
-	} else if ( filelist->filelist[fidx].flags & MOVIEFILE ) {				
-		imb = IMB_thumb_manage(filelist->dir, filelist->filelist[fidx].relname, THB_NORMAL, THB_SOURCE_MOVIE);
-		if (!imb) {
-			/* remember that file can't be loaded via IMB_open_anim */
-			filelist->filelist[fidx].flags &= ~MOVIEFILE;
-			filelist->filelist[fidx].flags |= MOVIEFILE_ICON;
-		}
-	}
-	if (imb) {
-		IMB_freeImBuf(imb);
-	}
-	img->done=1;
-	return 0;
-}
-
 short filelist_changed(struct FileList* filelist)
 {
 	return filelist->changed;
 }
 
-void filelist_loadimage_timer(struct FileList* filelist)
-{
-	FileImage *limg = filelist->loadimages.first;
-	short refresh=0;
-
-	// as long as threads are available and there is work to do
-	while (limg) {
-		if (BLI_available_threads(&filelist->threads)>0) {
-			if (!limg->lock) {
-				limg->lock=1;
-				BLI_insert_thread(&filelist->threads, limg);
-			}
-		}
-		if (limg->done) {
-			FileImage *oimg = limg;
-			BLI_remove_thread(&filelist->threads, oimg);
-			/* brecht: keep failed images in the list, otherwise
-			   it keeps trying to load them over and over?
-			BLI_remlink(&filelist->loadimages, oimg);
-			MEM_freeN(oimg);*/
-			limg = oimg->next;
-			refresh = 1;
-		} else {
-			limg= limg->next;
-		}
-	}
-	filelist->changed=refresh;
-}
-
-void filelist_loadimage(struct FileList* filelist, int index)
+struct ImBuf * filelist_loadimage(struct FileList* filelist, int index)
 {
 	ImBuf *imb = NULL;
-	int imgwidth = filelist->prv_w;
-	int imgheight = filelist->prv_h;
-	short ex, ey, dx, dy;
-	float scaledx, scaledy;
 	int fidx = 0;
 	
 	if ( (index < 0) || (index >= filelist->numfiltered) ) {
-		return;
+		return NULL;
 	}
 	fidx = filelist->fidx[index];
-
-	if (!filelist->filelist[fidx].image)
+	imb = filelist->filelist[fidx].image;
+	if (!imb)
 	{
-
-		if ( (filelist->filelist[fidx].flags & IMAGEFILE) || (filelist->filelist[fidx].flags & MOVIEFILE) ) {				
-			imb = IMB_thumb_read(filelist->dir, filelist->filelist[fidx].relname, THB_NORMAL);
+		if ( (filelist->filelist[fidx].flags & IMAGEFILE) || (filelist->filelist[fidx].flags & MOVIEFILE) ) {
+			char path[FILE_MAX];
+			BLI_join_dirfile(path, filelist->dir, filelist->filelist[fidx].relname);
+			imb = IMB_thumb_read(path, THB_NORMAL);
 		} 
 		if (imb) {
-			if (imb->x > imb->y) {
-				scaledx = (float)imgwidth;
-				scaledy =  ( (float)imb->y/(float)imb->x )*imgwidth;
-			}
-			else {
-				scaledy = (float)imgheight;
-				scaledx =  ( (float)imb->x/(float)imb->y )*imgheight;
-			}
-			ex = (short)scaledx;
-			ey = (short)scaledy;
-			
-			dx = imgwidth - ex;
-			dy = imgheight - ey;
-			
-			// IMB_scaleImBuf(imb, ex, ey);
 			filelist->filelist[fidx].image = imb;
-		} else {
-			/* prevent loading image twice */
-			FileImage* limg = filelist->loadimages.first;
-			short found= 0;
-			while(limg) {
-				if (limg->index == fidx) {
-					found= 1;
-					break;
-				}
-				limg= limg->next;
-			}
-			if (!found) {
-				FileImage* limg = MEM_callocN(sizeof(struct FileImage), "loadimage");
-				limg->index= fidx;
-				limg->lock= 0;
-				limg->filelist= filelist;
-				BLI_addtail(&filelist->loadimages, limg);
-			}
-		}		
+		} 
 	}
+	return imb;
 }
 
 struct ImBuf * filelist_getimage(struct FileList* filelist, int index)
@@ -804,10 +722,6 @@ static void filelist_read_dir(struct FileList* filelist)
 	if(!chdir(wdir)) /* fix warning about not checking return value */;
 	filelist_setfiletypes(filelist, G.have_quicktime);
 	filelist_filter(filelist);
-
-	if (!filelist->threads.first) {
-		BLI_init_threads(&filelist->threads, exec_loadimages, 2);
-	}
 }
 
 static void filelist_read_main(struct FileList* filelist)
@@ -876,9 +790,7 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 			/* Don't check extensions for directories */ 
 		if (file->type & S_IFDIR)
 			continue;
-				
-		
-		
+
 		if(BLO_has_bfile_extension(file->relname)) {
 			file->flags |= BLENDERFILE;
 		} else if(BLI_testextensie(file->relname, ".py")) {
@@ -1315,3 +1227,104 @@ void filelist_from_main(struct FileList *filelist)
 	filelist_filter(filelist);
 }
 
+static void thumbnail_joblist_free(ThumbnailJob *tj)
+{
+	FileImage* limg = tj->loadimages.first;
+	
+	/* free the images not yet copied to the filelist -> these will get freed with the filelist */
+	while (limg != tj->loadimages.last) {
+		if ((limg->img) && (!limg->done)) {
+			IMB_freeImBuf(limg->img);
+		}
+		limg = limg->next;
+	}
+	BLI_freelistN(&tj->loadimages);
+}
+
+static void thumbnails_startjob(void *tjv, short *stop, short *do_update)
+{
+	ThumbnailJob *tj= tjv;
+	FileImage* limg = tj->loadimages.first;
+
+	tj->stop= stop;
+	tj->do_update= do_update;
+
+	while ( (*stop==0) && (limg) ) {
+		if ( limg->flags & IMAGEFILE ) {
+			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_IMAGE);
+		} else if ( limg->flags & MOVIEFILE ) {			
+			limg->img = IMB_thumb_manage(limg->path, THB_NORMAL, THB_SOURCE_MOVIE);
+			if (!limg->img) {
+					/* remember that file can't be loaded via IMB_open_anim */
+					limg->flags &= ~MOVIEFILE;
+					limg->flags |= MOVIEFILE_ICON;
+				}
+		}
+		*do_update = 1;
+		PIL_sleep_ms(10);
+		limg = limg->next;
+	}
+}
+
+static void thumbnails_update(void *tjv)
+{
+	ThumbnailJob *tj= tjv;
+
+	if (tj->filelist && tj->filelist->filelist) {
+		FileImage* limg = tj->loadimages.first;
+		while (limg) {
+			if (!limg->done && limg->img) {
+				tj->filelist->filelist[limg->index].image = limg->img;
+				tj->filelist->filelist[limg->index].flags = limg->flags;
+				limg->done=1;
+			}
+			limg = limg->next;
+		}
+	}
+}
+
+static void thumbnails_free(void *tjv)
+{
+	ThumbnailJob *tj= tjv;
+	thumbnail_joblist_free(tj);
+	MEM_freeN(tj);
+}
+
+
+void thumbnails_start(struct FileList* filelist, const struct bContext* C)
+{
+	wmJob *steve;
+	ThumbnailJob *tj;
+	int idx;
+	
+	/* prepare job data */
+	tj= MEM_callocN(sizeof(ThumbnailJob), "thumbnails\n");
+	tj->filelist = filelist;
+	for (idx = 0; idx < filelist->numfiles;idx++) {
+		if (!filelist->filelist[idx].image) {
+			if ( (filelist->filelist[idx].flags & IMAGEFILE) || (filelist->filelist[idx].flags & MOVIEFILE) ) {
+				FileImage* limg = MEM_callocN(sizeof(struct FileImage), "loadimage");
+				BLI_join_dirfile(limg->path, filelist->dir, filelist->filelist[idx].relname);
+				limg->index= idx;
+				limg->flags= filelist->filelist[idx].flags;
+				BLI_addtail(&tj->loadimages, limg);
+			}
+		}
+	}
+
+	BKE_reports_init(&tj->reports, RPT_PRINT);
+
+	/* setup job */
+	steve= WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), filelist, 0);
+	WM_jobs_customdata(steve, tj, thumbnails_free);
+	WM_jobs_timer(steve, 0.5, NC_WINDOW, NC_WINDOW);
+	WM_jobs_callbacks(steve, thumbnails_startjob, NULL, thumbnails_update);
+
+	/* start the job */
+	WM_jobs_start(CTX_wm_manager(C), steve);
+}
+
+void thumbnails_stop(struct FileList* filelist, const struct bContext* C)
+{
+	WM_jobs_kill(CTX_wm_manager(C), filelist);
+}

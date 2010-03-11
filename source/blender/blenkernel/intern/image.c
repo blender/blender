@@ -391,7 +391,7 @@ Image *BKE_add_image_file(const char *name, int frame)
 	}
 	
 	BLI_strncpy(str, name, sizeof(str));
-	BLI_convertstringcode(str, G.sce);
+	BLI_path_abs(str, G.sce);
 	
 	/* exists? */
 	file= open(str, O_BINARY|O_RDONLY);
@@ -402,7 +402,7 @@ Image *BKE_add_image_file(const char *name, int frame)
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if(ima->source!=IMA_SRC_VIEWER && ima->source!=IMA_SRC_GENERATED) {
 			BLI_strncpy(strtest, ima->name, sizeof(ima->name));
-			BLI_convertstringcode(strtest, G.sce);
+			BLI_path_abs(strtest, G.sce);
 			
 			if( strcmp(strtest, str)==0 ) {
 				if(ima->anim==NULL || ima->id.us==0) {
@@ -563,10 +563,8 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 /* adds new image block, creates ImBuf and initializes color */
 Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4])
 {
-	Image *ima;
-	
 	/* on save, type is changed to FILE in editsima.c */
-	ima= image_alloc(name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
+	Image *ima= image_alloc(name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
 	
 	if (ima) {
 		ImBuf *ibuf;
@@ -579,6 +577,25 @@ Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short
 		ibuf= add_ibuf_size(width, height, name, floatbuf, uvtestgrid, color);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 		
+		ima->ok= IMA_OK_LOADED;
+	}
+
+	return ima;
+}
+
+/* creates an image image owns the imbuf passed */
+Image *BKE_add_image_imbuf(ImBuf *ibuf)
+{
+	/* on save, type is changed to FILE in editsima.c */
+	Image *ima;
+	char filename[sizeof(ibuf->name)];
+
+	BLI_split_dirfile(ibuf->name, NULL, filename);
+	ima= image_alloc(filename, IMA_SRC_FILE, IMA_TYPE_IMAGE);
+
+	if (ima) {
+		BLI_strncpy(ima->name, ibuf->name, FILE_MAX);
+		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 		ima->ok= IMA_OK_LOADED;
 	}
 
@@ -1411,8 +1428,8 @@ void BKE_makepicstring(char *string, char *base, int frame, int imtype, int use_
 {
 	if (string==NULL) return;
 	BLI_strncpy(string, base, FILE_MAX - 10);	/* weak assumption */
-	BLI_convertstringcode(string, G.sce);
-	BLI_convertstringframe(string, frame, 4);
+	BLI_path_abs(string, G.sce);
+	BLI_path_frame(string, frame, 4);
 
 	if(use_ext)
 		BKE_add_image_extension(string, imtype);
@@ -1667,9 +1684,9 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 	BLI_strncpy(name, ima->name, sizeof(name));
 	
 	if(ima->id.lib)
-		BLI_convertstringcode(name, ima->id.lib->filename);
+		BLI_path_abs(name, ima->id.lib->filename);
 	else
-		BLI_convertstringcode(name, G.sce);
+		BLI_path_abs(name, G.sce);
 	
 	/* read ibuf */
 	ibuf = IMB_loadiffname(name, IB_rect|IB_multilayer);
@@ -1774,9 +1791,9 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 		
 		BLI_strncpy(str, ima->name, FILE_MAX);
 		if(ima->id.lib)
-			BLI_convertstringcode(str, ima->id.lib->filename);
+			BLI_path_abs(str, ima->id.lib->filename);
 		else
-			BLI_convertstringcode(str, G.sce);
+			BLI_path_abs(str, G.sce);
 		
 		ima->anim = openanim(str, IB_cmap | IB_rect);
 		
@@ -1828,11 +1845,11 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		/* get the right string */
 		BLI_strncpy(str, ima->name, sizeof(str));
 		if(ima->id.lib)
-			BLI_convertstringcode(str, ima->id.lib->filename);
+			BLI_path_abs(str, ima->id.lib->filename);
 		else
-			BLI_convertstringcode(str, G.sce);
+			BLI_path_abs(str, G.sce);
 		
-		BLI_convertstringframe(str, cfra, 0);
+		BLI_path_frame(str, cfra, 0);
 		
 		/* read ibuf */
 		ibuf = IMB_loadiffname(str, IB_rect|IB_multilayer|IB_imginfo);

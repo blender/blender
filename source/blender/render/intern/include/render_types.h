@@ -146,7 +146,9 @@ struct Render
 	int partx, party;
 	
 	/* values for viewing */
-	float lens, ycor, viewfac;
+	float lens;
+	float ycor; /* (scene->xasp / scene->yasp), multiplied with 'winy' */
+	
 	float panophi, panosi, panoco, panodxp, panodxv;
 	
 	/* Matrices */

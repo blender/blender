@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -140,7 +140,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE;GAMEBLENDER=1;WITH_SDL;WITH_OPENAL;WITH_JACK"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -233,7 +233,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -422,7 +422,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
 				PreprocessorDefinitions="_DEBUG,WIN32,_CONSOLE;GAMEBLENDER=1;WITH_SDL;WITH_OPENAL;WITH_JACK"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -518,7 +518,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_9\intern\guardedalloc\include;..\..\..\source\blender;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\makesrna;..\..\..\source\blender\editors\include;..\..\..\source\blender\blenkernel;..\..\..\..\lib\windows\pthreads\include;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\gpu;..\..\..\source\blender\windowmanager;..\..\..\source\blender\imbuf"
 				PreprocessorDefinitions="NDEBUG,WIN32,_CONSOLE;GAMEBLENDER=1;WITH_SDL;WITH_OPENAL;WITH_JACK"
 				StringPooling="true"
 				RuntimeLibrary="0"

@@ -563,31 +563,49 @@ static int vergedgesort(const void *v1, const void *v2)
 	return 0;
 }
 
-void make_edges(Mesh *me, int old)
+static void mfaces_strip_loose(MFace *mface, int *totface)
+{
+	int a,b;
+
+	for (a=b=0; a<*totface; a++) {
+		if (mface[a].v3) {
+			if (a!=b) {
+				memcpy(&mface[b],&mface[a],sizeof(mface[b]));
+			}
+			b++;
+		}
+	}
+
+	*totface= b;
+}
+
+/* Create edges based on known verts and faces */
+static void make_edges_mdata(MVert *allvert, MFace *allface, int totvert, int totface,
+	int old, MEdge **alledge, int *_totedge)
 {
 	MFace *mface;
 	MEdge *medge;
 	struct edgesort *edsort, *ed;
 	int a, totedge=0, final=0;
-	
+
 	/* we put all edges in array, sort them, and detect doubles that way */
-	
-	for(a= me->totface, mface= me->mface; a>0; a--, mface++) {
+
+	for(a= totface, mface= allface; a>0; a--, mface++) {
 		if(mface->v4) totedge+=4;
 		else if(mface->v3) totedge+=3;
 		else totedge+=1;
 	}
-	
+
 	if(totedge==0) {
 		/* flag that mesh has edges */
-		me->medge = MEM_callocN(0, "make mesh edges");
-		me->totedge = 0;
+		(*alledge)= MEM_callocN(0, "make mesh edges");
+		(*_totedge) = 0;
 		return;
 	}
-	
+
 	ed= edsort= MEM_mallocN(totedge*sizeof(struct edgesort), "edgesort");
-	
-	for(a= me->totface, mface= me->mface; a>0; a--, mface++) {
+
+	for(a= totface, mface= allface; a>0; a--, mface++) {
 		to_edgesort(ed++, mface->v1, mface->v2, !mface->v3, mface->edcode & ME_V1V2);
 		if(mface->v4) {
 			to_edgesort(ed++, mface->v2, mface->v3, 0, mface->edcode & ME_V2V3);
@@ -599,21 +617,19 @@ void make_edges(Mesh *me, int old)
 			to_edgesort(ed++, mface->v3, mface->v1, 0, mface->edcode & ME_V3V1);
 		}
 	}
-	
+
 	qsort(edsort, totedge, sizeof(struct edgesort), vergedgesort);
-	
+
 	/* count final amount */
 	for(a=totedge, ed=edsort; a>1; a--, ed++) {
 		/* edge is unique when it differs from next edge, or is last */
 		if(ed->v1 != (ed+1)->v1 || ed->v2 != (ed+1)->v2) final++;
 	}
 	final++;
-	
 
-	medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, final);
-	me->medge= medge;
-	me->totedge= final;
-	
+	(*alledge)= medge= MEM_callocN(sizeof (MEdge) * final, "make_edges mdge");
+	(*_totedge)= final;
+
 	for(a=totedge, ed=edsort; a>1; a--, ed++) {
 		/* edge is unique when it differs from next edge, or is last */
 		if(ed->v1 != (ed+1)->v1 || ed->v2 != (ed+1)->v2) {
@@ -636,6 +652,24 @@ void make_edges(Mesh *me, int old)
 	medge->flag |= ME_EDGERENDER;
 
 	MEM_freeN(edsort);
+}
+
+void make_edges(Mesh *me, int old)
+{
+	MEdge *medge;
+	int totedge=0;
+
+	make_edges_mdata(me->mvert, me->mface, me->totvert, me->totface, old, &medge, &totedge);
+	if(totedge==0) {
+		/* flag that mesh has edges */
+		me->medge = medge;
+		me->totedge = 0;
+		return;
+	}
+
+	medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, medge, totedge);
+	me->medge= medge;
+	me->totedge= totedge;
 
 	mesh_strip_loose_faces(me);
 }
@@ -656,7 +690,6 @@ void mesh_strip_loose_faces(Mesh *me)
 	}
 	me->totface = b;
 }
-
 
 void mball_to_mesh(ListBase *lb, Mesh *me)
 {
@@ -711,12 +744,21 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 	}	
 }
 
-/* this may fail replacing ob->data, be sure to check ob->type */
-void nurbs_to_mesh(Object *ob)
+/* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
+/* return non-zero on error */
+int nurbs_to_mdata(Object *ob, MVert **allvert, int *totvert,
+	MEdge **alledge, int *totedge, MFace **allface, int *totface)
 {
-	Object *ob1;
+	return nurbs_to_mdata_customdb(ob, &((Curve *)ob->data)->disp,
+		allvert, totvert, alledge, totedge, allface, totface);
+}
+
+/* Initialize mverts, medges and, faces for converting nurbs to mesh and derived mesh */
+/* use specified dispbase  */
+int nurbs_to_mdata_customdb(Object *ob, ListBase *dispbase, MVert **allvert, int *_totvert,
+	MEdge **alledge, int *_totedge, MFace **allface, int *_totface)
+{
 	DispList *dl;
-	Mesh *me;
 	Curve *cu;
 	MVert *mvert;
 	MFace *mface;
@@ -727,7 +769,7 @@ void nurbs_to_mesh(Object *ob)
 	cu= ob->data;
 
 	/* count */
-	dl= cu->disp.first;
+	dl= dispbase->first;
 	while(dl) {
 		if(dl->type==DL_SEGM) {
 			totvert+= dl->parts*dl->nr;
@@ -750,34 +792,23 @@ void nurbs_to_mesh(Object *ob)
 		}
 		dl= dl->next;
 	}
+
 	if(totvert==0) {
 		/* error("can't convert"); */
 		/* Make Sure you check ob->data is a curve */
-		return;
+		return -1;
 	}
 
-	/* make mesh */
-	me= add_mesh("Mesh");
-	me->totvert= totvert;
-	me->totface= totvlak;
-
-	me->totcol= cu->totcol;
-	me->mat= cu->mat;
-	cu->mat= 0;
-	cu->totcol= 0;
-
-	mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
-	mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
-	me->mvert= mvert;
-	me->mface= mface;
+	*allvert= mvert= MEM_callocN(sizeof (MVert) * totvert, "nurbs_init mvert");
+	*allface= mface= MEM_callocN(sizeof (MVert) * totvert, "nurbs_init mface");
 
 	/* verts and faces */
 	vertcount= 0;
 
-	dl= cu->disp.first;
+	dl= dispbase->first;
 	while(dl) {
 		int smooth= dl->rt & CU_SMOOTH ? 1 : 0;
-		
+
 		if(dl->type==DL_SEGM) {
 			startvert= vertcount;
 			a= dl->parts*dl->nr;
@@ -812,7 +843,7 @@ void nurbs_to_mesh(Object *ob)
 					vertcount++;
 					mvert++;
 				}
-	
+
 				for(a=0; a<dl->parts; a++) {
 					ofs= a*dl->nr;
 					for(b=0; b<dl->nr; b++) {
@@ -844,13 +875,13 @@ void nurbs_to_mesh(Object *ob)
 				mface->v3= startvert+index[1];
 				mface->v4= 0;
 				test_index_face(mface, NULL, 0, 3);
-				
+
 				if(smooth) mface->flag |= ME_SMOOTH;
 				mface++;
 				index+= 3;
 			}
-	
-	
+
+
 		}
 		else if(dl->type==DL_SURF) {
 			startvert= vertcount;
@@ -893,13 +924,13 @@ void nurbs_to_mesh(Object *ob)
 					mface->v4= p2;
 					mface->mat_nr= (unsigned char)dl->col;
 					test_index_face(mface, NULL, 0, 4);
-					
+
 					if(smooth) mface->flag |= ME_SMOOTH;
 					mface++;
 
-					p4= p3; 
+					p4= p3;
 					p3++;
-					p2= p1; 
+					p2= p1;
 					p1++;
 				}
 			}
@@ -909,15 +940,62 @@ void nurbs_to_mesh(Object *ob)
 		dl= dl->next;
 	}
 
-	make_edges(me, 0);	// all edges
-	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+	*_totvert= totvert;
+	*_totface= totvlak;
+
+	make_edges_mdata(*allvert, *allface, totvert, totvlak, 0, alledge, _totedge);
+	mfaces_strip_loose(*allface, _totface);
+
+	return 0;
+}
+
+/* this may fail replacing ob->data, be sure to check ob->type */
+void nurbs_to_mesh(Object *ob)
+{
+	Object *ob1;
+	DerivedMesh *dm= ob->derivedFinal;
+	Mesh *me;
+	Curve *cu;
+	MVert *allvert= NULL;
+	MEdge *alledge= NULL;
+	MFace *allface= NULL;
+	int totvert, totedge, totface;
+
+	cu= ob->data;
+
+	if (dm == NULL) {
+		if (nurbs_to_mdata (ob, &allvert, &totvert, &alledge, &totedge, &allface, &totface) != 0) {
+			/* Error initializing */
+			return;
+		}
+
+		/* make mesh */
+		me= add_mesh("Mesh");
+		me->totvert= totvert;
+		me->totface= totface;
+		me->totedge= totedge;
+
+		me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, allvert, me->totvert);
+		me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, allface, me->totface);
+		me->medge= CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, alledge, me->totedge);
+
+		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+	} else {
+		me= add_mesh("Mesh");
+		DM_to_mesh(dm, me);
+	}
+
+	me->totcol= cu->totcol;
+	me->mat= cu->mat;
+	cu->mat= 0;
+	cu->totcol= 0;
 
 	if(ob->data) {
 		free_libblock(&G.main->curve, ob->data);
 	}
 	ob->data= me;
 	ob->type= OB_MESH;
-	
+
 	/* other users */
 	ob1= G.main->object.first;
 	while(ob1) {
@@ -929,7 +1007,6 @@ void nurbs_to_mesh(Object *ob)
 		}
 		ob1= ob1->id.next;
 	}
-
 }
 
 typedef struct EdgeLink {
@@ -968,7 +1045,7 @@ void mesh_to_curve(Scene *scene, Object *ob)
 	int totedge = dm->getNumEdges(dm);
 	int totface = dm->getNumFaces(dm);
 	int totedges = 0;
-	int i;
+	int i, needsFree = 0;
 
 	/* only to detect edge polylines */
 	EdgeHash *eh = BLI_edgehash_new();
@@ -1108,9 +1185,17 @@ void mesh_to_curve(Scene *scene, Object *ob)
 		((Mesh *)ob->data)->id.us--;
 		ob->data= cu;
 		ob->type= OB_CURVE;
+
+		/* curve objects can't contain DM in usual cases, we could free memory */
+		needsFree= 1;
 	}
 
+	dm->needsFree = needsFree;
 	dm->release(dm);
+
+	if (needsFree) {
+		ob->derivedFinal = NULL;
+	}
 }
 
 void mesh_delete_material_index(Mesh *me, int index)

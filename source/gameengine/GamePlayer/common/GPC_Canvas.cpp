@@ -31,11 +31,13 @@
 #include <config.h>
 #endif
 
+#ifndef NOPNG
 #ifdef WIN32
-#include <windows.h>
-#endif
-
 #include "png.h"
+#else
+#include <png.h>
+#endif
+#endif // NOPNG
 
 #include "RAS_IPolygonMaterial.h"
 #include "GPC_Canvas.h"

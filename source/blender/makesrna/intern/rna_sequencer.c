@@ -319,7 +319,7 @@ static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 	Sequence *seq= (Sequence*)(ptr->data);
 	char dir[FILE_MAX], name[FILE_MAX];
 
-	BLI_split_dirfile_basic(value, dir, name);
+	BLI_split_dirfile(value, dir, name);
 	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
 	BLI_strncpy(seq->strip->stripdata->name, name, sizeof(seq->strip->stripdata->name));
 }
@@ -347,7 +347,7 @@ static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
 	Sequence *seq= (Sequence*)(ptr->data);
 	char dir[FILE_MAX], name[FILE_MAX];
 
-	BLI_split_dirfile_basic(value, dir, name);
+	BLI_split_dirfile(value, dir, name);
 	BLI_strncpy(seq->strip->dir, dir, sizeof(seq->strip->dir));
 	BLI_strncpy(seq->strip->stripdata->name, name, sizeof(seq->strip->stripdata->name));
 }
@@ -357,7 +357,7 @@ static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 	StripElem *elem= (StripElem*)(ptr->data);
 	char name[FILE_MAX];
 
-	BLI_split_dirfile_basic(value, NULL, name);
+	BLI_split_dirfile(value, NULL, name);
 	BLI_strncpy(elem->name, name, sizeof(elem->name));
 }
 
@@ -919,6 +919,16 @@ static void rna_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Scene", "Scene that this sequence uses");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop= RNA_def_property(srna, "scene_camera", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Camera Override", "Override the scenes active camera");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+
+	prop= RNA_def_property(srna, "use_opengl", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_SCENE_OPENGL);
+	RNA_def_property_ui_text(prop, "Use OpenGL", "Use OpenGL preview rather then rendering the scene");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	rna_def_filter_video(srna);

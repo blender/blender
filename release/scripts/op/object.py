@@ -383,6 +383,7 @@ class ShapeTransfer(bpy.types.Operator):
             return {'CANCELLED'}
         return self._main(ob_act, objects, self.properties.mode, self.properties.use_clamp)
 
+
 class JoinUVs(bpy.types.Operator):
     '''Copy UV Layout to objects with matching geometry'''
     bl_idname = "object.join_uvs"
@@ -439,6 +440,7 @@ class JoinUVs(bpy.types.Operator):
     def execute(self, context):
         self._main(context)
         return {'FINISHED'}
+
 
 class MakeDupliFace(bpy.types.Operator):
     '''Make linked objects into dupli-faces'''
@@ -520,6 +522,7 @@ def register():
     for cls in classes:
         register(cls)
 
+
 def unregister():
     unregister = bpy.types.unregister
     for cls in classes:
@@ -527,4 +530,3 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-

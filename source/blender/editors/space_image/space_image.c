@@ -863,6 +863,29 @@ static void image_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
+static void image_header_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch(wmn->category) {
+		case NC_SCENE:
+			switch(wmn->data) {
+				case ND_MODE:
+				case ND_TOOLSETTINGS:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			break;
+		case NC_GEOM:
+			switch(wmn->data) {
+				case ND_DATA:
+				case ND_SELECT:
+					ED_region_tag_redraw(ar);
+					break;
+			}
+			
+	}
+}
+
 /**************************** spacetype *****************************/
 
 /* only called once, from space/spacetypes.c */
@@ -922,6 +945,7 @@ void ED_spacetype_image(void)
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey= HEADERY;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_HEADER;
+	art->listener= image_header_area_listener;
 	art->init= image_header_area_init;
 	art->draw= image_header_area_draw;
 	

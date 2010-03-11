@@ -29,8 +29,8 @@
 #define __SCA_2DFILETRACTUATOR_H__
 
 #include "RAS_IRasterizer.h"
-#include "RAS_IRenderTools.h"
 #include "SCA_IActuator.h"
+#include "SCA_IScene.h"
 
 class SCA_2DFilterActuator : public SCA_IActuator
 {
@@ -45,7 +45,7 @@ private:
 	int   m_int_arg;
 	STR_String	m_shaderText;
 	RAS_IRasterizer* m_rasterizer;
-	RAS_IRenderTools* m_rendertools;
+	SCA_IScene* m_scene;
 
 public:
 
@@ -56,7 +56,7 @@ public:
 		float float_arg,
 		int int_arg,
 		RAS_IRasterizer* rasterizer,
-		RAS_IRenderTools* rendertools);
+		SCA_IScene* scene);
 
 	void	SetShaderText(const char *text);
     virtual ~SCA_2DFilterActuator();

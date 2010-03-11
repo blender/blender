@@ -682,11 +682,32 @@ static EnumPropertyItem prop_graphkeys_leftright_select_types[] = {
 
 /* ------------------- */
 
-enum {
-	NEAREST_HANDLE_LEFT	= 0,
+/* temp info for caching handle vertices close */
+typedef struct tNearestVertInfo {
+	struct tNearestVertInfo *next, *prev;
+	
+	FCurve *fcu;		/* F-Curve that keyframe comes from */
+	
+	BezTriple *bezt;	/* keyframe to consider */
+	FPoint *fpt;		/* sample point to consider */
+	
+	short hpoint;		/* the handle index that we hit (eHandleIndex) */
+	short sel;			/* whether the handle is selected or not */
+	int dist;			/* distance from mouse to vert */
+} tNearestVertInfo;
+
+/* Tags for the type of graph vert that we have */
+typedef enum eGraphVertIndex {
+	NEAREST_HANDLE_LEFT	= -1,
 	NEAREST_HANDLE_KEY,
 	NEAREST_HANDLE_RIGHT
-} eHandleIndex; 
+} eGraphVertIndex; 
+
+/* Tolerance for absolute radius (in pixels) of the vert from the cursor to use */
+// TODO: perhaps this should depend a bit on the size that the user set the vertices to be?
+#define GVERTSEL_TOL	10
+
+/* ....... */
 
 /* check if its ok to select a handle */
 // XXX also need to check for int-values only?
@@ -697,11 +718,61 @@ static int fcurve_handle_sel_check(SpaceIpo *sipo, BezTriple *bezt)
 	return 1;
 }
 
-/* Find the vertex (either handle (0/2) or the keyframe (1)) that is nearest to the mouse cursor (in area coordinates)  
- * Selected verts get a disadvantage, to make it easier to select handles behind.
- * Returns eHandleIndex
- */
-static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fcurve, BezTriple **bezt)
+/* check if the given vertex is within bounds or not */
+// TODO: should we return if we hit something?
+static void nearest_fcurve_vert_store (ListBase *matches, View2D *v2d, FCurve *fcu, BezTriple *bezt, FPoint *fpt, short hpoint, int mval[2])
+{
+	/* Keyframes or Samples? */
+	if (bezt) {
+		int screen_co[2], dist;
+		
+		/* convert from data-space to screen coordinates 
+		 * NOTE: hpoint+1 gives us 0,1,2 respectively for each handle, 
+		 * 	needed to access the relevant vertex coordinates in the 3x3 
+		 * 	'vec' matrix
+		 */
+		UI_view2d_to_region_no_clip(v2d, bezt->vec[hpoint+1][0], bezt->vec[hpoint+1][1], &screen_co[0], &screen_co[1]);
+		
+		/* check if distance from mouse cursor to vert in screen space is within tolerance */
+			// XXX: inlined distance calculation, since we cannot do this on ints using the math lib...
+		//dist = len_v2v2(mval, screen_co);
+		dist = sqrt((mval[0] - screen_co[0])*(mval[0] - screen_co[0]) + 
+					(mval[1] - screen_co[1])*(mval[1] - screen_co[1]));
+		
+		if (dist <= GVERTSEL_TOL) {
+			tNearestVertInfo *nvi = (tNearestVertInfo *)matches->last;
+			short replace = 0;
+			
+			/* if there is already a point for the F-Curve, check if this point is closer than that was */
+			if ((nvi) && (nvi->fcu == fcu)) {
+				/* replace if we are closer, or if equal and that one wasn't selected but we are... */
+				if ( (nvi->dist > dist) || ((nvi->sel == 0) && BEZSELECTED(bezt)) )
+					replace= 1;
+			}
+			/* add new if not replacing... */
+			if (replace == 0)
+				nvi = MEM_callocN(sizeof(tNearestVertInfo), "Nearest Graph Vert Info - Bezt");
+			
+			/* store values */
+			nvi->fcu = fcu;
+			nvi->bezt = bezt;
+			nvi->hpoint = hpoint;
+			nvi->dist = dist;
+			
+			nvi->sel= BEZSELECTED(bezt); // XXX... should this use the individual verts instead?
+			
+			/* add to list of matches if appropriate... */
+			if (replace == 0)
+				BLI_addtail(matches, nvi);
+		}
+	}
+	else if (fpt) {
+		// TODO...
+	}
+} 
+
+/* helper for find_nearest_fcurve_vert() - build the list of nearest matches */
+static void get_nearest_fcurve_verts_list (bAnimContext *ac, int mval[2], ListBase *matches)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -709,12 +780,6 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 	
 	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
 	View2D *v2d= &ac->ar->v2d;
-	int hpoint=0, sco[3][2];
-	int dist= 100, temp, i;
-	
-	/* clear pointers first */
-	*fcurve= 0;
-	*bezt= 0;
 	
 	/* get curves to search through 
 	 *	- if the option to only show keyframes that belong to selected F-Curves is enabled,
@@ -732,71 +797,42 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 		/* apply unit corrections */
 		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, 0);
 		
-		/* try to progressively get closer to the right point... */
+		/* apply NLA mapping to all the keyframes */
+		if (adt)
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+		
 		if (fcu->bezt) {
 			BezTriple *bezt1=fcu->bezt, *prevbezt=NULL;
-			
-			/* apply NLA mapping to all the keyframes */
-			if (adt)
-				ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 0, 1);
+			int i;
 			
 			for (i=0; i < fcu->totvert; i++, prevbezt=bezt1, bezt1++) {
-				/* convert beztriple points to screen-space */
-				UI_view2d_to_region_no_clip(v2d, bezt1->vec[0][0], bezt1->vec[0][1], &sco[0][0], &sco[0][1]);
-				UI_view2d_to_region_no_clip(v2d, bezt1->vec[1][0], bezt1->vec[1][1], &sco[1][0], &sco[1][1]);
-				UI_view2d_to_region_no_clip(v2d, bezt1->vec[2][0], bezt1->vec[2][1], &sco[2][0], &sco[2][1]);
-				
-				/* keyframe - do select? */
-				temp= abs(mval[0] - sco[1][0]) + abs(mval[1] - sco[1][1]);
-				
-				if (bezt1->f2 & SELECT) 
-					temp += 5;
-				
-				if (temp < dist) { 
-					hpoint= NEAREST_HANDLE_KEY; 
-					*bezt= bezt1; 
-					dist= temp; 
-					*fcurve= fcu; 
-				}
+				/* keyframe */
+				nearest_fcurve_vert_store(matches, v2d, fcu, bezt1, NULL, NEAREST_HANDLE_KEY, mval);
 				
 				/* handles - only do them if they're visible */
-				if (fcurve_handle_sel_check(sipo, bezt1)) {
+				if (fcurve_handle_sel_check(sipo, bezt1) && (fcu->totvert > 1)) {
 					/* first handle only visible if previous segment had handles */
 					if ( (!prevbezt && (bezt1->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) )
 					{
-						temp= -3 + abs(mval[0] - sco[0][0]) + abs(mval[1] - sco[0][1]);
-						if (bezt1->f1 & SELECT) 
-							temp += 5;
-							
-						if (temp < dist) { 
-							hpoint= NEAREST_HANDLE_LEFT; 
-							*bezt= bezt1; 
-							dist= temp; 
-							*fcurve= fcu; 
-						}
+						nearest_fcurve_vert_store(matches, v2d, fcu, bezt1, NULL, NEAREST_HANDLE_LEFT, mval);
 					}
 					
 					/* second handle only visible if this segment is bezier */
 					if (bezt1->ipo == BEZT_IPO_BEZ) 
 					{
-						temp= abs(mval[0] - sco[2][0]) + abs(mval[1] - sco[2][1]);
-						if (bezt1->f3 & SELECT) 
-							temp += 5;
-						
-						if (temp < dist) { 
-							hpoint= NEAREST_HANDLE_RIGHT; 
-							*bezt=bezt1; 
-							dist= temp; 
-							*fcurve= fcu; 
-						}
+						nearest_fcurve_vert_store(matches, v2d, fcu, bezt1, NULL, NEAREST_HANDLE_RIGHT, mval);
 					}
 				}
 			}
-			
-			/* un-apply NLA mapping from all the keyframes */
-			if (adt)
-				ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
+		else if (fcu->fpt) {
+			// TODO; do this for samples too
+			
+		}
+		
+		/* un-apply NLA mapping from all the keyframes */
+		if (adt)
+			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		
 		/* unapply unit corrections */
 		ANIM_unit_mapping_apply_fcurve(ac->scene, ale->id, ale->key_data, ANIM_UNITCONV_RESTORE);
@@ -804,25 +840,85 @@ static short findnearest_fcurve_vert (bAnimContext *ac, int mval[2], FCurve **fc
 	
 	/* free channels */
 	BLI_freelistN(&anim_data);
-	
-	/* return handle */
-	return hpoint;
 }
- 
+
+/* helper for find_nearest_fcurve_vert() - get the best match to use */
+static tNearestVertInfo *get_best_nearest_fcurve_vert (bAnimContext *ac, ListBase *matches)
+{
+	tNearestVertInfo *nvi = NULL;
+	short found = 0;
+	
+	/* abort if list is empty */
+	if (matches->first == NULL) 
+		return NULL;
+		
+	/* if list only has 1 item, remove it from the list and return */
+	if (matches->first == matches->last) {
+		/* need to remove from the list, otherwise it gets freed and then we can't return it */
+		nvi= matches->first;
+		BLI_remlink(matches, nvi);
+		
+		return nvi;
+	}
+	
+	/* try to find the first selected F-Curve vert, then take the one after it */
+	for (nvi = matches->first; nvi; nvi = nvi->next) {
+		/* which mode of search are we in: find first selected, or find vert? */
+		if (found) {
+			/* just take this vert now that we've found the selected one 
+			 *	- we'll need to remove this from the list so that it can be returned to the original caller
+			 */
+			BLI_remlink(matches, nvi);
+			return nvi;
+		}
+		else {
+			/* if vert is selected, we've got what we want... */
+			if (nvi->sel)
+				found= 1;
+		}
+	}
+	
+	/* if we're still here, this means that we failed to find anything appropriate in the first pass,
+	 * so just take the first item now...
+	 */
+	nvi = matches->first;
+	BLI_remlink(matches, nvi);
+	return nvi;
+}
+
+/* Find the nearest vertices (either a handle or the keyframe) that are nearest to the mouse cursor (in area coordinates) 
+ * NOTE: the match info found must still be freed 
+ */
+static tNearestVertInfo *find_nearest_fcurve_vert (bAnimContext *ac, int mval[2])
+{
+	ListBase matches = {NULL, NULL};
+	tNearestVertInfo *nvi;
+	
+	/* step 1: get the nearest verts */
+	get_nearest_fcurve_verts_list(ac, mval, &matches);
+	
+	/* step 2: find the best vert */
+	nvi= get_best_nearest_fcurve_vert(ac, &matches);
+	
+	BLI_freelistN(&matches);
+	
+	/* return the best vert found */
+	return nvi;
+}
+
+/* ------------------- */
+
 /* option 1) select keyframe directly under mouse */
 static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, short curves_only)
 {
 	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
-	FCurve *fcu;
-	BezTriple *bezt;
-	short handle;
-	int filter;
+	tNearestVertInfo *nvi;
 	
 	/* find the beztriple that we're selecting, and the handle that was clicked on */
-	handle= findnearest_fcurve_vert(ac, mval, &fcu, &bezt);
+	nvi = find_nearest_fcurve_vert(ac, mval);
 	
 	/* check if anything to select */
-	if (fcu == NULL)	
+	if (nvi == NULL)	
 		return;
 	
 	/* deselect all other curves? */
@@ -843,13 +939,15 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 	
 	/* if points can be selected on this F-Curve */
 	// TODO: what about those with no keyframes?
-	if ((curves_only == 0) && ((fcu->flag & FCURVE_PROTECTED)==0)) {
+	if ((curves_only == 0) && ((nvi->fcu->flag & FCURVE_PROTECTED)==0)) {
 		/* only if there's keyframe */
-		if (bezt) {
+		if (nvi->bezt) {
+			BezTriple *bezt= nvi->bezt;
+			
 			/* depends on selection mode */
 			if (select_mode == SELECT_INVERT) {
 				/* keyframe - invert select of all */
-				if (handle == NEAREST_HANDLE_KEY) {
+				if (nvi->hpoint == NEAREST_HANDLE_KEY) {
 					if (BEZSELECTED(bezt)) {
 						BEZ_DESEL(bezt);
 					}
@@ -859,7 +957,7 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 				}
 				
 				/* handles - toggle selection of relevant handle */
-				else if (handle == NEAREST_HANDLE_LEFT) {
+				else if (nvi->hpoint == NEAREST_HANDLE_LEFT) {
 					/* toggle selection */
 					bezt->f1 ^= SELECT;
 				}
@@ -870,15 +968,18 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 			}
 			else {
 				/* if the keyframe was clicked on, select all verts of given beztriple */
-				if (handle == NEAREST_HANDLE_KEY) {
+				if (nvi->hpoint == NEAREST_HANDLE_KEY) {
 					BEZ_SEL(bezt);
 				}
 				/* otherwise, select the handle that applied */
-				else if (handle == NEAREST_HANDLE_LEFT) 
+				else if (nvi->hpoint == NEAREST_HANDLE_LEFT) 
 					bezt->f1 |= SELECT;
 				else 
 					bezt->f3 |= SELECT;
 			}
+		}
+		else if (nvi->fpt) {
+			// TODO: need to handle sample points
 		}
 	}
 	else {
@@ -892,23 +993,26 @@ static void mouse_graph_keys (bAnimContext *ac, int mval[], short select_mode, s
 		select_cb= ANIM_editkeyframes_select(select_mode);
 		
 		/* select all keyframes */
-		ANIM_fcurve_keys_bezier_loop(&bed, fcu, NULL, select_cb, NULL);
+		ANIM_fcurve_keys_bezier_loop(&bed, nvi->fcu, NULL, select_cb, NULL);
 	}
 	
 	/* only change selection of channel when the visibility of keyframes doesn't depend on this */
 	if ((sipo->flag & SIPO_SELCUVERTSONLY) == 0) {
 		/* select or deselect curve? */
 		if (select_mode == SELECT_INVERT)
-			fcu->flag ^= FCURVE_SELECTED;
+			nvi->fcu->flag ^= FCURVE_SELECTED;
 		else if (select_mode == SELECT_ADD)
-			fcu->flag |= FCURVE_SELECTED;
+			nvi->fcu->flag |= FCURVE_SELECTED;
 			
 		/* set active F-Curve (NOTE: sync the filter flags with findnearest_fcurve_vert) */
-		if (fcu->flag & FCURVE_SELECTED) {
-			filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
-			ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, fcu, ANIMTYPE_FCURVE);
+		if (nvi->fcu->flag & FCURVE_SELECTED) {
+			int filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_CURVESONLY);
+			ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nvi->fcu, ANIMTYPE_FCURVE);
 		}
 	}
+	
+	/* free temp sample data for filtering */
+	MEM_freeN(nvi);
 }
 
 /* Option 2) Selects all the keyframes on either side of the current frame (depends on which side the mouse is on) */
@@ -984,17 +1088,22 @@ static void graphkeys_mselect_column (bAnimContext *ac, int mval[2], short selec
 	SpaceIpo *sipo= (SpaceIpo *)ac->sa->spacedata.first;
 	BeztEditFunc select_cb, ok_cb;
 	BeztEditData bed;
-	FCurve *fcu;
-	BezTriple *bezt;
+	tNearestVertInfo *nvi;
 	float selx = (float)ac->scene->r.cfra;
 	
-	/* find the beztriple that occurs on this frame, and use his as the frame number we're using */
-	findnearest_fcurve_vert(ac, mval, &fcu, &bezt);
+	/* find the beztriple that we're selecting, and the handle that was clicked on */
+	nvi = find_nearest_fcurve_vert(ac, mval);
 	
 	/* check if anything to select */
-	if (ELEM(NULL, fcu, bezt))	
+	if (nvi == NULL)	
 		return;
-	selx= bezt->vec[1][0];
+	
+	/* get frame number on which elements should be selected */
+	// TODO: should we restrict to integer frames only?
+	if (nvi->bezt)
+		selx= nvi->bezt->vec[1][0];
+	else if (nvi->fpt)
+		selx= nvi->fpt->vec[0];
 	
 	/* if select mode is replace, deselect all keyframes (and channels) first */
 	if (select_mode==SELECT_REPLACE) {
@@ -1039,6 +1148,7 @@ static void graphkeys_mselect_column (bAnimContext *ac, int mval[2], short selec
 	}
 	
 	/* free elements */
+	MEM_freeN(nvi);
 	BLI_freelistN(&bed.list);
 	BLI_freelistN(&anim_data);
 }

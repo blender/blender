@@ -3407,7 +3407,7 @@ public:
 		char dir[FILE_MAX];
 		char full_path[FILE_MAX];
 		
-		BLI_split_dirfile_basic(filename, dir, NULL);
+		BLI_split_dirfile(filename, dir, NULL);
 		BLI_join_dirfile(full_path, dir, filepath.c_str());
 		Image *ima = BKE_add_image_file(full_path, 0);
 		if (!ima) {

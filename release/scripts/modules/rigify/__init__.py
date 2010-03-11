@@ -26,17 +26,16 @@ from rna_prop_ui import rna_idprop_ui_prop_get
 SPECIAL_TYPES = "root",
 LAYER_TYPES = "main", "extra", "ik", "fk"
 
-ORG_LAYERS = [n==31 for n in range(0,32)]
-MCH_LAYERS = [n==30 for n in range(0,32)]
-DEF_LAYERS = [n==29 for n in range(0,32)]
-ROOT_LAYERS = [n==28 for n in range(0,32)]
+ORG_LAYERS = [n == 31 for n in range(0, 32)]
+MCH_LAYERS = [n == 30 for n in range(0, 32)]
+DEF_LAYERS = [n == 29 for n in range(0, 32)]
+ROOT_LAYERS = [n == 28 for n in range(0, 32)]
 
 ORG_PREFIX = "ORG-"
 MCH_PREFIX = "MCH-"
 DEF_PREFIX = "DEF-"
 
 WGT_PREFIX = "WGT-"
-
 
 
 class RigifyError(Exception):
@@ -456,12 +455,12 @@ def generate_rig(context, obj_orig, prefix="ORG-", META_DEF=True):
             bone.deform = True
         else:
             # Assign bone appearance if there is a widget for it
-            obj.pose.bones[bone_name].custom_shape = context.scene.objects.get(WGT_PREFIX+bone_name)
+            obj.pose.bones[bone_name].custom_shape = context.scene.objects.get(WGT_PREFIX + bone_name)
 
         layer_tot[:] = [max(lay) for lay in zip(layer_tot, bone.layer)]
 
     # Only for demo'ing
-    layer_show = [a and not (b or c or d) for a,b,c,d in zip(layer_tot, ORG_LAYERS, MCH_LAYERS, DEF_LAYERS)]
+    layer_show = [a and not (b or c or d) for a, b, c, d in zip(layer_tot, ORG_LAYERS, MCH_LAYERS, DEF_LAYERS)]
     arm.layer = layer_show
 
 

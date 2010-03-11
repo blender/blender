@@ -544,7 +544,7 @@ void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, floa
 	
 	/* project first and test */
 	for(vos= strings->first; vos; vos= vos->next) {
-		if(mat)
+		if(mat && !(vos->flag & V3D_CACHE_TEXT_WORLDSPACE))
 			mul_m4_v3(mat, vos->vec);
 		view3d_project_short_clip(ar, vos->vec, vos->mval, 0);
 		if(vos->mval[0]!=IS_CLIPPED)
@@ -2977,6 +2977,41 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 	glDisableClientState(GL_COLOR_ARRAY);
 }
 
+static void drawCurveDMWired(Object *ob)
+{
+	DerivedMesh *dm = ob->derivedFinal;
+	dm->drawEdges (dm, 1);
+}
+
+/* return 1 when nothing was drawn */
+static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt)
+{
+	Object *ob= base->object;
+	DerivedMesh *dm = ob->derivedFinal;
+	Curve *cu= ob->data;
+
+	if (!dm) {
+		return 1;
+	}
+
+	if(dt>OB_WIRE && displist_has_faces(&cu->disp)!=0) {
+		int glsl = draw_glsl_material(scene, ob, v3d, dt);
+		GPU_begin_object_materials(v3d, rv3d, scene, ob, glsl, NULL);
+
+		if (!glsl)
+			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
+
+		glEnable(GL_LIGHTING);
+		dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
+		glDisable(GL_LIGHTING);
+		GPU_end_object_materials();
+	} else {
+		drawCurveDMWired (ob);
+	}
+
+	return 0;
+}
+
 /* returns 1 when nothing was drawn */
 static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, int dt)
 {
@@ -2987,6 +3022,10 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 	int solid, retval= 0;
 	
 	solid= (dt > OB_WIRE);
+
+	if (drawCurveDerivedMesh(scene, v3d, rv3d, base, dt) == 0) {
+		return 0;
+	}
 
 	switch(ob->type) {
 	case OB_FONT:
@@ -3383,6 +3422,9 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		glMultMatrixf(mat);
 	}
 
+	/* needed for text display */
+	invert_m4_m4(ob->imat, ob->obmat);
+
 	totpart=psys->totpart;
 
 	//if(part->flag&PART_GLOB_TIME)
@@ -3693,22 +3735,21 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					setlinestyle(0);
 				}
 
-				if((part->draw&PART_DRAW_NUM || part->draw&PART_DRAW_HEALTH) && !(G.f & G_RENDER_SHADOW)){
+				if((part->draw & PART_DRAW_NUM || part->draw & PART_DRAW_HEALTH) && !(G.f & G_RENDER_SHADOW)){
+					float vec_txt[3];
+					char *val_pos= val;
 					val[0]= '\0';
-					
+
 					if(part->draw&PART_DRAW_NUM)
-						sprintf(val, " %i", a);
+						val_pos += sprintf(val, "%i", a);
 
-					if(part->draw&PART_DRAW_NUM && part->draw&PART_DRAW_HEALTH)
-						strcat(val, ":");
+					if((part->draw & PART_DRAW_HEALTH) && a < totpart && part->phystype==PART_PHYS_BOIDS)
+						sprintf(val_pos, (val_pos==val) ? "%.2f" : ":%.2f", pa_health);
 
-					if(part->draw&PART_DRAW_HEALTH && a < totpart && part->phystype==PART_PHYS_BOIDS) {
-						char tval[8];
-						sprintf(tval, " %.2f", pa_health);
-						strcat(val, tval);
-					}
 					/* in path drawing state.co is the end point */
-					view3d_cached_text_draw_add(state.co[0],  state.co[1],  state.co[2], val, 0, 0);
+					/* use worldspace beause object matrix is alredy applied */
+					mul_v3_m4v3(vec_txt, ob->imat, state.co);
+					view3d_cached_text_draw_add(vec_txt[0],  vec_txt[1],  vec_txt[2], val, 10, V3D_CACHE_TEXT_WORLDSPACE);
 				}
 			}
 		}
@@ -5035,7 +5076,7 @@ static void draw_bounding_volume(Scene *scene, Object *ob)
 		bb= mesh_get_bb(ob);
 	}
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
-		bb= ( (Curve *)ob->data )->bb;
+		bb= ob->bb ? ob->bb : ( (Curve *)ob->data )->bb;
 	}
 	else if(ob->type==OB_MBALL) {
 		bb= ob->bb;
@@ -5102,9 +5143,15 @@ static void drawSolidSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	
 	if(ELEM3(ob->type, OB_FONT,OB_CURVE, OB_SURF)) {
 		Curve *cu = ob->data;
-		if (displist_has_faces(&cu->disp) && boundbox_clip(rv3d, ob->obmat, cu->bb)) {
+		DerivedMesh *dm = ob->derivedFinal;
+
+		if (displist_has_faces(&cu->disp) && boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
 			draw_index_wire= 0;
-			drawDispListwire(&cu->disp);
+			if (dm) {
+				draw_mesh_object_outline(v3d, ob, dm);
+			} else {
+				drawDispListwire(&cu->disp);
+			}
 			draw_index_wire= 1;
 		}
 	} else if (ob->type==OB_MBALL) {
@@ -5149,10 +5196,16 @@ static void drawWireExtra(Scene *scene, RegionView3D *rv3d, Object *ob)
 	
 	if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 		Curve *cu = ob->data;
-		if (boundbox_clip(rv3d, ob->obmat, cu->bb)) {
+		if (boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
 			if (ob->type==OB_CURVE)
 				draw_index_wire= 0;
-			drawDispListwire(&cu->disp);
+
+			if (ob->derivedFinal) {
+				drawCurveDMWired(ob);
+			} else {
+				drawDispListwire(&cu->disp);
+			}
+
 			if (ob->type==OB_CURVE)
 				draw_index_wire= 1;
 		}
@@ -5572,7 +5625,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 			else if(dt==OB_BOUNDBOX) 
 				draw_bounding_volume(scene, ob);
-			else if(boundbox_clip(rv3d, ob->obmat, cu->bb)) 
+			else if(boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb))
 				empty_object= drawDispList(scene, v3d, rv3d, base, dt);
 
 			break;
@@ -5585,12 +5638,12 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 			else if(dt==OB_BOUNDBOX) 
 				draw_bounding_volume(scene, ob);
-			else if(boundbox_clip(rv3d, ob->obmat, cu->bb)) {
+			else if(boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
 				empty_object= drawDispList(scene, v3d, rv3d, base, dt);
 				
 				if(cu->path)
 					curve_draw_speed(scene, ob);
-			}			
+			}
 			break;
 		case OB_MBALL:
 		{
@@ -5651,7 +5704,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			(ob!=scene->obedit)	
 	  ) {
 		ParticleSystem *psys;
-		PTCacheEdit *edit = PE_get_current(scene, ob);
 
 		if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
 		//glDepthMask(GL_FALSE);
@@ -5662,9 +5714,11 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 			/* run this so that possible child particles get cached */
-			if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT)
+			if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
+				PTCacheEdit *edit = PE_create_current(scene, ob);
 				if(edit && edit->psys == psys)
 					draw_update_ptcache_edit(scene, ob, edit);
+			}
 
 			draw_new_particle_system(scene, v3d, rv3d, base, psys, dt);
 		}
@@ -5684,7 +5738,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	  ) {
 
 		if(ob->mode & OB_MODE_PARTICLE_EDIT && ob==OBACT) {
-			PTCacheEdit *edit = PE_get_current(scene, ob);
+			PTCacheEdit *edit = PE_create_current(scene, ob);
 			if(edit) {
 				glLoadMatrixf(rv3d->viewmat);
 				draw_ptcache_edit(scene, v3d, rv3d, ob, edit, dt);

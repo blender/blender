@@ -77,6 +77,7 @@ class DOPESHEET_MT_view(bpy.types.Menu):
         layout.prop(st, "show_cframe_indicator")
         layout.prop(st, "show_sliders")
         layout.prop(st, "automerge_keyframes")
+        layout.prop(st, "use_marker_sync")
 
         if st.show_seconds:
             layout.operator("anim.time_toggle", text="Show Frames")

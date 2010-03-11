@@ -55,6 +55,9 @@ void ED_operatortypes_render(void)
 	
 	WM_operatortype_append(MATERIAL_OT_copy);
 	WM_operatortype_append(MATERIAL_OT_paste);
+	
+	WM_operatortype_append(MATERIAL_OT_mtex_copy);
+	WM_operatortype_append(MATERIAL_OT_mtex_paste);
 
 	WM_operatortype_append(SCENE_OT_render_layer_add);
 	WM_operatortype_append(SCENE_OT_render_layer_remove);
@@ -69,5 +72,16 @@ void ED_operatortypes_render(void)
 #endif
 	
 	WM_operatortype_append(TEXTURE_OT_slot_move);
+	WM_operatortype_append(TEXTURE_OT_envmap_save);
+	WM_operatortype_append(TEXTURE_OT_envmap_clear);
+	WM_operatortype_append(TEXTURE_OT_envmap_clear_all);
+
+	/* render_internal.c */
+	WM_operatortype_append(RENDER_OT_view_show);
+	WM_operatortype_append(RENDER_OT_render);
+	WM_operatortype_append(RENDER_OT_view_cancel);
+
+	/* render_opengl.c */
+	WM_operatortype_append(RENDER_OT_opengl);
 }
 

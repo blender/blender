@@ -20,6 +20,25 @@
 
 import bpy
 
+
+def image_editor_guess(context):
+    image_editor = context.user_preferences.filepaths.image_editor
+
+    # use image editor in the preferences when available.
+    if not image_editor:
+        import platform
+        system = platform.system()
+
+        if system == 'Windows':
+            image_editor = "start" # not tested!
+        elif system == 'Darwin':
+            image_editor = "open"
+        else:
+            image_editor = "gimp"
+
+    return image_editor
+
+
 class SaveDirty(bpy.types.Operator):
     '''Select object matching a naming pattern'''
     bl_idname = "image.save_dirty"
@@ -41,12 +60,106 @@ class SaveDirty(bpy.types.Operator):
         return {'FINISHED'}
 
 
+class ProjectEdit(bpy.types.Operator):
+    '''Select object matching a naming pattern'''
+    bl_idname = "image.project_edit"
+    bl_label = "Project Edit"
+    bl_options = {'REGISTER'}
+    
+    _proj_hack = [""]
+
+    def execute(self, context):
+        import os
+        import subprocess
+
+        EXT = "png" # could be made an option but for now ok
+        image_editor = image_editor_guess(context)
+
+        for image in bpy.data.images:
+            image.tag = True
+
+        bpy.ops.paint.image_from_view()
+        
+        image_new = None
+        for image in bpy.data.images:
+            if not image.tag:
+                image_new = image
+                break
+        
+        if not image_new:
+            self.report({'ERROR'}, "Could not make new image")
+            return {'CANCELLED'}
+        
+        filename = os.path.basename(bpy.data.filename)
+        filename = os.path.splitext(filename)[0]
+        # filename = bpy.utils.clean_name(filename) # fixes <memory> rubbish, needs checking
+
+        if filename.startswith("."): # TODO, have a way to check if the file is saved, assuem .B25.blend
+            filename = os.path.join(os.path.dirname(bpy.data.filename), filename)
+        else:
+            filename = "//" + filename
+        
+        obj = context.object
+
+        if obj:
+            filename += "_" + bpy.utils.clean_name(obj.name)
+        
+        filename_final = filename + "." + EXT
+        i = 0
+
+        while os.path.exists(bpy.utils.expandpath(filename_final)):
+            filename_final = filename + ("%.3d.%s" % (i, EXT))
+            i += 1
+        
+        image_new.name = os.path.basename(filename_final)
+        ProjectEdit._proj_hack[0] = image_new.name
+        
+        image_new.filename_raw = filename_final # TODO, filename raw is crummy
+        image_new.file_format = 'PNG'
+        image_new.save()
+        
+        subprocess.Popen([image_editor, bpy.utils.expandpath(filename_final)])
+        
+        return {'FINISHED'}
+
+
+class ProjectApply(bpy.types.Operator):
+    '''Select object matching a naming pattern'''
+    bl_idname = "image.project_apply"
+    bl_label = "Project Apply"
+    bl_options = {'REGISTER'}
+
+    def execute(self, context):
+        image_name = ProjectEdit._proj_hack[0] # TODO, deal with this nicer
+
+        try:
+            image = bpy.data.images[image_name]
+        except KeyError:
+            self.report({'ERROR'}, "Could not find image '%s'" % image_name)
+            return {'CANCELLED'}
+
+        image.reload()
+        bpy.ops.paint.project_image(image=image_name)
+
+        return {'FINISHED'}
+
+
+classes = [
+    SaveDirty,
+    ProjectEdit,
+    ProjectApply]
+
+
 def register():
-    bpy.types.register(SaveDirty)
+    register = bpy.types.register
+    for cls in classes:
+        register(cls)
 
 
 def unregister():
-    bpy.types.unregister(SaveDirty)
+    unregister = bpy.types.unregister
+    for cls in classes:
+        unregister(cls)
 
 if __name__ == "__main__":
     register()

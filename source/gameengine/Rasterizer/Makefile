@@ -45,6 +45,7 @@ CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I../SceneGraph
 CPPFLAGS += -I../BlenderRoutines
 CPPFLAGS += -I../Expressions
+CPPFLAGS += -I../Ketsji
 
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 

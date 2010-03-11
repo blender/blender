@@ -359,6 +359,8 @@ public:
 		std::vector<Normal> nor;
 		std::vector<Face> norind;
 
+		bool has_color = (bool)CustomData_has_layer(&me->fdata, CD_MCOL);
+
 		create_normals(nor, norind, me);
 
 		// openMesh(geoId, geoName, meshId)
@@ -370,12 +372,15 @@ public:
 		// writes <source> for normal coords
 		createNormalsSource(geom_id, me, nor);
 
-		int has_uvs = CustomData_has_layer(&me->fdata, CD_MTFACE);
+		bool has_uvs = (bool)CustomData_has_layer(&me->fdata, CD_MTFACE);
 		
 		// writes <source> for uv coords if mesh has uv coords
-		if (has_uvs) {
-			createTexcoordsSource(geom_id, (Mesh*)ob->data);
-		}
+		if (has_uvs)
+			createTexcoordsSource(geom_id, me);
+
+		if (has_color)
+			createVertexColorSource(geom_id, me);
+
 		// <vertices>
 		COLLADASW::Vertices verts(mSW);
 		verts.setId(getIdBySemantics(geom_id, COLLADASW::VERTEX));
@@ -389,11 +394,11 @@ public:
 			for(int a = 0; a < ob->totcol; a++)	{
 				// account for NULL materials, this should not normally happen?
 				Material *ma = give_current_material(ob, a + 1);
-				createPolylist(ma != NULL, a, has_uvs, ob, geom_id, norind);
+				createPolylist(ma != NULL, a, has_uvs, has_color, ob, geom_id, norind);
 			}
 		}
 		else {
-			createPolylist(false, 0, has_uvs, ob, geom_id, norind);
+			createPolylist(false, 0, has_uvs, has_color, ob, geom_id, norind);
 		}
 		
 		closeMesh();
@@ -408,14 +413,11 @@ public:
 	void createPolylist(bool has_material,
 						int material_index,
 						bool has_uvs,
+						bool has_color,
 						Object *ob,
 						std::string& geom_id,
 						std::vector<Face>& norind)
 	{
-#if 0
-		MFace *mfaces = dm->getFaceArray(dm);
-		int totfaces = dm->getNumFaces(dm);
-#endif
 		Mesh *me = (Mesh*)ob->data;
 		MFace *mfaces = me->mface;
 		int totfaces = me->totface;
@@ -479,6 +481,11 @@ public:
 									);
 			til.push_back(input3);
 		}
+
+		if (has_color) {
+			COLLADASW::Input input4(COLLADASW::COLOR, getUrlBySemantics(geom_id, COLLADASW::COLOR), has_uvs ? 3 : 2);
+			til.push_back(input4);
+		}
 			
 		// sets <vcount>
 		polylist.setVCountList(vcount_list);
@@ -500,6 +507,9 @@ public:
 					polylist.appendValues(n[j]);
 
 					if (has_uvs)
+						polylist.appendValues(texindex + j);
+
+					if (has_color)
 						polylist.appendValues(texindex + j);
 				}
 			}
@@ -543,6 +553,42 @@ public:
 		
 		source.finish();
 	
+	}
+
+	void createVertexColorSource(std::string geom_id, Mesh *me)
+	{
+		if (!CustomData_has_layer(&me->fdata, CD_MCOL))
+			return;
+
+		MFace *f;
+		int totcolor = 0, i, j;
+
+		for (i = 0, f = me->mface; i < me->totface; i++, f++)
+			totcolor += f->v4 ? 4 : 3;
+
+		COLLADASW::FloatSourceF source(mSW);
+		source.setId(getIdBySemantics(geom_id, COLLADASW::COLOR));
+		source.setArrayId(getIdBySemantics(geom_id, COLLADASW::COLOR) + ARRAY_ID_SUFFIX);
+		source.setAccessorCount(totcolor);
+		source.setAccessorStride(3);
+
+		COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
+		param.push_back("R");
+		param.push_back("G");
+		param.push_back("B");
+
+		source.prepareToAppendValues();
+
+		int index = CustomData_get_active_layer_index(&me->fdata, CD_MCOL);
+
+		MCol *mcol = (MCol*)me->fdata.layers[index].data;
+		MCol *c = mcol;
+
+		for (i = 0, f = me->mface; i < me->totface; i++, c += 4, f++)
+			for (j = 0; j < (f->v4 ? 4 : 3); j++)
+				source.appendValues(c[j].b / 255.0f, c[j].g / 255.0f, c[j].r / 255.0f);
+		
+		source.finish();
 	}
 
 	std::string makeTexcoordSourceId(std::string& geom_id, int layer_index)
@@ -1433,7 +1479,7 @@ public:
 				char src[FILE_MAX];
 				char dir[FILE_MAX];
 				
-				BLI_split_dirfile_basic(mfilename, dir, NULL);
+				BLI_split_dirfile(mfilename, dir, NULL);
 
 				BKE_rebase_path(abs, sizeof(abs), rel, sizeof(rel), G.sce, image->name, dir);
 
@@ -1441,7 +1487,7 @@ public:
 
 					// make absolute source path
 					BLI_strncpy(src, image->name, sizeof(src));
-					BLI_convertstringcode(src, G.sce);
+					BLI_path_abs(src, G.sce);
 
 					// make dest directory if it doesn't exist
 					BLI_make_existing_file(abs);

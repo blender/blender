@@ -118,7 +118,7 @@ typedef struct PTCacheID {
 	unsigned int data_types, info_types;
 
 	/* copies point data to cache data */
-	int (*write_elem)(int index, void *calldata, void **data);
+	int (*write_elem)(int index, void *calldata, void **data, int cfra);
 	/* copies point data to cache data */
 	int (*write_stream)(PTCacheFile *pf, void *calldata);
 	/* copies cache cata to point data */
@@ -128,10 +128,10 @@ typedef struct PTCacheID {
 	/* interpolated between previously read point data and cache data */
 	void (*interpolate_elem)(int index, void *calldata, void **data, float frs_sec, float cfra, float cfra1, float cfra2, float *old_data);
 
-	/* total number of simulated points */
-	int (*totpoint)(void *calldata);
-	/* number of points written for current cache frame (currently not used) */
-	int (*totwrite)(void *calldata);
+	/* total number of simulated points (the cfra parameter is just for using same function pointer with totwrite) */
+	int (*totpoint)(void *calldata, int cfra);
+	/* number of points written for current cache frame */
+	int (*totwrite)(void *calldata, int cfra);
 
 	int (*write_header)(PTCacheFile *pf);
 	int (*read_header)(PTCacheFile *pf);

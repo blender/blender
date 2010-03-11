@@ -351,4 +351,3 @@ ARegion *BKE_area_find_region_type(ScrArea *sa, int type)
 	}
 	return NULL;
 }
-

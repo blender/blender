@@ -1707,7 +1707,7 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 
 	switch(event) {
 		case 0: /* reset */
-			curvemap_reset(cuma, &cumap->clipr, CURVE_PRESET_LINE);
+			curvemap_reset(cuma, &cumap->clipr,	cumap->preset);
 			curvemapping_changed(cumap, 0);
 			break;
 		case 1:
@@ -1727,10 +1727,6 @@ static void curvemap_tools_dofunc(bContext *C, void *cumap_v, int event)
 			break;
 		case 5: /* extend extrapolate */
 			cuma->flag |= CUMA_EXTEND_EXTRAPOLATE;
-			curvemapping_changed(cumap, 0);
-			break;
-		case 6: /* reset smooth */
-			curvemap_reset(cuma, &cumap->clipr, CURVE_PRESET_SMOOTH);
 			curvemapping_changed(cumap, 0);
 			break;
 	}
@@ -1770,7 +1766,7 @@ static uiBlock *curvemap_brush_tools_func(bContext *C, struct ARegion *ar, void 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset View",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto Handle",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Curve",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Curve",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);
@@ -1789,8 +1785,9 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 	CurveMapping *cumap = cumap_v;
 	int a;
 	
+	cumap->preset = CURVE_PRESET_LINE;
 	for(a=0; a<CM_TOT; a++)
-		curvemap_reset(cumap->cm+a, &cumap->clipr, CURVE_PRESET_LINE);
+		curvemap_reset(cumap->cm+a, &cumap->clipr, cumap->preset);
 	
 	cumap->black[0]=cumap->black[1]=cumap->black[2]= 0.0f;
 	cumap->white[0]=cumap->white[1]=cumap->white[2]= 1.0f;

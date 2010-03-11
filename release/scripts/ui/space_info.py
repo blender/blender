@@ -25,7 +25,7 @@ class INFO_HT_header(bpy.types.Header):
 
     def draw(self, context):
         layout = self.layout
-        
+
         wm = context.manager
         if wm and len(wm.operators):
             last_op = wm.operators[-1]
@@ -64,7 +64,7 @@ class INFO_HT_header(bpy.types.Header):
         layout.separator()
 
         layout.template_running_jobs()
-        
+
         if last_op and last_op.has_reports:
             layout.template_reports_banner(last_op)
         else:
@@ -263,6 +263,8 @@ class INFO_MT_game(bpy.types.Menu):
         layout.prop(gs, "show_physics_visualization")
         layout.prop(gs, "use_deprecation_warnings")
         layout.prop(gs, "use_animation_record")
+        layout.separator()
+        layout.prop(gs, "auto_start")
 
 
 class INFO_MT_render(bpy.types.Menu):
@@ -273,18 +275,18 @@ class INFO_MT_render(bpy.types.Menu):
 
         # rd = context.scene.render
 
-        layout.operator("screen.render", text="Render Image", icon='RENDER_STILL')
-        layout.operator("screen.render", text="Render Animation", icon='RENDER_ANIMATION').animation = True
+        layout.operator("render.render", text="Render Image", icon='RENDER_STILL')
+        layout.operator("render.render", text="Render Animation", icon='RENDER_ANIMATION').animation = True
 
         layout.separator()
 
-        layout.operator("screen.opengl_render", text="OpenGL Render Image")
-        layout.operator("screen.opengl_render", text="OpenGL Render Animation").animation = True
+        layout.operator("render.opengl", text="OpenGL Render Image")
+        layout.operator("render.opengl", text="OpenGL Render Animation").animation = True
 
         layout.separator()
 
-        layout.operator("screen.render_view_show")
-        layout.operator("screen.play_rendered_anim")
+        layout.operator("render.view_show")
+        layout.operator("render.play_rendered_anim")
 
 
 class INFO_MT_help(bpy.types.Menu):

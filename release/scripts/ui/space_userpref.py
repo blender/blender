@@ -430,6 +430,7 @@ class USERPREF_PT_system(bpy.types.Panel):
         col.prop(system, "frame_server_port")
         col.prop(system, "scrollback", text="Console Scrollback")
         col.prop(system, "auto_execute_scripts")
+        col.prop(system, "tabs_as_spaces")
 
         col.separator()
         col.separator()
@@ -1010,6 +1011,7 @@ class USERPREF_PT_file(bpy.types.Panel):
         sub.label(text="Scripts:")
         sub.label(text="Sounds:")
         sub.label(text="Temp:")
+        sub.label(text="Image Editor:")
         sub.label(text="Animation Player:")
 
         sub = col1.column()
@@ -1021,6 +1023,7 @@ class USERPREF_PT_file(bpy.types.Panel):
         sub.prop(paths, "python_scripts_directory", text="")
         sub.prop(paths, "sounds_directory", text="")
         sub.prop(paths, "temporary_directory", text="")
+        sub.prop(paths, "image_editor", text="")
         subsplit = sub.split(percentage=0.3)
         subsplit.prop(paths, "animation_player_preset", text="")
         subsplit.prop(paths, "animation_player", text="")
@@ -1115,7 +1118,7 @@ class USERPREF_PT_input(bpy.types.Panel):
                 # "Add New" at end of keymap item list
                 col = self.indented_layout(col, level + 1)
                 subcol = col.split(percentage=0.2).column()
-                subcol.active = km.user_defined
+                subcol.enabled = km.user_defined
                 op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
 
             col.separator()
@@ -1315,7 +1318,7 @@ class USERPREF_PT_input(bpy.types.Panel):
                 # "Add New" at end of keymap item list
                 col = self.indented_layout(layout, 1)
                 subcol = col.split(percentage=0.2).column()
-                subcol.active = km.user_defined
+                subcol.enabled = km.user_defined
                 op = subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
 
     def draw_hierarchy(self, defkc, layout):
@@ -1490,7 +1493,7 @@ class WM_OT_addon_install(bpy.types.Operator):
 
                 #extract the file to "addons"
                 file_to_extract.extractall(path_addons)
-            
+
             except:
                 traceback.print_exc()
                 return {'CANCELLED'}

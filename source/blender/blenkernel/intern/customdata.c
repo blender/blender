@@ -2315,7 +2315,7 @@ static void customdata_external_filename(char filename[FILE_MAX], ID *id, Custom
 	char *path = (id->lib)? id->lib->filename: G.sce;
 
 	BLI_strncpy(filename, external->filename, FILE_MAX);
-	BLI_convertstringcode(filename, path);
+	BLI_path_abs(filename, path);
 }
 
 void CustomData_external_read(CustomData *data, ID *id, CustomDataMask mask, int totelem)

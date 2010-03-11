@@ -318,6 +318,10 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
 				medge++;
 			}
+			else {
+				/* cheap trick to select the roots */
+				mvert->flag |= SELECT;
+			}
 		}
 	}
 
@@ -332,6 +336,10 @@ int ED_object_modifier_convert(ReportList *reports, Scene *scene, Object *ob, Mo
 				medge->v2=cvert;
 				medge->flag= ME_EDGEDRAW|ME_EDGERENDER|ME_LOOSEEDGE;
 				medge++;
+			}
+			else {
+				/* cheap trick to select the roots */
+				mvert->flag |= SELECT;
 			}
 		}
 	}
@@ -410,24 +418,29 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 	} 
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-		Curve *cu = ob->data;
+		Curve *cu;
 		int numVerts;
 		float (*vertexCos)[3];
-		
-		
+
+		if (mti->type==eModifierTypeType_Constructive) {
+			BKE_report(reports, RPT_ERROR, "Cannot apply constructive modifiers on curve");
+			return 0;
+		}
+
+		cu = ob->data;
 		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tesselated/bevel vertices");
-		
+
 		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md, 0))) {
 			BKE_report(reports, RPT_ERROR, "Modifier is disabled, skipping apply");
 			return 0;
 		}
-		
+
 		vertexCos = curve_getVertexCos(cu, &cu->nurb, &numVerts);
 		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
 		curve_applyVertexCos(cu, &cu->nurb, vertexCos);
 
 		MEM_freeN(vertexCos);
-		
+
 		DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	}
 	else {
@@ -870,12 +883,15 @@ static int multires_save_external_exec(bContext *C, wmOperator *op)
 	Mesh *me= (ob)? ob->data: op->customdata;
 	char path[FILE_MAX];
 
+	if(!me)
+		return OPERATOR_CANCELLED;
+
 	if(CustomData_external_test(&me->fdata, CD_MDISPS))
 		return OPERATOR_CANCELLED;
 	
 	RNA_string_get(op->ptr, "path", path);
 	if(G.save_over)
-		BLI_makestringcode(G.sce, path); /* make relative */
+		BLI_path_rel(path, G.sce);
 
 	CustomData_external_add(&me->fdata, &me->id, CD_MDISPS, me->totface, path);
 	CustomData_external_write(&me->fdata, &me->id, CD_MASK_MESH, me->totface, 0);
@@ -912,7 +928,7 @@ void OBJECT_OT_multires_save_external(wmOperatorType *ot)
 	ot->description= "Save displacements to an external file";
 	ot->idname= "OBJECT_OT_multires_save_external";
 
-	ot->poll= multires_poll;
+	// XXX modifier no longer in context after file browser .. ot->poll= multires_poll;
 	ot->exec= multires_save_external_exec;
 	ot->invoke= multires_save_external_invoke;
 	

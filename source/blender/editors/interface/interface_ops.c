@@ -94,18 +94,20 @@ static int eyedropper_cancel(bContext *C, wmOperator *op)
 
 static void eyedropper_sample(bContext *C, Eyedropper *eye, short mx, short my)
 {
-	float col[3];
-		
-	glReadBuffer(GL_FRONT);
-	glReadPixels(mx, my, 1, 1, GL_RGB, GL_FLOAT, col);
-	glReadBuffer(GL_BACK);
-	
 	if(RNA_property_type(eye->prop) == PROP_FLOAT) {
-
+		const int color_manage = CTX_data_scene(C)->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+		float col[4];
+	
+		RNA_property_float_get_array(&eye->ptr, eye->prop, col);
+		
+		glReadBuffer(GL_FRONT);
+		glReadPixels(mx, my, 1, 1, GL_RGB, GL_FLOAT, col);
+		glReadBuffer(GL_BACK);
+	
 		if (RNA_property_array_length(&eye->ptr, eye->prop) < 3) return;
 
 		/* convert from screen (srgb) space to linear rgb space */
-		if (RNA_property_subtype(eye->prop) == PROP_COLOR)
+		if (color_manage && RNA_property_subtype(eye->prop) == PROP_COLOR)
 			srgb_to_linearrgb_v3_v3(col, col);
 		
 		RNA_property_float_set_array(&eye->ptr, eye->prop, col);

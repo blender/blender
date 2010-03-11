@@ -1099,17 +1099,12 @@ float *make_orco_curve(Scene *scene, Object *ob)
 	DispList *dl;
 	int u, v, numVerts;
 	float *fp, *coord_array;
-	int remakeDisp = 0;
+	ListBase disp = {NULL, NULL};
 
-	if (!(cu->flag&CU_UV_ORCO) && cu->key && cu->key->block.first) {
-		makeDispListCurveTypes(scene, ob, 1);
-		remakeDisp = 1;
-	}
-
-	/* Assumes displist has been built */
+	makeDispListCurveTypes_forOrco(scene, ob, &disp);
 
 	numVerts = 0;
-	for (dl=cu->disp.first; dl; dl=dl->next) {
+	for (dl=disp.first; dl; dl=dl->next) {
 		if (dl->type==DL_INDEX3) {
 			numVerts += dl->nr;
 		} else if (dl->type==DL_SURF) {
@@ -1126,7 +1121,7 @@ float *make_orco_curve(Scene *scene, Object *ob)
 	}
 
 	fp= coord_array= MEM_mallocN(3*sizeof(float)*numVerts, "cu_orco");
-	for (dl=cu->disp.first; dl; dl=dl->next) {
+	for (dl=disp.first; dl; dl=dl->next) {
 		if (dl->type==DL_INDEX3) {
 			for (u=0; u<dl->nr; u++, fp+=3) {
 				if (cu->flag & CU_UV_ORCO) {
@@ -1174,9 +1169,7 @@ float *make_orco_curve(Scene *scene, Object *ob)
 		}
 	}
 
-	if (remakeDisp) {
-		makeDispListCurveTypes(scene, ob, 0);
-	}
+	freedisplist(&disp);
 
 	return coord_array;
 }

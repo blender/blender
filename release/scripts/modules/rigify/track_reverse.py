@@ -98,4 +98,3 @@ def main(obj, bone_definition, base_names, options):
 
 
     return tuple()
-

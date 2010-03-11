@@ -2172,6 +2172,34 @@ int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 	return 0;
 }
 
+int RNA_property_collection_move(PointerRNA *ptr, PropertyRNA *prop, int key, int pos)
+{
+	IDProperty *idprop;
+
+	if((idprop=rna_idproperty_check(&prop, ptr))) {
+		IDProperty tmp, *array;
+		int len;
+
+		len= idprop->len;
+		array= IDP_IDPArray(idprop);
+
+		if(key >= 0 && key < len && pos >= 0 && pos < len && key != pos) {
+			memcpy(&tmp, &array[key], sizeof(IDProperty));
+			if(pos < key)
+				memmove(array+pos+1, array+pos, sizeof(IDProperty)*(key - pos));
+			else
+				memmove(array+key, array+key+1, sizeof(IDProperty)*(pos - key));
+			memcpy(&array[pos], &tmp, sizeof(IDProperty));
+		}
+
+		return 1;
+	}
+	else if(prop->flag & PROP_IDPROPERTY)
+		return 1;
+
+	return 0;
+}
+
 void RNA_property_collection_clear(PointerRNA *ptr, PropertyRNA *prop)
 {
 	IDProperty *idprop;

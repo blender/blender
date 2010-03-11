@@ -56,8 +56,7 @@ void BLI_setenv_if_new(const char *env, const char* val);
 void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file);
 void BLI_make_exist(char *dir);
 void BLI_make_existing_file(char *name);
-void BLI_split_dirfile(char *string, char *dir, char *file);
-void BLI_split_dirfile_basic(const char *string, char *dir, char *file);
+void BLI_split_dirfile(const char *string, char *dir, char *file);
 void BLI_join_dirfile(char *string, const char *dir, const char *file);
 int BKE_rebase_path(char *abs, int abs_size, char *rel, int rel_size, const char *base_dir, const char *src_dir, const char *dest_dir);
 void BLI_getlastdir(const char* dir, char *last, int maxlen);
@@ -97,12 +96,12 @@ int BLI_has_parent(char *path);
 	 * @a framenum The framenumber to replace the frame code with.
 	 * @retval Returns true if the path was relative (started with "//").
 	 */
-int BLI_convertstringcode(char *path, const char *basepath);
-int BLI_convertstringframe(char *path, int frame, int digits);
-int BLI_convertstringframe_range(char *path, int sta, int end, int digits);
-int BLI_convertstringcwd(char *path);
+int BLI_path_abs(char *path, const char *basepath);
+int BLI_path_frame(char *path, int frame, int digits);
+int BLI_path_frame_range(char *path, int sta, int end, int digits);
+int BLI_path_cwd(char *path);
 
-void BLI_makestringcode(const char *relfile, char *file);
+void BLI_path_rel(char *file, const char *relfile);
 
 	/**
 	 * Change every @a from in @a string into @a to. The

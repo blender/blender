@@ -655,7 +655,7 @@ enum FileSortTypeE {
 
 /* sfile->flag and simasel->flag */
 #define FILE_SHOWSHORT		1
-#define FILE_STRINGCODE		2
+#define FILE_RELPATH		2 /* was FILE_STRINGCODE */
 #define FILE_LINK			4
 #define FILE_HIDE_DOT		8
 #define FILE_AUTOSELECT		16
@@ -813,31 +813,6 @@ enum {
 #define C_DERK  0x766666
 #define C_HI	0xCBBBBB
 #define C_LO	0x544444
-
-/* queue settings */
-#define IMS_KNOW_WIN        1
-#define IMS_KNOW_BIP        2
-#define IMS_KNOW_DIR        4
-#define IMS_DOTHE_INF		8
-#define IMS_KNOW_INF	   16
-#define IMS_DOTHE_IMA	   32
-#define IMS_KNOW_IMA	   64
-#define IMS_FOUND_BIP	  128
-#define IMS_DOTHE_BIP	  256
-#define IMS_WRITE_NO_BIP  512
-
-/* imasel->mode */
-#define IMS_NOIMA			0
-#define IMS_IMA				1
-#define IMS_ANIM			2
-#define IMS_DIR				4
-#define IMS_FILE			8
-#define IMS_STRINGCODE		16
-
-#define IMS_INDIR			1
-#define IMS_INDIRSLI		2
-#define IMS_INFILE			3
-#define IMS_INFILESLI		4
 
 /* nla->flag */
 /* flags (1<<0), (1<<1), and (1<<3) are depreceated flags from old blenders */

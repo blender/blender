@@ -161,6 +161,8 @@ typedef enum eMotionPaths_BakeFlag {
 	MOTIONPATH_BAKE_NEEDS_RECALC	= (1<<0),
 		/* for bones - calculate head-points for curves instead of tips */
 	MOTIONPATH_BAKE_HEADS			= (1<<1),
+		/* motion paths exist for AnimVizSettings instance - set when calc for first time, and unset when clearing */
+	MOTIONPATH_BAKE_HAS_PATHS		= (1<<2),
 } eMotionPath_BakeFlag;
 
 /* ************************************************ */
@@ -597,6 +599,8 @@ typedef enum eSAction_Flag {
 	SACTION_TEMP_NEEDCHANSYNC = (1<<9),
 		/* don't perform realtime updates */
 	SACTION_NOREALTIMEUPDATES =	(1<<10),
+		/* move markers as well as keyframes */
+	SACTION_MARKERS_MOVE = (1<<11),
 } eSAction_Flag;	
 
 /* SpaceAction Mode Settings */

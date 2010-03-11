@@ -102,6 +102,7 @@ void	ED_screen_animation_timer_update(struct bScreen *screen, int redraws);
 int		ED_screen_full_newspace(struct bContext *C, ScrArea *sa, int type);
 void	ED_screen_full_prevspace(struct bContext *C, ScrArea *sa);
 void	ED_screen_full_restore(struct bContext *C, ScrArea *sa);
+struct ScrArea *ED_screen_full_toggle(struct bContext *C, struct wmWindow *win, struct ScrArea *sa);
 
 void	ED_screen_new_window(struct bContext *C, struct rcti *position, int type);
 

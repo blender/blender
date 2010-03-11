@@ -98,14 +98,6 @@
 /* enable/disable overall compilation */
 #ifndef DISABLE_ELBEEM
 
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
-/* ************** libgomp (Apple gcc 4.2.1) TLS bug workaround *************** */
-#include <pthread.h>
-extern pthread_key_t gomp_tls_key;
-static void *thread_tls_data;
-#endif
-
-
 /* XXX */
 /* from header info.c */
 static int start_progress_bar(void) {return 0;};
@@ -328,11 +320,6 @@ static void *fluidsimSimulateThread(void *unused) { // *ptr) {
 	//char* fnameCfgPath = (char*)(ptr);
 	int ret=0;
 	
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
-	// Workaround for Apple gcc 4.2.1 omp vs background thread bug
-	pthread_setspecific (gomp_tls_key, thread_tls_data);
-#endif
-
 	ret = elbeemSimulate();
 	BLI_lock_thread(LOCK_CUSTOM1);
 	if(globalBakeState==0) {
@@ -576,7 +563,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *ob)
 	// prepare names...
 	strncpy(targetDir, domainSettings->surfdataPath, FILE_MAXDIR);
 	strncpy(newSurfdataPath, domainSettings->surfdataPath, FILE_MAXDIR);
-	BLI_convertstringcode(targetDir, G.sce); // fixed #frame-no 
+	BLI_path_abs(targetDir, G.sce); // fixed #frame-no 
 
 	strcpy(targetFile, targetDir);
 	strcat(targetFile, suffixConfig);
@@ -628,7 +615,7 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *ob)
 		if(selection<1) return 0; // 0 from menu, or -1 aborted
 		strcpy(targetDir, newSurfdataPath);
 		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
-		BLI_convertstringcode(targetDir, G.sce); // fixed #frame-no 
+		BLI_path_abs(targetDir, G.sce); // fixed #frame-no 
 	}
 	
 	// --------------------------------------------------------------------------------------------
@@ -1050,10 +1037,6 @@ int fluidsimBake(bContext *C, ReportList *reports, Object *ob)
 		globalBakeState = 0;
 		globalBakeFrame = 0;
 		
-#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
-		// Workaround for Apple gcc 4.2.1 omp vs background thread bug
-		thread_tls_data = pthread_getspecific(gomp_tls_key);
-#endif
 		BLI_init_threads(&threads, fluidsimSimulateThread, 1);
 		BLI_insert_thread(&threads, targetFile);
 		

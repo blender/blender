@@ -805,6 +805,7 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	int matrix_dimsize[]= {4, 4};
 
 	static EnumPropertyItem viewport_shading_items[] = {
 		{OB_BOUNDBOX, "BOUNDBOX", ICON_BBOX, "Bounding Box", "Display the object's local bounding boxes only"},
@@ -1044,6 +1045,18 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "viewlock", RV3D_BOXCLIP);
 	RNA_def_property_ui_text(prop, "Clip", "Clip objects based on what's visible in other side views");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, "rna_Region3DView_quadview_update");
+	
+	prop= RNA_def_property(srna, "perspective_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "persmat");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX: for now, it's too risky for users to do this
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_ui_text(prop, "Perspective Matrix", "Current perspective matrix of the 3D region");
+	
+	prop= RNA_def_property(srna, "view_matrix", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "viewmat");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE); // XXX: for now, it's too risky for users to do this
+	RNA_def_property_multi_array(prop, 2, matrix_dimsize);
+	RNA_def_property_ui_text(prop, "View Matrix", "Current view matrix of the 3D region");
 }
 
 static void rna_def_space_buttons(BlenderRNA *brna)
@@ -1444,6 +1457,10 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Realtime Updates", "When transforming keyframes, changes to the animation data are flushed to other views");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_DOPESHEET, NULL);
 
+	prop= RNA_def_property(srna, "use_marker_sync", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SACTION_MARKERS_MOVE);
+	RNA_def_property_ui_text(prop, "Sync Markers", "Sync Markers with keyframe edits");
+
 	/* dopesheet */
 	prop= RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "DopeSheet");
@@ -1821,7 +1838,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "do_filter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FILE_FILTER);
 	RNA_def_property_ui_text(prop, "Filter Files", "Enable filtering of files");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "hide_dot", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FILE_HIDE_DOT);
@@ -1838,51 +1855,50 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", IMAGEFILE);
 	RNA_def_property_ui_text(prop, "Filter Images", "Show image files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_IMAGE, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_blender", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", BLENDERFILE);
 	RNA_def_property_ui_text(prop, "Filter Blender", "Show .blend files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_BLEND, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_movie", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", MOVIEFILE);
 	RNA_def_property_ui_text(prop, "Filter Movies", "Show movie files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_MOVIE, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_script", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", PYSCRIPTFILE);
 	RNA_def_property_ui_text(prop, "Filter Script", "Show script files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_SCRIPT, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_font", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", FTFONTFILE);
 	RNA_def_property_ui_text(prop, "Filter Fonts", "Show font files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_FONT, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_sound", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", SOUNDFILE);
 	RNA_def_property_ui_text(prop, "Filter Sound", "Show sound files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_SOUND, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_text", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", TEXTFILE);
 	RNA_def_property_ui_text(prop, "Filter Text", "Show text files");
 	RNA_def_property_ui_icon(prop, ICON_FILE_BLANK, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "filter_folder", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filter", FOLDERFILE);
 	RNA_def_property_ui_text(prop, "Filter Folder", "Show folders");
 	RNA_def_property_ui_icon(prop, ICON_FILE_FOLDER, 0);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
-	
 }
 
 static void rna_def_space_filebrowser(BlenderRNA *brna)

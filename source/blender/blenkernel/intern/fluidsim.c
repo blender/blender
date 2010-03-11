@@ -431,8 +431,8 @@ DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm, FluidsimModifie
 		strcat(targetDir,"fluidsurface_final_####");
 	}
 	
-	BLI_convertstringcode(targetDir, G.sce);
-	BLI_convertstringframe(targetDir, curFrame, 0); // fixed #frame-no 
+	BLI_path_abs(targetDir, G.sce);
+	BLI_path_frame(targetDir, curFrame, 0); // fixed #frame-no 
 	
 	strcpy(targetFile,targetDir);
 	strcat(targetFile, ".bobj.gz");

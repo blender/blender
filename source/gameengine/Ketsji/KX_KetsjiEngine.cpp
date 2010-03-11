@@ -334,6 +334,11 @@ void KX_KetsjiEngine::RenderDome()
 				
 				it++;
 			}
+			// Part of PostRenderScene()
+			m_rendertools->MotionBlur(m_rasterizer);
+			scene->Render2DFilters(m_canvas);
+			// no RunDrawingCallBacks
+			// no FlushDebugLines
 		}
 		m_dome->BindImages(i);
 	}	
@@ -362,11 +367,7 @@ void KX_KetsjiEngine::RenderDome()
 			1.0
 			);
 	}
-
 	m_dome->Draw();
-
-	// run the 2dfilters and motion blur once for all the scenes
-	PostRenderFrame();
 	EndFrame();
 }
 
@@ -859,6 +860,7 @@ void KX_KetsjiEngine::Render()
 			
 			it++;
 		}
+		PostRenderScene(scene);
 	}
 
 	// only one place that checks for stereo
@@ -908,6 +910,7 @@ void KX_KetsjiEngine::Render()
 				
 				it++;
 			}
+			PostRenderScene(scene);
 		}
 	} // if(m_rasterizer->Stereo())
 
@@ -1313,20 +1316,16 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	
 	if (scene->GetPhysicsEnvironment())
 		scene->GetPhysicsEnvironment()->debugDrawWorld();
-	
-	m_rasterizer->FlushDebugLines();
-
-	//it's running once for every scene (i.e. overlay scenes have  it running twice). That's not the ideal.
-	PostRenderFrame();
-
-	// Run any post-drawing python callbacks
-	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
 }
-
-void KX_KetsjiEngine::PostRenderFrame()
+/*
+To run once per scene
+*/
+void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 {
-	m_rendertools->Render2DFilters(m_canvas);
 	m_rendertools->MotionBlur(m_rasterizer);
+	scene->Render2DFilters(m_canvas);
+	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
+	m_rasterizer->FlushDebugLines();
 }
 
 void KX_KetsjiEngine::StopEngine()

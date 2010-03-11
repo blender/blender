@@ -146,14 +146,20 @@ static void rna_Texture_type_set(PointerRNA *ptr, int value)
 {
 	Tex *tex= (Tex*)ptr->data;
 
-	if (value == TEX_VOXELDATA) {
-		if (tex->vd == NULL) {
-			tex->vd = BKE_add_voxeldata();
-		}
-	} else if (value == TEX_POINTDENSITY) {
-		if (tex->pd == NULL) {
-			tex->pd = BKE_add_pointdensity();
-		}
+	switch(value) {
+
+		case TEX_VOXELDATA:
+			if (tex->vd == NULL)
+				tex->vd = BKE_add_voxeldata();
+			break;
+		case TEX_POINTDENSITY:
+			if (tex->pd == NULL)
+				tex->pd = BKE_add_pointdensity();
+			break;
+		case TEX_ENVMAP:
+			if (tex->env == NULL)
+				tex->env = BKE_add_envmap();
+			break;
 	}
 	
 	tex->type = value;
@@ -661,9 +667,39 @@ static void rna_def_mtex(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_TextureSlot_update");
 }
 
-static void rna_def_filter_size_common(StructRNA *srna) 
+static void rna_def_filter_common(StructRNA *srna) 
 {
 	PropertyRNA *prop;
+	
+	prop= RNA_def_property(srna, "mipmap", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_MIPMAP);
+	RNA_def_property_boolean_funcs(prop, NULL, "rna_ImageTexture_mipmap_set");
+	RNA_def_property_ui_text(prop, "MIP Map", "Uses auto-generated MIP maps for the image");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	prop= RNA_def_property(srna, "mipmap_gauss", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_GAUSS_MIP);
+	RNA_def_property_ui_text(prop, "MIP Map Gaussian filter", "Uses Gauss filter to sample down MIP maps");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	prop= RNA_def_property(srna, "filter", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "texfilter");
+	RNA_def_property_enum_items(prop, texture_filter_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ImageTexture_filter_itemf");
+	RNA_def_property_ui_text(prop, "Filter", "Texture filter to use for sampling image");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	prop= RNA_def_property(srna, "filter_probes", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "afmax");
+	RNA_def_property_range(prop, 1, 256);
+	RNA_def_property_ui_text(prop, "Filter Probes", "Maximum number of samples. Higher gives less blur at distant/oblique angles, but is also slower");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	prop= RNA_def_property(srna, "filter_eccentricity", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "afmax");
+	RNA_def_property_range(prop, 1, 256);
+	RNA_def_property_ui_text(prop, "Filter Eccentricity", "Maximum eccentricity. Higher gives less blur at distant/oblique angles, but is also slower");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "filter_size_minimum", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_FILTER_MIN);
@@ -678,36 +714,18 @@ static void rna_def_filter_size_common(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
-static void rna_def_environment_map_common(StructRNA *srna)
-{
-	PropertyRNA *prop;
-
-	static EnumPropertyItem prop_source_items[] = {
-		{ENV_STATIC, "STATIC", 0, "Static", "Calculates environment map only once"},
-		{ENV_ANIM, "ANIMATED", 0, "Animated", "Calculates environment map at each rendering"},
-		{ENV_LOAD, "LOADED", 0, "Loaded", "Loads saved environment map from disk"},
-		{0, NULL, 0, NULL, NULL}};
-
-	prop= RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "stype");
-	RNA_def_property_enum_items(prop, prop_source_items);
-	RNA_def_property_ui_text(prop, "Source", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-	/* XXX: move this to specific types if needed */
-	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "ima");
-	RNA_def_property_struct_type(prop, "Image");
-	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-}
-
 static void rna_def_environment_map(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_type_items[] = {
+	static EnumPropertyItem prop_source_items[] = {
+		{ENV_STATIC, "STATIC", 0, "Static", "Calculates environment map only once"},
+		{ENV_ANIM, "ANIMATED", 0, "Animated", "Calculates environment map at each rendering"},
+		{ENV_LOAD, "IMAGE_FILE", 0, "Image File", "Loads a saved environment map image from disk"},
+		{0, NULL, 0, NULL, NULL}};
+	
+	static EnumPropertyItem prop_mapping_items[] = {
 		{ENV_CUBE, "CUBE", 0, "Cube", "Use environment map with six cube sides"},
 		{ENV_PLANE, "PLANE", 0, "Plane", "Only one side is rendered, with Z axis pointing in direction of image"},
 		{0, NULL, 0, NULL, NULL}};
@@ -715,13 +733,23 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	srna= RNA_def_struct(brna, "EnvironmentMap", NULL);
 	RNA_def_struct_sdna(srna, "EnvMap");
 	RNA_def_struct_ui_text(srna, "EnvironmentMap", "Environment map created by the renderer and cached for subsequent renders");
+	
+	prop= RNA_def_property(srna, "source", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "stype");
+	RNA_def_property_enum_items(prop, prop_source_items);
+	RNA_def_property_ui_text(prop, "Source", "");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
-	rna_def_environment_map_common(srna);
-
-	prop= RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	prop= RNA_def_property(srna, "viewpoint_object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "object");
+	RNA_def_property_ui_text(prop, "Viewpoint Object", "Object to use as the environment map's viewpoint location");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
+	prop= RNA_def_property(srna, "mapping", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, prop_type_items);
-	RNA_def_property_ui_text(prop, "Type", "");
+	RNA_def_property_enum_items(prop, prop_mapping_items);
+	RNA_def_property_ui_text(prop, "Mapping", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
 	prop= RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_NONE);
@@ -740,12 +768,16 @@ static void rna_def_environment_map(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "zoom", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "viewscale");
-	RNA_def_property_range(prop, 0.01, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.5, 5, 100, 2);
+	RNA_def_property_range(prop, 0.1, 5.0);
+	RNA_def_property_ui_range(prop, 0.5, 1.5, 1, 2);
 	RNA_def_property_ui_text(prop, "Zoom", "");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
-	/* XXX: EnvMap.notlay */
+	prop= RNA_def_property(srna, "ignore_layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
+	RNA_def_property_boolean_sdna(prop, NULL, "notlay", 1);
+	RNA_def_property_array(prop, 20);
+	RNA_def_property_ui_text(prop, "Ignore Layers", "Hide objects on these layers when generating the Environment Map");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
 	prop= RNA_def_property(srna, "resolution", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "cuberes");
@@ -1116,17 +1148,6 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Image Texture", "");
 	RNA_def_struct_sdna(srna, "Tex");
 
-	prop= RNA_def_property(srna, "mipmap", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_MIPMAP);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_ImageTexture_mipmap_set");
-	RNA_def_property_ui_text(prop, "MIP Map", "Uses auto-generated MIP maps for the image");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-	prop= RNA_def_property(srna, "mipmap_gauss", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_GAUSS_MIP);
-	RNA_def_property_ui_text(prop, "MIP Map Gaussian filter", "Uses Gauss filter to sample down MIP maps");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-
 	prop= RNA_def_property(srna, "interpolation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_INTERPOL);
 	RNA_def_property_ui_text(prop, "Interpolation", "Interpolates pixels using Area filter");
@@ -1153,7 +1174,7 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Invert Alpha", "Inverts all the alpha values in the image");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
-	rna_def_filter_size_common(srna);
+	rna_def_filter_common(srna);
 
 	prop= RNA_def_property(srna, "extension", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "extend");
@@ -1254,26 +1275,6 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
-	/* filtering */
-	prop= RNA_def_property(srna, "filter", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "texfilter");
-	RNA_def_property_enum_items(prop, texture_filter_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ImageTexture_filter_itemf");
-	RNA_def_property_ui_text(prop, "Filter", "Texture filter to use for sampling image");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-	prop= RNA_def_property(srna, "filter_probes", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "afmax");
-	RNA_def_property_range(prop, 1, 256);
-	RNA_def_property_ui_text(prop, "Filter Probes", "Maximum number of samples. Higher gives less blur at distant/oblique angles, but is also slower");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-	prop= RNA_def_property(srna, "filter_eccentricity", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "afmax");
-	RNA_def_property_range(prop, 1, 256);
-	RNA_def_property_ui_text(prop, "Filter Eccentricity", "Maximum eccentricity. Higher gives less blur at distant/oblique angles, but is also slower");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-	
 	/* Normal Map */
 	prop= RNA_def_property(srna, "normal_map", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "imaflag", TEX_NORMALMAP);
@@ -1310,20 +1311,25 @@ static void rna_def_texture_environment_map(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Environment Map", "Environment map texture");
 	RNA_def_struct_sdna(srna, "Tex");
 
-	rna_def_environment_map_common(srna);
-
+	prop= RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ima");
+	RNA_def_property_struct_type(prop, "Image");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Image", "Source image file to read the environment map from");
+	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	
 	prop= RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NEVER_NULL);
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User", "Parameters defining which layer, pass and frame of the image is displayed");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 
+	rna_def_filter_common(srna);
+	
 	prop= RNA_def_property(srna, "environment_map", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "env");
 	RNA_def_property_struct_type(prop, "EnvironmentMap");
 	RNA_def_property_ui_text(prop, "Environment Map", "Gets the environment map associated with this texture");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-	rna_def_filter_size_common(srna);
 }
 
 static void rna_def_texture_musgrave(BlenderRNA *brna)

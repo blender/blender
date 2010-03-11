@@ -729,7 +729,7 @@ Object *scene_find_camera(Scene *sc)
 }
 
 #ifdef DURIAN_CAMERA_SWITCH
-Object *scene_find_camera_switch(Scene *scene)
+Object *scene_camera_switch_find(Scene *scene)
 {
 	TimeMarker *m;
 	int cfra = scene->r.cfra;
@@ -749,6 +749,18 @@ Object *scene_find_camera_switch(Scene *scene)
 	return camera;
 }
 #endif
+
+int scene_camera_switch_update(Scene *scene)
+{
+#ifdef DURIAN_CAMERA_SWITCH
+	Object *camera= scene_camera_switch_find(scene);
+	if(camera) {
+		scene->camera= camera;
+		return 1;
+	}
+#endif
+	return 0;
+}
 
 char *scene_find_marker_name(Scene *scene, int frame)
 {
@@ -790,6 +802,39 @@ char *scene_find_last_marker_name(Scene *scene, int frame)
 	return best_marker ? best_marker->name : NULL;
 }
 
+/* markers need transforming from different parts of the code so have
+ * a generic function to do this */
+int scene_marker_tfm_translate(Scene *scene, int delta, int flag)
+{
+	TimeMarker *marker;
+	int tot= 0;
+
+	for (marker= scene->markers.first; marker; marker= marker->next) {
+		if ((marker->flag & flag) == flag) {
+			marker->frame += delta;
+			tot++;
+		}
+	}
+
+	return tot;
+}
+
+int scene_marker_tfm_extend(Scene *scene, int delta, int flag, int frame, char side)
+{
+	TimeMarker *marker;
+	int tot= 0;
+
+	for (marker= scene->markers.first; marker; marker= marker->next) {
+		if ((marker->flag & flag) == flag) {
+			if((side=='L' && marker->frame < frame) || (side=='R' && marker->frame >= frame)) {
+				marker->frame += delta;
+				tot++;
+			}
+		}
+	}
+
+	return tot;
+}
 
 Base *scene_add_base(Scene *sce, Object *ob)
 {

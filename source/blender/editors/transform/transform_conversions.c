@@ -100,6 +100,7 @@
 #include "BKE_bmesh.h"
 #include "BKE_context.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 
 //#include "BIF_editview.h"
 //#include "BIF_editlattice.h"
@@ -288,7 +289,7 @@ static void set_prop_dist(TransInfo *t, short with_dist)
 
 static void createTransTexspace(bContext *C, TransInfo *t)
 {
-	Scene *scene = CTX_data_scene(C);
+	Scene *scene = t->scene;
 	TransData *td;
 	Object *ob;
 	ID *id;
@@ -711,14 +712,14 @@ int count_set_pose_transflags(int *out_mode, short around, Object *ob)
 	int hastranslation = 0;
 	int total = 0;
 
-	for(pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
-		if(bone->layer & arm->layer) {
-			if((bone->flag & BONE_SELECTED) && !(ob->proxy && pchan->bone->layer & arm->layer_protected))
+		if ((bone->layer & arm->layer) && !(pchan->bone->flag & BONE_HIDDEN_P)) {
+			if ((bone->flag & BONE_SELECTED) && !(ob->proxy && pchan->bone->layer & arm->layer_protected))
 				bone->flag |= BONE_TRANSFORM;
 			else
 				bone->flag &= ~BONE_TRANSFORM;
-
+			
 			bone->flag &= ~BONE_HINGE_CHILD_TRANSFORM;
 			bone->flag &= ~BONE_TRANSFORM_CHILD;
 		}
@@ -1067,7 +1068,7 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 	t->total = 0;
 	for (ebo = edbo->first; ebo; ebo = ebo->next)
 	{
-		if(ebo->layer & arm->layer)
+		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) 
 		{
 			if (t->mode==TFM_BONESIZE)
 			{
@@ -1100,7 +1101,8 @@ static void createTransArmatureVerts(bContext *C, TransInfo *t)
 	{
 		ebo->oldlength = ebo->length;	// length==0.0 on extrude, used for scaling radius of bone points
 
-		if(ebo->layer & arm->layer) {
+		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) 
+		{
 			if (t->mode==TFM_BONE_ENVELOPE)
 			{
 				if (ebo->flag & BONE_ROOTSEL)
@@ -2460,7 +2462,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Image *ima = CTX_data_edit_image(C);
-	Scene *scene = CTX_data_scene(C);
+	Scene *scene = t->scene;
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	MTFace *tf;
@@ -2617,7 +2619,7 @@ static short FrameOnMouseSide(char side, float frame, float cframe)
 
 static void createTransNlaData(bContext *C, TransInfo *t)
 {
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene= t->scene;
 	TransData *td = NULL;
 	TransDataNla *tdn = NULL;
 	
@@ -2627,7 +2629,6 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 	int filter;
 	
 	int count=0;
-	char side;
 	
 	/* determine what type of data we are operating on */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -2643,11 +2644,11 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 		float xmouse, ymouse;
 		
 		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
-		side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
+		t->frame_side= (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
 	}
 	else {
 		/* normal transform - both sides of current frame are considered */
-		side = 'B';
+		t->frame_side = 'B';
 	}
 	
 	/* loop 1: count how many strips are selected (consider each strip as 2 points) */
@@ -2664,8 +2665,8 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 			/* transition strips can't get directly transformed */
 			if (strip->type != NLASTRIP_TYPE_TRANSITION) {
 				if (strip->flag & NLASTRIP_FLAG_SELECT) {
-					if (FrameOnMouseSide(side, strip->start, (float)CFRA)) count++;
-					if (FrameOnMouseSide(side, strip->end, (float)CFRA)) count++;
+					if (FrameOnMouseSide(t->frame_side, strip->start, (float)CFRA)) count++;
+					if (FrameOnMouseSide(t->frame_side, strip->end, (float)CFRA)) count++;
 				}
 			}
 		}
@@ -2728,7 +2729,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 						center[2]= 0.0f;
 						
 						/* set td's based on which handles are applicable */
-						if (FrameOnMouseSide(side, strip->start, (float)CFRA))
+						if (FrameOnMouseSide(t->frame_side, strip->start, (float)CFRA))
 						{
 							/* just set tdn to assume that it only has one handle for now */
 							tdn->handle= -1;
@@ -2759,7 +2760,7 @@ static void createTransNlaData(bContext *C, TransInfo *t)
 							td->extra= tdn;
 							td++;
 						}
-						if (FrameOnMouseSide(side, strip->end, (float)CFRA))
+						if (FrameOnMouseSide(t->frame_side, strip->end, (float)CFRA))
 						{
 							/* if tdn is already holding the start handle, then we're doing both, otherwise, only end */
 							tdn->handle= (tdn->handle) ? 2 : 1;
@@ -2912,7 +2913,7 @@ static void posttrans_fcurve_clean (FCurve *fcu)
 
 	/* allocate memory for the cache */
 	// TODO: investigate using BezTriple columns instead?
-	if (fcu->totvert == 0)
+	if (fcu->totvert == 0 || fcu->bezt==NULL)
 		return;
 	selcache= MEM_callocN(sizeof(float)*fcu->totvert, "FCurveSelFrameNums");
 	len= 0;
@@ -3156,7 +3157,7 @@ static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl
 
 static void createTransActionData(bContext *C, TransInfo *t)
 {
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene= t->scene;
 	TransData *td = NULL;
 	tGPFtransdata *tfd = NULL;
 	
@@ -3167,7 +3168,6 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	
 	int count=0;
 	float cfra;
-	char side;
 	
 	/* determine what type of data we are operating on */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -3186,11 +3186,11 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		float xmouse, ymouse;
 		
 		UI_view2d_region_to_view(&ac.ar->v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
-		side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
+		t->frame_side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
 	}
 	else {
 		/* normal transform - both sides of current frame are considered */
-		side = 'B';
+		t->frame_side = 'B';
 	}
 	
 	/* loop 1: fully select ipo-keys and count how many BezTriples are selected */
@@ -3206,9 +3206,9 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			cfra = (float)CFRA;
 		
 		//if (ale->type == ANIMTYPE_GPLAYER)
-		//	count += count_gplayer_frames(ale->data, side, cfra);
+		//	count += count_gplayer_frames(ale->data, t->frame_side, cfra);
 		//else
-			count += count_fcurve_keys(ale->key_data, side, cfra);
+			count += count_fcurve_keys(ale->key_data, t->frame_side, cfra);
 	}
 	
 	/* stop if trying to build list if nothing selected */
@@ -3243,7 +3243,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		//	bGPDlayer *gpl= (bGPDlayer *)ale->data;
 		//	int i;
 		//
-		//	i = GPLayerToTransData(td, tfd, gpl, side, cfra);
+		//	i = GPLayerToTransData(td, tfd, gpl, t->frame_side, cfra);
 		//	td += i;
 		//	tfd += i;
 		//}
@@ -3259,7 +3259,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			else
 				cfra = (float)CFRA;
 			
-			td= FCurveToTransData(td, fcu, adt, side, cfra);
+			td= FCurveToTransData(td, fcu, adt, t->frame_side, cfra);
 		//}
 	}
 	
@@ -3351,8 +3351,8 @@ static void bezt_to_transdata (TransData *td, TransData2D *td2d, AnimData *adt, 
 static void createTransGraphEditData(bContext *C, TransInfo *t)
 {
 	SpaceIpo *sipo= CTX_wm_space_graph(C);
-	Scene *scene= CTX_data_scene(C);
-	ARegion *ar= CTX_wm_region(C);
+	Scene *scene= t->scene;
+	ARegion *ar= t->ar;
 	View2D *v2d= &ar->v2d;
 	
 	TransData *td = NULL;
@@ -3366,7 +3366,6 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 	BezTriple *bezt;
 	int count=0, i;
 	float cfra;
-	char side;
 	
 	/* determine what type of data we are operating on */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -3383,11 +3382,11 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		float xmouse, ymouse;
 		
 		UI_view2d_region_to_view(v2d, t->imval[0], t->imval[1], &xmouse, &ymouse);
-		side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
+		t->frame_side = (xmouse > CFRA) ? 'R' : 'L'; // XXX use t->frame_side
 	}
 	else {
 		/* normal transform - both sides of current frame are considered */
-		side = 'B';
+		t->frame_side = 'B';
 	}
 	
 	/* loop 1: count how many BezTriples (specifically their verts) are selected (or should be edited) */
@@ -3409,7 +3408,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse */
 		for (i=0, bezt=fcu->bezt; i < fcu->totvert; i++, bezt++) {
-			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
+			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
 				if (sipo->around == V3D_LOCAL) {
 					/* for local-pivot we only need to count the number of selected handles only, so that centerpoints don't
 					 * don't get moved wrong
@@ -3469,7 +3468,7 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
 		
 		/* only include BezTriples whose 'keyframe' occurs on the same side of the current frame as mouse (if applicable) */
 		for (i=0, bezt= fcu->bezt; i < fcu->totvert; i++, bezt++) {
-			if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
+			if (FrameOnMouseSide(t->frame_side, bezt->vec[1][0], cfra)) {
 				TransDataCurveHandleFlags *hdata = NULL;
 				short h1=1, h2=1;
 				
@@ -4147,7 +4146,7 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 {
 
 	View2D *v2d= UI_view2d_fromcontext(C);
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene= t->scene;
 	Editing *ed= seq_give_editing(t->scene, FALSE);
 	TransData *td = NULL;
 	TransData2D *td2d= NULL;
@@ -4200,7 +4199,7 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 /* transcribe given object into TransData for Transforming */
 static void ObjectToTransData(bContext *C, TransInfo *t, TransData *td, Object *ob)
 {
-	Scene *scene = CTX_data_scene(C);
+	Scene *scene = t->scene;
 	Object *track;
 	float obmtx[3][3];
 	short constinv;
@@ -4689,9 +4688,11 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 		}
 		
 		/* do the bone paths 
-		 * NOTE: only do this when there is context info
+		 * 	- only do this when there is context info, since we need that to resolve
+		 *	  how to do the updates and so on...
+		 *	- do not calculate unless there are paths already to update...
 		 */
-		if (C && (ob->pose->avs.path_type == MOTIONPATH_TYPE_ACFRA)) {
+		if (C && (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
 			//ED_pose_clear_paths(C, ob); // XXX for now, don't need to clear
 			ED_pose_recalculate_paths(C, scene, ob);
 		}
@@ -4795,6 +4796,21 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				posttrans_action_clean(&ac, (bAction *)ac.data);
 			}
 		}
+
+		/* marker transform, not especially nice but we may want to move markers
+		 * at the same time as keyframes in the dope sheet. */
+		if ((saction->flag & SACTION_MARKERS_MOVE) && (cancelled == 0)) {
+			/* cant use , TFM_TIME_EXTEND
+			 * for some reason EXTEND is changed into TRANSLATE, so use frame_side instead */
+
+			if(t->mode == TFM_TIME_TRANSLATE) {
+				if(t->frame_side == 'B')
+					scene_marker_tfm_translate(t->scene, floor(t->vec[0] + 0.5f), SELECT);
+				else if (ELEM(t->frame_side, 'L', 'R'))
+					scene_marker_tfm_extend(t->scene, floor(t->vec[0] + 0.5f), SELECT, t->scene->r.cfra, t->frame_side);
+			}
+		}
+
 #if 0 // XXX future of this is still not clear
 		else if (ac.datatype == ANIMCONT_GPENCIL) {
 			/* remove duplicate frames and also make sure points are in order! */
@@ -4982,7 +4998,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			if (!cancelled) {
 				autokeyframe_ob_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode);
 				
-				if (ob->avs.path_type == MOTIONPATH_TYPE_ACFRA)
+				/* only calculate paths if there are paths to be recalculated */
+				if (ob->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)
 					recalcObPaths= 1;
 			}
 		}
@@ -5139,7 +5156,7 @@ void createTransNodeData(bContext *C, TransInfo *t)
 
 void createTransData(bContext *C, TransInfo *t)
 {
-	Scene *scene = CTX_data_scene(C);
+	Scene *scene = t->scene;
 	Object *ob = OBACT;
 
 	if (t->options & CTX_TEXTURE) {

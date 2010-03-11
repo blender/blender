@@ -253,7 +253,7 @@ class DATA_PT_iksolver_itasc(DataButtonsPanel):
                 row.prop(itasc, "dampmax", text="Damp", slider=True)
                 row.prop(itasc, "dampeps", text="Eps", slider=True)
 
-# import generic panels from other files 
+# import generic panels from other files
 from properties_animviz import DATA_PT_motion_paths, DATA_PT_onion_skinning
 
 classes = [

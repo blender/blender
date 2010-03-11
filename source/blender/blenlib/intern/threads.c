@@ -56,6 +56,12 @@
 #include <sys/time.h>
 #endif
 
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+/* ************** libgomp (Apple gcc 4.2.1) TLS bug workaround *************** */
+extern pthread_key_t gomp_tls_key;
+static void *thread_tls_data;
+#endif
+
 /* ********** basic thread control API ************ 
 
 Many thread cases have an X amount of jobs, and only an Y amount of
@@ -148,8 +154,16 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 			tslot->avail= 1;
 		}
 		
-		if(thread_levels == 0)
+		if(thread_levels == 0) {
 			MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
+
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+			/* workaround for Apple gcc 4.2.1 omp vs background thread bug,
+			   we copy gomp thread local storage pointer to setting it again
+			   inside the thread that we start */
+			thread_tls_data = pthread_getspecific(gomp_tls_key);
+#endif
+		}
 
 		thread_levels++;
 	}
@@ -181,6 +195,18 @@ int BLI_available_thread_index(ListBase *threadbase)
 	return 0;
 }
 
+static void *tslot_thread_start(void *tslot_p)
+{
+	ThreadSlot *tslot= (ThreadSlot*)tslot_p;
+
+#if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
+	/* workaround for Apple gcc 4.2.1 omp vs background thread bug,
+	   set gomp thread local storage pointer which was copied beforehand */
+	pthread_setspecific (gomp_tls_key, thread_tls_data);
+#endif
+
+	return tslot->do_thread(tslot->callerdata);
+}
 
 void BLI_insert_thread(ListBase *threadbase, void *callerdata)
 {
@@ -190,7 +216,7 @@ void BLI_insert_thread(ListBase *threadbase, void *callerdata)
 		if(tslot->avail) {
 			tslot->avail= 0;
 			tslot->callerdata= callerdata;
-			pthread_create(&tslot->pthread, NULL, tslot->do_thread, tslot->callerdata);
+			pthread_create(&tslot->pthread, NULL, tslot_thread_start, tslot);
 			return;
 		}
 	}

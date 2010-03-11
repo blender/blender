@@ -201,12 +201,9 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 	rna_userdef_update(bmain, scene, ptr);
 }
 
-// XXX - todo, this is not accessible from here and it only works when the userprefs are in the same window.
-// extern int GPU_default_lights(void);
 static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	// GPU_default_lights();
-	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D|NS_VIEW3D_GPU, NULL);
 	rna_userdef_update(bmain, scene, ptr);
 }
 
@@ -2358,6 +2355,10 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Auto Run Python Scripts", "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)");
 	RNA_def_property_update(prop, 0, "rna_userdef_script_autoexec_update");
 
+	prop= RNA_def_property(srna, "tabs_as_spaces", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", USER_TXT_TABSTOSPACES_DISABLE);
+	RNA_def_property_ui_text(prop, "Tabs as Spaces", "Automatically converts all new tabs into spaces for new and loaded text files");
+
 	prop= RNA_def_property(srna, "prefetch_frames", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "prefetchframes");
 	RNA_def_property_range(prop, 0, 500);
@@ -2560,6 +2561,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 		{2, "DJV", 0, "Djv", "Open source frame player: http://djv.sourceforge.net"},
 		{3, "FRAMECYCLER", 0, "FrameCycler", "Frame player from IRIDAS"},
 		{4, "RV", 0, "rv", "Frame player from Tweak Software"},
+		{5, "MPLAYER", 0, "MPlayer", "Media player for video & png/jpeg/sgi image sequences"},
 		{50, "CUSTOM", 0, "Custom", "Custom animation player executable path"},
 		{0, NULL, 0, NULL, NULL}};
 	
@@ -2619,6 +2621,10 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "temporary_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "tempdir");
 	RNA_def_property_ui_text(prop, "Temporary Directory", "The directory for storing temporary save files");
+
+	prop= RNA_def_property(srna, "image_editor", PROP_STRING, PROP_DIRPATH);
+	RNA_def_property_string_sdna(prop, NULL, "image_editor");
+	RNA_def_property_ui_text(prop, "Image Editor", "Path to an image editor");
 	
 	prop= RNA_def_property(srna, "animation_player", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "anim_player");

@@ -185,7 +185,7 @@ private:
 	float					m_overrideFrameColorB;
 
 	void					RenderFrame(KX_Scene* scene, KX_Camera* cam);
-	void					PostRenderFrame();
+	void					PostRenderScene(KX_Scene* scene);
 	void					RenderDebugProperties();
 	void					RenderShadowBuffers(KX_Scene *scene);
 	void					SetBackGround(KX_WorldInfo* worldinfo);

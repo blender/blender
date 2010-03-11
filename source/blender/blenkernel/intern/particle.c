@@ -1067,12 +1067,12 @@ static void get_pointcache_keys_for_time(Object *ob, PointCache *cache, int inde
 			while(pm && pm->next && (float)pm->frame < t)
 				pm = pm->next;
 
-			BKE_ptcache_make_particle_key(key2, pm->index_array ? pm->index_array[index] : index, pm->data, (float)pm->frame);
-			BKE_ptcache_make_particle_key(key1, pm->prev->index_array ? pm->prev->index_array[index] : index, pm->prev->data, (float)pm->prev->frame);
+			BKE_ptcache_make_particle_key(key2, pm->index_array ? pm->index_array[index] - 1 : index, pm->data, (float)pm->frame);
+			BKE_ptcache_make_particle_key(key1, pm->prev->index_array ? pm->prev->index_array[index] - 1 : index, pm->prev->data, (float)pm->prev->frame);
 		}
 		else if(cache->mem_cache.first) {
 			PTCacheMem *pm2 = cache->mem_cache.first;
-			BKE_ptcache_make_particle_key(key2, pm2->index_array ? pm2->index_array[index] : index, pm2->data, (float)pm2->frame);
+			BKE_ptcache_make_particle_key(key2, pm2->index_array ? pm2->index_array[index] - 1 : index, pm2->data, (float)pm2->frame);
 			copy_particle_key(key1, key2, 1);
 		}
 	}

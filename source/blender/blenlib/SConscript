@@ -20,4 +20,8 @@ if env['OURPLATFORM'] == 'linuxcross':
     if env['WITH_BF_OPENMP']:
         incs += ' ' + env['BF_OPENMP_INC']
 
+if env['OURPLATFORM'] == 'darwin':
+    if env['WITH_BF_OPENMP']:
+       env.Append(CFLAGS=['-DPARALLEL=1'])
+
 env.BlenderLib ( 'bf_blenlib', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [363,170], compileflags =cflags )

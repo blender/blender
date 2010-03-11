@@ -1687,6 +1687,7 @@ void ED_objects_clear_paths(bContext *C, Scene *scene)
 		if (ob->mpath) {
 			animviz_free_motionpath(ob->mpath);
 			ob->mpath= NULL;
+			ob->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
 		}
 	}
 	CTX_DATA_END;

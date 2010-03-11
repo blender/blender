@@ -61,23 +61,23 @@ EnumPropertyItem empty_shape_items[] = {
 };
 
 EnumPropertyItem vortex_shape_items[] = {
-	{PFIELD_SHAPE_POINT, "POINT", 0, "Old", ""},
-	{PFIELD_SHAPE_PLANE, "PLANE", 0, "New", ""},
+	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
+	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface falloff (New)", ""},
 	{PFIELD_SHAPE_POINTS, "POINTS", 0, "Every Point (New)", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
 EnumPropertyItem curve_vortex_shape_items[] = {
-	{PFIELD_SHAPE_POINT, "POINT", 0, "Old", ""},
-	{PFIELD_SHAPE_PLANE, "PLANE", 0, "New", ""},
+	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
+	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve (New)", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
 EnumPropertyItem empty_vortex_shape_items[] = {
-	{PFIELD_SHAPE_POINT, "POINT", 0, "Old", ""},
-	{PFIELD_SHAPE_PLANE, "PLANE", 0, "New", ""},
+	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
+	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

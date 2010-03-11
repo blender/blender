@@ -920,6 +920,41 @@ int get_view3d_ortho(View3D *v3d, RegionView3D *rv3d)
   return 0;
 }
 
+/* copies logic of get_view3d_viewplane(), keep in sync */
+int get_view3d_cliprange(View3D *v3d, RegionView3D *rv3d, float *clipsta, float *clipend)
+{
+	int orth= 0;
+
+	*clipsta= v3d->near;
+	*clipend= v3d->far;
+
+	if(rv3d->persp==RV3D_CAMOB) {
+		if(v3d->camera) {
+			if(v3d->camera->type==OB_LAMP ) {
+				Lamp *la= v3d->camera->data;
+				*clipsta= la->clipsta;
+				*clipend= la->clipend;
+			}
+			else if(v3d->camera->type==OB_CAMERA) {
+				Camera *cam= v3d->camera->data;
+				*clipsta= cam->clipsta;
+				*clipend= cam->clipend;
+
+				if(cam->type==CAM_ORTHO)
+					orth= 1;
+			}
+		}
+	}
+
+	if(rv3d->persp==RV3D_ORTHO) {
+		*clipend *= 0.5;	// otherwise too extreme low zbuffer quality
+		*clipsta= - *clipend;
+		orth= 1;
+	}
+
+	return orth;
+}
+
 /* also exposed in previewrender.c */
 int get_view3d_viewplane(View3D *v3d, RegionView3D *rv3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize)
 {
@@ -1725,7 +1760,19 @@ extern void StartKetsjiShell(struct bContext *C, struct ARegion *ar, rcti *cam_f
 
 int game_engine_poll(bContext *C)
 {
-	return CTX_data_mode_enum(C)==CTX_MODE_OBJECT ? 1:0;
+	/* we need a context and area to launch BGE
+	it's a temporary solution to avoid crash at load time
+	if we try to auto run the BGE. Ideally we want the
+	context to be set as soon as we load the file. */
+
+	if(CTX_wm_window(C)==NULL) return 0;
+	if(CTX_wm_screen(C)==NULL) return 0;
+	if(CTX_wm_area(C)==NULL) return 0;
+
+	if(CTX_data_mode_enum(C)!=CTX_MODE_OBJECT)
+		return 0;
+
+	return 1;
 }
 
 int ED_view3d_context_activate(bContext *C)

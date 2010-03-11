@@ -246,6 +246,12 @@ ID *rna_ID_copy(ID *id)
 	return NULL;
 }
 
+void rna_ID_user_clear(ID *id)
+{
+	id->us= 0; /* dont save */
+	id->flag &= ~LIB_FAKEUSER;
+}
+
 #else
 
 static void rna_def_ID_properties(BlenderRNA *brna)
@@ -371,6 +377,9 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Create a copy of this datablock (not supported for all datablocks).");
 	parm= RNA_def_pointer(func, "id", "ID", "", "New copy of the ID.");
 	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "user_clear", "rna_ID_user_clear");
+	RNA_def_function_ui_description(func, "Clears the user count of a datablock so its not saved, on reload the data will be removed.");
 
 	func= RNA_def_function(srna, "animation_data_create", "BKE_id_add_animdata");
 	RNA_def_function_ui_description(func, "Create animation data to this ID, note that not all ID types support this.");

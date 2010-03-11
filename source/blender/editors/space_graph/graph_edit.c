@@ -307,7 +307,7 @@ static void create_ghost_curves (bAnimContext *ac, int start, int end)
 			float cfrae= BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
 			
 			fpt->vec[0]= cfrae;
-			fpt->vec[1]= fcurve_samplingcb_evalcurve(fcu, NULL, cfrae);
+			fpt->vec[1]= fcurve_samplingcb_evalcurve(fcu, NULL, cfrae) * unitFac;
 		}
 		
 		/* set color of ghost curve 

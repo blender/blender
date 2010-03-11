@@ -569,13 +569,13 @@ static void rna_MeshTextureFaceLayer_data_begin(CollectionPropertyIterator *iter
 {
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomDataLayer *layer= (CustomDataLayer*)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(MTFace), me->totface, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(MTFace), (me->edit_mesh)? 0: me->totface, 0, NULL);
 }
 
 static int rna_MeshTextureFaceLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
-	return me->totface;
+	return (me->edit_mesh)? 0: me->totface;
 }
 
 static int rna_MeshTextureFaceLayer_active_render_get(PointerRNA *ptr)
@@ -691,13 +691,13 @@ static void rna_MeshColorLayer_data_begin(CollectionPropertyIterator *iter, Poin
 {
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomDataLayer *layer= (CustomDataLayer*)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(MCol)*4, me->totface, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(MCol)*4, (me->edit_mesh)? 0: me->totface, 0, NULL);
 }
 
 static int rna_MeshColorLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
-	return me->totface;
+	return (me->edit_mesh)? 0: me->totface;
 }
 
 static int rna_MeshColorLayer_active_render_get(PointerRNA *ptr)
@@ -733,13 +733,13 @@ static void rna_MeshFloatPropertyLayer_data_begin(CollectionPropertyIterator *it
 {
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomDataLayer *layer= (CustomDataLayer*)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(MFloatProperty), me->totface, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(MFloatProperty), (me->edit_mesh)? 0: me->totface, 0, NULL);
 }
 
 static int rna_MeshFloatPropertyLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
-	return me->totface;
+	return (me->edit_mesh)? 0: me->totface;
 }
 
 static int rna_float_layer_check(CollectionPropertyIterator *iter, void *data)
@@ -770,13 +770,13 @@ static void rna_MeshIntPropertyLayer_data_begin(CollectionPropertyIterator *iter
 {
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomDataLayer *layer= (CustomDataLayer*)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(MIntProperty), me->totface, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(MIntProperty), (me->edit_mesh)? 0: me->totface, 0, NULL);
 }
 
 static int rna_MeshIntPropertyLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
-	return me->totface;
+	return (me->edit_mesh)? 0: me->totface;
 }
 
 static void rna_Mesh_int_layers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -801,13 +801,13 @@ static void rna_MeshStringPropertyLayer_data_begin(CollectionPropertyIterator *i
 {
 	Mesh *me= (Mesh*)ptr->id.data;
 	CustomDataLayer *layer= (CustomDataLayer*)ptr->data;
-	rna_iterator_array_begin(iter, layer->data, sizeof(MStringProperty), me->totface, 0, NULL);
+	rna_iterator_array_begin(iter, layer->data, sizeof(MStringProperty), (me->edit_mesh)? 0: me->totface, 0, NULL);
 }
 
 static int rna_MeshStringPropertyLayer_data_length(PointerRNA *ptr)
 {
 	Mesh *me= (Mesh*)ptr->id.data;
-	return me->totface;
+	return (me->edit_mesh)? 0: me->totface;
 }
 
 static void rna_Mesh_string_layers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)

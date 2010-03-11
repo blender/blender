@@ -81,7 +81,7 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 	}
 	else {
 		for(part=0; part<6; part++) {
-			env->cube[part]= IMB_allocImBuf(dx, dx, 24, IB_rect, 0);
+			env->cube[part]= IMB_allocImBuf(dx, dx, 24, IB_rect|IB_rectfloat, 0);
 		}
 		IMB_rectcpy(env->cube[0], ibuf, 
 			0, 0, 0, 0, dx, dx);
@@ -442,17 +442,18 @@ static void render_envmap(Render *re, EnvMap *env)
 		if(re->test_break(re->tbh)==0) {
 			RenderLayer *rl= envre->result->layers.first;
 			int y;
-			char *alpha;
+			float *alpha;
 			
-			ibuf= IMB_allocImBuf(envre->rectx, envre->recty, 24, IB_rect, 0);
-			ibuf->rect_float= rl->rectf;
-			IMB_rect_from_float(ibuf);
-			ibuf->rect_float= NULL;
+			ibuf= IMB_allocImBuf(envre->rectx, envre->recty, 24, IB_rect|IB_rectfloat, 0);
+			memcpy(ibuf->rect_float, rl->rectf, ibuf->channels * ibuf->x * ibuf->y * sizeof(float));
+			
+			if (re->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 			
 			/* envmap renders without alpha */
-			alpha= ((char *)ibuf->rect)+3;
+			alpha= ((float *)ibuf->rect_float)+3;
 			for(y= ibuf->x*ibuf->y - 1; y>=0; y--, alpha+=4)
-				*alpha= 255;
+				*alpha= 1.0;
 			
 			env->cube[part]= ibuf;
 		}

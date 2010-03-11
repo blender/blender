@@ -232,6 +232,9 @@ static int print_help(int argc, char **argv, void *data)
 
 	printf ("\nMisc options:\n");
 	printf ("  -d\t\tTurn debugging on\n");
+	printf ("    \t\t * prints every operator call and their arguments\n");
+	printf ("    \t\t * disables mouse grab (to interact with a debugger in some cases)\n");
+	printf ("    \t\t * keeps python sys.stdin rather then setting it to None\n");
 	printf ("  -nojoystick\tDisable joystick support\n");
 	printf ("  -noglsl\tDisable GLSL shading\n");
 	printf ("  -noaudio\tForce sound system to None\n");
@@ -775,7 +778,7 @@ static int run_python(int argc, char **argv, void *data)
 	/* Make the path absolute because its needed for relative linked blends to be found */
 	char filename[FILE_MAXDIR + FILE_MAXFILE];
 	BLI_strncpy(filename, argv[1], sizeof(filename));
-	BLI_convertstringcwd(filename);
+	BLI_path_cwd(filename);
 
 	/* workaround for scripts not getting a bpy.context.scene, causes internal errors elsewhere */
 	if (argc > 1) {
@@ -812,7 +815,7 @@ static int load_file(int argc, char **argv, void *data)
 	/* Make the path absolute because its needed for relative linked blends to be found */
 	char filename[FILE_MAXDIR + FILE_MAXFILE];
 	BLI_strncpy(filename, argv[0], sizeof(filename));
-	BLI_convertstringcwd(filename);
+	BLI_path_cwd(filename);
 
 	if (G.background) {
 		int retval = BKE_read_file(C, filename, NULL, NULL);
@@ -1043,8 +1046,13 @@ int main(int argc, char **argv)
 		WM_exit(C);
 	}
 
-	if(!G.background && !G.file_loaded)
-		WM_init_splash(C);
+	else {
+		if((G.fileflags & G_FILE_AUTOPLAY) && (G.fileflags & G_SCRIPT_AUTOEXEC))
+			WM_init_game(C);
+
+		else if(!G.file_loaded)
+			WM_init_splash(C);
+	}
 
 	WM_main(C);
 

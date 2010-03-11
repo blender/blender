@@ -1754,6 +1754,9 @@ static void MergeScene_GameObject(KX_GameObject* gameobj, KX_Scene *to, KX_Scene
 				phys_ctrl->SetPhysicsEnvironment(to->GetPhysicsEnvironment());
 		}
 	}
+	/* If the object is a light, update it's scene */
+	if (gameobj->GetGameObjectType() == SCA_IObject::OBJ_LIGHT)
+		((KX_LightObject*)gameobj)->UpdateScene(to);
 
 	/* Add the object to the scene's logic manager */
 	to->GetLogicManager()->RegisterGameObjectName(gameobj->GetName(), gameobj);
@@ -1840,6 +1843,16 @@ bool KX_Scene::MergeScene(KX_Scene *other)
 		}
 	}
 	return true;
+}
+
+void KX_Scene::Update2DFilter(vector<STR_String>& propNames, void* gameObj, RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
+{
+	m_filtermanager.EnableFilter(propNames, gameObj, filtermode, pass, text);
+}
+
+void KX_Scene::Render2DFilters(RAS_ICanvas* canvas)
+{
+	m_filtermanager.RenderFilters(canvas);
 }
 
 //----------------------------------------------------------------------------

@@ -969,7 +969,7 @@ void BL_ConvertActuators(char* maggiename,
 			}
             
 			tmp = new SCA_2DFilterActuator(gameobj, filtermode, _2dfilter->flag,
-				_2dfilter->float_arg,_2dfilter->int_arg,ketsjiEngine->GetRasterizer(),rendertools);
+				_2dfilter->float_arg,_2dfilter->int_arg,ketsjiEngine->GetRasterizer(),scene);
 
 			if (_2dfilter->text)
 			{

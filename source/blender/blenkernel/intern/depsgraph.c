@@ -1780,7 +1780,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 	
 	ob= node->ob;
 	if(ob && (ob->recalc & OB_RECALC)) {
-		all_layer= ob->lay;
+		all_layer= node->scelay;
 
 		/* got an object node that changes, now check relations */
 		for(itA = node->child; itA; itA= itA->next) {
@@ -1925,15 +1925,33 @@ void DAG_scene_flush_update(Scene *sce, unsigned int lay, int time)
 	sce->theDag->time++;	// so we know which nodes were accessed
 	lasttime= sce->theDag->time;
 
-
+	/* update layer flags in nodes */
 	for(base= sce->base.first; base; base= base->next) {
 		node= dag_get_node(sce->theDag, base->object);
-		if(node)
-			node->scelay= base->object->lay;
-		else
-			node->scelay= 0;
+		node->scelay= base->object->lay;
 	}
 
+	/* ensure cameras are set as if they are on a visible layer, because
+	   they ared still used for rendering or setting the camera view */
+	if(sce->camera) {
+		node= dag_get_node(sce->theDag, sce->camera);
+		node->scelay |= lay;
+	}
+
+#ifdef DURIAN_CAMERA_SWITCH
+	{
+		TimeMarker *m;
+
+		for(m= sce->markers.first; m; m= m->next) {
+			if(m->camera) {
+				node= dag_get_node(sce->theDag, m->camera);
+				node->scelay |= lay;
+			}
+		}
+	}
+#endif
+
+	/* flush layer nodes to dependencies */
 	for(itA = firstnode->child; itA; itA= itA->next)
 		if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB) 
 			flush_layer_node(sce, itA->node, lasttime);

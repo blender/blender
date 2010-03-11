@@ -137,28 +137,13 @@ static void node_composit_exec_huecorrect(void *data, bNode *node, bNodeStack **
 static void node_composit_init_huecorrect(bNode* node)
 {
 	CurveMapping *cumapping = node->storage= curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
-	int c, i;
+	int c;
+	
+	cumapping->preset = CURVE_PRESET_MID9;
 	
 	for (c=0; c<3; c++) {
 		CurveMap *cuma = &cumapping->cm[c];
-		
-		/* set default horizontal curve */
-		if(cuma->curve)
-			MEM_freeN(cuma->curve);
-		
-		cuma->totpoint= 9;
-		cuma->curve= MEM_callocN(cuma->totpoint*sizeof(CurveMapPoint), "curve points");
-		
-		for (i=0; i < cuma->totpoint; i++)
-		{
-			cuma->curve[i].x= i / ((float)cuma->totpoint-1);
-			cuma->curve[i].y= 0.5;
-		}
-		
-		if(cuma->table) {
-			MEM_freeN(cuma->table);
-			cuma->table= NULL;
-		}
+		curvemap_reset(cuma, &cumapping->clipr, cumapping->preset);
 	}
 	
 	/* default to showing Saturation */

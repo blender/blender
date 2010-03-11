@@ -30,28 +30,30 @@
 
 /* ********* exports for space_view3d/ module ********** */
 struct ARegion;
-struct BoundBox;
-struct View3D;
-struct RegionView3D;
-struct ViewContext;
-struct bglMats;
-struct BPoint;
-struct Nurb;
+struct bContext;
 struct BezTriple;
-struct EditVert;
+struct bglMats;
+struct BoundBox;
+struct BPoint;
 struct EditEdge;
 struct EditFace;
+struct EditVert;
 struct ImBuf;
-struct Scene;
-struct bContext;
 struct Main;
+struct Nurb;
+struct Object;
 struct rcti;
+struct RegionView3D;
+struct Scene;
+struct View3D;
+struct ViewContext;
+
 
 /* for derivedmesh drawing callbacks, for view3d_select, .... */
 typedef struct ViewContext {
 	Scene *scene;
-	Object *obact;
-	Object *obedit;
+	struct Object *obact;
+	struct Object *obedit;
 	struct ARegion *ar;
 	struct View3D *v3d;
 	struct RegionView3D *rv3d;
@@ -98,6 +100,7 @@ void viewvector(struct RegionView3D *rv3d, float coord[3], float vec[3]);
 void viewline(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_start[3], float ray_end[3]);
 void viewray(struct ARegion *ar, struct View3D *v3d, float mval[2], float ray_start[3], float ray_normal[3]);
 
+int get_view3d_cliprange(struct View3D *v3d, struct RegionView3D *rv3d, float *clipsta, float *clipend);
 int get_view3d_viewplane(struct View3D *v3d, struct RegionView3D *rv3d, int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
 int get_view3d_ortho(struct View3D *v3d, struct RegionView3D *rv3d);
 void view3d_get_object_project_mat(struct RegionView3D *v3d, struct Object *ob, float pmat[4][4]);
@@ -156,6 +159,9 @@ int ED_view3d_scene_layer_set(int lay, const int *values);
 int ED_view3d_context_activate(struct bContext *C);
 void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct ARegion *ar,
 	int winx, int winy, float viewmat[][4], float winmat[][4]);
+
+struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey);
+struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height);
 
 void view3d_clipping_local(struct RegionView3D *rv3d, float mat[][4]);
 

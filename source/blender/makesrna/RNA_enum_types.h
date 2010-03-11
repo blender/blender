@@ -48,6 +48,8 @@ extern EnumPropertyItem modifier_type_items[];
 extern EnumPropertyItem constraint_type_items[];
 extern EnumPropertyItem boidrule_type_items[];
 
+extern EnumPropertyItem image_type_items[];
+
 extern EnumPropertyItem beztriple_keyframe_type_items[];
 extern EnumPropertyItem beztriple_handle_type_items[];
 extern EnumPropertyItem beztriple_interpolation_mode_items[];
@@ -90,6 +92,7 @@ EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct Poin
  * in the linked list can add more for different types as needed */
 EnumPropertyItem *RNA_action_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 EnumPropertyItem *RNA_group_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
+EnumPropertyItem *RNA_image_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 EnumPropertyItem *RNA_scene_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);
 
 #endif /* RNA_ENUM_TYPES */

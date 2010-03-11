@@ -186,7 +186,7 @@ PackedFile *newPackedFile(ReportList *reports, char *filename)
 	// convert relative filenames to absolute filenames
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce);
+	BLI_path_abs(name, G.sce);
 	
 	// open the file
 	// and create a PackedFile structure
@@ -274,7 +274,7 @@ int writePackedFile(ReportList *reports, char *filename, PackedFile *pf, int gui
 	if (guimode); //XXX  waitcursor(1);
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce);
+	BLI_path_abs(name, G.sce);
 	
 	if (BLI_exists(name)) {
 		for (number = 1; number <= 999; number++) {
@@ -339,7 +339,7 @@ int checkPackedFile(char *filename, PackedFile *pf)
 	char name[FILE_MAXDIR + FILE_MAXFILE];
 	
 	strcpy(name, filename);
-	BLI_convertstringcode(name, G.sce);
+	BLI_path_abs(name, G.sce);
 	
 	if (stat(name, &st)) {
 		ret_val = PF_NOFILE;

@@ -297,6 +297,7 @@ typedef struct UserDef {
 	char plugseqdir[160];
 	char pythondir[160];
 	char sounddir[160];
+	char image_editor[240];	// FILE_MAX length
 	char anim_player[240];	// FILE_MAX length
 	int anim_player_preset;
 	
@@ -406,6 +407,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_SCRIPT_AUTOEXEC_DISABLE	(1 << 22)
 #define USER_FILENOUI			(1 << 23)
 #define USER_NONEGFRAMES		(1 << 24)
+#define USER_TXT_TABSTOSPACES_DISABLE	(1 << 25)
 
 /* helper macro for checking frame clamping */
 #define FRAMENUMBER_MIN_CLAMP(cfra) \

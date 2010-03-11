@@ -57,6 +57,7 @@
 #include "DNA_object_fluidsim.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_curve_types.h" /* for Curve */
 
 #include "MEM_guardedalloc.h"
 
@@ -1581,6 +1582,42 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 		CustomData_from_em_block(&em->fdata, &dm->faceData, efa->data, i);
 		test_index_face(mf, &dm->faceData, i, efa->v4?4:3);
 	}
+
+	return dm;
+}
+
+DerivedMesh *CDDM_from_curve(Object *ob)
+{
+	return CDDM_from_curve_customDB(ob, &((Curve *)ob->data)->disp);
+}
+
+DerivedMesh *CDDM_from_curve_customDB(Object *ob, ListBase *dispbase)
+{
+	DerivedMesh *dm;
+	CDDerivedMesh *cddm;
+	MVert *allvert;
+	MEdge *alledge;
+	MFace *allface;
+	int totvert, totedge, totface;
+
+	if (nurbs_to_mdata_customdb(ob, dispbase, &allvert, &totvert, &alledge,
+		&totedge, &allface, &totface) != 0) {
+		/* Error initializing mdata. This often happens when curve is empty */
+		return CDDM_new(0, 0, 0);
+	}
+
+	dm = CDDM_new(totvert, totedge, totface);
+	dm->deformedOnly = 1;
+
+	cddm = (CDDerivedMesh*)dm;
+
+	memcpy(cddm->mvert, allvert, totvert*sizeof(MVert));
+	memcpy(cddm->medge, alledge, totedge*sizeof(MEdge));
+	memcpy(cddm->mface, allface, totface*sizeof(MFace));
+
+	MEM_freeN(allvert);
+	MEM_freeN(alledge);
+	MEM_freeN(allface);
 
 	return dm;
 }

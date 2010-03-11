@@ -81,10 +81,6 @@ class VIEW3D_HT_header(bpy.types.Header):
                 if toolsettings.proportional_editing != 'DISABLED':
                     row.prop(toolsettings, "proportional_editing_falloff", text="", icon_only=True)
 
-            # paint save
-            if mode_string == 'PAINT_TEXTURE':
-                row.operator("image.save_dirty", text="Save Edited")
-
         # Snap
         row = layout.row(align=True)
         row.prop(toolsettings, "snap", text="")
@@ -100,8 +96,8 @@ class VIEW3D_HT_header(bpy.types.Header):
 
         # OpenGL render
         row = layout.row(align=True)
-        row.operator("screen.opengl_render", text="", icon='RENDER_STILL')
-        props = row.operator("screen.opengl_render", text="", icon='RENDER_ANIMATION')
+        row.operator("render.opengl", text="", icon='RENDER_STILL')
+        props = row.operator("render.opengl", text="", icon='RENDER_ANIMATION')
         props.animation = True
 
         # Pose

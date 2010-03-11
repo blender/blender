@@ -282,7 +282,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 		char dir_only[FILE_MAX];
 		char file_only[FILE_MAX];
 
-		BLI_split_dirfile_basic(seq_load.path, dir_only, NULL);
+		BLI_split_dirfile(seq_load.path, dir_only, NULL);
 
 		RNA_BEGIN(op->ptr, itemptr, "files") {
 			RNA_string_get(&itemptr, "name", file_only);
@@ -422,7 +422,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 		RNA_END;
 	}
 	else {
-		BLI_split_dirfile_basic(seq_load.path, NULL, se->name);
+		BLI_split_dirfile(seq_load.path, NULL, se->name);
 		if(seq_load.start_frame < seq_load.end_frame) {
 			seq->endstill= seq_load.end_frame - seq_load.start_frame;
 		}

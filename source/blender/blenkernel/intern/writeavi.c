@@ -124,12 +124,12 @@ static void filepath_avi (char *string, RenderData *rd)
 	if (string==NULL) return;
 
 	strcpy(string, rd->pic);
-	BLI_convertstringcode(string, G.sce);
+	BLI_path_abs(string, G.sce);
 
 	BLI_make_existing_file(string);
 
 	if (!BLI_testextensie(string, ".avi")) {
-		BLI_convertstringframe_range(string, rd->sfra, rd->efra, 4);
+		BLI_path_frame_range(string, rd->sfra, rd->efra, 4);
 		strcat(string, ".avi");
 	}
 }

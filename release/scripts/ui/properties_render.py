@@ -53,11 +53,11 @@ class RENDER_PT_render(RenderButtonsPanel):
         split = layout.split()
 
         col = split.column()
-        col.operator("screen.render", text="Image", icon='RENDER_STILL')
+        col.operator("render.render", text="Image", icon='RENDER_STILL')
 
         if wide_ui:
             col = split.column()
-        col.operator("screen.render", text="Animation", icon='RENDER_ANIMATION').animation = True
+        col.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
 
         layout.prop(rd, "display_mode", text="Display")
 

@@ -277,19 +277,26 @@ void POSE_OT_paths_calculate (wmOperatorType *ot)
 void ED_pose_clear_paths(Object *ob)
 {
 	bPoseChannel *pchan;
+	short skipped = 0;
 	
 	if ELEM(NULL, ob, ob->pose)
 		return;
 	
-	/* free the motionpath blocks */
+	/* free the motionpath blocks, but also take note of whether we skipped some... */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
-			if (pchan->mpath) {
+		if (pchan->mpath) {
+			if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
 				animviz_free_motionpath(pchan->mpath);
 				pchan->mpath= NULL;
 			}
+			else 
+				skipped = 1;
 		}
 	}
+	
+	/* if we didn't skip any, we shouldn't have any paths left */
+	if (skipped == 0)
+		ob->pose->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
 }
 
 /* operator callback for this */

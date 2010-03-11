@@ -30,6 +30,8 @@
 #define RENDER_INTERN_H
 
 struct wmOperatorType;
+struct RenderResult;
+struct Scene;
 
 /* render_shading.c */
 void OBJECT_OT_material_slot_add(struct wmOperatorType *ot);
@@ -46,6 +48,9 @@ void WORLD_OT_new(struct wmOperatorType *ot);
 void MATERIAL_OT_copy(struct wmOperatorType *ot);
 void MATERIAL_OT_paste(struct wmOperatorType *ot);
 
+void MATERIAL_OT_mtex_copy(struct wmOperatorType *ot);
+void MATERIAL_OT_mtex_paste(struct wmOperatorType *ot);
+
 void SCENE_OT_render_layer_add(struct wmOperatorType *ot);
 void SCENE_OT_render_layer_remove(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_add(struct wmOperatorType *ot);
@@ -54,7 +59,21 @@ void SCENE_OT_freestyle_module_move_up(struct wmOperatorType *ot);
 void SCENE_OT_freestyle_module_move_down(struct wmOperatorType *ot);
 
 void TEXTURE_OT_slot_move(struct wmOperatorType *ot);
+void TEXTURE_OT_envmap_save(struct wmOperatorType *ot);
+void TEXTURE_OT_envmap_clear(struct wmOperatorType *ot);
+void TEXTURE_OT_envmap_clear_all(struct wmOperatorType *ot);
 
+/* render_internal.c */
+void RENDER_OT_view_show(struct wmOperatorType *ot);
+void RENDER_OT_render(struct wmOperatorType *ot);
+void RENDER_OT_view_cancel(struct wmOperatorType *ot);
+
+/*render_opengl.c uses these */
+void image_buffer_rect_update(struct Scene *scene, struct RenderResult *rr, struct ImBuf *ibuf, volatile struct rcti *renrect);
+void screen_set_image_output(struct bContext *C, int mx, int my);
+
+/* render_opengl.c */
+void RENDER_OT_opengl(struct wmOperatorType *ot);
 
 #endif /* RENDER_INTERN_H */
 

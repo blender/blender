@@ -463,7 +463,7 @@ def main(obj, bone_definition, base_names, options):
 
     # last step setup layers
     if "ex_layer" in options:
-        layer = [n==options["ex_layer"] for n in range(0,32)]
+        layer = [n == options["ex_layer"] for n in range(0, 32)]
     else:
         layer = list(arm.bones[bone_definition[1]].layer)
     for attr in ex.attr_names:

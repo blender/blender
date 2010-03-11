@@ -1291,6 +1291,7 @@ static void make_prim_ext(bContext *C, float *loc, float *rot, int enter_editmod
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 
 	dia *= ED_object_new_primitive_matrix(C, loc, rot, mat);
+	depth *= ED_object_new_primitive_matrix(C, loc, rot, mat);
 
 	make_prim(obedit, type, mat, tot, seg, subdiv, dia, depth, ext, fill);
 
