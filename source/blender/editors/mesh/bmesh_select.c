@@ -1242,7 +1242,7 @@ static void mouse_mesh_shortest_path(bContext *C, short mval[2])
 		}
 		if (path==0) {
 			int act = (edgetag_context_check(vc.scene, eed)==0);
-			edgetag_context_set(vc.scene, eed, act); /* switch the edge option */
+			edgetag_context_set(em, vc.scene, eed, act); /* switch the edge option */
 		}
 		
 		EM_selectmode_flush(em);

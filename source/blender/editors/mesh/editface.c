@@ -349,7 +349,7 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 					mf->flag &= ~ME_FACE_SEL;
 		}
 		else {
-			for(a=0, mf=me->mface; a<me->totpoly; a++, mf++)
+			for(a=0, mf=me->mpoly; a<me->totpoly; a++, mf++)
 				if(linkflag[a])
 					mf->flag |= ME_FACE_SEL;
 		}
@@ -680,7 +680,7 @@ int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *
 
 		mednum = BMINDEX_GET(target);
 		do {
-			eed = EDBM_get_edge_for_index(eed, mednum);
+			eed = EDBM_get_edge_for_index(em, mednum);
 			if (!edgetag_context_check(scene, eed)) {
 				allseams = 0;
 				break;

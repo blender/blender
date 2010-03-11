@@ -91,8 +91,8 @@ void EDBM_stats_update(struct BMEditMesh *em);
 /* ******************** editface.c */
 
 int edgetag_context_check(Scene *scene, BMEdge *eed);
-void edgetag_context_set(Scene *scene, BMEdge *eed, int val);
-int edgetag_shortest_path(Scene *scene, BMEditMesh *em, EditEdge *source, EditEdge *target);
+void edgetag_context_set(BMEditMesh *em, Scene *scene, BMEdge *eed, int val);
+int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, BMEdge *target);
 
 /* ******************* editmesh.c */
 
