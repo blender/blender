@@ -1113,7 +1113,7 @@ static void emDM_drawFacesTex_common(void *dm,
 
 static void emDM_drawFacesTex(void *dm, int (*setDrawOptions)(MTFace *tface, int has_vcol, int matnr))
 {
-	emDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
+	emDM_drawFacesTex_common(dm, (int (*)(struct MTFace *, struct MCol *, int))setDrawOptions, NULL, NULL);
 }
 
 static void emDM_drawMappedFacesTex(void *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
@@ -1843,7 +1843,8 @@ static void add_weight_mcol_dm(Object *ob, DerivedMesh *dm)
 		dliter = dfiter->getLoopsIter(dfiter);
 		for (; !dliter->done; dliter->step(dliter), totloop++) {
 			BLI_array_growone(wlcol);
-			calc_weightpaint_vert_color(ob, coba, dliter->vindex, &wlcol[totloop]);			 
+			calc_weightpaint_vert_color(ob, coba, dliter->vindex, (unsigned
+char *)&wlcol[totloop]);			 
 		}
 	}
 

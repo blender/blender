@@ -59,6 +59,7 @@
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "RE_pipeline.h"	// make_stars
 
@@ -1366,7 +1367,7 @@ static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview wi
 		}
 	}
 	else if (paint_facesel_test(ob)) {
-		ok= minmax_tface(ob, min, max);
+		ok= minmax_tface(scene, min, max);
 	}
 	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
 		ok= PE_minmax(scene, min, max);

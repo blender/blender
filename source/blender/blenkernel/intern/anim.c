@@ -55,6 +55,7 @@
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_windowmanager_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
 

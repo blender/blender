@@ -28,6 +28,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 
 #include "BLI_math.h"
 #include "BLI_rand.h"
@@ -35,6 +36,7 @@
 #include "BLI_array.h"
 
 #include "DNA_object_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "ED_mesh.h"
 

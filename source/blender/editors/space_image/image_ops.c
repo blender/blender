@@ -40,6 +40,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_context.h"
@@ -52,6 +53,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
+#include "BKE_tessmesh.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -65,6 +67,8 @@
 #include "RNA_define.h"
 #include "RNA_types.h"
 #include "RNA_enum_types.h"
+
+#include "bmesh.h"
 
 #include "ED_image.h"
 #include "ED_screen.h"

@@ -86,6 +86,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_bvhutils.h"
+#include "BKE_tessmesh.h"
 
 struct MVert;
 struct MEdge;
@@ -641,7 +642,7 @@ void makeDerivedMesh(struct Scene *scene, struct Object *ob, struct BMEditMesh *
 
 /* returns an array of deform matrices for crazyspace correction, and the
    number of modifiers left */
-int editbmesh_get_first_deform_matrices(struct Scene *, struct Object *, struct EditMesh *em,
+int editbmesh_get_first_deform_matrices(struct Scene *, struct Object *, struct BMEditMesh *em,
                                        float (**deformmats)[3][3], float (**deformcos)[3]);
 
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);

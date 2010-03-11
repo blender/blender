@@ -62,8 +62,9 @@
 #include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_utildefines.h"
+#include "BKE_tessmesh.h"
 #include "BKE_unit.h"
+#include "BKE_utildefines.h"
 
 #include "RE_pipeline.h"	// make_stars
 
