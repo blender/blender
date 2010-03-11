@@ -5374,11 +5374,6 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	if(scene->camera==NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No active camera set.");
-		return OPERATOR_CANCELLED;
-	}
-
 	if(image==NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Image could not be found.");
 		return OPERATOR_CANCELLED;
@@ -5392,15 +5387,8 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* override */
-	ps.is_texbrush= 0;
-	ps.is_airbrush= 1;
-	orig_brush_size= ps.brush->size;
-	ps.brush->size= 32; /* cover the whole image */
-
-	ps.tool= PAINT_TOOL_DRAW; /* so pixels are initialized with minimal info */
-
 	idgroup= IDP_GetProperties(&image->id, 0);
+
 	if(idgroup) {
 		view_data= IDP_GetPropertyFromGroup(idgroup, PROJ_VIEW_DATA_ID);
 
@@ -5411,14 +5399,26 @@ static int texture_paint_camera_project_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-
 	if(view_data) {
 		/* image has stored view projection info */
 		ps.source= PROJ_SRC_IMAGE_VIEW;
 	}
 	else {
 		ps.source= PROJ_SRC_IMAGE_CAM;
+
+		if(scene->camera==NULL) {
+			BKE_report(op->reports, RPT_ERROR, "No active camera set.");
+			return OPERATOR_CANCELLED;
+		}
 	}
+
+	/* override */
+	ps.is_texbrush= 0;
+	ps.is_airbrush= 1;
+	orig_brush_size= ps.brush->size;
+	ps.brush->size= 32; /* cover the whole image */
+
+	ps.tool= PAINT_TOOL_DRAW; /* so pixels are initialized with minimal info */
 
 	scene->toolsettings->imapaint.flag |= IMAGEPAINT_DRAWING;
 
