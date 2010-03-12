@@ -176,7 +176,7 @@ void shade_input_do_shade(ShadeInput *shi, ShadeResult *shr)
 	}
 	
 	/* copy additional passes */
-	if(shi->passflag & (SCE_PASS_VECTOR|SCE_PASS_NORMAL|SCE_PASS_RADIO)) {
+	if(shi->passflag & (SCE_PASS_VECTOR|SCE_PASS_NORMAL)) {
 		QUATCOPY(shr->winspeed, shi->winspeed);
 		VECCOPY(shr->nor, shi->vn);
 	}

@@ -486,9 +486,6 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
 				break;
-			case SCE_PASS_RADIO:
-				col= NULL; // removed shr->rad;
-				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
 				break;
@@ -592,9 +589,6 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 				break;
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
-				break;
-			case SCE_PASS_RADIO:
-				col= NULL; // removed shr->rad;
 				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;

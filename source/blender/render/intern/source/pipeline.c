@@ -368,12 +368,6 @@ static char *get_pass_name(int passtype, int channel)
 		if(channel==1) return "Refract.G";
 		return "Refract.B";
 	}
-	if(passtype == SCE_PASS_RADIO) {
-		if(channel==-1) return "Radio";
-		if(channel==0) return "Radio.R";
-		if(channel==1) return "Radio.G";
-		return "Radio.B";
-	}
 	if(passtype == SCE_PASS_INDEXOB) {
 		if(channel==-1) return "IndexOB";
 		return "IndexOB.X";
@@ -439,9 +433,6 @@ static int passtype_from_name(char *str)
 
 	if(strcmp(str, "Refract")==0)
 		return SCE_PASS_REFRACT;
-
-	if(strcmp(str, "Radio")==0)
-		return SCE_PASS_RADIO;
 
 	if(strcmp(str, "IndexOB")==0)
 		return SCE_PASS_INDEXOB;
@@ -622,8 +613,6 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_REFLECT);
 		if(srl->passflag  & SCE_PASS_REFRACT)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
-		if(srl->passflag  & SCE_PASS_RADIO)
-			render_layer_add_pass(rr, rl, 3, SCE_PASS_RADIO);
 		if(srl->passflag  & SCE_PASS_INDEXOB)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
 		if(srl->passflag  & SCE_PASS_MIST)

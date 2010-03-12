@@ -46,9 +46,11 @@ static bNodeSocketType cmp_node_rlayers_out[]= {
 	{	SOCK_RGBA, 0, "AO",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, "Reflect",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA, 0, "Refract",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_RGBA, 0, "Radio",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Indirect",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "IndexOB",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "Mist",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Emit",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Environment",0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -176,13 +178,16 @@ void outputs_multilayer_get(RenderData *rd, RenderLayer *rl, bNodeStack **out, I
 		out[RRES_OUT_REFLECT]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_REFLECT);
 	if(out[RRES_OUT_REFRACT]->hasoutput)
 		out[RRES_OUT_REFRACT]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_REFRACT);
-	if(out[RRES_OUT_RADIO]->hasoutput)
-		out[RRES_OUT_RADIO]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_RADIO);
+	if(out[RRES_OUT_INDIRECT]->hasoutput)
+		out[RRES_OUT_INDIRECT]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_INDIRECT);
 	if(out[RRES_OUT_INDEXOB]->hasoutput)
 		out[RRES_OUT_INDEXOB]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_INDEXOB);
 	if(out[RRES_OUT_MIST]->hasoutput)
 		out[RRES_OUT_MIST]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_MIST);
-	
+	if(out[RRES_OUT_EMIT]->hasoutput)
+		out[RRES_OUT_EMIT]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_EMIT);
+	if(out[RRES_OUT_ENV]->hasoutput)
+		out[RRES_OUT_ENV]->data= compbuf_multilayer_get(rd, rl, ima, iuser, SCE_PASS_ENVIRONMENT);
 };
 
 
@@ -334,13 +339,16 @@ void node_composit_rlayers_out(RenderData *rd, RenderLayer *rl, bNodeStack **out
       out[RRES_OUT_REFLECT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_REFLECT);
    if(out[RRES_OUT_REFRACT]->hasoutput)
       out[RRES_OUT_REFRACT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_REFRACT);
-   if(out[RRES_OUT_RADIO]->hasoutput)
-      out[RRES_OUT_RADIO]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_RADIO);
+   if(out[RRES_OUT_INDIRECT]->hasoutput)
+      out[RRES_OUT_INDIRECT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_INDIRECT);
    if(out[RRES_OUT_INDEXOB]->hasoutput)
 	   out[RRES_OUT_INDEXOB]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_INDEXOB);
    if(out[RRES_OUT_MIST]->hasoutput)
 	   out[RRES_OUT_MIST]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_MIST);
-
+   if(out[RRES_OUT_EMIT]->hasoutput)
+	   out[RRES_OUT_EMIT]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_EMIT);
+   if(out[RRES_OUT_ENV]->hasoutput)
+	   out[RRES_OUT_ENV]->data= compbuf_from_pass(rd, rl, rectx, recty, SCE_PASS_ENVIRONMENT);
 };
 
 static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **in, bNodeStack **out)

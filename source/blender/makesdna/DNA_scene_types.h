@@ -183,12 +183,11 @@ typedef struct SceneRenderLayer {
 #define SCE_PASS_REFRACT		1024
 #define SCE_PASS_INDEXOB		2048
 #define SCE_PASS_UV				4096
-#define SCE_PASS_RADIO			8192 /* Radio removed, can use for new GI? */
+#define SCE_PASS_INDIRECT		8192
 #define SCE_PASS_MIST			16384
 #define SCE_PASS_RAYHITS		32768
 #define SCE_PASS_EMIT			65536
 #define SCE_PASS_ENVIRONMENT	131072
-#define SCE_PASS_INDIRECT		262144
 
 /* note, srl->passflag is treestore element 'nr' in outliner, short still... */
 
