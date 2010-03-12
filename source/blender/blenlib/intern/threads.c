@@ -229,8 +229,8 @@ void BLI_remove_thread(ListBase *threadbase, void *callerdata)
 	
 	for(tslot= threadbase->first; tslot; tslot= tslot->next) {
 		if(tslot->callerdata==callerdata) {
-			tslot->callerdata= NULL;
 			pthread_join(tslot->pthread, NULL);
+			tslot->callerdata= NULL;
 			tslot->avail= 1;
 		}
 	}
@@ -243,8 +243,8 @@ void BLI_remove_thread_index(ListBase *threadbase, int index)
 	
 	for(tslot = threadbase->first; tslot; tslot = tslot->next, counter++) {
 		if (counter == index && tslot->avail == 0) {
-			tslot->callerdata = NULL;
 			pthread_join(tslot->pthread, NULL);
+			tslot->callerdata = NULL;
 			tslot->avail = 1;
 			break;
 		}
@@ -257,8 +257,8 @@ void BLI_remove_threads(ListBase *threadbase)
 	
 	for(tslot = threadbase->first; tslot; tslot = tslot->next) {
 		if (tslot->avail == 0) {
-			tslot->callerdata = NULL;
 			pthread_join(tslot->pthread, NULL);
+			tslot->callerdata = NULL;
 			tslot->avail = 1;
 		}
 	}
