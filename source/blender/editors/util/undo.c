@@ -140,6 +140,8 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 				undo_editmode_name(C, undoname);
 			else
 				undo_editmode_step(C, step);
+
+			WM_event_add_notifier(C, NC_GEOM|ND_DATA, NULL);
 		}
 	}
 	else {
