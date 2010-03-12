@@ -443,7 +443,7 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 
 /* Prototype, see functions below */
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
-										 TreeElement *parent, short type, short index);
+										 TreeElement *parent, short type, int index);
 
 
 static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
@@ -564,7 +564,7 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 }
 
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
-										 TreeElement *parent, short type, short index)
+										 TreeElement *parent, short type, int index)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -1234,7 +1234,7 @@ int need_add_seq_dup(Sequence *seq)
 	return(1);
 }
 
-void add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, short index)
+void add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, int index)
 {
 	TreeElement *ch;
 	Sequence *p;

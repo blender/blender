@@ -45,7 +45,8 @@ typedef struct TreeElement {
 	ListBase subtree;
 	float xs, ys;		// do selection
 	int store_index;	// offset in tree store
-	short flag, index;	// flag for non-saved stuff, index for data arrays
+	short flag;			// flag for non-saved stuff
+	int index;			// index for data arrays
 	short idcode;		// from TreeStore id
 	short xend;			// width of item display, for select
 	char *name;

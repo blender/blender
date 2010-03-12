@@ -1773,13 +1773,6 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		shr->combined[0]+= shi->ambr;
 		shr->combined[1]+= shi->ambg;
 		shr->combined[2]+= shi->ambb;
-
-		/* removed
-		if(shi->combinedflag & SCE_PASS_RADIO) {
-			shr->combined[0]+= shi->r*shi->amb*shi->rad[0];
-			shr->combined[1]+= shi->g*shi->amb*shi->rad[1];
-			shr->combined[2]+= shi->b*shi->amb*shi->rad[2];
-		}*/
 		
 		if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(shr->combined, shi);
 	}

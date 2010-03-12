@@ -4674,8 +4674,7 @@ static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd
 
 	/* don't allow lamp, animated duplis, or radio render */
 	return (render_object_type(obd->type) &&
-	        (!(dob->type == OB_DUPLIGROUP) || !dob->animated) &&
-	        !(re->r.mode & R_RADIO));
+	        (!(dob->type == OB_DUPLIGROUP) || !dob->animated));
 }
 
 static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, int level, int enable)
@@ -5027,11 +5026,6 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		/* yafray: 'direct' radiosity, environment maps and raytree init not needed for yafray render */
 		/* although radio mode could be useful at some point, later */
 		if (re->r.renderer==R_INTERN) {
-#if 0		/* RADIO was removed */
-			/* RADIO (uses no R anymore) */
-			if(!re->test_break(re->tbh))
-				if(re->r.mode & R_RADIO) do_radio_render(re);
-#endif
 			/* raytree */
 			if(!re->test_break(re->tbh)) {
 				if(re->r.mode & R_RAYTRACE) {
