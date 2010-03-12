@@ -540,7 +540,7 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 	float vec[4];
 	int a;
 	
-	if(rv3d->persp != RV3D_ORTHO){
+	if(!get_view3d_ortho(v3d, rv3d)) {
 		vec[0]= 2.0f * mval[0] / ar->winx - 1;
 		vec[1]= 2.0f * mval[1] / ar->winy - 1;
 		vec[2]= -1.0f;
