@@ -110,7 +110,7 @@ def clientConnection(address, port, report = None, scan = True):
             return None
 
     try:
-        conn = http.client.HTTPConnection(address, port)
+        conn = http.client.HTTPConnection(address, port, timeout = 5)
 
         if conn:
             if clientVerifyVersion(conn):
