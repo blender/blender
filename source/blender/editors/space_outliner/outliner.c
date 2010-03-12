@@ -443,7 +443,7 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 
 /* Prototype, see functions below */
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
-										 TreeElement *parent, short type, int index);
+										 TreeElement *parent, short type, short index);
 
 
 static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, SceneRenderLayer *srl)
@@ -515,13 +515,15 @@ static void outliner_add_passes(SpaceOops *soops, TreeElement *tenla, ID *id, Sc
 	te->name= "Indirect";
 	te->directdata= &srl->passflag;
 
+	/* TODO SCE_PASS_ENVIRONMENT/EMIT overflow short..
+
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_ENVIRONMENT);
 	te->name= "Environment";
 	te->directdata= &srl->passflag;
 
 	te= outliner_add_element(soops, &tenla->subtree, id, tenla, TSE_R_PASS, SCE_PASS_EMIT);
 	te->name= "Emit";
-	te->directdata= &srl->passflag;
+	te->directdata= &srl->passflag;*/
 }
 
 
@@ -564,7 +566,7 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 }
 
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
-										 TreeElement *parent, short type, int index)
+										 TreeElement *parent, short type, short index)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -1234,7 +1236,7 @@ int need_add_seq_dup(Sequence *seq)
 	return(1);
 }
 
-void add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, int index)
+void add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *te, short index)
 {
 	TreeElement *ch;
 	Sequence *p;

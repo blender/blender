@@ -46,7 +46,7 @@ typedef struct TreeElement {
 	float xs, ys;		// do selection
 	int store_index;	// offset in tree store
 	short flag;			// flag for non-saved stuff
-	int index;			// index for data arrays
+	short index;		// index for data arrays
 	short idcode;		// from TreeStore id
 	short xend;			// width of item display, for select
 	char *name;
