@@ -831,8 +831,11 @@ static void PE_apply_mirror(Object *ob, ParticleSystem *psys)
 	edit= psys->edit;
 	psmd= psys_get_modifier(ob, psys);
 
-	if(!edit->mirror_cache || !psmd->dm)
+	if(!psmd->dm)
 		return;
+
+	if(!edit->mirror_cache)
+		PE_update_mirror_cache(ob, psys);
 
 	/* we delay settings the PARS_EDIT_RECALC for mirrored particles
 	 * to avoid doing mirror twice */
