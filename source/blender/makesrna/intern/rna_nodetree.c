@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Blender Foundation (2008), Nathan Letwory, Robin Allen
+ * Contributor(s): Blender Foundation (2008), Nathan Letwory, Robin Allen, Bob Holcomb
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -1287,11 +1287,22 @@ static void def_cmp_distance_matte(StructRNA *srna)
 static void def_cmp_color_spill(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
+
 	static EnumPropertyItem channel_items[] = {
 		{1, "R", 0, "R", "Red Spill Suppression"},
 		{2, "G", 0, "G", "Green Spill Suppression"},
 		{3, "B", 0, "B", "Blue Spill Suppression"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem limit_channel_items[] = {
+		{1, "R", 0, "R", "Limit by Red"},
+		{2, "G", 0, "G", "Limit by Green"},
+		{3, "B", 0, "B", "Limit by Blue"},
+		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem algorithm_items[] = {
+		{0, "SIMPLE", 0, "Simple", "Simple Limit Algorithm"},
+		{1, "AVERAGE", 0, "Average", "Average Limit Algorithm"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	prop = RNA_def_property(srna, "channel", PROP_ENUM, PROP_NONE);
@@ -1300,12 +1311,47 @@ static void def_cmp_color_spill(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Channel", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
-	RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
-	
-	prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "t1");
-	RNA_def_property_range(prop, 0.0f, 0.5f);
-	RNA_def_property_ui_text(prop, "Amount", "How much the selected channel is affected by");
+	prop = RNA_def_property(srna, "algorithm", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom2");
+	RNA_def_property_enum_items(prop, algorithm_items);
+	RNA_def_property_ui_text(prop, "Algorithm", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "NodeColorspill", "storage");
+
+	prop = RNA_def_property(srna, "limit_channel", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "limchan");
+	RNA_def_property_enum_items(prop, limit_channel_items);
+	RNA_def_property_ui_text(prop, "Limit Channel", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "limscale");
+	RNA_def_property_range(prop, 0.5f, 1.5f);
+	RNA_def_property_ui_text(prop, "Ratio", "Scale limit by value");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "unspill", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "unspill", 0);
+	RNA_def_property_ui_text(prop, "Unspill", "Compensate all channels (diffenrently) by hand");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "unspill_red", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "uspillr");
+	RNA_def_property_range(prop, 0.0f, 1.5f);
+	RNA_def_property_ui_text(prop, "R", "Red spillmap scale");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "unspill_green", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "uspillg");
+	RNA_def_property_range(prop, 0.0f, 1.5f);
+	RNA_def_property_ui_text(prop, "G", "Green spillmap scale");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "unspill_blue", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "uspillb");
+	RNA_def_property_range(prop, 0.0f, 1.5f);
+	RNA_def_property_ui_text(prop, "B", "Blue spillmap scale");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
