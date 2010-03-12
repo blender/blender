@@ -428,10 +428,9 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 	int ltexid= glaGetOneInteger(GL_TEXTURE_2D);
 	int lrowlength= glaGetOneInteger(GL_UNPACK_ROW_LENGTH);
 	int subpart_x, subpart_y, tex_w, tex_h;
+	int seamless, offset_x, offset_y, nsubparts_x, nsubparts_y;
 	int texid= get_cached_work_texture(&tex_w, &tex_h);
-	int nsubparts_x= (img_w+(tex_w-1))/tex_w;
-	int nsubparts_y= (img_h+(tex_h-1))/tex_h;
-
+	
 	/* Specify the color outside this function, and tex will modulate it.
 	 * This is useful for changing alpha without using glPixelTransferf()
 	 */
@@ -448,31 +447,67 @@ void glaDrawPixelsTexScaled(float x, float y, int img_w, int img_h, int format, 
 	glPixelZoom(1.f, 1.f);
 #endif
 	
+	/* setup seamless 2=on, 0=off */
+	seamless= ((tex_w<img_w || tex_h<img_h) && tex_w>2 && tex_h>2)? 2: 0;
+	
+	offset_x= tex_w - seamless;
+	offset_y= tex_h - seamless;
+	
+	nsubparts_x= (img_w + (offset_x - 1))/(offset_x);
+	nsubparts_y= (img_h + (offset_y - 1))/(offset_y);
+
 	for (subpart_y=0; subpart_y<nsubparts_y; subpart_y++) {
 		for (subpart_x=0; subpart_x<nsubparts_x; subpart_x++) {
-			int subpart_w= (subpart_x==nsubparts_x-1)?(img_w-subpart_x*tex_w):tex_w;
-			int subpart_h= (subpart_y==nsubparts_y-1)?(img_h-subpart_y*tex_h):tex_h;
-			float rast_x= x+subpart_x*tex_w*xzoom;
-			float rast_y= y+subpart_y*tex_h*yzoom;
+			int remainder_x= img_w-subpart_x*offset_x;
+			int remainder_y= img_h-subpart_y*offset_y;
+			int subpart_w= (remainder_x<tex_w)? remainder_x: tex_w;
+			int subpart_h= (remainder_y<tex_h)? remainder_y: tex_h;
+			int offset_left= (seamless && subpart_x!=0)? 1: 0;
+			int offset_bot= (seamless && subpart_y!=0)? 1: 0;
+			int offset_right= (seamless && remainder_x>tex_w)? 1: 0;
+			int offset_top= (seamless && remainder_y>tex_h)? 1: 0;
+			float rast_x= x+subpart_x*offset_x*xzoom;
+			float rast_y= y+subpart_y*offset_y*yzoom;
 			
-			if(format==GL_FLOAT)
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, GL_RGBA, GL_FLOAT, &f_rect[(subpart_y*tex_w)*img_w*4 + (subpart_x*tex_w)*4]);
-			else
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, GL_RGBA, GL_UNSIGNED_BYTE, &uc_rect[(subpart_y*tex_w)*img_w*4 + (subpart_x*tex_w)*4]);
-							
+			/* check if we already got these because we always get 2 more when doing seamless*/
+			if(subpart_w<=seamless || subpart_h<=seamless)
+				continue;
+			
+			if(format==GL_FLOAT) {
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, GL_RGBA, GL_FLOAT, &f_rect[subpart_y*offset_y*img_w*4 + subpart_x*offset_x*4]);
+				
+				/* add an extra border of pixels so linear looks ok at edges of full image. */
+				if(subpart_w<tex_w)
+					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, 0, 1, subpart_h, GL_RGBA, GL_FLOAT, &f_rect[subpart_y*offset_y*img_w*4 + (subpart_x*offset_x+subpart_w-1)*4]);
+				if(subpart_h<tex_h)
+					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, subpart_h, subpart_w, 1, GL_RGBA, GL_FLOAT, &f_rect[(subpart_y*offset_y+subpart_h-1)*img_w*4 + subpart_x*offset_x*4]);
+				if(subpart_w<tex_w && subpart_h<tex_h)
+					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, subpart_h, 1, 1, GL_RGBA, GL_FLOAT, &f_rect[(subpart_y*offset_y+subpart_h-1)*img_w*4 + (subpart_x*offset_x+subpart_w-1)*4]);
+			}
+			else {
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, subpart_w, subpart_h, GL_RGBA, GL_UNSIGNED_BYTE, &uc_rect[subpart_y*offset_y*img_w*4 + subpart_x*offset_x*4]);
+				
+				if(subpart_w<tex_w)
+					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, 0, 1, subpart_h, GL_RGBA, GL_UNSIGNED_BYTE, &uc_rect[subpart_y*offset_y*img_w*4 + (subpart_x*offset_x+subpart_w-1)*4]);
+				if(subpart_h<tex_h)
+					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, subpart_h, subpart_w, 1, GL_RGBA, GL_UNSIGNED_BYTE, &uc_rect[(subpart_y*offset_y+subpart_h-1)*img_w*4 + subpart_x*offset_x*4]);
+				if(subpart_w<tex_w && subpart_h<tex_h)
+					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, subpart_h, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &uc_rect[(subpart_y*offset_y+subpart_h-1)*img_w*4 + (subpart_x*offset_x+subpart_w-1)*4]);
+			}
+
 			glEnable(GL_TEXTURE_2D);
 			glBegin(GL_QUADS);
-			glTexCoord2f(0, 0);
-			glVertex2f(rast_x, rast_y);
+			glTexCoord2f((float)(0 + offset_left)/tex_w, (float)(0 + offset_bot)/tex_h);
+			glVertex2f(rast_x + (float)offset_left*xzoom, rast_y + (float)offset_bot*xzoom);
 
-			glTexCoord2f((float) (subpart_w-1)/tex_w, 0);
-			glVertex2f(rast_x+subpart_w*xzoom*scaleX, rast_y);
+			glTexCoord2f((float)(subpart_w - offset_right)/tex_w, (float)(0 + offset_bot)/tex_h);
+			glVertex2f(rast_x + (float)(subpart_w - offset_right)*xzoom*scaleX, rast_y + (float)offset_bot*xzoom);
 
-			glTexCoord2f((float) (subpart_w-1)/tex_w, (float) (subpart_h-1)/tex_h);
-			glVertex2f(rast_x+subpart_w*xzoom*scaleX, rast_y+subpart_h*yzoom*scaleY);
+			glTexCoord2f((float)(subpart_w - offset_right)/tex_w, (float)(subpart_h - offset_top)/tex_h);
+			glVertex2f(rast_x + (float)(subpart_w - offset_right)*xzoom*scaleX, rast_y + (float)(subpart_h - offset_top)*yzoom*scaleY);
 
-			glTexCoord2f(0, (float) (subpart_h-1)/tex_h);
-			glVertex2f(rast_x, rast_y+subpart_h*yzoom*scaleY);
+			glTexCoord2f((float)(0 + offset_left)/tex_w, (float)(subpart_h - offset_top)/tex_h);
+			glVertex2f(rast_x + (float)offset_left*xzoom, rast_y + (float)(subpart_h - offset_top)*yzoom*scaleY);
 			glEnd();
 			glDisable(GL_TEXTURE_2D);
 		}
