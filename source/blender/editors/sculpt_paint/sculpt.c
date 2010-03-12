@@ -193,12 +193,18 @@ static void projectf(bglMats *mats, const float v[3], float p[2])
 int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 			    Object *ob, rcti *rect)
 {
+	/* can't use ob->sculpt->tree, only valid during sculpt */
+	DerivedMesh *dm= ob->derivedFinal;
+	PBVH *tree= (dm)? dm->getPBVH(ob, dm): NULL;
 	float bb_min[3], bb_max[3], pmat[4][4];
 	int i, j, k;
 
 	view3d_get_object_project_mat(rv3d, ob, pmat);
 
-	BLI_pbvh_redraw_BB(ob->sculpt->tree, bb_min, bb_max);
+	if(!tree)
+		return 0;
+
+	BLI_pbvh_redraw_BB(tree, bb_min, bb_max);
 
 	rect->xmin = rect->ymin = INT_MAX;
 	rect->xmax = rect->ymax = INT_MIN;
@@ -228,6 +234,8 @@ int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 			      RegionView3D *rv3d, Object *ob)
 {
+	DerivedMesh *dm= ob->derivedFinal;
+	PBVH *tree= (dm)? dm->getPBVH(ob, dm): NULL;
 	BoundBox *bb = MEM_callocN(sizeof(BoundBox), "sculpt boundbox");
 	bglMats mats;
 	rcti rect;
@@ -256,7 +264,8 @@ void sculpt_get_redraw_planes(float planes[4][4], ARegion *ar,
 	MEM_freeN(bb);
 
 	/* clear redraw flag from nodes */
-	BLI_pbvh_update(ob->sculpt->tree, PBVH_UpdateRedraw, NULL);
+	if(tree)
+		BLI_pbvh_update(tree, PBVH_UpdateRedraw, NULL);
 }
 
 /************************** Undo *************************/
