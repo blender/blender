@@ -4255,6 +4255,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	Object *obedit= CTX_data_edit_object(C);
 
 	adduplicateflagNurb(obedit, 1);
+	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }

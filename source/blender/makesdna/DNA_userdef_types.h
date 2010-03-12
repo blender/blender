@@ -200,6 +200,10 @@ typedef struct ThemeSpace {
 	char bone_solid[4], bone_pose[4];
 	char strip[4], strip_select[4];
 	char cframe[4];
+	char nurb_uline[4], nurb_vline[4];
+	char act_spline[4], nurb_sel_uline[4], nurb_sel_vline[4];
+	char handle_free[4], handle_auto[4], handle_vect[4], handle_align[4];
+	char handle_sel_free[4], handle_sel_auto[4], handle_sel_vect[4], handle_sel_align[4];
 	char ds_channel[4], ds_subchannel[4]; // dopesheet
 	
 	char console_output[4], console_input[4], console_info[4], console_error[4];

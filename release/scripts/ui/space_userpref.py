@@ -658,6 +658,19 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "object_grouped")
             col.prop(v3d, "object_grouped_active")
             col.prop(v3d, "transform")
+            col.prop(v3d, "nurb_uline")
+            col.prop(v3d, "nurb_vline")
+            col.prop(v3d, "nurb_sel_uline")
+            col.prop(v3d, "nurb_sel_vline")
+            col.prop(v3d, "handle_free")
+            col.prop(v3d, "handle_auto")
+            col.prop(v3d, "handle_vect")
+            col.prop(v3d, "handle_align")
+            col.prop(v3d, "handle_sel_free")
+            col.prop(v3d, "handle_sel_auto")
+            col.prop(v3d, "handle_sel_vect")
+            col.prop(v3d, "handle_sel_align")
+            col.prop(v3d, "act_spline")
 
             col = split.column()
             col.prop(v3d, "vertex")
@@ -666,6 +679,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "vertex_normal")
             col.prop(v3d, "bone_solid")
             col.prop(v3d, "bone_pose")
+            col.prop(v3d, "edge_seam")
             #col.prop(v3d, "edge") Doesn't seem to work
 
         elif theme.theme_area == 'GRAPH_EDITOR':

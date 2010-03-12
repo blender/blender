@@ -305,7 +305,33 @@ char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->strip_select; break;
 			case TH_CFRAME:
 				cp= ts->cframe; break;
-				
+			case TH_NURB_ULINE:
+				cp= ts->nurb_uline; break;
+			case TH_NURB_VLINE:
+				cp= ts->nurb_vline; break;
+			case TH_NURB_SEL_ULINE:
+				cp= ts->nurb_sel_uline; break;
+			case TH_NURB_SEL_VLINE:
+				cp= ts->nurb_sel_vline; break;
+			case TH_ACTIVE_SPLINE:
+				cp= ts->act_spline; break;
+			case TH_HANDLE_FREE:
+				cp= ts->handle_free; break;
+			case TH_HANDLE_AUTO:
+				cp= ts->handle_auto; break;
+			case TH_HANDLE_VECT:
+				cp= ts->handle_vect; break;
+			case TH_HANDLE_ALIGN:
+				cp= ts->handle_align; break;
+			case TH_HANDLE_SEL_FREE:
+				cp= ts->handle_sel_free; break;
+			case TH_HANDLE_SEL_AUTO:
+				cp= ts->handle_sel_auto; break;
+			case TH_HANDLE_SEL_VECT:
+				cp= ts->handle_sel_vect; break;
+			case TH_HANDLE_SEL_ALIGN:
+				cp= ts->handle_sel_align; break;
+
 			case TH_SYNTAX_B:
 				cp= ts->syntaxb; break;
 			case TH_SYNTAX_V:
@@ -494,6 +520,22 @@ void ui_theme_init_userdef(void)
 	SETCOL(btheme->tv3d.face_dot, 255, 133, 0, 255);
 	btheme->tv3d.facedot_size= 4;
 	SETCOL(btheme->tv3d.cframe, 0x60, 0xc0,	 0x40, 255);
+
+	SETCOL(btheme->tv3d.nurb_uline, 0x90, 0x90, 0x00, 255);
+	SETCOL(btheme->tv3d.nurb_vline, 0x80, 0x30, 0x60, 255);
+	SETCOL(btheme->tv3d.nurb_sel_uline, 0xf0, 0xff, 0x40, 255);
+	SETCOL(btheme->tv3d.nurb_sel_vline, 0xf0, 0x90, 0xa0, 255);
+
+	SETCOL(btheme->tv3d.handle_free, 0, 0, 0, 255);
+	SETCOL(btheme->tv3d.handle_auto, 0x90, 0x90, 0x00, 255);
+	SETCOL(btheme->tv3d.handle_vect, 0x40, 0x90, 0x30, 255);
+	SETCOL(btheme->tv3d.handle_align, 0x80, 0x30, 0x60, 255);
+	SETCOL(btheme->tv3d.handle_sel_free, 0, 0, 0, 255);
+	SETCOL(btheme->tv3d.handle_sel_auto, 0xf0, 0xff, 0x40, 255);
+	SETCOL(btheme->tv3d.handle_sel_vect, 0x40, 0xc0, 0x30, 255);
+	SETCOL(btheme->tv3d.handle_sel_align, 0xf0, 0x90, 0xa0, 255);
+
+	SETCOL(btheme->tv3d.act_spline, 0xdb, 0x25, 0x12, 255);
 
 	SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
 	SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 80);               // alpha 80 is not meant editable, used for wire+action draw

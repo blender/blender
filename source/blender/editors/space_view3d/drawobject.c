@@ -2854,8 +2854,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, int glsl)
 		case DL_POLY:
 			if(ob->type==OB_SURF) {
 				int nr;
-				
-				UI_ThemeColor(TH_WIRE);
+
 				glDisable(GL_LIGHTING);
 				
 				/* for some reason glDrawArrays crashes here in half of the platforms (not osx) */
@@ -4254,23 +4253,21 @@ static void ob_draw_RE_motion(float com[3],float rotscale[3][3],float itw,float 
 }
 
 /*place to add drawers */
-unsigned int nurbcol[8]= {
-	0, 0x9090, 0x409030, 0x603080, 0, 0x40fff0, 0x40c033, 0xA090F0 };
 
 static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 {
 	BezTriple *bezt;
 	float *fp;
-	unsigned int *col;
+	int basecol;
 	int a;
 	
 	if(nu->hide || hide_handles) return;
-	
+
 	glBegin(GL_LINES); 
 	
 	if(nu->type == CU_BEZIER) {
-		if(sel) col= nurbcol+4;
-		else col= nurbcol;
+		if(sel) basecol= TH_HANDLE_SEL_FREE;
+		else basecol= TH_HANDLE_FREE;
 
 		bezt= nu->bezt;
 		a= nu->pntsu;
@@ -4278,26 +4275,26 @@ static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 			if(bezt->hide==0) {
 				if( (bezt->f2 & SELECT)==sel) {
 					fp= bezt->vec[0];
-					
-					cpack(col[(int)bezt->h1]);
+
+					UI_ThemeColor(basecol + bezt->h1);
 					glVertex3fv(fp);
 					glVertex3fv(fp+3); 
 
-					cpack(col[(int)bezt->h2]);
+					UI_ThemeColor(basecol + bezt->h2);
 					glVertex3fv(fp+3); 
 					glVertex3fv(fp+6); 
 				}
 				else if( (bezt->f1 & SELECT)==sel) {
 					fp= bezt->vec[0];
-					
-					cpack(col[(int)bezt->h1]);
+
+					UI_ThemeColor(basecol + bezt->h1);
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
 				}
 				else if( (bezt->f3 & SELECT)==sel) {
 					fp= bezt->vec[1];
-					
-					cpack(col[(int)bezt->h2]);
+
+					UI_ThemeColor(basecol + bezt->h2);
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
 				}
@@ -4306,6 +4303,41 @@ static void tekenhandlesN(Nurb *nu, short sel, short hide_handles)
 		}
 	}
 	glEnd();
+}
+
+static void tekenhandlesN_active(Nurb *nu)
+{
+	BezTriple *bezt;
+	float *fp;
+	int a;
+
+	if(nu->hide) return;
+
+	UI_ThemeColor(TH_ACTIVE_SPLINE);
+	glLineWidth(2);
+
+	glBegin(GL_LINES);
+
+	if(nu->type == CU_BEZIER) {
+		bezt= nu->bezt;
+		a= nu->pntsu;
+		while(a--) {
+			if(bezt->hide==0) {
+				fp= bezt->vec[0];
+
+				glVertex3fv(fp);
+				glVertex3fv(fp+3);
+
+				glVertex3fv(fp+3);
+				glVertex3fv(fp+6);
+			}
+			bezt++;
+		}
+	}
+	glEnd();
+
+	glColor3ub(0,0,0);
+	glLineWidth(1);
 }
 
 static void tekenvertsN(Nurb *nu, short sel, short hide_handles)
@@ -4357,18 +4389,94 @@ static void tekenvertsN(Nurb *nu, short sel, short hide_handles)
 	glPointSize(1.0);
 }
 
+static void editnurb_draw_active_poly(Nurb *nu)
+{
+	BPoint *bp;
+	int a, b;
+
+	UI_ThemeColor(TH_ACTIVE_SPLINE);
+	glLineWidth(2);
+
+	bp= nu->bp;
+	for(b=0; b<nu->pntsv; b++) {
+		if(nu->flagu & 1) glBegin(GL_LINE_LOOP);
+		else glBegin(GL_LINE_STRIP);
+
+		for(a=0; a<nu->pntsu; a++, bp++) {
+			glVertex3fv(bp->vec);
+		}
+
+		glEnd();
+	}
+
+	glColor3ub(0,0,0);
+	glLineWidth(1);
+}
+
+static void editnurb_draw_active_nurbs(Nurb *nu)
+{
+	BPoint *bp, *bp1;
+	int a, b, ofs;
+
+	UI_ThemeColor(TH_ACTIVE_SPLINE);
+	glLineWidth(2);
+
+	glBegin(GL_LINES);
+	bp= nu->bp;
+	for(b=0; b<nu->pntsv; b++) {
+		bp1= bp;
+		bp++;
+
+		for(a=nu->pntsu-1; a>0; a--, bp++) {
+			if(bp->hide==0 && bp1->hide==0) {
+				glVertex3fv(bp->vec);
+				glVertex3fv(bp1->vec);
+			}
+			bp1= bp;
+		}
+	}
+
+	if(nu->pntsv > 1) {	/* surface */
+
+		ofs= nu->pntsu;
+		for(b=0; b<nu->pntsu; b++) {
+			bp1= nu->bp+b;
+			bp= bp1+ofs;
+			for(a=nu->pntsv-1; a>0; a--, bp+=ofs) {
+				if(bp->hide==0 && bp1->hide==0) {
+					glVertex3fv(bp->vec);
+					glVertex3fv(bp1->vec);
+				}
+				bp1= bp;
+			}
+		}
+	}
+
+	glEnd();
+
+	glColor3ub(0,0,0);
+	glLineWidth(1);
+}
+
 static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 {
 	Nurb *nu;
 	BPoint *bp, *bp1;
-	int a, b, ofs;
-	
+	int a, b, ofs, index;
+	Curve *cu= (Curve*)ob->data;
+
+	index= 0;
 	nu= nurb;
 	while(nu) {
 		if(nu->hide==0) {
 			switch(nu->type) {
 			case CU_POLY:
-				cpack(nurbcol[3]);
+				if (!sel && index== cu->actnu) {
+					/* we should draw active spline highlight below everything */
+					editnurb_draw_active_poly(nu);
+				}
+
+				UI_ThemeColor(TH_NURB_ULINE);
 				bp= nu->bp;
 				for(b=0; b<nu->pntsv; b++) {
 					if(nu->flagu & 1) glBegin(GL_LINE_LOOP);
@@ -4382,6 +4490,10 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 				}
 				break;
 			case CU_NURBS:
+				if (!sel && index== cu->actnu) {
+					/* we should draw active spline highlight below everything */
+					editnurb_draw_active_nurbs(nu);
+				}
 
 				bp= nu->bp;
 				for(b=0; b<nu->pntsv; b++) {
@@ -4391,7 +4503,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 						if(bp->hide==0 && bp1->hide==0) {
 							if(sel) {
 								if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT ) ) {
-									cpack(nurbcol[5]);
+									UI_ThemeColor(TH_NURB_SEL_ULINE);
 		
 									glBegin(GL_LINE_STRIP);
 									glVertex3fv(bp->vec); 
@@ -4402,7 +4514,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 							else {
 								if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) );
 								else {
-									cpack(nurbcol[1]);
+									UI_ThemeColor(TH_NURB_ULINE);
 		
 									glBegin(GL_LINE_STRIP);
 									glVertex3fv(bp->vec); 
@@ -4424,7 +4536,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 							if(bp->hide==0 && bp1->hide==0) {
 								if(sel) {
 									if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) ) {
-										cpack(nurbcol[7]);
+										UI_ThemeColor(TH_NURB_SEL_VLINE);
 			
 										glBegin(GL_LINE_STRIP);
 										glVertex3fv(bp->vec); 
@@ -4435,7 +4547,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 								else {
 									if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) );
 									else {
-										cpack(nurbcol[3]);
+										UI_ThemeColor(TH_NURB_VLINE);
 			
 										glBegin(GL_LINE_STRIP);
 										glVertex3fv(bp->vec); 
@@ -4452,6 +4564,8 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 				break;
 			}
 		}
+
+		++index;
 		nu= nu->next;
 	}
 }
@@ -4464,6 +4578,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	Nurb *nu;
 	BevList *bl;
 	short hide_handles = (cu->drawflag & CU_HIDE_HANDLES);
+	int index;
 
 // XXX	retopo_matrix_update(v3d);
 
@@ -4473,11 +4588,15 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 
 	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 	
-	/* first non-selected handles */
+	/* first non-selected and active handles */
+	index= 0;
 	for(nu=nurb; nu; nu=nu->next) {
 		if(nu->type == CU_BEZIER) {
+			if (index == cu->actnu && !hide_handles)
+				tekenhandlesN_active(nu);
 			tekenhandlesN(nu, 0, hide_handles);
 		}
+		++index;
 	}
 	draw_editnurb(ob, nurb, 0);
 	draw_editnurb(ob, nurb, 1);
