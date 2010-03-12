@@ -1182,6 +1182,9 @@ static int new_exec(bContext *C, wmOperator *op)
 	uvtestgrid= RNA_boolean_get(op->ptr, "uv_test_grid");
 	RNA_float_get_array(op->ptr, "color", color);
 	color[3]= RNA_float_get(op->ptr, "alpha");
+	
+	if (!floatbuf && scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+		linearrgb_to_srgb_v3_v3(color, color);
 
 	ima = BKE_add_image_size(width, height, name, floatbuf, uvtestgrid, color);
 
