@@ -349,6 +349,16 @@ static EnumPropertyItem *rna_ImageTexture_filter_itemf(bContext *C, PointerRNA *
 	return item;
 }
 
+static void rna_Envmap_source_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	Tex *tex= ptr->id.data;
+	
+	if (tex->env)
+		BKE_free_envmapdata(tex->env);
+	
+	rna_Texture_update(bmain, scene, ptr);
+}
+
 static PointerRNA rna_PointDensity_psys_get(PointerRNA *ptr)
 {
 	PointDensity *pd= ptr->data;
@@ -738,7 +748,7 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_source_items);
 	RNA_def_property_ui_text(prop, "Source", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Envmap_source_update");
 
 	prop= RNA_def_property(srna, "viewpoint_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");

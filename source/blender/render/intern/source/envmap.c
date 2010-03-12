@@ -74,15 +74,23 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 	
 	dx= ibuf->y;
 	dx/= 2;
-	if(3*dx != ibuf->x) {
+	if (3*dx == ibuf->x) {
+		env->type = ENV_CUBE;
+	} else if (ibuf->x == ibuf->y) {
+		env->type = ENV_PLANE;
+	} else {
 		printf("Incorrect envmap size\n");
 		env->ok= 0;
 		env->ima->ok= 0;
+		return;
 	}
-	else {
+	
+	if (env->type == ENV_CUBE) {
 		for(part=0; part<6; part++) {
 			env->cube[part]= IMB_allocImBuf(dx, dx, 24, IB_rect|IB_rectfloat, 0);
 		}
+		IMB_float_from_rect(ibuf);
+		
 		IMB_rectcpy(env->cube[0], ibuf, 
 			0, 0, 0, 0, dx, dx);
 		IMB_rectcpy(env->cube[1], ibuf, 
@@ -95,6 +103,12 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 			0, 0, dx, dx, dx, dx);
 		IMB_rectcpy(env->cube[5], ibuf, 
 			0, 0, 2*dx, dx, dx, dx);
+		env->ok= ENV_OSA;
+	}
+	else { /* ENV_PLANE */
+		env->cube[1]= IMB_dupImBuf(ibuf);
+		IMB_float_from_rect(env->cube[1]);
+		
 		env->ok= ENV_OSA;
 	}
 }
@@ -658,10 +672,11 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 		texres->tin= 0.0;
 		return 0;
 	}
+	
 	if(env->stype==ENV_LOAD) {
 		env->ima= tex->ima;
 		if(env->ima && env->ima->ok) {
-			if(env->cube[0]==NULL) {
+			if(env->cube[1]==NULL) {
 				ImBuf *ibuf= BKE_image_get_ibuf(env->ima, NULL);
 				if(ibuf)
 					envmap_split_ima(env, ibuf);
@@ -672,7 +687,6 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	}
 
 	if(env->ok==0) {
-		
 		texres->tin= 0.0;
 		return 0;
 	}
