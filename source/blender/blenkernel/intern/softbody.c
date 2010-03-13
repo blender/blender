@@ -212,7 +212,7 @@ static float sb_time_scale(Object *ob)
 }
 /*--- frame based timing ---*/
 
-/* helper functions for everything is animateble jow_go_for2_5 +++++++*/
+/* helper functions for everything is animatable jow_go_for2_5 +++++++*/
 /* introducing them here, because i know: steps in properties  ( at frame timing )
    will cause unwanted responses of the softbody system (which does inter frame calculations )
    so first 'cure' would be: interpolate linear in time .. 
@@ -220,16 +220,8 @@ static float sb_time_scale(Object *ob)
    A: because it happend once, that some eger coder 'streamlined' code to fail.
    We DO linear interpolation for goals .. and i think we should do on animated properties as well 
 */
-static float _goalfac(SoftBody *sb)/*jow_go_for2_5 */
-{
-	if (sb){
-		return  ABS(sb->maxgoal - sb->mingoal);
-	}
-	printf("_goalfac failed! sb==NULL \n" );
-	return -9999.99f; /*using crude but spot able values some times helps debuggin */
-}
 
-
+/* animate sb->maxgoal,sb->mingoal */
 static float _final_goal(Object *ob,BodyPoint *bp)/*jow_go_for2_5 */
 {
 	float f = -1999.99f;
@@ -238,8 +230,9 @@ static float _final_goal(Object *ob,BodyPoint *bp)/*jow_go_for2_5 */
 		if(!(ob->softflag & OB_SB_GOAL)) return (0.0f);
 		if (sb&&bp){
 			if (bp->goal < 0.0f) return (0.0f);
-			f = pow(_goalfac(sb), 4.0f);
-			return (bp->goal *f);
+			f = sb->mingoal + bp->goal*ABS(sb->maxgoal - sb->mingoal); 
+			f = pow(f, 4.0f);
+			return (f);
 		}
 	}
 	printf("_final_goal failed! sb or bp ==NULL \n" );
@@ -881,6 +874,10 @@ static void renew_softbody(Scene *scene, Object *ob, int totpoint, int totspring
 		for (i=0; i<totpoint; i++) {
 			BodyPoint *bp = &sb->bpoint[i];
 
+  
+			/* hum as far as i see this is overridden by _final_goal() now jow_go_for2_5 */
+			/* sadly breaks compatibility with older versions */
+			/* but makes goals behave the same for meshes, lattices and curves */ 
 			if(softflag & OB_SB_GOAL) {
 				bp->goal= sb->defgoal;
 			}
@@ -3268,7 +3265,6 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 	MEdge *medge= me->medge;
 	BodyPoint *bp;
 	BodySpring *bs;
-	float goalfac;
 	int a, totedge;
 	if (ob->softflag & OB_SB_EDGES) totedge= me->totedge;
 	else totedge= 0;
@@ -3279,8 +3275,6 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 	/* we always make body points */
 	sb= ob->soft;	
 	bp= sb->bpoint;
-	/*pick it from  _goalfac jow_go_for2_5*/
-	goalfac= _goalfac(sb);
 	
 	for(a=0; a<me->totvert; a++, bp++) {
 		/* get scalar values needed  *per vertex* from vertex group functions,
@@ -3302,13 +3296,9 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		}
 		else{
 			/* in consequence if no group was set .. but we want to animate it laters */
-			/* logically attach to goal at first */
-			if(ob->softflag & OB_SB_GOAL){bp->goal =1.0f;} 
+			/* logically attach to goal with default first */
+			if(ob->softflag & OB_SB_GOAL){bp->goal =sb->defgoal;} 
 		}
-
-		/* a little ad hoc changing the goal control to be less *sharp* */
-		/* should be fixed for meshes */
-		// bp->goal = (float)pow(bp->goal, 4.0f);/* do not do here jow_go_for2_5 */
 			
 		/* to proove the concept
 		this would enable per vertex *mass painting*
@@ -3542,15 +3532,11 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
 	if(ob->softflag & OB_SB_GOAL){
 		BodyPoint *bp= sb->bpoint;
 		BPoint *bpnt= lt->def;
-		/* goes wrong with jow_go_for2_5 */
-		/* for now this is a built in bug .. by design */
-		float goalfac= ABS(sb->maxgoal - sb->mingoal);
+		/* jow_go_for2_5 */
 		int a;
 
 		for(a=0; a<totvert; a++, bp++, bpnt++) {
-			bp->goal= sb->mingoal + bpnt->weight*goalfac;
-			/* a little ad hoc changing the goal control to be less *sharp* */
-			bp->goal = (float)pow(bp->goal, 4.0f);
+			bp->goal= bpnt->weight;
 		}
 	}	
 	
@@ -3571,7 +3557,6 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bpnt;
-	float goalfac;
 	int a, curindex=0;
 	int totvert, totspring = 0, setgoal=0;
 	
@@ -3588,7 +3573,6 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 	sb= ob->soft;	/* can be created in renew_softbody() */
 		
 	/* set vars now */
-	goalfac= ABS(sb->maxgoal - sb->mingoal);
 	bp= sb->bpoint;
 	bs= sb->bspring;
 	
@@ -3602,9 +3586,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 		if(nu->bezt) {
 			for(bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++, bp+=3, curindex+=3) {
 				if(setgoal) {
-					bp->goal= sb->mingoal + bezt->weight*goalfac;
-					/* a little ad hoc changing the goal control to be less *sharp* */
-					bp->goal = (float)pow(bp->goal, 4.0f);
+					bp->goal= bezt->weight;
 					
 					/* all three triples */
 					(bp+1)->goal= bp->goal;
@@ -3636,9 +3618,7 @@ static void curve_surf_to_softbody(Scene *scene, Object *ob)
 		else {
 			for(bpnt=nu->bp, a=0; a<nu->pntsu*nu->pntsv; a++, bpnt++, bp++, curindex++) {
 				if(setgoal) {
-					bp->goal= sb->mingoal + bpnt->weight*goalfac;
-					/* a little ad hoc changing the goal control to be less *sharp* */
-					bp->goal = (float)pow(bp->goal, 4.0f);
+					bp->goal= bpnt->weight;
 				}
 				if(totspring && a>0) {
 					bs->v1= curindex-1;
