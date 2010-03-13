@@ -132,7 +132,7 @@ EnumPropertyItem image_type_items[] = {
 	{R_H264, "H264", ICON_FILE_MOVIE, "H.264", ""},
 	{R_XVID, "XVID", ICON_FILE_MOVIE, "Xvid", ""},
 	{R_THEORA, "THEORA", ICON_FILE_MOVIE, "Ogg Theora", ""},
-	{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "FFMpeg", ""},
+	{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "MPEG", ""},
 #endif
 	{R_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", ""},
 	{0, NULL, 0, NULL, NULL}};

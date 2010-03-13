@@ -29,6 +29,13 @@ class RENDER_MT_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
+class RENDER_MT_ffmpeg_presets(bpy.types.Menu):
+    bl_label = "FFMPEG Presets"
+    preset_subdir = "ffmpeg"
+    preset_operator = "script.python_file_run"
+    draw = bpy.types.Menu.draw_preset
+
+
 class RenderButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -379,6 +386,8 @@ class RENDER_PT_encoding(RenderButtonsPanel):
         rd = context.scene.render
         wide_ui = context.region.width > narrowui
 
+        layout.menu("RENDER_MT_ffmpeg_presets", text="Presets")
+
         split = layout.split()
 
         col = split.column()
@@ -627,6 +636,7 @@ class RENDER_PT_bake(RenderButtonsPanel):
 
 classes = [
     RENDER_MT_presets,
+    RENDER_MT_ffmpeg_presets,
     RENDER_PT_render,
     RENDER_PT_layers,
     RENDER_PT_dimensions,
