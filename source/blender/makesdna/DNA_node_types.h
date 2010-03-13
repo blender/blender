@@ -250,6 +250,7 @@ typedef struct NodeChroma {
 	float t1,t2,t3;
 	float fsize,fstrength,falpha;
 	float key[4];
+   short algorithm, channel;
 } NodeChroma;
 
 typedef struct NodeTwoXYs {

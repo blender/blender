@@ -1425,6 +1425,11 @@ static void def_cmp_channel_matte(StructRNA *srna)
 		{CMP_NODE_CHANNEL_MATTE_CS_YUV, "YUV", 0, "YUV",   "YUV Color Space"},
 		{CMP_NODE_CHANNEL_MATTE_CS_YCC, "YCC", 0, "YCbCr", "YCbCr Color Space"},
 		{0, NULL, 0, NULL, NULL}};
+
+	static EnumPropertyItem algorithm_items[] = {
+		{0, "SINGLE", 0, "Single", "Limit by single channel"},
+		{1, "MAX", 0, "Max", "Limit by max of other channels "},
+		{0, NULL, 0, NULL, NULL}};
 	
 	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
@@ -1432,15 +1437,27 @@ static void def_cmp_channel_matte(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Color Space", "");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
-	
 	prop= RNA_def_property(srna, "channel", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom2");
 	RNA_def_property_enum_items(prop, prop_tri_channel_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_channel_itemf");
 	RNA_def_property_ui_text(prop, "Channel", "Channel used to determine matte");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
+
 	RNA_def_struct_sdna_from(srna, "NodeChroma", "storage");
+
+	prop = RNA_def_property(srna, "algorithm", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "algorithm");
+	RNA_def_property_enum_items(prop, algorithm_items);
+	RNA_def_property_ui_text(prop, "Algorithm", "Algorithm to use to limit channel");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "limit_channel", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "channel");
+   RNA_def_property_enum_items(prop, prop_tri_channel_items);
+   RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_channel_itemf");
+	RNA_def_property_ui_text(prop, "Limit Channel", "Limit by this channels value");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "high", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "t1");

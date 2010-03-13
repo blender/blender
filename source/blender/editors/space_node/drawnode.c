@@ -853,13 +853,24 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext *C, Poin
 {	
 	uiLayout *col, *row;
 
+   uiItemL(layout, "Color Space:", 0);
 	row= uiLayoutRow(layout, 0);
 	uiItemR(row, NULL, 0, ptr, "color_space", UI_ITEM_R_EXPAND);
 
-	row= uiLayoutRow(layout, 0);
+   col=uiLayoutColumn(layout, 0);  
+   uiItemL(col, "Key Channel:", 0);
+	row= uiLayoutRow(col, 0);
 	uiItemR(row, NULL, 0, ptr, "channel", UI_ITEM_R_EXPAND);
 
-	col =uiLayoutColumn(layout, 1);
+	col =uiLayoutColumn(layout, 0);
+
+   uiItemR(col, NULL, 0, ptr, "algorithm", 0);
+   if(RNA_enum_get(ptr, "algorithm")==0) {
+      uiItemL(col, "Limiting Channel:", 0);
+      row=uiLayoutRow(col,0);
+      uiItemR(row, NULL, 0, ptr, "limit_channel", UI_ITEM_R_EXPAND);
+   }
+   
 	uiItemR(col, NULL, 0, ptr, "high", UI_ITEM_R_SLIDER);
 	uiItemR(col, NULL, 0, ptr, "low", UI_ITEM_R_SLIDER);
 }
