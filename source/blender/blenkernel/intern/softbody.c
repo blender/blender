@@ -238,6 +238,18 @@ static float _final_goal(Object *ob,BodyPoint *bp)/*jow_go_for2_5 */
 	printf("_final_goal failed! sb or bp ==NULL \n" );
 	return f; /*using crude but spot able values some times helps debuggin */
 }
+
+static float _final_mass(Object *ob,BodyPoint *bp)
+{
+	if (ob){
+		SoftBody *sb= ob->soft;	/* is supposed to be there */
+		if (sb&&bp){
+			return(bp->mass*sb->nodemass);
+		}
+	}
+	printf("_final_mass failed! sb or bp ==NULL \n" );
+	return 1.0f;
+}
 /* helper functions for everything is animateble jow_go_for2_5 ------*/
 
 /*+++ collider caching and dicing +++*/
@@ -894,7 +906,7 @@ static void renew_softbody(Scene *scene, Object *ob, int totpoint, int totspring
 			bp->colball = 0.0f;
 			bp->flag = 0;
 			bp->springweight = 1.0f;
-			bp->mass = sb->nodemass;
+			bp->mass = 1.0f;
 		}
 	}
 }
@@ -2234,14 +2246,14 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 
 							mid_v3_v3v3(velcenter, bp->vec, obp->vec);
 							sub_v3_v3v3(dvel,velcenter,bp->vec);
-							mul_v3_fl(dvel,bp->mass);
+							mul_v3_fl(dvel,_final_mass(ob,bp));
 
 							Vec3PlusStVec(bp->force,f*(1.0f-sb->balldamp),def);
 							Vec3PlusStVec(bp->force,sb->balldamp,dvel);
 
 							/* exploit force(a,b) == -force(b,a) part2/2 */
 							sub_v3_v3v3(dvel,velcenter,obp->vec);
-							mul_v3_fl(dvel,bp->mass);
+							mul_v3_fl(dvel,_final_mass(ob,bp));
 
 							Vec3PlusStVec(obp->force,sb->balldamp,dvel);
 							Vec3PlusStVec(obp->force,-f*(1.0f-sb->balldamp),def);
@@ -2287,7 +2299,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 			if (sb && scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY){ 
 				float gravity[3];
 				VECCOPY(gravity, scene->physics_settings.gravity);
-				mul_v3_fl(gravity, sb_grav_force_scale(ob)*bp->mass*sb->effector_weights->global_gravity); /* individual mass of node here */
+				mul_v3_fl(gravity, sb_grav_force_scale(ob)*_final_mass(ob,bp)*sb->effector_weights->global_gravity); /* individual mass of node here */
 				add_v3_v3v3(bp->force, bp->force, gravity);
 			}
 			
@@ -2605,7 +2617,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 							mid_v3_v3v3(velcenter, bp->vec, obp->vec);
 							sub_v3_v3v3(dvel,velcenter,bp->vec);
-							mul_v3_fl(dvel,bp->mass);
+							mul_v3_fl(dvel,_final_mass(ob,bp));
 
 							Vec3PlusStVec(bp->force,f*(1.0f-sb->balldamp),def);
 							Vec3PlusStVec(bp->force,sb->balldamp,dvel);
@@ -2636,7 +2648,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 							/* exploit force(a,b) == -force(b,a) part2/2 */
 							sub_v3_v3v3(dvel,velcenter,obp->vec);
-							mul_v3_fl(dvel,(bp->mass+obp->mass)/2.0f);
+							mul_v3_fl(dvel,(_final_mass(ob,bp)+_final_mass(ob,obp))/2.0f);
 
 							Vec3PlusStVec(obp->force,sb->balldamp,dvel);
 							Vec3PlusStVec(obp->force,-f*(1.0f-sb->balldamp),def);
@@ -2696,7 +2708,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 
 
 				/* gravitation */
-				VECADDFAC(bp->force, bp->force, gravity, bp->mass); /* individual mass of node here */
+				VECADDFAC(bp->force, bp->force, gravity, _final_mass(ob,bp)); /* individual mass of node here */
 
 
 				/* particle field & vortex */
@@ -2916,7 +2928,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 /* now we have individual masses   */
 /* claim a minimum mass for vertex */
-		if (bp->mass > 0.009999f) timeovermass = forcetime/bp->mass;
+		if (_final_mass(ob,bp) > 0.009999f) timeovermass = forcetime/_final_mass(ob,bp);
   	    else timeovermass = forcetime/0.009999f;
 
 
@@ -3301,10 +3313,8 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		}
 			
 		/* to proove the concept
-		this would enable per vertex *mass painting*
+		this enables per vertex *mass painting*
 		*/
-		/* first set the default */
-		bp->mass = sb->nodemass;
 
 		if (sb->namedVG_Mass[0])
 		{
@@ -3312,7 +3322,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 			/* printf("VGN  %s %d \n",sb->namedVG_Mass,grp); */
 			if(grp > -1){
 				get_scalar_from_vertexgroup(ob, a,(short) (grp), &bp->mass);
-				bp->mass = bp->mass * sb->nodemass;
+				/* 2.5  bp->mass = bp->mass * sb->nodemass; */
 				/* printf("bp->mass  %f \n",bp->mass); */
 
 			}
