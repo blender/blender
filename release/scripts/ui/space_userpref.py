@@ -1398,24 +1398,177 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         # del sys.path[0]
         return modules
+    
+    def _attributes(self, mod):
+        # collect, check and process all attributes of the add-on
+        module_name = mod.__name__
+        if not hasattr(mod, 'expanded'):
+            mod.expanded = False
+        
+        script = hasattr(mod, '__script__')
+        author = hasattr(mod, '__author__')
+        version = hasattr(mod, '__version__')
+        blender = hasattr(mod, '__blender__')
+        category = hasattr(mod, '__category__')
+        url = hasattr(mod, '__url__')
+        email = hasattr(mod, '__email__')
+        bpydoc = hasattr(mod, '__bpydoc__')
+
+        if script:
+            script = str(mod.__script__)
+        else:
+            script = module_name
+        if version:
+            version = str(mod.__version__)
+        if author:
+            if type(mod.__author__).__name__ == 'list':
+                if len(mod.__author__) == 0:
+                    author = False
+                else:
+                    author = ""
+                    for i in mod.__author__:
+                        author += str(i) + ", "
+                    author = author[:-2]
+            else:
+                author = str(mod.__author__)
+        if blender:
+            blender = str(mod.__blender__)
+        if category:
+            if type(mod.__category__).__name__ != 'list':
+                category = str(mod.__category__)
+            else:
+                category = str(mod.__category__[0])
+        links = []
+        if url:
+            if type(mod.__url__).__name__ != 'list':
+                mod.__url__ = [str(mod.__url__)]
+            for i in mod.__url__:
+                link = str(i).rsplit(',', 1)
+                if len(link)>1:
+                    link_desc = link[0].strip()
+                    link = link[1].strip()
+                else:
+                    link_desc = False
+                    link = link[0].strip()
+                if link.lower() == 'blender':
+                    link = 'http://www.blender.org/forum/viewforum.php?f=9'
+                if link.lower() == 'blenderartists':
+                    link = 'http://blenderartists.org/forum/forumdisplay.php?f=11'
+                links.append([link, link_desc])
+        emails = []
+        if email:
+            if type(mod.__email__).__name__ != 'list':
+                mod.__email__ = [str(mod.__email__)]
+            for i in mod.__email__:
+                mail = str(i).rsplit(',', 1)
+                if len(mail)>1:
+                    mail_desc = mail[0].strip()
+                    mail = mail[1].strip()
+                else:
+                    mail_desc = False
+                    mail = mail[0].strip()
+                if mail.lower() == 'python':
+                    mail = 'bf-python:blender*org'
+                mail = 'mailto:'+mail.replace(':','@').replace('*','.')+"?subject="+script
+                emails.append([mail, mail_desc])
+        if bpydoc:
+            bpydoc = str(mod.__bpydoc__).splitlines()
+        return module_name, script, author, version, blender, category, url, email, bpydoc, links, emails
 
     def draw(self, context):
         layout = self.layout
 
         userpref = context.user_preferences
         used_ext = {ext.module for ext in userpref.addons}
-
-        col = layout.column()
-
+        
+        # collect the categories that can be filtered on
+        cats = []
         for mod in self._addon_list():
-            box = col.box()
-            row = box.row()
-            text = mod.__doc__
-            if not text:
-                text = mod.__name__
-            row.label(text=text)
-            module_name = mod.__name__
+            try:
+                if mod.__category__[0] not in cats:
+                    cats.append(mod.__category__[0])
+            except:
+                pass
+        cats.sort()
+        cats = ['All', 'Disabled', 'Enabled']+cats
+        bpy.types.Scene.EnumProperty(items=[(cats[i],cats[i],str(i)) for i in range(len(cats))],
+            name="Category", attr="addon_filter", description="Filter add-ons by category")
+        bpy.types.Scene.StringProperty(name="Search", attr="addon_search",
+            description="Search within the selected filter")
+
+        row = layout.row()
+        row.prop(context.scene, "addon_filter", text="Filter")
+        row.prop(context.scene, "addon_search", text="Search", icon='VIEWZOOM')
+        layout.separator()
+
+        filter = context.scene.addon_filter
+        search = context.scene.addon_search
+        for mod in self._addon_list():
+            module_name, script, author, version, blender, category, url, email, bpydoc, links, emails = \
+                self._attributes(mod)
+            
+            # check if add-on should be visible with current filters
+            if filter!='All' and filter!=category and not (module_name in used_ext and filter=='Enabled')\
+                and not (module_name not in used_ext and filter=='Disabled'):
+                continue
+            if search and script.lower().find(search.lower())<0:
+                if author:
+                    if author.lower().find(search.lower())<0:
+                        continue
+                else:
+                    continue
+                    
+            # Addon UI Code
+            box = layout.column().box()
+            column = box.column(align=True)
+            row = column.row()
+            
+            # Arrow #
+            # If there are Infos or UI is expanded
+            if mod.expanded:
+                row.operator("wm.addon_expand", icon="TRIA_DOWN").module = module_name
+            elif author or version or url or email:
+                row.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
+            else:
+                # Else, block UI
+                arrow = row.column()
+                arrow.enabled = False
+                arrow.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
+
+            row.label(text=script)
             row.operator("wm.addon_disable" if module_name in used_ext else "wm.addon_enable").module = module_name
+            
+            # Expanded UI (only if additional infos are available)
+            if mod.expanded:
+                if author:
+                    split = column.row().split(percentage=0.15)
+                    split.label(text='Author:')
+                    split.label(text=author)
+                if version:
+                    split = column.row().split(percentage=0.15)
+                    split.label(text='Version:')
+                    split.label(text=version)
+                if url:
+                    split = column.row().split(percentage=0.15)
+                    split.label(text="Links:")
+                    for i in range(len(links)):
+                        if links[i][1]:
+                            split.operator("wm.addon_links", text=links[i][1]).link = links[i][0]
+                        else:
+                            split.operator("wm.addon_links", text="Link "+str(i+1)).link = links[i][0]
+                if email:
+                    split = column.row().split(percentage=0.15)
+                    split.label(text="Email:")
+                    for i in range(len(emails)):
+                        if emails[i][1]:
+                            split.operator("wm.addon_links", text=emails[i][1]).link = emails[i][0]
+                        else:
+                            split.operator("wm.addon_links", text="Email "+str(i+1)).link = emails[i][0]
+                if bpydoc:
+                    column = box.column(align=True)
+                    column.label(text='Description: '+bpydoc[0])
+                    for line in bpydoc[1:]:
+                        column.label(text=line)
 
 
 from bpy.props import *
@@ -1439,6 +1592,23 @@ class WM_OT_addon_enable(bpy.types.Operator):
             mod.register()
         except:
             traceback.print_exc()
+        
+        # check if add-on is written for current blender version, or raise a warning
+        version = hasattr(mod, '__blender__')
+        if version:
+            version = str(mod.__blender__).split('.',2)
+            for i in range(len(version)):
+                try:
+                    version[i] = int(version[i])
+                except:
+                    break
+                if version[i]>bpy.app.version[i]:
+                    self.report('WARNING','This script was written for a newer version of Blender \
+and might not function (correctly).\nThe script is enabled though.')
+                elif version[i]==bpy.app.version[i]:
+                    continue
+                else:
+                    break
 
         return {'FINISHED'}
 
@@ -1533,6 +1703,43 @@ class WM_OT_addon_install(bpy.types.Operator):
         wm = context.manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
+
+
+class WM_OT_addon_expand(bpy.types.Operator):
+    "Display more information on this add-on"
+    bl_idname = "wm.addon_expand"
+    bl_label = ""
+
+    module = StringProperty(name="Module", description="Module name of the addon to expand")
+
+    def execute(self, context):
+        import traceback
+        module_name = self.properties.module
+
+        try:
+            mod = __import__(module_name)
+        except:
+            traceback.print_exc()
+
+        if mod.expanded:
+            mod.expanded = False
+        else:
+            mod.expanded = True
+
+        return {'FINISHED'}
+
+
+class WM_OT_addon_links(bpy.types.Operator):
+    "Open in webbrowser"
+    bl_idname = "wm.addon_links"
+    bl_label = ""
+
+    link = StringProperty(name="Link", description="Link to open")
+
+    def execute(self, context):
+        import webbrowser
+        webbrowser.open(self.properties.link)
+        return {'FINISHED'}
 
 
 class WM_OT_keyconfig_test(bpy.types.Operator):
@@ -1928,6 +2135,8 @@ classes = [
     WM_OT_addon_enable,
     WM_OT_addon_disable,
     WM_OT_addon_install,
+    WM_OT_addon_expand,
+    WM_OT_addon_links,
 
     WM_OT_keyconfig_export,
     WM_OT_keyconfig_import,
