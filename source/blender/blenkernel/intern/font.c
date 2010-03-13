@@ -960,7 +960,8 @@ struct chartrans *BKE_text_to_curve(Scene *scene, Object *ob, int mode)
 	}
 	
 	/* TEXT ON CURVE */
-	if(cu->textoncurve) {
+	/* Note: Only OB_CURVE objects could have a path  */
+	if(cu->textoncurve && cu->textoncurve->type==OB_CURVE) {
 		Curve *cucu= cu->textoncurve->data;
 		int oldflag= cucu->flag;
 		
