@@ -212,6 +212,41 @@ static float sb_time_scale(Object *ob)
 }
 /*--- frame based timing ---*/
 
+/* helper functions for everything is animateble jow_go_for2_5 +++++++*/
+/* introducing them here, because i know: steps in properties  ( at frame timing )
+   will cause unwanted responses of the softbody system (which does inter frame calculations )
+   so first 'cure' would be: interpolate linear in time .. 
+   Q: why do i write this?
+   A: because it happend once, that some eger coder 'streamlined' code to fail.
+   We DO linear interpolation for goals .. and i think we should do on animated properties as well 
+*/
+static float _goalfac(SoftBody *sb)/*jow_go_for2_5 */
+{
+	if (sb){
+		return  ABS(sb->maxgoal - sb->mingoal);
+	}
+	printf("_goalfac failed! sb==NULL \n" );
+	return -9999.99f; /*using crude but spot able values some times helps debuggin */
+}
+
+
+static float _final_goal(Object *ob,BodyPoint *bp)/*jow_go_for2_5 */
+{
+	float f = -1999.99f;
+	if (ob){
+		SoftBody *sb= ob->soft;	/* is supposed to be there */
+		if(!(ob->softflag & OB_SB_GOAL)) return (0.0f);
+		if (sb&&bp){
+			if (bp->goal < 0.0f) return (0.0f);
+			f = pow(_goalfac(sb), 4.0f);
+			return (bp->goal *f);
+		}
+	}
+	printf("_final_goal failed! sb or bp ==NULL \n" );
+	return f; /*using crude but spot able values some times helps debuggin */
+}
+/* helper functions for everything is animateble jow_go_for2_5 ------*/
+
 /*+++ collider caching and dicing +++*/
 
 /********************
@@ -2219,7 +2254,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 		}
 		/* naive ball self collision done */
 
-		if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
+		if(_final_goal(ob,bp) < SOFTGOALSNAP){ /* ommit this bp when it snaps */
 			float auxvect[3];  
 			float velgoal[3];
 
@@ -2228,7 +2263,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 				/* true elastic goal */
 				float ks,kd;
 				sub_v3_v3v3(auxvect,bp->pos,bp->origT);
-				ks  = 1.0f/(1.0f- bp->goal*sb->goalspring)-1.0f ;
+				ks  = 1.0f/(1.0f- _final_goal(ob,bp)*sb->goalspring)-1.0f ;
 				bp->force[0]+= -ks*(auxvect[0]);
 				bp->force[1]+= -ks*(auxvect[1]);
 				bp->force[2]+= -ks*(auxvect[2]);
@@ -2616,7 +2651,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 			}
 			/* naive ball self collision done */
 
-			if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when it snaps */
+			if(_final_goal(ob,bp) < SOFTGOALSNAP){ /* ommit this bp when it snaps */
 				float auxvect[3];  
 				float velgoal[3];
 
@@ -2624,7 +2659,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 				if(ob->softflag & OB_SB_GOAL) {
 					/* true elastic goal */
 					sub_v3_v3v3(auxvect,bp->pos,bp->origT);
-					ks  = 1.0f/(1.0f- bp->goal*sb->goalspring)-1.0f ;
+					ks  = 1.0f/(1.0f- _final_goal(ob,bp)*sb->goalspring)-1.0f ;
 					bp->force[0]+= -ks*(auxvect[0]);
 					bp->force[1]+= -ks*(auxvect[1]);
 					bp->force[2]+= -ks*(auxvect[2]);
@@ -2888,7 +2923,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
   	    else timeovermass = forcetime/0.009999f;
 
 
-		if(bp->goal < SOFTGOALSNAP){
+		if(_final_goal(ob,bp) < SOFTGOALSNAP){
             /* this makes t~ = t */
 			if(mid_flags & MID_PRESERVE) VECCOPY(dx,bp->vec);
 			
@@ -3092,7 +3127,7 @@ static void softbody_apply_goalsnap(Object *ob)
 	int a;
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-		if (bp->goal >= SOFTGOALSNAP){
+		if (_final_goal(ob,bp) >= SOFTGOALSNAP){
 			VECCOPY(bp->prevpos,bp->pos);
 			VECCOPY(bp->pos,bp->origT);
 		}		
@@ -3137,7 +3172,7 @@ static void interpolate_exciter(Object *ob, int timescale, int time)
 		bp->origT[0] = bp->origS[0] + f*(bp->origE[0] - bp->origS[0]); 
 		bp->origT[1] = bp->origS[1] + f*(bp->origE[1] - bp->origS[1]); 
 		bp->origT[2] = bp->origS[2] + f*(bp->origE[2] - bp->origS[2]); 
-		if (bp->goal >= SOFTGOALSNAP){
+		if (_final_goal(ob,bp) >= SOFTGOALSNAP){
 			bp->vec[0] = bp->origE[0] - bp->origS[0];
 			bp->vec[1] = bp->origE[1] - bp->origS[1];
 			bp->vec[2] = bp->origE[2] - bp->origS[2];
@@ -3224,37 +3259,6 @@ static void springs_from_mesh(Object *ob)
 
 
 
-/* helper functions for everything is animateble jow_go_for2_5 +++++++*/
-/* introducing them here, because i know: steps in properties  ( at frame timing )
-   will cause unwanted responses of the softbody system (which does inter frame calculations )
-   so first 'cure' would be: interpolate linear in time .. 
-   Q: why do i write this?
-   A: because it happend once, that some eger coder 'streamlined' code to fail.
-   We DO linear interpolation for goals .. and i think we should do on animated properties as well 
-*/
-static float _goalfac(SoftBody *sb)/*jow_go_for2_5 */
-{
-	if (sb){
-		return  ABS(sb->maxgoal - sb->mingoal);
-	}
-	printf("_goalfac failed! sb==NULL \n" );
-	return -9999.99f; /*using crude but spot able values some times helps debuggin */
-}
-
-
-static float _final_goal(SoftBody *sb,BodyPoint *bp)/*jow_go_for2_5 */
-{
-	float f = -1999.99f;
-	if (sb && bp){
-		if (bp->goal < 0.0f) return (0.0f);
-		f = pow(_goalfac(sb), 4.0f);
-		return (bp->goal *f);
-	}
-	printf("_final_goal failed! sb or bp ==NULL \n" );
-	return f; /*using crude but spot able values some times helps debuggin */
-}
-/* helper functions for everything is animateble jow_go_for2_5 ------*/
-
 
 /* makes totally fresh start situation */
 static void mesh_to_softbody(Scene *scene, Object *ob)
@@ -3293,10 +3297,18 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 			/* this is where '2.5 every thing is animateable' goes wrong in the first place jow_go_for2_5 */
 			/* 1st coding action to take : move this to frame level */
 			/* reads: leave the bp->goal as it was read from vertex group / or default .. we will need it at per frame call */
-			bp->goal= sb->mingoal + bp->goal*goalfac; /* do not do here jow_go_for2_5 */
+		    /* should be fixed for meshes */
+			// bp->goal= sb->mingoal + bp->goal*goalfac; /* do not do here jow_go_for2_5 */
 		}
+		else{
+			/* in consequence if no group was set .. but we want to animate it laters */
+			/* logically attach to goal at first */
+			if(ob->softflag & OB_SB_GOAL){bp->goal =1.0f;} 
+		}
+
 		/* a little ad hoc changing the goal control to be less *sharp* */
-		bp->goal = (float)pow(bp->goal, 4.0f);/* do not do here jow_go_for2_5 */
+		/* should be fixed for meshes */
+		// bp->goal = (float)pow(bp->goal, 4.0f);/* do not do here jow_go_for2_5 */
 			
 		/* to proove the concept
 		this would enable per vertex *mass painting*
@@ -3530,6 +3542,8 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
 	if(ob->softflag & OB_SB_GOAL){
 		BodyPoint *bp= sb->bpoint;
 		BPoint *bpnt= lt->def;
+		/* goes wrong with jow_go_for2_5 */
+		/* for now this is a built in bug .. by design */
 		float goalfac= ABS(sb->maxgoal - sb->mingoal);
 		int a;
 
