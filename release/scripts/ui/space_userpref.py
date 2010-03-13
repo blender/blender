@@ -1406,6 +1406,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
             mod.expanded = False
         
         script = hasattr(mod, '__script__')
+        location = hasattr(mod, '__location__')
         author = hasattr(mod, '__author__')
         version = hasattr(mod, '__version__')
         blender = hasattr(mod, '__blender__')
@@ -1418,6 +1419,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
             script = str(mod.__script__)
         else:
             script = module_name
+        if location:
+            location = str(mod.__location__)
         if version:
             version = str(mod.__version__)
         if author:
@@ -1473,7 +1476,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
                 emails.append([mail, mail_desc])
         if bpydoc:
             bpydoc = str(mod.__bpydoc__).splitlines()
-        return module_name, script, author, version, blender, category, url, email, bpydoc, links, emails
+        return module_name, script, author, version, blender, location, category, url, email, bpydoc, links, emails
 
     def draw(self, context):
         layout = self.layout
@@ -1504,7 +1507,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         filter = context.scene.addon_filter
         search = context.scene.addon_search
         for mod in self._addon_list():
-            module_name, script, author, version, blender, category, url, email, bpydoc, links, emails = \
+            module_name, script, author, version, blender, location, category, url, email, bpydoc, links, emails = \
                 self._attributes(mod)
             
             # check if add-on should be visible with current filters
@@ -1548,6 +1551,10 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     split = column.row().split(percentage=0.15)
                     split.label(text='Version:')
                     split.label(text=version)
+                if location:
+                    split = column.row().split(percentage=0.15)
+                    split.label(text='Location:')
+                    split.label(text=location)
                 if url:
                     split = column.row().split(percentage=0.15)
                     split.label(text="Links:")
