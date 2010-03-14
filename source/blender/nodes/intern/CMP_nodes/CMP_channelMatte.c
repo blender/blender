@@ -126,7 +126,6 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 {
 	CompBuf *cbuf;
 	CompBuf *outbuf;
-   NodeChroma *c=(NodeChroma *)node->storage;
 	
 	if(in[0]->hasinput==0)  return;
 	if(in[0]->data==NULL) return;

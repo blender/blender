@@ -542,7 +542,7 @@ static void rna_def_property_actuator(BlenderRNA *brna)
 static void rna_def_constraint_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
+	/*PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] ={
 		{ACT_CONST_TYPE_LOC, "LOC", 0, "Location Constraint", ""},
@@ -550,7 +550,7 @@ static void rna_def_constraint_actuator(BlenderRNA *brna)
 		{ACT_CONST_TYPE_ORI, "ORI", 0, "Orientation Constraint", ""},
 		{ACT_CONST_TYPE_FH, "FH", 0, "Force Field Constraint", ""},
 		{0, NULL, 0, NULL, NULL}
-	};
+	};*/
 
 	srna= RNA_def_struct(brna, "ConstraintActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Constraint Actuator", "Actuator to ..");

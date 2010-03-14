@@ -43,7 +43,7 @@
 
 #include "BKE_node.h"
 
-static EnumPropertyItem texture_filter_items[] = {
+EnumPropertyItem texture_filter_items[] = {
 	{TXF_BOX, "BOX", 0, "Box", ""},
 	{TXF_EWA, "EWA", 0, "EWA", ""},
 	{TXF_FELINE, "FELINE", 0, "FELINE", ""},

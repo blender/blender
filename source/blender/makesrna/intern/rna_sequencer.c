@@ -342,7 +342,7 @@ static int rna_Sequence_filepath_length(PointerRNA *ptr)
 	return strlen(path)+1;
 }
 
-static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
+/*static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
 {
 	Sequence *seq= (Sequence*)(ptr->data);
 	char dir[FILE_MAX], name[FILE_MAX];
@@ -359,7 +359,7 @@ static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 
 	BLI_split_dirfile(value, NULL, name);
 	BLI_strncpy(elem->name, name, sizeof(elem->name));
-}
+}*/
 
 static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
