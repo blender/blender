@@ -1046,7 +1046,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 
 		/* confirm transform if launch key is released after mouse move */
 		/* XXX Keyrepeat bug in Xorg fucks this up, will test when fixed */
-		if (event->type == LEFTMOUSE /*t->launch_event*/ && t->state != TRANS_STARTING)
+		if (event->type == t->launch_event && (t->launch_event == LEFTMOUSE || t->launch_event == RIGHTMOUSE) && t->state != TRANS_STARTING)
 		{
 			t->state = TRANS_CONFIRM;
 		}
@@ -1455,6 +1455,22 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	t->mode = mode;
 
 	t->launch_event = event ? event->type : -1;
+
+	if (t->launch_event == EVT_TWEAK_R)
+	{
+		t->launch_event = RIGHTMOUSE;
+	}
+	else if (t->launch_event == EVT_TWEAK_L)
+	{
+		t->launch_event = LEFTMOUSE;
+	}
+	// XXX Remove this when wm_operator_call_internal doesn't use window->eventstate (which can have type = 0)
+	// For manipulator only, so assume LEFTMOUSE
+	else if (t->launch_event == 0)
+	{
+		t->launch_event = LEFTMOUSE;
+	}
+
 
 	if (!initTransInfo(C, t, op, event))					// internal data, mouse, vectors
 	{
