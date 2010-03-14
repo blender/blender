@@ -1859,7 +1859,7 @@ static PyObject *pyrna_struct_path_to_id(BPy_StructRNA *self, PyObject *args)
 
 	if(path==NULL) {
 		if(name)	PyErr_Format(PyExc_TypeError, "%.200s.path_to_id(\"%s\") found but does not support path creation", RNA_struct_identifier(self->ptr.type), name);
-		else		PyErr_Format(PyExc_TypeError, "%.200s.path_to_id() does not support path creation for this type", name);
+		else		PyErr_Format(PyExc_TypeError, "%.200s.path_to_id() does not support path creation for this type", RNA_struct_identifier(self->ptr.type));
 		return NULL;
 	}
 
