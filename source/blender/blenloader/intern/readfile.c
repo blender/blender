@@ -3029,6 +3029,7 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	part->pd= newdataadr(fd, part->pd);
 	part->pd2= newdataadr(fd, part->pd2);
 
+	direct_link_animdata(fd, part->adt);
 	direct_link_partdeflect(part->pd);
 	direct_link_partdeflect(part->pd2);
 
