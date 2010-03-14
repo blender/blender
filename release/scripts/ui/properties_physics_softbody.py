@@ -39,9 +39,8 @@ class PhysicButtonsPanel(bpy.types.Panel):
         ob = context.object
         rd = context.scene.render
 #        return (ob and ob.type == 'MESH') and (not rd.use_game_engine)
-# i really hate touching things i do not understand completely .. but i think this should read (bjornmose) 
+# i really hate touching things i do not understand completely .. but i think this should read (bjornmose)
         return (ob and (ob.type == 'MESH' or ob.type == 'LATTICE'or ob.type == 'CURVE')) and (not rd.use_game_engine)
-
 
 
 class PHYSICS_PT_softbody(PhysicButtonsPanel):

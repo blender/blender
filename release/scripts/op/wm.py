@@ -569,7 +569,7 @@ classes = [
     WM_OT_context_cycle_enum,
     WM_OT_context_cycle_int,
     WM_OT_context_modal_mouse,
-    
+
     WM_OT_url_open,
 
     WM_OT_doc_view,

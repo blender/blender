@@ -46,7 +46,7 @@ def _main():
     # a bit nasty but this prevents help() and input() from locking blender
     # Ideally we could have some way for the console to replace sys.stdin but
     # python would lock blender while waiting for a return value, not easy :|
-    
+
     if not app.debug:
         _sys.stdin = None
 

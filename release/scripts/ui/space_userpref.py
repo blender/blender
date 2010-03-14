@@ -279,9 +279,9 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.label(text="Menu Open Delay:")
         col.prop(view, "open_toplevel_delay", text="Top Level")
         col.prop(view, "open_sublevel_delay", text="Sub Level")
-        
+
         col.separator()
-        
+
         col.prop(view, "show_splash")
 
 
@@ -1408,7 +1408,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         userpref = context.user_preferences
         used_ext = {ext.module for ext in userpref.addons}
-        
+
         # collect the categories that can be filtered on
         addons = [(mod, addon_info_get(mod)) for mod in self._addon_list()]
 
@@ -1417,7 +1417,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         cats.remove("")
 
         cats = ['All', 'Disabled', 'Enabled'] + sorted(cats)
-        
+
         bpy.types.Scene.EnumProperty(items=[(cats[i], cats[i], str(i)) for i in range(len(cats))],
             name="Category", attr="addon_filter", description="Filter add-ons by category")
         bpy.types.Scene.StringProperty(name="Search", attr="addon_search",
@@ -1447,12 +1447,12 @@ class USERPREF_PT_addons(bpy.types.Panel):
                         continue
                 else:
                     continue
-                    
+
             # Addon UI Code
             box = layout.column().box()
             column = box.column()
             row = column.row()
-            
+
             # Arrow #
             # If there are Infos or UI is expanded
             if info["expanded"]:
@@ -1499,7 +1499,7 @@ def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "bl
     # avoid re-initializing
     if "_init" in addon_info:
         return addon_info
-    
+
     if not addon_info:
         mod.bl_addon_info = addon_info
 

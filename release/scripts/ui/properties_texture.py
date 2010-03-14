@@ -598,19 +598,19 @@ class TEXTURE_PT_image(TextureTypePanel):
 
         layout.template_image(tex, "image", tex.image_user)
 
-def texture_filter_common(tex, layout):
 
-        layout.label(text="Filter:")
-        layout.prop(tex, "filter", text="")
-        if tex.mipmap and tex.filter in ('AREA', 'EWA', 'FELINE'):
-            if tex.filter == 'FELINE':
-                layout.prop(tex, "filter_probes", text="Probes")
-            else:
-                layout.prop(tex, "filter_eccentricity", text="Eccentricity")
-                
-        layout.prop(tex, "filter_size")
-        layout.prop(tex, "filter_size_minimum")
-        
+def texture_filter_common(tex, layout):
+    layout.label(text="Filter:")
+    layout.prop(tex, "filter", text="")
+    if tex.mipmap and tex.filter in ('AREA', 'EWA', 'FELINE'):
+        if tex.filter == 'FELINE':
+            layout.prop(tex, "filter_probes", text="Probes")
+        else:
+            layout.prop(tex, "filter_eccentricity", text="Eccentricity")
+
+    layout.prop(tex, "filter_size")
+    layout.prop(tex, "filter_size_minimum")
+
 
 class TEXTURE_PT_image_sampling(TextureTypePanel):
     bl_label = "Image Sampling"
@@ -650,7 +650,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel):
         col.prop(tex, "interpolation")
 
         texture_filter_common(tex, col)
-        
+
 
 class TEXTURE_PT_image_mapping(TextureTypePanel):
     bl_label = "Image Mapping"
@@ -731,13 +731,13 @@ class TEXTURE_PT_envmap(TextureTypePanel):
 
         tex = context.texture
         env = tex.environment_map
-        
+
         wide_ui = context.region.width > narrowui
-        
+
         row = layout.row()
         row.prop(env, "source", expand=True)
         row.menu("TEXTURE_MT_envmap_specials", icon='DOWNARROW_HLT', text="")
-        
+
         if env.source == 'IMAGE_FILE':
             layout.template_ID(tex, "image", open="image.open")
             layout.template_image(tex, "image", tex.image_user, compact=True)
@@ -746,9 +746,9 @@ class TEXTURE_PT_envmap(TextureTypePanel):
             if env.mapping == 'PLANE':
                 layout.prop(env, "zoom")
             layout.prop(env, "viewpoint_object")
-            
+
             split = layout.split()
-            
+
             col = split.column()
             col.prop(env, "ignore_layers")
             col.prop(env, "resolution")
@@ -756,7 +756,7 @@ class TEXTURE_PT_envmap(TextureTypePanel):
 
             if wide_ui:
                 col = split.column(align=True)
-            
+
             col.label(text="Clipping:")
             col.prop(env, "clip_start", text="Start")
             col.prop(env, "clip_end", text="End")
@@ -771,9 +771,9 @@ class TEXTURE_PT_envmap_sampling(TextureTypePanel):
         layout = self.layout
 
         tex = context.texture
-        
+
         texture_filter_common(tex, layout)
-        
+
 
 class TEXTURE_PT_musgrave(TextureTypePanel):
     bl_label = "Musgrave"

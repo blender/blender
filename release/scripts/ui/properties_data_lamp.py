@@ -40,12 +40,14 @@ class DataButtonsPanel(bpy.types.Panel):
         engine = context.scene.render.engine
         return context.lamp and (engine in self.COMPAT_ENGINES)
 
+
 class DATA_PT_preview(DataButtonsPanel):
     bl_label = "Preview"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def draw(self, context):
         self.layout.template_preview(context.lamp)
+
 
 class DATA_PT_context_lamp(DataButtonsPanel):
     bl_label = ""

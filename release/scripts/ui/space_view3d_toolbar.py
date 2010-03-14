@@ -745,7 +745,7 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
         brush = settings.brush
 
         layout.template_curve_mapping(brush, "curve", brush=True)
-        
+
         row = layout.row(align=True)
         row.operator("brush.curve_preset", text="Sharp").shape = 'SHARP'
         row.operator("brush.curve_preset", text="Smooth").shape = 'SMOOTH'
@@ -910,16 +910,16 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
 
         sub = col.column()
         sub.prop(ipaint, "seam_bleed")
-        
+
         row = col.row(align=True)
         row.operator("image.project_edit", text="View Edit")
         row.operator("image.project_apply", text="Apply")
 
         col.prop(ipaint, "screen_grab_size", text="")
-        
+
         sub = col.column()
         sub.operator("paint.project_image")
-        
+
         sub.operator("image.save_dirty", text="Save Edited")
 
 

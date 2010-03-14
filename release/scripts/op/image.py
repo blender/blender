@@ -65,7 +65,7 @@ class ProjectEdit(bpy.types.Operator):
     bl_idname = "image.project_edit"
     bl_label = "Project Edit"
     bl_options = {'REGISTER'}
-    
+
     _proj_hack = [""]
 
     def execute(self, context):
@@ -79,17 +79,17 @@ class ProjectEdit(bpy.types.Operator):
             image.tag = True
 
         bpy.ops.paint.image_from_view()
-        
+
         image_new = None
         for image in bpy.data.images:
             if not image.tag:
                 image_new = image
                 break
-        
+
         if not image_new:
             self.report({'ERROR'}, "Could not make new image")
             return {'CANCELLED'}
-        
+
         filename = os.path.basename(bpy.data.filename)
         filename = os.path.splitext(filename)[0]
         # filename = bpy.utils.clean_name(filename) # fixes <memory> rubbish, needs checking
@@ -98,28 +98,28 @@ class ProjectEdit(bpy.types.Operator):
             filename = os.path.join(os.path.dirname(bpy.data.filename), filename)
         else:
             filename = "//" + filename
-        
+
         obj = context.object
 
         if obj:
             filename += "_" + bpy.utils.clean_name(obj.name)
-        
+
         filename_final = filename + "." + EXT
         i = 0
 
         while os.path.exists(bpy.utils.expandpath(filename_final)):
             filename_final = filename + ("%.3d.%s" % (i, EXT))
             i += 1
-        
+
         image_new.name = os.path.basename(filename_final)
         ProjectEdit._proj_hack[0] = image_new.name
-        
+
         image_new.filename_raw = filename_final # TODO, filename raw is crummy
         image_new.file_format = 'PNG'
         image_new.save()
-        
+
         subprocess.Popen([image_editor, bpy.utils.expandpath(filename_final)])
-        
+
         return {'FINISHED'}
 
 
