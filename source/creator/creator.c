@@ -718,7 +718,7 @@ static int set_start_frame(int argc, char **argv, void *data)
 		Scene *scene= CTX_data_scene(C);
 		if (argc > 1) {
 			int frame = atoi(argv[1]);
-			(scene->r.sfra) = MIN2(MAXFRAME, MAX2(1, frame));
+			(scene->r.sfra) = CLAMPIS(frame, MINFRAME, MAXFRAME);
 			return 1;
 		} else {
 			printf("\nError: frame number must follow '-s'.\n");
@@ -737,7 +737,7 @@ static int set_end_frame(int argc, char **argv, void *data)
 		Scene *scene= CTX_data_scene(C);
 		if (argc > 1) {
 			int frame = atoi(argv[1]);
-			(scene->r.efra) = MIN2(MAXFRAME, MAX2(1, frame));
+			(scene->r.efra) = CLAMPIS(frame, MINFRAME, MAXFRAME);
 			return 1;
 		} else {
 			printf("\nError: frame number must follow '-e'.\n");
@@ -756,10 +756,10 @@ static int set_skip_frame(int argc, char **argv, void *data)
 		Scene *scene= CTX_data_scene(C);
 		if (argc > 1) {
 			int frame = atoi(argv[1]);
-			(scene->r.frame_step) = MIN2(MAXFRAME, MAX2(1, frame));
+			(scene->r.frame_step) = CLAMPIS(frame, 1, MAXFRAME);
 			return 1;
 		} else {
-			printf("\nError: number of frames must follow '-j'.\n");
+			printf("\nError: number of frames to step must follow '-j'.\n");
 			return 0;
 		}
 	} else {
