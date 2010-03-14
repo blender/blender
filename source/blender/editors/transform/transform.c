@@ -1502,6 +1502,27 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		return 0;
 	}
 
+	/* Stupid code to have Ctrl-Click on manipulator work ok */
+	{
+		wmKeyMap *keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
+		wmKeyMapItem *kmi;
+
+		for (kmi = keymap->items.first; kmi; kmi = kmi->next)
+		{
+			if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS)
+			{
+				if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) && event->ctrl) ||
+					(ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
+					(ELEM(kmi->type, LEFTALTKEY, RIGHTALTKEY) && event->alt) ||
+					(kmi->type == COMMANDKEY && event->oskey)) {
+					t->modifiers |= MOD_SNAP_INVERT;
+				}
+				break;
+			}
+		}
+
+	}
+
 	initSnapping(t, op); // Initialize snapping data AFTER mode flags
 
 	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
