@@ -580,6 +580,9 @@ int BPY_button_eval(bContext *C, char *expr, double *value)
 		if(val==-1 && PyErr_Occurred()) {
 			error_ret= -1;
 		}
+		else if (!finite(val)) {
+			*value= 0.0;
+		}
 		else {
 			*value= val;
 		}

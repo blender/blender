@@ -152,7 +152,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	PyGILState_STATE gilstate;
 
 	DriverVar *dvar;
-	float result = 0.0f; /* default return */
+	double result = 0.0; /* default return */
 	char *expr = NULL;
 	short targets_ok= 1;
 	int i;
@@ -163,11 +163,11 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	/* get the py expression to be evaluated */
 	expr = driver->expression;
 	if ((expr == NULL) || (expr[0]=='\0'))
-		return result;
+		return 0.0f;
 
 	if(!(G.f & G_SCRIPT_AUTOEXEC)) {
 		printf("skipping driver '%s', automatic scripts are disabled\n", driver->expression);
-		return result;
+		return 0.0f;
 	}
 
 	gilstate = PyGILState_Ensure();
@@ -177,7 +177,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 		if (bpy_pydriver_create_dict() != 0) {
 			fprintf(stderr, "Pydriver error: couldn't create Python dictionary");
 			PyGILState_Release(gilstate);
-			return result;
+			return 0.0f;
 		}
 	}
 
@@ -238,7 +238,7 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 				targets_ok= 0;
 			}
 			
-			fprintf(stderr, "\tBPY_pydriver_eval() - couldn't add variable '%s' to namespace \n", dvar->name);
+			fprintf(stderr, "\tBPY_pydriver_eval() - couldn't add variable '%s' to namespace\n", dvar->name);
 			// BPy_errors_to_report(NULL); // TODO - reports
 			PyErr_Print();
 			PyErr_Clear();
@@ -260,12 +260,10 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	/* process the result */
 	if (retval == NULL) {
 		pydriver_error(driver);
-		result = 0.0f;
-	} else if((result= (float)PyFloat_AsDouble(retval)) == -1.0f && PyErr_Occurred()) {
+	} else if((result= PyFloat_AsDouble(retval)) == -1.0 && PyErr_Occurred()) {
 		pydriver_error(driver);
 		Py_DECREF(retval);
-		result = 0.0f;
-
+		result = 0.0;
 	}
 	else {
 		/* all fine, make sure the "invalid expression" flag is cleared */
@@ -274,5 +272,12 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	}
 
 	PyGILState_Release(gilstate);
-	return result;
+    
+    if(finite(result)) {
+        return (float)result;
+    }
+    else {
+        fprintf(stderr, "\tBPY_pydriver_eval() - driver '%s' evaluates to '%f'\n", dvar->name, result);
+        return 0.0f;
+    }
 }
