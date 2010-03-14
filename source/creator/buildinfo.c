@@ -35,9 +35,9 @@
 #define XSTRINGIFY(x) #x
 
 #ifdef BUILD_DATE
-const char * build_date=STRINGIFY(BUILD_DATE);
-const char * build_time=STRINGIFY(BUILD_TIME);
-const char * build_rev=STRINGIFY(BUILD_REV);
-const char * build_platform=STRINGIFY(BUILD_PLATFORM);
-const char * build_type=STRINGIFY(BUILD_TYPE);
+char build_date[]= STRINGIFY(BUILD_DATE);
+char build_time[]= STRINGIFY(BUILD_TIME);
+char build_rev[]= STRINGIFY(BUILD_REV);
+char build_platform[]= STRINGIFY(BUILD_PLATFORM);
+char build_type[]= STRINGIFY(BUILD_TYPE);
 #endif

@@ -107,11 +107,11 @@
 
 // from buildinfo.c
 #ifdef BUILD_DATE
-extern const char * build_date;
-extern const char * build_time;
-extern const char * build_rev;
-extern const char * build_platform;
-extern const char * build_type;
+extern char build_date[];
+extern char build_time[];
+extern char build_rev[];
+extern char build_platform[];
+extern char build_type[];
 #endif
 
 /*	Local Function prototypes */
@@ -159,6 +159,18 @@ static void blender_esc(int sig)
 		printf("\nSent an internal break event. Press ^C again to kill Blender\n");
 		count++;
 	}
+}
+
+/* buildinfo can have quotes */
+static void strip_quotes(char *str)
+{
+    if(str[0] == '"') {
+        int len= strlen(str) - 1;
+        memmove(str, str+1, len);
+        if(str[len-1] == '"') {
+            str[len-1]= '\0';
+        }
+    }
 }
 
 static int print_version(int argc, char **argv, void *data)
@@ -936,7 +948,15 @@ int main(int argc, char **argv)
 		if(blender_path_env)
 			BLI_strncpy(blender_path, blender_path_env, sizeof(blender_path));
 	}
-	
+
+#ifdef BUILD_DATE	
+    strip_quotes(build_date);
+    strip_quotes(build_time);
+    strip_quotes(build_rev);
+    strip_quotes(build_platform);
+    strip_quotes(build_type);
+#endif
+
 	RNA_init();
 	RE_engines_init();
 

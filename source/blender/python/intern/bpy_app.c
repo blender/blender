@@ -24,16 +24,18 @@
 
 #include "bpy_app.h"
 
+#include "BLI_path_util.h"
+
 #include "BKE_blender.h"
 #include "BKE_global.h"
 #include "structseq.h"
 
 #ifdef BUILD_DATE
-extern const char * build_date;
-extern const char * build_time;
-extern const char * build_rev;
-extern const char * build_platform;
-extern const char * build_type;
+extern char build_date[];
+extern char build_time[];
+extern char build_rev[];
+extern char build_platform[];
+extern char build_type[];
 #endif
 
 static PyTypeObject BlenderAppType;
@@ -61,24 +63,9 @@ static PyStructSequence_Desc app_info_desc = {
 	10
 };
 
-static char *strip_quotes(char *buf, const char *input)
-{
-	int i;
-	strcpy(buf, input);
-	if(buf[0]=='\0') return buf;
-	while(buf[1] && (buf[0]=='"' || buf[0]=='\'')) buf++;
-	if(buf[0]=='\0') return buf;
-	i= strlen(buf) - 1;
-	while(i>=0 && (buf[i]=='"' || buf[i]=='\'')) i--;
-	buf[i+1]= '\0';
-
-	return buf;
-}
-
 static PyObject *make_app_info(void)
 {
 	extern char bprogname[]; /* argv[0] from creator.c */
-	char buf[256];
 
 	PyObject *app_info;
 	int pos = 0;
@@ -103,11 +90,11 @@ static PyObject *make_app_info(void)
 
 	/* build info */
 #ifdef BUILD_DATE
-	SetStrItem(strip_quotes(buf, build_date));
-	SetStrItem(strip_quotes(buf, build_time));
-	SetStrItem(strip_quotes(buf, build_rev));
-	SetStrItem(strip_quotes(buf, build_platform));
-	SetStrItem(strip_quotes(buf, build_type));
+	SetStrItem(build_date);
+	SetStrItem(build_time);
+	SetStrItem(build_rev);
+	SetStrItem(build_platform);
+	SetStrItem(build_type);
 #else
 	SetStrItem(strip_quotes(buf, "Unknown"));
 	SetStrItem(strip_quotes(buf, "Unknown"));

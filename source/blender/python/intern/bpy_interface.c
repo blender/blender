@@ -526,12 +526,6 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 }
 #endif
 
-// #define TIME_REGISTRATION
-
-#ifdef TIME_REGISTRATION
-//(INCLUDE_LINT)#include "PIL_time.h"
-#endif
-
 
 int BPY_button_eval(bContext *C, char *expr, double *value)
 {

@@ -1060,7 +1060,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	char *revision_str = NULL;
 	char version_buf[128];
 	char revision_buf[128];
-	extern char * build_rev;
+	extern char build_rev[];
 	char *cp;
 	
 	version_str = &version_buf[0];
@@ -1068,16 +1068,6 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	
 	sprintf(version_str, "%d.%02d.%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 	sprintf(revision_str, "r%s", build_rev);
-	
-	/* here on my system I get ugly double quotes around the revision number.
-	 * if so, clip it off: */
-	cp = strchr(revision_str, '"');
-	if (cp) {
-		memmove(cp, cp+1, strlen(cp+1));
-		cp = strchr(revision_str, '"');
-		if (cp)
-			*cp = 0;
-	}
 	
 	BLF_size(style->widgetlabel.points, U.dpi);
 	ver_width = BLF_width(version_str)+5;
