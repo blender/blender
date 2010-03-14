@@ -1391,7 +1391,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 					CDDM_calc_normals(dm);
 				}
 			} else {
-				dm= CDDM_from_curve(ob);
+				dm= CDDM_from_curve_customDB(ob, dispbase);
 
 				if(dmDeformedVerts) {
 					CDDM_apply_vert_coords(dm, dmDeformedVerts);
