@@ -48,7 +48,6 @@ static EnumPropertyItem texture_filter_items[] = {
 	{TXF_EWA, "EWA", 0, "EWA", ""},
 	{TXF_FELINE, "FELINE", 0, "FELINE", ""},
 	{TXF_AREA, "AREA", 0, "Area", ""},
-	{TXF_SAT, "SAT", 0, "SAT (4x mem)", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem texture_type_items[] = {
@@ -327,26 +326,8 @@ static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, int value)
 	if(value) tex->imaflag |= TEX_MIPMAP;
 	else tex->imaflag &= ~TEX_MIPMAP;
 
-	if((tex->imaflag & TEX_MIPMAP) && tex->texfilter == TXF_SAT)
-		tex->texfilter = TXF_EWA;
-}
-
-static EnumPropertyItem *rna_ImageTexture_filter_itemf(bContext *C, PointerRNA *ptr, int *free)
-{
-	Tex *tex= (Tex*)ptr->data;
-	EnumPropertyItem *item= NULL;
-	int totitem= 0;
-
-	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_BOX);
-	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_EWA);
-	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_FELINE);
-	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_AREA);
 	if(tex->imaflag & TEX_MIPMAP)
-		RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_SAT);
-	
-	*free= 1;
-
-	return item;
+		tex->texfilter = TXF_EWA;
 }
 
 static void rna_Envmap_source_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -695,7 +676,6 @@ static void rna_def_filter_common(StructRNA *srna)
 	prop= RNA_def_property(srna, "filter", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texfilter");
 	RNA_def_property_enum_items(prop, texture_filter_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ImageTexture_filter_itemf");
 	RNA_def_property_ui_text(prop, "Filter", "Texture filter to use for sampling image");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	

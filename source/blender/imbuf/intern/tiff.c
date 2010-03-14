@@ -62,13 +62,13 @@
  * Local declarations. *
  ***********************/
 /* Reading and writing of an in-memory TIFF file. */
-tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n);
-tsize_t imb_tiff_WriteProc(thandle_t handle, tdata_t data, tsize_t n);
-toff_t  imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence);
-int     imb_tiff_CloseProc(thandle_t handle);
-toff_t  imb_tiff_SizeProc(thandle_t handle);
-int     imb_tiff_DummyMapProc(thandle_t fd, tdata_t* pbase, toff_t* psize);
-void    imb_tiff_DummyUnmapProc(thandle_t fd, tdata_t base, toff_t size);
+static tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n);
+static tsize_t imb_tiff_WriteProc(thandle_t handle, tdata_t data, tsize_t n);
+static toff_t  imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence);
+static int     imb_tiff_CloseProc(thandle_t handle);
+static toff_t  imb_tiff_SizeProc(thandle_t handle);
+static int     imb_tiff_DummyMapProc(thandle_t fd, tdata_t* pbase, toff_t* psize);
+static void    imb_tiff_DummyUnmapProc(thandle_t fd, tdata_t base, toff_t size);
 
 
 /* Structure for in-memory TIFF file. */
@@ -86,11 +86,11 @@ struct ImbTIFFMemFile {
  *****************************/
 
 
-void imb_tiff_DummyUnmapProc(thandle_t fd, tdata_t base, toff_t size)
+static void imb_tiff_DummyUnmapProc(thandle_t fd, tdata_t base, toff_t size)
 {
 }
 
-int imb_tiff_DummyMapProc(thandle_t fd, tdata_t* pbase, toff_t* psize) 
+static int imb_tiff_DummyMapProc(thandle_t fd, tdata_t* pbase, toff_t* psize) 
 {
             return (0);
 }
@@ -105,7 +105,7 @@ int imb_tiff_DummyMapProc(thandle_t fd, tdata_t* pbase, toff_t* psize)
  * @return: Number of bytes actually read.
  * 	 0 = EOF.
  */
-tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n)
+static tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n)
 {
 	tsize_t nRemaining, nCopy;
 	struct ImbTIFFMemFile* mfile;
@@ -147,7 +147,7 @@ tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n)
  * NOTE: The current Blender implementation should not need this function.  It
  *       is simply a stub.
  */
-tsize_t imb_tiff_WriteProc(thandle_t handle, tdata_t data, tsize_t n)
+static tsize_t imb_tiff_WriteProc(thandle_t handle, tdata_t data, tsize_t n)
 {
 	printf("imb_tiff_WriteProc: this function should not be called.\n");
 	return (-1);
@@ -169,7 +169,7 @@ tsize_t imb_tiff_WriteProc(thandle_t handle, tdata_t data, tsize_t n)
  * @return: Resulting offset location within the file, measured in bytes from
  *          the beginning of the file.  (-1) indicates an error.
  */
-toff_t imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence)
+static toff_t imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence)
 {
 	struct ImbTIFFMemFile *mfile;
 	toff_t new_offset;
@@ -216,7 +216,7 @@ toff_t imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence)
  *
  * @return: 0
  */
-int imb_tiff_CloseProc(thandle_t handle)
+static int imb_tiff_CloseProc(thandle_t handle)
 {
 	struct ImbTIFFMemFile *mfile;
 
@@ -242,7 +242,7 @@ int imb_tiff_CloseProc(thandle_t handle)
  *
  * @return: Size of file (in bytes).
  */
-toff_t imb_tiff_SizeProc(thandle_t handle)
+static toff_t imb_tiff_SizeProc(thandle_t handle)
 {
 	struct ImbTIFFMemFile* mfile;
 

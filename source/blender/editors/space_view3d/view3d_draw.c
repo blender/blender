@@ -1362,7 +1362,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d)
 				int mip= 0;
 
 				if(ibuf->mipmap[0]==NULL)
-					IMB_makemipmap(ibuf, 0, 0);
+					IMB_makemipmap(ibuf, 0);
 
 				while(tzoom < 1.0f && mip<8 && ibuf->mipmap[mip]) {
 					tzoom*= 2.0f;

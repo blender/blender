@@ -417,107 +417,6 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
 
 }
 
-// used in SAT_get_color_bilerp() below
-static void SAT_getcol(float* col, ImBuf* ibuf, int x, int y)
-{
-	if ((x == (ibuf->x - 1)) && (y == (ibuf->y - 1))) {	// avg val pos
-		col[0] = col[1] = col[2] = col[3] = 0.f;
-		return;
-	}
-	ibuf_get_color(col, ibuf, x, y);
-}
-
-// used in boxsampleclip_SAT() below
-static void SAT_get_color_bilerp(float *col, ImBuf *ibuf, float u, float v)
-{
-	float c00[4], c01[4], c10[4], c11[4];
-	const float ufl = floorf(u -= 0.5f), vfl = floorf(v -= 0.5f);
-	const float uf = u - ufl, vf = v - vfl;
-	const float w00=(1.f-uf)*(1.f-vf), w10=uf*(1.f-vf), w01=(1.f-uf)*vf, w11=uf*vf;
-	int x1 = (int)ufl, y1 = (int)vfl, x2 = x1 + 1, y2 = y1 + 1;
-	x1 = (x1 < 0) ? 0 : (x1 >= ibuf->x ? ibuf->x - 1 : x1);
-	x2 = (x2 < 0) ? 0 : (x2 >= ibuf->x ? ibuf->x - 1 : x2);
-	y1 = (y1 < 0) ? 0 : (y1 >= ibuf->y ? ibuf->y - 1 : y1);
-	y2 = (y2 < 0) ? 0 : (y2 >= ibuf->y ? ibuf->y - 1 : y2);
-	SAT_getcol(c00, ibuf, x1, y1);
-	SAT_getcol(c10, ibuf, x2, y1);
-	SAT_getcol(c01, ibuf, x1, y2);
-	SAT_getcol(c11, ibuf, x2, y2);
-	col[0] = w00*c00[0] + w10*c10[0] + w01*c01[0] + w11*c11[0];
-	col[1] = w00*c00[1] + w10*c10[1] + w01*c01[1] + w11*c11[1];
-	col[2] = w00*c00[2] + w10*c10[2] + w01*c01[2] + w11*c11[2];
-	col[3] = w00*c00[3] + w10*c10[3] + w01*c01[3] + w11*c11[3];
-}
-
-static void boxsampleclip_SAT(ImBuf *ibuf, rctf *rf, TexResult *texres, int intpol)
-{
-	float div, col[4];
-	if (intpol) {
-		div = 1.f/((rf->xmax - rf->xmin + 1.f)*(rf->ymax - rf->ymin + 1.f));
-		SAT_get_color_bilerp(&texres->tr, ibuf, rf->xmax, rf->ymax);
-		if (rf->ymin >= 1.f) {
-			SAT_get_color_bilerp(col, ibuf, rf->xmax, rf->ymin - 1.f);
-			texres->tr -= col[0];
-			texres->tg -= col[1];
-			texres->tb -= col[2];
-			texres->ta -= col[3];
-		}
-		if (rf->xmin >= 1.f) {
-			SAT_get_color_bilerp(col, ibuf, rf->xmin - 1.f, rf->ymax);
-			texres->tr -= col[0];
-			texres->tg -= col[1];
-			texres->tb -= col[2];
-			texres->ta -= col[3];
-		}
-		if (rf->xmin >= 1.f && rf->ymin >= 1.f) {
-			SAT_get_color_bilerp(col, ibuf, rf->xmin - 1.f, rf->ymin - 1.f);
-			texres->tr += col[0];
-			texres->tg += col[1];
-			texres->tb += col[2];
-			texres->ta += col[3];
-		}
-	}
-	else {
-		int startx = (int)floorf(rf->xmin);
-		int endx = (int)floorf(rf->xmax);
-		int starty = (int)floorf(rf->ymin);
-		int endy = (int)floorf(rf->ymax);
-		if (startx < 0) startx = 0;
-		if (starty < 0) starty = 0;
-		if (endx >= ibuf->x) endx = ibuf->x - 1;
-		if (endy >= ibuf->y) endy = ibuf->y - 1;
-		div = 1.f/((endx - startx + 1)*(endy - starty + 1));
-		SAT_getcol(&texres->tr, ibuf, endx, endy);
-		if (starty >= 1) {
-			SAT_getcol(col, ibuf, endx, starty - 1);
-			texres->tr -= col[0];
-			texres->tg -= col[1];
-			texres->tb -= col[2];
-			texres->ta -= col[3];
-		}
-		if (startx >= 1) {
-			SAT_getcol(col, ibuf, startx - 1, endy);
-			texres->tr -= col[0];
-			texres->tg -= col[1];
-			texres->tb -= col[2];
-			texres->ta -= col[3];
-		}
-		if (startx >=1 && starty >= 1) {
-			SAT_getcol(col, ibuf, startx - 1, starty - 1);
-			texres->tr += col[0];
-			texres->tg += col[1];
-			texres->tb += col[2];
-			texres->ta += col[3];
-		}
-	}
-	// avg
-	ibuf_get_color(col, ibuf, ibuf->x - 1, ibuf->y - 1);
-	texres->tr = texres->tr*div + col[0];
-	texres->tg = texres->tg*div + col[1];
-	texres->tb = texres->tb*div + col[2];
-	texres->ta = texres->ta*div + col[3];
-}
-
 static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 {
 	/* sample box, is clipped already, and minx etc. have been set at ibuf size.
@@ -601,7 +500,7 @@ static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
 	}
 }
 
-static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float maxy, TexResult *texres, int imaprepeat, int imapextend, int SAT, int intpol)
+static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float maxy, TexResult *texres, int imaprepeat, int imapextend, int intpol)
 {
 	/* Sample box, performs clip. minx etc are in range 0.0 - 1.0 .
    * Enlarge with antialiased edges of pixels.
@@ -655,10 +554,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 	if(count>1) {
 		tot= texres->tr= texres->tb= texres->tg= texres->ta= 0.0;
 		while(count--) {
-			if (SAT)
-				boxsampleclip_SAT(ibuf, rf, &texr, intpol);
-			else
-				boxsampleclip(ibuf, rf, &texr);
+			boxsampleclip(ibuf, rf, &texr);
 			
 			opp= square_rctf(rf);
 			tot+= opp;
@@ -676,12 +572,8 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 			if(texres->talpha) texres->ta/= tot;
 		}
 	}
-	else {
-		if (SAT)
-			boxsampleclip_SAT(ibuf, rf, texres, intpol);
-		else
-			boxsampleclip(ibuf, rf, texres);
-	}
+	else
+		boxsampleclip(ibuf, rf, texres);
 
 	if(texres->talpha==0) texres->ta= 1.0;
 	
@@ -707,7 +599,7 @@ void image_sample(Image *ima, float fx, float fy, float dx, float dy, float *res
 	if( (R.flag & R_SEC_FIELD) && (ibuf->flags & IB_fields) )
 		ibuf->rect+= (ibuf->x*ibuf->y);
 	
-	boxsample(ibuf, fx, fy, fx+dx, fy+dy, &texres, 0, 1, 0, 0);
+	boxsample(ibuf, fx, fy, fx+dx, fy+dy, &texres, 0, 1, 0);
 	result[0]= texres.tr;
 	result[1]= texres.tg;
 	result[2]= texres.tb;
@@ -726,7 +618,7 @@ void ibuf_sample(ImBuf *ibuf, float fx, float fy, float dx, float dy, float *res
 	}
 	
 	memset(&texres, 0, sizeof(texres));
-	boxsample(ibuf, fx, fy, fx+dx, fy+dy, &texres, 0, 1, 0, 0);
+	boxsample(ibuf, fx, fy, fx+dx, fy+dy, &texres, 0, 1, 0);
 	result[0]= texres.tr;
 	result[1]= texres.tg;
 	result[2]= texres.tb;
@@ -1148,7 +1040,7 @@ static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, 
 	if (tex->imaflag & TEX_MIPMAP) {
 		if (((ibuf->flags & IB_fields) == 0) && (ibuf->mipmap[0] == NULL)) {
 			BLI_lock_thread(LOCK_IMAGE);
-			if (ibuf->mipmap[0] == NULL) IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP, 0);
+			if (ibuf->mipmap[0] == NULL) IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
 			BLI_unlock_thread(LOCK_IMAGE);
 		}
 	}
@@ -1505,7 +1397,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 	TexResult texr;
 	float fx, fy, minx, maxx, miny, maxy, dx, dy, dxt[3], dyt[3];
 	float maxd, pixsize, val1, val2, val3;
-	int curmap, retval, imaprepeat, imapextend, SAT = (tex->texfilter == TXF_SAT);
+	int curmap, retval, imaprepeat, imapextend;
 
 	// TXF: since dxt/dyt might be modified here and since they might be needed after imagewraposa() call,
 	// make a local copy here so that original vecs remain untouched
@@ -1513,7 +1405,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 	VECCOPY(dyt, DYT);
 
 	// anisotropic filtering
-	if (!SAT && (tex->texfilter != TXF_BOX))
+	if (tex->texfilter != TXF_BOX)
 		return imagewraposa_aniso(tex, ima, ibuf, texvec, dxt, dyt, texres);
 
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0f;
@@ -1536,13 +1428,13 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 	   return retval;
 	
 	/* mipmap test */
-	if (SAT || tex->imaflag & TEX_MIPMAP) {
+	if (tex->imaflag & TEX_MIPMAP) {
 		if(ibuf->flags & IB_fields);
 		else if(ibuf->mipmap[0]==NULL) {
 			BLI_lock_thread(LOCK_IMAGE);
 			
 			if(ibuf->mipmap[0]==NULL)
-				IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP, SAT);
+				IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
 
 			BLI_unlock_thread(LOCK_IMAGE);
 		}
@@ -1754,11 +1646,11 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 			//minx*= 1.35f;
 			//miny*= 1.35f;
 			
-			boxsample(curibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend, 0, 0);
+			boxsample(curibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend, 0);
 			val1= texres->tr+texres->tg+texres->tb;
-			boxsample(curibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend, 0, 0);
+			boxsample(curibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend, 0);
 			val2= texr.tr + texr.tg + texr.tb;
-			boxsample(curibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend, 0, 0);
+			boxsample(curibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend, 0);
 			val3= texr.tr + texr.tg + texr.tb;
 
 			/* don't switch x or y! */
@@ -1767,7 +1659,7 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 			
 			if(previbuf!=curibuf) {  /* interpolate */
 				
-				boxsample(previbuf, fx-minx, fy-miny, fx+minx, fy+miny, &texr, imaprepeat, imapextend, 0, 0);
+				boxsample(previbuf, fx-minx, fy-miny, fx+minx, fy+miny, &texr, imaprepeat, imapextend, 0);
 				
 				/* calc rgb */
 				dx= 2.0f*(pixsize-maxd)/pixsize;
@@ -1784,9 +1676,9 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 				}
 				
 				val1= dy*val1+ dx*(texr.tr + texr.tg + texr.tb);
-				boxsample(previbuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend, 0, 0);
+				boxsample(previbuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend, 0);
 				val2= dy*val2+ dx*(texr.tr + texr.tg + texr.tb);
-				boxsample(previbuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend, 0, 0);
+				boxsample(previbuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend, 0);
 				val3= dy*val3+ dx*(texr.tr + texr.tg + texr.tb);
 				
 				texres->nor[0]= (val1-val2);	/* vals have been interpolated above! */
@@ -1809,10 +1701,10 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 			maxy= fy+miny;
 			miny= fy-miny;
 
-			boxsample(curibuf, minx, miny, maxx, maxy, texres, imaprepeat, imapextend, 0, 0);
+			boxsample(curibuf, minx, miny, maxx, maxy, texres, imaprepeat, imapextend, 0);
 
 			if(previbuf!=curibuf) {  /* interpolate */
-				boxsample(previbuf, minx, miny, maxx, maxy, &texr, imaprepeat, imapextend, 0, 0);
+				boxsample(previbuf, minx, miny, maxx, maxy, &texr, imaprepeat, imapextend, 0);
 				
 				fx= 2.0f*(pixsize-maxd)/pixsize;
 				
@@ -1831,39 +1723,26 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *DXT, f
 	}
 	else {
 		const int intpol = tex->imaflag & TEX_INTERPOL;
-		if (intpol && !SAT) {
+		if (intpol) {
 			/* sample 1 pixel minimum */
 			if (minx < 0.5f / ibuf->x) minx = 0.5f / ibuf->x;
 			if (miny < 0.5f / ibuf->y) miny = 0.5f / ibuf->y;
 		}
 
 		if(texres->nor && (tex->imaflag & TEX_NORMALMAP)==0) {
-			if (SAT) {
-				boxsample(ibuf->mipmap[0], fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend, 1, intpol);
-				val1 = texres->tr + texres->tg + texres->tb;
-				boxsample(ibuf->mipmap[0], fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend, 1, intpol);
-				val2 = texr.tr + texr.tg + texr.tb;
-				boxsample(ibuf->mipmap[0], fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend, 1, intpol);
-				val3 = texr.tr + texr.tg + texr.tb;
-			}
-			else {
-				boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend, 0, 0);
-				val1= texres->tr+texres->tg+texres->tb;
-				boxsample(ibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend, 0, 0);
-				val2= texr.tr + texr.tg + texr.tb;
-				boxsample(ibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend, 0, 0);
-				val3= texr.tr + texr.tg + texr.tb;
-			}
+			boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend, 0);
+			val1= texres->tr+texres->tg+texres->tb;
+			boxsample(ibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr, imaprepeat, imapextend, 0);
+			val2= texr.tr + texr.tg + texr.tb;
+			boxsample(ibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr, imaprepeat, imapextend, 0);
+			val3= texr.tr + texr.tg + texr.tb;
+
 			/* don't switch x or y! */
 			texres->nor[0]= (val1-val2);
 			texres->nor[1]= (val1-val3);
 		}
-		else {
-			if (SAT)
-				boxsample(ibuf->mipmap[0], fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend, 1, intpol);
-			else
-				boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend, 0, 0);
-		}
+		else
+			boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres, imaprepeat, imapextend, 0);
 	}
 	
 	BRICONTRGB;
