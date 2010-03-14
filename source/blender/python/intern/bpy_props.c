@@ -26,13 +26,10 @@
 #include "bpy_rna.h"
 #include "bpy_util.h"
 
-#include "RNA_access.h"
 #include "RNA_define.h" /* for defining our own rna */
 #include "RNA_enum_types.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "float.h" /* FLT_MIN/MAX */
 
 EnumPropertyItem property_flag_items[] = {
 	{PROP_HIDDEN, "HIDDEN", 0, "Hidden", ""},

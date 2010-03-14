@@ -22,12 +22,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "Python.h"
 
 #include "bpy_rna.h"
 #include "bpy_util.h"
 
-#include "BLI_path_util.h"
 #include "DNA_screen_types.h"
 #include "BKE_context.h"
 #include "ED_space_api.h"

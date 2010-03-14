@@ -28,7 +28,6 @@
 
 #include "BLI_listbase.h"
 
-#include "BPY_extern.h"
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
 

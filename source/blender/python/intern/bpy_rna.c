@@ -30,11 +30,8 @@
 //#include "blendef.h"
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
-#include "BLI_string.h"
 #include "float.h" /* FLT_MIN/MAX */
 
-#include "RNA_access.h"
-#include "RNA_define.h" /* for defining our own rna */
 #include "RNA_enum_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -57,7 +54,6 @@
 #include "../generic/Mathutils.h" /* so we can have mathutils callbacks */
 #include "../generic/IDProp.h" /* for IDprop lookups */
 
-#include <string.h>
 
 static PyObject *pyrna_prop_array_subscript_slice(BPy_PropertyRNA *self, PointerRNA *ptr, PropertyRNA *prop, int start, int stop, int length);
 static Py_ssize_t pyrna_prop_array_length(BPy_PropertyRNA *self);

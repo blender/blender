@@ -30,7 +30,6 @@
 
 #include "BLI_math.h"
 #include "BKE_utildefines.h"
-#include "BLI_blenlib.h"
 
 //-----------------------------METHODS------------------------------
 static char Quaternion_ToEuler_doc[] =

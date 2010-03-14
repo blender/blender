@@ -22,8 +22,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "DNA_listBase.h"
-#include "RNA_access.h"
 #include "bpy_util.h"
 #include "BLI_dynstr.h"
 #include "MEM_guardedalloc.h"

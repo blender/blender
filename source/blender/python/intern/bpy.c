@@ -25,7 +25,6 @@
 /* This file defines the '_bpy' module which is used by python's 'bpy' package.
  * a script writer should never directly access this module */
  
-#include <Python.h>
 
 #include "bpy_util.h" 
 #include "bpy_rna.h"
@@ -36,7 +35,6 @@
 #include "BLI_path_util.h"
  
  /* external util modules */
-#include "../generic/Mathutils.h"
 #include "../generic/Geometry.h"
 #include "../generic/bgl.h"
 #include "../generic/blf.h"

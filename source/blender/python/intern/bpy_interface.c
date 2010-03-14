@@ -23,10 +23,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
  
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
 
 
 /* grr, python redefines */
@@ -34,33 +30,19 @@
 #undef _POSIX_C_SOURCE
 #endif
 
-#include <Python.h>
-#include "compile.h"		/* for the PyCodeObject */
-#include "eval.h"		/* for PyEval_EvalCode */
 
 #include "bpy.h"
 #include "bpy_rna.h"
 #include "bpy_util.h"
 
-#ifndef WIN32
-#include <dirent.h>
-#else
-#include "BLI_winstuff.h"
-#endif
-
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "BLI_storage.h"
-#include "BLI_fileops.h"
-#include "BLI_string.h"
 #include "BLI_path_util.h"
 
 #include "BKE_context.h"
 #include "BKE_text.h"
-#include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_global.h" /* only for script checking */
 
@@ -547,7 +529,7 @@ int BPY_run_python_script_space(const char *modulename, const char *func)
 // #define TIME_REGISTRATION
 
 #ifdef TIME_REGISTRATION
-#include "PIL_time.h"
+//(INCLUDE_LINT)#include "PIL_time.h"
 #endif
 
 

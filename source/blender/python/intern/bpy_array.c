@@ -22,14 +22,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "Python.h"
-
 #include "bpy_rna.h"
-
-#include "RNA_access.h"
-
-#include "BLI_string.h"
-
 #include "BKE_global.h"
 
 #define MAX_ARRAY_DIMENSION 10

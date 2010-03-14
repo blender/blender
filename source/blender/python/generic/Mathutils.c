@@ -50,8 +50,6 @@
 #include "Mathutils.h"
 
 #include "BLI_math.h"
-#include "PIL_time.h"
-#include "BKE_utildefines.h"
 
 //-------------------------DOC STRINGS ---------------------------
 static char M_Mathutils_doc[] =

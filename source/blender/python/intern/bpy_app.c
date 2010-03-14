@@ -23,9 +23,6 @@
  */
 
 #include "bpy_app.h"
-#include "bpy_util.h"
-
-#include "BLI_path_util.h"
 
 #include "BKE_blender.h"
 #include "BKE_global.h"

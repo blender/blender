@@ -28,7 +28,6 @@
 
 #include "bpy_internal_import.h"
 #include "DNA_text_types.h"
-#include "DNA_ID.h"
 
 #include "MEM_guardedalloc.h"
 #include "BKE_text.h" /* txt_to_buf */	

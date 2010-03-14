@@ -23,14 +23,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "DNA_ID.h"
-
 #include "BKE_idprop.h"
 
 #include "IDProp.h"
-// #include "gen_utils.h"
-
-#include "MEM_guardedalloc.h"
 
 #define BSTR_EQ(a, b)	(*(a) == *(b) && !strcmp(a, b))
 
