@@ -5697,6 +5697,7 @@ static void solidifyModifier_copyData(ModifierData *md, ModifierData *target)
 	tsmd->crease_inner = smd->crease_inner;
 	tsmd->crease_outer = smd->crease_outer;
 	tsmd->crease_rim = smd->crease_rim;
+	tsmd->flag = smd->flag;
 	strcpy(tsmd->defgrp_name, smd->defgrp_name);
 }
 
