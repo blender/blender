@@ -279,6 +279,10 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.label(text="Menu Open Delay:")
         col.prop(view, "open_toplevel_delay", text="Top Level")
         col.prop(view, "open_sublevel_delay", text="Sub Level")
+        
+        col.separator()
+        
+        col.prop(view, "show_splash")
 
 
 class USERPREF_PT_edit(bpy.types.Panel):

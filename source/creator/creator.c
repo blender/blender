@@ -196,7 +196,7 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 	printf ("Usage: blender [args ...] [file] [args ...]\n");
 	printf ("\nRender options:\n");
-	printf ("  -b <file>\tRender <file> in background (doesn't load the user defaults .B.blend file)\n");
+	printf ("  -b <file>\tLoad <file> in background (often used for background rendering)\n");
 	printf ("    -a render frames from start to end (inclusive), only works when used after -b\n");
 	printf ("    -S <name>\tSet scene <name>\n");
 	printf ("    -f <frame>\tRender frame <frame> and save it\n");				

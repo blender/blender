@@ -173,13 +173,15 @@ void WM_init(bContext *C, int argc, char **argv)
 
 void WM_init_splash(bContext *C)
 {
-	wmWindowManager *wm= CTX_wm_manager(C);
-	wmWindow *prevwin= CTX_wm_window(C);
+	if((U.uiflag & USER_SPLASH_DISABLE) == 0) {
+		wmWindowManager *wm= CTX_wm_manager(C);
+		wmWindow *prevwin= CTX_wm_window(C);
 	
-	if(wm->windows.first) {
-		CTX_wm_window_set(C, wm->windows.first);
-		WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL);
-		CTX_wm_window_set(C, prevwin);
+		if(wm->windows.first) {
+			CTX_wm_window_set(C, wm->windows.first);
+			WM_operator_name_call(C, "WM_OT_splash", WM_OP_INVOKE_DEFAULT, NULL);
+			CTX_wm_window_set(C, prevwin);
+		}
 	}
 }
 

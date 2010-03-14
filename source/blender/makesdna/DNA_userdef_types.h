@@ -454,6 +454,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_CONTINUOUS_MOUSE	(1 << 24)
 #define USER_ZOOM_INVERT		(1 << 25)
 #define USER_ZOOM_DOLLY_HORIZ	(1 << 26)
+#define USER_SPLASH_DISABLE		(1 << 27)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */
