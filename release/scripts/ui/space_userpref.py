@@ -1404,79 +1404,18 @@ class USERPREF_PT_addons(bpy.types.Panel):
         module_name = mod.__name__
         if not hasattr(mod, 'expanded'):
             mod.expanded = False
+            
+        info = getattr(mod, "bl_addon_info", {})
         
-        script = hasattr(mod, '__script__')
-        location = hasattr(mod, '__location__')
-        author = hasattr(mod, '__author__')
-        version = hasattr(mod, '__version__')
-        blender = hasattr(mod, '__blender__')
-        category = hasattr(mod, '__category__')
-        url = hasattr(mod, '__url__')
-        email = hasattr(mod, '__email__')
-        bpydoc = hasattr(mod, '__bpydoc__')
+        name = info.get("name", "")
+        author = info.get("author", "")
+        version = info.get("version", "")
+        blender = info.get("blender", "")
+        location = info.get("location", "")
+        url = info.get("url", "")
+        category = info.get("category", "")
 
-        if script:
-            script = str(mod.__script__)
-        else:
-            script = module_name
-        if location:
-            location = str(mod.__location__)
-        if version:
-            version = str(mod.__version__)
-        if author:
-            if type(mod.__author__).__name__ == 'list':
-                if len(mod.__author__) == 0:
-                    author = False
-                else:
-                    author = ""
-                    for i in mod.__author__:
-                        author += str(i) + ", "
-                    author = author[:-2]
-            else:
-                author = str(mod.__author__)
-        if blender:
-            blender = str(mod.__blender__)
-        if category:
-            if type(mod.__category__).__name__ != 'list':
-                category = str(mod.__category__)
-            else:
-                category = str(mod.__category__[0])
-        links = []
-        if url:
-            if type(mod.__url__).__name__ != 'list':
-                mod.__url__ = [str(mod.__url__)]
-            for i in mod.__url__:
-                link = str(i).rsplit(',', 1)
-                if len(link)>1:
-                    link_desc = link[0].strip()
-                    link = link[1].strip()
-                else:
-                    link_desc = False
-                    link = link[0].strip()
-                if link.lower() == 'blender':
-                    link = 'http://www.blender.org/forum/viewforum.php?f=9'
-                if link.lower() == 'blenderartists':
-                    link = 'http://blenderartists.org/forum/forumdisplay.php?f=11'
-                links.append([link, link_desc])
-        emails = []
-        if email:
-            if type(mod.__email__).__name__ != 'list':
-                mod.__email__ = [str(mod.__email__)]
-            for i in mod.__email__:
-                mail = str(i).rsplit(',', 1)
-                if len(mail)>1:
-                    mail_desc = mail[0].strip()
-                    mail = mail[1].strip()
-                else:
-                    mail_desc = False
-                    mail = mail[0].strip()
-                if mail.lower() == 'python':
-                    mail = 'bf-python:blender*org'
-                mail = 'mailto:'+mail.replace(':','@').replace('*','.')+"?subject="+script
-                emails.append([mail, mail_desc])
-        if bpydoc:
-            bpydoc = str(mod.__bpydoc__).splitlines()
-        return module_name, script, author, version, blender, location, category, url, email, bpydoc, links, emails
+        return module_name, name, author, version, blender, location, url, category
 
     def draw(self, context):
         layout = self.layout
@@ -1488,12 +1427,14 @@ class USERPREF_PT_addons(bpy.types.Panel):
         cats = []
         for mod in self._addon_list():
             try:
-                if mod.__category__[0] not in cats:
-                    cats.append(mod.__category__[0])
+                if category not in cats:
+                    cats.append(category)
             except:
                 pass
+
         cats.sort()
         cats = ['All', 'Disabled', 'Enabled']+cats
+        
         bpy.types.Scene.EnumProperty(items=[(cats[i],cats[i],str(i)) for i in range(len(cats))],
             name="Category", attr="addon_filter", description="Filter add-ons by category")
         bpy.types.Scene.StringProperty(name="Search", attr="addon_search",
@@ -1507,14 +1448,14 @@ class USERPREF_PT_addons(bpy.types.Panel):
         filter = context.scene.addon_filter
         search = context.scene.addon_search
         for mod in self._addon_list():
-            module_name, script, author, version, blender, location, category, url, email, bpydoc, links, emails = \
+            module_name, name, author, version, blender, location, url, category = \
                 self._attributes(mod)
             
             # check if add-on should be visible with current filters
             if filter!='All' and filter!=category and not (module_name in used_ext and filter=='Enabled')\
                 and not (module_name not in used_ext and filter=='Disabled'):
                 continue
-            if search and script.lower().find(search.lower())<0:
+            if search and name.lower().find(search.lower())<0:
                 if author:
                     if author.lower().find(search.lower())<0:
                         continue
@@ -1523,22 +1464,25 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     
             # Addon UI Code
             box = layout.column().box()
-            column = box.column(align=True)
+            column = box.column()
             row = column.row()
             
             # Arrow #
             # If there are Infos or UI is expanded
             if mod.expanded:
                 row.operator("wm.addon_expand", icon="TRIA_DOWN").module = module_name
-            elif author or version or url or email:
+            elif author or version or url or location:
                 row.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
             else:
                 # Else, block UI
                 arrow = row.column()
                 arrow.enabled = False
                 arrow.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
-
-            row.label(text=script)
+            
+            if name:
+                row.label(text=name)
+            else: #For now, can be removed when all addons, have a proper dict
+                row.label(text=module_name)
             row.operator("wm.addon_disable" if module_name in used_ext else "wm.addon_enable").module = module_name
             
             # Expanded UI (only if additional infos are available)
@@ -1557,26 +1501,10 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     split.label(text=location)
                 if url:
                     split = column.row().split(percentage=0.15)
-                    split.label(text="Links:")
-                    for i in range(len(links)):
-                        if links[i][1]:
-                            split.operator("wm.addon_links", text=links[i][1]).link = links[i][0]
-                        else:
-                            split.operator("wm.addon_links", text="Link "+str(i+1)).link = links[i][0]
-                if email:
-                    split = column.row().split(percentage=0.15)
-                    split.label(text="Email:")
-                    for i in range(len(emails)):
-                        if emails[i][1]:
-                            split.operator("wm.addon_links", text=emails[i][1]).link = emails[i][0]
-                        else:
-                            split.operator("wm.addon_links", text="Email "+str(i+1)).link = emails[i][0]
-                if bpydoc:
-                    column = box.column(align=True)
-                    column.label(text='Description: '+bpydoc[0])
-                    for line in bpydoc[1:]:
-                        column.label(text=line)
-
+                    split.label(text="Internet:")
+                    split.operator("wm.addon_links", text="Link to the Wiki").link = url
+                    split.separator()
+                    split.separator()
 
 from bpy.props import *
 
@@ -1601,9 +1529,9 @@ class WM_OT_addon_enable(bpy.types.Operator):
             traceback.print_exc()
         
         # check if add-on is written for current blender version, or raise a warning
-        version = hasattr(mod, '__blender__')
+        version = hasattr(mod, 'blender')
         if version:
-            version = str(mod.__blender__).split('.',2)
+            version = (mod.blender).split('.',2)
             for i in range(len(version)):
                 try:
                     version[i] = int(version[i])
@@ -1737,7 +1665,7 @@ class WM_OT_addon_expand(bpy.types.Operator):
 
 
 class WM_OT_addon_links(bpy.types.Operator):
-    "Open in webbrowser"
+    "Open the Blender Wiki in the Webbrowser"
     bl_idname = "wm.addon_links"
     bl_label = ""
 
