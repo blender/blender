@@ -3273,8 +3273,8 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 		zspan->mask= 1<<zsample;
 
 		if(jit) {
-			zspan->zofsx= -pa->disprect.xmin + jit[zsample][0];
-			zspan->zofsy= -pa->disprect.ymin + jit[zsample][1];
+			zspan->zofsx= -pa->disprect.xmin - jit[zsample][0];
+			zspan->zofsy= -pa->disprect.ymin - jit[zsample][1];
 		}
 		else {
 			zspan->zofsx= -pa->disprect.xmin;
