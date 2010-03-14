@@ -174,6 +174,7 @@ struct Render
 	Scene *scene;
 	RenderData r;
 	World wrld;
+	unsigned int lay;
 	
 	ListBase parts;
 	

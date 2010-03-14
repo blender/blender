@@ -2652,7 +2652,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	/* get the threads running */
 	for(a=0; a<re->r.threads; a++) {
 		/* set defaults in handles */
-		handles[a].ssamp.shi[0].lay= re->scene->lay;
+		handles[a].ssamp.shi[0].lay= re->lay;
 		
 		if (type==RE_BAKE_SHADOW) {
 			handles[a].ssamp.shi[0].passflag= SCE_PASS_SHADOW;

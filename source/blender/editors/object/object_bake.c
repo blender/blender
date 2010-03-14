@@ -203,7 +203,7 @@ static void bake_startjob(void *bkv, short *stop, short *do_update)
 	RE_test_break_cb(bkr->re, NULL, thread_break);
 	G.afbreek= 0;	/* blender_test_break uses this global */
 
-	RE_Database_Baking(bkr->re, scene, scene->r.bake_mode, bkr->actob);
+	RE_Database_Baking(bkr->re, scene, scene->r.bake_mode, bkr->actob, scene->lay);
 
 	/* baking itself is threaded, cannot use test_break in threads. we also update optional imagewindow */
 	bkr->tot= RE_bake_shade_all_selected(bkr->re, scene->r.bake_mode, bkr->actob, bkr->do_update);
@@ -301,7 +301,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 		RE_test_break_cb(bkr.re, NULL, thread_break);
 		G.afbreek= 0;	/* blender_test_break uses this global */
 
-		RE_Database_Baking(bkr.re, scene, scene->r.bake_mode, (scene->r.bake_flag & R_BAKE_TO_ACTIVE)? OBACT: NULL);
+		RE_Database_Baking(bkr.re, scene, scene->r.bake_mode, (scene->r.bake_flag & R_BAKE_TO_ACTIVE)? OBACT: NULL, scene->lay);
 
 		/* baking itself is threaded, cannot use test_break in threads  */
 		BLI_init_threads(&threads, do_bake_render, 1);

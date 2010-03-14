@@ -143,6 +143,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	
 	RE_InitState(envre, NULL, &envre->r, NULL, cuberes, cuberes, NULL);
 	envre->scene= re->scene;	/* unsure about this... */
+	envre->lay= re->lay;
 
 	/* view stuff in env render */
 	envre->lens= 16.0f;
@@ -513,7 +514,7 @@ void make_envmaps(Render *re)
 				if(tex->env && tex->env->object) {
 					EnvMap *env= tex->env;
 					
-					if(env->object->lay & re->scene->lay) {
+					if(env->object->lay & re->lay) {
 						if(env->stype==ENV_LOAD) {
 							float orthmat[4][4], mat[4][4], tmat[4][4];
 							

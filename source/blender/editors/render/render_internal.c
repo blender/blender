@@ -405,6 +405,8 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Render *re= RE_GetRender(scene->id.name, RE_SLOT_VIEW);
+	View3D *v3d= CTX_wm_view3d(C);
+	int lay= (v3d)? v3d->lay|scene->lay: scene->lay;
 
 	if(re==NULL) {
 		re= RE_NewRender(scene->id.name, RE_SLOT_VIEW);
@@ -412,9 +414,9 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	RE_test_break_cb(re, NULL, (int (*)(void *)) blender_test_break);
 
 	if(RNA_boolean_get(op->ptr, "animation"))
-		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
+		RE_BlenderAnim(re, scene, lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, op->reports);
 	else
-		RE_BlenderFrame(re, scene, NULL, scene->r.cfra);
+		RE_BlenderFrame(re, scene, NULL, lay, scene->r.cfra);
 
 	// no redraw needed, we leave state as we entered it
 	ED_update_for_newframe(C, 1);
@@ -429,6 +431,7 @@ typedef struct RenderJob {
 	Render *re;
 	wmWindow *win;
 	SceneRenderLayer *srl;
+	int lay;
 	int anim;
 	Image *image;
 	ImageUser iuser;
@@ -531,9 +534,9 @@ static void render_startjob(void *rjv, short *stop, short *do_update)
 	rj->do_update= do_update;
 
 	if(rj->anim)
-		RE_BlenderAnim(rj->re, rj->scene, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
+		RE_BlenderAnim(rj->re, rj->scene, rj->lay, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step, rj->reports);
 	else
-		RE_BlenderFrame(rj->re, rj->scene, rj->srl, rj->scene->r.cfra);
+		RE_BlenderFrame(rj->re, rj->scene, rj->srl, rj->lay, rj->scene->r.cfra);
 
 //	if(mainp)
 //		free_main(mainp);
@@ -573,6 +576,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	/* new render clears all callbacks */
 	Scene *scene= CTX_data_scene(C);
 	SceneRenderLayer *srl=NULL;
+	View3D *v3d= CTX_wm_view3d(C);
 	Render *re;
 	wmJob *steve;
 	RenderJob *rj;
@@ -624,6 +628,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	rj->scene= scene;
 	rj->win= CTX_wm_window(C);
 	rj->srl = srl;
+	rj->lay = (v3d)? v3d->lay|scene->lay: scene->lay;
 	rj->anim= RNA_boolean_get(op->ptr, "animation");
 	rj->iuser.scene= scene;
 	rj->iuser.ok= 1;

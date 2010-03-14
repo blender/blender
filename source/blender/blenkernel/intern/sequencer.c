@@ -2181,7 +2181,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 				else
 					re= RE_NewRender(sce->id.name, RE_SLOT_VIEW);
 
-				RE_BlenderFrame(re, sce, NULL, frame);
+				RE_BlenderFrame(re, sce, sce->lay, NULL, frame);
 
 				RE_AcquireResultImage(re, &rres);
 

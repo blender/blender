@@ -685,7 +685,7 @@ static int render_frame(int argc, char **argv, void *data)
 
 			frame = MIN2(MAXFRAME, MAX2(MINAFRAME, frame));
 
-			RE_BlenderAnim(re, scene, frame, frame, scene->r.frame_step, &reports);
+			RE_BlenderAnim(re, scene, scene->lay, frame, frame, scene->r.frame_step, &reports);
 			return 1;
 		} else {
 			printf("\nError: frame number must follow '-f'.\n");
@@ -705,7 +705,7 @@ static int render_animation(int argc, char **argv, void *data)
 		Render *re= RE_NewRender(scene->id.name, RE_SLOT_DEFAULT);
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
-		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
+		RE_BlenderAnim(re, scene, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
 	} else {
 		printf("\nError: no blend loaded. cannot use '-a'.\n");
 	}

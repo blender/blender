@@ -494,7 +494,7 @@ static void precache_setup_shadeinput(Render *re, ObjectInstanceRen *obi, Materi
 	shi->har= shi->mat->har;
 	shi->obi= obi;
 	shi->obr= obi->obr;
-	shi->lay = re->scene->lay;
+	shi->lay = re->lay;
 }
 
 static void precache_init_parts(Render *re, RayObject *tree, ShadeInput *shi, ObjectInstanceRen *obi, int totthread, int *parts)
