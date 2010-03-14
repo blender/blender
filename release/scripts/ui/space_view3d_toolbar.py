@@ -745,7 +745,11 @@ class VIEW3D_PT_tools_brush_curve(PaintPanel):
         brush = settings.brush
 
         layout.template_curve_mapping(brush, "curve", brush=True)
-        layout.operator_menu_enum("brush.curve_preset", property="shape")
+        
+        row = layout.row(align=True)
+        row.operator("brush.curve_preset", text="Sharp").shape = 'SHARP'
+        row.operator("brush.curve_preset", text="Smooth").shape = 'SMOOTH'
+        row.operator("brush.curve_preset", text="Max").shape = 'MAX'
 
 
 class VIEW3D_PT_sculpt_options(PaintPanel):
