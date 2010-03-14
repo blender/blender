@@ -31,6 +31,10 @@
 #include "BLI_math.h"
 #include "BKE_utildefines.h"
 
+#ifndef int32_t
+#include "BLO_sys_types.h"
+#endif
+
 //----------------------------------Mathutils.Euler() -------------------
 //makes a new euler for you to play with
 static PyObject *Euler_new(PyTypeObject * type, PyObject * args, PyObject * kwargs)
