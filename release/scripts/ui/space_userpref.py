@@ -1385,8 +1385,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_label = "Addons"
     bl_region_type = 'WINDOW'
     bl_show_header = False
-    
-    _addon_blank = {"name": "", "author": "", "version": "", "blender": "", "location": "", "url": "", "category": ""}
 
     def poll(self, context):
         userpref = context.user_preferences
@@ -1404,19 +1402,6 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         # del sys.path[0]
         return modules
-    
-    def _attributes(self, mod):
-        # collect, check and process all attributes of the add-on
-        if not hasattr(mod, 'expanded'):
-            mod.expanded = False
-
-        info = self._addon_blank.copy()
-        info.update(getattr(mod, "bl_addon_info", {}))
-        
-        if not info["name"]:
-            info["name"] = mod.__name__
-
-        return info
 
     def draw(self, context):
         layout = self.layout
@@ -1425,7 +1410,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         used_ext = {ext.module for ext in userpref.addons}
         
         # collect the categories that can be filtered on
-        addons = [(mod, self._attributes(mod)) for mod in self._addon_list()]
+        addons = [(mod, addon_info_get(mod)) for mod in self._addon_list()]
 
         cats = {info["category"] for mod, info in addons}
         cats.add("")
@@ -1433,7 +1418,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
         cats = ['All', 'Disabled', 'Enabled'] + sorted(cats)
         
-        bpy.types.Scene.EnumProperty(items=[(cats[i],cats[i],str(i)) for i in range(len(cats))],
+        bpy.types.Scene.EnumProperty(items=[(cats[i], cats[i], str(i)) for i in range(len(cats))],
             name="Category", attr="addon_filter", description="Filter add-ons by category")
         bpy.types.Scene.StringProperty(name="Search", attr="addon_search",
             description="Search within the selected filter")
@@ -1446,10 +1431,9 @@ class USERPREF_PT_addons(bpy.types.Panel):
         filter = context.scene.addon_filter
         search = context.scene.addon_search.lower()
 
-        for mod in self._addon_list():
+        for mod, info in addons:
             module_name = mod.__name__
-            info = self._attributes(mod)
-            
+
             # check if add-on should be visible with current filters
             if filter != "All" and \
                     filter != info["category"] and \
@@ -1471,7 +1455,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
             
             # Arrow #
             # If there are Infos or UI is expanded
-            if mod.expanded:
+            if info["expanded"]:
                 row.operator("wm.addon_expand", icon="TRIA_DOWN").module = module_name
             elif info["author"] or info["version"] or info["url"] or info["location"]:
                 row.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
@@ -1483,9 +1467,9 @@ class USERPREF_PT_addons(bpy.types.Panel):
 
             row.label(text=info["name"])
             row.operator("wm.addon_disable" if module_name in used_ext else "wm.addon_enable").module = module_name
-            
+
             # Expanded UI (only if additional infos are available)
-            if mod.expanded:
+            if info["expanded"]:
                 if info["author"]:
                     split = column.row().split(percentage=0.15)
                     split.label(text='Author:')
@@ -1505,7 +1489,28 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     split.separator()
                     split.separator()
 
+
 from bpy.props import *
+
+
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "url": "", "category": "", "expanded": False}):
+    addon_info = getattr(mod, "bl_addon_info", {})
+
+    # avoid re-initializing
+    if "_init" in addon_info:
+        return addon_info
+    
+    if not addon_info:
+        mod.bl_addon_info = addon_info
+
+    for key, value in info_basis.items():
+        addon_info.setdefault(key, value)
+
+    if not addon_info["name"]:
+        addon_info["name"] = mod.__name__
+
+    addon_info["_init"] = None
+    return addon_info
 
 
 class WM_OT_addon_enable(bpy.types.Operator):
@@ -1516,30 +1521,34 @@ class WM_OT_addon_enable(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to enable")
 
     def execute(self, context):
-        import traceback
-        ext = context.user_preferences.addons.new()
         module_name = self.properties.module
-        ext.module = module_name
 
         try:
             mod = __import__(module_name)
             mod.register()
         except:
+            import traceback
             traceback.print_exc()
-        
+            return {'CANCELLED'}
+
+        ext = context.user_preferences.addons.new()
+        ext.module = module_name
+
         # check if add-on is written for current blender version, or raise a warning
-        version = hasattr(mod, 'blender')
-        if version:
-            version = (mod.blender).split('.',2)
+        info = addon_info_get(mod)
+
+        if info["blender"]:
+            version = info["blender"].split(".", 2)
             for i in range(len(version)):
                 try:
                     version[i] = int(version[i])
                 except:
                     break
-                if version[i]>bpy.app.version[i]:
-                    self.report('WARNING','This script was written for a newer version of Blender \
-and might not function (correctly).\nThe script is enabled though.')
-                elif version[i]==bpy.app.version[i]:
+
+                if version[i] > bpy.app.version[i]:
+                    self.report("WARNING','This script was written for a newer version of Blender \
+and might not function (correctly).\nThe script is enabled though.")
+                elif version[i] == bpy.app.version[i]:
                     continue
                 else:
                     break
@@ -1647,19 +1656,19 @@ class WM_OT_addon_expand(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to expand")
 
     def execute(self, context):
-        import traceback
         module_name = self.properties.module
 
+        # unlikely to fail, module should have alredy been imported
         try:
             mod = __import__(module_name)
         except:
+            import traceback
             traceback.print_exc()
+            return {'CANCELLED'}
 
-        if mod.expanded:
-            mod.expanded = False
-        else:
-            mod.expanded = True
-
+        info = addon_info_get(mod)
+        info["expanded"] = not info["expanded"]
+        print(info["expanded"])
         return {'FINISHED'}
 
 
