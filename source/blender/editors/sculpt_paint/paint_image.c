@@ -2871,6 +2871,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		if (ps->dm_mtface_clone==NULL || ps->dm_mtface_clone==ps->dm_mtface) {
 			ps->do_layer_clone = 0;
 			ps->dm_mtface_clone= NULL;
+            printf("ACK!\n");
 		}
 	}
 	
@@ -4567,7 +4568,16 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 {
 	Scene *scene= CTX_data_scene(C);
 	ToolSettings *settings= scene->toolsettings;
-	Brush *brush;
+	Brush *brush= paint_brush(&settings->imapaint.paint);
+
+	/* brush */
+	ps->brush = brush;
+	ps->tool = brush->imagepaint_tool;
+	ps->blend = brush->blend;
+
+	ps->is_airbrush = (brush->flag & BRUSH_AIRBRUSH) ? 1 : 0;
+	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
+
 
 	/* these can be NULL */
 	ps->v3d= CTX_wm_view3d(C);
@@ -4607,16 +4617,6 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 
 	if(ps->normal_angle_range <= 0.0f)
 		ps->do_mask_normal = 0; /* no need to do blending */
-
-
-	/* brush */
-	brush= paint_brush(&settings->imapaint.paint);
-	ps->brush = brush;
-	ps->tool = brush->imagepaint_tool;
-	ps->blend = brush->blend;
-
-	ps->is_airbrush = (brush->flag & BRUSH_AIRBRUSH) ? 1 : 0;
-	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
 }
 
 static int texture_paint_init(bContext *C, wmOperator *op)
