@@ -55,6 +55,8 @@
 #include "BLI_storage_types.h"
 #include "BLI_dynstr.h"
 
+#include "BLO_readfile.h"
+
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_global.h"
@@ -404,7 +406,16 @@ void file_change_dir(bContext *C, int checkdir)
 			/* could return but just refresh the current dir */
 		}
 		filelist_setdir(sfile->files, sfile->params->dir);
-
+		/* XXX special case handling 
+		   behaviour of filebrowser changes when 
+		   browsing into .blend file */
+		if (sfile->params->type == FILE_LOADLIB) {
+			char group[GROUP_MAX];
+			char dir[FILE_MAX];
+			if (filelist_islibrary(sfile->files, dir, group)) {
+				sfile->params->flag &= ~FILE_FILTER;
+			}
+		}
 		if(folderlist_clear_next(sfile))
 			folderlist_free(sfile->folders_next);
 
