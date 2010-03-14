@@ -3412,7 +3412,7 @@ static void reference_to_scratch(Object *ob)
 	for(a=0; a<sb->totpoint; a++, rp++, bp++) {
 		VECCOPY(rp->pos,bp->pos);
 		VECADD(accu_pos,accu_pos,bp->pos);
-		accu_mass += bp-> mass;
+		accu_mass += _final_mass(ob,bp);
 	}
 	mul_v3_fl(accu_pos,1.0f/accu_mass);
 	VECCOPY(sb->scratch->Ref.com,accu_pos);

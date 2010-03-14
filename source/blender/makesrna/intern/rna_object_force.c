@@ -1414,7 +1414,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "mass", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "nodemass");
 	RNA_def_property_range(prop, 0.0f, 50000.0f);
-	RNA_def_property_ui_text(prop, "Mass", "");
+	RNA_def_property_ui_text(prop, "Mass", "General Mass value");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop= RNA_def_property(srna, "mass_vertex_group", PROP_STRING, PROP_NONE);
@@ -1423,6 +1423,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_SoftBodySettings_mass_vgroup_set");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
+	/* no longer used */
 	prop= RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_ACCELERATION);
 	RNA_def_property_float_sdna(prop, NULL, "grav");
 	RNA_def_property_range(prop, -10.0f, 10.0f);
@@ -1439,23 +1440,25 @@ static void rna_def_softbody(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "goal_vertex_group", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "vertgroup");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* not impossible .. but not supported yet */
 	RNA_def_property_string_funcs(prop, "rna_SoftBodySettings_goal_vgroup_get", "rna_SoftBodySettings_goal_vgroup_length", "rna_SoftBodySettings_goal_vgroup_set");
 	RNA_def_property_ui_text(prop, "Goal Vertex Group", "Control point weight values");
 	
 	prop= RNA_def_property(srna, "goal_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "mingoal");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Goal Minimum", "Goal minimum, vertex group weights are scaled to match this range");
+	RNA_def_property_ui_text(prop, "Goal Minimum", "Goal minimum, vertex weights are scaled to match this range");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 
 	prop= RNA_def_property(srna, "goal_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "maxgoal");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Goal Maximum", "Goal maximum, vertex group weights are scaled to match this range");
+	RNA_def_property_ui_text(prop, "Goal Maximum", "Goal maximum, vertex weights are scaled to match this range");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 
 	prop= RNA_def_property(srna, "goal_default", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "defgoal");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Goal Default", "Default Goal (vertex target position) value, when no Vertex Group used");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
@@ -1532,11 +1535,13 @@ static void rna_def_softbody(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "collision_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "sbc_mode");
 	RNA_def_property_enum_items(prop, collision_type_items);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Collision Type", "Choose Collision Type");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop= RNA_def_property(srna, "ball_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "colball");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* code is not ready for that yet */
 	RNA_def_property_range(prop, -10.0f, 10.0f);
 	RNA_def_property_ui_text(prop, "Ball Size", "Absolute ball size or factor if not manual adjusted");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
@@ -1625,16 +1630,19 @@ static void rna_def_softbody(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "use_goal", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_use_goal_get", "rna_SoftBodySettings_use_goal_set");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Use Goal", "Define forces for vertices to stick to animated position");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop= RNA_def_property(srna, "use_edges", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_use_edges_get", "rna_SoftBodySettings_use_edges_set");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Use Edges", "Use Edges as springs");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
 	prop= RNA_def_property(srna, "stiff_quads", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_stiff_quads_get", "rna_SoftBodySettings_stiff_quads_set");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Stiff Quads", "Adds diagonal springs on 4-gons");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 	
@@ -1655,6 +1663,7 @@ static void rna_def_softbody(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "self_collision", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_SoftBodySettings_self_collision_get", "rna_SoftBodySettings_self_collision_set");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Self Collision", "Enable naive vertex ball self collision");
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 
