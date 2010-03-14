@@ -987,6 +987,9 @@ void nurbs_to_mesh(Object *ob)
 
 	me->totcol= cu->totcol;
 	me->mat= cu->mat;
+
+	tex_space_mesh(me);
+
 	cu->mat= 0;
 	cu->totcol= 0;
 
