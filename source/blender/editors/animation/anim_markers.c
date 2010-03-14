@@ -26,18 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_action_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_view2d_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 #include "DNA_object_types.h"
 
 #include "RNA_access.h"
@@ -47,9 +40,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_fcurve.h"
-#include "BKE_utildefines.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -67,7 +58,6 @@
 
 #include "ED_markers.h"
 #include "ED_screen.h"
-#include "ED_types.h"
 #include "ED_util.h"
 #include "ED_numinput.h"
 #include "ED_object.h"

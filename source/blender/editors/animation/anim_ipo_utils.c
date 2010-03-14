@@ -33,31 +33,16 @@
  */
 
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_key_types.h"
-#include "DNA_object_types.h"
-#include "DNA_space_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
 
-#include "BKE_animsys.h"
-#include "BKE_key.h"
 #include "BKE_utildefines.h"
 
-#include "UI_resources.h"
-#include "ED_anim_api.h"
-
 #include "RNA_access.h"
-#include "RNA_types.h"
 
 /* ----------------------- Getter functions ----------------------- */
 

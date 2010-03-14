@@ -46,18 +46,11 @@
  */
 
 #include <string.h>
-#include <stdio.h>
 
-#include "DNA_listBase.h"
-#include "DNA_ID.h"
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_gpencil_types.h"
-#include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_key_types.h"
@@ -65,14 +58,11 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_space_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_windowmanager_types.h"
 #include "DNA_world_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -86,26 +76,12 @@
 #include "BKE_global.h"
 #include "BKE_group.h"
 #include "BKE_key.h"
-#include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_sequencer.h"
-#include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
-#include "ED_types.h"
-#include "ED_util.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
-
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
-
-#include "UI_interface.h"
-#include "UI_resources.h"
-#include "UI_view2d.h"
 
 /* ************************************************************ */
 /* Blender Context <-> Animation Context mapping */

@@ -26,14 +26,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
@@ -47,21 +44,13 @@
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_define.h"
 
 #include "ED_anim_api.h"
-#include "ED_screen.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 /* **************************** depsgraph tagging ******************************** */
 
