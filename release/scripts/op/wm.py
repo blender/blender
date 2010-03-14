@@ -418,6 +418,19 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
             return {'RUNNING_MODAL'}
 
 
+class WM_OT_url_open(bpy.types.Operator):
+    "Open the Blender Wiki in the Webbrowser"
+    bl_idname = "wm.url_open"
+    bl_label = ""
+
+    url = StringProperty(name="URL", description="URL to open")
+
+    def execute(self, context):
+        import webbrowser
+        webbrowser.open(self.properties.url)
+        return {'FINISHED'}
+
+
 class WM_OT_doc_view(bpy.types.Operator):
     '''Load online reference docs'''
     bl_idname = "wm.doc_view"
@@ -556,6 +569,8 @@ classes = [
     WM_OT_context_cycle_enum,
     WM_OT_context_cycle_int,
     WM_OT_context_modal_mouse,
+    
+    WM_OT_url_open,
 
     WM_OT_doc_view,
     WM_OT_doc_edit,

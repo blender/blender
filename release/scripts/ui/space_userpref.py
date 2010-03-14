@@ -1385,6 +1385,8 @@ class USERPREF_PT_addons(bpy.types.Panel):
     bl_label = "Addons"
     bl_region_type = 'WINDOW'
     bl_show_header = False
+    
+    _addon_blank = {"name": "", "author": "", "version": "", "blender": "", "location": "", "url": "", "category": ""}
 
     def poll(self, context):
         userpref = context.user_preferences
@@ -1405,21 +1407,16 @@ class USERPREF_PT_addons(bpy.types.Panel):
     
     def _attributes(self, mod):
         # collect, check and process all attributes of the add-on
-        module_name = mod.__name__
         if not hasattr(mod, 'expanded'):
             mod.expanded = False
-            
-        info = getattr(mod, "bl_addon_info", {})
-        
-        name = info.get("name", "")
-        author = info.get("author", "")
-        version = info.get("version", "")
-        blender = info.get("blender", "")
-        location = info.get("location", "")
-        url = info.get("url", "")
-        category = info.get("category", "")
 
-        return module_name, name, author, version, blender, location, url, category
+        info = self._addon_blank.copy()
+        info.update(getattr(mod, "bl_addon_info", {}))
+        
+        if not info["name"]:
+            info["name"] = mod.__name__
+
+        return info
 
     def draw(self, context):
         layout = self.layout
@@ -1428,16 +1425,13 @@ class USERPREF_PT_addons(bpy.types.Panel):
         used_ext = {ext.module for ext in userpref.addons}
         
         # collect the categories that can be filtered on
-        cats = []
-        for mod in self._addon_list():
-            try:
-                if category not in cats:
-                    cats.append(category)
-            except:
-                pass
+        addons = [(mod, self._attributes(mod)) for mod in self._addon_list()]
 
-        cats.sort()
-        cats = ['All', 'Disabled', 'Enabled']+cats
+        cats = {info["category"] for mod, info in addons}
+        cats.add("")
+        cats.remove("")
+
+        cats = ['All', 'Disabled', 'Enabled'] + sorted(cats)
         
         bpy.types.Scene.EnumProperty(items=[(cats[i],cats[i],str(i)) for i in range(len(cats))],
             name="Category", attr="addon_filter", description="Filter add-ons by category")
@@ -1450,18 +1444,22 @@ class USERPREF_PT_addons(bpy.types.Panel):
         layout.separator()
 
         filter = context.scene.addon_filter
-        search = context.scene.addon_search
+        search = context.scene.addon_search.lower()
+
         for mod in self._addon_list():
-            module_name, name, author, version, blender, location, url, category = \
-                self._attributes(mod)
+            module_name = mod.__name__
+            info = self._attributes(mod)
             
             # check if add-on should be visible with current filters
-            if filter!='All' and filter!=category and not (module_name in used_ext and filter=='Enabled')\
-                and not (module_name not in used_ext and filter=='Disabled'):
+            if filter != "All" and \
+                    filter != info["category"] and \
+                    not (module_name not in used_ext and filter == "Disabled"):
+
                 continue
-            if search and name.lower().find(search.lower())<0:
-                if author:
-                    if author.lower().find(search.lower())<0:
+
+            if search and search not in info["name"].lower():
+                if info["author"]:
+                    if search not in info["author"].lower():
                         continue
                 else:
                     continue
@@ -1475,38 +1473,35 @@ class USERPREF_PT_addons(bpy.types.Panel):
             # If there are Infos or UI is expanded
             if mod.expanded:
                 row.operator("wm.addon_expand", icon="TRIA_DOWN").module = module_name
-            elif author or version or url or location:
+            elif info["author"] or info["version"] or info["url"] or info["location"]:
                 row.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
             else:
                 # Else, block UI
                 arrow = row.column()
                 arrow.enabled = False
                 arrow.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
-            
-            if name:
-                row.label(text=name)
-            else: #For now, can be removed when all addons, have a proper dict
-                row.label(text=module_name)
+
+            row.label(text=info["name"])
             row.operator("wm.addon_disable" if module_name in used_ext else "wm.addon_enable").module = module_name
             
             # Expanded UI (only if additional infos are available)
             if mod.expanded:
-                if author:
+                if info["author"]:
                     split = column.row().split(percentage=0.15)
                     split.label(text='Author:')
-                    split.label(text=author)
-                if version:
+                    split.label(text=info["author"])
+                if info["version"]:
                     split = column.row().split(percentage=0.15)
                     split.label(text='Version:')
-                    split.label(text=version)
-                if location:
+                    split.label(text=info["version"])
+                if info["location"]:
                     split = column.row().split(percentage=0.15)
                     split.label(text='Location:')
-                    split.label(text=location)
-                if url:
+                    split.label(text=info["location"])
+                if info["url"]:
                     split = column.row().split(percentage=0.15)
                     split.label(text="Internet:")
-                    split.operator("wm.addon_links", text="Link to the Wiki").link = url
+                    split.operator("wm.addon_links", text="Link to the Wiki").link = info["url"]
                     split.separator()
                     split.separator()
 
