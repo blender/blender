@@ -536,38 +536,43 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 		}
 
 		case ButtonPress:
-		{
-			/* process wheel mouse events and break */
-			if (xe->xbutton.button == 4) {
-				g_event = new GHOST_EventWheel(getMilliSeconds(), window, 1);
-				break;
-			}
-			if (xe->xbutton.button == 5) {
-				g_event = new GHOST_EventWheel(getMilliSeconds(), window, -1);
-				break;
-			}
-		}
 		case ButtonRelease:
 		{
-
 			XButtonEvent & xbe = xe->xbutton;
 			GHOST_TButtonMask gbmask = GHOST_kButtonMaskLeft;
-			switch (xbe.button) {
-				case Button1 : gbmask = GHOST_kButtonMaskLeft; break;
-				case Button3 : gbmask = GHOST_kButtonMaskRight; break;
-				/* It seems events 6 and 7 are for horizontal scrolling.
-				 * you can re-order button mapping like this... (swaps 6,7 with 8,9)
-				 *   xmodmap -e "pointer = 1 2 3 4 5 8 9 6 7" 
-				 */
-				case 8 : gbmask = GHOST_kButtonMaskButton4; break; /* Button4 is the wheel */
-				case 9 : gbmask = GHOST_kButtonMaskButton5; break; /* Button5 is a wheel too */
-				default:
-				case Button2 : gbmask = GHOST_kButtonMaskMiddle; break;
-			}
-			
 			GHOST_TEventType type = (xbe.type == ButtonPress) ? 
 				GHOST_kEventButtonDown : GHOST_kEventButtonUp;
+
+			/* process wheel mouse events and break, only pass on press events */
+			if(xbe.button == Button4) {
+				if(xbe.type == ButtonPress)
+					g_event = new GHOST_EventWheel(getMilliSeconds(), window, 1);
+				break;
+			}
+			else if(xbe.button == Button5) {
+				if(xbe.type == ButtonPress)
+					g_event = new GHOST_EventWheel(getMilliSeconds(), window, -1);
+				break;
+			}
 			
+			/* process rest of normal mouse buttons */
+			if(xbe.button == Button1)
+				gbmask = GHOST_kButtonMaskLeft;
+			else if(xbe.button == Button2)
+				gbmask = GHOST_kButtonMaskMiddle;
+			else if(xbe.button == Button3)
+				gbmask = GHOST_kButtonMaskRight;
+			/* It seems events 6 and 7 are for horizontal scrolling.
+			* you can re-order button mapping like this... (swaps 6,7 with 8,9)
+			*   xmodmap -e "pointer = 1 2 3 4 5 8 9 6 7" 
+			*/
+			else if(xbe.button == 8)
+				gbmask = GHOST_kButtonMaskButton4;
+			else if(xbe.button == 9)
+				gbmask = GHOST_kButtonMaskButton5;
+			else
+				break;
+
 			g_event = new
 			GHOST_EventButton(
 				getMilliSeconds(),
