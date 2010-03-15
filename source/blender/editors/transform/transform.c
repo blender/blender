@@ -1503,6 +1503,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	}
 
 	/* Stupid code to have Ctrl-Click on manipulator work ok */
+	if(event)
 	{
 		wmKeyMap *keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 		wmKeyMapItem *kmi;
