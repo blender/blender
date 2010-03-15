@@ -27,6 +27,7 @@
 #include "DNA_anim_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_global.h"
