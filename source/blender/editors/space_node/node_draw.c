@@ -121,6 +121,41 @@ void ED_node_changed_update(ID *id, bNode *node)
 	}
 }
 
+static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
+{
+	bNode *node;
+	
+	if(ntree == lookup)
+		return 1;
+	
+	for(node=ntree->nodes.first; node; node=node->next)
+		if(node->type == NODE_GROUP && node->id)
+			if(has_nodetree((bNodeTree*)node->id, lookup))
+				return 1;
+	
+	return 0;
+}
+
+void ED_node_generic_update(Main *bmain, Scene *scene, bNodeTree *ntree, bNode *node)
+{
+	Material *ma;
+	Tex *tex;
+	Scene *sce;
+	
+	/* look through all datablocks, to support groups */
+	for(ma=bmain->mat.first; ma; ma=ma->id.next)
+		if(ma->nodetree && ma->use_nodes && has_nodetree(ma->nodetree, ntree))
+			ED_node_changed_update(&ma->id, node);
+	
+	for(tex=bmain->tex.first; tex; tex=tex->id.next)
+		if(tex->nodetree && tex->use_nodes && has_nodetree(tex->nodetree, ntree))
+			ED_node_changed_update(&tex->id, node);
+	
+	for(sce=bmain->scene.first; sce; sce=sce->id.next)
+		if(sce->nodetree && sce->use_nodes && has_nodetree(sce->nodetree, ntree))
+			ED_node_changed_update(&sce->id, node);
+}
+
 static void do_node_internal_buttons(bContext *C, void *node_v, int event)
 {
 	if(event==B_NODE_EXEC) {

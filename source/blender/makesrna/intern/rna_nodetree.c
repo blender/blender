@@ -118,21 +118,6 @@ static char *rna_NodeSocket_path(PointerRNA *ptr)
 	return NULL;
 }
 
-static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
-{
-	bNode *node;
-
-	if(ntree == lookup)
-		return 1;
-	
-	for(node=ntree->nodes.first; node; node=node->next)
-		if(node->type == NODE_GROUP && node->id)
-			if(has_nodetree((bNodeTree*)node->id, lookup))
-				return 1;
-	
-	return 0;
-}
-
 /* Button Set Funcs for Matte Nodes */
 static void rna_Matte_t1_set(PointerRNA *ptr, float value)
 {
@@ -158,22 +143,7 @@ static void rna_Matte_t2_set(PointerRNA *ptr, float value)
 
 static void node_update(Main *bmain, Scene *scene, bNodeTree *ntree, bNode *node)
 {
-	Material *ma;
-	Tex *tex;
-	Scene *sce;
-	
-	/* look through all datablocks, to support groups */
-	for(ma=bmain->mat.first; ma; ma=ma->id.next)
-		if(ma->nodetree && ma->use_nodes && has_nodetree(ma->nodetree, ntree))
-			ED_node_changed_update(&ma->id, node);
-	
-	for(tex=bmain->tex.first; tex; tex=tex->id.next)
-		if(tex->nodetree && tex->use_nodes && has_nodetree(tex->nodetree, ntree))
-			ED_node_changed_update(&tex->id, node);
-	
-	for(sce=bmain->scene.first; sce; sce=sce->id.next)
-		if(sce->nodetree && sce->use_nodes && has_nodetree(sce->nodetree, ntree))
-			ED_node_changed_update(&sce->id, node);
+	ED_node_generic_update(bmain, scene, ntree, node);
 }
 
 static void rna_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
