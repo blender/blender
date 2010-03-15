@@ -1568,9 +1568,19 @@ void ui_update_block_buts_rgb(uiBlock *block, float *rgb)
 			
 		}
 		else if(strcmp(bt->str, "Hex: ")==0) {
+			float rgb_gamma[3];
 			char col[16];
 			
-			sprintf(col, "%02X%02X%02X", (unsigned int)(rgb[0]*255.0), (unsigned int)(rgb[1]*255.0), (unsigned int)(rgb[2]*255.0));
+			/* Hex code is assumed to be in sRGB space (coming from other applications, web, etc) */
+			
+			if (block->color_profile == BLI_PR_NONE) {
+				copy_v3_v3(rgb_gamma, rgb);
+			} else {
+				/* make an sRGB version, for Hex code */
+				linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
+			}
+			
+			sprintf(col, "%02X%02X%02X", (unsigned int)(rgb_gamma[0]*255.0), (unsigned int)(rgb_gamma[1]*255.0), (unsigned int)(rgb_gamma[2]*255.0));
 			
 			strcpy(bt->poin, col);
 		}
@@ -1640,6 +1650,12 @@ static void do_hex_rna_cb(bContext *C, void *bt1, void *hexcl)
 	
 	hex_to_rgb(hexcol, rgb, rgb+1, rgb+2);
 	
+	/* Hex code is assumed to be in sRGB space (coming from other applications, web, etc) */
+	if (but->block->color_profile != BLI_PR_NONE) {
+		/* so we need to linearise it for Blender */
+		srgb_to_linearrgb_v3_v3(rgb, rgb);
+	}
+	
 	ui_update_block_buts_rgb(but->block, rgb);
 	
 	if(popup)
@@ -1661,6 +1677,13 @@ static void picker_new_hide_reveal(uiBlock *block, short colormode)
 	
 	/* tag buttons */
 	for(bt= block->buttons.first; bt; bt= bt->next) {
+		
+		if (bt->type == LABEL) {
+			if( bt->str[1]=='G') {
+				if(colormode==2) bt->flag &= ~UI_HIDDEN;
+				else bt->flag |= UI_HIDDEN;
+			}
+		}
 		
 		if(bt->type==NUMSLI || bt->type==TEX) {
 			if( bt->str[1]=='e') {
@@ -1735,16 +1758,21 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	static char tip[50];
 	static float hsv[3];
 	static char hexcol[128];
+	float rgb_gamma[3];
 	const char *propname = RNA_property_identifier(prop);
 	
 	width= PICKER_TOTAL_W;
 	butwidth = width - UI_UNIT_X - 10;
 	
 	/* existence of profile means storage is in linear colour space, with display correction */
-	if (block->color_profile == BLI_PR_NONE)
+	if (block->color_profile == BLI_PR_NONE) {
 		sprintf(tip, "Value in Display Color Space");
-	else
+		copy_v3_v3(rgb_gamma, rgb);
+	} else {
 		sprintf(tip, "Value in Linear RGB Color Space");
+		/* make an sRGB version, for Hex code */
+		linearrgb_to_srgb_v3_v3(rgb_gamma, rgb);
+	}
 	
 	RNA_property_float_get_array(ptr, prop, rgb);
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
@@ -1799,10 +1827,12 @@ static void uiBlockPicker(uiBlock *block, float *rgb, PointerRNA *ptr, PropertyR
 	uiBlockEndAlign(block);
 	
 	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
-	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(rgb[0]*255.0), (unsigned int)(rgb[1]*255.0), (unsigned int)(rgb[2]*255.0));	
+	
+	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(rgb_gamma[0]*255.0), (unsigned int)(rgb_gamma[1]*255.0), (unsigned int)(rgb_gamma[2]*255.0));	
 
 	bt= uiDefBut(block, TEX, 0, "Hex: ", 0, -60, butwidth, UI_UNIT_Y, hexcol, 0, 8, 0, 0, "Hex triplet for color (#RRGGBB)");
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
+	uiDefBut(block, LABEL, 0, "(Gamma Corrected)", 0, -80, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
 	picker_new_hide_reveal(block, colormode);
 }
