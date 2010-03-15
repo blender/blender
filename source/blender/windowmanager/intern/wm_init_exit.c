@@ -151,6 +151,7 @@ void WM_init(bContext *C, int argc, char **argv)
 
 	if (!G.background) {
 		GPU_extensions_init();
+		GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 	
 		UI_init();
 	}
@@ -159,9 +160,7 @@ void WM_init(bContext *C, int argc, char **argv)
 	clear_mat_mtex_copybuf();
 
 	//	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-	
-//	init_node_butfuncs();
-	
+		
 	ED_preview_init_dbase();
 	
 	G.ndofdevice = -1;	/* XXX bad initializer, needs set otherwise buttons show! */
