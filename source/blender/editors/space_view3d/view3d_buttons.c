@@ -146,7 +146,7 @@ typedef struct {
 	float ob_scale[3]; // need temp space due to linked values
 	float ob_dims[3];
 	short link_scale;
-	float ve_median[5];
+	float ve_median[6];
 	int curdef;
 	float *defweightp;
 } TransformProperties;
@@ -158,12 +158,12 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 	uiBlock *block= (layout)? uiLayoutAbsoluteBlock(layout): NULL;
 	MDeformVert *dvert=NULL;
 	TransformProperties *tfp= v3d->properties_storage;
-	float median[5], ve_median[5];
-	int tot, totw, totweight, totedge;
+	float median[6], ve_median[6];
+	int tot, totw, totweight, totedge, totradius;
 	char defstr[320];
 	
-	median[0]= median[1]= median[2]= median[3]= median[4]= 0.0;
-	tot= totw= totweight= totedge= 0;
+	median[0]= median[1]= median[2]= median[3]= median[4]= median[5]= 0.0;
+	tot= totw= totweight= totedge= totradius= 0;
 	defstr[0]= 0;
 
 	if(ob->type==OB_MESH) {
@@ -237,6 +237,8 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 						tot++;
 						median[4]+= bezt->weight;
 						totweight++;
+						median[5]+= bezt->radius;
+						totradius++;
 					}
 					else {
 						if(bezt->f1 & SELECT) {
@@ -262,6 +264,8 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 						tot++;
 						median[4]+= bp->weight;
 						totweight++;
+						median[5]+= bp->radius;
+						totradius++;
 					}
 					bp++;
 				}
@@ -295,6 +299,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 	if(totedge) median[3] /= (float)totedge;
 	else if(totw) median[3] /= (float)totw;
 	if(totweight) median[4] /= (float)totweight;
+	if(totradius) median[5] /= (float)totradius;
 	
 	if(v3d->flag & V3D_GLOBAL_STATS)
 		mul_m4_v3(ob->obmat, median);
@@ -324,6 +329,8 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 				uiBlockEndAlign(block);
 				if(totweight)
 					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 0, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "");
+				if(totradius)
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 0, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 10, 3, "Radius of curve CPs");
 				}
 			else {
 				uiBlockBeginAlign(block);
@@ -332,6 +339,8 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 				uiBlockEndAlign(block);
 				if(totweight)
 					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "");
+				if(totradius)
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 20, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 10, 3, "Radius of curve CPs");
 			}
 		}
 		else {
@@ -349,6 +358,8 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 				uiBlockEndAlign(block);
 				if(totweight)
 					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 0, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "Weight is used for SoftBody Goal");
+				if(totradius)
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 0, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 10, 3, "Radius of curve CPs");
 				uiBlockEndAlign(block);
 			}
 			else {
@@ -358,6 +369,8 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 				uiBlockEndAlign(block);
 				if(totweight)
 					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	0, 20, 200, 20, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "Weight is used for SoftBody Goal");
+				if(totradius)
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Radius:",	0, 0, 200, 20, &(tfp->ve_median[5]), 0.0, 100.0, 10, 3, "Radius of curve CPs");
 				uiBlockEndAlign(block);
 			}
 		}
@@ -379,6 +392,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 		sub_v3_v3v3(median, ve_median, median);
 		median[3]= ve_median[3]-median[3];
 		median[4]= ve_median[4]-median[4];
+		median[5]= ve_median[5]-median[5];
 		
 		if(ob->type==OB_MESH) {
 			Mesh *me= ob->data;
@@ -428,6 +442,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 							add_v3_v3v3(bezt->vec[1], bezt->vec[1], median);
 							add_v3_v3v3(bezt->vec[2], bezt->vec[2], median);
 							bezt->weight+= median[4];
+							bezt->radius+= median[5];
 						}
 						else {
 							if(bezt->f1 & SELECT) {
@@ -448,6 +463,7 @@ static void v3d_editvertex_buts(const bContext *C, uiLayout *layout, View3D *v3d
 							add_v3_v3v3(bp->vec, bp->vec, median);
 							bp->vec[3]+= median[3];
 							bp->weight+= median[4];
+							bp->radius+= median[5];
 						}
 						bp++;
 					}
