@@ -162,21 +162,23 @@ typedef struct FileSelectParams {
 
 	short type; /* XXXXX for now store type here, should be moved to the operator */
 	short flag; /* settings for filter, hiding dots files,...  */
+	short oldflag; /* temp storage of original flag settings */
 	short sort; /* sort order */
 	short display; /* display mode flag */
 	short filter; /* filter when (flags & FILE_FILTER) is true */
 
 	/* XXX - temporary, better move to filelist */
 	short active_bookmark;
+	short pad;
 	int	active_file;
 	int selstate;
 
 	/* short */
 	/* XXX --- still unused -- */
 	short f_fp; /* show font preview */
-	short menu; /* currently selected option in pupmenu */
+	short pad2;
 	char fp_str[8]; /* string to use for font preview */
-	char *pupmenu; /* allows menu for save options - result stored in menup */
+
 	/* XXX --- end unused -- */
 } FileSelectParams;
 

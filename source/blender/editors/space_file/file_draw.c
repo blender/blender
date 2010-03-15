@@ -298,6 +298,9 @@ static int get_file_icon(struct direntry *file)
 		if ( strcmp(file->relname, "..") == 0) {
 				return  ICON_FILE_PARENT;
 		}
+		if(file->flags & BLENDERFILE) {
+			return ICON_FILE_BLEND;
+		}
 		return ICON_FILE_FOLDER;
 	}
 	else if (file->flags & BLENDERFILE)

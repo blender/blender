@@ -194,7 +194,7 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		params->filter = 0;
 		params->sort = FILE_SORT_ALPHA;
 	}
-
+	params->oldflag = params->flag; 
 	return 1;
 }
 
@@ -414,6 +414,9 @@ void file_change_dir(bContext *C, int checkdir)
 			char dir[FILE_MAX];
 			if (filelist_islibrary(sfile->files, dir, group)) {
 				sfile->params->flag &= ~FILE_FILTER;
+			} else {
+				/* reset the old flag */
+				sfile->params->flag = sfile->params->oldflag;
 			}
 		}
 		if(folderlist_clear_next(sfile))

@@ -627,13 +627,13 @@ struct ImBuf * filelist_geticon(struct FileList* filelist, int index)
 	fidx = filelist->fidx[index];
 	file = &filelist->filelist[fidx];
 	if (file->type & S_IFDIR) {
-			if ( strcmp(filelist->filelist[fidx].relname, "..") == 0) {
-				ibuf = gSpecialFileImages[SPECIAL_IMG_PARENT];
-			} else if  ( strcmp(filelist->filelist[fidx].relname, ".") == 0) {
-				ibuf = gSpecialFileImages[SPECIAL_IMG_REFRESH];
-			} else {
-		ibuf = gSpecialFileImages[SPECIAL_IMG_FOLDER];
-			}
+		if ( strcmp(filelist->filelist[fidx].relname, "..") == 0) {
+			ibuf = gSpecialFileImages[SPECIAL_IMG_PARENT];
+		} else if  ( strcmp(filelist->filelist[fidx].relname, ".") == 0) {
+			ibuf = gSpecialFileImages[SPECIAL_IMG_REFRESH];
+		} else {
+			ibuf = gSpecialFileImages[SPECIAL_IMG_FOLDER];
+		}
 	} else {
 		ibuf = gSpecialFileImages[SPECIAL_IMG_UNKNOWNFILE];
 	}
@@ -788,8 +788,12 @@ void filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 		file->type= file->s.st_mode;	/* restore the mess below */ 
 
 			/* Don't check extensions for directories */ 
-		if (file->type & S_IFDIR)
+		if (file->type & S_IFDIR) {
+			if(BLO_has_bfile_extension(file->relname)) {
+				file->flags |= BLENDERFILE;
+			}
 			continue;
+		}
 
 		if(BLO_has_bfile_extension(file->relname)) {
 			file->flags |= BLENDERFILE;

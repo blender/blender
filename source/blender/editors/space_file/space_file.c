@@ -140,8 +140,6 @@ static void file_free(SpaceLink *sl)
 	}
 
 	if (sfile->params) {
-		if(sfile->params->pupmenu)
-			MEM_freeN(sfile->params->pupmenu);
 		MEM_freeN(sfile->params);
 		sfile->params= NULL;
 	}
@@ -208,6 +206,8 @@ static void file_refresh(const bContext *C, ScrArea *sa)
 		filelist_readdir(sfile->files);
 		thumbnails_start(sfile->files, C);
 		BLI_strncpy(params->dir, filelist_dir(sfile->files), FILE_MAX);
+	} else {
+		filelist_filter(sfile->files);
 	}
 	if(params->sort!=FILE_SORT_NONE) filelist_sort(sfile->files, params->sort);		
 	
