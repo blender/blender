@@ -921,6 +921,11 @@ static void node_composit_buts_scale(uiLayout *layout, bContext *C, PointerRNA *
 	uiItemR(layout, "", 0, ptr, "space", 0);
 }
 
+static void node_composit_buts_rotate(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+   uiItemR(layout, "", 0, ptr, "filter", 0);
+}
+
 static void node_composit_buts_invert(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiLayout *col;
@@ -1098,6 +1103,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_SCALE:
 			ntype->uifunc= node_composit_buts_scale;
 			break;
+      case CMP_NODE_ROTATE:
+         ntype->uifunc=node_composit_buts_rotate;
+         break;
 		case CMP_NODE_CHANNEL_MATTE:
 			ntype->uifunc= node_composit_buts_channel_matte;
 			break;

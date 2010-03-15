@@ -1187,6 +1187,23 @@ static void def_cmp_scale(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
+static void def_cmp_rotate(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+	static EnumPropertyItem rotate_items[] = {
+		{0, "NEAREST",   0, "Nearest",   ""},
+		{1, "BILINEAR",   0, "Bilinear",   ""},
+		{2, "BICUBIC", 0, "Bicubic", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	prop = RNA_def_property(srna, "filter", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, rotate_items);
+	RNA_def_property_ui_text(prop, "Filter", "Method to use to filter rotation");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
 static void def_cmp_diff_matte(StructRNA *srna)
 {
 	PropertyRNA *prop;
