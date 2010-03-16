@@ -1276,7 +1276,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Frames", "Draw frames rather then seconds");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
 	
-	prop= RNA_def_property(srna, "transform_markers", PROP_BOOLEAN, PROP_NONE);
+	prop= RNA_def_property(srna, "use_marker_sync", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_MARKER_TRANS);
 	RNA_def_property_ui_text(prop, "Transform Markers", "Transform markers as well as strips");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);

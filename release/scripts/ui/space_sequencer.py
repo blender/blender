@@ -136,6 +136,8 @@ class SEQUENCER_MT_view(bpy.types.Menu):
             layout.prop(st, "separate_color_preview")
 
         layout.separator()
+        layout.prop(st, "use_marker_sync")
+        layout.separator()
 
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")

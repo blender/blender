@@ -3847,6 +3847,8 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 		}
 	} else {
 
+		t->frame_side= 'B';
+
 		/* *** Normal Transform *** */
 
 		if (seq->depth == 0) {
@@ -4708,6 +4710,24 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	if (t->spacetype == SPACE_SEQ) {
 		/* freeSeqData in transform_conversions.c does this
 		 * keep here so the else at the end wont run... */
+
+		SpaceSeq *sseq= (SpaceSeq *)t->sa->spacedata.first;
+
+		/* marker transform, not especially nice but we may want to move markers
+		 * at the same time as keyframes in the dope sheet. */
+		if ((sseq->flag & SEQ_MARKER_TRANS) && (cancelled == 0)) {
+			/* cant use , TFM_TIME_EXTEND
+			 * for some reason EXTEND is changed into TRANSLATE, so use frame_side instead */
+
+			if(t->mode == TFM_SEQ_SLIDE) {
+				if(t->frame_side == 'B')
+					scene_marker_tfm_translate(t->scene, floor(t->values[0] + 0.5f), SELECT);
+			}
+			else if (ELEM(t->frame_side, 'L', 'R')) {
+				scene_marker_tfm_extend(t->scene, floor(t->vec[0] + 0.5f), SELECT, t->scene->r.cfra, t->frame_side);
+			}
+		}
+
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		/* pass */
