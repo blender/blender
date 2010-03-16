@@ -106,6 +106,7 @@ short delete_keyframe(struct ID *id, struct bAction *act, const char group[], co
 
 /* forward decl. for this struct which is declared a bit later... */
 struct KeyingSetInfo;
+struct ExtensionRNA;
 
 /* Polling Callback for KeyingSets */
 typedef int (*cbKeyingSet_Poll)(struct KeyingSetInfo *ksi, struct bContext *C);
@@ -141,7 +142,7 @@ typedef struct KeyingSetInfo {
 	cbKeyingSet_Generate generate;
 	
 	/* RNA integration */
-	ExtensionRNA ext;
+	struct ExtensionRNA ext;
 } KeyingSetInfo;
 
 /* -------- */
