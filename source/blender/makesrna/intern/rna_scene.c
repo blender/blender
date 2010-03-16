@@ -1716,22 +1716,15 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	static EnumPropertyItem bake_qyad_split_items[] ={
 		{0, "AUTO", 0, "Automatic", "Split quads to give the least distortion while baking"},
-		{1, "FIXED", 0, "Fixed", "Split quads pradictably (0,1,2) (0,2,3)"},
-		{2, "FIXED_ALT", 0, "Fixed Alternate", "Split quads pradictably (1,2,3) (1,3,0)"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static EnumPropertyItem bake_aa_items[] ={
-		{5, "AA_5", 0, "5", ""},
-		{8, "AA_8", 0, "8", ""},
-		{11, "AA_11", 0, "11", ""},
-		{16, "AA_16", 0, "16", ""},
+		{1, "FIXED", 0, "Fixed", "Split quads predictably (0,1,2) (0,2,3)"},
+		{2, "FIXED_ALT", 0, "Fixed Alternate", "Split quads predictably (1,2,3) (1,3,0)"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem octree_resolution_items[] = {
-		{64, "OCTREE_RES_64", 0, "64", ""},
-		{128, "OCTREE_RES_128", 0, "128", ""},
-		{256, "OCTREE_RES_256", 0, "256", ""},
-		{512, "OCTREE_RES_512", 0, "512", ""},
+		{64, "64", 0, "64", ""},
+		{128, "128", 0, "128", ""},
+		{256, "256", 0, "256", ""},
+		{512, "512", 0, "512", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem raytrace_structure_items[] = {
@@ -1745,20 +1738,20 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		};
 
 	static EnumPropertyItem fixed_oversample_items[] = {
-		{5, "OVERSAMPLE_5", 0, "5", ""},
-		{8, "OVERSAMPLE_8", 0, "8", ""},
-		{11, "OVERSAMPLE_11", 0, "11", ""},
-		{16, "OVERSAMPLE_16", 0, "16", ""},
+		{5, "5", 0, "5", ""},
+		{8, "8", 0, "8", ""},
+		{11, "11", 0, "11", ""},
+		{16, "16", 0, "16", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem field_order_items[] = {
-		{0, "FIELDS_EVENFIRST", 0, "Upper First", "Upper field first"},
-		{R_ODDFIELD, "FIELDS_ODDFIRST", 0, "Lower First", "Lower field first"},
+		{0, "EVEN_FIRST", 0, "Upper First", "Upper field first"},
+		{R_ODDFIELD, "ODD_FIRST", 0, "Lower First", "Lower field first"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem threads_mode_items[] = {
-		{0, "THREADS_AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
-		{R_FIXED_THREADS, "THREADS_FIXED", 0, "Fixed", "Manually determine the number of threads"},
+		{0, "AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
+		{R_FIXED_THREADS, "FIXED", 0, "Fixed", "Manually determine the number of threads"},
 		{0, NULL, 0, NULL, NULL}};
 		
 #ifdef WITH_OPENEXR	
@@ -2389,7 +2382,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "bake_aa_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_osa");
-	RNA_def_property_enum_items(prop, bake_aa_items);
+	RNA_def_property_enum_items(prop, fixed_oversample_items);
 	RNA_def_property_ui_text(prop, "Anti-Aliasing Level", "");
 	
 	prop= RNA_def_property(srna, "bake_active", PROP_BOOLEAN, PROP_NONE);

@@ -364,7 +364,7 @@ static void rna_def_render_pass(BlenderRNA *brna)
 		{SCE_PASS_AO, "AO", 0, "AO", ""},
 		{SCE_PASS_REFLECT, "REFLECTION", 0, "Reflection", ""},
 		{SCE_PASS_NORMAL, "NORMAL", 0, "Normal", ""},
-		{SCE_PASS_VECTOR, "VECTOR", 0, "Vecotr", ""},
+		{SCE_PASS_VECTOR, "VECTOR", 0, "Vector", ""},
 		{SCE_PASS_REFRACT, "REFRACTION", 0, "Refraction", ""},
 		{SCE_PASS_INDEXOB, "OBJECT_INDEX", 0, "Object Index", ""},
 		{SCE_PASS_UV, "UV", 0, "UV", ""},

@@ -144,7 +144,7 @@ class RENDER_PT_network_slave_settings(RenderButtonsPanel):
         layout.label(text="Threads:")
         layout.prop(rd, "threads_mode", expand=True)
         sub = layout.column()
-        sub.enabled = rd.threads_mode == 'THREADS_FIXED'
+        sub.enabled = rd.threads_mode == 'FIXED'
         sub.prop(rd, "threads")
 @rnaType
 class RENDER_PT_network_master_settings(RenderButtonsPanel):

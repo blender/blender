@@ -218,7 +218,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
         col.label(text="Threads:")
         col.row().prop(rd, "threads_mode", expand=True)
         sub = col.column()
-        sub.enabled = rd.threads_mode == 'THREADS_FIXED'
+        sub.enabled = rd.threads_mode == 'FIXED'
         sub.prop(rd, "threads")
         sub = col.column(align=True)
         sub.label(text="Tiles:")
