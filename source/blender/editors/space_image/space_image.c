@@ -560,6 +560,9 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 
 	ima= ED_space_image(sima);
 
+	if(sima->iuser.flag & IMA_ANIM_ALWAYS)
+		BKE_image_user_calc_frame(&sima->iuser, CTX_data_scene(C)->r.cfra, 0);
+	
 	/* check if we have to set the image from the editmesh */
 	if(ima && (ima->source==IMA_SRC_VIEWER || sima->pin));
 	else if(obedit && obedit->type == OB_MESH) {
@@ -593,13 +596,14 @@ static void image_listener(ScrArea *sa, wmNotifier *wmn)
 	switch(wmn->category) {
 		case NC_SCENE:
 			switch(wmn->data) {
+				case ND_FRAME:
 				case ND_MODE:
 				case ND_RENDER_RESULT:
 				case ND_COMPO_RESULT:
 					if (ED_space_image_show_render(sima))
 						image_histogram_tag_refresh(sa);
 					ED_area_tag_refresh(sa);
-					ED_area_tag_redraw(sa);
+					ED_area_tag_redraw(sa);					
 					break;
 			}
 			break;
