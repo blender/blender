@@ -3705,6 +3705,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	float mask = 1.0f; /* airbrush wont use mask */
 	unsigned short mask_short;
 	float size_half = ((float)ps->brush->size) * 0.5f;
+	short lock_alpha= ELEM(ps->brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ? 0 : ps->brush->flag & BRUSH_LOCK_ALPHA;
 	
 	LinkNode *smearPixels = NULL;
 	LinkNode *smearPixels_f = NULL;
@@ -3833,6 +3834,12 @@ static void *do_projectpaint_thread(void *ph_v)
 								break;
 							}
 						}
+
+						if(lock_alpha) {
+							if (is_floatbuf)	projPixel->pixel.f_pt[3]= projPixel->origColor.f[3];
+							else				projPixel->pixel.ch_pt[3]= projPixel->origColor.ch[3];
+						}
+
 						/* done painting */
 					}
 				}
