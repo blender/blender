@@ -238,6 +238,8 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 /* in case UserDef was read, we re-initialize all, and do versioning */
 static void wm_init_userdef(bContext *C)
 {
+	extern char btempdir[];
+
 	UI_init_userdef();
 	MEM_CacheLimiter_set_maximum(U.memcachelimit * 1024 * 1024);
 	sound_init(CTX_data_main(C));
@@ -245,6 +247,8 @@ static void wm_init_userdef(bContext *C)
 	/* set the python auto-execute setting from user prefs */
 	if (U.flag & USER_SCRIPT_AUTOEXEC_DISABLE)	G.f &= ~G_SCRIPT_AUTOEXEC;
 	else										G.f |=  G_SCRIPT_AUTOEXEC;
+
+	if(U.tempdir[0]) strncpy(btempdir, U.tempdir, FILE_MAXDIR+FILE_MAXFILE);
 }
 
 void WM_read_file(bContext *C, char *name, ReportList *reports)

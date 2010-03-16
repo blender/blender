@@ -1000,7 +1000,7 @@ int main(int argc, char **argv)
 
 		WM_init(C, argc, argv);
 		
-		// XXX BRECHT SOLVE
+		/* this is properly initialized with user defs, but this is default */
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
 
 #ifndef DISABLE_SDL

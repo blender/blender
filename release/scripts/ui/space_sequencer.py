@@ -185,7 +185,7 @@ class SEQUENCER_MT_add(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.column()
-        layout.operator("sequencer.scene_strip_add", text="Scene")
+        layout.operator_menu_enum("sequencer.scene_strip_add", "scene", text="Scene...")
         layout.operator("sequencer.movie_strip_add", text="Movie")
         layout.operator("sequencer.image_strip_add", text="Image")
         layout.operator("sequencer.sound_strip_add", text="Sound")
