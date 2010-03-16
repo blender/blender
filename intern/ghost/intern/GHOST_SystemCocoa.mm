@@ -774,8 +774,9 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 GHOST_TSuccess GHOST_SystemCocoa::beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window, const bool stereoVisual)
 {	
 	GHOST_IWindow* currentWindow = m_windowManager->getActiveWindow();
-
 	*window = currentWindow;
+	
+	if(!currentWindow) return GHOST_kFailure;
 	
 	return currentWindow->setState(GHOST_kWindowStateFullScreen);
 }
@@ -783,6 +784,7 @@ GHOST_TSuccess GHOST_SystemCocoa::beginFullScreen(const GHOST_DisplaySetting& se
 GHOST_TSuccess GHOST_SystemCocoa::endFullScreen(void)
 {	
 	GHOST_IWindow* currentWindow = m_windowManager->getActiveWindow();
+	if(!currentWindow) return GHOST_kFailure;
 	
 	return currentWindow->setState(GHOST_kWindowStateNormal);
 }
@@ -809,6 +811,8 @@ GHOST_TSuccess GHOST_SystemCocoa::setCursorPosition(GHOST_TInt32 x, GHOST_TInt32
 {
 	float xf=(float)x, yf=(float)y;
 	GHOST_WindowCocoa* window = (GHOST_WindowCocoa*)m_windowManager->getActiveWindow();
+	if (!window) return GHOST_kFailure;
+
 	NSScreen *windowScreen = window->getScreen();
 	NSRect screenRect = [windowScreen frame];
 	
