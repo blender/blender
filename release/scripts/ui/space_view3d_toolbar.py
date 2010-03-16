@@ -911,16 +911,17 @@ class VIEW3D_PT_tools_projectpaint(View3DPanel):
         sub = col.column()
         sub.prop(ipaint, "seam_bleed")
 
-        row = col.row(align=True)
-        row.operator("image.project_edit", text="View Edit")
+        col.label(text="External Editing")
+        row = col.split(align=True, percentage=0.55)
+        row.operator("image.project_edit", text="Quick Edit")
         row.operator("image.project_apply", text="Apply")
-
-        col.prop(ipaint, "screen_grab_size", text="")
+        row = col.row(align=True)
+        row.prop(ipaint, "screen_grab_size", text="")
 
         sub = col.column()
-        sub.operator("paint.project_image")
+        sub.operator("paint.project_image", text="Apply Camera Image")
 
-        sub.operator("image.save_dirty", text="Save Edited")
+        sub.operator("image.save_dirty", text="Save All Edited")
 
 
 class VIEW3D_MT_tools_projectpaint_clone(bpy.types.Menu):
