@@ -2152,6 +2152,9 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 
 			int rendering = 1;
 			int doseq;
+			int doseq_gl= G.rendering ? (scene->r.seq_flag & R_SEQ_GL_REND) : (scene->r.seq_flag & R_SEQ_GL_PREV);
+
+			printf("%d\n", G.rendering);
 
 			/* prevent eternal loop */
 			doseq= scene->r.scemode & R_DOSEQ;
@@ -2167,10 +2170,10 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			seq->scene->markers.first= seq->scene->markers.last= NULL;
 #endif
 
-			if(sequencer_view3d_cb && (seq->flag & SEQ_USE_SCENE_OPENGL) && (seq->scene == scene || have_seq==0)) {
+			if(sequencer_view3d_cb && doseq_gl && (seq->scene == scene || have_seq==0)) {
 				/* opengl offscreen render */
 				scene_update_for_newframe(seq->scene, seq->scene->lay);
-				se->ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty);
+				se->ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty, scene->r.seq_prev_type);
 			}
 			else {
 				Render *re;

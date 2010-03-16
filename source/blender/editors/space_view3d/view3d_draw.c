@@ -2078,7 +2078,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar, in
 }
 
 /* creates own 3d views, used by the sequencer */
-ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height)
+ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height, int drawtype)
 {
 	View3D v3d;
 	ARegion ar;
@@ -2095,7 +2095,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height
 
 	v3d.camera= scene->camera;
 	v3d.lay= scene->lay;
-	v3d.drawtype = OB_SOLID; /* should be able to configure */
+	v3d.drawtype = drawtype;
 
 	rv3d.persp= RV3D_CAMOB;
 

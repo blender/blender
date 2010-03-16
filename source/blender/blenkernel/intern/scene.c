@@ -365,7 +365,11 @@ Scene *add_scene(char *name)
 	sce->r.scemode= R_DOCOMP|R_DOSEQ|R_EXTENSION;
 	sce->r.stamp= R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_SCENE|R_STAMP_CAMERA|R_STAMP_RENDERTIME;
 	sce->r.stamp_font_id= 12;
-	
+
+	sce->r.seq_prev_type= OB_SOLID;
+	sce->r.seq_rend_type= OB_SOLID;
+	sce->r.seq_flag= R_SEQ_GL_PREV;
+
 	sce->r.threads= 1;
 
 	sce->r.simplify_subsurf= 6;

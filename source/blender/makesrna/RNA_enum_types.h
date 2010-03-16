@@ -84,6 +84,8 @@ extern EnumPropertyItem wm_report_items[];
 extern EnumPropertyItem property_type_items[];
 extern EnumPropertyItem property_unit_items[];
 
+extern EnumPropertyItem viewport_shading_items[];
+
 struct bContext;
 struct PointerRNA;
 EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct PointerRNA *ptr, int *free);

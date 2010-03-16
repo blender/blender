@@ -26,6 +26,7 @@
 
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -2503,6 +2504,27 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_range(prop,0.0,1.0);
 	RNA_def_property_ui_text(prop, "Stamp Background", "Color to use behind stamp text");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
+
+	/* sequencer draw options */
+
+	prop= RNA_def_property(srna, "use_sequencer_gl_preview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_GL_PREV);
+	RNA_def_property_ui_text(prop, "Sequencer OpenGL", "");
+
+	prop= RNA_def_property(srna, "use_sequencer_gl_render", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_GL_REND);
+	RNA_def_property_ui_text(prop, "Sequencer OpenGL", "");
+
+
+	prop= RNA_def_property(srna, "sequencer_gl_preview", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "seq_prev_type");
+	RNA_def_property_enum_items(prop, viewport_shading_items);
+	RNA_def_property_ui_text(prop, "Sequencer Preview Shading", "Method to draw in the sequencer view");
+
+	prop= RNA_def_property(srna, "sequencer_gl_render", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "seq_rend_type");
+	RNA_def_property_enum_items(prop, viewport_shading_items);
+	RNA_def_property_ui_text(prop, "Sequencer Preview Shading", "Method to draw in the sequencer view");
 
 	/* layers */
 	

@@ -361,6 +361,28 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         col.prop(strip, "end_still", text="End")
 
 
+class SEQUENCER_PT_preview(bpy.types.Panel):
+    bl_label = "Scene Preview/Render"
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'UI'
+
+    def draw(self, context):
+        layout = self.layout
+        render = context.scene.render
+
+        col = layout.column()
+        col.prop(render, "use_sequencer_gl_preview", text="Open GL Preview")
+        col = layout.column()
+        col.active = render.use_sequencer_gl_preview
+        col.prop(render, "sequencer_gl_preview", text="")
+        
+        col = layout.column()
+        col.prop(render, "use_sequencer_gl_render", text="Open GL Render")
+        col = layout.column()
+        col.active = render.use_sequencer_gl_render
+        col.prop(render, "sequencer_gl_render", text="")
+
+
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
     bl_label = "Effect Strip"
 
@@ -621,8 +643,6 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel):
         layout.label(text="Camera Override")
         layout.template_ID(strip, "scene_camera")
 
-        layout.prop(strip, "use_opengl")
-
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
     bl_label = "Filter"
@@ -731,6 +751,7 @@ classes = [
     SEQUENCER_MT_strip,
 
     SEQUENCER_PT_edit, # sequencer panels
+    SEQUENCER_PT_preview,
     SEQUENCER_PT_effect,
     SEQUENCER_PT_input_movie,
     SEQUENCER_PT_input_image,

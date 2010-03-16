@@ -360,6 +360,12 @@ typedef struct RenderData {
 	float fg_stamp[4];
 	float bg_stamp[4];
 
+	/* sequencer options */
+	char seq_prev_type;
+	char seq_rend_type;
+	char seq_flag; /* flag use for sequence render/draw */
+	char pad5[5];
+
 	/* render simplify */
 	int simplify_flag;
 	short simplify_subsurf;
@@ -838,6 +844,10 @@ typedef struct Scene {
 #define R_TOUCH			0x800000 /* touch files before rendering */
 #define R_SIMPLIFY		0x1000000
 
+/* seq_flag */
+#define R_SEQ_GL_PREV 1
+#define R_SEQ_GL_REND 2
+
 /* displaymode */
 
 #define R_OUTPUT_SCREEN	0
@@ -978,6 +988,9 @@ typedef struct Scene {
 
 /* simplify_flag */
 #define R_SIMPLE_NO_TRIANGULATE		1
+
+/* sequencer seq_prev_type seq_rend_type */
+
 
 /* **************** SCENE ********************* */
 
