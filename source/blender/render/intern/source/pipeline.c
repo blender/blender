@@ -340,10 +340,10 @@ static char *get_pass_name(int passtype, int channel)
 		return "AO.B";
 	}
 	if(passtype == SCE_PASS_ENVIRONMENT) {
-		if(channel==-1) return "Environment";
-		if(channel==0) return "Environment.R";
-		if(channel==1) return "Environment.G";
-		return "Environment.B";
+		if(channel==-1) return "Env";
+		if(channel==0) return "Env.R";
+		if(channel==1) return "Env.G";
+		return "Env.B";
 	}
 	if(passtype == SCE_PASS_INDIRECT) {
 		if(channel==-1) return "Indirect";
@@ -417,7 +417,7 @@ static int passtype_from_name(char *str)
 	if(strcmp(str, "AO")==0)
 		return SCE_PASS_AO;
 
-	if(strcmp(str, "Environment")==0)
+	if(strcmp(str, "Env")==0)
 		return SCE_PASS_ENVIRONMENT;
 
 	if(strcmp(str, "Indirect")==0)
