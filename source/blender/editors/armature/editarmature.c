@@ -5540,7 +5540,7 @@ void ED_armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			// TODO: should we be using the database wide version instead (since drivers may break)
 			if (ob->adt) {
 				/* posechannels only... */
-				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.bones", oldname, newname);
+				BKE_animdata_fix_paths_rename(&ob->id, ob->adt, "pose.bones", oldname, newname, 0, 0, 1);
 			}
 		}
 	}
