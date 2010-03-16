@@ -100,22 +100,22 @@ EnumPropertyItem image_type_items[] = {
 #endif
 	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", ""},
 	{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", ""},
-	{R_RAWTGA, "RAWTARGA", ICON_FILE_IMAGE, "Targa Raw", ""},
+	{R_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", ""},
 	//{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""}, // XXX not yet implemented
 	{R_HAMX, "HAMX", ICON_FILE_IMAGE, "HamX", ""},
 	{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", ""},
 	{0, "", 0, " ", NULL},
 #ifdef WITH_OPENEXR
-	{R_OPENEXR, "OPENEXR", ICON_FILE_IMAGE, "OpenEXR", ""},
+	{R_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", ""},
 	{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", ""},
 #endif
 	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},	// XXX only with G.have_libtiff
-	{R_RADHDR, "RADHDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
+	{R_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
 	{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", ""},
 	{R_DPX, "DPX", ICON_FILE_IMAGE, "DPX", ""},
 	{0, "", 0, "Movie", NULL},
-	{R_AVIRAW, "AVIRAW", ICON_FILE_MOVIE, "AVI Raw", ""},
-	{R_AVIJPEG, "AVIJPEG", ICON_FILE_MOVIE, "AVI JPEG", ""},
+	{R_AVIRAW, "AVI_RAW", ICON_FILE_MOVIE, "AVI Raw", ""},
+	{R_AVIJPEG, "AVI_JPEG", ICON_FILE_MOVIE, "AVI JPEG", ""},
 #ifdef _WIN32
 	{R_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", ""},
 #endif
@@ -1899,7 +1899,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	/* JPEG and AVI JPEG */
 	
-	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "file_quality", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "quality");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Quality", "Quality of JPEG images, AVI Jpeg and SGI movies");

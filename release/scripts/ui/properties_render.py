@@ -312,11 +312,11 @@ class RENDER_PT_output(RenderButtonsPanel):
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
 
-        if rd.file_format in ('AVIJPEG', 'JPEG'):
+        if rd.file_format in ('AVI_JPEG', 'JPEG'):
             split = layout.split()
-            split.prop(rd, "quality", slider=True)
+            split.prop(rd, "file_quality", slider=True)
 
-        elif rd.file_format == 'OPENEXR':
+        elif rd.file_format == 'OPEN_EXR':
             split = layout.split()
 
             col = split.column()
