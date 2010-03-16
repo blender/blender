@@ -503,11 +503,14 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
+		Curve *cu;
 		obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
 		newob = 1;
 
+		cu= (Curve*)obedit->data;
+		cu->flag |= CU_DEFORM_FILL;
 		if(type & CU_PRIM_PATH)
-			((Curve*)obedit->data)->flag |= CU_PATH|CU_3D;
+			cu->flag |= CU_PATH|CU_3D;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	

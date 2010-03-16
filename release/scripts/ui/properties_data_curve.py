@@ -124,6 +124,7 @@ class DATA_PT_shape_curve(DataButtonsPanel):
             sub.label(text="Caps:")
             sub.prop(curve, "front")
             sub.prop(curve, "back")
+            sub.prop(curve, "use_deform_fill")
 
         col.label(text="Textures:")
 #       col.prop(curve, "uv_orco")

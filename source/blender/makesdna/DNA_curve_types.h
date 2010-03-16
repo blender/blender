@@ -243,6 +243,7 @@ typedef struct Curve {
 #define CU_RETOPO               1024
 #define CU_DS_EXPAND	2048
 #define CU_PATH_RADIUS	4096 /* make use of the path radius if this is enabled (default for new curves) */
+#define CU_DEFORM_FILL	8192 /* fill 2d curve after deformation */
 
 /* twist mode */
 #define CU_TWIST_Z_UP			0

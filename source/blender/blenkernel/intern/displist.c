@@ -1391,6 +1391,10 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 					CDDM_calc_normals(dm);
 				}
 			} else {
+				if (ELEM(ob->type, OB_CURVE, OB_FONT) && (cu->flag & CU_DEFORM_FILL)) {
+					curve_to_filledpoly(cu, nurb, &cu->disp);
+				}
+
 				dm= CDDM_from_curve_customDB(ob, dispbase);
 
 				if(dmDeformedVerts) {
@@ -1801,7 +1805,9 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			freedisplist(&dlbev);
 		}
 
-		curve_to_filledpoly(cu, nubase, dispbase);
+		if (!(cu->flag & CU_DEFORM_FILL)) {
+			curve_to_filledpoly(cu, nubase, dispbase);
+		}
 
 		if(cu->flag & CU_PATH) calc_curvepath(ob);
 
@@ -1810,6 +1816,10 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
  		}
 
 		if(!forOrco) curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal, forRender, originalVerts, deformedVerts);
+
+		if (cu->flag & CU_DEFORM_FILL && !ob->derivedFinal) {
+			curve_to_filledpoly(cu, nubase, dispbase);
+		}
 	}
 }
 
