@@ -339,9 +339,6 @@ void drawaxes(float size, int flag, char drawtype)
 	float v1[3]= {0.0, 0.0, 0.0};
 	float v2[3]= {0.0, 0.0, 0.0};
 	float v3[3]= {0.0, 0.0, 0.0};
-
-	if(G.f & G_RENDER_SHADOW)
-		return;
 	
 	switch(drawtype) {
 	
@@ -864,9 +861,6 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 	float imat[4][4], curcol[4];
 	char col[4];
 	int drawcone= (dt>OB_WIRE && !(G.f & G_PICKSEL) && la->type == LA_SPOT && (la->mode & LA_SHOW_CONE));
-
-	if(G.f & G_RENDER_SHADOW)
-		return;
 	
 	if(drawcone && !v3d->transp) {
 		/* in this case we need to draw delayed */
@@ -1163,9 +1157,6 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob
 	World *wrld;
 	float nobmat[4][4], vec[8][4], fac, facx, facy, depth;
 	int i;
-
-	if(G.f & G_RENDER_SHADOW)
-		return;
 
 	cam= ob->data;
 	
@@ -2004,7 +1995,8 @@ static void draw_em_measure_stats(View3D *v3d, RegionView3D *rv3d, Object *ob, E
 	float area, col[3]; /* area of the face,  color of the text to draw */
 	float grid= unit->system ? unit->scale_length : v3d->grid;
 	int do_split= unit->flag & USER_UNIT_OPT_SPLIT;
-	if(G.f & (G_RENDER_OGL|G_RENDER_SHADOW))
+
+	if(v3d->flag2 & V3D_RENDER_OVERRIDE)
 		return;
 
 	/* make the precision of the pronted value proportionate to the gridsize */
@@ -2425,8 +2417,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				CHECK_OB_DRAWTEXTURE(v3d, dt))
 	{
 		int faceselect= (ob==OBACT && paint_facesel_test(ob));
-
-		if ((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&G_PICKSEL || paint_facesel_test(ob)) && !draw_wire) {
+		if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !(G.f&G_PICKSEL || paint_facesel_test(ob)) && !draw_wire) {
 			draw_mesh_object_outline(v3d, ob, dm);
 		}
 
@@ -2481,7 +2472,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		else {
 			Paint *p;
 
-			if((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
+			if((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !draw_wire && !ob->sculpt)
 				draw_mesh_object_outline(v3d, ob, dm);
 
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED );
@@ -2565,7 +2556,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				dm= mesh_get_derived_final(scene, ob, v3d->customdata_mask);
 			}
 
-			if ((v3d->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !draw_wire) {
+			if ((v3d->flag&V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && (base->flag&SELECT) && !draw_wire) {
 				draw_mesh_object_outline(v3d, ob, dm);
 			}
 
@@ -3734,7 +3725,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 					setlinestyle(0);
 				}
 
-				if((part->draw & PART_DRAW_NUM || part->draw & PART_DRAW_HEALTH) && !(G.f & G_RENDER_SHADOW)){
+
+				if((part->draw & PART_DRAW_NUM || part->draw & PART_DRAW_HEALTH) && (v3d->flag2 & V3D_RENDER_OVERRIDE)==0){
 					float vec_txt[3];
 					char *val_pos= val;
 					val[0]= '\0';
@@ -4945,9 +4937,6 @@ static void draw_forcefield(Scene *scene, Object *ob, RegionView3D *rv3d)
 	int curcol;
 	float size;
 
-	if(G.f & G_RENDER_SHADOW)
-		return;
-	
 	/* XXX why? */
 	if(ob!=scene->obedit && (ob->flag & SELECT)) {
 		if(ob==OBACT) curcol= TH_ACTIVE;
@@ -5375,9 +5364,6 @@ void drawRBpivot(bRigidBodyJointConstraint *data)
 	float eu[3]= {radsPerDeg*data->axX, radsPerDeg*data->axY, radsPerDeg*data->axZ};
 	float mat[4][4];
 
-	if(G.f & G_RENDER_SHADOW)
-		return;
-
 	eul_to_mat4(mat,eu);
 	glLineWidth (4.0f);
 	setlinestyle(2);
@@ -5643,7 +5629,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 	
 	/* draw outline for selected solid objects, mesh does itself */
-	if((v3d->flag & V3D_SELECT_OUTLINE) && ob->type!=OB_MESH) {
+	if((v3d->flag & V3D_SELECT_OUTLINE) && ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) && ob->type!=OB_MESH) {
 		if(dt>OB_WIRE && dt<OB_TEXTURE && (ob->mode & OB_MODE_EDIT)==0 && (flag & DRAW_SCENESET)==0) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
 				
@@ -5777,44 +5763,60 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			break;
 		}
 		case OB_EMPTY:
-			drawaxes(ob->empty_drawsize, flag, ob->empty_drawtype);
+			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
+				drawaxes(ob->empty_drawsize, flag, ob->empty_drawtype);
 			break;
 		case OB_LAMP:
-			drawlamp(scene, v3d, rv3d, base, dt, flag);
-			if(dtx || (base->flag & SELECT)) glMultMatrixf(ob->obmat);
+			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+				drawlamp(scene, v3d, rv3d, base, dt, flag);
+				if(dtx || (base->flag & SELECT)) glMultMatrixf(ob->obmat);
+			}
 			break;
 		case OB_CAMERA:
-			drawcamera(scene, v3d, rv3d, ob, flag);
+			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
+				drawcamera(scene, v3d, rv3d, ob, flag);
 			break;
 		case OB_LATTICE:
-			drawlattice(scene, v3d, ob);
+			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+				drawlattice(scene, v3d, ob);
+			}
 			break;
 		case OB_ARMATURE:
-			if(dt>OB_WIRE) GPU_enable_material(0, NULL); // we use default material
-			empty_object= draw_armature(scene, v3d, ar, base, dt, flag);
-			if(dt>OB_WIRE) GPU_disable_material();
+			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+				if(dt>OB_WIRE) GPU_enable_material(0, NULL); // we use default material
+				empty_object= draw_armature(scene, v3d, ar, base, dt, flag);
+				if(dt>OB_WIRE) GPU_disable_material();
+			}
 			break;
 		default:
-			drawaxes(1.0, flag, OB_ARROWS);
+			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+				drawaxes(1.0, flag, OB_ARROWS);
+			}
 	}
-	if(ob->soft /*&& flag & OB_SBMOTION*/){
-		float mrt[3][3],msc[3][3],mtr[3][3]; 
-		SoftBody *sb = 0;
-		float tipw = 0.5f, tiph = 0.5f,drawsize = 4.0f;
-		if ((sb= ob->soft)){
-			if(sb->solverflags & SBSO_ESTIMATEIPO){
 
-				glLoadMatrixf(rv3d->viewmat);
-				copy_m3_m3(msc,sb->lscale);
-				copy_m3_m3(mrt,sb->lrot);
-				mul_m3_m3m3(mtr,mrt,msc); 
-				ob_draw_RE_motion(sb->lcom,mtr,tipw,tiph,drawsize);
-				glMultMatrixf(ob->obmat);
+		if((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
+
+		if(ob->soft /*&& flag & OB_SBMOTION*/){
+			float mrt[3][3],msc[3][3],mtr[3][3]; 
+			SoftBody *sb = 0;
+			float tipw = 0.5f, tiph = 0.5f,drawsize = 4.0f;
+			if ((sb= ob->soft)){
+				if(sb->solverflags & SBSO_ESTIMATEIPO){
+
+					glLoadMatrixf(rv3d->viewmat);
+					copy_m3_m3(msc,sb->lscale);
+					copy_m3_m3(mrt,sb->lrot);
+					mul_m3_m3m3(mtr,mrt,msc); 
+					ob_draw_RE_motion(sb->lcom,mtr,tipw,tiph,drawsize);
+					glMultMatrixf(ob->obmat);
+				}
 			}
 		}
-	}
 
-	if(ob->pd && ob->pd->forcefield) draw_forcefield(scene, ob, rv3d);
+        if(ob->pd && ob->pd->forcefield) {
+            draw_forcefield(scene, ob, rv3d);
+        }
+    }
 
 	/* code for new particle system */
 	if(		(warning_recursive==0) &&
@@ -5971,7 +5973,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 		}
 	}
 
-	{
+    if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+
 		bConstraint *con;
 		for(con=ob->constraints.first; con; con= con->next) 
 		{
@@ -5982,24 +5985,25 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					drawRBpivot(data);
 			}
 		}
-	}
 
-	/* draw extra: after normal draw because of makeDispList */
-	if(dtx && !(G.f & (G_RENDER_OGL|G_RENDER_SHADOW))) {
-		if(dtx & OB_AXIS) {
-			drawaxes(1.0f, flag, OB_ARROWS);
-		}
-		if(dtx & OB_BOUNDBOX) draw_bounding_volume(scene, ob);
-		if(dtx & OB_TEXSPACE) drawtexspace(ob);
-		if(dtx & OB_DRAWNAME) {
-			/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
-			/* but, we also dont draw names for sets or duplicators */
-			if(flag == 0) {
-				view3d_cached_text_draw_add(0.0f, 0.0f, 0.0f, ob->id.name+2, 10, 0);
-			}
-		}
-		/*if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
-		if((dtx & OB_DRAWWIRE) && dt>=OB_SOLID) drawWireExtra(scene, rv3d, ob);
+        /* draw extra: after normal draw because of makeDispList */
+        if(dtx && (G.f & G_RENDER_OGL)==0) {
+        
+            if(dtx & OB_AXIS) {
+                drawaxes(1.0f, flag, OB_ARROWS);
+            }
+            if(dtx & OB_BOUNDBOX) draw_bounding_volume(scene, ob);
+            if(dtx & OB_TEXSPACE) drawtexspace(ob);
+            if(dtx & OB_DRAWNAME) {
+                /* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
+                /* but, we also dont draw names for sets or duplicators */
+                if(flag == 0) {
+                    view3d_cached_text_draw_add(0.0f, 0.0f, 0.0f, ob->id.name+2, 10, 0);
+                }
+            }
+            /*if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
+            if((dtx & OB_DRAWWIRE) && dt>=OB_SOLID) drawWireExtra(scene, rv3d, ob);
+        }
 	}
 
 	if(dt<OB_SHADED) {
@@ -6025,13 +6029,15 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 	if(warning_recursive) return;
 	if(base->flag & OB_FROMDUPLI) return;
-	if(G.f & G_RENDER_SHADOW) return;
+	if(v3d->flag2 & V3D_RENDER_OVERRIDE) return;
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
 	if(ob!=OBACT || !(ob->mode & (OB_MODE_VERTEX_PAINT|OB_MODE_WEIGHT_PAINT|OB_MODE_TEXTURE_PAINT))) {
 		int do_draw_center= -1;	/* defines below are zero or positive... */
 
-		if((scene->basact)==base) 
+		if(v3d->flag2 & V3D_RENDER_OVERRIDE) {
+			/* dont draw */
+		} else if((scene->basact)==base)
 			do_draw_center= ACTIVE;
 		else if(base->flag & SELECT) 
 			do_draw_center= SELECT;
@@ -6056,7 +6062,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	}
 
 	/* not for sets, duplicators or picking */
-	if(flag==0 && (!(v3d->flag & V3D_HIDE_HELPLINES))) {
+	if(flag==0 && (v3d->flag & V3D_HIDE_HELPLINES)== 0 && (v3d->flag2 & V3D_RENDER_OVERRIDE)== 0) {
 		ListBase *list;
 		
 		/* draw hook center and offset line */

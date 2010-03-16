@@ -1899,9 +1899,11 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         ob = context.object
 
         col = layout.column()
-        col.prop(view, "display_x_axis", text="X Axis")
-        col.prop(view, "display_y_axis", text="Y Axis")
-        col.prop(view, "display_z_axis", text="Z Axis")
+        col.prop(view, "display_render_override")
+
+        col = layout.column()
+        display_all = not view.display_render_override
+        col.active = display_all
         col.prop(view, "outline_selected")
         col.prop(view, "all_object_origins")
         col.prop(view, "relationship_lines")
@@ -1910,9 +1912,17 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
             col.prop(mesh, "all_edges")
 
         col = layout.column()
-        col.prop(view, "display_floor", text="Grid Floor")
+        col.active = display_all
+        split = col.split(percentage=0.55)
+        split.prop(view, "display_floor", text="Grid Floor")
+        
+        row = split.row(align=True)
+        row.prop(view, "display_x_axis", text="X", toggle=True)
+        row.prop(view, "display_y_axis", text="Y", toggle=True)
+        row.prop(view, "display_z_axis", text="Z", toggle=True)
+        
         sub = col.column(align=True)
-        sub.active = view.display_floor
+        sub.active = (display_all and view.display_floor)
         sub.prop(view, "grid_lines", text="Lines")
         sub.prop(view, "grid_spacing", text="Spacing")
         sub.prop(view, "grid_subdivisions", text="Subdivisions")

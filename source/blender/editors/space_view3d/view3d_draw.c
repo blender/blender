@@ -2096,6 +2096,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, int width, int height
 	v3d.camera= scene->camera;
 	v3d.lay= scene->lay;
 	v3d.drawtype = drawtype;
+	v3d.flag2 = V3D_RENDER_OVERRIDE;
 
 	rv3d.persp= RV3D_CAMOB;
 
@@ -2223,29 +2224,32 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	rv3d->gridview= v3d->grid;
 	
-	if(rv3d->view==0 || rv3d->persp!=0) {
-		drawfloor(scene, v3d);
-		if(rv3d->persp==2) {
-			if(scene->world) {
-				if(scene->world->mode & WO_STARS) {
-					RE_make_stars(NULL, scene, star_stuff_init_func, star_stuff_vertex_func,
-								  star_stuff_term_func);
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+
+		if(rv3d->view==0 || rv3d->persp != RV3D_ORTHO) {
+			drawfloor(scene, v3d);
+			if(rv3d->persp==RV3D_CAMOB) {
+				if(scene->world) {
+					if(scene->world->mode & WO_STARS) {
+						RE_make_stars(NULL, scene, star_stuff_init_func, star_stuff_vertex_func,
+									  star_stuff_term_func);
+					}
 				}
+				if(v3d->flag & V3D_DISPBGPICS) draw_bgpic(scene, ar, v3d);
 			}
-			if(v3d->flag & V3D_DISPBGPICS) draw_bgpic(scene, ar, v3d);
 		}
-	}
-	else {
-		ED_region_pixelspace(ar);
-		drawgrid(&scene->unit, ar, v3d, &grid_unit);
-		/* XXX make function? replaces persp(1) */
-		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(rv3d->winmat);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(rv3d->viewmat);
-		
-		if(v3d->flag & V3D_DISPBGPICS) {
-			draw_bgpic(scene, ar, v3d);
+		else {
+			ED_region_pixelspace(ar);
+			drawgrid(&scene->unit, ar, v3d, &grid_unit);
+			/* XXX make function? replaces persp(1) */
+			glMatrixMode(GL_PROJECTION);
+			glLoadMatrixf(rv3d->winmat);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadMatrixf(rv3d->viewmat);
+
+			if(v3d->flag & V3D_DISPBGPICS) {
+				draw_bgpic(scene, ar, v3d);
+			}
 		}
 	}
 	
@@ -2333,12 +2337,14 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 		glDisable(GL_DEPTH_TEST);
 	}
 	
-	/* draw grease-pencil stuff (3d-space strokes) */
-	//if (v3d->flag2 & V3D_DISPGP)
-		draw_gpencil_3dview((bContext *)C, 1);
-	
-	BDR_drawSketch(C);
-	
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
+		/* draw grease-pencil stuff (3d-space strokes) */
+		//if (v3d->flag2 & V3D_DISPGP)
+			draw_gpencil_3dview((bContext *)C, 1);
+
+		BDR_drawSketch(C);
+	}
+
 	ED_region_pixelspace(ar);
 	
 //	retopo_paint_view_update(v3d);
@@ -2346,14 +2352,17 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* Draw particle edit brush XXX (removed) */
 	
-	if(rv3d->persp>1) drawviewborder(scene, ar, v3d);
-	if(rv3d->rflag & RV3D_FLYMODE) drawviewborder_flymode(ar);
-	
-	/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
-//	if (v3d->flag2 & V3D_DISPGP)
-		draw_gpencil_3dview((bContext *)C, 0);
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
 
-	drawcursor(scene, ar, v3d);
+		if(rv3d->persp==RV3D_CAMOB) drawviewborder(scene, ar, v3d);
+		if(rv3d->rflag & RV3D_FLYMODE) drawviewborder_flymode(ar);
+
+		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
+	//	if (v3d->flag2 & V3D_DISPGP)
+			draw_gpencil_3dview((bContext *)C, 0);
+
+		drawcursor(scene, ar, v3d);
+	}
 	
 	if(U.uiflag & USER_SHOW_ROTVIEWICON)
 		draw_view_axis(rv3d);
@@ -2381,5 +2390,3 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }
-
-
