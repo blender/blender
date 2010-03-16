@@ -109,6 +109,7 @@ A sample loop can look like this (pseudo c);
 static pthread_mutex_t _malloc_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _image_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _preview_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t _viewer_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _custom1_lock = PTHREAD_MUTEX_INITIALIZER;
 static int thread_levels= 0;	/* threads can be invoked inside threads */
 
@@ -327,6 +328,8 @@ void BLI_lock_thread(int type)
 		pthread_mutex_lock(&_image_lock);
 	else if (type==LOCK_PREVIEW)
 		pthread_mutex_lock(&_preview_lock);
+	else if (type==LOCK_VIEWER)
+		pthread_mutex_lock(&_viewer_lock);
 	else if (type==LOCK_CUSTOM1)
 		pthread_mutex_lock(&_custom1_lock);
 }
@@ -337,6 +340,8 @@ void BLI_unlock_thread(int type)
 		pthread_mutex_unlock(&_image_lock);
 	else if (type==LOCK_PREVIEW)
 		pthread_mutex_unlock(&_preview_lock);
+	else if (type==LOCK_VIEWER)
+		pthread_mutex_unlock(&_viewer_lock);
 	else if(type==LOCK_CUSTOM1)
 		pthread_mutex_unlock(&_custom1_lock);
 }

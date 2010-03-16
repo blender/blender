@@ -1932,113 +1932,93 @@ static ImBuf *image_get_ibuf_multilayer(Image *ima, ImageUser *iuser)
 /* always returns a single ibuf, also during render progress */
 static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **lock_r)
 {
-	Render *re= NULL;
-	RenderResult *rr= NULL;
-	
+	Render *re;
+	RenderResult rres;
+	float *rectf, *rectz;
+	unsigned int *rect;
+	float dither;
+	int channels, layer, pass;
+	ImBuf *ibuf;
+
+	if(!(iuser && iuser->scene))
+		return NULL;
+
 	/* if we the caller is not going to release the lock, don't give the image */
 	if(!lock_r)
 		return NULL;
 
-	if(iuser && iuser->scene) {
-		re= RE_GetRender(iuser->scene->id.name, RE_SLOT_VIEW);
-		rr= RE_AcquireResultRead(re);
+	re= RE_GetRender(iuser->scene->id.name, RE_SLOT_VIEW);
 
-		/* release is done in BKE_image_release_ibuf using lock_r */
-		*lock_r= re;
-	}
-
-	if(rr==NULL)
-		return NULL;
+	channels= 4;
+	layer= (iuser)? iuser->layer: 0;
+	pass= (iuser)? iuser->pass: 0;
 	
-	if(RE_RenderInProgress(re)) {
-		ImBuf *ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
-		
-		/* make ibuf if needed, and initialize it */
-		/* this only gets called when mutex locked */
-		if(ibuf==NULL) {
-			ibuf= IMB_allocImBuf(rr->rectx, rr->recty, 32, IB_rect, 0);
-			image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
-		}
+	/* this gives active layer, composite or seqence result */
+	RE_AcquireResultImage(re, &rres);
+	rect= (unsigned int *)rres.rect32;
+	rectf= rres.rectf;
+	rectz= rres.rectz;
+	dither= iuser->scene->r.dither_intensity;
 
-		return ibuf;
+	/* get compo/seq result by default */
+	if(rres.rectf && layer==0);
+	else if(rres.layers.first) {
+		RenderLayer *rl= BLI_findlink(&rres.layers, layer-(rres.rectf?1:0));
+		if(rl) {
+			RenderPass *rpass;
+
+			/* there's no combined pass, is in renderlayer itself */
+			if(pass==0) {
+				rectf= rl->rectf;
+			}
+			else {
+				rpass= BLI_findlink(&rl->passes, pass-1);
+				if(rpass) {
+					channels= rpass->channels;
+					rectf= rpass->rect;
+					dither= 0.0f; /* don't dither passes */
+				}
+			}
+
+			for(rpass= rl->passes.first; rpass; rpass= rpass->next)
+				if(rpass->passtype == SCE_PASS_Z)
+					rectz= rpass->rect;
+		}
 	}
-	else {
-		RenderResult rres;
-		float *rectf, *rectz;
-		unsigned int *rect;
-		float dither;
-		int channels, layer, pass;
-
-		channels= 4;
-		layer= (iuser)? iuser->layer: 0;
-		pass= (iuser)? iuser->pass: 0;
-		
-		/* this gives active layer, composite or seqence result */
-		RE_AcquireResultImage(RE_GetRender(iuser->scene->id.name, RE_SLOT_VIEW), &rres);
-		rect= (unsigned int *)rres.rect32;
-		rectf= rres.rectf;
-		rectz= rres.rectz;
-		dither= iuser->scene->r.dither_intensity;
-
-		/* get compo/seq result by default */
-		if(rr->rectf && layer==0);
-		else if(rr->layers.first) {
-			RenderLayer *rl= BLI_findlink(&rr->layers, layer-(rr->rectf?1:0));
-			if(rl) {
-				RenderPass *rpass;
-
-				/* there's no combined pass, is in renderlayer itself */
-				if(pass==0) {
-					rectf= rl->rectf;
-				}
-				else {
-					rpass= BLI_findlink(&rl->passes, pass-1);
-					if(rpass) {
-						channels= rpass->channels;
-						rectf= rpass->rect;
-						dither= 0.0f; /* don't dither passes */
-					}
-				}
-
-				for(rpass= rl->passes.first; rpass; rpass= rpass->next)
-					if(rpass->passtype == SCE_PASS_Z)
-						rectz= rpass->rect;
-			}
-		}
-		
-		if(rectf || rect) {
-			ImBuf *ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
-
-			/* make ibuf if needed, and initialize it */
-			if(ibuf==NULL) {
-				ibuf= IMB_allocImBuf(rr->rectx, rr->recty, 32, 0, 0);
-				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
-			}
-			ibuf->x= rr->rectx;
-			ibuf->y= rr->recty;
-			
-			if(ibuf->rect_float!=rectf || rect) /* ensure correct redraw */
-				imb_freerectImBuf(ibuf);
-			if(rect)
-				ibuf->rect= rect;
-			
-			ibuf->rect_float= rectf;
-			ibuf->flags |= IB_rectfloat;
-			ibuf->channels= channels;
-			ibuf->zbuf_float= rectz;
-			ibuf->flags |= IB_zbuffloat;
-			ibuf->dither= dither;
-
-			RE_ReleaseResultImage(re);
-
-			ima->ok= IMA_OK_LOADED;
-			return ibuf;
-		}
-
+	
+	if(!(rectf || rect)) {
 		RE_ReleaseResultImage(re);
+		return NULL;
 	}
+
+	ibuf= image_get_ibuf(ima, IMA_NO_INDEX, 0);
+
+	/* make ibuf if needed, and initialize it */
+	if(ibuf==NULL) {
+		ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, 0, 0);
+		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
+	}
+	ibuf->x= rres.rectx;
+	ibuf->y= rres.recty;
 	
-	return NULL;
+	if(ibuf->rect_float!=rectf || rect) /* ensure correct redraw */
+		imb_freerectImBuf(ibuf);
+	if(rect)
+		ibuf->rect= rect;
+	
+	ibuf->rect_float= rectf;
+	ibuf->flags |= IB_rectfloat;
+	ibuf->channels= channels;
+	ibuf->zbuf_float= rectz;
+	ibuf->flags |= IB_zbuffloat;
+	ibuf->dither= dither;
+
+	ima->ok= IMA_OK_LOADED;
+
+	/* release is done in BKE_image_release_ibuf using lock_r */
+	*lock_r= re;
+
+	return ibuf;
 }
 
 static ImBuf *image_get_ibuf_threadsafe(Image *ima, ImageUser *iuser, int *frame_r, int *index_r)
@@ -2199,10 +2179,17 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 					ibuf= image_get_render_result(ima, iuser, lock_r);
 				}
 				else if(ima->type==IMA_TYPE_COMPOSITE) {
-					/* Composite Viewer, all handled in compositor */
-					/* fake ibuf, will be filled in compositor */
-					ibuf= IMB_allocImBuf(256, 256, 32, IB_rect, 0);
-					image_assign_ibuf(ima, ibuf, 0, frame);
+					/* requires lock/unlock, otherwise don't return image */
+					if(lock_r) {
+						/* unlock in BKE_image_release_ibuf */
+						BLI_lock_thread(LOCK_VIEWER);
+						*lock_r= ima;
+
+						/* Composite Viewer, all handled in compositor */
+						/* fake ibuf, will be filled in compositor */
+						ibuf= IMB_allocImBuf(256, 256, 32, IB_rect, 0);
+						image_assign_ibuf(ima, ibuf, 0, frame);
+					}
 				}
 			}
 		}
@@ -2220,9 +2207,11 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 
 void BKE_image_release_ibuf(Image *ima, void *lock)
 {
-	/* for getting image during threaded render, need to release */
-	if(lock)
-		RE_ReleaseResult(lock);
+	/* for getting image during threaded render / compositing, need to release */
+	if(lock == ima)
+		BLI_unlock_thread(LOCK_VIEWER); /* viewer image */
+	else if(lock)
+		RE_ReleaseResultImage(lock); /* render result */
 }
 
 ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)

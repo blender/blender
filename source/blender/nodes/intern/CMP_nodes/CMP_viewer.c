@@ -50,13 +50,15 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		ImBuf *ibuf;
 		CompBuf *cbuf, *tbuf;
 		int rectx, recty;
+		void *lock;
 		
 		BKE_image_user_calc_frame(node->storage, rd->cfra, 0);
 
 		/* always returns for viewer image, but we check nevertheless */
-		ibuf= BKE_image_get_ibuf(ima, node->storage);
+		ibuf= BKE_image_acquire_ibuf(ima, node->storage, &lock);
 		if(ibuf==NULL) {
 			printf("node_composit_exec_viewer error\n");
+			BKE_image_release_ibuf(ima, lock);
 			return;
 		}
 		
@@ -105,6 +107,8 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 			zbuf->malloc= 0;
 			free_compbuf(zbuf);
 		}
+
+		BKE_image_release_ibuf(ima, lock);
 
 		generate_preview(data, node, cbuf);
 		free_compbuf(cbuf);

@@ -138,11 +138,6 @@ static void int_nothing(void *unused, int val) {}
 static void print_error(void *unused, char *str) {printf("ERROR: %s\n", str);}
 static int default_break(void *unused) {return G.afbreek == 1;}
 
-int RE_RenderInProgress(Render *re)
-{
-	return re->result_ok==0;
-}
-
 static void stats_background(void *unused, RenderStats *rs)
 {
 	uintptr_t mem_in_use= MEM_get_memory_in_use();
@@ -1091,6 +1086,8 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr)
 				if(rr->rectz==NULL)
 					rr->rectz= RE_RenderLayerGetPass(rl, SCE_PASS_Z);	
 			}
+
+			rr->layers= re->result->layers;
 		}
 	}
 }
@@ -2801,7 +2798,6 @@ void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, unsigned i
 {
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
 	RenderGlobal.renderingslot= re->slot;
-	re->result_ok= 0;
 	G.rendering= 1;
 	
 	scene->r.cfra= frame;
@@ -2811,7 +2807,6 @@ void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, unsigned i
 	}
 	
 	/* UGLY WARNING */
-	re->result_ok= 1;
 	G.rendering= 0;
 	RenderGlobal.renderingslot= RenderGlobal.viewslot;
 }
@@ -2917,7 +2912,6 @@ void RE_BlenderAnim(Render *re, Scene *scene, unsigned int lay, int sfra, int ef
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
 	RenderGlobal.renderingslot= re->slot;
-	re->result_ok= 0;
 	
 	if(BKE_imtype_is_movie(scene->r.imtype))
 		if(!mh->start_movie(scene, &re->r, re->rectx, re->recty, reports))
@@ -3014,7 +3008,6 @@ void RE_BlenderAnim(Render *re, Scene *scene, unsigned int lay, int sfra, int ef
 	
 	/* UGLY WARNING */
 	G.rendering= 0;
-	re->result_ok= 1;
 	RenderGlobal.renderingslot= RenderGlobal.viewslot;
 }
 
