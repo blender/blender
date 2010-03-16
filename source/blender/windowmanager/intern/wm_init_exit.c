@@ -128,8 +128,6 @@ void WM_init(bContext *C, int argc, char **argv)
 	BLF_init(11, U.dpi);
 	BLF_lang_init();
 	
-	init_builtin_keyingsets(); /* editors/animation/keyframing.c */
-	
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, NULL);
 
@@ -281,7 +279,9 @@ void WM_exit(bContext *C)
 //	fsmenu_free();
 
 	BLF_exit();
-
+	
+	ANIM_keyingset_infos_exit();
+	
 	RE_FreeAllRender();
 	RE_engines_exit();
 	

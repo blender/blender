@@ -663,20 +663,19 @@ typedef enum eNlaTrack_Flag {
 typedef struct KS_Path {
 	struct KS_Path *next, *prev;
 	
-		/* absolute paths only */
 	ID *id;					/* ID block that keyframes are for */
 	char group[64];			/* name of the group to add to */
 	
-		/* relative paths only */
 	int idtype;				/* ID-type that path can be used on */
-	int templates;			/* Templates that will be encountered in the path (as set of bitflags) */
 	
-		/* all paths */
+	short groupmode;		/* group naming (eKSP_Grouping) */
+	short pad;
+	
 	char *rna_path;			/* dynamically (or statically in the case of predefined sets) path */
 	int array_index;		/* index that path affects */
 	
 	short flag;				/* various settings, etc. */
-	short groupmode;		/* group naming (eKSP_Grouping) */
+	short keyingflag;		/* settings to supply insertkey() with */
 } KS_Path;
 
 /* KS_Path->flag */
@@ -734,6 +733,7 @@ typedef struct KeyingSet {
 	ListBase paths;			/* (KS_Path) paths to keyframe to */
 	
 	char name[64];			/* user-viewable name for KeyingSet (for menus, etc.) */
+	char typeinfo[64];		/* name of the typeinfo data used for the relative paths */
 	
 	short flag;				/* settings for KeyingSet */
 	short keyingflag;		/* settings to supply insertkey() with */

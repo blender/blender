@@ -41,10 +41,11 @@
 
 #include "BKE_animsys.h"
 
-static void rna_KeyingSet_add_path(KeyingSet *keyingset, ReportList *reports, 
+static KS_Path *rna_KeyingSet_add_path(KeyingSet *keyingset, ReportList *reports, 
 		ID *id, char rna_path[], int array_index, int entire_array,
 		int grouping_method, char group_name[])
 {
+	KS_Path *ksp = NULL;
 	short flag = 0;
 	
 	/* validate flags */
@@ -53,11 +54,30 @@ static void rna_KeyingSet_add_path(KeyingSet *keyingset, ReportList *reports,
 	
 	/* if data is valid, call the API function for this */
 	if (keyingset) {
-		BKE_keyingset_add_path(keyingset, id, group_name, rna_path, array_index, flag, grouping_method);
+		ksp= BKE_keyingset_add_path(keyingset, id, group_name, rna_path, array_index, flag, grouping_method);
 		keyingset->active_path= BLI_countlist(&keyingset->paths); 
 	}
 	else {
 		BKE_report(reports, RPT_ERROR, "Keying Set Path could not be added.");
+	}
+	
+	/* return added path */
+	return ksp;
+}
+
+static void rna_KeyingSet_remove_path(KeyingSet *keyingset, ReportList *reports, KS_Path *ksp)
+{
+	/* if data is valid, call the API function for this */
+	if (keyingset && ksp) {
+		/* remove the active path from the KeyingSet */
+		BKE_keyingset_free_path(keyingset, ksp);
+			
+		/* the active path number will most likely have changed */
+		// TODO: we should get more fancy and actually check if it was removed, but this will do for now
+		keyingset->active_path = 0;
+	}
+	else {
+		BKE_report(reports, RPT_ERROR, "Keying Set Path could not be removed.");
 	}
 }
 
@@ -68,10 +88,13 @@ void RNA_api_keyingset(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 	
-	/* Add Destination */
+	/* Add Path */
 	func= RNA_def_function(srna, "add_path", "rna_KeyingSet_add_path");
-	RNA_def_function_ui_description(func, "Add a new destination for the Keying Set.");
+	RNA_def_function_ui_description(func, "Add a new path for the Keying Set.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+		/* return arg */
+	parm= RNA_def_pointer(func, "ksp", "KeyingSetPath", "New Path", "Path created and added to the Keying Set");
+		RNA_def_function_return(func, parm);
 		/* ID-block for target */
 	parm= RNA_def_pointer(func, "target_id", "ID", "Target ID", "ID-Datablock for the destination."); 
 		RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -84,6 +107,14 @@ void RNA_api_keyingset(StructRNA *srna)
 		/* grouping */
 	parm=RNA_def_enum(func, "grouping_method", keyingset_path_grouping_items, KSP_GROUP_KSNAME, "Grouping Method", "Method used to define which Group-name to use.");
 	parm=RNA_def_string(func, "group_name", "", 64, "Group Name", "Name of Action Group to assign destination to (only if grouping mode is to use this name).");
+	
+	/* Remove Path */
+	func= RNA_def_function(srna, "remove_path", "rna_KeyingSet_remove_path");
+	RNA_def_function_ui_description(func, "Remove the given path from the Keying Set.");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+		/* path to remove */
+	parm= RNA_def_pointer(func, "path", "KeyingSetPath", "Path", ""); 
+		RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 #endif

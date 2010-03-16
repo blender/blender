@@ -71,13 +71,16 @@ void BKE_animdata_make_local(struct AnimData *adt);
 struct KeyingSet *BKE_keyingset_add(struct ListBase *list, const char name[], short flag, short keyingflag);
 
 /* Add a path to a KeyingSet */
-void BKE_keyingset_add_path(struct KeyingSet *ks, struct ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode);
+struct KS_Path *BKE_keyingset_add_path(struct KeyingSet *ks, struct ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode);
 
 /* Find the destination matching the criteria given */
 struct KS_Path *BKE_keyingset_find_path(struct KeyingSet *ks, struct ID *id, const char group_name[], const char rna_path[], int array_index, int group_mode);
 
 /* Copy all KeyingSets in the given list */
 void BKE_keyingsets_copy(struct ListBase *newlist, struct ListBase *list);
+
+/* Free the given Keying Set path */
+void BKE_keyingset_free_path(struct KeyingSet *ks, struct KS_Path *ksp);
 
 /* Free data for KeyingSet but not set itself */
 void BKE_keyingset_free(struct KeyingSet *ks);

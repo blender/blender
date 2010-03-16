@@ -1073,7 +1073,6 @@ static int modify_key_op_poll(bContext *C)
 
 static int insert_key_exec (bContext *C, wmOperator *op)
 {
-	ListBase dsources = {NULL, NULL};
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks= NULL;
 	int type= RNA_int_get(op->ptr, "type");
@@ -1098,22 +1097,17 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	/* get context info for relative Keying Sets */
-	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
-		/* exit if no suitable data obtained */
-		if (modifykey_get_context_data(C, &dsources, ks) == 0) {
-			BKE_report(op->reports, RPT_ERROR, "No suitable context info for active Keying Set");
-			return OPERATOR_CANCELLED;
-		}
-	}
-	
 	/* try to insert keyframes for the channels specified by KeyingSet */
-	success= modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+	success= ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 	if (G.f & G_DEBUG)
 		BKE_reportf(op->reports, RPT_INFO, "KeyingSet '%s' - Successfully added %d Keyframes \n", ks->name, success);
 	
 	/* report failure or do updates? */
-	if (success) {
+	if (success == MODIFYKEY_INVALID_CONTEXT) {
+		BKE_report(op->reports, RPT_ERROR, "No suitable context info for active Keying Set");
+		return OPERATOR_CANCELLED;
+	}
+	else if (success) {
 		/* if the appropriate properties have been set, make a note that we've inserted something */
 		if (RNA_boolean_get(op->ptr, "confirm_success"))
 			BKE_reportf(op->reports, RPT_INFO, "Successfully added %d Keyframes for KeyingSet '%s'", success, ks->name);
@@ -1123,13 +1117,6 @@ static int insert_key_exec (bContext *C, wmOperator *op)
 	}
 	else
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to insert any keyframes");
-		
-	
-	/* free temp context-data if available */
-	if (dsources.first) {
-		/* we assume that there is no extra data that needs to be freed from here... */
-		BLI_freelistN(&dsources);
-	}
 	
 	/* send updates */
 	DAG_ids_flush_update(0);
@@ -1191,8 +1178,10 @@ static void insert_key_menu_prompt (bContext *C)
 	 *	- these are listed in the order in which they were defined for the active scene
 	 */
 	if (scene->keyingsets.first) {
-		for (ks= scene->keyingsets.first; ks; ks= ks->next)
-			uiItemIntO(layout, ks->name, 0, "ANIM_OT_keyframe_insert_menu", "type", i++);
+		for (ks= scene->keyingsets.first; ks; ks= ks->next) {
+			if (ANIM_keyingset_context_ok_poll(C, ks))
+				uiItemIntO(layout, ks->name, 0, "ANIM_OT_keyframe_insert_menu", "type", i++);
+		}
 		uiItemS(layout);
 	}
 	
@@ -1200,9 +1189,8 @@ static void insert_key_menu_prompt (bContext *C)
 	i= -1;
 	for (ks= builtin_keyingsets.first; ks; ks= ks->next) {
 		/* only show KeyingSet if context is suitable */
-		if (keyingset_context_ok_poll(C, ks)) {
+		if (ANIM_keyingset_context_ok_poll(C, ks))
 			uiItemIntO(layout, ks->name, 0, "ANIM_OT_keyframe_insert_menu", "type", i--);
-		}
 	}
 	
 	uiPupMenuEnd(C, pup);
@@ -1261,7 +1249,6 @@ void ANIM_OT_keyframe_insert_menu (wmOperatorType *ot)
 
 static int delete_key_exec (bContext *C, wmOperator *op)
 {
-	ListBase dsources = {NULL, NULL};
 	Scene *scene= CTX_data_scene(C);
 	KeyingSet *ks= NULL;	
 	int type= RNA_int_get(op->ptr, "type");
@@ -1286,22 +1273,17 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	/* get context info for relative Keying Sets */
-	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
-		/* exit if no suitable data obtained */
-		if (modifykey_get_context_data(C, &dsources, ks) == 0) {
-			BKE_report(op->reports, RPT_ERROR, "No suitable context info for active Keying Set");
-			return OPERATOR_CANCELLED;
-		}
-	}
-	
 	/* try to insert keyframes for the channels specified by KeyingSet */
-	success= modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
+	success= ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_DELETE, cfra);
 	if (G.f & G_DEBUG)
 		printf("KeyingSet '%s' - Successfully removed %d Keyframes \n", ks->name, success);
 	
 	/* report failure or do updates? */
-	if (success) {
+	if (success == MODIFYKEY_INVALID_CONTEXT) {
+		BKE_report(op->reports, RPT_ERROR, "No suitable context info for active Keying Set");
+		return OPERATOR_CANCELLED;
+	}
+	else if (success) {
 		/* if the appropriate properties have been set, make a note that we've inserted something */
 		if (RNA_boolean_get(op->ptr, "confirm_success"))
 			BKE_reportf(op->reports, RPT_INFO, "Successfully removed %d Keyframes for KeyingSet '%s'", success, ks->name);
@@ -1311,12 +1293,6 @@ static int delete_key_exec (bContext *C, wmOperator *op)
 	}
 	else
 		BKE_report(op->reports, RPT_WARNING, "Keying Set failed to remove any keyframes");
-	
-	/* free temp context-data if available */
-	if (dsources.first) {
-		/* we assume that there is no extra data that needs to be freed from here... */
-		BLI_freelistN(&dsources);
-	}
 	
 	/* send updates */
 	DAG_ids_flush_update(0);

@@ -37,12 +37,13 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "ED_keyframing.h"
+
 /* exported for use in API */
 EnumPropertyItem keyingset_path_grouping_items[] = {
 	{KSP_GROUP_NAMED, "NAMED", 0, "Named Group", ""},
 	{KSP_GROUP_NONE, "NONE", 0, "None", ""},
 	{KSP_GROUP_KSNAME, "KEYINGSET", 0, "Keying Set Name", ""},
-	{KSP_GROUP_TEMPLATE_ITEM, "TEMPLATE", 0, "Innermost Context-Item Name", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -62,6 +63,152 @@ static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value)
 {
 	AnimData *adt= (AnimData*)(ptr->data);
 	adt->action= value.data;
+}
+
+/* ****************************** */
+
+/* wrapper for poll callback */
+static int RKS_POLL_rna_internal(KeyingSetInfo *ksi, bContext *C)
+{
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+	void *ret;
+	int ok;
+
+	RNA_pointer_create(NULL, ksi->ext.srna, ksi, &ptr);
+	func= RNA_struct_find_function(&ptr, "poll");
+
+	RNA_parameter_list_create(&list, &ptr, func);
+		/* hook up arguments */
+		RNA_parameter_set_lookup(&list, "ksi", &ksi);
+		RNA_parameter_set_lookup(&list, "context", &C);
+		
+		/* execute the function */
+		ksi->ext.call(&ptr, func, &list);
+		
+		/* read the result */
+		RNA_parameter_get_lookup(&list, "ok", &ret);
+		ok= *(int*)ret;
+	RNA_parameter_list_free(&list);
+	
+	return ok;
+}
+
+/* wrapper for iterator callback */
+static void RKS_ITER_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks)
+{
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, ksi->ext.srna, ksi, &ptr);
+	func= RNA_struct_find_function(&ptr, "iterator");
+
+	RNA_parameter_list_create(&list, &ptr, func);
+		/* hook up arguments */
+		RNA_parameter_set_lookup(&list, "ksi", &ksi);
+		RNA_parameter_set_lookup(&list, "context", &C);
+		RNA_parameter_set_lookup(&list, "ks", &ks);
+		
+		/* execute the function */
+		ksi->ext.call(&ptr, func, &list);
+	RNA_parameter_list_free(&list);
+}
+
+/* wrapper for generator callback */
+static void RKS_GEN_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks, PointerRNA *data)
+{
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, ksi->ext.srna, ksi, &ptr);
+	func= RNA_struct_find_function(&ptr, "iterator");
+
+	RNA_parameter_list_create(&list, &ptr, func);
+		/* hook up arguments */
+		RNA_parameter_set_lookup(&list, "ksi", &ksi);
+		RNA_parameter_set_lookup(&list, "context", &C);
+		RNA_parameter_set_lookup(&list, "ks", &ks);
+		RNA_parameter_set_lookup(&list, "data", &data);
+		
+		/* execute the function */
+		ksi->ext.call(&ptr, func, &list);
+	RNA_parameter_list_free(&list);
+}
+
+/* ------ */
+
+// XXX: the exact purpose of this is not too clear... maybe we want to revise this at some point?
+static StructRNA *rna_KeyingSetInfo_refine(PointerRNA *ptr)
+{
+	KeyingSetInfo *ksi= (KeyingSetInfo *)ptr->data;
+	return (ksi->ext.srna)? ksi->ext.srna: &RNA_KeyingSetInfo;
+}
+
+static void rna_KeyingSetInfo_unregister(const bContext *C, StructRNA *type)
+{
+	KeyingSetInfo *ksi= RNA_struct_blender_type_get(type);
+
+	if (ksi == NULL)
+		return;
+	
+	/* free RNA data referencing this */
+	RNA_struct_free_extension(type, &ksi->ext);
+	RNA_struct_free(&BLENDER_RNA, type);
+	
+	/* unlink Blender-side data */
+	ANIM_keyingset_info_unregister(C, ksi);
+}
+
+static StructRNA *rna_KeyingSetInfo_register(const bContext *C, ReportList *reports, void *data, const char *identifier, StructValidateFunc validate, StructCallbackFunc call, StructFreeFunc free)
+{
+	KeyingSetInfo dummyksi = {0};
+	KeyingSetInfo *ksi;
+	PointerRNA dummyptr;
+	int have_function[3];
+
+	/* setup dummy type info to store static properties in */
+	// TODO: perhaps we want to get users to register as if they're using 'KeyingSet' directly instead?
+	RNA_pointer_create(NULL, &RNA_KeyingSetInfo, &dummyksi, &dummyptr);
+	
+	/* validate the python class */
+	if (validate(&dummyptr, data, have_function) != 0)
+		return NULL;
+	
+	if (strlen(identifier) >= sizeof(dummyksi.name)) {
+		BKE_reportf(reports, RPT_ERROR, "registering keying set info class: '%s' is too long, maximum length is %d.", identifier, sizeof(dummyksi.name));
+		return NULL;
+	}
+	
+	/* check if we have registered this info before, and remove it */
+	ksi = ANIM_keyingset_info_find_named(dummyksi.name);
+	if (ksi && ksi->ext.srna)
+		rna_KeyingSetInfo_unregister(C, ksi->ext.srna);
+	
+	/* create a new KeyingSetInfo type */
+	ksi= MEM_callocN(sizeof(KeyingSetInfo), "python keying set info");
+	memcpy(ksi, &dummyksi, sizeof(KeyingSetInfo));
+	
+	/* set RNA-extensions info */
+	ksi->ext.srna= RNA_def_struct(&BLENDER_RNA, ksi->name, "KeyingSetInfo"); 
+	ksi->ext.data= data;
+	ksi->ext.call= call;
+	ksi->ext.free= free;
+	RNA_struct_blender_type_set(ksi->ext.srna, ksi);
+	
+	/* set callbacks */
+	// NOTE: we really should have all of these... 
+	ksi->poll= (have_function[0])? RKS_POLL_rna_internal: NULL;
+	ksi->iter= (have_function[1])? RKS_ITER_rna_internal: NULL;
+	ksi->generate= (have_function[2])? RKS_GEN_rna_internal: NULL;
+
+	/* add and register with other info as needed */
+	ANIM_keyingset_info_register(C, ksi);
+	
+	/* return the struct-rna added */
+	return ksi->ext.srna;
 }
 
 /* ****************************** */
@@ -123,6 +270,14 @@ static void rna_ksPath_RnaPath_set(PointerRNA *ptr, const char *value)
 
 /* ****************************** */
 
+static int rna_KeyingSet_typeinfo_name_editable(PointerRNA *ptr)
+{
+	KeyingSet *ks= (KeyingSet *)ptr->data;
+	
+	/* only editable if we're using relative paths */
+	return ((ks->flag & KEYINGSET_ABSOLUTE)==0);
+}
+
 static int rna_KeyingSet_active_ksPath_editable(PointerRNA *ptr)
 {
 	KeyingSet *ks= (KeyingSet *)ptr->data;
@@ -167,6 +322,91 @@ static void rna_KeyingSet_active_ksPath_index_range(PointerRNA *ptr, int *min, i
 
 #else
 
+/* helper function for Keying Set -> keying settings */
+static void rna_def_common_keying_flags(StructRNA *srna, short reg)
+{
+	PropertyRNA *prop;
+	
+	prop= RNA_def_property(srna, "insertkey_needed", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_NEEDED);
+	RNA_def_property_ui_text(prop, "Insert Keyframes - Only Needed", "Only insert keyframes where they're needed in the relevant F-Curves");
+	if (reg) RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	
+	prop= RNA_def_property(srna, "insertkey_visual", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_MATRIX);
+	RNA_def_property_ui_text(prop, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'");
+	if (reg) RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	
+	prop= RNA_def_property(srna, "insertkey_xyz_to_rgb", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_XYZ2RGB);
+	RNA_def_property_ui_text(prop, "F-Curve Colors - XYZ to RGB", "Color for newly added transformation F-Curves (Location, Rotation, Scale) and also Color is based on the transform axis");
+	if (reg) RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+}
+
+/* --- */
+
+static void rna_def_keyingset_info(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+	
+	srna= RNA_def_struct(brna, "KeyingSetInfo", NULL);
+	RNA_def_struct_sdna(srna, "KeyingSetInfo");
+	RNA_def_struct_ui_text(srna, "Keying Set Info", "Callback function defines for relative Keying Sets");
+	RNA_def_struct_refine_func(srna, "rna_KeyingSetInfo_refine");
+	RNA_def_struct_register_funcs(srna, "rna_KeyingSetInfo_register", "rna_KeyingSetInfo_unregister");
+	
+	/* Properties --------------------- */
+	
+	RNA_define_verify_sdna(0); // not in sdna
+		
+		/* Name */
+	prop= RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "name");
+	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_flag(prop, PROP_REGISTER);
+	
+	prop= RNA_def_property(srna, "bl_builtin", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "builtin", 1);
+	RNA_def_property_ui_text(prop, "BuiltIn", "Keying Set type is required internally.");
+	RNA_def_property_flag(prop, PROP_REGISTER);
+	
+	rna_def_common_keying_flags(srna, 1); /* '1' arg here is to indicate that we need these to be set on registering */
+	
+	RNA_define_verify_sdna(1);
+	
+	/* Function Callbacks ------------- */
+		/* poll */
+	func= RNA_def_function(srna, "poll", NULL);
+	RNA_def_function_ui_description(func, "Test if Keying Set can be used or not");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+	RNA_def_function_return(func, RNA_def_boolean(func, "ok", 1, "", ""));
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	
+		/* iterator */
+	func= RNA_def_function(srna, "iterator", NULL);
+	RNA_def_function_ui_description(func, "Call generate() on the structs which have properties to be keyframed");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "ks", "KeyingSet", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	
+		/* generate */
+	func= RNA_def_function(srna, "generate", NULL);
+	RNA_def_function_ui_description(func, "Add Paths to the Keying Set to keyframe the properties of the given data");
+	RNA_def_function_flag(func, FUNC_REGISTER);
+	parm= RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "ks", "KeyingSet", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_pointer(func, "data", NULL, "", ""); // "AnyType"...
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+}
 
 static void rna_def_keyingset_path(BlenderRNA *brna)
 {
@@ -215,6 +455,9 @@ static void rna_def_keyingset_path(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "entire_array", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KSP_FLAG_WHOLE_ARRAY);
 	RNA_def_property_ui_text(prop, "Entire Array", "When an 'array/vector' type is chosen (Location, Rotation, Color, etc.), entire array is to be used");
+	
+	/* Keyframing Settings */
+	rna_def_common_keying_flags(srna, 0);
 }
 
 static void rna_def_keyingset(BlenderRNA *brna)
@@ -229,6 +472,13 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Name", "");
 	RNA_def_struct_name_property(srna, prop);
+	
+	/* TypeInfo associated with Relative KeyingSet (only) */
+	prop= RNA_def_property(srna, "typeinfo_name", PROP_STRING, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_string_sdna(prop, NULL, "typeinfo");
+	RNA_def_property_editable_func(prop, "rna_KeyingSet_typeinfo_name_editable");
+	RNA_def_property_ui_text(prop, "TypeInfo Name", "");
 	
 	/* Paths */
 	prop= RNA_def_property(srna, "paths", PROP_COLLECTION, PROP_NONE);
@@ -249,28 +499,13 @@ static void rna_def_keyingset(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Path Index", "Current Keying Set index");
 	
 	/* Flags */
-		// XXX: depreceated
-	prop= RNA_def_property(srna, "builtin", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYINGSET_BUILTIN);
-	RNA_def_property_ui_text(prop, "Built-In", "Keying Set is a built-in to Blender");
-	
 	prop= RNA_def_property(srna, "absolute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYINGSET_ABSOLUTE);
 	RNA_def_property_ui_text(prop, "Absolute", "Keying Set defines specific paths/settings to be keyframed (i.e. is not reliant on context info)");
 	
 	/* Keyframing Flags */
-	prop= RNA_def_property(srna, "insertkey_needed", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_NEEDED);
-	RNA_def_property_ui_text(prop, "Insert Keyframes - Only Needed", "Only insert keyframes where they're needed in the relevant F-Curves");
+	rna_def_common_keying_flags(srna, 0);
 	
-	prop= RNA_def_property(srna, "insertkey_visual", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_MATRIX);
-	RNA_def_property_ui_text(prop, "Insert Keyframes - Visual", "Insert keyframes based on 'visual transforms'");
-	
-	prop= RNA_def_property(srna, "insertkey_xyz_to_rgb", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "keyingflag", INSERTKEY_XYZ2RGB);
-	RNA_def_property_ui_text(prop, "F-Curve Colors - XYZ to RGB", "Color for newly added transformation F-Curves (Location, Rotation, Scale) and also Color is based on the transform axis");
 	
 	/* Keying Set API */
 	RNA_api_keyingset(srna);
@@ -347,6 +582,7 @@ void RNA_def_animation(BlenderRNA *brna)
 	
 	rna_def_keyingset(brna);
 	rna_def_keyingset_path(brna);
+	rna_def_keyingset_info(brna);
 }
 
 #endif

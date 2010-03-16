@@ -331,18 +331,13 @@ static int poselib_add_menu_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 
 static int poselib_add_exec (bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
 	bAction *act = poselib_validate(ob);
 	bArmature *arm= (ob) ? ob->data : NULL;
 	bPose *pose= (ob) ? ob->pose : NULL;
-	bPoseChannel *pchan;
 	TimeMarker *marker;
 	int frame= RNA_int_get(op->ptr, "frame");
 	char name[64];
-	
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
 	
 	/* sanity check (invoke should have checked this anyway) */
 	if (ELEM3(NULL, ob, arm, pose)) 
@@ -373,25 +368,12 @@ static int poselib_add_exec (bContext *C, wmOperator *op)
 	/* validate name */
 	BLI_uniquename(&act->markers, marker, "Pose", '.', offsetof(TimeMarker, name), sizeof(marker->name));
 	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
-	cks.id= &ob->id;
-	
-	/* loop through selected posechannels, keying their pose to the action */
-	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
-		/* check if available */
-		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
-			if (pchan->bone->flag & BONE_SELECTED || pchan->bone==arm->act_bone) {
-				/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-				cks.pchan= pchan;
-				
-				/* KeyingSet to use depends on rotation mode (but that's handled by the templates code)  */
-				if (poselib_ks_locrotscale == NULL)
-					poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-				modify_keyframes(scene, &dsources, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
-			}
-		}
-	}
+	/* KeyingSet to use depends on rotation mode (but that's handled by the templates code)  */
+	if (poselib_ks_locrotscale == NULL)
+		poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+		
+	/* make the keyingset use context info to determine where to add keyframes */
+	ANIM_apply_keyingset(C, NULL, act, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)frame);
 	
 	/* store new 'active' pose number */
 	act->active_marker= BLI_countlist(&act->markers);
@@ -784,13 +766,6 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 	bAction *act= pld->act;
 	bActionGroup *agrp;
 	
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
-	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
-	cks.id= &pld->ob->id;
-	
 	/* start tagging/keying */
 	for (agrp= act->groups.first; agrp; agrp= agrp->next) {
 		/* only for selected action channels */
@@ -798,21 +773,23 @@ static void poselib_keytag_pose (bContext *C, Scene *scene, tPoseLib_PreviewData
 			pchan= get_pose_channel(pose, agrp->name);
 			
 			if (pchan) {
-				// TODO: use a standard autokeying function in future (to allow autokeying-editkeys to work)
-				if (IS_AUTOKEY_MODE(scene, NORMAL)) {
-					/* Set keys on pose
-					 *	- KeyingSet to use depends on rotation mode 
-					 *	(but that's handled by the templates code)  
-					 */
+				if (autokeyframe_cfra_can_key(scene, &pld->ob->id)) {
+					ListBase dsources = {NULL, NULL};
+					
+					/* get KeyingSet to use */
 					// TODO: for getting the KeyingSet used, we should really check which channels were affected
+					// TODO: this should get modified so that custom props are taken into account too!
 					if (poselib_ks_locrotscale == NULL)
 						poselib_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 					
-					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-					cks.pchan= pchan;
-					
-					/* now insert the keyframe */
-					modify_keyframes(scene, &dsources, NULL, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
+					/* now insert the keyframe(s) using the Keying Set
+					 *	1) add datasource override for the PoseChannel
+					 *	2) insert keyframes
+					 *	3) free the extra info 
+					 */
+					ANIM_relative_keyingset_add_source(&dsources, &pld->ob->id, &RNA_PoseBone, pchan); 
+					ANIM_apply_keyingset(C, &dsources, NULL, poselib_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
+					BLI_freelistN(&dsources);
 					
 					/* clear any unkeyed tags */
 					if (pchan->bone)

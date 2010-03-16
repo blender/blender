@@ -849,14 +849,14 @@ void free_posebuf(void)
 {
 	if (g_posebuf) {
 		bPoseChannel *pchan;
-
+		
 		for (pchan= g_posebuf->chanbase.first; pchan; pchan= pchan->next) {
 			if(pchan->prop) {
 				IDP_FreeProperty(pchan->prop);
 				MEM_freeN(pchan->prop);
 			}
 		}
-
+		
 		/* was copied without constraints */
 		BLI_freelistN(&g_posebuf->chanbase);
 		MEM_freeN(g_posebuf);
@@ -908,9 +908,6 @@ void POSE_OT_copy (wmOperatorType *ot)
 /* Pointers to the builtin KeyingSets that we want to use */
 static KeyingSet *posePaste_ks_locrotscale = NULL;		/* the only keyingset we'll need */
 
-/* transform.h */
-extern void autokeyframe_pose_cb_func(struct bContext *C, struct Scene *scene, struct View3D *v3d, struct Object *ob, int tmode, short targetless_ik);
-
 static int pose_paste_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
@@ -918,13 +915,6 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	bPoseChannel *chan, *pchan;
 	char name[32];
 	int flip= RNA_boolean_get(op->ptr, "flipped");
-	
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
-	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
-	cks.id= &ob->id;
 	
 	/* sanity checks */
 	if ELEM(NULL, ob, ob->pose)
@@ -974,14 +964,14 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 				else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 					/* quat/euler to axis angle */
 					if (chan->rotmode > 0)
-						eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,chan->eul, chan->rotmode);
+						eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->eul, chan->rotmode);
 					else	
-						quat_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,chan->quat);
+						quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->quat);
 				}
 				else {
 					/* euler/axis-angle to quat */
 					if (chan->rotmode > 0)
-						eulO_to_quat( pchan->quat,chan->eul, chan->rotmode);
+						eulO_to_quat(pchan->quat, chan->eul, chan->rotmode);
 					else
 						axis_angle_to_quat(pchan->quat, chan->rotAxis, pchan->rotAngle);
 				}
@@ -998,10 +988,10 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 						float eul[3];
 						
-						axis_angle_to_eulO( eul, EULER_ORDER_DEFAULT,pchan->rotAxis, pchan->rotAngle);
+						axis_angle_to_eulO(eul, EULER_ORDER_DEFAULT, pchan->rotAxis, pchan->rotAngle);
 						eul[1]*= -1;
 						eul[2]*= -1;
-						eulO_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,eul, EULER_ORDER_DEFAULT);
+						eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, eul, EULER_ORDER_DEFAULT);
 						
 						// experimental method (uncomment to test):
 #if 0
@@ -1013,62 +1003,55 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 					else {
 						float eul[3];
 						
-						quat_to_eul( eul,pchan->quat);
+						quat_to_eul(eul, pchan->quat);
 						eul[1]*= -1;
 						eul[2]*= -1;
-						eul_to_quat( pchan->quat,eul);
+						eul_to_quat(pchan->quat, eul);
 					}
 				}
 				
 				/* ID property */
-				if(pchan->prop) {
+				if (pchan->prop) {
 					IDP_FreeProperty(pchan->prop);
 					MEM_freeN(pchan->prop);
 					pchan->prop= NULL;
 				}
-
-				if(chan->prop) {
+				
+				if (chan->prop)
 					pchan->prop= IDP_CopyProperty(chan->prop);
+				
+				/* keyframing tagging */
+				if (autokeyframe_cfra_can_key(scene, &ob->id)) {	
+					ListBase dsources = {NULL, NULL};
+					
+					/* get KeyingSet to use */
+					// TODO: for getting the KeyingSet used, we should really check which channels were affected
+					// TODO: this should get modified so that custom props are taken into account too!
+					if (posePaste_ks_locrotscale == NULL)
+						posePaste_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
+					
+					/* now insert the keyframe(s) using the Keying Set
+					 *	1) add datasource override for the PoseChannel
+					 *	2) insert keyframes
+					 *	3) free the extra info 
+					 */
+					ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan); 
+					ANIM_apply_keyingset(C, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
+					BLI_freelistN(&dsources);
+					
+					/* clear any unkeyed tags */
+					if (chan->bone)
+						chan->bone->flag &= ~BONE_UNKEYED;
 				}
-
-				/* auto key, TODO, fix up this INSERTAVAIL vs all other cases */
-				if (IS_AUTOKEY_FLAG(INSERTAVAIL) == 0) { /* deal with this case later */
-					if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-
-						/* Set keys on pose
-						 *	- KeyingSet to use depends on rotation mode
-						 *	(but that's handled by the templates code)
-						 */
-						// TODO: for getting the KeyingSet used, we should really check which channels were affected
-						if (posePaste_ks_locrotscale == NULL)
-							posePaste_ks_locrotscale= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-
-						/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-						cks.pchan= pchan;
-
-						modify_keyframes(scene, &dsources, NULL, posePaste_ks_locrotscale, MODIFYKEY_MODE_INSERT, (float)CFRA);
-
-						/* clear any unkeyed tags */
-						if (chan->bone)
-							chan->bone->flag &= ~BONE_UNKEYED;
-					}
-					else {
-						/* add unkeyed tags */
-						if (chan->bone)
-							chan->bone->flag |= BONE_UNKEYED;
-					}
+				else {
+					/* add unkeyed tags */
+					if (chan->bone)
+						chan->bone->flag |= BONE_UNKEYED;
 				}
 			}
 		}
 	}
-
-	if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
-		View3D *v3d= CTX_wm_view3d(C);
-		autokeyframe_pose_cb_func(C, scene, v3d, ob, TFM_TRANSLATION, 0);
-		autokeyframe_pose_cb_func(C, scene, v3d, ob, TFM_ROTATION, 0);
-		autokeyframe_pose_cb_func(C, scene, v3d, ob, TFM_TIME_SCALE, 0);
-	}
-
+	
 	/* Update event for pose and deformation children */
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 	
@@ -1077,13 +1060,13 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	}
 	else {
 		/* need to trick depgraph, action is not allowed to execute on pose */
+		// XXX: this is probably not an issue anymore
 		where_is_pose(scene, ob);
 		ob->recalc= 0;
 	}
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);
-	WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL); // XXX not really needed, but here for completeness...
 
 	return OPERATOR_FINISHED;
 }
@@ -1754,13 +1737,7 @@ static int pose_flip_quats_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= CTX_data_active_object(C);
-	
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
-	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
-	cks.id= &ob->id;
+	KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
 	
 	/* loop through all selected pchans, flipping and keying (as needed) */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
@@ -1773,20 +1750,18 @@ static int pose_flip_quats_exec (bContext *C, wmOperator *op)
 			pchan->quat[2]= -pchan->quat[2];
 			pchan->quat[3]= -pchan->quat[3];
 			
-			/* perform auto-keying 
-			 * NOTE: paths don't need recalculation here, since the orientations shouldn't have changed
-			 */
+			/* tagging */
 			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-				/* Set keys on pose
-				 *	- KeyingSet to use depends on rotation mode 
-				 *	(but that's handled by the templates code)  
+				ListBase dsources = {NULL, NULL};
+				
+				/* now insert the keyframe(s) using the Keying Set
+				 *	1) add datasource override for the PoseChannel
+				 *	2) insert keyframes
+				 *	3) free the extra info 
 				 */
-				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
-				
-				/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-				cks.pchan= pchan;
-				
-				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan); 
+				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				BLI_freelistN(&dsources);
 				
 				/* clear any unkeyed tags */
 				if (pchan->bone)

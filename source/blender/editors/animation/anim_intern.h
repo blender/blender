@@ -33,12 +33,6 @@
 /* list of builtin KeyingSets (defined in keyingsets.c) */
 extern ListBase builtin_keyingsets;
 
-/* for builtin keyingsets - context poll */
-short keyingset_context_ok_poll(bContext *C, KeyingSet *ks);
-
-/* Main KeyingSet operations API call */
-short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks);
-
 /* Operator Define Prototypes ------------------- */
 
 /* Main Keyframe Management operators: 

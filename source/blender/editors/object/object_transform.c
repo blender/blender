@@ -75,32 +75,35 @@
 
 static int object_location_clear_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene= CTX_data_scene(C);
-	
+	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
-	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
 	
 	/* clear location of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
-		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-			if((ob->protectflag & OB_LOCK_LOCX)==0)
+		if (!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
+			/* clear location if not locked */
+			if ((ob->protectflag & OB_LOCK_LOCX)==0)
 				ob->loc[0]= ob->dloc[0]= 0.0f;
-			if((ob->protectflag & OB_LOCK_LOCY)==0)
+			if ((ob->protectflag & OB_LOCK_LOCY)==0)
 				ob->loc[1]= ob->dloc[1]= 0.0f;
-			if((ob->protectflag & OB_LOCK_LOCZ)==0)
+			if ((ob->protectflag & OB_LOCK_LOCZ)==0)
 				ob->loc[2]= ob->dloc[2]= 0.0f;
 				
-			/* do auto-keyframing as appropriate */
+			/* auto keyframing */
 			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-				/* init cks for this object, then use the relative KeyingSets to keyframe it */
-				cks.id= &ob->id;
-				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				ListBase dsources = {NULL, NULL};
+				
+				/* now insert the keyframe(s) using the Keying Set
+				 *	1) add datasource override for the PoseChannel
+				 *	2) insert keyframes
+				 *	3) free the extra info 
+				 */
+				ANIM_relative_keyingset_add_source(&dsources, &ob->id, NULL, NULL); 
+				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				BLI_freelistN(&dsources);
 			}
 		}
+		
 		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
@@ -131,17 +134,12 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
 static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
-	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
 	
 	/* clear rotation of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
+			/* clear rotations that aren't locked */
 			if (ob->protectflag & (OB_LOCK_ROTX|OB_LOCK_ROTY|OB_LOCK_ROTZ|OB_LOCK_ROTW)) {
 				if (ob->protectflag & OB_LOCK_ROT4D) {
 					/* perform clamping on a component by component basis */
@@ -233,13 +231,21 @@ static int object_rotation_clear_exec(bContext *C, wmOperator *op)
 				}
 			}
 			
-			/* do auto-keyframing as appropriate */
+			/* auto keyframing */
 			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-				/* init cks for this object, then use the relative KeyingSets to keyframe it */
-				cks.id= &ob->id;
-				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				ListBase dsources = {NULL, NULL};
+				
+				/* now insert the keyframe(s) using the Keying Set
+				 *	1) add datasource override for the PoseChannel
+				 *	2) insert keyframes
+				 *	3) free the extra info 
+				 */
+				ANIM_relative_keyingset_add_source(&dsources, &ob->id, NULL, NULL); 
+				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				BLI_freelistN(&dsources);
 			}
 		}
+		
 		ob->recalc |= OB_RECALC_OB;
 	}
 	CTX_DATA_END;
@@ -270,35 +276,37 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
 static int object_scale_clear_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
-	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
 	
 	/* clear scales of selected objects if not in weight-paint mode */
 	CTX_DATA_BEGIN(C, Object*, ob, selected_editable_objects) {
 		if(!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
-			if((ob->protectflag & OB_LOCK_SCALEX)==0) {
+			/* clear scale factors which are not locked */
+			if ((ob->protectflag & OB_LOCK_SCALEX)==0) {
 				ob->dsize[0]= 0.0f;
 				ob->size[0]= 1.0f;
 			}
-			if((ob->protectflag & OB_LOCK_SCALEY)==0) {
+			if ((ob->protectflag & OB_LOCK_SCALEY)==0) {
 				ob->dsize[1]= 0.0f;
 				ob->size[1]= 1.0f;
 			}
-			if((ob->protectflag & OB_LOCK_SCALEZ)==0) {
+			if ((ob->protectflag & OB_LOCK_SCALEZ)==0) {
 				ob->dsize[2]= 0.0f;
 				ob->size[2]= 1.0f;
 			}
 			
-			/* do auto-keyframing as appropriate */
+			/* auto keyframing */
 			if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-				/* init cks for this object, then use the relative KeyingSets to keyframe it */
-				cks.id= &ob->id;
-				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				ListBase dsources = {NULL, NULL};
+				
+				/* now insert the keyframe(s) using the Keying Set
+				 *	1) add datasource override for the PoseChannel
+				 *	2) insert keyframes
+				 *	3) free the extra info 
+				 */
+				ANIM_relative_keyingset_add_source(&dsources, &ob->id, NULL, NULL); 
+				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+				BLI_freelistN(&dsources);
 			}
 		}
 		ob->recalc |= OB_RECALC_OB;

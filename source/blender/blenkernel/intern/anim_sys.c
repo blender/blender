@@ -621,53 +621,48 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	return ks;
 }
 
-/* Add a destination to a KeyingSet. Nothing is returned for now...
+/* Add a path to a KeyingSet. Nothing is returned for now...
  * Checks are performed to ensure that destination is appropriate for the KeyingSet in question
  */
-void BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode)
+KS_Path *BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode)
 {
 	KS_Path *ksp;
 	
 	/* sanity checks */
 	if ELEM(NULL, ks, rna_path) {
-		printf("ERROR: no Keying Set and/or RNA Path to add destination with \n");
-		return;
+		printf("ERROR: no Keying Set and/or RNA Path to add path with \n");
+		return NULL;
 	}
 	
-	/* ID is optional for relative KeyingSets, but is necessary for absolute KeyingSets */
+	/* ID is required for all types of KeyingSets */
 	if (id == NULL) {
-		if (ks->flag & KEYINGSET_ABSOLUTE) {
-			printf("ERROR: No ID provided for absolute destination. \n");
-			return;
-		}
+		printf("ERROR: No ID provided for Keying Set Path. \n");
+		return NULL;
 	}
 	
 	/* don't add if there is already a matching KS_Path in the KeyingSet */
 	if (BKE_keyingset_find_path(ks, id, group_name, rna_path, array_index, groupmode)) {
 		if (G.f & G_DEBUG)
 			printf("ERROR: destination already exists in Keying Set \n");
-		return;
+		return NULL;
 	}
 	
 	/* allocate a new KeyingSet Path */
 	ksp= MEM_callocN(sizeof(KS_Path), "KeyingSet Path");
 	
 	/* just store absolute info */
-	if (ks->flag & KEYINGSET_ABSOLUTE) {
-		ksp->id= id;
-		if (group_name)
-			BLI_snprintf(ksp->group, 64, group_name);
-		else
-			strcpy(ksp->group, "");
-	}
+	ksp->id= id;
+	if (group_name)
+		BLI_snprintf(ksp->group, 64, group_name);
+	else
+		strcpy(ksp->group, "");
 	
 	/* store additional info for relative paths (just in case user makes the set relative) */
 	if (id)
 		ksp->idtype= GS(id->name);
 	
 	/* just copy path info */
-	// XXX no checks are performed for templates yet
-	// should array index be checked too?
+	// TODO: should array index be checked too?
 	ksp->rna_path= BLI_strdupn(rna_path, strlen(rna_path));
 	ksp->array_index= array_index;
 	
@@ -677,20 +672,37 @@ void BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[], con
 	
 	/* add KeyingSet path to KeyingSet */
 	BLI_addtail(&ks->paths, ksp);
+	
+	/* return this path */
+	return ksp;
 }	
 
+/* Free the given Keying Set path */
+void BKE_keyingset_free_path (KeyingSet *ks, KS_Path *ksp)
+{
+	/* sanity check */
+	if ELEM(NULL, ks, ksp)
+		return;
+	
+	/* free RNA-path info */
+	MEM_freeN(ksp->rna_path);
+	
+	/* free path itself */
+	BLI_freelinkN(&ks->paths, ksp);
+}
+
 /* Copy all KeyingSets in the given list */
-void BKE_keyingsets_copy(ListBase *newlist, ListBase *list)
+void BKE_keyingsets_copy (ListBase *newlist, ListBase *list)
 {
 	KeyingSet *ksn;
 	KS_Path *kspn;
-
+	
 	BLI_duplicatelist(newlist, list);
 
-	for(ksn=newlist->first; ksn; ksn=ksn->next) {
+	for (ksn=newlist->first; ksn; ksn=ksn->next) {
 		BLI_duplicatelist(&ksn->paths, &ksn->paths);
-
-		for(kspn=ksn->paths.first; kspn; kspn=kspn->next)
+		
+		for (kspn=ksn->paths.first; kspn; kspn=kspn->next)
 			kspn->rna_path= MEM_dupallocN(kspn->rna_path);
 	}
 }
@@ -709,12 +721,7 @@ void BKE_keyingset_free (KeyingSet *ks)
 	/* free each path as we go to avoid looping twice */
 	for (ksp= ks->paths.first; ksp; ksp= kspn) {
 		kspn= ksp->next;
-		
-		/* free RNA-path info */
-		MEM_freeN(ksp->rna_path);
-		
-		/* free path itself */
-		BLI_freelinkN(&ks->paths, ksp);
+		BKE_keyingset_free_path(ks, ksp);
 	}
 }
 

@@ -102,20 +102,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
-//#include "BIF_editview.h"
-//#include "BIF_editlattice.h"
-//#include "BIF_editconstraint.h"
-//#include "BIF_editmesh.h"
-//#include "BIF_editsima.h"
-//#include "BIF_editparticle.h"
 #include "BIF_gl.h"
-//#include "BIF_poseobject.h"
-//#include "BIF_meshtools.h"
-//#include "BIF_mywindow.h"
-//#include "BIF_resources.h"
-//#include "BIF_screen.h"
-//#include "BIF_space.h"
-//#include "BIF_toolbox.h"
 
 #include "ED_anim_api.h"
 #include "ED_armature.h"
@@ -132,19 +119,11 @@
 
 #include "UI_view2d.h"
 
-//#include "BSE_edit.h"
-//#include "BDR_editobject.h"		// reset_slowparents()
-//#include "BDR_gpencil.h"
-
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
-//#include "editmesh.h"
-//
-//#include "blendef.h"
-//
-//#include "mydevice.h"
+#include "RNA_access.h"
 
 extern ListBase editelems;
 
@@ -4484,20 +4463,21 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
 		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
-		bCommonKeySrc cks;
-		ListBase dsources = {&cks, &cks};
+		ListBase dsources = {NULL, NULL};
 		float cfra= (float)CFRA; // xxx this will do for now
 		short flag = 0;
 		
-		/* init common-key-source for use by KeyingSets */
-		memset(&cks, 0, sizeof(bCommonKeySrc));
-		cks.id= &ob->id;
-		
+		/* get flags used for inserting keyframes */
 		flag = ANIM_get_keyframing_flags(scene, 1);
 		
+		/* add datasource override for the camera object */
+		ANIM_relative_keyingset_add_source(&dsources, id, NULL, NULL); 
+		
 		if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (active_ks)) {
-			/* only insert into active keyingset */
-			modify_keyframes(scene, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
+			/* only insert into active keyingset 
+			 * NOTE: we assume here that the active Keying Set does not need to have its iterator overridden spe
+			 */
+			ANIM_apply_keyingset(C, NULL, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
 		}
 		else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
 			AnimData *adt= ob->adt;
@@ -4543,22 +4523,25 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 			/* insert keyframes for the affected sets of channels using the builtin KeyingSets found */
 			if (doLoc) {
 				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
-				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
 			if (doRot) {
 				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
-				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
 			if (doScale) {
 				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scale");
-				modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
 		}
 		/* insert keyframe in all (transform) channels */
 		else {
 			KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 		}
+		
+		/* free temp info */
+		BLI_freelistN(&dsources);
 	}
 }
 
@@ -4579,14 +4562,8 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 	// TODO: this should probably be done per channel instead...
 	if (autokeyframe_cfra_can_key(scene, id)) {
 		KeyingSet *active_ks = ANIM_scene_get_active_keyingset(scene);
-		bCommonKeySrc cks;
-		ListBase dsources = {&cks, &cks};
 		float cfra= (float)CFRA;
 		short flag= 0;
-		
-		/* init common-key-source for use by KeyingSets */
-		memset(&cks, 0, sizeof(bCommonKeySrc));
-		cks.id= &ob->id;
 		
 		/* flag is initialised from UserPref keyframing settings
 		 *	- special exception for targetless IK - INSERTKEY_MATRIX keyframes should get
@@ -4600,14 +4577,18 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 		
 		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
 			if (pchan->bone->flag & BONE_TRANSFORM) {
+				ListBase dsources = {NULL, NULL};
+				
 				/* clear any 'unkeyed' flag it may have */
 				pchan->bone->flag &= ~BONE_UNKEYED;
 				
+				/* add datasource override for the camera object */
+				ANIM_relative_keyingset_add_source(&dsources, id, &RNA_PoseBone, pchan); 
+				
 				/* only insert into active keyingset? */
+				// TODO: move this first case out of the loop
 				if (IS_AUTOKEY_FLAG(ONLYKEYINGSET) && (active_ks)) {
-					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-					cks.pchan= pchan;
-					modify_keyframes(scene, &dsources, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
+					ANIM_apply_keyingset(C, NULL, NULL, active_ks, MODIFYKEY_MODE_INSERT, cfra);
 				}
 				/* only insert into available channels? */
 				else if (IS_AUTOKEY_FLAG(INSERTAVAIL)) {
@@ -4656,34 +4637,25 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 					
 					if (doLoc) {
 						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
-						
-						/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-						cks.pchan= pchan;
-						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 					if (doRot) {
 						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
-						
-						/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-						cks.pchan= pchan;
-						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 					if (doScale) {
 						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scale");
-						
-						/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-						cks.pchan= pchan;
-						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
 				}
 				/* insert keyframe in all (transform) channels */
 				else {
 					KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "LocRotScale");
-					
-					/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-					cks.pchan= pchan;
-					modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+					ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 				}
+				
+				/* free temp info */
+				BLI_freelistN(&dsources);
 			}
 		}
 		

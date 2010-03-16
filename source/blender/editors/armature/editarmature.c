@@ -4867,12 +4867,7 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Scaling");
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
-	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
-	cks.id= &ob->id;
+	short autokey = 0;
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) {
@@ -4885,13 +4880,12 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 			
 		/* do auto-keyframing as appropriate */
 		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-			cks.pchan= pchan;
-			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-			
 			/* clear any unkeyed tags */
 			if (pchan->bone)
 				pchan->bone->flag &= ~BONE_UNKEYED;
+				
+			/* tag for autokeying later */
+			autokey = 1;
 		}
 		else {
 			/* add unkeyed tags */
@@ -4900,6 +4894,16 @@ static int pose_clear_scale_exec(bContext *C, wmOperator *op)
 		}
 	}
 	CTX_DATA_END;
+	
+	/* perform autokeying on the bones if needed */
+	if (autokey) {
+		/* insert keyframes */
+		ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		
+		/* now recalculate paths */
+		if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS))
+			ED_pose_recalculate_paths(C, scene, ob);
+	}
 	
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
@@ -4930,12 +4934,7 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
-	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
-	cks.id= &ob->id;
+	short autokey = 0;
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) {
@@ -4949,13 +4948,12 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 			
 		/* do auto-keyframing as appropriate */
 		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-			cks.pchan= pchan;
-			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-			
 			/* clear any unkeyed tags */
 			if (pchan->bone)
 				pchan->bone->flag &= ~BONE_UNKEYED;
+				
+			/* tag for autokeying later */
+			autokey = 1;
 		}
 		else {
 			/* add unkeyed tags */
@@ -4964,6 +4962,16 @@ static int pose_clear_loc_exec(bContext *C, wmOperator *op)
 		}
 	}
 	CTX_DATA_END;
+	
+	/* perform autokeying on the bones if needed */
+	if (autokey) {
+		/* insert keyframes */
+		ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		
+		/* now recalculate paths */
+		if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS))
+			ED_pose_recalculate_paths(C, scene, ob);
+	}
 	
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 
@@ -4994,12 +5002,7 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 	Object *ob= CTX_data_active_object(C);
 	
 	KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
-	bCommonKeySrc cks;
-	ListBase dsources = {&cks, &cks};
-	
-	/* init common-key-source for use by KeyingSets */
-	memset(&cks, 0, sizeof(bCommonKeySrc));
-	cks.id= &ob->id;
+	short autokey = 0;
 	
 	/* only clear those channels that are not locked */
 	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) {
@@ -5097,13 +5100,12 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 		
 		/* do auto-keyframing as appropriate */
 		if (autokeyframe_cfra_can_key(scene, &ob->id)) {
-			/* init cks for this PoseChannel, then use the relative KeyingSets to keyframe it */
-			cks.pchan= pchan;
-			modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
-			
 			/* clear any unkeyed tags */
 			if (pchan->bone)
 				pchan->bone->flag &= ~BONE_UNKEYED;
+				
+			/* tag for autokeying later */
+			autokey = 1;
 		}
 		else {
 			/* add unkeyed tags */
@@ -5112,6 +5114,16 @@ static int pose_clear_rot_exec(bContext *C, wmOperator *op)
 		}
 	}
 	CTX_DATA_END;
+	
+	/* perform autokeying on the bones if needed */
+	if (autokey) {
+		/* insert keyframes */
+		ANIM_apply_keyingset(C, NULL, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
+		
+		/* now recalculate paths */
+		if ((ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS))
+			ED_pose_recalculate_paths(C, scene, ob);
+	}
 	
 	DAG_id_flush_update(&ob->id, OB_RECALC_DATA);
 

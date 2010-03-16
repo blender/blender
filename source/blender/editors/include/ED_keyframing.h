@@ -89,8 +89,6 @@ int insert_vert_fcurve(struct FCurve *fcu, float x, float y, short flag);
  */
 short insert_keyframe_direct(struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float cfra, short flag);
 
-
-
 /* -------- */
 
 /* Main Keyframing API calls: 
@@ -106,21 +104,51 @@ short delete_keyframe(struct ID *id, struct bAction *act, const char group[], co
 
 /* ************ Keying Sets ********************** */
 
-/* temporary struct to gather data combos to keyframe
- * (is used by modify_keyframes for 'relative' KeyingSets, provided via the dsources arg)
- */
-typedef struct bCommonKeySrc {
-	struct bCommonKeySrc *next, *prev;
-		
-		/* general data/destination-source settings */
-	struct ID *id;					/* id-block this comes from */
+/* forward decl. for this struct which is declared a bit later... */
+struct KeyingSetInfo;
+
+/* Polling Callback for KeyingSets */
+typedef int (*cbKeyingSet_Poll)(struct KeyingSetInfo *ksi, struct bContext *C);
+/* Context Iterator Callback for KeyingSets */
+typedef void (*cbKeyingSet_Iterator)(struct KeyingSetInfo *ksi, struct bContext *C, struct KeyingSet *ks);
+/* Property Specifier Callback for KeyingSets (called from iterators) */
+typedef void (*cbKeyingSet_Generate)(struct KeyingSetInfo *ksi, struct bContext *C, struct KeyingSet *ks, struct PointerRNA *ptr); 
+
+
+/* Callback info for 'Procedural' KeyingSets to use */
+typedef struct KeyingSetInfo {
+	struct KeyingSetInfo *next, *prev;
 	
-		/* specific cases */
-	struct bPoseChannel *pchan;	
-	struct bConstraint *con;
-} bCommonKeySrc;
+	/* info */
+		/* identifier so that user can hook this up to a KeyingSet */
+	char name[64];
+		/* keying settings */
+	short keyingflag;
+		/* builtin? */
+	short builtin;
+	
+	/* polling callbacks */
+		/* callback for polling the context for whether the right data is available */
+	cbKeyingSet_Poll poll;
+	
+	/* generate callbacks */
+		/* iterator to use to go through collections of data in context
+		 *	- this callback is separate from the 'adding' stage, allowing 
+		 *	  BuiltIn KeyingSets to be manually specified to use 
+		 */
+	cbKeyingSet_Iterator iter;
+		/* generator to use to add properties based on the data found by iterator */
+	cbKeyingSet_Generate generate;
+	
+	/* RNA integration */
+	ExtensionRNA ext;
+} KeyingSetInfo;
 
 /* -------- */
+
+/* Add another data source for Relative Keying Sets to be evaluated with */
+void ANIM_relative_keyingset_add_source(ListBase *dsources, struct ID *id, struct StructRNA *srna, void *data);
+
 
 /* mode for modify_keyframes */
 typedef enum eModifyKey_Modes {
@@ -128,25 +156,39 @@ typedef enum eModifyKey_Modes {
 	MODIFYKEY_MODE_DELETE,
 } eModifyKey_Modes;
 
-/* Keyframing Helper Call - use the provided Keying Set to Add/Remove Keyframes */
-int modify_keyframes(struct Scene *scene, struct ListBase *dsources, struct bAction *act, struct KeyingSet *ks, short mode, float cfra);
+/* return codes for errors (with Relative KeyingSets) */
+typedef enum eModifyKey_Returns {
+		/* context info was invalid for using the Keying Set */
+	MODIFYKEY_INVALID_CONTEXT = -1,
+		/* there isn't any typeinfo for generating paths from context */
+	MODIFYKEY_MISSING_TYPEINFO = -2,
+} eModifyKey_Returns;
+
+/* use the specified KeyingSet to add/remove various Keyframes on the specified frame */
+int ANIM_apply_keyingset(struct bContext *C, ListBase *dsources, struct bAction *act, struct KeyingSet *ks, short mode, float cfra);
 
 /* -------- */
 
-/* Generate menu of KeyingSets */
-char *ANIM_build_keyingsets_menu(struct ListBase *list, short for_edit);
-
 /* Get the first builtin KeyingSet with the given name, which occurs after the given one (or start of list if none given) */
-struct KeyingSet *ANIM_builtin_keyingset_get_named(struct KeyingSet *prevKS, char name[]);
+struct KeyingSet *ANIM_builtin_keyingset_get_named(struct KeyingSet *prevKS, const char name[]);
 
-/* Initialise builtin KeyingSets on startup */
-void init_builtin_keyingsets(void);
+/* Find KeyingSet type info given a name */
+KeyingSetInfo *ANIM_keyingset_info_find_named(const char name[]);
 
+/* for RNA type registrations... */
+void ANIM_keyingset_info_register(const struct bContext *C, KeyingSetInfo *ksi);
+void ANIM_keyingset_info_unregister(const struct bContext *C, KeyingSetInfo *ksi);
+
+/* cleanup on exit */
+void ANIM_keyingset_infos_exit(void);
 
 /* -------- */
 
 /* Get the active KeyingSet for the given scene */
 struct KeyingSet *ANIM_scene_get_active_keyingset(struct Scene *scene);
+
+/* Check if KeyingSet can be used in the current context */
+short ANIM_keyingset_context_ok_poll(struct bContext *C, struct KeyingSet *ks);
 
 /* ************ Drivers ********************** */
 

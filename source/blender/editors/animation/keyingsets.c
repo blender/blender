@@ -256,14 +256,8 @@ static int remove_active_ks_path_exec (bContext *C, wmOperator *op)
 		KS_Path *ksp= BLI_findlink(&ks->paths, ks->active_path-1);
 		
 		if (ksp) {
-			/* NOTE: sync this code with BKE_keyingset_free() */
-			{
-				/* free RNA-path info */
-				MEM_freeN(ksp->rna_path);
-				
-				/* free path itself */
-				BLI_freelinkN(&ks->paths, ksp);
-			}
+			/* remove the active path from the KeyingSet */
+			BKE_keyingset_free_path(ks, ksp);
 			
 			/* the active path should now be the previously second-to-last active one */
 			ks->active_path--;
@@ -467,644 +461,42 @@ void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-/* ************************************************** */
-/* KEYING SETS - EDITING API  */
-
-/* UI API --------------------------------------------- */
-
-/* Build menu-string of available keying-sets (allocates memory for string)
- * NOTE: mode must not be longer than 64 chars
- */
-char *ANIM_build_keyingsets_menu (ListBase *list, short for_edit)
-{
-	DynStr *pupds= BLI_dynstr_new();
-	KeyingSet *ks;
-	char buf[64];
-	char *str;
-	int i;
-	
-	/* add title first */
-	BLI_dynstr_append(pupds, "Keying Sets%t|");
-	
-	/* add dummy entries for none-active */
-	if (for_edit) { 
-		BLI_dynstr_append(pupds, "Add New%x-1|");
-		BLI_dynstr_append(pupds, " %x0|");
-	}
-	else
-		BLI_dynstr_append(pupds, "No Keying Set%x0|");
-	
-	/* loop through keyingsets, adding them */
-	for (ks=list->first, i=1; ks; ks=ks->next, i++) {
-		if (for_edit == 0)
-			BLI_dynstr_append(pupds, "KS: ");
-		
-		BLI_dynstr_append(pupds, ks->name);
-		BLI_snprintf( buf, 64, "%%x%d%s", i, ((ks->next)?"|":"") );
-		BLI_dynstr_append(pupds, buf);
-	}
-	
-	/* convert to normal MEM_malloc'd string */
-	str= BLI_dynstr_get_cstring(pupds);
-	BLI_dynstr_free(pupds);
-	
-	return str;
-}
-
-
 /* ******************************************* */
-/* KEYING SETS - BUILTIN */
+/* REGISTERED KEYING SETS */
 
-#if 0 // XXX old keyingsets code based on adrcodes... to be restored in due course
+/* Keying Set Type Info declarations */
+ListBase keyingset_type_infos = {NULL, NULL};
 
-/* ------------- KeyingSet Defines ------------ */
-/* Note: these must all be named with the defks_* prefix, otherwise the template macro will not work! */
-
-/* macro for defining keyingset contexts */
-#define KSC_TEMPLATE(ctx_name) {&defks_##ctx_name[0], NULL, sizeof(defks_##ctx_name)/sizeof(bKeyingSet)}
-
-/* --- */
-
-/* check if option not available for deleting keys */
-static short incl_non_del_keys (bKeyingSet *ks, const char mode[])
-{
-	/* as optimisation, assume that it is sufficient to check only first letter
-	 * of mode (int comparison should be faster than string!)
-	 */
-	//if (strcmp(mode, "Delete")==0)
-	if (mode && mode[0]=='D')
-		return 0;
-	
-	return 1;
-}
-
-/* Object KeyingSets  ------ */
-
-/* check if include shapekey entry  */
-static short incl_v3d_ob_shapekey (bKeyingSet *ks, const char mode[])
-{
-	//Object *ob= (G.obedit)? (G.obedit) : (OBACT); // XXX
-	Object *ob= NULL;
-	char *newname= NULL;
-	
-	if(ob==NULL)
-		return 0;
-	
-	/* not available for delete mode */
-	if (strcmp(mode, "Delete")==0)
-		return 0;
-	
-	/* check if is geom object that can get shapekeys */
-	switch (ob->type) {
-		/* geometry? */
-		case OB_MESH:		newname= "Mesh";		break;
-		case OB_CURVE:		newname= "Curve";		break;
-		case OB_SURF:		newname= "Surface";		break;
-		case OB_LATTICE: 	newname= "Lattice";		break;
-		
-		/* not geometry! */
-		default:
-			return 0;
-	}
-	
-	/* if ks is shapekey entry (this could be callled for separator before too!) */
-	if (ks->flag == -3)
-		BLI_strncpy(ks->name, newname, sizeof(ks->name));
-	
-	/* if it gets here, it's ok */
-	return 1;
-}
-
-/* array for object keyingset defines */
-bKeyingSet defks_v3d_object[] = 
-{
-	/* include_cb, adrcode-getter, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "Loc", ID_OB, 0, 3, {OB_LOC_X,OB_LOC_Y,OB_LOC_Z}},
-	{NULL, "Rot", ID_OB, 0, 3, {OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
-	{NULL, "Scale", ID_OB, 0, 3, {OB_SIZE_X,OB_SIZE_Y,OB_SIZE_Z}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "LocRot", ID_OB, 0, 6, 
-		{OB_LOC_X,OB_LOC_Y,OB_LOC_Z,
-		 OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
-		 
-	{NULL, "LocScale", ID_OB, 0, 6, 
-		{OB_LOC_X,OB_LOC_Y,OB_LOC_Z,
-		 OB_SIZE_X,OB_SIZE_Y,OB_SIZE_Z}},
-		 
-	{NULL, "LocRotScale", ID_OB, 0, 9, 
-		{OB_LOC_X,OB_LOC_Y,OB_LOC_Z,
-		 OB_ROT_X,OB_ROT_Y,OB_ROT_Z,
-		 OB_SIZE_X,OB_SIZE_Y,OB_SIZE_Z}},
-		 
-	{NULL, "RotScale", ID_OB, 0, 6, 
-		{OB_ROT_X,OB_ROT_Y,OB_ROT_Z,
-		 OB_SIZE_X,OB_SIZE_Y,OB_SIZE_Z}},
-	
-	{incl_non_del_keys, "%l", 0, -1, 0, {0}}, // separator
-	
-	{incl_non_del_keys, "VisualLoc", ID_OB, INSERTKEY_MATRIX, 3, {OB_LOC_X,OB_LOC_Y,OB_LOC_Z}},
-	{incl_non_del_keys, "VisualRot", ID_OB, INSERTKEY_MATRIX, 3, {OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
-	
-	{incl_non_del_keys, "VisualLocRot", ID_OB, INSERTKEY_MATRIX, 6, 
-		{OB_LOC_X,OB_LOC_Y,OB_LOC_Z,
-		 OB_ROT_X,OB_ROT_Y,OB_ROT_Z}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Layer", ID_OB, 0, 1, {OB_LAY}}, // icky option...
-	{NULL, "Available", ID_OB, -2, 0, {0}},
-	
-	{incl_v3d_ob_shapekey, "%l%l", 0, -1, 0, {0}}, // separator (linked to shapekey entry)
-	{incl_v3d_ob_shapekey, "<ShapeKey>", ID_OB, -3, 0, {0}}
-};
-
-/* PoseChannel KeyingSets  ------ */
-
-/* array for posechannel keyingset defines */
-bKeyingSet defks_v3d_pchan[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "Loc", ID_PO, 0, 3, {AC_LOC_X,AC_LOC_Y,AC_LOC_Z}},
-	{NULL, "Rot", ID_PO, COMMONKEY_PCHANROT, 1, {KAG_CHAN_EXTEND}},
-	{NULL, "Scale", ID_PO, 0, 3, {AC_SIZE_X,AC_SIZE_Y,AC_SIZE_Z}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "LocRot", ID_PO, COMMONKEY_PCHANROT, 4, 
-		{AC_LOC_X,AC_LOC_Y,AC_LOC_Z,
-		 KAG_CHAN_EXTEND}},
-		 
-	{NULL, "LocScale", ID_PO, 0, 6, 
-		{AC_LOC_X,AC_LOC_Y,AC_LOC_Z,
-		 AC_SIZE_X,AC_SIZE_Y,AC_SIZE_Z}},
-		 
-	{NULL, "LocRotScale", ID_PO, COMMONKEY_PCHANROT, 7, 
-		{AC_LOC_X,AC_LOC_Y,AC_LOC_Z,AC_SIZE_X,AC_SIZE_Y,AC_SIZE_Z, 
-		 KAG_CHAN_EXTEND}},
-		 
-	{NULL, "RotScale", ID_PO, 0, 4, 
-		{AC_SIZE_X,AC_SIZE_Y,AC_SIZE_Z, 
-		 KAG_CHAN_EXTEND}},
-	
-	{incl_non_del_keys, "%l", 0, -1, 0, {0}}, // separator
-	
-	{incl_non_del_keys, "VisualLoc", ID_PO, INSERTKEY_MATRIX, 3, {AC_LOC_X,AC_LOC_Y,AC_LOC_Z}},
-	{incl_non_del_keys, "VisualRot", ID_PO, INSERTKEY_MATRIX|COMMONKEY_PCHANROT, 1, {KAG_CHAN_EXTEND}},
-	
-	{incl_non_del_keys, "VisualLocRot", ID_PO, INSERTKEY_MATRIX|COMMONKEY_PCHANROT, 4, 
-		{AC_LOC_X,AC_LOC_Y,AC_LOC_Z, KAG_CHAN_EXTEND}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_PO, -2, 0, {0}}
-};
-
-/* Material KeyingSets  ------ */
-
-/* array for material keyingset defines */
-bKeyingSet defks_buts_shading_mat[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "RGB", ID_MA, 0, 3, {MA_COL_R,MA_COL_G,MA_COL_B}},
-	{NULL, "Alpha", ID_MA, 0, 1, {MA_ALPHA}},
-	{NULL, "Halo Size", ID_MA, 0, 1, {MA_HASIZE}},
-	{NULL, "Mode", ID_MA, 0, 1, {MA_MODE}}, // evil bitflags
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "All Color", ID_MA, 0, 18, 
-		{MA_COL_R,MA_COL_G,MA_COL_B,
-		 MA_ALPHA,MA_HASIZE, MA_MODE,
-		 MA_SPEC_R,MA_SPEC_G,MA_SPEC_B,
-		 MA_REF,MA_EMIT,MA_AMB,MA_SPEC,MA_HARD,
-		 MA_MODE,MA_TRANSLU,MA_ADD}},
-		 
-	{NULL, "All Mirror", ID_MA, 0, 5, 
-		{MA_RAYM,MA_FRESMIR,MA_FRESMIRI,
-		 MA_FRESTRA,MA_FRESTRAI}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Ofs", ID_MA, COMMONKEY_ADDMAP, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
-	{NULL, "Size", ID_MA, COMMONKEY_ADDMAP, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
-	
-	{NULL, "All Mapping", ID_MA, COMMONKEY_ADDMAP, 14, 
-		{MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z,
-		 MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z,
-		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
-		 MAP_COLF,MAP_NORF,MAP_VARF,MAP_DISP}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_MA, -2, 0, {0}}
-};
-
-/* World KeyingSets  ------ */
-
-/* array for world keyingset defines */
-bKeyingSet defks_buts_shading_wo[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "Zenith RGB", ID_WO, 0, 3, {WO_ZEN_R,WO_ZEN_G,WO_ZEN_B}},
-	{NULL, "Horizon RGB", ID_WO, 0, 3, {WO_HOR_R,WO_HOR_G,WO_HOR_B}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Mist", ID_WO, 0, 4, {WO_MISI,WO_MISTDI,WO_MISTSTA,WO_MISTHI}},
-	{NULL, "Stars", ID_WO, 0, 5, {WO_STAR_R,WO_STAR_G,WO_STAR_B,WO_STARDIST,WO_STARSIZE}},
-	
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Ofs", ID_WO, COMMONKEY_ADDMAP, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
-	{NULL, "Size", ID_WO, COMMONKEY_ADDMAP, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
-	
-	{NULL, "All Mapping", ID_WO, COMMONKEY_ADDMAP, 14, 
-		{MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z,
-		 MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z,
-		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
-		 MAP_COLF,MAP_NORF,MAP_VARF,MAP_DISP}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_WO, -2, 0, {0}}
-};
-
-/* Lamp KeyingSets  ------ */
-
-/* array for lamp keyingset defines */
-bKeyingSet defks_buts_shading_la[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "RGB", ID_LA, 0, 3, {LA_COL_R,LA_COL_G,LA_COL_B}},
-	{NULL, "Energy", ID_LA, 0, 1, {LA_ENERGY}},
-	{NULL, "Spot Size", ID_LA, 0, 1, {LA_SPOTSI}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Ofs", ID_LA, COMMONKEY_ADDMAP, 3, {MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z}},
-	{NULL, "Size", ID_LA, COMMONKEY_ADDMAP, 3, {MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z}},
-	
-	{NULL, "All Mapping", ID_LA, COMMONKEY_ADDMAP, 14, 
-		{MAP_OFS_X,MAP_OFS_Y,MAP_OFS_Z,
-		 MAP_SIZE_X,MAP_SIZE_Y,MAP_SIZE_Z,
-		 MAP_R,MAP_G,MAP_B,MAP_DVAR,
-		 MAP_COLF,MAP_NORF,MAP_VARF,MAP_DISP}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_LA, -2, 0, {0}}
-};
-
-/* Texture KeyingSets  ------ */
-
-/* array for texture keyingset defines */
-bKeyingSet defks_buts_shading_tex[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "Clouds", ID_TE, 0, 5, 
-		{TE_NSIZE,TE_NDEPTH,TE_NTYPE,
-		 TE_MG_TYP,TE_N_BAS1}},
-	
-	{NULL, "Marble", ID_TE, 0, 7, 
-		{TE_NSIZE,TE_NDEPTH,TE_NTYPE,
-		 TE_TURB,TE_MG_TYP,TE_N_BAS1,TE_N_BAS2}},
-		 
-	{NULL, "Stucci", ID_TE, 0, 5, 
-		{TE_NSIZE,TE_NTYPE,TE_TURB,
-		 TE_MG_TYP,TE_N_BAS1}},
-		 
-	{NULL, "Wood", ID_TE, 0, 6, 
-		{TE_NSIZE,TE_NTYPE,TE_TURB,
-		 TE_MG_TYP,TE_N_BAS1,TE_N_BAS2}},
-		 
-	{NULL, "Magic", ID_TE, 0, 2, {TE_NDEPTH,TE_TURB}},
-	
-	{NULL, "Blend", ID_TE, 0, 1, {TE_MG_TYP}},	
-		
-	{NULL, "Musgrave", ID_TE, 0, 6, 
-		{TE_MG_TYP,TE_MGH,TE_MG_LAC,
-		 TE_MG_OCT,TE_MG_OFF,TE_MG_GAIN}},
-		 
-	{NULL, "Voronoi", ID_TE, 0, 9, 
-		{TE_VNW1,TE_VNW2,TE_VNW3,TE_VNW4,
-		TE_VNMEXP,TE_VN_DISTM,TE_VN_COLT,
-		TE_ISCA,TE_NSIZE}},
-		
-	{NULL, "Distorted Noise", ID_TE, 0, 4, 
-		{TE_MG_OCT,TE_MG_OFF,TE_MG_GAIN,TE_DISTA}},
-	
-	{NULL, "Color Filter", ID_TE, 0, 5, 
-		{TE_COL_R,TE_COL_G,TE_COL_B,TE_BRIGHT,TE_CONTRA}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_TE, -2, 0, {0}}
-};
-
-/* Object Buttons KeyingSets  ------ */
-
-/* check if include particles entry  */
-static short incl_buts_ob (bKeyingSet *ks, const char mode[])
-{
-	//Object *ob= OBACT; // xxx
-	Object *ob= NULL;
-	/* only if object is mesh type */
-	
-	if(ob==NULL) return 0;
-	return (ob->type == OB_MESH);
-}
-
-/* array for texture keyingset defines */
-bKeyingSet defks_buts_object[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{incl_buts_ob, "Surface Damping", ID_OB, 0, 1, {OB_PD_SDAMP}},
-	{incl_buts_ob, "Random Damping", ID_OB, 0, 1, {OB_PD_RDAMP}},
-	{incl_buts_ob, "Permeability", ID_OB, 0, 1, {OB_PD_PERM}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Force Strength", ID_OB, 0, 1, {OB_PD_FSTR}},
-	{NULL, "Force Falloff", ID_OB, 0, 1, {OB_PD_FFALL}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_OB, -2, 0, {0}}  // this will include ob-transforms too!
-};
-
-/* Camera Buttons KeyingSets  ------ */
-
-/* check if include internal-renderer entry  */
-static short incl_buts_cam1 (bKeyingSet *ks, const char mode[])
-{
-	Scene *scene= NULL; // FIXME this will cause a crash, but we need an extra arg first!
-	/* only if renderer is internal renderer */
-	return (scene->r.renderer==R_INTERN);
-}
-
-/* check if include external-renderer entry  */
-static short incl_buts_cam2 (bKeyingSet *ks, const char mode[])
-{
-	Scene *scene= NULL; // FIXME this will cause a crash, but we need an extra arg first!
-	/* only if renderer is internal renderer */
-	return (scene->r.renderer!=R_INTERN);
-}
-
-/* array for camera keyingset defines */
-bKeyingSet defks_buts_cam[] = 
-{
-	/* include_cb, name, blocktype, flag, chan_num, adrcodes */
-	{NULL, "Lens", ID_CA, 0, 1, {CAM_LENS}},
-	{NULL, "Clipping", ID_CA, 0, 2, {CAM_STA,CAM_END}},
-	{NULL, "Focal Distance", ID_CA, 0, 1, {CAM_YF_FDIST}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	
-	{incl_buts_cam2, "Aperture", ID_CA, 0, 1, {CAM_YF_APERT}},
-	{incl_buts_cam1, "Viewplane Shift", ID_CA, 0, 2, {CAM_SHIFT_X,CAM_SHIFT_Y}},
-	
-	{NULL, "%l", 0, -1, 0, {0}}, // separator
-	
-	{NULL, "Available", ID_CA, -2, 0, {0}}
-};
-
-/* --- */
-
-/* Keying Context Defines - Must keep in sync with enumeration (eKS_Contexts) */
-bKeyingContext ks_contexts[] = 
-{
-	KSC_TEMPLATE(v3d_object),
-	KSC_TEMPLATE(v3d_pchan),
-	
-	KSC_TEMPLATE(buts_shading_mat),
-	KSC_TEMPLATE(buts_shading_wo),
-	KSC_TEMPLATE(buts_shading_la),
-	KSC_TEMPLATE(buts_shading_tex),
-
-	KSC_TEMPLATE(buts_object),
-	KSC_TEMPLATE(buts_cam)
-};
-
-/* Keying Context Enumeration - Must keep in sync with definitions*/
-typedef enum eKS_Contexts {
-	KSC_V3D_OBJECT = 0,
-	KSC_V3D_PCHAN,
-	
-	KSC_BUTS_MAT,
-	KSC_BUTS_WO,
-	KSC_BUTS_LA,
-	KSC_BUTS_TEX,
-	
-	KSC_BUTS_OB,
-	KSC_BUTS_CAM,
-	
-		/* make sure this last one remains untouched! */
-	KSC_TOT_TYPES
-} eKS_Contexts;
-
-
-#endif // XXX old keyingsets code based on adrcodes... to be restored in due course
-
-/* Macros for Declaring KeyingSets ------------------- */
-
-/* A note about this system for declaring built-in Keying Sets:
- *	One may ask, "What is the purpose of all of these macros and static arrays?" and 
- * 	"Why not call the KeyingSets API defined in BKE_animsys.h?". The answer is two-fold.
- * 	
- * 	1) Firstly, we use static arrays of struct definitions instead of function calls, as
- *	   it reduces the start-up overhead and allocated-memory footprint of Blender. If we called
- *	   the KeyingSets API to build these sets, the overhead of checking for unique names, allocating
- *	   memory for each and every path and KeyingSet, scattered around in RAM, all of which would increase
- *	   the startup time (which is totally unacceptable) and could lead to fragmentation+slower access times.
- *	2) Since we aren't using function calls, we need a nice way of defining these KeyingSets in a way which
- *	   is easily readable and less prone to breakage from changes to the underlying struct definitions. Further,
- *	   adding additional entries SHOULD NOT require custom code to be written to access these new entries/sets. 
- *	   Therefore, here we have a system with nice, human-readable statements via macros, and static arrays which
- *	   are linked together using more special macros + struct definitions, allowing for such a generic + simple
- *	   initialisation function (init_builtin_keyingsets()) compared with that of something like the Nodes system.
- *
- * -- Joshua Leung, April 2009
- */
-
-/* Struct type for declaring builtin KeyingSets in as entries in static arrays*/
-typedef struct bBuiltinKeyingSet {
-	KeyingSet ks;			/* the KeyingSet to build */
-	int tot;				/* the total number of paths defined */
-	KS_Path paths[64];		/* the paths for the KeyingSet to use */
-} bBuiltinKeyingSet;
-
-	/* WARNING: the following macros must be kept in sync with the 
-	 * struct definitions in DNA_anim_types.h! 
-	 */
-
-/* macro for defining a builtin KeyingSet */
-#define BI_KS_DEFINE_BEGIN(name, keyingflag) \
-	{{NULL, NULL, {NULL, NULL}, name, KEYINGSET_BUILTIN, keyingflag},
-	
-/* macro to finish defining a builtin KeyingSet */
-#define BI_KS_DEFINE_END \
-	}
-	
-/* macro to start defining paths for a builtin KeyingSet */
-#define BI_KS_PATHS_BEGIN(tot) \
-	tot, {
-	
-/* macro to finish defining paths for a builtin KeyingSet */
-#define BI_KS_PATHS_END \
-	}
-	
-/* macro for defining a builtin KeyingSet's path */
-#define BI_KSP_DEFINE(id_type, templates, prop_path, array_index, flag, groupflag) \
-	{NULL, NULL, NULL, "", id_type, templates, prop_path, array_index, flag, groupflag}
-	
-/* macro for defining a builtin KeyingSet with no paths (use in place of BI_KS_PAHTS_BEGIN/END block) */
-#define BI_KS_PATHS_NONE \
-	0, {0}
-	
-/* ---- */
-
-/* Struct type for finding all the arrays of builtin KeyingSets */
-typedef struct bBuiltinKSContext {
-	bBuiltinKeyingSet *bks;		/* array of KeyingSet definitions */
-	int tot;					/* number of KeyingSets in this array */
-} bBuiltinKSContext;
-
-/* macro for defining builtin KeyingSet sets 
- * NOTE: all the arrays of sets must follow this naming convention!
- */
-#define BKSC_TEMPLATE(ctx_name) {&def_builtin_keyingsets_##ctx_name[0], sizeof(def_builtin_keyingsets_##ctx_name)/sizeof(bBuiltinKeyingSet)}
-
-
-/* 3D-View Builtin KeyingSets ------------------------ */
-
-static bBuiltinKeyingSet def_builtin_keyingsets_v3d[] =
-{
-	/* Simple Keying Sets ************************************* */
-	/* Keying Set - "Location" ---------- */
-	BI_KS_DEFINE_BEGIN("Location", 0)
-		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
-		BI_KS_PATHS_END
-	BI_KS_DEFINE_END,
-
-	/* Keying Set - "Rotation" ---------- */
-	BI_KS_DEFINE_BEGIN("Rotation", 0)
-		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
-		BI_KS_PATHS_END
-	BI_KS_DEFINE_END,
-	
-	/* Keying Set - "Scaling" ---------- */
-	BI_KS_DEFINE_BEGIN("Scaling", 0)
-		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "scale", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
-		BI_KS_PATHS_END
-	BI_KS_DEFINE_END,
-	
-	/* Compound Keying Sets *********************************** */
-	/* Keying Set - "LocRot" ---------- */
-	BI_KS_DEFINE_BEGIN("LocRot", 0)
-		BI_KS_PATHS_BEGIN(2)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
-		BI_KS_PATHS_END
-	BI_KS_DEFINE_END,
-	
-	/* Keying Set - "LocRotScale" ---------- */
-	BI_KS_DEFINE_BEGIN("LocRotScale", 0)
-		BI_KS_PATHS_BEGIN(3)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "scale", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
-		BI_KS_PATHS_END
-	BI_KS_DEFINE_END,
-	
-	/* Keying Sets with Keying Flags ************************* */
-	/* Keying Set - "VisualLoc" ---------- */
-	BI_KS_DEFINE_BEGIN("VisualLoc", INSERTKEY_MATRIX)
-		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
-		BI_KS_PATHS_END
-	BI_KS_DEFINE_END,
-
-	/* Keying Set - "Rotation" ---------- */
-	BI_KS_DEFINE_BEGIN("VisualRot", INSERTKEY_MATRIX)
-		BI_KS_PATHS_BEGIN(1)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
-		BI_KS_PATHS_END
-	BI_KS_DEFINE_END,
-	
-	/* Keying Set - "VisualLocRot" ---------- */
-	BI_KS_DEFINE_BEGIN("VisualLocRot", INSERTKEY_MATRIX)
-		BI_KS_PATHS_BEGIN(2)
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN, "location", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM), 
-			BI_KSP_DEFINE(ID_OB, KSP_TEMPLATE_OBJECT|KSP_TEMPLATE_PCHAN|KSP_TEMPLATE_ROT, "rotation", 0, KSP_FLAG_WHOLE_ARRAY, KSP_GROUP_TEMPLATE_ITEM) 
-		BI_KS_PATHS_END
-	BI_KS_DEFINE_END
-};
-
-/* All Builtin KeyingSets ------------------------ */
-
-/* total number of builtin KeyingSet contexts */
-#define MAX_BKSC_TYPES 	1
-
-/* array containing all the available builtin KeyingSets definition sets 
- * 	- size of this is MAX_BKSC_TYPES+1 so that we don't smash the stack
- */
-static bBuiltinKSContext def_builtin_keyingsets[MAX_BKSC_TYPES+1] =
-{
-	BKSC_TEMPLATE(v3d)
-	/* add more contexts above this line... */
-};
-
-
-/* ListBase of these KeyingSets chained up ready for usage 
- * NOTE: this is exported to keyframing.c for use...
- */
+/* Built-In Keying Sets (referencing type infos)*/
 ListBase builtin_keyingsets = {NULL, NULL};
 
-/* Utility API ------------------------ */
+/* --------------- */
 
-/* Link up all of the builtin Keying Sets when starting up Blender
- * This is called from WM_init() in wm_init_exit.c
- */
-void init_builtin_keyingsets (void)
+/* Find KeyingSet type info given a name */
+KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[])
 {
-	bBuiltinKSContext *bksc;
-	bBuiltinKeyingSet *bks;
-	int bksc_i, bks_i;
+	KeyingSetInfo *ksi;
 	
-	/* loop over all the sets of KeyingSets, setting them up, and chaining them to the builtins list */
-	for (bksc_i= 0, bksc= &def_builtin_keyingsets[0]; bksc_i < MAX_BKSC_TYPES; bksc_i++, bksc++)
-	{
-		/* for each set definitions for a builtin KeyingSet, chain the paths to that KeyingSet and add */
-		for (bks_i= 0, bks= bksc->bks; bks_i < bksc->tot; bks_i++, bks++)
-		{
-			KeyingSet *ks= &bks->ks;
-			KS_Path *ksp;
-			int pIndex;
-			
-			/* loop over paths, linking them to the KeyingSet and each other */
-			for (pIndex= 0, ksp= &bks->paths[0]; pIndex < bks->tot; pIndex++, ksp++)
-				BLI_addtail(&ks->paths, ksp);
-				
-			/* add KeyingSet to builtin sets list */
-			BLI_addtail(&builtin_keyingsets, ks);
-		}
+	/* sanity checks */
+	if ((name == NULL) || (name[0] == 0))
+		return NULL;
+		
+	/* search by comparing names */
+	for (ksi = keyingset_type_infos.first; ksi; ksi = ksi->next) {
+		if (strcmp(ksi->name, name) == 0)
+			return ksi;
 	}
+	
+	/* no matches found */
+	return NULL;
 }
 
-
-/* Get the first builtin KeyingSet with the given name, which occurs after the given one (or start of list if none given) */
-KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, char name[])
+/* Find builtin KeyingSet by name */
+KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, const char name[])
 {
 	KeyingSet *ks, *first=NULL;
 	
-	/* sanity checks - any name to check? */
+	/* sanity checks  any name to check? */
 	if (name[0] == 0)
 		return NULL;
 	
@@ -1124,6 +516,81 @@ KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, char name[])
 	return NULL;
 }
 
+/* --------------- */
+
+/* Add the given KeyingSetInfo to the list of type infos, and create an appropriate builtin set too */
+void ANIM_keyingset_info_register (const bContext *C, KeyingSetInfo *ksi)
+{
+	Scene *scene = CTX_data_scene(C);
+	ListBase *list = NULL;
+	KeyingSet *ks;
+	
+	/* determine the KeyingSet list to include the new KeyingSet in */
+	if (ksi->builtin)
+		list = &builtin_keyingsets;
+	else
+		list = &scene->keyingsets;
+	
+	/* create a new KeyingSet 
+	 *	- inherit name and keyframing settings from the typeinfo
+	 */
+	ks = BKE_keyingset_add(list, ksi->name, ksi->builtin, ksi->keyingflag);
+	
+	/* link this KeyingSet with its typeinfo */
+	memcpy(&ks->typeinfo, ksi->name, sizeof(ks->typeinfo));
+	
+	/* add type-info to the list */
+	BLI_addtail(&keyingset_type_infos, ksi);
+}
+
+/* Remove the given KeyingSetInfo from the list of type infos, and also remove the builtin set if appropriate */
+void ANIM_keyingset_info_unregister (const bContext *C, KeyingSetInfo *ksi)
+{
+	Scene *scene = CTX_data_scene(C);
+	KeyingSet *ks, *ksn;
+	
+	/* find relevant scene KeyingSets which use this, and remove them */
+	for (ks= scene->keyingsets.first; ks; ks= ksn) {
+		ksn = ks->next;
+		
+		/* remove if matching typeinfo name */
+		if (strcmp(ks->typeinfo, ksi->name) == 0) {
+			BKE_keyingset_free(ks);
+			BLI_freelinkN(&scene->keyingsets, ks);
+		}
+	}
+	
+	/* do the same with builtin sets? */
+	// TODO: this isn't done now, since unregister is really only used atm when we
+	// reload the scripts, which kindof defeats the purpose of "builtin"?
+	
+	
+	/* free the type info */
+	BLI_freelinkN(&keyingset_type_infos, ksi);
+}
+
+/* --------------- */
+
+void ANIM_keyingset_infos_exit ()
+{
+	KeyingSetInfo *ksi, *next;
+	
+	/* free type infos */
+	for (ksi=keyingset_type_infos.first; ksi; ksi=next) {
+		next= ksi->next;
+		
+		/* free extra RNA data, and remove from list */
+		if (ksi->ext.free)
+			ksi->ext.free(ksi->ext.data);
+		BLI_freelinkN(&keyingset_type_infos, ksi);
+	}
+	
+	/* free builtin sets */
+	BKE_keyingsets_free(&builtin_keyingsets);
+}
+
+/* ******************************************* */
+/* KEYING SETS API (for UI) */
 
 /* Get the active Keying Set for the Scene provided */
 KeyingSet *ANIM_scene_get_active_keyingset (Scene *scene)
@@ -1142,127 +609,74 @@ KeyingSet *ANIM_scene_get_active_keyingset (Scene *scene)
 		return NULL; 
 }
 
-/* ******************************************* */
-/* KEYFRAME MODIFICATION */
-
-/* KeyingSet Menu Helpers ------------ */
-
-/* Extract the maximum set of requirements from the KeyingSet */
-static int keyingset_relative_get_templates (KeyingSet *ks)
+/* Check if KeyingSet can be used in the current context */
+short ANIM_keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
 {
-	KS_Path *ksp;
-	int templates= 0;
-	
-	/* loop over the paths (could be slow to do for a number of KeyingSets)? */
-	for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
-		/* add the destination's templates to the set of templates required for the set */
-		templates |= ksp->templates;
+	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
+		KeyingSetInfo *ksi = ANIM_keyingset_info_find_named(ks->typeinfo);
+		
+		/* get the associated 'type info' for this KeyingSet */
+		if (ksi == NULL)
+			return 0;
+		// TODO: check for missing callbacks!
+		
+		/* check if it can be used in the current context */
+		return (ksi->poll(ksi, C));
 	}
-	
-	return templates;
-}
-
-/* Check if context data is suitable for the given Keying Set */
-short keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
-{
-	// TODO:
-	//	For 'relative' keyingsets (i.e. py-keyingsets), add a call here
-	//	which basically gets a listing of all the paths to be used for this
-	//	set.
-	
 	
 	return 1;
 }
 
-/* KeyingSet Context Operations ------------ */
+/* ******************************************* */
+/* KEYFRAME MODIFICATION */
 
-/* Get list of data-sources from context (in 3D-View) for inserting keyframes using the given relative Keying Set */
-static short modifykey_get_context_v3d_data (bContext *C, ListBase *dsources, KeyingSet *ks)
+/* Special 'Overrides' Iterator for Relative KeyingSets ------ */
+
+/* 'Data Sources' for relative Keying Set 'overrides' 
+ * 	- this is basically a wrapper for PointerRNA's in a linked list
+ *	- do not allow this to be accessed from outside for now
+ */
+typedef struct tRKS_DSource {
+	struct tRKS_DSource *next, *prev;
+	PointerRNA ptr;		/* the whole point of this exercise! */
+} tRKS_DSource;
+
+
+/* Iterator used for overriding the behaviour of iterators defined for 
+ * relative Keying Sets, with the main usage of this being operators 
+ * requiring Auto Keyframing. Internal Use Only!
+ */
+static void RKS_ITER_overrides_list (KeyingSetInfo *ksi, bContext *C, KeyingSet *ks, ListBase *dsources)
 {
-	bCommonKeySrc *cks;
-	Object *obact= CTX_data_active_object(C);
-	int templates; 
-	short ok= 0;
+	tRKS_DSource *ds;
 	
-	/* get the templates in use in this KeyingSet which we should supply data for */
-	templates = keyingset_relative_get_templates(ks);
-	
-	/* check if the active object is in PoseMode (i.e. only deal with bones) */
-	// TODO: check with the templates to see what we really need to store 
-	if ((obact && obact->pose) && (obact->mode & OB_MODE_POSE)) {
-		/* Pose Mode: Selected bones */
-#if 0
-		//set_pose_keys(ob);  /* sets pchan->flag to POSE_KEY if bone selected, and clears if not */
-		
-		/* loop through posechannels */
-		//for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-		//	if (pchan->flag & POSE_KEY) {
-		// 	}
-		//}
-#endif
-		
-		CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
-		{
-			/* add a new keying-source */
-			cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-			BLI_addtail(dsources, cks);
-			
-			/* set necessary info */
-			cks->id= &obact->id;
-			cks->pchan= pchan;
-			
-			if (templates & KSP_TEMPLATE_CONSTRAINT)
-				cks->con= constraints_get_active(&pchan->constraints);
-			
-			ok= 1;
-		}
-		CTX_DATA_END;
+	for (ds = dsources->first; ds; ds = ds->next) {
+		/* run generate callback on this data */
+		ksi->generate(ksi, C, ks, &ds->ptr);
 	}
-	else {
-		/* Object Mode: Selected objects */
-		CTX_DATA_BEGIN(C, Object*, ob, selected_objects) 
-		{			
-			/* add a new keying-source */
-			cks= MEM_callocN(sizeof(bCommonKeySrc), "bCommonKeySrc");
-			BLI_addtail(dsources, cks);
-			
-			/* set necessary info */
-			cks->id= &ob->id;
-			
-			if (templates & KSP_TEMPLATE_CONSTRAINT)
-				cks->con= constraints_get_active(&ob->constraints);
-			
-			ok= 1;
-		}
-		CTX_DATA_END;
-	}
-	
-	/* return whether any data was extracted */
-	return ok;
 }
 
-/* Get list of data-sources from context for inserting keyframes using the given relative Keying Set */
-short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks)
+/* Add new data source for relative Keying Sets */
+void ANIM_relative_keyingset_add_source (ListBase *dsources, ID *id, StructRNA *srna, void *data)
 {
-	ScrArea *sa= CTX_wm_area(C);
+	tRKS_DSource *ds;
 	
-	/* for now, the active area is used to determine what set of contexts apply */
-	if (sa == NULL)
-		return 0;
+	/* sanity checks 
+	 *	we must have at least one valid data pointer to use 
+	 */
+	if (ELEM(NULL, dsources, srna) || ((id == data) && (id == NULL)))
+		return;
 
-#if 0
-	switch (sa->spacetype) {
-		case SPACE_VIEW3D:	/* 3D-View: Selected Objects or Bones */
-			return modifykey_get_context_v3d_data(C, dsources, ks);
-	}
+	/* allocate new elem, and add to the list */
+	ds = MEM_callocN(sizeof(tRKS_DSource), "tRKS_DSource");
+	BLI_addtail(dsources, ds);
 	
-	/* nothing happened */
-	return 0;
-#endif
-
-	/* looking into this code, it doesnt use the 3D view - Campbell */
-	return modifykey_get_context_v3d_data(C, dsources, ks);
-} 
+	/* depending on what data we have, create using ID or full pointer call */
+	if (srna && data)
+		RNA_pointer_create(id, srna, data, &ds->ptr);
+	else
+		RNA_id_pointer_create(id, &ds->ptr);
+}
 
 /* KeyingSet Operations (Insert/Delete Keyframes) ------------ */
 
@@ -1270,8 +684,9 @@ short modifykey_get_context_data (bContext *C, ListBase *dsources, KeyingSet *ks
  * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
  * Returns the number of channels that keyframes were added to
  */
-int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
+int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {
+	Scene *scene= CTX_data_scene(C);
 	KS_Path *ksp;
 	int kflag=0, success= 0;
 	char *groupname= NULL;
@@ -1291,201 +706,101 @@ int modify_keyframes (Scene *scene, ListBase *dsources, bAction *act, KeyingSet 
 	else if (mode == MODIFYKEY_MODE_DELETE)
 		kflag= 0;
 	
-	/* check if the KeyingSet is absolute or not (i.e. does it requires sources info) */
-	if (ks->flag & KEYINGSET_ABSOLUTE) {
-		/* Absolute KeyingSets are simpler to use, as all the destination info has already been
-		 * provided by the user, and is stored, ready to use, in the KeyingSet paths.
+	/* if relative Keying Sets, poll and build up the paths */
+	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
+		KeyingSetInfo *ksi = ANIM_keyingset_info_find_named(ks->typeinfo);
+		
+		/* clear all existing paths 
+		 * NOTE: BKE_keyingset_free() frees all of the paths for the KeyingSet, but not the set itself
 		 */
-		for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
-			int arraylen, i;
-			
-			/* get pointer to name of group to add channels to */
-			if (ksp->groupmode == KSP_GROUP_NONE)
-				groupname= NULL;
-			else if (ksp->groupmode == KSP_GROUP_KSNAME)
-				groupname= ks->name;
+		BKE_keyingset_free(ks);
+		
+		/* get the associated 'type info' for this KeyingSet */
+		if (ksi == NULL)
+			return MODIFYKEY_MISSING_TYPEINFO;
+		// TODO: check for missing callbacks!
+		
+		/* check if it can be used in the current context */
+		if (ksi->poll(ksi, C)) {
+			/* if a list of data sources are provided, run a special iterator over them,
+			 * otherwise, just continue per normal
+			 */
+			if (dsources) 
+				RKS_ITER_overrides_list(ksi, C, ks, dsources);
 			else
-				groupname= ksp->group;
-			
-			/* init arraylen and i - arraylen should be greater than i so that
-			 * normal non-array entries get keyframed correctly
-			 */
-			i= ksp->array_index;
-			arraylen= i;
-			
-			/* get length of array if whole array option is enabled */
-			if (ksp->flag & KSP_FLAG_WHOLE_ARRAY) {
-				PointerRNA id_ptr, ptr;
-				PropertyRNA *prop;
+				ksi->iter(ksi, C, ks);
 				
-				RNA_id_pointer_create(ksp->id, &id_ptr);
-				if (RNA_path_resolve(&id_ptr, ksp->rna_path, &ptr, &prop) && prop)
-					arraylen= RNA_property_array_length(&ptr, prop);
-			}
-			
-			/* we should do at least one step */
-			if (arraylen == i)
-				arraylen++;
-			
-			/* for each possible index, perform operation 
-			 *	- assume that arraylen is greater than index
-			 */
-			for (; i < arraylen; i++) {
-				/* action to take depends on mode */
-				if (mode == MODIFYKEY_MODE_INSERT)
-					success += insert_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
-				else if (mode == MODIFYKEY_MODE_DELETE)
-					success += delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag);
-			}
-			
-			/* set recalc-flags */
-			if (ksp->id) {
-				switch (GS(ksp->id->name)) {
-					case ID_OB: /* Object (or Object-Related) Keyframes */
-					{
-						Object *ob= (Object *)ksp->id;
-						
-						ob->recalc |= OB_RECALC;
-					}
-						break;
-				}
-				
-				/* send notifiers for updates (this doesn't require context to work!) */
-				WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
-			}
+			/* if we don't have any paths now, then this still qualifies as invalid context */
+			if (ks->paths.first == NULL)
+				return MODIFYKEY_INVALID_CONTEXT;
+		}
+		else {
+			/* poll callback tells us that KeyingSet is useless in current context */
+			return MODIFYKEY_INVALID_CONTEXT;
 		}
 	}
-	else if (dsources && dsources->first) {
-		/* for each one of the 'sources', resolve the template markers and expand arrays, then insert keyframes */
-		bCommonKeySrc *cks;
+	
+	/* apply the paths as specified in the KeyingSet now */
+	for (ksp= ks->paths.first; ksp; ksp= ksp->next) { 
+		int arraylen, i;
+		short kflag2;
 		
-		/* for each 'source' for keyframe data, resolve each of the paths from the KeyingSet */
-		for (cks= dsources->first; cks; cks= cks->next) {
-			/* for each path in KeyingSet, construct a path using the templates */
-			for (ksp= ks->paths.first; ksp; ksp= ksp->next) {
-				DynStr *pathds= BLI_dynstr_new();
-				char *path = NULL;
-				int arraylen, i;
-				
-				/* set initial group name */
-				if (cks->id == NULL) {
-					printf("ERROR: Skipping 'Common-Key' Source. No valid ID present.\n");
-					continue;
-				}
-				else
-					groupname= cks->id->name+2;
-				
-				/* construct the path */
-				// FIXME: this currently only works with a few hardcoded cases
-				if ((ksp->templates & KSP_TEMPLATE_PCHAN) && (cks->pchan)) {
-					/* add basic pose-channel path access */
-					BLI_dynstr_append(pathds, "pose.bones[\"");
-					BLI_dynstr_append(pathds, cks->pchan->name);
-					BLI_dynstr_append(pathds, "\"]");
-					
-					/* override default group name */
-					groupname= cks->pchan->name;
-				}
-				if ((ksp->templates & KSP_TEMPLATE_CONSTRAINT) && (cks->con)) {
-					/* add basic constraint path access */
-					BLI_dynstr_append(pathds, "constraints[\"");
-					BLI_dynstr_append(pathds, cks->con->name);
-					BLI_dynstr_append(pathds, "\"]");
-					
-					/* override default group name */
-					groupname= cks->con->name;
-				}
+		/* since keying settings can be defined on the paths too, extend the path before using it */
+		kflag2 = (kflag | ksp->keyingflag);
+		
+		/* get pointer to name of group to add channels to */
+		if (ksp->groupmode == KSP_GROUP_NONE)
+			groupname= NULL;
+		else if (ksp->groupmode == KSP_GROUP_KSNAME)
+			groupname= ks->name;
+		else
+			groupname= ksp->group;
+		
+		/* init arraylen and i - arraylen should be greater than i so that
+		 * normal non-array entries get keyframed correctly
+		 */
+		i= ksp->array_index;
+		arraylen= i;
+		
+		/* get length of array if whole array option is enabled */
+		if (ksp->flag & KSP_FLAG_WHOLE_ARRAY) {
+			PointerRNA id_ptr, ptr;
+			PropertyRNA *prop;
+			
+			RNA_id_pointer_create(ksp->id, &id_ptr);
+			if (RNA_path_resolve(&id_ptr, ksp->rna_path, &ptr, &prop) && prop)
+				arraylen= RNA_property_array_length(&ptr, prop);
+		}
+		
+		/* we should do at least one step */
+		if (arraylen == i)
+			arraylen++;
+		
+		/* for each possible index, perform operation 
+		 *	- assume that arraylen is greater than index
+		 */
+		for (; i < arraylen; i++) {
+			/* action to take depends on mode */
+			if (mode == MODIFYKEY_MODE_INSERT)
+				success += insert_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
+			else if (mode == MODIFYKEY_MODE_DELETE)
+				success += delete_keyframe(ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
+		}
+		
+		/* set recalc-flags */
+		if (ksp->id) {
+			switch (GS(ksp->id->name)) {
+				case ID_OB: /* Object (or Object-Related) Keyframes */
 				{
-					/* add property stored in KeyingSet Path */
-					if (BLI_dynstr_get_len(pathds))
-						BLI_dynstr_append(pathds, ".");
-						
-					/* apply some further templates? */
-					if (ksp->templates & KSP_TEMPLATE_ROT) {
-						/* for builtin Keying Sets, this template makes the best fitting path for the 
-						 * current rotation mode of the Object / PoseChannel to be used
-						 */
-						if (strcmp(ksp->rna_path, "rotation")==0) {
-							/* get rotation mode */
-							short rotmode= (cks->pchan)? (cks->pchan->rotmode) : 
-										   (GS(cks->id->name)==ID_OB)? ( ((Object *)cks->id)->rotmode ) :
-										   (0);
-							
-							/* determine path to build */
-							if (rotmode == ROT_MODE_QUAT)
-								BLI_dynstr_append(pathds, "rotation_quaternion");
-							else if (rotmode == ROT_MODE_AXISANGLE)
-								BLI_dynstr_append(pathds, "rotation_axis_angle");
-							else
-								BLI_dynstr_append(pathds, "rotation_euler");
-						}
-					}
-					else {
-						/* just directly use the path */
-						BLI_dynstr_append(pathds, ksp->rna_path);
-					}
+					Object *ob= (Object *)ksp->id;
 					
-					/* convert to C-string */
-					path= BLI_dynstr_get_cstring(pathds);
-					BLI_dynstr_free(pathds);
+					ob->recalc |= OB_RECALC;
 				}
-				
-				/* get pointer to name of group to add channels to 
-				 *	- KSP_GROUP_TEMPLATE_ITEM is handled above while constructing the paths 
-				 */
-				if (ksp->groupmode == KSP_GROUP_NONE)
-					groupname= NULL;
-				else if (ksp->groupmode == KSP_GROUP_KSNAME)
-					groupname= ks->name;
-				else if (ksp->groupmode == KSP_GROUP_NAMED)
-					groupname= ksp->group;
-				
-				/* init arraylen and i - arraylen should be greater than i so that
-				 * normal non-array entries get keyframed correctly
-				 */
-				i= ksp->array_index;
-				arraylen= i+1;
-				
-				/* get length of array if whole array option is enabled */
-				if (ksp->flag & KSP_FLAG_WHOLE_ARRAY) {
-					PointerRNA id_ptr, ptr;
-					PropertyRNA *prop;
-					
-					RNA_id_pointer_create(cks->id, &id_ptr);
-					if (RNA_path_resolve(&id_ptr, path, &ptr, &prop) && prop)
-						arraylen= RNA_property_array_length(&ptr, prop);
-				}
-				
-				/* for each possible index, perform operation 
-				 *	- assume that arraylen is greater than index
-				 */
-				for (; i < arraylen; i++) {
-					/* action to take depends on mode */
-					if (mode == MODIFYKEY_MODE_INSERT)
-						success+= insert_keyframe(cks->id, act, groupname, path, i, cfra, kflag);
-					else if (mode == MODIFYKEY_MODE_DELETE)
-						success+= delete_keyframe(cks->id, act, groupname, path, i, cfra, kflag);
-				}
-				
-				/* free the path */
-				MEM_freeN(path);
+					break;
 			}
 			
-			/* set recalc-flags */
-			if (cks->id) {
-				switch (GS(cks->id->name)) {
-					case ID_OB: /* Object (or Object-Related) Keyframes */
-					{
-						Object *ob= (Object *)cks->id;
-						
-						ob->recalc |= OB_RECALC;
-					}
-						break;
-				}
-				
-				/* send notifiers for updates (this doesn't require context to work!) */
-				WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
-			}
+			/* send notifiers for updates (this doesn't require context to work!) */
+			WM_main_add_notifier(NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 		}
 	}
 	
