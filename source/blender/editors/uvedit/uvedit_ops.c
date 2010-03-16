@@ -3223,7 +3223,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "UV_OT_select_inverse", IKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_select_pinned", PKEY, KM_PRESS, KM_SHIFT, 0);
 
-	WM_keymap_add_item(keymap, "UV_OT_weld", WKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "IMAGE_MT_uvs_weldalign", WKEY, KM_PRESS, 0, 0);
 
 	/* uv operations */
 	WM_keymap_add_item(keymap, "UV_OT_stitch", VKEY, KM_PRESS, 0, 0);
