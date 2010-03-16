@@ -1521,7 +1521,7 @@ static void sample_apply(bContext *C, wmOperator *op, wmEvent *event)
 			info->colf[0]= fp[0];
 			info->colf[1]= fp[1];
 			info->colf[2]= fp[2];
-			info->colf[3]= fp[4];
+			info->colf[3]= fp[3];
 			info->colfp= info->colf;
 		}
 
