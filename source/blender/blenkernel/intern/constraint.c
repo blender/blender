@@ -1859,6 +1859,64 @@ static bConstraintTypeInfo CTI_TRANSLIKE = {
 	translike_evaluate /* evaluate */
 };
 
+/* ---------- Maintain Volume ---------- */
+
+static void samevolume_new_data (void *cdata)
+{
+	bSameVolumeConstraint *data= (bSameVolumeConstraint *)cdata;
+
+	data->flag = SAMEVOL_Y;
+	data->volume = 1.0f;
+}
+
+static void samevolume_evaluate (bConstraint *con, bConstraintOb *cob)
+{
+	bSameVolumeConstraint *data= con->data;
+
+	float obsize[3];
+	float volume=data->volume;
+
+	mat4_to_size(obsize, cob->matrix);
+
+	switch (data->flag) {
+		case SAMEVOL_X:
+			if (obsize[0]!=0) {
+				mul_v3_fl(cob->matrix[1], sqrt(volume/obsize[0])/obsize[0]);
+				mul_v3_fl(cob->matrix[2], sqrt(volume/obsize[0])/obsize[0]);
+			}
+			break;
+		case SAMEVOL_Y:
+			if (obsize[1]!=0) {
+				mul_v3_fl(cob->matrix[0], sqrt(volume/obsize[1])/obsize[1]);
+				mul_v3_fl(cob->matrix[2], sqrt(volume/obsize[1])/obsize[1]);
+			}
+			break;
+		case SAMEVOL_Z:
+			if (obsize[2]!=0) {
+				mul_v3_fl(cob->matrix[0], sqrt(volume/obsize[2])/obsize[2]);
+				mul_v3_fl(cob->matrix[1], sqrt(volume/obsize[2])/obsize[2]);
+			}
+			break;
+	}
+
+}
+
+static bConstraintTypeInfo CTI_SAMEVOL = {
+	CONSTRAINT_TYPE_SAMEVOL, /* type */
+	sizeof(bSameVolumeConstraint), /* size */
+	"Maintain Volume", /* name */
+	"bSameVolumeConstraint", /* struct name */
+	NULL, /* free data */
+	NULL, /* relink data */
+	NULL, /* id looper */
+	NULL, /* copy data */
+	samevolume_new_data, /* new data */
+	NULL, /* get constraint targets */
+	NULL, /* flush constraint targets */
+	NULL, /* get target matrix */
+	samevolume_evaluate /* evaluate */
+};
+
 /* ----------- Python Constraint -------------- */
 
 static void pycon_free (bConstraint *con)
@@ -3805,6 +3863,7 @@ static void constraints_init_typeinfo () {
 	constraintsTypeInfo[21]= &CTI_DAMPTRACK;		/* Damped TrackTo Constraint */
 	constraintsTypeInfo[22]= &CTI_SPLINEIK;			/* Spline IK Constraint */
 	constraintsTypeInfo[23]= &CTI_TRANSLIKE;		/* Copy Transforms Constraint */
+	constraintsTypeInfo[24]= &CTI_SAMEVOL;			/* Maintain Volume Constraint */
 }
 
 /* This function should be used for getting the appropriate type-info when only

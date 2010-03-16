@@ -461,6 +461,17 @@ class ConstraintButtonsPanel(bpy.types.Panel):
 
         self.space_template(layout, con, wide_ui)
 
+    def MAINTAIN_VOLUME(self, context, layout, con, wide_ui):
+
+        row = layout.row()
+        if wide_ui:
+            row.label(text="Free:")
+        row.prop(con, "axis", expand=True)
+
+        layout.prop(con, "volume")
+
+        self.space_template(layout, con, wide_ui)
+
     def COPY_TRANSFORMS(self, context, layout, con, wide_ui):
         self.target_template(layout, con, wide_ui)
 
