@@ -115,7 +115,7 @@ PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	srna= srna_from_self(self);
+	srna= srna_from_self(self, "BoolProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
@@ -181,7 +181,7 @@ PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	srna= srna_from_self(self);
+	srna= srna_from_self(self, "BoolVectorProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
@@ -258,7 +258,7 @@ PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	srna= srna_from_self(self);
+	srna= srna_from_self(self, "IntProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
@@ -325,7 +325,7 @@ PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	srna= srna_from_self(self);
+	srna= srna_from_self(self, "IntVectorProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
@@ -406,7 +406,7 @@ PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	srna= srna_from_self(self);
+	srna= srna_from_self(self, "FloatProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
@@ -481,7 +481,7 @@ PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	srna= srna_from_self(self);
+	srna= srna_from_self(self, "FloatVectorProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
@@ -559,7 +559,7 @@ PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	srna= srna_from_self(self);
+	srna= srna_from_self(self, "StringProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
@@ -671,7 +671,7 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	srna= srna_from_self(self);
+	srna= srna_from_self(self, "EnumProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
@@ -716,18 +716,22 @@ PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 	}
 }
 
-static StructRNA *pointer_type_from_py(PyObject *value)
+static StructRNA *pointer_type_from_py(PyObject *value, const char *error_prefix)
 {
 	StructRNA *srna;
 
-	srna= srna_from_self(value);
+	srna= srna_from_self(value, "BoolProperty(...):");
 	if(!srna) {
-	 	PyErr_SetString(PyExc_SystemError, "expected an RNA type derived from IDPropertyGroup");
+
+		PyObject *msg= BPY_exception_buffer();
+		char *msg_char= _PyUnicode_AsString(msg);
+		PyErr_Format(PyExc_TypeError, "%.200s expected an RNA type derived from IDPropertyGroup, failed with: %s", error_prefix, msg_char);
+		Py_DECREF(msg);
 		return NULL;
 	}
 
 	if(!RNA_struct_is_a(srna, &RNA_IDPropertyGroup)) {
-	 	PyErr_SetString(PyExc_SystemError, "expected an RNA type derived from IDPropertyGroup");
+	 	PyErr_Format(PyExc_SystemError, "%.200s expected an RNA type derived from IDPropertyGroup", error_prefix);
 		return NULL;
 	}
 
@@ -752,7 +756,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	srna= srna_from_self(self);
+	srna= srna_from_self(self, "PointerProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
@@ -777,7 +781,7 @@ PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "PointerProperty(options={...}):"))
 			return NULL;
 
-		ptype= pointer_type_from_py(type);
+		ptype= pointer_type_from_py(type, "PointerProperty(...):");
 		if(!ptype)
 			return NULL;
 
@@ -813,7 +817,7 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 		return NULL;
 	}
 
-	srna= srna_from_self(self);
+	srna= srna_from_self(self, "CollectionProperty(...):");
 	if(srna==NULL && PyErr_Occurred()) {
 		return NULL; /* self's type was compatible but error getting the srna */
 	}
@@ -838,7 +842,7 @@ PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject *kw)
 		if(pyopts && pyrna_set_to_enum_bitfield(property_flag_items, pyopts, &opts, "CollectionProperty(options={...}):"))
 			return NULL;
 
-		ptype= pointer_type_from_py(type);
+		ptype= pointer_type_from_py(type, "CollectionProperty(...):");
 		if(!ptype)
 			return NULL;
 

@@ -111,7 +111,7 @@ PyObject *PYOP_wrap_macro_define(PyObject *self, PyObject *args)
 	}
 
 	/* identifiers */
-	srna= srna_from_self(macro);
+	srna= srna_from_self(macro, "Macro Define:");
 	macroname = RNA_struct_identifier(srna);
 
 	ot = WM_operatortype_exists(macroname);
