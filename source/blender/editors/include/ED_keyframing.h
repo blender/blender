@@ -47,6 +47,8 @@ struct wmOperatorType;
 struct PointerRNA;
 struct PropertyRNA;
 
+#include "RNA_types.h"
+
 /* ************ Keyframing Management **************** */
 
 /* Get the active settings for keyframing settings from context (specifically the given scene) 
