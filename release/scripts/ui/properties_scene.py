@@ -120,7 +120,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
     bl_label = "Active Keying Set"
 
     def poll(self, context):
-        return (context.scene.active_keying_set is not None)
+        return (context.scene.active_keying_set and context.scene.active_keying_set.absolute);
 
     def draw(self, context):
         layout = self.layout
@@ -163,6 +163,11 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel):
             col.prop(ksp, "grouping")
             if ksp.grouping == 'NAMED':
                 col.prop(ksp, "group")
+                
+            col.label(text="Keyframing Settings:")
+            col.prop(ksp, "insertkey_needed", text="Needed")
+            col.prop(ksp, "insertkey_visual", text="Visual")
+            col.prop(ksp, "insertkey_xyz_to_rgb", text="XYZ to RGB")
 
 
 class SCENE_PT_physics(SceneButtonsPanel):
@@ -295,7 +300,7 @@ class ANIM_OT_keying_set_export(bpy.types.Operator):
         # write paths
         f.write("# Path Definitions\n")
         for ksp in ks.paths:
-            f.write("ksp = ks.add_destination(")
+            f.write("ksp = ks.add_path(")
 
             # id-block + RNA-path
             if ksp.id:

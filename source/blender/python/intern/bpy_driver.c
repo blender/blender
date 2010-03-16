@@ -158,9 +158,6 @@ float BPY_pydriver_eval (ChannelDriver *driver)
 	short targets_ok= 1;
 	int i;
 
-	/* sanity checks - should driver be executed? */
-	/*if (G.f & G_SCRIPT_AUTOEXEC)==0) return result; */
-
 	/* get the py expression to be evaluated */
 	expr = driver->expression;
 	if ((expr == NULL) || (expr[0]=='\0'))
