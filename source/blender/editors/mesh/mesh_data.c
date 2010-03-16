@@ -697,7 +697,7 @@ static void mesh_add_faces(Mesh *mesh, int len)
 	/* set default flags */
 	mface= &mesh->mface[mesh->totface];
 	for(i=0; i<len; i++, mface++)
-		mface->flag= SELECT;
+		mface->flag= ME_FACE_SEL;
 
 	mesh->totface= totface;
 }
