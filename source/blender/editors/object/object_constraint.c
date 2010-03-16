@@ -864,6 +864,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 		case CONSTRAINT_TYPE_LOCLIMIT:
 		case CONSTRAINT_TYPE_ROTLIMIT:
 		case CONSTRAINT_TYPE_SIZELIMIT:
+		case CONSTRAINT_TYPE_SAMEVOL:
 			return 0;
 			
 		/* restricted target-type constraints -------------- */
