@@ -243,8 +243,8 @@ PyObject *BPY_exception_buffer(void)
 	
 	PyErr_Clear();
 	
-	/* import StringIO / io
-	 * string_io = StringIO.StringIO()
+	/* import io
+	 * string_io = io.StringIO()
 	 */
 	
 	if(! (string_io_mod= PyImport_ImportModule("io")) ) {
