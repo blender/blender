@@ -22,19 +22,25 @@ import bpy
 
 
 def image_editor_guess(context):
+    import platform
+    system = platform.system()
+    
     image_editor = context.user_preferences.filepaths.image_editor
 
     # use image editor in the preferences when available.
     if not image_editor:
-        import platform
-        system = platform.system()
-
         if system == 'Windows':
-            image_editor = "start" # not tested!
+            image_editor = ["start"] # not tested!
         elif system == 'Darwin':
-            image_editor = "open"
+            image_editor = ["open"]
         else:
-            image_editor = "gimp"
+            image_editor = ["gimp"]
+    else:
+        if system == 'Darwin':
+            # blender file selector treats .app as a folder
+            # and will include a trailing backslash, so we strip it.
+            image_editor.rstrip('\\')
+            image_editor = ["open", "-a", image_editor]
 
     return image_editor
 
@@ -118,7 +124,11 @@ class ProjectEdit(bpy.types.Operator):
         image_new.file_format = 'PNG'
         image_new.save()
 
-        subprocess.Popen([image_editor, bpy.utils.expandpath(filename_final)])
+        cmd = []
+        cmd.extend(image_editor)
+        cmd.append(bpy.utils.expandpath(filename_final))
+
+        subprocess.Popen(cmd)
 
         return {'FINISHED'}
 
