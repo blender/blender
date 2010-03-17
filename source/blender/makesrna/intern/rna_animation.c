@@ -124,7 +124,7 @@ static void RKS_GEN_rna_internal(KeyingSetInfo *ksi, bContext *C, KeyingSet *ks,
 	FunctionRNA *func;
 
 	RNA_pointer_create(NULL, ksi->ext.srna, ksi, &ptr);
-	func= RNA_struct_find_function(&ptr, "iterator");
+	func= RNA_struct_find_function(&ptr, "generate");
 
 	RNA_parameter_list_create(&list, &ptr, func);
 		/* hook up arguments */

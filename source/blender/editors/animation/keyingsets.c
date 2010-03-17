@@ -526,10 +526,10 @@ void ANIM_keyingset_info_register (const bContext *C, KeyingSetInfo *ksi)
 	KeyingSet *ks;
 	
 	/* determine the KeyingSet list to include the new KeyingSet in */
-	if (ksi->builtin)
-		list = &builtin_keyingsets;
-	else
+	if (ksi->builtin==0 && scene)
 		list = &scene->keyingsets;
+	else
+		list = &builtin_keyingsets;
 	
 	/* create a new KeyingSet 
 	 *	- inherit name and keyframing settings from the typeinfo

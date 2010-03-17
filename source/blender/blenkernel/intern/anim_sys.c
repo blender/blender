@@ -557,14 +557,8 @@ KS_Path *BKE_keyingset_find_path (KeyingSet *ks, ID *id, const char group_name[]
 	KS_Path *ksp;
 	
 	/* sanity checks */
-	if ELEM(NULL, ks, rna_path)
+	if ELEM3(NULL, ks, rna_path, id)
 		return NULL;
-	
-	/* ID is optional for relative KeyingSets, but is necessary for absolute KeyingSets */
-	if (id == NULL) {
-		if (ks->flag & KEYINGSET_ABSOLUTE)
-			return NULL;
-	}
 	
 	/* loop over paths in the current KeyingSet, finding the first one where all settings match 
 	 * (i.e. the first one where none of the checks fail and equal 0)
@@ -573,7 +567,7 @@ KS_Path *BKE_keyingset_find_path (KeyingSet *ks, ID *id, const char group_name[]
 		short eq_id=1, eq_path=1, eq_index=1, eq_group=1;
 		
 		/* id */
-		if ((ks->flag & KEYINGSET_ABSOLUTE) && (id != ksp->id))
+		if (id != ksp->id)
 			eq_id= 0;
 		
 		/* path */
