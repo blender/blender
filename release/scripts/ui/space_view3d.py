@@ -1854,7 +1854,7 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
         col.prop(view, "clip_start", text="Start")
         col.prop(view, "clip_end", text="End")
 
-        layout.column().prop(scene, "cursor_location", text="3D Cursor:")
+        layout.column().prop(view, "cursor_location")
 
 
 class VIEW3D_PT_3dview_name(bpy.types.Panel):

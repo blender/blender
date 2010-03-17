@@ -92,6 +92,7 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
+#include "ED_view3d.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -105,14 +106,7 @@ void ED_object_location_from_view(bContext *C, float *loc)
 	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
 	
-	if (v3d) {
-		if (v3d->localvd)
-			copy_v3_v3(loc, v3d->cursor);
-		else
-			copy_v3_v3(loc, scene->cursor);
-	} else {
-		copy_v3_v3(loc, scene->cursor);
-	}
+	loc = give_cursor(scene, v3d);
 }
 
 void ED_object_rotation_from_view(bContext *C, float *rot)

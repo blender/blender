@@ -104,6 +104,8 @@ EnumPropertyItem viewport_shading_items[] = {
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
+#include "BLI_math.h"
+
 #include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -276,6 +278,26 @@ static void rna_Space3DView_lock_camera_and_layers_set(PointerRNA *ptr, int valu
 		}
 		v3d->camera= sc->scene->camera;
 	}
+}
+
+static void rna_View3D_CursorLocation_get(PointerRNA *ptr, float *values)
+{
+	View3D *v3d= (View3D*)(ptr->data);
+	bScreen *sc= (bScreen*)ptr->id.data;
+	Scene *scene= (Scene *)sc->scene;
+	float *loc = give_cursor(scene, v3d);
+	
+	copy_v3_v3(values, loc);
+}
+
+static void rna_View3D_CursorLocation_set(PointerRNA *ptr, const float *values)
+{
+	View3D *v3d= (View3D*)(ptr->data);
+	bScreen *sc= (bScreen*)ptr->id.data;
+	Scene *scene= (Scene *)sc->scene;
+	float *cursor = give_cursor(scene, v3d);
+	
+	copy_v3_v3(cursor, values);
 }
 
 static void rna_Space3DView_layer_set(PointerRNA *ptr, const int *values)
@@ -861,7 +883,14 @@ static void rna_def_space_3dview(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "local_view", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "localvd");
 	RNA_def_property_ui_text(prop, "Local View", "Display an isolated sub-set of objects, apart from the scene visibility");
-
+	
+	prop= RNA_def_property(srna, "cursor_location", PROP_FLOAT, PROP_XYZ|PROP_UNIT_LENGTH);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_View3D_CursorLocation_get", "rna_View3D_CursorLocation_set", NULL);
+	RNA_def_property_ui_text(prop, "3D Cursor Location", "3D cursor location for this view (dependent on local view setting)");
+	RNA_def_property_ui_range(prop, -10000.0, 10000.0, 10, 4);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+	
 	prop= RNA_def_property(srna, "lens", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "lens");
 	RNA_def_property_ui_text(prop, "Lens", "Lens angle (mm) in perspective view");
