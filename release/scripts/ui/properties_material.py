@@ -23,18 +23,6 @@ from rna_prop_ui import PropertyPanel
 narrowui = 180
 
 
-def active_node_mat(mat):
-    # TODO, 2.4x has a pipeline section, for 2.5 we need to communicate
-    # which settings from node-materials are used
-    if mat:
-        mat_node = mat.active_node_material
-        if mat_node:
-            return mat_node
-        else:
-            return mat
-
-    return None
-
 
 class MATERIAL_MT_sss_presets(bpy.types.Menu):
     bl_label = "SSS Presets"
@@ -148,14 +136,14 @@ class MATERIAL_PT_shading(MaterialButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def poll(self, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
         return mat and (mat.type in ('SURFACE', 'WIRE', 'HALO')) and (engine in self.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
 
-        mat = active_node_mat(context.material)
+        mat = context.material
         wide_ui = context.region.width > narrowui
 
         if mat.type in ('SURFACE', 'WIRE'):
@@ -259,14 +247,14 @@ class MATERIAL_PT_options(MaterialButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def poll(self, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
         return mat and (mat.type in ('SURFACE', 'WIRE', 'HALO')) and (engine in self.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
 
-        mat = active_node_mat(context.material)
+        mat = context.material
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -305,14 +293,14 @@ class MATERIAL_PT_shadow(MaterialButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def poll(self, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
         return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
 
-        mat = active_node_mat(context.material)
+        mat = context.material
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -342,14 +330,14 @@ class MATERIAL_PT_diffuse(MaterialButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def poll(self, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
         return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
 
-        mat = active_node_mat(context.material)
+        mat = context.material
         wide_ui = context.region.width > narrowui
 
         split = layout.split()
@@ -413,14 +401,14 @@ class MATERIAL_PT_specular(MaterialButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
 
     def poll(self, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
         return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
 
-        mat = active_node_mat(context.material)
+        mat = context.material
         wide_ui = context.region.width > narrowui
 
         layout.active = (not mat.shadeless)
@@ -483,12 +471,12 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
         return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
     def draw_header(self, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         sss = mat.subsurface_scattering
 
         self.layout.active = (not mat.shadeless)
@@ -497,7 +485,7 @@ class MATERIAL_PT_sss(MaterialButtonsPanel):
     def draw(self, context):
         layout = self.layout
 
-        mat = active_node_mat(context.material)
+        mat = context.material
         sss = mat.subsurface_scattering
         wide_ui = context.region.width > narrowui
 
@@ -535,19 +523,19 @@ class MATERIAL_PT_mirror(MaterialButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
         return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
     def draw_header(self, context):
-        raym = active_node_mat(context.material).raytrace_mirror
+        raym = context.material.raytrace_mirror
 
         self.layout.prop(raym, "enabled", text="")
 
     def draw(self, context):
         layout = self.layout
 
-        mat = active_node_mat(context.material)
+        mat = context.material
         raym = mat.raytrace_mirror
         wide_ui = context.region.width > narrowui
 
@@ -594,19 +582,19 @@ class MATERIAL_PT_transp(MaterialButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def poll(self, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
         return mat and (mat.type in ('SURFACE', 'WIRE')) and (engine in self.COMPAT_ENGINES)
 
     def draw_header(self, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
 
         self.layout.prop(mat, "transparency", text="")
 
     def draw(self, context):
         layout = self.layout
 
-        mat = active_node_mat(context.material)
+        mat = context.material
         rayt = mat.raytrace_transparency
         wide_ui = context.region.width > narrowui
 
@@ -661,19 +649,19 @@ class MATERIAL_PT_transp_game(MaterialButtonsPanel):
     COMPAT_ENGINES = {'BLENDER_GAME'}
 
     def poll(self, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
         engine = context.scene.render.engine
         return mat  and (engine in self.COMPAT_ENGINES)
 
     def draw_header(self, context):
-        mat = active_node_mat(context.material)
+        mat = context.material
 
         self.layout.prop(mat, "transparency", text="")
 
     def draw(self, context):
         layout = self.layout
 
-        mat = active_node_mat(context.material)
+        mat = context.material
         rayt = mat.raytrace_transparency
         wide_ui = context.region.width > narrowui
 

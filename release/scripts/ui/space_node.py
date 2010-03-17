@@ -55,7 +55,10 @@ class NODE_HT_header(bpy.types.Header):
             snode_id = snode.id
             id_from = snode.id_from
             if id_from:
-                layout.template_ID(id_from, "active_texture", new="texture.new")
+                if snode.texture_type == 'BRUSH':
+                    layout.template_ID(id_from, "texture", new="texture.new")
+                else:
+                    layout.template_ID(id_from, "active_texture", new="texture.new")
             if snode_id:
                 layout.prop(snode_id, "use_nodes")
 

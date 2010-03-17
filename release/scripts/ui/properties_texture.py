@@ -44,19 +44,8 @@ class TEXTURE_MT_envmap_specials(bpy.types.Menu):
         layout.operator("texture.envmap_clear_all", icon='FILE_REFRESH')
 
 
-def active_node_mat(mat):
-    if mat:
-        mat_node = mat.active_node_material
-        if mat_node:
-            return mat_node
-        else:
-            return mat
-
-    return None
-
-
 def context_tex_datablock(context):
-    idblock = active_node_mat(context.material)
+    idblock = context.material
     if idblock:
         return idblock
 

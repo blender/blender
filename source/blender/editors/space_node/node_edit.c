@@ -401,11 +401,13 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 					snode->from= (ID*)give_current_material(ob, ob->actcol);
 
 				/* from is not set fully for material nodes, should be ID + Node then */
+				snode->id= &tx->id;
 			}
 		}
 		else if(snode->texfrom==SNODE_TEX_WORLD) {
 			tx= give_current_world_texture(scene->world);
 			snode->from= (ID *)scene->world;
+			snode->id= &tx->id;
 		}
 		else {
 			Brush *brush= NULL;
@@ -415,11 +417,12 @@ void snode_set_context(SpaceNode *snode, Scene *scene)
 			else
 				brush= paint_brush(&scene->toolsettings->imapaint.paint);
 
-			snode->from= (ID *)brush;
-			tx= give_current_brush_texture(brush);
+			if (brush) {
+				snode->from= (ID *)brush;
+				tx= give_current_brush_texture(brush);
+				snode->id= &tx->id;
+			}
 		}
-		
-		snode->id= &tx->id;
 	}
 
 	if(snode->id)
