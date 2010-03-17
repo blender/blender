@@ -1369,7 +1369,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(bpy.types.Operator):
         totedge = mesh.total_edge_sel
         totvert = mesh.total_vert_sel
 
-        if totface >= 1 or totvert == 1:
+        if totface >= 1:
             return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": "NORMAL", "constraint_axis": [False, False, True]})
         elif totedge == 1:
             return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": "NORMAL", "constraint_axis": [True, True, False]})
