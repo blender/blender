@@ -3734,7 +3734,6 @@ static void edge_rotate(EditMesh *em, wmOperator *op, EditEdge *eed, int dir)
 	free_editface(em, face[1]);
 }
 
-// XXX ton please check
 /* only accepts 1 selected edge, or 2 selected faces */
 static int edge_rotate_selected(bContext *C, wmOperator *op)
 {
@@ -3742,7 +3741,7 @@ static int edge_rotate_selected(bContext *C, wmOperator *op)
 	EditMesh *em= BKE_mesh_get_editmesh((Mesh *)obedit->data);
 	EditEdge *eed;
 	EditFace *efa;
-	int dir = RNA_int_get(op->ptr, "direction"); // dir == 2 when clockwise and ==1 for counter CW.
+	int dir = RNA_enum_get(op->ptr, "direction"); // dir == 2 when clockwise and ==1 for counter CW.
 	short edgeCount = 0;
 
 	/*clear new flag for new edges, count selected edges */
@@ -3822,7 +3821,7 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "direction", "direction to rotate edge around.");
+	RNA_def_enum(ot->srna, "direction", direction_items, DIRECTION_CW, "Direction", "Direction to rotate the edge around.");
 }
 
 
