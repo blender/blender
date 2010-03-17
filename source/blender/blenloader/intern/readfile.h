@@ -108,7 +108,7 @@ struct Main;
 void blo_join_main(ListBase *mainlist);
 void blo_split_main(ListBase *mainlist, struct Main *main);
 
-BlendFileData *blo_read_file_internal(FileData *fd, char *file);
+BlendFileData *blo_read_file_internal(FileData *fd, const char *filename);
 
 FileData *blo_openblenderfile(char *name, struct ReportList *reports);
 FileData *blo_openblendermemory(void *buffer, int buffersize, struct ReportList *reports);

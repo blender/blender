@@ -609,7 +609,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         layout.template_ID(strip, "sound", open="sound.open")
 
         layout.separator()
-        layout.prop(strip.sound, "filepath", text="")
+        layout.prop(strip, "filepath", text="")
 
         row = layout.row()
         if strip.sound.packed_file:
