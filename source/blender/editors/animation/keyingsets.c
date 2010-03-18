@@ -662,11 +662,14 @@ void ANIM_relative_keyingset_add_source (ListBase *dsources, ID *id, StructRNA *
 	tRKS_DSource *ds;
 	
 	/* sanity checks 
-	 *	we must have at least one valid data pointer to use 
+	 *	- we must have somewhere to output the data
+	 *	- we must have both srna+data (and with id too optionally), or id by itself only
 	 */
-	if (ELEM(NULL, dsources, srna) || ((id == data) && (id == NULL)))
+	if (dsources == NULL)
 		return;
-
+	if (ELEM(NULL, srna, data) && (id == NULL))
+		return;
+	
 	/* allocate new elem, and add to the list */
 	ds = MEM_callocN(sizeof(tRKS_DSource), "tRKS_DSource");
 	BLI_addtail(dsources, ds);
