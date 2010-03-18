@@ -83,7 +83,7 @@ void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar);
 FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar);
 
 int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar);
-int ED_fileselect_layout_offset(FileLayout* layout, int x, int y);
+int ED_fileselect_layout_offset(FileLayout* layout, int clamp_bounds, int x, int y);
 
 void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, int *x, int *y);
 

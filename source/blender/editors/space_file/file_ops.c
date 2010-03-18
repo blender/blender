@@ -69,7 +69,7 @@
 
 /* ---------- FILE SELECTION ------------ */
 
-static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, int x, int y)
+static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, int clamp_bounds, int x, int y)
 {
 	float fx,fy;
 	int active_file = -1;
@@ -77,7 +77,7 @@ static int find_file_mouse(SpaceFile *sfile, struct ARegion* ar, int x, int y)
 
 	UI_view2d_region_to_view(v2d, x, y, &fx, &fy);
 
-	active_file = ED_fileselect_layout_offset(sfile->layout, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
+	active_file = ED_fileselect_layout_offset(sfile->layout, clamp_bounds, v2d->tot.xmin + fx, v2d->tot.ymax - fy);
 	
 	return active_file;
 }
@@ -138,10 +138,10 @@ static FileSelect file_select(bContext* C, const rcti* rect, short selecting, sh
 	// FileLayout *layout = ED_fileselect_get_layout(sfile, ar);
 
 	int numfiles = filelist_numfiles(sfile->files);
-
+	
 	params->selstate = NOTACTIVE;
-	first_file = find_file_mouse(sfile, ar, rect->xmin, rect->ymax);
-	last_file = find_file_mouse(sfile, ar, rect->xmax, rect->ymin);
+	first_file = find_file_mouse(sfile, ar, 1, rect->xmin, rect->ymax);
+	last_file = find_file_mouse(sfile, ar, 1, rect->xmax, rect->ymin);
 	
 	clamp_to_filelist(numfiles, &first_file, &last_file);
 
@@ -206,10 +206,9 @@ static FileSelect file_select(bContext* C, const rcti* rect, short selecting, sh
 static int file_border_select_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar= CTX_wm_region(C);
-	SpaceFile *sfile= CTX_wm_space_file(C);
 	short selecting;
 	rcti rect;
-
+	
 	selecting= (RNA_int_get(op->ptr, "gesture_mode")==GESTURE_MODAL_SELECT);
 	rect.xmin= RNA_int_get(op->ptr, "xmin");
 	rect.ymin= RNA_int_get(op->ptr, "ymin");
@@ -452,7 +451,7 @@ int file_hilight_set(SpaceFile *sfile, ARegion *ar, int mx, int my)
 	my -= ar->winrct.ymin;
 
 	if(BLI_in_rcti(&ar->v2d.mask, mx, my)) {
-		actfile = find_file_mouse(sfile, ar, mx , my);
+		actfile = find_file_mouse(sfile, ar, 0, mx , my);
 
 		if((actfile >= 0) && (actfile < numfiles))
 			params->active_file=actfile;
@@ -662,8 +661,6 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 
 int file_refresh_exec(bContext *C, wmOperator *unused)
 {
-	SpaceFile *sfile= CTX_wm_space_file(C);
-	
 	file_change_dir(C, 1);
 
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);

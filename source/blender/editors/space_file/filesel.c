@@ -220,7 +220,7 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 	}
 }
 
-int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
+int ED_fileselect_layout_offset(FileLayout* layout, int clamp_bounds, int x, int y)
 {
 	int offsetx, offsety;
 	int active_file;
@@ -231,9 +231,14 @@ int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
 	
-	if (offsetx > layout->columns-1) return -1 ;
-	if (offsety > layout->rows-1) return -1 ;
-
+	if (clamp_bounds) {
+		CLAMP(offsetx, 0, layout->columns-1);
+		CLAMP(offsety, 0, layout->rows-1);
+	} else {
+		if (offsetx > layout->columns-1) return -1 ;
+		if (offsety > layout->rows-1) return -1 ;
+	}
+	
 	if (layout->flag & FILE_LAYOUT_HOR) 
 		active_file = layout->rows*offsetx + offsety;
 	else
