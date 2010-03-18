@@ -193,9 +193,9 @@ IF(UNIX AND NOT APPLE)
 	)
 	SET(OPENEXR_LIB Half IlmImf Iex Imath)
 
-	SET(FFMPEG /usr)
+	SET(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
 	SET(FFMPEG_INC ${FFMPEG}/include)
-	SET(FFMPEG_LIB avformat avcodec avutil avdevice swscale)
+	SET(FFMPEG_LIB avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
 	SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
   
 	IF(WITH_FFTW3)
