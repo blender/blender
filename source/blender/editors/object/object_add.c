@@ -105,8 +105,11 @@ void ED_object_location_from_view(bContext *C, float *loc)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
+	float *cursor;
 	
-	loc = give_cursor(scene, v3d);
+	cursor = give_cursor(scene, v3d);
+
+	copy_v3_v3(loc, cursor);
 }
 
 void ED_object_rotation_from_view(bContext *C, float *rot)
