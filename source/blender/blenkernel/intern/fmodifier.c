@@ -871,6 +871,49 @@ static FModifierTypeInfo FMI_LIMITS = {
 	fcm_limits_evaluate /* evaluate */
 };
 
+/* Stepped F-Curve Modifier --------------------------- */
+
+static void fcm_stepped_new_data (void *mdata) 
+{
+	FMod_Stepped *data= (FMod_Stepped *)mdata;
+	
+	/* just need to set the step-size to 2-frames by default */
+	// XXX: or would 5 be more normal?
+	data->step_size = 2.0f;
+}
+
+static float fcm_stepped_time (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
+{
+	FMod_Stepped *data= (FMod_Stepped *)fcm->data;
+	int snapblock;
+	
+	/* we snap to the start of the previous closest block of 'step_size' frames 
+	 * after the start offset has been discarded 
+	 *	- i.e. round down
+	 */
+	snapblock = (int)((evaltime - data->start) / data->step_size);
+	
+	/* reapply the offset, and multiple the snapblock by the size of the steps to get 
+	 * the new time to evaluate at 
+	 */
+	return ((float)snapblock * data->step_size) + data->start;
+}
+
+static FModifierTypeInfo FMI_STEPPED = {
+	FMODIFIER_TYPE_STEPPED, /* type */
+	sizeof(FMod_Limits), /* size */
+	FMI_TYPE_GENERATE_CURVE, /* action type */  /* XXX... err... */   
+	FMI_REQUIRES_RUNTIME_CHECK, /* requirements */
+	"Stepped", /* name */
+	"FMod_Stepped", /* struct name */
+	NULL, /* free data */
+	NULL, /* copy data */
+	fcm_stepped_new_data, /* new data */
+	NULL, /* verify */
+	fcm_stepped_time, /* evaluate time */
+	NULL /* evaluate */
+};
+
 /* F-Curve Modifier API --------------------------- */
 /* All of the F-Curve Modifier api functions use FModifierTypeInfo structs to carry out
  * and operations that involve F-Curve modifier specific code.
@@ -892,6 +935,7 @@ static void fmods_init_typeinfo ()
 	fmodifiersTypeInfo[6]=  NULL/*&FMI_FILTER*/;			/* Filter F-Curve Modifier */  // XXX unimplemented
 	fmodifiersTypeInfo[7]=  &FMI_PYTHON;			/* Custom Python F-Curve Modifier */
 	fmodifiersTypeInfo[8]= 	&FMI_LIMITS;			/* Limits F-Curve Modifier */
+	fmodifiersTypeInfo[9]= 	&FMI_STEPPED;			/* Stepped F-Curve Modifier */
 }
 
 /* This function should be used for getting the appropriate type-info when only
@@ -966,6 +1010,31 @@ FModifier *add_fmodifier (ListBase *modifiers, int type)
 		
 	/* return modifier for further editing */
 	return fcm;
+}
+
+/* Make a copy of the specified F-Modifier */
+FModifier *copy_fmodifier (FModifier *src)
+{
+	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(src);
+	FModifier *dst;
+	
+	/* sanity check */
+	if (src == NULL)
+		return NULL;
+		
+	/* copy the base data, clearing the links */
+	dst = MEM_dupallocN(src);
+	dst->next = dst->prev = NULL;
+	
+	/* make a new copy of the F-Modifier's data */
+	dst->data = MEM_dupallocN(src->data);
+	
+	/* only do specific constraints if required */
+	if (fmi && fmi->copy_data)
+		fmi->copy_data(dst, src);
+		
+	/* return the new modifier */
+	return dst;
 }
 
 /* Duplicate all of the F-Modifiers in the Modifier stacks */

@@ -1633,8 +1633,7 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 	BLI_freelistN(&anim_data);
 	
 	/* set notifier that things have changed */
-	// FIXME: this doesn't really do it justice...
-	WM_event_add_notifier(C, NC_ANIMATION, NULL);
+	WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
 	
 	/* done */
 	return OPERATOR_FINISHED;
@@ -1657,6 +1656,127 @@ void NLA_OT_fmodifier_add (wmOperatorType *ot)
 	/* id-props */
 	ot->prop= RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
 	RNA_def_boolean(ot->srna, "only_active", 0, "Only Active", "Only add F-Modifier of the specified type to the active strip.");
+}
+
+/* ******************** Copy F-Modifiers Operator *********************** */
+
+static int nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter, ok=0;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* clear buffer first */
+	free_fmodifiers_copybuf();
+	
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each NLA-Track, add the specified modifier to all selected strips */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		
+		for (strip= nlt->strips.first; strip; strip=strip->next) {
+			/* only add F-Modifier if on active strip? */
+			if ((strip->flag & NLASTRIP_FLAG_ACTIVE)==0)
+				continue;
+				
+			// TODO: when 'active' vs 'all' boolean is added, change last param!
+			ok += ANIM_fmodifiers_copy_to_buf(&strip->modifiers, 0);
+		}
+	}
+	
+	/* successful or not? */
+	if (ok == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No F-Modifiers available to be copied");
+		return OPERATOR_CANCELLED;
+	}
+	else
+		return OPERATOR_FINISHED;
+}
+ 
+void NLA_OT_fmodifier_copy (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy F-Modifiers";
+	ot->idname= "NLA_OT_fmodifier_copy";
+	ot->description= "Copy the F-Modifier(s) of the active NLA-Strip.";
+	
+	/* api callbacks */
+	ot->exec= nla_fmodifier_copy_exec;
+	ot->poll= nlaop_poll_tweakmode_off; 
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* id-props */
+	//ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All F-Modifiers", "Copy all the F-Modifiers, instead of just the active one");
+}
+
+/* ******************** Paste F-Modifiers Operator *********************** */
+
+static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter, ok=0;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* get a list of the editable tracks being shown in the NLA */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_NLATRACKS | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* for each NLA-Track, add the specified modifier to all selected strips */
+	for (ale= anim_data.first; ale; ale= ale->next) {
+		NlaTrack *nlt= (NlaTrack *)ale->data;
+		NlaStrip *strip;
+		
+		for (strip= nlt->strips.first; strip; strip=strip->next) {
+			// TODO: do we want to replace existing modifiers? add user pref for that!
+			ok += ANIM_fmodifiers_paste_from_buf(&strip->modifiers, 0);
+		}
+	}
+	
+	/* clean up */
+	BLI_freelistN(&anim_data);
+	
+	/* successful or not? */
+	if (ok) {
+		/* set notifier that things have changed */
+		/* set notifier that things have changed */
+		WM_event_add_notifier(C, NC_ANIMATION|ND_NLA_EDIT, NULL);
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No F-Modifiers to paste");
+		return OPERATOR_CANCELLED;
+	}
+}
+ 
+void NLA_OT_fmodifier_paste (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste F-Modifiers";
+	ot->idname= "NLA_OT_fmodifier_paste";
+	ot->description= "Add copied F-Modifiers to the selected NLA-Strips";
+	
+	/* api callbacks */
+	ot->exec= nla_fmodifier_paste_exec;
+	ot->poll= nlaop_poll_tweakmode_off;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* *********************************************** */

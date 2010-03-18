@@ -610,8 +610,13 @@ static void graph_panel_modifiers(const bContext *C, Panel *pa)
 		row= uiLayoutRow(pa->layout, 0);
 		block= uiLayoutGetBlock(row);
 		
-		// XXX for now, this will be a operator button which calls a temporary 'add modifier' operator
+		// XXX for now, this will be a operator button which calls a 'add modifier' operator
 		uiDefButO(block, BUT, "GRAPH_OT_fmodifier_add", WM_OP_INVOKE_REGION_WIN, "Add Modifier", 10, 0, 150, 20, "Adds a new F-Curve Modifier for the active F-Curve");
+		
+		/* copy/paste (as sub-row)*/
+		row= uiLayoutRow(row, 1);
+			uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_fmodifier_copy");
+			uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_fmodifier_paste");
 	}
 	
 	/* draw each modifier */

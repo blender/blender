@@ -165,6 +165,8 @@ void nla_operatortypes(void)
 	WM_operatortype_append(NLA_OT_snap);
 	
 	WM_operatortype_append(NLA_OT_fmodifier_add);
+	WM_operatortype_append(NLA_OT_fmodifier_copy);
+	WM_operatortype_append(NLA_OT_fmodifier_paste);
 }
 
 /* ************************** registration - keymaps **********************************/

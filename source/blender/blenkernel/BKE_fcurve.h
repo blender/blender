@@ -158,6 +158,7 @@ FModifierTypeInfo *get_fmodifier_typeinfo(int type);
 /* ---------------------- */
 
 struct FModifier *add_fmodifier(ListBase *modifiers, int type);
+struct FModifier *copy_fmodifier(struct FModifier *src);
 void copy_fmodifiers(ListBase *dst, ListBase *src);
 int remove_fmodifier(ListBase *modifiers, struct FModifier *fcm);
 int remove_fmodifier_index(ListBase *modifiers, int index);

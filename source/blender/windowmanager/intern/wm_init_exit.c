@@ -217,6 +217,7 @@ extern wchar_t *copybufinfo;
 	// XXX copy/paste buffer stuff...
 extern void free_anim_copybuf(); 
 extern void free_anim_drivers_copybuf(); 
+extern void free_fmodifiers_copybuf(); 
 extern void free_posebuf(); 
 
 /* called in creator.c even... tsk, split this! */
@@ -272,6 +273,7 @@ void WM_exit(bContext *C)
 //	free_matcopybuf();
 	free_anim_copybuf();
 	free_anim_drivers_copybuf();
+	free_fmodifiers_copybuf();
 	free_posebuf();
 //	free_vertexpaint();
 //	free_imagepaint();

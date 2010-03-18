@@ -139,6 +139,8 @@ enum {
 /* ----------- */
 
 void GRAPH_OT_fmodifier_add(struct wmOperatorType *ot);
+void GRAPH_OT_fmodifier_copy(struct wmOperatorType *ot);
+void GRAPH_OT_fmodifier_paste(struct wmOperatorType *ot);
 
 /* ----------- */
 

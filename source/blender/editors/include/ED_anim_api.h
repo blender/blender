@@ -452,8 +452,27 @@ void ANIM_draw_previewrange(const struct bContext *C, struct View2D *v2d);
 /* ************************************************* */
 /* F-MODIFIER TOOLS */
 
+/* ------------- UI Panel Drawing -------------- */
+
 /* draw a given F-Modifier for some layout/UI-Block */
 void ANIM_uiTemplate_fmodifier_draw(struct uiLayout *layout, struct ID *id, ListBase *modifiers, struct FModifier *fcm);
+
+/* ------------- Copy/Paste Buffer -------------- */
+
+
+/* free the copy/paste buffer */
+void free_fmodifiers_copybuf(void);
+
+/* copy the given F-Modifiers to the buffer, returning whether anything was copied or not
+ * assuming that the buffer has been cleared already with free_fmodifiers_copybuf()
+ *	- active: only copy the active modifier
+ */
+short ANIM_fmodifiers_copy_to_buf(ListBase *modifiers, short active);
+
+/* 'Paste' the F-Modifier(s) from the buffer to the specified list 
+ *	- replace: free all the existing modifiers to leave only the pasted ones 
+ */
+short ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, short replace);
 
 /* ************************************************* */
 /* ASSORTED TOOLS */

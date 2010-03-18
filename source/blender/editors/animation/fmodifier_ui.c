@@ -30,6 +30,9 @@
  * This file defines the (C-Coded) templates + editing callbacks needed 
  * by the interface stuff or F-Modifiers, as used by F-Curves in the Graph Editor,
  * and NLA-Strips in the NLA Editor.
+ *
+ * Copy/Paste Buffer for F-Modifiers:
+ * For now, this is also defined in this file so that it can be shared between the 
  */
  
 #include <string.h>
@@ -47,14 +50,17 @@
 
 #include "RNA_access.h"
 
+#include "ED_anim_api.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+/* ********************************************** */
+/* UI STUFF */
 
 // XXX! --------------------------------
 /* temporary definition for limits of float number buttons (FLT_MAX tends to infinity with old system) */
 #define UI_FLT_MAX 	10000.0f
-
-/* ********************************************** */
 
 #define B_REDR 					1
 #define B_FMODIFIER_REDRAW		20
@@ -549,6 +555,22 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 
 /* --------------- */
 
+/* draw settings for stepped interpolation modifier */
+static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, short width)
+{
+	uiLayout *col;
+	PointerRNA ptr;
+	
+	/* init the RNA-pointer */
+	RNA_pointer_create(id, &RNA_FModifierStepped, fcm, &ptr);
+	
+	col= uiLayoutColumn(layout, 0);
+	
+	uiItemR(col, NULL, 0, &ptr, "step_size", 0);
+	uiItemR(col, NULL, 0, &ptr, "start_offset", 0);
+}
+
+/* --------------- */
 
 void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifiers, FModifier *fcm)
 {
@@ -635,11 +657,93 @@ void ANIM_uiTemplate_fmodifier_draw (uiLayout *layout, ID *id, ListBase *modifie
 			case FMODIFIER_TYPE_NOISE: /* Noise */
 				draw_modifier__noise(box, id, fcm, width);
 				break;
+				
+			case FMODIFIER_TYPE_STEPPED: /* Stepped */
+				draw_modifier__stepped(box, id, fcm, width);
+				break;
 			
 			default: /* unknown type */
 				break;
 		}
 	}
+}
+
+/* ********************************************** */
+/* COPY/PASTE BUFFER STUFF */
+
+/* Copy/Paste Buffer itself (list of FModifier 's) */
+static ListBase fmodifier_copypaste_buf = {NULL, NULL};
+
+/* ---------- */
+
+/* free the copy/paste buffer */
+void free_fmodifiers_copybuf (void)
+{
+	/* just free the whole buffer */
+	free_fmodifiers(&fmodifier_copypaste_buf);
+}
+
+/* copy the given F-Modifiers to the buffer, returning whether anything was copied or not
+ * assuming that the buffer has been cleared already with free_fmodifiers_copybuf()
+ *	- active: only copy the active modifier
+ */
+short ANIM_fmodifiers_copy_to_buf (ListBase *modifiers, short active)
+{
+	short ok = 1;
+	
+	/* sanity checks */
+	if ELEM(NULL, modifiers, modifiers->first)
+		return 0;
+		
+	/* copy the whole list, or just the active one? */
+	if (active) {
+		FModifier *fcm = find_active_fmodifier(modifiers);
+		
+		if (fcm) {
+			FModifier *fcmN = copy_fmodifier(fcm);
+			BLI_addtail(&fmodifier_copypaste_buf, fcmN);
+		}
+		else
+			ok = 0;
+	}
+	else
+		copy_fmodifiers(&fmodifier_copypaste_buf, modifiers);
+		
+	/* did we succeed? */
+	return ok;
+}
+
+/* 'Paste' the F-Modifier(s) from the buffer to the specified list 
+ *	- replace: free all the existing modifiers to leave only the pasted ones 
+ */
+short ANIM_fmodifiers_paste_from_buf (ListBase *modifiers, short replace)
+{
+	FModifier *fcm;
+	short ok = 0;
+	
+	/* sanity checks */
+	if (modifiers == NULL)
+		return 0;
+		
+	/* if replacing the list, free the existing modifiers */
+	if (replace)
+		free_fmodifiers(modifiers);
+		
+	/* now copy over all the modifiers in the buffer to the end of the list */
+	for (fcm= fmodifier_copypaste_buf.first; fcm; fcm= fcm->next) {
+		/* make a copy of it */
+		FModifier *fcmN = copy_fmodifier(fcm);
+		
+		/* make sure the new one isn't active, otherwise the list may get several actives */
+		fcmN->flag &= ~FMODIFIER_FLAG_ACTIVE;
+		
+		/* now add it to the end of the list */
+		BLI_addtail(modifiers, fcmN);
+		ok = 1;
+	}
+	
+	/* did we succeed? */
+	return ok;
 }
 
 /* ********************************************** */

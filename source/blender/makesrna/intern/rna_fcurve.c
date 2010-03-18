@@ -51,6 +51,7 @@ EnumPropertyItem fmodifier_type_items[] = {
 	{FMODIFIER_TYPE_FILTER, "FILTER", 0, "Filter", ""},
 	{FMODIFIER_TYPE_PYTHON, "PYTHON", 0, "Python", ""},
 	{FMODIFIER_TYPE_LIMITS, "LIMITS", 0, "Limits", ""},
+	{FMODIFIER_TYPE_STEPPED, "STEPPED", 0, "Stepped Interpolation", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem beztriple_keyframe_type_items[] = {
@@ -84,6 +85,8 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 			return &RNA_FModifierPython;
 		case FMODIFIER_TYPE_LIMITS:
 			return &RNA_FModifierLimits;
+		case FMODIFIER_TYPE_STEPPED:
+			return &RNA_FModifierStepped;
 		default:
 			return &RNA_UnknownType;
 	}
@@ -712,8 +715,30 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
 
 }
 
+/* --------- */
+
+static void rna_def_fmodifier_stepped(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna= RNA_def_struct(brna, "FModifierStepped", "FModifier");
+	RNA_def_struct_ui_text(srna, "Stepped Interpolation F-Modifier", "Holds each interpolated value from the F-Curve for several frames without changing the timing");
+	RNA_def_struct_sdna_from(srna, "FMod_Stepped", "data");
+	
+	/* properties */
+	prop= RNA_def_property(srna, "step_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Step Size", "Number of frames to hold each value");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	
+	prop= RNA_def_property(srna, "start_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "start");
+	RNA_def_property_ui_text(prop, "Start Offset", "Reference number of frames before frames get held. Use to get hold for '1-3' vs '5-7' holding patterns");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+}
 
 /* --------- */
+
 
 static void rna_def_fmodifier(BlenderRNA *brna)
 {
@@ -1209,6 +1234,7 @@ void RNA_def_fcurve(BlenderRNA *brna)
 	rna_def_fmodifier_python(brna);
 	rna_def_fmodifier_limits(brna);
 	rna_def_fmodifier_noise(brna);
+	rna_def_fmodifier_stepped(brna);
 }
 
 

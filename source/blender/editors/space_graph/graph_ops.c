@@ -262,8 +262,9 @@ void graphedit_operatortypes(void)
 	WM_operatortype_append(GRAPH_OT_click_insert);
 	
 	/* F-Curve Modifiers */
-	// XXX temporary?
 	WM_operatortype_append(GRAPH_OT_fmodifier_add);
+	WM_operatortype_append(GRAPH_OT_fmodifier_copy);
+	WM_operatortype_append(GRAPH_OT_fmodifier_paste);
 }
 
 /* ************************** registration - keymaps **********************************/

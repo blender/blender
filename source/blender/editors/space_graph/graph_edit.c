@@ -1971,7 +1971,7 @@ static int graph_fmodifier_add_exec(bContext *C, wmOperator *op)
 		filter |= (ANIMFILTER_SEL|ANIMFILTER_CURVEVISIBLE);
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
-	/* smooth keyframes */
+	/* add f-modifier to each curve */
 	for (ale= anim_data.first; ale; ale= ale->next) {
 		FCurve *fcu= (FCurve *)ale->data;
 		FModifier *fcm;
@@ -2015,6 +2015,121 @@ void GRAPH_OT_fmodifier_add (wmOperatorType *ot)
 	/* id-props */
 	ot->prop= RNA_def_enum(ot->srna, "type", fmodifier_type_items, 0, "Type", "");
 	RNA_def_boolean(ot->srna, "only_active", 1, "Only Active", "Only add F-Modifier to active F-Curve.");
+}
+
+/* ******************** Copy F-Modifiers Operator *********************** */
+
+static int graph_fmodifier_copy_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	bAnimListElem *ale;
+	short ok = 0;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* clear buffer first */
+	free_fmodifiers_copybuf();
+	
+	/* get the active F-Curve */
+	ale= get_active_fcurve_channel(&ac);
+	
+	/* if this exists, call the copy F-Modifiers API function */
+	if (ale && ale->data) {
+		FCurve *fcu= (FCurve *)ale->data;
+		
+		// TODO: when 'active' vs 'all' boolean is added, change last param!
+		ok= ANIM_fmodifiers_copy_to_buf(&fcu->modifiers, 0);
+		
+		/* free temp data now */
+		MEM_freeN(ale);
+	}
+	
+	/* successful or not? */
+	if (ok == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No F-Modifiers available to be copied");
+		return OPERATOR_CANCELLED;
+	}
+	else
+		return OPERATOR_FINISHED;
+}
+ 
+void GRAPH_OT_fmodifier_copy (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy F-Modifiers";
+	ot->idname= "GRAPH_OT_fmodifier_copy";
+	ot->description= "Copy the F-Modifier(s) of the active F-Curve.";
+	
+	/* api callbacks */
+	ot->exec= graph_fmodifier_copy_exec;
+	ot->poll= graphop_active_fcurve_poll; 
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	
+	/* id-props */
+	//ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All F-Modifiers", "Copy all the F-Modifiers, instead of just the active one");
+}
+
+/* ******************** Paste F-Modifiers Operator *********************** */
+
+static int graph_fmodifier_paste_exec(bContext *C, wmOperator *op)
+{
+	bAnimContext ac;
+	ListBase anim_data = {NULL, NULL};
+	bAnimListElem *ale;
+	int filter, ok=0;
+	
+	/* get editor data */
+	if (ANIM_animdata_get_context(C, &ac) == 0)
+		return OPERATOR_CANCELLED;
+	
+	/* filter data */
+	filter= (ANIMFILTER_VISIBLE | ANIMFILTER_CURVEVISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_CURVESONLY);
+	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+	
+	/* paste modifiers */
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		FCurve *fcu= (FCurve *)ale->data;
+		
+		// TODO: do we want to replace existing modifiers? add user pref for that!
+		ok += ANIM_fmodifiers_paste_from_buf(&fcu->modifiers, 0);
+	}
+	
+	/* clean up */
+	BLI_freelistN(&anim_data);
+	
+	/* successful or not? */
+	if (ok) {
+		/* validate keyframes after editing */
+		ANIM_editkeyframes_refresh(&ac);
+		
+		/* set notifier that keyframes have changed */
+		WM_event_add_notifier(C, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+		
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "No F-Modifiers to paste");
+		return OPERATOR_CANCELLED;
+	}
+}
+ 
+void GRAPH_OT_fmodifier_paste (wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Paste F-Modifiers";
+	ot->idname= "GRAPH_OT_fmodifier_paste";
+	ot->description= "Add copied F-Modifiers to the selected F-Curves";
+	
+	/* api callbacks */
+	ot->exec= graph_fmodifier_paste_exec;
+	ot->poll= graphop_editable_keyframes_poll;
+	
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* ************************************************************************** */
