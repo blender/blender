@@ -141,6 +141,8 @@ short fcurve_needs_draw_fmodifier_controls (FCurve *fcu, FModifier *fcm)
 			/* clearly harmless */
 			case FMODIFIER_TYPE_CYCLES:
 				return 0;
+			case FMODIFIER_TYPE_STEPPED:
+				return 0;
 				
 			/* borderline... */
 			case FMODIFIER_TYPE_NOISE:
