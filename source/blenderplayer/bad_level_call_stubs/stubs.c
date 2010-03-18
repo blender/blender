@@ -121,6 +121,7 @@ struct Render *RE_NewRender(const char *name){return (struct Render*) NULL;}
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame){}
 
 /* rna */
+float *give_cursor(struct Scene *scene, struct View3D *v3d){return NULL;}
 void WM_menutype_free(void){}
 void WM_menutype_freelink(struct MenuType* mt){}
 int WM_menutype_add(struct MenuType *mt) {return 0;}
@@ -178,6 +179,9 @@ int WM_keymap_item_compare(struct wmKeyMapItem *k1, struct wmKeyMapItem *k2){ret
 
 
 /* rna editors */
+struct KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[]){return NULL;}
+void ANIM_keyingset_info_register (const struct bContext *C, struct KeyingSetInfo *ksi){}
+void ANIM_keyingset_info_unregister (const struct bContext *C, struct KeyingSetInfo *ksi){}
 short ANIM_add_driver(struct ID *id, const char rna_path[], int array_index, short flag, int type){return 0;}
 void ED_space_image_release_buffer(struct SpaceImage *sima, void *lock){}
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **lock_r){return (struct ImBuf *) NULL;}
