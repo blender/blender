@@ -156,6 +156,8 @@ Object *rna_Main_objects_new(Main *bmain, ReportList *reports, char* name, ID *d
 	ob->id.us--;
 
 	ob->data= data;
+	test_object_materials(ob->data);
+	
 	return ob;
 }
 
