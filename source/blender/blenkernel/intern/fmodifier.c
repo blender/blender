@@ -887,16 +887,26 @@ static float fcm_stepped_time (FCurve *fcu, FModifier *fcm, float cvalue, float 
 	FMod_Stepped *data= (FMod_Stepped *)fcm->data;
 	int snapblock;
 	
+	/* check range clamping to see if we should alter the timing to achieve the desired results */
+	if (data->flag & FCM_STEPPED_NO_BEFORE) {
+		if (evaltime < data->start_frame)
+			return evaltime;
+	}
+	if (data->flag & FCM_STEPPED_NO_AFTER) {
+		if (evaltime > data->end_frame)
+			return evaltime;
+	}
+	
 	/* we snap to the start of the previous closest block of 'step_size' frames 
 	 * after the start offset has been discarded 
 	 *	- i.e. round down
 	 */
-	snapblock = (int)((evaltime - data->start) / data->step_size);
+	snapblock = (int)((evaltime - data->offset) / data->step_size);
 	
 	/* reapply the offset, and multiple the snapblock by the size of the steps to get 
 	 * the new time to evaluate at 
 	 */
-	return ((float)snapblock * data->step_size) + data->start;
+	return ((float)snapblock * data->step_size) + data->offset;
 }
 
 static FModifierTypeInfo FMI_STEPPED = {
@@ -1201,14 +1211,20 @@ short list_has_suitable_fmodifier (ListBase *modifiers, int mtype, short acttype
 float evaluate_time_fmodifiers (ListBase *modifiers, FCurve *fcu, float cvalue, float evaltime)
 {
 	FModifier *fcm;
-	float m_evaltime= evaltime;
 	
 	/* sanity checks */
 	if ELEM(NULL, modifiers, modifiers->last)
 		return evaltime;
 		
-	/* find the first modifier from end of stack that modifies time, and calculate the time the modifier
-	 * would calculate time at
+	/* Starting from the end of the stack, calculate the time effects of various stacked modifiers 
+	 * on the time the F-Curve should be evaluated at. 
+	 *
+	 * This is done in reverse order to standard evaluation, as when this is done in standard
+	 * order, each modifier would cause jumps to other points in the curve, forcing all
+	 * previous ones to be evaluated again for them to be correct. However, if we did in the 
+	 * reverse order as we have here, we can consider them a macro to micro type of waterfall
+	 * effect, which should get us the desired effects when using layered time manipulations
+	 * (such as multiple 'stepped' modifiers in sequence, causing different stepping rates)
 	 */
 	for (fcm= modifiers->last; fcm; fcm= fcm->prev) {
 		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
@@ -1217,13 +1233,12 @@ float evaluate_time_fmodifiers (ListBase *modifiers, FCurve *fcu, float cvalue, 
 		// TODO: implement the 'influence' control feature...
 		if (fmi && fmi->evaluate_modifier_time) {
 			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
-				m_evaltime= fmi->evaluate_modifier_time(fcu, fcm, cvalue, evaltime);
-			break;
+				evaltime= fmi->evaluate_modifier_time(fcu, fcm, cvalue, evaltime);
 		}
 	}
 	
 	/* return the modified evaltime */
-	return m_evaltime;
+	return evaltime;
 }
 
 /* Evalautes the given set of F-Curve Modifiers using the given data

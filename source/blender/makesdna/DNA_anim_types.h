@@ -236,8 +236,19 @@ typedef enum eFMod_Noise_Modifications {
 /* stepped modifier data */
 typedef struct FMod_Stepped {
 	float step_size;				/* Number of frames each interpolated value should be held */
-	float start;					/* Reference frame number that stepping starts from */
+	float offset;					/* Reference frame number that stepping starts from */
+	
+	float start_frame;				/* start frame of the frame range that modifier works in */				
+	float end_frame;				/* end frame of the frame range that modifier works in */
+	
+	int flag;						/* various settings */	
 } FMod_Stepped;
+
+/* stepped modifier range flags */
+typedef enum eFMod_Stepped_Flags {
+	FCM_STEPPED_NO_BEFORE 	= (1<<0),	/* don't affect frames before the start frame */
+	FCM_STEPPED_NO_AFTER 	= (1<<1),	/* don't affect frames after the end frame */
+} eFMod_Stepped_Flags;
 
 /* Drivers -------------------------------------- */
 

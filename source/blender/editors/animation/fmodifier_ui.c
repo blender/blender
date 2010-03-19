@@ -42,6 +42,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_blenlib.h"
+
 #include "BKE_context.h"
 #include "BKE_fcurve.h"
 
@@ -252,15 +254,15 @@ static void draw_modifier__cycles(uiLayout *layout, ID *id, FModifier *fcm, shor
 	
 	/* before range */
 	col= uiLayoutColumn(split, 1);
-	uiItemL(col, "Before:", 0);
-	uiItemR(col, "", 0, &ptr, "before_mode", 0);
-	uiItemR(col, NULL, 0, &ptr, "before_cycles", 0);
+		uiItemL(col, "Before:", 0);
+		uiItemR(col, "", 0, &ptr, "before_mode", 0);
+		uiItemR(col, NULL, 0, &ptr, "before_cycles", 0);
 		
 	/* after range */
 	col= uiLayoutColumn(split, 1);
-	uiItemL(col, "After:", 0);
-	uiItemR(col, "", 0, &ptr, "after_mode", 0);
-	uiItemR(col, NULL, 0, &ptr, "after_cycles", 0);
+		uiItemL(col, "After:", 0);
+		uiItemR(col, "", 0, &ptr, "after_mode", 0);
+		uiItemR(col, NULL, 0, &ptr, "after_cycles", 0);
 }
 
 /* --------------- */
@@ -282,13 +284,13 @@ static void draw_modifier__noise(uiLayout *layout, ID *id, FModifier *fcm, short
 	
 	/* col 1 */
 	col= uiLayoutColumn(split, 0);
-	uiItemR(col, NULL, 0, &ptr, "size", 0);
-	uiItemR(col, NULL, 0, &ptr, "strength", 0);
+		uiItemR(col, NULL, 0, &ptr, "size", 0);
+		uiItemR(col, NULL, 0, &ptr, "strength", 0);
 	
 	/* col 2 */
 	col= uiLayoutColumn(split, 0);
-	uiItemR(col, NULL, 0, &ptr, "phase", 0);
-	uiItemR(col, NULL, 0, &ptr, "depth", 0);
+		uiItemR(col, NULL, 0, &ptr, "phase", 0);
+		uiItemR(col, NULL, 0, &ptr, "depth", 0);
 }
 
 /* --------------- */
@@ -525,16 +527,16 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 		
 		/* x-minimum */
 		col= uiLayoutColumn(split, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_minimum_x", 0);
-		uiItemR(col, NULL, 0, &ptr, "minimum_x", 0);
+			uiItemR(col, NULL, 0, &ptr, "use_minimum_x", 0);
+			uiItemR(col, NULL, 0, &ptr, "minimum_x", 0);
 			
 		/* y-minimum*/
 		col= uiLayoutColumn(split, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_minimum_y", 0);
-		uiItemR(col, NULL, 0, &ptr, "minimum_y", 0);
+			uiItemR(col, NULL, 0, &ptr, "use_minimum_y", 0);
+			uiItemR(col, NULL, 0, &ptr, "minimum_y", 0);
 	}
 	
-	/* row 2: minimum */
+	/* row 2: maximum */
 	{
 		row= uiLayoutRow(layout, 0);
 		
@@ -543,13 +545,13 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 		
 		/* x-minimum */
 		col= uiLayoutColumn(split, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_maximum_x", 0);
-		uiItemR(col, NULL, 0, &ptr, "maximum_x", 0);
+			uiItemR(col, NULL, 0, &ptr, "use_maximum_x", 0);
+			uiItemR(col, NULL, 0, &ptr, "maximum_x", 0);
 			
 		/* y-minimum*/
 		col= uiLayoutColumn(split, 1);
-		uiItemR(col, NULL, 0, &ptr, "use_maximum_y", 0);
-		uiItemR(col, NULL, 0, &ptr, "maximum_y", 0);
+			uiItemR(col, NULL, 0, &ptr, "use_maximum_y", 0);
+			uiItemR(col, NULL, 0, &ptr, "maximum_y", 0);
 	}
 }
 
@@ -558,16 +560,32 @@ static void draw_modifier__limits(uiLayout *layout, ID *id, FModifier *fcm, shor
 /* draw settings for stepped interpolation modifier */
 static void draw_modifier__stepped(uiLayout *layout, ID *id, FModifier *fcm, short width)
 {
-	uiLayout *col;
+	uiLayout *col, *subcol;
 	PointerRNA ptr;
 	
 	/* init the RNA-pointer */
 	RNA_pointer_create(id, &RNA_FModifierStepped, fcm, &ptr);
 	
+	/* block 1: "stepping" settings */
 	col= uiLayoutColumn(layout, 0);
-	
-	uiItemR(col, NULL, 0, &ptr, "step_size", 0);
-	uiItemR(col, NULL, 0, &ptr, "start_offset", 0);
+		uiItemR(col, NULL, 0, &ptr, "step_size", 0);
+		uiItemR(col, NULL, 0, &ptr, "offset", 0);
+		
+	/* block 2: start range settings */
+	col= uiLayoutColumn(layout, 1);
+		uiItemR(col, NULL, 0, &ptr, "use_start_frame", 0);
+		
+		subcol = uiLayoutColumn(col, 1);
+		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_start_frame"));
+			uiItemR(subcol, NULL, 0, &ptr, "start_frame", 0);
+			
+	/* block 3: end range settings */
+	col= uiLayoutColumn(layout, 1);
+		uiItemR(col, NULL, 0, &ptr, "use_end_frame", 0);
+		
+		subcol = uiLayoutColumn(col, 1);
+		uiLayoutSetActive(subcol, RNA_boolean_get(&ptr, "use_end_frame"));
+			uiItemR(subcol, NULL, 0, &ptr, "end_frame", 0);
 }
 
 /* --------------- */

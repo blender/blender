@@ -406,6 +406,61 @@ static void rna_FModifierGenerator_coefficients_set(PointerRNA *ptr, const float
 	memcpy(gen->coefficients, values, gen->arraysize * sizeof(float));
 }
 
+static void rna_FModifierLimits_minx_range(PointerRNA *ptr, float *min, float *max)
+{
+	FModifier *fcm= (FModifier*)ptr->data;
+	FMod_Limits *data= fcm->data;
+
+	*min= MINAFRAMEF;
+	*max= (data->flag & FCM_LIMIT_XMAX)? data->rect.xmax : MAXFRAMEF;
+}
+
+static void rna_FModifierLimits_maxx_range(PointerRNA *ptr, float *min, float *max)
+{
+	FModifier *fcm= (FModifier*)ptr->data;
+	FMod_Limits *data= fcm->data;
+
+	*min= (data->flag & FCM_LIMIT_XMIN)? data->rect.xmin : MINAFRAMEF;
+	*max= MAXFRAMEF;
+}
+
+static void rna_FModifierLimits_miny_range(PointerRNA *ptr, float *min, float *max)
+{
+	FModifier *fcm= (FModifier*)ptr->data;
+	FMod_Limits *data= fcm->data;
+
+	*min= -FLT_MAX;
+	*max= (data->flag & FCM_LIMIT_YMAX)? data->rect.ymax : FLT_MAX;
+}
+
+static void rna_FModifierLimits_maxy_range(PointerRNA *ptr, float *min, float *max)
+{
+	FModifier *fcm= (FModifier*)ptr->data;
+	FMod_Limits *data= fcm->data;
+
+	*min= (data->flag & FCM_LIMIT_YMIN)? data->rect.ymin : -FLT_MAX;
+	*max= FLT_MAX;
+}
+
+
+static void rna_FModifierStepped_start_frame_range(PointerRNA *ptr, float *min, float *max)
+{
+	FModifier *fcm= (FModifier*)ptr->data;
+	FMod_Stepped *data= fcm->data;
+	
+	*min= MINAFRAMEF;
+	*max= (data->flag & FCM_STEPPED_NO_AFTER)? data->end_frame : MAXFRAMEF;
+}
+
+static void rna_FModifierStepped_end_frame_range(PointerRNA *ptr, float *min, float *max)
+{
+	FModifier *fcm= (FModifier*)ptr->data;
+	FMod_Stepped *data= fcm->data;
+
+	*min= (data->flag & FCM_STEPPED_NO_BEFORE)? data->start_frame : MINAFRAMEF;
+	*max= MAXFRAMEF;
+}
+
 #else
 
 static void rna_def_fmodifier_generator(BlenderRNA *brna)
@@ -651,21 +706,25 @@ static void rna_def_fmodifier_limits(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "minimum_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rect.xmin");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifierLimits_minx_range");
 	RNA_def_property_ui_text(prop, "Minimum X", "Lowest X value to allow");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	prop= RNA_def_property(srna, "minimum_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rect.ymin");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifierLimits_miny_range");
 	RNA_def_property_ui_text(prop, "Minimum Y", "Lowest Y value to allow");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	prop= RNA_def_property(srna, "maximum_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rect.xmax");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifierLimits_maxx_range");
 	RNA_def_property_ui_text(prop, "Maximum X", "Highest X value to allow");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
 	prop= RNA_def_property(srna, "maximum_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rect.ymax");
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifierLimits_maxy_range");
 	RNA_def_property_ui_text(prop, "Maximum Y", "Highest Y value to allow");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 }
@@ -731,9 +790,29 @@ static void rna_def_fmodifier_stepped(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Step Size", "Number of frames to hold each value");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 	
-	prop= RNA_def_property(srna, "start_offset", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "start");
-	RNA_def_property_ui_text(prop, "Start Offset", "Reference number of frames before frames get held. Use to get hold for '1-3' vs '5-7' holding patterns");
+	prop= RNA_def_property(srna, "offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "offset");
+	RNA_def_property_ui_text(prop, "Offset", "Reference number of frames before frames get held. Use to get hold for '1-3' vs '5-7' holding patterns");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	
+	prop= RNA_def_property(srna, "use_start_frame", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCM_STEPPED_NO_BEFORE);
+	RNA_def_property_ui_text(prop, "Use Start Frame", "Restrict modifier to only act after its 'start' frame");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	
+	prop= RNA_def_property(srna, "use_end_frame", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FCM_STEPPED_NO_AFTER);
+	RNA_def_property_ui_text(prop, "Use End Frame", "Restrict modifier to only act before its 'end' frame");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	
+	prop= RNA_def_property(srna, "start_frame", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifierStepped_start_frame_range");
+	RNA_def_property_ui_text(prop, "Start Frame", "Frame that modifier's influence starts (if applicable)");
+	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
+	
+	prop= RNA_def_property(srna, "end_frame", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, NULL, NULL, "rna_FModifierStepped_end_frame_range");
+	RNA_def_property_ui_text(prop, "End Frame", "Frame that modifier's influence ends (if applicable)");
 	RNA_def_property_update(prop, NC_ANIMATION|ND_KEYFRAME_EDIT, NULL);
 }
 
