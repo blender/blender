@@ -23,7 +23,7 @@
  * ***** END LGPL LICENSE BLOCK *****
  */
 
-#include <cmath>
+#include <limits>
 
 #include "AUD_NULLDevice.h"
 #include "AUD_IReader.h"
@@ -78,7 +78,7 @@ bool AUD_NULLDevice::seek(AUD_Handle* handle, float position)
 
 float AUD_NULLDevice::getPosition(AUD_Handle* handle)
 {
-	return NAN;
+	return std::numeric_limits<float>::quiet_NaN();
 }
 
 AUD_Status AUD_NULLDevice::getStatus(AUD_Handle* handle)
