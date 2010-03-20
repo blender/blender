@@ -3698,7 +3698,7 @@ static void seq_update_muting_recursive(Scene *scene, ListBase *seqbasep, Sequen
 
 			seq_update_muting_recursive(scene, &seq->seqbase, metaseq, seqmute);
 		}
-		else if(seq->type == SEQ_SOUND) {
+		else if((seq->type == SEQ_SOUND) || (seq->type == SEQ_SCENE)) {
 			if(seq->scene_sound) {
 				sound_mute_scene_sound(scene, seq->scene_sound, seqmute);
 			}

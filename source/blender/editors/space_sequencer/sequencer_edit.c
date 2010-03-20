@@ -828,6 +828,8 @@ static Sequence *dupli_seq(struct Scene *scene, Sequence *seq)
 		/* - recurs_dupli_seq(&seq->seqbase,&seqn->seqbase);*/
 	} else if(seq->type == SEQ_SCENE) {
 		seqn->strip->stripdata = 0;
+		if(seq->scene_sound)
+			seqn->scene_sound = sound_scene_add_scene_sound(scene, seqn, seq->startdisp, seq->enddisp, seq->startofs + seq->anim_startofs);
 	} else if(seq->type == SEQ_MOVIE) {
 		seqn->strip->stripdata = 
 				MEM_dupallocN(seq->strip->stripdata);

@@ -4143,7 +4143,10 @@ static void lib_link_scene(FileData *fd, Main *main)
 
 			SEQ_BEGIN(sce->ed, seq) {
 				if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
-				if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
+				if(seq->scene) {
+					seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
+					seq->scene_sound = sound_scene_add_scene_sound(sce, seq, seq->startdisp, seq->enddisp, seq->startofs);
+				}
 				if(seq->scene_camera) seq->scene_camera= newlibadr(fd, sce->id.lib, seq->scene_camera);
 				if(seq->sound) {
 					seq->scene_sound = NULL;
