@@ -24,10 +24,8 @@
  */
 
 #include "BKE_idprop.h"
-
 #include "IDProp.h"
-
-#define BSTR_EQ(a, b)	(*(a) == *(b) && !strcmp(a, b))
+#include "MEM_guardedalloc.h"
 
 /*** Function to wrap ID properties ***/
 PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop, IDProperty *parent);

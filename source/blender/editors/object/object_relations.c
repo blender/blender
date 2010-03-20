@@ -430,7 +430,7 @@ static int parent_clear_exec(bContext *C, wmOperator *op)
 		else if(type == 1) {
 			ob->parent= NULL;
 			ob->track= NULL;
-			ED_object_apply_obmat(ob);
+			object_apply_mat4(ob, ob->obmat);
 		}
 		else if(type == 2)
 			unit_m4(ob->parentinv);
@@ -572,7 +572,7 @@ static int parent_set_exec(bContext *C, wmOperator *op)
 				Object workob;
 				
 				/* apply transformation of previous parenting */
-				ED_object_apply_obmat(ob);
+				object_apply_mat4(ob, ob->obmat);
 				
 				/* set the parent (except for follow-path constraint option) */
 				if(partype != PAR_PATH_CONST)
@@ -887,7 +887,7 @@ static int object_track_clear_exec(bContext *C, wmOperator *op)
 		}
 		
 		if(type == 1)
-			ED_object_apply_obmat(ob);
+			object_apply_mat4(ob, ob->obmat);
 	}
 	CTX_DATA_END;
 

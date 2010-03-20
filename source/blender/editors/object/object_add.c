@@ -1118,7 +1118,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		ob->lay= base->lay;
 		
 		copy_m4_m4(ob->obmat, dob->mat);
-		ED_object_apply_obmat(ob);
+		object_apply_mat4(ob, ob->obmat);
 	}
 	
 	copy_object_set_idnew(C, 0);

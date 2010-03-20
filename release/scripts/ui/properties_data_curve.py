@@ -44,7 +44,7 @@ class DataButtonsPanelActive(DataButtonsPanel):
 
     def poll(self, context):
         curve = context.curve
-        return (curve and curve.active_spline)
+        return (curve and curve.splines.active)
 
 
 class DATA_PT_context_curve(DataButtonsPanel):
@@ -205,7 +205,7 @@ class DATA_PT_active_spline(DataButtonsPanelActive):
 
         ob = context.object
         curve = context.curve
-        act_spline = curve.active_spline
+        act_spline = curve.splines.active
         is_surf = (ob.type == 'SURFACE')
         is_poly = (act_spline.type == 'POLY')
 

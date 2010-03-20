@@ -1165,7 +1165,7 @@ void mesh_to_curve(Scene *scene, Object *ob)
 				nu->pntsu= totpoly;
 				nu->pntsv= 1;
 				nu->orderu= 4;
-				nu->flagu= 2 | (closed ? CU_CYCLIC:0);	/* endpoint */
+				nu->flagu= CU_NURB_ENDPOINT | (closed ? CU_NURB_CYCLIC:0);	/* endpoint */
 				nu->resolu= 12;
 
 				nu->bp= (BPoint *)MEM_callocN(sizeof(BPoint)*totpoly, "bpoints");

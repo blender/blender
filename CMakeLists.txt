@@ -181,11 +181,12 @@ IF(UNIX AND NOT APPLE)
 		ENDIF(NOT SDL_FOUND)
 	ENDIF(WITH_SDL)
 
+    SET(OPENEXR /usr CACHE FILEPATH "OPENEXR Directory")
 	FIND_PATH(OPENEXR_INC
 		ImfXdr.h
 		PATHS
+        ${OPENEXR}/include/OpenEXR
 		/usr/local/include/OpenEXR
-		/usr/include/OpenEXR
 		/sw/include/OpenEXR
 		/opt/local/include/OpenEXR
 		/opt/csw/include/OpenEXR

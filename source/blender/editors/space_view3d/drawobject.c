@@ -5773,7 +5773,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			}
 			break;
 		case OB_CAMERA:
-			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0)
+			if((v3d->flag2 & V3D_RENDER_OVERRIDE)==0 || (rv3d->persp==RV3D_CAMOB && v3d->camera==ob)) /* special exception for active camera */
 				drawcamera(scene, v3d, rv3d, ob, flag);
 			break;
 		case OB_LATTICE:

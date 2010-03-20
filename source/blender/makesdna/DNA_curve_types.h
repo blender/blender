@@ -288,7 +288,9 @@ typedef struct Curve {
 
 
 /* flagu flagv (nurb) */
-#define CU_CYCLIC		1
+#define CU_NURB_CYCLIC		1
+#define CU_NURB_ENDPOINT	2
+#define CU_NURB_BEZIER		4
 
 /* *************** BEZTRIPLE **************** */
 

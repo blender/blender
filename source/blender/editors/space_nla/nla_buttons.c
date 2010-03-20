@@ -379,7 +379,7 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 {
 	PointerRNA strip_ptr;
 	uiLayout *layout= pa->layout;
-	uiLayout *column, *subcolumn;
+	uiLayout *column, *subcolumn, *subrow;
 	uiBlock *block;
 
 	/* check context and also validity of pointer */
@@ -398,10 +398,13 @@ static void nla_panel_evaluation(const bContext *C, Panel *pa)
 		
 	
 	column= uiLayoutColumn(layout, 1);
-		uiItemR(column, NULL, 0, &strip_ptr, "animated_time", 0);
-		
+		subrow= uiLayoutRow(column, 0);
+		uiItemR(subrow, NULL, 0, &strip_ptr, "animated_time", 0);
+		uiItemR(subrow, NULL, 0, &strip_ptr, "animated_time_cyclic", 0);
+
 		subcolumn= uiLayoutColumn(column, 1);
-		uiLayoutSetEnabled(subcolumn, RNA_boolean_get(&strip_ptr, "animated_time"));
+		subrow= uiLayoutRow(subcolumn, 0);
+		uiLayoutSetEnabled(subrow, RNA_boolean_get(&strip_ptr, "animated_time"));
 			uiItemR(subcolumn, NULL, 0, &strip_ptr, "strip_time", 0);
 }
 

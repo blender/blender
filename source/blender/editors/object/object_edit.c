@@ -150,34 +150,6 @@ static int pupmenu(const char *msg) {return 0;}
 static bContext *C;
 static void error_libdata() {}
 
-/* ********************************** */
-
-/* --------------------------------- */
-
-void ED_object_apply_obmat(Object *ob)
-{
-	float mat[3][3], imat[3][3], tmat[3][3];
-	
-	/* from obmat to loc rot size */
-	
-	if(ob==NULL) return;
-	copy_m3_m4(mat, ob->obmat);
-	
-	VECCOPY(ob->loc, ob->obmat[3]);
-
-	mat3_to_eul( ob->rot,mat);
-	eul_to_mat3( tmat,ob->rot);
-
-	invert_m3_m3(imat, tmat);
-	
-	mul_m3_m3m3(tmat, imat, mat);
-	
-	ob->size[0]= tmat[0][0];
-	ob->size[1]= tmat[1][1];
-	ob->size[2]= tmat[2][2];
-	
-}
-
 /* ********* clear/set restrict view *********/
 static int object_restrictview_clear_exec(bContext *C, wmOperator *op)
 {

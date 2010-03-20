@@ -2288,12 +2288,12 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				break;
 
 			case FLY_MODAL_DIR_UP:
-				if (fly->speed < 0.0f) fly->speed= -fly->speed;
+				if (fly->speed > 0.0f) fly->speed= -fly->speed;
 				fly->axis= 1;
 				break;
 
 			case FLY_MODAL_DIR_DOWN:
-				if (fly->speed > 0.0f) fly->speed= -fly->speed;
+				if (fly->speed < 0.0f) fly->speed= -fly->speed;
 				fly->axis= 1;
 				break;
 

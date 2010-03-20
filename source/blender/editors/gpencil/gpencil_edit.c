@@ -423,7 +423,7 @@ static void gp_stroke_to_path (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, Cur
 	nu->pntsu= gps->totpoints;
 	nu->pntsv= 1;
 	nu->orderu= gps->totpoints;
-	nu->flagu= 2;	/* endpoint */
+	nu->flagu= CU_NURB_ENDPOINT;
 	nu->resolu= 32;
 	
 	nu->bp= (BPoint *)MEM_callocN(sizeof(BPoint)*gps->totpoints, "bpoints");

@@ -2352,11 +2352,11 @@ void view3d_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* Draw particle edit brush XXX (removed) */
 	
+
+	if(rv3d->persp==RV3D_CAMOB) drawviewborder(scene, ar, v3d);
+	if(rv3d->rflag & RV3D_FLYMODE) drawviewborder_flymode(ar);
+
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE)==0) {
-
-		if(rv3d->persp==RV3D_CAMOB) drawviewborder(scene, ar, v3d);
-		if(rv3d->rflag & RV3D_FLYMODE) drawviewborder_flymode(ar);
-
 		/* draw grease-pencil stuff - needed to get paint-buffer shown too (since it's 2D) */
 	//	if (v3d->flag2 & V3D_DISPGP)
 			draw_gpencil_3dview((bContext *)C, 0);

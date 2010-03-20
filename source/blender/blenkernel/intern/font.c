@@ -473,7 +473,7 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 	nu2->pntsv = 1;
 	nu2->orderu = 4;
 	nu2->orderv = 1;
-	nu2->flagu = CU_CYCLIC;
+	nu2->flagu = CU_NURB_CYCLIC;
 
 	bp = (BPoint*)MEM_callocN(4 * sizeof(BPoint),"underline_bp"); 
 	if (bp == 0){

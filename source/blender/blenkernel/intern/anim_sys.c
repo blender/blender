@@ -771,6 +771,8 @@ static short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
 /* Write the given value to a setting using RNA, and return success */
 static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_index, float value)
 {
+    // printf("%p %s %i %f\n", ptr, path, array_index, value);
+
 	PropertyRNA *prop;
 	PointerRNA new_ptr;
 	
@@ -780,22 +782,35 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 		/* set value - only for animatable numerical values */
 		if (RNA_property_animateable(&new_ptr, prop)) 
 		{
+			int array_len= RNA_property_array_length(&new_ptr, prop);
+
+			if(array_len && array_index >= array_len)
+			{
+				if (G.f & G_DEBUG) {
+					printf("Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d \n",
+						(ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name+2) : "<No ID>",
+						path, array_index, array_len-1);
+				}
+
+				return 0;
+			}
+
 			switch (RNA_property_type(prop)) 
 			{
 				case PROP_BOOLEAN:
-					if (RNA_property_array_length(&new_ptr, prop))
+					if (array_len)
 						RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_boolean_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_INT:
-					if (RNA_property_array_length(&new_ptr, prop))
+					if (array_len)
 						RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_int_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_FLOAT:
-					if (RNA_property_array_length(&new_ptr, prop))
+					if (array_len)
 						RNA_property_float_set_index(&new_ptr, prop, array_index, value);
 					else
 						RNA_property_float_set(&new_ptr, prop, value);
@@ -817,7 +832,7 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 		// XXX don't tag as failed yet though, as there are some legit situations (Action Constraint) 
 		// where some channels will not exist, but shouldn't lock up Action
 		if (G.f & G_DEBUG) {
-			printf("Animato: Invalid path. ID = '%s',  '%s [%d]' \n", 
+			printf("Animato: Invalid path. ID = '%s',  '%s[%d]' \n",
 				(ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name+2) : "<No ID>", 
 				path, array_index);
 		}
@@ -989,6 +1004,9 @@ static void nlastrip_evaluate_controls (NlaStrip *strip, float ctime)
 		/* execute these settings as per normal */
 		animsys_evaluate_fcurves(&strip_ptr, &strip->fcurves, NULL, ctime);
 	}
+
+	if (strip->flag & NLASTRIP_FLAG_USR_TIME && strip->flag & NLASTRIP_FLAG_USR_TIME_CYCLIC)
+		strip->strip_time= fmod(strip->strip_time - strip->actstart, strip->actend - strip->actstart);
 }
 
 /* gets the strip active at the current time for a list of strips for evaluation purposes */

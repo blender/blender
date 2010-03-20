@@ -277,6 +277,8 @@ def rna2sphinx(BASEPATH):
     fw("\n")
     fw("An introduction to blender and python can be found at <http://wiki.blender.org/index.php/Dev:2.5/Py/API/Intro>\n")
     fw("\n")
+    fw("`A PDF version of this document is also available <blender_python_reference_250.pdf>`__\n")
+    fw("\n")
     fw(".. warning:: The Python API in Blender is **UNSTABLE**, It should only be used for testing, any script written now may break in future releases.\n")
     fw("   \n")
     fw("   The following areas are subject to change.\n")

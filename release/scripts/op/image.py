@@ -19,30 +19,63 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.props import StringProperty
 
+class EditExternally(bpy.types.Operator):
+    '''Edit image in an external application'''
+    bl_idname = "image.external_edit"
+    bl_label = "Image Edit Externally"
+    bl_options = {'REGISTER'}
 
-def image_editor_guess(context):
-    import platform
-    system = platform.system()
-    
-    image_editor = context.user_preferences.filepaths.image_editor
+    path = StringProperty(name="File Path", description="Path to an image file", maxlen= 1024, default= "")
 
-    # use image editor in the preferences when available.
-    if not image_editor:
-        if system == 'Windows':
-            image_editor = ["start"] # not tested!
-        elif system == 'Darwin':
-            image_editor = ["open"]
+    def _editor_guess(self, context):
+        import platform
+        system = platform.system()
+
+        image_editor = context.user_preferences.filepaths.image_editor
+
+        # use image editor in the preferences when available.
+        if not image_editor:
+            if system == 'Windows':
+                image_editor = ["start"] # not tested!
+            elif system == 'Darwin':
+                image_editor = ["open"]
+            else:
+                image_editor = ["gimp"]
         else:
-            image_editor = ["gimp"]
-    else:
-        if system == 'Darwin':
-            # blender file selector treats .app as a folder
-            # and will include a trailing backslash, so we strip it.
-            image_editor.rstrip('\\')
-            image_editor = ["open", "-a", image_editor]
+            if system == 'Darwin':
+                # blender file selector treats .app as a folder
+                # and will include a trailing backslash, so we strip it.
+                image_editor.rstrip('\\')
+                image_editor = ["open", "-a", image_editor]
 
-    return image_editor
+        return image_editor
+
+    def execute(self, context):
+        import subprocess
+        path = self.properties.path
+        image_editor = self._editor_guess(context)
+
+        cmd = []
+        cmd.extend(image_editor)
+        cmd.append(bpy.utils.expandpath(path))
+
+        subprocess.Popen(cmd)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        try:
+            path = context.space_data.image.filename
+        except:
+            self.report({'ERROR'}, "Image not found on disk")
+            return {'CANCELLED'}
+
+        self.properties.path = path
+        self.execute(context)
+        
+        return {'FINISHED'}
 
 
 class SaveDirty(bpy.types.Operator):
@@ -79,7 +112,6 @@ class ProjectEdit(bpy.types.Operator):
         import subprocess
 
         EXT = "png" # could be made an option but for now ok
-        image_editor = image_editor_guess(context)
 
         for image in bpy.data.images:
             image.tag = True
@@ -124,11 +156,7 @@ class ProjectEdit(bpy.types.Operator):
         image_new.file_format = 'PNG'
         image_new.save()
 
-        cmd = []
-        cmd.extend(image_editor)
-        cmd.append(bpy.utils.expandpath(filename_final))
-
-        subprocess.Popen(cmd)
+        bpy.ops.image.external_edit(path=filename_final)
 
         return {'FINISHED'}
 
@@ -155,6 +183,7 @@ class ProjectApply(bpy.types.Operator):
 
 
 classes = [
+    EditExternally,
     SaveDirty,
     ProjectEdit,
     ProjectApply]

@@ -1353,11 +1353,12 @@ static int viewselected_exec(bContext *C, wmOperator *op) /* like a localview wi
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				if(pchan->bone->flag & BONE_SELECTED) {
 					if(pchan->bone->layer & arm->layer) {
+						bPoseChannel *pchan_tx= pchan->custom_tx ? pchan->custom_tx : pchan;
 						ok= 1;
-						VECCOPY(vec, pchan->pose_head);
+						VECCOPY(vec, pchan_tx->pose_head);
 						mul_m4_v3(ob->obmat, vec);
 						DO_MINMAX(vec, min, max);
-						VECCOPY(vec, pchan->pose_tail);
+						VECCOPY(vec, pchan_tx->pose_tail);
 						mul_m4_v3(ob->obmat, vec);
 						DO_MINMAX(vec, min, max);
 					}

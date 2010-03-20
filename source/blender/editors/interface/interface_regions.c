@@ -413,6 +413,15 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Python: %s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
 		data->linedark[data->totline]= 1;
 		data->totline++;
+		
+		if(but->rnapoin.id.data) {
+			ID *id= but->rnapoin.id.data;
+			if(id->lib && id->lib->name) {
+				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "Library: %s", id->lib->name);
+				data->linedark[data->totline]= 1;
+				data->totline++;
+			}
+		}
 	}
 	else if (but->optype) {
 		PointerRNA *opptr;

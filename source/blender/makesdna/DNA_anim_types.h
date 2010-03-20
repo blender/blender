@@ -601,6 +601,7 @@ typedef enum eNlaStrip_Flag {
 		/* strip influence is controlled by local F-Curve */
 	NLASTRIP_FLAG_USR_INFLUENCE	= (1<<5),
 	NLASTRIP_FLAG_USR_TIME		= (1<<6),
+	NLASTRIP_FLAG_USR_TIME_CYCLIC = (1<<7),
 	
 		/* NLA strip length is synced to the length of the referenced action */
 	NLASTRIP_FLAG_SYNC_LENGTH	= (1<<9),

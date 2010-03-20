@@ -392,7 +392,7 @@ static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob )
 	/* a change was made, adjust the children to compensate */
 	for(ob_child=bmain->object.first; ob_child; ob_child=ob_child->id.next) {
 		if(ob_child->parent == ob) {
-			ED_object_apply_obmat(ob_child);
+			object_apply_mat4(ob_child, ob_child->obmat);
 			what_does_parent(scene, ob_child, &workob);
 			invert_m4_m4(ob_child->parentinv, workob.obmat);
 		}

@@ -178,12 +178,12 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base*)internal->link)->object);
 }
 
-static Base *rna_Scene_link_object(Scene *scene, ReportList *reports, Object *ob)
+static Base *rna_Scene_object_link(Scene *scene, ReportList *reports, Object *ob)
 {
 	Base *base;
 
 	if (ob->type != OB_EMPTY && ob->data==NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not an Empty type and has no Object Data set.");
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not an Empty type and has no Object Data set.", ob->id.name+2);
 		return NULL;
 	}
 
@@ -204,7 +204,7 @@ static Base *rna_Scene_link_object(Scene *scene, ReportList *reports, Object *ob
 	return base;
 }
 
-static void rna_Scene_unlink_object(Scene *scene, bContext *C, ReportList *reports, Object *ob)
+static void rna_Scene_object_unlink(Scene *scene, bContext *C, ReportList *reports, Object *ob)
 {
 	Base *base= object_in_scene(ob, scene);
 	if (!base) {
@@ -2604,7 +2604,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "Scene");
 	RNA_def_struct_ui_text(srna, "Scene Objects", "Collection of scene objects");
 
-	func= RNA_def_function(srna, "link", "rna_Scene_link_object");
+	func= RNA_def_function(srna, "link", "rna_Scene_object_link");
 	RNA_def_function_ui_description(func, "Link object to scene.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add to scene.");
@@ -2612,7 +2612,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_pointer(func, "base", "ObjectBase", "", "The newly created base.");
 	RNA_def_function_return(func, parm);
 
-	func= RNA_def_function(srna, "unlink", "rna_Scene_unlink_object");
+	func= RNA_def_function(srna, "unlink", "rna_Scene_object_unlink");
 	RNA_def_function_ui_description(func, "Unlink object from scene.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove from scene.");

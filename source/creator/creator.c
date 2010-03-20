@@ -162,6 +162,7 @@ static void blender_esc(int sig)
 }
 
 /* buildinfo can have quotes */
+#ifdef BUILD_DATE
 static void strip_quotes(char *str)
 {
     if(str[0] == '"') {
@@ -172,6 +173,7 @@ static void strip_quotes(char *str)
         }
     }
 }
+#endif
 
 static int print_version(int argc, char **argv, void *data)
 {

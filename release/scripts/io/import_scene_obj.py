@@ -316,7 +316,7 @@ def line_value(line_split):
 def load_image(imagepath, dirname):
 
     if os.path.exists(imagepath):
-        return bpy.data.add_image(imagepath)
+        return bpy.data.images.load(imagepath)
 
     variants = [os.path.join(dirname, imagepath), os.path.join(dirname, os.path.basename(imagepath))]
 

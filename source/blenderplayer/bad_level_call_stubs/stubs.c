@@ -225,7 +225,6 @@ void ED_mesh_transform(struct Mesh *me, float *mat){}
 void ED_mesh_update(struct Mesh *mesh, struct bContext *C){}
 int ED_mesh_color_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
 int ED_mesh_uv_texture_add(struct bContext *C, struct Scene *scene, struct Object *ob, struct Mesh *me){return 0;}
-void ED_object_apply_obmat(struct Object *ob){}
 void ED_object_constraint_dependency_update(struct Scene *scene, struct Object *ob){}
 void ED_object_constraint_update(struct Object *ob){}
 struct bDeformGroup *ED_vgroup_add_name(struct Object *ob, char *name){return (struct bDeformGroup *) NULL;}

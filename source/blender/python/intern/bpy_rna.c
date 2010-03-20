@@ -359,7 +359,7 @@ static PyObject *pyrna_struct_repr( BPy_StructRNA *self )
 		return pyob;
 	}
 
-	return PyUnicode_FromFormat( "<bpy_struct, %.200s>", RNA_struct_identifier(self->ptr.type));
+	return PyUnicode_FromFormat( "<bpy_struct, %.200s at %p>", RNA_struct_identifier(self->ptr.type), self->ptr.data);
 }
 
 static PyObject *pyrna_prop_repr( BPy_PropertyRNA *self )
@@ -1663,8 +1663,9 @@ int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *error_pre
 {
 	char *path;
 	PropertyRNA *prop;
+	int array_len;
 
-	if (!PyArg_ParseTuple(args, "s|if", &path, &index, &cfra)) {
+	if (!PyArg_ParseTuple(args, "s|if", &path, index, cfra)) {
 		PyErr_Format(PyExc_TypeError, "%.200s expected a string and optionally an int and float arguments", error_prefix);
 		return -1;
 	}
@@ -1690,6 +1691,12 @@ int pyrna_struct_keyframe_parse(PointerRNA *ptr, PyObject *args, char *error_pre
 
 	if (*path_full==NULL) {
 		PyErr_Format( PyExc_TypeError, "%.200s could not make path to \"%s\"", error_prefix, path);
+		return -1;
+	}
+
+	array_len= RNA_property_array_length(ptr, prop);
+	if((*index) != -1 && (*index) >= array_len) {
+		PyErr_Format( PyExc_TypeError, "%.200s index out of range \"%s\", given %d, array length is %d", error_prefix, path, *index, array_len);
 		return -1;
 	}
 

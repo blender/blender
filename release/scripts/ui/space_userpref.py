@@ -1413,8 +1413,7 @@ class USERPREF_PT_addons(bpy.types.Panel):
         addons = [(mod, addon_info_get(mod)) for mod in self._addon_list()]
 
         cats = {info["category"] for mod, info in addons}
-        cats.add("")
-        cats.remove("")
+        cats.discard("")
 
         cats = ['All', 'Disabled', 'Enabled'] + sorted(cats)
 
@@ -1489,6 +1488,24 @@ class USERPREF_PT_addons(bpy.types.Panel):
                     split.separator()
                     split.separator()
 
+        # Append missing scripts
+        # First collect scripts that are used but have no script file.
+        module_names = {mod.__name__ for mod, info in addons}
+        missing_modules = {ext for ext in used_ext if ext not in module_names}
+
+        if missing_modules and filter in ("All", "Enabled"):
+            layout.column().separator()
+            layout.column().label(text="Missing script files")
+
+            module_names = {mod.__name__ for mod, info in addons}
+            for ext in sorted(missing_modules):
+                # Addon UI Code
+                box = layout.column().box()
+                column = box.column()
+                row = column.row()
+
+                row.label(text=ext, icon="ERROR")
+                row.operator("wm.addon_disable").module = ext
 
 from bpy.props import *
 
@@ -1537,21 +1554,8 @@ class WM_OT_addon_enable(bpy.types.Operator):
         # check if add-on is written for current blender version, or raise a warning
         info = addon_info_get(mod)
 
-        if info["blender"]:
-            version = info["blender"].split(".", 2)
-            for i in range(len(version)):
-                try:
-                    version[i] = int(version[i])
-                except:
-                    break
-
-                if version[i] > bpy.app.version[i]:
-                    self.report("WARNING','This script was written for a newer version of Blender \
-and might not function (correctly).\nThe script is enabled though.")
-                elif version[i] == bpy.app.version[i]:
-                    continue
-                else:
-                    break
+        if info.get("blender", (0, 0, 0)) > bpy.app.version:
+            self.report("WARNING','This script was written for a newer version of Blender and might not function (correctly).\nThe script is enabled though.")
 
         return {'FINISHED'}
 
@@ -1668,7 +1672,6 @@ class WM_OT_addon_expand(bpy.types.Operator):
 
         info = addon_info_get(mod)
         info["expanded"] = not info["expanded"]
-        print(info["expanded"])
         return {'FINISHED'}
 
 

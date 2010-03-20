@@ -69,11 +69,6 @@ Tex *rna_Main_add_texture(Main *bmain, char *name)
 	return add_texture(name);
 }
 
-Image *rna_Main_add_image(Main *bmain, char *filename)
-{
-	return BKE_add_image_file(filename, 0);
-}
-
 Camera *rna_Main_cameras_new(Main *bmain, char* name)
 {
 	return add_camera(name);
@@ -227,6 +222,27 @@ void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 	/* XXX python now has invalid pointer? */
 }
 
+Image *rna_Main_images_new(Main *bmain, char* name, int width, int height, int float_buffer)
+{
+	float color[4]= {0.0, 0.0, 0.0, 1.0};
+	Image *image= BKE_add_image_size(width, height, name, float_buffer, 0, color);
+	image->id.us--;
+	return image;
+}
+Image *rna_Main_images_load(Main *bmain, char *filename)
+{
+	return BKE_add_image_file(filename, 0);
+}
+void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
+{
+	if(ID_REAL_USERS(image) <= 0)
+		free_libblock(&bmain->image, image);
+	else
+		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" must have zero users to be removed, found %d.", image->id.name+2, ID_REAL_USERS(image));
+
+	/* XXX python now has invalid pointer? */
+}
+
 Tex *rna_Main_textures_new(Main *bmain, char* name)
 {
 	Tex *tex= add_texture(name);
@@ -309,15 +325,20 @@ void rna_Main_actions_remove(Main *bmain, ReportList *reports, bAction *act)
 
 void RNA_api_main(StructRNA *srna)
 {
+	/*
 	FunctionRNA *func;
 	PropertyRNA *parm;
-
+	*/
+	/* maybe we want to add functions in 'bpy.data' still?
+	 * for now they are all in collections bpy.data.images.new(...) */
+	/*
 	func= RNA_def_function(srna, "add_image", "rna_Main_add_image");
 	RNA_def_function_ui_description(func, "Add a new image.");
 	parm= RNA_def_string(func, "filename", "", 0, "", "Filename to load image from.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_pointer(func, "image", "Image", "", "New image.");
 	RNA_def_function_return(func, parm);
+	*/
 
 }
 
@@ -491,8 +512,40 @@ void RNA_def_main_window_managers(BlenderRNA *brna, PropertyRNA *cprop)
 }
 void RNA_def_main_images(BlenderRNA *brna, PropertyRNA *cprop)
 {
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
+	RNA_def_property_srna(cprop, "MainImages");
+	srna= RNA_def_struct(brna, "MainImages", NULL);
+	RNA_def_struct_ui_text(srna, "Main Images", "Collection of images");
+
+	func= RNA_def_function(srna, "new", "rna_Main_images_new");
+	RNA_def_function_ui_description(func, "Add a new image to the main database");
+	parm= RNA_def_string(func, "name", "Image", 0, "", "New name for the datablock.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_int(func, "width", 1024, 1, INT_MAX, "", "Width of the image.", 0, INT_MAX);
+	parm= RNA_def_int(func, "height", 1024, 1, INT_MAX, "", "Height of the image.", 0, INT_MAX);
+	parm= RNA_def_boolean(func, "float_buffer", 0, "Float Buffer", "Create an image with floating point color");
+	/* return type */
+	parm= RNA_def_pointer(func, "image", "Image", "", "New image datablock.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "load", "rna_Main_images_load");
+	RNA_def_function_ui_description(func, "Load a new image into the main database");
+	parm= RNA_def_string(func, "filename", "File Name", 0, "", "path of the file to load.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm= RNA_def_pointer(func, "image", "Image", "", "New image datablock.");
+	RNA_def_function_return(func, parm);
+
+	func= RNA_def_function(srna, "remove", "rna_Main_images_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove an image from the current blendfile.");
+	parm= RNA_def_pointer(func, "image", "Image", "", "Image to remove.");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
+
 void RNA_def_main_lattices(BlenderRNA *brna, PropertyRNA *cprop)
 {
 
