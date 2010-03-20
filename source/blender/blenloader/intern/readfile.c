@@ -1070,7 +1070,7 @@ int BLO_has_bfile_extension(char *str)
 	return (BLI_testextensie(str, ".ble") || BLI_testextensie(str, ".blend")||BLI_testextensie(str, ".blend.gz"));
 }
 
-int BLO_is_a_library(char *path, char *dir, char *group)
+int BLO_is_a_library(const char *path, char *dir, char *group)
 {
 	/* return ok when a blenderfile, in dir is the filename,
 	 * in group the type of libdata
@@ -1087,7 +1087,7 @@ int BLO_is_a_library(char *path, char *dir, char *group)
 	dir[len-1]= 0;
 
 	/* Find the last slash */
-	fd= (strrchr(dir, '/')>strrchr(dir, '\\'))?strrchr(dir, '/'):strrchr(dir, '\\');
+	fd= BLI_last_slash(dir);
 
 	if(fd==0) return 0;
 	*fd= 0;
@@ -1099,7 +1099,7 @@ int BLO_is_a_library(char *path, char *dir, char *group)
 		char *gp = fd+1; // in case we have a .blend file, gp points to the group
 
 		/* Find the last slash */
-		fd= (strrchr(dir, '/')>strrchr(dir, '\\'))?strrchr(dir, '/'):strrchr(dir, '\\');
+		fd= BLI_last_slash(dir);
 		if (!fd || !BLO_has_bfile_extension(fd+1)) return 0;
 
 		/* now we know that we are in a blend file and it is safe to 
