@@ -910,6 +910,60 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	return block;
 }
 
+/* Only invoked by OK button in popups created with wm_block_create_dialog() */
+static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
+{
+	wmOperator *op= arg1;
+	uiBlock *block= arg2;
+
+	WM_operator_call(C, op);
+
+	uiPupBlockClose(C, block);
+}
+
+/* Dialogs are popups that require user verification (click OK) before exec */
+static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
+{
+	struct { wmOperator *op; int width; int height; } * data = userData;
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *op= data->op;
+	PointerRNA ptr;
+	uiBlock *block;
+	uiLayout *layout;
+	uiBut *btn;
+	uiStyle *style= U.uistyles.first;
+	int columns= 2;
+
+	block = uiBeginBlock(C, ar, "operator dialog", UI_EMBOSS);
+	uiBlockClearFlag(block, UI_BLOCK_LOOP);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
+
+	if (!op->properties) {
+		IDPropertyTemplate val = {0};
+		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	}
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, style);
+	uiItemL(layout, op->type->name, 0);
+
+	if (op->type->ui) {
+		op->layout= layout;
+		op->type->ui((bContext*)C, op);
+		op->layout= NULL;
+	}
+	else
+		uiDefAutoButsRNA(C, layout, &ptr, columns);
+
+	/* Create OK button, the callback of which will execute op */
+	btn= uiDefBut(block, BUT, 0, "OK", 0, 0, 0, 20, NULL, 0, 0, 0, 0, "");
+	uiButSetFunc(btn, dialog_exec_cb, op, block);
+
+	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiEndBlock(C, block);
+
+	return block;
+}
 
 static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
 {
@@ -958,13 +1012,28 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 	return retval;
 }
 
-void WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
+int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int height)
+{
+	struct { wmOperator *op; int width; int height; } data;
+	
+	data.op= op;
+	data.width= width;
+	data.height= height;
+
+	/* op is not executed until popup OK but is clicked */
+	uiPupBlock(C, wm_block_create_dialog, &data);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
 {
 	struct { wmOperator *op; int width; int height; } data;
 	data.op = op;
 	data.width = width;
 	data.height = height;
 	uiPupBlock(C, wm_operator_create_ui, &data);
+	return OPERATOR_RUNNING_MODAL;
 }
 
 int WM_operator_redo_popup(bContext *C, wmOperator *op)

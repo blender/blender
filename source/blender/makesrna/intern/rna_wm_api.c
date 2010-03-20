@@ -158,7 +158,11 @@ static int rna_event_add_modal_handler(struct bContext *C, struct wmOperator *op
 
 #else
 
-static void rna_generic_op_invoke(FunctionRNA *func, int use_event, int use_ret)
+#define WM_GEN_INVOKE_EVENT (1<<0)
+#define WM_GEN_INVOKE_SIZE (1<<1)
+#define WM_GEN_INVOKE_RETURN (1<<2)
+
+static void rna_generic_op_invoke(FunctionRNA *func, int flag)
 {
 	PropertyRNA *parm;
 
@@ -166,12 +170,17 @@ static void rna_generic_op_invoke(FunctionRNA *func, int use_event, int use_ret)
 	parm= RNA_def_pointer(func, "operator", "Operator", "", "Operator to call.");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
-	if(use_event) {
+	if(flag & WM_GEN_INVOKE_EVENT) {
 		parm= RNA_def_pointer(func, "event", "Event", "", "Event.");
 		RNA_def_property_flag(parm, PROP_REQUIRED);
 	}
 
-	if(use_ret) {
+    if(flag & WM_GEN_INVOKE_SIZE) {
+        parm= RNA_def_int(func, "width", 300, 0, INT_MAX, "", "Width of the popup.", 0, INT_MAX);
+        parm= RNA_def_int(func, "height", 20, 0, INT_MAX, "", "Height of the popup.", 0, INT_MAX);
+    }
+
+	if(flag & WM_GEN_INVOKE_RETURN) {
 		parm= RNA_def_enum(func, "result", operator_return_items, 0, "result", "");
 		RNA_def_property_flag(parm, PROP_ENUM_FLAG);
 		RNA_def_function_return(func, parm);
@@ -185,7 +194,7 @@ void RNA_api_wm(StructRNA *srna)
 
 	func= RNA_def_function(srna, "add_fileselect", "WM_event_add_fileselect");
 	RNA_def_function_ui_description(func, "Show up the file selector.");
-	rna_generic_op_invoke(func, 0, 0);
+	rna_generic_op_invoke(func, 0);
 
 	func= RNA_def_function(srna, "add_keyconfig", "WM_keyconfig_add_user");
 	parm= RNA_def_string(func, "name", "", 0, "Name", "");
@@ -206,18 +215,21 @@ void RNA_api_wm(StructRNA *srna)
 	/* invoke functions, for use with python */
 	func= RNA_def_function(srna, "invoke_props_popup", "WM_operator_props_popup");
 	RNA_def_function_ui_description(func, "Operator popup invoke.");
-	rna_generic_op_invoke(func, 1, 1);
+	rna_generic_op_invoke(func, WM_GEN_INVOKE_EVENT|WM_GEN_INVOKE_RETURN);
+
+	/* invoked dialog opens popup with OK button, does not auto-exec operator. */
+	func= RNA_def_function(srna, "invoke_props_dialog", "WM_operator_props_dialog_popup");
+	RNA_def_function_ui_description(func, "Operator dialog (non-autoexec popup) invoke.");
+	rna_generic_op_invoke(func, WM_GEN_INVOKE_SIZE|WM_GEN_INVOKE_RETURN);
 
 	/* invoke enum */
 	func= RNA_def_function(srna, "invoke_search_popup", "rna_Operator_enum_search_invoke");
-	rna_generic_op_invoke(func, 0, 0);
+	rna_generic_op_invoke(func, 0);
 
 	/* invoke functions, for use with python */
 	func= RNA_def_function(srna, "invoke_popup", "WM_operator_ui_popup");
 	RNA_def_function_ui_description(func, "Operator popup invoke.");
-	rna_generic_op_invoke(func, 0, 0);
-	parm= RNA_def_int(func, "width", 300, 0, INT_MAX, "", "Width of the popup.", 0, INT_MAX);
-	parm= RNA_def_int(func, "height", 20, 0, INT_MAX, "", "Height of the popup.", 0, INT_MAX);
+	rna_generic_op_invoke(func, WM_GEN_INVOKE_SIZE|WM_GEN_INVOKE_RETURN);
 }
 
 void RNA_api_operator(StructRNA *srna)
