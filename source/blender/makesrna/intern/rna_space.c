@@ -597,14 +597,6 @@ static void rna_Sequencer_display_mode_update(bContext *C, PointerRNA *ptr)
 	ED_sequencer_update_view(C, view);
 }
 
-static void rna_FileSelectParams_flag_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	FileSelectParams* params = (FileSelectParams*)ptr->data;
-	if (params) {
-		params->oldflag = params->flag;
-	}
-}
-
 #else
 
 static void rna_def_space(BlenderRNA *brna)
@@ -1880,12 +1872,12 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "do_filter", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FILE_FILTER);
 	RNA_def_property_ui_text(prop, "Filter Files", "Enable filtering of files");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, "rna_FileSelectParams_flag_update");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop= RNA_def_property(srna, "hide_dot", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FILE_HIDE_DOT);
 	RNA_def_property_ui_text(prop, "Hide Dot Files", "Hide hidden dot files");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_LIST , "rna_FileSelectParams_flag_update");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS , NULL);
 
 	prop= RNA_def_property(srna, "sort", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "sort");

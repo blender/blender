@@ -204,14 +204,6 @@ double BLI_diskfree(char *dir)
 #endif
 }
 
-static int hide_dot= 0;
-
-void BLI_hide_dot_files(int set)
-{
-	if(set) hide_dot= 1;
-	else hide_dot= 0;
-}
-
 void BLI_builddir(char *dirname, char *relname)
 {
 	struct dirent *fname;
@@ -237,17 +229,12 @@ void BLI_builddir(char *dirname, char *relname)
 		while ((fname = (struct dirent*) readdir(dir)) != NULL) {
 			len= strlen(fname->d_name);
 			
-			if(hide_dot && fname->d_name[0]=='.' && fname->d_name[1]!='.' && fname->d_name[1]!=0); /* ignore .file */
-			else if(hide_dot && len && fname->d_name[len-1]=='~'); /* ignore file~ */
-			else if (((fname->d_name[0] == '.') && (fname->d_name[1] == 0) )); /* ignore . */
-			else {
-				dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
-				if (dlink){
-					strcpy(buf+rellen,fname->d_name);
-					dlink->name = BLI_strdup(buf);
-					BLI_addhead(dirbase,dlink);
-					newnum++;
-				}
+			dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
+			if (dlink){
+				strcpy(buf+rellen,fname->d_name);
+				dlink->name = BLI_strdup(buf);
+				BLI_addhead(dirbase,dlink);
+				newnum++;
 			}
 		}
 		

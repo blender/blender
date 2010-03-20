@@ -135,7 +135,8 @@ typedef struct FileList
 	struct BlendHandle *libfiledata;
 	short hide_parent;
 
-	void (*read)(struct FileList *);
+	void (*readf)(struct FileList *);
+	int  (*filterf)(struct FileList *, struct direntry* file, unsigned int filter, short hide_dot);
 
 } FileList;
 
@@ -292,63 +293,91 @@ static int compare_extension(const void *a1, const void *a2) {
 	return (BLI_strcasecmp(sufix1, sufix2));
 }
 
+static int is_hidden_file(const char* filename, short hide_dot)
+{
+	int is_hidden=0;
+
+	if (hide_dot) {
+		if(filename[0]=='.' && filename[1]!='.' && filename[1]!=0) {
+			is_hidden=1; /* ignore .file */
+		} else if (((filename[0] == '.') && (filename[1] == 0) )) {
+			is_hidden=1; /* ignore . */
+		} else {
+			int len=strlen(filename);
+			if( (len>0) && (filename[len-1]=='~') ) {
+				is_hidden=1;  /* ignore file~ */
+			}
+		} 
+	} else {
+		if (((filename[0] == '.') && (filename[1] == 0) )) {
+			is_hidden=1; /* ignore . */
+		}
+	}
+	return is_hidden;
+}
+
+static int is_filtered_file(struct direntry* file, const char* dir, unsigned int filter, short hide_dot)
+{
+	int is_filtered=0;
+	if (filter) {
+		if (file->flags & filter) {
+			is_filtered=1;
+		} else if (file->type & S_IFDIR) {
+			if (filter & FOLDERFILE) {
+				is_filtered = 1;
+			}
+		}
+	} else {
+		is_filtered = 1;
+	}
+	return is_filtered && !is_hidden_file(file->relname, hide_dot);
+}
+
+static int is_filtered_lib(struct direntry* file, const char* dir, unsigned int filter, short hide_dot)
+{
+	int is_filtered=0;
+	char tdir[FILE_MAX], tgroup[GROUP_MAX];
+	if (BLO_is_a_library(dir, tdir, tgroup)) {
+		is_filtered = !is_hidden_file(file->relname, hide_dot);
+	} else {
+		is_filtered = is_filtered_file(file, dir, filter, hide_dot);
+	}
+	return is_filtered;
+}
+
+static int is_filtered_main(struct direntry* file, const char* dir, unsigned int filter, short hide_dot)
+{
+	return !is_hidden_file(file->relname, hide_dot);
+}
+
 void filelist_filter(FileList* filelist)
 {
-	/* char dir[FILE_MAX], group[GROUP_MAX]; XXXXX */
 	int num_filtered = 0;
 	int i, j;
 	
 	if (!filelist->filelist)
 		return;
-	
-	/* XXXXX TODO: check if the filter can be handled outside the filelist 
-	if ( ( (filelist->type == FILE_LOADLIB) &&  BIF_filelist_islibrary(filelist, dir, group)) 
-		|| (filelist->type == FILE_MAIN) ) {
-		filelist->filter = 0;
-	}
-	*/
-
-	if (!filelist->filter) {
-		if (filelist->fidx) {
-			MEM_freeN(filelist->fidx);
-			filelist->fidx = NULL;
-		}
-		filelist->fidx = (int *)MEM_callocN(filelist->numfiles*sizeof(int), "filteridx");
-		for (i = 0; i < filelist->numfiles; ++i) {
-			filelist->fidx[i] = i;
-		}
-		filelist->numfiltered = filelist->numfiles;
-		return;
-	}
 
 	// How many files are left after filter ?
 	for (i = 0; i < filelist->numfiles; ++i) {
-		if (filelist->filelist[i].flags & filelist->filter) {
+		struct direntry *file = &filelist->filelist[i];
+		if ( filelist->filterf(file, filelist->dir, filelist->filter, filelist->hide_dot) ) {
 			num_filtered++;
 		} 
-		else if (filelist->filelist[i].type & S_IFDIR) {
-			if (filelist->filter & FOLDERFILE) {
-				num_filtered++;
-			}
-		}		
 	}
 	
 	if (filelist->fidx) {
-			MEM_freeN(filelist->fidx);
-			filelist->fidx = NULL;
+		MEM_freeN(filelist->fidx);
+		filelist->fidx = NULL;
 	}
 	filelist->fidx = (int *)MEM_callocN(num_filtered*sizeof(int), "filteridx");
 	filelist->numfiltered = num_filtered;
 
 	for (i = 0, j=0; i < filelist->numfiles; ++i) {
-		if (filelist->filelist[i].flags & filelist->filter) {
+		struct direntry *file = &filelist->filelist[i];
+		if ( filelist->filterf(file, filelist->dir, filelist->filter, filelist->hide_dot) ) {
 			filelist->fidx[j++] = i;
 		}
-		else if (filelist->filelist[i].type & S_IFDIR) {
-			if (filelist->filter & FOLDERFILE) {
-				filelist->fidx[j++] = i;
-			}
-		}  
 	}
 }
 
@@ -491,13 +520,16 @@ struct FileList*	filelist_new(short type)
 	FileList* p = MEM_callocN( sizeof(FileList), "filelist" );
 	switch(type) {
 		case FILE_MAIN:
-			p->read = filelist_read_main;
+			p->readf = filelist_read_main;
+			p->filterf = is_filtered_main;
 			break;
 		case FILE_LOADLIB:
-			p->read = filelist_read_library;
+			p->readf = filelist_read_library;
+			p->filterf = is_filtered_lib;
 			break;
 		default:
-			p->read = filelist_read_dir;
+			p->readf = filelist_read_dir;
+			p->filterf = is_filtered_file;
 
 	}
 	return p;
@@ -716,7 +748,6 @@ static void filelist_read_dir(struct FileList* filelist)
 	BLI_getwdN(wdir);	 
 
 	BLI_cleanup_dir(G.sce, filelist->dir);
-	BLI_hide_dot_files(filelist->hide_dot);
 	filelist->numfiles = BLI_getdir(filelist->dir, &(filelist->filelist));
 
 	if(!chdir(wdir)) /* fix warning about not checking return value */;
@@ -761,7 +792,7 @@ static void filelist_read_library(struct FileList* filelist)
 
 void filelist_readdir(struct FileList* filelist)
 {
-	filelist->read(filelist);
+	filelist->readf(filelist);
 }
 
 int filelist_empty(struct FileList* filelist)
