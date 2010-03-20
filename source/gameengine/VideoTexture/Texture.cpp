@@ -357,6 +357,12 @@ PyObject * Texture_refresh (Texture * self, PyObject * args)
 	Py_RETURN_NONE;
 }
 
+// get OpenGL Bind Id
+PyObject * Texture_getBindId (Texture * self, void * closure)
+{
+	unsigned int id = self->m_actTex;
+	return Py_BuildValue("h", id);
+}
 
 // get mipmap value
 PyObject * Texture_getMipmap (Texture * self, void * closure)
@@ -430,6 +436,7 @@ static PyGetSetDef textureGetSets[] =
 { 
 	{(char*)"source", (getter)Texture_getSource, (setter)Texture_setSource, (char*)"source of texture", NULL},
 	{(char*)"mipmap", (getter)Texture_getMipmap, (setter)Texture_setMipmap, (char*)"mipmap texture", NULL},
+	{(char*)"bindId", (getter)Texture_getBindId, NULL, (char*)"OpenGL Bind Name", NULL},
 	{NULL}
 };
 
