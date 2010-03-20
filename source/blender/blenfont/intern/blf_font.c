@@ -226,19 +226,21 @@ void blf_font_buffer(FontBLF *font, char *str)
 
 				for (y= 0; y < g->height; y++) {
 					for (x= 0; x < g->width; x++) {
-						fbuf= font->b_fbuf + font->bch * ((chx + x) + ((pen_y + y)*font->bw));
-						data= g->bitmap + x + (yb * g->pitch);
-						a= data[0]/255.0f;
+						
+						a= *(g->bitmap + x + (yb * g->pitch)) / 255.0f;
 
-						if (a == 1.0) {
-							fbuf[0]= font->b_col[0];
-							fbuf[1]= font->b_col[1];
-							fbuf[2]= font->b_col[2];
-						}
-						else {
-							fbuf[0]= (font->b_col[0]*a) + (fbuf[0] * (1-a));
-							fbuf[1]= (font->b_col[1]*a) + (fbuf[1] * (1-a));
-							fbuf[2]= (font->b_col[2]*a) + (fbuf[2] * (1-a));
+						if(a > 0.0f) {
+							fbuf= font->b_fbuf + font->bch * ((chx + x) + ((pen_y + y)*font->bw));
+							if (a >= 1.0f) {
+								fbuf[0]= font->b_col[0];
+								fbuf[1]= font->b_col[1];
+								fbuf[2]= font->b_col[2];
+							}
+							else {
+								fbuf[0]= (font->b_col[0]*a) + (fbuf[0] * (1-a));
+								fbuf[1]= (font->b_col[1]*a) + (fbuf[1] * (1-a));
+								fbuf[2]= (font->b_col[2]*a) + (fbuf[2] * (1-a));
+							}
 						}
 					}
 
@@ -252,6 +254,11 @@ void blf_font_buffer(FontBLF *font, char *str)
 
 		if (font->b_cbuf) {
 			if (chx >= 0 && chx < font->bw && pen_y >= 0 && pen_y < font->bh) {
+				char b_col_char[3];
+				b_col_char[0]= font->b_col[0] * 255;
+				b_col_char[1]= font->b_col[1] * 255;
+				b_col_char[2]= font->b_col[2] * 255;
+
 				if (g->pitch < 0)
 					yb= 0;
 				else
@@ -259,19 +266,20 @@ void blf_font_buffer(FontBLF *font, char *str)
 
 				for (y= 0; y < g->height; y++) {
 					for (x= 0; x < g->width; x++) {
-						cbuf= font->b_cbuf + font->bch * ((chx + x) + ((pen_y + y)*font->bw));
-						data= g->bitmap + x + (yb * g->pitch);
-						a= data[0];
+						a= *(g->bitmap + x + (yb * g->pitch)) / 255.0f;
 
-						if (a == 256) {
-							cbuf[0]= font->b_col[0];
-							cbuf[1]= font->b_col[1];
-							cbuf[2]= font->b_col[2];
-						}
-						else {
-							cbuf[0]= (font->b_col[0]*a) + (cbuf[0] * (256-a));
-							cbuf[1]= (font->b_col[1]*a) + (cbuf[1] * (256-a));
-							cbuf[2]= (font->b_col[2]*a) + (cbuf[2] * (256-a));
+						if(a > 0.0f) {
+							cbuf= font->b_cbuf + font->bch * ((chx + x) + ((pen_y + y)*font->bw));
+							if (a >= 1.0f) {
+								cbuf[0]= b_col_char[0];
+								cbuf[1]= b_col_char[1];
+								cbuf[2]= b_col_char[2];
+							}
+							else {
+								cbuf[0]= (b_col_char[0]*a) + (cbuf[0] * (1-a));
+								cbuf[1]= (b_col_char[1]*a) + (cbuf[1] * (1-a));
+								cbuf[2]= (b_col_char[2]*a) + (cbuf[2] * (1-a));
+							}
 						}
 					}
 
