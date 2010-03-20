@@ -70,7 +70,8 @@ extern "C" {
 #define M_LN10          2.30258509299404568402
 #endif
 #ifndef NAN
-#define NAN             (0.0/0.0)
+static __const char __qnan__[8] = { 0, 0, 0, 0, 0, 0, 0xf8, 0x7f };
+#define	NAN                 (*(__const double *) __qnan__)
 #endif
 
 #ifndef sqrtf
