@@ -70,8 +70,8 @@ extern "C" {
 #define M_LN10          2.30258509299404568402
 #endif
 #ifndef NAN
-static __const char __qnan__[8] = { 0, 0, 0, 0, 0, 0, 0xf8, 0x7f };
-#define	NAN                 (*(__const double *) __qnan__)
+static const unsigned long __qnan__ = 0x7fc00000UL;
+#define NAN                 ((const float) __qnan__)
 #endif
 
 #ifndef sqrtf
@@ -124,7 +124,6 @@ static __const char __qnan__[8] = { 0, 0, 0, 0, 0, 0, 0xf8, 0x7f };
 #ifndef FREE_WINDOWS
 #define isnan(n) _isnan(n)
 #define finite _finite
-#define isfinite(n) _finite(n)
 #endif
 #endif
 
