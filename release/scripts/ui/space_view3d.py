@@ -471,8 +471,8 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_random", text="Random...")
-        layout.operator("mesh.select_nth", text="Select Nth...")
+        layout.operator("mesh.select_random", text="Random")
+        layout.operator("mesh.select_nth", text="Every N Number of Verts")
         layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
         layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
         layout.operator("mesh.faces_select_interior", text="Interior Faces")
@@ -485,7 +485,7 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
         if context.scene.tool_settings.mesh_selection_mode[2] == False:
                 layout.operator("mesh.select_non_manifold", text="Non Manifold")
         layout.operator("mesh.select_by_number_vertices", text="Loose Verts/Edges").type = 'OTHER'
-        layout.operator("mesh.select_similar", text="Similar...")
+        layout.operator("mesh.select_similar", text="Similar")
 
         layout.separator()
 
