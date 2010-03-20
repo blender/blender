@@ -28,15 +28,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
 #include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_gsqueue.h"

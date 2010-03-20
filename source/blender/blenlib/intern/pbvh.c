@@ -20,11 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <float.h>
-#include <stdlib.h>
-#include <string.h>
 
-#include "MEM_guardedalloc.h"
 
 #include "DNA_meshdata_types.h"
 
@@ -33,8 +29,6 @@
 #include "BLI_pbvh.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_mesh.h"
-#include "BKE_utildefines.h"
 
 #include "gpu_buffers.h"
 

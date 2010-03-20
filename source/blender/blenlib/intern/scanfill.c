@@ -28,20 +28,12 @@
  * (uit traces) maart 95
  */
 
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
-#include "DNA_mesh_types.h"
 
 #include "BLI_editVert.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_scanfill.h"
-#include "BLI_callbacks.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

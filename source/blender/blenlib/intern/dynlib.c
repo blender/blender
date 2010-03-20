@@ -28,8 +28,6 @@
  */
 
 #include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 
 #include "../PIL_dynlib.h"
 
@@ -47,6 +45,8 @@
  */
  
 #ifdef WIN32
+#include <string.h>
+#include <stdio.h>
 
 #include <windows.h>
 

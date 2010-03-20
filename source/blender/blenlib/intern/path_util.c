@@ -29,20 +29,14 @@
  * various string, file, list operations.
  */
 
-#include <stdio.h>
-#include <fcntl.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-#include <stdarg.h>
-#include <math.h> /* for log10 */
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_dynamiclist.h"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
@@ -58,13 +52,9 @@
 #include <config.h>
 #endif
 
-#ifndef WIN32 
-#include <unistd.h>
-#else
-#include <io.h>
-#endif
 
 #ifdef WIN32
+#include <io.h>
 
 #ifdef _WIN32_IE
 #undef _WIN32_IE
@@ -75,12 +65,7 @@
 
 #include "BLI_winstuff.h"
 
-#endif
-
-
-#ifndef WIN32
-#include <sys/time.h>
-#endif
+#else /* non windows */
 
 #ifdef __APPLE__
 #include <sys/param.h>
@@ -90,6 +75,8 @@
 #ifdef __linux__
 #include "binreloc.h"
 #endif
+
+#endif /* WIN32 */
 
 /* local */
 
@@ -1512,8 +1499,6 @@ char* BLI_getbundle(void) {
 #endif
 
 #ifdef WITH_ICONV
-#include "iconv.h"
-#include "localcharset.h"
 
 void BLI_string_to_utf8(char *original, char *utf_8, const char *code)
 {

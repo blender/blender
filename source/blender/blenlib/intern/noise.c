@@ -35,7 +35,6 @@
 #endif
 
 #include <math.h>
-#include "BLI_blenlib.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

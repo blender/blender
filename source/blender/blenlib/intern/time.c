@@ -26,14 +26,13 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#include "PIL_time.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
 #ifdef WIN32
-
+#include "PIL_time.h"
 #include <windows.h>
 
 double PIL_check_seconds_timer(void) 

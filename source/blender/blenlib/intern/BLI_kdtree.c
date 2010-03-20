@@ -28,9 +28,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
