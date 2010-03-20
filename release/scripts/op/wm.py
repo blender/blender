@@ -500,7 +500,8 @@ class WM_OT_doc_edit(bpy.types.Operator):
         class_name, class_prop = doc_id.split('.')
 
         if not doc_new:
-            return {'RUNNING_MODAL'}
+            self.report({'ERROR'}, "No input given for '%s'" % doc_id)
+            return {'CANCELLED'}
 
         # check if this is an operator
         op_name = class_name.upper() + '_OT_' + class_prop
@@ -517,10 +518,6 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
             print("op - old:'%s' -> new:'%s'" % (doc_orig, doc_new))
             upload["title"] = 'OPERATOR %s:%s' % (doc_id, doc_orig)
-            upload["description"] = doc_new
-
-            self._send_xmlrpc(upload)
-
         else:
             rna = getattr(bpy.types, class_name).bl_rna
             doc_orig = rna.properties[class_prop].description
@@ -536,9 +533,15 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
         return {'FINISHED'}
 
+    def draw(self, context):
+        layout = self.layout
+        props = self.properties
+        layout.label(props, text="Descriptor ID: '%s'" % props.doc_id)
+        layout.prop(props, "doc_new", text="")
+
     def invoke(self, context, event):
         wm = context.manager
-        return wm.invoke_props_popup(self, event)
+        return wm.invoke_props_dialog(self, event, width=600)
 
 
 class WM_OT_reload_scripts(bpy.types.Operator):
