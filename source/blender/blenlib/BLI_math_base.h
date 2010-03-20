@@ -69,6 +69,9 @@ extern "C" {
 #ifndef M_LN10
 #define M_LN10          2.30258509299404568402
 #endif
+#ifndef NAN
+#define NAN             (0.0/0.0)
+#endif
 
 #ifndef sqrtf
 #define sqrtf(a) ((float)sqrt(a))
@@ -120,6 +123,7 @@ extern "C" {
 #ifndef FREE_WINDOWS
 #define isnan(n) _isnan(n)
 #define finite _finite
+#define isfinite(n) _finite(n)
 #endif
 #endif
 
