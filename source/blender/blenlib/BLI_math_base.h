@@ -69,10 +69,6 @@ extern "C" {
 #ifndef M_LN10
 #define M_LN10          2.30258509299404568402
 #endif
-#ifndef NAN
-static const unsigned long __qnan__ = 0x7fc00000UL;
-#define NAN                 ((const float) __qnan__)
-#endif
 
 #ifndef sqrtf
 #define sqrtf(a) ((float)sqrt(a))
