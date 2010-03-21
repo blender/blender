@@ -447,7 +447,7 @@ static void rna_def_strip_transform(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "offset_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xofs");
-	RNA_def_property_ui_text(prop, "Offset Y", "");
+	RNA_def_property_ui_text(prop, "Offset X", "");
 	RNA_def_property_ui_range(prop, -4096, 4096, 1, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
