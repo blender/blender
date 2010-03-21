@@ -1,5 +1,5 @@
 /**
- * $Id: BKE_idprop.h
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

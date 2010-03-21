@@ -1,7 +1,7 @@
 /**
  * BKE_softbody.h 
  *	
- * $Id: BKE_softbody.h 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

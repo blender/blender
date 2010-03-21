@@ -1,6 +1,6 @@
 /*  image_gen.c	
  * 
- * $Id: 
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

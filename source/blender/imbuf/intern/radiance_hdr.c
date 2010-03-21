@@ -1,7 +1,7 @@
 /*
  * radiance_hdr.c
  *
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
