@@ -59,12 +59,12 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
+#include "BLI_math.h" /* windows needs for M_PI */
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
 #include "BKE_utildefines.h"
 
-#include "BKE_math.h" /* windows needs for M_PI */
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"

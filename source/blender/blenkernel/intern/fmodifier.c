@@ -41,8 +41,8 @@
 #include "DNA_anim_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_math.h" /* windows needs for M_PI */
 
-#include "BKE_math.h" /* windows needs for M_PI */
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_utildefines.h"

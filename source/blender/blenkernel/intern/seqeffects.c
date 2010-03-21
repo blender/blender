@@ -34,11 +34,12 @@
 #include "MEM_guardedalloc.h"
 #include "PIL_dynlib.h"
 
+#include "BLI_math.h" /* windows needs for M_PI */
+
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_anim_types.h"
 
-#include "BKE_math.h" /* windows needs for M_PI */
 #include "BKE_fcurve.h"
 #include "BKE_plugin_types.h"
 #include "BKE_sequencer.h"
