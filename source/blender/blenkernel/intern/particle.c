@@ -35,27 +35,15 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_boid_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
-#include "DNA_ipo_types.h" 	// XXX old animation system stuff to remove!
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_object_force.h"
-#include "DNA_object_types.h"
 #include "DNA_particle_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"
-#include "DNA_texture_types.h"
 
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
 #include "BLI_kdtree.h"
-#include "BLI_listbase.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
 
@@ -72,9 +60,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_displist.h"
 #include "BKE_particle.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
-#include "BKE_cloth.h"
 #include "BKE_material.h"
 #include "BKE_key.h"
 #include "BKE_library.h"

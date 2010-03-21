@@ -44,14 +44,11 @@
 #include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
-#include "BLI_blenlib.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
 #include "BKE_report.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 
 #include "DNA_scene_types.h"
 

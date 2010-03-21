@@ -52,16 +52,12 @@
 #include "intern/openexr/openexr_multi.h"
 #endif
 
-#include "DNA_image_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 
@@ -73,8 +69,6 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
-#include "BKE_texture.h"
-#include "BKE_utildefines.h"
 
 //XXX #include "BIF_editseq.h"
 
@@ -84,7 +78,6 @@
 
 #include "RE_pipeline.h"
 
-#include "GPU_extensions.h"
 #include "GPU_draw.h"
 
 #include "BLO_sys_types.h" // for intptr_t support

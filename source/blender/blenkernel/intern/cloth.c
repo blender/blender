@@ -29,25 +29,14 @@
 
 #include "BKE_cloth.h"
 
-#include "DNA_cloth_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_force.h"
-#include "DNA_scene_types.h"
-#include "DNA_particle_types.h"
-
-#include "BKE_deform.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_object.h"
 #include "BKE_modifier.h"
 #include "BKE_utildefines.h"
-#include "BKE_particle.h"
 
 #include "BKE_pointcache.h"
 
-#include "BLI_kdopbvh.h"
 
 #ifdef _WIN32
 void tstart ( void )

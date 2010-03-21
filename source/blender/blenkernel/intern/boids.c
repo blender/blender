@@ -34,19 +34,13 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_particle_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_force.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_boid_types.h"
-#include "DNA_listBase.h"
 
 #include "BLI_rand.h"
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_kdtree.h"
-#include "BLI_kdopbvh.h"
 #include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_boids.h"

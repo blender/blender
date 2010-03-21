@@ -47,8 +47,6 @@
 
 #include "DNA_packedFile_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_object_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_scene_types.h"
 
@@ -60,7 +58,6 @@
 #include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_screen.h"
 #include "BKE_anim.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"

@@ -42,28 +42,21 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_rand.h"
 #include "BLI_kdopbvh.h"
 
-#include "DNA_texture_types.h"
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_image_types.h"
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_node_types.h"
 #include "DNA_color_types.h"
-#include "DNA_scene_types.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 #include "BKE_plugin_types.h"
-
 #include "BKE_utildefines.h"
-
 #include "BKE_global.h"
 #include "BKE_main.h"
 
@@ -73,7 +66,6 @@
 #include "BKE_texture.h"
 #include "BKE_key.h"
 #include "BKE_icons.h"
-#include "BKE_brush.h"
 #include "BKE_node.h"
 #include "BKE_animsys.h"
 

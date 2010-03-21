@@ -33,51 +33,27 @@
 #include <config.h>
 #endif
 
-#include "PIL_time.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_effect_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_key_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
-#include "DNA_object_force.h"
-#include "DNA_object_fluidsim.h" // N_T
 #include "DNA_scene_types.h" // N_T
-#include "DNA_texture_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_particle_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_edgehash.h"
 #include "BLI_editVert.h"
-#include "BLI_linklist.h"
 #include "BLI_memarena.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_deform.h"
 #include "BKE_displist.h"
-#include "BKE_effect.h"
-#include "BKE_fluidsim.h"
-#include "BKE_global.h"
-#include "BKE_key.h"
-#include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_subsurf.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
-#include "BKE_particle.h"
-#include "BKE_bvhutils.h"
 
 #include "BLO_sys_types.h" // for intptr_t support
 

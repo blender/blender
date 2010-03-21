@@ -38,29 +38,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_curve_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_object_force.h"
-#include "DNA_scene_types.h"
 
-#include "BKE_curve.h"
 #include "BKE_deform.h"
-#include "BKE_displist.h"
-#include "BKE_effect.h"
-#include "BKE_global.h"
-#include "BKE_key.h"
-#include "BKE_lattice.h"
-#include "BKE_object.h"
-#include "BKE_softbody.h"
-#include "BKE_utildefines.h"
-#include "BKE_mesh.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

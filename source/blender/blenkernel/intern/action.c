@@ -38,26 +38,16 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_key_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_anim.h"
-#include "BKE_armature.h"
-#include "BKE_blender.h"
 #include "BKE_constraint.h"
-#include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_fcurve.h"
-#include "BKE_key.h"
-#include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -68,10 +58,8 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
-#include "BLI_ghash.h"
 
 #include "RNA_access.h"
-#include "RNA_types.h"
 
 /* *********************** NOTE ON POSE AND ACTION **********************
 

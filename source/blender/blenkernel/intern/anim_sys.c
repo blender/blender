@@ -36,7 +36,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
@@ -51,7 +50,6 @@
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_types.h"
 
 #include "nla_private.h"
 

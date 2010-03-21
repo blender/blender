@@ -35,7 +35,6 @@
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
 
-#include "DNA_listBase.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_anim_types.h"
@@ -46,7 +45,6 @@
 #include "BKE_main.h"
 #include "BKE_sequencer.h"
 #include "BKE_fcurve.h"
-#include "BKE_utildefines.h"
 #include "BKE_scene.h"
 #include "RNA_access.h"
 #include "RE_pipeline.h"
@@ -55,7 +53,6 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_threads.h"
 #include <pthread.h>
 
 #include "IMB_imbuf.h"

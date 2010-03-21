@@ -42,12 +42,10 @@
 #include "BLI_blenlib.h"  
 #include "BLI_math.h"  
 
-#include "DNA_object_types.h"  
 #include "DNA_curve_types.h"  
 #include "DNA_material_types.h"  
 
 /* for dereferencing pointers */
-#include "DNA_ID.h"  
 #include "DNA_key_types.h"  
 #include "DNA_scene_types.h"  
 #include "DNA_vfont_types.h"  
@@ -61,7 +59,6 @@
 #include "BKE_key.h"  
 #include "BKE_library.h"  
 #include "BKE_main.h"  
-#include "BKE_mesh.h" 
 #include "BKE_object.h"  
 #include "BKE_utildefines.h"  // VECCOPY
 

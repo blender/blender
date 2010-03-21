@@ -34,12 +34,8 @@
 
 
 #include "MEM_guardedalloc.h"
-#include "DNA_listBase.h"
-#include "BLI_blenlib.h"
-#include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
 #include "bmesh_private.h"
-
 
 /*	
  *	BME MAKE MESH

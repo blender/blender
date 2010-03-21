@@ -56,16 +56,11 @@ variables on the UI for now
 
 /* types */
 #include "DNA_curve_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"	/* here is the softbody struct */
-#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_ghash.h"
 #include "BLI_threads.h"
@@ -73,13 +68,9 @@ variables on the UI for now
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_key.h"
-#include "BKE_object.h"
 #include "BKE_softbody.h"
-#include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_pointcache.h"
-#include "BKE_modifier.h"
 #include "BKE_deform.h"
 //XXX #include  "BIF_editdeform.h"
 //XXX #include  "BIF_graphics.h"

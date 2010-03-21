@@ -14,10 +14,8 @@
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "AUD_C-API.h"
 
@@ -31,7 +29,6 @@
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
 
-#include "RNA_access.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

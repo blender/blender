@@ -36,42 +36,16 @@
 #include <string.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_ID.h"
-#include "DNA_image_types.h"
-#include "DNA_node_types.h"
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_text_types.h"
-#include "DNA_scene_types.h"
 
 #include "RNA_access.h"
 
-#include "BKE_blender.h"
-#include "BKE_colortools.h"
 #include "BKE_fcurve.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
-#include "BKE_node.h"
-#include "BKE_texture.h"
-#include "BKE_text.h"
-#include "BKE_utildefines.h"
 #include "BKE_animsys.h" /* BKE_free_animdata only */
 
-#include "BLI_math.h"
-#include "BLI_blenlib.h"
-#include "BLI_rand.h"
-#include "BLI_threads.h"
 
 #include "PIL_time.h"
 
 #include "MEM_guardedalloc.h"
-#include "IMB_imbuf.h"
-
-#include "RE_pipeline.h"
-#include "RE_shader_ext.h"		/* <- TexResult */
-#include "RE_render_ext.h"		/* <- ibuf_sample() */
 
 #include "CMP_node.h"
 #include "intern/CMP_util.h"	/* stupid include path... */
@@ -80,7 +54,6 @@
 #include "TEX_node.h"
 #include "intern/TEX_util.h"
 
-#include "GPU_extensions.h"
 #include "GPU_material.h"
 
 static ListBase empty_list = {NULL, NULL};

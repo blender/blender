@@ -36,20 +36,14 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
 
-#include "BKE_animsys.h"
 #include "BKE_action.h"
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
-#include "BKE_blender.h"
 #include "BKE_library.h"
-#include "BKE_object.h"
-#include "BKE_utildefines.h"
 
 #include "RNA_access.h"
 #include "nla_private.h"

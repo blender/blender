@@ -32,11 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_action_types.h"
-#include "DNA_effect_types.h"
 #include "DNA_group_types.h"
-#include "DNA_ID.h"
-#include "DNA_ipo_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_nla_types.h"
@@ -47,7 +43,6 @@
 
 #include "BKE_global.h"
 #include "BKE_group.h"
-#include "BKE_ipo.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"

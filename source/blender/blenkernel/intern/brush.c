@@ -34,9 +34,6 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_color_types.h"
-#include "DNA_image_types.h"
-#include "DNA_object_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 
@@ -56,7 +53,6 @@
 #include "BKE_main.h"
 #include "BKE_paint.h"
 #include "BKE_texture.h"
-#include "BKE_utildefines.h"
 
 
 
