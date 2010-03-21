@@ -50,6 +50,13 @@ def _main():
     if not app.debug:
         _sys.stdin = None
 
+    # because of how the console works. we need our own help() pager func.
+    # replace the bold function because it adds crazy chars
+    import pydoc
+    pydoc.getpager = lambda: pydoc.plainpager
+    pydoc.TextDoc.bold = lambda self, text: text
+
+
     # if "-d" in sys.argv: # Enable this to measure startup speed
     if 0:
         import cProfile
