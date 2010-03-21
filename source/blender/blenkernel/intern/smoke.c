@@ -1197,8 +1197,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		if(cache_result == PTCACHE_READ_EXACT) 
 		{
-			cache->flag |= PTCACHE_SIMULATION_VALID;
-			cache->simframe= framenr;
+			BKE_ptcache_validate(cache, framenr);
 
 			if(sds->wt)
 			{
@@ -1206,8 +1205,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 				
 				if(cache_result_wt == PTCACHE_READ_EXACT) 
 				{
-					cache_wt->flag |= PTCACHE_SIMULATION_VALID;
-					cache_wt->simframe= framenr;
+					BKE_ptcache_validate(cache_wt, framenr);
 				}
 			}
 			return;
@@ -1223,8 +1221,6 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		/* do simulation */
 
 		// low res
-		cache->flag |= PTCACHE_SIMULATION_VALID;
-		cache->simframe= framenr;
 
 		// simulate the actual smoke (c++ code in intern/smoke)
 		// DG: interesting commenting this line + deactivating loading of noise files
@@ -1239,6 +1235,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		if(get_lamp(scene, light))
 			smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
 	
+		BKE_ptcache_validate(cache, framenr);
 		BKE_ptcache_write_cache(&pid, framenr);
 
 		if(sds->wt)
@@ -1250,8 +1247,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 				smoke_turbulence_step(sds->wt, sds->fluid);
 			}
 
-			cache_wt->flag |= PTCACHE_SIMULATION_VALID;
-			cache_wt->simframe= framenr;
+			BKE_ptcache_validate(cache_wt, framenr);
 			BKE_ptcache_write_cache(&pid_wt, framenr);
 		}
 

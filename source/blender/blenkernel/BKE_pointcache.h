@@ -302,4 +302,10 @@ void BKE_ptcache_toggle_disk_cache(struct PTCacheID *pid);
 /* Loads simulation from external (disk) cache files. */
 void BKE_ptcache_load_external(struct PTCacheID *pid);
 
+/* Set correct flags after successful simulation step */
+void BKE_ptcache_validate(struct PointCache *cache, int framenr);
+
+/* Set correct flags after unsuccessful simulation step */
+void BKE_ptcache_invalidate(struct PointCache *cache);
+
 #endif

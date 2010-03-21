@@ -356,14 +356,12 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	/* initialize simulation data if it didn't exist already */
 	if(clmd->clothObject == NULL) {	
 		if(!cloth_from_object(ob, clmd, result, framenr, 1)) {
-			cache->flag &= ~PTCACHE_SIMULATION_VALID;
-			cache->simframe= 0;
+			BKE_ptcache_invalidate(cache);
 			return 0;
 		}
 	
 		if(clmd->clothObject == NULL) {
-			cache->flag &= ~PTCACHE_SIMULATION_VALID;
-			cache->simframe= 0;
+			BKE_ptcache_invalidate(cache);
 			return 0;
 		}
 	
@@ -436,20 +434,17 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	clmd->sim_parms->timescale= timescale;
 
 	if(!result) {
-		cache->flag &= ~PTCACHE_SIMULATION_VALID;
-		cache->simframe= 0;
-		cache->last_exact= 0;
+		BKE_ptcache_invalidate(cache);
 		return dm;
 	}
 
 	if(clmd->sim_parms->reset || (framenr == (startframe - clmd->sim_parms->preroll)))
 	{
 		clmd->sim_parms->reset = 0;
-		cache->flag |= PTCACHE_REDO_NEEDED;
+		cache->flag |= PTCACHE_OUTDATED;
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-		cache->simframe= 0;
+		BKE_ptcache_validate(cache, 0);
 		cache->last_exact= 0;
-		cache->flag |= PTCACHE_SIMULATION_VALID;
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
 		return result;
 	}
@@ -460,9 +455,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	 * happen because of object changes! */
 	if(clmd->clothObject) {
 		if(result->getNumVerts(result) != clmd->clothObject->numverts) {
-			cache->flag &= ~PTCACHE_SIMULATION_VALID;
-			cache->simframe= 0;
-			cache->last_exact= 0;
+			BKE_ptcache_invalidate(cache);
 			return result;
 		}
 	}
@@ -472,9 +465,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 
 	/* handle continuous simulation with the play button */
 	if(BKE_ptcache_get_continue_physics() || ((clmd->sim_parms->preroll > 0) && (framenr > startframe - clmd->sim_parms->preroll) && (framenr < startframe))) {
-		cache->flag &= ~PTCACHE_SIMULATION_VALID;
-		cache->simframe= 0;
-		cache->last_exact= 0;
+		BKE_ptcache_invalidate(cache);
 
 		/* do simulation */
 		if(!do_init_cloth(ob, clmd, result, framenr))
@@ -488,9 +479,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 
 	/* simulation is only active during a specific period */
 	if(framenr < startframe) {
-		cache->flag &= ~PTCACHE_SIMULATION_VALID;
-		cache->simframe= 0;
-		cache->last_exact= 0;
+		BKE_ptcache_invalidate(cache);
 		return result;
 	}
 	else if(framenr > endframe) {
@@ -509,8 +498,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	if((framenr == startframe) && (clmd->sim_parms->preroll == 0)) {
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
 		do_init_cloth(ob, clmd, result, framenr);
-		cache->simframe= framenr;
-		cache->flag |= PTCACHE_SIMULATION_VALID;
+		BKE_ptcache_validate(cache, framenr);
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
 		return result;
 	}
@@ -522,8 +510,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		implicit_set_positions(clmd);
 		cloth_to_object (ob, clmd, result);
 
-		cache->simframe= framenr;
-		cache->flag |= PTCACHE_SIMULATION_VALID;
+		BKE_ptcache_validate(cache, framenr);
 
 		if(cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
 			BKE_ptcache_write_cache(&pid, framenr);
@@ -532,13 +519,10 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	}
 	else if(cache_result==PTCACHE_READ_OLD) {
 		implicit_set_positions(clmd);
-		cache->flag |= PTCACHE_SIMULATION_VALID;
 	}
 	else if( /*ob->id.lib ||*/ (cache->flag & PTCACHE_BAKED)) { /* 2.4x disabled lib, but this can be used in some cases, testing further - campbell */
 		/* if baked and nothing in cache, do nothing */
-		cache->flag &= ~PTCACHE_SIMULATION_VALID;
-		cache->simframe= 0;
-		cache->last_exact= 0;
+		BKE_ptcache_invalidate(cache);
 		return result;
 	}
 
@@ -549,13 +533,10 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	clmd->sim_parms->timescale *= framenr - cache->simframe;
 
 	/* do simulation */
-	cache->flag |= PTCACHE_SIMULATION_VALID;
-	cache->simframe= framenr;
+	BKE_ptcache_validate(cache, framenr);
 
 	if(!do_step_cloth(ob, clmd, result, framenr)) {
-		cache->flag &= ~PTCACHE_SIMULATION_VALID;
-		cache->simframe= 0;
-		cache->last_exact= 0;
+		BKE_ptcache_invalidate(cache);
 	}
 	else
 		BKE_ptcache_write_cache(&pid, framenr);

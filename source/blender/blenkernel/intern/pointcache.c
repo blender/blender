@@ -2081,9 +2081,8 @@ int BKE_ptcache_id_reset(Scene *scene, PTCacheID *pid, int mode)
 	}
 
 	if(reset) {
-		cache->flag &= ~(PTCACHE_REDO_NEEDED|PTCACHE_SIMULATION_VALID);
-		cache->simframe= 0;
-		cache->last_exact= 0;
+		BKE_ptcache_invalidate(cache);
+		cache->flag &= ~PTCACHE_REDO_NEEDED;
 
 		if(pid->type == PTCACHE_TYPE_CLOTH)
 			cloth_free_modifier(pid->ob, pid->calldata);
@@ -2860,4 +2859,16 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 	}
 	else
 		sprintf(cache->info, "%s.", mem_info);
+}
+
+void BKE_ptcache_validate(PointCache *cache, int framenr)
+{
+	cache->flag |= PTCACHE_SIMULATION_VALID;
+	cache->simframe = framenr;
+}
+void BKE_ptcache_invalidate(PointCache *cache)
+{
+	cache->flag &= ~PTCACHE_SIMULATION_VALID;
+	cache->simframe = 0;
+	cache->last_exact = 0;
 }
