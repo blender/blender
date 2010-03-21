@@ -41,14 +41,7 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
-#include "BKE_utildefines.h"
-
-#include "BLI_blenlib.h"
-#include "BLI_linklist.h"	/* linknode */
-#include "BLI_string.h"
-
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 #include "BLF_api.h"
 
 #include "blf_internal_types.h"

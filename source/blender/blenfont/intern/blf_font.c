@@ -45,7 +45,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"	/* linknode */
-#include "BLI_string.h"
 #include "BLI_math.h"
 
 #include "BIF_gl.h"

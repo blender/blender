@@ -30,8 +30,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "BIF_gl.h"
-
 
 unsigned int blf_next_p2(unsigned int x)
 {
