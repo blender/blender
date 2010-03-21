@@ -438,11 +438,8 @@ Image *BKE_add_image_file(const char *name, int frame)
 static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4])
 {
 	ImBuf *ibuf;
-	float h=0.0, hoffs=0.0, hue=0.0, s=0.9, v=0.9, r, g, b;
 	unsigned char *rect= NULL;
 	float *rect_float= NULL;
-	int x, y;
-	int checkerwidth=32, dark=1;
 	
 	if (floatbuf) {
 		ibuf= IMB_allocImBuf(width, height, 24, IB_rectfloat, 0);
@@ -456,107 +453,17 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 	strcpy(ibuf->name, "//Untitled");
 	ibuf->userflags |= IB_BITMAPDIRTY;
 	
-	if (uvtestgrid) {
-		/* these two passes could be combined into one, but it's more readable and 
-		* easy to tweak like this, speed isn't really that much of an issue in this situation... */
-		
-		/* checkers */
-		for(y=0; y<height; y++) {
-			dark = powf(-1.0f, floorf(y / checkerwidth));
-			
-			for(x=0; x<width; x++) {
-				if (x % checkerwidth == 0) dark *= -1;
-				
-				if (floatbuf) {
-					if (dark > 0) {
-						rect_float[0] = rect_float[1] = rect_float[2] = 0.25f;
-						rect_float[3] = 1.0f;
-					} else {
-						rect_float[0] = rect_float[1] = rect_float[2] = 0.58f;
-						rect_float[3] = 1.0f;
-					}
-					rect_float+=4;
-				}
-				else {
-					if (dark > 0) {
-						rect[0] = rect[1] = rect[2] = 64;
-						rect[3] = 255;
-					} else {
-						rect[0] = rect[1] = rect[2] = 150;
-						rect[3] = 255;
-					}
-					rect += 4;
-				}
-			}
-		}
-		
-		/* 2nd pass, colored + */
-		if (floatbuf) rect_float= (float*)ibuf->rect_float;
-		else rect= (unsigned char*)ibuf->rect;
-		
-		for(y=0; y<height; y++) {
-			hoffs = 0.125f * floorf(y / checkerwidth);
-			
-			for(x=0; x<width; x++) {
-				h = 0.125f * floorf(x / checkerwidth);
-				
-				if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 4) &&
-					(fabs((y % checkerwidth) - (checkerwidth / 2)) < 4)) {
-					
-					if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 1) ||
-						(fabs((y % checkerwidth) - (checkerwidth / 2)) < 1)) {
-						
-						hue = fmodf(fabs(h-hoffs), 1.0f);
-						hsv_to_rgb(hue, s, v, &r, &g, &b);
-						
-						if (floatbuf) {
-							rect_float[0]= r;
-							rect_float[1]= g;
-							rect_float[2]= b;
-							rect_float[3]= 1.0f;
-						}
-						else {
-							rect[0]= (char)(r * 255.0f);
-							rect[1]= (char)(g * 255.0f);
-							rect[2]= (char)(b * 255.0f);
-							rect[3]= 255;
-						}
-					}
-				}
+    switch(uvtestgrid) {
+    case 1:
+        BKE_image_buf_fill_checker(rect, rect_float, width, height);
+        break;
+    case 2:
+        BKE_image_buf_fill_checker_color(rect, rect_float, width, height);
+        break;
+    default:
+        BKE_image_buf_fill_color(rect, rect_float, width, height, color);
+    }
 
-				if (floatbuf)
-					rect_float+=4;
-				else
-					rect+=4;
-			}
-		}
-	} else {	/* blank image */
-		char ccol[4];
-
-		ccol[0]= (char)(color[0]*255.0f);
-		ccol[1]= (char)(color[1]*255.0f);
-		ccol[2]= (char)(color[2]*255.0f);
-		ccol[3]= (char)(color[3]*255.0f);
-
-		for(y=0; y<height; y++) {
-			for(x=0; x<width; x++) {
-				if (floatbuf) {
-					rect_float[0]= color[0];
-					rect_float[1]= color[1];
-					rect_float[2]= color[2];
-					rect_float[3]= color[3];
-					rect_float+=4;
-				}
-				else {
-					rect[0]= ccol[0];
-					rect[1]= ccol[1];
-					rect[2]= ccol[2];
-					rect[3]= ccol[3];
-					rect+=4;
-				}
-			}
-		}
-	}
 	return ibuf;
 }
 
@@ -1124,7 +1031,7 @@ extern int datatoc_bmonofont_ttf_size;
 extern char datatoc_bmonofont_ttf[];
 
 // XXX - copied from text_font_begin
-static void stamp_font_begin(int size)
+void stamp_font_begin(int size)
 {
 	static int mono= -1;
 
