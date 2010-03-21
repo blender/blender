@@ -348,7 +348,9 @@ void sound_destroy_scene(struct Scene *scene)
 
 void* sound_scene_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip)
 {
-	return AUD_addSequencer(scene->sound_scene, &(sequence->scene->sound_scene), startframe / FPS, endframe / FPS, frameskip / FPS, sequence);
+	if(scene != sequence->scene)
+		return AUD_addSequencer(scene->sound_scene, &(sequence->scene->sound_scene), startframe / FPS, endframe / FPS, frameskip / FPS, sequence);
+	return NULL;
 }
 
 void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip)
