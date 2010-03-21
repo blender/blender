@@ -42,6 +42,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_math.h" /* windows needs for M_PI */
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_utildefines.h"
