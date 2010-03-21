@@ -240,8 +240,6 @@ void interpolate_shade_result(ShadeResult *shr1, ShadeResult *shr2, float t, Sha
 			interpolate_vec3(shr1->refl, shr2->refl, t, negt, shr->refl);
 		if(addpassflag & SCE_PASS_REFRACT)
 			interpolate_vec3(shr1->refr, shr2->refr, t, negt, shr->refr);
-		/* removed if(addpassflag & SCE_PASS_RADIO)
-			interpolate_vec3(shr1->rad, shr2->rad, t, negt, shr->rad);*/
 		if(addpassflag & SCE_PASS_MIST)
 			interpolate_vec1(&shr1->mist, &shr2->mist, t, negt, &shr->mist);
 	}

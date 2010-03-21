@@ -1,5 +1,5 @@
 /*
- * $Id: wm_event_types.h
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

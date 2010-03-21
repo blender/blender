@@ -28,16 +28,9 @@
  * A general (pointer -> pointer) hash table ADT
  */
 
-#include <stdlib.h>
-#include <string.h>
 
-#include "MEM_guardedalloc.h"
 #include "BLI_ghash.h"
-#include "BLI_mempool.h"
-
 #include "BLO_sys_types.h" // for intptr_t support
-
-#include "BKE_utildefines.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

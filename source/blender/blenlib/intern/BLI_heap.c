@@ -28,7 +28,6 @@
  * A heap / priority queue ADT.
  */
 
-#include <stdlib.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"

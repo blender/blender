@@ -3859,7 +3859,7 @@ static void add_lightgroup(Render *re, Group *group, int exclusive)
 	for(go= group->gobject.first; go; go= go->next) {
 		go->lampren= NULL;
 		
-		if(go->ob->lay & re->scene->lay) {
+		if(go->ob->lay & re->lay) {
 			if(go->ob && go->ob->type==OB_LAMP) {
 				for(gol= re->lights.first; gol; gol= gol->next) {
 					if(gol->ob==go->ob) {
@@ -4226,7 +4226,7 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 				/* Baking lets us define a quad split order */
 				split_quads(obr, re->r.bake_quad_split);
 			} else {
-				if((re->r.simplify_flag & R_SIMPLE_NO_TRIANGULATE) == 0)
+				if((re->r.mode & R_SIMPLIFY && re->r.simplify_flag & R_SIMPLE_NO_TRIANGULATE) == 0)
 					check_non_flat_quads(obr);
 			}
 			
@@ -4674,8 +4674,7 @@ static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd
 
 	/* don't allow lamp, animated duplis, or radio render */
 	return (render_object_type(obd->type) &&
-	        (!(dob->type == OB_DUPLIGROUP) || !dob->animated) &&
-	        !(re->r.mode & R_RADIO));
+	        (!(dob->type == OB_DUPLIGROUP) || !dob->animated));
 }
 
 static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, int level, int enable)
@@ -4722,7 +4721,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 static int get_vector_renderlayers(Scene *sce)
 {
 	SceneRenderLayer *srl;
-	int lay= 0;
+	unsigned int lay= 0;
 
     for(srl= sce->r.layers.first; srl; srl= srl->next)
 		if(srl->passflag & SCE_PASS_VECTOR)
@@ -4806,7 +4805,7 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 				}
 			}
 		}
-		else if((base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->scene->lay)) ) {
+		else if((base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->lay)) ) {
 			if((ob->transflag & OB_DUPLI) && (ob->type!=OB_MBALL)) {
 				DupliObject *dob;
 				ListBase *lb;
@@ -4933,15 +4932,15 @@ static void database_init_objects(Render *re, unsigned int renderlay, int nolamp
 }
 
 /* used to be 'rotate scene' */
-void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
+void RE_Database_FromScene(Render *re, Scene *scene, unsigned int lay, int use_camera_view)
 {
 	extern int slurph_opt;	/* key.c */
 	Scene *sce;
 	float mat[4][4];
 	float amb[3];
-	unsigned int lay;
 
 	re->scene= scene;
+	re->lay= lay;
 	
 	/* per second, per object, stats print this */
 	re->i.infostr= "Preparing Scene data";
@@ -4959,8 +4958,8 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	re->i.partsdone= 0;	/* signal now in use for previewrender */
 	
 	/* in localview, lamps are using normal layers, objects only local bits */
-	if(re->scene->lay & 0xFF000000) lay= re->scene->lay & 0xFF000000;
-	else lay= re->scene->lay;
+	if(re->lay & 0xFF000000)
+		lay &= 0xFF000000;
 	
 	/* applies changes fully */
 	if((re->r.scemode & R_PREVIEWBUTS)==0)
@@ -5027,11 +5026,6 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		/* yafray: 'direct' radiosity, environment maps and raytree init not needed for yafray render */
 		/* although radio mode could be useful at some point, later */
 		if (re->r.renderer==R_INTERN) {
-#if 0		/* RADIO was removed */
-			/* RADIO (uses no R anymore) */
-			if(!re->test_break(re->tbh))
-				if(re->r.mode & R_RADIO) do_radio_render(re);
-#endif
 			/* raytree */
 			if(!re->test_break(re->tbh)) {
 				if(re->r.mode & R_RAYTRACE) {
@@ -5095,13 +5089,13 @@ void RE_DataBase_GetView(Render *re, float mat[][4])
 /* Speed Vectors															 */
 /* ------------------------------------------------------------------------- */
 
-static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
+static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int lay, int timeoffset)
 {
 	extern int slurph_opt;	/* key.c */
 	float mat[4][4];
-	unsigned int lay;
 	
 	re->scene= scene;
+	re->lay= lay;
 	
 	/* XXX add test if dbase was filled already? */
 	
@@ -5113,8 +5107,8 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 	slurph_opt= 0;
 	
 	/* in localview, lamps are using normal layers, objects only local bits */
-	if(re->scene->lay & 0xFF000000) lay= re->scene->lay & 0xFF000000;
-	else lay= re->scene->lay;
+	if(re->lay & 0xFF000000)
+		lay &= 0xFF000000;
 	
 	/* applies changes fully */
 	scene->r.cfra += timeoffset;
@@ -5477,7 +5471,7 @@ static void free_dbase_object_vectors(ListBase *lb)
 	BLI_freelistN(lb);
 }
 
-void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
+void RE_Database_FromScene_Vectors(Render *re, Scene *sce, unsigned int lay)
 {
 	ObjectInstanceRen *obi, *oldobi;
 	StrandSurface *mesh;
@@ -5492,7 +5486,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	speedvector_project(re, NULL, NULL, NULL);	/* initializes projection code */
 	
 	/* creates entire dbase */
-	database_fromscene_vectors(re, sce, -1);
+	database_fromscene_vectors(re, sce, lay, -1);
 	
 	/* copy away vertex info */
 	copy_dbase_object_vectors(re, &oldtable);
@@ -5507,7 +5501,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 		/* creates entire dbase */
 		re->i.infostr= "Calculating next frame vectors";
 		
-		database_fromscene_vectors(re, sce, +1);
+		database_fromscene_vectors(re, sce, lay, +1);
 	}	
 	/* copy away vertex info */
 	copy_dbase_object_vectors(re, &newtable);
@@ -5519,7 +5513,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 	re->strandsurface= strandsurface;
 	
 	if(!re->test_break(re->tbh))
-		RE_Database_FromScene(re, sce, 1);
+		RE_Database_FromScene(re, sce, lay, 1);
 	
 	if(!re->test_break(re->tbh)) {
 		for(step= 0; step<2; step++) {
@@ -5608,14 +5602,14 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
    RE_BAKE_DISPLACEMENT:for baking, no lamps, only selected objects
    RE_BAKE_SHADOW: for baking, only shadows, but all objects
 */
-void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
+void RE_Database_Baking(Render *re, Scene *scene, unsigned int lay, int type, Object *actob)
 {
 	float mat[4][4];
 	float amb[3];
-	unsigned int lay;
 	int onlyselected, nolamps;
 	
 	re->scene= scene;
+	re->lay= lay;
 
 	/* renderdata setup and exceptions */
 	re->r= scene->r;
@@ -5648,8 +5642,8 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 	re->lampren.first= re->lampren.last= NULL;
 
 	/* in localview, lamps are using normal layers, objects only local bits */
-	if(re->scene->lay & 0xFF000000) lay= re->scene->lay & 0xFF000000;
-	else lay= re->scene->lay;
+	if(re->lay & 0xFF000000)
+		lay &= 0xFF000000;
 	
 	/* if no camera, set unit */
 	if(re->scene->camera) {

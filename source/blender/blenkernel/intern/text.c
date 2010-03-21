@@ -37,8 +37,6 @@
 
 #include "BLI_blenlib.h"
 
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_scene_types.h"
@@ -50,7 +48,6 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
 #include "BKE_text.h"
 #include "BKE_utildefines.h"
 

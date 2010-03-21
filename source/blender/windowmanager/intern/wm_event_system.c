@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -108,6 +108,17 @@ void wm_event_free_all(wmWindow *win)
 
 /* ********************* notifiers, listeners *************** */
 
+static int wm_test_duplicate_notifier(wmWindowManager *wm, unsigned int type, void *reference)
+{
+	wmNotifier *note;
+
+	for(note=wm->queue.first; note; note=note->next)
+		if((note->category|note->data|note->subtype|note->action) == type && note->reference == reference)
+			return 1;
+	
+	return 0;
+}
+
 /* XXX: in future, which notifiers to send to other windows? */
 void WM_event_add_notifier(const bContext *C, unsigned int type, void *reference)
 {
@@ -134,7 +145,7 @@ void WM_main_add_notifier(unsigned int type, void *reference)
 	Main *bmain= G.main;
 	wmWindowManager *wm= bmain->wm.first;
 
-	if(wm) {
+	if(wm && !wm_test_duplicate_notifier(wm, type, reference)) {
 		wmNotifier *note= MEM_callocN(sizeof(wmNotifier), "notifier");
 		
 		note->wm= wm;
@@ -217,7 +228,7 @@ void wm_event_do_notifiers(bContext *C)
 						
 				}
 			}
-			if(ELEM4(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_SCENE)) {
+			if(ELEM5(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_SCENE, NC_WM)) {
 				ED_info_stats_clear(CTX_data_scene(C));
 				WM_event_add_notifier(C, NC_SPACE|ND_SPACE_INFO, NULL);
 			}

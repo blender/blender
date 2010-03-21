@@ -418,6 +418,19 @@ class WM_OT_context_modal_mouse(bpy.types.Operator):
             return {'RUNNING_MODAL'}
 
 
+class WM_OT_url_open(bpy.types.Operator):
+    "Open the Blender Wiki in the Webbrowser"
+    bl_idname = "wm.url_open"
+    bl_label = ""
+
+    url = StringProperty(name="URL", description="URL to open")
+
+    def execute(self, context):
+        import webbrowser
+        webbrowser.open(self.properties.url)
+        return {'FINISHED'}
+
+
 class WM_OT_doc_view(bpy.types.Operator):
     '''Load online reference docs'''
     bl_idname = "wm.doc_view"
@@ -487,7 +500,8 @@ class WM_OT_doc_edit(bpy.types.Operator):
         class_name, class_prop = doc_id.split('.')
 
         if not doc_new:
-            return {'RUNNING_MODAL'}
+            self.report({'ERROR'}, "No input given for '%s'" % doc_id)
+            return {'CANCELLED'}
 
         # check if this is an operator
         op_name = class_name.upper() + '_OT_' + class_prop
@@ -504,10 +518,6 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
             print("op - old:'%s' -> new:'%s'" % (doc_orig, doc_new))
             upload["title"] = 'OPERATOR %s:%s' % (doc_id, doc_orig)
-            upload["description"] = doc_new
-
-            self._send_xmlrpc(upload)
-
         else:
             rna = getattr(bpy.types, class_name).bl_rna
             doc_orig = rna.properties[class_prop].description
@@ -523,9 +533,15 @@ class WM_OT_doc_edit(bpy.types.Operator):
 
         return {'FINISHED'}
 
+    def draw(self, context):
+        layout = self.layout
+        props = self.properties
+        layout.label(props, text="Descriptor ID: '%s'" % props.doc_id)
+        layout.prop(props, "doc_new", text="")
+
     def invoke(self, context, event):
         wm = context.manager
-        return wm.invoke_props_popup(self, event)
+        return wm.invoke_props_dialog(self, event, width=600)
 
 
 class WM_OT_reload_scripts(bpy.types.Operator):
@@ -556,6 +572,8 @@ classes = [
     WM_OT_context_cycle_enum,
     WM_OT_context_cycle_int,
     WM_OT_context_modal_mouse,
+
+    WM_OT_url_open,
 
     WM_OT_doc_view,
     WM_OT_doc_edit,

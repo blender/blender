@@ -136,6 +136,8 @@ class SEQUENCER_MT_view(bpy.types.Menu):
             layout.prop(st, "separate_color_preview")
 
         layout.separator()
+        layout.prop(st, "use_marker_sync")
+        layout.separator()
 
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
@@ -185,7 +187,7 @@ class SEQUENCER_MT_add(bpy.types.Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.column()
-        layout.operator("sequencer.scene_strip_add", text="Scene")
+        layout.operator_menu_enum("sequencer.scene_strip_add", "scene", text="Scene...")
         layout.operator("sequencer.movie_strip_add", text="Movie")
         layout.operator("sequencer.image_strip_add", text="Image")
         layout.operator("sequencer.sound_strip_add", text="Sound")
@@ -359,6 +361,28 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel):
         col.label(text="Still:")
         col.prop(strip, "start_still", text="Start")
         col.prop(strip, "end_still", text="End")
+
+
+class SEQUENCER_PT_preview(bpy.types.Panel):
+    bl_label = "Scene Preview/Render"
+    bl_space_type = 'SEQUENCE_EDITOR'
+    bl_region_type = 'UI'
+
+    def draw(self, context):
+        layout = self.layout
+        render = context.scene.render
+
+        col = layout.column()
+        col.prop(render, "use_sequencer_gl_preview", text="Open GL Preview")
+        col = layout.column()
+        col.active = render.use_sequencer_gl_preview
+        col.prop(render, "sequencer_gl_preview", text="")
+        
+        col = layout.column()
+        col.prop(render, "use_sequencer_gl_render", text="Open GL Render")
+        col = layout.column()
+        col.active = render.use_sequencer_gl_render
+        col.prop(render, "sequencer_gl_render", text="")
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel):
@@ -585,7 +609,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel):
         layout.template_ID(strip, "sound", open="sound.open")
 
         layout.separator()
-        layout.prop(strip.sound, "filepath", text="")
+        layout.prop(strip, "filepath", text="")
 
         row = layout.row()
         if strip.sound.packed_file:
@@ -620,8 +644,6 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel):
 
         layout.label(text="Camera Override")
         layout.template_ID(strip, "scene_camera")
-
-        layout.prop(strip, "use_opengl")
 
 
 class SEQUENCER_PT_filter(SequencerButtonsPanel):
@@ -731,6 +753,7 @@ classes = [
     SEQUENCER_MT_strip,
 
     SEQUENCER_PT_edit, # sequencer panels
+    SEQUENCER_PT_preview,
     SEQUENCER_PT_effect,
     SEQUENCER_PT_input_movie,
     SEQUENCER_PT_input_image,

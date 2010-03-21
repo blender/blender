@@ -108,6 +108,17 @@ void BLI_remlink(ListBase *listbase, void *vlink)
 	if (listbase->first == link) listbase->first = link->next;
 }
 
+int BLI_remlink_safe(ListBase *listbase, void *vlink)
+{
+	if(BLI_findindex(listbase, vlink) != -1) {
+		BLI_remlink(listbase, vlink);
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
 
 void BLI_freelinkN(ListBase *listbase, void *vlink)
 {

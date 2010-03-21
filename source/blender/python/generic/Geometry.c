@@ -29,11 +29,6 @@
 
 #include "Geometry.h"
 
-/*  - Not needed for now though other geometry functions will probably need them
-#include "BLI_math.h"
-#include "BKE_utildefines.h"
-*/
-
 /* Used for PolyFill */
 #include "BKE_displist.h"
 #include "MEM_guardedalloc.h"

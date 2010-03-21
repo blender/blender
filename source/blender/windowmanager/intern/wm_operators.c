@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -910,6 +910,60 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 	return block;
 }
 
+/* Only invoked by OK button in popups created with wm_block_create_dialog() */
+static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
+{
+	wmOperator *op= arg1;
+	uiBlock *block= arg2;
+
+	WM_operator_call(C, op);
+
+	uiPupBlockClose(C, block);
+}
+
+/* Dialogs are popups that require user verification (click OK) before exec */
+static uiBlock *wm_block_create_dialog(bContext *C, ARegion *ar, void *userData)
+{
+	struct { wmOperator *op; int width; int height; } * data = userData;
+	wmWindowManager *wm= CTX_wm_manager(C);
+	wmOperator *op= data->op;
+	PointerRNA ptr;
+	uiBlock *block;
+	uiLayout *layout;
+	uiBut *btn;
+	uiStyle *style= U.uistyles.first;
+	int columns= 2;
+
+	block = uiBeginBlock(C, ar, "operator dialog", UI_EMBOSS);
+	uiBlockClearFlag(block, UI_BLOCK_LOOP);
+	uiBlockSetFlag(block, UI_BLOCK_KEEP_OPEN|UI_BLOCK_RET_1|UI_BLOCK_MOVEMOUSE_QUIT);
+
+	if (!op->properties) {
+		IDPropertyTemplate val = {0};
+		op->properties= IDP_New(IDP_GROUP, val, "wmOperatorProperties");
+	}
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+	layout= uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, style);
+	uiItemL(layout, op->type->name, 0);
+
+	if (op->type->ui) {
+		op->layout= layout;
+		op->type->ui((bContext*)C, op);
+		op->layout= NULL;
+	}
+	else
+		uiDefAutoButsRNA(C, layout, &ptr, columns);
+
+	/* Create OK button, the callback of which will execute op */
+	btn= uiDefBut(block, BUT, 0, "OK", 0, 0, 0, 20, NULL, 0, 0, 0, 0, "");
+	uiButSetFunc(btn, dialog_exec_cb, op, block);
+
+	uiPopupBoundsBlock(block, 4.0f, 0, 0);
+	uiEndBlock(C, block);
+
+	return block;
+}
 
 static uiBlock *wm_operator_create_ui(bContext *C, ARegion *ar, void *userData)
 {
@@ -958,13 +1012,28 @@ int WM_operator_props_popup(bContext *C, wmOperator *op, wmEvent *event)
 	return retval;
 }
 
-void WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
+int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int height)
+{
+	struct { wmOperator *op; int width; int height; } data;
+	
+	data.op= op;
+	data.width= width;
+	data.height= height;
+
+	/* op is not executed until popup OK but is clicked */
+	uiPupBlock(C, wm_block_create_dialog, &data);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+int WM_operator_ui_popup(bContext *C, wmOperator *op, int width, int height)
 {
 	struct { wmOperator *op; int width; int height; } data;
 	data.op = op;
 	data.width = width;
 	data.height = height;
 	uiPupBlock(C, wm_operator_create_ui, &data);
+	return OPERATOR_RUNNING_MODAL;
 }
 
 int WM_operator_redo_popup(bContext *C, wmOperator *op)
@@ -1060,7 +1129,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	char *revision_str = NULL;
 	char version_buf[128];
 	char revision_buf[128];
-	extern char * build_rev;
+	extern char build_rev[];
 	char *cp;
 	
 	version_str = &version_buf[0];
@@ -1068,16 +1137,6 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	
 	sprintf(version_str, "%d.%02d.%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 	sprintf(revision_str, "r%s", build_rev);
-	
-	/* here on my system I get ugly double quotes around the revision number.
-	 * if so, clip it off: */
-	cp = strchr(revision_str, '"');
-	if (cp) {
-		memmove(cp, cp+1, strlen(cp+1));
-		cp = strchr(revision_str, '"');
-		if (cp)
-			*cp = 0;
-	}
 	
 	BLF_size(style->widgetlabel.points, U.dpi);
 	ver_width = BLF_width(version_str)+5;
@@ -1120,10 +1179,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 		else				display_name= recent->filename;
 		uiItemStringO(col, display_name, ICON_FILE_BLEND, "WM_OT_open_mainfile", "path", recent->filename);
 	}
-	uiItemL(col, "Recovery", 0);
-	uiItemO(col, NULL, ICON_FILE_BLEND, "WM_OT_recover_last_session");
-	uiItemO(col, NULL, ICON_FILE_BLEND, "WM_OT_recover_auto_save");
-	
+	uiItemS(col);
+	uiItemO(col, NULL, ICON_HELP, "WM_OT_recover_last_session");
 	uiItemL(col, "", 0);
 
 	uiCenteredBoundsBlock(block, 0.0f);
@@ -1236,7 +1293,7 @@ static int wm_search_menu_poll(bContext *C)
 	if(CTX_wm_window(C)==NULL) return 0;
 	if(CTX_wm_area(C) && CTX_wm_area(C)->spacetype==SPACE_CONSOLE) return 0;  // XXX - so we can use the shortcut in the console
 	if(CTX_wm_area(C) && CTX_wm_area(C)->spacetype==SPACE_TEXT) return 0;  // XXX - so we can use the spacebar in the text editor
-	if(CTX_data_edit_object(C) && CTX_data_edit_object(C)->type==OB_CURVE) return 0; // XXX - so we can use the spacebar for entering text
+	if(CTX_data_edit_object(C) && CTX_data_edit_object(C)->type==OB_FONT) return 0; // XXX - so we can use the spacebar for entering text
 	return 1;
 }
 

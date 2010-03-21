@@ -22,8 +22,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "DNA_listBase.h"
-#include "RNA_access.h"
 #include "bpy_util.h"
 #include "BLI_dynstr.h"
 #include "MEM_guardedalloc.h"
@@ -245,8 +243,8 @@ PyObject *BPY_exception_buffer(void)
 	
 	PyErr_Clear();
 	
-	/* import StringIO / io
-	 * string_io = StringIO.StringIO()
+	/* import io
+	 * string_io = io.StringIO()
 	 */
 	
 	if(! (string_io_mod= PyImport_ImportModule("io")) ) {

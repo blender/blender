@@ -28,15 +28,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
 #include <errno.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_gsqueue.h"
@@ -109,6 +104,7 @@ A sample loop can look like this (pseudo c);
 static pthread_mutex_t _malloc_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _image_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _preview_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t _viewer_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _custom1_lock = PTHREAD_MUTEX_INITIALIZER;
 static int thread_levels= 0;	/* threads can be invoked inside threads */
 
@@ -229,8 +225,8 @@ void BLI_remove_thread(ListBase *threadbase, void *callerdata)
 	
 	for(tslot= threadbase->first; tslot; tslot= tslot->next) {
 		if(tslot->callerdata==callerdata) {
-			tslot->callerdata= NULL;
 			pthread_join(tslot->pthread, NULL);
+			tslot->callerdata= NULL;
 			tslot->avail= 1;
 		}
 	}
@@ -243,8 +239,8 @@ void BLI_remove_thread_index(ListBase *threadbase, int index)
 	
 	for(tslot = threadbase->first; tslot; tslot = tslot->next, counter++) {
 		if (counter == index && tslot->avail == 0) {
-			tslot->callerdata = NULL;
 			pthread_join(tslot->pthread, NULL);
+			tslot->callerdata = NULL;
 			tslot->avail = 1;
 			break;
 		}
@@ -257,8 +253,8 @@ void BLI_remove_threads(ListBase *threadbase)
 	
 	for(tslot = threadbase->first; tslot; tslot = tslot->next) {
 		if (tslot->avail == 0) {
-			tslot->callerdata = NULL;
 			pthread_join(tslot->pthread, NULL);
+			tslot->callerdata = NULL;
 			tslot->avail = 1;
 		}
 	}
@@ -327,6 +323,8 @@ void BLI_lock_thread(int type)
 		pthread_mutex_lock(&_image_lock);
 	else if (type==LOCK_PREVIEW)
 		pthread_mutex_lock(&_preview_lock);
+	else if (type==LOCK_VIEWER)
+		pthread_mutex_lock(&_viewer_lock);
 	else if (type==LOCK_CUSTOM1)
 		pthread_mutex_lock(&_custom1_lock);
 }
@@ -337,6 +335,8 @@ void BLI_unlock_thread(int type)
 		pthread_mutex_unlock(&_image_lock);
 	else if (type==LOCK_PREVIEW)
 		pthread_mutex_unlock(&_preview_lock);
+	else if (type==LOCK_VIEWER)
+		pthread_mutex_unlock(&_viewer_lock);
 	else if(type==LOCK_CUSTOM1)
 		pthread_mutex_unlock(&_custom1_lock);
 }

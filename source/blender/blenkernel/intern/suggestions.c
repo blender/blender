@@ -32,9 +32,7 @@
 #include <ctype.h>
 
 #include "MEM_guardedalloc.h"
-#include "BLI_blenlib.h"
 #include "DNA_text_types.h"
-#include "BKE_text.h"
 #include "BKE_suggestions.h"
 
 /**********************/

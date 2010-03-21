@@ -30,9 +30,10 @@
 
 #include "BLI_math.h"
 #include "BKE_utildefines.h"
-#include "BLI_blenlib.h"
 
+#ifndef int32_t
 #include "BLO_sys_types.h"
+#endif
 
 //----------------------------------Mathutils.Euler() -------------------
 //makes a new euler for you to play with

@@ -14,10 +14,8 @@
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 
 #include "AUD_C-API.h"
 
@@ -31,7 +29,6 @@
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
 
-#include "RNA_access.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -347,6 +344,13 @@ void sound_destroy_scene(struct Scene *scene)
 		AUD_stop(scene->sound_scene_handle);
 	if(scene->sound_scene)
 		AUD_destroySequencer(scene->sound_scene);
+}
+
+void* sound_scene_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip)
+{
+	if(scene != sequence->scene)
+		return AUD_addSequencer(scene->sound_scene, &(sequence->scene->sound_scene), startframe / FPS, endframe / FPS, frameskip / FPS, sequence);
+	return NULL;
 }
 
 void* sound_add_scene_sound(struct Scene *scene, struct Sequence* sequence, int startframe, int endframe, int frameskip)

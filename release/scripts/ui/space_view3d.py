@@ -471,8 +471,8 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
 
         layout.separator()
 
-        layout.operator("mesh.select_random", text="Random...")
-        layout.operator("mesh.select_nth", text="Select Nth...")
+        layout.operator("mesh.select_random", text="Random")
+        layout.operator("mesh.select_nth", text="Every N Number of Verts")
         layout.operator("mesh.edges_select_sharp", text="Sharp Edges")
         layout.operator("mesh.faces_select_linked_flat", text="Linked Flat Faces")
         layout.operator("mesh.faces_select_interior", text="Interior Faces")
@@ -482,8 +482,10 @@ class VIEW3D_MT_select_edit_mesh(bpy.types.Menu):
 
         layout.operator("mesh.select_by_number_vertices", text="Triangles").type = 'TRIANGLES'
         layout.operator("mesh.select_by_number_vertices", text="Quads").type = 'QUADS'
+        if context.scene.tool_settings.mesh_selection_mode[2] == False:
+                layout.operator("mesh.select_non_manifold", text="Non Manifold")
         layout.operator("mesh.select_by_number_vertices", text="Loose Verts/Edges").type = 'OTHER'
-        layout.operator("mesh.select_similar", text="Similar...")
+        layout.operator("mesh.select_similar", text="Similar")
 
         layout.separator()
 
@@ -1369,7 +1371,7 @@ class VIEW3D_OT_edit_mesh_extrude_move(bpy.types.Operator):
         totedge = mesh.total_edge_sel
         totvert = mesh.total_vert_sel
 
-        if totface >= 1 or totvert == 1:
+        if totface >= 1:
             return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": "NORMAL", "constraint_axis": [False, False, True]})
         elif totedge == 1:
             return bpy.ops.mesh.extrude_region_move('INVOKE_REGION_WIN', TRANSFORM_OT_translate={"constraint_orientation": "NORMAL", "constraint_axis": [True, True, False]})
@@ -1854,7 +1856,7 @@ class VIEW3D_PT_3dview_properties(bpy.types.Panel):
         col.prop(view, "clip_start", text="Start")
         col.prop(view, "clip_end", text="End")
 
-        layout.column().prop(scene, "cursor_location", text="3D Cursor:")
+        layout.column().prop(view, "cursor_location")
 
 
 class VIEW3D_PT_3dview_name(bpy.types.Panel):
@@ -1899,9 +1901,11 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
         ob = context.object
 
         col = layout.column()
-        col.prop(view, "display_x_axis", text="X Axis")
-        col.prop(view, "display_y_axis", text="Y Axis")
-        col.prop(view, "display_z_axis", text="Z Axis")
+        col.prop(view, "display_render_override")
+
+        col = layout.column()
+        display_all = not view.display_render_override
+        col.active = display_all
         col.prop(view, "outline_selected")
         col.prop(view, "all_object_origins")
         col.prop(view, "relationship_lines")
@@ -1910,9 +1914,17 @@ class VIEW3D_PT_3dview_display(bpy.types.Panel):
             col.prop(mesh, "all_edges")
 
         col = layout.column()
-        col.prop(view, "display_floor", text="Grid Floor")
+        col.active = display_all
+        split = col.split(percentage=0.55)
+        split.prop(view, "display_floor", text="Grid Floor")
+        
+        row = split.row(align=True)
+        row.prop(view, "display_x_axis", text="X", toggle=True)
+        row.prop(view, "display_y_axis", text="Y", toggle=True)
+        row.prop(view, "display_z_axis", text="Z", toggle=True)
+        
         sub = col.column(align=True)
-        sub.active = view.display_floor
+        sub.active = (display_all and view.display_floor)
         sub.prop(view, "grid_lines", text="Lines")
         sub.prop(view, "grid_spacing", text="Spacing")
         sub.prop(view, "grid_subdivisions", text="Subdivisions")

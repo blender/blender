@@ -36,7 +36,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_dynstr.h"
 
 #include "DNA_anim_types.h"
@@ -51,7 +50,6 @@
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_types.h"
 
 #include "nla_private.h"
 
@@ -274,7 +272,7 @@ static short check_rna_path_is_valid (ID *owner_id, char *path)
 /* Check if some given RNA Path needs fixing - free the given path and set a new one as appropriate 
  * NOTE: we assume that oldName and newName have [" "] padding around them
  */
-static char *rna_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, char *oldpath)
+static char *rna_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, char *oldpath, int verify_paths)
 {
 	char *prefixPtr= strstr(oldpath, prefix);
 	char *oldNamePtr= strstr(oldpath, oldName);
@@ -286,7 +284,7 @@ static char *rna_path_rename_fix (ID *owner_id, char *prefix, char *oldName, cha
 	 */
 	if ( (prefixPtr && oldNamePtr) && (prefixPtr+prefixLen == oldNamePtr) ) {
 		/* if we haven't aren't able to resolve the path now, try again after fixing it */
-		if (check_rna_path_is_valid(owner_id, oldpath) == 0) {		
+		if (!verify_paths || check_rna_path_is_valid(owner_id, oldpath) == 0) {		
 			DynStr *ds= BLI_dynstr_new();
 			char *postfixPtr= oldNamePtr+oldNameLen;
 			char *newPath = NULL;
@@ -315,7 +313,7 @@ static char *rna_path_rename_fix (ID *owner_id, char *prefix, char *oldName, cha
 			
 			/* check if the new path will solve our problems */
 			// TODO: will need to check whether this step really helps in practice
-			if (check_rna_path_is_valid(owner_id, newPath)) {
+			if (!verify_paths || check_rna_path_is_valid(owner_id, newPath)) {
 				/* free the old path, and return the new one, since we've solved the issues */
 				MEM_freeN(oldpath);
 				return newPath;
@@ -332,7 +330,7 @@ static char *rna_path_rename_fix (ID *owner_id, char *prefix, char *oldName, cha
 }
 
 /* Check RNA-Paths for a list of F-Curves */
-static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, ListBase *curves)
+static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, ListBase *curves, int verify_paths)
 {
 	FCurve *fcu;
 	
@@ -340,7 +338,7 @@ static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, 
 	for (fcu= curves->first; fcu; fcu= fcu->next) {
 		/* firstly, handle the F-Curve's own path */
 		if (fcu->rna_path)
-			fcu->rna_path= rna_path_rename_fix(owner_id, prefix, oldName, newName, fcu->rna_path);
+			fcu->rna_path= rna_path_rename_fix(owner_id, prefix, oldName, newName, fcu->rna_path, verify_paths);
 		
 		/* driver? */
 		if (fcu->driver) {
@@ -354,7 +352,7 @@ static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, 
 				{
 					/* rename RNA path */
 					if (dtar->rna_path)
-						dtar->rna_path= rna_path_rename_fix(dtar->id, prefix, oldName, newName, dtar->rna_path);
+						dtar->rna_path= rna_path_rename_fix(dtar->id, prefix, oldName, newName, dtar->rna_path, verify_paths);
 					
 					/* also fix the bone-name (if applicable) */
 					// XXX this has been disabled because the old/new names have padding which means this check will fail
@@ -371,7 +369,7 @@ static void fcurves_path_rename_fix (ID *owner_id, char *prefix, char *oldName, 
 }
 
 /* Fix all RNA-Paths for Actions linked to NLA Strips */
-static void nlastrips_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, ListBase *strips)
+static void nlastrips_path_rename_fix (ID *owner_id, char *prefix, char *oldName, char *newName, ListBase *strips, int verify_paths)
 {
 	NlaStrip *strip;
 	
@@ -379,11 +377,11 @@ static void nlastrips_path_rename_fix (ID *owner_id, char *prefix, char *oldName
 	for (strip= strips->first; strip; strip= strip->next) {
 		/* fix strip's action */
 		if (strip->act)
-			fcurves_path_rename_fix(owner_id, prefix, oldName, newName, &strip->act->curves);
+			fcurves_path_rename_fix(owner_id, prefix, oldName, newName, &strip->act->curves, verify_paths);
 		/* ignore own F-Curves, since those are local...  */
 		
 		/* check sub-strips (if metas) */
-		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, &strip->strips);
+		nlastrips_path_rename_fix(owner_id, prefix, oldName, newName, &strip->strips, verify_paths);
 	}
 }
 
@@ -391,31 +389,36 @@ static void nlastrips_path_rename_fix (ID *owner_id, char *prefix, char *oldName
  * NOTE: it is assumed that the structure we're replacing is <prefix><["><name><"]>
  * 		i.e. pose.bones["Bone"]
  */
-void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, char *oldName, char *newName)
+void BKE_animdata_fix_paths_rename (ID *owner_id, AnimData *adt, char *prefix, char *oldName, char *newName, int oldSubscript, int newSubscript, int verify_paths)
 {
 	NlaTrack *nlt;
 	char *oldN, *newN;
 	
 	/* if no AnimData, no need to proceed */
-	if (ELEM4(NULL, owner_id, adt, oldName, newName))
+	if (ELEM(NULL, owner_id, adt))
 		return;
 	
-	/* pad the names with [" "] so that only exact matches are made */
-	oldN= BLI_sprintfN("[\"%s\"]", oldName);
-	newN= BLI_sprintfN("[\"%s\"]", newName);
+	if (oldName != NULL && newName != NULL) {
+		/* pad the names with [" "] so that only exact matches are made */
+		oldN= BLI_sprintfN("[\"%s\"]", oldName);
+		newN= BLI_sprintfN("[\"%s\"]", newName);
+	} else {
+		oldN= BLI_sprintfN("[%d]", oldSubscript);
+		newN= BLI_sprintfN("[%d]", newSubscript);
+	}
 	
 	/* Active action and temp action */
 	if (adt->action)
-		fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->action->curves);
+		fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->action->curves, verify_paths);
 	if (adt->tmpact)
-		fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->tmpact->curves);
+		fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->tmpact->curves, verify_paths);
 		
 	/* Drivers - Drivers are really F-Curves */
-	fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->drivers);
+	fcurves_path_rename_fix(owner_id, prefix, oldN, newN, &adt->drivers, verify_paths);
 	
 	/* NLA Data - Animation Data for Strips */
 	for (nlt= adt->nla_tracks.first; nlt; nlt= nlt->next)
-		nlastrips_path_rename_fix(owner_id, prefix, oldN, newN, &nlt->strips);
+		nlastrips_path_rename_fix(owner_id, prefix, oldN, newN, &nlt->strips, verify_paths);
 		
 	/* free the temp names */
 	MEM_freeN(oldN);
@@ -482,7 +485,7 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 #define RENAMEFIX_ANIM_IDS(first) \
 	for (id= first; id; id= id->next) { \
 		AnimData *adt= BKE_animdata_from_id(id); \
-		BKE_animdata_fix_paths_rename(id, adt, prefix, oldName, newName);\
+		BKE_animdata_fix_paths_rename(id, adt, prefix, oldName, newName, 0, 0, 1);\
 	}
 	
 	/* nodes */
@@ -532,11 +535,11 @@ void BKE_all_animdata_fix_paths_rename (char *prefix, char *oldName, char *newNa
 		/* do compositing nodes first (since these aren't included in main tree) */
 		if (scene->nodetree) {
 			AnimData *adt2= BKE_animdata_from_id((ID *)scene->nodetree);
-			BKE_animdata_fix_paths_rename((ID *)scene->nodetree, adt2, prefix, oldName, newName);
+			BKE_animdata_fix_paths_rename((ID *)scene->nodetree, adt2, prefix, oldName, newName, 0, 0, 1);
 		}
 		
 		/* now fix scene animation data as per normal */
-		BKE_animdata_fix_paths_rename((ID *)id, adt, prefix, oldName, newName);
+		BKE_animdata_fix_paths_rename((ID *)id, adt, prefix, oldName, newName, 0, 0, 1);
 	}
 }
 
@@ -552,14 +555,8 @@ KS_Path *BKE_keyingset_find_path (KeyingSet *ks, ID *id, const char group_name[]
 	KS_Path *ksp;
 	
 	/* sanity checks */
-	if ELEM(NULL, ks, rna_path)
+	if ELEM3(NULL, ks, rna_path, id)
 		return NULL;
-	
-	/* ID is optional for relative KeyingSets, but is necessary for absolute KeyingSets */
-	if (id == NULL) {
-		if (ks->flag & KEYINGSET_ABSOLUTE)
-			return NULL;
-	}
 	
 	/* loop over paths in the current KeyingSet, finding the first one where all settings match 
 	 * (i.e. the first one where none of the checks fail and equal 0)
@@ -568,7 +565,7 @@ KS_Path *BKE_keyingset_find_path (KeyingSet *ks, ID *id, const char group_name[]
 		short eq_id=1, eq_path=1, eq_index=1, eq_group=1;
 		
 		/* id */
-		if ((ks->flag & KEYINGSET_ABSOLUTE) && (id != ksp->id))
+		if (id != ksp->id)
 			eq_id= 0;
 		
 		/* path */
@@ -621,53 +618,48 @@ KeyingSet *BKE_keyingset_add (ListBase *list, const char name[], short flag, sho
 	return ks;
 }
 
-/* Add a destination to a KeyingSet. Nothing is returned for now...
+/* Add a path to a KeyingSet. Nothing is returned for now...
  * Checks are performed to ensure that destination is appropriate for the KeyingSet in question
  */
-void BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode)
+KS_Path *BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[], const char rna_path[], int array_index, short flag, short groupmode)
 {
 	KS_Path *ksp;
 	
 	/* sanity checks */
 	if ELEM(NULL, ks, rna_path) {
-		printf("ERROR: no Keying Set and/or RNA Path to add destination with \n");
-		return;
+		printf("ERROR: no Keying Set and/or RNA Path to add path with \n");
+		return NULL;
 	}
 	
-	/* ID is optional for relative KeyingSets, but is necessary for absolute KeyingSets */
+	/* ID is required for all types of KeyingSets */
 	if (id == NULL) {
-		if (ks->flag & KEYINGSET_ABSOLUTE) {
-			printf("ERROR: No ID provided for absolute destination. \n");
-			return;
-		}
+		printf("ERROR: No ID provided for Keying Set Path. \n");
+		return NULL;
 	}
 	
 	/* don't add if there is already a matching KS_Path in the KeyingSet */
 	if (BKE_keyingset_find_path(ks, id, group_name, rna_path, array_index, groupmode)) {
 		if (G.f & G_DEBUG)
 			printf("ERROR: destination already exists in Keying Set \n");
-		return;
+		return NULL;
 	}
 	
 	/* allocate a new KeyingSet Path */
 	ksp= MEM_callocN(sizeof(KS_Path), "KeyingSet Path");
 	
 	/* just store absolute info */
-	if (ks->flag & KEYINGSET_ABSOLUTE) {
-		ksp->id= id;
-		if (group_name)
-			BLI_snprintf(ksp->group, 64, group_name);
-		else
-			strcpy(ksp->group, "");
-	}
+	ksp->id= id;
+	if (group_name)
+		BLI_snprintf(ksp->group, 64, group_name);
+	else
+		strcpy(ksp->group, "");
 	
 	/* store additional info for relative paths (just in case user makes the set relative) */
 	if (id)
 		ksp->idtype= GS(id->name);
 	
 	/* just copy path info */
-	// XXX no checks are performed for templates yet
-	// should array index be checked too?
+	// TODO: should array index be checked too?
 	ksp->rna_path= BLI_strdupn(rna_path, strlen(rna_path));
 	ksp->array_index= array_index;
 	
@@ -677,20 +669,37 @@ void BKE_keyingset_add_path (KeyingSet *ks, ID *id, const char group_name[], con
 	
 	/* add KeyingSet path to KeyingSet */
 	BLI_addtail(&ks->paths, ksp);
+	
+	/* return this path */
+	return ksp;
 }	
 
+/* Free the given Keying Set path */
+void BKE_keyingset_free_path (KeyingSet *ks, KS_Path *ksp)
+{
+	/* sanity check */
+	if ELEM(NULL, ks, ksp)
+		return;
+	
+	/* free RNA-path info */
+	MEM_freeN(ksp->rna_path);
+	
+	/* free path itself */
+	BLI_freelinkN(&ks->paths, ksp);
+}
+
 /* Copy all KeyingSets in the given list */
-void BKE_keyingsets_copy(ListBase *newlist, ListBase *list)
+void BKE_keyingsets_copy (ListBase *newlist, ListBase *list)
 {
 	KeyingSet *ksn;
 	KS_Path *kspn;
-
+	
 	BLI_duplicatelist(newlist, list);
 
-	for(ksn=newlist->first; ksn; ksn=ksn->next) {
+	for (ksn=newlist->first; ksn; ksn=ksn->next) {
 		BLI_duplicatelist(&ksn->paths, &ksn->paths);
-
-		for(kspn=ksn->paths.first; kspn; kspn=kspn->next)
+		
+		for (kspn=ksn->paths.first; kspn; kspn=kspn->next)
 			kspn->rna_path= MEM_dupallocN(kspn->rna_path);
 	}
 }
@@ -709,12 +718,7 @@ void BKE_keyingset_free (KeyingSet *ks)
 	/* free each path as we go to avoid looping twice */
 	for (ksp= ks->paths.first; ksp; ksp= kspn) {
 		kspn= ksp->next;
-		
-		/* free RNA-path info */
-		MEM_freeN(ksp->rna_path);
-		
-		/* free path itself */
-		BLI_freelinkN(&ks->paths, ksp);
+		BKE_keyingset_free_path(ks, ksp);
 	}
 }
 
@@ -765,6 +769,8 @@ static short animsys_remap_path (AnimMapper *remap, char *path, char **dst)
 /* Write the given value to a setting using RNA, and return success */
 static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_index, float value)
 {
+    // printf("%p %s %i %f\n", ptr, path, array_index, value);
+
 	PropertyRNA *prop;
 	PointerRNA new_ptr;
 	
@@ -774,22 +780,35 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 		/* set value - only for animatable numerical values */
 		if (RNA_property_animateable(&new_ptr, prop)) 
 		{
+			int array_len= RNA_property_array_length(&new_ptr, prop);
+
+			if(array_len && array_index >= array_len)
+			{
+				if (G.f & G_DEBUG) {
+					printf("Animato: Invalid array index. ID = '%s',  '%s[%d]', array length is %d \n",
+						(ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name+2) : "<No ID>",
+						path, array_index, array_len-1);
+				}
+
+				return 0;
+			}
+
 			switch (RNA_property_type(prop)) 
 			{
 				case PROP_BOOLEAN:
-					if (RNA_property_array_length(&new_ptr, prop))
+					if (array_len)
 						RNA_property_boolean_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_boolean_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_INT:
-					if (RNA_property_array_length(&new_ptr, prop))
+					if (array_len)
 						RNA_property_int_set_index(&new_ptr, prop, array_index, (int)value);
 					else
 						RNA_property_int_set(&new_ptr, prop, (int)value);
 					break;
 				case PROP_FLOAT:
-					if (RNA_property_array_length(&new_ptr, prop))
+					if (array_len)
 						RNA_property_float_set_index(&new_ptr, prop, array_index, value);
 					else
 						RNA_property_float_set(&new_ptr, prop, value);
@@ -811,7 +830,7 @@ static short animsys_write_rna_setting (PointerRNA *ptr, char *path, int array_i
 		// XXX don't tag as failed yet though, as there are some legit situations (Action Constraint) 
 		// where some channels will not exist, but shouldn't lock up Action
 		if (G.f & G_DEBUG) {
-			printf("Animato: Invalid path. ID = '%s',  '%s [%d]' \n", 
+			printf("Animato: Invalid path. ID = '%s',  '%s[%d]' \n",
 				(ptr && ptr->id.data) ? (((ID *)ptr->id.data)->name+2) : "<No ID>", 
 				path, array_index);
 		}
@@ -983,6 +1002,9 @@ static void nlastrip_evaluate_controls (NlaStrip *strip, float ctime)
 		/* execute these settings as per normal */
 		animsys_evaluate_fcurves(&strip_ptr, &strip->fcurves, NULL, ctime);
 	}
+
+	if (strip->flag & NLASTRIP_FLAG_USR_TIME && strip->flag & NLASTRIP_FLAG_USR_TIME_CYCLIC)
+		strip->strip_time= fmod(strip->strip_time - strip->actstart, strip->actend - strip->actstart);
 }
 
 /* gets the strip active at the current time for a list of strips for evaluation purposes */

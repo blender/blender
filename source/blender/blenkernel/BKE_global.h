@@ -106,7 +106,7 @@ typedef struct Global {
 #define G_RENDER_OGL	(1 <<  0)
 #define G_SWAP_EXCHANGE	(1 <<  1)
 /* also uses G_FILE_AUTOPLAY */
-#define G_RENDER_SHADOW	(1 <<  3)
+/* #define G_RENDER_SHADOW	(1 <<  3) */ /* temp flag, removed */
 #define G_BACKBUFSEL	(1 <<  4)
 #define G_PICKSEL		(1 <<  5)
 

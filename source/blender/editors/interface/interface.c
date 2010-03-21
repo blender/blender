@@ -648,10 +648,6 @@ void uiEndBlock(const bContext *C, uiBlock *block)
 				CTX_store_set((bContext*)C, NULL);
 		}
 
-		/* only update soft range while not editing */
-		if(but->rnaprop && !(but->editval || but->editstr || but->editvec))
-			ui_set_but_soft_range(but, ui_get_but_val(but));
-
 		ui_but_anim_flag(but, (scene)? scene->r.cfra: 0.0f);
 	}
 
@@ -1939,6 +1935,10 @@ void ui_check_but(uiBut *but)
 	ui_is_but_sel(but);
 	
 //	if(but->type==TEX || but->type==IDPOIN) transopts= 0;
+
+	/* only update soft range while not editing */
+	if(but->rnaprop && !(but->editval || but->editstr || but->editvec))
+		ui_set_but_soft_range(but, ui_get_but_val(but));
 
 	/* test for min and max, icon sliders, etc */
 	switch( but->type ) {

@@ -35,55 +35,28 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_imbuf_types.h"
 
-#include "DNA_texture_types.h"
-#include "DNA_meta_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_listBase.h"
-#include "DNA_lamp_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_image_types.h"
 #include "DNA_material_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_key_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_editVert.h"
-#include "BLI_edgehash.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_displist.h"
-#include "BKE_deform.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_object.h"
-#include "BKE_world.h"
-#include "BKE_mesh.h"
-#include "BKE_effect.h"
 #include "BKE_mball.h"
 #include "BKE_material.h"
 #include "BKE_curve.h"
 #include "BKE_key.h"
 #include "BKE_anim.h"
-#include "BKE_screen.h"
-#include "BKE_texture.h"
-#include "BKE_library.h"
 #include "BKE_font.h"
 #include "BKE_lattice.h"
-#include "BKE_scene.h"
-#include "BKE_subsurf.h"
 #include "BKE_modifier.h"
-#include "BKE_customdata.h"
 
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
@@ -840,17 +813,17 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				/* count */
 				len= 0;
 				a= nu->pntsu-1;
-				if(nu->flagu & CU_CYCLIC) a++;
+				if(nu->flagu & CU_NURB_CYCLIC) a++;
 
 				prevbezt= nu->bezt;
 				bezt= prevbezt+1;
 				while(a--) {
-					if(a==0 && (nu->flagu & CU_CYCLIC)) bezt= nu->bezt;
+					if(a==0 && (nu->flagu & CU_NURB_CYCLIC)) bezt= nu->bezt;
 					
 					if(prevbezt->h2==HD_VECT && bezt->h1==HD_VECT) len++;
 					else len+= resolu;
 					
-					if(a==0 && (nu->flagu & CU_CYCLIC)==0) len++;
+					if(a==0 && (nu->flagu & CU_NURB_CYCLIC)==0) len++;
 					
 					prevbezt= bezt;
 					bezt++;
@@ -867,7 +840,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 
 				data= dl->verts;
 
-				if(nu->flagu & CU_CYCLIC) {
+				if(nu->flagu & CU_NURB_CYCLIC) {
 					dl->type= DL_POLY;
 					a= nu->pntsu;
 				}
@@ -920,7 +893,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				dl->charidx = nu->charidx;
 
 				data= dl->verts;
-				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
+				if(nu->flagu & CU_NURB_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				makeNurbcurve(nu, data, NULL, NULL, resolu, 3*sizeof(float));
 			}
@@ -935,7 +908,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				dl->charidx = nu->charidx;
 
 				data= dl->verts;
-				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
+				if(nu->flagu & CU_NURB_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				
 				a= len;
@@ -1391,7 +1364,11 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 					CDDM_calc_normals(dm);
 				}
 			} else {
-				dm= CDDM_from_curve(ob);
+				if (ELEM(ob->type, OB_CURVE, OB_FONT) && (cu->flag & CU_DEFORM_FILL)) {
+					curve_to_filledpoly(cu, nurb, &cu->disp);
+				}
+
+				dm= CDDM_from_curve_customDB(ob, dispbase);
 
 				if(dmDeformedVerts) {
 					CDDM_apply_vert_coords(dm, dmDeformedVerts);
@@ -1606,7 +1583,7 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 				dl->rt= nu->flag;
 				
 				data= dl->verts;
-				if(nu->flagu & CU_CYCLIC) dl->type= DL_POLY;
+				if(nu->flagu & CU_NURB_CYCLIC) dl->type= DL_POLY;
 				else dl->type= DL_SEGM;
 				
 				makeNurbcurve(nu, data, NULL, NULL, nu->resolu, 3*sizeof(float));
@@ -1627,8 +1604,8 @@ void makeDispListSurf(Scene *scene, Object *ob, ListBase *dispbase,
 				
 				dl->parts= (nu->pntsu*nu->resolu);	/* in reverse, because makeNurbfaces works that way */
 				dl->nr= (nu->pntsv*nu->resolv);
-				if(nu->flagv & CU_CYCLIC) dl->flag|= DL_CYCL_U;	/* reverse too! */
-				if(nu->flagu & CU_CYCLIC) dl->flag|= DL_CYCL_V;
+				if(nu->flagv & CU_NURB_CYCLIC) dl->flag|= DL_CYCL_U;	/* reverse too! */
+				if(nu->flagu & CU_NURB_CYCLIC) dl->flag|= DL_CYCL_V;
 
 				makeNurbfaces(nu, data, 0);
 				
@@ -1801,7 +1778,9 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 			freedisplist(&dlbev);
 		}
 
-		curve_to_filledpoly(cu, nubase, dispbase);
+		if (!(cu->flag & CU_DEFORM_FILL)) {
+			curve_to_filledpoly(cu, nubase, dispbase);
+		}
 
 		if(cu->flag & CU_PATH) calc_curvepath(ob);
 
@@ -1810,6 +1789,10 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
  		}
 
 		if(!forOrco) curve_calc_modifiers_post(scene, ob, dispbase, derivedFinal, forRender, originalVerts, deformedVerts);
+
+		if (cu->flag & CU_DEFORM_FILL && !ob->derivedFinal) {
+			curve_to_filledpoly(cu, nubase, dispbase);
+		}
 	}
 }
 

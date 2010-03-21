@@ -2736,6 +2736,12 @@ void rna_iterator_listbase_end(CollectionPropertyIterator *iter)
 	iter->internal= NULL;
 }
 
+PointerRNA rna_listbase_lookup_int(PointerRNA *ptr, StructRNA *type, struct ListBase *lb, int index)
+{
+	void *data= BLI_findlink(lb, index);
+	return rna_pointer_inherit_refine(ptr, type, data);
+}
+
 void rna_iterator_array_begin(CollectionPropertyIterator *iter, void *ptr, int itemsize, int length, int free_ptr, IteratorSkipFunc skip)
 {
 	ArrayIterator *internal;
@@ -2798,6 +2804,14 @@ void rna_iterator_array_end(CollectionPropertyIterator *iter)
 	}
 	MEM_freeN(iter->internal);
 	iter->internal= NULL;
+}
+
+PointerRNA rna_array_lookup_int(PointerRNA *ptr, StructRNA *type, void *data, int itemsize, int length, int index)
+{
+	if(index < 0 || index >= length)
+		return PointerRNA_NULL;
+
+	return rna_pointer_inherit_refine(ptr, type, ((char*)data) + index*itemsize);
 }
 
 /* RNA Path - Experiment */

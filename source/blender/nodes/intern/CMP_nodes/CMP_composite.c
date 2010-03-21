@@ -80,10 +80,10 @@ static void node_composit_exec_composite(void *data, bNode *node, bNodeStack **i
 				outbuf->malloc= 0;
 				free_compbuf(outbuf);
 
-				RE_ReleaseResult(re);
-				
 				/* signal for imageviewer to refresh (it converts to byte rects...) */
 				BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
+
+				RE_ReleaseResult(re);
 				return;
 			}
 			else

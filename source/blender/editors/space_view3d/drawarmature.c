@@ -2406,7 +2406,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 	bArmature *arm= ob->data;
 	int retval= 0;
 
-	if(G.f & G_RENDER_SHADOW)
+	if(v3d->flag2 & V3D_RENDER_OVERRIDE)
 		return 1;
 	
 	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {

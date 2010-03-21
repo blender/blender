@@ -73,6 +73,7 @@ typedef enum eFModifier_Types {
 	FMODIFIER_TYPE_FILTER,		/* unimplemented - for applying: fft, high/low pass filters, etc. */
 	FMODIFIER_TYPE_PYTHON,	
 	FMODIFIER_TYPE_LIMITS,
+	FMODIFIER_TYPE_STEPPED,
 	
 	/* NOTE: all new modifiers must be added above this line */
 	FMODIFIER_NUM_TYPES
@@ -211,6 +212,7 @@ typedef enum eFMod_Limit_Flags {
 	FCM_LIMIT_YMAX		= (1<<3),
 } eFMod_Limit_Flags;
 
+
 /* noise modifier data */
 typedef struct FMod_Noise {
 	float size;
@@ -229,6 +231,24 @@ typedef enum eFMod_Noise_Modifications {
 	FCM_NOISE_MODIF_SUBTRACT,		/* Subtract noise from the curve */
 	FCM_NOISE_MODIF_MULTIPLY,		/* Multiply the curve by noise */
 } eFMod_Noise_Modifications;
+
+
+/* stepped modifier data */
+typedef struct FMod_Stepped {
+	float step_size;				/* Number of frames each interpolated value should be held */
+	float offset;					/* Reference frame number that stepping starts from */
+	
+	float start_frame;				/* start frame of the frame range that modifier works in */				
+	float end_frame;				/* end frame of the frame range that modifier works in */
+	
+	int flag;						/* various settings */	
+} FMod_Stepped;
+
+/* stepped modifier range flags */
+typedef enum eFMod_Stepped_Flags {
+	FCM_STEPPED_NO_BEFORE 	= (1<<0),	/* don't affect frames before the start frame */
+	FCM_STEPPED_NO_AFTER 	= (1<<1),	/* don't affect frames after the end frame */
+} eFMod_Stepped_Flags;
 
 /* Drivers -------------------------------------- */
 
@@ -581,6 +601,7 @@ typedef enum eNlaStrip_Flag {
 		/* strip influence is controlled by local F-Curve */
 	NLASTRIP_FLAG_USR_INFLUENCE	= (1<<5),
 	NLASTRIP_FLAG_USR_TIME		= (1<<6),
+	NLASTRIP_FLAG_USR_TIME_CYCLIC = (1<<7),
 	
 		/* NLA strip length is synced to the length of the referenced action */
 	NLASTRIP_FLAG_SYNC_LENGTH	= (1<<9),
@@ -663,20 +684,19 @@ typedef enum eNlaTrack_Flag {
 typedef struct KS_Path {
 	struct KS_Path *next, *prev;
 	
-		/* absolute paths only */
 	ID *id;					/* ID block that keyframes are for */
 	char group[64];			/* name of the group to add to */
 	
-		/* relative paths only */
 	int idtype;				/* ID-type that path can be used on */
-	int templates;			/* Templates that will be encountered in the path (as set of bitflags) */
 	
-		/* all paths */
+	short groupmode;		/* group naming (eKSP_Grouping) */
+	short pad;
+	
 	char *rna_path;			/* dynamically (or statically in the case of predefined sets) path */
 	int array_index;		/* index that path affects */
 	
 	short flag;				/* various settings, etc. */
-	short groupmode;		/* group naming (eKSP_Grouping) */
+	short keyingflag;		/* settings to supply insertkey() with */
 } KS_Path;
 
 /* KS_Path->flag */
@@ -734,6 +754,7 @@ typedef struct KeyingSet {
 	ListBase paths;			/* (KS_Path) paths to keyframe to */
 	
 	char name[64];			/* user-viewable name for KeyingSet (for menus, etc.) */
+	char typeinfo[64];		/* name of the typeinfo data used for the relative paths */
 	
 	short flag;				/* settings for KeyingSet */
 	short keyingflag;		/* settings to supply insertkey() with */

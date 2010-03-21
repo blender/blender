@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Bob Holcomb, Xavier Thomas
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -250,6 +250,7 @@ typedef struct NodeChroma {
 	float t1,t2,t3;
 	float fsize,fstrength,falpha;
 	float key[4];
+   short algorithm, channel;
 } NodeChroma;
 
 typedef struct NodeTwoXYs {
@@ -311,6 +312,12 @@ typedef struct NodeColorBalance {
 	float gamma[3];
 	float gain[3];
 } NodeColorBalance;
+
+typedef struct NodeColorspill {
+	short limchan, unspill;
+	float limscale;
+	float uspillr, uspillg, uspillb;
+}NodeColorspill;
 
 /* TEX_output */
 typedef struct TexNodeOutput {

@@ -34,7 +34,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 
 #include "DNA_material_types.h"
@@ -45,17 +44,11 @@
 
 #include "CSG_BooleanOps.h"
 
-#include "BKE_booleanops.h"
 #include "BKE_cdderivedmesh.h"
-#include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_utildefines.h"
 
 
 

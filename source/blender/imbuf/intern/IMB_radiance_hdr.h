@@ -1,7 +1,7 @@
 /*
  * IMB_radiance_hdr.h
  *
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

@@ -50,7 +50,7 @@ int    BLI_filesize(int file);
 int    BLI_filepathsize(const char *path);
 double BLI_diskfree(char *dir);
 char *BLI_getwdN(char *dir);
-void BLI_hide_dot_files(int set);
+
 unsigned int BLI_getdir(char *dirname, struct direntry **filelist);
 /**
  * @attention Do not confuse with BLI_exists

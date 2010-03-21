@@ -30,7 +30,6 @@
 #include "DNA_modifier_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_simple_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_lattice.h"
 #include "BKE_deform.h"

@@ -630,7 +630,7 @@ def write_pov_ini(filename_ini, filename_pov, filename_image):
     file.write('Output_Alpha=1\n')
 
     if render.antialiasing:
-        aa_mapping = {'OVERSAMPLE_5': 2, 'OVERSAMPLE_8': 3, 'OVERSAMPLE_11': 4, 'OVERSAMPLE_16': 5} # method 1 assumed
+        aa_mapping = {'5': 2, '8': 3, '11': 4, '16': 5} # method 1 assumed
         file.write('Antialias=1\n')
         file.write('Antialias_Depth=%d\n' % aa_mapping[render.antialiasing_samples])
     else:

@@ -653,7 +653,7 @@ void draw_image_main(SpaceImage *sima, ARegion *ar, Scene *scene)
 	draw_image_paint_helpers(sima, ar, scene, zoomx, zoomy);
 
 	/* render info */
-	if(ibuf && ima && show_render)
+	if(ima && show_render)
 		draw_render_info(ima, ar);
 	
 	/* XXX integrate this code */

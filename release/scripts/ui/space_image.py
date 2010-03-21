@@ -115,6 +115,8 @@ class IMAGE_MT_image(bpy.types.Menu):
             if ima.source == 'SEQUENCE':
                 layout.operator("image.save_sequence")
 
+            layout.operator("image.external_edit", "Edit Externally")
+
             if not show_render:
                 layout.separator()
 

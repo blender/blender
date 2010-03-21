@@ -1242,7 +1242,8 @@ void ffmpeg_verify_image_type(RenderData *rd)
 		   rd->ffcodecdata.video_bitrate <= 1) {
 
 			rd->ffcodecdata.codec = CODEC_ID_MPEG2VIDEO;
-			ffmpeg_set_preset(rd, FFMPEG_PRESET_DVD);
+			/* Don't set preset, disturbs render resolution.
+			 * ffmpeg_set_preset(rd, FFMPEG_PRESET_DVD); */
 		}
 
 		audio= 1;

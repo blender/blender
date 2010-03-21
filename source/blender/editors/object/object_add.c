@@ -92,6 +92,7 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
+#include "ED_view3d.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -104,15 +105,11 @@ void ED_object_location_from_view(bContext *C, float *loc)
 {
 	View3D *v3d= CTX_wm_view3d(C);
 	Scene *scene= CTX_data_scene(C);
+	float *cursor;
 	
-	if (v3d) {
-		if (v3d->localvd)
-			copy_v3_v3(loc, v3d->cursor);
-		else
-			copy_v3_v3(loc, scene->cursor);
-	} else {
-		copy_v3_v3(loc, scene->cursor);
-	}
+	cursor = give_cursor(scene, v3d);
+
+	copy_v3_v3(loc, cursor);
 }
 
 void ED_object_rotation_from_view(bContext *C, float *rot)
@@ -503,11 +500,14 @@ static int object_add_curve_exec(bContext *C, wmOperator *op)
 	ED_object_add_generic_get_opts(op, loc, rot, &enter_editmode, &layer);
 	
 	if(obedit==NULL || obedit->type!=OB_CURVE) {
+		Curve *cu;
 		obedit= ED_object_add_type(C, OB_CURVE, loc, rot, TRUE, layer);
 		newob = 1;
 
+		cu= (Curve*)obedit->data;
+		cu->flag |= CU_DEFORM_FILL;
 		if(type & CU_PRIM_PATH)
-			((Curve*)obedit->data)->flag |= CU_PATH|CU_3D;
+			cu->flag |= CU_PATH|CU_3D;
 	}
 	else DAG_id_flush_update(&obedit->id, OB_RECALC_DATA);
 	
@@ -1118,7 +1118,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base)
 		ob->lay= base->lay;
 		
 		copy_m4_m4(ob->obmat, dob->mat);
-		ED_object_apply_obmat(ob);
+		object_apply_mat4(ob, ob->obmat);
 	}
 	
 	copy_object_set_idnew(C, 0);

@@ -41,17 +41,11 @@
 #include "DNA_anim_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_noise.h"
+#include "BLI_math.h" /* windows needs for M_PI */
 
 #include "BKE_fcurve.h"
-#include "BKE_curve.h" 
-#include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_utildefines.h"
-
-#include "RNA_access.h"
-#include "RNA_types.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h" /* for BPY_pydriver_eval() */
@@ -871,6 +865,59 @@ static FModifierTypeInfo FMI_LIMITS = {
 	fcm_limits_evaluate /* evaluate */
 };
 
+/* Stepped F-Curve Modifier --------------------------- */
+
+static void fcm_stepped_new_data (void *mdata) 
+{
+	FMod_Stepped *data= (FMod_Stepped *)mdata;
+	
+	/* just need to set the step-size to 2-frames by default */
+	// XXX: or would 5 be more normal?
+	data->step_size = 2.0f;
+}
+
+static float fcm_stepped_time (FCurve *fcu, FModifier *fcm, float cvalue, float evaltime)
+{
+	FMod_Stepped *data= (FMod_Stepped *)fcm->data;
+	int snapblock;
+	
+	/* check range clamping to see if we should alter the timing to achieve the desired results */
+	if (data->flag & FCM_STEPPED_NO_BEFORE) {
+		if (evaltime < data->start_frame)
+			return evaltime;
+	}
+	if (data->flag & FCM_STEPPED_NO_AFTER) {
+		if (evaltime > data->end_frame)
+			return evaltime;
+	}
+	
+	/* we snap to the start of the previous closest block of 'step_size' frames 
+	 * after the start offset has been discarded 
+	 *	- i.e. round down
+	 */
+	snapblock = (int)((evaltime - data->offset) / data->step_size);
+	
+	/* reapply the offset, and multiple the snapblock by the size of the steps to get 
+	 * the new time to evaluate at 
+	 */
+	return ((float)snapblock * data->step_size) + data->offset;
+}
+
+static FModifierTypeInfo FMI_STEPPED = {
+	FMODIFIER_TYPE_STEPPED, /* type */
+	sizeof(FMod_Limits), /* size */
+	FMI_TYPE_GENERATE_CURVE, /* action type */  /* XXX... err... */   
+	FMI_REQUIRES_RUNTIME_CHECK, /* requirements */
+	"Stepped", /* name */
+	"FMod_Stepped", /* struct name */
+	NULL, /* free data */
+	NULL, /* copy data */
+	fcm_stepped_new_data, /* new data */
+	NULL, /* verify */
+	fcm_stepped_time, /* evaluate time */
+	NULL /* evaluate */
+};
+
 /* F-Curve Modifier API --------------------------- */
 /* All of the F-Curve Modifier api functions use FModifierTypeInfo structs to carry out
  * and operations that involve F-Curve modifier specific code.
@@ -892,6 +939,7 @@ static void fmods_init_typeinfo ()
 	fmodifiersTypeInfo[6]=  NULL/*&FMI_FILTER*/;			/* Filter F-Curve Modifier */  // XXX unimplemented
 	fmodifiersTypeInfo[7]=  &FMI_PYTHON;			/* Custom Python F-Curve Modifier */
 	fmodifiersTypeInfo[8]= 	&FMI_LIMITS;			/* Limits F-Curve Modifier */
+	fmodifiersTypeInfo[9]= 	&FMI_STEPPED;			/* Stepped F-Curve Modifier */
 }
 
 /* This function should be used for getting the appropriate type-info when only
@@ -966,6 +1014,31 @@ FModifier *add_fmodifier (ListBase *modifiers, int type)
 		
 	/* return modifier for further editing */
 	return fcm;
+}
+
+/* Make a copy of the specified F-Modifier */
+FModifier *copy_fmodifier (FModifier *src)
+{
+	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(src);
+	FModifier *dst;
+	
+	/* sanity check */
+	if (src == NULL)
+		return NULL;
+		
+	/* copy the base data, clearing the links */
+	dst = MEM_dupallocN(src);
+	dst->next = dst->prev = NULL;
+	
+	/* make a new copy of the F-Modifier's data */
+	dst->data = MEM_dupallocN(src->data);
+	
+	/* only do specific constraints if required */
+	if (fmi && fmi->copy_data)
+		fmi->copy_data(dst, src);
+		
+	/* return the new modifier */
+	return dst;
 }
 
 /* Duplicate all of the F-Modifiers in the Modifier stacks */
@@ -1132,14 +1205,20 @@ short list_has_suitable_fmodifier (ListBase *modifiers, int mtype, short acttype
 float evaluate_time_fmodifiers (ListBase *modifiers, FCurve *fcu, float cvalue, float evaltime)
 {
 	FModifier *fcm;
-	float m_evaltime= evaltime;
 	
 	/* sanity checks */
 	if ELEM(NULL, modifiers, modifiers->last)
 		return evaltime;
 		
-	/* find the first modifier from end of stack that modifies time, and calculate the time the modifier
-	 * would calculate time at
+	/* Starting from the end of the stack, calculate the time effects of various stacked modifiers 
+	 * on the time the F-Curve should be evaluated at. 
+	 *
+	 * This is done in reverse order to standard evaluation, as when this is done in standard
+	 * order, each modifier would cause jumps to other points in the curve, forcing all
+	 * previous ones to be evaluated again for them to be correct. However, if we did in the 
+	 * reverse order as we have here, we can consider them a macro to micro type of waterfall
+	 * effect, which should get us the desired effects when using layered time manipulations
+	 * (such as multiple 'stepped' modifiers in sequence, causing different stepping rates)
 	 */
 	for (fcm= modifiers->last; fcm; fcm= fcm->prev) {
 		FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
@@ -1148,13 +1227,12 @@ float evaluate_time_fmodifiers (ListBase *modifiers, FCurve *fcu, float cvalue, 
 		// TODO: implement the 'influence' control feature...
 		if (fmi && fmi->evaluate_modifier_time) {
 			if ((fcm->flag & (FMODIFIER_FLAG_DISABLED|FMODIFIER_FLAG_MUTED)) == 0)
-				m_evaltime= fmi->evaluate_modifier_time(fcu, fcm, cvalue, evaltime);
-			break;
+				evaltime= fmi->evaluate_modifier_time(fcu, fcm, cvalue, evaltime);
 		}
 	}
 	
 	/* return the modified evaltime */
-	return m_evaltime;
+	return evaltime;
 }
 
 /* Evalautes the given set of F-Curve Modifiers using the given data

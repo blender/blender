@@ -1043,7 +1043,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 
 		/* confirm transform if launch key is released after mouse move */
 		/* XXX Keyrepeat bug in Xorg fucks this up, will test when fixed */
-		if (event->type == LEFTMOUSE /*t->launch_event*/ && t->state != TRANS_STARTING)
+		if (event->type == t->launch_event && (t->launch_event == LEFTMOUSE || t->launch_event == RIGHTMOUSE) && t->state != TRANS_STARTING)
 		{
 			t->state = TRANS_CONFIRM;
 		}
@@ -1453,6 +1453,26 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	t->launch_event = event ? event->type : -1;
 
+	if (U.flag & USER_DRAGIMMEDIATE)
+	{
+		if (t->launch_event == EVT_TWEAK_R)
+		{
+			t->launch_event = RIGHTMOUSE;
+		}
+		else if (t->launch_event == EVT_TWEAK_L)
+		{
+			t->launch_event = LEFTMOUSE;
+		}
+	}
+
+	// XXX Remove this when wm_operator_call_internal doesn't use window->eventstate (which can have type = 0)
+	// For manipulator only, so assume LEFTMOUSE
+	if (t->launch_event == 0)
+	{
+		t->launch_event = LEFTMOUSE;
+	}
+
+
 	if (!initTransInfo(C, t, op, event))					// internal data, mouse, vectors
 	{
 		return 0;
@@ -1481,6 +1501,28 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	if (t->total == 0) {
 		postTrans(C, t);
 		return 0;
+	}
+
+	/* Stupid code to have Ctrl-Click on manipulator work ok */
+	if(event)
+	{
+		wmKeyMap *keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
+		wmKeyMapItem *kmi;
+
+		for (kmi = keymap->items.first; kmi; kmi = kmi->next)
+		{
+			if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS)
+			{
+				if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) && event->ctrl) ||
+					(ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
+					(ELEM(kmi->type, LEFTALTKEY, RIGHTALTKEY) && event->alt) ||
+					(kmi->type == COMMANDKEY && event->oskey)) {
+					t->modifiers |= MOD_SNAP_INVERT;
+				}
+				break;
+			}
+		}
+
 	}
 
 	initSnapping(t, op); // Initialize snapping data AFTER mode flags

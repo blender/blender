@@ -43,12 +43,11 @@
 
 #include "BKE_node.h"
 
-static EnumPropertyItem texture_filter_items[] = {
+EnumPropertyItem texture_filter_items[] = {
 	{TXF_BOX, "BOX", 0, "Box", ""},
 	{TXF_EWA, "EWA", 0, "EWA", ""},
 	{TXF_FELINE, "FELINE", 0, "FELINE", ""},
 	{TXF_AREA, "AREA", 0, "Area", ""},
-	{TXF_SAT, "SAT", 0, "SAT (4x mem)", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 EnumPropertyItem texture_type_items[] = {
@@ -327,26 +326,18 @@ static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, int value)
 	if(value) tex->imaflag |= TEX_MIPMAP;
 	else tex->imaflag &= ~TEX_MIPMAP;
 
-	if((tex->imaflag & TEX_MIPMAP) && tex->texfilter == TXF_SAT)
+	if(tex->imaflag & TEX_MIPMAP)
 		tex->texfilter = TXF_EWA;
 }
 
-static EnumPropertyItem *rna_ImageTexture_filter_itemf(bContext *C, PointerRNA *ptr, int *free)
+static void rna_Envmap_source_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Tex *tex= (Tex*)ptr->data;
-	EnumPropertyItem *item= NULL;
-	int totitem= 0;
-
-	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_BOX);
-	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_EWA);
-	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_FELINE);
-	RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_AREA);
-	if(tex->imaflag & TEX_MIPMAP)
-		RNA_enum_items_add_value(&item, &totitem, texture_filter_items, TXF_SAT);
+	Tex *tex= ptr->id.data;
 	
-	*free= 1;
-
-	return item;
+	if (tex->env)
+		BKE_free_envmapdata(tex->env);
+	
+	rna_Texture_update(bmain, scene, ptr);
 }
 
 static PointerRNA rna_PointDensity_psys_get(PointerRNA *ptr)
@@ -372,155 +363,7 @@ static void rna_PointDensity_psys_set(PointerRNA *ptr, PointerRNA value)
 		pd->psys= BLI_findindex(&ob->particlesystem, value.data) + 1;
 }
 
-static char *rna_ColorRamp_path(PointerRNA *ptr)
-{
-	/* handle the cases where a single datablock may have 2 ramp types */
-	if (ptr->id.data) {
-		ID *id= ptr->id.data;
-		
-		switch (GS(id->name)) {
-			case ID_MA:	/* material has 2 cases - diffuse and specular */ 
-			{
-				Material *ma= (Material*)id;
-				
-				if (ptr->data == ma->ramp_col) 
-					return BLI_strdup("diffuse_ramp");
-				else if (ptr->data == ma->ramp_spec)
-					return BLI_strdup("specular_ramp");
-			}
-				break;
-		}
-	}
-	
-	/* everything else just uses 'color_ramp' */
-	return BLI_strdup("color_ramp");
-}
-
-static char *rna_ColorRampElement_path(PointerRNA *ptr)
-{
-	PointerRNA ramp_ptr;
-	PropertyRNA *prop;
-	char *path = NULL;
-	int index;
-	
-	/* helper macro for use here to try and get the path 
-	 *	- this calls the standard code for getting a path to a texture...
-	 */
-#define COLRAMP_GETPATH \
-	{ \
-		prop= RNA_struct_find_property(&ramp_ptr, "elements"); \
-		if (prop) { \
-			index= RNA_property_collection_lookup_index(&ramp_ptr, prop, ptr); \
-			if (index >= 0) { \
-				char *texture_path= rna_ColorRamp_path(&ramp_ptr); \
-				path= BLI_sprintfN("%s.elements[%d]", texture_path, index); \
-				MEM_freeN(texture_path); \
-			} \
-		} \
-	}
-	
-	/* determine the path from the ID-block to the ramp */
-	// FIXME: this is a very slow way to do it, but it will have to suffice...
-	if (ptr->id.data) {
-		ID *id= ptr->id.data;
-		
-		switch (GS(id->name)) {
-			case ID_MA: /* 2 cases for material - diffuse and spec */
-			{
-				Material *ma= (Material *)id;
-				
-				/* try diffuse first */
-				if (ma->ramp_col) {
-					RNA_pointer_create(id, &RNA_ColorRamp, ma->ramp_col, &ramp_ptr);
-					COLRAMP_GETPATH;
-				}
-				/* try specular if not diffuse */
-				if (!path && ma->ramp_spec) {
-					RNA_pointer_create(id, &RNA_ColorRamp, ma->ramp_spec, &ramp_ptr);
-					COLRAMP_GETPATH;
-				}
-			}
-				break;
-			
-			// TODO: node trees need special attention
-			case ID_NT: 
-			{
-				// FIXME: we'll probably have to loop over nodes until we find one that uses the color ramp
-			}
-				break;
-			
-			default: /* everything else should have a "color_ramp" property */
-			{
-				/* create pointer to the ID block, and try to resolve "color_ramp" pointer */
-				RNA_id_pointer_create(id, &ramp_ptr);
-				if (RNA_path_resolve(&ramp_ptr, "color_ramp", &ramp_ptr, &prop)) {
-					COLRAMP_GETPATH;
-				}
-			}
-		}
-	}
-	
-	/* cleanup the macro we defined */
-#undef COLRAMP_GETPATH
-	
-	return path;
-}
-
 #else
-
-static void rna_def_color_ramp_element(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-	
-	srna= RNA_def_struct(brna, "ColorRampElement", NULL);
-	RNA_def_struct_sdna(srna, "CBData");
-	RNA_def_struct_path_func(srna, "rna_ColorRampElement_path");
-	RNA_def_struct_ui_text(srna, "Color Ramp Element", "Element defining a color at a position in the color ramp");
-
-	prop= RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "r");
-	RNA_def_property_array(prop, 4);
-	RNA_def_property_ui_text(prop, "Color", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-	prop= RNA_def_property(srna, "position", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "pos");
-	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Position", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-}
-
-static void rna_def_color_ramp(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	static EnumPropertyItem prop_interpolation_items[] = {
-		{1, "EASE", 0, "Ease", ""},
-		{3, "CARDINAL", 0, "Cardinal", ""},
-		{0, "LINEAR", 0, "Linear", ""},
-		{2, "B_SPLINE", 0, "B-Spline", ""},
-		{4, "CONSTANT", 0, "Constant", ""},
-		{0, NULL, 0, NULL, NULL}};
-
-	srna= RNA_def_struct(brna, "ColorRamp", NULL);
-	RNA_def_struct_sdna(srna, "ColorBand");
-	RNA_def_struct_path_func(srna, "rna_ColorRamp_path");
-	RNA_def_struct_ui_text(srna, "Color Ramp", "Color ramp mapping a scalar value to a color");
-
-	prop= RNA_def_property(srna, "elements", PROP_COLLECTION, PROP_COLOR);
-	RNA_def_property_collection_sdna(prop, NULL, "data", "tot");
-	RNA_def_property_struct_type(prop, "ColorRampElement");
-	RNA_def_property_ui_text(prop, "Elements", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-
-	prop= RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "ipotype");
-	RNA_def_property_enum_items(prop, prop_interpolation_items);
-	RNA_def_property_ui_text(prop, "Interpolation", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
-}
 
 static void rna_def_texmapping(BlenderRNA *brna)
 {
@@ -685,7 +528,6 @@ static void rna_def_filter_common(StructRNA *srna)
 	prop= RNA_def_property(srna, "filter", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "texfilter");
 	RNA_def_property_enum_items(prop, texture_filter_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_ImageTexture_filter_itemf");
 	RNA_def_property_ui_text(prop, "Filter", "Texture filter to use for sampling image");
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 	
@@ -738,7 +580,7 @@ static void rna_def_environment_map(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "stype");
 	RNA_def_property_enum_items(prop, prop_source_items);
 	RNA_def_property_ui_text(prop, "Source", "");
-	RNA_def_property_update(prop, 0, "rna_Texture_update");
+	RNA_def_property_update(prop, 0, "rna_Envmap_source_update");
 
 	prop= RNA_def_property(srna, "viewpoint_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "object");
@@ -1922,8 +1764,6 @@ void RNA_def_texture(BlenderRNA *brna)
 	rna_def_texture(brna);
 	rna_def_mtex(brna);
 	rna_def_environment_map(brna);
-	rna_def_color_ramp(brna);
-	rna_def_color_ramp_element(brna);
 	rna_def_texmapping(brna);
 }
 

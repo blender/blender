@@ -27,12 +27,7 @@
  */
 
 #include <sys/stat.h>
-#include <sys/types.h>
 
-#include <fcntl.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <string.h>
 
 /* path/file handeling stuff */
@@ -46,13 +41,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h" /* Library */
-#include "DNA_customdata_types.h"
-#include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h" /* to get the current frame */
 #include "DNA_sequence_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_windowmanager_types.h"
 

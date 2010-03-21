@@ -86,10 +86,7 @@
 #include "UI_view2d.h"
 
 #include "ED_anim_api.h"
-#include "ED_keyframing.h"
 #include "ED_keyframes_draw.h"
-#include "ED_screen.h"
-#include "ED_space_api.h"
 
 /* *************************** Keyframe Processing *************************** */
 

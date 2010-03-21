@@ -1398,11 +1398,12 @@ static void get_cell(float *p0, int res[3], float dx, float *pos, int *cell, int
 
 static void smoke_calc_transparency(float *result, float *input, float *p0, float *p1, int res[3], float dx, float *light, bresenham_callback cb, float correct)
 {
-	int z;
 	float bv[6];
-	int slabsize=res[0]*res[1];
+	int a, z, slabsize=res[0]*res[1], size= res[0]*res[1]*res[2];
 
-	memset(result, -1, sizeof(float)*res[0]*res[1]*res[2]);	// x
+	for(a=0; a<size; a++)
+		result[a]= -1.0f;
+
 	bv[0] = p0[0];
 	bv[1] = p1[0];
 	// y

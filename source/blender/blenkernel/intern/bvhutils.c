@@ -32,21 +32,12 @@
 #include <math.h>
 #include <assert.h>
 
-#include "BKE_bvhutils.h"
-
-#include "DNA_object_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_utildefines.h"
-#include "BKE_deform.h"
-#include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
-#include "BKE_global.h"
 
 #include "BLI_math.h"
-#include "BLI_linklist.h"
 #include "MEM_guardedalloc.h"
 
 /* Math stuff for ray casting on mesh faces and for nearest surface */

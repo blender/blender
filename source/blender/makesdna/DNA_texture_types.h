@@ -335,8 +335,6 @@ typedef struct TexMapping {
 #define TXF_EWA			1
 #define TXF_FELINE		2
 #define TXF_AREA		3
-// TXF_SAT only available when mipmaps disabled
-#define TXF_SAT			4
 
 /* imaflag unused, only for version check */
 #define TEX_FIELDS_		8

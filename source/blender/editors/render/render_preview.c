@@ -752,11 +752,10 @@ void BIF_view3d_previewrender(Scene *scene, ScrArea *sa)
 			
 			/* allow localview render for objects with lights in normal layers */
 			if(v3d->lay & 0xFF000000)
-				scene->lay |= v3d->lay;
-			else scene->lay= v3d->lay;
+				lay |= v3d->lay;
+			else lay= v3d->lay;
 			
-			RE_Database_FromScene(re, scene, 0);		// 0= dont use camera view
-			scene->lay= lay;
+			RE_Database_FromScene(re, scene, lay, 0);		// 0= dont use camera view
 			
 			rstats= RE_GetStats(re);
 			if(rstats->convertdone) 
@@ -934,7 +933,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 
 	/* entire cycle for render engine */
 	RE_SetCamera(re, sce->camera);
-	RE_Database_FromScene(re, sce, 1);
+	RE_Database_FromScene(re, sce, sce->lay, 1);
 	RE_TileProcessor(re, 0, 1);	// actual render engine
 	RE_Database_Free(re);
 

@@ -1,5 +1,5 @@
 #
-# $Id: Makefile
+# $Id$
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #

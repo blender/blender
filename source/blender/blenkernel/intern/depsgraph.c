@@ -29,35 +29,16 @@
 #include <string.h>
 #include <math.h>
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
 #include "BLI_winstuff.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_boid_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_ID.h"
-#include "DNA_effect_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_nla_types.h"
-#include "DNA_object_types.h"
-#include "DNA_object_force.h"
-#include "DNA_object_fluidsim.h"
-#include "DNA_outliner_types.h"
-#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_view2d_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_ghash.h"
@@ -75,7 +56,6 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
-#include "BKE_utildefines.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 

@@ -169,7 +169,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         _loaded[:] = []
 
     for base_path in script_paths(user=False):
-        for path_subdir in ("ui", "op", "io", "cfg"):
+        for path_subdir in ("ui", "op", "io", "cfg", "keyingsets"):
             path = _os.path.join(base_path, path_subdir)
             if _os.path.isdir(path):
                 sys_path_ensure(path)
@@ -179,7 +179,7 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
 
     user_path = user_script_path()
     if user_path:
-        for path_subdir in ("", "ui", "op", "io", "cfg"):
+        for path_subdir in ("", "ui", "op", "io", "cfg", "keyingsets"):
             path = _os.path.join(user_path, path_subdir)
             if _os.path.isdir(path):
                 sys_path_ensure(path)

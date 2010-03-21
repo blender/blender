@@ -32,8 +32,6 @@
 
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
-#include "DNA_listBase.h"
-#include "BLI_linklist.h"
 #include <string.h> 
 
 typedef struct BLI_freenode{

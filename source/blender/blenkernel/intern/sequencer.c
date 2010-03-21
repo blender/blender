@@ -35,7 +35,6 @@
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
 
-#include "DNA_listBase.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_anim_types.h"
@@ -46,7 +45,6 @@
 #include "BKE_main.h"
 #include "BKE_sequencer.h"
 #include "BKE_fcurve.h"
-#include "BKE_utildefines.h"
 #include "BKE_scene.h"
 #include "RNA_access.h"
 #include "RE_pipeline.h"
@@ -55,7 +53,6 @@
 #include "BLI_listbase.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
-#include "BLI_threads.h"
 #include <pthread.h>
 
 #include "IMB_imbuf.h"
@@ -2152,6 +2149,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 
 			int rendering = 1;
 			int doseq;
+			int doseq_gl= G.rendering ? (scene->r.seq_flag & R_SEQ_GL_REND) : (scene->r.seq_flag & R_SEQ_GL_PREV);
 
 			/* prevent eternal loop */
 			doseq= scene->r.scemode & R_DOSEQ;
@@ -2167,10 +2165,10 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 			seq->scene->markers.first= seq->scene->markers.last= NULL;
 #endif
 
-			if(sequencer_view3d_cb && (seq->flag & SEQ_USE_SCENE_OPENGL) && (seq->scene == scene || have_seq==0)) {
+			if(sequencer_view3d_cb && doseq_gl && (seq->scene == scene || have_seq==0)) {
 				/* opengl offscreen render */
 				scene_update_for_newframe(seq->scene, seq->scene->lay);
-				se->ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty);
+				se->ibuf= sequencer_view3d_cb(seq->scene, seqrectx, seqrecty, scene->r.seq_prev_type);
 			}
 			else {
 				Render *re;
@@ -2181,7 +2179,7 @@ static void do_build_seq_ibuf(Scene *scene, Sequence * seq, TStripElem *se, int 
 				else
 					re= RE_NewRender(sce->id.name, RE_SLOT_VIEW);
 
-				RE_BlenderFrame(re, sce, NULL, frame);
+				RE_BlenderFrame(re, sce, NULL, sce->lay, frame);
 
 				RE_AcquireResultImage(re, &rres);
 
@@ -2452,6 +2450,42 @@ static TStripElem* do_build_seq_recursively(Scene *scene, Sequence * seq, int cf
 	return se;
 }
 
+static int seq_must_swap_input_in_blend_mode(Sequence * seq)
+{
+	int swap_input = FALSE;
+
+	/* bad hack, to fix crazy input ordering of 
+	   those two effects */
+
+	if (seq->blend_mode == SEQ_ALPHAOVER ||
+	    seq->blend_mode == SEQ_ALPHAUNDER ||
+	    seq->blend_mode == SEQ_OVERDROP) {
+		swap_input = TRUE;
+	}
+	
+	return swap_input;
+}
+
+static int seq_get_early_out_for_blend_mode(Sequence * seq)
+{
+	struct SeqEffectHandle sh = get_sequence_blend(seq);
+	float facf = seq->blend_opacity / 100.0;
+	int early_out = sh.early_out(seq, facf, facf);
+	
+	if (early_out < 1) {
+		return early_out;
+	}
+
+	if (seq_must_swap_input_in_blend_mode(seq)) {
+		if (early_out == 2) {
+			return 1;
+		} else if (early_out == 1) {
+			return 2;
+		}
+	}
+	return early_out;
+}
+
 static TStripElem* do_build_seq_array_recursively(Scene *scene,
 	ListBase *seqbasep, int cfra, int chanshown, int render_size)
 {
@@ -2460,7 +2494,8 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 	int i;
 	TStripElem* se = 0;
 
-	count = get_shown_sequences(seqbasep, cfra, chanshown, (Sequence **)&seq_arr);
+	count = get_shown_sequences(seqbasep, cfra, chanshown, 
+				    (Sequence **)&seq_arr);
 
 	if (!count) {
 		return 0;
@@ -2483,7 +2518,8 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 
 	
 	if(count == 1) {
-		se = do_build_seq_recursively(scene, seq_arr[0], cfra, render_size);
+		se = do_build_seq_recursively(scene, seq_arr[0],
+					      cfra, render_size);
 		if (se->ibuf) {
 			se->ibuf_comp = se->ibuf;
 			IMB_refImBuf(se->ibuf_comp);
@@ -2495,8 +2531,6 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 	for (i = count - 1; i >= 0; i--) {
 		int early_out;
 		Sequence * seq = seq_arr[i];
-		struct SeqEffectHandle sh;
-		float facf;
 
 		se = give_tstripelem(seq, cfra);
 
@@ -2506,7 +2540,9 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 			break;
 		}
 		if (seq->blend_mode == SEQ_BLEND_REPLACE) {
-			do_build_seq_recursively(scene, seq, cfra, render_size);
+			do_build_seq_recursively(
+				scene, seq, cfra, render_size);
+
 			if (se->ibuf) {
 				se->ibuf_comp = se->ibuf;
 				IMB_refImBuf(se->ibuf);
@@ -2521,16 +2557,14 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 			break;
 		}
 
-		sh = get_sequence_blend(seq);
-
-		facf = seq->blend_opacity / 100.0;
-
-		early_out = sh.early_out(seq, facf, facf);
+		early_out = seq_get_early_out_for_blend_mode(seq);
 
 		switch (early_out) {
 		case -1:
 		case 2:
-			do_build_seq_recursively(scene, seq, cfra, render_size);
+			do_build_seq_recursively(
+				scene, seq, cfra, render_size);
+
 			if (se->ibuf) {
 				se->ibuf_comp = se->ibuf;
 				IMB_refImBuf(se->ibuf_comp);
@@ -2554,7 +2588,9 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 			}
 			break;
 		case 0:
-			do_build_seq_recursively(scene, seq, cfra, render_size);
+			do_build_seq_recursively(
+				scene, seq, cfra, render_size);
+
 			if (!se->ibuf) {
 				se->ibuf = IMB_allocImBuf(
 					(short)seqrectx, (short)seqrecty, 
@@ -2584,14 +2620,13 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 		TStripElem* se2 = give_tstripelem(seq_arr[i], cfra);
 
 		float facf = seq->blend_opacity / 100.0;
-
-		int early_out = sh.early_out(seq, facf, facf);
+		int swap_input = seq_must_swap_input_in_blend_mode(seq);
+		int early_out = seq_get_early_out_for_blend_mode(seq);
 
 		switch (early_out) {
 		case 0: {
 			int x= se2->ibuf->x;
 			int y= se2->ibuf->y;
-			int swap_input = FALSE;
 
 			if(se1->ibuf_comp == NULL)
 				continue;
@@ -2626,15 +2661,6 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 				IMB_rect_from_float(se2->ibuf);
 			}
 			
-			/* bad hack, to fix crazy input ordering of 
-			   those two effects */
-
-			if (seq->blend_mode == SEQ_ALPHAOVER ||
-			    seq->blend_mode == SEQ_ALPHAUNDER ||
-			    seq->blend_mode == SEQ_OVERDROP) {
-				swap_input = TRUE;
-			}
-
 			if (swap_input) {
 				sh.execute(scene, seq, cfra, 
 					   facf, facf, x, y, 
@@ -2657,7 +2683,7 @@ static TStripElem* do_build_seq_array_recursively(Scene *scene,
 			break;
 		}
 		case 1: {
-			se2->ibuf_comp = se1->ibuf;
+			se2->ibuf_comp = se1->ibuf_comp;
 			if(se2->ibuf_comp)
 				IMB_refImBuf(se2->ibuf_comp);
 
@@ -3669,7 +3695,7 @@ static void seq_update_muting_recursive(Scene *scene, ListBase *seqbasep, Sequen
 
 			seq_update_muting_recursive(scene, &seq->seqbase, metaseq, seqmute);
 		}
-		else if(seq->type == SEQ_SOUND) {
+		else if((seq->type == SEQ_SOUND) || (seq->type == SEQ_SCENE)) {
 			if(seq->scene_sound) {
 				sound_mute_scene_sound(scene, seq->scene_sound, seqmute);
 			}

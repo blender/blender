@@ -25,47 +25,22 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
-#include <string.h>
-#include <stdio.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_object_types.h"
-#include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_windowmanager_types.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
 
-#include "BKE_animsys.h"
-#include "BKE_action.h"
 #include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_fcurve.h"
-#include "BKE_main.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
-#include "BKE_screen.h"
-#include "BKE_utildefines.h"
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_edit.h"
-#include "ED_types.h"
-#include "ED_util.h"
-
-#include "WM_api.h"
-#include "WM_types.h"
 
 #include "RNA_access.h"
 
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

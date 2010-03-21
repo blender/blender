@@ -29,7 +29,6 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -49,9 +48,6 @@
 
 
 #include "BLI_blenlib.h"
-#include "BLI_storage.h"
-#include "BLI_fileops.h"
-#include "BLI_callbacks.h"
 
 #include "BKE_utildefines.h"
 

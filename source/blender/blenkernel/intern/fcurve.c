@@ -45,7 +45,6 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_noise.h"
 
 #include "BKE_fcurve.h"
 #include "BKE_animsys.h"
@@ -53,12 +52,10 @@
 #include "BKE_armature.h"
 #include "BKE_curve.h" 
 #include "BKE_global.h"
-#include "BKE_idprop.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_types.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h" 

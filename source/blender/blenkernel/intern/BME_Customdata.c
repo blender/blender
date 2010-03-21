@@ -34,13 +34,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <string.h>
 
-#include "BKE_bmesh.h"
 #include "BKE_bmeshCustomData.h"
 #include "bmesh_private.h"
-#include <string.h>
 #include "MEM_guardedalloc.h"
-#include "BLI_mempool.h"
 
 /********************* Layer type information **********************/
 typedef struct BME_LayerTypeInfo {

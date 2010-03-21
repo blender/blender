@@ -36,10 +36,11 @@
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include FT_GLYPH_H
-#include FT_BBOX_H
-#include FT_SIZES_H
-#include <freetype/ttnameid.h>
+/* not needed yet */
+// #include FT_GLYPH_H
+// #include FT_BBOX_H
+// #include FT_SIZES_H
+// #include <freetype/ttnameid.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -49,7 +50,6 @@
 
 //XXX #include "BIF_toolbox.h"
 
-#include "BKE_global.h"
 #include "BKE_font.h"
 #include "BKE_utildefines.h"
 
@@ -150,7 +150,7 @@ static void freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *vf
 			nu->pntsu = onpoints[j];
 			nu->resolu= 8;
 			nu->flag= CU_2D;
-			nu->flagu= CU_CYCLIC;
+			nu->flagu= CU_NURB_CYCLIC;
 			nu->bezt = bezt;
 
 			//individual curve loop, start-end

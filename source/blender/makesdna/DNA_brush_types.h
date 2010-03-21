@@ -86,6 +86,7 @@ typedef struct Brush {
 #define BRUSH_SMOOTH_STROKE		2048
 #define BRUSH_PERSISTENT		4096
 #define BRUSH_ACCUMULATE		8192
+#define BRUSH_LOCK_ALPHA		16384
 
 /* Brush.sculpt_tool */
 #define SCULPT_TOOL_DRAW    1

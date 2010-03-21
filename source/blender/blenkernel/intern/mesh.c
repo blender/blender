@@ -40,26 +40,18 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
-#include "DNA_anim_types.h"
-#include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
-#include "DNA_image_types.h"
 #include "DNA_key_types.h"
-#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_ipo_types.h"
 
 #include "BKE_animsys.h"
-#include "BKE_customdata.h"
-#include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
-#include "BKE_subsurf.h"
 #include "BKE_displist.h"
 #include "BKE_library.h"
 #include "BKE_material.h"
@@ -987,6 +979,9 @@ void nurbs_to_mesh(Object *ob)
 
 	me->totcol= cu->totcol;
 	me->mat= cu->mat;
+
+	tex_space_mesh(me);
+
 	cu->mat= 0;
 	cu->totcol= 0;
 
@@ -1162,7 +1157,7 @@ void mesh_to_curve(Scene *scene, Object *ob)
 				nu->pntsu= totpoly;
 				nu->pntsv= 1;
 				nu->orderu= 4;
-				nu->flagu= 2 | (closed ? CU_CYCLIC:0);	/* endpoint */
+				nu->flagu= CU_NURB_ENDPOINT | (closed ? CU_NURB_CYCLIC:0);	/* endpoint */
 				nu->resolu= 12;
 
 				nu->bp= (BPoint *)MEM_callocN(sizeof(BPoint)*totpoly, "bpoints");

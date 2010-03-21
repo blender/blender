@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -40,6 +40,7 @@
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
 #include "BKE_font.h"
@@ -819,6 +820,7 @@ void SCENE_OT_freestyle_module_move_down(wmOperatorType *ot)
 static int texture_slot_move(bContext *C, wmOperator *op)
 {
 	ID *id= CTX_data_pointer_get_type(C, "texture_slot", &RNA_TextureSlot).id.data;
+	Material *ma = (Material *)id;
 
 	if(id) {
 		MTex **mtex_ar, *mtexswap;
@@ -832,6 +834,10 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				mtexswap = mtex_ar[act];
 				mtex_ar[act] = mtex_ar[act-1];
 				mtex_ar[act-1] = mtexswap;
+				
+				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, act-1, -1, 0);
+				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, act, act-1, 0);
+				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, -1, act, 0);
 
 				if(GS(id->name)==ID_MA) {
 					Material *ma= (Material *)id;
@@ -841,7 +847,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 					ma->septex &= ~(1<<(act-1));
 					ma->septex |= mtexuse >> 1;
 				}
-
+				
 				set_active_mtex(id, act-1);
 			}
 		}
@@ -850,6 +856,10 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 				mtexswap = mtex_ar[act];
 				mtex_ar[act] = mtex_ar[act+1];
 				mtex_ar[act+1] = mtexswap;
+				
+				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, act+1, -1, 0);
+				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, act, act+1, 0);
+				BKE_animdata_fix_paths_rename(id, ma->adt, "texture_slots", NULL, NULL, -1, act, 0);
 
 				if(GS(id->name)==ID_MA) {
 					Material *ma= (Material *)id;
@@ -859,7 +869,7 @@ static int texture_slot_move(bContext *C, wmOperator *op)
 					ma->septex &= ~(1<<(act+1));
 					ma->septex |= mtexuse << 1;
 				}
-
+				
 				set_active_mtex(id, act+1);
 			}
 		}
@@ -909,27 +919,35 @@ static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *str, int
 	
 	dx= env->cube[1]->x;
 	
-	ibuf = IMB_allocImBuf(3*dx, 2*dx, 24, IB_rectfloat, 0);
+	if (env->type == ENV_CUBE) {
+		ibuf = IMB_allocImBuf(3*dx, 2*dx, 24, IB_rectfloat, 0);
+
+		IMB_rectcpy(ibuf, env->cube[0], 0, 0, 0, 0, dx, dx);
+		IMB_rectcpy(ibuf, env->cube[1], dx, 0, 0, 0, dx, dx);
+		IMB_rectcpy(ibuf, env->cube[2], 2*dx, 0, 0, 0, dx, dx);
+		IMB_rectcpy(ibuf, env->cube[3], 0, dx, 0, 0, dx, dx);
+		IMB_rectcpy(ibuf, env->cube[4], dx, dx, 0, 0, dx, dx);
+		IMB_rectcpy(ibuf, env->cube[5], 2*dx, dx, 0, 0, dx, dx);
+	}
+	else if (env->type == ENV_PLANE) {
+		ibuf = IMB_allocImBuf(dx, dx, 24, IB_rectfloat, 0);
+		IMB_rectcpy(ibuf, env->cube[1], 0, 0, 0, 0, dx, dx);		
+	}
 	
 	if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
 		ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	
-	IMB_rectcpy(ibuf, env->cube[0], 0, 0, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[1], dx, 0, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[2], 2*dx, 0, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[3], 0, dx, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[4], dx, dx, 0, 0, dx, dx);
-	IMB_rectcpy(ibuf, env->cube[5], 2*dx, dx, 0, 0, dx, dx);
-	
-	if (BKE_write_ibuf(scene, ibuf, str, imtype, scene->r.subimtype, scene->r.quality)) 
+	if (BKE_write_ibuf(scene, ibuf, str, imtype, scene->r.subimtype, scene->r.quality)) {
 		retval = OPERATOR_FINISHED;
+	}
 	else {
 		BKE_reportf(op->reports, RPT_ERROR, "Error saving environment map to %s.", str);
 		retval = OPERATOR_CANCELLED;
 	}
+	
 	IMB_freeImBuf(ibuf);
 	ibuf = NULL;
-
+	
 	return retval;
 }
 
@@ -983,8 +1001,6 @@ static int envmap_save_poll(bContext *C)
 	if (!tex) 
 		return 0;
 	if (!tex->env || !tex->env->ok)
-		return 0;
-	if (tex->env->type==ENV_PLANE) 
 		return 0;
 	if (tex->env->cube[1]==NULL)
 		return 0;
@@ -1060,7 +1076,8 @@ static int envmap_clear_all_exec(bContext *C, wmOperator *op)
 	Tex *tex;
 	
 	for (tex=bmain->tex.first; tex; tex=tex->id.next)
-		BKE_free_envmapdata(tex->env);
+		if (tex->env)
+			BKE_free_envmapdata(tex->env);
 	
 	WM_event_add_notifier(C, NC_TEXTURE|NA_EDITED, tex);
 	

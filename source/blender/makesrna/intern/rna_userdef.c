@@ -228,7 +228,12 @@ static void rna_userdef_addon_remove(bAddon *bext)
 	BLI_freelinkN(&U.addons, bext);
 }
 
-
+static void rna_userdef_temp_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	extern char btempdir[];
+	UserDef *userdef = (UserDef*)ptr->data;
+	strncpy(btempdir, userdef->tempdir, FILE_MAXDIR+FILE_MAXFILE);
+}
 
 #else
 
@@ -715,6 +720,89 @@ static void rna_def_userdef_theme_spaces_face(StructRNA *srna)
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
+static void rna_def_userdef_theme_spaces_curves(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop= RNA_def_property(srna, "nurb_uline", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "nurb_uline");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Nurb U-lines", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "nurb_vline", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "nurb_vline");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Nurb V-lines", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "nurb_sel_uline", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "nurb_sel_uline");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Nurb active U-lines", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "nurb_sel_vline", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "nurb_sel_vline");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Nurb active V-lines", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "act_spline", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "act_spline");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Active spline", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "handle_free", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "handle_free");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Free handle color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "handle_auto", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "handle_auto");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Auto handle color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "handle_vect", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "handle_vect");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Vector handle color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "handle_align", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "handle_align");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Align handle color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "handle_sel_free", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "handle_sel_free");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Free handle selected color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "handle_sel_auto", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "handle_sel_auto");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Auto handle selected color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "handle_sel_vect", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "handle_sel_vect");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Vector handle selected color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop= RNA_def_property(srna, "handle_sel_align", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "handle_sel_align");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Align handle selected color", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+}
+
 static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -780,6 +868,7 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	rna_def_userdef_theme_spaces_vertex(srna);
 	rna_def_userdef_theme_spaces_edge(srna);
 	rna_def_userdef_theme_spaces_face(srna);
+	rna_def_userdef_theme_spaces_curves(srna);
 
 	prop= RNA_def_property(srna, "editmesh_active", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 4);
@@ -1811,6 +1900,10 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_VIEWPORTNAME);
 	RNA_def_property_ui_text(prop, "Show View Name", "Show the name of the view's direction in each 3D View");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+    
+    prop= RNA_def_property(srna, "show_splash", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "uiflag", USER_SPLASH_DISABLE);
+	RNA_def_property_ui_text(prop, "Show Splash", "Display splash screen on startup");
 
 	prop= RNA_def_property(srna, "show_playback_fps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_FPS);
@@ -2621,6 +2714,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "temporary_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "tempdir");
 	RNA_def_property_ui_text(prop, "Temporary Directory", "The directory for storing temporary save files");
+	RNA_def_property_update(prop, 0, "rna_userdef_temp_update");
 
 	prop= RNA_def_property(srna, "image_editor", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "image_editor");

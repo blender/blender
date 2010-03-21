@@ -3273,8 +3273,8 @@ static int zbuffer_abuf(Render *re, RenderPart *pa, APixstr *APixbuf, ListBase *
 		zspan->mask= 1<<zsample;
 
 		if(jit) {
-			zspan->zofsx= -pa->disprect.xmin + jit[zsample][0];
-			zspan->zofsy= -pa->disprect.ymin + jit[zsample][1];
+			zspan->zofsx= -pa->disprect.xmin - jit[zsample][0];
+			zspan->zofsy= -pa->disprect.ymin - jit[zsample][1];
 		}
 		else {
 			zspan->zofsx= -pa->disprect.xmin;
@@ -3539,9 +3539,6 @@ void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 			case SCE_PASS_REFLECT:
 				col= shr->refl;
 				break;
-			case SCE_PASS_RADIO:
-				col= NULL; // removed shr->rad;
-				break;
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
 				break;
@@ -3649,9 +3646,6 @@ void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alph
 				break;
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
-				break;
-			case SCE_PASS_RADIO:
-				col= NULL; // removed shr->rad;
 				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
@@ -3899,9 +3893,6 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 					
 					if(addpassflag & SCE_PASS_REFRACT)
 						addvecmul(samp_shr->refr, shr->refr, fac);
-					
-					/* removed if(addpassflag & SCE_PASS_RADIO)
-						addvecmul(samp_shr->rad, shr->rad, fac);*/
 					
 					if(addpassflag & SCE_PASS_MIST)
 						samp_shr->mist= samp_shr->mist+fac*shr->mist;

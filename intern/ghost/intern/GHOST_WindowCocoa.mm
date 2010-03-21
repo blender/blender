@@ -593,6 +593,7 @@ void GHOST_WindowCocoa::getClientBounds(GHOST_Rect& bounds) const
 GHOST_TSuccess GHOST_WindowCocoa::setClientWidth(GHOST_TUns32 width)
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setClientWidth(): window invalid")
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
 	if (((GHOST_TUns32)cBnds.getWidth()) != width) {
@@ -601,6 +602,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientWidth(GHOST_TUns32 width)
 		size.height=cBnds.getHeight();
 		[m_window setContentSize:size];
 	}
+	[pool drain];
 	return GHOST_kSuccess;
 }
 
@@ -608,6 +610,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientWidth(GHOST_TUns32 width)
 GHOST_TSuccess GHOST_WindowCocoa::setClientHeight(GHOST_TUns32 height)
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setClientHeight(): window invalid")
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
 	if (((GHOST_TUns32)cBnds.getHeight()) != height) {
@@ -616,6 +619,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientHeight(GHOST_TUns32 height)
 		size.height=height;
 		[m_window setContentSize:size];
 	}
+	[pool drain];
 	return GHOST_kSuccess;
 }
 
@@ -623,6 +627,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientHeight(GHOST_TUns32 height)
 GHOST_TSuccess GHOST_WindowCocoa::setClientSize(GHOST_TUns32 width, GHOST_TUns32 height)
 {
 	GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setClientSize(): window invalid")
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
 	if ((((GHOST_TUns32)cBnds.getWidth()) != width) ||
@@ -632,6 +637,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setClientSize(GHOST_TUns32 width, GHOST_TUns32
 		size.height=height;
 		[m_window setContentSize:size];
 	}
+	[pool drain];
 	return GHOST_kSuccess;
 }
 
@@ -1020,8 +1026,6 @@ void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 {
 	static bool systemCursorVisible = true;
 	
-	NSAutoreleasePool *pool =[[NSAutoreleasePool alloc] init];
-
 	NSCursor *tmpCursor =nil;
 	
 	if (visible != systemCursorVisible) {
@@ -1085,17 +1089,19 @@ void GHOST_WindowCocoa::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 		};
 	}
 	[tmpCursor set];
-	[pool drain];
 }
 
 
 
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorVisibility(bool visible)
 {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc]init];
+	
 	if ([m_window isVisible]) {
 		loadCursor(visible, getCursorShape());
 	}
 	
+	[pool drain];
 	return GHOST_kSuccess;
 }
 
@@ -1146,6 +1152,8 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorGrab(GHOST_TGrabCursorMode mode
 	
 GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorShape(GHOST_TStandardCursor shape)
 {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
 	if (m_customCursor) {
 		[m_customCursor release];
 		m_customCursor = nil;
@@ -1155,6 +1163,7 @@ GHOST_TSuccess GHOST_WindowCocoa::setWindowCursorShape(GHOST_TStandardCursor sha
 		loadCursor(getCursorVisibility(), shape);
 	}
 	
+	[pool drain];
 	return GHOST_kSuccess;
 }
 

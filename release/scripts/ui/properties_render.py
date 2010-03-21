@@ -29,6 +29,13 @@ class RENDER_MT_presets(bpy.types.Menu):
     draw = bpy.types.Menu.draw_preset
 
 
+class RENDER_MT_ffmpeg_presets(bpy.types.Menu):
+    bl_label = "FFMPEG Presets"
+    preset_subdir = "ffmpeg"
+    preset_operator = "script.python_file_run"
+    draw = bpy.types.Menu.draw_preset
+
+
 class RenderButtonsPanel(bpy.types.Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -239,7 +246,7 @@ class RENDER_PT_performance(RenderButtonsPanel):
         col.label(text="Threads:")
         col.row().prop(rd, "threads_mode", expand=True)
         sub = col.column()
-        sub.enabled = rd.threads_mode == 'THREADS_FIXED'
+        sub.enabled = rd.threads_mode == 'FIXED'
         sub.prop(rd, "threads")
         sub = col.column(align=True)
         sub.label(text="Tiles:")
@@ -339,11 +346,11 @@ class RENDER_PT_output(RenderButtonsPanel):
         col.prop(rd, "use_overwrite")
         col.prop(rd, "use_placeholder")
 
-        if rd.file_format in ('AVIJPEG', 'JPEG'):
+        if rd.file_format in ('AVI_JPEG', 'JPEG'):
             split = layout.split()
-            split.prop(rd, "quality", slider=True)
+            split.prop(rd, "file_quality", slider=True)
 
-        elif rd.file_format == 'OPENEXR':
+        elif rd.file_format == 'OPEN_EXR':
             split = layout.split()
 
             col = split.column()
@@ -412,6 +419,8 @@ class RENDER_PT_encoding(RenderButtonsPanel):
 
         rd = context.scene.render
         wide_ui = context.region.width > narrowui
+
+        layout.menu("RENDER_MT_ffmpeg_presets", text="Presets")
 
         split = layout.split()
 
@@ -661,6 +670,7 @@ class RENDER_PT_bake(RenderButtonsPanel):
         
 classes = [
     RENDER_MT_presets,
+    RENDER_MT_ffmpeg_presets,
     RENDER_PT_render,
     RENDER_PT_layers,
     RENDER_PT_dimensions,

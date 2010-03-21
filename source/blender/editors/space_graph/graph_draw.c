@@ -357,7 +357,6 @@ static int draw_fcurve_handles_check(SpaceIpo *sipo, FCurve *fcu)
  * note: draw_fcurve_handles_check must be checked before running this. */
 static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, FCurve *fcu)
 {
-	extern unsigned int nurbcol[];
 	int sel, b;
 	
 	/* a single call to GL_LINES here around these calls should be sufficient to still
@@ -371,8 +370,9 @@ static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, 
 	 */
 	for (sel= 0; sel < 2; sel++) {
 		BezTriple *bezt=fcu->bezt, *prevbezt=NULL;
-		unsigned int *col= (sel)? (nurbcol+4) : (nurbcol);
+		int basecol= (sel)? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
 		float *fp;
+		char col[4];
 		
 		/* if only selected keyframes have handles shown, skip the first round */
 		if ((sel == 0) && (sipo->flag & SIPO_SELVHANDLESONLY))
@@ -390,19 +390,24 @@ static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, 
 			/* draw handle with appropriate set of colors if selection is ok */
 			if ((bezt->f2 & SELECT)==sel) {
 				fp= bezt->vec[0];
-				
+
 				/* only draw first handle if previous segment had handles */
 				if ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) 
 				{
-					cpackA(col[(unsigned char)bezt->h1], drawFCurveFade(fcu));
+					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
+					col[3]= drawFCurveFade(fcu) * 255;
+					glColor4ubv((GLubyte *)col);
 					
 					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
-				
+
 				/* only draw second handle if this segment is bezier */
 				if (bezt->ipo == BEZT_IPO_BEZ) 
 				{
-					cpackA(col[(unsigned char)bezt->h2], drawFCurveFade(fcu));
+					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
+					col[3]= drawFCurveFade(fcu) * 255;
+					glColor4ubv((GLubyte *)col);
+
 					glVertex2fv(fp+3); glVertex2fv(fp+6); 
 				}
 			}
@@ -412,8 +417,10 @@ static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, 
 					 ( (!prevbezt && (bezt->ipo==BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo==BEZT_IPO_BEZ)) ) ) 
 				{
 					fp= bezt->vec[0];
-					cpackA(col[(unsigned char)bezt->h1], drawFCurveFade(fcu));
-					
+					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
+					col[3]= drawFCurveFade(fcu) * 255;
+					glColor4ubv((GLubyte *)col);
+
 					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
 				
@@ -422,8 +429,10 @@ static void draw_fcurve_handles (bAnimContext *ac, SpaceIpo *sipo, ARegion *ar, 
 					 (bezt->ipo == BEZT_IPO_BEZ) )
 				{
 					fp= bezt->vec[1];
-					cpackA(col[(unsigned char)bezt->h2], drawFCurveFade(fcu));
-					
+					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
+					col[3]= drawFCurveFade(fcu) * 255;
+					glColor4ubv((GLubyte *)col);
+
 					glVertex2fv(fp); glVertex2fv(fp+3); 
 				}
 			}

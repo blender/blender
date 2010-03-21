@@ -110,7 +110,7 @@ def clientConnection(address, port, report = None, scan = True):
             return None
 
     try:
-        conn = http.client.HTTPConnection(address, port)
+        conn = http.client.HTTPConnection(address, port, timeout = 5)
 
         if conn:
             if clientVerifyVersion(conn):
@@ -199,7 +199,7 @@ def thumbnail(filename):
     if bpy:
         scene = bpy.data.scenes[0] # FIXME, this is dodgy!
         scene.render.file_format = "JPEG"
-        scene.render.quality = 90
+        scene.render.file_quality = 90
         bpy.ops.image.open(path = filename)
         img = bpy.data.images[imagename]
         img.save_render(thumbname, scene=scene)

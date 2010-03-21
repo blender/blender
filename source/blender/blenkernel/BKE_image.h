@@ -162,6 +162,11 @@ struct Image *BKE_image_copy(struct Image *ima);
 /* merge source into dest, and free source */
 void BKE_image_merge(struct Image *dest, struct Image *source);
 
+/* image_gen.c */
+void BKE_image_buf_fill_color(unsigned char *rect, float *rect_float, int width, int height, float color[4]);
+void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int height, int width);
+void BKE_image_buf_fill_checker_color(unsigned char *rect, float *rect_float, int height, int width);
+
 #ifdef __cplusplus
 }
 #endif

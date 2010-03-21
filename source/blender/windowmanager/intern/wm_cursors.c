@@ -1,5 +1,5 @@
 /**
-* $Id: wm_cursors.c
+* $Id$
 *
 * ***** BEGIN GPL LICENSE BLOCK *****
 *

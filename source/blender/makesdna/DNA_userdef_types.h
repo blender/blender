@@ -200,13 +200,17 @@ typedef struct ThemeSpace {
 	char bone_solid[4], bone_pose[4];
 	char strip[4], strip_select[4];
 	char cframe[4];
+	char nurb_uline[4], nurb_vline[4];
+	char act_spline[4], nurb_sel_uline[4], nurb_sel_vline[4];
+	char handle_free[4], handle_auto[4], handle_vect[4], handle_align[4];
+	char handle_sel_free[4], handle_sel_auto[4], handle_sel_vect[4], handle_sel_align[4];
 	char ds_channel[4], ds_subchannel[4]; // dopesheet
 	
 	char console_output[4], console_input[4], console_info[4], console_error[4];
 	char console_cursor[4];
 	
 	char vertex_size, facedot_size;
-	char bpad[2];
+	char bpad[6];
 
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
 	char syntaxv[4], syntaxc[4];
@@ -450,6 +454,7 @@ extern UserDef U; /* from blenkernel blender.c */
 #define USER_CONTINUOUS_MOUSE	(1 << 24)
 #define USER_ZOOM_INVERT		(1 << 25)
 #define USER_ZOOM_DOLLY_HORIZ	(1 << 26)
+#define USER_SPLASH_DISABLE		(1 << 27)
 
 /* Auto-Keying mode */
 	/* AUTOKEY_ON is a bitflag */

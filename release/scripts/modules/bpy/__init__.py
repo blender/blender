@@ -46,9 +46,16 @@ def _main():
     # a bit nasty but this prevents help() and input() from locking blender
     # Ideally we could have some way for the console to replace sys.stdin but
     # python would lock blender while waiting for a return value, not easy :|
-    
+
     if not app.debug:
         _sys.stdin = None
+
+    # because of how the console works. we need our own help() pager func.
+    # replace the bold function because it adds crazy chars
+    import pydoc
+    pydoc.getpager = lambda: pydoc.plainpager
+    pydoc.TextDoc.bold = lambda self, text: text
+
 
     # if "-d" in sys.argv: # Enable this to measure startup speed
     if 0:

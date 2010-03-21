@@ -80,17 +80,14 @@ extern "C"
 #include "DNA_material_types.h"
 #include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
-//XXX #include "BSE_editipo.h"
-//XXX #include "BSE_editipo_types.h"
-// #include "DNA_ipo_types.h"
 #include "BKE_global.h"
 #include "BKE_animsys.h"
 #include "BKE_library.h"
-#include "BKE_ipo.h" // eval_icu
 #include "BKE_material.h" // copy_material
 #include "BKE_mesh.h" // copy_mesh
 #include "DNA_space_types.h"
 #include "DNA_anim_types.h"
+#include "RNA_define.h"
 #include "../../blender/editors/include/ED_keyframing.h"
 }
 

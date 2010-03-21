@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- mode: python; tab-width: 4; indent-tabs-mode: t; -*-
 # vim: tabstop=4
-# $Id#
+# $Id$
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or

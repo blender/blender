@@ -39,7 +39,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_text_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_sensor_types.h"
 #include "DNA_actuator_types.h"
@@ -49,8 +48,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_blender.h"
-#include "BKE_sca.h"
 
 /* ******************* SENSORS ************************ */
 

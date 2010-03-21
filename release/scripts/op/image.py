@@ -19,24 +19,63 @@
 # <pep8 compliant>
 
 import bpy
+from bpy.props import StringProperty
 
+class EditExternally(bpy.types.Operator):
+    '''Edit image in an external application'''
+    bl_idname = "image.external_edit"
+    bl_label = "Image Edit Externally"
+    bl_options = {'REGISTER'}
 
-def image_editor_guess(context):
-    image_editor = context.user_preferences.filepaths.image_editor
+    path = StringProperty(name="File Path", description="Path to an image file", maxlen= 1024, default= "")
 
-    # use image editor in the preferences when available.
-    if not image_editor:
+    def _editor_guess(self, context):
         import platform
         system = platform.system()
 
-        if system == 'Windows':
-            image_editor = "start" # not tested!
-        elif system == 'Darwin':
-            image_editor = "open"
-        else:
-            image_editor = "gimp"
+        image_editor = context.user_preferences.filepaths.image_editor
 
-    return image_editor
+        # use image editor in the preferences when available.
+        if not image_editor:
+            if system == 'Windows':
+                image_editor = ["start"] # not tested!
+            elif system == 'Darwin':
+                image_editor = ["open"]
+            else:
+                image_editor = ["gimp"]
+        else:
+            if system == 'Darwin':
+                # blender file selector treats .app as a folder
+                # and will include a trailing backslash, so we strip it.
+                image_editor.rstrip('\\')
+                image_editor = ["open", "-a", image_editor]
+
+        return image_editor
+
+    def execute(self, context):
+        import subprocess
+        path = self.properties.path
+        image_editor = self._editor_guess(context)
+
+        cmd = []
+        cmd.extend(image_editor)
+        cmd.append(bpy.utils.expandpath(path))
+
+        subprocess.Popen(cmd)
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        try:
+            path = context.space_data.image.filename
+        except:
+            self.report({'ERROR'}, "Image not found on disk")
+            return {'CANCELLED'}
+
+        self.properties.path = path
+        self.execute(context)
+        
+        return {'FINISHED'}
 
 
 class SaveDirty(bpy.types.Operator):
@@ -65,7 +104,7 @@ class ProjectEdit(bpy.types.Operator):
     bl_idname = "image.project_edit"
     bl_label = "Project Edit"
     bl_options = {'REGISTER'}
-    
+
     _proj_hack = [""]
 
     def execute(self, context):
@@ -73,23 +112,22 @@ class ProjectEdit(bpy.types.Operator):
         import subprocess
 
         EXT = "png" # could be made an option but for now ok
-        image_editor = image_editor_guess(context)
 
         for image in bpy.data.images:
             image.tag = True
 
         bpy.ops.paint.image_from_view()
-        
+
         image_new = None
         for image in bpy.data.images:
             if not image.tag:
                 image_new = image
                 break
-        
+
         if not image_new:
             self.report({'ERROR'}, "Could not make new image")
             return {'CANCELLED'}
-        
+
         filename = os.path.basename(bpy.data.filename)
         filename = os.path.splitext(filename)[0]
         # filename = bpy.utils.clean_name(filename) # fixes <memory> rubbish, needs checking
@@ -98,28 +136,28 @@ class ProjectEdit(bpy.types.Operator):
             filename = os.path.join(os.path.dirname(bpy.data.filename), filename)
         else:
             filename = "//" + filename
-        
+
         obj = context.object
 
         if obj:
             filename += "_" + bpy.utils.clean_name(obj.name)
-        
+
         filename_final = filename + "." + EXT
         i = 0
 
         while os.path.exists(bpy.utils.expandpath(filename_final)):
             filename_final = filename + ("%.3d.%s" % (i, EXT))
             i += 1
-        
+
         image_new.name = os.path.basename(filename_final)
         ProjectEdit._proj_hack[0] = image_new.name
-        
+
         image_new.filename_raw = filename_final # TODO, filename raw is crummy
         image_new.file_format = 'PNG'
         image_new.save()
-        
-        subprocess.Popen([image_editor, bpy.utils.expandpath(filename_final)])
-        
+
+        bpy.ops.image.external_edit(path=filename_final)
+
         return {'FINISHED'}
 
 
@@ -145,6 +183,7 @@ class ProjectApply(bpy.types.Operator):
 
 
 classes = [
+    EditExternally,
     SaveDirty,
     ProjectEdit,
     ProjectApply]

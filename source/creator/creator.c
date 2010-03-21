@@ -109,11 +109,11 @@
 
 // from buildinfo.c
 #ifdef BUILD_DATE
-extern const char * build_date;
-extern const char * build_time;
-extern const char * build_rev;
-extern const char * build_platform;
-extern const char * build_type;
+extern char build_date[];
+extern char build_time[];
+extern char build_rev[];
+extern char build_platform[];
+extern char build_type[];
 #endif
 
 /*	Local Function prototypes */
@@ -163,6 +163,20 @@ static void blender_esc(int sig)
 	}
 }
 
+/* buildinfo can have quotes */
+#ifdef BUILD_DATE
+static void strip_quotes(char *str)
+{
+    if(str[0] == '"') {
+        int len= strlen(str) - 1;
+        memmove(str, str+1, len);
+        if(str[len-1] == '"') {
+            str[len-1]= '\0';
+        }
+    }
+}
+#endif
+
 static int print_version(int argc, char **argv, void *data)
 {
 #ifdef BUILD_DATE
@@ -186,7 +200,7 @@ static int print_help(int argc, char **argv, void *data)
 	printf ("Blender %d.%02d (sub %d) Build\n", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
 	printf ("Usage: blender [args ...] [file] [args ...]\n");
 	printf ("\nRender options:\n");
-	printf ("  -b <file>\tRender <file> in background (doesn't load the user defaults .B.blend file)\n");
+	printf ("  -b <file>\tLoad <file> in background (often used for background rendering)\n");
 	printf ("    -a render frames from start to end (inclusive), only works when used after -b\n");
 	printf ("    -S <name>\tSet scene <name>\n");
 	printf ("    -f <frame>\tRender frame <frame> and save it\n");				
@@ -675,7 +689,7 @@ static int render_frame(int argc, char **argv, void *data)
 
 			frame = MIN2(MAXFRAME, MAX2(MINAFRAME, frame));
 
-			RE_BlenderAnim(re, scene, frame, frame, scene->r.frame_step, &reports);
+			RE_BlenderAnim(re, scene, scene->lay, frame, frame, scene->r.frame_step, &reports);
 			return 1;
 		} else {
 			printf("\nError: frame number must follow '-f'.\n");
@@ -695,7 +709,7 @@ static int render_animation(int argc, char **argv, void *data)
 		Render *re= RE_NewRender(scene->id.name, RE_SLOT_DEFAULT);
 		ReportList reports;
 		BKE_reports_init(&reports, RPT_PRINT);
-		RE_BlenderAnim(re, scene, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
+		RE_BlenderAnim(re, scene, scene->lay, scene->r.sfra, scene->r.efra, scene->r.frame_step, &reports);
 	} else {
 		printf("\nError: no blend loaded. cannot use '-a'.\n");
 	}
@@ -720,7 +734,7 @@ static int set_start_frame(int argc, char **argv, void *data)
 		Scene *scene= CTX_data_scene(C);
 		if (argc > 1) {
 			int frame = atoi(argv[1]);
-			(scene->r.sfra) = MIN2(MAXFRAME, MAX2(1, frame));
+			(scene->r.sfra) = CLAMPIS(frame, MINFRAME, MAXFRAME);
 			return 1;
 		} else {
 			printf("\nError: frame number must follow '-s'.\n");
@@ -739,7 +753,7 @@ static int set_end_frame(int argc, char **argv, void *data)
 		Scene *scene= CTX_data_scene(C);
 		if (argc > 1) {
 			int frame = atoi(argv[1]);
-			(scene->r.efra) = MIN2(MAXFRAME, MAX2(1, frame));
+			(scene->r.efra) = CLAMPIS(frame, MINFRAME, MAXFRAME);
 			return 1;
 		} else {
 			printf("\nError: frame number must follow '-e'.\n");
@@ -758,10 +772,10 @@ static int set_skip_frame(int argc, char **argv, void *data)
 		Scene *scene= CTX_data_scene(C);
 		if (argc > 1) {
 			int frame = atoi(argv[1]);
-			(scene->r.frame_step) = MIN2(MAXFRAME, MAX2(1, frame));
+			(scene->r.frame_step) = CLAMPIS(frame, 1, MAXFRAME);
 			return 1;
 		} else {
-			printf("\nError: number of frames must follow '-j'.\n");
+			printf("\nError: number of frames to step must follow '-j'.\n");
 			return 0;
 		}
 	} else {
@@ -938,7 +952,15 @@ int main(int argc, char **argv)
 		if(blender_path_env)
 			BLI_strncpy(blender_path, blender_path_env, sizeof(blender_path));
 	}
-	
+
+#ifdef BUILD_DATE	
+    strip_quotes(build_date);
+    strip_quotes(build_time);
+    strip_quotes(build_rev);
+    strip_quotes(build_platform);
+    strip_quotes(build_type);
+#endif
+
 	RNA_init();
 	RE_engines_init();
 
@@ -982,7 +1004,7 @@ int main(int argc, char **argv)
 
 		WM_init(C, argc, argv);
 		
-		// XXX BRECHT SOLVE
+		/* this is properly initialized with user defs, but this is default */
 		BLI_where_is_temp( btempdir, 1 ); /* call after loading the .B.blend so we can read U.tempdir */
 
 #ifndef DISABLE_SDL
@@ -1010,7 +1032,7 @@ int main(int argc, char **argv)
 	 * Update: now this function also inits the bpymenus, which also depend
 	 * on U.pythondir.
 	 */
-	
+
 	// TODO - U.pythondir
 
 #endif

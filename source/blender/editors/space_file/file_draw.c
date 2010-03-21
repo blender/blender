@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -298,6 +298,9 @@ static int get_file_icon(struct direntry *file)
 		if ( strcmp(file->relname, "..") == 0) {
 				return  ICON_FILE_PARENT;
 		}
+		if(file->flags & BLENDERFILE) {
+			return ICON_FILE_BLEND;
+		}
 		return ICON_FILE_FOLDER;
 	}
 	else if (file->flags & BLENDERFILE)
@@ -515,7 +518,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		draw_dividers(layout, v2d);
 	}
 
-	offset = ED_fileselect_layout_offset(layout, ar->v2d.cur.xmin, -ar->v2d.cur.ymax);
+	offset = ED_fileselect_layout_offset(layout, 0, ar->v2d.cur.xmin, -ar->v2d.cur.ymax);
 	if (offset<0) offset=0;
 
 	numfiles_layout = ED_fileselect_layout_numfiles(layout, ar);

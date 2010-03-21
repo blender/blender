@@ -486,9 +486,6 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
 				break;
-			case SCE_PASS_RADIO:
-				col= NULL; // removed shr->rad;
-				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
 				break;
@@ -592,9 +589,6 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 				break;
 			case SCE_PASS_REFRACT:
 				col= shr->refr;
-				break;
-			case SCE_PASS_RADIO:
-				col= NULL; // removed shr->rad;
 				break;
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
@@ -2658,7 +2652,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	/* get the threads running */
 	for(a=0; a<re->r.threads; a++) {
 		/* set defaults in handles */
-		handles[a].ssamp.shi[0].lay= re->scene->lay;
+		handles[a].ssamp.shi[0].lay= re->lay;
 		
 		if (type==RE_BAKE_SHADOW) {
 			handles[a].ssamp.shi[0].passflag= SCE_PASS_SHADOW;

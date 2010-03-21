@@ -181,11 +181,12 @@ IF(UNIX AND NOT APPLE)
 		ENDIF(NOT SDL_FOUND)
 	ENDIF(WITH_SDL)
 
+    SET(OPENEXR /usr CACHE FILEPATH "OPENEXR Directory")
 	FIND_PATH(OPENEXR_INC
 		ImfXdr.h
 		PATHS
+        ${OPENEXR}/include/OpenEXR
 		/usr/local/include/OpenEXR
-		/usr/include/OpenEXR
 		/sw/include/OpenEXR
 		/opt/local/include/OpenEXR
 		/opt/csw/include/OpenEXR
@@ -193,9 +194,9 @@ IF(UNIX AND NOT APPLE)
 	)
 	SET(OPENEXR_LIB Half IlmImf Iex Imath)
 
-	SET(FFMPEG /usr)
+	SET(FFMPEG /usr CACHE FILEPATH "FFMPEG Directory")
 	SET(FFMPEG_INC ${FFMPEG}/include)
-	SET(FFMPEG_LIB avformat avcodec avutil avdevice swscale)
+	SET(FFMPEG_LIB avformat avcodec avutil avdevice swscale CACHE STRING "FFMPEG Libraries")
 	SET(FFMPEG_LIBPATH ${FFMPEG}/lib)
   
 	IF(WITH_FFTW3)

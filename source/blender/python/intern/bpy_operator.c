@@ -39,7 +39,6 @@
 
 #include "MEM_guardedalloc.h"
 #include "BKE_report.h"
-#include "BKE_utildefines.h"
 
 
 static PyObject *pyop_call( PyObject * self, PyObject * args)

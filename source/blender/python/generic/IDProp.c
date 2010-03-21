@@ -1,5 +1,5 @@
 /**
- * $Id: IDProp.c
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -23,16 +23,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "DNA_ID.h"
-
 #include "BKE_idprop.h"
-
 #include "IDProp.h"
-// #include "gen_utils.h"
-
 #include "MEM_guardedalloc.h"
-
-#define BSTR_EQ(a, b)	(*(a) == *(b) && !strcmp(a, b))
 
 /*** Function to wrap ID properties ***/
 PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop, IDProperty *parent);

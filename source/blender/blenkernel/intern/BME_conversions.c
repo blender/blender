@@ -33,22 +33,14 @@
  */
 
 #include "MEM_guardedalloc.h"
-#include "BKE_customdata.h" 
 
-#include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_mesh.h"
-#include "BKE_bmesh.h"
-#include "BKE_global.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 //XXX #include "BIF_editmesh.h"
 //XXX #include "editmesh.h"

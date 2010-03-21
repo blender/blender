@@ -29,28 +29,6 @@ class PoseTemplateSettings(bpy.types.IDPropertyGroup):
 class PoseTemplate(bpy.types.IDPropertyGroup):
     pass
 
-PoseTemplate.StringProperty(attr="name",
-                name="Name of the slave",
-                description="",
-                maxlen=64,
-                default="")
-
-
-PoseTemplateSettings.CollectionProperty(attr="templates", type=PoseTemplate, name="Templates", description="")
-PoseTemplateSettings.IntProperty(attr="active_template_index",
-                name="Index of the active slave",
-                description="",
-                default=-1,
-                min=-1,
-                max=65535)
-
-PoseTemplateSettings.BoolProperty(attr="generate_def_rig",
-                name="Create Deform Rig",
-                description="Create a copy of the metarig, constrainted by the generated rig",
-                default=False)
-
-bpy.types.Scene.PointerProperty(attr="pose_templates", type=PoseTemplateSettings, name="Pose Templates", description="Pose Template Settings")
-
 
 def metarig_templates():
     import rigify
@@ -355,6 +333,28 @@ def register():
     register = bpy.types.register
     for cls in classes:
         register(cls)
+
+    PoseTemplate.StringProperty(attr="name",
+                    name="Name of the slave",
+                    description="",
+                    maxlen=64,
+                    default="")
+
+
+    PoseTemplateSettings.CollectionProperty(attr="templates", type=PoseTemplate, name="Templates", description="")
+    PoseTemplateSettings.IntProperty(attr="active_template_index",
+                    name="Index of the active slave",
+                    description="",
+                    default=-1,
+                    min=-1,
+                    max=65535)
+
+    PoseTemplateSettings.BoolProperty(attr="generate_def_rig",
+                    name="Create Deform Rig",
+                    description="Create a copy of the metarig, constrainted by the generated rig",
+                    default=False)
+
+    bpy.types.Scene.PointerProperty(attr="pose_templates", type=PoseTemplateSettings, name="Pose Templates", description="Pose Template Settings")
 
     space_info.INFO_MT_armature_add.append(menu_func)
 

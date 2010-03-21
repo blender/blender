@@ -49,17 +49,14 @@
 #include "DNA_sound_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_packedFile_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_screen.h"
 #include "BKE_sound.h"
 #include "BKE_image.h"
-#include "BKE_font.h"
 #include "BKE_packedFile.h"
 #include "BKE_report.h"
 

@@ -168,15 +168,16 @@ typedef struct FileSelectParams {
 
 	/* XXX - temporary, better move to filelist */
 	short active_bookmark;
+
 	int	active_file;
 	int selstate;
 
 	/* short */
 	/* XXX --- still unused -- */
 	short f_fp; /* show font preview */
-	short menu; /* currently selected option in pupmenu */
+	short pad;
 	char fp_str[8]; /* string to use for font preview */
-	char *pupmenu; /* allows menu for save options - result stored in menup */
+
 	/* XXX --- end unused -- */
 } FileSelectParams;
 

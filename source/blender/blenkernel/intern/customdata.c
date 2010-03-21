@@ -37,16 +37,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_customdata_types.h"
-#include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_ID.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
-#include "BLI_math.h"
 #include "BLI_mempool.h"
-#include "BLI_string.h"
 
 #include "BKE_customdata.h"
 #include "BKE_customdata_file.h"

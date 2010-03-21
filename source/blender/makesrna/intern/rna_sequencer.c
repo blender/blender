@@ -342,7 +342,7 @@ static int rna_Sequence_filepath_length(PointerRNA *ptr)
 	return strlen(path)+1;
 }
 
-static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
+/*static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
 {
 	Sequence *seq= (Sequence*)(ptr->data);
 	char dir[FILE_MAX], name[FILE_MAX];
@@ -359,7 +359,7 @@ static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 
 	BLI_split_dirfile(value, NULL, name);
 	BLI_strncpy(elem->name, name, sizeof(elem->name));
-}
+}*/
 
 static void rna_Sequence_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
@@ -447,7 +447,7 @@ static void rna_def_strip_transform(BlenderRNA *brna)
 
 	prop= RNA_def_property(srna, "offset_x", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "xofs");
-	RNA_def_property_ui_text(prop, "Offset Y", "");
+	RNA_def_property_ui_text(prop, "Offset X", "");
 	RNA_def_property_ui_range(prop, -4096, 4096, 1, 0);
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
@@ -924,11 +924,6 @@ static void rna_def_scene(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "scene_camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Camera Override", "Override the scenes active camera");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
-
-	prop= RNA_def_property(srna, "use_opengl", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_USE_SCENE_OPENGL);
-	RNA_def_property_ui_text(prop, "Use OpenGL", "Use OpenGL preview rather then rendering the scene");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
 	rna_def_filter_video(srna);

@@ -28,11 +28,9 @@
  * Efficient memory allocation for lots of similar small chunks.
  */
 
-#include <stdlib.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_memarena.h"
 #include "BLI_linklist.h"
 

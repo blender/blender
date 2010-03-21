@@ -2871,6 +2871,7 @@ static void project_paint_begin(ProjPaintState *ps)
 		if (ps->dm_mtface_clone==NULL || ps->dm_mtface_clone==ps->dm_mtface) {
 			ps->do_layer_clone = 0;
 			ps->dm_mtface_clone= NULL;
+            printf("ACK!\n");
 		}
 	}
 	
@@ -3704,6 +3705,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	float mask = 1.0f; /* airbrush wont use mask */
 	unsigned short mask_short;
 	float size_half = ((float)ps->brush->size) * 0.5f;
+	short lock_alpha= ELEM(ps->brush->blend, IMB_BLEND_ERASE_ALPHA, IMB_BLEND_ADD_ALPHA) ? 0 : ps->brush->flag & BRUSH_LOCK_ALPHA;
 	
 	LinkNode *smearPixels = NULL;
 	LinkNode *smearPixels_f = NULL;
@@ -3832,6 +3834,12 @@ static void *do_projectpaint_thread(void *ph_v)
 								break;
 							}
 						}
+
+						if(lock_alpha) {
+							if (is_floatbuf)	projPixel->pixel.f_pt[3]= projPixel->origColor.f[3];
+							else				projPixel->pixel.ch_pt[3]= projPixel->origColor.ch[3];
+						}
+
 						/* done painting */
 					}
 				}
@@ -4567,7 +4575,16 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 {
 	Scene *scene= CTX_data_scene(C);
 	ToolSettings *settings= scene->toolsettings;
-	Brush *brush;
+	Brush *brush= paint_brush(&settings->imapaint.paint);
+
+	/* brush */
+	ps->brush = brush;
+	ps->tool = brush->imagepaint_tool;
+	ps->blend = brush->blend;
+
+	ps->is_airbrush = (brush->flag & BRUSH_AIRBRUSH) ? 1 : 0;
+	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
+
 
 	/* these can be NULL */
 	ps->v3d= CTX_wm_view3d(C);
@@ -4607,16 +4624,6 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 
 	if(ps->normal_angle_range <= 0.0f)
 		ps->do_mask_normal = 0; /* no need to do blending */
-
-
-	/* brush */
-	brush= paint_brush(&settings->imapaint.paint);
-	ps->brush = brush;
-	ps->tool = brush->imagepaint_tool;
-	ps->blend = brush->blend;
-
-	ps->is_airbrush = (brush->flag & BRUSH_AIRBRUSH) ? 1 : 0;
-	ps->is_texbrush = (brush->mtex.tex) ? 1 : 0;
 }
 
 static int texture_paint_init(bContext *C, wmOperator *op)

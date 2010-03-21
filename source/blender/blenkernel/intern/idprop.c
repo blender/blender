@@ -1,5 +1,5 @@
 /**
- * $Id: idprop.c
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -29,13 +29,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "DNA_listBase.h"
-#include "DNA_ID.h"
-
 #include "BKE_idprop.h"
-#include "BKE_global.h"
 #include "BKE_library.h"
-#include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 

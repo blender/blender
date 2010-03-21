@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -540,7 +540,7 @@ void viewline(ARegion *ar, View3D *v3d, float mval[2], float ray_start[3], float
 	float vec[4];
 	int a;
 	
-	if(rv3d->persp != RV3D_ORTHO){
+	if(!get_view3d_ortho(v3d, rv3d)) {
 		vec[0]= 2.0f * mval[0] / ar->winx - 1;
 		vec[1]= 2.0f * mval[1] / ar->winy - 1;
 		vec[2]= -1.0f;
@@ -2288,12 +2288,12 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				break;
 
 			case FLY_MODAL_DIR_UP:
-				if (fly->speed < 0.0f) fly->speed= -fly->speed;
+				if (fly->speed > 0.0f) fly->speed= -fly->speed;
 				fly->axis= 1;
 				break;
 
 			case FLY_MODAL_DIR_DOWN:
-				if (fly->speed > 0.0f) fly->speed= -fly->speed;
+				if (fly->speed < 0.0f) fly->speed= -fly->speed;
 				fly->axis= 1;
 				break;
 
@@ -2323,7 +2323,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 	}
 }
 
-static int flyApply(FlyInfo *fly)
+static int flyApply(bContext *C, FlyInfo *fly)
 {
 	/*
 	fly mode - Shift+F
@@ -2606,13 +2606,10 @@ static int flyApply(FlyInfo *fly)
 
 				/* record the motion */
 				if (autokeyframe_cfra_can_key(scene, id_key)) {
-					bCommonKeySrc cks;
-					ListBase dsources = {&cks, &cks};
-					int cfra = CFRA;
+					ListBase dsources = {NULL, NULL};
 					
-					/* init common-key-source for use by KeyingSets */
-					memset(&cks, 0, sizeof(bCommonKeySrc));
-					cks.id= id_key;
+					/* add datasource override for the camera object */
+					ANIM_relative_keyingset_add_source(&dsources, id_key, NULL, NULL); 
 					
 					/* insert keyframes 
 					 *	1) on the first frame
@@ -2621,12 +2618,15 @@ static int flyApply(FlyInfo *fly)
 					 */
 					if (fly->xlock || fly->zlock || moffset[0] || moffset[1]) {
 						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Rotation");
-						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					}
 					if (fly->speed) {
 						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, "Location");
-						modify_keyframes(scene, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
+						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, (float)CFRA);
 					}
+					
+					/* free temp data */
+					BLI_freelistN(&dsources);
 				}
 			}
 		} else
@@ -2689,7 +2689,7 @@ static int fly_modal(bContext *C, wmOperator *op, wmEvent *event)
 	flyEvent(fly, event);
 
 	if(event->type==TIMER && event->customdata == fly->timer)
-		flyApply(fly);
+		flyApply(C, fly);
 
 	if(fly->redraw) {
 		ED_region_tag_redraw(CTX_wm_region(C));

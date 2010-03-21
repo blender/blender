@@ -25,7 +25,6 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#include <math.h>
 
 #include "BLI_voxel.h"
 

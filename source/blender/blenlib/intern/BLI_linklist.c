@@ -29,7 +29,6 @@
  */
 
 #include "MEM_guardedalloc.h"
-#include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
 

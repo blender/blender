@@ -1,5 +1,5 @@
 /**
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -140,6 +140,8 @@ short fcurve_needs_draw_fmodifier_controls (FCurve *fcu, FModifier *fcm)
 		switch (fcm->type) {
 			/* clearly harmless */
 			case FMODIFIER_TYPE_CYCLES:
+				return 0;
+			case FMODIFIER_TYPE_STEPPED:
 				return 0;
 				
 			/* borderline... */

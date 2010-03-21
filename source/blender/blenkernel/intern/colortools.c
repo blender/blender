@@ -40,20 +40,14 @@
 
 #include "DNA_color_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_image_types.h"
-#include "DNA_texture_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_curve.h"
-#include "BKE_global.h"
 #include "BKE_ipo.h"
-#include "BKE_image.h"
-#include "BKE_main.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_threads.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"

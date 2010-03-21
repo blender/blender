@@ -125,7 +125,7 @@ void rna_Object_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 void rna_Object_matrix_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	ED_object_apply_obmat(ptr->id.data);
+	object_apply_mat4(ptr->id.data, ((Object *)ptr->id.data)->obmat);
 	rna_Object_update(bmain, scene, ptr);
 }
 

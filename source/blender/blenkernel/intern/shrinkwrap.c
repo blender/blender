@@ -45,21 +45,14 @@
 #include "BKE_lattice.h"
 #include "BKE_utildefines.h"
 #include "BKE_deform.h"
-#include "BKE_cdderivedmesh.h"
-#include "BKE_displist.h"
-#include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
 
 #include "BLI_math.h"
-#include "BLI_kdtree.h"
-#include "BLI_kdopbvh.h"
 #include "BLI_editVert.h"
 
-#include "RE_raytrace.h"
 #include "MEM_guardedalloc.h"
 
-#include "ED_mesh.h"
 
 /* Util macros */
 #define TO_STR(a)	#a

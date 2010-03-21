@@ -38,8 +38,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
-#include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
@@ -48,7 +46,6 @@
 #include "BLI_ghash.h"
 
 #include "BKE_icons.h"
-#include "BKE_utildefines.h"
 #include "BKE_global.h" /* only for G.background test */
 
 #include "BLO_sys_types.h" // for intptr_t support

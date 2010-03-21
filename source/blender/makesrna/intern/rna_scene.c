@@ -26,6 +26,7 @@
 
 #include "RNA_define.h"
 #include "RNA_types.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -99,22 +100,22 @@ EnumPropertyItem image_type_items[] = {
 #endif
 	{R_BMP, "BMP", ICON_FILE_IMAGE, "BMP", ""},
 	{R_TARGA, "TARGA", ICON_FILE_IMAGE, "Targa", ""},
-	{R_RAWTGA, "RAWTARGA", ICON_FILE_IMAGE, "Targa Raw", ""},
+	{R_RAWTGA, "TARGA_RAW", ICON_FILE_IMAGE, "Targa Raw", ""},
 	//{R_DDS, "DDS", ICON_FILE_IMAGE, "DDS", ""}, // XXX not yet implemented
 	{R_HAMX, "HAMX", ICON_FILE_IMAGE, "HamX", ""},
 	{R_IRIS, "IRIS", ICON_FILE_IMAGE, "Iris", ""},
 	{0, "", 0, " ", NULL},
 #ifdef WITH_OPENEXR
-	{R_OPENEXR, "OPENEXR", ICON_FILE_IMAGE, "OpenEXR", ""},
+	{R_OPENEXR, "OPEN_EXR", ICON_FILE_IMAGE, "OpenEXR", ""},
 	{R_MULTILAYER, "MULTILAYER", ICON_FILE_IMAGE, "MultiLayer", ""},
 #endif
 	{R_TIFF, "TIFF", ICON_FILE_IMAGE, "TIFF", ""},	// XXX only with G.have_libtiff
-	{R_RADHDR, "RADHDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
+	{R_RADHDR, "HDR", ICON_FILE_IMAGE, "Radiance HDR", ""},
 	{R_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", ""},
 	{R_DPX, "DPX", ICON_FILE_IMAGE, "DPX", ""},
 	{0, "", 0, "Movie", NULL},
-	{R_AVIRAW, "AVIRAW", ICON_FILE_MOVIE, "AVI Raw", ""},
-	{R_AVIJPEG, "AVIJPEG", ICON_FILE_MOVIE, "AVI JPEG", ""},
+	{R_AVIRAW, "AVI_RAW", ICON_FILE_MOVIE, "AVI Raw", ""},
+	{R_AVIJPEG, "AVI_JPEG", ICON_FILE_MOVIE, "AVI JPEG", ""},
 #ifdef _WIN32
 	{R_AVICODEC, "AVICODEC", ICON_FILE_MOVIE, "AVI Codec", ""},
 #endif
@@ -132,7 +133,7 @@ EnumPropertyItem image_type_items[] = {
 	{R_H264, "H264", ICON_FILE_MOVIE, "H.264", ""},
 	{R_XVID, "XVID", ICON_FILE_MOVIE, "Xvid", ""},
 	{R_THEORA, "THEORA", ICON_FILE_MOVIE, "Ogg Theora", ""},
-	{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "FFMpeg", ""},
+	{R_FFMPEG, "FFMPEG", ICON_FILE_MOVIE, "MPEG", ""},
 #endif
 	{R_FRAMESERVER, "FRAMESERVER", ICON_FILE_SCRIPT, "Frame Server", ""},
 	{0, NULL, 0, NULL, NULL}};
@@ -177,12 +178,12 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base*)internal->link)->object);
 }
 
-static Base *rna_Scene_link_object(Scene *scene, ReportList *reports, Object *ob)
+static Base *rna_Scene_object_link(Scene *scene, ReportList *reports, Object *ob)
 {
 	Base *base;
 
 	if (ob->type != OB_EMPTY && ob->data==NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not an Empty type and has no Object Data set.");
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is not an Empty type and has no Object Data set.", ob->id.name+2);
 		return NULL;
 	}
 
@@ -203,7 +204,7 @@ static Base *rna_Scene_link_object(Scene *scene, ReportList *reports, Object *ob
 	return base;
 }
 
-static void rna_Scene_unlink_object(Scene *scene, bContext *C, ReportList *reports, Object *ob)
+static void rna_Scene_object_unlink(Scene *scene, bContext *C, ReportList *reports, Object *ob)
 {
 	Base *base= object_in_scene(ob, scene);
 	if (!base) {
@@ -1788,22 +1789,15 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	static EnumPropertyItem bake_qyad_split_items[] ={
 		{0, "AUTO", 0, "Automatic", "Split quads to give the least distortion while baking"},
-		{1, "FIXED", 0, "Fixed", "Split quads pradictably (0,1,2) (0,2,3)"},
-		{2, "FIXED_ALT", 0, "Fixed Alternate", "Split quads pradictably (1,2,3) (1,3,0)"},
-		{0, NULL, 0, NULL, NULL}};
-
-	static EnumPropertyItem bake_aa_items[] ={
-		{5, "AA_5", 0, "5", ""},
-		{8, "AA_8", 0, "8", ""},
-		{11, "AA_11", 0, "11", ""},
-		{16, "AA_16", 0, "16", ""},
+		{1, "FIXED", 0, "Fixed", "Split quads predictably (0,1,2) (0,2,3)"},
+		{2, "FIXED_ALT", 0, "Fixed Alternate", "Split quads predictably (1,2,3) (1,3,0)"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem octree_resolution_items[] = {
-		{64, "OCTREE_RES_64", 0, "64", ""},
-		{128, "OCTREE_RES_128", 0, "128", ""},
-		{256, "OCTREE_RES_256", 0, "256", ""},
-		{512, "OCTREE_RES_512", 0, "512", ""},
+		{64, "64", 0, "64", ""},
+		{128, "128", 0, "128", ""},
+		{256, "256", 0, "256", ""},
+		{512, "512", 0, "512", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem raytrace_structure_items[] = {
@@ -1817,20 +1811,20 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 		};
 
 	static EnumPropertyItem fixed_oversample_items[] = {
-		{5, "OVERSAMPLE_5", 0, "5", ""},
-		{8, "OVERSAMPLE_8", 0, "8", ""},
-		{11, "OVERSAMPLE_11", 0, "11", ""},
-		{16, "OVERSAMPLE_16", 0, "16", ""},
+		{5, "5", 0, "5", ""},
+		{8, "8", 0, "8", ""},
+		{11, "11", 0, "11", ""},
+		{16, "16", 0, "16", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem field_order_items[] = {
-		{0, "FIELDS_EVENFIRST", 0, "Upper First", "Upper field first"},
-		{R_ODDFIELD, "FIELDS_ODDFIRST", 0, "Lower First", "Lower field first"},
+		{0, "EVEN_FIRST", 0, "Upper First", "Upper field first"},
+		{R_ODDFIELD, "ODD_FIRST", 0, "Lower First", "Lower field first"},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem threads_mode_items[] = {
-		{0, "THREADS_AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
-		{R_FIXED_THREADS, "THREADS_FIXED", 0, "Fixed", "Manually determine the number of threads"},
+		{0, "AUTO", 0, "Auto-detect", "Automatically determine the number of threads, based on CPUs"},
+		{R_FIXED_THREADS, "FIXED", 0, "Fixed", "Manually determine the number of threads"},
 		{0, NULL, 0, NULL, NULL}};
 		
 #ifdef WITH_OPENEXR	
@@ -1971,7 +1965,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	/* JPEG and AVI JPEG */
 	
-	prop= RNA_def_property(srna, "quality", PROP_INT, PROP_PERCENTAGE);
+	prop= RNA_def_property(srna, "file_quality", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "quality");
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Quality", "Quality of JPEG images, AVI Jpeg and SGI movies");
@@ -2466,7 +2460,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop= RNA_def_property(srna, "bake_aa_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_osa");
-	RNA_def_property_enum_items(prop, bake_aa_items);
+	RNA_def_property_enum_items(prop, fixed_oversample_items);
 	RNA_def_property_ui_text(prop, "Anti-Aliasing Level", "");
 	
 	prop= RNA_def_property(srna, "bake_active", PROP_BOOLEAN, PROP_NONE);
@@ -2582,6 +2576,27 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Stamp Background", "Color to use behind stamp text");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
+	/* sequencer draw options */
+
+	prop= RNA_def_property(srna, "use_sequencer_gl_preview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_GL_PREV);
+	RNA_def_property_ui_text(prop, "Sequencer OpenGL", "");
+
+	prop= RNA_def_property(srna, "use_sequencer_gl_render", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_GL_REND);
+	RNA_def_property_ui_text(prop, "Sequencer OpenGL", "");
+
+
+	prop= RNA_def_property(srna, "sequencer_gl_preview", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "seq_prev_type");
+	RNA_def_property_enum_items(prop, viewport_shading_items);
+	RNA_def_property_ui_text(prop, "Sequencer Preview Shading", "Method to draw in the sequencer view");
+
+	prop= RNA_def_property(srna, "sequencer_gl_render", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "seq_rend_type");
+	RNA_def_property_enum_items(prop, viewport_shading_items);
+	RNA_def_property_ui_text(prop, "Sequencer Preview Shading", "Method to draw in the sequencer view");
+
 	/* layers */
 	
 	prop= RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
@@ -2667,7 +2682,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_struct_sdna(srna, "Scene");
 	RNA_def_struct_ui_text(srna, "Scene Objects", "Collection of scene objects");
 
-	func= RNA_def_function(srna, "link", "rna_Scene_link_object");
+	func= RNA_def_function(srna, "link", "rna_Scene_object_link");
 	RNA_def_function_ui_description(func, "Link object to scene.");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to add to scene.");
@@ -2675,7 +2690,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 	parm= RNA_def_pointer(func, "base", "ObjectBase", "", "The newly created base.");
 	RNA_def_function_return(func, parm);
 
-	func= RNA_def_function(srna, "unlink", "rna_Scene_unlink_object");
+	func= RNA_def_function(srna, "unlink", "rna_Scene_object_unlink");
 	RNA_def_function_ui_description(func, "Unlink object from scene.");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 	parm= RNA_def_pointer(func, "object", "Object", "", "Object to remove from scene.");
@@ -2753,8 +2768,8 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Scene");
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL);
-	RNA_def_property_ui_text(prop, "Set Scene", "Background set scene");
-	RNA_def_property_update(prop, NC_SCENE, NULL);
+	RNA_def_property_ui_text(prop, "Background Scene", "Background set scene");
+	RNA_def_property_update(prop, NC_SCENE|NA_EDITED, NULL);
 
 	prop= RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);

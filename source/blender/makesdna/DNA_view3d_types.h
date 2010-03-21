@@ -247,6 +247,7 @@ typedef struct View3D {
 #define RV3D_VIEW_CAMERA		 8
 
 /* View3d->flag2 (short) */
+#define V3D_RENDER_OVERRIDE		4
 #define V3D_SOLID_TEX			8
 #define V3D_DISPGP				16
 

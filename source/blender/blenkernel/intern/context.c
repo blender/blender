@@ -27,8 +27,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
-#include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -44,7 +42,6 @@
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
-#include "BKE_global.h"
 
 #ifndef DISABLE_PYTHON
 #include "BPY_extern.h"

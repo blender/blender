@@ -27,8 +27,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 

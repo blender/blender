@@ -31,6 +31,7 @@
 #include "DNA_color_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_string.h"
 
@@ -164,9 +165,15 @@ static void id_search_cb(const bContext *C, void *arg_template, char *str, uiSea
 	/* ID listbase */
 	for(id= lb->first; id; id= id->next) {
 		if(!((flag & PROP_ID_SELF_CHECK) && id == id_from)) {
+
+			/* hide dot-datablocks */
+			if(U.uiflag & USER_HIDE_DOT)
+    			if ((id->name[2]=='.') && (str[0] != '.'))
+    				continue;
+
 			if(BLI_strcasestr(id->name+2, str)) {
 				iconid= ui_id_icon_get((bContext*)C, id, 0);
-
+                
 				if(!uiSearchItemAdd(items, id->name+2, id, iconid))
 					break;
 			}

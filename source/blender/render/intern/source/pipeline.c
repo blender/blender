@@ -141,11 +141,6 @@ static void int_nothing(void *unused, int val) {}
 static void print_error(void *unused, char *str) {printf("ERROR: %s\n", str);}
 static int default_break(void *unused) {return G.afbreek == 1;}
 
-int RE_RenderInProgress(Render *re)
-{
-	return re->result_ok==0;
-}
-
 static void stats_background(void *unused, RenderStats *rs)
 {
 	uintptr_t mem_in_use= MEM_get_memory_in_use();
@@ -348,10 +343,10 @@ static char *get_pass_name(int passtype, int channel)
 		return "AO.B";
 	}
 	if(passtype == SCE_PASS_ENVIRONMENT) {
-		if(channel==-1) return "Environment";
-		if(channel==0) return "Environment.R";
-		if(channel==1) return "Environment.G";
-		return "Environment.B";
+		if(channel==-1) return "Env";
+		if(channel==0) return "Env.R";
+		if(channel==1) return "Env.G";
+		return "Env.B";
 	}
 	if(passtype == SCE_PASS_INDIRECT) {
 		if(channel==-1) return "Indirect";
@@ -370,12 +365,6 @@ static char *get_pass_name(int passtype, int channel)
 		if(channel==0) return "Refract.R";
 		if(channel==1) return "Refract.G";
 		return "Refract.B";
-	}
-	if(passtype == SCE_PASS_RADIO) {
-		if(channel==-1) return "Radio";
-		if(channel==0) return "Radio.R";
-		if(channel==1) return "Radio.G";
-		return "Radio.B";
 	}
 	if(passtype == SCE_PASS_INDEXOB) {
 		if(channel==-1) return "IndexOB";
@@ -431,7 +420,7 @@ static int passtype_from_name(char *str)
 	if(strcmp(str, "AO")==0)
 		return SCE_PASS_AO;
 
-	if(strcmp(str, "Environment")==0)
+	if(strcmp(str, "Env")==0)
 		return SCE_PASS_ENVIRONMENT;
 
 	if(strcmp(str, "Indirect")==0)
@@ -442,9 +431,6 @@ static int passtype_from_name(char *str)
 
 	if(strcmp(str, "Refract")==0)
 		return SCE_PASS_REFRACT;
-
-	if(strcmp(str, "Radio")==0)
-		return SCE_PASS_RADIO;
 
 	if(strcmp(str, "IndexOB")==0)
 		return SCE_PASS_INDEXOB;
@@ -625,8 +611,6 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_REFLECT);
 		if(srl->passflag  & SCE_PASS_REFRACT)
 			render_layer_add_pass(rr, rl, 3, SCE_PASS_REFRACT);
-		if(srl->passflag  & SCE_PASS_RADIO)
-			render_layer_add_pass(rr, rl, 3, SCE_PASS_RADIO);
 		if(srl->passflag  & SCE_PASS_INDEXOB)
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
 		if(srl->passflag  & SCE_PASS_MIST)
@@ -1106,6 +1090,8 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr)
 				if(rr->rectz==NULL)
 					rr->rectz= RE_RenderLayerGetPass(rl, SCE_PASS_Z);	
 			}
+
+			rr->layers= re->result->layers;
 		}
 	}
 }
@@ -1864,9 +1850,9 @@ static void do_render_3d(Render *re)
 	
 	/* make render verts/faces/halos/lamps */
 	if(render_scene_needs_vector(re))
-		RE_Database_FromScene_Vectors(re, re->scene);
+		RE_Database_FromScene_Vectors(re, re->scene, re->lay);
 	else
-	   RE_Database_FromScene(re, re->scene, 1);
+	   RE_Database_FromScene(re, re->scene, re->lay, 1);
 	
 	threaded_tile_processor(re);
 	
@@ -2488,7 +2474,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 					R.stats_draw= re->stats_draw;
 					
 					if (update_newframe)
-						scene_update_for_newframe(re->scene, re->scene->lay);
+						scene_update_for_newframe(re->scene, re->lay);
 					
 					if(re->r.scemode & R_FULL_SAMPLE) 
 						do_merge_fullsample(re, ntree);
@@ -2749,7 +2735,7 @@ static void update_physics_cache(Render *re, Scene *scene, int anim_init)
 	BKE_ptcache_make_cache(&baker);
 }
 /* evaluating scene options for general Blender render */
-static int render_initialize_from_scene(Render *re, Scene *scene, SceneRenderLayer *srl, int anim, int anim_init)
+static int render_initialize_from_scene(Render *re, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int anim, int anim_init)
 {
 	int winx, winy;
 	rcti disprect;
@@ -2776,6 +2762,7 @@ static int render_initialize_from_scene(Render *re, Scene *scene, SceneRenderLay
 	}
 	
 	re->scene= scene;
+	re->lay= lay;
 	
 	/* not too nice, but it survives anim-border render */
 	if(anim) {
@@ -2816,21 +2803,19 @@ static int render_initialize_from_scene(Render *re, Scene *scene, SceneRenderLay
 }
 
 /* general Blender frame render call */
-void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, int frame)
+void RE_BlenderFrame(Render *re, Scene *scene, SceneRenderLayer *srl, unsigned int lay, int frame)
 {
 	/* ugly global still... is to prevent preview events and signal subsurfs etc to make full resol */
 	RenderGlobal.renderingslot= re->slot;
-	re->result_ok= 0;
 	G.rendering= 1;
 	
 	scene->r.cfra= frame;
 	
-	if(render_initialize_from_scene(re, scene, srl, 0, 0)) {
+	if(render_initialize_from_scene(re, scene, srl, lay, 0, 0)) {
 		do_render_all_options(re);
 	}
 	
 	/* UGLY WARNING */
-	re->result_ok= 1;
 	G.rendering= 0;
 	RenderGlobal.renderingslot= RenderGlobal.viewslot;
 }
@@ -2839,7 +2824,7 @@ void RE_RenderFreestyleStrokes(Render *re, Scene *scene)
 {
 	re->result_ok= 0;
 	scene->r.cfra= 1;
-	if(render_initialize_from_scene(re, scene, NULL, 0, 0)) {
+	if(render_initialize_from_scene(re, scene, NULL, scene->lay, 0, 0)) {
 		do_render_all_options(re);
 	}
 	re->result_ok= 1;
@@ -2932,22 +2917,20 @@ static int do_write_image_or_movie(Render *re, Scene *scene, bMovieHandle *mh, R
 }
 
 /* saves images to disk */
-void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra, ReportList *reports)
+void RE_BlenderAnim(Render *re, Scene *scene, unsigned int lay, int sfra, int efra, int tfra, ReportList *reports)
 {
 	bMovieHandle *mh= BKE_get_movie_handle(scene->r.imtype);
-	unsigned int lay;
 	int cfrao= scene->r.cfra;
 	int nfra;
 	
 	/* do not fully call for each frame, it initializes & pops output window */
-	if(!render_initialize_from_scene(re, scene, NULL, 0, 1))
+	if(!render_initialize_from_scene(re, scene, NULL, lay, 0, 1))
 		return;
 	
 	/* ugly global still... is to prevent renderwin events and signal subsurfs etc to make full resol */
 	/* is also set by caller renderwin.c */
 	G.rendering= 1;
 	RenderGlobal.renderingslot= re->slot;
-	re->result_ok= 0;
 	
 	if(BKE_imtype_is_movie(scene->r.imtype))
 		if(!mh->start_movie(scene, &re->r, re->rectx, re->recty, reports))
@@ -2975,7 +2958,7 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra, Repo
 			char name[FILE_MAX];
 			
 			/* only border now, todo: camera lens. (ton) */
-			render_initialize_from_scene(re, scene, NULL, 1, 0);
+			render_initialize_from_scene(re, scene, NULL, lay, 1, 0);
 
 			if(nfra!=scene->r.cfra) {
 				/*
@@ -2983,12 +2966,14 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra, Repo
 				 * From convertblender.c:
 				 * in localview, lamps are using normal layers, objects only local bits.
 				 */
-				if(scene->lay & 0xFF000000)
-					lay= scene->lay & 0xFF000000;
-				else
-					lay= scene->lay;
+				unsigned int updatelay;
 
-				scene_update_for_newframe(scene, lay);
+				if(re->lay & 0xFF000000)
+					updatelay= re->lay & 0xFF000000;
+				else
+					updatelay= re->lay;
+
+				scene_update_for_newframe(scene, updatelay);
 				continue;
 			}
 			else
@@ -3042,7 +3027,6 @@ void RE_BlenderAnim(Render *re, Scene *scene, int sfra, int efra, int tfra, Repo
 	
 	/* UGLY WARNING */
 	G.rendering= 0;
-	re->result_ok= 1;
 	RenderGlobal.renderingslot= RenderGlobal.viewslot;
 }
 

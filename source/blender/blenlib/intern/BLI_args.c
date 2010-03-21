@@ -1,7 +1,7 @@
 /**
  * A general argument parsing module
  *
- * $Id:
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -177,6 +177,10 @@ void BLI_argsParse(struct bArgs *ba, int pass, BA_ArgCallback default_cb, void *
 	int i = 0;
 
 	for( i = 1; i < ba->argc; i++) { /* skip argv[0] */
+		/* stop on -- */
+		if (BLI_streq(ba->argv[i], "--"))
+			break;
+
 		if (ba->passes[i] == 0) {
 			 /* -1 signal what side of the comparison it is */
 			bArgument *a = lookUp(ba, ba->argv[i], pass, -1);

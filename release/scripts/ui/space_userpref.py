@@ -287,6 +287,10 @@ class USERPREF_PT_interface(bpy.types.Panel):
         col.prop(view, "open_toplevel_delay", text="Top Level")
         col.prop(view, "open_sublevel_delay", text="Sub Level")
 
+        col.separator()
+
+        col.prop(view, "show_splash")
+
 
 class USERPREF_PT_edit(bpy.types.Panel):
     bl_space_type = 'USER_PREFERENCES'
@@ -665,6 +669,19 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "object_grouped")
             col.prop(v3d, "object_grouped_active")
             col.prop(v3d, "transform")
+            col.prop(v3d, "nurb_uline")
+            col.prop(v3d, "nurb_vline")
+            col.prop(v3d, "nurb_sel_uline")
+            col.prop(v3d, "nurb_sel_vline")
+            col.prop(v3d, "handle_free")
+            col.prop(v3d, "handle_auto")
+            col.prop(v3d, "handle_vect")
+            col.prop(v3d, "handle_align")
+            col.prop(v3d, "handle_sel_free")
+            col.prop(v3d, "handle_sel_auto")
+            col.prop(v3d, "handle_sel_vect")
+            col.prop(v3d, "handle_sel_align")
+            col.prop(v3d, "act_spline")
 
             col = split.column()
             col.prop(v3d, "vertex")
@@ -673,6 +690,7 @@ class USERPREF_PT_theme(bpy.types.Panel):
             col.prop(v3d, "vertex_normal")
             col.prop(v3d, "bone_solid")
             col.prop(v3d, "bone_pose")
+            col.prop(v3d, "edge_seam")
             #col.prop(v3d, "edge") Doesn't seem to work
 
         elif theme.theme_area == 'GRAPH_EDITOR':
@@ -1398,20 +1416,125 @@ class USERPREF_PT_addons(bpy.types.Panel):
         userpref = context.user_preferences
         used_ext = {ext.module for ext in userpref.addons}
 
-        col = layout.column()
+        # collect the categories that can be filtered on
+        addons = [(mod, addon_info_get(mod)) for mod in self._addon_list()]
 
-        for mod in self._addon_list():
-            box = col.box()
-            row = box.row()
-            text = mod.__doc__
-            if not text:
-                text = mod.__name__
-            row.label(text=text)
+        cats = {info["category"] for mod, info in addons}
+        cats.discard("")
+
+        cats = ['All', 'Disabled', 'Enabled'] + sorted(cats)
+
+        bpy.types.Scene.EnumProperty(items=[(cats[i], cats[i], str(i)) for i in range(len(cats))],
+            name="Category", attr="addon_filter", description="Filter add-ons by category")
+        bpy.types.Scene.StringProperty(name="Search", attr="addon_search",
+            description="Search within the selected filter")
+
+        row = layout.row()
+        row.prop(context.scene, "addon_filter", text="Filter")
+        row.prop(context.scene, "addon_search", text="Search", icon='VIEWZOOM')
+        layout.separator()
+
+        filter = context.scene.addon_filter
+        search = context.scene.addon_search.lower()
+
+        for mod, info in addons:
             module_name = mod.__name__
+
+            # check if add-on should be visible with current filters
+            if filter != "All" and \
+                    filter != info["category"] and \
+                    not (module_name not in used_ext and filter == "Disabled"):
+
+                continue
+
+            if search and search not in info["name"].lower():
+                if info["author"]:
+                    if search not in info["author"].lower():
+                        continue
+                else:
+                    continue
+
+            # Addon UI Code
+            box = layout.column().box()
+            column = box.column()
+            row = column.row()
+
+            # Arrow #
+            # If there are Infos or UI is expanded
+            if info["expanded"]:
+                row.operator("wm.addon_expand", icon="TRIA_DOWN").module = module_name
+            elif info["author"] or info["version"] or info["url"] or info["location"]:
+                row.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
+            else:
+                # Else, block UI
+                arrow = row.column()
+                arrow.enabled = False
+                arrow.operator("wm.addon_expand", icon="TRIA_RIGHT").module = module_name
+
+            row.label(text=info["name"])
             row.operator("wm.addon_disable" if module_name in used_ext else "wm.addon_enable").module = module_name
 
+            # Expanded UI (only if additional infos are available)
+            if info["expanded"]:
+                if info["author"]:
+                    split = column.row().split(percentage=0.15)
+                    split.label(text='Author:')
+                    split.label(text=info["author"])
+                if info["version"]:
+                    split = column.row().split(percentage=0.15)
+                    split.label(text='Version:')
+                    split.label(text=info["version"])
+                if info["location"]:
+                    split = column.row().split(percentage=0.15)
+                    split.label(text='Location:')
+                    split.label(text=info["location"])
+                if info["url"]:
+                    split = column.row().split(percentage=0.15)
+                    split.label(text="Internet:")
+                    split.operator("wm.addon_links", text="Link to the Wiki").link = info["url"]
+                    split.separator()
+                    split.separator()
+
+        # Append missing scripts
+        # First collect scripts that are used but have no script file.
+        module_names = {mod.__name__ for mod, info in addons}
+        missing_modules = {ext for ext in used_ext if ext not in module_names}
+
+        if missing_modules and filter in ("All", "Enabled"):
+            layout.column().separator()
+            layout.column().label(text="Missing script files")
+
+            module_names = {mod.__name__ for mod, info in addons}
+            for ext in sorted(missing_modules):
+                # Addon UI Code
+                box = layout.column().box()
+                column = box.column()
+                row = column.row()
+
+                row.label(text=ext, icon="ERROR")
+                row.operator("wm.addon_disable").module = ext
 
 from bpy.props import *
+
+
+def addon_info_get(mod, info_basis={"name": "", "author": "", "version": "", "blender": "", "location": "", "url": "", "category": "", "expanded": False}):
+    addon_info = getattr(mod, "bl_addon_info", {})
+
+    # avoid re-initializing
+    if "_init" in addon_info:
+        return addon_info
+
+    if not addon_info:
+        mod.bl_addon_info = addon_info
+
+    for key, value in info_basis.items():
+        addon_info.setdefault(key, value)
+
+    if not addon_info["name"]:
+        addon_info["name"] = mod.__name__
+
+    addon_info["_init"] = None
+    return addon_info
 
 
 class WM_OT_addon_enable(bpy.types.Operator):
@@ -1422,16 +1545,24 @@ class WM_OT_addon_enable(bpy.types.Operator):
     module = StringProperty(name="Module", description="Module name of the addon to enable")
 
     def execute(self, context):
-        import traceback
-        ext = context.user_preferences.addons.new()
         module_name = self.properties.module
-        ext.module = module_name
 
         try:
             mod = __import__(module_name)
             mod.register()
         except:
+            import traceback
             traceback.print_exc()
+            return {'CANCELLED'}
+
+        ext = context.user_preferences.addons.new()
+        ext.module = module_name
+
+        # check if add-on is written for current blender version, or raise a warning
+        info = addon_info_get(mod)
+
+        if info.get("blender", (0, 0, 0)) > bpy.app.version:
+            self.report("WARNING','This script was written for a newer version of Blender and might not function (correctly).\nThe script is enabled though.")
 
         return {'FINISHED'}
 
@@ -1526,6 +1657,42 @@ class WM_OT_addon_install(bpy.types.Operator):
         wm = context.manager
         wm.add_fileselect(self)
         return {'RUNNING_MODAL'}
+
+
+class WM_OT_addon_expand(bpy.types.Operator):
+    "Display more information on this add-on"
+    bl_idname = "wm.addon_expand"
+    bl_label = ""
+
+    module = StringProperty(name="Module", description="Module name of the addon to expand")
+
+    def execute(self, context):
+        module_name = self.properties.module
+
+        # unlikely to fail, module should have alredy been imported
+        try:
+            mod = __import__(module_name)
+        except:
+            import traceback
+            traceback.print_exc()
+            return {'CANCELLED'}
+
+        info = addon_info_get(mod)
+        info["expanded"] = not info["expanded"]
+        return {'FINISHED'}
+
+
+class WM_OT_addon_links(bpy.types.Operator):
+    "Open the Blender Wiki in the Webbrowser"
+    bl_idname = "wm.addon_links"
+    bl_label = ""
+
+    link = StringProperty(name="Link", description="Link to open")
+
+    def execute(self, context):
+        import webbrowser
+        webbrowser.open(self.properties.link)
+        return {'FINISHED'}
 
 
 class WM_OT_keyconfig_test(bpy.types.Operator):
@@ -1921,6 +2088,8 @@ classes = [
     WM_OT_addon_enable,
     WM_OT_addon_disable,
     WM_OT_addon_install,
+    WM_OT_addon_expand,
+    WM_OT_addon_links,
 
     WM_OT_keyconfig_export,
     WM_OT_keyconfig_import,

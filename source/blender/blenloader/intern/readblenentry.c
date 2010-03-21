@@ -377,7 +377,7 @@ BlendFileData *BLO_read_from_memfile(Main *oldmain, const char *filename, MemFil
 		/* makes lookup of existing images in old main */
 		blo_make_image_pointer_map(fd, oldmain);
 		
-		bfd= blo_read_file_internal(fd, "");
+		bfd= blo_read_file_internal(fd, filename);
 		
 		/* ensures relinked images are not freed */
 		blo_end_image_pointer_map(fd, oldmain);

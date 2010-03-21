@@ -55,6 +55,8 @@
 #include "BLI_storage_types.h"
 #include "BLI_dynstr.h"
 
+#include "BLO_readfile.h"
+
 #include "BKE_context.h"
 #include "BKE_screen.h"
 #include "BKE_global.h"
@@ -192,7 +194,6 @@ short ED_fileselect_set_params(SpaceFile *sfile)
 		params->filter = 0;
 		params->sort = FILE_SORT_ALPHA;
 	}
-
 	return 1;
 }
 
@@ -218,7 +219,7 @@ int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar)
 	}
 }
 
-int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
+int ED_fileselect_layout_offset(FileLayout* layout, int clamp_bounds, int x, int y)
 {
 	int offsetx, offsety;
 	int active_file;
@@ -229,9 +230,14 @@ int ED_fileselect_layout_offset(FileLayout* layout, int x, int y)
 	offsetx = (x)/(layout->tile_w + 2*layout->tile_border_x);
 	offsety = (y)/(layout->tile_h + 2*layout->tile_border_y);
 	
-	if (offsetx > layout->columns-1) return -1 ;
-	if (offsety > layout->rows-1) return -1 ;
-
+	if (clamp_bounds) {
+		CLAMP(offsetx, 0, layout->columns-1);
+		CLAMP(offsety, 0, layout->rows-1);
+	} else {
+		if (offsetx > layout->columns-1) return -1 ;
+		if (offsety > layout->rows-1) return -1 ;
+	}
+	
 	if (layout->flag & FILE_LAYOUT_HOR) 
 		active_file = layout->rows*offsetx + offsety;
 	else
@@ -404,7 +410,7 @@ void file_change_dir(bContext *C, int checkdir)
 			/* could return but just refresh the current dir */
 		}
 		filelist_setdir(sfile->files, sfile->params->dir);
-
+		
 		if(folderlist_clear_next(sfile))
 			folderlist_free(sfile->folders_next);
 
