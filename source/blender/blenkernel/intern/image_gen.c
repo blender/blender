@@ -72,6 +72,10 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
  
 	int checkerwidth= 32, dark= 1;
 	int x, y;
+    
+    unsigned char *rect_orig= rect;
+    float *rect_float_orig= rect_float;
+    
 	
 	float h=0.0, hoffs=0.0, hue=0.0, s=0.9, v=0.9, r, g, b;
 
@@ -104,7 +108,10 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 			}
 		}
 	}
-	
+
+    rect= rect_orig;
+    rect_float= rect_float_orig;
+
 	/* 2nd pass, colored + */
 	for(y= 0; y<height; y++) {
 		hoffs= 0.125f * floorf(y / checkerwidth);
