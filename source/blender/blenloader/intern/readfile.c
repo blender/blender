@@ -104,28 +104,21 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_storage_types.h" // for relname flags
 
-#include "BKE_animsys.h"
 #include "BKE_anim.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_brush.h"
-#include "BKE_cdderivedmesh.h"
-#include "BKE_cloth.h"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
-#include "BKE_customdata.h"
 #include "BKE_deform.h"
-#include "BKE_depsgraph.h"
 #include "BKE_effect.h" /* give_parteff */
 #include "BKE_fcurve.h"
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
 #include "BKE_image.h"
-#include "BKE_ipo.h" 
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for wich_libbase
 #include "BKE_main.h" // for Main
@@ -142,12 +135,9 @@
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
 #include "BKE_screen.h"
-#include "BKE_softbody.h"	// sbNew()
-#include "BKE_bullet.h"		// bsbNew()
 #include "BKE_sequencer.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
-#include "BKE_idprop.h"
 
 #include "BKE_sound.h"
 
