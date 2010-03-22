@@ -497,6 +497,28 @@ class DATA_PT_modifiers(DataButtonsPanel):
     def PARTICLE_SYSTEM(self, layout, ob, md, wide_ui):
         layout.label(text="See Particle panel.")
 
+    def SCREW(self, layout, ob, md, wide_ui):
+        split = layout.split()
+        
+        col = split.column()
+        col.prop(md, "axis")
+        col.prop(md, "object", text="AxisOb")
+        col.prop(md, "angle")
+        col.prop(md, "steps")
+        col.prop(md, "render_steps")
+        
+        col = split.column()
+        row = col.row()
+        row.active = (md.object is None or md.use_object_screw_offset == False)
+        row.prop(md, "screw_offset")
+        row = col.row()
+        row.active = (md.object is not None)
+        row.prop(md, "use_object_screw_offset")
+        col.prop(md, "use_normal_calculate")
+        col.prop(md, "use_normal_flip")
+        col.prop(md, "iterations")
+        
+
     def SHRINKWRAP(self, layout, ob, md, wide_ui):
         split = layout.split()
         col = split.column()

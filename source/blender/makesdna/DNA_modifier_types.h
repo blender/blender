@@ -65,6 +65,7 @@ typedef enum ModifierType {
 	eModifierType_Smoke,
 	eModifierType_ShapeKey,
 	eModifierType_Solidify,
+	eModifierType_Screw,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -691,5 +692,23 @@ typedef struct SolidifyModifierData {
 #define MOD_SOLIDIFY_RIM			(1<<0)
 #define MOD_SOLIDIFY_EVEN			(1<<1)
 #define MOD_SOLIDIFY_NORMAL_CALC	(1<<2)
+
+typedef struct ScrewModifierData {
+	ModifierData modifier;
+	struct Object *ob_axis;
+	int		steps;
+	int		render_steps;
+	int		iter;
+	float	screw_ofs;
+	float	angle;
+	short	axis;
+	short	flag;
+} ScrewModifierData;
+
+#define MOD_SCREW_NORMAL_FLIP	(1<<0)
+#define MOD_SCREW_NORMAL_CALC	(1<<1)
+#define MOD_SCREW_OBJECT_OFFSET	(1<<2)
+// #define MOD_SCREW_OBJECT_ANGLE	(1<<4)
+
 
 #endif

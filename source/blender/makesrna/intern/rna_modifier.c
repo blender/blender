@@ -54,6 +54,7 @@ EnumPropertyItem modifier_type_items[] ={
 	{eModifierType_EdgeSplit, "EDGE_SPLIT", ICON_MOD_EDGESPLIT, "Edge Split", ""},
 	{eModifierType_Mask, "MASK", ICON_MOD_MASK, "Mask", ""},
 	{eModifierType_Mirror, "MIRROR", ICON_MOD_MIRROR, "Mirror", ""},
+	{eModifierType_Screw, "SCREW", ICON_MOD_SCREW, "Screw", ""},
 	{eModifierType_Multires, "MULTIRES", ICON_MOD_MULTIRES, "Multiresolution", ""},
 	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
@@ -164,6 +165,8 @@ static StructRNA* rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_SmokeModifier;
 		case eModifierType_Solidify:
 			return &RNA_SolidifyModifier;
+		case eModifierType_Screw:
+			return &RNA_ScrewModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -1191,6 +1194,7 @@ static void rna_def_modifier_edgesplit(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "EdgeSplitModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_EDGESPLIT);
 
+	// XXX, convert to radians.
 	prop= RNA_def_property(srna, "split_angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0, 180);
 	RNA_def_property_ui_range(prop, 0, 180, 100, 2);
@@ -2069,6 +2073,83 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_NORMAL_CALC);
 	RNA_def_property_ui_text(prop, "High Quality Normals", "Calculate normals which result in more even thickness (slow, disable when not needed)");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+}
+
+static void rna_def_modifier_screw(BlenderRNA *brna)
+{
+	static EnumPropertyItem axis_items[]= {
+		{0, "X", 0, "X Axis", ""},
+		{1, "Y", 0, "Y Axis", ""},
+		{2, "Z", 0, "Z Axis", ""},
+		{0, NULL, 0, NULL, NULL}};
+
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "ScrewModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Screw Modifier", "Revolve edges");
+	RNA_def_struct_sdna(srna, "ScrewModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_SCREW);
+
+	prop= RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "ob_axis");
+	RNA_def_property_ui_text(prop, "Object", "Object to define the screw axis");
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
+
+	prop= RNA_def_property(srna, "steps", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_ui_text(prop, "Steps", "Number of steps in the revolution");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "render_steps", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_ui_text(prop, "Render Steps", "Number of steps in the revolution");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "iterations", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "iter");
+	RNA_def_property_ui_range(prop, 1, 1024, 1, 0);
+	RNA_def_property_ui_text(prop, "Iterations", "Number of times to apply the screw operation");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, axis_items);
+	RNA_def_property_ui_text(prop, "Axis", "Screw axis");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	// XXX, convert to radians.
+	prop= RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
+	//RNA_def_property_range(prop, 0, 180);
+	//RNA_def_property_ui_range(prop, 0, 180, 100, 2);
+	RNA_def_property_ui_text(prop, "Angle", "Angle of revolution");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "screw_offset", PROP_FLOAT, PROP_DISTANCE);
+	RNA_def_property_float_sdna(prop, NULL, "screw_ofs");
+	RNA_def_property_ui_text(prop, "Screw", "Offset the revolution along its axis");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "use_normal_flip", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_NORMAL_FLIP);
+	RNA_def_property_ui_text(prop, "Flip", "Flip normals of lathed faces");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "use_normal_calculate", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_NORMAL_CALC);
+	RNA_def_property_ui_text(prop, "Calc Order", "Calculate the order of edges (needed for meshes, but not curves)");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop= RNA_def_property(srna, "use_object_screw_offset", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_OBJECT_OFFSET);
+	RNA_def_property_ui_text(prop, "Object Screw", "Use the distance between the objects to make a screw");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	/*prop= RNA_def_property(srna, "use_angle_object", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_OBJECT_ANGLE);
+	RNA_def_property_ui_text(prop, "Object Angle", "Use the angle between the objects rather then the fixed angle");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");*/
 }
 
 void RNA_def_modifier(BlenderRNA *brna)
@@ -2160,6 +2241,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_surface(brna);
 	rna_def_modifier_smoke(brna);
 	rna_def_modifier_solidify(brna);
+	rna_def_modifier_screw(brna);
 }
 
 #endif
