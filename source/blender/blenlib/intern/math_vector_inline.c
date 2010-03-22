@@ -66,7 +66,7 @@ MINLINE void copy_v3_v3(float r[3], const float a[3])
 	r[2]= a[2];
 }
 
-MINLINE void copy_v4_v4(float r[4], float a[4])
+MINLINE void copy_v4_v4(float r[4], const float a[4])
 {
 	r[0]= a[0];
 	r[1]= a[1];
@@ -97,45 +97,45 @@ MINLINE void swap_v4_v4(float a[4], float b[4])
 
 /********************************* Arithmetic ********************************/
 
-MINLINE void add_v2_v2(float *r, float *a)
+MINLINE void add_v2_v2(float *r, const float *a)
 {
 	r[0] += a[0];
 	r[1] += a[1];
 }
 
-MINLINE void add_v2_v2v2(float *r, float *a, float *b)
+MINLINE void add_v2_v2v2(float *r, const float *a, const float *b)
 {
 	r[0]= a[0] + b[0];
 	r[1]= a[1] + b[1];
 }
 
-MINLINE void add_v3_v3(float *r, float *a)
+MINLINE void add_v3_v3(float *r, const float *a)
 {
 	r[0] += a[0];
 	r[1] += a[1];
 	r[2] += a[2];
 }
 
-MINLINE void add_v3_v3v3(float *r, float *a, float *b)
+MINLINE void add_v3_v3v3(float *r, const float *a, const float *b)
 {
 	r[0]= a[0] + b[0];
 	r[1]= a[1] + b[1];
 	r[2]= a[2] + b[2];
 }
 
-MINLINE void sub_v2_v2(float *r, float *a)
+MINLINE void sub_v2_v2(float *r, const float *a)
 {
 	r[0] -= a[0];
 	r[1] -= a[1];
 }
 
-MINLINE void sub_v2_v2v2(float *r, float *a, float *b)
+MINLINE void sub_v2_v2v2(float *r, const float *a, const float *b)
 {
 	r[0]= a[0] - b[0];
 	r[1]= a[1] - b[1];
 }
 
-MINLINE void sub_v3_v3(float *r, float *a)
+MINLINE void sub_v3_v3(float *r, const float *a)
 {
 	r[0] -= a[0];
 	r[1] -= a[1];
@@ -181,48 +181,48 @@ MINLINE void mul_v2_v2(float r[2], const float a[2])
 	r[1] *= a[1];
 }
 
-MINLINE void mul_v3_v3(float r[3], float a[3])
+MINLINE void mul_v3_v3(float r[3], const float a[3])
 {
 	r[0] *= a[0];
 	r[1] *= a[1];
 	r[2] *= a[2];
 }
 
-MINLINE void madd_v3_v3fl(float r[3], float a[3], float f)
+MINLINE void madd_v3_v3fl(float r[3], const float a[3], float f)
 {
 	r[0] += a[0]*f;
 	r[1] += a[1]*f;
 	r[2] += a[2]*f;
 }
 
-MINLINE void madd_v3_v3v3(float r[3], float a[3], float b[3])
+MINLINE void madd_v3_v3v3(float r[3], const float a[3], const float b[3])
 {
 	r[0] += a[0]*b[0];
 	r[1] += a[1]*b[1];
 	r[2] += a[2]*b[2];
 }
 
-MINLINE void madd_v2_v2v2fl(float r[2], const float a[2], const float b[2], const float f)
+MINLINE void madd_v2_v2v2fl(float r[2], const float a[2], const float b[2], float f)
 {
 	r[0] = a[0] + b[0]*f;
 	r[1] = a[1] + b[1]*f;
 }
 
-MINLINE void madd_v3_v3v3fl(float r[3], float a[3], float b[3], float f)
+MINLINE void madd_v3_v3v3fl(float r[3], const float a[3], const float b[3], float f)
 {
 	r[0] = a[0] + b[0]*f;
 	r[1] = a[1] + b[1]*f;
 	r[2] = a[2] + b[2]*f;
 }
 
-MINLINE void madd_v3_v3v3v3(float r[3], float a[3], float b[3], float c[3])
+MINLINE void madd_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float c[3])
 {
 	r[0] = a[0] + b[0]*c[0];
 	r[1] = a[1] + b[1]*c[1];
 	r[2] = a[2] + b[2]*c[2];
 }
 
-MINLINE void mul_v3_v3v3(float *v, float *v1, float *v2)
+MINLINE void mul_v3_v3v3(float *v, const float *v1, const float *v2)
 {
 	v[0] = v1[0] * v2[0];
 	v[1] = v1[1] * v2[1];
