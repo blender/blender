@@ -523,9 +523,11 @@ class VIEW3D_PT_tools_brush(PaintPanel):
             if settings.tool != 'NONE':
                 col = layout.column()
                 col.prop(brush, "size", slider=True)
-                col.prop(brush, "strength", slider=True)
+                if settings.tool != 'ADD':
+                    col.prop(brush, "strength", slider=True)
 
             if settings.tool == 'ADD':
+                col.prop(brush, "count")
                 col = layout.column()
                 col.prop(settings, "add_interpolate")
                 sub = col.column(align=True)

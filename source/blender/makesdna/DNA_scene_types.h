@@ -534,9 +534,10 @@ typedef struct ImagePaintSettings {
 } ImagePaintSettings;
 
 typedef struct ParticleBrushData {
-	short size, strength;	/* common settings */
-	short step, invert;		/* for specific brushes only */
-	int flag, pad;
+	short size;						/* common setting */
+	short step, invert, count;		/* for specific brushes only */
+	int flag;
+	float strength;
 } ParticleBrushData;
 
 typedef struct ParticleEditSettings {

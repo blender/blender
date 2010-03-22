@@ -424,9 +424,10 @@ Scene *add_scene(char *name)
 	pset->fade_frames= 2;
 	pset->selectmode= SCE_SELECT_PATH;
 	for(a=0; a<PE_TOT_BRUSH; a++) {
-		pset->brush[a].strength= 50;
+		pset->brush[a].strength= 0.5;
 		pset->brush[a].size= 50;
 		pset->brush[a].step= 10;
+		pset->brush[a].count= 10;
 	}
 	pset->brush[PE_BRUSH_CUT].strength= 100;
 	
