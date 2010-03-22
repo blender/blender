@@ -1018,12 +1018,15 @@ class VIEW3D_PT_tools_particlemode(View3DPanel):
         col.active = pe.editable
         col.label(text="Draw:")
         col.prop(pe, "draw_step", text="Path Steps")
-        if pe.type == 'PARTICLES':
-            col.prop(pe, "draw_particles", text="Particles")
-        col.prop(pe, "fade_time")
-        sub = col.row()
-        sub.active = pe.fade_time
-        sub.prop(pe, "fade_frames", slider=True)
+        if pe.hair:
+            col.prop(pe, "draw_particles", text="Children")
+        else:
+            if pe.type == 'PARTICLES':
+                col.prop(pe, "draw_particles", text="Particles")
+            col.prop(pe, "fade_time")
+            sub = col.row()
+            sub.active = pe.fade_time
+            sub.prop(pe, "fade_frames", slider=True)
 
 
 classes = [

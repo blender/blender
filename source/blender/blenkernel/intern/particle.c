@@ -2926,7 +2926,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 	ParticleCacheKey *ca, **cache= edit->pathcache;
 	ParticleEditSettings *pset = &scene->toolsettings->particle;
 	
-	PTCacheEditPoint *point = edit->points;
+	PTCacheEditPoint *point = NULL;
 	PTCacheEditKey *ekey = NULL;
 
 	ParticleSystem *psys = edit->psys;
@@ -2941,7 +2941,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 	float hairmat[4][4], rotmat[3][3], prev_tangent[3];
 	int k,i;
 	int steps = (int)pow(2.0, (double)pset->draw_step);
-	int totpart = edit->totpoint;
+	int totpart = edit->totpoint, recalc_set=0;
 	float sel_col[3];
 	float nosel_col[3];
 
@@ -2951,6 +2951,11 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 		/* clear out old and create new empty path cache */
 		psys_free_path_cache(edit->psys, edit);
 		cache= edit->pathcache= psys_alloc_path_cache_buffers(&edit->pathcachebufs, totpart, steps+1);
+
+		/* set flag for update (child particles check this too) */
+		for(i=0, point=edit->points; i<totpart; i++, point++)
+			point->flag |= PEP_EDIT_RECALC;
+		recalc_set = 1;
 	}
 
 	frs_sec = (psys || edit->pid.flag & PTCACHE_VEL_PER_SEC) ? 25.0f : 1.0f;
@@ -2972,7 +2977,7 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 	}
 
 	/*---first main loop: create all actual particles' paths---*/
-	for(i=0; i<totpart; i++, pa+=pa?1:0, point++){
+	for(i=0, point=edit->points; i<totpart; i++, pa+=pa?1:0, point++){
 		if(edit->totcached && !(point->flag & PEP_EDIT_RECALC))
 			continue;
 
@@ -3123,6 +3128,12 @@ void psys_cache_edit_paths(Scene *scene, Object *ob, PTCacheEdit *edit, float cf
 	if(psys && psys->part->type == PART_HAIR) {
 		ParticleSimulationData sim = {scene, ob, psys, psys_get_modifier(ob, psys), NULL};
 		psys_cache_child_paths(&sim, cfra, 1);
+	}
+
+	/* clear recalc flag if set here */
+	if(recalc_set) {
+		for(i=0, point=edit->points; i<totpart; i++, point++)
+			point->flag &= ~PEP_EDIT_RECALC;
 	}
 }
 /************************************************/
