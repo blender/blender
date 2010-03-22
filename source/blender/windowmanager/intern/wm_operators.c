@@ -1130,7 +1130,6 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *arg_unuse
 	char version_buf[128];
 	char revision_buf[128];
 	extern char build_rev[];
-	char *cp;
 	
 	version_str = &version_buf[0];
 	revision_str = &revision_buf[0];
