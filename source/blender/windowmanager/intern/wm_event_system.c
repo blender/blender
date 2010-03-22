@@ -71,6 +71,7 @@
 #include "wm_window.h"
 #include "wm_event_system.h"
 #include "wm_event_types.h"
+#include "wm_draw.h"
 
 /* ************ event management ************** */
 
@@ -1460,9 +1461,7 @@ static void wm_paintcursor_tag(bContext *C, wmPaintCursor *pc, ARegion *ar)
 			if(pc->poll == NULL || pc->poll(C)) {
 				wmWindow *win= CTX_wm_window(C);
 				win->screen->do_draw_paintcursor= 1;
-
-				if(win->drawmethod != USER_DRAW_TRIPLE)
-					ED_region_tag_redraw(ar);
+				wm_tag_redraw_overlay(win, ar);
 			}
 		}
 	}

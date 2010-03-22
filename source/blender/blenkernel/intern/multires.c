@@ -34,14 +34,15 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
 #include "BLI_pbvh.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
+#include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
@@ -109,11 +110,16 @@ void multires_mark_as_modified(Object *ob)
 
 void multires_force_update(Object *ob)
 {
-
-	if(ob && ob->derivedFinal) {
-		ob->derivedFinal->needsFree =1;
-		ob->derivedFinal->release(ob->derivedFinal);
-		ob->derivedFinal = NULL;
+	if(ob) {
+		if(ob->derivedFinal) {
+			ob->derivedFinal->needsFree =1;
+			ob->derivedFinal->release(ob->derivedFinal);
+			ob->derivedFinal = NULL;
+		}
+		if(ob->sculpt && ob->sculpt->pbvh) {
+			BLI_pbvh_free(ob->sculpt->pbvh);
+			ob->sculpt->pbvh= NULL;
+		}
 	}
 }
 

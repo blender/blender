@@ -375,7 +375,7 @@ void ED_region_tag_redraw(ARegion *ar)
 {
 	if(ar) {
 		/* zero region means full region redraw */
-		ar->do_draw= 1;
+		ar->do_draw= RGN_DRAW;
 		memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	}
 }
@@ -385,7 +385,7 @@ void ED_region_tag_redraw_partial(ARegion *ar, rcti *rct)
 	if(ar) {
 		if(!ar->do_draw) {
 			/* no redraw set yet, set partial region */
-			ar->do_draw= 1;
+			ar->do_draw= RGN_DRAW_PARTIAL;
 			ar->drawrct= *rct;
 		}
 		else if(ar->drawrct.xmin != ar->drawrct.xmax) {

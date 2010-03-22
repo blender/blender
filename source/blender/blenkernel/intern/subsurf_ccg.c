@@ -42,11 +42,12 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_cdderivedmesh.h"
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
+#include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
@@ -1114,7 +1115,7 @@ static void ccgDM_drawVerts(DerivedMesh *dm) {
 	ccgFaceIterator_free(fi);
 	glEnd();
 }
-static void ccgDM_drawEdges(DerivedMesh *dm, int drawLooseEdges) {
+static void ccgDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGEdgeIterator *ei = ccgSubSurf_getEdgeIterator(ss);
@@ -1219,7 +1220,7 @@ static void ccgDM_glNormalFast(float *a, float *b, float *c, float *d)
 
 static void ccgdm_pbvh_update(CCGDerivedMesh *ccgdm)
 {
-	if(ccgdm->pbvh) {
+	if(ccgdm->pbvh && ccgdm->multires.mmd) {
 		CCGFace **faces;
 		int totface;
 
@@ -1935,12 +1936,13 @@ static void ccgDM_release(DerivedMesh *dm) {
 				ccgdm->multires.update(dm);
 		}
 
-		if(ccgdm->pbvh) BLI_pbvh_free(ccgdm->pbvh);
 		if(ccgdm->gridFaces) MEM_freeN(ccgdm->gridFaces);
 		if(ccgdm->gridData) MEM_freeN(ccgdm->gridData);
 		if(ccgdm->gridAdjacency) MEM_freeN(ccgdm->gridAdjacency);
 		if(ccgdm->gridOffset) MEM_freeN(ccgdm->gridOffset);
 		if(ccgdm->freeSS) ccgSubSurf_free(ccgdm->ss);
+		if(ccgdm->fmap) MEM_freeN(ccgdm->fmap);
+		if(ccgdm->fmap_mem) MEM_freeN(ccgdm->fmap_mem);
 		MEM_freeN(ccgdm->edgeFlags);
 		MEM_freeN(ccgdm->faceFlags);
 		MEM_freeN(ccgdm->vertMap);
@@ -2185,10 +2187,34 @@ static int *ccgDM_getGridOffset(DerivedMesh *dm)
 	return ccgdm->gridOffset;
 }
 
+static ListBase *ccgDM_getFaceMap(Object *ob, DerivedMesh *dm)
+{
+	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
+
+	if(!ccgdm->multires.mmd && !ccgdm->fmap && ob->type == OB_MESH) {
+		Mesh *me= ob->data;
+
+		create_vert_face_map(&ccgdm->fmap, &ccgdm->fmap_mem, me->mface,
+				     me->totvert, me->totface);
+	}
+
+	return ccgdm->fmap;
+}
+
 static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm= (CCGDerivedMesh*)dm;
 	int gridSize, numGrids;
+
+	if(!ob) {
+		ccgdm->pbvh= NULL;
+		return NULL;
+	}
+
+	if(!ob->sculpt)
+		return NULL;
+	if(ob->sculpt->pbvh)
+		ccgdm->pbvh= ob->sculpt->pbvh;
 
 	if(ccgdm->pbvh)
 		return ccgdm->pbvh;
@@ -2199,14 +2225,14 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		gridSize = ccgDM_getGridSize(dm);
 		numGrids = ccgDM_getNumGrids(dm);
 
-		ccgdm->pbvh = BLI_pbvh_new();
+		ob->sculpt->pbvh= ccgdm->pbvh = BLI_pbvh_new();
 		BLI_pbvh_build_grids(ccgdm->pbvh, ccgdm->gridData, ccgdm->gridAdjacency,
 			numGrids, gridSize, (void**)ccgdm->gridFaces);
 	}
 	else if(ob->type == OB_MESH) {
 		Mesh *me= ob->data;
 
-		ccgdm->pbvh = BLI_pbvh_new();
+		ob->sculpt->pbvh= ccgdm->pbvh = BLI_pbvh_new();
 		BLI_pbvh_build_mesh(ccgdm->pbvh, me->mface, me->mvert,
 				   me->totface, me->totvert);
 	}
@@ -2265,6 +2291,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.getGridData = ccgDM_getGridData;
 	ccgdm->dm.getGridAdjacency = ccgDM_getGridAdjacency;
 	ccgdm->dm.getGridOffset = ccgDM_getGridOffset;
+	ccgdm->dm.getFaceMap = ccgDM_getFaceMap;
 	ccgdm->dm.getPBVH = ccgDM_getPBVH;
 
 	ccgdm->dm.getVertCos = ccgdm_getVertCos;

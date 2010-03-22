@@ -41,10 +41,11 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h" // N_T
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
+#include "BLI_math.h"
 #include "BLI_memarena.h"
+#include "BLI_pbvh.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
@@ -509,7 +510,7 @@ static void emDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *us
 		glEnd();
 	}
 }
-static void emDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
+static void emDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges)
 {
 	emDM_drawMappedEdges(dm, NULL, NULL);
 }
@@ -2093,6 +2094,15 @@ static void clear_mesh_caches(Object *ob)
 		ob->derivedDeform->needsFree = 1;
 		ob->derivedDeform->release(ob->derivedDeform);
 		ob->derivedDeform= NULL;
+	}
+	/* we free pbvh on changes, except during sculpt since it can't deal with
+	   changing PVBH node organization, we hope topology does not change in
+	   the meantime .. weak */
+	if(ob->sculpt && ob->sculpt->pbvh) {
+		if(!ob->sculpt->cache) {
+			BLI_pbvh_free(ob->sculpt->pbvh);
+			ob->sculpt->pbvh= NULL;
+		}
 	}
 }
 

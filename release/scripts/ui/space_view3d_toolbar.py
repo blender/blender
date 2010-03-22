@@ -568,8 +568,17 @@ class VIEW3D_PT_tools_brush(PaintPanel):
                     col.prop(brush, "use_accumulate")
 
                 if brush.sculpt_tool == 'LAYER':
-                    col.prop(brush, "use_persistent")
-                    col.operator("sculpt.set_persistent_base")
+                    ob = context.sculpt_object
+                    do_persistent = True
+
+                    # not supported yet for this case
+                    for md in ob.modifiers:
+                        if md.type == 'MULTIRES':
+                            do_persistent = False
+
+                    if do_persistent:
+                        col.prop(brush, "use_persistent")
+                        col.operator("sculpt.set_persistent_base")
 
         # Texture Paint Mode #
 

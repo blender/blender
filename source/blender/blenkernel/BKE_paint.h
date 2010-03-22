@@ -69,12 +69,14 @@ typedef struct SculptSession {
 	struct MFace *mface;
 	int totvert, totface;
 	float *face_normals;
-	struct PBVH *tree;
 	struct Object *ob;
 	struct KeyBlock *kb, *refkb;
 	
 	/* Mesh connectivity */
 	struct ListBase *fmap;
+
+	/* PBVH acceleration structure */
+	struct PBVH *pbvh;
 
 	/* Used temporarily per-stroke */
 	float *vertexcosnos;
@@ -87,7 +89,6 @@ typedef struct SculptSession {
 
 	/* Layer brush persistence between strokes */
 	 float (*layer_co)[3]; /* Copy of the mesh vertices' locations */
-	float *layer_disps; /* Displacements for each vertex */
 
 	struct SculptStroke *stroke;
 	struct StrokeCache *cache;
@@ -95,6 +96,6 @@ typedef struct SculptSession {
 	struct GPUDrawObject *drawobject;
 } SculptSession;
 
-void free_sculptsession(SculptSession **);
+void free_sculptsession(struct Object *ob);
 
 #endif

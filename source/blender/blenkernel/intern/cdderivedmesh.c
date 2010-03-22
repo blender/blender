@@ -39,12 +39,13 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_paint.h"
 #include "BKE_utildefines.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
 #include "BLI_edgehash.h"
 #include "BLI_editVert.h"
+#include "BLI_math.h"
 #include "BLI_pbvh.h"
 
 #include "DNA_meshdata_types.h"
@@ -188,6 +189,16 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 
+	if(!ob) {
+		cddm->pbvh= NULL;
+		return NULL;
+	}
+
+	if(!ob->sculpt)
+		return NULL;
+	if(ob->sculpt->pbvh)
+		cddm->pbvh= ob->sculpt->pbvh;
+
 	if(!cddm->pbvh && ob->type == OB_MESH) {
 		Mesh *me= ob->data;
 
@@ -290,7 +301,7 @@ static void cdDM_drawUVEdges(DerivedMesh *dm)
 	}
 }
 
-static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
+static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges, int drawAllEdges)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
 	MVert *mvert = cddm->mvert;
@@ -301,7 +312,7 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
 		DEBUG_VBO( "Using legacy code. cdDM_drawEdges\n" );
 		glBegin(GL_LINES);
 		for(i = 0; i < dm->numEdgeData; i++, medge++) {
-			if((medge->flag&ME_EDGEDRAW)
+			if((drawAllEdges || (medge->flag&ME_EDGEDRAW))
 			   && (drawLooseEdges || !(medge->flag&ME_LOOSEEDGE))) {
 				glVertex3fv(mvert[medge->v1].co);
 				glVertex3fv(mvert[medge->v2].co);
@@ -317,7 +328,7 @@ static void cdDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
 		GPU_edge_setup(dm);
 		if( !GPU_buffer_legacy(dm) ) {
 			for(i = 0; i < dm->numEdgeData; i++, medge++) {
-				if((medge->flag&ME_EDGEDRAW)
+				if((drawAllEdges || (medge->flag&ME_EDGEDRAW))
 				   && (drawLooseEdges || !(medge->flag&ME_LOOSEEDGE))) {
 					draw = 1;
 				} 
@@ -1354,7 +1365,6 @@ static void cdDM_foreachMappedFaceCenter(
 
 static void cdDM_free_internal(CDDerivedMesh *cddm)
 {
-	if(cddm->pbvh) BLI_pbvh_free(cddm->pbvh);
 	if(cddm->fmap) MEM_freeN(cddm->fmap);
 	if(cddm->fmap_mem) MEM_freeN(cddm->fmap_mem);
 }

@@ -68,6 +68,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
@@ -9064,10 +9065,10 @@ static DerivedMesh *multiresModifier_applyModifier(ModifierData *md, Object *ob,
 		result->release(result);
 		result= cddm;
 	}
-	else if(ob->mode & OB_MODE_SCULPT) {
+	else if((ob->mode & OB_MODE_SCULPT) && ob->sculpt) {
 		/* would be created on the fly too, just nicer this
 		   way on first stroke after e.g. switching levels */
-		result->getPBVH(ob, result);
+		ob->sculpt->pbvh= result->getPBVH(ob, result);
 	}
 
 	return result;

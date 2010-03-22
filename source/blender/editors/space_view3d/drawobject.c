@@ -2237,7 +2237,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object 
 	else {
 		if (cageDM!=finalDM) {
 			UI_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
-			finalDM->drawEdges(finalDM, 1);
+			finalDM->drawEdges(finalDM, 1, 0);
 		}
 	}
 	
@@ -2359,7 +2359,7 @@ static void draw_mesh_object_outline(View3D *v3d, Object *ob, DerivedMesh *dm)
 			GPU_disable_material();
 		}
 		else {
-			dm->drawEdges(dm, 0);
+			dm->drawEdges(dm, 0, 1);
 		}
 					
 		glLineWidth(1.0);
@@ -2459,7 +2459,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glEnable(GL_LINE_STIPPLE);
 			glLineStipple(1, 0x8888);
 
-			dm->drawEdges(dm, 1);
+			dm->drawEdges(dm, 1, 0);
 
 			bglPolygonOffset(rv3d->dist, 0.0);
 			glDepthMask(1);
@@ -2486,9 +2486,11 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				int fast= (p->flags & PAINT_FAST_NAVIGATE) && (rv3d->rflag & RV3D_NAVIGATING);
 
 				if(ob->sculpt->partial_redraw) {
-					sculpt_get_redraw_planes(planes, ar, rv3d, ob);
-					fpl = planes;
-					ob->sculpt->partial_redraw = 0;
+					if(ar->do_draw & RGN_DRAW_PARTIAL) {
+						sculpt_get_redraw_planes(planes, ar, rv3d, ob);
+						fpl = planes;
+						ob->sculpt->partial_redraw = 0;
+					}
 				}
 
 				dm->drawFacesSolid(dm, fpl, fast, GPU_enable_material);
@@ -2627,7 +2629,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
 		
-		dm->drawEdges(dm, (dt==OB_WIRE || totface==0));
+		dm->drawEdges(dm, (dt==OB_WIRE || totface==0), 0);
 		
 		if (dt!=OB_WIRE && draw_wire==2) {
 			glDepthMask(1);
@@ -2970,7 +2972,7 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 static void drawCurveDMWired(Object *ob)
 {
 	DerivedMesh *dm = ob->derivedFinal;
-	dm->drawEdges (dm, 1);
+	dm->drawEdges (dm, 1, 0);
 }
 
 /* return 1 when nothing was drawn */
@@ -6314,9 +6316,9 @@ static void draw_object_mesh_instance(Scene *scene, View3D *v3d, RegionView3D *r
 
 	if(dt<=OB_WIRE) {
 		if(dm)
-			dm->drawEdges(dm, 1);
+			dm->drawEdges(dm, 1, 0);
 		else if(edm)
-			edm->drawEdges(edm, 1);	
+			edm->drawEdges(edm, 1, 0);	
 	}
 	else {
 		if(outline)

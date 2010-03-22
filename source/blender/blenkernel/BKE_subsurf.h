@@ -28,19 +28,21 @@
 #ifndef BKE_SUBSURF_H
 #define BKE_SUBSURF_H
 
-struct Mesh;
-struct Object;
+struct DMGridAdjacency;
+struct DMGridData;
 struct DerivedMesh;
 struct EditMesh;
+struct IndexNode;
+struct ListBase;
+struct Mesh;
 struct MultiresSubsurf;
+struct Object;
+struct PBVH;
 struct SubsurfModifierData;
-struct _CCGSubsurf;
-struct _CCGVert;
 struct _CCGEdge;
 struct _CCGFace;
-struct PBVH;
-struct DMGridData;
-struct DMGridAdjacency;
+struct _CCGSubsurf;
+struct _CCGVert;
 
 /**************************** External *****************************/
 
@@ -70,6 +72,8 @@ typedef struct CCGDerivedMesh {
 	char *faceFlags;
 
 	struct PBVH *pbvh;
+	struct ListBase *fmap;
+	struct IndexNode *fmap_mem;
 
 	struct DMGridData **gridData;
 	struct DMGridAdjacency *gridAdjacency;

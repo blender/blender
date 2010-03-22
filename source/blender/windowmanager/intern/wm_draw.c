@@ -158,7 +158,7 @@ static void wm_flush_regions_down(bScreen *screen, rcti *dirty)
 	for(sa= screen->areabase.first; sa; sa= sa->next) {
 		for(ar= sa->regionbase.first; ar; ar= ar->next) {
 			if(BLI_isect_rcti(dirty, &ar->winrct, NULL)) {
-				ar->do_draw= 1;
+				ar->do_draw= RGN_DRAW;
 				memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 				ar->swap= WIN_NONE_OK;
 			}
@@ -173,7 +173,7 @@ static void wm_flush_regions_up(bScreen *screen, rcti *dirty)
 	
 	for(ar= screen->regionbase.first; ar; ar= ar->next) {
 		if(BLI_isect_rcti(dirty, &ar->winrct, NULL)) {
-			ar->do_draw= 1;
+			ar->do_draw= RGN_DRAW;
 			memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 			ar->swap= WIN_NONE_OK;
 		}
@@ -679,6 +679,13 @@ static int wm_automatic_draw_method(wmWindow *win)
 	}
 	else
 		return win->drawmethod;
+}
+
+void wm_tag_redraw_overlay(wmWindow *win, ARegion *ar)
+{
+	/* for draw triple gestures, paint cursors don't need region redraw */
+	if(ar && win && wm_automatic_draw_method(win) != USER_DRAW_TRIPLE)
+		ED_region_tag_redraw(ar);
 }
 
 void wm_draw_update(bContext *C)
