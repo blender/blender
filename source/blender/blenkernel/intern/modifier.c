@@ -6689,8 +6689,8 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 	if (close) {
 		/* last loop of edges, previous loop dosnt account for the last set of edges */
 		for (i=0; i<totvert; i++) {
-			med_new->v1= i+((steps-1)*totvert);
-			med_new->v2= i;
+			med_new->v1= i;
+			med_new->v2= i+((steps-1)*totvert);
 			med_new->flag= ME_EDGEDRAW|ME_EDGERENDER;
 			med_new++;
 		}
