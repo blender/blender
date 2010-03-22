@@ -1988,6 +1988,9 @@ static void sculpt_restore_mesh(Sculpt *sd, SculptSession *ss)
 			for(i = 0; i < ss->totface; ++i, fn += 3)
 				copy_v3_v3(fn, cache->face_norms[i]);
 		}
+
+		if(nodes)
+			MEM_freeN(nodes);
 	}
 }
 
