@@ -5993,7 +5993,6 @@ static DerivedMesh *solidifyModifier_applyModifierEM(ModifierData *md,
 
 /* Screw */
 
-/* Screw */
 /* Screw modifier: revolves the edges about an axis
 */
 
@@ -6071,12 +6070,13 @@ static void screwModifier_copyData(ModifierData *md, ModifierData *target)
 	tltmd->flag= sltmd->flag;
 	tltmd->steps= sltmd->steps;
 	tltmd->render_steps= sltmd->render_steps;
+	tltmd->screw_ofs= sltmd->screw_ofs;
 	tltmd->iter= sltmd->iter;
 }
 
 static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
-                                         DerivedMesh *derivedData,
-                                         int useRenderParams, int isFinalCalc)
+                                        DerivedMesh *derivedData,
+                                        int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm= derivedData;
 	DerivedMesh *result;
@@ -6111,7 +6111,6 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 
 	ScrewVertConnect *vc, *vc_tmp, *vert_connect= NULL;
 
-
 	float mat[4][4] =	{{0.0f, 0.0f, 0.0f, 0.0f},
 						 {0.0f, 0.0f, 0.0f, 0.0f},
 						 {0.0f, 0.0f, 0.0f, 0.0f},
@@ -6121,23 +6120,25 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 	if (!totvert)
 		return CDDM_from_template(dm, 0, 0, 0);
 
-	if (useRenderParams)
-		steps= ltmd->render_steps;
-	else
-		steps= ltmd->steps;
+	steps= useRenderParams ? ltmd->render_steps : ltmd->steps;
 
-	if (ltmd->axis==0) {
+	switch(ltmd->axis) {
+	case 0:
 		other_axis_1=1;
 		other_axis_2=2;
-	} else if (ltmd->axis==1) {
+		break;
+	case 1:
 		other_axis_1=0;
 		other_axis_2=2;
-	} else {
+		break;
+	case 2:
 		other_axis_1=0;
 		other_axis_2=1;
+		break;
 	}
 
-	axis_vec[ltmd->axis]= 1.0;
+	axis_vec[ltmd->axis]= 1.0f;
+
 	if (ltmd->ob_axis) {
 		float mtx3_tx[3][3];
 		/* calc the matrix relative to the axis object */
@@ -6157,7 +6158,7 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 			float totlen = len_v3(mtx_tx[3]);
 
 			if(totlen != 0.0f) {
-				float zero[3]={0,0,0};
+				float zero[3]={0.0f, 0.0f, 0.0f};
 				float cp[3];				
 				screw_ofs= closest_to_line_v3(cp, mtx_tx[3], zero, axis_vec);
 			}
@@ -6192,20 +6193,20 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 				cross_v3_v3v3(axis_tmp, cross1, c2);
 				normalize_v3(axis_tmp);
 
-				if(len_v3v3(axis_tmp, axis_vec) > 1.0)
+				if(len_v3v3(axis_tmp, axis_vec) > 1.0f)
 					angle= -angle;
 
 			}
 		}
 #endif
-
-	} else {
+	}
+	else {
 		/* exis char is used by i_rotate*/
 		axis_char= 'X' + ltmd->axis;
 
 		/* useful to be able to use the axis vec in some cases still */
 		zero_v3(axis_vec);
-		axis_vec[ltmd->axis]= 1.0;
+		axis_vec[ltmd->axis]= 1.0f;
 	}
 
 	/* apply the multiplier */
@@ -6213,13 +6214,14 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 	screw_ofs *= ltmd->iter;
 
 	/* multiplying the steps is a bit tricky, this works best */
-	steps += 1;
-	steps = (steps * ltmd->iter) - (ltmd->iter - 1);
-	if(steps < 2) steps= 2;
+	steps = ((steps + 1) * ltmd->iter) - (ltmd->iter - 1);
 
-	/* will the screw be closed? */
-	if (fabs(screw_ofs) <= (FLT_EPSILON*100) && fabs(fabs(angle) -  M_PI * 2.0) <= (FLT_EPSILON*100)) {
+	/* will the screw be closed?
+	 * Note! smaller then FLT_EPSILON*100 gives problems with float precission so its never closed. */
+	if (fabs(screw_ofs) <= (FLT_EPSILON*100) && fabs(fabs(angle) - (M_PI * 2)) <= (FLT_EPSILON*100)) {
 		close= 1;
+		steps--;
+		if(steps < 2) steps= 2;
 	
 		maxVerts =	totvert  * steps; /* -1 because we're joining back up */
 		maxEdges =	(totvert * steps) + /* these are the edges between new verts */
@@ -6227,9 +6229,11 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 		maxFaces =	totedge * steps;
 
 		screw_ofs= 0.0f;
-	} else {
+	}
+	else {
 		close= 0;
-		
+		if(steps < 2) steps= 2;
+
 		maxVerts =	totvert  * steps; /* -1 because we're joining back up */
 		maxEdges =	(totvert * (steps-1)) + /* these are the edges between new verts */
 					(totedge * steps); /* -1 because vert edges join */
@@ -6299,7 +6303,8 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 				copy_v3_v3(mv_new->co, mv_orig->co);
 				normalize_v3_v3(vc->no, mv_new->co); /* no edges- this is realy a dummy normal */
 			}
-		} else {
+		}
+		else {
 			/*printf("\n\n\n\n\nStarting Modifier\n");*/
 			/* set edge users */
 			med_new= medge_new;
@@ -6323,7 +6328,8 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 
 					/* printf("location %f %f %f -- %f\n", vc->co[0], vc->co[1], vc->co[2], vc->dist);*/
 				}
-			} else {
+			}
+			else {
 				for (i=0; i < totvert; i++, mv_new++, mv_orig++, vc++) {
 					vc->co[0]= mv_new->co[0]= mv_orig->co[0];
 					vc->co[1]= mv_new->co[1]= mv_orig->co[1];
@@ -6348,10 +6354,12 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 				if (vc->v[0]==-1) { /* unused */
 					vc->v[0]= med_new->v2;
 					vc->e[0]= med_new;
-				} else if (vc->v[1]==-1) {
+				}
+				else if (vc->v[1]==-1) {
 					vc->v[1]= med_new->v2;
 					vc->e[1]= med_new;
-				} else {
+				}
+				else {
 					vc->v[0]= vc->v[1]= -2; /* erro value  - dont use, 3 edges on vert */
 				}
 
@@ -6361,10 +6369,12 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 				if (vc->v[0]==-1) { /* unused */
 					vc->v[0]= med_new->v1;
 					vc->e[0]= med_new;
-				} else if (vc->v[1]==-1) {
+				}
+				else if (vc->v[1]==-1) {
 					vc->v[1]= med_new->v1;
 					vc->e[1]= med_new;
-				} else {
+				}
+				else {
 					vc->v[0]= vc->v[1]= -2; /* erro value  - dont use, 3 edges on vert */
 				}
 			}
@@ -6439,9 +6449,11 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 
 							if (vf_1 < vf_best && vf_best < vf_2) {
 								ed_loop_flip= 0;
-							} else if (vf_1 > vf_best && vf_best > vf_2) {
+							}
+							else if (vf_1 > vf_best && vf_best > vf_2) {
 								ed_loop_flip= 1;
-							} else {
+							}
+							else {
 								/* not so simple to work out wich edge is higher */
 								sub_v3_v3v3(tmp_vec1, tmpf1, vc_tmp->co);
 								sub_v3_v3v3(tmp_vec1, tmpf2, vc_tmp->co);
@@ -6450,15 +6462,18 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 
 								if (tmp_vec1[ltmd->axis] < tmp_vec2[ltmd->axis]) {
 									ed_loop_flip= 1;
-								} else {
+								}
+								else {
 									ed_loop_flip= 0;
 								}
 							}
-						} else if (vc_tmp->v[0] >= 0) { /*vertex only connected on 1 side */
+						}
+						else if (vc_tmp->v[0] >= 0) { /*vertex only connected on 1 side */
 							/*printf("Verts on ONE side (%i %i)\n", vc_tmp->v[0], vc_tmp->v[1]);*/
 							if (tmpf1[ltmd->axis] < vc_tmp->co[ltmd->axis]) { /* best is above */
 								ed_loop_flip= 1;
-							} else { /* best is below or even... in even case we cant know whet  to do. */
+							}
+							else { /* best is below or even... in even case we cant know whet  to do. */
 								ed_loop_flip= 0;
 							}
 
@@ -6470,14 +6485,11 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 
 
 						/* switch the flip option if set */
-						if (ltmd->flag & MOD_SCREW_NORMAL_FLIP) {
-							if (ed_loop_flip)	ed_loop_flip= 0;
-							else				ed_loop_flip= 1;
-						}
-						if (angle < 0.0f) {
-							if (ed_loop_flip)	ed_loop_flip= 0;
-							else				ed_loop_flip= 1;
-						}
+						if (ltmd->flag & MOD_SCREW_NORMAL_FLIP)
+							ed_loop_flip= !ed_loop_flip;
+
+						if (angle < 0.0f)
+							ed_loop_flip= !ed_loop_flip;
 
 						/* if its closed, we only need 1 loop */
 						for(j=ed_loop_closed; j<2; j++) {
@@ -6491,10 +6503,8 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 							/* If this is the vert off the best vert and
 							 * the best vert has 2 edges connected too it
 							 * then swap the flip direction */
-							if (j==1 && (vc_tmp->v[0] > -1) && (vc_tmp->v[1] > -1)) {
-								if (ed_loop_flip)	ed_loop_flip= 0;
-								else				ed_loop_flip= 1;
-							}
+							if (j==1 && (vc_tmp->v[0] > -1) && (vc_tmp->v[1] > -1))
+								ed_loop_flip= !ed_loop_flip;
 
 							while (lt_iter.v_poin && lt_iter.v_poin->flag != 2) {
 								/*printf("\tOrdering Vert V %i\n", lt_iter.v);*/
@@ -6504,14 +6514,15 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 									if (lt_iter.v == lt_iter.e->v1) {
 										if (ed_loop_flip==0) {
 											/*printf("\t\t\tFlipping 0\n");*/
-											SWAP( int, lt_iter.e->v1, lt_iter.e->v2 );
+											SWAP(int, lt_iter.e->v1, lt_iter.e->v2);
 										}/* else {
 											printf("\t\t\tFlipping Not 0\n");
 										}*/
-									} else if (lt_iter.v == lt_iter.e->v2) {
+									}
+									else if (lt_iter.v == lt_iter.e->v2) {
 										if (ed_loop_flip==1) {
 											/*printf("\t\t\tFlipping 1\n");*/
-											SWAP( int, lt_iter.e->v1, lt_iter.e->v2 );
+											SWAP(int, lt_iter.e->v1, lt_iter.e->v2);
 										}/* else {
 											printf("\t\t\tFlipping Not 1\n");
 										}*/
@@ -6549,16 +6560,18 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 						 * edge should be there but check just in case... */
 						if (vc->e && vc->e[0]->v1 == i) {
 							sub_v3_v3v3(tmp_vec1, tmp_vec1, tmp_vec2);
-						} else {
+						}
+						else {
 							sub_v3_v3v3(tmp_vec1, tmp_vec2, tmp_vec1);
 						}
-
-					} else {
+					}
+					else {
 						/* only 1 edge connected - same as above except
 						 * dont need to average edge direction */
 						if (vc->e && vc->e[0]->v2 == i) {
 							sub_v3_v3v3(tmp_vec1, mvert_new[i].co, mvert_new[vc->v[0]].co);
-						} else {
+						}
+						else {
 							sub_v3_v3v3(tmp_vec1, mvert_new[vc->v[0]].co, mvert_new[i].co);
 						}
 					}
@@ -6570,12 +6583,13 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 					/* edge average vector and right angle to the pivot make the normal */
 					cross_v3_v3v3(vc->no, tmp_vec1, tmp_vec2);
 
-				} else {
+				}
+				else {
 					copy_v3_v3(vc->no, vc->co);
 				}
 
 				/* we wont be looping on this data again so copy normals here */
-				if (angle < 0.0)
+				if (angle < 0.0f)
 					negate_v3(vc->no);
 
 				normalize_v3(vc->no);
@@ -6618,7 +6632,8 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 		if (ltmd->ob_axis) {
 			axis_angle_to_mat3(mat3, axis_vec, step_angle);
 			copy_m4_m3(mat, mat3);
-		} else {
+		}
+		else {
 			unit_m4(mat);
 			rotate_m4(mat, axis_char, step_angle);
 			copy_m3_m4(mat3, mat);
@@ -6651,7 +6666,8 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 				mul_m4_v3(mat, mv_new->co);
 
 				add_v3_v3(mv_new->co, mtx_tx[3]);
-			} else {
+			}
+			else {
 				mul_m4_v3(mat, mv_new->co);
 			}
 			
@@ -6696,8 +6712,8 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 			mf_new->v4= i1 + totvert;
 			
 			if( !mf_new->v3 || !mf_new->v4 ) {
-				SWAP( int, mf_new->v1, mf_new->v3 );
-				SWAP( int, mf_new->v2, mf_new->v4 );
+				SWAP(int, mf_new->v1, mf_new->v3);
+				SWAP(int, mf_new->v2, mf_new->v4);
 			}
 			mf_new->flag= ME_SMOOTH;
 			origindex[mface_index]= ORIGINDEX_NONE;
@@ -6724,8 +6740,8 @@ static DerivedMesh *screwModifier_applyModifier(ModifierData *md, Object *ob,
 			mf_new->v4= med_new_firstloop->v1;
 
 			if( !mf_new->v3 || !mf_new->v4 ) {
-				SWAP( int, mf_new->v1, mf_new->v3 );
-				SWAP( int, mf_new->v2, mf_new->v4 );
+				SWAP(int, mf_new->v1, mf_new->v3);
+				SWAP(int, mf_new->v2, mf_new->v4);
 			}
 			mf_new->flag= ME_SMOOTH;
 			origindex[mface_index]= ORIGINDEX_NONE;

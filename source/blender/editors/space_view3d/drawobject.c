@@ -2978,7 +2978,6 @@ static int drawCurveDerivedMesh(Scene *scene, View3D *v3d, RegionView3D *rv3d, B
 {
 	Object *ob= base->object;
 	DerivedMesh *dm = ob->derivedFinal;
-	Curve *cu= ob->data;
 
 	if (!dm) {
 		return 1;
